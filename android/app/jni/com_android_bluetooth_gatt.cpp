@@ -201,7 +201,7 @@ void btgattc_register_scanner_cb(int status, int scannerId,
 }
 
 void btgattc_scan_result_cb(bt_bdaddr_t* bda, int rssi,
-                            vector<uint8_t> adv_data) {
+                            std::vector<uint8_t> adv_data) {
   CallbackEnv sCallbackEnv(__func__);
   if (!sCallbackEnv.valid()) return;
 
@@ -621,7 +621,7 @@ void btgatts_connection_cb(int conn_id, int server_if, int connected,
 }
 
 void btgatts_service_added_cb(int status, int server_if,
-                              vector<btgatt_db_element_t> service) {
+                              std::vector<btgatt_db_element_t> service) {
   CallbackEnv sCallbackEnv(__func__);
   if (!sCallbackEnv.valid()) return;
 
@@ -681,7 +681,7 @@ void btgatts_request_write_characteristic_cb(int conn_id, int trans_id,
                                              bt_bdaddr_t* bda, int attr_handle,
                                              int offset, bool need_rsp,
                                              bool is_prep,
-                                             vector<uint8_t> value) {
+                                             std::vector<uint8_t> value) {
   CallbackEnv sCallbackEnv(__func__);
   if (!sCallbackEnv.valid()) return;
 
@@ -700,7 +700,8 @@ void btgatts_request_write_characteristic_cb(int conn_id, int trans_id,
 void btgatts_request_write_descriptor_cb(int conn_id, int trans_id,
                                          bt_bdaddr_t* bda, int attr_handle,
                                          int offset, bool need_rsp,
-                                         bool is_prep, vector<uint8_t> value) {
+                                         bool is_prep,
+                                         std::vector<uint8_t> value) {
   CallbackEnv sCallbackEnv(__func__);
   if (!sCallbackEnv.valid()) return;
 
@@ -1067,7 +1068,7 @@ static void gattClientWriteCharacteristicNative(JNIEnv* env, jobject object,
   jbyte* p_value = env->GetByteArrayElements(value, NULL);
   if (p_value == NULL) return;
 
-  vector<uint8_t> vect_val(p_value, p_value + len);
+  std::vector<uint8_t> vect_val(p_value, p_value + len);
   env->ReleaseByteArrayElements(value, p_value, 0);
 
   sGattIf->client->write_characteristic(conn_id, handle, write_type, auth_req,
@@ -1232,12 +1233,12 @@ static void gattClientScanFilterAddRemoveNative(
     {
       jbyte* data_array = env->GetByteArrayElements(data, 0);
       int data_len = env->GetArrayLength(data);
-      vector<uint8_t> vec_data(data_array, data_array + data_len);
+      std::vector<uint8_t> vec_data(data_array, data_array + data_len);
       env->ReleaseByteArrayElements(data, data_array, JNI_ABORT);
 
       jbyte* mask_array = env->GetByteArrayElements(mask, NULL);
       uint16_t mask_len = (uint16_t)env->GetArrayLength(mask);
-      vector<uint8_t> vec_mask(mask_array, mask_array + mask_len);
+      std::vector<uint8_t> vec_mask(mask_array, mask_array + mask_len);
       env->ReleaseByteArrayElements(mask, mask_array, JNI_ABORT);
 
       sGattIf->scanner->scan_filter_add_remove(
@@ -1267,7 +1268,7 @@ static void gattClientScanFilterAddRemoveNative(
     {
       const char* c_name = env->GetStringUTFChars(name, NULL);
       if (c_name != NULL && strlen(c_name) != 0) {
-        vector<uint8_t> vec_name(c_name, c_name + strlen(c_name));
+        std::vector<uint8_t> vec_name(c_name, c_name + strlen(c_name));
         env->ReleaseStringUTFChars(name, c_name);
         sGattIf->scanner->scan_filter_add_remove(
             client_if, action, filt_type, filt_index, 0, 0, NULL, NULL, NULL, 0,
@@ -1281,12 +1282,12 @@ static void gattClientScanFilterAddRemoveNative(
     {
       jbyte* data_array = env->GetByteArrayElements(data, 0);
       int data_len = env->GetArrayLength(data);
-      vector<uint8_t> vec_data(data_array, data_array + data_len);
+      std::vector<uint8_t> vec_data(data_array, data_array + data_len);
       env->ReleaseByteArrayElements(data, data_array, JNI_ABORT);
 
       jbyte* mask_array = env->GetByteArrayElements(mask, NULL);
       uint16_t mask_len = (uint16_t)env->GetArrayLength(mask);
-      vector<uint8_t> vec_mask(mask_array, mask_array + mask_len);
+      std::vector<uint8_t> vec_mask(mask_array, mask_array + mask_len);
       env->ReleaseByteArrayElements(mask, mask_array, JNI_ABORT);
 
       sGattIf->scanner->scan_filter_add_remove(
@@ -1383,12 +1384,13 @@ static void startAdvertiserNative(JNIEnv* env, jobject object,
 
   jbyte* adv_data_data = env->GetByteArrayElements(adv_data, NULL);
   uint16_t adv_data_len = (uint16_t)env->GetArrayLength(adv_data);
-  vector<uint8_t> data_vec(adv_data_data, adv_data_data + adv_data_len);
+  std::vector<uint8_t> data_vec(adv_data_data, adv_data_data + adv_data_len);
   env->ReleaseByteArrayElements(adv_data, adv_data_data, JNI_ABORT);
 
   jbyte* scan_resp_data = env->GetByteArrayElements(scan_resp, NULL);
   uint16_t scan_resp_len = (uint16_t)env->GetArrayLength(scan_resp);
-  vector<uint8_t> scan_resp_vec(scan_resp_data, scan_resp_data + scan_resp_len);
+  std::vector<uint8_t> scan_resp_vec(scan_resp_data,
+                                     scan_resp_data + scan_resp_len);
   env->ReleaseByteArrayElements(scan_resp, scan_resp_data, JNI_ABORT);
 
   sGattIf->advertiser->StartAdvertising(
@@ -1496,7 +1498,7 @@ static void gattServerAddServiceNative(JNIEnv* env, jobject object,
   jmethodID arraySize = env->GetMethodID(arrayListclazz, "size", "()I");
 
   int count = env->CallIntMethod(gatt_db_elements, arraySize);
-  vector<btgatt_db_element_t> db;
+  std::vector<btgatt_db_element_t> db;
 
   jclass uuidClazz = env->FindClass("java/util/UUID");
   jmethodID uuidGetMsb =
