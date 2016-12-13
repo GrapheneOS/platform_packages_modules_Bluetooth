@@ -62,7 +62,7 @@ class GattTest : public BluetoothTest,
       int clientIf, const bt_uuid_t& app_uuid) override;
   void ScanResultCallback(bluetooth::hal::BluetoothGattInterface* /* unused */,
                           const bt_bdaddr_t& bda, int rssi,
-                          vector<uint8_t> adv_data) override;
+                          std::vector<uint8_t> adv_data) override;
 
   // bluetooth::hal::BluetoothGattInterface::ServerObserver overrides
   void RegisterServerCallback(
@@ -70,7 +70,7 @@ class GattTest : public BluetoothTest,
       int server_if, const bt_uuid_t& uuid) override;
   void ServiceAddedCallback(
       bluetooth::hal::BluetoothGattInterface* /* unused */, int status,
-      int server_if, vector<btgatt_db_element_t> service) override;
+      int server_if, std::vector<btgatt_db_element_t> service) override;
   void ServiceStoppedCallback(
       bluetooth::hal::BluetoothGattInterface* /* unused */, int status,
       int server_if, int srvc_handle) override;

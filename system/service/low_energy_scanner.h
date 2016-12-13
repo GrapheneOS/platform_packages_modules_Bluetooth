@@ -86,7 +86,7 @@ class LowEnergyScanner : private hal::BluetoothGattInterface::ScannerObserver,
 
   void ScanResultCallback(hal::BluetoothGattInterface* gatt_iface,
                           const bt_bdaddr_t& bda, int rssi,
-                          vector<uint8_t> adv_data) override;
+                          std::vector<uint8_t> adv_data) override;
 
  private:
   friend class LowEnergyScannerFactory;

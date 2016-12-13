@@ -99,8 +99,9 @@ void RegisterScannerCallback(int status, int scanner_id, bt_uuid_t* app_uuid) {
       RegisterScannerCallback(g_interface, status, scanner_id, *app_uuid));
 }
 
-void ScanResultCallback(bt_bdaddr_t* bda, int rssi,
-                        vector<uint8_t> adv_data) {  // NOLINT(pass-by-value)
+void ScanResultCallback(
+    bt_bdaddr_t* bda, int rssi,
+    std::vector<uint8_t> adv_data) {  // NOLINT(pass-by-value)
   shared_lock<shared_mutex_impl> lock(g_instance_lock);
   VERIFY_INTERFACE_OR_RETURN();
   CHECK(bda);
@@ -252,7 +253,7 @@ void ConnectionCallback(int conn_id, int server_if, int connected,
 
 void ServiceAddedCallback(
     int status, int server_if,
-    vector<btgatt_db_element_t> service) {  // NOLINT(pass-by-value)
+    std::vector<btgatt_db_element_t> service) {  // NOLINT(pass-by-value)
   shared_lock<shared_mutex_impl> lock(g_instance_lock);
   VLOG(2) << __func__ << " - status: " << status << " server_if: " << server_if
           << " count: " << service.size();
@@ -313,7 +314,7 @@ void RequestReadDescriptorCallback(int conn_id, int trans_id, bt_bdaddr_t* bda,
 void RequestWriteCharacteristicCallback(int conn_id, int trans_id,
                                         bt_bdaddr_t* bda, int attr_handle,
                                         int offset, bool need_rsp, bool is_prep,
-                                        vector<uint8_t> value) {
+                                        std::vector<uint8_t> value) {
   shared_lock<shared_mutex_impl> lock(g_instance_lock);
   VLOG(2) << __func__ << " - conn_id: " << conn_id << " trans_id: " << trans_id
           << " attr_handle: " << attr_handle << " offset: " << offset
@@ -330,7 +331,7 @@ void RequestWriteCharacteristicCallback(int conn_id, int trans_id,
 void RequestWriteDescriptorCallback(
     int conn_id, int trans_id, bt_bdaddr_t* bda, int attr_handle, int offset,
     bool need_rsp, bool is_prep,
-    vector<uint8_t> value) {  // NOLINT(pass-by-value)
+    std::vector<uint8_t> value) {  // NOLINT(pass-by-value)
   shared_lock<shared_mutex_impl> lock(g_instance_lock);
   VLOG(2) << __func__ << " - conn_id: " << conn_id << " trans_id: " << trans_id
           << " attr_handle: " << attr_handle << " offset: " << offset
@@ -581,7 +582,8 @@ void BluetoothGattInterface::ScannerObserver::RegisterScannerCallback(
 
 void BluetoothGattInterface::ScannerObserver::ScanResultCallback(
     BluetoothGattInterface* /* gatt_iface */, const bt_bdaddr_t& /* bda */,
-    int /* rssi */, vector<uint8_t> /* adv_data */) {  // NOLINT(pass-by-value)
+    int /* rssi */,
+    std::vector<uint8_t> /* adv_data */) {  // NOLINT(pass-by-value)
   // Do Nothing.
 }
 
@@ -672,7 +674,7 @@ void BluetoothGattInterface::ServerObserver::ConnectionCallback(
 void BluetoothGattInterface::ServerObserver::ServiceAddedCallback(
     BluetoothGattInterface* /* gatt_iface */, int /* status */,
     int /* server_if */,
-    vector<btgatt_db_element_t> /* service */) {  // NOLINT(pass-by-value)
+    std::vector<btgatt_db_element_t> /* service */) {  // NOLINT(pass-by-value)
   // Do nothing.
 }
 
@@ -706,7 +708,7 @@ void BluetoothGattInterface::ServerObserver::RequestWriteCharacteristicCallback(
     BluetoothGattInterface* /* gatt_iface */, int /* conn_id */,
     int /* trans_id */, const bt_bdaddr_t& /* bda */, int /* attr_handle */,
     int /* offset */, bool /* need_rsp */, bool /* is_prep */,
-    vector<uint8_t> /* value */) {  // NOLINT(pass-by-value)
+    std::vector<uint8_t> /* value */) {  // NOLINT(pass-by-value)
   // Do nothing.
 }
 
@@ -714,7 +716,7 @@ void BluetoothGattInterface::ServerObserver::RequestWriteDescriptorCallback(
     BluetoothGattInterface* /* gatt_iface */, int /* conn_id */,
     int /* trans_id */, const bt_bdaddr_t& /* bda */, int /* attr_handle */,
     int /* offset */, bool /* need_rsp */, bool /* is_prep */,
-    vector<uint8_t> /* value */) {  // NOLINT(pass-by-value)
+    std::vector<uint8_t> /* value */) {  // NOLINT(pass-by-value)
   // Do nothing.
 }
 
