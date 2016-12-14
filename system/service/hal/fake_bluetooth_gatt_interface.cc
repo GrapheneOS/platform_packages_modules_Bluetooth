@@ -24,8 +24,7 @@ namespace {
 // interface methods all have to be global and their signatures don't allow us
 // to pass in user_data.
 std::shared_ptr<BleAdvertiserInterface> g_advertiser_handler;
-std::shared_ptr<FakeBluetoothGattInterface::TestScannerHandler>
-    g_scanner_handler;
+std::shared_ptr<BleScannerInterface> g_scanner_handler;
 std::shared_ptr<FakeBluetoothGattInterface::TestClientHandler> g_client_handler;
 std::shared_ptr<FakeBluetoothGattInterface::TestServerHandler> g_server_handler;
 
@@ -37,24 +36,6 @@ bt_status_t FakeRegisterClient(bt_uuid_t* app_uuid) {
 
 bt_status_t FakeUnregisterClient(int client_if) {
   if (g_client_handler) return g_client_handler->UnregisterClient(client_if);
-
-  return BT_STATUS_FAIL;
-}
-
-bt_status_t FakeRegisterScanner(bt_uuid_t* app_uuid) {
-  if (g_scanner_handler) return g_scanner_handler->RegisterScanner(app_uuid);
-
-  return BT_STATUS_FAIL;
-}
-
-bt_status_t FakeUnregisterScanner(int client_if) {
-  if (g_scanner_handler) return g_scanner_handler->UnregisterScanner(client_if);
-
-  return BT_STATUS_FAIL;
-}
-
-bt_status_t FakeScan(bool start) {
-  if (g_scanner_handler) return g_scanner_handler->Scan(start);
 
   return BT_STATUS_FAIL;
 }
@@ -119,21 +100,6 @@ bt_status_t FakeSendResponse(int conn_id, int trans_id, int status,
   return BT_STATUS_FAIL;
 }
 
-btgatt_scanner_interface_t fake_scanner_iface = {
-    FakeRegisterScanner,
-    FakeUnregisterScanner,
-    FakeScan,
-    nullptr,  // scan_filter_param_setup
-    nullptr,  // scan_filter_add_remove
-    nullptr,  // scan_filter_clear
-    nullptr,  // scan_filter_enable
-    nullptr,  // set_scan_parameters
-    nullptr,  // batchscan_cfg_storate
-    nullptr,  // batchscan_enb_batch_scan
-    nullptr,  // batchscan_dis_batch_scan
-    nullptr,  // batchscan_read_reports
-};
-
 btgatt_client_interface_t fake_btgattc_iface = {
     FakeRegisterClient,
     FakeUnregisterClient,
@@ -172,7 +138,7 @@ btgatt_server_interface_t fake_btgatts_iface = {
 
 FakeBluetoothGattInterface::FakeBluetoothGattInterface(
     std::shared_ptr<BleAdvertiserInterface> advertiser_handler,
-    std::shared_ptr<TestScannerHandler> scanner_handler,
+    std::shared_ptr<BleScannerInterface> scanner_handler,
     std::shared_ptr<TestClientHandler> client_handler,
     std::shared_ptr<TestServerHandler> server_handler)
     : client_handler_(client_handler) {
@@ -203,12 +169,6 @@ FakeBluetoothGattInterface::~FakeBluetoothGattInterface() {
 
 // The methods below can be used to notify observers with certain events and
 // given parameters.
-void FakeBluetoothGattInterface::NotifyRegisterScannerCallback(
-    int status, int client_if, const bt_uuid_t& app_uuid) {
-  FOR_EACH_OBSERVER(ScannerObserver, scanner_observers_,
-                    RegisterScannerCallback(this, status, client_if, app_uuid));
-}
-
 void FakeBluetoothGattInterface::NotifyScanResultCallback(
     const bt_bdaddr_t& bda, int rssi, std::vector<uint8_t> adv_data) {
   FOR_EACH_OBSERVER(ScannerObserver, scanner_observers_,
@@ -340,9 +300,9 @@ BleAdvertiserInterface* FakeBluetoothGattInterface::GetAdvertiserHALInterface()
   return g_advertiser_handler.get();
 }
 
-const btgatt_scanner_interface_t*
-FakeBluetoothGattInterface::GetScannerHALInterface() const {
-  return &fake_scanner_iface;
+BleScannerInterface* FakeBluetoothGattInterface::GetScannerHALInterface()
+    const {
+  return g_scanner_handler.get();
 }
 
 const btgatt_client_interface_t*

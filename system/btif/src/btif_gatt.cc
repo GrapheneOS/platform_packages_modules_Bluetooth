@@ -82,8 +82,8 @@ static btgatt_interface_t btgattInterface = {
 
     &btgattClientInterface,
     &btgattServerInterface,
-    &btgattScannerInterface,
-    nullptr  // filled in btif_gatt_get_interface
+    nullptr,  // filled in btif_gatt_get_interface
+    nullptr   // filled in btif_gatt_get_interface
 };
 
 /*******************************************************************************
@@ -99,6 +99,7 @@ const btgatt_interface_t* btif_gatt_get_interface() {
   // TODO(jpawlowski) right now initializing advertiser field in static
   // structure cause explosion of dependencies. It must be initialized here
   // until those dependencies are properly abstracted for tests.
+  btgattInterface.scanner = get_ble_scanner_instance();
   btgattInterface.advertiser = get_ble_advertiser_instance();
   return &btgattInterface;
 }
