@@ -2488,31 +2488,6 @@ void btm_ble_set_test_local_sign_cntr_value(bool enable,
 
 /*******************************************************************************
  *
- * Function         btm_set_random_address
- *
- * Description      This function set a random address to local controller.
- *
- * Returns          void
- *
- ******************************************************************************/
-void btm_set_random_address(BD_ADDR random_bda) {
-  tBTM_LE_RANDOM_CB* p_cb = &btm_cb.ble_ctr_cb.addr_mgnt_cb;
-  bool adv_mode = btm_cb.ble_ctr_cb.inq_var.adv_mode;
-
-  BTM_TRACE_DEBUG("btm_set_random_address");
-
-  if (adv_mode == BTM_BLE_ADV_ENABLE)
-    btsnd_hcic_ble_set_adv_enable(BTM_BLE_ADV_DISABLE);
-
-  memcpy(p_cb->private_addr, random_bda, BD_ADDR_LEN);
-  btsnd_hcic_ble_set_random_addr(p_cb->private_addr);
-
-  if (adv_mode == BTM_BLE_ADV_ENABLE)
-    btsnd_hcic_ble_set_adv_enable(BTM_BLE_ADV_ENABLE);
-}
-
-/*******************************************************************************
- *
  * Function         btm_ble_set_keep_rfu_in_auth_req
  *
  * Description      This function indicates if RFU bits have to be kept as is
