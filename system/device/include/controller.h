@@ -54,6 +54,8 @@ typedef struct controller_t {
   bool (*supports_ble_packet_extension)(void);
   bool (*supports_ble_connection_parameters_request)(void);
   bool (*supports_ble_privacy)(void);
+  bool (*supports_ble_extended_advertising)(void);
+  bool (*supports_ble_periodic_advertising)(void);
 
   // Get the cached acl data sizes for the controller.
   uint16_t (*get_acl_data_size_classic)(void);
@@ -66,6 +68,8 @@ typedef struct controller_t {
   uint16_t (*get_acl_packet_size_ble)(void);
 
   uint16_t (*get_ble_default_data_packet_length)(void);
+  uint16_t (*get_ble_maxium_advertising_data_length)(void);
+  uint8_t (*get_ble_number_of_supported_advertising_sets)(void);
 
   // Get the number of acl packets the controller can buffer.
   uint16_t (*get_acl_buffer_count_classic)(void);
