@@ -500,7 +500,7 @@ void fillGattDbElementArray(JNIEnv* env, jobject* array,
 
     jobject uuid = env->NewObject(uuidClazz, uuidConstructor,
                                   uuid_msb(&curr.uuid), uuid_lsb(&curr.uuid));
-    fid = env->GetFieldID(gattDbElementClazz, "uuid", "java/util/UUID");
+    fid = env->GetFieldID(gattDbElementClazz, "uuid", "Ljava/util/UUID;");
     env->SetObjectField(element, fid, uuid);
     env->DeleteLocalRef(uuid);
 
@@ -1521,7 +1521,7 @@ static void gattServerAddServiceNative(JNIEnv* env, jobject object,
     fid = env->GetFieldID(gattDbElementClazz, "id", "I");
     curr.id = env->GetIntField(element, fid);
 
-    fid = env->GetFieldID(gattDbElementClazz, "uuid", "java/util/UUID");
+    fid = env->GetFieldID(gattDbElementClazz, "uuid", "Ljava/util/UUID;");
     jobject uuid = env->GetObjectField(element, fid);
 
     jlong uuid_msb = env->CallLongMethod(uuid, uuidGetMsb);
