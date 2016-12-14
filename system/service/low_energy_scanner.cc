@@ -41,7 +41,7 @@ const size_t kScanRecordLength = 62;
 // Returns the length of the given scan record array. We have to calculate this
 // based on the maximum possible data length and the TLV data. See TODO above
 // |kScanRecordLength|.
-size_t GetScanRecordLength(vector<uint8_t> bytes) {
+size_t GetScanRecordLength(std::vector<uint8_t> bytes) {
   for (size_t i = 0, field_len = 0; i < kScanRecordLength;
        i += (field_len + 1)) {
     field_len = bytes[i];
@@ -141,7 +141,7 @@ int LowEnergyScanner::GetInstanceId() const { return scanner_id_; }
 
 void LowEnergyScanner::ScanResultCallback(
     hal::BluetoothGattInterface* gatt_iface, const bt_bdaddr_t& bda, int rssi,
-    vector<uint8_t> adv_data) {
+    std::vector<uint8_t> adv_data) {
   // Ignore scan results if this client didn't start a scan.
   if (!scan_started_.load()) return;
 
