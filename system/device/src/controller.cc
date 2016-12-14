@@ -65,6 +65,8 @@ static uint8_t ble_resolving_list_max_size;
 static uint8_t ble_supported_states[BLE_SUPPORTED_STATES_SIZE];
 static bt_device_features_t features_ble;
 static uint16_t ble_suggested_default_data_length;
+static uint16_t ble_maxium_advertising_data_length;
+static uint8_t ble_number_of_supported_advertising_sets;
 static uint8_t local_supported_codecs[MAX_LOCAL_SUPPORTED_CODECS_SIZE];
 static uint8_t number_of_local_supported_codecs = 0;
 
@@ -216,6 +218,18 @@ static future_t* start_up(void) {
           response, &ble_suggested_default_data_length);
     }
 
+    if (HCI_LE_EXTENDED_ADVERTISING_SUPPORTED(features_ble.as_array)) {
+      response = AWAIT_COMMAND(
+          packet_factory->make_ble_read_maximum_advertising_data_length());
+      packet_parser->parse_ble_read_maximum_advertising_data_length(
+          response, &ble_maxium_advertising_data_length);
+
+      response = AWAIT_COMMAND(
+          packet_factory->make_ble_read_number_of_supported_advertising_sets());
+      packet_parser->parse_ble_read_number_of_supported_advertising_sets(
+          response, &ble_number_of_supported_advertising_sets);
+    }
+
     // Set the ble event mask next
     response =
         AWAIT_COMMAND(packet_factory->make_ble_set_event_mask(&BLE_EVENT_MASK));
@@ -363,6 +377,18 @@ static bool supports_ble_connection_parameters_request(void) {
   return HCI_LE_CONN_PARAM_REQ_SUPPORTED(features_ble.as_array);
 }
 
+static bool supports_ble_extended_advertising(void) {
+  assert(readable);
+  assert(ble_supported);
+  return HCI_LE_EXTENDED_ADVERTISING_SUPPORTED(features_ble.as_array);
+}
+
+static bool supports_ble_periodic_advertising(void) {
+  assert(readable);
+  assert(ble_supported);
+  return HCI_LE_PERIODIC_ADVERTISING_SUPPORTED(features_ble.as_array);
+}
+
 static uint16_t get_acl_data_size_classic(void) {
   assert(readable);
   return acl_data_size_classic;
@@ -388,6 +414,18 @@ static uint16_t get_ble_suggested_default_data_length(void) {
   assert(readable);
   assert(ble_supported);
   return ble_suggested_default_data_length;
+}
+
+static uint16_t get_ble_maxium_advertising_data_length(void) {
+  assert(readable);
+  assert(ble_supported);
+  return ble_maxium_advertising_data_length;
+}
+
+static uint8_t get_ble_number_of_supported_advertising_sets(void) {
+  assert(readable);
+  assert(ble_supported);
+  return ble_number_of_supported_advertising_sets;
 }
 
 static uint16_t get_acl_buffer_count_classic(void) {
@@ -448,6 +486,8 @@ static const controller_t interface = {
     supports_ble_packet_extension,
     supports_ble_connection_parameters_request,
     supports_ble_privacy,
+    supports_ble_extended_advertising,
+    supports_ble_periodic_advertising,
 
     get_acl_data_size_classic,
     get_acl_data_size_ble,
@@ -455,6 +495,8 @@ static const controller_t interface = {
     get_acl_packet_size_classic,
     get_acl_packet_size_ble,
     get_ble_suggested_default_data_length,
+    get_ble_maxium_advertising_data_length,
+    get_ble_number_of_supported_advertising_sets,
 
     get_acl_buffer_count_classic,
     get_acl_buffer_count_ble,

@@ -190,6 +190,24 @@ static void parse_ble_read_suggested_default_data_length_response(
   uint8_t* stream = read_command_complete_header(
       response, HCI_BLE_READ_DEFAULT_DATA_LENGTH, 2 /* bytes after */);
   STREAM_TO_UINT8(*ble_default_packet_length_ptr, stream);
+}
+
+static void parse_ble_read_maximum_advertising_data_length(
+    BT_HDR* response, uint16_t* ble_maximum_advertising_data_length_ptr) {
+  uint8_t* stream = read_command_complete_header(
+      response, HCI_LE_READ_MAXIMUM_ADVERTISING_DATA_LENGTH,
+      2 /* bytes after */);
+  STREAM_TO_UINT8(*ble_maximum_advertising_data_length_ptr, stream);
+
+  buffer_allocator->free(response);
+}
+
+static void parse_ble_read_number_of_supported_advertising_sets(
+    BT_HDR* response, uint8_t* ble_number_of_supported_advertising_sets_ptr) {
+  uint8_t* stream = read_command_complete_header(
+      response, HCI_LE_READ_NUMBER_OF_SUPPORTED_ADVERTISING_SETS,
+      1 /* bytes after */);
+  STREAM_TO_UINT8(*ble_number_of_supported_advertising_sets_ptr, stream);
 
   buffer_allocator->free(response);
 }
@@ -249,6 +267,8 @@ static const hci_packet_parser_t interface = {
     parse_ble_read_local_supported_features_response,
     parse_ble_read_resolving_list_size_response,
     parse_ble_read_suggested_default_data_length_response,
+    parse_ble_read_maximum_advertising_data_length,
+    parse_ble_read_number_of_supported_advertising_sets,
     parse_read_local_supported_codecs_response};
 
 const hci_packet_parser_t* hci_packet_parser_get_interface() {
