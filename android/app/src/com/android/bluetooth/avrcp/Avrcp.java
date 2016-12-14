@@ -1383,7 +1383,7 @@ public final class Avrcp {
                 Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = pref.edit();
         editor.putBoolean(mAddress, true);
-        editor.commit();
+        editor.apply();
     }
 
     private int modifyRcFeatureFromBlacklist(int feature, String address) {
@@ -1403,7 +1403,7 @@ public final class Avrcp {
                 Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = pref.edit();
         editor.remove(address);
-        editor.commit();
+        editor.apply();
     }
 
     /**
