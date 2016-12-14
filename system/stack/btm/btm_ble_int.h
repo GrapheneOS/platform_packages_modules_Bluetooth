@@ -187,7 +187,6 @@ extern void btm_ble_set_no_disc_if_pair_fail(bool disble_disc);
 extern void btm_ble_set_test_mac_value(bool enable, uint8_t* p_test_mac_val);
 extern void btm_ble_set_test_local_sign_cntr_value(
     bool enable, uint32_t test_local_sign_cntr);
-extern void btm_set_random_address(BD_ADDR random_bda);
 extern void btm_ble_set_keep_rfu_in_auth_req(bool keep_rfu);
 #endif
 
