@@ -37,6 +37,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.os.AsyncTask;
 import android.os.BatteryStats;
 import android.os.Binder;
 import android.os.Bundle;
@@ -549,6 +550,21 @@ public class AdapterService extends Service {
         mProfileObserver.start();
 
         setAdapterService(this);
+
+        // First call to getSharedPreferences will result in a file read into
+        // memory cache. Call it here asynchronously to avoid potential ANR
+        // in the future
+        new AsyncTask<Void, Void, Void>() {
+            @Override
+            protected Void doInBackground(Void... params) {
+                getSharedPreferences(
+                        PHONEBOOK_ACCESS_PERMISSION_PREFERENCE_FILE, Context.MODE_PRIVATE);
+                getSharedPreferences(
+                        MESSAGE_ACCESS_PERMISSION_PREFERENCE_FILE, Context.MODE_PRIVATE);
+                getSharedPreferences(SIM_ACCESS_PERMISSION_PREFERENCE_FILE, Context.MODE_PRIVATE);
+                return null;
+            }
+        }.execute();
     }
 
     @Override
@@ -2155,7 +2171,8 @@ public class AdapterService extends Service {
         } else {
             editor.putBoolean(device.getAddress(), value == BluetoothDevice.ACCESS_ALLOWED);
         }
-        return editor.commit();
+        editor.apply();
+        return true;
     }
 
     int getMessageAccessPermission(BluetoothDevice device) {
@@ -2180,7 +2197,8 @@ public class AdapterService extends Service {
         } else {
             editor.putBoolean(device.getAddress(), value == BluetoothDevice.ACCESS_ALLOWED);
         }
-        return editor.commit();
+        editor.apply();
+        return true;
     }
 
     int getSimAccessPermission(BluetoothDevice device) {
@@ -2205,7 +2223,8 @@ public class AdapterService extends Service {
         } else {
             editor.putBoolean(device.getAddress(), value == BluetoothDevice.ACCESS_ALLOWED);
         }
-        return editor.commit();
+        editor.apply();
+        return true;
     }
 
      void sendConnectionStateChange(BluetoothDevice
