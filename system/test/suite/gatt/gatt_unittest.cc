@@ -87,7 +87,7 @@ TEST_F(GattTest, GattServerBuild) {
   // Adds service.
   int server_if = server_interface_id();
 
-  vector<btgatt_db_element_t> service = {
+  std::vector<btgatt_db_element_t> service = {
       {.type = BTGATT_DB_PRIMARY_SERVICE, .uuid = srvc_uuid},
       {.type = BTGATT_DB_CHARACTERISTIC,
        .uuid = char_uuid,

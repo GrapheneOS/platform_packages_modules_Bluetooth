@@ -53,7 +53,7 @@ class MockAdvertiserHandler : public BleAdvertiserInterface {
                void(int advertiser_id, int min_interval, int max_interval,
                     int adv_type, int chnl_map, int tx_power, Callback cb));
   MOCK_METHOD4(SetData, void(int advertiser_id, bool set_scan_rsp,
-                             vector<uint8_t> data, Callback cb));
+                             std::vector<uint8_t> data, Callback cb));
   MOCK_METHOD5(Enable, void(uint8_t advertiser_id, bool enable, Callback cb,
                             int timeout_s, Callback timeout_cb));
   MOCK_METHOD7(StartAdvertising,

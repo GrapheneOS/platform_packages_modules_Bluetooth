@@ -139,7 +139,7 @@ void RegisterServerCallback(int status, int server_if, bt_uuid_t* app_uuid) {
 }
 
 void ServiceAddedCallback(int status, int server_if,
-                          vector<btgatt_db_element_t> service) {
+                          std::vector<btgatt_db_element_t> service) {
   LOG_INFO(LOG_TAG, "%s: status:%d server_if:%d count:%zu svc_handle:%d",
            __func__, status, server_if, service.size(),
            service[0].attribute_handle);
@@ -248,7 +248,7 @@ void RequestReadCallback(int conn_id, int trans_id, bt_bdaddr_t* bda,
 
 void RequestWriteCallback(int conn_id, int trans_id, bt_bdaddr_t* bda,
                           int attr_handle, int attribute_offset, bool need_rsp,
-                          bool is_prep, vector<uint8_t> value) {
+                          bool is_prep, std::vector<uint8_t> value) {
   std::string addr(BtAddrString(bda));
   LOG_INFO(LOG_TAG,
            "%s: connection:%d (%s:trans:%d) write attr:%d attribute_offset:%d "
@@ -374,7 +374,8 @@ void ServiceStoppedCallback(int status, int server_if, int srvc_handle) {
   g_internal->api_synchronize.notify_one();
 }
 
-void ScanResultCallback(bt_bdaddr_t* bda, int rssi, vector<uint8_t> adv_data) {
+void ScanResultCallback(bt_bdaddr_t* bda, int rssi,
+                        std::vector<uint8_t> adv_data) {
   std::string addr(BtAddrString(bda));
   (void)adv_data;
   std::lock_guard<std::mutex> lock(g_internal->lock);
