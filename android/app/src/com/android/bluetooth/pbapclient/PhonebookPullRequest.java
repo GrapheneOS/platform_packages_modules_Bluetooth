@@ -19,6 +19,7 @@ import com.android.vcard.VCardEntry;
 
 import android.accounts.Account;
 import android.content.ContentProviderOperation;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.OperationApplicationException;
 import android.provider.ContactsContract;
@@ -42,7 +43,7 @@ import java.util.HashMap;
 import java.util.List;
 
 public class PhonebookPullRequest extends PullRequest {
-    private static final int MAX_OPS = 200;
+    private static final int MAX_OPS = 500;
     private static final boolean VDBG = false;
     private static final String TAG = "PbapPhonebookPullRequest";
 
@@ -56,14 +57,6 @@ public class PhonebookPullRequest extends PullRequest {
         path = PbapClientConnectionHandler.PB_PATH;
     }
 
-    // TODO: Apply operations together if possible.
-    private void addContact(VCardEntry e)
-        throws RemoteException, OperationApplicationException, InterruptedException {
-        ArrayList<ContentProviderOperation> ops =
-                e.constructInsertOperations(mContext.getContentResolver(), null);
-        mContext.getContentResolver().applyBatch(ContactsContract.AUTHORITY, ops);
-        ops.clear();
-    }
 
     @Override
     public void onPullComplete() {
@@ -71,24 +64,46 @@ public class PhonebookPullRequest extends PullRequest {
             Log.e(TAG, "onPullComplete entries is null.");
             return;
         }
-
         if (VDBG) {
             Log.d(TAG, "onPullComplete with " + mEntries.size() + " count.");
         }
+
         try {
+            ContentResolver contactsProvider = mContext.getContentResolver();
+            ArrayList<ContentProviderOperation> insertOperations = new ArrayList<>();
+            ArrayList<ContentProviderOperation> currentContactOperations;
+            // Group insert operations together to minimize inter process communication and improve
+            // processing time.
             for (VCardEntry e : mEntries) {
                 if (Thread.currentThread().isInterrupted()) {
-                    throw new InterruptedException();
+                    Log.e(TAG, "Interrupted durring insert.");
+                    break;
                 }
-                addContact(e);
+                int numberOfOperations = insertOperations.size();
+                // Append current vcard to list of insert operations.
+                e.constructInsertOperations(contactsProvider, insertOperations);
+                if (insertOperations.size() >= MAX_OPS) {
+                    // If we have exceded the limit to the insert operation remove the latest vcard
+                    // and submit.
+                    insertOperations.subList(numberOfOperations, insertOperations.size()).clear();
+                    contactsProvider.applyBatch(ContactsContract.AUTHORITY, insertOperations);
+                    insertOperations = e.constructInsertOperations(contactsProvider, null);
+                    if (insertOperations.size() >= MAX_OPS) {
+                        // Current VCard has more than 500 attributes, drop the card.
+                        insertOperations.clear();
+                    }
+                }
+            }
+            if (insertOperations.size() > 0) {
+                // Apply any unsubmitted vcards.
+                contactsProvider.applyBatch(ContactsContract.AUTHORITY, insertOperations);
+                insertOperations.clear();
             }
             if (VDBG) {
                 Log.d(TAG, "Sync complete: add=" + mEntries.size());
             }
         } catch (OperationApplicationException | RemoteException | NumberFormatException e) {
-            Log.d(TAG, "Got exception: ", e);
-        } catch (InterruptedException e) {
-            Log.d(TAG, "Interrupted durring insert.");
+            Log.e(TAG, "Got exception: ", e);
         } finally {
             complete = true;
         }
