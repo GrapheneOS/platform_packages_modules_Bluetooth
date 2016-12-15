@@ -121,28 +121,6 @@ void bta_hf_client_start_open(tBTA_HF_CLIENT_DATA* p_data) {
 
 /*******************************************************************************
  *
- * Function         bta_hf_client_cback_open
- *
- * Description      Send open callback event to application.
- *
- *
- * Returns          void
- *
- ******************************************************************************/
-static void bta_hf_client_cback_open(tBTA_HF_CLIENT_CB* client_cb,
-                                     tBTA_HF_CLIENT_STATUS status) {
-  tBTA_HF_CLIENT evt;
-
-  memset(&evt, 0, sizeof(evt));
-
-  /* call app callback with open event */
-  evt.open.status = status;
-  bdcpy(evt.open.bd_addr, client_cb->peer_addr);
-  bta_hf_client_app_callback(BTA_HF_CLIENT_OPEN_EVT, &evt);
-}
-
-/*******************************************************************************
- *
  * Function         bta_hf_client_rfc_open
  *
  * Description      Handle RFCOMM channel open.
@@ -162,8 +140,6 @@ void bta_hf_client_rfc_open(tBTA_HF_CLIENT_DATA* p_data) {
   }
 
   bta_sys_conn_open(BTA_ID_HS, 1, client_cb->peer_addr);
-
-  bta_hf_client_cback_open(client_cb, BTA_HF_CLIENT_SUCCESS);
 
   /* start SLC procedure */
   bta_hf_client_slc_seq(client_cb, false);
@@ -256,9 +232,6 @@ void bta_hf_client_rfc_fail(tBTA_HF_CLIENT_DATA* p_data) {
   client_cb->negotiated_codec = BTM_SCO_CODEC_CVSD;
 
   bta_hf_client_at_reset(client_cb);
-
-  /* call open cback w. failure */
-  bta_hf_client_cback_open(client_cb, BTA_HF_CLIENT_FAIL_RFCOMM);
 }
 
 /*******************************************************************************
@@ -279,9 +252,6 @@ void bta_hf_client_disc_fail(tBTA_HF_CLIENT_DATA* p_data) {
                      p_data->hdr.layer_specific);
     return;
   }
-
-  /* call open cback w. failure */
-  bta_hf_client_cback_open(client_cb, BTA_HF_CLIENT_FAIL_SDP);
 }
 
 /*******************************************************************************
@@ -302,9 +272,6 @@ void bta_hf_client_open_fail(tBTA_HF_CLIENT_DATA* p_data) {
                      p_data->hdr.layer_specific);
     return;
   }
-
-  /* call open cback w. failure */
-  bta_hf_client_cback_open(client_cb, BTA_HF_CLIENT_FAIL_RESOURCES);
 }
 
 /*******************************************************************************
@@ -326,14 +293,6 @@ void bta_hf_client_rfc_close(tBTA_HF_CLIENT_DATA* p_data) {
     return;
   }
 
-  /* reinitialize stuff */
-  client_cb->peer_features = 0;
-  client_cb->chld_features = 0;
-  client_cb->role = BTA_HF_CLIENT_ACP;
-  client_cb->svc_conn = false;
-  client_cb->send_at_reply = false;
-  client_cb->negotiated_codec = BTM_SCO_CODEC_CVSD;
-
   bta_hf_client_at_reset(client_cb);
 
   bta_sys_conn_close(BTA_ID_HS, 1, client_cb->peer_addr);
@@ -342,13 +301,9 @@ void bta_hf_client_rfc_close(tBTA_HF_CLIENT_DATA* p_data) {
   tBTA_HF_CLIENT evt;
   memset(&evt, 0, sizeof(evt));
   bdcpy(evt.conn.bd_addr, client_cb->peer_addr);
-  bta_hf_client_app_callback(BTA_HF_CLIENT_CLOSE_EVT, &evt);
 
   /* if not deregistering reopen server */
   if (bta_hf_client_cb_arr.deregister == false) {
-    /* Clear peer bd_addr so instance can be reused */
-    bdcpy(client_cb->peer_addr, bd_addr_null);
-
     /* Make sure SCO is shutdown */
     bta_hf_client_sco_shutdown(client_cb);
 
@@ -481,6 +436,7 @@ void bta_hf_client_rfc_data(tBTA_HF_CLIENT_DATA* p_data) {
  *
  ******************************************************************************/
 void bta_hf_client_svc_conn_open(tBTA_HF_CLIENT_DATA* p_data) {
+  APPL_TRACE_DEBUG("%s", __func__);
   tBTA_HF_CLIENT_CB* client_cb =
       bta_hf_client_find_cb_by_handle(p_data->hdr.layer_specific);
   if (client_cb == NULL) {

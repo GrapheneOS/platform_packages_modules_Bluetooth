@@ -74,8 +74,8 @@ static void bta_hf_client_mgmt_cback(uint32_t code, uint16_t port_handle) {
   tBTA_HF_CLIENT_CB* client_cb =
       bta_hf_client_find_cb_by_rfc_handle(port_handle);
 
-  APPL_TRACE_DEBUG("%s: code = %d, port_handle = %d", __func__, code,
-                   port_handle);
+  APPL_TRACE_DEBUG("%s: code = %d, port_handle = %d serv = %d", __func__, code,
+                   port_handle, bta_hf_client_cb_arr.serv_handle);
 
   /* ignore close event for port handles other than connected handle */
   if (code != PORT_SUCCESS && client_cb != NULL &&
@@ -114,9 +114,6 @@ static void bta_hf_client_mgmt_cback(uint32_t code, uint16_t port_handle) {
         // Set the connection fields for this new CB
         client_cb->conn_handle = port_handle;
 
-        // Copy the BDADDR
-        bdcpy(client_cb->peer_addr, peer_addr);
-
         // Since we have accepted an incoming RFCOMM connection:
         // a) Release the current server from it duties
         // b) Start a new server for more new incoming connection
@@ -124,13 +121,19 @@ static void bta_hf_client_mgmt_cback(uint32_t code, uint16_t port_handle) {
         bta_hf_client_start_server();
       }
     } else {
-      APPL_TRACE_ERROR(
-          "bta_hf_client_mgmt_cback: PORT_SUCCESS, ignoring handle = %d",
-          port_handle);
+      APPL_TRACE_ERROR("%s: PORT_SUCCESS, ignoring handle = %d", __func__,
+                       port_handle);
       return;
     }
   } else if (client_cb != NULL &&
              port_handle == client_cb->conn_handle) { /* code != PORT_SUC */
+    APPL_TRACE_ERROR(
+        "%s: closing port handle %d "
+        "dev %02x:%02x:%02x:%02x:%02x:%02x",
+        __func__, port_handle, client_cb->peer_addr[0], client_cb->peer_addr[1],
+        client_cb->peer_addr[2], client_cb->peer_addr[3],
+        client_cb->peer_addr[4], client_cb->peer_addr[5]);
+
     RFCOMM_RemoveServer(port_handle);
     p_buf->hdr.event = BTA_HF_CLIENT_RFC_CLOSE_EVT;
   }
@@ -261,7 +264,7 @@ void bta_hf_client_rfc_do_open(tBTA_HF_CLIENT_DATA* p_data) {
  * Returns          void
  *
  ******************************************************************************/
-void bta_hf_client_rfc_do_close(UNUSED_ATTR tBTA_HF_CLIENT_DATA* p_data) {
+void bta_hf_client_rfc_do_close(tBTA_HF_CLIENT_DATA* p_data) {
   tBTA_HF_CLIENT_CB* client_cb =
       bta_hf_client_find_cb_by_handle(p_data->hdr.layer_specific);
   if (client_cb == NULL) {

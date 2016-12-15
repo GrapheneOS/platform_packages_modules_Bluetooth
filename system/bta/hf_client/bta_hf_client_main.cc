@@ -1,6 +1,6 @@
 /******************************************************************************
  *
- *  Copyright (c) 2014 The Android Open Source Project
+ *  Copyright (c) 2016 The Android Open Source Project
  *  Copyright (C) 2003-2012 Broadcom Corporation
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
@@ -34,6 +34,7 @@ extern fixed_queue_t* btu_bta_alarm_queue;
 
 static const char* bta_hf_client_evt_str(uint16_t event);
 static const char* bta_hf_client_state_str(uint8_t state);
+void bta_hf_client_cb_init(tBTA_HF_CLIENT_CB* client_cb, uint16_t handle);
 
 /* state machine states */
 enum {
@@ -279,8 +280,8 @@ void bta_hf_client_cb_arr_init() {
   // reset the handles and make the CBs non-allocated
   for (int i = 0; i < HF_CLIENT_MAX_DEVICES; i++) {
     // Allocate the handles in increasing order of indices
+    bta_hf_client_cb_init(&(bta_hf_client_cb_arr.cb[i]), i);
     bta_hf_client_cb_arr.cb[i].handle = BTA_HF_CLIENT_CB_FIRST_HANDLE + i;
-    bta_hf_client_cb_arr.cb[i].is_allocated = false;
   }
 }
 
@@ -288,19 +289,26 @@ void bta_hf_client_cb_arr_init() {
 *
 * Function         bta_hf_client_cb_init
 *
-* Description      Initialize an HF_Client service control block.
+* Description      Initialize an HF_Client service control block. Assign the
+*                  handle to cb->handle.
+*
 *
 *
 * Returns          void
 *
 ******************************************************************************/
-void bta_hf_client_cb_init(tBTA_HF_CLIENT_CB* client_cb) {
+void bta_hf_client_cb_init(tBTA_HF_CLIENT_CB* client_cb, uint16_t handle) {
   APPL_TRACE_DEBUG("%s", __func__);
+
+  // Free any memory we need to explicity release
   alarm_free(client_cb->collision_timer);
-  client_cb->collision_timer = NULL;
+
+  // Memset the rest of the block
+  memset(client_cb, 0, sizeof(tBTA_HF_CLIENT_CB));
+
+  // Re allocate any variables required
   client_cb->collision_timer = alarm_new("bta_hf_client.scb_collision_timer");
-  client_cb->sco_idx = BTM_INVALID_SCO_INDEX;
-  client_cb->negotiated_codec = BTM_SCO_CODEC_CVSD;
+  client_cb->handle = handle;
 }
 
 /*******************************************************************************
@@ -587,12 +595,15 @@ bool bta_hf_client_allocate_handle(const BD_ADDR bd_addr, uint16_t* p_handle) {
       continue;
     }
 
+    // Reset the client control block
+    bta_hf_client_cb_init(client_cb, client_cb->handle);
+
     *p_handle = client_cb->handle;
+    APPL_TRACE_DEBUG("%s: marking CB handle %d to true", __func__,
+                     client_cb->handle);
+
     client_cb->is_allocated = true;
     bdcpy(client_cb->peer_addr, bd_addr);
-
-    // Reset the handle for use (i.e. reset timers etc)
-    bta_hf_client_cb_init(client_cb);
     bta_hf_client_at_init(client_cb);
     return true;
   }
@@ -647,7 +658,7 @@ void bta_hf_client_api_disable() {
   /* reinit the control block */
   for (int i = 0; i < HF_CLIENT_MAX_DEVICES; i++) {
     if (bta_hf_client_cb_arr.cb[i].is_allocated) {
-      bta_hf_client_cb_init(&(bta_hf_client_cb_arr.cb[i]));
+      bta_hf_client_cb_init(&(bta_hf_client_cb_arr.cb[i]), i);
     }
   }
 
@@ -729,8 +740,30 @@ void bta_hf_client_sm_execute(uint16_t event, tBTA_HF_CLIENT_DATA* p_data) {
     }
   }
 
+  /* If the state has changed then notify the app of the corresponding change */
+  if (in_state != client_cb->state) {
+    APPL_TRACE_DEBUG(
+        "%s: notifying state change to %d -> %d "
+        "device %02x:%02x:%02x:%02x:%02x:%02x",
+        __func__, in_state, client_cb->state, client_cb->peer_addr[0],
+        client_cb->peer_addr[1], client_cb->peer_addr[2],
+        client_cb->peer_addr[3], client_cb->peer_addr[4],
+        client_cb->peer_addr[5]);
+    tBTA_HF_CLIENT evt;
+    memset(&evt, 0, sizeof(evt));
+    bdcpy(evt.bd_addr, client_cb->peer_addr);
+    if (client_cb->state == BTA_HF_CLIENT_INIT_ST) {
+      bta_hf_client_app_callback(BTA_HF_CLIENT_CLOSE_EVT, &evt);
+    } else if (client_cb->state == BTA_HF_CLIENT_OPEN_ST) {
+      evt.open.handle = client_cb->handle;
+      bta_hf_client_app_callback(BTA_HF_CLIENT_OPEN_EVT, &evt);
+    }
+  }
+
   /* if the next state is INIT then release the cb for future use */
   if (client_cb->state == BTA_HF_CLIENT_INIT_ST) {
+    APPL_TRACE_DEBUG("%s: marking CB handle %d to false", __func__,
+                     client_cb->handle);
     client_cb->is_allocated = false;
   }
 
@@ -781,7 +814,11 @@ void bta_hf_client_slc_seq(tBTA_HF_CLIENT_CB* client_cb, bool error) {
     return;
   }
 
-  if (client_cb->svc_conn) return;
+  if (client_cb->svc_conn) {
+    APPL_TRACE_WARNING("%s: SLC already connected for CB handle %d", __func__,
+                       client_cb->handle);
+    return;
+  }
 
   switch (client_cb->at_cb.current_cmd) {
     case BTA_HF_CLIENT_AT_NONE:
