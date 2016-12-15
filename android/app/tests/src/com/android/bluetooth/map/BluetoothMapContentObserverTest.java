@@ -35,7 +35,7 @@ public class BluetoothMapContentObserverTest extends AndroidTestCase {
     }
 
     public void testInitMsgList() {
-        Looper.prepare();
+        if (Looper.myLooper() == null) Looper.prepare();
 
         Context mockContext = mock(Context.class);
         MockContentResolver mockResolver = new MockContentResolver(mockContext);
