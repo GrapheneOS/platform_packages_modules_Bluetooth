@@ -1650,10 +1650,8 @@ public class BluetoothMapContent {
 
     private String setWhereFilterFolderType(BluetoothMapFolderElement folderElement,
                                             FilterInfo fi) {
-        String where = "";
-        if(folderElement.shouldIgnore()) {
-            where = "1=1";
-        } else {
+        String where = "1=1";
+        if (!folderElement.shouldIgnore()) {
             if (fi.mMsgType == FilterInfo.TYPE_SMS) {
                 where = setWhereFilterFolderTypeSms(folderElement.getName());
             } else if (fi.mMsgType == FilterInfo.TYPE_MMS) {
@@ -1664,6 +1662,7 @@ public class BluetoothMapContent {
                 where = setWhereFilterFolderTypeIm(folderElement.getFolderId());
             }
         }
+
         return where;
     }
 
