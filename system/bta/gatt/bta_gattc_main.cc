@@ -372,10 +372,6 @@ bool bta_gattc_hdl_event(BT_HDR* p_msg) {
       bta_gattc_disable();
       break;
 
-    case BTA_GATTC_API_REG_EVT:
-      bta_gattc_register((tBTA_GATTC_DATA*)p_msg);
-      break;
-
     case BTA_GATTC_INT_START_IF_EVT:
       bta_gattc_start_if((tBTA_GATTC_DATA*)p_msg);
       break;
@@ -473,8 +469,6 @@ static char* gattc_evt_code(tBTA_GATTC_INT_EVT evt_code) {
       return "BTA_GATTC_INT_DISCONN_EVT";
     case BTA_GATTC_INT_START_IF_EVT:
       return "BTA_GATTC_INT_START_IF_EVT";
-    case BTA_GATTC_API_REG_EVT:
-      return "BTA_GATTC_API_REG_EVT";
     case BTA_GATTC_API_DEREG_EVT:
       return "BTA_GATTC_API_DEREG_EVT";
     case BTA_GATTC_API_REFRESH_EVT:
