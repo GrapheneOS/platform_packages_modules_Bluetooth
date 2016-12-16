@@ -100,14 +100,6 @@ void btif_gattc_upstreams_evt(uint16_t event, char* p_param) {
 
   tBTA_GATTC* p_data = (tBTA_GATTC*)p_param;
   switch (event) {
-    case BTA_GATTC_REG_EVT: {
-      bt_uuid_t app_uuid;
-      bta_to_btif_uuid(&app_uuid, &p_data->reg_oper.app_uuid);
-      HAL_CBACK(bt_gatt_callbacks, client->register_client_cb,
-                p_data->reg_oper.status, p_data->reg_oper.client_if, &app_uuid);
-      break;
-    }
-
     case BTA_GATTC_DEREG_EVT:
       break;
 
@@ -214,16 +206,30 @@ void btm_read_rssi_cb(tBTM_RSSI_RESULTS* p_result) {
  *  Client API Functions
  ******************************************************************************/
 
-void btif_gattc_register_app_impl(tBT_UUID uuid) {
-  BTA_GATTC_AppRegister(&uuid, bta_gattc_cback);
-}
-
 bt_status_t btif_gattc_register_app(bt_uuid_t* uuid) {
   CHECK_BTGATT_INIT();
 
   tBT_UUID bt_uuid;
   btif_to_bta_uuid(&bt_uuid, uuid);
-  return do_in_jni_thread(Bind(&btif_gattc_register_app_impl, bt_uuid));
+
+  return do_in_jni_thread(Bind(
+      [](tBT_UUID bt_uuid) {
+        BTA_GATTC_AppRegister(
+            bta_gattc_cback,
+            base::Bind(
+                [](tBT_UUID bt_uuid, uint8_t client_id, uint8_t status) {
+                  do_in_jni_thread(Bind(
+                      [](tBT_UUID bt_uuid, uint8_t client_id, uint8_t status) {
+                        bt_uuid_t app_uuid;
+                        bta_to_btif_uuid(&app_uuid, &bt_uuid);
+                        HAL_CBACK(bt_gatt_callbacks, client->register_client_cb,
+                                  status, client_id, &app_uuid);
+                      },
+                      bt_uuid, client_id, status));
+                },
+                bt_uuid));
+      },
+      bt_uuid));
 }
 
 void btif_gattc_unregister_app_impl(int client_if) {
