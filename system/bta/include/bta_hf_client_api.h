@@ -171,6 +171,7 @@ typedef struct {
 /* data associated with BTA_HF_CLIENT_OPEN_EVT */
 typedef struct {
   BD_ADDR bd_addr;
+  uint16_t handle;  // Handle for client control block
   tBTA_HF_CLIENT_STATUS status;
 } tBTA_HF_CLIENT_OPEN;
 
