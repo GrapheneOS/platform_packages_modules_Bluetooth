@@ -60,7 +60,10 @@ void* BtifAvrcpAudioTrackCreate(int trackFreq, int channelType) {
 }
 
 void BtifAvrcpAudioTrackStart(void* handle) {
-  CHECK(handle != NULL);
+  if (handle == NULL) {
+    LOG_ERROR(LOG_TAG, "%s: handle is null!", __func__);
+    return;
+  }
   BtifAvrcpAudioTrack* trackHolder = static_cast<BtifAvrcpAudioTrack*>(handle);
   CHECK(trackHolder != NULL);
   CHECK(trackHolder->track != NULL);
