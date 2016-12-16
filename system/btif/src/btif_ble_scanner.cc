@@ -47,6 +47,8 @@
 using base::Bind;
 using base::Owned;
 using std::vector;
+using RegisterCallback =
+    base::Callback<void(uint8_t /* scanner_id */, uint8_t /* status */)>;
 
 extern bt_status_t do_in_jni_thread(const base::Closure& task);
 extern const btgatt_callbacks_t* bt_gatt_callbacks;
@@ -166,14 +168,6 @@ void btif_gatts_upstreams_evt(uint16_t event, char* p_param) {
 
   tBTA_GATTC* p_data = (tBTA_GATTC*)p_param;
   switch (event) {
-    case BTA_GATTC_REG_EVT: {
-      bt_uuid_t app_uuid;
-      bta_to_btif_uuid(&app_uuid, &p_data->reg_oper.app_uuid);
-      HAL_CBACK(bt_gatt_callbacks, scanner->register_scanner_cb,
-                p_data->reg_oper.status, p_data->reg_oper.client_if, &app_uuid);
-      break;
-    }
-
     case BTA_GATTC_DEREG_EVT:
       break;
 
@@ -184,7 +178,7 @@ void btif_gatts_upstreams_evt(uint16_t event, char* p_param) {
     }
 
     default:
-      LOG_ERROR(LOG_TAG, "%s: Unhandled event (%d)!", __func__, event);
+      LOG_DEBUG(LOG_TAG, "%s: Unhandled event (%d)", __func__, event);
       break;
   }
 }
@@ -369,16 +363,32 @@ void bta_track_adv_event_cb(tBTA_DM_BLE_TRACK_ADV_DATA* p_track_adv_data) {
   SCAN_CBACK_IN_JNI(track_adv_event_cb, Owned(btif_scan_track_cb));
 }
 
-void btif_gattc_register_scanner_impl(tBT_UUID uuid) {
-  BTA_GATTC_AppRegister(&uuid, bta_gatts_cback);
-}
-
 bt_status_t btif_gattc_register_scanner(bt_uuid_t* uuid) {
   CHECK_BTGATT_INIT();
 
   tBT_UUID bt_uuid;
   btif_to_bta_uuid(&bt_uuid, uuid);
-  return do_in_jni_thread(Bind(&btif_gattc_register_scanner_impl, bt_uuid));
+
+  return do_in_jni_thread(Bind(
+      [](tBT_UUID bt_uuid) {
+        BTA_GATTC_AppRegister(
+            bta_gatts_cback,
+            base::Bind(
+                [](tBT_UUID bt_uuid, uint8_t client_id, uint8_t status) {
+                  do_in_jni_thread(Bind(
+                      [](tBT_UUID bt_uuid, uint8_t client_id, uint8_t status) {
+                        bt_uuid_t app_uuid;
+                        bta_to_btif_uuid(&app_uuid, &bt_uuid);
+
+                        HAL_CBACK(bt_gatt_callbacks,
+                                  scanner->register_scanner_cb, status,
+                                  client_id, &app_uuid);
+                      },
+                      bt_uuid, client_id, status));
+                },
+                bt_uuid));
+      },
+      bt_uuid));
 }
 
 void btif_gattc_unregister_scanner_impl(int client_if) {

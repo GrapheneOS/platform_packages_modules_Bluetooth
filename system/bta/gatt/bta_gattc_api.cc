@@ -26,8 +26,11 @@
 
 #include <string.h>
 
+#include <base/bind.h>
+#include <base/bind_helpers.h>
 #include <base/callback.h>
 #include "bt_common.h"
+#include "bta_closure_api.h"
 #include "bta_gatt_api.h"
 #include "bta_gattc_int.h"
 #include "bta_sys.h"
@@ -63,33 +66,29 @@ void BTA_GATTC_Disable(void) {
   bta_sys_deregister(BTA_ID_GATTC);
 }
 
-/*******************************************************************************
- *
- * Function         BTA_GATTC_AppRegister
- *
- * Description      This function is called to register application callbacks
- *                    with BTA GATTC module.
- *
- * Parameters       p_app_uuid - applicaiton UUID
- *                  p_client_cb - pointer to the application callback function.
- *
- * Returns          None
- *
- ******************************************************************************/
-void BTA_GATTC_AppRegister(tBT_UUID* p_app_uuid,
-                           tBTA_GATTC_CBACK* p_client_cb) {
-  tBTA_GATTC_API_REG* p_buf =
-      (tBTA_GATTC_API_REG*)osi_malloc(sizeof(tBTA_GATTC_API_REG));
+static void create_random_uuid(tBT_UUID* uuid) {
+  uuid->len = LEN_UUID_128;
 
+  for (int i = 0; i < 16; ++i) {
+    uuid->uu.uuid128[i] = (uint8_t)(rand() % 256);
+  }
+}
+
+/**
+ * This function is called to register application callbacks with BTA GATTC
+ * module. |client_cb| pointer to the application callback function.
+ * |cb| one time callback when registration is finished
+ */
+void BTA_GATTC_AppRegister(tBTA_GATTC_CBACK* p_client_cb,
+                           BtaAppRegisterCallback cb) {
   if (bta_sys_is_register(BTA_ID_GATTC) == false)
     bta_sys_register(BTA_ID_GATTC, &bta_gattc_reg);
 
-  p_buf->hdr.event = BTA_GATTC_API_REG_EVT;
-  if (p_app_uuid != NULL)
-    memcpy(&p_buf->app_uuid, p_app_uuid, sizeof(tBT_UUID));
-  p_buf->p_cback = p_client_cb;
-
-  bta_sys_sendmsg(p_buf);
+  // base::Owned will own and free app_uuid
+  tBT_UUID* uuid = new tBT_UUID;
+  create_random_uuid(uuid);
+  do_in_bta_thread(FROM_HERE, base::Bind(&bta_gattc_register, base::Owned(uuid),
+                                         p_client_cb, std::move(cb)));
 }
 
 /*******************************************************************************
