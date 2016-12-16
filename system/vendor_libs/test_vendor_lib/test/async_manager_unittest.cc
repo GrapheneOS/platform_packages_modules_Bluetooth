@@ -47,6 +47,9 @@ class AsyncManagerSocketTest : public ::testing::Test {
     serv_addr.sin_family = AF_INET;
     serv_addr.sin_addr.s_addr = INADDR_ANY;
     serv_addr.sin_port = htons(kPort);
+    int reuse_flag = 1;
+    EXPECT_FALSE(setsockopt(socket_fd_, SOL_SOCKET, SO_REUSEADDR, &reuse_flag,
+                            sizeof(reuse_flag)) < 0);
     EXPECT_FALSE(bind(socket_fd_, (sockaddr*)&serv_addr, sizeof(serv_addr)) <
                  0);
 
@@ -143,6 +146,30 @@ TEST_F(AsyncManagerSocketTest, TestOneConnection) {
   AwaitServerResponse(socket_cli_fd);
 
   close(socket_cli_fd);
+}
+
+TEST_F(AsyncManagerSocketTest, TestRepeatedConnections) {
+  static const int num_connections = 300;
+  for (int i = 0; i < num_connections; i++) {
+    int socket_cli_fd = ConnectClient();
+    WriteFromClient(socket_cli_fd);
+    AwaitServerResponse(socket_cli_fd);
+    close(socket_cli_fd);
+  }
+}
+
+TEST_F(AsyncManagerSocketTest, TestMultipleConnections) {
+  static const int num_connections = 300;
+  int socket_cli_fd[num_connections];
+  for (int i = 0; i < num_connections; i++) {
+    socket_cli_fd[i] = ConnectClient();
+    EXPECT_TRUE(socket_cli_fd[i] > 0);
+    WriteFromClient(socket_cli_fd[i]);
+  }
+  for (int i = 0; i < num_connections; i++) {
+    AwaitServerResponse(socket_cli_fd[i]);
+    close(socket_cli_fd[i]);
+  }
 }
 
 }  // namespace test_vendor_lib
