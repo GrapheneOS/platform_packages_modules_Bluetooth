@@ -159,7 +159,7 @@ class AsyncManager::AsyncFdWatcher {
     }
     // set up the communication channel
     int pipe_fds[2];
-    if (pipe(pipe_fds)) {
+    if (pipe2(pipe_fds, O_NONBLOCK)) {
       LOG_ERROR(LOG_TAG,
                 "%s:Unable to establish a communication channel to the reading "
                 "thread",
@@ -168,8 +168,6 @@ class AsyncManager::AsyncFdWatcher {
     }
     notification_listen_fd_ = pipe_fds[0];
     notification_write_fd_ = pipe_fds[1];
-    TEMP_FAILURE_RETRY(fcntl(notification_listen_fd_, F_SETFD, O_NONBLOCK));
-    TEMP_FAILURE_RETRY(fcntl(notification_write_fd_, F_SETFD, O_NONBLOCK));
 
     thread_ = std::thread([this]() { ThreadRoutine(); });
     if (!thread_.joinable()) {
