@@ -29,7 +29,7 @@
 
 #include "btif_dm.h"
 
-#include <assert.h>
+#include <base/logging.h>
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -263,13 +263,13 @@ static void btif_dm_data_copy(uint16_t event, char* dst, char* src) {
 
   if (!src_dm_sec) return;
 
-  assert(dst_dm_sec);
+  CHECK(dst_dm_sec);
   maybe_non_aligned_memcpy(dst_dm_sec, src_dm_sec, sizeof(*src_dm_sec));
 
   if (event == BTA_DM_BLE_KEY_EVT) {
     dst_dm_sec->ble_key.p_key_value =
         (tBTM_LE_KEY_VALUE*)osi_malloc(sizeof(tBTM_LE_KEY_VALUE));
-    assert(src_dm_sec->ble_key.p_key_value);
+    CHECK(src_dm_sec->ble_key.p_key_value);
     memcpy(dst_dm_sec->ble_key.p_key_value, src_dm_sec->ble_key.p_key_value,
            sizeof(tBTM_LE_KEY_VALUE));
   }

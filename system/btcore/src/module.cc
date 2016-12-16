@@ -18,7 +18,7 @@
 
 #define LOG_TAG "bt_core_module"
 
-#include <assert.h>
+#include <base/logging.h>
 #include <dlfcn.h>
 #include <string.h>
 
@@ -53,13 +53,13 @@ void module_management_stop(void) {
 
 const module_t* get_module(const char* name) {
   module_t* module = (module_t*)dlsym(RTLD_DEFAULT, name);
-  assert(module);
+  CHECK(module);
   return module;
 }
 
 bool module_init(const module_t* module) {
-  assert(module != NULL);
-  assert(get_module_state(module) == MODULE_STATE_NONE);
+  CHECK(module != NULL);
+  CHECK(get_module_state(module) == MODULE_STATE_NONE);
 
   LOG_INFO(LOG_TAG, "%s Initializing module \"%s\"", __func__, module->name);
   if (!call_lifecycle_function(module->init)) {
@@ -74,14 +74,14 @@ bool module_init(const module_t* module) {
 }
 
 bool module_start_up(const module_t* module) {
-  assert(module != NULL);
+  CHECK(module != NULL);
   // TODO(zachoverflow): remove module->init check once automagic order/call is
   // in place.
   // This hack is here so modules which don't require init don't have to have
   // useless calls
   // as we're converting the startup sequence.
-  assert(get_module_state(module) == MODULE_STATE_INITIALIZED ||
-         module->init == NULL);
+  CHECK(get_module_state(module) == MODULE_STATE_INITIALIZED ||
+        module->init == NULL);
 
   LOG_INFO(LOG_TAG, "%s Starting module \"%s\"", __func__, module->name);
   if (!call_lifecycle_function(module->start_up)) {
@@ -96,9 +96,9 @@ bool module_start_up(const module_t* module) {
 }
 
 void module_shut_down(const module_t* module) {
-  assert(module != NULL);
+  CHECK(module != NULL);
   module_state_t state = get_module_state(module);
-  assert(state <= MODULE_STATE_STARTED);
+  CHECK(state <= MODULE_STATE_STARTED);
 
   // Only something to do if the module was actually started
   if (state < MODULE_STATE_STARTED) return;
@@ -116,9 +116,9 @@ void module_shut_down(const module_t* module) {
 }
 
 void module_clean_up(const module_t* module) {
-  assert(module != NULL);
+  CHECK(module != NULL);
   module_state_t state = get_module_state(module);
-  assert(state <= MODULE_STATE_INITIALIZED);
+  CHECK(state <= MODULE_STATE_INITIALIZED);
 
   // Only something to do if the module was actually initialized
   if (state < MODULE_STATE_INITIALIZED) return;
@@ -189,7 +189,7 @@ void module_start_up_callbacked_wrapper(const module_t* module,
 }
 
 static void run_wrapped_start_up(void* context) {
-  assert(context);
+  CHECK(context);
 
   callbacked_wrapper_t* wrapper = (callbacked_wrapper_t*)context;
   wrapper->success = module_start_up(wrapper->module);
@@ -199,7 +199,7 @@ static void run_wrapped_start_up(void* context) {
 }
 
 static void post_result_to_callback(void* context) {
-  assert(context);
+  CHECK(context);
 
   callbacked_wrapper_t* wrapper = (callbacked_wrapper_t*)context;
 

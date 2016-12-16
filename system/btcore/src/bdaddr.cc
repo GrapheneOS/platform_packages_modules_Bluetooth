@@ -16,7 +16,7 @@
  *
  ******************************************************************************/
 
-#include <assert.h>
+#include <base/logging.h>
 #include <ctype.h>
 #include <stdio.h>
 #include <string.h>
@@ -24,30 +24,30 @@
 #include "btcore/include/bdaddr.h"
 
 bool bdaddr_is_empty(const bt_bdaddr_t* addr) {
-  assert(addr != NULL);
+  CHECK(addr != NULL);
 
   uint8_t zero[sizeof(bt_bdaddr_t)] = {0};
   return memcmp(addr, &zero, sizeof(bt_bdaddr_t)) == 0;
 }
 
 bool bdaddr_equals(const bt_bdaddr_t* first, const bt_bdaddr_t* second) {
-  assert(first != NULL);
-  assert(second != NULL);
+  CHECK(first != NULL);
+  CHECK(second != NULL);
 
   return memcmp(first, second, sizeof(bt_bdaddr_t)) == 0;
 }
 
 bt_bdaddr_t* bdaddr_copy(bt_bdaddr_t* dest, const bt_bdaddr_t* src) {
-  assert(dest != NULL);
-  assert(src != NULL);
+  CHECK(dest != NULL);
+  CHECK(src != NULL);
 
   return (bt_bdaddr_t*)memcpy(dest, src, sizeof(bt_bdaddr_t));
 }
 
 const char* bdaddr_to_string(const bt_bdaddr_t* addr, char* string,
                              size_t size) {
-  assert(addr != NULL);
-  assert(string != NULL);
+  CHECK(addr != NULL);
+  CHECK(string != NULL);
 
   if (size < 18) return NULL;
 
@@ -58,7 +58,7 @@ const char* bdaddr_to_string(const bt_bdaddr_t* addr, char* string,
 }
 
 bool string_is_bdaddr(const char* string) {
-  assert(string != NULL);
+  CHECK(string != NULL);
 
   size_t len = strlen(string);
   if (len != 17) return false;
@@ -74,8 +74,8 @@ bool string_is_bdaddr(const char* string) {
 }
 
 bool string_to_bdaddr(const char* string, bt_bdaddr_t* addr) {
-  assert(string != NULL);
-  assert(addr != NULL);
+  CHECK(string != NULL);
+  CHECK(addr != NULL);
 
   bt_bdaddr_t new_addr;
   uint8_t* ptr = new_addr.address;

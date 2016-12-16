@@ -27,7 +27,7 @@
 
 #define LOG_TAG "bt_btu_hcif"
 
-#include <assert.h>
+#include <base/logging.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -410,7 +410,7 @@ static void btu_hcif_command_status_evt_with_cb_on_task(BT_HDR* event) {
   STREAM_TO_UINT16(opcode, stream);
 
   hci_cmd_complete_cb cb = (hci_cmd_complete_cb)hack->context;
-  assert(hack->status != 0);
+  CHECK(hack->status != 0);
   // report command status error
   cb(opcode, &hack->status, sizeof(uint16_t));
 

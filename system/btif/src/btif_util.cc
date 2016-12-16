@@ -30,7 +30,7 @@
 
 #include "btif_util.h"
 
-#include <assert.h>
+#include <base/logging.h>
 #include <ctype.h>
 #include <netinet/in.h>
 #include <stdio.h>
@@ -113,7 +113,7 @@ void uuid16_to_uuid128(uint16_t uuid16, bt_uuid_t* uuid128) {
 }
 
 bool string_to_uuid(const char* str, bt_uuid_t* p_uuid) {
-  assert(p_uuid);
+  CHECK(p_uuid);
   if (str == NULL) return false;
 
   uint32_t uuid0, uuid4;

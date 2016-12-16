@@ -15,7 +15,7 @@
  *  limitations under the License.
  *
  ******************************************************************************/
-#include <assert.h>
+#include <base/logging.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -28,7 +28,7 @@ char* osi_strdup(const char* str) {
   size_t size = strlen(str) + 1;  // + 1 for the null terminator
   size_t real_size = allocation_tracker_resize_for_canary(size);
   void* ptr = malloc(real_size);
-  assert(ptr);
+  CHECK(ptr);
 
   char* new_string = static_cast<char*>(
       allocation_tracker_notify_alloc(alloc_allocator_id, ptr, size));
@@ -44,7 +44,7 @@ char* osi_strndup(const char* str, size_t len) {
 
   size_t real_size = allocation_tracker_resize_for_canary(size + 1);
   void* ptr = malloc(real_size);
-  assert(ptr);
+  CHECK(ptr);
 
   char* new_string = static_cast<char*>(
       allocation_tracker_notify_alloc(alloc_allocator_id, ptr, size + 1));
@@ -58,14 +58,14 @@ char* osi_strndup(const char* str, size_t len) {
 void* osi_malloc(size_t size) {
   size_t real_size = allocation_tracker_resize_for_canary(size);
   void* ptr = malloc(real_size);
-  assert(ptr);
+  CHECK(ptr);
   return allocation_tracker_notify_alloc(alloc_allocator_id, ptr, size);
 }
 
 void* osi_calloc(size_t size) {
   size_t real_size = allocation_tracker_resize_for_canary(size);
   void* ptr = calloc(1, real_size);
-  assert(ptr);
+  CHECK(ptr);
   return allocation_tracker_notify_alloc(alloc_allocator_id, ptr, size);
 }
 
@@ -74,7 +74,7 @@ void osi_free(void* ptr) {
 }
 
 void osi_free_and_reset(void** p_ptr) {
-  assert(p_ptr != NULL);
+  CHECK(p_ptr != NULL);
   osi_free(*p_ptr);
   *p_ptr = NULL;
 }

@@ -18,7 +18,7 @@
 
 #define LOG_TAG "bt_osi_rand"
 
-#include <assert.h>
+#include <base/logging.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <stdio.h>
@@ -39,13 +39,13 @@ int osi_rand(void) {
   if (rand_fd == INVALID_FD) {
     LOG_ERROR(LOG_TAG, "%s can't open rand fd %s: %s ", __func__, RANDOM_PATH,
               strerror(errno));
-    assert(0);
+    CHECK(0);
   }
 
   ssize_t read_bytes = read(rand_fd, &rand, sizeof(rand));
   close(rand_fd);
 
-  assert(read_bytes == sizeof(rand));
+  CHECK(read_bytes == sizeof(rand));
 
   if (rand < 0) rand = -rand;
 

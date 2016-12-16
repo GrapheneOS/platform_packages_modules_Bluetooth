@@ -22,7 +22,7 @@
  *
  ******************************************************************************/
 
-#include <assert.h>
+#include <base/logging.h>
 #include <string.h>
 
 #include "avdt_api.h"
@@ -212,7 +212,7 @@ tAVDT_TC_TBL* avdt_ad_tc_tbl_by_type(uint8_t type, tAVDT_CCB* p_ccb,
     }
   }
 
-  assert(i != AVDT_NUM_TC_TBL);
+  CHECK(i != AVDT_NUM_TC_TBL);
 
   return p_tbl;
 }
@@ -239,7 +239,7 @@ tAVDT_TC_TBL* avdt_ad_tc_tbl_alloc(tAVDT_CCB* p_ccb) {
   }
 
   /* sanity check */
-  assert(i != AVDT_NUM_TC_TBL);
+  CHECK(i != AVDT_NUM_TC_TBL);
 
   /* initialize entry */
   p_tbl->peer_mtu = L2CAP_DEFAULT_MTU;

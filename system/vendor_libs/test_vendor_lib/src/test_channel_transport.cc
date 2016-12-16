@@ -18,7 +18,7 @@
 
 #include "test_channel_transport.h"
 
-#include "base/logging.h"
+#include <base/logging.h>
 
 #include "osi/include/log.h"
 #include "osi/include/osi.h"

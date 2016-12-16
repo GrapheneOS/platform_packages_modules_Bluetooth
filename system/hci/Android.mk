@@ -34,6 +34,7 @@ LOCAL_C_INCLUDES := \
     $(bluetooth_C_INCLUDES)
 
 LOCAL_MODULE := libbt-hci
+LOCAL_SHARED_LIBRARIES := libchrome
 
 ifeq ($(BLUETOOTH_HCI_USE_MCT),true)
     LOCAL_CFLAGS += -DHCI_USE_MCT
@@ -71,7 +72,7 @@ LOCAL_SRC_FILES := \
 
 LOCAL_MODULE := net_test_hci
 LOCAL_MODULE_TAGS := tests
-LOCAL_SHARED_LIBRARIES := liblog libdl libprotobuf-cpp-lite
+LOCAL_SHARED_LIBRARIES := liblog libdl libprotobuf-cpp-lite libchrome
 LOCAL_STATIC_LIBRARIES := libbt-hci libosi libcutils libbtcore libbt-protos
 
 LOCAL_CFLAGS += $(bluetooth_CFLAGS)

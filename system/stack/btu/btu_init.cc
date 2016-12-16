@@ -18,7 +18,7 @@
 
 #define LOG_TAG "bt_task"
 
-#include <assert.h>
+#include <base/logging.h>
 #include <pthread.h>
 #include <string.h>
 

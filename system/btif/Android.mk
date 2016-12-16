@@ -99,15 +99,11 @@ btifCommonIncludes := \
   $(LOCAL_PATH)/../stack/a2dp \
   $(LOCAL_PATH)/../stack/btm \
   $(LOCAL_PATH)/../stack/avdt \
-  $(LOCAL_PATH)/../hcis \
-  $(LOCAL_PATH)/../hcis/include \
-  $(LOCAL_PATH)/../hcis/patchram \
   $(LOCAL_PATH)/../udrv/include \
   $(LOCAL_PATH)/../btif/include \
   $(LOCAL_PATH)/../btif/co \
   $(LOCAL_PATH)/../hci/include\
   $(LOCAL_PATH)/../vnd/include \
-  $(LOCAL_PATH)/../brcm/include \
   $(LOCAL_PATH)/../embdrv/sbc/encoder/include \
   $(LOCAL_PATH)/../embdrv/sbc/decoder/include \
   $(LOCAL_PATH)/../audio_a2dp_hw \

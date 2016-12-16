@@ -26,7 +26,7 @@
 
 #include "bt_target.h"
 
-#include <assert.h>
+#include <base/logging.h>
 #include <string.h>
 
 #include "avdt_api.h"

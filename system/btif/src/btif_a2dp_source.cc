@@ -19,7 +19,7 @@
 
 #define LOG_TAG "bt_btif_a2dp_source"
 
-#include <assert.h>
+#include <base/logging.h>
 #include <limits.h>
 #include <string.h>
 
@@ -366,7 +366,7 @@ static void btif_a2dp_source_encoder_init(void) {
 
   // Check to make sure the platform has 8 bits/byte since
   // we're using that in frame size calculations now.
-  assert(CHAR_BIT == 8);
+  CHECK(CHAR_BIT == 8);
 
   APPL_TRACE_DEBUG("%s", __func__);
 
@@ -489,7 +489,7 @@ static void btif_a2dp_source_audio_feeding_init_event(BT_HDR* p_msg) {
 
   APPL_TRACE_DEBUG("%s", __func__);
 
-  assert(btif_a2dp_source_cb.encoder_interface != NULL);
+  CHECK(btif_a2dp_source_cb.encoder_interface != NULL);
   btif_a2dp_source_cb.encoder_interface->feeding_init(
       &p_feeding->feeding_params);
 }
@@ -501,7 +501,7 @@ static void btif_a2dp_source_audio_tx_start_event(void) {
       (btif_a2dp_source_cb.is_streaming) ? "true" : "false");
 
   /* Reset the media feeding state */
-  assert(btif_a2dp_source_cb.encoder_interface != NULL);
+  CHECK(btif_a2dp_source_cb.encoder_interface != NULL);
   btif_a2dp_source_cb.encoder_interface->feeding_reset();
 
   APPL_TRACE_EVENT(
@@ -569,7 +569,7 @@ static void btif_a2dp_source_audio_handle_timer(UNUSED_ATTR void* context) {
   log_tstamps_us("A2DP Source tx timer", timestamp_us);
 
   if (alarm_is_scheduled(btif_a2dp_source_cb.media_alarm)) {
-    assert(btif_a2dp_source_cb.encoder_interface != NULL);
+    CHECK(btif_a2dp_source_cb.encoder_interface != NULL);
     btif_a2dp_source_cb.encoder_interface->send_frames(timestamp_us);
     bta_av_ci_src_data_ready(BTA_AV_CHNL_AUDIO);
   } else {
@@ -646,7 +646,7 @@ static bool btif_a2dp_source_enqueue_callback(BT_HDR* p_buf, size_t frames_n) {
   btif_a2dp_source_cb.stats.tx_queue_total_frames += frames_n;
   if (frames_n > btif_a2dp_source_cb.stats.tx_queue_max_frames_per_packet)
     btif_a2dp_source_cb.stats.tx_queue_max_frames_per_packet = frames_n;
-  assert(btif_a2dp_source_cb.encoder_interface != NULL);
+  CHECK(btif_a2dp_source_cb.encoder_interface != NULL);
   update_scheduling_stats(&btif_a2dp_source_cb.stats.tx_queue_enqueue_stats,
                           now_us,
                           btif_a2dp_source_cb.encoder_interval_ms * 1000);

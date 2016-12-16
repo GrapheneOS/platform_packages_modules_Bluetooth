@@ -20,7 +20,7 @@
 
 #include "osi/include/buffer.h"
 
-#include <assert.h>
+#include <base/logging.h>
 #include <stdint.h>
 
 #include "osi/include/allocator.h"
@@ -34,7 +34,7 @@ struct buffer_t {
 };
 
 buffer_t* buffer_new(size_t size) {
-  assert(size > 0);
+  CHECK(size > 0);
 
   buffer_t* buffer =
       static_cast<buffer_t*>(osi_calloc(sizeof(buffer_t) + size));
@@ -47,14 +47,14 @@ buffer_t* buffer_new(size_t size) {
 }
 
 buffer_t* buffer_new_ref(const buffer_t* buf) {
-  assert(buf != NULL);
+  CHECK(buf != NULL);
   return buffer_new_slice(buf, buf->length);
 }
 
 buffer_t* buffer_new_slice(const buffer_t* buf, size_t slice_size) {
-  assert(buf != NULL);
-  assert(slice_size > 0);
-  assert(slice_size <= buf->length);
+  CHECK(buf != NULL);
+  CHECK(slice_size > 0);
+  CHECK(slice_size <= buf->length);
 
   buffer_t* ret = static_cast<buffer_t*>(osi_calloc(sizeof(buffer_t)));
 
@@ -81,11 +81,11 @@ void buffer_free(buffer_t* buffer) {
 }
 
 void* buffer_ptr(const buffer_t* buf) {
-  assert(buf != NULL);
+  CHECK(buf != NULL);
   return buf->root->data + buf->root->length - buf->length;
 }
 
 size_t buffer_length(const buffer_t* buf) {
-  assert(buf != NULL);
+  CHECK(buf != NULL);
   return buf->length;
 }

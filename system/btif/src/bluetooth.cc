@@ -26,7 +26,7 @@
 
 #define LOG_TAG "bt_btif"
 
-#include <assert.h>
+#include <base/logging.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -111,8 +111,8 @@ extern btsdp_interface_t* btif_sdp_get_interface();
 static bool interface_ready(void) { return bt_hal_cbacks != NULL; }
 
 static bool is_profile(const char* p1, const char* p2) {
-  assert(p1);
-  assert(p2);
+  CHECK(p1);
+  CHECK(p2);
   return strlen(p1) == strlen(p2) && strncmp(p1, p2, strlen(p2)) == 0;
 }
 
