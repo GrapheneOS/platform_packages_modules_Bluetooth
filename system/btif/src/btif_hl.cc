@@ -28,7 +28,7 @@
 
 #include "btif_hl.h"
 
-#include <assert.h>
+#include <base/logging.h>
 #include <ctype.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -4406,7 +4406,7 @@ void btif_hl_select_monitor_callback(fd_set* p_cur_set,
         BTIF_TRACE_DEBUG("read data state= BTIF_HL_SOC_STATE_W4_READ");
         btif_hl_mdl_cb_t* p_dcb = BTIF_HL_GET_MDL_CB_PTR(
             p_scb->app_idx, p_scb->mcl_idx, p_scb->mdl_idx);
-        assert(p_dcb != NULL);
+        CHECK(p_dcb != NULL);
         if (p_dcb->p_tx_pkt) {
           BTIF_TRACE_ERROR(
               "Rcv new pkt but the last pkt is still not been"

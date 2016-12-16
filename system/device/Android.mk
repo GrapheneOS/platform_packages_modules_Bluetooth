@@ -38,7 +38,7 @@ LOCAL_SRC_FILES := \
 
 LOCAL_MODULE := libbtdevice
 LOCAL_MODULE_TAGS := optional
-LOCAL_SHARED_LIBRARIES := libc liblog
+LOCAL_SHARED_LIBRARIES := libc liblog libchrome
 LOCAL_MODULE_CLASS := STATIC_LIBRARIES
 
 LOCAL_CFLAGS += $(bluetooth_CFLAGS)
@@ -61,7 +61,7 @@ LOCAL_SRC_FILES := \
 
 LOCAL_MODULE := net_test_device
 LOCAL_MODULE_TAGS := tests
-LOCAL_SHARED_LIBRARIES := liblog libdl
+LOCAL_SHARED_LIBRARIES := liblog libdl libchrome
 LOCAL_STATIC_LIBRARIES := libbtdevice libbtcore libosi libcutils
 
 LOCAL_CFLAGS += $(bluetooth_CFLAGS)

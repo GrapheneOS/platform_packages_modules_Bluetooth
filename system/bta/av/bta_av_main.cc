@@ -24,7 +24,7 @@
 
 #define LOG_TAG "bt_bta_av"
 
-#include <assert.h>
+#include <base/logging.h>
 #include <string.h>
 
 #include "bt_target.h"

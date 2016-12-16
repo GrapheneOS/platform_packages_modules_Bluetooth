@@ -20,7 +20,7 @@
 
 #include "osi/include/reactor.h"
 
-#include <assert.h>
+#include <base/logging.h>
 #include <errno.h>
 #include <pthread.h>
 #include <stdlib.h>
@@ -121,17 +121,17 @@ void reactor_free(reactor_t* reactor) {
 }
 
 reactor_status_t reactor_start(reactor_t* reactor) {
-  assert(reactor != NULL);
+  CHECK(reactor != NULL);
   return run_reactor(reactor, 0);
 }
 
 reactor_status_t reactor_run_once(reactor_t* reactor) {
-  assert(reactor != NULL);
+  CHECK(reactor != NULL);
   return run_reactor(reactor, 1);
 }
 
 void reactor_stop(reactor_t* reactor) {
-  assert(reactor != NULL);
+  CHECK(reactor != NULL);
 
   eventfd_write(reactor->event_fd, EVENT_REACTOR_STOP);
 }
@@ -139,8 +139,8 @@ void reactor_stop(reactor_t* reactor) {
 reactor_object_t* reactor_register(reactor_t* reactor, int fd, void* context,
                                    void (*read_ready)(void* context),
                                    void (*write_ready)(void* context)) {
-  assert(reactor != NULL);
-  assert(fd != INVALID_FD);
+  CHECK(reactor != NULL);
+  CHECK(fd != INVALID_FD);
 
   reactor_object_t* object =
       (reactor_object_t*)osi_calloc(sizeof(reactor_object_t));
@@ -172,7 +172,7 @@ reactor_object_t* reactor_register(reactor_t* reactor, int fd, void* context,
 bool reactor_change_registration(reactor_object_t* object,
                                  void (*read_ready)(void* context),
                                  void (*write_ready)(void* context)) {
-  assert(object != NULL);
+  CHECK(object != NULL);
 
   struct epoll_event event;
   memset(&event, 0, sizeof(event));
@@ -195,7 +195,7 @@ bool reactor_change_registration(reactor_object_t* object,
 }
 
 void reactor_unregister(reactor_object_t* obj) {
-  assert(obj != NULL);
+  CHECK(obj != NULL);
 
   reactor_t* reactor = obj->reactor;
 
@@ -232,7 +232,7 @@ void reactor_unregister(reactor_object_t* obj) {
 // 0 |iterations| means loop forever.
 // |reactor| may not be NULL.
 static reactor_status_t run_reactor(reactor_t* reactor, int iterations) {
-  assert(reactor != NULL);
+  CHECK(reactor != NULL);
 
   reactor->run_thread = pthread_self();
   reactor->is_running = true;

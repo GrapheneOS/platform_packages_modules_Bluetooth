@@ -18,7 +18,7 @@
 
 #include "vendor_manager.h"
 
-#include "base/logging.h"
+#include <base/logging.h>
 
 #include "osi/include/log.h"
 

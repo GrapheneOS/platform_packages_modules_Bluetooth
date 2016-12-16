@@ -17,7 +17,7 @@
  ******************************************************************************/
 
 #include <arpa/inet.h>
-#include <assert.h>
+#include <base/logging.h>
 #include <string.h>
 
 #include "btcore/include/device_class.h"
@@ -59,16 +59,16 @@ static void device_class_clr_major_service_(bt_device_class_t* dc, int bitmask);
 static void device_class_set_major_service_(bt_device_class_t* dc, int bitmask);
 
 void device_class_from_stream(bt_device_class_t* dc, const uint8_t* data) {
-  assert(dc != NULL);
-  assert(data != NULL);
+  CHECK(dc != NULL);
+  CHECK(data != NULL);
   *dc = *(bt_device_class_t*)data;
 }
 
 int device_class_to_stream(const bt_device_class_t* dc, uint8_t* data,
                            size_t len) {
-  assert(dc != NULL);
-  assert(data != NULL);
-  assert(len >= sizeof(bt_device_class_t));
+  CHECK(dc != NULL);
+  CHECK(data != NULL);
+  CHECK(len >= sizeof(bt_device_class_t));
   for (size_t i = 0; i < sizeof(bt_device_class_t); ++i) {
     data[i] = dc->_[i];
   }
@@ -76,8 +76,8 @@ int device_class_to_stream(const bt_device_class_t* dc, uint8_t* data,
 }
 
 void device_class_from_int(bt_device_class_t* dc, int data) {
-  assert(dc != NULL);
-  assert(data != 0);
+  CHECK(dc != NULL);
+  CHECK(data != 0);
   // Careful with endianess.
   dc->_[0] = data & 0xff;
   dc->_[1] = (data >> 8) & 0xff;
@@ -85,51 +85,51 @@ void device_class_from_int(bt_device_class_t* dc, int data) {
 }
 
 int device_class_to_int(const bt_device_class_t* dc) {
-  assert(dc != NULL);
+  CHECK(dc != NULL);
   // Careful with endianess.
   return (int)(le32toh(*(int*)dc) & 0xffffff);
 }
 
 bool device_class_equals(const bt_device_class_t* p1,
                          const bt_device_class_t* p2) {
-  assert(p1 != NULL);
-  assert(p2 != NULL);
+  CHECK(p1 != NULL);
+  CHECK(p2 != NULL);
   return (memcmp(p1, p2, sizeof(bt_device_class_t)) == 0);
 }
 
 bool device_class_copy(bt_device_class_t* dest, const bt_device_class_t* src) {
-  assert(dest != NULL);
-  assert(src != NULL);
+  CHECK(dest != NULL);
+  CHECK(src != NULL);
   return (memcpy(dest, src, sizeof(bt_device_class_t)) == dest);
 }
 
 int device_class_get_major_device(const bt_device_class_t* dc) {
-  assert(dc != NULL);
+  CHECK(dc != NULL);
   return DC(dc)->major_device;
 }
 
 void device_class_set_major_device(bt_device_class_t* dc, int val) {
-  assert(dc != NULL);
+  CHECK(dc != NULL);
   DC(dc)->major_device = val;
 }
 
 int device_class_get_minor_device(const bt_device_class_t* dc) {
-  assert(dc != NULL);
+  CHECK(dc != NULL);
   return DC(dc)->minor_device;
 }
 
 void device_class_set_minor_device(bt_device_class_t* dc, int val) {
-  assert(dc != NULL);
+  CHECK(dc != NULL);
   DC(dc)->minor_device = val;
 }
 
 bool device_class_get_information(const bt_device_class_t* dc) {
-  assert(dc != NULL);
+  CHECK(dc != NULL);
   return device_class_get_major_service_(dc, DC_INFORMATION);
 }
 
 void device_class_set_information(bt_device_class_t* dc, bool set) {
-  assert(dc != NULL);
+  CHECK(dc != NULL);
   if (set)
     device_class_set_major_service_(dc, DC_INFORMATION);
   else
@@ -137,12 +137,12 @@ void device_class_set_information(bt_device_class_t* dc, bool set) {
 }
 
 bool device_class_get_limited(const bt_device_class_t* dc) {
-  assert(dc != NULL);
+  CHECK(dc != NULL);
   return device_class_get_major_service_(dc, DC_LIMITED_DISCOVERABLE_MODE);
 }
 
 void device_class_set_limited(bt_device_class_t* dc, bool set) {
-  assert(dc != NULL);
+  CHECK(dc != NULL);
   if (set)
     device_class_set_major_service_(dc, DC_LIMITED_DISCOVERABLE_MODE);
   else

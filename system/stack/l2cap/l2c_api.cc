@@ -24,7 +24,7 @@
 
 #define LOG_TAG "bt_l2cap"
 
-#include <assert.h>
+#include <base/logging.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -599,16 +599,16 @@ bool L2CA_GetPeerLECocConfig(uint16_t lcid, tL2CAP_LE_CFG_INFO* peer_cfg) {
 
 bool L2CA_SetConnectionCallbacks(uint16_t local_cid,
                                  const tL2CAP_APPL_INFO* callbacks) {
-  assert(callbacks != NULL);
-  assert(callbacks->pL2CA_ConnectInd_Cb == NULL);
-  assert(callbacks->pL2CA_ConnectCfm_Cb != NULL);
-  assert(callbacks->pL2CA_ConfigInd_Cb != NULL);
-  assert(callbacks->pL2CA_ConfigCfm_Cb != NULL);
-  assert(callbacks->pL2CA_DisconnectInd_Cb != NULL);
-  assert(callbacks->pL2CA_DisconnectCfm_Cb != NULL);
-  assert(callbacks->pL2CA_CongestionStatus_Cb != NULL);
-  assert(callbacks->pL2CA_DataInd_Cb != NULL);
-  assert(callbacks->pL2CA_TxComplete_Cb != NULL);
+  CHECK(callbacks != NULL);
+  CHECK(callbacks->pL2CA_ConnectInd_Cb == NULL);
+  CHECK(callbacks->pL2CA_ConnectCfm_Cb != NULL);
+  CHECK(callbacks->pL2CA_ConfigInd_Cb != NULL);
+  CHECK(callbacks->pL2CA_ConfigCfm_Cb != NULL);
+  CHECK(callbacks->pL2CA_DisconnectInd_Cb != NULL);
+  CHECK(callbacks->pL2CA_DisconnectCfm_Cb != NULL);
+  CHECK(callbacks->pL2CA_CongestionStatus_Cb != NULL);
+  CHECK(callbacks->pL2CA_DataInd_Cb != NULL);
+  CHECK(callbacks->pL2CA_TxComplete_Cb != NULL);
 
   tL2C_CCB* channel_control_block = l2cu_find_ccb_by_cid(NULL, local_cid);
   if (!channel_control_block) {

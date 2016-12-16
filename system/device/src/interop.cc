@@ -18,7 +18,7 @@
 
 #define LOG_TAG "bt_device_interop"
 
-#include <assert.h>
+#include <base/logging.h>
 #include <string.h>  // For memcmp
 
 #include "btcore/include/module.h"
@@ -46,7 +46,7 @@ static bool interop_match_dynamic_(const interop_feature_t feature,
 
 bool interop_match_addr(const interop_feature_t feature,
                         const bt_bdaddr_t* addr) {
-  assert(addr);
+  CHECK(addr);
 
   if (interop_match_fixed_(feature, addr) ||
       interop_match_dynamic_(feature, addr)) {
@@ -61,7 +61,7 @@ bool interop_match_addr(const interop_feature_t feature,
 }
 
 bool interop_match_name(const interop_feature_t feature, const char* name) {
-  assert(name);
+  CHECK(name);
 
   const size_t db_size =
       sizeof(interop_name_database) / sizeof(interop_name_entry_t);
@@ -79,9 +79,9 @@ bool interop_match_name(const interop_feature_t feature, const char* name) {
 
 void interop_database_add(const uint16_t feature, const bt_bdaddr_t* addr,
                           size_t length) {
-  assert(addr);
-  assert(length > 0);
-  assert(length < sizeof(bt_bdaddr_t));
+  CHECK(addr);
+  CHECK(length > 0);
+  CHECK(length < sizeof(bt_bdaddr_t));
 
   interop_addr_entry_t* entry = static_cast<interop_addr_entry_t*>(
       osi_calloc(sizeof(interop_addr_entry_t)));
@@ -148,7 +148,7 @@ static bool interop_match_dynamic_(const interop_feature_t feature,
   while (node != list_end(interop_list)) {
     interop_addr_entry_t* entry =
         static_cast<interop_addr_entry_t*>(list_node(node));
-    assert(entry);
+    CHECK(entry);
 
     if (feature == entry->feature &&
         memcmp(addr, &entry->addr, entry->length) == 0)
@@ -161,7 +161,7 @@ static bool interop_match_dynamic_(const interop_feature_t feature,
 
 static bool interop_match_fixed_(const interop_feature_t feature,
                                  const bt_bdaddr_t* addr) {
-  assert(addr);
+  CHECK(addr);
 
   const size_t db_size =
       sizeof(interop_addr_database) / sizeof(interop_addr_entry_t);

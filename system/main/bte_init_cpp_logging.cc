@@ -15,11 +15,6 @@
  *  limitations under the License.
  *
  ******************************************************************************/
-
-#ifdef BT_LIBCHROME_NDEBUG
-#define NDEBUG 1
-#endif
-
 #include <base/command_line.h>
 #include "main_int.h"
 

@@ -16,26 +16,6 @@
 
 LOCAL_PATH:= $(call my-dir)
 
-#
-# Workaround for libchrome and -DNDEBUG usage.
-#
-# Test whether the original HOST_GLOBAL_CFLAGS and
-# TARGET_GLOBAL_CFLAGS contain -DNDEBUG .
-# This is needed as a workaround to make sure that
-# libchrome and local files calling logging::InitLogging()
-# are consistent with the usage of -DNDEBUG .
-# ========================================================
-ifneq (,$(findstring NDEBUG,$(HOST_GLOBAL_CFLAGS)))
-  btservice_orig_HOST_NDEBUG := -DBT_LIBCHROME_NDEBUG
-else
-  btservice_orig_HOST_NDEBUG :=
-endif
-ifneq (,$(findstring NDEBUG,$(TARGET_GLOBAL_CFLAGS)))
-  btservice_orig_TARGET_NDEBUG := -DBT_LIBCHROME_NDEBUG
-else
-  btservice_orig_TARGET_NDEBUG :=
-endif
-
 # Source variables
 # ========================================================
 btserviceCommonSrc := \
@@ -160,7 +140,7 @@ LOCAL_SHARED_LIBRARIES := \
 	libutils
 LOCAL_INIT_RC := bluetoothtbd.rc
 
-LOCAL_CFLAGS += $(bluetooth_CFLAGS) $(btservice_orig_TARGET_NDEBUG)
+LOCAL_CFLAGS += $(bluetooth_CFLAGS)
 LOCAL_CONLYFLAGS += $(bluetooth_CONLYFLAGS)
 LOCAL_CPPFLAGS += $(bluetooth_CPPFLAGS)
 
@@ -191,7 +171,7 @@ LOCAL_MODULE := bluetoothtbd-host_test
 LOCAL_SHARED_LIBRARIES := libchrome
 LOCAL_STATIC_LIBRARIES := libgmock_host libgtest_host liblog
 
-LOCAL_CFLAGS += $(bluetooth_CFLAGS) $(btservice_orig_HOST_NDEBUG)
+LOCAL_CFLAGS += $(bluetooth_CFLAGS)
 LOCAL_CONLYFLAGS += $(bluetooth_CONLYFLAGS)
 LOCAL_CPPFLAGS += $(bluetooth_CPPFLAGS)
 
@@ -222,7 +202,7 @@ LOCAL_SHARED_LIBRARIES := \
 	libutils
 LOCAL_STATIC_LIBRARIES := libgmock libgtest liblog
 
-LOCAL_CFLAGS += $(bluetooth_CFLAGS) $(btservice_orig_TARGET_NDEBUG)
+LOCAL_CFLAGS += $(bluetooth_CFLAGS)
 LOCAL_CONLYFLAGS += $(bluetooth_CONLYFLAGS)
 LOCAL_CPPFLAGS += $(bluetooth_CPPFLAGS)
 
@@ -242,7 +222,7 @@ LOCAL_EXPORT_C_INCLUDE_DIRS := $(LOCAL_PATH)/common
 LOCAL_MODULE := libbluetooth-client
 LOCAL_SHARED_LIBRARIES := libbinder libchrome libutils
 
-LOCAL_CFLAGS += $(bluetooth_CFLAGS) $(btservice_orig_TARGET_NDEBUG)
+LOCAL_CFLAGS += $(bluetooth_CFLAGS)
 LOCAL_CONLYFLAGS += $(bluetooth_CONLYFLAGS)
 LOCAL_CPPFLAGS += $(bluetooth_CPPFLAGS)
 
@@ -261,7 +241,7 @@ LOCAL_SHARED_LIBRARIES := \
 	libchrome \
 	libutils
 
-LOCAL_CFLAGS += $(bluetooth_CFLAGS) $(btservice_orig_TARGET_NDEBUG)
+LOCAL_CFLAGS += $(bluetooth_CFLAGS)
 LOCAL_CONLYFLAGS += $(bluetooth_CONLYFLAGS)
 LOCAL_CPPFLAGS += $(bluetooth_CPPFLAGS)
 
@@ -285,7 +265,7 @@ LOCAL_SHARED_LIBRARIES := \
 	libchrome \
 	libutils
 
-LOCAL_CFLAGS += $(bluetooth_CFLAGS) $(btservice_orig_TARGET_NDEBUG)
+LOCAL_CFLAGS += $(bluetooth_CFLAGS)
 LOCAL_CONLYFLAGS += $(bluetooth_CONLYFLAGS)
 LOCAL_CPPFLAGS += $(bluetooth_CPPFLAGS)
 

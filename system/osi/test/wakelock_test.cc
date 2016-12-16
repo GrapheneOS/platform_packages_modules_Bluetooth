@@ -18,6 +18,7 @@
 
 #include <gtest/gtest.h>
 
+#include <base/logging.h>
 #include <fcntl.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
@@ -58,7 +59,7 @@ class WakelockTest : public AllocationTestHarness {
     char* dtemp = mkdtemp(buffer);
     if (!dtemp) {
       perror("Can't make wake lock test directory: ");
-      assert(false);
+      CHECK(false);
     }
 
     lock_path_ = tmp_dir_ + "/wake_lock";
@@ -88,16 +89,16 @@ class WakelockTest : public AllocationTestHarness {
     bool acquired = false;
 
     int lock_fd = open(lock_path_.c_str(), O_RDONLY);
-    assert(lock_fd >= 0);
+    CHECK(lock_fd >= 0);
 
     int unlock_fd = open(unlock_path_.c_str(), O_RDONLY);
-    assert(unlock_fd >= 0);
+    CHECK(unlock_fd >= 0);
 
     struct stat lock_stat, unlock_stat;
     fstat(lock_fd, &lock_stat);
     fstat(unlock_fd, &unlock_stat);
 
-    assert(lock_stat.st_size >= unlock_stat.st_size);
+    CHECK(lock_stat.st_size >= unlock_stat.st_size);
 
     void* lock_file =
         mmap(nullptr, lock_stat.st_size, PROT_READ, MAP_PRIVATE, lock_fd, 0);
@@ -110,7 +111,7 @@ class WakelockTest : public AllocationTestHarness {
     } else {
       // these files should always either be with a lock that has more,
       // or equal.
-      assert(false);
+      CHECK(false);
     }
 
     munmap(lock_file, lock_stat.st_size);

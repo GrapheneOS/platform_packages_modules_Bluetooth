@@ -26,9 +26,6 @@ LOCAL_C_INCLUDES := \
                    $(LOCAL_PATH)/../hci/include \
                    $(LOCAL_PATH)/../include \
                    $(LOCAL_PATH)/../udrv/include \
-                   $(LOCAL_PATH)/../rpc/include \
-                   $(LOCAL_PATH)/../hcis \
-                   $(LOCAL_PATH)/../ctrlr/include \
                    $(LOCAL_PATH)/../bta/include \
                    $(LOCAL_PATH)/../bta/sys \
                    $(LOCAL_PATH)/../utils/include \

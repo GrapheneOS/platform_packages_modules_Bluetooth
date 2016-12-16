@@ -22,7 +22,7 @@
 
 #include "osi/include/alarm.h"
 
-#include <assert.h>
+#include <base/logging.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <inttypes.h>
@@ -153,7 +153,7 @@ alarm_t* alarm_new_periodic(const char* name) {
 static alarm_t* alarm_new_internal(const char* name, bool is_periodic) {
   // Make sure we have a list we can insert alarms into.
   if (!alarms && !lazy_initialize()) {
-    assert(false);  // if initialization failed, we should not continue
+    CHECK(false);  // if initialization failed, we should not continue
     return NULL;
   }
 
@@ -177,7 +177,7 @@ void alarm_free(alarm_t* alarm) {
 }
 
 period_ms_t alarm_get_remaining_ms(const alarm_t* alarm) {
-  assert(alarm != NULL);
+  CHECK(alarm != NULL);
   period_ms_t remaining_ms = 0;
   period_ms_t just_now = now();
 
@@ -194,7 +194,7 @@ void alarm_set(alarm_t* alarm, period_ms_t interval_ms, alarm_callback_t cb,
 
 void alarm_set_on_queue(alarm_t* alarm, period_ms_t interval_ms,
                         alarm_callback_t cb, void* data, fixed_queue_t* queue) {
-  assert(queue != NULL);
+  CHECK(queue != NULL);
   alarm_set_internal(alarm, interval_ms, cb, data, queue);
 }
 
@@ -202,9 +202,9 @@ void alarm_set_on_queue(alarm_t* alarm, period_ms_t interval_ms,
 static void alarm_set_internal(alarm_t* alarm, period_ms_t period,
                                alarm_callback_t cb, void* data,
                                fixed_queue_t* queue) {
-  assert(alarms != NULL);
-  assert(alarm != NULL);
-  assert(cb != NULL);
+  CHECK(alarms != NULL);
+  CHECK(alarm != NULL);
+  CHECK(cb != NULL);
 
   std::lock_guard<std::mutex> lock(alarms_mutex);
 
@@ -219,7 +219,7 @@ static void alarm_set_internal(alarm_t* alarm, period_ms_t period,
 }
 
 void alarm_cancel(alarm_t* alarm) {
-  assert(alarms != NULL);
+  CHECK(alarms != NULL);
   if (!alarm) return;
 
   {
@@ -280,7 +280,7 @@ void alarm_cleanup(void) {
 }
 
 static bool lazy_initialize(void) {
-  assert(alarms == NULL);
+  CHECK(alarms == NULL);
 
   // timer_t doesn't have an invalid value so we must track whether
   // the |timer| variable is valid ourselves.
@@ -360,7 +360,7 @@ error:
 }
 
 static period_ms_t now(void) {
-  assert(alarms != NULL);
+  CHECK(alarms != NULL);
 
   struct timespec ts;
   if (clock_gettime(CLOCK_ID, &ts) == -1) {
@@ -423,7 +423,7 @@ static void schedule_next_instance(alarm_t* alarm) {
 
 // NOTE: must be called with |alarms_mutex| held
 static void reschedule_root_alarm(void) {
-  assert(alarms != NULL);
+  CHECK(alarms != NULL);
 
   const bool timer_was_set = timer_set;
   alarm_t* next;
@@ -513,16 +513,16 @@ done:
 }
 
 void alarm_register_processing_queue(fixed_queue_t* queue, thread_t* thread) {
-  assert(queue != NULL);
-  assert(thread != NULL);
+  CHECK(queue != NULL);
+  CHECK(thread != NULL);
 
   fixed_queue_register_dequeue(queue, thread_get_reactor(thread),
                                alarm_queue_ready, NULL);
 }
 
 void alarm_unregister_processing_queue(fixed_queue_t* queue) {
-  assert(alarms != NULL);
-  assert(queue != NULL);
+  CHECK(alarms != NULL);
+  CHECK(queue != NULL);
 
   fixed_queue_unregister_dequeue(queue);
 
@@ -539,7 +539,7 @@ void alarm_unregister_processing_queue(fixed_queue_t* queue) {
 }
 
 static void alarm_queue_ready(fixed_queue_t* queue, UNUSED_ATTR void* context) {
-  assert(queue != NULL);
+  CHECK(queue != NULL);
 
   std::unique_lock<std::mutex> lock(alarms_mutex);
   alarm_t* alarm = (alarm_t*)fixed_queue_try_dequeue(queue);
@@ -573,7 +573,7 @@ static void alarm_queue_ready(fixed_queue_t* queue, UNUSED_ATTR void* context) {
   period_ms_t t1 = now();
 
   // Update the statistics
-  assert(t1 >= t0);
+  CHECK(t1 >= t0);
   period_ms_t delta = t1 - t0;
   update_scheduling_stats(&alarm->stats, t0, deadline, delta);
 }
@@ -621,7 +621,7 @@ static void callback_dispatch(UNUSED_ATTR void* context) {
 }
 
 static bool timer_create_internal(const clockid_t clock_id, timer_t* timer) {
-  assert(timer != NULL);
+  CHECK(timer != NULL);
 
   struct sigevent sigevent;
   memset(&sigevent, 0, sizeof(sigevent));

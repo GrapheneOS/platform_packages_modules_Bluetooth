@@ -16,7 +16,7 @@
  *
  ******************************************************************************/
 
-#include <assert.h>
+#include <base/logging.h>
 #include <string.h>
 
 #include <mutex>
@@ -108,14 +108,14 @@ size_t fixed_queue_length(fixed_queue_t* queue) {
 }
 
 size_t fixed_queue_capacity(fixed_queue_t* queue) {
-  assert(queue != NULL);
+  CHECK(queue != NULL);
 
   return queue->capacity;
 }
 
 void fixed_queue_enqueue(fixed_queue_t* queue, void* data) {
-  assert(queue != NULL);
-  assert(data != NULL);
+  CHECK(queue != NULL);
+  CHECK(data != NULL);
 
   semaphore_wait(queue->enqueue_sem);
 
@@ -128,7 +128,7 @@ void fixed_queue_enqueue(fixed_queue_t* queue, void* data) {
 }
 
 void* fixed_queue_dequeue(fixed_queue_t* queue) {
-  assert(queue != NULL);
+  CHECK(queue != NULL);
 
   semaphore_wait(queue->dequeue_sem);
 
@@ -145,8 +145,8 @@ void* fixed_queue_dequeue(fixed_queue_t* queue) {
 }
 
 bool fixed_queue_try_enqueue(fixed_queue_t* queue, void* data) {
-  assert(queue != NULL);
-  assert(data != NULL);
+  CHECK(queue != NULL);
+  CHECK(data != NULL);
 
   if (!semaphore_try_wait(queue->enqueue_sem)) return false;
 
@@ -199,7 +199,7 @@ void* fixed_queue_try_remove_from_queue(fixed_queue_t* queue, void* data) {
     if (list_contains(queue->list, data) &&
         semaphore_try_wait(queue->dequeue_sem)) {
       removed = list_remove(queue->list, data);
-      assert(removed);
+      CHECK(removed);
     }
   }
 
@@ -211,7 +211,7 @@ void* fixed_queue_try_remove_from_queue(fixed_queue_t* queue, void* data) {
 }
 
 list_t* fixed_queue_get_list(fixed_queue_t* queue) {
-  assert(queue != NULL);
+  CHECK(queue != NULL);
 
   // NOTE: Using the list in this way is not thread-safe.
   // Using this list in any context where threads can call other functions
@@ -220,20 +220,20 @@ list_t* fixed_queue_get_list(fixed_queue_t* queue) {
 }
 
 int fixed_queue_get_dequeue_fd(const fixed_queue_t* queue) {
-  assert(queue != NULL);
+  CHECK(queue != NULL);
   return semaphore_get_fd(queue->dequeue_sem);
 }
 
 int fixed_queue_get_enqueue_fd(const fixed_queue_t* queue) {
-  assert(queue != NULL);
+  CHECK(queue != NULL);
   return semaphore_get_fd(queue->enqueue_sem);
 }
 
 void fixed_queue_register_dequeue(fixed_queue_t* queue, reactor_t* reactor,
                                   fixed_queue_cb ready_cb, void* context) {
-  assert(queue != NULL);
-  assert(reactor != NULL);
-  assert(ready_cb != NULL);
+  CHECK(queue != NULL);
+  CHECK(reactor != NULL);
+  CHECK(ready_cb != NULL);
 
   // Make sure we're not already registered
   fixed_queue_unregister_dequeue(queue);
@@ -246,7 +246,7 @@ void fixed_queue_register_dequeue(fixed_queue_t* queue, reactor_t* reactor,
 }
 
 void fixed_queue_unregister_dequeue(fixed_queue_t* queue) {
-  assert(queue != NULL);
+  CHECK(queue != NULL);
 
   if (queue->dequeue_object) {
     reactor_unregister(queue->dequeue_object);
@@ -255,7 +255,7 @@ void fixed_queue_unregister_dequeue(fixed_queue_t* queue) {
 }
 
 static void internal_dequeue_ready(void* context) {
-  assert(context != NULL);
+  CHECK(context != NULL);
 
   fixed_queue_t* queue = static_cast<fixed_queue_t*>(context);
   queue->dequeue_ready(queue, queue->dequeue_context);

@@ -20,7 +20,7 @@
 
 #include "osi/include/config.h"
 
-#include <assert.h>
+#include <base/logging.h>
 #include <ctype.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -80,7 +80,7 @@ error:;
 }
 
 config_t* config_new(const char* filename) {
-  assert(filename != NULL);
+  CHECK(filename != NULL);
 
   config_t* config = config_new_empty();
   if (!config) return NULL;
@@ -103,11 +103,11 @@ config_t* config_new(const char* filename) {
 }
 
 config_t* config_new_clone(const config_t* src) {
-  assert(src != NULL);
+  CHECK(src != NULL);
 
   config_t* ret = config_new_empty();
 
-  assert(ret != NULL);
+  CHECK(ret != NULL);
 
   for (const list_node_t* node = list_begin(src->sections);
        node != list_end(src->sections); node = list_next(node)) {
@@ -133,26 +133,26 @@ void config_free(config_t* config) {
 }
 
 bool config_has_section(const config_t* config, const char* section) {
-  assert(config != NULL);
-  assert(section != NULL);
+  CHECK(config != NULL);
+  CHECK(section != NULL);
 
   return (section_find(config, section) != NULL);
 }
 
 bool config_has_key(const config_t* config, const char* section,
                     const char* key) {
-  assert(config != NULL);
-  assert(section != NULL);
-  assert(key != NULL);
+  CHECK(config != NULL);
+  CHECK(section != NULL);
+  CHECK(key != NULL);
 
   return (entry_find(config, section, key) != NULL);
 }
 
 int config_get_int(const config_t* config, const char* section, const char* key,
                    int def_value) {
-  assert(config != NULL);
-  assert(section != NULL);
-  assert(key != NULL);
+  CHECK(config != NULL);
+  CHECK(section != NULL);
+  CHECK(key != NULL);
 
   entry_t* entry = entry_find(config, section, key);
   if (!entry) return def_value;
@@ -164,9 +164,9 @@ int config_get_int(const config_t* config, const char* section, const char* key,
 
 bool config_get_bool(const config_t* config, const char* section,
                      const char* key, bool def_value) {
-  assert(config != NULL);
-  assert(section != NULL);
-  assert(key != NULL);
+  CHECK(config != NULL);
+  CHECK(section != NULL);
+  CHECK(key != NULL);
 
   entry_t* entry = entry_find(config, section, key);
   if (!entry) return def_value;
@@ -179,9 +179,9 @@ bool config_get_bool(const config_t* config, const char* section,
 
 const char* config_get_string(const config_t* config, const char* section,
                               const char* key, const char* def_value) {
-  assert(config != NULL);
-  assert(section != NULL);
-  assert(key != NULL);
+  CHECK(config != NULL);
+  CHECK(section != NULL);
+  CHECK(key != NULL);
 
   entry_t* entry = entry_find(config, section, key);
   if (!entry) return def_value;
@@ -191,9 +191,9 @@ const char* config_get_string(const config_t* config, const char* section,
 
 void config_set_int(config_t* config, const char* section, const char* key,
                     int value) {
-  assert(config != NULL);
-  assert(section != NULL);
-  assert(key != NULL);
+  CHECK(config != NULL);
+  CHECK(section != NULL);
+  CHECK(key != NULL);
 
   char value_str[32] = {0};
   snprintf(value_str, sizeof(value_str), "%d", value);
@@ -202,9 +202,9 @@ void config_set_int(config_t* config, const char* section, const char* key,
 
 void config_set_bool(config_t* config, const char* section, const char* key,
                      bool value) {
-  assert(config != NULL);
-  assert(section != NULL);
-  assert(key != NULL);
+  CHECK(config != NULL);
+  CHECK(section != NULL);
+  CHECK(key != NULL);
 
   config_set_string(config, section, key, value ? "true" : "false");
 }
@@ -232,8 +232,8 @@ void config_set_string(config_t* config, const char* section, const char* key,
 }
 
 bool config_remove_section(config_t* config, const char* section) {
-  assert(config != NULL);
-  assert(section != NULL);
+  CHECK(config != NULL);
+  CHECK(section != NULL);
 
   section_t* sec = section_find(config, section);
   if (!sec) return false;
@@ -242,9 +242,9 @@ bool config_remove_section(config_t* config, const char* section) {
 }
 
 bool config_remove_key(config_t* config, const char* section, const char* key) {
-  assert(config != NULL);
-  assert(section != NULL);
-  assert(key != NULL);
+  CHECK(config != NULL);
+  CHECK(section != NULL);
+  CHECK(key != NULL);
 
   section_t* sec = section_find(config, section);
   entry_t* entry = entry_find(config, section, key);
@@ -254,32 +254,32 @@ bool config_remove_key(config_t* config, const char* section, const char* key) {
 }
 
 const config_section_node_t* config_section_begin(const config_t* config) {
-  assert(config != NULL);
+  CHECK(config != NULL);
   return (const config_section_node_t*)list_begin(config->sections);
 }
 
 const config_section_node_t* config_section_end(const config_t* config) {
-  assert(config != NULL);
+  CHECK(config != NULL);
   return (const config_section_node_t*)list_end(config->sections);
 }
 
 const config_section_node_t* config_section_next(
     const config_section_node_t* node) {
-  assert(node != NULL);
+  CHECK(node != NULL);
   return (const config_section_node_t*)list_next((const list_node_t*)node);
 }
 
 const char* config_section_name(const config_section_node_t* node) {
-  assert(node != NULL);
+  CHECK(node != NULL);
   const list_node_t* lnode = (const list_node_t*)node;
   const section_t* section = (const section_t*)list_node(lnode);
   return section->name;
 }
 
 bool config_save(const config_t* config, const char* filename) {
-  assert(config != NULL);
-  assert(filename != NULL);
-  assert(*filename != '\0');
+  CHECK(config != NULL);
+  CHECK(filename != NULL);
+  CHECK(*filename != '\0');
 
   // Steps to ensure content of config file gets to disk:
   //
@@ -419,8 +419,8 @@ static char* trim(char* str) {
 }
 
 static bool config_parse(FILE* fp, config_t* config) {
-  assert(fp != NULL);
-  assert(config != NULL);
+  CHECK(fp != NULL);
+  CHECK(config != NULL);
 
   int line_num = 0;
   char line[1024];

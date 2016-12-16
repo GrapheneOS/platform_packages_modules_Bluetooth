@@ -19,7 +19,6 @@
 #define LOG_TAG "bt_snoop"
 
 #include <arpa/inet.h>
-#include <assert.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <inttypes.h>

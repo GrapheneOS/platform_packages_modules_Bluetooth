@@ -19,7 +19,7 @@
 
 #include "osi/include/hash_map_utils.h"
 
-#include <assert.h>
+#include <base/logging.h>
 #include <string.h>
 
 #include "osi/include/allocator.h"
@@ -28,7 +28,7 @@
 
 std::unordered_map<std::string, std::string>
 hash_map_utils_new_from_string_params(const char* params) {
-  assert(params != NULL);
+  CHECK(params != NULL);
 
   std::unordered_map<std::string, std::string> map;
 
