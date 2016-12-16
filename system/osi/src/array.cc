@@ -20,7 +20,7 @@
 
 #include "osi/include/array.h"
 
-#include <assert.h>
+#include <base/logging.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -40,7 +40,7 @@ static bool grow(array_t* array);
 static const size_t INTERNAL_ELEMENTS = 16;
 
 array_t* array_new(size_t element_size) {
-  assert(element_size > 0);
+  CHECK(element_size > 0);
 
   array_t* array = static_cast<array_t*>(
       osi_calloc(sizeof(array_t) + element_size * INTERNAL_ELEMENTS));
@@ -62,13 +62,13 @@ void array_free(array_t* array) {
 void* array_ptr(const array_t* array) { return array_at(array, 0); }
 
 void* array_at(const array_t* array, size_t index) {
-  assert(array != NULL);
-  assert(index < array->length);
+  CHECK(array != NULL);
+  CHECK(index < array->length);
   return array->data + (index * array->element_size);
 }
 
 size_t array_length(const array_t* array) {
-  assert(array != NULL);
+  CHECK(array != NULL);
   return array->length;
 }
 
@@ -77,8 +77,8 @@ bool array_append_value(array_t* array, uint32_t value) {
 }
 
 bool array_append_ptr(array_t* array, void* data) {
-  assert(array != NULL);
-  assert(data != NULL);
+  CHECK(array != NULL);
+  CHECK(data != NULL);
 
   if (array->length == array->capacity && !grow(array)) {
     LOG_ERROR(LOG_TAG,

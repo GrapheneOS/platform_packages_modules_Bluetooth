@@ -22,7 +22,7 @@
  *  Protocol (MCAP).
  *
  ******************************************************************************/
-#include <assert.h>
+#include <base/logging.h>
 #include <string.h>
 
 #include "bt_target.h"
@@ -117,8 +117,8 @@ tMCA_HANDLE MCA_Register(tMCA_REG* p_reg, tMCA_CTRL_CBACK* p_cback) {
   tL2CAP_APPL_INFO l2c_cacp_appl;
   tL2CAP_APPL_INFO l2c_dacp_appl;
 
-  assert(p_reg != NULL);
-  assert(p_cback != NULL);
+  CHECK(p_reg != NULL);
+  CHECK(p_cback != NULL);
 
   MCA_TRACE_API("MCA_Register: ctrl_psm:0x%x, data_psm:0x%x", p_reg->ctrl_psm,
                 p_reg->data_psm);
@@ -207,9 +207,9 @@ tMCA_RESULT MCA_CreateDep(tMCA_HANDLE handle, tMCA_DEP* p_dep, tMCA_CS* p_cs) {
   tMCA_RCB* p_rcb = mca_rcb_by_handle(handle);
   tMCA_CS* p_depcs;
 
-  assert(p_dep != NULL);
-  assert(p_cs != NULL);
-  assert(p_cs->p_data_cback != NULL);
+  CHECK(p_dep != NULL);
+  CHECK(p_cs != NULL);
+  CHECK(p_cs->p_data_cback != NULL);
 
   MCA_TRACE_API("MCA_CreateDep: %d", handle);
   if (p_rcb) {
@@ -465,7 +465,7 @@ tMCA_RESULT MCA_CreateMdlRsp(tMCA_CL mcl, tMCA_DEP dep, uint16_t mdl_id,
 
   MCA_TRACE_API("MCA_CreateMdlRsp: %d dep=%d mdl_id=%d cfg=%d rsp_code=%d", mcl,
                 dep, mdl_id, cfg, rsp_code);
-  assert(p_chnl_cfg != NULL);
+  CHECK(p_chnl_cfg != NULL);
   if (p_ccb) {
     if (p_ccb->cong) {
       MCA_TRACE_ERROR("congested");
@@ -550,7 +550,7 @@ tMCA_RESULT MCA_ReconnectMdl(tMCA_CL mcl, tMCA_DEP dep, uint16_t data_psm,
   tMCA_DCB* p_dcb;
 
   MCA_TRACE_API("MCA_ReconnectMdl: %d ", mcl);
-  assert(p_chnl_cfg != NULL);
+  CHECK(p_chnl_cfg != NULL);
   if (p_ccb) {
     if (p_ccb->p_tx_req || p_ccb->p_rx_msg || p_ccb->cong) {
       MCA_TRACE_ERROR("pending req");
@@ -611,7 +611,7 @@ tMCA_RESULT MCA_ReconnectMdlRsp(tMCA_CL mcl, tMCA_DEP dep, uint16_t mdl_id,
   tMCA_DCB* p_dcb;
 
   MCA_TRACE_API("MCA_ReconnectMdlRsp: %d ", mcl);
-  assert(p_chnl_cfg != NULL);
+  CHECK(p_chnl_cfg != NULL);
   if (p_ccb) {
     if (p_ccb->cong) {
       MCA_TRACE_ERROR("congested");
@@ -668,7 +668,7 @@ tMCA_RESULT MCA_DataChnlCfg(tMCA_CL mcl, const tMCA_CHNL_CFG* p_chnl_cfg) {
   tMCA_TC_TBL* p_tbl;
 
   MCA_TRACE_API("MCA_DataChnlCfg: %d ", mcl);
-  assert(p_chnl_cfg != NULL);
+  CHECK(p_chnl_cfg != NULL);
   if (p_ccb) {
     result = MCA_NO_RESOURCES;
     if ((p_ccb->p_tx_req == NULL) || (p_ccb->status != MCA_CCB_STAT_PENDING) ||

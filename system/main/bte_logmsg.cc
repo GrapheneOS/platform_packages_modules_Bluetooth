@@ -18,7 +18,7 @@
 
 #define LOG_TAG "bt_bte"
 
-#include <assert.h>
+#include <base/logging.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -185,7 +185,7 @@ static uint8_t BTU_SetTraceLevel(uint8_t new_level) {
 }
 
 static void load_levels_from_config(const config_t* config) {
-  assert(config != NULL);
+  CHECK(config != NULL);
 
   for (tBTTRC_FUNC_MAP* functions = &bttrc_set_level_map[0];
        functions->trc_name; ++functions) {

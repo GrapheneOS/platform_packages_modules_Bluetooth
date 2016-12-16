@@ -374,7 +374,7 @@ void read_char_cb(uint16_t conn_id, tGATT_STATUS status, uint16_t handle,
   params->status = status;
   params->handle = handle;
   params->value.len = len;
-  assert(len <= BTGATT_MAX_ATTR_LEN);
+  CHECK(len <= BTGATT_MAX_ATTR_LEN);
   if (len > 0) memcpy(params->value.value, value, len);
 
   CLI_CBACK_IN_JNI(read_characteristic_cb, conn_id, status,
@@ -394,7 +394,7 @@ void read_desc_cb(uint16_t conn_id, tGATT_STATUS status, uint16_t handle,
   params->status = status;
   params->handle = handle;
   params->value.len = len;
-  assert(len <= BTGATT_MAX_ATTR_LEN);
+  CHECK(len <= BTGATT_MAX_ATTR_LEN);
   if (len > 0) memcpy(params->value.value, value, len);
 
   CLI_CBACK_IN_JNI(read_descriptor_cb, conn_id, status, base::Owned(params));

@@ -20,7 +20,7 @@
 
 #include "btif_av.h"
 
-#include <assert.h>
+#include <base/logging.h>
 #include <string.h>
 
 #include <hardware/bluetooth.h>

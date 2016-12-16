@@ -18,7 +18,7 @@
 
 #define LOG_TAG "bt_snoop_net"
 
-#include <assert.h>
+#include <base/logging.h>
 #include <errno.h>
 #include <netinet/in.h>
 #include <pthread.h>
@@ -153,7 +153,7 @@ cleanup:
 }
 
 static void safe_close_(int* fd) {
-  assert(fd != NULL);
+  CHECK(fd != NULL);
   if (*fd != -1) {
     close(*fd);
     *fd = -1;

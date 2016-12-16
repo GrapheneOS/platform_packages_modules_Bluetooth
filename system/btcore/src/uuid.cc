@@ -16,7 +16,7 @@
  *
  ******************************************************************************/
 
-#include <assert.h>
+#include <base/logging.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -48,12 +48,12 @@ uuid_string_t* uuid_string_new(void) {
 void uuid_string_free(uuid_string_t* uuid_string) { osi_free(uuid_string); }
 
 const char* uuid_string_data(const uuid_string_t* uuid_string) {
-  assert(uuid_string != NULL);
+  CHECK(uuid_string != NULL);
   return (const char*)uuid_string->string;
 }
 
 bt_uuid_t* uuid_new(const char* uuid_string) {
-  assert(uuid_string != NULL);
+  CHECK(uuid_string != NULL);
 
   if (strlen(uuid_string) < UUID_WELL_FORMED_STRING_LEN) return NULL;
   if (uuid_string[8] != '-' || uuid_string[13] != '-' ||
@@ -88,20 +88,20 @@ bool uuid_is_empty(const bt_uuid_t* uuid) {
 }
 
 bool uuid_is_equal(const bt_uuid_t* first, const bt_uuid_t* second) {
-  assert(first != NULL);
-  assert(second != NULL);
+  CHECK(first != NULL);
+  CHECK(second != NULL);
   return !memcmp(first, second, sizeof(bt_uuid_t));
 }
 
 bt_uuid_t* uuid_copy(bt_uuid_t* dest, const bt_uuid_t* src) {
-  assert(dest != NULL);
-  assert(src != NULL);
+  CHECK(dest != NULL);
+  CHECK(src != NULL);
   return (bt_uuid_t*)memcpy(dest, src, sizeof(bt_uuid_t));
 }
 
 bool uuid_128_to_16(const bt_uuid_t* uuid, uint16_t* uuid16) {
-  assert(uuid != NULL);
-  assert(uuid16 != NULL);
+  CHECK(uuid != NULL);
+  CHECK(uuid16 != NULL);
 
   if (!uuid_is_base(uuid)) return false;
 
@@ -110,8 +110,8 @@ bool uuid_128_to_16(const bt_uuid_t* uuid, uint16_t* uuid16) {
 }
 
 bool uuid_128_to_32(const bt_uuid_t* uuid, uint32_t* uuid32) {
-  assert(uuid != NULL);
-  assert(uuid32 != NULL);
+  CHECK(uuid != NULL);
+  CHECK(uuid32 != NULL);
 
   if (!uuid_is_base(uuid)) return false;
 
@@ -121,8 +121,8 @@ bool uuid_128_to_32(const bt_uuid_t* uuid, uint32_t* uuid32) {
 }
 
 void uuid_to_string(const bt_uuid_t* uuid, uuid_string_t* uuid_string) {
-  assert(uuid != NULL);
-  assert(uuid_string != NULL);
+  CHECK(uuid != NULL);
+  CHECK(uuid_string != NULL);
 
   char* string = uuid_string->string;
   char* end = string + UUID_WELL_FORMED_STRING_LEN_WITH_NULL;

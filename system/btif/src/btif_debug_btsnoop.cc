@@ -16,7 +16,7 @@
  *
  ******************************************************************************/
 
-#include <assert.h>
+#include <base/logging.h>
 #include <resolv.h>
 #include <zlib.h>
 
@@ -128,8 +128,8 @@ static size_t btsnoop_calculate_packet_length(uint16_t type,
 }
 
 static bool btsnoop_compress(ringbuffer_t* rb_dst, ringbuffer_t* rb_src) {
-  assert(rb_dst != NULL);
-  assert(rb_src != NULL);
+  CHECK(rb_dst != NULL);
+  CHECK(rb_src != NULL);
 
   z_stream zs;
   zs.zalloc = Z_NULL;

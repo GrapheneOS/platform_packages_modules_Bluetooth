@@ -18,7 +18,6 @@
 
 #define LOG_TAG "bt_osi_wakelock"
 
-#include <assert.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <hardware/bluetooth.h>

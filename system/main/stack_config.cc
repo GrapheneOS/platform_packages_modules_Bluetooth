@@ -20,7 +20,7 @@
 
 #include "stack_config.h"
 
-#include <assert.h>
+#include <base/logging.h>
 
 #include "osi/include/future.h"
 #include "osi/include/log.h"
@@ -46,7 +46,7 @@ static future_t* init() {
 #else  // !defined(OS_GENERIC)
   const char* path = "/etc/bluetooth/bt_stack.conf";
 #endif  // defined(OS_GENERIC)
-  assert(path != NULL);
+  CHECK(path != NULL);
 
   LOG_INFO(LOG_TAG, "%s attempt to load stack conf from %s", __func__, path);
 

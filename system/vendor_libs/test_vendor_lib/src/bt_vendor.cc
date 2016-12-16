@@ -19,7 +19,7 @@
 #include <unistd.h>
 #include <memory>
 
-#include "base/logging.h"
+#include <base/logging.h>
 #include "osi/include/log.h"
 #include "vendor_manager.h"
 
