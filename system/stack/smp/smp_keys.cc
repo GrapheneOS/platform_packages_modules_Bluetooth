@@ -61,7 +61,7 @@ static void smp_process_new_nonce(tSMP_CB* p_cb);
 
 #define SMP_PASSKEY_MASK 0xfff00000
 
-void smp_debug_print_nbyte_little_endian(uint8_t* p, const uint8_t* key_name,
+void smp_debug_print_nbyte_little_endian(uint8_t* p, const char* key_name,
                                          uint8_t len) {
 #if (SMP_DEBUG == TRUE)
   int ind;
@@ -84,7 +84,7 @@ void smp_debug_print_nbyte_little_endian(uint8_t* p, const uint8_t* key_name,
 #endif
 }
 
-void smp_debug_print_nbyte_big_endian(uint8_t* p, const uint8_t* key_name,
+void smp_debug_print_nbyte_big_endian(uint8_t* p, const char* key_name,
                                       uint8_t len) {
 #if (SMP_DEBUG == TRUE)
   uint8_t p_buf[512];
@@ -146,9 +146,8 @@ bool smp_encrypt_data(uint8_t* key, uint8_t key_len, uint8_t* plain_text,
   REVERSE_ARRAY_TO_STREAM(p, key, SMP_ENCRYT_KEY_SIZE); /* byte 32 to byte 47 */
 
 #if (SMP_DEBUG == TRUE && SMP_DEBUG_VERBOSE == TRUE)
-  smp_debug_print_nbyte_little_endian(key, (const uint8_t*)"Key",
-                                      SMP_ENCRYT_KEY_SIZE);
-  smp_debug_print_nbyte_little_endian(p_start, (const uint8_t*)"Plain text",
+  smp_debug_print_nbyte_little_endian(key, "Key", SMP_ENCRYT_KEY_SIZE);
+  smp_debug_print_nbyte_little_endian(p_start, "Plain text",
                                       SMP_ENCRYT_DATA_SIZE);
 #endif
   p_rev_output = p;
@@ -158,8 +157,8 @@ bool smp_encrypt_data(uint8_t* key, uint8_t key_len, uint8_t* plain_text,
   p = p_out->param_buf;
   REVERSE_ARRAY_TO_STREAM(p, p_rev_output, SMP_ENCRYT_DATA_SIZE);
 #if (SMP_DEBUG == TRUE && SMP_DEBUG_VERBOSE == TRUE)
-  smp_debug_print_nbyte_little_endian(
-      p_out->param_buf, (const uint8_t*)"Encrypted text", SMP_ENCRYT_KEY_SIZE);
+  smp_debug_print_nbyte_little_endian(p_out->param_buf, "Encrypted text",
+                                      SMP_ENCRYT_KEY_SIZE);
 #endif
 
   p_out->param_len = SMP_ENCRYT_KEY_SIZE;
@@ -482,7 +481,7 @@ void smp_gen_p1_4_confirm(tSMP_CB* p_cb, BT_OCTET16 p1) {
   }
 #if (SMP_DEBUG == TRUE)
   SMP_TRACE_DEBUG("p1 = pres || preq || rat' || iat'");
-  smp_debug_print_nbyte_little_endian((uint8_t*)p1, (const uint8_t*)"P1", 16);
+  smp_debug_print_nbyte_little_endian((uint8_t*)p1, "P1", 16);
 #endif
 }
 
@@ -524,7 +523,7 @@ void smp_gen_p2_4_confirm(tSMP_CB* p_cb, BT_OCTET16 p2) {
   }
 #if (SMP_DEBUG == TRUE)
   SMP_TRACE_DEBUG("p2 = padding || ia || ra");
-  smp_debug_print_nbyte_little_endian(p2, (const uint8_t*)"p2", 16);
+  smp_debug_print_nbyte_little_endian(p2, "p2", 16);
 #endif
 }
 
@@ -550,8 +549,7 @@ void smp_calculate_comfirm(tSMP_CB* p_cb, BT_OCTET16 rand,
   /* p1 = rand XOR p1 */
   smp_xor_128(p1, rand);
 
-  smp_debug_print_nbyte_little_endian((uint8_t*)p1,
-                                      (const uint8_t*)"P1' = r XOR p1", 16);
+  smp_debug_print_nbyte_little_endian((uint8_t*)p1, "P1' = r XOR p1", 16);
 
   /* calculate e(k, r XOR p1), where k = TK */
   if (!SMP_Encrypt(p_cb->tk, BT_OCTET16_LEN, p1, BT_OCTET16_LEN, &output)) {
@@ -580,15 +578,14 @@ static void smp_calculate_comfirm_cont(tSMP_CB* p_cb, tSMP_ENC* p) {
   SMP_TRACE_DEBUG("smp_calculate_comfirm_cont ");
 #if (SMP_DEBUG == TRUE)
   SMP_TRACE_DEBUG("Confirm step 1 p1' = e(k, r XOR p1)  Generated");
-  smp_debug_print_nbyte_little_endian(p->param_buf, (const uint8_t*)"C1", 16);
+  smp_debug_print_nbyte_little_endian(p->param_buf, "C1", 16);
 #endif
 
   smp_gen_p2_4_confirm(p_cb, p2);
 
   /* calculate p2 = (p1' XOR p2) */
   smp_xor_128(p2, p->param_buf);
-  smp_debug_print_nbyte_little_endian((uint8_t*)p2,
-                                      (const uint8_t*)"p2' = C1 xor p2", 16);
+  smp_debug_print_nbyte_little_endian((uint8_t*)p2, "p2' = C1 xor p2", 16);
 
   /* calculate: Confirm = E(k, p1' XOR p2) */
   if (!SMP_Encrypt(p_cb->tk, BT_OCTET16_LEN, p2, BT_OCTET16_LEN, &output)) {
@@ -622,8 +619,7 @@ static void smp_generate_confirm(tSMP_CB* p_cb,
                                  UNUSED_ATTR tSMP_INT_DATA* p_data) {
   SMP_TRACE_DEBUG("%s", __func__);
   p_cb->rand_enc_proc_state = SMP_GEN_CONFIRM;
-  smp_debug_print_nbyte_little_endian((uint8_t*)p_cb->rand,
-                                      (const uint8_t*)"local rand", 16);
+  smp_debug_print_nbyte_little_endian((uint8_t*)p_cb->rand, "local rand", 16);
   smp_calculate_comfirm(p_cb, p_cb->rand, p_cb->pairing_bda);
 }
 
@@ -642,8 +638,7 @@ static void smp_generate_confirm(tSMP_CB* p_cb,
 void smp_generate_compare(tSMP_CB* p_cb, UNUSED_ATTR tSMP_INT_DATA* p_data) {
   SMP_TRACE_DEBUG("smp_generate_compare ");
   p_cb->rand_enc_proc_state = SMP_GEN_COMPARE;
-  smp_debug_print_nbyte_little_endian((uint8_t*)p_cb->rrand,
-                                      (const uint8_t*)"peer rand", 16);
+  smp_debug_print_nbyte_little_endian((uint8_t*)p_cb->rrand, "peer rand", 16);
   smp_calculate_comfirm(p_cb, p_cb->rrand, p_cb->local_bda);
 }
 
@@ -665,8 +660,7 @@ static void smp_process_confirm(tSMP_CB* p_cb, tSMP_ENC* p) {
 
 #if (SMP_DEBUG == TRUE)
   SMP_TRACE_DEBUG("Confirm  Generated");
-  smp_debug_print_nbyte_little_endian((uint8_t*)p_cb->confirm,
-                                      (const uint8_t*)"Confirm", 16);
+  smp_debug_print_nbyte_little_endian((uint8_t*)p_cb->confirm, "Confirm", 16);
 #endif
 
   key.key_type = SMP_KEY_TYPE_CFM;
@@ -690,8 +684,7 @@ static void smp_process_compare(tSMP_CB* p_cb, tSMP_ENC* p) {
   SMP_TRACE_DEBUG("smp_process_compare ");
 #if (SMP_DEBUG == TRUE)
   SMP_TRACE_DEBUG("Compare Generated");
-  smp_debug_print_nbyte_little_endian(p->param_buf, (const uint8_t*)"Compare",
-                                      16);
+  smp_debug_print_nbyte_little_endian(p->param_buf, "Compare", 16);
 #endif
   key.key_type = SMP_KEY_TYPE_CMP;
   key.p_data = p->param_buf;
@@ -981,12 +974,12 @@ void smp_process_private_key(tSMP_CB* p_cb) {
   memcpy(p_cb->loc_publ_key.x, public_key.x, BT_OCTET32_LEN);
   memcpy(p_cb->loc_publ_key.y, public_key.y, BT_OCTET32_LEN);
 
-  smp_debug_print_nbyte_little_endian(
-      p_cb->private_key, (const uint8_t*)"private", BT_OCTET32_LEN);
-  smp_debug_print_nbyte_little_endian(
-      p_cb->loc_publ_key.x, (const uint8_t*)"local public(x)", BT_OCTET32_LEN);
-  smp_debug_print_nbyte_little_endian(
-      p_cb->loc_publ_key.y, (const uint8_t*)"local public(y)", BT_OCTET32_LEN);
+  smp_debug_print_nbyte_little_endian(p_cb->private_key, "private",
+                                      BT_OCTET32_LEN);
+  smp_debug_print_nbyte_little_endian(p_cb->loc_publ_key.x, "local public(x)",
+                                      BT_OCTET32_LEN);
+  smp_debug_print_nbyte_little_endian(p_cb->loc_publ_key.y, "local public(y)",
+                                      BT_OCTET32_LEN);
   p_cb->flags |= SMP_PAIR_FLAG_HAVE_LOCAL_PUBL_KEY;
   smp_sm_event(p_cb, SMP_LOC_PUBL_KEY_CRTD_EVT, NULL);
 }
@@ -1018,17 +1011,16 @@ void smp_compute_dhkey(tSMP_CB* p_cb) {
 
   memcpy(p_cb->dhkey, new_publ_key.x, BT_OCTET32_LEN);
 
-  smp_debug_print_nbyte_little_endian(p_cb->dhkey, (const uint8_t*)"Old DHKey",
-                                      BT_OCTET32_LEN);
+  smp_debug_print_nbyte_little_endian(p_cb->dhkey, "Old DHKey", BT_OCTET32_LEN);
 
-  smp_debug_print_nbyte_little_endian(
-      p_cb->private_key, (const uint8_t*)"private", BT_OCTET32_LEN);
-  smp_debug_print_nbyte_little_endian(
-      p_cb->peer_publ_key.x, (const uint8_t*)"rem public(x)", BT_OCTET32_LEN);
-  smp_debug_print_nbyte_little_endian(
-      p_cb->peer_publ_key.y, (const uint8_t*)"rem public(y)", BT_OCTET32_LEN);
-  smp_debug_print_nbyte_little_endian(
-      p_cb->dhkey, (const uint8_t*)"Reverted DHKey", BT_OCTET32_LEN);
+  smp_debug_print_nbyte_little_endian(p_cb->private_key, "private",
+                                      BT_OCTET32_LEN);
+  smp_debug_print_nbyte_little_endian(p_cb->peer_publ_key.x, "rem public(x)",
+                                      BT_OCTET32_LEN);
+  smp_debug_print_nbyte_little_endian(p_cb->peer_publ_key.y, "rem public(y)",
+                                      BT_OCTET32_LEN);
+  smp_debug_print_nbyte_little_endian(p_cb->dhkey, "Reverted DHKey",
+                                      BT_OCTET32_LEN);
 }
 
 /*******************************************************************************
@@ -1157,16 +1149,13 @@ void smp_calculate_f4(uint8_t* u, uint8_t* v, uint8_t* x, uint8_t z,
 
 #if (SMP_DEBUG == TRUE)
   p_prnt = u;
-  smp_debug_print_nbyte_little_endian(p_prnt, (const uint8_t*)"U",
-                                      BT_OCTET32_LEN);
+  smp_debug_print_nbyte_little_endian(p_prnt, "U", BT_OCTET32_LEN);
   p_prnt = v;
-  smp_debug_print_nbyte_little_endian(p_prnt, (const uint8_t*)"V",
-                                      BT_OCTET32_LEN);
+  smp_debug_print_nbyte_little_endian(p_prnt, "V", BT_OCTET32_LEN);
   p_prnt = x;
-  smp_debug_print_nbyte_little_endian(p_prnt, (const uint8_t*)"X",
-                                      BT_OCTET16_LEN);
+  smp_debug_print_nbyte_little_endian(p_prnt, "X", BT_OCTET16_LEN);
   p_prnt = &z;
-  smp_debug_print_nbyte_little_endian(p_prnt, (const uint8_t*)"Z", 1);
+  smp_debug_print_nbyte_little_endian(p_prnt, "Z", 1);
 #endif
 
   p = msg;
@@ -1175,22 +1164,20 @@ void smp_calculate_f4(uint8_t* u, uint8_t* v, uint8_t* x, uint8_t z,
   ARRAY_TO_STREAM(p, u, BT_OCTET32_LEN);
 #if (SMP_DEBUG == TRUE)
   p_prnt = msg;
-  smp_debug_print_nbyte_little_endian(p_prnt, (const uint8_t*)"M", msg_len);
+  smp_debug_print_nbyte_little_endian(p_prnt, "M", msg_len);
 #endif
 
   p = key;
   ARRAY_TO_STREAM(p, x, BT_OCTET16_LEN);
 #if (SMP_DEBUG == TRUE)
   p_prnt = key;
-  smp_debug_print_nbyte_little_endian(p_prnt, (const uint8_t*)"K",
-                                      BT_OCTET16_LEN);
+  smp_debug_print_nbyte_little_endian(p_prnt, "K", BT_OCTET16_LEN);
 #endif
 
   aes_cipher_msg_auth_code(key, msg, msg_len, BT_OCTET16_LEN, cmac);
 #if (SMP_DEBUG == TRUE)
   p_prnt = cmac;
-  smp_debug_print_nbyte_little_endian(p_prnt, (const uint8_t*)"AES_CMAC",
-                                      BT_OCTET16_LEN);
+  smp_debug_print_nbyte_little_endian(p_prnt, "AES_CMAC", BT_OCTET16_LEN);
 #endif
 
   p = c;
@@ -1277,25 +1264,20 @@ uint32_t smp_calculate_g2(uint8_t* u, uint8_t* v, uint8_t* x, uint8_t* y) {
   ARRAY_TO_STREAM(p, u, BT_OCTET32_LEN);
 #if (SMP_DEBUG == TRUE)
   p_prnt = u;
-  smp_debug_print_nbyte_little_endian(p_prnt, (const uint8_t*)"U",
-                                      BT_OCTET32_LEN);
+  smp_debug_print_nbyte_little_endian(p_prnt, "U", BT_OCTET32_LEN);
   p_prnt = v;
-  smp_debug_print_nbyte_little_endian(p_prnt, (const uint8_t*)"V",
-                                      BT_OCTET32_LEN);
+  smp_debug_print_nbyte_little_endian(p_prnt, "V", BT_OCTET32_LEN);
   p_prnt = x;
-  smp_debug_print_nbyte_little_endian(p_prnt, (const uint8_t*)"X",
-                                      BT_OCTET16_LEN);
+  smp_debug_print_nbyte_little_endian(p_prnt, "X", BT_OCTET16_LEN);
   p_prnt = y;
-  smp_debug_print_nbyte_little_endian(p_prnt, (const uint8_t*)"Y",
-                                      BT_OCTET16_LEN);
+  smp_debug_print_nbyte_little_endian(p_prnt, "Y", BT_OCTET16_LEN);
 #endif
 
   p = key;
   ARRAY_TO_STREAM(p, x, BT_OCTET16_LEN);
 #if (SMP_DEBUG == TRUE)
   p_prnt = key;
-  smp_debug_print_nbyte_little_endian(p_prnt, (const uint8_t*)"K",
-                                      BT_OCTET16_LEN);
+  smp_debug_print_nbyte_little_endian(p_prnt, "K", BT_OCTET16_LEN);
 #endif
 
   if (!aes_cipher_msg_auth_code(key, msg, msg_len, BT_OCTET16_LEN, cmac)) {
@@ -1305,8 +1287,7 @@ uint32_t smp_calculate_g2(uint8_t* u, uint8_t* v, uint8_t* x, uint8_t* y) {
 
 #if (SMP_DEBUG == TRUE)
   p_prnt = cmac;
-  smp_debug_print_nbyte_little_endian(p_prnt, (const uint8_t*)"AES-CMAC",
-                                      BT_OCTET16_LEN);
+  smp_debug_print_nbyte_little_endian(p_prnt, "AES-CMAC", BT_OCTET16_LEN);
 #endif
 
   /* vres = cmac mod 2**32 mod 10**6 */
@@ -1314,15 +1295,13 @@ uint32_t smp_calculate_g2(uint8_t* u, uint8_t* v, uint8_t* x, uint8_t* y) {
   STREAM_TO_UINT32(vres, p);
 #if (SMP_DEBUG == TRUE)
   p_prnt = (uint8_t*)&vres;
-  smp_debug_print_nbyte_little_endian(p_prnt, (const uint8_t*)"cmac mod 2**32",
-                                      4);
+  smp_debug_print_nbyte_little_endian(p_prnt, "cmac mod 2**32", 4);
 #endif
 
   while (vres > BTM_MAX_PASSKEY_VAL) vres -= (BTM_MAX_PASSKEY_VAL + 1);
 #if (SMP_DEBUG == TRUE)
   p_prnt = (uint8_t*)&vres;
-  smp_debug_print_nbyte_little_endian(
-      p_prnt, (const uint8_t*)"cmac mod 2**32 mod 10**6", 4);
+  smp_debug_print_nbyte_little_endian(p_prnt, "cmac mod 2**32 mod 10**6", 4);
 #endif
 
   SMP_TRACE_ERROR("Value for numeric comparison = %d", vres);
@@ -1416,18 +1395,15 @@ bool smp_calculate_f5(uint8_t* w, uint8_t* n1, uint8_t* n2, uint8_t* a1,
   SMP_TRACE_DEBUG("%s", __func__);
 #if (SMP_DEBUG == TRUE)
   p_prnt = w;
-  smp_debug_print_nbyte_little_endian(p_prnt, (const uint8_t*)"W",
-                                      BT_OCTET32_LEN);
+  smp_debug_print_nbyte_little_endian(p_prnt, "W", BT_OCTET32_LEN);
   p_prnt = n1;
-  smp_debug_print_nbyte_little_endian(p_prnt, (const uint8_t*)"N1",
-                                      BT_OCTET16_LEN);
+  smp_debug_print_nbyte_little_endian(p_prnt, "N1", BT_OCTET16_LEN);
   p_prnt = n2;
-  smp_debug_print_nbyte_little_endian(p_prnt, (const uint8_t*)"N2",
-                                      BT_OCTET16_LEN);
+  smp_debug_print_nbyte_little_endian(p_prnt, "N2", BT_OCTET16_LEN);
   p_prnt = a1;
-  smp_debug_print_nbyte_little_endian(p_prnt, (const uint8_t*)"A1", 7);
+  smp_debug_print_nbyte_little_endian(p_prnt, "A1", 7);
   p_prnt = a2;
-  smp_debug_print_nbyte_little_endian(p_prnt, (const uint8_t*)"A2", 7);
+  smp_debug_print_nbyte_little_endian(p_prnt, "A2", 7);
 #endif
 
   if (!smp_calculate_f5_key(w, t)) {
@@ -1436,8 +1412,7 @@ bool smp_calculate_f5(uint8_t* w, uint8_t* n1, uint8_t* n2, uint8_t* a1,
   }
 #if (SMP_DEBUG == TRUE)
   p_prnt = t;
-  smp_debug_print_nbyte_little_endian(p_prnt, (const uint8_t*)"T",
-                                      BT_OCTET16_LEN);
+  smp_debug_print_nbyte_little_endian(p_prnt, "T", BT_OCTET16_LEN);
 #endif
 
   if (!smp_calculate_f5_mackey_or_long_term_key(t, counter_mac_key, key_id, n1,
@@ -1447,8 +1422,7 @@ bool smp_calculate_f5(uint8_t* w, uint8_t* n1, uint8_t* n2, uint8_t* a1,
   }
 #if (SMP_DEBUG == TRUE)
   p_prnt = mac_key;
-  smp_debug_print_nbyte_little_endian(p_prnt, (const uint8_t*)"MacKey",
-                                      BT_OCTET16_LEN);
+  smp_debug_print_nbyte_little_endian(p_prnt, "MacKey", BT_OCTET16_LEN);
 #endif
 
   if (!smp_calculate_f5_mackey_or_long_term_key(t, counter_ltk, key_id, n1, n2,
@@ -1458,8 +1432,7 @@ bool smp_calculate_f5(uint8_t* w, uint8_t* n1, uint8_t* n2, uint8_t* a1,
   }
 #if (SMP_DEBUG == TRUE)
   p_prnt = ltk;
-  smp_debug_print_nbyte_little_endian(p_prnt, (const uint8_t*)"LTK",
-                                      BT_OCTET16_LEN);
+  smp_debug_print_nbyte_little_endian(p_prnt, "LTK", BT_OCTET16_LEN);
 #endif
 
   return true;
@@ -1518,32 +1491,28 @@ bool smp_calculate_f5_mackey_or_long_term_key(uint8_t* t, uint8_t* counter,
   SMP_TRACE_DEBUG("%s", __func__);
 #if (SMP_DEBUG == TRUE)
   p_prnt = t;
-  smp_debug_print_nbyte_little_endian(p_prnt, (const uint8_t*)"T",
-                                      BT_OCTET16_LEN);
+  smp_debug_print_nbyte_little_endian(p_prnt, "T", BT_OCTET16_LEN);
   p_prnt = counter;
-  smp_debug_print_nbyte_little_endian(p_prnt, (const uint8_t*)"Counter", 1);
+  smp_debug_print_nbyte_little_endian(p_prnt, "Counter", 1);
   p_prnt = key_id;
-  smp_debug_print_nbyte_little_endian(p_prnt, (const uint8_t*)"KeyID", 4);
+  smp_debug_print_nbyte_little_endian(p_prnt, "KeyID", 4);
   p_prnt = n1;
-  smp_debug_print_nbyte_little_endian(p_prnt, (const uint8_t*)"N1",
-                                      BT_OCTET16_LEN);
+  smp_debug_print_nbyte_little_endian(p_prnt, "N1", BT_OCTET16_LEN);
   p_prnt = n2;
-  smp_debug_print_nbyte_little_endian(p_prnt, (const uint8_t*)"N2",
-                                      BT_OCTET16_LEN);
+  smp_debug_print_nbyte_little_endian(p_prnt, "N2", BT_OCTET16_LEN);
   p_prnt = a1;
-  smp_debug_print_nbyte_little_endian(p_prnt, (const uint8_t*)"A1", 7);
+  smp_debug_print_nbyte_little_endian(p_prnt, "A1", 7);
   p_prnt = a2;
-  smp_debug_print_nbyte_little_endian(p_prnt, (const uint8_t*)"A2", 7);
+  smp_debug_print_nbyte_little_endian(p_prnt, "A2", 7);
   p_prnt = length;
-  smp_debug_print_nbyte_little_endian(p_prnt, (const uint8_t*)"Length", 2);
+  smp_debug_print_nbyte_little_endian(p_prnt, "Length", 2);
 #endif
 
   p = key;
   ARRAY_TO_STREAM(p, t, BT_OCTET16_LEN);
 #if (SMP_DEBUG == TRUE)
   p_prnt = key;
-  smp_debug_print_nbyte_little_endian(p_prnt, (const uint8_t*)"K",
-                                      BT_OCTET16_LEN);
+  smp_debug_print_nbyte_little_endian(p_prnt, "K", BT_OCTET16_LEN);
 #endif
   p = msg;
   ARRAY_TO_STREAM(p, length, 2);
@@ -1555,7 +1524,7 @@ bool smp_calculate_f5_mackey_or_long_term_key(uint8_t* t, uint8_t* counter,
   ARRAY_TO_STREAM(p, counter, 1);
 #if (SMP_DEBUG == TRUE)
   p_prnt = msg;
-  smp_debug_print_nbyte_little_endian(p_prnt, (const uint8_t*)"M", msg_len);
+  smp_debug_print_nbyte_little_endian(p_prnt, "M", msg_len);
 #endif
 
   if (!aes_cipher_msg_auth_code(key, msg, msg_len, BT_OCTET16_LEN, cmac)) {
@@ -1565,8 +1534,7 @@ bool smp_calculate_f5_mackey_or_long_term_key(uint8_t* t, uint8_t* counter,
 
 #if (SMP_DEBUG == TRUE)
   p_prnt = cmac;
-  smp_debug_print_nbyte_little_endian(p_prnt, (const uint8_t*)"AES-CMAC",
-                                      BT_OCTET16_LEN);
+  smp_debug_print_nbyte_little_endian(p_prnt, "AES-CMAC", BT_OCTET16_LEN);
 #endif
 
   p = mac;
@@ -1608,11 +1576,9 @@ bool smp_calculate_f5_key(uint8_t* w, uint8_t* t) {
   SMP_TRACE_DEBUG("%s", __func__);
 #if (SMP_DEBUG == TRUE)
   p_prnt = salt;
-  smp_debug_print_nbyte_little_endian(p_prnt, (const uint8_t*)"salt",
-                                      BT_OCTET16_LEN);
+  smp_debug_print_nbyte_little_endian(p_prnt, "salt", BT_OCTET16_LEN);
   p_prnt = w;
-  smp_debug_print_nbyte_little_endian(p_prnt, (const uint8_t*)"W",
-                                      BT_OCTET32_LEN);
+  smp_debug_print_nbyte_little_endian(p_prnt, "W", BT_OCTET32_LEN);
 #endif
 
   BT_OCTET16 key;
@@ -1624,11 +1590,9 @@ bool smp_calculate_f5_key(uint8_t* w, uint8_t* t) {
   ARRAY_TO_STREAM(p, w, BT_OCTET32_LEN);
 #if (SMP_DEBUG == TRUE)
   p_prnt = key;
-  smp_debug_print_nbyte_little_endian(p_prnt, (const uint8_t*)"K",
-                                      BT_OCTET16_LEN);
+  smp_debug_print_nbyte_little_endian(p_prnt, "K", BT_OCTET16_LEN);
   p_prnt = msg;
-  smp_debug_print_nbyte_little_endian(p_prnt, (const uint8_t*)"M",
-                                      BT_OCTET32_LEN);
+  smp_debug_print_nbyte_little_endian(p_prnt, "M", BT_OCTET32_LEN);
 #endif
 
   BT_OCTET16 cmac;
@@ -1641,8 +1605,7 @@ bool smp_calculate_f5_key(uint8_t* w, uint8_t* t) {
 
 #if (SMP_DEBUG == TRUE)
   p_prnt = cmac;
-  smp_debug_print_nbyte_little_endian(p_prnt, (const uint8_t*)"AES-CMAC",
-                                      BT_OCTET16_LEN);
+  smp_debug_print_nbyte_little_endian(p_prnt, "AES-CMAC", BT_OCTET16_LEN);
 #endif
 
   p = t;
@@ -1709,8 +1672,8 @@ void smp_calculate_peer_dhkey_check(tSMP_CB* p_cb, tSMP_INT_DATA* p_data) {
   if (ret) {
     SMP_TRACE_EVENT("peer DHKey check calculation is completed");
 #if (SMP_DEBUG == TRUE)
-    smp_debug_print_nbyte_little_endian(
-        param_buf, (const uint8_t*)"peer DHKey check", BT_OCTET16_LEN);
+    smp_debug_print_nbyte_little_endian(param_buf, "peer DHKey check",
+                                        BT_OCTET16_LEN);
 #endif
     key.key_type = SMP_KEY_TYPE_PEER_DHK_CHCK;
     key.p_data = param_buf;
@@ -1760,23 +1723,19 @@ bool smp_calculate_f6(uint8_t* w, uint8_t* n1, uint8_t* n2, uint8_t* r,
   SMP_TRACE_DEBUG("%s", __func__);
 #if (SMP_DEBUG == TRUE)
   p_print = w;
-  smp_debug_print_nbyte_little_endian(p_print, (const uint8_t*)"W",
-                                      BT_OCTET16_LEN);
+  smp_debug_print_nbyte_little_endian(p_print, "W", BT_OCTET16_LEN);
   p_print = n1;
-  smp_debug_print_nbyte_little_endian(p_print, (const uint8_t*)"N1",
-                                      BT_OCTET16_LEN);
+  smp_debug_print_nbyte_little_endian(p_print, "N1", BT_OCTET16_LEN);
   p_print = n2;
-  smp_debug_print_nbyte_little_endian(p_print, (const uint8_t*)"N2",
-                                      BT_OCTET16_LEN);
+  smp_debug_print_nbyte_little_endian(p_print, "N2", BT_OCTET16_LEN);
   p_print = r;
-  smp_debug_print_nbyte_little_endian(p_print, (const uint8_t*)"R",
-                                      BT_OCTET16_LEN);
+  smp_debug_print_nbyte_little_endian(p_print, "R", BT_OCTET16_LEN);
   p_print = iocap;
-  smp_debug_print_nbyte_little_endian(p_print, (const uint8_t*)"IOcap", 3);
+  smp_debug_print_nbyte_little_endian(p_print, "IOcap", 3);
   p_print = a1;
-  smp_debug_print_nbyte_little_endian(p_print, (const uint8_t*)"A1", 7);
+  smp_debug_print_nbyte_little_endian(p_print, "A1", 7);
   p_print = a2;
-  smp_debug_print_nbyte_little_endian(p_print, (const uint8_t*)"A2", 7);
+  smp_debug_print_nbyte_little_endian(p_print, "A2", 7);
 #endif
 
   uint8_t cmac[BT_OCTET16_LEN];
@@ -1786,8 +1745,7 @@ bool smp_calculate_f6(uint8_t* w, uint8_t* n1, uint8_t* n2, uint8_t* r,
   ARRAY_TO_STREAM(p, w, BT_OCTET16_LEN);
 #if (SMP_DEBUG == TRUE)
   p_print = key;
-  smp_debug_print_nbyte_little_endian(p_print, (const uint8_t*)"K",
-                                      BT_OCTET16_LEN);
+  smp_debug_print_nbyte_little_endian(p_print, "K", BT_OCTET16_LEN);
 #endif
 
   p = msg;
@@ -1799,7 +1757,7 @@ bool smp_calculate_f6(uint8_t* w, uint8_t* n1, uint8_t* n2, uint8_t* r,
   ARRAY_TO_STREAM(p, n1, BT_OCTET16_LEN);
 #if (SMP_DEBUG == TRUE)
   p_print = msg;
-  smp_debug_print_nbyte_little_endian(p_print, (const uint8_t*)"M", msg_len);
+  smp_debug_print_nbyte_little_endian(p_print, "M", msg_len);
 #endif
 
   bool ret = true;
@@ -1810,8 +1768,7 @@ bool smp_calculate_f6(uint8_t* w, uint8_t* n1, uint8_t* n2, uint8_t* r,
 
 #if (SMP_DEBUG == TRUE)
   p_print = cmac;
-  smp_debug_print_nbyte_little_endian(p_print, (const uint8_t*)"AES-CMAC",
-                                      BT_OCTET16_LEN);
+  smp_debug_print_nbyte_little_endian(p_print, "AES-CMAC", BT_OCTET16_LEN);
 #endif
 
   p = c;
@@ -2004,10 +1961,9 @@ bool smp_calculate_h6(uint8_t* w, uint8_t* keyid, uint8_t* c) {
   SMP_TRACE_DEBUG("%s", __func__);
 #if (SMP_DEBUG == TRUE)
   p_print = w;
-  smp_debug_print_nbyte_little_endian(p_print, (const uint8_t*)"W",
-                                      BT_OCTET16_LEN);
+  smp_debug_print_nbyte_little_endian(p_print, "W", BT_OCTET16_LEN);
   p_print = keyid;
-  smp_debug_print_nbyte_little_endian(p_print, (const uint8_t*)"keyID", 4);
+  smp_debug_print_nbyte_little_endian(p_print, "keyID", 4);
 #endif
 
   uint8_t* p = NULL;
@@ -2018,8 +1974,7 @@ bool smp_calculate_h6(uint8_t* w, uint8_t* keyid, uint8_t* c) {
 
 #if (SMP_DEBUG == TRUE)
   p_print = key;
-  smp_debug_print_nbyte_little_endian(p_print, (const uint8_t*)"K",
-                                      BT_OCTET16_LEN);
+  smp_debug_print_nbyte_little_endian(p_print, "K", BT_OCTET16_LEN);
 #endif
 
   uint8_t msg_len = 4 /* KeyID size */;
@@ -2030,7 +1985,7 @@ bool smp_calculate_h6(uint8_t* w, uint8_t* keyid, uint8_t* c) {
 
 #if (SMP_DEBUG == TRUE)
   p_print = msg;
-  smp_debug_print_nbyte_little_endian(p_print, (const uint8_t*)"M", msg_len);
+  smp_debug_print_nbyte_little_endian(p_print, "M", msg_len);
 #endif
 
   bool ret = true;
@@ -2042,8 +1997,7 @@ bool smp_calculate_h6(uint8_t* w, uint8_t* keyid, uint8_t* c) {
 
 #if (SMP_DEBUG == TRUE)
   p_print = cmac;
-  smp_debug_print_nbyte_little_endian(p_print, (const uint8_t*)"AES-CMAC",
-                                      BT_OCTET16_LEN);
+  smp_debug_print_nbyte_little_endian(p_print, "AES-CMAC", BT_OCTET16_LEN);
 #endif
 
   p = c;
