@@ -27,6 +27,7 @@
 
 #include <string.h>
 
+#include <base/callback.h>
 #include "bt_common.h"
 #include "bt_target.h"
 #include "bta_gattc_int.h"
@@ -157,22 +158,18 @@ void bta_gattc_disable() {
  * Returns          void
  *
  ******************************************************************************/
-void bta_gattc_register(tBTA_GATTC_DATA* p_data) {
-  tBTA_GATTC cb_data;
-  uint8_t i;
-  tBT_UUID* p_app_uuid = &p_data->api_reg.app_uuid;
+void bta_gattc_register(tBT_UUID* p_app_uuid, tBTA_GATTC_CBACK* p_cback,
+                        BtaAppRegisterCallback cb) {
   tBTA_GATT_STATUS status = BTA_GATT_NO_RESOURCES;
-
+  uint8_t client_if = 0;
   APPL_TRACE_DEBUG("bta_gattc_register state %d", bta_gattc_cb.state);
-  memset(&cb_data, 0, sizeof(cb_data));
-  cb_data.reg_oper.status = BTA_GATT_NO_RESOURCES;
 
   /* check if  GATTC module is already enabled . Else enable */
   if (bta_gattc_cb.state == BTA_GATTC_STATE_DISABLED) {
     bta_gattc_enable();
   }
   /* todo need to check duplicate uuid */
-  for (i = 0; i < BTA_GATTC_CL_MAX; i++) {
+  for (uint8_t i = 0; i < BTA_GATTC_CL_MAX; i++) {
     if (!bta_gattc_cb.cl_rcb[i].in_use) {
       if ((p_app_uuid == NULL) ||
           (bta_gattc_cb.cl_rcb[i].client_if =
@@ -181,11 +178,11 @@ void bta_gattc_register(tBTA_GATTC_DATA* p_data) {
         status = BTA_GATT_ERROR;
       } else {
         bta_gattc_cb.cl_rcb[i].in_use = true;
-        bta_gattc_cb.cl_rcb[i].p_cback = p_data->api_reg.p_cback;
+        bta_gattc_cb.cl_rcb[i].p_cback = p_cback;
         memcpy(&bta_gattc_cb.cl_rcb[i].app_uuid, p_app_uuid, sizeof(tBT_UUID));
 
         /* BTA use the same client interface as BTE GATT statck */
-        cb_data.reg_oper.client_if = bta_gattc_cb.cl_rcb[i].client_if;
+        client_if = bta_gattc_cb.cl_rcb[i].client_if;
 
         tBTA_GATTC_INT_START_IF* p_buf = (tBTA_GATTC_INT_START_IF*)osi_malloc(
             sizeof(tBTA_GATTC_INT_START_IF));
@@ -199,14 +196,7 @@ void bta_gattc_register(tBTA_GATTC_DATA* p_data) {
     }
   }
 
-  /* callback with register event */
-  if (p_data->api_reg.p_cback) {
-    if (p_app_uuid != NULL)
-      memcpy(&(cb_data.reg_oper.app_uuid), p_app_uuid, sizeof(tBT_UUID));
-
-    cb_data.reg_oper.status = status;
-    (*p_data->api_reg.p_cback)(BTA_GATTC_REG_EVT, (tBTA_GATTC*)&cb_data);
-  }
+  if (!cb.is_null()) cb.Run(client_if, status);
 }
 /*******************************************************************************
  *
