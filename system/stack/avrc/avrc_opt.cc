@@ -21,7 +21,7 @@
  *  Interface to AVRCP optional commands
  *
  ******************************************************************************/
-#include <assert.h>
+#include <base/logging.h>
 #include <string.h>
 
 #include "avrc_api.h"
@@ -48,13 +48,13 @@ static BT_HDR* avrc_vendor_msg(tAVRC_MSG_VENDOR* p_msg) {
   BT_HDR* p_cmd;
   uint8_t* p_data;
 
-  assert(p_msg != NULL);
+  CHECK(p_msg != NULL);
 
 #if (AVRC_METADATA_INCLUDED == TRUE)
-  assert(AVRC_META_CMD_BUF_SIZE > (AVRC_MIN_CMD_LEN + p_msg->vendor_len));
+  CHECK(AVRC_META_CMD_BUF_SIZE > (AVRC_MIN_CMD_LEN + p_msg->vendor_len));
   p_cmd = (BT_HDR*)osi_malloc(AVRC_META_CMD_BUF_SIZE);
 #else
-  assert(AVRC_CMD_BUF_SIZE > (AVRC_MIN_CMD_LEN + p_msg->vendor_len));
+  CHECK(AVRC_CMD_BUF_SIZE > (AVRC_MIN_CMD_LEN + p_msg->vendor_len));
   p_cmd = (BT_HDR*)osi_malloc(AVRC_CMD_BUF_SIZE);
 #endif
 

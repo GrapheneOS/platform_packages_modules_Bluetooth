@@ -179,19 +179,19 @@ corresponding `*_free` function. For example, list objects returned from
 `list_new` should be freed with `list_free` and no other freeing routine.
 
 ### Asserts
-Use `assert` liberally throughout the code to enforce invariants. Assertions
+Use `CHECK` liberally throughout the code to enforce invariants. Assertions
 should not have any side-effects and should be used to detect programming logic
-errors.
+errors. Please do not use `assert`.
 
 At minimum, every function should assert expectations on its arguments. The
 following example demonstrates the kinds of assertions one should make on
 function arguments.
 ```
   size_t open_and_read_file(const char *filename, void *target_buffer, size_t max_bytes) {
-    assert(filename != NULL);
-    assert(filename[0] != '\0');
-    assert(target_buffer != NULL);
-    assert(max_bytes > 0);
+    CHECK(filename != NULL);
+    CHECK(filename[0] != '\0');
+    CHECK(target_buffer != NULL);
+    CHECK(max_bytes > 0);
 
     // function implementation begins here
   }

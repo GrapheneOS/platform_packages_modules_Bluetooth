@@ -19,6 +19,7 @@
 
 #include "btif_avrcp_audio_track.h"
 
+#include <base/logging.h>
 #include <media/AudioTrack.h>
 #include <utils/StrongPointer.h>
 
@@ -41,10 +42,10 @@ void* BtifAvrcpAudioTrackCreate(int trackFreq, int channelType) {
       (size_t)0 /*frameCount*/, (audio_output_flags_t)AUDIO_OUTPUT_FLAG_FAST,
       NULL /*callback_t*/, NULL /*void* user*/, 0 /*notificationFrames*/,
       AUDIO_SESSION_ALLOCATE, android::AudioTrack::TRANSFER_SYNC);
-  assert(track != NULL);
+  CHECK(track != NULL);
 
   BtifAvrcpAudioTrack* trackHolder = new BtifAvrcpAudioTrack;
-  assert(trackHolder != NULL);
+  CHECK(trackHolder != NULL);
   trackHolder->track = track;
 
   if (trackHolder->track->initCheck() != 0) {
@@ -59,10 +60,10 @@ void* BtifAvrcpAudioTrackCreate(int trackFreq, int channelType) {
 }
 
 void BtifAvrcpAudioTrackStart(void* handle) {
-  assert(handle != NULL);
+  CHECK(handle != NULL);
   BtifAvrcpAudioTrack* trackHolder = static_cast<BtifAvrcpAudioTrack*>(handle);
-  assert(trackHolder != NULL);
-  assert(trackHolder->track != NULL);
+  CHECK(trackHolder != NULL);
+  CHECK(trackHolder->track != NULL);
   LOG_VERBOSE(LOG_TAG, "%s Track.cpp: btStartTrack", __func__);
   trackHolder->track->start();
 }
@@ -126,8 +127,8 @@ void BtifAvrcpSetAudioTrackGain(void* handle, float gain) {
 int BtifAvrcpAudioTrackWriteData(void* handle, void* audioBuffer,
                                  int bufferlen) {
   BtifAvrcpAudioTrack* trackHolder = static_cast<BtifAvrcpAudioTrack*>(handle);
-  assert(trackHolder != NULL);
-  assert(trackHolder->track != NULL);
+  CHECK(trackHolder != NULL);
+  CHECK(trackHolder->track != NULL);
   int retval = -1;
 #if (DUMP_PCM_DATA == TRUE)
   if (outputPcmSampleFile) {

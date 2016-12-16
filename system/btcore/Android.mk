@@ -48,7 +48,7 @@ LOCAL_C_INCLUDES := $(btcoreCommonIncludes)
 LOCAL_SRC_FILES := $(btcoreCommonSrc)
 LOCAL_MODULE := libbtcore
 LOCAL_MODULE_TAGS := optional
-LOCAL_SHARED_LIBRARIES := libc liblog
+LOCAL_SHARED_LIBRARIES := libc liblog libchrome
 LOCAL_MODULE_CLASS := STATIC_LIBRARIES
 
 LOCAL_CFLAGS += $(bluetooth_CFLAGS)
@@ -66,7 +66,7 @@ LOCAL_C_INCLUDES := $(btcoreCommonIncludes)
 LOCAL_SRC_FILES := $(btcoreCommonSrc)
 LOCAL_MODULE := libbtcore-host
 LOCAL_MODULE_TAGS := optional
-LOCAL_SHARED_LIBRARIES := liblog
+LOCAL_SHARED_LIBRARIES := liblog libchrome
 LOCAL_MODULE_CLASS := STATIC_LIBRARIES
 
 # TODO(armansito): Setting _GNU_SOURCE isn't very platform-independent but
@@ -90,7 +90,7 @@ LOCAL_C_INCLUDES := $(btcoreCommonIncludes)
 LOCAL_SRC_FILES := $(btcoreCommonTestSrc)
 LOCAL_MODULE := net_test_btcore
 LOCAL_MODULE_TAGS := tests
-LOCAL_SHARED_LIBRARIES := liblog
+LOCAL_SHARED_LIBRARIES := liblog libchrome
 LOCAL_STATIC_LIBRARIES := libbtcore libosi
 
 LOCAL_CFLAGS += $(bluetooth_CFLAGS)
@@ -108,7 +108,7 @@ LOCAL_C_INCLUDES := $(btcoreCommonIncludes)
 LOCAL_SRC_FILES := $(btcoreCommonTestSrc)
 LOCAL_MODULE := net_test_btcore
 LOCAL_MODULE_TAGS := tests
-LOCAL_SHARED_LIBRARIES := liblog
+LOCAL_SHARED_LIBRARIES := liblog libchrome
 LOCAL_STATIC_LIBRARIES := libbtcore-host libosi-host
 
 LOCAL_CFLAGS += $(bluetooth_CFLAGS)

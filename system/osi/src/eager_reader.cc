@@ -20,7 +20,7 @@
 
 #include "osi/include/eager_reader.h"
 
-#include <assert.h>
+#include <base/logging.h>
 #include <errno.h>
 #include <string.h>
 #include <sys/eventfd.h>
@@ -66,11 +66,11 @@ static void internal_outbound_read_ready(void* context);
 eager_reader_t* eager_reader_new(int fd_to_read, const allocator_t* allocator,
                                  size_t buffer_size, size_t max_buffer_count,
                                  const char* thread_name) {
-  assert(fd_to_read != INVALID_FD);
-  assert(allocator != NULL);
-  assert(buffer_size > 0);
-  assert(max_buffer_count > 0);
-  assert(thread_name != NULL && *thread_name != '\0');
+  CHECK(fd_to_read != INVALID_FD);
+  CHECK(allocator != NULL);
+  CHECK(buffer_size > 0);
+  CHECK(max_buffer_count > 0);
+  CHECK(thread_name != NULL && *thread_name != '\0');
 
   eager_reader_t* ret =
       static_cast<eager_reader_t*>(osi_calloc(sizeof(eager_reader_t)));
@@ -133,9 +133,9 @@ void eager_reader_free(eager_reader_t* reader) {
 
 void eager_reader_register(eager_reader_t* reader, reactor_t* reactor,
                            eager_reader_cb read_cb, void* context) {
-  assert(reader != NULL);
-  assert(reactor != NULL);
-  assert(read_cb != NULL);
+  CHECK(reader != NULL);
+  CHECK(reactor != NULL);
+  CHECK(read_cb != NULL);
 
   // Make sure the reader isn't currently registered.
   eager_reader_unregister(reader);
@@ -148,7 +148,7 @@ void eager_reader_register(eager_reader_t* reader, reactor_t* reactor,
 }
 
 void eager_reader_unregister(eager_reader_t* reader) {
-  assert(reader != NULL);
+  CHECK(reader != NULL);
 
   if (reader->outbound_registration) {
     reactor_unregister(reader->outbound_registration);
@@ -159,8 +159,8 @@ void eager_reader_unregister(eager_reader_t* reader) {
 // SEE HEADER FOR THREAD SAFETY NOTE
 size_t eager_reader_read(eager_reader_t* reader, uint8_t* buffer,
                          size_t max_size) {
-  assert(reader != NULL);
-  assert(buffer != NULL);
+  CHECK(reader != NULL);
+  CHECK(buffer != NULL);
 
   // Poll to see if we have any bytes available before reading.
   if (!has_byte(reader)) return 0;
@@ -209,12 +209,12 @@ size_t eager_reader_read(eager_reader_t* reader, uint8_t* buffer,
 }
 
 thread_t* eager_reader_get_read_thread(const eager_reader_t* reader) {
-  assert(reader != NULL);
+  CHECK(reader != NULL);
   return reader->inbound_read_thread;
 }
 
 static bool has_byte(const eager_reader_t* reader) {
-  assert(reader != NULL);
+  CHECK(reader != NULL);
 
   fd_set read_fds;
 
@@ -274,7 +274,7 @@ static void inbound_data_waiting(void* context) {
 }
 
 static void internal_outbound_read_ready(void* context) {
-  assert(context != NULL);
+  CHECK(context != NULL);
 
   eager_reader_t* reader = (eager_reader_t*)context;
   reader->outbound_read_ready(reader, reader->outbound_context);

@@ -26,7 +26,7 @@
 
 #define LOG_TAG "bt_main"
 
-#include <assert.h>
+#include <base/logging.h>
 #include <fcntl.h>
 #include <pthread.h>
 #include <signal.h>

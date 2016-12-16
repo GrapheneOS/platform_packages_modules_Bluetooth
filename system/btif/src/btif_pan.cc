@@ -27,7 +27,7 @@
 
 #define LOG_TAG "bt_btif_pan"
 
-#include <assert.h>
+#include <base/logging.h>
 #include <ctype.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -767,7 +767,7 @@ static void btif_pan_close_all_conns() {
 
 static void btpan_tap_fd_signaled(int fd, int type, int flags,
                                   uint32_t user_id) {
-  assert(btpan_cb.tap_fd == INVALID_FD || btpan_cb.tap_fd == fd);
+  CHECK(btpan_cb.tap_fd == INVALID_FD || btpan_cb.tap_fd == fd);
 
   if (btpan_cb.tap_fd != fd) {
     BTIF_TRACE_WARNING("%s Signaled on mismatched fds exp:%d act:%d\n",

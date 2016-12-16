@@ -20,7 +20,7 @@
 
 #include "osi/include/data_dispatcher.h"
 
-#include <assert.h>
+#include <base/logging.h>
 #include <unordered_map>
 
 #include "osi/include/allocator.h"
@@ -39,7 +39,7 @@ struct data_dispatcher_t {
 };
 
 data_dispatcher_t* data_dispatcher_new(const char* name) {
-  assert(name != NULL);
+  CHECK(name != NULL);
 
   data_dispatcher_t* ret =
       (data_dispatcher_t*)osi_calloc(sizeof(data_dispatcher_t));
@@ -70,7 +70,7 @@ void data_dispatcher_free(data_dispatcher_t* dispatcher) {
 void data_dispatcher_register(data_dispatcher_t* dispatcher,
                               data_dispatcher_type_t type,
                               fixed_queue_t* queue) {
-  assert(dispatcher != NULL);
+  CHECK(dispatcher != NULL);
 
   if (queue)
     (*dispatcher->dispatch_table)[type] = queue;
@@ -80,15 +80,15 @@ void data_dispatcher_register(data_dispatcher_t* dispatcher,
 
 void data_dispatcher_register_default(data_dispatcher_t* dispatcher,
                                       fixed_queue_t* queue) {
-  assert(dispatcher != NULL);
+  CHECK(dispatcher != NULL);
 
   dispatcher->default_queue = queue;
 }
 
 bool data_dispatcher_dispatch(data_dispatcher_t* dispatcher,
                               data_dispatcher_type_t type, void* data) {
-  assert(dispatcher != NULL);
-  assert(data != NULL);
+  CHECK(dispatcher != NULL);
+  CHECK(data != NULL);
 
   fixed_queue_t* queue;
   auto iter = dispatcher->dispatch_table->find(type);

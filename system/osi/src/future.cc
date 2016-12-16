@@ -20,7 +20,7 @@
 
 #include "osi/include/future.h"
 
-#include <assert.h>
+#include <base/logging.h>
 
 #include "osi/include/allocator.h"
 #include "osi/include/log.h"
@@ -61,8 +61,8 @@ future_t* future_new_immediate(void* value) {
 }
 
 void future_ready(future_t* future, void* value) {
-  assert(future != NULL);
-  assert(future->ready_can_be_called);
+  CHECK(future != NULL);
+  CHECK(future->ready_can_be_called);
 
   future->ready_can_be_called = false;
   future->result = value;
@@ -70,7 +70,7 @@ void future_ready(future_t* future, void* value) {
 }
 
 void* future_await(future_t* future) {
-  assert(future != NULL);
+  CHECK(future != NULL);
 
   // If the future is immediate, it will not have a semaphore
   if (future->semaphore) semaphore_wait(future->semaphore);

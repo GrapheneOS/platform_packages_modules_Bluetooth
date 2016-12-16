@@ -15,12 +15,11 @@
 //
 
 #include "bt_address.h"
-#include <assert.h>
 #include <iomanip>
 #include <vector>
 using std::vector;
 
-#include "base/logging.h"
+#include <base/logging.h>
 
 namespace test_vendor_lib {
 

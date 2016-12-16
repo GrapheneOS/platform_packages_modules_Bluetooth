@@ -18,7 +18,7 @@
 
 #include "hci_transport.h"
 
-#include <assert.h>
+#include <base/logging.h>
 #include <sys/socket.h>
 
 #include "osi/include/log.h"
@@ -69,7 +69,7 @@ void HciTransport::OnCommandReady(int fd) {
 
     default: {
       LOG_ERROR(LOG_TAG, "Error received an invalid packet type from the HCI.");
-      assert(packet_type == DATA_TYPE_COMMAND);
+      CHECK(packet_type == DATA_TYPE_COMMAND);
       break;
     }
   }

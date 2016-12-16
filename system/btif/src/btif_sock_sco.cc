@@ -18,7 +18,7 @@
 
 #define LOG_TAG "bt_btif_sock_sco"
 
-#include <assert.h>
+#include <base/logging.h>
 #include <errno.h>
 #include <pthread.h>
 #include <string.h>
@@ -94,7 +94,7 @@ static sco_socket_t* listen_sco_socket;  // Not owned, do not free.
 static thread_t* thread;                 // Not owned, do not free.
 
 bt_status_t btsock_sco_init(thread_t* thread_) {
-  assert(thread_ != NULL);
+  CHECK(thread_ != NULL);
 
   sco_sockets = list_new((list_free_cb)sco_socket_free_locked);
   if (!sco_sockets) return BT_STATUS_FAIL;
@@ -112,7 +112,7 @@ bt_status_t btsock_sco_cleanup(void) {
 }
 
 bt_status_t btsock_sco_listen(int* sock_fd, UNUSED_ATTR int flags) {
-  assert(sock_fd != NULL);
+  CHECK(sock_fd != NULL);
 
   std::unique_lock<std::mutex> lock(sco_lock);
 
@@ -127,8 +127,8 @@ bt_status_t btsock_sco_listen(int* sock_fd, UNUSED_ATTR int flags) {
 
 bt_status_t btsock_sco_connect(const bt_bdaddr_t* bd_addr, int* sock_fd,
                                UNUSED_ATTR int flags) {
-  assert(bd_addr != NULL);
-  assert(sock_fd != NULL);
+  CHECK(bd_addr != NULL);
+  CHECK(sock_fd != NULL);
 
   std::unique_lock<std::mutex> lock(sco_lock);
   sco_socket_t* sco_socket =
@@ -219,7 +219,7 @@ static sco_socket_t* sco_socket_find_locked(uint16_t sco_handle) {
 
 static void connection_request_cb(tBTM_ESCO_EVT event,
                                   tBTM_ESCO_EVT_DATA* data) {
-  assert(data != NULL);
+  CHECK(data != NULL);
 
   // Don't care about change of link parameters, only connection requests.
   if (event != BTM_ESCO_CONN_REQ_EVT) return;

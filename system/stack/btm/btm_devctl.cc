@@ -23,7 +23,7 @@
  *
  ******************************************************************************/
 
-#include <assert.h>
+#include <base/logging.h>
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -140,7 +140,7 @@ bool set_sec_state_idle(void* data, void* context) {
 }
 
 static void reset_complete(void* result) {
-  assert(result == FUTURE_SUCCESS);
+  CHECK(result == FUTURE_SUCCESS);
   const controller_t* controller = controller_get_interface();
 
   /* Tell L2CAP that all connections are gone */

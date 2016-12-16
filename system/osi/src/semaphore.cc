@@ -20,7 +20,7 @@
 
 #include "osi/include/semaphore.h"
 
-#include <assert.h>
+#include <base/logging.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <malloc.h>
@@ -60,8 +60,8 @@ void semaphore_free(semaphore_t* semaphore) {
 }
 
 void semaphore_wait(semaphore_t* semaphore) {
-  assert(semaphore != NULL);
-  assert(semaphore->fd != INVALID_FD);
+  CHECK(semaphore != NULL);
+  CHECK(semaphore->fd != INVALID_FD);
 
   eventfd_t value;
   if (eventfd_read(semaphore->fd, &value) == -1)
@@ -70,8 +70,8 @@ void semaphore_wait(semaphore_t* semaphore) {
 }
 
 bool semaphore_try_wait(semaphore_t* semaphore) {
-  assert(semaphore != NULL);
-  assert(semaphore->fd != INVALID_FD);
+  CHECK(semaphore != NULL);
+  CHECK(semaphore->fd != INVALID_FD);
 
   int flags = fcntl(semaphore->fd, F_GETFL);
   if (flags == -1) {
@@ -96,8 +96,8 @@ bool semaphore_try_wait(semaphore_t* semaphore) {
 }
 
 void semaphore_post(semaphore_t* semaphore) {
-  assert(semaphore != NULL);
-  assert(semaphore->fd != INVALID_FD);
+  CHECK(semaphore != NULL);
+  CHECK(semaphore->fd != INVALID_FD);
 
   if (eventfd_write(semaphore->fd, 1ULL) == -1)
     LOG_ERROR(LOG_TAG, "%s unable to post to semaphore: %s", __func__,
@@ -105,7 +105,7 @@ void semaphore_post(semaphore_t* semaphore) {
 }
 
 int semaphore_get_fd(const semaphore_t* semaphore) {
-  assert(semaphore != NULL);
-  assert(semaphore->fd != INVALID_FD);
+  CHECK(semaphore != NULL);
+  CHECK(semaphore->fd != INVALID_FD);
   return semaphore->fd;
 }

@@ -20,7 +20,7 @@
 
 #include "vendor.h"
 
-#include <assert.h>
+#include <base/logging.h>
 #include <dlfcn.h>
 
 #include "bt_vendor_lib.h"
@@ -74,7 +74,7 @@ static bt_vendor_interface_t* lib_interface;
 static bool vendor_open(const uint8_t* local_bdaddr,
                         const hci_t* hci_interface) {
   int status;
-  assert(lib_handle == NULL);
+  CHECK(lib_handle == NULL);
   hci = hci_interface;
 
   lib_handle = dlopen(VENDOR_LIBRARY_NAME, RTLD_NOW);
@@ -120,12 +120,12 @@ static void vendor_close(void) {
 }
 
 static int send_command(vendor_opcode_t opcode, void* param) {
-  assert(lib_interface != NULL);
+  CHECK(lib_interface != NULL);
   return lib_interface->op((bt_vendor_opcode_t)opcode, param);
 }
 
 static int send_async_command(vendor_async_opcode_t opcode, void* param) {
-  assert(lib_interface != NULL);
+  CHECK(lib_interface != NULL);
   return lib_interface->op((bt_vendor_opcode_t)opcode, param);
 }
 
@@ -140,7 +140,7 @@ static void set_callback(vendor_async_opcode_t opcode, vendor_cb callback) {
 static void firmware_config_cb(bt_vendor_op_result_t result) {
   LOG_INFO(LOG_TAG, "firmware callback");
   vendor_cb callback = callbacks[VENDOR_CONFIGURE_FIRMWARE];
-  assert(callback != NULL);
+  CHECK(callback != NULL);
   callback(result == BT_VND_OP_RESULT_SUCCESS);
 }
 
@@ -150,7 +150,7 @@ static void firmware_config_cb(bt_vendor_op_result_t result) {
 static void sco_config_cb(bt_vendor_op_result_t result) {
   LOG_INFO(LOG_TAG, "%s", __func__);
   vendor_cb callback = callbacks[VENDOR_CONFIGURE_SCO];
-  assert(callback != NULL);
+  CHECK(callback != NULL);
   callback(result == BT_VND_OP_RESULT_SUCCESS);
 }
 
@@ -159,7 +159,7 @@ static void sco_config_cb(bt_vendor_op_result_t result) {
 static void low_power_mode_cb(bt_vendor_op_result_t result) {
   LOG_INFO(LOG_TAG, "%s", __func__);
   vendor_cb callback = callbacks[VENDOR_SET_LPM_MODE];
-  assert(callback != NULL);
+  CHECK(callback != NULL);
   callback(result == BT_VND_OP_RESULT_SUCCESS);
 }
 
@@ -200,7 +200,7 @@ static void transmit_completed_callback(BT_HDR* response, void* context) {
 // Called back from vendor library when it wants to send an HCI command.
 static uint8_t transmit_cb(UNUSED_ATTR uint16_t opcode, void* buffer,
                            tINT_CMD_CBACK callback) {
-  assert(hci != NULL);
+  CHECK(hci != NULL);
   hci->transmit_command((BT_HDR*)buffer, transmit_completed_callback, NULL,
                         reinterpret_cast<void*>(callback));
   return true;
@@ -212,7 +212,7 @@ static uint8_t transmit_cb(UNUSED_ATTR uint16_t opcode, void* buffer,
 static void epilog_cb(bt_vendor_op_result_t result) {
   LOG_INFO(LOG_TAG, "%s", __func__);
   vendor_cb callback = callbacks[VENDOR_DO_EPILOG];
-  assert(callback != NULL);
+  CHECK(callback != NULL);
   callback(result == BT_VND_OP_RESULT_SUCCESS);
 }
 

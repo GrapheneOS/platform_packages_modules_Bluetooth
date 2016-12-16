@@ -16,7 +16,7 @@
  *
  ******************************************************************************/
 
-#include <assert.h>
+#include <base/logging.h>
 #include <time.h>
 
 #include "hci/include/btsnoop_mem.h"
@@ -28,7 +28,7 @@ void btsnoop_mem_set_callback(btsnoop_data_cb cb) { data_callback = cb; }
 void btsnoop_mem_capture(const BT_HDR* packet) {
   if (!data_callback) return;
 
-  assert(packet);
+  CHECK(packet);
 
   const uint8_t* data = &packet->data[packet->offset];
   const uint16_t type = packet->event & BT_EVT_MASK;
