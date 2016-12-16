@@ -23,6 +23,22 @@
  *
  *  Description:   Handsfree Profile (HF role) Bluetooth Interface
  *
+ *  Notes:
+ *  a) Lifecycle of a control block
+ *  Control block handles the lifecycle for a particular remote device's
+ *  connection. The connection can go via the classic phases but more
+ *  importantly there's only two messages from BTA that affect this.
+ *  BTA_HF_CLIENT_OPEN_EVT and BTA_HF_CLIENT_CLOSE_EVT. Since the API between
+ *  BTIF and BTA is controlled entirely by handles it's important to know where
+ *  the handles are created and destroyed. Handles can be created at two
+ *  locations:
+ *  -- While connect() is called from BTIF. This is an outgoing connection
+ *  -- While accepting an incoming connection (see BTA_HF_CLIENT_OPEN_EVT
+ *  handling).
+ *
+ *  The destruction or rather reuse of handles can be done when
+ *  BTA_HF_CLIENT_CLOSE_EVT is called. Refer to the event handling for details
+ *  of this.
  *
  ******************************************************************************/
 
@@ -200,7 +216,10 @@ btif_hf_client_cb_t* btif_hf_client_get_cb_by_handle(uint16_t handle) {
  *
  ******************************************************************************/
 btif_hf_client_cb_t* btif_hf_client_get_cb_by_bda(const uint8_t* bd_addr) {
-  BTIF_TRACE_DEBUG("%s", __func__);
+  BTIF_TRACE_DEBUG("%s incoming addr %02x:%02x:%02x:%02x:%02x:%02x", __func__,
+                   bd_addr[0], bd_addr[1], bd_addr[2], bd_addr[3], bd_addr[4],
+                   bd_addr[5]);
+
   for (int i = 0; i < HF_CLIENT_MAX_DEVICES; i++) {
     // Block is valid only if it is allocated i.e. state is not DISCONNECTED
     if (btif_hf_client_cb_arr.cb[i].state !=
@@ -272,6 +291,7 @@ static bt_status_t init(bthf_client_callbacks_t* callbacks) {
  ******************************************************************************/
 static bt_status_t connect_int(bt_bdaddr_t* bd_addr, uint16_t uuid) {
   btif_hf_client_cb_t* cb = btif_hf_client_allocate_cb();
+  bdcpy(cb->peer_bda.address, bd_addr->address);
   if (cb == NULL) {
     BTIF_TRACE_ERROR("%s: could not allocate block!", __func__);
     return BT_STATUS_BUSY;
@@ -799,7 +819,17 @@ static void btif_hf_client_upstreams_evt(uint16_t event, char* p_param) {
   bdstr_t bdstr;
 
   btif_hf_client_cb_t* cb = btif_hf_client_get_cb_by_bda(p_data->bd_addr);
-  if (cb == NULL) return;
+  if (cb == NULL && event == BTA_HF_CLIENT_OPEN_EVT) {
+    BTIF_TRACE_DEBUG("%s: event BTA_HF_CLIENT_OPEN_EVT allocating block",
+                     __func__);
+    cb = btif_hf_client_allocate_cb();
+    cb->handle = p_data->open.handle;
+    bdcpy(cb->peer_bda.address, p_data->open.bd_addr);
+  } else if (cb == NULL) {
+    BTIF_TRACE_ERROR("%s: event %d but not allocating block: cb not found",
+                     __func__, event);
+    return;
+  }
 
   BTIF_TRACE_DEBUG("%s: event=%s (%u)", __func__, dump_hf_client_event(event),
                    event);
@@ -807,7 +837,6 @@ static void btif_hf_client_upstreams_evt(uint16_t event, char* p_param) {
   switch (event) {
     case BTA_HF_CLIENT_OPEN_EVT:
       if (p_data->open.status == BTA_HF_CLIENT_SUCCESS) {
-        bdcpy(cb->peer_bda.address, p_data->open.bd_addr);
         cb->state = BTHF_CLIENT_CONNECTION_STATE_CONNECTED;
         cb->peer_feat = 0;
         cb->chld_feat = 0;
