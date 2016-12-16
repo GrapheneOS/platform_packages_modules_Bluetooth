@@ -26,6 +26,8 @@
 
 #include <string.h>
 
+#include <base/bind.h>
+#include <base/callback.h>
 #include <list>
 #include <unordered_map>
 #include <unordered_set>
@@ -317,8 +319,6 @@ static const char* bta_hh_uuid_to_str(uint16_t uuid) {
  *
  ******************************************************************************/
 void bta_hh_le_enable(void) {
-  char app_name[LEN_UUID_128 + 1];
-  tBT_UUID app_uuid = {LEN_UUID_128, {0}};
   uint8_t xx;
 
   bta_hh_cb.gatt_if = BTA_GATTS_INVALID_IF;
@@ -326,36 +326,20 @@ void bta_hh_le_enable(void) {
   for (xx = 0; xx < BTA_HH_MAX_DEVICE; xx++)
     bta_hh_cb.le_cb_index[xx] = BTA_HH_IDX_INVALID;
 
-  memset(app_name, 0, LEN_UUID_128 + 1);
-  strncpy(app_name, "BTA HH OVER LE", LEN_UUID_128);
+  BTA_GATTC_AppRegister(bta_hh_gattc_callback,
+                        base::Bind([](uint8_t client_id, uint8_t r_status) {
+                          tBTA_HH_STATUS status = BTA_HH_ERR;
 
-  memcpy((void*)app_uuid.uu.uuid128, (void*)app_name, LEN_UUID_128);
+                          if (r_status == BTA_GATT_OK) {
+                            bta_hh_cb.gatt_if = client_id;
+                            status = BTA_HH_OK;
+                          } else
+                            bta_hh_cb.gatt_if = BTA_GATTS_INVALID_IF;
 
-  BTA_GATTC_AppRegister(&app_uuid, bta_hh_gattc_callback);
-
-  return;
-}
-
-/*******************************************************************************
- *
- * Function         bta_hh_le_register_cmpl
- *
- * Description      BTA HH register with BTA GATTC completed
- *
- * Parameters:
- *
- ******************************************************************************/
-void bta_hh_le_register_cmpl(tBTA_GATTC_REG* p_reg) {
-  tBTA_HH_STATUS status = BTA_HH_ERR;
-
-  if (p_reg->status == BTA_GATT_OK) {
-    bta_hh_cb.gatt_if = p_reg->client_if;
-    status = BTA_HH_OK;
-  } else
-    bta_hh_cb.gatt_if = BTA_GATTS_INVALID_IF;
-
-  /* signal BTA call back event */
-  (*bta_hh_cb.p_cback)(BTA_HH_ENABLE_EVT, (tBTA_HH*)&status);
+                          /* signal BTA call back event */
+                          (*bta_hh_cb.p_cback)(BTA_HH_ENABLE_EVT,
+                                               (tBTA_HH*)&status);
+                        }));
 }
 
 /*******************************************************************************
@@ -2201,10 +2185,6 @@ static void bta_hh_gattc_callback(tBTA_GATTC_EVT event, tBTA_GATTC* p_data) {
   if (p_data == NULL) return;
 
   switch (event) {
-    case BTA_GATTC_REG_EVT: /* 0 */
-      bta_hh_le_register_cmpl(&p_data->reg_oper);
-      break;
-
     case BTA_GATTC_DEREG_EVT: /* 1 */
       bta_hh_cleanup_disable(p_data->reg_oper.status);
       break;

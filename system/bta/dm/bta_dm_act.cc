@@ -26,6 +26,8 @@
 #define LOG_TAG "bt_bta_dm"
 
 #include <assert.h>
+#include <base/bind.h>
+#include <base/callback.h>
 #include <string.h>
 
 #include "bt_common.h"
@@ -4749,11 +4751,15 @@ void bta_dm_ble_get_energy_info(tBTA_DM_MSG* p_data) {
  *
  ******************************************************************************/
 static void bta_dm_gattc_register(void) {
-  tBT_UUID app_uuid = {LEN_UUID_128, {0}};
-
   if (bta_dm_search_cb.client_if == BTA_GATTS_INVALID_IF) {
-    memset(&app_uuid.uu.uuid128, 0x87, LEN_UUID_128);
-    BTA_GATTC_AppRegister(&app_uuid, bta_dm_gattc_callback);
+    BTA_GATTC_AppRegister(bta_dm_gattc_callback,
+                          base::Bind([](uint8_t client_id, uint8_t status) {
+                            if (status == BTA_GATT_OK)
+                              bta_dm_search_cb.client_if = client_id;
+                            else
+                              bta_dm_search_cb.client_if = BTA_GATTS_INVALID_IF;
+
+                          }));
   }
 }
 
@@ -4900,7 +4906,8 @@ static void bta_dm_gatt_disc_complete(uint16_t conn_id,
  *
  * Function         bta_dm_close_gatt_conn
  *
- * Description      This function close the GATT connection after delay timeout.
+ * Description      This function close the GATT connection after delay
+ *timeout.
  *
  * Parameters:
  *
@@ -5004,15 +5011,6 @@ static void bta_dm_gattc_callback(tBTA_GATTC_EVT event, tBTA_GATTC* p_data) {
   APPL_TRACE_DEBUG("bta_dm_gattc_callback event = %d", event);
 
   switch (event) {
-    case BTA_GATTC_REG_EVT:
-      APPL_TRACE_DEBUG("BTA_GATTC_REG_EVT client_if = %d",
-                       p_data->reg_oper.client_if);
-      if (p_data->reg_oper.status == BTA_GATT_OK)
-        bta_dm_search_cb.client_if = p_data->reg_oper.client_if;
-      else
-        bta_dm_search_cb.client_if = BTA_GATTS_INVALID_IF;
-      break;
-
     case BTA_GATTC_OPEN_EVT:
       bta_dm_proc_open_evt(&p_data->open);
       break;

@@ -60,7 +60,6 @@ enum {
   BTA_GATTC_INT_DISCONN_EVT,
 
   BTA_GATTC_INT_START_IF_EVT,
-  BTA_GATTC_API_REG_EVT,
   BTA_GATTC_API_DEREG_EVT,
   BTA_GATTC_API_DISABLE_EVT,
   BTA_GATTC_ENC_CMPL_EVT
@@ -88,12 +87,6 @@ typedef uint16_t tBTA_GATTC_INT_EVT;
 #define BTA_GATTC_WRITE_PREPARE GATT_WRITE_PREPARE
 
 /* internal strucutre for GATTC register API  */
-typedef struct {
-  BT_HDR hdr;
-  tBT_UUID app_uuid;
-  tBTA_GATTC_CBACK* p_cback;
-} tBTA_GATTC_API_REG;
-
 typedef struct {
   BT_HDR hdr;
   tBTA_GATTC_IF client_if;
@@ -186,7 +179,6 @@ typedef struct {
 
 typedef union {
   BT_HDR hdr;
-  tBTA_GATTC_API_REG api_reg;
   tBTA_GATTC_API_DEREG api_dereg;
   tBTA_GATTC_API_OPEN api_conn;
   tBTA_GATTC_API_CANCEL_OPEN api_cancel_conn;
@@ -362,7 +354,8 @@ extern bool bta_gattc_sm_execute(tBTA_GATTC_CLCB* p_clcb, uint16_t event,
 
 /* function processed outside SM */
 extern void bta_gattc_disable();
-extern void bta_gattc_register(tBTA_GATTC_DATA* p_data);
+extern void bta_gattc_register(tBT_UUID* p_app_uuid, tBTA_GATTC_CBACK* p_data,
+                               BtaAppRegisterCallback cb);
 extern void bta_gattc_start_if(tBTA_GATTC_DATA* p_data);
 extern void bta_gattc_process_api_open(tBTA_GATTC_DATA* p_msg);
 extern void bta_gattc_process_api_open_cancel(tBTA_GATTC_DATA* p_msg);

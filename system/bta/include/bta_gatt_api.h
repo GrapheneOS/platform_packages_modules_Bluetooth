@@ -106,7 +106,6 @@ typedef uint8_t tBTA_GATT_STATUS;
 #define BTA_GATT_INVALID_CONN_ID GATT_INVALID_CONN_ID
 
 /* Client callback function events */
-#define BTA_GATTC_REG_EVT 0          /* GATT client is registered. */
 #define BTA_GATTC_DEREG_EVT 1        /* GATT client deregistered event */
 #define BTA_GATTC_OPEN_EVT 2         /* GATTC open request status  event */
 #define BTA_GATTC_CLOSE_EVT 5        /* GATTC  close request status event */
@@ -558,21 +557,16 @@ typedef struct {
  ******************************************************************************/
 extern void BTA_GATTC_Disable(void);
 
-/*******************************************************************************
- *
- * Function         BTA_GATTC_AppRegister
- *
- * Description      This function is called to register application callbacks
- *                    with BTA GATTC module.
- *
- * Parameters       p_app_uuid - applicaiton UUID
- *                  p_client_cb - pointer to the application callback function.
- *
- * Returns          None
- *
- ******************************************************************************/
-extern void BTA_GATTC_AppRegister(tBT_UUID* p_app_uuid,
-                                  tBTA_GATTC_CBACK* p_client_cb);
+using BtaAppRegisterCallback =
+    base::Callback<void(uint8_t /* app_id */, uint8_t /* status */)>;
+
+/**
+ * This function is called to register application callbacks with BTA GATTC
+ *module.
+ * p_client_cb - pointer to the application callback function.
+ **/
+extern void BTA_GATTC_AppRegister(tBTA_GATTC_CBACK* p_client_cb,
+                                  BtaAppRegisterCallback cb);
 
 /*******************************************************************************
  *
