@@ -550,7 +550,7 @@ extern bool smp_calculate_f6(uint8_t* w, uint8_t* n1, uint8_t* n2, uint8_t* r,
 extern bool smp_calculate_h6(uint8_t* w, uint8_t* keyid, uint8_t* h2);
 #if (SMP_DEBUG == TRUE)
 extern void smp_debug_print_nbyte_little_endian(uint8_t* p,
-                                                const uint8_t* key_name,
+                                                const char* key_name,
                                                 uint8_t len);
 #endif
 
