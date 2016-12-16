@@ -21,7 +21,7 @@
  *  Interface to AVRCP mandatory commands
  *
  ******************************************************************************/
-#include <assert.h>
+#include <base/logging.h>
 #include <string.h>
 
 #include "avrc_api.h"
@@ -947,8 +947,8 @@ static uint16_t AVRC_HandleContinueRsp(uint8_t handle, uint8_t label,
  *
  *****************************************************************************/
 static BT_HDR* avrc_pass_msg(tAVRC_MSG_PASS* p_msg) {
-  assert(p_msg != NULL);
-  assert(AVRC_CMD_BUF_SIZE > (AVRC_MIN_CMD_LEN + p_msg->pass_len));
+  CHECK(p_msg != NULL);
+  CHECK(AVRC_CMD_BUF_SIZE > (AVRC_MIN_CMD_LEN + p_msg->pass_len));
 
   BT_HDR* p_cmd = (BT_HDR*)osi_malloc(AVRC_CMD_BUF_SIZE);
   p_cmd->offset = AVCT_MSG_OFFSET;

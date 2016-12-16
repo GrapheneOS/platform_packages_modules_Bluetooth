@@ -23,7 +23,7 @@
  *
  ******************************************************************************/
 
-#include <assert.h>
+#include <base/logging.h>
 #include <string.h>
 
 #include "bt_common.h"
@@ -298,7 +298,7 @@ static void bta_dm_pm_stop_timer_by_index(tBTA_PM_TIMER* p_timer,
   if (p_timer->srvc_id[timer_idx] == BTA_ID_MAX)
     return; /* The timer was not scheduled */
 
-  assert(p_timer->in_use && (p_timer->active > 0));
+  CHECK(p_timer->in_use && (p_timer->active > 0));
 
   alarm_cancel(p_timer->timer[timer_idx]);
   p_timer->srvc_id[timer_idx] = BTA_ID_MAX;

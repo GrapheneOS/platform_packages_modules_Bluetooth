@@ -17,10 +17,6 @@
 #include <iostream>
 #include <string>
 
-#ifdef BT_LIBCHROME_NDEBUG
-#define NDEBUG 1
-#endif
-
 #include <base/at_exit.h>
 #include <base/command_line.h>
 #include <base/logging.h>

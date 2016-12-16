@@ -18,7 +18,7 @@
 
 #define LOG_TAG "bt_hci_mct"
 
-#include <assert.h>
+#include <base/logging.h>
 #include <errno.h>
 #include <string.h>
 #include <unistd.h>
@@ -63,8 +63,8 @@ static eager_reader_t* acl_stream;
 
 static bool hal_init(const hci_hal_callbacks_t* upper_callbacks,
                      thread_t* upper_thread) {
-  assert(upper_callbacks != NULL);
-  assert(upper_thread != NULL);
+  CHECK(upper_callbacks != NULL);
+  CHECK(upper_thread != NULL);
 
   callbacks = upper_callbacks;
   thread = upper_thread;
@@ -192,8 +192,8 @@ static uint16_t transmit_data(serial_data_type_t type, uint8_t* data,
 // Internal functions
 
 static uint16_t transmit_data_on(int fd, uint8_t* data, uint16_t length) {
-  assert(data != NULL);
-  assert(length > 0);
+  CHECK(data != NULL);
+  CHECK(length > 0);
 
   uint16_t transmitted_length = 0;
   while (length > 0) {

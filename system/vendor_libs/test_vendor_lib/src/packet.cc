@@ -20,7 +20,7 @@
 
 #include <algorithm>
 
-#include "base/logging.h"
+#include <base/logging.h>
 #include "osi/include/log.h"
 
 using std::vector;

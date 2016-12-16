@@ -25,9 +25,9 @@
 
 #define LOG_TAG "bt_bta_dm"
 
-#include <assert.h>
 #include <base/bind.h>
 #include <base/callback.h>
+#include <base/logging.h>
 #include <string.h>
 
 #include "bt_common.h"
@@ -3391,8 +3391,8 @@ static void bta_dm_bond_cancel_complete_cback(tBTM_STATUS result) {
  *
  ******************************************************************************/
 static size_t find_utf8_char_boundary(const char* utf8str, size_t offset) {
-  assert(utf8str);
-  assert(offset > 0);
+  CHECK(utf8str);
+  CHECK(offset > 0);
 
   while (--offset) {
     uint8_t ch = (uint8_t)utf8str[offset];

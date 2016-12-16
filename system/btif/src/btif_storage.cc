@@ -33,7 +33,7 @@
 #include "btif_storage.h"
 
 #include <alloca.h>
-#include <assert.h>
+#include <base/logging.h>
 #include <ctype.h>
 #include <stdlib.h>
 #include <string.h>
@@ -466,8 +466,8 @@ static void btif_read_le_key(const uint8_t key_type, const size_t key_len,
                              bt_bdaddr_t bd_addr, const uint8_t addr_type,
                              const bool add_key, bool* device_added,
                              bool* key_found) {
-  assert(device_added);
-  assert(key_found);
+  CHECK(device_added);
+  CHECK(key_found);
 
   char buffer[100];
   memset(buffer, 0, sizeof(buffer));
@@ -515,8 +515,8 @@ static void btif_read_le_key(const uint8_t key_type, const size_t key_len,
  ******************************************************************************/
 size_t btif_split_uuids_string(const char* str, bt_uuid_t* p_uuid,
                                size_t max_uuids) {
-  assert(str);
-  assert(p_uuid);
+  CHECK(str);
+  CHECK(p_uuid);
 
   size_t num_uuids = 0;
   while (str && num_uuids < max_uuids) {

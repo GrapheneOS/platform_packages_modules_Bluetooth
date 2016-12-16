@@ -20,7 +20,7 @@
 
 #include "osi/include/allocation_tracker.h"
 
-#include <assert.h>
+#include <base/logging.h>
 #include <stdlib.h>
 #include <string.h>
 #include <mutex>
@@ -104,7 +104,7 @@ void* allocation_tracker_notify_alloc(uint8_t allocator_id, void* ptr,
     allocation_t* allocation;
     if (map_entry != allocations.end()) {
       allocation = map_entry->second;
-      assert(allocation->freed);  // Must have been freed before
+      CHECK(allocation->freed);  // Must have been freed before
     } else {
       allocation = (allocation_t*)calloc(1, sizeof(allocation_t));
       allocations[return_ptr] = allocation;
@@ -129,20 +129,20 @@ void* allocation_tracker_notify_free(UNUSED_ATTR uint8_t allocator_id,
   if (!enabled || !ptr) return ptr;
 
   auto map_entry = allocations.find(ptr);
-  assert(map_entry != allocations.end());
+  CHECK(map_entry != allocations.end());
   allocation_t* allocation = map_entry->second;
-  assert(allocation);          // Must have been tracked before
-  assert(!allocation->freed);  // Must not be a double free
-  assert(allocation->allocator_id ==
-         allocator_id);  // Must be from the same allocator
+  CHECK(allocation);          // Must have been tracked before
+  CHECK(!allocation->freed);  // Must not be a double free
+  CHECK(allocation->allocator_id ==
+        allocator_id);  // Must be from the same allocator
   allocation->freed = true;
 
   UNUSED_ATTR const char* beginning_canary = ((char*)ptr) - canary_size;
   UNUSED_ATTR const char* end_canary = ((char*)ptr) + allocation->size;
 
   for (size_t i = 0; i < canary_size; i++) {
-    assert(beginning_canary[i] == canary[i]);
-    assert(end_canary[i] == canary[i]);
+    CHECK(beginning_canary[i] == canary[i]);
+    CHECK(end_canary[i] == canary[i]);
   }
 
   // Free the hash map entry to avoid unlimited memory usage growth.

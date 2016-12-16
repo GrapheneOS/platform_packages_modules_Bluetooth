@@ -22,7 +22,7 @@
  *  Utility functions.
  *
  ******************************************************************************/
-#include <assert.h>
+#include <base/logging.h>
 #include <string.h>
 
 #include "bt_common.h"
@@ -122,7 +122,7 @@ tMCA_TC_TBL* mca_tc_tbl_calloc(tMCA_CCB* p_ccb) {
   }
 
   /* sanity check */
-  assert(i != MCA_NUM_TC_TBL);
+  CHECK(i != MCA_NUM_TC_TBL);
 
   /* initialize entry */
   p_tbl->peer_mtu = L2CAP_DEFAULT_MTU;
@@ -160,7 +160,7 @@ tMCA_TC_TBL* mca_tc_tbl_dalloc(tMCA_DCB* p_dcb) {
   }
 
   /* sanity check */
-  assert(i != MCA_NUM_TC_TBL);
+  CHECK(i != MCA_NUM_TC_TBL);
 
   /* initialize entry */
   p_tbl->peer_mtu = L2CAP_DEFAULT_MTU;

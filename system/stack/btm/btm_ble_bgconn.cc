@@ -22,7 +22,7 @@
  *
  ******************************************************************************/
 
-#include <assert.h>
+#include <base/logging.h>
 #include <string.h>
 #include <unordered_map>
 
@@ -63,7 +63,7 @@ static std::unordered_map<bt_bdaddr_t*, background_connection_t*,
     background_connections;
 
 static void background_connection_add(bt_bdaddr_t* address) {
-  assert(address);
+  CHECK(address);
 
   auto map_iter = background_connections.find(address);
   if (map_iter == background_connections.end()) {

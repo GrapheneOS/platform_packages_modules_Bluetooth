@@ -24,7 +24,7 @@
  *
  ******************************************************************************/
 
-#include <assert.h>
+#include <base/logging.h>
 
 #include "bt_target.h"
 

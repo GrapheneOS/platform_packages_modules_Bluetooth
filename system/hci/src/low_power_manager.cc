@@ -20,7 +20,7 @@
 
 #include "low_power_manager.h"
 
-#include <assert.h>
+#include <base/logging.h>
 #include <stdint.h>
 
 #include "osi/include/alarm.h"
@@ -79,7 +79,7 @@ static void wake_deassert();
 // Interface functions
 
 static void init(thread_t* post_thread) {
-  assert(post_thread != NULL);
+  CHECK(post_thread != NULL);
   thread = post_thread;
 
   vendor->set_callback(VENDOR_SET_LPM_MODE, vendor_enable_disable_callback);

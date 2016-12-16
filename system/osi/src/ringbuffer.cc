@@ -16,7 +16,7 @@
  *
  ******************************************************************************/
 
-#include <assert.h>
+#include <base/logging.h>
 #include <stdlib.h>
 
 #include "osi/include/allocator.h"
@@ -47,18 +47,18 @@ void ringbuffer_free(ringbuffer_t* rb) {
 }
 
 size_t ringbuffer_available(const ringbuffer_t* rb) {
-  assert(rb);
+  CHECK(rb);
   return rb->available;
 }
 
 size_t ringbuffer_size(const ringbuffer_t* rb) {
-  assert(rb);
+  CHECK(rb);
   return rb->total - rb->available;
 }
 
 size_t ringbuffer_insert(ringbuffer_t* rb, const uint8_t* p, size_t length) {
-  assert(rb);
-  assert(p);
+  CHECK(rb);
+  CHECK(p);
 
   if (length > ringbuffer_available(rb)) length = ringbuffer_available(rb);
 
@@ -72,7 +72,7 @@ size_t ringbuffer_insert(ringbuffer_t* rb, const uint8_t* p, size_t length) {
 }
 
 size_t ringbuffer_delete(ringbuffer_t* rb, size_t length) {
-  assert(rb);
+  CHECK(rb);
 
   if (length > ringbuffer_size(rb)) length = ringbuffer_size(rb);
 
@@ -85,10 +85,10 @@ size_t ringbuffer_delete(ringbuffer_t* rb, size_t length) {
 
 size_t ringbuffer_peek(const ringbuffer_t* rb, off_t offset, uint8_t* p,
                        size_t length) {
-  assert(rb);
-  assert(p);
-  assert(offset >= 0);
-  assert((size_t)offset <= ringbuffer_size(rb));
+  CHECK(rb);
+  CHECK(p);
+  CHECK(offset >= 0);
+  CHECK((size_t)offset <= ringbuffer_size(rb));
 
   uint8_t* b = ((rb->head - rb->base + offset) % rb->total) + rb->base;
   const size_t bytes_to_copy = (offset + length > ringbuffer_size(rb))
@@ -104,8 +104,8 @@ size_t ringbuffer_peek(const ringbuffer_t* rb, off_t offset, uint8_t* p,
 }
 
 size_t ringbuffer_pop(ringbuffer_t* rb, uint8_t* p, size_t length) {
-  assert(rb);
-  assert(p);
+  CHECK(rb);
+  CHECK(p);
 
   const size_t copied = ringbuffer_peek(rb, 0, p, length);
   rb->head += copied;

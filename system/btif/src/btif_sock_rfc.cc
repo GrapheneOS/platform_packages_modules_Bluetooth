@@ -18,7 +18,7 @@
 
 #define LOG_TAG "bt_btif_sock_rfcomm"
 
-#include <assert.h>
+#include <base/logging.h>
 #include <errno.h>
 #include <features.h>
 #include <pthread.h>
@@ -123,7 +123,7 @@ bt_status_t btsock_rfc_init(int poll_thread_handle, uid_set_t* set) {
     rfc_slots[i].fd = INVALID_FD;
     rfc_slots[i].app_fd = INVALID_FD;
     rfc_slots[i].incoming_queue = list_new(osi_free);
-    assert(rfc_slots[i].incoming_queue != NULL);
+    CHECK(rfc_slots[i].incoming_queue != NULL);
   }
 
   BTA_JvEnable(jv_dm_cback);
@@ -152,7 +152,7 @@ static rfc_slot_t* find_free_slot(void) {
 }
 
 static rfc_slot_t* find_rfc_slot_by_id(uint32_t id) {
-  assert(id != 0);
+  CHECK(id != 0);
 
   for (size_t i = 0; i < ARRAY_SIZE(rfc_slots); ++i)
     if (rfc_slots[i].id == id) return &rfc_slots[i];
@@ -258,7 +258,7 @@ static rfc_slot_t* create_srv_accept_rfc_slot(rfc_slot_t* srv_rs,
   srv_rs->rfc_handle = new_listen_handle;
   srv_rs->rfc_port_handle = BTA_JvRfcommGetPortHdl(new_listen_handle);
 
-  assert(accept_rs->rfc_port_handle != srv_rs->rfc_port_handle);
+  CHECK(accept_rs->rfc_port_handle != srv_rs->rfc_port_handle);
 
   // now swap the slot id
   uint32_t new_listen_id = accept_rs->id;
@@ -271,10 +271,10 @@ static rfc_slot_t* create_srv_accept_rfc_slot(rfc_slot_t* srv_rs,
 bt_status_t btsock_rfc_listen(const char* service_name,
                               const uint8_t* service_uuid, int channel,
                               int* sock_fd, int flags, int app_uid) {
-  assert(sock_fd != NULL);
-  assert((service_uuid != NULL) ||
-         (channel >= 1 && channel <= MAX_RFC_CHANNEL) ||
-         ((flags & BTSOCK_FLAG_NO_SDP) != 0));
+  CHECK(sock_fd != NULL);
+  CHECK((service_uuid != NULL) ||
+        (channel >= 1 && channel <= MAX_RFC_CHANNEL) ||
+        ((flags & BTSOCK_FLAG_NO_SDP) != 0));
 
   *sock_fd = INVALID_FD;
 
@@ -331,8 +331,8 @@ bt_status_t btsock_rfc_listen(const char* service_name,
 bt_status_t btsock_rfc_connect(const bt_bdaddr_t* bd_addr,
                                const uint8_t* service_uuid, int channel,
                                int* sock_fd, int flags, int app_uid) {
-  assert(sock_fd != NULL);
-  assert(service_uuid != NULL || (channel >= 1 && channel <= MAX_RFC_CHANNEL));
+  CHECK(sock_fd != NULL);
+  CHECK(service_uuid != NULL || (channel >= 1 && channel <= MAX_RFC_CHANNEL));
 
   *sock_fd = INVALID_FD;
 
