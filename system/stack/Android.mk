@@ -186,6 +186,40 @@ LOCAL_CPPFLAGS += $(bluetooth_CPPFLAGS)
 
 include $(BUILD_NATIVE_TEST)
 
+# Bluetooth smp unit tests for target
+# ========================================================
+include $(CLEAR_VARS)
+
+LOCAL_CPP_EXTENSION := .cc
+
+LOCAL_C_INCLUDES := \
+                   $(LOCAL_PATH)/include \
+                   $(LOCAL_PATH)/btm \
+                   $(LOCAL_PATH)/l2cap \
+                   $(LOCAL_PATH)/smp \
+                   $(LOCAL_PATH)/../btcore/include \
+                   $(LOCAL_PATH)/../hci/include \
+                   $(LOCAL_PATH)/../include \
+                   $(LOCAL_PATH)/../utils/include \
+                   $(LOCAL_PATH)/../ \
+                   $(bluetooth_C_INCLUDES)
+
+LOCAL_SRC_FILES := smp/smp_keys.cc \
+                    smp/aes.cc \
+                    smp/smp_api.cc \
+                    smp/smp_main.cc \
+                    smp/smp_utils.cc \
+                    test/stack_smp_test.cc
+LOCAL_SHARED_LIBRARIES := libcutils libchrome
+LOCAL_STATIC_LIBRARIES := liblog libgtest libgmock libosi
+LOCAL_MODULE_TAGS := tests
+LOCAL_MODULE := net_test_stack_smp
+
+LOCAL_CFLAGS += $(bluetooth_CFLAGS)
+LOCAL_CONLYFLAGS += $(bluetooth_CONLYFLAGS)
+LOCAL_CPPFLAGS += $(bluetooth_CPPFLAGS)
+
+include $(BUILD_NATIVE_TEST)
 
 # Bluetooth stack multi-advertising unit tests for target
 # ========================================================
