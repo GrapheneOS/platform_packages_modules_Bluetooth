@@ -35,6 +35,7 @@
 #include <hardware/bt_gatt.h>
 
 #include "bta_api.h"
+#include "bta_closure_api.h"
 #include "bta_gatt_api.h"
 #include "btif_config.h"
 #include "btif_dm.h"
@@ -47,8 +48,7 @@
 using base::Bind;
 using base::Owned;
 using std::vector;
-using RegisterCallback =
-    base::Callback<void(uint8_t /* scanner_id */, uint8_t /* status */)>;
+using RegisterCallback = BleScannerInterface::RegisterCallback;
 
 extern bt_status_t do_in_jni_thread(const base::Closure& task);
 extern const btgatt_callbacks_t* bt_gatt_callbacks;
@@ -363,55 +363,6 @@ void bta_track_adv_event_cb(tBTA_DM_BLE_TRACK_ADV_DATA* p_track_adv_data) {
   SCAN_CBACK_IN_JNI(track_adv_event_cb, Owned(btif_scan_track_cb));
 }
 
-bt_status_t btif_gattc_register_scanner(bt_uuid_t* uuid) {
-  CHECK_BTGATT_INIT();
-
-  tBT_UUID bt_uuid;
-  btif_to_bta_uuid(&bt_uuid, uuid);
-
-  return do_in_jni_thread(Bind(
-      [](tBT_UUID bt_uuid) {
-        BTA_GATTC_AppRegister(
-            bta_gatts_cback,
-            base::Bind(
-                [](tBT_UUID bt_uuid, uint8_t client_id, uint8_t status) {
-                  do_in_jni_thread(Bind(
-                      [](tBT_UUID bt_uuid, uint8_t client_id, uint8_t status) {
-                        bt_uuid_t app_uuid;
-                        bta_to_btif_uuid(&app_uuid, &bt_uuid);
-
-                        HAL_CBACK(bt_gatt_callbacks,
-                                  scanner->register_scanner_cb, status,
-                                  client_id, &app_uuid);
-                      },
-                      bt_uuid, client_id, status));
-                },
-                bt_uuid));
-      },
-      bt_uuid));
-}
-
-void btif_gattc_unregister_scanner_impl(int client_if) {
-  BTA_GATTC_AppDeregister(client_if);
-}
-
-bt_status_t btif_gattc_unregister_scanner(int scanner_id) {
-  CHECK_BTGATT_INIT();
-  return do_in_jni_thread(
-      Bind(&btif_gattc_unregister_scanner_impl, scanner_id));
-}
-
-bt_status_t btif_gattc_scan(bool start) {
-  CHECK_BTGATT_INIT();
-  if (start) {
-    btif_gattc_init_dev_cb();
-    return do_in_jni_thread(Bind(&BTA_DmBleObserve, true, 0,
-                                 (tBTA_DM_SEARCH_CBACK*)bta_scan_results_cb));
-  }
-
-  return do_in_jni_thread(Bind(&BTA_DmBleObserve, false, 0, nullptr));
-}
-
 void btif_gattc_scan_filter_param_setup_impl(
     int client_if, uint8_t action, int filt_index,
     tBTA_DM_BLE_PF_FILT_PARAMS* adv_filt_param) {
@@ -421,29 +372,6 @@ void btif_gattc_scan_filter_param_setup_impl(
 
   BTA_DmBleScanFilterSetup(action, filt_index, adv_filt_param, NULL,
                            bta_scan_filt_param_setup_cb, client_if);
-}
-
-bt_status_t btif_gattc_scan_filter_param_setup(
-    btgatt_filt_param_setup_t filt_param) {
-  CHECK_BTGATT_INIT();
-  BTIF_TRACE_DEBUG("%s", __func__);
-
-  tBTA_DM_BLE_PF_FILT_PARAMS* adv_filt_param = new tBTA_DM_BLE_PF_FILT_PARAMS;
-  adv_filt_param->feat_seln = filt_param.feat_seln;
-  adv_filt_param->list_logic_type = filt_param.list_logic_type;
-  adv_filt_param->filt_logic_type = filt_param.filt_logic_type;
-  adv_filt_param->rssi_high_thres = filt_param.rssi_high_thres;
-  adv_filt_param->rssi_low_thres = filt_param.rssi_low_thres;
-  adv_filt_param->dely_mode = filt_param.dely_mode;
-  adv_filt_param->found_timeout = filt_param.found_timeout;
-  adv_filt_param->lost_timeout = filt_param.lost_timeout;
-  adv_filt_param->found_timeout_cnt = filt_param.found_timeout_cnt;
-  adv_filt_param->num_of_tracking_entries = filt_param.num_of_tracking_entries;
-
-  return do_in_jni_thread(
-      Bind(base::IgnoreResult(&btif_gattc_scan_filter_param_setup_impl),
-           filt_param.client_if, filt_param.action, filt_param.filt_index,
-           base::Owned(adv_filt_param)));
 }
 
 void btif_gattc_scan_filter_add_srvc_uuid(tBT_UUID uuid,
@@ -505,164 +433,220 @@ void btif_gattc_scan_filter_add_data_pattern(vector<uint8_t> pattern,
                               &bta_scan_filt_cfg_cb, client_if);
 }
 
-bt_status_t btif_gattc_scan_filter_add_remove(
-    int client_if, int action, int filt_type, int filt_index, int company_id,
-    int company_id_mask, const bt_uuid_t* p_uuid, const bt_uuid_t* p_uuid_mask,
-    const bt_bdaddr_t* bd_addr, char addr_type, vector<uint8_t> data,
-    vector<uint8_t> mask) {
-  CHECK_BTGATT_INIT();
-  BTIF_TRACE_DEBUG("%s, %d, %d", __func__, action, filt_type);
+class BleScannerInterfaceImpl : public BleScannerInterface {
+  ~BleScannerInterfaceImpl(){};
 
-  /* If data is passed, both mask and data have to be the same length */
-  if (data.size() != mask.size() && data.size() != 0 && mask.size() != 0)
-    return BT_STATUS_PARM_INVALID;
+  void RegisterScanner(RegisterCallback cb) override {
+    do_in_bta_thread(
+        FROM_HERE,
+        Bind(
+            [](RegisterCallback cb) {
+              BTA_GATTC_AppRegister(
+                  bta_gatts_cback,
+                  base::Bind(
+                      [](RegisterCallback cb, uint8_t client_id,
+                         uint8_t status) {
+                        do_in_jni_thread(base::Bind(cb, client_id, status));
+                      },
+                      std::move(cb)));
+            },
+            std::move(cb)));
+  }
 
-  switch (filt_type) {
-    case BTA_DM_BLE_PF_ADDR_FILTER: {
-      tBTA_DM_BLE_PF_COND_PARAM* cond = new tBTA_DM_BLE_PF_COND_PARAM;
-      memset(cond, 0, sizeof(tBTA_DM_BLE_PF_COND_PARAM));
+  void Unregister(int scanner_id) override {
+    do_in_bta_thread(FROM_HERE, Bind(&BTA_GATTC_AppDeregister, scanner_id));
+  }
 
-      bdcpy(cond->target_addr.bda, bd_addr->address);
-      cond->target_addr.type = addr_type;
-      return do_in_jni_thread(Bind(&BTA_DmBleCfgFilterCondition, action,
-                                   filt_type, filt_index, base::Owned(cond),
-                                   &bta_scan_filt_cfg_cb, client_if));
+  void Scan(bool start) override {
+    if (!start) {
+      do_in_bta_thread(FROM_HERE, Bind(&BTA_DmBleObserve, false, 0, nullptr));
+      return;
     }
 
-    case BTA_DM_BLE_PF_SRVC_DATA:
-      return do_in_jni_thread(Bind(&BTA_DmBleCfgFilterCondition, action,
-                                   filt_type, filt_index, nullptr,
-                                   &bta_scan_filt_cfg_cb, client_if));
+    btif_gattc_init_dev_cb();
+    do_in_bta_thread(FROM_HERE,
+                     Bind(&BTA_DmBleObserve, true, 0,
+                          (tBTA_DM_SEARCH_CBACK*)bta_scan_results_cb));
+  }
 
-    case BTA_DM_BLE_PF_SRVC_UUID: {
-      tBT_UUID bt_uuid;
-      btif_to_bta_uuid(&bt_uuid, p_uuid);
+  bt_status_t scan_filter_param_setup(
+      btgatt_filt_param_setup_t filt_param) override {
+    BTIF_TRACE_DEBUG("%s", __func__);
 
-      if (p_uuid_mask != NULL) {
-        tBTA_DM_BLE_PF_COND_MASK* uuid_mask = new tBTA_DM_BLE_PF_COND_MASK;
-        btif_to_bta_uuid_mask(uuid_mask, p_uuid_mask, p_uuid);
+    tBTA_DM_BLE_PF_FILT_PARAMS* adv_filt_param = new tBTA_DM_BLE_PF_FILT_PARAMS;
+    adv_filt_param->feat_seln = filt_param.feat_seln;
+    adv_filt_param->list_logic_type = filt_param.list_logic_type;
+    adv_filt_param->filt_logic_type = filt_param.filt_logic_type;
+    adv_filt_param->rssi_high_thres = filt_param.rssi_high_thres;
+    adv_filt_param->rssi_low_thres = filt_param.rssi_low_thres;
+    adv_filt_param->dely_mode = filt_param.dely_mode;
+    adv_filt_param->found_timeout = filt_param.found_timeout;
+    adv_filt_param->lost_timeout = filt_param.lost_timeout;
+    adv_filt_param->found_timeout_cnt = filt_param.found_timeout_cnt;
+    adv_filt_param->num_of_tracking_entries =
+        filt_param.num_of_tracking_entries;
+
+    return do_in_jni_thread(
+        Bind(base::IgnoreResult(&btif_gattc_scan_filter_param_setup_impl),
+             filt_param.client_if, filt_param.action, filt_param.filt_index,
+             base::Owned(adv_filt_param)));
+  }
+
+  bt_status_t scan_filter_add_remove(
+      int client_if, int action, int filt_type, int filt_index, int company_id,
+      int company_id_mask, const bt_uuid_t* p_uuid,
+      const bt_uuid_t* p_uuid_mask, const bt_bdaddr_t* bd_addr, char addr_type,
+      vector<uint8_t> data, vector<uint8_t> mask) override {
+    CHECK_BTGATT_INIT();
+    BTIF_TRACE_DEBUG("%s, %d, %d", __func__, action, filt_type);
+
+    /* If data is passed, both mask and data have to be the same length */
+    if (data.size() != mask.size() && data.size() != 0 && mask.size() != 0)
+      return BT_STATUS_PARM_INVALID;
+
+    switch (filt_type) {
+      case BTA_DM_BLE_PF_ADDR_FILTER: {
+        tBTA_DM_BLE_PF_COND_PARAM* cond = new tBTA_DM_BLE_PF_COND_PARAM;
+        memset(cond, 0, sizeof(tBTA_DM_BLE_PF_COND_PARAM));
+
+        bdcpy(cond->target_addr.bda, bd_addr->address);
+        cond->target_addr.type = addr_type;
+        return do_in_jni_thread(Bind(&BTA_DmBleCfgFilterCondition, action,
+                                     filt_type, filt_index, base::Owned(cond),
+                                     &bta_scan_filt_cfg_cb, client_if));
+      }
+
+      case BTA_DM_BLE_PF_SRVC_DATA:
+        return do_in_jni_thread(Bind(&BTA_DmBleCfgFilterCondition, action,
+                                     filt_type, filt_index, nullptr,
+                                     &bta_scan_filt_cfg_cb, client_if));
+
+      case BTA_DM_BLE_PF_SRVC_UUID: {
+        tBT_UUID bt_uuid;
+        btif_to_bta_uuid(&bt_uuid, p_uuid);
+
+        if (p_uuid_mask != NULL) {
+          tBTA_DM_BLE_PF_COND_MASK* uuid_mask = new tBTA_DM_BLE_PF_COND_MASK;
+          btif_to_bta_uuid_mask(uuid_mask, p_uuid_mask, p_uuid);
+          return do_in_jni_thread(Bind(&btif_gattc_scan_filter_add_srvc_uuid,
+                                       bt_uuid, base::Owned(uuid_mask), action,
+                                       filt_type, filt_index, client_if));
+        }
+
         return do_in_jni_thread(Bind(&btif_gattc_scan_filter_add_srvc_uuid,
-                                     bt_uuid, base::Owned(uuid_mask), action,
+                                     bt_uuid, nullptr, action, filt_type,
+                                     filt_index, client_if));
+      }
+
+      case BTA_DM_BLE_PF_SRVC_SOL_UUID: {
+        tBTA_DM_BLE_PF_COND_PARAM* cond = new tBTA_DM_BLE_PF_COND_PARAM;
+        memset(cond, 0, sizeof(tBTA_DM_BLE_PF_COND_PARAM));
+
+        cond->solicitate_uuid.p_target_addr = NULL;
+        cond->solicitate_uuid.cond_logic = BTA_DM_BLE_PF_LOGIC_AND;
+        btif_to_bta_uuid(&cond->solicitate_uuid.uuid, p_uuid);
+
+        return do_in_jni_thread(Bind(&BTA_DmBleCfgFilterCondition, action,
+                                     filt_type, filt_index, base::Owned(cond),
+                                     &bta_scan_filt_cfg_cb, client_if));
+      }
+
+      case BTA_DM_BLE_PF_LOCAL_NAME: {
+        return do_in_jni_thread(Bind(&btif_gattc_scan_filter_add_local_name,
+                                     std::move(data), action, filt_type,
+                                     filt_index, client_if));
+      }
+
+      case BTA_DM_BLE_PF_MANU_DATA: {
+        return do_in_jni_thread(Bind(&btif_gattc_scan_filter_add_manu_data,
+                                     company_id, company_id_mask,
+                                     std::move(data), std::move(mask), action,
                                      filt_type, filt_index, client_if));
       }
 
-      return do_in_jni_thread(Bind(&btif_gattc_scan_filter_add_srvc_uuid,
-                                   bt_uuid, nullptr, action, filt_type,
-                                   filt_index, client_if));
+      case BTA_DM_BLE_PF_SRVC_DATA_PATTERN: {
+        return do_in_jni_thread(Bind(&btif_gattc_scan_filter_add_data_pattern,
+                                     std::move(data), std::move(mask), action,
+                                     filt_type, filt_index, client_if));
+      }
+
+      default:
+        LOG_ERROR(LOG_TAG, "%s: Unknown filter type (%d)!", __func__, action);
+        return (bt_status_t)BTA_GATT_OK;
     }
-
-    case BTA_DM_BLE_PF_SRVC_SOL_UUID: {
-      tBTA_DM_BLE_PF_COND_PARAM* cond = new tBTA_DM_BLE_PF_COND_PARAM;
-      memset(cond, 0, sizeof(tBTA_DM_BLE_PF_COND_PARAM));
-
-      cond->solicitate_uuid.p_target_addr = NULL;
-      cond->solicitate_uuid.cond_logic = BTA_DM_BLE_PF_LOGIC_AND;
-      btif_to_bta_uuid(&cond->solicitate_uuid.uuid, p_uuid);
-
-      return do_in_jni_thread(Bind(&BTA_DmBleCfgFilterCondition, action,
-                                   filt_type, filt_index, base::Owned(cond),
-                                   &bta_scan_filt_cfg_cb, client_if));
-    }
-
-    case BTA_DM_BLE_PF_LOCAL_NAME: {
-      return do_in_jni_thread(Bind(&btif_gattc_scan_filter_add_local_name,
-                                   std::move(data), action, filt_type,
-                                   filt_index, client_if));
-    }
-
-    case BTA_DM_BLE_PF_MANU_DATA: {
-      return do_in_jni_thread(Bind(&btif_gattc_scan_filter_add_manu_data,
-                                   company_id, company_id_mask, std::move(data),
-                                   std::move(mask), action, filt_type,
-                                   filt_index, client_if));
-    }
-
-    case BTA_DM_BLE_PF_SRVC_DATA_PATTERN: {
-      return do_in_jni_thread(Bind(&btif_gattc_scan_filter_add_data_pattern,
-                                   std::move(data), std::move(mask), action,
-                                   filt_type, filt_index, client_if));
-    }
-
-    default:
-      LOG_ERROR(LOG_TAG, "%s: Unknown filter type (%d)!", __func__, action);
-      return (bt_status_t)BTA_GATT_OK;
   }
-}
 
-bt_status_t btif_gattc_scan_filter_clear(int client_if, int filter_index) {
-  CHECK_BTGATT_INIT();
-  BTIF_TRACE_DEBUG("%s: filter_index: %d", __func__, filter_index);
+  bt_status_t scan_filter_clear(int client_if, int filter_index) override {
+    CHECK_BTGATT_INIT();
+    BTIF_TRACE_DEBUG("%s: filter_index: %d", __func__, filter_index);
 
-  return do_in_jni_thread(Bind(&BTA_DmBleCfgFilterCondition,
-                               BTA_DM_BLE_SCAN_COND_CLEAR,
-                               BTA_DM_BLE_PF_TYPE_ALL, filter_index, nullptr,
-                               &bta_scan_filt_cfg_cb, client_if));
-}
+    return do_in_jni_thread(Bind(&BTA_DmBleCfgFilterCondition,
+                                 BTA_DM_BLE_SCAN_COND_CLEAR,
+                                 BTA_DM_BLE_PF_TYPE_ALL, filter_index, nullptr,
+                                 &bta_scan_filt_cfg_cb, client_if));
+  }
 
-bt_status_t btif_gattc_scan_filter_enable(int client_if, bool enable) {
-  CHECK_BTGATT_INIT();
-  BTIF_TRACE_DEBUG("%s: enable: %d", __func__, enable);
+  bt_status_t scan_filter_enable(int client_if, bool enable) override {
+    CHECK_BTGATT_INIT();
+    BTIF_TRACE_DEBUG("%s: enable: %d", __func__, enable);
 
-  uint8_t action = enable ? 1 : 0;
+    uint8_t action = enable ? 1 : 0;
 
-  return do_in_jni_thread(Bind(&BTA_DmEnableScanFilter, action,
-                               &bta_scan_filt_status_cb, client_if));
-}
+    return do_in_jni_thread(Bind(&BTA_DmEnableScanFilter, action,
+                                 &bta_scan_filt_status_cb, client_if));
+  }
 
-bt_status_t btif_gattc_set_scan_parameters(int client_if, int scan_interval,
-                                           int scan_window) {
-  CHECK_BTGATT_INIT();
-  return do_in_jni_thread(
-      Bind(BTA_DmSetBleScanParams, client_if, scan_interval, scan_window,
-           BTM_BLE_SCAN_MODE_ACTI,
-           (tBLE_SCAN_PARAM_SETUP_CBACK)bta_scan_param_setup_cb));
-}
+  bt_status_t set_scan_parameters(int client_if, int scan_interval,
+                                  int scan_window) override {
+    CHECK_BTGATT_INIT();
+    return do_in_jni_thread(
+        Bind(BTA_DmSetBleScanParams, client_if, scan_interval, scan_window,
+             BTM_BLE_SCAN_MODE_ACTI,
+             (tBLE_SCAN_PARAM_SETUP_CBACK)bta_scan_param_setup_cb));
+  }
 
-bt_status_t btif_gattc_cfg_storage(int client_if, int batch_scan_full_max,
-                                   int batch_scan_trunc_max,
-                                   int batch_scan_notify_threshold) {
-  CHECK_BTGATT_INIT();
-  return do_in_jni_thread(
-      Bind(BTA_DmBleSetStorageParams, batch_scan_full_max, batch_scan_trunc_max,
-           batch_scan_notify_threshold,
-           (tBTA_BLE_SCAN_SETUP_CBACK*)bta_batch_scan_setup_cb,
-           (tBTA_BLE_SCAN_THRESHOLD_CBACK*)bta_batch_scan_threshold_cb,
-           (tBTA_BLE_SCAN_REP_CBACK*)bta_batch_scan_reports_cb,
-           (tBTA_DM_BLE_REF_VALUE)client_if));
-}
+  bt_status_t batchscan_cfg_storage(int client_if, int batch_scan_full_max,
+                                    int batch_scan_trunc_max,
+                                    int batch_scan_notify_threshold) override {
+    CHECK_BTGATT_INIT();
+    return do_in_jni_thread(
+        Bind(BTA_DmBleSetStorageParams, batch_scan_full_max,
+             batch_scan_trunc_max, batch_scan_notify_threshold,
+             (tBTA_BLE_SCAN_SETUP_CBACK*)bta_batch_scan_setup_cb,
+             (tBTA_BLE_SCAN_THRESHOLD_CBACK*)bta_batch_scan_threshold_cb,
+             (tBTA_BLE_SCAN_REP_CBACK*)bta_batch_scan_reports_cb,
+             (tBTA_DM_BLE_REF_VALUE)client_if));
+  }
 
-bt_status_t btif_gattc_enb_batch_scan(int client_if, int scan_mode,
-                                      int scan_interval, int scan_window,
-                                      int addr_type, int discard_rule) {
-  CHECK_BTGATT_INIT();
-  return do_in_jni_thread(Bind(BTA_DmBleEnableBatchScan, scan_mode,
-                               scan_interval, scan_window, discard_rule,
-                               addr_type, client_if));
-}
+  bt_status_t batchscan_enb_batch_scan(int client_if, int scan_mode,
+                                       int scan_interval, int scan_window,
+                                       int addr_type,
+                                       int discard_rule) override {
+    CHECK_BTGATT_INIT();
+    return do_in_jni_thread(Bind(BTA_DmBleEnableBatchScan, scan_mode,
+                                 scan_interval, scan_window, discard_rule,
+                                 addr_type, client_if));
+  }
 
-bt_status_t btif_gattc_dis_batch_scan(int client_if) {
-  CHECK_BTGATT_INIT();
-  return do_in_jni_thread(Bind(BTA_DmBleDisableBatchScan, client_if));
-}
+  bt_status_t batchscan_dis_batch_scan(int client_if) override {
+    CHECK_BTGATT_INIT();
+    return do_in_jni_thread(Bind(BTA_DmBleDisableBatchScan, client_if));
+  }
 
-bt_status_t btif_gattc_read_batch_scan_reports(int client_if, int scan_mode) {
-  CHECK_BTGATT_INIT();
-  return do_in_jni_thread(Bind(BTA_DmBleReadScanReports, scan_mode, client_if));
-}
+  bt_status_t batchscan_read_reports(int client_if, int scan_mode) override {
+    CHECK_BTGATT_INIT();
+    return do_in_jni_thread(
+        Bind(BTA_DmBleReadScanReports, scan_mode, client_if));
+  }
+};
+
+BleScannerInterface* btLeScannerInstance = nullptr;
 
 }  // namespace
 
-const btgatt_scanner_interface_t btgattScannerInterface = {
-    btif_gattc_register_scanner,
-    btif_gattc_unregister_scanner,
-    btif_gattc_scan,
-    btif_gattc_scan_filter_param_setup,
-    btif_gattc_scan_filter_add_remove,
-    btif_gattc_scan_filter_clear,
-    btif_gattc_scan_filter_enable,
-    btif_gattc_set_scan_parameters,
-    btif_gattc_cfg_storage,
-    btif_gattc_enb_batch_scan,
-    btif_gattc_dis_batch_scan,
-    btif_gattc_read_batch_scan_reports,
-};
+BleScannerInterface* get_ble_scanner_instance() {
+  if (btLeScannerInstance == nullptr)
+    btLeScannerInstance = new BleScannerInterfaceImpl();
+
+  return btLeScannerInstance;
+}
