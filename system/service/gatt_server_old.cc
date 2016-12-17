@@ -360,11 +360,6 @@ void RegisterClientCallback(int status, int client_if, bt_uuid_t* app_uuid) {
       0 /* no timeout */, base::Bind(&DoNothing));
 }
 
-void RegisterScannerCallback(int status, int scanner_id, bt_uuid_t* app_uuid) {
-  LOG_INFO(LOG_TAG, "%s: status:%d scanner_id:%d uuid[0]:%u", __func__, status,
-           scanner_id, app_uuid->uu[0]);
-}
-
 void ServiceStoppedCallback(int status, int server_if, int srvc_handle) {
   LOG_INFO(LOG_TAG, "%s: status:%d server_if:%d srvc_handle:%d", __func__,
            status, server_if, srvc_handle);
@@ -445,7 +440,6 @@ const btgatt_client_callbacks_t gatt_client_callbacks = {
 };
 
 const btgatt_scanner_callbacks_t gatt_scanner_callbacks = {
-    RegisterScannerCallback,
     ScanResultCallback,
     nullptr, /* batchscan_cfg_storage_cb; */
     nullptr, /* batchscan_enb_disable_cb; */
@@ -691,20 +685,12 @@ bool Server::Stop() {
 }
 
 bool Server::ScanEnable() {
-  bt_status_t btstat = internal_->gatt->scanner->scan(true);
-  if (btstat) {
-    LOG_ERROR(LOG_TAG, "Enable scan failed: %d", btstat);
-    return false;
-  }
+  internal_->gatt->scanner->Scan(true);
   return true;
 }
 
 bool Server::ScanDisable() {
-  bt_status_t btstat = internal_->gatt->scanner->scan(false);
-  if (btstat) {
-    LOG_ERROR(LOG_TAG, "Disable scan failed: %d", btstat);
-    return false;
-  }
+  internal_->gatt->scanner->Scan(false);
   return true;
 }
 

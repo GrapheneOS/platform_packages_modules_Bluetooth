@@ -30,24 +30,49 @@ using ::testing::Return;
 using ::testing::Pointee;
 using ::testing::DoAll;
 using ::testing::Invoke;
+using ::testing::SaveArg;
 
 namespace bluetooth {
 namespace {
 
-class MockGattHandler
-    : public hal::FakeBluetoothGattInterface::TestScannerHandler {
+class MockScannerHandler : public BleScannerInterface {
  public:
-  MockGattHandler() {
-    ON_CALL(*this, Scan(false)).WillByDefault(Return(BT_STATUS_SUCCESS));
-  }
-  ~MockGattHandler() override = default;
+  MockScannerHandler() {}
+  ~MockScannerHandler() override = default;
 
-  MOCK_METHOD1(RegisterScanner, bt_status_t(bt_uuid_t*));
-  MOCK_METHOD1(UnregisterScanner, bt_status_t(int));
-  MOCK_METHOD1(Scan, bt_status_t(bool));
+  MOCK_METHOD1(RegisterScanner, void(BleScannerInterface::RegisterCallback));
+  MOCK_METHOD1(Unregister, void(int));
+  MOCK_METHOD1(Scan, void(bool));
 
- private:
-  DISALLOW_COPY_AND_ASSIGN(MockGattHandler);
+  MOCK_METHOD1(scan_filter_param_setup,
+               bt_status_t(btgatt_filt_param_setup_t filt_param));
+  MOCK_METHOD2(scan_filter_clear, bt_status_t(int client_if, int filt_index));
+  MOCK_METHOD2(scan_filter_enable, bt_status_t(int client_if, bool enable));
+
+  MOCK_METHOD3(set_scan_parameters,
+               bt_status_t(int client_if, int scan_interval, int scan_window));
+
+  MOCK_METHOD4(batchscan_cfg_storage,
+               bt_status_t(int client_if, int batch_scan_full_max,
+                           int batch_scan_trunc_max,
+                           int batch_scan_notify_threshold));
+
+  MOCK_METHOD6(batchscan_enb_batch_scan,
+               bt_status_t(int client_if, int scan_mode, int scan_interval,
+                           int scan_window, int addr_type, int discard_rule));
+
+  MOCK_METHOD1(batchscan_dis_batch_scan, bt_status_t(int client_if));
+
+  MOCK_METHOD2(batchscan_read_reports,
+               bt_status_t(int client_if, int scan_mode));
+
+  bt_status_t scan_filter_add_remove(
+      int client_if, int action, int filt_type, int filt_index, int company_id,
+      int company_id_mask, const bt_uuid_t* p_uuid,
+      const bt_uuid_t* p_uuid_mask, const bt_bdaddr_t* bd_addr, char addr_type,
+      std::vector<uint8_t> data, std::vector<uint8_t> p_mask) {
+    return BT_STATUS_SUCCESS;
+  };
 };
 
 class TestDelegate : public LowEnergyScanner::Delegate {
@@ -79,11 +104,9 @@ class LowEnergyScannerTest : public ::testing::Test {
 
   void SetUp() override {
     // Only set |mock_handler_| if a test hasn't set it.
-    if (!mock_handler_) mock_handler_.reset(new MockGattHandler());
+    if (!mock_handler_) mock_handler_.reset(new MockScannerHandler());
     fake_hal_gatt_iface_ = new hal::FakeBluetoothGattInterface(
-        nullptr,
-        std::static_pointer_cast<
-            hal::FakeBluetoothGattInterface::TestScannerHandler>(mock_handler_),
+        nullptr, std::static_pointer_cast<BleScannerInterface>(mock_handler_),
         nullptr, nullptr);
     hal::BluetoothGattInterface::InitializeForTesting(fake_hal_gatt_iface_);
     ble_factory_.reset(new LowEnergyScannerFactory(mock_adapter_));
@@ -97,7 +120,7 @@ class LowEnergyScannerTest : public ::testing::Test {
  protected:
   hal::FakeBluetoothGattInterface* fake_hal_gatt_iface_;
   testing::MockAdapter mock_adapter_;
-  std::shared_ptr<MockGattHandler> mock_handler_;
+  std::shared_ptr<MockScannerHandler> mock_handler_;
   std::unique_ptr<LowEnergyScannerFactory> ble_factory_;
 
  private:
@@ -119,9 +142,7 @@ class LowEnergyScannerPostRegisterTest : public LowEnergyScannerTest {
   }
 
   void TearDown() override {
-    EXPECT_CALL(*mock_handler_, UnregisterScanner(_))
-        .Times(1)
-        .WillOnce(Return(BT_STATUS_SUCCESS));
+    EXPECT_CALL(*mock_handler_, Unregister(_)).Times(1).WillOnce(Return());
     le_scanner_.reset();
     LowEnergyScannerTest::TearDown();
   }
@@ -140,15 +161,14 @@ class LowEnergyScannerPostRegisterTest : public LowEnergyScannerTest {
           static_cast<LowEnergyScanner*>(in_scanner.release())));
     };
 
+    BleScannerInterface::RegisterCallback reg_scanner_cb;
     EXPECT_CALL(*mock_handler_, RegisterScanner(_))
         .Times(1)
-        .WillOnce(Return(BT_STATUS_SUCCESS));
+        .WillOnce(SaveArg<0>(&reg_scanner_cb));
 
     ble_factory_->RegisterInstance(uuid, api_callback);
 
-    bt_uuid_t hal_uuid = uuid.GetBlueDroid();
-    fake_hal_gatt_iface_->NotifyRegisterScannerCallback(0, next_scanner_id_++,
-                                                        hal_uuid);
+    reg_scanner_cb.Run(next_scanner_id_++, BT_STATUS_SUCCESS);
     ::testing::Mock::VerifyAndClearExpectations(mock_handler_.get());
   }
 
@@ -162,10 +182,10 @@ class LowEnergyScannerPostRegisterTest : public LowEnergyScannerTest {
 };
 
 TEST_F(LowEnergyScannerTest, RegisterInstance) {
+  BleScannerInterface::RegisterCallback reg_scanner_cb1;
   EXPECT_CALL(*mock_handler_, RegisterScanner(_))
-      .Times(2)
-      .WillOnce(Return(BT_STATUS_FAIL))
-      .WillOnce(Return(BT_STATUS_SUCCESS));
+      .Times(1)
+      .WillOnce(SaveArg<0>(&reg_scanner_cb1));
 
   // These will be asynchronously populated with a result when the callback
   // executes.
@@ -185,10 +205,6 @@ TEST_F(LowEnergyScannerTest, RegisterInstance) {
 
   UUID uuid0 = UUID::GetRandom();
 
-  // HAL returns failure.
-  EXPECT_FALSE(ble_factory_->RegisterInstance(uuid0, callback));
-  EXPECT_EQ(0, callback_count);
-
   // HAL returns success.
   EXPECT_TRUE(ble_factory_->RegisterInstance(uuid0, callback));
   EXPECT_EQ(0, callback_count);
@@ -201,22 +217,15 @@ TEST_F(LowEnergyScannerTest, RegisterInstance) {
 
   // Call with a different UUID while one is pending.
   UUID uuid1 = UUID::GetRandom();
+  BleScannerInterface::RegisterCallback reg_scanner_cb2;
   EXPECT_CALL(*mock_handler_, RegisterScanner(_))
       .Times(1)
-      .WillOnce(Return(BT_STATUS_SUCCESS));
+      .WillOnce(SaveArg<0>(&reg_scanner_cb2));
   EXPECT_TRUE(ble_factory_->RegisterInstance(uuid1, callback));
-
-  // Trigger callback with an unknown UUID. This should get ignored.
-  UUID uuid2 = UUID::GetRandom();
-  bt_uuid_t hal_uuid = uuid2.GetBlueDroid();
-  fake_hal_gatt_iface_->NotifyRegisterScannerCallback(0, 0, hal_uuid);
-  EXPECT_EQ(0, callback_count);
 
   // |uuid0| succeeds.
   int scanner_if0 = 2;  // Pick something that's not 0.
-  hal_uuid = uuid0.GetBlueDroid();
-  fake_hal_gatt_iface_->NotifyRegisterScannerCallback(BT_STATUS_SUCCESS,
-                                                      scanner_if0, hal_uuid);
+  reg_scanner_cb1.Run(scanner_if0, BT_STATUS_SUCCESS);
 
   EXPECT_EQ(1, callback_count);
   ASSERT_TRUE(scanner.get() !=
@@ -227,17 +236,15 @@ TEST_F(LowEnergyScannerTest, RegisterInstance) {
   EXPECT_EQ(uuid0, cb_uuid);
 
   // The scanner should unregister itself when deleted.
-  EXPECT_CALL(*mock_handler_, UnregisterScanner(scanner_if0))
+  EXPECT_CALL(*mock_handler_, Unregister(scanner_if0))
       .Times(1)
-      .WillOnce(Return(BT_STATUS_SUCCESS));
+      .WillOnce(Return());
   scanner.reset();
   ::testing::Mock::VerifyAndClearExpectations(mock_handler_.get());
 
   // |uuid1| fails.
   int scanner_if1 = 3;
-  hal_uuid = uuid1.GetBlueDroid();
-  fake_hal_gatt_iface_->NotifyRegisterScannerCallback(BT_STATUS_FAIL,
-                                                      scanner_if1, hal_uuid);
+  reg_scanner_cb2.Run(scanner_if1, BT_STATUS_FAIL);
 
   EXPECT_EQ(2, callback_count);
   ASSERT_TRUE(scanner.get() ==
@@ -261,15 +268,11 @@ TEST_F(LowEnergyScannerPostRegisterTest, ScanSettings) {
   // implemented
 
   // These should succeed and result in a HAL call
-  EXPECT_CALL(*mock_handler_, Scan(true))
-      .Times(1)
-      .WillOnce(Return(BT_STATUS_SUCCESS));
+  EXPECT_CALL(*mock_handler_, Scan(true)).Times(1).WillOnce(Return());
   EXPECT_TRUE(le_scanner_->StartScan(settings, filters));
 
   // These should succeed and result in a HAL call
-  EXPECT_CALL(*mock_handler_, Scan(false))
-      .Times(1)
-      .WillOnce(Return(BT_STATUS_SUCCESS));
+  EXPECT_CALL(*mock_handler_, Scan(false)).Times(1).WillOnce(Return());
   EXPECT_TRUE(le_scanner_->StopScan());
 
   ::testing::Mock::VerifyAndClearExpectations(mock_handler_.get());
@@ -303,8 +306,8 @@ TEST_F(LowEnergyScannerPostRegisterTest, ScanRecord) {
   EXPECT_CALL(mock_adapter_, IsEnabled()).Times(1).WillOnce(Return(true));
   EXPECT_CALL(*mock_handler_, Scan(_))
       .Times(2)
-      .WillOnce(Return(BT_STATUS_SUCCESS))
-      .WillOnce(Return(BT_STATUS_SUCCESS));
+      .WillOnce(Return())
+      .WillOnce(Return());
   ScanSettings settings;
   std::vector<ScanFilter> filters;
   ASSERT_TRUE(le_scanner_->StartScan(settings, filters));
