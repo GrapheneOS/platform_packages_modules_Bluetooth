@@ -98,8 +98,7 @@ static const tSMP_CMD_LEN_VALID smp_cmd_len_is_valid[] = {
     smp_command_has_valid_fixed_length, /* 0x0B: security request */
     smp_command_has_valid_fixed_length, /* 0x0C: pairing public key */
     smp_command_has_valid_fixed_length, /* 0x0D: pairing dhkey check */
-    smp_command_has_valid_fixed_length, /* 0x0E: pairing keypress notification
-                                           */
+    smp_command_has_valid_fixed_length, /* 0x0E: pairing keypress notification*/
     smp_command_has_valid_fixed_length  /* 0x0F: pairing commitment */
 };
 
@@ -954,18 +953,24 @@ void smp_proc_pairing_cmpl(tSMP_CB* p_cb) {
 bool smp_command_has_invalid_parameters(tSMP_CB* p_cb) {
   uint8_t cmd_code = p_cb->rcvd_cmd_code;
 
-  SMP_TRACE_DEBUG("%s for cmd code 0x%02x", __func__, cmd_code);
-
   if ((cmd_code > (SMP_OPCODE_MAX + 1 /* for SMP_OPCODE_PAIR_COMMITM */)) ||
       (cmd_code < SMP_OPCODE_MIN)) {
-    SMP_TRACE_WARNING("Somehow received command with the RESERVED code 0x%02x",
-                      cmd_code);
+    SMP_TRACE_WARNING("%s: Received command with RESERVED code 0x%02x",
+                      __func__, cmd_code);
     return true;
   }
 
-  if (!(*smp_cmd_len_is_valid[cmd_code])(p_cb)) return true;
+  if (!(*smp_cmd_len_is_valid[cmd_code])(p_cb)) {
+    SMP_TRACE_WARNING("%s: Command length not valid for cmd_code 0x%02x",
+                      __func__, cmd_code);
+    return true;
+  }
 
-  if (!(*smp_cmd_param_ranges_are_valid[cmd_code])(p_cb)) return true;
+  if (!(*smp_cmd_param_ranges_are_valid[cmd_code])(p_cb)) {
+    SMP_TRACE_WARNING("%s: Parameter ranges not valid code 0x%02x", __func__,
+                      cmd_code);
+    return true;
+  }
 
   return false;
 }
