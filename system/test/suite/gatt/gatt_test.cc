@@ -78,7 +78,7 @@ void GattTest::TearDown() {
   BluetoothTest::TearDown();
 }
 
-const btgatt_scanner_interface_t* GattTest::gatt_scanner_interface() {
+const BleScannerInterface* GattTest::gatt_scanner_interface() {
   return gatt_scanner_interface_;
 }
 

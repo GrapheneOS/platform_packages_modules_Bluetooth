@@ -52,10 +52,6 @@ class BluetoothGattInterface {
     // All of the events below correspond to callbacks defined in
     // "btgatt_scanner_callbacks_t" in the HAL API definitions.
 
-    virtual void RegisterScannerCallback(BluetoothGattInterface* gatt_iface,
-                                         int status, int scanner_id,
-                                         const bt_uuid_t& app_uuid);
-
     virtual void ScanResultCallback(
         BluetoothGattInterface* gatt_iface, const bt_bdaddr_t& bda, int rssi,
         std::vector<uint8_t> adv_data);  // NOLINT(pass-by-value)
@@ -226,7 +222,7 @@ class BluetoothGattInterface {
   //
   // Upper layers can make ble_scanner_interface_t API calls through this
   // structure.
-  virtual const btgatt_scanner_interface_t* GetScannerHALInterface() const = 0;
+  virtual BleScannerInterface* GetScannerHALInterface() const = 0;
 
   // The HAL module pointer that represents the standard BT-GATT client
   // interface. This is implemented in and provided by the shared Bluetooth

@@ -88,17 +88,6 @@ void RegisterClientCallback(int status, int client_if, bt_uuid_t* app_uuid) {
       RegisterClientCallback(g_interface, status, client_if, *app_uuid));
 }
 
-void RegisterScannerCallback(int status, int scanner_id, bt_uuid_t* app_uuid) {
-  shared_lock<shared_mutex_impl> lock(g_instance_lock);
-  VLOG(2) << __func__ << " - status: " << status
-          << " scanner_id: " << scanner_id;
-  VERIFY_INTERFACE_OR_RETURN();
-  CHECK(app_uuid);
-
-  FOR_EACH_SCANNER_OBSERVER(
-      RegisterScannerCallback(g_interface, status, scanner_id, *app_uuid));
-}
-
 void ScanResultCallback(
     bt_bdaddr_t* bda, int rssi,
     std::vector<uint8_t> adv_data) {  // NOLINT(pass-by-value)
@@ -387,7 +376,6 @@ void MtuChangedCallback(int conn_id, int mtu) {
 // GATT client-role and GAP events.
 
 const btgatt_scanner_callbacks_t gatt_scanner_callbacks = {
-    RegisterScannerCallback,
     ScanResultCallback,
     nullptr,  // batchscan_cfg_storage_cb
     nullptr,  // batchscan_enb_disable_cb
@@ -481,7 +469,7 @@ class BluetoothGattInterfaceImpl : public BluetoothGattInterface {
     return hal_iface_->advertiser;
   }
 
-  const btgatt_scanner_interface_t* GetScannerHALInterface() const override {
+  BleScannerInterface* GetScannerHALInterface() const override {
     return hal_iface_->scanner;
   }
 
@@ -573,12 +561,6 @@ GetServerObservers() {
 
 // Default observer implementations. These are provided so that the methods
 // themselves are optional.
-
-void BluetoothGattInterface::ScannerObserver::RegisterScannerCallback(
-    BluetoothGattInterface* /* gatt_iface */, int /* status */,
-    int /* scanner_id */, const bt_uuid_t& /* app_uuid */) {
-  // Do nothing.
-}
 
 void BluetoothGattInterface::ScannerObserver::ScanResultCallback(
     BluetoothGattInterface* /* gatt_iface */, const bt_bdaddr_t& /* bda */,
@@ -807,11 +789,7 @@ bt_status_t BluetoothGattInterface::StartScan(int client_id) {
   // If this is the first scan client, then make a call into the stack. We
   // only do this when the reference count changes to or from 0.
   if (scan_client_set_.empty()) {
-    bt_status_t status = GetScannerHALInterface()->scan(true);
-    if (status != BT_STATUS_SUCCESS) {
-      LOG(ERROR) << "HAL call to scan failed";
-      return status;
-    }
+    GetScannerHALInterface()->Scan(true);
   }
 
   scan_client_set_.insert(client_id);
@@ -831,11 +809,7 @@ bt_status_t BluetoothGattInterface::StopScan(int client_id) {
   }
 
   if (scan_client_set_.size() == 1) {
-    bt_status_t status = GetScannerHALInterface()->scan(false);
-    if (status != BT_STATUS_SUCCESS) {
-      LOG(ERROR) << "HAL call to stop scan failed";
-      return status;
-    }
+    GetScannerHALInterface()->Scan(false);
   }
 
   scan_client_set_.erase(iter);

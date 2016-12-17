@@ -32,7 +32,7 @@ class GattTest : public BluetoothTest,
   virtual ~GattTest() = default;
 
   // Gets the gatt_scanner_interface
-  const btgatt_scanner_interface_t* gatt_scanner_interface();
+  const BleScannerInterface* gatt_scanner_interface();
 
   // Gets the gatt_client_interface
   const btgatt_client_interface_t* gatt_client_interface();
@@ -95,7 +95,7 @@ class GattTest : public BluetoothTest,
  private:
   // The btgatt_scanner_interface_t that all the tests use to interact with the
   // HAL
-  const btgatt_scanner_interface_t* gatt_scanner_interface_;
+  const BleScannerInterface* gatt_scanner_interface_;
 
   // The gatt_client_interface that all the tests use to interact with the HAL
   const btgatt_client_interface_t* gatt_client_interface_;
