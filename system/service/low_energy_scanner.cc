@@ -81,9 +81,8 @@ LowEnergyScanner::~LowEnergyScanner() {
   // Unregister as observer so we no longer receive any callbacks.
   hal::BluetoothGattInterface::Get()->RemoveScannerObserver(this);
 
-  hal::BluetoothGattInterface::Get()
-      ->GetScannerHALInterface()
-      ->unregister_scanner(scanner_id_);
+  hal::BluetoothGattInterface::Get()->GetScannerHALInterface()->Unregister(
+      scanner_id_);
 
   // Stop any scans started by this client.
   if (scan_started_.load()) StopScan();
@@ -182,20 +181,21 @@ bool LowEnergyScannerFactory::RegisterInstance(
     return false;
   }
 
-  const btgatt_scanner_interface_t* hal_iface =
+  BleScannerInterface* hal_iface =
       hal::BluetoothGattInterface::Get()->GetScannerHALInterface();
-  bt_uuid_t app_uuid = uuid.GetBlueDroid();
 
-  if (hal_iface->register_scanner(&app_uuid) != BT_STATUS_SUCCESS) return false;
+  hal_iface->RegisterScanner(
+      base::Bind(&LowEnergyScannerFactory::RegisterScannerCallback,
+                 base::Unretained(this), callback, uuid));
 
-  pending_calls_[uuid] = callback;
+  pending_calls_.insert(uuid);
 
   return true;
 }
 
 void LowEnergyScannerFactory::RegisterScannerCallback(
-    hal::BluetoothGattInterface* gatt_iface, int status, int scanner_id,
-    const bt_uuid_t& app_uuid) {
+    const RegisterCallback& callback, const UUID& app_uuid, uint8_t scanner_id,
+    uint8_t status) {
   UUID uuid(app_uuid);
 
   VLOG(1) << __func__ << " - UUID: " << uuid.ToString();
@@ -213,13 +213,13 @@ void LowEnergyScannerFactory::RegisterScannerCallback(
   if (status == BT_STATUS_SUCCESS) {
     scanner.reset(new LowEnergyScanner(adapter_, uuid, scanner_id));
 
-    gatt_iface->AddScannerObserver(scanner.get());
+    hal::BluetoothGattInterface::Get()->AddScannerObserver(scanner.get());
 
     result = BLE_STATUS_SUCCESS;
   }
 
   // Notify the result via the result callback.
-  iter->second(result, uuid, std::move(scanner));
+  callback(result, app_uuid, std::move(scanner));
 
   pending_calls_.erase(iter);
 }
