@@ -48,9 +48,6 @@ static void smp_generate_ltk_cont(tSMP_CB* p_cb, tSMP_INT_DATA* p_data);
 static void smp_generate_y(tSMP_CB* p_cb, tSMP_INT_DATA* p);
 static void smp_generate_rand_vector(tSMP_CB* p_cb, tSMP_INT_DATA* p);
 static void smp_process_stk(tSMP_CB* p_cb, tSMP_ENC* p);
-static void smp_calculate_comfirm_cont(tSMP_CB* p_cb, tSMP_ENC* p);
-static void smp_process_confirm(tSMP_CB* p_cb, tSMP_ENC* p);
-static void smp_process_compare(tSMP_CB* p_cb, tSMP_ENC* p);
 static void smp_process_ediv(tSMP_CB* p_cb, tSMP_ENC* p);
 static bool smp_calculate_legacy_short_term_key(tSMP_CB* p_cb,
                                                 tSMP_ENC* output);
@@ -69,7 +66,7 @@ void smp_debug_print_nbyte_little_endian(uint8_t* p, const char* key_name,
   int row_count;
   uint8_t p_buf[512];
 
-  SMP_TRACE_WARNING("%s(LSB ~ MSB):", key_name);
+  SMP_TRACE_DEBUG("%s(LSB ~ MSB):", key_name);
   memset(p_buf, 0, sizeof(p_buf));
   row_count = len % col_count ? len / col_count + 1 : len / col_count;
 
@@ -79,7 +76,7 @@ void smp_debug_print_nbyte_little_endian(uint8_t* p, const char* key_name,
          column++, ind++) {
       x += snprintf((char*)&p_buf[x], sizeof(p_buf) - x, "%02x ", p[ind]);
     }
-    SMP_TRACE_WARNING("  [%03d]: %s", row * col_count, p_buf);
+    SMP_TRACE_DEBUG("  [%03d]: %s", row * col_count, p_buf);
   }
 #endif
 }
@@ -89,7 +86,7 @@ void smp_debug_print_nbyte_big_endian(uint8_t* p, const char* key_name,
 #if (SMP_DEBUG == TRUE)
   uint8_t p_buf[512];
 
-  SMP_TRACE_WARNING("%s(MSB ~ LSB):", key_name);
+  SMP_TRACE_DEBUG("%s(MSB ~ LSB):", key_name);
   memset(p_buf, 0, sizeof(p_buf));
 
   int ind = 0;
@@ -102,7 +99,7 @@ void smp_debug_print_nbyte_big_endian(uint8_t* p, const char* key_name,
       x += snprintf((char*)&p_buf[len - x - 1], sizeof(p_buf) - (len - x - 1),
                     "%02x ", p[ind]);
     }
-    SMP_TRACE_WARNING("[%03d]: %s", row * ncols, p_buf);
+    SMP_TRACE_DEBUG("[%03d]: %s", row * ncols, p_buf);
   }
 #endif
 }
@@ -398,7 +395,7 @@ void smp_generate_csrk(tSMP_CB* p_cb, UNUSED_ATTR tSMP_INT_DATA* p_data) {
 }
 
 /*******************************************************************************
- * Function         smp_concatenate_peer
+ * Function         smp_concatenate_peer - LSB first
  *                  add pairing command sent from local device into p1.
  ******************************************************************************/
 void smp_concatenate_local(tSMP_CB* p_cb, uint8_t** p_data, uint8_t op_code) {
@@ -417,7 +414,7 @@ void smp_concatenate_local(tSMP_CB* p_cb, uint8_t** p_data, uint8_t op_code) {
 }
 
 /*******************************************************************************
- * Function         smp_concatenate_peer
+ * Function         smp_concatenate_peer - LSB first
  *                  add pairing command received from peer device into p1.
  ******************************************************************************/
 void smp_concatenate_peer(tSMP_CB* p_cb, uint8_t** p_data, uint8_t op_code) {
@@ -440,49 +437,38 @@ void smp_concatenate_peer(tSMP_CB* p_cb, uint8_t** p_data, uint8_t op_code) {
  * Function         smp_gen_p1_4_confirm
  *
  * Description      Generate Confirm/Compare Step1:
- *                  p1 = pres || preq || rat' || iat'
+ *                  p1 = (MSB) pres || preq || rat' || iat' (LSB)
+ *                  Fill in values LSB first thus
+ *                  p1 = iat' || rat' || preq || pres
  *
  * Returns          void
  *
  ******************************************************************************/
-void smp_gen_p1_4_confirm(tSMP_CB* p_cb, BT_OCTET16 p1) {
+void smp_gen_p1_4_confirm(tSMP_CB* p_cb, tBLE_ADDR_TYPE remote_bd_addr_type,
+                          BT_OCTET16 p1) {
+  SMP_TRACE_DEBUG("%s", __func__);
   uint8_t* p = (uint8_t*)p1;
-  tBLE_ADDR_TYPE addr_type = 0;
-  BD_ADDR remote_bda;
-
-  SMP_TRACE_DEBUG("smp_gen_p1_4_confirm");
-
-  if (!BTM_ReadRemoteConnectionAddr(p_cb->pairing_bda, remote_bda,
-                                    &addr_type)) {
-    SMP_TRACE_ERROR("can not generate confirm for unknown device");
-    return;
-  }
-
-  BTM_ReadConnectionAddr(p_cb->pairing_bda, p_cb->local_bda, &p_cb->addr_type);
-
   if (p_cb->role == HCI_ROLE_MASTER) {
-    /* LSB : rat': initiator's(local) address type */
+    /* iat': initiator's (local) address type */
     UINT8_TO_STREAM(p, p_cb->addr_type);
-    /* LSB : iat': responder's address type */
-    UINT8_TO_STREAM(p, addr_type);
-    /* concatinate preq */
+    /* rat': responder's (remote) address type */
+    UINT8_TO_STREAM(p, remote_bd_addr_type);
+    /* preq : Pairing Request (local) command */
     smp_concatenate_local(p_cb, &p, SMP_OPCODE_PAIRING_REQ);
-    /* concatinate pres */
+    /* pres : Pairing Response (remote) command */
     smp_concatenate_peer(p_cb, &p, SMP_OPCODE_PAIRING_RSP);
   } else {
-    /* LSB : iat': initiator's address type */
-    UINT8_TO_STREAM(p, addr_type);
-    /* LSB : rat': responder's(local) address type */
+    /* iat': initiator's (remote) address type */
+    UINT8_TO_STREAM(p, remote_bd_addr_type);
+    /* rat': responder's (local) address type */
     UINT8_TO_STREAM(p, p_cb->addr_type);
-    /* concatinate preq */
+    /* preq : Pairing Request (remote) command */
     smp_concatenate_peer(p_cb, &p, SMP_OPCODE_PAIRING_REQ);
-    /* concatinate pres */
+    /* pres : Pairing Response (local) command */
     smp_concatenate_local(p_cb, &p, SMP_OPCODE_PAIRING_RSP);
   }
-#if (SMP_DEBUG == TRUE)
-  SMP_TRACE_DEBUG("p1 = pres || preq || rat' || iat'");
-  smp_debug_print_nbyte_little_endian((uint8_t*)p1, "P1", 16);
-#endif
+  smp_debug_print_nbyte_little_endian((uint8_t*)p1,
+                                      "p1 = iat' || rat' || preq || pres", 16);
 }
 
 /*******************************************************************************
@@ -490,127 +476,90 @@ void smp_gen_p1_4_confirm(tSMP_CB* p_cb, BT_OCTET16 p1) {
  * Function         smp_gen_p2_4_confirm
  *
  * Description      Generate Confirm/Compare Step2:
- *                  p2 = padding || ia || ra
+ *                  p2 = (MSB) padding || ia || ra (LSB)
+ *                  Fill values LSB first and thus:
+ *                  p2 = ra || ia || padding
  *
  * Returns          void
  *
  ******************************************************************************/
-void smp_gen_p2_4_confirm(tSMP_CB* p_cb, BT_OCTET16 p2) {
+void smp_gen_p2_4_confirm(tSMP_CB* p_cb, BD_ADDR remote_bda, BT_OCTET16 p2) {
+  SMP_TRACE_DEBUG("%s", __func__);
   uint8_t* p = (uint8_t*)p2;
-  BD_ADDR remote_bda;
-  tBLE_ADDR_TYPE addr_type = 0;
-
-  if (!BTM_ReadRemoteConnectionAddr(p_cb->pairing_bda, remote_bda,
-                                    &addr_type)) {
-    SMP_TRACE_ERROR("can not generate confirm p2 for unknown device");
-    return;
-  }
-
-  SMP_TRACE_DEBUG("smp_gen_p2_4_confirm");
-
+  /* 32-bit Padding */
   memset(p, 0, sizeof(BT_OCTET16));
-
   if (p_cb->role == HCI_ROLE_MASTER) {
-    /* LSB ra */
+    /* ra : Responder's (remote) address */
     BDADDR_TO_STREAM(p, remote_bda);
-    /* ia */
+    /* ia : Initiator's (local) address */
     BDADDR_TO_STREAM(p, p_cb->local_bda);
   } else {
-    /* LSB ra */
+    /* ra : Responder's (local) address */
     BDADDR_TO_STREAM(p, p_cb->local_bda);
-    /* ia */
+    /* ia : Initiator's (remote) address */
     BDADDR_TO_STREAM(p, remote_bda);
   }
-#if (SMP_DEBUG == TRUE)
-  SMP_TRACE_DEBUG("p2 = padding || ia || ra");
-  smp_debug_print_nbyte_little_endian(p2, "p2", 16);
-#endif
+  smp_debug_print_nbyte_little_endian(p2, "p2 = ra || ia || padding", 16);
 }
 
 /*******************************************************************************
  *
  * Function         smp_calculate_comfirm
  *
- * Description      This function is called to calculate Confirm value.
+ * Description      This function (c1) is called to calculate Confirm value.
  *
- * Returns          void
+ * Returns          tSMP_STATUS status of confirmation calculation
  *
  ******************************************************************************/
-void smp_calculate_comfirm(tSMP_CB* p_cb, BT_OCTET16 rand,
-                           UNUSED_ATTR BD_ADDR bda) {
-  BT_OCTET16 p1;
-  tSMP_ENC output;
-  tSMP_STATUS status = SMP_PAIR_FAIL_UNKNOWN;
-
-  SMP_TRACE_DEBUG("smp_calculate_comfirm ");
+tSMP_STATUS smp_calculate_comfirm(tSMP_CB* p_cb, BT_OCTET16 rand,
+                                  tSMP_ENC* output) {
+  SMP_TRACE_DEBUG("%s", __func__);
+  BD_ADDR remote_bda;
+  tBLE_ADDR_TYPE remote_bd_addr_type = 0;
+  /* get remote connection specific bluetooth address */
+  if (!BTM_ReadRemoteConnectionAddr(p_cb->pairing_bda, remote_bda,
+                                    &remote_bd_addr_type)) {
+    SMP_TRACE_ERROR("%s: cannot obtain remote device address", __func__);
+    return SMP_PAIR_FAIL_UNKNOWN;
+  }
+  /* get local connection specific bluetooth address */
+  BTM_ReadConnectionAddr(p_cb->pairing_bda, p_cb->local_bda, &p_cb->addr_type);
   /* generate p1 = pres || preq || rat' || iat' */
-  smp_gen_p1_4_confirm(p_cb, p1);
-
-  /* p1 = rand XOR p1 */
+  BT_OCTET16 p1;
+  smp_gen_p1_4_confirm(p_cb, remote_bd_addr_type, p1);
+  /* p1' = rand XOR p1 */
   smp_xor_128(p1, rand);
-
-  smp_debug_print_nbyte_little_endian((uint8_t*)p1, "P1' = r XOR p1", 16);
-
-  /* calculate e(k, r XOR p1), where k = TK */
-  if (!SMP_Encrypt(p_cb->tk, BT_OCTET16_LEN, p1, BT_OCTET16_LEN, &output)) {
-    SMP_TRACE_ERROR("smp_generate_csrk failed");
-    smp_sm_event(p_cb, SMP_AUTH_CMPL_EVT, &status);
-  } else {
-    smp_calculate_comfirm_cont(p_cb, &output);
+  smp_debug_print_nbyte_little_endian((uint8_t*)p1, "p1' = p1 XOR r", 16);
+  /* calculate e1 = e(k, p1'), where k = TK */
+  smp_debug_print_nbyte_little_endian(p_cb->tk, "TK", 16);
+  memset(output, 0, sizeof(tSMP_ENC));
+  if (!SMP_Encrypt(p_cb->tk, BT_OCTET16_LEN, p1, BT_OCTET16_LEN, output)) {
+    SMP_TRACE_ERROR("%s: failed encryption at e1 = e(k, p1')");
+    return SMP_PAIR_FAIL_UNKNOWN;
   }
-}
-
-/*******************************************************************************
- *
- * Function         smp_calculate_comfirm_cont
- *
- * Description      This function is called when SConfirm/MConfirm is generated
- *                  proceed to send the Confirm request/response to peer device.
- *
- * Returns          void
- *
- ******************************************************************************/
-static void smp_calculate_comfirm_cont(tSMP_CB* p_cb, tSMP_ENC* p) {
+  smp_debug_print_nbyte_little_endian(output->param_buf, "e1 = e(k, p1')", 16);
+  /* generate p2 = padding || ia || ra */
   BT_OCTET16 p2;
-  tSMP_ENC output;
-  tSMP_STATUS status = SMP_PAIR_FAIL_UNKNOWN;
-
-  SMP_TRACE_DEBUG("smp_calculate_comfirm_cont ");
-#if (SMP_DEBUG == TRUE)
-  SMP_TRACE_DEBUG("Confirm step 1 p1' = e(k, r XOR p1)  Generated");
-  smp_debug_print_nbyte_little_endian(p->param_buf, "C1", 16);
-#endif
-
-  smp_gen_p2_4_confirm(p_cb, p2);
-
-  /* calculate p2 = (p1' XOR p2) */
-  smp_xor_128(p2, p->param_buf);
-  smp_debug_print_nbyte_little_endian((uint8_t*)p2, "p2' = C1 xor p2", 16);
-
-  /* calculate: Confirm = E(k, p1' XOR p2) */
-  if (!SMP_Encrypt(p_cb->tk, BT_OCTET16_LEN, p2, BT_OCTET16_LEN, &output)) {
-    SMP_TRACE_ERROR("smp_calculate_comfirm_cont failed");
-    smp_sm_event(p_cb, SMP_AUTH_CMPL_EVT, &status);
-  } else {
-    switch (p_cb->rand_enc_proc_state) {
-      case SMP_GEN_CONFIRM:
-        smp_process_confirm(p_cb, &output);
-        break;
-
-      case SMP_GEN_COMPARE:
-        smp_process_compare(p_cb, &output);
-        break;
-    }
+  smp_gen_p2_4_confirm(p_cb, remote_bda, p2);
+  /* calculate p2' = (p2 XOR e1) */
+  smp_xor_128(p2, output->param_buf);
+  smp_debug_print_nbyte_little_endian((uint8_t*)p2, "p2' = p2 XOR e1", 16);
+  /* calculate: c1 = e(k, p2') */
+  memset(output, 0, sizeof(tSMP_ENC));
+  if (!SMP_Encrypt(p_cb->tk, BT_OCTET16_LEN, p2, BT_OCTET16_LEN, output)) {
+    SMP_TRACE_ERROR("%s: failed encryption at e1 = e(k, p2')");
+    return SMP_PAIR_FAIL_UNKNOWN;
   }
+  return SMP_SUCCESS;
 }
 
 /*******************************************************************************
  *
  * Function         smp_generate_confirm
  *
- * Description      This function is called when a 48 bits random number is
- *                  generated as SRand or MRand, continue to calculate Sconfirm
- *                  or MConfirm.
+ * Description      This function is called when random number (MRand or SRand)
+ *                  is generated by the controller and the stack needs to
+ *                  calculate c1 value (MConfirm or SConfirm) for the first time
  *
  * Returns          void
  *
@@ -619,18 +568,30 @@ static void smp_generate_confirm(tSMP_CB* p_cb,
                                  UNUSED_ATTR tSMP_INT_DATA* p_data) {
   SMP_TRACE_DEBUG("%s", __func__);
   p_cb->rand_enc_proc_state = SMP_GEN_CONFIRM;
-  smp_debug_print_nbyte_little_endian((uint8_t*)p_cb->rand, "local rand", 16);
-  smp_calculate_comfirm(p_cb, p_cb->rand, p_cb->pairing_bda);
+  smp_debug_print_nbyte_little_endian((uint8_t*)p_cb->rand, "local_rand", 16);
+  tSMP_ENC output;
+  tSMP_STATUS status = smp_calculate_comfirm(p_cb, p_cb->rand, &output);
+  if (status != SMP_SUCCESS) {
+    smp_sm_event(p_cb, SMP_AUTH_CMPL_EVT, &status);
+    return;
+  }
+  tSMP_KEY key;
+  memcpy(p_cb->confirm, output.param_buf, BT_OCTET16_LEN);
+  smp_debug_print_nbyte_little_endian(p_cb->confirm, "Local Confirm generated",
+                                      16);
+  key.key_type = SMP_KEY_TYPE_CFM;
+  key.p_data = output.param_buf;
+  smp_sm_event(p_cb, SMP_KEY_READY_EVT, &key);
 }
 
 /*******************************************************************************
  *
  * Function         smp_generate_compare
  *
- * Description      This function is called to generate SConfirm for Slave
- *                  device, or MSlave for Master device. This function can be
- *                  also used for generating Compare number for confirm value
- *                  check.
+ * Description      This function is called when random number (MRand or SRand)
+ *                  is received from remote device and the c1 value (MConfirm
+ *                  or SConfirm) needs to be generated to authenticate remote
+ *                  device.
  *
  * Returns          void
  *
@@ -639,56 +600,17 @@ void smp_generate_compare(tSMP_CB* p_cb, UNUSED_ATTR tSMP_INT_DATA* p_data) {
   SMP_TRACE_DEBUG("smp_generate_compare ");
   p_cb->rand_enc_proc_state = SMP_GEN_COMPARE;
   smp_debug_print_nbyte_little_endian((uint8_t*)p_cb->rrand, "peer rand", 16);
-  smp_calculate_comfirm(p_cb, p_cb->rrand, p_cb->local_bda);
-}
-
-/*******************************************************************************
- *
- * Function         smp_process_confirm
- *
- * Description      This function is called when SConfirm/MConfirm is generated
- *                  proceed to send the Confirm request/response to peer device.
- *
- * Returns          void
- *
- ******************************************************************************/
-static void smp_process_confirm(tSMP_CB* p_cb, tSMP_ENC* p) {
+  tSMP_ENC output;
+  tSMP_STATUS status = smp_calculate_comfirm(p_cb, p_cb->rrand, &output);
+  if (status != SMP_SUCCESS) {
+    smp_sm_event(p_cb, SMP_AUTH_CMPL_EVT, &status);
+    return;
+  }
   tSMP_KEY key;
-
-  SMP_TRACE_DEBUG("%s", __func__);
-  memcpy(p_cb->confirm, p->param_buf, BT_OCTET16_LEN);
-
-#if (SMP_DEBUG == TRUE)
-  SMP_TRACE_DEBUG("Confirm  Generated");
-  smp_debug_print_nbyte_little_endian((uint8_t*)p_cb->confirm, "Confirm", 16);
-#endif
-
-  key.key_type = SMP_KEY_TYPE_CFM;
-  key.p_data = p->param_buf;
-  smp_sm_event(p_cb, SMP_KEY_READY_EVT, &key);
-}
-
-/*******************************************************************************
- *
- * Function         smp_process_compare
- *
- * Description      This function is called when Compare is generated using the
- *                  RRand and local BDA, TK information.
- *
- * Returns          void
- *
- ******************************************************************************/
-static void smp_process_compare(tSMP_CB* p_cb, tSMP_ENC* p) {
-  tSMP_KEY key;
-
-  SMP_TRACE_DEBUG("smp_process_compare ");
-#if (SMP_DEBUG == TRUE)
-  SMP_TRACE_DEBUG("Compare Generated");
-  smp_debug_print_nbyte_little_endian(p->param_buf, "Compare", 16);
-#endif
+  smp_debug_print_nbyte_little_endian(output.param_buf,
+                                      "Remote Confirm generated", 16);
   key.key_type = SMP_KEY_TYPE_CMP;
-  key.p_data = p->param_buf;
-
+  key.p_data = output.param_buf;
   smp_sm_event(p_cb, SMP_KEY_READY_EVT, &key);
 }
 
