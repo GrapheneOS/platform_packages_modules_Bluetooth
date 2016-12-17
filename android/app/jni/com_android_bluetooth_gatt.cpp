@@ -192,14 +192,6 @@ void btgattc_register_app_cb(int status, int clientIf, bt_uuid_t* app_uuid) {
                                clientIf, UUID_PARAMS(app_uuid));
 }
 
-void btgattc_register_scanner_cb(int status, int scannerId,
-                                 bt_uuid_t* app_uuid) {
-  CallbackEnv sCallbackEnv(__func__);
-  if (!sCallbackEnv.valid()) return;
-  sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onScannerRegistered,
-                               status, scannerId, UUID_PARAMS(app_uuid));
-}
-
 void btgattc_scan_result_cb(bt_bdaddr_t* bda, int rssi,
                             std::vector<uint8_t> adv_data) {
   CallbackEnv sCallbackEnv(__func__);
@@ -544,11 +536,15 @@ void btgattc_get_gatt_db_cb(int conn_id, btgatt_db_element_t* db, int count) {
 }
 
 static const btgatt_scanner_callbacks_t sGattScannerCallbacks = {
-    btgattc_register_scanner_cb,      btgattc_scan_result_cb,
-    btgattc_batchscan_cfg_storage_cb, btgattc_batchscan_startstop_cb,
-    btgattc_batchscan_reports_cb,     btgattc_batchscan_threshold_cb,
-    btgattc_track_adv_event_cb,       btgattc_scan_parameter_setup_completed_cb,
-    btgattc_scan_filter_cfg_cb,       btgattc_scan_filter_param_cb,
+    btgattc_scan_result_cb,
+    btgattc_batchscan_cfg_storage_cb,
+    btgattc_batchscan_startstop_cb,
+    btgattc_batchscan_reports_cb,
+    btgattc_batchscan_threshold_cb,
+    btgattc_track_adv_event_cb,
+    btgattc_scan_parameter_setup_completed_cb,
+    btgattc_scan_filter_cfg_cb,
+    btgattc_scan_filter_param_cb,
     btgattc_scan_filter_status_cb,
 };
 
@@ -969,26 +965,34 @@ static void gattClientUnregisterAppNative(JNIEnv* env, jobject object,
   sGattIf->client->unregister_client(clientIf);
 }
 
+void btgattc_register_scanner_cb(bt_uuid_t app_uuid, uint8_t scannerId,
+                                 uint8_t status) {
+  CallbackEnv sCallbackEnv(__func__);
+  if (!sCallbackEnv.valid()) return;
+  sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onScannerRegistered,
+                               status, scannerId, UUID_PARAMS(&app_uuid));
+}
+
 static void registerScannerNative(JNIEnv* env, jobject object,
                                   jlong app_uuid_lsb, jlong app_uuid_msb) {
-  bt_uuid_t uuid;
-
   if (!sGattIf) return;
 
+  bt_uuid_t uuid;
   set_uuid(uuid.uu, app_uuid_msb, app_uuid_lsb);
-  sGattIf->scanner->register_scanner(&uuid);
+  sGattIf->scanner->RegisterScanner(
+      base::Bind(&btgattc_register_scanner_cb, uuid));
 }
 
 static void unregisterScannerNative(JNIEnv* env, jobject object,
                                     jint scanner_id) {
   if (!sGattIf) return;
 
-  sGattIf->scanner->unregister_scanner(scanner_id);
+  sGattIf->scanner->Unregister(scanner_id);
 }
 
 static void gattClientScanNative(JNIEnv* env, jobject object, jboolean start) {
   if (!sGattIf) return;
-  sGattIf->scanner->scan(start);
+  sGattIf->scanner->Scan(start);
 }
 
 static void gattClientConnectNative(JNIEnv* env, jobject object, jint clientif,
