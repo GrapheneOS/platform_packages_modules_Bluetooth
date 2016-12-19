@@ -760,8 +760,7 @@ tBTM_STATUS BTM_StartInquiry(tBTM_INQ_PARMS* p_inqparms,
       p_inq->scan_type = INQ_GENERAL;
       p_inq->inq_active = BTM_INQUIRY_INACTIVE;
       btm_cb.ble_ctr_cb.inq_var.scan_type = BTM_BLE_SCAN_MODE_NONE;
-      btsnd_hcic_ble_set_scan_enable(BTM_BLE_SCAN_DISABLE,
-                                     BTM_BLE_DUPLICATE_ENABLE);
+      btm_send_hci_scan_enable(BTM_BLE_SCAN_DISABLE, BTM_BLE_DUPLICATE_ENABLE);
     } else {
       return (BTM_BUSY);
       BTM_TRACE_API("BTM_StartInquiry: return BUSY");
