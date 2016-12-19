@@ -575,11 +575,11 @@ void handle_rc_features(btif_rc_device_cb_t* p_dev) {
  *  - Description: browse RC connection event handler
  *
  ***************************************************************************/
-void handle_rc_browse_connect(tBTA_AV_RC_OPEN* p_rc_open) {
-  BTIF_TRACE_DEBUG("%s rc_handle %d status %d", __func__, p_rc_open->rc_handle,
-                   p_rc_open->status);
+void handle_rc_browse_connect(tBTA_AV_RC_BROWSE_OPEN* p_rc_br_open) {
+  BTIF_TRACE_DEBUG("%s: rc_handle %d status %d", __func__,
+                   p_rc_br_open->rc_handle, p_rc_br_open->status);
   btif_rc_device_cb_t* p_dev =
-      btif_rc_get_device_by_handle(p_rc_open->rc_handle);
+      btif_rc_get_device_by_handle(p_rc_br_open->rc_handle);
 
   if (!p_dev) {
     BTIF_TRACE_ERROR("%s p_dev is null", __func__);
@@ -589,7 +589,7 @@ void handle_rc_browse_connect(tBTA_AV_RC_OPEN* p_rc_open) {
   /* check that we are already connected to this address since being connected
    * to a browse when not connected to the control channel over AVRCP is
    * probably not preferred anyways. */
-  if (p_rc_open->status == BTA_AV_SUCCESS) {
+  if (p_rc_br_open->status == BTA_AV_SUCCESS) {
     bt_bdaddr_t rc_addr;
     bdcpy(rc_addr.address, p_dev->rc_addr);
     p_dev->br_connected = true;
@@ -1010,7 +1010,7 @@ void btif_rc_handler(tBTA_AV_EVT event, tBTA_AV* p_data) {
     case BTA_AV_RC_BROWSE_OPEN_EVT: {
       /* tell the UL that we have connection to browse channel and that
        * browse commands can be directed accordingly. */
-      handle_rc_browse_connect(&(p_data->rc_open));
+      handle_rc_browse_connect(&p_data->rc_browse_open);
     } break;
 
     case BTA_AV_RC_CLOSE_EVT: {
@@ -3202,7 +3202,8 @@ static void handle_get_capability_response(tBTA_AV_META_MSG* pmeta_msg,
       /* Skip registering for Play position change notification */
       if ((p_rsp->param.event_id[xx] == AVRC_EVT_PLAY_STATUS_CHANGE) ||
           (p_rsp->param.event_id[xx] == AVRC_EVT_TRACK_CHANGE) ||
-          (p_rsp->param.event_id[xx] == AVRC_EVT_APP_SETTING_CHANGE)) {
+          (p_rsp->param.event_id[xx] == AVRC_EVT_APP_SETTING_CHANGE) ||
+          (p_rsp->param.event_id[xx] == AVRC_EVT_UIDS_CHANGE)) {
         p_event = (btif_rc_supported_event_t*)osi_malloc(
             sizeof(btif_rc_supported_event_t));
         p_event->event_id = p_rsp->param.event_id[xx];
