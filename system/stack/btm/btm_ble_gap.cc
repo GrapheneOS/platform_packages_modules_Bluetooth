@@ -1980,20 +1980,121 @@ void btm_clear_all_pending_le_entry(void) {
   }
 }
 
-/*******************************************************************************
- *
- * Function         btm_ble_process_adv_pkt
- *
- * Description      This function is called when adv packet report events are
- *                  received from the device. It updates the inquiry database.
- *                  If the inquiry database is full, the oldest entry is
- *                  discarded.
- *
- * Parameters
- *
- * Returns          void
- *
- ******************************************************************************/
+void btm_ble_process_adv_addr(BD_ADDR bda, uint8_t addr_type) {
+#if (BLE_PRIVACY_SPT == TRUE)
+  /* map address to security record */
+  bool match = btm_identity_addr_to_random_pseudo(bda, &addr_type, false);
+
+  BTM_TRACE_DEBUG("%s: bda= %0x:%0x:%0x:%0x:%0x:%0x", __func__, bda[0], bda[1],
+                  bda[2], bda[3], bda[4], bda[5]);
+  /* always do RRA resolution on host */
+  if (!match && BTM_BLE_IS_RESOLVE_BDA(bda)) {
+    tBTM_SEC_DEV_REC* match_rec = btm_ble_resolve_random_addr(bda);
+    if (match_rec) {
+      match_rec->ble.active_addr_type = BTM_BLE_ADDR_RRA;
+      memcpy(match_rec->ble.cur_rand_addr, bda, BD_ADDR_LEN);
+
+      if (btm_ble_init_pseudo_addr(match_rec, bda)) {
+        memcpy(bda, match_rec->bd_addr, BD_ADDR_LEN);
+      } else {
+        // Assign the original address to be the current report address
+        memcpy(bda, match_rec->ble.pseudo_addr, BD_ADDR_LEN);
+      }
+    }
+  }
+#endif
+}
+
+/**
+ * This function is called when extended advertising report event is received .
+ * It updates the inquiry database. If the inquiry database is full, the oldest
+ * entry is discarded.
+ */
+void btm_ble_process_ext_adv_pkt(uint8_t data_len, uint8_t* data) {
+  BD_ADDR bda, direct_address;
+  uint8_t* p = data;
+  uint8_t addr_type, num_reports, pkt_data_len, primary_phy, secondary_phy,
+      advertising_sid;
+  int8_t rssi, tx_power;
+  uint16_t event_type, periodic_adv_int, direct_address_type;
+
+  /* Only process the results if the inquiry is still active */
+  if (!BTM_BLE_IS_SCAN_ACTIVE(btm_cb.ble_ctr_cb.scan_activity)) return;
+
+  /* Extract the number of reports in this event. */
+  STREAM_TO_UINT8(num_reports, p);
+
+  while (num_reports--) {
+    if (p > data + data_len) {
+      // TODO(jpawlowski): we should crash the stack here
+      BTM_TRACE_ERROR(
+          "Malformed LE Extended Advertising Report Event from controller - "
+          "can't loop the data");
+      return;
+    }
+
+    /* Extract inquiry results */
+    STREAM_TO_UINT16(event_type, p);
+    STREAM_TO_UINT8(addr_type, p);
+    STREAM_TO_BDADDR(bda, p);
+    STREAM_TO_UINT8(primary_phy, p);
+    STREAM_TO_UINT8(secondary_phy, p);
+    STREAM_TO_UINT8(advertising_sid, p);
+    STREAM_TO_INT8(tx_power, p);
+    STREAM_TO_INT8(rssi, p);
+    STREAM_TO_UINT16(periodic_adv_int, p);
+    STREAM_TO_UINT8(direct_address_type, p);
+    STREAM_TO_BDADDR(direct_address, p);
+    STREAM_TO_UINT8(pkt_data_len, p);
+
+    uint8_t* pkt_data = p;
+    p += pkt_data_len; /* Advance to the the next packet*/
+
+    if (rssi >= 21 && rssi <= 126) {
+      BTM_TRACE_ERROR("%s: bad rssi value in advertising report: ", __func__,
+                      pkt_data_len, rssi);
+    }
+
+    // we parse legacy packets only for now.
+    if ((event_type & 0x0010) == 0) {
+      continue;
+    }
+
+    // TODO(jpawlowski): event type should be passed to
+    // btm_ble_process_adv_pkt_cont. Legacy values should be transformed to new
+    // value in btm_ble_process_adv_pkt
+    uint8_t legacy_evt_type;
+    if (event_type == 0x0013) {
+      legacy_evt_type = 0x00;  // ADV_IND;
+    } else if (event_type == 0x0015) {
+      legacy_evt_type = 0x01;  // ADV_DIRECT_IND;
+    } else if (event_type == 0x0012) {
+      legacy_evt_type = 0x02;  // ADV_SCAN_IND;
+    } else if (event_type == 0x0010) {
+      legacy_evt_type = 0x03;  // ADV_NONCONN_IND;
+    } else if (event_type == 0x001B) {
+      legacy_evt_type = 0x02;  // SCAN_RSP;
+    } else if (event_type == 0x001A) {
+      legacy_evt_type = 0x02;  // SCAN_RSP;
+    } else {
+      BTM_TRACE_ERROR(
+          "Malformed LE Advertising Report Event from controller - unsupported "
+          "legacy event_type 0x%04x",
+          event_type);
+      return;
+    }
+
+    btm_ble_process_adv_addr(bda, addr_type);
+    btm_ble_process_adv_pkt_cont(bda, addr_type, legacy_evt_type, pkt_data_len,
+                                 pkt_data, rssi);
+  }
+}
+
+/**
+ * This function is called when advertising report event is received. It updates
+ * the inquiry database. If the inquiry database is full, the oldest entry is
+ * discarded.
+ */
 void btm_ble_process_adv_pkt(uint8_t data_len, uint8_t* data) {
   BD_ADDR bda;
   uint8_t* p = data;
@@ -2029,29 +2130,7 @@ void btm_ble_process_adv_pkt(uint8_t data_len, uint8_t* data) {
                       pkt_data_len, rssi);
     }
 
-#if (BLE_PRIVACY_SPT == TRUE)
-    /* map address to security record */
-    bool match = btm_identity_addr_to_random_pseudo(bda, &addr_type, false);
-
-    BTM_TRACE_DEBUG("%s: bda= %0x:%0x:%0x:%0x:%0x:%0x", __func__, bda[0],
-                    bda[1], bda[2], bda[3], bda[4], bda[5]);
-    /* always do RRA resolution on host */
-    if (!match && BTM_BLE_IS_RESOLVE_BDA(bda)) {
-      tBTM_SEC_DEV_REC* match_rec = btm_ble_resolve_random_addr(bda);
-      if (match_rec) {
-        BTM_TRACE_DEBUG("Random match");
-        match_rec->ble.active_addr_type = BTM_BLE_ADDR_RRA;
-        memcpy(match_rec->ble.cur_rand_addr, bda, BD_ADDR_LEN);
-
-        if (btm_ble_init_pseudo_addr(match_rec, bda)) {
-          memcpy(bda, match_rec->bd_addr, BD_ADDR_LEN);
-        } else {
-          // Assign the original address to be the current report address
-          memcpy(bda, match_rec->ble.pseudo_addr, BD_ADDR_LEN);
-        }
-      }
-    }
-#endif
+    btm_ble_process_adv_addr(bda, addr_type);
 
     btm_ble_process_adv_pkt_cont(bda, addr_type, evt_type, pkt_data_len,
                                  pkt_data, rssi);
