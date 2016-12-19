@@ -21,6 +21,7 @@
  *  This is the API implementation file for the BTA device manager.
  *
  ******************************************************************************/
+#include <base/bind_helpers.h>
 #include <string.h>
 
 #include "bt_common.h"
@@ -1343,47 +1344,19 @@ void BTA_DmBleCfgFilterCondition(
  * Returns          void
  *
  ******************************************************************************/
-#if (BLE_ANDROID_CONTROLLER_SCAN_FILTER == TRUE)
-void BTA_DmBleScanFilterSetup(uint8_t action,
-                              tBTA_DM_BLE_PF_FILT_INDEX filt_index,
-                              tBTA_DM_BLE_PF_FILT_PARAMS* p_filt_params,
-                              tBLE_BD_ADDR* p_target,
-                              tBTA_DM_BLE_PF_PARAM_CBACK* p_cmpl_cback,
-                              tBTA_DM_BLE_REF_VALUE ref_value) {
-  const size_t len =
-      sizeof(tBTA_DM_API_SCAN_FILTER_PARAM_SETUP) + sizeof(tBLE_BD_ADDR);
-  tBTA_DM_API_SCAN_FILTER_PARAM_SETUP* p_msg =
-      (tBTA_DM_API_SCAN_FILTER_PARAM_SETUP*)osi_calloc(len);
-
-  APPL_TRACE_API("%s: %d", __func__, action);
-
-  p_msg->hdr.event = BTA_DM_API_SCAN_FILTER_SETUP_EVT;
-  p_msg->action = action;
-  p_msg->filt_index = filt_index;
-  if (p_filt_params) {
-    memcpy(&p_msg->filt_params, p_filt_params,
-           sizeof(tBTA_DM_BLE_PF_FILT_PARAMS));
-  }
-  p_msg->p_filt_param_cback = p_cmpl_cback;
-  p_msg->ref_value = ref_value;
-
-  if (p_target) {
-    p_msg->p_target = (tBLE_BD_ADDR*)(p_msg + 1);
-    memcpy(p_msg->p_target, p_target, sizeof(tBLE_BD_ADDR));
-  }
-
-  bta_sys_sendmsg(p_msg);
-}
-#else
 void BTA_DmBleScanFilterSetup(
-    UNUSED_ATTR uint8_t action,
-    UNUSED_ATTR tBTA_DM_BLE_PF_FILT_INDEX filt_index,
-    UNUSED_ATTR tBTA_DM_BLE_PF_FILT_PARAMS* p_filt_params,
-    UNUSED_ATTR tBLE_BD_ADDR* p_target,
-    UNUSED_ATTR tBTA_DM_BLE_PF_PARAM_CBACK* p_cmpl_cback,
-    UNUSED_ATTR tBTA_DM_BLE_REF_VALUE ref_value)
-}
+    uint8_t action, tBTA_DM_BLE_PF_FILT_INDEX filt_index,
+    std::unique_ptr<btgatt_filt_param_setup_t> p_filt_params,
+    std::unique_ptr<tBLE_BD_ADDR> p_target,
+    tBTA_DM_BLE_PF_PARAM_CBACK p_cmpl_cback, tBTA_DM_BLE_REF_VALUE ref_value) {
+#if (BLE_ANDROID_CONTROLLER_SCAN_FILTER == TRUE)
+  APPL_TRACE_API("%s: %d", __func__, action);
+  do_in_bta_thread(
+      FROM_HERE, base::Bind(&bta_dm_scan_filter_param_setup, action, filt_index,
+                            base::Passed(&p_filt_params),
+                            base::Passed(&p_target), p_cmpl_cback, ref_value));
 #endif
+}
 
 /*******************************************************************************
  *

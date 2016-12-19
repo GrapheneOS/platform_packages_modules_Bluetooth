@@ -4660,36 +4660,24 @@ void bta_dm_enable_scan_filter(tBTA_DM_MSG* p_data) {
  * Parameters:
  *
  ******************************************************************************/
-void bta_dm_scan_filter_param_setup(tBTA_DM_MSG* p_data) {
-  tBTM_STATUS st = BTM_MODE_UNSUPPORTED;
-  tBTA_STATUS status = BTA_FAILURE;
-
+void bta_dm_scan_filter_param_setup(
+    uint8_t action, tBTA_DM_BLE_PF_FILT_INDEX filt_index,
+    std::unique_ptr<btgatt_filt_param_setup_t> filt_params,
+    std::unique_ptr<tBLE_BD_ADDR> p_target,
+    tBTA_DM_BLE_PF_PARAM_CBACK p_filt_param_cback,
+    tBTA_DM_BLE_REF_VALUE ref_value) {
   tBTM_BLE_VSC_CB cmn_vsc_cb;
-
   APPL_TRACE_DEBUG("bta_dm_scan_filter_param_setup");
   BTM_BleGetVendorCapabilities(&cmn_vsc_cb);
-  if (0 != cmn_vsc_cb.filter_support) {
-    st = BTM_BleAdvFilterParamSetup(
-        p_data->ble_scan_filt_param_setup.action,
-        p_data->ble_scan_filt_param_setup.filt_index,
-        (tBTM_BLE_PF_FILT_PARAMS*)&p_data->ble_scan_filt_param_setup
-            .filt_params,
-        p_data->ble_scan_filt_param_setup.p_target,
-        p_data->ble_scan_filt_param_setup.p_filt_param_cback,
-        p_data->ble_scan_filt_param_setup.ref_value);
-    if (st == BTM_CMD_STARTED) {
-      bta_dm_cb.p_scan_filt_param_cback =
-          p_data->ble_scan_filt_param_setup.p_filt_param_cback;
-      return;
-    }
+  if (0 == cmn_vsc_cb.filter_support) {
+    if (p_filt_param_cback)
+      p_filt_param_cback(BTA_DM_BLE_PF_ENABLE_EVT, 0, ref_value, BTA_FAILURE);
+
+    return;
   }
 
-  if (p_data->ble_scan_filt_param_setup.p_filt_param_cback)
-    p_data->ble_scan_filt_param_setup.p_filt_param_cback(
-        BTA_DM_BLE_PF_ENABLE_EVT, 0,
-        p_data->ble_scan_filt_param_setup.ref_value, status);
-
-  return;
+  BTM_BleAdvFilterParamSetup(action, filt_index, filt_params.get(),
+                             p_target.get(), p_filt_param_cback, ref_value);
 }
 #endif
 

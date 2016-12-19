@@ -830,7 +830,7 @@ extern uint8_t BTM_BleGetSupportedKeySize(BD_ADDR bd_addr);
  ******************************************************************************/
 extern tBTM_STATUS BTM_BleAdvFilterParamSetup(
     int action, tBTM_BLE_PF_FILT_INDEX filt_index,
-    tBTM_BLE_PF_FILT_PARAMS* p_filt_params, tBLE_BD_ADDR* p_target,
+    btgatt_filt_param_setup_t* p_filt_params, tBLE_BD_ADDR* p_target,
     tBTM_BLE_PF_PARAM_CBACK* p_cmpl_cback, tBTM_BLE_REF_VALUE ref_value);
 
 /*******************************************************************************

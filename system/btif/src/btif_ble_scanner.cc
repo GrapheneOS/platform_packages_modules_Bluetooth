@@ -363,17 +363,6 @@ void bta_track_adv_event_cb(tBTA_DM_BLE_TRACK_ADV_DATA* p_track_adv_data) {
   SCAN_CBACK_IN_JNI(track_adv_event_cb, Owned(btif_scan_track_cb));
 }
 
-void btif_gattc_scan_filter_param_setup_impl(
-    int client_if, uint8_t action, int filt_index,
-    tBTA_DM_BLE_PF_FILT_PARAMS* adv_filt_param) {
-  if (1 == adv_filt_param->dely_mode) {
-    BTA_DmBleTrackAdvertiser(client_if, bta_track_adv_event_cb);
-  }
-
-  BTA_DmBleScanFilterSetup(action, filt_index, adv_filt_param, NULL,
-                           bta_scan_filt_param_setup_cb, client_if);
-}
-
 void btif_gattc_scan_filter_add_srvc_uuid(tBT_UUID uuid,
                                           tBTA_DM_BLE_PF_COND_MASK* p_uuid_mask,
                                           int action, int filt_type,
@@ -469,27 +458,24 @@ class BleScannerInterfaceImpl : public BleScannerInterface {
                           (tBTA_DM_SEARCH_CBACK*)bta_scan_results_cb));
   }
 
-  bt_status_t scan_filter_param_setup(
-      btgatt_filt_param_setup_t filt_param) override {
+  void ScanFilterParamSetup(
+      uint8_t client_if, uint8_t action, uint8_t filt_index,
+      std::unique_ptr<btgatt_filt_param_setup_t> filt_param) override {
     BTIF_TRACE_DEBUG("%s", __func__);
+    do_in_jni_thread(Bind(
+        [](int client_if, uint8_t action, int filt_index,
+           std::unique_ptr<btgatt_filt_param_setup_t> adv_filt_param) {
 
-    tBTA_DM_BLE_PF_FILT_PARAMS* adv_filt_param = new tBTA_DM_BLE_PF_FILT_PARAMS;
-    adv_filt_param->feat_seln = filt_param.feat_seln;
-    adv_filt_param->list_logic_type = filt_param.list_logic_type;
-    adv_filt_param->filt_logic_type = filt_param.filt_logic_type;
-    adv_filt_param->rssi_high_thres = filt_param.rssi_high_thres;
-    adv_filt_param->rssi_low_thres = filt_param.rssi_low_thres;
-    adv_filt_param->dely_mode = filt_param.dely_mode;
-    adv_filt_param->found_timeout = filt_param.found_timeout;
-    adv_filt_param->lost_timeout = filt_param.lost_timeout;
-    adv_filt_param->found_timeout_cnt = filt_param.found_timeout_cnt;
-    adv_filt_param->num_of_tracking_entries =
-        filt_param.num_of_tracking_entries;
+          if (adv_filt_param && adv_filt_param->dely_mode == 1) {
+            BTA_DmBleTrackAdvertiser(client_if, bta_track_adv_event_cb);
+          }
 
-    return do_in_jni_thread(
-        Bind(base::IgnoreResult(&btif_gattc_scan_filter_param_setup_impl),
-             filt_param.client_if, filt_param.action, filt_param.filt_index,
-             base::Owned(adv_filt_param)));
+          BTA_DmBleScanFilterSetup(action, filt_index,
+                                   std::move(adv_filt_param), nullptr,
+                                   bta_scan_filt_param_setup_cb, client_if);
+
+        },
+        client_if, action, filt_index, base::Passed(&filt_param)));
   }
 
   bt_status_t scan_filter_add_remove(
