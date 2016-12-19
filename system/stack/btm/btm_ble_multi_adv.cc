@@ -398,9 +398,9 @@ class BleAdvertisingManagerImpl
   void OnAdvertisingStateChanged(uint8_t inst_id, uint8_t reason,
                                  uint16_t conn_handle) override {
     AdvertisingInstance* p_inst = &adv_inst[inst_id];
-    VLOG(1) << __func__ << " inst_id: 0x" << std::hex << inst_id
-            << ", reason: 0x" << std::hex << reason << ", conn_handle: 0x"
-            << std::hex << conn_handle;
+    VLOG(1) << __func__ << " inst_id: 0x" << std::hex << +inst_id
+            << ", reason: 0x" << std::hex << +reason << ", conn_handle: 0x"
+            << std::hex << +conn_handle;
 
 #if (BLE_PRIVACY_SPT == TRUE)
     if (BTM_BleLocalPrivacyEnabled() && inst_id <= BTM_BLE_MULTI_ADV_MAX) {

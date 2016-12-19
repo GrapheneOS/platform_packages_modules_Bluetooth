@@ -347,7 +347,9 @@ class BleAdvertiserHciExtendedImpl : public BleAdvertiserHciInterface {
   }
 
   void SetAdvertisingEventObserver(
-      AdvertisingEventObserver* observer) override {}
+      AdvertisingEventObserver* observer) override {
+    this->advertising_event_observer = observer;
+  }
 
   void SetParameters(uint8_t adv_int_min, uint8_t adv_int_max,
                      uint8_t advertising_type, uint8_t own_address_type,
@@ -469,9 +471,39 @@ class BleAdvertiserHciExtendedImpl : public BleAdvertiserHciInterface {
     SendAdvCmd(HCI_LE_SET_EXT_ADVERTISING_ENABLE, param, cmd_length,
                command_complete);
   }
+
+ public:
+  void OnAdvertisingSetTerminated(uint8_t length, uint8_t* p) {
+    VLOG(1) << __func__;
+    LOG_ASSERT(p);
+    uint8_t status, advertising_handle, num_completed_adv_evt;
+    uint16_t conn_handle;
+
+    STREAM_TO_UINT8(status, p);
+    STREAM_TO_UINT8(advertising_handle, p);
+    STREAM_TO_UINT16(conn_handle, p);
+    STREAM_TO_UINT8(num_completed_adv_evt, p);
+
+    conn_handle = conn_handle & 0x0FFF;  // only 12 bits meaningful
+
+    AdvertisingEventObserver* observer = this->advertising_event_observer;
+    if (observer)
+      observer->OnAdvertisingStateChanged(advertising_handle, 0x00,
+                                          conn_handle);
+  }
+
+ private:
+  AdvertisingEventObserver* advertising_event_observer = nullptr;
 };
 
 }  // namespace
+
+void btm_le_on_advertising_set_terminated(uint8_t* p, uint16_t length) {
+  if (BleAdvertiserHciInterface::Get()) {
+    ((BleAdvertiserHciExtendedImpl*)BleAdvertiserHciInterface::Get())
+        ->OnAdvertisingSetTerminated(length, p);
+  }
+}
 
 void BleAdvertiserHciInterface::Initialize() {
   VLOG(1) << __func__;
