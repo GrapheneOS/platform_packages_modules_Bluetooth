@@ -69,6 +69,7 @@ extern tBTM_BLE_CONN_ST btm_ble_get_conn_st(void);
 extern void btm_ble_set_conn_st(tBTM_BLE_CONN_ST new_st);
 extern tBTM_STATUS btm_ble_start_adv(void);
 extern tBTM_STATUS btm_ble_stop_adv(void);
+extern void btm_le_on_advertising_set_terminated(uint8_t* p, uint16_t length);
 extern tBTM_STATUS btm_ble_start_scan(void);
 extern void btm_ble_create_ll_conn_complete(uint8_t status);
 
