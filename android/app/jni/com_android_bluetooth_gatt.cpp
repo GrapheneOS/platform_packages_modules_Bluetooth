@@ -25,6 +25,7 @@
 
 #include <base/bind.h>
 #include <string.h>
+#include <memory>
 
 #include <cutils/log.h>
 #define info(fmt, ...) ALOGI("%s(L%d): " fmt, __func__, __LINE__, ##__VA_ARGS__)
@@ -1143,54 +1144,52 @@ static void gattClientScanFilterParamAddNative(JNIEnv* env, jobject object,
                                                jobject params) {
   if (!sGattIf) return;
   const int add_scan_filter_params_action = 0;
-  btgatt_filt_param_setup_t filt_params;
+  auto filt_params = std::make_unique<btgatt_filt_param_setup_t>();
 
   jmethodID methodId = 0;
   jclass filtparam = env->GetObjectClass(params);
 
   methodId = env->GetMethodID(filtparam, "getClientIf", "()I");
-  filt_params.client_if = env->CallIntMethod(params, methodId);
-  ;
-
-  filt_params.action = add_scan_filter_params_action;
+  uint8_t client_if = env->CallIntMethod(params, methodId);
 
   methodId = env->GetMethodID(filtparam, "getFiltIndex", "()I");
-  filt_params.filt_index = env->CallIntMethod(params, methodId);
-  ;
+  uint8_t filt_index = env->CallIntMethod(params, methodId);
 
   methodId = env->GetMethodID(filtparam, "getFeatSeln", "()I");
-  filt_params.feat_seln = env->CallIntMethod(params, methodId);
-  ;
+  filt_params->feat_seln = env->CallIntMethod(params, methodId);
 
   methodId = env->GetMethodID(filtparam, "getListLogicType", "()I");
-  filt_params.list_logic_type = env->CallIntMethod(params, methodId);
+  filt_params->list_logic_type = env->CallIntMethod(params, methodId);
 
   methodId = env->GetMethodID(filtparam, "getFiltLogicType", "()I");
-  filt_params.filt_logic_type = env->CallIntMethod(params, methodId);
+  filt_params->filt_logic_type = env->CallIntMethod(params, methodId);
 
   methodId = env->GetMethodID(filtparam, "getDelyMode", "()I");
-  filt_params.dely_mode = env->CallIntMethod(params, methodId);
+  filt_params->dely_mode = env->CallIntMethod(params, methodId);
 
   methodId = env->GetMethodID(filtparam, "getFoundTimeout", "()I");
-  filt_params.found_timeout = env->CallIntMethod(params, methodId);
+  filt_params->found_timeout = env->CallIntMethod(params, methodId);
 
   methodId = env->GetMethodID(filtparam, "getLostTimeout", "()I");
-  filt_params.lost_timeout = env->CallIntMethod(params, methodId);
+  filt_params->lost_timeout = env->CallIntMethod(params, methodId);
 
   methodId = env->GetMethodID(filtparam, "getFoundTimeOutCnt", "()I");
-  filt_params.found_timeout_cnt = env->CallIntMethod(params, methodId);
+  filt_params->found_timeout_cnt = env->CallIntMethod(params, methodId);
 
   methodId = env->GetMethodID(filtparam, "getNumOfTrackEntries", "()I");
-  filt_params.num_of_tracking_entries = env->CallIntMethod(params, methodId);
+  filt_params->num_of_tracking_entries = env->CallIntMethod(params, methodId);
 
   methodId = env->GetMethodID(filtparam, "getRSSIHighValue", "()I");
-  filt_params.rssi_high_thres = env->CallIntMethod(params, methodId);
+  filt_params->rssi_high_thres = env->CallIntMethod(params, methodId);
 
   methodId = env->GetMethodID(filtparam, "getRSSILowValue", "()I");
-  filt_params.rssi_low_thres = env->CallIntMethod(params, methodId);
+  filt_params->rssi_low_thres = env->CallIntMethod(params, methodId);
 
   env->DeleteLocalRef(filtparam);
-  sGattIf->scanner->scan_filter_param_setup(filt_params);
+
+  sGattIf->scanner->ScanFilterParamSetup(client_if,
+                                         add_scan_filter_params_action,
+                                         filt_index, std::move(filt_params));
 }
 
 static void gattClientScanFilterParamDeleteNative(JNIEnv* env, jobject object,
@@ -1198,23 +1197,17 @@ static void gattClientScanFilterParamDeleteNative(JNIEnv* env, jobject object,
                                                   jint filt_index) {
   if (!sGattIf) return;
   const int delete_scan_filter_params_action = 1;
-  btgatt_filt_param_setup_t filt_params;
-  memset(&filt_params, 0, sizeof(btgatt_filt_param_setup_t));
-  filt_params.client_if = client_if;
-  filt_params.action = delete_scan_filter_params_action;
-  filt_params.filt_index = filt_index;
-  sGattIf->scanner->scan_filter_param_setup(filt_params);
+  sGattIf->scanner->ScanFilterParamSetup(
+      client_if, delete_scan_filter_params_action, filt_index, nullptr);
 }
 
 static void gattClientScanFilterParamClearAllNative(JNIEnv* env, jobject object,
                                                     jint client_if) {
   if (!sGattIf) return;
   const int clear_scan_filter_params_action = 2;
-  btgatt_filt_param_setup_t filt_params;
-  memset(&filt_params, 0, sizeof(btgatt_filt_param_setup_t));
-  filt_params.client_if = client_if;
-  filt_params.action = clear_scan_filter_params_action;
-  sGattIf->scanner->scan_filter_param_setup(filt_params);
+  sGattIf->scanner->ScanFilterParamSetup(client_if,
+                                         clear_scan_filter_params_action,
+                                         0 /* index, unused */, nullptr);
 }
 
 static void gattClientScanFilterAddRemoveNative(
