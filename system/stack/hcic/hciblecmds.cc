@@ -689,3 +689,52 @@ void btsnd_hcic_ble_set_data_length(uint16_t conn_handle, uint16_t tx_octets,
 
   btu_hcif_send_cmd(LOCAL_BR_EDR_CONTROLLER_ID, p);
 }
+
+void btsnd_hcic_ble_set_extended_scan_params(uint8_t own_address_type,
+                                             uint8_t scanning_filter_policy,
+                                             uint8_t scanning_phys,
+                                             scanning_phy_cfg* phy_cfg) {
+  BT_HDR* p = (BT_HDR*)osi_malloc(HCI_CMD_BUF_SIZE);
+  uint8_t* pp = (uint8_t*)(p + 1);
+
+  uint16_t param_len = 3 + (5 * scanning_phys);
+  p->len = HCIC_PREAMBLE_SIZE + 3 + (5 * param_len);
+  p->offset = 0;
+
+  UINT16_TO_STREAM(pp, HCI_LE_SET_EXTENDED_SCAN_PARAMETERS);
+  UINT8_TO_STREAM(pp, param_len);
+
+  UINT8_TO_STREAM(pp, own_address_type);
+  UINT8_TO_STREAM(pp, scanning_filter_policy);
+  UINT8_TO_STREAM(pp, scanning_phys);
+
+  for (int i = 0; i < scanning_phys; i++) {
+    UINT8_TO_STREAM(pp, phy_cfg[i].scan_type);
+    UINT16_TO_STREAM(pp, phy_cfg[i].scan_int);
+    UINT16_TO_STREAM(pp, phy_cfg[i].scan_win);
+  }
+
+  btu_hcif_send_cmd(LOCAL_BR_EDR_CONTROLLER_ID, p);
+}
+
+void btsnd_hcic_ble_set_extended_scan_enable(uint8_t enable,
+                                             uint8_t filter_duplicates,
+                                             uint16_t duration,
+                                             uint16_t period) {
+  BT_HDR* p = (BT_HDR*)osi_malloc(HCI_CMD_BUF_SIZE);
+  uint8_t* pp = (uint8_t*)(p + 1);
+
+  const int param_len = 6;
+  p->len = HCIC_PREAMBLE_SIZE + param_len;
+  p->offset = 0;
+
+  UINT16_TO_STREAM(pp, HCI_LE_SET_EXTENDED_SCAN_ENABLE);
+  UINT8_TO_STREAM(pp, param_len);
+
+  UINT8_TO_STREAM(pp, enable);
+  UINT8_TO_STREAM(pp, filter_duplicates);
+  UINT16_TO_STREAM(pp, duration);
+  UINT16_TO_STREAM(pp, period);
+
+  btu_hcif_send_cmd(LOCAL_BR_EDR_CONTROLLER_ID, p);
+}

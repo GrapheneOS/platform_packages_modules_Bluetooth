@@ -798,6 +798,25 @@ extern void btsnd_hcic_ble_add_device_resolving_list(
     uint8_t addr_type_peer, BD_ADDR bda_peer,
     uint8_t irk_peer[HCIC_BLE_IRK_SIZE], uint8_t irk_local[HCIC_BLE_IRK_SIZE]);
 
+struct scanning_phy_cfg {
+  uint8_t scan_type;
+  uint16_t scan_int;
+  uint16_t scan_win;
+};
+
+extern void btsnd_hcic_ble_set_extended_scan_params(
+    uint8_t own_address_type, uint8_t scanning_filter_policy,
+    uint8_t scanning_phys, scanning_phy_cfg* phy_cfg);
+
+extern void btsnd_hcic_ble_set_extended_scan_enable(uint8_t enable,
+                                                    uint8_t filter_duplicates,
+                                                    uint16_t duration,
+                                                    uint16_t period);
+
+extern void btsnd_hcic_ble_add_device_resolving_list(
+    uint8_t addr_type_peer, BD_ADDR bda_peer,
+    uint8_t irk_peer[HCIC_BLE_IRK_SIZE], uint8_t irk_local[HCIC_BLE_IRK_SIZE]);
+
 extern void btsnd_hcic_ble_rm_device_resolving_list(uint8_t addr_type_peer,
                                                     BD_ADDR bda_peer);
 
