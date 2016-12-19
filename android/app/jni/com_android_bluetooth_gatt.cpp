@@ -1136,8 +1136,8 @@ static void gattSetScanParametersNative(JNIEnv* env, jobject object,
                                         jint client_if, jint scan_interval_unit,
                                         jint scan_window_unit) {
   if (!sGattIf) return;
-  sGattIf->scanner->set_scan_parameters(client_if, scan_interval_unit,
-                                        scan_window_unit);
+  sGattIf->scanner->SetScanParameters(client_if, scan_interval_unit,
+                                      scan_window_unit);
 }
 
 static void gattClientScanFilterParamAddNative(JNIEnv* env, jobject object,
@@ -1220,9 +1220,9 @@ static void gattClientScanFilterAddRemoveNative(
     {
       bt_bdaddr_t bda;
       jstr2bdaddr(env, &bda, address);
-      sGattIf->scanner->scan_filter_add_remove(client_if, action, filt_type,
-                                               filt_index, 0, 0, NULL, NULL,
-                                               &bda, addr_type, {}, {});
+      sGattIf->scanner->ScanFilterAddRemove(client_if, action, filt_type,
+                                            filt_index, 0, 0, NULL, NULL, &bda,
+                                            addr_type, {}, {});
       break;
     }
 
@@ -1238,7 +1238,7 @@ static void gattClientScanFilterAddRemoveNative(
       std::vector<uint8_t> vec_mask(mask_array, mask_array + mask_len);
       env->ReleaseByteArrayElements(mask, mask_array, JNI_ABORT);
 
-      sGattIf->scanner->scan_filter_add_remove(
+      sGattIf->scanner->ScanFilterAddRemove(
           client_if, action, filt_type, filt_index, 0, 0, NULL, NULL, NULL, 0,
           std::move(vec_data), std::move(vec_mask));
       break;
@@ -1251,13 +1251,13 @@ static void gattClientScanFilterAddRemoveNative(
       set_uuid(uuid.uu, uuid_msb, uuid_lsb);
       set_uuid(uuid_mask.uu, uuid_mask_msb, uuid_mask_lsb);
       if (uuid_mask_lsb != 0 && uuid_mask_msb != 0)
-        sGattIf->scanner->scan_filter_add_remove(client_if, action, filt_type,
-                                                 filt_index, 0, 0, &uuid,
-                                                 &uuid_mask, NULL, 0, {}, {});
+        sGattIf->scanner->ScanFilterAddRemove(client_if, action, filt_type,
+                                              filt_index, 0, 0, &uuid,
+                                              &uuid_mask, NULL, 0, {}, {});
       else
-        sGattIf->scanner->scan_filter_add_remove(client_if, action, filt_type,
-                                                 filt_index, 0, 0, &uuid, NULL,
-                                                 NULL, 0, {}, {});
+        sGattIf->scanner->ScanFilterAddRemove(client_if, action, filt_type,
+                                              filt_index, 0, 0, &uuid, NULL,
+                                              NULL, 0, {}, {});
       break;
     }
 
@@ -1267,9 +1267,9 @@ static void gattClientScanFilterAddRemoveNative(
       if (c_name != NULL && strlen(c_name) != 0) {
         std::vector<uint8_t> vec_name(c_name, c_name + strlen(c_name));
         env->ReleaseStringUTFChars(name, c_name);
-        sGattIf->scanner->scan_filter_add_remove(
-            client_if, action, filt_type, filt_index, 0, 0, NULL, NULL, NULL, 0,
-            std::move(vec_name), {});
+        sGattIf->scanner->ScanFilterAddRemove(client_if, action, filt_type,
+                                              filt_index, 0, 0, NULL, NULL,
+                                              NULL, 0, std::move(vec_name), {});
       }
       break;
     }
@@ -1287,7 +1287,7 @@ static void gattClientScanFilterAddRemoveNative(
       std::vector<uint8_t> vec_mask(mask_array, mask_array + mask_len);
       env->ReleaseByteArrayElements(mask, mask_array, JNI_ABORT);
 
-      sGattIf->scanner->scan_filter_add_remove(
+      sGattIf->scanner->ScanFilterAddRemove(
           client_if, action, filt_type, filt_index, company_id, company_id_mask,
           NULL, NULL, NULL, 0, std::move(vec_data), std::move(vec_mask));
       break;
@@ -1327,13 +1327,13 @@ static void gattClientScanFilterDeleteNative(
 static void gattClientScanFilterClearNative(JNIEnv* env, jobject object,
                                             jint client_if, jint filt_index) {
   if (!sGattIf) return;
-  sGattIf->scanner->scan_filter_clear(client_if, filt_index);
+  sGattIf->scanner->ScanFilterClear(client_if, filt_index);
 }
 
 static void gattClientScanFilterEnableNative(JNIEnv* env, jobject object,
                                              jint client_if, jboolean enable) {
   if (!sGattIf) return;
-  sGattIf->scanner->scan_filter_enable(client_if, enable);
+  sGattIf->scanner->ScanFilterEnable(client_if, enable);
 }
 
 static void gattClientConfigureMTUNative(JNIEnv* env, jobject object,
@@ -1421,9 +1421,9 @@ static void gattClientConfigBatchScanStorageNative(
     JNIEnv* env, jobject object, jint client_if, jint max_full_reports_percent,
     jint max_trunc_reports_percent, jint notify_threshold_level_percent) {
   if (!sGattIf) return;
-  sGattIf->scanner->batchscan_cfg_storage(client_if, max_full_reports_percent,
-                                          max_trunc_reports_percent,
-                                          notify_threshold_level_percent);
+  sGattIf->scanner->BatchscanConfigStorage(client_if, max_full_reports_percent,
+                                           max_trunc_reports_percent,
+                                           notify_threshold_level_percent);
 }
 
 static void gattClientStartBatchScanNative(JNIEnv* env, jobject object,
@@ -1432,21 +1432,20 @@ static void gattClientStartBatchScanNative(JNIEnv* env, jobject object,
                                            jint scan_window_unit,
                                            jint addr_type, jint discard_rule) {
   if (!sGattIf) return;
-  sGattIf->scanner->batchscan_enb_batch_scan(
-      client_if, scan_mode, scan_interval_unit, scan_window_unit, addr_type,
-      discard_rule);
+  sGattIf->scanner->BatchscanEnable(client_if, scan_mode, scan_interval_unit,
+                                    scan_window_unit, addr_type, discard_rule);
 }
 
 static void gattClientStopBatchScanNative(JNIEnv* env, jobject object,
                                           jint client_if) {
   if (!sGattIf) return;
-  sGattIf->scanner->batchscan_dis_batch_scan(client_if);
+  sGattIf->scanner->BatchscanDisable(client_if);
 }
 
 static void gattClientReadScanReportsNative(JNIEnv* env, jobject object,
                                             jint client_if, jint scan_type) {
   if (!sGattIf) return;
-  sGattIf->scanner->batchscan_read_reports(client_if, scan_type);
+  sGattIf->scanner->BatchscanReadReports(client_if, scan_type);
 }
 
 /**
