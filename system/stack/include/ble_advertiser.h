@@ -99,8 +99,9 @@ class BleAdvertisingManager {
 
   /* This method is a member of BleAdvertiserHciInterface, and is exposed here
    * just for tests. It should never be called from upper layers*/
-  virtual void OnAdvertisingStateChanged(uint8_t inst_id, uint8_t reason,
-                                         uint16_t conn_handle) = 0;
+  virtual void OnAdvertisingSetTerminated(
+      uint8_t status, uint8_t advertising_handle, uint16_t connection_handle,
+      uint8_t num_completed_extended_adv_events) = 0;
 };
 
 #endif  // BLE_ADVERTISER_H
