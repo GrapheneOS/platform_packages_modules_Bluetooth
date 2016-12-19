@@ -86,7 +86,6 @@ const tBTA_DM_ACTION bta_dm_action[] = {
     bta_dm_ble_set_data_length, /* BTA_DM_API_SET_DATA_LENGTH_EVT */
 #if (BLE_ANDROID_CONTROLLER_SCAN_FILTER == TRUE)
     bta_dm_cfg_filter_cond,         /* BTA_DM_API_CFG_FILTER_COND_EVT */
-    bta_dm_scan_filter_param_setup, /* BTA_DM_API_SCAN_FILTER_SETUP_EVT */
     bta_dm_enable_scan_filter,      /* BTA_DM_API_SCAN_FILTER_ENABLE_EVT */
 #endif
     bta_dm_ble_setup_storage,      /* BTA_DM_API_BLE_SETUP_STORAGE_EVT */
