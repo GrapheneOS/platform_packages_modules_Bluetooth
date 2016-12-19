@@ -449,7 +449,7 @@ tBTM_STATUS BTM_BleObserve(bool start, uint8_t duration,
 #endif
 
       if (btm_cb.cmn_ble_vsc_cb.extended_scan_support == 0) {
-        btsnd_hcic_ble_set_scan_params(
+        btm_send_hci_set_scan_params(
             p_inq->scan_type, (uint16_t)scan_interval, (uint16_t)scan_window,
             btm_cb.ble_ctr_cb.addr_mgnt_cb.own_addr_type, BTM_BLE_DEFAULT_SFP);
       } else {
@@ -1390,6 +1390,32 @@ tBTM_STATUS btm_ble_set_connectability(uint16_t combined_mode) {
   return status;
 }
 
+void btm_send_hci_scan_enable(uint8_t enable, uint8_t filter_duplicates) {
+  if (controller_get_interface()->supports_ble_extended_advertising()) {
+    btsnd_hcic_ble_set_extended_scan_enable(enable, filter_duplicates, 0x0000,
+                                            0x0000);
+  } else {
+    btsnd_hcic_ble_set_scan_enable(enable, filter_duplicates);
+  }
+}
+
+void btm_send_hci_set_scan_params(uint8_t scan_type, uint16_t scan_int,
+                                  uint16_t scan_win, uint8_t addr_type_own,
+                                  uint8_t scan_filter_policy) {
+  if (controller_get_interface()->supports_ble_extended_advertising()) {
+    scanning_phy_cfg phy_cfg;
+    phy_cfg.scan_type = scan_type;
+    phy_cfg.scan_int = scan_int;
+    phy_cfg.scan_win = scan_win;
+
+    btsnd_hcic_ble_set_extended_scan_params(addr_type_own, scan_filter_policy,
+                                            1, &phy_cfg);
+  } else {
+    btsnd_hcic_ble_set_scan_params(scan_type, scan_int, scan_win, addr_type_own,
+                                   scan_filter_policy);
+  }
+}
+
 /*******************************************************************************
  *
  * Function         btm_ble_start_inquiry
@@ -1427,7 +1453,7 @@ tBTM_STATUS btm_ble_start_inquiry(uint8_t mode, uint8_t duration) {
   }
 
   if (!BTM_BLE_IS_SCAN_ACTIVE(p_ble_cb->scan_activity)) {
-    btsnd_hcic_ble_set_scan_params(
+    btm_send_hci_set_scan_params(
         BTM_BLE_SCAN_MODE_ACTI, BTM_BLE_LOW_LATENCY_SCAN_INT,
         BTM_BLE_LOW_LATENCY_SCAN_WIN,
         btm_cb.ble_ctr_cb.addr_mgnt_cb.own_addr_type, SP_ADV_ALL);
@@ -1442,14 +1468,12 @@ tBTM_STATUS btm_ble_start_inquiry(uint8_t mode, uint8_t duration) {
              (p_ble_cb->inq_var.scan_window != BTM_BLE_LOW_LATENCY_SCAN_WIN)) {
     BTM_TRACE_DEBUG("%s, restart LE scan with low latency scan params",
                     __func__);
-    btsnd_hcic_ble_set_scan_enable(BTM_BLE_SCAN_DISABLE,
-                                   BTM_BLE_DUPLICATE_ENABLE);
-    btsnd_hcic_ble_set_scan_params(
+    btm_send_hci_scan_enable(BTM_BLE_SCAN_DISABLE, BTM_BLE_DUPLICATE_ENABLE);
+    btm_send_hci_set_scan_params(
         BTM_BLE_SCAN_MODE_ACTI, BTM_BLE_LOW_LATENCY_SCAN_INT,
         BTM_BLE_LOW_LATENCY_SCAN_WIN,
         btm_cb.ble_ctr_cb.addr_mgnt_cb.own_addr_type, SP_ADV_ALL);
-    btsnd_hcic_ble_set_scan_enable(BTM_BLE_SCAN_ENABLE,
-                                   BTM_BLE_DUPLICATE_DISABLE);
+    btm_send_hci_scan_enable(BTM_BLE_SCAN_ENABLE, BTM_BLE_DUPLICATE_DISABLE);
   }
 
   if (status == BTM_CMD_STARTED) {
@@ -2144,10 +2168,8 @@ static void btm_ble_process_adv_pkt_cont(BD_ADDR bda, uint8_t addr_type,
  ******************************************************************************/
 tBTM_STATUS btm_ble_start_scan(void) {
   tBTM_BLE_INQ_CB* p_inq = &btm_cb.ble_ctr_cb.inq_var;
-
   /* start scan, disable duplicate filtering */
-  btsnd_hcic_ble_set_scan_enable(BTM_BLE_SCAN_ENABLE,
-                                 p_inq->scan_duplicate_filter);
+  btm_send_hci_scan_enable(BTM_BLE_SCAN_ENABLE, p_inq->scan_duplicate_filter);
 
   if (p_inq->scan_type == BTM_BLE_SCAN_MODE_ACTI)
     btm_ble_set_topology_mask(BTM_BLE_STATE_ACTIVE_SCAN_BIT);
@@ -2173,8 +2195,7 @@ void btm_ble_stop_scan(void) {
   btm_cb.ble_ctr_cb.inq_var.scan_type = BTM_BLE_SCAN_MODE_NONE;
 
   /* stop discovery now */
-  btsnd_hcic_ble_set_scan_enable(BTM_BLE_SCAN_DISABLE,
-                                 BTM_BLE_DUPLICATE_ENABLE);
+  btm_send_hci_scan_enable(BTM_BLE_SCAN_DISABLE, BTM_BLE_DUPLICATE_ENABLE);
 
   btm_update_scanner_filter_policy(SP_ADV_ALL);
 }
