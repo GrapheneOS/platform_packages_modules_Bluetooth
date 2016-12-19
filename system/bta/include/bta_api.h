@@ -25,6 +25,8 @@
 #ifndef BTA_API_H
 #define BTA_API_H
 
+#include <hardware/bt_common_types.h>
+#include <memory>
 #include "bt_target.h"
 #include "bt_types.h"
 #include "btm_api.h"
@@ -820,41 +822,10 @@ typedef void(tBTA_DM_BLE_PF_PARAM_CBACK)(uint8_t action_type,
 typedef void(tBTA_DM_BLE_PF_STATUS_CBACK)(uint8_t action, tBTA_STATUS status,
                                           tBTA_DM_BLE_REF_VALUE ref_value);
 
-#define BTA_DM_BLE_PF_BRDCAST_ADDR_FILT 1
-#define BTA_DM_BLE_PF_SERV_DATA_CHG_FILT 2
-#define BTA_DM_BLE_PF_SERV_UUID 4
-#define BTA_DM_BLE_PF_SERV_SOLC_UUID 8
-#define BTA_DM_BLE_PF_LOC_NAME_CHECK 16
-#define BTA_DM_BLE_PF_MANUF_NAME_CHECK 32
-#define BTA_DM_BLE_PF_SERV_DATA_CHECK 64
-typedef uint16_t tBTA_DM_BLE_PF_FEAT_SEL;
-
 #define BTA_DM_BLE_PF_LIST_LOGIC_OR 1
 #define BTA_DM_BLE_PF_LIST_LOGIC_AND 2
-typedef uint16_t tBTA_DM_BLE_PF_LIST_LOGIC_TYPE;
-
 #define BTA_DM_BLE_PF_FILT_LOGIC_OR 0
 #define BTA_DM_BLE_PF_FILT_LOGIC_AND 1
-typedef uint16_t tBTA_DM_BLE_PF_FILT_LOGIC_TYPE;
-
-typedef uint8_t tBTA_DM_BLE_PF_RSSI_THRESHOLD;
-typedef uint8_t tBTA_DM_BLE_PF_DELIVERY_MODE;
-typedef uint16_t tBTA_DM_BLE_PF_TIMEOUT;
-typedef uint8_t tBTA_DM_BLE_PF_TIMEOUT_CNT;
-typedef uint16_t tBTA_DM_BLE_PF_ADV_TRACK_ENTRIES;
-
-typedef struct {
-  tBTA_DM_BLE_PF_FEAT_SEL feat_seln;
-  tBTA_DM_BLE_PF_LIST_LOGIC_TYPE list_logic_type;
-  tBTA_DM_BLE_PF_FILT_LOGIC_TYPE filt_logic_type;
-  tBTA_DM_BLE_PF_RSSI_THRESHOLD rssi_high_thres;
-  tBTA_DM_BLE_PF_RSSI_THRESHOLD rssi_low_thres;
-  tBTA_DM_BLE_PF_DELIVERY_MODE dely_mode;
-  tBTA_DM_BLE_PF_TIMEOUT found_timeout;
-  tBTA_DM_BLE_PF_TIMEOUT lost_timeout;
-  tBTA_DM_BLE_PF_TIMEOUT_CNT found_timeout_cnt;
-  tBTA_DM_BLE_PF_ADV_TRACK_ENTRIES num_of_tracking_entries;
-} tBTA_DM_BLE_PF_FILT_PARAMS;
 
 /* Search callback events */
 #define BTA_DM_INQ_RES_EVT 0  /* Inquiry result for a peer device. */
@@ -2030,12 +2001,11 @@ extern void BTA_DmEnableScanFilter(uint8_t action,
  * Returns          void
  *
  ******************************************************************************/
-extern void BTA_DmBleScanFilterSetup(uint8_t action,
-                                     tBTA_DM_BLE_PF_FILT_INDEX filt_index,
-                                     tBTA_DM_BLE_PF_FILT_PARAMS* p_filt_params,
-                                     tBLE_BD_ADDR* p_target,
-                                     tBTA_DM_BLE_PF_PARAM_CBACK* p_cmpl_cback,
-                                     tBTA_DM_BLE_REF_VALUE ref_value);
+extern void BTA_DmBleScanFilterSetup(
+    uint8_t action, tBTA_DM_BLE_PF_FILT_INDEX filt_index,
+    std::unique_ptr<btgatt_filt_param_setup_t> p_filt_params,
+    std::unique_ptr<tBLE_BD_ADDR> p_target,
+    tBTA_DM_BLE_PF_PARAM_CBACK p_cmpl_cback, tBTA_DM_BLE_REF_VALUE ref_value);
 
 /*******************************************************************************
  *
