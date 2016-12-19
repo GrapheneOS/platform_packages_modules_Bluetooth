@@ -974,7 +974,7 @@ tBTM_STATUS btm_ble_clear_scan_pf_filter(tBTM_BLE_SCAN_COND_OP action,
  ******************************************************************************/
 tBTM_STATUS BTM_BleAdvFilterParamSetup(int action,
                                        tBTM_BLE_PF_FILT_INDEX filt_index,
-                                       tBTM_BLE_PF_FILT_PARAMS* p_filt_params,
+                                       btgatt_filt_param_setup_t* p_filt_params,
                                        tBLE_BD_ADDR* p_target,
                                        tBTM_BLE_PF_PARAM_CBACK* p_cmpl_cback,
                                        tBTM_BLE_REF_VALUE ref_value) {
@@ -1008,7 +1008,7 @@ tBTM_STATUS BTM_BleAdvFilterParamSetup(int action,
     /* set PCF selection */
     UINT16_TO_STREAM(p, p_filt_params->feat_seln);
     /* set logic type */
-    UINT16_TO_STREAM(p, p_filt_params->logic_type);
+    UINT16_TO_STREAM(p, p_filt_params->list_logic_type);
     /* set logic condition */
     UINT8_TO_STREAM(p, p_filt_params->filt_logic_type);
     /* set RSSI high threshold */

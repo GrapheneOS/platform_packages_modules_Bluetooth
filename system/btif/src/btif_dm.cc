@@ -1337,10 +1337,8 @@ static void btif_dm_search_devices_evt(uint16_t event, char* p_param) {
     } break;
 
     case BTA_DM_INQ_CMPL_EVT: {
-      tBTA_DM_BLE_PF_FILT_PARAMS adv_filt_param;
-      memset(&adv_filt_param, 0, sizeof(tBTA_DM_BLE_PF_FILT_PARAMS));
-      BTA_DmBleScanFilterSetup(BTA_DM_BLE_SCAN_COND_DELETE, 0, &adv_filt_param,
-                               NULL, bte_scan_filt_param_cfg_evt, 0);
+      BTA_DmBleScanFilterSetup(BTA_DM_BLE_SCAN_COND_DELETE, 0, nullptr, nullptr,
+                               bte_scan_filt_param_cfg_evt, 0);
     } break;
     case BTA_DM_DISC_CMPL_EVT: {
       HAL_CBACK(bt_hal_cbacks, discovery_state_changed_cb,
@@ -1357,11 +1355,10 @@ static void btif_dm_search_devices_evt(uint16_t event, char* p_param) {
        *
        */
       if (btif_dm_inquiry_in_progress == false) {
-        tBTA_DM_BLE_PF_FILT_PARAMS adv_filt_param;
-        memset(&adv_filt_param, 0, sizeof(tBTA_DM_BLE_PF_FILT_PARAMS));
-        BTA_DmBleScanFilterSetup(BTA_DM_BLE_SCAN_COND_DELETE, 0,
-                                 &adv_filt_param, NULL,
-                                 bte_scan_filt_param_cfg_evt, 0);
+        btgatt_filt_param_setup_t adv_filt_param;
+        memset(&adv_filt_param, 0, sizeof(btgatt_filt_param_setup_t));
+        BTA_DmBleScanFilterSetup(BTA_DM_BLE_SCAN_COND_DELETE, 0, nullptr,
+                                 nullptr, bte_scan_filt_param_cfg_evt, 0);
         HAL_CBACK(bt_hal_cbacks, discovery_state_changed_cb,
                   BT_DISCOVERY_STOPPED);
       }
@@ -2150,23 +2147,23 @@ static void bte_scan_filt_param_cfg_evt(uint8_t action_type,
 bt_status_t btif_dm_start_discovery(void) {
   tBTA_DM_INQ inq_params;
   tBTA_SERVICE_MASK services = 0;
-  tBTA_DM_BLE_PF_FILT_PARAMS adv_filt_param;
 
   BTIF_TRACE_EVENT("%s", __func__);
 
-  memset(&adv_filt_param, 0, sizeof(tBTA_DM_BLE_PF_FILT_PARAMS));
   /* Cleanup anything remaining on index 0 */
-  BTA_DmBleScanFilterSetup(BTA_DM_BLE_SCAN_COND_DELETE, 0, &adv_filt_param,
-                           NULL, bte_scan_filt_param_cfg_evt, 0);
+  BTA_DmBleScanFilterSetup(BTA_DM_BLE_SCAN_COND_DELETE, 0, nullptr, nullptr,
+                           bte_scan_filt_param_cfg_evt, 0);
 
+  auto adv_filt_param = std::make_unique<btgatt_filt_param_setup_t>();
   /* Add an allow-all filter on index 0*/
-  adv_filt_param.dely_mode = IMMEDIATE_DELY_MODE;
-  adv_filt_param.feat_seln = ALLOW_ALL_FILTER;
-  adv_filt_param.filt_logic_type = BTA_DM_BLE_PF_FILT_LOGIC_OR;
-  adv_filt_param.list_logic_type = BTA_DM_BLE_PF_LIST_LOGIC_OR;
-  adv_filt_param.rssi_low_thres = LOWEST_RSSI_VALUE;
-  adv_filt_param.rssi_high_thres = LOWEST_RSSI_VALUE;
-  BTA_DmBleScanFilterSetup(BTA_DM_BLE_SCAN_COND_ADD, 0, &adv_filt_param, NULL,
+  adv_filt_param->dely_mode = IMMEDIATE_DELY_MODE;
+  adv_filt_param->feat_seln = ALLOW_ALL_FILTER;
+  adv_filt_param->filt_logic_type = BTA_DM_BLE_PF_FILT_LOGIC_OR;
+  adv_filt_param->list_logic_type = BTA_DM_BLE_PF_LIST_LOGIC_OR;
+  adv_filt_param->rssi_low_thres = LOWEST_RSSI_VALUE;
+  adv_filt_param->rssi_high_thres = LOWEST_RSSI_VALUE;
+  BTA_DmBleScanFilterSetup(BTA_DM_BLE_SCAN_COND_ADD, 0,
+                           std::move(adv_filt_param), nullptr,
                            bte_scan_filt_param_cfg_evt, 0);
 
   /* TODO: Do we need to handle multiple inquiries at the same time? */

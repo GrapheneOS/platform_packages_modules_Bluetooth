@@ -464,42 +464,6 @@ typedef uint8_t tBTM_BLE_PF_FILT_INDEX;
 
 typedef uint8_t tBTM_BLE_PF_AVBL_SPACE;
 
-#define BTM_BLE_PF_BRDCAST_ADDR_FILT 1
-#define BTM_BLE_PF_SERV_DATA_CHG_FILT 2
-#define BTM_BLE_PF_SERV_UUID 4
-#define BTM_BLE_PF_SERV_SOLC_UUID 8
-#define BTM_BLE_PF_LOC_NAME_CHECK 16
-#define BTM_BLE_PF_MANUF_NAME_CHECK 32
-#define BTM_BLE_PF_SERV_DATA_CHECK 64
-typedef uint16_t tBTM_BLE_PF_FEAT_SEL;
-
-#define BTM_BLE_PF_LIST_LOGIC_OR 1
-#define BTM_BLE_PF_LIST_LOGIC_AND 2
-typedef uint16_t tBTM_BLE_PF_LIST_LOGIC_TYPE;
-
-#define BTM_BLE_PF_FILT_LOGIC_OR 0
-#define BTM_BLE_PF_FILT_LOGIC_AND 1
-typedef uint16_t tBTM_BLE_PF_FILT_LOGIC_TYPE;
-
-typedef uint8_t tBTM_BLE_PF_RSSI_THRESHOLD;
-typedef uint8_t tBTM_BLE_PF_DELIVERY_MODE;
-typedef uint16_t tBTM_BLE_PF_TIMEOUT;
-typedef uint8_t tBTM_BLE_PF_TIMEOUT_CNT;
-typedef uint16_t tBTM_BLE_PF_ADV_TRACK_ENTRIES;
-
-typedef struct {
-  tBTM_BLE_PF_FEAT_SEL feat_seln;
-  tBTM_BLE_PF_LIST_LOGIC_TYPE logic_type;
-  tBTM_BLE_PF_FILT_LOGIC_TYPE filt_logic_type;
-  tBTM_BLE_PF_RSSI_THRESHOLD rssi_high_thres;
-  tBTM_BLE_PF_RSSI_THRESHOLD rssi_low_thres;
-  tBTM_BLE_PF_DELIVERY_MODE dely_mode;
-  tBTM_BLE_PF_TIMEOUT found_timeout;
-  tBTM_BLE_PF_TIMEOUT lost_timeout;
-  tBTM_BLE_PF_TIMEOUT_CNT found_timeout_cnt;
-  tBTM_BLE_PF_ADV_TRACK_ENTRIES num_of_tracking_entries;
-} tBTM_BLE_PF_FILT_PARAMS;
-
 enum {
   BTM_BLE_SCAN_COND_ADD,
   BTM_BLE_SCAN_COND_DELETE,

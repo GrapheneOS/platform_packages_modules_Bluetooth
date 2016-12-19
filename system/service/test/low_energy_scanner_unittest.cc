@@ -17,6 +17,7 @@
 #include <base/macros.h>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
+#include <memory>
 
 #include "service/adapter.h"
 #include "service/hal/fake_bluetooth_gatt_interface.h"
@@ -44,8 +45,9 @@ class MockScannerHandler : public BleScannerInterface {
   MOCK_METHOD1(Unregister, void(int));
   MOCK_METHOD1(Scan, void(bool));
 
-  MOCK_METHOD1(scan_filter_param_setup,
-               bt_status_t(btgatt_filt_param_setup_t filt_param));
+  MOCK_METHOD4(ScanFilterParamSetupImpl,
+               void(uint8_t client_if, uint8_t action, uint8_t filt_index,
+                    btgatt_filt_param_setup_t* filt_param));
   MOCK_METHOD2(scan_filter_clear, bt_status_t(int client_if, int filt_index));
   MOCK_METHOD2(scan_filter_enable, bt_status_t(int client_if, bool enable));
 
@@ -73,6 +75,12 @@ class MockScannerHandler : public BleScannerInterface {
       std::vector<uint8_t> data, std::vector<uint8_t> p_mask) {
     return BT_STATUS_SUCCESS;
   };
+
+  void ScanFilterParamSetup(
+      uint8_t client_if, uint8_t action, uint8_t filt_index,
+      std::unique_ptr<btgatt_filt_param_setup_t> filt_param) {
+    ScanFilterParamSetupImpl(client_if, action, filt_index, filt_param.get());
+  }
 };
 
 class TestDelegate : public LowEnergyScanner::Delegate {
