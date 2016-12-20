@@ -845,7 +845,6 @@ extern void bta_dm_ble_set_adv_params(uint16_t adv_int_min,
 
 extern void bta_dm_ble_set_data_length(tBTA_DM_MSG* p_data);
 
-#if (BLE_ANDROID_CONTROLLER_SCAN_FILTER == TRUE)
 extern void bta_dm_cfg_filter_cond(tBTA_DM_BLE_SCAN_COND_OP action,
                                    tBTA_DM_BLE_PF_COND_TYPE cond_type,
                                    tBTA_DM_BLE_PF_FILT_INDEX filt_index,
@@ -864,7 +863,6 @@ extern void bta_dm_scan_filter_param_setup(
 extern void bta_dm_enable_scan_filter(
     uint8_t action, tBTA_DM_BLE_PF_STATUS_CBACK* p_filt_status_cback,
     tBTA_DM_BLE_REF_VALUE ref_value);
-#endif
 
 extern void bta_dm_ble_setup_storage(
     uint8_t batch_scan_full_max, uint8_t batch_scan_trunc_max,
