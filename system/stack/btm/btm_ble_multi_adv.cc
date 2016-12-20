@@ -37,7 +37,7 @@ using multiadv_cb = base::Callback<void(uint8_t /* status */)>;
 struct AdvertisingInstance {
   uint8_t inst_id;
   bool in_use;
-  uint8_t adv_evt;
+  uint8_t advertising_event_properties;
   BD_ADDR rpa;
   alarm_t* adv_raddr_timer;
   int8_t tx_power;
@@ -47,7 +47,7 @@ struct AdvertisingInstance {
   AdvertisingInstance(int inst_id)
       : inst_id(inst_id),
         in_use(false),
-        adv_evt(0),
+        advertising_event_properties(0),
         rpa{0},
         tx_power(0),
         timeout_s(0),
@@ -81,6 +81,14 @@ void btm_ble_multi_adv_gen_rpa_cmpl(tBTM_RAND_ENC* p) {
 }
 
 void btm_ble_adv_raddr_timer_timeout(void* data);
+
+bool is_legacy_connectable(uint16_t advertising_event_properties) {
+  if (((advertising_event_properties & 0x10) != 0) &&
+      ((advertising_event_properties & 0x01) != 0)) {
+    return true;
+  }
+  return false;
+}
 
 class BleAdvertisingManagerImpl
     : public BleAdvertisingManager,
@@ -316,15 +324,18 @@ class BleAdvertisingManagerImpl
              BD_ADDR_LEN);
     }
 
-    p_inst->adv_evt = p_params->adv_type;
+    p_inst->advertising_event_properties =
+        p_params->advertising_event_properties;
     p_inst->tx_power = p_params->tx_power;
     BD_ADDR peer_address = {0, 0, 0, 0, 0, 0};
 
     GetHciInterface()->SetParameters(
-        p_inst->inst_id, p_params->adv_type, p_params->adv_int_min,
-        p_params->adv_int_max, p_params->channel_map, own_address_type, 0x00,
-        peer_address, p_params->adv_filter_policy, p_inst->tx_power, 0x01, 0x01,
-        0x01, 0x00, 0x00, cb);
+        p_inst->inst_id, p_params->advertising_event_properties,
+        p_params->adv_int_min, p_params->adv_int_max, p_params->channel_map,
+        own_address_type, 0x00, peer_address, p_params->adv_filter_policy,
+        p_inst->tx_power, p_params->primary_advertising_phy, 0x01, 0x01,
+        p_params->secondary_advertising_phy,
+        p_params->scan_request_notification_enable, cb);
 
     // TODO: re-enable only if it was enabled, properly call
     // SetParamsCallback
@@ -343,7 +354,8 @@ class BleAdvertisingManagerImpl
     AdvertisingInstance* p_inst = &adv_inst[inst_id];
     VLOG(1) << "is_scan_rsp = " << is_scan_rsp;
 
-    if (!is_scan_rsp && p_inst->adv_evt != BTM_BLE_NON_CONNECT_EVT) {
+    if (!is_scan_rsp &&
+        is_legacy_connectable(p_inst->advertising_event_properties)) {
       uint8_t flags_val = BTM_GENERAL_DISCOVERABLE;
 
       if (p_inst->timeout_s) flags_val = BTM_LIMITED_DISCOVERABLE;
@@ -415,7 +427,9 @@ class BleAdvertisingManagerImpl
     if (p_inst->in_use == true) {
       // TODO(jpawlowski): we don't really allow to do directed advertising
       // right now. This should probably be removed, check with Andre.
-      if (p_inst->adv_evt != BTM_BLE_CONNECT_DIR_EVT) {
+      if ((p_inst->advertising_event_properties & 0x0C) ==
+          0 /* directed advertising bits not set
+      */) {
         GetHciInterface()->Enable(true, advertising_handle, 0x00, 0x00,
                                   Bind(DoNothing));
       } else {
