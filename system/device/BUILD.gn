@@ -27,6 +27,10 @@ static_library("device") {
     "//include",
     "//stack/include",
   ]
+
+  deps = [
+    "//third_party/libchrome:base",
+  ]
 }
 
 executable("net_test_device") {
@@ -42,6 +46,7 @@ executable("net_test_device") {
     "//btcore",
     "//osi",
     "//third_party/googletest:gtest_main",
+    "//third_party/libchrome:base",
   ]
 
   libs = [
