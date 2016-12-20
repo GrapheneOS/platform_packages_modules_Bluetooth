@@ -41,12 +41,15 @@ void btm_ble_multi_adv_cleanup(void);
 void btm_ble_multi_adv_init();
 
 typedef struct {
-  uint16_t adv_int_min;
-  uint16_t adv_int_max;
-  uint8_t adv_type;
+  uint16_t advertising_event_properties;
+  uint32_t adv_int_min;
+  uint32_t adv_int_max;
   tBTM_BLE_ADV_CHNL_MAP channel_map;
   tBTM_BLE_AFP adv_filter_policy;
-  tBTM_BLE_ADV_TX_POWER tx_power;
+  int8_t tx_power;
+  uint8_t primary_advertising_phy;
+  uint8_t secondary_advertising_phy;
+  uint8_t scan_request_notification_enable;
 } tBTM_BLE_ADV_PARAMS;
 
 class BleAdvertiserHciInterface;
@@ -54,6 +57,9 @@ class BleAdvertiserHciInterface;
 class BleAdvertisingManager {
  public:
   virtual ~BleAdvertisingManager() = default;
+
+  static const uint16_t advertising_prop_legacy_connectable = 0x0011;
+  static const uint16_t advertising_prop_legacy_non_connectable = 0x0010;
 
   static void Initialize(BleAdvertiserHciInterface* interface);
   static void CleanUp();

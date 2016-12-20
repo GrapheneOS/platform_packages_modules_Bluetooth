@@ -61,14 +61,6 @@ static inline OwnedArrayWrapper<T> OwnedArray(T* o) {
   return OwnedArrayWrapper<T>(o);
 }
 
-/* return the actual power in dBm based on the mapping in config file */
-int8_t ble_tx_power[BTM_BLE_ADV_TX_POWER_MAX + 1] = BTM_BLE_ADV_TX_POWER;
-int8_t ble_map_adv_tx_power(int tx_power_index) {
-  if (0 <= tx_power_index && tx_power_index < BTM_BLE_ADV_TX_POWER_MAX)
-    return (int8_t)ble_tx_power[tx_power_index];
-  return 0;
-}
-
 class BleAdvertiserInterfaceImpl : public BleAdvertiserInterface {
   ~BleAdvertiserInterfaceImpl(){};
 
@@ -102,16 +94,23 @@ class BleAdvertiserInterfaceImpl : public BleAdvertiserInterface {
     do_in_jni_thread(Bind(cb, status));
   }
 
-  virtual void SetParameters(int advertiser_id, int min_interval,
-                             int max_interval, int adv_type, int chnl_map,
-                             int tx_power, Callback cb) {
+  void SetParameters(uint8_t advertiser_id,
+                     uint16_t advertising_event_properties,
+                     uint32_t min_interval, uint32_t max_interval, int chnl_map,
+                     int tx_power, uint8_t primary_advertising_phy,
+                     uint8_t secondary_advertising_phy,
+                     uint8_t scan_request_notification_enable, Callback cb) {
     tBTM_BLE_ADV_PARAMS* params = new tBTM_BLE_ADV_PARAMS;
+
+    params->advertising_event_properties = advertising_event_properties;
     params->adv_int_min = min_interval;
     params->adv_int_max = max_interval;
-    params->adv_type = adv_type;
     params->channel_map = chnl_map;
     params->adv_filter_policy = 0;
-    params->tx_power = ble_map_adv_tx_power(tx_power);
+    params->tx_power = tx_power;
+    params->primary_advertising_phy = primary_advertising_phy;
+    params->secondary_advertising_phy = secondary_advertising_phy;
+    params->scan_request_notification_enable = scan_request_notification_enable;
 
     do_in_bta_thread(FROM_HERE,
                      Bind(&BleAdvertisingManager::SetParameters,
@@ -166,12 +165,17 @@ class BleAdvertiserInterfaceImpl : public BleAdvertiserInterface {
     VLOG(1) << __func__;
 
     tBTM_BLE_ADV_PARAMS* p_params = new tBTM_BLE_ADV_PARAMS;
+    p_params->advertising_event_properties =
+        params.advertising_event_properties;
     p_params->adv_int_min = params.min_interval;
     p_params->adv_int_max = params.max_interval;
-    p_params->adv_type = params.adv_type;
     p_params->channel_map = params.channel_map;
     p_params->adv_filter_policy = 0;
-    p_params->tx_power = ble_map_adv_tx_power(params.tx_power);
+    p_params->tx_power = params.tx_power;
+    p_params->primary_advertising_phy = params.primary_advertising_phy;
+    p_params->secondary_advertising_phy = params.secondary_advertising_phy;
+    p_params->scan_request_notification_enable =
+        params.scan_request_notification_enable;
 
     do_in_bta_thread(
         FROM_HERE, Bind(&BleAdvertisingManager::StartAdvertising,
