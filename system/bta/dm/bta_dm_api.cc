@@ -1156,7 +1156,6 @@ void BTA_DmBleConfigLocalPrivacy(bool privacy_enable) {
  * Returns          void
  *
  ******************************************************************************/
-#if (BLE_ANDROID_CONTROLLER_SCAN_FILTER == TRUE)
 void BTA_DmBleCfgFilterCondition(tBTA_DM_BLE_SCAN_COND_OP action,
                                  tBTA_DM_BLE_PF_COND_TYPE cond_type,
                                  tBTA_DM_BLE_PF_FILT_INDEX filt_index,
@@ -1246,23 +1245,12 @@ void BTA_DmBleCfgFilterCondition(tBTA_DM_BLE_SCAN_COND_OP action,
       base::Bind(&bta_dm_cfg_filter_cond, action, cond_type, filt_index,
                  base::Owned(p_cond_param), p_cmpl_cback, ref_value));
 }
-#else
-void BTA_DmBleCfgFilterCondition(
-    UNUSED_ATTR tBTA_DM_BLE_SCAN_COND_OP action,
-    UNUSED_ATTR tBTA_DM_BLE_PF_COND_TYPE cond_type,
-    UNUSED_ATTR tBTA_DM_BLE_PF_FILT_INDEX filt_index,
-    UNUSED_ATTR tBTA_DM_BLE_PF_COND_PARAM* p_cond,
-    UNUSED_ATTR tBTA_DM_BLE_PF_CFG_CBACK* p_cmpl_cback,
-    UNUSED_ATTR tBTA_DM_BLE_REF_VALUE ref_value) {}
-#endif
 
 void BTA_DmBleScanFilterClear(tBTA_DM_BLE_REF_VALUE ref_value,
                               tBTA_DM_BLE_PF_FILT_INDEX filt_index,
                               tBTA_DM_BLE_PF_CFG_CBACK* p_cmpl_cback) {
-#if (BLE_ANDROID_CONTROLLER_SCAN_FILTER == TRUE)
   do_in_bta_thread(FROM_HERE, base::Bind(&bta_dm_scan_filter_clear, ref_value,
                                          filt_index, p_cmpl_cback));
-#endif
 }
 
 /*******************************************************************************
@@ -1288,13 +1276,11 @@ void BTA_DmBleScanFilterSetup(
     std::unique_ptr<btgatt_filt_param_setup_t> p_filt_params,
     std::unique_ptr<tBLE_BD_ADDR> p_target,
     tBTA_DM_BLE_PF_PARAM_CBACK p_cmpl_cback, tBTA_DM_BLE_REF_VALUE ref_value) {
-#if (BLE_ANDROID_CONTROLLER_SCAN_FILTER == TRUE)
   APPL_TRACE_API("%s: %d", __func__, action);
   do_in_bta_thread(
       FROM_HERE, base::Bind(&bta_dm_scan_filter_param_setup, action, filt_index,
                             base::Passed(&p_filt_params),
                             base::Passed(&p_target), p_cmpl_cback, ref_value));
-#endif
 }
 
 /*******************************************************************************
@@ -1337,11 +1323,9 @@ void BTA_DmBleGetEnergyInfo(tBTA_BLE_ENERGY_INFO_CBACK* p_cmpl_cback) {
 void BTA_DmEnableScanFilter(uint8_t action,
                             tBTA_DM_BLE_PF_STATUS_CBACK* p_cmpl_cback,
                             tBTA_DM_BLE_REF_VALUE ref_value) {
-#if (BLE_ANDROID_CONTROLLER_SCAN_FILTER == TRUE)
   APPL_TRACE_API("%s: %d", __func__, action);
   do_in_bta_thread(FROM_HERE, base::Bind(&bta_dm_enable_scan_filter, action,
                                          p_cmpl_cback, ref_value));
-#endif
 }
 
 /*******************************************************************************
@@ -1523,7 +1507,6 @@ void BTA_VendorCleanup(void) {
   tBTM_BLE_VSC_CB cmn_ble_vsc_cb;
   BTM_BleGetVendorCapabilities(&cmn_ble_vsc_cb);
 
-#if (BLE_ANDROID_CONTROLLER_SCAN_FILTER == TRUE)
   if (cmn_ble_vsc_cb.max_filter > 0) {
     btm_ble_adv_filter_cleanup();
 #if (BLE_PRIVACY_SPT == TRUE)
@@ -1532,7 +1515,6 @@ void BTA_VendorCleanup(void) {
   }
 
   if (cmn_ble_vsc_cb.tot_scan_results_strg > 0) btm_ble_batchscan_cleanup();
-#endif
 
   if (cmn_ble_vsc_cb.adv_inst_max > 0) btm_ble_multi_adv_cleanup();
 }

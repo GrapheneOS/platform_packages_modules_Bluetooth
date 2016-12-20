@@ -4555,7 +4555,6 @@ void bta_ble_scan_setup_cb(tBTM_BLE_BATCH_SCAN_EVT evt,
     bta_dm_cb.p_setup_cback(bta_evt, ref_value, status);
 }
 
-#if (BLE_ANDROID_CONTROLLER_SCAN_FILTER == TRUE)
 /*******************************************************************************
  *
  * Function         bta_ble_scan_pf_cmpl
@@ -4693,7 +4692,6 @@ void bta_dm_scan_filter_param_setup(
   BTM_BleAdvFilterParamSetup(action, filt_index, filt_params.get(),
                              p_target.get(), p_filt_param_cback, ref_value);
 }
-#endif
 
 /*******************************************************************************
  *

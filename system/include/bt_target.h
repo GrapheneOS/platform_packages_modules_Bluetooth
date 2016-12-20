@@ -665,10 +665,6 @@
  *
  *****************************************************************************/
 
-#ifndef BLE_ANDROID_CONTROLLER_SCAN_FILTER
-#define BLE_ANDROID_CONTROLLER_SCAN_FILTER TRUE
-#endif
-
 #ifndef LOCAL_BLE_CONTROLLER_ID
 #define LOCAL_BLE_CONTROLLER_ID (1)
 #endif
