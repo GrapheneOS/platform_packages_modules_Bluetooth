@@ -305,6 +305,19 @@ public class GattService extends ProfileService {
         }
     }
 
+    class ClientDeathRecipient implements IBinder.DeathRecipient {
+        int mAppIf;
+
+        public ClientDeathRecipient(int appIf) {
+            mAppIf = appIf;
+        }
+
+        public void binderDied() {
+            if (DBG) Log.d(TAG, "Binder is dead - unregistering client (" + mAppIf + ")!");
+            unregisterClient(mAppIf);
+        }
+    }
+
     /**
      * Handlers for incoming service calls
      */
@@ -675,6 +688,7 @@ public class GattService extends ProfileService {
         if (app != null) {
             if (status == 0) {
                 app.id = clientIf;
+                app.linkToDeath(new ClientDeathRecipient(clientIf));
             } else {
                 mClientMap.remove(uuid);
             }
