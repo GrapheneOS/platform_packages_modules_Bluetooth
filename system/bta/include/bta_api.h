@@ -442,6 +442,7 @@ typedef union {
   tBTA_DM_BLE_PF_UUID_COND
       solicitate_uuid; /* solicitated service UUID filtering */
   tBTA_DM_BLE_PF_SRVC_PATTERN_COND srvc_data; /* service data pattern */
+  uint8_t additional_data[2000];
 } tBTA_DM_BLE_PF_COND_PARAM;
 
 typedef uint8_t tBTA_DM_BLE_PF_FILT_INDEX;
@@ -1699,24 +1700,6 @@ extern void BTA_DmSetBleScanParams(
 
 /*******************************************************************************
  *
- * Function         BTA_DmSetBleAdvParams
- *
- * Description      This function sets the advertising parameters BLE
- *                  functionality.
- *                  It is to be called when device act in peripheral or
- *                  broadcaster role.
- *
- * Parameters:      adv_int_min    - adv interval minimum
- *                  adv_int_max    - adv interval max
- *                  p_dir_bda      - directed adv initator address
- *
- * Returns          void
- *
- ******************************************************************************/
-extern void BTA_DmSetBleAdvParams(uint16_t adv_int_min, uint16_t adv_int_max,
-                                  tBLE_BD_ADDR* p_dir_bda);
-/*******************************************************************************
- *
  * Function         BTA_DmSearchExt
  *
  * Description      This function searches for peer Bluetooth devices. It
@@ -2030,6 +2013,10 @@ extern void BTA_DmBleCfgFilterCondition(tBTA_DM_BLE_SCAN_COND_OP action,
                                         tBTA_DM_BLE_PF_COND_PARAM* p_cond,
                                         tBTA_DM_BLE_PF_CFG_CBACK* p_cmpl_cback,
                                         tBTA_DM_BLE_REF_VALUE ref_value);
+
+extern void BTA_DmBleScanFilterClear(tBTA_DM_BLE_REF_VALUE ref_value,
+                                     tBTA_DM_BLE_PF_FILT_INDEX filt_index,
+                                     tBTA_DM_BLE_PF_CFG_CBACK* p_cmpl_cback);
 
 /*******************************************************************************
  *
