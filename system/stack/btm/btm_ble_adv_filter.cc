@@ -87,7 +87,7 @@ tBTM_STATUS btm_ble_obtain_vsc_details() {
 
 #if (BLE_VND_INCLUDED == TRUE)
   BTM_BleGetVendorCapabilities(&cmn_ble_vsc_cb);
-  if (0 == cmn_ble_vsc_cb.max_filter) {
+  if (cmn_ble_vsc_cb.filter_support && 0 == cmn_ble_vsc_cb.max_filter) {
     st = BTM_MODE_UNSUPPORTED;
     return st;
   }
