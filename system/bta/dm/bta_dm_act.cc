@@ -4257,12 +4257,12 @@ void bta_dm_ble_set_conn_params(tBTA_DM_MSG* p_data) {
  * Parameters:
  *
  ******************************************************************************/
-void bta_dm_ble_set_scan_params(tBTA_DM_MSG* p_data) {
-  BTM_BleSetScanParams(p_data->ble_set_scan_params.client_if,
-                       p_data->ble_set_scan_params.scan_int,
-                       p_data->ble_set_scan_params.scan_window,
-                       p_data->ble_set_scan_params.scan_mode,
-                       p_data->ble_set_scan_params.scan_param_setup_cback);
+void bta_dm_ble_set_scan_params(
+    tBTA_GATTC_IF client_if, uint32_t scan_int, uint32_t scan_window,
+    tBLE_SCAN_MODE scan_mode,
+    tBLE_SCAN_PARAM_SETUP_CBACK scan_param_setup_cback) {
+  BTM_BleSetScanParams(client_if, scan_int, scan_window, scan_mode,
+                       scan_param_setup_cback);
 }
 
 /*******************************************************************************
@@ -4384,7 +4384,13 @@ void bta_dm_ble_set_data_length(tBTA_DM_MSG* p_data) {
  * Parameters:
  *
  ******************************************************************************/
-void bta_dm_ble_setup_storage(tBTA_DM_MSG* p_data) {
+void bta_dm_ble_setup_storage(uint8_t batch_scan_full_max,
+                              uint8_t batch_scan_trunc_max,
+                              uint8_t batch_scan_notify_threshold,
+                              tBTA_BLE_SCAN_SETUP_CBACK* p_setup_cback,
+                              tBTA_BLE_SCAN_THRESHOLD_CBACK* p_thres_cback,
+                              tBTA_BLE_SCAN_REP_CBACK* p_read_rep_cback,
+                              tBTA_DM_BLE_REF_VALUE ref_value) {
   tBTM_STATUS btm_status = 0;
   tBTM_BLE_VSC_CB cmn_ble_vsc_cb;
 
@@ -4392,18 +4398,13 @@ void bta_dm_ble_setup_storage(tBTA_DM_MSG* p_data) {
 
   if (0 != cmn_ble_vsc_cb.tot_scan_results_strg) {
     btm_status = BTM_BleSetStorageConfig(
-        p_data->ble_set_storage.batch_scan_full_max,
-        p_data->ble_set_storage.batch_scan_trunc_max,
-        p_data->ble_set_storage.batch_scan_notify_threshold,
-        p_data->ble_set_storage.p_setup_cback,
-        p_data->ble_set_storage.p_thres_cback,
-        p_data->ble_set_storage.p_read_rep_cback,
-        p_data->ble_set_storage.ref_value);
+        batch_scan_full_max, batch_scan_trunc_max, batch_scan_notify_threshold,
+        p_setup_cback, p_thres_cback, p_read_rep_cback, ref_value);
   }
 
   if (BTM_CMD_STARTED != btm_status)
-    bta_ble_scan_setup_cb(BTM_BLE_BATCH_SCAN_CFG_STRG_EVT,
-                          p_data->ble_set_storage.ref_value, btm_status);
+    bta_ble_scan_setup_cb(BTM_BLE_BATCH_SCAN_CFG_STRG_EVT, ref_value,
+                          btm_status);
 }
 
 /*******************************************************************************
@@ -4415,23 +4416,23 @@ void bta_dm_ble_setup_storage(tBTA_DM_MSG* p_data) {
  * Parameters:
  *
  ******************************************************************************/
-void bta_dm_ble_enable_batch_scan(tBTA_DM_MSG* p_data) {
+void bta_dm_ble_enable_batch_scan(tBTA_BLE_BATCH_SCAN_MODE scan_mode,
+                                  uint32_t scan_int, uint32_t scan_window,
+                                  tBTA_BLE_DISCARD_RULE discard_rule,
+                                  tBLE_ADDR_TYPE addr_type,
+                                  tBTA_DM_BLE_REF_VALUE ref_value) {
   tBTM_STATUS btm_status = 0;
   tBTM_BLE_VSC_CB cmn_ble_vsc_cb;
 
   BTM_BleGetVendorCapabilities(&cmn_ble_vsc_cb);
 
   if (0 != cmn_ble_vsc_cb.tot_scan_results_strg) {
-    btm_status = BTM_BleEnableBatchScan(
-        p_data->ble_enable_scan.scan_mode, p_data->ble_enable_scan.scan_int,
-        p_data->ble_enable_scan.scan_window,
-        p_data->ble_enable_scan.discard_rule, p_data->ble_enable_scan.addr_type,
-        p_data->ble_enable_scan.ref_value);
+    btm_status = BTM_BleEnableBatchScan(scan_mode, scan_int, scan_window,
+                                        discard_rule, addr_type, ref_value);
   }
 
   if (BTM_CMD_STARTED != btm_status)
-    bta_ble_scan_setup_cb(BTM_BLE_BATCH_SCAN_ENABLE_EVT,
-                          p_data->ble_enable_scan.ref_value, btm_status);
+    bta_ble_scan_setup_cb(BTM_BLE_BATCH_SCAN_ENABLE_EVT, ref_value, btm_status);
 }
 
 /*******************************************************************************
@@ -4443,19 +4444,19 @@ void bta_dm_ble_enable_batch_scan(tBTA_DM_MSG* p_data) {
  * Parameters:
  *
  ******************************************************************************/
-void bta_dm_ble_disable_batch_scan(UNUSED_ATTR tBTA_DM_MSG* p_data) {
+void bta_dm_ble_disable_batch_scan(tBTA_DM_BLE_REF_VALUE ref_value) {
   tBTM_STATUS btm_status = 0;
   tBTM_BLE_VSC_CB cmn_ble_vsc_cb;
 
   BTM_BleGetVendorCapabilities(&cmn_ble_vsc_cb);
 
   if (0 != cmn_ble_vsc_cb.tot_scan_results_strg) {
-    btm_status = BTM_BleDisableBatchScan(p_data->ble_disable_scan.ref_value);
+    btm_status = BTM_BleDisableBatchScan(ref_value);
   }
 
   if (BTM_CMD_STARTED != btm_status)
-    bta_ble_scan_setup_cb(BTM_BLE_BATCH_SCAN_DISABLE_EVT,
-                          p_data->ble_enable_scan.ref_value, btm_status);
+    bta_ble_scan_setup_cb(BTM_BLE_BATCH_SCAN_DISABLE_EVT, ref_value,
+                          btm_status);
 }
 
 /*******************************************************************************
@@ -4467,20 +4468,20 @@ void bta_dm_ble_disable_batch_scan(UNUSED_ATTR tBTA_DM_MSG* p_data) {
  * Parameters:
  *
  ******************************************************************************/
-void bta_dm_ble_read_scan_reports(tBTA_DM_MSG* p_data) {
+void bta_dm_ble_read_scan_reports(tBTA_BLE_BATCH_SCAN_MODE scan_type,
+                                  tBTA_DM_BLE_REF_VALUE ref_value) {
   tBTM_STATUS btm_status = 0;
   tBTM_BLE_VSC_CB cmn_ble_vsc_cb;
 
   BTM_BleGetVendorCapabilities(&cmn_ble_vsc_cb);
 
   if (0 != cmn_ble_vsc_cb.tot_scan_results_strg) {
-    btm_status = BTM_BleReadScanReports(p_data->ble_read_reports.scan_type,
-                                        p_data->ble_read_reports.ref_value);
+    btm_status = BTM_BleReadScanReports(scan_type, ref_value);
   }
 
   if (BTM_CMD_STARTED != btm_status)
-    bta_ble_scan_setup_cb(BTM_BLE_BATCH_SCAN_READ_REPTS_EVT,
-                          p_data->ble_enable_scan.ref_value, btm_status);
+    bta_ble_scan_setup_cb(BTM_BLE_BATCH_SCAN_READ_REPTS_EVT, ref_value,
+                          btm_status);
 }
 
 /*******************************************************************************
@@ -4588,7 +4589,12 @@ static void bta_ble_scan_cfg_cmpl(tBTM_BLE_PF_ACTION action,
  * Parameters:
  *
  ******************************************************************************/
-void bta_dm_cfg_filter_cond(tBTA_DM_MSG* p_data) {
+void bta_dm_cfg_filter_cond(tBTA_DM_BLE_SCAN_COND_OP action,
+                            tBTA_DM_BLE_PF_COND_TYPE cond_type,
+                            tBTA_DM_BLE_PF_FILT_INDEX filt_index,
+                            tBTA_DM_BLE_PF_COND_PARAM* p_cond_param,
+                            tBTA_DM_BLE_PF_CFG_CBACK* p_filt_cfg_cback,
+                            tBTA_DM_BLE_REF_VALUE ref_value) {
   tBTM_STATUS st = BTM_MODE_UNSUPPORTED;
   tBTA_STATUS status = BTA_FAILURE;
 
@@ -4597,24 +4603,40 @@ void bta_dm_cfg_filter_cond(tBTA_DM_MSG* p_data) {
   APPL_TRACE_DEBUG("bta_dm_cfg_filter_cond");
   BTM_BleGetVendorCapabilities(&cmn_vsc_cb);
   if (0 != cmn_vsc_cb.filter_support) {
-    st = BTM_BleCfgFilterCondition(
-        p_data->ble_cfg_filter_cond.action,
-        p_data->ble_cfg_filter_cond.cond_type,
-        (tBTM_BLE_PF_FILT_INDEX)p_data->ble_cfg_filter_cond.filt_index,
-        (tBTM_BLE_PF_COND_PARAM*)p_data->ble_cfg_filter_cond.p_cond_param,
-        bta_ble_scan_cfg_cmpl, p_data->ble_cfg_filter_cond.ref_value);
+    st = BTM_BleCfgFilterCondition(action, cond_type,
+                                   (tBTM_BLE_PF_FILT_INDEX)filt_index,
+                                   (tBTM_BLE_PF_COND_PARAM*)p_cond_param,
+                                   bta_ble_scan_cfg_cmpl, ref_value);
     if (st == BTM_CMD_STARTED) {
-      bta_dm_cb.p_scan_filt_cfg_cback =
-          p_data->ble_cfg_filter_cond.p_filt_cfg_cback;
+      bta_dm_cb.p_scan_filt_cfg_cback = p_filt_cfg_cback;
       return;
     }
   }
 
-  if (p_data->ble_cfg_filter_cond.p_filt_cfg_cback)
-    p_data->ble_cfg_filter_cond.p_filt_cfg_cback(
-        BTA_DM_BLE_PF_CONFIG_EVT, p_data->ble_cfg_filter_cond.cond_type, 0,
-        status, p_data->ble_cfg_filter_cond.ref_value);
-  return;
+  if (p_filt_cfg_cback)
+    p_filt_cfg_cback(BTA_DM_BLE_PF_CONFIG_EVT, cond_type, 0, status, ref_value);
+}
+
+void bta_dm_scan_filter_clear(tBTA_DM_BLE_REF_VALUE ref_value,
+                              tBTM_BLE_PF_FILT_INDEX filt_index,
+                              tBTA_DM_BLE_PF_CFG_CBACK* p_filt_cfg_cback) {
+  tBTM_BLE_VSC_CB cmn_vsc_cb;
+
+  APPL_TRACE_DEBUG("%s:", __func__);
+  BTM_BleGetVendorCapabilities(&cmn_vsc_cb);
+  if (cmn_vsc_cb.filter_support != 0) {
+    tBTM_STATUS st = BTM_BleCfgFilterCondition(
+        BTM_BLE_SCAN_COND_CLEAR, BTM_BLE_PF_TYPE_ALL, filt_index, nullptr,
+        bta_ble_scan_cfg_cmpl, ref_value);
+    if (st == BTM_CMD_STARTED) {
+      bta_dm_cb.p_scan_filt_cfg_cback = p_filt_cfg_cback;
+      return;
+    }
+  }
+
+  if (p_filt_cfg_cback)
+    p_filt_cfg_cback(BTA_DM_BLE_PF_CONFIG_EVT, BTM_BLE_PF_TYPE_ALL, 0,
+                     BTA_FAILURE, ref_value);
 }
 
 /*******************************************************************************
@@ -4626,29 +4648,21 @@ void bta_dm_cfg_filter_cond(tBTA_DM_MSG* p_data) {
  * Parameters:
  *
  ******************************************************************************/
-void bta_dm_enable_scan_filter(tBTA_DM_MSG* p_data) {
-  tBTM_STATUS st = BTM_MODE_UNSUPPORTED;
-  tBTA_STATUS status = BTA_FAILURE;
-
+void bta_dm_enable_scan_filter(uint8_t action,
+                               tBTA_DM_BLE_PF_STATUS_CBACK* p_filt_status_cback,
+                               tBTA_DM_BLE_REF_VALUE ref_value) {
+  APPL_TRACE_DEBUG("%s", __func__);
   tBTM_BLE_VSC_CB cmn_vsc_cb;
-  APPL_TRACE_DEBUG("bta_dm_enable_scan_filter");
   BTM_BleGetVendorCapabilities(&cmn_vsc_cb);
 
-  if (0 != cmn_vsc_cb.filter_support) {
-    st = BTM_BleEnableDisableFilterFeature(
-        p_data->ble_enable_scan_filt.action,
-        p_data->ble_enable_scan_filt.p_filt_status_cback,
-        (tBTM_BLE_REF_VALUE)p_data->ble_enable_scan_filt.ref_value);
-    if (st == BTM_CMD_STARTED)
-      bta_dm_cb.p_scan_filt_status_cback =
-          p_data->ble_enable_scan_filt.p_filt_status_cback;
+  if (cmn_vsc_cb.filter_support != 0) {
+    if (p_filt_status_cback)
+      p_filt_status_cback(BTA_DM_BLE_PF_ENABLE_EVT, ref_value, BTA_FAILURE);
     return;
   }
 
-  if (p_data->ble_enable_scan_filt.p_filt_status_cback)
-    p_data->ble_enable_scan_filt.p_filt_status_cback(
-        BTA_DM_BLE_PF_ENABLE_EVT, p_data->ble_enable_scan_filt.ref_value,
-        status);
+  BTM_BleEnableDisableFilterFeature(action, p_filt_status_cback,
+                                    (tBTM_BLE_REF_VALUE)ref_value);
 }
 
 /*******************************************************************************

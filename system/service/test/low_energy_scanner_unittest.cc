@@ -48,33 +48,30 @@ class MockScannerHandler : public BleScannerInterface {
   MOCK_METHOD4(ScanFilterParamSetupImpl,
                void(uint8_t client_if, uint8_t action, uint8_t filt_index,
                     btgatt_filt_param_setup_t* filt_param));
-  MOCK_METHOD2(scan_filter_clear, bt_status_t(int client_if, int filt_index));
-  MOCK_METHOD2(scan_filter_enable, bt_status_t(int client_if, bool enable));
+  MOCK_METHOD2(ScanFilterClear, void(int client_if, int filt_index));
+  MOCK_METHOD2(ScanFilterEnable, void(int client_if, bool enable));
+  MOCK_METHOD3(SetScanParameters,
+               void(int client_if, int scan_interval, int scan_window));
 
-  MOCK_METHOD3(set_scan_parameters,
-               bt_status_t(int client_if, int scan_interval, int scan_window));
+  MOCK_METHOD4(BatchscanConfigStorage,
+               void(int client_if, int batch_scan_full_max,
+                    int batch_scan_trunc_max, int batch_scan_notify_threshold));
 
-  MOCK_METHOD4(batchscan_cfg_storage,
-               bt_status_t(int client_if, int batch_scan_full_max,
-                           int batch_scan_trunc_max,
-                           int batch_scan_notify_threshold));
+  MOCK_METHOD6(BatchscanEnable,
+               void(int client_if, int scan_mode, int scan_interval,
+                    int scan_window, int addr_type, int discard_rule));
 
-  MOCK_METHOD6(batchscan_enb_batch_scan,
-               bt_status_t(int client_if, int scan_mode, int scan_interval,
-                           int scan_window, int addr_type, int discard_rule));
+  MOCK_METHOD1(BatchscanDisable, void(int client_if));
 
-  MOCK_METHOD1(batchscan_dis_batch_scan, bt_status_t(int client_if));
+  MOCK_METHOD2(BatchscanReadReports, void(int client_if, int scan_mode));
 
-  MOCK_METHOD2(batchscan_read_reports,
-               bt_status_t(int client_if, int scan_mode));
-
-  bt_status_t scan_filter_add_remove(
-      int client_if, int action, int filt_type, int filt_index, int company_id,
-      int company_id_mask, const bt_uuid_t* p_uuid,
-      const bt_uuid_t* p_uuid_mask, const bt_bdaddr_t* bd_addr, char addr_type,
-      std::vector<uint8_t> data, std::vector<uint8_t> p_mask) {
-    return BT_STATUS_SUCCESS;
-  };
+  void ScanFilterAddRemove(int client_if, int action, int filt_type,
+                           int filt_index, int company_id, int company_id_mask,
+                           const bt_uuid_t* p_uuid,
+                           const bt_uuid_t* p_uuid_mask,
+                           const bt_bdaddr_t* bd_addr, char addr_type,
+                           std::vector<uint8_t> data,
+                           std::vector<uint8_t> p_mask){};
 
   void ScanFilterParamSetup(
       uint8_t client_if, uint8_t action, uint8_t filt_index,
