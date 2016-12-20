@@ -67,6 +67,7 @@ btosiCommonTestSrc := \
     ./test/future_test.cpp \
     ./test/hash_map_test.cpp \
     ./test/hash_map_utils_test.cpp \
+    ./test/leaky_bonded_queue_test.cpp \
     ./test/list_test.cpp \
     ./test/properties_test.cpp \
     ./test/rand_test.cpp \
@@ -166,7 +167,7 @@ LOCAL_SRC_FILES := $(btosiCommonTestSrc)
 LOCAL_MODULE := net_test_osi
 LOCAL_MODULE_TAGS := tests
 LOCAL_SHARED_LIBRARIES := libc liblog libprotobuf-cpp-full libchrome libcutils
-LOCAL_STATIC_LIBRARIES := libosi libbt-protos
+LOCAL_STATIC_LIBRARIES := libosi libbt-protos libgmock
 
 LOCAL_CFLAGS += $(bluetooth_CFLAGS)
 LOCAL_CONLYFLAGS += $(bluetooth_CONLYFLAGS)
@@ -184,7 +185,7 @@ LOCAL_LDLIBS := -lrt -lpthread
 LOCAL_MODULE := net_test_osi
 LOCAL_MODULE_TAGS := tests
 LOCAL_SHARED_LIBRARIES := liblog libprotobuf-cpp-full libchrome
-LOCAL_STATIC_LIBRARIES := libosi-host libbt-protos
+LOCAL_STATIC_LIBRARIES := libosi-host libbt-protos libgmock_host
 
 LOCAL_CFLAGS += $(bluetooth_CFLAGS) -DOS_GENERIC
 LOCAL_CONLYFLAGS += $(bluetooth_CONLYFLAGS)
