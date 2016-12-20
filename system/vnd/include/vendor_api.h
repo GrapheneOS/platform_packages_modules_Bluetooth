@@ -20,15 +20,4 @@
 
 enum { BTM_BLE_PRIVACY_ENABLE, BTM_BLE_PRIVACY_DISABLE };
 
-/****************************************************************************
- *  Advertising packet filter VSC specific definitions
- *****************************************************************************/
-
-/*****************************************************************************
- *              VENDOR SPECIFIC BLE FEATURE FUNCTIONS
- *****************************************************************************/
-#if (BLE_ANDROID_CONTROLLER_SCAN_FILTER == TRUE)
-
-#endif
-
 #endif
