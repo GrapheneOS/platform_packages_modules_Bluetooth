@@ -215,13 +215,22 @@ class AdvertiseManager {
         private static final int ADVERTISING_CHANNEL_ALL =
             ADVERTISING_CHANNEL_37 | ADVERTISING_CHANNEL_38 | ADVERTISING_CHANNEL_39;
 
+        private static final int ADVERTISING_PHY_LE_1M = 0X01;
+        private static final int ADVERTISING_PHY_LE_2M =
+            0X02; // only for secondary advertising channel
+        private static final int ADVERTISING_PHY_LE_CODED = 0X03;
+
+        private static final int SCAN_REQUEST_NOTIFICATIONS_DISABLE = 0X00;
+        private static final int SCAN_REQUEST_NOTIFICATIONS_ENABLE = 0X01;
+
         void startAdverising(AdvertiseClient client) {
             logd("starting advertising");
 
             int advertiserId = client.advertiserId;
+            int advertisingEventProperties =
+                AdvertiseHelper.getAdvertisingEventProperties(client);
             int minAdvertiseUnit = (int) AdvertiseHelper.getAdvertisingIntervalUnit(client.settings);
             int maxAdvertiseUnit = minAdvertiseUnit + ADVERTISING_INTERVAL_DELTA_UNIT;
-            int advertiseEventType = AdvertiseHelper.getAdvertisingEventType(client);
             int txPowerLevel = AdvertiseHelper.getTxPowerLevel(client.settings);
 
             byte [] adv_data = AdvertiseHelper.advertiseDataToBytes(client.advertiseData,
@@ -232,9 +241,12 @@ class AdvertiseManager {
             int advertiseTimeoutSeconds = (int) TimeUnit.MILLISECONDS.toSeconds(
                     client.settings.getTimeout());
 
-            startAdvertiserNative(advertiserId, minAdvertiseUnit, maxAdvertiseUnit,
-                    advertiseEventType, ADVERTISING_CHANNEL_ALL, txPowerLevel, adv_data,
-                    scan_resp_data, advertiseTimeoutSeconds);
+            startAdvertiserNative(advertiserId, advertisingEventProperties,
+                                  minAdvertiseUnit, maxAdvertiseUnit,
+                                  ADVERTISING_CHANNEL_ALL, txPowerLevel,
+                                  ADVERTISING_PHY_LE_1M, ADVERTISING_PHY_LE_1M,
+                                  SCAN_REQUEST_NOTIFICATIONS_DISABLE, adv_data,
+                                  scan_resp_data, advertiseTimeoutSeconds);
         }
 
         void stopAdvertising(AdvertiseClient client) {
@@ -250,10 +262,12 @@ class AdvertiseManager {
         private native void gattClientEnableAdvNative(int advertiserId,
                 boolean enable, int timeout_s);
 
-        private native void startAdvertiserNative(int advertiserId,
-                int min_interval, int max_interval, int adv_type, int chnl_map, int tx_power,
-                byte[] adv_data, byte[] scan_resp_data, int timeout_s);
-
+        private native void startAdvertiserNative(
+            int advertiserId, int advertising_event_properties,
+            int min_interval, int max_interval, int chnl_map, int tx_power,
+            int primary_advertising_phy, int secondary_advertising_phy,
+            int scan_request_notification_enable, byte[] adv_data,
+            byte[] scan_resp_data, int timeout_s);
     }
 
     private void logd(String s) {
