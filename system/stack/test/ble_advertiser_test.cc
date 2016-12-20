@@ -245,12 +245,12 @@ TEST_F(BleAdvertisingManagerTest, test_adv_data_filling) {
 
   status_cb set_params_cb;
   tBTM_BLE_ADV_PARAMS params;
-  params.adv_type = BTM_BLE_CONNECT_EVT;
+  params.advertising_event_properties =
+      BleAdvertisingManager::advertising_prop_legacy_connectable;
   params.tx_power = -15;
   EXPECT_CALL(*hci_mock, SetParameters1(advertiser_id, _, _, _, _, _, _, _, _))
       .Times(1);
-  EXPECT_CALL(*hci_mock,
-              SetParameters2((uint8_t)params.tx_power, _, _, _, _, _, _))
+  EXPECT_CALL(*hci_mock, SetParameters2(params.tx_power, _, _, _, _, _, _))
       .Times(1)
       .WillOnce(SaveArg<6>(&set_params_cb));
   BleAdvertisingManager::Get()->SetParameters(
@@ -266,9 +266,10 @@ TEST_F(BleAdvertisingManagerTest, test_adv_data_filling) {
   status_cb set_data_cb;
   /* verify that flags will be added, and tx power filled, if call to SetData
    * contained only tx power, and the advertisement is connectable */
-  uint8_t expected_adv_data[] = {0x02 /* len */,         0x01 /* flags */,
-                                 0x02 /* flags value */, 0x02 /* len */,
-                                 0x0A /* tx_power */,    params.tx_power};
+  uint8_t expected_adv_data[] = {
+      0x02 /* len */,         0x01 /* flags */,
+      0x02 /* flags value */, 0x02 /* len */,
+      0x0A /* tx_power */,    static_cast<uint8_t>(params.tx_power)};
   EXPECT_CALL(*hci_mock, SetAdvertisingData(advertiser_id, _, _, _, _, _))
       .With(Args<4, 3>(ElementsAreArray(expected_adv_data)))
       .Times(1)
@@ -293,7 +294,8 @@ TEST_F(BleAdvertisingManagerTest, test_adv_data_not_filling) {
 
   status_cb set_params_cb;
   tBTM_BLE_ADV_PARAMS params;
-  params.adv_type = BTM_BLE_NON_CONNECT_EVT;
+  params.advertising_event_properties =
+      BleAdvertisingManager::advertising_prop_legacy_non_connectable;
   params.tx_power = -15;
   EXPECT_CALL(*hci_mock, SetParameters1(advertiser_id, _, _, _, _, _, _, _, _))
       .Times(1);

@@ -64,6 +64,29 @@ int GetAdvertisingIntervalUnit(AdvertiseSettings::Mode mode) {
   return (ms * 1000) / 625;
 }
 
+int8_t GetAdvertisingTxPower(AdvertiseSettings::TxPowerLevel tx_power) {
+  int8_t power;
+
+  switch (tx_power) {
+    case AdvertiseSettings::TX_POWER_LEVEL_ULTRA_LOW:
+      power = -21;
+      break;
+    case AdvertiseSettings::TX_POWER_LEVEL_LOW:
+      power = -15;
+      break;
+    case AdvertiseSettings::TX_POWER_LEVEL_MEDIUM:
+      power = -7;
+      break;
+    case AdvertiseSettings::TX_POWER_LEVEL_HIGH:
+    // Fall through
+    default:
+      power = 1;
+      break;
+  }
+
+  return power;
+}
+
 void GetAdvertiseParams(const AdvertiseSettings& settings, bool has_scan_rsp,
                         AdvertiseParameters* out_params) {
   CHECK(out_params);
@@ -73,13 +96,22 @@ void GetAdvertiseParams(const AdvertiseSettings& settings, bool has_scan_rsp,
       out_params->min_interval + kAdvertisingIntervalDeltaUnit;
 
   if (settings.connectable())
-    out_params->adv_type = kAdvertisingEventTypeConnectable;
+    out_params->advertising_event_properties =
+        kAdvertisingEventTypeLegacyConnectable;
   else if (has_scan_rsp)
-    out_params->adv_type = kAdvertisingEventTypeScannable;
+    out_params->advertising_event_properties =
+        kAdvertisingEventTypeLegacyScannable;
   else
-    out_params->adv_type = kAdvertisingEventTypeNonConnectable;
+    out_params->advertising_event_properties =
+        kAdvertisingEventTypeLegacyNonConnectable;
 
   out_params->channel_map = kAdvertisingChannelAll;
+  out_params->tx_power = GetAdvertisingTxPower(settings.tx_power_level());
+
+  // TODO: expose those new setting through AdvertiseSettings
+  out_params->primary_advertising_phy = 0x01;
+  out_params->secondary_advertising_phy = 0x01;
+  out_params->scan_request_notification_enable = 0;
 }
 
 void DoNothing(uint8_t status) {}
