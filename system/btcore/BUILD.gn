@@ -29,6 +29,10 @@ static_library("btcore") {
     "include",
     "//",
   ]
+
+  deps = [
+    "//third_party/libchrome:base",
+  ]
 }
 
 executable("net_test_btcore") {
@@ -49,6 +53,7 @@ executable("net_test_btcore") {
     "//btcore",
     "//osi",
     "//third_party/googletest:gtest_main",
+    "//third_party/libchrome:base",
   ]
 
   libs = [

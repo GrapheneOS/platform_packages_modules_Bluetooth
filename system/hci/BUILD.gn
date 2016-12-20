@@ -41,6 +41,10 @@ static_library("hci") {
     "//btcore/include",
     "//stack/include",
   ]
+
+  deps = [
+    "//third_party/libchrome:base",
+  ]
 }
 
 executable("net_test_hci") {
@@ -69,6 +73,7 @@ executable("net_test_hci") {
     "//osi",
     "//btcore",
     "//third_party/googletest:gtest_main",
+    "//third_party/libchrome:base",
   ]
 
   libs = [
