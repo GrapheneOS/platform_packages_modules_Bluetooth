@@ -49,9 +49,13 @@ class MockAdvertiserHandler : public BleAdvertiserInterface {
                void(base::Callback<void(uint8_t /* advertiser_id */,
                                         uint8_t /* status */)>));
   MOCK_METHOD1(Unregister, void(uint8_t));
-  MOCK_METHOD7(SetParameters,
-               void(int advertiser_id, int min_interval, int max_interval,
-                    int adv_type, int chnl_map, int tx_power, Callback cb));
+  MOCK_METHOD10(SetParameters,
+                void(uint8_t advertiser_id,
+                     uint16_t advertising_event_properties,
+                     uint32_t min_interval, uint32_t max_interval, int chnl_map,
+                     int tx_power, uint8_t primary_advertising_phy,
+                     uint8_t secondary_advertising_phy,
+                     uint8_t scan_request_notification_enable, Callback cb));
   MOCK_METHOD4(SetData, void(int advertiser_id, bool set_scan_rsp,
                              std::vector<uint8_t> data, Callback cb));
   MOCK_METHOD5(Enable, void(uint8_t advertiser_id, bool enable, Callback cb,
