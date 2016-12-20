@@ -41,9 +41,9 @@ class AdvertiseHelper {
   private static final int ADVERTISING_TX_POWER_MAX = 4;
 
   // Note we don't expose connectable directed advertising to API.
-  private static final int ADVERTISING_EVENT_TYPE_CONNECTABLE = 0;
-  private static final int ADVERTISING_EVENT_TYPE_SCANNABLE = 2;
-  private static final int ADVERTISING_EVENT_TYPE_NON_CONNECTABLE = 3;
+  private static final int ADVERTISING_EVENT_TYPE_LEGACY_CONNECTABLE = 0x13;
+  private static final int ADVERTISING_EVENT_TYPE_LEGACY_SCANNABLE = 0x12;
+  private static final int ADVERTISING_EVENT_TYPE_LEGACY_NON_CONNECTABLE = 0x10;
 
   private static final int DEVICE_NAME_MAX = 18;
 
@@ -203,14 +203,14 @@ class AdvertiseHelper {
   }
 
   // Convert advertising event type to stack values.
-  public static int getAdvertisingEventType(AdvertiseClient client) {
+  public static int getAdvertisingEventProperties(AdvertiseClient client) {
     AdvertiseSettings settings = client.settings;
     if (settings.isConnectable()) {
-      return ADVERTISING_EVENT_TYPE_CONNECTABLE;
+      return ADVERTISING_EVENT_TYPE_LEGACY_CONNECTABLE;
     }
     return client.scanResponse == null
-        ? ADVERTISING_EVENT_TYPE_NON_CONNECTABLE
-        : ADVERTISING_EVENT_TYPE_SCANNABLE;
+        ? ADVERTISING_EVENT_TYPE_LEGACY_NON_CONNECTABLE
+        : ADVERTISING_EVENT_TYPE_LEGACY_SCANNABLE;
   }
 
   // Convert advertising milliseconds to advertising units(one unit is 0.625 millisecond).
