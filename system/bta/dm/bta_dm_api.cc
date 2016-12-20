@@ -804,44 +804,9 @@ void BTA_DmSetBleScanParams(
     tGATT_IF client_if, uint32_t scan_interval, uint32_t scan_window,
     tBLE_SCAN_MODE scan_mode,
     tBLE_SCAN_PARAM_SETUP_CBACK scan_param_setup_cback) {
-  tBTA_DM_API_BLE_SCAN_PARAMS* p_msg = (tBTA_DM_API_BLE_SCAN_PARAMS*)osi_calloc(
-      sizeof(tBTA_DM_API_BLE_SCAN_PARAMS));
-
-  p_msg->hdr.event = BTA_DM_API_BLE_SCAN_PARAM_EVT;
-  p_msg->client_if = client_if;
-  p_msg->scan_int = scan_interval;
-  p_msg->scan_window = scan_window;
-  p_msg->scan_mode = scan_mode;
-  p_msg->scan_param_setup_cback = scan_param_setup_cback;
-
-  bta_sys_sendmsg(p_msg);
-}
-
-/*******************************************************************************
- *
- * Function         BTA_DmSetBleAdvParams
- *
- * Description      This function sets the advertising parameters BLE
- *                  functionality.
- *                  It is to be called when device act in peripheral or
- *                  broadcaster role.
- *
- *
- * Returns          void
- *
- ******************************************************************************/
-void BTA_DmSetBleAdvParams(uint16_t adv_int_min, uint16_t adv_int_max,
-                           tBLE_BD_ADDR* p_dir_bda) {
-  if (p_dir_bda != NULL) {
-    tBLE_BD_ADDR* bda = new tBLE_BD_ADDR;
-    memcpy(bda, p_dir_bda, sizeof(tBLE_BD_ADDR));
-    do_in_bta_thread(FROM_HERE,
-                     base::Bind(&bta_dm_ble_set_adv_params, adv_int_min,
-                                adv_int_max, base::Owned(bda)));
-  }
-
-  do_in_bta_thread(FROM_HERE, base::Bind(&bta_dm_ble_set_adv_params,
-                                         adv_int_min, adv_int_max, nullptr));
+  do_in_bta_thread(FROM_HERE, base::Bind(&bta_dm_ble_set_scan_params, client_if,
+                                         scan_interval, scan_window, scan_mode,
+                                         scan_param_setup_cback));
 }
 
 /*******************************************************************************
@@ -874,22 +839,12 @@ extern void BTA_DmBleSetStorageParams(
     tBTA_BLE_SCAN_SETUP_CBACK* p_setup_cback,
     tBTA_BLE_SCAN_THRESHOLD_CBACK* p_thres_cback,
     tBTA_BLE_SCAN_REP_CBACK* p_rep_cback, tBTA_DM_BLE_REF_VALUE ref_value) {
-  tBTA_DM_API_SET_STORAGE_CONFIG* p_msg =
-      (tBTA_DM_API_SET_STORAGE_CONFIG*)osi_malloc(
-          sizeof(tBTA_DM_API_SET_STORAGE_CONFIG));
-
   bta_dm_cb.p_setup_cback = p_setup_cback;
-
-  p_msg->hdr.event = BTA_DM_API_BLE_SETUP_STORAGE_EVT;
-  p_msg->p_setup_cback = bta_ble_scan_setup_cb;
-  p_msg->p_thres_cback = p_thres_cback;
-  p_msg->p_read_rep_cback = p_rep_cback;
-  p_msg->ref_value = ref_value;
-  p_msg->batch_scan_full_max = batch_scan_full_max;
-  p_msg->batch_scan_trunc_max = batch_scan_trunc_max;
-  p_msg->batch_scan_notify_threshold = batch_scan_notify_threshold;
-
-  bta_sys_sendmsg(p_msg);
+  do_in_bta_thread(
+      FROM_HERE,
+      base::Bind(&bta_dm_ble_setup_storage, batch_scan_full_max,
+                 batch_scan_trunc_max, batch_scan_notify_threshold,
+                 bta_ble_scan_setup_cb, p_thres_cback, p_rep_cback, ref_value));
 }
 
 /*******************************************************************************
@@ -914,18 +869,9 @@ extern void BTA_DmBleEnableBatchScan(tBTA_BLE_BATCH_SCAN_MODE scan_mode,
                                      tBTA_BLE_DISCARD_RULE discard_rule,
                                      tBLE_ADDR_TYPE addr_type,
                                      tBTA_DM_BLE_REF_VALUE ref_value) {
-  tBTA_DM_API_ENABLE_SCAN* p_msg =
-      (tBTA_DM_API_ENABLE_SCAN*)osi_malloc(sizeof(tBTA_DM_API_ENABLE_SCAN));
-
-  p_msg->hdr.event = BTA_DM_API_BLE_ENABLE_BATCH_SCAN_EVT;
-  p_msg->scan_mode = scan_mode;
-  p_msg->scan_int = scan_interval;
-  p_msg->scan_window = scan_window;
-  p_msg->discard_rule = discard_rule;
-  p_msg->addr_type = addr_type;
-  p_msg->ref_value = ref_value;
-
-  bta_sys_sendmsg(p_msg);
+  do_in_bta_thread(FROM_HERE, base::Bind(&bta_dm_ble_enable_batch_scan,
+                                         scan_mode, scan_interval, scan_window,
+                                         discard_rule, addr_type, ref_value));
 }
 
 /*******************************************************************************
@@ -940,13 +886,8 @@ extern void BTA_DmBleEnableBatchScan(tBTA_BLE_BATCH_SCAN_MODE scan_mode,
  *
  ******************************************************************************/
 extern void BTA_DmBleDisableBatchScan(tBTA_DM_BLE_REF_VALUE ref_value) {
-  tBTA_DM_API_DISABLE_SCAN* p_msg =
-      (tBTA_DM_API_DISABLE_SCAN*)osi_malloc(sizeof(tBTA_DM_API_DISABLE_SCAN));
-
-  p_msg->hdr.event = BTA_DM_API_BLE_DISABLE_BATCH_SCAN_EVT;
-  p_msg->ref_value = ref_value;
-
-  bta_sys_sendmsg(p_msg);
+  do_in_bta_thread(FROM_HERE,
+                   base::Bind(&bta_dm_ble_disable_batch_scan, ref_value));
 }
 
 /*******************************************************************************
@@ -963,15 +904,8 @@ extern void BTA_DmBleDisableBatchScan(tBTA_DM_BLE_REF_VALUE ref_value) {
  ******************************************************************************/
 extern void BTA_DmBleReadScanReports(tBTA_BLE_BATCH_SCAN_MODE scan_type,
                                      tBTA_DM_BLE_REF_VALUE ref_value) {
-  tBTA_DM_API_READ_SCAN_REPORTS* p_msg =
-      (tBTA_DM_API_READ_SCAN_REPORTS*)osi_malloc(
-          sizeof(tBTA_DM_API_READ_SCAN_REPORTS));
-
-  p_msg->hdr.event = BTA_DM_API_BLE_READ_SCAN_REPORTS_EVT;
-  p_msg->scan_type = scan_type;
-  p_msg->ref_value = ref_value;
-
-  bta_sys_sendmsg(p_msg);
+  do_in_bta_thread(FROM_HERE, base::Bind(&bta_dm_ble_read_scan_reports,
+                                         scan_type, ref_value));
 }
 
 /*******************************************************************************
@@ -1229,92 +1163,88 @@ void BTA_DmBleCfgFilterCondition(tBTA_DM_BLE_SCAN_COND_OP action,
                                  tBTA_DM_BLE_PF_COND_PARAM* p_cond,
                                  tBTA_DM_BLE_PF_CFG_CBACK* p_cmpl_cback,
                                  tBTA_DM_BLE_REF_VALUE ref_value) {
-  tBTA_DM_API_CFG_FILTER_COND* p_msg;
   APPL_TRACE_API("BTA_DmBleCfgFilterCondition: %d, %d", action, cond_type);
 
-  uint16_t len =
-      sizeof(tBTA_DM_API_CFG_FILTER_COND) + sizeof(tBTA_DM_BLE_PF_COND_PARAM);
+  if (!p_cond) {
+    do_in_bta_thread(FROM_HERE,
+                     base::Bind(&bta_dm_cfg_filter_cond, action, cond_type,
+                                filt_index, nullptr, p_cmpl_cback, ref_value));
+  }
+
+  uint16_t len = sizeof(tBTA_DM_BLE_PF_COND_PARAM);
   uint8_t* p;
 
-  if (NULL != p_cond) {
-    switch (cond_type) {
-      case BTA_DM_BLE_PF_SRVC_DATA_PATTERN:
-      case BTA_DM_BLE_PF_MANU_DATA:
-        /* Length of pattern and pattern mask and other elements in */
-        /* tBTA_DM_BLE_PF_MANU_COND */
-        len += ((p_cond->manu_data.data_len) * 2) + sizeof(uint16_t) +
-               sizeof(uint16_t) + sizeof(uint8_t);
-        break;
+  switch (cond_type) {
+    case BTA_DM_BLE_PF_SRVC_DATA_PATTERN:
+    case BTA_DM_BLE_PF_MANU_DATA:
+      /* Length of pattern and pattern mask and other elements in */
+      /* tBTA_DM_BLE_PF_MANU_COND */
+      len += ((p_cond->manu_data.data_len) * 2) + sizeof(uint16_t) +
+             sizeof(uint16_t) + sizeof(uint8_t);
+      break;
 
-      case BTA_DM_BLE_PF_LOCAL_NAME:
-        len += ((p_cond->local_name.data_len) + sizeof(uint8_t));
-        break;
+    case BTA_DM_BLE_PF_LOCAL_NAME:
+      len += ((p_cond->local_name.data_len) + sizeof(uint8_t));
+      break;
 
-      case BTM_BLE_PF_SRVC_UUID:
-      case BTM_BLE_PF_SRVC_SOL_UUID:
-        len += sizeof(tBLE_BD_ADDR) + sizeof(tBTA_DM_BLE_PF_COND_MASK);
-        break;
+    case BTM_BLE_PF_SRVC_UUID:
+    case BTM_BLE_PF_SRVC_SOL_UUID:
+      len += sizeof(tBLE_BD_ADDR) + sizeof(tBTA_DM_BLE_PF_COND_MASK);
+      break;
 
-      default:
-        break;
+    default:
+      break;
+  }
+
+  // base::Owned will free it
+  tBTA_DM_BLE_PF_COND_PARAM* p_cond_param = new tBTA_DM_BLE_PF_COND_PARAM;
+  memcpy(p_cond_param, p_cond, sizeof(tBTA_DM_BLE_PF_COND_PARAM));
+
+  p = p_cond_param->additional_data;
+
+  if (cond_type == BTA_DM_BLE_PF_SRVC_DATA_PATTERN ||
+      cond_type == BTA_DM_BLE_PF_MANU_DATA) {
+    p_cond_param->manu_data.p_pattern = p;
+    p_cond_param->manu_data.data_len = p_cond->manu_data.data_len;
+    memcpy(p_cond_param->manu_data.p_pattern, p_cond->manu_data.p_pattern,
+           p_cond->manu_data.data_len);
+    p += p_cond->manu_data.data_len;
+
+    if (cond_type == BTA_DM_BLE_PF_MANU_DATA) {
+      p_cond_param->manu_data.company_id_mask =
+          p_cond->manu_data.company_id_mask;
+      if (p_cond->manu_data.p_pattern_mask != NULL) {
+        p_cond_param->manu_data.p_pattern_mask = p;
+        memcpy(p_cond_param->manu_data.p_pattern_mask,
+               p_cond->manu_data.p_pattern_mask, p_cond->manu_data.data_len);
+      }
+    }
+  } else if (cond_type == BTA_DM_BLE_PF_LOCAL_NAME) {
+    p_cond_param->local_name.p_data = p;
+    p_cond_param->local_name.data_len = p_cond->local_name.data_len;
+    memcpy(p_cond_param->local_name.p_data, p_cond->local_name.p_data,
+           p_cond->local_name.data_len);
+  } else if (cond_type == BTM_BLE_PF_SRVC_UUID ||
+             cond_type == BTM_BLE_PF_SRVC_SOL_UUID) {
+    if (p_cond->srvc_uuid.p_target_addr != NULL) {
+      p_cond_param->srvc_uuid.p_target_addr = (tBLE_BD_ADDR*)(p);
+      p_cond_param->srvc_uuid.p_target_addr->type =
+          p_cond->srvc_uuid.p_target_addr->type;
+      memcpy(p_cond_param->srvc_uuid.p_target_addr->bda,
+             p_cond->srvc_uuid.p_target_addr->bda, BD_ADDR_LEN);
+      p = (uint8_t*)(p_cond_param->srvc_uuid.p_target_addr + 1);
+    }
+    if (p_cond->srvc_uuid.p_uuid_mask) {
+      p_cond_param->srvc_uuid.p_uuid_mask = (tBTA_DM_BLE_PF_COND_MASK*)p;
+      memcpy(p_cond_param->srvc_uuid.p_uuid_mask, p_cond->srvc_uuid.p_uuid_mask,
+             sizeof(tBTA_DM_BLE_PF_COND_MASK));
     }
   }
 
-  p_msg = (tBTA_DM_API_CFG_FILTER_COND*)osi_calloc(len);
-  p_msg->hdr.event = BTA_DM_API_CFG_FILTER_COND_EVT;
-  p_msg->action = action;
-  p_msg->cond_type = cond_type;
-  p_msg->filt_index = filt_index;
-  p_msg->p_filt_cfg_cback = p_cmpl_cback;
-  p_msg->ref_value = ref_value;
-  if (p_cond) {
-    p_msg->p_cond_param = (tBTA_DM_BLE_PF_COND_PARAM*)(p_msg + 1);
-    memcpy(p_msg->p_cond_param, p_cond, sizeof(tBTA_DM_BLE_PF_COND_PARAM));
-
-    p = (uint8_t*)(p_msg->p_cond_param + 1);
-
-    if (cond_type == BTA_DM_BLE_PF_SRVC_DATA_PATTERN ||
-        cond_type == BTA_DM_BLE_PF_MANU_DATA) {
-      p_msg->p_cond_param->manu_data.p_pattern = p;
-      p_msg->p_cond_param->manu_data.data_len = p_cond->manu_data.data_len;
-      memcpy(p_msg->p_cond_param->manu_data.p_pattern,
-             p_cond->manu_data.p_pattern, p_cond->manu_data.data_len);
-      p += p_cond->manu_data.data_len;
-
-      if (cond_type == BTA_DM_BLE_PF_MANU_DATA) {
-        p_msg->p_cond_param->manu_data.company_id_mask =
-            p_cond->manu_data.company_id_mask;
-        if (p_cond->manu_data.p_pattern_mask != NULL) {
-          p_msg->p_cond_param->manu_data.p_pattern_mask = p;
-          memcpy(p_msg->p_cond_param->manu_data.p_pattern_mask,
-                 p_cond->manu_data.p_pattern_mask, p_cond->manu_data.data_len);
-        }
-      }
-    } else if (cond_type == BTA_DM_BLE_PF_LOCAL_NAME) {
-      p_msg->p_cond_param->local_name.p_data = p;
-      p_msg->p_cond_param->local_name.data_len = p_cond->local_name.data_len;
-      memcpy(p_msg->p_cond_param->local_name.p_data, p_cond->local_name.p_data,
-             p_cond->local_name.data_len);
-    } else if (cond_type == BTM_BLE_PF_SRVC_UUID ||
-               cond_type == BTM_BLE_PF_SRVC_SOL_UUID) {
-      if (p_cond->srvc_uuid.p_target_addr != NULL) {
-        p_msg->p_cond_param->srvc_uuid.p_target_addr = (tBLE_BD_ADDR*)(p);
-        p_msg->p_cond_param->srvc_uuid.p_target_addr->type =
-            p_cond->srvc_uuid.p_target_addr->type;
-        memcpy(p_msg->p_cond_param->srvc_uuid.p_target_addr->bda,
-               p_cond->srvc_uuid.p_target_addr->bda, BD_ADDR_LEN);
-        p = (uint8_t*)(p_msg->p_cond_param->srvc_uuid.p_target_addr + 1);
-      }
-      if (p_cond->srvc_uuid.p_uuid_mask) {
-        p_msg->p_cond_param->srvc_uuid.p_uuid_mask =
-            (tBTA_DM_BLE_PF_COND_MASK*)p;
-        memcpy(p_msg->p_cond_param->srvc_uuid.p_uuid_mask,
-               p_cond->srvc_uuid.p_uuid_mask, sizeof(tBTA_DM_BLE_PF_COND_MASK));
-      }
-    }
-  }
-
-  bta_sys_sendmsg(p_msg);
+  do_in_bta_thread(
+      FROM_HERE,
+      base::Bind(&bta_dm_cfg_filter_cond, action, cond_type, filt_index,
+                 base::Owned(p_cond_param), p_cmpl_cback, ref_value));
 }
 #else
 void BTA_DmBleCfgFilterCondition(
@@ -1325,6 +1255,15 @@ void BTA_DmBleCfgFilterCondition(
     UNUSED_ATTR tBTA_DM_BLE_PF_CFG_CBACK* p_cmpl_cback,
     UNUSED_ATTR tBTA_DM_BLE_REF_VALUE ref_value) {}
 #endif
+
+void BTA_DmBleScanFilterClear(tBTA_DM_BLE_REF_VALUE ref_value,
+                              tBTA_DM_BLE_PF_FILT_INDEX filt_index,
+                              tBTA_DM_BLE_PF_CFG_CBACK* p_cmpl_cback) {
+#if (BLE_ANDROID_CONTROLLER_SCAN_FILTER == TRUE)
+  do_in_bta_thread(FROM_HERE, base::Bind(&bta_dm_scan_filter_clear, ref_value,
+                                         filt_index, p_cmpl_cback));
+#endif
+}
 
 /*******************************************************************************
  *
@@ -1395,30 +1334,15 @@ void BTA_DmBleGetEnergyInfo(tBTA_BLE_ENERGY_INFO_CBACK* p_cmpl_cback) {
  * Returns          void
  *
  ******************************************************************************/
-#if (BLE_ANDROID_CONTROLLER_SCAN_FILTER == TRUE)
 void BTA_DmEnableScanFilter(uint8_t action,
                             tBTA_DM_BLE_PF_STATUS_CBACK* p_cmpl_cback,
                             tBTA_DM_BLE_REF_VALUE ref_value) {
-  const size_t len =
-      sizeof(tBTA_DM_API_ENABLE_SCAN_FILTER) + sizeof(tBLE_BD_ADDR);
-  tBTA_DM_API_ENABLE_SCAN_FILTER* p_msg =
-      (tBTA_DM_API_ENABLE_SCAN_FILTER*)osi_calloc(len);
-
+#if (BLE_ANDROID_CONTROLLER_SCAN_FILTER == TRUE)
   APPL_TRACE_API("%s: %d", __func__, action);
-
-  p_msg->hdr.event = BTA_DM_API_SCAN_FILTER_ENABLE_EVT;
-  p_msg->action = action;
-  p_msg->ref_value = ref_value;
-  p_msg->p_filt_status_cback = p_cmpl_cback;
-
-  bta_sys_sendmsg(p_msg);
-}
-#else
-void BTA_DmEnableScanFilter(
-    UNUSED_ATTR uint8_t action,
-    UNUSED_ATTR tBTA_DM_BLE_PF_STATUS_CBACK* p_cmpl_cback,
-    UNUSED_ATTR tBTA_DM_BLE_REF_VALUE ref_value) {}
+  do_in_bta_thread(FROM_HERE, base::Bind(&bta_dm_enable_scan_filter, action,
+                                         p_cmpl_cback, ref_value));
 #endif
+}
 
 /*******************************************************************************
  *
