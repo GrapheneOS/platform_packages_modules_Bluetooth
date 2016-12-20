@@ -52,6 +52,10 @@ static_library("osi") {
     "//utils/include",
     "//stack/include",
   ]
+
+  deps = [
+    "//third_party/libchrome:base",
+  ]
 }
 
 executable("net_test_osi") {
@@ -85,6 +89,7 @@ executable("net_test_osi") {
   deps = [
     "//osi",
     "//third_party/googletest:gtest_main",
+    "//third_party/libchrome:base",
   ]
 
   libs = [
