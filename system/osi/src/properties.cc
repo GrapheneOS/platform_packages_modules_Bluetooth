@@ -23,7 +23,7 @@
 int osi_property_get(const char* key, char* value, const char* default_value) {
 #if defined(OS_GENERIC)
   /* For linux right now just return default value, if present */
-  int len = -1;
+  int len = 0;
   if (!default_value) return len;
 
   len = strlen(default_value);
