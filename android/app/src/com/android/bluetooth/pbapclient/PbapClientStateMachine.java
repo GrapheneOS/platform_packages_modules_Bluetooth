@@ -329,8 +329,6 @@ final class PbapClientStateMachine extends StateMachine {
         intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
         intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY_BEFORE_BOOT);
         mService.sendBroadcast(intent, ProfileService.BLUETOOTH_PERM);
-        mService.notifyProfileConnectionStateChanged(device, BluetoothProfile.PBAP_CLIENT, state,
-                prevState);
     }
 
     public void disconnect(BluetoothDevice device) {

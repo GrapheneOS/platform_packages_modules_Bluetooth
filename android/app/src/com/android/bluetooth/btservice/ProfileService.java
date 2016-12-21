@@ -226,14 +226,6 @@ public abstract class ProfileService extends Service {
         }
     }
 
-    public void notifyProfileConnectionStateChanged(BluetoothDevice device,
-            int profileId, int newState, int prevState) {
-        AdapterService adapterService = AdapterService.getAdapterService();
-        if (adapterService != null) {
-            adapterService.onProfileConnectionStateChanged(device, profileId, newState, prevState);
-        }
-    }
-
     protected BluetoothDevice getDevice(byte[] address) {
         if(mAdapter != null){
             return mAdapter.getRemoteDevice(Utils.getAddressStringFromByte(address));

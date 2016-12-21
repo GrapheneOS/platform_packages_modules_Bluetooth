@@ -512,7 +512,6 @@ public class PanService extends ProfileService {
            updated with the correct connection state. */
         Log.d(TAG, "Pan Device state : device: " + device + " State:" +
                        prevState + "->" + state);
-        notifyProfileConnectionStateChanged(device, BluetoothProfile.PAN, state, prevState);
         Intent intent = new Intent(BluetoothPan.ACTION_CONNECTION_STATE_CHANGED);
         intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
         intent.putExtra(BluetoothPan.EXTRA_PREVIOUS_STATE, prevState);
