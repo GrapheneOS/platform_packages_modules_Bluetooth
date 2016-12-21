@@ -28,10 +28,6 @@
 #include "stack/include/a2dp_sbc.h"
 #include "stack/include/a2dp_vendor.h"
 
-// TODO(jpawlowski): remove once weird dependency in hci_layer.cc is removed
-#include <hardware/bluetooth.h>
-bt_bdaddr_t btif_local_bd_addr;
-
 namespace {
 const uint8_t codec_info_sbc[AVDT_CODEC_SIZE] = {
     6,                   // Length (A2DP_SBC_INFO_LEN)
