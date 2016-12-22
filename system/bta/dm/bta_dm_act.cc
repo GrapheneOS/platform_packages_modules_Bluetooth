@@ -434,6 +434,11 @@ static void bta_dm_sys_hw_cback(tBTA_SYS_HW_EVT status) {
 
 #if (BLE_VND_INCLUDED == TRUE)
     BTM_BleReadControllerFeatures(bta_dm_ctrl_features_rd_cmpl_cback);
+#else
+    /* If VSC multi adv commands are available, advertising will be initialized
+     * when capabilities are read. If they are not avaliable, initialize
+     * advertising here */
+    btm_ble_adv_init();
 #endif
 
     /* Earlier, we used to invoke BTM_ReadLocalAddr which was just copying the
