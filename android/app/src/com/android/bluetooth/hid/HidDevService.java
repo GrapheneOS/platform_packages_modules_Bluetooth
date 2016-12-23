@@ -17,13 +17,13 @@
 package com.android.bluetooth.hid;
 
 import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothHidDevice;
 import android.bluetooth.BluetoothHidDeviceAppConfiguration;
 import android.bluetooth.BluetoothHidDeviceAppQosSettings;
 import android.bluetooth.BluetoothHidDeviceAppSdpSettings;
+import android.bluetooth.BluetoothInputHost;
 import android.bluetooth.BluetoothProfile;
-import android.bluetooth.IBluetoothHidDevice;
 import android.bluetooth.IBluetoothHidDeviceCallback;
+import android.bluetooth.IBluetoothInputHost;
 import android.content.Intent;
 import android.os.Handler;
 import android.os.IBinder;
@@ -57,7 +57,7 @@ public class HidDevService extends ProfileService {
 
   private BluetoothDevice mHidDevice = null;
 
-  private int mHidDeviceState = BluetoothHidDevice.STATE_DISCONNECTED;
+  private int mHidDeviceState = BluetoothInputHost.STATE_DISCONNECTED;
 
   private BluetoothHidDeviceAppConfiguration mAppConfig = null;
 
@@ -226,7 +226,7 @@ public class HidDevService extends ProfileService {
   }
 
   private static class BluetoothHidDeviceBinder
-      extends IBluetoothHidDevice.Stub implements IProfileServiceBinder {
+      extends IBluetoothInputHost.Stub implements IProfileServiceBinder {
 
     private static final String TAG =
         BluetoothHidDeviceBinder.class.getSimpleName();
@@ -575,11 +575,11 @@ public class HidDevService extends ProfileService {
       return;
     }
 
-    notifyProfileConnectionStateChanged(device, BluetoothProfile.HID_DEVICE,
+    notifyProfileConnectionStateChanged(device, BluetoothProfile.INPUT_HOST,
                                         newState, prevState);
 
     Intent intent =
-        new Intent(BluetoothHidDevice.ACTION_CONNECTION_STATE_CHANGED);
+        new Intent(BluetoothInputHost.ACTION_CONNECTION_STATE_CHANGED);
     intent.putExtra(BluetoothProfile.EXTRA_PREVIOUS_STATE, prevState);
     intent.putExtra(BluetoothProfile.EXTRA_STATE, newState);
     intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
