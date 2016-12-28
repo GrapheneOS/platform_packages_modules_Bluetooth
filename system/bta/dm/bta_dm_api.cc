@@ -1203,6 +1203,7 @@ void BTA_DmBleCfgFilterCondition(tBTA_DM_BLE_SCAN_COND_OP action,
 
   if (cond_type == BTA_DM_BLE_PF_SRVC_DATA_PATTERN ||
       cond_type == BTA_DM_BLE_PF_MANU_DATA) {
+    p += sizeof(tBTA_DM_BLE_PF_MANU_COND);
     p_cond_param->manu_data.p_pattern = p;
     p_cond_param->manu_data.data_len = p_cond->manu_data.data_len;
     memcpy(p_cond_param->manu_data.p_pattern, p_cond->manu_data.p_pattern,
@@ -1219,12 +1220,14 @@ void BTA_DmBleCfgFilterCondition(tBTA_DM_BLE_SCAN_COND_OP action,
       }
     }
   } else if (cond_type == BTA_DM_BLE_PF_LOCAL_NAME) {
+    p += sizeof(tBTA_DM_BLE_PF_LOCAL_NAME_COND);
     p_cond_param->local_name.p_data = p;
     p_cond_param->local_name.data_len = p_cond->local_name.data_len;
     memcpy(p_cond_param->local_name.p_data, p_cond->local_name.p_data,
            p_cond->local_name.data_len);
   } else if (cond_type == BTM_BLE_PF_SRVC_UUID ||
              cond_type == BTM_BLE_PF_SRVC_SOL_UUID) {
+    p += sizeof(tBTA_DM_BLE_PF_SRVC_PATTERN_COND);
     if (p_cond->srvc_uuid.p_target_addr != NULL) {
       p_cond_param->srvc_uuid.p_target_addr = (tBLE_BD_ADDR*)(p);
       p_cond_param->srvc_uuid.p_target_addr->type =
