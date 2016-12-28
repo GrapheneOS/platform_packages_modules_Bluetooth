@@ -1227,7 +1227,7 @@ void BTA_DmBleCfgFilterCondition(tBTA_DM_BLE_SCAN_COND_OP action,
            p_cond->local_name.data_len);
   } else if (cond_type == BTM_BLE_PF_SRVC_UUID ||
              cond_type == BTM_BLE_PF_SRVC_SOL_UUID) {
-    p += sizeof(tBTA_DM_BLE_PF_SRVC_PATTERN_COND);
+    p += sizeof(tBTA_DM_BLE_PF_UUID_COND);
     if (p_cond->srvc_uuid.p_target_addr != NULL) {
       p_cond_param->srvc_uuid.p_target_addr = (tBLE_BD_ADDR*)(p);
       p_cond_param->srvc_uuid.p_target_addr->type =
