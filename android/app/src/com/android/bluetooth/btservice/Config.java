@@ -161,7 +161,7 @@ public class Config {
         } else if (profile == MapClientService.class) {
             profileIndex = BluetoothProfile.MAP_CLIENT;
         } else if (profile == HidDevService.class) {
-          profileIndex = BluetoothProfile.HID_DEVICE;
+            profileIndex = BluetoothProfile.INPUT_HOST;
         }
 
         return profileIndex;
