@@ -52,6 +52,7 @@ btifCommonSrc += \
   src/btif_hf.cc \
   src/btif_hf_client.cc \
   src/btif_hh.cc \
+  src/btif_hd.cc \
   src/btif_hl.cc \
   src/btif_mce.cc \
   src/btif_pan.cc \

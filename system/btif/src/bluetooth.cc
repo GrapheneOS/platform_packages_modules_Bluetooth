@@ -35,6 +35,7 @@
 #include <hardware/bluetooth.h>
 #include <hardware/bt_av.h>
 #include <hardware/bt_gatt.h>
+#include <hardware/bt_hd.h>
 #include <hardware/bt_hf.h>
 #include <hardware/bt_hf_client.h>
 #include <hardware/bt_hh.h>
@@ -89,6 +90,8 @@ extern btav_interface_t* btif_av_get_sink_interface();
 extern btsock_interface_t* btif_sock_get_interface();
 /* hid host profile */
 extern bthh_interface_t* btif_hh_get_interface();
+/* hid device profile */
+extern bthd_interface_t* btif_hd_get_interface();
 /* health device profile */
 extern bthl_interface_t* btif_hl_get_interface();
 /*pan*/
@@ -315,7 +318,7 @@ static void dump(int fd, const char** arguments) {
 }
 
 static const void* get_profile_interface(const char* profile_id) {
-  LOG_INFO(LOG_TAG, "get_profile_interface %s", profile_id);
+  LOG_INFO(LOG_TAG, "%s: id = %s", __func__, profile_id);
 
   /* sanity check */
   if (interface_ready() == false) return NULL;
@@ -342,6 +345,9 @@ static const void* get_profile_interface(const char* profile_id) {
   if (is_profile(profile_id, BT_PROFILE_HIDHOST_ID))
     return btif_hh_get_interface();
 
+  if (is_profile(profile_id, BT_PROFILE_HIDDEV_ID))
+    return btif_hd_get_interface();
+
   if (is_profile(profile_id, BT_PROFILE_HEALTH_ID))
     return btif_hl_get_interface();
 
@@ -361,7 +367,7 @@ static const void* get_profile_interface(const char* profile_id) {
 }
 
 int dut_mode_configure(uint8_t enable) {
-  LOG_INFO(LOG_TAG, "dut_mode_configure");
+  LOG_INFO(LOG_TAG, "%s", __func__);
 
   /* sanity check */
   if (interface_ready() == false) return BT_STATUS_NOT_READY;
@@ -370,7 +376,7 @@ int dut_mode_configure(uint8_t enable) {
 }
 
 int dut_mode_send(uint16_t opcode, uint8_t* buf, uint8_t len) {
-  LOG_INFO(LOG_TAG, "dut_mode_send");
+  LOG_INFO(LOG_TAG, "%s", __func__);
 
   /* sanity check */
   if (interface_ready() == false) return BT_STATUS_NOT_READY;
@@ -379,7 +385,7 @@ int dut_mode_send(uint16_t opcode, uint8_t* buf, uint8_t len) {
 }
 
 int le_test_mode(uint16_t opcode, uint8_t* buf, uint8_t len) {
-  LOG_INFO(LOG_TAG, "le_test_mode");
+  LOG_INFO(LOG_TAG, "%s", __func__);
 
   /* sanity check */
   if (interface_ready() == false) return BT_STATUS_NOT_READY;
@@ -388,7 +394,7 @@ int le_test_mode(uint16_t opcode, uint8_t* buf, uint8_t len) {
 }
 
 int config_hci_snoop_log(uint8_t enable) {
-  LOG_INFO(LOG_TAG, "config_hci_snoop_log");
+  LOG_INFO(LOG_TAG, "%s", __func__);
 
   if (!interface_ready()) return BT_STATUS_NOT_READY;
 
