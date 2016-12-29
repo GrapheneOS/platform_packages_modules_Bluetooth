@@ -230,18 +230,14 @@ static void hidh_search_callback(uint16_t sdp_result) {
  *
  ******************************************************************************/
 void HID_HostInit(void) {
+  uint8_t log_level = hh_cb.trace_level;
   memset(&hh_cb, 0, sizeof(tHID_HOST_CTB));
+  hh_cb.trace_level = log_level;
 
   for (size_t i = 0; i < HID_HOST_MAX_DEVICES; i++) {
     hh_cb.devices[i].conn.process_repage_timer =
         alarm_new("hid_devices_conn.process_repage_timer");
   }
-
-#if defined(HID_INITIAL_TRACE_LEVEL)
-  hh_cb.trace_level = HID_INITIAL_TRACE_LEVEL;
-#else
-  hh_cb.trace_level = BT_TRACE_LEVEL_NONE;
-#endif
 }
 
 /*******************************************************************************

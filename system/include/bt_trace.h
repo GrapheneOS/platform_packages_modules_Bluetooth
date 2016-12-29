@@ -79,6 +79,7 @@ static const char BTE_LOGMSG_MODULE[] = "bte_logmsg_module";
 #define BTTRC_ID_STK_CE 51
 #define BTTRC_ID_STK_SNEP 52
 #define BTTRC_ID_STK_NDEF 53
+#define BTTRC_ID_STK_HIDD 54
 
 /* LayerIDs for BTA */
 #define BTTRC_ID_BTA_ACC 55 /* Advanced Camera Client */
@@ -118,9 +119,9 @@ static const char BTE_LOGMSG_MODULE[] = "bte_logmsg_module";
 
 /* LayerIDs for BT APP */
 #define BTTRC_ID_BTAPP 87
-#define BTTRC_ID_BT_PROTOCOL                          \
-  88 /* this is a temporary solution to allow dynamic \
-        enable/disable of BT_PROTOCOL_TRACE */
+/* this is a temporary solution to allow dynamic enable/disable of
+ * BT_PROTOCOL_TRACE */
+#define BTTRC_ID_BT_PROTOCOL 88
 #define BTTRC_ID_MAX_ID BTTRC_ID_BT_PROTOCOL
 #define BTTRC_ID_ALL_LAYERS 0xFF /* all trace layers */
 
@@ -209,9 +210,7 @@ static const char BTE_LOGMSG_MODULE[] = "bte_logmsg_module";
 #define BT_TRACE(l, t, ...) \
   LogMsg((TRACE_CTRL_GENERAL | (l) | TRACE_ORG_STACK | (t)), ##__VA_ARGS__)
 
-/* Define tracing for the HCI unit
-*/
-
+/* Define tracing for the HCI unit */
 #define HCI_TRACE_ERROR(...)                                      \
   {                                                               \
     if (btu_trace_level >= BT_TRACE_LEVEL_ERROR)                  \
@@ -233,8 +232,7 @@ static const char BTE_LOGMSG_MODULE[] = "bte_logmsg_module";
       BT_TRACE(TRACE_LAYER_HCI, TRACE_TYPE_DEBUG, ##__VA_ARGS__); \
   }
 
-/* Define tracing for BTM
-*/
+/* Define tracing for BTM */
 #define BTM_TRACE_ERROR(...)                                      \
   {                                                               \
     if (btm_cb.trace_level >= BT_TRACE_LEVEL_ERROR)               \
@@ -261,8 +259,7 @@ static const char BTE_LOGMSG_MODULE[] = "bte_logmsg_module";
       BT_TRACE(TRACE_LAYER_BTM, TRACE_TYPE_DEBUG, ##__VA_ARGS__); \
   }
 
-/* Define tracing for the L2CAP unit
-*/
+/* Define tracing for the L2CAP unit */
 #define L2CAP_TRACE_ERROR(...)                                      \
   {                                                                 \
     if (l2cb.l2cap_trace_level >= BT_TRACE_LEVEL_ERROR)             \
@@ -289,8 +286,7 @@ static const char BTE_LOGMSG_MODULE[] = "bte_logmsg_module";
       BT_TRACE(TRACE_LAYER_L2CAP, TRACE_TYPE_DEBUG, ##__VA_ARGS__); \
   }
 
-/* Define tracing for the SDP unit
-*/
+/* Define tracing for the SDP unit */
 #define SDP_TRACE_ERROR(...)                                      \
   {                                                               \
     if (sdp_cb.trace_level >= BT_TRACE_LEVEL_ERROR)               \
@@ -317,8 +313,7 @@ static const char BTE_LOGMSG_MODULE[] = "bte_logmsg_module";
       BT_TRACE(TRACE_LAYER_SDP, TRACE_TYPE_DEBUG, ##__VA_ARGS__); \
   }
 
-/* Define tracing for the RFCOMM unit
-*/
+/* Define tracing for the RFCOMM unit */
 #define RFCOMM_TRACE_ERROR(...)                                      \
   {                                                                  \
     if (rfc_cb.trace_level >= BT_TRACE_LEVEL_ERROR)                  \
@@ -394,8 +389,39 @@ static const char BTE_LOGMSG_MODULE[] = "bte_logmsg_module";
       BT_TRACE(TRACE_LAYER_HID, TRACE_TYPE_DEBUG, ##__VA_ARGS__); \
   }
 
-/* define traces for BNEP */
+/* define traces for HID Device */
+#define HIDD_TRACE_ERROR(...)                                     \
+  {                                                               \
+    if (hd_cb.trace_level >= BT_TRACE_LEVEL_ERROR)                \
+      BT_TRACE(TRACE_LAYER_HID, TRACE_TYPE_ERROR, ##__VA_ARGS__); \
+  }
+#define HIDD_TRACE_WARNING(...)                                     \
+  {                                                                 \
+    if (hd_cb.trace_level >= BT_TRACE_LEVEL_WARNING)                \
+      BT_TRACE(TRACE_LAYER_HID, TRACE_TYPE_WARNING, ##__VA_ARGS__); \
+  }
+#define HIDD_TRACE_API(...)                                     \
+  {                                                             \
+    if (hd_cb.trace_level >= BT_TRACE_LEVEL_API)                \
+      BT_TRACE(TRACE_LAYER_HID, TRACE_TYPE_API, ##__VA_ARGS__); \
+  }
+#define HIDD_TRACE_EVENT(...)                                     \
+  {                                                               \
+    if (hd_cb.trace_level >= BT_TRACE_LEVEL_EVENT)                \
+      BT_TRACE(TRACE_LAYER_HID, TRACE_TYPE_EVENT, ##__VA_ARGS__); \
+  }
+#define HIDD_TRACE_DEBUG(...)                                     \
+  {                                                               \
+    if (hd_cb.trace_level >= BT_TRACE_LEVEL_DEBUG)                \
+      BT_TRACE(TRACE_LAYER_HID, TRACE_TYPE_DEBUG, ##__VA_ARGS__); \
+  }
+#define HIDD_TRACE_VERBOSE(...)                                   \
+  {                                                               \
+    if (hd_cb.trace_level >= BT_TRACE_LEVEL_VERBOSE)              \
+      BT_TRACE(TRACE_LAYER_HID, TRACE_TYPE_DEBUG, ##__VA_ARGS__); \
+  }
 
+/* define traces for BNEP */
 #define BNEP_TRACE_ERROR(...)                                      \
   {                                                                \
     if (bnep_cb.trace_level >= BT_TRACE_LEVEL_ERROR)               \
@@ -423,7 +449,6 @@ static const char BTE_LOGMSG_MODULE[] = "bte_logmsg_module";
   }
 
 /* define traces for PAN */
-
 #define PAN_TRACE_ERROR(...)                                      \
   {                                                               \
     if (pan_cb.trace_level >= BT_TRACE_LEVEL_ERROR)               \
@@ -450,8 +475,7 @@ static const char BTE_LOGMSG_MODULE[] = "bte_logmsg_module";
       BT_TRACE(TRACE_LAYER_PAN, TRACE_TYPE_DEBUG, ##__VA_ARGS__); \
   }
 
-/* Define tracing for the A2DP profile
-*/
+/* Define tracing for the A2DP profile */
 #define A2DP_TRACE_ERROR(...)                                      \
   {                                                                \
     if (a2dp_cb.trace_level >= BT_TRACE_LEVEL_ERROR)               \
@@ -478,8 +502,7 @@ static const char BTE_LOGMSG_MODULE[] = "bte_logmsg_module";
       BT_TRACE(TRACE_LAYER_A2DP, TRACE_TYPE_API, ##__VA_ARGS__); \
   }
 
-/* AVDTP
-*/
+/* AVDTP */
 #define AVDT_TRACE_ERROR(...)                                     \
   {                                                               \
     if (avdt_cb.trace_level >= BT_TRACE_LEVEL_ERROR)              \
@@ -506,8 +529,7 @@ static const char BTE_LOGMSG_MODULE[] = "bte_logmsg_module";
       BT_TRACE(TRACE_LAYER_AVP, TRACE_TYPE_API, ##__VA_ARGS__); \
   }
 
-/* Define tracing for the AVCTP protocol
-*/
+/* Define tracing for the AVCTP protocol */
 #define AVCT_TRACE_ERROR(...)                                     \
   {                                                               \
     if (avct_cb.trace_level >= BT_TRACE_LEVEL_ERROR)              \
@@ -534,8 +556,7 @@ static const char BTE_LOGMSG_MODULE[] = "bte_logmsg_module";
       BT_TRACE(TRACE_LAYER_AVP, TRACE_TYPE_API, ##__VA_ARGS__); \
   }
 
-/* Define tracing for the AVRCP profile
-*/
+/* Define tracing for the AVRCP profile */
 #define AVRC_TRACE_ERROR(...)                                     \
   {                                                               \
     if (avrc_cb.trace_level >= BT_TRACE_LEVEL_ERROR)              \
@@ -562,8 +583,7 @@ static const char BTE_LOGMSG_MODULE[] = "bte_logmsg_module";
       BT_TRACE(TRACE_LAYER_AVP, TRACE_TYPE_API, ##__VA_ARGS__); \
   }
 
-/* MCAP
-*/
+/* MCAP */
 #define MCA_TRACE_ERROR(...)                                      \
   {                                                               \
     if (mca_cb.trace_level >= BT_TRACE_LEVEL_ERROR)               \
@@ -590,8 +610,7 @@ static const char BTE_LOGMSG_MODULE[] = "bte_logmsg_module";
       BT_TRACE(TRACE_LAYER_MCA, TRACE_TYPE_API, ##__VA_ARGS__); \
   }
 
-/* Define tracing for the ATT/GATT unit
-*/
+/* Define tracing for the ATT/GATT unit */
 #define GATT_TRACE_ERROR(...)                                     \
   {                                                               \
     if (gatt_cb.trace_level >= BT_TRACE_LEVEL_ERROR)              \
@@ -618,8 +637,7 @@ static const char BTE_LOGMSG_MODULE[] = "bte_logmsg_module";
       BT_TRACE(TRACE_LAYER_ATT, TRACE_TYPE_DEBUG, ##__VA_ARGS__); \
   }
 
-/* Define tracing for the SMP unit
-*/
+/* Define tracing for the SMP unit */
 #define SMP_TRACE_ERROR(...)                                      \
   {                                                               \
     if (smp_cb.trace_level >= BT_TRACE_LEVEL_ERROR)               \
