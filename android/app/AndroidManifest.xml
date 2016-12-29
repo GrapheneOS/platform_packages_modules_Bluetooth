@@ -393,5 +393,12 @@
                 android:name="android.accounts.AccountAuthenticator"
                 android:resource="@xml/authenticator" />
         </service>
+        <service
+            android:name = ".hid.HidDevService"
+            android:enabled="@bool/profile_supported_hidd">
+            <intent-filter>
+                <action android:name="android.bluetooth.IBluetoothHidDevice" />
+            </intent-filter>
+        </service>
     </application>
 </manifest>
