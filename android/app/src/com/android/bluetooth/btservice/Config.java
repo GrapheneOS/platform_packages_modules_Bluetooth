@@ -39,6 +39,7 @@ import com.android.bluetooth.map.BluetoothMapService;
 import com.android.bluetooth.mapclient.MapClientService;
 import com.android.bluetooth.sap.SapService;
 import com.android.bluetooth.pbapclient.PbapClientService;
+import com.android.bluetooth.hid.HidDevService;
 
 public class Config {
     private static final String TAG = "AdapterServiceConfig";
@@ -46,27 +47,20 @@ public class Config {
      * List of profile services.
      */
     @SuppressWarnings("rawtypes")
-    //Do not inclue OPP and PBAP, because their services
-    //are not managed by AdapterService
+    // Do not inclue OPP and PBAP, because their services
+    // are not managed by AdapterService
     private static final Class[] PROFILE_SERVICES = {
-        HeadsetService.class,
-        A2dpService.class,
-        A2dpSinkService.class,
-        HidService.class,
-        HealthService.class,
-        PanService.class,
-        GattService.class,
-        BluetoothMapService.class,
-        HeadsetClientService.class,
-        AvrcpControllerService.class,
-        SapService.class,
-        PbapClientService.class,
-        MapClientService.class
-    };
+        HeadsetService.class,       A2dpService.class,
+        A2dpSinkService.class,      HidService.class,
+        HealthService.class,        PanService.class,
+        GattService.class,          BluetoothMapService.class,
+        HeadsetClientService.class, AvrcpControllerService.class,
+        SapService.class,           PbapClientService.class,
+        MapClientService.class,     HidDevService.class};
     /**
      * Resource flag to indicate whether profile is supported or not.
      */
-    private static final int[]  PROFILE_SERVICES_FLAG = {
+    private static final int[] PROFILE_SERVICES_FLAG = {
         R.bool.profile_supported_hs_hfp,
         R.bool.profile_supported_a2dp,
         R.bool.profile_supported_a2dp_sink,
@@ -79,8 +73,8 @@ public class Config {
         R.bool.profile_supported_avrcp_controller,
         R.bool.profile_supported_sap,
         R.bool.profile_supported_pbapclient,
-        R.bool.profile_supported_mapmce
-    };
+        R.bool.profile_supported_mapmce,
+        R.bool.profile_supported_hidd};
 
     private static Class[] SUPPORTED_PROFILES = new Class[0];
 
@@ -166,6 +160,8 @@ public class Config {
             profileIndex = BluetoothProfile.PBAP_CLIENT;
         } else if (profile == MapClientService.class) {
             profileIndex = BluetoothProfile.MAP_CLIENT;
+        } else if (profile == HidDevService.class) {
+            profileIndex = BluetoothProfile.INPUT_HOST;
         }
 
         return profileIndex;

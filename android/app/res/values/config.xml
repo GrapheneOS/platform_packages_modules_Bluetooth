@@ -30,6 +30,7 @@
     <bool name="profile_supported_sap">false</bool>
     <bool name="profile_supported_pbapclient">false</bool>
     <bool name="profile_supported_mapmce">false</bool>
+    <bool name="profile_supported_hidd">false</bool>
 
     <!-- If true, we will require location to be enabled on the device to
          fire Bluetooth LE scan result callbacks in addition to having one
