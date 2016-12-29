@@ -470,18 +470,10 @@ void btm_ble_adv_raddr_timer_timeout(void* data) {
       ->ConfigureRpa(((AdvertisingInstance*)data)->inst_id);
 }
 
-/*******************************************************************************
- *
- * Function         btm_ble_multi_adv_init
- *
- * Description      This function initialize the multi adv control block.
- *
- * Parameters       None
- *
- * Returns          void
- *
- ******************************************************************************/
-void btm_ble_multi_adv_init() {
+/**
+ * This function initialize the advertising manager.
+ **/
+void btm_ble_adv_init() {
   BleAdvertiserHciInterface::Initialize();
   BleAdvertisingManager::Initialize(BleAdvertiserHciInterface::Get());
   BleAdvertiserHciInterface::Get()->SetAdvertisingEventObserver(
