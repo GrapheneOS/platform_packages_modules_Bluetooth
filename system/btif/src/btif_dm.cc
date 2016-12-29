@@ -229,8 +229,8 @@ static void btif_dm_ble_oob_req_evt(tBTA_DM_SP_RMT_OOB* req_oob_type);
 static void btif_dm_ble_sc_oob_req_evt(tBTA_DM_SP_RMT_OOB* req_oob_type);
 
 static void bte_scan_filt_param_cfg_evt(uint8_t action_type,
-                                        tBTA_DM_BLE_PF_AVBL_SPACE avbl_space,
-                                        tBTA_DM_BLE_REF_VALUE ref_value,
+                                        tBTM_BLE_PF_AVBL_SPACE avbl_space,
+                                        tBTM_BLE_REF_VALUE ref_value,
                                         tBTA_STATUS status);
 
 static char* btif_get_default_local_name();
@@ -1346,7 +1346,7 @@ static void btif_dm_search_devices_evt(uint16_t event, char* p_param) {
     } break;
 
     case BTA_DM_INQ_CMPL_EVT: {
-      BTA_DmBleScanFilterSetup(BTA_DM_BLE_SCAN_COND_DELETE, 0, nullptr, nullptr,
+      BTA_DmBleScanFilterSetup(BTM_BLE_SCAN_COND_DELETE, 0, nullptr,
                                bte_scan_filt_param_cfg_evt, 0);
     } break;
     case BTA_DM_DISC_CMPL_EVT: {
@@ -1366,8 +1366,8 @@ static void btif_dm_search_devices_evt(uint16_t event, char* p_param) {
       if (btif_dm_inquiry_in_progress == false) {
         btgatt_filt_param_setup_t adv_filt_param;
         memset(&adv_filt_param, 0, sizeof(btgatt_filt_param_setup_t));
-        BTA_DmBleScanFilterSetup(BTA_DM_BLE_SCAN_COND_DELETE, 0, nullptr,
-                                 nullptr, bte_scan_filt_param_cfg_evt, 0);
+        BTA_DmBleScanFilterSetup(BTM_BLE_SCAN_COND_DELETE, 0, nullptr,
+                                 bte_scan_filt_param_cfg_evt, 0);
         HAL_CBACK(bt_hal_cbacks, discovery_state_changed_cb,
                   BT_DISCOVERY_STOPPED);
       }
@@ -2128,8 +2128,8 @@ static void bta_energy_info_cb(tBTA_DM_BLE_TX_TIME_MS tx_time,
  *
  ******************************************************************************/
 static void bte_scan_filt_param_cfg_evt(uint8_t action_type,
-                                        tBTA_DM_BLE_PF_AVBL_SPACE avbl_space,
-                                        tBTA_DM_BLE_REF_VALUE ref_value,
+                                        tBTM_BLE_PF_AVBL_SPACE avbl_space,
+                                        tBTM_BLE_REF_VALUE ref_value,
                                         tBTA_STATUS status) {
   /* This event occurs on calling BTA_DmBleCfgFilterCondition internally,
   ** and that is why there is no HAL callback
@@ -2163,7 +2163,7 @@ bt_status_t btif_dm_start_discovery(void) {
   BTIF_TRACE_EVENT("%s", __func__);
 
   /* Cleanup anything remaining on index 0 */
-  BTA_DmBleScanFilterSetup(BTA_DM_BLE_SCAN_COND_DELETE, 0, nullptr, nullptr,
+  BTA_DmBleScanFilterSetup(BTM_BLE_SCAN_COND_DELETE, 0, nullptr,
                            bte_scan_filt_param_cfg_evt, 0);
 
   auto adv_filt_param = std::make_unique<btgatt_filt_param_setup_t>();
@@ -2174,8 +2174,7 @@ bt_status_t btif_dm_start_discovery(void) {
   adv_filt_param->list_logic_type = BTA_DM_BLE_PF_LIST_LOGIC_OR;
   adv_filt_param->rssi_low_thres = LOWEST_RSSI_VALUE;
   adv_filt_param->rssi_high_thres = LOWEST_RSSI_VALUE;
-  BTA_DmBleScanFilterSetup(BTA_DM_BLE_SCAN_COND_ADD, 0,
-                           std::move(adv_filt_param), nullptr,
+  BTA_DmBleScanFilterSetup(BTM_BLE_SCAN_COND_ADD, 0, std::move(adv_filt_param),
                            bte_scan_filt_param_cfg_evt, 0);
 
   /* TODO: Do we need to handle multiple inquiries at the same time? */
