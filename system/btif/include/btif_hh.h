@@ -87,6 +87,7 @@ typedef struct {
   uint32_t device_num;
   btif_hh_added_device_t added_devices[BTIF_HH_MAX_ADDED_DEV];
   btif_hh_device_t* p_curr_dev;
+  bool service_dereg_active;
 } btif_hh_cb_t;
 
 /*******************************************************************************
@@ -103,6 +104,7 @@ extern void btif_hh_disconnect(bt_bdaddr_t* bd_addr);
 extern void btif_hh_setreport(btif_hh_device_t* p_dev,
                               bthh_report_type_t r_type, uint16_t size,
                               uint8_t* report);
+extern void btif_hh_service_registration(bool enable);
 
 bool btif_hh_add_added_dev(bt_bdaddr_t bd_addr, tBTA_HH_ATTR_MASK attr_mask);
 
