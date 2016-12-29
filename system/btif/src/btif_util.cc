@@ -44,6 +44,7 @@
 #include "bta_ag_api.h"
 #include "bta_api.h"
 #include "bta_av_api.h"
+#include "bta_hd_api.h"
 #include "bta_hf_client_api.h"
 #include "bta_hh_api.h"
 #include "bte.h"
@@ -357,6 +358,25 @@ const char* dump_hf_conn_state(uint16_t event) {
     CASE_RETURN_STR(BTHF_CONNECTION_STATE_CONNECTED)
     CASE_RETURN_STR(BTHF_CONNECTION_STATE_SLC_CONNECTED)
     CASE_RETURN_STR(BTHF_CONNECTION_STATE_DISCONNECTING)
+    default:
+      return "UNKNOWN MSG ID";
+  }
+}
+
+const char* dump_hd_event(uint16_t event) {
+  switch (event) {
+    CASE_RETURN_STR(BTA_HD_ENABLE_EVT)
+    CASE_RETURN_STR(BTA_HD_DISABLE_EVT)
+    CASE_RETURN_STR(BTA_HD_REGISTER_APP_EVT)
+    CASE_RETURN_STR(BTA_HD_UNREGISTER_APP_EVT)
+    CASE_RETURN_STR(BTA_HD_OPEN_EVT)
+    CASE_RETURN_STR(BTA_HD_CLOSE_EVT)
+    CASE_RETURN_STR(BTA_HD_GET_REPORT_EVT)
+    CASE_RETURN_STR(BTA_HD_SET_REPORT_EVT)
+    CASE_RETURN_STR(BTA_HD_SET_PROTOCOL_EVT)
+    CASE_RETURN_STR(BTA_HD_INTR_DATA_EVT)
+    CASE_RETURN_STR(BTA_HD_VC_UNPLUG_EVT)
+    CASE_RETURN_STR(BTA_HD_API_ERR_EVT)
     default:
       return "UNKNOWN MSG ID";
   }

@@ -238,7 +238,7 @@ void bta_hh_co_destroy(int fd) {
 }
 
 int bta_hh_co_write(int fd, uint8_t* rpt, uint16_t len) {
-  APPL_TRACE_DEBUG("%s: UHID write %d", __func__, len);
+  APPL_TRACE_VERBOSE("%s: UHID write %d", __func__, len);
 
   struct uhid_event ev;
   memset(&ev, 0, sizeof(ev));

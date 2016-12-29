@@ -59,6 +59,10 @@
 #define BTA_PAN_INCLUDED TRUE
 #endif
 
+#ifndef BTA_HD_INCLUDED
+#define BTA_HD_INCLUDED TRUE
+#endif
+
 #ifndef BTA_HH_INCLUDED
 #define BTA_HH_INCLUDED TRUE
 #endif
@@ -1245,12 +1249,29 @@
  *
  *****************************************************************************/
 
+/* HID Device Role Included */
+#ifndef HID_DEV_INCLUDED
+#define HID_DEV_INCLUDED TRUE
+#endif
+
+#ifndef HID_DEV_SUBCLASS
+#define HID_DEV_SUBCLASS COD_MINOR_POINTING
+#endif
+
 #ifndef HID_CONTROL_BUF_SIZE
 #define HID_CONTROL_BUF_SIZE BT_DEFAULT_BUFFER_SIZE
 #endif
 
 #ifndef HID_INTERRUPT_BUF_SIZE
 #define HID_INTERRUPT_BUF_SIZE BT_DEFAULT_BUFFER_SIZE
+#endif
+
+#ifndef HID_DEV_MTU_SIZE
+#define HID_DEV_MTU_SIZE 64
+#endif
+
+#ifndef HID_DEV_FLUSH_TO
+#define HID_DEV_FLUSH_TO 0xffff
 #endif
 
 /*************************************************************************

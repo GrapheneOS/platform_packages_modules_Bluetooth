@@ -102,6 +102,8 @@ LOCAL_SRC_FILES := \
     ./hcic/hcicmds.cc \
     ./hid/hidh_api.cc \
     ./hid/hidh_conn.cc \
+    ./hid/hidd_api.cc \
+    ./hid/hidd_conn.cc \
     ./l2cap/l2c_api.cc \
     ./l2cap/l2c_ble.cc \
     ./l2cap/l2c_csm.cc \

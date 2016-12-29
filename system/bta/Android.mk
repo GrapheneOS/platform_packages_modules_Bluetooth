@@ -11,6 +11,7 @@ btaCommonIncludes := \
                    $(LOCAL_PATH)/sys \
                    $(LOCAL_PATH)/dm \
                    $(LOCAL_PATH)/hh \
+                   $(LOCAL_PATH)/hd \
                    $(LOCAL_PATH)/closure \
                    $(LOCAL_PATH)/../btcore/include \
                    $(LOCAL_PATH)/../hci/include \
@@ -76,6 +77,9 @@ LOCAL_SRC_FILES:= \
     ./hh/bta_hh_le.cc \
     ./hh/bta_hh_main.cc \
     ./hh/bta_hh_utils.cc \
+    ./hd/bta_hd_act.cc \
+    ./hd/bta_hd_api.cc \
+    ./hd/bta_hd_main.cc \
     ./hl/bta_hl_act.cc \
     ./hl/bta_hl_api.cc \
     ./hl/bta_hl_ci.cc \
