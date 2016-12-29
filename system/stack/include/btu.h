@@ -27,6 +27,8 @@
 #ifndef BTU_H
 #define BTU_H
 
+#include <base/callback.h>
+#include <base/location.h>
 #include "bt_common.h"
 #include "bt_target.h"
 #include "osi/include/alarm.h"
@@ -67,6 +69,10 @@ extern void btu_check_bt_sleep(void);
 */
 extern void btu_hcif_process_event(uint8_t controller_id, BT_HDR* p_buf);
 extern void btu_hcif_send_cmd(uint8_t controller_id, BT_HDR* p_msg);
+extern void btu_hcif_send_cmd_with_cb(
+    const tracked_objects::Location& posted_from, uint16_t opcode,
+    uint8_t* params, uint8_t params_len,
+    base::Callback<void(uint8_t*, uint16_t)> cb);
 
 /* Functions provided by btu_init.cc
  ***********************************
