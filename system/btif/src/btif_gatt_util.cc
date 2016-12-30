@@ -105,7 +105,7 @@ void btif_to_bta_response(tBTA_GATTS_RSP* p_dest, btgatt_response_t* p_src) {
   memcpy(p_dest->attr_value.value, p_src->attr_value.value, GATT_MAX_ATTR_LEN);
 }
 
-void btif_to_bta_uuid_mask(tBTA_DM_BLE_PF_COND_MASK* p_mask,
+void btif_to_bta_uuid_mask(tBTM_BLE_PF_COND_MASK* p_mask,
                            const bt_uuid_t* uuid_mask,
                            const bt_uuid_t* svc_uuid) {
   char* p_byte = (char*)uuid_mask;

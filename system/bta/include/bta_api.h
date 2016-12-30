@@ -362,94 +362,6 @@ typedef void(tBTA_DM_BLE_RSSI_CBACK)(BD_ADDR bd_addr,
                                      tBTA_DM_BLE_RSSI_ALERT_TYPE alert_type,
                                      int8_t rssi);
 
-/* max number of filter spot for different filter type */
-#define BTA_DM_BLE_MAX_UUID_FILTER BTM_BLE_MAX_UUID_FILTER /* 8 */
-#define BTA_DM_BLE_MAX_ADDR_FILTER BTM_BLE_MAX_ADDR_FILTER /* 8 */
-#define BTA_DM_BLE_PF_STR_COND_MAX \
-  BTM_BLE_PF_STR_COND_MAX /* 4    apply to manu data , or local name */
-#define BTA_DM_BLE_PF_STR_LEN_MAX \
-  BTM_BLE_PF_STR_LEN_MAX /* match for first 20 bytes */
-
-#define BTA_DM_BLE_PF_LOGIC_OR 0
-#define BTA_DM_BLE_PF_LOGIC_AND 1
-typedef uint8_t tBTA_DM_BLE_PF_LOGIC_TYPE;
-
-enum {
-  BTA_DM_BLE_SCAN_COND_ADD,
-  BTA_DM_BLE_SCAN_COND_DELETE,
-  BTA_DM_BLE_SCAN_COND_CLEAR = 2
-};
-typedef uint8_t tBTA_DM_BLE_SCAN_COND_OP;
-
-/* ADV payload filtering vendor specific call event */
-enum { BTA_BLE_SCAN_PF_ENABLE_EVT = 7, BTA_BLE_SCAN_PF_COND_EVT };
-
-/* filter selection bit index  */
-#define BTA_DM_BLE_PF_ADDR_FILTER BTM_BLE_PF_ADDR_FILTER
-#define BTA_DM_BLE_PF_SRVC_DATA BTM_BLE_PF_SRVC_DATA
-#define BTA_DM_BLE_PF_SRVC_UUID BTM_BLE_PF_SRVC_UUID
-#define BTA_DM_BLE_PF_SRVC_SOL_UUID BTM_BLE_PF_SRVC_SOL_UUID
-#define BTA_DM_BLE_PF_LOCAL_NAME BTM_BLE_PF_LOCAL_NAME
-#define BTA_DM_BLE_PF_MANU_DATA BTM_BLE_PF_MANU_DATA
-#define BTA_DM_BLE_PF_SRVC_DATA_PATTERN BTM_BLE_PF_SRVC_DATA_PATTERN
-#define BTA_DM_BLE_PF_TYPE_ALL BTM_BLE_PF_TYPE_ALL
-#define BTA_DM_BLE_PF_TYPE_MAX BTM_BLE_PF_TYPE_MAX
-typedef uint8_t tBTA_DM_BLE_PF_COND_TYPE;
-
-typedef union {
-  uint16_t uuid16_mask;
-  uint32_t uuid32_mask;
-  uint8_t uuid128_mask[LEN_UUID_128];
-} tBTA_DM_BLE_PF_COND_MASK;
-
-typedef struct {
-  tBLE_BD_ADDR*
-      p_target_addr; /* target address, if NULL, generic UUID filter */
-  tBT_UUID uuid;     /* UUID condition */
-  tBTA_DM_BLE_PF_LOGIC_TYPE cond_logic; /* AND/OR */
-  tBTA_DM_BLE_PF_COND_MASK*
-      p_uuid_mask; /* UUID condition mask, if NULL, match exact as UUID
-                      condition */
-} tBTA_DM_BLE_PF_UUID_COND;
-
-typedef struct {
-  uint8_t data_len; /* <= 20 bytes */
-  uint8_t* p_data;
-} tBTA_DM_BLE_PF_LOCAL_NAME_COND;
-
-typedef struct {
-  uint16_t company_id; /* company ID */
-  uint8_t data_len;    /* <= 20 bytes */
-  uint8_t* p_pattern;
-  uint16_t company_id_mask; /* UUID value mask */
-  uint8_t*
-      p_pattern_mask; /* Manufacturer data matching mask, same length
-                       as data pattern, set to all 0xff, match exact data */
-} tBTA_DM_BLE_PF_MANU_COND;
-
-typedef struct {
-  uint16_t uuid;    /* service ID */
-  uint8_t data_len; /* <= 20 bytes */
-  uint8_t* p_pattern;
-  uint8_t*
-      p_pattern_mask; /* Service data matching mask, same length
-                       as data pattern, set to all 0xff, match exact data */
-} tBTA_DM_BLE_PF_SRVC_PATTERN_COND;
-
-typedef union {
-  tBLE_BD_ADDR target_addr;
-  tBTA_DM_BLE_PF_LOCAL_NAME_COND local_name; /* lcoal name filtering */
-  tBTA_DM_BLE_PF_MANU_COND manu_data;        /* manufactuer data filtering */
-  tBTA_DM_BLE_PF_UUID_COND srvc_uuid;        /* service UUID filtering */
-  tBTA_DM_BLE_PF_UUID_COND
-      solicitate_uuid; /* solicitated service UUID filtering */
-  tBTA_DM_BLE_PF_SRVC_PATTERN_COND srvc_data; /* service data pattern */
-  uint8_t additional_data[2000];
-} tBTA_DM_BLE_PF_COND_PARAM;
-
-typedef uint8_t tBTA_DM_BLE_PF_FILT_INDEX;
-typedef uint8_t tBTA_DM_BLE_PF_AVBL_SPACE;
-
 typedef int8_t tBTA_DM_RSSI_VALUE;
 typedef uint8_t tBTA_DM_LINK_QUALITY_VALUE;
 
@@ -799,36 +711,8 @@ typedef union {
 /* Security callback */
 typedef void(tBTA_DM_SEC_CBACK)(tBTA_DM_SEC_EVT event, tBTA_DM_SEC* p_data);
 
-typedef uint32_t tBTA_DM_BLE_REF_VALUE;
-
-#define BTA_DM_BLE_PF_ENABLE_EVT BTM_BLE_PF_ENABLE
-#define BTA_DM_BLE_PF_CONFIG_EVT BTM_BLE_PF_CONFIG
-typedef uint8_t tBTA_DM_BLE_PF_EVT;
-
-#define BTA_DM_BLE_PF_ENABLE 1
-#define BTA_DM_BLE_PF_CONFIG 2
-typedef uint8_t tBTA_DM_BLE_PF_ACTION;
-
-/* Config callback */
-typedef void(tBTA_DM_BLE_PF_CFG_CBACK)(tBTA_DM_BLE_PF_ACTION action,
-                                       tBTA_DM_BLE_PF_COND_TYPE cfg_cond,
-                                       tBTA_DM_BLE_PF_AVBL_SPACE avbl_space,
-                                       tBTA_STATUS status,
-                                       tBTA_DM_BLE_REF_VALUE ref_value);
-/* Param callback */
-typedef void(tBTA_DM_BLE_PF_PARAM_CBACK)(uint8_t action_type,
-                                         tBTA_DM_BLE_PF_AVBL_SPACE avbl_space,
-                                         tBTA_DM_BLE_REF_VALUE ref_value,
-                                         tBTA_STATUS status);
-
-/* Status callback */
-typedef void(tBTA_DM_BLE_PF_STATUS_CBACK)(uint8_t action, tBTA_STATUS status,
-                                          tBTA_DM_BLE_REF_VALUE ref_value);
-
 #define BTA_DM_BLE_PF_LIST_LOGIC_OR 1
-#define BTA_DM_BLE_PF_LIST_LOGIC_AND 2
 #define BTA_DM_BLE_PF_FILT_LOGIC_OR 0
-#define BTA_DM_BLE_PF_FILT_LOGIC_AND 1
 
 /* Search callback events */
 #define BTA_DM_INQ_RES_EVT 0  /* Inquiry result for a peer device. */
@@ -946,20 +830,20 @@ typedef uint16_t tBTA_DM_BLE_ADV_INFO_TIMESTAMP;
 
 typedef tBTM_BLE_TRACK_ADV_DATA tBTA_DM_BLE_TRACK_ADV_DATA;
 
-typedef void(tBTA_BLE_SCAN_THRESHOLD_CBACK)(tBTA_DM_BLE_REF_VALUE ref_value);
+typedef void(tBTA_BLE_SCAN_THRESHOLD_CBACK)(tBTM_BLE_REF_VALUE ref_value);
 
-typedef void(tBTA_BLE_SCAN_REP_CBACK)(tBTA_DM_BLE_REF_VALUE ref_value,
+typedef void(tBTA_BLE_SCAN_REP_CBACK)(tBTM_BLE_REF_VALUE ref_value,
                                       uint8_t report_format,
                                       uint8_t num_records, uint16_t data_len,
                                       uint8_t* p_rep_data, tBTA_STATUS status);
 
 typedef void(tBTA_BLE_SCAN_SETUP_CBACK)(tBTA_BLE_BATCH_SCAN_EVT evt,
-                                        tBTA_DM_BLE_REF_VALUE ref_value,
+                                        tBTM_BLE_REF_VALUE ref_value,
                                         tBTA_STATUS status);
 
-typedef void(tBTA_BLE_TRACK_ADV_CMPL_CBACK)(
-    int action, tBTA_STATUS status, tBTA_DM_BLE_PF_AVBL_SPACE avbl_space,
-    tBTA_DM_BLE_REF_VALUE ref_value);
+typedef void(tBTA_BLE_TRACK_ADV_CMPL_CBACK)(int action, tBTA_STATUS status,
+                                            tBTM_BLE_PF_AVBL_SPACE avbl_space,
+                                            tBTM_BLE_REF_VALUE ref_value);
 
 typedef void(tBTA_BLE_TRACK_ADV_CBACK)(tBTA_DM_BLE_TRACK_ADV_DATA* p_adv_data);
 
@@ -1898,7 +1782,7 @@ extern void BTA_DmBleSetStorageParams(
     uint8_t batch_scan_notify_threshold,
     tBTA_BLE_SCAN_SETUP_CBACK* p_setup_cback,
     tBTA_BLE_SCAN_THRESHOLD_CBACK* p_thres_cback,
-    tBTA_BLE_SCAN_REP_CBACK* p_rep_cback, tBTA_DM_BLE_REF_VALUE ref_value);
+    tBTA_BLE_SCAN_REP_CBACK* p_rep_cback, tBTM_BLE_REF_VALUE ref_value);
 
 /*******************************************************************************
  *
@@ -1921,7 +1805,7 @@ extern void BTA_DmBleEnableBatchScan(tBTA_BLE_BATCH_SCAN_MODE scan_mode,
                                      uint32_t scan_window,
                                      tBTA_BLE_DISCARD_RULE discard_rule,
                                      tBLE_ADDR_TYPE addr_type,
-                                     tBTA_DM_BLE_REF_VALUE ref_value);
+                                     tBTM_BLE_REF_VALUE ref_value);
 
 /*******************************************************************************
  *
@@ -1936,7 +1820,7 @@ extern void BTA_DmBleEnableBatchScan(tBTA_BLE_BATCH_SCAN_MODE scan_mode,
  *
  ******************************************************************************/
 extern void BTA_DmBleReadScanReports(tBTA_BLE_BATCH_SCAN_MODE scan_type,
-                                     tBTA_DM_BLE_REF_VALUE ref_value);
+                                     tBTM_BLE_REF_VALUE ref_value);
 
 /*******************************************************************************
  *
@@ -1949,7 +1833,7 @@ extern void BTA_DmBleReadScanReports(tBTA_BLE_BATCH_SCAN_MODE scan_type,
  * Returns          None
  *
  ******************************************************************************/
-extern void BTA_DmBleDisableBatchScan(tBTA_DM_BLE_REF_VALUE ref_value);
+extern void BTA_DmBleDisableBatchScan(tBTM_BLE_REF_VALUE ref_value);
 
 /*******************************************************************************
  *
@@ -1966,8 +1850,8 @@ extern void BTA_DmBleDisableBatchScan(tBTA_DM_BLE_REF_VALUE ref_value);
  *
  ******************************************************************************/
 extern void BTA_DmEnableScanFilter(uint8_t action,
-                                   tBTA_DM_BLE_PF_STATUS_CBACK* p_cmpl_cback,
-                                   tBTA_DM_BLE_REF_VALUE ref_value);
+                                   tBTM_BLE_PF_STATUS_CBACK* p_cmpl_cback,
+                                   tBTM_BLE_REF_VALUE ref_value);
 
 /*******************************************************************************
  *
@@ -1975,9 +1859,7 @@ extern void BTA_DmEnableScanFilter(uint8_t action,
  *
  * Description      This function is called to setup the filter params
  *
- * Parameters       p_target: enable the filter condition on a target device; if
- *                            NULL
- *                  filt_index - Filter index
+ * Parameters       filt_index - Filter index
  *                  p_filt_params -Filter parameters
  *                  ref_value - Reference value
  *                  action - Add, delete or clear
@@ -1987,10 +1869,9 @@ extern void BTA_DmEnableScanFilter(uint8_t action,
  *
  ******************************************************************************/
 extern void BTA_DmBleScanFilterSetup(
-    uint8_t action, tBTA_DM_BLE_PF_FILT_INDEX filt_index,
+    uint8_t action, tBTM_BLE_PF_FILT_INDEX filt_index,
     std::unique_ptr<btgatt_filt_param_setup_t> p_filt_params,
-    std::unique_ptr<tBLE_BD_ADDR> p_target,
-    tBTA_DM_BLE_PF_PARAM_CBACK p_cmpl_cback, tBTA_DM_BLE_REF_VALUE ref_value);
+    tBTM_BLE_PF_PARAM_CBACK p_cmpl_cback, tBTM_BLE_REF_VALUE ref_value);
 
 /*******************************************************************************
  *
@@ -2009,16 +1890,16 @@ extern void BTA_DmBleScanFilterSetup(
  * Returns          void
  *
  ******************************************************************************/
-extern void BTA_DmBleCfgFilterCondition(tBTA_DM_BLE_SCAN_COND_OP action,
-                                        tBTA_DM_BLE_PF_COND_TYPE cond_type,
-                                        tBTA_DM_BLE_PF_FILT_INDEX filt_index,
-                                        tBTA_DM_BLE_PF_COND_PARAM* p_cond,
-                                        tBTA_DM_BLE_PF_CFG_CBACK* p_cmpl_cback,
-                                        tBTA_DM_BLE_REF_VALUE ref_value);
+extern void BTA_DmBleCfgFilterCondition(tBTM_BLE_SCAN_COND_OP action,
+                                        tBTM_BLE_PF_COND_TYPE cond_type,
+                                        tBTM_BLE_PF_FILT_INDEX filt_index,
+                                        tBTM_BLE_PF_COND_PARAM* p_cond,
+                                        tBTM_BLE_PF_CFG_CBACK* p_cmpl_cback,
+                                        tBTM_BLE_REF_VALUE ref_value);
 
-extern void BTA_DmBleScanFilterClear(tBTA_DM_BLE_REF_VALUE ref_value,
-                                     tBTA_DM_BLE_PF_FILT_INDEX filt_index,
-                                     tBTA_DM_BLE_PF_CFG_CBACK* p_cmpl_cback);
+extern void BTA_DmBleScanFilterClear(tBTM_BLE_REF_VALUE ref_value,
+                                     tBTM_BLE_PF_FILT_INDEX filt_index,
+                                     tBTM_BLE_PF_CFG_CBACK* p_cmpl_cback);
 
 /*******************************************************************************
  *
@@ -2033,8 +1914,7 @@ extern void BTA_DmBleScanFilterClear(tBTA_DM_BLE_REF_VALUE ref_value,
  *
  ******************************************************************************/
 extern void BTA_DmBleTrackAdvertiser(
-    tBTA_DM_BLE_REF_VALUE ref_value,
-    tBTA_BLE_TRACK_ADV_CBACK* p_track_adv_cback);
+    tBTM_BLE_REF_VALUE ref_value, tBTA_BLE_TRACK_ADV_CBACK* p_track_adv_cback);
 
 /*******************************************************************************
  *
