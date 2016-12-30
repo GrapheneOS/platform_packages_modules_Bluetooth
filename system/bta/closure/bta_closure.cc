@@ -34,13 +34,10 @@ enum {
 
 struct tBTA_CLOSURE_EXECUTE {
   BT_HDR hdr;
+  PendingTask pending_task;
 };
 
 static const tBTA_SYS_REG bta_closure_hw_reg = {bta_closure_execute, NULL};
-
-// The incoming queue receiving all posted tasks.
-TaskQueue task_queue;
-
 tBTA_SYS_SENDMSG bta_closure_sys_sendmsg = NULL;
 
 }  // namespace
@@ -54,26 +51,20 @@ void bta_closure_init(tBTA_SYS_REGISTER registerer, tBTA_SYS_SENDMSG sender) {
   bta_closure_sys_sendmsg = sender;
 }
 
-bool bta_closure_execute(BT_HDR* p_msg) {
-  if (p_msg->event != BTA_CLOSURE_EXECUTE_EVT) {
+bool bta_closure_execute(BT_HDR* p_raw_msg) {
+  if (p_raw_msg->event != BTA_CLOSURE_EXECUTE_EVT) {
     APPL_TRACE_ERROR("%s: don't know how to execute event type %d", __func__,
-                     p_msg->event);
+                     p_raw_msg->event);
     return false;
   }
 
-  if (task_queue.empty()) {
-    APPL_TRACE_ERROR("%s: trying to execute event, but queue is empty.",
-                     __func__);
-    return false;
-  }
+  tBTA_CLOSURE_EXECUTE* p_msg = ((tBTA_CLOSURE_EXECUTE*)p_raw_msg);
 
-  PendingTask pending_task = std::move(task_queue.front());
-  task_queue.pop();
+  APPL_TRACE_API("%s: executing closure %s", __func__,
+                 p_msg->pending_task.posted_from.ToString().c_str());
+  p_msg->pending_task.task.Run();
 
-  APPL_TRACE_VERBOSE("%s: executing closure %s", __func__,
-                     pending_task.posted_from.ToString().c_str());
-
-  pending_task.task.Run();
+  p_msg->pending_task.~PendingTask();
   return true;
 }
 
@@ -86,15 +77,11 @@ bool bta_closure_execute(BT_HDR* p_msg) {
  */
 void do_in_bta_thread(const tracked_objects::Location& from_here,
                       const base::Closure& task) {
-  PendingTask pending_task(from_here, task, TimeTicks(), true);
-
-  task_queue.push(std::move(pending_task));
-
+  APPL_TRACE_API("%s: posting %s", __func__, from_here.ToString().c_str());
   tBTA_CLOSURE_EXECUTE* p_msg =
       (tBTA_CLOSURE_EXECUTE*)osi_malloc(sizeof(tBTA_CLOSURE_EXECUTE));
 
-  APPL_TRACE_API("%s", __func__);
-
+  new (&p_msg->pending_task) PendingTask(from_here, task, TimeTicks(), true);
   p_msg->hdr.event = BTA_CLOSURE_EXECUTE_EVT;
   bta_closure_sys_sendmsg(p_msg);
 }
