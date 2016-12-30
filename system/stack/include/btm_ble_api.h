@@ -822,17 +822,11 @@ extern uint8_t BTM_BleGetSupportedKeySize(BD_ADDR bd_addr);
  * Description      This function is called to setup the adv data payload filter
  *                  condition.
  *
- * Parameters       p_target: enabble the filter condition on a target device;
- *                            if NULL enable the generic scan condition.
- *                  enable: enable or disable the filter condition
- *
- * Returns          void
- *
  ******************************************************************************/
-extern tBTM_STATUS BTM_BleAdvFilterParamSetup(
+extern void BTM_BleAdvFilterParamSetup(
     int action, tBTM_BLE_PF_FILT_INDEX filt_index,
     std::unique_ptr<btgatt_filt_param_setup_t> p_filt_params,
-    tBTM_BLE_PF_PARAM_CBACK* p_cmpl_cback, tBTM_BLE_REF_VALUE ref_value);
+    tBTM_BLE_PF_PARAM_CB cb);
 
 /*******************************************************************************
  *
@@ -845,13 +839,12 @@ extern tBTM_STATUS BTM_BleAdvFilterParamSetup(
  *                  cond_type: filter condition type.
  *                  p_cond: filter condition paramter
  *
- * Returns          tBTM_STATUS
- *
  ******************************************************************************/
-extern tBTM_STATUS BTM_BleCfgFilterCondition(
-    tBTM_BLE_SCAN_COND_OP action, tBTM_BLE_PF_COND_TYPE cond_type,
-    tBTM_BLE_PF_FILT_INDEX filt_index, tBTM_BLE_PF_COND_PARAM* p_cond,
-    tBTM_BLE_PF_CFG_CBACK* p_cmpl_cback, tBTM_BLE_REF_VALUE ref_value);
+extern void BTM_BleCfgFilterCondition(tBTM_BLE_SCAN_COND_OP action,
+                                      tBTM_BLE_PF_COND_TYPE cond_type,
+                                      tBTM_BLE_PF_FILT_INDEX filt_index,
+                                      tBTM_BLE_PF_COND_PARAM* p_cond,
+                                      tBTM_BLE_PF_CFG_CBACK cb);
 
 /*******************************************************************************
  *
@@ -860,14 +853,10 @@ extern tBTM_STATUS BTM_BleCfgFilterCondition(
  * Description      Enable or disable the APCF feature
  *
  * Parameters       enable - true - enables APCF, false - disables APCF
- *                       ref_value - Ref value
- *
- * Returns          tBTM_STATUS
  *
  ******************************************************************************/
-extern tBTM_STATUS BTM_BleEnableDisableFilterFeature(
-    uint8_t enable, tBTM_BLE_PF_STATUS_CBACK* p_stat_cback,
-    tBTM_BLE_REF_VALUE ref_value);
+extern void BTM_BleEnableDisableFilterFeature(
+    uint8_t enable, tBTM_BLE_PF_STATUS_CBACK p_stat_cback);
 
 /*******************************************************************************
  *
