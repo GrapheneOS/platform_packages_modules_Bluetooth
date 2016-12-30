@@ -26,6 +26,7 @@
 #define BTM_BLE_API_H
 
 #include <hardware/bt_common_types.h>
+#include <memory>
 #include "bt_common.h"
 #include "btm_api.h"
 #include "btm_ble_api_types.h"
@@ -830,7 +831,7 @@ extern uint8_t BTM_BleGetSupportedKeySize(BD_ADDR bd_addr);
  ******************************************************************************/
 extern tBTM_STATUS BTM_BleAdvFilterParamSetup(
     int action, tBTM_BLE_PF_FILT_INDEX filt_index,
-    btgatt_filt_param_setup_t* p_filt_params, tBLE_BD_ADDR* p_target,
+    std::unique_ptr<btgatt_filt_param_setup_t> p_filt_params,
     tBTM_BLE_PF_PARAM_CBACK* p_cmpl_cback, tBTM_BLE_REF_VALUE ref_value);
 
 /*******************************************************************************
