@@ -417,7 +417,7 @@ typedef struct {
 /* adv data structure */
 typedef struct {
   BT_HDR hdr;
-  tBTA_DM_BLE_REF_VALUE ref_value;
+  tBTM_BLE_REF_VALUE ref_value;
   tBTA_BLE_TRACK_ADV_CBACK* p_track_adv_cback;
 } tBTA_DM_API_TRACK_ADVERTISER;
 
@@ -618,7 +618,6 @@ typedef struct {
   tBTA_DM_ACTIVE_LINK device_list;
   tBTA_DM_SEC_CBACK* p_sec_cback;
   tBTA_BLE_SCAN_SETUP_CBACK* p_setup_cback;
-  tBTA_DM_BLE_PF_CFG_CBACK* p_scan_filt_cfg_cback;
   tBTA_BLE_ENERGY_INFO_CBACK* p_energy_info_cback;
   uint16_t state;
   bool disabling;
@@ -830,10 +829,6 @@ extern void bta_dm_ble_confirm_reply(tBTA_DM_MSG* p_data);
 extern void bta_dm_security_grant(tBTA_DM_MSG* p_data);
 extern void bta_dm_ble_set_bg_conn_type(tBTA_DM_MSG* p_data);
 extern void bta_dm_ble_set_conn_params(tBTA_DM_MSG* p_data);
-extern void bta_dm_ble_set_scan_params(
-    tBTA_GATTC_IF client_if, uint32_t scan_int, uint32_t scan_window,
-    tBLE_SCAN_MODE scan_mode,
-    tBLE_SCAN_PARAM_SETUP_CBACK scan_param_setup_cback);
 extern void bta_dm_ble_set_conn_scan_params(tBTA_DM_MSG* p_data);
 extern void bta_dm_close_gatt_conn(tBTA_DM_MSG* p_data);
 extern void bta_dm_ble_observe(tBTA_DM_MSG* p_data);
@@ -845,40 +840,21 @@ extern void bta_dm_ble_set_adv_params(uint16_t adv_int_min,
 
 extern void bta_dm_ble_set_data_length(tBTA_DM_MSG* p_data);
 
-extern void bta_dm_cfg_filter_cond(tBTA_DM_BLE_SCAN_COND_OP action,
-                                   tBTA_DM_BLE_PF_COND_TYPE cond_type,
-                                   tBTA_DM_BLE_PF_FILT_INDEX filt_index,
-                                   tBTA_DM_BLE_PF_COND_PARAM* p_cond_param,
-                                   tBTA_DM_BLE_PF_CFG_CBACK* p_filt_cfg_cback,
-                                   tBTA_DM_BLE_REF_VALUE ref_value);
-extern void bta_dm_scan_filter_clear(
-    tBTA_DM_BLE_REF_VALUE ref_value, tBTM_BLE_PF_FILT_INDEX filt_index,
-    tBTA_DM_BLE_PF_CFG_CBACK* p_filt_cfg_cback);
-extern void bta_dm_scan_filter_param_setup(
-    uint8_t action, tBTA_DM_BLE_PF_FILT_INDEX filt_index,
-    std::unique_ptr<btgatt_filt_param_setup_t> filt_params,
-    std::unique_ptr<tBLE_BD_ADDR> p_target,
-    tBTA_DM_BLE_PF_PARAM_CBACK p_filt_param_cback,
-    tBTA_DM_BLE_REF_VALUE ref_value);
-extern void bta_dm_enable_scan_filter(
-    uint8_t action, tBTA_DM_BLE_PF_STATUS_CBACK* p_filt_status_cback,
-    tBTA_DM_BLE_REF_VALUE ref_value);
-
 extern void bta_dm_ble_setup_storage(
     uint8_t batch_scan_full_max, uint8_t batch_scan_trunc_max,
     uint8_t batch_scan_notify_threshold,
     tBTA_BLE_SCAN_SETUP_CBACK* p_setup_cback,
     tBTA_BLE_SCAN_THRESHOLD_CBACK* p_thres_cback,
-    tBTA_BLE_SCAN_REP_CBACK* p_read_rep_cback, tBTA_DM_BLE_REF_VALUE ref_value);
+    tBTA_BLE_SCAN_REP_CBACK* p_read_rep_cback, tBTM_BLE_REF_VALUE ref_value);
 extern void bta_dm_ble_enable_batch_scan(tBTA_BLE_BATCH_SCAN_MODE scan_mode,
                                          uint32_t scan_int,
                                          uint32_t scan_window,
                                          tBTA_BLE_DISCARD_RULE discard_rule,
                                          tBLE_ADDR_TYPE addr_type,
-                                         tBTA_DM_BLE_REF_VALUE ref_value);
-extern void bta_dm_ble_disable_batch_scan(tBTA_DM_BLE_REF_VALUE ref_value);
+                                         tBTM_BLE_REF_VALUE ref_value);
+extern void bta_dm_ble_disable_batch_scan(tBTM_BLE_REF_VALUE ref_value);
 extern void bta_dm_ble_read_scan_reports(tBTA_BLE_BATCH_SCAN_MODE scan_type,
-                                         tBTA_DM_BLE_REF_VALUE ref_value);
+                                         tBTM_BLE_REF_VALUE ref_value);
 extern void bta_dm_ble_track_advertiser(tBTA_DM_MSG* p_data);
 extern void bta_dm_ble_get_energy_info(tBTA_DM_MSG* p_data);
 

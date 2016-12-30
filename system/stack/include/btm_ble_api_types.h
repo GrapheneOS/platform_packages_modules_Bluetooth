@@ -544,6 +544,7 @@ typedef union {
   tBTM_BLE_PF_UUID_COND
       solicitate_uuid; /* solicitated service UUID filtering */
   tBTM_BLE_PF_SRVC_PATTERN_COND srvc_data; /* service data pattern */
+  uint8_t additional_data[2000];
 } tBTM_BLE_PF_COND_PARAM;
 
 typedef struct {
