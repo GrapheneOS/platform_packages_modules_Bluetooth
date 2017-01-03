@@ -307,7 +307,6 @@ class BrowsePlayerInfo {
 }
 
 class FolderItemsData {
-
     /* initialize sizes for rsp parameters */
     int mNumItems;
     int[] mAttributesNum;
