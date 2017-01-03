@@ -687,7 +687,14 @@ void btif_hh_service_registration(bool enable) {
   BTIF_TRACE_API("%s", __func__);
 
   BTIF_TRACE_API("enable = %d", enable);
-  if (enable) {
+  if (bt_hh_callbacks == NULL) {
+    // The HID Host service was never initialized (it is either disabled or not
+    // available in this build). We should proceed directly to changing the HID
+    // Device service state (if needed).
+    if (!enable) {
+      btif_hd_service_registration();
+    }
+  } else if (enable) {
     BTA_HhEnable(BTA_SEC_ENCRYPT, bte_hh_evt);
   } else {
     btif_hh_cb.service_dereg_active = TRUE;
