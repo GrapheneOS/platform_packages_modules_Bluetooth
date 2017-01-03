@@ -33,6 +33,7 @@ import android.content.SharedPreferences;
 import android.media.AudioManager;
 import android.media.MediaDescription;
 import android.media.MediaMetadata;
+import android.media.browse.MediaBrowser;
 import android.media.session.MediaSession;
 import android.media.session.MediaSession.QueueItem;
 import android.media.session.MediaSessionManager;
@@ -51,6 +52,7 @@ import com.android.bluetooth.btservice.ProfileService;
 import com.android.bluetooth.R;
 import com.android.bluetooth.Utils;
 
+import java.util.concurrent.CountDownLatch;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -271,10 +273,12 @@ public final class Avrcp {
         UserManager manager = UserManager.get(mContext);
         if (manager == null || manager.isUserUnlocked()) {
             if (DEBUG) Log.d(TAG, "User already unlocked, initializing player lists");
-            /* initializing media player's list */
-            buildBrowsablePlayersList();
+            // initialize browsable player list and build media player list
+            (new BrowsablePlayerListBuilder()).start();
+        } else {
+            // Still build the media players list even if we can't browse.
+            buildMediaPlayersList();
         }
-        buildMediaPlayersList();
     }
 
     public static Avrcp make(Context context) {
@@ -1421,8 +1425,7 @@ public final class Avrcp {
             if (action.equals(Intent.ACTION_BOOT_COMPLETED)) {
                 if (DEBUG) Log.d(TAG, "Boot completed, initializing player lists");
                 /* initializing media player's list */
-                buildBrowsablePlayersList();
-                buildMediaPlayersList();
+                (new BrowsablePlayerListBuilder()).start();
             }
         }
     }
@@ -1467,33 +1470,33 @@ public final class Avrcp {
             // new package has been added.
             if (isBrowsableListUpdated(packageName)) {
                 // Rebuilding browsable players list
-                buildBrowsablePlayersList();
-                buildMediaPlayersList();
+                (new BrowsablePlayerListBuilder()).start();
             }
         }
     }
 
     private boolean isBrowsableListUpdated(String newPackageName) {
-
-        boolean isUpdated = false;
-
         // getting the browsable media players list from package manager
-        ArrayList<String> browsePlayersList = new ArrayList<String>();
         Intent intent = new Intent("android.media.browse.MediaBrowserService");
         List<ResolveInfo> resInfos = mPackageManager.queryIntentServices(intent,
                                          PackageManager.MATCH_ALL);
         for (ResolveInfo resolveInfo : resInfos) {
-            browsePlayersList.add(resolveInfo.serviceInfo.packageName);
+            if (resolveInfo.serviceInfo.packageName.equals(newPackageName)) {
+                if (DEBUG)
+                    Log.d(TAG,
+                            "isBrowsableListUpdated: package includes MediaBrowserService, true");
+                return true;
+            }
         }
 
-        // if new added package is browsable or list has been updated from the global object
-        if (browsePlayersList.contains(newPackageName)
-                || browsePlayersList.size() != getBrowsePlayersListSize()) {
-            isUpdated = true;
+        // if list has different size
+        if (resInfos.size() != mBrowsePlayerInfoList.size()) {
+            if (DEBUG) Log.d(TAG, "isBrowsableListUpdated: browsable list size mismatch, true");
+            return true;
         }
-        if (DEBUG) Log.d(TAG, "isBrowsableListUpdated " + newPackageName +
-                " isUpdated:" +  isUpdated);
-        return isUpdated;
+
+        Log.d(TAG, "isBrowsableListUpdated: false");
+        return false;
     }
 
     private synchronized void removePackageFromBrowseList(String packageName) {
@@ -1755,33 +1758,52 @@ public final class Avrcp {
         return browseServiceName;
     }
 
-    /*
-     * utility function to build list of browsable players identified from
-     * browse service implementation.
-     */
-    private synchronized void buildBrowsablePlayersList() {
-        if (DEBUG) Log.i(TAG, "buildBrowsablePlayersList()");
+    private class BrowsablePlayerListBuilder extends MediaBrowser.ConnectionCallback {
+        List<ResolveInfo> mWaiting;
+        BrowsePlayerInfo mCurrentPlayer;
+        MediaBrowser mCurrentBrowser;
 
-        // Clearing old browsable player's list
-        mBrowsePlayerInfoList.clear();
+        public BrowsablePlayerListBuilder() {}
 
-        Intent intent = new Intent(android.service.media.MediaBrowserService.SERVICE_INTERFACE);
-        List<ResolveInfo> resInfos = mPackageManager.queryIntentServices(intent,
-                                         PackageManager.MATCH_ALL);
-
-        for (ResolveInfo resolveInfo : resInfos) {
-            String displayableName = resolveInfo.loadLabel(mPackageManager).toString();
-            String serviceName = resolveInfo.serviceInfo.name;
-            String packageName = resolveInfo.serviceInfo.packageName;
-
-            BrowsePlayerInfo infoObj = new BrowsePlayerInfo(packageName, displayableName,
-                    serviceName);
-            if (DEBUG)
-                Log.d(TAG, infoObj.toString());
-            mBrowsePlayerInfoList.add(infoObj);
+        public void start() {
+            mBrowsePlayerInfoList.clear();
+            Intent intent = new Intent(android.service.media.MediaBrowserService.SERVICE_INTERFACE);
+            mWaiting = mPackageManager.queryIntentServices(intent, PackageManager.MATCH_ALL);
+            connectNextPlayer();
         }
 
-        if (DEBUG) Log.i(TAG, "buildBrowsablePlayersList: found " + resInfos.size() + " players");
+        private void connectNextPlayer() {
+            if (mWaiting.isEmpty()) {
+                // Done. Build the MediaPlayersList.
+                buildMediaPlayersList();
+                return;
+            }
+            ResolveInfo info = mWaiting.remove(0);
+            String displayableName = info.loadLabel(mPackageManager).toString();
+            String serviceName = info.serviceInfo.name;
+            String packageName = info.serviceInfo.packageName;
+
+            mCurrentPlayer = new BrowsePlayerInfo(packageName, displayableName, serviceName);
+            mCurrentBrowser = new MediaBrowser(
+                    mContext, new ComponentName(packageName, serviceName), this, null);
+            if (DEBUG) Log.d(TAG, "Trying to connect to " + serviceName);
+            mCurrentBrowser.connect();
+        }
+
+        @Override
+        public void onConnected() {
+            Log.d(TAG, "BrowsablePlayerListBuilder: " + mCurrentPlayer.packageName + " OK");
+            mBrowsePlayerInfoList.add(mCurrentPlayer);
+            mCurrentBrowser.disconnect();
+            connectNextPlayer();
+        }
+
+        @Override
+        public void onConnectionFailed() {
+            Log.d(TAG, "BrowsablePlayerListBuilder: " + mCurrentPlayer.packageName + " FAIL");
+            connectNextPlayer();
+        }
+
     }
 
     /* initializing media player info list and prepare media player response object */
@@ -1818,44 +1840,29 @@ public final class Avrcp {
      * session manager by getting the active sessions
      */
     private synchronized void initMediaPlayersInfoList() {
-        if (DEBUG) Log.v(TAG, "initMediaPlayersInfoList");
 
         // Clearing old browsable player's list
         mMediaPlayerInfoList.clear();
 
+        if (mMediaSessionManager == null) {
+            if (DEBUG) Log.w(TAG, "initMediaPlayersInfoList: no media session manager!");
+            return;
+        }
+
+        List<android.media.session.MediaController> controllers =
+                mMediaSessionManager.getActiveSessions(null);
+        if (DEBUG) Log.v(TAG, "initMediaPlayerInfoList: " + controllers.size() + " controllers");
         /* Initializing all media players */
-        for (android.media.session.MediaController mediaController : getActiveControllersList()) {
-            initMediaPlayer(MediaController.wrap(mediaController));
+        for (android.media.session.MediaController mediaController : controllers) {
+            String packageName = mediaController.getPackageName();
+            MediaController controller = MediaController.wrap(mediaController);
+            MediaPlayerInfo info =
+                    new MediaPlayerInfo(packageName, AvrcpConstants.PLAYER_TYPE_AUDIO,
+                            AvrcpConstants.PLAYER_SUBTYPE_NONE, getPlayBackState(controller),
+                            getFeatureBitMask(packageName), getAppLabel(packageName), controller);
+            if (DEBUG) Log.d(TAG, info.toString());
+            mMediaPlayerInfoList.add(info);
         }
-    }
-
-    /* Using session manager apis, getting the list of active media controllers */
-    private List<android.media.session.MediaController> getActiveControllersList() {
-        List<android.media.session.MediaController> controllersList =
-            new ArrayList<android.media.session.MediaController>();
-        if (mMediaSessionManager != null) {
-            controllersList = mMediaSessionManager.getActiveSessions(null);
-        }
-        Log.i(TAG, "getActiveControllersList: " + controllersList.size() + " controllers");
-        return controllersList;
-    }
-
-    /*
-     * utility function to initialize media players info and add them to global
-     * media player info list
-     */
-    private synchronized void initMediaPlayer(MediaController mediaController) {
-
-        String packageName = mediaController.getPackageName();
-
-        MediaPlayerInfo mMediaPlayerInfo = new MediaPlayerInfo(packageName,
-                AvrcpConstants.PLAYER_TYPE_AUDIO, AvrcpConstants.PLAYER_SUBTYPE_NONE,
-                getPlayBackState(mediaController), getFeatureBitMask(packageName),
-                getAppLabel(packageName), mediaController);
-
-        if (DEBUG) Log.d(TAG, mMediaPlayerInfo.toString());
-
-        mMediaPlayerInfoList.add(mMediaPlayerInfo);
     }
 
     /*
@@ -2301,10 +2308,6 @@ public final class Avrcp {
         return mMediaPlayerInfoList.size();
     }
 
-    private synchronized int getBrowsePlayersListSize() {
-        return mBrowsePlayerInfoList.size();
-    }
-
     /* check if browsed player and addressed player are same */
     private boolean isAddrPlayerSameAsBrowsed(byte[] bdaddr) {
         boolean isSame = true;
@@ -2406,21 +2409,6 @@ public final class Avrcp {
             }
             // clean up the map
             connList.clear();
-        }
-
-        public void cleanupConn(BluetoothDevice device) {
-            if(null == device)
-                return;
-            String bdaddr = new String(hexStringToByteArray(device.getAddress().replace(":","")));
-            /* check to see remote device performed setBrowsedPlayer */
-            if(connList.containsKey(bdaddr)) {
-                BrowsedMediaPlayer browsedMediaPlayer = connList.get(bdaddr);
-                /* cleanup browsing connection to media player for disconnected remote device */
-                if(browsedMediaPlayer != null)
-                    browsedMediaPlayer.cleanup();
-                /* remove bdaddr of disconnected device */
-                connList.remove(bdaddr);
-            }
         }
 
         // get the a free media player interface based on the passed bd address
