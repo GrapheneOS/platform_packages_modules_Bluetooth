@@ -16,6 +16,7 @@
 
 package com.android.bluetooth.a2dp;
 
+import android.bluetooth.BluetoothCodecConfig;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.BluetoothUuid;
@@ -28,6 +29,7 @@ import com.android.bluetooth.btservice.ProfileService;
 import com.android.bluetooth.Utils;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Provides Bluetooth A2DP profile, as a service in the Bluetooth application.
@@ -222,6 +224,18 @@ public class A2dpService extends ProfileService {
         return mStateMachine.isPlaying(device);
     }
 
+    public BluetoothCodecConfig getCodecConfig() {
+        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+        if (DBG) Log.d(TAG, "getCodecConfig()");
+        return mStateMachine.getCodecConfig();
+    }
+
+    public void setCodecConfigPreference(BluetoothCodecConfig codecConfig) {
+        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+        if (DBG) Log.d(TAG, "setCodecConfigPreference(): " + Objects.toString(codecConfig));
+        mStateMachine.setCodecConfigPreference(codecConfig);
+    }
+
     //Binder object: Must be static class or memory leak may occur 
     private static class BluetoothA2dpBinder extends IBluetoothA2dp.Stub 
         implements IProfileServiceBinder {
@@ -312,6 +326,18 @@ public class A2dpService extends ProfileService {
             A2dpService service = getService();
             if (service == null) return false;
             return service.isA2dpPlaying(device);
+        }
+
+        public BluetoothCodecConfig getCodecConfig() {
+            A2dpService service = getService();
+            if (service == null) return null;
+            return service.getCodecConfig();
+        }
+
+        public void setCodecConfigPreference(BluetoothCodecConfig codecConfig) {
+            A2dpService service = getService();
+            if (service == null) return;
+            service.setCodecConfigPreference(codecConfig);
         }
     };
 
