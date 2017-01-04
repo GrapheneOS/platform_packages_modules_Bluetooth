@@ -1350,7 +1350,9 @@ public class GattService extends ProfileService {
                 return;
             }
             scanClient.stats = app;
-            app.recordScanStart(settings);
+
+            boolean isFilteredScan = (filters != null) && !filters.isEmpty();
+            app.recordScanStart(settings, isFilteredScan);
         }
 
         mScanManager.startScan(scanClient);
