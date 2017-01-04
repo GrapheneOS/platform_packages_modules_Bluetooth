@@ -209,12 +209,12 @@ extern void BTA_HdVirtualCableUnplug(void);
  * Function         BTA_HdConnect
  *
  * Description      This function is called when connection to host shall be
-*made
+ *                  made
  *
  * Returns          void
  *
  ******************************************************************************/
-extern void BTA_HdConnect(void);
+extern void BTA_HdConnect(BD_ADDR addr);
 
 /*******************************************************************************
  *

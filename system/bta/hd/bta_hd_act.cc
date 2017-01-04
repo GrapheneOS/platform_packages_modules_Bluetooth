@@ -256,13 +256,19 @@ void bta_hd_unregister2_act(tBTA_HD_DATA* p_data) {
  * Returns          void
  *
  ******************************************************************************/
-extern void bta_hd_connect_act(UNUSED_ATTR tBTA_HD_DATA* p_data) {
+extern void bta_hd_connect_act(tBTA_HD_DATA* p_data) {
   tHID_STATUS ret;
+  tBTA_HD_DEVICE_CTRL* p_ctrl = (tBTA_HD_DEVICE_CTRL*)p_data;
 
   APPL_TRACE_API("%s", __func__);
 
-  ret = HID_DevConnect();
+  ret = HID_DevPlugDevice(p_ctrl->addr);
+  if (ret != HID_SUCCESS) {
+    APPL_TRACE_WARNING("%s: HID_DevPlugDevice returned %d", __func__, ret);
+    return;
+  }
 
+  ret = HID_DevConnect();
   if (ret != HID_SUCCESS) {
     APPL_TRACE_WARNING("%s: HID_DevConnect returned %d", __func__, ret);
   }
