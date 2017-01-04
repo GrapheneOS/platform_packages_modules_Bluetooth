@@ -236,13 +236,16 @@ extern void BTA_HdVirtualCableUnplug(void) {
  * Returns          void
  *
  ******************************************************************************/
-extern void BTA_HdConnect(void) {
-  BT_HDR* p_buf;
+extern void BTA_HdConnect(BD_ADDR addr) {
+  tBTA_HD_DEVICE_CTRL* p_buf;
 
   APPL_TRACE_API("%s", __func__);
 
-  if ((p_buf = (BT_HDR*)osi_malloc(sizeof(BT_HDR))) != NULL) {
-    p_buf->event = BTA_HD_API_CONNECT_EVT;
+  if ((p_buf = (tBTA_HD_DEVICE_CTRL*)osi_malloc(sizeof(tBTA_HD_DEVICE_CTRL))) !=
+      NULL) {
+    p_buf->hdr.event = BTA_HD_API_CONNECT_EVT;
+
+    memcpy(p_buf->addr, addr, sizeof(BD_ADDR));
 
     bta_sys_sendmsg(p_buf);
   }
