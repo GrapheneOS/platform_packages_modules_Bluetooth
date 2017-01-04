@@ -1246,7 +1246,7 @@ static char* bta_hf_client_parse_clcc(tBTA_HF_CLIENT_CB* client_cb,
 
     if (res2 == 0) {
       res2 = sscanf(buffer, ",\"\",%hu%n", &type, &offset);
-      if (res < 0) return NULL;
+      if (res2 < 0) return NULL;
 
       /* numstr is not matched in second attempt, correct this */
       res2++;
