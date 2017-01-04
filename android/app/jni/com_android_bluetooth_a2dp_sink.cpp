@@ -30,7 +30,7 @@ static jmethodID method_onConnectionStateChanged;
 static jmethodID method_onAudioStateChanged;
 static jmethodID method_onAudioConfigChanged;
 
-static const btav_interface_t* sBluetoothA2dpInterface = NULL;
+static const btav_sink_interface_t* sBluetoothA2dpInterface = NULL;
 static jobject mCallbacksObj = NULL;
 
 static void bta2dp_connection_state_callback(btav_connection_state_t state,
@@ -91,7 +91,7 @@ static void bta2dp_audio_config_callback(bt_bdaddr_t* bd_addr,
   sCallbackEnv->DeleteLocalRef(addr);
 }
 
-static btav_callbacks_t sBluetoothA2dpCallbacks = {
+static btav_sink_callbacks_t sBluetoothA2dpCallbacks = {
     sizeof(sBluetoothA2dpCallbacks), bta2dp_connection_state_callback,
     bta2dp_audio_state_callback, bta2dp_audio_config_callback,
 };
@@ -128,8 +128,9 @@ static void initNative(JNIEnv* env, jobject object) {
     mCallbacksObj = NULL;
   }
 
-  sBluetoothA2dpInterface = (btav_interface_t*)btInf->get_profile_interface(
-      BT_PROFILE_ADVANCED_AUDIO_SINK_ID);
+  sBluetoothA2dpInterface =
+      (btav_sink_interface_t*)btInf->get_profile_interface(
+          BT_PROFILE_ADVANCED_AUDIO_SINK_ID);
   if (sBluetoothA2dpInterface == NULL) {
     ALOGE("Failed to get Bluetooth A2DP Sink Interface");
     return;

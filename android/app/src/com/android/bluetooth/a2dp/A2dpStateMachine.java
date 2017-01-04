@@ -30,6 +30,7 @@ package com.android.bluetooth.a2dp;
 
 import android.bluetooth.BluetoothA2dp;
 import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothCodecConfig;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.BluetoothUuid;
@@ -102,6 +103,7 @@ final class A2dpStateMachine extends StateMachine {
     private BluetoothDevice mIncomingDevice = null;
     private BluetoothDevice mPlayingA2dpDevice = null;
 
+    private BluetoothCodecConfig mCodecConfig = null;
 
     static {
         classInitNative();
@@ -647,7 +649,7 @@ final class A2dpStateMachine extends StateMachine {
 
     List<BluetoothDevice> getConnectedDevices() {
         List<BluetoothDevice> devices = new ArrayList<BluetoothDevice>();
-        synchronized(this) {
+        synchronized (this) {
             if (getCurrentState() == mConnected) {
                 devices.add(mCurrentDevice);
             }
@@ -656,12 +658,57 @@ final class A2dpStateMachine extends StateMachine {
     }
 
     boolean isPlaying(BluetoothDevice device) {
-        synchronized(this) {
+        synchronized (this) {
             if (device.equals(mPlayingA2dpDevice)) {
                 return true;
             }
         }
         return false;
+    }
+
+    BluetoothCodecConfig getCodecConfig() {
+        synchronized (this) {
+            return mCodecConfig;
+        }
+    }
+
+    private void onCodecConfigChanged(int codecType, int codecPriority, int sampleRate,
+            int bitsPerSample, int channelMode, long codecSpecific1, long codecSpecific2,
+            long codecSpecific3, long codecSpecific4) {
+        BluetoothCodecConfig prevCodecConfig;
+        BluetoothCodecConfig newCodecConfig = new BluetoothCodecConfig(codecType, codecPriority,
+                sampleRate, bitsPerSample, channelMode, codecSpecific1, codecSpecific2,
+                codecSpecific3, codecSpecific4);
+        synchronized (this) {
+            prevCodecConfig = mCodecConfig;
+            mCodecConfig = newCodecConfig;
+        }
+
+        Intent intent = new Intent(BluetoothA2dp.ACTION_CODEC_CONFIG_CHANGED);
+        intent.putExtra(BluetoothCodecConfig.EXTRA_CODEC_CONFIG, newCodecConfig);
+        intent.putExtra(BluetoothCodecConfig.EXTRA_PREVIOUS_CODEC_CONFIG, prevCodecConfig);
+        intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY_BEFORE_BOOT);
+
+        log("A2DP Codec Config : " + prevCodecConfig + "->" + newCodecConfig);
+
+        // Inform the Audio Service about the codec configuration change,
+        // so the Audio Service can reset accordingly the audio feeding
+        // parameters in the Audio HAL to the Bluetooth stack.
+        if (!newCodecConfig.sameAudioFeedingParameters(prevCodecConfig) && (mCurrentDevice != null)
+                && (getCurrentState() == mConnected)) {
+            // Add the device only if it is currently connected
+            intent.putExtra(BluetoothDevice.EXTRA_DEVICE, mCurrentDevice);
+            mAudioManager.handleBluetoothA2dpDeviceConfigChange(mCurrentDevice);
+        }
+        mContext.sendBroadcast(intent, A2dpService.BLUETOOTH_PERM);
+    }
+
+    void setCodecConfigPreference(BluetoothCodecConfig codecConfig) {
+        setCodecConfigPreferenceNative(codecConfig.getCodecType(), codecConfig.getCodecPriority(),
+                codecConfig.getSampleRate(), codecConfig.getBitsPerSample(),
+                codecConfig.getChannelMode(), codecConfig.getCodecSpecific1(),
+                codecConfig.getCodecSpecific2(), codecConfig.getCodecSpecific3(),
+                codecConfig.getCodecSpecific4());
     }
 
     boolean okToConnect(BluetoothDevice device) {
@@ -818,4 +865,7 @@ final class A2dpStateMachine extends StateMachine {
     private native void cleanupNative();
     private native boolean connectA2dpNative(byte[] address);
     private native boolean disconnectA2dpNative(byte[] address);
+    private native boolean setCodecConfigPreferenceNative(int codecType, int codecPriority,
+            int sampleRate, int bitsPerSample, int channelMode, long codecSpecific1,
+            long codecSpecific2, long codecSpecific3, long codecSpecific4);
 }
