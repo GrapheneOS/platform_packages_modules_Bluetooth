@@ -36,6 +36,8 @@ import com.android.bluetooth.btservice.ProfileService;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.NoSuchElementException;
 
 /** @hide */
@@ -79,6 +81,12 @@ public class HidDevService extends ProfileService {
         BluetoothDevice device =
             msg.obj != null ? getDevice((byte[])msg.obj) : null;
         boolean success = (msg.arg1 != 0);
+
+        if (success) {
+            mHidDevice = device;
+        } else {
+            mHidDevice = null;
+        }
 
         try {
           if (mCallback != null)
@@ -129,14 +137,18 @@ public class HidDevService extends ProfileService {
         int halState = msg.arg1;
         int state = convertHalState(halState);
 
+        if (state != BluetoothInputHost.STATE_DISCONNECTED) {
+            mHidDevice = device;
+        }
+
+        broadcastConnectionState(device, state);
+
         try {
           if (mCallback != null)
             mCallback.onConnectionStateChanged(device, state);
         } catch (RemoteException e) {
           e.printStackTrace();
         }
-
-        broadcastConnectionState(device, state);
         break;
       }
 
@@ -146,8 +158,7 @@ public class HidDevService extends ProfileService {
         int bufferSize = msg.obj == null ? 0 : ((Integer)msg.obj).intValue();
 
         try {
-          if (mCallback != null)
-            mCallback.onGetReport(type, id, bufferSize);
+            if (mCallback != null) mCallback.onGetReport(mHidDevice, type, id, bufferSize);
         } catch (RemoteException e) {
           e.printStackTrace();
         }
@@ -159,8 +170,7 @@ public class HidDevService extends ProfileService {
         byte[] data = ((ByteBuffer)msg.obj).array();
 
         try {
-          if (mCallback != null)
-            mCallback.onSetReport(reportType, reportId, data);
+            if (mCallback != null) mCallback.onSetReport(mHidDevice, reportType, reportId, data);
         } catch (RemoteException e) {
           e.printStackTrace();
         }
@@ -171,8 +181,7 @@ public class HidDevService extends ProfileService {
         byte protocol = (byte)msg.arg1;
 
         try {
-          if (mCallback != null)
-            mCallback.onSetProtocol(protocol);
+            if (mCallback != null) mCallback.onSetProtocol(mHidDevice, protocol);
         } catch (RemoteException e) {
           e.printStackTrace();
         }
@@ -183,8 +192,7 @@ public class HidDevService extends ProfileService {
         byte[] data = ((ByteBuffer)msg.obj).array();
 
         try {
-          if (mCallback != null)
-            mCallback.onIntrData(reportId, data);
+            if (mCallback != null) mCallback.onIntrData(mHidDevice, reportId, data);
         } catch (RemoteException e) {
           e.printStackTrace();
         }
@@ -192,11 +200,11 @@ public class HidDevService extends ProfileService {
 
       case MESSAGE_VC_UNPLUG:
         try {
-          if (mCallback != null)
-            mCallback.onVirtualCableUnplug();
+            if (mCallback != null) mCallback.onVirtualCableUnplug(mHidDevice);
         } catch (RemoteException e) {
           e.printStackTrace();
         }
+        mHidDevice = null;
         break;
       }
     }
@@ -287,87 +295,121 @@ public class HidDevService extends ProfileService {
     }
 
     @Override
-    public boolean sendReport(int id, byte[] data) {
-      if (DBG)
-        Log.v(TAG, "sendReport(): id=" + id);
+    public boolean sendReport(BluetoothDevice device, int id, byte[] data) {
+        if (DBG) Log.v(TAG, "sendReport(): device=" + device + "  id=" + id);
 
-      HidDevService service = getService();
-      if (service == null) {
-        return false;
-      }
+        HidDevService service = getService();
+        if (service == null) {
+            return false;
+        }
 
-      return service.sendReport(id, data);
+        return service.sendReport(device, id, data);
     }
 
     @Override
-    public boolean replyReport(byte type, byte id, byte[] data) {
-      if (DBG)
-        Log.v(TAG, "replyReport(): type=" + type + " id=" + id);
+    public boolean replyReport(BluetoothDevice device, byte type, byte id, byte[] data) {
+        if (DBG) Log.v(TAG, "replyReport(): device=" + device + " type=" + type + " id=" + id);
 
-      HidDevService service = getService();
-      if (service == null) {
-        return false;
-      }
+        HidDevService service = getService();
+        if (service == null) {
+            return false;
+        }
 
-      return service.replyReport(type, id, data);
+        return service.replyReport(device, type, id, data);
     }
 
     @Override
-    public boolean unplug() {
-      if (DBG)
-        Log.v(TAG, "unplug()");
+    public boolean unplug(BluetoothDevice device) {
+        if (DBG) Log.v(TAG, "unplug(): device=" + device);
 
-      HidDevService service = getService();
-      if (service == null) {
-        return false;
-      }
+        HidDevService service = getService();
+        if (service == null) {
+            return false;
+        }
 
-      return service.unplug();
+        return service.unplug(device);
     }
 
     @Override
-    public boolean connect() {
-      if (DBG)
-        Log.v(TAG, "connect()");
+    public boolean connect(BluetoothDevice device) {
+        if (DBG) Log.v(TAG, "connect(): device=" + device);
 
-      HidDevService service = getService();
-      if (service == null) {
-        return false;
-      }
+        HidDevService service = getService();
+        if (service == null) {
+            return false;
+        }
 
-      return service.connect();
+        return service.connect(device);
     }
 
     @Override
-    public boolean disconnect() {
-      if (DBG)
-        Log.v(TAG, "disconnect()");
+    public boolean disconnect(BluetoothDevice device) {
+        if (DBG) Log.v(TAG, "disconnect(): device=" + device);
 
-      HidDevService service = getService();
-      if (service == null) {
-        return false;
-      }
+        HidDevService service = getService();
+        if (service == null) {
+            return false;
+        }
 
-      return service.disconnect();
+        return service.disconnect(device);
     }
 
     @Override
-    public boolean reportError(byte error) {
-      if (DBG)
-        Log.v(TAG, "reportError(), error = " + error);
+    public boolean reportError(BluetoothDevice device, byte error) {
+        if (DBG) Log.v(TAG, "reportError(): device=" + device + " error=" + error);
 
-      HidDevService service = getService();
-      if (service == null) {
-        return false;
-      }
+        HidDevService service = getService();
+        if (service == null) {
+            return false;
+        }
 
-      return service.reportError(error);
+        return service.reportError(device, error);
+    }
+
+    @Override
+    public int getConnectionState(BluetoothDevice device) {
+        if (DBG) Log.v(TAG, "getConnectionState(): device=" + device);
+
+        HidDevService service = getService();
+        if (service == null) {
+            return BluetoothInputHost.STATE_DISCONNECTED;
+        }
+
+        return service.getConnectionState(device);
+    }
+
+    @Override
+    public List<BluetoothDevice> getConnectedDevices() {
+        if (DBG) Log.v(TAG, "getConnectedDevices()");
+
+        return getDevicesMatchingConnectionStates(new int[] {BluetoothProfile.STATE_CONNECTED});
+    }
+
+    @Override
+    public List<BluetoothDevice> getDevicesMatchingConnectionStates(int[] states) {
+        if (DBG)
+            Log.v(TAG, "getDevicesMatchingConnectionStates(): states=" + Arrays.toString(states));
+
+        HidDevService service = getService();
+        if (service == null) {
+            return new ArrayList<BluetoothDevice>(0);
+        }
+
+        return service.getDevicesMatchingConnectionStates(states);
     }
   }
 
   @Override
   protected IProfileServiceBinder initBinder() {
     return new BluetoothHidDeviceBinder(this);
+  }
+
+  private boolean checkDevice(BluetoothDevice device) {
+      if (mHidDevice == null || !mHidDevice.equals(device)) {
+          Log.w(TAG, "Unknown device: " + device);
+          return false;
+      }
+      return true;
   }
 
   synchronized boolean registerApp(BluetoothHidDeviceAppConfiguration config,
@@ -403,46 +445,60 @@ public class HidDevService extends ProfileService {
     return unregisterAppNative();
   }
 
-  synchronized boolean sendReport(int id, byte[] data) {
-    if (DBG)
-      Log.v(TAG, "sendReport(): id=" + id);
+  synchronized boolean sendReport(BluetoothDevice device, int id, byte[] data) {
+      if (DBG) Log.v(TAG, "sendReport(): device=" + device + " id=" + id);
 
-    return sendReportNative(id, data);
+      if (!checkDevice(device)) {
+          return false;
+      }
+
+      return sendReportNative(id, data);
   }
 
-  synchronized boolean replyReport(byte type, byte id, byte[] data) {
-    if (DBG)
-      Log.v(TAG, "replyReport(): type=" + type + " id=" + id);
+  synchronized boolean replyReport(BluetoothDevice device, byte type, byte id, byte[] data) {
+      if (DBG) Log.v(TAG, "replyReport(): device=" + device + " type=" + type + " id=" + id);
 
-    return replyReportNative(type, id, data);
+      if (!checkDevice(device)) {
+          return false;
+      }
+
+      return replyReportNative(type, id, data);
   }
 
-  synchronized boolean unplug() {
-    if (DBG)
-      Log.v(TAG, "unplug()");
+  synchronized boolean unplug(BluetoothDevice device) {
+      if (DBG) Log.v(TAG, "unplug(): device=" + device);
 
-    return unplugNative();
+      if (!checkDevice(device)) {
+          return false;
+      }
+
+      return unplugNative();
   }
 
-  synchronized boolean connect() {
-    if (DBG)
-      Log.v(TAG, "connect()");
+  synchronized boolean connect(BluetoothDevice device) {
+      if (DBG) Log.v(TAG, "connect(): device=" + device);
 
-    return connectNative();
+      return connectNative();
   }
 
-  synchronized boolean disconnect() {
-    if (DBG)
-      Log.v(TAG, "disconnect()");
+  synchronized boolean disconnect(BluetoothDevice device) {
+      if (DBG) Log.v(TAG, "disconnect(): device=" + device);
 
-    return disconnectNative();
+      if (!checkDevice(device)) {
+          return false;
+      }
+
+      return disconnectNative();
   }
 
-  synchronized boolean reportError(byte error) {
-    if (DBG)
-      Log.v(TAG, "reportError(): error = " + error);
+  synchronized boolean reportError(BluetoothDevice device, byte error) {
+      if (DBG) Log.v(TAG, "reportError(): device=" + device + " error=" + error);
 
-    return reportErrorNative(error);
+      if (!checkDevice(device)) {
+          return false;
+      }
+
+      return reportErrorNative(error);
   }
 
   @Override
@@ -475,6 +531,28 @@ public class HidDevService extends ProfileService {
     }
 
     return true;
+  }
+
+  int getConnectionState(BluetoothDevice device) {
+      if (mHidDevice != null && mHidDevice.equals(device)) {
+          return mHidDeviceState;
+      }
+      return BluetoothInputHost.STATE_DISCONNECTED;
+  }
+
+  List<BluetoothDevice> getDevicesMatchingConnectionStates(int[] states) {
+      enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+      List<BluetoothDevice> inputDevices = new ArrayList<BluetoothDevice>();
+
+      if (mHidDevice != null) {
+          for (int state : states) {
+              if (state == mHidDeviceState) {
+                  inputDevices.add(mHidDevice);
+                  break;
+              }
+          }
+      }
+      return inputDevices;
   }
 
   private synchronized void onApplicationStateChanged(byte[] address,
@@ -560,9 +638,9 @@ public class HidDevService extends ProfileService {
       Log.v(TAG, "broadcastConnectionState(): device=" + device.getAddress() +
                      " newState=" + newState);
 
-    if (mHidDevice != null && mHidDevice != device) {
-      Log.w(TAG, "Connection state changed for unknown device, ignoring");
-      return;
+    if (mHidDevice != null && !mHidDevice.equals(device)) {
+        Log.w(TAG, "Connection state changed for unknown device, ignoring");
+        return;
     }
 
     int prevState = mHidDeviceState;
