@@ -62,20 +62,27 @@ enum {
   BTIF_MEDIA_AUDIO_TX_STOP,
   BTIF_MEDIA_AUDIO_TX_FLUSH,
   BTIF_MEDIA_SOURCE_ENCODER_INIT,
-  BTIF_MEDIA_AUDIO_FEEDING_INIT
+  BTIF_MEDIA_SOURCE_ENCODER_USER_CONFIG_UPDATE,
+  BTIF_MEDIA_AUDIO_FEEDING_UPDATE
 };
-
-/* tBTIF_A2DP_AUDIO_FEEDING_INIT msg structure */
-typedef struct {
-  BT_HDR hdr;
-  tA2DP_FEEDING_PARAMS feeding_params;
-} tBTIF_A2DP_AUDIO_FEEDING_INIT;
 
 /* tBTIF_A2DP_SOURCE_ENCODER_INIT msg structure */
 typedef struct {
   BT_HDR hdr;
-  tA2DP_ENCODER_INIT_PARAMS init_params;
+  tA2DP_ENCODER_INIT_PEER_PARAMS peer_params;
 } tBTIF_A2DP_SOURCE_ENCODER_INIT;
+
+/* tBTIF_A2DP_SOURCE_ENCODER_USER_CONFIG_UPDATE msg structure */
+typedef struct {
+  BT_HDR hdr;
+  btav_a2dp_codec_config_t user_config;
+} tBTIF_A2DP_SOURCE_ENCODER_USER_CONFIG_UPDATE;
+
+/* tBTIF_A2DP_AUDIO_FEEDING_UPDATE msg structure */
+typedef struct {
+  BT_HDR hdr;
+  btav_a2dp_codec_config_t feeding_params;
+} tBTIF_A2DP_AUDIO_FEEDING_UPDATE;
 
 typedef struct {
   // Counter for total updates
@@ -142,7 +149,6 @@ typedef struct {
   fixed_queue_t* cmd_msg_queue;
   fixed_queue_t* tx_audio_queue;
   bool tx_flush; /* Discards any outgoing data when true */
-  bool is_streaming;
   alarm_t* media_alarm;
   const tA2DP_ENCODER_INTERFACE* encoder_interface;
   period_ms_t encoder_interval_ms; /* Local copy of the encoder interval */
@@ -159,10 +165,9 @@ static void btif_a2dp_source_audio_tx_start_event(void);
 static void btif_a2dp_source_audio_tx_stop_event(void);
 static void btif_a2dp_source_audio_tx_flush_event(BT_HDR* p_msg);
 static void btif_a2dp_source_encoder_init_event(BT_HDR* p_msg);
-static void btif_a2dp_source_audio_feeding_init_event(BT_HDR* p_msg);
+static void btif_a2dp_source_encoder_user_config_update_event(BT_HDR* p_msg);
+static void btif_a2dp_source_audio_feeding_update_event(BT_HDR* p_msg);
 static void btif_a2dp_source_encoder_init(void);
-UNUSED_ATTR static void btif_a2dp_source_feeding_init_req(
-    tBTIF_A2DP_AUDIO_FEEDING_INIT* p_msg);
 static void btif_a2dp_source_encoder_init_req(
     tBTIF_A2DP_SOURCE_ENCODER_INIT* p_msg);
 static bool btif_a2dp_source_audio_tx_flush_req(void);
@@ -181,7 +186,8 @@ UNUSED_ATTR static const char* dump_media_event(uint16_t event) {
     CASE_RETURN_STR(BTIF_MEDIA_AUDIO_TX_STOP)
     CASE_RETURN_STR(BTIF_MEDIA_AUDIO_TX_FLUSH)
     CASE_RETURN_STR(BTIF_MEDIA_SOURCE_ENCODER_INIT)
-    CASE_RETURN_STR(BTIF_MEDIA_AUDIO_FEEDING_INIT)
+    CASE_RETURN_STR(BTIF_MEDIA_SOURCE_ENCODER_USER_CONFIG_UPDATE)
+    CASE_RETURN_STR(BTIF_MEDIA_AUDIO_FEEDING_UPDATE)
     default:
       break;
   }
@@ -244,7 +250,6 @@ void btif_a2dp_source_shutdown(void) {
   APPL_TRACE_EVENT("## A2DP SOURCE STOP MEDIA THREAD ##");
 
   // Stop the timer
-  btif_a2dp_source_cb.is_streaming = FALSE;
   alarm_free(btif_a2dp_source_cb.media_alarm);
   btif_a2dp_source_cb.media_alarm = NULL;
 
@@ -274,7 +279,7 @@ bool btif_a2dp_source_media_task_is_shutting_down(void) {
 }
 
 bool btif_a2dp_source_is_streaming(void) {
-  return btif_a2dp_source_cb.is_streaming;
+  return alarm_is_scheduled(btif_a2dp_source_cb.media_alarm);
 }
 
 static void btif_a2dp_source_command_ready(fixed_queue_t* queue,
@@ -297,8 +302,11 @@ static void btif_a2dp_source_command_ready(fixed_queue_t* queue,
     case BTIF_MEDIA_SOURCE_ENCODER_INIT:
       btif_a2dp_source_encoder_init_event(p_msg);
       break;
-    case BTIF_MEDIA_AUDIO_FEEDING_INIT:
-      btif_a2dp_source_audio_feeding_init_event(p_msg);
+    case BTIF_MEDIA_SOURCE_ENCODER_USER_CONFIG_UPDATE:
+      btif_a2dp_source_encoder_user_config_update_event(p_msg);
+      break;
+    case BTIF_MEDIA_AUDIO_FEEDING_UPDATE:
+      btif_a2dp_source_audio_feeding_update_event(p_msg);
       break;
     default:
       APPL_TRACE_ERROR("ERROR in %s unknown event %d", __func__, p_msg->event);
@@ -316,21 +324,6 @@ void btif_a2dp_source_setup_codec(void) {
 
   /* Init the encoding task */
   btif_a2dp_source_encoder_init();
-
-#if 0
-  // TODO: The feeding parameters setup mechanism below to-be reused for
-  // other purposes.
-  /* For now hardcode 44.1 khz 16 bit stereo PCM format */
-  tA2DP_FEEDING_PARAMS feeding_params;
-  tBTIF_A2DP_AUDIO_FEEDING_INIT mfeed;
-  feeding_params.sample_rate = BTIF_A2DP_SRC_SAMPLING_RATE;
-  feeding_params.channel_count = BTIF_A2DP_SRC_NUM_CHANNELS;
-  feeding_params.bits_per_sample = BTIF_A2DP_SRC_BIT_DEPTH;
-  mfeed.feeding_params = feeding_params;
-
-  /* Send message to Media task to configure transcoding */
-  btif_a2dp_source_feeding_init_req(&mfeed);
-#endif
 
   mutex_global_unlock();
 }
@@ -370,7 +363,7 @@ static void btif_a2dp_source_encoder_init(void) {
 
   APPL_TRACE_DEBUG("%s", __func__);
 
-  bta_av_co_audio_encoder_init(&msg.init_params);
+  bta_av_co_get_peer_params(&msg.peer_params);
   btif_a2dp_source_encoder_init_req(&msg);
 }
 
@@ -398,25 +391,63 @@ static void btif_a2dp_source_encoder_init_event(BT_HDR* p_msg) {
     return;
   }
 
+  A2dpCodecConfig* a2dp_codec_config = bta_av_get_a2dp_current_codec();
+  if (a2dp_codec_config == nullptr) {
+    APPL_TRACE_ERROR("%s: Cannot stream audio: current codec is not set",
+                     __func__);
+    return;
+  }
+
   btif_a2dp_source_cb.encoder_interface->encoder_init(
-      btif_av_is_peer_edr(), btif_av_peer_supports_3mbps(),
-      &p_encoder_init->init_params, btif_a2dp_source_read_callback,
-      btif_a2dp_source_enqueue_callback);
+      &p_encoder_init->peer_params, a2dp_codec_config,
+      btif_a2dp_source_read_callback, btif_a2dp_source_enqueue_callback);
 
   // Save a local copy of the encoder_interval_ms
   btif_a2dp_source_cb.encoder_interval_ms =
       btif_a2dp_source_cb.encoder_interface->get_encoder_interval_ms();
 }
 
-static void btif_a2dp_source_feeding_init_req(
-    tBTIF_A2DP_AUDIO_FEEDING_INIT* p_msg) {
-  tBTIF_A2DP_AUDIO_FEEDING_INIT* p_buf =
-      (tBTIF_A2DP_AUDIO_FEEDING_INIT*)osi_malloc(
-          sizeof(tBTIF_A2DP_AUDIO_FEEDING_INIT));
+void btif_a2dp_source_encoder_user_config_update_req(
+    const btav_a2dp_codec_config_t& codec_user_config) {
+  tBTIF_A2DP_SOURCE_ENCODER_USER_CONFIG_UPDATE* p_buf =
+      (tBTIF_A2DP_SOURCE_ENCODER_USER_CONFIG_UPDATE*)osi_malloc(
+          sizeof(tBTIF_A2DP_SOURCE_ENCODER_USER_CONFIG_UPDATE));
 
-  memcpy(p_buf, p_msg, sizeof(tBTIF_A2DP_AUDIO_FEEDING_INIT));
-  p_buf->hdr.event = BTIF_MEDIA_AUDIO_FEEDING_INIT;
+  p_buf->user_config = codec_user_config;
+  p_buf->hdr.event = BTIF_MEDIA_SOURCE_ENCODER_USER_CONFIG_UPDATE;
   fixed_queue_enqueue(btif_a2dp_source_cb.cmd_msg_queue, p_buf);
+}
+
+static void btif_a2dp_source_encoder_user_config_update_event(BT_HDR* p_msg) {
+  tBTIF_A2DP_SOURCE_ENCODER_USER_CONFIG_UPDATE* p_user_config =
+      (tBTIF_A2DP_SOURCE_ENCODER_USER_CONFIG_UPDATE*)p_msg;
+
+  APPL_TRACE_DEBUG("%s", __func__);
+  if (!bta_av_co_set_codec_user_config(p_user_config->user_config)) {
+    APPL_TRACE_ERROR("%s: cannot update codec user configuration", __func__);
+  }
+}
+
+void btif_a2dp_source_feeding_update_req(
+    const btav_a2dp_codec_config_t& codec_audio_config) {
+  tBTIF_A2DP_AUDIO_FEEDING_UPDATE* p_buf =
+      (tBTIF_A2DP_AUDIO_FEEDING_UPDATE*)osi_malloc(
+          sizeof(tBTIF_A2DP_AUDIO_FEEDING_UPDATE));
+
+  p_buf->feeding_params = codec_audio_config;
+  p_buf->hdr.event = BTIF_MEDIA_AUDIO_FEEDING_UPDATE;
+  fixed_queue_enqueue(btif_a2dp_source_cb.cmd_msg_queue, p_buf);
+}
+
+static void btif_a2dp_source_audio_feeding_update_event(BT_HDR* p_msg) {
+  tBTIF_A2DP_AUDIO_FEEDING_UPDATE* p_feeding =
+      (tBTIF_A2DP_AUDIO_FEEDING_UPDATE*)p_msg;
+
+  APPL_TRACE_DEBUG("%s", __func__);
+  if (!bta_av_co_set_codec_audio_config(p_feeding->feeding_params)) {
+    APPL_TRACE_ERROR("%s: cannot update codec audio feeding parameters",
+                     __func__);
+  }
 }
 
 void btif_a2dp_source_on_idle(void) {
@@ -483,22 +514,11 @@ void btif_a2dp_source_set_tx_flush(bool enable) {
   btif_a2dp_source_cb.tx_flush = enable;
 }
 
-static void btif_a2dp_source_audio_feeding_init_event(BT_HDR* p_msg) {
-  tBTIF_A2DP_AUDIO_FEEDING_INIT* p_feeding =
-      (tBTIF_A2DP_AUDIO_FEEDING_INIT*)p_msg;
-
-  APPL_TRACE_DEBUG("%s", __func__);
-
-  CHECK(btif_a2dp_source_cb.encoder_interface != NULL);
-  btif_a2dp_source_cb.encoder_interface->feeding_init(
-      &p_feeding->feeding_params);
-}
-
 static void btif_a2dp_source_audio_tx_start_event(void) {
   APPL_TRACE_DEBUG(
-      "%s media_alarm is %srunning, is_streaming %s", __func__,
+      "%s media_alarm is %srunning, streaming %s", __func__,
       alarm_is_scheduled(btif_a2dp_source_cb.media_alarm) ? "" : "not ",
-      (btif_a2dp_source_cb.is_streaming) ? "true" : "false");
+      btif_a2dp_source_is_streaming() ? "true" : "false");
 
   /* Reset the media feeding state */
   CHECK(btif_a2dp_source_cb.encoder_interface != NULL);
@@ -523,14 +543,13 @@ static void btif_a2dp_source_audio_tx_start_event(void) {
 
 static void btif_a2dp_source_audio_tx_stop_event(void) {
   APPL_TRACE_DEBUG(
-      "%s media_alarm is %srunning, is_streaming %s", __func__,
+      "%s media_alarm is %srunning, streaming %s", __func__,
       alarm_is_scheduled(btif_a2dp_source_cb.media_alarm) ? "" : "not ",
-      (btif_a2dp_source_cb.is_streaming) ? "true" : "false");
+      btif_a2dp_source_is_streaming() ? "true" : "false");
 
-  const bool send_ack = btif_a2dp_source_cb.is_streaming;
+  const bool send_ack = btif_a2dp_source_is_streaming();
 
   /* Stop the timer first */
-  btif_a2dp_source_cb.is_streaming = false;
   alarm_free(btif_a2dp_source_cb.media_alarm);
   btif_a2dp_source_cb.media_alarm = NULL;
 

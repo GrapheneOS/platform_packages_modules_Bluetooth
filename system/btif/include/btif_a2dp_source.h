@@ -55,6 +55,19 @@ void btif_a2dp_source_start_audio_req(void);
 // Process a request to stop the A2DP audio encoding task.
 void btif_a2dp_source_stop_audio_req(void);
 
+// Process a request to update the A2DP audio encoder with user preferred
+// codec configuration.
+// |codec_user_config| contains the preferred codec user configuration.
+void btif_a2dp_source_encoder_user_config_update_req(
+    const btav_a2dp_codec_config_t& codec_user_config);
+
+// Process a request to update the A2DP audio encoding with new audio
+// configuration feeding parameters stored in |codec_audio_config|.
+// The fields that are used are: |codec_audio_config.sample_rate|,
+// |codec_audio_config.bits_per_sample| and |codec_audio_config.channel_mode|.
+void btif_a2dp_source_feeding_update_req(
+    const btav_a2dp_codec_config_t& codec_audio_config);
+
 // Process 'idle' request from the BTIF state machine during initialization.
 void btif_a2dp_source_on_idle(void);
 

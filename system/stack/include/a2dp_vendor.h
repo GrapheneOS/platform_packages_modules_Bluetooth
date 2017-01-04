@@ -14,19 +14,15 @@
  * limitations under the License.
  */
 
-/**
- * Vendor Specific A2DP Codecs Support
- */
+//
+// Vendor Specific A2DP Codecs Support
+//
 
 #ifndef A2DP_VENDOR_H
 #define A2DP_VENDOR_H
 
 #include <stdbool.h>
-#include "a2dp_api.h"
-
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include "a2dp_codec_api.h"
 
 /* Offset for A2DP vendor codec */
 #define A2DP_VENDOR_CODEC_START_IDX 3
@@ -37,22 +33,6 @@ extern "C" {
 /* Offset for Codec ID for A2DP vendor codec */
 #define A2DP_VENDOR_CODEC_CODEC_ID_START_IDX \
   (A2DP_VENDOR_CODEC_VENDOR_ID_START_IDX + sizeof(uint32_t))
-
-// Gets the A2DP vendor Source codec SEP index for a given |p_codec_info|.
-// Returns the corresponding |tA2DP_CODEC_SEP_INDEX| on success,
-// otherwise |A2DP_CODEC_SEP_INDEX_MAX|.
-tA2DP_CODEC_SEP_INDEX A2DP_VendorSourceCodecSepIndex(
-    const uint8_t* p_codec_info);
-
-// Gets the A2DP vendor codec name for a given |codec_sep_index|.
-const char* A2DP_VendorCodecSepIndexStr(tA2DP_CODEC_SEP_INDEX codec_sep_index);
-
-// Initializes A2DP vendor codec-specific information into |tAVDT_CFG|
-// configuration entry pointed by |p_cfg|. The selected codec is defined by
-// |codec_sep_index|.
-// Returns true on success, otherwise false.
-bool A2DP_VendorInitCodecConfig(tA2DP_CODEC_SEP_INDEX codec_sep_index,
-                                tAVDT_CFG* p_cfg);
 
 // Checks whether the codec capabilities contain a valid A2DP vendor-specific
 // Source codec.
@@ -95,15 +75,6 @@ bool A2DP_IsVendorSinkCodecSupported(const uint8_t* p_codec_info);
 // Returns true if the vendor-specific A2DP Source codec for a peer Source
 // device is supported, otherwise false.
 bool A2DP_IsVendorPeerSourceCodecSupported(const uint8_t* p_codec_info);
-
-// Initializes A2DP vendor-specific Source-to-Sink codec config from Sink
-// codec capability.
-// |p_sink_caps| is the A2DP Sink codec capability to use.
-// The selected codec configuration is stored in |p_result_codec_config|.
-// Returns |A2DP_SUCCESS| on success, otherwise the corresponding A2DP error
-// status code.
-tA2DP_STATUS A2DP_VendorInitSource2SinkCodec(const uint8_t* p_sink_caps,
-                                             uint8_t* p_result_codec_config);
 
 // Builds a vendor-specific A2DP preferred Sink capability from a vendor
 // Source capability.
@@ -155,17 +126,17 @@ bool A2DP_VendorCodecEquals(const uint8_t* p_codec_info_a,
 // contains invalid codec information.
 int A2DP_VendorGetTrackSampleRate(const uint8_t* p_codec_info);
 
-// Gets the channel count for the A2DP vendor-specific codec.
-// |p_codec_info| is a pointer to the vendor-specific codec_info to decode.
-// Returns the channel count on success, or -1 if |p_codec_info|
-// contains invalid codec information.
-int A2DP_VendorGetTrackChannelCount(const uint8_t* p_codec_info);
-
 // Gets the bits per audio sample for the A2DP vendor-specific codec.
 // |p_codec_info| is a pointer to the vendor-specific codec_info to decode.
 // Returns the bits per audio sample on success, or -1 if |p_codec_info|
 // contains invalid codec information.
 int A2DP_VendorGetTrackBitsPerSample(const uint8_t* p_codec_info);
+
+// Gets the channel count for the A2DP vendor-specific codec.
+// |p_codec_info| is a pointer to the vendor-specific codec_info to decode.
+// Returns the channel count on success, or -1 if |p_codec_info|
+// contains invalid codec information.
+int A2DP_VendorGetTrackChannelCount(const uint8_t* p_codec_info);
 
 // Gets the channel type for the A2DP vendor-specific Sink codec:
 // 1 for mono, or 3 for dual/stereo/joint.
@@ -214,8 +185,20 @@ const tA2DP_ENCODER_INTERFACE* A2DP_VendorGetEncoderInterface(
 // Returns true if |p_codec_info| is valid and supported, otherwise false.
 bool A2DP_VendorAdjustCodec(uint8_t* p_codec_info);
 
-#ifdef __cplusplus
-}
-#endif
+// Gets the A2DP vendor Source codec index for a given |p_codec_info|.
+// Returns the corresponding |btav_a2dp_codec_index_t| on success,
+// otherwise |BTAV_A2DP_CODEC_INDEX_MAX|.
+btav_a2dp_codec_index_t A2DP_VendorSourceCodecIndex(
+    const uint8_t* p_codec_info);
 
-#endif /* A2DP_VENDOR_H */
+// Gets the A2DP vendor codec name for a given |codec_index|.
+const char* A2DP_VendorCodecIndexStr(btav_a2dp_codec_index_t codec_index);
+
+// Initializes A2DP vendor codec-specific information into |tAVDT_CFG|
+// configuration entry pointed by |p_cfg|. The selected codec is defined by
+// |codec_index|.
+// Returns true on success, otherwise false.
+bool A2DP_VendorInitCodecConfig(btav_a2dp_codec_index_t codec_index,
+                                tAVDT_CFG* p_cfg);
+
+#endif  // A2DP_VENDOR_H

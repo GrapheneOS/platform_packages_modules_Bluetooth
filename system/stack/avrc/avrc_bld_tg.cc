@@ -920,7 +920,7 @@ static tAVRC_STS avrc_bld_get_folder_items_rsp(tAVRC_GET_ITEMS_RSP* p_rsp,
   uint8_t *p_item_start, *p_attr_count;
   uint16_t item_count;
   uint16_t mtu;
-  bool multi_items_add_fail = FALSE;
+  bool multi_items_add_fail = false;
   AVRC_TRACE_API("%s", __func__);
 
   /* make sure the given buffer can accomodate this response */
@@ -955,7 +955,7 @@ static tAVRC_STS avrc_bld_get_folder_items_rsp(tAVRC_GET_ITEMS_RSP* p_rsp,
   /* min len required = item_type(1) + item len(2) + min item (14) = 17 */
   for (xx = 0;
        xx < p_rsp->item_count && len_left > AVRC_MIN_LEN_GET_FOLDER_ITEMS_RSP &&
-       multi_items_add_fail == FALSE;
+       multi_items_add_fail == false;
        xx++) {
     p_item_start = p_data;
     UINT8_TO_BE_STREAM(p_data, p_item_list[xx].item_type);
@@ -1058,7 +1058,7 @@ static tAVRC_STS avrc_bld_get_folder_items_rsp(tAVRC_GET_ITEMS_RSP* p_rsp,
       /* fill in variable item lenth */
       UINT16_TO_BE_STREAM(p_item_len, item_len);
     } else {
-      if (multi_items_add_fail == FALSE) {
+      if (multi_items_add_fail == false) {
         /* some item is not added properly - set an error status */
         if (len_left < item_len)
           status = AVRC_STS_INTERNAL_ERR;
@@ -1066,7 +1066,7 @@ static tAVRC_STS avrc_bld_get_folder_items_rsp(tAVRC_GET_ITEMS_RSP* p_rsp,
           status = AVRC_STS_BAD_PARAM;
       }
     }
-    if (multi_items_add_fail == FALSE) {
+    if (multi_items_add_fail == false) {
       len += item_len;
       len += 3; /* the item_type(1) and item_len(2) */
     }
