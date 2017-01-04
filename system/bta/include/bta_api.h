@@ -1837,24 +1837,6 @@ extern void BTA_DmBleDisableBatchScan(tBTM_BLE_REF_VALUE ref_value);
 
 /*******************************************************************************
  *
- * Function         BTA_DmBleScanFilterSetup
- *
- * Description      This function is called to setup the filter params
- *
- * Parameters       filt_index - Filter index
- *                  p_filt_params -Filter parameters
- *                  ref_value - Reference value
- *                  action - Add, delete or clear
- *                  cb - Command completed callback
- *
- ******************************************************************************/
-extern void BTA_DmBleScanFilterSetup(
-    uint8_t action, tBTM_BLE_PF_FILT_INDEX filt_index,
-    std::unique_ptr<btgatt_filt_param_setup_t> p_filt_params,
-    tBTM_BLE_PF_PARAM_CB cb);
-
-/*******************************************************************************
- *
  * Function         BTA_DmBleTrackAdvertiser
  *
  * Description      This function is called to track the advertiser
