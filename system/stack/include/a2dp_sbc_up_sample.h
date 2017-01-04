@@ -27,10 +27,6 @@
 
 #include <stdint.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /*******************************************************************************
  *
  * Function         a2dp_sbc_init_up_sample
@@ -164,8 +160,4 @@ int a2dp_sbc_up_sample_8s(void* p_src, void* p_dst, uint32_t src_samples,
 int a2dp_sbc_up_sample_8m(void* p_src, void* p_dst, uint32_t src_samples,
                           uint32_t dst_samples, uint32_t* p_ret);
 
-#ifdef __cplusplus
-}
-#endif
-
-#endif /* A2DP_SBC_UP_SAMPLE_H */
+#endif  // A2DP_SBC_UP_SAMPLE_H

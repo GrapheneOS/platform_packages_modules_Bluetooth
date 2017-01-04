@@ -6,7 +6,7 @@ include $(CLEAR_VARS)
 
 LOCAL_CPP_EXTENSION := .cc
 
-# sbc decoder
+# SBC decoder
 LOCAL_SRC_FILES := \
         ./srce/alloc.c \
         ./srce/bitalloc.c \
@@ -21,12 +21,12 @@ LOCAL_SRC_FILES := \
         ./srce/oi_codec_version.c \
         ./srce/synthesis-sbc.c \
         ./srce/synthesis-dct8.c \
-        ./srce/synthesis-8-generated.c \
+        ./srce/synthesis-8-generated.c
 
 LOCAL_C_INCLUDES := $(LOCAL_PATH)/include \
 	$(LOCAL_PATH)/srce
 
-LOCAL_MODULE := libbt-qcom_sbc_decoder
+LOCAL_MODULE := libbt-sbc-decoder
 LOCAL_MODULE_TAGS := optional
 LOCAL_MODULE_CLASS := STATIC_LIBRARIES
 

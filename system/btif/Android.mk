@@ -143,7 +143,7 @@ LOCAL_C_INCLUDES := $(btifCommonIncludes)
 LOCAL_SRC_FILES := $(btifTestSrc)
 LOCAL_SHARED_LIBRARIES := liblog libhardware libhardware_legacy libcutils \
 	libchrome
-LOCAL_STATIC_LIBRARIES := libbtcore libbtif libosi
+LOCAL_STATIC_LIBRARIES := libbtcore libbtif libbt-stack libosi
 LOCAL_MODULE_TAGS := optional
 LOCAL_MODULE := net_test_btif
 

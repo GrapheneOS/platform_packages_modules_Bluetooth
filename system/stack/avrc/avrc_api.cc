@@ -924,7 +924,7 @@ static uint16_t AVRC_HandleContinueRsp(uint8_t handle, uint8_t label,
     AVRC_build_error_packet(p_pkt);
   }
 
-  p_fcb->frag_enabled = FALSE;
+  p_fcb->frag_enabled = false;
   osi_free_and_reset((void**)&p_fcb->p_fmsg);
 
   return AVCT_MsgReq(handle, label, AVCT_RSP, p_pkt);

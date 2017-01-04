@@ -371,8 +371,9 @@ void avdt_ccb_event(tAVDT_CCB* p_ccb, uint8_t event, tAVDT_CCB_EVT* p_data) {
   int i;
 
 #if (AVDT_DEBUG == TRUE)
-  AVDT_TRACE_EVENT("CCB ccb=%d event=%s state=%s", avdt_ccb_to_idx(p_ccb),
-                   avdt_ccb_evt_str[event], avdt_ccb_st_str[p_ccb->state]);
+  AVDT_TRACE_EVENT("%s: CCB ccb=%d event=%s state=%s", __func__,
+                   avdt_ccb_to_idx(p_ccb), avdt_ccb_evt_str[event],
+                   avdt_ccb_st_str[p_ccb->state]);
 #endif
 
   /* look up the state table for the current state */

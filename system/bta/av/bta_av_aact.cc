@@ -248,7 +248,7 @@ tAVDT_CTRL_CBACK* const bta_av_dt_cback[] = {bta_av_stream0_cback,
  * Returns          void
  **********************************************/
 static uint8_t bta_av_get_scb_handle(tBTA_AV_SCB* p_scb, uint8_t local_sep) {
-  for (int i = 0; i < A2DP_CODEC_SEP_INDEX_MAX; i++) {
+  for (int i = 0; i < BTAV_A2DP_CODEC_INDEX_MAX; i++) {
     if ((p_scb->seps[i].tsep == local_sep) &&
         A2DP_CodecTypeEquals(p_scb->seps[i].codec_info,
                              p_scb->cfg.codec_info)) {
@@ -270,7 +270,7 @@ static uint8_t bta_av_get_scb_handle(tBTA_AV_SCB* p_scb, uint8_t local_sep) {
  **********************************************/
 static uint8_t bta_av_get_scb_sep_type(tBTA_AV_SCB* p_scb,
                                        uint8_t tavdt_handle) {
-  for (int i = 0; i < A2DP_CODEC_SEP_INDEX_MAX; i++) {
+  for (int i = 0; i < BTAV_A2DP_CODEC_INDEX_MAX; i++) {
     if (p_scb->seps[i].av_handle == tavdt_handle) return (p_scb->seps[i].tsep);
   }
   APPL_TRACE_DEBUG("%s: handle %d not found", __func__, tavdt_handle)
@@ -731,7 +731,7 @@ static void bta_av_a2dp_sdp_cback(bool found, tA2DP_Service* p_service) {
 static void bta_av_adjust_seps_idx(tBTA_AV_SCB* p_scb, uint8_t avdt_handle) {
   APPL_TRACE_DEBUG("%s: codec: %s", __func__,
                    A2DP_CodecName(p_scb->cfg.codec_info));
-  for (int i = 0; i < A2DP_CODEC_SEP_INDEX_MAX; i++) {
+  for (int i = 0; i < BTAV_A2DP_CODEC_INDEX_MAX; i++) {
     APPL_TRACE_DEBUG("%s: av_handle: %d codec: %s", __func__,
                      p_scb->seps[i].av_handle,
                      A2DP_CodecName(p_scb->seps[i].codec_info));
@@ -1041,7 +1041,7 @@ void bta_av_cleanup(tBTA_AV_SCB* p_scb, UNUSED_ATTR tBTA_AV_DATA* p_data) {
   p_scb->skip_sdp = false;
   if (p_scb->deregistring) {
     /* remove stream */
-    for (int i = 0; i < A2DP_CODEC_SEP_INDEX_MAX; i++) {
+    for (int i = 0; i < BTAV_A2DP_CODEC_INDEX_MAX; i++) {
       if (p_scb->seps[i].av_handle) AVDT_RemoveStream(p_scb->seps[i].av_handle);
       p_scb->seps[i].av_handle = 0;
     }
@@ -1923,7 +1923,7 @@ void bta_av_str_stopped(tBTA_AV_SCB* p_scb, tBTA_AV_DATA* p_data) {
   BT_HDR* p_buf;
   uint8_t policy = HCI_ENABLE_SNIFF_MODE;
 
-  APPL_TRACE_ERROR("%s: audio_open_cnt=%d, p_data %x", __func__,
+  APPL_TRACE_ERROR("%s: audio_open_cnt=%d, p_data %p", __func__,
                    bta_av_cb.audio_open_cnt, p_data);
 
   bta_sys_idle(BTA_ID_AV, bta_av_cb.audio_open_cnt, p_scb->peer_addr);
@@ -1985,8 +1985,11 @@ void bta_av_str_stopped(tBTA_AV_SCB* p_scb, tBTA_AV_DATA* p_data) {
     suspend_rsp.initiator = true;
     APPL_TRACE_EVENT("%s: status %d", __func__, suspend_rsp.status);
 
-    /* send STOP_EVT event only if not in reconfiguring state */
-    if (p_scb->state != BTA_AV_RCFG_SST) {
+    // Send STOP_EVT event only if not in reconfiguring state.
+    // However, we should send STOP_EVT if we are reconfiguring when taking
+    // the Close->Configure->Open->Start path.
+    if (p_scb->state != BTA_AV_RCFG_SST ||
+        (p_data && p_data->api_stop.reconfig_stop)) {
       (*bta_av_cb.p_cback)(BTA_AV_STOP_EVT, (tBTA_AV*)&suspend_rsp);
     }
   }
@@ -2026,32 +2029,49 @@ void bta_av_reconfig(tBTA_AV_SCB* p_scb, tBTA_AV_DATA* p_data) {
   p_scb->rcfg_idx = p_rcfg->sep_info_idx;
   p_scb->p_cap->psc_mask = p_scb->cur_psc_mask;
 
-  /* if the requested index differs from the current one, we can only close/open
-   */
-  if ((p_scb->rcfg_idx == p_scb->sep_info_idx) && (p_rcfg->suspend) &&
-      (p_scb->recfg_sup) && (p_scb->suspend_sup)) {
+  // If the requested SEP index is same as the current one, then we
+  // can Suspend->Reconfigure->Start.
+  // Otherwise, we have to Close->Configure->Open->Start or
+  // Close->Configure->Open for streams that are / are not started.
+  if ((p_scb->rcfg_idx == p_scb->sep_info_idx) && p_rcfg->suspend &&
+      p_scb->recfg_sup && p_scb->suspend_sup) {
     if (p_scb->started) {
+      // Suspend->Reconfigure->Start
       stop.flush = false;
       stop.suspend = true;
+      stop.reconfig_stop = false;
       bta_av_str_stopped(p_scb, (tBTA_AV_DATA*)&stop);
     } else {
+      // Reconfigure
       APPL_TRACE_DEBUG("%s: reconfig", __func__);
       AVDT_ReconfigReq(p_scb->avdt_handle, p_scb->p_cap);
       p_scb->p_cap->psc_mask = p_scb->cur_psc_mask;
     }
   } else {
-    /* close the stream */
-    APPL_TRACE_DEBUG("%s: close/open num_protect: %d", __func__,
+    // Close the stream first, and then Configure it
+    APPL_TRACE_DEBUG("%s: Close/Open started: %d state: %d num_protect: %d",
+                     __func__, p_scb->started, p_scb->state,
                      p_cfg->num_protect);
     if (p_scb->started) {
-      bta_av_str_stopped(p_scb, NULL);
+      // Close->Configure->Open->Start
+      if ((p_scb->rcfg_idx != p_scb->sep_info_idx) && p_scb->recfg_sup) {
+        // Make sure we trigger STOP_EVT when taking the longer road to
+        // reconfiguration, otherwise we don't call Start.
+        stop.flush = false;
+        stop.suspend = false;
+        stop.reconfig_stop = true;
+        bta_av_str_stopped(p_scb, (tBTA_AV_DATA*)&stop);
+      } else {
+        bta_av_str_stopped(p_scb, NULL);
+      }
       p_scb->started = false;
-
-      /* drop the buffers queued in L2CAP */
-      L2CA_FlushChannel(p_scb->l2c_cid, L2CAP_FLUSH_CHANS_ALL);
-
-      AVDT_CloseReq(p_scb->avdt_handle);
+    } else {
+      // Close->Configure->Open
+      bta_av_str_stopped(p_scb, NULL);
     }
+    // Drop the buffers queued in L2CAP
+    L2CA_FlushChannel(p_scb->l2c_cid, L2CAP_FLUSH_CHANS_ALL);
+    AVDT_CloseReq(p_scb->avdt_handle);
   }
 }
 
@@ -2144,7 +2164,6 @@ void bta_av_data_path(tBTA_AV_SCB* p_scb, UNUSED_ATTR tBTA_AV_DATA* p_data) {
  ******************************************************************************/
 void bta_av_start_ok(tBTA_AV_SCB* p_scb, tBTA_AV_DATA* p_data) {
   tBTA_AV_START start;
-  tBTA_AV_API_STOP stop;
   bool initiator = false;
   bool suspend = false;
   uint16_t flush_to;
@@ -2290,6 +2309,7 @@ void bta_av_start_ok(tBTA_AV_SCB* p_scb, tBTA_AV_DATA* p_data) {
     (*bta_av_cb.p_cback)(BTA_AV_START_EVT, (tBTA_AV*)&start);
 
     if (suspend) {
+      tBTA_AV_API_STOP stop;
       p_scb->role |= BTA_AV_ROLE_SUSPEND;
       p_scb->cong = true; /* do not allow the media data to go through */
       /* do not duplicate the media packets to this channel */
@@ -2297,6 +2317,7 @@ void bta_av_start_ok(tBTA_AV_SCB* p_scb, tBTA_AV_DATA* p_data) {
       p_scb->co_started = false;
       stop.flush = false;
       stop.suspend = true;
+      stop.reconfig_stop = false;
       bta_av_ssm_execute(p_scb, BTA_AV_AP_STOP_EVT, (tBTA_AV_DATA*)&stop);
     }
   }
