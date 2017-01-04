@@ -20,25 +20,16 @@
 #define BTIF_AV_CO_H
 
 #include "btif/include/btif_a2dp_source.h"
-#include "stack/include/a2dp_api.h"
+#include "stack/include/a2dp_codec_api.h"
 
-/*******************************************************************************
- *  Constants & Macros
- ******************************************************************************/
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-/*******************************************************************************
- *  Functions
- ******************************************************************************/
-
-// Prepares a message to initialize the encoder. The prepared message is
-// stored in |p_init_params|.
-// |p_init_params| cannot be null.
-void bta_av_co_audio_encoder_init(tA2DP_ENCODER_INIT_PARAMS* p_init_params);
-
-// Gets the current A2DP encoder's feeding parameters. The result
-// is stored in |p_feeding_params|.
-void bta_av_co_get_encoder_feeding_parameters(
-    tA2DP_FEEDING_PARAMS* p_feeding_params);
+// Gets the A2DP peer parameters that are used to initialize the encoder.
+// The parameters are stored in |p_peer_params|.
+// |p_peer_params| cannot be null.
+void bta_av_co_get_peer_params(tA2DP_ENCODER_INIT_PEER_PARAMS* p_peer_params);
 
 // Gets the current A2DP encoder interface that can be used to encode and
 // prepare A2DP packets for transmission - see |tA2DP_ENCODER_INTERFACE|.
@@ -46,15 +37,33 @@ void bta_av_co_get_encoder_feeding_parameters(
 // otherwise NULL.
 const tA2DP_ENCODER_INTERFACE* bta_av_co_get_encoder_interface(void);
 
-/*******************************************************************************
- **
- ** Function         bta_av_co_init
- **
- ** Description      Initialization
- **
- ** Returns          Nothing
- **
- ******************************************************************************/
+// Sets the user preferred codec configuration.
+// |codec_user_config| contains the preferred codec configuration.
+// Returns true on success, otherwise false.
+bool bta_av_co_set_codec_user_config(
+    const btav_a2dp_codec_config_t& codec_user_config);
+
+// Sets the Audio HAL selected audio feeding parameters.
+// Those parameters are applied only to the currently selected codec.
+// |codec_audio_config| contains the selected audio feeding configuration.
+// Returns true on success, otherwise false.
+bool bta_av_co_set_codec_audio_config(
+    const btav_a2dp_codec_config_t& codec_audio_config);
+
+// Initializes the control block.
 void bta_av_co_init(void);
 
-#endif /* BTIF_AV_CO_H */
+// Gets the initialized A2DP codecs.
+// Returns a pointer to the |A2dpCodecs| object with the initialized A2DP
+// codecs, or nullptr if no codecs are initialized.
+A2dpCodecs* bta_av_get_a2dp_codecs(void);
+
+// Gets the current A2DP codec.
+// Returns a pointer to the current |A2dpCodec| if valid, otherwise nullptr.
+A2dpCodecConfig* bta_av_get_a2dp_current_codec(void);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif  // BTIF_AV_CO_H

@@ -157,7 +157,7 @@ enum {
  ****************************************************************************/
 
 /* function types for call-out functions */
-typedef bool (*tBTA_AV_CO_INIT)(tA2DP_CODEC_SEP_INDEX codec_sep_index,
+typedef bool (*tBTA_AV_CO_INIT)(btav_a2dp_codec_index_t codec_index,
                                 tAVDT_CFG* p_cfg);
 typedef void (*tBTA_AV_CO_DISC_RES)(tBTA_AV_HNDL hndl, uint8_t num_seps,
                                     uint8_t num_snk, uint8_t num_src,
@@ -234,6 +234,7 @@ typedef struct {
   BT_HDR hdr;
   bool suspend;
   bool flush;
+  bool reconfig_stop;  // True if the stream is stopped for reconfiguration
 } tBTA_AV_API_STOP;
 
 /* data type for BTA_AV_API_DISCONNECT_EVT */
@@ -443,7 +444,7 @@ typedef struct {
   const tBTA_AV_ACT* p_act_tbl; /* the action table for stream state machine */
   const tBTA_AV_CO_FUNCTS* p_cos; /* the associated callout functions */
   bool sdp_discovery_started; /* variable to determine whether SDP is started */
-  tBTA_AV_SEP seps[A2DP_CODEC_SEP_INDEX_MAX];
+  tBTA_AV_SEP seps[BTAV_A2DP_CODEC_INDEX_MAX];
   tAVDT_CFG* p_cap;  /* buffer used for get capabilities */
   list_t* a2dp_list; /* used for audio channels only */
   tBTA_AV_Q_INFO q_info;

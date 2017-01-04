@@ -94,8 +94,8 @@ typedef struct {
 /*****************************************************************************
  *  Static variables
  *****************************************************************************/
-static btav_callbacks_t* bt_av_src_callbacks = NULL;
-static btav_callbacks_t* bt_av_sink_callbacks = NULL;
+static btav_source_callbacks_t* bt_av_src_callbacks = NULL;
+static btav_sink_callbacks_t* bt_av_sink_callbacks = NULL;
 static btif_av_cb_t btif_av_cb = {0, {{0}}, 0, 0, 0, 0};
 static alarm_t* av_open_on_rc_timer = NULL;
 
@@ -197,6 +197,8 @@ const char* dump_av_sm_event_name(btif_av_sm_event_t event) {
     CASE_RETURN_STR(BTIF_AV_START_STREAM_REQ_EVT)
     CASE_RETURN_STR(BTIF_AV_STOP_STREAM_REQ_EVT)
     CASE_RETURN_STR(BTIF_AV_SUSPEND_STREAM_REQ_EVT)
+    CASE_RETURN_STR(BTIF_AV_SOURCE_CONFIG_REQ_EVT)
+    CASE_RETURN_STR(BTIF_AV_SOURCE_CONFIG_UPDATED_EVT)
     CASE_RETURN_STR(BTIF_AV_SINK_CONFIG_REQ_EVT)
     CASE_RETURN_STR(BTIF_AV_OFFLOAD_START_REQ_EVT)
     default:
@@ -283,6 +285,34 @@ static void btif_report_audio_state(btav_audio_state_t state,
   }
 }
 
+static void btif_update_source_codec(void* p_data) {
+  btav_a2dp_codec_config_t req;
+  // copy to avoid alignment problems
+  memcpy(&req, p_data, sizeof(req));
+
+  BTIF_TRACE_DEBUG("BTIF_AV_SOURCE_CONFIG_REQ_EVT");
+  btif_a2dp_source_encoder_user_config_update_req(req);
+}
+
+static void btif_report_source_codec_state(UNUSED_ATTR void* p_data) {
+  btav_a2dp_codec_config_t codec_config;
+  std::vector<btav_a2dp_codec_config_t> codec_capabilities;
+
+  A2dpCodecs* a2dp_codecs = bta_av_get_a2dp_codecs();
+  if (a2dp_codecs == nullptr) return;
+  if (!a2dp_codecs->getCodecConfigAndCapabilities(&codec_config,
+                                                  &codec_capabilities)) {
+    BTIF_TRACE_WARNING(
+        "BTIF_AV_SOURCE_CONFIG_UPDATED_EVT failed: "
+        "cannot get codec config and capabilities");
+    return;
+  }
+  if (bt_av_src_callbacks != NULL) {
+    HAL_CBACK(bt_av_src_callbacks, audio_config_cb, codec_config,
+              codec_capabilities);
+  }
+}
+
 /*****************************************************************************
  *
  * Function     btif_av_state_idle_handler
@@ -366,6 +396,14 @@ static bool btif_av_state_idle_handler(btif_sm_event_t event, void* p_data) {
     case BTA_AV_RC_BROWSE_OPEN_EVT:
       BTIF_TRACE_DEBUG("BTA_AV_RC_BROWSE_OPEN_EVT received");
       btif_rc_handler(event, (tBTA_AV*)p_data);
+      break;
+
+    case BTIF_AV_SOURCE_CONFIG_REQ_EVT:
+      btif_update_source_codec(p_data);
+      break;
+
+    case BTIF_AV_SOURCE_CONFIG_UPDATED_EVT:
+      btif_report_source_codec_state(p_data);
       break;
 
     /*
@@ -537,6 +575,14 @@ static bool btif_av_state_opening_handler(btif_sm_event_t event, void* p_data) {
       btif_queue_advance();
     } break;
 
+    case BTIF_AV_SOURCE_CONFIG_REQ_EVT:
+      btif_update_source_codec(p_data);
+      break;
+
+    case BTIF_AV_SOURCE_CONFIG_UPDATED_EVT:
+      btif_report_source_codec_state(p_data);
+      break;
+
     case BTIF_AV_SINK_CONFIG_REQ_EVT: {
       btif_av_sink_config_req_t req;
       // copy to avoid alignment problems
@@ -644,6 +690,14 @@ static bool btif_av_state_closing_handler(btif_sm_event_t event, void* p_data) {
       break;
 
     case BTIF_SM_EXIT_EVT:
+      break;
+
+    case BTIF_AV_SOURCE_CONFIG_REQ_EVT:
+      btif_update_source_codec(p_data);
+      break;
+
+    case BTIF_AV_SOURCE_CONFIG_UPDATED_EVT:
+      btif_report_source_codec_state(p_data);
       break;
 
     case BTA_AV_CLOSE_EVT:
@@ -768,6 +822,14 @@ static bool btif_av_state_opened_handler(btif_sm_event_t event, void* p_data) {
 
     } break;
 
+    case BTIF_AV_SOURCE_CONFIG_REQ_EVT:
+      btif_update_source_codec(p_data);
+      break;
+
+    case BTIF_AV_SOURCE_CONFIG_UPDATED_EVT:
+      btif_report_source_codec_state(p_data);
+      break;
+
     case BTIF_AV_DISCONNECT_REQ_EVT:
       BTA_AvClose(btif_av_cb.bta_handle);
       if (btif_av_cb.peer_sep == AVDT_TSEP_SRC) {
@@ -882,6 +944,14 @@ static bool btif_av_state_started_handler(btif_sm_event_t event, void* p_data) {
       /* we were remotely started, just ack back the local request */
       if (btif_av_cb.peer_sep == AVDT_TSEP_SNK)
         btif_a2dp_on_started(NULL, true);
+      break;
+
+    case BTIF_AV_SOURCE_CONFIG_REQ_EVT:
+      btif_update_source_codec(p_data);
+      break;
+
+    case BTIF_AV_SOURCE_CONFIG_UPDATED_EVT:
+      btif_report_source_codec_state(p_data);
       break;
 
     /* fixme -- use suspend = true always to work around issue with BTA AV */
@@ -1190,7 +1260,7 @@ bt_status_t btif_av_init(int service_id) {
  *
  ******************************************************************************/
 
-static bt_status_t init_src(btav_callbacks_t* callbacks) {
+static bt_status_t init_src(btav_source_callbacks_t* callbacks) {
   BTIF_TRACE_EVENT("%s()", __func__);
 
   bt_status_t status = btif_av_init(BTA_A2DP_SOURCE_SERVICE_ID);
@@ -1209,7 +1279,7 @@ static bt_status_t init_src(btav_callbacks_t* callbacks) {
  *
  ******************************************************************************/
 
-static bt_status_t init_sink(btav_callbacks_t* callbacks) {
+static bt_status_t init_sink(btav_sink_callbacks_t* callbacks) {
   BTIF_TRACE_EVENT("%s()", __func__);
 
   bt_status_t status = btif_av_init(BTA_A2DP_SINK_SERVICE_ID);
@@ -1303,6 +1373,28 @@ static bt_status_t disconnect(bt_bdaddr_t* bd_addr) {
                                (char*)bd_addr, sizeof(bt_bdaddr_t), NULL);
 }
 
+static bt_status_t codec_config_src(
+    std::vector<btav_a2dp_codec_config_t> codec_preferences) {
+  BTIF_TRACE_EVENT("%s", __func__);
+  CHECK_BTAV_INIT();
+
+  for (auto cp : codec_preferences) {
+    BTIF_TRACE_DEBUG(
+        "%s: codec_type=%d codec_priority=%d "
+        "sample_rate=0x%x bits_per_sample=0x%x "
+        "channel_mode=0x%x codec_specific_1=%d "
+        "codec_specific_2=%d codec_specific_3=%d "
+        "codec_specific_4=%d",
+        __func__, cp.codec_type, cp.codec_priority, cp.sample_rate,
+        cp.bits_per_sample, cp.channel_mode, cp.codec_specific_1,
+        cp.codec_specific_2, cp.codec_specific_3, cp.codec_specific_4);
+    btif_transfer_context(btif_av_handle_event, BTIF_AV_SOURCE_CONFIG_REQ_EVT,
+                          reinterpret_cast<char*>(&cp), sizeof(cp), NULL);
+  }
+
+  return BT_STATUS_SUCCESS;
+}
+
 /*******************************************************************************
  *
  * Function         cleanup
@@ -1346,18 +1438,17 @@ static void cleanup_sink(void) {
   }
 }
 
-static const btav_interface_t bt_av_src_interface = {
-    sizeof(btav_interface_t),
+static const btav_source_interface_t bt_av_src_interface = {
+    sizeof(btav_source_interface_t),
     init_src,
     src_connect_sink,
     disconnect,
+    codec_config_src,
     cleanup_src,
-    NULL,
-    NULL,
 };
 
-static const btav_interface_t bt_av_sink_interface = {
-    sizeof(btav_interface_t),
+static const btav_sink_interface_t bt_av_sink_interface = {
+    sizeof(btav_sink_interface_t),
     init_sink,
     sink_connect_src,
     disconnect,
@@ -1540,10 +1631,10 @@ bt_status_t btif_av_sink_execute_service(bool b_enable) {
  *
  * Description      Get the AV callback interface for A2DP source profile
  *
- * Returns          btav_interface_t
+ * Returns          btav_source_interface_t
  *
  ******************************************************************************/
-const btav_interface_t* btif_av_get_src_interface(void) {
+const btav_source_interface_t* btif_av_get_src_interface(void) {
   BTIF_TRACE_EVENT("%s", __func__);
   return &bt_av_src_interface;
 }
@@ -1554,10 +1645,10 @@ const btav_interface_t* btif_av_get_src_interface(void) {
  *
  * Description      Get the AV callback interface for A2DP sink profile
  *
- * Returns          btav_interface_t
+ * Returns          btav_sink_interface_t
  *
  ******************************************************************************/
-const btav_interface_t* btif_av_get_sink_interface(void) {
+const btav_sink_interface_t* btif_av_get_sink_interface(void) {
   BTIF_TRACE_EVENT("%s", __func__);
   return &bt_av_sink_interface;
 }

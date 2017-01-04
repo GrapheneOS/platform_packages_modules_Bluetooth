@@ -24,12 +24,8 @@
 #ifndef A2DP_SBC_ENCODER_H
 #define A2DP_SBC_ENCODER_H
 
-#include "a2dp_api.h"
+#include "a2dp_codec_api.h"
 #include "osi/include/time.h"
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 // Loads the A2DP SBC encoder.
 // Return true on success, otherwise false.
@@ -39,12 +35,12 @@ bool A2DP_LoadEncoderSbc(void);
 void A2DP_UnloadEncoderSbc(void);
 
 // Initialize the A2DP SBC encoder.
-// If |is_peer_edr| is true, the A2DP peer device supports EDR.
-// If |peer_supports_3mbps| is true, the A2DP peer device supports 3Mbps EDR.
-// The encoder initialization parameters are in |p_init_params|.
-// |enqueue_callback} is the callback for enqueueing the encoded audio data.
-void a2dp_sbc_encoder_init(bool is_peer_edr, bool peer_supports_3mbps,
-                           const tA2DP_ENCODER_INIT_PARAMS* p_init_params,
+// |p_peer_params| contains the A2DP peer information
+// The current A2DP codec config is in |a2dp_codec_config|.
+// |read_callback| is the callback for reading the input audio data.
+// |enqueue_callback| is the callback for enqueueing the encoded audio data.
+void a2dp_sbc_encoder_init(const tA2DP_ENCODER_INIT_PEER_PARAMS* p_peer_params,
+                           A2dpCodecConfig* a2dp_codec_config,
                            a2dp_source_read_callback_t read_callback,
                            a2dp_source_enqueue_callback_t enqueue_callback);
 
@@ -72,9 +68,5 @@ void a2dp_sbc_send_frames(uint64_t timestamp_us);
 // |fd| is the file descriptor to use to dump the statistics information
 // in user-friendly test format.
 void a2dp_sbc_debug_codec_dump(int fd);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif  // A2DP_SBC_ENCODER_H

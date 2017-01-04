@@ -772,8 +772,8 @@ void avdt_scb_event(tAVDT_SCB* p_scb, uint8_t event, tAVDT_SCB_EVT* p_data) {
   int i;
 
 #if (AVDT_DEBUG == TRUE)
-  AVDT_TRACE_EVENT("SCB hdl=%d event=%d/%s state=%s", avdt_scb_to_hdl(p_scb),
-                   event, avdt_scb_evt_str[event],
+  AVDT_TRACE_EVENT("%s: SCB hdl=%d event=%d/%s state=%s", __func__,
+                   avdt_scb_to_hdl(p_scb), event, avdt_scb_evt_str[event],
                    avdt_scb_st_str[p_scb->state]);
 #endif
   /* set current event */

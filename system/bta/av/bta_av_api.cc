@@ -277,6 +277,7 @@ void BTA_AvStop(bool suspend) {
   p_buf->hdr.event = BTA_AV_API_STOP_EVT;
   p_buf->flush = true;
   p_buf->suspend = suspend;
+  p_buf->reconfig_stop = false;
 
   bta_sys_sendmsg(p_buf);
 }
