@@ -444,12 +444,18 @@ static jboolean unplugNative(JNIEnv* env, jobject thiz) {
   return result;
 }
 
-static jboolean connectNative(JNIEnv* env, jobject thiz) {
+static jboolean connectNative(JNIEnv* env, jobject thiz, jbyteArray address) {
   ALOGV("%s enter", __FUNCTION__);
 
   jboolean result = JNI_FALSE;
 
-  bt_status_t ret = sHiddIf->connect();
+  jbyte* addr = env->GetByteArrayElements(address, NULL);
+  if (!addr) {
+    ALOGE("Bluetooth device address null");
+    return JNI_FALSE;
+  }
+
+  bt_status_t ret = sHiddIf->connect((bt_bdaddr_t*)addr);
 
   ALOGV("%s: connect() returned %d", __FUNCTION__, ret);
 
@@ -492,7 +498,7 @@ static JNINativeMethod sMethods[] = {
     {"replyReportNative", "(BB[B)Z", (void*)replyReportNative},
     {"reportErrorNative", "(B)Z", (void*)reportErrorNative},
     {"unplugNative", "()Z", (void*)unplugNative},
-    {"connectNative", "()Z", (void*)connectNative},
+    {"connectNative", "([B)Z", (void*)connectNative},
     {"disconnectNative", "()Z", (void*)disconnectNative},
 };
 

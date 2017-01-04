@@ -478,7 +478,7 @@ public class HidDevService extends ProfileService {
   synchronized boolean connect(BluetoothDevice device) {
       if (DBG) Log.v(TAG, "connect(): device=" + device);
 
-      return connectNative();
+      return connectNative(Utils.getByteAddress(device));
   }
 
   synchronized boolean disconnect(BluetoothDevice device) {
@@ -696,7 +696,7 @@ public class HidDevService extends ProfileService {
   private native boolean sendReportNative(int id, byte[] data);
   private native boolean replyReportNative(byte type, byte id, byte[] data);
   private native boolean unplugNative();
-  private native boolean connectNative();
+  private native boolean connectNative(byte[] btAddress);
   private native boolean disconnectNative();
   private native boolean reportErrorNative(byte error);
 }
