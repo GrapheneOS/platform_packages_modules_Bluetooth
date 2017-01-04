@@ -470,7 +470,7 @@ static bt_status_t unregister_app(void) {
  * Returns          bt_status_t
  *
  ******************************************************************************/
-static bt_status_t connect(void) {
+static bt_status_t connect(bt_bdaddr_t* bd_addr) {
   BTIF_TRACE_API("%s", __func__);
 
   if (!btif_hd_cb.app_registered) {
@@ -484,7 +484,7 @@ static bt_status_t connect(void) {
     return BT_STATUS_NOT_READY;
   }
 
-  BTA_HdConnect();
+  BTA_HdConnect(bd_addr->address);
 
   return BT_STATUS_SUCCESS;
 }
