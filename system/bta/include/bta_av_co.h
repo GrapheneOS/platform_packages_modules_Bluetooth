@@ -44,7 +44,7 @@
  * Returns          Stream codec and content protection capabilities info.
  *
  ******************************************************************************/
-bool bta_av_co_audio_init(tA2DP_CODEC_SEP_INDEX codec_sep_index,
+bool bta_av_co_audio_init(btav_a2dp_codec_index_t codec_index,
                           tAVDT_CFG* p_cfg);
 
 /*******************************************************************************

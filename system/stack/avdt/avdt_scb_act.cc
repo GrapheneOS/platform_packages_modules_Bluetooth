@@ -24,7 +24,7 @@
  ******************************************************************************/
 
 #include <string.h>
-#include "a2dp_api.h"
+#include "a2dp_codec_api.h"
 #include "avdt_api.h"
 #include "avdt_int.h"
 #include "avdtc_api.h"

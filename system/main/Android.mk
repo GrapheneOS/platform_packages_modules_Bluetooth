@@ -15,17 +15,6 @@ LOCAL_SRC_FILES := \
     bte_main.cc \
     stack_config.cc
 
-# sbc encoder
-LOCAL_SRC_FILES += \
-    ../embdrv/sbc/encoder/srce/sbc_analysis.c \
-    ../embdrv/sbc/encoder/srce/sbc_dct.c \
-    ../embdrv/sbc/encoder/srce/sbc_dct_coeffs.c \
-    ../embdrv/sbc/encoder/srce/sbc_enc_bit_alloc_mono.c \
-    ../embdrv/sbc/encoder/srce/sbc_enc_bit_alloc_ste.c \
-    ../embdrv/sbc/encoder/srce/sbc_enc_coeffs.c \
-    ../embdrv/sbc/encoder/srce/sbc_encoder.c \
-    ../embdrv/sbc/encoder/srce/sbc_packing.c \
-
 LOCAL_SRC_FILES += \
     ../udrv/ulinux/uipc.cc
 
@@ -67,7 +56,8 @@ LOCAL_SHARED_LIBRARIES := \
     libtinyxml2
 
 LOCAL_STATIC_LIBRARIES := \
-    libbt-qcom_sbc_decoder
+    libbt-sbc-decoder \
+    libbt-sbc-encoder
 
 LOCAL_WHOLE_STATIC_LIBRARIES := \
     libbt-bta \

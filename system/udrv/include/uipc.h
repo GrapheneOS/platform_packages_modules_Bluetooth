@@ -97,7 +97,7 @@ void UIPC_Close(tUIPC_CH_ID ch_id);
  * Returns          void
  *
  ******************************************************************************/
-bool UIPC_Send(tUIPC_CH_ID ch_id, uint16_t msg_evt, uint8_t* p_buf,
+bool UIPC_Send(tUIPC_CH_ID ch_id, uint16_t msg_evt, const uint8_t* p_buf,
                uint16_t msglen);
 
 /*******************************************************************************

@@ -119,18 +119,6 @@
 #define BTA_AV_CO_CP_SCMS_T FALSE
 #endif
 
-#ifndef BTIF_A2DP_SRC_SAMPLING_RATE
-#define BTIF_A2DP_SRC_SAMPLING_RATE 44100
-#endif
-
-#ifndef BTIF_A2DP_SRC_BIT_DEPTH
-#define BTIF_A2DP_SRC_BIT_DEPTH 16
-#endif
-
-#ifndef BTIF_A2DP_SRC_NUM_CHANNELS
-#define BTIF_A2DP_SRC_NUM_CHANNELS 2
-#endif
-
 /* This feature is used to enable interleaved scan */
 #ifndef BTA_HOST_INTERLEAVE_SEARCH
 #define BTA_HOST_INTERLEAVE_SEARCH FALSE

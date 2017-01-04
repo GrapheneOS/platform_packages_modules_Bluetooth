@@ -26,7 +26,7 @@
 #ifndef BTA_AV_API_H
 #define BTA_AV_API_H
 
-#include "a2dp_api.h"
+#include "a2dp_codec_api.h"
 #include "avdt_api.h"
 #include "avrc_api.h"
 #include "bta_api.h"

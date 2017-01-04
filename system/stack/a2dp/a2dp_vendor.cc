@@ -25,43 +25,6 @@
 #include "osi/include/log.h"
 #include "osi/include/osi.h"
 
-tA2DP_CODEC_SEP_INDEX A2DP_VendorSourceCodecSepIndex(
-    const uint8_t* p_codec_info) {
-  // uint32_t vendor_id = A2DP_VendorCodecGetVendorId(p_codec_info);
-  // uint16_t codec_id = A2DP_VendorCodecGetCodecId(p_codec_info);
-
-  // Add checks based on <vendor_id, codec_id>
-
-  return A2DP_CODEC_SEP_INDEX_MAX;
-}
-
-const char* A2DP_VendorCodecSepIndexStr(tA2DP_CODEC_SEP_INDEX codec_sep_index) {
-  // Add checks based on codec_sep_index
-  switch (codec_sep_index) {
-    case A2DP_CODEC_SEP_INDEX_SOURCE_SBC:
-    case A2DP_CODEC_SEP_INDEX_SINK_SBC:
-      break;  // This is not a vendor-specific codec
-    case A2DP_CODEC_SEP_INDEX_MAX:
-      break;
-  }
-
-  return "UNKNOWN CODEC SEP INDEX";
-}
-
-bool A2DP_VendorInitCodecConfig(tA2DP_CODEC_SEP_INDEX codec_sep_index,
-                                UNUSED_ATTR tAVDT_CFG* p_cfg) {
-  // Add checks based on codec_sep_index
-  switch (codec_sep_index) {
-    case A2DP_CODEC_SEP_INDEX_SOURCE_SBC:
-    case A2DP_CODEC_SEP_INDEX_SINK_SBC:
-      break;  // This is not a vendor-specific codec
-    case A2DP_CODEC_SEP_INDEX_MAX:
-      break;
-  }
-
-  return false;
-}
-
 bool A2DP_IsVendorSourceCodecValid(UNUSED_ATTR const uint8_t* p_codec_info) {
   // uint32_t vendor_id = A2DP_VendorCodecGetVendorId(p_codec_info);
   // uint16_t codec_id = A2DP_VendorCodecGetCodecId(p_codec_info);
@@ -120,17 +83,6 @@ bool A2DP_IsVendorPeerSourceCodecSupported(
   // NOTE: Should be done only for local Sink codecs.
 
   return false;
-}
-
-tA2DP_STATUS A2DP_VendorInitSource2SinkCodec(
-    UNUSED_ATTR const uint8_t* p_sink_caps,
-    UNUSED_ATTR uint8_t* p_result_codec_config) {
-  // uint32_t vendor_id = A2DP_VendorCodecGetVendorId(p_sink_caps);
-  // uint16_t codec_id = A2DP_VendorCodecGetCodecId(p_sink_caps);
-
-  // Add checks based on <vendor_id, codec_id>
-
-  return A2DP_NS_CODEC_TYPE;
 }
 
 tA2DP_STATUS A2DP_VendorBuildSrc2SinkConfig(
@@ -234,7 +186,7 @@ int A2DP_VendorGetTrackSampleRate(UNUSED_ATTR const uint8_t* p_codec_info) {
   return -1;
 }
 
-int A2DP_VendorGetTrackChannelCount(UNUSED_ATTR const uint8_t* p_codec_info) {
+int A2DP_VendorGetTrackBitsPerSample(UNUSED_ATTR const uint8_t* p_codec_info) {
   // uint32_t vendor_id = A2DP_VendorCodecGetVendorId(p_codec_info);
   // uint16_t codec_id = A2DP_VendorCodecGetCodecId(p_codec_info);
 
@@ -243,7 +195,7 @@ int A2DP_VendorGetTrackChannelCount(UNUSED_ATTR const uint8_t* p_codec_info) {
   return -1;
 }
 
-int A2DP_VendorGetTrackBitsPerSample(UNUSED_ATTR const uint8_t* p_codec_info) {
+int A2DP_VendorGetTrackChannelCount(UNUSED_ATTR const uint8_t* p_codec_info) {
   // uint32_t vendor_id = A2DP_VendorCodecGetVendorId(p_codec_info);
   // uint16_t codec_id = A2DP_VendorCodecGetCodecId(p_codec_info);
 
@@ -258,6 +210,7 @@ int A2DP_VendorGetSinkTrackChannelType(
   // uint16_t codec_id = A2DP_VendorCodecGetCodecId(p_codec_info);
 
   // Add checks based on <vendor_id, codec_id>
+  // NOTE: Should be done only for local Sink codecs.
 
   return -1;
 }
@@ -311,6 +264,45 @@ bool A2DP_VendorAdjustCodec(uint8_t* p_codec_info) {
   // uint16_t codec_id = A2DP_VendorCodecGetCodecId(p_codec_info);
 
   // Add checks based on <vendor_id, codec_id>
+
+  return false;
+}
+
+btav_a2dp_codec_index_t A2DP_VendorSourceCodecIndex(
+    UNUSED_ATTR const uint8_t* p_codec_info) {
+  // uint32_t vendor_id = A2DP_VendorCodecGetVendorId(p_codec_info);
+  // uint16_t codec_id = A2DP_VendorCodecGetCodecId(p_codec_info);
+
+  // Add checks based on <vendor_id, codec_id>
+
+  return BTAV_A2DP_CODEC_INDEX_MAX;
+}
+
+const char* A2DP_VendorCodecIndexStr(btav_a2dp_codec_index_t codec_index) {
+  // Add checks based on codec_index
+  switch (codec_index) {
+    case BTAV_A2DP_CODEC_INDEX_SOURCE_SBC:
+    case BTAV_A2DP_CODEC_INDEX_SINK_SBC:
+      break;  // This is not a vendor-specific codec
+    // Add a switch statement for each vendor-specific codec
+    case BTAV_A2DP_CODEC_INDEX_MAX:
+      break;
+  }
+
+  return "UNKNOWN CODEC INDEX";
+}
+
+bool A2DP_VendorInitCodecConfig(btav_a2dp_codec_index_t codec_index,
+                                tAVDT_CFG* p_cfg) {
+  // Add checks based on codec_index
+  switch (codec_index) {
+    case BTAV_A2DP_CODEC_INDEX_SOURCE_SBC:
+    case BTAV_A2DP_CODEC_INDEX_SINK_SBC:
+      break;  // This is not a vendor-specific codec
+    // Add a switch statement for each vendor-specific codec
+    case BTAV_A2DP_CODEC_INDEX_MAX:
+      break;
+  }
 
   return false;
 }

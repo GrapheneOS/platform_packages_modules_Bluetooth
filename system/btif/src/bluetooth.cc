@@ -84,8 +84,8 @@ extern bthf_interface_t* btif_hf_get_interface();
 /* handsfree profile - client */
 extern bthf_client_interface_t* btif_hf_client_get_interface();
 /* advanced audio profile */
-extern btav_interface_t* btif_av_get_src_interface();
-extern btav_interface_t* btif_av_get_sink_interface();
+extern btav_source_interface_t* btif_av_get_src_interface();
+extern btav_sink_interface_t* btif_av_get_sink_interface();
 /*rfc l2cap*/
 extern btsock_interface_t* btif_sock_get_interface();
 /* hid host profile */
