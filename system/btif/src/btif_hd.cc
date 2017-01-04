@@ -672,5 +672,7 @@ const bthd_interface_t* btif_hd_get_interface() {
 void btif_hd_service_registration() {
   BTIF_TRACE_API("%s", __func__);
   /* enable HD */
-  BTA_HdEnable(bte_hd_evt);
+  if (bt_hd_callbacks != NULL) {
+    BTA_HdEnable(bte_hd_evt);
+  }
 }
