@@ -2556,6 +2556,12 @@ public class AdapterService extends Service {
     protected void dump(FileDescriptor fd, PrintWriter writer, String[] args) {
         enforceCallingOrSelfPermission(android.Manifest.permission.DUMP, TAG);
 
+        if (args.length == 0) {
+            writer.println("Skipping dump in APP SERVICES, see bluetooth_manager section.");
+            writer.println("Use --print argument for dumpsys direct from AdapterService.");
+            return;
+        }
+
         if (args.length > 0) {
             verboseLog("dumpsys arguments, check for protobuf output: "
                        + TextUtils.join(" ", args));
