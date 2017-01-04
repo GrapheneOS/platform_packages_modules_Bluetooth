@@ -1855,31 +1855,6 @@ extern void BTA_DmBleScanFilterSetup(
 
 /*******************************************************************************
  *
- * Function         BTA_DmBleCfgFilterCondition
- *
- * Description      This function is called to configure the adv data payload
- *                  filter condition.
- *
- * Parameters       action: to read/write/clear
- *                  cond_type: filter condition type
- *                  filt_index - Filter index
- *                  p_cond: filter condition parameter
- *                  cb - Command completed callback
- *
- * Returns          void
- *
- ******************************************************************************/
-extern void BTA_DmBleCfgFilterCondition(
-    tBTM_BLE_SCAN_COND_OP action, tBTM_BLE_PF_COND_TYPE cond_type,
-    tBTM_BLE_PF_FILT_INDEX filt_index, tBTM_BLE_PF_COND_PARAM* p_cond,
-    base::Callback<void(uint8_t, uint8_t, uint8_t)> cb);
-
-extern void BTA_DmBleScanFilterClear(
-    tBTM_BLE_PF_FILT_INDEX filt_index,
-    base::Callback<void(uint8_t, uint8_t, uint8_t)> cb);
-
-/*******************************************************************************
- *
  * Function         BTA_DmBleTrackAdvertiser
  *
  * Description      This function is called to track the advertiser
