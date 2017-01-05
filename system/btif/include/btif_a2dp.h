@@ -58,8 +58,4 @@ void btif_a2dp_on_offload_started(tBTA_AV_STATUS status);
 // information.
 void btif_debug_a2dp_dump(int fd);
 
-// Update the A2DP-related metrics.
-// This function should be called before collecting the metrics.
-void btif_update_a2dp_metrics(void);
-
 #endif /* BTIF_A2DP_H */

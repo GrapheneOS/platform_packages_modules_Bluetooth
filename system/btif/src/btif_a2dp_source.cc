@@ -22,6 +22,7 @@
 #include <base/logging.h>
 #include <limits.h>
 #include <string.h>
+#include <algorithm>
 
 #include "audio_a2dp_hw.h"
 #include "bt_common.h"
@@ -41,6 +42,9 @@
 #include "osi/include/thread.h"
 #include "osi/include/time.h"
 #include "uipc.h"
+
+using system_bt_osi::BluetoothMetricsLogger;
+using system_bt_osi::A2dpSessionMetrics;
 
 /**
  * The typical runlevel of the tx queue size is ~1 buffer
@@ -118,6 +122,7 @@ typedef struct {
 
 typedef struct {
   uint64_t session_start_us;
+  uint64_t session_end_us;
 
   scheduling_stats_t tx_queue_enqueue_stats;
   scheduling_stats_t tx_queue_dequeue_stats;
@@ -153,6 +158,7 @@ typedef struct {
   const tA2DP_ENCODER_INTERFACE* encoder_interface;
   period_ms_t encoder_interval_ms; /* Local copy of the encoder interval */
   btif_media_stats_t stats;
+  btif_media_stats_t accumulated_stats;
 } tBTIF_A2DP_SOURCE_CB;
 
 static tBTIF_A2DP_SOURCE_CB btif_a2dp_source_cb;
@@ -194,6 +200,55 @@ UNUSED_ATTR static const char* dump_media_event(uint16_t event) {
   return "UNKNOWN A2DP SOURCE EVENT";
 }
 
+void btif_a2dp_source_accumulate_scheduling_stats(scheduling_stats_t* src,
+                                                  scheduling_stats_t* dst) {
+  dst->total_updates += src->total_updates;
+  dst->last_update_us = src->last_update_us;
+  dst->overdue_scheduling_count += src->overdue_scheduling_count;
+  dst->total_overdue_scheduling_delta_us +=
+      src->total_overdue_scheduling_delta_us;
+  dst->max_overdue_scheduling_delta_us =
+      std::max(dst->max_overdue_scheduling_delta_us,
+               src->max_overdue_scheduling_delta_us);
+  dst->premature_scheduling_count += src->premature_scheduling_count;
+  dst->total_premature_scheduling_delta_us +=
+      src->total_premature_scheduling_delta_us;
+  dst->max_premature_scheduling_delta_us =
+      std::max(dst->max_premature_scheduling_delta_us,
+               src->max_premature_scheduling_delta_us);
+  dst->exact_scheduling_count += src->exact_scheduling_count;
+  dst->total_scheduling_time_us += src->total_scheduling_time_us;
+}
+
+void btif_a2dp_source_accumulate_stats(btif_media_stats_t* src,
+                                       btif_media_stats_t* dst) {
+  dst->tx_queue_total_frames += src->tx_queue_total_frames;
+  dst->tx_queue_max_frames_per_packet = std::max(
+      dst->tx_queue_max_frames_per_packet, src->tx_queue_max_frames_per_packet);
+  dst->tx_queue_total_queueing_time_us += src->tx_queue_total_queueing_time_us;
+  dst->tx_queue_max_queueing_time_us = std::max(
+      dst->tx_queue_max_queueing_time_us, src->tx_queue_max_queueing_time_us);
+  dst->tx_queue_total_readbuf_calls += src->tx_queue_total_readbuf_calls;
+  dst->tx_queue_last_readbuf_us = src->tx_queue_last_readbuf_us;
+  dst->tx_queue_total_flushed_messages += src->tx_queue_total_flushed_messages;
+  dst->tx_queue_last_flushed_us = src->tx_queue_last_flushed_us;
+  dst->tx_queue_total_dropped_messages += src->tx_queue_total_dropped_messages;
+  dst->tx_queue_max_dropped_messages = std::max(
+      dst->tx_queue_max_dropped_messages, src->tx_queue_max_dropped_messages);
+  dst->tx_queue_dropouts += src->tx_queue_dropouts;
+  dst->tx_queue_last_dropouts_us = src->tx_queue_last_dropouts_us;
+  dst->media_read_total_underflow_bytes +=
+      src->media_read_total_underflow_bytes;
+  dst->media_read_total_underflow_count +=
+      src->media_read_total_underflow_count;
+  dst->media_read_last_underflow_us = src->media_read_last_underflow_us;
+  btif_a2dp_source_accumulate_scheduling_stats(&src->tx_queue_enqueue_stats,
+                                               &dst->tx_queue_enqueue_stats);
+  btif_a2dp_source_accumulate_scheduling_stats(&src->tx_queue_dequeue_stats,
+                                               &dst->tx_queue_dequeue_stats);
+  memset(src, 0, sizeof(btif_media_stats_t));
+}
+
 bool btif_a2dp_source_startup(void) {
   if (btif_a2dp_source_state != BTIF_A2DP_SOURCE_STATE_OFF) {
     APPL_TRACE_ERROR("%s: A2DP Source media task already running", __func__);
@@ -214,7 +269,6 @@ bool btif_a2dp_source_startup(void) {
     return false;
   }
 
-  btif_a2dp_source_cb.stats.session_start_us = time_get_os_boottime_us();
   btif_a2dp_source_cb.tx_audio_queue = fixed_queue_new(SIZE_MAX);
 
   btif_a2dp_source_cb.cmd_msg_queue = fixed_queue_new(SIZE_MAX);
@@ -236,6 +290,8 @@ static void btif_a2dp_source_startup_delayed(UNUSED_ATTR void* context) {
   raise_priority_a2dp(TASK_HIGH_MEDIA);
   btif_a2dp_control_init();
   btif_a2dp_source_state = BTIF_A2DP_SOURCE_STATE_RUNNING;
+  BluetoothMetricsLogger::GetInstance()->LogBluetoothSessionStart(
+      system_bt_osi::CONNECTION_TECHNOLOGY_TYPE_BREDR, 0);
 }
 
 void btif_a2dp_source_shutdown(void) {
@@ -268,6 +324,8 @@ static void btif_a2dp_source_shutdown_delayed(UNUSED_ATTR void* context) {
   btif_a2dp_source_cb.tx_audio_queue = NULL;
 
   btif_a2dp_source_state = BTIF_A2DP_SOURCE_STATE_OFF;
+  BluetoothMetricsLogger::GetInstance()->LogBluetoothSessionEnd("A2DP_SHUTDOWN",
+                                                                0);
 }
 
 bool btif_a2dp_source_media_task_is_running(void) {
@@ -333,6 +391,9 @@ void btif_a2dp_source_start_audio_req(void) {
 
   p_buf->event = BTIF_MEDIA_AUDIO_TX_START;
   fixed_queue_enqueue(btif_a2dp_source_cb.cmd_msg_queue, p_buf);
+  memset(&btif_a2dp_source_cb.stats, 0, sizeof(btif_media_stats_t));
+  btif_a2dp_source_cb.stats.session_start_us = time_get_os_boottime_us();
+  btif_a2dp_source_cb.stats.session_end_us = 0;
 }
 
 void btif_a2dp_source_stop_audio_req(void) {
@@ -350,8 +411,13 @@ void btif_a2dp_source_stop_audio_req(void) {
    * after the "BTIF_AV_CLEANUP_REQ_EVT -> btif_a2dp_source_shutdown()"
    * processing during the shutdown of the Bluetooth stack.
    */
-  if (btif_a2dp_source_cb.cmd_msg_queue != NULL)
+  if (btif_a2dp_source_cb.cmd_msg_queue != NULL) {
     fixed_queue_enqueue(btif_a2dp_source_cb.cmd_msg_queue, p_buf);
+  }
+  btif_a2dp_source_cb.stats.session_end_us = time_get_os_boottime_us();
+  btif_a2dp_source_update_metrics();
+  btif_a2dp_source_accumulate_stats(&btif_a2dp_source_cb.stats,
+                                    &btif_a2dp_source_cb.accumulated_stats);
 }
 
 static void btif_a2dp_source_encoder_init(void) {
@@ -649,8 +715,8 @@ static bool btif_a2dp_source_enqueue_callback(BT_HDR* p_buf, size_t frames_n) {
 
     // Flush all queued buffers
     size_t drop_n = fixed_queue_length(btif_a2dp_source_cb.tx_audio_queue);
-    if (btif_a2dp_source_cb.stats.tx_queue_max_dropped_messages < drop_n)
-      btif_a2dp_source_cb.stats.tx_queue_max_dropped_messages = drop_n;
+    btif_a2dp_source_cb.stats.tx_queue_max_dropped_messages = std::max(
+        drop_n, btif_a2dp_source_cb.stats.tx_queue_max_dropped_messages);
     while (fixed_queue_length(btif_a2dp_source_cb.tx_audio_queue)) {
       btif_a2dp_source_cb.stats.tx_queue_total_dropped_messages++;
       osi_free(fixed_queue_try_dequeue(btif_a2dp_source_cb.tx_audio_queue));
@@ -663,8 +729,8 @@ static bool btif_a2dp_source_enqueue_callback(BT_HDR* p_buf, size_t frames_n) {
 
   /* Update the statistics */
   btif_a2dp_source_cb.stats.tx_queue_total_frames += frames_n;
-  if (frames_n > btif_a2dp_source_cb.stats.tx_queue_max_frames_per_packet)
-    btif_a2dp_source_cb.stats.tx_queue_max_frames_per_packet = frames_n;
+  btif_a2dp_source_cb.stats.tx_queue_max_frames_per_packet = std::max(
+      frames_n, btif_a2dp_source_cb.stats.tx_queue_max_frames_per_packet);
   CHECK(btif_a2dp_source_cb.encoder_interface != NULL);
   update_scheduling_stats(&btif_a2dp_source_cb.stats.tx_queue_enqueue_stats,
                           now_us,
@@ -752,8 +818,8 @@ static void update_scheduling_stats(scheduling_stats_t* stats, uint64_t now_us,
     uint64_t delta_us = now_us - deadline_us;
     // Ignore extreme outliers
     if (delta_us < 10 * expected_delta) {
-      if (stats->max_overdue_scheduling_delta_us < delta_us)
-        stats->max_overdue_scheduling_delta_us = delta_us;
+      stats->max_overdue_scheduling_delta_us =
+          std::max(delta_us, stats->max_overdue_scheduling_delta_us);
       stats->total_overdue_scheduling_delta_us += delta_us;
       stats->overdue_scheduling_count++;
       stats->total_scheduling_time_us += now_us - last_us;
@@ -763,8 +829,8 @@ static void update_scheduling_stats(scheduling_stats_t* stats, uint64_t now_us,
     uint64_t delta_us = deadline_us - now_us;
     // Ignore extreme outliers
     if (delta_us < 10 * expected_delta) {
-      if (stats->max_premature_scheduling_delta_us < delta_us)
-        stats->max_premature_scheduling_delta_us = delta_us;
+      stats->max_premature_scheduling_delta_us =
+          std::max(delta_us, stats->max_premature_scheduling_delta_us);
       stats->total_premature_scheduling_delta_us += delta_us;
       stats->premature_scheduling_count++;
       stats->total_scheduling_time_us += now_us - last_us;
@@ -777,10 +843,15 @@ static void update_scheduling_stats(scheduling_stats_t* stats, uint64_t now_us,
 }
 
 void btif_a2dp_source_debug_dump(int fd) {
+  btif_a2dp_source_accumulate_stats(&btif_a2dp_source_cb.stats,
+                                    &btif_a2dp_source_cb.accumulated_stats);
   uint64_t now_us = time_get_os_boottime_us();
-  btif_media_stats_t* stats = &btif_a2dp_source_cb.stats;
-  scheduling_stats_t* enqueue_stats = &stats->tx_queue_enqueue_stats;
-  scheduling_stats_t* dequeue_stats = &stats->tx_queue_dequeue_stats;
+  btif_media_stats_t* accumulated_stats =
+      &btif_a2dp_source_cb.accumulated_stats;
+  scheduling_stats_t* enqueue_stats =
+      &accumulated_stats->tx_queue_enqueue_stats;
+  scheduling_stats_t* dequeue_stats =
+      &accumulated_stats->tx_queue_dequeue_stats;
   size_t ave_size;
   uint64_t ave_time_us;
 
@@ -791,7 +862,7 @@ void btif_a2dp_source_debug_dump(int fd) {
           "  Counts (enqueue/dequeue/readbuf)                        : %zu / "
           "%zu / %zu\n",
           enqueue_stats->total_updates, dequeue_stats->total_updates,
-          stats->tx_queue_total_readbuf_calls);
+          accumulated_stats->tx_queue_total_readbuf_calls);
 
   dprintf(
       fd,
@@ -803,57 +874,64 @@ void btif_a2dp_source_debug_dump(int fd) {
       (dequeue_stats->last_update_us > 0)
           ? (unsigned long long)(now_us - dequeue_stats->last_update_us) / 1000
           : 0,
-      (stats->tx_queue_last_readbuf_us > 0)
-          ? (unsigned long long)(now_us - stats->tx_queue_last_readbuf_us) /
+      (accumulated_stats->tx_queue_last_readbuf_us > 0)
+          ? (unsigned long long)(now_us -
+                                 accumulated_stats->tx_queue_last_readbuf_us) /
                 1000
           : 0);
 
   ave_size = 0;
   if (enqueue_stats->total_updates != 0)
-    ave_size = stats->tx_queue_total_frames / enqueue_stats->total_updates;
+    ave_size =
+        accumulated_stats->tx_queue_total_frames / enqueue_stats->total_updates;
   dprintf(fd,
           "  Frames per packet (total/max/ave)                       : %zu / "
           "%zu / %zu\n",
-          stats->tx_queue_total_frames, stats->tx_queue_max_frames_per_packet,
-          ave_size);
+          accumulated_stats->tx_queue_total_frames,
+          accumulated_stats->tx_queue_max_frames_per_packet, ave_size);
 
   dprintf(fd,
           "  Counts (flushed/dropped/dropouts)                       : %zu / "
           "%zu / %zu\n",
-          stats->tx_queue_total_flushed_messages,
-          stats->tx_queue_total_dropped_messages, stats->tx_queue_dropouts);
+          accumulated_stats->tx_queue_total_flushed_messages,
+          accumulated_stats->tx_queue_total_dropped_messages,
+          accumulated_stats->tx_queue_dropouts);
 
   dprintf(fd,
           "  Counts (max dropped)                                    : %zu\n",
-          stats->tx_queue_max_dropped_messages);
+          accumulated_stats->tx_queue_max_dropped_messages);
 
   dprintf(
       fd,
       "  Last update time ago in ms (flushed/dropped)            : %llu / "
       "%llu\n",
-      (stats->tx_queue_last_flushed_us > 0)
-          ? (unsigned long long)(now_us - stats->tx_queue_last_flushed_us) /
+      (accumulated_stats->tx_queue_last_flushed_us > 0)
+          ? (unsigned long long)(now_us -
+                                 accumulated_stats->tx_queue_last_flushed_us) /
                 1000
           : 0,
-      (stats->tx_queue_last_dropouts_us > 0)
-          ? (unsigned long long)(now_us - stats->tx_queue_last_dropouts_us) /
+      (accumulated_stats->tx_queue_last_dropouts_us > 0)
+          ? (unsigned long long)(now_us -
+                                 accumulated_stats->tx_queue_last_dropouts_us) /
                 1000
           : 0);
 
   dprintf(fd,
           "  Counts (underflow)                                      : %zu\n",
-          stats->media_read_total_underflow_count);
+          accumulated_stats->media_read_total_underflow_count);
 
   dprintf(fd,
           "  Bytes (underflow)                                       : %zu\n",
-          stats->media_read_total_underflow_bytes);
+          accumulated_stats->media_read_total_underflow_bytes);
 
-  dprintf(
-      fd, "  Last update time ago in ms (underflow)                  : %llu\n",
-      (stats->media_read_last_underflow_us > 0)
-          ? (unsigned long long)(now_us - stats->media_read_last_underflow_us) /
-                1000
-          : 0);
+  dprintf(fd,
+          "  Last update time ago in ms (underflow)                  : %llu\n",
+          (accumulated_stats->media_read_last_underflow_us > 0)
+              ? (unsigned long long)(now_us -
+                                     accumulated_stats
+                                         ->media_read_last_underflow_us) /
+                    1000
+              : 0);
 
   //
   // TxQueue enqueue stats
@@ -939,54 +1017,40 @@ void btif_a2dp_source_debug_dump(int fd) {
 }
 
 void btif_a2dp_source_update_metrics(void) {
-  uint64_t now_us = time_get_os_boottime_us();
   btif_media_stats_t* stats = &btif_a2dp_source_cb.stats;
   scheduling_stats_t* dequeue_stats = &stats->tx_queue_dequeue_stats;
-  int32_t media_timer_min_ms = 0;
-  int32_t media_timer_max_ms = 0;
-  int32_t media_timer_avg_ms = 0;
-  int32_t buffer_overruns_max_count = 0;
-  int32_t buffer_overruns_total = 0;
-  float buffer_underruns_average = 0.0;
-  int32_t buffer_underruns_count = 0;
-
-  int64_t session_duration_sec =
-      (now_us - stats->session_start_us) / (1000 * 1000);
-
-  /* NOTE: Disconnect reason is unused */
-  const char* disconnect_reason = NULL;
-  uint32_t device_class = BTM_COD_MAJOR_AUDIO;
+  A2dpSessionMetrics metrics;
+  int64_t session_end_us = stats->session_end_us == 0
+                               ? time_get_os_boottime_us()
+                               : stats->session_end_us;
+  metrics.audio_duration_ms = (session_end_us - stats->session_start_us) / 1000;
 
   if (dequeue_stats->total_updates > 1) {
-    media_timer_min_ms =
+    metrics.media_timer_min_ms =
         btif_a2dp_source_cb.encoder_interval_ms -
         (dequeue_stats->max_premature_scheduling_delta_us / 1000);
-    media_timer_max_ms =
+    metrics.media_timer_max_ms =
         btif_a2dp_source_cb.encoder_interval_ms +
         (dequeue_stats->max_overdue_scheduling_delta_us / 1000);
 
-    uint64_t total_scheduling_count =
-        dequeue_stats->overdue_scheduling_count +
-        dequeue_stats->premature_scheduling_count +
-        dequeue_stats->exact_scheduling_count;
-    if (total_scheduling_count > 0) {
-      media_timer_avg_ms = dequeue_stats->total_scheduling_time_us /
-                           (1000 * total_scheduling_count);
+    metrics.total_scheduling_count = dequeue_stats->overdue_scheduling_count +
+                                     dequeue_stats->premature_scheduling_count +
+                                     dequeue_stats->exact_scheduling_count;
+    if (metrics.total_scheduling_count > 0) {
+      metrics.media_timer_avg_ms = dequeue_stats->total_scheduling_time_us /
+                                   (1000 * metrics.total_scheduling_count);
     }
 
-    buffer_overruns_max_count = stats->tx_queue_max_dropped_messages;
-    buffer_overruns_total = stats->tx_queue_total_dropped_messages;
-    buffer_underruns_count = stats->media_read_total_underflow_count;
-    if (buffer_underruns_count > 0) {
-      buffer_underruns_average =
-          stats->media_read_total_underflow_bytes / buffer_underruns_count;
+    metrics.buffer_overruns_max_count = stats->tx_queue_max_dropped_messages;
+    metrics.buffer_overruns_total = stats->tx_queue_total_dropped_messages;
+    metrics.buffer_underruns_count = stats->media_read_total_underflow_count;
+    if (metrics.buffer_underruns_count > 0) {
+      metrics.buffer_underruns_average =
+          stats->media_read_total_underflow_bytes /
+          metrics.buffer_underruns_count;
     }
   }
-
-  metrics_a2dp_session(
-      session_duration_sec, disconnect_reason, device_class, media_timer_min_ms,
-      media_timer_max_ms, media_timer_avg_ms, buffer_overruns_max_count,
-      buffer_overruns_total, buffer_underruns_average, buffer_underruns_count);
+  BluetoothMetricsLogger::GetInstance()->LogA2dpSession(metrics);
 }
 
 static void btm_read_rssi_cb(void* data) {

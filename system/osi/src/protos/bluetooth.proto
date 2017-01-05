@@ -74,7 +74,7 @@ message BluetoothSession {
   // The information about the RFComm session.
   optional RFCommSession rfcomm_session = 6;
 
-  // The information about the A2DP session.
+  // The information about the A2DP audio session.
   optional A2DPSession a2dp_session = 7;
 }
 
@@ -86,7 +86,7 @@ message RFCommSession {
   optional int32 tx_bytes = 2;
 }
 
-// Session information that gets logged for every A2DP session.
+// Session information that gets logged for A2DP session.
 message A2DPSession {
   // Media timer in milliseconds.
   optional int32 media_timer_min_millis = 1;
@@ -108,6 +108,9 @@ message A2DPSession {
 
   // Buffer underruns count.
   optional int32 buffer_underruns_count = 7;
+
+  // Total audio time in this A2DP session
+  optional int64 audio_duration_millis = 8;
 }
 
 message PairEvent {
