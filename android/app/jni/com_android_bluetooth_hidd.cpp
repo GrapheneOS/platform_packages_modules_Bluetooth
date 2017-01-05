@@ -347,8 +347,6 @@ static jboolean unregisterAppNative(JNIEnv* env, jobject thiz) {
 
 static jboolean sendReportNative(JNIEnv* env, jobject thiz, jint id,
                                  jbyteArray data) {
-  ALOGV("%s enter", __FUNCTION__);
-
   jboolean result = JNI_FALSE;
   jsize size;
   uint8_t* buf;
@@ -362,16 +360,12 @@ static jboolean sendReportNative(JNIEnv* env, jobject thiz, jint id,
     bt_status_t ret =
         sHiddIf->send_report(BTHD_REPORT_TYPE_INTRDATA, id, size, buf);
 
-    ALOGV("%s: send_report() returned %d", __FUNCTION__, ret);
-
     if (ret == BT_STATUS_SUCCESS) {
       result = JNI_TRUE;
     }
 
     free(buf);
   }
-
-  ALOGV("%s done (%d)", __FUNCTION__, result);
 
   return result;
 }
