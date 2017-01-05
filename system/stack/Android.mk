@@ -43,6 +43,8 @@ LOCAL_SRC_FILES := \
     ./a2dp/a2dp_vendor_aptx_hd.cc \
     ./a2dp/a2dp_vendor_aptx_encoder.cc \
     ./a2dp/a2dp_vendor_aptx_hd_encoder.cc \
+    ./a2dp/a2dp_vendor_ldac.cc \
+    ./a2dp/a2dp_vendor_ldac_encoder.cc \
     ./avct/avct_api.cc \
     ./avct/avct_bcb_act.cc \
     ./avct/avct_ccb.cc \
