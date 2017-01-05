@@ -44,14 +44,16 @@ import com.android.bluetooth.btservice.BluetoothProto;
         boolean opportunistic;
         boolean timeout;
         boolean background;
+        boolean filtered;
         int results;
 
-        public LastScan(long timestamp, long duration,
-                        boolean opportunistic, boolean background) {
+        public LastScan(long timestamp, long duration, boolean opportunistic, boolean background,
+                boolean filtered) {
             this.duration = duration;
             this.timestamp = timestamp;
             this.opportunistic = opportunistic;
             this.background = background;
+            this.filtered = filtered;
             this.results = 0;
         }
     }
@@ -90,7 +92,7 @@ import com.android.bluetooth.btservice.BluetoothProto;
         results++;
     }
 
-    synchronized void recordScanStart(ScanSettings settings) {
+    synchronized void recordScanStart(ScanSettings settings, boolean filtered) {
         if (isScanning)
             return;
 
@@ -98,7 +100,7 @@ import com.android.bluetooth.btservice.BluetoothProto;
         isScanning = true;
         startTime = System.currentTimeMillis();
 
-        LastScan scan = new LastScan(startTime, 0, false, false);
+        LastScan scan = new LastScan(startTime, 0, false, false, filtered);
         if (settings != null) {
           scan.opportunistic = settings.getScanMode() == ScanSettings.SCAN_MODE_OPPORTUNISTIC;
           scan.background = (settings.getCallbackType() & ScanSettings.CALLBACK_TYPE_FIRST_MATCH) != 0;
@@ -209,6 +211,7 @@ import com.android.bluetooth.btservice.BluetoothProto;
             if (lastScan.opportunistic) sb.append(" (Opportunistic)");
             if (lastScan.background) sb.append(" (Background)");
             if (lastScan.timeout) sb.append(" (Forced-Opportunistic)");
+            if (lastScan.filtered) sb.append(" (Filtered)");
         }
         sb.append("\n");
 
@@ -237,6 +240,7 @@ import com.android.bluetooth.btservice.BluetoothProto;
                 if (scan.opportunistic) sb.append("Opp ");
                 if (scan.background) sb.append("Back ");
                 if (scan.timeout) sb.append("Forced ");
+                if (scan.filtered) sb.append("Filter ");
                 sb.append(scan.results + " results");
                 sb.append("\n");
             }
