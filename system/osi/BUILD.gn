@@ -90,6 +90,7 @@ executable("net_test_osi") {
   deps = [
     "//osi",
     "//third_party/googletest:gtest_main",
+    "//third_party/googletest:gmock_main",
     "//third_party/libchrome:base",
   ]
 

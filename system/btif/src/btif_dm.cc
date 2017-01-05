@@ -3301,26 +3301,27 @@ static void btif_stats_add_bond_event(const bt_bdaddr_t* bd_addr,
   int type;
   btif_get_device_type(bd_addr->address, &type);
 
-  device_type_t device_type;
+  system_bt_osi::device_type_t device_type;
   switch (type) {
     case BT_DEVICE_TYPE_BREDR:
-      device_type = DEVICE_TYPE_BREDR;
+      device_type = system_bt_osi::DEVICE_TYPE_BREDR;
       break;
     case BT_DEVICE_TYPE_BLE:
-      device_type = DEVICE_TYPE_LE;
+      device_type = system_bt_osi::DEVICE_TYPE_LE;
       break;
     case BT_DEVICE_TYPE_DUMO:
-      device_type = DEVICE_TYPE_DUMO;
+      device_type = system_bt_osi::DEVICE_TYPE_DUMO;
       break;
     default:
-      device_type = DEVICE_TYPE_UNKNOWN;
+      device_type = system_bt_osi::DEVICE_TYPE_UNKNOWN;
       break;
   }
 
   uint32_t cod = get_cod(bd_addr);
   uint64_t ts =
       event->timestamp.tv_sec * 1000 + event->timestamp.tv_nsec / 1000000;
-  metrics_pair_event(0, ts, cod, device_type);
+  system_bt_osi::BluetoothMetricsLogger::GetInstance()->LogPairEvent(
+      0, ts, cod, device_type);
 }
 
 void btif_debug_bond_event_dump(int fd) {

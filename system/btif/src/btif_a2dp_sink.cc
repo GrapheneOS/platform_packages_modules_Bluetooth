@@ -552,10 +552,6 @@ void btif_a2dp_sink_debug_dump(UNUSED_ATTR int fd) {
   // Nothing to do
 }
 
-void btif_a2dp_sink_update_metrics(void) {
-  // Nothing to do
-}
-
 void btif_a2dp_sink_set_focus_state_req(btif_a2dp_sink_focus_state_t state) {
   tBTIF_MEDIA_SINK_FOCUS_UPDATE* p_buf =
       reinterpret_cast<tBTIF_MEDIA_SINK_FOCUS_UPDATE*>(
