@@ -55,7 +55,7 @@ function process_file
     after=${tt#*:}
 
     echo -n "."
-    sed -i -e "s/\b${before}/${after}/g" "$1"
+    sed -i -e "s/\b${before}/${after}/g; s/${after}_/${before}_/g;" "$1"
   done
   echo
 }
