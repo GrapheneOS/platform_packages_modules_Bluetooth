@@ -121,8 +121,3 @@ void btif_debug_a2dp_dump(int fd) {
   btif_a2dp_source_debug_dump(fd);
   btif_a2dp_sink_debug_dump(fd);
 }
-
-void btif_update_a2dp_metrics(void) {
-  btif_a2dp_source_update_metrics();
-  btif_a2dp_sink_update_metrics();
-}
