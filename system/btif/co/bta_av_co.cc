@@ -906,6 +906,8 @@ static tBTA_AV_CO_SINK* bta_av_co_audio_codec_selected(
 
   bta_av_co_save_new_codec_config(p_peer, new_codec_config, p_sink->num_protect,
                                   p_sink->protect_info);
+  btif_dispatch_sm_event(BTIF_AV_SOURCE_CONFIG_UPDATED_EVT, NULL, 0);
+
   return p_sink;
 }
 

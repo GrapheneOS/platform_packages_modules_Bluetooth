@@ -32,7 +32,6 @@
 #include <string.h>
 
 #include <base/logging.h>
-#include "a2dp_int.h"
 #include "a2dp_sbc_encoder.h"
 #include "bt_utils.h"
 #include "embdrv/sbc/encoder/include/sbc_encoder.h"
@@ -107,8 +106,6 @@ static void A2DP_ParseMplHeaderSbc(uint8_t* p_src, bool* p_frag, bool* p_start,
 static tA2DP_STATUS A2DP_BuildInfoSbc(uint8_t media_type,
                                       const tA2DP_SBC_CIE* p_ie,
                                       uint8_t* p_result) {
-  tA2DP_STATUS status;
-
   if (p_ie == NULL || p_result == NULL ||
       (p_ie->samp_freq & ~A2DP_SBC_IE_SAMP_FREQ_MSK) ||
       (p_ie->ch_mode & ~A2DP_SBC_IE_CH_MD_MSK) ||
@@ -121,22 +118,22 @@ static tA2DP_STATUS A2DP_BuildInfoSbc(uint8_t media_type,
       (p_ie->max_bitpool < A2DP_SBC_IE_MIN_BITPOOL) ||
       (p_ie->max_bitpool > A2DP_SBC_IE_MAX_BITPOOL)) {
     /* if any unused bit is set */
-    status = A2DP_INVALID_PARAMS;
-  } else {
-    status = A2DP_SUCCESS;
-    *p_result++ = A2DP_SBC_INFO_LEN;
-    *p_result++ = (media_type << 4);
-    *p_result++ = A2DP_MEDIA_CT_SBC;
-
-    /* Media Codec Specific Information Element */
-    *p_result++ = p_ie->samp_freq | p_ie->ch_mode;
-
-    *p_result++ = p_ie->block_len | p_ie->num_subbands | p_ie->alloc_method;
-
-    *p_result++ = p_ie->min_bitpool;
-    *p_result = p_ie->max_bitpool;
+    return A2DP_INVALID_PARAMS;
   }
-  return status;
+
+  *p_result++ = A2DP_SBC_INFO_LEN;
+  *p_result++ = (media_type << 4);
+  *p_result++ = A2DP_MEDIA_CT_SBC;
+
+  /* Media Codec Specific Information Element */
+  *p_result++ = p_ie->samp_freq | p_ie->ch_mode;
+
+  *p_result++ = p_ie->block_len | p_ie->num_subbands | p_ie->alloc_method;
+
+  *p_result++ = p_ie->min_bitpool;
+  *p_result = p_ie->max_bitpool;
+
+  return A2DP_SUCCESS;
 }
 
 // Parses the SBC Media Codec Capabilities byte sequence beginning from the
@@ -148,7 +145,6 @@ static tA2DP_STATUS A2DP_BuildInfoSbc(uint8_t media_type,
 static tA2DP_STATUS A2DP_ParseInfoSbc(tA2DP_SBC_CIE* p_ie,
                                       const uint8_t* p_codec_info,
                                       bool is_capability) {
-  tA2DP_STATUS status = A2DP_SUCCESS;
   uint8_t losc;
   uint8_t media_type;
   tA2DP_CODEC_TYPE codec_type;
@@ -174,32 +170,31 @@ static tA2DP_STATUS A2DP_ParseInfoSbc(tA2DP_SBC_CIE* p_ie,
   p_ie->alloc_method = *p_codec_info & A2DP_SBC_IE_ALLOC_MD_MSK;
   p_codec_info++;
   p_ie->min_bitpool = *p_codec_info++;
-  p_ie->max_bitpool = *p_codec_info;
+  p_ie->max_bitpool = *p_codec_info++;
   if (p_ie->min_bitpool < A2DP_SBC_IE_MIN_BITPOOL ||
       p_ie->min_bitpool > A2DP_SBC_IE_MAX_BITPOOL) {
-    status = A2DP_BAD_MIN_BITPOOL;
+    return A2DP_BAD_MIN_BITPOOL;
   }
 
   if (p_ie->max_bitpool < A2DP_SBC_IE_MIN_BITPOOL ||
       p_ie->max_bitpool > A2DP_SBC_IE_MAX_BITPOOL ||
       p_ie->max_bitpool < p_ie->min_bitpool) {
-    status = A2DP_BAD_MAX_BITPOOL;
+    return A2DP_BAD_MAX_BITPOOL;
   }
 
-  if (is_capability) return status;
+  if (is_capability) return A2DP_SUCCESS;
 
   if (A2DP_BitsSet(p_ie->samp_freq) != A2DP_SET_ONE_BIT)
-    status = A2DP_BAD_SAMP_FREQ;
-  if (A2DP_BitsSet(p_ie->ch_mode) != A2DP_SET_ONE_BIT)
-    status = A2DP_BAD_CH_MODE;
+    return A2DP_BAD_SAMP_FREQ;
+  if (A2DP_BitsSet(p_ie->ch_mode) != A2DP_SET_ONE_BIT) return A2DP_BAD_CH_MODE;
   if (A2DP_BitsSet(p_ie->block_len) != A2DP_SET_ONE_BIT)
-    status = A2DP_BAD_BLOCK_LEN;
+    return A2DP_BAD_BLOCK_LEN;
   if (A2DP_BitsSet(p_ie->num_subbands) != A2DP_SET_ONE_BIT)
-    status = A2DP_BAD_SUBBANDS;
+    return A2DP_BAD_SUBBANDS;
   if (A2DP_BitsSet(p_ie->alloc_method) != A2DP_SET_ONE_BIT)
-    status = A2DP_BAD_ALLOC_METHOD;
+    return A2DP_BAD_ALLOC_METHOD;
 
-  return status;
+  return A2DP_SUCCESS;
 }
 
 // Build the SBC Media Payload Header.
@@ -330,19 +325,19 @@ static tA2DP_STATUS A2DP_CodecInfoMatchesCapabilitySbc(
 
   /* verify that each parameter is in range */
 
-  LOG_DEBUG(LOG_TAG, "FREQ peer: 0x%x, capability 0x%x", cfg_cie.samp_freq,
-            p_cap->samp_freq);
-  LOG_DEBUG(LOG_TAG, "CH_MODE peer: 0x%x, capability 0x%x", cfg_cie.ch_mode,
-            p_cap->ch_mode);
-  LOG_DEBUG(LOG_TAG, "BLOCK_LEN peer: 0x%x, capability 0x%x", cfg_cie.block_len,
-            p_cap->block_len);
-  LOG_DEBUG(LOG_TAG, "SUB_BAND peer: 0x%x, capability 0x%x",
+  LOG_DEBUG(LOG_TAG, "%s: FREQ peer: 0x%x, capability 0x%x", __func__,
+            cfg_cie.samp_freq, p_cap->samp_freq);
+  LOG_DEBUG(LOG_TAG, "%s: CH_MODE peer: 0x%x, capability 0x%x", __func__,
+            cfg_cie.ch_mode, p_cap->ch_mode);
+  LOG_DEBUG(LOG_TAG, "%s: BLOCK_LEN peer: 0x%x, capability 0x%x", __func__,
+            cfg_cie.block_len, p_cap->block_len);
+  LOG_DEBUG(LOG_TAG, "%s: SUB_BAND peer: 0x%x, capability 0x%x", __func__,
             cfg_cie.num_subbands, p_cap->num_subbands);
-  LOG_DEBUG(LOG_TAG, "ALLOC_METHOD peer: 0x%x, capability 0x%x",
+  LOG_DEBUG(LOG_TAG, "%s: ALLOC_METHOD peer: 0x%x, capability 0x%x", __func__,
             cfg_cie.alloc_method, p_cap->alloc_method);
-  LOG_DEBUG(LOG_TAG, "MIN_BitPool peer: 0x%x, capability 0x%x",
+  LOG_DEBUG(LOG_TAG, "%s: MIN_BitPool peer: 0x%x, capability 0x%x", __func__,
             cfg_cie.min_bitpool, p_cap->min_bitpool);
-  LOG_DEBUG(LOG_TAG, "MAX_BitPool peer: 0x%x, capability 0x%x",
+  LOG_DEBUG(LOG_TAG, "%s: MAX_BitPool peer: 0x%x, capability 0x%x", __func__,
             cfg_cie.max_bitpool, p_cap->max_bitpool);
 
   /* sampling frequency */
@@ -965,8 +960,8 @@ bool A2DP_AdjustCodecSbc(uint8_t* p_codec_info) {
 
   // Updated the max bitpool
   if (cfg_cie.max_bitpool > A2DP_SBC_MAX_BITPOOL) {
-    LOG_WARN(LOG_TAG, "Updated the SBC codec max bitpool from %d to %d",
-             cfg_cie.max_bitpool, A2DP_SBC_MAX_BITPOOL);
+    LOG_WARN(LOG_TAG, "%s: Updated the SBC codec max bitpool from %d to %d",
+             __func__, cfg_cie.max_bitpool, A2DP_SBC_MAX_BITPOOL);
     cfg_cie.max_bitpool = A2DP_SBC_MAX_BITPOOL;
   }
 
