@@ -36,7 +36,7 @@
 //
 // The aptX-HD encoder shared library, and the functions to use
 //
-static const char* APTX_HD_ENCODER_LIB_NAME = "libaptXHD.so";
+static const char* APTX_HD_ENCODER_LIB_NAME = "libaptXHD_encoder.so";
 static void* aptx_hd_encoder_lib_handle = NULL;
 
 static const char* APTX_HD_ENCODER_INIT_NAME = "aptxhdbtenc_init";

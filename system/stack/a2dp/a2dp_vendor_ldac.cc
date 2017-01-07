@@ -37,7 +37,7 @@
 #include "osi/include/osi.h"
 
 // data type for the LDAC Codec Information Element */
-// NOTE: bits_per_sample is only needs for LDAC encoder initialization.
+// NOTE: bits_per_sample is needed only for LDAC encoder initialization.
 typedef struct {
   uint32_t vendorId;
   uint16_t codecId;    /* Codec ID for LDAC */
@@ -87,34 +87,32 @@ UNUSED_ATTR static tA2DP_STATUS A2DP_CodecInfoMatchesCapabilityLdac(
 static tA2DP_STATUS A2DP_BuildInfoLdac(uint8_t media_type,
                                        const tA2DP_LDAC_CIE* p_ie,
                                        uint8_t* p_result) {
-  tA2DP_STATUS status;
-
   if (p_ie == NULL || p_result == NULL) {
-    status = A2DP_INVALID_PARAMS;
-  } else {
-    status = A2DP_SUCCESS;
-    *p_result++ = A2DP_LDAC_CODEC_LEN;
-    *p_result++ = media_type;
-    *p_result++ = A2DP_MEDIA_CT_NON_A2DP;
-
-    // Vendor ID and Codec ID
-    *p_result++ = (uint8_t)(p_ie->vendorId & 0x000000FF);
-    *p_result++ = (uint8_t)((p_ie->vendorId & 0x0000FF00) >> 8);
-    *p_result++ = (uint8_t)((p_ie->vendorId & 0x00FF0000) >> 16);
-    *p_result++ = (uint8_t)((p_ie->vendorId & 0xFF000000) >> 24);
-    *p_result++ = (uint8_t)(p_ie->codecId & 0x00FF);
-    *p_result++ = (uint8_t)((p_ie->codecId & 0xFF00) >> 8);
-
-    // Sampling Frequency
-    *p_result = (uint8_t)(p_ie->sampleRate & A2DP_LDAC_SAMPLING_FREQ_MASK);
-    if (*p_result == 0) return A2DP_INVALID_PARAMS;
-    p_result++;
-
-    // Channel Mode
-    *p_result = (uint8_t)(p_ie->channelMode & A2DP_LDAC_CHANNEL_MODE_MASK);
-    if (*p_result == 0) return A2DP_INVALID_PARAMS;
+    return A2DP_INVALID_PARAMS;
   }
-  return status;
+
+  *p_result++ = A2DP_LDAC_CODEC_LEN;
+  *p_result++ = (media_type << 4);
+  *p_result++ = A2DP_MEDIA_CT_NON_A2DP;
+
+  // Vendor ID and Codec ID
+  *p_result++ = (uint8_t)(p_ie->vendorId & 0x000000FF);
+  *p_result++ = (uint8_t)((p_ie->vendorId & 0x0000FF00) >> 8);
+  *p_result++ = (uint8_t)((p_ie->vendorId & 0x00FF0000) >> 16);
+  *p_result++ = (uint8_t)((p_ie->vendorId & 0xFF000000) >> 24);
+  *p_result++ = (uint8_t)(p_ie->codecId & 0x00FF);
+  *p_result++ = (uint8_t)((p_ie->codecId & 0xFF00) >> 8);
+
+  // Sampling Frequency
+  *p_result = (uint8_t)(p_ie->sampleRate & A2DP_LDAC_SAMPLING_FREQ_MASK);
+  if (*p_result == 0) return A2DP_INVALID_PARAMS;
+  p_result++;
+
+  // Channel Mode
+  *p_result = (uint8_t)(p_ie->channelMode & A2DP_LDAC_CHANNEL_MODE_MASK);
+  if (*p_result == 0) return A2DP_INVALID_PARAMS;
+
+  return A2DP_SUCCESS;
 }
 
 // Parses the LDAC Media Codec Capabilities byte sequence beginning from the
@@ -126,7 +124,6 @@ static tA2DP_STATUS A2DP_BuildInfoLdac(uint8_t media_type,
 static tA2DP_STATUS A2DP_ParseInfoLdac(tA2DP_LDAC_CIE* p_ie,
                                        const uint8_t* p_codec_info,
                                        bool is_capability) {
-  tA2DP_STATUS status = A2DP_SUCCESS;
   uint8_t losc;
   uint8_t media_type;
   tA2DP_CODEC_TYPE codec_type;
@@ -150,10 +147,10 @@ static tA2DP_STATUS A2DP_ParseInfoLdac(tA2DP_LDAC_CIE* p_ie,
                    (*(p_codec_info + 1) << 8 & 0x0000FF00) |
                    (*(p_codec_info + 2) << 16 & 0x00FF0000) |
                    (*(p_codec_info + 3) << 24 & 0xFF000000);
-  p_codec_info = p_codec_info + 4;
+  p_codec_info += 4;
   p_ie->codecId =
       (*p_codec_info & 0x00FF) | (*(p_codec_info + 1) << 8 & 0xFF00);
-  p_codec_info = p_codec_info + 2;
+  p_codec_info += 2;
   if (p_ie->vendorId != A2DP_LDAC_VENDOR_ID ||
       p_ie->codecId != A2DP_LDAC_CODEC_ID) {
     return A2DP_WRONG_CODEC;
@@ -162,16 +159,14 @@ static tA2DP_STATUS A2DP_ParseInfoLdac(tA2DP_LDAC_CIE* p_ie,
   p_ie->sampleRate = *p_codec_info++ & A2DP_LDAC_SAMPLING_FREQ_MASK;
   p_ie->channelMode = *p_codec_info++ & A2DP_LDAC_CHANNEL_MODE_MASK;
 
-  status = A2DP_SUCCESS;
-
-  if (is_capability) return status;
+  if (is_capability) return A2DP_SUCCESS;
 
   if (A2DP_BitsSet(p_ie->sampleRate) != A2DP_SET_ONE_BIT)
-    status = A2DP_BAD_SAMP_FREQ;
+    return A2DP_BAD_SAMP_FREQ;
   if (A2DP_BitsSet(p_ie->channelMode) != A2DP_SET_ONE_BIT)
-    status = A2DP_BAD_CH_MODE;
+    return A2DP_BAD_CH_MODE;
 
-  return status;
+  return A2DP_SUCCESS;
 }
 
 // Build the LDAC Media Payload Header.
@@ -233,10 +228,10 @@ static tA2DP_STATUS A2DP_CodecInfoMatchesCapabilityLdac(
 
   /* verify that each parameter is in range */
 
-  LOG_DEBUG(LOG_TAG, "FREQ peer: 0x%x, capability 0x%x", cfg_cie.sampleRate,
-            p_cap->sampleRate);
-  LOG_DEBUG(LOG_TAG, "CH_MODE peer: 0x%x, capability 0x%x", cfg_cie.channelMode,
-            p_cap->channelMode);
+  LOG_DEBUG(LOG_TAG, "%s: FREQ peer: 0x%x, capability 0x%x", __func__,
+            cfg_cie.sampleRate, p_cap->sampleRate);
+  LOG_DEBUG(LOG_TAG, "%s: CH_MODE peer: 0x%x, capability 0x%x", __func__,
+            cfg_cie.channelMode, p_cap->channelMode);
 
   /* sampling frequency */
   if ((cfg_cie.sampleRate & p_cap->sampleRate) == 0) return A2DP_NS_SAMP_FREQ;
@@ -403,7 +398,7 @@ int A2DP_VendorGetChannelModeCodeLdac(const uint8_t* p_codec_info) {
   return -1;
 }
 
-bool A2DP_VendorGetPacketTimestampLdac(const uint8_t* p_codec_info,
+bool A2DP_VendorGetPacketTimestampLdac(UNUSED_ATTR const uint8_t* p_codec_info,
                                        const uint8_t* p_data,
                                        uint32_t* p_timestamp) {
   // TODO: Is this function really codec-specific?
@@ -438,33 +433,33 @@ void A2DP_VendorDumpCodecInfoLdac(const uint8_t* p_codec_info) {
   }
 
   LOG_DEBUG(LOG_TAG, "\tsamp_freq: 0x%x", ldac_cie.sampleRate);
-  if (ldac_cie.sampleRate == A2DP_LDAC_SAMPLING_FREQ_44100) {
+  if (ldac_cie.sampleRate & A2DP_LDAC_SAMPLING_FREQ_44100) {
     LOG_DEBUG(LOG_TAG, "\tsamp_freq: (44100)");
   }
-  if (ldac_cie.sampleRate == A2DP_LDAC_SAMPLING_FREQ_48000) {
+  if (ldac_cie.sampleRate & A2DP_LDAC_SAMPLING_FREQ_48000) {
     LOG_DEBUG(LOG_TAG, "\tsamp_freq: (48000)");
   }
-  if (ldac_cie.sampleRate == A2DP_LDAC_SAMPLING_FREQ_88200) {
+  if (ldac_cie.sampleRate & A2DP_LDAC_SAMPLING_FREQ_88200) {
     LOG_DEBUG(LOG_TAG, "\tsamp_freq: (88200)");
   }
-  if (ldac_cie.sampleRate == A2DP_LDAC_SAMPLING_FREQ_96000) {
+  if (ldac_cie.sampleRate & A2DP_LDAC_SAMPLING_FREQ_96000) {
     LOG_DEBUG(LOG_TAG, "\tsamp_freq: (96000)");
   }
-  if (ldac_cie.sampleRate == A2DP_LDAC_SAMPLING_FREQ_176400) {
+  if (ldac_cie.sampleRate & A2DP_LDAC_SAMPLING_FREQ_176400) {
     LOG_DEBUG(LOG_TAG, "\tsamp_freq: (176400)");
   }
-  if (ldac_cie.sampleRate == A2DP_LDAC_SAMPLING_FREQ_192000) {
+  if (ldac_cie.sampleRate & A2DP_LDAC_SAMPLING_FREQ_192000) {
     LOG_DEBUG(LOG_TAG, "\tsamp_freq: (192000)");
   }
 
   LOG_DEBUG(LOG_TAG, "\tch_mode: 0x%x", ldac_cie.channelMode);
-  if (ldac_cie.channelMode == A2DP_LDAC_CHANNEL_MODE_MONO) {
+  if (ldac_cie.channelMode & A2DP_LDAC_CHANNEL_MODE_MONO) {
     LOG_DEBUG(LOG_TAG, "\tch_mode: (Mono)");
   }
-  if (ldac_cie.channelMode == A2DP_LDAC_CHANNEL_MODE_DUAL) {
+  if (ldac_cie.channelMode & A2DP_LDAC_CHANNEL_MODE_DUAL) {
     LOG_DEBUG(LOG_TAG, "\tch_mode: (Dual)");
   }
-  if (ldac_cie.channelMode == A2DP_LDAC_CHANNEL_MODE_STEREO) {
+  if (ldac_cie.channelMode & A2DP_LDAC_CHANNEL_MODE_STEREO) {
     LOG_DEBUG(LOG_TAG, "\tch_mode: (Stereo)");
   }
 }
