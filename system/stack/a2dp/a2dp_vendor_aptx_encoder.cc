@@ -36,7 +36,7 @@
 //
 // The aptX encoder shared library, and the functions to use
 //
-static const char* APTX_ENCODER_LIB_NAME = "libaptX.so";
+static const char* APTX_ENCODER_LIB_NAME = "libaptX_encoder.so";
 static void* aptx_encoder_lib_handle = NULL;
 
 static const char* APTX_ENCODER_INIT_NAME = "aptxbtenc_init";
