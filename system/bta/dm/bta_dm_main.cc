@@ -83,7 +83,6 @@ const tBTA_DM_ACTION bta_dm_action[] = {
     bta_dm_ble_config_local_privacy, /* BTA_DM_API_LOCAL_PRIVACY_EVT */
 #endif
     bta_dm_ble_set_data_length, /* BTA_DM_API_SET_DATA_LENGTH_EVT */
-    bta_dm_ble_track_advertiser,   /* BTA_DM_API_BLE_TRACK_ADVERTISER_EVT */
     bta_dm_ble_get_energy_info,    /* BTA_DM_API_BLE_ENERGY_INFO_EVT */
 
     bta_dm_enable_test_mode,  /*  BTA_DM_API_ENABLE_TEST_MODE_EVT     */

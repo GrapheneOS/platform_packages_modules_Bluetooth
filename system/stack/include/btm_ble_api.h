@@ -32,8 +32,6 @@
 #include "btm_ble_api_types.h"
 #include "osi/include/alarm.h"
 
-tBTM_BLE_SCAN_SETUP_CBACK bta_ble_scan_setup_cb;
-
 /*****************************************************************************
  *  EXTERNAL FUNCTION DECLARATIONS
  ****************************************************************************/
@@ -147,83 +145,36 @@ extern void BTM_BleGetVendorCapabilities(tBTM_BLE_VSC_CB* p_cmn_vsc_cb);
                     uint8_t batch_scan_trunc_max - Batch scan truncated value
  maximum
                     uint8_t batch_scan_notify_threshold - Threshold value
-                    tBTM_BLE_SCAN_SETUP_CBACK *p_setup_cback - Setup callback
+                    cb - Setup callback
                     tBTM_BLE_SCAN_THRESHOLD_CBACK *p_thres_cback -Threshold
  callback
                     void *p_ref - Reference value
  *
- * Returns          tBTM_STATUS
  *
  ******************************************************************************/
-extern tBTM_STATUS BTM_BleSetStorageConfig(
+extern void BTM_BleSetStorageConfig(
     uint8_t batch_scan_full_max, uint8_t batch_scan_trunc_max,
     uint8_t batch_scan_notify_threshold,
-    tBTM_BLE_SCAN_SETUP_CBACK* p_setup_cback,
-    tBTM_BLE_SCAN_THRESHOLD_CBACK* p_thres_cback,
-    tBTM_BLE_SCAN_REP_CBACK* p_cback, tBTM_BLE_REF_VALUE ref_value);
+    base::Callback<void(uint8_t /* status */)> cb,
+    tBTM_BLE_SCAN_THRESHOLD_CBACK* p_thres_cback, tBTM_BLE_REF_VALUE ref_value);
 
-/*******************************************************************************
- *
- * Function         BTM_BleEnableBatchScan
- *
- * Description      This function is called to enable batch scan
- *
- * Parameters       tBTM_BLE_BATCH_SCAN_MODE scan_mode - Batch scan mode
-                    uint32_t scan_interval -Scan interval
-                    uint32_t scan_window - Scan window value
-                    tBLE_ADDR_TYPE addr_type - Address type
-                    tBTM_BLE_DISCARD_RULE discard_rule - Data discard rules
- *
- * Returns          tBTM_STATUS
- *
- ******************************************************************************/
-extern tBTM_STATUS BTM_BleEnableBatchScan(tBTM_BLE_BATCH_SCAN_MODE scan_mode,
-                                          uint32_t scan_interval,
-                                          uint32_t scan_window,
-                                          tBTM_BLE_DISCARD_RULE discard_rule,
-                                          tBLE_ADDR_TYPE addr_type,
-                                          tBTM_BLE_REF_VALUE ref_value);
+/* This function is called to enable batch scan */
+extern void BTM_BleEnableBatchScan(
+    tBTM_BLE_BATCH_SCAN_MODE scan_mode, uint32_t scan_interval,
+    uint32_t scan_window, tBTM_BLE_DISCARD_RULE discard_rule,
+    tBLE_ADDR_TYPE addr_type, base::Callback<void(uint8_t /* status */)> cb);
 
-/*******************************************************************************
- *
- * Function         BTM_BleDisableBatchScan
- *
- * Description      This function is called to disable batch scanning
- *
- * Parameters       void
- *
- ******************************************************************************/
-extern tBTM_STATUS BTM_BleDisableBatchScan(tBTM_BLE_REF_VALUE ref_value);
+/* This function is called to disable batch scanning */
+extern void BTM_BleDisableBatchScan(
+    base::Callback<void(uint8_t /* status */)> cb);
 
-/*******************************************************************************
- *
- * Function         BTM_BleReadScanReports
- *
- * Description      This function is called to read batch scan reports
- *
- * Parameters       tBLE_SCAN_MODE scan_mode - Scan mode report to be read out
-                    tBTM_BLE_SCAN_REP_CBACK* p_cback - Reports callback
- *
- * Returns          tBTM_STATUS
- *
- ******************************************************************************/
-extern tBTM_STATUS BTM_BleReadScanReports(tBLE_SCAN_MODE scan_mode,
-                                          tBTM_BLE_REF_VALUE ref_value);
+/* This function is called to read batch scan reports */
+extern void BTM_BleReadScanReports(tBLE_SCAN_MODE scan_mode,
+                                   tBTM_BLE_SCAN_REP_CBACK cb);
 
-/*******************************************************************************
- *
- * Function         BTM_BleTrackAdvertiser
- *
- * Description      This function is called to read batch scan reports
- *
- * Parameters       p_track_cback - Tracking callback
- *                  ref_value - Reference value
- *
- * Returns          tBTM_STATUS
- *
- ******************************************************************************/
-extern tBTM_STATUS BTM_BleTrackAdvertiser(
-    tBTM_BLE_TRACK_ADV_CBACK* p_track_cback, tBTM_BLE_REF_VALUE ref_value);
+/* This function is called to setup the callback for tracking */
+extern void BTM_BleTrackAdvertiser(tBTM_BLE_TRACK_ADV_CBACK* p_track_cback,
+                                   tBTM_BLE_REF_VALUE ref_value);
 
 /*******************************************************************************
  *

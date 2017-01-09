@@ -365,13 +365,9 @@ typedef void(tBTM_BLE_ADV_DATA_CMPL_CBACK)(tBTM_STATUS status);
 typedef uint8_t tGATT_IF;
 
 typedef void(tBTM_BLE_SCAN_THRESHOLD_CBACK)(tBTM_BLE_REF_VALUE ref_value);
-typedef void(tBTM_BLE_SCAN_REP_CBACK)(tBTM_BLE_REF_VALUE ref_value,
-                                      uint8_t report_format,
-                                      uint8_t num_records, uint16_t total_len,
-                                      uint8_t* p_rep_data, uint8_t status);
-typedef void(tBTM_BLE_SCAN_SETUP_CBACK)(uint8_t evt,
-                                        tBTM_BLE_REF_VALUE ref_value,
-                                        uint8_t status);
+using tBTM_BLE_SCAN_REP_CBACK =
+    base::Callback<void(uint8_t /* status */, uint8_t /* report_format */,
+                        uint8_t /* num_reports */, std::vector<uint8_t>)>;
 
 #ifndef BTM_BLE_BATCH_SCAN_MAX
 #define BTM_BLE_BATCH_SCAN_MAX 5
@@ -393,35 +389,13 @@ enum { BTM_BLE_DISCARD_OLD_ITEMS, BTM_BLE_DISCARD_LOWER_RSSI_ITEMS };
 typedef uint8_t tBTM_BLE_DISCARD_RULE;
 
 typedef struct {
-  uint8_t sub_code[BTM_BLE_BATCH_SCAN_MAX];
-  tBTM_BLE_BATCH_SCAN_STATE cur_state[BTM_BLE_BATCH_SCAN_MAX];
-  tBTM_BLE_REF_VALUE ref_value[BTM_BLE_BATCH_SCAN_MAX];
-  uint8_t pending_idx;
-  uint8_t next_idx;
-} tBTM_BLE_BATCH_SCAN_OPQ;
-
-typedef struct {
-  uint8_t rep_mode[BTM_BLE_BATCH_REP_MAIN_Q_SIZE];
-  tBTM_BLE_REF_VALUE ref_value[BTM_BLE_BATCH_REP_MAIN_Q_SIZE];
-  uint8_t num_records[BTM_BLE_BATCH_REP_MAIN_Q_SIZE];
-  uint16_t data_len[BTM_BLE_BATCH_REP_MAIN_Q_SIZE];
-  uint8_t* p_data[BTM_BLE_BATCH_REP_MAIN_Q_SIZE];
-  uint8_t pending_idx;
-  uint8_t next_idx;
-} tBTM_BLE_BATCH_SCAN_REP_Q;
-
-typedef struct {
   tBTM_BLE_BATCH_SCAN_STATE cur_state;
   tBTM_BLE_BATCH_SCAN_MODE scan_mode;
   uint32_t scan_interval;
   uint32_t scan_window;
   tBLE_ADDR_TYPE addr_type;
   tBTM_BLE_DISCARD_RULE discard_rule;
-  tBTM_BLE_BATCH_SCAN_OPQ op_q;
-  tBTM_BLE_BATCH_SCAN_REP_Q main_rep_q;
-  tBTM_BLE_SCAN_SETUP_CBACK* p_setup_cback;
   tBTM_BLE_SCAN_THRESHOLD_CBACK* p_thres_cback;
-  tBTM_BLE_SCAN_REP_CBACK* p_scan_rep_cback;
   tBTM_BLE_REF_VALUE ref_value;
 } tBTM_BLE_BATCH_SCAN_CB;
 
@@ -548,13 +522,6 @@ typedef struct {
 enum { BTM_BLE_TRACK_ADV_ADD, BTM_BLE_TRACK_ADV_REMOVE };
 
 typedef uint8_t tBTM_BLE_TRACK_ADV_ACTION;
-
-#define BTM_BLE_BATCH_SCAN_ENABLE_EVT 1
-#define BTM_BLE_BATCH_SCAN_CFG_STRG_EVT 2
-#define BTM_BLE_BATCH_SCAN_READ_REPTS_EVT 3
-#define BTM_BLE_BATCH_SCAN_THR_EVT 4
-#define BTM_BLE_BATCH_SCAN_PARAM_EVT 5
-#define BTM_BLE_BATCH_SCAN_DISABLE_EVT 6
 
 typedef uint8_t tBTM_BLE_BATCH_SCAN_EVT;
 
