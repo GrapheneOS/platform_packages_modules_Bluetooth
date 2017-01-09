@@ -96,8 +96,9 @@ std::atomic_int ble_client_id(0);
 
 // The registered IBluetoothLeAdvertiser handle. If |ble_advertiser_registering|
 // is true then an operation to register the advertiser is in progress.
+const int invalid_advertiser_id = -1;
 std::atomic_bool ble_advertiser_registering(false);
-std::atomic_int ble_advertiser_id(0);
+std::atomic_int ble_advertiser_id(invalid_advertiser_id);
 
 // The registered IBluetoothLeScanner handle. If |ble_scanner_registering| is
 // true then an operation to register the scanner is in progress.
@@ -440,7 +441,7 @@ void HandleRegisterBLEAdvertiser(IBluetooth* bt_iface,
     return;
   }
 
-  if (ble_advertiser_id.load()) {
+  if (ble_advertiser_id.load() != invalid_advertiser_id) {
     PrintError("Already registered");
     return;
   }
@@ -463,7 +464,7 @@ void HandleUnregisterBLEAdvertiser(IBluetooth* bt_iface,
                                    const vector<string>& args) {
   CHECK_NO_ARGS(args);
 
-  if (!ble_advertiser_id.load()) {
+  if (ble_advertiser_id.load() == invalid_advertiser_id) {
     PrintError("Not registered");
     return;
   }
@@ -476,7 +477,7 @@ void HandleUnregisterBLEAdvertiser(IBluetooth* bt_iface,
   }
 
   ble_advertiser_iface->UnregisterAdvertiser(ble_advertiser_id.load());
-  ble_advertiser_id = 0;
+  ble_advertiser_id = invalid_advertiser_id;
   PrintCommandStatus(true);
 }
 
@@ -638,7 +639,7 @@ void HandleStartAdv(IBluetooth* bt_iface, const vector<string>& args) {
     }
   }
 
-  if (!ble_advertiser_id.load()) {
+  if (ble_advertiser_id.load() == invalid_advertiser_id) {
     PrintError("BLE advertiser not registered");
     return;
   }
@@ -710,7 +711,7 @@ void HandleStartAdv(IBluetooth* bt_iface, const vector<string>& args) {
 }
 
 void HandleStopAdv(IBluetooth* bt_iface, const vector<string>& args) {
-  if (!ble_advertiser_id.load()) {
+  if (ble_advertiser_id.load() == invalid_advertiser_id) {
     PrintError("BLE advertiser not registered");
     return;
   }
