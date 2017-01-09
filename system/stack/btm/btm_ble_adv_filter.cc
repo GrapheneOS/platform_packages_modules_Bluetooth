@@ -20,6 +20,8 @@
 
 #include <base/bind.h>
 #include <string.h>
+#include <algorithm>
+#include <vector>
 
 #include "bt_target.h"
 
@@ -309,44 +311,28 @@ bool btm_ble_dealloc_addr_filter_counter(tBLE_BD_ADDR* p_bd_addr,
   return found;
 }
 
-/*******************************************************************************
- *
- * Function         btm_ble_update_pf_local_name
- *
- * Description      this function update(add,delete or clear) the adv local
- *                  name filtering condition.
- *
- *
- * Returns          BTM_SUCCESS if sucessful,
- *                  BTM_ILLEGAL_VALUE if paramter is not valid.
- *
- ******************************************************************************/
-tBTM_STATUS btm_ble_update_pf_local_name(tBTM_BLE_SCAN_COND_OP action,
-                                         tBTM_BLE_PF_FILT_INDEX filt_index,
-                                         tBTM_BLE_PF_COND_PARAM* p_cond,
-                                         tBTM_BLE_PF_CFG_CBACK cb) {
-  tBTM_BLE_PF_LOCAL_NAME_COND* p_local_name =
-      (p_cond == NULL) ? NULL : &p_cond->local_name;
-  uint8_t param[BTM_BLE_PF_STR_LEN_MAX + BTM_BLE_ADV_FILT_META_HDR_LENGTH],
-      *p = param, len = BTM_BLE_ADV_FILT_META_HDR_LENGTH;
-  tBTM_STATUS st = BTM_ILLEGAL_VALUE;
+/**
+ * This function update(add,delete or clear) the adv local name filtering
+ * condition.
+ */
+void BTM_LE_PF_local_name(tBTM_BLE_SCAN_COND_OP action,
+                          tBTM_BLE_PF_FILT_INDEX filt_index,
+                          std::vector<uint8_t> name, tBTM_BLE_PF_CFG_CBACK cb) {
+  uint8_t len = BTM_BLE_ADV_FILT_META_HDR_LENGTH;
 
-  memset(param, 0, BTM_BLE_PF_STR_LEN_MAX + BTM_BLE_ADV_FILT_META_HDR_LENGTH);
+  uint8_t len_max = len + BTM_BLE_PF_STR_LEN_MAX;
+  uint8_t param[len_max];
+  memset(param, 0, len_max);
 
+  uint8_t* p = param;
   UINT8_TO_STREAM(p, BTM_BLE_META_PF_LOCAL_NAME);
   UINT8_TO_STREAM(p, action);
-
-  /* Filter index */
   UINT8_TO_STREAM(p, filt_index);
 
-  if (BTM_BLE_SCAN_COND_ADD == action || BTM_BLE_SCAN_COND_DELETE == action) {
-    if (NULL == p_local_name) return st;
-
-    if (p_local_name->data_len > BTM_BLE_PF_STR_LEN_MAX)
-      p_local_name->data_len = BTM_BLE_PF_STR_LEN_MAX;
-
-    ARRAY_TO_STREAM(p, p_local_name->p_data, p_local_name->data_len);
-    len += p_local_name->data_len;
+  if (action != BTM_BLE_SCAN_COND_CLEAR) {
+    int size = std::min(name.size(), (size_t)BTM_BLE_PF_STR_LEN_MAX);
+    ARRAY_TO_STREAM(p, name.data(), size);
+    len += size;
   }
 
   /* send local name filter */
@@ -355,127 +341,107 @@ tBTM_STATUS btm_ble_update_pf_local_name(tBTM_BLE_SCAN_COND_OP action,
       base::Bind(&btm_flt_update_cb, BTM_BLE_META_PF_LOCAL_NAME, cb));
 
   memset(&btm_ble_adv_filt_cb.cur_filter_target, 0, sizeof(tBLE_BD_ADDR));
-  return BTM_CMD_STARTED;
 }
 
-/*******************************************************************************
- *
- * Function         btm_ble_update_srvc_data_change
- *
- * Description      this function update(add/remove) service data change filter.
- *
- *
- * Returns          BTM_SUCCESS if sucessful,
- *                  BTM_ILLEGAL_VALUE if paramter is not valid.
- *
-4
-******************************************************************************/
-tBTM_STATUS btm_ble_update_srvc_data_change(tBTM_BLE_SCAN_COND_OP action,
-                                            tBTM_BLE_PF_FILT_INDEX filt_index,
-                                            tBTM_BLE_PF_COND_PARAM* p_cond) {
-  tBTM_STATUS st = BTM_ILLEGAL_VALUE;
-  tBLE_BD_ADDR* p_bd_addr = p_cond ? &p_cond->target_addr : NULL;
+/**
+ * this function update(add/remove) service data change filter.
+ */
+void BTM_LE_PF_srvc_data(tBTM_BLE_SCAN_COND_OP action,
+                         tBTM_BLE_PF_FILT_INDEX filt_index) {
   uint8_t num_avail = (action == BTM_BLE_SCAN_COND_ADD) ? 0 : 1;
 
-  if (btm_ble_cs_update_pf_counter(action, BTM_BLE_PF_SRVC_DATA, p_bd_addr,
-                                   num_avail) != BTM_BLE_INVALID_COUNTER)
-    st = BTM_SUCCESS;
-
-  return st;
+  btm_ble_cs_update_pf_counter(action, BTM_BLE_PF_SRVC_DATA, nullptr,
+                               num_avail);
 }
 
-/*******************************************************************************
- *
- * Function         btm_ble_update_pf_manu_data
- *
- * Description      this function update(add,delete or clear) the adv
- *                  manufacturer data filtering condition.
- *
- *
- * Returns          BTM_SUCCESS if sucessful,
- *                  BTM_ILLEGAL_VALUE if paramter is not valid.
- *
- ******************************************************************************/
-tBTM_STATUS btm_ble_update_pf_manu_data(tBTM_BLE_SCAN_COND_OP action,
-                                        tBTM_BLE_PF_FILT_INDEX filt_index,
-                                        tBTM_BLE_PF_COND_PARAM* p_data,
-                                        tBTM_BLE_PF_COND_TYPE cond_type,
-                                        tBTM_BLE_PF_CFG_CBACK cb) {
-  if (!p_data) return BTM_ILLEGAL_VALUE;
-
-  tBTM_BLE_PF_MANU_COND* p_manu_data = &p_data->manu_data;
-  tBTM_BLE_PF_SRVC_PATTERN_COND* p_srvc_data = &p_data->srvc_data;
-
-  int param_len = BTM_BLE_PF_STR_LEN_MAX + BTM_BLE_PF_STR_LEN_MAX +
-                  BTM_BLE_ADV_FILT_META_HDR_LENGTH;
+/**
+ * This function update(add,delete or clear) the adv manufacturer data filtering
+ * condition.
+ */
+void BTM_LE_PF_manu_data(tBTM_BLE_SCAN_COND_OP action,
+                         tBTM_BLE_PF_FILT_INDEX filt_index, uint16_t company_id,
+                         uint16_t company_id_mask, std::vector<uint8_t> data,
+                         std::vector<uint8_t> data_mask,
+                         tBTM_BLE_PF_CFG_CBACK cb) {
   uint8_t len = BTM_BLE_ADV_FILT_META_HDR_LENGTH;
+  int len_max = len + BTM_BLE_PF_STR_LEN_MAX + BTM_BLE_PF_STR_LEN_MAX;
 
-  uint8_t param[param_len];
-  memset(param, 0, param_len);
+  uint8_t param[len_max];
+  memset(param, 0, len_max);
 
   uint8_t* p = param;
-  if (BTM_BLE_PF_SRVC_DATA_PATTERN == cond_type) {
-    UINT8_TO_STREAM(p, BTM_BLE_META_PF_SRVC_DATA);
-  } else {
-    UINT8_TO_STREAM(p, BTM_BLE_META_PF_MANU_DATA);
-  }
-
+  UINT8_TO_STREAM(p, BTM_BLE_META_PF_MANU_DATA);
   UINT8_TO_STREAM(p, action);
   UINT8_TO_STREAM(p, filt_index);
 
-  if (BTM_BLE_SCAN_COND_ADD == action || BTM_BLE_SCAN_COND_DELETE == action) {
-    if (BTM_BLE_PF_SRVC_DATA_PATTERN == cond_type) {
-      if (NULL == p_srvc_data) return BTM_ILLEGAL_VALUE;
-      if (p_srvc_data->data_len > (BTM_BLE_PF_STR_LEN_MAX - 2))
-        p_srvc_data->data_len = (BTM_BLE_PF_STR_LEN_MAX - 2);
+  if (action != BTM_BLE_SCAN_COND_CLEAR) {
+    uint8_t size = std::min(data.size(), (size_t)(BTM_BLE_PF_STR_LEN_MAX - 2));
 
-      if (p_srvc_data->data_len > 0) {
-        ARRAY_TO_STREAM(p, p_srvc_data->p_pattern, p_srvc_data->data_len);
-        len += (p_srvc_data->data_len);
-        ARRAY_TO_STREAM(p, p_srvc_data->p_pattern_mask, p_srvc_data->data_len);
-      }
-
-      len += (p_srvc_data->data_len);
-      BTM_TRACE_DEBUG("Service data length: %d", len);
-    } else {
-      if (NULL == p_manu_data) {
-        BTM_TRACE_ERROR("%s: No manuf data", __func__);
-        return BTM_ILLEGAL_VALUE;
-      }
-      BTM_TRACE_EVENT("%s: length: %d", __func__, p_manu_data->data_len);
-      if (p_manu_data->data_len > (BTM_BLE_PF_STR_LEN_MAX - 2))
-        p_manu_data->data_len = (BTM_BLE_PF_STR_LEN_MAX - 2);
-
-      UINT16_TO_STREAM(p, p_manu_data->company_id);
-      if (p_manu_data->data_len > 0 && p_manu_data->p_pattern_mask != NULL) {
-        ARRAY_TO_STREAM(p, p_manu_data->p_pattern, p_manu_data->data_len);
-        len += (p_manu_data->data_len + 2);
-      } else
-        len += 2;
-
-      if (p_manu_data->company_id_mask != 0) {
-        UINT16_TO_STREAM(p, p_manu_data->company_id_mask);
-      } else {
-        memset(p, 0xff, 2);
-        p += 2;
-      }
+    UINT16_TO_STREAM(p, company_id);
+    if (size > 0 && data_mask.size() != 0) {
+      ARRAY_TO_STREAM(p, data.data(), size);
+      len += size + 2;
+    } else
       len += 2;
 
-      if (p_manu_data->data_len > 0 && p_manu_data->p_pattern_mask != NULL) {
-        ARRAY_TO_STREAM(p, p_manu_data->p_pattern_mask, p_manu_data->data_len);
-        len += (p_manu_data->data_len);
-      }
+    if (company_id_mask != 0) {
+      UINT16_TO_STREAM(p, company_id_mask);
+    } else {
+      UINT16_TO_STREAM(p, (uint16_t)0xFFFF);
+    }
+    len += 2;
 
-      BTM_TRACE_DEBUG("Manuf data length: %d", len);
+    if (size > 0 && data_mask.size() != 0) {
+      ARRAY_TO_STREAM(p, data_mask.data(), size);
+      len += (size);
+    }
+
+    BTM_TRACE_DEBUG("Manuf data length: %d", len);
+  }
+
+  btu_hcif_send_cmd_with_cb(
+      FROM_HERE, HCI_BLE_ADV_FILTER_OCF, param, len,
+      base::Bind(&btm_flt_update_cb, BTM_BLE_META_PF_MANU_DATA, cb));
+
+  memset(&btm_ble_adv_filt_cb.cur_filter_target, 0, sizeof(tBLE_BD_ADDR));
+}
+
+/**
+ * This function update(add,delete or clear) the service data filtering
+ * condition.
+ **/
+void BTM_LE_PF_srvc_data_pattern(tBTM_BLE_SCAN_COND_OP action,
+                                 tBTM_BLE_PF_FILT_INDEX filt_index,
+                                 std::vector<uint8_t> data,
+                                 std::vector<uint8_t> data_mask,
+                                 tBTM_BLE_PF_CFG_CBACK cb) {
+  uint8_t len = BTM_BLE_ADV_FILT_META_HDR_LENGTH;
+  int len_max = len + BTM_BLE_PF_STR_LEN_MAX + BTM_BLE_PF_STR_LEN_MAX;
+
+  uint8_t param[len_max];
+  memset(param, 0, len_max);
+
+  uint8_t* p = param;
+  UINT8_TO_STREAM(p, BTM_BLE_META_PF_SRVC_DATA);
+  UINT8_TO_STREAM(p, action);
+  UINT8_TO_STREAM(p, filt_index);
+
+  if (action != BTM_BLE_SCAN_COND_CLEAR) {
+    uint8_t size = std::min(data.size(), (size_t)(BTM_BLE_PF_STR_LEN_MAX - 2));
+
+    if (size > 0) {
+      ARRAY_TO_STREAM(p, data.data(), size);
+      len += size;
+      ARRAY_TO_STREAM(p, data_mask.data(), size);
+      len += size;
     }
   }
 
-  uint8_t expected_ocf = btm_ble_condtype_to_ocf(cond_type);
-  btu_hcif_send_cmd_with_cb(FROM_HERE, HCI_BLE_ADV_FILTER_OCF, param, len,
-                            base::Bind(&btm_flt_update_cb, expected_ocf, cb));
+  btu_hcif_send_cmd_with_cb(
+      FROM_HERE, HCI_BLE_ADV_FILTER_OCF, param, len,
+      base::Bind(&btm_flt_update_cb, BTM_BLE_META_PF_SRVC_DATA, cb));
 
   memset(&btm_ble_adv_filt_cb.cur_filter_target, 0, sizeof(tBLE_BD_ADDR));
-  return BTM_CMD_STARTED;
 }
 
 /*******************************************************************************
@@ -541,39 +507,25 @@ uint8_t btm_ble_cs_update_pf_counter(tBTM_BLE_SCAN_COND_OP action,
   return BTM_BLE_INVALID_COUNTER;
 }
 
-/*******************************************************************************
- *
- * Function         btm_ble_update_addr_filter
- *
- * Description      this function updates(adds, deletes or clears) the address
- *                  filter of adv.
- *
- *
- * Returns          BTM_CMD_STARTED if sucessful,
- *                  BTM_ILLEGAL_VALUE if paramter is not valid.
- *
- ******************************************************************************/
-tBTM_STATUS btm_ble_update_addr_filter(tBTM_BLE_SCAN_COND_OP action,
-                                       tBTM_BLE_PF_FILT_INDEX filt_index,
-                                       tBTM_BLE_PF_COND_PARAM* p_cond,
-                                       tBTM_BLE_PF_CFG_CBACK cb) {
+/**
+ * This function updates the address filter of adv.
+ */
+void BTM_LE_PF_addr_filter(tBTM_BLE_SCAN_COND_OP action,
+                           tBTM_BLE_PF_FILT_INDEX filt_index, tBLE_BD_ADDR addr,
+                           tBTM_BLE_PF_CFG_CBACK cb) {
   const uint8_t len = BTM_BLE_ADV_FILT_META_HDR_LENGTH + BTM_BLE_META_ADDR_LEN;
-  uint8_t param[len], *p = param;
-  tBLE_BD_ADDR* p_addr = (p_cond == NULL) ? NULL : &p_cond->target_addr;
 
+  uint8_t param[len];
   memset(param, 0, len);
 
+  uint8_t* p = param;
   UINT8_TO_STREAM(p, BTM_BLE_META_PF_ADDR);
   UINT8_TO_STREAM(p, action);
-
-  /* Filter index */
   UINT8_TO_STREAM(p, filt_index);
 
-  if (BTM_BLE_SCAN_COND_ADD == action || BTM_BLE_SCAN_COND_DELETE == action) {
-    if (NULL == p_addr) return BTM_ILLEGAL_VALUE;
-
-    BDADDR_TO_STREAM(p, p_addr->bda);
-    UINT8_TO_STREAM(p, p_addr->type);
+  if (action != BTM_BLE_SCAN_COND_CLEAR) {
+    BDADDR_TO_STREAM(p, addr.bda);
+    UINT8_TO_STREAM(p, addr.type);
   }
 
   /* send address filter */
@@ -582,216 +534,125 @@ tBTM_STATUS btm_ble_update_addr_filter(tBTM_BLE_SCAN_COND_OP action,
       base::Bind(&btm_flt_update_cb, BTM_BLE_META_PF_ADDR, cb));
 
   memset(&btm_ble_adv_filt_cb.cur_filter_target, 0, sizeof(tBLE_BD_ADDR));
-  return BTM_CMD_STARTED;
 }
 
-/*******************************************************************************
- *
- * Function         btm_ble_update_uuid_filter
- *
- * Description      this function updates(adds, deletes or clears) the service
- *                  UUID filter.
- *
- *
- * Returns          BTM_CMD_STARTED if sucessful,
- *                  BTM_ILLEGAL_VALUE if paramter is not valid.
- *
- ******************************************************************************/
-tBTM_STATUS btm_ble_update_uuid_filter(tBTM_BLE_SCAN_COND_OP action,
-                                       tBTM_BLE_PF_FILT_INDEX filt_index,
-                                       tBTM_BLE_PF_COND_TYPE filter_type,
-                                       tBTM_BLE_PF_COND_PARAM* p_cond,
-                                       tBTM_BLE_PF_CFG_CBACK cb) {
-  uint8_t param[BTM_BLE_META_UUID_LEN + BTM_BLE_ADV_FILT_META_HDR_LENGTH],
-      *p = param, len = BTM_BLE_ADV_FILT_META_HDR_LENGTH;
-  tBTM_BLE_PF_UUID_COND* p_uuid_cond;
+/**
+ * This function updates(adds, deletes or clears) the service UUID filter.
+ */
+void BTM_LE_PF_uuid_filter(tBTM_BLE_SCAN_COND_OP action,
+                           tBTM_BLE_PF_FILT_INDEX filt_index,
+                           tBTM_BLE_PF_COND_TYPE filter_type, tBT_UUID uuid,
+                           tBTM_BLE_PF_LOGIC_TYPE cond_logic,
+                           tBTM_BLE_PF_COND_MASK* p_uuid_mask,
+                           tBTM_BLE_PF_CFG_CBACK cb) {
   uint8_t evt_type;
-
-  memset(param, 0, BTM_BLE_META_UUID_LEN + BTM_BLE_ADV_FILT_META_HDR_LENGTH);
 
   if (BTM_BLE_PF_SRVC_UUID == filter_type) {
     evt_type = BTM_BLE_META_PF_UUID;
-    p_uuid_cond = p_cond ? &p_cond->srvc_uuid : NULL;
   } else {
     evt_type = BTM_BLE_META_PF_SOL_UUID;
-    p_uuid_cond = p_cond ? &p_cond->solicitate_uuid : NULL;
   }
 
-  if (NULL == p_uuid_cond && action != BTM_BLE_SCAN_COND_CLEAR) {
-    BTM_TRACE_ERROR("Illegal param for add/delete UUID filter");
-    return BTM_ILLEGAL_VALUE;
-  }
+  uint8_t len = BTM_BLE_ADV_FILT_META_HDR_LENGTH;
+  uint8_t max_len = len + BTM_BLE_META_UUID_LEN;
+  uint8_t param[max_len];
+  memset(param, 0, max_len);
+  uint8_t* p = param;
 
-  /* need to add address filter first, if adding per bda UUID filter without
-   * address filter */
-  if (BTM_BLE_SCAN_COND_ADD == action && NULL != p_uuid_cond &&
-      p_uuid_cond->p_target_addr &&
-      btm_ble_find_addr_filter_counter(p_uuid_cond->p_target_addr) == NULL) {
-    UINT8_TO_STREAM(p, BTM_BLE_META_PF_ADDR);
-    UINT8_TO_STREAM(p, action);
-
-    /* Filter index */
-    UINT8_TO_STREAM(p, filt_index);
-
-    BDADDR_TO_STREAM(p, p_uuid_cond->p_target_addr->bda);
-    UINT8_TO_STREAM(p, p_uuid_cond->p_target_addr->type);
-
-    tBTM_BLE_PF_CFG_CBACK fDoNothing;
-    /* send address filter */
-    btu_hcif_send_cmd_with_cb(
-        FROM_HERE, HCI_BLE_ADV_FILTER_OCF, param,
-        (uint8_t)(BTM_BLE_ADV_FILT_META_HDR_LENGTH + BTM_BLE_META_ADDR_LEN),
-        base::Bind(&btm_flt_update_cb, BTM_BLE_META_PF_ADDR, fDoNothing));
-    BTM_TRACE_DEBUG("Updated Address filter");
-  }
-
-  p = param;
   UINT8_TO_STREAM(p, evt_type);
   UINT8_TO_STREAM(p, action);
-
-  /* Filter index */
   UINT8_TO_STREAM(p, filt_index);
 
-  if ((BTM_BLE_SCAN_COND_ADD == action || BTM_BLE_SCAN_COND_DELETE == action) &&
-      NULL != p_uuid_cond) {
-    if (p_uuid_cond->uuid.len == LEN_UUID_16) {
-      UINT16_TO_STREAM(p, p_uuid_cond->uuid.uu.uuid16);
+  if (action != BTM_BLE_SCAN_COND_CLEAR) {
+    if (uuid.len == LEN_UUID_16) {
+      UINT16_TO_STREAM(p, uuid.uu.uuid16);
       len += LEN_UUID_16;
-    } else if (p_uuid_cond->uuid.len == LEN_UUID_32) /*4 bytes */
-    {
-      UINT32_TO_STREAM(p, p_uuid_cond->uuid.uu.uuid32);
+    } else if (uuid.len == LEN_UUID_32) {
+      UINT32_TO_STREAM(p, uuid.uu.uuid32);
       len += LEN_UUID_32;
-    } else if (p_uuid_cond->uuid.len == LEN_UUID_128) {
-      ARRAY_TO_STREAM(p, p_uuid_cond->uuid.uu.uuid128, LEN_UUID_128);
+    } else if (uuid.len == LEN_UUID_128) {
+      ARRAY_TO_STREAM(p, uuid.uu.uuid128, LEN_UUID_128);
       len += LEN_UUID_128;
     } else {
-      BTM_TRACE_ERROR("illegal UUID length: %d", p_uuid_cond->uuid.len);
-      return BTM_ILLEGAL_VALUE;
+      BTM_TRACE_ERROR("illegal UUID length: %d", uuid.len);
+      cb.Run(0, BTM_BLE_PF_CONFIG, 1 /*BTA_FAILURE*/);
+      return;
     }
 
-    if (NULL != p_uuid_cond->p_uuid_mask) {
-      if (p_uuid_cond->uuid.len == LEN_UUID_16) {
-        UINT16_TO_STREAM(p, p_uuid_cond->p_uuid_mask->uuid16_mask);
+    if (p_uuid_mask) {
+      if (uuid.len == LEN_UUID_16) {
+        UINT16_TO_STREAM(p, p_uuid_mask->uuid16_mask);
         len += LEN_UUID_16;
-      } else if (p_uuid_cond->uuid.len == LEN_UUID_32) /*4 bytes */
-      {
-        UINT32_TO_STREAM(p, p_uuid_cond->p_uuid_mask->uuid32_mask);
+      } else if (uuid.len == LEN_UUID_32) {
+        UINT32_TO_STREAM(p, p_uuid_mask->uuid32_mask);
         len += LEN_UUID_32;
-      } else if (p_uuid_cond->uuid.len == LEN_UUID_128) {
-        ARRAY_TO_STREAM(p, p_uuid_cond->p_uuid_mask->uuid128_mask,
-                        LEN_UUID_128);
+      } else if (uuid.len == LEN_UUID_128) {
+        ARRAY_TO_STREAM(p, p_uuid_mask->uuid128_mask, LEN_UUID_128);
         len += LEN_UUID_128;
       }
     } else {
-      memset(p, 0xff, p_uuid_cond->uuid.len);
-      len += p_uuid_cond->uuid.len;
+      memset(p, 0xff, uuid.len);
+      len += uuid.len;
     }
-    BTM_TRACE_DEBUG("%s : %d, %d, %d, %d", __func__, filter_type, evt_type,
-                    p_uuid_cond->uuid.len, len);
   }
 
   /* send UUID filter update */
   btu_hcif_send_cmd_with_cb(FROM_HERE, HCI_BLE_ADV_FILTER_OCF, param, len,
                             base::Bind(&btm_flt_update_cb, evt_type, cb));
-
-  if (p_uuid_cond && p_uuid_cond->p_target_addr)
-    memcpy(&btm_ble_adv_filt_cb.cur_filter_target, p_uuid_cond->p_target_addr,
-           sizeof(tBLE_BD_ADDR));
-  else
-    memset(&btm_ble_adv_filt_cb.cur_filter_target, 0, sizeof(tBLE_BD_ADDR));
-
-  return BTM_CMD_STARTED;
+  memset(&btm_ble_adv_filt_cb.cur_filter_target, 0, sizeof(tBLE_BD_ADDR));
 }
 
-/*******************************************************************************
- *
- * Function         btm_ble_clear_scan_pf_filter
- *
- * Description      clear all adv payload filter by de-selecting all the adv pf
- *                  feature bits
- *
- *
- * Returns          BTM_CMD_STARTED if sucessful,
- *                  BTM_ILLEGAL_VALUE if paramter is not valid.
- *
- ******************************************************************************/
-tBTM_STATUS btm_ble_clear_scan_pf_filter(tBTM_BLE_SCAN_COND_OP action,
-                                         tBTM_BLE_PF_FILT_INDEX filt_index,
-                                         tBTM_BLE_PF_COND_PARAM* p_cond,
-                                         tBTM_BLE_PF_CFG_CBACK cb) {
-  tBLE_BD_ADDR* p_target = (p_cond == NULL) ? NULL : &p_cond->target_addr;
-  tBTM_BLE_PF_COUNT* p_bda_filter;
-  uint8_t param[20], *p;
-
-  if (BTM_BLE_SCAN_COND_CLEAR != action) {
-    BTM_TRACE_ERROR("unable to perform action:%d for generic adv filter type",
-                    action);
-    return BTM_ILLEGAL_VALUE;
-  }
-
-  p = param;
-  memset(param, 0, 20);
-
-  p_bda_filter = btm_ble_find_addr_filter_counter(p_target);
-
-  if (NULL == p_bda_filter ||
-      /* not a generic filter */
-      (p_target != NULL && p_bda_filter)) {
-    BTM_TRACE_ERROR(
-        "Error: Can not clear filter, No PF filter has been configured!");
-    return BTM_WRONG_MODE;
-  }
-
-  tBTM_BLE_PF_CFG_CBACK fDoNothing;
-
+/**
+ * all adv payload filter by de-selecting all the adv pf feature bits
+ */
+void BTM_LE_PF_clear(tBTM_BLE_PF_FILT_INDEX filt_index,
+                     tBTM_BLE_PF_CFG_CBACK cb) {
   /* clear the general filter entry */
-  if (NULL == p_target) {
+  {
+    tBTM_BLE_PF_CFG_CBACK fDoNothing;
+
     /* clear manufactuer data filter */
-    btm_ble_update_pf_manu_data(BTM_BLE_SCAN_COND_CLEAR, filt_index, NULL,
-                                BTM_BLE_PF_MANU_DATA, fDoNothing);
+    BTM_LE_PF_manu_data(BTM_BLE_SCAN_COND_CLEAR, filt_index, 0, 0, {}, {},
+                        fDoNothing);
 
     /* clear local name filter */
-    btm_ble_update_pf_local_name(BTM_BLE_SCAN_COND_CLEAR, filt_index, NULL,
-                                 fDoNothing);
+    BTM_LE_PF_local_name(BTM_BLE_SCAN_COND_CLEAR, filt_index, {}, fDoNothing);
 
     /* update the counter for service data */
-    btm_ble_update_srvc_data_change(BTM_BLE_SCAN_COND_CLEAR, filt_index, NULL);
+    BTM_LE_PF_srvc_data(BTM_BLE_SCAN_COND_CLEAR, filt_index);
 
     /* clear UUID filter */
-    btm_ble_update_uuid_filter(BTM_BLE_SCAN_COND_CLEAR, filt_index,
-                               BTM_BLE_PF_SRVC_UUID, NULL, fDoNothing);
+    BTM_LE_PF_uuid_filter(BTM_BLE_SCAN_COND_CLEAR, filt_index,
+                          BTM_BLE_PF_SRVC_UUID, {}, 0, nullptr, fDoNothing);
 
-    btm_ble_update_uuid_filter(BTM_BLE_SCAN_COND_CLEAR, filt_index,
-                               BTM_BLE_PF_SRVC_SOL_UUID, NULL, fDoNothing);
+    BTM_LE_PF_uuid_filter(BTM_BLE_SCAN_COND_CLEAR, filt_index,
+                          BTM_BLE_PF_SRVC_SOL_UUID, {}, 0, nullptr, fDoNothing);
 
     /* clear service data filter */
-    btm_ble_update_pf_manu_data(BTM_BLE_SCAN_COND_CLEAR, filt_index, NULL,
-                                BTM_BLE_PF_SRVC_DATA_PATTERN, fDoNothing);
+    BTM_LE_PF_srvc_data_pattern(BTM_BLE_SCAN_COND_CLEAR, filt_index, {}, {},
+                                fDoNothing);
   }
+
+  uint8_t len = BTM_BLE_ADV_FILT_META_HDR_LENGTH + BTM_BLE_PF_FEAT_SEL_LEN;
+  uint8_t param[len];
+  memset(param, 0, len);
+
+  uint8_t* p = param;
 
   /* select feature based on control block settings */
   UINT8_TO_STREAM(p, BTM_BLE_META_PF_FEAT_SEL);
   UINT8_TO_STREAM(p, BTM_BLE_SCAN_COND_CLEAR);
-
-  /* Filter index */
   UINT8_TO_STREAM(p, filt_index);
-
   /* set PCF selection */
   UINT32_TO_STREAM(p, BTM_BLE_PF_SELECT_NONE);
   /* set logic condition as OR as default */
   UINT8_TO_STREAM(p, BTM_BLE_PF_LOGIC_OR);
 
   btu_hcif_send_cmd_with_cb(
-      FROM_HERE, HCI_BLE_ADV_FILTER_OCF, param,
-      (uint8_t)(BTM_BLE_ADV_FILT_META_HDR_LENGTH + BTM_BLE_PF_FEAT_SEL_LEN),
+      FROM_HERE, HCI_BLE_ADV_FILTER_OCF, param, len,
       base::Bind(&btm_flt_update_cb, BTM_BLE_META_PF_FEAT_SEL, cb));
 
-  if (p_target)
-    memcpy(&btm_ble_adv_filt_cb.cur_filter_target, p_target,
-           sizeof(tBLE_BD_ADDR));
-  else
-    memset(&btm_ble_adv_filt_cb.cur_filter_target, 0, sizeof(tBLE_BD_ADDR));
-  return BTM_CMD_STARTED;
+  memset(&btm_ble_adv_filt_cb.cur_filter_target, 0, sizeof(tBLE_BD_ADDR));
 }
 
 /*******************************************************************************
@@ -949,90 +810,6 @@ void BTM_BleEnableDisableFilterFeature(uint8_t enable,
   btu_hcif_send_cmd_with_cb(FROM_HERE, HCI_BLE_ADV_FILTER_OCF, param,
                             BTM_BLE_PCF_ENABLE_LEN,
                             base::Bind(&enable_cmpl_cback, p_stat_cback));
-}
-
-/*******************************************************************************
- *
- * Function         BTM_BleCfgFilterCondition
- *
- * Description      This function is called to configure the adv data payload
- *                  filter condition.
- *
- * Parameters       action: to read/write/clear
- *                  cond_type: filter condition type.
- *                  filt_index - Filter index
- *                  p_cond: filter condition parameter
- *                  cb  - Config callback
- *
- ******************************************************************************/
-void BTM_BleCfgFilterCondition(tBTM_BLE_SCAN_COND_OP action,
-                               tBTM_BLE_PF_COND_TYPE cond_type,
-                               tBTM_BLE_PF_FILT_INDEX filt_index,
-                               tBTM_BLE_PF_COND_PARAM* p_cond,
-                               tBTM_BLE_PF_CFG_CBACK cb) {
-  BTM_TRACE_EVENT("%s action:%d, cond_type:%d, index:%d", __func__, action,
-                  cond_type, filt_index);
-
-  if (BTM_SUCCESS != btm_ble_obtain_vsc_details()) {
-    cb.Run(0, BTM_BLE_PF_CONFIG, 1 /*BTA_FAILURE*/);
-    return;
-  }
-
-  // uint8_t ocf = btm_ble_condtype_to_ocf(cond_type);
-  uint8_t st;
-
-  switch (cond_type) {
-    /* write service data filter */
-    case BTM_BLE_PF_SRVC_DATA_PATTERN:
-    /* write manufacturer data filter */
-    case BTM_BLE_PF_MANU_DATA:
-      st = btm_ble_update_pf_manu_data(action, filt_index, p_cond, cond_type,
-                                       cb);
-      break;
-
-    /* write local name filter */
-    case BTM_BLE_PF_LOCAL_NAME:
-      st = btm_ble_update_pf_local_name(action, filt_index, p_cond, cb);
-      break;
-
-    /* filter on advertiser address */
-    case BTM_BLE_PF_ADDR_FILTER:
-      st = btm_ble_update_addr_filter(action, filt_index, p_cond, cb);
-      break;
-
-    /* filter on service/solicitated UUID */
-    case BTM_BLE_PF_SRVC_UUID:
-    case BTM_BLE_PF_SRVC_SOL_UUID:
-      st =
-          btm_ble_update_uuid_filter(action, filt_index, cond_type, p_cond, cb);
-      break;
-
-    case BTM_BLE_PF_SRVC_DATA:
-      st = btm_ble_update_srvc_data_change(action, filt_index, p_cond);
-
-      // TODO(jpawlowski): btm_ble_update_srvc_data_change was not scheduling
-      // any operation, callback was never called in success case. Must
-      // investigeate more if this was bug, or just never used.
-      // cb.Run(0, BTM_BLE_PF_CONFIG, 0 /*BTA_SUCCESS */);
-      // equivalent of old:
-      // ocf = btm_ble_condtype_to_ocf(cond_type);
-      // btm_ble_advfilt_enq_op_q(action, ocf, BTM_BLE_FILT_CFG, ref_value,
-      //                          p_cmpl_cback, NULL);
-      break;
-
-    case BTM_BLE_PF_TYPE_ALL: /* only used to clear filter */
-      st = btm_ble_clear_scan_pf_filter(action, filt_index, p_cond, cb);
-      break;
-
-    default:
-      BTM_TRACE_WARNING("condition type [%d] not supported currently.",
-                        cond_type);
-      return;
-  }
-
-  if (st != BTM_CMD_STARTED) {
-    cb.Run(0, BTM_BLE_PF_CONFIG, 1 /*BTA_FAILURE*/);
-  }
 }
 
 /*******************************************************************************

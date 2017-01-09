@@ -490,49 +490,6 @@ typedef union {
   uint8_t uuid128_mask[LEN_UUID_128];
 } tBTM_BLE_PF_COND_MASK;
 
-typedef struct {
-  tBLE_BD_ADDR*
-      p_target_addr; /* target address, if NULL, generic UUID filter */
-  tBT_UUID uuid;     /* UUID condition */
-  tBTM_BLE_PF_LOGIC_TYPE cond_logic;  /* AND/OR */
-  tBTM_BLE_PF_COND_MASK* p_uuid_mask; /* UUID mask */
-} tBTM_BLE_PF_UUID_COND;
-
-typedef struct {
-  uint8_t data_len; /* <= 20 bytes */
-  uint8_t* p_data;
-} tBTM_BLE_PF_LOCAL_NAME_COND;
-
-typedef struct {
-  uint16_t company_id; /* company ID */
-  uint8_t data_len;    /* <= 20 bytes */
-  uint8_t* p_pattern;
-  uint16_t company_id_mask; /* UUID value mask */
-  uint8_t* p_pattern_mask;  /* Manufacturer data matching mask,
-                               same length as data pattern,
-                               set to all 0xff, match exact data */
-} tBTM_BLE_PF_MANU_COND;
-
-typedef struct {
-  uint16_t uuid;    /* service ID */
-  uint8_t data_len; /* <= 20 bytes */
-  uint8_t* p_pattern;
-  uint8_t* p_pattern_mask; /* Service data matching mask, same length as data
-                              pattern,
-                              set to all 0xff, match exact data */
-} tBTM_BLE_PF_SRVC_PATTERN_COND;
-
-typedef union {
-  tBLE_BD_ADDR target_addr;
-  tBTM_BLE_PF_LOCAL_NAME_COND local_name; /* lcoal name filtering */
-  tBTM_BLE_PF_MANU_COND manu_data;        /* manufactuer data filtering */
-  tBTM_BLE_PF_UUID_COND srvc_uuid;        /* service UUID filtering */
-  tBTM_BLE_PF_UUID_COND
-      solicitate_uuid; /* solicitated service UUID filtering */
-  tBTM_BLE_PF_SRVC_PATTERN_COND srvc_data; /* service data pattern */
-  uint8_t additional_data[2000];
-} tBTM_BLE_PF_COND_PARAM;
-
 /* per device filter + one generic filter indexed by 0 */
 #define BTM_BLE_MAX_FILTER_COUNTER (BTM_BLE_MAX_ADDR_FILTER + 1)
 
