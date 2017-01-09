@@ -1837,24 +1837,6 @@ extern void BTA_DmBleDisableBatchScan(tBTM_BLE_REF_VALUE ref_value);
 
 /*******************************************************************************
  *
- * Function         BTA_DmEnableScanFilter
- *
- * Description      This function is called to enable the adv data payload
- *                  filter
- *
- * Parameters       action - enable or disable the APCF feature
- *                  p_cmpl_cback - Command completed callback
- *                  ref_value - Reference value
- *
- * Returns          void
- *
- ******************************************************************************/
-extern void BTA_DmEnableScanFilter(uint8_t action,
-                                   tBTM_BLE_PF_STATUS_CBACK* p_cmpl_cback,
-                                   tBTM_BLE_REF_VALUE ref_value);
-
-/*******************************************************************************
- *
  * Function         BTA_DmBleScanFilterSetup
  *
  * Description      This function is called to setup the filter params
@@ -1863,15 +1845,13 @@ extern void BTA_DmEnableScanFilter(uint8_t action,
  *                  p_filt_params -Filter parameters
  *                  ref_value - Reference value
  *                  action - Add, delete or clear
- *                  p_cmpl_back - Command completed callback
- *
- * Returns          void
+ *                  cb - Command completed callback
  *
  ******************************************************************************/
 extern void BTA_DmBleScanFilterSetup(
     uint8_t action, tBTM_BLE_PF_FILT_INDEX filt_index,
     std::unique_ptr<btgatt_filt_param_setup_t> p_filt_params,
-    tBTM_BLE_PF_PARAM_CBACK p_cmpl_cback, tBTM_BLE_REF_VALUE ref_value);
+    tBTM_BLE_PF_PARAM_CB cb);
 
 /*******************************************************************************
  *
@@ -1884,22 +1864,19 @@ extern void BTA_DmBleScanFilterSetup(
  *                  cond_type: filter condition type
  *                  filt_index - Filter index
  *                  p_cond: filter condition parameter
- *                  p_cmpl_back - Command completed callback
- *                  ref_value - Reference value
+ *                  cb - Command completed callback
  *
  * Returns          void
  *
  ******************************************************************************/
-extern void BTA_DmBleCfgFilterCondition(tBTM_BLE_SCAN_COND_OP action,
-                                        tBTM_BLE_PF_COND_TYPE cond_type,
-                                        tBTM_BLE_PF_FILT_INDEX filt_index,
-                                        tBTM_BLE_PF_COND_PARAM* p_cond,
-                                        tBTM_BLE_PF_CFG_CBACK* p_cmpl_cback,
-                                        tBTM_BLE_REF_VALUE ref_value);
+extern void BTA_DmBleCfgFilterCondition(
+    tBTM_BLE_SCAN_COND_OP action, tBTM_BLE_PF_COND_TYPE cond_type,
+    tBTM_BLE_PF_FILT_INDEX filt_index, tBTM_BLE_PF_COND_PARAM* p_cond,
+    base::Callback<void(uint8_t, uint8_t, uint8_t)> cb);
 
-extern void BTA_DmBleScanFilterClear(tBTM_BLE_REF_VALUE ref_value,
-                                     tBTM_BLE_PF_FILT_INDEX filt_index,
-                                     tBTM_BLE_PF_CFG_CBACK* p_cmpl_cback);
+extern void BTA_DmBleScanFilterClear(
+    tBTM_BLE_PF_FILT_INDEX filt_index,
+    base::Callback<void(uint8_t, uint8_t, uint8_t)> cb);
 
 /*******************************************************************************
  *
