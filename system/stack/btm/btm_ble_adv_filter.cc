@@ -18,6 +18,7 @@
 
 #define LOG_TAG "bt_btm_ble"
 
+#include <base/bind.h>
 #include <string.h>
 
 #include "bt_target.h"
@@ -95,77 +96,6 @@ tBTM_STATUS btm_ble_obtain_vsc_details() {
   cmn_ble_vsc_cb.max_filter = BTM_BLE_MAX_FILTER_COUNTER;
 #endif
   return st;
-}
-
-/*******************************************************************************
- *
- * Function         btm_ble_advfilt_enq_op_q
- *
- * Description      enqueue an adv filter operation in the q to check command
- *                  complete status
- *
- * Returns          void
- *
- ******************************************************************************/
-void btm_ble_advfilt_enq_op_q(uint8_t action, uint8_t ocf,
-                              tBTM_BLE_FILT_CB_EVT cb_evt,
-                              tBTM_BLE_REF_VALUE ref,
-                              tBTM_BLE_PF_CFG_CBACK* p_cmpl_cback,
-                              tBTM_BLE_PF_PARAM_CBACK* p_filt_param_cback) {
-  btm_ble_adv_filt_cb.op_q.action_ocf[btm_ble_adv_filt_cb.op_q.next_idx] =
-      (action | (ocf << 4));
-  btm_ble_adv_filt_cb.op_q.ref_value[btm_ble_adv_filt_cb.op_q.next_idx] = ref;
-  btm_ble_adv_filt_cb.op_q.cb_evt[btm_ble_adv_filt_cb.op_q.next_idx] = cb_evt;
-  btm_ble_adv_filt_cb.op_q.p_scan_cfg_cback[btm_ble_adv_filt_cb.op_q.next_idx] =
-      p_cmpl_cback;
-  btm_ble_adv_filt_cb.op_q
-      .p_filt_param_cback[btm_ble_adv_filt_cb.op_q.next_idx] =
-      p_filt_param_cback;
-  BTM_TRACE_DEBUG(
-      "btm_ble_advfilt_enq_op_q: act_ocf:%d, action:%d, ocf:%d,cb_evt;%d, "
-      "cback:%x",
-      btm_ble_adv_filt_cb.op_q.action_ocf[btm_ble_adv_filt_cb.op_q.next_idx],
-      action, ocf, cb_evt, p_cmpl_cback);
-  btm_ble_adv_filt_cb.op_q.next_idx =
-      (btm_ble_adv_filt_cb.op_q.next_idx + 1) % BTM_BLE_PF_TYPE_MAX;
-}
-
-/*******************************************************************************
- *
- * Function         btm_ble_advfilt_deq_op_q
- *
- * Description      dequeue an adv filter operation from q when command complete
- *                  is received
- *
- * Returns          void
- *
- ******************************************************************************/
-void btm_ble_advfilt_deq_op_q(uint8_t* p_action, uint8_t* p_ocf,
-                              tBTM_BLE_FILT_CB_EVT* p_cb_evt,
-                              tBTM_BLE_REF_VALUE* p_ref,
-                              tBTM_BLE_PF_CFG_CBACK** p_cmpl_cback,
-                              tBTM_BLE_PF_PARAM_CBACK** p_filt_param_cback) {
-  *p_ocf = (btm_ble_adv_filt_cb.op_q
-                .action_ocf[btm_ble_adv_filt_cb.op_q.pending_idx] >>
-            4);
-  *p_action = (btm_ble_adv_filt_cb.op_q
-                   .action_ocf[btm_ble_adv_filt_cb.op_q.pending_idx] &
-               BTM_BLE_ADV_FILT_SUBCODE_MASK);
-  *p_ref =
-      btm_ble_adv_filt_cb.op_q.ref_value[btm_ble_adv_filt_cb.op_q.pending_idx];
-  *p_cb_evt =
-      btm_ble_adv_filt_cb.op_q.cb_evt[btm_ble_adv_filt_cb.op_q.pending_idx];
-  *p_cmpl_cback = btm_ble_adv_filt_cb.op_q
-                      .p_scan_cfg_cback[btm_ble_adv_filt_cb.op_q.pending_idx];
-  *p_filt_param_cback =
-      btm_ble_adv_filt_cb.op_q
-          .p_filt_param_cback[btm_ble_adv_filt_cb.op_q.pending_idx];
-
-  btm_ble_adv_filt_cb.op_q.pending_idx =
-      (btm_ble_adv_filt_cb.op_q.pending_idx + 1) % BTM_BLE_PF_TYPE_MAX;
-  BTM_TRACE_DEBUG(
-      "btm_ble_advfilt_deq_op_q: ocf:%d, action:%d, ref_value:%d, cb_evt:%x",
-      *p_ocf, *p_action, *p_ref, *p_cb_evt);
 }
 
 /*******************************************************************************
@@ -253,118 +183,46 @@ uint8_t btm_ble_ocf_to_condtype(uint8_t ocf) {
   return cond_type;
 }
 
-/*******************************************************************************
- *
- * Function         btm_ble_scan_pf_cmpl_cback
- *
- * Description      the BTM BLE customer feature VSC complete callback for ADV
- *                  PF filtering
- *
- * Returns          pointer to the counter if found; NULL otherwise.
- *
- ******************************************************************************/
-void btm_ble_scan_pf_cmpl_cback(tBTM_VSC_CMPL* p_params) {
-  uint8_t status = 0;
-  uint8_t *p = p_params->p_param_buf, op_subcode = 0, action = 0xff;
-  uint16_t evt_len = p_params->param_len;
-  uint8_t ocf = BTM_BLE_META_PF_ALL, cond_type = 0;
-  uint8_t num_avail = 0, cb_evt = 0;
-  tBTM_BLE_REF_VALUE ref_value = 0;
-  tBTM_BLE_PF_CFG_CBACK* p_scan_cfg_cback = NULL;
-  tBTM_BLE_PF_PARAM_CBACK* p_filt_param_cback = NULL;
-
-  if (evt_len < 3 || evt_len > 4) {
-    BTM_TRACE_ERROR(
-        "%s cannot interpret APCF callback status = %d, length = %d", __func__,
-        status, evt_len);
-    btm_ble_advfilt_deq_op_q(&action, &ocf, &cb_evt, &ref_value,
-                             &p_scan_cfg_cback, &p_filt_param_cback);
+void btm_flt_update_cb(uint8_t expected_ocf, tBTM_BLE_PF_CFG_CBACK cb,
+                       uint8_t* p, uint16_t evt_len) {
+  if (evt_len != 4) {
+    BTM_TRACE_ERROR("%s: bad length: %d", __func__, evt_len);
     return;
   }
 
-  btm_ble_advfilt_deq_op_q(&action, &ocf, &cb_evt, &ref_value,
-                           &p_scan_cfg_cback, &p_filt_param_cback);
-
+  uint8_t status, op_subcode, action, num_avail;
   STREAM_TO_UINT8(status, p);
   STREAM_TO_UINT8(op_subcode, p);
   STREAM_TO_UINT8(action, p);
+  STREAM_TO_UINT8(num_avail, p);
 
-  /* Ignore the event, if it is not the same one expected */
-  if (3 == evt_len) {
-    if (ocf != op_subcode) {
-      BTM_TRACE_ERROR(
-          "btm_ble_scan_pf_cmpl_cback:3-Incorrect opcode :%d, %d, %d, %d, %d, "
-          "%d",
-          ocf, op_subcode, action, evt_len, ref_value, status);
-      return;
-    } else {
-      if (NULL != btm_ble_adv_filt_cb.p_filt_stat_cback)
-        btm_ble_adv_filt_cb.p_filt_stat_cback(action, status, ref_value);
-      BTM_TRACE_DEBUG(
-          "btm_ble_scan_pf_cmpl_cback enabled/disabled, %d, %d, %d, %d", ocf,
-          action, status, ref_value);
-      return;
-    }
-  }
-
-  if (4 == evt_len && ocf != op_subcode) {
-    BTM_TRACE_ERROR(
-        "btm_ble_scan_pf_cmpl_cback:4-Incorrect opcode: %d, %d, %d, %d, %d",
-        ocf, op_subcode, action, status, ref_value);
+  if (expected_ocf != op_subcode) {
+    BTM_TRACE_ERROR("%s: Incorrect opcode: 0x%02x, expected: 0x%02x", __func__,
+                    expected_ocf, op_subcode);
     return;
   }
 
-  STREAM_TO_UINT8(num_avail, p);
-  switch (op_subcode) {
-    case BTM_BLE_META_PF_ADDR:
-    case BTM_BLE_META_PF_UUID:
-    case BTM_BLE_META_PF_SOL_UUID:
-    case BTM_BLE_META_PF_LOCAL_NAME:
-    case BTM_BLE_META_PF_MANU_DATA:
-    case BTM_BLE_META_PF_SRVC_DATA:
-      cond_type = btm_ble_ocf_to_condtype(ocf);
-      BTM_TRACE_DEBUG("btm_ble_scan_pf_cmpl_cback Recd: %d, %d, %d, %d, %d, %d",
-                      op_subcode, ocf, action, status, ref_value, num_avail);
-      if (HCI_SUCCESS == status) {
-        if (memcmp(&btm_ble_adv_filt_cb.cur_filter_target.bda, &na_bda,
-                   BD_ADDR_LEN) == 0)
-          btm_ble_cs_update_pf_counter(action, cond_type, NULL, num_avail);
-        else
-          btm_ble_cs_update_pf_counter(action, cond_type,
-                                       &btm_ble_adv_filt_cb.cur_filter_target,
-                                       num_avail);
-      }
-
-      /* send ADV PF operation complete */
-      btm_ble_adv_filt_cb.op_type = 0;
-      break;
-
-    case BTM_BLE_META_PF_FEAT_SEL:
-      BTM_TRACE_DEBUG(
-          "btm_ble_scan_pf_cmpl_cback-Feat sel event: %d, %d, %d, %d", action,
-          status, ref_value, num_avail);
-      break;
-
-    default:
-      BTM_TRACE_ERROR("btm_ble_scan_pf_cmpl_cback: unknown operation: %d",
-                      op_subcode);
-      break;
+  if (op_subcode == BTM_BLE_META_PF_FEAT_SEL) {
+    cb.Run(num_avail, action, status);
+    return;
   }
 
-  switch (cb_evt) {
-    BTM_TRACE_DEBUG("btm_ble_scan_pf_cmpl_cback: calling the cback: %d",
-                    cb_evt);
-    case BTM_BLE_FILT_CFG:
-      if (NULL != p_scan_cfg_cback)
-        p_scan_cfg_cback(action, cond_type, num_avail, status, ref_value);
-      break;
-    case BTM_BLE_FILT_ADV_PARAM:
-      if (NULL != p_filt_param_cback)
-        p_filt_param_cback(action, num_avail, ref_value, status);
-      break;
-    default:
-      break;
+  uint8_t cond_type = btm_ble_ocf_to_condtype(expected_ocf);
+  BTM_TRACE_DEBUG("%s: Recd: %d, %d, %d, %d, %d", __func__, op_subcode,
+                  expected_ocf, action, status, num_avail);
+  if (HCI_SUCCESS == status) {
+    if (memcmp(&btm_ble_adv_filt_cb.cur_filter_target.bda, &na_bda,
+               BD_ADDR_LEN) == 0)
+      btm_ble_cs_update_pf_counter(action, cond_type, NULL, num_avail);
+    else
+      btm_ble_cs_update_pf_counter(
+          action, cond_type, &btm_ble_adv_filt_cb.cur_filter_target, num_avail);
   }
+
+  /* send ADV PF operation complete */
+  btm_ble_adv_filt_cb.op_type = 0;
+
+  cb.Run(num_avail, action, status);
 }
 
 /*******************************************************************************
@@ -465,7 +323,8 @@ bool btm_ble_dealloc_addr_filter_counter(tBLE_BD_ADDR* p_bd_addr,
  ******************************************************************************/
 tBTM_STATUS btm_ble_update_pf_local_name(tBTM_BLE_SCAN_COND_OP action,
                                          tBTM_BLE_PF_FILT_INDEX filt_index,
-                                         tBTM_BLE_PF_COND_PARAM* p_cond) {
+                                         tBTM_BLE_PF_COND_PARAM* p_cond,
+                                         tBTM_BLE_PF_CFG_CBACK cb) {
   tBTM_BLE_PF_LOCAL_NAME_COND* p_local_name =
       (p_cond == NULL) ? NULL : &p_cond->local_name;
   uint8_t param[BTM_BLE_PF_STR_LEN_MAX + BTM_BLE_ADV_FILT_META_HDR_LENGTH],
@@ -491,8 +350,10 @@ tBTM_STATUS btm_ble_update_pf_local_name(tBTM_BLE_SCAN_COND_OP action,
   }
 
   /* send local name filter */
-  BTM_VendorSpecificCommand(HCI_BLE_ADV_FILTER_OCF, len, param,
-                            btm_ble_scan_pf_cmpl_cback);
+  btu_hcif_send_cmd_with_cb(
+      FROM_HERE, HCI_BLE_ADV_FILTER_OCF, param, len,
+      base::Bind(&btm_flt_update_cb, BTM_BLE_META_PF_LOCAL_NAME, cb));
+
   memset(&btm_ble_adv_filt_cb.cur_filter_target, 0, sizeof(tBLE_BD_ADDR));
   return BTM_CMD_STARTED;
 }
@@ -507,7 +368,8 @@ tBTM_STATUS btm_ble_update_pf_local_name(tBTM_BLE_SCAN_COND_OP action,
  * Returns          BTM_SUCCESS if sucessful,
  *                  BTM_ILLEGAL_VALUE if paramter is not valid.
  *
- ******************************************************************************/
+4
+******************************************************************************/
 tBTM_STATUS btm_ble_update_srvc_data_change(tBTM_BLE_SCAN_COND_OP action,
                                             tBTM_BLE_PF_FILT_INDEX filt_index,
                                             tBTM_BLE_PF_COND_PARAM* p_cond) {
@@ -538,23 +400,20 @@ tBTM_STATUS btm_ble_update_pf_manu_data(tBTM_BLE_SCAN_COND_OP action,
                                         tBTM_BLE_PF_FILT_INDEX filt_index,
                                         tBTM_BLE_PF_COND_PARAM* p_data,
                                         tBTM_BLE_PF_COND_TYPE cond_type,
-                                        tBTM_BLE_FILT_CB_EVT cb_evt,
-                                        tBTM_BLE_REF_VALUE ref_value) {
-  tBTM_BLE_PF_MANU_COND* p_manu_data =
-      (p_data == NULL) ? NULL : &p_data->manu_data;
-  tBTM_BLE_PF_SRVC_PATTERN_COND* p_srvc_data =
-      (p_data == NULL) ? NULL : &p_data->srvc_data;
+                                        tBTM_BLE_PF_CFG_CBACK cb) {
+  if (!p_data) return BTM_ILLEGAL_VALUE;
 
-  uint8_t param[BTM_BLE_PF_STR_LEN_MAX + BTM_BLE_PF_STR_LEN_MAX +
-                BTM_BLE_ADV_FILT_META_HDR_LENGTH],
-      *p = param, len = BTM_BLE_ADV_FILT_META_HDR_LENGTH;
-  tBTM_STATUS st = BTM_ILLEGAL_VALUE;
+  tBTM_BLE_PF_MANU_COND* p_manu_data = &p_data->manu_data;
+  tBTM_BLE_PF_SRVC_PATTERN_COND* p_srvc_data = &p_data->srvc_data;
 
-  if (NULL == p_data) return st;
+  int param_len = BTM_BLE_PF_STR_LEN_MAX + BTM_BLE_PF_STR_LEN_MAX +
+                  BTM_BLE_ADV_FILT_META_HDR_LENGTH;
+  uint8_t len = BTM_BLE_ADV_FILT_META_HDR_LENGTH;
 
-  memset(param, 0, BTM_BLE_PF_STR_LEN_MAX + BTM_BLE_PF_STR_LEN_MAX +
-                       BTM_BLE_ADV_FILT_META_HDR_LENGTH);
+  uint8_t param[param_len];
+  memset(param, 0, param_len);
 
+  uint8_t* p = param;
   if (BTM_BLE_PF_SRVC_DATA_PATTERN == cond_type) {
     UINT8_TO_STREAM(p, BTM_BLE_META_PF_SRVC_DATA);
   } else {
@@ -562,13 +421,11 @@ tBTM_STATUS btm_ble_update_pf_manu_data(tBTM_BLE_SCAN_COND_OP action,
   }
 
   UINT8_TO_STREAM(p, action);
-
-  /* Filter index */
   UINT8_TO_STREAM(p, filt_index);
 
   if (BTM_BLE_SCAN_COND_ADD == action || BTM_BLE_SCAN_COND_DELETE == action) {
     if (BTM_BLE_PF_SRVC_DATA_PATTERN == cond_type) {
-      if (NULL == p_srvc_data) return st;
+      if (NULL == p_srvc_data) return BTM_ILLEGAL_VALUE;
       if (p_srvc_data->data_len > (BTM_BLE_PF_STR_LEN_MAX - 2))
         p_srvc_data->data_len = (BTM_BLE_PF_STR_LEN_MAX - 2);
 
@@ -582,11 +439,10 @@ tBTM_STATUS btm_ble_update_pf_manu_data(tBTM_BLE_SCAN_COND_OP action,
       BTM_TRACE_DEBUG("Service data length: %d", len);
     } else {
       if (NULL == p_manu_data) {
-        BTM_TRACE_ERROR("btm_ble_update_pf_manu_data - No manuf data");
-        return st;
+        BTM_TRACE_ERROR("%s: No manuf data", __func__);
+        return BTM_ILLEGAL_VALUE;
       }
-      BTM_TRACE_EVENT("btm_ble_update_pf_manu_data length: %d",
-                      p_manu_data->data_len);
+      BTM_TRACE_EVENT("%s: length: %d", __func__, p_manu_data->data_len);
       if (p_manu_data->data_len > (BTM_BLE_PF_STR_LEN_MAX - 2))
         p_manu_data->data_len = (BTM_BLE_PF_STR_LEN_MAX - 2);
 
@@ -614,9 +470,10 @@ tBTM_STATUS btm_ble_update_pf_manu_data(tBTM_BLE_SCAN_COND_OP action,
     }
   }
 
-  /* send manufacturer*/
-  BTM_VendorSpecificCommand(HCI_BLE_ADV_FILTER_OCF, len, param,
-                            btm_ble_scan_pf_cmpl_cback);
+  uint8_t expected_ocf = btm_ble_condtype_to_ocf(cond_type);
+  btu_hcif_send_cmd_with_cb(FROM_HERE, HCI_BLE_ADV_FILTER_OCF, param, len,
+                            base::Bind(&btm_flt_update_cb, expected_ocf, cb));
+
   memset(&btm_ble_adv_filt_cb.cur_filter_target, 0, sizeof(tBLE_BD_ADDR));
   return BTM_CMD_STARTED;
 }
@@ -698,12 +555,13 @@ uint8_t btm_ble_cs_update_pf_counter(tBTM_BLE_SCAN_COND_OP action,
  ******************************************************************************/
 tBTM_STATUS btm_ble_update_addr_filter(tBTM_BLE_SCAN_COND_OP action,
                                        tBTM_BLE_PF_FILT_INDEX filt_index,
-                                       tBTM_BLE_PF_COND_PARAM* p_cond) {
-  uint8_t param[BTM_BLE_META_ADDR_LEN + BTM_BLE_ADV_FILT_META_HDR_LENGTH],
-      *p = param;
+                                       tBTM_BLE_PF_COND_PARAM* p_cond,
+                                       tBTM_BLE_PF_CFG_CBACK cb) {
+  const uint8_t len = BTM_BLE_ADV_FILT_META_HDR_LENGTH + BTM_BLE_META_ADDR_LEN;
+  uint8_t param[len], *p = param;
   tBLE_BD_ADDR* p_addr = (p_cond == NULL) ? NULL : &p_cond->target_addr;
 
-  memset(param, 0, BTM_BLE_META_ADDR_LEN + BTM_BLE_ADV_FILT_META_HDR_LENGTH);
+  memset(param, 0, len);
 
   UINT8_TO_STREAM(p, BTM_BLE_META_PF_ADDR);
   UINT8_TO_STREAM(p, action);
@@ -717,11 +575,12 @@ tBTM_STATUS btm_ble_update_addr_filter(tBTM_BLE_SCAN_COND_OP action,
     BDADDR_TO_STREAM(p, p_addr->bda);
     UINT8_TO_STREAM(p, p_addr->type);
   }
+
   /* send address filter */
-  BTM_VendorSpecificCommand(
-      HCI_BLE_ADV_FILTER_OCF,
-      (uint8_t)(BTM_BLE_ADV_FILT_META_HDR_LENGTH + BTM_BLE_META_ADDR_LEN),
-      param, btm_ble_scan_pf_cmpl_cback);
+  btu_hcif_send_cmd_with_cb(
+      FROM_HERE, HCI_BLE_ADV_FILTER_OCF, param, len,
+      base::Bind(&btm_flt_update_cb, BTM_BLE_META_PF_ADDR, cb));
+
   memset(&btm_ble_adv_filt_cb.cur_filter_target, 0, sizeof(tBLE_BD_ADDR));
   return BTM_CMD_STARTED;
 }
@@ -742,8 +601,7 @@ tBTM_STATUS btm_ble_update_uuid_filter(tBTM_BLE_SCAN_COND_OP action,
                                        tBTM_BLE_PF_FILT_INDEX filt_index,
                                        tBTM_BLE_PF_COND_TYPE filter_type,
                                        tBTM_BLE_PF_COND_PARAM* p_cond,
-                                       tBTM_BLE_FILT_CB_EVT cb_evt,
-                                       tBTM_BLE_REF_VALUE ref_value) {
+                                       tBTM_BLE_PF_CFG_CBACK cb) {
   uint8_t param[BTM_BLE_META_UUID_LEN + BTM_BLE_ADV_FILT_META_HDR_LENGTH],
       *p = param, len = BTM_BLE_ADV_FILT_META_HDR_LENGTH;
   tBTM_BLE_PF_UUID_COND* p_uuid_cond;
@@ -778,13 +636,12 @@ tBTM_STATUS btm_ble_update_uuid_filter(tBTM_BLE_SCAN_COND_OP action,
     BDADDR_TO_STREAM(p, p_uuid_cond->p_target_addr->bda);
     UINT8_TO_STREAM(p, p_uuid_cond->p_target_addr->type);
 
+    tBTM_BLE_PF_CFG_CBACK fDoNothing;
     /* send address filter */
-    BTM_VendorSpecificCommand(
-        HCI_BLE_ADV_FILTER_OCF,
+    btu_hcif_send_cmd_with_cb(
+        FROM_HERE, HCI_BLE_ADV_FILTER_OCF, param,
         (uint8_t)(BTM_BLE_ADV_FILT_META_HDR_LENGTH + BTM_BLE_META_ADDR_LEN),
-        param, btm_ble_scan_pf_cmpl_cback);
-    btm_ble_advfilt_enq_op_q(action, BTM_BLE_META_PF_ADDR, cb_evt, ref_value,
-                             NULL, NULL);
+        base::Bind(&btm_flt_update_cb, BTM_BLE_META_PF_ADDR, fDoNothing));
     BTM_TRACE_DEBUG("Updated Address filter");
   }
 
@@ -829,13 +686,14 @@ tBTM_STATUS btm_ble_update_uuid_filter(tBTM_BLE_SCAN_COND_OP action,
       memset(p, 0xff, p_uuid_cond->uuid.len);
       len += p_uuid_cond->uuid.len;
     }
-    BTM_TRACE_DEBUG("btm_ble_update_uuid_filter : %d, %d, %d, %d", filter_type,
-                    evt_type, p_uuid_cond->uuid.len, len);
+    BTM_TRACE_DEBUG("%s : %d, %d, %d, %d", __func__, filter_type, evt_type,
+                    p_uuid_cond->uuid.len, len);
   }
 
   /* send UUID filter update */
-  BTM_VendorSpecificCommand(HCI_BLE_ADV_FILTER_OCF, len, param,
-                            btm_ble_scan_pf_cmpl_cback);
+  btu_hcif_send_cmd_with_cb(FROM_HERE, HCI_BLE_ADV_FILTER_OCF, param, len,
+                            base::Bind(&btm_flt_update_cb, evt_type, cb));
+
   if (p_uuid_cond && p_uuid_cond->p_target_addr)
     memcpy(&btm_ble_adv_filt_cb.cur_filter_target, p_uuid_cond->p_target_addr,
            sizeof(tBLE_BD_ADDR));
@@ -860,12 +718,9 @@ tBTM_STATUS btm_ble_update_uuid_filter(tBTM_BLE_SCAN_COND_OP action,
 tBTM_STATUS btm_ble_clear_scan_pf_filter(tBTM_BLE_SCAN_COND_OP action,
                                          tBTM_BLE_PF_FILT_INDEX filt_index,
                                          tBTM_BLE_PF_COND_PARAM* p_cond,
-                                         tBTM_BLE_PF_CFG_CBACK* p_cmpl_cback,
-                                         tBTM_BLE_FILT_CB_EVT cb_evt,
-                                         tBTM_BLE_REF_VALUE ref_value) {
+                                         tBTM_BLE_PF_CFG_CBACK cb) {
   tBLE_BD_ADDR* p_target = (p_cond == NULL) ? NULL : &p_cond->target_addr;
   tBTM_BLE_PF_COUNT* p_bda_filter;
-  tBTM_STATUS st = BTM_WRONG_MODE;
   uint8_t param[20], *p;
 
   if (BTM_BLE_SCAN_COND_CLEAR != action) {
@@ -884,51 +739,34 @@ tBTM_STATUS btm_ble_clear_scan_pf_filter(tBTM_BLE_SCAN_COND_OP action,
       (p_target != NULL && p_bda_filter)) {
     BTM_TRACE_ERROR(
         "Error: Can not clear filter, No PF filter has been configured!");
-    return st;
+    return BTM_WRONG_MODE;
   }
+
+  tBTM_BLE_PF_CFG_CBACK fDoNothing;
 
   /* clear the general filter entry */
   if (NULL == p_target) {
     /* clear manufactuer data filter */
-    st = btm_ble_update_pf_manu_data(BTM_BLE_SCAN_COND_CLEAR, filt_index, NULL,
-                                     BTM_BLE_PF_MANU_DATA, cb_evt, ref_value);
-    if (BTM_CMD_STARTED == st)
-      btm_ble_advfilt_enq_op_q(action, BTM_BLE_META_PF_MANU_DATA, cb_evt,
-                               ref_value, NULL, NULL);
+    btm_ble_update_pf_manu_data(BTM_BLE_SCAN_COND_CLEAR, filt_index, NULL,
+                                BTM_BLE_PF_MANU_DATA, fDoNothing);
 
     /* clear local name filter */
-    st =
-        btm_ble_update_pf_local_name(BTM_BLE_SCAN_COND_CLEAR, filt_index, NULL);
-    if (BTM_CMD_STARTED == st)
-      btm_ble_advfilt_enq_op_q(action, BTM_BLE_META_PF_LOCAL_NAME, cb_evt,
-                               ref_value, NULL, NULL);
+    btm_ble_update_pf_local_name(BTM_BLE_SCAN_COND_CLEAR, filt_index, NULL,
+                                 fDoNothing);
 
     /* update the counter for service data */
-    st = btm_ble_update_srvc_data_change(BTM_BLE_SCAN_COND_CLEAR, filt_index,
-                                         NULL);
+    btm_ble_update_srvc_data_change(BTM_BLE_SCAN_COND_CLEAR, filt_index, NULL);
 
     /* clear UUID filter */
-    st = btm_ble_update_uuid_filter(BTM_BLE_SCAN_COND_CLEAR, filt_index,
-                                    BTM_BLE_PF_SRVC_UUID, NULL, cb_evt,
-                                    ref_value);
-    if (BTM_CMD_STARTED == st)
-      btm_ble_advfilt_enq_op_q(action, BTM_BLE_META_PF_UUID, cb_evt, ref_value,
-                               NULL, NULL);
+    btm_ble_update_uuid_filter(BTM_BLE_SCAN_COND_CLEAR, filt_index,
+                               BTM_BLE_PF_SRVC_UUID, NULL, fDoNothing);
 
-    st = btm_ble_update_uuid_filter(BTM_BLE_SCAN_COND_CLEAR, filt_index,
-                                    BTM_BLE_PF_SRVC_SOL_UUID, NULL, cb_evt,
-                                    ref_value);
-    if (BTM_CMD_STARTED == st)
-      btm_ble_advfilt_enq_op_q(action, BTM_BLE_META_PF_SOL_UUID, cb_evt,
-                               ref_value, NULL, NULL);
+    btm_ble_update_uuid_filter(BTM_BLE_SCAN_COND_CLEAR, filt_index,
+                               BTM_BLE_PF_SRVC_SOL_UUID, NULL, fDoNothing);
 
     /* clear service data filter */
-    st = btm_ble_update_pf_manu_data(BTM_BLE_SCAN_COND_CLEAR, filt_index, NULL,
-                                     BTM_BLE_PF_SRVC_DATA_PATTERN, cb_evt,
-                                     ref_value);
-    if (BTM_CMD_STARTED == st)
-      btm_ble_advfilt_enq_op_q(action, BTM_BLE_META_PF_SRVC_DATA, cb_evt,
-                               ref_value, NULL, NULL);
+    btm_ble_update_pf_manu_data(BTM_BLE_SCAN_COND_CLEAR, filt_index, NULL,
+                                BTM_BLE_PF_SRVC_DATA_PATTERN, fDoNothing);
   }
 
   /* select feature based on control block settings */
@@ -943,10 +781,11 @@ tBTM_STATUS btm_ble_clear_scan_pf_filter(tBTM_BLE_SCAN_COND_OP action,
   /* set logic condition as OR as default */
   UINT8_TO_STREAM(p, BTM_BLE_PF_LOGIC_OR);
 
-  BTM_VendorSpecificCommand(
-      HCI_BLE_ADV_FILTER_OCF,
+  btu_hcif_send_cmd_with_cb(
+      FROM_HERE, HCI_BLE_ADV_FILTER_OCF, param,
       (uint8_t)(BTM_BLE_ADV_FILT_META_HDR_LENGTH + BTM_BLE_PF_FEAT_SEL_LEN),
-      param, btm_ble_scan_pf_cmpl_cback);
+      base::Bind(&btm_flt_update_cb, BTM_BLE_META_PF_FEAT_SEL, cb));
+
   if (p_target)
     memcpy(&btm_ble_adv_filt_cb.cur_filter_target, p_target,
            sizeof(tBLE_BD_ADDR));
@@ -965,25 +804,21 @@ tBTM_STATUS btm_ble_clear_scan_pf_filter(tBTM_BLE_SCAN_COND_OP action,
  * Parameters       action - Type of action to be performed
  *                       filt_index - Filter index
  *                       p_filt_params - Filter parameters
- *                       p_cmpl_back - Callback pointer
- *                       ref_value - reference value
- *
- * Returns          void
+ *                       cb - Callback
  *
  ******************************************************************************/
-tBTM_STATUS BTM_BleAdvFilterParamSetup(
+void BTM_BleAdvFilterParamSetup(
     int action, tBTM_BLE_PF_FILT_INDEX filt_index,
     std::unique_ptr<btgatt_filt_param_setup_t> p_filt_params,
-    tBTM_BLE_PF_PARAM_CBACK* p_cmpl_cback, tBTM_BLE_REF_VALUE ref_value) {
+    tBTM_BLE_PF_PARAM_CB cb) {
   tBTM_BLE_PF_COUNT* p_bda_filter = NULL;
   uint8_t len = BTM_BLE_ADV_FILT_META_HDR_LENGTH +
                 BTM_BLE_ADV_FILT_FEAT_SELN_LEN + BTM_BLE_ADV_FILT_TRACK_NUM;
   uint8_t param[len], *p;
 
   if (BTM_SUCCESS != btm_ble_obtain_vsc_details()) {
-    if (p_cmpl_cback)
-      p_cmpl_cback(BTM_BLE_PF_ENABLE, 0, ref_value, 1 /* BTA_FAILURE */);
-    return BTM_WRONG_MODE;
+    cb.Run(0, BTM_BLE_PF_ENABLE, 1 /* BTA_FAILURE */);
+    return;
   }
 
   p = param;
@@ -994,9 +829,8 @@ tBTM_STATUS BTM_BleAdvFilterParamSetup(
     p_bda_filter = btm_ble_find_addr_filter_counter(nullptr);
     if (NULL == p_bda_filter) {
       BTM_TRACE_ERROR("BD Address not found!");
-      if (p_cmpl_cback)
-        p_cmpl_cback(BTM_BLE_PF_ENABLE, 0, ref_value, 1 /* BTA_FAILURE */);
-      return BTM_WRONG_MODE;
+      cb.Run(0, BTM_BLE_PF_ENABLE, 1 /* BTA_FAILURE */);
+      return;
     }
 
     BTM_TRACE_DEBUG("%s : Feat mask:%d", __func__, p_filt_params->feat_seln);
@@ -1038,11 +872,9 @@ tBTM_STATUS BTM_BleAdvFilterParamSetup(
       len = BTM_BLE_ADV_FILT_META_HDR_LENGTH + BTM_BLE_ADV_FILT_FEAT_SELN_LEN +
             BTM_BLE_ADV_FILT_TRACK_NUM;
 
-    BTM_VendorSpecificCommand(HCI_BLE_ADV_FILTER_OCF, (uint8_t)len, param,
-                              btm_ble_scan_pf_cmpl_cback);
-    btm_ble_advfilt_enq_op_q(action, BTM_BLE_META_PF_FEAT_SEL,
-                             BTM_BLE_FILT_ADV_PARAM, ref_value, NULL,
-                             p_cmpl_cback);
+    btu_hcif_send_cmd_with_cb(
+        FROM_HERE, HCI_BLE_ADV_FILTER_OCF, param, len,
+        base::Bind(&btm_flt_update_cb, BTM_BLE_META_PF_FEAT_SEL, cb));
   } else if (BTM_BLE_SCAN_COND_DELETE == action) {
     /* select feature based on control block settings */
     UINT8_TO_STREAM(p, BTM_BLE_META_PF_FEAT_SEL);
@@ -1050,12 +882,10 @@ tBTM_STATUS BTM_BleAdvFilterParamSetup(
     /* Filter index */
     UINT8_TO_STREAM(p, filt_index);
 
-    BTM_VendorSpecificCommand(HCI_BLE_ADV_FILTER_OCF,
-                              (uint8_t)(BTM_BLE_ADV_FILT_META_HDR_LENGTH),
-                              param, btm_ble_scan_pf_cmpl_cback);
-    btm_ble_advfilt_enq_op_q(action, BTM_BLE_META_PF_FEAT_SEL,
-                             BTM_BLE_FILT_ADV_PARAM, ref_value, NULL,
-                             p_cmpl_cback);
+    btu_hcif_send_cmd_with_cb(
+        FROM_HERE, HCI_BLE_ADV_FILTER_OCF, param,
+        (uint8_t)(BTM_BLE_ADV_FILT_META_HDR_LENGTH),
+        base::Bind(&btm_flt_update_cb, BTM_BLE_META_PF_FEAT_SEL, cb));
   } else if (BTM_BLE_SCAN_COND_CLEAR == action) {
     /* Deallocate all filters here */
     btm_ble_dealloc_addr_filter_counter(NULL, BTM_BLE_PF_TYPE_ALL);
@@ -1064,14 +894,32 @@ tBTM_STATUS BTM_BleAdvFilterParamSetup(
     UINT8_TO_STREAM(p, BTM_BLE_META_PF_FEAT_SEL);
     UINT8_TO_STREAM(p, BTM_BLE_SCAN_COND_CLEAR);
 
-    BTM_VendorSpecificCommand(HCI_BLE_ADV_FILTER_OCF,
-                              (uint8_t)(BTM_BLE_ADV_FILT_META_HDR_LENGTH - 1),
-                              param, btm_ble_scan_pf_cmpl_cback);
-    btm_ble_advfilt_enq_op_q(action, BTM_BLE_META_PF_FEAT_SEL,
-                             BTM_BLE_FILT_ADV_PARAM, ref_value, NULL,
-                             p_cmpl_cback);
+    btu_hcif_send_cmd_with_cb(
+        FROM_HERE, HCI_BLE_ADV_FILTER_OCF, param,
+        (uint8_t)(BTM_BLE_ADV_FILT_META_HDR_LENGTH - 1),
+        base::Bind(&btm_flt_update_cb, BTM_BLE_META_PF_FEAT_SEL, cb));
   }
-  return BTM_CMD_STARTED;
+}
+
+void enable_cmpl_cback(tBTM_BLE_PF_STATUS_CBACK p_stat_cback, uint8_t* p,
+                       uint16_t evt_len) {
+  uint8_t status, op_subcode, action;
+
+  if (evt_len != 3) {
+    BTM_TRACE_ERROR("%s: APCF callback length = %d", __func__, evt_len);
+    return;
+  }
+
+  STREAM_TO_UINT8(status, p);
+  STREAM_TO_UINT8(op_subcode, p);
+  STREAM_TO_UINT8(action, p);
+
+  if (op_subcode != BTM_BLE_META_PF_ENABLE) {
+    BTM_TRACE_ERROR("%s :bad subcode: 0x%02x", __func__, op_subcode);
+    return;
+  }
+
+  p_stat_cback.Run(action, status);
 }
 
 /*******************************************************************************
@@ -1080,40 +928,27 @@ tBTM_STATUS BTM_BleAdvFilterParamSetup(
  *
  * Description      This function is called to enable / disable the APCF feature
  *
- * Parameters  enable the generic scan condition.
- *                  enable: enable or disable the filter condition
+ * Parameters       enable: enable or disable the filter condition
  *                  p_stat_cback - Status callback pointer
- *                  ref_value   - Ref value
- * Returns          void
  *
  ******************************************************************************/
-tBTM_STATUS BTM_BleEnableDisableFilterFeature(
-    uint8_t enable, tBTM_BLE_PF_STATUS_CBACK* p_stat_cback,
-    tBTM_BLE_REF_VALUE ref_value) {
-  uint8_t param[20], *p;
-  tBTM_STATUS st = BTM_WRONG_MODE;
-
+void BTM_BleEnableDisableFilterFeature(uint8_t enable,
+                                       tBTM_BLE_PF_STATUS_CBACK p_stat_cback) {
   if (BTM_SUCCESS != btm_ble_obtain_vsc_details()) {
-    if (p_stat_cback)
-      p_stat_cback(BTM_BLE_PF_ENABLE, ref_value, 1 /* BTA_FAILURE */);
-    return st;
+    if (p_stat_cback) p_stat_cback.Run(BTM_BLE_PF_ENABLE, 1 /* BTA_FAILURE */);
+    return;
   }
 
-  p = param;
+  uint8_t param[20];
   memset(param, 0, 20);
 
-  /* enable the content filter in controller */
-  p = param;
+  uint8_t* p = param;
   UINT8_TO_STREAM(p, BTM_BLE_META_PF_ENABLE);
-  /* enable adv data payload filtering */
   UINT8_TO_STREAM(p, enable);
 
-  BTM_VendorSpecificCommand(HCI_BLE_ADV_FILTER_OCF, BTM_BLE_PCF_ENABLE_LEN,
-                            param, btm_ble_scan_pf_cmpl_cback);
-  btm_ble_adv_filt_cb.p_filt_stat_cback = p_stat_cback;
-  btm_ble_advfilt_enq_op_q(enable, BTM_BLE_META_PF_ENABLE,
-                           BTM_BLE_FILT_ENABLE_DISABLE, ref_value, NULL, NULL);
-  return BTM_CMD_STARTED;
+  btu_hcif_send_cmd_with_cb(FROM_HERE, HCI_BLE_ADV_FILTER_OCF, param,
+                            BTM_BLE_PCF_ENABLE_LEN,
+                            base::Bind(&enable_cmpl_cback, p_stat_cback));
 }
 
 /*******************************************************************************
@@ -1127,89 +962,77 @@ tBTM_STATUS BTM_BleEnableDisableFilterFeature(
  *                  cond_type: filter condition type.
  *                  filt_index - Filter index
  *                  p_cond: filter condition parameter
- *                  p_cmpl_cback  - Config callback pointer
- *                  ref_value - Reference value
- *
- * Returns          void
+ *                  cb  - Config callback
  *
  ******************************************************************************/
-tBTM_STATUS BTM_BleCfgFilterCondition(tBTM_BLE_SCAN_COND_OP action,
-                                      tBTM_BLE_PF_COND_TYPE cond_type,
-                                      tBTM_BLE_PF_FILT_INDEX filt_index,
-                                      tBTM_BLE_PF_COND_PARAM* p_cond,
-                                      tBTM_BLE_PF_CFG_CBACK* p_cmpl_cback,
-                                      tBTM_BLE_REF_VALUE ref_value) {
-  tBTM_STATUS st = BTM_ILLEGAL_VALUE;
+void BTM_BleCfgFilterCondition(tBTM_BLE_SCAN_COND_OP action,
+                               tBTM_BLE_PF_COND_TYPE cond_type,
+                               tBTM_BLE_PF_FILT_INDEX filt_index,
+                               tBTM_BLE_PF_COND_PARAM* p_cond,
+                               tBTM_BLE_PF_CFG_CBACK cb) {
   BTM_TRACE_EVENT("%s action:%d, cond_type:%d, index:%d", __func__, action,
                   cond_type, filt_index);
 
   if (BTM_SUCCESS != btm_ble_obtain_vsc_details()) {
-    if (p_cmpl_cback) {
-      p_cmpl_cback(BTM_BLE_PF_CONFIG, cond_type, 0, 1 /*BTA_FAILURE*/,
-                   ref_value);
-    }
-    return st;
+    cb.Run(0, BTM_BLE_PF_CONFIG, 1 /*BTA_FAILURE*/);
+    return;
   }
+
+  // uint8_t ocf = btm_ble_condtype_to_ocf(cond_type);
+  uint8_t st;
 
   switch (cond_type) {
     /* write service data filter */
     case BTM_BLE_PF_SRVC_DATA_PATTERN:
     /* write manufacturer data filter */
     case BTM_BLE_PF_MANU_DATA:
-      st = btm_ble_update_pf_manu_data(action, filt_index, p_cond, cond_type, 0,
-                                       ref_value);
+      st = btm_ble_update_pf_manu_data(action, filt_index, p_cond, cond_type,
+                                       cb);
       break;
 
     /* write local name filter */
     case BTM_BLE_PF_LOCAL_NAME:
-      st = btm_ble_update_pf_local_name(action, filt_index, p_cond);
+      st = btm_ble_update_pf_local_name(action, filt_index, p_cond, cb);
       break;
 
     /* filter on advertiser address */
     case BTM_BLE_PF_ADDR_FILTER:
-      st = btm_ble_update_addr_filter(action, filt_index, p_cond);
+      st = btm_ble_update_addr_filter(action, filt_index, p_cond, cb);
       break;
 
     /* filter on service/solicitated UUID */
     case BTM_BLE_PF_SRVC_UUID:
     case BTM_BLE_PF_SRVC_SOL_UUID:
-      st = btm_ble_update_uuid_filter(action, filt_index, cond_type, p_cond, 0,
-                                      ref_value);
+      st =
+          btm_ble_update_uuid_filter(action, filt_index, cond_type, p_cond, cb);
       break;
 
     case BTM_BLE_PF_SRVC_DATA:
       st = btm_ble_update_srvc_data_change(action, filt_index, p_cond);
+
+      // TODO(jpawlowski): btm_ble_update_srvc_data_change was not scheduling
+      // any operation, callback was never called in success case. Must
+      // investigeate more if this was bug, or just never used.
+      // cb.Run(0, BTM_BLE_PF_CONFIG, 0 /*BTA_SUCCESS */);
+      // equivalent of old:
+      // ocf = btm_ble_condtype_to_ocf(cond_type);
+      // btm_ble_advfilt_enq_op_q(action, ocf, BTM_BLE_FILT_CFG, ref_value,
+      //                          p_cmpl_cback, NULL);
       break;
 
     case BTM_BLE_PF_TYPE_ALL: /* only used to clear filter */
-      st = btm_ble_clear_scan_pf_filter(action, filt_index, p_cond,
-                                        p_cmpl_cback, 0, ref_value);
+      st = btm_ble_clear_scan_pf_filter(action, filt_index, p_cond, cb);
       break;
 
     default:
       BTM_TRACE_WARNING("condition type [%d] not supported currently.",
                         cond_type);
-      break;
+      return;
   }
 
   if (st != BTM_CMD_STARTED) {
-    if (p_cmpl_cback) {
-      p_cmpl_cback(BTM_BLE_PF_CONFIG, cond_type, 0, 1 /*BTA_FAILURE*/,
-                   ref_value);
-    }
-    return st;
+    cb.Run(0, BTM_BLE_PF_CONFIG, 1 /*BTA_FAILURE*/);
   }
-
-  if (cond_type == BTM_BLE_PF_TYPE_ALL) {
-    btm_ble_advfilt_enq_op_q(action, BTM_BLE_META_PF_FEAT_SEL, BTM_BLE_FILT_CFG,
-                             ref_value, p_cmpl_cback, NULL);
-  } else {
-    uint8_t ocf = btm_ble_condtype_to_ocf(cond_type);
-    btm_ble_advfilt_enq_op_q(action, ocf, BTM_BLE_FILT_CFG, ref_value,
-                             p_cmpl_cback, NULL);
-  }
-
-  return st;
 }
 
 /*******************************************************************************
