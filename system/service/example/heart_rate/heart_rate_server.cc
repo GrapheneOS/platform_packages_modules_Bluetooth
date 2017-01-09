@@ -64,7 +64,7 @@ class CLIBluetoothLeAdvertiserCallback
                               0x00};
     data.push_back(name.length() + 1);
     data.push_back(bluetooth::kEIRTypeCompleteLocalName);
-    data.insert(data.begin(), name.c_str(), name.c_str() + name.length());
+    data.insert(data.end(), name.c_str(), name.c_str() + name.length());
 
     base::TimeDelta timeout;
 
