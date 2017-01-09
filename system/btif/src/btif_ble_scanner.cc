@@ -453,19 +453,14 @@ class BleScannerInterfaceImpl : public BleScannerInterface {
       uint8_t client_if, uint8_t action, uint8_t filt_index,
       std::unique_ptr<btgatt_filt_param_setup_t> filt_param) override {
     BTIF_TRACE_DEBUG("%s", __func__);
-    do_in_jni_thread(Bind(
-        [](int client_if, uint8_t action, int filt_index,
-           std::unique_ptr<btgatt_filt_param_setup_t> adv_filt_param) {
 
-          if (adv_filt_param && adv_filt_param->dely_mode == 1) {
-            BTA_DmBleTrackAdvertiser(client_if, bta_track_adv_event_cb);
-          }
+    if (filt_param && filt_param->dely_mode == 1) {
+      BTA_DmBleTrackAdvertiser(client_if, bta_track_adv_event_cb);
+    }
 
-          BTA_DmBleScanFilterSetup(
-              action, filt_index, std::move(adv_filt_param),
-              base::Bind(&bta_scan_filt_param_setup_cb, client_if));
-        },
-        client_if, action, filt_index, base::Passed(&filt_param)));
+    BTA_DmBleScanFilterSetup(
+        action, filt_index, std::move(filt_param),
+        base::Bind(&bta_scan_filt_param_setup_cb, client_if));
   }
 
   void ScanFilterAddRemove(int client_if, int action, int filt_type,
@@ -483,22 +478,21 @@ class BleScannerInterfaceImpl : public BleScannerInterface {
 
     switch (filt_type) {
       case BTM_BLE_PF_ADDR_FILTER: {
-        tBTM_BLE_PF_COND_PARAM* cond = new tBTM_BLE_PF_COND_PARAM;
-        memset(cond, 0, sizeof(tBTM_BLE_PF_COND_PARAM));
+        tBTM_BLE_PF_COND_PARAM cond;
+        memset(&cond, 0, sizeof(tBTM_BLE_PF_COND_PARAM));
 
-        bdcpy(cond->target_addr.bda, bd_addr->address);
-        cond->target_addr.type = addr_type;
-        do_in_jni_thread(
-            Bind(&BTA_DmBleCfgFilterCondition, action, filt_type, filt_index,
-                 base::Owned(cond),
-                 Bind(&bta_scan_filt_cfg_cb, filt_type, client_if)));
+        bdcpy(cond.target_addr.bda, bd_addr->address);
+        cond.target_addr.type = addr_type;
+        BTA_DmBleCfgFilterCondition(
+            action, filt_type, filt_index, &cond,
+            Bind(&bta_scan_filt_cfg_cb, filt_type, client_if));
         return;
       }
 
       case BTM_BLE_PF_SRVC_DATA:
-        do_in_jni_thread(
-            Bind(&BTA_DmBleCfgFilterCondition, action, filt_type, filt_index,
-                 nullptr, Bind(&bta_scan_filt_cfg_cb, filt_type, client_if)));
+        BTA_DmBleCfgFilterCondition(
+            action, filt_type, filt_index, nullptr,
+            Bind(&bta_scan_filt_cfg_cb, filt_type, client_if));
         return;
 
       case BTM_BLE_PF_SRVC_UUID: {
@@ -506,53 +500,49 @@ class BleScannerInterfaceImpl : public BleScannerInterface {
         btif_to_bta_uuid(&bt_uuid, p_uuid);
 
         if (p_uuid_mask != NULL) {
-          tBTM_BLE_PF_COND_MASK* uuid_mask = new tBTM_BLE_PF_COND_MASK;
-          btif_to_bta_uuid_mask(uuid_mask, p_uuid_mask, p_uuid);
-          do_in_jni_thread(Bind(&btif_gattc_scan_filter_add_srvc_uuid, bt_uuid,
-                                base::Owned(uuid_mask), action, filt_type,
-                                filt_index, client_if));
+          tBTM_BLE_PF_COND_MASK uuid_mask;
+          btif_to_bta_uuid_mask(&uuid_mask, p_uuid_mask, p_uuid);
+          btif_gattc_scan_filter_add_srvc_uuid(
+              bt_uuid, &uuid_mask, action, filt_type, filt_index, client_if);
           return;
         }
 
-        do_in_jni_thread(Bind(&btif_gattc_scan_filter_add_srvc_uuid, bt_uuid,
-                              nullptr, action, filt_type, filt_index,
-                              client_if));
+        btif_gattc_scan_filter_add_srvc_uuid(bt_uuid, nullptr, action,
+                                             filt_type, filt_index, client_if);
         return;
       }
 
       case BTM_BLE_PF_SRVC_SOL_UUID: {
-        tBTM_BLE_PF_COND_PARAM* cond = new tBTM_BLE_PF_COND_PARAM;
-        memset(cond, 0, sizeof(tBTM_BLE_PF_COND_PARAM));
+        tBTM_BLE_PF_COND_PARAM cond;
+        memset(&cond, 0, sizeof(tBTM_BLE_PF_COND_PARAM));
 
-        cond->solicitate_uuid.p_target_addr = NULL;
-        cond->solicitate_uuid.cond_logic = BTM_BLE_PF_LOGIC_AND;
-        btif_to_bta_uuid(&cond->solicitate_uuid.uuid, p_uuid);
+        cond.solicitate_uuid.p_target_addr = NULL;
+        cond.solicitate_uuid.cond_logic = BTM_BLE_PF_LOGIC_AND;
+        btif_to_bta_uuid(&cond.solicitate_uuid.uuid, p_uuid);
 
-        do_in_jni_thread(
-            Bind(&BTA_DmBleCfgFilterCondition, action, filt_type, filt_index,
-                 base::Owned(cond),
-                 Bind(&bta_scan_filt_cfg_cb, filt_type, client_if)));
+        BTA_DmBleCfgFilterCondition(
+            action, filt_type, filt_index, &cond,
+            Bind(&bta_scan_filt_cfg_cb, filt_type, client_if));
         return;
       }
 
       case BTM_BLE_PF_LOCAL_NAME: {
-        do_in_jni_thread(Bind(&btif_gattc_scan_filter_add_local_name,
-                              std::move(data), action, filt_type, filt_index,
-                              client_if));
+        btif_gattc_scan_filter_add_local_name(std::move(data), action,
+                                              filt_type, filt_index, client_if);
         return;
       }
 
       case BTM_BLE_PF_MANU_DATA: {
-        do_in_jni_thread(Bind(&btif_gattc_scan_filter_add_manu_data, company_id,
-                              company_id_mask, std::move(data), std::move(mask),
-                              action, filt_type, filt_index, client_if));
+        btif_gattc_scan_filter_add_manu_data(
+            company_id, company_id_mask, std::move(data), std::move(mask),
+            action, filt_type, filt_index, client_if);
         return;
       }
 
       case BTM_BLE_PF_SRVC_DATA_PATTERN: {
-        do_in_jni_thread(Bind(&btif_gattc_scan_filter_add_data_pattern,
-                              std::move(data), std::move(mask), action,
-                              filt_type, filt_index, client_if));
+        btif_gattc_scan_filter_add_data_pattern(
+            std::move(data), std::move(mask), action, filt_type, filt_index,
+            client_if);
         return;
       }
 
@@ -565,59 +555,51 @@ class BleScannerInterfaceImpl : public BleScannerInterface {
   void ScanFilterClear(int client_if, int filter_index) override {
     BTIF_TRACE_DEBUG("%s: filter_index: %d", __func__, filter_index);
 
-    do_in_jni_thread(
-        Bind(&BTA_DmBleScanFilterClear, filter_index,
-             Bind(&bta_scan_filt_cfg_cb, BTM_BLE_PF_TYPE_ALL, client_if)));
+    BTA_DmBleScanFilterClear(
+        filter_index,
+        Bind(&bta_scan_filt_cfg_cb, BTM_BLE_PF_TYPE_ALL, client_if));
   }
 
   void ScanFilterEnable(int client_if, bool enable) override {
     BTIF_TRACE_DEBUG("%s: enable: %d", __func__, enable);
 
     uint8_t action = enable ? 1 : 0;
-    do_in_jni_thread(Bind(
-        [](int client_if, bool action) {
-          do_in_bta_thread(
-              FROM_HERE,
-              base::Bind(&BTM_BleEnableDisableFilterFeature, action,
-                         base::Bind(&bta_scan_filt_status_cb, client_if)));
-
-        },
-        client_if, action));
+    do_in_bta_thread(
+        FROM_HERE, base::Bind(&BTM_BleEnableDisableFilterFeature, action,
+                              base::Bind(&bta_scan_filt_status_cb, client_if)));
   }
 
   void SetScanParameters(int client_if, int scan_interval,
                          int scan_window) override {
-    do_in_jni_thread(
-        Bind(BTA_DmSetBleScanParams, client_if, scan_interval, scan_window,
-             BTM_BLE_SCAN_MODE_ACTI,
-             (tBLE_SCAN_PARAM_SETUP_CBACK)bta_scan_param_setup_cb));
+    BTA_DmSetBleScanParams(
+        client_if, scan_interval, scan_window, BTM_BLE_SCAN_MODE_ACTI,
+        (tBLE_SCAN_PARAM_SETUP_CBACK)bta_scan_param_setup_cb);
   }
 
   void BatchscanConfigStorage(int client_if, int batch_scan_full_max,
                               int batch_scan_trunc_max,
                               int batch_scan_notify_threshold) override {
-    do_in_jni_thread(
-        Bind(BTA_DmBleSetStorageParams, batch_scan_full_max,
-             batch_scan_trunc_max, batch_scan_notify_threshold,
-             (tBTA_BLE_SCAN_SETUP_CBACK*)bta_batch_scan_setup_cb,
-             (tBTA_BLE_SCAN_THRESHOLD_CBACK*)bta_batch_scan_threshold_cb,
-             (tBTA_BLE_SCAN_REP_CBACK*)bta_batch_scan_reports_cb,
-             (tBTM_BLE_REF_VALUE)client_if));
+    BTA_DmBleSetStorageParams(
+        batch_scan_full_max, batch_scan_trunc_max, batch_scan_notify_threshold,
+        (tBTA_BLE_SCAN_SETUP_CBACK*)bta_batch_scan_setup_cb,
+        (tBTA_BLE_SCAN_THRESHOLD_CBACK*)bta_batch_scan_threshold_cb,
+        (tBTA_BLE_SCAN_REP_CBACK*)bta_batch_scan_reports_cb,
+        (tBTM_BLE_REF_VALUE)client_if);
   }
 
   void BatchscanEnable(int client_if, int scan_mode, int scan_interval,
                        int scan_window, int addr_type,
                        int discard_rule) override {
-    do_in_jni_thread(Bind(BTA_DmBleEnableBatchScan, scan_mode, scan_interval,
-                          scan_window, discard_rule, addr_type, client_if));
+    BTA_DmBleEnableBatchScan(scan_mode, scan_interval, scan_window,
+                             discard_rule, addr_type, client_if);
   }
 
   void BatchscanDisable(int client_if) override {
-    do_in_jni_thread(Bind(BTA_DmBleDisableBatchScan, client_if));
+    BTA_DmBleDisableBatchScan(client_if);
   }
 
   void BatchscanReadReports(int client_if, int scan_mode) override {
-    do_in_jni_thread(Bind(BTA_DmBleReadScanReports, scan_mode, client_if));
+    BTA_DmBleReadScanReports(scan_mode, client_if);
   }
 };
 
