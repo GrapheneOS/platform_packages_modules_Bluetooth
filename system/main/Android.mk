@@ -48,7 +48,6 @@ LOCAL_SHARED_LIBRARIES := \
     libdl \
     liblog \
     libz \
-    libpower \
     libprotobuf-cpp-lite \
     libaudioclient \
     libutils \
