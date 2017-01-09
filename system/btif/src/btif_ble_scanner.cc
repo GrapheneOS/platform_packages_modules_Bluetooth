@@ -350,69 +350,6 @@ void bta_track_adv_event_cb(tBTA_DM_BLE_TRACK_ADV_DATA* p_track_adv_data) {
   SCAN_CBACK_IN_JNI(track_adv_event_cb, Owned(btif_scan_track_cb));
 }
 
-void btif_gattc_scan_filter_add_srvc_uuid(tBT_UUID uuid,
-                                          tBTM_BLE_PF_COND_MASK* p_uuid_mask,
-                                          int action, int filt_type,
-                                          int filt_index, int client_if) {
-  tBTM_BLE_PF_COND_PARAM cond;
-  memset(&cond, 0, sizeof(tBTM_BLE_PF_COND_PARAM));
-
-  cond.srvc_uuid.p_target_addr = NULL;
-  cond.srvc_uuid.cond_logic = BTM_BLE_PF_LOGIC_AND;
-  cond.srvc_uuid.uuid = uuid;
-  cond.srvc_uuid.p_uuid_mask = p_uuid_mask;
-
-  BTA_DmBleCfgFilterCondition(
-      action, filt_type, filt_index, &cond,
-      Bind(&bta_scan_filt_cfg_cb, filt_type, client_if));
-}
-
-void btif_gattc_scan_filter_add_local_name(vector<uint8_t> data, int action,
-                                           int filt_type, int filt_index,
-                                           int client_if) {
-  tBTM_BLE_PF_COND_PARAM cond;
-  memset(&cond, 0, sizeof(tBTM_BLE_PF_COND_PARAM));
-
-  cond.local_name.data_len = data.size();
-  cond.local_name.p_data = const_cast<uint8_t*>(data.data());
-  BTA_DmBleCfgFilterCondition(
-      action, filt_type, filt_index, &cond,
-      Bind(&bta_scan_filt_cfg_cb, filt_type, client_if));
-}
-
-void btif_gattc_scan_filter_add_manu_data(int company_id, int company_id_mask,
-                                          vector<uint8_t> pattern,
-                                          vector<uint8_t> pattern_mask,
-                                          int action, int filt_type,
-                                          int filt_index, int client_if) {
-  tBTM_BLE_PF_COND_PARAM cond;
-  memset(&cond, 0, sizeof(tBTM_BLE_PF_COND_PARAM));
-
-  cond.manu_data.company_id = company_id;
-  cond.manu_data.company_id_mask = company_id_mask ? company_id_mask : 0xFFFF;
-  cond.manu_data.data_len = pattern.size();
-  cond.manu_data.p_pattern = const_cast<uint8_t*>(pattern.data());
-  cond.manu_data.p_pattern_mask = const_cast<uint8_t*>(pattern_mask.data());
-  BTA_DmBleCfgFilterCondition(
-      action, filt_type, filt_index, &cond,
-      Bind(&bta_scan_filt_cfg_cb, filt_type, client_if));
-}
-
-void btif_gattc_scan_filter_add_data_pattern(vector<uint8_t> pattern,
-                                             vector<uint8_t> pattern_mask,
-                                             int action, int filt_type,
-                                             int filt_index, int client_if) {
-  tBTM_BLE_PF_COND_PARAM cond;
-  memset(&cond, 0, sizeof(tBTM_BLE_PF_COND_PARAM));
-
-  cond.srvc_data.data_len = pattern.size();
-  cond.srvc_data.p_pattern = const_cast<uint8_t*>(pattern.data());
-  cond.srvc_data.p_pattern_mask = const_cast<uint8_t*>(pattern_mask.data());
-  BTA_DmBleCfgFilterCondition(
-      action, filt_type, filt_index, &cond,
-      Bind(&bta_scan_filt_cfg_cb, filt_type, client_if));
-}
-
 class BleScannerInterfaceImpl : public BleScannerInterface {
   ~BleScannerInterfaceImpl(){};
 
@@ -476,88 +413,129 @@ class BleScannerInterfaceImpl : public BleScannerInterface {
     if (data.size() != mask.size() && data.size() != 0 && mask.size() != 0)
       return;
 
+    tBTM_BLE_PF_COND_PARAM* p_cond;
     switch (filt_type) {
       case BTM_BLE_PF_ADDR_FILTER: {
-        tBTM_BLE_PF_COND_PARAM cond;
-        memset(&cond, 0, sizeof(tBTM_BLE_PF_COND_PARAM));
+        p_cond = new tBTM_BLE_PF_COND_PARAM;
+        memset(p_cond, 0, sizeof(tBTM_BLE_PF_COND_PARAM));
 
-        bdcpy(cond.target_addr.bda, bd_addr->address);
-        cond.target_addr.type = addr_type;
-        BTA_DmBleCfgFilterCondition(
-            action, filt_type, filt_index, &cond,
-            Bind(&bta_scan_filt_cfg_cb, filt_type, client_if));
-        return;
+        bdcpy(p_cond->target_addr.bda, bd_addr->address);
+        p_cond->target_addr.type = addr_type;
+        break;
       }
 
       case BTM_BLE_PF_SRVC_DATA:
-        BTA_DmBleCfgFilterCondition(
-            action, filt_type, filt_index, nullptr,
-            Bind(&bta_scan_filt_cfg_cb, filt_type, client_if));
-        return;
+        p_cond = nullptr;
+        break;
 
       case BTM_BLE_PF_SRVC_UUID: {
+        p_cond = new tBTM_BLE_PF_COND_PARAM;
+        memset(p_cond, 0, sizeof(tBTM_BLE_PF_COND_PARAM));
+
         tBT_UUID bt_uuid;
         btif_to_bta_uuid(&bt_uuid, p_uuid);
 
+        p_cond->srvc_uuid.cond_logic = BTM_BLE_PF_LOGIC_AND;
+        p_cond->srvc_uuid.uuid = bt_uuid;
+
         if (p_uuid_mask != NULL) {
-          tBTM_BLE_PF_COND_MASK uuid_mask;
-          btif_to_bta_uuid_mask(&uuid_mask, p_uuid_mask, p_uuid);
-          btif_gattc_scan_filter_add_srvc_uuid(
-              bt_uuid, &uuid_mask, action, filt_type, filt_index, client_if);
-          return;
+          uint8_t* p = (uint8_t*)p_cond + sizeof(tBTM_BLE_PF_UUID_COND);
+          p_cond->srvc_uuid.p_uuid_mask = (tBTM_BLE_PF_COND_MASK*)p;
+          btif_to_bta_uuid_mask(p_cond->srvc_uuid.p_uuid_mask, p_uuid_mask,
+                                p_uuid);
         }
 
-        btif_gattc_scan_filter_add_srvc_uuid(bt_uuid, nullptr, action,
-                                             filt_type, filt_index, client_if);
-        return;
+        break;
       }
 
       case BTM_BLE_PF_SRVC_SOL_UUID: {
-        tBTM_BLE_PF_COND_PARAM cond;
-        memset(&cond, 0, sizeof(tBTM_BLE_PF_COND_PARAM));
+        p_cond = new tBTM_BLE_PF_COND_PARAM;
+        memset(p_cond, 0, sizeof(tBTM_BLE_PF_COND_PARAM));
 
-        cond.solicitate_uuid.p_target_addr = NULL;
-        cond.solicitate_uuid.cond_logic = BTM_BLE_PF_LOGIC_AND;
-        btif_to_bta_uuid(&cond.solicitate_uuid.uuid, p_uuid);
-
-        BTA_DmBleCfgFilterCondition(
-            action, filt_type, filt_index, &cond,
-            Bind(&bta_scan_filt_cfg_cb, filt_type, client_if));
-        return;
+        p_cond->solicitate_uuid.cond_logic = BTM_BLE_PF_LOGIC_AND;
+        btif_to_bta_uuid(&p_cond->solicitate_uuid.uuid, p_uuid);
+        break;
       }
 
       case BTM_BLE_PF_LOCAL_NAME: {
-        btif_gattc_scan_filter_add_local_name(std::move(data), action,
-                                              filt_type, filt_index, client_if);
-        return;
+        p_cond = new tBTM_BLE_PF_COND_PARAM;
+        memset(p_cond, 0, sizeof(tBTM_BLE_PF_COND_PARAM));
+
+        uint8_t* p = (uint8_t*)p_cond + sizeof(tBTM_BLE_PF_LOCAL_NAME_COND);
+        p_cond->local_name.data_len = data.size();
+        p_cond->local_name.p_data = p;
+        memcpy(p_cond->local_name.p_data, data.data(), data.size());
+        break;
       }
 
       case BTM_BLE_PF_MANU_DATA: {
-        btif_gattc_scan_filter_add_manu_data(
-            company_id, company_id_mask, std::move(data), std::move(mask),
-            action, filt_type, filt_index, client_if);
-        return;
+        p_cond = new tBTM_BLE_PF_COND_PARAM;
+        memset(p_cond, 0, sizeof(tBTM_BLE_PF_COND_PARAM));
+
+        uint8_t data_len = data.size();
+
+        p_cond->manu_data.company_id = company_id;
+        p_cond->manu_data.company_id_mask =
+            company_id_mask ? company_id_mask : 0xFFFF;
+        p_cond->manu_data.data_len = data_len;
+
+        uint8_t* p = (uint8_t*)p_cond + sizeof(tBTM_BLE_PF_MANU_COND);
+        p_cond->manu_data.p_pattern = p;
+        memcpy(p_cond->manu_data.p_pattern, data.data(), data_len);
+        p += data_len;
+
+        if (mask.size()) {
+          p_cond->manu_data.p_pattern_mask = p;
+          memcpy(p_cond->manu_data.p_pattern_mask, mask.data(), mask.size());
+        }
+        break;
       }
 
       case BTM_BLE_PF_SRVC_DATA_PATTERN: {
-        btif_gattc_scan_filter_add_data_pattern(
-            std::move(data), std::move(mask), action, filt_type, filt_index,
-            client_if);
-        return;
+        p_cond = new tBTM_BLE_PF_COND_PARAM;
+        memset(p_cond, 0, sizeof(tBTM_BLE_PF_COND_PARAM));
+
+        p_cond->srvc_data.data_len = data.size();
+
+        uint8_t* p = (uint8_t*)p_cond + sizeof(tBTM_BLE_PF_UUID_COND);
+        p_cond->srvc_data.p_pattern = p;
+        memcpy(p_cond->srvc_data.p_pattern, data.data(), data.size());
+        p += data.size();
+        if (mask.size()) {
+          p_cond->srvc_data.p_pattern_mask = p;
+          memcpy(p_cond->srvc_data.p_pattern_mask, mask.data(), mask.size());
+        }
+        break;
       }
 
       default:
         LOG_ERROR(LOG_TAG, "%s: Unknown filter type (%d)!", __func__, action);
         return;
     }
+
+    if (p_cond != nullptr) {
+      do_in_bta_thread(
+          FROM_HERE,
+          base::Bind(&BTM_BleCfgFilterCondition, action, filt_type, filt_index,
+                     base::Owned(p_cond),
+                     Bind(&bta_scan_filt_cfg_cb, filt_type, client_if)));
+    } else {
+      do_in_bta_thread(FROM_HERE, base::Bind(&BTM_BleCfgFilterCondition, action,
+                                             filt_type, filt_index, nullptr,
+                                             Bind(&bta_scan_filt_cfg_cb,
+                                                  filt_type, client_if)));
+    }
   }
 
   void ScanFilterClear(int client_if, int filter_index) override {
     BTIF_TRACE_DEBUG("%s: filter_index: %d", __func__, filter_index);
 
-    BTA_DmBleScanFilterClear(
-        filter_index,
-        Bind(&bta_scan_filt_cfg_cb, BTM_BLE_PF_TYPE_ALL, client_if));
+    do_in_bta_thread(
+        FROM_HERE,
+        base::Bind(
+            &BTM_BleCfgFilterCondition, BTM_BLE_SCAN_COND_CLEAR,
+            BTM_BLE_PF_TYPE_ALL, filter_index, nullptr,
+            Bind(&bta_scan_filt_cfg_cb, BTM_BLE_PF_TYPE_ALL, client_if)));
   }
 
   void ScanFilterEnable(int client_if, bool enable) override {
