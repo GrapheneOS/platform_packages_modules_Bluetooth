@@ -124,7 +124,6 @@ void InterfaceWithInstancesBase::OnRegisterInstance(
 
   std::lock_guard<std::mutex> lock(maps_lock_);
   int instance_id = instance->GetInstanceId();
-  CHECK(instance_id);
   if (!id_to_cb_.Register(instance_id, callback, this)) {
     LOG(ERROR) << "Failed to store callback";
     OnRegisterInstanceImpl(bluetooth::BLE_STATUS_FAILURE, callback, nullptr);
