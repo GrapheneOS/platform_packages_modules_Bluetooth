@@ -395,9 +395,11 @@ class BleScannerInterfaceImpl : public BleScannerInterface {
       BTA_DmBleTrackAdvertiser(client_if, bta_track_adv_event_cb);
     }
 
-    BTA_DmBleScanFilterSetup(
-        action, filt_index, std::move(filt_param),
-        base::Bind(&bta_scan_filt_param_setup_cb, client_if));
+    do_in_bta_thread(
+        FROM_HERE,
+        base::Bind(&BTM_BleAdvFilterParamSetup, action, filt_index,
+                   base::Passed(&filt_param),
+                   base::Bind(&bta_scan_filt_param_setup_cb, client_if)));
   }
 
   void ScanFilterAddRemove(int client_if, int action, int filt_type,
