@@ -95,7 +95,7 @@ const int kAdvertisingIntervalDeltaUnit = 10;
 
 // Legacy Advertising types (ADV_IND, ADV_SCAN_IND, etc.) that are exposed to
 // applications.
-const uint16_t kAdvertisingEventTypeLegacyConnectable = 0x0011;
+const uint16_t kAdvertisingEventTypeLegacyConnectable = 0x0013;
 const uint16_t kAdvertisingEventTypeLegacyScannable = 0x0012;
 const uint16_t kAdvertisingEventTypeLegacyNonConnectable = 0x0010;
 
