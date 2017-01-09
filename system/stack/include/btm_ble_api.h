@@ -828,23 +828,38 @@ extern void BTM_BleAdvFilterParamSetup(
     std::unique_ptr<btgatt_filt_param_setup_t> p_filt_params,
     tBTM_BLE_PF_PARAM_CB cb);
 
-/*******************************************************************************
- *
- * Function         BTM_BleCfgFilterCondition
- *
- * Description      This function is called to configure the adv data payload
- *                  filter condition.
- *
- * Parameters       action: to read/write/clear
- *                  cond_type: filter condition type.
- *                  p_cond: filter condition paramter
- *
- ******************************************************************************/
-extern void BTM_BleCfgFilterCondition(tBTM_BLE_SCAN_COND_OP action,
-                                      tBTM_BLE_PF_COND_TYPE cond_type,
-                                      tBTM_BLE_PF_FILT_INDEX filt_index,
-                                      tBTM_BLE_PF_COND_PARAM* p_cond,
-                                      tBTM_BLE_PF_CFG_CBACK cb);
+/**
+ * This functions are called to configure the adv data payload filter condition
+ */
+extern void BTM_LE_PF_srvc_data(tBTM_BLE_SCAN_COND_OP action,
+                                tBTM_BLE_PF_FILT_INDEX filt_index);
+extern void BTM_LE_PF_addr_filter(tBTM_BLE_SCAN_COND_OP action,
+                                  tBTM_BLE_PF_FILT_INDEX filt_index,
+                                  tBLE_BD_ADDR addr, tBTM_BLE_PF_CFG_CBACK cb);
+extern void BTM_LE_PF_local_name(tBTM_BLE_SCAN_COND_OP action,
+                                 tBTM_BLE_PF_FILT_INDEX filt_index,
+                                 std::vector<uint8_t> name,
+                                 tBTM_BLE_PF_CFG_CBACK cb);
+extern void BTM_LE_PF_uuid_filter(tBTM_BLE_SCAN_COND_OP action,
+                                  tBTM_BLE_PF_FILT_INDEX filt_index,
+                                  tBTM_BLE_PF_COND_TYPE filter_type,
+                                  tBT_UUID uuid,
+                                  tBTM_BLE_PF_LOGIC_TYPE cond_logic,
+                                  tBTM_BLE_PF_COND_MASK* p_uuid_mask,
+                                  tBTM_BLE_PF_CFG_CBACK cb);
+extern void BTM_LE_PF_manu_data(tBTM_BLE_SCAN_COND_OP action,
+                                tBTM_BLE_PF_FILT_INDEX filt_index,
+                                uint16_t company_id, uint16_t company_id_mask,
+                                std::vector<uint8_t> data,
+                                std::vector<uint8_t> data_mask,
+                                tBTM_BLE_PF_CFG_CBACK cb);
+extern void BTM_LE_PF_srvc_data_pattern(tBTM_BLE_SCAN_COND_OP action,
+                                        tBTM_BLE_PF_FILT_INDEX filt_index,
+                                        std::vector<uint8_t> data,
+                                        std::vector<uint8_t> data_mask,
+                                        tBTM_BLE_PF_CFG_CBACK cb);
+extern void BTM_LE_PF_clear(tBTM_BLE_PF_FILT_INDEX filt_index,
+                            tBTM_BLE_PF_CFG_CBACK cb);
 
 /*******************************************************************************
  *
