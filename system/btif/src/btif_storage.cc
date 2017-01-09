@@ -39,7 +39,6 @@
 #include <string.h>
 #include <time.h>
 
-#include <cutils/log.h>
 #include "bt_common.h"
 #include "bta_hd_api.h"
 #include "bta_hh_api.h"
