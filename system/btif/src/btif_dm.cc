@@ -45,6 +45,7 @@
 
 #include "bdaddr.h"
 #include "bt_common.h"
+#include "bta_closure_api.h"
 #include "bta_gatt_api.h"
 #include "btif_api.h"
 #include "btif_config.h"
@@ -1345,8 +1346,10 @@ static void btif_dm_search_devices_evt(uint16_t event, char* p_param) {
     } break;
 
     case BTA_DM_INQ_CMPL_EVT: {
-      BTA_DmBleScanFilterSetup(BTM_BLE_SCAN_COND_DELETE, 0, nullptr,
-                               base::Bind(&bte_scan_filt_param_cfg_evt, 0));
+      do_in_bta_thread(
+          FROM_HERE,
+          base::Bind(&BTM_BleAdvFilterParamSetup, BTM_BLE_SCAN_COND_DELETE, 0,
+                     nullptr, base::Bind(&bte_scan_filt_param_cfg_evt, 0)));
     } break;
     case BTA_DM_DISC_CMPL_EVT: {
       HAL_CBACK(bt_hal_cbacks, discovery_state_changed_cb,
@@ -1365,8 +1368,10 @@ static void btif_dm_search_devices_evt(uint16_t event, char* p_param) {
       if (btif_dm_inquiry_in_progress == false) {
         btgatt_filt_param_setup_t adv_filt_param;
         memset(&adv_filt_param, 0, sizeof(btgatt_filt_param_setup_t));
-        BTA_DmBleScanFilterSetup(BTM_BLE_SCAN_COND_DELETE, 0, nullptr,
-                                 base::Bind(&bte_scan_filt_param_cfg_evt, 0));
+        do_in_bta_thread(
+            FROM_HERE,
+            base::Bind(&BTM_BleAdvFilterParamSetup, BTM_BLE_SCAN_COND_DELETE, 0,
+                       nullptr, base::Bind(&bte_scan_filt_param_cfg_evt, 0)));
         HAL_CBACK(bt_hal_cbacks, discovery_state_changed_cb,
                   BT_DISCOVERY_STOPPED);
       }
@@ -2152,8 +2157,10 @@ bt_status_t btif_dm_start_discovery(void) {
   BTIF_TRACE_EVENT("%s", __func__);
 
   /* Cleanup anything remaining on index 0 */
-  BTA_DmBleScanFilterSetup(BTM_BLE_SCAN_COND_DELETE, 0, nullptr,
-                           base::Bind(&bte_scan_filt_param_cfg_evt, 0));
+  do_in_bta_thread(
+      FROM_HERE,
+      base::Bind(&BTM_BleAdvFilterParamSetup, BTM_BLE_SCAN_COND_DELETE, 0,
+                 nullptr, base::Bind(&bte_scan_filt_param_cfg_evt, 0)));
 
   auto adv_filt_param = std::make_unique<btgatt_filt_param_setup_t>();
   /* Add an allow-all filter on index 0*/
@@ -2163,8 +2170,10 @@ bt_status_t btif_dm_start_discovery(void) {
   adv_filt_param->list_logic_type = BTA_DM_BLE_PF_LIST_LOGIC_OR;
   adv_filt_param->rssi_low_thres = LOWEST_RSSI_VALUE;
   adv_filt_param->rssi_high_thres = LOWEST_RSSI_VALUE;
-  BTA_DmBleScanFilterSetup(BTM_BLE_SCAN_COND_ADD, 0, std::move(adv_filt_param),
-                           base::Bind(&bte_scan_filt_param_cfg_evt, 0));
+  do_in_bta_thread(
+      FROM_HERE, base::Bind(&BTM_BleAdvFilterParamSetup, BTM_BLE_SCAN_COND_ADD,
+                            0, base::Passed(&adv_filt_param),
+                            base::Bind(&bte_scan_filt_param_cfg_evt, 0)));
 
   /* TODO: Do we need to handle multiple inquiries at the same time? */
 
