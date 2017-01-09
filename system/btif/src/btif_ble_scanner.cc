@@ -204,64 +204,15 @@ void bta_scan_filt_status_cb(tBTM_BLE_REF_VALUE ref_value, uint8_t action,
   SCAN_CBACK_IN_JNI(scan_filter_status_cb, action, ref_value, status);
 }
 
-void bta_batch_scan_setup_cb(tBTA_BLE_BATCH_SCAN_EVT evt,
-                             tBTM_BLE_REF_VALUE ref_value, tBTA_STATUS status) {
-  BTIF_TRACE_DEBUG("bta_batch_scan_setup_cb-Status:%x, client_if:%d, evt=%d",
-                   status, ref_value, evt);
-
-  switch (evt) {
-    case BTA_BLE_BATCH_SCAN_ENB_EVT: {
-      SCAN_CBACK_IN_JNI(batchscan_enb_disable_cb, 1, ref_value, status);
-      return;
-    }
-
-    case BTA_BLE_BATCH_SCAN_DIS_EVT: {
-      SCAN_CBACK_IN_JNI(batchscan_enb_disable_cb, 0, ref_value, status);
-      return;
-    }
-
-    case BTA_BLE_BATCH_SCAN_CFG_STRG_EVT: {
-      SCAN_CBACK_IN_JNI(batchscan_cfg_storage_cb, ref_value, status);
-      return;
-    }
-
-    case BTA_BLE_BATCH_SCAN_DATA_EVT: {
-      SCAN_CBACK_IN_JNI(batchscan_reports_cb, ref_value, status, 0, 0,
-                        vector<uint8_t>());
-      return;
-    }
-
-    case BTA_BLE_BATCH_SCAN_THRES_EVT: {
-      SCAN_CBACK_IN_JNI(batchscan_threshold_cb, ref_value);
-      return;
-    }
-
-    default:
-      return;
-  }
-}
-
 void bta_batch_scan_threshold_cb(tBTM_BLE_REF_VALUE ref_value) {
   SCAN_CBACK_IN_JNI(batchscan_threshold_cb, ref_value);
 }
 
-void bta_batch_scan_reports_cb(tBTM_BLE_REF_VALUE ref_value,
+void bta_batch_scan_reports_cb(int client_id, tBTA_STATUS status,
                                uint8_t report_format, uint8_t num_records,
-                               uint16_t data_len, uint8_t* p_rep_data,
-                               tBTA_STATUS status) {
-  BTIF_TRACE_DEBUG("%s - client_if:%d, %d, %d, %d", __func__, ref_value, status,
-                   num_records, data_len);
-
-  if (data_len > 0) {
-    vector<uint8_t> data(p_rep_data, p_rep_data + data_len);
-    osi_free(p_rep_data);
-
-    SCAN_CBACK_IN_JNI(batchscan_reports_cb, ref_value, status, report_format,
-                      num_records, std::move(data));
-  } else {
-    SCAN_CBACK_IN_JNI(batchscan_reports_cb, ref_value, status, report_format,
-                      num_records, vector<uint8_t>());
-  }
+                               std::vector<uint8_t> data) {
+  SCAN_CBACK_IN_JNI(batchscan_reports_cb, client_id, status, report_format,
+                    num_records, std::move(data));
 }
 
 void bta_scan_results_cb_impl(bt_bdaddr_t bd_addr, tBT_DEVICE_TYPE device_type,
@@ -340,7 +291,7 @@ void bta_scan_results_cb(tBTA_DM_SEARCH_EVT event, tBTA_DM_SEARCH* p_data) {
                         p_data->inq_res.ble_addr_type, std::move(value)));
 }
 
-void bta_track_adv_event_cb(tBTA_DM_BLE_TRACK_ADV_DATA* p_track_adv_data) {
+void bta_track_adv_event_cb(tBTM_BLE_TRACK_ADV_DATA* p_track_adv_data) {
   btgatt_track_adv_info_t* btif_scan_track_cb = new btgatt_track_adv_info_t;
 
   BTIF_TRACE_DEBUG("%s", __func__);
@@ -392,7 +343,9 @@ class BleScannerInterfaceImpl : public BleScannerInterface {
     BTIF_TRACE_DEBUG("%s", __func__);
 
     if (filt_param && filt_param->dely_mode == 1) {
-      BTA_DmBleTrackAdvertiser(client_if, bta_track_adv_event_cb);
+      do_in_bta_thread(
+          FROM_HERE, base::Bind(BTM_BleTrackAdvertiser, bta_track_adv_event_cb,
+                                client_if));
     }
 
     do_in_bta_thread(
@@ -509,35 +462,57 @@ class BleScannerInterfaceImpl : public BleScannerInterface {
 
   void SetScanParameters(int client_if, int scan_interval,
                          int scan_window) override {
-    BTA_DmSetBleScanParams(
-        client_if, scan_interval, scan_window, BTM_BLE_SCAN_MODE_ACTI,
-        (tBLE_SCAN_PARAM_SETUP_CBACK)bta_scan_param_setup_cb);
+    do_in_bta_thread(
+        FROM_HERE,
+        base::Bind(&BTM_BleSetScanParams, client_if, scan_interval, scan_window,
+                   BTM_BLE_SCAN_MODE_ACTI, bta_scan_param_setup_cb));
   }
 
   void BatchscanConfigStorage(int client_if, int batch_scan_full_max,
                               int batch_scan_trunc_max,
                               int batch_scan_notify_threshold) override {
-    BTA_DmBleSetStorageParams(
-        batch_scan_full_max, batch_scan_trunc_max, batch_scan_notify_threshold,
-        (tBTA_BLE_SCAN_SETUP_CBACK*)bta_batch_scan_setup_cb,
-        (tBTA_BLE_SCAN_THRESHOLD_CBACK*)bta_batch_scan_threshold_cb,
-        (tBTA_BLE_SCAN_REP_CBACK*)bta_batch_scan_reports_cb,
-        (tBTM_BLE_REF_VALUE)client_if);
+    base::Callback<void(uint8_t /* status */)> cb = base::Bind(
+        [](int client_if, uint8_t status) {
+          SCAN_CBACK_IN_JNI(batchscan_cfg_storage_cb, client_if, status);
+        },
+        client_if);
+
+    do_in_bta_thread(
+        FROM_HERE,
+        base::Bind(&BTM_BleSetStorageConfig, (uint8_t)batch_scan_full_max,
+                   (uint8_t)batch_scan_trunc_max,
+                   (uint8_t)batch_scan_notify_threshold, cb,
+                   bta_batch_scan_threshold_cb, (tBTM_BLE_REF_VALUE)client_if));
   }
 
   void BatchscanEnable(int client_if, int scan_mode, int scan_interval,
                        int scan_window, int addr_type,
                        int discard_rule) override {
-    BTA_DmBleEnableBatchScan(scan_mode, scan_interval, scan_window,
-                             discard_rule, addr_type, client_if);
+    auto cb = base::Bind(
+        [](int client_if, uint8_t status) {
+          SCAN_CBACK_IN_JNI(batchscan_enb_disable_cb, 1, client_if, status);
+        },
+        client_if);
+
+    do_in_bta_thread(
+        FROM_HERE, base::Bind(&BTM_BleEnableBatchScan, scan_mode, scan_interval,
+                              scan_window, discard_rule, addr_type, cb));
   }
 
   void BatchscanDisable(int client_if) override {
-    BTA_DmBleDisableBatchScan(client_if);
+    auto cb = base::Bind(
+        [](int client_if, uint8_t status) {
+          SCAN_CBACK_IN_JNI(batchscan_enb_disable_cb, 1, client_if, status);
+        },
+        client_if);
+
+    do_in_bta_thread(FROM_HERE, base::Bind(&BTM_BleDisableBatchScan, cb));
   }
 
   void BatchscanReadReports(int client_if, int scan_mode) override {
-    BTA_DmBleReadScanReports(scan_mode, client_if);
+    do_in_bta_thread(FROM_HERE,
+                     base::Bind(&BTM_BleReadScanReports, (uint8_t)scan_mode,
+                                Bind(bta_batch_scan_reports_cb, client_if)));
   }
 };
 

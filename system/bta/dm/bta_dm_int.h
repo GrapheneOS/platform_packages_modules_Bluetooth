@@ -89,7 +89,6 @@ enum {
   BTA_DM_API_LOCAL_PRIVACY_EVT,
 #endif
   BTA_DM_API_SET_DATA_LENGTH_EVT,
-  BTA_DM_API_BLE_TRACK_ADVERTISER_EVT,
   BTA_DM_API_BLE_ENERGY_INFO_EVT,
 
   BTA_DM_API_ENABLE_TEST_MODE_EVT,
@@ -414,13 +413,6 @@ typedef struct {
 
 } tBTA_DM_API_BLE_FEATURE;
 
-/* adv data structure */
-typedef struct {
-  BT_HDR hdr;
-  tBTM_BLE_REF_VALUE ref_value;
-  tBTA_BLE_TRACK_ADV_CBACK* p_track_adv_cback;
-} tBTA_DM_API_TRACK_ADVERTISER;
-
 typedef struct {
   BT_HDR hdr;
   tBTA_BLE_ENERGY_INFO_CBACK* p_energy_info_cback;
@@ -511,7 +503,6 @@ typedef union {
   tBTA_DM_API_UPDATE_CONN_PARAM ble_update_conn_params;
   tBTA_DM_API_BLE_SET_DATA_LENGTH ble_set_data_length;
 
-  tBTA_DM_API_TRACK_ADVERTISER ble_track_advert;
   tBTA_DM_API_ENERGY_INFO ble_energy_info;
 
   tBTA_DM_API_REMOVE_ACL remove_acl;
@@ -617,7 +608,6 @@ typedef struct {
   bool is_bta_dm_active;
   tBTA_DM_ACTIVE_LINK device_list;
   tBTA_DM_SEC_CBACK* p_sec_cback;
-  tBTA_BLE_SCAN_SETUP_CBACK* p_setup_cback;
   tBTA_BLE_ENERGY_INFO_CBACK* p_energy_info_cback;
   uint16_t state;
   bool disabling;
@@ -840,22 +830,6 @@ extern void bta_dm_ble_set_adv_params(uint16_t adv_int_min,
 
 extern void bta_dm_ble_set_data_length(tBTA_DM_MSG* p_data);
 
-extern void bta_dm_ble_setup_storage(
-    uint8_t batch_scan_full_max, uint8_t batch_scan_trunc_max,
-    uint8_t batch_scan_notify_threshold,
-    tBTA_BLE_SCAN_SETUP_CBACK* p_setup_cback,
-    tBTA_BLE_SCAN_THRESHOLD_CBACK* p_thres_cback,
-    tBTA_BLE_SCAN_REP_CBACK* p_read_rep_cback, tBTM_BLE_REF_VALUE ref_value);
-extern void bta_dm_ble_enable_batch_scan(tBTA_BLE_BATCH_SCAN_MODE scan_mode,
-                                         uint32_t scan_int,
-                                         uint32_t scan_window,
-                                         tBTA_BLE_DISCARD_RULE discard_rule,
-                                         tBLE_ADDR_TYPE addr_type,
-                                         tBTM_BLE_REF_VALUE ref_value);
-extern void bta_dm_ble_disable_batch_scan(tBTM_BLE_REF_VALUE ref_value);
-extern void bta_dm_ble_read_scan_reports(tBTA_BLE_BATCH_SCAN_MODE scan_type,
-                                         tBTM_BLE_REF_VALUE ref_value);
-extern void bta_dm_ble_track_advertiser(tBTA_DM_MSG* p_data);
 extern void bta_dm_ble_get_energy_info(tBTA_DM_MSG* p_data);
 
 extern void bta_dm_set_encryption(tBTA_DM_MSG* p_data);
