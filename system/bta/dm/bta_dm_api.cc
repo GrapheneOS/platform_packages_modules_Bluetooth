@@ -1140,30 +1140,6 @@ void BTA_DmBleConfigLocalPrivacy(bool privacy_enable) {
 
 /*******************************************************************************
  *
- * Function         BTA_DmBleScanFilterSetup
- *
- * Description      This function is called to setup the adv data payload filter
- *                  param
- *
- * Parameters       filt_index - Filter index
- *                  p_filt_params -Filter parameters
- *                  action - Add, delete or clear
- *                  cb - Command completed callback
- *
- ******************************************************************************/
-void BTA_DmBleScanFilterSetup(
-    uint8_t action, tBTM_BLE_PF_FILT_INDEX filt_index,
-    std::unique_ptr<btgatt_filt_param_setup_t> p_filt_params,
-    tBTM_BLE_PF_PARAM_CB cb) {
-  APPL_TRACE_API("%s: %d", __func__, action);
-
-  do_in_bta_thread(FROM_HERE,
-                   base::Bind(&BTM_BleAdvFilterParamSetup, action, filt_index,
-                              base::Passed(&p_filt_params), cb));
-}
-
-/*******************************************************************************
- *
  * Function         BTA_DmBleGetEnergyInfo
  *
  * Description      This function is called to obtain the energy info
