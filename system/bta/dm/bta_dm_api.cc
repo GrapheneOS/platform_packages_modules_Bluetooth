@@ -1159,15 +1159,13 @@ void BTA_DmBleCfgFilterCondition(tBTM_BLE_SCAN_COND_OP action,
                                  tBTM_BLE_PF_COND_TYPE cond_type,
                                  tBTM_BLE_PF_FILT_INDEX filt_index,
                                  tBTM_BLE_PF_COND_PARAM* p_cond,
-                                 tBTM_BLE_PF_CFG_CBACK* p_cmpl_cback,
-                                 tBTM_BLE_REF_VALUE ref_value) {
+                                 tBTM_BLE_PF_CFG_CBACK update_cb) {
   APPL_TRACE_API("BTA_DmBleCfgFilterCondition: %d, %d", action, cond_type);
 
   if (!p_cond) {
-    do_in_bta_thread(
-        FROM_HERE,
-        base::Bind(base::IgnoreResult(&BTM_BleCfgFilterCondition), action,
-                   cond_type, filt_index, nullptr, p_cmpl_cback, ref_value));
+    do_in_bta_thread(FROM_HERE,
+                     base::Bind(&BTM_BleCfgFilterCondition, action, cond_type,
+                                filt_index, nullptr, update_cb));
   }
 
   uint16_t len = sizeof(tBTM_BLE_PF_COND_PARAM);
@@ -1244,19 +1242,18 @@ void BTA_DmBleCfgFilterCondition(tBTM_BLE_SCAN_COND_OP action,
   }
 
   do_in_bta_thread(
-      FROM_HERE, base::Bind(base::IgnoreResult(&BTM_BleCfgFilterCondition),
-                            action, cond_type, filt_index,
-                            base::Owned((tBTM_BLE_PF_COND_PARAM*)p_cond_param),
-                            p_cmpl_cback, ref_value));
+      FROM_HERE,
+      base::Bind(&BTM_BleCfgFilterCondition, action, cond_type, filt_index,
+                 base::Owned((tBTM_BLE_PF_COND_PARAM*)p_cond_param),
+                 update_cb));
 }
 
-void BTA_DmBleScanFilterClear(tBTM_BLE_REF_VALUE ref_value,
-                              tBTM_BLE_PF_FILT_INDEX filt_index,
-                              tBTM_BLE_PF_CFG_CBACK* p_cmpl_cback) {
-  do_in_bta_thread(FROM_HERE,
-                   base::Bind(base::IgnoreResult(&BTM_BleCfgFilterCondition),
-                              BTM_BLE_SCAN_COND_CLEAR, BTM_BLE_PF_TYPE_ALL,
-                              filt_index, nullptr, p_cmpl_cback, ref_value));
+void BTA_DmBleScanFilterClear(tBTM_BLE_PF_FILT_INDEX filt_index,
+                              tBTM_BLE_PF_CFG_CBACK update_cb) {
+  do_in_bta_thread(
+      FROM_HERE,
+      base::Bind(&BTM_BleCfgFilterCondition, BTM_BLE_SCAN_COND_CLEAR,
+                 BTM_BLE_PF_TYPE_ALL, filt_index, nullptr, update_cb));
 }
 
 /*******************************************************************************
@@ -1268,22 +1265,19 @@ void BTA_DmBleScanFilterClear(tBTM_BLE_REF_VALUE ref_value,
  *
  * Parameters       filt_index - Filter index
  *                  p_filt_params -Filter parameters
- *                  ref_value - Reference value
  *                  action - Add, delete or clear
- *                  p_cmpl_back - Command completed callback
- *
- * Returns          void
+ *                  cb - Command completed callback
  *
  ******************************************************************************/
 void BTA_DmBleScanFilterSetup(
     uint8_t action, tBTM_BLE_PF_FILT_INDEX filt_index,
     std::unique_ptr<btgatt_filt_param_setup_t> p_filt_params,
-    tBTM_BLE_PF_PARAM_CBACK p_cmpl_cback, tBTM_BLE_REF_VALUE ref_value) {
+    tBTM_BLE_PF_PARAM_CB cb) {
   APPL_TRACE_API("%s: %d", __func__, action);
+
   do_in_bta_thread(FROM_HERE,
-                   base::Bind(base::IgnoreResult(&BTM_BleAdvFilterParamSetup),
-                              action, filt_index, base::Passed(&p_filt_params),
-                              p_cmpl_cback, ref_value));
+                   base::Bind(&BTM_BleAdvFilterParamSetup, action, filt_index,
+                              base::Passed(&p_filt_params), cb));
 }
 
 /*******************************************************************************
@@ -1307,30 +1301,6 @@ void BTA_DmBleGetEnergyInfo(tBTA_BLE_ENERGY_INFO_CBACK* p_cmpl_cback) {
   p_msg->p_energy_info_cback = p_cmpl_cback;
 
   bta_sys_sendmsg(p_msg);
-}
-
-/*******************************************************************************
- *
- * Function         BTA_DmEnableScanFilter
- *
- * Description      This function is called to enable the adv data payload
- *                  filter
- *
- * Parameters       action - enable or disable the APCF feature
- *                  p_cmpl_cback - Command completed callback
- *                  ref_value - Reference value
- *
- * Returns          void
- *
- ******************************************************************************/
-void BTA_DmEnableScanFilter(uint8_t action,
-                            tBTM_BLE_PF_STATUS_CBACK* p_cmpl_cback,
-                            tBTM_BLE_REF_VALUE ref_value) {
-  APPL_TRACE_API("%s: %d", __func__, action);
-  do_in_bta_thread(
-      FROM_HERE,
-      base::Bind(base::IgnoreResult(&BTM_BleEnableDisableFilterFeature), action,
-                 p_cmpl_cback, ref_value));
 }
 
 /*******************************************************************************

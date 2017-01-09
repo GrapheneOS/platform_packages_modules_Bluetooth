@@ -19,6 +19,7 @@
 #ifndef BTM_BLE_API_TYPES_H
 #define BTM_BLE_API_TYPES_H
 
+#include <base/callback_forward.h>
 #include <hardware/bt_common_types.h>
 
 #define CHNL_MAP_LEN 5
@@ -471,32 +472,17 @@ enum {
 };
 typedef uint8_t tBTM_BLE_SCAN_COND_OP;
 
-enum {
-  BTM_BLE_FILT_ENABLE_DISABLE = 1,
-  BTM_BLE_FILT_CFG = 2,
-  BTM_BLE_FILT_ADV_PARAM = 3
-};
-
-typedef uint8_t tBTM_BLE_FILT_CB_EVT;
-
 /* BLE adv payload filtering config complete callback */
-typedef void(tBTM_BLE_PF_CFG_CBACK)(tBTM_BLE_PF_ACTION action,
-                                    tBTM_BLE_SCAN_COND_OP cfg_op,
-                                    tBTM_BLE_PF_AVBL_SPACE avbl_space,
-                                    tBTM_STATUS status,
-                                    tBTM_BLE_REF_VALUE ref_value);
-
-typedef void(tBTM_BLE_PF_CMPL_CBACK)(tBTM_BLE_PF_CFG_CBACK);
+using tBTM_BLE_PF_CFG_CBACK = base::Callback<void(
+    uint8_t /* avbl_space */, uint8_t /* action */, uint8_t /* status */)>;
 
 /* BLE adv payload filtering status setup complete callback */
-typedef void(tBTM_BLE_PF_STATUS_CBACK)(uint8_t action, tBTM_STATUS status,
-                                       tBTM_BLE_REF_VALUE ref_value);
+using tBTM_BLE_PF_STATUS_CBACK =
+    base::Callback<void(uint8_t /*action*/, tBTM_STATUS /* status */)>;
 
 /* BLE adv payload filtering param setup complete callback */
-typedef void(tBTM_BLE_PF_PARAM_CBACK)(tBTM_BLE_PF_ACTION action_type,
-                                      tBTM_BLE_PF_AVBL_SPACE avbl_space,
-                                      tBTM_BLE_REF_VALUE ref_value,
-                                      tBTM_STATUS status);
+using tBTM_BLE_PF_PARAM_CB = base::Callback<void(
+    uint8_t /* avbl_space */, uint8_t /* action */, uint8_t /* status */)>;
 
 typedef union {
   uint16_t uuid16_mask;
@@ -547,16 +533,6 @@ typedef union {
   uint8_t additional_data[2000];
 } tBTM_BLE_PF_COND_PARAM;
 
-typedef struct {
-  uint8_t action_ocf[BTM_BLE_PF_TYPE_MAX];
-  tBTM_BLE_REF_VALUE ref_value[BTM_BLE_PF_TYPE_MAX];
-  tBTM_BLE_PF_PARAM_CBACK* p_filt_param_cback[BTM_BLE_PF_TYPE_MAX];
-  tBTM_BLE_PF_CFG_CBACK* p_scan_cfg_cback[BTM_BLE_PF_TYPE_MAX];
-  uint8_t cb_evt[BTM_BLE_PF_TYPE_MAX];
-  uint8_t pending_idx;
-  uint8_t next_idx;
-} tBTM_BLE_ADV_FILTER_ADV_OPQ;
-
 /* per device filter + one generic filter indexed by 0 */
 #define BTM_BLE_MAX_FILTER_COUNTER (BTM_BLE_MAX_ADDR_FILTER + 1)
 
@@ -576,8 +552,6 @@ typedef struct {
   uint8_t op_type;
   tBTM_BLE_PF_COUNT* p_addr_filter_count; /* per BDA filter array */
   tBLE_BD_ADDR cur_filter_target;
-  tBTM_BLE_PF_STATUS_CBACK* p_filt_stat_cback;
-  tBTM_BLE_ADV_FILTER_ADV_OPQ op_q;
 } tBTM_BLE_ADV_FILTER_CB;
 
 /* Sub codes */
