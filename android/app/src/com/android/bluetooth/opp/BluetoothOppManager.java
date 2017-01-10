@@ -246,7 +246,8 @@ public class BluetoothOppManager {
         if (V) Log.v(TAG, "Application data stored to SharedPreference! ");
     }
 
-    public void saveSendingFileInfo(String mimeType, String uriString, boolean isHandover) {
+    public void saveSendingFileInfo(String mimeType, String uriString, boolean isHandover)
+            throws IllegalArgumentException {
         synchronized (BluetoothOppManager.this) {
             mMultipleFlag = false;
             mMimeTypeOfSendingFile = mimeType;
@@ -259,7 +260,8 @@ public class BluetoothOppManager {
         }
     }
 
-    public void saveSendingFileInfo(String mimeType, ArrayList<Uri> uris, boolean isHandover) {
+    public void saveSendingFileInfo(String mimeType, ArrayList<Uri> uris, boolean isHandover)
+            throws IllegalArgumentException {
         synchronized (BluetoothOppManager.this) {
             mMultipleFlag = true;
             mMimeTypeOfSendingFiles = mimeType;
