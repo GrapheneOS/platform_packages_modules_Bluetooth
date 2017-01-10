@@ -5,6 +5,7 @@ LOCAL_PATH:= $(call my-dir)
 include $(CLEAR_VARS)
 LOCAL_CPP_EXTENSION := .cc
 LOCAL_C_INCLUDES := \
+                   external/libldac/inc \
                    $(LOCAL_PATH)/include \
                    $(LOCAL_PATH)/avct \
                    $(LOCAL_PATH)/btm \
@@ -164,6 +165,7 @@ LOCAL_SRC_FILES := \
 LOCAL_MODULE := libbt-stack
 LOCAL_STATIC_LIBRARIES := libbt-hci
 LOCAL_SHARED_LIBRARIES := libcutils liblog libchrome
+LOCAL_REQUIRED_MODULES := libldacBT_enc
 
 LOCAL_CFLAGS += $(bluetooth_CFLAGS)
 LOCAL_CONLYFLAGS += $(bluetooth_CONLYFLAGS)
