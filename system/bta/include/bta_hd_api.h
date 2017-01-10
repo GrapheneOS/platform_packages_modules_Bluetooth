@@ -41,6 +41,7 @@
 #define BTA_HD_SET_PROTOCOL_EVT 8   /* SET_PROTOCOL request from host */
 #define BTA_HD_INTR_DATA_EVT 9      /* DATA received from host on intr */
 #define BTA_HD_VC_UNPLUG_EVT 10     /* Virtual Cable Unplug */
+#define BTA_HD_CONN_STATE_EVT 11    /* Report connection state change */
 #define BTA_HD_API_ERR_EVT 99       /* BT-HD API error */
 
 typedef uint16_t tBTA_HD_EVT;
