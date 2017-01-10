@@ -27,6 +27,8 @@
 
 #if defined(BTA_HD_INCLUDED) && (BTA_HD_INCLUDED == TRUE)
 
+#include <hardware/bluetooth.h>
+#include <hardware/bt_hd.h>
 #include <string.h>
 
 #include "bt_utils.h"
@@ -259,6 +261,7 @@ void bta_hd_unregister2_act(tBTA_HD_DATA* p_data) {
 extern void bta_hd_connect_act(tBTA_HD_DATA* p_data) {
   tHID_STATUS ret;
   tBTA_HD_DEVICE_CTRL* p_ctrl = (tBTA_HD_DEVICE_CTRL*)p_data;
+  tBTA_HD cback_data;
 
   APPL_TRACE_API("%s", __func__);
 
@@ -271,7 +274,13 @@ extern void bta_hd_connect_act(tBTA_HD_DATA* p_data) {
   ret = HID_DevConnect();
   if (ret != HID_SUCCESS) {
     APPL_TRACE_WARNING("%s: HID_DevConnect returned %d", __func__, ret);
+    return;
   }
+
+  bdcpy(cback_data.conn.bda, p_ctrl->addr);
+  cback_data.conn.status = BTHD_CONN_STATE_CONNECTING;
+
+  bta_hd_cb.p_cback(BTA_HD_CONN_STATE_EVT, &cback_data);
 }
 
 /*******************************************************************************
@@ -285,6 +294,7 @@ extern void bta_hd_connect_act(tBTA_HD_DATA* p_data) {
  ******************************************************************************/
 extern void bta_hd_disconnect_act(UNUSED_ATTR tBTA_HD_DATA* p_data) {
   tHID_STATUS ret;
+  tBTA_HD cback_data;
 
   APPL_TRACE_API("%s", __func__);
 
@@ -292,7 +302,13 @@ extern void bta_hd_disconnect_act(UNUSED_ATTR tBTA_HD_DATA* p_data) {
 
   if (ret != HID_SUCCESS) {
     APPL_TRACE_WARNING("%s: HID_DevDisconnect returned %d", __func__, ret);
+    return;
   }
+
+  bdcpy(cback_data.conn.bda, bta_hd_cb.bd_addr);
+  cback_data.conn.status = BTHD_CONN_STATE_DISCONNECTING;
+
+  bta_hd_cb.p_cback(BTA_HD_CONN_STATE_EVT, &cback_data);
 }
 
 /*******************************************************************************
