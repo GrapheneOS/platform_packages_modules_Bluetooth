@@ -87,7 +87,8 @@ LOCAL_REQUIRED_MODULES := \
     bt_did.conf \
     bt_stack.conf \
     libbt-hci \
-    libbt-vendor
+    libbt-vendor \
+    libldacBT_enc
 
 LOCAL_CFLAGS += $(bluetooth_CFLAGS) -DBUILDCFG
 LOCAL_CONLYFLAGS += $(bluetooth_CONLYFLAGS)
