@@ -23,6 +23,8 @@
 #include <stdio.h>
 #include <string.h>
 
+#include <ldacBT.h>
+
 #include "a2dp_vendor.h"
 #include "a2dp_vendor_ldac.h"
 #include "bt_common.h"
@@ -32,30 +34,6 @@
 //
 // Encoder for LDAC Source Codec
 //
-
-//
-// TODO: Local typedefs and defines to avoid including the LDAC encoder
-// header file.
-//
-typedef void* HANDLE_LDAC_BT;
-typedef enum {
-  LDACBT_SMPL_FMT_S16 = 0x2,
-  LDACBT_SMPL_FMT_S24 = 0x3,
-  LDACBT_SMPL_FMT_S32 = 0x4,
-  LDACBT_SMPL_FMT_F32 = 0x5,
-} LDACBT_SMPL_FMT_T;
-
-enum {
-  LDACBT_EQMID_HQ = 0,
-  LDACBT_EQMID_SQ,
-  LDACBT_EQMID_MQ,
-};
-
-#define LDACBT_ENC_LSU 128
-#define LDACBT_MAX_LSU 512
-#define LDACBT_API_ERR(err) ((err >> 20) & 0x0FFF)
-#define LDACBT_HANDLE_ERR(err) ((err >> 10) & 0x03FF)
-#define LDACBT_BLOCK_ERR(err) (err & 0x03FF)
 
 //
 // The LDAC encoder shared library, and the functions to use
@@ -305,13 +283,6 @@ void a2dp_vendor_ldac_encoder_init(
   a2dp_ldac_encoder_cb.use_SCMS_T = true;
 #endif
 
-  a2dp_ldac_encoder_cb.ldac_handle = ldac_get_handle_func();
-  if (a2dp_ldac_encoder_cb.ldac_handle == NULL) {
-    LOG_ERROR(LOG_TAG, "%s: Cannot get LDAC encoder handle", __func__);
-    return;  // TODO: Return an error?
-  }
-  a2dp_ldac_encoder_cb.has_ldac_handle = true;
-
   // NOTE: Ignore the restart_input / restart_output flags - this initization
   // happens when the connection is (re)started.
   bool restart_input = false;
@@ -359,6 +330,16 @@ static void a2dp_vendor_ldac_encoder_update(uint16_t peer_mtu,
   *p_restart_input = false;
   *p_restart_output = false;
   *p_config_updated = false;
+
+  if (!a2dp_ldac_encoder_cb.has_ldac_handle) {
+    a2dp_ldac_encoder_cb.ldac_handle = ldac_get_handle_func();
+    if (a2dp_ldac_encoder_cb.ldac_handle == NULL) {
+      LOG_ERROR(LOG_TAG, "%s: Cannot get LDAC encoder handle", __func__);
+      return;  // TODO: Return an error?
+    }
+    a2dp_ldac_encoder_cb.has_ldac_handle = true;
+  }
+
   if (!a2dp_codec_config->copyOutOtaCodecConfig(codec_info)) {
     LOG_ERROR(LOG_TAG,
               "%s: Cannot update the codec encoder for %s: "
