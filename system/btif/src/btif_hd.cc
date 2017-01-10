@@ -268,6 +268,12 @@ static void btif_hd_upstreams_evt(uint16_t event, char* p_param) {
       HAL_CBACK(bt_hd_callbacks, vc_unplug_cb);
       break;
 
+    case BTA_HD_CONN_STATE_EVT:
+      HAL_CBACK(bt_hd_callbacks, connection_state_cb,
+                (bt_bdaddr_t*)&p_data->conn.bda,
+                (bthd_connection_state_t)p_data->conn.status);
+      break;
+
     default:
       BTIF_TRACE_WARNING("%s: unknown event (%d)", __func__, event);
       break;
@@ -305,6 +311,7 @@ static void bte_hd_evt(tBTA_HD_EVT event, tBTA_HD* p_data) {
     case BTA_HD_OPEN_EVT:
     case BTA_HD_CLOSE_EVT:
     case BTA_HD_VC_UNPLUG_EVT:
+    case BTA_HD_CONN_STATE_EVT:
       param_len = sizeof(tBTA_HD_CONN);
       break;
 
