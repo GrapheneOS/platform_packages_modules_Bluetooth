@@ -298,8 +298,8 @@ public class ScanManager {
                 mScanNative.stopBatchScan(client);
             }
             if (client.appDied) {
-                logd("app died, unregister client - " + client.scannerId);
-                mService.unregisterClient(client.scannerId);
+                logd("app died, unregister scanner - " + client.scannerId);
+                mService.unregisterScanner(client.scannerId);
             }
         }
 
