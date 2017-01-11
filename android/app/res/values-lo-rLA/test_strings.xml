@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-    <string name="hello" msgid="1740533743008967039">"ສະບາຍດີ, ການເຮັດວຽກທົດສອບ"</string>
     <string name="app_name" msgid="1203877025577761792">"ແບ່ງປັນໃນ Bluetooth"</string>
     <string name="insert_record" msgid="1450997173838378132">"ໃສ່ບັນທຶກ"</string>
     <string name="update_record" msgid="2480425402384910635">"ຢືນຢັນການບັນທຶກ"</string>
