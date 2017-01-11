@@ -47,10 +47,6 @@ void a2dp_sbc_encoder_init(const tA2DP_ENCODER_INIT_PEER_PARAMS* p_peer_params,
 // Cleanup the A2DP SBC encoder.
 void a2dp_sbc_encoder_cleanup(void);
 
-// Initialize the feeding for the A2DP SBC encoder.
-// The feeding initialization parameters are in |p_feeding_params|.
-void a2dp_sbc_feeding_init(const tA2DP_FEEDING_PARAMS* p_feeding_params);
-
 // Reset the feeding for the A2DP SBC encoder.
 void a2dp_sbc_feeding_reset(void);
 
