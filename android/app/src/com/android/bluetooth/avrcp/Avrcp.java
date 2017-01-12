@@ -83,7 +83,7 @@ public final class Avrcp {
     private int mPlayStatusChangedNT;
     private int mTrackChangedNT;
     private int mPlayPosChangedNT;
-    private long mTrackNumber;
+    private long mTracksPlayed;
     private long mSongLengthMs;
     private long mPlaybackIntervalMs;
     private long mLastReportedPosition;
@@ -195,7 +195,7 @@ public final class Avrcp {
         mCurrentPlayState = new PlaybackState.Builder().setState(PlaybackState.STATE_NONE, -1L, 0.0f).build();
         mPlayStatusChangedNT = AvrcpConstants.NOTIFICATION_TYPE_CHANGED;
         mTrackChangedNT = AvrcpConstants.NOTIFICATION_TYPE_CHANGED;
-        mTrackNumber = -1L;
+        mTracksPlayed = 0;
         mLastStateUpdate = -1L;
         mSongLengthMs = 0L;
         mPlaybackIntervalMs = 0L;
@@ -961,7 +961,7 @@ public final class Avrcp {
 
         if (!oldAttributes.equals(mMediaAttributes)) {
             Log.v(TAG, "MediaAttributes Changed to " + mMediaAttributes.toString());
-            mTrackNumber++;
+            mTracksPlayed++;
 
             if (mTrackChangedNT == AvrcpConstants.NOTIFICATION_TYPE_INTERIM) {
                 mTrackChangedNT = AvrcpConstants.NOTIFICATION_TYPE_CHANGED;
@@ -1111,27 +1111,19 @@ public final class Avrcp {
 
     private void sendTrackChangedRsp() {
         // for players which does not support Browse or when no track is currently selected
-        if (!isBrowseSupported(getCurrentAddrPlayer()) || (mTrackNumber == -1)) {
+        if (!isBrowseSupported(getCurrentAddrPlayer())) {
             trackChangeRspForBrowseUnsupported();
         } else {
             // for players which support browsing
-            mAddressedMediaPlayer.sendTrackChangeWithId(mTrackChangedNT, mTrackNumber,
-                    mMediaController);
+            mAddressedMediaPlayer.sendTrackChangeWithId(mTrackChangedNT, mMediaController);
         }
     }
 
     private void trackChangeRspForBrowseUnsupported() {
-        byte[] track = new byte[AvrcpConstants.TRACK_ID_SIZE];
-        /* track is stored in big endian format */
-        for (int idx = 0; idx < AvrcpConstants.TRACK_ID_SIZE; ++idx) {
-            if (mTrackChangedNT == AvrcpConstants.NOTIFICATION_TYPE_INTERIM &&
-                    mTrackNumber == -1) {
-                 /* if no track is currently selected then return 0xFF in interim response */
-                track[idx] = AvrcpConstants.NO_TRACK_SELECTED;
-            } else {
-                /* if Browsing is not supported and a track is selected, then return 0x00 */
-                track[idx] = AvrcpConstants.TRACK_IS_SELECTED;
-            }
+        byte[] track = AvrcpConstants.TRACK_IS_SELECTED;
+        if (mTrackChangedNT == AvrcpConstants.NOTIFICATION_TYPE_INTERIM
+                && !mMediaAttributes.exists) {
+            track = AvrcpConstants.NO_TRACK_SELECTED;
         }
         registerNotificationRspTrackChangeNative(mTrackChangedNT, track);
     }
@@ -2362,11 +2354,11 @@ public final class Avrcp {
         sb.append("AVRCP:\n");
         ProfileService.println(sb, "mMediaAttributes: " + mMediaAttributes);
         ProfileService.println(sb, "mTransportControlFlags: " + mTransportControlFlags);
+        ProfileService.println(sb, "mTracksPlayed: " + mTracksPlayed);
         ProfileService.println(sb, "mCurrentPlayState: " + mCurrentPlayState);
         ProfileService.println(sb, "mLastStateUpdate: " + mLastStateUpdate);
         ProfileService.println(sb, "mPlayStatusChangedNT: " + mPlayStatusChangedNT);
         ProfileService.println(sb, "mTrackChangedNT: " + mTrackChangedNT);
-        ProfileService.println(sb, "mTrackNumber: " + mTrackNumber);
         ProfileService.println(sb, "mSongLengthMs: " + mSongLengthMs);
         ProfileService.println(sb, "mPlaybackIntervalMs: " + mPlaybackIntervalMs);
         ProfileService.println(sb, "mPlayPosChangedNT: " + mPlayPosChangedNT);
