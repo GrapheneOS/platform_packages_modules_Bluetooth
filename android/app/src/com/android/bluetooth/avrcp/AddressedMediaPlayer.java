@@ -252,9 +252,9 @@ public class AddressedMediaPlayer {
         }
     }
 
-    void sendTrackChangeWithId(int trackChangedNT, long trackNumber,
-            MediaController mediaController) {
+    void sendTrackChangeWithId(int trackChangedNT, MediaController mediaController) {
         if (DEBUG) Log.d(TAG, "sendTrackChangeWithId");
+        byte[] track;
         try {
             String mediaId = mediaController.getMetadata().getDescription().getMediaId();
             long qid = 0;
@@ -268,33 +268,13 @@ public class AddressedMediaPlayer {
                 }
             }
             /* for any item associated with NowPlaying, uid is queueId */
-            byte[] uid = ByteBuffer.allocate(AvrcpConstants.UID_SIZE).putLong(qid).array();
-            if (DEBUG) printByteArray("trackChangedRsp", uid);
-            mMediaInterface.trackChangedRsp(trackChangedNT, uid);
+            track = ByteBuffer.allocate(AvrcpConstants.UID_SIZE).putLong(qid).array();
         } catch (NullPointerException e) {
-            Log.w(TAG, "Null Pointer while getting current track Uid from media player");
-            sendTrackChangeRsp(trackChangedNT, trackNumber);
+            Log.w(TAG, "NullPointerException getting uid, sending no track selected");
+            // Track selected (0x0) is not allowed for browsable players (AVRCP 1.6.1 p64)
+            track = AvrcpConstants.NO_TRACK_SELECTED;
         }
-    }
-
-    /*
-     * utility function to respond for track change when failed to get current track UID
-     * from media controller
-     */
-    private void sendTrackChangeRsp(int trackChangedNT, long trackNumber) {
-        byte[] track = new byte[AvrcpConstants.TRACK_ID_SIZE];
-        /* track is stored in big endian format */
-        for (int idx = 0; idx < AvrcpConstants.TRACK_ID_SIZE; ++idx) {
-            if (trackChangedNT == AvrcpConstants.NOTIFICATION_TYPE_INTERIM
-                    && trackNumber == -1) {
-                 /* if no track is currently selected then return 0xFF in interim response */
-                track[idx] = AvrcpConstants.NO_TRACK_SELECTED;
-            } else {
-                /* if Browsing is not supported and a track is selected, then return 0x00 */
-                track[idx] = AvrcpConstants.TRACK_IS_SELECTED;
-            }
-        }
-        if (DEBUG) printByteArray("sendTrackChangeRsp", track);
+        if (DEBUG) printByteArray("trackChangedRsp", track);
         mMediaInterface.trackChangedRsp(trackChangedNT, track);
     }
 

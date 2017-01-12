@@ -93,10 +93,12 @@ final class AvrcpConstants {
     static final int ATTRID_COVER_ART  = 0x08;
 
     /* constants to send in Track change response */
-    static final byte NO_TRACK_SELECTED = (byte)0xFF;
-    static final byte TRACK_IS_SELECTED = (byte)0x00;
+    static final byte[] NO_TRACK_SELECTED = {(byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF,
+            (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF};
+    static final byte[] TRACK_IS_SELECTED = {(byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+            (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00};
 
-    /* Max UID size */
+    /* UID size */
     static final int UID_SIZE = 8;
 
     static final short DEFAULT_UID_COUNTER = 0x0000;
