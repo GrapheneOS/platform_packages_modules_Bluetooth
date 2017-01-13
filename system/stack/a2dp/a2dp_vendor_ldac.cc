@@ -70,10 +70,13 @@ static const tA2DP_LDAC_CIE a2dp_ldac_default_config = {
 };
 
 static const tA2DP_ENCODER_INTERFACE a2dp_encoder_interface_ldac = {
-    a2dp_vendor_ldac_encoder_init,  a2dp_vendor_ldac_encoder_cleanup,
-    a2dp_vendor_ldac_feeding_init,  a2dp_vendor_ldac_feeding_reset,
-    a2dp_vendor_ldac_feeding_flush, a2dp_vendor_ldac_get_encoder_interval_ms,
-    a2dp_vendor_ldac_send_frames,   a2dp_vendor_ldac_debug_codec_dump};
+    a2dp_vendor_ldac_encoder_init,
+    a2dp_vendor_ldac_encoder_cleanup,
+    a2dp_vendor_ldac_feeding_reset,
+    a2dp_vendor_ldac_feeding_flush,
+    a2dp_vendor_ldac_get_encoder_interval_ms,
+    a2dp_vendor_ldac_send_frames,
+    a2dp_vendor_ldac_debug_codec_dump};
 
 UNUSED_ATTR static tA2DP_STATUS A2DP_CodecInfoMatchesCapabilityLdac(
     const tA2DP_LDAC_CIE* p_cap, const uint8_t* p_codec_info,
