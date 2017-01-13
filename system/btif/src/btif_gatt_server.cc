@@ -339,12 +339,14 @@ static bt_status_t btif_gatts_open(int server_if, const bt_bdaddr_t* bd_addr,
 }
 
 static void btif_gatts_close_impl(int server_if, BD_ADDR address, int conn_id) {
-  // Cancel pending foreground/background connections
-  BTA_GATTS_CancelOpen(server_if, address, true);
-  BTA_GATTS_CancelOpen(server_if, address, false);
-
   // Close active connection
-  if (conn_id != 0) BTA_GATTS_Close(conn_id);
+  if (conn_id != 0)
+    BTA_GATTS_Close(conn_id);
+  else
+    BTA_GATTS_CancelOpen(server_if, address, true);
+
+  // Cancel pending background connections
+  BTA_GATTS_CancelOpen(server_if, address, false);
 }
 
 static bt_status_t btif_gatts_close(int server_if, const bt_bdaddr_t* bd_addr,
