@@ -45,11 +45,6 @@ void a2dp_vendor_aptx_encoder_init(
 // Cleanup the A2DP aptX encoder.
 void a2dp_vendor_aptx_encoder_cleanup(void);
 
-// Initialize the feeding for the A2DP aptX encoder.
-// The feeding initialization parameters are in |p_feeding_params|.
-void a2dp_vendor_aptx_feeding_init(
-    const tA2DP_FEEDING_PARAMS* p_feeding_params);
-
 // Reset the feeding for the A2DP aptX encoder.
 void a2dp_vendor_aptx_feeding_reset(void);
 

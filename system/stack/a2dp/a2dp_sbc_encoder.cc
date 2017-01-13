@@ -217,12 +217,14 @@ static void a2dp_sbc_encoder_update(uint16_t peer_mtu,
   max_bitpool = A2DP_GetMaxBitpoolSbc(p_codec_info);
 
   // The feeding parameters
-  a2dp_sbc_encoder_cb.feeding_params.sample_rate =
-      A2DP_GetTrackSampleRateSbc(p_codec_info);
-  a2dp_sbc_encoder_cb.feeding_params.bits_per_sample =
+  tA2DP_FEEDING_PARAMS* p_feeding_params = &a2dp_sbc_encoder_cb.feeding_params;
+  p_feeding_params->sample_rate = A2DP_GetTrackSampleRateSbc(p_codec_info);
+  p_feeding_params->bits_per_sample =
       A2DP_GetTrackBitsPerSampleSbc(p_codec_info);
-  a2dp_sbc_encoder_cb.feeding_params.channel_count =
-      A2DP_GetTrackChannelCountSbc(p_codec_info);
+  p_feeding_params->channel_count = A2DP_GetTrackChannelCountSbc(p_codec_info);
+  LOG_DEBUG(LOG_TAG, "%s: sample_rate=%u bits_per_sample=%u channel_count=%u",
+            __func__, p_feeding_params->sample_rate,
+            p_feeding_params->bits_per_sample, p_feeding_params->channel_count);
 
   // The codec parameters
   p_encoder_params->s16ChannelMode = A2DP_GetChannelModeCodeSbc(p_codec_info);
@@ -376,68 +378,6 @@ static void a2dp_sbc_encoder_update(uint16_t peer_mtu,
 
 void a2dp_sbc_encoder_cleanup(void) {
   memset(&a2dp_sbc_encoder_cb, 0, sizeof(a2dp_sbc_encoder_cb));
-}
-
-void a2dp_sbc_feeding_init(const tA2DP_FEEDING_PARAMS* p_feeding_params) {
-  SBC_ENC_PARAMS* p_encoder_params = &a2dp_sbc_encoder_cb.sbc_encoder_params;
-  bool reconfig_needed = false;
-
-  LOG_DEBUG(
-      LOG_TAG,
-      "%s: PCM feeding: sample_rate:%d bits_per_sample:%d channel_count:%d",
-      __func__, p_feeding_params->sample_rate,
-      p_feeding_params->bits_per_sample, p_feeding_params->channel_count);
-
-  /* Save the feeding information */
-  memcpy(&a2dp_sbc_encoder_cb.feeding_params, p_feeding_params,
-         sizeof(tA2DP_FEEDING_PARAMS));
-
-  /* Check the PCM feeding sample_rate */
-  switch (p_feeding_params->sample_rate) {
-    case 8000:
-    case 12000:
-    case 16000:
-    case 24000:
-    case 32000:
-    case 48000:
-      /* For these sample_rate the AV connection must be 48000 */
-      if (p_encoder_params->s16SamplingFreq != SBC_sf48000) {
-        /* Reconfiguration needed at 48000 */
-        LOG_DEBUG(LOG_TAG, "%s: SBC Reconfiguration needed at 48000", __func__);
-        p_encoder_params->s16SamplingFreq = SBC_sf48000;
-        reconfig_needed = true;
-      }
-      break;
-
-    case 11025:
-    case 22050:
-    case 44100:
-      /* For these sample_rate the AV connection must be 44100 */
-      if (p_encoder_params->s16SamplingFreq != SBC_sf44100) {
-        /* Reconfiguration needed at 44100 */
-        LOG_DEBUG(LOG_TAG, "%s: SBC Reconfiguration needed at 44100", __func__);
-        p_encoder_params->s16SamplingFreq = SBC_sf44100;
-        reconfig_needed = true;
-      }
-      break;
-    default:
-      LOG_DEBUG(LOG_TAG, "%s: Feeding PCM sample_rate %u is not supported",
-                __func__, p_feeding_params->sample_rate);
-      break;
-  }
-
-  if (reconfig_needed) {
-    LOG_DEBUG(
-        LOG_TAG,
-        "%s: mtu %d ch mode %d, nbsubd %d, nb %d, alloc %d, rate %d, freq %d",
-        __func__, a2dp_sbc_encoder_cb.TxAaMtuSize,
-        p_encoder_params->s16ChannelMode, p_encoder_params->s16NumOfSubBands,
-        p_encoder_params->s16NumOfBlocks, p_encoder_params->s16AllocationMethod,
-        p_encoder_params->u16BitRate, p_encoder_params->s16SamplingFreq);
-    SBC_Encoder_Init(p_encoder_params);
-  } else {
-    LOG_DEBUG(LOG_TAG, "%s: no SBC reconfig needed", __func__);
-  }
 }
 
 void a2dp_sbc_feeding_reset(void) {
