@@ -207,7 +207,6 @@ void a2dp_vendor_aptx_hd_encoder_init(
   a2dp_vendor_aptx_hd_encoder_update(a2dp_aptx_hd_encoder_cb.peer_mtu,
                                      a2dp_codec_config, &restart_input,
                                      &restart_output, &config_updated);
-  aptx_hd_init_framing_params(&a2dp_aptx_hd_encoder_cb.framing_params);
 }
 
 bool A2dpCodecConfigAptxHd::updateEncoderUserConfig(
@@ -254,103 +253,24 @@ static void a2dp_vendor_aptx_hd_encoder_update(
   const uint8_t* p_codec_info = codec_info;
 
   // The feeding parameters
-  a2dp_aptx_hd_encoder_cb.feeding_params.sample_rate =
+  tA2DP_FEEDING_PARAMS* p_feeding_params =
+      &a2dp_aptx_hd_encoder_cb.feeding_params;
+  p_feeding_params->sample_rate =
       A2DP_VendorGetTrackSampleRateAptxHd(p_codec_info);
-  a2dp_aptx_hd_encoder_cb.feeding_params.bits_per_sample =
+  p_feeding_params->bits_per_sample =
       A2DP_VendorGetTrackBitsPerSampleAptxHd(p_codec_info);
-  a2dp_aptx_hd_encoder_cb.feeding_params.channel_count =
+  p_feeding_params->channel_count =
       A2DP_VendorGetTrackChannelCountAptxHd(p_codec_info);
+  LOG_DEBUG(LOG_TAG, "%s: sample_rate=%u bits_per_sample=%u channel_count=%u",
+            __func__, p_feeding_params->sample_rate,
+            p_feeding_params->bits_per_sample, p_feeding_params->channel_count);
+
+  aptx_hd_init_framing_params(&a2dp_aptx_hd_encoder_cb.framing_params);
 }
 
 void a2dp_vendor_aptx_hd_encoder_cleanup(void) {
   osi_free(a2dp_aptx_hd_encoder_cb.aptx_hd_encoder_state);
   memset(&a2dp_aptx_hd_encoder_cb, 0, sizeof(a2dp_aptx_hd_encoder_cb));
-}
-
-void a2dp_vendor_aptx_hd_feeding_init(
-    const tA2DP_FEEDING_PARAMS* p_feeding_params) {
-  LOG_DEBUG(LOG_TAG,
-            "%s: PCM feeding: sample_rate:%d bits_per_sample:%d"
-            "channel_count:%d",
-            __func__, p_feeding_params->sample_rate,
-            p_feeding_params->bits_per_sample, p_feeding_params->channel_count);
-
-  // Check the PCM feeding sample_rate
-  switch (p_feeding_params->sample_rate) {
-    case 44100:
-    case 48000:
-      break;
-    default:
-      LOG_WARN(LOG_TAG, "%s: feeding PCM sample_rate %u is not supported",
-               __func__, p_feeding_params->sample_rate);
-      return;
-  }
-
-  // Check the bits per sample
-  switch (p_feeding_params->bits_per_sample) {
-    case 24:
-      break;
-    default:
-      LOG_WARN(LOG_TAG, "%s: feeding PCM bits_per_sample %u is not supported",
-               __func__, p_feeding_params->bits_per_sample);
-      return;
-  }
-
-  // Check the number of channels
-  switch (p_feeding_params->channel_count) {
-    case 1:  // Mono
-    case 2:  // Stereo
-      break;
-    default:
-      LOG_WARN(LOG_TAG, "%s: feeding PCM channel_count %u is not supported",
-               __func__, p_feeding_params->channel_count);
-      return;
-  }
-
-  bool reconfig_needed = false;
-  if (a2dp_aptx_hd_encoder_cb.feeding_params.sample_rate !=
-      p_feeding_params->sample_rate) {
-    LOG_DEBUG(LOG_TAG,
-              "%s: codec reconfiguration: feeding PCM sample_rate "
-              "from %u to %u",
-              __func__, a2dp_aptx_hd_encoder_cb.feeding_params.sample_rate,
-              p_feeding_params->sample_rate);
-    reconfig_needed = true;
-    a2dp_aptx_hd_encoder_cb.feeding_params.sample_rate =
-        p_feeding_params->sample_rate;
-  }
-  if (a2dp_aptx_hd_encoder_cb.feeding_params.bits_per_sample !=
-      p_feeding_params->bits_per_sample) {
-    LOG_DEBUG(LOG_TAG,
-              "%s: aptX-HD reconfiguration needed: "
-              "feeding PCM bits_per_sample from %u to %u",
-              __func__, a2dp_aptx_hd_encoder_cb.feeding_params.bits_per_sample,
-              p_feeding_params->bits_per_sample);
-    a2dp_aptx_hd_encoder_cb.feeding_params.bits_per_sample =
-        p_feeding_params->bits_per_sample;
-    reconfig_needed = true;
-  }
-  if (a2dp_aptx_hd_encoder_cb.feeding_params.channel_count !=
-      p_feeding_params->channel_count) {
-    LOG_DEBUG(LOG_TAG,
-              "%s: aptX-HD reconfiguration needed: "
-              "feeding PCM channel_count from %u to %u",
-              __func__, a2dp_aptx_hd_encoder_cb.feeding_params.channel_count,
-              p_feeding_params->channel_count);
-    a2dp_aptx_hd_encoder_cb.feeding_params.channel_count =
-        p_feeding_params->channel_count;
-    reconfig_needed = true;
-  }
-
-  if (reconfig_needed) {
-    LOG_DEBUG(LOG_TAG, "%s: sample_rate=%u bits_per_sample=%u channel_count=%u",
-              __func__, p_feeding_params->sample_rate,
-              p_feeding_params->bits_per_sample,
-              p_feeding_params->channel_count);
-    aptx_hd_init_framing_params(&a2dp_aptx_hd_encoder_cb.framing_params);
-  } else {
-    LOG_DEBUG(LOG_TAG, "%s: no aptX-HD reconfiguration needed", __func__);
-  }
 }
 
 //

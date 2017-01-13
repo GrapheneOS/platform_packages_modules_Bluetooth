@@ -87,10 +87,13 @@ const tA2DP_SBC_CIE a2dp_sbc_default_config = {
 };
 
 static const tA2DP_ENCODER_INTERFACE a2dp_encoder_interface_sbc = {
-    a2dp_sbc_encoder_init,  a2dp_sbc_encoder_cleanup,
-    a2dp_sbc_feeding_init,  a2dp_sbc_feeding_reset,
-    a2dp_sbc_feeding_flush, a2dp_sbc_get_encoder_interval_ms,
-    a2dp_sbc_send_frames,   a2dp_sbc_debug_codec_dump};
+    a2dp_sbc_encoder_init,
+    a2dp_sbc_encoder_cleanup,
+    a2dp_sbc_feeding_reset,
+    a2dp_sbc_feeding_flush,
+    a2dp_sbc_get_encoder_interval_ms,
+    a2dp_sbc_send_frames,
+    a2dp_sbc_debug_codec_dump};
 
 static tA2DP_STATUS A2DP_CodecInfoMatchesCapabilitySbc(
     const tA2DP_SBC_CIE* p_cap, const uint8_t* p_codec_info,

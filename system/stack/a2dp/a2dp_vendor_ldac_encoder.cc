@@ -351,12 +351,16 @@ static void a2dp_vendor_ldac_encoder_update(uint16_t peer_mtu,
   btav_a2dp_codec_config_t codec_config = a2dp_codec_config->getCodecConfig();
 
   // The feeding parameters
-  a2dp_ldac_encoder_cb.feeding_params.sample_rate =
+  tA2DP_FEEDING_PARAMS* p_feeding_params = &a2dp_ldac_encoder_cb.feeding_params;
+  p_feeding_params->sample_rate =
       A2DP_VendorGetTrackSampleRateLdac(p_codec_info);
-  a2dp_ldac_encoder_cb.feeding_params.bits_per_sample =
+  p_feeding_params->bits_per_sample =
       a2dp_codec_config->getAudioBitsPerSample();
-  a2dp_ldac_encoder_cb.feeding_params.channel_count =
+  p_feeding_params->channel_count =
       A2DP_VendorGetTrackChannelCountLdac(p_codec_info);
+  LOG_DEBUG(LOG_TAG, "%s: sample_rate=%u bits_per_sample=%u channel_count=%u",
+            __func__, p_feeding_params->sample_rate,
+            p_feeding_params->bits_per_sample, p_feeding_params->channel_count);
 
   // The codec parameters
   p_encoder_params->sample_rate =
@@ -424,151 +428,6 @@ void a2dp_vendor_ldac_encoder_cleanup(void) {
   if (a2dp_ldac_encoder_cb.has_ldac_handle)
     ldac_free_handle_func(a2dp_ldac_encoder_cb.ldac_handle);
   memset(&a2dp_ldac_encoder_cb, 0, sizeof(a2dp_ldac_encoder_cb));
-}
-
-void a2dp_vendor_ldac_feeding_init(
-    const tA2DP_FEEDING_PARAMS* p_feeding_params) {
-  tA2DP_LDAC_ENCODER_PARAMS* p_encoder_params =
-      &a2dp_ldac_encoder_cb.ldac_encoder_params;
-  bool reconfig_needed = false;
-
-  LOG_DEBUG(LOG_TAG,
-            "%s: PCM feeding: sample_rate:%d bits_per_sample:%d "
-            "channel_count:%d",
-            __func__, p_feeding_params->sample_rate,
-            p_feeding_params->bits_per_sample, p_feeding_params->channel_count);
-
-  /* Save the feeding information */
-  memcpy(&a2dp_ldac_encoder_cb.feeding_params, p_feeding_params,
-         sizeof(tA2DP_FEEDING_PARAMS));
-
-  // Check the PCM feeding sample_rate
-  switch (p_feeding_params->sample_rate) {
-    case 44100:
-    case 48000:
-    case 88200:
-    case 96000:
-    case 176400:
-    case 192000:
-      break;
-    default:
-      LOG_WARN(LOG_TAG, "%s: feeding PCM sample_rate %u is not supported",
-               __func__, p_feeding_params->sample_rate);
-      return;
-  }
-  if (p_encoder_params->sample_rate != p_feeding_params->sample_rate) {
-    LOG_DEBUG(LOG_TAG,
-              "%s: codec reconfiguration: feeding PCM sample_rate "
-              "from %u to %u",
-              __func__, p_encoder_params->sample_rate,
-              p_feeding_params->sample_rate);
-    reconfig_needed = true;
-    p_encoder_params->sample_rate = p_feeding_params->sample_rate;
-  }
-
-  // Check the bits per sample
-  switch (p_feeding_params->bits_per_sample) {
-    case 16:
-    case 24:
-    case 32:
-      break;
-    default:
-      LOG_WARN(LOG_TAG, "%s: feeding PCM bits_per_sample %u is not supported",
-               __func__, p_feeding_params->bits_per_sample);
-      return;
-  }
-  if (p_encoder_params->bits_per_sample != p_feeding_params->bits_per_sample) {
-    LOG_DEBUG(LOG_TAG,
-              "%s: LDAC reconfiguration needed: "
-              "feeding PCM bits_per_sample from %u to %u",
-              __func__, p_encoder_params->bits_per_sample,
-              p_feeding_params->bits_per_sample);
-    p_encoder_params->bits_per_sample = p_feeding_params->bits_per_sample;
-    // NOTE: A2DP reconfigure is not necessary in this case. Re-initializing
-    // just the LDAC encoder is sufficient.
-    reconfig_needed = true;
-  }
-
-  // Check the number of channels
-  switch (p_feeding_params->channel_count) {
-    case 1:  // Mono
-    case 2:  // Stereo
-      break;
-    default:
-      LOG_WARN(LOG_TAG, "%s: feeding PCM channel_count %u is not supported",
-               __func__, p_feeding_params->channel_count);
-      return;
-  }
-
-  if ((p_feeding_params->channel_count == 1) &&
-      (p_encoder_params->channel_mode != A2DP_LDAC_CHANNEL_MODE_MONO)) {
-    LOG_DEBUG(LOG_TAG,
-              "%s: codec reconfiguration: feeding PCM channel_count "
-              "from 2 to %u",
-              __func__, p_feeding_params->channel_count);
-    reconfig_needed = true;
-    p_encoder_params->channel_mode = A2DP_LDAC_CHANNEL_MODE_MONO;
-  }
-  if ((p_feeding_params->channel_count == 2) &&
-      (p_encoder_params->channel_mode != A2DP_LDAC_CHANNEL_MODE_STEREO) &&
-      (p_encoder_params->channel_mode != A2DP_LDAC_CHANNEL_MODE_DUAL)) {
-    LOG_DEBUG(LOG_TAG,
-              "%s: codec reconfiguration: feeding PCM channel_count "
-              "from 1 to %u",
-              __func__, p_feeding_params->channel_count);
-    reconfig_needed = true;
-    p_encoder_params->channel_mode = A2DP_LDAC_CHANNEL_MODE_STEREO;
-  }
-
-  p_encoder_params->pcm_wlength = p_encoder_params->bits_per_sample >> 3;
-  // Set the Audio format from pcm_wlength
-  p_encoder_params->pcm_fmt = LDACBT_SMPL_FMT_S16;
-  if (p_encoder_params->pcm_wlength == 2)
-    p_encoder_params->pcm_fmt = LDACBT_SMPL_FMT_S16;
-  else if (p_encoder_params->pcm_wlength == 3)
-    p_encoder_params->pcm_fmt = LDACBT_SMPL_FMT_S24;
-  else if (p_encoder_params->pcm_wlength == 4)
-    p_encoder_params->pcm_fmt = LDACBT_SMPL_FMT_S32;
-
-  if (!reconfig_needed) {
-    LOG_DEBUG(LOG_TAG, "%s: no LDAC reconfiguration needed", __func__);
-    return;
-  }
-
-  LOG_DEBUG(LOG_TAG, "%s: sample_rate=%u bits_per_sample=%u channel_count=%u",
-            __func__, p_feeding_params->sample_rate,
-            p_feeding_params->bits_per_sample, p_feeding_params->channel_count);
-
-  if (a2dp_ldac_encoder_cb.has_ldac_handle) {
-    ldac_free_handle_func(a2dp_ldac_encoder_cb.ldac_handle);
-    a2dp_ldac_encoder_cb.has_ldac_handle = false;
-  }
-  a2dp_ldac_encoder_cb.ldac_handle = ldac_get_handle_func();
-  if (a2dp_ldac_encoder_cb.ldac_handle == NULL) {
-    LOG_ERROR(LOG_TAG, "%s: Cannot get LDAC encoder handle", __func__);
-    return;  // TODO: Return an error?
-  }
-  a2dp_ldac_encoder_cb.has_ldac_handle = true;
-
-  LOG_DEBUG(LOG_TAG,
-            "%s: sample_rate: %d channel_mode: %d "
-            "quality_mode_index: %d pcm_wlength: %d pcm_fmt: %d",
-            __func__, p_encoder_params->sample_rate,
-            p_encoder_params->channel_mode,
-            p_encoder_params->quality_mode_index, p_encoder_params->pcm_wlength,
-            p_encoder_params->pcm_fmt);
-
-  // Initialize the encoder.
-  // NOTE: MTU in the initialization must include the AVDT media header size.
-  int result = ldac_init_handle_encode_func(
-      a2dp_ldac_encoder_cb.ldac_handle,
-      a2dp_ldac_encoder_cb.TxAaMtuSize + AVDT_MEDIA_HDR_SIZE,
-      p_encoder_params->quality_mode_index, p_encoder_params->channel_mode,
-      p_encoder_params->pcm_fmt, p_encoder_params->sample_rate);
-  if (result != 0) {
-    LOG_ERROR(LOG_TAG, "%s: error initializing the LDAC encoder: %d", __func__,
-              result);
-  }
 }
 
 void a2dp_vendor_ldac_feeding_reset(void) {
