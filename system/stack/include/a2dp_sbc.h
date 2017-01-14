@@ -156,35 +156,35 @@ int A2DP_GetNumberOfSubbandsSbc(const uint8_t* p_codec_info);
 int A2DP_GetNumberOfBlocksSbc(const uint8_t* p_codec_info);
 
 // Gets the allocation method code for the A2DP SBC codec.
-// The actual value is codec-specific.
+// The actual value is codec-specific - see |A2DP_SBC_IE_ALLOC_MD_*|.
 // |p_codec_info| is a pointer to the SBC codec_info to decode.
 // Returns the allocation method code on success, or -1 if |p_codec_info|
 // contains invalid codec information.
 int A2DP_GetAllocationMethodCodeSbc(const uint8_t* p_codec_info);
 
 // Gets the channel mode code for the A2DP SBC codec.
-// The actual value is codec-specific.
+// The actual value is codec-specific - see |A2DP_SBC_IE_CH_MD_*|.
 // |p_codec_info| is a pointer to the SBC codec_info to decode.
 // Returns the channel mode code on success, or -1 if |p_codec_info|
 // contains invalid codec information.
 int A2DP_GetChannelModeCodeSbc(const uint8_t* p_codec_info);
 
 // Gets the sampling frequency code for the A2DP SBC codec.
-// The actual value is codec-specific.
+// The actual value is codec-specific - see |A2DP_SBC_IE_SAMP_FREQ_*|.
 // |p_codec_info| is a pointer to the SBC codec_info to decode.
 // Returns the sampling frequency code on success, or -1 if |p_codec_info|
 // contains invalid codec information.
 int A2DP_GetSamplingFrequencyCodeSbc(const uint8_t* p_codec_info);
 
 // Gets the minimum bitpool for the A2DP SBC codec.
-// The actual value is codec-specific.
+// The actual value is codec-specific - see |A2DP_SBC_IE_MIN_BITPOOL|.
 // |p_codec_info| is a pointer to the SBC codec_info to decode.
 // Returns the minimum bitpool on success, or -1 if |p_codec_info|
 // contains invalid codec information.
 int A2DP_GetMinBitpoolSbc(const uint8_t* p_codec_info);
 
 // Gets the maximum bitpool for the A2DP SBC codec.
-// The actual value is codec-specific.
+// The actual value is codec-specific - see |A2DP_SBC_IE_MAX_BITPOOL|.
 // |p_codec_info| is a pointer to the SBC codec_info to decode.
 // Returns the maximum bitpool on success, or -1 if |p_codec_info|
 // contains invalid codec information.
