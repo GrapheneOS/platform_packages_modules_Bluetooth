@@ -318,7 +318,8 @@ static tBTA_GATT_STATUS bta_gattc_add_attr_to_cache(
     descriptor->handle = handle;
     memcpy(&descriptor->uuid, p_uuid, sizeof(tBT_UUID));
 
-    if (service->characteristics == NULL) {
+    if (service->characteristics == NULL ||
+        list_is_empty(service->characteristics)) {
       APPL_TRACE_ERROR(
           "%s: Illegal action to add descriptor before adding a "
           "characteristic!",
