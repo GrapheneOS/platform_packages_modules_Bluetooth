@@ -41,8 +41,6 @@
  */
 package com.android.bluetooth.pbapclient;
 
-import android.accounts.Account;
-import android.accounts.AccountManager;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.BluetoothPbapClient;
@@ -56,7 +54,6 @@ import android.os.Message;
 import android.os.ParcelUuid;
 import android.os.Process;
 import android.os.UserManager;
-import android.provider.CallLog;
 import android.util.Log;
 
 import com.android.bluetooth.btservice.ProfileService;
@@ -65,7 +62,6 @@ import com.android.internal.util.IState;
 import com.android.internal.util.State;
 import com.android.internal.util.StateMachine;
 
-import java.lang.IllegalStateException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -74,7 +70,6 @@ final class PbapClientStateMachine extends StateMachine {
     private static final String TAG = "PbapClientStateMachine";
 
     // Messages for handling connect/disconnect requests.
-    private static final int MSG_CONNECT = 1;
     private static final int MSG_DISCONNECT = 2;
     private static final int MSG_SDP_COMPLETE = 9;
 
@@ -98,9 +93,8 @@ final class PbapClientStateMachine extends StateMachine {
     private State mDisconnecting;
 
     // mCurrentDevice may only be changed in Disconnected State.
-    private BluetoothDevice mCurrentDevice = null;
+    private final BluetoothDevice mCurrentDevice;
     private PbapClientService mService;
-    private Context mContext;
     private PbapClientConnectionHandler mConnectionHandler;
     private HandlerThread mHandlerThread = null;
     private UserManager mUserManager = null;
@@ -108,25 +102,24 @@ final class PbapClientStateMachine extends StateMachine {
     // mMostRecentState maintains previous state for broadcasting transitions.
     private int mMostRecentState = BluetoothProfile.STATE_DISCONNECTED;
 
-    PbapClientStateMachine(PbapClientService svc, Context context) {
+    PbapClientStateMachine(PbapClientService svc, BluetoothDevice device) {
         super(TAG);
 
         mService = svc;
-        mContext = context;
+        mCurrentDevice = device;
         mLock = new Object();
-        mUserManager = UserManager.get(mContext);
+        mUserManager = UserManager.get(mService);
         mDisconnected = new Disconnected();
         mConnecting = new Connecting();
         mDisconnecting = new Disconnecting();
         mConnected = new Connected();
-        removeUncleanAccounts();
 
         addState(mDisconnected);
         addState(mConnecting);
         addState(mDisconnecting);
         addState(mConnected);
 
-        setInitialState(mDisconnected);
+        setInitialState(mConnecting);
     }
 
     class Disconnected extends State {
@@ -136,44 +129,7 @@ final class PbapClientStateMachine extends StateMachine {
             onConnectionStateChanged(mCurrentDevice, mMostRecentState,
                     BluetoothProfile.STATE_DISCONNECTED);
             mMostRecentState = BluetoothProfile.STATE_DISCONNECTED;
-            synchronized (mLock) {
-                mCurrentDevice = null;
-            }
-
-        }
-
-        @Override
-        public boolean processMessage(Message message) {
-            if (DBG) Log.d(TAG, "Processing MSG " + message.what + " from " + this.getName());
-            switch (message.what) {
-                case MSG_CONNECT:
-                    if (message.obj instanceof BluetoothDevice) {
-                        synchronized (mLock) {
-                            mCurrentDevice = (BluetoothDevice) message.obj;
-                        }
-                        transitionTo(mConnecting);
-                    } else {
-                        Log.w(TAG, "Received CONNECT without valid device");
-                        throw new IllegalStateException("invalid device");
-                    }
-                    break;
-
-                case MSG_DISCONNECT:
-                    Log.w(TAG, "Received unexpected disconnect while disconnected.");
-                    // It is possible if something crashed for others to think we are connected
-                    // already, just remind them.
-                    if (message.obj instanceof BluetoothDevice) {
-                        onConnectionStateChanged((BluetoothDevice) message.obj,
-                                BluetoothProfile.STATE_DISCONNECTED,
-                                BluetoothProfile.STATE_DISCONNECTED);
-                    }
-                    break;
-
-                default:
-                    Log.w(TAG, "Received unexpected message while disconnected.");
-                    return NOT_HANDLED;
-            }
-            return HANDLED;
+            quit();
         }
     }
 
@@ -196,10 +152,11 @@ final class PbapClientStateMachine extends StateMachine {
                     Process.THREAD_PRIORITY_BACKGROUND);
             mHandlerThread.start();
             mConnectionHandler = new PbapClientConnectionHandler.Builder()
-                    .setLooper(mHandlerThread.getLooper())
-                    .setContext(mContext)
-                    .setClientSM(PbapClientStateMachine.this)
-                    .setRemoteDevice(mCurrentDevice).build();
+                                         .setLooper(mHandlerThread.getLooper())
+                                         .setContext(mService)
+                                         .setClientSM(PbapClientStateMachine.this)
+                                         .setRemoteDevice(mCurrentDevice)
+                                         .build();
 
             sendMessageDelayed(MSG_CONNECT_TIMEOUT, CONNECT_TIMEOUT);
         }
@@ -209,8 +166,8 @@ final class PbapClientStateMachine extends StateMachine {
             if (DBG) Log.d(TAG, "Processing MSG " + message.what + " from " + this.getName());
             switch (message.what) {
                 case MSG_DISCONNECT:
-                    if (message.obj instanceof BluetoothDevice &&
-                            ((BluetoothDevice) message.obj).equals(mCurrentDevice)) {
+                    if (message.obj instanceof BluetoothDevice
+                            && message.obj.equals(mCurrentDevice)) {
                         removeMessages(MSG_CONNECT_TIMEOUT);
                         transitionTo(mDisconnecting);
                     }
@@ -225,10 +182,6 @@ final class PbapClientStateMachine extends StateMachine {
                 case MSG_CONNECT_TIMEOUT:
                     removeMessages(MSG_CONNECT_TIMEOUT);
                     transitionTo(mDisconnecting);
-                    break;
-
-                case MSG_CONNECT:
-                    Log.w(TAG, "Connecting already in progress");
                     break;
 
                 case MSG_SDP_COMPLETE:
@@ -275,11 +228,11 @@ final class PbapClientStateMachine extends StateMachine {
             public void register() {
                 IntentFilter filter = new IntentFilter();
                 filter.addAction(BluetoothDevice.ACTION_SDP_RECORD);
-                mContext.registerReceiver(this, filter);
+                mService.registerReceiver(this, filter);
             }
 
             public void unregister() {
-                mContext.unregisterReceiver(this);
+                mService.unregisterReceiver(this);
             }
         }
     }
@@ -306,7 +259,6 @@ final class PbapClientStateMachine extends StateMachine {
                     transitionTo(mDisconnected);
                     break;
 
-                case MSG_CONNECT:
                 case MSG_DISCONNECT:
                     deferMessage(message);
                     break;
@@ -345,14 +297,6 @@ final class PbapClientStateMachine extends StateMachine {
         public boolean processMessage(Message message) {
             if (DBG) Log.d(TAG, "Processing MSG " + message.what + " from " + this.getName());
             switch (message.what) {
-                case MSG_CONNECT:
-                    onConnectionStateChanged(mCurrentDevice, BluetoothProfile.STATE_CONNECTED,
-                            BluetoothProfile.STATE_CONNECTED);
-
-
-                    Log.w(TAG, "Received CONNECT while Connected, ignoring");
-                    break;
-
                 case MSG_DISCONNECT:
                     if ((message.obj instanceof BluetoothDevice) &&
                             ((BluetoothDevice) message.obj).equals(mCurrentDevice)) {
@@ -384,14 +328,9 @@ final class PbapClientStateMachine extends StateMachine {
         intent.putExtra(BluetoothProfile.EXTRA_STATE, state);
         intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
         intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY_BEFORE_BOOT);
-        mContext.sendBroadcast(intent, ProfileService.BLUETOOTH_PERM);
+        mService.sendBroadcast(intent, ProfileService.BLUETOOTH_PERM);
         mService.notifyProfileConnectionStateChanged(device, BluetoothProfile.PBAP_CLIENT, state,
                 prevState);
-    }
-
-    public void connect(BluetoothDevice device) {
-        Log.d(TAG, "Connect Request " + device.getAddress());
-        sendMessage(MSG_CONNECT, device);
     }
 
     public void disconnect(BluetoothDevice device) {
@@ -400,16 +339,19 @@ final class PbapClientStateMachine extends StateMachine {
     }
 
     public void resumeDownload() {
-        removeUncleanAccounts();
         sendMessage(MSG_RESUME_DOWNLOAD);
     }
 
     void doQuit() {
-        removeUncleanAccounts();
         if (mHandlerThread != null) {
             mHandlerThread.quitSafely();
         }
         quitNow();
+    }
+
+    @Override
+    protected void onQuitting() {
+        mService.cleanupDevice(mCurrentDevice);
     }
 
     public int getConnectionState() {
@@ -428,8 +370,8 @@ final class PbapClientStateMachine extends StateMachine {
     }
 
     public List<BluetoothDevice> getDevicesMatchingConnectionStates(int[] states) {
-        int clientState = -1;
-        BluetoothDevice currentDevice = null;
+        int clientState;
+        BluetoothDevice currentDevice;
         synchronized (mLock) {
             clientState = getConnectionState();
             currentDevice = getDevice();
@@ -472,25 +414,7 @@ final class PbapClientStateMachine extends StateMachine {
     }
 
     Context getContext() {
-        return mContext;
-    }
-
-    private void removeUncleanAccounts() {
-        // Find all accounts that match the type "pbap" and delete them.
-        AccountManager accountManager = AccountManager.get(mContext);
-        Account[] accounts = accountManager.getAccountsByType(
-                mContext.getString(R.string.pbap_account_type));
-        Log.w(TAG, "Found " + accounts.length + " unclean accounts");
-        for (Account acc : accounts) {
-            Log.w(TAG, "Deleting " + acc);
-            // The device ID is the name of the account.
-            accountManager.removeAccountExplicitly(acc);
-        }
-        try {
-            mContext.getContentResolver().delete(CallLog.Calls.CONTENT_URI, null, null);
-        } catch (IllegalArgumentException e) {
-            // CallLogs could not be deleted, they may not exist yet.
-        }
+        return mService;
     }
 
     public void dump(StringBuilder sb) {
