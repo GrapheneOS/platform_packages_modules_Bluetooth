@@ -349,7 +349,7 @@ static void btavrcp_get_item_attr_callback(uint8_t scope, uint8_t* uid,
   CallbackEnv sCallbackEnv(__func__);
   if (!sCallbackEnv.valid()) return;
 
-  if (mCallbacksObj) {
+  if (!mCallbacksObj) {
     ALOGE("%s: mCallbacksObj is null", __func__);
     return;
   }
