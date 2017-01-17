@@ -45,6 +45,7 @@ using clearcut::connectivity::A2DPSession;
 using clearcut::connectivity::BluetoothLog;
 using clearcut::connectivity::BluetoothSession;
 using clearcut::connectivity::BluetoothSession_ConnectionTechnologyType;
+using clearcut::connectivity::BluetoothSession_DisconnectReasonType;
 using clearcut::connectivity::DeviceInfo;
 using clearcut::connectivity::DeviceInfo_DeviceType;
 using clearcut::connectivity::PairEvent;
@@ -53,17 +54,6 @@ using clearcut::connectivity::ScanEvent_ScanTechnologyType;
 using clearcut::connectivity::ScanEvent_ScanEventType;
 using clearcut::connectivity::WakeEvent;
 using clearcut::connectivity::WakeEvent_WakeEventType;
-
-namespace {
-// Maximum number of log entries for each repeated field
-const size_t global_max_num_bluetooth_session = 50;
-const size_t global_max_num_pair_event = 50;
-const size_t global_max_num_wake_event = 50;
-const size_t global_max_num_scan_event = 50;
-const std::string global_next_session_start_without_ending_previous =
-    "NEXT_SESSION_START_WITHOUT_ENDING_PREVIOUS";
-const std::string global_metrics_dump = "METRICS_DUMP";
-}
 
 uint64_t metrics_time_get_os_boottime_us(void) {
   struct timespec ts_now;
@@ -225,6 +215,22 @@ static WakeEvent_WakeEventType get_wake_event_type(wake_event_type_t type) {
   }
 }
 
+static BluetoothSession_DisconnectReasonType get_disconnect_reason_type(
+  disconnect_reason_t type) {
+  switch (type) {
+    case DISCONNECT_REASON_METRICS_DUMP:
+      return BluetoothSession_DisconnectReasonType::
+        BluetoothSession_DisconnectReasonType_METRICS_DUMP;
+    case DISCONNECT_REASON_NEXT_START_WITHOUT_END_PREVIOUS:
+      return BluetoothSession_DisconnectReasonType::
+        BluetoothSession_DisconnectReasonType_NEXT_START_WITHOUT_END_PREVIOUS;
+    case DISCONNECT_REASON_UNKNOWN:
+    default:
+      return BluetoothSession_DisconnectReasonType::
+        BluetoothSession_DisconnectReasonType_UNKNOWN;
+  }
+}
+
 struct BluetoothMetricsLogger::impl {
   impl(size_t max_bluetooth_session, size_t max_pair_event,
        size_t max_wake_event, size_t max_scan_event)
@@ -256,9 +262,8 @@ struct BluetoothMetricsLogger::impl {
 };
 
 BluetoothMetricsLogger::BluetoothMetricsLogger()
-    : pimpl_(new impl(global_max_num_bluetooth_session,
-                      global_max_num_pair_event, global_max_num_wake_event,
-                      global_max_num_scan_event)) {}
+    : pimpl_(new impl(kMaxNumBluetoothSession, kMaxNumPairEvent,
+                      kMaxNumWakeEvent, kMaxNumScanEvent)) {}
 
 void BluetoothMetricsLogger::LogPairEvent(uint32_t disconnect_reason,
                                           uint64_t timestamp_ms,
@@ -271,6 +276,11 @@ void BluetoothMetricsLogger::LogPairEvent(uint32_t disconnect_reason,
   event->set_disconnect_reason(disconnect_reason);
   event->set_event_time_millis(timestamp_ms);
   pimpl_->pair_event_queue_->Enqueue(event);
+  {
+    std::lock_guard<std::recursive_mutex> lock(pimpl_->bluetooth_log_lock_);
+    pimpl_->bluetooth_log_->set_num_pair_event(
+        pimpl_->bluetooth_log_->num_pair_event() + 1);
+  }
 }
 
 void BluetoothMetricsLogger::LogWakeEvent(wake_event_type_t type,
@@ -283,6 +293,11 @@ void BluetoothMetricsLogger::LogWakeEvent(wake_event_type_t type,
   event->set_name(name);
   event->set_event_time_millis(timestamp_ms);
   pimpl_->wake_event_queue_->Enqueue(event);
+  {
+    std::lock_guard<std::recursive_mutex> lock(pimpl_->bluetooth_log_lock_);
+    pimpl_->bluetooth_log_->set_num_wake_event(
+        pimpl_->bluetooth_log_->num_wake_event() + 1);
+  }
 }
 
 void BluetoothMetricsLogger::LogScanEvent(bool start,
@@ -300,14 +315,19 @@ void BluetoothMetricsLogger::LogScanEvent(bool start,
   event->set_number_results(results);
   event->set_event_time_millis(timestamp_ms);
   pimpl_->scan_event_queue_->Enqueue(event);
+  {
+    std::lock_guard<std::recursive_mutex> lock(pimpl_->bluetooth_log_lock_);
+    pimpl_->bluetooth_log_->set_num_scan_event(
+        pimpl_->bluetooth_log_->num_scan_event() + 1);
+  }
 }
 
 void BluetoothMetricsLogger::LogBluetoothSessionStart(
     connection_tech_t connection_tech_type, uint64_t timestamp_ms) {
   std::lock_guard<std::recursive_mutex> lock(pimpl_->bluetooth_session_lock_);
   if (pimpl_->bluetooth_session_ != nullptr) {
-    LogBluetoothSessionEnd(global_next_session_start_without_ending_previous,
-                           0);
+    LogBluetoothSessionEnd(DISCONNECT_REASON_NEXT_START_WITHOUT_END_PREVIOUS,
+      0);
   }
   if (timestamp_ms == 0) {
     timestamp_ms = time_get_os_boottime_ms();
@@ -319,7 +339,7 @@ void BluetoothMetricsLogger::LogBluetoothSessionStart(
 }
 
 void BluetoothMetricsLogger::LogBluetoothSessionEnd(
-    const std::string& disconnect_reason, uint64_t timestamp_ms) {
+    disconnect_reason_t disconnect_reason, uint64_t timestamp_ms) {
   std::lock_guard<std::recursive_mutex> lock(pimpl_->bluetooth_session_lock_);
   if (pimpl_->bluetooth_session_ == nullptr) {
     return;
@@ -330,9 +350,15 @@ void BluetoothMetricsLogger::LogBluetoothSessionEnd(
   int64_t session_duration_sec =
       (timestamp_ms - pimpl_->bluetooth_session_start_time_ms_) / 1000;
   pimpl_->bluetooth_session_->set_session_duration_sec(session_duration_sec);
-  pimpl_->bluetooth_session_->set_disconnect_reason(disconnect_reason);
+  pimpl_->bluetooth_session_->set_disconnect_reason_type(
+    get_disconnect_reason_type(disconnect_reason));
   pimpl_->bt_session_queue_->Enqueue(pimpl_->bluetooth_session_);
   pimpl_->bluetooth_session_ = nullptr;
+  {
+    std::lock_guard<std::recursive_mutex> log_lock(pimpl_->bluetooth_log_lock_);
+    pimpl_->bluetooth_log_->set_num_bluetooth_session(
+        pimpl_->bluetooth_log_->num_bluetooth_session() + 1);
+  }
 }
 
 void BluetoothMetricsLogger::LogBluetoothSessionDeviceInfo(
@@ -416,7 +442,7 @@ void BluetoothMetricsLogger::CutoffSession() {
         new BluetoothSession(*pimpl_->bluetooth_session_);
     new_bt_session->clear_a2dp_session();
     new_bt_session->clear_rfcomm_session();
-    LogBluetoothSessionEnd(global_metrics_dump, 0);
+    LogBluetoothSessionEnd(DISCONNECT_REASON_METRICS_DUMP, 0);
     pimpl_->bluetooth_session_ = new_bt_session;
     pimpl_->bluetooth_session_start_time_ms_ = time_get_os_boottime_ms();
     pimpl_->a2dp_session_metrics_ = A2dpSessionMetrics();
@@ -514,11 +540,10 @@ void metrics_log_bluetooth_session_start(connection_tech_t connection_tech_type,
       connection_tech_type, 0);
 }
 
-void metrics_log_bluetooth_session_end(const char* disconnect_reason,
+void metrics_log_bluetooth_session_end(disconnect_reason_t disconnect_reason,
   uint64_t timestamp_ms) {
-  std::string disconnect_reason_str(disconnect_reason);
   BluetoothMetricsLogger::GetInstance()->LogBluetoothSessionEnd(
-    disconnect_reason_str, timestamp_ms);
+    disconnect_reason, timestamp_ms);
 }
 
 void metrics_log_bluetooth_session_device_info(uint32_t device_class,

@@ -51,6 +51,12 @@ typedef enum {
   CONNECTION_TECHNOLOGY_TYPE_BREDR,
 } connection_tech_t;
 
+typedef enum {
+  DISCONNECT_REASON_UNKNOWN,
+  DISCONNECT_REASON_METRICS_DUMP,
+  DISCONNECT_REASON_NEXT_START_WITHOUT_END_PREVIOUS,
+} disconnect_reason_t;
+
 typedef struct {
   int64_t audio_duration_ms;
   int32_t media_timer_min_ms;
@@ -75,7 +81,7 @@ void metrics_log_scan_event(bool start, const char* initator, scan_tech_t type,
 void metrics_log_bluetooth_session_start(connection_tech_t connection_tech_type,
                                 uint64_t timestamp_ms);
 
-void metrics_log_bluetooth_session_end(const char* disconnect_reason,
+void metrics_log_bluetooth_session_end(disconnect_reason_t disconnect_reason,
   uint64_t timestamp_ms);
 
 void metrics_log_bluetooth_session_device_info(uint32_t device_class,

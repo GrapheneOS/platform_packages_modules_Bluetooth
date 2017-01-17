@@ -1527,7 +1527,7 @@ static void btif_media_thread_cleanup(UNUSED_ATTR void *context) {
 
   /* Clear media task flag */
   media_task_running = MEDIA_TASK_STATE_OFF;
-  metrics_log_bluetooth_session_end("A2DP_SHUTDOWN", 0);
+  metrics_log_bluetooth_session_end(DISCONNECT_REASON_UNKNOWN, 0);
 }
 
 /*******************************************************************************

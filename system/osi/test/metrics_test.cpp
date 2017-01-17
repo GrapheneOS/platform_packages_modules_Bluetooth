@@ -39,6 +39,7 @@ using clearcut::connectivity::A2DPSession;
 using clearcut::connectivity::BluetoothLog;
 using clearcut::connectivity::BluetoothSession;
 using clearcut::connectivity::BluetoothSession_ConnectionTechnologyType;
+using clearcut::connectivity::BluetoothSession_DisconnectReasonType;
 using clearcut::connectivity::DeviceInfo;
 using clearcut::connectivity::DeviceInfo_DeviceType;
 using clearcut::connectivity::PairEvent;
@@ -50,6 +51,10 @@ using clearcut::connectivity::WakeEvent;
 using clearcut::connectivity::WakeEvent_WakeEventType;
 using system_bt_osi::BluetoothMetricsLogger;
 using system_bt_osi::A2dpSessionMetrics;
+
+namespace {
+const size_t kMaxEventGenerationLimit = 5000;
+}
 
 uint64_t metrics_time_get_os_boottime_us(void) {
   struct timespec ts_now;
@@ -127,15 +132,16 @@ A2DPSession* MakeA2DPSession(const A2dpSessionMetrics& metrics) {
 BluetoothSession* MakeBluetoothSession(
     int64_t session_duration_sec,
     BluetoothSession_ConnectionTechnologyType conn_type,
-    const std::string& disconnect_reason, DeviceInfo* device_info,
-    RFCommSession* rfcomm_session, A2DPSession* a2dp_session) {
+    BluetoothSession_DisconnectReasonType disconnect_reason,
+    DeviceInfo* device_info, RFCommSession* rfcomm_session,
+    A2DPSession* a2dp_session) {
   BluetoothSession* session = new BluetoothSession();
   if (a2dp_session) session->set_allocated_a2dp_session(a2dp_session);
   if (rfcomm_session) session->set_allocated_rfcomm_session(rfcomm_session);
   if (device_info) session->set_allocated_device_connected_to(device_info);
   session->set_session_duration_sec(session_duration_sec);
   session->set_connection_technology_type(conn_type);
-  session->set_disconnect_reason(disconnect_reason);
+  session->set_disconnect_reason_type(disconnect_reason);
   return session;
 }
 
@@ -163,9 +169,9 @@ BluetoothLog* MakeBluetoothLog(std::vector<BluetoothSession*> bt_sessions,
   return bt_log;
 }
 
-void GenerateWakeEvents(int start, int end,
+void GenerateWakeEvents(size_t start, size_t end,
                         std::vector<WakeEvent*>* wake_events) {
-  for (int i = start; i < end; ++i) {
+  for (size_t i = start; i < end; ++i) {
     wake_events->push_back(MakeWakeEvent(
         i % 2 == 0 ? WakeEvent_WakeEventType::WakeEvent_WakeEventType_ACQUIRED
                    : WakeEvent_WakeEventType::WakeEvent_WakeEventType_RELEASED,
@@ -313,6 +319,10 @@ class BluetoothMetricsLoggerTest : public Test {
   std::vector<WakeEvent*> wake_events_;
   std::vector<ScanEvent*> scan_events_;
   std::vector<BluetoothSession*> bt_sessions_;
+  int64_t num_pair_event_ = 0;
+  int64_t num_wake_event_ = 0;
+  int64_t num_scan_event_ = 0;
+  int64_t num_bt_session_ = 0;
   BluetoothLog* bt_log_;
   std::string bt_log_str_;
   std::string bt_log_ascii_str_;
@@ -321,17 +331,37 @@ class BluetoothMetricsLoggerTest : public Test {
     for (BluetoothSession* session : bt_sessions_) {
       bt_log_->mutable_session()->AddAllocated(session);
     }
+    if (num_bt_session_ > 0) {
+      bt_log_->set_num_bluetooth_session(num_bt_session_);
+    } else if (bt_sessions_.size() > 0) {
+      bt_log_->set_num_bluetooth_session(bt_sessions_.size());
+    }
     bt_sessions_.clear();
     for (PairEvent* event : pair_events_) {
       bt_log_->mutable_pair_event()->AddAllocated(event);
+    }
+    if (num_pair_event_ > 0) {
+      bt_log_->set_num_pair_event(num_pair_event_);
+    } else if (pair_events_.size() > 0) {
+      bt_log_->set_num_pair_event(pair_events_.size());
     }
     pair_events_.clear();
     for (WakeEvent* event : wake_events_) {
       bt_log_->mutable_wake_event()->AddAllocated(event);
     }
+    if (num_wake_event_ > 0) {
+      bt_log_->set_num_wake_event(num_wake_event_);
+    } else if (wake_events_.size() > 0) {
+      bt_log_->set_num_wake_event(wake_events_.size());
+    }
     wake_events_.clear();
     for (ScanEvent* event : scan_events_) {
       bt_log_->mutable_scan_event()->AddAllocated(event);
+    }
+    if (num_scan_event_ > 0) {
+      bt_log_->set_num_scan_event(num_scan_event_);
+    } else if (scan_events_.size() > 0) {
+      bt_log_->set_num_scan_event(scan_events_.size());
     }
     scan_events_.clear();
     bt_log_->SerializeToString(&bt_log_str_);
@@ -401,10 +431,13 @@ TEST_F(BluetoothMetricsLoggerTest, WakeEventTest) {
   EXPECT_THAT(msg_str, StrEq(bt_log_str_));
 }
 
-TEST_F(BluetoothMetricsLoggerTest, WakeEvent500Test) {
-  GenerateWakeEvents(450, 500, &wake_events_);
+TEST_F(BluetoothMetricsLoggerTest, WakeEventOverrunTest) {
+  GenerateWakeEvents(kMaxEventGenerationLimit -
+    BluetoothMetricsLogger::kMaxNumWakeEvent,
+    kMaxEventGenerationLimit, &wake_events_);
+  num_wake_event_ = kMaxEventGenerationLimit;
   UpdateLog();
-  for (int i = 0; i < 500; ++i) {
+  for (size_t i = 0; i < kMaxEventGenerationLimit; ++i) {
     BluetoothMetricsLogger::GetInstance()->LogWakeEvent(
         i % 2 == 0 ? WAKE_EVENT_ACQUIRED : WAKE_EVENT_RELEASED,
         "TEST_REQ", "TEST_NAME", i);
@@ -433,12 +466,14 @@ TEST_F(BluetoothMetricsLoggerTest, BluetoothSessionTest) {
       10,
       BluetoothSession_ConnectionTechnologyType::
           BluetoothSession_ConnectionTechnologyType_CONNECTION_TECHNOLOGY_TYPE_LE,
-      "TEST_DISCONNECT", nullptr, nullptr, nullptr));
+      BluetoothSession_DisconnectReasonType::
+          BluetoothSession_DisconnectReasonType_UNKNOWN,
+      nullptr, nullptr, nullptr));
   UpdateLog();
   BluetoothMetricsLogger::GetInstance()->LogBluetoothSessionStart(
       CONNECTION_TECHNOLOGY_TYPE_LE, 123456);
   BluetoothMetricsLogger::GetInstance()->LogBluetoothSessionEnd(
-      "TEST_DISCONNECT", 133456);
+      DISCONNECT_REASON_UNKNOWN, 133456);
   std::string msg_str;
   BluetoothMetricsLogger::GetInstance()->WriteString(&msg_str, true);
   EXPECT_THAT(msg_str, StrEq(bt_log_str_));
@@ -449,7 +484,9 @@ TEST_F(BluetoothMetricsLoggerTest, BluetoothSessionDumpBeforeEndTest) {
       1,
       BluetoothSession_ConnectionTechnologyType::
           BluetoothSession_ConnectionTechnologyType_CONNECTION_TECHNOLOGY_TYPE_LE,
-      "METRICS_DUMP", nullptr, nullptr, nullptr));
+      BluetoothSession_DisconnectReasonType::
+          BluetoothSession_DisconnectReasonType_METRICS_DUMP,
+      nullptr, nullptr, nullptr));
   UpdateLog();
   BluetoothMetricsLogger::GetInstance()->LogBluetoothSessionStart(
       CONNECTION_TECHNOLOGY_TYPE_LE, time_get_os_boottime_ms());
@@ -464,12 +501,16 @@ TEST_F(BluetoothMetricsLoggerTest, BluetoothSessionStartBeforeEndTest) {
       1,
       BluetoothSession_ConnectionTechnologyType::
           BluetoothSession_ConnectionTechnologyType_CONNECTION_TECHNOLOGY_TYPE_UNKNOWN,
-      "NEXT_SESSION_START_WITHOUT_ENDING_PREVIOUS", nullptr, nullptr, nullptr));
+      BluetoothSession_DisconnectReasonType::
+          BluetoothSession_DisconnectReasonType_NEXT_START_WITHOUT_END_PREVIOUS,
+      nullptr, nullptr, nullptr));
   bt_sessions_.push_back(MakeBluetoothSession(
       2,
       BluetoothSession_ConnectionTechnologyType::
           BluetoothSession_ConnectionTechnologyType_CONNECTION_TECHNOLOGY_TYPE_LE,
-      "METRICS_DUMP", nullptr, nullptr, nullptr));
+      BluetoothSession_DisconnectReasonType::
+          BluetoothSession_DisconnectReasonType_METRICS_DUMP,
+      nullptr, nullptr, nullptr));
   UpdateLog();
   BluetoothMetricsLogger::GetInstance()->LogBluetoothSessionStart(
       CONNECTION_TECHNOLOGY_TYPE_UNKNOWN, 0);
@@ -531,7 +572,8 @@ TEST_F(BluetoothMetricsLoggerTest, A2DPSessionTwoUpdatesTest) {
       10,
       BluetoothSession_ConnectionTechnologyType::
           BluetoothSession_ConnectionTechnologyType_CONNECTION_TECHNOLOGY_TYPE_BREDR,
-      "TEST_DISCONNECT", info, nullptr, session));
+      BluetoothSession_DisconnectReasonType::BluetoothSession_DisconnectReasonType_UNKNOWN,
+      info, nullptr, session));
   UpdateLog();
   BluetoothMetricsLogger::GetInstance()->LogBluetoothSessionStart(
       CONNECTION_TECHNOLOGY_TYPE_BREDR, 123456);
@@ -540,7 +582,7 @@ TEST_F(BluetoothMetricsLoggerTest, A2DPSessionTwoUpdatesTest) {
   BluetoothMetricsLogger::GetInstance()->LogA2dpSession(metrics1);
   BluetoothMetricsLogger::GetInstance()->LogA2dpSession(metrics2);
   BluetoothMetricsLogger::GetInstance()->LogBluetoothSessionEnd(
-      "TEST_DISCONNECT", 133456);
+      DISCONNECT_REASON_UNKNOWN, 133456);
   std::string msg_str;
   BluetoothMetricsLogger::GetInstance()->WriteString(&msg_str, true);
   EXPECT_THAT(msg_str, StrEq(bt_log_str_));
@@ -587,7 +629,9 @@ TEST_F(BluetoothMetricsLoggerTest, A2DPSessionTwoUpdatesSeparatedbyDumpTest) {
       1,
       BluetoothSession_ConnectionTechnologyType::
           BluetoothSession_ConnectionTechnologyType_CONNECTION_TECHNOLOGY_TYPE_BREDR,
-      "METRICS_DUMP", info, nullptr, session));
+      BluetoothSession_DisconnectReasonType::
+          BluetoothSession_DisconnectReasonType_METRICS_DUMP,
+      info, nullptr, session));
   UpdateLog();
   BluetoothMetricsLogger::GetInstance()->LogBluetoothSessionStart(
       CONNECTION_TECHNOLOGY_TYPE_BREDR, 0);
@@ -607,12 +651,13 @@ TEST_F(BluetoothMetricsLoggerTest, A2DPSessionTwoUpdatesSeparatedbyDumpTest) {
       1,
       BluetoothSession_ConnectionTechnologyType::
           BluetoothSession_ConnectionTechnologyType_CONNECTION_TECHNOLOGY_TYPE_BREDR,
-      "TEST_DISCONNECT", info, nullptr, session));
+      BluetoothSession_DisconnectReasonType::BluetoothSession_DisconnectReasonType_UNKNOWN,
+      info, nullptr, session));
   UpdateLog();
   sleep_ms(1000);
   BluetoothMetricsLogger::GetInstance()->LogA2dpSession(metrics2);
   BluetoothMetricsLogger::GetInstance()->LogBluetoothSessionEnd(
-      "TEST_DISCONNECT", 0);
+      DISCONNECT_REASON_UNKNOWN, 0);
   msg_str.clear();
   BluetoothMetricsLogger::GetInstance()->WriteString(&msg_str, true);
   EXPECT_THAT(msg_str, StrEq(bt_log_str_));
@@ -665,7 +710,8 @@ TEST_F(BluetoothMetricsLoggerTest, A2DPSessionOnlyTest) {
       1,
       BluetoothSession_ConnectionTechnologyType::
           BluetoothSession_ConnectionTechnologyType_CONNECTION_TECHNOLOGY_TYPE_BREDR,
-      "METRICS_DUMP", info, nullptr, session));
+      BluetoothSession_DisconnectReasonType::BluetoothSession_DisconnectReasonType_METRICS_DUMP,
+      info, nullptr, session));
   UpdateLog();
   BluetoothMetricsLogger::GetInstance()->LogA2dpSession(metrics1);
   BluetoothMetricsLogger::GetInstance()->LogA2dpSession(metrics2);
@@ -724,7 +770,8 @@ TEST_F(BluetoothMetricsLoggerTest, A2DPSessionDumpBeforeTwoUpdatesTest) {
       1,
       BluetoothSession_ConnectionTechnologyType::
           BluetoothSession_ConnectionTechnologyType_CONNECTION_TECHNOLOGY_TYPE_BREDR,
-      "METRICS_DUMP", info, nullptr, nullptr));
+      BluetoothSession_DisconnectReasonType::BluetoothSession_DisconnectReasonType_METRICS_DUMP,
+      info, nullptr, nullptr));
   UpdateLog();
   BluetoothMetricsLogger::GetInstance()->LogBluetoothSessionStart(
       CONNECTION_TECHNOLOGY_TYPE_BREDR, 0);
@@ -743,13 +790,14 @@ TEST_F(BluetoothMetricsLoggerTest, A2DPSessionDumpBeforeTwoUpdatesTest) {
       1,
       BluetoothSession_ConnectionTechnologyType::
           BluetoothSession_ConnectionTechnologyType_CONNECTION_TECHNOLOGY_TYPE_BREDR,
-      "TEST_DISCONNECT", info, nullptr, session));
+      BluetoothSession_DisconnectReasonType::BluetoothSession_DisconnectReasonType_UNKNOWN,
+      info, nullptr, session));
   UpdateLog();
   BluetoothMetricsLogger::GetInstance()->LogA2dpSession(metrics1);
   BluetoothMetricsLogger::GetInstance()->LogA2dpSession(metrics2);
   sleep_ms(1000);
   BluetoothMetricsLogger::GetInstance()->LogBluetoothSessionEnd(
-      "TEST_DISCONNECT", 0);
+      DISCONNECT_REASON_UNKNOWN, 0);
   msg_str.clear();
   BluetoothMetricsLogger::GetInstance()->WriteString(&msg_str, true);
   EXPECT_THAT(msg_str, StrEq(bt_log_str_));

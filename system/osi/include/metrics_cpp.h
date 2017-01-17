@@ -142,7 +142,7 @@ class BluetoothMetricsLogger {
    *    timestamp_ms : the timestamp of session end, 0 means now
    *
    */
-  void LogBluetoothSessionEnd(const std::string& disconnect_reason,
+  void LogBluetoothSessionEnd(disconnect_reason_t disconnect_reason,
                               uint64_t timestamp_ms);
 
   /*
@@ -185,6 +185,14 @@ class BluetoothMetricsLogger {
    * protobuf objects.
    */
   void Reset();
+
+  /*
+   * Maximum number of log entries for each session or event
+   */
+  static const size_t kMaxNumBluetoothSession = 50;
+  static const size_t kMaxNumPairEvent = 50;
+  static const size_t kMaxNumWakeEvent = 1000;
+  static const size_t kMaxNumScanEvent = 50;
 
  private:
   BluetoothMetricsLogger();
