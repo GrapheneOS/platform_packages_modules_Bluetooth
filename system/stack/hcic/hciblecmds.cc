@@ -698,7 +698,7 @@ void btsnd_hcic_ble_set_extended_scan_params(uint8_t own_address_type,
   uint8_t* pp = (uint8_t*)(p + 1);
 
   uint16_t param_len = 3 + (5 * scanning_phys);
-  p->len = HCIC_PREAMBLE_SIZE + 3 + (5 * param_len);
+  p->len = HCIC_PREAMBLE_SIZE + param_len;
   p->offset = 0;
 
   UINT16_TO_STREAM(pp, HCI_LE_SET_EXTENDED_SCAN_PARAMETERS);
