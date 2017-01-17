@@ -752,7 +752,7 @@ static uint8_t calculate_max_frames_per_packet(void) {
     // EDR and supports only 2 Mbps, but the effective AVDTP MTU size
     // exceeds the 2DH5 packet size.
     LOG_VERBOSE(LOG_TAG,
-                "%s: The remote devce is EDR but does not support 3 Mbps",
+                "%s: The remote device is EDR but does not support 3 Mbps",
                 __func__);
 
     if (effective_mtu_size > MAX_2MBPS_AVDTP_MTU) {
