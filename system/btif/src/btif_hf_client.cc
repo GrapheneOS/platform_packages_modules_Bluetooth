@@ -291,12 +291,12 @@ static bt_status_t init(bthf_client_callbacks_t* callbacks) {
  ******************************************************************************/
 static bt_status_t connect_int(bt_bdaddr_t* bd_addr, uint16_t uuid) {
   btif_hf_client_cb_t* cb = btif_hf_client_allocate_cb();
-  bdcpy(cb->peer_bda.address, bd_addr->address);
   if (cb == NULL) {
     BTIF_TRACE_ERROR("%s: could not allocate block!", __func__);
     return BT_STATUS_BUSY;
   }
 
+  bdcpy(cb->peer_bda.address, bd_addr->address);
   if (is_connected(cb)) return BT_STATUS_BUSY;
 
   cb->state = BTHF_CLIENT_CONNECTION_STATE_CONNECTING;
