@@ -359,6 +359,21 @@ static bt_status_t btif_gatts_close(int server_if, const bt_bdaddr_t* bd_addr,
 
 static void add_service_impl(int server_if,
                              vector<btgatt_db_element_t> service) {
+  bt_uuid_t restricted_uuid1, restricted_uuid2;
+  uuid_128_from_16(&restricted_uuid1, UUID_SERVCLASS_GATT_SERVER);
+  uuid_128_from_16(&restricted_uuid2, UUID_SERVCLASS_GAP_SERVER);
+
+  // TODO(jpawlowski): btif should be a pass through layer, and no checks should
+  // be made here. This exception is added only until GATT server code is
+  // refactored, and one can distinguish stack-internal aps from external apps
+  if (memcmp(&service[0].uuid, &restricted_uuid1, sizeof(bt_uuid_t)) ||
+      memcmp(&service[0].uuid, &restricted_uuid2, sizeof(bt_uuid_t))) {
+    LOG_ERROR(LOG_TAG, "%s: Attept to register restricted service", __func__);
+    HAL_CBACK(bt_gatt_callbacks, server->service_added_cb, BT_STATUS_FAIL,
+              server_if, std::move(service));
+    return;
+  }
+
   int status = BTA_GATTS_AddService(server_if, service);
   HAL_CBACK(bt_gatt_callbacks, server->service_added_cb, status, server_if,
             std::move(service));
