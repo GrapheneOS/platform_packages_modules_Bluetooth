@@ -353,13 +353,13 @@ static void aptx_update_framing_params(tAPTX_FRAMING_PARAMS* framing_params) {
     }
   }
 
-  LOG_DEBUG(LOG_TAG,
-            "%s: sleep_time_ns = %" PRIu64
-            " aptx_bytes = %u "
-            "pcm_bytes_per_read = %u pcm_reads = %u frame_size_counter = %u",
-            __func__, framing_params->sleep_time_ns, framing_params->aptx_bytes,
-            framing_params->pcm_bytes_per_read, framing_params->pcm_reads,
-            framing_params->frame_size_counter);
+  LOG_VERBOSE(LOG_TAG,
+              "%s: sleep_time_ns = %" PRIu64
+              " aptx_bytes = %u "
+              "pcm_bytes_per_read = %u pcm_reads = %u frame_size_counter = %u",
+              __func__, framing_params->sleep_time_ns,
+              framing_params->aptx_bytes, framing_params->pcm_bytes_per_read,
+              framing_params->pcm_reads, framing_params->frame_size_counter);
 }
 
 void a2dp_vendor_aptx_feeding_reset(void) {
@@ -423,8 +423,8 @@ void a2dp_vendor_aptx_send_frames(uint64_t timestamp_us) {
   const int COMPRESSION_RATIO = 4;
   size_t encoded_bytes = pcm_bytes_encoded / COMPRESSION_RATIO;
   p_buf->len += encoded_bytes;
-  LOG_DEBUG(LOG_TAG, "%s: encoded %zu PCM bytes to %zu", __func__,
-            pcm_bytes_encoded, encoded_bytes);
+  LOG_VERBOSE(LOG_TAG, "%s: encoded %zu PCM bytes to %zu", __func__,
+              pcm_bytes_encoded, encoded_bytes);
 
   // Update the RTP timestamp
   *((uint32_t*)(p_buf + 1)) = a2dp_aptx_encoder_cb.timestamp;
