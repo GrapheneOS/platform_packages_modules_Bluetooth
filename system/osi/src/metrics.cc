@@ -35,7 +35,7 @@
 #include "osi/include/time.h"
 #include "stack/include/btm_api_types.h"
 
-#include "osi/src/protos/bluetooth.pb.h"
+#include "src/protos/bluetooth.pb.h"
 
 #include "osi/include/metrics.h"
 
