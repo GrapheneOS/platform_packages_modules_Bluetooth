@@ -98,7 +98,7 @@ int A2DP_VendorGetTrackBitsPerSampleLdac(const uint8_t* p_codec_info);
 int A2DP_VendorGetTrackChannelCountLdac(const uint8_t* p_codec_info);
 
 // Gets the channel mode code for the A2DP LDAC codec.
-// The actual value is codec-specific.
+// The actual value is codec-specific - see |A2DP_LDAC_CHANNEL_MODE_*|.
 // |p_codec_info| is a pointer to the LDAC codec_info to decode.
 // Returns the channel mode code on success, or -1 if |p_codec_info|
 // contains invalid codec information.
