@@ -478,7 +478,7 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
                     }
                 }
             } catch (IOException e1) {
-                Log.e(TAG, "Error when receiving file");
+                Log.e(TAG, "Error when receiving file: " + e1);
                 /* OBEX Abort packet received from remote device */
                 if ("Abort Received".equals(e1.getMessage())) {
                     status = BluetoothShare.STATUS_CANCELED;
