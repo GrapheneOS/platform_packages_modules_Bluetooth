@@ -1,0 +1,45 @@
+// Bluetooth device static library for target
+// ========================================================
+cc_library_static {
+    name: "libbtdevice",
+    defaults: ["fluoride_defaults"],
+    local_include_dirs: [
+        "include",
+    ],
+    include_dirs: [
+        "packages/modules/Bluetooth/system",
+        "packages/modules/Bluetooth/system/btcore/include",
+        "packages/modules/Bluetooth/system/hci/include",
+        "packages/modules/Bluetooth/system/include",
+        "packages/modules/Bluetooth/system/stack/include",
+    ],
+    srcs: [
+        "src/controller.cc",
+        "src/interop.cc",
+    ],
+    shared_libs: [
+        "liblog",
+    ],
+}
+
+// Bluetooth device unit tests for target
+// ========================================================
+cc_test {
+    name: "net_test_device",
+    defaults: ["fluoride_defaults"],
+    include_dirs: ["packages/modules/Bluetooth/system"],
+    srcs: [
+        "test/interop_test.cc",
+    ],
+    shared_libs: [
+        "liblog",
+        "libdl",
+    ],
+    static_libs: [
+        "libbtdevice",
+        "libbtcore",
+        "libosi",
+        "libosi-AllocationTestHarness",
+        "libcutils",
+    ],
+}

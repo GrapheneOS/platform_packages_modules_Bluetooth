@@ -1,0 +1,43 @@
+// test-vendor unit tests for host
+// ========================================================
+cc_test_host {
+    name: "test-vendor_test_host",
+    srcs: [
+        "src/async_manager.cc",
+        "src/bt_address.cc",
+        "src/command_packet.cc",
+        "src/event_packet.cc",
+        "src/hci_transport.cc",
+        "src/packet.cc",
+        "src/packet_stream.cc",
+        "test/async_manager_unittest.cc",
+        "test/bt_address_unittest.cc",
+        "test/hci_transport_unittest.cc",
+        "test/packet_stream_unittest.cc",
+    ],
+    local_include_dirs: [
+        "include",
+    ],
+    include_dirs: [
+        "packages/modules/Bluetooth/system",
+        "packages/modules/Bluetooth/system/utils/include",
+        "packages/modules/Bluetooth/system/hci/include",
+        "packages/modules/Bluetooth/system/stack/include",
+    ],
+    shared_libs: [
+        "liblog",
+        "libchrome",
+    ],
+    cflags: [
+        "-fvisibility=hidden",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-DLOG_NDEBUG=1",
+    ],
+    target: {
+        darwin: {
+            enabled: false,
+        }
+    },
+}

@@ -44,12 +44,12 @@
 #include <hardware/hardware.h>
 #include <system/audio.h>
 
-#include "audio_a2dp_hw.h"
-#include "bt_utils.h"
 #include "osi/include/hash_map_utils.h"
 #include "osi/include/log.h"
 #include "osi/include/osi.h"
 #include "osi/include/socket_utils/sockets.h"
+
+#include "audio_a2dp_hw.h"
 
 /*****************************************************************************
  *  Constants & Macros

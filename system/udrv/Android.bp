@@ -1,0 +1,20 @@
+cc_library_static {
+    name: "libudrv-uipc",
+    defaults: ["fluoride_defaults"],
+    srcs: [
+        "ulinux/uipc.cc",
+    ],
+    include_dirs: [
+      "packages/modules/Bluetooth/system",
+      "packages/modules/Bluetooth/system/include",
+      "packages/modules/Bluetooth/system/audio_a2dp_hw",
+      "packages/modules/Bluetooth/system/utils/include",
+      "packages/modules/Bluetooth/system/stack/include",
+    ],
+    local_include_dirs: [
+      "include",
+    ],
+    shared_libs: [
+      "liblog",
+    ],
+}

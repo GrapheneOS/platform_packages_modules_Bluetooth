@@ -1,0 +1,73 @@
+// HCI static library for target
+// ========================================================
+cc_library_static {
+    name: "libbt-hci",
+    defaults: ["fluoride_defaults"],
+    srcs: [
+        "src/btsnoop.cc",
+        "src/btsnoop_mem.cc",
+        "src/btsnoop_net.cc",
+        "src/buffer_allocator.cc",
+        "src/hci_audio.cc",
+        "src/hci_hal.cc",
+        "src/hci_hal_h4.cc",
+        "src/hci_hal_mct.cc",
+        "src/hci_inject.cc",
+        "src/hci_layer.cc",
+        "src/hci_packet_factory.cc",
+        "src/hci_packet_parser.cc",
+        "src/low_power_manager.cc",
+        "src/packet_fragmenter.cc",
+        "src/vendor.cc",
+    ],
+    local_include_dirs: [
+        "include",
+    ],
+    include_dirs: [
+        "packages/modules/Bluetooth/system",
+        "packages/modules/Bluetooth/system/include",
+        "packages/modules/Bluetooth/system/btcore/include",
+        "packages/modules/Bluetooth/system/stack/include",
+        "packages/modules/Bluetooth/system/utils/include",
+        "packages/modules/Bluetooth/system/bta/include",
+    ],
+}
+
+// HCI unit tests for target
+// ========================================================
+cc_test {
+    name: "net_test_hci",
+    defaults: ["fluoride_defaults"],
+    local_include_dirs: [
+        "include",
+    ],
+    include_dirs: [
+        "packages/modules/Bluetooth/system",
+        "packages/modules/Bluetooth/system/include",
+        "packages/modules/Bluetooth/system/btcore/include",
+        "packages/modules/Bluetooth/system/osi/test",
+        "packages/modules/Bluetooth/system/stack/include",
+        "packages/modules/Bluetooth/system/utils/include",
+    ],
+    srcs: [
+        "test/hci_hal_h4_test.cc",
+        "test/hci_hal_mct_test.cc",
+        "test/hci_layer_test.cc",
+        "test/low_power_manager_test.cc",
+        "test/packet_fragmenter_test.cc",
+    ],
+    shared_libs: [
+        "liblog",
+        "libdl",
+        "libprotobuf-cpp-lite",
+    ],
+    static_libs: [
+        "libbt-hci",
+        "libosi",
+        "libosi-AlarmTestHarness",
+        "libosi-AllocationTestHarness",
+        "libcutils",
+        "libbtcore",
+        "libbt-protos",
+    ],
+}

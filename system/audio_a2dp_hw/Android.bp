@@ -1,0 +1,26 @@
+// Audio A2DP shared library for target
+// ========================================================
+cc_library_shared {
+    name: "audio.a2dp.default",
+    defaults: ["fluoride_defaults"],
+    relative_install_path: "hw",
+    srcs: [
+        "audio_a2dp_hw.cc",
+        "audio_a2dp_hw_utils.cc",
+    ],
+    include_dirs: [
+        "packages/modules/Bluetooth/system",
+    ],
+    shared_libs: [
+        "liblog",
+    ],
+    static_libs: ["libosi"],
+}
+
+cc_library_static {
+    name: "libaudio-a2dp-hw-utils",
+    defaults: ["fluoride_defaults"],
+    srcs: [
+        "audio_a2dp_hw_utils.cc",
+    ],
+}

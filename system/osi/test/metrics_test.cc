@@ -28,7 +28,7 @@
 
 #include "osi/include/metrics.h"
 #include "osi/include/time.h"
-#include "osi/src/protos/bluetooth.pb.h"
+#include "src/protos/bluetooth.pb.h"
 
 #define BTM_COD_MAJOR_AUDIO_TEST 0x04
 
