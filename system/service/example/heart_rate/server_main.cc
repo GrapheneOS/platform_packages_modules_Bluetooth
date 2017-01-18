@@ -28,7 +28,7 @@
 
 #include <android/bluetooth/IBluetooth.h>
 
-#include "service/example/heart_rate/heart_rate_server.h"
+#include "heart_rate_server.h"
 
 using android::sp;
 using android::OK;
