@@ -38,9 +38,8 @@ LOCAL_STATIC_LIBRARIES := libosi
 LOCAL_MODULE := libbt-vendor
 LOCAL_MODULE_TAGS := optional
 
-LOCAL_CFLAGS += $(bluetooth_CFLAGS)
-LOCAL_CONLYFLAGS += $(bluetooth_CONLYFLAGS)
-LOCAL_CPPFLAGS += $(bluetooth_CPPFLAGS)
+LOCAL_CFLAGS += $(test-vendor_CFLAGS)
+LOCAL_CONLYFLAGS += $(test-vendor_CONLYFLAGS)
 
 include $(BUILD_SHARED_LIBRARY)
 
