@@ -28,6 +28,18 @@ message BluetoothLog {
 
   // Number of bonded devices.
   optional int32 num_bonded_devices = 5;
+
+  // Number of BluetoothSession including discarded ones beyond capacity
+  optional int64 num_bluetooth_session = 6;
+
+  // Number of PairEvent including discarded ones beyond capacity
+  optional int64 num_pair_event = 7;
+
+  // Number of WakeEvent including discarded ones beyond capacity
+  optional int64 num_wake_event = 8;
+
+  // Number of ScanEvent including discarded ones beyond capacity
+  optional int64 num_scan_event = 9;
 }
 
 // The information about the device.
