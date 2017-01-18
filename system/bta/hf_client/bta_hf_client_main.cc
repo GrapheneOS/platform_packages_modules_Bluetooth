@@ -930,27 +930,27 @@ void bta_hf_client_dump_statistics(int fd) {
   // We dump statistics for all control blocks
   for (int i = 0; i < HF_CLIENT_MAX_DEVICES; i++) {
     tBTA_HF_CLIENT_CB* client_cb = &bta_hf_client_cb_arr.cb[i];
-    dprintf(fd, "Contol block #%d\n", i + 1);
-
     if (!client_cb->is_allocated) {
-      dprintf(fd, "NOT ALLOCATED\n");
+      // Skip the blocks which are not allocated
       continue;
     }
 
+    dprintf(fd, "  Control block #%d\n", i + 1);
+
     // Device name
-    dprintf(fd, "Peer Device: %02x:%02x:%02x:%02x:%02x:%02x\n",
+    dprintf(fd, "    Peer Device: %02x:%02x:%02x:%02x:%02x:%02x\n",
             client_cb->peer_addr[0], client_cb->peer_addr[1],
             client_cb->peer_addr[2], client_cb->peer_addr[3],
             client_cb->peer_addr[4], client_cb->peer_addr[5]);
 
     // State machine state
-    dprintf(fd, "State Machine State: %s\n",
+    dprintf(fd, "    State Machine State: %s\n",
             bta_hf_client_state_str(client_cb->state));
 
     // Local RFC channelfor communication
-    dprintf(fd, "RFCOMM Channel (local) %d\n", client_cb->conn_handle);
+    dprintf(fd, "    RFCOMM Channel (local) %d\n", client_cb->conn_handle);
 
     // BTA Handle shared between BTA and client (ex BTIF)
-    dprintf(fd, "BTA Generated handle %d\n", client_cb->handle);
+    dprintf(fd, "    BTA Generated handle %d\n", client_cb->handle);
   }
 }
