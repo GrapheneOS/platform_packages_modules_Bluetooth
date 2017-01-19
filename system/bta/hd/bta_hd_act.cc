@@ -305,10 +305,10 @@ extern void bta_hd_disconnect_act(UNUSED_ATTR tBTA_HD_DATA* p_data) {
     return;
   }
 
-  bdcpy(cback_data.conn.bda, bta_hd_cb.bd_addr);
-  cback_data.conn.status = BTHD_CONN_STATE_DISCONNECTING;
-
-  bta_hd_cb.p_cback(BTA_HD_CONN_STATE_EVT, &cback_data);
+  if (HID_DevGetDevice(&cback_data.conn.bda) == HID_SUCCESS) {
+    cback_data.conn.status = BTHD_CONN_STATE_DISCONNECTING;
+    bta_hd_cb.p_cback(BTA_HD_CONN_STATE_EVT, &cback_data);
+  }
 }
 
 /*******************************************************************************

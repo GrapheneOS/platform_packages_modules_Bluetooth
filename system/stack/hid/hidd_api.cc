@@ -496,6 +496,14 @@ tHID_STATUS HID_DevDisconnect(void) {
   }
 
   if (hd_cb.device.state == HIDD_DEV_NO_CONN) {
+    /* If we are still trying to connect, just close the connection. */
+    if (hd_cb.device.conn.conn_state != HID_CONN_STATE_UNUSED) {
+      tHID_STATUS ret = hidd_conn_disconnect();
+      hd_cb.device.conn.conn_state = HID_CONN_STATE_UNUSED;
+      hd_cb.callback(hd_cb.device.addr, HID_DHOST_EVT_CLOSE,
+                     HID_ERR_DISCONNECTING, NULL);
+      return ret;
+    }
     return HID_ERR_NO_CONNECTION;
   }
 
