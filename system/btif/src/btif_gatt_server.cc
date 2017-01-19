@@ -366,8 +366,8 @@ static void add_service_impl(int server_if,
   // TODO(jpawlowski): btif should be a pass through layer, and no checks should
   // be made here. This exception is added only until GATT server code is
   // refactored, and one can distinguish stack-internal aps from external apps
-  if (memcmp(&service[0].uuid, &restricted_uuid1, sizeof(bt_uuid_t)) ||
-      memcmp(&service[0].uuid, &restricted_uuid2, sizeof(bt_uuid_t))) {
+  if (memcmp(&service[0].uuid, &restricted_uuid1, sizeof(bt_uuid_t)) == 0 ||
+      memcmp(&service[0].uuid, &restricted_uuid2, sizeof(bt_uuid_t)) == 0) {
     LOG_ERROR(LOG_TAG, "%s: Attept to register restricted service", __func__);
     HAL_CBACK(bt_gatt_callbacks, server->service_added_cb, BT_STATUS_FAIL,
               server_if, std::move(service));
