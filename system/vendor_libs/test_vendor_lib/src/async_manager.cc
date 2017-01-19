@@ -415,8 +415,9 @@ class AsyncManager::AsyncTaskManager {
     thread_ = std::thread([this]() { ThreadRoutine(); });
     if (!thread_.joinable()) {
       LOG_ERROR(LOG_TAG, "%s: Unable to start task thread", __FUNCTION__);
+      return -1;
     }
-    return -1;
+    return 0;
   }
 
   void ThreadRoutine() {
