@@ -14,6 +14,8 @@
 package fluoride
 
 import (
+  "strings"
+
   "android/soong/android"
   "android/soong/cc"
 
@@ -50,7 +52,11 @@ func globalDefaults(ctx android.BaseContext) ([]string, []string) {
   board_bt_buildcfg_include_dir := ctx.DeviceConfig().BtConfigIncludeDir()
   if (len(board_bt_buildcfg_include_dir) > 0) {
     cflags = append(cflags, "-DHAS_BDROID_BUILDCFG")
-    includeDirs = append(includeDirs, board_bt_buildcfg_include_dir)
+    board_bt_buildcfg_include_dir_list :=
+        strings.Fields(board_bt_buildcfg_include_dir)
+    for _, buildcfg_dir := range board_bt_buildcfg_include_dir_list {
+      includeDirs = append(includeDirs, buildcfg_dir)
+    }
   } else {
     cflags = append(cflags, "-DHAS_NO_BDROID_BUILDCFG")
   }
