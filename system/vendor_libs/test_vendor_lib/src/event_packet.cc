@@ -270,7 +270,6 @@ EventPacket::CreateCommandCompleteLeReadLocalSupportedFeatures(
       EventPacket::CreateCommandCompleteOnlyStatusEvent(
           HCI_BLE_READ_LOCAL_SPT_FEAT, status);
 
-  CHECK(evt_ptr->AddPayloadOctets1(status));
   CHECK(evt_ptr->AddPayloadOctets8(le_features));
 
   return evt_ptr;
