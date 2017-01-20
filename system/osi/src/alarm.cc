@@ -563,6 +563,7 @@ static void alarm_queue_ready(fixed_queue_t* queue, UNUSED_ATTR void* context) {
     alarm->deadline = 0;
     alarm->callback = NULL;
     alarm->data = NULL;
+    alarm->queue = NULL;
   }
 
   std::lock_guard<std::recursive_mutex> cb_lock(*alarm->callback_mutex);
