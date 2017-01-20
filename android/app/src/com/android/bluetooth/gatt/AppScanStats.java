@@ -64,6 +64,9 @@ import com.android.bluetooth.btservice.BluetoothProto;
     // earliest recorded scan exits this window.
     static final long EXCESSIVE_SCANNING_PERIOD_MS = 30 * 1000;
 
+    // Maximum msec before scan gets downgraded to opportunistic
+    static final int SCAN_TIMEOUT_MS = 30 * 60 * 1000;
+
     String appName;
     int scansStarted = 0;
     int scansStopped = 0;
@@ -158,6 +161,14 @@ import com.android.bluetooth.btservice.BluetoothProto;
 
         return (System.currentTimeMillis() - lastScans.get(0).timestamp) <
             EXCESSIVE_SCANNING_PERIOD_MS;
+    }
+
+    synchronized boolean isScanningTooLong() {
+        if (lastScans.isEmpty() || !isScanning) {
+            return false;
+        }
+
+        return (System.currentTimeMillis() - startTime) > SCAN_TIMEOUT_MS;
     }
 
     // This function truncates the app name for privacy reasons. Apps with
