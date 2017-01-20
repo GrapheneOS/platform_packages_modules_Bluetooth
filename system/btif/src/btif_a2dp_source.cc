@@ -324,8 +324,8 @@ static void btif_a2dp_source_shutdown_delayed(UNUSED_ATTR void* context) {
   btif_a2dp_source_cb.tx_audio_queue = NULL;
 
   btif_a2dp_source_state = BTIF_A2DP_SOURCE_STATE_OFF;
-  BluetoothMetricsLogger::GetInstance()->LogBluetoothSessionEnd("A2DP_SHUTDOWN",
-                                                                0);
+  BluetoothMetricsLogger::GetInstance()->LogBluetoothSessionEnd(
+      system_bt_osi::DISCONNECT_REASON_UNKNOWN, 0);
 }
 
 bool btif_a2dp_source_media_task_is_running(void) {

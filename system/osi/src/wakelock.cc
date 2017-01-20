@@ -278,7 +278,7 @@ static void update_wakelock_acquired_stats(bt_status_t acquired_status) {
   wakelock_stats.last_acquired_timestamp_ms = now_ms;
 
   BluetoothMetricsLogger::GetInstance()->LogWakeEvent(
-      system_bt_osi::WAKE_EVENT_ACQUIRED, "", WAKE_LOCK_ID, now_ms);
+      system_bt_osi::WAKE_EVENT_ACQUIRED, "", "", now_ms);
 }
 
 //
@@ -320,7 +320,7 @@ static void update_wakelock_released_stats(bt_status_t released_status) {
   wakelock_stats.total_acquired_interval_ms += delta_ms;
 
   BluetoothMetricsLogger::GetInstance()->LogWakeEvent(
-      system_bt_osi::WAKE_EVENT_RELEASED, "", WAKE_LOCK_ID, now_ms);
+      system_bt_osi::WAKE_EVENT_RELEASED, "", "", now_ms);
 }
 
 void wakelock_debug_dump(int fd) {
