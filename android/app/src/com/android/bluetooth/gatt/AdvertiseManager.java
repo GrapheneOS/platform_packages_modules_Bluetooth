@@ -94,6 +94,10 @@ class AdvertiseManager {
     }
 
     void unregisterAdvertiser(int advertiserId) {
+        AdvertiseClient client = getAdvertiseClient(advertiserId);
+        if (client != null && mAdvertiseClients.contains(client)) {
+            mAdvertiseClients.remove(client);
+        }
         mAdvertiseNative.unregisterAdvertiserNative(advertiserId);
     }
 
