@@ -37,7 +37,6 @@ public class RemoteDevicesTest extends AndroidTestCase {
         Looper.myLooper().quitSafely();
         Looper.loop();
 
-        verify(mockService).initProfilePriorities(device, null);
         verify(mockService).sendBroadcast(any(), anyString());
         verifyNoMoreInteractions(mockService);
     }

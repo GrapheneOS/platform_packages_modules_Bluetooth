@@ -708,7 +708,6 @@ public class HealthService extends ProfileService {
         } else {
             mHealthDevices.put(device, newDeviceState);
         }
-        notifyProfileConnectionStateChanged(device, BluetoothProfile.HEALTH, newDeviceState, prevDeviceState);
     }
 
     /**

@@ -16,10 +16,17 @@
 
 package com.android.bluetooth.btservice;
 
+import android.bluetooth.BluetoothA2dp;
+import android.bluetooth.BluetoothA2dpSink;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothHeadset;
+import android.bluetooth.BluetoothHeadsetClient;
 import android.bluetooth.BluetoothProfile;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.ParcelUuid;
 import android.os.UserHandle;
 import android.util.Log;
@@ -68,6 +75,24 @@ class AdapterProperties {
     private boolean mIsDebugLogSupported;
     private boolean mIsActivityAndEnergyReporting;
 
+    private BroadcastReceiver mReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Log.d(TAG, "Received intent " + intent);
+            if (BluetoothHeadset.ACTION_CONNECTION_STATE_CHANGED.equals(intent.getAction())) {
+                sendConnectionStateChange(BluetoothProfile.HEADSET, intent);
+            } else if (BluetoothA2dp.ACTION_CONNECTION_STATE_CHANGED.equals(intent.getAction())) {
+                sendConnectionStateChange(BluetoothProfile.A2DP, intent);
+            } else if (BluetoothHeadsetClient.ACTION_CONNECTION_STATE_CHANGED.equals(
+                               intent.getAction())) {
+                sendConnectionStateChange(BluetoothProfile.HEADSET_CLIENT, intent);
+            } else if (BluetoothA2dpSink.ACTION_CONNECTION_STATE_CHANGED.equals(
+                               intent.getAction())) {
+                sendConnectionStateChange(BluetoothProfile.A2DP_SINK, intent);
+            }
+        }
+    };
+
     // Lock for all getters and setters.
     // If finer grained locking is needer, more locks
     // can be added here.
@@ -84,6 +109,14 @@ class AdapterProperties {
             mProfileConnectionState.clear();
         }
         mRemoteDevices = remoteDevices;
+
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(BluetoothHeadset.ACTION_CONNECTION_STATE_CHANGED);
+        filter.addAction(BluetoothHeadsetClient.ACTION_CONNECTION_STATE_CHANGED);
+        filter.addAction(BluetoothA2dp.ACTION_CONNECTION_STATE_CHANGED);
+        filter.addAction(BluetoothA2dpSink.ACTION_CONNECTION_STATE_CHANGED);
+        filter.addAction(BluetoothDevice.ACTION_UUID);
+        mService.registerReceiver(mReceiver, filter);
     }
 
     public void cleanup() {
@@ -92,6 +125,7 @@ class AdapterProperties {
             mProfileConnectionState.clear();
             mProfileConnectionState = null;
         }
+        mService.unregisterReceiver(mReceiver);
         mService = null;
         mBondedDevices.clear();
     }
@@ -319,6 +353,12 @@ class AdapterProperties {
         return mDiscovering;
     }
 
+    private void sendConnectionStateChange(int profile, Intent connIntent) {
+        BluetoothDevice device = connIntent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+        int prevState = connIntent.getIntExtra(BluetoothProfile.EXTRA_PREVIOUS_STATE, -1);
+        int state = connIntent.getIntExtra(BluetoothProfile.EXTRA_STATE, -1);
+        sendConnectionStateChange(device, profile, state, prevState);
+    }
     void sendConnectionStateChange(BluetoothDevice device, int profile, int state, int prevState) {
         if (!validateProfileConnectionState(state) ||
                 !validateProfileConnectionState(prevState)) {
