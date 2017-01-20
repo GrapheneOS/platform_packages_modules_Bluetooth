@@ -372,6 +372,11 @@ void bta_hl_dch_ci_get_tx_data(uint8_t app_idx, uint8_t mcl_idx,
   APPL_TRACE_DEBUG("bta_hl_dch_ci_get_tx_data");
 #endif
 
+  if (p_data != NULL) {
+    status = p_data->ci_get_put_data.status;
+    APPL_TRACE_WARNING("%s: status=%d", __func__, status);
+  }
+
   p_dcb->cout_oper &= ~BTA_HL_CO_GET_TX_DATA_MASK;
 
   if (p_dcb->close_pending) {
@@ -381,6 +386,8 @@ void bta_hl_dch_ci_get_tx_data(uint8_t app_idx, uint8_t mcl_idx,
     if (!p_dcb->cout_oper) {
       close_dch = true;
     }
+  } else if (status == BTA_HL_STATUS_FAIL) {
+    free_buf = TRUE;
   } else {
     result = MCA_WriteReq((tMCA_DL)p_dcb->mdl_handle, p_dcb->p_tx_pkt);
     if (result != MCA_SUCCESS) {
