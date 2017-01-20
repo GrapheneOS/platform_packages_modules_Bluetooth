@@ -2512,29 +2512,28 @@ void btm_ble_refresh_raddr_timer_timeout(UNUSED_ATTR void* data) {
  *
  ******************************************************************************/
 void btm_ble_read_remote_features_complete(uint8_t* p) {
-  tACL_CONN* p_acl_cb = &btm_cb.acl_db[0];
+  BTM_TRACE_EVENT("%s", __func__);
+
   uint16_t handle;
   uint8_t status;
-  int xx;
-
-  BTM_TRACE_EVENT("btm_ble_read_remote_features_complete ");
-
   STREAM_TO_UINT8(status, p);
+  STREAM_TO_UINT16(handle, p);
+  handle = handle & 0x0FFF;  // only 12 bits meaningful
 
-  // if LE read remote feature failed for HCI_ERR_CONN_FAILED_ESTABLISHMENT,
-  // expect disconnect complete to be received
-  if (status != HCI_ERR_CONN_FAILED_ESTABLISHMENT) {
-    STREAM_TO_UINT16(handle, p);
-
-    /* Look up the connection by handle and copy features */
-    for (xx = 0; xx < MAX_L2CAP_LINKS; xx++, p_acl_cb++) {
-      if ((p_acl_cb->in_use) && (p_acl_cb->hci_handle == handle)) {
-        STREAM_TO_ARRAY(p_acl_cb->peer_le_features, p, BD_FEATURES_LEN);
-        btsnd_hcic_rmt_ver_req(p_acl_cb->hci_handle);
-        break;
-      }
-    }
+  if (status != HCI_SUCCESS) {
+    BTM_TRACE_ERROR("%s: failed for handle: 0x%04d", __func__, handle);
+    return;
   }
+
+  int idx = btm_handle_to_acl_index(handle);
+  if (idx == MAX_L2CAP_LINKS) {
+    BTM_TRACE_ERROR("%s: can't find acl for handle: 0x%04d", __func__, handle);
+    return;
+  }
+
+  STREAM_TO_ARRAY(btm_cb.acl_db[idx].peer_le_features, p, BD_FEATURES_LEN);
+
+  btsnd_hcic_rmt_ver_req(handle);
 }
 
 /*******************************************************************************
