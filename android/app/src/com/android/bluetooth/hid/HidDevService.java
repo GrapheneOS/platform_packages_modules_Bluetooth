@@ -652,9 +652,6 @@ public class HidDevService extends ProfileService {
       return;
     }
 
-    notifyProfileConnectionStateChanged(device, BluetoothProfile.INPUT_HOST,
-                                        newState, prevState);
-
     Intent intent =
         new Intent(BluetoothInputHost.ACTION_CONNECTION_STATE_CHANGED);
     intent.putExtra(BluetoothProfile.EXTRA_PREVIOUS_STATE, prevState);

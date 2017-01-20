@@ -266,12 +266,6 @@ final class A2dpSinkStateMachine extends StateMachine {
                     //reject the connection and stay in Disconnected state itself
                     logi("Incoming A2DP rejected");
                     disconnectA2dpNative(getByteAddress(device));
-                    // the other profile connection should be initiated
-                    AdapterService adapterService = AdapterService.getAdapterService();
-                    if (adapterService != null) {
-                        adapterService.connectOtherProfile(device,
-                                                           AdapterService.PROFILE_CONN_REJECTED);
-                    }
                 }
                 break;
             case CONNECTION_STATE_CONNECTED:
@@ -288,12 +282,6 @@ final class A2dpSinkStateMachine extends StateMachine {
                     //reject the connection and stay in Disconnected state itself
                     logi("Incoming A2DP rejected");
                     disconnectA2dpNative(getByteAddress(device));
-                    // the other profile connection should be initiated
-                    AdapterService adapterService = AdapterService.getAdapterService();
-                    if (adapterService != null) {
-                        adapterService.connectOtherProfile(device,
-                                                           AdapterService.PROFILE_CONN_REJECTED);
-                    }
                 }
                 break;
             case CONNECTION_STATE_DISCONNECTING:
@@ -840,8 +828,6 @@ final class A2dpSinkStateMachine extends StateMachine {
 //FIXME            intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY_BEFORE_BOOT);
             mContext.sendBroadcast(intent, ProfileService.BLUETOOTH_PERM);
             log("Connection state " + device + ": " + prevState + "->" + state);
-            mService.notifyProfileConnectionStateChanged(device, BluetoothProfile.A2DP_SINK,
-                    state, prevState);
         }
 
         @Override
