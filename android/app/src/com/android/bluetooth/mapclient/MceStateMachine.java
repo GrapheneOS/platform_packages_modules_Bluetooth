@@ -161,8 +161,6 @@ final class MceStateMachine extends StateMachine {
         intent.putExtra(BluetoothDevice.EXTRA_DEVICE, mDevice);
         intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY_BEFORE_BOOT);
         mService.sendBroadcast(intent, ProfileService.BLUETOOTH_PERM);
-        mService.notifyProfileConnectionStateChanged(mDevice, BluetoothProfile.MAP_CLIENT, state,
-                prevState);
     }
 
     public synchronized int getState() {

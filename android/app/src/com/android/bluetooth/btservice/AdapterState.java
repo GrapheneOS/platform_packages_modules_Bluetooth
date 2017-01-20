@@ -223,7 +223,6 @@ final class AdapterState extends StateMachine {
                 return;
             }
             adapterService.updateUuids();
-            adapterService.autoConnect();
         }
 
         @Override

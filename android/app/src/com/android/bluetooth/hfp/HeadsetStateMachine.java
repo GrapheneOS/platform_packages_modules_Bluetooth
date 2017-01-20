@@ -420,11 +420,8 @@ final class HeadsetStateMachine extends StateMachine {
                     //reject the connection and stay in Disconnected state itself
                     disconnectHfpNative(getByteAddress(device));
                     // the other profile connection should be initiated
-                    AdapterService adapterService = AdapterService.getAdapterService();
-                    if (adapterService != null) {
-                        adapterService.connectOtherProfile(device,
-                                                           AdapterService.PROFILE_CONN_REJECTED);
-                    }
+                    broadcastConnectionState(device, BluetoothProfile.STATE_DISCONNECTED,
+                            BluetoothProfile.STATE_DISCONNECTED);
                 }
                 break;
             case HeadsetHalConstants.CONNECTION_STATE_CONNECTED:
@@ -449,11 +446,8 @@ final class HeadsetStateMachine extends StateMachine {
                               " bondState=" + device.getBondState());
                     disconnectHfpNative(getByteAddress(device));
                     // the other profile connection should be initiated
-                    AdapterService adapterService = AdapterService.getAdapterService();
-                    if (adapterService != null) {
-                        adapterService.connectOtherProfile(device,
-                                                           AdapterService.PROFILE_CONN_REJECTED);
-                    }
+                    broadcastConnectionState(device, BluetoothProfile.STATE_DISCONNECTED,
+                            BluetoothProfile.STATE_DISCONNECTED);
                 }
                 break;
             case HeadsetHalConstants.CONNECTION_STATE_DISCONNECTING:
@@ -678,12 +672,6 @@ final class HeadsetStateMachine extends StateMachine {
                                 mService.getPriority(device) + " bondState=" +
                                                device.getBondState());
                             disconnectHfpNative(getByteAddress(device));
-                            // the other profile connection should be initiated
-                            AdapterService adapterService = AdapterService.getAdapterService();
-                            if (adapterService != null) {
-                                adapterService.connectOtherProfile(device,
-                                         AdapterService.PROFILE_CONN_REJECTED);
-                            }
                         }
                     }
                     break;
@@ -1095,12 +1083,6 @@ final class HeadsetStateMachine extends StateMachine {
                                mService.getPriority(device) + " bondState=" +
                                         device.getBondState());
                         disconnectHfpNative(getByteAddress(device));
-                        // the other profile connection should be initiated
-                        AdapterService adapterService = AdapterService.getAdapterService();
-                        if (adapterService != null) {
-                            adapterService.connectOtherProfile(device,
-                                                        AdapterService.PROFILE_CONN_REJECTED);
-                        }
                     }
                     break;
                 default:
@@ -1535,12 +1517,6 @@ final class HeadsetStateMachine extends StateMachine {
                                       + mService.getPriority(device) +
                                        " bondState=" + device.getBondState());
                          disconnectHfpNative(getByteAddress(device));
-                         // the other profile connection should be initiated
-                         AdapterService adapterService = AdapterService.getAdapterService();
-                         if (adapterService != null) {
-                             adapterService.connectOtherProfile(device,
-                                             AdapterService.PROFILE_CONN_REJECTED);
-                         }
                     }
                     break;
                 default:
@@ -1959,12 +1935,6 @@ final class HeadsetStateMachine extends StateMachine {
                                           mService.getPriority(device) +
                                   " bondState=" + device.getBondState());
                         disconnectHfpNative(getByteAddress(device));
-                        // the other profile connection should be initiated
-                        AdapterService adapterService = AdapterService.getAdapterService();
-                        if (adapterService != null) {
-                            adapterService.connectOtherProfile(device,
-                                          AdapterService.PROFILE_CONN_REJECTED);
-                        }
                     }
                 }
                 break;
@@ -2415,11 +2385,6 @@ final class HeadsetStateMachine extends StateMachine {
             terminateScoUsingVirtualVoiceCall();
         }
 
-        /* Notifying the connection state change of the profile before sending the intent for
-           connection state change, as it was causing a race condition, with the UI not being
-           updated with the correct connection state. */
-        mService.notifyProfileConnectionStateChanged(device, BluetoothProfile.HEADSET,
-                                                     newState, prevState);
         Intent intent = new Intent(BluetoothHeadset.ACTION_CONNECTION_STATE_CHANGED);
         intent.putExtra(BluetoothProfile.EXTRA_PREVIOUS_STATE, prevState);
         intent.putExtra(BluetoothProfile.EXTRA_STATE, newState);
