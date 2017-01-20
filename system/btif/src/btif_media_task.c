@@ -1471,6 +1471,9 @@ static void btif_media_task_aa_handle_timer(UNUSED_ATTR void *context)
     if (alarm_is_scheduled(btif_media_cb.media_alarm))
     {
         btif_media_send_aa_frame(timestamp_us);
+        update_scheduling_stats(&btif_media_cb.stats.tx_queue_enqueue_stats,
+                                timestamp_us,
+                                BTIF_SINK_MEDIA_TIME_TICK_MS * 1000);
     }
     else
     {
@@ -1768,7 +1771,12 @@ BOOLEAN btif_media_task_start_aa_req(void)
     fixed_queue_enqueue(btif_media_cmd_msg_queue, p_buf);
 
     memset(&btif_media_cb.stats, 0, sizeof(btif_media_stats_t));
+    // Assign session_start_us to 1 when time_now_us() is 0 to indicate
+    // btif_media_task_start_aa_req() has been called
     btif_media_cb.stats.session_start_us = time_now_us();
+    if (btif_media_cb.stats.session_start_us == 0) {
+        btif_media_cb.stats.session_start_us = 1;
+    }
     btif_media_cb.stats.session_end_us = 0;
     return TRUE;
 }
@@ -3154,9 +3162,6 @@ static void btif_media_aa_prep_sbc_2_send(UINT8 nb_frame,
             }
 
             /* Enqueue the encoded SBC frame in AA Tx Queue */
-            update_scheduling_stats(&btif_media_cb.stats.tx_queue_enqueue_stats,
-                                    timestamp_us,
-                                    BTIF_SINK_MEDIA_TIME_TICK_MS * 1000);
             uint8_t done_nb_frame = remain_nb_frame - nb_frame;
             remain_nb_frame = nb_frame;
             btif_media_cb.stats.tx_queue_total_frames += done_nb_frame;
@@ -3472,7 +3477,7 @@ void btif_debug_a2dp_dump(int fd)
 void btif_update_a2dp_metrics(void)
 {
     btif_media_stats_t* stats = &btif_media_cb.stats;
-    scheduling_stats_t* dequeue_stats = &stats->tx_queue_dequeue_stats;
+    scheduling_stats_t* enqueue_stats = &stats->tx_queue_enqueue_stats;
     A2dpSessionMetrics_t metrics;
     metrics.media_timer_min_ms = -1;
     metrics.media_timer_max_ms = -1;
@@ -3482,21 +3487,26 @@ void btif_update_a2dp_metrics(void)
     metrics.buffer_overruns_total = -1;
     metrics.buffer_underruns_average = -1.0;
     metrics.buffer_underruns_count = -1;
-    int64_t session_end_us = stats->session_end_us == 0
+    metrics.audio_duration_ms = -1;
+    // session_start_us is 0 when btif_media_task_start_aa_req() is not called
+    // mark the metric duration as invalid (-1) in this case
+    if (stats->session_start_us != 0) {
+        int64_t session_end_us = stats->session_end_us == 0
                                ? time_now_us()
                                : stats->session_end_us;
-    metrics.audio_duration_ms = (session_end_us - stats->session_start_us) / 1000;
-    if (dequeue_stats->total_updates > 1) {
+        metrics.audio_duration_ms = (session_end_us - stats->session_start_us) / 1000;
+    }
+    if (enqueue_stats->total_updates > 1) {
         metrics.media_timer_min_ms = BTIF_SINK_MEDIA_TIME_TICK_MS -
-            (dequeue_stats->max_premature_scheduling_delta_us / 1000);
+            (enqueue_stats->max_premature_scheduling_delta_us / 1000);
         metrics.media_timer_max_ms = BTIF_SINK_MEDIA_TIME_TICK_MS +
-            (dequeue_stats->max_overdue_scheduling_delta_us / 1000);
+            (enqueue_stats->max_overdue_scheduling_delta_us / 1000);
         metrics.total_scheduling_count
-            = dequeue_stats->overdue_scheduling_count +
-                dequeue_stats->premature_scheduling_count +
-                    dequeue_stats->exact_scheduling_count;
+            = enqueue_stats->overdue_scheduling_count +
+                enqueue_stats->premature_scheduling_count +
+                    enqueue_stats->exact_scheduling_count;
         if (metrics.total_scheduling_count > 0) {
-            metrics.media_timer_avg_ms = dequeue_stats->total_scheduling_time_us /
+            metrics.media_timer_avg_ms = enqueue_stats->total_scheduling_time_us /
                 (1000 * metrics.total_scheduling_count);
         }
         metrics.buffer_overruns_max_count = stats->tx_queue_max_dropped_messages;
@@ -3504,6 +3514,7 @@ void btif_update_a2dp_metrics(void)
         metrics.buffer_underruns_count =
             stats->media_read_total_underflow_count +
                 stats->media_read_total_underrun_count;
+        metrics.buffer_underruns_average = 0;
         if (metrics.buffer_underruns_count > 0) {
             metrics.buffer_underruns_average =
                 (stats->media_read_total_underflow_bytes +
