@@ -310,6 +310,7 @@ void bta_hf_client_cb_init(tBTA_HF_CLIENT_CB* client_cb, uint16_t handle) {
   // Re allocate any variables required
   client_cb->collision_timer = alarm_new("bta_hf_client.scb_collision_timer");
   client_cb->handle = handle;
+  client_cb->sco_idx = BTM_INVALID_SCO_INDEX;
 }
 
 /*******************************************************************************
