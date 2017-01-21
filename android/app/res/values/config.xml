@@ -71,4 +71,7 @@
 
     <!-- Enabling autoconnect over pan -->
     <bool name="config_bluetooth_pan_enable_autoconnect">true</bool>
+
+    <!-- Enabling the phone policy -->
+    <bool name="enable_phone_policy">true</bool>
 </resources>
