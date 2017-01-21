@@ -422,8 +422,15 @@ public class AdapterService extends Service {
         mProfileObserver = new ProfileObserver(getApplicationContext(), this, new Handler());
         mProfileObserver.start();
 
-        mPhonePolicy = new PhonePolicy(this, new ServiceFactory());
-        mPhonePolicy.start();
+        // Phone policy is specific to phone implementations and hence if a device wants to exclude
+        // it out then it can be disabled by using the flag below.
+        if (getResources().getBoolean(com.android.bluetooth.R.bool.enable_phone_policy)) {
+            Log.i(TAG, "Phone policy enabled");
+            mPhonePolicy = new PhonePolicy(this, new ServiceFactory());
+            mPhonePolicy.start();
+        } else {
+            Log.i(TAG, "Phone policy disabled");
+        }
 
         setAdapterService(this);
 
