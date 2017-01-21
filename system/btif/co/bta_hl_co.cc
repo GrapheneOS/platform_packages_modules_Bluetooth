@@ -302,7 +302,7 @@ void bta_hl_co_get_tx_data(uint8_t app_id, tBTA_HL_MDL_HANDLE mdl_handle,
                                         &mdl_idx)) {
     p_dcb = BTIF_HL_GET_MDL_CB_PTR(app_idx, mcl_idx, mdl_idx);
 
-    if (p_dcb->tx_size <= buf_size) {
+    if ((p_dcb->tx_size <= buf_size) && p_dcb->p_tx_pkt) {
       memcpy(p_buf, p_dcb->p_tx_pkt, p_dcb->tx_size);
       osi_free_and_reset((void**)&p_dcb->p_tx_pkt);
       p_dcb->tx_size = 0;
