@@ -186,7 +186,9 @@ class BleAdvertiserInterfaceImpl : public BleAdvertiserInterface {
                                            },
                                            cb),
                         base::Owned(p_params), std::move(advertise_data),
-                        std::move(scan_response_data), timeout_s, timeout_cb));
+                        std::move(scan_response_data), timeout_s,
+                        Bind(&BleAdvertiserInterfaceImpl::EnableTimeoutCb,
+                             base::Unretained(this), timeout_cb)));
   }
 };
 
