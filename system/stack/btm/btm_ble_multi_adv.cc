@@ -34,6 +34,8 @@
 using base::Bind;
 using multiadv_cb = base::Callback<void(uint8_t /* status */)>;
 
+extern fixed_queue_t* btu_general_alarm_queue;
+
 struct AdvertisingInstance {
   uint8_t inst_id;
   bool in_use;
@@ -42,7 +44,6 @@ struct AdvertisingInstance {
   alarm_t* adv_raddr_timer;
   int8_t tx_power;
   int timeout_s;
-  MultiAdvCb timeout_cb;
   alarm_t* timeout_timer;
   AdvertisingInstance(int inst_id)
       : inst_id(inst_id),
@@ -51,7 +52,6 @@ struct AdvertisingInstance {
         rpa{0},
         tx_power(0),
         timeout_s(0),
-        timeout_cb(),
         timeout_timer(nullptr) {
     adv_raddr_timer = alarm_new_periodic("btm_ble.adv_raddr_timer");
   }
@@ -62,10 +62,9 @@ struct AdvertisingInstance {
   }
 };
 
-/*******************************************************************************
- *  Externs
- ******************************************************************************/
-extern fixed_queue_t* btu_general_alarm_queue;
+void btm_ble_adv_raddr_timer_timeout(void* data);
+
+namespace {
 
 void DoNothing(uint8_t) {}
 
@@ -80,8 +79,6 @@ void btm_ble_multi_adv_gen_rpa_cmpl(tBTM_RAND_ENC* p) {
   cb.Run(p);
 }
 
-void btm_ble_adv_raddr_timer_timeout(void* data);
-
 bool is_legacy_connectable(uint16_t advertising_event_properties) {
   if (((advertising_event_properties & 0x10) != 0) &&
       ((advertising_event_properties & 0x01) != 0)) {
@@ -89,6 +86,31 @@ bool is_legacy_connectable(uint16_t advertising_event_properties) {
   }
   return false;
 }
+
+struct closure_data {
+  base::Closure user_task;
+  tracked_objects::Location posted_from;
+};
+
+static void alarm_closure_cb(void* p) {
+  closure_data* data = (closure_data*)p;
+  VLOG(1) << "executing timer scheduled at %s" << data->posted_from.ToString();
+  data->user_task.Run();
+  delete data;
+}
+
+// Periodic alarms are not supported, because we clean up data in callback
+void alarm_set_closure_on_queue(const tracked_objects::Location& posted_from,
+                                alarm_t* alarm, period_ms_t interval_ms,
+                                base::Closure user_task, fixed_queue_t* queue) {
+  closure_data* data = new closure_data;
+  data->posted_from = posted_from;
+  data->user_task = std::move(user_task);
+  VLOG(1) << "scheduling timer %s" << data->posted_from.ToString();
+  alarm_set_on_queue(alarm, interval_ms, alarm_closure_cb, data, queue);
+}
+
+}  // namespace
 
 class BleAdvertisingManagerImpl
     : public BleAdvertisingManager,
@@ -239,7 +261,7 @@ class BleAdvertisingManagerImpl
                   return;
                 }
 
-                c->self->Enable(c->inst_id, true, c->cb, c->timeout_s, c->timeout_cb);
+                c->self->Enable(c->inst_id, true, c->cb, c->timeout_s, std::move(c->timeout_cb));
 
             }, base::Passed(&c)));
         }, base::Passed(&c)));
@@ -247,15 +269,24 @@ class BleAdvertisingManagerImpl
     // clang-format on
   }
 
-  void EnableWithTimerCb(uint8_t inst_id, int timeout_s, MultiAdvCb timeout_cb,
-                         uint8_t status) {
+  void EnableWithTimerCb(uint8_t inst_id, MultiAdvCb enable_cb, int timeout_s,
+                         MultiAdvCb timeout_cb, uint8_t status) {
     AdvertisingInstance* p_inst = &adv_inst[inst_id];
-    p_inst->timeout_s = timeout_s;
-    p_inst->timeout_cb = std::move(timeout_cb);
 
+    // Run the regular enable callback
+    enable_cb.Run(status);
+
+    p_inst->timeout_s = timeout_s;
     p_inst->timeout_timer = alarm_new("btm_ble.adv_timeout");
-    alarm_set_on_queue(p_inst->timeout_timer, p_inst->timeout_s * 1000, nullptr,
-                       p_inst, btu_general_alarm_queue);
+
+    base::Closure cb = Bind(&BleAdvertisingManagerImpl::Enable,
+                            base::Unretained(this), inst_id, 0 /* disable */,
+                            std::move(timeout_cb), 0, base::Bind(DoNothing));
+
+    // schedule disable when the timeout passes
+    alarm_set_closure_on_queue(FROM_HERE, p_inst->timeout_timer,
+                               timeout_s * 1000, std::move(cb),
+                               btu_general_alarm_queue);
   }
 
   void Enable(uint8_t inst_id, bool enable, MultiAdvCb cb, int timeout_s,
@@ -278,7 +309,9 @@ class BleAdvertisingManagerImpl
       GetHciInterface()->Enable(
           enable, p_inst->inst_id, 0x0000, 0x00,
           Bind(&BleAdvertisingManagerImpl::EnableWithTimerCb,
-               base::Unretained(this), inst_id, timeout_s, timeout_cb));
+               base::Unretained(this), inst_id, std::move(cb), timeout_s,
+               std::move(timeout_cb)));
+
     } else {
       if (p_inst->timeout_timer) {
         alarm_cancel(p_inst->timeout_timer);
