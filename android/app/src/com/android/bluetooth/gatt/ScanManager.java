@@ -71,9 +71,6 @@ public class ScanManager {
     private static final int MSG_FLUSH_BATCH_RESULTS = 2;
     private static final int MSG_SCAN_TIMEOUT = 3;
 
-    // Maximum msec before scan gets downgraded to opportunistic
-    private static final int SCAN_TIMEOUT_MS = 30 * 60 * 1000;
-
     private static final String ACTION_REFRESH_BATCHED_SCAN =
             "com.android.bluetooth.gatt.REFRESH_BATCHED_SCAN";
 
@@ -219,7 +216,7 @@ public class ScanManager {
                     handleFlushBatchResults(client);
                     break;
                 case MSG_SCAN_TIMEOUT:
-                    mScanNative.regularScanTimeout();
+                    mScanNative.regularScanTimeout(client);
                     break;
                 default:
                     // Shouldn't happen.
@@ -254,8 +251,7 @@ public class ScanManager {
                         Message msg = mHandler.obtainMessage(MSG_SCAN_TIMEOUT);
                         msg.obj = client;
                         // Only one timeout message should exist at any time
-                        mHandler.removeMessages(MSG_SCAN_TIMEOUT);
-                        mHandler.sendMessageDelayed(msg, SCAN_TIMEOUT_MS);
+                        mHandler.sendMessageDelayed(msg, AppScanStats.SCAN_TIMEOUT_MS);
                     }
                 }
 
@@ -699,14 +695,12 @@ public class ScanManager {
             removeScanFilters(client.scannerId);
         }
 
-        void regularScanTimeout() {
-            for (ScanClient client : mRegularScanClients) {
-                if (!isExemptFromScanDowngrade(client)) {
-                    Log.w(TAG, "Moving scan client to opportunistic (scannerId "
-                          + client.scannerId + ")");
-                    setOpportunisticScanClient(client);
-                    client.stats.setScanTimeout();
-                }
+        void regularScanTimeout(ScanClient client) {
+            if (!isExemptFromScanDowngrade(client) && client.stats.isScanningTooLong()) {
+                Log.w(TAG,
+                        "Moving scan client to opportunistic (scannerId " + client.scannerId + ")");
+                setOpportunisticScanClient(client);
+                client.stats.setScanTimeout();
             }
 
             // The scan should continue for background scans
