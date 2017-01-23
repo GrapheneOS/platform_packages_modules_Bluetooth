@@ -24,6 +24,7 @@
 #include <utility>
 #include "btm_api.h"
 #include "btm_ble_api.h"
+#include "btm_int_types.h"
 #include "device/include/controller.h"
 
 #define BTM_BLE_MULTI_ADV_SET_RANDOM_ADDR_LEN 8
@@ -201,6 +202,19 @@ class BleAdvertiserVscHciInterfaceImpl : public BleAdvertiserHciInterface {
 
     SendAdvCmd(FROM_HERE, (uint8_t)BTM_BLE_MULTI_ADV_ENB_LEN, param,
                command_complete);
+  }
+
+  bool QuirkAdvertiserZeroHandle() override {
+    // Android BT HCI Requirements version 0.96 and below specify that handle 0
+    // is equal to standard HCI interface, and should be accessed using non-VSC
+    // commands. Broadcom controllers are strict about this requirement, so
+    // don't use 0 handle.
+    if (BTM_IS_BRCM_CONTROLLER()) {
+      LOG(INFO) << "QuirkAdvertiserZeroHandle in use";
+      return true;
+    }
+
+    return false;
   }
 
  public:

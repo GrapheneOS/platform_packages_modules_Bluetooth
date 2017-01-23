@@ -71,6 +71,9 @@ class BleAdvertiserHciInterface {
   virtual void Enable(uint8_t enable, uint8_t handle, uint16_t duration,
                       uint8_t max_extended_advertising_events,
                       status_cb command_complete) = 0;
+
+  // Some implementation don't behave well when handle value 0 is used.
+  virtual bool QuirkAdvertiserZeroHandle() { return 0; }
 };
 
 #endif  // BLE_ADVERTISER_HCI_INTERFACE_H
