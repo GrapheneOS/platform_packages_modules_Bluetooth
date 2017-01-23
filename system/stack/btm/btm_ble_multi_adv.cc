@@ -67,6 +67,7 @@ void btm_ble_adv_raddr_timer_timeout(void* data);
 namespace {
 
 void DoNothing(uint8_t) {}
+void DoNothing2(uint8_t, uint8_t) {}
 
 std::queue<base::Callback<void(tBTM_RAND_ENC* p)>>* rand_gen_inst_id = nullptr;
 
@@ -511,6 +512,11 @@ void btm_ble_adv_init() {
   BleAdvertisingManager::Initialize(BleAdvertiserHciInterface::Get());
   BleAdvertiserHciInterface::Get()->SetAdvertisingEventObserver(
       (BleAdvertisingManagerImpl*)BleAdvertisingManager::Get());
+
+  if (BleAdvertiserHciInterface::Get()->QuirkAdvertiserZeroHandle()) {
+    // If handle 0 can't be used, register advertiser for it, but never use it.
+    BleAdvertisingManager::Get()->RegisterAdvertiser(Bind(DoNothing2));
+  }
 }
 
 /*******************************************************************************
