@@ -137,12 +137,15 @@ class PhonePolicy {
                                     .getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
                     Parcelable[] uuids =
                             ((Intent) msg.obj).getParcelableArrayExtra(BluetoothDevice.EXTRA_UUID);
-                    ParcelUuid[] uuidsToSend = new ParcelUuid[uuids.length];
-                    for (int i = 0; i < uuidsToSend.length; i++) {
-                        uuidsToSend[i] = (ParcelUuid) uuids[i];
-                    }
 
-                    processInitProfilePriorities(device, uuidsToSend);
+                    Log.d(TAG, "UUIDs on ACTION_UUID: " + uuids + " for device " + device);
+                    if (uuids != null) {
+                        ParcelUuid[] uuidsToSend = new ParcelUuid[uuids.length];
+                        for (int i = 0; i < uuidsToSend.length; i++) {
+                            uuidsToSend[i] = (ParcelUuid) uuids[i];
+                        }
+                        processInitProfilePriorities(device, uuidsToSend);
+                    }
                 } break;
 
                 case MESSAGE_PROFILE_CONNECTION_STATE_CHANGED: {
