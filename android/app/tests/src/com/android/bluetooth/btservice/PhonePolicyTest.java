@@ -297,4 +297,58 @@ public class PhonePolicyTest extends AndroidTestCase {
         verify(mockA2dpService, never()).connect(eq(device));
         verify(mockHeadsetService, never()).connect(eq(device));
     }
+
+    // Test that a device with no supported uuids is initialized properly and does not crash the
+    // stack
+    public void testNoSupportedUuids() {
+        BluetoothAdapter inst = BluetoothAdapter.getDefaultAdapter();
+        BluetoothDevice device = inst.getRemoteDevice("00:01:02:03:04:05");
+
+        // Create the mock objects required
+        AdapterService mockAdapterService = mock(AdapterService.class);
+        ServiceFactory mockServiceFactory = mock(ServiceFactory.class);
+        HeadsetService mockHeadsetService = mock(HeadsetService.class);
+        A2dpService mockA2dpService = mock(A2dpService.class);
+
+        // Mock the HeadsetService
+        when(mockServiceFactory.getHeadsetService()).thenReturn(mockHeadsetService);
+        when(mockHeadsetService.getPriority(device))
+                .thenReturn(BluetoothProfile.PRIORITY_UNDEFINED);
+
+        // Mock the A2DP service
+        when(mockServiceFactory.getA2dpService()).thenReturn(mockA2dpService);
+        when(mockA2dpService.getPriority(device)).thenReturn(BluetoothProfile.PRIORITY_UNDEFINED);
+
+        // Mock the looper
+        when(mockAdapterService.getMainLooper()).thenReturn(mHandlerThread.getLooper());
+
+        // Tell the adapterservice that it is a mock (see isMock documentation)
+        when(mockAdapterService.isMock()).thenReturn(true);
+
+        PhonePolicy phPol = new PhonePolicy(mockAdapterService, mockServiceFactory);
+
+        // Get the broadcast receiver to inject events.
+        BroadcastReceiver injector = phPol.getBroadcastReceiver();
+
+        // Inject an event for UUIDs updated for a remote device with only HFP enabled
+        Intent intent = new Intent(BluetoothDevice.ACTION_UUID);
+        intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
+
+        // Put no UUIDs
+        injector.onReceive(null /* context */, intent);
+
+        // To check that we have processed all the messages we need to have a hard sleep here. The
+        // reason being mockito can only verify synchronous calls, asynchronous calls are hidden
+        // from its mocking framework. Also, Looper does not provide a way to wait until all future
+        // messages are proceed.
+        try {
+            Thread.sleep(RETRY_TIMEOUT);
+        } catch (Exception ex) {
+        }
+
+        // Check that we do not crash and not call any setPriority methods
+        verify(mockHeadsetService, never())
+                .setPriority(eq(device), eq(BluetoothProfile.PRIORITY_ON));
+        verify(mockA2dpService, never()).setPriority(eq(device), eq(BluetoothProfile.PRIORITY_ON));
+    }
 }
