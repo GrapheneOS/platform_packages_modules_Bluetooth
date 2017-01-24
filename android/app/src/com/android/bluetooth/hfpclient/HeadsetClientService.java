@@ -66,7 +66,7 @@ public class HeadsetClientService extends ProfileService {
     public static String HFP_CLIENT_STOP_TAG = "hfp_client_stop_tag";
 
     static {
-        NativeInterface.initializeNative();
+        NativeInterface.classInitNative();
     }
 
     @Override
@@ -81,6 +81,12 @@ public class HeadsetClientService extends ProfileService {
 
     @Override
     protected synchronized boolean start() {
+        if (DBG) {
+            Log.d(TAG, "start()");
+        }
+        // Setup the JNI service
+        NativeInterface.initializeNative();
+
         mSmFactory = new HeadsetClientStateMachineFactory();
         mStateMachineMap.clear();
 
