@@ -85,11 +85,11 @@ static int32_t combine_averages(int32_t avg_a, int64_t ct_a, int32_t avg_b,
 }
 
 void A2dpSessionMetrics::Update(const A2dpSessionMetrics& metrics) {
-  if (metrics.audio_duration_ms > 0) {
+  if (metrics.audio_duration_ms >= 0) {
     audio_duration_ms = std::max(static_cast<int64_t>(0), audio_duration_ms);
     audio_duration_ms += metrics.audio_duration_ms;
   }
-  if (metrics.media_timer_min_ms > 0) {
+  if (metrics.media_timer_min_ms >= 0) {
     if (media_timer_min_ms < 0) {
       media_timer_min_ms = metrics.media_timer_min_ms;
     } else {
@@ -97,11 +97,11 @@ void A2dpSessionMetrics::Update(const A2dpSessionMetrics& metrics) {
           std::min(media_timer_min_ms, metrics.media_timer_min_ms);
     }
   }
-  if (metrics.media_timer_max_ms > 0) {
+  if (metrics.media_timer_max_ms >= 0) {
     media_timer_max_ms =
         std::max(media_timer_max_ms, metrics.media_timer_max_ms);
   }
-  if (metrics.media_timer_avg_ms > 0 && metrics.total_scheduling_count > 0) {
+  if (metrics.media_timer_avg_ms >= 0 && metrics.total_scheduling_count >= 0) {
     if (media_timer_avg_ms < 0 || total_scheduling_count < 0) {
       media_timer_avg_ms = metrics.media_timer_avg_ms;
       total_scheduling_count = metrics.total_scheduling_count;
@@ -112,24 +112,24 @@ void A2dpSessionMetrics::Update(const A2dpSessionMetrics& metrics) {
       total_scheduling_count += metrics.total_scheduling_count;
     }
   }
-  if (metrics.buffer_overruns_max_count > 0) {
+  if (metrics.buffer_overruns_max_count >= 0) {
     buffer_overruns_max_count =
         std::max(buffer_overruns_max_count, metrics.buffer_overruns_max_count);
   }
-  if (metrics.buffer_overruns_total > 0) {
+  if (metrics.buffer_overruns_total >= 0) {
     buffer_overruns_total =
         std::max(static_cast<int32_t>(0), buffer_overruns_total);
     buffer_overruns_total += metrics.buffer_overruns_total;
   }
-  if (metrics.buffer_underruns_average > 0 &&
-      metrics.buffer_underruns_count > 0) {
+  if (metrics.buffer_underruns_average >= 0 &&
+      metrics.buffer_underruns_count >= 0) {
     if (buffer_underruns_average < 0 || buffer_underruns_count < 0) {
       buffer_underruns_average = metrics.buffer_underruns_average;
       buffer_underruns_count = metrics.buffer_underruns_count;
     } else {
       buffer_underruns_average = combine_averages(
-          metrics.buffer_underruns_average, metrics.buffer_underruns_count,
-          buffer_underruns_average, buffer_underruns_count);
+          buffer_underruns_average, buffer_underruns_count,
+          metrics.buffer_underruns_average, metrics.buffer_underruns_count);
       buffer_underruns_count += metrics.buffer_underruns_count;
     }
   }
