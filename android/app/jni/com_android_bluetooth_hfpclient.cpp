@@ -490,6 +490,7 @@ static void classInitNative(JNIEnv* env, jclass clazz) {
 }
 
 static void initializeNative(JNIEnv* env, jobject object) {
+  ALOGD("%s: HfpClient", __func__);
   const bt_interface_t* btInf = getBluetoothInterface();
   if (btInf == NULL) {
     ALOGE("Bluetooth module is not loaded");
