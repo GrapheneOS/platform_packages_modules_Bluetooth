@@ -373,8 +373,8 @@ static void hidd_l2cif_config_ind(uint16_t cid, tL2CAP_CFG_INFO* p_cfg) {
       p_hcon->disc_reason = HID_L2CAP_CONN_FAIL;
       if ((p_hcon->intr_cid =
                L2CA_ConnectReq(HID_PSM_INTERRUPT, hd_cb.device.addr)) == 0) {
-        p_hcon->conn_state = HID_CONN_STATE_UNUSED;
         hidd_conn_disconnect();
+        p_hcon->conn_state = HID_CONN_STATE_UNUSED;
 
         HIDD_TRACE_WARNING("%s: could not start L2CAP connection for INTR",
                            __func__);
@@ -456,8 +456,8 @@ static void hidd_l2cif_config_cfm(uint16_t cid, tL2CAP_CFG_INFO* p_cfg) {
       p_hcon->disc_reason = HID_L2CAP_CONN_FAIL;
       if ((p_hcon->intr_cid =
                L2CA_ConnectReq(HID_PSM_INTERRUPT, hd_cb.device.addr)) == 0) {
-        p_hcon->conn_state = HID_CONN_STATE_UNUSED;
         hidd_conn_disconnect();
+        p_hcon->conn_state = HID_CONN_STATE_UNUSED;
 
         HIDD_TRACE_WARNING("%s: could not start L2CAP connection for INTR",
                            __func__);
