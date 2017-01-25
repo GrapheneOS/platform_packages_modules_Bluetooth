@@ -166,10 +166,6 @@ public class HeadsetClientStateMachine extends StateMachine {
         return mDisconnected;
     }
 
-    static {
-        NativeInterface.classInitNative();
-    }
-
     public void dump(StringBuilder sb) {
         ProfileService.println(sb, "mCurrentDevice: " + mCurrentDevice);
         ProfileService.println(sb, "mAudioOn: " + mAudioOn);
