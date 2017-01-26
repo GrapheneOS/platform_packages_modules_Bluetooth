@@ -191,7 +191,7 @@ extern uint8_t A2DP_SetTraceLevel(uint8_t new_level);
  *                  A2DP_SET_ZERO_BIT, if all bits clear
  *                  A2DP_SET_MULTL_BIT, if multiple bits are set
  *****************************************************************************/
-extern uint8_t A2DP_BitsSet(uint8_t num);
+extern uint8_t A2DP_BitsSet(uint64_t num);
 
 // Initializes the A2DP control block.
 void A2DP_Init(void);
