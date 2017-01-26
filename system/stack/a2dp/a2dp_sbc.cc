@@ -49,17 +49,19 @@ typedef struct {
   uint8_t alloc_method; /* Allocation method */
   uint8_t min_bitpool;  /* Minimum bitpool */
   uint8_t max_bitpool;  /* Maximum bitpool */
+  btav_a2dp_codec_bits_per_sample_t bits_per_sample;
 } tA2DP_SBC_CIE;
 
 /* SBC SRC codec capabilities */
 static const tA2DP_SBC_CIE a2dp_sbc_caps = {
-    A2DP_SBC_IE_SAMP_FREQ_44, /* samp_freq */
-    A2DP_SBC_IE_CH_MD_JOINT,  /* ch_mode */
-    A2DP_SBC_IE_BLOCKS_16,    /* block_len */
-    A2DP_SBC_IE_SUBBAND_8,    /* num_subbands */
-    A2DP_SBC_IE_ALLOC_MD_L,   /* alloc_method */
-    A2DP_SBC_IE_MIN_BITPOOL,  /* min_bitpool */
-    A2DP_SBC_MAX_BITPOOL      /* max_bitpool */
+    A2DP_SBC_IE_SAMP_FREQ_44,          /* samp_freq */
+    A2DP_SBC_IE_CH_MD_JOINT,           /* ch_mode */
+    A2DP_SBC_IE_BLOCKS_16,             /* block_len */
+    A2DP_SBC_IE_SUBBAND_8,             /* num_subbands */
+    A2DP_SBC_IE_ALLOC_MD_L,            /* alloc_method */
+    A2DP_SBC_IE_MIN_BITPOOL,           /* min_bitpool */
+    A2DP_SBC_MAX_BITPOOL,              /* max_bitpool */
+    BTAV_A2DP_CODEC_BITS_PER_SAMPLE_16 /* bits_per_sample */
 };
 
 /* SBC SINK codec capabilities */
@@ -72,18 +74,20 @@ static const tA2DP_SBC_CIE a2dp_sbc_sink_caps = {
     (A2DP_SBC_IE_SUBBAND_4 | A2DP_SBC_IE_SUBBAND_8),   /* num_subbands */
     (A2DP_SBC_IE_ALLOC_MD_L | A2DP_SBC_IE_ALLOC_MD_S), /* alloc_method */
     A2DP_SBC_IE_MIN_BITPOOL,                           /* min_bitpool */
-    A2DP_SBC_MAX_BITPOOL                               /* max_bitpool */
+    A2DP_SBC_MAX_BITPOOL,                              /* max_bitpool */
+    BTAV_A2DP_CODEC_BITS_PER_SAMPLE_16                 /* bits_per_sample */
 };
 
 /* Default SBC codec configuration */
 const tA2DP_SBC_CIE a2dp_sbc_default_config = {
-    A2DP_SBC_IE_SAMP_FREQ_44, /* samp_freq */
-    A2DP_SBC_IE_CH_MD_JOINT,  /* ch_mode */
-    A2DP_SBC_IE_BLOCKS_16,    /* block_len */
-    A2DP_SBC_IE_SUBBAND_8,    /* num_subbands */
-    A2DP_SBC_IE_ALLOC_MD_L,   /* alloc_method */
-    A2DP_SBC_IE_MIN_BITPOOL,  /* min_bitpool */
-    A2DP_SBC_MAX_BITPOOL      /* max_bitpool */
+    A2DP_SBC_IE_SAMP_FREQ_44,          /* samp_freq */
+    A2DP_SBC_IE_CH_MD_JOINT,           /* ch_mode */
+    A2DP_SBC_IE_BLOCKS_16,             /* block_len */
+    A2DP_SBC_IE_SUBBAND_8,             /* num_subbands */
+    A2DP_SBC_IE_ALLOC_MD_L,            /* alloc_method */
+    A2DP_SBC_IE_MIN_BITPOOL,           /* min_bitpool */
+    A2DP_SBC_MAX_BITPOOL,              /* max_bitpool */
+    BTAV_A2DP_CODEC_BITS_PER_SAMPLE_16 /* bits_per_sample */
 };
 
 static const tA2DP_ENCODER_INTERFACE a2dp_encoder_interface_sbc = {
@@ -1014,7 +1018,7 @@ UNUSED_ATTR static void build_codec_config(const tA2DP_SBC_CIE& config_cie,
   if (config_cie.samp_freq & A2DP_SBC_IE_SAMP_FREQ_48)
     result->sample_rate |= BTAV_A2DP_CODEC_SAMPLE_RATE_48000;
 
-  result->bits_per_sample = BTAV_A2DP_CODEC_BITS_PER_SAMPLE_16;
+  result->bits_per_sample = config_cie.bits_per_sample;
 
   if (config_cie.ch_mode & A2DP_SBC_IE_CH_MD_MONO)
     result->channel_mode |= BTAV_A2DP_CODEC_CHANNEL_MODE_MONO;
@@ -1026,7 +1030,28 @@ UNUSED_ATTR static void build_codec_config(const tA2DP_SBC_CIE& config_cie,
 }
 
 A2dpCodecConfigSbc::A2dpCodecConfigSbc()
-    : A2dpCodecConfig(BTAV_A2DP_CODEC_INDEX_SOURCE_SBC, "SBC") {}
+    : A2dpCodecConfig(BTAV_A2DP_CODEC_INDEX_SOURCE_SBC, "SBC") {
+  // Compute the local capability
+  if (a2dp_sbc_caps.samp_freq & A2DP_SBC_IE_SAMP_FREQ_44) {
+    codec_local_capability_.sample_rate |= BTAV_A2DP_CODEC_SAMPLE_RATE_44100;
+  }
+  if (a2dp_sbc_caps.samp_freq & A2DP_SBC_IE_SAMP_FREQ_48) {
+    codec_local_capability_.sample_rate |= BTAV_A2DP_CODEC_SAMPLE_RATE_48000;
+  }
+  codec_local_capability_.bits_per_sample = a2dp_sbc_caps.bits_per_sample;
+  if (a2dp_sbc_caps.ch_mode & A2DP_SBC_IE_CH_MD_MONO) {
+    codec_local_capability_.channel_mode |= BTAV_A2DP_CODEC_CHANNEL_MODE_MONO;
+  }
+  if (a2dp_sbc_caps.ch_mode & A2DP_SBC_IE_CH_MD_JOINT) {
+    codec_local_capability_.channel_mode |= BTAV_A2DP_CODEC_CHANNEL_MODE_STEREO;
+  }
+  if (a2dp_sbc_caps.ch_mode & A2DP_SBC_IE_CH_MD_STEREO) {
+    codec_local_capability_.channel_mode |= BTAV_A2DP_CODEC_CHANNEL_MODE_STEREO;
+  }
+  if (a2dp_sbc_caps.ch_mode & A2DP_SBC_IE_CH_MD_DUAL) {
+    codec_local_capability_.channel_mode |= BTAV_A2DP_CODEC_CHANNEL_MODE_STEREO;
+  }
+}
 
 A2dpCodecConfigSbc::~A2dpCodecConfigSbc() {}
 
@@ -1214,6 +1239,8 @@ bool A2dpCodecConfigSbc::setCodecConfig(const uint8_t* p_peer_codec_info,
   // Save the internal state
   btav_a2dp_codec_config_t saved_codec_config = codec_config_;
   btav_a2dp_codec_config_t saved_codec_capability = codec_capability_;
+  btav_a2dp_codec_config_t saved_codec_selectable_capability =
+      codec_selectable_capability_;
   btav_a2dp_codec_config_t saved_codec_user_config = codec_user_config_;
   btav_a2dp_codec_config_t saved_codec_audio_config = codec_audio_config_;
   uint8_t saved_ota_codec_config[AVDT_CODEC_SIZE];
@@ -1270,6 +1297,16 @@ bool A2dpCodecConfigSbc::setCodecConfig(const uint8_t* p_peer_codec_info,
 
   // Select the sample frequency if there is no user preference
   do {
+    // Compute the selectable capability
+    if (samp_freq & A2DP_SBC_IE_SAMP_FREQ_44) {
+      codec_selectable_capability_.sample_rate |=
+          BTAV_A2DP_CODEC_SAMPLE_RATE_44100;
+    }
+    if (samp_freq & A2DP_SBC_IE_SAMP_FREQ_48) {
+      codec_selectable_capability_.sample_rate |=
+          BTAV_A2DP_CODEC_SAMPLE_RATE_48000;
+    }
+
     if (codec_config_.sample_rate != BTAV_A2DP_CODEC_SAMPLE_RATE_NONE) break;
 
     // Compute the common capability
@@ -1326,6 +1363,10 @@ bool A2dpCodecConfigSbc::setCodecConfig(const uint8_t* p_peer_codec_info,
 
   // Select the bits per sample if there is no user preference
   do {
+    // Compute the selectable capability
+    codec_selectable_capability_.bits_per_sample =
+        a2dp_sbc_caps.bits_per_sample;
+
     if (codec_config_.bits_per_sample != BTAV_A2DP_CODEC_BITS_PER_SAMPLE_NONE)
       break;
 
@@ -1396,6 +1437,24 @@ bool A2dpCodecConfigSbc::setCodecConfig(const uint8_t* p_peer_codec_info,
 
   // Select the channel mode if there is no user preference
   do {
+    // Compute the selectable capability
+    if (ch_mode & A2DP_SBC_IE_CH_MD_MONO) {
+      codec_selectable_capability_.channel_mode |=
+          BTAV_A2DP_CODEC_CHANNEL_MODE_MONO;
+    }
+    if (ch_mode & A2DP_SBC_IE_CH_MD_JOINT) {
+      codec_selectable_capability_.channel_mode |=
+          BTAV_A2DP_CODEC_CHANNEL_MODE_STEREO;
+    }
+    if (ch_mode & A2DP_SBC_IE_CH_MD_STEREO) {
+      codec_selectable_capability_.channel_mode |=
+          BTAV_A2DP_CODEC_CHANNEL_MODE_STEREO;
+    }
+    if (ch_mode & A2DP_SBC_IE_CH_MD_DUAL) {
+      codec_selectable_capability_.channel_mode |=
+          BTAV_A2DP_CODEC_CHANNEL_MODE_STEREO;
+    }
+
     if (codec_config_.channel_mode != BTAV_A2DP_CODEC_CHANNEL_MODE_NONE) break;
 
     // Compute the common capability
@@ -1538,6 +1597,7 @@ fail:
   // Restore the internal state
   codec_config_ = saved_codec_config;
   codec_capability_ = saved_codec_capability;
+  codec_selectable_capability_ = saved_codec_selectable_capability;
   codec_user_config_ = saved_codec_user_config;
   codec_audio_config_ = saved_codec_audio_config;
   memcpy(ota_codec_config_, saved_ota_codec_config, sizeof(ota_codec_config_));
