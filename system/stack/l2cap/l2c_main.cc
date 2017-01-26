@@ -876,8 +876,9 @@ uint8_t l2c_data_write(uint16_t cid, BT_HDR* p_data, uint16_t flags) {
 
   if (p_data->len > mtu) {
     L2CAP_TRACE_WARNING(
-        "L2CAP - CID: 0x%04x  cannot send message bigger than peer's mtu size",
-        cid);
+        "L2CAP - CID: 0x%04x  cannot send message bigger than peer's mtu size: "
+        "len=%u mtu=%u",
+        cid, p_data->len, mtu);
     osi_free(p_data);
     return (L2CAP_DW_FAILED);
   }

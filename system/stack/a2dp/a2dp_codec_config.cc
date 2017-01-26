@@ -24,6 +24,7 @@
 
 #include <base/logging.h>
 
+#include "a2dp_aac.h"
 #include "a2dp_sbc.h"
 #include "a2dp_vendor.h"
 #include "a2dp_vendor_aptx.h"
@@ -84,6 +85,9 @@ A2dpCodecConfig* A2dpCodecConfig::createCodec(
       break;
     case BTAV_A2DP_CODEC_INDEX_SINK_SBC:
       codec_config = new A2dpCodecConfigSbcSink();
+      break;
+    case BTAV_A2DP_CODEC_INDEX_SOURCE_AAC:
+      codec_config = new A2dpCodecConfigAac();
       break;
     case BTAV_A2DP_CODEC_INDEX_SOURCE_APTX:
       codec_config = new A2dpCodecConfigAptx();
@@ -550,6 +554,8 @@ bool A2DP_IsSourceCodecValid(const uint8_t* p_codec_info) {
   switch (codec_type) {
     case A2DP_MEDIA_CT_SBC:
       return A2DP_IsSourceCodecValidSbc(p_codec_info);
+    case A2DP_MEDIA_CT_AAC:
+      return A2DP_IsSourceCodecValidAac(p_codec_info);
     case A2DP_MEDIA_CT_NON_A2DP:
       return A2DP_IsVendorSourceCodecValid(p_codec_info);
     default:
@@ -567,6 +573,8 @@ bool A2DP_IsSinkCodecValid(const uint8_t* p_codec_info) {
   switch (codec_type) {
     case A2DP_MEDIA_CT_SBC:
       return A2DP_IsSinkCodecValidSbc(p_codec_info);
+    case A2DP_MEDIA_CT_AAC:
+      return A2DP_IsSinkCodecValidAac(p_codec_info);
     case A2DP_MEDIA_CT_NON_A2DP:
       return A2DP_IsVendorSinkCodecValid(p_codec_info);
     default:
@@ -584,6 +592,8 @@ bool A2DP_IsPeerSourceCodecValid(const uint8_t* p_codec_info) {
   switch (codec_type) {
     case A2DP_MEDIA_CT_SBC:
       return A2DP_IsPeerSourceCodecValidSbc(p_codec_info);
+    case A2DP_MEDIA_CT_AAC:
+      return A2DP_IsPeerSourceCodecValidAac(p_codec_info);
     case A2DP_MEDIA_CT_NON_A2DP:
       return A2DP_IsVendorPeerSourceCodecValid(p_codec_info);
     default:
@@ -601,6 +611,8 @@ bool A2DP_IsPeerSinkCodecValid(const uint8_t* p_codec_info) {
   switch (codec_type) {
     case A2DP_MEDIA_CT_SBC:
       return A2DP_IsPeerSinkCodecValidSbc(p_codec_info);
+    case A2DP_MEDIA_CT_AAC:
+      return A2DP_IsPeerSinkCodecValidAac(p_codec_info);
     case A2DP_MEDIA_CT_NON_A2DP:
       return A2DP_IsVendorPeerSinkCodecValid(p_codec_info);
     default:
@@ -618,6 +630,8 @@ bool A2DP_IsSinkCodecSupported(const uint8_t* p_codec_info) {
   switch (codec_type) {
     case A2DP_MEDIA_CT_SBC:
       return A2DP_IsSinkCodecSupportedSbc(p_codec_info);
+    case A2DP_MEDIA_CT_AAC:
+      return A2DP_IsSinkCodecSupportedAac(p_codec_info);
     case A2DP_MEDIA_CT_NON_A2DP:
       return A2DP_IsVendorSinkCodecSupported(p_codec_info);
     default:
@@ -636,6 +650,8 @@ bool A2DP_IsPeerSourceCodecSupported(const uint8_t* p_codec_info) {
   switch (codec_type) {
     case A2DP_MEDIA_CT_SBC:
       return A2DP_IsPeerSourceCodecSupportedSbc(p_codec_info);
+    case A2DP_MEDIA_CT_AAC:
+      return A2DP_IsPeerSourceCodecSupportedAac(p_codec_info);
     case A2DP_MEDIA_CT_NON_A2DP:
       return A2DP_IsVendorPeerSourceCodecSupported(p_codec_info);
     default:
@@ -659,6 +675,8 @@ tA2DP_STATUS A2DP_BuildSrc2SinkConfig(const uint8_t* p_src_cap,
   switch (codec_type) {
     case A2DP_MEDIA_CT_SBC:
       return A2DP_BuildSrc2SinkConfigSbc(p_src_cap, p_pref_cfg);
+    case A2DP_MEDIA_CT_AAC:
+      return A2DP_BuildSrc2SinkConfigAac(p_src_cap, p_pref_cfg);
     case A2DP_MEDIA_CT_NON_A2DP:
       return A2DP_VendorBuildSrc2SinkConfig(p_src_cap, p_pref_cfg);
     default:
@@ -691,6 +709,8 @@ const char* A2DP_CodecName(const uint8_t* p_codec_info) {
   switch (codec_type) {
     case A2DP_MEDIA_CT_SBC:
       return A2DP_CodecNameSbc(p_codec_info);
+    case A2DP_MEDIA_CT_AAC:
+      return A2DP_CodecNameAac(p_codec_info);
     case A2DP_MEDIA_CT_NON_A2DP:
       return A2DP_VendorCodecName(p_codec_info);
     default:
@@ -711,6 +731,8 @@ bool A2DP_CodecTypeEquals(const uint8_t* p_codec_info_a,
   switch (codec_type_a) {
     case A2DP_MEDIA_CT_SBC:
       return A2DP_CodecTypeEqualsSbc(p_codec_info_a, p_codec_info_b);
+    case A2DP_MEDIA_CT_AAC:
+      return A2DP_CodecTypeEqualsAac(p_codec_info_a, p_codec_info_b);
     case A2DP_MEDIA_CT_NON_A2DP:
       return A2DP_VendorCodecTypeEquals(p_codec_info_a, p_codec_info_b);
     default:
@@ -731,6 +753,8 @@ bool A2DP_CodecEquals(const uint8_t* p_codec_info_a,
   switch (codec_type_a) {
     case A2DP_MEDIA_CT_SBC:
       return A2DP_CodecEqualsSbc(p_codec_info_a, p_codec_info_b);
+    case A2DP_MEDIA_CT_AAC:
+      return A2DP_CodecEqualsAac(p_codec_info_a, p_codec_info_b);
     case A2DP_MEDIA_CT_NON_A2DP:
       return A2DP_VendorCodecEquals(p_codec_info_a, p_codec_info_b);
     default:
@@ -749,6 +773,8 @@ int A2DP_GetTrackSampleRate(const uint8_t* p_codec_info) {
   switch (codec_type) {
     case A2DP_MEDIA_CT_SBC:
       return A2DP_GetTrackSampleRateSbc(p_codec_info);
+    case A2DP_MEDIA_CT_AAC:
+      return A2DP_GetTrackSampleRateAac(p_codec_info);
     case A2DP_MEDIA_CT_NON_A2DP:
       return A2DP_VendorGetTrackSampleRate(p_codec_info);
     default:
@@ -767,6 +793,8 @@ int A2DP_GetTrackBitsPerSample(const uint8_t* p_codec_info) {
   switch (codec_type) {
     case A2DP_MEDIA_CT_SBC:
       return A2DP_GetTrackBitsPerSampleSbc(p_codec_info);
+    case A2DP_MEDIA_CT_AAC:
+      return A2DP_GetTrackBitsPerSampleAac(p_codec_info);
     case A2DP_MEDIA_CT_NON_A2DP:
       return A2DP_VendorGetTrackBitsPerSample(p_codec_info);
     default:
@@ -785,6 +813,8 @@ int A2DP_GetTrackChannelCount(const uint8_t* p_codec_info) {
   switch (codec_type) {
     case A2DP_MEDIA_CT_SBC:
       return A2DP_GetTrackChannelCountSbc(p_codec_info);
+    case A2DP_MEDIA_CT_AAC:
+      return A2DP_GetTrackChannelCountAac(p_codec_info);
     case A2DP_MEDIA_CT_NON_A2DP:
       return A2DP_VendorGetTrackChannelCount(p_codec_info);
     default:
@@ -803,6 +833,8 @@ int A2DP_GetSinkTrackChannelType(const uint8_t* p_codec_info) {
   switch (codec_type) {
     case A2DP_MEDIA_CT_SBC:
       return A2DP_GetSinkTrackChannelTypeSbc(p_codec_info);
+    case A2DP_MEDIA_CT_AAC:
+      return A2DP_GetSinkTrackChannelTypeAac(p_codec_info);
     case A2DP_MEDIA_CT_NON_A2DP:
       return A2DP_VendorGetSinkTrackChannelType(p_codec_info);
     default:
@@ -823,6 +855,9 @@ int A2DP_GetSinkFramesCountToProcess(uint64_t time_interval_ms,
     case A2DP_MEDIA_CT_SBC:
       return A2DP_GetSinkFramesCountToProcessSbc(time_interval_ms,
                                                  p_codec_info);
+    case A2DP_MEDIA_CT_AAC:
+      return A2DP_GetSinkFramesCountToProcessAac(time_interval_ms,
+                                                 p_codec_info);
     case A2DP_MEDIA_CT_NON_A2DP:
       return A2DP_VendorGetSinkFramesCountToProcess(time_interval_ms,
                                                     p_codec_info);
@@ -841,6 +876,8 @@ bool A2DP_GetPacketTimestamp(const uint8_t* p_codec_info, const uint8_t* p_data,
   switch (codec_type) {
     case A2DP_MEDIA_CT_SBC:
       return A2DP_GetPacketTimestampSbc(p_codec_info, p_data, p_timestamp);
+    case A2DP_MEDIA_CT_AAC:
+      return A2DP_GetPacketTimestampAac(p_codec_info, p_data, p_timestamp);
     case A2DP_MEDIA_CT_NON_A2DP:
       return A2DP_VendorGetPacketTimestamp(p_codec_info, p_data, p_timestamp);
     default:
@@ -858,6 +895,8 @@ bool A2DP_BuildCodecHeader(const uint8_t* p_codec_info, BT_HDR* p_buf,
   switch (codec_type) {
     case A2DP_MEDIA_CT_SBC:
       return A2DP_BuildCodecHeaderSbc(p_codec_info, p_buf, frames_per_packet);
+    case A2DP_MEDIA_CT_AAC:
+      return A2DP_BuildCodecHeaderAac(p_codec_info, p_buf, frames_per_packet);
     case A2DP_MEDIA_CT_NON_A2DP:
       return A2DP_VendorBuildCodecHeader(p_codec_info, p_buf,
                                          frames_per_packet);
@@ -878,6 +917,8 @@ const tA2DP_ENCODER_INTERFACE* A2DP_GetEncoderInterface(
   switch (codec_type) {
     case A2DP_MEDIA_CT_SBC:
       return A2DP_GetEncoderInterfaceSbc(p_codec_info);
+    case A2DP_MEDIA_CT_AAC:
+      return A2DP_GetEncoderInterfaceAac(p_codec_info);
     case A2DP_MEDIA_CT_NON_A2DP:
       return A2DP_VendorGetEncoderInterface(p_codec_info);
     default:
@@ -894,6 +935,8 @@ bool A2DP_AdjustCodec(uint8_t* p_codec_info) {
   switch (codec_type) {
     case A2DP_MEDIA_CT_SBC:
       return A2DP_AdjustCodecSbc(p_codec_info);
+    case A2DP_MEDIA_CT_AAC:
+      return A2DP_AdjustCodecAac(p_codec_info);
     case A2DP_MEDIA_CT_NON_A2DP:
       return A2DP_VendorAdjustCodec(p_codec_info);
     default:
@@ -912,6 +955,8 @@ btav_a2dp_codec_index_t A2DP_SourceCodecIndex(const uint8_t* p_codec_info) {
   switch (codec_type) {
     case A2DP_MEDIA_CT_SBC:
       return A2DP_SourceCodecIndexSbc(p_codec_info);
+    case A2DP_MEDIA_CT_AAC:
+      return A2DP_SourceCodecIndexAac(p_codec_info);
     case A2DP_MEDIA_CT_NON_A2DP:
       return A2DP_VendorSourceCodecIndex(p_codec_info);
     default:
@@ -928,6 +973,8 @@ const char* A2DP_CodecIndexStr(btav_a2dp_codec_index_t codec_index) {
       return A2DP_CodecIndexStrSbc();
     case BTAV_A2DP_CODEC_INDEX_SINK_SBC:
       return A2DP_CodecIndexStrSbcSink();
+    case BTAV_A2DP_CODEC_INDEX_SOURCE_AAC:
+      return A2DP_CodecIndexStrAac();
     default:
       break;
   }
@@ -952,6 +999,8 @@ bool A2DP_InitCodecConfig(btav_a2dp_codec_index_t codec_index,
       return A2DP_InitCodecConfigSbc(p_cfg);
     case BTAV_A2DP_CODEC_INDEX_SINK_SBC:
       return A2DP_InitCodecConfigSbcSink(p_cfg);
+    case BTAV_A2DP_CODEC_INDEX_SOURCE_AAC:
+      return A2DP_InitCodecConfigAac(p_cfg);
     default:
       break;
   }
