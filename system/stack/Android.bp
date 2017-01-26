@@ -20,6 +20,8 @@ cc_library_static {
         "srvc",
     ],
     include_dirs: [
+        "external/aac/libAACenc/include",
+        "external/aac/libSYS/include",
         "external/libldac/inc",
         "packages/modules/Bluetooth/system",
         "packages/modules/Bluetooth/system/btcore/include",
@@ -34,6 +36,8 @@ cc_library_static {
         "packages/modules/Bluetooth/system/utils/include",
     ],
     srcs: [
+        "a2dp/a2dp_aac.cc",
+        "a2dp/a2dp_aac_encoder.cc",
         "a2dp/a2dp_api.cc",
         "a2dp/a2dp_codec_config.cc",
         "a2dp/a2dp_sbc.cc",
@@ -162,7 +166,10 @@ cc_library_static {
         "srvc/srvc_dis.cc",
         "srvc/srvc_eng.cc",
     ],
-    static_libs: ["libbt-hci"],
+    static_libs: [
+        "libbt-hci",
+        "libFraunhoferAAC",
+    ],
     shared_libs: [
         "libcutils",
         "liblog",
@@ -191,6 +198,7 @@ cc_test {
     static_libs: [
         "libbt-stack",
         "libbt-sbc-encoder",
+        "libFraunhoferAAC",
         "libosi",
     ],
 }

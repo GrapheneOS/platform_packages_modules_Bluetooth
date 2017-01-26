@@ -348,16 +348,10 @@ uint8_t A2DP_SetTraceLevel(uint8_t new_level) {
  *                  A2DP_SET_ZERO_BIT, if all bits clear
  *                  A2DP_SET_MULTL_BIT, if multiple bits are set
  *****************************************************************************/
-uint8_t A2DP_BitsSet(uint8_t num) {
-  uint8_t count;
-  uint8_t res;
-  if (num == 0)
-    res = A2DP_SET_ZERO_BIT;
-  else {
-    count = (num & (num - 1));
-    res = ((count == 0) ? A2DP_SET_ONE_BIT : A2DP_SET_MULTL_BIT);
-  }
-  return res;
+uint8_t A2DP_BitsSet(uint64_t num) {
+  if (num == 0) return A2DP_SET_ZERO_BIT;
+  if ((num & (num - 1)) == 0) return A2DP_SET_ONE_BIT;
+  return A2DP_SET_MULTL_BIT;
 }
 
 /*******************************************************************************

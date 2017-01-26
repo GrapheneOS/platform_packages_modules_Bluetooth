@@ -22,6 +22,7 @@
 
 #include <gtest/gtest.h>
 
+#include "stack/include/a2dp_aac.h"
 #include "stack/include/a2dp_api.h"
 #include "stack/include/a2dp_codec_api.h"
 #include "stack/include/a2dp_sbc.h"
@@ -73,6 +74,71 @@ const uint8_t codec_info_sbc_sink_capability[AVDT_CODEC_SIZE] = {
     9                 // Dummy
 };
 
+const uint8_t codec_info_aac[AVDT_CODEC_SIZE] = {
+    8,           // Length (A2DP_AAC_INFO_LEN)
+    0,           // Media Type: AVDT_MEDIA_TYPE_AUDIO
+    2,           // Media Codec Type: A2DP_MEDIA_CT_AAC
+    0x80,        // Object Type: A2DP_AAC_OBJECT_TYPE_MPEG2_LC
+    0x01,        // Sampling Frequency: A2DP_AAC_SAMPLING_FREQ_44100
+    0x04,        // Channels: A2DP_AAC_CHANNEL_MODE_STEREO
+    0x00 | 0x4,  // Variable Bit Rate:
+                 // A2DP_AAC_VARIABLE_BIT_RATE_DISABLED
+                 // Bit Rate: 320000 = 0x4e200
+    0xe2,        // Bit Rate: 320000 = 0x4e200
+    0x00,        // Bit Rate: 320000 = 0x4e200
+    7,           // Dummy
+    8,           // Dummy
+    9            // Dummy
+};
+
+const uint8_t codec_info_aac_capability[AVDT_CODEC_SIZE] = {
+    8,     // Length (A2DP_AAC_INFO_LEN)
+    0,     // Media Type: AVDT_MEDIA_TYPE_AUDIO
+    2,     // Media Codec Type: A2DP_MEDIA_CT_AAC
+    0x80,  // Object Type: A2DP_AAC_OBJECT_TYPE_MPEG2_LC
+    0x01,  // Sampling Frequency: A2DP_AAC_SAMPLING_FREQ_44100
+    0x80 | 0x20 | 0x10 | 0x04,  // Sampling Frequency:
+                                // A2DP_AAC_SAMPLING_FREQ_48000 |
+                                // A2DP_AAC_SAMPLING_FREQ_88200 |
+                                // A2DP_AAC_SAMPLING_FREQ_96000 |
+                                // Channels:
+                                // A2DP_AAC_CHANNEL_MODE_STEREO
+    0x00 | 0x4,                 // Variable Bit Rate:
+                                // A2DP_AAC_VARIABLE_BIT_RATE_DISABLED
+                                // Bit Rate: 320000 = 0x4e200
+    0xe2,                       // Bit Rate: 320000 = 0x4e200
+    0x00,                       // Bit Rate: 320000 = 0x4e200
+    7,                          // Dummy
+    8,                          // Dummy
+    9                           // Dummy
+};
+
+const uint8_t codec_info_aac_sink_capability[AVDT_CODEC_SIZE] = {
+    8,                          // Length (A2DP_AAC_INFO_LEN)
+    0,                          // Media Type: AVDT_MEDIA_TYPE_AUDIO
+    2,                          // Media Codec Type: A2DP_MEDIA_CT_AAC
+    0x80 | 0x40 | 0x20 | 0x10,  // Object Type: A2DP_AAC_OBJECT_TYPE_MPEG2_LC |
+                                // A2DP_AAC_OBJECT_TYPE_MPEG4_LC
+                                // A2DP_AAC_OBJECT_TYPE_MPEG4_LTP
+                                // A2DP_AAC_OBJECT_TYPE_MPEG4_SCALABLE
+    0x01,  // Sampling Frequency: A2DP_AAC_SAMPLING_FREQ_44100
+    0x80 | 0x20 | 0x10 | 0x08 | 0x04,  // Sampling Frequency:
+                                       // A2DP_AAC_SAMPLING_FREQ_48000 |
+                                       // A2DP_AAC_SAMPLING_FREQ_88200 |
+                                       // A2DP_AAC_SAMPLING_FREQ_96000 |
+                                       // Channels:
+                                       // A2DP_AAC_CHANNEL_MODE_MONO |
+                                       // A2DP_AAC_CHANNEL_MODE_STEREO
+    0x80 | 0x4,                        // Variable Bit Rate:
+                                       // A2DP_AAC_VARIABLE_BIT_RATE_ENABLED
+                                       // Bit Rate: 320000 = 0x4e200
+    0xe2,                              // Bit Rate: 320000 = 0x4e200
+    0x00,                              // Bit Rate: 320000 = 0x4e200
+    7,                                 // Dummy
+    8,                                 // Dummy
+    9                                  // Dummy
+};
+
 const uint8_t codec_info_non_a2dp[AVDT_CODEC_SIZE] = {
     8,              // Length
     0,              // Media Type: AVDT_MEDIA_TYPE_AUDIO
@@ -118,6 +184,9 @@ class StackA2dpTest : public ::testing::Test {
       bool supported = false;
       switch (codec_index) {
         case BTAV_A2DP_CODEC_INDEX_SOURCE_SBC:
+          supported = true;
+          break;
+        case BTAV_A2DP_CODEC_INDEX_SOURCE_AAC:
           supported = true;
           break;
         case BTAV_A2DP_CODEC_INDEX_SOURCE_APTX:
@@ -168,10 +237,27 @@ TEST_F(StackA2dpTest, test_a2dp_bits_set) {
   EXPECT_TRUE(A2DP_BitsSet(0x7f) == A2DP_SET_MULTL_BIT);
   EXPECT_TRUE(A2DP_BitsSet(0x80) == A2DP_SET_ONE_BIT);
   EXPECT_TRUE(A2DP_BitsSet(0x81) == A2DP_SET_MULTL_BIT);
+  EXPECT_TRUE(A2DP_BitsSet(0xc0) == A2DP_SET_MULTL_BIT);
   EXPECT_TRUE(A2DP_BitsSet(0xff) == A2DP_SET_MULTL_BIT);
+  EXPECT_TRUE(A2DP_BitsSet(0x8000) == A2DP_SET_ONE_BIT);
+  EXPECT_TRUE(A2DP_BitsSet(0x8001) == A2DP_SET_MULTL_BIT);
+  EXPECT_TRUE(A2DP_BitsSet(0xc000) == A2DP_SET_MULTL_BIT);
+  EXPECT_TRUE(A2DP_BitsSet(0xffff) == A2DP_SET_MULTL_BIT);
+  EXPECT_TRUE(A2DP_BitsSet(0x80000) == A2DP_SET_ONE_BIT);
+  EXPECT_TRUE(A2DP_BitsSet(0x80001) == A2DP_SET_MULTL_BIT);
+  EXPECT_TRUE(A2DP_BitsSet(0xc0000) == A2DP_SET_MULTL_BIT);
+  EXPECT_TRUE(A2DP_BitsSet(0xfffff) == A2DP_SET_MULTL_BIT);
+  EXPECT_TRUE(A2DP_BitsSet(0x80000000) == A2DP_SET_ONE_BIT);
+  EXPECT_TRUE(A2DP_BitsSet(0x80000001) == A2DP_SET_MULTL_BIT);
+  EXPECT_TRUE(A2DP_BitsSet(0xc0000000) == A2DP_SET_MULTL_BIT);
+  EXPECT_TRUE(A2DP_BitsSet(0xffffffff) == A2DP_SET_MULTL_BIT);
+  EXPECT_TRUE(A2DP_BitsSet(0x8000000000000000) == A2DP_SET_ONE_BIT);
+  EXPECT_TRUE(A2DP_BitsSet(0x8000000000000001) == A2DP_SET_MULTL_BIT);
+  EXPECT_TRUE(A2DP_BitsSet(0xc000000000000000) == A2DP_SET_MULTL_BIT);
+  EXPECT_TRUE(A2DP_BitsSet(0xffffffffffffffff) == A2DP_SET_MULTL_BIT);
 }
 
-TEST_F(StackA2dpTest, test_a2dp_is_codec_valid) {
+TEST_F(StackA2dpTest, test_a2dp_is_codec_valid_sbc) {
   EXPECT_TRUE(A2DP_IsSourceCodecValid(codec_info_sbc));
   EXPECT_TRUE(A2DP_IsPeerSourceCodecValid(codec_info_sbc));
 
@@ -206,9 +292,34 @@ TEST_F(StackA2dpTest, test_a2dp_is_codec_valid) {
   EXPECT_FALSE(A2DP_IsPeerSinkCodecValid(codec_info_sbc_invalid));
 }
 
+TEST_F(StackA2dpTest, test_a2dp_is_codec_valid_aac) {
+  EXPECT_TRUE(A2DP_IsSourceCodecValid(codec_info_aac));
+  EXPECT_TRUE(A2DP_IsPeerSinkCodecValid(codec_info_aac_capability));
+  EXPECT_TRUE(A2DP_IsPeerSinkCodecValid(codec_info_aac_sink_capability));
+
+  // Test with invalid AAC codecs
+  uint8_t codec_info_aac_invalid[AVDT_CODEC_SIZE];
+  memset(codec_info_aac_invalid, 0, sizeof(codec_info_aac_invalid));
+  EXPECT_FALSE(A2DP_IsSourceCodecValid(codec_info_aac_invalid));
+  EXPECT_FALSE(A2DP_IsPeerSinkCodecValid(codec_info_aac_invalid));
+
+  memcpy(codec_info_aac_invalid, codec_info_aac, sizeof(codec_info_aac));
+  codec_info_aac_invalid[0] = 0;  // Corrupt the Length field
+  EXPECT_FALSE(A2DP_IsSourceCodecValid(codec_info_aac_invalid));
+  EXPECT_FALSE(A2DP_IsPeerSinkCodecValid(codec_info_aac_invalid));
+
+  memcpy(codec_info_aac_invalid, codec_info_aac, sizeof(codec_info_aac));
+  codec_info_aac_invalid[1] = 0xff;  // Corrupt the Media Type field
+  EXPECT_FALSE(A2DP_IsSourceCodecValid(codec_info_aac_invalid));
+  EXPECT_FALSE(A2DP_IsPeerSinkCodecValid(codec_info_aac_invalid));
+}
+
 TEST_F(StackA2dpTest, test_a2dp_get_codec_type) {
   tA2DP_CODEC_TYPE codec_type = A2DP_GetCodecType(codec_info_sbc);
   EXPECT_EQ(codec_type, A2DP_MEDIA_CT_SBC);
+
+  codec_type = A2DP_GetCodecType(codec_info_aac);
+  EXPECT_EQ(codec_type, A2DP_MEDIA_CT_AAC);
 
   codec_type = A2DP_GetCodecType(codec_info_non_a2dp);
   EXPECT_EQ(codec_type, A2DP_MEDIA_CT_NON_A2DP);
@@ -217,12 +328,22 @@ TEST_F(StackA2dpTest, test_a2dp_get_codec_type) {
 TEST_F(StackA2dpTest, test_a2dp_is_sink_codec_supported) {
   EXPECT_TRUE(A2DP_IsSinkCodecSupported(codec_info_sbc));
   EXPECT_FALSE(A2DP_IsSinkCodecSupported(codec_info_sbc_sink_capability));
+
+  EXPECT_FALSE(A2DP_IsSinkCodecSupported(codec_info_aac));
+  EXPECT_FALSE(A2DP_IsSinkCodecSupported(codec_info_aac_capability));
+  EXPECT_FALSE(A2DP_IsSinkCodecSupported(codec_info_aac_sink_capability));
+
   EXPECT_FALSE(A2DP_IsSinkCodecSupported(codec_info_non_a2dp));
 }
 
 TEST_F(StackA2dpTest, test_a2dp_is_peer_source_codec_supported) {
   EXPECT_TRUE(A2DP_IsPeerSourceCodecSupported(codec_info_sbc));
   EXPECT_TRUE(A2DP_IsPeerSourceCodecSupported(codec_info_sbc_sink_capability));
+
+  EXPECT_FALSE(A2DP_IsPeerSourceCodecSupported(codec_info_aac));
+  EXPECT_FALSE(A2DP_IsPeerSourceCodecSupported(codec_info_aac_capability));
+  EXPECT_FALSE(A2DP_IsPeerSourceCodecSupported(codec_info_aac_sink_capability));
+
   EXPECT_FALSE(A2DP_IsPeerSourceCodecSupported(codec_info_non_a2dp));
 }
 
@@ -249,7 +370,7 @@ TEST_F(StackA2dpTest, test_build_src2sink_config) {
     EXPECT_EQ(codec_info_result[i], codec_info_sbc[i]);
   }
 
-  // Include extra (less preferred) capabilities and test again
+  // Include extra (less preferred) capabilities and test again - SBC
   uint8_t codec_info_sbc_test1[AVDT_CODEC_SIZE];
   memcpy(codec_info_sbc_test1, codec_info_sbc, sizeof(codec_info_sbc));
   codec_info_sbc_test1[3] |= (A2DP_SBC_IE_CH_MD_STEREO |
@@ -266,6 +387,10 @@ TEST_F(StackA2dpTest, test_build_src2sink_config) {
     EXPECT_EQ(codec_info_result[i], codec_info_sbc[i]);
   }
 
+  memset(codec_info_result, 0, sizeof(codec_info_result));
+  EXPECT_NE(A2DP_BuildSrc2SinkConfig(codec_info_aac, codec_info_result),
+            A2DP_SUCCESS);
+
   // Test invalid codec info
   memset(codec_info_result, 0, sizeof(codec_info_result));
   memset(codec_info_sbc_test1, 0, sizeof(codec_info_sbc_test1));
@@ -276,6 +401,10 @@ TEST_F(StackA2dpTest, test_build_src2sink_config) {
 TEST_F(StackA2dpTest, test_a2dp_uses_rtp_header) {
   EXPECT_TRUE(A2DP_UsesRtpHeader(true, codec_info_sbc));
   EXPECT_TRUE(A2DP_UsesRtpHeader(false, codec_info_sbc));
+
+  EXPECT_TRUE(A2DP_UsesRtpHeader(true, codec_info_aac));
+  EXPECT_TRUE(A2DP_UsesRtpHeader(false, codec_info_aac));
+
   EXPECT_TRUE(A2DP_UsesRtpHeader(true, codec_info_non_a2dp));
   EXPECT_TRUE(A2DP_UsesRtpHeader(false, codec_info_non_a2dp));
 }
@@ -284,6 +413,7 @@ TEST_F(StackA2dpTest, test_a2dp_get_media_type) {
   uint8_t codec_info_test[AVDT_CODEC_SIZE];
 
   EXPECT_EQ(A2DP_GetMediaType(codec_info_sbc), AVDT_MEDIA_TYPE_AUDIO);
+  EXPECT_EQ(A2DP_GetMediaType(codec_info_aac), AVDT_MEDIA_TYPE_AUDIO);
   EXPECT_EQ(A2DP_GetMediaType(codec_info_non_a2dp), AVDT_MEDIA_TYPE_AUDIO);
 
   // Prepare dummy codec info for video and for multimedia
@@ -301,11 +431,14 @@ TEST_F(StackA2dpTest, test_a2dp_codec_name) {
   // Explicit tests for known codecs
   EXPECT_STREQ(A2DP_CodecName(codec_info_sbc), "SBC");
   EXPECT_STREQ(A2DP_CodecName(codec_info_sbc_sink_capability), "SBC");
+  EXPECT_STREQ(A2DP_CodecName(codec_info_aac), "AAC");
+  EXPECT_STREQ(A2DP_CodecName(codec_info_aac_capability), "AAC");
+  EXPECT_STREQ(A2DP_CodecName(codec_info_aac_sink_capability), "AAC");
   EXPECT_STREQ(A2DP_CodecName(codec_info_non_a2dp), "UNKNOWN VENDOR CODEC");
 
   // Test all unknown codecs
   memcpy(codec_info_test, codec_info_sbc, sizeof(codec_info_sbc));
-  for (uint8_t codec_type = A2DP_MEDIA_CT_SBC + 1;
+  for (uint8_t codec_type = A2DP_MEDIA_CT_AAC + 1;
        codec_type < A2DP_MEDIA_CT_NON_A2DP; codec_type++) {
     codec_info_test[2] = codec_type;  // Unknown codec type
     EXPECT_STREQ(A2DP_CodecName(codec_info_test), "UNKNOWN CODEC");
@@ -323,19 +456,30 @@ TEST_F(StackA2dpTest, test_a2dp_vendor) {
 TEST_F(StackA2dpTest, test_a2dp_codec_type_equals) {
   EXPECT_TRUE(
       A2DP_CodecTypeEquals(codec_info_sbc, codec_info_sbc_sink_capability));
+  EXPECT_TRUE(A2DP_CodecTypeEquals(codec_info_aac, codec_info_aac_capability));
+  EXPECT_TRUE(
+      A2DP_CodecTypeEquals(codec_info_aac, codec_info_aac_sink_capability));
   EXPECT_TRUE(
       A2DP_CodecTypeEquals(codec_info_non_a2dp, codec_info_non_a2dp_dummy));
   EXPECT_FALSE(A2DP_CodecTypeEquals(codec_info_sbc, codec_info_non_a2dp));
+  EXPECT_FALSE(A2DP_CodecTypeEquals(codec_info_aac, codec_info_non_a2dp));
+  EXPECT_FALSE(A2DP_CodecTypeEquals(codec_info_sbc, codec_info_aac));
 }
 
 TEST_F(StackA2dpTest, test_a2dp_codec_equals) {
   uint8_t codec_info_sbc_test[AVDT_CODEC_SIZE];
+  uint8_t codec_info_aac_test[AVDT_CODEC_SIZE];
   uint8_t codec_info_non_a2dp_test[AVDT_CODEC_SIZE];
 
   // Test two identical SBC codecs
   memset(codec_info_sbc_test, 0xAB, sizeof(codec_info_sbc_test));
   memcpy(codec_info_sbc_test, codec_info_sbc, sizeof(codec_info_sbc));
   EXPECT_TRUE(A2DP_CodecEquals(codec_info_sbc, codec_info_sbc_test));
+
+  // Test two identical AAC codecs
+  memset(codec_info_aac_test, 0xAB, sizeof(codec_info_aac_test));
+  memcpy(codec_info_aac_test, codec_info_aac, sizeof(codec_info_aac));
+  EXPECT_TRUE(A2DP_CodecEquals(codec_info_aac, codec_info_aac_test));
 
   // Test two identical non-A2DP codecs that are not recognized
   memset(codec_info_non_a2dp_test, 0xAB, sizeof(codec_info_non_a2dp_test));
@@ -345,6 +489,7 @@ TEST_F(StackA2dpTest, test_a2dp_codec_equals) {
 
   // Test two codecs that have different types
   EXPECT_FALSE(A2DP_CodecEquals(codec_info_sbc, codec_info_non_a2dp));
+  EXPECT_FALSE(A2DP_CodecEquals(codec_info_sbc, codec_info_aac));
 
   // Test two SBC codecs that are slightly different
   memset(codec_info_sbc_test, 0xAB, sizeof(codec_info_sbc_test));
@@ -355,74 +500,126 @@ TEST_F(StackA2dpTest, test_a2dp_codec_equals) {
   codec_info_sbc_test[6] = codec_info_sbc[6] + 1;
   EXPECT_FALSE(A2DP_CodecEquals(codec_info_sbc, codec_info_sbc_test));
 
+  // Test two AAC codecs that are slightly different
+  memset(codec_info_aac_test, 0xAB, sizeof(codec_info_aac_test));
+  memcpy(codec_info_aac_test, codec_info_aac, sizeof(codec_info_aac));
+  codec_info_aac_test[7] = codec_info_aac[7] + 1;
+  EXPECT_FALSE(A2DP_CodecEquals(codec_info_aac, codec_info_aac_test));
+  codec_info_aac_test[7] = codec_info_aac[7];
+  codec_info_aac_test[8] = codec_info_aac[8] + 1;
+  EXPECT_FALSE(A2DP_CodecEquals(codec_info_aac, codec_info_aac_test));
+
   // Test two SBC codecs that are identical, but with different dummy
   // trailer data.
   memset(codec_info_sbc_test, 0xAB, sizeof(codec_info_sbc_test));
   memcpy(codec_info_sbc_test, codec_info_sbc, sizeof(codec_info_sbc));
   codec_info_sbc_test[7] = codec_info_sbc[7] + 1;
   EXPECT_TRUE(A2DP_CodecEquals(codec_info_sbc, codec_info_sbc_test));
+
+  // Test two AAC codecs that are identical, but with different dummy
+  // trailer data.
+  memset(codec_info_aac_test, 0xAB, sizeof(codec_info_aac_test));
+  memcpy(codec_info_aac_test, codec_info_aac, sizeof(codec_info_aac));
+  codec_info_aac_test[9] = codec_info_aac[9] + 1;
+  EXPECT_TRUE(A2DP_CodecEquals(codec_info_aac, codec_info_aac_test));
 }
 
 TEST_F(StackA2dpTest, test_a2dp_get_track_sample_rate) {
   EXPECT_EQ(A2DP_GetTrackSampleRate(codec_info_sbc), 44100);
+  EXPECT_EQ(A2DP_GetTrackSampleRate(codec_info_aac), 44100);
   EXPECT_EQ(A2DP_GetTrackSampleRate(codec_info_non_a2dp), -1);
 }
 
 TEST_F(StackA2dpTest, test_a2dp_get_track_bits_per_sample) {
   EXPECT_EQ(A2DP_GetTrackBitsPerSample(codec_info_sbc), 16);
+  EXPECT_EQ(A2DP_GetTrackBitsPerSample(codec_info_aac), 16);
   EXPECT_EQ(A2DP_GetTrackBitsPerSample(codec_info_non_a2dp), -1);
 }
 
 TEST_F(StackA2dpTest, test_a2dp_get_track_channel_count) {
   EXPECT_EQ(A2DP_GetTrackChannelCount(codec_info_sbc), 2);
+  EXPECT_EQ(A2DP_GetTrackChannelCount(codec_info_aac), 2);
   EXPECT_EQ(A2DP_GetTrackChannelCount(codec_info_non_a2dp), -1);
 }
 
 TEST_F(StackA2dpTest, test_a2dp_get_number_of_subbands_sbc) {
   EXPECT_EQ(A2DP_GetNumberOfSubbandsSbc(codec_info_sbc), 8);
+  EXPECT_EQ(A2DP_GetNumberOfSubbandsSbc(codec_info_aac), -1);
   EXPECT_EQ(A2DP_GetNumberOfSubbandsSbc(codec_info_non_a2dp), -1);
 }
 
 TEST_F(StackA2dpTest, test_a2dp_get_number_of_blocks_sbc) {
   EXPECT_EQ(A2DP_GetNumberOfBlocksSbc(codec_info_sbc), 16);
+  EXPECT_EQ(A2DP_GetNumberOfBlocksSbc(codec_info_aac), -1);
   EXPECT_EQ(A2DP_GetNumberOfBlocksSbc(codec_info_non_a2dp), -1);
 }
 
 TEST_F(StackA2dpTest, test_a2dp_get_allocation_method_code_sbc) {
   EXPECT_EQ(A2DP_GetAllocationMethodCodeSbc(codec_info_sbc), 0);
+  EXPECT_EQ(A2DP_GetAllocationMethodCodeSbc(codec_info_aac), -1);
   EXPECT_EQ(A2DP_GetAllocationMethodCodeSbc(codec_info_non_a2dp), -1);
 }
 
 TEST_F(StackA2dpTest, test_a2dp_get_channel_mode_code_sbc) {
   EXPECT_EQ(A2DP_GetChannelModeCodeSbc(codec_info_sbc), 3);
+  EXPECT_EQ(A2DP_GetChannelModeCodeSbc(codec_info_aac), -1);
   EXPECT_EQ(A2DP_GetChannelModeCodeSbc(codec_info_non_a2dp), -1);
 }
 
 TEST_F(StackA2dpTest, test_a2dp_get_sampling_frequency_code_sbc) {
   EXPECT_EQ(A2DP_GetSamplingFrequencyCodeSbc(codec_info_sbc), 2);
+  EXPECT_EQ(A2DP_GetSamplingFrequencyCodeSbc(codec_info_aac), -1);
   EXPECT_EQ(A2DP_GetSamplingFrequencyCodeSbc(codec_info_non_a2dp), -1);
 }
 
 TEST_F(StackA2dpTest, test_a2dp_get_min_bitpool_sbc) {
   EXPECT_EQ(A2DP_GetMinBitpoolSbc(codec_info_sbc), 2);
   EXPECT_EQ(A2DP_GetMinBitpoolSbc(codec_info_sbc_sink_capability), 2);
+  EXPECT_EQ(A2DP_GetMinBitpoolSbc(codec_info_aac), -1);
   EXPECT_EQ(A2DP_GetMinBitpoolSbc(codec_info_non_a2dp), -1);
 }
 
 TEST_F(StackA2dpTest, test_a2dp_get_max_bitpool_sbc) {
   EXPECT_EQ(A2DP_GetMaxBitpoolSbc(codec_info_sbc), 53);
   EXPECT_EQ(A2DP_GetMaxBitpoolSbc(codec_info_sbc_sink_capability), 53);
+  EXPECT_EQ(A2DP_GetMaxBitpoolSbc(codec_info_aac), -1);
   EXPECT_EQ(A2DP_GetMaxBitpoolSbc(codec_info_non_a2dp), -1);
 }
 
 TEST_F(StackA2dpTest, test_a2dp_get_sink_track_channel_type) {
   EXPECT_EQ(A2DP_GetSinkTrackChannelType(codec_info_sbc), 3);
+  EXPECT_EQ(A2DP_GetSinkTrackChannelType(codec_info_aac), -1);
   EXPECT_EQ(A2DP_GetSinkTrackChannelType(codec_info_non_a2dp), -1);
 }
 
 TEST_F(StackA2dpTest, test_a2dp_get_sink_frames_count_to_process) {
   EXPECT_EQ(A2DP_GetSinkFramesCountToProcess(20, codec_info_sbc), 7);
+  EXPECT_EQ(A2DP_GetSinkFramesCountToProcess(20, codec_info_aac), -1);
   EXPECT_EQ(A2DP_GetSinkFramesCountToProcess(20, codec_info_non_a2dp), -1);
+}
+
+TEST_F(StackA2dpTest, test_a2dp_get_object_type_code_aac) {
+  EXPECT_EQ(A2DP_GetObjectTypeCodeAac(codec_info_sbc), -1);
+  EXPECT_EQ(A2DP_GetObjectTypeCodeAac(codec_info_aac), 0x80);
+  EXPECT_EQ(A2DP_GetObjectTypeCodeAac(codec_info_non_a2dp), -1);
+}
+
+TEST_F(StackA2dpTest, test_a2dp_get_channel_mode_code_aac) {
+  EXPECT_EQ(A2DP_GetChannelModeCodeAac(codec_info_sbc), -1);
+  EXPECT_EQ(A2DP_GetChannelModeCodeAac(codec_info_aac), 0x04);
+  EXPECT_EQ(A2DP_GetChannelModeCodeAac(codec_info_non_a2dp), -1);
+}
+
+TEST_F(StackA2dpTest, test_a2dp_get_variable_bit_rate_support_aac) {
+  EXPECT_EQ(A2DP_GetVariableBitRateSupportAac(codec_info_sbc), -1);
+  EXPECT_EQ(A2DP_GetVariableBitRateSupportAac(codec_info_aac), 0);
+  EXPECT_EQ(A2DP_GetVariableBitRateSupportAac(codec_info_non_a2dp), -1);
+}
+
+TEST_F(StackA2dpTest, test_a2dp_get_bit_rate_aac) {
+  EXPECT_EQ(A2DP_GetBitRateAac(codec_info_sbc), -1);
+  EXPECT_EQ(A2DP_GetBitRateAac(codec_info_aac), 320000);
+  EXPECT_EQ(A2DP_GetBitRateAac(codec_info_non_a2dp), -1);
 }
 
 TEST_F(StackA2dpTest, test_a2dp_get_packet_timestamp) {
@@ -434,6 +631,12 @@ TEST_F(StackA2dpTest, test_a2dp_get_packet_timestamp) {
   *p_ts = 0x12345678;
   timestamp = 0xFFFFFFFF;
   EXPECT_TRUE(A2DP_GetPacketTimestamp(codec_info_sbc, a2dp_data, &timestamp));
+  EXPECT_EQ(timestamp, static_cast<uint32_t>(0x12345678));
+
+  memset(a2dp_data, 0xAB, sizeof(a2dp_data));
+  *p_ts = 0x12345678;
+  timestamp = 0xFFFFFFFF;
+  EXPECT_TRUE(A2DP_GetPacketTimestamp(codec_info_aac, a2dp_data, &timestamp));
   EXPECT_EQ(timestamp, static_cast<uint32_t>(0x12345678));
 
   memset(a2dp_data, 0xAB, sizeof(a2dp_data));
@@ -465,12 +668,18 @@ TEST_F(StackA2dpTest, test_a2dp_build_codec_header) {
   memset(a2dp_data, 0xAB, sizeof(a2dp_data));
   p_buf->len = BT_HDR_LEN;
   p_buf->offset = BT_HDR_OFFSET;
+  EXPECT_TRUE(A2DP_BuildCodecHeader(codec_info_aac, p_buf, FRAMES_PER_PACKET));
+
+  memset(a2dp_data, 0xAB, sizeof(a2dp_data));
+  p_buf->len = BT_HDR_LEN;
+  p_buf->offset = BT_HDR_OFFSET;
   EXPECT_FALSE(
       A2DP_BuildCodecHeader(codec_info_non_a2dp, p_buf, FRAMES_PER_PACKET));
 }
 
 TEST_F(StackA2dpTest, test_a2dp_adjust_codec) {
   uint8_t codec_info_sbc_test[AVDT_CODEC_SIZE];
+  uint8_t codec_info_aac_test[AVDT_CODEC_SIZE];
   uint8_t codec_info_non_a2dp_test[AVDT_CODEC_SIZE];
 
   // Test updating a valid SBC codec that doesn't need adjustment
@@ -494,6 +703,13 @@ TEST_F(StackA2dpTest, test_a2dp_adjust_codec) {
   codec_info_sbc_test[6] = 255;  // Invalid MAX_BITPOOL
   EXPECT_FALSE(A2DP_AdjustCodec(codec_info_sbc_test));
 
+  // Test updating a valid AAC codec that doesn't need adjustment
+  memset(codec_info_aac_test, 0xAB, sizeof(codec_info_aac_test));
+  memcpy(codec_info_aac_test, codec_info_aac, sizeof(codec_info_aac));
+  EXPECT_TRUE(A2DP_AdjustCodec(codec_info_aac_test));
+  EXPECT_TRUE(
+      memcmp(codec_info_aac_test, codec_info_aac, sizeof(codec_info_aac)) == 0);
+
   // Test updating a non-A2DP codec that is not recognized
   memset(codec_info_non_a2dp_test, 0xAB, sizeof(codec_info_non_a2dp_test));
   memcpy(codec_info_non_a2dp_test, codec_info_non_a2dp,
@@ -507,6 +723,12 @@ TEST_F(StackA2dpTest, test_a2dp_source_codec_index) {
             BTAV_A2DP_CODEC_INDEX_SOURCE_SBC);
   EXPECT_EQ(A2DP_SourceCodecIndex(codec_info_sbc_sink_capability),
             BTAV_A2DP_CODEC_INDEX_SOURCE_SBC);
+  EXPECT_EQ(A2DP_SourceCodecIndex(codec_info_aac),
+            BTAV_A2DP_CODEC_INDEX_SOURCE_AAC);
+  EXPECT_EQ(A2DP_SourceCodecIndex(codec_info_aac_capability),
+            BTAV_A2DP_CODEC_INDEX_SOURCE_AAC);
+  EXPECT_EQ(A2DP_SourceCodecIndex(codec_info_aac_sink_capability),
+            BTAV_A2DP_CODEC_INDEX_SOURCE_AAC);
   EXPECT_EQ(A2DP_SourceCodecIndex(codec_info_non_a2dp),
             BTAV_A2DP_CODEC_INDEX_MAX);
 }
@@ -515,6 +737,7 @@ TEST_F(StackA2dpTest, test_a2dp_codec_index_str) {
   // Explicit tests for known codecs
   EXPECT_STREQ(A2DP_CodecIndexStr(BTAV_A2DP_CODEC_INDEX_SOURCE_SBC), "SBC");
   EXPECT_STREQ(A2DP_CodecIndexStr(BTAV_A2DP_CODEC_INDEX_SINK_SBC), "SBC SINK");
+  EXPECT_STREQ(A2DP_CodecIndexStr(BTAV_A2DP_CODEC_INDEX_SOURCE_AAC), "AAC");
 
   // Test that the unknown codec string has not changed
   EXPECT_STREQ(A2DP_CodecIndexStr(BTAV_A2DP_CODEC_INDEX_MAX),
@@ -558,6 +781,24 @@ TEST_F(StackA2dpTest, test_a2dp_init_codec_config) {
   for (size_t i = 0; i < codec_info_sbc_sink_capability[0] + 1; i++) {
     EXPECT_EQ(avdt_cfg.codec_info[i], codec_info_sbc_sink_capability[i]);
   }
+
+  //
+  // Test for AAC Source
+  //
+  memset(&avdt_cfg, 0, sizeof(avdt_cfg));
+  EXPECT_TRUE(
+      A2DP_InitCodecConfig(BTAV_A2DP_CODEC_INDEX_SOURCE_AAC, &avdt_cfg));
+  // Compare the result codec with the local test codec info
+  for (size_t i = 0; i < codec_info_aac_capability[0] + 1; i++) {
+    EXPECT_EQ(avdt_cfg.codec_info[i], codec_info_aac_capability[i]);
+  }
+// Test for content protection
+#if (BTA_AV_CO_CP_SCMS_T == TRUE)
+  EXPECT_EQ(avdt_cfg.protect_info[0], AVDT_CP_LOSC);
+  EXPECT_EQ(avdt_cfg.protect_info[1], (AVDT_CP_SCMS_T_ID & 0xFF));
+  EXPECT_EQ(avdt_cfg.protect_info[2], ((AVDT_CP_SCMS_T_ID >> 8) & 0xFF));
+  EXPECT_EQ(avdt_cfg.num_protect, 1);
+#endif
 }
 
 TEST_F(A2dpCodecConfigTest, createCodec) {
@@ -587,7 +828,7 @@ TEST_F(A2dpCodecConfigTest, setCodecConfig) {
 
   EXPECT_TRUE(a2dp_codecs->init());
 
-  // Create the codec capability
+  // Create the codec capability - SBC
   memset(codec_info_result, 0, sizeof(codec_info_result));
   peer_codec_index = A2DP_SourceCodecIndex(codec_info_sbc_sink_capability);
   EXPECT_NE(peer_codec_index, BTAV_A2DP_CODEC_INDEX_MAX);
@@ -602,7 +843,22 @@ TEST_F(A2dpCodecConfigTest, setCodecConfig) {
     EXPECT_EQ(codec_info_result[i], codec_info_sbc[i]);
   }
 
-  // Create the codec config
+  // Create the codec capability - AAC
+  memset(codec_info_result, 0, sizeof(codec_info_result));
+  peer_codec_index = A2DP_SourceCodecIndex(codec_info_aac_sink_capability);
+  EXPECT_NE(peer_codec_index, BTAV_A2DP_CODEC_INDEX_MAX);
+  codec_config =
+      a2dp_codecs->findSourceCodecConfig(codec_info_aac_sink_capability);
+  EXPECT_NE(codec_config, nullptr);
+  EXPECT_TRUE(a2dp_codecs->setCodecConfig(codec_info_aac_sink_capability, true,
+                                          codec_info_result));
+  EXPECT_EQ(a2dp_codecs->getCurrentCodecConfig(), codec_config);
+  // Compare the result codec with the local test codec info
+  for (size_t i = 0; i < codec_info_aac[0] + 1; i++) {
+    EXPECT_EQ(codec_info_result[i], codec_info_aac[i]);
+  }
+
+  // Create the codec config - SBC
   memset(codec_info_result, 0, sizeof(codec_info_result));
   peer_codec_index = A2DP_SourceCodecIndex(codec_info_sbc);
   EXPECT_NE(peer_codec_index, BTAV_A2DP_CODEC_INDEX_MAX);
@@ -614,6 +870,20 @@ TEST_F(A2dpCodecConfigTest, setCodecConfig) {
   // Compare the result codec with the local test codec info
   for (size_t i = 0; i < codec_info_sbc[0] + 1; i++) {
     EXPECT_EQ(codec_info_result[i], codec_info_sbc[i]);
+  }
+
+  // Create the codec config - AAC
+  memset(codec_info_result, 0, sizeof(codec_info_result));
+  peer_codec_index = A2DP_SourceCodecIndex(codec_info_aac);
+  EXPECT_NE(peer_codec_index, BTAV_A2DP_CODEC_INDEX_MAX);
+  codec_config = a2dp_codecs->findSourceCodecConfig(codec_info_aac);
+  EXPECT_NE(codec_config, nullptr);
+  EXPECT_TRUE(
+      a2dp_codecs->setCodecConfig(codec_info_aac, false, codec_info_result));
+  EXPECT_EQ(a2dp_codecs->getCurrentCodecConfig(), codec_config);
+  // Compare the result codec with the local test codec info
+  for (size_t i = 0; i < codec_info_aac[0] + 1; i++) {
+    EXPECT_EQ(codec_info_result[i], codec_info_aac[i]);
   }
 
   // Test invalid codec info
