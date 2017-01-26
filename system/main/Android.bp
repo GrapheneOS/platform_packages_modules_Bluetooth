@@ -49,6 +49,7 @@ cc_library_shared {
     static_libs: [
         "libbt-sbc-decoder",
         "libbt-sbc-encoder",
+        "libFraunhoferAAC",
         "libudrv-uipc",
     ],
     whole_static_libs: [

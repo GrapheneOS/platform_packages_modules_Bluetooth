@@ -28,6 +28,7 @@
 
 #include <base/logging.h>
 #include <string.h>
+#include <vector>
 
 #include "avdt_api.h"
 #include "bt_utils.h"
@@ -2088,8 +2089,7 @@ void bta_av_data_path(tBTA_AV_SCB* p_scb, UNUSED_ATTR tBTA_AV_DATA* p_data) {
   BT_HDR* p_buf = NULL;
   uint32_t timestamp;
   bool new_buf = false;
-  tA2DP_CODEC_TYPE codec_type = A2DP_GetCodecType(p_scb->cfg.codec_info);
-  uint8_t m_pt = 0x60 | codec_type;
+  uint8_t m_pt = AVDT_MARKER_SET | 0x60;
   tAVDT_DATA_OPT_MASK opt;
 
   if (p_scb->cong) return;
@@ -2130,7 +2130,50 @@ void bta_av_data_path(tBTA_AV_SCB* p_scb, UNUSED_ATTR tBTA_AV_DATA* p_data) {
         opt |= AVDT_DATA_OPT_NO_RTP;
       }
 
+      //
+      // Fragment the payload if larger than the MTU.
+      // NOTE: The fragmentation is RTP-compatibie.
+      //
+      size_t extra_fragments_n = 0;
+      if (p_buf->len > 0) {
+        extra_fragments_n = (p_buf->len / p_scb->stream_mtu) +
+                            ((p_buf->len % p_scb->stream_mtu) ? 1 : 0) - 1;
+      }
+      std::vector<BT_HDR*> extra_fragments;
+      extra_fragments.reserve(extra_fragments_n);
+
+      uint8_t* data_begin = (uint8_t*)(p_buf + 1) + p_buf->offset;
+      uint8_t* data_end = (uint8_t*)(p_buf + 1) + p_buf->offset + p_buf->len;
+      while (extra_fragments_n-- > 0) {
+        data_begin += p_scb->stream_mtu;
+        size_t fragment_len = data_end - data_begin;
+        if (fragment_len > p_scb->stream_mtu) fragment_len = p_scb->stream_mtu;
+
+        BT_HDR* p_buf2 = (BT_HDR*)osi_malloc(BT_DEFAULT_BUFFER_SIZE);
+        p_buf2->offset = p_buf->offset;
+        p_buf2->len = 0;
+        p_buf2->layer_specific = 0;
+        uint8_t* packet2 =
+            (uint8_t*)(p_buf2 + 1) + p_buf2->offset + p_buf2->len;
+        memcpy(packet2, data_begin, fragment_len);
+        p_buf2->len += fragment_len;
+        extra_fragments.push_back(p_buf2);
+        p_buf->len -= fragment_len;
+      }
+
+      if (!extra_fragments.empty()) {
+        // Reset the RTP Marker bit for all fragments except the last one
+        m_pt &= ~AVDT_MARKER_SET;
+      }
       AVDT_WriteReqOpt(p_scb->avdt_handle, p_buf, timestamp, m_pt, opt);
+      for (size_t i = 0; i < extra_fragments.size(); i++) {
+        if (i + 1 == extra_fragments.size()) {
+          // Set the RTP Marker bit for the last fragment
+          m_pt |= AVDT_MARKER_SET;
+        }
+        BT_HDR* p_buf2 = extra_fragments[i];
+        AVDT_WriteReqOpt(p_scb->avdt_handle, p_buf2, timestamp, m_pt, opt);
+      }
       p_scb->cong = true;
     } else {
       /* there's a buffer, but L2CAP does not seem to be moving data */
