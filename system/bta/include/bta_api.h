@@ -731,6 +731,11 @@ typedef struct {
   uint8_t inq_result_type;
   uint8_t ble_addr_type;
   uint16_t ble_evt_type;
+  uint8_t ble_primary_phy;
+  uint8_t ble_secondary_phy;
+  uint8_t ble_advertising_sid;
+  int8_t ble_tx_power;
+  uint16_t ble_periodic_adv_int;
   tBT_DEVICE_TYPE device_type;
   uint8_t flag;
 } tBTA_DM_INQ_RES;
