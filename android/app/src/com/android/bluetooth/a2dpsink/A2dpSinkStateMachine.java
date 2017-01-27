@@ -24,7 +24,7 @@
  *                           |    ^
  *                 CONNECTED |    | CONNECT
  *                           V    |
- *                        (Connected -- See A2dpSinkStreamingStateMachine)
+ *                        (Connected -- See A2dpSinkStreamHandler)
  */
 package com.android.bluetooth.a2dpsink;
 
@@ -120,7 +120,7 @@ final class A2dpSinkStateMachine extends StateMachine {
     private BluetoothDevice mTargetDevice = null;
     private BluetoothDevice mIncomingDevice = null;
     private BluetoothDevice mPlayingDevice = null;
-    private A2dpSinkStreamingStateMachine mStreaming = null;
+    private A2dpSinkStreamHandler mStreaming = null;
 
     private final HashMap<BluetoothDevice,BluetoothAudioConfig> mAudioConfigs
             = new HashMap<BluetoothDevice,BluetoothAudioConfig>();
@@ -164,10 +164,7 @@ final class A2dpSinkStateMachine extends StateMachine {
             Log.d("A2dpSinkStateMachine", "Quit");
         }
         synchronized (A2dpSinkStateMachine.this) {
-            if (mStreaming != null) {
-                mStreaming.doQuit();
                 mStreaming = null;
-            }
         }
         quitNow();
     }
@@ -499,10 +496,9 @@ final class A2dpSinkStateMachine extends StateMachine {
             synchronized (A2dpSinkStateMachine.this) {
                 if (mStreaming == null) {
                     if(DBG) {
-                        log("Creating New A2dpSinkStreamingStateMachine");
+                        log("Creating New A2dpSinkStreamHandler");
                     }
-                    mStreaming = A2dpSinkStreamingStateMachine.make(A2dpSinkStateMachine.this,
-                            mContext);
+                    mStreaming = new A2dpSinkStreamHandler(A2dpSinkStateMachine.this, mContext);
                 }
             }
         }
@@ -533,7 +529,7 @@ final class A2dpSinkStateMachine extends StateMachine {
 
                     synchronized (A2dpSinkStateMachine.this) {
                         mTargetDevice = device;
-                        mStreaming.sendMessage(A2dpSinkStreamingStateMachine.DISCONNECT);
+                        mStreaming.obtainMessage(A2dpSinkStreamHandler.DISCONNECT).sendToTarget();
                         transitionTo(mPending);
                     }
                 }
@@ -553,7 +549,7 @@ final class A2dpSinkStateMachine extends StateMachine {
                         break;
                     }
                     mPlayingDevice = null;
-                    mStreaming.sendMessage(A2dpSinkStreamingStateMachine.DISCONNECT);
+                    mStreaming.obtainMessage(A2dpSinkStreamHandler.DISCONNECT).sendToTarget();
                     transitionTo(mPending);
                 }
                 break;
@@ -578,12 +574,12 @@ final class A2dpSinkStateMachine extends StateMachine {
 
                 case EVENT_AVRCP_CT_PLAY:
                 case EVENT_AVRCP_TG_PLAY:
-                    mStreaming.sendMessage(A2dpSinkStreamingStateMachine.ACT_PLAY);
+                    mStreaming.obtainMessage(A2dpSinkStreamHandler.ACT_PLAY).sendToTarget();
                     break;
 
                 case EVENT_AVRCP_CT_PAUSE:
                 case EVENT_AVRCP_TG_PAUSE:
-                    mStreaming.sendMessage(A2dpSinkStreamingStateMachine.ACT_PAUSE);
+                    mStreaming.obtainMessage(A2dpSinkStreamHandler.ACT_PAUSE).sendToTarget();
                     break;
 
 
@@ -606,7 +602,8 @@ final class A2dpSinkStateMachine extends StateMachine {
                                                  BluetoothProfile.STATE_CONNECTED);
                         synchronized (A2dpSinkStateMachine.this) {
                             // Take care of existing audio focus in the streaming state machine.
-                            mStreaming.sendMessage(A2dpSinkStreamingStateMachine.DISCONNECT);
+                            mStreaming.obtainMessage(A2dpSinkStreamHandler.DISCONNECT)
+                                    .sendToTarget();
                             mCurrentDevice = null;
                             transitionTo(mDisconnected);
                         }
@@ -629,11 +626,11 @@ final class A2dpSinkStateMachine extends StateMachine {
             log(" processAudioStateEvent in state " + state);
             switch (state) {
                 case AUDIO_STATE_STARTED:
-                    mStreaming.sendMessage(A2dpSinkStreamingStateMachine.SRC_STR_START);
+                    mStreaming.obtainMessage(A2dpSinkStreamHandler.SRC_STR_START).sendToTarget();
                     break;
                 case AUDIO_STATE_REMOTE_SUSPEND:
                 case AUDIO_STATE_STOPPED:
-                    mStreaming.sendMessage(A2dpSinkStreamingStateMachine.SRC_STR_STOP);
+                    mStreaming.obtainMessage(A2dpSinkStreamHandler.SRC_STR_STOP).sendToTarget();
                     break;
                 default:
                   loge("Audio State Device: " + device + " bad state: " + state);
