@@ -36,21 +36,32 @@ static jmethodID method_onVirtualUnplug;
 static const bthh_interface_t* sBluetoothHidInterface = NULL;
 static jobject mCallbacksObj = NULL;
 
+static jbyteArray marshall_bda(bt_bdaddr_t* bd_addr) {
+  CallbackEnv sCallbackEnv(__func__);
+  if (!sCallbackEnv.valid()) return NULL;
+
+  jbyteArray addr = sCallbackEnv->NewByteArray(sizeof(bt_bdaddr_t));
+  if (!addr) {
+    ALOGE("Fail to new jbyteArray bd addr");
+    return NULL;
+  }
+  sCallbackEnv->SetByteArrayRegion(addr, 0, sizeof(bt_bdaddr_t),
+                                   (jbyte*)bd_addr);
+  return addr;
+}
+
 static void connection_state_callback(bt_bdaddr_t* bd_addr,
                                       bthh_connection_state_t state) {
   CallbackEnv sCallbackEnv(__func__);
   if (!sCallbackEnv.valid()) return;
-  jbyteArray addr = sCallbackEnv->NewByteArray(sizeof(bt_bdaddr_t));
-  if (!addr) {
+  ScopedLocalRef<jbyteArray> addr(sCallbackEnv.get(), marshall_bda(bd_addr));
+  if (!addr.get()) {
     ALOGE("Fail to new jbyteArray bd addr for HID channel state");
     return;
   }
-  sCallbackEnv->SetByteArrayRegion(addr, 0, sizeof(bt_bdaddr_t),
-                                   (jbyte*)bd_addr);
 
   sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onConnectStateChanged,
-                               addr, (jint)state);
-  sCallbackEnv->DeleteLocalRef(addr);
+                               addr.get(), (jint)state);
 }
 
 static void get_protocol_mode_callback(bt_bdaddr_t* bd_addr,
@@ -63,17 +74,14 @@ static void get_protocol_mode_callback(bt_bdaddr_t* bd_addr,
     return;
   }
 
-  jbyteArray addr = sCallbackEnv->NewByteArray(sizeof(bt_bdaddr_t));
-  if (!addr) {
+  ScopedLocalRef<jbyteArray> addr(sCallbackEnv.get(), marshall_bda(bd_addr));
+  if (!addr.get()) {
     ALOGE("Fail to new jbyteArray bd addr for get protocal mode callback");
     return;
   }
-  sCallbackEnv->SetByteArrayRegion(addr, 0, sizeof(bt_bdaddr_t),
-                                   (jbyte*)bd_addr);
 
-  sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onGetProtocolMode, addr,
-                               (jint)mode);
-  sCallbackEnv->DeleteLocalRef(addr);
+  sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onGetProtocolMode,
+                               addr.get(), (jint)mode);
 }
 
 static void get_report_callback(bt_bdaddr_t* bd_addr, bthh_status_t hh_status,
@@ -85,26 +93,21 @@ static void get_report_callback(bt_bdaddr_t* bd_addr, bthh_status_t hh_status,
     return;
   }
 
-  jbyteArray addr = sCallbackEnv->NewByteArray(sizeof(bt_bdaddr_t));
-  if (!addr) {
+  ScopedLocalRef<jbyteArray> addr(sCallbackEnv.get(), marshall_bda(bd_addr));
+  if (!addr.get()) {
     ALOGE("Fail to new jbyteArray bd addr for get report callback");
     return;
   }
-  jbyteArray data = sCallbackEnv->NewByteArray(rpt_size);
-  if (!data) {
+  ScopedLocalRef<jbyteArray> data(sCallbackEnv.get(),
+                                  sCallbackEnv->NewByteArray(rpt_size));
+  if (!data.get()) {
     ALOGE("Fail to new jbyteArray data for get report callback");
-    sCallbackEnv->DeleteLocalRef(addr);
     return;
   }
 
-  sCallbackEnv->SetByteArrayRegion(addr, 0, sizeof(bt_bdaddr_t),
-                                   (jbyte*)bd_addr);
-  sCallbackEnv->SetByteArrayRegion(data, 0, rpt_size, (jbyte*)rpt_data);
-
-  sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onGetReport, addr, data,
-                               (jint)rpt_size);
-  sCallbackEnv->DeleteLocalRef(addr);
-  sCallbackEnv->DeleteLocalRef(data);
+  sCallbackEnv->SetByteArrayRegion(data.get(), 0, rpt_size, (jbyte*)rpt_data);
+  sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onGetReport, addr.get(),
+                               data.get(), (jint)rpt_size);
 }
 
 static void virtual_unplug_callback(bt_bdaddr_t* bd_addr,
@@ -112,33 +115,26 @@ static void virtual_unplug_callback(bt_bdaddr_t* bd_addr,
   ALOGV("call to virtual_unplug_callback");
   CallbackEnv sCallbackEnv(__func__);
   if (!sCallbackEnv.valid()) return;
-  jbyteArray addr = sCallbackEnv->NewByteArray(sizeof(bt_bdaddr_t));
-  if (!addr) {
+  ScopedLocalRef<jbyteArray> addr(sCallbackEnv.get(), marshall_bda(bd_addr));
+  if (!addr.get()) {
     ALOGE("Fail to new jbyteArray bd addr for HID channel state");
     return;
   }
-  sCallbackEnv->SetByteArrayRegion(addr, 0, sizeof(bt_bdaddr_t),
-                                   (jbyte*)bd_addr);
-
-  sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onVirtualUnplug, addr,
-                               (jint)hh_status);
-  sCallbackEnv->DeleteLocalRef(addr);
+  sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onVirtualUnplug,
+                               addr.get(), (jint)hh_status);
 }
 
 static void handshake_callback(bt_bdaddr_t* bd_addr, bthh_status_t hh_status) {
   CallbackEnv sCallbackEnv(__func__);
   if (!sCallbackEnv.valid()) return;
 
-  jbyteArray addr = sCallbackEnv->NewByteArray(sizeof(bt_bdaddr_t));
-  if (!addr) {
+  ScopedLocalRef<jbyteArray> addr(sCallbackEnv.get(), marshall_bda(bd_addr));
+  if (!addr.get()) {
     ALOGE("Fail to new jbyteArray bd addr for handshake callback");
     return;
   }
-  sCallbackEnv->SetByteArrayRegion(addr, 0, sizeof(bt_bdaddr_t),
-                                   (jbyte*)bd_addr);
-  sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onHandshake, addr,
+  sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onHandshake, addr.get(),
                                (jint)hh_status);
-  sCallbackEnv->DeleteLocalRef(addr);
 }
 
 static bthh_callbacks_t sBluetoothHidCallbacks = {

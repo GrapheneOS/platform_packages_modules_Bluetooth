@@ -44,6 +44,20 @@ static jmethodID method_onControlStateChanged;
 static const btpan_interface_t* sPanIf = NULL;
 static jobject mCallbacksObj = NULL;
 
+static jbyteArray marshall_bda(const bt_bdaddr_t* bd_addr) {
+  CallbackEnv sCallbackEnv(__func__);
+  if (!sCallbackEnv.valid()) return NULL;
+
+  jbyteArray addr = sCallbackEnv->NewByteArray(sizeof(bt_bdaddr_t));
+  if (!addr) {
+    ALOGE("Fail to new jbyteArray bd addr");
+    return NULL;
+  }
+  sCallbackEnv->SetByteArrayRegion(addr, 0, sizeof(bt_bdaddr_t),
+                                   (jbyte*)bd_addr);
+  return addr;
+}
+
 static void control_state_callback(btpan_control_state_t state, int local_role,
                                    bt_status_t error, const char* ifname) {
   debug("state:%d, local_role:%d, ifname:%s", state, local_role, ifname);
@@ -53,11 +67,11 @@ static void control_state_callback(btpan_control_state_t state, int local_role,
   }
   CallbackEnv sCallbackEnv(__func__);
   if (!sCallbackEnv.valid()) return;
-  jstring js_ifname = sCallbackEnv->NewStringUTF(ifname);
+  ScopedLocalRef<jstring> js_ifname(sCallbackEnv.get(),
+                                    sCallbackEnv->NewStringUTF(ifname));
   sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onControlStateChanged,
                                (jint)local_role, (jint)state, (jint)error,
-                               js_ifname);
-  sCallbackEnv->DeleteLocalRef(js_ifname);
+                               js_ifname.get());
 }
 
 static void connection_state_callback(btpan_connection_state_t state,
@@ -72,18 +86,14 @@ static void connection_state_callback(btpan_connection_state_t state,
   }
   CallbackEnv sCallbackEnv(__func__);
   if (!sCallbackEnv.valid()) return;
-  jbyteArray addr = sCallbackEnv->NewByteArray(sizeof(bt_bdaddr_t));
-  if (!addr) {
+  ScopedLocalRef<jbyteArray> addr(sCallbackEnv.get(), marshall_bda(bd_addr));
+  if (!addr.get()) {
     error("Fail to new jbyteArray bd addr for PAN channel state");
     return;
   }
-  sCallbackEnv->SetByteArrayRegion(addr, 0, sizeof(bt_bdaddr_t),
-                                   (jbyte*)bd_addr);
-
   sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onConnectStateChanged,
-                               addr, (jint)state, (jint)error, (jint)local_role,
-                               (jint)remote_role);
-  sCallbackEnv->DeleteLocalRef(addr);
+                               addr.get(), (jint)state, (jint)error,
+                               (jint)local_role, (jint)remote_role);
 }
 
 static btpan_callbacks_t sBluetoothPanCallbacks = {

@@ -39,17 +39,17 @@ static void bta2dp_connection_state_callback(btav_connection_state_t state,
   CallbackEnv sCallbackEnv(__func__);
   if (!sCallbackEnv.valid()) return;
 
-  jbyteArray addr = sCallbackEnv->NewByteArray(sizeof(bt_bdaddr_t));
-  if (!addr) {
+  ScopedLocalRef<jbyteArray> addr(
+      sCallbackEnv.get(), sCallbackEnv->NewByteArray(sizeof(bt_bdaddr_t)));
+  if (!addr.get()) {
     ALOGE("Fail to new jbyteArray bd addr for connection state");
     return;
   }
 
-  sCallbackEnv->SetByteArrayRegion(addr, 0, sizeof(bt_bdaddr_t),
+  sCallbackEnv->SetByteArrayRegion(addr.get(), 0, sizeof(bt_bdaddr_t),
                                    (jbyte*)bd_addr);
   sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onConnectionStateChanged,
-                               (jint)state, addr);
-  sCallbackEnv->DeleteLocalRef(addr);
+                               (jint)state, addr.get());
 }
 
 static void bta2dp_audio_state_callback(btav_audio_state_t state,
@@ -58,17 +58,17 @@ static void bta2dp_audio_state_callback(btav_audio_state_t state,
   CallbackEnv sCallbackEnv(__func__);
   if (!sCallbackEnv.valid()) return;
 
-  jbyteArray addr = sCallbackEnv->NewByteArray(sizeof(bt_bdaddr_t));
-  if (!addr) {
+  ScopedLocalRef<jbyteArray> addr(
+      sCallbackEnv.get(), sCallbackEnv->NewByteArray(sizeof(bt_bdaddr_t)));
+  if (!addr.get()) {
     ALOGE("Fail to new jbyteArray bd addr for connection state");
     return;
   }
 
-  sCallbackEnv->SetByteArrayRegion(addr, 0, sizeof(bt_bdaddr_t),
+  sCallbackEnv->SetByteArrayRegion(addr.get(), 0, sizeof(bt_bdaddr_t),
                                    (jbyte*)bd_addr);
   sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onAudioStateChanged,
-                               (jint)state, addr);
-  sCallbackEnv->DeleteLocalRef(addr);
+                               (jint)state, addr.get());
 }
 
 static void bta2dp_audio_config_callback(bt_bdaddr_t* bd_addr,
@@ -78,17 +78,18 @@ static void bta2dp_audio_config_callback(bt_bdaddr_t* bd_addr,
   CallbackEnv sCallbackEnv(__func__);
   if (!sCallbackEnv.valid()) return;
 
-  jbyteArray addr = sCallbackEnv->NewByteArray(sizeof(bt_bdaddr_t));
-  if (!addr) {
+  ScopedLocalRef<jbyteArray> addr(
+      sCallbackEnv.get(), sCallbackEnv->NewByteArray(sizeof(bt_bdaddr_t)));
+  if (!addr.get()) {
     ALOGE("Fail to new jbyteArray bd addr for connection state");
     return;
   }
 
-  sCallbackEnv->SetByteArrayRegion(addr, 0, sizeof(bt_bdaddr_t),
+  sCallbackEnv->SetByteArrayRegion(addr.get(), 0, sizeof(bt_bdaddr_t),
                                    (jbyte*)bd_addr);
-  sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onAudioConfigChanged, addr,
-                               (jint)sample_rate, (jint)channel_count);
-  sCallbackEnv->DeleteLocalRef(addr);
+  sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onAudioConfigChanged,
+                               addr.get(), (jint)sample_rate,
+                               (jint)channel_count);
 }
 
 static btav_sink_callbacks_t sBluetoothA2dpCallbacks = {
