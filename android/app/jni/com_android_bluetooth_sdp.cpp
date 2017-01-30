@@ -152,112 +152,99 @@ static void sdp_search_callback(bt_status_t status, bt_bdaddr_t* bd_addr,
   CallbackEnv sCallbackEnv(__func__);
   if (!sCallbackEnv.valid()) return;
 
-  jbyteArray addr = sCallbackEnv->NewByteArray(sizeof(bt_bdaddr_t));
-  if (addr == NULL) {
-    return;
-  }
+  ScopedLocalRef<jbyteArray> addr(
+      sCallbackEnv.get(), sCallbackEnv->NewByteArray(sizeof(bt_bdaddr_t)));
+  if (!addr.get()) return;
 
-  jbyteArray uuid = sCallbackEnv->NewByteArray(sizeof(bt_uuid_t));
-  if (uuid == NULL) {
-    sCallbackEnv->DeleteLocalRef(addr);
-    return;
-  }
+  ScopedLocalRef<jbyteArray> uuid(
+      sCallbackEnv.get(), sCallbackEnv->NewByteArray(sizeof(bt_uuid_t)));
+  if (!uuid.get()) return;
 
-  sCallbackEnv->SetByteArrayRegion(addr, 0, sizeof(bt_bdaddr_t),
+  sCallbackEnv->SetByteArrayRegion(addr.get(), 0, sizeof(bt_bdaddr_t),
                                    (jbyte*)bd_addr);
-  sCallbackEnv->SetByteArrayRegion(uuid, 0, sizeof(bt_uuid_t), (jbyte*)uuid_in);
+  sCallbackEnv->SetByteArrayRegion(uuid.get(), 0, sizeof(bt_uuid_t),
+                                   (jbyte*)uuid_in);
 
   ALOGD("%s: Status is: %d, Record count: %d", __func__, status, count);
 
-  jstring service_name = NULL;
   // Ensure we run the loop at least once, to also signal errors if they occur
   for (int i = 0; i < count || i == 0; i++) {
     bool more_results = (i < (count - 1)) ? true : false;
     bluetooth_sdp_record* record = &records[i];
-    service_name = NULL;
+    ScopedLocalRef<jstring> service_name(sCallbackEnv.get(), NULL);
     if (record->hdr.service_name_length > 0) {
       ALOGD("%s, ServiceName:  %s", __func__, record->mas.hdr.service_name);
-      service_name =
-          (jstring)sCallbackEnv->NewStringUTF(record->mas.hdr.service_name);
+      service_name.reset(
+          (jstring)sCallbackEnv->NewStringUTF(record->mas.hdr.service_name));
     }
 
     /* call the right callback according to the uuid*/
     if (IS_UUID(UUID_MAP_MAS, uuid_in)) {
       sCallbackEnv->CallVoidMethod(
-          sCallbacksObj, method_sdpMasRecordFoundCallback, (jint)status, addr,
-          uuid, (jint)record->mas.mas_instance_id,
+          sCallbacksObj, method_sdpMasRecordFoundCallback, (jint)status,
+          addr.get(), uuid.get(), (jint)record->mas.mas_instance_id,
           (jint)record->mas.hdr.l2cap_psm,
           (jint)record->mas.hdr.rfcomm_channel_number,
           (jint)record->mas.hdr.profile_version,
           (jint)record->mas.supported_features,
-          (jint)record->mas.supported_message_types, service_name,
+          (jint)record->mas.supported_message_types, service_name.get(),
           more_results);
 
     } else if (IS_UUID(UUID_MAP_MNS, uuid_in)) {
       sCallbackEnv->CallVoidMethod(
-          sCallbacksObj, method_sdpMnsRecordFoundCallback, (jint)status, addr,
-          uuid, (jint)record->mns.hdr.l2cap_psm,
+          sCallbacksObj, method_sdpMnsRecordFoundCallback, (jint)status,
+          addr.get(), uuid.get(), (jint)record->mns.hdr.l2cap_psm,
           (jint)record->mns.hdr.rfcomm_channel_number,
           (jint)record->mns.hdr.profile_version,
-          (jint)record->mns.supported_features, service_name, more_results);
+          (jint)record->mns.supported_features, service_name.get(),
+          more_results);
 
     } else if (IS_UUID(UUID_PBAP_PSE, uuid_in)) {
       sCallbackEnv->CallVoidMethod(
-          sCallbacksObj, method_sdpPseRecordFoundCallback, (jint)status, addr,
-          uuid, (jint)record->pse.hdr.l2cap_psm,
+          sCallbacksObj, method_sdpPseRecordFoundCallback, (jint)status,
+          addr.get(), uuid.get(), (jint)record->pse.hdr.l2cap_psm,
           (jint)record->pse.hdr.rfcomm_channel_number,
           (jint)record->pse.hdr.profile_version,
           (jint)record->pse.supported_features,
-          (jint)record->pse.supported_repositories, service_name, more_results);
+          (jint)record->pse.supported_repositories, service_name.get(),
+          more_results);
 
     } else if (IS_UUID(UUID_OBEX_OBJECT_PUSH, uuid_in)) {
       jint formats_list_size = record->ops.supported_formats_list_len;
-      jbyteArray formats_list = sCallbackEnv->NewByteArray(formats_list_size);
-      if (formats_list == NULL) goto clean;
+      ScopedLocalRef<jbyteArray> formats_list(
+          sCallbackEnv.get(), sCallbackEnv->NewByteArray(formats_list_size));
+      if (!formats_list.get()) return;
       sCallbackEnv->SetByteArrayRegion(
-          formats_list, 0, formats_list_size,
+          formats_list.get(), 0, formats_list_size,
           (jbyte*)record->ops.supported_formats_list);
 
       sCallbackEnv->CallVoidMethod(
           sCallbacksObj, method_sdpOppOpsRecordFoundCallback, (jint)status,
-          addr, uuid, (jint)record->ops.hdr.l2cap_psm,
+          addr.get(), uuid.get(), (jint)record->ops.hdr.l2cap_psm,
           (jint)record->ops.hdr.rfcomm_channel_number,
-          (jint)record->ops.hdr.profile_version, service_name, formats_list,
-          more_results);
-      sCallbackEnv->DeleteLocalRef(formats_list);
+          (jint)record->ops.hdr.profile_version, service_name.get(),
+          formats_list.get(), more_results);
 
     } else if (IS_UUID(UUID_SAP, uuid_in)) {
       sCallbackEnv->CallVoidMethod(
-          sCallbacksObj, method_sdpSapsRecordFoundCallback, (jint)status, addr,
-          uuid, (jint)record->mas.hdr.rfcomm_channel_number,
-          (jint)record->mas.hdr.profile_version, service_name, more_results);
+          sCallbacksObj, method_sdpSapsRecordFoundCallback, (jint)status,
+          addr.get(), uuid.get(), (jint)record->mas.hdr.rfcomm_channel_number,
+          (jint)record->mas.hdr.profile_version, service_name.get(),
+          more_results);
     } else {
       // we don't have a wrapper for this uuid, send as raw data
       jint record_data_size = record->hdr.user1_ptr_len;
-      jbyteArray record_data = NULL;
+      ScopedLocalRef<jbyteArray> record_data(
+          sCallbackEnv.get(), sCallbackEnv->NewByteArray(record_data_size));
+      if (!record_data.get()) return;
 
-      record_data = sCallbackEnv->NewByteArray(record_data_size);
-      if (record_data == NULL) goto clean;
-
-      sCallbackEnv->SetByteArrayRegion(record_data, 0, record_data_size,
+      sCallbackEnv->SetByteArrayRegion(record_data.get(), 0, record_data_size,
                                        (jbyte*)record->hdr.user1_ptr);
       sCallbackEnv->CallVoidMethod(sCallbacksObj, method_sdpRecordFoundCallback,
-                                   (jint)status, addr, uuid, record_data_size,
-                                   record_data);
-
-      sCallbackEnv->DeleteLocalRef(record_data);
-    }
-    // Cleanup for each iteration
-    if (service_name != NULL) {
-      sCallbackEnv->DeleteLocalRef(service_name);
-      service_name = NULL;
+                                   (jint)status, addr.get(), uuid.get(),
+                                   record_data_size, record_data.get());
     }
   }  // End of for-loop
-
-clean:
-  if (service_name != NULL) sCallbackEnv->DeleteLocalRef(service_name);
-  sCallbackEnv->DeleteLocalRef(addr);
-  sCallbackEnv->DeleteLocalRef(uuid);
 }
 
 static jint sdpCreateMapMasRecordNative(JNIEnv* env, jobject obj,
