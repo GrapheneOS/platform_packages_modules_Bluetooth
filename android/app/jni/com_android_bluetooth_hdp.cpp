@@ -47,8 +47,9 @@ static void channel_state_callback(int app_id, bt_bdaddr_t* bd_addr,
                                    bthl_channel_state_t state, int fd) {
   CallbackEnv sCallbackEnv(__func__);
   if (!sCallbackEnv.valid()) return;
-  jbyteArray addr = sCallbackEnv->NewByteArray(sizeof(bt_bdaddr_t));
-  if (!addr) {
+  ScopedLocalRef<jbyteArray> addr(
+      sCallbackEnv.get(), sCallbackEnv->NewByteArray(sizeof(bt_bdaddr_t)));
+  if (!addr.get()) {
     ALOGE("Fail to new jbyteArray bd addr for channel state");
     return;
   }
@@ -59,17 +60,15 @@ static void channel_state_callback(int app_id, bt_bdaddr_t* bd_addr,
     fileDescriptor = jniCreateFileDescriptor(sCallbackEnv.get(), fd);
     if (!fileDescriptor) {
       ALOGE("Failed to convert file descriptor, fd: %d", fd);
-      sCallbackEnv->DeleteLocalRef(addr);
       return;
     }
   }
 
-  sCallbackEnv->SetByteArrayRegion(addr, 0, sizeof(bt_bdaddr_t),
+  sCallbackEnv->SetByteArrayRegion(addr.get(), 0, sizeof(bt_bdaddr_t),
                                    (jbyte*)bd_addr);
   sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onChannelStateChanged,
-                               app_id, addr, mdep_cfg_index, channel_id,
+                               app_id, addr.get(), mdep_cfg_index, channel_id,
                                (jint)state, fileDescriptor);
-  sCallbackEnv->DeleteLocalRef(addr);
 }
 
 static bthl_callbacks_t sBluetoothHdpCallbacks = {

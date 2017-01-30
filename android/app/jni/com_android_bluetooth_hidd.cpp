@@ -18,12 +18,6 @@
 
 #define LOG_NDEBUG 0
 
-#define CHECK_CALLBACK_ENV                                                     \
-  if (!checkCallbackThread()) {                                                \
-    ALOGE("Callback: '%s' is not called on the correct thread", __FUNCTION__); \
-    return;                                                                    \
-  }
-
 #include "android_runtime/AndroidRuntime.h"
 #include "com_android_bluetooth.h"
 #include "hardware/bt_hd.h"
@@ -43,72 +37,62 @@ static jmethodID method_onVirtualCableUnplug;
 
 static const bthd_interface_t* sHiddIf = NULL;
 static jobject mCallbacksObj = NULL;
-static JNIEnv* sCallbackEnv = NULL;
 
-static bool checkCallbackThread() {
-  sCallbackEnv = getCallbackEnv();
+static jbyteArray marshall_bda(bt_bdaddr_t* bd_addr) {
+  CallbackEnv sCallbackEnv(__func__);
+  if (!sCallbackEnv.valid()) return NULL;
 
-  if (sCallbackEnv != AndroidRuntime::getJNIEnv() || sCallbackEnv == NULL) {
-    return false;
+  jbyteArray addr = sCallbackEnv->NewByteArray(sizeof(bt_bdaddr_t));
+  if (!addr) {
+    ALOGE("Fail to new jbyteArray bd addr");
+    return NULL;
   }
-
-  return true;
+  sCallbackEnv->SetByteArrayRegion(addr, 0, sizeof(bt_bdaddr_t),
+                                   (jbyte*)bd_addr);
+  return addr;
 }
 
 static void application_state_callback(bt_bdaddr_t* bd_addr,
                                        bthd_application_state_t state) {
   jboolean registered = JNI_FALSE;
-  jbyteArray addr;
 
-  CHECK_CALLBACK_ENV
+  CallbackEnv sCallbackEnv(__func__);
 
   if (state == BTHD_APP_STATE_REGISTERED) {
     registered = JNI_TRUE;
   }
 
+  ScopedLocalRef<jbyteArray> addr(sCallbackEnv.get(), NULL);
+
   if (bd_addr) {
-    addr = sCallbackEnv->NewByteArray(sizeof(bt_bdaddr_t));
-    if (!addr) {
+    addr.reset(marshall_bda(bd_addr));
+    if (!addr.get()) {
       ALOGE("%s: failed to allocate storage for bt_addr", __FUNCTION__);
       return;
     }
-    sCallbackEnv->SetByteArrayRegion(addr, 0, sizeof(bt_bdaddr_t),
-                                     (jbyte*)bd_addr);
-  } else {
-    addr = NULL;
   }
 
   sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onApplicationStateChanged,
-                               addr, registered);
-
-  if (addr) {
-    sCallbackEnv->DeleteLocalRef(addr);
-  }
+                               addr.get(), registered);
 }
 
 static void connection_state_callback(bt_bdaddr_t* bd_addr,
                                       bthd_connection_state_t state) {
-  jbyteArray addr;
+  CallbackEnv sCallbackEnv(__func__);
 
-  CHECK_CALLBACK_ENV
-
-  addr = sCallbackEnv->NewByteArray(sizeof(bt_bdaddr_t));
-  if (!addr) {
+  ScopedLocalRef<jbyteArray> addr(sCallbackEnv.get(), marshall_bda(bd_addr));
+  if (!addr.get()) {
     ALOGE("%s: failed to allocate storage for bt_addr", __FUNCTION__);
     return;
   }
-  sCallbackEnv->SetByteArrayRegion(addr, 0, sizeof(bt_bdaddr_t),
-                                   (jbyte*)bd_addr);
 
   sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onConnectStateChanged,
-                               addr, (jint)state);
-
-  sCallbackEnv->DeleteLocalRef(addr);
+                               addr.get(), (jint)state);
 }
 
 static void get_report_callback(uint8_t type, uint8_t id,
                                 uint16_t buffer_size) {
-  CHECK_CALLBACK_ENV
+  CallbackEnv sCallbackEnv(__func__);
 
   sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onGetReport, type, id,
                                buffer_size);
@@ -116,51 +100,44 @@ static void get_report_callback(uint8_t type, uint8_t id,
 
 static void set_report_callback(uint8_t type, uint8_t id, uint16_t len,
                                 uint8_t* p_data) {
-  jbyteArray data;
+  CallbackEnv sCallbackEnv(__func__);
 
-  CHECK_CALLBACK_ENV
-
-  data = sCallbackEnv->NewByteArray(len);
-  if (!data) {
+  ScopedLocalRef<jbyteArray> data(sCallbackEnv.get(),
+                                  sCallbackEnv->NewByteArray(len));
+  if (!data.get()) {
     ALOGE("%s: failed to allocate storage for report data", __FUNCTION__);
     return;
   }
-  sCallbackEnv->SetByteArrayRegion(data, 0, len, (jbyte*)p_data);
+  sCallbackEnv->SetByteArrayRegion(data.get(), 0, len, (jbyte*)p_data);
 
   sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onSetReport, (jbyte)type,
-                               (jbyte)id, data);
-
-  sCallbackEnv->DeleteLocalRef(data);
+                               (jbyte)id, data.get());
 }
 
 static void set_protocol_callback(uint8_t protocol) {
-  CHECK_CALLBACK_ENV
+  CallbackEnv sCallbackEnv(__func__);
 
   sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onSetProtocol, protocol);
 }
 
 static void intr_data_callback(uint8_t report_id, uint16_t len,
                                uint8_t* p_data) {
-  jbyteArray data;
+  CallbackEnv sCallbackEnv(__func__);
 
-  CHECK_CALLBACK_ENV
-
-  data = sCallbackEnv->NewByteArray(len);
-  if (!data) {
+  ScopedLocalRef<jbyteArray> data(sCallbackEnv.get(),
+                                  sCallbackEnv->NewByteArray(len));
+  if (!data.get()) {
     ALOGE("%s: failed to allocate storage for report data", __FUNCTION__);
     return;
   }
-  sCallbackEnv->SetByteArrayRegion(data, 0, len, (jbyte*)p_data);
+  sCallbackEnv->SetByteArrayRegion(data.get(), 0, len, (jbyte*)p_data);
 
   sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onIntrData,
-                               (jbyte)report_id, data);
-
-  sCallbackEnv->DeleteLocalRef(data);
+                               (jbyte)report_id, data.get());
 }
 
 static void vc_unplug_callback(void) {
-  CHECK_CALLBACK_ENV
-
+  CallbackEnv sCallbackEnv(__func__);
   sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onVirtualCableUnplug);
 }
 
