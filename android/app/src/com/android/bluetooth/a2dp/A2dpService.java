@@ -17,6 +17,7 @@
 package com.android.bluetooth.a2dp;
 
 import android.bluetooth.BluetoothCodecConfig;
+import android.bluetooth.BluetoothCodecStatus;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.BluetoothUuid;
@@ -224,10 +225,10 @@ public class A2dpService extends ProfileService {
         return mStateMachine.isPlaying(device);
     }
 
-    public BluetoothCodecConfig getCodecConfig() {
+    public BluetoothCodecStatus getCodecStatus() {
         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
-        if (DBG) Log.d(TAG, "getCodecConfig()");
-        return mStateMachine.getCodecConfig();
+        if (DBG) Log.d(TAG, "getCodecStatus()");
+        return mStateMachine.getCodecStatus();
     }
 
     public void setCodecConfigPreference(BluetoothCodecConfig codecConfig) {
@@ -328,10 +329,10 @@ public class A2dpService extends ProfileService {
             return service.isA2dpPlaying(device);
         }
 
-        public BluetoothCodecConfig getCodecConfig() {
+        public BluetoothCodecStatus getCodecStatus() {
             A2dpService service = getService();
             if (service == null) return null;
-            return service.getCodecConfig();
+            return service.getCodecStatus();
         }
 
         public void setCodecConfigPreference(BluetoothCodecConfig codecConfig) {
