@@ -176,6 +176,7 @@ static void bta_hf_client_stop_at_resp_timer(tBTA_HF_CLIENT_CB* client_cb) {
 static void bta_hf_client_send_at(tBTA_HF_CLIENT_CB* client_cb,
                                   tBTA_HF_CLIENT_AT_CMD cmd, const char* buf,
                                   uint16_t buf_len) {
+  APPL_TRACE_DEBUG("%s", __func__);
   if ((client_cb->at_cb.current_cmd == BTA_HF_CLIENT_AT_NONE ||
        client_cb->svc_conn == false) &&
       !alarm_is_scheduled(client_cb->at_cb.hold_timer)) {
@@ -442,14 +443,20 @@ static void bta_hf_client_handle_ciev(tBTA_HF_CLIENT_CB* client_cb,
 
 static void bta_hf_client_handle_bcs(tBTA_HF_CLIENT_CB* client_cb,
                                      uint32_t codec) {
-  APPL_TRACE_DEBUG("%s: %u", __func__, codec);
+  APPL_TRACE_DEBUG("%s: codec: %u sco listen state: %d", __func__, codec,
+                   client_cb->sco_state);
 
-  if (codec == BTM_SCO_CODEC_CVSD || codec == BTM_SCO_CODEC_MSBC) {
-    client_cb->negotiated_codec = codec;
-    bta_hf_client_send_at_bcs(client_cb, codec);
-  } else {
-    client_cb->negotiated_codec = BTM_SCO_CODEC_CVSD;
-    bta_hf_client_send_at_bac(client_cb);
+  // Only send acceptance for the codec request if we are ready to accept the
+  // SCO connection. sco_state is set to listen when the upper layer calls for
+  // audio connection.
+  if (client_cb->sco_state == BTA_HF_CLIENT_SCO_LISTEN_ST) {
+    if (codec == BTM_SCO_CODEC_CVSD || codec == BTM_SCO_CODEC_MSBC) {
+      client_cb->negotiated_codec = codec;
+      bta_hf_client_send_at_bcs(client_cb, codec);
+    } else {
+      client_cb->negotiated_codec = BTM_SCO_CODEC_CVSD;
+      bta_hf_client_send_at_bac(client_cb);
+    }
   }
 }
 
@@ -1932,6 +1939,11 @@ void bta_hf_client_send_at_bcc(tBTA_HF_CLIENT_CB* client_cb) {
   buf = "AT+BCC\r";
 
   bta_hf_client_send_at(client_cb, BTA_HF_CLIENT_AT_BCC, buf, strlen(buf));
+
+  // At this point we should also open up an incoming SCO connection
+  tBTA_HF_CLIENT_DATA p_data;
+  p_data.hdr.layer_specific = client_cb->handle;
+  bta_hf_client_sco_listen(&p_data);
 }
 
 void bta_hf_client_send_at_cnum(tBTA_HF_CLIENT_CB* client_cb) {
@@ -2042,6 +2054,7 @@ void bta_hf_client_send_at_cmd(tBTA_HF_CLIENT_DATA* p_data) {
   tBTA_HF_CLIENT_DATA_VAL* p_val = (tBTA_HF_CLIENT_DATA_VAL*)p_data;
   char buf[BTA_HF_CLIENT_AT_MAX_LEN];
 
+  APPL_TRACE_DEBUG("%s: at cmd: %d", __func__, p_val->uint8_val);
   switch (p_val->uint8_val) {
     case BTA_HF_CLIENT_AT_CMD_VTS:
       bta_hf_client_send_at_vts(client_cb, (char)p_val->uint32_val1);
@@ -2064,7 +2077,7 @@ void bta_hf_client_send_at_cmd(tBTA_HF_CLIENT_DATA* p_data) {
       bta_hf_client_send_at_cnum(client_cb);
       break;
     case BTA_HF_CLIENT_AT_CMD_ATA:
-      // bta_hf_client_send_at_ata(client_cb);
+      bta_hf_client_send_at_ata(client_cb);
       break;
     case BTA_HF_CLIENT_AT_CMD_COPS:
       bta_hf_client_send_at_cops(client_cb, true);
