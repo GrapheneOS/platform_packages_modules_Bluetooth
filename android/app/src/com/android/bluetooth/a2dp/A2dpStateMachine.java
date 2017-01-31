@@ -31,6 +31,7 @@ package com.android.bluetooth.a2dp;
 import android.bluetooth.BluetoothA2dp;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothCodecConfig;
+import android.bluetooth.BluetoothCodecStatus;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.BluetoothUuid;
@@ -103,7 +104,7 @@ final class A2dpStateMachine extends StateMachine {
     private BluetoothDevice mIncomingDevice = null;
     private BluetoothDevice mPlayingA2dpDevice = null;
 
-    private BluetoothCodecConfig mCodecConfig = null;
+    private BluetoothCodecStatus mCodecStatus = null;
 
     static {
         classInitNative();
@@ -654,30 +655,35 @@ final class A2dpStateMachine extends StateMachine {
         return false;
     }
 
-    BluetoothCodecConfig getCodecConfig() {
+    BluetoothCodecStatus getCodecStatus() {
         synchronized (this) {
-            return mCodecConfig;
+            return mCodecStatus;
         }
     }
 
-    private void onCodecConfigChanged(int codecType, int codecPriority, int sampleRate,
-            int bitsPerSample, int channelMode, long codecSpecific1, long codecSpecific2,
-            long codecSpecific3, long codecSpecific4) {
-        BluetoothCodecConfig prevCodecConfig;
-        BluetoothCodecConfig newCodecConfig = new BluetoothCodecConfig(codecType, codecPriority,
-                sampleRate, bitsPerSample, channelMode, codecSpecific1, codecSpecific2,
-                codecSpecific3, codecSpecific4);
+    private void onCodecConfigChanged(BluetoothCodecConfig newCodecConfig,
+            BluetoothCodecConfig[] codecsLocalCapabilities,
+            BluetoothCodecConfig[] codecsSelectableCapabilities) {
+        BluetoothCodecConfig prevCodecConfig = null;
         synchronized (this) {
-            prevCodecConfig = mCodecConfig;
-            mCodecConfig = newCodecConfig;
+            if (mCodecStatus != null) {
+                prevCodecConfig = mCodecStatus.getCodecConfig();
+            }
+            mCodecStatus = new BluetoothCodecStatus(
+                    newCodecConfig, codecsLocalCapabilities, codecsSelectableCapabilities);
         }
 
         Intent intent = new Intent(BluetoothA2dp.ACTION_CODEC_CONFIG_CHANGED);
-        intent.putExtra(BluetoothCodecConfig.EXTRA_CODEC_CONFIG, newCodecConfig);
-        intent.putExtra(BluetoothCodecConfig.EXTRA_PREVIOUS_CODEC_CONFIG, prevCodecConfig);
+        intent.putExtra(BluetoothCodecStatus.EXTRA_CODEC_STATUS, mCodecStatus);
         intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY_BEFORE_BOOT);
 
-        log("A2DP Codec Config : " + prevCodecConfig + "->" + newCodecConfig);
+        log("A2DP Codec Config: " + prevCodecConfig + "->" + newCodecConfig);
+        for (BluetoothCodecConfig codecConfig : codecsLocalCapabilities) {
+            log("A2DP Codec Local Capability: " + codecConfig);
+        }
+        for (BluetoothCodecConfig codecConfig : codecsSelectableCapabilities) {
+            log("A2DP Codec Selectable Capability: " + codecConfig);
+        }
 
         // Inform the Audio Service about the codec configuration change,
         // so the Audio Service can reset accordingly the audio feeding
