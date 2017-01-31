@@ -35,22 +35,34 @@
 /* The Media Type offset within the codec info byte array */
 #define A2DP_MEDIA_TYPE_OFFSET 1
 
+// Initializes the codec config.
+// |codec_config| is the codec config to initialize.
+// |codec_index| and |codec_priority| are the codec type and priority to use
+// for the initialization.
+static void init_btav_a2dp_codec_config(
+    btav_a2dp_codec_config_t* codec_config, btav_a2dp_codec_index_t codec_index,
+    btav_a2dp_codec_priority_t codec_priority) {
+  memset(codec_config, 0, sizeof(btav_a2dp_codec_config_t));
+  codec_config->codec_type = codec_index;
+  codec_config->codec_priority = codec_priority;
+}
+
 A2dpCodecConfig::A2dpCodecConfig(btav_a2dp_codec_index_t codec_index,
                                  const std::string& name)
     : codec_index_(codec_index), name_(name) {
   setDefaultCodecPriority();
 
-  memset(&codec_config_, 0, sizeof(codec_config_));
-  codec_config_.codec_type = codec_index_;
-
-  memset(&codec_capability_, 0, sizeof(codec_capability_));
-  codec_capability_.codec_type = codec_index_;
-
-  memset(&codec_user_config_, 0, sizeof(codec_user_config_));
-  codec_user_config_.codec_type = codec_index_;
-
-  memset(&codec_audio_config_, 0, sizeof(codec_audio_config_));
-  codec_audio_config_.codec_type = codec_index_;
+  init_btav_a2dp_codec_config(&codec_config_, codec_index_, codecPriority());
+  init_btav_a2dp_codec_config(&codec_capability_, codec_index_,
+                              codecPriority());
+  init_btav_a2dp_codec_config(&codec_local_capability_, codec_index_,
+                              codecPriority());
+  init_btav_a2dp_codec_config(&codec_selectable_capability_, codec_index_,
+                              codecPriority());
+  init_btav_a2dp_codec_config(&codec_user_config_, codec_index_,
+                              BTAV_A2DP_CODEC_PRIORITY_DEFAULT);
+  init_btav_a2dp_codec_config(&codec_audio_config_, codec_index_,
+                              BTAV_A2DP_CODEC_PRIORITY_DEFAULT);
 
   memset(ota_codec_config_, 0, sizeof(ota_codec_config_));
   memset(ota_codec_peer_capability_, 0, sizeof(ota_codec_peer_capability_));
@@ -61,7 +73,7 @@ A2dpCodecConfig::~A2dpCodecConfig() {}
 
 void A2dpCodecConfig::setCodecPriority(
     btav_a2dp_codec_priority_t codec_priority) {
-  if (codec_priority == 0) {
+  if (codec_priority == BTAV_A2DP_CODEC_PRIORITY_DEFAULT) {
     // Compute the default codec priority
     setDefaultCodecPriority();
   } else {
@@ -71,7 +83,8 @@ void A2dpCodecConfig::setCodecPriority(
 
 void A2dpCodecConfig::setDefaultCodecPriority() {
   // Compute the default codec priority
-  codec_priority_ = 1000 * codec_index_ + 1;
+  uint32_t priority = 1000 * codec_index_ + 1;
+  codec_priority_ = static_cast<btav_a2dp_codec_priority_t>(priority);
 }
 
 A2dpCodecConfig* A2dpCodecConfig::createCodec(
@@ -141,6 +154,20 @@ btav_a2dp_codec_config_t A2dpCodecConfig::getCodecCapability() {
   return codec_capability_;
 }
 
+btav_a2dp_codec_config_t A2dpCodecConfig::getCodecLocalCapability() {
+  std::lock_guard<std::recursive_mutex> lock(codec_mutex_);
+
+  // TODO: We should check whether the codec capability is valid
+  return codec_local_capability_;
+}
+
+btav_a2dp_codec_config_t A2dpCodecConfig::getCodecSelectableCapability() {
+  std::lock_guard<std::recursive_mutex> lock(codec_mutex_);
+
+  // TODO: We should check whether the codec capability is valid
+  return codec_selectable_capability_;
+}
+
 btav_a2dp_codec_config_t A2dpCodecConfig::getCodecUserConfig() {
   std::lock_guard<std::recursive_mutex> lock(codec_mutex_);
 
@@ -172,7 +199,7 @@ uint8_t A2dpCodecConfig::getAudioBitsPerSample() {
 bool A2dpCodecConfig::isCodecConfigEmpty(
     const btav_a2dp_codec_config_t& codec_config) {
   return (
-      (codec_config.codec_priority == 0) &&
+      (codec_config.codec_priority == BTAV_A2DP_CODEC_PRIORITY_DEFAULT) &&
       (codec_config.sample_rate == BTAV_A2DP_CODEC_SAMPLE_RATE_NONE) &&
       (codec_config.bits_per_sample == BTAV_A2DP_CODEC_BITS_PER_SAMPLE_NONE) &&
       (codec_config.channel_mode == BTAV_A2DP_CODEC_CHANNEL_MODE_NONE) &&
@@ -324,7 +351,8 @@ A2dpCodecConfig* A2dpCodecs::findSourceCodecConfig(
 
 bool A2dpCodecs::setCodecConfig(const uint8_t* p_peer_codec_info,
                                 bool is_capability,
-                                uint8_t* p_result_codec_config) {
+                                uint8_t* p_result_codec_config,
+                                bool select_current_codec) {
   std::lock_guard<std::recursive_mutex> lock(codec_mutex_);
   A2dpCodecConfig* a2dp_codec_config = findSourceCodecConfig(p_peer_codec_info);
   if (a2dp_codec_config == nullptr) return false;
@@ -332,7 +360,9 @@ bool A2dpCodecs::setCodecConfig(const uint8_t* p_peer_codec_info,
                                          p_result_codec_config)) {
     return false;
   }
-  current_codec_config_ = a2dp_codec_config;
+  if (select_current_codec) {
+    current_codec_config_ = a2dp_codec_config;
+  }
   return true;
 }
 
@@ -522,7 +552,8 @@ fail:
 
 bool A2dpCodecs::getCodecConfigAndCapabilities(
     btav_a2dp_codec_config_t* p_codec_config,
-    std::vector<btav_a2dp_codec_config_t>* p_codec_capabilities) {
+    std::vector<btav_a2dp_codec_config_t>* p_codecs_local_capabilities,
+    std::vector<btav_a2dp_codec_config_t>* p_codecs_selectable_capabilities) {
   std::lock_guard<std::recursive_mutex> lock(codec_mutex_);
 
   if (current_codec_config_ != nullptr) {
@@ -533,11 +564,26 @@ bool A2dpCodecs::getCodecConfigAndCapabilities(
     *p_codec_config = codec_config;
   }
 
-  std::vector<btav_a2dp_codec_config_t> codec_capabilities;
+  std::vector<btav_a2dp_codec_config_t> codecs_capabilities;
   for (auto codec : orderedSourceCodecs()) {
-    codec_capabilities.push_back(codec->getCodecCapability());
+    codecs_capabilities.push_back(codec->getCodecLocalCapability());
   }
-  *p_codec_capabilities = codec_capabilities;
+  *p_codecs_local_capabilities = codecs_capabilities;
+
+  codecs_capabilities.clear();
+  for (auto codec : orderedSourceCodecs()) {
+    btav_a2dp_codec_config_t codec_capability =
+        codec->getCodecSelectableCapability();
+    // Don't add entries that cannot be used
+    if ((codec_capability.sample_rate == BTAV_A2DP_CODEC_SAMPLE_RATE_NONE) ||
+        (codec_capability.bits_per_sample ==
+         BTAV_A2DP_CODEC_BITS_PER_SAMPLE_NONE) ||
+        (codec_capability.channel_mode == BTAV_A2DP_CODEC_CHANNEL_MODE_NONE)) {
+      continue;
+    }
+    codecs_capabilities.push_back(codec_capability);
+  }
+  *p_codecs_selectable_capabilities = codecs_capabilities;
 
   return true;
 }
