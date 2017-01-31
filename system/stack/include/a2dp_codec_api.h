@@ -81,6 +81,17 @@ class A2dpCodecConfig {
   // Returns a copy of the current codec capability.
   btav_a2dp_codec_config_t getCodecCapability();
 
+  // Gets the codec local capability.
+  // Returns a copy of the codec local capability.
+  btav_a2dp_codec_config_t getCodecLocalCapability();
+
+  // Gets the codec selectable capability.
+  // The capability is computed by intersecting the local codec's capability
+  // and the peer's codec capability. Any explicit user configuration is
+  // not included in the result.
+  // Returns a copy of the codec selectable capability.
+  btav_a2dp_codec_config_t getCodecSelectableCapability();
+
   // Gets the current codec user configuration.
   // Returns a copy of the current codec user configuration.
   btav_a2dp_codec_config_t getCodecUserConfig();
@@ -99,7 +110,8 @@ class A2dpCodecConfig {
 
  protected:
   // Sets the current priority of the codec to |codec_priority|.
-  // If |codec_priority| is 0, the priority is reset to its default value.
+  // If |codec_priority| is BTAV_A2DP_CODEC_PRIORITY_DEFAULT, the priority is
+  // reset to its default value.
   void setCodecPriority(btav_a2dp_codec_priority_t codec_priority);
 
   // Sets the current priority of the codec to its default value.
@@ -175,6 +187,8 @@ class A2dpCodecConfig {
 
   btav_a2dp_codec_config_t codec_config_;
   btav_a2dp_codec_config_t codec_capability_;
+  btav_a2dp_codec_config_t codec_local_capability_;
+  btav_a2dp_codec_config_t codec_selectable_capability_;
 
   // The optional user configuration. The values (if set) are used
   // as a preference when there is a choice. If a particular value
@@ -227,6 +241,8 @@ class A2dpCodecs {
   // to use. If |is_capability| is true, then |p_peer_codec_info| contains the
   // peer's A2DP Sink codec capability, otherwise it contains the peer's
   // preferred A2DP codec configuration to use.
+  // If the codec can be used and |select_current_codec| is true, then
+  // this codec is selected as the current one.
   //
   // The codec configuration is built by considering the optional user
   // configuration, the local codec capabilities, the peer's codec
@@ -255,7 +271,8 @@ class A2dpCodecs {
   // The result codec configuration is stored in |p_result_codec_config|.
   // Returns true on success, othewise false.
   bool setCodecConfig(const uint8_t* p_peer_codec_info, bool is_capability,
-                      uint8_t* p_result_codec_config);
+                      uint8_t* p_result_codec_config,
+                      bool select_current_codec);
 
   // Sets the user prefered codec configuration.
   // |codec_user_config| contains the preferred codec configuration.
@@ -318,12 +335,16 @@ class A2dpCodecs {
 
   // Gets the current codec configuration and the capabilities of
   // all configured codecs.
-  // The codec configuration is stored in |p_codec_config|.
-  // The codecs capabilities are stored in |p_codec_capabilities|.
+  // The current codec configuration is stored in |p_codec_config|.
+  // Local device's codecs capabilities are stored in
+  // |p_codecs_local_capabilities|.
+  // The codecs capabilities that can be used between the local device
+  // and the remote device are stored in |p_codecs_selectable_capabilities|.
   // Returns true on success, otherwise false.
   bool getCodecConfigAndCapabilities(
       btav_a2dp_codec_config_t* p_codec_config,
-      std::vector<btav_a2dp_codec_config_t>* p_codec_capabilities);
+      std::vector<btav_a2dp_codec_config_t>* p_codecs_local_capabilities,
+      std::vector<btav_a2dp_codec_config_t>* p_codecs_selectable_capabilities);
 
  private:
   struct CompareBtBdaddr
