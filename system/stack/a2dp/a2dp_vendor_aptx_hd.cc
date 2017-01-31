@@ -434,7 +434,22 @@ bool A2DP_VendorInitCodecConfigAptxHd(tAVDT_CFG* p_cfg) {
 }
 
 A2dpCodecConfigAptxHd::A2dpCodecConfigAptxHd()
-    : A2dpCodecConfig(BTAV_A2DP_CODEC_INDEX_SOURCE_APTX_HD, "aptX-HD") {}
+    : A2dpCodecConfig(BTAV_A2DP_CODEC_INDEX_SOURCE_APTX_HD, "aptX-HD") {
+  // Compute the local capability
+  if (a2dp_aptx_hd_caps.sampleRate & A2DP_APTX_HD_SAMPLERATE_44100) {
+    codec_local_capability_.sample_rate |= BTAV_A2DP_CODEC_SAMPLE_RATE_44100;
+  }
+  if (a2dp_aptx_hd_caps.sampleRate & A2DP_APTX_HD_SAMPLERATE_48000) {
+    codec_local_capability_.sample_rate |= BTAV_A2DP_CODEC_SAMPLE_RATE_48000;
+  }
+  codec_local_capability_.bits_per_sample = a2dp_aptx_hd_caps.bits_per_sample;
+  if (a2dp_aptx_hd_caps.channelMode & A2DP_APTX_HD_CHANNELS_MONO) {
+    codec_local_capability_.channel_mode |= BTAV_A2DP_CODEC_CHANNEL_MODE_MONO;
+  }
+  if (a2dp_aptx_hd_caps.channelMode & A2DP_APTX_HD_CHANNELS_STEREO) {
+    codec_local_capability_.channel_mode |= BTAV_A2DP_CODEC_CHANNEL_MODE_STEREO;
+  }
+}
 
 A2dpCodecConfigAptxHd::~A2dpCodecConfigAptxHd() {}
 
@@ -600,6 +615,8 @@ bool A2dpCodecConfigAptxHd::setCodecConfig(const uint8_t* p_peer_codec_info,
   // Save the internal state
   btav_a2dp_codec_config_t saved_codec_config = codec_config_;
   btav_a2dp_codec_config_t saved_codec_capability = codec_capability_;
+  btav_a2dp_codec_config_t saved_codec_selectable_capability =
+      codec_selectable_capability_;
   btav_a2dp_codec_config_t saved_codec_user_config = codec_user_config_;
   btav_a2dp_codec_config_t saved_codec_audio_config = codec_audio_config_;
   uint8_t saved_ota_codec_config[AVDT_CODEC_SIZE];
@@ -658,6 +675,16 @@ bool A2dpCodecConfigAptxHd::setCodecConfig(const uint8_t* p_peer_codec_info,
 
   // Select the sample frequency if there is no user preference
   do {
+    // Compute the selectable capability
+    if (sampleRate & A2DP_APTX_HD_SAMPLERATE_44100) {
+      codec_selectable_capability_.sample_rate |=
+          BTAV_A2DP_CODEC_SAMPLE_RATE_44100;
+    }
+    if (sampleRate & A2DP_APTX_HD_SAMPLERATE_48000) {
+      codec_selectable_capability_.sample_rate |=
+          BTAV_A2DP_CODEC_SAMPLE_RATE_48000;
+    }
+
     if (codec_config_.sample_rate != BTAV_A2DP_CODEC_SAMPLE_RATE_NONE) break;
 
     // Compute the common capability
@@ -714,6 +741,10 @@ bool A2dpCodecConfigAptxHd::setCodecConfig(const uint8_t* p_peer_codec_info,
 
   // Select the bits per sample if there is no user preference
   do {
+    // Compute the selectable capability
+    codec_selectable_capability_.bits_per_sample =
+        a2dp_aptx_hd_caps.bits_per_sample;
+
     if (codec_config_.bits_per_sample != BTAV_A2DP_CODEC_BITS_PER_SAMPLE_NONE)
       break;
 
@@ -771,6 +802,16 @@ bool A2dpCodecConfigAptxHd::setCodecConfig(const uint8_t* p_peer_codec_info,
 
   // Select the channel mode if there is no user preference
   do {
+    // Compute the selectable capability
+    if (channelMode & A2DP_APTX_HD_CHANNELS_MONO) {
+      codec_selectable_capability_.channel_mode |=
+          BTAV_A2DP_CODEC_CHANNEL_MODE_MONO;
+    }
+    if (channelMode & A2DP_APTX_HD_CHANNELS_STEREO) {
+      codec_selectable_capability_.channel_mode |=
+          BTAV_A2DP_CODEC_CHANNEL_MODE_STEREO;
+    }
+
     if (codec_config_.channel_mode != BTAV_A2DP_CODEC_CHANNEL_MODE_NONE) break;
 
     // Compute the common capability
@@ -859,6 +900,7 @@ fail:
   // Restore the internal state
   codec_config_ = saved_codec_config;
   codec_capability_ = saved_codec_capability;
+  codec_selectable_capability_ = saved_codec_selectable_capability;
   codec_user_config_ = saved_codec_user_config;
   codec_audio_config_ = saved_codec_audio_config;
   memcpy(ota_codec_config_, saved_ota_codec_config, sizeof(ota_codec_config_));

@@ -835,8 +835,9 @@ TEST_F(A2dpCodecConfigTest, setCodecConfig) {
   codec_config =
       a2dp_codecs->findSourceCodecConfig(codec_info_sbc_sink_capability);
   EXPECT_NE(codec_config, nullptr);
-  EXPECT_TRUE(a2dp_codecs->setCodecConfig(codec_info_sbc_sink_capability, true,
-                                          codec_info_result));
+  EXPECT_TRUE(a2dp_codecs->setCodecConfig(
+      codec_info_sbc_sink_capability, true /* is_capability */,
+      codec_info_result, true /* select_current_codec */));
   EXPECT_EQ(a2dp_codecs->getCurrentCodecConfig(), codec_config);
   // Compare the result codec with the local test codec info
   for (size_t i = 0; i < codec_info_sbc[0] + 1; i++) {
@@ -850,8 +851,9 @@ TEST_F(A2dpCodecConfigTest, setCodecConfig) {
   codec_config =
       a2dp_codecs->findSourceCodecConfig(codec_info_aac_sink_capability);
   EXPECT_NE(codec_config, nullptr);
-  EXPECT_TRUE(a2dp_codecs->setCodecConfig(codec_info_aac_sink_capability, true,
-                                          codec_info_result));
+  EXPECT_TRUE(a2dp_codecs->setCodecConfig(
+      codec_info_aac_sink_capability, true /* is_capability */,
+      codec_info_result, true /* select_current_codec */));
   EXPECT_EQ(a2dp_codecs->getCurrentCodecConfig(), codec_config);
   // Compare the result codec with the local test codec info
   for (size_t i = 0; i < codec_info_aac[0] + 1; i++) {
@@ -864,8 +866,9 @@ TEST_F(A2dpCodecConfigTest, setCodecConfig) {
   EXPECT_NE(peer_codec_index, BTAV_A2DP_CODEC_INDEX_MAX);
   codec_config = a2dp_codecs->findSourceCodecConfig(codec_info_sbc);
   EXPECT_NE(codec_config, nullptr);
-  EXPECT_TRUE(
-      a2dp_codecs->setCodecConfig(codec_info_sbc, false, codec_info_result));
+  EXPECT_TRUE(a2dp_codecs->setCodecConfig(
+      codec_info_sbc, false /* is_capability */, codec_info_result,
+      true /* select_current_codec */));
   EXPECT_EQ(a2dp_codecs->getCurrentCodecConfig(), codec_config);
   // Compare the result codec with the local test codec info
   for (size_t i = 0; i < codec_info_sbc[0] + 1; i++) {
@@ -878,8 +881,9 @@ TEST_F(A2dpCodecConfigTest, setCodecConfig) {
   EXPECT_NE(peer_codec_index, BTAV_A2DP_CODEC_INDEX_MAX);
   codec_config = a2dp_codecs->findSourceCodecConfig(codec_info_aac);
   EXPECT_NE(codec_config, nullptr);
-  EXPECT_TRUE(
-      a2dp_codecs->setCodecConfig(codec_info_aac, false, codec_info_result));
+  EXPECT_TRUE(a2dp_codecs->setCodecConfig(
+      codec_info_aac, false /* is_capability */, codec_info_result,
+      true /* select_current_codec */));
   EXPECT_EQ(a2dp_codecs->getCurrentCodecConfig(), codec_config);
   // Compare the result codec with the local test codec info
   for (size_t i = 0; i < codec_info_aac[0] + 1; i++) {
@@ -890,8 +894,9 @@ TEST_F(A2dpCodecConfigTest, setCodecConfig) {
   uint8_t codec_info_sbc_test1[AVDT_CODEC_SIZE];
   memset(codec_info_result, 0, sizeof(codec_info_result));
   memset(codec_info_sbc_test1, 0, sizeof(codec_info_sbc_test1));
-  EXPECT_FALSE(a2dp_codecs->setCodecConfig(codec_info_sbc_test1, true,
-                                           codec_info_result));
+  EXPECT_FALSE(a2dp_codecs->setCodecConfig(
+      codec_info_sbc_test1, true /* is_capability */, codec_info_result,
+      true /* select_current_codec */));
   delete a2dp_codecs;
 }
 
