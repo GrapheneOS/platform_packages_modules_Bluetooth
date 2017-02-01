@@ -1260,7 +1260,8 @@ A2dpCodecConfig* bta_av_get_a2dp_current_codec(void) {
   return current_codec;
 }
 
-void bta_av_co_init(void) {
+void bta_av_co_init(
+    const std::vector<btav_a2dp_codec_config_t>& codec_priorities) {
   APPL_TRACE_DEBUG("%s", __func__);
 
   /* Reset the control block */
@@ -1275,7 +1276,7 @@ void bta_av_co_init(void) {
   /* Reset the current config */
   /* Protect access to bta_av_co_cb.codec_config */
   mutex_global_lock();
-  bta_av_co_cb.codecs = new A2dpCodecs();
+  bta_av_co_cb.codecs = new A2dpCodecs(codec_priorities);
   bta_av_co_cb.codecs->init();
   A2DP_InitDefaultCodec(bta_av_co_cb.codec_config);
   mutex_global_unlock();

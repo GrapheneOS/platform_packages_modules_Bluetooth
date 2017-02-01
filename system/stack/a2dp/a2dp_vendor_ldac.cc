@@ -533,8 +533,10 @@ UNUSED_ATTR static void build_codec_config(const tA2DP_LDAC_CIE& config_cie,
   }
 }
 
-A2dpCodecConfigLdac::A2dpCodecConfigLdac()
-    : A2dpCodecConfig(BTAV_A2DP_CODEC_INDEX_SOURCE_LDAC, "LDAC") {
+A2dpCodecConfigLdac::A2dpCodecConfigLdac(
+    btav_a2dp_codec_priority_t codec_priority)
+    : A2dpCodecConfig(BTAV_A2DP_CODEC_INDEX_SOURCE_LDAC, "LDAC",
+                      codec_priority) {
   // Compute the local capability
   if (a2dp_ldac_caps.sampleRate & A2DP_LDAC_SAMPLING_FREQ_44100) {
     codec_local_capability_.sample_rate |= BTAV_A2DP_CODEC_SAMPLE_RATE_44100;
