@@ -43,6 +43,12 @@ static std::unordered_map<void*, allocation_t*> allocations;
 static std::mutex tracker_lock;
 static bool enabled = false;
 
+// Memory allocation statistics
+static size_t alloc_counter = 0;
+static size_t free_counter = 0;
+static size_t alloc_total_size = 0;
+static size_t free_total_size = 0;
+
 void allocation_tracker_init(void) {
   std::unique_lock<std::mutex> lock(tracker_lock);
   if (enabled) return;
@@ -98,6 +104,10 @@ void* allocation_tracker_notify_alloc(uint8_t allocator_id, void* ptr,
     std::unique_lock<std::mutex> lock(tracker_lock);
     if (!enabled || !ptr) return ptr;
 
+    // Keep statistics
+    alloc_counter++;
+    alloc_total_size += allocation_tracker_resize_for_canary(requested_size);
+
     return_ptr = ((char*)ptr) + canary_size;
 
     auto map_entry = allocations.find(return_ptr);
@@ -126,6 +136,7 @@ void* allocation_tracker_notify_alloc(uint8_t allocator_id, void* ptr,
 void* allocation_tracker_notify_free(UNUSED_ATTR uint8_t allocator_id,
                                      void* ptr) {
   std::unique_lock<std::mutex> lock(tracker_lock);
+
   if (!enabled || !ptr) return ptr;
 
   auto map_entry = allocations.find(ptr);
@@ -135,6 +146,11 @@ void* allocation_tracker_notify_free(UNUSED_ATTR uint8_t allocator_id,
   CHECK(!allocation->freed);  // Must not be a double free
   CHECK(allocation->allocator_id ==
         allocator_id);  // Must be from the same allocator
+
+  // Keep statistics
+  free_counter++;
+  free_total_size += allocation_tracker_resize_for_canary(allocation->size);
+
   allocation->freed = true;
 
   UNUSED_ATTR const char* beginning_canary = ((char*)ptr) - canary_size;
@@ -155,4 +171,16 @@ void* allocation_tracker_notify_free(UNUSED_ATTR uint8_t allocator_id,
 
 size_t allocation_tracker_resize_for_canary(size_t size) {
   return (!enabled) ? size : size + (2 * canary_size);
+}
+
+void osi_allocator_debug_dump(int fd) {
+  dprintf(fd, "\nBluetooth Memory Allocation Statistics:\n");
+
+  std::unique_lock<std::mutex> lock(tracker_lock);
+
+  dprintf(fd, "  Total allocated/free/used counts : %zu / %zu / %zu\n",
+          alloc_counter, free_counter, alloc_counter - free_counter);
+  dprintf(fd, "  Total allocated/free/used octets : %zu / %zu / %zu\n",
+          alloc_total_size, free_total_size,
+          alloc_total_size - free_total_size);
 }
