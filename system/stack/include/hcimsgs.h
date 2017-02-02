@@ -24,7 +24,6 @@
 #include "hcidefs.h"
 
 void bte_main_hci_send(BT_HDR* p_msg, uint16_t event);
-void bte_main_lpm_allow_bt_device_sleep(void);
 
 /* Message by message.... */
 
