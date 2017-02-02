@@ -58,30 +58,15 @@ typedef struct controller_t controller_t;
 typedef struct hci_inject_t hci_inject_t;
 typedef struct packet_fragmenter_t packet_fragmenter_t;
 typedef struct vendor_t vendor_t;
-typedef struct low_power_manager_t low_power_manager_t;
 
 typedef unsigned char* bdaddr_t;
 typedef uint16_t command_opcode_t;
-
-typedef enum {
-  LPM_DISABLE,
-  LPM_ENABLE,
-  LPM_WAKE_ASSERT,
-  LPM_WAKE_DEASSERT
-} low_power_command_t;
 
 typedef void (*command_complete_cb)(BT_HDR* response, void* context);
 typedef void (*command_status_cb)(uint8_t status, BT_HDR* command,
                                   void* context);
 
 typedef struct hci_t {
-  // Send a low power command, if supported and the low power manager is
-  // enabled.
-  void (*send_low_power_command)(low_power_command_t command);
-
-  // Do the postload sequence (call after the rest of the BT stack initializes).
-  void (*do_postload)(void);
-
   // Register with this data dispatcher to receive events flowing upward out of
   // the HCI layer
   data_dispatcher_t* event_dispatcher;
@@ -104,10 +89,7 @@ const hci_t* hci_layer_get_interface();
 
 const hci_t* hci_layer_get_test_interface(
     const allocator_t* buffer_allocator_interface,
-    const hci_hal_t* hal_interface, const btsnoop_t* btsnoop_interface,
-    const hci_inject_t* hci_inject_interface,
-    const packet_fragmenter_t* packet_fragmenter_interface,
-    const vendor_t* vendor_interface,
-    const low_power_manager_t* low_power_manager_interface);
+    const btsnoop_t* btsnoop_interface,
+    const packet_fragmenter_t* packet_fragmenter_interface);
 
 void hci_layer_cleanup_interface();
