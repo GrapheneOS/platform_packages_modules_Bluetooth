@@ -221,9 +221,6 @@ void bte_main_boot_entry(void);
 void bte_main_enable(void);
 void bte_main_disable(void);
 void bte_main_cleanup(void);
-#if (HCILP_INCLUDED == TRUE)
-void bte_main_enable_lpm(bool enable);
-#endif
 void bte_main_postload_cfg(void);
 
 bt_status_t btif_transfer_context(tBTIF_CBACK* p_cback, uint16_t event,

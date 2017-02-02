@@ -112,11 +112,6 @@ static void btu_hci_msg_process(BT_HDR* p_msg) {
     case BTU_POST_TO_TASK_NO_GOOD_HORRIBLE_HACK:  // TODO(zachoverflow): remove
                                                   // this
       ((post_to_task_hack_t*)(&p_msg->data[0]))->callback(p_msg);
-#if (HCILP_INCLUDED == TRUE)
-      /* If the host receives events which it doesn't responsd to, */
-      /* it should start an idle timer to enter sleep mode.        */
-      btu_check_bt_sleep();
-#endif
       break;
     case BT_EVT_TO_BTU_HCI_ACL:
       /* All Acl Data goes to L2CAP */
@@ -137,12 +132,6 @@ static void btu_hci_msg_process(BT_HDR* p_msg) {
     case BT_EVT_TO_BTU_HCI_EVT:
       btu_hcif_process_event((uint8_t)(p_msg->event & BT_SUB_EVT_MASK), p_msg);
       osi_free(p_msg);
-
-#if (HCILP_INCLUDED == TRUE)
-      /* If host receives events which it doesn't response to, */
-      /* host should start idle timer to enter sleep mode.     */
-      btu_check_bt_sleep();
-#endif
       break;
 
     case BT_EVT_TO_BTU_HCI_CMD:
@@ -205,22 +194,3 @@ void btu_task_shut_down(UNUSED_ATTR void* context) {
   bta_sys_free();
   btu_free_core();
 }
-
-#if (HCILP_INCLUDED == TRUE)
-/*******************************************************************************
- *
- * Function         btu_check_bt_sleep
- *
- * Description      This function is called to check if controller can go to
- *                  sleep.
- *
- * Returns          void
- *
- ******************************************************************************/
-void btu_check_bt_sleep(void) {
-  // TODO(zachoverflow) take pending commands into account?
-  if (l2cb.controller_xmit_window == l2cb.num_lm_acl_bufs) {
-    bte_main_lpm_allow_bt_device_sleep();
-  }
-}
-#endif

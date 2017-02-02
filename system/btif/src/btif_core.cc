@@ -113,8 +113,6 @@ typedef enum {
  *  Static variables
  ******************************************************************************/
 
-bt_bdaddr_t btif_local_bd_addr;
-
 static tBTA_SERVICE_MASK btif_enabled_services = 0;
 
 /*
@@ -136,7 +134,6 @@ base::RunLoop* jni_run_loop = NULL;
  ******************************************************************************/
 static void btif_jni_associate();
 static void btif_jni_disassociate();
-static bool btif_fetch_property(const char* key, bt_bdaddr_t* addr);
 
 /* sends message to btif task */
 static void btif_sendmsg(void* p_msg);
@@ -317,102 +314,6 @@ void btif_thread_post(thread_fn func, void* context) {
   do_in_jni_thread(base::Bind(func, context));
 }
 
-static bool btif_fetch_property(const char* key, bt_bdaddr_t* addr) {
-  char val[PROPERTY_VALUE_MAX] = {0};
-
-  if (osi_property_get(key, val, NULL)) {
-    if (string_to_bdaddr(val, addr)) {
-      BTIF_TRACE_DEBUG("%s: Got BDA %s", __func__, val);
-      return true;
-    }
-    BTIF_TRACE_DEBUG("%s: System Property did not contain valid bdaddr",
-                     __func__);
-  }
-  return false;
-}
-
-static void btif_fetch_local_bdaddr(bt_bdaddr_t* local_addr) {
-  char val[PROPERTY_VALUE_MAX] = {0};
-  uint8_t valid_bda = false;
-  int val_size = 0;
-
-  const uint8_t null_bdaddr[BD_ADDR_LEN] = {0, 0, 0, 0, 0, 0};
-
-  /* Get local bdaddr storage path from property */
-  if (osi_property_get(PROPERTY_BT_BDADDR_PATH, val, NULL)) {
-    int addr_fd;
-
-    BTIF_TRACE_DEBUG("%s, local bdaddr is stored in %s", __func__, val);
-
-    addr_fd = open(val, O_RDONLY);
-    if (addr_fd != -1) {
-      memset(val, 0, sizeof(val));
-      read(addr_fd, val, FACTORY_BT_BDADDR_STORAGE_LEN);
-      /* If this is not a reserved/special bda, then use it */
-      if ((string_to_bdaddr(val, local_addr)) &&
-          (memcmp(local_addr->address, null_bdaddr, BD_ADDR_LEN) != 0)) {
-        valid_bda = true;
-        BTIF_TRACE_DEBUG("%s: Got Factory BDA %s", __func__, val);
-      }
-      close(addr_fd);
-    }
-  }
-
-  if (!valid_bda) {
-    val_size = sizeof(val);
-    if (btif_config_get_str("Adapter", "Address", val, &val_size)) {
-      string_to_bdaddr(val, local_addr);
-      BTIF_TRACE_DEBUG("local bdaddr from bt_config.xml is  %s", val);
-      return;
-    }
-  }
-
-  /* No factory BDADDR found. Look for previously generated random BDA */
-  if (!valid_bda) {
-    valid_bda = btif_fetch_property(PERSIST_BDADDR_PROPERTY, local_addr);
-  }
-
-  /* No BDADDR found in file. Look for BDA in factory property */
-  if (!valid_bda) {
-    valid_bda = btif_fetch_property(FACTORY_BT_ADDR_PROPERTY, local_addr);
-  }
-
-  /* Generate new BDA if necessary */
-  if (!valid_bda) {
-    bdstr_t bdstr;
-
-    /* No autogen BDA. Generate one now. */
-    local_addr->address[0] = 0x22;
-    local_addr->address[1] = 0x22;
-    local_addr->address[2] = (uint8_t)osi_rand();
-    local_addr->address[3] = (uint8_t)osi_rand();
-    local_addr->address[4] = (uint8_t)osi_rand();
-    local_addr->address[5] = (uint8_t)osi_rand();
-
-    /* Convert to ascii, and store as a persistent property */
-    bdaddr_to_string(local_addr, bdstr, sizeof(bdstr));
-
-    BTIF_TRACE_DEBUG("No preset BDA. Generating BDA: %s for prop %s",
-                     (char*)bdstr, PERSIST_BDADDR_PROPERTY);
-
-    if (osi_property_set(PERSIST_BDADDR_PROPERTY, (char*)bdstr) < 0)
-      BTIF_TRACE_ERROR("Failed to set random BDA in prop %s",
-                       PERSIST_BDADDR_PROPERTY);
-  }
-
-  // save the bd address to config file
-  bdstr_t bdstr;
-  bdaddr_to_string(local_addr, bdstr, sizeof(bdstr));
-  val_size = sizeof(val);
-  if (btif_config_get_str("Adapter", "Address", val, &val_size)) {
-    if (strcmp(bdstr, val) == 0) {
-      // BDA is already present in the config file.
-      return;
-    }
-  }
-  btif_config_set_str("Adapter", "Address", bdstr);
-}
-
 void run_message_loop(UNUSED_ATTR void* context) {
   // TODO(jpawlowski): exit_manager should be defined in main(), but there is no
   // main method.
@@ -447,10 +348,6 @@ void run_message_loop(UNUSED_ATTR void* context) {
 bt_status_t btif_init_bluetooth() {
   bte_main_boot_entry();
 
-  /* As part of the init, fetch the local BD ADDR */
-  memset(&btif_local_bd_addr, 0, sizeof(bt_bdaddr_t));
-  btif_fetch_local_bdaddr(&btif_local_bd_addr);
-
   bt_jni_workqueue_thread = thread_new(BT_JNI_WORKQUEUE_NAME);
   if (bt_jni_workqueue_thread == NULL) {
     LOG_ERROR(LOG_TAG, "%s Unable to create thread %s", __func__,
@@ -482,51 +379,35 @@ error_exit:;
  ******************************************************************************/
 
 void btif_enable_bluetooth_evt(tBTA_STATUS status) {
+  BTIF_TRACE_DEBUG("%s: status %d", __func__, status);
+
+  /* Fetch the local BD ADDR */
+  bt_bdaddr_t local_bd_addr;
   const controller_t* controller = controller_get_interface();
+  bdaddr_copy(&local_bd_addr, controller->get_address());
+
   bdstr_t bdstr;
-  bdaddr_to_string(controller->get_address(), bdstr, sizeof(bdstr));
+  bdaddr_to_string(&local_bd_addr, bdstr, sizeof(bdstr));
 
-  BTIF_TRACE_DEBUG("%s: status %d, local bd [%s]", __func__, status, bdstr);
-
-  if (bdcmp(btif_local_bd_addr.address, controller->get_address()->address)) {
-    // TODO(zachoverflow): this whole code path seems like a bad time waiting to
-    // happen
-    // We open the vendor library using the old address.
-    bdstr_t old_address;
-    bt_property_t prop;
-
-    bdaddr_to_string(&btif_local_bd_addr, old_address, sizeof(old_address));
-
-    /**
-     * The Controller's BDADDR does not match to the BTIF's initial BDADDR!
-     * This could be because the factory BDADDR was stored separately in
-     * the Controller's non-volatile memory rather than in device's file
-     * system.
-     **/
-    BTIF_TRACE_WARNING("***********************************************");
-    BTIF_TRACE_WARNING("BTIF init BDA was %s", old_address);
-    BTIF_TRACE_WARNING("Controller BDA is %s", bdstr);
-    BTIF_TRACE_WARNING("***********************************************");
-
-    btif_local_bd_addr = *controller->get_address();
-
-    // save the bd address to config file
+  char val[PROPERTY_VALUE_MAX] = "";
+  int val_size = 0;
+  if ((btif_config_get_str("Adapter", "Address", val, &val_size) == 0) ||
+      strcmp(bdstr, val) == 0) {
+    // This address is not present in the config file, save it there.
+    BTIF_TRACE_WARNING("%s: Saving the Adapter Address", __func__);
     btif_config_set_str("Adapter", "Address", bdstr);
     btif_config_save();
 
     // fire HAL callback for property change
+    bt_property_t prop;
     prop.type = BT_PROPERTY_BDADDR;
-    prop.val = (void*)&btif_local_bd_addr;
+    prop.val = (void*)&local_bd_addr;
     prop.len = sizeof(bt_bdaddr_t);
     HAL_CBACK(bt_hal_cbacks, adapter_properties_cb, BT_STATUS_SUCCESS, 1,
               &prop);
   }
 
   bte_main_postload_cfg();
-#if (HCILP_INCLUDED == TRUE)
-  bte_main_enable_lpm(true);
-#endif
-  /* add passing up bd address as well ? */
 
   /* callback to HAL */
   if (status == BTA_SUCCESS) {
@@ -599,10 +480,6 @@ bt_status_t btif_disable_bluetooth(void) {
 
 void btif_disable_bluetooth_evt(void) {
   BTIF_TRACE_DEBUG("%s", __func__);
-
-#if (HCILP_INCLUDED == TRUE)
-  bte_main_enable_lpm(false);
-#endif
 
   bte_main_disable();
 
