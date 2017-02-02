@@ -2,11 +2,16 @@ package com.android.bluetooth.sap;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.android.btsap.SapApi.MsgHeader;
 
 import com.google.protobuf.micro.CodedInputStreamMicro;
 import com.google.protobuf.micro.CodedOutputStreamMicro;
+
+import android.hardware.radio.V1_0.ISap;
+import android.hardware.radio.V1_0.ISapCallback;
 
 import android.net.LocalSocket;
 import android.net.LocalSocketAddress;
@@ -27,15 +32,175 @@ public class SapRilReceiver implements Runnable {
     LocalSocket mSocket = null;
     CodedOutputStreamMicro mRilBtOutStream = null;
     InputStream mRilBtInStream = null;
+
+    SapCallback mSapCallback;
+    ISap mSapProxy;
+
     private Handler mSapServerMsgHandler = null;
     private Handler mSapServiceHandler = null;
 
     public static final int RIL_MAX_COMMAND_BYTES = (8 * 1024);
     byte[] buffer = new byte[RIL_MAX_COMMAND_BYTES];
 
+    private void sendSapMessage(SapMessage sapMessage) {
+        if (sapMessage.getMsgType() < SapMessage.ID_RIL_BASE) {
+            sendClientMessage(sapMessage);
+        } else {
+            sendRilIndMessage(sapMessage);
+        }
+    }
+
+    private void removeOngoingReqAndSendMessage(int token, SapMessage sapMessage) {
+        Integer reqType = SapMessage.sOngoingRequests.remove(token);
+        if (VERBOSE) {
+            Log.d(TAG, "removeOngoingReqAndSendMessage: token " + token + " reqType "
+                            + (reqType == null ? "null" : SapMessage.getMsgTypeName(reqType)));
+        }
+        sendSapMessage(sapMessage);
+    }
+
+    class SapCallback extends ISapCallback.Stub {
+        public void connectResponse(int token, int sapConnectRsp, int maxMsgSize) {
+            Log.d(TAG, "connectResponse: token " + token + " sapConnectRsp " + sapConnectRsp
+                            + " maxMsgSize " + maxMsgSize);
+            SapMessage sapMessage = new SapMessage(SapMessage.ID_CONNECT_RESP);
+            sapMessage.setConnectionStatus(sapConnectRsp);
+            if (sapConnectRsp == SapMessage.CON_STATUS_ERROR_MAX_MSG_SIZE_UNSUPPORTED) {
+                sapMessage.setMaxMsgSize(maxMsgSize);
+            }
+            sapMessage.setResultCode(SapMessage.INVALID_VALUE);
+            removeOngoingReqAndSendMessage(token, sapMessage);
+        }
+
+        public void disconnectResponse(int token) {
+            Log.d(TAG, "disconnectResponse: token " + token);
+            SapMessage sapMessage = new SapMessage(SapMessage.ID_DISCONNECT_RESP);
+            sapMessage.setResultCode(SapMessage.INVALID_VALUE);
+            removeOngoingReqAndSendMessage(token, sapMessage);
+        }
+
+        public void disconnectIndication(int token, int disconnectType) {
+            Log.d(TAG,
+                    "disconnectIndication: token " + token + " disconnectType " + disconnectType);
+            SapMessage sapMessage = new SapMessage(SapMessage.ID_RIL_UNSOL_DISCONNECT_IND);
+            sapMessage.setDisconnectionType(disconnectType);
+            sendSapMessage(sapMessage);
+        }
+
+        public void apduResponse(int token, int resultCode, ArrayList<Byte> apduRsp) {
+            Log.d(TAG, "apduResponse: token " + token);
+            SapMessage sapMessage = new SapMessage(SapMessage.ID_TRANSFER_APDU_RESP);
+            sapMessage.setResultCode(resultCode);
+            if (resultCode == SapMessage.RESULT_OK) {
+                sapMessage.setApduResp(arrayListToPrimitiveArray(apduRsp));
+            }
+            removeOngoingReqAndSendMessage(token, sapMessage);
+        }
+
+        public void transferAtrResponse(int token, int resultCode, ArrayList<Byte> atr) {
+            Log.d(TAG, "transferAtrResponse: token " + token + " resultCode " + resultCode);
+            SapMessage sapMessage = new SapMessage(SapMessage.ID_TRANSFER_ATR_RESP);
+            sapMessage.setResultCode(resultCode);
+            if (resultCode == SapMessage.RESULT_OK) {
+                sapMessage.setAtr(arrayListToPrimitiveArray(atr));
+            }
+            removeOngoingReqAndSendMessage(token, sapMessage);
+        }
+
+        public void powerResponse(int token, int resultCode) {
+            Log.d(TAG, "powerResponse: token " + token + " resultCode " + resultCode);
+            Integer reqType = SapMessage.sOngoingRequests.remove(token);
+            if (VERBOSE) {
+                Log.d(TAG, "powerResponse: reqType "
+                                + (reqType == null ? "null" : SapMessage.getMsgTypeName(reqType)));
+            }
+            SapMessage sapMessage;
+            if (reqType == SapMessage.ID_POWER_SIM_OFF_REQ) {
+                sapMessage = new SapMessage(SapMessage.ID_POWER_SIM_OFF_RESP);
+            } else if (reqType == SapMessage.ID_POWER_SIM_ON_REQ) {
+                sapMessage = new SapMessage(SapMessage.ID_POWER_SIM_ON_RESP);
+            } else {
+                return;
+            }
+            sapMessage.setResultCode(resultCode);
+            sendSapMessage(sapMessage);
+        }
+
+        public void resetSimResponse(int token, int resultCode) {
+            Log.d(TAG, "resetSimResponse: token " + token + " resultCode " + resultCode);
+            SapMessage sapMessage = new SapMessage(SapMessage.ID_RESET_SIM_RESP);
+            sapMessage.setResultCode(resultCode);
+            removeOngoingReqAndSendMessage(token, sapMessage);
+        }
+
+        public void statusIndication(int token, int status) {
+            Log.d(TAG, "statusIndication: token " + token + " status " + status);
+            SapMessage sapMessage = new SapMessage(SapMessage.ID_STATUS_IND);
+            sapMessage.setStatusChange(status);
+            sendSapMessage(sapMessage);
+        }
+
+        public void transferCardReaderStatusResponse(
+                int token, int resultCode, int cardReaderStatus) {
+            Log.d(TAG, "transferCardReaderStatusResponse: token " + token + " resultCode "
+                            + resultCode + " cardReaderStatus " + cardReaderStatus);
+            SapMessage sapMessage = new SapMessage(SapMessage.ID_TRANSFER_CARD_READER_STATUS_RESP);
+            sapMessage.setResultCode(resultCode);
+            if (resultCode == SapMessage.RESULT_OK) {
+                sapMessage.setCardReaderStatus(cardReaderStatus);
+            }
+            removeOngoingReqAndSendMessage(token, sapMessage);
+        }
+
+        public void errorResponse(int token) {
+            Log.d(TAG, "errorResponse: token " + token);
+            // Since ERROR_RESP isn't supported by createUnsolicited(), keeping behavior same here
+            // SapMessage sapMessage = new SapMessage(SapMessage.ID_ERROR_RESP);
+            SapMessage sapMessage = new SapMessage(SapMessage.ID_RIL_UNKNOWN);
+            sendSapMessage(sapMessage);
+        }
+
+        public void transferProtocolResponse(int token, int resultCode) {
+            Log.d(TAG, "transferProtocolResponse: token " + token + " resultCode " + resultCode);
+            SapMessage sapMessage = new SapMessage(SapMessage.ID_SET_TRANSPORT_PROTOCOL_RESP);
+            sapMessage.setResultCode(resultCode);
+            removeOngoingReqAndSendMessage(token, sapMessage);
+        }
+    }
+
+    public static byte[] arrayListToPrimitiveArray(List<Byte> bytes) {
+        byte[] ret = new byte[bytes.size()];
+        for (int i = 0; i < ret.length; i++) {
+            ret[i] = bytes.get(i);
+        }
+        return ret;
+    }
+
+    public ISap getSapProxy() {
+        if (mSapProxy != null) {
+            return mSapProxy;
+        }
+
+        try {
+            mSapProxy = ISap.getService(SOCKET_NAME_RIL_BT);
+            if (mSapProxy != null) {
+                Log.d(TAG, "getSapProxy: mSapProxy != null; calling setCallback()");
+                // todo(b/31632518): need to do this again if remote process crashes/restarts
+                mSapProxy.setCallback(mSapCallback);
+            } else {
+                Log.e(TAG, "getSapProxy: mSapProxy == null");
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "getSapProxy: exception", e);
+        }
+        return mSapProxy;
+    }
+
     public SapRilReceiver(Handler SapServerMsgHandler, Handler sapServiceHandler) {
         mSapServerMsgHandler = SapServerMsgHandler;
         mSapServiceHandler = sapServiceHandler;
+        mSapCallback = new SapCallback();
+        mSapProxy = getSapProxy();
     }
 
     /**
