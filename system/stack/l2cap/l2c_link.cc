@@ -1286,11 +1286,6 @@ void l2c_link_process_num_completed_pkts(uint8_t* p) {
     }
 #endif
   }
-
-#if (HCILP_INCLUDED == TRUE)
-  /* only full stack can enable sleep mode */
-  btu_check_bt_sleep();
-#endif
 }
 
 /*******************************************************************************

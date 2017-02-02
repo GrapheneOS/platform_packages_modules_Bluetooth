@@ -408,9 +408,6 @@ void btif_enable_bluetooth_evt(tBTA_STATUS status) {
   }
 
   bte_main_postload_cfg();
-#if (HCILP_INCLUDED == TRUE)
-  bte_main_enable_lpm(true);
-#endif
 
   /* callback to HAL */
   if (status == BTA_SUCCESS) {
@@ -483,10 +480,6 @@ bt_status_t btif_disable_bluetooth(void) {
 
 void btif_disable_bluetooth_evt(void) {
   BTIF_TRACE_DEBUG("%s", __func__);
-
-#if (HCILP_INCLUDED == TRUE)
-  bte_main_enable_lpm(false);
-#endif
 
   bte_main_disable();
 
