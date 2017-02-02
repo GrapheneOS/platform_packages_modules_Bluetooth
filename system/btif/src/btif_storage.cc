@@ -48,6 +48,7 @@
 #include "btif_hd.h"
 #include "btif_hh.h"
 #include "btif_util.h"
+#include "device/include/controller.h"
 #include "osi/include/allocator.h"
 #include "osi/include/compat.h"
 #include "osi/include/config.h"
@@ -153,11 +154,6 @@ typedef struct {
   uint32_t num_devices;
   bt_bdaddr_t devices[BTM_SEC_MAX_DEVICE_RECORDS];
 } btif_bonded_devices_t;
-
-/*******************************************************************************
- *  External variables
- ******************************************************************************/
-extern bt_bdaddr_t btif_local_bd_addr;
 
 /*******************************************************************************
  *  External functions
@@ -549,8 +545,14 @@ bt_status_t btif_storage_get_adapter_property(bt_property_t* property) {
   /* Special handling for adapter BD_ADDR and BONDED_DEVICES */
   if (property->type == BT_PROPERTY_BDADDR) {
     bt_bdaddr_t* bd_addr = (bt_bdaddr_t*)property->val;
-    /* This has been cached in btif. Just fetch it from there */
-    memcpy(bd_addr, &btif_local_bd_addr, sizeof(bt_bdaddr_t));
+    /* Fetch the local BD ADDR */
+    const controller_t* controller = controller_get_interface();
+    if (controller->get_is_ready() == false) {
+      LOG_ERROR(LOG_TAG, "%s: Controller not ready!", __func__);
+    } else {
+      LOG_ERROR(LOG_TAG, "%s: Controller ready!", __func__);
+      memcpy(bd_addr, controller->get_address(), sizeof(bt_bdaddr_t));
+    }
     property->len = sizeof(bt_bdaddr_t);
     return BT_STATUS_SUCCESS;
   } else if (property->type == BT_PROPERTY_ADAPTER_BONDED_DEVICES) {
