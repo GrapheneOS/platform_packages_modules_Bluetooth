@@ -184,7 +184,9 @@ void bte_main_disable(void) {
  * Returns          None
  *
  *****************************************************************************/
-void bte_main_postload_cfg(void) { hci->do_postload(); }
+void bte_main_postload_cfg(void) {
+  // TODO(eisenbach): [HIDL] DEPRECATE?
+}
 
 #if (HCILP_INCLUDED == TRUE)
 /******************************************************************************
@@ -197,7 +199,7 @@ void bte_main_postload_cfg(void) { hci->do_postload(); }
  *
  *****************************************************************************/
 void bte_main_enable_lpm(bool enable) {
-  hci->send_low_power_command(enable ? LPM_ENABLE : LPM_DISABLE);
+  // TODO(eisenbach): [HIDL] DEPRECATE?
 }
 
 /******************************************************************************
@@ -210,7 +212,7 @@ void bte_main_enable_lpm(bool enable) {
  *
  *****************************************************************************/
 void bte_main_lpm_allow_bt_device_sleep() {
-  hci->send_low_power_command(LPM_WAKE_DEASSERT);
+  // TODO(eisenbach): [HIDL] DEPRECATE?
 }
 
 /******************************************************************************
@@ -223,7 +225,7 @@ void bte_main_lpm_allow_bt_device_sleep() {
  *
  *****************************************************************************/
 void bte_main_lpm_wake_bt_device() {
-  hci->send_low_power_command(LPM_WAKE_ASSERT);
+  // TODO(eisenbach): [HIDL] DEPRECATE?
 }
 #endif  // HCILP_INCLUDED
 
