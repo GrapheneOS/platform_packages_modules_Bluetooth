@@ -61,7 +61,7 @@ void btsnoop_net_open();
 void btsnoop_net_close();
 void btsnoop_net_write(const void* data, size_t length);
 
-static void btsnoop_write_packet(packet_type_t type, const uint8_t* packet,
+static void btsnoop_write_packet(packet_type_t type, uint8_t* packet,
                                  bool is_received);
 static void update_logging();
 
@@ -97,7 +97,7 @@ static void set_api_wants_to_log(bool value) {
 }
 
 static void capture(const BT_HDR* buffer, bool is_received) {
-  const uint8_t* p = buffer->data + buffer->offset;
+  uint8_t* p = const_cast<uint8_t*>(buffer->data + buffer->offset);
 
   btsnoop_mem_capture(buffer);
 
@@ -184,18 +184,27 @@ static void update_logging() {
   }
 }
 
-static void btsnoop_write(const void* data, size_t length) {
-  if (logfile_fd != INVALID_FD) write(logfile_fd, data, length);
+typedef struct {
+  uint32_t length_original;
+  uint32_t length_captured;
+  uint32_t flags;
+  uint32_t dropped_packets;
+  uint64_t timestamp;
+  uint8_t type;
+} __attribute__((__packed__)) btsnoop_header_t;
 
-  btsnoop_net_write(data, length);
+static uint64_t htonll(uint64_t ll) {
+  uint32_t l = 1;
+  if (*(reinterpret_cast<uint8_t*>(&l)) == 1)
+    return htonl((ll & 0xffffffff) << 32LL) | htonl(ll >> 32);
+  return ll;
 }
 
-static void btsnoop_write_packet(packet_type_t type, const uint8_t* packet,
+static void btsnoop_write_packet(packet_type_t type, uint8_t* packet,
                                  bool is_received) {
-  int length_he = 0;
-  int length;
-  int flags;
-  int drops = 0;
+  uint32_t length_he = 0;
+  uint32_t flags = 0;
+
   switch (type) {
     case kCommandPacket:
       length_he = packet[2] + 4;
@@ -215,22 +224,20 @@ static void btsnoop_write_packet(packet_type_t type, const uint8_t* packet,
       break;
   }
 
-  uint64_t timestamp = btsnoop_timestamp();
-  uint32_t time_hi = timestamp >> 32;
-  uint32_t time_lo = timestamp & 0xFFFFFFFF;
+  btsnoop_header_t header;
+  header.length_original = htonl(length_he);
+  header.length_captured = header.length_original;
+  header.flags = htonl(flags);
+  header.dropped_packets = 0;
+  header.timestamp = htonll(btsnoop_timestamp());
+  header.type = type;
 
-  length = htonl(length_he);
-  flags = htonl(flags);
-  drops = htonl(drops);
-  time_hi = htonl(time_hi);
-  time_lo = htonl(time_lo);
+  btsnoop_net_write(&header, sizeof(btsnoop_header_t));
+  btsnoop_net_write(packet, length_he - 1);
 
-  btsnoop_write(&length, 4);
-  btsnoop_write(&length, 4);
-  btsnoop_write(&flags, 4);
-  btsnoop_write(&drops, 4);
-  btsnoop_write(&time_hi, 4);
-  btsnoop_write(&time_lo, 4);
-  btsnoop_write(&type, 1);
-  btsnoop_write(packet, length_he - 1);
+  if (logfile_fd != INVALID_FD) {
+    iovec iov[] = {{&header, sizeof(btsnoop_header_t)},
+                   {reinterpret_cast<void*>(packet), length_he - 1}};
+    TEMP_FAILURE_RETRY(writev(logfile_fd, iov, 2));
+  }
 }

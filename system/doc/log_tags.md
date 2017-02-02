@@ -36,7 +36,6 @@ This document lists all of the log tags used by the Bluetooth stack.
 * BTIF_STORAGE
 * BTIF_UTIL
 * BTLD
-* bt_low_power_manager
 * bt_module
 * bt_osi_alarm
 * bt_osi_config

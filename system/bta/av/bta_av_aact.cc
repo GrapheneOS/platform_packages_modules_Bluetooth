@@ -38,7 +38,6 @@
 #include "osi/include/osi.h"
 #include "osi/include/properties.h"
 #include "utl.h"
-#include "vendor.h"
 
 #if (BTA_AR_INCLUDED == TRUE)
 #include "bta_ar_api.h"
@@ -1031,12 +1030,15 @@ void bta_av_cleanup(tBTA_AV_SCB* p_scb, UNUSED_ATTR tBTA_AV_DATA* p_data) {
   p_scb->num_disc_snks = 0;
   alarm_cancel(p_scb->avrc_ct_timer);
 
-  vendor_get_interface()->send_command(
-      (vendor_opcode_t)BT_VND_OP_A2DP_OFFLOAD_STOP, (void*)&p_scb->l2c_cid);
-  if (p_scb->offload_start_pending) {
-    tBTA_AV_STATUS status = BTA_AV_FAIL_STREAM;
-    (*bta_av_cb.p_cback)(BTA_AV_OFFLOAD_START_RSP_EVT, (tBTA_AV*)&status);
-  }
+  /* TODO(eisenbach): RE-IMPLEMENT USING VSC OR HAL EXTENSION
+    vendor_get_interface()->send_command(
+        (vendor_opcode_t)BT_VND_OP_A2DP_OFFLOAD_STOP, (void*)&p_scb->l2c_cid);
+    if (p_scb->offload_start_pending) {
+      tBTA_AV_STATUS status = BTA_AV_FAIL_STREAM;
+      (*bta_av_cb.p_cback)(BTA_AV_OFFLOAD_START_RSP_EVT, (tBTA_AV*)&status);
+    }
+  */
+
   p_scb->offload_start_pending = false;
 
   p_scb->skip_sdp = false;
@@ -1934,6 +1936,7 @@ void bta_av_str_stopped(tBTA_AV_SCB* p_scb, tBTA_AV_DATA* p_data) {
   bta_sys_set_policy(BTA_ID_AV, policy, p_scb->peer_addr);
 
   if (p_scb->co_started) {
+    /* TODO(eisenbach): RE-IMPLEMENT USING VSC OR HAL EXTENSION
     vendor_get_interface()->send_command(
         (vendor_opcode_t)BT_VND_OP_A2DP_OFFLOAD_STOP, (void*)&p_scb->l2c_cid);
     if (p_scb->offload_start_pending) {
@@ -1941,6 +1944,7 @@ void bta_av_str_stopped(tBTA_AV_SCB* p_scb, tBTA_AV_DATA* p_data) {
       (*bta_av_cb.p_cback)(BTA_AV_OFFLOAD_START_RSP_EVT, (tBTA_AV*)&status);
     }
     p_scb->offload_start_pending = false;
+    */
 
     bta_av_stream_chg(p_scb, false);
     p_scb->co_started = false;
@@ -2517,6 +2521,7 @@ void bta_av_suspend_cfm(tBTA_AV_SCB* p_scb, tBTA_AV_DATA* p_data) {
 
   /* in case that we received suspend_ind, we may need to call co_stop here */
   if (p_scb->co_started) {
+    /* TODO(eisenbach): RE-IMPLEMENT USING VSC OR HAL EXTENSION
     vendor_get_interface()->send_command(
         (vendor_opcode_t)BT_VND_OP_A2DP_OFFLOAD_STOP, (void*)&p_scb->l2c_cid);
     if (p_scb->offload_start_pending) {
@@ -2524,6 +2529,7 @@ void bta_av_suspend_cfm(tBTA_AV_SCB* p_scb, tBTA_AV_DATA* p_data) {
       (*bta_av_cb.p_cback)(BTA_AV_OFFLOAD_START_RSP_EVT, (tBTA_AV*)&status);
     }
     p_scb->offload_start_pending = false;
+    */
 
     bta_av_stream_chg(p_scb, false);
 
@@ -2936,7 +2942,6 @@ void bta_av_open_at_inc(tBTA_AV_SCB* p_scb, tBTA_AV_DATA* p_data) {
  ******************************************************************************/
 void bta_av_offload_req(tBTA_AV_SCB* p_scb, tBTA_AV_DATA* p_data) {
   tBTA_AV_STATUS status = BTA_AV_FAIL_RESOURCES;
-  uint16_t mtu = bta_av_chk_mtu(p_scb, p_scb->stream_mtu);
 
   APPL_TRACE_DEBUG("%s: stream %s, audio channels open %d", __func__,
                    p_scb->started ? "STARTED" : "STOPPED",
@@ -2946,41 +2951,45 @@ void bta_av_offload_req(tBTA_AV_SCB* p_scb, tBTA_AV_DATA* p_data) {
   /* Support offload if only one audio source stream is open. */
   if (p_scb->started != true) {
     status = BTA_AV_FAIL_STREAM;
-
-  } else if (bta_av_cb.audio_open_cnt == 1 &&
-             p_scb->seps[p_scb->sep_idx].tsep == AVDT_TSEP_SRC &&
-             p_scb->chnl == BTA_AV_CHNL_AUDIO) {
-    bt_vendor_op_a2dp_offload_t a2dp_offload_start;
-
-    if (L2CA_GetConnectionConfig(
-            p_scb->l2c_cid, &a2dp_offload_start.acl_data_size,
-            &a2dp_offload_start.remote_cid, &a2dp_offload_start.lm_handle)) {
-      APPL_TRACE_DEBUG("%s: l2cmtu %d lcid 0x%02X rcid 0x%02X lm_handle 0x%02X",
-                       __func__, a2dp_offload_start.acl_data_size,
-                       p_scb->l2c_cid, a2dp_offload_start.remote_cid,
-                       a2dp_offload_start.lm_handle);
-
-      a2dp_offload_start.bta_av_handle = p_scb->hndl;
-      a2dp_offload_start.xmit_quota = BTA_AV_A2DP_OFFLOAD_XMIT_QUOTA;
-      a2dp_offload_start.stream_mtu =
-          (mtu < p_scb->stream_mtu) ? mtu : p_scb->stream_mtu;
-      a2dp_offload_start.local_cid = p_scb->l2c_cid;
-      a2dp_offload_start.is_flushable = true;
-      a2dp_offload_start.stream_source =
-          ((uint32_t)(p_scb->cfg.codec_info[1] | p_scb->cfg.codec_info[2]));
-
-      memcpy(a2dp_offload_start.codec_info, p_scb->cfg.codec_info,
-             sizeof(a2dp_offload_start.codec_info));
-
-      if (!vendor_get_interface()->send_command(
-              (vendor_opcode_t)BT_VND_OP_A2DP_OFFLOAD_START,
-              &a2dp_offload_start)) {
-        status = BTA_AV_SUCCESS;
-        p_scb->offload_start_pending = true;
-      }
-    }
   }
 
+  /* TODO(eisenbach): RE-IMPLEMENT USING VSC OR HAL EXTENSION
+   uint16_t mtu = bta_av_chk_mtu(p_scb, p_scb->stream_mtu);
+   else if (bta_av_cb.audio_open_cnt == 1 &&
+              p_scb->seps[p_scb->sep_idx].tsep == AVDT_TSEP_SRC &&
+              p_scb->chnl == BTA_AV_CHNL_AUDIO) {
+     bt_vendor_op_a2dp_offload_t a2dp_offload_start;
+
+     if (L2CA_GetConnectionConfig(
+             p_scb->l2c_cid, &a2dp_offload_start.acl_data_size,
+             &a2dp_offload_start.remote_cid, &a2dp_offload_start.lm_handle)) {
+       APPL_TRACE_DEBUG("%s: l2cmtu %d lcid 0x%02X rcid 0x%02X lm_handle
+   0x%02X",
+                        __func__, a2dp_offload_start.acl_data_size,
+                        p_scb->l2c_cid, a2dp_offload_start.remote_cid,
+                        a2dp_offload_start.lm_handle);
+
+       a2dp_offload_start.bta_av_handle = p_scb->hndl;
+       a2dp_offload_start.xmit_quota = BTA_AV_A2DP_OFFLOAD_XMIT_QUOTA;
+       a2dp_offload_start.stream_mtu =
+           (mtu < p_scb->stream_mtu) ? mtu : p_scb->stream_mtu;
+       a2dp_offload_start.local_cid = p_scb->l2c_cid;
+       a2dp_offload_start.is_flushable = true;
+       a2dp_offload_start.stream_source =
+           ((uint32_t)(p_scb->cfg.codec_info[1] | p_scb->cfg.codec_info[2]));
+
+       memcpy(a2dp_offload_start.codec_info, p_scb->cfg.codec_info,
+              sizeof(a2dp_offload_start.codec_info));
+
+       if (!vendor_get_interface()->send_command(
+               (vendor_opcode_t)BT_VND_OP_A2DP_OFFLOAD_START,
+               &a2dp_offload_start)) {
+         status = BTA_AV_SUCCESS;
+         p_scb->offload_start_pending = true;
+       }
+     }
+   }
+   */
   if (status != BTA_AV_SUCCESS)
     (*bta_av_cb.p_cback)(BTA_AV_OFFLOAD_START_RSP_EVT, (tBTA_AV*)&status);
 }
