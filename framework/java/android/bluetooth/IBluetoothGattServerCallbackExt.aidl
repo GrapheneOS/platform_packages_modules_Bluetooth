@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ import android.bluetooth.BluetoothGattService;
  * Callback definitions for interacting with BLE / GATT
  * @hide
  */
-oneway interface IBluetoothGattServerCallback {
+oneway interface IBluetoothGattServerCallbackExt {
     void onServerRegistered(in int status, in int serverIf);
     void onServerConnectionState(in int status, in int serverIf,
                                  in boolean connected, in String address);
@@ -40,4 +40,6 @@ oneway interface IBluetoothGattServerCallback {
     void onExecuteWrite(in String address, in int transId, in boolean execWrite);
     void onNotificationSent(in String address, in int status);
     void onMtuChanged(in String address, in int mtu);
+    void onPhyUpdate(in String address, in int txPhy, in int rxPhy, in int status);
+    void onPhyRead(in String address, in int txPhy, in int rxPhy, in int status);
 }
