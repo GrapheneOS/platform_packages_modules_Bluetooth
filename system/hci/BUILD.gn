@@ -28,7 +28,6 @@ static_library("hci") {
     "src/hci_layer.cc",
     "src/hci_packet_factory.cc",
     "src/hci_packet_parser.cc",
-    "src/low_power_manager.cc",
     "src/packet_fragmenter.cc",
     "src/vendor.cc",
   ]

@@ -188,47 +188,6 @@ void bte_main_postload_cfg(void) {
   // TODO(eisenbach): [HIDL] DEPRECATE?
 }
 
-#if (HCILP_INCLUDED == TRUE)
-/******************************************************************************
- *
- * Function         bte_main_enable_lpm
- *
- * Description      BTE MAIN API - Enable/Disable low power mode operation
- *
- * Returns          None
- *
- *****************************************************************************/
-void bte_main_enable_lpm(bool enable) {
-  // TODO(eisenbach): [HIDL] DEPRECATE?
-}
-
-/******************************************************************************
- *
- * Function         bte_main_lpm_allow_bt_device_sleep
- *
- * Description      BTE MAIN API - Allow the BT controller to go to sleep
- *
- * Returns          None
- *
- *****************************************************************************/
-void bte_main_lpm_allow_bt_device_sleep() {
-  // TODO(eisenbach): [HIDL] DEPRECATE?
-}
-
-/******************************************************************************
- *
- * Function         bte_main_lpm_wake_bt_device
- *
- * Description      BTE MAIN API - Wake BT controller up if it is in sleep mode
- *
- * Returns          None
- *
- *****************************************************************************/
-void bte_main_lpm_wake_bt_device() {
-  // TODO(eisenbach): [HIDL] DEPRECATE?
-}
-#endif  // HCILP_INCLUDED
-
 /******************************************************************************
  *
  * Function         bte_main_hci_send

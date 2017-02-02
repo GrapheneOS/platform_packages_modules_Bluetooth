@@ -376,10 +376,6 @@ void btu_hcif_send_cmd(UNUSED_ATTR uint8_t controller_id, BT_HDR* p_buf) {
   hci_layer_get_interface()->transmit_command(
       p_buf, btu_hcif_command_complete_evt, btu_hcif_command_status_evt,
       vsc_callback);
-
-#if (HCILP_INCLUDED == TRUE)
-  btu_check_bt_sleep();
-#endif
 }
 
 using hci_cmd_cb = base::Callback<void(uint8_t* /* return_parameters */,
@@ -505,10 +501,6 @@ void btu_hcif_send_cmd_with_cb(const tracked_objects::Location& posted_from,
   hci_layer_get_interface()->transmit_command(
       p, btu_hcif_command_complete_evt_with_cb,
       btu_hcif_command_status_evt_with_cb, (void*)cb_wrapper);
-
-#if (HCILP_INCLUDED == TRUE)
-  btu_check_bt_sleep();
-#endif
 }
 
 /*******************************************************************************
