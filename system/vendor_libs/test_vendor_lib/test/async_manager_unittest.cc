@@ -38,31 +38,30 @@ class AsyncManagerSocketTest : public ::testing::Test {
   }
 
  protected:
-  void StartServer() {
+  int StartServer() {
     struct sockaddr_in serv_addr;
-    socket_fd_ = socket(AF_INET, SOCK_STREAM, 0);
-    EXPECT_FALSE(socket_fd_ < 0);
+    int fd = socket(AF_INET, SOCK_STREAM, 0);
+    EXPECT_FALSE(fd < 0);
 
     memset(&serv_addr, 0, sizeof(serv_addr));
     serv_addr.sin_family = AF_INET;
     serv_addr.sin_addr.s_addr = INADDR_ANY;
     serv_addr.sin_port = htons(kPort);
     int reuse_flag = 1;
-    EXPECT_FALSE(setsockopt(socket_fd_, SOL_SOCKET, SO_REUSEADDR, &reuse_flag,
+    EXPECT_FALSE(setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &reuse_flag,
                             sizeof(reuse_flag)) < 0);
-    EXPECT_FALSE(bind(socket_fd_, (sockaddr*)&serv_addr, sizeof(serv_addr)) <
-                 0);
+    EXPECT_FALSE(bind(fd, (sockaddr*)&serv_addr, sizeof(serv_addr)) < 0);
 
-    listen(socket_fd_, 1);
+    listen(fd, 1);
+    return fd;
   }
 
-  int AcceptConnection(int socket_fd_) {
+  int AcceptConnection(int fd) {
     struct sockaddr_in cli_addr;
     memset(&cli_addr, 0, sizeof(cli_addr));
     socklen_t clilen = sizeof(cli_addr);
 
-    int connection_fd =
-        accept(socket_fd_, (struct sockaddr*)&cli_addr, &clilen);
+    int connection_fd = accept(fd, (struct sockaddr*)&cli_addr, &clilen);
     EXPECT_FALSE(connection_fd < 0);
 
     return connection_fd;
@@ -83,7 +82,7 @@ class AsyncManagerSocketTest : public ::testing::Test {
   void SetUp() override {
     memset(server_buffer_, 0, kBufferSize);
 
-    StartServer();
+    socket_fd_ = StartServer();
 
     async_manager_.WatchFdForNonBlockingReads(socket_fd_, [this](int fd) {
       int connection_fd = AcceptConnection(fd);
