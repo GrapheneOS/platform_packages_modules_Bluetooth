@@ -165,6 +165,7 @@ void* allocation_tracker_notify_free(UNUSED_ATTR uint8_t allocator_id,
   // Double-free of memory is detected with "assert(allocation)" above
   // as the allocation entry will not be present.
   allocations.erase(ptr);
+  free(allocation);
 
   return ((char*)ptr) - canary_size;
 }
