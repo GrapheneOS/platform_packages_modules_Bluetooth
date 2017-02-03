@@ -1093,19 +1093,15 @@ static tGAP_CCB* gap_allocate_ccb(void) {
 }
 
 /*******************************************************************************
- *
- * Function         gap_release_ccb
- *
- * Description      This function releases a CCB.
- *
- * Returns          void
- *
- ******************************************************************************/
+**
+** Function         gap_release_ccb
+**
+** Description      This function releases a CCB.
+**
+** Returns          void
+**
+*******************************************************************************/
 static void gap_release_ccb(tGAP_CCB* p_ccb) {
-  uint16_t xx;
-  uint16_t psm = p_ccb->psm;
-  uint8_t service_id = p_ccb->service_id;
-
   /* Drop any buffers we may be holding */
   p_ccb->rx_queue_size = 0;
 
@@ -1122,16 +1118,20 @@ static void gap_release_ccb(tGAP_CCB* p_ccb) {
   p_ccb->con_state = GAP_CCB_STATE_IDLE;
 
   /* If no-one else is using the PSM, deregister from L2CAP */
-  for (xx = 0, p_ccb = gap_cb.conn.ccb_pool; xx < GAP_MAX_CONNECTIONS;
-       xx++, p_ccb++) {
-    if ((p_ccb->con_state != GAP_CCB_STATE_IDLE) && (p_ccb->psm == psm)) return;
+  tGAP_CCB* p_ccb_local = gap_cb.conn.ccb_pool;
+  for (uint16_t i = 0; i < GAP_MAX_CONNECTIONS; i++, p_ccb_local++) {
+    if ((p_ccb_local->con_state != GAP_CCB_STATE_IDLE) &&
+        (p_ccb_local->psm == p_ccb->psm)) {
+      GAP_TRACE_EVENT("%s :%d PSM is still in use, do not deregister",
+                      __func__, p_ccb_local->psm);
+      return;
+    }
   }
 
   /* Free the security record for this PSM */
-  BTM_SecClrService(service_id);
-  if (p_ccb->transport == BT_TRANSPORT_BR_EDR) L2CA_DEREGISTER(psm);
-
-  if (p_ccb->transport == BT_TRANSPORT_LE) L2CA_DEREGISTER_COC(psm);
+  BTM_SecClrService(p_ccb->service_id);
+  if (p_ccb->transport == BT_TRANSPORT_BR_EDR) L2CA_DEREGISTER(p_ccb->psm);
+  if (p_ccb->transport == BT_TRANSPORT_LE) L2CA_DEREGISTER_COC(p_ccb->psm);
 }
 
 #endif /* GAP_CONN_INCLUDED */
