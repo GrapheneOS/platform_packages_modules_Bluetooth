@@ -27,7 +27,7 @@
 
 class A2dpCodecConfigSbc : public A2dpCodecConfig {
  public:
-  A2dpCodecConfigSbc();
+  A2dpCodecConfigSbc(btav_a2dp_codec_priority_t codec_priority);
   virtual ~A2dpCodecConfigSbc();
 
   bool init() override;
@@ -43,7 +43,7 @@ class A2dpCodecConfigSbc : public A2dpCodecConfig {
 
 class A2dpCodecConfigSbcSink : public A2dpCodecConfig {
  public:
-  A2dpCodecConfigSbcSink();
+  A2dpCodecConfigSbcSink(btav_a2dp_codec_priority_t codec_priority);
   virtual ~A2dpCodecConfigSbcSink();
 
   bool init() override;
