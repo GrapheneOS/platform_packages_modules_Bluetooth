@@ -128,10 +128,10 @@ class BleAdvertisingManagerTest : public testing::Test {
         .WillOnce(SaveArg<0>(&inst_cnt_Cb));
 
     BleAdvertisingManager::Initialize(hci_mock.get());
+    ::testing::Mock::VerifyAndClearExpectations(hci_mock.get());
 
     // we are a truly gracious fake controller, let the command succeed!
     inst_cnt_Cb.Run(num_adv_instances);
-    ::testing::Mock::VerifyAndClearExpectations(hci_mock.get());
   }
 
   virtual void TearDown() {
@@ -195,11 +195,11 @@ TEST_F(BleAdvertisingManagerTest, test_android_flow) {
       advertiser_id, &params,
       base::Bind(&BleAdvertisingManagerTest::SetParametersCb,
                  base::Unretained(this)));
+  ::testing::Mock::VerifyAndClearExpectations(hci_mock.get());
 
   // we are a truly gracious fake controller, let the command succeed!
   set_params_cb.Run(0);
   EXPECT_EQ(BTM_BLE_MULTI_ADV_SUCCESS, set_params_status);
-  ::testing::Mock::VerifyAndClearExpectations(hci_mock.get());
 
   status_cb set_data_cb;
   EXPECT_CALL(*hci_mock, SetAdvertisingData(advertiser_id, _, _, _, _, _))
@@ -209,9 +209,10 @@ TEST_F(BleAdvertisingManagerTest, test_android_flow) {
       advertiser_id, false, std::vector<uint8_t>(),
       base::Bind(&BleAdvertisingManagerTest::SetDataCb,
                  base::Unretained(this)));
+  ::testing::Mock::VerifyAndClearExpectations(hci_mock.get());
+
   set_data_cb.Run(0);
   EXPECT_EQ(BTM_BLE_MULTI_ADV_SUCCESS, set_data_status);
-  ::testing::Mock::VerifyAndClearExpectations(hci_mock.get());
 
   status_cb enable_cb;
   EXPECT_CALL(*hci_mock, Enable(0x01 /* enable */, advertiser_id, _, _, _))
@@ -221,9 +222,10 @@ TEST_F(BleAdvertisingManagerTest, test_android_flow) {
       advertiser_id, true,
       base::Bind(&BleAdvertisingManagerTest::EnableCb, base::Unretained(this)),
       0, base::Callback<void(uint8_t)>());
+  ::testing::Mock::VerifyAndClearExpectations(hci_mock.get());
+
   enable_cb.Run(0);
   EXPECT_EQ(BTM_BLE_MULTI_ADV_SUCCESS, enable_status);
-  ::testing::Mock::VerifyAndClearExpectations(hci_mock.get());
 
   /* fake controller should be advertising */
 
@@ -231,8 +233,9 @@ TEST_F(BleAdvertisingManagerTest, test_android_flow) {
       .Times(1)
       .WillOnce(SaveArg<4>(&enable_cb));
   BleAdvertisingManager::Get()->Unregister(advertiser_id);
-  enable_cb.Run(0);
   ::testing::Mock::VerifyAndClearExpectations(hci_mock.get());
+
+  enable_cb.Run(0);
 }
 
 /* This test verifies that when advertising data is set, tx power and flags will
@@ -257,11 +260,11 @@ TEST_F(BleAdvertisingManagerTest, test_adv_data_filling) {
       advertiser_id, &params,
       base::Bind(&BleAdvertisingManagerTest::SetParametersCb,
                  base::Unretained(this)));
+  ::testing::Mock::VerifyAndClearExpectations(hci_mock.get());
 
   // let the set parameters command succeed!
   set_params_cb.Run(0);
   EXPECT_EQ(BTM_BLE_MULTI_ADV_SUCCESS, set_params_status);
-  ::testing::Mock::VerifyAndClearExpectations(hci_mock.get());
 
   status_cb set_data_cb;
   /* verify that flags will be added, and tx power filled, if call to SetData
@@ -279,9 +282,10 @@ TEST_F(BleAdvertisingManagerTest, test_adv_data_filling) {
       std::vector<uint8_t>({0x02 /* len */, 0x0A /* tx_power */, 0x00}),
       base::Bind(&BleAdvertisingManagerTest::SetDataCb,
                  base::Unretained(this)));
+  ::testing::Mock::VerifyAndClearExpectations(hci_mock.get());
+
   set_data_cb.Run(0);
   EXPECT_EQ(BTM_BLE_MULTI_ADV_SUCCESS, set_data_status);
-  ::testing::Mock::VerifyAndClearExpectations(hci_mock.get());
 }
 
 /* This test verifies that when advertising is non-connectable, flags will not
@@ -307,11 +311,11 @@ TEST_F(BleAdvertisingManagerTest, test_adv_data_not_filling) {
       advertiser_id, &params,
       base::Bind(&BleAdvertisingManagerTest::SetParametersCb,
                  base::Unretained(this)));
+  ::testing::Mock::VerifyAndClearExpectations(hci_mock.get());
 
   // let the set parameters command succeed!
   set_params_cb.Run(0);
   EXPECT_EQ(BTM_BLE_MULTI_ADV_SUCCESS, set_params_status);
-  ::testing::Mock::VerifyAndClearExpectations(hci_mock.get());
 
   status_cb set_data_cb;
   /* verify that flags will not be added */
@@ -325,9 +329,10 @@ TEST_F(BleAdvertisingManagerTest, test_adv_data_not_filling) {
       advertiser_id, false, std::vector<uint8_t>({0x02 /* len */, 0xFF, 0x01}),
       base::Bind(&BleAdvertisingManagerTest::SetDataCb,
                  base::Unretained(this)));
+  ::testing::Mock::VerifyAndClearExpectations(hci_mock.get());
+
   set_data_cb.Run(0);
   EXPECT_EQ(BTM_BLE_MULTI_ADV_SUCCESS, set_data_status);
-  ::testing::Mock::VerifyAndClearExpectations(hci_mock.get());
 }
 
 TEST_F(BleAdvertisingManagerTest, test_reenabling) {
@@ -344,8 +349,9 @@ TEST_F(BleAdvertisingManagerTest, test_reenabling) {
       .WillOnce(SaveArg<4>(&enable_cb));
   BleAdvertisingManager::Get()->OnAdvertisingSetTerminated(advertiser_id, 0x00,
                                                            0x05, 0x00);
-  enable_cb.Run(0);
   ::testing::Mock::VerifyAndClearExpectations(hci_mock.get());
+
+  enable_cb.Run(0);
 }
 
 /* Make sure that instance is not reenabled if it's already disabled */
@@ -410,8 +416,9 @@ TEST_F(BleAdvertisingManagerTest, test_start_advertising) {
       .Times(1)
       .WillOnce(SaveArg<4>(&disable_cb));
   BleAdvertisingManager::Get()->Unregister(advertiser_id);
-  disable_cb.Run(0);
   ::testing::Mock::VerifyAndClearExpectations(hci_mock.get());
+
+  disable_cb.Run(0);
 }
 
 TEST_F(BleAdvertisingManagerTest, test_start_advertising_set_params_failed) {
@@ -438,11 +445,11 @@ TEST_F(BleAdvertisingManagerTest, test_start_advertising_set_params_failed) {
       advertiser_id, base::Bind(&BleAdvertisingManagerTest::StartAdvertisingCb,
                                 base::Unretained(this)),
       &params, adv_data, scan_resp, 0, base::Callback<void(uint8_t)>());
+  ::testing::Mock::VerifyAndClearExpectations(hci_mock.get());
 
   // set params failed
   set_params_cb.Run(0x01);
 
   // Expect the whole flow to fail right away
   EXPECT_EQ(BTM_BLE_MULTI_ADV_FAILURE, start_advertising_status);
-  ::testing::Mock::VerifyAndClearExpectations(hci_mock.get());
 }
