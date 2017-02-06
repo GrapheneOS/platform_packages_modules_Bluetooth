@@ -169,8 +169,6 @@ public class BluetoothOppReceiver extends BroadcastReceiver {
                     null);
             if (cursor != null) {
                 if (cursor.moveToFirst()) {
-                    int statusColumn = cursor.getColumnIndexOrThrow(BluetoothShare.STATUS);
-                    int status = cursor.getInt(statusColumn);
                     int visibilityColumn = cursor.getColumnIndexOrThrow(BluetoothShare.VISIBILITY);
                     int visibility = cursor.getInt(visibilityColumn);
                     int userConfirmationColumn = cursor
