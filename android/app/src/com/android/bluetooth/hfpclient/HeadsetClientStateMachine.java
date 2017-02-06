@@ -168,7 +168,6 @@ public class HeadsetClientStateMachine extends StateMachine {
 
     public void dump(StringBuilder sb) {
         ProfileService.println(sb, "mCurrentDevice: " + mCurrentDevice);
-        ProfileService.println(sb, "mAudioOn: " + mAudioOn);
         ProfileService.println(sb, "mAudioState: " + mAudioState);
         ProfileService.println(sb, "mAudioWbs: " + mAudioWbs);
         ProfileService.println(sb, "mIndicatorNetworkState: " + mIndicatorNetworkState);
@@ -1087,18 +1086,27 @@ public class HeadsetClientStateMachine extends StateMachine {
                         break;
                     }
                     break;
+
                 case CONNECT_AUDIO:
-                    // TODO: handle audio connection failure
-                    if (!NativeInterface.connectAudioNative(getByteAddress(mCurrentDevice))) {
-                        Log.e(TAG, "ERROR: Couldn't connect Audio.");
+                    if (!mService.isScoAvailable()
+                            || !NativeInterface.connectAudioNative(
+                                       getByteAddress(mCurrentDevice))) {
+                        Log.e(TAG, "ERROR: Couldn't connect Audio for device " + mCurrentDevice
+                                        + " isScoAvailable " + mService.isScoAvailable());
+                        broadcastAudioState(mCurrentDevice,
+                                BluetoothHeadsetClient.STATE_AUDIO_DISCONNECTED,
+                                BluetoothHeadsetClient.STATE_AUDIO_DISCONNECTED);
+                    } else { // We have successfully sent a connect request!
+                        mAudioState = BluetoothHeadsetClient.STATE_AUDIO_CONNECTING;
                     }
                     break;
+
                 case DISCONNECT_AUDIO:
-                    // TODO: handle audio disconnection failure
                     if (!NativeInterface.disconnectAudioNative(getByteAddress(mCurrentDevice))) {
-                        Log.e(TAG, "ERROR: Couldn't connect Audio.");
+                        Log.e(TAG, "ERROR: Couldn't disconnect Audio for device " + mCurrentDevice);
                     }
                     break;
+
                 // Called only for Mute/Un-mute - Mic volume change is not allowed.
                 case SET_MIC_VOLUME:
                     if (mVgmFromStack) {
@@ -1443,19 +1451,19 @@ public class HeadsetClientStateMachine extends StateMachine {
                     mAudioManager.setParameters("hfp_volume=" + hfVol);
                     transitionTo(mAudioOn);
                     break;
+
                 case HeadsetClientHalConstants.AUDIO_STATE_CONNECTING:
+                    broadcastAudioState(
+                            device, BluetoothHeadsetClient.STATE_AUDIO_CONNECTING, mAudioState);
                     mAudioState = BluetoothHeadsetClient.STATE_AUDIO_CONNECTING;
-                    broadcastAudioState(device, BluetoothHeadsetClient.STATE_AUDIO_CONNECTING,
-                            BluetoothHeadsetClient.STATE_AUDIO_DISCONNECTED);
                     break;
+
                 case HeadsetClientHalConstants.AUDIO_STATE_DISCONNECTED:
-                    if (mAudioState == BluetoothHeadsetClient.STATE_AUDIO_CONNECTING) {
-                        mAudioState = BluetoothHeadsetClient.STATE_AUDIO_DISCONNECTED;
-                        broadcastAudioState(device,
-                                BluetoothHeadsetClient.STATE_AUDIO_DISCONNECTED,
-                                BluetoothHeadsetClient.STATE_AUDIO_CONNECTING);
-                    }
+                    broadcastAudioState(
+                            device, BluetoothHeadsetClient.STATE_AUDIO_DISCONNECTED, mAudioState);
+                    mAudioState = BluetoothHeadsetClient.STATE_AUDIO_DISCONNECTED;
                     break;
+
                 default:
                     Log.e(TAG, "Audio State Device: " + device + " bad state: " + state);
                     break;
@@ -1510,14 +1518,10 @@ public class HeadsetClientStateMachine extends StateMachine {
                      * Machines state changing
                      */
                     if (NativeInterface.disconnectAudioNative(getByteAddress(mCurrentDevice))) {
-                        mAudioState = BluetoothHeadsetClient.STATE_AUDIO_DISCONNECTED;
                         if (DBG) {
                             Log.d(TAG,"hfp_enable=false");
                         }
                         mAudioManager.setParameters("hfp_enable=false");
-                        broadcastAudioState(mCurrentDevice,
-                                BluetoothHeadsetClient.STATE_AUDIO_DISCONNECTED,
-                                BluetoothHeadsetClient.STATE_AUDIO_CONNECTED);
                     }
                     break;
                 case StackEvent.STACK_EVENT:
@@ -1580,23 +1584,20 @@ public class HeadsetClientStateMachine extends StateMachine {
 
             switch (state) {
                 case HeadsetClientHalConstants.AUDIO_STATE_DISCONNECTED:
-                    if (mAudioState != BluetoothHeadsetClient.STATE_AUDIO_DISCONNECTED) {
-                        mAudioState = BluetoothHeadsetClient.STATE_AUDIO_DISCONNECTED;
-                        // Audio focus may still be held by the entity controlling the actual call
-                        // (such as Telecom) and hence this will still keep the call around, there
-                        // is not much we can do here since dropping the call without user consent
-                        // even if the audio connection snapped may not be a good idea.
-                        if (DBG) {
-                            Log.d(TAG,"hfp_enable=false");
-                        }
-                        mAudioManager.setParameters("hfp_enable=false");
-                        broadcastAudioState(device,
-                                BluetoothHeadsetClient.STATE_AUDIO_DISCONNECTED,
-                                BluetoothHeadsetClient.STATE_AUDIO_CONNECTED);
+                    mAudioState = BluetoothHeadsetClient.STATE_AUDIO_DISCONNECTED;
+                    // Audio focus may still be held by the entity controlling the actual call
+                    // (such as Telecom) and hence this will still keep the call around, there
+                    // is not much we can do here since dropping the call without user consent
+                    // even if the audio connection snapped may not be a good idea.
+                    if (DBG) {
+                        Log.d(TAG, "hfp_enable=false");
                     }
-
+                    mAudioManager.setParameters("hfp_enable=false");
+                    broadcastAudioState(device, BluetoothHeadsetClient.STATE_AUDIO_DISCONNECTED,
+                            BluetoothHeadsetClient.STATE_AUDIO_CONNECTED);
                     transitionTo(mConnected);
                     break;
+
                 default:
                     Log.e(TAG, "Audio State Device: " + device + " bad state: " + state);
                     break;
