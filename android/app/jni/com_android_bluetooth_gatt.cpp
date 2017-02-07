@@ -193,7 +193,11 @@ void btgattc_register_app_cb(int status, int clientIf, bt_uuid_t* app_uuid) {
                                clientIf, UUID_PARAMS(app_uuid));
 }
 
-void btgattc_scan_result_cb(bt_bdaddr_t* bda, int rssi,
+void btgattc_scan_result_cb(uint16_t event_type, uint8_t addr_type,
+                            bt_bdaddr_t* bda, uint8_t primary_phy,
+                            uint8_t secondary_phy, uint8_t advertising_sid,
+                            int8_t tx_power, int8_t rssi,
+                            uint16_t periodic_adv_int,
                             std::vector<uint8_t> adv_data) {
   CallbackEnv sCallbackEnv(__func__);
   if (!sCallbackEnv.valid()) return;
@@ -204,8 +208,10 @@ void btgattc_scan_result_cb(bt_bdaddr_t* bda, int rssi,
                                 sCallbackEnv->NewByteArray(62));
   sCallbackEnv->SetByteArrayRegion(jb.get(), 0, 62, (jbyte*)adv_data.data());
 
-  sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onScanResult,
-                               address.get(), rssi, jb.get());
+  sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onScanResult, event_type,
+                               addr_type, address.get(), primary_phy,
+                               secondary_phy, advertising_sid, tx_power, rssi,
+                               periodic_adv_int, jb.get());
 }
 
 void btgattc_open_cb(int conn_id, int status, int clientIf, bt_bdaddr_t* bda) {
@@ -792,8 +798,8 @@ static void classInitNative(JNIEnv* env, jclass clazz) {
       env->GetMethodID(clazz, "onClientRegistered", "(IIJJ)V");
   method_onScannerRegistered =
       env->GetMethodID(clazz, "onScannerRegistered", "(IIJJ)V");
-  method_onScanResult =
-      env->GetMethodID(clazz, "onScanResult", "(Ljava/lang/String;I[B)V");
+  method_onScanResult = env->GetMethodID(clazz, "onScanResult",
+                                         "(IILjava/lang/String;IIIIII[B)V");
   method_onConnected =
       env->GetMethodID(clazz, "onConnected", "(IIILjava/lang/String;)V");
   method_onDisconnected =
