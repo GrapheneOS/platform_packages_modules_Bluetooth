@@ -621,6 +621,14 @@ constexpr uint8_t BLE_EVT_DIRECTED_BIT = 2;
 constexpr uint8_t BLE_EVT_SCAN_RESPONSE_BIT = 3;
 constexpr uint8_t BLE_EVT_LEGACY_BIT = 4;
 
+constexpr uint8_t PHY_LE_NO_PACKET = 0x00;
+constexpr uint8_t PHY_LE_1M = 0x01;
+constexpr uint8_t PHY_LE_2M = 0x02;
+constexpr uint8_t PHY_LE_CODED = 0x03;
+
+constexpr uint8_t NO_ADI_PRESENT = 0xFF;
+constexpr uint8_t TX_POWER_NOT_PRESENT = 0x7F;
+
 /* These are the fields returned in each device's response to the inquiry.  It
  * is returned in the results callback if registered.
 */
@@ -638,6 +646,11 @@ typedef struct {
   uint8_t inq_result_type;
   uint8_t ble_addr_type;
   uint16_t ble_evt_type;
+  uint8_t ble_primary_phy;
+  uint8_t ble_secondary_phy;
+  uint8_t ble_advertising_sid;
+  int8_t ble_tx_power;
+  uint16_t ble_periodic_adv_int;
   uint8_t flag;
 } tBTM_INQ_RESULTS;
 
