@@ -217,6 +217,10 @@ void bta_batch_scan_reports_cb(int client_id, tBTA_STATUS status,
 
 void bta_scan_results_cb_impl(bt_bdaddr_t bd_addr, tBT_DEVICE_TYPE device_type,
                               int8_t rssi, uint8_t addr_type,
+                              uint16_t ble_evt_type, uint8_t ble_primary_phy,
+                              uint8_t ble_secondary_phy,
+                              uint8_t ble_advertising_sid, int8_t ble_tx_power,
+                              uint16_t ble_periodic_adv_int,
                               vector<uint8_t> value) {
   uint8_t remote_name_len;
   const uint8_t* p_eir_remote_name = NULL;
@@ -255,8 +259,9 @@ void bta_scan_results_cb_impl(bt_bdaddr_t bd_addr, tBT_DEVICE_TYPE device_type,
 
   btif_storage_set_remote_addr_type(&bd_addr, addr_type);
 
-  HAL_CBACK(bt_gatt_callbacks, scanner->scan_result_cb, &bd_addr, rssi,
-            std::move(value));
+  HAL_CBACK(bt_gatt_callbacks, scanner->scan_result_cb, ble_evt_type, addr_type,
+            &bd_addr, ble_primary_phy, ble_secondary_phy, ble_advertising_sid,
+            ble_tx_power, rssi, ble_periodic_adv_int, std::move(value));
 }
 
 void bta_scan_results_cb(tBTA_DM_SEARCH_EVT event, tBTA_DM_SEARCH* p_data) {
@@ -284,11 +289,14 @@ void bta_scan_results_cb(tBTA_DM_SEARCH_EVT event, tBTA_DM_SEARCH* p_data) {
     }
   }
 
+  tBTA_DM_INQ_RES* r = &p_data->inq_res;
   bt_bdaddr_t bdaddr;
-  bdcpy(bdaddr.address, p_data->inq_res.bd_addr);
-  do_in_jni_thread(Bind(bta_scan_results_cb_impl, bdaddr,
-                        p_data->inq_res.device_type, p_data->inq_res.rssi,
-                        p_data->inq_res.ble_addr_type, std::move(value)));
+  bdcpy(bdaddr.address, r->bd_addr);
+  do_in_jni_thread(Bind(bta_scan_results_cb_impl, bdaddr, r->device_type,
+                        r->rssi, r->ble_addr_type, r->ble_evt_type,
+                        r->ble_primary_phy, r->ble_secondary_phy,
+                        r->ble_advertising_sid, r->ble_tx_power,
+                        r->ble_periodic_adv_int, std::move(value)));
 }
 
 void bta_track_adv_event_cb(tBTM_BLE_TRACK_ADV_DATA* p_track_adv_data) {

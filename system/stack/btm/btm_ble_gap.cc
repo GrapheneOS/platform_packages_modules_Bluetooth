@@ -64,9 +64,10 @@ static tBTM_BLE_CTRL_FEATURES_CBACK* p_ctrl_le_feature_rd_cmpl_cback = NULL;
  *  Local functions
  ******************************************************************************/
 static void btm_ble_update_adv_flag(uint8_t flag);
-static void btm_ble_process_adv_pkt_cont(BD_ADDR bda, uint8_t addr_type,
-                                         uint16_t evt_type, uint8_t data_len,
-                                         uint8_t* data, int8_t rssi);
+static void btm_ble_process_adv_pkt_cont(
+    uint16_t evt_type, uint8_t addr_type, BD_ADDR bda, uint8_t primary_phy,
+    uint8_t secondary_phy, uint8_t advertising_sid, int8_t tx_power,
+    int8_t rssi, uint16_t periodic_adv_int, uint8_t data_len, uint8_t* data);
 static uint8_t btm_set_conn_mode_adv_init_addr(tBTM_BLE_INQ_CB* p_cb,
                                                BD_ADDR_PTR p_peer_addr_ptr,
                                                tBLE_ADDR_TYPE* p_peer_addr_type,
@@ -1859,8 +1860,11 @@ static void btm_ble_appearance_to_cod(uint16_t appearance, uint8_t* dev_class) {
  * Update adv packet information into inquiry result.
  */
 bool btm_ble_update_inq_result(tINQ_DB_ENT* p_i, uint8_t addr_type,
-                               uint16_t evt_type, uint8_t data_len,
-                               uint8_t* data, int8_t rssi) {
+                               uint16_t evt_type, uint8_t primary_phy,
+                               uint8_t secondary_phy, uint8_t advertising_sid,
+                               int8_t tx_power, int8_t rssi,
+                               uint16_t periodic_adv_int, uint8_t data_len,
+                               uint8_t* data) {
   bool to_report = true;
   tBTM_INQ_RESULTS* p_cur = &p_i->inq_info.results;
   uint8_t len;
@@ -1881,6 +1885,11 @@ bool btm_ble_update_inq_result(tINQ_DB_ENT* p_i, uint8_t addr_type,
   p_cur->inq_result_type = BTM_INQ_RESULT_BLE;
   p_cur->ble_addr_type = addr_type;
   p_cur->rssi = rssi;
+  p_cur->ble_primary_phy = primary_phy;
+  p_cur->ble_secondary_phy = secondary_phy;
+  p_cur->ble_advertising_sid = advertising_sid;
+  p_cur->ble_tx_power = tx_power;
+  p_cur->ble_periodic_adv_int = periodic_adv_int;
 
   /* active scan, always wait until get scan_rsp to report the result */
   if (btm_cb.ble_ctr_cb.inq_var.scan_type == BTM_BLE_SCAN_MODE_ACTI &&
@@ -2061,8 +2070,9 @@ void btm_ble_process_ext_adv_pkt(uint8_t data_len, uint8_t* data) {
     }
 
     btm_ble_process_adv_addr(bda, addr_type);
-    btm_ble_process_adv_pkt_cont(bda, addr_type, event_type, pkt_data_len,
-                                 pkt_data, rssi);
+    btm_ble_process_adv_pkt_cont(event_type, addr_type, bda, primary_phy,
+                                 secondary_phy, advertising_sid, tx_power, rssi,
+                                 periodic_adv_int, pkt_data_len, pkt_data);
   }
 }
 
@@ -2129,8 +2139,10 @@ void btm_ble_process_adv_pkt(uint8_t data_len, uint8_t* data) {
       return;
     }
 
-    btm_ble_process_adv_pkt_cont(bda, addr_type, event_type, pkt_data_len,
-                                 pkt_data, rssi);
+    btm_ble_process_adv_pkt_cont(
+        event_type, addr_type, bda, PHY_LE_1M, PHY_LE_NO_PACKET, NO_ADI_PRESENT,
+        TX_POWER_NOT_PRESENT, rssi, 0x00 /* no periodic adv */, pkt_data_len,
+        pkt_data);
   }
 }
 
@@ -2138,15 +2150,13 @@ void btm_ble_process_adv_pkt(uint8_t data_len, uint8_t* data) {
  * This function is called after random address resolution is done, and proceed
  * to process adv packet.
  */
-static void btm_ble_process_adv_pkt_cont(BD_ADDR bda, uint8_t addr_type,
-                                         uint16_t evt_type, uint8_t data_len,
-                                         uint8_t* data, int8_t rssi) {
+static void btm_ble_process_adv_pkt_cont(
+    uint16_t evt_type, uint8_t addr_type, BD_ADDR bda, uint8_t primary_phy,
+    uint8_t secondary_phy, uint8_t advertising_sid, int8_t tx_power,
+    int8_t rssi, uint16_t periodic_adv_int, uint8_t data_len, uint8_t* data) {
   tINQ_DB_ENT* p_i;
   tBTM_INQUIRY_VAR_ST* p_inq = &btm_cb.btm_inq_vars;
-  tBTM_INQ_RESULTS_CB* p_inq_results_cb = p_inq->p_inq_results_cb;
-  tBTM_BLE_INQ_CB* p_le_inq_cb = &btm_cb.ble_ctr_cb.inq_var;
   bool update = true;
-  uint8_t result = 0;
 
   p_i = btm_inq_db_find(bda);
 
@@ -2178,11 +2188,12 @@ static void btm_ble_process_adv_pkt_cont(BD_ADDR bda, uint8_t addr_type,
     p_inq->inq_cmpl_info.num_resp++;
   }
   /* update the LE device information in inquiry database */
-  if (!btm_ble_update_inq_result(p_i, addr_type, evt_type, data_len, data,
-                                 rssi))
+  if (!btm_ble_update_inq_result(p_i, addr_type, evt_type, primary_phy,
+                                 secondary_phy, advertising_sid, tx_power, rssi,
+                                 periodic_adv_int, data_len, data))
     return;
 
-  result = btm_ble_is_discoverable(bda);
+  uint8_t result = btm_ble_is_discoverable(bda);
   if (result == 0) {
     LOG_WARN(LOG_TAG,
              "%s device no longer discoverable, discarding advertising packet",
@@ -2214,6 +2225,8 @@ static void btm_ble_process_adv_pkt_cont(BD_ADDR bda, uint8_t addr_type,
     }
   }
 
+  tBTM_BLE_INQ_CB* p_le_inq_cb = &btm_cb.ble_ctr_cb.inq_var;
+  tBTM_INQ_RESULTS_CB* p_inq_results_cb = p_inq->p_inq_results_cb;
   if (p_inq_results_cb && (result & BTM_BLE_INQ_RESULT)) {
     (p_inq_results_cb)((tBTM_INQ_RESULTS*)&p_i->inq_info.results,
                        p_le_inq_cb->adv_data_cache);
