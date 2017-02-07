@@ -192,8 +192,7 @@ public class BluetoothPbapActivity extends AlertActivity implements
     private void sendIntentToReceiver(final String intentName, final String extraName,
             final String extraValue) {
         Intent intent = new Intent(intentName);
-        intent.setClassName(BluetoothPbapService.THIS_PACKAGE_NAME, BluetoothPbapReceiver.class
-                .getName());
+        intent.setPackage(BluetoothPbapService.THIS_PACKAGE_NAME);
         if (extraName != null) {
             intent.putExtra(extraName, extraValue);
         }
@@ -203,8 +202,7 @@ public class BluetoothPbapActivity extends AlertActivity implements
     private void sendIntentToReceiver(final String intentName, final String extraName,
             final boolean extraValue) {
         Intent intent = new Intent(intentName);
-        intent.setClassName(BluetoothPbapService.THIS_PACKAGE_NAME, BluetoothPbapReceiver.class
-                .getName());
+        intent.setPackage(BluetoothPbapService.THIS_PACKAGE_NAME);
         if (extraName != null) {
             intent.putExtra(extraName, extraValue);
         }
