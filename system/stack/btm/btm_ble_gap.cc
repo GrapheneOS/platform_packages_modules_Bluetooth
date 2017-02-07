@@ -65,7 +65,7 @@ static tBTM_BLE_CTRL_FEATURES_CBACK* p_ctrl_le_feature_rd_cmpl_cback = NULL;
  ******************************************************************************/
 static void btm_ble_update_adv_flag(uint8_t flag);
 static void btm_ble_process_adv_pkt_cont(BD_ADDR bda, uint8_t addr_type,
-                                         uint8_t evt_type, uint8_t data_len,
+                                         uint16_t evt_type, uint8_t data_len,
                                          uint8_t* data, int8_t rssi);
 static uint8_t btm_set_conn_mode_adv_init_addr(tBTM_BLE_INQ_CB* p_cb,
                                                BD_ADDR_PTR p_peer_addr_ptr,
@@ -80,6 +80,26 @@ static void btm_ble_observer_timer_timeout(void* data);
 
 #define BTM_BLE_INQ_RESULT 0x01
 #define BTM_BLE_OBS_RESULT 0x02
+
+bool ble_evt_type_is_connectable(uint16_t evt_type) {
+  return evt_type & (1 << BLE_EVT_CONNECTABLE_BIT);
+}
+
+bool ble_evt_type_is_scannable(uint16_t evt_type) {
+  return evt_type & (1 << BLE_EVT_SCANNABLE_BIT);
+}
+
+bool ble_evt_type_is_directed(uint16_t evt_type) {
+  return evt_type & (1 << BLE_EVT_DIRECTED_BIT);
+}
+
+bool ble_evt_type_is_scan_resp(uint16_t evt_type) {
+  return evt_type & (1 << BLE_EVT_SCAN_RESPONSE_BIT);
+}
+
+bool ble_evt_type_is_legacy(uint16_t evt_type) {
+  return evt_type & (1 << BLE_EVT_LEGACY_BIT);
+}
 
 /* LE states combo bit to check */
 const uint8_t btm_le_state_combo_tbl[BTM_BLE_STATE_MAX][BTM_BLE_STATE_MAX][2] =
@@ -1541,8 +1561,7 @@ tBTM_STATUS btm_ble_read_remote_name(BD_ADDR remote_bda, tBTM_INQ_INFO* p_cur,
 
   if (!controller_get_interface()->supports_ble()) return BTM_ERR_PROCESSING;
 
-  if (p_cur && p_cur->results.ble_evt_type != BTM_BLE_EVT_CONN_ADV &&
-      p_cur->results.ble_evt_type != BTM_BLE_EVT_CONN_DIR_ADV) {
+  if (p_cur && !ble_evt_type_is_connectable(p_cur->results.ble_evt_type)) {
     BTM_TRACE_DEBUG("name request to non-connectable device failed.");
     return BTM_ERR_PROCESSING;
   }
@@ -1632,23 +1651,17 @@ static void btm_ble_update_adv_flag(uint8_t flag) {
   p_adv_data->data_mask |= BTM_BLE_AD_BIT_FLAGS;
 }
 
-/*******************************************************************************
- *
- * Function         btm_ble_cache_adv_data
- *
- * Description      Update advertising cache data.
- *
- * Returns          void
- *
- ******************************************************************************/
+/**
+ * Update advertising cache data.
+ */
 void btm_ble_cache_adv_data(UNUSED_ATTR tBTM_INQ_RESULTS* p_cur,
-                            uint8_t data_len, uint8_t* p, uint8_t evt_type) {
+                            uint8_t data_len, uint8_t* p, bool is_scan_resp) {
   tBTM_BLE_INQ_CB* p_le_inq_cb = &btm_cb.ble_ctr_cb.inq_var;
   uint8_t* p_cache;
   uint8_t length;
 
   /* cache adv report/scan response data */
-  if (evt_type != BTM_BLE_SCAN_RSP_EVT) {
+  if (!is_scan_resp) {
     p_le_inq_cb->adv_len = 0;
     memset(p_le_inq_cb->adv_data_cache, 0, BTM_BLE_CACHE_ADV_DATA_MAX);
   }
@@ -1674,19 +1687,11 @@ void btm_ble_cache_adv_data(UNUSED_ATTR tBTM_INQ_RESULTS* p_cur,
   /* TODO */
 }
 
-/*******************************************************************************
- *
- * Function         btm_ble_is_discoverable
- *
- * Description      check ADV flag to make sure device is discoverable and match
- *                  the search condition
- *
- * Parameters
- *
- * Returns          void
- *
- ******************************************************************************/
-uint8_t btm_ble_is_discoverable(BD_ADDR bda, uint8_t evt_type) {
+/**
+ * Check ADV flag to make sure device is discoverable and match the search
+ * condition
+ */
+uint8_t btm_ble_is_discoverable(BD_ADDR bda) {
   uint8_t *p_flag, flag = 0, rt = 0;
   uint8_t data_len;
   tBTM_INQ_PARMS* p_cond = &btm_cb.btm_inq_vars.inqparms;
@@ -1850,19 +1855,11 @@ static void btm_ble_appearance_to_cod(uint16_t appearance, uint8_t* dev_class) {
   };
 }
 
-/*******************************************************************************
- *
- * Function         btm_ble_update_inq_result
- *
- * Description      Update adv packet information into inquiry result.
- *
- * Parameters
- *
- * Returns          void
- *
- ******************************************************************************/
+/**
+ * Update adv packet information into inquiry result.
+ */
 bool btm_ble_update_inq_result(tINQ_DB_ENT* p_i, uint8_t addr_type,
-                               uint8_t evt_type, uint8_t data_len,
+                               uint16_t evt_type, uint8_t data_len,
                                uint8_t* data, int8_t rssi) {
   bool to_report = true;
   tBTM_INQ_RESULTS* p_cur = &p_i->inq_info.results;
@@ -1876,7 +1873,9 @@ bool btm_ble_update_inq_result(tINQ_DB_ENT* p_i, uint8_t addr_type,
     BTM_TRACE_WARNING("EIR data too long %d. discard", data_len);
     return false;
   }
-  btm_ble_cache_adv_data(p_cur, data_len, data, evt_type);
+
+  bool is_scan_resp = ble_evt_type_is_scan_resp(evt_type);
+  btm_ble_cache_adv_data(p_cur, data_len, data, is_scan_resp);
 
   /* Save the info */
   p_cur->inq_result_type = BTM_INQ_RESULT_BLE;
@@ -1884,8 +1883,9 @@ bool btm_ble_update_inq_result(tINQ_DB_ENT* p_i, uint8_t addr_type,
   p_cur->rssi = rssi;
 
   /* active scan, always wait until get scan_rsp to report the result */
-  if ((btm_cb.ble_ctr_cb.inq_var.scan_type == BTM_BLE_SCAN_MODE_ACTI &&
-       (evt_type == BTM_BLE_CONNECT_EVT || evt_type == BTM_BLE_DISCOVER_EVT))) {
+  if (btm_cb.ble_ctr_cb.inq_var.scan_type == BTM_BLE_SCAN_MODE_ACTI &&
+      ble_evt_type_is_scannable(evt_type) &&
+      !ble_evt_type_is_scan_resp(evt_type)) {
     BTM_TRACE_DEBUG("%s: scan_rsp=false, to_report=false, scan_type_active=%d",
                     __func__, btm_cb.ble_ctr_cb.inq_var.scan_type);
     p_i->scan_rsp = false;
@@ -1942,7 +1942,7 @@ bool btm_ble_update_inq_result(tINQ_DB_ENT* p_i, uint8_t addr_type,
 
   /* if BR/EDR not supported is not set, assume is a DUMO device */
   if ((p_cur->flag & BTM_BLE_BREDR_NOT_SPT) == 0 &&
-      evt_type != BTM_BLE_CONNECT_DIR_EVT) {
+      !ble_evt_type_is_directed(evt_type)) {
     if (p_cur->ble_addr_type != BLE_ADDR_RANDOM) {
       BTM_TRACE_DEBUG("BR/EDR NOT support bit not set, treat as DUMO");
       p_cur->device_type |= BT_DEVICE_TYPE_DUMO;
@@ -2060,32 +2060,8 @@ void btm_ble_process_ext_adv_pkt(uint8_t data_len, uint8_t* data) {
       continue;
     }
 
-    // TODO(jpawlowski): event type should be passed to
-    // btm_ble_process_adv_pkt_cont. Legacy values should be transformed to new
-    // value in btm_ble_process_adv_pkt
-    uint8_t legacy_evt_type;
-    if (event_type == 0x0013) {
-      legacy_evt_type = 0x00;  // ADV_IND;
-    } else if (event_type == 0x0015) {
-      legacy_evt_type = 0x01;  // ADV_DIRECT_IND;
-    } else if (event_type == 0x0012) {
-      legacy_evt_type = 0x02;  // ADV_SCAN_IND;
-    } else if (event_type == 0x0010) {
-      legacy_evt_type = 0x03;  // ADV_NONCONN_IND;
-    } else if (event_type == 0x001B) {
-      legacy_evt_type = 0x02;  // SCAN_RSP;
-    } else if (event_type == 0x001A) {
-      legacy_evt_type = 0x02;  // SCAN_RSP;
-    } else {
-      BTM_TRACE_ERROR(
-          "Malformed LE Advertising Report Event from controller - unsupported "
-          "legacy event_type 0x%04x",
-          event_type);
-      return;
-    }
-
     btm_ble_process_adv_addr(bda, addr_type);
-    btm_ble_process_adv_pkt_cont(bda, addr_type, legacy_evt_type, pkt_data_len,
+    btm_ble_process_adv_pkt_cont(bda, addr_type, event_type, pkt_data_len,
                                  pkt_data, rssi);
   }
 }
@@ -2098,7 +2074,7 @@ void btm_ble_process_ext_adv_pkt(uint8_t data_len, uint8_t* data) {
 void btm_ble_process_adv_pkt(uint8_t data_len, uint8_t* data) {
   BD_ADDR bda;
   uint8_t* p = data;
-  uint8_t evt_type, addr_type, num_reports, pkt_data_len;
+  uint8_t legacy_evt_type, addr_type, num_reports, pkt_data_len;
   int8_t rssi;
 
   /* Only process the results if the inquiry is still active */
@@ -2115,7 +2091,7 @@ void btm_ble_process_adv_pkt(uint8_t data_len, uint8_t* data) {
     }
 
     /* Extract inquiry results */
-    STREAM_TO_UINT8(evt_type, p);
+    STREAM_TO_UINT8(legacy_evt_type, p);
     STREAM_TO_UINT8(addr_type, p);
     STREAM_TO_BDADDR(bda, p);
     STREAM_TO_UINT8(pkt_data_len, p);
@@ -2132,30 +2108,42 @@ void btm_ble_process_adv_pkt(uint8_t data_len, uint8_t* data) {
 
     btm_ble_process_adv_addr(bda, addr_type);
 
-    btm_ble_process_adv_pkt_cont(bda, addr_type, evt_type, pkt_data_len,
+    uint16_t event_type;
+    if (legacy_evt_type == 0x00) {  // ADV_IND;
+      event_type = 0x0013;
+    } else if (legacy_evt_type == 0x01) {  // ADV_DIRECT_IND;
+      event_type = 0x0015;
+    } else if (legacy_evt_type == 0x02) {  // ADV_SCAN_IND;
+      event_type = 0x0012;
+    } else if (legacy_evt_type == 0x03) {  // ADV_NONCONN_IND;
+      event_type = 0x0010;
+    } else if (legacy_evt_type == 0x04) {  // SCAN_RSP;
+      // We can't distinguish between "SCAN_RSP to an ADV_IND", and "SCAN_RSP to
+      // an ADV_SCAN_IND", so always return "SCAN_RSP to an ADV_IND"
+      event_type = 0x001B;
+    } else {
+      BTM_TRACE_ERROR(
+          "Malformed LE Advertising Report Event - unsupported "
+          "legacy_event_type 0x%02x",
+          legacy_evt_type);
+      return;
+    }
+
+    btm_ble_process_adv_pkt_cont(bda, addr_type, event_type, pkt_data_len,
                                  pkt_data, rssi);
   }
 }
 
-/*******************************************************************************
- *
- * Function         btm_ble_process_adv_pkt_cont
- *
- * Description      This function is called after random address resolution is
- *                  done, and proceed to process adv packet.
- *
- * Parameters
- *
- * Returns          void
- *
- ******************************************************************************/
+/**
+ * This function is called after random address resolution is done, and proceed
+ * to process adv packet.
+ */
 static void btm_ble_process_adv_pkt_cont(BD_ADDR bda, uint8_t addr_type,
-                                         uint8_t evt_type, uint8_t data_len,
+                                         uint16_t evt_type, uint8_t data_len,
                                          uint8_t* data, int8_t rssi) {
   tINQ_DB_ENT* p_i;
   tBTM_INQUIRY_VAR_ST* p_inq = &btm_cb.btm_inq_vars;
   tBTM_INQ_RESULTS_CB* p_inq_results_cb = p_inq->p_inq_results_cb;
-  tBTM_INQ_RESULTS_CB* p_obs_results_cb = btm_cb.ble_ctr_cb.p_obs_results_cb;
   tBTM_BLE_INQ_CB* p_le_inq_cb = &btm_cb.ble_ctr_cb.inq_var;
   bool update = true;
   uint8_t result = 0;
@@ -2194,7 +2182,7 @@ static void btm_ble_process_adv_pkt_cont(BD_ADDR bda, uint8_t addr_type,
                                  rssi))
     return;
 
-  result = btm_ble_is_discoverable(bda, evt_type);
+  result = btm_ble_is_discoverable(bda);
   if (result == 0) {
     LOG_WARN(LOG_TAG,
              "%s device no longer discoverable, discarding advertising packet",
@@ -2230,6 +2218,8 @@ static void btm_ble_process_adv_pkt_cont(BD_ADDR bda, uint8_t addr_type,
     (p_inq_results_cb)((tBTM_INQ_RESULTS*)&p_i->inq_info.results,
                        p_le_inq_cb->adv_data_cache);
   }
+
+  tBTM_INQ_RESULTS_CB* p_obs_results_cb = btm_cb.ble_ctr_cb.p_obs_results_cb;
   if (p_obs_results_cb && (result & BTM_BLE_OBS_RESULT)) {
     (p_obs_results_cb)((tBTM_INQ_RESULTS*)&p_i->inq_info.results,
                        p_le_inq_cb->adv_data_cache);
