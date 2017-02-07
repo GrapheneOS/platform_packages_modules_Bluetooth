@@ -965,7 +965,7 @@ tBTM_STATUS BTM_ReadRemoteDeviceName(BD_ADDR remote_bda, tBTM_CMPL_CB* p_cb,
   p_i = btm_inq_db_find(remote_bda);
   if (p_i != NULL) {
     p_cur = &p_i->inq_info;
-    if ((p_cur->results.ble_evt_type == BTM_BLE_EVT_NON_CONN_ADV) &&
+    if ((!ble_evt_type_is_connectable(p_cur->results.ble_evt_type)) &&
         (p_cur->results.device_type !=
          BT_DEVICE_TYPE_BREDR)) { /* Non-connectable LE device: do not request
                                      its name! */
