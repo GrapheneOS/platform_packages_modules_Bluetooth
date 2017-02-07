@@ -730,7 +730,7 @@ typedef struct {
   uint8_t* p_eir;  /* received EIR */
   uint8_t inq_result_type;
   uint8_t ble_addr_type;
-  tBTM_BLE_EVT_TYPE ble_evt_type;
+  uint16_t ble_evt_type;
   tBT_DEVICE_TYPE device_type;
   uint8_t flag;
 } tBTA_DM_INQ_RES;
