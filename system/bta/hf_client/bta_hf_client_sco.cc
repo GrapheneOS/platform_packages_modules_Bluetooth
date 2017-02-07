@@ -79,18 +79,15 @@ enum {
  * Function         bta_hf_client_remove_sco
  *
  * Description      Removes the specified SCO from the system.
- *                  If only_active is true, then SCO is only removed if
- *                  connected.
  *
  * Returns          bool   - true if SCO removal was started
  *
  ******************************************************************************/
-static bool bta_hf_client_sco_remove(tBTA_HF_CLIENT_CB* client_cb,
-                                     bool only_active) {
+static bool bta_hf_client_sco_remove(tBTA_HF_CLIENT_CB* client_cb) {
   bool removed_started = false;
   tBTM_STATUS status;
 
-  APPL_TRACE_DEBUG("%s: %d", __func__, only_active);
+  APPL_TRACE_DEBUG("%s", __func__);
 
   if (client_cb->sco_idx != BTM_INVALID_SCO_INDEX) {
     status = BTM_RemoveSco(client_cb->sco_idx);
@@ -327,8 +324,8 @@ static void bta_hf_client_sco_create(tBTA_HF_CLIENT_CB* client_cb,
  ******************************************************************************/
 static void bta_hf_client_sco_event(tBTA_HF_CLIENT_CB* client_cb,
                                     uint8_t event) {
-  APPL_TRACE_DEBUG("%s: state: %d event: %d", __func__, client_cb->sco_state,
-                   event);
+  APPL_TRACE_DEBUG("%s: before state: %d event: %d", __func__,
+                   client_cb->sco_state, event);
 
   switch (client_cb->sco_state) {
     case BTA_HF_CLIENT_SCO_SHUTDOWN_ST:
@@ -349,13 +346,12 @@ static void bta_hf_client_sco_event(tBTA_HF_CLIENT_CB* client_cb,
     case BTA_HF_CLIENT_SCO_LISTEN_ST:
       switch (event) {
         case BTA_HF_CLIENT_SCO_LISTEN_E:
-          /* create sco listen connection (Additional channel) */
-          bta_hf_client_sco_create(client_cb, false);
+          /* Ignore */
           break;
 
         case BTA_HF_CLIENT_SCO_OPEN_E:
           /* remove listening connection */
-          bta_hf_client_sco_remove(client_cb, false);
+          bta_hf_client_sco_remove(client_cb);
 
           /* create sco connection to peer */
           bta_hf_client_sco_create(client_cb, true);
@@ -363,18 +359,11 @@ static void bta_hf_client_sco_event(tBTA_HF_CLIENT_CB* client_cb,
           break;
 
         case BTA_HF_CLIENT_SCO_SHUTDOWN_E:
-          /* remove listening connection */
-          bta_hf_client_sco_remove(client_cb, false);
-
-          client_cb->sco_state = BTA_HF_CLIENT_SCO_SHUTDOWN_ST;
-          break;
-
         case BTA_HF_CLIENT_SCO_CLOSE_E:
           /* remove listening connection */
-          /* Ignore the event. We need to keep listening SCO for the active SLC
-           */
-          APPL_TRACE_WARNING("BTA_HF_CLIENT_SCO_LISTEN_ST: Ignoring event %d",
-                             event);
+          bta_hf_client_sco_remove(client_cb);
+
+          client_cb->sco_state = BTA_HF_CLIENT_SCO_SHUTDOWN_ST;
           break;
 
         case BTA_HF_CLIENT_SCO_CONN_CLOSE_E:
@@ -384,8 +373,9 @@ static void bta_hf_client_sco_event(tBTA_HF_CLIENT_CB* client_cb,
           break;
 
         default:
-          APPL_TRACE_WARNING("BTA_HF_CLIENT_SCO_LISTEN_ST: Ignoring event %d",
-                             event);
+          APPL_TRACE_WARNING(
+              "%s: BTA_HF_CLIENT_SCO_LISTEN_ST: Ignoring event %d", __func__,
+              event);
           break;
       }
       break;
@@ -429,7 +419,7 @@ static void bta_hf_client_sco_event(tBTA_HF_CLIENT_CB* client_cb,
 
         case BTA_HF_CLIENT_SCO_CONN_OPEN_E:
           /* close sco connection */
-          bta_hf_client_sco_remove(client_cb, true);
+          bta_hf_client_sco_remove(client_cb);
 
           client_cb->sco_state = BTA_HF_CLIENT_SCO_CLOSING_ST;
           break;
@@ -450,23 +440,21 @@ static void bta_hf_client_sco_event(tBTA_HF_CLIENT_CB* client_cb,
     case BTA_HF_CLIENT_SCO_OPEN_ST:
       switch (event) {
         case BTA_HF_CLIENT_SCO_CLOSE_E:
-          /* close sco connection if active */
-          if (bta_hf_client_sco_remove(client_cb, true)) {
+          if (bta_hf_client_sco_remove(client_cb)) {
             client_cb->sco_state = BTA_HF_CLIENT_SCO_CLOSING_ST;
           }
           break;
 
         case BTA_HF_CLIENT_SCO_SHUTDOWN_E:
-          /* remove all listening connections */
-          bta_hf_client_sco_remove(client_cb, false);
+          /* remove listening connection */
+          bta_hf_client_sco_remove(client_cb);
 
           client_cb->sco_state = BTA_HF_CLIENT_SCO_SHUTTING_ST;
           break;
 
         case BTA_HF_CLIENT_SCO_CONN_CLOSE_E:
-          /* peer closed sco; create sco listen connection */
-          bta_hf_client_sco_create(client_cb, false);
-          client_cb->sco_state = BTA_HF_CLIENT_SCO_LISTEN_ST;
+          /* peer closed sco */
+          client_cb->sco_state = BTA_HF_CLIENT_SCO_SHUTDOWN_ST;
           break;
 
         default:
@@ -488,9 +476,7 @@ static void bta_hf_client_sco_event(tBTA_HF_CLIENT_CB* client_cb,
 
         case BTA_HF_CLIENT_SCO_CONN_CLOSE_E:
           /* peer closed sco; create sco listen connection */
-          bta_hf_client_sco_create(client_cb, false);
-
-          client_cb->sco_state = BTA_HF_CLIENT_SCO_LISTEN_ST;
+          client_cb->sco_state = BTA_HF_CLIENT_SCO_SHUTDOWN_ST;
           break;
 
         default:
@@ -527,7 +513,7 @@ static void bta_hf_client_sco_event(tBTA_HF_CLIENT_CB* client_cb,
       switch (event) {
         case BTA_HF_CLIENT_SCO_CONN_OPEN_E:
           /* close sco connection; wait for conn close event */
-          bta_hf_client_sco_remove(client_cb, true);
+          bta_hf_client_sco_remove(client_cb);
           break;
 
         case BTA_HF_CLIENT_SCO_CONN_CLOSE_E:
@@ -548,6 +534,8 @@ static void bta_hf_client_sco_event(tBTA_HF_CLIENT_CB* client_cb,
     default:
       break;
   }
+
+  APPL_TRACE_DEBUG("%s: after state: %d", __func__, client_cb->sco_state);
 }
 
 /*******************************************************************************
