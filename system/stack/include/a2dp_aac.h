@@ -27,7 +27,7 @@
 
 class A2dpCodecConfigAac : public A2dpCodecConfig {
  public:
-  A2dpCodecConfigAac();
+  A2dpCodecConfigAac(btav_a2dp_codec_priority_t codec_priority);
   virtual ~A2dpCodecConfigAac();
 
   bool init() override;

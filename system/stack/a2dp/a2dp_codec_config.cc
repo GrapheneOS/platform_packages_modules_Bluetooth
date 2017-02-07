@@ -48,9 +48,12 @@ static void init_btav_a2dp_codec_config(
 }
 
 A2dpCodecConfig::A2dpCodecConfig(btav_a2dp_codec_index_t codec_index,
-                                 const std::string& name)
-    : codec_index_(codec_index), name_(name) {
-  setDefaultCodecPriority();
+                                 const std::string& name,
+                                 btav_a2dp_codec_priority_t codec_priority)
+    : codec_index_(codec_index),
+      name_(name),
+      default_codec_priority_(codec_priority) {
+  setCodecPriority(codec_priority);
 
   init_btav_a2dp_codec_config(&codec_config_, codec_index_, codecPriority());
   init_btav_a2dp_codec_config(&codec_capability_, codec_index_,
@@ -82,34 +85,39 @@ void A2dpCodecConfig::setCodecPriority(
 }
 
 void A2dpCodecConfig::setDefaultCodecPriority() {
-  // Compute the default codec priority
-  uint32_t priority = 1000 * codec_index_ + 1;
-  codec_priority_ = static_cast<btav_a2dp_codec_priority_t>(priority);
+  if (default_codec_priority_ != BTAV_A2DP_CODEC_PRIORITY_DEFAULT) {
+    codec_priority_ = default_codec_priority_;
+  } else {
+    // Compute the default codec priority
+    uint32_t priority = 1000 * (codec_index_ + 1) + 1;
+    codec_priority_ = static_cast<btav_a2dp_codec_priority_t>(priority);
+  }
 }
 
 A2dpCodecConfig* A2dpCodecConfig::createCodec(
-    btav_a2dp_codec_index_t codec_index) {
+    btav_a2dp_codec_index_t codec_index,
+    btav_a2dp_codec_priority_t codec_priority) {
   LOG_DEBUG(LOG_TAG, "%s: codec %s", __func__, A2DP_CodecIndexStr(codec_index));
 
   A2dpCodecConfig* codec_config = nullptr;
   switch (codec_index) {
     case BTAV_A2DP_CODEC_INDEX_SOURCE_SBC:
-      codec_config = new A2dpCodecConfigSbc();
+      codec_config = new A2dpCodecConfigSbc(codec_priority);
       break;
     case BTAV_A2DP_CODEC_INDEX_SINK_SBC:
-      codec_config = new A2dpCodecConfigSbcSink();
+      codec_config = new A2dpCodecConfigSbcSink(codec_priority);
       break;
     case BTAV_A2DP_CODEC_INDEX_SOURCE_AAC:
-      codec_config = new A2dpCodecConfigAac();
+      codec_config = new A2dpCodecConfigAac(codec_priority);
       break;
     case BTAV_A2DP_CODEC_INDEX_SOURCE_APTX:
-      codec_config = new A2dpCodecConfigAptx();
+      codec_config = new A2dpCodecConfigAptx(codec_priority);
       break;
     case BTAV_A2DP_CODEC_INDEX_SOURCE_APTX_HD:
-      codec_config = new A2dpCodecConfigAptxHd();
+      codec_config = new A2dpCodecConfigAptxHd(codec_priority);
       break;
     case BTAV_A2DP_CODEC_INDEX_SOURCE_LDAC:
-      codec_config = new A2dpCodecConfigLdac();
+      codec_config = new A2dpCodecConfigLdac(codec_priority);
       break;
     // Add a switch statement for each vendor-specific codec
     case BTAV_A2DP_CODEC_INDEX_MAX:
@@ -287,11 +295,21 @@ static bool compare_codec_priority(const A2dpCodecConfig* lhs,
   return (lhs->codecIndex() > rhs->codecIndex());
 }
 
-A2dpCodecs::A2dpCodecs() : current_codec_config_(nullptr) {}
+A2dpCodecs::A2dpCodecs(
+    const std::vector<btav_a2dp_codec_config_t>& codec_priorities)
+    : current_codec_config_(nullptr) {
+  for (auto config : codec_priorities) {
+    codec_priorities_.insert(
+        std::make_pair(config.codec_type, config.codec_priority));
+  }
+}
 
 A2dpCodecs::~A2dpCodecs() {
   std::unique_lock<std::recursive_mutex> lock(codec_mutex_);
   for (const auto& iter : indexed_codecs_) {
+    delete iter.second;
+  }
+  for (const auto& iter : disabled_codecs_) {
     delete iter.second;
   }
   lock.unlock();
@@ -304,8 +322,29 @@ bool A2dpCodecs::init() {
   for (int i = BTAV_A2DP_CODEC_INDEX_MIN; i < BTAV_A2DP_CODEC_INDEX_MAX; i++) {
     btav_a2dp_codec_index_t codec_index =
         static_cast<btav_a2dp_codec_index_t>(i);
-    A2dpCodecConfig* codec_config = A2dpCodecConfig::createCodec(codec_index);
+
+    // Select the codec priority if explicitly configured
+    btav_a2dp_codec_priority_t codec_priority =
+        BTAV_A2DP_CODEC_PRIORITY_DEFAULT;
+    auto cp_iter = codec_priorities_.find(codec_index);
+    if (cp_iter != codec_priorities_.end()) {
+      codec_priority = cp_iter->second;
+    }
+
+    A2dpCodecConfig* codec_config =
+        A2dpCodecConfig::createCodec(codec_index, codec_priority);
     if (codec_config == nullptr) continue;
+
+    if (codec_priority != BTAV_A2DP_CODEC_PRIORITY_DEFAULT) {
+      LOG_INFO(LOG_TAG, "%s: updated %s codec priority to %d", __func__,
+               codec_config->name().c_str(), codec_priority);
+    }
+
+    // Test if the codec is disabled
+    if (codec_config->codecPriority() == BTAV_A2DP_CODEC_PRIORITY_DISABLED) {
+      disabled_codecs_.insert(std::make_pair(codec_index, codec_config));
+      continue;
+    }
 
     indexed_codecs_.insert(std::make_pair(codec_index, codec_config));
 
