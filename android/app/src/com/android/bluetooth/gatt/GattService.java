@@ -90,6 +90,8 @@ public class GattService extends ProfileService {
     private static final int ADVT_STATE_ONFOUND = 0;
     private static final int ADVT_STATE_ONLOST = 1;
 
+    private static final int ET_LEGACY_MASK = 0x10;
+
     private static final UUID[] HID_UUIDS = {
         UUID.fromString("00002A4A-0000-1000-8000-00805F9B34FB"),
         UUID.fromString("00002A4B-0000-1000-8000-00805F9B34FB"),
@@ -618,27 +620,37 @@ public class GattService extends ProfileService {
             }
 
             ScannerMap.App app = mScannerMap.getById(client.scannerId);
-            if (app != null) {
-                BluetoothDevice device = BluetoothAdapter.getDefaultAdapter()
-                        .getRemoteDevice(address);
-                ScanResult result = new ScanResult(device, ScanRecord.parseFromBytes(adv_data),
-                        rssi, SystemClock.elapsedRealtimeNanos());
-                // Do no report if location mode is OFF or the client has no location permission
-                // PEERS_MAC_ADDRESS permission holders always get results
-                if (hasScanResultPermission(client) && matchesFilters(client, result)) {
-                    try {
-                        ScanSettings settings = client.settings;
-                        if ((settings.getCallbackType() &
-                                ScanSettings.CALLBACK_TYPE_ALL_MATCHES) != 0) {
-                            app.appScanStats.addResult();
-                            app.callback.onScanResult(result);
-                        }
-                    } catch (RemoteException e) {
-                        Log.e(TAG, "Exception: " + e);
-                        mScannerMap.remove(client.scannerId);
-                        mScanManager.stopScan(client);
-                    }
-                }
+            if (app == null) {
+                continue;
+            }
+
+            BluetoothDevice device = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(address);
+            ScanResult result = new ScanResult(device, event_type, primary_phy, secondary_phy,
+                    advertising_sid, tx_power, rssi, periodic_adv_int,
+                    ScanRecord.parseFromBytes(adv_data), SystemClock.elapsedRealtimeNanos());
+            // Do no report if location mode is OFF or the client has no location permission
+            // PEERS_MAC_ADDRESS permission holders always get results
+            if (!hasScanResultPermission(client) || !matchesFilters(client, result)) {
+                continue;
+            }
+
+            ScanSettings settings = client.settings;
+            if ((settings.getCallbackType() & ScanSettings.CALLBACK_TYPE_ALL_MATCHES) == 0) {
+                continue;
+            }
+
+            // if this is legacy scan, return only legacy scan results
+            if (settings.getLegacy() && ((event_type & ET_LEGACY_MASK) == 0)) {
+                continue;
+            }
+
+            try {
+                app.appScanStats.addResult();
+                app.callback.onScanResult(result);
+            } catch (RemoteException e) {
+                Log.e(TAG, "Exception: " + e);
+                mScannerMap.remove(client.scannerId);
+                mScanManager.stopScan(client);
             }
         }
     }
