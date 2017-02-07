@@ -589,9 +589,16 @@ public class GattService extends ProfileService {
      * Callback functions - CLIENT
      *************************************************************************/
 
-    void onScanResult(String address, int rssi, byte[] adv_data) {
-        if (VDBG) Log.d(TAG, "onScanResult() - address=" + address
-                    + ", rssi=" + rssi);
+    void onScanResult(int event_type, int address_type, String address, int primary_phy,
+            int secondary_phy, int advertising_sid, int tx_power, int rssi, int periodic_adv_int,
+            byte[] adv_data) {
+        if (VDBG)
+            Log.d(TAG, "onScanResult() - event_type=0x" + Integer.toHexString(event_type)
+                            + ", address_type=" + address_type + ", address=" + address
+                            + ", primary_phy=" + primary_phy + ", secondary_phy=" + secondary_phy
+                            + ", advertising_sid=0x" + Integer.toHexString(advertising_sid)
+                            + ", tx_power=" + tx_power + ", rssi=" + rssi + ", periodic_adv_int=0x"
+                            + Integer.toHexString(periodic_adv_int));
         List<UUID> remoteUuids = parseUuids(adv_data);
         addScanResult();
 
