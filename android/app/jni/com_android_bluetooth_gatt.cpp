@@ -205,8 +205,9 @@ void btgattc_scan_result_cb(uint16_t event_type, uint8_t addr_type,
   ScopedLocalRef<jstring> address(sCallbackEnv.get(),
                                   bdaddr2newjstr(sCallbackEnv.get(), bda));
   ScopedLocalRef<jbyteArray> jb(sCallbackEnv.get(),
-                                sCallbackEnv->NewByteArray(62));
-  sCallbackEnv->SetByteArrayRegion(jb.get(), 0, 62, (jbyte*)adv_data.data());
+                                sCallbackEnv->NewByteArray(adv_data.size()));
+  sCallbackEnv->SetByteArrayRegion(jb.get(), 0, adv_data.size(),
+                                   (jbyte*)adv_data.data());
 
   sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onScanResult, event_type,
                                addr_type, address.get(), primary_phy,
