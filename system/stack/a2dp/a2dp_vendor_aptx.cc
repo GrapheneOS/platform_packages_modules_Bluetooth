@@ -415,8 +415,10 @@ bool A2DP_VendorInitCodecConfigAptx(tAVDT_CFG* p_cfg) {
   return true;
 }
 
-A2dpCodecConfigAptx::A2dpCodecConfigAptx()
-    : A2dpCodecConfig(BTAV_A2DP_CODEC_INDEX_SOURCE_APTX, "aptX") {
+A2dpCodecConfigAptx::A2dpCodecConfigAptx(
+    btav_a2dp_codec_priority_t codec_priority)
+    : A2dpCodecConfig(BTAV_A2DP_CODEC_INDEX_SOURCE_APTX, "aptX",
+                      codec_priority) {
   // Compute the local capability
   if (a2dp_aptx_caps.sampleRate & A2DP_APTX_SAMPLERATE_44100) {
     codec_local_capability_.sample_rate |= BTAV_A2DP_CODEC_SAMPLE_RATE_44100;

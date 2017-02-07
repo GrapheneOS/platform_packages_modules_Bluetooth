@@ -78,6 +78,7 @@ typedef struct {
   uint8_t flags;
   tBTA_AV_EDR edr;
   uint8_t peer_sep; /* sep type of peer device */
+  std::vector<btav_a2dp_codec_config_t> codec_priorities;
 } btif_av_cb_t;
 
 typedef struct {
@@ -96,7 +97,8 @@ typedef struct {
  *****************************************************************************/
 static btav_source_callbacks_t* bt_av_src_callbacks = NULL;
 static btav_sink_callbacks_t* bt_av_sink_callbacks = NULL;
-static btif_av_cb_t btif_av_cb = {0, {{0}}, 0, 0, 0, 0};
+static btif_av_cb_t btif_av_cb = {
+    0, {{0}}, 0, 0, 0, 0, std::vector<btav_a2dp_codec_config_t>()};
 static alarm_t* av_open_on_rc_timer = NULL;
 
 /* both interface and media task needs to be ready to alloc incoming request */
@@ -336,7 +338,7 @@ static bool btif_av_state_idle_handler(btif_sm_event_t event, void* p_data) {
       memset(&btif_av_cb.peer_bda, 0, sizeof(bt_bdaddr_t));
       btif_av_cb.flags = 0;
       btif_av_cb.edr = 0;
-      bta_av_co_init();
+      bta_av_co_init(btif_av_cb.codec_priorities);
       btif_a2dp_on_idle();
       break;
 
@@ -1262,9 +1264,12 @@ bt_status_t btif_av_init(int service_id) {
  *
  ******************************************************************************/
 
-static bt_status_t init_src(btav_source_callbacks_t* callbacks) {
+static bt_status_t init_src(
+    btav_source_callbacks_t* callbacks,
+    std::vector<btav_a2dp_codec_config_t> codec_priorities) {
   BTIF_TRACE_EVENT("%s()", __func__);
 
+  btif_av_cb.codec_priorities = codec_priorities;
   bt_status_t status = btif_av_init(BTA_A2DP_SOURCE_SERVICE_ID);
   if (status == BT_STATUS_SUCCESS) bt_av_src_callbacks = callbacks;
 

@@ -19,6 +19,7 @@
 #include <dlfcn.h>
 
 #include <set>
+#include <vector>
 
 #include <gtest/gtest.h>
 
@@ -811,7 +812,8 @@ TEST_F(A2dpCodecConfigTest, createCodec) {
     EXPECT_NE(codec_config, nullptr);
     EXPECT_EQ(codec_config->codecIndex(), codec_index);
     EXPECT_FALSE(codec_config->name().empty());
-    EXPECT_GT(codec_config->codecPriority(), 0U);
+    EXPECT_NE(codec_config->codecPriority(), BTAV_A2DP_CODEC_PRIORITY_DISABLED);
+    EXPECT_NE(codec_config->codecPriority(), BTAV_A2DP_CODEC_PRIORITY_DEFAULT);
     delete codec_config;
   }
 }
@@ -819,7 +821,8 @@ TEST_F(A2dpCodecConfigTest, createCodec) {
 TEST_F(A2dpCodecConfigTest, setCodecConfig) {
   uint8_t codec_info_result[AVDT_CODEC_SIZE];
   btav_a2dp_codec_index_t peer_codec_index;
-  A2dpCodecs* a2dp_codecs = new A2dpCodecs();
+  A2dpCodecs* a2dp_codecs =
+      new A2dpCodecs(std::vector<btav_a2dp_codec_config_t>());
   A2dpCodecConfig* codec_config;
 
   EXPECT_TRUE(a2dp_codecs->init());
@@ -897,7 +900,8 @@ TEST_F(A2dpCodecConfigTest, setCodecConfig) {
 }
 
 TEST_F(A2dpCodecConfigTest, init) {
-  A2dpCodecs codecs;
+  std::vector<btav_a2dp_codec_config_t> default_priorities;
+  A2dpCodecs codecs(default_priorities);
 
   EXPECT_TRUE(codecs.init());
 

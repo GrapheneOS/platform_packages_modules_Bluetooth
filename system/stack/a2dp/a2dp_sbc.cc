@@ -1029,8 +1029,9 @@ UNUSED_ATTR static void build_codec_config(const tA2DP_SBC_CIE& config_cie,
   }
 }
 
-A2dpCodecConfigSbc::A2dpCodecConfigSbc()
-    : A2dpCodecConfig(BTAV_A2DP_CODEC_INDEX_SOURCE_SBC, "SBC") {
+A2dpCodecConfigSbc::A2dpCodecConfigSbc(
+    btav_a2dp_codec_priority_t codec_priority)
+    : A2dpCodecConfig(BTAV_A2DP_CODEC_INDEX_SOURCE_SBC, "SBC", codec_priority) {
   // Compute the local capability
   if (a2dp_sbc_caps.samp_freq & A2DP_SBC_IE_SAMP_FREQ_44) {
     codec_local_capability_.sample_rate |= BTAV_A2DP_CODEC_SAMPLE_RATE_44100;
@@ -1608,8 +1609,10 @@ fail:
   return false;
 }
 
-A2dpCodecConfigSbcSink::A2dpCodecConfigSbcSink()
-    : A2dpCodecConfig(BTAV_A2DP_CODEC_INDEX_SINK_SBC, "SBC(Sink)") {}
+A2dpCodecConfigSbcSink::A2dpCodecConfigSbcSink(
+    btav_a2dp_codec_priority_t codec_priority)
+    : A2dpCodecConfig(BTAV_A2DP_CODEC_INDEX_SINK_SBC, "SBC(Sink)",
+                      codec_priority) {}
 
 A2dpCodecConfigSbcSink::~A2dpCodecConfigSbcSink() {}
 

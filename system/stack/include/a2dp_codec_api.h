@@ -51,7 +51,10 @@ class A2dpCodecConfig {
  public:
   // Creates a codec entry. The selected codec is defined by |codec_index|,
   // Returns the codec entry on success, otherwise nullptr.
-  static A2dpCodecConfig* createCodec(btav_a2dp_codec_index_t codec_index);
+  static A2dpCodecConfig* createCodec(
+      btav_a2dp_codec_index_t codec_index,
+      btav_a2dp_codec_priority_t codec_priority =
+          BTAV_A2DP_CODEC_PRIORITY_DEFAULT);
 
   virtual ~A2dpCodecConfig() = 0;
 
@@ -171,7 +174,11 @@ class A2dpCodecConfig {
 
   // Constructor where |codec_index| is the unique index that identifies the
   // codec. The user-friendly name is |name|.
-  A2dpCodecConfig(btav_a2dp_codec_index_t codec_index, const std::string& name);
+  // The default codec priority is |codec_priority|. If the value is
+  // |BTAV_A2DP_CODEC_PRIORITY_DEFAULT|, the codec priority is computed
+  // internally.
+  A2dpCodecConfig(btav_a2dp_codec_index_t codec_index, const std::string& name,
+                  btav_a2dp_codec_priority_t codec_priority);
 
   // Initializes the codec entry.
   // Returns true on success, otherwise false.
@@ -184,6 +191,7 @@ class A2dpCodecConfig {
   const btav_a2dp_codec_index_t codec_index_;  // The unique codec index
   const std::string name_;                     // The codec name
   btav_a2dp_codec_priority_t codec_priority_;  // Codec priority: must be unique
+  btav_a2dp_codec_priority_t default_codec_priority_;
 
   btav_a2dp_codec_config_t codec_config_;
   btav_a2dp_codec_config_t codec_capability_;
@@ -205,7 +213,9 @@ class A2dpCodecConfig {
 
 class A2dpCodecs {
  public:
-  A2dpCodecs();
+  // Constructor for class |A2dpCodecs|.
+  // |codec_priorities| contains the codec priorities to use.
+  A2dpCodecs(const std::vector<btav_a2dp_codec_config_t>& codec_priorities);
   ~A2dpCodecs();
 
   // Initializes all supported codecs.
@@ -357,7 +367,11 @@ class A2dpCodecs {
 
   std::recursive_mutex codec_mutex_;
   A2dpCodecConfig* current_codec_config_;  // Currently selected codec
+  std::map<btav_a2dp_codec_index_t, btav_a2dp_codec_priority_t>
+      codec_priorities_;
+
   IndexedCodecs indexed_codecs_;           // The codecs indexed by codec index
+  IndexedCodecs disabled_codecs_;          // The disabled codecs
 
   // A2DP Source codecs ordered by priority
   std::list<A2dpCodecConfig*> ordered_source_codecs_;
