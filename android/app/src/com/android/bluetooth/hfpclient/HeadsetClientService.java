@@ -314,14 +314,20 @@ public class HeadsetClientService extends ProfileService {
 
         @Override
         public boolean connectAudio(BluetoothDevice device) {
-            Log.e(TAG, "connectAudio API not supported");
-            return false;
+            HeadsetClientService service = getService();
+            if (service == null) {
+                return false;
+            }
+            return service.connectAudio(device);
         }
 
         @Override
         public boolean disconnectAudio(BluetoothDevice device) {
-            Log.e(TAG, "disconnectAudio API not supported");
-            return false;
+            HeadsetClientService service = getService();
+            if (service == null) {
+                return false;
+            }
+            return service.disconnectAudio(device);
         }
 
         @Override
@@ -867,6 +873,21 @@ public class HeadsetClientService extends ProfileService {
         sm = mSmFactory.make(this, mSmThread);
         mStateMachineMap.put(device, sm);
         return sm;
+    }
+
+    // Check if any of the state machines are currently holding the SCO audio stream
+    // This function is *only* called from the SMs which are themselves run the same thread and
+    // hence we do not need synchronization here
+    boolean isScoAvailable() {
+        for (BluetoothDevice bd : mStateMachineMap.keySet()) {
+            HeadsetClientStateMachine sm = mStateMachineMap.get(bd);
+            int audioState = sm.getAudioState(bd);
+            if (audioState != BluetoothHeadsetClient.STATE_AUDIO_DISCONNECTED) {
+                Log.w(TAG, "Device " + bd + " audio state " + audioState + " not disconnected");
+                return false;
+            }
+        }
+        return true;
     }
 
     @Override
