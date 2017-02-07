@@ -89,7 +89,10 @@ void RegisterClientCallback(int status, int client_if, bt_uuid_t* app_uuid) {
 }
 
 void ScanResultCallback(
-    bt_bdaddr_t* bda, int rssi,
+    uint16_t ble_evt_type, uint8_t addr_type, bt_bdaddr_t* bda,
+    uint8_t ble_primary_phy, uint8_t ble_secondary_phy,
+    uint8_t ble_advertising_sid, int8_t ble_tx_power, int8_t rssi,
+    uint16_t ble_periodic_adv_int,
     std::vector<uint8_t> adv_data) {  // NOLINT(pass-by-value)
   shared_lock<shared_mutex_impl> lock(g_instance_lock);
   VERIFY_INTERFACE_OR_RETURN();

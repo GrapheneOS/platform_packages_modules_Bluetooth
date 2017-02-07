@@ -3942,6 +3942,12 @@ static void bta_dm_observe_results_cb(tBTM_INQ_RESULTS* p_inq, uint8_t* p_eir) {
   result.inq_res.inq_result_type = p_inq->inq_result_type;
   result.inq_res.device_type = p_inq->device_type;
   result.inq_res.flag = p_inq->flag;
+  result.inq_res.ble_evt_type = p_inq->ble_evt_type;
+  result.inq_res.ble_primary_phy = p_inq->ble_primary_phy;
+  result.inq_res.ble_secondary_phy = p_inq->ble_secondary_phy;
+  result.inq_res.ble_advertising_sid = p_inq->ble_advertising_sid;
+  result.inq_res.ble_tx_power = p_inq->ble_tx_power;
+  result.inq_res.ble_periodic_adv_int = p_inq->ble_periodic_adv_int;
 
   /* application will parse EIR to find out remote device name */
   result.inq_res.p_eir = p_eir;
