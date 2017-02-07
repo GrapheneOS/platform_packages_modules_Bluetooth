@@ -473,13 +473,13 @@ static void btif_a2dp_sink_decoder_update_event(
   btif_a2dp_sink_cb.channel_count = channel_count;
 
   btif_a2dp_sink_cb.rx_flush = false;
-  APPL_TRACE_DEBUG("Reset to Sink role");
+  APPL_TRACE_DEBUG("%s: Reset to Sink role", __func__);
   status = OI_CODEC_SBC_DecoderReset(
       &btif_a2dp_sink_context, btif_a2dp_sink_context_data,
       sizeof(btif_a2dp_sink_context_data), 2, 2, false);
   if (!OI_SUCCESS(status)) {
-    APPL_TRACE_ERROR("OI_CODEC_SBC_DecoderReset failed with error code %d",
-                     status);
+    APPL_TRACE_ERROR("%s: OI_CODEC_SBC_DecoderReset failed with error code %d",
+                     __func__, status);
   }
 
   APPL_TRACE_DEBUG("%s: A2dpSink: SBC create track", __func__);
@@ -490,16 +490,17 @@ static void btif_a2dp_sink_decoder_update_event(
       NULL;
 #endif
   if (btif_a2dp_sink_cb.audio_track == NULL) {
-    APPL_TRACE_ERROR("%s: A2dpSink: Track creation failed!!!", __func__);
+    APPL_TRACE_ERROR("%s: A2dpSink: Track creation failed", __func__);
     return;
   }
 
   btif_a2dp_sink_cb.frames_to_process = A2DP_GetSinkFramesCountToProcess(
       BTIF_SINK_MEDIA_TIME_TICK_MS, p_buf->codec_info);
-  APPL_TRACE_DEBUG("Frames to be processed in 20 ms %d",
+  APPL_TRACE_DEBUG("%s: Frames to be processed in 20 ms %d", __func__,
                    btif_a2dp_sink_cb.frames_to_process);
   if (btif_a2dp_sink_cb.frames_to_process == 0) {
-    APPL_TRACE_ERROR("Cannot compute the number of frames to process");
+    APPL_TRACE_ERROR("%s: Cannot compute the number of frames to process",
+                     __func__);
   }
 }
 
