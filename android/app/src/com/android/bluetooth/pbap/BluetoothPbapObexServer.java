@@ -778,7 +778,7 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
                 if (D) Log.d(TAG, "handleAppParaForResponse(): mNeedNewMissedCallsNum=true,  num= " + nmnum);
             }
             reply.setHeader(HeaderSet.APPLICATION_PARAMETER, ap.getAPPparam());
-            
+
             if (D) Log.d(TAG, "Send back Phonebook size only, without body info! Size= " + size);
 
             return pushHeader(op, reply);
