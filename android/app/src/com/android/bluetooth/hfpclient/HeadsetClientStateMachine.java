@@ -132,14 +132,11 @@ public class HeadsetClientStateMachine extends StateMachine {
     private int mIndicatorNetworkSignal;
     private int mIndicatorBatteryLevel;
 
-    private boolean mVgsFromStack = false;
-    private boolean mVgmFromStack = false;
-
     private String mOperatorName;
     private String mSubscriberInfo;
 
-    private int mMaxAmVcVol;
-    private int mMinAmVcVol;
+    private static int mMaxAmVcVol;
+    private static int mMinAmVcVol;
 
     // queue of send actions (pair action, action_data)
     private Queue<Pair<Integer, Object>> mQueuedActions;
@@ -174,8 +171,6 @@ public class HeadsetClientStateMachine extends StateMachine {
         ProfileService.println(sb, "mIndicatorNetworkType: " + mIndicatorNetworkType);
         ProfileService.println(sb, "mIndicatorNetworkSignal: " + mIndicatorNetworkSignal);
         ProfileService.println(sb, "mIndicatorBatteryLevel: " + mIndicatorBatteryLevel);
-        ProfileService.println(sb, "mVgsFromStack: " + mVgsFromStack);
-        ProfileService.println(sb, "mVgmFromStack: " + mVgmFromStack);
         ProfileService.println(sb, "mOperatorName: " + mOperatorName);
         ProfileService.println(sb, "mSubscriberInfo: " + mSubscriberInfo);
 
@@ -730,7 +725,7 @@ public class HeadsetClientStateMachine extends StateMachine {
     public static void cleanup() {
     }
 
-    private int hfToAmVol(int hfVol) {
+    static int hfToAmVol(int hfVol) {
         int amRange = mMaxAmVcVol - mMinAmVcVol;
         int hfRange = MAX_HFP_SCO_VOICE_CALL_VOLUME - MIN_HFP_SCO_VOICE_CALL_VOLUME;
         int amOffset =
@@ -740,7 +735,7 @@ public class HeadsetClientStateMachine extends StateMachine {
         return amVol;
     }
 
-    private int amToHfVol(int amVol) {
+    static int amToHfVol(int amVol) {
         int amRange = mMaxAmVcVol - mMinAmVcVol;
         int hfRange = MAX_HFP_SCO_VOICE_CALL_VOLUME - MIN_HFP_SCO_VOICE_CALL_VOLUME;
         int hfOffset = (hfRange * (amVol - mMinAmVcVol)) / amRange;
@@ -1109,16 +1104,6 @@ public class HeadsetClientStateMachine extends StateMachine {
 
                 // Called only for Mute/Un-mute - Mic volume change is not allowed.
                 case SET_MIC_VOLUME:
-                    if (mVgmFromStack) {
-                        mVgmFromStack = false;
-                        break;
-                    }
-                    if (NativeInterface.setVolumeNative(
-                            getByteAddress(mCurrentDevice),
-                            HeadsetClientHalConstants.VOLUME_TYPE_MIC,
-                            message.arg1)) {
-                        addQueuedAction(SET_MIC_VOLUME);
-                    }
                     break;
                 case SET_SPEAKER_VOLUME:
                     // This message should always contain the volume in AudioManager max normalized.
@@ -1126,14 +1111,9 @@ public class HeadsetClientStateMachine extends StateMachine {
                     int hfVol = amToHfVol(amVol);
                     Log.d(TAG,"HF volume is set to " + hfVol);
                     mAudioManager.setParameters("hfp_volume=" + hfVol);
-                    if (mVgsFromStack) {
-                        mVgsFromStack = false;
-                        break;
-                    }
-                    if (NativeInterface.setVolumeNative(getByteAddress(mCurrentDevice),
-                          HeadsetClientHalConstants.VOLUME_TYPE_SPK, hfVol)) {
-                        addQueuedAction(SET_SPEAKER_VOLUME);
-                    }
+                    // We do not set the volume in native because multiple devices might be
+                    // connected and it does not make sense to synchronize them. Car becomes the
+                    // master in such case.
                     break;
                 case DIAL_NUMBER:
                     // Add the call as an outgoing call.
@@ -1320,12 +1300,9 @@ public class HeadsetClientStateMachine extends StateMachine {
                                     AudioManager.STREAM_VOICE_CALL,
                                     hfToAmVol(event.valueInt2),
                                     AudioManager.FLAG_SHOW_UI);
-                                mVgsFromStack = true;
                             } else if (event.valueInt ==
                                     HeadsetClientHalConstants.VOLUME_TYPE_MIC) {
                                 mAudioManager.setMicrophoneMute(event.valueInt2 == 0);
-
-                                mVgmFromStack = true;
                             }
                             break;
                         case StackEvent.EVENT_TYPE_CMD_RESULT:
