@@ -194,9 +194,11 @@ typedef struct {
 } __attribute__((__packed__)) btsnoop_header_t;
 
 static uint64_t htonll(uint64_t ll) {
-  uint32_t l = 1;
-  if (*(reinterpret_cast<uint8_t*>(&l)) == 1)
-    return htonl((ll & 0xffffffff) << 32LL) | htonl(ll >> 32);
+  const uint32_t l = 1;
+  if (*(reinterpret_cast<const uint8_t*>(&l)) == 1)
+    return static_cast<uint64_t>(htonl(ll & 0xffffffff)) << 32 |
+           htonl(ll >> 32);
+
   return ll;
 }
 
