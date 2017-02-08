@@ -60,6 +60,7 @@ public class HeadsetClientService extends ProfileService {
     private NativeInterface mNativeInterface = null;
     private HandlerThread mSmThread = null;
     private HeadsetClientStateMachineFactory mSmFactory = null;
+    private AudioManager mAudioManager = null;
     // Maxinum number of devices we can try connecting to in one session
     private static final int MAX_STATE_MACHINES_POSSIBLE = 100;
 
@@ -86,6 +87,7 @@ public class HeadsetClientService extends ProfileService {
         }
         // Setup the JNI service
         NativeInterface.initializeNative();
+        mAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
 
         mSmFactory = new HeadsetClientStateMachineFactory();
         mStateMachineMap.clear();
@@ -156,8 +158,7 @@ public class HeadsetClientService extends ProfileService {
             String action = intent.getAction();
 
             // We handle the volume changes for Voice calls here since HFP audio volume control does
-            // not go through audio manager (audio mixer). We check if the voice call volume has
-            // changed and subsequently change the SCO volume see
+            // not go through audio manager (audio mixer). see
             // ({@link HeadsetClientStateMachine#SET_SPEAKER_VOLUME} in
             // {@link HeadsetClientStateMachine} for details.
             if (action.equals(AudioManager.VOLUME_CHANGED_ACTION)) {
@@ -167,14 +168,10 @@ public class HeadsetClientService extends ProfileService {
                 if (streamType == AudioManager.STREAM_VOICE_CALL) {
                     int streamValue = intent
                             .getIntExtra(AudioManager.EXTRA_VOLUME_STREAM_VALUE, -1);
-                    int streamPrevValue = intent.getIntExtra(
-                            AudioManager.EXTRA_PREV_VOLUME_STREAM_VALUE, -1);
-
-                    if (streamValue != -1 && streamValue != streamPrevValue) {
-                        // TODO: Fix this
-                        // sm.sendMessage(sm.obtainMessage(
-                        //         HeadsetClientStateMachine.SET_SPEAKER_VOLUME, streamValue, 0));
-                    }
+                    int hfVol = HeadsetClientStateMachine.amToHfVol(streamValue);
+                    Log.d(TAG, "Setting volume to audio manager: " + streamValue + " hands free: "
+                                    + hfVol);
+                    mAudioManager.setParameters("hfp_volume=" + hfVol);
                 }
             }
         }
