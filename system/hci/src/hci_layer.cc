@@ -26,7 +26,6 @@
 #include <base/logging.h>
 #include <hwbinder/ProcessState.h>
 
-#include <assert.h>
 #include <signal.h>
 #include <string.h>
 #include <sys/types.h>
@@ -245,7 +244,8 @@ static future_t* hci_module_start_up(void) {
                                event_packet_ready, NULL);
 
   btHci = IBluetoothHci::getService();
-  assert(btHci != nullptr);
+  // If android.hardware.bluetooth* is not found, Bluetooth can not continue.
+  CHECK(btHci != nullptr);
   LOG_INFO(LOG_TAG, "%s: IBluetoothHci::getService() returned %p (%s)",
             __func__, btHci.get(), (btHci->isRemote() ? "remote" : "local"));
 
