@@ -189,6 +189,10 @@ public class HfpClientConnection extends Connection {
         return mClosing;
     }
 
+    public synchronized BluetoothDevice getDevice() {
+        return mDevice;
+    }
+
     @Override
     public synchronized void onPlayDtmfTone(char c) {
         if (DBG) {

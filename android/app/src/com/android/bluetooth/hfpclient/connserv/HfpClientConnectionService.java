@@ -46,11 +46,12 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 
 public class HfpClientConnectionService extends ConnectionService {
     private static final String TAG = "HfpClientConnService";
-    private static final boolean DBG = false;
+    private static final boolean DBG = true;
 
     public static final String HFP_SCHEME = "hfpc";
 
@@ -251,16 +252,18 @@ public class HfpClientConnectionService extends ConnectionService {
             Log.d(TAG, "onConference " + connection1 + " " + connection2);
         }
 
-        // TODO: Fix conference calling
+        BluetoothDevice bd1 = ((HfpClientConnection) connection1).getDevice();
+        BluetoothDevice bd2 = ((HfpClientConnection) connection2).getDevice();
         // We can only conference two connections on same device
-        // if (!connection1.getCall().getDevice().equals(connection2.getCall().getDevice())) {
-        //     Log.e(TAG, "Cannot conference calls from two different devices " +
-        //         "conn1 " + connection1 + " conn2 " + connection2);
-        //     return;
-        // }
+        if (!Objects.equals(bd1, bd2)) {
+            Log.e(TAG, "Cannot conference calls from two different devices "
+                            + "bd1 " + bd1 + " bd2 " + bd2 + " conn1 " + connection1
+                            + "connection2 " + connection2);
+            return;
+        }
 
-        // HfpClientDeviceBlock block = findBlockForDevice(connection1.getCall().getDevice());
-        // block.onConference(connection1, connection2);
+        HfpClientDeviceBlock block = findBlockForDevice(bd1);
+        block.onConference(connection1, connection2);
     }
 
     private BluetoothDevice getDevice(PhoneAccountHandle handle) {
