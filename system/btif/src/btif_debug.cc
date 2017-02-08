@@ -28,10 +28,3 @@ void btif_debug_init(void) {
   btif_debug_btsnoop_init();
 #endif
 }
-
-// TODO: Find a better place for this to enable additional re-use
-uint64_t btif_debug_ts(void) {
-  struct timeval tv;
-  gettimeofday(&tv, NULL);
-  return (tv.tv_sec * 1000000LL) + tv.tv_usec;
-}
