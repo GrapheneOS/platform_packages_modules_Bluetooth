@@ -77,13 +77,6 @@ static tBTM_STATUS btm_pm_snd_md_req(uint8_t pm_id, int link_ind,
                                      tBTM_PM_PWR_MD* p_mode);
 static const char* mode_to_string(tBTM_PM_MODE mode);
 
-/*
-#ifdef BTM_PM_DEBUG
-#undef BTM_PM_DEBUG
-#define BTM_PM_DEBUG    true
-#endif
-*/
-
 #if (BTM_PM_DEBUG == TRUE)
 const char* btm_pm_state_str[] = {"pm_active_state", "pm_hold_state",
                                   "pm_sniff_state", "pm_park_state",

@@ -106,11 +106,11 @@ static void btu_hcif_keypress_notif_evt(uint8_t* p);
 static void btu_hcif_rem_oob_request_evt(uint8_t* p);
 
 static void btu_hcif_simple_pair_complete_evt(uint8_t* p);
-#if L2CAP_NON_FLUSHABLE_PB_INCLUDED == true
+#if L2CAP_NON_FLUSHABLE_PB_INCLUDED == TRUE
 static void btu_hcif_enhanced_flush_complete_evt(void);
 #endif
 
-#if (BTM_SSR_INCLUDED == true)
+#if (BTM_SSR_INCLUDED == TRUE)
 static void btu_hcif_ssr_evt(uint8_t* p, uint16_t evt_len);
 #endif /* BTM_SSR_INCLUDED == TRUE */
 
@@ -1322,7 +1322,7 @@ static void btu_hcif_mode_change_evt(uint8_t* p) {
  * Returns          void
  *
  ******************************************************************************/
-#if (BTM_SSR_INCLUDED == true)
+#if (BTM_SSR_INCLUDED == TRUE)
 static void btu_hcif_ssr_evt(uint8_t* p, uint16_t evt_len) {
   btm_pm_proc_ssr_evt(p, evt_len);
 }

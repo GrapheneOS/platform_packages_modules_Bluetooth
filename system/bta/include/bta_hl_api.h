@@ -35,7 +35,7 @@
  ****************************************************************************/
 /* Extra Debug Code */
 #ifndef BTA_HL_DEBUG
-#define BTA_HL_DEBUG true
+#define BTA_HL_DEBUG TRUE
 #endif
 
 #ifndef BTA_HL_NUM_APPS
