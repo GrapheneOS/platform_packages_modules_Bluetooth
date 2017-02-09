@@ -174,6 +174,14 @@ int A2DP_GetVariableBitRateSupportAac(const uint8_t* p_codec_info);
 // contains invalid codec information.
 int A2DP_GetBitRateAac(const uint8_t* p_codec_info);
 
+// Computes the maximum bit rate for the A2DP AAC codec based on the MTU.
+// The actual value is codec-specific - for AAC it is in bits per second.
+// |p_codec_info| is a pointer to the AAC codec_info to decode.
+// |mtu| is the MTU to use for the computation.
+// Returns the maximum bit rate on success, or -1 if |p_codec_info|
+// contains invalid codec information.
+int A2DP_ComputeMaxBitRateAac(const uint8_t* p_codec_info, uint16_t mtu);
+
 // Gets the A2DP AAC audio data timestamp from an audio packet.
 // |p_codec_info| contains the codec information.
 // |p_data| contains the audio data.
