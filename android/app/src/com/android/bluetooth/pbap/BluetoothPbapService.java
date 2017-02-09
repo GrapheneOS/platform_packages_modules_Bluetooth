@@ -180,8 +180,6 @@ public class BluetoothPbapService extends Service {
 
     // package and class name to which we send intent to check phone book access permission
     private static final String ACCESS_AUTHORITY_PACKAGE = "com.android.settings";
-    private static final String ACCESS_AUTHORITY_CLASS =
-        "com.android.settings.bluetooth.BluetoothPermissionRequest";
 
     public BluetoothPbapService() {
         mState = BluetoothPbap.STATE_DISCONNECTED;
@@ -234,44 +232,31 @@ public class BluetoothPbapService extends Service {
         int state = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.ERROR);
         if (VERBOSE) Log.v(TAG, "state: " + state);
 
-        boolean removeTimeoutMsg = true;
-        if (action.equals(BluetoothAdapter.ACTION_STATE_CHANGED)) {
-            if (state == BluetoothAdapter.STATE_TURNING_OFF) {
-                // Send any pending timeout now, as this service will be destroyed.
-                if (mSessionStatusHandler.hasMessages(USER_TIMEOUT)) {
-                    Intent timeoutIntent =
-                        new Intent(BluetoothDevice.ACTION_CONNECTION_ACCESS_CANCEL);
-                    timeoutIntent.setClassName(ACCESS_AUTHORITY_PACKAGE, ACCESS_AUTHORITY_CLASS);
-                    timeoutIntent.putExtra(BluetoothDevice.EXTRA_ACCESS_REQUEST_TYPE,
-                                     BluetoothDevice.REQUEST_TYPE_PHONEBOOK_ACCESS);
-                    sendBroadcast(timeoutIntent, BLUETOOTH_ADMIN_PERM);
-                }
-                // Release all resources
-                closeService();
-            } else {
-                removeTimeoutMsg = false;
+        if (action.equals(BluetoothAdapter.ACTION_STATE_CHANGED)
+                && (state == BluetoothAdapter.STATE_TURNING_OFF)) {
+            // Send any pending timeout now, as this service will be destroyed.
+            if (mSessionStatusHandler.hasMessages(USER_TIMEOUT)) {
+                mSessionStatusHandler.removeMessages(USER_TIMEOUT);
+                mSessionStatusHandler.obtainMessage(USER_TIMEOUT).sendToTarget();
             }
-        } else if (action.equals(BluetoothDevice.ACTION_ACL_DISCONNECTED)
-                && mIsWaitingAuthorization) {
+            // Release all resources
+            closeService();
+            return;
+        }
+
+        if (action.equals(BluetoothDevice.ACTION_ACL_DISCONNECTED) && mIsWaitingAuthorization) {
             BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
 
-            if (mRemoteDevice == null || device == null) {
-                Log.e(TAG, "Unexpected error!");
-                return;
-            }
-
+            if (mRemoteDevice == null) return;
             if (DEBUG) Log.d(TAG,"ACL disconnected for "+ device);
-
             if (mRemoteDevice.equals(device)) {
-                Intent cancelIntent = new Intent(BluetoothDevice.ACTION_CONNECTION_ACCESS_CANCEL);
-                cancelIntent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
-                cancelIntent.putExtra(BluetoothDevice.EXTRA_ACCESS_REQUEST_TYPE,
-                                      BluetoothDevice.REQUEST_TYPE_PHONEBOOK_ACCESS);
-                sendBroadcast(cancelIntent);
-                mIsWaitingAuthorization = false;
-                stopObexServerSession();
+                mSessionStatusHandler.removeMessages(USER_TIMEOUT);
+                mSessionStatusHandler.obtainMessage(USER_TIMEOUT).sendToTarget();
             }
-        } else if (action.equals(BluetoothDevice.ACTION_CONNECTION_ACCESS_REPLY)) {
+            return;
+        }
+
+        if (action.equals(BluetoothDevice.ACTION_CONNECTION_ACCESS_REPLY)) {
             int requestType = intent.getIntExtra(BluetoothDevice.EXTRA_ACCESS_REQUEST_TYPE,
                                            BluetoothDevice.REQUEST_TYPE_PHONEBOOK_ACCESS);
 
@@ -281,6 +266,7 @@ public class BluetoothPbapService extends Service {
                 return;
             }
 
+            mSessionStatusHandler.removeMessages(USER_TIMEOUT);
             mIsWaitingAuthorization = false;
 
             if (intent.getIntExtra(BluetoothDevice.EXTRA_CONNECTION_ACCESS_RESULT,
@@ -290,7 +276,7 @@ public class BluetoothPbapService extends Service {
                     boolean result = mRemoteDevice.setPhonebookAccessPermission(
                             BluetoothDevice.ACCESS_ALLOWED);
                     if (VERBOSE) {
-                        Log.v(TAG, "setPhonebookAccessPermission(ACCESS_ALLOWED) result=" + result);
+                        Log.v(TAG, "setPhonebookAccessPermission(ACCESS_ALLOWED)=" + result);
                     }
                 }
                 try {
@@ -307,24 +293,25 @@ public class BluetoothPbapService extends Service {
                     boolean result = mRemoteDevice.setPhonebookAccessPermission(
                             BluetoothDevice.ACCESS_REJECTED);
                     if (VERBOSE) {
-                        Log.v(TAG, "setPhonebookAccessPermission(ACCESS_REJECTED) result="
-                                + result);
+                        Log.v(TAG, "setPhonebookAccessPermission(ACCESS_REJECTED)=" + result);
                     }
                 }
                 stopObexServerSession();
             }
-        } else if (action.equals(AUTH_RESPONSE_ACTION)) {
+            return;
+        }
+
+        if (action.equals(AUTH_RESPONSE_ACTION)) {
             String sessionkey = intent.getStringExtra(EXTRA_SESSION_KEY);
             notifyAuthKeyInput(sessionkey);
         } else if (action.equals(AUTH_CANCELLED_ACTION)) {
             notifyAuthCancelled();
         } else {
-            removeTimeoutMsg = false;
+            Log.w(TAG, "Unrecognized intent!");
+            return;
         }
 
-        if (removeTimeoutMsg) {
-            mSessionStatusHandler.removeMessages(USER_TIMEOUT);
-        }
+        mSessionStatusHandler.removeMessages(USER_TIMEOUT);
     }
 
     @Override
@@ -625,7 +612,7 @@ public class BluetoothPbapService extends Service {
                         // Send an Intent to Settings app to ask user preference.
                         Intent intent =
                                 new Intent(BluetoothDevice.ACTION_CONNECTION_ACCESS_REQUEST);
-                        intent.setClassName(ACCESS_AUTHORITY_PACKAGE, ACCESS_AUTHORITY_CLASS);
+                        intent.setPackage(ACCESS_AUTHORITY_PACKAGE);
                         intent.putExtra(BluetoothDevice.EXTRA_ACCESS_REQUEST_TYPE,
                                         BluetoothDevice.REQUEST_TYPE_PHONEBOOK_ACCESS);
                         intent.putExtra(BluetoothDevice.EXTRA_DEVICE, mRemoteDevice);
@@ -682,10 +669,11 @@ public class BluetoothPbapService extends Service {
                     break;
                 case USER_TIMEOUT:
                     Intent intent = new Intent(BluetoothDevice.ACTION_CONNECTION_ACCESS_CANCEL);
+                    intent.setPackage(ACCESS_AUTHORITY_PACKAGE);
                     intent.putExtra(BluetoothDevice.EXTRA_DEVICE, mRemoteDevice);
                     intent.putExtra(BluetoothDevice.EXTRA_ACCESS_REQUEST_TYPE,
                                     BluetoothDevice.REQUEST_TYPE_PHONEBOOK_ACCESS);
-                    sendBroadcast(intent);
+                    sendBroadcast(intent, BLUETOOTH_ADMIN_PERM);
                     mIsWaitingAuthorization = false;
                     stopObexServerSession();
                     break;
