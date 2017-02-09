@@ -72,6 +72,8 @@ final class BondStateMachine extends StateMachine {
 
     public static final String OOBDATA = "oobdata";
 
+    private static final String PAIRING_REQUEST_PACKAGE = "com.android.settings";
+
     private BondStateMachine(AdapterService service,
             AdapterProperties prop, RemoteDevices remoteDevices) {
         super("BondStateMachine:");
@@ -176,8 +178,6 @@ final class BondStateMachine extends StateMachine {
                  deferMessage(msg);
                  return true;
              }
-
-            Intent intent = new Intent(BluetoothDevice.ACTION_PAIRING_REQUEST);
 
             switch (msg.what) {
                 case CREATE_BOND:
@@ -326,6 +326,7 @@ final class BondStateMachine extends StateMachine {
         }
         intent.putExtra(BluetoothDevice.EXTRA_PAIRING_VARIANT, variant);
         intent.setFlags(Intent.FLAG_RECEIVER_FOREGROUND);
+        intent.setPackage(PAIRING_REQUEST_PACKAGE);
         mAdapterService.sendOrderedBroadcast(intent, mAdapterService.BLUETOOTH_ADMIN_PERM);
     }
 
@@ -344,6 +345,7 @@ final class BondStateMachine extends StateMachine {
         intent.putExtra(BluetoothDevice.EXTRA_PREVIOUS_BOND_STATE, oldState);
         if (newState == BluetoothDevice.BOND_NONE)
             intent.putExtra(BluetoothDevice.EXTRA_REASON, reason);
+        intent.setPackage(PAIRING_REQUEST_PACKAGE);
         mAdapterService.sendBroadcastAsUser(intent, UserHandle.ALL,
                 AdapterService.BLUETOOTH_PERM);
         infoLog("Bond State Change Intent:" + device + " OldState: " + oldState
