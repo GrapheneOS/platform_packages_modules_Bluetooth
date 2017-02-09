@@ -582,7 +582,10 @@ class AvrcpControllerStateMachine extends StateMachine {
                     // for the list to populate.
                     sendFolderBroadcastAndUpdateNode();
 
-                    if (mCurrInd > mEndInd) {
+                    if (mCurrInd > mEndInd || folderList.size() == 0) {
+                        // If we have fetched all the elements or if the remotes sends us 0 elements
+                        // (which can lead us into a loop since mCurrInd does not proceed) we simply
+                        // abort.
                         transitionTo(mConnected);
                     } else {
                         // Fetch the next set of items.
