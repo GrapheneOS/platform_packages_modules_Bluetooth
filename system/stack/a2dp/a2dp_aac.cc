@@ -497,6 +497,40 @@ int A2DP_GetBitRateAac(const uint8_t* p_codec_info) {
   return aac_cie.bitRate;
 }
 
+int A2DP_ComputeMaxBitRateAac(const uint8_t* p_codec_info, uint16_t mtu) {
+  tA2DP_AAC_CIE aac_cie;
+
+  // Check whether the codec info contains valid data
+  tA2DP_STATUS a2dp_status = A2DP_ParseInfoAac(&aac_cie, p_codec_info, false);
+  if (a2dp_status != A2DP_SUCCESS) {
+    LOG_ERROR(LOG_TAG, "%s: cannot decode codec information: %d", __func__,
+              a2dp_status);
+    return -1;
+  }
+
+  int sampling_freq = A2DP_GetTrackSampleRateAac(p_codec_info);
+  if (sampling_freq == -1) return -1;
+
+  int pcm_channel_samples_per_frame = 0;
+  switch (aac_cie.objectType) {
+    case A2DP_AAC_OBJECT_TYPE_MPEG2_LC:
+    case A2DP_AAC_OBJECT_TYPE_MPEG4_LC:
+      pcm_channel_samples_per_frame = 1024;
+      break;
+    case A2DP_AAC_OBJECT_TYPE_MPEG4_LTP:
+    case A2DP_AAC_OBJECT_TYPE_MPEG4_SCALABLE:
+      // TODO: The MPEG documentation doesn't specify the value.
+      break;
+    default:
+      break;
+  }
+  if (pcm_channel_samples_per_frame == 0) return -1;
+
+  // See Section 3.2.1 Estimating Average Frame Size from
+  // the aacEncoder.pdf document included with the AAC source code.
+  return (8 * mtu * sampling_freq) / pcm_channel_samples_per_frame;
+}
+
 bool A2DP_GetPacketTimestampAac(const uint8_t* p_codec_info,
                                 const uint8_t* p_data, uint32_t* p_timestamp) {
   // TODO: Is this function really codec-specific?
@@ -928,10 +962,15 @@ bool A2dpCodecConfigAac::setCodecConfig(const uint8_t* p_peer_codec_info,
 
   // Set the bit rate to the smaller of the local and peer bit rate
   // However, make sure the bit rate doesn't go beyond a certain threshold
-  result_config_cie.bitRate =
-      std::min(a2dp_aac_caps.bitRate, sink_info_cie.bitRate);
-  result_config_cie.bitRate = std::max(
-      result_config_cie.bitRate, static_cast<uint32_t>(A2DP_AAC_MIN_BITRATE));
+  if (sink_info_cie.bitRate == 0) {
+    // NOTE: Some devices report bitRate of zero - in that case use our bitRate
+    result_config_cie.bitRate = a2dp_aac_caps.bitRate;
+  } else {
+    result_config_cie.bitRate =
+        std::min(a2dp_aac_caps.bitRate, sink_info_cie.bitRate);
+    result_config_cie.bitRate = std::max(
+        result_config_cie.bitRate, static_cast<uint32_t>(A2DP_AAC_MIN_BITRATE));
+  }
 
   //
   // Select the sample frequency
