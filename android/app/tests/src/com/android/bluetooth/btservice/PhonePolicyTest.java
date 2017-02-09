@@ -213,6 +213,7 @@ public class PhonePolicyTest extends AndroidTestCase {
         intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
         intent.putExtra(BluetoothProfile.EXTRA_PREVIOUS_STATE, BluetoothProfile.STATE_DISCONNECTED);
         intent.putExtra(BluetoothProfile.EXTRA_STATE, BluetoothProfile.STATE_CONNECTED);
+        intent.addFlags(Intent.FLAG_RECEIVER_INCLUDE_BACKGROUND);
         injector.onReceive(null /* context */, intent);
 
         // We should see (in CONNECT_OTHER_PROFILES_TIMEOUT) a call to connect A2DP
@@ -274,6 +275,7 @@ public class PhonePolicyTest extends AndroidTestCase {
         intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
         intent.putExtra(BluetoothProfile.EXTRA_PREVIOUS_STATE, BluetoothProfile.STATE_DISCONNECTED);
         intent.putExtra(BluetoothProfile.EXTRA_STATE, BluetoothProfile.STATE_CONNECTED);
+        intent.addFlags(Intent.FLAG_RECEIVER_INCLUDE_BACKGROUND);
         injector.onReceive(null /* context */, intent);
 
         // Return an empty list simulating that the above connection successful was nullified
