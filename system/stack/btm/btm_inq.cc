@@ -118,8 +118,8 @@ static void btm_clr_inq_result_flt(void);
 
 static uint8_t btm_convert_uuid_to_eir_service(uint16_t uuid16);
 static void btm_set_eir_uuid(uint8_t* p_eir, tBTM_INQ_RESULTS* p_results);
-static uint8_t* btm_eir_get_uuid_list(uint8_t* p_eir, uint8_t uuid_size,
-                                      uint8_t* p_num_uuid,
+static uint8_t* btm_eir_get_uuid_list(uint8_t* p_eir, size_t eir_len,
+                                      uint8_t uuid_size, uint8_t* p_num_uuid,
                                       uint8_t* p_uuid_list_type);
 static uint16_t btm_convert_uuid_to_uuid16(uint8_t* p_uuid, uint8_t uuid_size);
 
@@ -1885,7 +1885,7 @@ void btm_process_inq_results(uint8_t* p, uint8_t inq_res_mode) {
 
       /* If a callback is registered, call it with the results */
       if (p_inq_results_cb)
-        (p_inq_results_cb)((tBTM_INQ_RESULTS*)p_cur, p_eir_data);
+        (p_inq_results_cb)((tBTM_INQ_RESULTS*)p_cur, p_eir_data, 62);
     }
   }
 }
@@ -2305,36 +2305,33 @@ tBTM_STATUS BTM_WriteEIR(BT_HDR* p_buff) {
   }
 }
 
-/*******************************************************************************
- *
- * Function         BTM_CheckEirData
- *
- * Description      This function is called to get EIR data from significant
- *                  part.
- *
- * Parameters       p_eir - pointer of EIR significant part
- *                  type   - finding EIR data type
- *                  p_length - return the length of EIR data not including type
- *
- * Returns          pointer of EIR data
- *
- ******************************************************************************/
-uint8_t* BTM_CheckEirData(uint8_t* p_eir, uint8_t type, uint8_t* p_length) {
-  uint8_t* p = p_eir;
-  uint8_t length;
-  uint8_t eir_type;
-  BTM_TRACE_API("BTM_CheckEirData type=0x%02X", type);
+/**
+ * This function returns a pointer inside the |p_eir| array of length |eir_len|
+ * where a field of |type| is located, together with its length in |p_length|
+ */
+uint8_t* BTM_CheckEirData(uint8_t* p_eir, size_t eir_len, uint8_t type,
+                          uint8_t* p_length) {
+  BTM_TRACE_API("%s: type=0x%02x", __func__, type);
 
-  STREAM_TO_UINT8(length, p);
-  while (length && (p - p_eir <= HCI_EXT_INQ_RESPONSE_LEN)) {
-    STREAM_TO_UINT8(eir_type, p);
-    if (eir_type == type) {
+  if (eir_len == 0) {
+    *p_length = 0;
+    return NULL;
+  }
+
+  uint8_t position = 0;
+  uint8_t length = p_eir[position];
+
+  while (length > 0 && (position < eir_len)) {
+    uint8_t adv_type = p_eir[position + 1];
+
+    if (adv_type == type) {
       /* length doesn't include itself */
       *p_length = length - 1; /* minus the length of type */
-      return p;
+      return p_eir + position + 2;
     }
-    p += length - 1; /* skip the length of data */
-    STREAM_TO_UINT8(length, p);
+
+    position += length + 1; /* skip the length of data */
+    length = p_eir[position];
   }
 
   *p_length = 0;
@@ -2500,6 +2497,7 @@ uint8_t BTM_GetEirSupportedServices(uint32_t* p_eir_uuid, uint8_t** p,
  * Description      This function parses EIR and returns UUID list.
  *
  * Parameters       p_eir - EIR
+ *                  eir_len - EIR len
  *                  uuid_size - LEN_UUID_16, LEN_UUID_32, LEN_UUID_128
  *                  p_num_uuid - return number of UUID in found list
  *                  p_uuid_list - return UUID list
@@ -2514,7 +2512,7 @@ uint8_t BTM_GetEirSupportedServices(uint32_t* p_eir_uuid, uint8_t** p,
  *                  BTM_EIR_MORE_128BITS_UUID_TYPE
  *
  ******************************************************************************/
-uint8_t BTM_GetEirUuidList(uint8_t* p_eir, uint8_t uuid_size,
+uint8_t BTM_GetEirUuidList(uint8_t* p_eir, size_t eir_len, uint8_t uuid_size,
                            uint8_t* p_num_uuid, uint8_t* p_uuid_list,
                            uint8_t max_num_uuid) {
   uint8_t* p_uuid_data;
@@ -2524,19 +2522,19 @@ uint8_t BTM_GetEirUuidList(uint8_t* p_eir, uint8_t uuid_size,
   uint32_t* p_uuid32 = (uint32_t*)p_uuid_list;
   char buff[LEN_UUID_128 * 2 + 1];
 
-  p_uuid_data = btm_eir_get_uuid_list(p_eir, uuid_size, p_num_uuid, &type);
+  p_uuid_data =
+      btm_eir_get_uuid_list(p_eir, eir_len, uuid_size, p_num_uuid, &type);
   if (p_uuid_data == NULL) {
     return 0x00;
   }
 
   if (*p_num_uuid > max_num_uuid) {
-    BTM_TRACE_WARNING(
-        "BTM_GetEirUuidList number of uuid in EIR = %d, size of uuid list = %d",
-        *p_num_uuid, max_num_uuid);
+    BTM_TRACE_WARNING("%s: number of uuid in EIR = %d, size of uuid list = %d",
+                      __func__, *p_num_uuid, max_num_uuid);
     *p_num_uuid = max_num_uuid;
   }
 
-  BTM_TRACE_DEBUG("BTM_GetEirUuidList type = %02X, number of uuid = %d", type,
+  BTM_TRACE_DEBUG("%s: type = %02X, number of uuid = %d", __func__, type,
                   *p_num_uuid);
 
   if (uuid_size == LEN_UUID_16) {
@@ -2569,6 +2567,7 @@ uint8_t BTM_GetEirUuidList(uint8_t* p_eir, uint8_t uuid_size,
  * Description      This function searches UUID list in EIR.
  *
  * Parameters       p_eir - address of EIR
+ *                  eir_len - EIR length
  *                  uuid_size - size of UUID to find
  *                  p_num_uuid - number of UUIDs found
  *                  p_uuid_list_type - EIR data type
@@ -2577,8 +2576,8 @@ uint8_t BTM_GetEirUuidList(uint8_t* p_eir, uint8_t uuid_size,
  *                  beginning of UUID list in EIR - otherwise
  *
  ******************************************************************************/
-static uint8_t* btm_eir_get_uuid_list(uint8_t* p_eir, uint8_t uuid_size,
-                                      uint8_t* p_num_uuid,
+static uint8_t* btm_eir_get_uuid_list(uint8_t* p_eir, size_t eir_len,
+                                      uint8_t uuid_size, uint8_t* p_num_uuid,
                                       uint8_t* p_uuid_list_type) {
   uint8_t* p_uuid_data;
   uint8_t complete_type, more_type;
@@ -2603,9 +2602,9 @@ static uint8_t* btm_eir_get_uuid_list(uint8_t* p_eir, uint8_t uuid_size,
       break;
   }
 
-  p_uuid_data = BTM_CheckEirData(p_eir, complete_type, &uuid_len);
+  p_uuid_data = BTM_CheckEirData(p_eir, eir_len, complete_type, &uuid_len);
   if (p_uuid_data == NULL) {
-    p_uuid_data = BTM_CheckEirData(p_eir, more_type, &uuid_len);
+    p_uuid_data = BTM_CheckEirData(p_eir, eir_len, more_type, &uuid_len);
     *p_uuid_list_type = more_type;
   } else {
     *p_uuid_list_type = complete_type;
@@ -2690,7 +2689,8 @@ void btm_set_eir_uuid(uint8_t* p_eir, tBTM_INQ_RESULTS* p_results) {
   uint8_t yy;
   uint8_t type = BTM_EIR_MORE_16BITS_UUID_TYPE;
 
-  p_uuid_data = btm_eir_get_uuid_list(p_eir, LEN_UUID_16, &num_uuid, &type);
+  p_uuid_data = btm_eir_get_uuid_list(p_eir, HCI_EXT_INQ_RESPONSE_LEN,
+                                      LEN_UUID_16, &num_uuid, &type);
 
   if (type == BTM_EIR_COMPLETE_16BITS_UUID_TYPE) {
     p_results->eir_complete_list = true;
@@ -2708,7 +2708,8 @@ void btm_set_eir_uuid(uint8_t* p_eir, tBTM_INQ_RESULTS* p_results) {
     }
   }
 
-  p_uuid_data = btm_eir_get_uuid_list(p_eir, LEN_UUID_32, &num_uuid, &type);
+  p_uuid_data = btm_eir_get_uuid_list(p_eir, HCI_EXT_INQ_RESPONSE_LEN,
+                                      LEN_UUID_32, &num_uuid, &type);
   if (p_uuid_data) {
     for (yy = 0; yy < num_uuid; yy++) {
       uuid16 = btm_convert_uuid_to_uuid16(p_uuid_data, LEN_UUID_32);
@@ -2717,7 +2718,8 @@ void btm_set_eir_uuid(uint8_t* p_eir, tBTM_INQ_RESULTS* p_results) {
     }
   }
 
-  p_uuid_data = btm_eir_get_uuid_list(p_eir, LEN_UUID_128, &num_uuid, &type);
+  p_uuid_data = btm_eir_get_uuid_list(p_eir, HCI_EXT_INQ_RESPONSE_LEN,
+                                      LEN_UUID_128, &num_uuid, &type);
   if (p_uuid_data) {
     for (yy = 0; yy < num_uuid; yy++) {
       uuid16 = btm_convert_uuid_to_uuid16(p_uuid_data, LEN_UUID_128);

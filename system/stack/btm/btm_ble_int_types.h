@@ -121,9 +121,6 @@ typedef struct {
   tBLE_BD_ADDR le_bda;
 } tINQ_LE_BDADDR;
 
-#define BTM_BLE_ADV_DATA_LEN_MAX 31
-#define BTM_BLE_CACHE_ADV_DATA_MAX 62
-
 #define BTM_BLE_ISVALID_PARAM(x, min, max) \
   (((x) >= (min) && (x) <= (max)) || ((x) == BTM_BLE_CONN_PARAM_UNDEF))
 
@@ -149,9 +146,6 @@ typedef struct {
   tBTM_BLE_EVT directed_conn;
   bool fast_adv_on;
   alarm_t* fast_adv_timer;
-
-  uint8_t adv_len;
-  uint8_t adv_data_cache[BTM_BLE_CACHE_ADV_DATA_MAX];
 
   /* inquiry BD addr database */
   uint8_t num_bd_entries;
