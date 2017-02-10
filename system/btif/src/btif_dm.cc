@@ -348,13 +348,13 @@ static bool check_eir_remote_name(tBTA_DM_SEARCH* p_search_data,
 
   /* Check EIR for remote name and services */
   if (p_search_data->inq_res.p_eir) {
-    p_eir_remote_name =
-        BTM_CheckEirData(p_search_data->inq_res.p_eir,
-                         BTM_EIR_COMPLETE_LOCAL_NAME_TYPE, &remote_name_len);
+    p_eir_remote_name = BTM_CheckEirData(
+        p_search_data->inq_res.p_eir, p_search_data->inq_res.eir_len,
+        BTM_EIR_COMPLETE_LOCAL_NAME_TYPE, &remote_name_len);
     if (!p_eir_remote_name) {
-      p_eir_remote_name =
-          BTM_CheckEirData(p_search_data->inq_res.p_eir,
-                           BTM_EIR_SHORTENED_LOCAL_NAME_TYPE, &remote_name_len);
+      p_eir_remote_name = BTM_CheckEirData(
+          p_search_data->inq_res.p_eir, p_search_data->inq_res.eir_len,
+          BTM_EIR_SHORTENED_LOCAL_NAME_TYPE, &remote_name_len);
     }
 
     if (p_eir_remote_name) {
@@ -1273,7 +1273,8 @@ static void btif_dm_search_devices_evt(uint16_t event, char* p_param) {
 
       /* Check EIR for remote name and services */
       if (p_search_data->inq_res.p_eir) {
-        BTA_GetEirService(p_search_data->inq_res.p_eir, &services);
+        BTA_GetEirService(p_search_data->inq_res.p_eir,
+                          p_search_data->inq_res.eir_len, &services);
         BTIF_TRACE_DEBUG("%s()EIR BTA services = %08X", __func__,
                          (uint32_t)services);
         /* TODO:  Get the service list and check to see which uuids we got and

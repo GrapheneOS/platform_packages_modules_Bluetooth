@@ -710,7 +710,7 @@ typedef void(tBTM_INQ_DB_CHANGE_CB)(void* p1, bool is_new);
  * First param is inquiry results database, second is pointer of EIR.
 */
 typedef void(tBTM_INQ_RESULTS_CB)(tBTM_INQ_RESULTS* p_inq_results,
-                                  uint8_t* p_eir);
+                                  uint8_t* p_eir, uint8_t eir_len);
 
 /*****************************************************************************
  *  ACL CHANNEL MANAGEMENT

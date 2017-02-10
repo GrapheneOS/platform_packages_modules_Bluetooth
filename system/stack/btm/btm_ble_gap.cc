@@ -24,9 +24,12 @@
 
 #define LOG_TAG "bt_btm_ble"
 
+#include <base/strings/string_number_conversions.h>
 #include <stddef.h>
 #include <stdio.h>
 #include <string.h>
+#include <list>
+#include <vector>
 
 #include "bt_types.h"
 #include "bt_utils.h"
@@ -55,6 +58,85 @@
 #define BTM_VSC_CHIP_CAPABILITY_RSP_LEN_L_RELEASE 9
 
 extern fixed_queue_t* btu_general_alarm_queue;
+
+namespace {
+
+class AdvertisingCache {
+ public:
+  /* Set the data to |data| for device |addr_type, addr| */
+  const std::vector<uint8_t>& Set(uint8_t addr_type, BD_ADDR addr,
+                                  std::vector<uint8_t> data) {
+    auto it = Find(addr_type, addr);
+    if (it != items.end()) {
+      it->data = std::move(data);
+      return it->data;
+    }
+
+    if (items.size() > cache_max) {
+      items.pop_back();
+    }
+
+    items.emplace_front(addr_type, addr, std::move(data));
+    return items.front().data;
+  }
+
+  /* Append |data| for device |addr_type, addr| */
+  const std::vector<uint8_t>& Append(uint8_t addr_type, BD_ADDR addr,
+                                     std::vector<uint8_t> data) {
+    auto it = Find(addr_type, addr);
+    if (it != items.end()) {
+      it->data.insert(it->data.end(), data.begin(), data.end());
+      return it->data;
+    }
+
+    if (items.size() > cache_max) {
+      items.pop_back();
+    }
+
+    items.emplace_front(addr_type, addr, std::move(data));
+    return items.front().data;
+  }
+
+  /* Clear data for device |addr_type, addr| */
+  void Clear(uint8_t addr_type, BD_ADDR addr) {
+    auto it = Find(addr_type, addr);
+    if (it != items.end()) {
+      items.erase(it);
+    }
+  }
+
+ private:
+  struct Item {
+    uint8_t addr_type;
+    BD_ADDR addr;
+    std::vector<uint8_t> data;
+
+    Item(uint8_t addr_type, BD_ADDR addr, std::vector<uint8_t> data)
+        : addr_type(addr_type), data(data) {
+      memcpy(this->addr, addr, BD_ADDR_LEN);
+    }
+  };
+
+  std::list<Item>::iterator Find(uint8_t addr_type, BD_ADDR addr) {
+    for (auto it = items.begin(); it != items.end(); it++) {
+      if (it->addr_type == addr_type &&
+          memcmp(it->addr, addr, BD_ADDR_LEN) == 0) {
+        return it;
+      }
+    }
+    return items.end();
+  }
+
+  /* we keep maximum 7 devices in the cache */
+  const size_t cache_max = 7;
+  std::list<Item> items;
+};
+
+/* Devices in this cache are waiting for eiter scan response, or chained packets
+ * on secondary channel */
+AdvertisingCache cache;
+
+}  // namespace
 
 #if (BLE_VND_INCLUDED == TRUE)
 static tBTM_BLE_CTRL_FEATURES_CBACK* p_ctrl_le_feature_rd_cmpl_cback = NULL;
@@ -100,6 +182,10 @@ bool ble_evt_type_is_scan_resp(uint16_t evt_type) {
 
 bool ble_evt_type_is_legacy(uint16_t evt_type) {
   return evt_type & (1 << BLE_EVT_LEGACY_BIT);
+}
+
+uint8_t ble_evt_type_data_status(uint16_t evt_type) {
+  return (evt_type >> 5) & 3;
 }
 
 /* LE states combo bit to check */
@@ -1058,37 +1144,33 @@ void BTM_BleWriteScanRsp(uint8_t* data, uint8_t length,
   p_adv_data_cback(BTM_SUCCESS);
 }
 
-/*******************************************************************************
- *
- * Function         BTM_CheckAdvData
- *
- * Description      This function is called to get ADV data for a specific type.
- *
- * Parameters       p_adv - pointer of ADV data
- *                  type   - finding ADV data type
- *                  p_length - return the length of ADV data not including type
- *
- * Returns          pointer of ADV data
- *
- ******************************************************************************/
-uint8_t* BTM_CheckAdvData(uint8_t* p_adv, uint8_t type, uint8_t* p_length) {
-  uint8_t* p = p_adv;
-  uint8_t length;
-  uint8_t adv_type;
+/**
+ * This function returns a pointer inside the |adv| where a field of |type| is
+ * located, together with it' length in |p_length|
+ **/
+const uint8_t* BTM_CheckAdvData(std::vector<uint8_t> const& adv, uint8_t type,
+                                uint8_t* p_length) {
   BTM_TRACE_API("%s: type=0x%02x", __func__, type);
 
-  STREAM_TO_UINT8(length, p);
+  if (adv.empty()) {
+    *p_length = 0;
+    return NULL;
+  }
 
-  while (length && (p - p_adv <= BTM_BLE_CACHE_ADV_DATA_MAX)) {
-    STREAM_TO_UINT8(adv_type, p);
+  uint8_t position = 0;
+  uint8_t length = adv[position];
+
+  while (length > 0 && (position < adv.size())) {
+    uint8_t adv_type = adv[position + 1];
 
     if (adv_type == type) {
       /* length doesn't include itself */
       *p_length = length - 1; /* minus the length of type */
-      return p;
+      return adv.data() + position + 2;
     }
-    p += length - 1; /* skip the length of data */
-    STREAM_TO_UINT8(length, p);
+
+    position += length + 1; /* skip the length of data */
+    length = adv[position];
   }
 
   *p_length = 0;
@@ -1653,50 +1735,14 @@ static void btm_ble_update_adv_flag(uint8_t flag) {
 }
 
 /**
- * Update advertising cache data.
- */
-void btm_ble_cache_adv_data(UNUSED_ATTR tBTM_INQ_RESULTS* p_cur,
-                            uint8_t data_len, uint8_t* p, bool is_scan_resp) {
-  tBTM_BLE_INQ_CB* p_le_inq_cb = &btm_cb.ble_ctr_cb.inq_var;
-  uint8_t* p_cache;
-  uint8_t length;
-
-  /* cache adv report/scan response data */
-  if (!is_scan_resp) {
-    p_le_inq_cb->adv_len = 0;
-    memset(p_le_inq_cb->adv_data_cache, 0, BTM_BLE_CACHE_ADV_DATA_MAX);
-  }
-
-  if (data_len > 0) {
-    p_cache = &p_le_inq_cb->adv_data_cache[p_le_inq_cb->adv_len];
-    STREAM_TO_UINT8(length, p);
-    while (length && ((p_le_inq_cb->adv_len + length + 1) <=
-                      BTM_BLE_CACHE_ADV_DATA_MAX)) {
-      /* copy from the length byte & data into cache */
-      memcpy(p_cache, p - 1, length + 1);
-      /* advance the cache pointer past data */
-      p_cache += length + 1;
-      /* increment cache length */
-      p_le_inq_cb->adv_len += length + 1;
-      /* skip the length of data */
-      p += length;
-      STREAM_TO_UINT8(length, p);
-    }
-  }
-
-  /* parse service UUID from adv packet and save it in inq db eir_uuid */
-  /* TODO */
-}
-
-/**
  * Check ADV flag to make sure device is discoverable and match the search
  * condition
  */
-uint8_t btm_ble_is_discoverable(BD_ADDR bda) {
-  uint8_t *p_flag, flag = 0, rt = 0;
+uint8_t btm_ble_is_discoverable(BD_ADDR bda,
+                                std::vector<uint8_t> const& adv_data) {
+  uint8_t flag = 0, rt = 0;
   uint8_t data_len;
   tBTM_INQ_PARMS* p_cond = &btm_cb.btm_inq_vars.inqparms;
-  tBTM_BLE_INQ_CB* p_le_inq_cb = &btm_cb.ble_ctr_cb.inq_var;
 
   /* for observer, always "discoverable */
   if (BTM_BLE_IS_OBS_ACTIVE(btm_cb.ble_ctr_cb.scan_activity))
@@ -1709,9 +1755,9 @@ uint8_t btm_ble_is_discoverable(BD_ADDR bda) {
     return rt;
   }
 
-  if (p_le_inq_cb->adv_len != 0) {
-    p_flag = BTM_CheckAdvData(p_le_inq_cb->adv_data_cache, BTM_BLE_AD_TYPE_FLAG,
-                              &data_len);
+  if (!adv_data.empty()) {
+    const uint8_t* p_flag =
+        BTM_CheckAdvData(adv_data, BTM_BLE_AD_TYPE_FLAG, &data_len);
     if (p_flag != NULL) {
       flag = *p_flag;
 
@@ -1859,27 +1905,15 @@ static void btm_ble_appearance_to_cod(uint16_t appearance, uint8_t* dev_class) {
 /**
  * Update adv packet information into inquiry result.
  */
-bool btm_ble_update_inq_result(tINQ_DB_ENT* p_i, uint8_t addr_type,
+void btm_ble_update_inq_result(tINQ_DB_ENT* p_i, uint8_t addr_type, BD_ADDR bda,
                                uint16_t evt_type, uint8_t primary_phy,
                                uint8_t secondary_phy, uint8_t advertising_sid,
                                int8_t tx_power, int8_t rssi,
-                               uint16_t periodic_adv_int, uint8_t data_len,
-                               uint8_t* data) {
-  bool to_report = true;
+                               uint16_t periodic_adv_int,
+                               std::vector<uint8_t> const& data) {
   tBTM_INQ_RESULTS* p_cur = &p_i->inq_info.results;
   uint8_t len;
-  uint8_t* p_flag;
   tBTM_INQUIRY_VAR_ST* p_inq = &btm_cb.btm_inq_vars;
-  tBTM_BLE_INQ_CB* p_le_inq_cb = &btm_cb.ble_ctr_cb.inq_var;
-  uint8_t* p_uuid16;
-
-  if (data_len > BTM_BLE_ADV_DATA_LEN_MAX) {
-    BTM_TRACE_WARNING("EIR data too long %d. discard", data_len);
-    return false;
-  }
-
-  bool is_scan_resp = ble_evt_type_is_scan_resp(evt_type);
-  btm_ble_cache_adv_data(p_cur, data_len, data, is_scan_resp);
 
   /* Save the info */
   p_cur->inq_result_type = BTM_INQ_RESULT_BLE;
@@ -1891,14 +1925,10 @@ bool btm_ble_update_inq_result(tINQ_DB_ENT* p_i, uint8_t addr_type,
   p_cur->ble_tx_power = tx_power;
   p_cur->ble_periodic_adv_int = periodic_adv_int;
 
-  /* active scan, always wait until get scan_rsp to report the result */
   if (btm_cb.ble_ctr_cb.inq_var.scan_type == BTM_BLE_SCAN_MODE_ACTI &&
       ble_evt_type_is_scannable(evt_type) &&
       !ble_evt_type_is_scan_resp(evt_type)) {
-    BTM_TRACE_DEBUG("%s: scan_rsp=false, to_report=false, scan_type_active=%d",
-                    __func__, btm_cb.ble_ctr_cb.inq_var.scan_type);
     p_i->scan_rsp = false;
-    to_report = false;
   } else
     p_i->scan_rsp = true;
 
@@ -1911,13 +1941,12 @@ bool btm_ble_update_inq_result(tINQ_DB_ENT* p_i, uint8_t addr_type,
 
   p_i->inq_count = p_inq->inq_counter; /* Mark entry for current inquiry */
 
-  if (p_le_inq_cb->adv_len != 0) {
-    p_flag = BTM_CheckAdvData(p_le_inq_cb->adv_data_cache, BTM_BLE_AD_TYPE_FLAG,
-                              &len);
+  if (!data.empty()) {
+    const uint8_t* p_flag = BTM_CheckAdvData(data, BTM_BLE_AD_TYPE_FLAG, &len);
     if (p_flag != NULL) p_cur->flag = *p_flag;
   }
 
-  if (p_le_inq_cb->adv_len != 0) {
+  if (!data.empty()) {
     /* Check to see the BLE device has the Appearance UUID in the advertising
      * data.  If it does
      * then try to convert the appearance value to a class of device value
@@ -1925,14 +1954,13 @@ bool btm_ble_update_inq_result(tINQ_DB_ENT* p_i, uint8_t addr_type,
      * Otherwise fall back to trying to infer if it is a HID device based on the
      * service class.
      */
-    p_uuid16 = BTM_CheckAdvData(p_le_inq_cb->adv_data_cache,
-                                BTM_BLE_AD_TYPE_APPEARANCE, &len);
+    const uint8_t* p_uuid16 =
+        BTM_CheckAdvData(data, BTM_BLE_AD_TYPE_APPEARANCE, &len);
     if (p_uuid16 && len == 2) {
       btm_ble_appearance_to_cod((uint16_t)p_uuid16[0] | (p_uuid16[1] << 8),
                                 p_cur->dev_class);
     } else {
-      p_uuid16 = BTM_CheckAdvData(p_le_inq_cb->adv_data_cache,
-                                  BTM_BLE_AD_TYPE_16SRV_CMPL, &len);
+      p_uuid16 = BTM_CheckAdvData(data, BTM_BLE_AD_TYPE_16SRV_CMPL, &len);
       if (p_uuid16 != NULL) {
         uint8_t i;
         for (i = 0; i + 2 <= len; i = i + 2) {
@@ -1961,8 +1989,6 @@ bool btm_ble_update_inq_result(tINQ_DB_ENT* p_i, uint8_t addr_type,
   } else {
     BTM_TRACE_DEBUG("BR/EDR NOT SUPPORT bit set, LE only device");
   }
-
-  return to_report;
 }
 
 /*******************************************************************************
@@ -2154,11 +2180,43 @@ static void btm_ble_process_adv_pkt_cont(
     uint16_t evt_type, uint8_t addr_type, BD_ADDR bda, uint8_t primary_phy,
     uint8_t secondary_phy, uint8_t advertising_sid, int8_t tx_power,
     int8_t rssi, uint16_t periodic_adv_int, uint8_t data_len, uint8_t* data) {
-  tINQ_DB_ENT* p_i;
   tBTM_INQUIRY_VAR_ST* p_inq = &btm_cb.btm_inq_vars;
   bool update = true;
 
-  p_i = btm_inq_db_find(bda);
+  std::vector<uint8_t> tmp;
+  if (data_len != 0) tmp.insert(tmp.begin(), data, data + data_len);
+
+  bool is_scannable = ble_evt_type_is_scannable(evt_type);
+  bool is_scan_resp = ble_evt_type_is_scan_resp(evt_type);
+
+  // We might have send scan request to this device before, but didn't get the
+  // response. In such case make sure data is put at start, not appended to
+  // already existing data.
+  bool is_start =
+      ble_evt_type_is_legacy(evt_type) && is_scannable && !is_scan_resp;
+  std::vector<uint8_t> const& adv_data =
+      is_start ? cache.Set(addr_type, bda, std::move(tmp))
+               : cache.Append(addr_type, bda, std::move(tmp));
+
+  bool data_complete = (ble_evt_type_data_status(evt_type) != 0x01);
+
+  if (!data_complete) {
+    // If we didn't receive whole adv data yet, don't report the device.
+    DVLOG(1) << "Data not complete yet, waiting for more "
+             << base::HexEncode(bda, BD_ADDR_LEN);
+    return;
+  }
+
+  bool is_active_scan =
+      btm_cb.ble_ctr_cb.inq_var.scan_type == BTM_BLE_SCAN_MODE_ACTI;
+  if (is_active_scan && is_scannable && !is_scan_resp) {
+    // If we didn't receive scan response yet, don't report the device.
+    DVLOG(1) << " Waiting for scan response "
+             << base::HexEncode(bda, BD_ADDR_LEN);
+    return;
+  }
+
+  tINQ_DB_ENT* p_i = btm_inq_db_find(bda);
 
   /* Check if this address has already been processed for this inquiry */
   if (btm_inq_find_bdaddr(bda)) {
@@ -2187,19 +2245,21 @@ static void btm_ble_process_adv_pkt_cont(
   {
     p_inq->inq_cmpl_info.num_resp++;
   }
-  /* update the LE device information in inquiry database */
-  if (!btm_ble_update_inq_result(p_i, addr_type, evt_type, primary_phy,
-                                 secondary_phy, advertising_sid, tx_power, rssi,
-                                 periodic_adv_int, data_len, data))
-    return;
 
-  uint8_t result = btm_ble_is_discoverable(bda);
+  /* update the LE device information in inquiry database */
+  btm_ble_update_inq_result(p_i, addr_type, bda, evt_type, primary_phy,
+                            secondary_phy, advertising_sid, tx_power, rssi,
+                            periodic_adv_int, adv_data);
+
+  uint8_t result = btm_ble_is_discoverable(bda, adv_data);
   if (result == 0) {
+    cache.Clear(addr_type, bda);
     LOG_WARN(LOG_TAG,
              "%s device no longer discoverable, discarding advertising packet",
              __func__);
     return;
   }
+
   if (!update) result &= ~BTM_BLE_INQ_RESULT;
   /* If the number of responses found and limited, issue a cancel inquiry */
   if (p_inq->inqparms.max_resps &&
@@ -2225,18 +2285,19 @@ static void btm_ble_process_adv_pkt_cont(
     }
   }
 
-  tBTM_BLE_INQ_CB* p_le_inq_cb = &btm_cb.ble_ctr_cb.inq_var;
   tBTM_INQ_RESULTS_CB* p_inq_results_cb = p_inq->p_inq_results_cb;
   if (p_inq_results_cb && (result & BTM_BLE_INQ_RESULT)) {
     (p_inq_results_cb)((tBTM_INQ_RESULTS*)&p_i->inq_info.results,
-                       p_le_inq_cb->adv_data_cache);
+                       const_cast<uint8_t*>(adv_data.data()), adv_data.size());
   }
 
   tBTM_INQ_RESULTS_CB* p_obs_results_cb = btm_cb.ble_ctr_cb.p_obs_results_cb;
   if (p_obs_results_cb && (result & BTM_BLE_OBS_RESULT)) {
     (p_obs_results_cb)((tBTM_INQ_RESULTS*)&p_i->inq_info.results,
-                       p_le_inq_cb->adv_data_cache);
+                       const_cast<uint8_t*>(adv_data.data()), adv_data.size());
   }
+
+  cache.Clear(addr_type, bda);
 }
 
 /*******************************************************************************

@@ -1874,20 +1874,11 @@ extern tBTM_STATUS BTM_DeleteStoredLinkKey(BD_ADDR bd_addr, tBTM_CMPL_CB* p_cb);
  ******************************************************************************/
 extern tBTM_STATUS BTM_WriteEIR(BT_HDR* p_buff);
 
-/*******************************************************************************
- *
- * Function         BTM_CheckEirData
- *
- * Description      Get EIR data from the significant part.
- *
- * Parameters       p_eir - pointer of EIR significant part
- *                  type   - finding EIR data type
- *                  p_length - return the length of EIR data
- *
- * Returns          pointer of EIR data
- *
- ******************************************************************************/
-extern uint8_t* BTM_CheckEirData(uint8_t* p_eir, uint8_t type,
+/**
+ * This function returns a pointer inside the |p_eir| array of length |eir_len|
+ * where a field of |type| is located, together with its length in |p_length|
+ */
+extern uint8_t* BTM_CheckEirData(uint8_t* p_eir, size_t eir_len, uint8_t type,
                                  uint8_t* p_length);
 
 /*******************************************************************************
@@ -1979,6 +1970,7 @@ extern uint8_t BTM_GetEirSupportedServices(uint32_t* p_eir_uuid, uint8_t** p,
  * Description      This function parses EIR and returns UUID list.
  *
  * Parameters       p_eir - EIR
+ *                  eirl_len - EIR len
  *                  uuid_size - LEN_UUID_16, LEN_UUID_32, LEN_UUID_128
  *                  p_num_uuid - return number of UUID in found list
  *                  p_uuid_list - return UUID 16-bit list
@@ -1993,9 +1985,9 @@ extern uint8_t BTM_GetEirSupportedServices(uint32_t* p_eir_uuid, uint8_t** p,
  *                  BTM_EIR_MORE_128BITS_UUID_TYPE
  *
  ******************************************************************************/
-extern uint8_t BTM_GetEirUuidList(uint8_t* p_eir, uint8_t uuid_size,
-                                  uint8_t* p_num_uuid, uint8_t* p_uuid_list,
-                                  uint8_t max_num_uuid);
+extern uint8_t BTM_GetEirUuidList(uint8_t* p_eir, size_t eir_len,
+                                  uint8_t uuid_size, uint8_t* p_num_uuid,
+                                  uint8_t* p_uuid_list, uint8_t max_num_uuid);
 
 /*****************************************************************************
  *  SCO OVER HCI
