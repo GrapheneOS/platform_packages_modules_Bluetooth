@@ -91,9 +91,6 @@ public class SapService extends ProfileService {
     private boolean mIsWaitingAuthorization = false;
     private boolean mIsRegistered = false;
 
-    // package we send intent to check message access access permission
-    private static final String ACCESS_AUTHORITY_PACKAGE = "com.android.settings";
-
     private static final ParcelUuid[] SAP_UUIDS = {
         BluetoothUuid.SAP,
     };
@@ -353,7 +350,7 @@ public class SapService extends ProfileService {
                     } else if (permission != BluetoothDevice.ACCESS_REJECTED){
                         Intent intent = new
                                 Intent(BluetoothDevice.ACTION_CONNECTION_ACCESS_REQUEST);
-                        intent.setPackage(ACCESS_AUTHORITY_PACKAGE);
+                        intent.setPackage(getString(R.string.pairing_ui_package));
                         intent.putExtra(BluetoothDevice.EXTRA_ACCESS_REQUEST_TYPE,
                                         BluetoothDevice.REQUEST_TYPE_SIM_ACCESS);
                         intent.putExtra(BluetoothDevice.EXTRA_DEVICE, mRemoteDevice);
@@ -638,7 +635,7 @@ public class SapService extends ProfileService {
 
     private void sendCancelUserConfirmationIntent(BluetoothDevice device) {
         Intent intent = new Intent(BluetoothDevice.ACTION_CONNECTION_ACCESS_CANCEL);
-        intent.setPackage(ACCESS_AUTHORITY_PACKAGE);
+        intent.setPackage(getString(R.string.pairing_ui_package));
         intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
         intent.putExtra(BluetoothDevice.EXTRA_ACCESS_REQUEST_TYPE,
                         BluetoothDevice.REQUEST_TYPE_SIM_ACCESS);
