@@ -2389,6 +2389,7 @@ final class HeadsetStateMachine extends StateMachine {
         intent.putExtra(BluetoothProfile.EXTRA_PREVIOUS_STATE, prevState);
         intent.putExtra(BluetoothProfile.EXTRA_STATE, newState);
         intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
+        intent.addFlags(Intent.FLAG_RECEIVER_INCLUDE_BACKGROUND);
         mService.sendBroadcastAsUser(intent, UserHandle.ALL,
                 HeadsetService.BLUETOOTH_PERM);
     }
