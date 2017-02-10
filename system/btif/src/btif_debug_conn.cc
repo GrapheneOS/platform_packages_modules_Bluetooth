@@ -21,8 +21,8 @@
 #include <time.h>
 
 #include "btcore/include/bdaddr.h"
-#include "btif/include/btif_debug.h"
 #include "btif/include/btif_debug_conn.h"
+#include "osi/include/time.h"
 
 #define NUM_CONNECTION_EVENTS 16
 #define TEMP_BUFFER_SIZE 30
@@ -70,7 +70,7 @@ void btif_debug_conn_state(const bt_bdaddr_t bda,
   next_event();
 
   conn_event_t* evt = &connection_events[current_event];
-  evt->ts = btif_debug_ts();
+  evt->ts = time_gettimeofday_us();
   evt->state = state;
   evt->disconnect_reason = disconnect_reason;
   memcpy(&evt->bda, &bda, sizeof(bt_bdaddr_t));

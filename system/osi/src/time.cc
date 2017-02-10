@@ -18,6 +18,7 @@
 
 #define LOG_TAG "bt_osi_time"
 
+#include <sys/time.h>
 #include <time.h>
 
 #include "osi/include/time.h"
@@ -32,4 +33,11 @@ uint64_t time_get_os_boottime_us(void) {
 
   return ((uint64_t)ts_now.tv_sec * 1000000L) +
          ((uint64_t)ts_now.tv_nsec / 1000);
+}
+
+uint64_t time_gettimeofday_us(void) {
+  struct timeval tv;
+  gettimeofday(&tv, NULL);
+  return static_cast<uint64_t>(tv.tv_sec) * 1000000ULL +
+         static_cast<uint64_t>(tv.tv_usec);
 }

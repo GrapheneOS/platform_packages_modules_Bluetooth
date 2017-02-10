@@ -17,7 +17,6 @@
  ******************************************************************************/
 
 #include <base/logging.h>
-#include <time.h>
 
 #include "hci/include/btsnoop_mem.h"
 
@@ -25,7 +24,7 @@ static btsnoop_data_cb data_callback = NULL;
 
 void btsnoop_mem_set_callback(btsnoop_data_cb cb) { data_callback = cb; }
 
-void btsnoop_mem_capture(const BT_HDR* packet) {
+void btsnoop_mem_capture(const BT_HDR* packet, uint64_t timestamp_us) {
   if (!data_callback) return;
 
   CHECK(packet);
@@ -54,5 +53,5 @@ void btsnoop_mem_capture(const BT_HDR* packet) {
       break;
   }
 
-  if (length) (*data_callback)(type, data, length);
+  if (length) (*data_callback)(type, data, length, timestamp_us);
 }
