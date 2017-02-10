@@ -61,15 +61,5 @@ func globalDefaults(ctx android.BaseContext) ([]string, []string) {
     cflags = append(cflags, "-DHAS_NO_BDROID_BUILDCFG")
   }
 
-  board_bt_hcilp_included := ctx.DeviceConfig().BtHcilpIncluded()
-  if (len(board_bt_hcilp_included) > 0) {
-      cflags = append(cflags, "-DHCILP_INCLUDED=" + board_bt_hcilp_included)
-  }
-
-  board_bt_hci_use_mct := ctx.DeviceConfig().BtHciUseMct()
-  if (board_bt_hci_use_mct) {
-      cflags = append(cflags, "-DHCI_USE_MCT")
-  }
-
   return cflags, includeDirs
 }
