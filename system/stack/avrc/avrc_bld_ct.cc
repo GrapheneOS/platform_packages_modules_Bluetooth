@@ -475,7 +475,7 @@ static tAVRC_STS avrc_bld_set_addressed_player_cmd(
   AVRC_TRACE_API("%s", __func__);
   /* get the existing length, if any, and also the num attributes */
   uint8_t* p_start = (uint8_t*)(p_pkt + 1) + p_pkt->offset;
-  uint8_t* p_data = p_data = p_start + 2; /* pdu + rsvd */
+  uint8_t* p_data = p_start + 2; /* pdu + rsvd */
 
   /* To change addressed player the following is the total length:
    * Player ID (2)
