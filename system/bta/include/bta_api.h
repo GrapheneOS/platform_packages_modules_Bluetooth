@@ -728,6 +728,7 @@ typedef struct {
   bool is_limited; /* true, if the limited inquiry bit is set in the CoD */
   int8_t rssi;     /* The rssi value */
   uint8_t* p_eir;  /* received EIR */
+  uint8_t eir_len; /* received EIR length */
   uint8_t inq_result_type;
   uint8_t ble_addr_type;
   uint16_t ble_evt_type;
@@ -1307,12 +1308,14 @@ extern tBTA_STATUS BTA_DmRemoveDevice(BD_ADDR bd_addr);
  * Description      This function is called to get BTA service mask from EIR.
  *
  * Parameters       p_eir - pointer of EIR significant part
+ *                  eir_len - EIR length
  *                  p_services - return the BTA service mask
  *
  * Returns          None
  *
  ******************************************************************************/
-extern void BTA_GetEirService(uint8_t* p_eir, tBTA_SERVICE_MASK* p_services);
+extern void BTA_GetEirService(uint8_t* p_eir, size_t eir_len,
+                              tBTA_SERVICE_MASK* p_services);
 
 /*******************************************************************************
  *

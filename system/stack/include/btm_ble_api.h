@@ -491,21 +491,12 @@ extern void BTM_BleSetConnScanParams(uint32_t scan_interval,
 extern void BTM_BleReadControllerFeatures(
     tBTM_BLE_CTRL_FEATURES_CBACK* p_vsc_cback);
 
-/*******************************************************************************
- *
- * Function         BTM_CheckAdvData
- *
- * Description      This function is called to get ADV data for a specific type.
- *
- * Parameters       p_adv - pointer of ADV data
- *                  type   - finding ADV data type
- *                  p_length - return the length of ADV data not including type
- *
- * Returns          pointer of ADV data
- *
- ******************************************************************************/
-extern uint8_t* BTM_CheckAdvData(uint8_t* p_adv, uint8_t type,
-                                 uint8_t* p_length);
+/**
+ * This function returns a pointer inside the |adv| where a field of |type| is
+ * located, together with it' length in |p_length|
+ **/
+extern const uint8_t* BTM_CheckAdvData(std::vector<uint8_t> const& adv,
+                                       uint8_t type, uint8_t* p_length);
 
 /*******************************************************************************
  *

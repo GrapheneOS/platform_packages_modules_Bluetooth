@@ -223,16 +223,15 @@ void bta_scan_results_cb_impl(bt_bdaddr_t bd_addr, tBT_DEVICE_TYPE device_type,
                               uint16_t ble_periodic_adv_int,
                               vector<uint8_t> value) {
   uint8_t remote_name_len;
-  const uint8_t* p_eir_remote_name = NULL;
   bt_device_type_t dev_type;
   bt_property_t properties;
 
-  p_eir_remote_name = BTM_CheckEirData(
-      value.data(), BTM_EIR_COMPLETE_LOCAL_NAME_TYPE, &remote_name_len);
+  const uint8_t* p_eir_remote_name = BTM_CheckAdvData(
+      value, BTM_EIR_COMPLETE_LOCAL_NAME_TYPE, &remote_name_len);
 
   if (p_eir_remote_name == NULL) {
-    p_eir_remote_name = BTM_CheckEirData(
-        value.data(), BT_EIR_SHORTENED_LOCAL_NAME_TYPE, &remote_name_len);
+    p_eir_remote_name = BTM_CheckAdvData(
+        value, BT_EIR_SHORTENED_LOCAL_NAME_TYPE, &remote_name_len);
   }
 
   if ((addr_type != BLE_ADDR_RANDOM) || (p_eir_remote_name)) {
@@ -258,7 +257,6 @@ void bta_scan_results_cb_impl(bt_bdaddr_t bd_addr, tBT_DEVICE_TYPE device_type,
   btif_storage_set_remote_device_property(&(bd_addr), &properties);
 
   btif_storage_set_remote_addr_type(&bd_addr, addr_type);
-
   HAL_CBACK(bt_gatt_callbacks, scanner->scan_result_cb, ble_evt_type, addr_type,
             &bd_addr, ble_primary_phy, ble_secondary_phy, ble_advertising_sid,
             ble_tx_power, rssi, ble_periodic_adv_int, std::move(value));
@@ -278,13 +276,12 @@ void bta_scan_results_cb(tBTA_DM_SEARCH_EVT event, tBTA_DM_SEARCH* p_data) {
     return;
   }
 
-  vector<uint8_t> value(BTGATT_MAX_ATTR_LEN);
+  vector<uint8_t> value;
   if (p_data->inq_res.p_eir) {
     value.insert(value.begin(), p_data->inq_res.p_eir,
-                 p_data->inq_res.p_eir + 62);
+                 p_data->inq_res.p_eir + p_data->inq_res.eir_len);
 
-    if (BTM_CheckEirData(p_data->inq_res.p_eir,
-                         BTM_EIR_COMPLETE_LOCAL_NAME_TYPE, &len)) {
+    if (BTM_CheckAdvData(value, BTM_EIR_COMPLETE_LOCAL_NAME_TYPE, &len)) {
       p_data->inq_res.remt_name_not_required = true;
     }
   }
