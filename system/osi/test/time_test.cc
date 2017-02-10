@@ -112,3 +112,43 @@ TEST_F(TimeTest, test_time_get_os_boottime_us_increases_lower_bound) {
   ASSERT_TRUE((t2 - t1) >= TEST_TIME_SLEEP_US);
   ASSERT_TRUE((t2 - t1) < TEST_TIME_DELTA_UPPER_BOUND_MS * 1000);
 }
+
+//
+// Test that the return value of time_gettimeofday_us() is not zero.
+//
+TEST_F(TimeTest, test_time_gettimeofday_us_not_zero) {
+  uint64_t t1 = time_gettimeofday_us();
+  ASSERT_TRUE(t1 > 0);
+}
+
+//
+// Test that the return value of time_gettimeofday_us()
+// is monotonically increasing within reasonable boundaries.
+//
+TEST_F(TimeTest, test_time_gettimeofday_us_increases_upper_bound) {
+  uint64_t t1 = time_gettimeofday_us();
+  uint64_t t2 = time_gettimeofday_us();
+  ASSERT_TRUE((t2 - t1) < TEST_TIME_DELTA_UPPER_BOUND_MS * 1000);
+}
+
+//
+// Test that the return value of time_gettimeofday_us()
+// is increasing.
+//
+TEST_F(TimeTest, test_time_gettimeofday_us_increases_lower_bound) {
+  static const uint64_t TEST_TIME_SLEEP_US = 100 * 1000;
+  struct timespec delay;
+
+  delay.tv_sec = TEST_TIME_SLEEP_US / (1000 * 1000);
+  delay.tv_nsec = 1000 * (TEST_TIME_SLEEP_US % (1000 * 1000));
+
+  // Take two timestamps with sleep in-between
+  uint64_t t1 = time_gettimeofday_us();
+  int err = nanosleep(&delay, &delay);
+  uint64_t t2 = time_gettimeofday_us();
+
+  ASSERT_TRUE(err == 0);
+  ASSERT_TRUE(t2 > t1);
+  ASSERT_TRUE((t2 - t1) >= TEST_TIME_SLEEP_US);
+  ASSERT_TRUE((t2 - t1) < TEST_TIME_DELTA_UPPER_BOUND_MS * 1000);
+}

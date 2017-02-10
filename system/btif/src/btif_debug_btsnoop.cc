@@ -27,6 +27,7 @@
 #include "hci/include/btsnoop_mem.h"
 #include "include/bt_target.h"
 #include "osi/include/ringbuffer.h"
+#include "osi/include/time.h"
 
 #define REDUCE_HCI_TYPE_TO_SIGNIFICANT_BITS(type) ((type) >> 8)
 
@@ -50,7 +51,7 @@ static size_t btsnoop_calculate_packet_length(uint16_t type,
                                               size_t length);
 
 static void btsnoop_cb(const uint16_t type, const uint8_t* data,
-                       const size_t length) {
+                       const size_t length, const uint64_t timestamp_us) {
   btsnooz_header_t header;
 
   size_t included_length = btsnoop_calculate_packet_length(type, data, length);
@@ -67,14 +68,12 @@ static void btsnoop_cb(const uint16_t type, const uint8_t* data,
   }
 
   // Insert data
-
-  const uint64_t now = btif_debug_ts();
-
   header.type = REDUCE_HCI_TYPE_TO_SIGNIFICANT_BITS(type);
   header.length = included_length + 1;  // +1 for type byte
   header.packet_length = length + 1;    // +1 for type byte.
-  header.delta_time_ms = last_timestamp_ms ? now - last_timestamp_ms : 0;
-  last_timestamp_ms = now;
+  header.delta_time_ms =
+      last_timestamp_ms ? timestamp_us - last_timestamp_ms : 0;
+  last_timestamp_ms = timestamp_us;
 
   ringbuffer_insert(buffer, (uint8_t*)&header, sizeof(btsnooz_header_t));
   ringbuffer_insert(buffer, data, included_length);
