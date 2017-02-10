@@ -36,7 +36,10 @@ fluoride_defaults {
     ],
     product_variables: {
         debuggable: {
-            cflags: ["-DBLUEDROID_DEBUG"],
+            cflags: [
+                "-DBLUEDROID_DEBUG",
+                "-DDCHECK_ALWAYS_ON"
+            ],
         },
     },
     shared_libs: [ "libchrome" ]
