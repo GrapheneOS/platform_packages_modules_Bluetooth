@@ -37,6 +37,7 @@
 #include "hci/include/btsnoop_mem.h"
 #include "hci_layer.h"
 #include "osi/include/log.h"
+#include "osi/include/time.h"
 #include "stack_config.h"
 
 typedef enum {
@@ -62,7 +63,7 @@ void btsnoop_net_close();
 void btsnoop_net_write(const void* data, size_t length);
 
 static void btsnoop_write_packet(packet_type_t type, uint8_t* packet,
-                                 bool is_received);
+                                 bool is_received, uint64_t timestamp_us);
 static void update_logging();
 
 // Module lifecycle functions
@@ -99,24 +100,25 @@ static void set_api_wants_to_log(bool value) {
 static void capture(const BT_HDR* buffer, bool is_received) {
   uint8_t* p = const_cast<uint8_t*>(buffer->data + buffer->offset);
 
-  btsnoop_mem_capture(buffer);
+  uint64_t timestamp_us = time_gettimeofday_us();
+  btsnoop_mem_capture(buffer, timestamp_us);
 
   if (logfile_fd == INVALID_FD) return;
 
   switch (buffer->event & MSG_EVT_MASK) {
     case MSG_HC_TO_STACK_HCI_EVT:
-      btsnoop_write_packet(kEventPacket, p, false);
+      btsnoop_write_packet(kEventPacket, p, false, timestamp_us);
       break;
     case MSG_HC_TO_STACK_HCI_ACL:
     case MSG_STACK_TO_HC_HCI_ACL:
-      btsnoop_write_packet(kAclPacket, p, is_received);
+      btsnoop_write_packet(kAclPacket, p, is_received, timestamp_us);
       break;
     case MSG_HC_TO_STACK_HCI_SCO:
     case MSG_STACK_TO_HC_HCI_SCO:
-      btsnoop_write_packet(kScoPacket, p, is_received);
+      btsnoop_write_packet(kScoPacket, p, is_received, timestamp_us);
       break;
     case MSG_STACK_TO_HC_HCI_CMD:
-      btsnoop_write_packet(kCommandPacket, p, true);
+      btsnoop_write_packet(kCommandPacket, p, true, timestamp_us);
       break;
   }
 }
@@ -129,18 +131,6 @@ const btsnoop_t* btsnoop_get_interface() {
 }
 
 // Internal functions
-
-static uint64_t btsnoop_timestamp(void) {
-  struct timeval tv;
-  gettimeofday(&tv, NULL);
-
-  // Timestamp is in microseconds.
-  uint64_t timestamp = tv.tv_sec;
-  timestamp *= (uint64_t)1000000ULL;
-  timestamp += tv.tv_usec;
-  timestamp += BTSNOOP_EPOCH_DELTA;
-  return timestamp;
-}
 
 static void update_logging() {
   bool should_log = module_started && (logging_enabled_via_api ||
@@ -156,7 +146,7 @@ static void update_logging() {
     if (stack_config->get_btsnoop_should_save_last()) {
       char last_log_path[PATH_MAX];
       snprintf(last_log_path, PATH_MAX, "%s.%" PRIu64, log_path,
-               btsnoop_timestamp());
+               time_gettimeofday_us());
       if (!rename(log_path, last_log_path) && errno != ENOENT)
         LOG_ERROR(LOG_TAG, "%s unable to rename '%s' to '%s': %s", __func__,
                   log_path, last_log_path, strerror(errno));
@@ -203,7 +193,7 @@ static uint64_t htonll(uint64_t ll) {
 }
 
 static void btsnoop_write_packet(packet_type_t type, uint8_t* packet,
-                                 bool is_received) {
+                                 bool is_received, uint64_t timestamp_us) {
   uint32_t length_he = 0;
   uint32_t flags = 0;
 
@@ -231,7 +221,7 @@ static void btsnoop_write_packet(packet_type_t type, uint8_t* packet,
   header.length_captured = header.length_original;
   header.flags = htonl(flags);
   header.dropped_packets = 0;
-  header.timestamp = htonll(btsnoop_timestamp());
+  header.timestamp = htonll(timestamp_us + BTSNOOP_EPOCH_DELTA);
   header.type = type;
 
   btsnoop_net_write(&header, sizeof(btsnoop_header_t));
