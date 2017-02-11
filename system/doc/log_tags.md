@@ -52,7 +52,6 @@ This document lists all of the log tags used by the Bluetooth stack.
 * btu_task
 * BT_UTILS
 * bt_vendor
-* osi_eager_reader
 * osi_future
 * osi_semaphore
 * osi_thread
