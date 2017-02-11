@@ -697,7 +697,10 @@ void btsnd_hcic_ble_set_extended_scan_params(uint8_t own_address_type,
   BT_HDR* p = (BT_HDR*)osi_malloc(HCI_CMD_BUF_SIZE);
   uint8_t* pp = (uint8_t*)(p + 1);
 
-  uint16_t param_len = 3 + (5 * scanning_phys);
+  int phy_cnt =
+      std::bitset<std::numeric_limits<uint8_t>::digits>(scanning_phys).count();
+
+  uint16_t param_len = 3 + (5 * phy_cnt);
   p->len = HCIC_PREAMBLE_SIZE + param_len;
   p->offset = 0;
 
@@ -708,7 +711,7 @@ void btsnd_hcic_ble_set_extended_scan_params(uint8_t own_address_type,
   UINT8_TO_STREAM(pp, scanning_filter_policy);
   UINT8_TO_STREAM(pp, scanning_phys);
 
-  for (int i = 0; i < scanning_phys; i++) {
+  for (int i = 0; i < phy_cnt; i++) {
     UINT8_TO_STREAM(pp, phy_cfg[i].scan_type);
     UINT16_TO_STREAM(pp, phy_cfg[i].scan_int);
     UINT16_TO_STREAM(pp, phy_cfg[i].scan_win);
