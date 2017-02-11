@@ -470,40 +470,6 @@ void BTM_BleUpdateAdvFilterPolicy(tBTM_BLE_AFP adv_policy) {
 
 /*******************************************************************************
  *
- * Function         btm_ble_send_extended_scan_params
- *
- * Description      This function sends out the extended scan parameters command
- *                  to the controller
- *
- * Parameters       scan_type - Scan type
- *                  scan_int - Scan interval
- *                  scan_win - Scan window
- *                  addr_type_own - Own address type
- *                  scan_filter_policy - Scan filter policy
- *
- ******************************************************************************/
-void btm_ble_send_extended_scan_params(uint8_t scan_type, uint32_t scan_int,
-                                       uint32_t scan_win, uint8_t addr_type_own,
-                                       uint8_t scan_filter_policy) {
-  uint8_t scan_param[HCIC_PARAM_SIZE_BLE_WRITE_EXTENDED_SCAN_PARAM];
-  uint8_t* pp_scan = scan_param;
-
-  memset(scan_param, 0, HCIC_PARAM_SIZE_BLE_WRITE_EXTENDED_SCAN_PARAM);
-
-  UINT8_TO_STREAM(pp_scan, scan_type);
-  UINT32_TO_STREAM(pp_scan, scan_int);
-  UINT32_TO_STREAM(pp_scan, scan_win);
-  UINT8_TO_STREAM(pp_scan, addr_type_own);
-  UINT8_TO_STREAM(pp_scan, scan_filter_policy);
-
-  BTM_TRACE_DEBUG("%s, %d, %d", __func__, scan_int, scan_win);
-  BTM_VendorSpecificCommand(HCI_BLE_EXTENDED_SCAN_PARAMS_OCF,
-                            HCIC_PARAM_SIZE_BLE_WRITE_EXTENDED_SCAN_PARAM,
-                            scan_param, NULL);
-}
-
-/*******************************************************************************
- *
  * Function         BTM_BleObserve
  *
  * Description      This procedure keep the device listening for advertising
@@ -555,15 +521,9 @@ tBTM_STATUS BTM_BleObserve(bool start, uint8_t duration,
       btm_ble_enable_resolving_list_for_platform(BTM_BLE_RL_SCAN);
 #endif
 
-      if (btm_cb.cmn_ble_vsc_cb.extended_scan_support == 0) {
-        btm_send_hci_set_scan_params(
-            p_inq->scan_type, (uint16_t)scan_interval, (uint16_t)scan_window,
-            btm_cb.ble_ctr_cb.addr_mgnt_cb.own_addr_type, BTM_BLE_DEFAULT_SFP);
-      } else {
-        btm_ble_send_extended_scan_params(
-            p_inq->scan_type, scan_interval, scan_window,
-            btm_cb.ble_ctr_cb.addr_mgnt_cb.own_addr_type, BTM_BLE_DEFAULT_SFP);
-      }
+      btm_send_hci_set_scan_params(
+          p_inq->scan_type, (uint16_t)scan_interval, (uint16_t)scan_window,
+          btm_cb.ble_ctr_cb.addr_mgnt_cb.own_addr_type, BTM_BLE_DEFAULT_SFP);
 
       p_inq->scan_duplicate_filter = BTM_BLE_DUPLICATE_DISABLE;
       status = btm_ble_start_scan();
