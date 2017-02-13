@@ -108,8 +108,6 @@ static alarm_t* av_open_on_rc_timer = NULL;
         (btif_av_cb.sm_handle == NULL)) {                                    \
       BTIF_TRACE_WARNING("%s: BTAV not initialized", __func__);              \
       return BT_STATUS_NOT_READY;                                            \
-    } else {                                                                 \
-      BTIF_TRACE_EVENT("%s", __func__);                                      \
     }                                                                        \
   } while (0)
 
@@ -1372,7 +1370,6 @@ static bt_status_t sink_connect_src(bt_bdaddr_t* bd_addr) {
  ******************************************************************************/
 static bt_status_t disconnect(bt_bdaddr_t* bd_addr) {
   BTIF_TRACE_EVENT("%s", __func__);
-
   CHECK_BTAV_INIT();
 
   /* Switch to BTIF context */

@@ -140,8 +140,6 @@ static void btif_hl_proc_cb_evt(uint16_t event, char* p_param);
     if (bt_hl_callbacks == NULL) {                                    \
       BTIF_TRACE_WARNING("BTHL: %s: BTHL not initialized", __func__); \
       return BT_STATUS_NOT_READY;                                     \
-    } else {                                                          \
-      BTIF_TRACE_EVENT("BTHL: %s", __func__);                         \
     }                                                                 \
   } while (0)
 

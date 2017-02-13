@@ -125,8 +125,6 @@ static tHID_KB_LIST hid_kb_numlock_on_list[] = {{LOGITECH_KB_MX5500_PRODUCT_ID,
     if (bt_hh_callbacks == NULL) {                                    \
       BTIF_TRACE_WARNING("BTHH: %s: BTHH not initialized", __func__); \
       return BT_STATUS_NOT_READY;                                     \
-    } else {                                                          \
-      BTIF_TRACE_EVENT("BTHH: %s", __func__);                         \
     }                                                                 \
   } while (0)
 
@@ -589,8 +587,8 @@ bt_status_t btif_hh_connect(bt_bdaddr_t* bd_addr) {
   int i;
   BD_ADDR* bda = (BD_ADDR*)bd_addr;
   CHECK_BTHH_INIT();
+  BTIF_TRACE_EVENT("BTHH: %s", __func__);
   dev = btif_hh_find_dev_by_bda(bd_addr);
-  BTIF_TRACE_DEBUG("Connect _hh");
   snprintf(bda_str, sizeof(bda_str), "%02X:%02X:%02X:%02X:%02X:%02X", (*bda)[0],
            (*bda)[1], (*bda)[2], (*bda)[3], (*bda)[4], (*bda)[5]);
   if (dev == NULL && btif_hh_cb.device_num >= BTIF_HH_MAX_HID) {
@@ -1271,6 +1269,7 @@ static bt_status_t connect(bt_bdaddr_t* bd_addr) {
  ******************************************************************************/
 static bt_status_t disconnect(bt_bdaddr_t* bd_addr) {
   CHECK_BTHH_INIT();
+  BTIF_TRACE_EVENT("BTHH: %s", __func__);
   btif_hh_device_t* p_dev;
 
   if (btif_hh_cb.status == BTIF_HH_DISABLED) {
@@ -1299,6 +1298,7 @@ static bt_status_t disconnect(bt_bdaddr_t* bd_addr) {
  ******************************************************************************/
 static bt_status_t virtual_unplug(bt_bdaddr_t* bd_addr) {
   CHECK_BTHH_INIT();
+  BTIF_TRACE_EVENT("BTHH: %s", __func__);
   btif_hh_device_t* p_dev;
   char bd_str[18];
   snprintf(bd_str, sizeof(bd_str), "%02X:%02X:%02X:%02X:%02X:%02X",
@@ -1332,10 +1332,11 @@ static bt_status_t set_info(bt_bdaddr_t* bd_addr, bthh_hid_info_t hid_info) {
   tBTA_HH_DEV_DSCP_INFO dscp_info;
   BD_ADDR* bda = (BD_ADDR*)bd_addr;
 
-  BTIF_TRACE_DEBUG("addr = %02X:%02X:%02X:%02X:%02X:%02X", (*bda)[0], (*bda)[1],
-                   (*bda)[2], (*bda)[3], (*bda)[4], (*bda)[5]);
+  BTIF_TRACE_DEBUG("BTHH: %s: addr = %02X:%02X:%02X:%02X:%02X:%02X", __func__,
+                   (*bda)[0], (*bda)[1], (*bda)[2], (*bda)[3], (*bda)[4],
+                   (*bda)[5]);
   BTIF_TRACE_DEBUG(
-      "%s: sub_class = 0x%02x, app_id = %d, vendor_id = 0x%04x, "
+      "BTHH: %s: sub_class = 0x%02x, app_id = %d, vendor_id = 0x%04x, "
       "product_id = 0x%04x, version= 0x%04x",
       __func__, hid_info.sub_class, hid_info.app_id, hid_info.vendor_id,
       hid_info.product_id, hid_info.version);
@@ -1380,8 +1381,9 @@ static bt_status_t get_protocol(bt_bdaddr_t* bd_addr,
   btif_hh_device_t* p_dev;
   BD_ADDR* bda = (BD_ADDR*)bd_addr;
 
-  BTIF_TRACE_DEBUG(" addr = %02X:%02X:%02X:%02X:%02X:%02X", (*bda)[0],
-                   (*bda)[1], (*bda)[2], (*bda)[3], (*bda)[4], (*bda)[5]);
+  BTIF_TRACE_DEBUG("BTHH: %s: addr = %02X:%02X:%02X:%02X:%02X:%02X", __func__,
+                   (*bda)[0], (*bda)[1], (*bda)[2], (*bda)[3], (*bda)[4],
+                   (*bda)[5]);
 
   if (btif_hh_cb.status == BTIF_HH_DISABLED) {
     BTIF_TRACE_ERROR("%s: Error, HH status = %d", __func__, btif_hh_cb.status);
@@ -1413,10 +1415,11 @@ static bt_status_t set_protocol(bt_bdaddr_t* bd_addr,
   uint8_t proto_mode = protocolMode;
   BD_ADDR* bda = (BD_ADDR*)bd_addr;
 
-  BTIF_TRACE_DEBUG("%s:proto_mode = %d", __func__, protocolMode);
-
-  BTIF_TRACE_DEBUG("addr = %02X:%02X:%02X:%02X:%02X:%02X", (*bda)[0], (*bda)[1],
-                   (*bda)[2], (*bda)[3], (*bda)[4], (*bda)[5]);
+  BTIF_TRACE_DEBUG(
+      "BTHH: %s: proto_mode = %d"
+      " addr = %02X:%02X:%02X:%02X:%02X:%02X",
+      __func__, protocolMode, (*bda)[0], (*bda)[1], (*bda)[2], (*bda)[3],
+      (*bda)[4], (*bda)[5]);
 
   if (btif_hh_cb.status == BTIF_HH_DISABLED) {
     BTIF_TRACE_ERROR("%s: Error, HH status = %d", __func__, btif_hh_cb.status);
@@ -1457,11 +1460,11 @@ static bt_status_t get_report(bt_bdaddr_t* bd_addr,
   btif_hh_device_t* p_dev;
   BD_ADDR* bda = (BD_ADDR*)bd_addr;
 
-  BTIF_TRACE_DEBUG("%s: r_type = %d, rpt_id = %d, buf_size = %d", __func__,
-                   reportType, reportId, bufferSize);
-
-  BTIF_TRACE_DEBUG("addr = %02X:%02X:%02X:%02X:%02X:%02X", (*bda)[0], (*bda)[1],
-                   (*bda)[2], (*bda)[3], (*bda)[4], (*bda)[5]);
+  BTIF_TRACE_DEBUG(
+      "BTHH: %s: r_type = %d, rpt_id = %d, buf_size = %d"
+      " addr = %02X:%02X:%02X:%02X:%02X:%02X",
+      __func__, reportType, reportId, bufferSize, (*bda)[0], (*bda)[1],
+      (*bda)[2], (*bda)[3], (*bda)[4], (*bda)[5]);
 
   if (btif_hh_cb.status == BTIF_HH_DISABLED) {
     BTIF_TRACE_ERROR("%s: Error, HH status = %d", __func__, btif_hh_cb.status);
@@ -1502,10 +1505,11 @@ static bt_status_t set_report(bt_bdaddr_t* bd_addr,
   btif_hh_device_t* p_dev;
   BD_ADDR* bda = (BD_ADDR*)bd_addr;
 
-  BTIF_TRACE_DEBUG("%s:reportType = %d", __func__, reportType);
-
-  BTIF_TRACE_DEBUG("addr = %02X:%02X:%02X:%02X:%02X:%02X", (*bda)[0], (*bda)[1],
-                   (*bda)[2], (*bda)[3], (*bda)[4], (*bda)[5]);
+  BTIF_TRACE_DEBUG(
+      "BTHH %s: reportType = %d"
+      " addr = %02X:%02X:%02X:%02X:%02X:%02X",
+      __func__, reportType, (*bda)[0], (*bda)[1], (*bda)[2], (*bda)[3],
+      (*bda)[4], (*bda)[5]);
 
   if (btif_hh_cb.status == BTIF_HH_DISABLED) {
     BTIF_TRACE_ERROR("%s: Error, HH status = %d", __func__, btif_hh_cb.status);
@@ -1564,10 +1568,9 @@ static bt_status_t send_data(bt_bdaddr_t* bd_addr, char* data) {
   btif_hh_device_t* p_dev;
   BD_ADDR* bda = (BD_ADDR*)bd_addr;
 
-  BTIF_TRACE_DEBUG("%s", __func__);
-
-  BTIF_TRACE_DEBUG("addr = %02X:%02X:%02X:%02X:%02X:%02X", (*bda)[0], (*bda)[1],
-                   (*bda)[2], (*bda)[3], (*bda)[4], (*bda)[5]);
+  BTIF_TRACE_DEBUG("BTHH %s: addr = %02X:%02X:%02X:%02X:%02X:%02X", __func__,
+                   (*bda)[0], (*bda)[1], (*bda)[2], (*bda)[3], (*bda)[4],
+                   (*bda)[5]);
 
   if (btif_hh_cb.status == BTIF_HH_DISABLED) {
     BTIF_TRACE_ERROR("%s: Error, HH status = %d", __func__, btif_hh_cb.status);
