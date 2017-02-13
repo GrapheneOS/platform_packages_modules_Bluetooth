@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.android.btsap.SapApi.MsgHeader;
 
@@ -16,7 +17,9 @@ import android.hardware.radio.V1_0.ISapCallback;
 import android.net.LocalSocket;
 import android.net.LocalSocketAddress;
 import android.os.Handler;
+import android.os.HwBinder;
 import android.os.Message;
+import android.os.RemoteException;
 import android.util.Log;
 
 public class SapRilReceiver implements Runnable {
@@ -34,13 +37,28 @@ public class SapRilReceiver implements Runnable {
     InputStream mRilBtInStream = null;
 
     SapCallback mSapCallback;
-    ISap mSapProxy;
+    volatile ISap mSapProxy = null;
+    final AtomicLong mSapProxyCookie = new AtomicLong(0);
+    final SapProxyDeathRecipient mSapProxyDeathRecipient;
 
     private Handler mSapServerMsgHandler = null;
     private Handler mSapServiceHandler = null;
 
     public static final int RIL_MAX_COMMAND_BYTES = (8 * 1024);
     byte[] buffer = new byte[RIL_MAX_COMMAND_BYTES];
+
+    final class SapProxyDeathRecipient implements HwBinder.DeathRecipient {
+        @Override
+        public void serviceDied(long cookie) {
+            // Deal with service going away
+            Log.d(TAG, "serviceDied");
+            // todo: temp hack to send delayed message so that rild is back up by then
+            // mSapHandler.sendMessage(mSapHandler.obtainMessage(EVENT_SAP_PROXY_DEAD, cookie));
+            mSapServerMsgHandler.sendMessageDelayed(
+                    mSapServerMsgHandler.obtainMessage(SapServer.SAP_PROXY_DEAD, cookie),
+                    SapServer.ISAP_GET_SERVICE_DELAY_MILLIS);
+        }
+    }
 
     private void sendSapMessage(SapMessage sapMessage) {
         if (sapMessage.getMsgType() < SapMessage.ID_RIL_BASE) {
@@ -185,21 +203,34 @@ public class SapRilReceiver implements Runnable {
             mSapProxy = ISap.getService(SOCKET_NAME_RIL_BT);
             if (mSapProxy != null) {
                 Log.d(TAG, "getSapProxy: mSapProxy != null; calling setCallback()");
-                // todo(b/31632518): need to do this again if remote process crashes/restarts
+                mSapProxy.linkToDeath(mSapProxyDeathRecipient, mSapProxyCookie.incrementAndGet());
                 mSapProxy.setCallback(mSapCallback);
             } else {
                 Log.e(TAG, "getSapProxy: mSapProxy == null");
             }
-        } catch (Exception e) {
+        } catch (RemoteException | RuntimeException e) {
+            mSapProxy = null;
+
+            // if service is not up, treat it like death notification to try to get service again
+            mSapServerMsgHandler.sendMessageDelayed(
+                    mSapServerMsgHandler.obtainMessage(
+                            SapServer.SAP_PROXY_DEAD, mSapProxyCookie.get()),
+                    SapServer.ISAP_GET_SERVICE_DELAY_MILLIS);
+
             Log.e(TAG, "getSapProxy: exception", e);
         }
         return mSapProxy;
+    }
+
+    public void resetSapProxy() {
+        mSapProxy = null;
     }
 
     public SapRilReceiver(Handler SapServerMsgHandler, Handler sapServiceHandler) {
         mSapServerMsgHandler = SapServerMsgHandler;
         mSapServiceHandler = sapServiceHandler;
         mSapCallback = new SapCallback();
+        mSapProxyDeathRecipient = new SapProxyDeathRecipient();
         mSapProxy = getSapProxy();
     }
 
