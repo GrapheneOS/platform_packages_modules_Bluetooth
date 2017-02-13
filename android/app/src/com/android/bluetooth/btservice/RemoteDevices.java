@@ -24,6 +24,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.os.ParcelUuid;
 import android.util.Log;
+import com.android.bluetooth.R;
 import com.android.bluetooth.Utils;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -44,8 +45,6 @@ final class RemoteDevices {
 
     private static final int UUID_INTENT_DELAY = 6000;
     private static final int MESSAGE_UUID_INTENT = 1;
-
-    private static final String PAIRING_REQUEST_PACKAGE = "com.android.settings";
 
     private HashMap<String, DeviceProperties> mDevices;
     private Queue<String> mDeviceQueue;
@@ -408,7 +407,7 @@ final class RemoteDevices {
                 // Send PAIRING_CANCEL intent to dismiss any dialog requesting bonding.
                 intent = new Intent(BluetoothDevice.ACTION_PAIRING_CANCEL);
                 intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
-                intent.setPackage(PAIRING_REQUEST_PACKAGE);
+                intent.setPackage(mAdapterService.getString(R.string.pairing_ui_package));
                 mAdapterService.sendBroadcast(intent, mAdapterService.BLUETOOTH_PERM);
             }
             if (state == BluetoothAdapter.STATE_ON || state == BluetoothAdapter.STATE_TURNING_OFF) {

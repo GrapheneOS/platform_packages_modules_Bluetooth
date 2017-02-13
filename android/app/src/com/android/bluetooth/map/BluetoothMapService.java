@@ -41,11 +41,11 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.util.SparseArray;
 
+import com.android.bluetooth.R;
 import com.android.bluetooth.Utils;
 import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.ProfileService;
 import com.android.bluetooth.btservice.ProfileService.IProfileServiceBinder;
-import com.android.bluetooth.R;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -153,9 +153,6 @@ public class BluetoothMapService extends ProfileService {
 
     private boolean mSmsCapable = true;
 
-    // package and class name to which we send intent to check phone book access permission
-    private static final String ACCESS_AUTHORITY_PACKAGE = "com.android.settings";
-
     private static final ParcelUuid[] MAP_UUIDS = {
         BluetoothUuid.MAP,
         BluetoothUuid.MNS,
@@ -163,7 +160,6 @@ public class BluetoothMapService extends ProfileService {
 
     public BluetoothMapService() {
         mState = BluetoothMap.STATE_DISCONNECTED;
-
     }
 
 
@@ -361,7 +357,7 @@ public class BluetoothMapService extends ProfileService {
                 case USER_TIMEOUT:
                     if (mIsWaitingAuthorization) {
                         Intent intent = new Intent(BluetoothDevice.ACTION_CONNECTION_ACCESS_CANCEL);
-                        intent.setPackage(ACCESS_AUTHORITY_PACKAGE);
+                        intent.setPackage(getString(R.string.pairing_ui_package));
                         intent.putExtra(BluetoothDevice.EXTRA_DEVICE, mRemoteDevice);
                         intent.putExtra(BluetoothDevice.EXTRA_ACCESS_REQUEST_TYPE,
                                 BluetoothDevice.REQUEST_TYPE_MESSAGE_ACCESS);
@@ -871,7 +867,7 @@ public class BluetoothMapService extends ProfileService {
         if (sendIntent) {
             // This will trigger Settings app's dialog.
             Intent intent = new Intent(BluetoothDevice.ACTION_CONNECTION_ACCESS_REQUEST);
-            intent.setPackage(ACCESS_AUTHORITY_PACKAGE);
+            intent.setPackage(getString(R.string.pairing_ui_package));
             intent.putExtra(BluetoothDevice.EXTRA_ACCESS_REQUEST_TYPE,
                             BluetoothDevice.REQUEST_TYPE_MESSAGE_ACCESS);
             intent.putExtra(BluetoothDevice.EXTRA_DEVICE, mRemoteDevice);
