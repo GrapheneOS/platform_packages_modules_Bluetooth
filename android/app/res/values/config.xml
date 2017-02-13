@@ -86,4 +86,14 @@
     <integer name="a2dp_source_codec_priority_aptx_hd">4001</integer>
     <integer name="a2dp_source_codec_priority_ldac">5001</integer>
 
+    <!-- Package that is responsible for user interaction on pairing request,
+         success or cancel.
+         Receives:
+          - BluetootDevice.ACTION_PAIRING_CANCEL on bond failure
+          - BluetoothDevice.ACTION_PAIRING_REUQEST on pin request
+          - BluetootDevice.ACTION_BOND_STATE_CHANGED on pairing request and success
+          - BluetoothDevice.ACTION_CONNECTION_ACCESS_REQUEST on access requests
+          - BluetoothDevice.ACTION_CONNECTION_ACCESS_CANCEL to cancel access requests -->
+    <string name="pairing_ui_package">com.android.settings</string>
+
 </resources>
