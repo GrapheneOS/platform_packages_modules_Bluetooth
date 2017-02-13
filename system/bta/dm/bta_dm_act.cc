@@ -53,7 +53,7 @@
 #endif
 
 static void bta_dm_inq_results_cb(tBTM_INQ_RESULTS* p_inq, uint8_t* p_eir,
-                                  uint8_t eir_len);
+                                  uint16_t eir_len);
 static void bta_dm_inq_cmpl_cb(void* p_result);
 static void bta_dm_service_search_remname_cback(BD_ADDR bd_addr, DEV_CLASS dc,
                                                 BD_NAME bd_name);
@@ -146,7 +146,7 @@ static void bta_dm_ctrl_features_rd_cmpl_cback(tBTM_STATUS result);
 static void bta_dm_reset_sec_dev_pending(BD_ADDR remote_bd_addr);
 static void bta_dm_remove_sec_dev_entry(BD_ADDR remote_bd_addr);
 static void bta_dm_observe_results_cb(tBTM_INQ_RESULTS* p_inq, uint8_t* p_eir,
-                                      uint8_t eir_len);
+                                      uint16_t eir_len);
 static void bta_dm_observe_cmpl_cb(void* p_result);
 static void bta_dm_delay_role_switch_cback(void* data);
 static void bta_dm_disable_timer_cback(void* data);
@@ -2223,7 +2223,7 @@ static void bta_dm_sdp_callback(uint16_t sdp_status) {
  *
  ******************************************************************************/
 static void bta_dm_inq_results_cb(tBTM_INQ_RESULTS* p_inq, uint8_t* p_eir,
-                                  uint8_t eir_len) {
+                                  uint16_t eir_len) {
   tBTA_DM_SEARCH result;
   tBTM_INQ_INFO* p_inq_info;
   uint16_t service_class;
@@ -3935,7 +3935,7 @@ bool bta_dm_check_if_only_hd_connected(BD_ADDR peer_addr) {
  *
  ******************************************************************************/
 static void bta_dm_observe_results_cb(tBTM_INQ_RESULTS* p_inq, uint8_t* p_eir,
-                                      uint8_t eir_len) {
+                                      uint16_t eir_len) {
   tBTA_DM_SEARCH result;
   tBTM_INQ_INFO* p_inq_info;
   APPL_TRACE_DEBUG("bta_dm_observe_results_cb");
