@@ -55,10 +55,8 @@ import android.text.TextUtils;
 import android.util.Log;
 
 import com.android.bluetooth.BluetoothObexTransport;
-import com.android.bluetooth.Utils;
-
-
 import com.android.bluetooth.R;
+import com.android.bluetooth.Utils;
 import com.android.bluetooth.btservice.AdapterService;
 
 import java.io.IOException;
@@ -177,9 +175,6 @@ public class BluetoothPbapService extends Service {
     private int mStartId = -1;
 
     private boolean mIsWaitingAuthorization = false;
-
-    // package and class name to which we send intent to check phone book access permission
-    private static final String ACCESS_AUTHORITY_PACKAGE = "com.android.settings";
 
     public BluetoothPbapService() {
         mState = BluetoothPbap.STATE_DISCONNECTED;
@@ -612,7 +607,7 @@ public class BluetoothPbapService extends Service {
                         // Send an Intent to Settings app to ask user preference.
                         Intent intent =
                                 new Intent(BluetoothDevice.ACTION_CONNECTION_ACCESS_REQUEST);
-                        intent.setPackage(ACCESS_AUTHORITY_PACKAGE);
+                        intent.setPackage(getString(R.string.pairing_ui_package));
                         intent.putExtra(BluetoothDevice.EXTRA_ACCESS_REQUEST_TYPE,
                                         BluetoothDevice.REQUEST_TYPE_PHONEBOOK_ACCESS);
                         intent.putExtra(BluetoothDevice.EXTRA_DEVICE, mRemoteDevice);
@@ -669,7 +664,7 @@ public class BluetoothPbapService extends Service {
                     break;
                 case USER_TIMEOUT:
                     Intent intent = new Intent(BluetoothDevice.ACTION_CONNECTION_ACCESS_CANCEL);
-                    intent.setPackage(ACCESS_AUTHORITY_PACKAGE);
+                    intent.setPackage(getString(R.string.pairing_ui_package));
                     intent.putExtra(BluetoothDevice.EXTRA_DEVICE, mRemoteDevice);
                     intent.putExtra(BluetoothDevice.EXTRA_ACCESS_REQUEST_TYPE,
                                     BluetoothDevice.REQUEST_TYPE_PHONEBOOK_ACCESS);
