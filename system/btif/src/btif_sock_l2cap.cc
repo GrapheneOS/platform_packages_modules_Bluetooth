@@ -53,13 +53,6 @@
 #include "port_api.h"
 #include "sdp_api.h"
 
-#define asrt(s)                                                              \
-  do {                                                                       \
-    if (!(s))                                                                \
-      APPL_TRACE_ERROR("## %s assert %s failed at line:%d ##", __func__, #s, \
-                       __LINE__)                                             \
-  } while (0)
-
 struct packet {
   struct packet *next, *prev;
   uint32_t len;
