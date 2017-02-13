@@ -47,6 +47,7 @@
 #include <unistd.h>
 
 #include <mutex>
+#include <string>
 
 #include "bta_api.h"
 #include "btif_common.h"
@@ -60,18 +61,6 @@
     if (!(s))                                                                \
       APPL_TRACE_ERROR("## %s assert %s failed at line:%d ##", __func__, #s, \
                        __LINE__)                                             \
-  } while (0)
-
-#define print_events(events)                                  \
-  do {                                                        \
-    APPL_TRACE_DEBUG("print poll event:%x", (events));        \
-    if ((events)&POLLIN) APPL_TRACE_DEBUG("   POLLIN ");      \
-    if ((events)&POLLPRI) APPL_TRACE_DEBUG("   POLLPRI ");    \
-    if ((events)&POLLOUT) APPL_TRACE_DEBUG("   POLLOUT ");    \
-    if ((events)&POLLERR) APPL_TRACE_DEBUG("   POLLERR ");    \
-    if ((events)&POLLHUP) APPL_TRACE_DEBUG("   POLLHUP ");    \
-    if ((events)&POLLNVAL) APPL_TRACE_DEBUG("   POLLNVAL ");  \
-    if ((events)&POLLRDHUP) APPL_TRACE_DEBUG("   POLLRDHUP"); \
   } while (0)
 
 #define MAX_THREAD 8
@@ -458,6 +447,19 @@ static int process_cmd_sock(int h) {
   }
   return true;
 }
+
+static void print_events(short events) {
+  std::string flags("");
+  if ((events)&POLLIN) flags += " POLLIN";
+  if ((events)&POLLPRI) flags += " POLLPRI";
+  if ((events)&POLLOUT) flags += " POLLOUT";
+  if ((events)&POLLERR) flags += " POLLERR";
+  if ((events)&POLLHUP) flags += " POLLHUP ";
+  if ((events)&POLLNVAL) flags += " POLLNVAL";
+  if ((events)&POLLRDHUP) flags += " POLLRDHUP";
+  APPL_TRACE_DEBUG("print poll event:%x = %s", (events), flags.c_str());
+}
+
 static void process_data_sock(int h, struct pollfd* pfds, int count) {
   asrt(count <= ts[h].poll_count);
   int i;
