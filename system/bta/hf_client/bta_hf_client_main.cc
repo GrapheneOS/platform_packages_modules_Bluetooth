@@ -266,15 +266,15 @@ static const tBTA_SYS_REG bta_hf_client_reg = {bta_hf_client_hdl_event,
                                                BTA_HfClientDisable};
 
 /*******************************************************************************
-*
-* Function         bta_hf_client_cb_arr_init
-*
-* Description      Initialize entire control block array set
-*
-*
-* Returns          void
-*
-******************************************************************************/
+ *
+ * Function         bta_hf_client_cb_arr_init
+ *
+ * Description      Initialize entire control block array set
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_hf_client_cb_arr_init() {
   memset(&bta_hf_client_cb_arr, 0, sizeof(tBTA_HF_CLIENT_CB_ARR));
 
@@ -287,17 +287,17 @@ void bta_hf_client_cb_arr_init() {
 }
 
 /*******************************************************************************
-*
-* Function         bta_hf_client_cb_init
-*
-* Description      Initialize an HF_Client service control block. Assign the
-*                  handle to cb->handle.
-*
-*
-*
-* Returns          void
-*
-******************************************************************************/
+ *
+ * Function         bta_hf_client_cb_init
+ *
+ * Description      Initialize an HF_Client service control block. Assign the
+ *                  handle to cb->handle.
+ *
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_hf_client_cb_init(tBTA_HF_CLIENT_CB* client_cb, uint16_t handle) {
   APPL_TRACE_DEBUG("%s", __func__);
 
@@ -314,15 +314,15 @@ void bta_hf_client_cb_init(tBTA_HF_CLIENT_CB* client_cb, uint16_t handle) {
 }
 
 /*******************************************************************************
-*
-* Function         bta_hf_client_resume_open
-*
-* Description      Resume opening process.
-*
-*
-* Returns          void
-*
-******************************************************************************/
+ *
+ * Function         bta_hf_client_resume_open
+ *
+ * Description      Resume opening process.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_hf_client_resume_open(tBTA_HF_CLIENT_CB* client_cb) {
   APPL_TRACE_DEBUG("%s", __func__);
 
@@ -336,15 +336,15 @@ void bta_hf_client_resume_open(tBTA_HF_CLIENT_CB* client_cb) {
 }
 
 /*******************************************************************************
-*
-* Function         bta_hf_client_collision_timer_cback
-*
-* Description      HF Client connection collision timer callback
-*
-*
-* Returns          void
-*
-******************************************************************************/
+ *
+ * Function         bta_hf_client_collision_timer_cback
+ *
+ * Description      HF Client connection collision timer callback
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void bta_hf_client_collision_timer_cback(void* data) {
   APPL_TRACE_DEBUG("%s", __func__);
   tBTA_HF_CLIENT_CB* client_cb = (tBTA_HF_CLIENT_CB*)data;
@@ -354,15 +354,15 @@ static void bta_hf_client_collision_timer_cback(void* data) {
 }
 
 /*******************************************************************************
-*
-* Function         bta_hf_client_collision_cback
-*
-* Description      Get notified about collision.
-*
-*
-* Returns          void
-*
-******************************************************************************/
+ *
+ * Function         bta_hf_client_collision_cback
+ *
+ * Description      Get notified about collision.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_hf_client_collision_cback(UNUSED_ATTR tBTA_SYS_CONN_STATUS status,
                                    uint8_t id, UNUSED_ATTR uint8_t app_id,
                                    BD_ADDR peer_addr) {
@@ -399,15 +399,15 @@ void bta_hf_client_collision_cback(UNUSED_ATTR tBTA_SYS_CONN_STATUS status,
 }
 
 /*******************************************************************************
-*
-* Function         bta_hf_client_api_enable
-*
-* Description      Handle an API enable event.
-*
-*
-* Returns          void
-*
-******************************************************************************/
+ *
+ * Function         bta_hf_client_api_enable
+ *
+ * Description      Handle an API enable event.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 tBTA_STATUS bta_hf_client_api_enable(tBTA_HF_CLIENT_CBACK* p_cback,
                                      tBTA_SEC sec_mask,
                                      tBTA_HF_CLIENT_FEAT features,
@@ -448,18 +448,18 @@ tBTA_STATUS bta_hf_client_api_enable(tBTA_HF_CLIENT_CBACK* p_cback,
 }
 
 /*******************************************************************************
-*
-* Function         bta_hf_client_find_cb_by_handle
-*
-* Description      Finds the control block by handle provided
-*
-*                  handle: Handle as obtained from BTA_HfClientOpen call
-*
-*
-* Returns          Control block corresponding to the handle and NULL if
-*                  none exists
-*
-******************************************************************************/
+ *
+ * Function         bta_hf_client_find_cb_by_handle
+ *
+ * Description      Finds the control block by handle provided
+ *
+ *                  handle: Handle as obtained from BTA_HfClientOpen call
+ *
+ *
+ * Returns          Control block corresponding to the handle and NULL if
+ *                  none exists
+ *
+ ******************************************************************************/
 tBTA_HF_CLIENT_CB* bta_hf_client_find_cb_by_handle(uint16_t handle) {
   // Handles are limited from 1 through HF_CLIENT_MAX_DEVICES
   if (handle < 1 || handle > HF_CLIENT_MAX_DEVICES) {
@@ -477,19 +477,19 @@ tBTA_HF_CLIENT_CB* bta_hf_client_find_cb_by_handle(uint16_t handle) {
 }
 
 /*******************************************************************************
-*
-* Function         bta_hf_client_find_cb_by_bda
-*
-* Description      Finds the control block by handle provided
-*
-*                  bda: BD_ADDR of the device to find the handle for.
-*                  Since there can only be one HF connection for a device
-*                  we should always find a unique block
-*
-* Returns          Control block corresponding to the BD_ADDR and NULL if
-*                  none exists
-*
-******************************************************************************/
+ *
+ * Function         bta_hf_client_find_cb_by_bda
+ *
+ * Description      Finds the control block by handle provided
+ *
+ *                  bda: BD_ADDR of the device to find the handle for.
+ *                  Since there can only be one HF connection for a device
+ *                  we should always find a unique block
+ *
+ * Returns          Control block corresponding to the BD_ADDR and NULL if
+ *                  none exists
+ *
+ ******************************************************************************/
 tBTA_HF_CLIENT_CB* bta_hf_client_find_cb_by_bda(const BD_ADDR peer_addr) {
   for (int i = 0; i < HF_CLIENT_MAX_DEVICES; i++) {
     // Check if the associated index is allocated and that BD ADDR matches
@@ -506,18 +506,18 @@ tBTA_HF_CLIENT_CB* bta_hf_client_find_cb_by_bda(const BD_ADDR peer_addr) {
 }
 
 /*******************************************************************************
-*
-* Function         bta_hf_client_find_cb_by_rfc_handle
-*
-* Description      Finds the control block by RFC handle provided.
-*
-*                  handle: RFC handle for the established connection
-*
-*
-* Returns          Control block corresponding to the handle and NULL if none
-*                  exists
-*
-******************************************************************************/
+ *
+ * Function         bta_hf_client_find_cb_by_rfc_handle
+ *
+ * Description      Finds the control block by RFC handle provided.
+ *
+ *                  handle: RFC handle for the established connection
+ *
+ *
+ * Returns          Control block corresponding to the handle and NULL if none
+ *                  exists
+ *
+ ******************************************************************************/
 tBTA_HF_CLIENT_CB* bta_hf_client_find_cb_by_rfc_handle(uint16_t handle) {
   for (int i = 0; i < HF_CLIENT_MAX_DEVICES; i++) {
     tBTA_HF_CLIENT_CB* client_cb = &bta_hf_client_cb_arr.cb[i];
@@ -540,18 +540,18 @@ tBTA_HF_CLIENT_CB* bta_hf_client_find_cb_by_rfc_handle(uint16_t handle) {
 }
 
 /*******************************************************************************
-*
-* Function         bta_hf_client_find_cb_by_sco_handle
-*
-* Description      Finds the control block by sco handle provided
-*
-*                  handle: sco handle
-*
-*
-* Returns          Control block corresponding to the sco handle and
-*                  none if none exists
-*
-******************************************************************************/
+ *
+ * Function         bta_hf_client_find_cb_by_sco_handle
+ *
+ * Description      Finds the control block by sco handle provided
+ *
+ *                  handle: sco handle
+ *
+ *
+ * Returns          Control block corresponding to the sco handle and
+ *                  none if none exists
+ *
+ ******************************************************************************/
 tBTA_HF_CLIENT_CB* bta_hf_client_find_cb_by_sco_handle(uint16_t handle) {
   for (int i = 0; i < HF_CLIENT_MAX_DEVICES; i++) {
     tBTA_HF_CLIENT_CB* client_cb = &bta_hf_client_cb_arr.cb[i];
@@ -564,22 +564,22 @@ tBTA_HF_CLIENT_CB* bta_hf_client_find_cb_by_sco_handle(uint16_t handle) {
 }
 
 /*******************************************************************************
-*
-* Function         bta_hf_client_allocate_handle
-*
-* Description      Allocates a handle for the new BD ADDR that needs a new RF
-*                  channel for HF connection. If the channel cannot be created
-*                  for a reason then false is returned
-*
-*                  bd_addr: Address of the device for which this block is
-*                  being created. Single device can only have one block.
-*                  p_handle: OUT variable to store the outcome of allocate. If
-*                  allocate failed then value is not valid
-*
-*
-* Returns          true if the creation of p_handle succeeded, false otherwise
-*
-******************************************************************************/
+ *
+ * Function         bta_hf_client_allocate_handle
+ *
+ * Description      Allocates a handle for the new BD ADDR that needs a new RF
+ *                  channel for HF connection. If the channel cannot be created
+ *                  for a reason then false is returned
+ *
+ *                  bd_addr: Address of the device for which this block is
+ *                  being created. Single device can only have one block.
+ *                  p_handle: OUT variable to store the outcome of allocate. If
+ *                  allocate failed then value is not valid
+ *
+ *
+ * Returns          true if the creation of p_handle succeeded, false otherwise
+ *
+ ******************************************************************************/
 bool bta_hf_client_allocate_handle(const BD_ADDR bd_addr, uint16_t* p_handle) {
   tBTA_HF_CLIENT_CB* existing_cb;
   if ((existing_cb = bta_hf_client_find_cb_by_bda(bd_addr)) != NULL) {
@@ -631,15 +631,15 @@ void bta_hf_client_app_callback(uint16_t event, tBTA_HF_CLIENT* data) {
 }
 
 /*******************************************************************************
-*
-* Function         bta_hf_client_api_disable
-*
-* Description      Handle an API disable event.
-*
-*
-* Returns          void
-*
-******************************************************************************/
+ *
+ * Function         bta_hf_client_api_disable
+ *
+ * Description      Handle an API disable event.
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 void bta_hf_client_api_disable() {
   if (!bta_sys_is_register(BTA_ID_HS)) {
     APPL_TRACE_WARNING("BTA HF Client is already disabled, ignoring ...");
