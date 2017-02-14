@@ -61,35 +61,7 @@ public class BluetoothOppReceiver extends BroadcastReceiver {
     public void onReceive(Context context, Intent intent) {
         String action = intent.getAction();
 
-
-        if (action.equals(BluetoothAdapter.ACTION_STATE_CHANGED)) {
-            if (BluetoothAdapter.STATE_ON == intent.getIntExtra(
-                    BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.ERROR)) {
-                if (V) Log.v(TAG, "Received BLUETOOTH_STATE_CHANGED_ACTION, BLUETOOTH_STATE_ON");
-                context.startService(new Intent(context, BluetoothOppService.class));
-
-                // If this is within a sending process, continue the handle
-                // logic to display device picker dialog.
-                synchronized (this) {
-                    if (BluetoothOppManager.getInstance(context).mSendingFlag) {
-                        // reset the flags
-                        BluetoothOppManager.getInstance(context).mSendingFlag = false;
-
-                        Intent in1 = new Intent(BluetoothDevicePicker.ACTION_LAUNCH);
-                        in1.putExtra(BluetoothDevicePicker.EXTRA_NEED_AUTH, false);
-                        in1.putExtra(BluetoothDevicePicker.EXTRA_FILTER_TYPE,
-                                BluetoothDevicePicker.FILTER_TYPE_TRANSFER);
-                        in1.putExtra(BluetoothDevicePicker.EXTRA_LAUNCH_PACKAGE,
-                                Constants.THIS_PACKAGE_NAME);
-                        in1.putExtra(BluetoothDevicePicker.EXTRA_LAUNCH_CLASS,
-                                BluetoothOppReceiver.class.getName());
-
-                        in1.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                        context.startActivity(in1);
-                    }
-                }
-            }
-        } else if (action.equals(BluetoothDevicePicker.ACTION_DEVICE_SELECTED)) {
+        if (action.equals(BluetoothDevicePicker.ACTION_DEVICE_SELECTED)) {
             BluetoothOppManager mOppManager = BluetoothOppManager.getInstance(context);
 
             BluetoothDevice remoteDevice = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
