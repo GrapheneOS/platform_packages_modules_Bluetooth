@@ -212,31 +212,23 @@ class BrowsedMediaPlayer {
             }
 
             if (!mMediaBrowser.isConnected()) {
-                isError = true;
-                Log.e(TAG, "setBrowsedPlayer : Not connected");
-            }
-
-            if ((token = mMediaBrowser.getSessionToken()) == null) {
-                isError = true;
-                Log.e(TAG, "setBrowsedPlayer : No Session token");
-            }
-
-            if (isError == false) {
+                Log.e(TAG, "setBrowsedPlayer: " + mPackageName + "not connected");
+            } else if ((token = mMediaBrowser.getSessionToken()) == null) {
+                Log.e(TAG, "setBrowsedPlayer: " + mPackageName + "no Session token");
+            } else {
                 mMediaController = MediaController.wrap(
                     new android.media.session.MediaController(mContext, token));
                 /* get root folder items */
                 mMediaBrowser.subscribe(mRootFolderUid, folderItemsCb);
+                return;
             }
         } catch (NullPointerException ex) {
-            isError = true;
             Log.e(TAG, "setBrowsedPlayer : Null pointer during init");
             ex.printStackTrace();
         }
 
-        if (isError) {
-            mMediaInterface.setBrowsedPlayerRsp(mBDAddr, AvrcpConstants.RSP_INTERNAL_ERR,
-                    (byte)0x00, 0, null);
-        }
+        mMediaInterface.setBrowsedPlayerRsp(
+                mBDAddr, AvrcpConstants.RSP_INTERNAL_ERR, (byte) 0x00, 0, null);
     }
 
     public void setBrowsed(String packageName, String cls) {
