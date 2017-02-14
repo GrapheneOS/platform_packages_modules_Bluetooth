@@ -453,16 +453,16 @@ static void avrc_build_attribute_entries(int num_attrs,
 }
 
 /*******************************************************************************
-**
-** Function         avrc_bld_get_elem_attrs_rsp
-**
-** Description      This function builds the Get Element Attributes
-**                  response.
-**
-** Returns          AVRC_STS_NO_ERROR, if the response is built successfully
-**                  Otherwise, the error code.
-**
-*******************************************************************************/
+ *
+ * Function         avrc_bld_get_elem_attrs_rsp
+ *
+ * Description      This function builds the Get Element Attributes
+ *                  response.
+ *
+ * Returns          AVRC_STS_NO_ERROR, if the response is built successfully
+ *                  Otherwise, the error code.
+ *
+ ******************************************************************************/
 static tAVRC_STS avrc_bld_get_elem_attrs_rsp(tAVRC_GET_ATTRS_RSP* p_rsp,
                                              BT_HDR* p_pkt) {
   AVRC_TRACE_API("%s", __func__);
