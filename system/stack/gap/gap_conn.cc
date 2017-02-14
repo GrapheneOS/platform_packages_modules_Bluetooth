@@ -1093,14 +1093,14 @@ static tGAP_CCB* gap_allocate_ccb(void) {
 }
 
 /*******************************************************************************
-**
-** Function         gap_release_ccb
-**
-** Description      This function releases a CCB.
-**
-** Returns          void
-**
-*******************************************************************************/
+ *
+ * Function         gap_release_ccb
+ *
+ * Description      This function releases a CCB.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
 static void gap_release_ccb(tGAP_CCB* p_ccb) {
   /* Drop any buffers we may be holding */
   p_ccb->rx_queue_size = 0;
