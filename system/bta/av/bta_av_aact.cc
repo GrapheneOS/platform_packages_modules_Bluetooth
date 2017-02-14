@@ -86,7 +86,8 @@ const tBTA_AV_CO_FUNCTS bta_av_a2dp_cos = {
     bta_av_co_audio_getconfig,     bta_av_co_audio_setconfig,
     bta_av_co_audio_open,          bta_av_co_audio_close,
     bta_av_co_audio_start,         bta_av_co_audio_stop,
-    bta_av_co_audio_src_data_path, bta_av_co_audio_delay};
+    bta_av_co_audio_src_data_path, bta_av_co_audio_delay,
+    bta_av_co_audio_update_mtu};
 
 /* ssm action functions for audio stream */
 const tBTA_AV_SACT bta_av_a2dp_action[] = {
@@ -2557,11 +2558,19 @@ void bta_av_suspend_cfm(tBTA_AV_SCB* p_scb, tBTA_AV_DATA* p_data) {
  * Returns          void
  *
  ******************************************************************************/
-void bta_av_rcfg_str_ok(tBTA_AV_SCB* p_scb, UNUSED_ATTR tBTA_AV_DATA* p_data) {
+void bta_av_rcfg_str_ok(tBTA_AV_SCB* p_scb, tBTA_AV_DATA* p_data) {
   tBTA_AV_RECONFIG evt;
 
   p_scb->l2c_cid = AVDT_GetL2CapChannel(p_scb->avdt_handle);
   APPL_TRACE_DEBUG("%s: l2c_cid: %d", __func__, p_scb->l2c_cid);
+
+  p_scb->stream_mtu =
+      p_data->str_msg.msg.open_ind.peer_mtu - AVDT_MEDIA_HDR_SIZE;
+  uint16_t mtu = bta_av_chk_mtu(p_scb, p_scb->stream_mtu);
+  APPL_TRACE_DEBUG("%s: l2c_cid: 0x%x stream_mtu: %d mtu: %d", __func__,
+                   p_scb->l2c_cid, p_scb->stream_mtu, mtu);
+  if (mtu == 0 || mtu > p_scb->stream_mtu) mtu = p_scb->stream_mtu;
+  p_scb->p_cos->update_mtu(p_scb->hndl, mtu);
 
   /* rc listen */
   bta_av_st_rc_timer(p_scb, NULL);
