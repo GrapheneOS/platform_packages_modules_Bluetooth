@@ -113,7 +113,6 @@
             android:name=".opp.BluetoothOppReceiver"
             android:enabled="@bool/profile_supported_opp">
             <intent-filter>
-                <action android:name="android.bluetooth.adapter.action.STATE_CHANGED" />
                 <action android:name="android.btopp.intent.action.OPEN_RECEIVED_FILES" />
             </intent-filter>
         </receiver>
@@ -228,18 +227,6 @@
                 <action android:name="android.bluetooth.IBluetoothPbap" />
             </intent-filter>
         </service>
-        <receiver
-            android:process="@string/process"
-            android:exported="true"
-            android:name=".pbap.BluetoothPbapReceiver"
-            android:enabled="@bool/profile_supported_pbap">
-            <intent-filter>
-                <action android:name="android.bluetooth.adapter.action.STATE_CHANGED"/>
-                <action android:name="android.bluetooth.device.action.CONNECTION_ACCESS_REPLY" />
-                <action android:name="android.bluetooth.device.action.ACL_DISCONNECTED" />
-                <category android:name="android.intent.category.DEFAULT" />
-            </intent-filter>
-        </receiver>
         <service
             android:process="@string/process"
             android:name=".map.BluetoothMapService"

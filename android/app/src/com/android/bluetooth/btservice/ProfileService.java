@@ -62,8 +62,10 @@ public abstract class ProfileService extends Service {
     }
 
     protected abstract IProfileServiceBinder initBinder();
+
     protected abstract boolean start();
     protected abstract boolean stop();
+    protected void create() {}
     protected boolean cleanup() {
         return true;
     }
@@ -105,6 +107,7 @@ public abstract class ProfileService extends Service {
         super.onCreate();
         mAdapter = BluetoothAdapter.getDefaultAdapter();
         mBinder = initBinder();
+        create();
     }
 
     public int onStartCommand(Intent intent, int flags, int startId) {
@@ -148,6 +151,10 @@ public abstract class ProfileService extends Service {
 
     public IBinder onBind(Intent intent) {
         if (DBG) log("onBind");
+        if (mAdapter != null && mBinder == null) {
+            // initBinder returned null, you can't bind
+            throw new UnsupportedOperationException("Cannot bind to " + mName);
+        }
         return mBinder;
     }
 
