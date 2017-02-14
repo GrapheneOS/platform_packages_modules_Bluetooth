@@ -197,4 +197,19 @@ void bta_av_co_audio_drop(tBTA_AV_HNDL hndl);
  ******************************************************************************/
 void bta_av_co_audio_delay(tBTA_AV_HNDL hndl, uint16_t delay);
 
+/*******************************************************************************
+ *
+ * Function         bta_av_co_audio_update_mtu
+ *
+ * Description      This function is called by AV when the audio stream
+ *                  connection MTU needs to be updated.
+ *                  BTA-AV maintains the MTU of A2DP streams.
+ *                  If this is the 2nd audio stream, mtu is the smaller of the 2
+ *                  streams.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
+void bta_av_co_audio_update_mtu(tBTA_AV_HNDL hndl, uint16_t mtu);
+
 #endif /* BTA_AV_CO_H */

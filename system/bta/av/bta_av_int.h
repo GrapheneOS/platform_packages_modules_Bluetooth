@@ -180,6 +180,7 @@ typedef void (*tBTA_AV_CO_STOP)(tBTA_AV_HNDL hndl);
 typedef void* (*tBTA_AV_CO_DATAPATH)(const uint8_t* p_codec_info,
                                      uint32_t* p_timestamp);
 typedef void (*tBTA_AV_CO_DELAY)(tBTA_AV_HNDL hndl, uint16_t delay);
+typedef void (*tBTA_AV_CO_UPDATE_MTU)(tBTA_AV_HNDL hndl, uint16_t mtu);
 
 /* the call-out functions for one stream */
 typedef struct {
@@ -193,6 +194,7 @@ typedef struct {
   tBTA_AV_CO_STOP stop;
   tBTA_AV_CO_DATAPATH data;
   tBTA_AV_CO_DELAY delay;
+  tBTA_AV_CO_UPDATE_MTU update_mtu;
 } tBTA_AV_CO_FUNCTS;
 
 /* data type for BTA_AV_API_ENABLE_EVT */
