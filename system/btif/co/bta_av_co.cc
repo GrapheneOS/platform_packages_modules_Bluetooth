@@ -761,6 +761,20 @@ void bta_av_co_audio_delay(tBTA_AV_HNDL hndl, uint16_t delay) {
   APPL_TRACE_ERROR("%s: handle: x%x, delay:0x%x", __func__, hndl, delay);
 }
 
+void bta_av_co_audio_update_mtu(tBTA_AV_HNDL hndl, uint16_t mtu) {
+  tBTA_AV_CO_PEER* p_peer;
+
+  APPL_TRACE_DEBUG("%s: handle: %d mtu: %d", __func__, hndl, mtu);
+
+  /* Retrieve the peer info */
+  p_peer = bta_av_co_get_peer(hndl);
+  if (p_peer == NULL) {
+    APPL_TRACE_ERROR("%s: could not find peer entry", __func__);
+    return;
+  }
+  p_peer->mtu = mtu;
+}
+
 /*******************************************************************************
  **
  ** Function         bta_av_co_cp_is_scmst
