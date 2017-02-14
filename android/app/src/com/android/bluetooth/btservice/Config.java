@@ -40,6 +40,8 @@ import com.android.bluetooth.mapclient.MapClientService;
 import com.android.bluetooth.sap.SapService;
 import com.android.bluetooth.pbapclient.PbapClientService;
 import com.android.bluetooth.hid.HidDevService;
+import com.android.bluetooth.pbap.BluetoothPbapService;
+import com.android.bluetooth.opp.BluetoothOppService;
 
 public class Config {
     private static final String TAG = "AdapterServiceConfig";
@@ -49,32 +51,24 @@ public class Config {
     @SuppressWarnings("rawtypes")
     // Do not inclue OPP and PBAP, because their services
     // are not managed by AdapterService
-    private static final Class[] PROFILE_SERVICES = {
-        HeadsetService.class,       A2dpService.class,
-        A2dpSinkService.class,      HidService.class,
-        HealthService.class,        PanService.class,
-        GattService.class,          BluetoothMapService.class,
-        HeadsetClientService.class, AvrcpControllerService.class,
-        SapService.class,           PbapClientService.class,
-        MapClientService.class,     HidDevService.class};
+    private static final Class[] PROFILE_SERVICES = {HeadsetService.class, A2dpService.class,
+            A2dpSinkService.class, HidService.class, HealthService.class, PanService.class,
+            GattService.class, BluetoothMapService.class, HeadsetClientService.class,
+            AvrcpControllerService.class, SapService.class, PbapClientService.class,
+            MapClientService.class, HidDevService.class, BluetoothOppService.class,
+            BluetoothPbapService.class};
     /**
      * Resource flag to indicate whether profile is supported or not.
      */
-    private static final int[] PROFILE_SERVICES_FLAG = {
-        R.bool.profile_supported_hs_hfp,
-        R.bool.profile_supported_a2dp,
-        R.bool.profile_supported_a2dp_sink,
-        R.bool.profile_supported_hid,
-        R.bool.profile_supported_hdp,
-        R.bool.profile_supported_pan,
-        R.bool.profile_supported_gatt,
-        R.bool.profile_supported_map,
-        R.bool.profile_supported_hfpclient,
-        R.bool.profile_supported_avrcp_controller,
-        R.bool.profile_supported_sap,
-        R.bool.profile_supported_pbapclient,
-        R.bool.profile_supported_mapmce,
-        R.bool.profile_supported_hidd};
+    private static final int[] PROFILE_SERVICES_FLAG = {R.bool.profile_supported_hs_hfp,
+            R.bool.profile_supported_a2dp, R.bool.profile_supported_a2dp_sink,
+            R.bool.profile_supported_hid, R.bool.profile_supported_hdp,
+            R.bool.profile_supported_pan, R.bool.profile_supported_gatt,
+            R.bool.profile_supported_map, R.bool.profile_supported_hfpclient,
+            R.bool.profile_supported_avrcp_controller, R.bool.profile_supported_sap,
+            R.bool.profile_supported_pbapclient, R.bool.profile_supported_mapmce,
+            R.bool.profile_supported_hidd, R.bool.profile_supported_opp,
+            R.bool.profile_supported_pbap};
 
     private static Class[] SUPPORTED_PROFILES = new Class[0];
 
