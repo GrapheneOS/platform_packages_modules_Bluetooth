@@ -344,7 +344,6 @@ final class BondStateMachine extends StateMachine {
         intent.putExtra(BluetoothDevice.EXTRA_PREVIOUS_BOND_STATE, oldState);
         if (newState == BluetoothDevice.BOND_NONE)
             intent.putExtra(BluetoothDevice.EXTRA_REASON, reason);
-        intent.setPackage(mAdapterService.getString(R.string.pairing_ui_package));
         mAdapterService.sendBroadcastAsUser(intent, UserHandle.ALL,
                 AdapterService.BLUETOOTH_PERM);
         infoLog("Bond State Change Intent:" + device + " OldState: " + oldState
