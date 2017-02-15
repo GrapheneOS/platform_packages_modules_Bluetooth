@@ -2564,13 +2564,16 @@ void bta_av_rcfg_str_ok(tBTA_AV_SCB* p_scb, tBTA_AV_DATA* p_data) {
   p_scb->l2c_cid = AVDT_GetL2CapChannel(p_scb->avdt_handle);
   APPL_TRACE_DEBUG("%s: l2c_cid: %d", __func__, p_scb->l2c_cid);
 
-  p_scb->stream_mtu =
-      p_data->str_msg.msg.open_ind.peer_mtu - AVDT_MEDIA_HDR_SIZE;
-  uint16_t mtu = bta_av_chk_mtu(p_scb, p_scb->stream_mtu);
-  APPL_TRACE_DEBUG("%s: l2c_cid: 0x%x stream_mtu: %d mtu: %d", __func__,
-                   p_scb->l2c_cid, p_scb->stream_mtu, mtu);
-  if (mtu == 0 || mtu > p_scb->stream_mtu) mtu = p_scb->stream_mtu;
-  p_scb->p_cos->update_mtu(p_scb->hndl, mtu);
+  if (p_data != NULL) {
+    // p_data could be NULL if the reconfig was triggered by the local device
+    p_scb->stream_mtu =
+        p_data->str_msg.msg.open_ind.peer_mtu - AVDT_MEDIA_HDR_SIZE;
+    uint16_t mtu = bta_av_chk_mtu(p_scb, p_scb->stream_mtu);
+    APPL_TRACE_DEBUG("%s: l2c_cid: 0x%x stream_mtu: %d mtu: %d", __func__,
+                     p_scb->l2c_cid, p_scb->stream_mtu, mtu);
+    if (mtu == 0 || mtu > p_scb->stream_mtu) mtu = p_scb->stream_mtu;
+    p_scb->p_cos->update_mtu(p_scb->hndl, mtu);
+  }
 
   /* rc listen */
   bta_av_st_rc_timer(p_scb, NULL);
