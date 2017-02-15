@@ -438,11 +438,13 @@ class BrowsedMediaPlayer {
      * helper method to check if startItem and endItem index is with range of
      * MediaItem list. (Resultset containing all items in current path)
      */
-    private List<MediaBrowser.MediaItem> checkIndexOutofBounds(byte[] bdaddr,
-        List<MediaBrowser.MediaItem> children, int startItem, int endItem) {
+    private List<MediaBrowser.MediaItem> checkIndexOutofBounds(
+            byte[] bdaddr, List<MediaBrowser.MediaItem> children, long startItem, long endItem) {
+        if (endItem > children.size()) endItem = children.size() - 1;
+        if (startItem >= Integer.MAX_VALUE) startItem = Integer.MAX_VALUE;
         try {
             List<MediaBrowser.MediaItem> childrenSubList =
-                children.subList(startItem, Math.min(children.size(), endItem + 1));
+                    children.subList((int) startItem, (int) endItem + 1);
             if (childrenSubList.isEmpty()) {
                 Log.i(TAG, "childrenSubList is empty.");
                 throw new IndexOutOfBoundsException();
@@ -465,7 +467,7 @@ class BrowsedMediaPlayer {
      * helper method to filter required attibutes before sending GetFolderItems response
      */
     public void getFolderItemsFilterAttr(byte[] bdaddr, AvrcpCmd.FolderItemsCmd mFolderItemsReqObj,
-        List<MediaBrowser.MediaItem> children, byte scope, int startItem, int endItem) {
+            List<MediaBrowser.MediaItem> children, byte scope, long startItem, long endItem) {
         if (DEBUG) Log.d(TAG, "getFolderItemsFilterAttr: startItem =" + startItem +
             ", endItem = " + endItem);
 
