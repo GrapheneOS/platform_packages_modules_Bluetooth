@@ -62,7 +62,8 @@
  * problematic "char *" to struct pointer casting, and this macro itself should
  * be removed.
  */
-#define maybe_non_aligned_memcpy(_a, _b, _c) memcpy((void*)(_a), (_b), (_c))
+#define maybe_non_aligned_memcpy(_a, _b, _c) \
+  memcpy((void*)(_a), (void*)(_b), (_c))
 
 /* BTIF sub-systems */
 #define BTIF_CORE 0
