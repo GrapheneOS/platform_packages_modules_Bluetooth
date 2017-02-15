@@ -812,6 +812,21 @@ extern void btsnd_hcic_ble_set_extended_scan_enable(uint8_t enable,
                                                     uint16_t duration,
                                                     uint16_t period);
 
+struct EXT_CONN_PHY_CFG {
+  uint16_t scan_int;
+  uint16_t scan_win;
+  uint16_t conn_int_min;
+  uint16_t conn_int_max;
+  uint16_t conn_latency;
+  uint16_t sup_timeout;
+  uint16_t min_ce_len;
+  uint16_t max_ce_len;
+};
+
+extern void btsnd_hcic_ble_ext_create_conn(
+    uint8_t init_filter_policy, uint8_t addr_type_own, uint8_t addr_type_peer,
+    BD_ADDR bda_peer, uint8_t initiating_phys, EXT_CONN_PHY_CFG* phy_cfg);
+
 extern void btsnd_hcic_ble_add_device_resolving_list(
     uint8_t addr_type_peer, BD_ADDR bda_peer,
     uint8_t irk_peer[HCIC_BLE_IRK_SIZE], uint8_t irk_local[HCIC_BLE_IRK_SIZE]);
