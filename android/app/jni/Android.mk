@@ -15,7 +15,8 @@ LOCAL_SRC_FILES:= \
     com_android_bluetooth_hdp.cpp \
     com_android_bluetooth_pan.cpp \
     com_android_bluetooth_gatt.cpp \
-    com_android_bluetooth_sdp.cpp
+    com_android_bluetooth_sdp.cpp \
+    scoped_bt_addr.cpp
 
 LOCAL_C_INCLUDES += \
     $(JNI_H_INCLUDE) \
