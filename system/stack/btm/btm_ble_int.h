@@ -124,6 +124,11 @@ extern void btm_ble_white_list_init(uint8_t white_list_size);
 /* background connection function */
 extern bool btm_ble_suspend_bg_conn(void);
 extern bool btm_ble_resume_bg_conn(void);
+extern void btm_send_hci_create_connection(
+    uint16_t scan_int, uint16_t scan_win, uint8_t init_filter_policy,
+    uint8_t addr_type_peer, BD_ADDR bda_peer, uint8_t addr_type_own,
+    uint16_t conn_int_min, uint16_t conn_int_max, uint16_t conn_latency,
+    uint16_t conn_timeout, uint16_t min_ce_len, uint16_t max_ce_len);
 extern bool btm_ble_start_auto_conn(bool start);
 extern bool btm_ble_start_select_conn(bool start);
 extern bool btm_ble_renew_bg_conn_params(bool add, BD_ADDR bd_addr);
