@@ -1117,7 +1117,7 @@ const uint8_t* BTM_CheckAdvData(std::vector<uint8_t> const& adv, uint8_t type,
     return NULL;
   }
 
-  uint8_t position = 0;
+  size_t position = 0;
   uint8_t length = adv[position];
 
   while (length > 0 && (position < adv.size())) {
@@ -1130,6 +1130,8 @@ const uint8_t* BTM_CheckAdvData(std::vector<uint8_t> const& adv, uint8_t type,
     }
 
     position += length + 1; /* skip the length of data */
+    if (position >= adv.size()) break;
+
     length = adv[position];
   }
 
