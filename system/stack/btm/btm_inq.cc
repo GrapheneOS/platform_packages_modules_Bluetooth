@@ -2318,7 +2318,7 @@ uint8_t* BTM_CheckEirData(uint8_t* p_eir, size_t eir_len, uint8_t type,
     return NULL;
   }
 
-  uint8_t position = 0;
+  size_t position = 0;
   uint8_t length = p_eir[position];
 
   while (length > 0 && (position < eir_len)) {
@@ -2331,6 +2331,8 @@ uint8_t* BTM_CheckEirData(uint8_t* p_eir, size_t eir_len, uint8_t type,
     }
 
     position += length + 1; /* skip the length of data */
+    if (position >= eir_len) break;
+
     length = p_eir[position];
   }
 
