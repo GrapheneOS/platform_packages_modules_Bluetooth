@@ -879,7 +879,7 @@ bool l2cble_init_direct_conn(tL2C_LCB* p_lcb) {
     return false;
   }
 
-  btsnd_hcic_ble_create_ll_conn(
+  btm_send_hci_create_connection(
       scan_int,       /* uint16_t scan_int      */
       scan_win,       /* uint16_t scan_win      */
       false,          /* uint8_t white_list     */
