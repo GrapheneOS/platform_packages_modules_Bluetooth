@@ -532,9 +532,11 @@ static bool btm_sec_set_security_level(CONNECTION_TYPE conn_type,
       if (p_srec->psm == psm && p_srec->mx_proto_id == mx_proto_id &&
           service_id == p_srec->service_id && p_name &&
           (!strncmp(p_name, (char*)p_srec->orig_service_name,
-                    BTM_SEC_SERVICE_NAME_LEN) ||
+                    /* strlcpy replaces end char with termination char*/
+                    BTM_SEC_SERVICE_NAME_LEN - 1) ||
            !strncmp(p_name, (char*)p_srec->term_service_name,
-                    BTM_SEC_SERVICE_NAME_LEN)))
+                    /* strlcpy replaces end char with termination char*/
+                    BTM_SEC_SERVICE_NAME_LEN - 1)))
 #else
       if (p_srec->psm == psm && p_srec->mx_proto_id == mx_proto_id &&
           service_id == p_srec->service_id)
