@@ -18,6 +18,8 @@
 
 #define LOG_TAG "bt_snoop"
 
+#include <mutex>
+
 #include <arpa/inet.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -56,6 +58,7 @@ static int logfile_fd = INVALID_FD;
 static bool module_started;
 static bool is_logging;
 static bool logging_enabled_via_api;
+static std::mutex btsnoop_mutex;
 
 // TODO(zachoverflow): merge btsnoop and btsnoop_net together
 void btsnoop_net_open();
@@ -100,6 +103,7 @@ static void set_api_wants_to_log(bool value) {
 static void capture(const BT_HDR* buffer, bool is_received) {
   uint8_t* p = const_cast<uint8_t*>(buffer->data + buffer->offset);
 
+  std::lock_guard<std::mutex> lock(btsnoop_mutex);
   uint64_t timestamp_us = time_gettimeofday_us();
   btsnoop_mem_capture(buffer, timestamp_us);
 
@@ -133,6 +137,8 @@ const btsnoop_t* btsnoop_get_interface() {
 // Internal functions
 
 static void update_logging() {
+  std::lock_guard<std::mutex> lock(btsnoop_mutex);
+
   bool should_log = module_started && (logging_enabled_via_api ||
                                        stack_config->get_btsnoop_turned_on());
 
