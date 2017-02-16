@@ -741,3 +741,45 @@ void btsnd_hcic_ble_set_extended_scan_enable(uint8_t enable,
 
   btu_hcif_send_cmd(LOCAL_BR_EDR_CONTROLLER_ID, p);
 }
+
+void btsnd_hcic_ble_ext_create_conn(uint8_t init_filter_policy,
+                                    uint8_t addr_type_own,
+                                    uint8_t addr_type_peer, BD_ADDR bda_peer,
+                                    uint8_t initiating_phys,
+                                    EXT_CONN_PHY_CFG* phy_cfg) {
+  BT_HDR* p = (BT_HDR*)osi_malloc(HCI_CMD_BUF_SIZE);
+  uint8_t* pp = (uint8_t*)(p + 1);
+
+  int phy_cnt =
+      std::bitset<std::numeric_limits<uint8_t>::digits>(initiating_phys)
+          .count();
+
+  /* param_len = initial_params + size_per_channel * num_of_channels */
+  uint8_t param_len = 10 + (16 * phy_cnt);
+
+  p->len = HCIC_PREAMBLE_SIZE + param_len;
+  p->offset = 0;
+
+  UINT16_TO_STREAM(pp, HCI_LE_EXTENDED_CREATE_CONNECTION);
+  UINT8_TO_STREAM(pp, param_len);
+
+  UINT8_TO_STREAM(pp, init_filter_policy);
+  UINT8_TO_STREAM(pp, addr_type_own);
+  UINT8_TO_STREAM(pp, addr_type_peer);
+  BDADDR_TO_STREAM(pp, bda_peer);
+
+  UINT8_TO_STREAM(pp, initiating_phys);
+
+  for (int i = 0; i < phy_cnt; i++) {
+    UINT16_TO_STREAM(pp, phy_cfg[i].scan_int);
+    UINT16_TO_STREAM(pp, phy_cfg[i].scan_win);
+    UINT16_TO_STREAM(pp, phy_cfg[i].conn_int_min);
+    UINT16_TO_STREAM(pp, phy_cfg[i].conn_int_max);
+    UINT16_TO_STREAM(pp, phy_cfg[i].conn_latency);
+    UINT16_TO_STREAM(pp, phy_cfg[i].sup_timeout);
+    UINT16_TO_STREAM(pp, phy_cfg[i].min_ce_len);
+    UINT16_TO_STREAM(pp, phy_cfg[i].max_ce_len);
+  }
+
+  btu_hcif_send_cmd(LOCAL_BR_EDR_CONTROLLER_ID, p);
+}

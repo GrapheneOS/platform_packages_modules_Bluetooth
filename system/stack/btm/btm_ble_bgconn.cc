@@ -319,6 +319,34 @@ void btm_ble_remove_from_white_list_complete(uint8_t* p,
   if (*p == HCI_SUCCESS) ++btm_cb.ble_ctr_cb.white_list_avail_size;
 }
 
+void btm_send_hci_create_connection(
+    uint16_t scan_int, uint16_t scan_win, uint8_t init_filter_policy,
+    uint8_t addr_type_peer, BD_ADDR bda_peer, uint8_t addr_type_own,
+    uint16_t conn_int_min, uint16_t conn_int_max, uint16_t conn_latency,
+    uint16_t conn_timeout, uint16_t min_ce_len, uint16_t max_ce_len) {
+  if (controller_get_interface()->supports_ble_extended_advertising()) {
+    EXT_CONN_PHY_CFG phy_cfg;
+
+    phy_cfg.scan_int = scan_int;
+    phy_cfg.scan_win = scan_win;
+    phy_cfg.conn_int_min = conn_int_min;
+    phy_cfg.conn_int_max = conn_int_max;
+    phy_cfg.conn_latency = conn_latency;
+    phy_cfg.sup_timeout = conn_timeout;
+    phy_cfg.min_ce_len = min_ce_len;
+    phy_cfg.max_ce_len = max_ce_len;
+
+    btsnd_hcic_ble_ext_create_conn(init_filter_policy, addr_type_own,
+                                   addr_type_peer, bda_peer,
+                                   0x01 /* LE 1M PHY */, &phy_cfg);
+  } else {
+    btsnd_hcic_ble_create_ll_conn(scan_int, scan_win, init_filter_policy,
+                                  addr_type_peer, bda_peer, addr_type_own,
+                                  conn_int_min, conn_int_max, conn_latency,
+                                  conn_timeout, min_ce_len, max_ce_len);
+  }
+}
+
 /*******************************************************************************
  *
  * Function         btm_ble_start_auto_conn
@@ -364,7 +392,7 @@ bool btm_ble_start_auto_conn(bool start) {
       }
 #endif
 
-      btsnd_hcic_ble_create_ll_conn(
+      btm_send_hci_create_connection(
           scan_int,                       /* uint16_t scan_int      */
           scan_win,                       /* uint16_t scan_win      */
           0x01,                           /* uint8_t white_list     */
