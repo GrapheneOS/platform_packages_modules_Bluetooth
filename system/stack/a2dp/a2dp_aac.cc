@@ -960,16 +960,21 @@ bool A2dpCodecConfigAac::setCodecConfig(const uint8_t* p_peer_codec_info,
   result_config_cie.variableBitRateSupport =
       a2dp_aac_caps.variableBitRateSupport;
 
-  // Set the bit rate to the smaller of the local and peer bit rate
-  // However, make sure the bit rate doesn't go beyond a certain threshold
-  if (sink_info_cie.bitRate == 0) {
-    // NOTE: Some devices report bitRate of zero - in that case use our bitRate
+  // Set the bit rate as follows:
+  // 1. If the Sink device reports a bogus bit rate
+  //    (bitRate < A2DP_AAC_MIN_BITRATE), then use the bit rate from our
+  //    configuration. Examples of observed bogus bit rates are zero
+  //    and 24576.
+  // 2. If the Sink device reports valid bit rate
+  //    (bitRate >= A2DP_AAC_MIN_BITRATE), then use the smaller
+  //    of the Sink device's bit rate and the bit rate from our configuration.
+  // In either case, the actual streaming bit rate will also consider the MTU.
+  if (sink_info_cie.bitRate < A2DP_AAC_MIN_BITRATE) {
+    // Bogus bit rate
     result_config_cie.bitRate = a2dp_aac_caps.bitRate;
   } else {
     result_config_cie.bitRate =
         std::min(a2dp_aac_caps.bitRate, sink_info_cie.bitRate);
-    result_config_cie.bitRate = std::max(
-        result_config_cie.bitRate, static_cast<uint32_t>(A2DP_AAC_MIN_BITRATE));
   }
 
   //
