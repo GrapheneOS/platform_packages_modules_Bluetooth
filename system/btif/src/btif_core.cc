@@ -213,28 +213,27 @@ bt_status_t btif_transfer_context(tBTIF_CBACK* p_cback, uint16_t event,
   return BT_STATUS_SUCCESS;
 }
 
-/*******************************************************************************
- *
- * Function         do_in_jni_thread
- *
- * Description      This function posts a task into the btif message loop, that
- *                  executes it in the JNI message loop.
- *
- * Returns          void
- *
- ******************************************************************************/
-bt_status_t do_in_jni_thread(const base::Closure& task) {
+/**
+ * This function posts a task into the btif message loop, that executes it in
+ * the JNI message loop.
+ **/
+bt_status_t do_in_jni_thread(const tracked_objects::Location& from_here,
+                             const base::Closure& task) {
   if (!message_loop_ || !message_loop_->task_runner().get()) {
     BTIF_TRACE_WARNING("%s: Dropped message, message_loop not initialized yet!",
                        __func__);
     return BT_STATUS_FAIL;
   }
 
-  if (message_loop_->task_runner()->PostTask(FROM_HERE, task))
+  if (message_loop_->task_runner()->PostTask(from_here, task))
     return BT_STATUS_SUCCESS;
 
   BTIF_TRACE_ERROR("%s: Post task to task runner failed!", __func__);
   return BT_STATUS_FAIL;
+}
+
+bt_status_t do_in_jni_thread(const base::Closure& task) {
+  return do_in_jni_thread(FROM_HERE, task);
 }
 
 /*******************************************************************************
