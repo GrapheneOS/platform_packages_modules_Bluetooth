@@ -186,23 +186,27 @@ public class BluetoothPbapService extends ProfileService {
 
     // process the intent from receiver
     private void parseIntent(final Intent intent) {
-        String action = intent.getStringExtra("action");
+        String action = intent.getAction();
         if (action == null) return;             // Nothing to do
         if (VERBOSE) Log.v(TAG, "action: " + action);
 
         int state = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.ERROR);
         if (VERBOSE) Log.v(TAG, "state: " + state);
 
-        if (action.equals(BluetoothAdapter.ACTION_STATE_CHANGED)
-                && (state == BluetoothAdapter.STATE_TURNING_OFF)) {
-            // Send any pending timeout now, as this service will be destroyed.
-            if (mSessionStatusHandler.hasMessages(USER_TIMEOUT)) {
-                mSessionStatusHandler.removeMessages(USER_TIMEOUT);
-                mSessionStatusHandler.obtainMessage(USER_TIMEOUT).sendToTarget();
+        if (action.equals(BluetoothAdapter.ACTION_STATE_CHANGED)) {
+            if (state == BluetoothAdapter.STATE_TURNING_OFF) {
+                // Send any pending timeout now, as this service will be destroyed.
+                if (mSessionStatusHandler.hasMessages(USER_TIMEOUT)) {
+                    mSessionStatusHandler.removeMessages(USER_TIMEOUT);
+                    mSessionStatusHandler.obtainMessage(USER_TIMEOUT).sendToTarget();
+                }
+                // Release all resources
+                closeService();
+                return;
+            } else if (state == BluetoothAdapter.STATE_ON) {
+                // start RFCOMM listener
+                mSessionStatusHandler.sendMessage(mSessionStatusHandler.obtainMessage(START_LISTENER));
             }
-            // Release all resources
-            closeService();
-            return;
         }
 
         if (action.equals(BluetoothDevice.ACTION_ACL_DISCONNECTED) && mIsWaitingAuthorization) {
@@ -612,8 +616,6 @@ public class BluetoothPbapService extends ProfileService {
                 case START_LISTENER:
                     if (mAdapter.isEnabled()) {
                         startRfcommSocketListener();
-                    } else {
-                        closeService();// release all resources
                     }
                     break;
                 case USER_TIMEOUT:
@@ -780,8 +782,6 @@ public class BluetoothPbapService extends ProfileService {
         mInterrupted = false;
         BluetoothPbapConfig.init(this);
         mAdapter = BluetoothAdapter.getDefaultAdapter();
-        // start RFCOMM listener
-        mSessionStatusHandler.sendMessage(mSessionStatusHandler.obtainMessage(START_LISTENER));
         return true;
     }
 
