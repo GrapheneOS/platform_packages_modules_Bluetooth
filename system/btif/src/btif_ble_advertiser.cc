@@ -120,26 +120,13 @@ class BleAdvertiserInterfaceImpl : public BleAdvertiserInterface {
                                base::Unretained(this), cb)));
   }
 
-  void SetDataCb(Callback cb, uint8_t advertiser_id, uint8_t status) {
-    do_in_jni_thread(Bind(cb, status));
-  }
-
   void SetData(int advertiser_id, bool set_scan_rsp, vector<uint8_t> data,
                Callback cb) override {
-    do_in_bta_thread(FROM_HERE,
-                     Bind(&BleAdvertisingManager::SetData,
-                          base::Unretained(BleAdvertisingManager::Get()),
-                          advertiser_id, set_scan_rsp, std::move(data),
-                          Bind(&BleAdvertiserInterfaceImpl::SetDataCb,
-                               base::Unretained(this), cb, advertiser_id)));
-  }
-
-  void EnableTimeoutCb(Callback cb, uint8_t status) {
-    do_in_jni_thread(Bind(cb, status));
-  }
-
-  void EnableCb(Callback cb, uint8_t status) {
-    do_in_jni_thread(Bind(cb, status));
+    do_in_bta_thread(
+        FROM_HERE,
+        Bind(&BleAdvertisingManager::SetData,
+             base::Unretained(BleAdvertisingManager::Get()), advertiser_id,
+             set_scan_rsp, std::move(data), jni_thread_wrapper(FROM_HERE, cb)));
   }
 
   void Enable(uint8_t advertiser_id, bool enable, Callback cb, int timeout_s,
@@ -151,10 +138,8 @@ class BleAdvertiserInterfaceImpl : public BleAdvertiserInterface {
         FROM_HERE,
         Bind(&BleAdvertisingManager::Enable,
              base::Unretained(BleAdvertisingManager::Get()), advertiser_id,
-             enable, Bind(&BleAdvertiserInterfaceImpl::EnableCb,
-                          base::Unretained(this), cb),
-             timeout_s, Bind(&BleAdvertiserInterfaceImpl::EnableTimeoutCb,
-                             base::Unretained(this), timeout_cb)));
+             enable, jni_thread_wrapper(FROM_HERE, cb), timeout_s,
+             jni_thread_wrapper(FROM_HERE, timeout_cb)));
   }
 
   void StartAdvertising(uint8_t advertiser_id, Callback cb,
@@ -178,17 +163,12 @@ class BleAdvertiserInterfaceImpl : public BleAdvertiserInterface {
         params.scan_request_notification_enable;
 
     do_in_bta_thread(
-        FROM_HERE, Bind(&BleAdvertisingManager::StartAdvertising,
-                        base::Unretained(BleAdvertisingManager::Get()),
-                        advertiser_id, base::Bind(
-                                           [](Callback cb, uint8_t status) {
-                                             do_in_jni_thread(Bind(cb, status));
-                                           },
-                                           cb),
-                        base::Owned(p_params), std::move(advertise_data),
-                        std::move(scan_response_data), timeout_s,
-                        Bind(&BleAdvertiserInterfaceImpl::EnableTimeoutCb,
-                             base::Unretained(this), timeout_cb)));
+        FROM_HERE,
+        Bind(&BleAdvertisingManager::StartAdvertising,
+             base::Unretained(BleAdvertisingManager::Get()), advertiser_id,
+             jni_thread_wrapper(FROM_HERE, cb), base::Owned(p_params),
+             std::move(advertise_data), std::move(scan_response_data),
+             timeout_s, jni_thread_wrapper(FROM_HERE, timeout_cb)));
   }
 };
 
