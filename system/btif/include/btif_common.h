@@ -22,6 +22,8 @@
 
 #include <stdlib.h>
 
+#include <base/bind.h>
+#include <base/tracked_objects.h>
 #include <hardware/bluetooth.h>
 
 #include "bt_types.h"
@@ -201,6 +203,25 @@ typedef struct {
 /*******************************************************************************
  *  Functions
  ******************************************************************************/
+
+extern bt_status_t do_in_jni_thread(const base::Closure& task);
+extern bt_status_t do_in_jni_thread(const tracked_objects::Location& from_here,
+                                    const base::Closure& task);
+/**
+ * This template wraps callback into callback that will be executed on jni
+ * thread
+ */
+template <typename R, typename... Args>
+base::Callback<R(Args...)> jni_thread_wrapper(
+    const tracked_objects::Location& from_here, base::Callback<R(Args...)> cb) {
+  return base::Bind(
+      [](const tracked_objects::Location& from_here,
+         base::Callback<R(Args...)> cb, Args... args) {
+        do_in_jni_thread(from_here,
+                         base::Bind(cb, std::forward<Args>(args)...));
+      },
+      from_here, std::move(cb));
+}
 
 tBTA_SERVICE_MASK btif_get_enabled_services_mask(void);
 bt_status_t btif_enable_service(tBTA_SERVICE_ID service_id);
