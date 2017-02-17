@@ -139,6 +139,7 @@ class BluetoothHciCallbacks : public IBluetoothHciCallbacks {
   }
 
   Return<void> initializationComplete(Status status) {
+    CHECK(status == Status::SUCCESS);
     thread_post(thread, event_finish_startup, NULL);
     return Void();
   }
