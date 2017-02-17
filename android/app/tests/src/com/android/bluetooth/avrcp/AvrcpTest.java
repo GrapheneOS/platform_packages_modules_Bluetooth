@@ -13,6 +13,7 @@ import android.media.MediaMetadata;
 import android.media.AudioManager;
 import android.media.session.MediaSessionManager;
 import android.os.Bundle;
+import android.os.Looper;
 import android.test.AndroidTestCase;
 import android.util.Log;
 
@@ -29,10 +30,14 @@ import static org.mockito.Mockito.when;
 public class AvrcpTest extends AndroidTestCase {
 
     public void testCanStart() {
+        if (Looper.myLooper() == null) Looper.prepare();
+
         Avrcp a = Avrcp.make(getContext());
     }
 
     public void testFailedBrowseStart() {
+        if (Looper.myLooper() == null) Looper.prepare();
+
         Context mockContext = mock(Context.class);
         AudioManager mockAudioManager = mock(AudioManager.class);
         PackageManager mockPackageManager = mock(PackageManager.class);
