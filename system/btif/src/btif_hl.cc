@@ -96,7 +96,7 @@ const int btif_hl_signal_select_close_connected = 3;
 
 static int listen_s = -1;
 static int connected_s = -1;
-static int select_thread_id = -1;
+static pthread_t select_thread_id = -1;
 static int signal_fds[2] = {-1, -1};
 static list_t* soc_queue;
 static int reg_counter;
