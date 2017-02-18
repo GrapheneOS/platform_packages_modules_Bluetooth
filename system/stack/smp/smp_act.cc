@@ -17,6 +17,7 @@
  ******************************************************************************/
 
 #include <string.h>
+#include "btif_common.h"
 #include "device/include/interop.h"
 #include "include/bt_target.h"
 #include "stack/btm/btm_int.h"
@@ -979,7 +980,8 @@ void smp_proc_srk_info(tSMP_CB* p_cb, tSMP_INT_DATA* p_data) {
 
   /* save CSRK to security record */
   le_key.sec_level = p_cb->sec_level;
-  memcpy(le_key.csrk, p_data, BT_OCTET16_LEN); /* get peer CSRK */
+  maybe_non_aligned_memcpy(le_key.csrk, p_data,
+                           BT_OCTET16_LEN);    /* get peer CSRK */
   le_key.counter = 0;                          /* initialize the peer counter */
 
   if ((p_cb->peer_auth_req & SMP_AUTH_BOND) &&
