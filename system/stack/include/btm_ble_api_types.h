@@ -21,6 +21,7 @@
 
 #include <base/callback_forward.h>
 #include <hardware/bt_common_types.h>
+#include <vector>
 
 #define CHNL_MAP_LEN 5
 typedef uint8_t tBTM_BLE_CHNL_MAP[CHNL_MAP_LEN];
