@@ -30,7 +30,9 @@ cd ~/fluoride/bt
 mkdir third_party
 cd third_party
 git clone https://github.com/google/googletest.git
+git clone https://android.googlesource.com/platform/external/aac
 git clone https://android.googlesource.com/platform/external/libchrome
+git clone https://android.googlesource.com/platform/external/libldac
 git clone https://android.googlesource.com/platform/external/modp_b64
 git clone https://android.googlesource.com/platform/external/tinyxml2
 git clone https://android.googlesource.com/platform/hardware/libhardware
@@ -53,7 +55,9 @@ of downloading sources
 cd packages/modules/Bluetooth/system
 mkdir third_party
 cd third_party
+ln -s ../../../external/aac aac
 ln -s ../../../external/libchrome libchrome
+ln -s ../../../external/libldac libldac
 ln -s ../../../external/modp_b64 modp_b64
 ln -s ../../../external/tinyxml2 tinyxml2
 ln -s ../../../hardware/libhardware libhardware

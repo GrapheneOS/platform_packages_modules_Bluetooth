@@ -16,6 +16,8 @@
 
 static_library("stack") {
   sources = [
+    "a2dp/a2dp_aac.cc",
+    "a2dp/a2dp_aac_encoder.cc",
     "a2dp/a2dp_api.cc",
     "a2dp/a2dp_codec_config.cc",
     "a2dp/a2dp_sbc.cc",
@@ -177,7 +179,9 @@ static_library("stack") {
   ]
 
   deps = [
-    "//third_party/libchrome:base"
+    "//third_party/libchrome:base",
+    "//third_party/libldac:libldacBT_enc",
+    "//third_party/aac:libFraunhoferAAC",
   ]
 }
 
