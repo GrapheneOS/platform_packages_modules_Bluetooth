@@ -32,8 +32,6 @@ using base::Bind;
 using base::Owned;
 using std::vector;
 
-extern bt_status_t do_in_jni_thread(const base::Closure& task);
-
 namespace {
 
 template <typename T>
