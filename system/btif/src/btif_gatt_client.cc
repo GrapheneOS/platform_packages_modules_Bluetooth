@@ -55,7 +55,6 @@ using base::Bind;
 using base::Owned;
 using std::vector;
 
-extern bt_status_t do_in_jni_thread(const base::Closure& task);
 extern bt_status_t btif_gattc_test_command_impl(int command,
                                                 btgatt_test_params_t* params);
 extern const btgatt_callbacks_t* bt_gatt_callbacks;
