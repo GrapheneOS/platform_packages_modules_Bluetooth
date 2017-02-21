@@ -20,17 +20,11 @@
 
 #include "hci_layer.h"
 
-#include <android/hardware/bluetooth/1.0/IBluetoothHci.h>
-#include <android/hardware/bluetooth/1.0/IBluetoothHciCallbacks.h>
-#include <android/hardware/bluetooth/1.0/types.h>
 #include <base/logging.h>
-#include <hwbinder/ProcessState.h>
-
 #include <signal.h>
 #include <string.h>
 #include <sys/types.h>
 #include <unistd.h>
-
 #include <mutex>
 
 #include "btcore/include/module.h"
@@ -49,17 +43,9 @@
 
 #define BT_HCI_TIMEOUT_TAG_NUM 1010000
 
-using android::hardware::bluetooth::V1_0::IBluetoothHci;
-using android::hardware::bluetooth::V1_0::IBluetoothHciCallbacks;
-using android::hardware::bluetooth::V1_0::HciPacket;
-using android::hardware::bluetooth::V1_0::Status;
-using android::hardware::ProcessState;
-
-android::sp<IBluetoothHci> btHci;
-
-using ::android::hardware::Return;
-using ::android::hardware::Void;
-using ::android::hardware::hidl_vec;
+extern void hci_initialize();
+extern void hci_transmit(BT_HDR* packet);
+extern void hci_close();
 
 typedef struct {
   uint16_t opcode;
@@ -123,52 +109,28 @@ static void fragmenter_transmit_finished(BT_HDR* packet,
 static const packet_fragmenter_callbacks_t packet_fragmenter_callbacks = {
     transmit_fragment, dispatch_reassembled, fragmenter_transmit_finished};
 
-class BluetoothHciCallbacks : public IBluetoothHciCallbacks {
-  BT_HDR* WrapPacketAndCopy(uint16_t event, const hidl_vec<uint8_t>& data) {
-    size_t packet_size = data.size() + BT_HDR_SIZE;
-    BT_HDR* packet =
-        reinterpret_cast<BT_HDR*>(buffer_allocator->alloc(packet_size));
-    packet->offset = 0;
-    packet->len = data.size();
-    packet->layer_specific = 0;
-    packet->event = event;
-    // TODO(eisenbach): Avoid copy here; if BT_HDR->data can be ensured to
-    // be the only way the data is accessed, a pointer could be passed here...
-    memcpy(packet->data, data.data(), data.size());
-    return packet;
+void initialization_complete() {
+  thread_post(thread, event_finish_startup, NULL);
+}
+
+void hci_event_received(BT_HDR* packet) {
+  btsnoop->capture(packet, true);
+
+  if (!filter_incoming_event(packet)) {
+    data_dispatcher_dispatch(interface.event_dispatcher, packet->data[0],
+                             packet);
   }
+}
 
-  Return<void> initializationComplete(Status status) {
-    CHECK(status == Status::SUCCESS);
-    thread_post(thread, event_finish_startup, NULL);
-    return Void();
-  }
+void acl_event_received(BT_HDR* packet) {
+  btsnoop->capture(packet, true);
+  packet_fragmenter->reassemble_and_dispatch(packet);
+}
 
-  Return<void> hciEventReceived(const hidl_vec<uint8_t>& event) {
-    BT_HDR* packet = WrapPacketAndCopy(MSG_HC_TO_STACK_HCI_EVT, event);
-    btsnoop->capture(packet, true);
-
-    if (!filter_incoming_event(packet)) {
-      data_dispatcher_dispatch(interface.event_dispatcher, event[0], packet);
-    }
-
-    return Void();
-  }
-
-  Return<void> aclDataReceived(const hidl_vec<uint8_t>& data) {
-    BT_HDR* packet = WrapPacketAndCopy(MSG_HC_TO_STACK_HCI_ACL, data);
-    btsnoop->capture(packet, true);
-    packet_fragmenter->reassemble_and_dispatch(packet);
-    return Void();
-  }
-
-  Return<void> scoDataReceived(const hidl_vec<uint8_t>& data) {
-    BT_HDR* packet = WrapPacketAndCopy(MSG_HC_TO_STACK_HCI_SCO, data);
-    btsnoop->capture(packet, true);
-    packet_fragmenter->reassemble_and_dispatch(packet);
-    return Void();
-  }
-};
+void sco_data_received(BT_HDR* packet) {
+  btsnoop->capture(packet, true);
+  packet_fragmenter->reassemble_and_dispatch(packet);
+}
 
 // Module lifecycle functions
 
@@ -244,17 +206,7 @@ static future_t* hci_module_start_up(void) {
   fixed_queue_register_dequeue(packet_queue, thread_get_reactor(thread),
                                event_packet_ready, NULL);
 
-  btHci = IBluetoothHci::getService();
-  // If android.hardware.bluetooth* is not found, Bluetooth can not continue.
-  CHECK(btHci != nullptr);
-  LOG_INFO(LOG_TAG, "%s: IBluetoothHci::getService() returned %p (%s)",
-            __func__, btHci.get(), (btHci->isRemote() ? "remote" : "local"));
-
-  // Block allows allocation of a variable that might be bypassed by goto.
-  {
-    android::sp<IBluetoothHciCallbacks> callbacks = new BluetoothHciCallbacks();
-    btHci->initialize(callbacks);
-  }
+  hci_initialize();
 
   LOG_DEBUG(LOG_TAG, "%s starting async portion", __func__);
   return local_startup_future;
@@ -287,8 +239,7 @@ static future_t* hci_module_shut_down() {
   alarm_free(startup_timer);
   startup_timer = NULL;
 
-  btHci->close();
-  btHci = nullptr;
+  hci_close();
 
   thread_free(thread);
   thread = NULL;
@@ -410,25 +361,9 @@ static void event_packet_ready(fixed_queue_t* queue,
 static void transmit_fragment(BT_HDR* packet, bool send_transmit_finished) {
   btsnoop->capture(packet, false);
 
-  HciPacket data;
-  data.setToExternal(packet->data + packet->offset, packet->len);
+  hci_transmit(packet);
 
   uint16_t event = packet->event & MSG_EVT_MASK;
-  switch (event & MSG_EVT_MASK) {
-    case MSG_STACK_TO_HC_HCI_CMD:
-      btHci->sendHciCommand(data);
-      break;
-    case MSG_STACK_TO_HC_HCI_ACL:
-      btHci->sendAclData(data);
-      break;
-    case MSG_STACK_TO_HC_HCI_SCO:
-      btHci->sendScoData(data);
-      break;
-    default:
-      LOG_ERROR(LOG_TAG, "Unknown packet type (%d)", event);
-      break;
-  }
-
   if (event != MSG_STACK_TO_HC_HCI_CMD && send_transmit_finished)
     buffer_allocator->free(packet);
 }
