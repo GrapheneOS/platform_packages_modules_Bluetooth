@@ -162,7 +162,7 @@ void BluetoothMetricsLogger::LogBluetoothSessionStart(
 }
 
 void BluetoothMetricsLogger::LogBluetoothSessionEnd(
-    const std::string& disconnect_reason, uint64_t timestamp_ms) {
+    disconnect_reason_t disconnect_reason, uint64_t timestamp_ms) {
   // TODO(siyuanh): Implement for linux
 }
 
