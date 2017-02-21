@@ -25,6 +25,7 @@
 #ifndef BTM_BLE_API_H
 #define BTM_BLE_API_H
 
+#include <base/callback_forward.h>
 #include <hardware/bt_common_types.h>
 #include <memory>
 #include "bt_common.h"
@@ -102,25 +103,13 @@ extern tBTM_STATUS BTM_BleSetAdvParams(uint16_t adv_int_min,
  ******************************************************************************/
 extern void BTM_BleObtainVendorCapabilities(tBTM_BLE_VSC_CB* p_cmn_vsc_cb);
 
-/*******************************************************************************
- *
- * Function         BTM_BleSetScanParams
- *
- * Description      This function is called to set Scan parameters.
- *
- * Parameters       client_if - Client IF value
- *                  scan_interval - Scan interval
- *                  scan_window - Scan window
- *                  scan_type - Scan type
- *                  scan_setup_status_cback - Scan setup status callback
- *
- * Returns          void
- *
- ******************************************************************************/
-extern void BTM_BleSetScanParams(
-    tGATT_IF client_if, uint32_t scan_interval, uint32_t scan_window,
-    tBLE_SCAN_MODE scan_type,
-    tBLE_SCAN_PARAM_SETUP_CBACK scan_setup_status_cback);
+/**
+ * This function is called to set scan parameters. |cb| is called with operation
+ * status
+ **/
+extern void BTM_BleSetScanParams(uint32_t scan_interval, uint32_t scan_window,
+                                 tBLE_SCAN_MODE scan_type,
+                                 base::Callback<void(uint8_t)> cb);
 
 /*******************************************************************************
  *
