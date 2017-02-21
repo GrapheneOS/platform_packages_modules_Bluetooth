@@ -24,6 +24,7 @@
 
 #define LOG_TAG "bt_btm_ble"
 
+#include <base/callback.h>
 #include <base/strings/string_number_conversions.h>
 #include <stddef.h>
 #include <stdio.h>
@@ -1017,24 +1018,13 @@ tBTM_STATUS BTM_BleSetAdvParams(uint16_t adv_int_min, uint16_t adv_int_max,
   return status;
 }
 
-/*******************************************************************************
- *
- * Function         BTM_BleSetScanParams
- *
- * Description      This function is called to set scan parameters.
- *
- * Parameters       client_if - Client IF
- *                  scan_interval - Scan interval
- *                  scan_window - Scan window
- *                  scan_mode -    Scan mode
- *                  scan_setup_status_cback - Scan param setup status callback
- *
- * Returns          void
- *
- ******************************************************************************/
-void BTM_BleSetScanParams(tGATT_IF client_if, uint32_t scan_interval,
-                          uint32_t scan_window, tBLE_SCAN_MODE scan_mode,
-                          tBLE_SCAN_PARAM_SETUP_CBACK scan_setup_status_cback) {
+/**
+ * This function is called to set scan parameters. |cb| is called with operation
+ * status
+ **/
+void BTM_BleSetScanParams(uint32_t scan_interval, uint32_t scan_window,
+                          tBLE_SCAN_MODE scan_mode,
+                          base::Callback<void(uint8_t)> cb) {
   tBTM_BLE_INQ_CB* p_cb = &btm_cb.ble_ctr_cb.inq_var;
   uint32_t max_scan_interval;
   uint32_t max_scan_window;
@@ -1064,11 +1054,9 @@ void BTM_BleSetScanParams(tGATT_IF client_if, uint32_t scan_interval,
     p_cb->scan_interval = scan_interval;
     p_cb->scan_window = scan_window;
 
-    if (scan_setup_status_cback != NULL)
-      scan_setup_status_cback(client_if, BTM_SUCCESS);
+    cb.Run(BTM_SUCCESS);
   } else {
-    if (scan_setup_status_cback != NULL)
-      scan_setup_status_cback(client_if, BTM_ILLEGAL_VALUE);
+    cb.Run(BTM_ILLEGAL_VALUE);
 
     BTM_TRACE_ERROR("Illegal params: scan_interval = %d scan_window = %d",
                     scan_interval, scan_window);
