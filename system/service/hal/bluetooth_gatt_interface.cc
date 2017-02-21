@@ -380,15 +380,9 @@ void MtuChangedCallback(int conn_id, int mtu) {
 
 const btgatt_scanner_callbacks_t gatt_scanner_callbacks = {
     ScanResultCallback,
-    nullptr,  // batchscan_cfg_storage_cb
-    nullptr,  // batchscan_enb_disable_cb
     nullptr,  // batchscan_reports_cb
     nullptr,  // batchscan_threshold_cb
     nullptr,  // track_adv_event_cb
-    nullptr,  // scan_parameter_setup_completed_cb
-    nullptr,  // scan_filter_cfg_cb
-    nullptr,  // scan_filter_param_cb
-    nullptr,  // scan_filter_status_cb
 };
 
 const btgatt_client_callbacks_t gatt_client_callbacks = {
