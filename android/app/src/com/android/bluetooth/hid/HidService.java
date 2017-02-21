@@ -97,6 +97,12 @@ public class HidService extends ProfileService {
         }
 
         if(mInputDevices != null) {
+            for (BluetoothDevice device : mInputDevices.keySet()) {
+                int inputDeviceState = getConnectionState(device);
+                if (inputDeviceState != BluetoothProfile.STATE_DISCONNECTED) {
+                    broadcastConnectionState(device, BluetoothProfile.STATE_DISCONNECTED);
+                }
+            }
             mInputDevices.clear();
         }
         clearHidService();
