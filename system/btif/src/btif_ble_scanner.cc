@@ -50,7 +50,6 @@ using base::Owned;
 using std::vector;
 using RegisterCallback = BleScannerInterface::RegisterCallback;
 
-extern bt_status_t do_in_jni_thread(const base::Closure& task);
 extern const btgatt_callbacks_t* bt_gatt_callbacks;
 
 #define SCAN_CBACK_IN_JNI(P_CBACK, ...)                              \
