@@ -2436,7 +2436,7 @@ void btm_ble_reset_id(void) {
   btsnd_hcic_ble_rand((void*)btm_ble_process_ir);
 }
 
-#if BTM_BLE_CONFORMANCE_TESTING == true
+#if BTM_BLE_CONFORMANCE_TESTING == TRUE
 /*******************************************************************************
  *
  * Function         btm_ble_set_no_disc_if_pair_fail

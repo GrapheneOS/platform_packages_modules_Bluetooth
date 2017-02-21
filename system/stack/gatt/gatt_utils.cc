@@ -1371,7 +1371,7 @@ uint32_t gatt_add_sdp_record(tBT_UUID* p_uuid, uint16_t start_hdl,
   return (sdp_handle);
 }
 
-#if GATT_CONFORMANCE_TESTING == true
+#if GATT_CONFORMANCE_TESTING == TRUE
 /*******************************************************************************
  *
  * Function         gatt_set_err_rsp

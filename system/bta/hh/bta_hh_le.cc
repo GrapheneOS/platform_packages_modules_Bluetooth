@@ -46,7 +46,7 @@
 using std::vector;
 
 #ifndef BTA_HH_LE_RECONN
-#define BTA_HH_LE_RECONN true
+#define BTA_HH_LE_RECONN TRUE
 #endif
 
 #define BTA_HH_APP_ID_LE 0xff
