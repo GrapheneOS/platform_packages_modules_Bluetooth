@@ -29,7 +29,7 @@
  *  Constants and Type Definitions
  ****************************************************************************/
 #ifndef BTA_HH_DEBUG
-#define BTA_HH_DEBUG true
+#define BTA_HH_DEBUG TRUE
 #endif
 
 #ifndef BTA_HH_SSR_MAX_LATENCY_DEF
