@@ -1644,8 +1644,11 @@ void avdt_msg_ind(tAVDT_CCB* p_ccb, BT_HDR* p_buf) {
       /* Map seid to the scb and send it the event.  For cmd, seid has
       ** already been verified by parsing function.
       */
-      if (evt && (p_scb = avdt_scb_by_hdl(scb_hdl)) != NULL) {
-        avdt_scb_event(p_scb, evt, (tAVDT_SCB_EVT*)&msg);
+      if (evt) {
+        p_scb = avdt_scb_by_hdl(scb_hdl);
+        if (p_scb != NULL) {
+          avdt_scb_event(p_scb, evt, (tAVDT_SCB_EVT*)&msg);
+        }
       }
     }
   }
