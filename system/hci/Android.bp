@@ -22,6 +22,7 @@ cc_library_static {
         "src/hci_audio.cc",
         "src/hci_inject.cc",
         "src/hci_layer.cc",
+        "src/hci_layer_android.cc",
         "src/hci_packet_factory.cc",
         "src/hci_packet_parser.cc",
         "src/packet_fragmenter.cc",
