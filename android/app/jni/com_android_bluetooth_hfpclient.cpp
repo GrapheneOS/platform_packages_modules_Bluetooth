@@ -177,9 +177,9 @@ static void callsetup_cb(const bt_bdaddr_t* bd_addr,
   ScopedLocalRef<jbyteArray> addr(sCallbackEnv.get(), marshall_bda(bd_addr));
   if (!addr.get()) return;
 
-  ALOGD("callsetup_cb bdaddr %02x:%02x:%02x:%02x:%02x:%02x", addr.get()[0],
-        addr.get()[1], addr.get()[2], addr.get()[3], addr.get()[4],
-        addr.get()[5]);
+  ALOGD("callsetup_cb bdaddr %02x:%02x:%02x:%02x:%02x:%02x",
+        bd_addr->address[0], bd_addr->address[1], bd_addr->address[2],
+        bd_addr->address[3], bd_addr->address[4], bd_addr->address[5]);
 
   sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onCallSetup,
                                (jint)callsetup, addr.get());
