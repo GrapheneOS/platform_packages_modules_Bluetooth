@@ -844,16 +844,18 @@ void smp_xor_128(BT_OCTET16 a, BT_OCTET16 b) {
 void smp_cb_cleanup(tSMP_CB* p_cb) {
   tSMP_CALLBACK* p_callback = p_cb->p_callback;
   uint8_t trace_level = p_cb->trace_level;
+  alarm_t* smp_rsp_timer_ent = p_cb->smp_rsp_timer_ent;
+  alarm_t* delayed_auth_timer_ent = p_cb->delayed_auth_timer_ent;
 
   SMP_TRACE_EVENT("smp_cb_cleanup");
 
-  alarm_free(p_cb->smp_rsp_timer_ent);
-  alarm_free(p_cb->delayed_auth_timer_ent);
+  alarm_cancel(p_cb->smp_rsp_timer_ent);
+  alarm_cancel(p_cb->delayed_auth_timer_ent);
   memset(p_cb, 0, sizeof(tSMP_CB));
   p_cb->p_callback = p_callback;
   p_cb->trace_level = trace_level;
-  p_cb->smp_rsp_timer_ent = alarm_new("smp.smp_rsp_timer_ent");
-  p_cb->delayed_auth_timer_ent = alarm_new("smp.delayed_auth_timer_ent");
+  p_cb->smp_rsp_timer_ent = smp_rsp_timer_ent;
+  p_cb->delayed_auth_timer_ent = delayed_auth_timer_ent;
 }
 
 /*******************************************************************************
