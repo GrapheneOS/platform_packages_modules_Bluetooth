@@ -545,12 +545,15 @@ void BleAdvertiserHciInterface::Initialize() {
   LOG_ASSERT(instance == nullptr) << "Was already initialized.";
 
   if (controller_get_interface()->supports_ble_extended_advertising()) {
+    LOG(INFO) << "Extended advertising will be in use";
     instance = new BleAdvertiserHciExtendedImpl();
   } else if (BTM_BleMaxMultiAdvInstanceCount()) {
+    LOG(INFO) << "VSC advertising will be in use";
     instance = new BleAdvertiserVscHciInterfaceImpl();
     BTM_RegisterForVSEvents(
         BleAdvertiserVscHciInterfaceImpl::VendorSpecificEventCback, true);
   } else {
+    LOG(INFO) << "Legacy advertising will be in use";
     instance = new BleAdvertiserLegacyHciInterfaceImpl();
   }
 }
