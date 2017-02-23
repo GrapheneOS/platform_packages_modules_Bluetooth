@@ -15,6 +15,7 @@ import org.android.btsap.SapApi;
 import org.android.btsap.SapApi.*;
 import com.google.protobuf.micro.*;
 
+import android.os.RemoteException;
 import android.util.Log;
 
 /**
@@ -720,7 +721,7 @@ public class SapMessage {
     /**
      * Send the message by calling corresponding ISap api.
      */
-    public void send(ISap sapProxy) throws Exception {
+    public void send(ISap sapProxy) throws RemoteException, RuntimeException {
         int rilSerial = sNextSerial.getAndIncrement();
 
         Log.e(TAG, "callISapReq: called for mMsgType " + mMsgType + " rilSerial " + rilSerial);
