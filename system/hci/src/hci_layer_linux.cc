@@ -23,11 +23,11 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <poll.h>
-#include <signal.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+#include <algorithm>
 
 #include <sys/ioctl.h>
 #include <sys/socket.h>
@@ -102,11 +102,11 @@ static int rfkill_en;
 static int wait_hcidev(void);
 static int rfkill(int block);
 
+int reader_thread_ctrl_fd = -1;
 Thread* reader_thread = NULL;
 
-void monitor_socket(int fd) {
+void monitor_socket(int ctrl_fd, int fd) {
   const allocator_t* buffer_allocator = buffer_allocator_get_interface();
-
   const size_t buf_size = 2000;
   uint8_t buf[buf_size];
   ssize_t len = read(fd, buf, buf_size);
@@ -146,6 +146,18 @@ void monitor_socket(int fd) {
       default:
         LOG(FATAL) << "Unexpected event type: " << +type;
         break;
+    }
+
+    fd_set fds;
+    FD_ZERO(&fds);
+    FD_SET(ctrl_fd, &fds);
+    FD_SET(fd, &fds);
+    int res = select(std::max(fd, ctrl_fd) + 1, &fds, NULL, NULL, NULL);
+    if (res <= 0) LOG(INFO) << "Nothing more to read";
+
+    if (FD_ISSET(ctrl_fd, &fds)) {
+      LOG(INFO) << "exitting";
+      return;
     }
 
     len = read(fd, buf, buf_size);
@@ -193,10 +205,16 @@ void hci_initialize() {
     LOG(FATAL) << "socket bind error " << strerror(errno);
   }
 
+  int sv[2];
+  if (socketpair(AF_UNIX, SOCK_STREAM, 0, sv) < 0) {
+    LOG(FATAL) << "socketpair failed: " << strerror(errno);
+  }
+
+  reader_thread_ctrl_fd = sv[0];
   reader_thread = new Thread("hci_sock_reader");
   reader_thread->Start();
   reader_thread->task_runner()->PostTask(
-      FROM_HERE, base::Bind(&monitor_socket, bt_vendor_fd));
+      FROM_HERE, base::Bind(&monitor_socket, sv[1], bt_vendor_fd));
 
   LOG(INFO) << "HCI device ready";
   initialization_complete();
@@ -208,6 +226,12 @@ void hci_close() {
   if (bt_vendor_fd != -1) {
     close(bt_vendor_fd);
     bt_vendor_fd = -1;
+  }
+
+  if (reader_thread_ctrl_fd != -1) {
+    uint8_t msg[] = {1};
+    send(reader_thread_ctrl_fd, msg, sizeof(msg), 0);
+    reader_thread_ctrl_fd = -1;
   }
 
   if (reader_thread != NULL) {
