@@ -272,11 +272,19 @@ static int uipc_check_fd_locked(tUIPC_CH_ID ch_id) {
   if (SAFE_FD_ISSET(uipc_main.ch[ch_id].srvfd, &uipc_main.read_set)) {
     BTIF_TRACE_EVENT("INCOMING CONNECTION ON CH %d", ch_id);
 
+    // Close the previous connection
+    if (uipc_main.ch[ch_id].fd != UIPC_DISCONNECTED) {
+      BTIF_TRACE_EVENT("CLOSE CONNECTION (FD %d)", uipc_main.ch[ch_id].fd);
+      close(uipc_main.ch[ch_id].fd);
+      FD_CLR(uipc_main.ch[ch_id].fd, &uipc_main.active_set);
+      uipc_main.ch[ch_id].fd = UIPC_DISCONNECTED;
+    }
+
     uipc_main.ch[ch_id].fd = accept_server_socket(uipc_main.ch[ch_id].srvfd);
 
     BTIF_TRACE_EVENT("NEW FD %d", uipc_main.ch[ch_id].fd);
 
-    if ((uipc_main.ch[ch_id].fd > 0) && uipc_main.ch[ch_id].cback) {
+    if ((uipc_main.ch[ch_id].fd >= 0) && uipc_main.ch[ch_id].cback) {
       /*  if we have a callback we should add this fd to the active set
           and notify user with callback event */
       BTIF_TRACE_EVENT("ADD FD %d TO ACTIVE SET", uipc_main.ch[ch_id].fd);
