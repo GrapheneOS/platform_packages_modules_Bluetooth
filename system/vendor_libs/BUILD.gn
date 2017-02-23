@@ -16,7 +16,6 @@
 
 group("vendor-libs") {
   deps = [
-    "linux:bt-vendor-linux",
     "test_vendor_lib:test_vendor_lib",
   ]
 }
