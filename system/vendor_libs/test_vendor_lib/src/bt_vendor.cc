@@ -78,14 +78,14 @@ class BtVendor {
         return 1;
 
       case BT_VND_OP_FW_CFG:
-        LOG_INFO(LOG_TAG, "Unsupported op: BT_VND_OP_FW_CFG");
+        LOG_INFO(LOG_TAG, "BT_VND_OP_FW_CFG (Does nothing)");
         vendor_callbacks_.fwcfg_cb(BT_VND_OP_RESULT_SUCCESS);
-        return -1;
+        return 0;
 
       case BT_VND_OP_SCO_CFG:
-        LOG_INFO(LOG_TAG, "Unsupported op: BT_VND_OP_SCO_CFG");
+        LOG_INFO(LOG_TAG, "BT_VND_OP_SCO_CFG (Does nothing)");
         vendor_callbacks_.scocfg_cb(BT_VND_OP_RESULT_SUCCESS);
-        return -1;
+        return 0;
 
       case BT_VND_OP_GET_LPM_IDLE_TIMEOUT:
         LOG_INFO(LOG_TAG, "Doing op: BT_VND_OP_SCO_CFG");
@@ -93,22 +93,22 @@ class BtVendor {
         return 0;
 
       case BT_VND_OP_LPM_SET_MODE:
-        LOG_INFO(LOG_TAG, "Unsupported op: BT_VND_OP_LPM_SET_MODE");
+        LOG_INFO(LOG_TAG, "BT_VND_OP_LPM_SET_MODE (Does nothing)");
         vendor_callbacks_.lpm_cb(BT_VND_OP_RESULT_SUCCESS);
-        return -1;
+        return 0;
 
       case BT_VND_OP_LPM_WAKE_SET_STATE:
-        LOG_INFO(LOG_TAG, "Unsupported op: BT_VND_OP_LPM_WAKE_SET_STATE");
-        return -1;
+        LOG_INFO(LOG_TAG, "BT_VND_OP_LPM_WAKE_SET_STATE (Does nothing)");
+        return 0;
 
       case BT_VND_OP_SET_AUDIO_STATE:
-        LOG_INFO(LOG_TAG, "Unsupported op: BT_VND_OP_SET_AUDIO_STATE");
-        return -1;
+        LOG_INFO(LOG_TAG, "BT_VND_OP_SET_AUDIO_STATE (Does nothing)");
+        return 0;
 
       case BT_VND_OP_EPILOG:
-        LOG_INFO(LOG_TAG, "Unsupported op: BT_VND_OP_EPILOG");
+        LOG_INFO(LOG_TAG, "BT_VND_OP_EPILOG (Does nothing)");
         vendor_callbacks_.epilog_cb(BT_VND_OP_RESULT_SUCCESS);
-        return -1;
+        return 0;
 
       default:
         LOG_INFO(LOG_TAG, "Op not recognized.");
