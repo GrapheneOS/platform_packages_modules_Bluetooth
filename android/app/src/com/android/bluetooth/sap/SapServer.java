@@ -15,6 +15,7 @@ import android.os.Handler.Callback;
 import android.os.HandlerThread;
 import android.os.Looper;
 import android.os.Message;
+import android.os.RemoteException;
 import android.os.SystemClock;
 import android.os.SystemProperties;
 import android.telephony.TelephonyManager;
@@ -77,12 +78,14 @@ public class SapServer extends Thread implements Callback {
     public static final int SAP_MSG_RIL_REQ =     0x02;
     public static final int SAP_MSG_RIL_IND =     0x03;
     public static final int SAP_RIL_SOCK_CLOSED = 0x04;
+    public static final int SAP_PROXY_DEAD = 0x05;
 
     public static final String SAP_DISCONNECT_ACTION =
             "com.android.bluetooth.sap.action.DISCONNECT_ACTION";
     public static final String SAP_DISCONNECT_TYPE_EXTRA =
             "com.android.bluetooth.sap.extra.DISCONNECT_TYPE";
     public static final int NOTIFICATION_ID = android.R.drawable.stat_sys_data_bluetooth;
+    public static final int ISAP_GET_SERVICE_DELAY_MILLIS = 3 * 1000;
     private static final int DISCONNECT_TIMEOUT_IMMEDIATE = 5000; /* ms */
     private static final int DISCONNECT_TIMEOUT_RFCOMM = 2000; /* ms */
     private PendingIntent pDiscIntent = null; // Holds a reference to disconnect timeout intents
@@ -635,6 +638,13 @@ public class SapServer extends Thread implements Callback {
             sendDisconnectInd(SapMessage.DISC_IMMEDIATE);
             startDisconnectTimer(SapMessage.DISC_RFCOMM, DISCONNECT_TIMEOUT_RFCOMM);
             break;
+        case SAP_PROXY_DEAD:
+            if ((long) msg.obj == mRilBtReceiver.mSapProxyCookie.get()) {
+                mRilBtReceiver.resetSapProxy();
+
+                // todo: rild should be back up since message was sent with a delay. this is a hack.
+                mRilBtReceiver.getSapProxy();
+            }
         default:
             /* Message not handled */
             return false;
@@ -849,21 +859,22 @@ public class SapServer extends Thread implements Callback {
         ISap sapProxy = mRilBtReceiver.getSapProxy();
         if (sapProxy == null) {
             Log.e(TAG_HANDLER, "sendRilMessage: Unable to send message to RIL; sapProxy is null");
-            SapMessage errorReply = new SapMessage(SapMessage.ID_ERROR_RESP);
-            sendClientMessage(errorReply);
+            sendClientMessage(new SapMessage(SapMessage.ID_ERROR_RESP));
             return;
         }
 
         try {
             sapMsg.send(sapProxy);
             if (VERBOSE) {
-                Log.d(TAG_HANDLER, "sendRilMessage: sapMsg.callISapReq called "
-                                + "successfully");
+                Log.d(TAG_HANDLER, "sendRilMessage: sapMsg.callISapReq called successfully");
             }
-        } catch (Exception e) {
+        } catch (IllegalArgumentException e) {
+            Log.e(TAG_HANDLER, "sendRilMessage: IllegalArgumentException", e);
+            sendClientMessage(new SapMessage(SapMessage.ID_ERROR_RESP));
+        } catch (RemoteException | RuntimeException e) {
             Log.e(TAG_HANDLER, "sendRilMessage: Unable to send message to RIL", e);
-            SapMessage errorReply = new SapMessage(SapMessage.ID_ERROR_RESP);
-            sendClientMessage(errorReply);
+            sendClientMessage(new SapMessage(SapMessage.ID_ERROR_RESP));
+            mRilBtReceiver.resetSapProxy();
         }
     }
 
