@@ -2284,6 +2284,11 @@ tBTM_STATUS btm_ble_start_scan(void) {
 void btm_ble_stop_scan(void) {
   BTM_TRACE_EVENT("btm_ble_stop_scan ");
 
+  if (btm_cb.ble_ctr_cb.inq_var.scan_type == BTM_BLE_SCAN_MODE_ACTI)
+    btm_ble_clear_topology_mask(BTM_BLE_STATE_ACTIVE_SCAN_BIT);
+  else
+    btm_ble_clear_topology_mask(BTM_BLE_STATE_PASSIVE_SCAN_BIT);
+
   /* Clear the inquiry callback if set */
   btm_cb.ble_ctr_cb.inq_var.scan_type = BTM_BLE_SCAN_MODE_NONE;
 
