@@ -300,6 +300,11 @@ class AdapterImpl : public Adapter, public hal::BluetoothInterface::Observer {
     }
   }
 
+  void SSPRequestCallback(bt_bdaddr_t*, bt_bdname_t*, uint32_t,
+                          bt_ssp_variant_t, uint32_t pass_key) override {
+    LOG(INFO) << "Passkey is: " << pass_key;
+  }
+
   void AclStateChangedCallback(bt_status_t status,
                                const bt_bdaddr_t& remote_bdaddr,
                                bt_acl_state_t state) override {
