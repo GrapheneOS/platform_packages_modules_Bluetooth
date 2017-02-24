@@ -187,7 +187,7 @@ static void a2dp_aac_encoder_update(uint16_t peer_mtu,
       &a2dp_aac_encoder_cb.aac_encoder_params;
   uint8_t codec_info[AVDT_CODEC_SIZE];
   AACENC_ERROR aac_error;
-  int aac_param_value, aac_sampling_freq, aac_bit_rate;
+  int aac_param_value, aac_sampling_freq, aac_peak_bit_rate;
 
   *p_restart_input = false;
   *p_restart_output = false;
@@ -317,13 +317,13 @@ static void a2dp_aac_encoder_update(uint16_t peer_mtu,
   // Set the encoder's parameters: Bit Rate - MANDATORY
   aac_param_value = A2DP_GetBitRateAac(p_codec_info);
   // Calculate the bit rate from MTU and sampling frequency
-  aac_bit_rate =
+  aac_peak_bit_rate =
       A2DP_ComputeMaxBitRateAac(p_codec_info, a2dp_aac_encoder_cb.TxAaMtuSize);
-  aac_bit_rate = std::min(aac_param_value, aac_bit_rate);
+  aac_param_value = std::min(aac_param_value, aac_peak_bit_rate);
   LOG_DEBUG(LOG_TAG, "%s: MTU = %d Sampling Frequency = %d Bit Rate = %d",
             __func__, a2dp_aac_encoder_cb.TxAaMtuSize, aac_sampling_freq,
-            aac_bit_rate);
-  if (aac_bit_rate == -1) {
+            aac_param_value);
+  if (aac_param_value == -1) {
     LOG_ERROR(LOG_TAG,
               "%s: Cannot set AAC parameter AACENC_BITRATE: "
               "invalid codec bit rate",
@@ -331,23 +331,23 @@ static void a2dp_aac_encoder_update(uint16_t peer_mtu,
     return;  // TODO: Return an error?
   }
   aac_error = aacEncoder_SetParam(a2dp_aac_encoder_cb.aac_handle,
-                                  AACENC_BITRATE, aac_bit_rate);
+                                  AACENC_BITRATE, aac_param_value);
   if (aac_error != AACENC_OK) {
     LOG_ERROR(LOG_TAG,
               "%s: Cannot set AAC parameter AACENC_BITRATE to %d: "
               "AAC error 0x%x",
-              __func__, aac_bit_rate, aac_error);
+              __func__, aac_param_value, aac_error);
     return;  // TODO: Return an error?
   }
 
   // Set the encoder's parameters: PEAK Bit Rate
   aac_error = aacEncoder_SetParam(a2dp_aac_encoder_cb.aac_handle,
-                                  AACENC_PEAK_BITRATE, aac_bit_rate);
+                                  AACENC_PEAK_BITRATE, aac_peak_bit_rate);
   if (aac_error != AACENC_OK) {
     LOG_ERROR(LOG_TAG,
               "%s: Cannot set AAC parameter AACENC_PEAK_BITRATE to %d: "
               "AAC error 0x%x",
-              __func__, aac_bit_rate, aac_error);
+              __func__, aac_peak_bit_rate, aac_error);
     return;  // TODO: Return an error?
   }
 
