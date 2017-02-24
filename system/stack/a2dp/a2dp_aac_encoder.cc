@@ -278,7 +278,7 @@ static void a2dp_aac_encoder_update(uint16_t peer_mtu,
   }
 
   // Set the encoder's parameters: audioMuxVersion
-  aac_param_value = 1;  // audioMuxVersion = 1
+  aac_param_value = 2;  // audioMuxVersion = "2"
   aac_error = aacEncoder_SetParam(a2dp_aac_encoder_cb.aac_handle,
                                   AACENC_AUDIOMUXVER, aac_param_value);
   if (aac_error != AACENC_OK) {
