@@ -23,6 +23,8 @@
 #include "bt_types.h"
 #include "hcidefs.h"
 
+#include <base/callback_forward.h>
+
 void bte_main_hci_send(BT_HDR* p_msg, uint16_t event);
 
 /* Message by message.... */
@@ -661,7 +663,6 @@ extern void btsnd_hcic_vendor_spec_cmd(void* buffer, uint16_t opcode,
 #define HCIC_PARAM_SIZE_READ_CHNL_MAP 2
 #define HCIC_PARAM_SIZE_BLE_READ_REMOTE_FEAT 2
 #define HCIC_PARAM_SIZE_BLE_ENCRYPT 32
-#define HCIC_PARAM_SIZE_BLE_RAND 0
 #define HCIC_PARAM_SIZE_WRITE_LE_HOST_SUPPORTED 2
 
 #define HCIC_BLE_RAND_DI_SIZE 8
@@ -749,7 +750,7 @@ extern void btsnd_hcic_ble_encrypt(uint8_t* key, uint8_t key_len,
                                    uint8_t* plain_text, uint8_t pt_len,
                                    void* p_cmd_cplt_cback);
 
-extern void btsnd_hcic_ble_rand(void* p_cmd_cplt_cback);
+extern void btsnd_hcic_ble_rand(base::Callback<void(BT_OCTET8)> cb);
 
 extern void btsnd_hcic_ble_start_enc(uint16_t handle,
                                      uint8_t rand[HCIC_BLE_RAND_DI_SIZE],

@@ -33,6 +33,8 @@
 
 using base::Bind;
 using multiadv_cb = base::Callback<void(uint8_t /* status */)>;
+extern void btm_gen_resolvable_private_addr(
+    base::Callback<void(uint8_t[8])> cb);
 
 extern fixed_queue_t* btu_general_alarm_queue;
 
@@ -68,17 +70,6 @@ namespace {
 
 void DoNothing(uint8_t) {}
 void DoNothing2(uint8_t, uint8_t) {}
-
-std::queue<base::Callback<void(tBTM_RAND_ENC* p)>>* rand_gen_inst_id = nullptr;
-
-/* RPA generation completion callback for each adv instance. Will continue write
- * the new RPA into controller. */
-void btm_ble_multi_adv_gen_rpa_cmpl(tBTM_RAND_ENC* p) {
-  /* Retrieve the index of adv instance from stored Q */
-  base::Callback<void(tBTM_RAND_ENC * p)> cb = rand_gen_inst_id->front();
-  rand_gen_inst_id->pop();
-  cb.Run(p);
-}
 
 bool is_legacy_connectable(uint16_t advertising_event_properties) {
   if (((advertising_event_properties & 0x10) != 0) &&
@@ -135,24 +126,23 @@ class BleAdvertisingManagerImpl
     }
   }
 
-  void OnRpaGenerationComplete(uint8_t inst_id, tBTM_RAND_ENC* p) {
+  void OnRpaGenerationComplete(uint8_t inst_id, uint8_t rand[8]) {
     LOG(INFO) << "inst_id = " << +inst_id;
 
     AdvertisingInstance* p_inst = &adv_inst[inst_id];
-    if (!p) return;
 
-    p->param_buf[2] &= (~BLE_RESOLVE_ADDR_MASK);
-    p->param_buf[2] |= BLE_RESOLVE_ADDR_MSB;
+    rand[2] &= (~BLE_RESOLVE_ADDR_MASK);
+    rand[2] |= BLE_RESOLVE_ADDR_MSB;
 
-    p_inst->rpa[2] = p->param_buf[0];
-    p_inst->rpa[1] = p->param_buf[1];
-    p_inst->rpa[0] = p->param_buf[2];
+    p_inst->rpa[2] = rand[0];
+    p_inst->rpa[1] = rand[1];
+    p_inst->rpa[0] = rand[2];
 
     BT_OCTET16 irk;
     BTM_GetDeviceIDRoot(irk);
     tSMP_ENC output;
 
-    if (!SMP_Encrypt(irk, BT_OCTET16_LEN, p->param_buf, 3, &output))
+    if (!SMP_Encrypt(irk, BT_OCTET16_LEN, rand, 3, &output))
       LOG_ASSERT(false) << "SMP_Encrypt failed";
 
     /* set hash to be LSB of rpAddress */
@@ -166,14 +156,9 @@ class BleAdvertisingManagerImpl
   }
 
   void ConfigureRpa(uint8_t inst_id) {
-    if (rand_gen_inst_id == nullptr)
-      rand_gen_inst_id =
-          new std::queue<base::Callback<void(tBTM_RAND_ENC * p)>>();
-
-    rand_gen_inst_id->push(
+    btm_gen_resolvable_private_addr(
         Bind(&BleAdvertisingManagerImpl::OnRpaGenerationComplete,
              base::Unretained(this), inst_id));
-    btm_gen_resolvable_private_addr((void*)btm_ble_multi_adv_gen_rpa_cmpl);
   }
 
   void RegisterAdvertiser(

@@ -29,6 +29,7 @@
 #include "hcidefs.h"
 #include "hcimsgs.h"
 
+#include <base/bind.h>
 #include <stddef.h>
 #include <string.h>
 
@@ -390,21 +391,16 @@ void btsnd_hcic_ble_encrypt(uint8_t* key, uint8_t key_len, uint8_t* plain_text,
   btu_hcif_send_cmd(LOCAL_BR_EDR_CONTROLLER_ID, p);
 }
 
-void btsnd_hcic_ble_rand(void* p_cmd_cplt_cback) {
-  BT_HDR* p = (BT_HDR*)osi_malloc(HCI_CMD_BUF_SIZE);
-  uint8_t* pp = (uint8_t*)(p + 1);
-
-  p->len = HCIC_PREAMBLE_SIZE + HCIC_PARAM_SIZE_BLE_RAND;
-  p->offset = sizeof(void*);
-
-  *((void**)pp) =
-      p_cmd_cplt_cback; /* Store command complete callback in buffer */
-  pp += sizeof(void*);  /* Skip over callback pointer */
-
-  UINT16_TO_STREAM(pp, HCI_BLE_RAND);
-  UINT8_TO_STREAM(pp, HCIC_PARAM_SIZE_BLE_RAND);
-
-  btu_hcif_send_cmd(LOCAL_BR_EDR_CONTROLLER_ID, p);
+void btsnd_hcic_ble_rand(base::Callback<void(BT_OCTET8)> cb) {
+  btu_hcif_send_cmd_with_cb(FROM_HERE, HCI_BLE_RAND, nullptr, 0,
+                            base::Bind(
+                                [](base::Callback<void(BT_OCTET8)> cb,
+                                   uint8_t* param, uint16_t param_len) {
+                                  CHECK(param[0] == 0)
+                                      << "LE Rand return status must be zero";
+                                  cb.Run(param + 1 /* skip status */);
+                                },
+                                std::move(cb)));
 }
 
 void btsnd_hcic_ble_start_enc(uint16_t handle,
