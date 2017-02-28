@@ -80,24 +80,25 @@ class AdvertiserHciMock : public BleAdvertiserHciInterface {
 
   MOCK_METHOD9(SetParameters1,
                void(uint8_t, uint16_t, uint32_t, uint32_t, uint8_t, uint8_t,
-                    uint8_t, BD_ADDR, uint8_t));
-  MOCK_METHOD7(SetParameters2, void(int8_t, uint8_t, uint8_t, uint8_t, uint8_t,
-                                    uint8_t, status_cb));
+                    BD_ADDR, uint8_t, BD_ADDR));
+  MOCK_METHOD8(SetParameters2, void(uint8_t, int8_t, uint8_t, uint8_t, uint8_t,
+                                    uint8_t, uint8_t, status_cb));
 
   void SetParameters(uint8_t handle, uint16_t properties, uint32_t adv_int_min,
                      uint32_t adv_int_max, uint8_t channel_map,
-                     uint8_t own_address_type, uint8_t peer_address_type,
-                     BD_ADDR peer_address, uint8_t filter_policy,
-                     int8_t tx_power, uint8_t primary_phy,
-                     uint8_t secondary_max_skip, uint8_t secondary_phy,
-                     uint8_t advertising_sid,
+                     uint8_t own_address_type, BD_ADDR own_address,
+                     uint8_t peer_address_type, BD_ADDR peer_address,
+                     uint8_t filter_policy, int8_t tx_power,
+                     uint8_t primary_phy, uint8_t secondary_max_skip,
+                     uint8_t secondary_phy, uint8_t advertising_sid,
                      uint8_t scan_request_notify_enable,
                      status_cb cmd_complete) override {
     SetParameters1(handle, properties, adv_int_min, adv_int_max, channel_map,
-                   own_address_type, peer_address_type, peer_address,
-                   filter_policy);
-    SetParameters2(tx_power, primary_phy, secondary_max_skip, secondary_phy,
-                   advertising_sid, scan_request_notify_enable, cmd_complete);
+                   own_address_type, own_address, peer_address_type,
+                   peer_address);
+    SetParameters2(filter_policy, tx_power, primary_phy, secondary_max_skip,
+                   secondary_phy, advertising_sid, scan_request_notify_enable,
+                   cmd_complete);
   };
 
  private:
@@ -185,9 +186,9 @@ TEST_F(BleAdvertisingManagerTest, test_android_flow) {
   tBTM_BLE_ADV_PARAMS params;
   EXPECT_CALL(*hci_mock, SetParameters1(advertiser_id, _, _, _, _, _, _, _, _))
       .Times(1);
-  EXPECT_CALL(*hci_mock, SetParameters2(_, _, _, _, _, _, _))
+  EXPECT_CALL(*hci_mock, SetParameters2(_, _, _, _, _, _, _, _))
       .Times(1)
-      .WillOnce(SaveArg<6>(&set_params_cb));
+      .WillOnce(SaveArg<7>(&set_params_cb));
   BleAdvertisingManager::Get()->SetParameters(
       advertiser_id, &params,
       base::Bind(&BleAdvertisingManagerTest::SetParametersCb,
@@ -250,9 +251,9 @@ TEST_F(BleAdvertisingManagerTest, test_adv_data_filling) {
   params.tx_power = -15;
   EXPECT_CALL(*hci_mock, SetParameters1(advertiser_id, _, _, _, _, _, _, _, _))
       .Times(1);
-  EXPECT_CALL(*hci_mock, SetParameters2(params.tx_power, _, _, _, _, _, _))
+  EXPECT_CALL(*hci_mock, SetParameters2(_, params.tx_power, _, _, _, _, _, _))
       .Times(1)
-      .WillOnce(SaveArg<6>(&set_params_cb));
+      .WillOnce(SaveArg<7>(&set_params_cb));
   BleAdvertisingManager::Get()->SetParameters(
       advertiser_id, &params,
       base::Bind(&BleAdvertisingManagerTest::SetParametersCb,
@@ -301,9 +302,9 @@ TEST_F(BleAdvertisingManagerTest, test_adv_data_not_filling) {
   EXPECT_CALL(*hci_mock, SetParameters1(advertiser_id, _, _, _, _, _, _, _, _))
       .Times(1);
   EXPECT_CALL(*hci_mock,
-              SetParameters2((uint8_t)params.tx_power, _, _, _, _, _, _))
+              SetParameters2(_, (uint8_t)params.tx_power, _, _, _, _, _, _))
       .Times(1)
-      .WillOnce(SaveArg<6>(&set_params_cb));
+      .WillOnce(SaveArg<7>(&set_params_cb));
   BleAdvertisingManager::Get()->SetParameters(
       advertiser_id, &params,
       base::Bind(&BleAdvertisingManagerTest::SetParametersCb,
@@ -379,9 +380,9 @@ TEST_F(BleAdvertisingManagerTest, test_start_advertising) {
   status_cb enable_cb;
   EXPECT_CALL(*hci_mock, SetParameters1(advertiser_id, _, _, _, _, _, _, _, _))
       .Times(1);
-  EXPECT_CALL(*hci_mock, SetParameters2(_, _, _, _, _, _, _))
+  EXPECT_CALL(*hci_mock, SetParameters2(_, _, _, _, _, _, _, _))
       .Times(1)
-      .WillOnce(SaveArg<6>(&set_params_cb));
+      .WillOnce(SaveArg<7>(&set_params_cb));
   EXPECT_CALL(*hci_mock, SetAdvertisingData(advertiser_id, _, _, _, _, _))
       .Times(1)
       .WillOnce(SaveArg<5>(&set_data_cb));
@@ -431,9 +432,9 @@ TEST_F(BleAdvertisingManagerTest, test_start_advertising_set_params_failed) {
   status_cb set_params_cb;
   EXPECT_CALL(*hci_mock, SetParameters1(advertiser_id, _, _, _, _, _, _, _, _))
       .Times(1);
-  EXPECT_CALL(*hci_mock, SetParameters2(_, _, _, _, _, _, _))
+  EXPECT_CALL(*hci_mock, SetParameters2(_, _, _, _, _, _, _, _))
       .Times(1)
-      .WillOnce(SaveArg<6>(&set_params_cb));
+      .WillOnce(SaveArg<7>(&set_params_cb));
 
   EXPECT_CALL(*hci_mock, SetAdvertisingData(advertiser_id, _, _, _, _, _))
       .Times(Exactly(0));
