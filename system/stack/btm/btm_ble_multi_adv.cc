@@ -32,29 +32,30 @@
 #include "btm_int_types.h"
 
 using base::Bind;
-using multiadv_cb = base::Callback<void(uint8_t /* status */)>;
 extern void btm_gen_resolvable_private_addr(
     base::Callback<void(uint8_t[8])> cb);
-
 extern fixed_queue_t* btu_general_alarm_queue;
 
 struct AdvertisingInstance {
   uint8_t inst_id;
   bool in_use;
   uint8_t advertising_event_properties;
-  BD_ADDR rpa;
   alarm_t* adv_raddr_timer;
   int8_t tx_power;
   int timeout_s;
   alarm_t* timeout_timer;
+  uint8_t own_address_type;
+  BD_ADDR own_address;
+
   AdvertisingInstance(int inst_id)
       : inst_id(inst_id),
         in_use(false),
         advertising_event_properties(0),
-        rpa{0},
         tx_power(0),
         timeout_s(0),
-        timeout_timer(nullptr) {
+        timeout_timer(nullptr),
+        own_address_type(0),
+        own_address{0} {
     adv_raddr_timer = alarm_new_periodic("btm_ble.adv_raddr_timer");
   }
 
@@ -126,7 +127,8 @@ class BleAdvertisingManagerImpl
     }
   }
 
-  void OnRpaGenerationComplete(uint8_t inst_id, uint8_t rand[8]) {
+  void OnRpaGenerationComplete(uint8_t inst_id, base::Closure cb,
+                               uint8_t rand[8]) {
     LOG(INFO) << "inst_id = " << +inst_id;
 
     AdvertisingInstance* p_inst = &adv_inst[inst_id];
@@ -134,9 +136,9 @@ class BleAdvertisingManagerImpl
     rand[2] &= (~BLE_RESOLVE_ADDR_MASK);
     rand[2] |= BLE_RESOLVE_ADDR_MSB;
 
-    p_inst->rpa[2] = rand[0];
-    p_inst->rpa[1] = rand[1];
-    p_inst->rpa[0] = rand[2];
+    p_inst->own_address[2] = rand[0];
+    p_inst->own_address[1] = rand[1];
+    p_inst->own_address[0] = rand[2];
 
     BT_OCTET16 irk;
     BTM_GetDeviceIDRoot(irk);
@@ -146,19 +148,31 @@ class BleAdvertisingManagerImpl
       LOG_ASSERT(false) << "SMP_Encrypt failed";
 
     /* set hash to be LSB of rpAddress */
-    p_inst->rpa[5] = output.param_buf[0];
-    p_inst->rpa[4] = output.param_buf[1];
-    p_inst->rpa[3] = output.param_buf[2];
+    p_inst->own_address[5] = output.param_buf[0];
+    p_inst->own_address[4] = output.param_buf[1];
+    p_inst->own_address[3] = output.param_buf[2];
 
-    /* set it to controller */
-    GetHciInterface()->SetRandomAddress(p_inst->inst_id, p_inst->rpa,
-                                        Bind(DoNothing));
+    cb.Run();
   }
 
-  void ConfigureRpa(uint8_t inst_id) {
+  void GenerateRpa(uint8_t inst_id, base::Closure cb) {
     btm_gen_resolvable_private_addr(
         Bind(&BleAdvertisingManagerImpl::OnRpaGenerationComplete,
-             base::Unretained(this), inst_id));
+             base::Unretained(this), inst_id, std::move(cb)));
+  }
+
+  void ConfigureRpa(AdvertisingInstance* p_inst) {
+    GenerateRpa(p_inst->inst_id,
+                Bind(
+                    [](AdvertisingInstance* p_inst) {
+                      /* set it to controller */
+                      ((BleAdvertisingManagerImpl*)BleAdvertisingManager::Get())
+                          ->GetHciInterface()
+                          ->SetRandomAddress(p_inst->inst_id,
+                                             p_inst->own_address,
+                                             Bind(DoNothing));
+                    },
+                    p_inst));
   }
 
   void RegisterAdvertiser(
@@ -171,17 +185,30 @@ class BleAdvertisingManagerImpl
       p_inst->in_use = true;
 
 #if (BLE_PRIVACY_SPT == TRUE)
-      // configure the address, and set up periodic timer to update it.
-      ConfigureRpa(p_inst->inst_id);
-
+      // set up periodic timer to update address.
       if (BTM_BleLocalPrivacyEnabled()) {
-        alarm_set_on_queue(p_inst->adv_raddr_timer, BTM_BLE_PRIVATE_ADDR_INT_MS,
-                           btm_ble_adv_raddr_timer_timeout, p_inst,
-                           btu_general_alarm_queue);
+        p_inst->own_address_type = BLE_ADDR_RANDOM;
+        GenerateRpa(p_inst->inst_id,
+                    Bind(
+                        [](AdvertisingInstance* p_inst,
+                           base::Callback<void(uint8_t /* inst_id */,
+                                               uint8_t /* status */)>
+                               cb) {
+                          alarm_set_on_queue(p_inst->adv_raddr_timer,
+                                             BTM_BLE_PRIVATE_ADDR_INT_MS,
+                                             btm_ble_adv_raddr_timer_timeout,
+                                             p_inst, btu_general_alarm_queue);
+                          cb.Run(p_inst->inst_id, BTM_BLE_MULTI_ADV_SUCCESS);
+                        },
+                        p_inst, cb));
       }
-#endif
+#else
+      p_inst->own_address_type = BLE_ADDR_PUBLIC;
+      memcpy(p_inst->own_address,
+             controller_get_interface()->get_address()->address, BD_ADDR_LEN);
 
       cb.Run(p_inst->inst_id, BTM_BLE_MULTI_ADV_SUCCESS);
+#endif
       return;
     }
 
@@ -231,27 +258,37 @@ class BleAdvertisingManagerImpl
           return;
         }
 
-        c->self->SetData(c->inst_id, false, std::move(c->advertise_data), Bind(
+        BD_ADDR *rpa = &c->self->adv_inst[c->inst_id].own_address;
+        c->self->GetHciInterface()->SetRandomAddress(c->inst_id, *rpa, Bind(
           [](c_type c, uint8_t status) {
             if (status != 0) {
-              LOG(ERROR) << "setting advertise data failed, status: " << +status;
+              LOG(ERROR) << "setting random address failed, status: " << +status;
               c->cb.Run(status);
               return;
             }
 
-            c->self->SetData(c->inst_id, true, std::move(c->scan_response_data), Bind(
+            c->self->SetData(c->inst_id, false, std::move(c->advertise_data), Bind(
               [](c_type c, uint8_t status) {
                 if (status != 0) {
-                  LOG(ERROR) << "setting scan response data failed, status: " << +status;
+                  LOG(ERROR) << "setting advertise data failed, status: " << +status;
                   c->cb.Run(status);
                   return;
                 }
 
-                c->self->Enable(c->inst_id, true, c->cb, c->timeout_s, std::move(c->timeout_cb));
+                c->self->SetData(c->inst_id, true, std::move(c->scan_response_data), Bind(
+                  [](c_type c, uint8_t status) {
+                    if (status != 0) {
+                      LOG(ERROR) << "setting scan response data failed, status: " << +status;
+                      c->cb.Run(status);
+                      return;
+                    }
 
+                    c->self->Enable(c->inst_id, true, c->cb, c->timeout_s, std::move(c->timeout_cb));
+
+                }, base::Passed(&c)));
             }, base::Passed(&c)));
         }, base::Passed(&c)));
-      }, base::Passed(&c)));
+    }, base::Passed(&c)));
     // clang-format on
   }
 
@@ -327,22 +364,6 @@ class BleAdvertisingManagerImpl
     // TODO: disable only if was enabled, currently no use scenario needs that,
     // we always set parameters before enabling
     // GetHciInterface()->Enable(false, inst_id, Bind(DoNothing));
-
-    uint8_t own_address_type = BLE_ADDR_PUBLIC;
-    BD_ADDR own_address;
-
-#if (BLE_PRIVACY_SPT == TRUE)
-    if (BTM_BleLocalPrivacyEnabled()) {
-      own_address_type = BLE_ADDR_RANDOM;
-      memcpy(own_address, p_inst->rpa, BD_ADDR_LEN);
-    } else {
-#else
-    {
-#endif
-      memcpy(own_address, controller_get_interface()->get_address()->address,
-             BD_ADDR_LEN);
-    }
-
     p_inst->advertising_event_properties =
         p_params->advertising_event_properties;
     p_inst->tx_power = p_params->tx_power;
@@ -351,8 +372,9 @@ class BleAdvertisingManagerImpl
     GetHciInterface()->SetParameters(
         p_inst->inst_id, p_params->advertising_event_properties,
         p_params->adv_int_min, p_params->adv_int_max, p_params->channel_map,
-        own_address_type, 0x00, peer_address, p_params->adv_filter_policy,
-        p_inst->tx_power, p_params->primary_advertising_phy, 0x01, 0x01,
+        p_inst->own_address_type, p_inst->own_address, 0x00, peer_address,
+        p_params->adv_filter_policy, p_inst->tx_power,
+        p_params->primary_advertising_phy, 0x01, 0x01,
         p_params->secondary_advertising_phy,
         p_params->scan_request_notification_enable, cb);
 
@@ -437,7 +459,7 @@ class BleAdvertisingManagerImpl
 #if (BLE_PRIVACY_SPT == TRUE)
     if (BTM_BleLocalPrivacyEnabled() &&
         advertising_handle <= BTM_BLE_MULTI_ADV_MAX) {
-      btm_acl_update_conn_addr(connection_handle, p_inst->rpa);
+      btm_acl_update_conn_addr(connection_handle, p_inst->own_address);
     }
 #endif
 
@@ -486,7 +508,7 @@ void BleAdvertisingManager::CleanUp() {
 
 void btm_ble_adv_raddr_timer_timeout(void* data) {
   ((BleAdvertisingManagerImpl*)BleAdvertisingManager::Get())
-      ->ConfigureRpa(((AdvertisingInstance*)data)->inst_id);
+      ->ConfigureRpa((AdvertisingInstance*)data);
 }
 
 /**
