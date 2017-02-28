@@ -27,6 +27,7 @@
 
 #include "bt_target.h"
 
+#include <base/bind.h>
 #include <string.h>
 
 #include "bt_types.h"
@@ -2255,52 +2256,6 @@ static void btm_notify_new_key(uint8_t key_type) {
 
 /*******************************************************************************
  *
- * Function         btm_ble_process_er2
- *
- * Description      This function is called when ER is generated, store it in
- *                  local control block.
- *
- * Returns          void
- *
- ******************************************************************************/
-static void btm_ble_process_er2(tBTM_RAND_ENC* p) {
-  BTM_TRACE_DEBUG("btm_ble_process_er2");
-
-  if (p && p->opcode == HCI_BLE_RAND) {
-    memcpy(&btm_cb.devcb.ble_encryption_key_value[8], p->param_buf,
-           BT_OCTET8_LEN);
-    btm_notify_new_key(BTM_BLE_KEY_TYPE_ER);
-  } else {
-    BTM_TRACE_ERROR("Generating ER2 exception.");
-    memset(&btm_cb.devcb.ble_encryption_key_value, 0, sizeof(BT_OCTET16));
-  }
-}
-
-/*******************************************************************************
- *
- * Function         btm_ble_process_er
- *
- * Description      This function is called when ER is generated, store it in
- *                  local control block.
- *
- * Returns          void
- *
- ******************************************************************************/
-static void btm_ble_process_er(tBTM_RAND_ENC* p) {
-  BTM_TRACE_DEBUG("btm_ble_process_er");
-
-  if (p && p->opcode == HCI_BLE_RAND) {
-    memcpy(&btm_cb.devcb.ble_encryption_key_value[0], p->param_buf,
-           BT_OCTET8_LEN);
-
-    btsnd_hcic_ble_rand((void*)btm_ble_process_er2);
-  } else {
-    BTM_TRACE_ERROR("Generating ER1 exception.");
-  }
-}
-
-/*******************************************************************************
- *
  * Function         btm_ble_process_irk
  *
  * Description      This function is called when IRK is generated, store it in
@@ -2318,7 +2273,7 @@ static void btm_ble_process_irk(tSMP_ENC* p) {
 #if (BLE_PRIVACY_SPT == TRUE)
     /* if privacy is enabled, new RPA should be calculated */
     if (btm_cb.ble_ctr_cb.privacy_mode != BTM_PRIVACY_NONE) {
-      btm_gen_resolvable_private_addr((void*)btm_gen_resolve_paddr_low);
+      btm_gen_resolvable_private_addr(base::Bind(&btm_gen_resolve_paddr_low));
     }
 #endif
   } else {
@@ -2326,7 +2281,15 @@ static void btm_ble_process_irk(tSMP_ENC* p) {
   }
 
   /* proceed generate ER */
-  btsnd_hcic_ble_rand((void*)btm_ble_process_er);
+  btsnd_hcic_ble_rand(base::Bind([](BT_OCTET8 rand1) {
+    memcpy(&btm_cb.devcb.ble_encryption_key_value[0], rand1, BT_OCTET8_LEN);
+
+    btsnd_hcic_ble_rand(base::Bind([](BT_OCTET8 rand2) {
+      memcpy(&btm_cb.devcb.ble_encryption_key_value[8], rand2, BT_OCTET8_LEN);
+      btm_notify_new_key(BTM_BLE_KEY_TYPE_ER);
+    }));
+
+  }));
 }
 
 /*******************************************************************************
@@ -2366,62 +2329,6 @@ static void btm_ble_process_dhk(tSMP_ENC* p) {
 
 /*******************************************************************************
  *
- * Function         btm_ble_process_ir2
- *
- * Description      This function is called when IR is generated, proceed to
- *                  calculate
- *                  DHK = Eir({0x03, 0, 0 ...})
- *
- *
- * Returns          void
- *
- ******************************************************************************/
-static void btm_ble_process_ir2(tBTM_RAND_ENC* p) {
-  uint8_t btm_ble_dhk_pt = 0x03;
-  tSMP_ENC output;
-
-  BTM_TRACE_DEBUG("btm_ble_process_ir2");
-
-  if (p && p->opcode == HCI_BLE_RAND) {
-    /* remembering in control block */
-    memcpy(&btm_cb.devcb.id_keys.ir[8], p->param_buf, BT_OCTET8_LEN);
-    /* generate DHK= Eir({0x03, 0x00, 0x00 ...}) */
-
-    SMP_Encrypt(btm_cb.devcb.id_keys.ir, BT_OCTET16_LEN, &btm_ble_dhk_pt, 1,
-                &output);
-    btm_ble_process_dhk(&output);
-
-    BTM_TRACE_DEBUG("BLE IR generated.");
-  } else {
-    memset(&btm_cb.devcb.id_keys, 0, sizeof(tBTM_BLE_LOCAL_ID_KEYS));
-  }
-}
-
-/*******************************************************************************
- *
- * Function         btm_ble_process_ir
- *
- * Description      This function is called when IR is generated, proceed to
- *                  calculate
- *                  DHK = Eir({0x02, 0, 0 ...})
- *
- *
- * Returns          void
- *
- ******************************************************************************/
-static void btm_ble_process_ir(tBTM_RAND_ENC* p) {
-  BTM_TRACE_DEBUG("btm_ble_process_ir");
-
-  if (p && p->opcode == HCI_BLE_RAND) {
-    /* remembering in control block */
-    memcpy(btm_cb.devcb.id_keys.ir, p->param_buf, BT_OCTET8_LEN);
-
-    btsnd_hcic_ble_rand((void*)btm_ble_process_ir2);
-  }
-}
-
-/*******************************************************************************
- *
  * Function         btm_ble_reset_id
  *
  * Description      This function is called to reset LE device identity.
@@ -2432,8 +2339,28 @@ static void btm_ble_process_ir(tBTM_RAND_ENC* p) {
 void btm_ble_reset_id(void) {
   BTM_TRACE_DEBUG("btm_ble_reset_id");
 
-  /* regenrate Identity Root*/
-  btsnd_hcic_ble_rand((void*)btm_ble_process_ir);
+  /* Regenerate Identity Root*/
+  btsnd_hcic_ble_rand(base::Bind([](BT_OCTET8 rand) {
+    BTM_TRACE_DEBUG("btm_ble_process_ir1");
+    memcpy(btm_cb.devcb.id_keys.ir, rand, BT_OCTET8_LEN);
+
+    btsnd_hcic_ble_rand(base::Bind([](BT_OCTET8 rand) {
+      uint8_t btm_ble_dhk_pt = 0x03;
+      tSMP_ENC output;
+
+      BTM_TRACE_DEBUG("btm_ble_process_ir2");
+
+      /* remembering in control block */
+      memcpy(&btm_cb.devcb.id_keys.ir[8], rand, BT_OCTET8_LEN);
+      /* generate DHK= Eir({0x03, 0x00, 0x00 ...}) */
+
+      SMP_Encrypt(btm_cb.devcb.id_keys.ir, BT_OCTET16_LEN, &btm_ble_dhk_pt, 1,
+                  &output);
+      btm_ble_process_dhk(&output);
+
+      BTM_TRACE_DEBUG("BLE IR generated.");
+    }));
+  }));
 }
 
 #if BTM_BLE_CONFORMANCE_TESTING == TRUE

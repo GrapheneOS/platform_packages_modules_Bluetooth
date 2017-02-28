@@ -26,6 +26,7 @@
 #if (SMP_DEBUG == TRUE)
 #include <stdio.h>
 #endif
+#include <base/bind.h>
 #include <string.h>
 #include "aes.h"
 #include "bt_utils.h"
@@ -38,11 +39,13 @@
 #include "p_256_ecc_pp.h"
 #include "smp_int.h"
 
+using base::Bind;
+
 #ifndef SMP_MAX_ENC_REPEAT
 #define SMP_MAX_ENC_REPEAT 3
 #endif
 
-static void smp_rand_back(tBTM_RAND_ENC* p);
+static void smp_rand_back(BT_OCTET8 rand);
 static void smp_generate_confirm(tSMP_CB* p_cb, tSMP_INT_DATA* p_data);
 static void smp_generate_ltk_cont(tSMP_CB* p_cb, tSMP_INT_DATA* p_data);
 static void smp_generate_y(tSMP_CB* p_cb, tSMP_INT_DATA* p);
@@ -51,7 +54,7 @@ static void smp_process_stk(tSMP_CB* p_cb, tSMP_ENC* p);
 static void smp_process_ediv(tSMP_CB* p_cb, tSMP_ENC* p);
 static bool smp_calculate_legacy_short_term_key(tSMP_CB* p_cb,
                                                 tSMP_ENC* output);
-static void smp_continue_private_key_creation(tSMP_CB* p_cb, tBTM_RAND_ENC* p);
+static void smp_continue_private_key_creation(tSMP_CB* p_cb, BT_OCTET8 rand);
 static void smp_process_private_key(tSMP_CB* p_cb);
 static void smp_finish_nonce_generation(tSMP_CB* p_cb);
 static void smp_process_new_nonce(tSMP_CB* p_cb);
@@ -181,7 +184,7 @@ void smp_generate_passkey(tSMP_CB* p_cb, UNUSED_ATTR tSMP_INT_DATA* p_data) {
   p_cb->rand_enc_proc_state = SMP_GEN_TK;
 
   /* generate MRand or SRand */
-  btsnd_hcic_ble_rand((void*)smp_rand_back);
+  btsnd_hcic_ble_rand(Bind(&smp_rand_back));
 }
 
 /*******************************************************************************
@@ -193,11 +196,11 @@ void smp_generate_passkey(tSMP_CB* p_cb, UNUSED_ATTR tSMP_INT_DATA* p_data) {
  * Returns          void
  *
  ******************************************************************************/
-void smp_proc_passkey(tSMP_CB* p_cb, tBTM_RAND_ENC* p) {
+void smp_proc_passkey(tSMP_CB* p_cb, BT_OCTET8 rand) {
   uint8_t* tt = p_cb->tk;
   tSMP_KEY key;
   uint32_t passkey; /* 19655 test number; */
-  uint8_t* pp = p->param_buf;
+  uint8_t* pp = rand;
 
   SMP_TRACE_DEBUG("%s", __func__);
   STREAM_TO_UINT32(passkey, pp);
@@ -273,7 +276,7 @@ void smp_generate_srand_mrand_confirm(tSMP_CB* p_cb,
   SMP_TRACE_DEBUG("%s", __func__);
   p_cb->rand_enc_proc_state = SMP_GEN_SRAND_MRAND;
   /* generate MRand or SRand */
-  btsnd_hcic_ble_rand((void*)smp_rand_back);
+  btsnd_hcic_ble_rand(Bind(&smp_rand_back));
 }
 
 /*******************************************************************************
@@ -290,7 +293,7 @@ void smp_generate_rand_cont(tSMP_CB* p_cb, UNUSED_ATTR tSMP_INT_DATA* p_data) {
   SMP_TRACE_DEBUG("%s", __func__);
   p_cb->rand_enc_proc_state = SMP_GEN_SRAND_MRAND_CONT;
   /* generate 64 MSB of MRand or SRand */
-  btsnd_hcic_ble_rand((void*)smp_rand_back);
+  btsnd_hcic_ble_rand(Bind(&smp_rand_back));
 }
 
 /*******************************************************************************
@@ -327,7 +330,7 @@ void smp_generate_ltk(tSMP_CB* p_cb, UNUSED_ATTR tSMP_INT_DATA* p_data) {
     SMP_TRACE_DEBUG("Generate DIV for LTK");
     p_cb->rand_enc_proc_state = SMP_GEN_DIV_LTK;
     /* generate MRand or SRand */
-    btsnd_hcic_ble_rand((void*)smp_rand_back);
+    btsnd_hcic_ble_rand(Bind(&smp_rand_back));
   }
 }
 
@@ -390,7 +393,7 @@ void smp_generate_csrk(tSMP_CB* p_cb, UNUSED_ATTR tSMP_INT_DATA* p_data) {
   } else {
     SMP_TRACE_DEBUG("Generate DIV for CSRK");
     p_cb->rand_enc_proc_state = SMP_GEN_DIV_CSRK;
-    btsnd_hcic_ble_rand((void*)smp_rand_back);
+    btsnd_hcic_ble_rand(Bind(&smp_rand_back));
   }
 }
 
@@ -712,7 +715,7 @@ static void smp_generate_rand_vector(tSMP_CB* p_cb,
   /* generate random vector */
   SMP_TRACE_DEBUG("smp_generate_rand_vector ");
   p_cb->rand_enc_proc_state = SMP_GEN_RAND_V;
-  btsnd_hcic_ble_rand((void*)smp_rand_back);
+  btsnd_hcic_ble_rand(Bind(&smp_rand_back));
 }
 
 /*******************************************************************************
@@ -790,7 +793,7 @@ bool smp_calculate_legacy_short_term_key(tSMP_CB* p_cb, tSMP_ENC* output) {
 void smp_create_private_key(tSMP_CB* p_cb, tSMP_INT_DATA* p_data) {
   SMP_TRACE_DEBUG("%s", __func__);
   p_cb->rand_enc_proc_state = SMP_GENERATE_PRIVATE_KEY_0_7;
-  btsnd_hcic_ble_rand((void*)smp_rand_back);
+  btsnd_hcic_ble_rand(Bind(&smp_rand_back));
 }
 
 /*******************************************************************************
@@ -838,31 +841,31 @@ void smp_use_oob_private_key(tSMP_CB* p_cb, tSMP_INT_DATA* p_data) {
  * Returns          void
  *
  ******************************************************************************/
-void smp_continue_private_key_creation(tSMP_CB* p_cb, tBTM_RAND_ENC* p) {
+void smp_continue_private_key_creation(tSMP_CB* p_cb, BT_OCTET8 rand) {
   uint8_t state = p_cb->rand_enc_proc_state & ~0x80;
   SMP_TRACE_DEBUG("%s state=0x%x", __func__, state);
 
   switch (state) {
     case SMP_GENERATE_PRIVATE_KEY_0_7:
-      memcpy((void*)p_cb->private_key, p->param_buf, p->param_len);
+      memcpy((void*)p_cb->private_key, rand, 8);
       p_cb->rand_enc_proc_state = SMP_GENERATE_PRIVATE_KEY_8_15;
-      btsnd_hcic_ble_rand((void*)smp_rand_back);
+      btsnd_hcic_ble_rand(Bind(&smp_rand_back));
       break;
 
     case SMP_GENERATE_PRIVATE_KEY_8_15:
-      memcpy((void*)&p_cb->private_key[8], p->param_buf, p->param_len);
+      memcpy((void*)&p_cb->private_key[8], rand, 8);
       p_cb->rand_enc_proc_state = SMP_GENERATE_PRIVATE_KEY_16_23;
-      btsnd_hcic_ble_rand((void*)smp_rand_back);
+      btsnd_hcic_ble_rand(Bind(&smp_rand_back));
       break;
 
     case SMP_GENERATE_PRIVATE_KEY_16_23:
-      memcpy((void*)&p_cb->private_key[16], p->param_buf, p->param_len);
+      memcpy((void*)&p_cb->private_key[16], rand, 8);
       p_cb->rand_enc_proc_state = SMP_GENERATE_PRIVATE_KEY_24_31;
-      btsnd_hcic_ble_rand((void*)smp_rand_back);
+      btsnd_hcic_ble_rand(Bind(&smp_rand_back));
       break;
 
     case SMP_GENERATE_PRIVATE_KEY_24_31:
-      memcpy((void*)&p_cb->private_key[24], p->param_buf, p->param_len);
+      memcpy((void*)&p_cb->private_key[24], rand, 8);
       smp_process_private_key(p_cb);
       break;
 
@@ -1939,7 +1942,7 @@ bool smp_calculate_h6(uint8_t* w, uint8_t* keyid, uint8_t* c) {
 void smp_start_nonce_generation(tSMP_CB* p_cb) {
   SMP_TRACE_DEBUG("%s", __func__);
   p_cb->rand_enc_proc_state = SMP_GEN_NONCE_0_7;
-  btsnd_hcic_ble_rand((void*)smp_rand_back);
+  btsnd_hcic_ble_rand(Bind(&smp_rand_back));
 }
 
 /*******************************************************************************
@@ -1954,7 +1957,7 @@ void smp_start_nonce_generation(tSMP_CB* p_cb) {
 void smp_finish_nonce_generation(tSMP_CB* p_cb) {
   SMP_TRACE_DEBUG("%s", __func__);
   p_cb->rand_enc_proc_state = SMP_GEN_NONCE_8_15;
-  btsnd_hcic_ble_rand((void*)smp_rand_back);
+  btsnd_hcic_ble_rand(Bind(&smp_rand_back));
 }
 
 /*******************************************************************************
@@ -1981,66 +1984,57 @@ void smp_process_new_nonce(tSMP_CB* p_cb) {
  * Returns          void
  *
  ******************************************************************************/
-static void smp_rand_back(tBTM_RAND_ENC* p) {
+static void smp_rand_back(BT_OCTET8 rand) {
   tSMP_CB* p_cb = &smp_cb;
-  uint8_t* pp = p->param_buf;
-  uint8_t failure = SMP_PAIR_FAIL_UNKNOWN;
+  uint8_t* pp = rand;
   uint8_t state = p_cb->rand_enc_proc_state & ~0x80;
 
   SMP_TRACE_DEBUG("%s state=0x%x", __func__, state);
-  if (p && p->status == HCI_SUCCESS) {
-    switch (state) {
-      case SMP_GEN_SRAND_MRAND:
-        memcpy((void*)p_cb->rand, p->param_buf, p->param_len);
-        smp_generate_rand_cont(p_cb, NULL);
-        break;
+  switch (state) {
+    case SMP_GEN_SRAND_MRAND:
+      memcpy((void*)p_cb->rand, rand, 8);
+      smp_generate_rand_cont(p_cb, NULL);
+      break;
 
-      case SMP_GEN_SRAND_MRAND_CONT:
-        memcpy((void*)&p_cb->rand[8], p->param_buf, p->param_len);
-        smp_generate_confirm(p_cb, NULL);
-        break;
+    case SMP_GEN_SRAND_MRAND_CONT:
+      memcpy((void*)&p_cb->rand[8], rand, 8);
+      smp_generate_confirm(p_cb, NULL);
+      break;
 
-      case SMP_GEN_DIV_LTK:
-        STREAM_TO_UINT16(p_cb->div, pp);
-        smp_generate_ltk_cont(p_cb, NULL);
-        break;
+    case SMP_GEN_DIV_LTK:
+      STREAM_TO_UINT16(p_cb->div, pp);
+      smp_generate_ltk_cont(p_cb, NULL);
+      break;
 
-      case SMP_GEN_DIV_CSRK:
-        STREAM_TO_UINT16(p_cb->div, pp);
-        smp_compute_csrk(p_cb, NULL);
-        break;
+    case SMP_GEN_DIV_CSRK:
+      STREAM_TO_UINT16(p_cb->div, pp);
+      smp_compute_csrk(p_cb, NULL);
+      break;
 
-      case SMP_GEN_TK:
-        smp_proc_passkey(p_cb, p);
-        break;
+    case SMP_GEN_TK:
+      smp_proc_passkey(p_cb, rand);
+      break;
 
-      case SMP_GEN_RAND_V:
-        memcpy(p_cb->enc_rand, p->param_buf, BT_OCTET8_LEN);
-        smp_generate_y(p_cb, NULL);
-        break;
+    case SMP_GEN_RAND_V:
+      memcpy(p_cb->enc_rand, rand, BT_OCTET8_LEN);
+      smp_generate_y(p_cb, NULL);
+      break;
 
-      case SMP_GENERATE_PRIVATE_KEY_0_7:
-      case SMP_GENERATE_PRIVATE_KEY_8_15:
-      case SMP_GENERATE_PRIVATE_KEY_16_23:
-      case SMP_GENERATE_PRIVATE_KEY_24_31:
-        smp_continue_private_key_creation(p_cb, p);
-        break;
+    case SMP_GENERATE_PRIVATE_KEY_0_7:
+    case SMP_GENERATE_PRIVATE_KEY_8_15:
+    case SMP_GENERATE_PRIVATE_KEY_16_23:
+    case SMP_GENERATE_PRIVATE_KEY_24_31:
+      smp_continue_private_key_creation(p_cb, rand);
+      break;
 
-      case SMP_GEN_NONCE_0_7:
-        memcpy((void*)p_cb->rand, p->param_buf, p->param_len);
-        smp_finish_nonce_generation(p_cb);
-        break;
+    case SMP_GEN_NONCE_0_7:
+      memcpy((void*)p_cb->rand, rand, 8);
+      smp_finish_nonce_generation(p_cb);
+      break;
 
-      case SMP_GEN_NONCE_8_15:
-        memcpy((void*)&p_cb->rand[8], p->param_buf, p->param_len);
-        smp_process_new_nonce(p_cb);
-        break;
-    }
-
-    return;
+    case SMP_GEN_NONCE_8_15:
+      memcpy((void*)&p_cb->rand[8], rand, 8);
+      smp_process_new_nonce(p_cb);
+      break;
   }
-
-  SMP_TRACE_ERROR("%s key generation failed: (%d)", __func__,
-                  p_cb->rand_enc_proc_state);
-  smp_sm_event(p_cb, SMP_AUTH_CMPL_EVT, &failure);
 }

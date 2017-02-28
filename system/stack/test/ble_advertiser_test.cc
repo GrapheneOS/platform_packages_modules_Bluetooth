@@ -49,10 +49,7 @@ void btm_ble_update_dmt_flag_bits(uint8_t* flag_value,
                                   const uint16_t connect_mode,
                                   const uint16_t disc_mode) {}
 void btm_acl_update_conn_addr(uint8_t conn_handle, BD_ADDR address) {}
-
-void btm_gen_resolvable_private_addr(void* p_cmd_cplt_cback) {
-  // TODO(jpawlowski): should call p_cmd_cplt_cback();
-}
+void btm_gen_resolvable_private_addr(base::Callback<void(uint8_t[8])> cb) {}
 void alarm_set_on_queue(alarm_t* alarm, period_ms_t interval_ms,
                         alarm_callback_t cb, void* data, fixed_queue_t* queue) {
 }

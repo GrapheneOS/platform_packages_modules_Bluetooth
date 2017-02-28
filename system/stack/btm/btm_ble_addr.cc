@@ -22,6 +22,7 @@
  *
  ******************************************************************************/
 
+#include <base/bind.h>
 #include <string.h>
 
 #include "bt_types.h"
@@ -83,26 +84,24 @@ static void btm_gen_resolve_paddr_cmpl(tSMP_ENC* p) {
  * Returns          void
  *
  ******************************************************************************/
-void btm_gen_resolve_paddr_low(tBTM_RAND_ENC* p) {
+void btm_gen_resolve_paddr_low(BT_OCTET8 rand) {
   tBTM_LE_RANDOM_CB* p_cb = &btm_cb.ble_ctr_cb.addr_mgnt_cb;
   tSMP_ENC output;
 
   BTM_TRACE_EVENT("btm_gen_resolve_paddr_low");
-  if (p) {
-    p->param_buf[2] &= (~BLE_RESOLVE_ADDR_MASK);
-    p->param_buf[2] |= BLE_RESOLVE_ADDR_MSB;
+  rand[2] &= (~BLE_RESOLVE_ADDR_MASK);
+  rand[2] |= BLE_RESOLVE_ADDR_MSB;
 
-    p_cb->private_addr[2] = p->param_buf[0];
-    p_cb->private_addr[1] = p->param_buf[1];
-    p_cb->private_addr[0] = p->param_buf[2];
+  p_cb->private_addr[2] = rand[0];
+  p_cb->private_addr[1] = rand[1];
+  p_cb->private_addr[0] = rand[2];
 
-    /* encrypt with ur IRK */
-    if (!SMP_Encrypt(btm_cb.devcb.id_keys.irk, BT_OCTET16_LEN, p->param_buf, 3,
-                     &output)) {
-      btm_gen_resolve_paddr_cmpl(NULL);
-    } else {
-      btm_gen_resolve_paddr_cmpl(&output);
-    }
+  /* encrypt with ur IRK */
+  if (!SMP_Encrypt(btm_cb.devcb.id_keys.irk, BT_OCTET16_LEN, rand, 3,
+                   &output)) {
+    btm_gen_resolve_paddr_cmpl(NULL);
+  } else {
+    btm_gen_resolve_paddr_cmpl(&output);
   }
 }
 /*******************************************************************************
@@ -114,10 +113,10 @@ void btm_gen_resolve_paddr_low(tBTM_RAND_ENC* p) {
  * Returns          void
  *
  ******************************************************************************/
-void btm_gen_resolvable_private_addr(void* p_cmd_cplt_cback) {
+void btm_gen_resolvable_private_addr(base::Callback<void(BT_OCTET8)> cb) {
   BTM_TRACE_EVENT("%s", __func__);
   /* generate 3B rand as BD LSB, SRK with it, get BD MSB */
-  btsnd_hcic_ble_rand(p_cmd_cplt_cback);
+  btsnd_hcic_ble_rand(std::move(cb));
 }
 /*******************************************************************************
  *
@@ -129,7 +128,7 @@ void btm_gen_resolvable_private_addr(void* p_cmd_cplt_cback) {
  * Returns          void
  *
  ******************************************************************************/
-static void btm_gen_non_resolve_paddr_cmpl(tBTM_RAND_ENC* p) {
+static void btm_gen_non_resolve_paddr_cmpl(BT_OCTET8 rand) {
   tBTM_LE_RANDOM_CB* p_cb = &btm_cb.ble_ctr_cb.addr_mgnt_cb;
   tBTM_BLE_ADDR_CBACK* p_cback = p_cb->p_generate_cback;
   void* p_data = p_cb->p;
@@ -139,18 +138,13 @@ static void btm_gen_non_resolve_paddr_cmpl(tBTM_RAND_ENC* p) {
   BTM_TRACE_EVENT("btm_gen_non_resolve_paddr_cmpl");
 
   p_cb->p_generate_cback = NULL;
-  if (p) {
-    pp = p->param_buf;
-    STREAM_TO_BDADDR(static_random, pp);
-    /* mask off the 2 MSB */
-    static_random[0] &= BLE_STATIC_PRIVATE_MSB_MASK;
+  pp = rand;
+  STREAM_TO_BDADDR(static_random, pp);
+  /* mask off the 2 MSB */
+  static_random[0] &= BLE_STATIC_PRIVATE_MSB_MASK;
 
-    /* report complete */
-    if (p_cback) (*p_cback)(static_random, p_data);
-  } else {
-    BTM_TRACE_DEBUG("btm_gen_non_resolvable_private_addr failed");
-    if (p_cback) (*p_cback)(NULL, p_data);
-  }
+  /* report complete */
+  if (p_cback) (*p_cback)(static_random, p_data);
 }
 /*******************************************************************************
  *
@@ -172,7 +166,7 @@ void btm_gen_non_resolvable_private_addr(tBTM_BLE_ADDR_CBACK* p_cback,
 
   p_mgnt_cb->p_generate_cback = p_cback;
   p_mgnt_cb->p = p;
-  btsnd_hcic_ble_rand((void*)btm_gen_non_resolve_paddr_cmpl);
+  btsnd_hcic_ble_rand(base::Bind(&btm_gen_non_resolve_paddr_cmpl));
 }
 
 /*******************************************************************************
