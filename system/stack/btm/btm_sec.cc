@@ -1038,7 +1038,7 @@ tBTM_STATUS btm_sec_bond_by_transport(BD_ADDR bd_addr, tBT_TRANSPORT transport,
   }
 
   for (ii = 0; ii <= HCI_EXT_FEATURES_PAGE_MAX; ii++) {
-    p_features = p_dev_rec->features[ii];
+    p_features = p_dev_rec->feature_pages[ii];
     BTM_TRACE_EVENT("  remote_features page[%1d] = %02x-%02x-%02x-%02x", ii,
                     p_features[0], p_features[1], p_features[2], p_features[3]);
     BTM_TRACE_EVENT("                              %02x-%02x-%02x-%02x",
@@ -5877,11 +5877,10 @@ void btm_sec_set_peer_sec_caps(tACL_CONN* p_acl_cb,
   if ((btm_cb.security_mode == BTM_SEC_MODE_SP ||
        btm_cb.security_mode == BTM_SEC_MODE_SP_DEBUG ||
        btm_cb.security_mode == BTM_SEC_MODE_SC) &&
-      HCI_SSP_HOST_SUPPORTED(
-          p_acl_cb->peer_lmp_features[HCI_EXT_FEATURES_PAGE_1])) {
+      HCI_SSP_HOST_SUPPORTED(p_acl_cb->peer_lmp_feature_pages[1])) {
     p_dev_rec->sm4 = BTM_SM4_TRUE;
-    p_dev_rec->remote_supports_secure_connections = (HCI_SC_HOST_SUPPORTED(
-        p_acl_cb->peer_lmp_features[HCI_EXT_FEATURES_PAGE_1]));
+    p_dev_rec->remote_supports_secure_connections =
+        (HCI_SC_HOST_SUPPORTED(p_acl_cb->peer_lmp_feature_pages[1]));
   } else {
     p_dev_rec->sm4 = BTM_SM4_KNOWN;
     p_dev_rec->remote_supports_secure_connections = false;

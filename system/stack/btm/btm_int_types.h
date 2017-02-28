@@ -47,8 +47,7 @@ typedef char tBTM_LOC_BD_NAME[BTM_MAX_LOC_BD_NAME_LEN + 1];
    HCI_PKT_TYPES_MASK_NO_2_DH5 | HCI_PKT_TYPES_MASK_NO_3_DH5)
 
 #define BTM_EPR_AVAILABLE(p)                                            \
-  ((HCI_ATOMIC_ENCRYPT_SUPPORTED(                                       \
-        (p)->peer_lmp_features[HCI_EXT_FEATURES_PAGE_0]) &&             \
+  ((HCI_ATOMIC_ENCRYPT_SUPPORTED((p)->peer_lmp_feature_pages[0]) &&     \
     HCI_ATOMIC_ENCRYPT_SUPPORTED(                                       \
         controller_get_interface()->get_features_classic(0)->as_array)) \
        ? true                                                           \
@@ -72,9 +71,9 @@ typedef struct {
   uint16_t lmp_subversion;
   uint16_t link_super_tout;
   BD_FEATURES
-  peer_lmp_features[HCI_EXT_FEATURES_PAGE_MAX + 1]; /* Peer LMP Extended
-                                                       features mask table
-                                                       for the device */
+  peer_lmp_feature_pages[HCI_EXT_FEATURES_PAGE_MAX + 1]; /* Peer LMP Extended
+                                                            features mask table
+                                                            for the device */
   uint8_t num_read_pages;
   uint8_t lmp_version;
 
@@ -514,8 +513,8 @@ typedef struct {
 
   tBTM_BD_NAME sec_bd_name; /* User friendly name of the device. (may be
                                truncated to save space in dev_rec table) */
-  BD_FEATURES features[HCI_EXT_FEATURES_PAGE_MAX +
-                       1]; /* Features supported by the device */
+  BD_FEATURES feature_pages[HCI_EXT_FEATURES_PAGE_MAX +
+                            1]; /* Features supported by the device */
   uint8_t num_read_pages;
 
 #define BTM_SEC_STATE_IDLE 0

@@ -255,7 +255,7 @@ void btm_acl_created(BD_ADDR bda, DEV_CLASS dc, BD_NAME bdn,
          * setup */
         if ((p_dev_rec->num_read_pages) &&
             (p_dev_rec->num_read_pages <= (HCI_EXT_FEATURES_PAGE_MAX + 1))) {
-          memcpy(p->peer_lmp_features, p_dev_rec->features,
+          memcpy(p->peer_lmp_feature_pages, p_dev_rec->feature_pages,
                  (HCI_FEATURE_BYTES_PER_PAGE * p_dev_rec->num_read_pages));
           p->num_read_pages = p_dev_rec->num_read_pages;
 
@@ -926,7 +926,8 @@ void btm_process_remote_ext_features(tACL_CONN* p_acl_cb,
       BTM_TRACE_ERROR("%s: page=%d unexpected", __func__, page_idx);
       break;
     }
-    memcpy(p_dev_rec->features[page_idx], p_acl_cb->peer_lmp_features[page_idx],
+    memcpy(p_dev_rec->feature_pages[page_idx],
+           p_acl_cb->peer_lmp_feature_pages[page_idx],
            HCI_FEATURE_BYTES_PER_PAGE);
   }
 
@@ -966,7 +967,8 @@ void btm_read_remote_features(uint16_t handle) {
 
   p_acl_cb = &btm_cb.acl_db[acl_idx];
   p_acl_cb->num_read_pages = 0;
-  memset(p_acl_cb->peer_lmp_features, 0, sizeof(p_acl_cb->peer_lmp_features));
+  memset(p_acl_cb->peer_lmp_feature_pages, 0,
+         sizeof(p_acl_cb->peer_lmp_feature_pages));
 
   /* first send read remote supported features HCI command */
   /* because we don't know whether the remote support extended feature command
@@ -1028,26 +1030,22 @@ void btm_read_remote_features_complete(uint8_t* p) {
   p_acl_cb = &btm_cb.acl_db[acl_idx];
 
   /* Copy the received features page */
-  STREAM_TO_ARRAY(p_acl_cb->peer_lmp_features[HCI_EXT_FEATURES_PAGE_0], p,
+  STREAM_TO_ARRAY(p_acl_cb->peer_lmp_feature_pages[0], p,
                   HCI_FEATURE_BYTES_PER_PAGE);
 
-  if ((HCI_LMP_EXTENDED_SUPPORTED(
-          p_acl_cb->peer_lmp_features[HCI_EXT_FEATURES_PAGE_0])) &&
+  if ((HCI_LMP_EXTENDED_SUPPORTED(p_acl_cb->peer_lmp_feature_pages[0])) &&
       (controller_get_interface()
            ->supports_reading_remote_extended_features())) {
     /* if the remote controller has extended features and local controller
-    *supports
-    ** HCI_Read_Remote_Extended_Features command then start reading these
-    *feature starting
-    ** with extended features page 1 */
+       supports HCI_Read_Remote_Extended_Features command then start reading
+       these feature starting with extended features page 1 */
     BTM_TRACE_DEBUG("Start reading remote extended features");
-    btm_read_remote_ext_features(handle, HCI_EXT_FEATURES_PAGE_1);
+    btm_read_remote_ext_features(handle, 1);
     return;
   }
 
   /* Remote controller has no extended features. Process remote controller
-     supported features
-     (features page HCI_EXT_FEATURES_PAGE_0). */
+     supported features (features page 0). */
   btm_process_remote_ext_features(p_acl_cb, 1);
 
   /* Continue with HCI connection establishment */
@@ -1094,7 +1092,7 @@ void btm_read_remote_ext_features_complete(uint8_t* p) {
   p_acl_cb = &btm_cb.acl_db[acl_idx];
 
   /* Copy the received features page */
-  STREAM_TO_ARRAY(p_acl_cb->peer_lmp_features[page_num], p,
+  STREAM_TO_ARRAY(p_acl_cb->peer_lmp_feature_pages[page_num], p,
                   HCI_FEATURE_BYTES_PER_PAGE);
 
   /* If there is the next remote features page and
@@ -1185,8 +1183,7 @@ void btm_establish_continue(tACL_CONN* p_acl_cb) {
     evt_data.conn.p_bda = p_acl_cb->remote_addr;
     evt_data.conn.p_bdn = p_acl_cb->remote_name;
     evt_data.conn.p_dc = p_acl_cb->remote_dc;
-    evt_data.conn.p_features =
-        p_acl_cb->peer_lmp_features[HCI_EXT_FEATURES_PAGE_0];
+    evt_data.conn.p_features = p_acl_cb->peer_lmp_feature_pages[0];
     evt_data.conn.handle = p_acl_cb->hci_handle;
     evt_data.conn.transport = p_acl_cb->transport;
 
@@ -1659,7 +1656,7 @@ uint8_t* BTM_ReadRemoteFeatures(BD_ADDR addr) {
     return (NULL);
   }
 
-  return (p->peer_lmp_features[HCI_EXT_FEATURES_PAGE_0]);
+  return (p->peer_lmp_feature_pages[0]);
 }
 
 /*******************************************************************************
@@ -1683,7 +1680,7 @@ uint8_t* BTM_ReadRemoteExtendedFeatures(BD_ADDR addr, uint8_t page_number) {
     return NULL;
   }
 
-  return (p->peer_lmp_features[page_number]);
+  return (p->peer_lmp_feature_pages[page_number]);
 }
 
 /*******************************************************************************
@@ -1717,7 +1714,7 @@ uint8_t* BTM_ReadAllRemoteFeatures(BD_ADDR addr) {
     return (NULL);
   }
 
-  return (p->peer_lmp_features[HCI_EXT_FEATURES_PAGE_0]);
+  return (p->peer_lmp_feature_pages[0]);
 }
 
 /*******************************************************************************
@@ -2378,43 +2375,35 @@ bool btm_acl_notif_conn_collision(BD_ADDR bda) {
  ******************************************************************************/
 void btm_acl_chk_peer_pkt_type_support(tACL_CONN* p, uint16_t* p_pkt_type) {
   /* 3 and 5 slot packets? */
-  if (!HCI_3_SLOT_PACKETS_SUPPORTED(
-          p->peer_lmp_features[HCI_EXT_FEATURES_PAGE_0]))
+  if (!HCI_3_SLOT_PACKETS_SUPPORTED(p->peer_lmp_feature_pages[0]))
     *p_pkt_type &= ~(BTM_ACL_PKT_TYPES_MASK_DH3 + BTM_ACL_PKT_TYPES_MASK_DM3);
 
-  if (!HCI_5_SLOT_PACKETS_SUPPORTED(
-          p->peer_lmp_features[HCI_EXT_FEATURES_PAGE_0]))
+  if (!HCI_5_SLOT_PACKETS_SUPPORTED(p->peer_lmp_feature_pages[0]))
     *p_pkt_type &= ~(BTM_ACL_PKT_TYPES_MASK_DH5 + BTM_ACL_PKT_TYPES_MASK_DM5);
 
   /* 2 and 3 MPS support? */
-  if (!HCI_EDR_ACL_2MPS_SUPPORTED(
-          p->peer_lmp_features[HCI_EXT_FEATURES_PAGE_0]))
+  if (!HCI_EDR_ACL_2MPS_SUPPORTED(p->peer_lmp_feature_pages[0]))
     /* Not supported. Add 'not_supported' mask for all 2MPS packet types */
     *p_pkt_type |=
         (BTM_ACL_PKT_TYPES_MASK_NO_2_DH1 + BTM_ACL_PKT_TYPES_MASK_NO_2_DH3 +
          BTM_ACL_PKT_TYPES_MASK_NO_2_DH5);
 
-  if (!HCI_EDR_ACL_3MPS_SUPPORTED(
-          p->peer_lmp_features[HCI_EXT_FEATURES_PAGE_0]))
+  if (!HCI_EDR_ACL_3MPS_SUPPORTED(p->peer_lmp_feature_pages[0]))
     /* Not supported. Add 'not_supported' mask for all 3MPS packet types */
     *p_pkt_type |=
         (BTM_ACL_PKT_TYPES_MASK_NO_3_DH1 + BTM_ACL_PKT_TYPES_MASK_NO_3_DH3 +
          BTM_ACL_PKT_TYPES_MASK_NO_3_DH5);
 
   /* EDR 3 and 5 slot support? */
-  if (HCI_EDR_ACL_2MPS_SUPPORTED(
-          p->peer_lmp_features[HCI_EXT_FEATURES_PAGE_0]) ||
-      HCI_EDR_ACL_3MPS_SUPPORTED(
-          p->peer_lmp_features[HCI_EXT_FEATURES_PAGE_0])) {
-    if (!HCI_3_SLOT_EDR_ACL_SUPPORTED(
-            p->peer_lmp_features[HCI_EXT_FEATURES_PAGE_0]))
+  if (HCI_EDR_ACL_2MPS_SUPPORTED(p->peer_lmp_feature_pages[0]) ||
+      HCI_EDR_ACL_3MPS_SUPPORTED(p->peer_lmp_feature_pages[0])) {
+    if (!HCI_3_SLOT_EDR_ACL_SUPPORTED(p->peer_lmp_feature_pages[0]))
       /* Not supported. Add 'not_supported' mask for all 3-slot EDR packet types
        */
       *p_pkt_type |=
           (BTM_ACL_PKT_TYPES_MASK_NO_2_DH3 + BTM_ACL_PKT_TYPES_MASK_NO_3_DH3);
 
-    if (!HCI_5_SLOT_EDR_ACL_SUPPORTED(
-            p->peer_lmp_features[HCI_EXT_FEATURES_PAGE_0]))
+    if (!HCI_5_SLOT_EDR_ACL_SUPPORTED(p->peer_lmp_feature_pages[0]))
       /* Not supported. Add 'not_supported' mask for all 5-slot EDR packet types
        */
       *p_pkt_type |=

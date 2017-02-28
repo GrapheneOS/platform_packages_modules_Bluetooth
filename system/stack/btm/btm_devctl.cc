@@ -246,7 +246,7 @@ static void btm_decode_ext_features_page(uint8_t page_number,
   BTM_TRACE_DEBUG("btm_decode_ext_features_page page: %d", page_number);
   switch (page_number) {
     /* Extended (Legacy) Page 0 */
-    case HCI_EXT_FEATURES_PAGE_0:
+    case 0:
 
       /* Create ACL supported packet types mask */
       btm_cb.btm_acl_pkt_types_supported =
@@ -384,19 +384,8 @@ static void btm_decode_ext_features_page(uint8_t page_number,
 
       break;
 
-    /* Extended Page 1 */
-    case HCI_EXT_FEATURES_PAGE_1:
-      /* Nothing to do for page 1 */
-      break;
-
-    /* Extended Page 2 */
-    case HCI_EXT_FEATURES_PAGE_2:
-      /* Nothing to do for page 2 */
-      break;
-
     default:
-      BTM_TRACE_ERROR("btm_decode_ext_features_page page=%d unknown",
-                      page_number);
+      BTM_TRACE_WARNING("%s: feature page %d ignored", __func__, page_number);
       break;
   }
 }
