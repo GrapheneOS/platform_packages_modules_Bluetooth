@@ -112,8 +112,6 @@ void btif_sock_cleanup(void) {
   int saved_handle = thread_handle;
   if (std::atomic_exchange(&thread_handle, -1) == -1) return;
 
-  thread_stop(thread);
-  thread_join(thread);
   btsock_thread_exit(saved_handle);
   btsock_rfc_cleanup();
   btsock_sco_cleanup();
