@@ -94,11 +94,11 @@ class BleAdvertiserVscHciInterfaceImpl : public BleAdvertiserHciInterface {
 
   void SetParameters(uint8_t handle, uint16_t properties, uint32_t adv_int_min,
                      uint32_t adv_int_max, uint8_t channel_map,
-                     uint8_t own_address_type, uint8_t peer_address_type,
-                     BD_ADDR peer_address, uint8_t filter_policy,
-                     int8_t tx_power, uint8_t primary_phy,
-                     uint8_t secondary_max_skip, uint8_t secondary_phy,
-                     uint8_t advertising_sid,
+                     uint8_t own_address_type, BD_ADDR own_address,
+                     uint8_t peer_address_type, BD_ADDR peer_address,
+                     uint8_t filter_policy, int8_t tx_power,
+                     uint8_t primary_phy, uint8_t secondary_max_skip,
+                     uint8_t secondary_phy, uint8_t advertising_sid,
                      uint8_t scan_request_notify_enable,
                      status_cb command_complete) override {
     VLOG(1) << __func__;
@@ -124,7 +124,6 @@ class BleAdvertiserVscHciInterfaceImpl : public BleAdvertiserHciInterface {
     }
 
     UINT8_TO_STREAM(pp, own_address_type);
-    BD_ADDR own_address = {0, 0, 0, 0, 0, 0};
     BDADDR_TO_STREAM(pp, own_address);
     UINT8_TO_STREAM(pp, peer_address_type);
     BDADDR_TO_STREAM(pp, peer_address);
@@ -273,11 +272,11 @@ class BleAdvertiserLegacyHciInterfaceImpl : public BleAdvertiserHciInterface {
 
   void SetParameters(uint8_t handle, uint16_t properties, uint32_t adv_int_min,
                      uint32_t adv_int_max, uint8_t channel_map,
-                     uint8_t own_address_type, uint8_t peer_address_type,
-                     BD_ADDR peer_address, uint8_t filter_policy,
-                     int8_t tx_power, uint8_t primary_phy,
-                     uint8_t secondary_max_skip, uint8_t secondary_phy,
-                     uint8_t advertising_sid,
+                     uint8_t own_address_type, BD_ADDR /* own_address */,
+                     uint8_t peer_address_type, BD_ADDR peer_address,
+                     uint8_t filter_policy, int8_t tx_power,
+                     uint8_t primary_phy, uint8_t secondary_max_skip,
+                     uint8_t secondary_phy, uint8_t advertising_sid,
                      uint8_t scan_request_notify_enable,
                      status_cb command_complete) override {
     VLOG(1) << __func__;
@@ -393,11 +392,11 @@ class BleAdvertiserHciExtendedImpl : public BleAdvertiserHciInterface {
 
   void SetParameters(uint8_t handle, uint16_t properties, uint32_t adv_int_min,
                      uint32_t adv_int_max, uint8_t channel_map,
-                     uint8_t own_address_type, uint8_t peer_address_type,
-                     BD_ADDR peer_address, uint8_t filter_policy,
-                     int8_t tx_power, uint8_t primary_phy,
-                     uint8_t secondary_max_skip, uint8_t secondary_phy,
-                     uint8_t advertising_sid,
+                     uint8_t own_address_type, BD_ADDR /* own_address */,
+                     uint8_t peer_address_type, BD_ADDR peer_address,
+                     uint8_t filter_policy, int8_t tx_power,
+                     uint8_t primary_phy, uint8_t secondary_max_skip,
+                     uint8_t secondary_phy, uint8_t advertising_sid,
                      uint8_t scan_request_notify_enable,
                      status_cb command_complete) override {
     VLOG(1) << __func__;
