@@ -27,4 +27,6 @@ shared_library("libldacBT_enc") {
   public_configs = [ ":libldacBT_config" ]
 
   cflags = [ "-O2" ]
+
+  defines = [ "EXPORT_SYMBOL=" ]
 }
