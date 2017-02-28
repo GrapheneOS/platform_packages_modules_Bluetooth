@@ -54,6 +54,10 @@ static void connection_state_callback(bt_bdaddr_t* bd_addr,
                                       bthh_connection_state_t state) {
   CallbackEnv sCallbackEnv(__func__);
   if (!sCallbackEnv.valid()) return;
+  if (!mCallbacksObj) {
+    ALOGE("%s: mCallbacksObj is null", __func__);
+    return;
+  }
   ScopedLocalRef<jbyteArray> addr(sCallbackEnv.get(), marshall_bda(bd_addr));
   if (!addr.get()) {
     ALOGE("Fail to new jbyteArray bd addr for HID channel state");
@@ -69,6 +73,10 @@ static void get_protocol_mode_callback(bt_bdaddr_t* bd_addr,
                                        bthh_protocol_mode_t mode) {
   CallbackEnv sCallbackEnv(__func__);
   if (!sCallbackEnv.valid()) return;
+  if (!mCallbacksObj) {
+    ALOGE("%s: mCallbacksObj is null", __func__);
+    return;
+  }
   if (hh_status != BTHH_OK) {
     ALOGE("BTHH Status is not OK!");
     return;
@@ -88,6 +96,10 @@ static void get_report_callback(bt_bdaddr_t* bd_addr, bthh_status_t hh_status,
                                 uint8_t* rpt_data, int rpt_size) {
   CallbackEnv sCallbackEnv(__func__);
   if (!sCallbackEnv.valid()) return;
+  if (!mCallbacksObj) {
+    ALOGE("%s: mCallbacksObj is null", __func__);
+    return;
+  }
   if (hh_status != BTHH_OK) {
     ALOGE("BTHH Status is not OK!");
     return;
@@ -115,6 +127,10 @@ static void virtual_unplug_callback(bt_bdaddr_t* bd_addr,
   ALOGV("call to virtual_unplug_callback");
   CallbackEnv sCallbackEnv(__func__);
   if (!sCallbackEnv.valid()) return;
+  if (!mCallbacksObj) {
+    ALOGE("%s: mCallbacksObj is null", __func__);
+    return;
+  }
   ScopedLocalRef<jbyteArray> addr(sCallbackEnv.get(), marshall_bda(bd_addr));
   if (!addr.get()) {
     ALOGE("Fail to new jbyteArray bd addr for HID channel state");
@@ -127,6 +143,10 @@ static void virtual_unplug_callback(bt_bdaddr_t* bd_addr,
 static void handshake_callback(bt_bdaddr_t* bd_addr, bthh_status_t hh_status) {
   CallbackEnv sCallbackEnv(__func__);
   if (!sCallbackEnv.valid()) return;
+  if (!mCallbacksObj) {
+    ALOGE("%s: mCallbacksObj is null", __func__);
+    return;
+  }
 
   ScopedLocalRef<jbyteArray> addr(sCallbackEnv.get(), marshall_bda(bd_addr));
   if (!addr.get()) {
@@ -216,8 +236,6 @@ static void cleanupNative(JNIEnv* env, jobject object) {
     env->DeleteGlobalRef(mCallbacksObj);
     mCallbacksObj = NULL;
   }
-
-  env->DeleteGlobalRef(mCallbacksObj);
 }
 
 static jboolean connectHidNative(JNIEnv* env, jobject object,
