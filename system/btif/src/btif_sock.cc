@@ -18,6 +18,8 @@
 
 #define LOG_TAG "bt_btif_sock"
 
+#include <atomic>
+
 #include <base/logging.h>
 
 #include <hardware/bluetooth.h>
@@ -44,7 +46,7 @@ static bt_status_t btsock_connect(const bt_bdaddr_t* bd_addr,
 
 static void btsock_signaled(int fd, int type, int flags, uint32_t user_id);
 
-static int thread_handle = -1;
+static std::atomic_int thread_handle{-1};
 static thread_t* thread;
 
 btsock_interface_t* btif_sock_get_interface(void) {
@@ -107,16 +109,16 @@ error:;
 }
 
 void btif_sock_cleanup(void) {
-  if (thread_handle == -1) return;
+  int saved_handle = thread_handle;
+  if (std::atomic_exchange(&thread_handle, -1) == -1) return;
 
   thread_stop(thread);
   thread_join(thread);
-  btsock_thread_exit(thread_handle);
+  btsock_thread_exit(saved_handle);
   btsock_rfc_cleanup();
   btsock_sco_cleanup();
   btsock_l2cap_cleanup();
   thread_free(thread);
-  thread_handle = -1;
   thread = NULL;
 }
 
