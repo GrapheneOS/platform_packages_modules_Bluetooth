@@ -377,14 +377,12 @@ static tBTM_STATUS btm_send_connect_request(uint16_t acl_handle,
     xx = btm_handle_to_acl_index(acl_handle);
     if (xx < MAX_L2CAP_LINKS) {
       p_acl = &btm_cb.acl_db[xx];
-      if (!HCI_EDR_ESCO_2MPS_SUPPORTED(
-              p_acl->peer_lmp_features[HCI_EXT_FEATURES_PAGE_0])) {
+      if (!HCI_EDR_ESCO_2MPS_SUPPORTED(p_acl->peer_lmp_feature_pages[0])) {
         BTM_TRACE_WARNING("BTM Remote does not support 2-EDR eSCO");
         temp_pkt_types |= (HCI_ESCO_PKT_TYPES_MASK_NO_2_EV3 |
                            HCI_ESCO_PKT_TYPES_MASK_NO_2_EV5);
       }
-      if (!HCI_EDR_ESCO_3MPS_SUPPORTED(
-              p_acl->peer_lmp_features[HCI_EXT_FEATURES_PAGE_0])) {
+      if (!HCI_EDR_ESCO_3MPS_SUPPORTED(p_acl->peer_lmp_feature_pages[0])) {
         BTM_TRACE_WARNING("BTM Remote does not support 3-EDR eSCO");
         temp_pkt_types |= (HCI_ESCO_PKT_TYPES_MASK_NO_3_EV3 |
                            HCI_ESCO_PKT_TYPES_MASK_NO_3_EV5);
