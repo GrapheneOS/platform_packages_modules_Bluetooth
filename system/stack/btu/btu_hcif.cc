@@ -485,9 +485,9 @@ void btu_hcif_send_cmd_with_cb(const tracked_objects::Location& posted_from,
   p->len = HCIC_PREAMBLE_SIZE + params_len;
   p->offset = 0;
 
+  UINT16_TO_STREAM(pp, opcode);
+  UINT8_TO_STREAM(pp, params_len);
   if (params) {
-    UINT16_TO_STREAM(pp, opcode);
-    UINT8_TO_STREAM(pp, params_len);
     memcpy(pp, params, params_len);
   }
 
