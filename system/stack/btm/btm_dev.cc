@@ -100,10 +100,11 @@ bool BTM_SecAddDevice(BD_ADDR bd_addr, DEV_CLASS dev_class, BD_NAME bd_name,
   p_dev_rec->num_read_pages = 0;
   if (features) {
     bool found = false;
-    memcpy(p_dev_rec->features, features, sizeof(p_dev_rec->features));
+    memcpy(p_dev_rec->feature_pages, features,
+           sizeof(p_dev_rec->feature_pages));
     for (int i = HCI_EXT_FEATURES_PAGE_MAX; !found && i >= 0; i--) {
       for (int j = 0; j < HCI_FEATURE_BYTES_PER_PAGE; j++) {
-        if (p_dev_rec->features[i][j] != 0) {
+        if (p_dev_rec->feature_pages[i][j] != 0) {
           found = true;
           p_dev_rec->num_read_pages = i + 1;
           break;
@@ -111,7 +112,7 @@ bool BTM_SecAddDevice(BD_ADDR bd_addr, DEV_CLASS dev_class, BD_NAME bd_name,
       }
     }
   } else {
-    memset(p_dev_rec->features, 0, sizeof(p_dev_rec->features));
+    memset(p_dev_rec->feature_pages, 0, sizeof(p_dev_rec->feature_pages));
   }
 
   BTM_SEC_COPY_TRUSTED_DEVICE(trusted_mask, p_dev_rec->trusted_mask);
@@ -297,14 +298,14 @@ bool btm_dev_support_switch(BD_ADDR bd_addr) {
   p_dev_rec = btm_find_dev(bd_addr);
   if (p_dev_rec &&
       controller_get_interface()->supports_master_slave_role_switch()) {
-    if (HCI_SWITCH_SUPPORTED(p_dev_rec->features[HCI_EXT_FEATURES_PAGE_0])) {
+    if (HCI_SWITCH_SUPPORTED(p_dev_rec->feature_pages[0])) {
       BTM_TRACE_DEBUG("btm_dev_support_switch return true (feature found)");
       return (true);
     }
 
     /* If the feature field is all zero, we never received them */
     for (xx = 0; xx < BD_FEATURES_LEN; xx++) {
-      if (p_dev_rec->features[HCI_EXT_FEATURES_PAGE_0][xx] != 0x00) {
+      if (p_dev_rec->feature_pages[0][xx] != 0x00) {
         feature_empty = false; /* at least one is != 0 */
         break;
       }
