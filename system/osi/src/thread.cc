@@ -20,6 +20,8 @@
 
 #include "osi/include/thread.h"
 
+#include <atomic>
+
 #include <base/logging.h>
 #include <errno.h>
 #include <malloc.h>
@@ -38,7 +40,7 @@
 #include "osi/include/semaphore.h"
 
 struct thread_t {
-  bool is_joined;
+  std::atomic_bool is_joined{false};
   pthread_t pthread;
   pid_t tid;
   char name[THREAD_NAME_MAX + 1];
@@ -117,11 +119,8 @@ void thread_free(thread_t* thread) {
 void thread_join(thread_t* thread) {
   CHECK(thread != NULL);
 
-  // TODO(zachoverflow): use a compare and swap when ready
-  if (!thread->is_joined) {
-    thread->is_joined = true;
+  if (!std::atomic_exchange(&thread->is_joined, true))
     pthread_join(thread->pthread, NULL);
-  }
 }
 
 bool thread_post(thread_t* thread, thread_fn func, void* context) {
