@@ -87,7 +87,7 @@ typedef struct {
   int poll_count;
   poll_slot_t ps[MAX_POLL];
   int psi[MAX_POLL];  // index of poll slot
-  volatile pthread_t thread_id;
+  pthread_t thread_id;
   btsock_signaled_cb callback;
   btsock_cmd_cb cmd_callback;
   int used;
@@ -317,7 +317,7 @@ int btsock_thread_wakeup(int h) {
 }
 int btsock_thread_exit(int h) {
   if (h < 0 || h >= MAX_THREAD) {
-    APPL_TRACE_ERROR("invalid bt thread handle:%d", h);
+    APPL_TRACE_ERROR("invalid bt thread slot:%d", h);
     return false;
   }
   if (ts[h].cmd_fdw == -1) {
@@ -330,7 +330,10 @@ int btsock_thread_exit(int h) {
   OSI_NO_INTR(ret = send(ts[h].cmd_fdw, &cmd, sizeof(cmd), 0));
 
   if (ret == sizeof(cmd)) {
-    pthread_join(ts[h].thread_id, 0);
+    if (ts[h].thread_id != -1) {
+      pthread_join(ts[h].thread_id, 0);
+      ts[h].thread_id = -1;
+    }
     free_thread_slot(h);
     return true;
   }
@@ -544,7 +547,6 @@ static void* sock_poll_thread(void* arg) {
       APPL_TRACE_DEBUG("no data, select ret: %d", ret)
     };
   }
-  ts[h].thread_id = -1;
   APPL_TRACE_DEBUG("socket poll thread exiting, h:%d", h);
   return 0;
 }
