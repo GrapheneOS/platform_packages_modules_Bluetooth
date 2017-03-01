@@ -61,8 +61,20 @@ class PbapClientConnectionHandler extends Handler {
     private static final int PBAP_FEATURE_BROWSING = 0x00000002;
     private static final int PBAP_FEATURE_DOWNLOADING = 0x00000001;
 
+    private static final long PBAP_FILTER_VERSION = 1 << 0;
+    private static final long PBAP_FILTER_FN = 1 << 1;
+    private static final long PBAP_FILTER_N = 1 << 2;
+    private static final long PBAP_FILTER_PHOTO = 1 << 3;
+    private static final long PBAP_FILTER_ADR = 1 << 5;
+    private static final long PBAP_FILTER_TEL = 1 << 7;
+    private static final long PBAP_FILTER_EMAIL = 1 << 8;
+    private static final long PBAP_FILTER_NICKNAME = 1 << 23;
+
     private static final int PBAP_SUPPORTED_FEATURE =
             PBAP_FEATURE_DEFAULT_IMAGE_FORMAT | PBAP_FEATURE_BROWSING | PBAP_FEATURE_DOWNLOADING;
+    private static final long PBAP_REQUESTED_FIELDS = PBAP_FILTER_VERSION | PBAP_FILTER_FN
+            | PBAP_FILTER_N | PBAP_FILTER_PHOTO | PBAP_FILTER_ADR | PBAP_FILTER_TEL
+            | PBAP_FILTER_NICKNAME;
     private static final int PBAP_V1_2 = 0x0102;
     private static final int L2CAP_INVALID_PSM = -1;
 
@@ -206,8 +218,8 @@ class PbapClientConnectionHandler extends Handler {
                     }
                     // Start at contact 1 to exclued Owner Card PBAP 1.1 sec 3.1.5.2
                     BluetoothPbapRequestPullPhoneBook request =
-                            new BluetoothPbapRequestPullPhoneBook(PB_PATH, mAccount, 0,
-                                    VCARD_TYPE_30, 0, 1);
+                            new BluetoothPbapRequestPullPhoneBook(
+                                    PB_PATH, mAccount, PBAP_REQUESTED_FIELDS, VCARD_TYPE_30, 0, 1);
                     request.execute(mObexSession);
                     PhonebookPullRequest processor =
                             new PhonebookPullRequest(mPbapClientStateMachine.getContext(),
