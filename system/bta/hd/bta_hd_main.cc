@@ -253,7 +253,8 @@ void bta_hd_sm_execute(uint16_t event, tBTA_HD_DATA* p_data) {
 
   event &= 0xff;
 
-  if ((action = state_table[event][BTA_HD_ACTION]) < BTA_HD_IGNORE) {
+  action = state_table[event][BTA_HD_ACTION];
+  if (action < BTA_HD_IGNORE) {
     (*bta_hd_action[action])(p_data);
   }
 

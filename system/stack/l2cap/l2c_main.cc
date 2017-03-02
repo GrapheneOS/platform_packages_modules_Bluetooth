@@ -290,7 +290,8 @@ static void process_l2cap_cmd(tL2C_LCB* p_lcb, uint8_t* p, uint16_t pkt_len) {
   /* An L2CAP packet may contain multiple commands */
   while (true) {
     /* Smallest command is 4 bytes */
-    if ((p = p_next_cmd) > (p_pkt_end - 4)) break;
+    p = p_next_cmd;
+    if (p > (p_pkt_end - 4)) break;
 
     STREAM_TO_UINT8(cmd_code, p);
     STREAM_TO_UINT8(id, p);
@@ -303,7 +304,8 @@ static void process_l2cap_cmd(tL2C_LCB* p_lcb, uint8_t* p, uint16_t pkt_len) {
     }
 
     /* Check command length does not exceed packet length */
-    if ((p_next_cmd = p + cmd_len) > p_pkt_end) {
+    p_next_cmd = p + cmd_len;
+    if (p_next_cmd > p_pkt_end) {
       L2CAP_TRACE_WARNING("Command len bad  pkt_len: %d  cmd_len: %d  code: %d",
                           pkt_len, cmd_len, cmd_code);
       break;
@@ -342,8 +344,8 @@ static void process_l2cap_cmd(tL2C_LCB* p_lcb, uint8_t* p, uint16_t pkt_len) {
               rcid);
 
           /* Remote CID invalid. Treat as a disconnect */
-          if (((p_ccb = l2cu_find_ccb_by_cid(p_lcb, lcid)) != NULL) &&
-              (p_ccb->remote_cid == rcid)) {
+          p_ccb = l2cu_find_ccb_by_cid(p_lcb, lcid);
+          if ((p_ccb != NULL) && (p_ccb->remote_cid == rcid)) {
             /* Fake link disconnect - no reply is generated */
             l2c_csm_execute(p_ccb, L2CEVT_LP_DISCONNECT_IND, NULL);
           }

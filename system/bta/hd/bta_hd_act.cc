@@ -91,7 +91,8 @@ void bta_hd_api_enable(tBTA_HD_DATA* p_data) {
   /* store parameters */
   bta_hd_cb.p_cback = p_data->api_enable.p_cback;
 
-  if ((ret = HID_DevRegister(bta_hd_cback)) == HID_SUCCESS) {
+  ret = HID_DevRegister(bta_hd_cback);
+  if (ret == HID_SUCCESS) {
     status = BTA_HD_OK;
   } else {
     APPL_TRACE_ERROR("%s: Failed to register HID device (%d)", __func__, ret);
@@ -126,7 +127,8 @@ void bta_hd_api_disable(void) {
   }
 
   /* Deregister with lower layer */
-  if ((ret = HID_DevDeregister()) == HID_SUCCESS) {
+  ret = HID_DevDeregister();
+  if (ret == HID_SUCCESS) {
     status = BTA_HD_OK;
   } else {
     APPL_TRACE_ERROR("%s: Failed to deregister HID device (%s)", __func__, ret);

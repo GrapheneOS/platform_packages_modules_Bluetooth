@@ -144,7 +144,8 @@ OI_UINT computeBitneed(OI_CODEC_SBC_COMMON_CONTEXT* common, uint8_t* bitneeds,
       if (bits > maxBits) {
         maxBits = bits;
       }
-      if ((bitneeds[sb] = bits) > 1) {
+      bitneeds[sb] = bits;
+      if (bitneeds[sb] > 1) {
         bitcount += bits;
       }
       prefBits += 2 + bits;
@@ -169,7 +170,8 @@ OI_UINT computeBitneed(OI_CODEC_SBC_COMMON_CONTEXT* common, uint8_t* bitneeds,
         }
         bits += 5;
       }
-      if ((bitneeds[sb] = bits) > 1) {
+      bitneeds[sb] = bits;
+      if (bitneeds[sb] > 1) {
         bitcount += bits;
       }
     }
