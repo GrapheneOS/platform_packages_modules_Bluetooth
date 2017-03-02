@@ -1589,13 +1589,13 @@ void btm_ble_read_remote_name_cmpl(bool status, BD_ADDR bda, uint16_t length,
  * Returns          void
  *
  ******************************************************************************/
-tBTM_STATUS btm_ble_read_remote_name(BD_ADDR remote_bda, tBTM_INQ_INFO* p_cur,
-                                     tBTM_CMPL_CB* p_cb) {
+tBTM_STATUS btm_ble_read_remote_name(BD_ADDR remote_bda, tBTM_CMPL_CB* p_cb) {
   tBTM_INQUIRY_VAR_ST* p_inq = &btm_cb.btm_inq_vars;
 
   if (!controller_get_interface()->supports_ble()) return BTM_ERR_PROCESSING;
 
-  if (p_cur && !ble_evt_type_is_connectable(p_cur->results.ble_evt_type)) {
+  tINQ_DB_ENT* p_i = btm_inq_db_find(remote_bda);
+  if (p_i && !ble_evt_type_is_connectable(p_i->inq_info.results.ble_evt_type)) {
     BTM_TRACE_DEBUG("name request to non-connectable device failed.");
     return BTM_ERR_PROCESSING;
   }

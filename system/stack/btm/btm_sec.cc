@@ -1078,21 +1078,24 @@ tBTM_STATUS btm_sec_bond_by_transport(BD_ADDR bd_addr, tBT_TRANSPORT transport,
        * -> RNR (to learn if peer is 2.1)
        * RNR when no ACL causes HCI_RMT_HOST_SUP_FEAT_NOTIFY_EVT */
       btm_sec_change_pairing_state(BTM_PAIR_STATE_GET_REM_NAME);
-      BTM_ReadRemoteDeviceName(bd_addr, NULL, BT_TRANSPORT_BR_EDR);
+      status = BTM_ReadRemoteDeviceName(bd_addr, NULL, BT_TRANSPORT_BR_EDR);
     } else {
       /* We are accepting connection request from peer */
       btm_sec_change_pairing_state(BTM_PAIR_STATE_WAIT_PIN_REQ);
+      status = BTM_CMD_STARTED;
     }
     BTM_TRACE_DEBUG("State:%s sm4: 0x%x sec_state:%d",
                     btm_pair_state_descr(btm_cb.pairing_state), p_dev_rec->sm4,
                     p_dev_rec->sec_state);
-    return BTM_CMD_STARTED;
+  } else {
+    /* both local and peer are 2.1  */
+    status = btm_sec_dd_create_conn(p_dev_rec);
   }
 
-  /* both local and peer are 2.1  */
-  status = btm_sec_dd_create_conn(p_dev_rec);
-
   if (status != BTM_CMD_STARTED) {
+    BTM_TRACE_ERROR(
+        "%s BTM_ReadRemoteDeviceName or btm_sec_dd_create_conn error: 0x%x",
+        __func__, (int)status);
     btm_sec_change_pairing_state(BTM_PAIR_STATE_IDLE);
   }
 
@@ -3145,16 +3148,25 @@ void btm_sec_rmt_name_request_complete(uint8_t* p_bd_addr, uint8_t* p_bd_name,
 
           btm_sec_change_pairing_state(BTM_PAIR_STATE_IDLE);
 
-          if (btm_cb.api.p_auth_complete_callback)
+          if (btm_cb.api.p_auth_complete_callback) {
             (*btm_cb.api.p_auth_complete_callback)(
                 p_dev_rec->bd_addr, p_dev_rec->dev_class,
                 p_dev_rec->sec_bd_name, HCI_ERR_MEMORY_FULL);
+          }
         }
       }
       return;
     } else {
       BTM_TRACE_WARNING("%s: wrong BDA, retry with pairing BDA", __func__);
-      BTM_ReadRemoteDeviceName(btm_cb.pairing_bda, NULL, BT_TRANSPORT_BR_EDR);
+      if (BTM_ReadRemoteDeviceName(btm_cb.pairing_bda, NULL,
+                                   BT_TRANSPORT_BR_EDR) != BTM_CMD_STARTED) {
+        BTM_TRACE_ERROR("%s: failed to start remote name request", __func__);
+        if (btm_cb.api.p_auth_complete_callback) {
+          (*btm_cb.api.p_auth_complete_callback)(
+              p_dev_rec->bd_addr, p_dev_rec->dev_class, p_dev_rec->sec_bd_name,
+              HCI_ERR_MEMORY_FULL);
+        }
+      };
       return;
     }
   }
@@ -4315,8 +4327,12 @@ void btm_sec_connected(uint8_t* bda, uint16_t handle, uint8_t status,
                                btu_general_alarm_queue);
           } else {
             btm_sec_change_pairing_state(BTM_PAIR_STATE_GET_REM_NAME);
-            BTM_ReadRemoteDeviceName(p_dev_rec->bd_addr, NULL,
-                                     BT_TRANSPORT_BR_EDR);
+            if (BTM_ReadRemoteDeviceName(p_dev_rec->bd_addr, NULL,
+                                         BT_TRANSPORT_BR_EDR) !=
+                BTM_CMD_STARTED) {
+              BTM_TRACE_ERROR("%s cannot read remote name", __func__);
+              btm_sec_change_pairing_state(BTM_PAIR_STATE_IDLE);
+            }
           }
 #if (BTM_DISC_DURING_RS == TRUE)
           p_dev_rec->rs_disc_pending = BTM_SEC_RS_NOT_PENDING; /* reset flag */
@@ -4353,7 +4369,11 @@ void btm_sec_connected(uint8_t* bda, uint16_t handle, uint8_t status,
       if (BTM_SEC_IS_SM4_UNKNOWN(p_dev_rec->sm4)) {
         /* Try again: RNR when no ACL causes HCI_RMT_HOST_SUP_FEAT_NOTIFY_EVT */
         btm_sec_change_pairing_state(BTM_PAIR_STATE_GET_REM_NAME);
-        BTM_ReadRemoteDeviceName(bda, NULL, BT_TRANSPORT_BR_EDR);
+        if (BTM_ReadRemoteDeviceName(bda, NULL, BT_TRANSPORT_BR_EDR) !=
+            BTM_CMD_STARTED) {
+          BTM_TRACE_ERROR("%s cannot read remote name", __func__);
+          btm_sec_change_pairing_state(BTM_PAIR_STATE_IDLE);
+        }
         return;
       }
 
@@ -5289,11 +5309,10 @@ static bool btm_sec_start_get_name(tBTM_SEC_DEV_REC* p_dev_rec) {
 
   p_dev_rec->sec_state = BTM_SEC_STATE_GETTING_NAME;
 
-  /* Device should be connected, no need to provide correct page params */
   /* 0 and NULL are as timeout and callback params because they are not used in
    * security get name case */
-  if ((btm_initiate_rem_name(p_dev_rec->bd_addr, NULL, BTM_RMT_NAME_SEC, 0,
-                             NULL)) != BTM_CMD_STARTED) {
+  if ((btm_initiate_rem_name(p_dev_rec->bd_addr, BTM_RMT_NAME_SEC, 0, NULL)) !=
+      BTM_CMD_STARTED) {
     p_dev_rec->sec_state = tempstate;
     return (false);
   }
