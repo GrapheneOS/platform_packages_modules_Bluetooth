@@ -131,17 +131,20 @@ void L2CA_Deregister(uint16_t psm) {
     p_lcb = &l2cb.lcb_pool[0];
     for (ii = 0; ii < MAX_L2CAP_LINKS; ii++, p_lcb++) {
       if (p_lcb->in_use) {
-        if (((p_ccb = p_lcb->ccb_queue.p_first_ccb) == NULL) ||
-            (p_lcb->link_state == LST_DISCONNECTING))
+        p_ccb = p_lcb->ccb_queue.p_first_ccb;
+        if ((p_ccb == NULL) || (p_lcb->link_state == LST_DISCONNECTING)) {
           continue;
+        }
 
         if ((p_ccb->in_use) &&
             ((p_ccb->chnl_state == CST_W4_L2CAP_DISCONNECT_RSP) ||
-             (p_ccb->chnl_state == CST_W4_L2CA_DISCONNECT_RSP)))
+             (p_ccb->chnl_state == CST_W4_L2CA_DISCONNECT_RSP))) {
           continue;
+        }
 
-        if (p_ccb->p_rcb == p_rcb)
+        if (p_ccb->p_rcb == p_rcb) {
           l2c_csm_execute(p_ccb, L2CEVT_L2CA_DISCONNECT_REQ, NULL);
+        }
       }
     }
     l2cu_release_rcb(p_rcb);
@@ -253,10 +256,10 @@ uint16_t L2CA_ErtmConnectReq(uint16_t psm, BD_ADDR p_bd_addr,
   p_lcb = l2cu_find_lcb_by_bd_addr(p_bd_addr, BT_TRANSPORT_BR_EDR);
   if (p_lcb == NULL) {
     /* No link. Get an LCB and start link establishment */
-    if (((p_lcb = l2cu_allocate_lcb(p_bd_addr, false, BT_TRANSPORT_BR_EDR)) ==
-         NULL)
-        /* currently use BR/EDR for ERTM mode l2cap connection */
-        || (l2cu_create_conn(p_lcb, BT_TRANSPORT_BR_EDR) == false)) {
+    p_lcb = l2cu_allocate_lcb(p_bd_addr, false, BT_TRANSPORT_BR_EDR);
+    /* currently use BR/EDR for ERTM mode l2cap connection */
+    if ((p_lcb == NULL) ||
+        (l2cu_create_conn(p_lcb, BT_TRANSPORT_BR_EDR) == false)) {
       L2CAP_TRACE_WARNING(
           "L2CAP - conn not started for PSM: 0x%04x  p_lcb: 0x%08x", psm,
           p_lcb);
@@ -1747,9 +1750,9 @@ uint16_t L2CA_SendFixedChnlData(uint16_t fixed_cid, BD_ADDR rem_bda,
   }
 
   // We need to have a link up
-  if ((p_lcb = l2cu_find_lcb_by_bd_addr(rem_bda, transport)) == NULL ||
-      /* if link is disconnecting, also report data sending failure */
-      p_lcb->link_state == LST_DISCONNECTING) {
+  p_lcb = l2cu_find_lcb_by_bd_addr(rem_bda, transport);
+  if (p_lcb == NULL || p_lcb->link_state == LST_DISCONNECTING) {
+    /* if link is disconnecting, also report data sending failure */
     L2CAP_TRACE_WARNING("L2CA_SendFixedChnlData(0x%04x) - no LCB", fixed_cid);
     osi_free(p_buf);
     return (L2CAP_DW_FAILED);
@@ -2134,11 +2137,12 @@ uint16_t L2CA_FlushChannel(uint16_t lcid, uint16_t num_to_flush) {
 
   p_ccb = l2cu_find_ccb_by_cid(NULL, lcid);
 
-  if (!p_ccb || ((p_lcb = p_ccb->p_lcb) == NULL)) {
+  if (!p_ccb || (p_ccb->p_lcb == NULL)) {
     L2CAP_TRACE_WARNING(
         "L2CA_FlushChannel()  abnormally returning 0  CID: 0x%04x", lcid);
     return (0);
   }
+  p_lcb = p_ccb->p_lcb;
 
   if (num_to_flush != L2CAP_FLUSH_CHANS_GET) {
     L2CAP_TRACE_API(

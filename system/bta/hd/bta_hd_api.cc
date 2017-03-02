@@ -50,22 +50,19 @@ static const tBTA_SYS_REG bta_hd_reg = {bta_hd_hdl_event, BTA_HdDisable};
  *
  ******************************************************************************/
 void BTA_HdEnable(tBTA_HD_CBACK* p_cback) {
-  tBTA_HD_API_ENABLE* p_buf;
-
   APPL_TRACE_API("%s", __func__);
 
   bta_sys_register(BTA_ID_HD, &bta_hd_reg);
 
-  p_buf = (tBTA_HD_API_ENABLE*)osi_malloc((uint16_t)sizeof(tBTA_HD_API_ENABLE));
+  tBTA_HD_API_ENABLE* p_buf =
+      (tBTA_HD_API_ENABLE*)osi_malloc((uint16_t)sizeof(tBTA_HD_API_ENABLE));
 
-  if (p_buf != NULL) {
-    memset(p_buf, 0, sizeof(tBTA_HD_API_ENABLE));
+  memset(p_buf, 0, sizeof(tBTA_HD_API_ENABLE));
 
-    p_buf->hdr.event = BTA_HD_API_ENABLE_EVT;
-    p_buf->p_cback = p_cback;
+  p_buf->hdr.event = BTA_HD_API_ENABLE_EVT;
+  p_buf->p_cback = p_cback;
 
-    bta_sys_sendmsg(p_buf);
-  }
+  bta_sys_sendmsg(p_buf);
 }
 
 /*******************************************************************************
@@ -78,16 +75,13 @@ void BTA_HdEnable(tBTA_HD_CBACK* p_cback) {
  *
  ******************************************************************************/
 void BTA_HdDisable(void) {
-  BT_HDR* p_buf;
-
   APPL_TRACE_API("%s", __func__);
 
   bta_sys_deregister(BTA_ID_HD);
 
-  if ((p_buf = (BT_HDR*)osi_malloc(sizeof(BT_HDR))) != NULL) {
-    p_buf->event = BTA_HD_API_DISABLE_EVT;
-    bta_sys_sendmsg(p_buf);
-  }
+  BT_HDR* p_buf = (BT_HDR*)osi_malloc(sizeof(BT_HDR));
+  p_buf->event = BTA_HD_API_DISABLE_EVT;
+  bta_sys_sendmsg(p_buf);
 }
 
 /*******************************************************************************
@@ -103,48 +97,45 @@ void BTA_HdDisable(void) {
 extern void BTA_HdRegisterApp(tBTA_HD_APP_INFO* p_app_info,
                               tBTA_HD_QOS_INFO* p_in_qos,
                               tBTA_HD_QOS_INFO* p_out_qos) {
-  tBTA_HD_REGISTER_APP* p_buf;
-
   APPL_TRACE_API("%s", __func__);
 
-  if ((p_buf = (tBTA_HD_REGISTER_APP*)osi_malloc(
-           sizeof(tBTA_HD_REGISTER_APP))) != NULL) {
-    p_buf->hdr.event = BTA_HD_API_REGISTER_APP_EVT;
+  tBTA_HD_REGISTER_APP* p_buf =
+      (tBTA_HD_REGISTER_APP*)osi_malloc(sizeof(tBTA_HD_REGISTER_APP));
+  p_buf->hdr.event = BTA_HD_API_REGISTER_APP_EVT;
 
-    if (p_app_info->p_name) {
-      strncpy(p_buf->name, p_app_info->p_name, BTA_HD_APP_NAME_LEN);
-      p_buf->name[BTA_HD_APP_NAME_LEN] = '\0';
-    } else {
-      p_buf->name[0] = '\0';
-    }
-
-    if (p_app_info->p_description) {
-      strncpy(p_buf->description, p_app_info->p_description,
-              BTA_HD_APP_DESCRIPTION_LEN);
-      p_buf->description[BTA_HD_APP_DESCRIPTION_LEN] = '\0';
-    } else {
-      p_buf->description[0] = '\0';
-    }
-
-    if (p_app_info->p_provider) {
-      strncpy(p_buf->provider, p_app_info->p_provider, BTA_HD_APP_PROVIDER_LEN);
-      p_buf->provider[BTA_HD_APP_PROVIDER_LEN] = '\0';
-    } else {
-      p_buf->provider[0] = '\0';
-    }
-
-    p_buf->subclass = p_app_info->subclass;
-
-    p_buf->d_len = p_app_info->descriptor.dl_len;
-    memcpy(p_buf->d_data, p_app_info->descriptor.dsc_list,
-           p_app_info->descriptor.dl_len);
-
-    // copy qos data as-is
-    memcpy(&p_buf->in_qos, p_in_qos, sizeof(tBTA_HD_QOS_INFO));
-    memcpy(&p_buf->out_qos, p_out_qos, sizeof(tBTA_HD_QOS_INFO));
-
-    bta_sys_sendmsg(p_buf);
+  if (p_app_info->p_name) {
+    strncpy(p_buf->name, p_app_info->p_name, BTA_HD_APP_NAME_LEN);
+    p_buf->name[BTA_HD_APP_NAME_LEN] = '\0';
+  } else {
+    p_buf->name[0] = '\0';
   }
+
+  if (p_app_info->p_description) {
+    strncpy(p_buf->description, p_app_info->p_description,
+            BTA_HD_APP_DESCRIPTION_LEN);
+    p_buf->description[BTA_HD_APP_DESCRIPTION_LEN] = '\0';
+  } else {
+    p_buf->description[0] = '\0';
+  }
+
+  if (p_app_info->p_provider) {
+    strncpy(p_buf->provider, p_app_info->p_provider, BTA_HD_APP_PROVIDER_LEN);
+    p_buf->provider[BTA_HD_APP_PROVIDER_LEN] = '\0';
+  } else {
+    p_buf->provider[0] = '\0';
+  }
+
+  p_buf->subclass = p_app_info->subclass;
+
+  p_buf->d_len = p_app_info->descriptor.dl_len;
+  memcpy(p_buf->d_data, p_app_info->descriptor.dsc_list,
+         p_app_info->descriptor.dl_len);
+
+  // copy qos data as-is
+  memcpy(&p_buf->in_qos, p_in_qos, sizeof(tBTA_HD_QOS_INFO));
+  memcpy(&p_buf->out_qos, p_out_qos, sizeof(tBTA_HD_QOS_INFO));
+
+  bta_sys_sendmsg(p_buf);
 }
 
 /*******************************************************************************
@@ -158,15 +149,12 @@ extern void BTA_HdRegisterApp(tBTA_HD_APP_INFO* p_app_info,
  *
  ******************************************************************************/
 extern void BTA_HdUnregisterApp(void) {
-  BT_HDR* p_buf;
-
   APPL_TRACE_API("%s", __func__);
 
-  if ((p_buf = (BT_HDR*)osi_malloc(sizeof(BT_HDR))) != NULL) {
-    p_buf->event = BTA_HD_API_UNREGISTER_APP_EVT;
+  BT_HDR* p_buf = (BT_HDR*)osi_malloc(sizeof(BT_HDR));
+  p_buf->event = BTA_HD_API_UNREGISTER_APP_EVT;
 
-    bta_sys_sendmsg(p_buf);
-  }
+  bta_sys_sendmsg(p_buf);
 }
 
 /*******************************************************************************
@@ -179,8 +167,6 @@ extern void BTA_HdUnregisterApp(void) {
  *
  ******************************************************************************/
 extern void BTA_HdSendReport(tBTA_HD_REPORT* p_report) {
-  tBTA_HD_SEND_REPORT* p_buf;
-
   APPL_TRACE_VERBOSE("%s", __func__);
 
   if (p_report->len > BTA_HD_REPORT_LEN) {
@@ -191,18 +177,17 @@ extern void BTA_HdSendReport(tBTA_HD_REPORT* p_report) {
     return;
   }
 
-  if ((p_buf = (tBTA_HD_SEND_REPORT*)osi_malloc(sizeof(tBTA_HD_SEND_REPORT))) !=
-      NULL) {
-    p_buf->hdr.event = BTA_HD_API_SEND_REPORT_EVT;
+  tBTA_HD_SEND_REPORT* p_buf =
+      (tBTA_HD_SEND_REPORT*)osi_malloc(sizeof(tBTA_HD_SEND_REPORT));
+  p_buf->hdr.event = BTA_HD_API_SEND_REPORT_EVT;
 
-    p_buf->use_intr = p_report->use_intr;
-    p_buf->type = p_report->type;
-    p_buf->id = p_report->id;
-    p_buf->len = p_report->len;
-    memcpy(p_buf->data, p_report->p_data, p_report->len);
+  p_buf->use_intr = p_report->use_intr;
+  p_buf->type = p_report->type;
+  p_buf->id = p_report->id;
+  p_buf->len = p_report->len;
+  memcpy(p_buf->data, p_report->p_data, p_report->len);
 
-    bta_sys_sendmsg(p_buf);
-  }
+  bta_sys_sendmsg(p_buf);
 }
 
 /*******************************************************************************
@@ -215,15 +200,12 @@ extern void BTA_HdSendReport(tBTA_HD_REPORT* p_report) {
  *
  ******************************************************************************/
 extern void BTA_HdVirtualCableUnplug(void) {
-  BT_HDR* p_buf;
-
   APPL_TRACE_API("%s", __func__);
 
-  if ((p_buf = (BT_HDR*)osi_malloc(sizeof(BT_HDR))) != NULL) {
-    p_buf->event = BTA_HD_API_VC_UNPLUG_EVT;
+  BT_HDR* p_buf = (BT_HDR*)osi_malloc(sizeof(BT_HDR));
+  p_buf->event = BTA_HD_API_VC_UNPLUG_EVT;
 
-    bta_sys_sendmsg(p_buf);
-  }
+  bta_sys_sendmsg(p_buf);
 }
 
 /*******************************************************************************
@@ -237,18 +219,15 @@ extern void BTA_HdVirtualCableUnplug(void) {
  *
  ******************************************************************************/
 extern void BTA_HdConnect(BD_ADDR addr) {
-  tBTA_HD_DEVICE_CTRL* p_buf;
-
   APPL_TRACE_API("%s", __func__);
 
-  if ((p_buf = (tBTA_HD_DEVICE_CTRL*)osi_malloc(sizeof(tBTA_HD_DEVICE_CTRL))) !=
-      NULL) {
-    p_buf->hdr.event = BTA_HD_API_CONNECT_EVT;
+  tBTA_HD_DEVICE_CTRL* p_buf =
+      (tBTA_HD_DEVICE_CTRL*)osi_malloc(sizeof(tBTA_HD_DEVICE_CTRL));
+  p_buf->hdr.event = BTA_HD_API_CONNECT_EVT;
 
-    memcpy(p_buf->addr, addr, sizeof(BD_ADDR));
+  memcpy(p_buf->addr, addr, sizeof(BD_ADDR));
 
-    bta_sys_sendmsg(p_buf);
-  }
+  bta_sys_sendmsg(p_buf);
 }
 
 /*******************************************************************************
@@ -261,15 +240,11 @@ extern void BTA_HdConnect(BD_ADDR addr) {
  *
  ******************************************************************************/
 extern void BTA_HdDisconnect(void) {
-  BT_HDR* p_buf;
-
   APPL_TRACE_API("%s", __func__);
+  BT_HDR* p_buf = (BT_HDR*)osi_malloc(sizeof(BT_HDR));
+  p_buf->event = BTA_HD_API_DISCONNECT_EVT;
 
-  if ((p_buf = (BT_HDR*)osi_malloc(sizeof(BT_HDR))) != NULL) {
-    p_buf->event = BTA_HD_API_DISCONNECT_EVT;
-
-    bta_sys_sendmsg(p_buf);
-  }
+  bta_sys_sendmsg(p_buf);
 }
 
 /*******************************************************************************
@@ -282,18 +257,14 @@ extern void BTA_HdDisconnect(void) {
  *
  ******************************************************************************/
 extern void BTA_HdAddDevice(BD_ADDR addr) {
-  tBTA_HD_DEVICE_CTRL* p_buf;
-
   APPL_TRACE_API("%s", __func__);
+  tBTA_HD_DEVICE_CTRL* p_buf =
+      (tBTA_HD_DEVICE_CTRL*)osi_malloc(sizeof(tBTA_HD_DEVICE_CTRL));
+  p_buf->hdr.event = BTA_HD_API_ADD_DEVICE_EVT;
 
-  if ((p_buf = (tBTA_HD_DEVICE_CTRL*)osi_malloc(sizeof(tBTA_HD_DEVICE_CTRL))) !=
-      NULL) {
-    p_buf->hdr.event = BTA_HD_API_ADD_DEVICE_EVT;
+  memcpy(p_buf->addr, addr, sizeof(BD_ADDR));
 
-    memcpy(p_buf->addr, addr, sizeof(BD_ADDR));
-
-    bta_sys_sendmsg(p_buf);
-  }
+  bta_sys_sendmsg(p_buf);
 }
 
 /*******************************************************************************
@@ -306,18 +277,14 @@ extern void BTA_HdAddDevice(BD_ADDR addr) {
  *
  ******************************************************************************/
 extern void BTA_HdRemoveDevice(BD_ADDR addr) {
-  tBTA_HD_DEVICE_CTRL* p_buf;
-
   APPL_TRACE_API("%s", __func__);
+  tBTA_HD_DEVICE_CTRL* p_buf =
+      (tBTA_HD_DEVICE_CTRL*)osi_malloc(sizeof(tBTA_HD_DEVICE_CTRL));
+  p_buf->hdr.event = BTA_HD_API_REMOVE_DEVICE_EVT;
 
-  if ((p_buf = (tBTA_HD_DEVICE_CTRL*)osi_malloc(sizeof(tBTA_HD_DEVICE_CTRL))) !=
-      NULL) {
-    p_buf->hdr.event = BTA_HD_API_REMOVE_DEVICE_EVT;
+  memcpy(p_buf->addr, addr, sizeof(BD_ADDR));
 
-    memcpy(p_buf->addr, addr, sizeof(BD_ADDR));
-
-    bta_sys_sendmsg(p_buf);
-  }
+  bta_sys_sendmsg(p_buf);
 }
 
 /*******************************************************************************
@@ -330,17 +297,13 @@ extern void BTA_HdRemoveDevice(BD_ADDR addr) {
  *
  ******************************************************************************/
 extern void BTA_HdReportError(uint8_t error) {
-  tBTA_HD_REPORT_ERR* p_buf;
-
   APPL_TRACE_API("%s", __func__);
+  tBTA_HD_REPORT_ERR* p_buf =
+      (tBTA_HD_REPORT_ERR*)osi_malloc(sizeof(tBTA_HD_REPORT_ERR));
+  p_buf->hdr.event = BTA_HD_API_REPORT_ERROR_EVT;
+  p_buf->error = error;
 
-  if ((p_buf = (tBTA_HD_REPORT_ERR*)osi_malloc(sizeof(tBTA_HD_REPORT_ERR))) !=
-      NULL) {
-    p_buf->hdr.event = BTA_HD_API_REPORT_ERROR_EVT;
-    p_buf->error = error;
-
-    bta_sys_sendmsg(p_buf);
-  }
+  bta_sys_sendmsg(p_buf);
 }
 
 #endif /* BTA_HD_INCLUDED */

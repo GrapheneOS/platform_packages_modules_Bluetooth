@@ -86,13 +86,15 @@ TEST_F(RFCommTest, RfcommRepeatedConnectPairedDevice) {
 
     int channel;
     sock_connect_signal_t signal;
-    if ((len = read(fd, &channel, sizeof(channel))) != sizeof(channel)) {
+    len = read(fd, &channel, sizeof(channel));
+    if (len != sizeof(channel)) {
       ADD_FAILURE() << "Channel not read from RFCOMM socket. Bytes read: "
                     << len << ", Sizeof channel: " << sizeof(channel);
       channel_fail++;
     }
 
-    if ((len = read(fd, &signal, sizeof(signal))) != sizeof(signal)) {
+    len = read(fd, &signal, sizeof(signal));
+    if (len != sizeof(signal)) {
       ADD_FAILURE()
           << "Connection signal not read from RFCOMM socket. Bytes read: "
           << len;
@@ -105,15 +107,15 @@ TEST_F(RFCommTest, RfcommRepeatedConnectPairedDevice) {
     EXPECT_TRUE(channel == signal.channel)
         << "Inconsistent channels returned: " << channel << " and "
         << signal.channel;
-
-    if ((len = write(fd, HANDSHAKE_COMMAND, sizeof(HANDSHAKE_COMMAND))) !=
-        sizeof(HANDSHAKE_COMMAND)) {
+    len = write(fd, HANDSHAKE_COMMAND, sizeof(HANDSHAKE_COMMAND));
+    if (len != sizeof(HANDSHAKE_COMMAND)) {
       ADD_FAILURE() << "Unable to send HFP handshake. Bytes written: " << len;
       handshake_fail++;
     }
 
     char response[1024];
-    if ((len = read(fd, response, sizeof(response))) <= 0) {
+    len = read(fd, response, sizeof(response));
+    if (len <= 0) {
       ADD_FAILURE() << "Read " << len << " bytes";
       read_fail++;
     }

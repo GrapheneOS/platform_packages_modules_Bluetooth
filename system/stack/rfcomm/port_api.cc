@@ -145,16 +145,19 @@ int RFCOMM_CreateConnection(uint16_t uuid, uint8_t scn, bool is_server,
 
   /* For the server side always allocate a new port.  On the client side */
   /* do not allow the same (dlci, bd_addr) to be opened twice by application */
-  if (!is_server && ((p_port = port_find_port(dlci, bd_addr)) != NULL)) {
-    /* if existing port is also a client port */
-    if (p_port->is_server == false) {
-      RFCOMM_TRACE_ERROR(
-          "RFCOMM_CreateConnection - already opened state:%d, RFC state:%d, "
-          "MCB state:%d",
-          p_port->state, p_port->rfc.state,
-          p_port->rfc.p_mcb ? p_port->rfc.p_mcb->state : 0);
-      *p_handle = p_port->inx;
-      return (PORT_ALREADY_OPENED);
+  if (!is_server) {
+    p_port = port_find_port(dlci, bd_addr);
+    if (p_port != NULL) {
+      /* if existing port is also a client port */
+      if (p_port->is_server == false) {
+        RFCOMM_TRACE_ERROR(
+            "RFCOMM_CreateConnection - already opened state:%d, RFC state:%d, "
+            "MCB state:%d",
+            p_port->state, p_port->rfc.state,
+            p_port->rfc.p_mcb ? p_port->rfc.p_mcb->state : 0);
+        *p_handle = p_port->inx;
+        return (PORT_ALREADY_OPENED);
+      }
     }
   }
 
@@ -1439,8 +1442,8 @@ int PORT_WriteDataCO(uint16_t handle, int* p_len) {
   /* data fits into the end of the queue */
   mutex_global_lock();
 
-  if (((p_buf = (BT_HDR*)fixed_queue_try_peek_last(p_port->tx.queue)) !=
-       NULL) &&
+  p_buf = (BT_HDR*)fixed_queue_try_peek_last(p_port->tx.queue);
+  if ((p_buf != NULL) &&
       (((int)p_buf->len + available) <= (int)p_port->peer_mtu) &&
       (((int)p_buf->len + available) <= (int)length)) {
     // if(recv(fd, (uint8_t *)(p_buf + 1) + p_buf->offset + p_buf->len,
@@ -1586,9 +1589,8 @@ int PORT_WriteData(uint16_t handle, const char* p_data, uint16_t max_len,
   /* data fits into the end of the queue */
   mutex_global_lock();
 
-  if (((p_buf = (BT_HDR*)fixed_queue_try_peek_last(p_port->tx.queue)) !=
-       NULL) &&
-      ((p_buf->len + max_len) <= p_port->peer_mtu) &&
+  p_buf = (BT_HDR*)fixed_queue_try_peek_last(p_port->tx.queue);
+  if ((p_buf != NULL) && ((p_buf->len + max_len) <= p_port->peer_mtu) &&
       ((p_buf->len + max_len) <= length)) {
     memcpy((uint8_t*)(p_buf + 1) + p_buf->offset + p_buf->len, p_data, max_len);
     p_port->tx.queue_size += max_len;

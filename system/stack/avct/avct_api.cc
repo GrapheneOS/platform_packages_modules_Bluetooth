@@ -320,9 +320,9 @@ uint16_t AVCT_RemoveBrowse(uint8_t handle) {
 uint16_t AVCT_GetBrowseMtu(uint8_t handle) {
   uint16_t peer_mtu = AVCT_MIN_BROWSE_MTU;
 
-  tAVCT_CCB* p_ccb;
+  tAVCT_CCB* p_ccb = avct_ccb_by_idx(handle);
 
-  if ((p_ccb = avct_ccb_by_idx(handle)) != NULL && p_ccb->p_bcb != NULL) {
+  if (p_ccb != NULL && p_ccb->p_bcb != NULL) {
     peer_mtu = p_ccb->p_bcb->peer_mtu;
   }
 

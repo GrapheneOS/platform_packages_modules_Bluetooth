@@ -92,9 +92,8 @@ tHID_STATUS HID_DevRegister(tHID_DEV_HOST_CALLBACK* host_cback) {
   if (host_cback == NULL) return HID_ERR_INVALID_PARAM;
 
   /* Register with L2CAP */
-  if ((st = hidd_conn_reg()) != HID_SUCCESS) {
-    return st;
-  }
+  st = hidd_conn_reg();
+  if (st != HID_SUCCESS) return st;
 
   hd_cb.callback = host_cback;
   hd_cb.reg_flag = TRUE;
