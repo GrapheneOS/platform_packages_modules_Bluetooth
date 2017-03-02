@@ -1220,10 +1220,13 @@ bool GATT_CancelConnect(tGATT_IF gatt_if, BD_ADDR bd_addr, bool is_direct) {
 
   GATT_TRACE_API("GATT_CancelConnect gatt_if=%d", gatt_if);
 
-  if ((gatt_if != 0) && ((p_reg = gatt_get_regcb(gatt_if)) == NULL)) {
-    GATT_TRACE_ERROR("GATT_CancelConnect - gatt_if =%d is not registered",
-                     gatt_if);
-    return (false);
+  if (gatt_if != 0) {
+    p_reg = gatt_get_regcb(gatt_if);
+    if (p_reg == NULL) {
+      GATT_TRACE_ERROR("GATT_CancelConnect - gatt_if =%d is not registered",
+                       gatt_if);
+      return (false);
+    }
   }
 
   if (is_direct) {

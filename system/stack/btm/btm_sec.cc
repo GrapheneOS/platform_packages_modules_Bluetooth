@@ -1173,10 +1173,11 @@ tBTM_STATUS BTM_SecBondCancel(BD_ADDR bd_addr) {
   BTM_TRACE_API("BTM_SecBondCancel()  State: %s flags:0x%x",
                 btm_pair_state_descr(btm_cb.pairing_state),
                 btm_cb.pairing_flags);
-
-  if (((p_dev_rec = btm_find_dev(bd_addr)) == NULL) ||
-      (memcmp(btm_cb.pairing_bda, bd_addr, BD_ADDR_LEN) != 0))
+  p_dev_rec = btm_find_dev(bd_addr);
+  if ((p_dev_rec == NULL) ||
+      (memcmp(btm_cb.pairing_bda, bd_addr, BD_ADDR_LEN) != 0)) {
     return BTM_UNKNOWN_ADDR;
+  }
 
   if (btm_cb.pairing_flags & BTM_PAIR_FLAGS_LE_ACTIVE) {
     if (p_dev_rec->sec_state == BTM_SEC_STATE_AUTHENTICATING) {
@@ -1249,9 +1250,8 @@ tBTM_STATUS BTM_SecBondCancel(BD_ADDR bd_addr) {
  ******************************************************************************/
 tBTM_STATUS BTM_SecGetDeviceLinkKey(BD_ADDR bd_addr, LINK_KEY link_key) {
   tBTM_SEC_DEV_REC* p_dev_rec;
-
-  if (((p_dev_rec = btm_find_dev(bd_addr)) != NULL) &&
-      (p_dev_rec->sec_flags & BTM_SEC_LINK_KEY_KNOWN)) {
+  p_dev_rec = btm_find_dev(bd_addr);
+  if ((p_dev_rec != NULL) && (p_dev_rec->sec_flags & BTM_SEC_LINK_KEY_KNOWN)) {
     memcpy(link_key, p_dev_rec->link_key, LINK_KEY_LEN);
     return (BTM_SUCCESS);
   }
@@ -3523,8 +3523,8 @@ void btm_proc_sp_req_evt(tBTM_SP_EVT event, uint8_t* p) {
       (p_bda[4] << 8) + p_bda[5], event,
       btm_pair_state_descr(btm_cb.pairing_state));
 
-  if (((p_dev_rec = btm_find_dev(p_bda)) != NULL) &&
-      (btm_cb.pairing_state != BTM_PAIR_STATE_IDLE) &&
+  p_dev_rec = btm_find_dev(p_bda);
+  if ((p_dev_rec != NULL) && (btm_cb.pairing_state != BTM_PAIR_STATE_IDLE) &&
       (memcmp(btm_cb.pairing_bda, p_bda, BD_ADDR_LEN) == 0)) {
     memcpy(evt_data.cfm_req.bd_addr, p_dev_rec->bd_addr, BD_ADDR_LEN);
     memcpy(evt_data.cfm_req.dev_class, p_dev_rec->dev_class, DEV_CLASS_LEN);
@@ -3632,7 +3632,8 @@ void btm_proc_sp_req_evt(tBTM_SP_EVT event, uint8_t* p) {
     On Mobile platforms, if there's a security process happening,
     the host probably can not initiate another connection.
     BTW (PC) is another story.  */
-    if (NULL != (p_dev_rec = btm_find_dev(p_bda))) {
+    p_dev_rec = btm_find_dev(p_bda);
+    if (p_dev_rec != NULL) {
       btm_sec_disconnect(p_dev_rec->hci_handle, HCI_ERR_AUTH_FAILURE);
     }
   }
@@ -3770,8 +3771,8 @@ void btm_rem_oob_req(uint8_t* p) {
 
   BTM_TRACE_EVENT("btm_rem_oob_req() BDA: %02x:%02x:%02x:%02x:%02x:%02x",
                   p_bda[0], p_bda[1], p_bda[2], p_bda[3], p_bda[4], p_bda[5]);
-
-  if ((NULL != (p_dev_rec = btm_find_dev(p_bda))) && btm_cb.api.p_sp_callback) {
+  p_dev_rec = btm_find_dev(p_bda);
+  if ((p_dev_rec != NULL) && btm_cb.api.p_sp_callback) {
     memcpy(evt_data.bd_addr, p_dev_rec->bd_addr, BD_ADDR_LEN);
     memcpy(evt_data.dev_class, p_dev_rec->dev_class, DEV_CLASS_LEN);
     strlcpy((char*)evt_data.bd_name, (char*)p_dev_rec->sec_bd_name,
