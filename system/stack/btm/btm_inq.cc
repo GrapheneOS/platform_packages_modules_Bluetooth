@@ -953,32 +953,16 @@ tBTM_STATUS BTM_StartInquiry(tBTM_INQ_PARMS* p_inqparms,
  ******************************************************************************/
 tBTM_STATUS BTM_ReadRemoteDeviceName(BD_ADDR remote_bda, tBTM_CMPL_CB* p_cb,
                                      tBT_TRANSPORT transport) {
-  tBTM_INQ_INFO* p_cur = NULL;
-  tINQ_DB_ENT* p_i;
-
-  BTM_TRACE_API("BTM_ReadRemoteDeviceName: bd addr [%02x%02x%02x%02x%02x%02x]",
+  BTM_TRACE_API("%s: bd addr [%02x%02x%02x%02x%02x%02x]", __func__,
                 remote_bda[0], remote_bda[1], remote_bda[2], remote_bda[3],
                 remote_bda[4], remote_bda[5]);
-
-  /* Use the remote device's clock offset if it is in the local inquiry database
-   */
-  p_i = btm_inq_db_find(remote_bda);
-  if (p_i != NULL) {
-    p_cur = &p_i->inq_info;
-    if ((!ble_evt_type_is_connectable(p_cur->results.ble_evt_type)) &&
-        (p_cur->results.device_type !=
-         BT_DEVICE_TYPE_BREDR)) { /* Non-connectable LE device: do not request
-                                     its name! */
-      return BTM_ERR_PROCESSING;
-    }
-  }
-  BTM_TRACE_API("no device found in inquiry db");
-
+  /* Use LE transport when LE is the only available option */
   if (transport == BT_TRANSPORT_LE) {
-    return btm_ble_read_remote_name(remote_bda, p_cur, p_cb);
-  } else
-    return (btm_initiate_rem_name(remote_bda, p_cur, BTM_RMT_NAME_EXT,
-                                  BTM_EXT_RMT_NAME_TIMEOUT_MS, p_cb));
+    return btm_ble_read_remote_name(remote_bda, p_cb);
+  }
+  /* Use classic transport for BR/EDR and Dual Mode devices */
+  return btm_initiate_rem_name(remote_bda, BTM_RMT_NAME_EXT,
+                               BTM_EXT_RMT_NAME_TIMEOUT_MS, p_cb);
 }
 
 /*******************************************************************************
@@ -2062,9 +2046,7 @@ void btm_process_cancel_complete(uint8_t status, uint8_t mode) {
  *                  called either by GAP or by the API call
  *                  BTM_ReadRemoteDeviceName.
  *
- * Input Params:    p_cur         - pointer to an inquiry result structure
- *                                  (NULL if nonexistent)
- *                  p_cb            - callback function called when
+ * Input Params:    p_cb            - callback function called when
  *                                    BTM_CMD_STARTED is returned.
  *                                    A pointer to tBTM_REMOTE_DEV_NAME is
  *                                    passed to the callback.
@@ -2077,9 +2059,8 @@ void btm_process_cancel_complete(uint8_t status, uint8_t mode) {
  *                  BTM_WRONG_MODE if the device is not up.
  *
  ******************************************************************************/
-tBTM_STATUS btm_initiate_rem_name(BD_ADDR remote_bda, tBTM_INQ_INFO* p_cur,
-                                  uint8_t origin, period_ms_t timeout_ms,
-                                  tBTM_CMPL_CB* p_cb) {
+tBTM_STATUS btm_initiate_rem_name(BD_ADDR remote_bda, uint8_t origin,
+                                  period_ms_t timeout_ms, tBTM_CMPL_CB* p_cb) {
   tBTM_INQUIRY_VAR_ST* p_inq = &btm_cb.btm_inq_vars;
 
   /*** Make sure the device is ready ***/
@@ -2106,13 +2087,15 @@ tBTM_STATUS btm_initiate_rem_name(BD_ADDR remote_bda, tBTM_INQ_INFO* p_cur,
                          btu_general_alarm_queue);
 
       /* If the database entry exists for the device, use its clock offset */
-      if (p_cur) {
+      tINQ_DB_ENT* p_i = btm_inq_db_find(remote_bda);
+      if (p_i) {
+        tBTM_INQ_INFO* p_cur = &p_i->inq_info;
         btsnd_hcic_rmt_name_req(
             remote_bda, p_cur->results.page_scan_rep_mode,
             p_cur->results.page_scan_mode,
             (uint16_t)(p_cur->results.clock_offset | BTM_CLOCK_OFFSET_VALID));
-      } else /* Otherwise use defaults and mark the clock offset as invalid */
-      {
+      } else {
+        /* Otherwise use defaults and mark the clock offset as invalid */
         btsnd_hcic_rmt_name_req(remote_bda, HCI_PAGE_SCAN_REP_MODE_R1,
                                 HCI_MANDATARY_PAGE_SCAN_MODE, 0);
       }

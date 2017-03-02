@@ -49,8 +49,7 @@ extern void btm_init(void);
 /* Internal functions provided by btm_inq.cc
  ******************************************
 */
-extern tBTM_STATUS btm_initiate_rem_name(BD_ADDR remote_bda,
-                                         tBTM_INQ_INFO* p_cur, uint8_t origin,
+extern tBTM_STATUS btm_initiate_rem_name(BD_ADDR remote_bda, uint8_t origin,
                                          period_ms_t timeout_ms,
                                          tBTM_CMPL_CB* p_cb);
 
