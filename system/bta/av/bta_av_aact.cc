@@ -1356,7 +1356,8 @@ void bta_av_str_opened(tBTA_AV_SCB* p_scb, tBTA_AV_DATA* p_data) {
     open.status = BTA_AV_SUCCESS;
     open.starting = bta_av_chk_start(p_scb);
     open.edr = 0;
-    if (NULL != (p = BTM_ReadRemoteFeatures(p_scb->peer_addr))) {
+    p = BTM_ReadRemoteFeatures(p_scb->peer_addr);
+    if (p != NULL) {
       if (HCI_EDR_ACL_2MPS_SUPPORTED(p)) open.edr |= BTA_AV_EDR_2MBPS;
       if (HCI_EDR_ACL_3MPS_SUPPORTED(p)) open.edr |= BTA_AV_EDR_3MBPS;
     }

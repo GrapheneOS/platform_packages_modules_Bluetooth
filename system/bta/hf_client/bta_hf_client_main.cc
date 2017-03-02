@@ -581,8 +581,8 @@ tBTA_HF_CLIENT_CB* bta_hf_client_find_cb_by_sco_handle(uint16_t handle) {
  *
  ******************************************************************************/
 bool bta_hf_client_allocate_handle(const BD_ADDR bd_addr, uint16_t* p_handle) {
-  tBTA_HF_CLIENT_CB* existing_cb;
-  if ((existing_cb = bta_hf_client_find_cb_by_bda(bd_addr)) != NULL) {
+  tBTA_HF_CLIENT_CB* existing_cb = bta_hf_client_find_cb_by_bda(bd_addr);
+  if (existing_cb != NULL) {
     BTIF_TRACE_ERROR("%s: cannot allocate handle since BDADDR already exists",
                      __func__);
     return false;
