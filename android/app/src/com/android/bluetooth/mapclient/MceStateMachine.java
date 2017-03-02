@@ -509,6 +509,7 @@ final class MceStateMachine extends StateMachine {
 
                     Intent intent = new Intent();
                     intent.setAction(BluetoothMapClient.ACTION_MESSAGE_RECEIVED);
+                    intent.putExtra(BluetoothDevice.EXTRA_DEVICE, mDevice);
                     intent.putExtra(android.content.Intent.EXTRA_TEXT,
                             message.getBodyContent());
                     VCardEntry originator = message.getOriginator();
@@ -520,12 +521,11 @@ final class MceStateMachine extends StateMachine {
                             if (DBG) {
                                 Log.d(TAG, "Originator number: " + phoneNumber);
                             }
-                            intent.putExtra(
-                                    ContactsContract.Intents.EXTRA_RECIPIENT_CONTACT_URI,
-                                    new String[]{getContactURIFromPhone(phoneNumber)});
+                            intent.putExtra(BluetoothMapClient.EXTRA_SENDER_CONTACT_URI,
+                                    new String[] {getContactURIFromPhone(phoneNumber)});
                         }
-                        intent.putExtra(ContactsContract.Intents.EXTRA_RECIPIENT_CONTACT_NAME,
-                                new String[]{originator.getDisplayName()});
+                        intent.putExtra(BluetoothMapClient.EXTRA_SENDER_CONTACT_NAME,
+                                new String[] {originator.getDisplayName()});
                     }
                     mService.sendBroadcast(intent);
                     break;
