@@ -98,6 +98,15 @@ final class RequestGetMessage extends Request {
         return mBmessage;
     }
 
+    public String getHandle() {
+        try {
+            return (String) mHeaderSet.getHeader(HeaderSet.NAME);
+        } catch (IOException e) {
+            Log.e(TAG, "Unexpected exception while reading handle!", e);
+            return null;
+        }
+    }
+
     @Override
     public void execute(ClientSession session) throws IOException {
         executeGet(session);
