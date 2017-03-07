@@ -60,7 +60,8 @@ typedef struct {
 #define DEFAULT_STARTUP_TIMEOUT_MS 8000
 #define STRING_VALUE_OF(x) #x
 
-static const uint32_t COMMAND_PENDING_TIMEOUT_MS = 8000;
+// Abort if there is no response to an HCI command within two seconds.
+static const uint32_t COMMAND_PENDING_TIMEOUT_MS = 2000;
 
 // Our interface
 static bool interface_created;
