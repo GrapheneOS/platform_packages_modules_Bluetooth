@@ -31,9 +31,12 @@ import android.bluetooth.IBluetoothGattServerCallbackExt;
 import android.bluetooth.le.AdvertiseCallback;
 import android.bluetooth.le.AdvertiseData;
 import android.bluetooth.le.AdvertiseSettings;
+import android.bluetooth.le.AdvertisingSetParameters;
 import android.bluetooth.le.IAdvertiserCallback;
+import android.bluetooth.le.IAdvertisingSetCallback;
 import android.bluetooth.le.IPeriodicAdvertisingCallback;
 import android.bluetooth.le.IScannerCallback;
+import android.bluetooth.le.PeriodicAdvertisingParameters;
 import android.bluetooth.le.ResultStorageDescriptor;
 import android.bluetooth.le.ScanFilter;
 import android.bluetooth.le.ScanRecord;
@@ -564,6 +567,66 @@ public class GattService extends ProfileService {
             GattService service = getService();
             if (service == null) return;
             service.sendNotification(serverIf, address, handle, confirm, value);
+        }
+
+        public void startAdvertisingSet(AdvertisingSetParameters parameters,
+                AdvertiseData advertiseData, AdvertiseData scanResponse,
+                PeriodicAdvertisingParameters periodicParameters, AdvertiseData periodicData,
+                IAdvertisingSetCallback callback) {
+            GattService service = getService();
+            if (service == null) return;
+            service.registerAdvertisingSet(parameters, advertiseData, scanResponse,
+                    periodicParameters, periodicData, callback);
+        }
+
+        public void stopAdvertisingSet(IAdvertisingSetCallback callback) {
+            GattService service = getService();
+            if (service == null) return;
+            // TODO: implement
+        }
+
+        public void enableAdverisingSet(int advertiserId, boolean enable) {
+            GattService service = getService();
+            if (service == null) return;
+            // TODO: implement
+        }
+
+        public void setAdvertisingData(int advertiserId, AdvertiseData data) {
+            GattService service = getService();
+            if (service == null) return;
+            // TODO: implement
+        }
+
+        public void setScanResponseData(int advertiserId, AdvertiseData data) {
+            GattService service = getService();
+            if (service == null) return;
+            // TODO: implement
+        }
+
+        public void setAdvertisingParameters(
+                int advertiserId, AdvertisingSetParameters parameters) {
+            GattService service = getService();
+            if (service == null) return;
+            // TODO: implement
+        }
+
+        public void setPeriodicAdvertisingParameters(
+                int advertiserId, PeriodicAdvertisingParameters parameters) {
+            GattService service = getService();
+            if (service == null) return;
+            // TODO: implement
+        }
+
+        public void setPeriodicAdvertisingData(int advertiserId, AdvertiseData data) {
+            GattService service = getService();
+            if (service == null) return;
+            // TODO: implement
+        }
+
+        public void periodicAdvertisingEnable(int advertiserId, boolean enable) {
+            GattService service = getService();
+            if (service == null) return;
+            // TODO: implement
         }
 
         public void registerAdvertiser(IAdvertiserCallback callback) {
@@ -1500,6 +1563,16 @@ public class GattService extends ProfileService {
 
     void unregisterSync(IPeriodicAdvertisingCallback callback) {
         enforceAdminPermission();
+        // TODO(jpawlowski): implement
+    }
+
+    /**************************************************************************
+     * ADVERTISING SET
+     *************************************************************************/
+
+    void registerAdvertisingSet(AdvertisingSetParameters parameters, AdvertiseData advertiseData,
+            AdvertiseData scanResponse, PeriodicAdvertisingParameters periodicParameters,
+            AdvertiseData periodicData, IAdvertisingSetCallback callback) {
         // TODO(jpawlowski): implement
     }
 
