@@ -57,6 +57,7 @@ import javax.obex.ServerRequestHandler;
 import javax.obex.ServerSession;
 
 import com.android.bluetooth.BluetoothObexTransport;
+import com.android.bluetooth.ObexServerSockets;
 
 /**
  * This class runs as an OBEX server
@@ -97,9 +98,13 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
 
     boolean mTimeoutMsgSent = false;
 
-    public BluetoothOppObexServerSession(Context context, ObexTransport transport) {
+    private ObexServerSockets mServerSocket;
+
+    public BluetoothOppObexServerSession(
+            Context context, ObexTransport transport, ObexServerSockets serverSocket) {
         mContext = context;
         mTransport = transport;
+        mServerSocket = serverSocket;
         PowerManager pm = (PowerManager)mContext.getSystemService(Context.POWER_SERVICE);
         mPartialWakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, TAG);
     }
@@ -583,8 +588,13 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
 
     @Override
     public void onClose() {
-        if (V) Log.v(TAG, "release WakeLock");
+        if (D) Log.d(TAG, "onClose");
         releaseWakeLocks();
+
+        if (mServerSocket != null) {
+            if (D) Log.d(TAG, "prepareForNewConnect");
+            mServerSocket.prepareForNewConnect();
+        }
 
         /* onClose could happen even before start() where mCallback is set */
         if (mCallback != null) {
