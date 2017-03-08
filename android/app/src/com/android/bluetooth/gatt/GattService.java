@@ -710,6 +710,8 @@ public class GattService extends ProfileService {
         List<UUID> remoteUuids = parseUuids(adv_data);
         addScanResult();
 
+        byte[] legacy_adv_data = Arrays.copyOfRange(adv_data, 0, 62);
+
         for (ScanClient client : mScanManager.getRegularScanQueue()) {
             if (client.uuids.length > 0) {
                 int matches = 0;
@@ -731,16 +733,26 @@ public class GattService extends ProfileService {
             }
 
             BluetoothDevice device = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(address);
+
+            ScanSettings settings = client.settings;
+            byte[] scan_record_data;
+            // This is for compability with applications that assume fixed size scan data.
+            if (settings.getLegacy() && ((event_type & ET_LEGACY_MASK) == 0)) {
+                scan_record_data = legacy_adv_data;
+            } else {
+                scan_record_data = adv_data;
+            }
+
             ScanResult result = new ScanResult(device, event_type, primary_phy, secondary_phy,
                     advertising_sid, tx_power, rssi, periodic_adv_int,
-                    ScanRecord.parseFromBytes(adv_data), SystemClock.elapsedRealtimeNanos());
+                    ScanRecord.parseFromBytes(scan_record_data),
+                    SystemClock.elapsedRealtimeNanos());
             // Do no report if location mode is OFF or the client has no location permission
             // PEERS_MAC_ADDRESS permission holders always get results
             if (!hasScanResultPermission(client) || !matchesFilters(client, result)) {
                 continue;
             }
 
-            ScanSettings settings = client.settings;
             if ((settings.getCallbackType() & ScanSettings.CALLBACK_TYPE_ALL_MATCHES) == 0) {
                 continue;
             }
