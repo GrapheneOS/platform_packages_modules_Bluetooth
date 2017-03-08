@@ -510,6 +510,7 @@ final class MceStateMachine extends StateMachine {
                     Intent intent = new Intent();
                     intent.setAction(BluetoothMapClient.ACTION_MESSAGE_RECEIVED);
                     intent.putExtra(BluetoothDevice.EXTRA_DEVICE, mDevice);
+                    intent.putExtra(BluetoothMapClient.EXTRA_MESSAGE_HANDLE, request.getHandle());
                     intent.putExtra(android.content.Intent.EXTRA_TEXT,
                             message.getBodyContent());
                     VCardEntry originator = message.getOriginator();
