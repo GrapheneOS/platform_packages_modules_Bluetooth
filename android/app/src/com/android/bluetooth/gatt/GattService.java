@@ -32,6 +32,7 @@ import android.bluetooth.le.AdvertiseCallback;
 import android.bluetooth.le.AdvertiseData;
 import android.bluetooth.le.AdvertiseSettings;
 import android.bluetooth.le.IAdvertiserCallback;
+import android.bluetooth.le.IPeriodicAdvertisingCallback;
 import android.bluetooth.le.IScannerCallback;
 import android.bluetooth.le.ResultStorageDescriptor;
 import android.bluetooth.le.ScanFilter;
@@ -563,6 +564,21 @@ public class GattService extends ProfileService {
             GattService service = getService();
             if (service == null) return;
             service.stopMultiAdvertising(new AdvertiseClient(advertiserId));
+        }
+
+        @Override
+        public void registerSync(ScanResult scanResult, int skip, int timeout,
+                IPeriodicAdvertisingCallback callback) {
+            GattService service = getService();
+            if (service == null) return;
+            service.registerSync(scanResult, skip, timeout, callback);
+        }
+
+        @Override
+        public void unregisterSync(IPeriodicAdvertisingCallback callback) {
+            GattService service = getService();
+            if (service == null) return;
+            service.unregisterSync(callback);
         }
 
         @Override
@@ -1447,6 +1463,17 @@ public class GattService extends ProfileService {
 
         if (DBG) Log.d(TAG, "stopMultiAdvertising() - advertiserId=" + client.advertiserId);
         mAdvertiseManager.stopAdvertising(client);
+    }
+
+    void registerSync(
+            ScanResult scanResult, int skip, int timeout, IPeriodicAdvertisingCallback callback) {
+        enforceAdminPermission();
+        // TODO(jpawlowski): implement
+    }
+
+    void unregisterSync(IPeriodicAdvertisingCallback callback) {
+        enforceAdminPermission();
+        // TODO(jpawlowski): implement
     }
 
     /**************************************************************************
