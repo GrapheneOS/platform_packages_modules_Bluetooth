@@ -1332,6 +1332,22 @@ public class AdapterService extends Service {
              return (val >= MIN_OFFLOADED_SCAN_STORAGE_BYTES);
          }
 
+         public boolean isLe2MPhySupported() {
+             return false;
+         }
+
+         public boolean isLeCodedPhySupported() {
+             return false;
+         }
+
+         public boolean isLeExtendedAdvertisingSupported() {
+             return false;
+         }
+
+         public boolean isLePeriodicAdvertisingSupported() {
+             return false;
+         }
+
          public boolean isActivityAndEnergyReportingSupported() {
              AdapterService service = getService();
              if (service == null) return false;
