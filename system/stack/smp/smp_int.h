@@ -205,25 +205,6 @@ enum {
 };
 typedef uint8_t tSMP_BR_STATE;
 
-/* random and encrption activity state */
-enum {
-  SMP_GEN_COMPARE = 1,
-  SMP_GEN_CONFIRM,
-
-  SMP_GEN_DIV_LTK,
-  SMP_GEN_DIV_CSRK,
-  SMP_GEN_RAND_V,
-  SMP_GEN_TK,
-  SMP_GEN_SRAND_MRAND,
-  SMP_GEN_SRAND_MRAND_CONT,
-  SMP_GENERATE_PRIVATE_KEY_0_7,
-  SMP_GENERATE_PRIVATE_KEY_8_15,
-  SMP_GENERATE_PRIVATE_KEY_16_23,
-  SMP_GENERATE_PRIVATE_KEY_24_31,
-  SMP_GEN_NONCE_0_7,
-  SMP_GEN_NONCE_8_15
-};
-
 enum {
   SMP_KEY_TYPE_TK,
   SMP_KEY_TYPE_CFM,
@@ -338,7 +319,6 @@ typedef struct {
   BT_OCTET16 csrk; /* storage for local CSRK */
   uint16_t ediv;
   BT_OCTET8 enc_rand;
-  uint8_t rand_enc_proc_state;
   uint8_t addr_type;
   BD_ADDR local_bda;
   bool is_pair_cancel;
