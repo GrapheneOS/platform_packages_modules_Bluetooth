@@ -458,7 +458,7 @@ public class BluetoothPbapVcardManager {
         Log.d(TAG, "getCallHistoryPrimaryFolderVersion count is " + count + " type is " + type);
         ByteBuffer pvc = ByteBuffer.allocate(16);
         pvc.putLong(primaryVcMsb);
-        Log.d(TAG, "primaryVersionCounter is " + BluetoothPbapService.primaryVersionCounter);
+        Log.d(TAG, "primaryVersionCounter is " + BluetoothPbapUtils.primaryVersionCounter);
         pvc.putLong(count);
         return pvc.array();
     }

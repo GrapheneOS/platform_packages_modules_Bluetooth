@@ -365,6 +365,8 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
             return ResponseCodes.OBEX_HTTP_INTERNAL_ERROR;
         }
 
+        /* TODO: block Get request if contacts are not completely loaded locally */
+
         if (V) logHeader(request);
         if (D) Log.d(TAG, "OnGet type is " + type + "; name is " + name);
 
@@ -1009,6 +1011,7 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
         int size = mVcardManager.getPhonebookSize(appParamValue.needTag);
         int needSendBody = handleAppParaForResponse(appParamValue, size, reply, op, name);
         if (needSendBody != NEED_SEND_BODY) {
+            op.noBodyHeader();
             return needSendBody;
         }
 
@@ -1118,6 +1121,7 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
         int pbSize = mVcardManager.getPhonebookSize(appParamValue.needTag);
         int needSendBody = handleAppParaForResponse(appParamValue, pbSize, reply, op, name);
         if (needSendBody != NEED_SEND_BODY) {
+            op.noBodyHeader();
             return needSendBody;
         }
 
@@ -1334,23 +1338,9 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
         ByteBuffer pvc = ByteBuffer.allocate(16);
         pvc.putLong(primaryVcMsb);
 
-        Log.d(TAG, "primaryVersionCounter is " + BluetoothPbapService.primaryVersionCounter);
-
-        updatePBSecondaryFolderVersion(BluetoothPbapService.primaryVersionCounter);
-        pvc.putLong(BluetoothPbapService.primaryVersionCounter);
-        BluetoothPbapService.primaryVersionCounter = 0;
+        Log.d(TAG, "primaryVersionCounter is " + BluetoothPbapUtils.primaryVersionCounter);
+        pvc.putLong(BluetoothPbapUtils.primaryVersionCounter);
         return pvc.array();
-    }
-
-    private void updatePBSecondaryFolderVersion(long counterValue) {
-        // Workaround for passing PTS test case TC_PSE_PBD_BV_9_C
-        if (SystemProperties.getBoolean("ro.bluetooth.pbap.sec", false)) {
-            Log.d(TAG, "Reset secondary folder version bit for PTS case");
-            BluetoothPbapService.secondaryVersionCounter = 0;
-        } else {
-            BluetoothPbapService.secondaryVersionCounter =
-                    BluetoothPbapService.primaryVersionCounter;
-        }
     }
 
     private byte[] getPBSecondaryFolderVersion() {
@@ -1358,10 +1348,8 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
         ByteBuffer svc = ByteBuffer.allocate(16);
         svc.putLong(secondaryVcMsb);
 
-        Log.d(TAG, "secondaryVersionCounter is " + BluetoothPbapService.secondaryVersionCounter);
-
-        svc.putLong(BluetoothPbapService.secondaryVersionCounter);
-        BluetoothPbapService.secondaryVersionCounter = 0;
+        Log.d(TAG, "secondaryVersionCounter is " + BluetoothPbapUtils.secondaryVersionCounter);
+        svc.putLong(BluetoothPbapUtils.secondaryVersionCounter);
         return svc.array();
     }
 
