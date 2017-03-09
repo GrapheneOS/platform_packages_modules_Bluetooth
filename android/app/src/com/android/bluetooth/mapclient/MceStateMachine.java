@@ -523,10 +523,10 @@ final class MceStateMachine extends StateMachine {
                                 Log.d(TAG, "Originator number: " + phoneNumber);
                             }
                             intent.putExtra(BluetoothMapClient.EXTRA_SENDER_CONTACT_URI,
-                                    new String[] {getContactURIFromPhone(phoneNumber)});
+                                    getContactURIFromPhone(phoneNumber));
                         }
                         intent.putExtra(BluetoothMapClient.EXTRA_SENDER_CONTACT_NAME,
-                                new String[] {originator.getDisplayName()});
+                                originator.getDisplayName());
                     }
                     mService.sendBroadcast(intent);
                     break;
