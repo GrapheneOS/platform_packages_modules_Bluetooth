@@ -43,7 +43,7 @@ import java.util.HashMap;
 import java.util.List;
 
 public class PhonebookPullRequest extends PullRequest {
-    private static final int MAX_OPS = 500;
+    private static final int MAX_OPS = 250;
     private static final boolean VDBG = false;
     private static final String TAG = "PbapPhonebookPullRequest";
 
