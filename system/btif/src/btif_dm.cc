@@ -59,6 +59,7 @@
 #include "btif_util.h"
 #include "btif_util.h"
 #include "btu.h"
+#include "device/include/controller.h"
 #include "device/include/interop.h"
 #include "include/stack_config.h"
 #include "osi/include/allocator.h"
@@ -1886,6 +1887,16 @@ static void btif_dm_upstreams_evt(uint16_t event, char* p_param) {
           cmn_vsc_cb.extended_scan_support > 0;
       local_le_features.debug_logging_supported =
           cmn_vsc_cb.debug_logging_supported > 0;
+
+      const controller_t* controller = controller_get_interface();
+
+      local_le_features.le_2m_phy_supported = controller->supports_ble_2m_phy();
+      local_le_features.le_coded_phy_supported =
+          controller->supports_ble_coded_phy();
+      local_le_features.le_extended_advertising_supported =
+          controller->supports_ble_extended_advertising();
+      local_le_features.le_periodic_advertising_supported =
+          controller->supports_ble_periodic_advertising();
 
       memcpy(prop.val, &local_le_features, prop.len);
       HAL_CBACK(bt_hal_cbacks, adapter_properties_cb, BT_STATUS_SUCCESS, 1,
