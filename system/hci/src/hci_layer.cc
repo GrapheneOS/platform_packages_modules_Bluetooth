@@ -220,6 +220,14 @@ error:
 static future_t* hci_module_shut_down() {
   LOG_INFO(LOG_TAG, "%s", __func__);
 
+  // Free the timers
+  alarm_free(command_response_timer);
+  command_response_timer = NULL;
+  alarm_free(startup_timer);
+  startup_timer = NULL;
+
+  hci_close();
+
   if (thread) {
     thread_stop(thread);
     thread_join(thread);
@@ -233,14 +241,6 @@ static future_t* hci_module_shut_down() {
   commands_pending_response = NULL;
 
   packet_fragmenter->cleanup();
-
-  // Free the timers
-  alarm_free(command_response_timer);
-  command_response_timer = NULL;
-  alarm_free(startup_timer);
-  startup_timer = NULL;
-
-  hci_close();
 
   thread_free(thread);
   thread = NULL;
