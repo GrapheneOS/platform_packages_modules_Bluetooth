@@ -377,6 +377,18 @@ static bool supports_ble_connection_parameters_request(void) {
   return HCI_LE_CONN_PARAM_REQ_SUPPORTED(features_ble.as_array);
 }
 
+static bool supports_ble_2m_phy(void) {
+  CHECK(readable);
+  CHECK(ble_supported);
+  return HCI_LE_2M_PHY_SUPPORTED(features_ble.as_array);
+}
+
+static bool supports_ble_coded_phy(void) {
+  CHECK(readable);
+  CHECK(ble_supported);
+  return HCI_LE_CODED_PHY_SUPPORTED(features_ble.as_array);
+}
+
 static bool supports_ble_extended_advertising(void) {
   CHECK(readable);
   CHECK(ble_supported);
@@ -486,6 +498,8 @@ static const controller_t interface = {
     supports_ble_packet_extension,
     supports_ble_connection_parameters_request,
     supports_ble_privacy,
+    supports_ble_2m_phy,
+    supports_ble_coded_phy,
     supports_ble_extended_advertising,
     supports_ble_periodic_advertising,
 
