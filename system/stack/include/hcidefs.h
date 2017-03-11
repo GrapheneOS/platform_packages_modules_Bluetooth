@@ -3186,6 +3186,9 @@ typedef struct {
   ((x)[HCI_SUPP_COMMANDS_LE_RC_CONN_PARAM_UPD_NEG_RPY_OFF] & \
    HCI_SUPP_COMMANDS_RLE_RC_CONN_PARAM_UPD_NEG_RPY_MASK)
 
+#define HCI_LE_2M_PHY_SUPPORTED(x) (((x)[1] & 0x01))     // BIT 8 SET
+#define HCI_LE_CODED_PHY_SUPPORTED(x) (((x)[1] & 0x08))  // BIT 11 SET
+
 /* LE Advertising Extension related Procedurs */
 #define HCI_LE_EXTENDED_ADVERTISING_SUPPORTED(x) \
   (((x)[1] & 0x10))  // BIT 12 SET
