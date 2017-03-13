@@ -77,6 +77,11 @@ class AdvertiserHciMock : public BleAdvertiserHciInterface {
                void(uint8_t, uint8_t, uint8_t, uint8_t, uint8_t*, status_cb));
   MOCK_METHOD3(SetRandomAddress, void(uint8_t, BD_ADDR, status_cb));
   MOCK_METHOD5(Enable, void(uint8_t, uint8_t, uint16_t, uint8_t, status_cb));
+  MOCK_METHOD5(SetPeriodicAdvertisingParameters,
+               void(uint8_t, uint16_t, uint16_t, uint16_t, status_cb));
+  MOCK_METHOD5(SetPeriodicAdvertisingData,
+               void(uint8_t, uint8_t, uint8_t, uint8_t*, status_cb));
+  MOCK_METHOD3(SetPeriodicAdvertisingEnable, void(uint8_t, uint8_t, status_cb));
 
   MOCK_METHOD9(SetParameters1,
                void(uint8_t, uint16_t, uint32_t, uint32_t, uint8_t, uint8_t,
