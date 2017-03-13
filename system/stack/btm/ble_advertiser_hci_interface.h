@@ -72,6 +72,17 @@ class BleAdvertiserHciInterface {
   virtual void Enable(uint8_t enable, uint8_t handle, uint16_t duration,
                       uint8_t max_extended_advertising_events,
                       status_cb command_complete) = 0;
+  virtual void SetPeriodicAdvertisingParameters(uint8_t handle,
+                                                uint16_t periodic_adv_int_min,
+                                                uint16_t periodic_adv_int_max,
+                                                uint16_t periodic_properties,
+                                                status_cb command_complete) = 0;
+  virtual void SetPeriodicAdvertisingData(uint8_t handle, uint8_t operation,
+                                          uint8_t adv_data_length,
+                                          uint8_t* adv_data,
+                                          status_cb command_complete) = 0;
+  virtual void SetPeriodicAdvertisingEnable(uint8_t enable, uint8_t handle,
+                                            status_cb command_complete) = 0;
 
   // Some implementation don't behave well when handle value 0 is used.
   virtual bool QuirkAdvertiserZeroHandle() { return 0; }
