@@ -372,8 +372,10 @@ public class BluetoothOppTransferActivity extends AlertActivity implements
 
                     // retry the failed transfer
                     Uri uri = BluetoothOppUtility.originalUri(Uri.parse(mTransInfo.mFileUri));
+                    // this uri has already been examined by intent handler and
+                    // is considered from internal in the retry situation
                     BluetoothOppSendFileInfo sendFileInfo =
-                        BluetoothOppSendFileInfo.generateFileInfo(this, uri, mTransInfo.mFileType);
+                        BluetoothOppSendFileInfo.generateFileInfo(this, uri, mTransInfo.mFileType, false);
                     uri = BluetoothOppUtility.generateUri(uri, sendFileInfo);
                     BluetoothOppUtility.putSendFileInfo(uri, sendFileInfo);
                     mTransInfo.mFileUri = uri.toString();

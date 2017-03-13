@@ -39,6 +39,7 @@ import com.google.android.collect.Lists;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.net.Uri;
+import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.ActivityNotFoundException;
@@ -46,6 +47,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.database.Cursor;
+import android.os.Environment;
 import android.util.Log;
 
 import java.io.File;
@@ -347,6 +349,42 @@ public class BluetoothOppUtility {
                 info.mInputStream.close();
             } catch (IOException ignored) {
             }
+        }
+    }
+
+    /**
+     * Checks if the URI is in Environment.getExternalStorageDirectory() as it
+     * is the only directory that is possibly readable by both the sender and
+     * the Bluetooth process.
+     */
+    static boolean isInExternalStorageDir(Uri uri) {
+        if (!ContentResolver.SCHEME_FILE.equals(uri.getScheme())) {
+            Log.e(TAG, "Not a file URI: " + uri);
+            return false;
+        }
+        final File file = new File(uri.getCanonicalUri().getPath());
+        return isSameOrSubDirectory(Environment.getExternalStorageDirectory(), file);
+    }
+
+    /**
+     * Checks, whether the child directory is the same as, or a sub-directory of the base
+     * directory. Neither base nor child should be null.
+     */
+    static boolean isSameOrSubDirectory(File base, File child) {
+        try {
+            base = base.getCanonicalFile();
+            child = child.getCanonicalFile();
+            File parentFile = child;
+            while (parentFile != null) {
+                if (base.equals(parentFile)) {
+                    return true;
+                }
+                parentFile = parentFile.getParentFile();
+            }
+            return false;
+        } catch (IOException ex) {
+            Log.e(TAG, "Error while accessing file", ex);
+            return false;
         }
     }
 }
