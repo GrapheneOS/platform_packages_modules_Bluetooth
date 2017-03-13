@@ -2041,11 +2041,6 @@ void btm_ble_process_ext_adv_pkt(uint8_t data_len, uint8_t* data) {
                       pkt_data_len, rssi);
     }
 
-    // we parse legacy packets only for now.
-    if ((event_type & 0x0010) == 0) {
-      continue;
-    }
-
     btm_ble_process_adv_addr(bda, addr_type);
     btm_ble_process_adv_pkt_cont(event_type, addr_type, bda, primary_phy,
                                  secondary_phy, advertising_sid, tx_power, rssi,
