@@ -226,12 +226,14 @@ static future_t* hci_module_shut_down() {
   alarm_free(startup_timer);
   startup_timer = NULL;
 
-  hci_close();
-
+  // Stop the thread to prevent Send() calls.
   if (thread) {
     thread_stop(thread);
     thread_join(thread);
   }
+
+  // Close HCI to prevent callbacks.
+  hci_close();
 
   fixed_queue_free(command_queue, osi_free);
   command_queue = NULL;
