@@ -270,14 +270,14 @@ public final class Avrcp {
         /* initialize BrowseMananger which manages Browse commands and response */
         mAvrcpBrowseManager = new AvrcpBrowseManager(mContext, mAvrcpMediaRsp);
 
+        // Build the media players list
+        buildMediaPlayersList();
+
         UserManager manager = UserManager.get(mContext);
         if (manager == null || manager.isUserUnlocked()) {
             if (DEBUG) Log.d(TAG, "User already unlocked, initializing player lists");
             // initialize browsable player list and build media player list
             (new BrowsablePlayerListBuilder()).start();
-        } else {
-            // Still build the media players list even if we can't browse.
-            buildMediaPlayersList();
         }
     }
 
