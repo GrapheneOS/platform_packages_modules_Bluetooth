@@ -83,6 +83,8 @@ class BleAdvertiserHciInterface {
                                           status_cb command_complete) = 0;
   virtual void SetPeriodicAdvertisingEnable(uint8_t enable, uint8_t handle,
                                             status_cb command_complete) = 0;
+  virtual void RemoveAdvertisingSet(uint8_t handle,
+                                    status_cb command_complete) = 0;
 
   // Some implementation don't behave well when handle value 0 is used.
   virtual bool QuirkAdvertiserZeroHandle() { return 0; }

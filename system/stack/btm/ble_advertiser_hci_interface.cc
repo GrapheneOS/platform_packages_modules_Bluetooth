@@ -234,6 +234,12 @@ class BleAdvertiserVscHciInterfaceImpl : public BleAdvertiserHciInterface {
     return false;
   }
 
+  void RemoveAdvertisingSet(uint8_t handle,
+                            status_cb command_complete) override {
+    // VSC Advertising don't have remove method.
+    command_complete.Run(0);
+  }
+
  public:
   static void VendorSpecificEventCback(uint8_t length, uint8_t* p) {
     VLOG(1) << __func__;
@@ -403,6 +409,12 @@ class BleAdvertiserLegacyHciInterfaceImpl : public BleAdvertiserHciInterface {
                                     status_cb command_complete) override {
     LOG(INFO) << __func__ << "Legacy can't do periodic advertising";
     command_complete.Run(HCI_ERR_ILLEGAL_COMMAND);
+  }
+
+  void RemoveAdvertisingSet(uint8_t handle,
+                            status_cb command_complete) override {
+    // Legacy Advertising don't have remove method.
+    command_complete.Run(0);
   }
 };
 
@@ -589,6 +601,21 @@ class BleAdvertiserHciExtendedImpl : public BleAdvertiserHciInterface {
     UINT8_TO_STREAM(pp, handle);
     SendAdvCmd(FROM_HERE, HCI_LE_SET_PERIODIC_ADVERTISING_ENABLE, param,
                HCI_LE_ENABLE_PRIODIC_ADVERTISEMENT_LEN, command_complete);
+  }
+
+  void RemoveAdvertisingSet(uint8_t handle,
+                            status_cb command_complete) override {
+    VLOG(1) << __func__;
+
+    const uint16_t cmd_length = 1;
+    uint8_t param[cmd_length];
+    memset(param, 0, cmd_length);
+
+    uint8_t* pp = param;
+    UINT8_TO_STREAM(pp, handle);
+
+    SendAdvCmd(FROM_HERE, HCI_LE_REMOVE_ADVERTISING_SET, param, cmd_length,
+               command_complete);
   }
 
  public:
