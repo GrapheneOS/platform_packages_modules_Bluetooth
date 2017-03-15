@@ -97,6 +97,7 @@ static const tA2DP_ENCODER_INTERFACE a2dp_encoder_interface_sbc = {
     a2dp_sbc_feeding_flush,
     a2dp_sbc_get_encoder_interval_ms,
     a2dp_sbc_send_frames,
+    nullptr,  // set_transmit_queue_length
     a2dp_sbc_debug_codec_dump};
 
 static tA2DP_STATUS A2DP_CodecInfoMatchesCapabilitySbc(
