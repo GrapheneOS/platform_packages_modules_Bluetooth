@@ -238,7 +238,7 @@ const tBTM_APPL_INFO bta_security = {&bta_dm_authorize_cback,
 #if (BTM_LOCAL_IO_CAPS != BTM_IO_CAP_NONE)
                                      &bta_dm_sp_cback,
 #else
-                                     NULL
+                                     NULL,
 #endif
                                      &bta_dm_ble_smp_cback,
                                      &bta_dm_ble_id_key_cback};
