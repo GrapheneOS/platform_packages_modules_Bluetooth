@@ -110,7 +110,10 @@ void VendorManager::SetUpTestChannel(int port) {
   });
 }
 
-void VendorManager::CloseHciFd() { transport_.CloseHciFd(); }
+void VendorManager::CloseHciFd() {
+  async_manager_.StopWatchingFileDescriptor(transport_.GetHciFd());
+  transport_.CloseHciFd();
+}
 
 int VendorManager::GetHciFd() const { return transport_.GetHciFd(); }
 
