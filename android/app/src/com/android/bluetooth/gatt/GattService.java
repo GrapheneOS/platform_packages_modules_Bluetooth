@@ -2311,7 +2311,7 @@ public class GattService extends ProfileService {
 
         int offset = 0;
         while(offset < (adv_data.length-2)) {
-            int len = adv_data[offset++];
+            int len = Byte.toUnsignedInt(adv_data[offset++]);
             if (len == 0) break;
 
             int type = adv_data[offset++];
