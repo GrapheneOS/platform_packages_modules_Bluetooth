@@ -93,6 +93,8 @@ class BluetoothHciCallbacks : public IBluetoothHciCallbacks {
 };
 
 void hci_initialize() {
+  LOG_INFO(LOG_TAG, "%s", __func__);
+
   btHci = IBluetoothHci::getService();
   // If android.hardware.bluetooth* is not found, Bluetooth can not continue.
   CHECK(btHci != nullptr);
