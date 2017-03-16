@@ -49,7 +49,10 @@ void btm_ble_update_dmt_flag_bits(uint8_t* flag_value,
                                   const uint16_t connect_mode,
                                   const uint16_t disc_mode) {}
 void btm_acl_update_conn_addr(uint8_t conn_handle, BD_ADDR address) {}
-void btm_gen_resolvable_private_addr(base::Callback<void(uint8_t[8])> cb) {}
+void btm_gen_resolvable_private_addr(base::Callback<void(uint8_t[8])> cb) {
+  uint8_t fake_rand[8] = {0, 0, 0, 0, 0, 0, 0, 0};
+  cb.Run(fake_rand);
+}
 void alarm_set_on_queue(alarm_t* alarm, period_ms_t interval_ms,
                         alarm_callback_t cb, void* data, fixed_queue_t* queue) {
 }
@@ -106,6 +109,8 @@ class AdvertiserHciMock : public BleAdvertiserHciInterface {
                    secondary_phy, advertising_sid, scan_request_notify_enable,
                    cmd_complete);
   };
+
+  bool QuirkAdvertiserZeroHandle() { return false; }
 
  private:
   DISALLOW_COPY_AND_ASSIGN(AdvertiserHciMock);
@@ -381,6 +386,7 @@ TEST_F(BleAdvertisingManagerTest, test_start_advertising) {
   tBTM_BLE_ADV_PARAMS params;
 
   status_cb set_params_cb;
+  status_cb set_address_cb;
   status_cb set_data_cb;
   status_cb set_scan_resp_data_cb;
   status_cb enable_cb;
@@ -389,6 +395,9 @@ TEST_F(BleAdvertisingManagerTest, test_start_advertising) {
   EXPECT_CALL(*hci_mock, SetParameters2(_, _, _, _, _, _, _, _))
       .Times(1)
       .WillOnce(SaveArg<7>(&set_params_cb));
+  EXPECT_CALL(*hci_mock, SetRandomAddress(advertiser_id, _, _))
+      .Times(1)
+      .WillOnce(SaveArg<2>(&set_address_cb));
   EXPECT_CALL(*hci_mock, SetAdvertisingData(advertiser_id, _, _, _, _, _))
       .Times(1)
       .WillOnce(SaveArg<5>(&set_data_cb));
@@ -406,6 +415,7 @@ TEST_F(BleAdvertisingManagerTest, test_start_advertising) {
 
   // we are a truly gracious fake controller, let the commands succeed!
   set_params_cb.Run(0);
+  set_address_cb.Run(0);
   set_data_cb.Run(0);
   set_scan_resp_data_cb.Run(0);
   enable_cb.Run(0);
