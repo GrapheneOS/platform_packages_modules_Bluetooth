@@ -91,9 +91,6 @@ public class PhonePolicyTest extends AndroidTestCase {
         // Mock the looper
         when(mockAdapterService.getMainLooper()).thenReturn(mHandlerThread.getLooper());
 
-        // Tell the adapterservice that it is a mock (see isMock documentation)
-        when(mockAdapterService.isMock()).thenReturn(true);
-
         PhonePolicy phPol = new PhonePolicy(mockAdapterService, mockServiceFactory);
 
         // Get the broadcast receiver to inject events.
@@ -150,8 +147,6 @@ public class PhonePolicyTest extends AndroidTestCase {
         // Mock the looper
         when(mockAdapterService.getMainLooper()).thenReturn(mHandlerThread.getLooper());
 
-        // Tell the adapterservice that it is a mock (see isMock documentation)
-        when(mockAdapterService.isMock()).thenReturn(true);
         PhonePolicy phPol = new PhonePolicy(mockAdapterService, mockServiceFactory);
 
         // Get the broadcast receiver to inject events
@@ -200,8 +195,6 @@ public class PhonePolicyTest extends AndroidTestCase {
         // Mock the looper
         when(mockAdapterService.getMainLooper()).thenReturn(mHandlerThread.getLooper());
 
-        // Tell the adapterservice that it is a mock (see isMock documentation)
-        when(mockAdapterService.isMock()).thenReturn(true);
         PhonePolicy phPol = new PhonePolicy(mockAdapterService, mockServiceFactory);
 
         // Get the broadcast receiver to inject events
@@ -261,8 +254,6 @@ public class PhonePolicyTest extends AndroidTestCase {
         // Mock the looper
         when(mockAdapterService.getMainLooper()).thenReturn(mHandlerThread.getLooper());
 
-        // Tell the adapterservice that it is a mock (see isMock documentation)
-        when(mockAdapterService.isMock()).thenReturn(true);
         PhonePolicy phPol = new PhonePolicy(mockAdapterService, mockServiceFactory);
 
         // Get the broadcast receiver to inject events
@@ -321,9 +312,6 @@ public class PhonePolicyTest extends AndroidTestCase {
 
         // Mock the looper
         when(mockAdapterService.getMainLooper()).thenReturn(mHandlerThread.getLooper());
-
-        // Tell the adapterservice that it is a mock (see isMock documentation)
-        when(mockAdapterService.isMock()).thenReturn(true);
 
         PhonePolicy phPol = new PhonePolicy(mockAdapterService, mockServiceFactory);
 
