@@ -167,7 +167,6 @@ final class BondStateMachine extends StateMachine {
 
         @Override
         public boolean processMessage(Message msg) {
-
             BluetoothDevice dev = (BluetoothDevice)msg.obj;
             DeviceProperties devProp = mRemoteDevices.getDeviceProperties(dev);
             boolean result = false;
@@ -325,7 +324,7 @@ final class BondStateMachine extends StateMachine {
         }
         intent.putExtra(BluetoothDevice.EXTRA_PAIRING_VARIANT, variant);
         intent.setFlags(Intent.FLAG_RECEIVER_FOREGROUND);
-        intent.setPackage(mAdapterService.getString(R.string.pairing_ui_package));
+        intent.setFlags(Intent.FLAG_RECEIVER_INCLUDE_BACKGROUND);
         mAdapterService.sendOrderedBroadcast(intent, mAdapterService.BLUETOOTH_ADMIN_PERM);
     }
 
