@@ -85,7 +85,7 @@ static fixed_queue_t* packet_queue;
 // Inbound-related
 static alarm_t* command_response_timer;
 static list_t* commands_pending_response;
-static std::mutex commands_pending_response_mutex;
+static std::recursive_mutex commands_pending_response_mutex;
 
 // The hand-off point for data going to a higher layer, set by the higher layer
 static fixed_queue_t* upwards_data_queue;
@@ -239,8 +239,11 @@ static future_t* hci_module_shut_down() {
   command_queue = NULL;
   fixed_queue_free(packet_queue, buffer_allocator->free);
   packet_queue = NULL;
-  list_free(commands_pending_response);
-  commands_pending_response = NULL;
+  {
+    std::lock_guard<std::recursive_mutex> lock(commands_pending_response_mutex);
+    list_free(commands_pending_response);
+    commands_pending_response = NULL;
+  }
 
   packet_fragmenter->cleanup();
 
@@ -316,7 +319,7 @@ static void transmit_downward(data_dispatcher_type_t type, void* data) {
 
 static void event_finish_startup(UNUSED_ATTR void* context) {
   LOG_INFO(LOG_TAG, "%s", __func__);
-  std::lock_guard<std::mutex> lock(commands_pending_response_mutex);
+  std::lock_guard<std::recursive_mutex> lock(commands_pending_response_mutex);
   alarm_cancel(startup_timer);
   future_ready(startup_future, FUTURE_SUCCESS);
   startup_future = NULL;
@@ -325,7 +328,7 @@ static void event_finish_startup(UNUSED_ATTR void* context) {
 static void startup_timer_expired(UNUSED_ATTR void* context) {
   LOG_ERROR(LOG_TAG, "%s", __func__);
 
-  std::lock_guard<std::mutex> lock(commands_pending_response_mutex);
+  std::lock_guard<std::recursive_mutex> lock(commands_pending_response_mutex);
   future_ready(startup_future, FUTURE_FAIL);
   startup_future = NULL;
 }
@@ -341,14 +344,15 @@ static void event_command_ready(fixed_queue_t* queue,
 
     // Move it to the list of commands awaiting response
     {
-      std::lock_guard<std::mutex> lock(commands_pending_response_mutex);
+      std::lock_guard<std::recursive_mutex> lock(
+          commands_pending_response_mutex);
       list_append(commands_pending_response, wait_entry);
+
+      // Send it off
+      packet_fragmenter->fragment_and_dispatch(wait_entry->command);
+
+      update_command_response_timer();
     }
-
-    // Send it off
-    packet_fragmenter->fragment_and_dispatch(wait_entry->command);
-
-    update_command_response_timer();
   }
 }
 
@@ -385,7 +389,7 @@ static void fragmenter_transmit_finished(BT_HDR* packet,
 }
 
 static void command_timed_out(UNUSED_ATTR void* context) {
-  std::unique_lock<std::mutex> lock(commands_pending_response_mutex);
+  std::unique_lock<std::recursive_mutex> lock(commands_pending_response_mutex);
 
   if (list_is_empty(commands_pending_response)) {
     LOG_ERROR(LOG_TAG, "%s with no commands pending response", __func__);
@@ -500,7 +504,7 @@ static void dispatch_reassembled(BT_HDR* packet) {
 // Misc internal functions
 
 static waiting_command_t* get_waiting_command(command_opcode_t opcode) {
-  std::lock_guard<std::mutex> lock(commands_pending_response_mutex);
+  std::lock_guard<std::recursive_mutex> lock(commands_pending_response_mutex);
 
   for (const list_node_t* node = list_begin(commands_pending_response);
        node != list_end(commands_pending_response); node = list_next(node)) {
@@ -518,6 +522,7 @@ static waiting_command_t* get_waiting_command(command_opcode_t opcode) {
 }
 
 static void update_command_response_timer(void) {
+  std::lock_guard<std::recursive_mutex> lock(commands_pending_response_mutex);
   if (list_is_empty(commands_pending_response)) {
     alarm_cancel(command_response_timer);
   } else {
