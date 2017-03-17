@@ -178,7 +178,7 @@ class AdvertiseManager {
 
     void startAdvertisingSet(AdvertisingSetParameters parameters, AdvertiseData advertiseData,
             AdvertiseData scanResponse, PeriodicAdvertisingParameters periodicParameters,
-            AdvertiseData periodicData, IAdvertisingSetCallback callback) {
+            AdvertiseData periodicData, int timeout, IAdvertisingSetCallback callback) {
         AdvertisingSetDeathRecipient deathRecipient = new AdvertisingSetDeathRecipient(callback);
         IBinder binder = toBinder(callback);
         try {
@@ -196,8 +196,8 @@ class AdvertiseManager {
         mAdvertisers.put(binder, new AdvertiserInfo(cb_id, deathRecipient, callback));
 
         logd("startAdvertisingSet() - reg_id=" + cb_id + ", callback: " + binder);
-        startAdvertisingSetNative(
-                parameters, adv_data, scan_response, periodicParameters, periodic_data, cb_id);
+        startAdvertisingSetNative(parameters, adv_data, scan_response, periodicParameters,
+                periodic_data, timeout, cb_id);
     }
 
     void stopAdvertisingSet(IAdvertisingSetCallback callback) {
@@ -237,7 +237,8 @@ class AdvertiseManager {
     private native void cleanupNative();
     private native void startAdvertisingSetNative(AdvertisingSetParameters parameters,
             byte[] advertiseData, byte[] scanResponse,
-            PeriodicAdvertisingParameters periodicParameters, byte[] periodicData, int reg_id);
+            PeriodicAdvertisingParameters periodicParameters, byte[] periodicData, int timeout,
+            int reg_id);
 
     private native void stopAdvertisingSetNative(int advertiser_id);
 }
