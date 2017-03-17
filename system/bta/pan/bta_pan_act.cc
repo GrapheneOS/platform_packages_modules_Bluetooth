@@ -342,7 +342,7 @@ void bta_pan_enable(tBTA_PAN_DATA* p_data) {
  ******************************************************************************/
 void bta_pan_set_role(tBTA_PAN_DATA* p_data) {
   tPAN_RESULT status;
-  tBTA_PAN_SET_ROLE set_role;
+  tBTA_PAN bta_pan;
   uint8_t sec[3];
 
   bta_pan_cb.app_id[0] = p_data->api_set_role.user_app_id;
@@ -358,7 +358,7 @@ void bta_pan_set_role(tBTA_PAN_DATA* p_data) {
       p_data->api_set_role.role, sec, p_data->api_set_role.user_name,
       p_data->api_set_role.gn_name, p_data->api_set_role.nap_name);
 
-  set_role.role = p_data->api_set_role.role;
+  bta_pan.set_role.role = p_data->api_set_role.role;
   if (status == PAN_SUCCESS) {
     if (p_data->api_set_role.role & PAN_ROLE_NAP_SERVER)
       bta_sys_add_uuid(UUID_SERVCLASS_NAP);
@@ -375,7 +375,7 @@ void bta_pan_set_role(tBTA_PAN_DATA* p_data) {
     else
       bta_sys_remove_uuid(UUID_SERVCLASS_PANU);
 
-    set_role.status = BTA_PAN_SUCCESS;
+    bta_pan.set_role.status = BTA_PAN_SUCCESS;
   }
   /* if status is not success clear everything */
   else {
@@ -383,9 +383,9 @@ void bta_pan_set_role(tBTA_PAN_DATA* p_data) {
     bta_sys_remove_uuid(UUID_SERVCLASS_NAP);
     bta_sys_remove_uuid(UUID_SERVCLASS_GN);
     bta_sys_remove_uuid(UUID_SERVCLASS_PANU);
-    set_role.status = BTA_PAN_FAIL;
+    bta_pan.set_role.status = BTA_PAN_FAIL;
   }
-  bta_pan_cb.p_cback(BTA_PAN_SET_ROLE_EVT, (tBTA_PAN*)&set_role);
+  bta_pan_cb.p_cback(BTA_PAN_SET_ROLE_EVT, &bta_pan);
 }
 
 /*******************************************************************************
@@ -437,8 +437,7 @@ void bta_pan_disable(void) {
  ******************************************************************************/
 void bta_pan_open(tBTA_PAN_SCB* p_scb, tBTA_PAN_DATA* p_data) {
   tPAN_RESULT status;
-  tBTA_PAN_OPEN data;
-  tBTA_PAN_OPENING opening;
+  tBTA_PAN bta_pan;
 
   status = PAN_Connect(p_data->api_open.bd_addr, p_data->api_open.local_role,
                        p_data->api_open.peer_role, &p_scb->handle);
@@ -448,17 +447,17 @@ void bta_pan_open(tBTA_PAN_SCB* p_scb, tBTA_PAN_DATA* p_data) {
     bdcpy(p_scb->bd_addr, p_data->api_open.bd_addr);
     p_scb->local_role = p_data->api_open.local_role;
     p_scb->peer_role = p_data->api_open.peer_role;
-    bdcpy(opening.bd_addr, p_data->api_open.bd_addr);
-    opening.handle = p_scb->handle;
-    bta_pan_cb.p_cback(BTA_PAN_OPENING_EVT, (tBTA_PAN*)&opening);
+    bdcpy(bta_pan.opening.bd_addr, p_data->api_open.bd_addr);
+    bta_pan.opening.handle = p_scb->handle;
+    bta_pan_cb.p_cback(BTA_PAN_OPENING_EVT, &bta_pan);
 
   } else {
     bta_pan_scb_dealloc(p_scb);
-    bdcpy(data.bd_addr, p_data->api_open.bd_addr);
-    data.status = BTA_PAN_FAIL;
-    data.local_role = p_data->api_open.local_role;
-    data.peer_role = p_data->api_open.peer_role;
-    bta_pan_cb.p_cback(BTA_PAN_OPEN_EVT, (tBTA_PAN*)&data);
+    bdcpy(bta_pan.open.bd_addr, p_data->api_open.bd_addr);
+    bta_pan.open.status = BTA_PAN_FAIL;
+    bta_pan.open.local_role = p_data->api_open.local_role;
+    bta_pan.open.peer_role = p_data->api_open.peer_role;
+    bta_pan_cb.p_cback(BTA_PAN_OPEN_EVT, &bta_pan);
   }
 }
 
@@ -498,24 +497,24 @@ void bta_pan_api_close(tBTA_PAN_SCB* p_scb, UNUSED_ATTR tBTA_PAN_DATA* p_data) {
  *
  ******************************************************************************/
 void bta_pan_conn_open(tBTA_PAN_SCB* p_scb, tBTA_PAN_DATA* p_data) {
-  tBTA_PAN_OPEN data;
+  tBTA_PAN bta_pan;
 
   APPL_TRACE_DEBUG("%s pan connection result: %d", __func__,
                    p_data->conn.result);
 
-  bdcpy(data.bd_addr, p_scb->bd_addr);
-  data.handle = p_scb->handle;
-  data.local_role = p_scb->local_role;
-  data.peer_role = p_scb->peer_role;
+  bdcpy(bta_pan.open.bd_addr, p_scb->bd_addr);
+  bta_pan.open.handle = p_scb->handle;
+  bta_pan.open.local_role = p_scb->local_role;
+  bta_pan.open.peer_role = p_scb->peer_role;
 
   if (p_data->conn.result == PAN_SUCCESS) {
-    data.status = BTA_PAN_SUCCESS;
+    bta_pan.open.status = BTA_PAN_SUCCESS;
     p_scb->pan_flow_enable = true;
     p_scb->app_flow_enable = true;
     bta_sys_conn_open(BTA_ID_PAN, p_scb->app_id, p_scb->bd_addr);
   } else {
     bta_pan_scb_dealloc(p_scb);
-    data.status = BTA_PAN_FAIL;
+    bta_pan.open.status = BTA_PAN_FAIL;
   }
 
   p_scb->pan_flow_enable = true;
@@ -531,7 +530,7 @@ void bta_pan_conn_open(tBTA_PAN_SCB* p_scb, tBTA_PAN_DATA* p_data) {
   }
 
   bta_sys_conn_open(BTA_ID_PAN, p_scb->app_id, p_scb->bd_addr);
-  bta_pan_cb.p_cback(BTA_PAN_OPEN_EVT, (tBTA_PAN*)&data);
+  bta_pan_cb.p_cback(BTA_PAN_OPEN_EVT, &bta_pan);
 }
 
 /*******************************************************************************
@@ -546,10 +545,10 @@ void bta_pan_conn_open(tBTA_PAN_SCB* p_scb, tBTA_PAN_DATA* p_data) {
  *
  ******************************************************************************/
 void bta_pan_conn_close(tBTA_PAN_SCB* p_scb, tBTA_PAN_DATA* p_data) {
-  tBTA_PAN_CLOSE data;
+  tBTA_PAN bta_pan;
   BT_HDR* p_buf;
 
-  data.handle = p_data->hdr.layer_specific;
+  bta_pan.close.handle = p_data->hdr.layer_specific;
 
   bta_sys_conn_close(BTA_ID_PAN, p_scb->app_id, p_scb->bd_addr);
 
@@ -559,7 +558,7 @@ void bta_pan_conn_close(tBTA_PAN_SCB* p_scb, tBTA_PAN_DATA* p_data) {
 
   bta_pan_scb_dealloc(p_scb);
 
-  bta_pan_cb.p_cback(BTA_PAN_CLOSE_EVT, (tBTA_PAN*)&data);
+  bta_pan_cb.p_cback(BTA_PAN_CLOSE_EVT, &bta_pan);
 }
 
 /*******************************************************************************
