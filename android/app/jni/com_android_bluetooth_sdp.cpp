@@ -21,7 +21,6 @@
 #include "android_runtime/AndroidRuntime.h"
 #include "com_android_bluetooth.h"
 #include "hardware/bt_sdp.h"
-#include "scoped_bt_addr.h"
 #include "utils/Log.h"
 
 #include <string.h>
@@ -153,13 +152,16 @@ static void sdp_search_callback(bt_status_t status, bt_bdaddr_t* bd_addr,
   CallbackEnv sCallbackEnv(__func__);
   if (!sCallbackEnv.valid()) return;
 
-  ScopedBtAddr addr(&sCallbackEnv, bd_addr);
+  ScopedLocalRef<jbyteArray> addr(
+      sCallbackEnv.get(), sCallbackEnv->NewByteArray(sizeof(bt_bdaddr_t)));
   if (!addr.get()) return;
 
   ScopedLocalRef<jbyteArray> uuid(
       sCallbackEnv.get(), sCallbackEnv->NewByteArray(sizeof(bt_uuid_t)));
   if (!uuid.get()) return;
 
+  sCallbackEnv->SetByteArrayRegion(addr.get(), 0, sizeof(bt_bdaddr_t),
+                                   (jbyte*)bd_addr);
   sCallbackEnv->SetByteArrayRegion(uuid.get(), 0, sizeof(bt_uuid_t),
                                    (jbyte*)uuid_in);
 

@@ -21,7 +21,6 @@
 #include "android_runtime/AndroidRuntime.h"
 #include "com_android_bluetooth.h"
 #include "hardware/bt_rc.h"
-#include "scoped_bt_addr.h"
 #include "utils/Log.h"
 
 #include <string.h>
@@ -60,9 +59,15 @@ static void btavrcp_passthrough_response_callback(bt_bdaddr_t* bd_addr, int id,
   CallbackEnv sCallbackEnv(__func__);
   if (!sCallbackEnv.valid()) return;
 
-  ScopedBtAddr addr(&sCallbackEnv, bd_addr);
-  if (!addr.get()) return;
+  ScopedLocalRef<jbyteArray> addr(
+      sCallbackEnv.get(), sCallbackEnv->NewByteArray(sizeof(bt_bdaddr_t)));
+  if (!addr.get()) {
+    ALOGE("Fail to new jbyteArray bd addr for passthrough response");
+    return;
+  }
 
+  sCallbackEnv->SetByteArrayRegion(addr.get(), 0, sizeof(bt_bdaddr_t),
+                                   (jbyte*)bd_addr);
   sCallbackEnv->CallVoidMethod(sCallbacksObj, method_handlePassthroughRsp,
                                (jint)id, (jint)pressed, addr.get());
 }
@@ -82,9 +87,15 @@ static void btavrcp_connection_state_callback(bool rc_connect, bool br_connect,
   CallbackEnv sCallbackEnv(__func__);
   if (!sCallbackEnv.valid()) return;
 
-  ScopedBtAddr addr(&sCallbackEnv, bd_addr);
-  if (!addr.get()) return;
+  ScopedLocalRef<jbyteArray> addr(
+      sCallbackEnv.get(), sCallbackEnv->NewByteArray(sizeof(bt_bdaddr_t)));
+  if (!addr.get()) {
+    ALOGE("Fail to new jbyteArray bd addr for connection state");
+    return;
+  }
 
+  sCallbackEnv->SetByteArrayRegion(addr.get(), 0, sizeof(bt_bdaddr_t),
+                                   (jbyte*)bd_addr);
   sCallbackEnv->CallVoidMethod(sCallbacksObj, method_onConnectionStateChanged,
                                (jboolean)rc_connect, (jboolean)br_connect,
                                addr.get());
@@ -96,9 +107,15 @@ static void btavrcp_get_rcfeatures_callback(bt_bdaddr_t* bd_addr,
   CallbackEnv sCallbackEnv(__func__);
   if (!sCallbackEnv.valid()) return;
 
-  ScopedBtAddr addr(&sCallbackEnv, bd_addr);
-  if (!addr.get()) return;
+  ScopedLocalRef<jbyteArray> addr(
+      sCallbackEnv.get(), sCallbackEnv->NewByteArray(sizeof(bt_bdaddr_t)));
+  if (!addr.get()) {
+    ALOGE("Fail to new jbyteArray bd addr ");
+    return;
+  }
 
+  sCallbackEnv->SetByteArrayRegion(addr.get(), 0, sizeof(bt_bdaddr_t),
+                                   (jbyte*)bd_addr);
   sCallbackEnv->CallVoidMethod(sCallbacksObj, method_getRcFeatures, addr.get(),
                                (jint)features);
 }
@@ -109,9 +126,15 @@ static void btavrcp_setplayerapplicationsetting_rsp_callback(
   CallbackEnv sCallbackEnv(__func__);
   if (!sCallbackEnv.valid()) return;
 
-  ScopedBtAddr addr(&sCallbackEnv, bd_addr);
-  if (!addr.get()) return;
+  ScopedLocalRef<jbyteArray> addr(
+      sCallbackEnv.get(), sCallbackEnv->NewByteArray(sizeof(bt_bdaddr_t)));
+  if (!addr.get()) {
+    ALOGE("Fail to new jbyteArray bd addr ");
+    return;
+  }
 
+  sCallbackEnv->SetByteArrayRegion(addr.get(), 0, sizeof(bt_bdaddr_t),
+                                   (jbyte*)bd_addr);
   sCallbackEnv->CallVoidMethod(sCallbacksObj, method_setplayerappsettingrsp,
                                addr.get(), (jint)accepted);
 }
@@ -123,9 +146,14 @@ static void btavrcp_playerapplicationsetting_callback(
   CallbackEnv sCallbackEnv(__func__);
   if (!sCallbackEnv.valid()) return;
 
-  ScopedBtAddr addr(&sCallbackEnv, bd_addr);
-  if (!addr.get()) return;
-
+  ScopedLocalRef<jbyteArray> addr(
+      sCallbackEnv.get(), sCallbackEnv->NewByteArray(sizeof(bt_bdaddr_t)));
+  if (!addr.get()) {
+    ALOGE("Fail to new jbyteArray bd addr ");
+    return;
+  }
+  sCallbackEnv->SetByteArrayRegion(addr.get(), 0, sizeof(bt_bdaddr_t),
+                                   (jbyte*)bd_addr);
   /* TODO ext attrs
    * Flattening defined attributes: <id,num_values,values[]>
    */
@@ -165,8 +193,14 @@ static void btavrcp_playerapplicationsetting_changed_callback(
   CallbackEnv sCallbackEnv(__func__);
   if (!sCallbackEnv.valid()) return;
 
-  ScopedBtAddr addr(&sCallbackEnv, bd_addr);
-  if (!addr.get()) return;
+  ScopedLocalRef<jbyteArray> addr(
+      sCallbackEnv.get(), sCallbackEnv->NewByteArray(sizeof(bt_bdaddr_t)));
+  if (!addr.get()) {
+    ALOGE("Fail to get new array ");
+    return;
+  }
+  sCallbackEnv->SetByteArrayRegion(addr.get(), 0, sizeof(bt_bdaddr_t),
+                                   (jbyte*)bd_addr);
 
   int arraylen = p_vals->num_attr * 2;
   ScopedLocalRef<jbyteArray> playerattribs(
@@ -197,9 +231,15 @@ static void btavrcp_set_abs_vol_cmd_callback(bt_bdaddr_t* bd_addr,
   CallbackEnv sCallbackEnv(__func__);
   if (!sCallbackEnv.valid()) return;
 
-  ScopedBtAddr addr(&sCallbackEnv, bd_addr);
-  if (!addr.get()) return;
+  ScopedLocalRef<jbyteArray> addr(
+      sCallbackEnv.get(), sCallbackEnv->NewByteArray(sizeof(bt_bdaddr_t)));
+  if (!addr.get()) {
+    ALOGE("Fail to get new array ");
+    return;
+  }
 
+  sCallbackEnv->SetByteArrayRegion(addr.get(), 0, sizeof(bt_bdaddr_t),
+                                   (jbyte*)bd_addr);
   sCallbackEnv->CallVoidMethod(sCallbacksObj, method_handleSetAbsVolume,
                                addr.get(), (jbyte)abs_vol, (jbyte)label);
 }
@@ -210,9 +250,15 @@ static void btavrcp_register_notification_absvol_callback(bt_bdaddr_t* bd_addr,
   CallbackEnv sCallbackEnv(__func__);
   if (!sCallbackEnv.valid()) return;
 
-  ScopedBtAddr addr(&sCallbackEnv, bd_addr);
-  if (!addr.get()) return;
+  ScopedLocalRef<jbyteArray> addr(
+      sCallbackEnv.get(), sCallbackEnv->NewByteArray(sizeof(bt_bdaddr_t)));
+  if (!addr.get()) {
+    ALOGE("Fail to get new array ");
+    return;
+  }
 
+  sCallbackEnv->SetByteArrayRegion(addr.get(), 0, sizeof(bt_bdaddr_t),
+                                   (jbyte*)bd_addr);
   sCallbackEnv->CallVoidMethod(sCallbacksObj,
                                method_handleRegisterNotificationAbsVol,
                                addr.get(), (jbyte)label);
@@ -229,8 +275,12 @@ static void btavrcp_track_changed_callback(bt_bdaddr_t* bd_addr,
   CallbackEnv sCallbackEnv(__func__);
   if (!sCallbackEnv.valid()) return;
 
-  ScopedBtAddr addr(&sCallbackEnv, bd_addr);
-  if (!addr.get()) return;
+  ScopedLocalRef<jbyteArray> addr(
+      sCallbackEnv.get(), sCallbackEnv->NewByteArray(sizeof(bt_bdaddr_t)));
+  if (!addr.get()) {
+    ALOGE("Fail to get new array ");
+    return;
+  }
 
   ScopedLocalRef<jintArray> attribIds(sCallbackEnv.get(),
                                       sCallbackEnv->NewIntArray(num_attr));
@@ -238,6 +288,8 @@ static void btavrcp_track_changed_callback(bt_bdaddr_t* bd_addr,
     ALOGE(" failed to set new array for attribIds");
     return;
   }
+  sCallbackEnv->SetByteArrayRegion(addr.get(), 0, sizeof(bt_bdaddr_t),
+                                   (jbyte*)bd_addr);
 
   jclass strclazz = sCallbackEnv->FindClass("java/lang/String");
   ScopedLocalRef<jobjectArray> stringArray(
@@ -273,9 +325,14 @@ static void btavrcp_play_position_changed_callback(bt_bdaddr_t* bd_addr,
   CallbackEnv sCallbackEnv(__func__);
   if (!sCallbackEnv.valid()) return;
 
-  ScopedBtAddr addr(&sCallbackEnv, bd_addr);
-  if (!addr.get()) return;
-
+  ScopedLocalRef<jbyteArray> addr(
+      sCallbackEnv.get(), sCallbackEnv->NewByteArray(sizeof(bt_bdaddr_t)));
+  if (!addr.get()) {
+    ALOGE("Fail to get new array ");
+    return;
+  }
+  sCallbackEnv->SetByteArrayRegion(addr.get(), 0, sizeof(bt_bdaddr_t),
+                                   (jbyte*)bd_addr);
   sCallbackEnv->CallVoidMethod(sCallbacksObj, method_handleplaypositionchanged,
                                addr.get(), (jint)(song_len), (jint)song_pos);
 }
@@ -286,9 +343,14 @@ static void btavrcp_play_status_changed_callback(
   CallbackEnv sCallbackEnv(__func__);
   if (!sCallbackEnv.valid()) return;
 
-  ScopedBtAddr addr(&sCallbackEnv, bd_addr);
-  if (!addr.get()) return;
-
+  ScopedLocalRef<jbyteArray> addr(
+      sCallbackEnv.get(), sCallbackEnv->NewByteArray(sizeof(bt_bdaddr_t)));
+  if (!addr.get()) {
+    ALOGE("Fail to get new array ");
+    return;
+  }
+  sCallbackEnv->SetByteArrayRegion(addr.get(), 0, sizeof(bt_bdaddr_t),
+                                   (jbyte*)bd_addr);
   sCallbackEnv->CallVoidMethod(sCallbacksObj, method_handleplaystatuschanged,
                                addr.get(), (jbyte)play_status);
 }
