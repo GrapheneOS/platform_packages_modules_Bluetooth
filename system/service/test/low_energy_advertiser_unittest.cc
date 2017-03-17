@@ -45,9 +45,7 @@ class MockAdvertiserHandler : public BleAdvertiserInterface {
   MockAdvertiserHandler() {}
   ~MockAdvertiserHandler() override = default;
 
-  MOCK_METHOD1(RegisterAdvertiser,
-               void(base::Callback<void(uint8_t /* advertiser_id */,
-                                        uint8_t /* status */)>));
+  MOCK_METHOD1(RegisterAdvertiser, void(IdStatusCallback));
   MOCK_METHOD1(Unregister, void(uint8_t));
   MOCK_METHOD10(SetParameters,
                 void(uint8_t advertiser_id,
@@ -55,14 +53,25 @@ class MockAdvertiserHandler : public BleAdvertiserInterface {
                      uint32_t min_interval, uint32_t max_interval, int chnl_map,
                      int tx_power, uint8_t primary_advertising_phy,
                      uint8_t secondary_advertising_phy,
-                     uint8_t scan_request_notification_enable, Callback cb));
+                     uint8_t scan_request_notification_enable,
+                     StatusCallback cb));
   MOCK_METHOD4(SetData, void(int advertiser_id, bool set_scan_rsp,
-                             std::vector<uint8_t> data, Callback cb));
-  MOCK_METHOD5(Enable, void(uint8_t advertiser_id, bool enable, Callback cb,
-                            int timeout_s, Callback timeout_cb));
+                             std::vector<uint8_t> data, StatusCallback cb));
+  MOCK_METHOD5(Enable,
+               void(uint8_t advertiser_id, bool enable, StatusCallback cb,
+                    int timeout_s, StatusCallback timeout_cb));
   MOCK_METHOD7(StartAdvertising,
-               void(uint8_t advertiser_id, Callback cb, AdvertiseParameters,
-                    std::vector<uint8_t>, std::vector<uint8_t>, int, Callback));
+               void(uint8_t advertiser_id, StatusCallback cb,
+                    AdvertiseParameters, std::vector<uint8_t>,
+                    std::vector<uint8_t>, int, StatusCallback));
+
+  MOCK_METHOD8(StartAdvertisingSet,
+               void(IdStatusCallback cb, AdvertiseParameters params,
+                    std::vector<uint8_t> advertise_data,
+                    std::vector<uint8_t> scan_response_data,
+                    PeriodicAdvertisingParameters periodic_params,
+                    std::vector<uint8_t> periodic_data, int timeout_s,
+                    IdStatusCallback timeout_cb));
 
  private:
   DISALLOW_COPY_AND_ASSIGN(MockAdvertiserHandler);
