@@ -21,6 +21,7 @@
 #include "android_runtime/AndroidRuntime.h"
 #include "com_android_bluetooth.h"
 #include "hardware/bt_pan.h"
+#include "scoped_bt_addr.h"
 #include "utils/Log.h"
 
 #include <string.h>
@@ -43,20 +44,6 @@ static jmethodID method_onControlStateChanged;
 
 static const btpan_interface_t* sPanIf = NULL;
 static jobject mCallbacksObj = NULL;
-
-static jbyteArray marshall_bda(const bt_bdaddr_t* bd_addr) {
-  CallbackEnv sCallbackEnv(__func__);
-  if (!sCallbackEnv.valid()) return NULL;
-
-  jbyteArray addr = sCallbackEnv->NewByteArray(sizeof(bt_bdaddr_t));
-  if (!addr) {
-    ALOGE("Fail to new jbyteArray bd addr");
-    return NULL;
-  }
-  sCallbackEnv->SetByteArrayRegion(addr, 0, sizeof(bt_bdaddr_t),
-                                   (jbyte*)bd_addr);
-  return addr;
-}
 
 static void control_state_callback(btpan_control_state_t state, int local_role,
                                    bt_status_t error, const char* ifname) {
@@ -86,11 +73,8 @@ static void connection_state_callback(btpan_connection_state_t state,
   }
   CallbackEnv sCallbackEnv(__func__);
   if (!sCallbackEnv.valid()) return;
-  ScopedLocalRef<jbyteArray> addr(sCallbackEnv.get(), marshall_bda(bd_addr));
-  if (!addr.get()) {
-    error("Fail to new jbyteArray bd addr for PAN channel state");
-    return;
-  }
+  ScopedBtAddr addr(&sCallbackEnv, bd_addr);
+  if (!addr.get()) return;
   sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onConnectStateChanged,
                                addr.get(), (jint)state, (jint)error,
                                (jint)local_role, (jint)remote_role);

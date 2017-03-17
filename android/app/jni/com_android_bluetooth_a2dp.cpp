@@ -21,6 +21,7 @@
 #include "android_runtime/AndroidRuntime.h"
 #include "com_android_bluetooth.h"
 #include "hardware/bt_av.h"
+#include "scoped_bt_addr.h"
 #include "utils/Log.h"
 
 #include <string.h>
@@ -53,15 +54,9 @@ static void bta2dp_connection_state_callback(btav_connection_state_t state,
   CallbackEnv sCallbackEnv(__func__);
   if (!sCallbackEnv.valid()) return;
 
-  ScopedLocalRef<jbyteArray> addr(
-      sCallbackEnv.get(), sCallbackEnv->NewByteArray(sizeof(bt_bdaddr_t)));
-  if (!addr.get()) {
-    ALOGE("Fail to new jbyteArray bd addr for connection state");
-    return;
-  }
+  ScopedBtAddr addr(&sCallbackEnv, bd_addr);
+  if (!addr.get()) return;
 
-  sCallbackEnv->SetByteArrayRegion(addr.get(), 0, sizeof(bt_bdaddr_t),
-                                   (jbyte*)bd_addr);
   sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onConnectionStateChanged,
                                (jint)state, addr.get());
 }
@@ -72,15 +67,9 @@ static void bta2dp_audio_state_callback(btav_audio_state_t state,
   CallbackEnv sCallbackEnv(__func__);
   if (!sCallbackEnv.valid()) return;
 
-  ScopedLocalRef<jbyteArray> addr(
-      sCallbackEnv.get(), sCallbackEnv->NewByteArray(sizeof(bt_bdaddr_t)));
-  if (!addr.get()) {
-    ALOGE("Fail to new jbyteArray bd addr for connection state");
-    return;
-  }
+  ScopedBtAddr addr(&sCallbackEnv, bd_addr);
+  if (!addr.get()) return;
 
-  sCallbackEnv->SetByteArrayRegion(addr.get(), 0, sizeof(bt_bdaddr_t),
-                                   (jbyte*)bd_addr);
   sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onAudioStateChanged,
                                (jint)state, addr.get());
 }
