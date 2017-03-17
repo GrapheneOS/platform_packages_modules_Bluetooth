@@ -21,7 +21,6 @@
 #include "android_runtime/AndroidRuntime.h"
 #include "com_android_bluetooth.h"
 #include "hardware/bt_hd.h"
-#include "scoped_bt_addr.h"
 #include "utils/Log.h"
 
 #include <string.h>
@@ -39,6 +38,20 @@ static jmethodID method_onVirtualCableUnplug;
 static const bthd_interface_t* sHiddIf = NULL;
 static jobject mCallbacksObj = NULL;
 
+static jbyteArray marshall_bda(bt_bdaddr_t* bd_addr) {
+  CallbackEnv sCallbackEnv(__func__);
+  if (!sCallbackEnv.valid()) return NULL;
+
+  jbyteArray addr = sCallbackEnv->NewByteArray(sizeof(bt_bdaddr_t));
+  if (!addr) {
+    ALOGE("Fail to new jbyteArray bd addr");
+    return NULL;
+  }
+  sCallbackEnv->SetByteArrayRegion(addr, 0, sizeof(bt_bdaddr_t),
+                                   (jbyte*)bd_addr);
+  return addr;
+}
+
 static void application_state_callback(bt_bdaddr_t* bd_addr,
                                        bthd_application_state_t state) {
   jboolean registered = JNI_FALSE;
@@ -49,8 +62,15 @@ static void application_state_callback(bt_bdaddr_t* bd_addr,
     registered = JNI_TRUE;
   }
 
-  // Note: it is ok for bd_addr to be null here.
-  ScopedBtAddr addr(&sCallbackEnv, bd_addr);
+  ScopedLocalRef<jbyteArray> addr(sCallbackEnv.get(), NULL);
+
+  if (bd_addr) {
+    addr.reset(marshall_bda(bd_addr));
+    if (!addr.get()) {
+      ALOGE("%s: failed to allocate storage for bt_addr", __FUNCTION__);
+      return;
+    }
+  }
 
   sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onApplicationStateChanged,
                                addr.get(), registered);
@@ -60,8 +80,11 @@ static void connection_state_callback(bt_bdaddr_t* bd_addr,
                                       bthd_connection_state_t state) {
   CallbackEnv sCallbackEnv(__func__);
 
-  ScopedBtAddr addr(&sCallbackEnv, bd_addr);
-  if (!addr.get()) return;
+  ScopedLocalRef<jbyteArray> addr(sCallbackEnv.get(), marshall_bda(bd_addr));
+  if (!addr.get()) {
+    ALOGE("%s: failed to allocate storage for bt_addr", __FUNCTION__);
+    return;
+  }
 
   sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onConnectStateChanged,
                                addr.get(), (jint)state);
