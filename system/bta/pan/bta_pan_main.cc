@@ -237,16 +237,16 @@ static void bta_pan_api_disable(UNUSED_ATTR tBTA_PAN_DATA* p_data) {
  ******************************************************************************/
 static void bta_pan_api_open(tBTA_PAN_DATA* p_data) {
   tBTA_PAN_SCB* p_scb;
-  tBTA_PAN_OPEN data;
+  tBTA_PAN bta_pan;
 
   /* allocate an scb */
   p_scb = bta_pan_scb_alloc();
   if (p_scb != NULL) {
     bta_pan_open(p_scb, p_data);
   } else {
-    bdcpy(data.bd_addr, p_data->api_open.bd_addr);
-    data.status = BTA_PAN_FAIL;
-    bta_pan_cb.p_cback(BTA_PAN_OPEN_EVT, (tBTA_PAN*)&data);
+    bdcpy(bta_pan.open.bd_addr, p_data->api_open.bd_addr);
+    bta_pan.open.status = BTA_PAN_FAIL;
+    bta_pan_cb.p_cback(BTA_PAN_OPEN_EVT, &bta_pan);
   }
 }
 /*******************************************************************************
