@@ -18,7 +18,6 @@ package com.android.bluetooth.gatt;
 
 import android.bluetooth.BluetoothUuid;
 import android.bluetooth.le.AdvertiseData;
-import android.bluetooth.le.AdvertiseSettings;
 import android.os.ParcelUuid;
 import android.util.Log;
 import com.android.bluetooth.Utils;
@@ -27,23 +26,6 @@ import java.io.ByteArrayOutputStream;
 class AdvertiseHelper {
 
   private static final String TAG = "AdvertiseHelper";
-
-  // Advertise interval for different modes.
-  private static final int ADVERTISING_INTERVAL_HIGH_MILLS = 1000;
-  private static final int ADVERTISING_INTERVAL_MEDIUM_MILLS = 250;
-  private static final int ADVERTISING_INTERVAL_LOW_MILLS = 100;
-
-  private static final int ADVERTISING_TX_POWER_MIN = 0;
-  private static final int ADVERTISING_TX_POWER_LOW = 1;
-  private static final int ADVERTISING_TX_POWER_MID = 2;
-  private static final int ADVERTISING_TX_POWER_UPPER = 3;
-  // Note this is not exposed to the Java API.
-  private static final int ADVERTISING_TX_POWER_MAX = 4;
-
-  // Note we don't expose connectable directed advertising to API.
-  private static final int ADVERTISING_EVENT_TYPE_LEGACY_CONNECTABLE = 0x13;
-  private static final int ADVERTISING_EVENT_TYPE_LEGACY_SCANNABLE = 0x12;
-  private static final int ADVERTISING_EVENT_TYPE_LEGACY_NON_CONNECTABLE = 0x10;
 
   private static final int DEVICE_NAME_MAX = 18;
 
@@ -183,48 +165,5 @@ class AdvertiseHelper {
     }
 
     return ret.toByteArray();
-  }
-
-  // Convert settings tx power level to stack tx power level.
-  public static int getTxPowerLevel(AdvertiseSettings settings) {
-    switch (settings.getTxPowerLevel()) {
-      case AdvertiseSettings.ADVERTISE_TX_POWER_ULTRA_LOW:
-        return ADVERTISING_TX_POWER_MIN;
-      case AdvertiseSettings.ADVERTISE_TX_POWER_LOW:
-        return ADVERTISING_TX_POWER_LOW;
-      case AdvertiseSettings.ADVERTISE_TX_POWER_MEDIUM:
-        return ADVERTISING_TX_POWER_MID;
-      case AdvertiseSettings.ADVERTISE_TX_POWER_HIGH:
-        return ADVERTISING_TX_POWER_UPPER;
-      default:
-        // Shouldn't happen, just in case.
-        return ADVERTISING_TX_POWER_MID;
-    }
-  }
-
-  // Convert advertising event type to stack values.
-  public static int getAdvertisingEventProperties(AdvertiseClient client) {
-    AdvertiseSettings settings = client.settings;
-    if (settings.isConnectable()) {
-      return ADVERTISING_EVENT_TYPE_LEGACY_CONNECTABLE;
-    }
-    return client.scanResponse == null
-        ? ADVERTISING_EVENT_TYPE_LEGACY_NON_CONNECTABLE
-        : ADVERTISING_EVENT_TYPE_LEGACY_SCANNABLE;
-  }
-
-  // Convert advertising milliseconds to advertising units(one unit is 0.625 millisecond).
-  public static long getAdvertisingIntervalUnit(AdvertiseSettings settings) {
-    switch (settings.getMode()) {
-      case AdvertiseSettings.ADVERTISE_MODE_LOW_POWER:
-        return Utils.millsToUnit(ADVERTISING_INTERVAL_HIGH_MILLS);
-      case AdvertiseSettings.ADVERTISE_MODE_BALANCED:
-        return Utils.millsToUnit(ADVERTISING_INTERVAL_MEDIUM_MILLS);
-      case AdvertiseSettings.ADVERTISE_MODE_LOW_LATENCY:
-        return Utils.millsToUnit(ADVERTISING_INTERVAL_LOW_MILLS);
-      default:
-        // Shouldn't happen, just in case.
-        return Utils.millsToUnit(ADVERTISING_INTERVAL_HIGH_MILLS);
-    }
   }
 }
