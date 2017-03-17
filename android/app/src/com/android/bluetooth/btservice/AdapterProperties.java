@@ -82,6 +82,7 @@ class AdapterProperties {
     private boolean mIsLeCodedPhySupported;
     private boolean mIsLeExtendedAdvertisingSupported;
     private boolean mIsLePeriodicAdvertisingSupported;
+    private int mLeMaximumAdvertisingDataLength;
 
     private BroadcastReceiver mReceiver = new BroadcastReceiver() {
         @Override
@@ -310,6 +311,13 @@ class AdapterProperties {
      */
     boolean isLePeriodicAdvertisingSupported() {
         return mIsLePeriodicAdvertisingSupported;
+    }
+
+    /**
+     * @return the getLeMaximumAdvertisingDataLength
+     */
+    int getLeMaximumAdvertisingDataLength() {
+        return mLeMaximumAdvertisingDataLength;
     }
 
     /**
@@ -629,6 +637,8 @@ class AdapterProperties {
         mIsLeCodedPhySupported = ((0xFF & ((int) val[15])) != 0);
         mIsLeExtendedAdvertisingSupported = ((0xFF & ((int) val[16])) != 0);
         mIsLePeriodicAdvertisingSupported = ((0xFF & ((int) val[17])) != 0);
+        mLeMaximumAdvertisingDataLength =   (0xFF & ((int)val[18]))
+                                         + ((0xFF & ((int)val[19])) << 8);
 
         Log.d(TAG, "BT_PROPERTY_LOCAL_LE_FEATURES: update from BT controller"
                 + " mNumOfAdvertisementInstancesSupported = "
@@ -650,6 +660,16 @@ class AdapterProperties {
                 + mIsExtendedScanSupported
                 + " mIsDebugLogSupported = "
                 + mIsDebugLogSupported
+                + " mIsLe2MPhySupported = "
+                + mIsLe2MPhySupported
+                + " mIsLeCodedPhySupported = "
+                + mIsLeCodedPhySupported
+                + " mIsLeExtendedAdvertisingSupported = "
+                + mIsLeExtendedAdvertisingSupported
+                + " mIsLePeriodicAdvertisingSupported = "
+                + mIsLePeriodicAdvertisingSupported
+                + " mLeMaximumAdvertisingDataLength = "
+                + mLeMaximumAdvertisingDataLength
                 );
     }
 
