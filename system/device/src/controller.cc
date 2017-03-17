@@ -228,6 +228,9 @@ static future_t* start_up(void) {
           packet_factory->make_ble_read_number_of_supported_advertising_sets());
       packet_parser->parse_ble_read_number_of_supported_advertising_sets(
           response, &ble_number_of_supported_advertising_sets);
+    } else {
+      /* If LE Excended Advertising is not supported, use the default value */
+      ble_maxium_advertising_data_length = 31;
     }
 
     // Set the ble event mask next
