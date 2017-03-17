@@ -1567,8 +1567,8 @@ static void advertiseCleanupNative(JNIEnv* env, jobject object) {
   }
 }
 
-static AdvertiseParameters parseParams(JNIEnv* env, jobject i, bool isScannable,
-                                       int* timeout) {
+static AdvertiseParameters parseParams(JNIEnv* env, jobject i,
+                                       bool isScannable) {
   AdvertiseParameters p;
 
   jclass clazz = env->GetObjectClass(i);
@@ -1590,8 +1590,6 @@ static AdvertiseParameters parseParams(JNIEnv* env, jobject i, bool isScannable,
   uint32_t interval = env->CallIntMethod(i, methodId);
   methodId = env->GetMethodID(clazz, "getTxPowerLevel", "()I");
   int8_t txPowerLevel = env->CallIntMethod(i, methodId);
-  methodId = env->GetMethodID(clazz, "getTimeout", "()I");
-  *timeout = env->CallIntMethod(i, methodId);
 
   uint16_t props = 0;
   if (isConnectable) props |= 0x01;
@@ -1661,7 +1659,8 @@ static void startAdvertisingSetNative(JNIEnv* env, jobject object,
                                       jobject parameters, jbyteArray adv_data,
                                       jbyteArray scan_resp,
                                       jobject periodic_parameters,
-                                      jbyteArray periodic_data, jint reg_id) {
+                                      jbyteArray periodic_data, jint timeout,
+                                      jint reg_id) {
   if (!sGattIf) return;
 
   jbyte* scan_resp_data = env->GetByteArrayElements(scan_resp, NULL);
@@ -1670,11 +1669,12 @@ static void startAdvertisingSetNative(JNIEnv* env, jobject object,
                                      scan_resp_data + scan_resp_len);
   env->ReleaseByteArrayElements(scan_resp, scan_resp_data, JNI_ABORT);
 
-  int timeout;
   AdvertiseParameters params =
-      parseParams(env, parameters, (scan_resp_len != 0), &timeout);
+      parseParams(env, parameters, (scan_resp_len != 0));
   PeriodicAdvertisingParameters periodicParams =
       parsePeriodicParams(env, periodic_parameters);
+
+  int timeout_s = (int)timeout / 1000;
 
   jbyte* adv_data_data = env->GetByteArrayElements(adv_data, NULL);
   uint16_t adv_data_len = (uint16_t)env->GetArrayLength(adv_data);
@@ -1689,7 +1689,7 @@ static void startAdvertisingSetNative(JNIEnv* env, jobject object,
 
   sGattIf->advertiser->StartAdvertisingSet(
       base::Bind(&ble_advertising_set_started_cb, reg_id), params, data_vec,
-      scan_resp_vec, periodicParams, periodic_data_vec, timeout,
+      scan_resp_vec, periodicParams, periodic_data_vec, timeout_s,
       base::Bind(ble_advertising_set_timeout_cb));
 }
 
@@ -1733,7 +1733,7 @@ static JNINativeMethod sAdvertiseMethods[] = {
     {"cleanupNative", "()V", (void*)advertiseCleanupNative},
     {"startAdvertisingSetNative",
      "(Landroid/bluetooth/le/AdvertisingSetParameters;[B[BLandroid/bluetooth/"
-     "le/PeriodicAdvertisingParameters;[BI)V",
+     "le/PeriodicAdvertisingParameters;[BII)V",
      (void*)startAdvertisingSetNative},
     {"stopAdvertisingSetNative", "(I)V", (void*)stopAdvertisingSetNative},
 };

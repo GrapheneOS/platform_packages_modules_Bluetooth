@@ -546,11 +546,11 @@ public class GattService extends ProfileService {
         public void startAdvertisingSet(AdvertisingSetParameters parameters,
                 AdvertiseData advertiseData, AdvertiseData scanResponse,
                 PeriodicAdvertisingParameters periodicParameters, AdvertiseData periodicData,
-                IAdvertisingSetCallback callback) {
+                int timeout, IAdvertisingSetCallback callback) {
             GattService service = getService();
             if (service == null) return;
             service.startAdvertisingSet(parameters, advertiseData, scanResponse, periodicParameters,
-                    periodicData, callback);
+                    periodicData, timeout, callback);
         }
 
         public void stopAdvertisingSet(IAdvertisingSetCallback callback) {
@@ -559,7 +559,7 @@ public class GattService extends ProfileService {
             service.stopAdvertisingSet(callback);
         }
 
-        public void enableAdverisingSet(int advertiserId, boolean enable) {
+        public void enableAdverisingSet(int advertiserId, boolean enable, int timeout) {
             GattService service = getService();
             if (service == null) return;
             // TODO: implement
@@ -1421,11 +1421,11 @@ public class GattService extends ProfileService {
      *************************************************************************/
     void startAdvertisingSet(AdvertisingSetParameters parameters, AdvertiseData advertiseData,
             AdvertiseData scanResponse, PeriodicAdvertisingParameters periodicParameters,
-            AdvertiseData periodicData, IAdvertisingSetCallback callback) {
+            AdvertiseData periodicData, int timeout, IAdvertisingSetCallback callback) {
         enforceAdminPermission();
 
         mAdvertiseManager.startAdvertisingSet(parameters, advertiseData, scanResponse,
-                periodicParameters, periodicData, callback);
+                periodicParameters, periodicData, timeout, callback);
     }
 
     void stopAdvertisingSet(IAdvertisingSetCallback callback) {
