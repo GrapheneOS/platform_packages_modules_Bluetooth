@@ -302,14 +302,19 @@ static void maybe_enable_auto_connection_param_update(const bt_bdaddr_t *bd_addr
     {
         bdstr_t bdstr;
         int bdstr_size = sizeof(bdstr);
-        if (btif_config_get_str("Adapter", "AutoConnParamUpdateAddr", bdstr, &bdstr_size))
-        {
-            bt_bdaddr_t auto_update_addr;
-            string_to_bdaddr(bdstr, &auto_update_addr);
-            bdcpy(auto_conn_param_update_cb.device_address.address, auto_update_addr.address);
-            LOG_INFO(LOG_TAG, "%s auto connection param update for address: %s", __FUNCTION__, bdstr);
+        /*
+         * If AutoConnParamUpdateAddr is not set from bonding, infer the first LE address performing
+         * connection parameter update as the companion.
+         */
+        if (!btif_config_get_str("Adapter", "AutoConnParamUpdateAddr", bdstr, &bdstr_size)) {
+            bdaddr_to_string(bd_addr, bdstr, bdstr_size);
+            btif_config_set_str("Adapter", "AutoConnParamUpdateAddr", bdstr);
+            LOG_INFO(LOG_TAG, "%s force set AutoConnParamUpdateAddr: %s", __FUNCTION__, bdstr);
         }
+
+        bdcpy(auto_conn_param_update_cb.device_address.address, bd_addr->address);
         auto_conn_param_update_cb.is_auto_update_address_known = true;
+        LOG_INFO(LOG_TAG, "%s auto connection param update for address: %s", __FUNCTION__, bdstr);
     }
 
     /* If the address matches the auto update address, store the connection parameter value */
