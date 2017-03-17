@@ -456,14 +456,14 @@ static void bta_av_api_register(tBTA_AV_DATA* p_data) {
                         BTA_ID_AV);
 #endif
 
-        /* Both Audio Source and Audio Sink support AVRCP 1.6 for the
-         * major roles (i.e. Audio Source -> TG 1.6 and vice versa). For
+        /* Both Audio Source and Audio Sink support AVRCP 1.4 for the
+         * major roles (i.e. Audio Source -> TG 1.4 and vice versa). For
          * Audio Sink role we support additional TG 1.3 to support
          * absolute volume. Here we only do TG registration.
          */
         uint16_t profile_version = AVRC_REV_1_0;
         if (profile_initialized == UUID_SERVCLASS_AUDIO_SOURCE) {
-          profile_version = AVRC_REV_1_6;
+          profile_version = AVRC_REV_1_4;
         } else if (profile_initialized == UUID_SERVCLASS_AUDIO_SINK) {
           // Initialize AVRCP1.4 to provide Absolute Volume control.
           profile_version = AVRC_REV_1_4;
