@@ -271,12 +271,14 @@ class BleAdvertisingManagerImpl
     // asynchronous flow
     // clang-format off
     c->self->SetParameters(c->inst_id, &c->params, Bind(
-      [](c_type c, uint8_t status) {
+      [](c_type c, uint8_t status, int8_t tx_power) {
         if (status != 0) {
           LOG(ERROR) << "setting parameters failed, status: " << +status;
           c->cb.Run(status);
           return;
         }
+
+        c->self->adv_inst[c->inst_id].tx_power = tx_power;
 
         BD_ADDR *rpa = &c->self->adv_inst[c->inst_id].own_address;
         c->self->GetHciInterface()->SetRandomAddress(c->inst_id, *rpa, Bind(
@@ -346,7 +348,7 @@ class BleAdvertisingManagerImpl
         c->inst_id = advertiser_id;
 
         c->self->SetParameters(c->inst_id, &c->params, Bind(
-          [](c_type c, uint8_t status) {
+          [](c_type c, uint8_t status, int8_t tx_power) {
             if (status != 0) {
               c->self->Unregister(c->inst_id);
               LOG(ERROR) << "setting parameters failed, status: " << +status;
@@ -354,8 +356,7 @@ class BleAdvertisingManagerImpl
               return;
             }
 
-            //TODO(jpawlowski): obtain real tx_power from set parameters
-            // response, to put into adv data
+            c->self->adv_inst[c->inst_id].tx_power = tx_power;
 
             BD_ADDR *rpa = &c->self->adv_inst[c->inst_id].own_address;
             c->self->GetHciInterface()->SetRandomAddress(c->inst_id, *rpa, Bind(
@@ -513,7 +514,7 @@ class BleAdvertisingManagerImpl
   }
 
   void SetParameters(uint8_t inst_id, tBTM_BLE_ADV_PARAMS* p_params,
-                     MultiAdvCb cb) override {
+                     ParametersCb cb) override {
     VLOG(1) << __func__ << " inst_id: " << +inst_id;
     if (inst_id >= inst_count) {
       LOG(ERROR) << "bad instance id " << +inst_id;
@@ -523,7 +524,7 @@ class BleAdvertisingManagerImpl
     AdvertisingInstance* p_inst = &adv_inst[inst_id];
     if (!p_inst->in_use) {
       LOG(ERROR) << "adv instance not in use" << +inst_id;
-      cb.Run(BTM_BLE_MULTI_ADV_FAILURE);
+      cb.Run(BTM_BLE_MULTI_ADV_FAILURE, 0);
       return;
     }
 

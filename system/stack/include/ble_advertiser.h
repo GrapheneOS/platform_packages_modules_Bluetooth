@@ -28,6 +28,8 @@
 #define ADVERTISE_FAILED_TOO_MANY_ADVERTISERS 0x02
 
 using MultiAdvCb = base::Callback<void(uint8_t /* status */)>;
+using ParametersCb =
+    base::Callback<void(uint8_t /* status */, int8_t /* tx_power */)>;
 
 // methods we must have defined
 void btm_ble_update_dmt_flag_bits(uint8_t* flag_value,
@@ -116,7 +118,7 @@ class BleAdvertisingManager {
   /* This function update a Multi-ADV instance with the specififed adv
    * parameters. */
   virtual void SetParameters(uint8_t inst_id, tBTM_BLE_ADV_PARAMS* p_params,
-                             MultiAdvCb cb) = 0;
+                             ParametersCb cb) = 0;
 
   /* This function configure a Multi-ADV instance with the specified adv data or
    * scan response data.*/
