@@ -38,6 +38,8 @@ extern void btm_gen_resolvable_private_addr(
     base::Callback<void(uint8_t[8])> cb);
 extern fixed_queue_t* btu_general_alarm_queue;
 
+constexpr int ADV_DATA_LEN_MAX = 251;
+
 struct AdvertisingInstance {
   uint8_t inst_id;
   bool in_use;
@@ -586,14 +588,60 @@ class BleAdvertisingManagerImpl
     }
 
     VLOG(1) << "data is: " << base::HexEncode(data.data(), data.size());
+    DivideAndSendData(
+        inst_id, data, cb,
+        base::Bind(&BleAdvertisingManagerImpl::SetDataAdvDataSender,
+                   base::Unretained(this), is_scan_rsp));
+  }
 
-    if (is_scan_rsp) {
-      GetHciInterface()->SetScanResponseData(inst_id, 0x03, 0x01, data.size(),
-                                             data.data(), cb);
-    } else {
-      GetHciInterface()->SetAdvertisingData(inst_id, 0x03, 0x01, data.size(),
-                                            data.data(), cb);
+  void SetDataAdvDataSender(uint8_t is_scan_rsp, uint8_t inst_id,
+                            uint8_t operation, uint8_t length, uint8_t* data,
+                            MultiAdvCb cb) {
+    if (is_scan_rsp)
+      GetHciInterface()->SetScanResponseData(inst_id, operation, 0x01, length,
+                                             data, cb);
+    else
+      GetHciInterface()->SetAdvertisingData(inst_id, operation, 0x01, length,
+                                            data, cb);
+  }
+
+  using DataSender = base::Callback<void(
+      uint8_t /*inst_id*/, uint8_t /* operation */, uint8_t /* length */,
+      uint8_t* /* data */, MultiAdvCb /* done */)>;
+
+  void DivideAndSendData(int inst_id, std::vector<uint8_t> data,
+                         MultiAdvCb done_cb, DataSender sender) {
+    DivideAndSendDataRecursively(true, inst_id, std::move(data), 0,
+                                 std::move(done_cb), std::move(sender), 0);
+  }
+
+  static void DivideAndSendDataRecursively(bool isFirst, int inst_id,
+                                           std::vector<uint8_t> data,
+                                           int offset, MultiAdvCb done_cb,
+                                           DataSender sender, uint8_t status) {
+    constexpr uint8_t INTERMEDIATE =
+        0x00;                        // Intermediate fragment of fragmented data
+    constexpr uint8_t FIRST = 0x01;  // First fragment of fragmented data
+    constexpr uint8_t LAST = 0x02;   // Last fragment of fragmented data
+    constexpr uint8_t COMPLETE = 0x03;  // Complete extended advertising data
+
+    int dataSize = (int)data.size();
+    if (status != 0 || (!isFirst && offset == dataSize)) {
+      /* if we got error writing data, or reached the end of data */
+      done_cb.Run(status);
+      return;
     }
+
+    bool moreThanOnePacket = dataSize - offset > ADV_DATA_LEN_MAX;
+    uint8_t operation = isFirst ? moreThanOnePacket ? FIRST : COMPLETE
+                                : moreThanOnePacket ? INTERMEDIATE : LAST;
+    int length = moreThanOnePacket ? ADV_DATA_LEN_MAX : dataSize - offset;
+    int newOffset = offset + length;
+
+    sender.Run(
+        inst_id, operation, length, data.data() + offset,
+        Bind(&BleAdvertisingManagerImpl::DivideAndSendDataRecursively, false,
+             inst_id, std::move(data), newOffset, std::move(done_cb), sender));
   }
 
   void SetPeriodicAdvertisingParameters(uint8_t inst_id,
@@ -612,8 +660,10 @@ class BleAdvertisingManagerImpl
 
     VLOG(1) << "data is: " << base::HexEncode(data.data(), data.size());
 
-    GetHciInterface()->SetPeriodicAdvertisingData(inst_id, 0x03, data.size(),
-                                                  data.data(), cb);
+    DivideAndSendData(
+        inst_id, data, cb,
+        base::Bind(&BleAdvertiserHciInterface::SetPeriodicAdvertisingData,
+                   base::Unretained(GetHciInterface())));
   }
 
   void SetPeriodicAdvertisingEnable(uint8_t inst_id, uint8_t enable,
