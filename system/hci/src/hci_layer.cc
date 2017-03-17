@@ -409,7 +409,7 @@ static void command_timed_out(UNUSED_ATTR void* context) {
 
   LOG_ERROR(LOG_TAG, "%s restarting the bluetooth process.", __func__);
   usleep(10000);
-  kill(getpid(), SIGKILL);
+  abort();
 }
 
 // Event/packet receiving functions
