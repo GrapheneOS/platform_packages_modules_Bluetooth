@@ -784,7 +784,8 @@ static void search_devices_copy_cb(uint16_t event, char* p_dest, char* p_src) {
         p_dest_data->inq_res.p_eir =
             (uint8_t*)(p_dest + sizeof(tBTA_DM_SEARCH));
         memcpy(p_dest_data->inq_res.p_eir, p_src_data->inq_res.p_eir,
-               HCI_EXT_INQ_RESPONSE_LEN);
+               p_src_data->inq_res.eir_len);
+        p_dest_data->inq_res.eir_len = p_src_data->inq_res.eir_len;
       }
     } break;
 
