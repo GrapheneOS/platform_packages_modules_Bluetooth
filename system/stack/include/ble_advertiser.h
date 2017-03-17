@@ -51,6 +51,13 @@ typedef struct {
   uint8_t scan_request_notification_enable;
 } tBTM_BLE_ADV_PARAMS;
 
+typedef struct {
+  uint8_t enable;
+  uint16_t min_interval;
+  uint16_t max_interval;
+  uint16_t periodic_advertising_properties;
+} tBLE_PERIODIC_ADV_PARAMS;
+
 class BleAdvertiserHciInterface;
 
 class BleAdvertisingManager {
@@ -65,17 +72,34 @@ class BleAdvertisingManager {
   static BleAdvertisingManager* Get();
 
   /* Register an advertising instance, status will be returned in |cb|
-  * callback, with assigned id, if operation succeeds. Instance is freed when
-  * advertising is disabled by calling |BTM_BleDisableAdvInstance|, or when any
-  * of the operations fails.
-  * The instance will have data set to |advertise_data|, scan response set to
-  * |scan_response_data|, and will be enabled.
-  */
+   * callback, with assigned id, if operation succeeds. Instance is freed when
+   * advertising is disabled by calling |BTM_BleDisableAdvInstance|, or when any
+   * of the operations fails.
+   * The instance will have data set to |advertise_data|, scan response set to
+   * |scan_response_data|, and will be enabled.
+   */
   virtual void StartAdvertising(uint8_t advertiser_id, MultiAdvCb cb,
                                 tBTM_BLE_ADV_PARAMS* params,
                                 std::vector<uint8_t> advertise_data,
                                 std::vector<uint8_t> scan_response_data,
                                 int timeout_s, MultiAdvCb timeout_cb) = 0;
+
+  /* Register an advertising instance, status will be returned in |cb|
+   * callback, with assigned id, if operation succeeds. Instance is freed when
+   * advertising is disabled by calling |BTM_BleDisableAdvInstance|, or when any
+   * of the operations fails.
+   * The instance will have data set to |advertise_data|, scan response set to
+   * |scan_response_data|, periodic data set to |periodic_data| and will be
+   * enabled.
+   */
+  virtual void StartAdvertisingSet(
+      base::Callback<void(uint8_t /* inst_id */, uint8_t /* status */)> cb,
+      tBTM_BLE_ADV_PARAMS* params, std::vector<uint8_t> advertise_data,
+      std::vector<uint8_t> scan_response_data,
+      tBLE_PERIODIC_ADV_PARAMS* periodic_params,
+      std::vector<uint8_t> periodic_data, int timeout_s,
+      base::Callback<void(uint8_t /* inst_id */, uint8_t /* status */)>
+          timeout_cb) = 0;
 
   /* Register an advertising instance, status will be returned in |cb|
   * callback, with assigned id, if operation succeeds. Instance is freed when
