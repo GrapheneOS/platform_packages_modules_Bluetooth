@@ -21,7 +21,6 @@
 #include "android_runtime/AndroidRuntime.h"
 #include "com_android_bluetooth.h"
 #include "hardware/bt_hf.h"
-#include "scoped_bt_addr.h"
 #include "utils/Log.h"
 
 #include <string.h>
@@ -51,13 +50,27 @@ static jmethodID method_onAtBiev;
 static const bthf_interface_t* sBluetoothHfpInterface = NULL;
 static jobject mCallbacksObj = NULL;
 
+static jbyteArray marshall_bda(bt_bdaddr_t* bd_addr) {
+  CallbackEnv sCallbackEnv(__func__);
+  if (!sCallbackEnv.valid()) return NULL;
+
+  jbyteArray addr = sCallbackEnv->NewByteArray(sizeof(bt_bdaddr_t));
+  if (!addr) {
+    ALOGE("Fail to new jbyteArray bd addr");
+    return NULL;
+  }
+  sCallbackEnv->SetByteArrayRegion(addr, 0, sizeof(bt_bdaddr_t),
+                                   (jbyte*)bd_addr);
+  return addr;
+}
+
 static void connection_state_callback(bthf_connection_state_t state,
                                       bt_bdaddr_t* bd_addr) {
   ALOGI("%s", __func__);
 
   CallbackEnv sCallbackEnv(__func__);
   if (!sCallbackEnv.valid()) return;
-  ScopedBtAddr addr(&sCallbackEnv, bd_addr);
+  ScopedLocalRef<jbyteArray> addr(sCallbackEnv.get(), marshall_bda(bd_addr));
   if (!addr.get()) return;
 
   sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onConnectionStateChanged,
@@ -68,7 +81,7 @@ static void audio_state_callback(bthf_audio_state_t state,
                                  bt_bdaddr_t* bd_addr) {
   CallbackEnv sCallbackEnv(__func__);
   if (!sCallbackEnv.valid()) return;
-  ScopedBtAddr addr(&sCallbackEnv, bd_addr);
+  ScopedLocalRef<jbyteArray> addr(sCallbackEnv.get(), marshall_bda(bd_addr));
   if (!addr.get()) return;
 
   sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onAudioStateChanged,
@@ -79,8 +92,11 @@ static void voice_recognition_callback(bthf_vr_state_t state,
                                        bt_bdaddr_t* bd_addr) {
   CallbackEnv sCallbackEnv(__func__);
   if (!sCallbackEnv.valid()) return;
-  ScopedBtAddr addr(&sCallbackEnv, bd_addr);
-  if (!addr.get()) return;
+  ScopedLocalRef<jbyteArray> addr(sCallbackEnv.get(), marshall_bda(bd_addr));
+  if (!addr.get()) {
+    ALOGE("Fail to new jbyteArray bd addr for audio state");
+    return;
+  }
 
   sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onVrStateChanged,
                                (jint)state, addr.get());
@@ -89,8 +105,11 @@ static void voice_recognition_callback(bthf_vr_state_t state,
 static void answer_call_callback(bt_bdaddr_t* bd_addr) {
   CallbackEnv sCallbackEnv(__func__);
   if (!sCallbackEnv.valid()) return;
-  ScopedBtAddr addr(&sCallbackEnv, bd_addr);
-  if (!addr.get()) return;
+  ScopedLocalRef<jbyteArray> addr(sCallbackEnv.get(), marshall_bda(bd_addr));
+  if (!addr.get()) {
+    ALOGE("Fail to new jbyteArray bd addr for audio state");
+    return;
+  }
 
   sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onAnswerCall, addr.get());
 }
@@ -98,8 +117,11 @@ static void answer_call_callback(bt_bdaddr_t* bd_addr) {
 static void hangup_call_callback(bt_bdaddr_t* bd_addr) {
   CallbackEnv sCallbackEnv(__func__);
   if (!sCallbackEnv.valid()) return;
-  ScopedBtAddr addr(&sCallbackEnv, bd_addr);
-  if (!addr.get()) return;
+  ScopedLocalRef<jbyteArray> addr(sCallbackEnv.get(), marshall_bda(bd_addr));
+  if (!addr.get()) {
+    ALOGE("Fail to new jbyteArray bd addr for audio state");
+    return;
+  }
 
   sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onHangupCall, addr.get());
 }
@@ -108,8 +130,11 @@ static void volume_control_callback(bthf_volume_type_t type, int volume,
                                     bt_bdaddr_t* bd_addr) {
   CallbackEnv sCallbackEnv(__func__);
   if (!sCallbackEnv.valid()) return;
-  ScopedBtAddr addr(&sCallbackEnv, bd_addr);
-  if (!addr.get()) return;
+  ScopedLocalRef<jbyteArray> addr(sCallbackEnv.get(), marshall_bda(bd_addr));
+  if (!addr.get()) {
+    ALOGE("Fail to new jbyteArray bd addr for audio state");
+    return;
+  }
 
   sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onVolumeChanged,
                                (jint)type, (jint)volume, addr.get());
@@ -118,8 +143,11 @@ static void volume_control_callback(bthf_volume_type_t type, int volume,
 static void dial_call_callback(char* number, bt_bdaddr_t* bd_addr) {
   CallbackEnv sCallbackEnv(__func__);
   if (!sCallbackEnv.valid()) return;
-  ScopedBtAddr addr(&sCallbackEnv, bd_addr);
-  if (!addr.get()) return;
+  ScopedLocalRef<jbyteArray> addr(sCallbackEnv.get(), marshall_bda(bd_addr));
+  if (!addr.get()) {
+    ALOGE("Fail to new jbyteArray bd addr for audio state");
+    return;
+  }
 
   ScopedLocalRef<jstring> js_number(sCallbackEnv.get(),
                                     sCallbackEnv->NewStringUTF(number));
@@ -130,8 +158,11 @@ static void dial_call_callback(char* number, bt_bdaddr_t* bd_addr) {
 static void dtmf_cmd_callback(char dtmf, bt_bdaddr_t* bd_addr) {
   CallbackEnv sCallbackEnv(__func__);
   if (!sCallbackEnv.valid()) return;
-  ScopedBtAddr addr(&sCallbackEnv, bd_addr);
-  if (!addr.get()) return;
+  ScopedLocalRef<jbyteArray> addr(sCallbackEnv.get(), marshall_bda(bd_addr));
+  if (!addr.get()) {
+    ALOGE("Fail to new jbyteArray bd addr for audio state");
+    return;
+  }
 
   // TBD dtmf has changed from int to char
   sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onSendDtmf, dtmf,
@@ -141,8 +172,11 @@ static void dtmf_cmd_callback(char dtmf, bt_bdaddr_t* bd_addr) {
 static void noice_reduction_callback(bthf_nrec_t nrec, bt_bdaddr_t* bd_addr) {
   CallbackEnv sCallbackEnv(__func__);
   if (!sCallbackEnv.valid()) return;
-  ScopedBtAddr addr(&sCallbackEnv, bd_addr);
-  if (!addr.get()) return;
+  ScopedLocalRef<jbyteArray> addr(sCallbackEnv.get(), marshall_bda(bd_addr));
+  if (!addr.get()) {
+    ALOGE("Fail to new jbyteArray bd addr for audio state");
+    return;
+  }
   sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onNoiceReductionEnable,
                                nrec == BTHF_NREC_START, addr.get());
 }
@@ -151,8 +185,8 @@ static void wbs_callback(bthf_wbs_config_t wbs_config, bt_bdaddr_t* bd_addr) {
   CallbackEnv sCallbackEnv(__func__);
   if (!sCallbackEnv.valid()) return;
 
-  ScopedBtAddr addr(&sCallbackEnv, bd_addr);
-  if (!addr.get()) return;
+  ScopedLocalRef<jbyteArray> addr(sCallbackEnv.get(), marshall_bda(bd_addr));
+  if (addr.get() == NULL) return;
 
   sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onWBS, wbs_config,
                                addr.get());
@@ -161,8 +195,12 @@ static void wbs_callback(bthf_wbs_config_t wbs_config, bt_bdaddr_t* bd_addr) {
 static void at_chld_callback(bthf_chld_type_t chld, bt_bdaddr_t* bd_addr) {
   CallbackEnv sCallbackEnv(__func__);
   if (!sCallbackEnv.valid()) return;
-  ScopedBtAddr addr(&sCallbackEnv, bd_addr);
-  if (!addr.get()) return;
+  ScopedLocalRef<jbyteArray> addr(
+      sCallbackEnv.get(), sCallbackEnv->NewByteArray(sizeof(bt_bdaddr_t)));
+  if (!addr.get()) {
+    ALOGE("Fail to new jbyteArray bd addr for audio state");
+    return;
+  }
 
   sCallbackEnv->SetByteArrayRegion(addr.get(), 0, sizeof(bt_bdaddr_t),
                                    (jbyte*)bd_addr);
@@ -173,8 +211,11 @@ static void at_chld_callback(bthf_chld_type_t chld, bt_bdaddr_t* bd_addr) {
 static void at_cnum_callback(bt_bdaddr_t* bd_addr) {
   CallbackEnv sCallbackEnv(__func__);
   if (!sCallbackEnv.valid()) return;
-  ScopedBtAddr addr(&sCallbackEnv, bd_addr);
-  if (!addr.get()) return;
+  ScopedLocalRef<jbyteArray> addr(sCallbackEnv.get(), marshall_bda(bd_addr));
+  if (!addr.get()) {
+    ALOGE("Fail to new jbyteArray bd addr for audio state");
+    return;
+  }
 
   sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onAtCnum, addr.get());
 }
@@ -182,8 +223,11 @@ static void at_cnum_callback(bt_bdaddr_t* bd_addr) {
 static void at_cind_callback(bt_bdaddr_t* bd_addr) {
   CallbackEnv sCallbackEnv(__func__);
   if (!sCallbackEnv.valid()) return;
-  ScopedBtAddr addr(&sCallbackEnv, bd_addr);
-  if (!addr.get()) return;
+  ScopedLocalRef<jbyteArray> addr(sCallbackEnv.get(), marshall_bda(bd_addr));
+  if (!addr.get()) {
+    ALOGE("Fail to new jbyteArray bd addr for audio state");
+    return;
+  }
 
   sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onAtCind, addr.get());
 }
@@ -191,8 +235,11 @@ static void at_cind_callback(bt_bdaddr_t* bd_addr) {
 static void at_cops_callback(bt_bdaddr_t* bd_addr) {
   CallbackEnv sCallbackEnv(__func__);
   if (!sCallbackEnv.valid()) return;
-  ScopedBtAddr addr(&sCallbackEnv, bd_addr);
-  if (!addr.get()) return;
+  ScopedLocalRef<jbyteArray> addr(sCallbackEnv.get(), marshall_bda(bd_addr));
+  if (!addr.get()) {
+    ALOGE("Fail to new jbyteArray bd addr for audio state");
+    return;
+  }
 
   sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onAtCops, addr.get());
 }
@@ -200,8 +247,11 @@ static void at_cops_callback(bt_bdaddr_t* bd_addr) {
 static void at_clcc_callback(bt_bdaddr_t* bd_addr) {
   CallbackEnv sCallbackEnv(__func__);
   if (!sCallbackEnv.valid()) return;
-  ScopedBtAddr addr(&sCallbackEnv, bd_addr);
-  if (!addr.get()) return;
+  ScopedLocalRef<jbyteArray> addr(sCallbackEnv.get(), marshall_bda(bd_addr));
+  if (!addr.get()) {
+    ALOGE("Fail to new jbyteArray bd addr for audio state");
+    return;
+  }
 
   sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onAtClcc, addr.get());
 }
@@ -209,8 +259,11 @@ static void at_clcc_callback(bt_bdaddr_t* bd_addr) {
 static void unknown_at_callback(char* at_string, bt_bdaddr_t* bd_addr) {
   CallbackEnv sCallbackEnv(__func__);
   if (!sCallbackEnv.valid()) return;
-  ScopedBtAddr addr(&sCallbackEnv, bd_addr);
-  if (!addr.get()) return;
+  ScopedLocalRef<jbyteArray> addr(sCallbackEnv.get(), marshall_bda(bd_addr));
+  if (!addr.get()) {
+    ALOGE("Fail to new jbyteArray bd addr for audio state");
+    return;
+  }
 
   ScopedLocalRef<jstring> js_at_string(sCallbackEnv.get(),
                                        sCallbackEnv->NewStringUTF(at_string));
@@ -221,8 +274,11 @@ static void unknown_at_callback(char* at_string, bt_bdaddr_t* bd_addr) {
 static void key_pressed_callback(bt_bdaddr_t* bd_addr) {
   CallbackEnv sCallbackEnv(__func__);
   if (!sCallbackEnv.valid()) return;
-  ScopedBtAddr addr(&sCallbackEnv, bd_addr);
-  if (!addr.get()) return;
+  ScopedLocalRef<jbyteArray> addr(sCallbackEnv.get(), marshall_bda(bd_addr));
+  if (!addr.get()) {
+    ALOGE("Fail to new jbyteArray bd addr for audio state");
+    return;
+  }
 
   sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onKeyPressed, addr.get());
 }
@@ -231,8 +287,8 @@ static void at_bind_callback(char* at_string, bt_bdaddr_t* bd_addr) {
   CallbackEnv sCallbackEnv(__func__);
   if (!sCallbackEnv.valid()) return;
 
-  ScopedBtAddr addr(&sCallbackEnv, bd_addr);
-  if (!addr.get()) return;
+  ScopedLocalRef<jbyteArray> addr(sCallbackEnv.get(), marshall_bda(bd_addr));
+  if (addr.get() == NULL) return;
 
   ScopedLocalRef<jstring> js_at_string(sCallbackEnv.get(),
                                        sCallbackEnv->NewStringUTF(at_string));
@@ -246,8 +302,8 @@ static void at_biev_callback(bthf_hf_ind_type_t ind_id, int ind_value,
   CallbackEnv sCallbackEnv(__func__);
   if (!sCallbackEnv.valid()) return;
 
-  ScopedBtAddr addr(&sCallbackEnv, bd_addr);
-  if (!addr.get()) return;
+  ScopedLocalRef<jbyteArray> addr(sCallbackEnv.get(), marshall_bda(bd_addr));
+  if (addr.get() == NULL) return;
 
   sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onAtBiev, ind_id,
                                (jint)ind_value, addr.get());

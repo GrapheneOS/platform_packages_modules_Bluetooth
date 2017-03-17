@@ -62,9 +62,7 @@ public:
         return mCallbackEnv;
     }
 
-    const char* method_name() { return mName; }
-
-   private:
+private:
     JNIEnv *mCallbackEnv;
     const char *mName;
 
