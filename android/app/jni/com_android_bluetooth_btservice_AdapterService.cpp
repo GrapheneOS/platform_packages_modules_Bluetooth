@@ -21,6 +21,7 @@
 #include "cutils/properties.h"
 #include "hardware/bt_sock.h"
 #include "nativehelper/ScopedLocalFrame.h"
+#include "scoped_bt_addr.h"
 #include "utils/Log.h"
 #include "utils/misc.h"
 
@@ -192,15 +193,8 @@ static void remote_device_properties_callback(bt_status_t status,
     return;
   }
 
-  ScopedLocalRef<jbyteArray> addr(
-      sCallbackEnv.get(), sCallbackEnv->NewByteArray(sizeof(bt_bdaddr_t)));
-  if (!addr.get()) {
-    ALOGE("Error while allocation byte array in %s", __func__);
-    return;
-  }
-
-  sCallbackEnv->SetByteArrayRegion(addr.get(), 0, sizeof(bt_bdaddr_t),
-                                   (jbyte*)bd_addr);
+  ScopedBtAddr addr(&sCallbackEnv, bd_addr);
+  if (!addr.get()) return;
 
   jintArray typesPtr = types.get();
   jobjectArray propsPtr = props.get();
@@ -218,24 +212,15 @@ static void device_found_callback(int num_properties,
   CallbackEnv sCallbackEnv(__func__);
   if (!sCallbackEnv.valid()) return;
 
-  ScopedLocalRef<jbyteArray> addr(sCallbackEnv.get(), NULL);
+  ScopedBtAddr addr(&sCallbackEnv, NULL);
   int addr_index;
   for (int i = 0; i < num_properties; i++) {
     if (properties[i].type == BT_PROPERTY_BDADDR) {
-      addr.reset(sCallbackEnv->NewByteArray(properties[i].len));
-      if (!addr.get()) {
-        ALOGE("Address is NULL (unable to allocate) in %s", __func__);
-        return;
-      }
-      sCallbackEnv->SetByteArrayRegion(addr.get(), 0, properties[i].len,
-                                       (jbyte*)properties[i].val);
+      addr.reset((bt_bdaddr_t*)properties[i].val);
       addr_index = i;
     }
   }
-  if (!addr.get()) {
-    ALOGE("Address is NULL in %s", __func__);
-    return;
-  }
+  if (!addr.get()) return;
 
   ALOGV("%s: Properties: %d, Address: %s", __func__, num_properties,
         (const char*)properties[addr_index].val);
@@ -259,14 +244,8 @@ static void bond_state_changed_callback(bt_status_t status,
     return;
   }
 
-  ScopedLocalRef<jbyteArray> addr(
-      sCallbackEnv.get(), sCallbackEnv->NewByteArray(sizeof(bt_bdaddr_t)));
-  if (!addr.get()) {
-    ALOGE("Address allocation failed in %s", __func__);
-    return;
-  }
-  sCallbackEnv->SetByteArrayRegion(addr.get(), 0, sizeof(bt_bdaddr_t),
-                                   (jbyte*)bd_addr);
+  ScopedBtAddr addr(&sCallbackEnv, bd_addr);
+  if (!addr.get()) return;
 
   sCallbackEnv->CallVoidMethod(sJniCallbacksObj, method_bondStateChangeCallback,
                                (jint)status, addr.get(), (jint)state);
@@ -282,14 +261,8 @@ static void acl_state_changed_callback(bt_status_t status, bt_bdaddr_t* bd_addr,
   CallbackEnv sCallbackEnv(__func__);
   if (!sCallbackEnv.valid()) return;
 
-  ScopedLocalRef<jbyteArray> addr(
-      sCallbackEnv.get(), sCallbackEnv->NewByteArray(sizeof(bt_bdaddr_t)));
-  if (!addr.get()) {
-    ALOGE("Address allocation failed in %s", __func__);
-    return;
-  }
-  sCallbackEnv->SetByteArrayRegion(addr.get(), 0, sizeof(bt_bdaddr_t),
-                                   (jbyte*)bd_addr);
+  ScopedBtAddr addr(&sCallbackEnv, bd_addr);
+  if (!addr.get()) return;
 
   sCallbackEnv->CallVoidMethod(sJniCallbacksObj, method_aclStateChangeCallback,
                                (jint)status, addr.get(), (jint)state);
@@ -315,15 +288,8 @@ static void pin_request_callback(bt_bdaddr_t* bd_addr, bt_bdname_t* bdname,
   CallbackEnv sCallbackEnv(__func__);
   if (!sCallbackEnv.valid()) return;
 
-  ScopedLocalRef<jbyteArray> addr(
-      sCallbackEnv.get(), sCallbackEnv->NewByteArray(sizeof(bt_bdaddr_t)));
-  if (!addr.get()) {
-    ALOGE("Error while allocating in: %s", __func__);
-    return;
-  }
-
-  sCallbackEnv->SetByteArrayRegion(addr.get(), 0, sizeof(bt_bdaddr_t),
-                                   (jbyte*)bd_addr);
+  ScopedBtAddr addr(&sCallbackEnv, bd_addr);
+  if (!addr.get()) return;
 
   ScopedLocalRef<jbyteArray> devname(
       sCallbackEnv.get(), sCallbackEnv->NewByteArray(sizeof(bt_bdname_t)));
@@ -349,15 +315,8 @@ static void ssp_request_callback(bt_bdaddr_t* bd_addr, bt_bdname_t* bdname,
   CallbackEnv sCallbackEnv(__func__);
   if (!sCallbackEnv.valid()) return;
 
-  ScopedLocalRef<jbyteArray> addr(
-      sCallbackEnv.get(), sCallbackEnv->NewByteArray(sizeof(bt_bdaddr_t)));
-  if (!addr.get()) {
-    ALOGE("Error while allocating in: %s", __func__);
-    return;
-  }
-
-  sCallbackEnv->SetByteArrayRegion(addr.get(), 0, sizeof(bt_bdaddr_t),
-                                   (jbyte*)bd_addr);
+  ScopedBtAddr addr(&sCallbackEnv, bd_addr);
+  if (!addr.get()) return;
 
   ScopedLocalRef<jbyteArray> devname(
       sCallbackEnv.get(), sCallbackEnv->NewByteArray(sizeof(bt_bdname_t)));
