@@ -1352,6 +1352,12 @@ public class AdapterService extends Service {
              return service.isLePeriodicAdvertisingSupported();
          }
 
+         public int getLeMaximumAdvertisingDataLength() {
+             AdapterService service = getService();
+             if (service == null) return 0;
+             return service.getLeMaximumAdvertisingDataLength();
+         }
+
          public boolean isActivityAndEnergyReportingSupported() {
              AdapterService service = getService();
              if (service == null) return false;
@@ -1917,6 +1923,11 @@ public class AdapterService extends Service {
     public boolean isLePeriodicAdvertisingSupported() {
         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
         return mAdapterProperties.isLePeriodicAdvertisingSupported();
+    }
+
+    public int getLeMaximumAdvertisingDataLength() {
+        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+        return mAdapterProperties.getLeMaximumAdvertisingDataLength();
     }
 
     private BluetoothActivityEnergyInfo reportActivityInfo() {
