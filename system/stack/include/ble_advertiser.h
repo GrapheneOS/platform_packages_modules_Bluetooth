@@ -123,6 +123,19 @@ class BleAdvertisingManager {
   virtual void SetData(uint8_t inst_id, bool is_scan_rsp,
                        std::vector<uint8_t> data, MultiAdvCb cb) = 0;
 
+  /* This function configure instance with the specified periodic parameters */
+  virtual void SetPeriodicAdvertisingParameters(
+      uint8_t inst_id, tBLE_PERIODIC_ADV_PARAMS* params, MultiAdvCb cb) = 0;
+
+  /* This function configure instance with the specified periodic data */
+  virtual void SetPeriodicAdvertisingData(uint8_t inst_id,
+                                          std::vector<uint8_t> data,
+                                          MultiAdvCb cb) = 0;
+
+  /* This function enables/disables periodic advertising on selected instance */
+  virtual void SetPeriodicAdvertisingEnable(uint8_t inst_id, uint8_t enable,
+                                            MultiAdvCb cb) = 0;
+
   /*  This function disable a Multi-ADV instance */
   virtual void Unregister(uint8_t inst_id) = 0;
 

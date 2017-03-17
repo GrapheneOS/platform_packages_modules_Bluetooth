@@ -105,7 +105,23 @@ void alarm_set_closure_on_queue(const tracked_objects::Location& posted_from,
   alarm_set_on_queue(alarm, interval_ms, alarm_closure_cb, data, queue);
 }
 
-}  // namespace
+class BleAdvertisingManagerImpl;
+
+/* a temporary type for holding all the data needed in callbacks below*/
+struct CreatorParams {
+  uint8_t inst_id;
+  BleAdvertisingManagerImpl* self;
+  RegisterCb cb;
+  tBTM_BLE_ADV_PARAMS params;
+  std::vector<uint8_t> advertise_data;
+  std::vector<uint8_t> scan_response_data;
+  tBLE_PERIODIC_ADV_PARAMS periodic_params;
+  std::vector<uint8_t> periodic_data;
+  int timeout_s;
+  RegisterCb timeout_cb;
+};
+
+using c_type = std::unique_ptr<CreatorParams>;
 
 class BleAdvertisingManagerImpl
     : public BleAdvertisingManager,
@@ -300,20 +316,6 @@ class BleAdvertisingManagerImpl
                            tBLE_PERIODIC_ADV_PARAMS* periodic_params,
                            std::vector<uint8_t> periodic_data, int timeout_s,
                            RegisterCb timeout_cb) override {
-    /* a temporary type for holding all the data needed in callbacks below*/
-    struct CreatorParams {
-      uint8_t inst_id;
-      BleAdvertisingManagerImpl* self;
-      RegisterCb cb;
-      tBTM_BLE_ADV_PARAMS params;
-      std::vector<uint8_t> advertise_data;
-      std::vector<uint8_t> scan_response_data;
-      tBLE_PERIODIC_ADV_PARAMS periodic_params;
-      std::vector<uint8_t> periodic_data;
-      int timeout_s;
-      RegisterCb timeout_cb;
-    };
-
     std::unique_ptr<CreatorParams> c;
     c.reset(new CreatorParams());
 
@@ -327,7 +329,6 @@ class BleAdvertisingManagerImpl
     c->timeout_s = timeout_s;
     c->timeout_cb = std::move(timeout_cb);
 
-    using c_type = std::unique_ptr<CreatorParams>;
 
     // this code is intentionally left formatted this way to highlight the
     // asynchronous flow
@@ -382,30 +383,77 @@ class BleAdvertisingManagerImpl
                           return;
                         }
 
-                        uint8_t inst_id = c->inst_id;
-                        int timeout_s = c->timeout_s;
-                        RegisterCb timeout_cb = std::move(c->timeout_cb);
-                        BleAdvertisingManagerImpl* self = c->self;
-                        MultiAdvCb enable_cb = Bind(
-                            [](c_type c, uint8_t status) {
-                              if (status != 0) {
-                                c->self->Unregister(c->inst_id);
-                                LOG(ERROR) << "enabling advertiser failed, status: " << +status;
-                                c->cb.Run(0, status);
-                                return;
-                              }
-                              c->cb.Run(c->inst_id, status);
-                            },
-                            base::Passed(&c));
-
-
-                        self->Enable(inst_id, true, std::move(enable_cb), timeout_s, Bind(std::move(timeout_cb), inst_id));
+                        if (c->periodic_params.enable) {
+                          c->self->StartAdvertisingSetPeriodicPart(std::move(c));
+                        } else {
+                          c->self->StartAdvertisingSetFinish(std::move(c));
+                        }
                     }, base::Passed(&c)));
                 }, base::Passed(&c)));
             }, base::Passed(&c)));
         }, base::Passed(&c)));
     }, base::Passed(&c)));
     // clang-format on
+  }
+
+  void StartAdvertisingSetPeriodicPart(c_type c) {
+    // this code is intentionally left formatted this way to highlight the
+    // asynchronous flow
+    // clang-format off
+    c->self->SetPeriodicAdvertisingParameters(c->inst_id, &c->periodic_params, Bind(
+      [](c_type c, uint8_t status) {
+        if (status != 0) {
+          c->self->Unregister(c->inst_id);
+          LOG(ERROR) << "setting periodic parameters failed, status: " << +status;
+          c->cb.Run(0, status);
+          return;
+        }
+
+        c->self->SetPeriodicAdvertisingData(c->inst_id, std::move(c->periodic_data), Bind(
+          [](c_type c, uint8_t status) {
+            if (status != 0) {
+              c->self->Unregister(c->inst_id);
+              LOG(ERROR) << "setting periodic parameters failed, status: " << +status;
+              c->cb.Run(0, status);
+              return;
+            }
+
+            c->self->SetPeriodicAdvertisingEnable(c->inst_id, true, Bind(
+              [](c_type c, uint8_t status) {
+                if (status != 0) {
+                  c->self->Unregister(c->inst_id);
+                  LOG(ERROR) << "enabling periodic advertising failed, status: " << +status;
+                  c->cb.Run(0, status);
+                  return;
+                }
+
+                c->self->StartAdvertisingSetFinish(std::move(c));
+
+              }, base::Passed(&c)));
+        }, base::Passed(&c)));
+    }, base::Passed(&c)));
+    // clang-format on
+  }
+
+  void StartAdvertisingSetFinish(c_type c) {
+    uint8_t inst_id = c->inst_id;
+    int timeout_s = c->timeout_s;
+    RegisterCb timeout_cb = std::move(c->timeout_cb);
+    BleAdvertisingManagerImpl* self = c->self;
+    MultiAdvCb enable_cb = Bind(
+        [](c_type c, uint8_t status) {
+          if (status != 0) {
+            c->self->Unregister(c->inst_id);
+            LOG(ERROR) << "enabling advertiser failed, status: " << +status;
+            c->cb.Run(0, status);
+            return;
+          }
+          c->cb.Run(c->inst_id, status);
+        },
+        base::Passed(&c));
+
+    self->Enable(inst_id, true, std::move(enable_cb), timeout_s,
+                 Bind(std::move(timeout_cb), inst_id));
   }
 
   void EnableWithTimerCb(uint8_t inst_id, MultiAdvCb enable_cb, int timeout_s,
@@ -548,6 +596,33 @@ class BleAdvertisingManagerImpl
     }
   }
 
+  void SetPeriodicAdvertisingParameters(uint8_t inst_id,
+                                        tBLE_PERIODIC_ADV_PARAMS* params,
+                                        MultiAdvCb cb) override {
+    VLOG(1) << __func__ << " inst_id: " << +inst_id;
+
+    GetHciInterface()->SetPeriodicAdvertisingParameters(
+        inst_id, params->min_interval, params->max_interval,
+        params->periodic_advertising_properties, cb);
+  }
+
+  void SetPeriodicAdvertisingData(uint8_t inst_id, std::vector<uint8_t> data,
+                                  MultiAdvCb cb) override {
+    VLOG(1) << __func__ << " inst_id: " << +inst_id;
+
+    VLOG(1) << "data is: " << base::HexEncode(data.data(), data.size());
+
+    GetHciInterface()->SetPeriodicAdvertisingData(inst_id, 0x03, data.size(),
+                                                  data.data(), cb);
+  }
+
+  void SetPeriodicAdvertisingEnable(uint8_t inst_id, uint8_t enable,
+                                    MultiAdvCb cb) override {
+    VLOG(1) << __func__ << " inst_id: " << +inst_id << ", enable: " << +enable;
+
+    GetHciInterface()->SetPeriodicAdvertisingEnable(enable, inst_id, cb);
+  }
+
   void Unregister(uint8_t inst_id) override {
     AdvertisingInstance* p_inst = &adv_inst[inst_id];
 
@@ -604,7 +679,6 @@ class BleAdvertisingManagerImpl
   uint8_t inst_count;
 };
 
-namespace {
 BleAdvertisingManager* instance;
 }
 
