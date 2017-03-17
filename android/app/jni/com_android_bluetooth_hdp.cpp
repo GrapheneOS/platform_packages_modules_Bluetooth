@@ -21,7 +21,6 @@
 #include "android_runtime/AndroidRuntime.h"
 #include "com_android_bluetooth.h"
 #include "hardware/bt_hl.h"
-#include "scoped_bt_addr.h"
 #include "utils/Log.h"
 
 #include <string.h>
@@ -48,8 +47,12 @@ static void channel_state_callback(int app_id, bt_bdaddr_t* bd_addr,
                                    bthl_channel_state_t state, int fd) {
   CallbackEnv sCallbackEnv(__func__);
   if (!sCallbackEnv.valid()) return;
-  ScopedBtAddr addr(&sCallbackEnv, bd_addr);
-  if (!addr.get()) return;
+  ScopedLocalRef<jbyteArray> addr(
+      sCallbackEnv.get(), sCallbackEnv->NewByteArray(sizeof(bt_bdaddr_t)));
+  if (!addr.get()) {
+    ALOGE("Fail to new jbyteArray bd addr for channel state");
+    return;
+  }
 
   // TODO(BT) check if fd is only valid for BTHH_CONN_STATE_CONNECTED state
   jobject fileDescriptor = NULL;
@@ -61,6 +64,8 @@ static void channel_state_callback(int app_id, bt_bdaddr_t* bd_addr,
     }
   }
 
+  sCallbackEnv->SetByteArrayRegion(addr.get(), 0, sizeof(bt_bdaddr_t),
+                                   (jbyte*)bd_addr);
   sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onChannelStateChanged,
                                app_id, addr.get(), mdep_cfg_index, channel_id,
                                (jint)state, fileDescriptor);
