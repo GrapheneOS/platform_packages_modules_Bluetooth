@@ -2296,8 +2296,7 @@ final class HeadsetStateMachine extends StateMachine {
         intent.putExtra(BluetoothProfile.EXTRA_PREVIOUS_STATE, prevState);
         intent.putExtra(BluetoothProfile.EXTRA_STATE, newState);
         intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
-        mService.sendBroadcastAsUser(intent, UserHandle.ALL,
-                HeadsetService.BLUETOOTH_PERM);
+        mService.sendBroadcastAsUser(intent, UserHandle.ALL, HeadsetService.BLUETOOTH_PERM);
     }
 
     private void broadcastAudioState(BluetoothDevice device, int newState, int prevState) {
