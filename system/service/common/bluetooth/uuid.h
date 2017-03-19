@@ -46,6 +46,7 @@ class UUID {
 
   // Construct a Bluetooth 'base' UUID.
   UUID();
+  virtual ~UUID() = default;
 
   // BlueDroid constructor.
   explicit UUID(const bt_uuid_t& uuid);
