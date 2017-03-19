@@ -26,7 +26,7 @@ class Descriptor {
   Descriptor& operator=(const Descriptor& other);
   Descriptor(uint16_t handle, const UUID& uuid, uint16_t permissions)
       : handle_(handle), uuid_(uuid), permissions_(permissions){};
-  ~Descriptor() = default;
+  virtual ~Descriptor() = default;
 
   // Comparison function and operator.
   bool Equals(const Descriptor& other) const;

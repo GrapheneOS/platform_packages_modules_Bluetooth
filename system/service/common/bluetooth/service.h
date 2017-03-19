@@ -35,7 +35,7 @@ class Service {
         characteristics_(characteristics),
         included_services_(included_services){};
   Service& operator=(const Service& other);
-  ~Service() = default;
+  virtual ~Service() = default;
 
   // Comparison function and operator.
   bool Equals(const Service& other) const;
