@@ -69,7 +69,7 @@ class AdvertiseSettings {
   //   TX power level: TX_POWER_LEVEL_MEDIUM
   //   connectable: true
   AdvertiseSettings();
-  ~AdvertiseSettings() = default;
+  virtual ~AdvertiseSettings() = default;
 
   // Returns the advertise mode.
   Mode mode() const { return mode_; }

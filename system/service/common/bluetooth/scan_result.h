@@ -30,7 +30,7 @@ class ScanResult {
   ScanResult(const std::string& device_address,
              const std::vector<uint8_t>& scan_record, int rssi);
   ScanResult() = default;
-  ~ScanResult() = default;
+  virtual ~ScanResult() = default;
 
   // Returns the remote BD_ADDR associated with this scan result.
   const std::string& device_address() const { return device_address_; }
