@@ -41,7 +41,7 @@ class AdvertiseData {
   // Default constructor initializes all fields to be empty/false.
   AdvertiseData();
   AdvertiseData(const AdvertiseData& other);
-  ~AdvertiseData() = default;
+  virtual ~AdvertiseData() = default;
 
   // Returns true if the advertising data is formatted correctly according to
   // the TLV format.

@@ -27,7 +27,7 @@ namespace bluetooth {
 class ScanFilter {
  public:
   ScanFilter() = default;
-  ~ScanFilter() = default;
+  virtual ~ScanFilter() = default;
 
   // Copy constructor and assignment operator.
   ScanFilter(const ScanFilter& other);

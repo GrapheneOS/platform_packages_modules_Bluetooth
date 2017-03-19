@@ -116,7 +116,7 @@ class ScanSettings {
   ScanSettings(Mode mode, CallbackTypeBitField callback_type,
                ResultType result_type, base::TimeDelta report_delay_ms,
                MatchMode match_mode, MatchCount match_count_per_filter);
-  ~ScanSettings() = default;
+  virtual ~ScanSettings() = default;
 
   // Returns the scan mode.
   Mode mode() const { return mode_; }

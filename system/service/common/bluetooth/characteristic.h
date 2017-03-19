@@ -35,7 +35,7 @@ class Characteristic {
         permissions_(permissions),
         descriptors_(descriptors){};
   Characteristic& operator=(const Characteristic& other);
-  ~Characteristic() = default;
+  virtual ~Characteristic() = default;
 
   // Comparison function and operator.
   bool Equals(const Characteristic& other) const;
