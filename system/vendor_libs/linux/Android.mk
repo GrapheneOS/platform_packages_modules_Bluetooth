@@ -31,6 +31,7 @@ LOCAL_C_INCLUDES := \
         $(LOCAL_PATH)/../../
 
 LOCAL_SHARED_LIBRARIES := \
+        liblog \
         libcutils
 
 LOCAL_STATIC_LIBRARIES := libosi
