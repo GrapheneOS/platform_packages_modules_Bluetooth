@@ -559,48 +559,48 @@ public class GattService extends ProfileService {
             service.stopAdvertisingSet(callback);
         }
 
-        public void enableAdverisingSet(int advertiserId, boolean enable, int timeout) {
+        public void enableAdvertisingSet(int advertiserId, boolean enable, int timeout) {
             GattService service = getService();
             if (service == null) return;
-            // TODO: implement
+            service.enableAdvertisingSet(advertiserId, enable, timeout);
         }
 
         public void setAdvertisingData(int advertiserId, AdvertiseData data) {
             GattService service = getService();
             if (service == null) return;
-            // TODO: implement
+            service.setAdvertisingData(advertiserId, data);
         }
 
         public void setScanResponseData(int advertiserId, AdvertiseData data) {
             GattService service = getService();
             if (service == null) return;
-            // TODO: implement
+            service.setScanResponseData(advertiserId, data);
         }
 
         public void setAdvertisingParameters(
                 int advertiserId, AdvertisingSetParameters parameters) {
             GattService service = getService();
             if (service == null) return;
-            // TODO: implement
+            service.setAdvertisingParameters(advertiserId, parameters);
         }
 
         public void setPeriodicAdvertisingParameters(
                 int advertiserId, PeriodicAdvertisingParameters parameters) {
             GattService service = getService();
             if (service == null) return;
-            // TODO: implement
+            service.setPeriodicAdvertisingParameters(advertiserId, parameters);
         }
 
         public void setPeriodicAdvertisingData(int advertiserId, AdvertiseData data) {
             GattService service = getService();
             if (service == null) return;
-            // TODO: implement
+            service.setPeriodicAdvertisingData(advertiserId, data);
         }
 
-        public void periodicAdvertisingEnable(int advertiserId, boolean enable) {
+        public void setPeriodicAdvertisingEnable(int advertiserId, boolean enable) {
             GattService service = getService();
             if (service == null) return;
-            // TODO: implement
+            service.setPeriodicAdvertisingEnable(advertiserId, enable);
         }
 
         @Override
@@ -1423,15 +1423,49 @@ public class GattService extends ProfileService {
             AdvertiseData scanResponse, PeriodicAdvertisingParameters periodicParameters,
             AdvertiseData periodicData, int timeout, IAdvertisingSetCallback callback) {
         enforceAdminPermission();
-
         mAdvertiseManager.startAdvertisingSet(parameters, advertiseData, scanResponse,
                 periodicParameters, periodicData, timeout, callback);
     }
 
     void stopAdvertisingSet(IAdvertisingSetCallback callback) {
         enforceAdminPermission();
-
         mAdvertiseManager.stopAdvertisingSet(callback);
+    }
+
+    void enableAdvertisingSet(int advertiserId, boolean enable, int timeout) {
+        enforceAdminPermission();
+        mAdvertiseManager.enableAdvertisingSet(advertiserId, enable, timeout);
+    }
+
+    void setAdvertisingData(int advertiserId, AdvertiseData data) {
+        enforceAdminPermission();
+        mAdvertiseManager.setAdvertisingData(advertiserId, data);
+    }
+
+    void setScanResponseData(int advertiserId, AdvertiseData data) {
+        enforceAdminPermission();
+        mAdvertiseManager.setScanResponseData(advertiserId, data);
+    }
+
+    void setAdvertisingParameters(int advertiserId, AdvertisingSetParameters parameters) {
+        enforceAdminPermission();
+        mAdvertiseManager.setAdvertisingParameters(advertiserId, parameters);
+    }
+
+    void setPeriodicAdvertisingParameters(
+            int advertiserId, PeriodicAdvertisingParameters parameters) {
+        enforceAdminPermission();
+        mAdvertiseManager.setPeriodicAdvertisingParameters(advertiserId, parameters);
+    }
+
+    void setPeriodicAdvertisingData(int advertiserId, AdvertiseData data) {
+        enforceAdminPermission();
+        mAdvertiseManager.setPeriodicAdvertisingData(advertiserId, data);
+    }
+
+    void setPeriodicAdvertisingEnable(int advertiserId, boolean enable) {
+        enforceAdminPermission();
+        mAdvertiseManager.setPeriodicAdvertisingEnable(advertiserId, enable);
     }
 
     /**************************************************************************
