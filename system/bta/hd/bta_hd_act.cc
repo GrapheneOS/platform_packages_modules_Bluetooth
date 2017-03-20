@@ -52,7 +52,11 @@ static bool check_descriptor(uint8_t* data, uint16_t length,
 
     switch (item) {
       case 0xfe:  // long item indicator
-        ptr += ((*ptr) + 2);
+        if (ptr < data + length) {
+          ptr += ((*ptr) + 2);
+        } else {
+          return false;
+        }
         break;
 
       case 0x85:  // Report ID
@@ -151,13 +155,19 @@ void bta_hd_api_disable(void) {
 void bta_hd_register_act(tBTA_HD_DATA* p_data) {
   tBTA_HD ret;
   tBTA_HD_REGISTER_APP* p_app_data = (tBTA_HD_REGISTER_APP*)p_data;
+  bool use_report_id = FALSE;
 
   APPL_TRACE_API("%s", __func__);
 
   ret.reg_status.in_use = FALSE;
 
-  /* Check if len doesn't exceed BTA_HD_APP_DESCRIPTOR_LEN */
-  if (p_app_data->d_len > BTA_HD_APP_DESCRIPTOR_LEN) {
+  /* Check if len doesn't exceed BTA_HD_APP_DESCRIPTOR_LEN and descriptor
+   * itself is well-formed. Also check if descriptor has Report Id item so we
+   * know if report will have prefix or not. */
+  if (p_app_data->d_len > BTA_HD_APP_DESCRIPTOR_LEN ||
+      !check_descriptor(p_app_data->d_data, p_app_data->d_len,
+                        &use_report_id)) {
+    APPL_TRACE_ERROR("%s: Descriptor is too long or malformed", __func__);
     ret.reg_status.status = BTA_HD_ERROR;
     (*bta_hd_cb.p_cback)(BTA_HD_REGISTER_APP_EVT, &ret);
     return;
@@ -170,11 +180,7 @@ void bta_hd_register_act(tBTA_HD_DATA* p_data) {
     SDP_DeleteRecord(bta_hd_cb.sdp_handle);
   }
 
-  // need to check if descriptor has Report Id item so we know if report will
-  // have prefix or not
-  check_descriptor(p_app_data->d_data, p_app_data->d_len,
-                   &bta_hd_cb.use_report_id);
-
+  bta_hd_cb.use_report_id = use_report_id;
   bta_hd_cb.sdp_handle = SDP_CreateRecord();
   HID_DevAddRecord(bta_hd_cb.sdp_handle, p_app_data->name,
                    p_app_data->description, p_app_data->provider,
