@@ -59,6 +59,29 @@ static inline OwnedArrayWrapper<T> OwnedArray(T* o) {
   return OwnedArrayWrapper<T>(o);
 }
 
+void parseParams(tBTM_BLE_ADV_PARAMS* p_params,
+                 const AdvertiseParameters& params) {
+  p_params->advertising_event_properties = params.advertising_event_properties;
+  p_params->adv_int_min = params.min_interval;
+  p_params->adv_int_max = params.max_interval;
+  p_params->channel_map = params.channel_map;
+  p_params->adv_filter_policy = 0;
+  p_params->tx_power = params.tx_power;
+  p_params->primary_advertising_phy = params.primary_advertising_phy;
+  p_params->secondary_advertising_phy = params.secondary_advertising_phy;
+  p_params->scan_request_notification_enable =
+      params.scan_request_notification_enable;
+}
+
+void parsePeriodicParams(tBLE_PERIODIC_ADV_PARAMS* p_periodic_params,
+                         PeriodicAdvertisingParameters periodic_params) {
+  p_periodic_params->enable = periodic_params.enable;
+  p_periodic_params->min_interval = periodic_params.min_interval;
+  p_periodic_params->max_interval = periodic_params.max_interval;
+  p_periodic_params->periodic_advertising_properties =
+      periodic_params.periodic_advertising_properties;
+}
+
 class BleAdvertiserInterfaceImpl : public BleAdvertiserInterface {
   ~BleAdvertiserInterfaceImpl(){};
 
@@ -84,36 +107,18 @@ class BleAdvertiserInterfaceImpl : public BleAdvertiserInterface {
              base::Unretained(BleAdvertisingManager::Get()), advertiser_id));
   }
 
-  void SetParametersCb(StatusCallback cb, uint8_t status, int8_t tx_power) {
-    LOG(INFO) << __func__ << " status: " << +status;
-    do_in_jni_thread(Bind(cb, status));
-  }
+  void SetParameters(uint8_t advertiser_id, AdvertiseParameters params,
+                     ParametersCallback cb) override {
+    VLOG(1) << __func__;
 
-  void SetParameters(uint8_t advertiser_id,
-                     uint16_t advertising_event_properties,
-                     uint32_t min_interval, uint32_t max_interval, int chnl_map,
-                     int tx_power, uint8_t primary_advertising_phy,
-                     uint8_t secondary_advertising_phy,
-                     uint8_t scan_request_notification_enable,
-                     StatusCallback cb) {
-    tBTM_BLE_ADV_PARAMS* params = new tBTM_BLE_ADV_PARAMS;
+    tBTM_BLE_ADV_PARAMS* p_params = new tBTM_BLE_ADV_PARAMS;
+    parseParams(p_params, params);
 
-    params->advertising_event_properties = advertising_event_properties;
-    params->adv_int_min = min_interval;
-    params->adv_int_max = max_interval;
-    params->channel_map = chnl_map;
-    params->adv_filter_policy = 0;
-    params->tx_power = tx_power;
-    params->primary_advertising_phy = primary_advertising_phy;
-    params->secondary_advertising_phy = secondary_advertising_phy;
-    params->scan_request_notification_enable = scan_request_notification_enable;
-
-    do_in_bta_thread(FROM_HERE,
-                     Bind(&BleAdvertisingManager::SetParameters,
-                          base::Unretained(BleAdvertisingManager::Get()),
-                          advertiser_id, base::Owned(params),
-                          Bind(&BleAdvertiserInterfaceImpl::SetParametersCb,
-                               base::Unretained(this), cb)));
+    do_in_bta_thread(
+        FROM_HERE,
+        Bind(&BleAdvertisingManager::SetParameters,
+             base::Unretained(BleAdvertisingManager::Get()), advertiser_id,
+             base::Owned(p_params), jni_thread_wrapper(FROM_HERE, cb)));
   }
 
   void SetData(int advertiser_id, bool set_scan_rsp, vector<uint8_t> data,
@@ -146,17 +151,7 @@ class BleAdvertiserInterfaceImpl : public BleAdvertiserInterface {
     VLOG(1) << __func__;
 
     tBTM_BLE_ADV_PARAMS* p_params = new tBTM_BLE_ADV_PARAMS;
-    p_params->advertising_event_properties =
-        params.advertising_event_properties;
-    p_params->adv_int_min = params.min_interval;
-    p_params->adv_int_max = params.max_interval;
-    p_params->channel_map = params.channel_map;
-    p_params->adv_filter_policy = 0;
-    p_params->tx_power = params.tx_power;
-    p_params->primary_advertising_phy = params.primary_advertising_phy;
-    p_params->secondary_advertising_phy = params.secondary_advertising_phy;
-    p_params->scan_request_notification_enable =
-        params.scan_request_notification_enable;
+    parseParams(p_params, params);
 
     do_in_bta_thread(
         FROM_HERE,
@@ -167,33 +162,20 @@ class BleAdvertiserInterfaceImpl : public BleAdvertiserInterface {
              timeout_s, jni_thread_wrapper(FROM_HERE, timeout_cb)));
   }
 
-  void StartAdvertisingSet(IdStatusCallback cb, AdvertiseParameters params,
+  void StartAdvertisingSet(IdTxPowerStatusCallback cb,
+                           AdvertiseParameters params,
                            std::vector<uint8_t> advertise_data,
                            std::vector<uint8_t> scan_response_data,
                            PeriodicAdvertisingParameters periodic_params,
                            std::vector<uint8_t> periodic_data, int timeout_s,
-                           IdStatusCallback timeout_cb) {
+                           IdStatusCallback timeout_cb) override {
     VLOG(1) << __func__;
 
     tBTM_BLE_ADV_PARAMS* p_params = new tBTM_BLE_ADV_PARAMS;
-    p_params->advertising_event_properties =
-        params.advertising_event_properties;
-    p_params->adv_int_min = params.min_interval;
-    p_params->adv_int_max = params.max_interval;
-    p_params->channel_map = params.channel_map;
-    p_params->adv_filter_policy = 0;
-    p_params->tx_power = params.tx_power;
-    p_params->primary_advertising_phy = params.primary_advertising_phy;
-    p_params->secondary_advertising_phy = params.secondary_advertising_phy;
-    p_params->scan_request_notification_enable =
-        params.scan_request_notification_enable;
+    parseParams(p_params, params);
 
     tBLE_PERIODIC_ADV_PARAMS* p_periodic_params = new tBLE_PERIODIC_ADV_PARAMS;
-    p_periodic_params->enable = periodic_params.enable;
-    p_periodic_params->min_interval = periodic_params.min_interval;
-    p_periodic_params->max_interval = periodic_params.max_interval;
-    p_periodic_params->periodic_advertising_properties =
-        periodic_params.periodic_advertising_properties;
+    parsePeriodicParams(p_periodic_params, periodic_params);
 
     do_in_bta_thread(
         FROM_HERE,
@@ -203,7 +185,46 @@ class BleAdvertiserInterfaceImpl : public BleAdvertiserInterface {
              std::move(advertise_data), std::move(scan_response_data),
              base::Owned(p_periodic_params), std::move(periodic_data),
              timeout_s, jni_thread_wrapper(FROM_HERE, timeout_cb)));
-  };
+  }
+
+  void SetPeriodicAdvertisingParameters(
+      int advertiser_id, PeriodicAdvertisingParameters periodic_params,
+      StatusCallback cb) override {
+    VLOG(1) << __func__ << " advertiser_id: " << +advertiser_id;
+
+    tBLE_PERIODIC_ADV_PARAMS* p_periodic_params = new tBLE_PERIODIC_ADV_PARAMS;
+    parsePeriodicParams(p_periodic_params, periodic_params);
+
+    do_in_bta_thread(
+        FROM_HERE,
+        Bind(&BleAdvertisingManager::SetPeriodicAdvertisingParameters,
+             base::Unretained(BleAdvertisingManager::Get()), advertiser_id,
+             base::Owned(p_periodic_params),
+             jni_thread_wrapper(FROM_HERE, cb)));
+  }
+
+  void SetPeriodicAdvertisingData(int advertiser_id, std::vector<uint8_t> data,
+                                  StatusCallback cb) override {
+    VLOG(1) << __func__ << " advertiser_id: " << +advertiser_id;
+
+    do_in_bta_thread(
+        FROM_HERE,
+        Bind(&BleAdvertisingManager::SetPeriodicAdvertisingData,
+             base::Unretained(BleAdvertisingManager::Get()), advertiser_id,
+             std::move(data), jni_thread_wrapper(FROM_HERE, cb)));
+  }
+
+  void SetPeriodicAdvertisingEnable(int advertiser_id, bool enable,
+                                    StatusCallback cb) override {
+    VLOG(1) << __func__ << " advertiser_id: " << +advertiser_id
+            << " ,enable: " << enable;
+
+    do_in_bta_thread(
+        FROM_HERE,
+        Bind(&BleAdvertisingManager::SetPeriodicAdvertisingEnable,
+             base::Unretained(BleAdvertisingManager::Get()), advertiser_id,
+             enable, jni_thread_wrapper(FROM_HERE, cb)));
+  }
 };
 
 BleAdvertiserInterface* btLeAdvertiserInstance = nullptr;

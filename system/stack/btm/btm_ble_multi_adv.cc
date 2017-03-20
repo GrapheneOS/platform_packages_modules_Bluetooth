@@ -34,6 +34,8 @@
 using base::Bind;
 using RegisterCb =
     base::Callback<void(uint8_t /* inst_id */, uint8_t /* status */)>;
+using IdTxPowerStatusCb = base::Callback<void(
+    uint8_t /* inst_id */, int8_t /* tx_power */, uint8_t /* status */)>;
 extern void btm_gen_resolvable_private_addr(
     base::Callback<void(uint8_t[8])> cb);
 extern fixed_queue_t* btu_general_alarm_queue;
@@ -113,7 +115,7 @@ class BleAdvertisingManagerImpl;
 struct CreatorParams {
   uint8_t inst_id;
   BleAdvertisingManagerImpl* self;
-  RegisterCb cb;
+  IdTxPowerStatusCb cb;
   tBTM_BLE_ADV_PARAMS params;
   std::vector<uint8_t> advertise_data;
   std::vector<uint8_t> scan_response_data;
@@ -314,7 +316,7 @@ class BleAdvertisingManagerImpl
     // clang-format on
   }
 
-  void StartAdvertisingSet(RegisterCb cb, tBTM_BLE_ADV_PARAMS* params,
+  void StartAdvertisingSet(IdTxPowerStatusCb cb, tBTM_BLE_ADV_PARAMS* params,
                            std::vector<uint8_t> advertise_data,
                            std::vector<uint8_t> scan_response_data,
                            tBLE_PERIODIC_ADV_PARAMS* periodic_params,
@@ -341,7 +343,7 @@ class BleAdvertisingManagerImpl
       [](c_type c, uint8_t advertiser_id, uint8_t status) {
         if (status != 0) {
           LOG(ERROR) << "registering advertiser failed, status: " << +status;
-          c->cb.Run(0, status);
+          c->cb.Run(0, 0, status);
           return;
         }
 
@@ -352,7 +354,7 @@ class BleAdvertisingManagerImpl
             if (status != 0) {
               c->self->Unregister(c->inst_id);
               LOG(ERROR) << "setting parameters failed, status: " << +status;
-              c->cb.Run(0, status);
+              c->cb.Run(0, 0, status);
               return;
             }
 
@@ -364,7 +366,7 @@ class BleAdvertisingManagerImpl
                 if (status != 0) {
                   c->self->Unregister(c->inst_id);
                   LOG(ERROR) << "setting random address failed, status: " << +status;
-                  c->cb.Run(0, status);
+                  c->cb.Run(0, 0, status);
                   return;
                 }
 
@@ -373,7 +375,7 @@ class BleAdvertisingManagerImpl
                     if (status != 0) {
                       c->self->Unregister(c->inst_id);
                       LOG(ERROR) << "setting advertise data failed, status: " << +status;
-                      c->cb.Run(0, status);
+                      c->cb.Run(0, 0, status);
                       return;
                     }
 
@@ -382,7 +384,7 @@ class BleAdvertisingManagerImpl
                         if (status != 0) {
                           c->self->Unregister(c->inst_id);
                           LOG(ERROR) << "setting scan response data failed, status: " << +status;
-                          c->cb.Run(0, status);
+                          c->cb.Run(0, 0, status);
                           return;
                         }
 
@@ -408,7 +410,7 @@ class BleAdvertisingManagerImpl
         if (status != 0) {
           c->self->Unregister(c->inst_id);
           LOG(ERROR) << "setting periodic parameters failed, status: " << +status;
-          c->cb.Run(0, status);
+          c->cb.Run(0, 0, status);
           return;
         }
 
@@ -417,7 +419,7 @@ class BleAdvertisingManagerImpl
             if (status != 0) {
               c->self->Unregister(c->inst_id);
               LOG(ERROR) << "setting periodic parameters failed, status: " << +status;
-              c->cb.Run(0, status);
+              c->cb.Run(0, 0, status);
               return;
             }
 
@@ -426,7 +428,7 @@ class BleAdvertisingManagerImpl
                 if (status != 0) {
                   c->self->Unregister(c->inst_id);
                   LOG(ERROR) << "enabling periodic advertising failed, status: " << +status;
-                  c->cb.Run(0, status);
+                  c->cb.Run(0, 0, status);
                   return;
                 }
 
@@ -448,10 +450,11 @@ class BleAdvertisingManagerImpl
           if (status != 0) {
             c->self->Unregister(c->inst_id);
             LOG(ERROR) << "enabling advertiser failed, status: " << +status;
-            c->cb.Run(0, status);
+            c->cb.Run(0, 0, status);
             return;
           }
-          c->cb.Run(c->inst_id, status);
+          int8_t tx_power = c->self->adv_inst[c->inst_id].tx_power;
+          c->cb.Run(c->inst_id, tx_power, status);
         },
         base::Passed(&c));
 
@@ -461,6 +464,7 @@ class BleAdvertisingManagerImpl
 
   void EnableWithTimerCb(uint8_t inst_id, MultiAdvCb enable_cb, int timeout_s,
                          MultiAdvCb timeout_cb, uint8_t status) {
+    VLOG(1) << __func__ << " inst_id: " << +inst_id;
     AdvertisingInstance* p_inst = &adv_inst[inst_id];
 
     // Run the regular enable callback
@@ -488,7 +492,7 @@ class BleAdvertisingManagerImpl
     }
 
     AdvertisingInstance* p_inst = &adv_inst[inst_id];
-    VLOG(1) << __func__ << "enable: " << enable;
+    VLOG(1) << __func__ << " enable: " << enable << ", timeout: " << +timeout_s;
     if (!p_inst->in_use) {
       LOG(ERROR) << "Invalid or no active instance";
       cb.Run(BTM_BLE_MULTI_ADV_FAILURE);

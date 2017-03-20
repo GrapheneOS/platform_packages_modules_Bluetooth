@@ -95,7 +95,9 @@ class BleAdvertisingManager {
    * enabled.
    */
   virtual void StartAdvertisingSet(
-      base::Callback<void(uint8_t /* inst_id */, uint8_t /* status */)> cb,
+      base::Callback<void(uint8_t /* inst_id */, int8_t /* tx_power */,
+                          uint8_t /* status */)>
+          cb,
       tBTM_BLE_ADV_PARAMS* params, std::vector<uint8_t> advertise_data,
       std::vector<uint8_t> scan_response_data,
       tBLE_PERIODIC_ADV_PARAMS* periodic_params,
