@@ -84,7 +84,7 @@ class BleAdvertiserInterfaceImpl : public BleAdvertiserInterface {
              base::Unretained(BleAdvertisingManager::Get()), advertiser_id));
   }
 
-  void SetParametersCb(StatusCallback cb, uint8_t status) {
+  void SetParametersCb(StatusCallback cb, uint8_t status, int8_t tx_power) {
     LOG(INFO) << __func__ << " status: " << +status;
     do_in_jni_thread(Bind(cb, status));
   }
