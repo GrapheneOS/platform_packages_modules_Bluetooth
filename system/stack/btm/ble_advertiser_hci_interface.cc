@@ -224,14 +224,9 @@ class BleAdvertiserVscHciInterfaceImpl : public BleAdvertiserHciInterface {
   bool QuirkAdvertiserZeroHandle() override {
     // Android BT HCI Requirements version 0.96 and below specify that handle 0
     // is equal to standard HCI interface, and should be accessed using non-VSC
-    // commands. Broadcom controllers are strict about this requirement, so
-    // don't use 0 handle.
-    if (BTM_IS_BRCM_CONTROLLER()) {
-      LOG(INFO) << "QuirkAdvertiserZeroHandle in use";
-      return true;
-    }
-
-    return false;
+    // commands.
+    LOG(INFO) << "QuirkAdvertiserZeroHandle in use";
+    return true;
   }
 
   void RemoveAdvertisingSet(uint8_t handle,
