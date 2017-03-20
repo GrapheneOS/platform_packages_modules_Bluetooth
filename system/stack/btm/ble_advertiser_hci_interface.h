@@ -29,6 +29,8 @@
 class BleAdvertiserHciInterface {
  public:
   using status_cb = base::Callback<void(uint8_t /* status */)>;
+  using parameters_cb =
+      base::Callback<void(uint8_t /* status */, int8_t /* tx_power */)>;
 
   static void Initialize();
   static BleAdvertiserHciInterface* Get();
@@ -57,7 +59,7 @@ class BleAdvertiserHciInterface {
                              uint8_t secondary_max_skip, uint8_t secondary_phy,
                              uint8_t advertising_sid,
                              uint8_t scan_request_notify_enable,
-                             status_cb command_complete) = 0;
+                             parameters_cb command_complete) = 0;
   virtual void SetAdvertisingData(uint8_t handle, uint8_t operation,
                                   uint8_t fragment_preference,
                                   uint8_t data_length, uint8_t* data,
