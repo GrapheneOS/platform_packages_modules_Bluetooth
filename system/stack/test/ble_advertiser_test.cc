@@ -30,6 +30,7 @@ using ::testing::Exactly;
 using ::testing::IsEmpty;
 using ::testing::SaveArg;
 using status_cb = BleAdvertiserHciInterface::status_cb;
+using parameters_cb = BleAdvertiserHciInterface::parameters_cb;
 
 const int num_adv_instances = 16;
 
@@ -97,7 +98,7 @@ class AdvertiserHciMock : public BleAdvertiserHciInterface {
                void(uint8_t, uint16_t, uint32_t, uint32_t, uint8_t, uint8_t,
                     BD_ADDR, uint8_t, BD_ADDR));
   MOCK_METHOD8(SetParameters2, void(uint8_t, int8_t, uint8_t, uint8_t, uint8_t,
-                                    uint8_t, uint8_t, status_cb));
+                                    uint8_t, uint8_t, parameters_cb));
 
   void SetParameters(uint8_t handle, uint16_t properties, uint32_t adv_int_min,
                      uint32_t adv_int_max, uint8_t channel_map,
@@ -107,7 +108,7 @@ class AdvertiserHciMock : public BleAdvertiserHciInterface {
                      uint8_t primary_phy, uint8_t secondary_max_skip,
                      uint8_t secondary_phy, uint8_t advertising_sid,
                      uint8_t scan_request_notify_enable,
-                     status_cb cmd_complete) override {
+                     parameters_cb cmd_complete) override {
     SetParameters1(handle, properties, adv_int_min, adv_int_max, channel_map,
                    own_address_type, own_address, peer_address_type,
                    peer_address);
@@ -160,7 +161,9 @@ class BleAdvertisingManagerTest : public testing::Test {
     reg_status = status;
   }
 
-  void SetParametersCb(uint8_t status) { set_params_status = status; }
+  void SetParametersCb(uint8_t status, int8_t tx_power) {
+    set_params_status = status;
+  }
   void SetDataCb(uint8_t status) { set_data_status = status; }
   void EnableCb(uint8_t status) { enable_status = status; }
   void StartAdvertisingCb(uint8_t status) { start_advertising_status = status; }
@@ -199,7 +202,7 @@ TEST_F(BleAdvertisingManagerTest, test_android_flow) {
   EXPECT_EQ(BTM_BLE_MULTI_ADV_SUCCESS, reg_status);
   int advertiser_id = reg_inst_id;
 
-  status_cb set_params_cb;
+  parameters_cb set_params_cb;
   tBTM_BLE_ADV_PARAMS params;
   EXPECT_CALL(*hci_mock, SetParameters1(advertiser_id, _, _, _, _, _, _, _, _))
       .Times(1);
@@ -213,7 +216,7 @@ TEST_F(BleAdvertisingManagerTest, test_android_flow) {
   ::testing::Mock::VerifyAndClearExpectations(hci_mock.get());
 
   // we are a truly gracious fake controller, let the command succeed!
-  set_params_cb.Run(0);
+  set_params_cb.Run(0, 0);
   EXPECT_EQ(BTM_BLE_MULTI_ADV_SUCCESS, set_params_status);
 
   status_cb set_data_cb;
@@ -261,7 +264,7 @@ TEST_F(BleAdvertisingManagerTest, test_adv_data_filling) {
   EXPECT_EQ(BTM_BLE_MULTI_ADV_SUCCESS, reg_status);
   int advertiser_id = reg_inst_id;
 
-  status_cb set_params_cb;
+  parameters_cb set_params_cb;
   tBTM_BLE_ADV_PARAMS params;
   params.advertising_event_properties =
       BleAdvertisingManager::advertising_prop_legacy_connectable;
@@ -278,7 +281,7 @@ TEST_F(BleAdvertisingManagerTest, test_adv_data_filling) {
   ::testing::Mock::VerifyAndClearExpectations(hci_mock.get());
 
   // let the set parameters command succeed!
-  set_params_cb.Run(0);
+  set_params_cb.Run(0, 0);
   EXPECT_EQ(BTM_BLE_MULTI_ADV_SUCCESS, set_params_status);
 
   status_cb set_data_cb;
@@ -311,7 +314,7 @@ TEST_F(BleAdvertisingManagerTest, test_adv_data_not_filling) {
   EXPECT_EQ(BTM_BLE_MULTI_ADV_SUCCESS, reg_status);
   int advertiser_id = reg_inst_id;
 
-  status_cb set_params_cb;
+  parameters_cb set_params_cb;
   tBTM_BLE_ADV_PARAMS params;
   params.advertising_event_properties =
       BleAdvertisingManager::advertising_prop_legacy_non_connectable;
@@ -329,7 +332,7 @@ TEST_F(BleAdvertisingManagerTest, test_adv_data_not_filling) {
   ::testing::Mock::VerifyAndClearExpectations(hci_mock.get());
 
   // let the set parameters command succeed!
-  set_params_cb.Run(0);
+  set_params_cb.Run(0, -15);
   EXPECT_EQ(BTM_BLE_MULTI_ADV_SUCCESS, set_params_status);
 
   status_cb set_data_cb;
@@ -391,7 +394,7 @@ TEST_F(BleAdvertisingManagerTest, test_start_advertising) {
   std::vector<uint8_t> scan_resp;
   tBTM_BLE_ADV_PARAMS params;
 
-  status_cb set_params_cb;
+  parameters_cb set_params_cb;
   status_cb set_address_cb;
   status_cb set_data_cb;
   status_cb set_scan_resp_data_cb;
@@ -420,7 +423,7 @@ TEST_F(BleAdvertisingManagerTest, test_start_advertising) {
       &params, adv_data, scan_resp, 0, base::Callback<void(uint8_t)>());
 
   // we are a truly gracious fake controller, let the commands succeed!
-  set_params_cb.Run(0);
+  set_params_cb.Run(0, 0);
   set_address_cb.Run(0);
   set_data_cb.Run(0);
   set_scan_resp_data_cb.Run(0);
@@ -451,7 +454,7 @@ TEST_F(BleAdvertisingManagerTest, test_start_advertising_set_params_failed) {
   std::vector<uint8_t> scan_resp;
   tBTM_BLE_ADV_PARAMS params;
 
-  status_cb set_params_cb;
+  parameters_cb set_params_cb;
   EXPECT_CALL(*hci_mock, SetParameters1(advertiser_id, _, _, _, _, _, _, _, _))
       .Times(1);
   EXPECT_CALL(*hci_mock, SetParameters2(_, _, _, _, _, _, _, _))
@@ -468,7 +471,7 @@ TEST_F(BleAdvertisingManagerTest, test_start_advertising_set_params_failed) {
   ::testing::Mock::VerifyAndClearExpectations(hci_mock.get());
 
   // set params failed
-  set_params_cb.Run(0x01);
+  set_params_cb.Run(0x01, 0);
 
   // Expect the whole flow to fail right away
   EXPECT_EQ(BTM_BLE_MULTI_ADV_FAILURE, start_advertising_status);
