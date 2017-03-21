@@ -1593,8 +1593,7 @@ static void advertiseCleanupNative(JNIEnv* env, jobject object) {
   }
 }
 
-static AdvertiseParameters parseParams(JNIEnv* env, jobject i,
-                                       bool isScannable) {
+static AdvertiseParameters parseParams(JNIEnv* env, jobject i) {
   AdvertiseParameters p;
 
   jclass clazz = env->GetObjectClass(i);
@@ -1602,6 +1601,8 @@ static AdvertiseParameters parseParams(JNIEnv* env, jobject i,
 
   methodId = env->GetMethodID(clazz, "isConnectable", "()Z");
   jboolean isConnectable = env->CallBooleanMethod(i, methodId);
+  methodId = env->GetMethodID(clazz, "isScannable", "()Z");
+  jboolean isScannable = env->CallBooleanMethod(i, methodId);
   methodId = env->GetMethodID(clazz, "isLegacy", "()Z");
   jboolean isLegacy = env->CallBooleanMethod(i, methodId);
   methodId = env->GetMethodID(clazz, "isAnonymous", "()Z");
@@ -1619,7 +1620,7 @@ static AdvertiseParameters parseParams(JNIEnv* env, jobject i,
 
   uint16_t props = 0;
   if (isConnectable) props |= 0x01;
-  if (isScannable || (isLegacy && isConnectable)) props |= 0x02;
+  if (isScannable) props |= 0x02;
   if (isLegacy) props |= 0x10;
   if (isAnonymous) props |= 0x20;
   if (includeTxPower) props |= 0x40;
@@ -1695,8 +1696,7 @@ static void startAdvertisingSetNative(JNIEnv* env, jobject object,
                                      scan_resp_data + scan_resp_len);
   env->ReleaseByteArrayElements(scan_resp, scan_resp_data, JNI_ABORT);
 
-  AdvertiseParameters params =
-      parseParams(env, parameters, (scan_resp_len != 0));
+  AdvertiseParameters params = parseParams(env, parameters);
   PeriodicAdvertisingParameters periodicParams =
       parsePeriodicParams(env, periodic_parameters);
 
@@ -1785,9 +1785,7 @@ static void setAdvertisingParametersNative(JNIEnv* env, jobject object,
                                            jobject parameters) {
   if (!sGattIf) return;
 
-  // TODO: must learn somehow wether scan response is set ?
-  AdvertiseParameters params =
-      parseParams(env, parameters, false /*TODO: put proper value here!!!*/);
+  AdvertiseParameters params = parseParams(env, parameters);
   sGattIf->advertiser->SetParameters(
       advertiser_id, params,
       base::Bind(setAdvertisingParametersNativeCb, advertiser_id));
