@@ -34,8 +34,10 @@ package com.android.bluetooth.opp;
 
 import com.android.bluetooth.R;
 
+import android.content.ContentResolver;
 import android.content.Context;
 import android.app.Notification;
+import android.app.Notification.Action;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Intent;
@@ -105,6 +107,7 @@ class BluetoothOppNotification {
 
     private int mActiveNotificationId = 0;
 
+    private ContentResolver mContentResolver = null;
     /**
      * This inner class is used to describe some properties for one transfer.
      */
@@ -137,6 +140,8 @@ class BluetoothOppNotification {
         mNotificationMgr = (NotificationManager)mContext
                 .getSystemService(Context.NOTIFICATION_SERVICE);
         mNotifications = new HashMap<String, NotificationItem>();
+        // Get Content Resolver object one time
+        mContentResolver = mContext.getContentResolver();
     }
 
     /**
@@ -212,8 +217,8 @@ class BluetoothOppNotification {
 
     private void updateActiveNotification() {
         // Active transfers
-        Cursor cursor = mContext.getContentResolver().query(BluetoothShare.CONTENT_URI, null,
-                WHERE_RUNNING, null, BluetoothShare._ID);
+        Cursor cursor = mContentResolver.query(
+                BluetoothShare.CONTENT_URI, null, WHERE_RUNNING, null, BluetoothShare._ID);
         if (cursor == null) {
             return;
         }
@@ -317,10 +322,11 @@ class BluetoothOppNotification {
             // TODO: split description into two rows with filename in second row
             Notification.Builder b = new Notification.Builder(mContext);
             b.setColor(mContext.getResources().getColor(
-                    com.android.internal.R.color.system_notification_accent_color));
+                    com.android.internal.R.color.system_notification_accent_color,
+                    mContext.getTheme()));
             b.setContentTitle(item.description);
-            b.setContentInfo(
-                BluetoothOppUtility.formatProgressText(item.totalTotal, item.totalCurrent));
+            b.setSubText(
+                    BluetoothOppUtility.formatProgressText(item.totalTotal, item.totalCurrent));
             if (item.totalTotal != 0) {
                 if (V) Log.v(TAG, "mCurrentBytes: " + item.totalCurrent +
                     " mTotalBytes: " + item.totalTotal + " (" +
@@ -345,7 +351,7 @@ class BluetoothOppNotification {
             intent.setDataAndNormalize(Uri.parse(BluetoothShare.CONTENT_URI + "/" + item.id));
 
             b.setContentIntent(PendingIntent.getBroadcast(mContext, 0, intent, 0));
-            mNotificationMgr.notify(item.id, b.getNotification());
+            mNotificationMgr.notify(item.id, b.build());
 
             mActiveNotificationId = item.id;
         }
@@ -377,7 +383,7 @@ class BluetoothOppNotification {
         }
 
         // Creating outbound notification
-        Cursor cursor = mContext.getContentResolver().query(BluetoothShare.CONTENT_URI, null,
+        Cursor cursor = mContentResolver.query(BluetoothShare.CONTENT_URI, null,
                 WHERE_COMPLETED_OUTBOUND, null, BluetoothShare.TIMESTAMP + " DESC");
         if (cursor == null) {
             return;
@@ -436,8 +442,8 @@ class BluetoothOppNotification {
         }
 
         // Creating inbound notification
-        cursor = mContext.getContentResolver().query(BluetoothShare.CONTENT_URI, null,
-                WHERE_COMPLETED_INBOUND, null, BluetoothShare.TIMESTAMP + " DESC");
+        cursor = mContentResolver.query(BluetoothShare.CONTENT_URI, null, WHERE_COMPLETED_INBOUND,
+                null, BluetoothShare.TIMESTAMP + " DESC");
         if (cursor == null) {
             return;
         }
@@ -493,8 +499,8 @@ class BluetoothOppNotification {
     }
 
     private void updateIncomingFileConfirmNotification() {
-        Cursor cursor = mContext.getContentResolver().query(BluetoothShare.CONTENT_URI, null,
-                WHERE_CONFIRM_PENDING, null, BluetoothShare._ID);
+        Cursor cursor = mContentResolver.query(
+                BluetoothShare.CONTENT_URI, null, WHERE_CONFIRM_PENDING, null, BluetoothShare._ID);
 
         if (cursor == null) {
             return;
@@ -506,36 +512,51 @@ class BluetoothOppNotification {
           Uri contentUri = Uri.parse(BluetoothShare.CONTENT_URI + "/" + info.mID);
           Intent baseIntent = new Intent().setDataAndNormalize(contentUri)
               .setClassName(Constants.THIS_PACKAGE_NAME, BluetoothOppReceiver.class.getName());
-
-          Notification n = new Notification.Builder(mContext)
-              .setOnlyAlertOnce(true)
-              .setOngoing(true)
-              .setVibrate(new long[] { 200 })
-              .setWhen(info.mTimeStamp)
-              .setDefaults(Notification.DEFAULT_SOUND)
-              .setPriority(Notification.PRIORITY_HIGH)
-              .addAction(R.drawable.ic_decline,
-                  mContext.getText(R.string.incoming_file_confirm_cancel),
-                      PendingIntent.getBroadcast(mContext, 0,
-                          new Intent(baseIntent).setAction(Constants.ACTION_DECLINE), 0))
-              .addAction(R.drawable.ic_accept,
-                  mContext.getText(R.string.incoming_file_confirm_ok),
-                      PendingIntent.getBroadcast(mContext, 0,
-                          new Intent(baseIntent).setAction(Constants.ACTION_ACCEPT), 0))
-              .setContentIntent(PendingIntent.getBroadcast(mContext, 0,
-                  new Intent(baseIntent).setAction(Constants.ACTION_INCOMING_FILE_CONFIRM), 0))
-              .setDeleteIntent(PendingIntent.getBroadcast(mContext, 0,
-                  new Intent(baseIntent).setAction(Constants.ACTION_HIDE), 0))
-              .setColor(mContext.getResources().getColor(
-                  com.android.internal.R.color.system_notification_accent_color))
-              .setContentTitle(mContext.getText(R.string.incoming_file_confirm_Notification_title))
-              .setContentText(info.mFileName)
-              .setStyle(new Notification.BigTextStyle().bigText(mContext.getString(
-                  R.string.incoming_file_confirm_Notification_content,
-                  info.mDeviceName, info.mFileName)))
-              .setContentInfo(Formatter.formatFileSize(mContext, info.mTotalBytes))
-              .setSmallIcon(R.drawable.bt_incomming_file_notification)
-              .build();
+          Notification.Action actionDecline =
+                  new Notification.Action
+                          .Builder(R.drawable.ic_decline,
+                                  mContext.getText(R.string.incoming_file_confirm_cancel),
+                                  PendingIntent.getBroadcast(mContext, 0,
+                                          new Intent(baseIntent)
+                                                  .setAction(Constants.ACTION_DECLINE),
+                                          0))
+                          .build();
+          Notification.Action actionAccept =
+                  new Notification.Action
+                          .Builder(R.drawable.ic_accept,
+                                  mContext.getText(R.string.incoming_file_confirm_ok),
+                                  PendingIntent.getBroadcast(mContext, 0,
+                                          new Intent(baseIntent).setAction(Constants.ACTION_ACCEPT),
+                                          0))
+                          .build();
+          Notification n =
+                  new Notification.Builder(mContext)
+                          .setOnlyAlertOnce(true)
+                          .setOngoing(true)
+                          .setVibrate(new long[] {200})
+                          .setWhen(info.mTimeStamp)
+                          .setDefaults(Notification.DEFAULT_SOUND)
+                          .setPriority(Notification.PRIORITY_HIGH)
+                          .addAction(actionDecline)
+                          .addAction(actionAccept)
+                          .setContentIntent(PendingIntent.getBroadcast(mContext, 0,
+                                  new Intent(baseIntent)
+                                          .setAction(Constants.ACTION_INCOMING_FILE_CONFIRM),
+                                  0))
+                          .setDeleteIntent(PendingIntent.getBroadcast(mContext, 0,
+                                  new Intent(baseIntent).setAction(Constants.ACTION_HIDE), 0))
+                          .setColor(mContext.getResources().getColor(
+                                  com.android.internal.R.color.system_notification_accent_color,
+                                  mContext.getTheme()))
+                          .setContentTitle(mContext.getText(
+                                  R.string.incoming_file_confirm_Notification_title))
+                          .setContentText(info.mFileName)
+                          .setStyle(new Notification.BigTextStyle().bigText(mContext.getString(
+                                  R.string.incoming_file_confirm_Notification_content,
+                                  info.mDeviceName, info.mFileName)))
+                          .setContentInfo(Formatter.formatFileSize(mContext, info.mTotalBytes))
+                          .setSmallIcon(R.drawable.bt_incomming_file_notification)
+                          .build();
           mNotificationMgr.notify(info.mID, n);
         }
         cursor.close();
