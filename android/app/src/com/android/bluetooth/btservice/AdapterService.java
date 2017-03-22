@@ -464,6 +464,11 @@ public class AdapterService extends Service {
     public void onDestroy() {
         debugLog("onDestroy()");
         mProfileObserver.stop();
+        if (!isMock()) {
+            // TODO(b/27859763)
+            Log.i(TAG, "Force exit to cleanup internal state in Bluetooth stack");
+            System.exit(0);
+        }
     }
 
     void BleOnProcessStart() {
@@ -2301,5 +2306,15 @@ public class AdapterService extends Service {
                 debugLog("finalize() - REFCOUNT: FINALIZED. INSTANCE_COUNT= " + sRefCount);
             }
         }
+    }
+
+    // Returns if this is a mock object. This is currently used in testing so that we may not call
+    // System.exit() while finalizing the object. Otherwise GC of mock objects unfortunately ends up
+    // calling finalize() which in turn calls System.exit() and the process crashes.
+    //
+    // Mock this in your testing framework to return true to avoid the mentioned behavior. In
+    // production this has no effect.
+    public boolean isMock() {
+        return false;
     }
 }
