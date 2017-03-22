@@ -80,6 +80,14 @@ public class BluetoothOppService extends ProfileService implements IObexConnecti
     private static final boolean D = Constants.DEBUG;
     private static final boolean V = Constants.VERBOSE;
 
+    private static final byte OPP_FORMAT_VCARD21 = 0x01;
+    private static final byte OPP_FORMAT_VCARD30 = 0x02;
+    private static final byte OPP_FORMAT_VCAL10 = 0x03;
+    private static final byte OPP_FORMAT_ANY_TYPE_OF_OBJ = (byte) 0xFF;
+
+    private static final byte[] SUPPORTED_OPP_FORMAT = {
+            OPP_FORMAT_VCARD21, OPP_FORMAT_VCARD30, OPP_FORMAT_VCAL10, OPP_FORMAT_ANY_TYPE_OF_OBJ};
+
     private boolean userAccepted = false;
 
     private class BluetoothShareContentObserver extends ContentObserver {
@@ -358,7 +366,7 @@ public class BluetoothOppService extends ProfileService implements IObexConnecti
             return;
         }
         sdpManager.createOppOpsRecord("OBEX Object Push", mServerSocket.getRfcommChannel(),
-                mServerSocket.getL2capPsm(), 0x0102, SdpManager.OPP_FORMAT_ALL);
+                mServerSocket.getL2capPsm(), 0x0102, SUPPORTED_OPP_FORMAT);
     }
 
     @Override
