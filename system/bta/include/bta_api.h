@@ -958,8 +958,8 @@ typedef uint8_t tBTA_DM_PM_ACTION;
 #endif
 
 #ifndef BTA_DM_PM_SNIFF4_MAX
-#define BTA_DM_PM_SNIFF4_MAX 54
-#define BTA_DM_PM_SNIFF4_MIN 30
+#define BTA_DM_PM_SNIFF4_MAX 18
+#define BTA_DM_PM_SNIFF4_MIN 10
 #define BTA_DM_PM_SNIFF4_ATTEMPT 4
 #define BTA_DM_PM_SNIFF4_TIMEOUT 1
 #endif
