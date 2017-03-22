@@ -136,7 +136,7 @@ public class BluetoothOppReceiveFileInfo {
          * the file. Put a bit of margin (in case creating the file grows the
          * system by a few blocks).
          */
-        if (stat.getBlockSize() * ((long)stat.getAvailableBlocks() - 4) < length) {
+        if (stat.getBlockSizeLong() * (stat.getAvailableBlocksLong() - 4) < length) {
             if (D) Log.d(Constants.TAG, "Receive File aborted - not enough free space");
             return new BluetoothOppReceiveFileInfo(BluetoothShare.STATUS_ERROR_SDCARD_FULL);
         }
