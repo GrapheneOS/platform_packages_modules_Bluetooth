@@ -1042,7 +1042,8 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
         String selection = null;
         switch (type) {
             case ContentType.INCOMING_CALL_HISTORY:
-                selection = Calls.TYPE + "=" + CallLog.Calls.INCOMING_TYPE;
+                selection = "(" + Calls.TYPE + "=" + CallLog.Calls.INCOMING_TYPE + " OR "
+                        + Calls.TYPE + "=" + CallLog.Calls.REJECTED_TYPE + ")";
                 break;
             case ContentType.OUTGOING_CALL_HISTORY:
                 selection = Calls.TYPE + "=" + CallLog.Calls.OUTGOING_TYPE;
