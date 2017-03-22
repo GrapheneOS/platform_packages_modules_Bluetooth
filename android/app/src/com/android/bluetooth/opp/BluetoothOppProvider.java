@@ -240,7 +240,6 @@ public final class BluetoothOppProvider extends ContentProvider {
         }
         Integer dir = values.getAsInteger(BluetoothShare.DIRECTION);
         Integer con = values.getAsInteger(BluetoothShare.USER_CONFIRMATION);
-        String address = values.getAsString(BluetoothShare.DESTINATION);
 
         if (values.getAsInteger(BluetoothShare.DIRECTION) == null) {
             dir = BluetoothShare.DIRECTION_OUTBOUND;
