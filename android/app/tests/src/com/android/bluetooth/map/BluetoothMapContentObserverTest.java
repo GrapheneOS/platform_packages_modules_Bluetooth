@@ -38,7 +38,7 @@ public class BluetoothMapContentObserverTest extends AndroidTestCase {
         if (Looper.myLooper() == null) Looper.prepare();
 
         Context mockContext = mock(Context.class);
-        MockContentResolver mockResolver = new MockContentResolver(mockContext);
+        MockContentResolver mockResolver = new MockContentResolver();
         ExceptionTestProvider mockProvider = new ExceptionTestProvider(mockContext);
         mockResolver.addProvider("sms", mockProvider);
 
