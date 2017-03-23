@@ -60,6 +60,7 @@ static tGATT_CBACK gap_cback = {gap_ble_c_connect_cback,
                                 NULL,
                                 gap_ble_s_attr_request_cback,
                                 NULL,
+                                NULL,
                                 NULL};
 
 /*******************************************************************************
