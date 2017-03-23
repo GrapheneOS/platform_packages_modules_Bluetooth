@@ -30,6 +30,7 @@
 #include "bt_target.h"
 #include "osi/include/log.h"
 #include "osi/include/osi.h"
+#include "osi/include/properties.h"
 
 #include "bta_av_co.h"
 #include "bta_av_int.h"
@@ -61,6 +62,18 @@
 /* the delay time in milliseconds to retry role switch */
 #ifndef BTA_AV_RS_TIME_VAL
 #define BTA_AV_RS_TIME_VAL 1000
+#endif
+
+#ifndef AVRCP_VERSION_PROPERTY
+#define AVRCP_VERSION_PROPERTY "persist.bluetooth.avrcpversion"
+#endif
+
+#ifndef AVRCP_1_6_STRING
+#define AVRCP_1_6_STRING "avrcp16"
+#endif
+
+#ifndef AVRCP_1_5_STRING
+#define AVRCP_1_5_STRING "avrcp15"
 #endif
 
 /* state machine states */
@@ -456,18 +469,32 @@ static void bta_av_api_register(tBTA_AV_DATA* p_data) {
                         BTA_ID_AV);
 #endif
 
-        /* Both Audio Source and Audio Sink support AVRCP 1.4 for the
-         * major roles (i.e. Audio Source -> TG 1.4 and vice versa). For
-         * Audio Sink role we support additional TG 1.3 to support
-         * absolute volume. Here we only do TG registration.
+        /* For the Audio Sink role we support additional TG 1.3 to support
+         * absolute volume.
          */
         uint16_t profile_version = AVRC_REV_1_0;
+
         if (profile_initialized == UUID_SERVCLASS_AUDIO_SOURCE) {
-          profile_version = AVRC_REV_1_4;
+          // This check can override the AVRCP profile version with a property
+          char avrcp_version[PROPERTY_VALUE_MAX] = {0};
+          osi_property_get(AVRCP_VERSION_PROPERTY, avrcp_version, "");
+          LOG_INFO(LOG_TAG, "AVRCP version used for sdp: \"%s\"",
+                   avrcp_version);
+
+          if (!strncmp(AVRCP_1_6_STRING, avrcp_version,
+                       sizeof(AVRCP_1_6_STRING))) {
+            profile_version = AVRC_REV_1_6;
+          } else if (!strncmp(AVRCP_1_5_STRING, avrcp_version,
+                              sizeof(AVRCP_1_5_STRING))) {
+            profile_version = AVRC_REV_1_5;
+          } else {
+            profile_version = AVRC_REV_1_4;
+          }
         } else if (profile_initialized == UUID_SERVCLASS_AUDIO_SINK) {
           // Initialize AVRCP1.4 to provide Absolute Volume control.
           profile_version = AVRC_REV_1_4;
         }
+
         bta_ar_reg_avrc(
             UUID_SERVCLASS_AV_REM_CTRL_TARGET, "AV Remote Control Target", NULL,
             p_bta_av_cfg->avrc_tg_cat, BTA_ID_AV,
