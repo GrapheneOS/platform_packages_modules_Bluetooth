@@ -328,9 +328,10 @@ class AdvertiseManager {
         callback.onPeriodicAdvertisingDataSet(advertiser_id, status);
     }
 
-    void onPeriodicAdvertisingEnable(int advertiser_id, boolean enable, int status)
+    void onPeriodicAdvertisingEnabled(int advertiser_id, boolean enable, int status)
             throws Exception {
-        logd("onPeriodicAdvertisingEnable() advertiser_id=" + advertiser_id + ", status=" + status);
+        logd("onPeriodicAdvertisingEnabled() advertiser_id=" + advertiser_id + ", status="
+                + status);
 
         Map.Entry<IBinder, AdvertiserInfo> entry = findAdvertiser(advertiser_id);
         if (entry == null) {
@@ -339,7 +340,7 @@ class AdvertiseManager {
         }
 
         IAdvertisingSetCallback callback = entry.getValue().callback;
-        callback.onPeriodicAdvertisingEnable(advertiser_id, enable, status);
+        callback.onPeriodicAdvertisingEnabled(advertiser_id, enable, status);
     }
 
     private void logd(String s) {
