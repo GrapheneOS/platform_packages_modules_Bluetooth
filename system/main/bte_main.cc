@@ -100,8 +100,10 @@ void bte_main_boot_entry(void) {
   module_init(get_module(INTEROP_MODULE));
 
   hci = hci_layer_get_interface();
-  if (!hci)
+  if (!hci) {
     LOG_ERROR(LOG_TAG, "%s could not get hci layer interface.", __func__);
+    return;
+  }
 
   btu_hci_msg_queue = fixed_queue_new(SIZE_MAX);
   if (btu_hci_msg_queue == NULL) {

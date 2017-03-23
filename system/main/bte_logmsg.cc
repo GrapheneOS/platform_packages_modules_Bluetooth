@@ -175,7 +175,8 @@ void LogMsg(uint32_t trace_set_mask, const char* fmt_str, ...) {
       break;
     default:
       /* we should never get this */
-      LOG_ERROR(bt_layer_tags[trace_layer], "%s", buffer);
+      LOG_ERROR(bt_layer_tags[trace_layer], "!BAD TRACE TYPE! %s", buffer);
+      CHECK(TRACE_GET_TYPE(trace_set_mask) == TRACE_TYPE_ERROR);
       break;
   }
 }
