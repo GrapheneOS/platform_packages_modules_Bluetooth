@@ -190,7 +190,7 @@ static jmethodID method_onScanResponseDataSet;
 static jmethodID method_onAdvertisingParametersUpdated;
 static jmethodID method_onPeriodicAdvertisingParametersUpdated;
 static jmethodID method_onPeriodicAdvertisingDataSet;
-static jmethodID method_onPeriodicAdvertisingEnable;
+static jmethodID method_onPeriodicAdvertisingEnabled;
 
 /**
  * Static variables
@@ -1572,8 +1572,8 @@ static void advertiseClassInitNative(JNIEnv* env, jclass clazz) {
       clazz, "onPeriodicAdvertisingParametersUpdated", "(II)V");
   method_onPeriodicAdvertisingDataSet =
       env->GetMethodID(clazz, "onPeriodicAdvertisingDataSet", "(II)V");
-  method_onPeriodicAdvertisingEnable =
-      env->GetMethodID(clazz, "onPeriodicAdvertisingEnable", "(IZI)V");
+  method_onPeriodicAdvertisingEnabled =
+      env->GetMethodID(clazz, "onPeriodicAdvertisingEnabled", "(IZI)V");
 }
 
 static void advertiseInitializeNative(JNIEnv* env, jobject object) {
@@ -1820,7 +1820,7 @@ static void enablePeriodicSetCb(uint8_t advertiser_id, bool enable,
   CallbackEnv sCallbackEnv(__func__);
   if (!sCallbackEnv.valid()) return;
   sCallbackEnv->CallVoidMethod(mCallbacksObj,
-                               method_onPeriodicAdvertisingEnable,
+                               method_onPeriodicAdvertisingEnabled,
                                advertiser_id, enable, status);
 }
 
