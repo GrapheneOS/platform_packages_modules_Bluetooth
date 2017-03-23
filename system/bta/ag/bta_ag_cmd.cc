@@ -708,7 +708,7 @@ static void bta_ag_bind_response(tBTA_AG_SCB* p_scb, uint8_t arg_type) {
       if (bta_ag_local_hf_ind_cfg[i + 1].is_supported) {
         /* Add ',' from second indicator */
         if (index > 1) buffer[index++] = ',';
-        snprintf(&buffer[index++], 1, "%d",
+        snprintf(&buffer[index++], 2, "%d",
                  bta_ag_local_hf_ind_cfg[i + 1].ind_id);
       }
     }
