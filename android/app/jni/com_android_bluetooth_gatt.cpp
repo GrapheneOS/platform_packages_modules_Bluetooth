@@ -163,6 +163,7 @@ static jmethodID method_getSampleGattDbElement;
 static jmethodID method_onGetGattDb;
 static jmethodID method_onClientPhyUpdate;
 static jmethodID method_onClientPhyRead;
+static jmethodID method_onClientConnUpdate;
 
 /**
  * Server callback methods
@@ -183,6 +184,7 @@ static jmethodID method_onServerCongestion;
 static jmethodID method_onServerMtuChanged;
 static jmethodID method_onServerPhyUpdate;
 static jmethodID method_onServerPhyRead;
+static jmethodID method_onServerConnUpdate;
 
 /**
  * Advertiser callback methods
@@ -523,9 +525,17 @@ void btgattc_phy_updated_cb(int conn_id, uint8_t tx_phy, uint8_t rx_phy,
   CallbackEnv sCallbackEnv(__func__);
   if (!sCallbackEnv.valid()) return;
 
-  info("ASDFASDFADSFDSAFDS");
   sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onClientPhyUpdate, conn_id,
                                tx_phy, rx_phy, status);
+}
+
+void btgattc_conn_updated_cb(int conn_id, uint16_t interval, uint16_t latency,
+                             uint16_t timeout, uint8_t status) {
+  CallbackEnv sCallbackEnv(__func__);
+  if (!sCallbackEnv.valid()) return;
+
+  sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onClientConnUpdate,
+                               conn_id, interval, latency, timeout, status);
 }
 
 static const btgatt_scanner_callbacks_t sGattScannerCallbacks = {
@@ -553,7 +563,8 @@ static const btgatt_client_callbacks_t sGattClientCallbacks = {
     btgattc_get_gatt_db_cb,
     NULL, /* services_removed_cb */
     NULL, /* services_added_cb */
-    btgattc_phy_updated_cb};
+    btgattc_phy_updated_cb,
+    btgattc_conn_updated_cb};
 
 /**
  * BTA server callbacks
@@ -726,6 +737,15 @@ void btgatts_phy_updated_cb(int conn_id, uint8_t tx_phy, uint8_t rx_phy,
                                tx_phy, rx_phy, status);
 }
 
+void btgatts_conn_updated_cb(int conn_id, uint16_t interval, uint16_t latency,
+                             uint16_t timeout, uint8_t status) {
+  CallbackEnv sCallbackEnv(__func__);
+  if (!sCallbackEnv.valid()) return;
+
+  sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onServerConnUpdate,
+                               conn_id, interval, latency, timeout, status);
+}
+
 static const btgatt_server_callbacks_t sGattServerCallbacks = {
     btgatts_register_app_cb,
     btgatts_connection_cb,
@@ -741,7 +761,8 @@ static const btgatt_server_callbacks_t sGattServerCallbacks = {
     btgatts_indication_sent_cb,
     btgatts_congestion_cb,
     btgatts_mtu_changed_cb,
-    btgatts_phy_updated_cb};
+    btgatts_phy_updated_cb,
+    btgatts_conn_updated_cb};
 
 /**
  * GATT callbacks
@@ -821,6 +842,8 @@ static void classInitNative(JNIEnv* env, jclass clazz) {
       env->GetMethodID(clazz, "onClientPhyRead", "(IIII)V");
   method_onClientPhyUpdate =
       env->GetMethodID(clazz, "onClientPhyUpdate", "(IIII)V");
+  method_onClientConnUpdate =
+      env->GetMethodID(clazz, "onClientConnUpdate", "(IIIII)V");
 
   // Server callbacks
 
@@ -855,6 +878,8 @@ static void classInitNative(JNIEnv* env, jclass clazz) {
       env->GetMethodID(clazz, "onServerPhyRead", "(IIII)V");
   method_onServerPhyUpdate =
       env->GetMethodID(clazz, "onServerPhyUpdate", "(IIII)V");
+  method_onServerConnUpdate =
+      env->GetMethodID(clazz, "onServerConnUpdate", "(IIIII)V");
 
   info("classInitNative: Success!");
 }
