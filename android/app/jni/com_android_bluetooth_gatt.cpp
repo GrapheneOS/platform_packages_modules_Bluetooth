@@ -161,6 +161,8 @@ static jmethodID method_onTrackAdvFoundLost;
 static jmethodID method_onScanParamSetupCompleted;
 static jmethodID method_getSampleGattDbElement;
 static jmethodID method_onGetGattDb;
+static jmethodID method_onClientPhyUpdate;
+static jmethodID method_onClientPhyRead;
 
 /**
  * Server callback methods
@@ -179,6 +181,8 @@ static jmethodID method_onExecuteWrite;
 static jmethodID method_onNotificationSent;
 static jmethodID method_onServerCongestion;
 static jmethodID method_onServerMtuChanged;
+static jmethodID method_onServerPhyUpdate;
+static jmethodID method_onServerPhyRead;
 
 /**
  * Advertiser callback methods
@@ -514,6 +518,16 @@ void btgattc_get_gatt_db_cb(int conn_id, btgatt_db_element_t* db, int count) {
                                array.get());
 }
 
+void btgattc_phy_updated_cb(int conn_id, uint8_t tx_phy, uint8_t rx_phy,
+                            uint8_t status) {
+  CallbackEnv sCallbackEnv(__func__);
+  if (!sCallbackEnv.valid()) return;
+
+  info("ASDFASDFADSFDSAFDS");
+  sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onClientPhyUpdate, conn_id,
+                               tx_phy, rx_phy, status);
+}
+
 static const btgatt_scanner_callbacks_t sGattScannerCallbacks = {
     btgattc_scan_result_cb,
     btgattc_batchscan_reports_cb,
@@ -538,8 +552,8 @@ static const btgatt_client_callbacks_t sGattClientCallbacks = {
     btgattc_congestion_cb,
     btgattc_get_gatt_db_cb,
     NULL, /* services_removed_cb */
-    NULL  /* services_added_cb */
-};
+    NULL, /* services_added_cb */
+    btgattc_phy_updated_cb};
 
 /**
  * BTA server callbacks
@@ -703,6 +717,15 @@ void btgatts_mtu_changed_cb(int conn_id, int mtu) {
                                conn_id, mtu);
 }
 
+void btgatts_phy_updated_cb(int conn_id, uint8_t tx_phy, uint8_t rx_phy,
+                            uint8_t status) {
+  CallbackEnv sCallbackEnv(__func__);
+  if (!sCallbackEnv.valid()) return;
+
+  sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onServerPhyUpdate, conn_id,
+                               tx_phy, rx_phy, status);
+}
+
 static const btgatt_server_callbacks_t sGattServerCallbacks = {
     btgatts_register_app_cb,
     btgatts_connection_cb,
@@ -717,7 +740,8 @@ static const btgatt_server_callbacks_t sGattServerCallbacks = {
     btgatts_response_confirmation_cb,
     btgatts_indication_sent_cb,
     btgatts_congestion_cb,
-    btgatts_mtu_changed_cb};
+    btgatts_mtu_changed_cb,
+    btgatts_phy_updated_cb};
 
 /**
  * GATT callbacks
@@ -793,6 +817,10 @@ static void classInitNative(JNIEnv* env, jclass clazz) {
                        "()Lcom/android/bluetooth/gatt/GattDbElement;");
   method_onGetGattDb =
       env->GetMethodID(clazz, "onGetGattDb", "(ILjava/util/ArrayList;)V");
+  method_onClientPhyRead =
+      env->GetMethodID(clazz, "onClientPhyRead", "(IIII)V");
+  method_onClientPhyUpdate =
+      env->GetMethodID(clazz, "onClientPhyUpdate", "(IIII)V");
 
   // Server callbacks
 
@@ -823,6 +851,10 @@ static void classInitNative(JNIEnv* env, jclass clazz) {
   method_onServerCongestion =
       env->GetMethodID(clazz, "onServerCongestion", "(IZ)V");
   method_onServerMtuChanged = env->GetMethodID(clazz, "onMtuChanged", "(II)V");
+  method_onServerPhyRead =
+      env->GetMethodID(clazz, "onServerPhyRead", "(IIII)V");
+  method_onServerPhyUpdate =
+      env->GetMethodID(clazz, "onServerPhyUpdate", "(IIII)V");
 
   info("classInitNative: Success!");
 }
@@ -957,6 +989,29 @@ static void gattClientDisconnectNative(JNIEnv* env, jobject object,
   bt_bdaddr_t bda;
   jstr2bdaddr(env, &bda, address);
   sGattIf->client->disconnect(clientIf, &bda, conn_id);
+}
+
+static void gattClientSetPreferredPhyNative(JNIEnv* env, jobject object,
+                                            jint clientIf, jint conn_id,
+                                            jint tx_phy, jint rx_phy,
+                                            jint phy_options) {
+  if (!sGattIf) return;
+  sGattIf->client->set_preferred_phy(conn_id, tx_phy, rx_phy, phy_options);
+}
+
+static void readClientPhyCb(int conn_id, uint8_t tx_phy, uint8_t rx_phy,
+                            uint8_t status) {
+  CallbackEnv sCallbackEnv(__func__);
+  if (!sCallbackEnv.valid()) return;
+
+  sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onClientPhyRead, conn_id,
+                               tx_phy, rx_phy, status);
+}
+
+static void gattClientReadPhyNative(JNIEnv* env, jobject object, jint clientIf,
+                                    jint conn_id) {
+  if (!sGattIf) return;
+  sGattIf->client->read_phy(conn_id, base::Bind(readClientPhyCb, conn_id));
 }
 
 static void gattClientRefreshNative(JNIEnv* env, jobject object, jint clientIf,
@@ -1420,6 +1475,29 @@ static void gattServerDisconnectNative(JNIEnv* env, jobject object,
   bt_bdaddr_t bda;
   jstr2bdaddr(env, &bda, address);
   sGattIf->server->disconnect(serverIf, &bda, conn_id);
+}
+
+static void gattServerSetPreferredPhyNative(JNIEnv* env, jobject object,
+                                            jint serverIf, jint conn_id,
+                                            jint tx_phy, jint rx_phy,
+                                            jint phy_options) {
+  if (!sGattIf) return;
+  sGattIf->server->set_preferred_phy(conn_id, tx_phy, rx_phy, phy_options);
+}
+
+static void readServerPhyCb(int conn_id, uint8_t tx_phy, uint8_t rx_phy,
+                            uint8_t status) {
+  CallbackEnv sCallbackEnv(__func__);
+  if (!sCallbackEnv.valid()) return;
+
+  sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onServerPhyRead, conn_id,
+                               tx_phy, rx_phy, status);
+}
+
+static void gattServerReadPhyNative(JNIEnv* env, jobject object, jint serverIf,
+                                    jint conn_id) {
+  if (!sGattIf) return;
+  sGattIf->server->read_phy(conn_id, base::Bind(readServerPhyCb, conn_id));
 }
 
 static void gattServerAddServiceNative(JNIEnv* env, jobject object,
@@ -1936,6 +2014,9 @@ static JNINativeMethod sMethods[] = {
      (void*)gattClientConnectNative},
     {"gattClientDisconnectNative", "(ILjava/lang/String;I)V",
      (void*)gattClientDisconnectNative},
+    {"gattClientSetPreferredPhyNative", "(IIIII)V",
+     (void*)gattClientSetPreferredPhyNative},
+    {"gattClientReadPhyNative", "(II)V", (void*)gattClientReadPhyNative},
     {"gattClientRefreshNative", "(ILjava/lang/String;)V",
      (void*)gattClientRefreshNative},
     {"gattClientSearchServiceNative", "(IZJJ)V",
@@ -1967,6 +2048,9 @@ static JNINativeMethod sMethods[] = {
      (void*)gattServerConnectNative},
     {"gattServerDisconnectNative", "(ILjava/lang/String;I)V",
      (void*)gattServerDisconnectNative},
+    {"gattServerSetPreferredPhyNative", "(IIIII)V",
+     (void*)gattServerSetPreferredPhyNative},
+    {"gattServerReadPhyNative", "(II)V", (void*)gattServerReadPhyNative},
     {"gattServerAddServiceNative", "(ILjava/util/List;)V",
      (void*)gattServerAddServiceNative},
     {"gattServerStopServiceNative", "(II)V",
