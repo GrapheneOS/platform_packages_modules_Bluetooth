@@ -833,6 +833,19 @@ public class GattService extends ProfileService {
         app.callback.onPhyRead(address, txPhy, rxPhy, status);
     }
 
+    void onClientConnUpdate(int connId, int interval, int latency, int timeout, int status)
+            throws RemoteException {
+        if (DBG) Log.d(TAG, "onClientConnUpdate() - connId=" + connId + ", status=" + status);
+
+        String address = mClientMap.addressByConnId(connId);
+        if (address == null) return;
+
+        ClientMap.App app = mClientMap.getByConnId(connId);
+        if (app == null) return;
+
+        app.callback.onConnectionUpdated(address, interval, latency, timeout, status);
+    }
+
     void onServerPhyUpdate(int connId, int txPhy, int rxPhy, int status) throws RemoteException {
         if (DBG) Log.d(TAG, "onServerPhyUpdate() - connId=" + connId + ", status=" + status);
 
@@ -855,6 +868,19 @@ public class GattService extends ProfileService {
         if (app == null) return;
 
         app.callback.onPhyRead(address, txPhy, rxPhy, status);
+    }
+
+    void onServerConnUpdate(int connId, int interval, int latency, int timeout, int status)
+            throws RemoteException {
+        if (DBG) Log.d(TAG, "onServerConnUpdate() - connId=" + connId + ", status=" + status);
+
+        String address = mServerMap.addressByConnId(connId);
+        if (address == null) return;
+
+        ServerMap.App app = mServerMap.getByConnId(connId);
+        if (app == null) return;
+
+        app.callback.onConnectionUpdated(address, interval, latency, timeout, status);
     }
 
     void onSearchCompleted(int connId, int status) throws RemoteException {
