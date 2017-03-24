@@ -584,6 +584,11 @@ typedef void(tGATT_PHY_UPDATE_CB)(tGATT_IF gatt_if, uint16_t conn_id,
                                   uint8_t tx_phy, uint8_t rx_phy,
                                   uint8_t status);
 
+/* Define a callback function when connection parameters are updated */
+typedef void(tGATT_CONN_UPDATE_CB)(tGATT_IF gatt_if, uint16_t conn_id,
+                                   uint16_t interval, uint16_t latency,
+                                   uint16_t timeout, uint8_t status);
+
 /* Define the structure that applications use to register with
  * GATT. This structure includes callback functions. All functions
  * MUST be provided.
@@ -597,6 +602,7 @@ typedef struct {
   tGATT_ENC_CMPL_CB* p_enc_cmpl_cb;
   tGATT_CONGESTION_CBACK* p_congestion_cb;
   tGATT_PHY_UPDATE_CB* p_phy_update_cb;
+  tGATT_CONN_UPDATE_CB* p_conn_update_cb;
 } tGATT_CBACK;
 
 /*****************  Start Handle Management Definitions   *********************/

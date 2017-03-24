@@ -43,6 +43,7 @@ static tGATT_CBACK srvc_gatt_cback = {srvc_eng_connect_cback,
                                       srvc_eng_s_request_cback,
                                       NULL,
                                       NULL,
+                                      NULL,
                                       NULL};
 /* type for action functions */
 typedef void (*tSRVC_ENG_C_CMPL_ACTION)(tSRVC_CLCB* p_clcb, tGATTC_OPTYPE op,
