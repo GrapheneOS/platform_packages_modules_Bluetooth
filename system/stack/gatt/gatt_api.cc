@@ -663,7 +663,7 @@ void read_phy_cb(
   uint8_t status, tx_phy, rx_phy;
   uint16_t handle;
 
-  LOG_ASSERT(len == 5) << "Received bad response length";
+  LOG_ASSERT(len == 5) << "Received bad response length: " << len;
   uint8_t* pp = data;
   STREAM_TO_UINT8(status, pp);
   STREAM_TO_UINT16(handle, pp);
