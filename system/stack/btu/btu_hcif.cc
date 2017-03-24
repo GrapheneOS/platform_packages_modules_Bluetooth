@@ -1666,6 +1666,11 @@ static void btu_ble_proc_enhanced_conn_cmpl(uint8_t* p, uint16_t evt_len) {
   btm_ble_conn_complete(p, evt_len, true);
 }
 #endif
+
+extern void gatt_notify_conn_update(uint16_t handle, uint16_t interval,
+                                    uint16_t latency, uint16_t timeout,
+                                    uint8_t status);
+
 static void btu_ble_ll_conn_param_upd_evt(uint8_t* p, uint16_t evt_len) {
   /* LE connection update has completed successfully as a master. */
   /* We can enable the update request if the result is a success. */
@@ -1683,6 +1688,8 @@ static void btu_ble_ll_conn_param_upd_evt(uint8_t* p, uint16_t evt_len) {
   STREAM_TO_UINT16(timeout, p);
 
   l2cble_process_conn_update_evt(handle, status, interval, latency, timeout);
+
+  gatt_notify_conn_update(handle & 0x0FFF, interval, latency, timeout, status);
 }
 
 static void btu_ble_read_remote_feat_evt(uint8_t* p) {

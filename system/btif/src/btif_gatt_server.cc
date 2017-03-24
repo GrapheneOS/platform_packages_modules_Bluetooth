@@ -254,6 +254,13 @@ static void btapp_gatts_handle_cback(uint16_t event, char* p_param) {
                 p_data->phy_update.rx_phy, p_data->phy_update.status);
       break;
 
+    case BTA_GATTS_CONN_UPDATE_EVT:
+      HAL_CBACK(bt_gatt_callbacks, server->conn_updated_cb,
+                p_data->conn_update.conn_id, p_data->conn_update.interval,
+                p_data->conn_update.latency, p_data->conn_update.timeout,
+                p_data->conn_update.status);
+      break;
+
     default:
       LOG_ERROR(LOG_TAG, "%s: Unhandled event (%d)!", __func__, event);
       break;

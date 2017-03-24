@@ -52,6 +52,9 @@ static void bta_gatts_cong_cback(uint16_t conn_id, bool congested);
 static void bta_gatts_phy_update_cback(tGATT_IF gatt_if, uint16_t conn_id,
                                        uint8_t tx_phy, uint8_t rx_phy,
                                        uint8_t status);
+static void bta_gatts_conn_update_cback(tGATT_IF gatt_if, uint16_t conn_id,
+                                        uint16_t interval, uint16_t latency,
+                                        uint16_t timeout, uint8_t status);
 
 static tGATT_CBACK bta_gatts_cback = {bta_gatts_conn_cback,
                                       NULL,
@@ -60,7 +63,8 @@ static tGATT_CBACK bta_gatts_cback = {bta_gatts_conn_cback,
                                       bta_gatts_send_request_cback,
                                       NULL,
                                       bta_gatts_cong_cback,
-                                      bta_gatts_phy_update_cback};
+                                      bta_gatts_phy_update_cback,
+                                      bta_gatts_conn_update_cback};
 
 tGATT_APPL_INFO bta_gatts_nv_cback = {bta_gatts_nv_save_cback,
                                       bta_gatts_nv_srv_chg_cback};
@@ -629,6 +633,25 @@ static void bta_gatts_phy_update_cback(tGATT_IF gatt_if, uint16_t conn_id,
   cb_data.phy_update.rx_phy = rx_phy;
   cb_data.phy_update.status = status;
   (*p_reg->p_cback)(BTA_GATTS_PHY_UPDATE_EVT, &cb_data);
+}
+
+static void bta_gatts_conn_update_cback(tGATT_IF gatt_if, uint16_t conn_id,
+                                        uint16_t interval, uint16_t latency,
+                                        uint16_t timeout, uint8_t status) {
+  tBTA_GATTS_RCB* p_reg = bta_gatts_find_app_rcb_by_app_if(gatt_if);
+  if (!p_reg || !p_reg->p_cback) {
+    APPL_TRACE_ERROR("%s: server_if=%d not found", __func__, gatt_if);
+    return;
+  }
+
+  tBTA_GATTS cb_data;
+  cb_data.conn_update.conn_id = conn_id;
+  cb_data.conn_update.server_if = gatt_if;
+  cb_data.conn_update.interval = interval;
+  cb_data.conn_update.latency = latency;
+  cb_data.conn_update.timeout = timeout;
+  cb_data.conn_update.status = status;
+  (*p_reg->p_cback)(BTA_GATTS_CONN_UPDATE_EVT, &cb_data);
 }
 
 /*******************************************************************************
