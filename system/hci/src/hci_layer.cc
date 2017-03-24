@@ -440,10 +440,13 @@ static bool filter_incoming_event(BT_HDR* packet) {
                  "0x%04x).",
                  __func__, opcode);
       }
-    } else if (wait_entry->complete_callback) {
-      wait_entry->complete_callback(packet, wait_entry->context);
-    } else if (wait_entry->complete_future) {
-      future_ready(wait_entry->complete_future, packet);
+    } else {
+      update_command_response_timer();
+      if (wait_entry->complete_callback) {
+        wait_entry->complete_callback(packet, wait_entry->context);
+      } else if (wait_entry->complete_future) {
+        future_ready(wait_entry->complete_future, packet);
+      }
     }
 
     goto intercepted;
@@ -457,14 +460,17 @@ static bool filter_incoming_event(BT_HDR* packet) {
     // command complete event
 
     wait_entry = get_waiting_command(opcode);
-    if (!wait_entry)
+    if (!wait_entry) {
       LOG_WARN(
           LOG_TAG,
           "%s command status event with no matching command. opcode: 0x%04x",
           __func__, opcode);
-    else if (wait_entry->status_callback)
-      wait_entry->status_callback(status, wait_entry->command,
-                                  wait_entry->context);
+    } else {
+      update_command_response_timer();
+      if (wait_entry->status_callback)
+        wait_entry->status_callback(status, wait_entry->command,
+                                    wait_entry->context);
+    }
 
     goto intercepted;
   }
@@ -472,8 +478,6 @@ static bool filter_incoming_event(BT_HDR* packet) {
   return false;
 
 intercepted:
-  update_command_response_timer();
-
   if (wait_entry) {
     // If it has a callback, it's responsible for freeing the packet
     if (event_code == HCI_COMMAND_STATUS_EVT ||
