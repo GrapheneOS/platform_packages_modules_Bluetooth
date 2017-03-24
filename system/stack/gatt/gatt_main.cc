@@ -487,6 +487,18 @@ static void gatt_channel_congestion(tGATT_TCB* p_tcb, bool congested) {
   }
 }
 
+void gatt_notify_phy_updated(tGATT_TCB* p_tcb, uint8_t tx_phy, uint8_t rx_phy,
+                             uint8_t status) {
+  for (int i = 0; i < GATT_MAX_APPS; i++) {
+    tGATT_REG* p_reg = &gatt_cb.cl_rcb[i];
+    if (p_reg->in_use && p_reg->app_cb.p_phy_update_cb) {
+      uint16_t conn_id = GATT_CREATE_CONN_ID(p_tcb->tcb_idx, p_reg->gatt_if);
+      (*p_reg->app_cb.p_phy_update_cb)(p_reg->gatt_if, conn_id, tx_phy, rx_phy,
+                                       status);
+    }
+  }
+}
+
 /*******************************************************************************
  *
  * Function         gatt_le_cong_cback

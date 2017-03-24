@@ -23,10 +23,12 @@
  ******************************************************************************/
 #include "bt_target.h"
 
+#include <base/bind.h>
 #include <stdio.h>
 #include <string.h>
 #include "bt_common.h"
 #include "btm_int.h"
+#include "btu.h"
 #include "gatt_api.h"
 #include "gatt_int.h"
 #include "l2c_api.h"
@@ -653,6 +655,85 @@ tGATT_STATUS GATTC_ConfigureMTU(uint16_t conn_id, uint16_t mtu) {
   }
 
   return ret;
+}
+
+void read_phy_cb(
+    base::Callback<void(uint8_t tx_phy, uint8_t rx_phy, uint8_t status)> cb,
+    uint8_t* data, uint16_t len) {
+  uint8_t status, tx_phy, rx_phy;
+  uint16_t handle;
+
+  LOG_ASSERT(len == 5) << "Received bad response length";
+  uint8_t* pp = data;
+  STREAM_TO_UINT8(status, pp);
+  STREAM_TO_UINT16(handle, pp);
+  handle = handle & 0x0FFF;
+  STREAM_TO_UINT8(tx_phy, pp);
+  STREAM_TO_UINT8(rx_phy, pp);
+
+  DVLOG(1) << __func__ << " Received read_phy_cb";
+  cb.Run(tx_phy, rx_phy, status);
+}
+
+void GATTC_ReadPHY(
+    uint16_t conn_id,
+    base::Callback<void(uint8_t tx_phy, uint8_t rx_phy, uint8_t status)> cb) {
+  uint8_t tcb_idx = GATT_GET_TCB_IDX(conn_id);
+  tGATT_TCB* p_tcb = gatt_get_tcb_by_idx(tcb_idx);
+  if (p_tcb == NULL) {
+    GATT_TRACE_ERROR("%s: no p_tcb for conn_id %d", __func__, conn_id);
+    cb.Run(0, 0, GATT_INVALID_HANDLE);
+    return;
+  }
+
+  tACL_CONN* p_lcb = btm_bda_to_acl(p_tcb->peer_bda, BT_TRANSPORT_LE);
+  if (p_lcb == NULL) {
+    GATT_TRACE_ERROR("%s: no p_lcb for conn_id %d", __func__, conn_id);
+    cb.Run(0, 0, GATT_INVALID_HANDLE);
+    return;
+  }
+  uint16_t handle = p_lcb->hci_handle;
+
+  const uint8_t len = 2;
+  uint8_t data[len];
+  uint8_t* pp = data;
+  UINT16_TO_STREAM(pp, handle);
+  btu_hcif_send_cmd_with_cb(FROM_HERE, HCI_LE_READ_PHY, data, len,
+                            base::Bind(&read_phy_cb, std::move(cb)));
+}
+
+void doNothing(uint8_t* data, uint16_t len) {}
+
+void GATTC_SetPreferredPHY(uint16_t conn_id, uint8_t tx_phy, uint8_t rx_phy,
+                           uint16_t phy_options) {
+  uint8_t tcb_idx = GATT_GET_TCB_IDX(conn_id);
+  tGATT_TCB* p_tcb = gatt_get_tcb_by_idx(tcb_idx);
+  if (p_tcb == NULL) {
+    GATT_TRACE_ERROR("%s: no p_tcb for conn_id %d", __func__, conn_id);
+    return;
+  }
+
+  tACL_CONN* p_lcb = btm_bda_to_acl(p_tcb->peer_bda, BT_TRANSPORT_LE);
+  if (p_lcb == NULL) {
+    GATT_TRACE_ERROR("%s: no p_lcb for conn_id %d", __func__, conn_id);
+    return;
+  }
+  uint16_t handle = p_lcb->hci_handle;
+
+  uint8_t all_phys = 0;
+  if (tx_phy == 0) all_phys &= 0x01;
+  if (rx_phy == 0) all_phys &= 0x02;
+
+  const uint8_t len = 7;
+  uint8_t data[len];
+  uint8_t* pp = data;
+  UINT16_TO_STREAM(pp, handle);
+  UINT8_TO_STREAM(pp, all_phys);
+  UINT8_TO_STREAM(pp, tx_phy);
+  UINT8_TO_STREAM(pp, rx_phy);
+  UINT16_TO_STREAM(pp, phy_options);
+  btu_hcif_send_cmd_with_cb(FROM_HERE, HCI_LE_SET_PHY, data, len,
+                            base::Bind(doNothing));
 }
 
 /*******************************************************************************
