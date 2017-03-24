@@ -42,6 +42,7 @@
 #include <hardware/bt_gatt.h>
 
 #include "bta_api.h"
+#include "bta_closure_api.h"
 #include "bta_gatt_api.h"
 #include "btif_config.h"
 #include "btif_dm.h"
@@ -177,6 +178,12 @@ void btif_gattc_upstreams_evt(uint16_t event, char* p_param) {
     case BTA_GATTC_CONGEST_EVT:
       HAL_CBACK(bt_gatt_callbacks, client->congestion_cb,
                 p_data->congest.conn_id, p_data->congest.congested);
+      break;
+
+    case BTA_GATTC_PHY_UPDATE_EVT:
+      HAL_CBACK(bt_gatt_callbacks, client->phy_updated_cb,
+                p_data->phy_update.conn_id, p_data->phy_update.tx_phy,
+                p_data->phy_update.rx_phy, p_data->phy_update.status);
       break;
 
     default:
@@ -527,6 +534,23 @@ bt_status_t btif_gattc_conn_parameter_update(const bt_bdaddr_t* bd_addr,
            min_interval, max_interval, latency, timeout));
 }
 
+bt_status_t btif_gattc_set_preferred_phy(int conn_id, uint8_t tx_phy,
+                                         uint8_t rx_phy, uint16_t phy_options) {
+  CHECK_BTGATT_INIT();
+  do_in_bta_thread(FROM_HERE, Bind(&GATTC_SetPreferredPHY, conn_id, tx_phy,
+                                   rx_phy, phy_options));
+  return BT_STATUS_SUCCESS;
+}
+
+bt_status_t btif_gattc_read_phy(
+    int conn_id,
+    base::Callback<void(uint8_t tx_phy, uint8_t rx_phy, uint8_t status)> cb) {
+  CHECK_BTGATT_INIT();
+  do_in_bta_thread(FROM_HERE, Bind(&GATTC_ReadPHY, conn_id,
+                                   jni_thread_wrapper(FROM_HERE, cb)));
+  return BT_STATUS_SUCCESS;
+}
+
 int btif_gattc_get_device_type(const bt_bdaddr_t* bd_addr) {
   int device_type = 0;
   char bd_addr_str[18] = {0};
@@ -561,5 +585,7 @@ const btgatt_client_interface_t btgattClientInterface = {
     btif_gattc_get_device_type,
     btif_gattc_configure_mtu,
     btif_gattc_conn_parameter_update,
+    btif_gattc_set_preferred_phy,
+    btif_gattc_read_phy,
     btif_gattc_test_command,
     btif_gattc_get_gatt_db};

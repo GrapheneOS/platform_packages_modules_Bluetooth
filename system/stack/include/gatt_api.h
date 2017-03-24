@@ -579,6 +579,11 @@ typedef void(tGATT_CONGESTION_CBACK)(uint16_t conn_id, bool congested);
 /* Define a callback function when encryption is established. */
 typedef void(tGATT_ENC_CMPL_CB)(tGATT_IF gatt_if, BD_ADDR bda);
 
+/* Define a callback function when phy is updated. */
+typedef void(tGATT_PHY_UPDATE_CB)(tGATT_IF gatt_if, uint16_t conn_id,
+                                  uint8_t tx_phy, uint8_t rx_phy,
+                                  uint8_t status);
+
 /* Define the structure that applications use to register with
  * GATT. This structure includes callback functions. All functions
  * MUST be provided.
@@ -591,6 +596,7 @@ typedef struct {
   tGATT_REQ_CBACK* p_req_cb;
   tGATT_ENC_CMPL_CB* p_enc_cmpl_cb;
   tGATT_CONGESTION_CBACK* p_congestion_cb;
+  tGATT_PHY_UPDATE_CB* p_phy_update_cb;
 } tGATT_CBACK;
 
 /*****************  Start Handle Management Definitions   *********************/
@@ -823,6 +829,12 @@ extern tGATT_STATUS GATTS_SendRsp(uint16_t conn_id, uint32_t trans_id,
  *
  ******************************************************************************/
 extern tGATT_STATUS GATTC_ConfigureMTU(uint16_t conn_id, uint16_t mtu);
+
+extern void GATTC_ReadPHY(
+    uint16_t conn_id,
+    base::Callback<void(uint8_t tx_phy, uint8_t rx_phy, uint8_t status)> cb);
+extern void GATTC_SetPreferredPHY(uint16_t conn_id, uint8_t tx_phy,
+                                  uint8_t rx_phy, uint16_t phy_options);
 
 /*******************************************************************************
  *

@@ -40,6 +40,7 @@
 
 #include "bt_common.h"
 #include "bta_api.h"
+#include "bta_closure_api.h"
 #include "bta_gatt_api.h"
 #include "btif_config.h"
 #include "btif_dm.h"
@@ -247,6 +248,12 @@ static void btapp_gatts_handle_cback(uint16_t event, char* p_param) {
       LOG_DEBUG(LOG_TAG, "%s: Empty event (%d)!", __func__, event);
       break;
 
+    case BTA_GATTS_PHY_UPDATE_EVT:
+      HAL_CBACK(bt_gatt_callbacks, server->phy_updated_cb,
+                p_data->phy_update.conn_id, p_data->phy_update.tx_phy,
+                p_data->phy_update.rx_phy, p_data->phy_update.status);
+      break;
+
     default:
       LOG_ERROR(LOG_TAG, "%s: Unhandled event (%d)!", __func__, event);
       break;
@@ -430,9 +437,28 @@ static bt_status_t btif_gatts_send_response(int conn_id, int trans_id,
                                trans_id, status, *response));
 }
 
+static bt_status_t btif_gattc_set_preferred_phy(int conn_id, uint8_t tx_phy,
+                                                uint8_t rx_phy,
+                                                uint16_t phy_options) {
+  CHECK_BTGATT_INIT();
+  do_in_bta_thread(FROM_HERE, Bind(&GATTC_SetPreferredPHY, conn_id, tx_phy,
+                                   rx_phy, phy_options));
+  return BT_STATUS_SUCCESS;
+}
+
+static bt_status_t btif_gattc_read_phy(
+    int conn_id,
+    base::Callback<void(uint8_t tx_phy, uint8_t rx_phy, uint8_t status)> cb) {
+  CHECK_BTGATT_INIT();
+  do_in_bta_thread(FROM_HERE, Bind(&GATTC_ReadPHY, conn_id,
+                                   jni_thread_wrapper(FROM_HERE, cb)));
+  return BT_STATUS_SUCCESS;
+}
+
 const btgatt_server_interface_t btgattServerInterface = {
     btif_gatts_register_app,   btif_gatts_unregister_app,
     btif_gatts_open,           btif_gatts_close,
     btif_gatts_add_service,    btif_gatts_stop_service,
     btif_gatts_delete_service, btif_gatts_send_indication,
-    btif_gatts_send_response};
+    btif_gatts_send_response,  btif_gattc_set_preferred_phy,
+    btif_gattc_read_phy};
