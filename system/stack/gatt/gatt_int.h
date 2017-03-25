@@ -448,9 +448,10 @@ extern void gatt_set_err_rsp(bool enable, uint8_t req_op_code,
 /* from gatt_main.cc */
 extern bool gatt_disconnect(tGATT_TCB* p_tcb);
 extern bool gatt_act_connect(tGATT_REG* p_reg, BD_ADDR bd_addr,
-                             tBT_TRANSPORT transport, bool opportunistic);
+                             tBT_TRANSPORT transport, bool opportunistic,
+                             int8_t initiating_phys);
 extern bool gatt_connect(BD_ADDR rem_bda, tGATT_TCB* p_tcb,
-                         tBT_TRANSPORT transport);
+                         tBT_TRANSPORT transport, uint8_t initiating_phys);
 extern void gatt_data_process(tGATT_TCB* p_tcb, BT_HDR* p_buf);
 extern void gatt_update_app_use_link_flag(tGATT_IF gatt_if, tGATT_TCB* p_tcb,
                                           bool is_add, bool check_acl_link);

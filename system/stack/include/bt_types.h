@@ -738,6 +738,10 @@ typedef uint8_t tBLE_ADDR_TYPE;
 #define BT_TRANSPORT_LE 2
 typedef uint8_t tBT_TRANSPORT;
 
+#define PHY_LE_1M_MASK 1
+#define PHY_LE_2M_MASK 2
+#define PHY_LE_CODED_MASK 4
+
 #define BLE_ADDR_IS_STATIC(x) (((x)[0] & 0xC0) == 0xC0)
 
 typedef struct {

@@ -185,7 +185,8 @@ void gatt_free(void) {
  * Returns          true if connection is started, otherwise return false.
  *
  ******************************************************************************/
-bool gatt_connect(BD_ADDR rem_bda, tGATT_TCB* p_tcb, tBT_TRANSPORT transport) {
+bool gatt_connect(BD_ADDR rem_bda, tGATT_TCB* p_tcb, tBT_TRANSPORT transport,
+                  uint8_t initiating_phys) {
   bool gatt_ret = false;
 
   if (gatt_get_ch_state(p_tcb) != GATT_CH_OPEN)
@@ -193,7 +194,7 @@ bool gatt_connect(BD_ADDR rem_bda, tGATT_TCB* p_tcb, tBT_TRANSPORT transport) {
 
   if (transport == BT_TRANSPORT_LE) {
     p_tcb->att_lcid = L2CAP_ATT_CID;
-    gatt_ret = L2CA_ConnectFixedChnl(L2CAP_ATT_CID, rem_bda);
+    gatt_ret = L2CA_ConnectFixedChnl(L2CAP_ATT_CID, rem_bda, initiating_phys);
   } else {
     p_tcb->att_lcid = L2CA_ConnectReq(BT_PSM_ATT, rem_bda);
     if (p_tcb->att_lcid != 0) gatt_ret = true;
@@ -341,7 +342,8 @@ void gatt_update_app_use_link_flag(tGATT_IF gatt_if, tGATT_TCB* p_tcb,
  *
  ******************************************************************************/
 bool gatt_act_connect(tGATT_REG* p_reg, BD_ADDR bd_addr,
-                      tBT_TRANSPORT transport, bool opportunistic) {
+                      tBT_TRANSPORT transport, bool opportunistic,
+                      int8_t initiating_phys) {
   bool ret = false;
   tGATT_TCB* p_tcb;
   uint8_t st;
@@ -354,7 +356,8 @@ bool gatt_act_connect(tGATT_REG* p_reg, BD_ADDR bd_addr,
     /* before link down, another app try to open a GATT connection */
     if (st == GATT_CH_OPEN && gatt_num_apps_hold_link(p_tcb) == 0 &&
         transport == BT_TRANSPORT_LE) {
-      if (!gatt_connect(bd_addr, p_tcb, transport)) ret = false;
+      if (!gatt_connect(bd_addr, p_tcb, transport, initiating_phys))
+        ret = false;
     } else if (st == GATT_CH_CLOSING) {
       /* need to complete the closing first */
       ret = false;
@@ -362,7 +365,7 @@ bool gatt_act_connect(tGATT_REG* p_reg, BD_ADDR bd_addr,
   } else {
     p_tcb = gatt_allocate_tcb_by_bdaddr(bd_addr, transport);
     if (p_tcb != NULL) {
-      if (!gatt_connect(bd_addr, p_tcb, transport)) {
+      if (!gatt_connect(bd_addr, p_tcb, transport, initiating_phys)) {
         GATT_TRACE_ERROR("gatt_connect failed");
         fixed_queue_free(p_tcb->pending_enc_clcb, NULL);
         fixed_queue_free(p_tcb->pending_ind_q, NULL);

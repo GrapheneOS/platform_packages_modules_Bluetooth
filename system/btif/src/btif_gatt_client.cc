@@ -255,7 +255,7 @@ bt_status_t btif_gattc_unregister_app(int client_if) {
 }
 
 void btif_gattc_open_impl(int client_if, BD_ADDR address, bool is_direct,
-                          int transport_p) {
+                          int transport_p, int initiating_phys) {
   // Ensure device is in inquiry database
   int addr_type = 0;
   int device_type = 0;
@@ -308,19 +308,21 @@ void btif_gattc_open_impl(int client_if, BD_ADDR address, bool is_direct,
   }
 
   // Connect!
-  BTIF_TRACE_DEBUG("%s Transport=%d, device type=%d", __func__, transport,
-                   device_type);
-  BTA_GATTC_Open(client_if, address, is_direct, transport);
+  BTIF_TRACE_DEBUG("%s Transport=%d, device type=%d, phy=%d", __func__,
+                   transport, device_type, initiating_phys);
+  BTA_GATTC_Open(client_if, address, is_direct, transport, initiating_phys);
 }
 
 bt_status_t btif_gattc_open(int client_if, const bt_bdaddr_t* bd_addr,
-                            bool is_direct, int transport) {
+                            bool is_direct, int transport,
+                            int initiating_phys) {
   CHECK_BTGATT_INIT();
   // Closure will own this value and free it.
   uint8_t* address = new BD_ADDR;
   bdcpy(address, bd_addr->address);
   return do_in_jni_thread(Bind(&btif_gattc_open_impl, client_if,
-                               base::Owned(address), is_direct, transport));
+                               base::Owned(address), is_direct, transport,
+                               initiating_phys));
 }
 
 void btif_gattc_close_impl(int client_if, BD_ADDR address, int conn_id) {

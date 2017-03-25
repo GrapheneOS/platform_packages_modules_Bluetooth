@@ -33,6 +33,7 @@
 #include "bt_types.h"
 #include "btm_api.h"
 #include "btu.h"
+#include "device/include/controller.h"
 #include "hcidefs.h"
 #include "hcimsgs.h"
 #include "l2c_int.h"
@@ -1606,6 +1607,12 @@ bool L2CA_RegisterFixedChannel(uint16_t fixed_cid,
  *
  ******************************************************************************/
 bool L2CA_ConnectFixedChnl(uint16_t fixed_cid, BD_ADDR rem_bda) {
+  uint8_t phy = controller_get_interface()->get_le_all_initiating_phys();
+  return L2CA_ConnectFixedChnl(fixed_cid, rem_bda, phy);
+}
+
+bool L2CA_ConnectFixedChnl(uint16_t fixed_cid, BD_ADDR rem_bda,
+                           uint8_t initiating_phys) {
   tL2C_LCB* p_lcb;
   tBT_TRANSPORT transport = BT_TRANSPORT_BR_EDR;
 
@@ -1695,7 +1702,7 @@ bool L2CA_ConnectFixedChnl(uint16_t fixed_cid, BD_ADDR rem_bda) {
     return false;
   }
 
-  if (!l2cu_create_conn(p_lcb, transport)) {
+  if (!l2cu_create_conn(p_lcb, transport, initiating_phys)) {
     L2CAP_TRACE_WARNING("%s() - create_conn failed", __func__);
     l2cu_release_lcb(p_lcb);
     return false;

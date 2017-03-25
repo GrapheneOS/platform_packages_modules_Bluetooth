@@ -101,6 +101,7 @@ typedef struct {
   tBTA_GATTC_IF client_if;
   bool is_direct;
   tBTA_TRANSPORT transport;
+  uint8_t initiating_phys;
 } tBTA_GATTC_API_OPEN;
 
 typedef tBTA_GATTC_API_OPEN tBTA_GATTC_API_CANCEL_OPEN;

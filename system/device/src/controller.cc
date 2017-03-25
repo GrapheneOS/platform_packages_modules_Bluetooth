@@ -476,6 +476,14 @@ static void set_ble_resolving_list_max_size(int resolving_list_max_size) {
   ble_resolving_list_max_size = resolving_list_max_size;
 }
 
+static uint8_t get_le_all_initiating_phys() {
+  uint8_t phy = PHY_LE_1M;
+  // TODO(jpawlowski): uncomment after next FW udpate
+  // if (supports_ble_2m_phy()) phy |= PHY_LE_2M;
+  // if (supports_ble_coded_phy()) phy |= PHY_LE_CODED;
+  return phy;
+}
+
 static const controller_t interface = {
     get_is_ready,
 
@@ -522,7 +530,8 @@ static const controller_t interface = {
 
     get_ble_resolving_list_max_size,
     set_ble_resolving_list_max_size,
-    get_local_supported_codecs};
+    get_local_supported_codecs,
+    get_le_all_initiating_phys};
 
 const controller_t* controller_get_interface() {
   static bool loaded = false;
