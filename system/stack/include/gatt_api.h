@@ -1007,6 +1007,9 @@ extern void GATT_StartIf(tGATT_IF gatt_if);
  ******************************************************************************/
 extern bool GATT_Connect(tGATT_IF gatt_if, BD_ADDR bd_addr, bool is_direct,
                          tBT_TRANSPORT transport, bool opportunistic);
+extern bool GATT_Connect(tGATT_IF gatt_if, BD_ADDR bd_addr, bool is_direct,
+                         tBT_TRANSPORT transport, bool opportunistic,
+                         uint8_t initiating_phys);
 
 /*******************************************************************************
  *

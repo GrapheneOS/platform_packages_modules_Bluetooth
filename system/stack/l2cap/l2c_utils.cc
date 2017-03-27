@@ -2096,6 +2096,12 @@ void l2cu_device_reset(void) {
  *
  ******************************************************************************/
 bool l2cu_create_conn(tL2C_LCB* p_lcb, tBT_TRANSPORT transport) {
+  uint8_t phy = controller_get_interface()->get_le_all_initiating_phys();
+  return l2cu_create_conn(p_lcb, transport, phy);
+}
+
+bool l2cu_create_conn(tL2C_LCB* p_lcb, tBT_TRANSPORT transport,
+                      uint8_t initiating_phys) {
   int xx;
   tL2C_LCB* p_lcb_cur = &l2cb.lcb_pool[0];
 #if (BTM_SCO_INCLUDED == TRUE)
@@ -2112,6 +2118,7 @@ bool l2cu_create_conn(tL2C_LCB* p_lcb, tBT_TRANSPORT transport) {
 
     p_lcb->ble_addr_type = addr_type;
     p_lcb->transport = BT_TRANSPORT_LE;
+    p_lcb->initiating_phys = initiating_phys;
 
     return (l2cble_create_conn(p_lcb));
   }
