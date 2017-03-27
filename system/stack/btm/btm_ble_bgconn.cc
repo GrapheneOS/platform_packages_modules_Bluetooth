@@ -323,22 +323,31 @@ void btm_send_hci_create_connection(
     uint16_t scan_int, uint16_t scan_win, uint8_t init_filter_policy,
     uint8_t addr_type_peer, BD_ADDR bda_peer, uint8_t addr_type_own,
     uint16_t conn_int_min, uint16_t conn_int_max, uint16_t conn_latency,
-    uint16_t conn_timeout, uint16_t min_ce_len, uint16_t max_ce_len) {
+    uint16_t conn_timeout, uint16_t min_ce_len, uint16_t max_ce_len,
+    uint8_t initiating_phys) {
   if (controller_get_interface()->supports_ble_extended_advertising()) {
-    EXT_CONN_PHY_CFG phy_cfg;
+    EXT_CONN_PHY_CFG phy_cfg[3];  // maximum three phys
 
-    phy_cfg.scan_int = scan_int;
-    phy_cfg.scan_win = scan_win;
-    phy_cfg.conn_int_min = conn_int_min;
-    phy_cfg.conn_int_max = conn_int_max;
-    phy_cfg.conn_latency = conn_latency;
-    phy_cfg.sup_timeout = conn_timeout;
-    phy_cfg.min_ce_len = min_ce_len;
-    phy_cfg.max_ce_len = max_ce_len;
+    int phy_cnt =
+        std::bitset<std::numeric_limits<uint8_t>::digits>(initiating_phys)
+            .count();
+
+    LOG_ASSERT(phy_cnt < 3) << "More than three phys provided";
+    // TODO(jpawlowski): tune parameters for different transports
+    for (int i = 0; i < phy_cnt; i++) {
+      phy_cfg[i].scan_int = scan_int;
+      phy_cfg[i].scan_win = scan_win;
+      phy_cfg[i].conn_int_min = conn_int_min;
+      phy_cfg[i].conn_int_max = conn_int_max;
+      phy_cfg[i].conn_latency = conn_latency;
+      phy_cfg[i].sup_timeout = conn_timeout;
+      phy_cfg[i].min_ce_len = min_ce_len;
+      phy_cfg[i].max_ce_len = max_ce_len;
+    }
 
     btsnd_hcic_ble_ext_create_conn(init_filter_policy, addr_type_own,
-                                   addr_type_peer, bda_peer,
-                                   0x01 /* LE 1M PHY */, &phy_cfg);
+                                   addr_type_peer, bda_peer, initiating_phys,
+                                   phy_cfg);
   } else {
     btsnd_hcic_ble_create_ll_conn(scan_int, scan_win, init_filter_policy,
                                   addr_type_peer, bda_peer, addr_type_own,
@@ -366,6 +375,10 @@ bool btm_ble_start_auto_conn(bool start) {
   uint16_t scan_win;
   uint8_t own_addr_type = p_cb->addr_mgnt_cb.own_addr_type;
   uint8_t peer_addr_type = BLE_ADDR_PUBLIC;
+
+  uint8_t phy = PHY_LE_1M;
+  if (controller_get_interface()->supports_ble_2m_phy()) phy |= PHY_LE_2M;
+  if (controller_get_interface()->supports_ble_coded_phy()) phy |= PHY_LE_CODED;
 
   if (start) {
     if (p_cb->conn_state == BLE_CONN_IDLE && background_connections_pending() &&
@@ -404,7 +417,8 @@ bool btm_ble_start_auto_conn(bool start) {
           BTM_BLE_CONN_SLAVE_LATENCY_DEF, /* uint16_t conn_latency  */
           BTM_BLE_CONN_TIMEOUT_DEF,       /* uint16_t conn_timeout  */
           0,                              /* uint16_t min_len       */
-          0);                             /* uint16_t max_len       */
+          0,                              /* uint16_t max_len       */
+          phy);
       btm_ble_set_conn_st(BLE_BG_CONN);
     } else {
       exec = false;

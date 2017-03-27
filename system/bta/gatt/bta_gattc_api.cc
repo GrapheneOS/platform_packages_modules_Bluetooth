@@ -34,6 +34,7 @@
 #include "bta_gatt_api.h"
 #include "bta_gattc_int.h"
 #include "bta_sys.h"
+#include "device/include/controller.h"
 
 /*****************************************************************************
  *  Constants
@@ -125,12 +126,17 @@ void BTA_GATTC_AppDeregister(tBTA_GATTC_IF client_if) {
  *                  is_direct: direct connection or background auto connection
  *                  transport: Transport to be used for GATT connection
  *                             (BREDR/LE)
- *
- * Returns          void
+ *                  initiating_phys: LE PHY to use, optional
  *
  ******************************************************************************/
 void BTA_GATTC_Open(tBTA_GATTC_IF client_if, BD_ADDR remote_bda, bool is_direct,
                     tBTA_GATT_TRANSPORT transport) {
+  uint8_t phy = controller_get_interface()->get_le_all_initiating_phys();
+  BTA_GATTC_Open(client_if, remote_bda, is_direct, transport, phy);
+}
+
+void BTA_GATTC_Open(tBTA_GATTC_IF client_if, BD_ADDR remote_bda, bool is_direct,
+                    tBTA_GATT_TRANSPORT transport, uint8_t initiating_phys) {
   tBTA_GATTC_API_OPEN* p_buf =
       (tBTA_GATTC_API_OPEN*)osi_malloc(sizeof(tBTA_GATTC_API_OPEN));
 
@@ -138,6 +144,7 @@ void BTA_GATTC_Open(tBTA_GATTC_IF client_if, BD_ADDR remote_bda, bool is_direct,
   p_buf->client_if = client_if;
   p_buf->is_direct = is_direct;
   p_buf->transport = transport;
+  p_buf->initiating_phys = initiating_phys;
   memcpy(p_buf->remote_bda, remote_bda, BD_ADDR_LEN);
 
   bta_sys_sendmsg(p_buf);
