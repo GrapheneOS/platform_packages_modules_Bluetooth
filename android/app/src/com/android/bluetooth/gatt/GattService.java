@@ -1571,9 +1571,10 @@ public class GattService extends ProfileService {
     void clientConnect(int clientIf, String address, boolean isDirect, int transport, int phy) {
         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
 
-        if (DBG) Log.d(TAG, "clientConnect() - address=" + address + ", isDirect=" + isDirect);
-        // TODO(jpawlowski): propagate PHY!
-        gattClientConnectNative(clientIf, address, isDirect, transport);
+        if (DBG)
+            Log.d(TAG, "clientConnect() - address=" + address + ", isDirect=" + isDirect + ", phy= "
+                            + phy);
+        gattClientConnectNative(clientIf, address, isDirect, transport, phy);
     }
 
     void clientDisconnect(int clientIf, String address) {
@@ -2428,8 +2429,8 @@ public class GattService extends ProfileService {
 
     private native void gattClientUnregisterAppNative(int clientIf);
 
-    private native void gattClientConnectNative(int clientIf, String address,
-            boolean isDirect, int transport);
+    private native void gattClientConnectNative(
+            int clientIf, String address, boolean isDirect, int transport, int initiating_phys);
 
     private native void gattClientDisconnectNative(int clientIf, String address,
             int conn_id);
