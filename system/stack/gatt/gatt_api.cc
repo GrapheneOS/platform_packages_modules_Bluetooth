@@ -29,6 +29,7 @@
 #include "bt_common.h"
 #include "btm_int.h"
 #include "btu.h"
+#include "device/include/controller.h"
 #include "gatt_api.h"
 #include "gatt_int.h"
 #include "l2c_api.h"
@@ -1252,6 +1253,14 @@ void GATT_StartIf(tGATT_IF gatt_if) {
  ******************************************************************************/
 bool GATT_Connect(tGATT_IF gatt_if, BD_ADDR bd_addr, bool is_direct,
                   tBT_TRANSPORT transport, bool opportunistic) {
+  uint8_t phy = controller_get_interface()->get_le_all_initiating_phys();
+  return GATT_Connect(gatt_if, bd_addr, is_direct, transport, opportunistic,
+                      phy);
+}
+
+bool GATT_Connect(tGATT_IF gatt_if, BD_ADDR bd_addr, bool is_direct,
+                  tBT_TRANSPORT transport, bool opportunistic,
+                  uint8_t initiating_phys) {
   tGATT_REG* p_reg;
   bool status = false;
 
@@ -1265,7 +1274,8 @@ bool GATT_Connect(tGATT_IF gatt_if, BD_ADDR bd_addr, bool is_direct,
   }
 
   if (is_direct)
-    status = gatt_act_connect(p_reg, bd_addr, transport, opportunistic);
+    status = gatt_act_connect(p_reg, bd_addr, transport, opportunistic,
+                              initiating_phys);
   else {
     if (transport == BT_TRANSPORT_LE)
       status = gatt_update_auto_connect_dev(gatt_if, true, bd_addr);

@@ -903,7 +903,8 @@ bool l2cble_init_direct_conn(tL2C_LCB* p_lcb) {
               ? p_dev_rec->conn_params.supervision_tout
               : BTM_BLE_CONN_TIMEOUT_DEF), /* conn_timeout */
       0,                                   /* uint16_t min_len       */
-      0);                                  /* uint16_t max_len       */
+      0,                                   /* uint16_t max_len       */
+      p_lcb->initiating_phys);
 
   p_lcb->link_state = LST_CONNECTING;
   l2cb.is_ble_connecting = true;

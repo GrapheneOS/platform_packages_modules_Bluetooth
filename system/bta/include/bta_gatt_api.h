@@ -635,12 +635,14 @@ extern void BTA_GATTC_AppDeregister(tBTA_GATTC_IF client_if);
  * Parameters       client_if: server interface.
  *                  remote_bda: remote device BD address.
  *                  is_direct: direct connection or background auto connection
- *
- * Returns          void
+ *                  initiating_phys: LE PHY to use, optional
  *
  ******************************************************************************/
 extern void BTA_GATTC_Open(tBTA_GATTC_IF client_if, BD_ADDR remote_bda,
                            bool is_direct, tBTA_GATT_TRANSPORT transport);
+extern void BTA_GATTC_Open(tBTA_GATTC_IF client_if, BD_ADDR remote_bda,
+                           bool is_direct, tBTA_GATT_TRANSPORT transport,
+                           uint8_t initiating_phys);
 
 /*******************************************************************************
  *
