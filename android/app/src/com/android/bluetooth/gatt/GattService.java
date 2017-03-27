@@ -688,8 +688,14 @@ public class GattService extends ProfileService {
             ScanSettings settings = client.settings;
             byte[] scan_record_data;
             // This is for compability with applications that assume fixed size scan data.
-            if (settings.getLegacy() && ((event_type & ET_LEGACY_MASK) == 0)) {
-                scan_record_data = legacy_adv_data;
+            if (settings.getLegacy()) {
+                if ((event_type & ET_LEGACY_MASK) == 0) {
+                    // If this is legacy scan, but nonlegacy result - skip.
+                    continue;
+                } else {
+                    // Some apps are used to fixed-size advertise data.
+                    scan_record_data = legacy_adv_data;
+                }
             } else {
                 scan_record_data = adv_data;
             }
@@ -705,11 +711,6 @@ public class GattService extends ProfileService {
             }
 
             if ((settings.getCallbackType() & ScanSettings.CALLBACK_TYPE_ALL_MATCHES) == 0) {
-                continue;
-            }
-
-            // if this is legacy scan, return only legacy scan results
-            if (settings.getLegacy() && ((event_type & ET_LEGACY_MASK) == 0)) {
                 continue;
             }
 
