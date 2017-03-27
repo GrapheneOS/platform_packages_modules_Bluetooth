@@ -26,8 +26,8 @@ import android.bluetooth.BluetoothGattDescriptor;
 import android.bluetooth.BluetoothGattService;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.IBluetoothGatt;
-import android.bluetooth.IBluetoothGattCallbackExt;
-import android.bluetooth.IBluetoothGattServerCallbackExt;
+import android.bluetooth.IBluetoothGattCallback;
+import android.bluetooth.IBluetoothGattServerCallback;
 import android.bluetooth.le.AdvertiseData;
 import android.bluetooth.le.AdvertisingSetParameters;
 import android.bluetooth.le.IAdvertisingSetCallback;
@@ -114,13 +114,13 @@ public class GattService extends ProfileService {
     /**
      * List of our registered clients.
      */
-    class ClientMap extends ContextMap<IBluetoothGattCallbackExt> {}
+    class ClientMap extends ContextMap<IBluetoothGattCallback> {}
     ClientMap mClientMap = new ClientMap();
 
     /**
      * List of our registered server apps.
      */
-    class ServerMap extends ContextMap<IBluetoothGattServerCallbackExt> {}
+    class ServerMap extends ContextMap<IBluetoothGattServerCallback> {}
     ServerMap mServerMap = new ServerMap();
 
     /**
@@ -325,7 +325,7 @@ public class GattService extends ProfileService {
             return service.getDevicesMatchingConnectionStates(states);
         }
 
-        public void registerClient(ParcelUuid uuid, IBluetoothGattCallbackExt callback) {
+        public void registerClient(ParcelUuid uuid, IBluetoothGattCallback callback) {
             GattService service = getService();
             if (service == null) return;
             service.registerClient(uuid.getUuid(), callback);
@@ -477,7 +477,7 @@ public class GattService extends ProfileService {
             service.connectionParameterUpdate(clientIf, address, connectionPriority);
         }
 
-        public void registerServer(ParcelUuid uuid, IBluetoothGattServerCallbackExt callback) {
+        public void registerServer(ParcelUuid uuid, IBluetoothGattServerCallback callback) {
             GattService service = getService();
             if (service == null) return;
             service.registerServer(uuid.getUuid(), callback);
@@ -1551,7 +1551,7 @@ public class GattService extends ProfileService {
      * GATT Service functions - CLIENT
      *************************************************************************/
 
-    void registerClient(UUID uuid, IBluetoothGattCallbackExt callback) {
+    void registerClient(UUID uuid, IBluetoothGattCallback callback) {
         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
 
         if (DBG) Log.d(TAG, "registerClient() - UUID=" + uuid);
@@ -2069,7 +2069,7 @@ public class GattService extends ProfileService {
      * GATT Service functions - SERVER
      *************************************************************************/
 
-    void registerServer(UUID uuid, IBluetoothGattServerCallbackExt callback) {
+    void registerServer(UUID uuid, IBluetoothGattServerCallback callback) {
         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
 
         if (DBG) Log.d(TAG, "registerServer() - UUID=" + uuid);
