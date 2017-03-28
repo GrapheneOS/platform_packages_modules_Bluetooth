@@ -82,6 +82,7 @@ static const tA2DP_ENCODER_INTERFACE a2dp_encoder_interface_aac = {
     a2dp_aac_feeding_flush,
     a2dp_aac_get_encoder_interval_ms,
     a2dp_aac_send_frames,
+    nullptr,  // set_transmit_queue_length
     a2dp_aac_debug_codec_dump};
 
 UNUSED_ATTR static tA2DP_STATUS A2DP_CodecInfoMatchesCapabilityAac(

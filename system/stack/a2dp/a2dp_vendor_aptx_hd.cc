@@ -83,6 +83,7 @@ static const tA2DP_ENCODER_INTERFACE a2dp_encoder_interface_aptx_hd = {
     a2dp_vendor_aptx_hd_feeding_flush,
     a2dp_vendor_aptx_hd_get_encoder_interval_ms,
     a2dp_vendor_aptx_hd_send_frames,
+    nullptr,  // set_transmit_queue_length
     a2dp_vendor_aptx_hd_debug_codec_dump};
 
 UNUSED_ATTR static tA2DP_STATUS A2DP_CodecInfoMatchesCapabilityAptxHd(
