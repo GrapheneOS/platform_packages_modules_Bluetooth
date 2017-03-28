@@ -21,6 +21,12 @@
 #ifndef A2DP_VENDOR_LDAC_CONSTANTS_H
 #define A2DP_VENDOR_LDAC_CONSTANTS_H
 
+// LDAC Quality Mode Index
+#define A2DP_LDAC_QUALITY_HIGH 0  // Equal to LDACBT_EQMID_HQ 990kbps
+#define A2DP_LDAC_QUALITY_MID 1   // Equal to LDACBT_EQMID_SQ 660kbps
+#define A2DP_LDAC_QUALITY_LOW 2   // Equal to LDACBT_EQMID_MQ 330kbps
+#define A2DP_LDAC_QUALITY_ABR 3   // ABR mode, range: 990,660,492,396,330(kbps)
+
 // Length of the LDAC Media Payload header
 #define A2DP_LDAC_MPL_HDR_LEN 1
 

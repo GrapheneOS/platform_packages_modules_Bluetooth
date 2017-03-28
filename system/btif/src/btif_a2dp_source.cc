@@ -660,6 +660,13 @@ static void btif_a2dp_source_audio_handle_timer(UNUSED_ATTR void* context) {
 
   if (alarm_is_scheduled(btif_a2dp_source_cb.media_alarm)) {
     CHECK(btif_a2dp_source_cb.encoder_interface != NULL);
+    if (btif_a2dp_source_cb.encoder_interface->set_transmit_queue_length !=
+        NULL) {
+      size_t transmit_queue_length =
+          fixed_queue_length(btif_a2dp_source_cb.tx_audio_queue);
+      btif_a2dp_source_cb.encoder_interface->set_transmit_queue_length(
+          transmit_queue_length);
+    }
     btif_a2dp_source_cb.encoder_interface->send_frames(timestamp_us);
     bta_av_ci_src_data_ready(BTA_AV_CHNL_AUDIO);
     update_scheduling_stats(&btif_a2dp_source_cb.stats.tx_queue_enqueue_stats,

@@ -76,6 +76,7 @@ static const tA2DP_ENCODER_INTERFACE a2dp_encoder_interface_ldac = {
     a2dp_vendor_ldac_feeding_flush,
     a2dp_vendor_ldac_get_encoder_interval_ms,
     a2dp_vendor_ldac_send_frames,
+    a2dp_vendor_ldac_set_transmit_queue_length,
     a2dp_vendor_ldac_debug_codec_dump};
 
 UNUSED_ATTR static tA2DP_STATUS A2DP_CodecInfoMatchesCapabilityLdac(
