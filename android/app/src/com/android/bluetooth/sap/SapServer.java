@@ -61,7 +61,6 @@ public class SapServer extends Thread implements Callback {
     private BufferedInputStream mRfcommIn = null;
     /* References to the SapRilReceiver object */
     private SapRilReceiver mRilBtReceiver = null;
-    private Thread mRilBtReceiverThread = null;
     /* The message handler members */
     private Handler mSapHandler = null;
     private HandlerThread mHandlerThread = null;
@@ -309,7 +308,6 @@ public class SapServer extends Thread implements Callback {
             mSapHandler = new Handler(sapLooper, this);
 
             mRilBtReceiver = new SapRilReceiver(mSapHandler, mSapServiceHandler);
-            mRilBtReceiverThread = new Thread(mRilBtReceiver, "RilBtReceiver");
             boolean done = false;
             while (!done) {
                 if(VERBOSE) Log.i(TAG, "Waiting for incomming RFCOMM message...");
@@ -452,14 +450,10 @@ public class SapServer extends Thread implements Callback {
                 mHandlerThread.join();
                 mHandlerThread = null;
             } catch (InterruptedException e) {}
-            if(mRilBtReceiverThread != null) try {
-                if(mRilBtReceiver != null) {
-                    mRilBtReceiver.shutdown();
-                    mRilBtReceiver = null;
-                }
-                mRilBtReceiverThread.join();
-                mRilBtReceiverThread = null;
-            } catch (InterruptedException e) {}
+            if (mRilBtReceiver != null) {
+                mRilBtReceiver.resetSapProxy();
+                mRilBtReceiver = null;
+            }
 
             if(mRfcommIn != null) try {
                 if(VERBOSE) Log.i(TAG, "Closing mRfcommIn...");
@@ -521,9 +515,9 @@ public class SapServer extends Thread implements Callback {
                  *  2) Send a RIL_SIM_SAP_CONNECT request to RILD
                  *  3) Send a RIL_SIM_RESET request and a connect confirm to the SAP client */
                 changeState(SAP_STATE.CONNECTING);
-                if(mRilBtReceiverThread != null) {
-                     // Open the RIL socket, and wait for the complete message: SAP_MSG_RIL_CONNECT
-                    mRilBtReceiverThread.start();
+                if (mRilBtReceiver != null) {
+                    // Notify the SapServer that we have connected to the SAP service
+                    mRilBtReceiver.sendRilConnectMessage();
                     // Don't send reply yet
                     reply = null;
                 } else {
@@ -640,6 +634,7 @@ public class SapServer extends Thread implements Callback {
             break;
         case SAP_PROXY_DEAD:
             if ((long) msg.obj == mRilBtReceiver.mSapProxyCookie.get()) {
+                mRilBtReceiver.notifyShutdown(); /* Only needed in case of a connection error */
                 mRilBtReceiver.resetSapProxy();
 
                 // todo: rild should be back up since message was sent with a delay. this is a hack.
@@ -856,25 +851,29 @@ public class SapServer extends Thread implements Callback {
                 + SapMessage.getMsgTypeName(sapMsg.getMsgType()));
 
         Log.d(TAG_HANDLER, "sendRilMessage: calling getSapProxy");
-        ISap sapProxy = mRilBtReceiver.getSapProxy();
-        if (sapProxy == null) {
-            Log.e(TAG_HANDLER, "sendRilMessage: Unable to send message to RIL; sapProxy is null");
-            sendClientMessage(new SapMessage(SapMessage.ID_ERROR_RESP));
-            return;
-        }
-
-        try {
-            sapMsg.send(sapProxy);
-            if (VERBOSE) {
-                Log.d(TAG_HANDLER, "sendRilMessage: sapMsg.callISapReq called successfully");
+        synchronized (mRilBtReceiver.getSapProxyLock()) {
+            ISap sapProxy = mRilBtReceiver.getSapProxy();
+            if (sapProxy == null) {
+                Log.e(TAG_HANDLER,
+                        "sendRilMessage: Unable to send message to RIL; sapProxy is null");
+                sendClientMessage(new SapMessage(SapMessage.ID_ERROR_RESP));
+                return;
             }
-        } catch (IllegalArgumentException e) {
-            Log.e(TAG_HANDLER, "sendRilMessage: IllegalArgumentException", e);
-            sendClientMessage(new SapMessage(SapMessage.ID_ERROR_RESP));
-        } catch (RemoteException | RuntimeException e) {
-            Log.e(TAG_HANDLER, "sendRilMessage: Unable to send message to RIL", e);
-            sendClientMessage(new SapMessage(SapMessage.ID_ERROR_RESP));
-            mRilBtReceiver.resetSapProxy();
+
+            try {
+                sapMsg.send(sapProxy);
+                if (VERBOSE) {
+                    Log.d(TAG_HANDLER, "sendRilMessage: sapMsg.callISapReq called successfully");
+                }
+            } catch (IllegalArgumentException e) {
+                Log.e(TAG_HANDLER, "sendRilMessage: IllegalArgumentException", e);
+                sendClientMessage(new SapMessage(SapMessage.ID_ERROR_RESP));
+            } catch (RemoteException | RuntimeException e) {
+                Log.e(TAG_HANDLER, "sendRilMessage: Unable to send message to RIL: " + e);
+                sendClientMessage(new SapMessage(SapMessage.ID_ERROR_RESP));
+                mRilBtReceiver.notifyShutdown(); /* Only needed in case of a connection error */
+                mRilBtReceiver.resetSapProxy();
+            }
         }
     }
 
