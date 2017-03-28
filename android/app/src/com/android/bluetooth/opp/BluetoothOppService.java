@@ -1070,46 +1070,6 @@ public class BluetoothOppService extends ProfileService implements IObexConnecti
         if (D) Log.d(TAG, "stopListeners   mServerSocket :" + mServerSocket);
     }
 
-    private BluetoothServerSocket getConnectionSocket(boolean isL2cap) {
-        BluetoothServerSocket socket = null;
-        boolean socketCreate = false;
-        final int CREATE_RETRY_TIME = 10;
-        // It's possible that create will fail in some cases. retry for 10 times
-        for (int i = 0; i < CREATE_RETRY_TIME; i++) {
-            if (D) Log.d(TAG, " CREATE_RETRY_TIME " + i);
-            socketCreate = true;
-            try {
-                socket = (isL2cap)
-                        ? mAdapter.listenUsingInsecureL2capOn(
-                                  BluetoothAdapter.SOCKET_CHANNEL_AUTO_STATIC_NO_SDP)
-                        : mAdapter.listenUsingInsecureRfcommOn(
-                                  BluetoothAdapter.SOCKET_CHANNEL_AUTO_STATIC_NO_SDP);
-            } catch (IOException e) {
-                Log.e(TAG, "Error create ServerSockets ", e);
-                socketCreate = false;
-            }
-            if (!socketCreate) {
-                // Need to break out of this loop if BT is being turned off.
-                int state = mAdapter.getState();
-                if ((state != BluetoothAdapter.STATE_TURNING_ON)
-                        && (state != BluetoothAdapter.STATE_ON)) {
-                    Log.e(TAG, "initServerSockets failed as Bt State :" + state);
-                    break;
-                }
-                try {
-                    if (V) Log.d(TAG, "waiting 300 ms...");
-                    Thread.sleep(300);
-                } catch (InterruptedException e) {
-                    Log.e(TAG, "create() was interrupted");
-                }
-            } else {
-                break;
-            }
-        }
-        if (D) Log.d(TAG, " socketCreate :" + socketCreate + " isL2cap :" + isL2cap);
-        return socket;
-    }
-
     @Override
     public boolean onConnect(BluetoothDevice device, BluetoothSocket socket) {
         if (D) Log.d(TAG, " onConnect BluetoothSocket :" + socket + " \n :device :" + device);
