@@ -58,6 +58,9 @@ period_ms_t a2dp_vendor_ldac_get_encoder_interval_ms(void);
 // |timestamp_us| is the current timestamp (in microseconds).
 void a2dp_vendor_ldac_send_frames(uint64_t timestamp_us);
 
+// Set transmit queue length for the A2DP LDAC ABR(Adaptive Bit Rate) mechanism.
+void a2dp_vendor_ldac_set_transmit_queue_length(size_t transmit_queue_length);
+
 // Dump LDAC codec-related statistics.
 // |fd| is the file descriptor to use to dump the statistics information
 // in user-friendly test format.
