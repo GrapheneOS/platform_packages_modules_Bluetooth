@@ -237,6 +237,18 @@ public class A2dpService extends ProfileService {
         mStateMachine.setCodecConfigPreference(codecConfig);
     }
 
+    public void enableOptionalCodecs() {
+        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+        if (DBG) Log.d(TAG, "enableOptionalCodecs()");
+        mStateMachine.enableOptionalCodecs();
+    }
+
+    public void disableOptionalCodecs() {
+        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+        if (DBG) Log.d(TAG, "disableOptionalCodecs()");
+        mStateMachine.disableOptionalCodecs();
+    }
+
     //Binder object: Must be static class or memory leak may occur 
     private static class BluetoothA2dpBinder extends IBluetoothA2dp.Stub 
         implements IProfileServiceBinder {
@@ -339,6 +351,18 @@ public class A2dpService extends ProfileService {
             A2dpService service = getService();
             if (service == null) return;
             service.setCodecConfigPreference(codecConfig);
+        }
+
+        public void enableOptionalCodecs() {
+            A2dpService service = getService();
+            if (service == null) return;
+            service.enableOptionalCodecs();
+        }
+
+        public void disableOptionalCodecs() {
+            A2dpService service = getService();
+            if (service == null) return;
+            service.disableOptionalCodecs();
         }
     };
 

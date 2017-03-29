@@ -125,7 +125,7 @@ final class A2dpStateMachine extends StateMachine {
         mService = svc;
         mContext = context;
         mAdapter = BluetoothAdapter.getDefaultAdapter();
-        mCodecConfigPriorities = assignCodecConfigPriorities(context.getResources());
+        mCodecConfigPriorities = assignCodecConfigPriorities();
 
         initNative(mCodecConfigPriorities);
 
@@ -155,7 +155,8 @@ final class A2dpStateMachine extends StateMachine {
     }
 
     // Assign the A2DP Source codec config priorities
-    private BluetoothCodecConfig[] assignCodecConfigPriorities(Resources resources) {
+    private BluetoothCodecConfig[] assignCodecConfigPriorities() {
+        Resources resources = mContext.getResources();
         if (resources == null) {
             return null;
         }
@@ -215,29 +216,34 @@ final class A2dpStateMachine extends StateMachine {
         BluetoothCodecConfig[] codecConfigArray =
                 new BluetoothCodecConfig[BluetoothCodecConfig.SOURCE_CODEC_TYPE_MAX];
         codecConfig = new BluetoothCodecConfig(BluetoothCodecConfig.SOURCE_CODEC_TYPE_SBC,
-                mA2dpSourceCodecPrioritySbc, 0 /* sampleRate */, 0 /* bitsPerSample */,
-                0 /* channelMode */, 0 /* codecSpecific1 */, 0 /* codecSpecific2 */,
-                0 /* codecSpecific3 */, 0 /* codecSpecific4 */);
+                mA2dpSourceCodecPrioritySbc, BluetoothCodecConfig.SAMPLE_RATE_NONE,
+                BluetoothCodecConfig.BITS_PER_SAMPLE_NONE, BluetoothCodecConfig.CHANNEL_MODE_NONE,
+                0 /* codecSpecific1 */, 0 /* codecSpecific2 */, 0 /* codecSpecific3 */,
+                0 /* codecSpecific4 */);
         codecConfigArray[0] = codecConfig;
         codecConfig = new BluetoothCodecConfig(BluetoothCodecConfig.SOURCE_CODEC_TYPE_AAC,
-                mA2dpSourceCodecPriorityAac, 0 /* sampleRate */, 0 /* bitsPerSample */,
-                0 /* channelMode */, 0 /* codecSpecific1 */, 0 /* codecSpecific2 */,
-                0 /* codecSpecific3 */, 0 /* codecSpecific4 */);
+                mA2dpSourceCodecPriorityAac, BluetoothCodecConfig.SAMPLE_RATE_NONE,
+                BluetoothCodecConfig.BITS_PER_SAMPLE_NONE, BluetoothCodecConfig.CHANNEL_MODE_NONE,
+                0 /* codecSpecific1 */, 0 /* codecSpecific2 */, 0 /* codecSpecific3 */,
+                0 /* codecSpecific4 */);
         codecConfigArray[1] = codecConfig;
         codecConfig = new BluetoothCodecConfig(BluetoothCodecConfig.SOURCE_CODEC_TYPE_APTX,
-                mA2dpSourceCodecPriorityAptx, 0 /* sampleRate */, 0 /* bitsPerSample */,
-                0 /* channelMode */, 0 /* codecSpecific1 */, 0 /* codecSpecific2 */,
-                0 /* codecSpecific3 */, 0 /* codecSpecific4 */);
+                mA2dpSourceCodecPriorityAptx, BluetoothCodecConfig.SAMPLE_RATE_NONE,
+                BluetoothCodecConfig.BITS_PER_SAMPLE_NONE, BluetoothCodecConfig.CHANNEL_MODE_NONE,
+                0 /* codecSpecific1 */, 0 /* codecSpecific2 */, 0 /* codecSpecific3 */,
+                0 /* codecSpecific4 */);
         codecConfigArray[2] = codecConfig;
         codecConfig = new BluetoothCodecConfig(BluetoothCodecConfig.SOURCE_CODEC_TYPE_APTX_HD,
-                mA2dpSourceCodecPriorityAptxHd, 0 /* sampleRate */, 0 /* bitsPerSample */,
-                0 /* channelMode */, 0 /* codecSpecific1 */, 0 /* codecSpecific2 */,
-                0 /* codecSpecific3 */, 0 /* codecSpecific4 */);
+                mA2dpSourceCodecPriorityAptxHd, BluetoothCodecConfig.SAMPLE_RATE_NONE,
+                BluetoothCodecConfig.BITS_PER_SAMPLE_NONE, BluetoothCodecConfig.CHANNEL_MODE_NONE,
+                0 /* codecSpecific1 */, 0 /* codecSpecific2 */, 0 /* codecSpecific3 */,
+                0 /* codecSpecific4 */);
         codecConfigArray[3] = codecConfig;
         codecConfig = new BluetoothCodecConfig(BluetoothCodecConfig.SOURCE_CODEC_TYPE_LDAC,
-                mA2dpSourceCodecPriorityLdac, 0 /* sampleRate */, 0 /* bitsPerSample */,
-                0 /* channelMode */, 0 /* codecSpecific1 */, 0 /* codecSpecific2 */,
-                0 /* codecSpecific3 */, 0 /* codecSpecific4 */);
+                mA2dpSourceCodecPriorityLdac, BluetoothCodecConfig.SAMPLE_RATE_NONE,
+                BluetoothCodecConfig.BITS_PER_SAMPLE_NONE, BluetoothCodecConfig.CHANNEL_MODE_NONE,
+                0 /* codecSpecific1 */, 0 /* codecSpecific2 */, 0 /* codecSpecific3 */,
+                0 /* codecSpecific4 */);
         codecConfigArray[4] = codecConfig;
 
         return codecConfigArray;
@@ -800,6 +806,40 @@ final class A2dpStateMachine extends StateMachine {
     void setCodecConfigPreference(BluetoothCodecConfig codecConfig) {
         BluetoothCodecConfig[] codecConfigArray = new BluetoothCodecConfig[1];
         codecConfigArray[0] = codecConfig;
+        setCodecConfigPreferenceNative(codecConfigArray);
+    }
+
+    void enableOptionalCodecs() {
+        BluetoothCodecConfig[] codecConfigArray = assignCodecConfigPriorities();
+        if (codecConfigArray == null) {
+            return;
+        }
+
+        // Set the mandatory codec's priority to default, and remove the rest
+        for (int i = 0; i < codecConfigArray.length; i++) {
+            BluetoothCodecConfig codecConfig = codecConfigArray[i];
+            if (!codecConfig.isMandatoryCodec()) {
+                codecConfigArray[i] = null;
+            }
+        }
+
+        setCodecConfigPreferenceNative(codecConfigArray);
+    }
+
+    void disableOptionalCodecs() {
+        BluetoothCodecConfig[] codecConfigArray = assignCodecConfigPriorities();
+        if (codecConfigArray == null) {
+            return;
+        }
+        // Set the mandatory codec's priority to highest, and ignore the rest
+        for (int i = 0; i < codecConfigArray.length; i++) {
+            BluetoothCodecConfig codecConfig = codecConfigArray[i];
+            if (codecConfig.isMandatoryCodec()) {
+                codecConfig.setCodecPriority(BluetoothCodecConfig.CODEC_PRIORITY_HIGHEST);
+            } else {
+                codecConfigArray[i] = null;
+            }
+        }
         setCodecConfigPreferenceNative(codecConfigArray);
     }
 
