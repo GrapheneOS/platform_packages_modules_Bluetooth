@@ -199,12 +199,20 @@ static jmethodID method_onPeriodicAdvertisingDataSet;
 static jmethodID method_onPeriodicAdvertisingEnabled;
 
 /**
+ * Periodic scanner callback methods
+ */
+static jmethodID method_onSyncLost;
+static jmethodID method_onSyncReport;
+static jmethodID method_onSyncStarted;
+
+/**
  * Static variables
  */
 
 static const btgatt_interface_t* sGattIf = NULL;
 static jobject mCallbacksObj = NULL;
 static jobject mAdvertiseCallbacksObj = NULL;
+static jobject mPeriodicScanCallbacksObj = NULL;
 
 /**
  * BTA client callbacks
@@ -1938,6 +1946,83 @@ static void setPeriodicAdvertisingEnableNative(JNIEnv* env, jobject object,
       base::Bind(&enablePeriodicSetCb, advertiser_id, enable));
 }
 
+static void periodicScanClassInitNative(JNIEnv* env, jclass clazz) {
+  method_onSyncStarted =
+      env->GetMethodID(clazz, "onSyncStarted", "(IIIILjava/lang/String;III)V");
+  method_onSyncReport = env->GetMethodID(clazz, "onSyncReport", "(IIII[B)V");
+  method_onSyncLost = env->GetMethodID(clazz, "onSyncLost", "(I)V");
+}
+
+static void periodicScanInitializeNative(JNIEnv* env, jobject object) {
+  if (mPeriodicScanCallbacksObj != NULL) {
+    ALOGW("Cleaning up periodic scan callback object");
+    env->DeleteGlobalRef(mPeriodicScanCallbacksObj);
+    mPeriodicScanCallbacksObj = NULL;
+  }
+
+  mPeriodicScanCallbacksObj = env->NewGlobalRef(object);
+}
+
+static void periodicScanCleanupNative(JNIEnv* env, jobject object) {
+  if (mPeriodicScanCallbacksObj != NULL) {
+    env->DeleteGlobalRef(mPeriodicScanCallbacksObj);
+    mPeriodicScanCallbacksObj = NULL;
+  }
+}
+
+static void onSyncStarted(int reg_id, uint8_t status, uint16_t sync_handle,
+                          uint8_t sid, uint8_t address_type,
+                          bt_bdaddr_t address, uint8_t phy, uint16_t interval) {
+  CallbackEnv sCallbackEnv(__func__);
+  if (!sCallbackEnv.valid()) return;
+
+  sCallbackEnv->CallVoidMethod(mPeriodicScanCallbacksObj, method_onSyncStarted,
+                               reg_id, sync_handle, sid, address_type, address,
+                               phy, interval, status);
+}
+
+static void onSyncReport(uint16_t sync_handle, int8_t tx_power, int8_t rssi,
+                         uint8_t data_status, std::vector<uint8_t> data) {
+  CallbackEnv sCallbackEnv(__func__);
+  if (!sCallbackEnv.valid()) return;
+
+  ScopedLocalRef<jbyteArray> jb(sCallbackEnv.get(),
+                                sCallbackEnv->NewByteArray(data.size()));
+  sCallbackEnv->SetByteArrayRegion(jb.get(), 0, data.size(),
+                                   (jbyte*)data.data());
+
+  sCallbackEnv->CallVoidMethod(mPeriodicScanCallbacksObj, method_onSyncReport,
+                               sync_handle, tx_power, rssi, data_status,
+                               jb.get());
+}
+
+static void onSyncLost(uint16_t sync_handle) {
+  CallbackEnv sCallbackEnv(__func__);
+  if (!sCallbackEnv.valid()) return;
+
+  sCallbackEnv->CallVoidMethod(mPeriodicScanCallbacksObj, method_onSyncLost,
+                               sync_handle);
+}
+
+static void startSyncNative(JNIEnv* env, jobject object, jint sid,
+                            jstring address, jint skip, jint timeout,
+                            jint reg_id) {
+  if (!sGattIf) return;
+
+  bt_bdaddr_t tmp;
+  jstr2bdaddr(env, &tmp, address);
+
+  sGattIf->scanner->StartSync(
+      sid, tmp, skip, timeout, base::Bind(&onSyncStarted, reg_id),
+      base::Bind(&onSyncReport), base::Bind(&onSyncLost));
+}
+
+static void stopSyncNative(int sync_handle) {
+  if (!sGattIf) return;
+
+  sGattIf->scanner->StopSync(sync_handle);
+}
+
 static void gattTestNative(JNIEnv* env, jobject object, jint command,
                            jlong uuid1_lsb, jlong uuid1_msb, jstring bda1,
                            jint p1, jint p2, jint p3, jint p4, jint p5) {
@@ -1987,6 +2072,15 @@ static JNINativeMethod sAdvertiseMethods[] = {
      (void*)setPeriodicAdvertisingDataNative},
     {"setPeriodicAdvertisingEnableNative", "(IZ)V",
      (void*)setPeriodicAdvertisingEnableNative},
+};
+
+// JNI functions defined in PeriodicScanManager class.
+static JNINativeMethod sPeriodicScanMethods[] = {
+    {"classInitNative", "()V", (void*)periodicScanClassInitNative},
+    {"initializeNative", "()V", (void*)periodicScanInitializeNative},
+    {"cleanupNative", "()V", (void*)periodicScanCleanupNative},
+    {"startSyncNative", "(ILjava/lang/String;III)V", (void*)startSyncNative},
+    {"stopSyncNative", "(I)V", (void*)stopSyncNative},
 };
 
 // JNI functions defined in ScanManager class.
@@ -2100,6 +2194,9 @@ int register_com_android_bluetooth_gatt(JNIEnv* env) {
   register_success &= jniRegisterNativeMethods(
       env, "com/android/bluetooth/gatt/AdvertiseManager", sAdvertiseMethods,
       NELEM(sAdvertiseMethods));
+  register_success &= jniRegisterNativeMethods(
+      env, "com/android/bluetooth/gatt/PeriodicScanManager",
+      sPeriodicScanMethods, NELEM(sPeriodicScanMethods));
   return register_success &
          jniRegisterNativeMethods(env, "com/android/bluetooth/gatt/GattService",
                                   sMethods, NELEM(sMethods));
