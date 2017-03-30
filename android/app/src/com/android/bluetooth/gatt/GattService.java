@@ -142,6 +142,7 @@ public class GattService extends ProfileService {
             new HashMap<Integer, List<BluetoothGattService>>();
 
     private AdvertiseManager mAdvertiseManager;
+    private PeriodicScanManager mPeriodicScanManager;
     private ScanManager mScanManager;
     private AppOpsManager mAppOps;
 
@@ -172,6 +173,9 @@ public class GattService extends ProfileService {
         mScanManager = new ScanManager(this);
         mScanManager.start();
 
+        mPeriodicScanManager = new PeriodicScanManager(AdapterService.getAdapterService());
+        mPeriodicScanManager.start();
+
         return true;
     }
 
@@ -184,6 +188,7 @@ public class GattService extends ProfileService {
         mReliableQueue.clear();
         if (mAdvertiseManager != null) mAdvertiseManager.cleanup();
         if (mScanManager != null) mScanManager.cleanup();
+        if (mPeriodicScanManager != null) mPeriodicScanManager.cleanup();
         return true;
     }
 
@@ -192,6 +197,7 @@ public class GattService extends ProfileService {
         cleanupNative();
         if (mAdvertiseManager != null) mAdvertiseManager.cleanup();
         if (mScanManager != null) mScanManager.cleanup();
+        if (mPeriodicScanManager != null) mPeriodicScanManager.cleanup();
         return true;
     }
 
@@ -1487,12 +1493,12 @@ public class GattService extends ProfileService {
     void registerSync(
             ScanResult scanResult, int skip, int timeout, IPeriodicAdvertisingCallback callback) {
         enforceAdminPermission();
-        // TODO(jpawlowski): implement
+        mPeriodicScanManager.startSync(scanResult, skip, timeout, callback);
     }
 
     void unregisterSync(IPeriodicAdvertisingCallback callback) {
         enforceAdminPermission();
-        // TODO(jpawlowski): implement
+        mPeriodicScanManager.stopSync(callback);
     }
 
     /**************************************************************************
