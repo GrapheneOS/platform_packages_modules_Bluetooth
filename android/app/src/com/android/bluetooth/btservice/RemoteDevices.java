@@ -399,7 +399,6 @@ final class RemoteDevices {
             return;
         }
         int state = mAdapterService.getState();
-        Log.e(TAG, "state " + BluetoothAdapter.nameForState(state) + " newState " + newState);
 
         Intent intent = null;
         if (newState == AbstractionLayer.BT_ACL_STATE_CONNECTED) {
@@ -408,7 +407,8 @@ final class RemoteDevices {
             } else if (state == BluetoothAdapter.STATE_BLE_ON || state == BluetoothAdapter.STATE_BLE_TURNING_ON) {
                 intent = new Intent(BluetoothAdapter.ACTION_BLE_ACL_CONNECTED);
             }
-            debugLog("aclStateChangeCallback: Connected: " + device);
+            debugLog("aclStateChangeCallback: Adapter State: "
+                    + BluetoothAdapter.nameForState(state) + " Connected: " + device);
         } else {
             if (device.getBondState() == BluetoothDevice.BOND_BONDING) {
                 // Send PAIRING_CANCEL intent to dismiss any dialog requesting bonding.
@@ -422,7 +422,8 @@ final class RemoteDevices {
             } else if (state == BluetoothAdapter.STATE_BLE_ON || state == BluetoothAdapter.STATE_BLE_TURNING_OFF) {
                 intent = new Intent(BluetoothAdapter.ACTION_BLE_ACL_DISCONNECTED);
             }
-            debugLog("aclStateChangeCallback: Disconnected: " + device);
+            debugLog("aclStateChangeCallback: Adapter State: "
+                    + BluetoothAdapter.nameForState(state) + " Disconnected: " + device);
         }
         intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
         intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY_BEFORE_BOOT);
