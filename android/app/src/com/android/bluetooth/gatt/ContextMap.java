@@ -244,10 +244,12 @@ import com.android.bluetooth.btservice.BluetoothProto;
      * Get an application context by ID.
      */
     App getById(int id) {
-        Iterator<App> i = mApps.iterator();
-        while (i.hasNext()) {
-            App entry = i.next();
-            if (entry.id == id) return entry;
+        synchronized (mApps) {
+            Iterator<App> i = mApps.iterator();
+            while (i.hasNext()) {
+                App entry = i.next();
+                if (entry.id == id) return entry;
+            }
         }
         Log.e(TAG, "Context not found for ID " + id);
         return null;
@@ -257,10 +259,12 @@ import com.android.bluetooth.btservice.BluetoothProto;
      * Get an application context by UUID.
      */
     App getByUuid(UUID uuid) {
-        Iterator<App> i = mApps.iterator();
-        while (i.hasNext()) {
-            App entry = i.next();
-            if (entry.uuid.equals(uuid)) return entry;
+        synchronized (mApps) {
+            Iterator<App> i = mApps.iterator();
+            while (i.hasNext()) {
+                App entry = i.next();
+                if (entry.uuid.equals(uuid)) return entry;
+            }
         }
         Log.e(TAG, "Context not found for UUID " + uuid);
         return null;
@@ -270,10 +274,12 @@ import com.android.bluetooth.btservice.BluetoothProto;
      * Get an application context by the calling Apps name.
      */
     App getByName(String name) {
-        Iterator<App> i = mApps.iterator();
-        while (i.hasNext()) {
-            App entry = i.next();
-            if (entry.name.equals(name)) return entry;
+        synchronized (mApps) {
+            Iterator<App> i = mApps.iterator();
+            while (i.hasNext()) {
+                App entry = i.next();
+                if (entry.name.equals(name)) return entry;
+            }
         }
         Log.e(TAG, "Context not found for name " + name);
         return null;
