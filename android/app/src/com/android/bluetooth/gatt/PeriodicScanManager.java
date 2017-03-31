@@ -17,9 +17,7 @@
 package com.android.bluetooth.gatt;
 
 import android.bluetooth.le.AdvertiseData;
-import android.bluetooth.le.AdvertisingSetParameters;
 import android.bluetooth.le.IPeriodicAdvertisingCallback;
-import android.bluetooth.le.PeriodicAdvertisingParameters;
 import android.bluetooth.le.PeriodicAdvertisingReport;
 import android.bluetooth.le.ScanRecord;
 import android.bluetooth.le.ScanResult;
