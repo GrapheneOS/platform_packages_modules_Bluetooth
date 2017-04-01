@@ -1798,8 +1798,8 @@ static void startAdvertisingSetNative(JNIEnv* env, jobject object,
                                       jobject parameters, jbyteArray adv_data,
                                       jbyteArray scan_resp,
                                       jobject periodic_parameters,
-                                      jbyteArray periodic_data, jint timeout,
-                                      jint reg_id) {
+                                      jbyteArray periodic_data, jint duration,
+                                      jint maxExtAdvEvents, jint reg_id) {
   if (!sGattIf) return;
 
   jbyte* scan_resp_data = env->GetByteArrayElements(scan_resp, NULL);
@@ -1811,8 +1811,6 @@ static void startAdvertisingSetNative(JNIEnv* env, jobject object,
   AdvertiseParameters params = parseParams(env, parameters);
   PeriodicAdvertisingParameters periodicParams =
       parsePeriodicParams(env, periodic_parameters);
-
-  int timeout_s = (int)timeout / 1000;
 
   jbyte* adv_data_data = env->GetByteArrayElements(adv_data, NULL);
   uint16_t adv_data_len = (uint16_t)env->GetArrayLength(adv_data);
@@ -1827,8 +1825,8 @@ static void startAdvertisingSetNative(JNIEnv* env, jobject object,
 
   sGattIf->advertiser->StartAdvertisingSet(
       base::Bind(&ble_advertising_set_started_cb, reg_id), params, data_vec,
-      scan_resp_vec, periodicParams, periodic_data_vec, timeout_s,
-      base::Bind(ble_advertising_set_timeout_cb));
+      scan_resp_vec, periodicParams, periodic_data_vec, duration,
+      maxExtAdvEvents, base::Bind(ble_advertising_set_timeout_cb));
 }
 
 static void stopAdvertisingSetNative(JNIEnv* env, jobject object,
@@ -1856,12 +1854,13 @@ static void enableSetCb(uint8_t advertiser_id, bool enable, uint8_t status) {
 
 static void enableAdvertisingSetNative(JNIEnv* env, jobject object,
                                        jint advertiser_id, jboolean enable,
-                                       jint timeout) {
+                                       jint duration, jint maxExtAdvEvents) {
   if (!sGattIf) return;
 
-  sGattIf->advertiser->Enable(
-      advertiser_id, enable, base::Bind(&enableSetCb, advertiser_id, enable),
-      timeout / 1000, base::Bind(&enableSetCb, advertiser_id, false));
+  sGattIf->advertiser->Enable(advertiser_id, enable,
+                              base::Bind(&enableSetCb, advertiser_id, enable),
+                              duration, maxExtAdvEvents,
+                              base::Bind(&enableSetCb, advertiser_id, false));
 }
 
 static void setAdvertisingDataNative(JNIEnv* env, jobject object,
@@ -2056,10 +2055,11 @@ static JNINativeMethod sAdvertiseMethods[] = {
     {"cleanupNative", "()V", (void*)advertiseCleanupNative},
     {"startAdvertisingSetNative",
      "(Landroid/bluetooth/le/AdvertisingSetParameters;[B[BLandroid/bluetooth/"
-     "le/PeriodicAdvertisingParameters;[BII)V",
+     "le/PeriodicAdvertisingParameters;[BIII)V",
      (void*)startAdvertisingSetNative},
     {"stopAdvertisingSetNative", "(I)V", (void*)stopAdvertisingSetNative},
-    {"enableAdvertisingSetNative", "(IZI)V", (void*)enableAdvertisingSetNative},
+    {"enableAdvertisingSetNative", "(IZII)V",
+     (void*)enableAdvertisingSetNative},
     {"setAdvertisingDataNative", "(I[B)V", (void*)setAdvertisingDataNative},
     {"setScanResponseDataNative", "(I[B)V", (void*)setScanResponseDataNative},
     {"setAdvertisingParametersNative",
