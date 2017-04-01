@@ -556,11 +556,11 @@ public class GattService extends ProfileService {
         public void startAdvertisingSet(AdvertisingSetParameters parameters,
                 AdvertiseData advertiseData, AdvertiseData scanResponse,
                 PeriodicAdvertisingParameters periodicParameters, AdvertiseData periodicData,
-                int timeout, IAdvertisingSetCallback callback) {
+                int duration, int maxExtAdvEvents, IAdvertisingSetCallback callback) {
             GattService service = getService();
             if (service == null) return;
             service.startAdvertisingSet(parameters, advertiseData, scanResponse, periodicParameters,
-                    periodicData, timeout, callback);
+                    periodicData, duration, maxExtAdvEvents, callback);
         }
 
         public void stopAdvertisingSet(IAdvertisingSetCallback callback) {
@@ -569,10 +569,11 @@ public class GattService extends ProfileService {
             service.stopAdvertisingSet(callback);
         }
 
-        public void enableAdvertisingSet(int advertiserId, boolean enable, int timeout) {
+        public void enableAdvertisingSet(
+                int advertiserId, boolean enable, int duration, int maxExtAdvEvents) {
             GattService service = getService();
             if (service == null) return;
-            service.enableAdvertisingSet(advertiserId, enable, timeout);
+            service.enableAdvertisingSet(advertiserId, enable, duration, maxExtAdvEvents);
         }
 
         public void setAdvertisingData(int advertiserId, AdvertiseData data) {
@@ -1506,10 +1507,11 @@ public class GattService extends ProfileService {
      *************************************************************************/
     void startAdvertisingSet(AdvertisingSetParameters parameters, AdvertiseData advertiseData,
             AdvertiseData scanResponse, PeriodicAdvertisingParameters periodicParameters,
-            AdvertiseData periodicData, int timeout, IAdvertisingSetCallback callback) {
+            AdvertiseData periodicData, int duration, int maxExtAdvEvents,
+            IAdvertisingSetCallback callback) {
         enforceAdminPermission();
         mAdvertiseManager.startAdvertisingSet(parameters, advertiseData, scanResponse,
-                periodicParameters, periodicData, timeout, callback);
+                periodicParameters, periodicData, duration, maxExtAdvEvents, callback);
     }
 
     void stopAdvertisingSet(IAdvertisingSetCallback callback) {
@@ -1517,9 +1519,9 @@ public class GattService extends ProfileService {
         mAdvertiseManager.stopAdvertisingSet(callback);
     }
 
-    void enableAdvertisingSet(int advertiserId, boolean enable, int timeout) {
+    void enableAdvertisingSet(int advertiserId, boolean enable, int duration, int maxExtAdvEvents) {
         enforceAdminPermission();
-        mAdvertiseManager.enableAdvertisingSet(advertiserId, enable, timeout);
+        mAdvertiseManager.enableAdvertisingSet(advertiserId, enable, duration, maxExtAdvEvents);
     }
 
     void setAdvertisingData(int advertiserId, AdvertiseData data) {

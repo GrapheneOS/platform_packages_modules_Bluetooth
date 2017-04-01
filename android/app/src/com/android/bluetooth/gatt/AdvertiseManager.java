@@ -179,7 +179,8 @@ class AdvertiseManager {
 
     void startAdvertisingSet(AdvertisingSetParameters parameters, AdvertiseData advertiseData,
             AdvertiseData scanResponse, PeriodicAdvertisingParameters periodicParameters,
-            AdvertiseData periodicData, int timeout, IAdvertisingSetCallback callback) {
+            AdvertiseData periodicData, int duration, int maxExtAdvEvents,
+            IAdvertisingSetCallback callback) {
         AdvertisingSetDeathRecipient deathRecipient = new AdvertisingSetDeathRecipient(callback);
         IBinder binder = toBinder(callback);
         try {
@@ -198,7 +199,7 @@ class AdvertiseManager {
 
         logd("startAdvertisingSet() - reg_id=" + cb_id + ", callback: " + binder);
         startAdvertisingSetNative(parameters, adv_data, scan_response, periodicParameters,
-                periodic_data, timeout, cb_id);
+                periodic_data, duration, maxExtAdvEvents, cb_id);
     }
 
     void stopAdvertisingSet(IAdvertisingSetCallback callback) {
@@ -223,8 +224,8 @@ class AdvertiseManager {
         stopAdvertisingSetNative(advertiser_id);
     }
 
-    void enableAdvertisingSet(int advertiserId, boolean enable, int timeout) {
-        enableAdvertisingSetNative(advertiserId, enable, timeout);
+    void enableAdvertisingSet(int advertiserId, boolean enable, int duration, int maxExtAdvEvents) {
+        enableAdvertisingSetNative(advertiserId, enable, duration, maxExtAdvEvents);
     }
 
     void setAdvertisingData(int advertiserId, AdvertiseData data) {
@@ -358,10 +359,11 @@ class AdvertiseManager {
     private native void cleanupNative();
     private native void startAdvertisingSetNative(AdvertisingSetParameters parameters,
             byte[] advertiseData, byte[] scanResponse,
-            PeriodicAdvertisingParameters periodicParameters, byte[] periodicData, int timeout,
-            int reg_id);
+            PeriodicAdvertisingParameters periodicParameters, byte[] periodicData, int duration,
+            int maxExtAdvEvents, int reg_id);
     private native void stopAdvertisingSetNative(int advertiser_id);
-    private native void enableAdvertisingSetNative(int advertiserId, boolean enable, int timeout);
+    private native void enableAdvertisingSetNative(
+            int advertiserId, boolean enable, int duration, int maxExtAdvEvents);
     private native void setAdvertisingDataNative(int advertiserId, byte[] data);
     private native void setScanResponseDataNative(int advertiserId, byte[] data);
     private native void setAdvertisingParametersNative(
