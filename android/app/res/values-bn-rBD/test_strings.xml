@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-    <string name="app_name" msgid="1203877025577761792">"Bluetooth ভাগ করা"</string>
+    <string name="app_name" msgid="6006644116867509664">"ব্লুটুথ"</string>
     <string name="insert_record" msgid="1450997173838378132">"রেকর্ড ঢোকান"</string>
     <string name="update_record" msgid="2480425402384910635">"রেকর্ড নিশ্চিত করুন"</string>
     <string name="ack_record" msgid="6716152390978472184">"Ack রেকর্ড"</string>

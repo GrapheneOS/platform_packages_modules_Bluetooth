@@ -19,12 +19,12 @@
     <string name="permlab_bluetoothShareManager" msgid="311492132450338925">"Օգտվել ներբեռնման կառավարչից:"</string>
     <string name="permdesc_bluetoothShareManager" msgid="8930572979123190223">"Թույլ է տալիս, որ ծրագիրը մատչի BluetoothShare կառավարչին և այն օգտագործի ֆայլեր փոխանցելու համար:"</string>
     <string name="permlab_bluetoothWhitelist" msgid="7091552898592306386">"Մուտք bluetooth սարքի ցուցակին:"</string>
-    <string name="permdesc_bluetoothWhitelist" msgid="5494513855192170109">"Թույլ է տալիս, որ ծրագիրը ժամանակավորապես մաքրի Bluetooth սարքի ցուցակը, ինչը թույլ է տալիս, որ այդ սարքը կարողանա ֆայլեր ուղարկել տվյալ սարքին առանց օգտվողի հաստատման:"</string>
+    <string name="permdesc_bluetoothWhitelist" msgid="5494513855192170109">"Թույլ է տալիս, որ ծրագիրը ժամանակավորապես մաքրի Bluetooth սարքի ցուցակը, ինչը թույլ է տալիս, որ այդ սարքը կարողանա ֆայլեր ուղարկել տվյալ սարքին առանց օգտատիրոջ հաստատման:"</string>
     <string name="bt_share_picker_label" msgid="6268100924487046932">"Bluetooth"</string>
     <string name="unknown_device" msgid="9221903979877041009">"Անհայտ սարք"</string>
     <string name="unknownNumber" msgid="4994750948072751566">"Անհայտ"</string>
-    <string name="airplane_error_title" msgid="2683839635115739939">"Ինքնաթիռային ռեժիմ"</string>
-    <string name="airplane_error_msg" msgid="8698965595254137230">"Դուք չեք կարող օգտվել Bluetooth-ից ինքնաթիռային ռեժիմում:"</string>
+    <string name="airplane_error_title" msgid="2683839635115739939">"Ինքնաթիռի ռեժիմ"</string>
+    <string name="airplane_error_msg" msgid="8698965595254137230">"Դուք չեք կարող օգտվել Bluetooth-ից Ինքնաթիռի ռեժիմում:"</string>
     <string name="bt_enable_title" msgid="8657832550503456572"></string>
     <string name="bt_enable_line1" msgid="7203551583048149">"Bluetooth ծառայություններից օգտվելու համար նախ պետք է միացնեք Bluetooth-ը:"</string>
     <string name="bt_enable_line2" msgid="4341936569415937994">"Միացնե՞լ Bluetooth-ը հիմա:"</string>
@@ -50,7 +50,7 @@
     <string name="download_line2" msgid="5876973543019417712">"Ֆայլ՝ <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="download_line3" msgid="4384821622908676061">"Ֆայլի չափը՝ <xliff:g id="SIZE">%1$s</xliff:g>"</string>
     <string name="download_line4" msgid="8535996869722666525"></string>
-    <string name="download_line5" msgid="3069560415845295386">"Ֆայլը ստացվում է..."</string>
+    <string name="download_line5" msgid="3069560415845295386">"Ֆայլի ստացում..."</string>
     <string name="download_cancel" msgid="9177305996747500768">"Դադարեցնել"</string>
     <string name="download_ok" msgid="5000360731674466039">"Թաքցնել"</string>
     <string name="incoming_line1" msgid="2127419875681087545">"Ումից"</string>
@@ -93,7 +93,7 @@
     <string name="status_success" msgid="239573225847565868">"Ֆայլերի փոխանցումը հաջողությամբ ավարտվել է:"</string>
     <string name="status_not_accept" msgid="1695082417193780738">"Բովանդակությունը չի աջակցվում:"</string>
     <string name="status_forbidden" msgid="613956401054050725">"Փոխանցումն արգելված է նպատակային սարքի կողմից:"</string>
-    <string name="status_canceled" msgid="6664490318773098285">"Փոխանցումը չեղարկվել է օգտվողի կողմից:"</string>
+    <string name="status_canceled" msgid="6664490318773098285">"Փոխանցումը չեղարկվել է օգտատիրոջ կողմից:"</string>
     <string name="status_file_error" msgid="3671917770630165299">"Կրիչի խնդիր:"</string>
     <string name="status_no_sd_card" product="nosdcard" msgid="1112125377088421469">"USB կրիչ չկա:"</string>
     <string name="status_no_sd_card" product="default" msgid="5760944071743325592">"SD քարտ չկա: Տեղադրեք SD քարտ` փոխանցված ֆայլերը պահպանելու համար:"</string>
@@ -123,9 +123,12 @@
     <string name="transfer_clear_dlg_title" msgid="2953444575556460386">"Ջնջել"</string>
     <string name="bluetooth_map_settings_save" msgid="7635491847388074606">"Պահել"</string>
     <string name="bluetooth_map_settings_cancel" msgid="9205350798049865699">"Չեղարկել"</string>
-    <string name="bluetooth_map_settings_intro" msgid="6793938602201480648">"Ընտրեք հաշիվները, որոնք ցանկանում եք համօգտագործել Bluetooth-ի միջոցով: Ամեն դեպքում, կապակցվելիս պետք է ընդունեք հաշիվներն օգտագործելու թույլտվությունը:"</string>
+    <string name="bluetooth_map_settings_intro" msgid="6482369468223987562">"Ընտրեք հաշիվները, որոնք ցանկանում եք հասանելի դարձնել Bluetooth-ի միջոցով: Ամեն դեպքում, կապակցվելիս պետք է ընդունեք հաշիվներն օգտագործելու թույլտվությունը:"</string>
     <string name="bluetooth_map_settings_count" msgid="4557473074937024833">"Մնացած տողերի քանակը՝"</string>
     <string name="bluetooth_map_settings_app_icon" msgid="7105805610929114707">"Հավելվածի պատկերակը"</string>
     <string name="bluetooth_map_settings_title" msgid="7420332483392851321">"Հաղորդագրությունների համօգտագործման Bluetooth-ի կարգավորումներ"</string>
     <string name="bluetooth_map_settings_no_account_slots_left" msgid="1796029082612965251">"Հնարավոր չէ ընտրել հաշիվը: Տող չի մնացել"</string>
+    <string name="bluetooth_connected" msgid="6718623220072656906">"Bluetooth աուդիոն կապակցված է"</string>
+    <string name="bluetooth_disconnected" msgid="3318303728981478873">"Bluetooth աուդիոն անջատված է"</string>
+    <string name="a2dp_sink_mbs_label" msgid="7566075853395412558">"Bluetooth աուդիո"</string>
 </resources>

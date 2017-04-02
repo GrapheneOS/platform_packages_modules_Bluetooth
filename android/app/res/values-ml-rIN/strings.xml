@@ -121,9 +121,12 @@
     <string name="transfer_clear_dlg_title" msgid="2953444575556460386">"മായ്‌ക്കുക"</string>
     <string name="bluetooth_map_settings_save" msgid="7635491847388074606">"സംരക്ഷിക്കുക"</string>
     <string name="bluetooth_map_settings_cancel" msgid="9205350798049865699">"റദ്ദാക്കുക"</string>
-    <string name="bluetooth_map_settings_intro" msgid="6793938602201480648">"നിങ്ങൾക്ക് Bluetooth മുഖേന പങ്കിടേണ്ട അക്കൗണ്ടുകൾ തിരഞ്ഞെടുക്കുക. കണക്‌റ്റുചെയ്യുമ്പോൾ അക്കൗണ്ടുകളിലേക്കുള്ള ഏത് ആക്‌സസ്സും നിങ്ങൾ തുടർന്നും അംഗീകരിക്കേണ്ടതാണ്."</string>
+    <string name="bluetooth_map_settings_intro" msgid="6482369468223987562">"നിങ്ങൾക്ക് Bluetooth വഴി പങ്കിടേണ്ട അക്കൗണ്ടുകൾ തിരഞ്ഞെടുക്കുക. കണക്‌റ്റുചെയ്യുമ്പോൾ അക്കൗണ്ടുകളിലേക്കുള്ള ഏത് ആക്‌സസും നിങ്ങൾ തുടർന്നും അംഗീകരിക്കേണ്ടതാണ്."</string>
     <string name="bluetooth_map_settings_count" msgid="4557473074937024833">"ശേഷിക്കുന്ന സ്ലോട്ടുകൾ:"</string>
     <string name="bluetooth_map_settings_app_icon" msgid="7105805610929114707">"അപ്ലിക്കേഷൻ ഐക്കൺ"</string>
     <string name="bluetooth_map_settings_title" msgid="7420332483392851321">"Bluetooth സന്ദേശ പങ്കിടൽ ക്രമീകരണം"</string>
     <string name="bluetooth_map_settings_no_account_slots_left" msgid="1796029082612965251">"അക്കൗണ്ട് തിരഞ്ഞെടുക്കാനാകില്ല. 0 സ്ലോട്ടുകൾ ശേഷിക്കുന്നു"</string>
+    <string name="bluetooth_connected" msgid="6718623220072656906">"Bluetooth ഓഡിയോ കണക്‌റ്റുചെയ്തു"</string>
+    <string name="bluetooth_disconnected" msgid="3318303728981478873">"Bluetooth ഓഡിയോ വിച്ഛേദിച്ചു"</string>
+    <string name="a2dp_sink_mbs_label" msgid="7566075853395412558">"Bluetooth ഓഡിയോ"</string>
 </resources>
