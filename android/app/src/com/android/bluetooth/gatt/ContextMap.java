@@ -133,7 +133,7 @@ import com.android.bluetooth.btservice.BluetoothProto;
     }
 
     /** Our internal application list */
-    List<App> mApps = new ArrayList<App>();
+    private List<App> mApps = new ArrayList<App>();
 
     /** Internal map to keep track of logging information by app name */
     HashMap<String, AppScanStats> mAppScanStats = new HashMap<String, AppScanStats>();
@@ -197,6 +197,18 @@ import com.android.bluetooth.btservice.BluetoothProto;
                 }
             }
         }
+    }
+
+    List<Integer> getAllAppsIds() {
+        List<Integer> appIds = new ArrayList();
+        synchronized (mApps) {
+            Iterator<App> i = mApps.iterator();
+            while (i.hasNext()) {
+                App entry = i.next();
+                appIds.add(entry.id);
+            }
+        }
+        return appIds;
     }
 
     /**
