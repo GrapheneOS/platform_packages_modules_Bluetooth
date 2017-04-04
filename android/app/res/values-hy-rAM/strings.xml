@@ -19,7 +19,7 @@
     <string name="permlab_bluetoothShareManager" msgid="311492132450338925">"Օգտվել ներբեռնման կառավարչից:"</string>
     <string name="permdesc_bluetoothShareManager" msgid="8930572979123190223">"Թույլ է տալիս, որ ծրագիրը մատչի BluetoothShare կառավարչին և այն օգտագործի ֆայլեր փոխանցելու համար:"</string>
     <string name="permlab_bluetoothWhitelist" msgid="7091552898592306386">"Մուտք bluetooth սարքի ցուցակին:"</string>
-    <string name="permdesc_bluetoothWhitelist" msgid="5494513855192170109">"Թույլ է տալիս, որ ծրագիրը ժամանակավորապես մաքրի Bluetooth սարքի ցուցակը, ինչը թույլ է տալիս, որ այդ սարքը կարողանա ֆայլեր ուղարկել տվյալ սարքին առանց օգտվողի հաստատման:"</string>
+    <string name="permdesc_bluetoothWhitelist" msgid="5494513855192170109">"Թույլ է տալիս, որ ծրագիրը ժամանակավորապես մաքրի Bluetooth սարքի ցուցակը, ինչը թույլ է տալիս, որ այդ սարքը կարողանա ֆայլեր ուղարկել տվյալ սարքին առանց օգտատիրոջ հաստատման:"</string>
     <string name="bt_share_picker_label" msgid="6268100924487046932">"Bluetooth"</string>
     <string name="unknown_device" msgid="9221903979877041009">"Անհայտ սարք"</string>
     <string name="unknownNumber" msgid="4994750948072751566">"Անհայտ"</string>
@@ -93,7 +93,7 @@
     <string name="status_success" msgid="239573225847565868">"Ֆայլերի փոխանցումը հաջողությամբ ավարտվել է:"</string>
     <string name="status_not_accept" msgid="1695082417193780738">"Բովանդակությունը չի աջակցվում:"</string>
     <string name="status_forbidden" msgid="613956401054050725">"Փոխանցումն արգելված է նպատակային սարքի կողմից:"</string>
-    <string name="status_canceled" msgid="6664490318773098285">"Փոխանցումը չեղարկվել է օգտվողի կողմից:"</string>
+    <string name="status_canceled" msgid="6664490318773098285">"Փոխանցումը չեղարկվել է օգտատիրոջ կողմից:"</string>
     <string name="status_file_error" msgid="3671917770630165299">"Կրիչի խնդիր:"</string>
     <string name="status_no_sd_card" product="nosdcard" msgid="1112125377088421469">"USB կրիչ չկա:"</string>
     <string name="status_no_sd_card" product="default" msgid="5760944071743325592">"SD քարտ չկա: Տեղադրեք SD քարտ` փոխանցված ֆայլերը պահպանելու համար:"</string>

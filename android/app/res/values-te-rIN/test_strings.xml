@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-    <string name="app_name" msgid="1203877025577761792">"బ్లూటూత్ భాగస్వామ్యం"</string>
+    <string name="app_name" msgid="6006644116867509664">"బ్లూటూత్"</string>
     <string name="insert_record" msgid="1450997173838378132">"రికార్డ్‌ను చొప్పించండి"</string>
     <string name="update_record" msgid="2480425402384910635">"రికార్డ్‌ను నిర్ధారించండి"</string>
     <string name="ack_record" msgid="6716152390978472184">"సమ్మతి ధృవీకరణ రికార్డ్"</string>

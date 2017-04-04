@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-    <string name="app_name" msgid="1203877025577761792">"Shpërndarja përmes bluetooth-it"</string>
+    <string name="app_name" msgid="6006644116867509664">"Bluetooth-i"</string>
     <string name="insert_record" msgid="1450997173838378132">"Fut të dhëna"</string>
     <string name="update_record" msgid="2480425402384910635">"Konfirmo të dhënat"</string>
     <string name="ack_record" msgid="6716152390978472184">"Të dhënat \"Ack\""</string>

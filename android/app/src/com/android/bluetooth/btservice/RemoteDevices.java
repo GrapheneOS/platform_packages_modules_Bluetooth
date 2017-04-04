@@ -294,20 +294,27 @@ final class RemoteDevices {
         BluetoothDevice bdDevice = getDevice(address);
         DeviceProperties device;
         if (bdDevice == null) {
+            debugLog("Added new device property");
             device = addDeviceProperties(address);
             bdDevice = getDevice(address);
         } else {
             device = getDeviceProperties(bdDevice);
         }
 
+        if (types.length <= 0) {
+            errorLog("No properties to update");
+            return;
+        }
+
         for (int j = 0; j < types.length; j++) {
             type = types[j];
             val = values[j];
-            if(val.length <= 0)
+            if (val.length <= 0)
                 errorLog("devicePropertyChangedCallback: bdDevice: " + bdDevice
                         + ", value is empty for type: " + type);
             else {
                 synchronized(mObject) {
+                    debugLog("Property type: " + type);
                     switch (type) {
                         case AbstractionLayer.BT_PROPERTY_BDNAME:
                             device.mName = new String(val);
