@@ -149,6 +149,10 @@ public class BluetoothOppTransfer implements BluetoothOppBatch.BluetoothOppBatch
                     Log.d(TAG, " -> status: " + status);
                     BluetoothDevice device =
                             intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+                    if (mDevice == null) {
+                        Log.w(TAG, "OPP SDP search, target device is null, ignoring result");
+                        return;
+                    }
                     if (!device.getAddress().equalsIgnoreCase(mDevice.getAddress())) {
                         Log.w(TAG, " OPP SDP search for wrong device, ignoring!!");
                         return;
