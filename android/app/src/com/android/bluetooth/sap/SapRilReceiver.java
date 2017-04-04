@@ -27,7 +27,7 @@ public class SapRilReceiver {
     public static final boolean DEBUG = true;
     public static final boolean VERBOSE = true;
 
-    private static final String SOCKET_NAME_RIL_BT = "sap_uim_socket1";
+    private static final String SERVICE_NAME_RIL_BT = "slot1";
     // match with constant in ril.cpp - as in RIL.java
     private static final int SOCKET_OPEN_RETRY_MILLIS = 4 * 1000;
 
@@ -212,7 +212,7 @@ public class SapRilReceiver {
             }
 
             try {
-                mSapProxy = ISap.getService(SOCKET_NAME_RIL_BT);
+                mSapProxy = ISap.getService(SERVICE_NAME_RIL_BT);
                 if (mSapProxy != null) {
                     mSapProxy.linkToDeath(
                             mSapProxyDeathRecipient, mSapProxyCookie.incrementAndGet());
