@@ -164,6 +164,9 @@ final class HeadsetStateMachine extends StateMachine {
     // Indicates whether audio can be routed to the device.
     private boolean mAudioRouteAllowed = true;
 
+    // Indicate whether service level connection has been established for this device
+    private boolean mSlcConnected = false;
+
     // mCurrentDevice is the device connected before the state changes
     // mTargetDevice is the device to be connected
     // mIncomingDevice is the device connecting to us, valid only in Pending state
@@ -324,6 +327,7 @@ final class HeadsetStateMachine extends StateMachine {
             mPhoneState.listenForPhoneState(false);
             mVoiceRecognitionStarted = false;
             mWaitingForVoiceRecognition = false;
+            mSlcConnected = false;
         }
 
         @Override
@@ -1092,6 +1096,7 @@ final class HeadsetStateMachine extends StateMachine {
         }
 
         private void processSlcConnected() {
+            mSlcConnected = true;
             if (mPhoneProxy != null) {
                 try {
                     mPhoneProxy.queryPhoneState();
@@ -1501,6 +1506,7 @@ final class HeadsetStateMachine extends StateMachine {
         }
 
         private void processSlcConnected() {
+            mSlcConnected = true;
             if (mPhoneProxy != null) {
                 try {
                     mPhoneProxy.queryPhoneState();
@@ -1954,6 +1960,7 @@ final class HeadsetStateMachine extends StateMachine {
         }
 
         private void processSlcConnected() {
+            mSlcConnected = true;
             if (mPhoneProxy != null) {
                 try {
                     mPhoneProxy.queryPhoneState();
@@ -2092,6 +2099,10 @@ final class HeadsetStateMachine extends StateMachine {
             }
         }
         return false;
+    }
+
+    boolean isSlcConnected() {
+        return mSlcConnected;
     }
 
     public void setAudioRouteAllowed(boolean allowed) {
