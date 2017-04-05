@@ -339,6 +339,9 @@ public class BluetoothOppService extends ProfileService implements IObexConnecti
                             } catch (IOException e) {
                                 Log.e(TAG, "close tranport error");
                             }
+                            if (mServerSocket != null) {
+                                mServerSocket.prepareForNewConnect();
+                            }
                             mIncomingRetries = 0;
                             mPendingConnection = null;
                         } else {
