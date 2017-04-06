@@ -222,8 +222,8 @@ public final class Avrcp {
         mAbsVolThreshold = 0;
         mVolumeMapping = new HashMap<Integer, Integer>();
         sUIDCounter = AvrcpConstants.DEFAULT_UID_COUNTER;
-        mCurrAddrPlayerID = -1;
-        mCurrBrowsePlayerID = -1;
+        mCurrAddrPlayerID = 0;
+        mCurrBrowsePlayerID = 0;
         mContext = context;
         mLastUsedPlayerID = 0;
         mAddressedMediaPlayer = null;
@@ -371,8 +371,6 @@ public final class Avrcp {
 
         @Override
         public void handleMessage(Message msg) {
-            if (DEBUG) Log.v(TAG, "AvrcpMessageHandler: received message=" + msg.what);
-
             switch (msg.what) {
             case MSG_NATIVE_REQ_GET_RC_FEATURES:
             {
@@ -736,6 +734,7 @@ public final class Avrcp {
                 break;
 
             case MSG_NATIVE_REQ_GET_FOLDER_ITEMS: {
+                if (DEBUG) Log.v(TAG, "MSG_NATIVE_REQ_GET_FOLDER_ITEMS");
                 AvrcpCmd.FolderItemsCmd folderObj = (AvrcpCmd.FolderItemsCmd) msg.obj;
                 switch (folderObj.mScope) {
                     case AvrcpConstants.BTRC_SCOPE_PLAYER_LIST:
@@ -757,21 +756,25 @@ public final class Avrcp {
 
             case MSG_NATIVE_REQ_SET_ADDR_PLAYER:
                 // object is bdaddr, argument 1 is the selected player id
+                if (DEBUG) Log.v(TAG, "MSG_NATIVE_REQ_SET_ADDR_PLAYER id=" + msg.arg1);
                 setAddressedPlayer((byte[]) msg.obj, msg.arg1);
                 break;
 
             case MSG_NATIVE_REQ_GET_ITEM_ATTR:
                 // msg object contains the item attribute object
+                if (DEBUG) Log.v(TAG, "MSG_NATIVE_REQ_GET_ITEM_ATTR");
                 handleGetItemAttr((AvrcpCmd.ItemAttrCmd) msg.obj);
                 break;
 
             case MSG_NATIVE_REQ_SET_BR_PLAYER:
                 // argument 1 is the selected player id
+                if (DEBUG) Log.v(TAG, "MSG_NATIVE_REQ_SET_BR_PLAYER id=" + msg.arg1);
                 setBrowsedPlayer((byte[]) msg.obj, msg.arg1);
                 break;
 
             case MSG_NATIVE_REQ_CHANGE_PATH:
             {
+                if (DEBUG) Log.v(TAG, "MSG_NATIVE_REQ_CHANGE_PATH");
                 Bundle data = msg.getData();
                 byte[] bdaddr = data.getByteArray("BdAddress");
                 byte[] folderUid = data.getByteArray("folderUid");
@@ -788,6 +791,7 @@ public final class Avrcp {
 
             case MSG_NATIVE_REQ_PLAY_ITEM:
             {
+                if (DEBUG) Log.v(TAG, "MSG_NATIVE_REQ_PLAY_ITEM");
                 Bundle data = msg.getData();
                 byte[] bdaddr = data.getByteArray("BdAddress");
                 byte[] uid = data.getByteArray("uid");
@@ -797,11 +801,15 @@ public final class Avrcp {
             }
 
             case MSG_NATIVE_REQ_GET_TOTAL_NUM_OF_ITEMS:
+                if (DEBUG) Log.v(TAG, "MSG_NATIVE_REQ_GET_TOTAL_NUM_OF_ITEMS scope=" + msg.arg1);
                 // argument 1 is scope, object is bdaddr
                 handleGetTotalNumOfItemsResponse((byte[]) msg.obj, (byte) msg.arg1);
                 break;
 
             case MSG_NATIVE_REQ_PASS_THROUGH:
+                if (DEBUG)
+                    Log.v(TAG,
+                            "MSG_NATIVE_REQ_PASS_THROUGH: id=" + msg.arg1 + " state=" + msg.arg2);
                 // argument 1 is id, argument 2 is keyState, object is bdaddr
                 mAddressedMediaPlayer.handlePassthroughCmd(msg.arg1, msg.arg2, (byte[]) msg.obj,
                         mMediaController);
@@ -1627,7 +1635,7 @@ public final class Avrcp {
                     removeMediaPlayerInfo(controller.getPackageName());
                     if ((controller == addressedController)
                             && (mCurrBrowsePlayerID == mCurrAddrPlayerID)) {
-                        mCurrBrowsePlayerID = -1;
+                        mCurrBrowsePlayerID = 0;
                     }
                     playersChanged = true;
                 }
@@ -1660,7 +1668,7 @@ public final class Avrcp {
             } else {
                 // TODO(jamuraa): use media framework to handle addressed player
                 // No active sessions, so we don't have an addresed player.
-                newAddressedID = -1;
+                newAddressedID = 0;
             }
 
             if (newAddressedID != mCurrAddrPlayerID) {
@@ -1778,6 +1786,18 @@ public final class Avrcp {
 
     }
 
+    private void startBrowsedPlayer(int browseId) {
+        BrowsePlayerInfo player = mBrowsePlayerInfoList.get(browseId);
+        Intent intent = new Intent();
+        intent.setComponent(new ComponentName(player.packageName, player.serviceClass));
+        Log.i(TAG, "Starting service:" + player.packageName + ", " + player.serviceClass);
+        try {
+            mContext.startService(intent);
+        } catch (SecurityException ex) {
+            Log.e(TAG, "Can't start " + player.serviceClass + ": " + ex.getMessage());
+        }
+    }
+
     /* initializing media player info list and prepare media player response object */
     private void buildMediaPlayersList() {
         initMediaPlayersInfoList();
@@ -1785,25 +1805,7 @@ public final class Avrcp {
         if (mMediaPlayerInfoList.size() > 0) {
             // Set the first one as the Addressed Player
             updateCurrentController(mMediaPlayerInfoList.firstKey(), -1);
-        } else {
-            Log.i(TAG, "No players available in the media players list");
-            /* No players have started. Start one so we can passthrough commands. */
-            if ((mBrowsePlayerInfoList != null) && (mBrowsePlayerInfoList.size() > 0)) {
-                BrowsePlayerInfo player = mBrowsePlayerInfoList.get(0);
-                Intent intent = new Intent();
-                intent.setComponent(new ComponentName(player.packageName, player.serviceClass));
-                Log.i(TAG, "Starting service:" + player.packageName + ", " + player.serviceClass);
-                try {
-                    mContext.startService(intent);
-                } catch (SecurityException ex) {
-                    Log.e(TAG, "Can't start " + player.serviceClass + ": " + ex.getMessage());
-                }
-            } else {
-                Log.e(TAG, "Opening player to support AVRCP operations failed, " +
-                        "No browsable players available!");
-            }
         }
-
     }
 
     private List<android.media.session.MediaController> getMediaControllers() {
@@ -2098,6 +2100,11 @@ public final class Avrcp {
 
      /* build media player list and send it to remote. */
     private void handleMediaPlayerListRsp(AvrcpCmd.FolderItemsCmd folderObj) {
+        if (mMediaPlayerInfoList.size() == 0) {
+            mediaPlayerListRspNative(folderObj.mAddress, AvrcpConstants.RSP_NO_AVBL_PLAY, (short) 0,
+                    (byte) 0, 0, null, null, null, null, null, null);
+            return;
+        }
         if (folderObj.mStartItem >= mMediaPlayerInfoList.size()) {
             Log.i(TAG, "handleMediaPlayerListRsp: start item = " + folderObj.mStartItem
                             + ", but available num of items = " + mMediaPlayerInfoList.size());
@@ -2121,7 +2128,14 @@ public final class Avrcp {
 
         MediaController newController = null;
         MediaPlayerInfo info = getAddressedPlayerInfo();
-        if (info != null) newController = info.getMediaController();
+        if (info != null) {
+            newController = info.getMediaController();
+            if (newController == null) {
+                // Browsable player, try to start it, which will trigger an update via
+                // MesiaSessionManager
+                startBrowsedPlayer(getBrowseId(info.getPackageName()));
+            }
+        }
 
         if (DEBUG)
             Log.d(TAG, "updateCurrentController: " + mMediaController + " to " + newController);
@@ -2199,9 +2213,8 @@ public final class Avrcp {
     }
 
     private void handlePlayItemResponse(byte[] bdaddr, byte[] uid, byte scope) {
-
-        if(scope == AvrcpConstants.BTRC_SCOPE_NOW_PLAYING) {
-            mAddressedMediaPlayer.playItem(bdaddr, uid, scope, mMediaController);
+        if (scope == AvrcpConstants.BTRC_SCOPE_NOW_PLAYING) {
+            mAddressedMediaPlayer.playItem(bdaddr, uid, mMediaController);
         }
         else {
             if(!isAddrPlayerSameAsBrowsed(bdaddr)) {
@@ -2244,7 +2257,7 @@ public final class Avrcp {
             getTotalNumOfItemsRspNative(bdaddr, AvrcpConstants.RSP_NO_ERROR, 0,
                     numPlayers);
         } else if(scope == AvrcpConstants.BTRC_SCOPE_NOW_PLAYING) {
-            mAddressedMediaPlayer.getTotalNumOfItems(bdaddr, scope, mMediaController);
+            mAddressedMediaPlayer.getTotalNumOfItems(bdaddr, mMediaController);
         } else {
             // for FileSystem browsing scopes as VFS, Now Playing
             if (mAvrcpBrowseManager.getBrowsedMediaPlayer(bdaddr) != null) {
