@@ -156,6 +156,9 @@ public final class Avrcp {
     private static final int MSG_REWIND = 19;
     private static final int MSG_CHANGE_PLAY_POS = 20;
     private static final int MSG_SET_A2DP_AUDIO_STATE = 21;
+    private static final int MSG_ADDRESSED_PLAYER_CHANGED_RSP = 22;
+    private static final int MSG_AVAILABLE_PLAYERS_CHANGED_RSP = 23;
+    private static final int MSG_NOW_PLAYING_CHANGED_RSP = 24;
 
     private static final int BUTTON_TIMEOUT_TIME = 2000;
     private static final int BASE_SKIP_AMOUNT = 2000;
@@ -358,12 +361,7 @@ public final class Avrcp {
 
             Log.v(TAG, "onQueueChanged: NowPlaying list changed, Queue Size = "+ queue.size());
             mAddressedMediaPlayer.updateNowPlayingList(queue);
-
-            /* sent notification to remote for NowPlayingList changed */
-            if(!registerNotificationRspNowPlayingChangedNative(
-                    AvrcpConstants.NOTIFICATION_TYPE_CHANGED)){
-                Log.e(TAG, "onQueueChanged-registerNotificationRspNowPlayingChangedNative failed");
-            }
+            mHandler.sendEmptyMessage(MSG_NOW_PLAYING_CHANGED_RSP);
         }
     }
 
@@ -427,6 +425,32 @@ public final class Avrcp {
                 if (DEBUG) Log.v(TAG, "MSG_NATIVE_REQ_REGISTER_NOTIFICATION:event=" + msg.arg1 +
                         " param=" + msg.arg2);
                 processRegisterNotification((byte[]) msg.obj, msg.arg1, msg.arg2);
+                break;
+
+            case MSG_AVAILABLE_PLAYERS_CHANGED_RSP:
+                if (DEBUG) Log.v(TAG, "MSG_AVAILABLE_PLAYERS_CHANGED_RSP");
+                removeMessages(MSG_AVAILABLE_PLAYERS_CHANGED_RSP);
+                registerNotificationRspAvalPlayerChangedNative(
+                        AvrcpConstants.NOTIFICATION_TYPE_CHANGED);
+                break;
+
+            case MSG_NOW_PLAYING_CHANGED_RSP:
+                if (DEBUG) Log.v(TAG, "MSG_NOW_PLAYING_CHANGED_RSP");
+                removeMessages(MSG_NOW_PLAYING_CHANGED_RSP);
+                registerNotificationRspNowPlayingChangedNative(
+                        AvrcpConstants.NOTIFICATION_TYPE_CHANGED);
+                break;
+
+            case MSG_ADDRESSED_PLAYER_CHANGED_RSP:
+                if (DEBUG)
+                    Log.v(TAG, "MSG_ADDRESSED_PLAYER_CHANGED_RSP: newAddrPlayer = " + msg.arg1);
+                // Later addressed players override earlier ones.
+                if (hasMessages(MSG_ADDRESSED_PLAYER_CHANGED_RSP)) {
+                    Log.i(TAG, "MSG_ADDRESSED_PLAYER_CHANGED_RSP: skip, more changes in queue");
+                    break;
+                }
+                registerNotificationRspAddrPlayerChangedNative(
+                        AvrcpConstants.NOTIFICATION_TYPE_CHANGED, msg.arg1, sUIDCounter);
                 break;
 
             case MSG_PLAY_INTERVAL_TIMEOUT:
@@ -1618,18 +1642,13 @@ public final class Avrcp {
 
         private void sendAddressedPlayerChanged(int newAddrPlayerID) {
             if (DEBUG) Log.d(TAG, "sendAddressedPlayerChanged: new PlayerID=" + newAddrPlayerID);
-
-            /* notify remote addressed player changed */
-            registerNotificationRspAddrPlayerChangedNative(
-                    AvrcpConstants.NOTIFICATION_TYPE_CHANGED, newAddrPlayerID, sUIDCounter);
+            mHandler.obtainMessage(MSG_ADDRESSED_PLAYER_CHANGED_RSP, newAddrPlayerID, 0)
+                    .sendToTarget();
         }
 
         private void sendAvailablePlayersChanged() {
             if (DEBUG) Log.d(TAG, "sendAvailablePlayersChanged");
-
-            /* Notify remote available players changed */
-            registerNotificationRspAvalPlayerChangedNative(
-                    AvrcpConstants.NOTIFICATION_TYPE_CHANGED);
+            mHandler.sendEmptyMessage(MSG_AVAILABLE_PLAYERS_CHANGED_RSP);
         }
 
         private boolean isAddressedPlayerChanged(List<MediaController> mediaControllerList) {
