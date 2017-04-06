@@ -75,36 +75,34 @@ public class CallLogPullRequest extends PullRequest {
 
             ArrayList<ContentProviderOperation> ops = new ArrayList<>();
             for (VCardEntry vcard : mEntries) {
+                ContentValues values = new ContentValues();
+
+                values.put(CallLog.Calls.TYPE, type);
+
                 List<PhoneData> phones = vcard.getPhoneList();
-                if (phones == null || phones.size() != 1) {
-                    if (VDBG) {
-                        Log.d(TAG, "Incorrect number of phones: " + vcard);
-                    }
-                    continue;
+                if (phones == null || phones.get(0).getNumber().equals(";")) {
+                    values.put(CallLog.Calls.NUMBER, "");
+                } else {
+                    values.put(CallLog.Calls.NUMBER, phones.get(0).getNumber());
                 }
 
                 List<Pair<String, String>> irmc = vcard.getUnknownXData();
-                Date date = null;
                 SimpleDateFormat parser = new SimpleDateFormat(TIMESTAMP_FORMAT);
-                for (Pair<String, String> pair : irmc) {
-                    if (pair.first.startsWith(TIMESTAMP_PROPERTY)) {
-                        try {
-                            date = parser.parse(pair.second);
-                        } catch (ParseException e) {
-                            Log.d(TAG, "Failed to parse date ");
-                            if (VDBG) {
-                                Log.d(TAG, pair.second);
+                if (irmc != null) {
+                    for (Pair<String, String> pair : irmc) {
+                        if (pair.first.startsWith(TIMESTAMP_PROPERTY)) {
+                            try {
+                                values.put(CallLog.Calls.DATE, parser.parse(pair.second).getTime());
+                            } catch (ParseException e) {
+                                Log.d(TAG, "Failed to parse date ");
+                                if (VDBG) {
+                                    Log.d(TAG, pair.second);
+                                }
                             }
                         }
                     }
                 }
 
-                ContentValues values = new ContentValues();
-                values.put(CallLog.Calls.TYPE, type);
-                values.put(CallLog.Calls.NUMBER, phones.get(0).getNumber());
-                if (date != null) {
-                    values.put(CallLog.Calls.DATE, date.getTime());
-                }
                 ops.add(ContentProviderOperation.newInsert(CallLog.Calls.CONTENT_URI)
                         .withValues(values).withYieldAllowed(true).build());
             }
