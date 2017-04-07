@@ -949,9 +949,10 @@ static jboolean setVolumeNative(JNIEnv* env, jobject object, jint volume) {
 /* native response for scope as Media player */
 static jboolean mediaPlayerListRspNative(
     JNIEnv* env, jobject object, jbyteArray address, jint rspStatus,
-    jint uidCounter, jbyte itemType, jint numItems, jbyteArray playerTypes,
-    jintArray playerSubtypes, jbyteArray playStatusValues,
-    jshortArray featureBitmask, jobjectArray textArray) {
+    jint uidCounter, jbyte itemType, jint numItems, jintArray playerIds,
+    jbyteArray playerTypes, jintArray playerSubtypes,
+    jbyteArray playStatusValues, jshortArray featureBitmask,
+    jobjectArray textArray) {
   if (!sBluetoothAvrcpInterface) {
     ALOGE("%s: sBluetoothAvrcpInterface is null", __func__);
     return JNI_FALSE;
@@ -965,18 +966,20 @@ static jboolean mediaPlayerListRspNative(
 
   jbyte *p_playerTypes = NULL, *p_PlayStatusValues = NULL;
   jshort* p_FeatBitMaskValues = NULL;
-  jint* p_playerSubTypes = NULL;
+  jint *p_playerIds = NULL, *p_playerSubTypes = NULL;
   btrc_folder_items_t* p_items = NULL;
   if (rspStatus == BTRC_STS_NO_ERROR) {
     /* allocate memory */
+    p_playerIds = env->GetIntArrayElements(playerIds, NULL);
     p_playerTypes = env->GetByteArrayElements(playerTypes, NULL);
     p_playerSubTypes = env->GetIntArrayElements(playerSubtypes, NULL);
     p_PlayStatusValues = env->GetByteArrayElements(playStatusValues, NULL);
     p_FeatBitMaskValues = env->GetShortArrayElements(featureBitmask, NULL);
     p_items = new btrc_folder_items_t[numItems];
     /* deallocate memory and return if allocation failed */
-    if (!p_playerTypes || !p_playerSubTypes || !p_PlayStatusValues ||
-        !p_FeatBitMaskValues || !p_items) {
+    if (!p_playerIds || !p_playerTypes || !p_playerSubTypes ||
+        !p_PlayStatusValues || !p_FeatBitMaskValues || !p_items) {
+      if (p_playerIds) env->ReleaseIntArrayElements(playerIds, p_playerIds, 0);
       if (p_playerTypes)
         env->ReleaseByteArrayElements(playerTypes, p_playerTypes, 0);
       if (p_playerSubTypes)
@@ -997,7 +1000,7 @@ static jboolean mediaPlayerListRspNative(
     /* copy list of media players along with other parameters */
     int itemIdx;
     for (itemIdx = 0; itemIdx < numItems; ++itemIdx) {
-      p_items[itemIdx].player.player_id = (uint16_t)(itemIdx + 1);
+      p_items[itemIdx].player.player_id = p_playerIds[itemIdx];
       p_items[itemIdx].player.major_type = p_playerTypes[itemIdx];
       p_items[itemIdx].player.sub_type = p_playerSubTypes[itemIdx];
       p_items[itemIdx].player.play_status = p_PlayStatusValues[itemIdx];
@@ -1415,7 +1418,7 @@ static JNINativeMethod sMethods[] = {
     {"setBrowsedPlayerRspNative", "([BIBI[Ljava/lang/String;)Z",
      (void*)setBrowsedPlayerRspNative},
 
-    {"mediaPlayerListRspNative", "([BIIBI[B[I[B[S[Ljava/lang/String;)Z",
+    {"mediaPlayerListRspNative", "([BIIBI[I[B[I[B[S[Ljava/lang/String;)Z",
      (void*)mediaPlayerListRspNative},
 
     {"getFolderItemsRspNative",
