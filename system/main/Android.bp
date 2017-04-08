@@ -32,7 +32,6 @@ cc_library_shared {
         "packages/modules/Bluetooth/system/vnd/include",
         "packages/modules/Bluetooth/system/embdrv/sbc/encoder/include",
         "packages/modules/Bluetooth/system/embdrv/sbc/decoder/include",
-        "packages/modules/Bluetooth/system/audio_a2dp_hw",
         "packages/modules/Bluetooth/system/utils/include",
     ],
     logtags: ["../../EventLogTags.logtags"],
