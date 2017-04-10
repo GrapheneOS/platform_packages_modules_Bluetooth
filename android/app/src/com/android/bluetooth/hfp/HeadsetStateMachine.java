@@ -234,7 +234,9 @@ final class HeadsetStateMachine extends StateMachine {
             max_hf_connections = Integer.parseInt(max_hfp_clients);
         }
         Log.d(TAG, "max_hf_connections = " + max_hf_connections);
-        initializeNative(max_hf_connections);
+        Log.d(TAG,
+                "in-band_ringing_support = " + BluetoothHeadset.isInbandRingingSupported(mService));
+        initializeNative(max_hf_connections, BluetoothHeadset.isInbandRingingSupported(mService));
         mNativeAvailable = true;
 
         mDisconnected = new Disconnected();
@@ -840,7 +842,8 @@ final class HeadsetStateMachine extends StateMachine {
                 case CONNECT_AUDIO: {
                     BluetoothDevice device = mCurrentDevice;
                     if (!isScoAcceptable()) {
-                        Log.w(TAG,"No Active/Held call, MO call setup, not allowing SCO");
+                        Log.w(TAG,
+                                "No Active/Held call, no call setup, and no in-band ringing, not allowing SCO");
                         break;
                     }
                     // TODO(BT) when failure, broadcast audio connecting to disconnected intent
@@ -3264,10 +3267,16 @@ final class HeadsetStateMachine extends StateMachine {
                                       != HeadsetHalConstants.CALL_STATE_INCOMING)));
     }
 
-    // Accept incoming SCO only when there is active call, VR activated,
-    // active VOIP call
+    private boolean isRinging() {
+        return mPhoneState.getCallState() == HeadsetHalConstants.CALL_STATE_INCOMING;
+    }
+
+    // Accept incoming SCO only when there is in-band ringing, incoming call,
+    // active call, VR activated, active VOIP call
     private boolean isScoAcceptable() {
-        return mAudioRouteAllowed && (mVoiceRecognitionStarted || isInCall());
+        return mAudioRouteAllowed
+                && (mVoiceRecognitionStarted || isInCall()
+                           || (BluetoothHeadset.isInbandRingingSupported(mService) && isRinging()));
     }
 
     boolean isConnected() {
@@ -3388,7 +3397,7 @@ final class HeadsetStateMachine extends StateMachine {
     /*package*/ native boolean atResponseStringNative(String responseString, byte[] address);
 
     private native static void classInitNative();
-    private native void initializeNative(int max_hf_clients);
+    private native void initializeNative(int max_hf_clients, boolean inband_ring_enable);
     private native void cleanupNative();
     private native boolean connectHfpNative(byte[] address);
     private native boolean disconnectHfpNative(byte[] address);
