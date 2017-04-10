@@ -184,16 +184,18 @@ class MediaPlayerInfo {
     private int subType;
     private byte playStatus;
     private short[] featureBitMask;
+    private String packageName;
     private String displayableName;
     private MediaController mediaController;
 
     MediaPlayerInfo(MediaController controller, byte majorType, int subType, byte playStatus,
-            short[] featureBitMask, String displayableName) {
+            short[] featureBitMask, String packageName, String displayableName) {
         this.setMajorType(majorType);
         this.setSubType(subType);
         this.playStatus = playStatus;
         // store a copy the FeatureBitMask array
         this.featureBitMask = Arrays.copyOf(featureBitMask, featureBitMask.length);
+        this.setPackageName(packageName);
         this.setDisplayableName(displayableName);
         this.setMediaController(controller);
     }
@@ -212,11 +214,25 @@ class MediaPlayerInfo {
     }
 
     void setMediaController(MediaController mediaController) {
+        if (mediaController != null) {
+            this.packageName = this.mediaController.getPackageName();
+        }
         this.mediaController = mediaController;
     }
 
+    void setPackageName(String name) {
+        // Controller determines package name when it is set.
+        if (mediaController != null) return;
+        this.packageName = name;
+    }
+
     String getPackageName() {
-        return mediaController.getPackageName();
+        if (mediaController != null) {
+            return mediaController.getPackageName();
+        } else if (packageName != null) {
+            return packageName;
+        }
+        return null;
     }
 
     byte getMajorType() {
