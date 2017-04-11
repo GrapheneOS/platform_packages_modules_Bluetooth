@@ -110,12 +110,12 @@
     <string name="outbound_noti_title" msgid="8051906709452260849">"مشاركة البلوتوث: الملفات المرسلة"</string>
     <string name="inbound_noti_title" msgid="4143352641953027595">"مشاركة البلوتوث: الملفات المستلمة"</string>
     <plurals name="noti_caption_unsuccessful" formatted="false" msgid="2020750076679526122">
-      <item quantity="zero">أخفق إرسال <xliff:g id="UNSUCCESSFUL_NUMBER_1">%1$d</xliff:g> من العناصر.</item>
-      <item quantity="two">أخفق إرسال عنصرين (<xliff:g id="UNSUCCESSFUL_NUMBER_1">%1$d</xliff:g>).</item>
-      <item quantity="few">أخفق إرسال <xliff:g id="UNSUCCESSFUL_NUMBER_1">%1$d</xliff:g> عناصر.</item>
-      <item quantity="many">أخفق إرسال <xliff:g id="UNSUCCESSFUL_NUMBER_1">%1$d</xliff:g> عنصرًا.</item>
-      <item quantity="other">أخفق إرسال <xliff:g id="UNSUCCESSFUL_NUMBER_1">%1$d</xliff:g> من العناصر.</item>
-      <item quantity="one">أخفق إرسال <xliff:g id="UNSUCCESSFUL_NUMBER_0">%1$d</xliff:g> عنصر.</item>
+      <item quantity="zero">تعذّر إرسال <xliff:g id="UNSUCCESSFUL_NUMBER_1">%1$d</xliff:g> من العناصر.</item>
+      <item quantity="two">تعذّر إرسال عنصرين (<xliff:g id="UNSUCCESSFUL_NUMBER_1">%1$d</xliff:g>).</item>
+      <item quantity="few">تعذّر إرسال <xliff:g id="UNSUCCESSFUL_NUMBER_1">%1$d</xliff:g> عناصر.</item>
+      <item quantity="many">تعذّر إرسال <xliff:g id="UNSUCCESSFUL_NUMBER_1">%1$d</xliff:g> عنصرًا.</item>
+      <item quantity="other">تعذّر إرسال <xliff:g id="UNSUCCESSFUL_NUMBER_1">%1$d</xliff:g> من العناصر.</item>
+      <item quantity="one">تعذّر إرسال <xliff:g id="UNSUCCESSFUL_NUMBER_0">%1$d</xliff:g> عنصر.</item>
     </plurals>
     <plurals name="noti_caption_success" formatted="false" msgid="1572472450257645181">
       <item quantity="zero">‏نجح إرسال <xliff:g id="SUCCESSFUL_NUMBER_1">%1$d</xliff:g> من العناصر، %2$s</item>
