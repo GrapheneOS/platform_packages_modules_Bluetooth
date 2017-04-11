@@ -215,7 +215,7 @@ class MediaPlayerInfo {
 
     void setMediaController(MediaController mediaController) {
         if (mediaController != null) {
-            this.packageName = this.mediaController.getPackageName();
+            this.packageName = mediaController.getPackageName();
         }
         this.mediaController = mediaController;
     }
