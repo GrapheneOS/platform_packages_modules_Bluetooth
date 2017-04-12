@@ -39,6 +39,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteException;
 import android.net.Uri;
 import android.provider.OpenableColumns;
+import android.util.EventLog;
 import android.util.Log;
 
 import java.io.File;
@@ -97,8 +98,8 @@ public class BluetoothOppSendFileInfo {
         mStatus = status;
     }
 
-    public static BluetoothOppSendFileInfo generateFileInfo(Context context, Uri uri,
-            String type) {
+    public static BluetoothOppSendFileInfo generateFileInfo(
+            Context context, Uri uri, String type, boolean fromExternal) {
         ContentResolver contentResolver = context.getContentResolver();
         String scheme = uri.getScheme();
         String fileName = null;
@@ -140,6 +141,16 @@ public class BluetoothOppSendFileInfo {
                 fileName = uri.getLastPathSegment();
             }
         } else if ("file".equals(scheme)) {
+            if (uri.getPath() == null) {
+                Log.e(TAG, "Invalid URI path: " + uri);
+                return SEND_FILE_INFO_ERROR;
+            }
+            if (fromExternal && !BluetoothOppUtility.isInExternalStorageDir(uri)) {
+                EventLog.writeEvent(0x534e4554, "35310991", -1, uri.getPath());
+                Log.e(TAG,
+                        "File based URI not in Environment.getExternalStorageDirectory() is not allowed.");
+                return SEND_FILE_INFO_ERROR;
+            }
             fileName = uri.getLastPathSegment();
             contentType = type;
             File f = new File(uri.getPath());
