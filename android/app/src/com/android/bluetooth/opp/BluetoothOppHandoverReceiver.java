@@ -50,7 +50,7 @@ public class BluetoothOppHandoverReceiver extends BroadcastReceiver {
                     // Save type/stream, will be used when adding transfer
                     // session to DB.
                     BluetoothOppManager.getInstance(context).saveSendingFileInfo(type,
-                            stream.toString(), true);
+                            stream.toString(), true  /* isHandover */, true /* fromExternal */);
                 } else {
                     if (D) Log.d(TAG, "No mimeType or stream attached to handover request");
                 }
@@ -60,7 +60,7 @@ public class BluetoothOppHandoverReceiver extends BroadcastReceiver {
                 uris = intent.getParcelableArrayListExtra(Intent.EXTRA_STREAM);
                 if (mimeType != null && uris != null) {
                     BluetoothOppManager.getInstance(context).saveSendingFileInfo(mimeType,
-                            uris, true);
+                            uris, true /* isHandover */, true /* fromExternal */);
                 } else {
                     if (D) Log.d(TAG, "No mimeType or stream attached to handover request");
                     return;
