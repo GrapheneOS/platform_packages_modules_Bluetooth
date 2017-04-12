@@ -59,7 +59,7 @@ public class BluetoothOppHandoverReceiver extends BroadcastReceiver {
                 Thread t = new Thread(new Runnable() {
                     public void run() {
                         BluetoothOppManager.getInstance(context).saveSendingFileInfo(finalType,
-                            finalUris, true);
+                                finalUris, true /* isHandover */, true /* fromExternal */);
                         BluetoothOppManager.getInstance(context).startTransfer(device);
                     }
                 });
