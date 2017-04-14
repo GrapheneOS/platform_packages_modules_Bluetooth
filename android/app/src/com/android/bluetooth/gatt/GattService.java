@@ -17,6 +17,7 @@
 package com.android.bluetooth.gatt;
 
 import android.app.AppOpsManager;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -363,6 +364,18 @@ public class GattService extends ProfileService {
             if (service == null) return;
             service.startScan(scannerId, settings, filters, workSource, storages,
                     callingPackage);
+        }
+
+        @Override
+        public void startScanForIntent(PendingIntent intent, ScanSettings settings,
+                List<ScanFilter> filters, String callingPackage) throws RemoteException {
+            // TODO:
+        }
+
+        @Override
+        public void stopScanForIntent(PendingIntent intent, String callingPackage)
+                throws RemoteException {
+            // TODO:
         }
 
         public void stopScan(int scannerId) {
