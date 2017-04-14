@@ -31,6 +31,7 @@ import android.bluetooth.IBluetoothGattCallback;
 import android.bluetooth.IBluetoothGattServerCallback;
 import android.bluetooth.le.AdvertiseData;
 import android.bluetooth.le.AdvertisingSetParameters;
+import android.bluetooth.le.BluetoothLeScanner;
 import android.bluetooth.le.IAdvertisingSetCallback;
 import android.bluetooth.le.IPeriodicAdvertisingCallback;
 import android.bluetooth.le.IScannerCallback;
@@ -43,7 +44,6 @@ import android.bluetooth.le.ScanSettings;
 import android.content.Intent;
 import android.os.Binder;
 import android.os.IBinder;
-import android.os.IInterface;
 import android.os.ParcelUuid;
 import android.os.RemoteException;
 import android.os.SystemClock;
@@ -107,21 +107,38 @@ public class GattService extends ProfileService {
     };
 
     /**
+     * Keep the arguments passed in for the PendingIntent.
+     */
+    class PendingIntentInfo {
+        PendingIntent intent;
+        ScanSettings settings;
+        List<ScanFilter> filters;
+        WorkSource workSource;
+        String callingPackage;
+
+        @Override
+        public boolean equals(Object other) {
+            if (!(other instanceof PendingIntentInfo)) return false;
+            return intent.equals(((PendingIntentInfo) other).intent);
+        }
+    }
+
+    /**
      * List of our registered scanners.
      */
-    class ScannerMap extends ContextMap<IScannerCallback> {}
+    class ScannerMap extends ContextMap<IScannerCallback, PendingIntentInfo> {}
     ScannerMap mScannerMap = new ScannerMap();
 
     /**
      * List of our registered clients.
      */
-    class ClientMap extends ContextMap<IBluetoothGattCallback> {}
+    class ClientMap extends ContextMap<IBluetoothGattCallback, Void> {}
     ClientMap mClientMap = new ClientMap();
 
     /**
      * List of our registered server apps.
      */
-    class ServerMap extends ContextMap<IBluetoothGattServerCallback> {}
+    class ServerMap extends ContextMap<IBluetoothGattServerCallback, Void> {}
     ServerMap mServerMap = new ServerMap();
 
     /**
@@ -369,13 +386,17 @@ public class GattService extends ProfileService {
         @Override
         public void startScanForIntent(PendingIntent intent, ScanSettings settings,
                 List<ScanFilter> filters, String callingPackage) throws RemoteException {
-            // TODO:
+            GattService service = getService();
+            if (service == null) return;
+            service.registerPiAndStartScan(intent, settings, filters, callingPackage);
         }
 
         @Override
         public void stopScanForIntent(PendingIntent intent, String callingPackage)
                 throws RemoteException {
-            // TODO:
+            GattService service = getService();
+            if (service == null) return;
+            service.stopScan(intent, callingPackage);
         }
 
         public void stopScan(int scannerId) {
@@ -736,13 +757,50 @@ public class GattService extends ProfileService {
 
             try {
                 app.appScanStats.addResult();
-                app.callback.onScanResult(result);
-            } catch (RemoteException e) {
+                if (app.callback != null) {
+                    app.callback.onScanResult(result);
+                } else {
+                    // Send the PendingIntent
+                    ArrayList<ScanResult> results = new ArrayList<>();
+                    results.add(result);
+                    sendResultsByPendingIntent(app.info, results,
+                            ScanSettings.CALLBACK_TYPE_ALL_MATCHES);
+                }
+            } catch (RemoteException | PendingIntent.CanceledException e) {
                 Log.e(TAG, "Exception: " + e);
                 mScannerMap.remove(client.scannerId);
                 mScanManager.stopScan(client);
             }
         }
+    }
+
+    private void sendResultByPendingIntent(PendingIntentInfo pii, ScanResult result,
+            int callbackType, ScanClient client) {
+        ArrayList<ScanResult> results = new ArrayList<>();
+        results.add(result);
+        try {
+            sendResultsByPendingIntent(pii, results, callbackType);
+        } catch (PendingIntent.CanceledException e) {
+            stopScan(client);
+            unregisterScanner(client.scannerId);
+        }
+    }
+
+    private void sendResultsByPendingIntent(PendingIntentInfo pii, ArrayList<ScanResult> results,
+            int callbackType) throws PendingIntent.CanceledException {
+        Intent extrasIntent = new Intent();
+        extrasIntent.putParcelableArrayListExtra(
+                BluetoothLeScanner.EXTRA_LIST_SCAN_RESULT, results);
+        extrasIntent.putExtra(
+                BluetoothLeScanner.EXTRA_CALLBACK_TYPE, callbackType);
+        pii.intent.send(this, 0, extrasIntent);
+    }
+
+    private void sendErrorByPendingIntent(PendingIntentInfo pii, int errorCode)
+            throws PendingIntent.CanceledException {
+        Intent extrasIntent = new Intent();
+        extrasIntent.putExtra(BluetoothLeScanner.EXTRA_ERROR_CODE, errorCode);
+        pii.intent.send(this, 0, extrasIntent);
     }
 
     void onScannerRegistered(int status, int scannerId, long uuidLsb, long uuidMsb)
@@ -751,15 +809,24 @@ public class GattService extends ProfileService {
         if (DBG) Log.d(TAG, "onScannerRegistered() - UUID=" + uuid
                 + ", scannerId=" + scannerId + ", status=" + status);
 
-        ScannerMap.App app = mScannerMap.getByUuid(uuid);
-        if (app != null) {
+        // First check the callback map
+        ScannerMap.App cbApp = mScannerMap.getByUuid(uuid);
+        if (cbApp != null) {
             if (status == 0) {
-                app.id = scannerId;
-                app.linkToDeath(new ScannerDeathRecipient(scannerId));
+                cbApp.id = scannerId;
+                // If app is callback based, setup a death recipient. App will initiate the start.
+                // Otherwise, if PendingIntent based, start the scan directly.
+                if (cbApp.callback != null) {
+                    cbApp.linkToDeath(new ScannerDeathRecipient(scannerId));
+                } else {
+                    continuePiStartScan(scannerId, cbApp.info);
+                }
             } else {
                 mScannerMap.remove(scannerId);
             }
-            app.callback.onScannerRegistered(status, scannerId);
+            if (cbApp.callback != null) {
+                cbApp.callback.onScannerRegistered(status, scannerId);
+            }
         }
     }
 
@@ -1138,12 +1205,37 @@ public class GattService extends ProfileService {
             // We only support single client for truncated mode.
             ScannerMap.App app = mScannerMap.getById(scannerId);
             if (app == null) return;
-            app.callback.onBatchScanResults(new ArrayList<ScanResult>(results));
+            if (app.callback != null) {
+                app.callback.onBatchScanResults(new ArrayList<ScanResult>(results));
+            } else {
+                // PendingIntent based
+                try {
+                    sendResultsByPendingIntent(app.info, new ArrayList<ScanResult>(results),
+                            ScanSettings.CALLBACK_TYPE_ALL_MATCHES);
+                } catch (PendingIntent.CanceledException e) {
+                }
+            }
         } else {
             for (ScanClient client : mScanManager.getFullBatchScanQueue()) {
                 // Deliver results for each client.
                 deliverBatchScan(client, results);
             }
+        }
+    }
+
+    private void sendBatchScanResults(
+            ScannerMap.App app, ScanClient client, ArrayList<ScanResult> results) {
+        try {
+            if (app.callback != null) {
+                app.callback.onBatchScanResults(results);
+            } else {
+                sendResultsByPendingIntent(app.info, results,
+                        ScanSettings.CALLBACK_TYPE_ALL_MATCHES);
+            }
+        } catch (RemoteException | PendingIntent.CanceledException e) {
+            Log.e(TAG, "Exception: " + e);
+            mScannerMap.remove(client.scannerId);
+            mScanManager.stopScan(client);
         }
     }
 
@@ -1153,16 +1245,17 @@ public class GattService extends ProfileService {
         ScannerMap.App app = mScannerMap.getById(client.scannerId);
         if (app == null) return;
         if (client.filters == null || client.filters.isEmpty()) {
-            app.callback.onBatchScanResults(new ArrayList<ScanResult>(allResults));
+            sendBatchScanResults(app, client, new ArrayList<ScanResult>(allResults));
+            // TODO: Question to reviewer: Shouldn't there be a return here?
         }
         // Reconstruct the scan results.
-        List<ScanResult> results = new ArrayList<ScanResult>();
+        ArrayList<ScanResult> results = new ArrayList<ScanResult>();
         for (ScanResult scanResult : allResults) {
             if (matchesFilters(client, scanResult)) {
                 results.add(scanResult);
             }
         }
-        app.callback.onBatchScanResults(results);
+        sendBatchScanResults(app, client, results);
     }
 
     private Set<ScanResult> parseBatchScanResults(int numRecords, int reportType,
@@ -1281,7 +1374,7 @@ public class GattService extends ProfileService {
                     + " adv_state = " + trackingInfo.getAdvState());
 
         ScannerMap.App app = mScannerMap.getById(trackingInfo.getClientIf());
-        if (app == null || app.callback == null) {
+        if (app == null || (app.callback == null && app.info == null)) {
             Log.e(TAG, "app or callback is null");
             return;
         }
@@ -1299,11 +1392,21 @@ public class GattService extends ProfileService {
                 if ((advertiserState == ADVT_STATE_ONFOUND)
                         && ((settings.getCallbackType()
                                 & ScanSettings.CALLBACK_TYPE_FIRST_MATCH) != 0)) {
-                    app.callback.onFoundOrLost(true, result);
+                    if (app.callback != null) {
+                        app.callback.onFoundOrLost(true, result);
+                    } else {
+                        sendResultByPendingIntent(app.info, result,
+                                ScanSettings.CALLBACK_TYPE_FIRST_MATCH, client);
+                    }
                 } else if ((advertiserState == ADVT_STATE_ONLOST)
                                 && ((settings.getCallbackType()
                                         & ScanSettings.CALLBACK_TYPE_MATCH_LOST) != 0)) {
-                    app.callback.onFoundOrLost(false, result);
+                    if (app.callback != null) {
+                        app.callback.onFoundOrLost(false, result);
+                    } else {
+                        sendResultByPendingIntent(app.info, result,
+                                ScanSettings.CALLBACK_TYPE_MATCH_LOST, client);
+                    }
                 } else {
                     Log.d(TAG, "Not reporting onlost/onfound : " + advertiserState
                                 + " scannerId = " + client.scannerId
@@ -1325,11 +1428,19 @@ public class GattService extends ProfileService {
     // callback from ScanManager for dispatch of errors apps.
     void onScanManagerErrorCallback(int scannerId, int errorCode) throws RemoteException {
         ScannerMap.App app = mScannerMap.getById(scannerId);
-        if (app == null || app.callback == null) {
+        if (app == null || (app.callback == null && app.info == null)) {
             Log.e(TAG, "App or callback is null");
             return;
         }
-        app.callback.onScanManagerErrorCallback(errorCode);
+        if (app.callback != null) {
+            app.callback.onScanManagerErrorCallback(errorCode);
+        } else {
+            try {
+                sendErrorByPendingIntent(app.info, errorCode);
+            } catch (PendingIntent.CanceledException e) {
+                Log.e(TAG, "Error sending error code via PendingIntent:" + e);
+            }
+        }
     }
 
     void onConfigureMTU(int connId, int status, int mtu) throws RemoteException {
@@ -1414,7 +1525,7 @@ public class GattService extends ProfileService {
 
         UUID uuid = UUID.randomUUID();
         if (DBG) Log.d(TAG, "registerScanner() - UUID=" + uuid);
-        mScannerMap.add(uuid, callback, this);
+        mScannerMap.add(uuid, callback, null, this);
         mScanManager.registerScanner(uuid);
     }
 
@@ -1466,6 +1577,57 @@ public class GattService extends ProfileService {
         mScanManager.startScan(scanClient);
     }
 
+    void registerPiAndStartScan(PendingIntent pendingIntent, ScanSettings settings,
+            List<ScanFilter> filters, String callingPackage) {
+        if (DBG) Log.d(TAG, "start scan with filters, for PendingIntent");
+        enforceAdminPermission();
+        if (needsPrivilegedPermissionForScan(settings)) {
+            enforcePrivilegedPermission();
+        }
+        // Blame the caller if the work source is unspecified.
+        WorkSource workSource = new WorkSource(Binder.getCallingUid(), callingPackage);
+
+        UUID uuid = UUID.randomUUID();
+        if (DBG) Log.d(TAG, "startScan(PI) - UUID=" + uuid);
+        PendingIntentInfo piInfo = new PendingIntentInfo();
+        piInfo.intent = pendingIntent;
+        piInfo.settings = settings;
+        piInfo.filters = filters;
+        piInfo.workSource = workSource;
+        piInfo.callingPackage = callingPackage;
+        mScannerMap.add(uuid, null, piInfo, this);
+        mScanManager.registerScanner(uuid);
+    }
+
+    void continuePiStartScan(int scannerId, PendingIntentInfo piInfo) {
+        final ScanClient scanClient =
+                new ScanClient(scannerId, piInfo.settings, piInfo.filters, piInfo.workSource, null);
+        scanClient.hasLocationPermission =
+                true; // Utils.checkCallerHasLocationPermission(this, mAppOps,
+        // piInfo.callingPackage);
+        scanClient.hasPeersMacAddressPermission =
+                true; // Utils.checkCallerHasPeersMacAddressPermission(
+        // this);
+        scanClient.legacyForegroundApp = Utils.isLegacyForegroundApp(this, piInfo.callingPackage);
+
+        AppScanStats app = null;
+        app = mScannerMap.getAppScanStatsById(scannerId);
+
+        if (app != null) {
+            if (app.isScanningTooFrequently()
+                    && checkCallingOrSelfPermission(BLUETOOTH_PRIVILEGED) != PERMISSION_GRANTED) {
+                Log.e(TAG, "App '" + app.appName + "' is scanning too frequently");
+                return;
+            }
+            scanClient.stats = app;
+
+            boolean isFilteredScan = (piInfo.filters != null) && !piInfo.filters.isEmpty();
+            app.recordScanStart(piInfo.settings, isFilteredScan);
+        }
+
+        mScanManager.startScan(scanClient);
+    }
+
     void flushPendingBatchResults(int scannerId) {
         if (DBG) Log.d(TAG, "flushPendingBatchResults - scannerId=" + scannerId);
         mScanManager.flushBatchScanResults(new ScanClient(scannerId));
@@ -1482,6 +1644,20 @@ public class GattService extends ProfileService {
         if (app != null) app.recordScanStop();
 
         mScanManager.stopScan(client);
+    }
+
+    void stopScan(PendingIntent intent, String callingPackage) {
+        enforceAdminPermission();
+        PendingIntentInfo pii = new PendingIntentInfo();
+        pii.intent = intent;
+        ScannerMap.App app = mScannerMap.getByContextInfo(pii);
+        if (VDBG) Log.d(TAG, "stopScan(PendingIntent): app found = " + app);
+        if (app != null) {
+            final int scannerId = app.id;
+            stopScan(new ScanClient(scannerId));
+            // Also unregister the scanner
+            unregisterScanner(scannerId);
+        }
     }
 
     void disconnectAll() {
@@ -1576,7 +1752,7 @@ public class GattService extends ProfileService {
         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
 
         if (DBG) Log.d(TAG, "registerClient() - UUID=" + uuid);
-        mClientMap.add(uuid, callback, this);
+        mClientMap.add(uuid, callback, null, this);
         gattClientRegisterAppNative(uuid.getLeastSignificantBits(),
                                     uuid.getMostSignificantBits());
     }
@@ -2094,7 +2270,7 @@ public class GattService extends ProfileService {
         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
 
         if (DBG) Log.d(TAG, "registerServer() - UUID=" + uuid);
-        mServerMap.add(uuid, callback, this);
+        mServerMap.add(uuid, callback, null, this);
         gattServerRegisterAppNative(uuid.getLeastSignificantBits(),
                                     uuid.getMostSignificantBits());
     }
