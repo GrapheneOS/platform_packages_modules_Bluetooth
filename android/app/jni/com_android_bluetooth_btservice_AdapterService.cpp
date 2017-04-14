@@ -28,6 +28,7 @@
 #include <string.h>
 
 #include <fcntl.h>
+#include <sys/prctl.h>
 #include <sys/stat.h>
 
 namespace android {
@@ -447,23 +448,60 @@ static alarm_cb sAlarmCallback;
 // The data to pass to the wake alarm callback.
 static void* sAlarmCallbackData;
 
-static JavaVMAttachArgs sAttachArgs = {
-    .version = JNI_VERSION_1_6, .name = "bluetooth wake", .group = NULL};
+class JNIThreadAttacher {
+ public:
+  JNIThreadAttacher() : vm_(nullptr), env_(nullptr) {
+    vm_ = AndroidRuntime::getJavaVM();
+    status_ = vm_->GetEnv((void**)&env_, JNI_VERSION_1_6);
+
+    if (status_ != JNI_OK && status_ != JNI_EDETACHED) {
+      ALOGE(
+          "JNIThreadAttacher: unable to get environment for JNI CALL, "
+          "status: %d",
+          status_);
+      env_ = nullptr;
+      return;
+    }
+
+    if (status_ == JNI_EDETACHED) {
+      char name[17] = {0};
+      if (prctl(PR_GET_NAME, (unsigned long)name) != 0) {
+        ALOGE(
+            "JNIThreadAttacher: unable to grab previous thread name, error: %s",
+            strerror(errno));
+        env_ = nullptr;
+        return;
+      }
+
+      JavaVMAttachArgs args = {
+          .version = JNI_VERSION_1_6, .name = name, .group = nullptr};
+      if (vm_->AttachCurrentThread(&env_, &args) != 0) {
+        ALOGE("JNIThreadAttacher: unable to attach thread to VM");
+        env_ = nullptr;
+        return;
+      }
+    }
+  }
+
+  ~JNIThreadAttacher() {
+    if (status_ == JNI_EDETACHED) vm_->DetachCurrentThread();
+  }
+
+  JNIEnv* getEnv() { return env_; }
+
+ private:
+  JavaVM* vm_;
+  JNIEnv* env_;
+  jint status_;
+};
 
 static bool set_wake_alarm_callout(uint64_t delay_millis, bool should_wake,
                                    alarm_cb cb, void* data) {
-  JNIEnv* env;
-  JavaVM* vm = AndroidRuntime::getJavaVM();
-  jint status = vm->GetEnv((void**)&env, JNI_VERSION_1_6);
+  JNIThreadAttacher attacher;
+  JNIEnv* env = attacher.getEnv();
 
-  if (status != JNI_OK && status != JNI_EDETACHED) {
-    ALOGE("%s unable to get environment for JNI call", __func__);
-    return false;
-  }
-
-  if (status == JNI_EDETACHED &&
-      vm->AttachCurrentThread(&env, &sAttachArgs) != 0) {
-    ALOGE("%s unable to attach thread to VM", __func__);
+  if (env == nullptr) {
+    ALOGE("%s: Unable to get JNI Env", __func__);
     return false;
   }
 
@@ -479,24 +517,15 @@ static bool set_wake_alarm_callout(uint64_t delay_millis, bool should_wake,
     sAlarmCallbackData = NULL;
   }
 
-  if (status == JNI_EDETACHED) {
-    vm->DetachCurrentThread();
-  }
-
-  return !!ret;
+  return (ret == JNI_TRUE);
 }
 
 static int acquire_wake_lock_callout(const char* lock_name) {
-  JNIEnv* env;
-  JavaVM* vm = AndroidRuntime::getJavaVM();
-  jint status = vm->GetEnv((void**)&env, JNI_VERSION_1_6);
-  if (status != JNI_OK && status != JNI_EDETACHED) {
-    ALOGE("%s unable to get environment for JNI call", __func__);
-    return BT_STATUS_JNI_ENVIRONMENT_ERROR;
-  }
-  if (status == JNI_EDETACHED &&
-      vm->AttachCurrentThread(&env, &sAttachArgs) != 0) {
-    ALOGE("%s unable to attach thread to VM", __func__);
+  JNIThreadAttacher attacher;
+  JNIEnv* env = attacher.getEnv();
+
+  if (env == nullptr) {
+    ALOGE("%s: Unable to get JNI Env", __func__);
     return BT_STATUS_JNI_THREAD_ATTACH_ERROR;
   }
 
@@ -513,24 +542,15 @@ static int acquire_wake_lock_callout(const char* lock_name) {
     }
   }
 
-  if (status == JNI_EDETACHED) {
-    vm->DetachCurrentThread();
-  }
-
   return ret;
 }
 
 static int release_wake_lock_callout(const char* lock_name) {
-  JNIEnv* env;
-  JavaVM* vm = AndroidRuntime::getJavaVM();
-  jint status = vm->GetEnv((void**)&env, JNI_VERSION_1_6);
-  if (status != JNI_OK && status != JNI_EDETACHED) {
-    ALOGE("%s unable to get environment for JNI call", __func__);
-    return BT_STATUS_JNI_ENVIRONMENT_ERROR;
-  }
-  if (status == JNI_EDETACHED &&
-      vm->AttachCurrentThread(&env, &sAttachArgs) != 0) {
-    ALOGE("%s unable to attach thread to VM", __func__);
+  JNIThreadAttacher attacher;
+  JNIEnv* env = attacher.getEnv();
+
+  if (env == nullptr) {
+    ALOGE("%s: Unable to get JNI Env", __func__);
     return BT_STATUS_JNI_THREAD_ATTACH_ERROR;
   }
 
@@ -545,10 +565,6 @@ static int release_wake_lock_callout(const char* lock_name) {
       ALOGE("%s unable to allocate string: %s", __func__, lock_name);
       ret = BT_STATUS_NOMEM;
     }
-  }
-
-  if (status == JNI_EDETACHED) {
-    vm->DetachCurrentThread();
   }
 
   return ret;
