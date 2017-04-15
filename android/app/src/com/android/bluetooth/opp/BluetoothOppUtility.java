@@ -67,6 +67,10 @@ public class BluetoothOppUtility {
     private static final ConcurrentHashMap<Uri, BluetoothOppSendFileInfo> sSendFileMap
             = new ConcurrentHashMap<Uri, BluetoothOppSendFileInfo>();
 
+    public static boolean isBluetoothShareUri(Uri uri) {
+        return uri.toString().startsWith(BluetoothShare.CONTENT_URI.toString());
+    }
+
     public static BluetoothOppTransferInfo queryRecord(Context context, Uri uri) {
         BluetoothOppTransferInfo info = new BluetoothOppTransferInfo();
         Cursor cursor = context.getContentResolver().query(uri, null, null, null, null);
@@ -177,6 +181,11 @@ public class BluetoothOppUtility {
             return;
         }
 
+        if (!isBluetoothShareUri(uri)) {
+            Log.e(TAG, "Trying to open a file that wasn't transfered over Bluetooth");
+            return;
+        }
+
         File f = new File(fileName);
         if (!f.exists()) {
             Intent in = new Intent(context, BluetoothOppBtErrorActivity.class);
@@ -207,17 +216,8 @@ public class BluetoothOppUtility {
                 .queryIntentActivities(activityIntent,
                         PackageManager.MATCH_DEFAULT_ONLY);
 
-            // Grant permissions for any app that can handle a file to access it
-            for (ResolveInfo resolveInfo : resInfoList) {
-                String packageName = resolveInfo.activityInfo.packageName;
-                context.grantUriPermission(packageName, path,
-                        Intent.FLAG_GRANT_WRITE_URI_PERMISSION |
-                        Intent.FLAG_GRANT_READ_URI_PERMISSION);
-            }
-
             activityIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             activityIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-            activityIntent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
 
             try {
                 if (V) Log.d(TAG, "ACTION_VIEW intent sent out: " + path + " / " + mimetype);
