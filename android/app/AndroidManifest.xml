@@ -87,8 +87,8 @@
                     android:pathPrefix="/btopp"
                     android:permission="android.permission.ACCESS_BLUETOOTH_SHARE" />
         </provider>
-        <provider android:name="android.support.v4.content.FileProvider"
-            android:authorities="com.google.android.bluetooth.fileprovider"
+        <provider android:name=".opp.BluetoothOppFileProvider"
+            android:authorities="com.android.bluetooth.opp.fileprovider"
             android:grantUriPermissions="true"
             android:exported="false">
             <meta-data
