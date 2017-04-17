@@ -50,6 +50,7 @@ import java.text.CharacterIterator;
 import java.text.StringCharacterIterator;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 
 import javax.obex.ApplicationParameter;
 import javax.obex.HeaderSet;
@@ -838,6 +839,7 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
             // query the number, to get the names
             ArrayList<String> names =
                     mVcardManager.getContactNamesByNumber(appParamValue.searchValue);
+            if (mOrderBy == ORDER_BY_ALPHABETICAL) Collections.sort(names);
             for (int i = 0; i < names.size(); i++) {
                 compareValue = names.get(i).trim();
                 if (D) {
