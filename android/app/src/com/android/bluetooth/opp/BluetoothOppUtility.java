@@ -53,7 +53,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
-import android.support.v4.content.FileProvider;
 /**
  * This class has some utilities for Opp application;
  */
@@ -190,8 +189,12 @@ public class BluetoothOppUtility {
             return;
         }
 
-        Uri path = FileProvider.getUriForFile(context,
-                       "com.google.android.bluetooth.fileprovider", f);
+        Uri path = BluetoothOppFileProvider.getUriForFile(
+                context, "com.android.bluetooth.opp.fileprovider", f);
+        if (path == null) {
+            Log.w(TAG, "Cannot get content URI for the shared file");
+            return;
+        }
         // If there is no scheme, then it must be a file
         if (path.getScheme() == null) {
             path = Uri.fromFile(new File(fileName));
