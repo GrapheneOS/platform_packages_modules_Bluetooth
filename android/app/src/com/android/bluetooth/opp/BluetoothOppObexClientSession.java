@@ -38,6 +38,7 @@ import javax.obex.HeaderSet;
 import javax.obex.ObexTransport;
 import javax.obex.ResponseCodes;
 
+import android.app.NotificationManager;
 import android.content.ContentValues;
 import android.content.Context;
 import android.net.Uri;
@@ -103,6 +104,10 @@ public class BluetoothOppObexClientSession implements BluetoothOppObexSession {
                 if (V) Log.v(TAG, "Interrupted waiting for thread to join");
             }
         }
+        NotificationManager nm =
+                (NotificationManager) mContext.getSystemService(Context.NOTIFICATION_SERVICE);
+        nm.cancel(BluetoothOppNotification.NOTIFICATION_ID_PROGRESS);
+
         mCallback = null;
     }
 

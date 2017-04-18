@@ -90,7 +90,6 @@ public class BluetoothOppReceiver extends BroadcastReceiver {
             in.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             in.setDataAndNormalize(uri);
             context.startActivity(in);
-            cancelNotification(context, uri);
 
         } else if (action.equals(Constants.ACTION_DECLINE)) {
             if (V) Log.v(TAG, "Receiver ACTION_DECLINE");
@@ -99,7 +98,7 @@ public class BluetoothOppReceiver extends BroadcastReceiver {
             ContentValues values = new ContentValues();
             values.put(BluetoothShare.USER_CONFIRMATION, BluetoothShare.USER_CONFIRMATION_DENIED);
             context.getContentResolver().update(uri, values, null, null);
-            cancelNotification(context, uri);
+            cancelNotification(context, BluetoothOppNotification.NOTIFICATION_ID_PROGRESS);
 
         } else if (action.equals(Constants.ACTION_ACCEPT)) {
             if (V) Log.v(TAG, "Receiver ACTION_ACCEPT");
@@ -108,8 +107,6 @@ public class BluetoothOppReceiver extends BroadcastReceiver {
             ContentValues values = new ContentValues();
             values.put(BluetoothShare.USER_CONFIRMATION, BluetoothShare.USER_CONFIRMATION_CONFIRMED);
             context.getContentResolver().update(uri, values, null, null);
-            cancelNotification(context, uri);
-
         } else if (action.equals(Constants.ACTION_OPEN) || action.equals(Constants.ACTION_LIST)) {
             if (V) {
                 if (action.equals(Constants.ACTION_OPEN)) {
@@ -140,7 +137,6 @@ public class BluetoothOppReceiver extends BroadcastReceiver {
                 context.startActivity(in);
             }
 
-            cancelNotification(context, uri);
         } else if (action.equals(Constants.ACTION_OPEN_OUTBOUND_TRANSFER)) {
             if (V) Log.v(TAG, "Received ACTION_OPEN_OUTBOUND_TRANSFER.");
 
@@ -252,19 +248,10 @@ public class BluetoothOppReceiver extends BroadcastReceiver {
         }
     }
 
-    private void cancelNotification(Context context, Uri uri) {
+    private void cancelNotification(Context context, int id) {
         NotificationManager notMgr = (NotificationManager)context
                 .getSystemService(Context.NOTIFICATION_SERVICE);
         if (notMgr == null) return;
-
-        int id = -1;
-        try {
-          id = (int) ContentUris.parseId(uri);
-        } catch (NumberFormatException ex) {
-          Log.v(TAG, "Can't parse notification ID from Uri!");
-          return;
-        }
-
         notMgr.cancel(id);
         if (V) Log.v(TAG, "notMgr.cancel called");
     }
