@@ -287,3 +287,14 @@ void BTA_AgSetCodec(UINT16 handle, tBTA_AG_PEER_CODEC codec)
 
     bta_sys_sendmsg(p_buf);
 }
+
+void BTA_AgSetScoAllowed(bool value)
+{
+    tBTA_AG_API_SET_SCO_ALLOWED *p_buf =
+        (tBTA_AG_API_SET_SCO_ALLOWED *)osi_malloc(sizeof(tBTA_AG_API_SET_SCO_ALLOWED));
+
+    p_buf->hdr.event = BTA_AG_API_SET_SCO_ALLOWED_EVT;
+    p_buf->value = value;
+
+    bta_sys_sendmsg(p_buf);
+}

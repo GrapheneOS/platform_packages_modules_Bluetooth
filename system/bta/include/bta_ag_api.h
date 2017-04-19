@@ -580,6 +580,8 @@ void BTA_AgResult(UINT16 handle, tBTA_AG_RES result, tBTA_AG_RES_DATA *p_data);
 *******************************************************************************/
 void BTA_AgSetCodec(UINT16 handle, tBTA_AG_PEER_CODEC codec);
 
+void BTA_AgSetScoAllowed(bool value);
+
 #ifdef __cplusplus
 }
 #endif

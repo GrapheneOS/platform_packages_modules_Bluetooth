@@ -101,7 +101,8 @@ enum
 
     /* these events are handled outside of the state machine */
     BTA_AG_API_ENABLE_EVT,
-    BTA_AG_API_DISABLE_EVT
+    BTA_AG_API_DISABLE_EVT,
+    BTA_AG_API_SET_SCO_ALLOWED_EVT
 };
 
 /* Actions to perform after a SCO event */
@@ -180,6 +181,13 @@ typedef struct
     BT_HDR              hdr;
     tBTA_AG_PEER_CODEC  codec;
 } tBTA_AG_API_SETCODEC;
+
+/* data type for BTA_AG_API_SET_SCO_ALLOWED_EVT */
+typedef struct
+{
+    BT_HDR              hdr;
+    bool                value;
+} tBTA_AG_API_SET_SCO_ALLOWED;
 
 /* data type for BTA_AG_DISC_RESULT_EVT */
 typedef struct
@@ -423,4 +431,5 @@ extern void bta_ag_ci_sco_data(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data);
 extern void bta_ag_set_esco_param(BOOLEAN set_reset, tBTM_ESCO_PARAMS *param);
 extern void bta_ag_ci_rx_data(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data);
 extern void bta_ag_rcvd_slc_ready(tBTA_AG_SCB *p_scb, tBTA_AG_DATA *p_data);
+extern void bta_ag_set_sco_allowed(tBTA_AG_DATA *p_data);
 #endif /* BTA_AG_INT_H */
