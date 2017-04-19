@@ -849,6 +849,17 @@ static jboolean configureWBSNative(JNIEnv *env, jobject object, jbyteArray addre
     return (status == BT_STATUS_SUCCESS) ? JNI_TRUE : JNI_FALSE;
 }
 
+static jboolean setScoAllowedNative(JNIEnv *env, jobject object, jboolean value) {
+    bt_status_t status;
+
+    if (!sBluetoothHfpInterface) return JNI_FALSE;
+
+    if ((status = sBluetoothHfpInterface->set_sco_allowed(
+                      value == JNI_TRUE)) != BT_STATUS_SUCCESS) {
+        ALOGE("Failed HF set sco allowed, status: %d", status);
+    }
+    return (status == BT_STATUS_SUCCESS) ? JNI_TRUE : JNI_FALSE;
+}
 
 static JNINativeMethod sMethods[] = {
     {"classInitNative", "()V", (void *) classInitNative},
@@ -870,6 +881,7 @@ static JNINativeMethod sMethods[] = {
     {"clccResponseNative", "(IIIIZLjava/lang/String;I[B)Z", (void *) clccResponseNative},
     {"phoneStateChangeNative", "(IIILjava/lang/String;I)Z", (void *) phoneStateChangeNative},
     {"configureWBSNative", "([BI)Z", (void *) configureWBSNative},
+    {"setScoAllowedNative", "(Z)Z", (void *) setScoAllowedNative},
 };
 
 int register_com_android_bluetooth_hfp(JNIEnv* env)
