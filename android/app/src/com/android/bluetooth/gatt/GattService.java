@@ -618,6 +618,12 @@ public class GattService extends ProfileService {
             service.stopAdvertisingSet(callback);
         }
 
+        public void getOwnAddress(int advertiserId) {
+            GattService service = getService();
+            if (service == null) return;
+            service.getOwnAddress(advertiserId);
+        }
+
         public void enableAdvertisingSet(
                 int advertiserId, boolean enable, int duration, int maxExtAdvEvents) {
             GattService service = getService();
@@ -1721,6 +1727,11 @@ public class GattService extends ProfileService {
     void stopAdvertisingSet(IAdvertisingSetCallback callback) {
         enforceAdminPermission();
         mAdvertiseManager.stopAdvertisingSet(callback);
+    }
+
+    void getOwnAddress(int advertiserId) {
+        enforcePrivilegedPermission();
+        mAdvertiseManager.getOwnAddress(advertiserId);
     }
 
     void enableAdvertisingSet(int advertiserId, boolean enable, int duration, int maxExtAdvEvents) {
