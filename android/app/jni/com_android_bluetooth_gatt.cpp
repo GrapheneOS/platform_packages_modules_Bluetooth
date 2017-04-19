@@ -190,6 +190,7 @@ static jmethodID method_onServerConnUpdate;
  * Advertiser callback methods
  */
 static jmethodID method_onAdvertisingSetStarted;
+static jmethodID method_onOwnAddressRead;
 static jmethodID method_onAdvertisingEnabled;
 static jmethodID method_onAdvertisingDataSet;
 static jmethodID method_onScanResponseDataSet;
@@ -1683,6 +1684,8 @@ static void gattServerSendResponseNative(JNIEnv* env, jobject object,
 static void advertiseClassInitNative(JNIEnv* env, jclass clazz) {
   method_onAdvertisingSetStarted =
       env->GetMethodID(clazz, "onAdvertisingSetStarted", "(IIII)V");
+  method_onOwnAddressRead =
+      env->GetMethodID(clazz, "onOwnAddressRead", "(IILjava/lang/String;)V");
   method_onAdvertisingEnabled =
       env->GetMethodID(clazz, "onAdvertisingEnabled", "(IZI)V");
   method_onAdvertisingDataSet =
@@ -1843,6 +1846,24 @@ static void stopAdvertisingSetNative(JNIEnv* env, jobject object,
   if (!sGattIf) return;
 
   sGattIf->advertiser->Unregister(advertiser_id);
+}
+
+static void getOwnAddressCb(uint8_t advertiser_id, uint8_t address_type,
+                            bt_bdaddr_t address) {
+  CallbackEnv sCallbackEnv(__func__);
+  if (!sCallbackEnv.valid()) return;
+
+  ScopedLocalRef<jstring> addr(sCallbackEnv.get(),
+                               bdaddr2newjstr(sCallbackEnv.get(), &address));
+  sCallbackEnv->CallVoidMethod(mAdvertiseCallbacksObj, method_onOwnAddressRead,
+                               advertiser_id, address_type, addr.get());
+}
+
+static void getOwnAddressNative(JNIEnv* env, jobject object,
+                                jint advertiser_id) {
+  if (!sGattIf) return;
+  sGattIf->advertiser->GetOwnAddress(
+      advertiser_id, base::Bind(&getOwnAddressCb, advertiser_id));
 }
 
 static void callJniCallback(jmethodID method, uint8_t advertiser_id,
@@ -2066,6 +2087,7 @@ static JNINativeMethod sAdvertiseMethods[] = {
      "(Landroid/bluetooth/le/AdvertisingSetParameters;[B[BLandroid/bluetooth/"
      "le/PeriodicAdvertisingParameters;[BIII)V",
      (void*)startAdvertisingSetNative},
+    {"getOwnAddressNative", "(I)V", (void*)getOwnAddressNative},
     {"stopAdvertisingSetNative", "(I)V", (void*)stopAdvertisingSetNative},
     {"enableAdvertisingSetNative", "(IZII)V",
      (void*)enableAdvertisingSetNative},
