@@ -202,6 +202,24 @@ class AdvertiseManager {
                 periodic_data, duration, maxExtAdvEvents, cb_id);
     }
 
+    void onOwnAddressRead(int advertiser_id, int addressType, String address)
+            throws RemoteException {
+        logd("onOwnAddressRead() advertiser_id=" + advertiser_id);
+
+        Map.Entry<IBinder, AdvertiserInfo> entry = findAdvertiser(advertiser_id);
+        if (entry == null) {
+            Log.i(TAG, "onOwnAddressRead() - bad advertiser_id " + advertiser_id);
+            return;
+        }
+
+        IAdvertisingSetCallback callback = entry.getValue().callback;
+        callback.onOwnAddressRead(advertiser_id, addressType, address);
+    }
+
+    void getOwnAddress(int advertiserId) {
+        getOwnAddressNative(advertiserId);
+    }
+
     void stopAdvertisingSet(IAdvertisingSetCallback callback) {
         IBinder binder = toBinder(callback);
         if (DBG) Log.d(TAG, "stopAdvertisingSet() " + binder);
@@ -361,6 +379,7 @@ class AdvertiseManager {
             byte[] advertiseData, byte[] scanResponse,
             PeriodicAdvertisingParameters periodicParameters, byte[] periodicData, int duration,
             int maxExtAdvEvents, int reg_id);
+    private native void getOwnAddressNative(int advertiserId);
     private native void stopAdvertisingSetNative(int advertiser_id);
     private native void enableAdvertisingSetNative(
             int advertiserId, boolean enable, int duration, int maxExtAdvEvents);
