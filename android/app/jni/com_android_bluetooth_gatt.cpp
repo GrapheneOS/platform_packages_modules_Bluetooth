@@ -1083,6 +1083,17 @@ static void gattClientReadCharacteristicNative(JNIEnv* env, jobject object,
   sGattIf->client->read_characteristic(conn_id, handle, authReq);
 }
 
+static void gattClientReadUsingCharacteristicUuidNative(
+    JNIEnv* env, jobject object, jint conn_id, jlong uuid_lsb, jlong uuid_msb,
+    jint s_handle, jint e_handle, jint authReq) {
+  if (!sGattIf) return;
+
+  bt_uuid_t uuid;
+  set_uuid(uuid.uu, uuid_msb, uuid_lsb);
+  sGattIf->client->read_using_characteristic_uuid(conn_id, &uuid, s_handle,
+                                                  e_handle, authReq);
+}
+
 static void gattClientReadDescriptorNative(JNIEnv* env, jobject object,
                                            jint conn_id, jint handle,
                                            jint authReq) {
@@ -2142,6 +2153,8 @@ static JNINativeMethod sMethods[] = {
     {"gattClientGetGattDbNative", "(I)V", (void*)gattClientGetGattDbNative},
     {"gattClientReadCharacteristicNative", "(III)V",
      (void*)gattClientReadCharacteristicNative},
+    {"gattClientReadUsingCharacteristicUuidNative", "(IJJIII)V",
+     (void*)gattClientReadUsingCharacteristicUuidNative},
     {"gattClientReadDescriptorNative", "(III)V",
      (void*)gattClientReadDescriptorNative},
     {"gattClientWriteCharacteristicNative", "(IIII[B)V",
