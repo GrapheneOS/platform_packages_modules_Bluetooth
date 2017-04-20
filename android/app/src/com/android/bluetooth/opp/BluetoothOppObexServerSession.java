@@ -38,6 +38,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
 
+import android.app.NotificationManager;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
@@ -107,6 +108,7 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
         mServerSocket = serverSocket;
         PowerManager pm = (PowerManager)mContext.getSystemService(Context.POWER_SERVICE);
         mPartialWakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, TAG);
+        mPartialWakeLock.setReferenceCounted(false);
     }
 
     public void unblock() {
@@ -595,6 +597,10 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
             if (D) Log.d(TAG, "prepareForNewConnect");
             mServerSocket.prepareForNewConnect();
         }
+
+        NotificationManager nm =
+                (NotificationManager) mContext.getSystemService(Context.NOTIFICATION_SERVICE);
+        nm.cancel(BluetoothOppNotification.NOTIFICATION_ID_PROGRESS);
 
         /* onClose could happen even before start() where mCallback is set */
         if (mCallback != null) {
