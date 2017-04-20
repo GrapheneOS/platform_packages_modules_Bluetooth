@@ -697,8 +697,8 @@ static jboolean retrieveSubscriberInfoNative(JNIEnv* env, jobject object,
   return (status == BT_STATUS_SUCCESS) ? JNI_TRUE : JNI_FALSE;
 }
 
-static jboolean sendDtmfNative(JNIEnv* env, jobject object, jbyte code,
-                               jbyteArray address) {
+static jboolean sendDtmfNative(JNIEnv* env, jobject object, jbyteArray address,
+                               jbyte code) {
   if (!sBluetoothHfpClientInterface) return JNI_FALSE;
 
   jbyte* addr = env->GetByteArrayElements(address, NULL);
