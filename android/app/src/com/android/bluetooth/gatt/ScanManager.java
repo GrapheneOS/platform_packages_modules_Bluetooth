@@ -269,6 +269,15 @@ public class ScanManager {
             if (client == null) return;
 
             if (mRegularScanClients.contains(client)) {
+                // Update BatteryStats with this workload.
+                try {
+                    // The ScanClient passed in just holds the scannerId. We retrieve the real
+                    // client, which may have workSource set.
+                    ScanClient workClient = mScanNative.getRegularScanClient(client.scannerId);
+                    if (workClient != null) mBatteryStats.noteBleScanStopped(workClient.workSource);
+                } catch (RemoteException e) {
+                    /* ignore */
+                }
 
                 mScanNative.stopRegularScan(client);
 
@@ -278,17 +287,6 @@ public class ScanManager {
 
                 if (!mScanNative.isOpportunisticScanClient(client)) {
                     mScanNative.configureRegularScanParams();
-                }
-
-                // Update BatteryStats with this workload.
-                try {
-                    // The ScanClient passed in just holds the scannerId. We retrieve the real client,
-                    // which may have workSource set.
-                    ScanClient workClient = mScanNative.getRegularScanClient(client.scannerId);
-                    if (workClient != null)
-                        mBatteryStats.noteBleScanStopped(workClient.workSource);
-                } catch (RemoteException e) {
-                    /* ignore */
                 }
             } else {
                 mScanNative.stopBatchScan(client);
