@@ -43,13 +43,9 @@ public class AddressedMediaPlayer {
     private AvrcpMediaRspInterface mMediaInterface;
     private List<MediaSession.QueueItem> mNowPlayingList;
 
-    /* Now playing UID */
-    private static final byte[] NOW_PLAYING_UID = {(byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
-                                                  (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00};
-
-    public AddressedMediaPlayer(AvrcpMediaRspInterface _mediaInterface) {
+    public AddressedMediaPlayer(AvrcpMediaRspInterface mediaInterface) {
         mNowPlayingList = null;
-        mMediaInterface = _mediaInterface;
+        mMediaInterface = mediaInterface;
     }
 
     void cleanup() {
@@ -82,7 +78,7 @@ public class AddressedMediaPlayer {
 
         /* checking if item attributes has been asked for now playing item or
          * some other item with specific media id */
-        if (Arrays.equals(itemAttr.mUid, NOW_PLAYING_UID)) {
+        if (Arrays.equals(itemAttr.mUid, AvrcpConstants.TRACK_IS_SELECTED)) {
             if (DEBUG) Log.d(TAG, "getItemAttr: Remote requests for now playing contents:");
 
             if (mediaController == null) {
@@ -514,47 +510,6 @@ public class AddressedMediaPlayer {
         }
     }
 
-    void handlePassthroughCmd(int id, int keyState, byte[] bdAddr,
-            MediaController mediaController) {
-
-        if (mediaController != null) {
-            MediaController.TransportControls mediaControllerCntrl =
-                mediaController.getTransportControls();
-            if (DEBUG) Log.v(TAG, "handlePassthroughCmd - id:" + id + " keyState:" + keyState);
-            if (keyState == AvrcpConstants.KEY_STATE_PRESS) {
-                switch (id) {
-                    case BluetoothAvrcp.PASSTHROUGH_ID_REWIND:
-                        mediaControllerCntrl.rewind();
-                        break;
-                    case BluetoothAvrcp.PASSTHROUGH_ID_FAST_FOR:
-                        mediaControllerCntrl.fastForward();
-                        break;
-                    case BluetoothAvrcp.PASSTHROUGH_ID_PLAY:
-                        mediaControllerCntrl.play();
-                        break;
-                    case BluetoothAvrcp.PASSTHROUGH_ID_PAUSE:
-                        mediaControllerCntrl.pause();
-                        break;
-                    case BluetoothAvrcp.PASSTHROUGH_ID_STOP:
-                        mediaControllerCntrl.stop();
-                        break;
-                    case BluetoothAvrcp.PASSTHROUGH_ID_FORWARD:
-                        mediaControllerCntrl.skipToNext();
-                        break;
-                    case BluetoothAvrcp.PASSTHROUGH_ID_BACKWARD:
-                        mediaControllerCntrl.skipToPrevious();
-                        break;
-                    default:
-                        Log.w(TAG, "unknown id:" + id + " keyState:" + keyState);
-                }
-            } else {
-                Log.i(TAG, "ignoring the release event for id:" + id + " keyState:" + keyState);
-            }
-        } else {
-            Log.e(TAG, "Unable to handlePassthroughCmd, mediaController is null!");
-        }
-    }
-
     private void printByteArray(String arrName, byte[] array) {
         StringBuilder byteArray = new StringBuilder(arrName + ": 0x");
 
@@ -563,5 +518,4 @@ public class AddressedMediaPlayer {
         }
         Log.d(TAG, byteArray + "");
     }
-
 }
