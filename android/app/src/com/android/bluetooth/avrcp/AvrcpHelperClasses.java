@@ -20,6 +20,8 @@ import android.media.session.MediaSession;
 
 import java.util.List;
 import java.util.Arrays;
+import java.util.ArrayDeque;
+import java.util.Collection;
 
 /*************************************************************************************************
  * Helper classes used for callback/response of browsing commands:-
@@ -339,5 +341,67 @@ class FolderItemsData {
 
         mAttrIds = null; /* array of attr ids */
         mAttrValues = null; /* array of attr values */
+    }
+}
+
+/** A queue that evicts the first element when you add an element to the end when it reaches a
+ * maximum size.
+ * This is useful for keeping a FIFO queue of items where the items drop off the front, i.e. a log
+ * with a maximum size.
+ */
+class EvictingQueue<E> extends ArrayDeque<E> {
+    private int mMaxSize;
+
+    public EvictingQueue(int maxSize) {
+        super();
+        mMaxSize = maxSize;
+    }
+
+    public EvictingQueue(int maxSize, int initialElements) {
+        super(initialElements);
+        mMaxSize = maxSize;
+    }
+
+    public EvictingQueue(int maxSize, Collection<? extends E> c) {
+        super(c);
+        mMaxSize = maxSize;
+    }
+
+    @Override
+    public boolean add(E e) {
+        if (super.size() == mMaxSize) {
+            super.remove();
+        }
+        return super.add(e);
+    }
+
+    @Override
+    public void addFirst(E e) {
+        if (super.size() == mMaxSize) return;
+        super.addFirst(e);
+    }
+
+    @Override
+    public void addLast(E e) {
+        add(e);
+    }
+
+    @Override
+    public boolean offer(E e) {
+        return offerLast(e);
+    }
+
+    @Override
+    public boolean offerFirst(E e) {
+        if (super.size() == mMaxSize) return false;
+        return super.offerFirst(e);
+    }
+
+    @Override
+    public boolean offerLast(E e) {
+        if (super.size() == mMaxSize) {
+            super.remove();
+        }
+        return super.offerLast(e);
     }
 }
