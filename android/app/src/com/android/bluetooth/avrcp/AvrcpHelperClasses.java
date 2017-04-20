@@ -164,19 +164,6 @@ class ItemAttrRsp {
     }
 }
 
-/* Helps managing the NowPlayingList */
-class NowPlayingListManager {
-    private List<MediaSession.QueueItem> mNowPlayingItems = null;
-
-    synchronized void setNowPlayingList(List<MediaSession.QueueItem> queue) {
-        mNowPlayingItems = queue;
-    }
-
-    synchronized List<MediaSession.QueueItem> getNowPlayingList() {
-        return mNowPlayingItems;
-    }
-}
-
 /* stores information of Media Players in the system */
 class MediaPlayerInfo {
 
@@ -327,7 +314,7 @@ class FolderItemsData {
     /* initialize sizes for rsp parameters */
     int mNumItems;
     int[] mAttributesNum;
-    byte[] mFolderTypes ;
+    byte[] mFolderTypes;
     byte[] mItemTypes;
     byte[] mPlayable;
     byte[] mItemUid;
