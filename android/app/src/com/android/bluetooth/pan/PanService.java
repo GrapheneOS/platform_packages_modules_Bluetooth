@@ -324,7 +324,9 @@ public class PanService extends ProfileService {
 
     void setBluetoothTethering(boolean value) {
         if(DBG) Log.d(TAG, "setBluetoothTethering: " + value +", mTetherOn: " + mTetherOn);
-        ConnectivityManager.enforceTetherChangePermission(getBaseContext());
+        final Context context = getBaseContext();
+        String pkgName = context.getOpPackageName();
+        ConnectivityManager.enforceTetherChangePermission(context, pkgName);
         enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH_ADMIN permission");
         UserManager um = (UserManager) getSystemService(Context.USER_SERVICE);
         if (um.hasUserRestriction(UserManager.DISALLOW_CONFIG_TETHERING)) {
