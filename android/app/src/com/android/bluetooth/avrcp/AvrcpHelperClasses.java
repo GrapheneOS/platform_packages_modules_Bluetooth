@@ -368,14 +368,6 @@ class EvictingQueue<E> extends ArrayDeque<E> {
     }
 
     @Override
-    public boolean add(E e) {
-        if (super.size() == mMaxSize) {
-            super.remove();
-        }
-        return super.add(e);
-    }
-
-    @Override
     public void addFirst(E e) {
         if (super.size() == mMaxSize) return;
         super.addFirst(e);
@@ -383,12 +375,10 @@ class EvictingQueue<E> extends ArrayDeque<E> {
 
     @Override
     public void addLast(E e) {
-        add(e);
-    }
-
-    @Override
-    public boolean offer(E e) {
-        return offerLast(e);
+        if (super.size() == mMaxSize) {
+            super.remove();
+        }
+        super.addLast(e);
     }
 
     @Override
