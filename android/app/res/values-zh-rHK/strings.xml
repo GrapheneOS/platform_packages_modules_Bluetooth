@@ -101,6 +101,8 @@
     <string name="status_protocol_error" msgid="3245444473429269539">"無法正確處理要求。"</string>
     <string name="status_unknown_error" msgid="8156660554237824912">"未知錯誤。"</string>
     <string name="btopp_live_folder" msgid="7967791481444474554">"已透過藍牙接收"</string>
+    <!-- no translation found for opp_notification_group (3486303082135789982) -->
+    <skip />
     <string name="download_success" msgid="7036160438766730871">"已完成 <xliff:g id="FILE_SIZE">%1$s</xliff:g> 的接收作業。"</string>
     <string name="upload_success" msgid="4014469387779648949">"已完成 <xliff:g id="FILE_SIZE">%1$s</xliff:g> 的傳送作業。"</string>
     <string name="inbound_history_title" msgid="6940914942271327563">"外來傳輸"</string>
