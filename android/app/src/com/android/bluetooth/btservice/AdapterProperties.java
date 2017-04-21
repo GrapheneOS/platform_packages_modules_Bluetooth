@@ -19,10 +19,19 @@ package com.android.bluetooth.btservice;
 import android.bluetooth.BluetoothA2dp;
 import android.bluetooth.BluetoothA2dpSink;
 import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothAvrcpController;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothHeadset;
 import android.bluetooth.BluetoothHeadsetClient;
+import android.bluetooth.BluetoothInputDevice;
+import android.bluetooth.BluetoothInputHost;
+import android.bluetooth.BluetoothMap;
+import android.bluetooth.BluetoothMapClient;
+import android.bluetooth.BluetoothPan;
+import android.bluetooth.BluetoothPbap;
+import android.bluetooth.BluetoothPbapClient;
 import android.bluetooth.BluetoothProfile;
+import android.bluetooth.BluetoothSap;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -88,16 +97,31 @@ class AdapterProperties {
         @Override
         public void onReceive(Context context, Intent intent) {
             Log.d(TAG, "Received intent " + intent);
-            if (BluetoothHeadset.ACTION_CONNECTION_STATE_CHANGED.equals(intent.getAction())) {
+            String action = intent.getAction();
+            if (BluetoothHeadset.ACTION_CONNECTION_STATE_CHANGED.equals(action)) {
                 sendConnectionStateChange(BluetoothProfile.HEADSET, intent);
-            } else if (BluetoothA2dp.ACTION_CONNECTION_STATE_CHANGED.equals(intent.getAction())) {
+            } else if (BluetoothA2dp.ACTION_CONNECTION_STATE_CHANGED.equals(action)) {
                 sendConnectionStateChange(BluetoothProfile.A2DP, intent);
-            } else if (BluetoothHeadsetClient.ACTION_CONNECTION_STATE_CHANGED.equals(
-                               intent.getAction())) {
+            } else if (BluetoothHeadsetClient.ACTION_CONNECTION_STATE_CHANGED.equals(action)) {
                 sendConnectionStateChange(BluetoothProfile.HEADSET_CLIENT, intent);
-            } else if (BluetoothA2dpSink.ACTION_CONNECTION_STATE_CHANGED.equals(
-                               intent.getAction())) {
+            } else if (BluetoothA2dpSink.ACTION_CONNECTION_STATE_CHANGED.equals(action)) {
                 sendConnectionStateChange(BluetoothProfile.A2DP_SINK, intent);
+            } else if (BluetoothInputHost.ACTION_CONNECTION_STATE_CHANGED.equals(action)) {
+                sendConnectionStateChange(BluetoothProfile.INPUT_HOST, intent);
+            } else if (BluetoothInputDevice.ACTION_CONNECTION_STATE_CHANGED.equals(action)) {
+                sendConnectionStateChange(BluetoothProfile.INPUT_DEVICE, intent);
+            } else if (BluetoothAvrcpController.ACTION_CONNECTION_STATE_CHANGED.equals(action)) {
+                sendConnectionStateChange(BluetoothProfile.AVRCP_CONTROLLER, intent);
+            } else if (BluetoothPan.ACTION_CONNECTION_STATE_CHANGED.equals(action)) {
+                sendConnectionStateChange(BluetoothProfile.PAN, intent);
+            } else if (BluetoothMap.ACTION_CONNECTION_STATE_CHANGED.equals(action)) {
+                sendConnectionStateChange(BluetoothProfile.MAP, intent);
+            } else if (BluetoothMapClient.ACTION_CONNECTION_STATE_CHANGED.equals(action)) {
+                sendConnectionStateChange(BluetoothProfile.MAP_CLIENT, intent);
+            } else if (BluetoothSap.ACTION_CONNECTION_STATE_CHANGED.equals(action)) {
+                sendConnectionStateChange(BluetoothProfile.SAP, intent);
+            } else if (BluetoothPbapClient.ACTION_CONNECTION_STATE_CHANGED.equals(action)) {
+                sendConnectionStateChange(BluetoothProfile.PBAP_CLIENT, intent);
             }
         }
     };
@@ -124,6 +148,14 @@ class AdapterProperties {
         filter.addAction(BluetoothHeadsetClient.ACTION_CONNECTION_STATE_CHANGED);
         filter.addAction(BluetoothA2dp.ACTION_CONNECTION_STATE_CHANGED);
         filter.addAction(BluetoothA2dpSink.ACTION_CONNECTION_STATE_CHANGED);
+        filter.addAction(BluetoothInputHost.ACTION_CONNECTION_STATE_CHANGED);
+        filter.addAction(BluetoothInputDevice.ACTION_CONNECTION_STATE_CHANGED);
+        filter.addAction(BluetoothAvrcpController.ACTION_CONNECTION_STATE_CHANGED);
+        filter.addAction(BluetoothPan.ACTION_CONNECTION_STATE_CHANGED);
+        filter.addAction(BluetoothMap.ACTION_CONNECTION_STATE_CHANGED);
+        filter.addAction(BluetoothMapClient.ACTION_CONNECTION_STATE_CHANGED);
+        filter.addAction(BluetoothSap.ACTION_CONNECTION_STATE_CHANGED);
+        filter.addAction(BluetoothPbapClient.ACTION_CONNECTION_STATE_CHANGED);
         filter.addAction(BluetoothDevice.ACTION_UUID);
         mService.registerReceiver(mReceiver, filter);
     }
