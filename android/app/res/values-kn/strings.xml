@@ -101,6 +101,8 @@
     <string name="status_protocol_error" msgid="3245444473429269539">"ವಿನಂತಿಯನ್ನು ಸರಿಯಾಗಿ ನಿರ್ವಹಿಸಲಾಗುವುದಿಲ್ಲ."</string>
     <string name="status_unknown_error" msgid="8156660554237824912">"ಅಪರಿಚಿತ ದೋಷ."</string>
     <string name="btopp_live_folder" msgid="7967791481444474554">"ಬ್ಲೂಟೂತ್‌ ಸ್ವೀಕರಿಸಲಾಗಿದೆ"</string>
+    <!-- no translation found for opp_notification_group (3486303082135789982) -->
+    <skip />
     <string name="download_success" msgid="7036160438766730871">"<xliff:g id="FILE_SIZE">%1$s</xliff:g> ಸ್ವೀಕರಿಸುವುದು ಪೂರ್ಣಗೊಂಡಿದೆ."</string>
     <string name="upload_success" msgid="4014469387779648949">"<xliff:g id="FILE_SIZE">%1$s</xliff:g> ಕಳುಹಿಸುವುದು ಪೂರ್ಣಗೊಂಡಿದೆ."</string>
     <string name="inbound_history_title" msgid="6940914942271327563">"ಇನ್‌ಬೌಂಡ್‌ ವರ್ಗಾವಣೆಗಳು"</string>
