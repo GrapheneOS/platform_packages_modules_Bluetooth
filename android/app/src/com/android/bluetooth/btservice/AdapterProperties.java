@@ -571,7 +571,13 @@ class AdapterProperties {
                         break;
                     case AbstractionLayer.BT_PROPERTY_BDADDR:
                         mAddress = val;
-                        debugLog("Address is:" + Utils.getAddressStringFromByte(mAddress));
+                        String address = Utils.getAddressStringFromByte(mAddress);
+                        debugLog("Address is:" + address);
+                        intent = new Intent(BluetoothAdapter.ACTION_BLUETOOTH_ADDRESS_CHANGED);
+                        intent.putExtra(BluetoothAdapter.EXTRA_BLUETOOTH_ADDRESS, address);
+                        intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY_BEFORE_BOOT);
+                        mService.sendBroadcastAsUser(
+                                intent, UserHandle.ALL, mService.BLUETOOTH_PERM);
                         break;
                     case AbstractionLayer.BT_PROPERTY_CLASS_OF_DEVICE:
                         mBluetoothClass = Utils.byteArrayToInt(val, 0);
