@@ -36,14 +36,14 @@ class AvrcpCmd {
     /* Helper classes to pass parameters from callbacks to Avrcp handler */
     class FolderItemsCmd {
         byte mScope;
-        int mStartItem;
-        int mEndItem;
+        long mStartItem;
+        long mEndItem;
         byte mNumAttr;
         int[] mAttrIDs;
         public byte[] mAddress;
 
-        public FolderItemsCmd(byte[] address,byte scope, int startItem, int endItem, byte numAttr,
-                int[] attrIds) {
+        public FolderItemsCmd(byte[] address, byte scope, long startItem, long endItem,
+                byte numAttr, int[] attrIds) {
             mAddress = address;
             this.mScope = scope;
             this.mStartItem = startItem;
