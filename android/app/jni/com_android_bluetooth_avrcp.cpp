@@ -295,9 +295,9 @@ static void btavrcp_get_folder_items_callback(
                                     (jint*)puiAttr);
   }
 
-  sCallbackEnv->CallVoidMethod(mCallbacksObj, method_getFolderItemsCallback,
-                               addr.get(), (jbyte)scope, (jint)start_item,
-                               (jint)end_item, (jbyte)num_attr, attr_ids.get());
+  sCallbackEnv->CallVoidMethod(
+      mCallbacksObj, method_getFolderItemsCallback, addr.get(), (jbyte)scope,
+      (jlong)start_item, (jlong)end_item, (jbyte)num_attr, attr_ids.get());
 }
 
 static void btavrcp_change_path_callback(uint8_t direction, uint8_t* folder_uid,
@@ -547,7 +547,7 @@ static void classInitNative(JNIEnv* env, jclass clazz) {
       env->GetMethodID(clazz, "setBrowsedPlayerRequestFromNative", "([BI)V");
 
   method_getFolderItemsCallback =
-      env->GetMethodID(clazz, "getFolderItemsRequestFromNative", "([BBIIB[I)V");
+      env->GetMethodID(clazz, "getFolderItemsRequestFromNative", "([BBJJB[I)V");
 
   method_changePathCallback =
       env->GetMethodID(clazz, "changePathRequestFromNative", "([BB[B)V");
