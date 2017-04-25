@@ -37,9 +37,7 @@ import com.android.bluetooth.R;
  *
  * Note: There are several different audio tracks that a connected phone may like to transmit over
  * the A2DP stream including Music, Navigation, Assistant, and Notifications.  Music is the only
- * track that is almost always accompanied with an AVRCP play/pause command.  The following handler
- * is configurable at compile time through the PLAY_WITHOUT_AVRCP_COMMAND flag to allow all of these
- * audio tracks to be played trough without an explicit play command.
+ * track that is almost always accompanied with an AVRCP play/pause command.
  *
  * Streaming is initiated by either an explicit play command from user interaction or audio coming
  * from the phone.  Streaming is terminated when either the user pauses the audio, the audio stream
@@ -47,44 +45,37 @@ import com.android.bluetooth.R;
  * a change to audio focus playback may be temporarily paused and then resumed when focus is
  * restored.
  */
-final class A2dpSinkStreamHandler extends Handler {
+public class A2dpSinkStreamHandler extends Handler {
     private static final boolean DBG = false;
     private static final String TAG = "A2dpSinkStreamHandler";
 
     // Configuration Variables
     private static final int DEFAULT_DUCK_PERCENT = 25;
-    // Allows any audio to stream from phone without requiring AVRCP play command,
-    // this lets navigation and other non music streams through.
-    private static final boolean PLAY_WITHOUT_AVRCP_COMMAND = true;
 
     // Incoming events.
-    public static final int SRC_STR_START = 0;
-    public static final int SRC_STR_STOP = 1;
-    public static final int ACT_PLAY = 2;
-    public static final int ACT_PAUSE = 3;
-    public static final int DISCONNECT = 4;
-    public static final int UPGRADE_FOCUS = 5;
-    public static final int AUDIO_FOCUS_CHANGE = 7;
+    public static final int SRC_STR_START = 0; // Audio stream from remote device started
+    public static final int SRC_STR_STOP = 1; // Audio stream from remote device stopped
+    public static final int SNK_PLAY = 2; // Play command was generated from local device
+    public static final int SNK_PAUSE = 3; // Pause command was generated from local device
+    public static final int SRC_PLAY = 4; // Play command was generated from remote device
+    public static final int SRC_PAUSE = 5; // Pause command was generated from remote device
+    public static final int DISCONNECT = 6; // Remote device was disconnected
+    public static final int AUDIO_FOCUS_CHANGE = 7; // Audio focus callback with associated change
 
     // Used to indicate focus lost
     private static final int STATE_FOCUS_LOST = 0;
     // Used to inform bluedroid that focus is granted
     private static final int STATE_FOCUS_GRANTED = 1;
-    // Timeout in milliseconds before upgrading a transient audio focus to full focus;
-    // This allows notifications and other intermittent sounds from impacting other sources.
-    private static final int TRANSIENT_FOCUS_DELAY = 10000; // 10 seconds
 
     // Private variables.
     private A2dpSinkStateMachine mA2dpSinkSm;
     private Context mContext;
     private AudioManager mAudioManager;
-    private AudioAttributes mStreamAttributes;
-    // Keep track if play was requested
-    private boolean playRequested = false;
     // Keep track if the remote device is providing audio
-    private boolean streamAvailable = false;
+    private boolean mStreamAvailable = false;
+    private boolean mSentPause = false;
     // Keep track of the relevant audio focus (None, Transient, Gain)
-    private int audioFocus = AudioManager.AUDIOFOCUS_NONE;
+    private int mAudioFocus = AudioManager.AUDIOFOCUS_NONE;
 
     // Focus changes when we are currently holding focus.
     private OnAudioFocusChangeListener mAudioFocusListener = new OnAudioFocusChangeListener() {
@@ -101,80 +92,76 @@ final class A2dpSinkStreamHandler extends Handler {
         mA2dpSinkSm = a2dpSinkSm;
         mContext = context;
         mAudioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
-        mStreamAttributes = new AudioAttributes.Builder()
-                                    .setUsage(AudioAttributes.USAGE_MEDIA)
-                                    .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
-                                    .build();
     }
 
     @Override
     public void handleMessage(Message message) {
         if (DBG) {
             Log.d(TAG, " process message: " + message.what);
-            Log.d(TAG, " audioFocus =  " + audioFocus + " playRequested = " + playRequested);
+            Log.d(TAG, " audioFocus =  " + mAudioFocus);
         }
         switch (message.what) {
             case SRC_STR_START:
-                streamAvailable = true;
-                if ((playRequested || PLAY_WITHOUT_AVRCP_COMMAND)
-                        && audioFocus == AudioManager.AUDIOFOCUS_NONE) {
-                    requestAudioFocus();
+                // Audio stream has started, stop it if we don't have focus.
+                mStreamAvailable = true;
+                if (mAudioFocus == AudioManager.AUDIOFOCUS_NONE) {
+                    sendAvrcpPause();
+                } else {
+                    startAvrcpUpdates();
                 }
                 break;
 
             case SRC_STR_STOP:
-                streamAvailable = false;
-                if (audioFocus != AudioManager.AUDIOFOCUS_NONE) {
-                    abandonAudioFocus();
-                }
+                // Audio stream has stopped, maintain focus but stop avrcp updates.
+                mStreamAvailable = false;
+                stopAvrcpUpdates();
                 break;
 
-            case ACT_PLAY:
-                playRequested = true;
-                startAvrcpUpdates();
-                if (streamAvailable && audioFocus == AudioManager.AUDIOFOCUS_NONE) {
+            case SNK_PLAY:
+                // Local play command, gain focus and start avrcp updates.
+                if (mAudioFocus == AudioManager.AUDIOFOCUS_NONE) {
                     requestAudioFocus();
                 }
+                startAvrcpUpdates();
                 break;
 
-            case ACT_PAUSE:
-                playRequested = false;
+            case SNK_PAUSE:
+                // Local pause command, maintain focus but stop avrcp updates.
+                stopAvrcpUpdates();
+                break;
+
+            case SRC_PLAY:
+                // Remote play command, if we have audio focus update avrcp, otherwise send pause.
+                if (mAudioFocus == AudioManager.AUDIOFOCUS_NONE) {
+                    sendAvrcpPause();
+                } else {
+                    startAvrcpUpdates();
+                }
+                break;
+
+            case SRC_PAUSE:
+                // Remote pause command, stop avrcp updates.
                 stopAvrcpUpdates();
                 break;
 
             case DISCONNECT:
-                playRequested = false;
+                // Remote device has disconnected, restore everything to default state.
                 sendAvrcpPause();
                 stopAvrcpUpdates();
-                stopFluorideStreaming();
                 abandonAudioFocus();
-                break;
-
-            case UPGRADE_FOCUS:
-                upgradeAudioFocus();
+                mSentPause = false;
                 break;
 
             case AUDIO_FOCUS_CHANGE:
                 // message.obj is the newly granted audio focus.
                 switch ((int) message.obj) {
-                    case AudioManager.AUDIOFOCUS_GAIN_TRANSIENT:
-                        setFluorideAudioTrackGain(1.0f);
-                        sendMessageDelayed(obtainMessage(UPGRADE_FOCUS), TRANSIENT_FOCUS_DELAY);
-                        // Begin playing audio
-                        if (audioFocus == AudioManager.AUDIOFOCUS_NONE) {
-                            audioFocus = (int) message.obj;
-                            startAvrcpUpdates();
-                            startFluorideStreaming();
-                        }
-                        break;
-
                     case AudioManager.AUDIOFOCUS_GAIN:
-                        setFluorideAudioTrackGain(1.0f);
-                        // Begin playing audio
-                        if (audioFocus == AudioManager.AUDIOFOCUS_NONE) {
-                            audioFocus = (int) message.obj;
-                            startAvrcpUpdates();
-                            startFluorideStreaming();
+                        // Begin playing audio, if we paused the remote, send a play now.
+                        startAvrcpUpdates();
+                        startFluorideStreaming();
+                        if (mSentPause) {
+                            sendAvrcpPlay();
+                            mSentPause = false;
                         }
                         break;
 
@@ -191,19 +178,24 @@ final class A2dpSinkStreamHandler extends Handler {
                             Log.d(TAG, "Setting reduce gain on transient loss gain=" + duckRatio);
                         }
                         setFluorideAudioTrackGain(duckRatio);
-                        removeMessages(UPGRADE_FOCUS);
                         break;
 
                     case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT:
+                        // Temporary loss of focus, if we are actively streaming pause the remote
+                        // and make sure we resume playback when we regain focus.
+                        if (mStreamAvailable) {
+                            sendAvrcpPause();
+                            mSentPause = true;
+                        }
                         stopFluorideStreaming();
-                        removeMessages(UPGRADE_FOCUS);
                         break;
 
                     case AudioManager.AUDIOFOCUS_LOSS:
+                        // Permanent loss of focus probably due to another audio app, abandon focus
+                        // and stop playback.
+                        mAudioFocus = AudioManager.AUDIOFOCUS_NONE;
                         abandonAudioFocus();
                         sendAvrcpPause();
-                        stopAvrcpUpdates();
-                        stopFluorideStreaming();
                         break;
                 }
                 break;
@@ -217,32 +209,22 @@ final class A2dpSinkStreamHandler extends Handler {
      * Utility functions.
      */
     private int requestAudioFocus() {
-        int focusRequestStatus = mAudioManager.requestAudioFocus(mAudioFocusListener,
-                mStreamAttributes, AudioManager.AUDIOFOCUS_GAIN_TRANSIENT,
-                AudioManager.AUDIOFOCUS_FLAG_DELAY_OK);
+        int focusRequestStatus = mAudioManager.requestAudioFocus(
+                mAudioFocusListener, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN);
         // If the request is granted begin streaming immediately and schedule an upgrade.
         if (focusRequestStatus == AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
             startAvrcpUpdates();
-            setFluorideAudioTrackGain(1.0f);
             startFluorideStreaming();
-            audioFocus = AudioManager.AUDIOFOCUS_GAIN_TRANSIENT;
-            sendMessageDelayed(obtainMessage(UPGRADE_FOCUS), TRANSIENT_FOCUS_DELAY);
+            mAudioFocus = AudioManager.AUDIOFOCUS_GAIN;
         }
         return focusRequestStatus;
     }
 
-    private boolean upgradeAudioFocus() {
-        return (mAudioManager.requestAudioFocus(mAudioFocusListener, AudioManager.STREAM_MUSIC,
-                        AudioManager.AUDIOFOCUS_GAIN)
-                == AudioManager.AUDIOFOCUS_REQUEST_GRANTED);
-    }
 
     private void abandonAudioFocus() {
-        removeMessages(UPGRADE_FOCUS);
-        stopAvrcpUpdates();
         stopFluorideStreaming();
         mAudioManager.abandonAudioFocus(mAudioFocusListener);
-        audioFocus = AudioManager.AUDIOFOCUS_NONE;
+        mAudioFocus = AudioManager.AUDIOFOCUS_NONE;
     }
 
     private void startFluorideStreaming() {
@@ -302,6 +284,28 @@ final class A2dpSinkStreamHandler extends Handler {
                     AvrcpControllerService.KEY_STATE_PRESSED);
             avrcpService.sendPassThroughCmd(avrcpService.getConnectedDevices().get(0),
                     AvrcpControllerService.PASS_THRU_CMD_ID_PAUSE,
+                    AvrcpControllerService.KEY_STATE_RELEASED);
+        } else {
+            Log.e(TAG, "Passthrough not sent, connection un-available.");
+        }
+    }
+
+    private void sendAvrcpPlay() {
+        // Since AVRCP gets started after A2DP we may need to request it later in cycle.
+        AvrcpControllerService avrcpService = AvrcpControllerService.getAvrcpControllerService();
+
+        if (DBG) {
+            Log.d(TAG, "sendAvrcpPlay");
+        }
+        if (avrcpService != null && avrcpService.getConnectedDevices().size() == 1) {
+            if (DBG) {
+                Log.d(TAG, "Playing AVRCP.");
+            }
+            avrcpService.sendPassThroughCmd(avrcpService.getConnectedDevices().get(0),
+                    AvrcpControllerService.PASS_THRU_CMD_ID_PLAY,
+                    AvrcpControllerService.KEY_STATE_PRESSED);
+            avrcpService.sendPassThroughCmd(avrcpService.getConnectedDevices().get(0),
+                    AvrcpControllerService.PASS_THRU_CMD_ID_PLAY,
                     AvrcpControllerService.KEY_STATE_RELEASED);
         } else {
             Log.e(TAG, "Passthrough not sent, connection un-available.");
