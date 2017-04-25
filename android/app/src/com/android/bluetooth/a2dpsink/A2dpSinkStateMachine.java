@@ -58,7 +58,7 @@ import java.util.List;
 import java.util.HashMap;
 import java.util.Set;
 
-final class A2dpSinkStateMachine extends StateMachine {
+public class A2dpSinkStateMachine extends StateMachine {
     private static final boolean DBG = false;
 
     static final int CONNECT = 1;
@@ -573,15 +573,20 @@ final class A2dpSinkStateMachine extends StateMachine {
                     break;
 
                 case EVENT_AVRCP_CT_PLAY:
+                    mStreaming.obtainMessage(A2dpSinkStreamHandler.SNK_PLAY).sendToTarget();
+                    break;
+
                 case EVENT_AVRCP_TG_PLAY:
-                    mStreaming.obtainMessage(A2dpSinkStreamHandler.ACT_PLAY).sendToTarget();
+                    mStreaming.obtainMessage(A2dpSinkStreamHandler.SRC_PLAY).sendToTarget();
                     break;
 
                 case EVENT_AVRCP_CT_PAUSE:
-                case EVENT_AVRCP_TG_PAUSE:
-                    mStreaming.obtainMessage(A2dpSinkStreamHandler.ACT_PAUSE).sendToTarget();
+                    mStreaming.obtainMessage(A2dpSinkStreamHandler.SNK_PAUSE).sendToTarget();
                     break;
 
+                case EVENT_AVRCP_TG_PAUSE:
+                    mStreaming.obtainMessage(A2dpSinkStreamHandler.SRC_PAUSE).sendToTarget();
+                    break;
 
                 default:
                     return NOT_HANDLED;
