@@ -101,8 +101,7 @@
     <string name="status_protocol_error" msgid="3245444473429269539">"Não é possível processar o pedido corretamente."</string>
     <string name="status_unknown_error" msgid="8156660554237824912">"Erro desconhecido."</string>
     <string name="btopp_live_folder" msgid="7967791481444474554">"Bluetooth recebido"</string>
-    <!-- no translation found for opp_notification_group (3486303082135789982) -->
-    <skip />
+    <string name="opp_notification_group" msgid="3486303082135789982">"Partilha por Bluetooth"</string>
     <string name="download_success" msgid="7036160438766730871">"Recepção completa de <xliff:g id="FILE_SIZE">%1$s</xliff:g>."</string>
     <string name="upload_success" msgid="4014469387779648949">"Envio de <xliff:g id="FILE_SIZE">%1$s</xliff:g> concluído"</string>
     <string name="inbound_history_title" msgid="6940914942271327563">"Transferências de entrada"</string>
