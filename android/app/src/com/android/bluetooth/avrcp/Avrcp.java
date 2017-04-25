@@ -1568,7 +1568,7 @@ public final class Avrcp {
 
                     if (playersChanged) {
                         mHandler.sendEmptyMessage(MSG_AVAILABLE_PLAYERS_CHANGED_RSP);
-                        if (newControllers.size() > 0 && (mAddressedMediaPlayer == null)) {
+                        if (newControllers.size() > 0 && (mMediaController == null)) {
                             if (DEBUG)
                                 Log.v(TAG,
                                         "No addressed player but active sessions, taking first.");
