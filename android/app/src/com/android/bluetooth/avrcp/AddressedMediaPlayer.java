@@ -264,10 +264,12 @@ public class AddressedMediaPlayer {
      * MediaItem list. (Resultset containing all items in current path)
      */
     private List<MediaSession.QueueItem> checkIndexOutofBounds(
-            byte[] bdaddr, List<MediaSession.QueueItem> items, int startItem, int endItem) {
+            byte[] bdaddr, List<MediaSession.QueueItem> items, long startItem, long endItem) {
+        if (endItem > items.size()) endItem = items.size() - 1;
+        if (startItem > Integer.MAX_VALUE) startItem = Integer.MAX_VALUE;
         try {
             List<MediaSession.QueueItem> selected =
-                    items.subList(startItem, Math.min(items.size(), endItem + 1));
+                    items.subList((int) startItem, (int) Math.min(items.size(), endItem + 1));
             if (selected.isEmpty()) {
                 Log.i(TAG, "itemsSubList is empty.");
                 return null;
@@ -286,7 +288,7 @@ public class AddressedMediaPlayer {
      * response
      */
     private void getFolderItemsFilterAttr(byte[] bdaddr, AvrcpCmd.FolderItemsCmd folderItemsReqObj,
-            List<MediaSession.QueueItem> items, byte scope, int startItem, int endItem,
+            List<MediaSession.QueueItem> items, byte scope, long startItem, long endItem,
             MediaController mediaController) {
         if (DEBUG) Log.d(TAG, "getFolderItemsFilterAttr: startItem =" + startItem + ", endItem = "
                 + endItem);

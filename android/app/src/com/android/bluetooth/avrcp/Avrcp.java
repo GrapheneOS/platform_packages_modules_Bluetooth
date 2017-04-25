@@ -1233,8 +1233,8 @@ public final class Avrcp {
         mHandler.sendMessage(msg);
     }
 
-    private void getFolderItemsRequestFromNative(byte[] address, byte scope, int startItem, int endItem,
-            byte numAttr, int[] attrIds) {
+    private void getFolderItemsRequestFromNative(
+            byte[] address, byte scope, long startItem, long endItem, byte numAttr, int[] attrIds) {
         if (DEBUG) Log.v(TAG, "getFolderItemsRequestFromNative: scope=" + scope + ", numAttr=" + numAttr);
         AvrcpCmd avrcpCmdobj = new AvrcpCmd();
         AvrcpCmd.FolderItemsCmd folderObj = avrcpCmdobj.new FolderItemsCmd(address, scope,
