@@ -1147,17 +1147,6 @@ static int createSocketChannelNative(JNIEnv* env, jobject object, jint type,
   return socket_fd;
 }
 
-static jboolean configHciSnoopLogNative(JNIEnv* env, jobject obj,
-                                        jboolean enable) {
-  ALOGV("%s", __func__);
-
-  if (!sBluetoothInterface) return JNI_FALSE;
-
-  int ret = sBluetoothInterface->config_hci_snoop_log(enable);
-
-  return (ret == BT_STATUS_SUCCESS) ? JNI_TRUE : JNI_FALSE;
-}
-
 static int readEnergyInfo() {
   ALOGV("%s", __func__);
 
@@ -1250,7 +1239,6 @@ static JNINativeMethod sMethods[] = {
     {"connectSocketNative", "([BI[BIII)I", (void*)connectSocketNative},
     {"createSocketChannelNative", "(ILjava/lang/String;[BIII)I",
      (void*)createSocketChannelNative},
-    {"configHciSnoopLogNative", "(Z)Z", (void*)configHciSnoopLogNative},
     {"alarmFiredNative", "()V", (void*)alarmFiredNative},
     {"readEnergyInfo", "()I", (void*)readEnergyInfo},
     {"dumpNative", "(Ljava/io/FileDescriptor;[Ljava/lang/String;)V",
