@@ -18,6 +18,8 @@ package com.android.bluetooth.avrcp;
 
 import android.media.session.MediaSession;
 
+import com.android.bluetooth.Utils;
+
 import java.util.List;
 import java.util.Arrays;
 import java.util.ArrayDeque;
@@ -51,6 +53,19 @@ class AvrcpCmd {
             this.mNumAttr = numAttr;
             this.mAttrIDs = attrIds;
         }
+
+        public String toString() {
+            StringBuilder sb = new StringBuilder();
+            sb.append("[FolderItemCmd: scope " + mScope);
+            sb.append(" start " + mStartItem);
+            sb.append(" end " + mEndItem);
+            sb.append(" numAttr " + mNumAttr);
+            sb.append(" attrs: ");
+            for (int i = 0; i < mNumAttr; i++) {
+                sb.append(mAttrIDs[i] + " ");
+            }
+            return sb.toString();
+        }
     }
 
     class ItemAttrCmd {
@@ -69,6 +84,18 @@ class AvrcpCmd {
             mUidCounter = uidCounter;
             mNumAttr = numAttr;
             mAttrIDs = attrIDs;
+        }
+
+        public String toString() {
+            StringBuilder sb = new StringBuilder();
+            sb.append("[ItemAttrCmd: scope " + mScope);
+            sb.append(" uid " + Utils.byteArrayToString(mUid));
+            sb.append(" numAttr " + mNumAttr);
+            sb.append(" attrs: ");
+            for (int i = 0; i < mNumAttr; i++) {
+                sb.append(mAttrIDs[i] + " ");
+            }
+            return sb.toString();
         }
     }
 
