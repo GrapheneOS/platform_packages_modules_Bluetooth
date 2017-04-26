@@ -58,7 +58,7 @@ class AdvertiseManager {
      * Constructor of {@link AdvertiseManager}.
      */
     AdvertiseManager(GattService service, AdapterService adapterService) {
-        logd("advertise manager created");
+        if (DBG) Log.d(TAG, "advertise manager created");
         mService = service;
         mAdapterService = adapterService;
     }
@@ -74,7 +74,7 @@ class AdvertiseManager {
     }
 
     void cleanup() {
-        logd("cleanup()");
+        if (DBG) Log.d(TAG, "cleanup()");
         cleanupNative();
         mAdvertisers.clear();
         sTempRegistrationId = -1;
@@ -136,9 +136,10 @@ class AdvertiseManager {
 
     void onAdvertisingSetStarted(int reg_id, int advertiser_id, int tx_power, int status)
             throws Exception {
-        if (DBG)
+        if (DBG) {
             Log.d(TAG, "onAdvertisingSetStarted() - reg_id=" + reg_id + ", advertiser_id="
                             + advertiser_id + ", status=" + status);
+        }
 
         Map.Entry<IBinder, AdvertiserInfo> entry = findAdvertiser(reg_id);
 
@@ -163,8 +164,10 @@ class AdvertiseManager {
     }
 
     void onAdvertisingEnabled(int advertiser_id, boolean enable, int status) throws Exception {
-        logd("onAdvertisingSetEnabled() - advertiser_id=" + advertiser_id + ", enable=" + enable
-                + ", status=" + status);
+        if (DBG) {
+            Log.d(TAG, "onAdvertisingSetEnabled() - advertiser_id=" + advertiser_id + ", enable="
+                            + enable + ", status=" + status);
+        }
 
         Map.Entry<IBinder, AdvertiserInfo> entry = findAdvertiser(advertiser_id);
         if (entry == null) {
@@ -197,14 +200,14 @@ class AdvertiseManager {
         int cb_id = --sTempRegistrationId;
         mAdvertisers.put(binder, new AdvertiserInfo(cb_id, deathRecipient, callback));
 
-        logd("startAdvertisingSet() - reg_id=" + cb_id + ", callback: " + binder);
+        if (DBG) Log.d(TAG, "startAdvertisingSet() - reg_id=" + cb_id + ", callback: " + binder);
         startAdvertisingSetNative(parameters, adv_data, scan_response, periodicParameters,
                 periodic_data, duration, maxExtAdvEvents, cb_id);
     }
 
     void onOwnAddressRead(int advertiser_id, int addressType, String address)
             throws RemoteException {
-        logd("onOwnAddressRead() advertiser_id=" + advertiser_id);
+        if (DBG) Log.d(TAG, "onOwnAddressRead() advertiser_id=" + advertiser_id);
 
         Map.Entry<IBinder, AdvertiserInfo> entry = findAdvertiser(advertiser_id);
         if (entry == null) {
@@ -284,7 +287,10 @@ class AdvertiseManager {
     }
 
     void onAdvertisingDataSet(int advertiser_id, int status) throws Exception {
-        logd("onAdvertisingDataSet() advertiser_id=" + advertiser_id + ", status=" + status);
+        if (DBG) {
+            Log.d(TAG,
+                    "onAdvertisingDataSet() advertiser_id=" + advertiser_id + ", status=" + status);
+        }
 
         Map.Entry<IBinder, AdvertiserInfo> entry = findAdvertiser(advertiser_id);
         if (entry == null) {
@@ -297,7 +303,9 @@ class AdvertiseManager {
     }
 
     void onScanResponseDataSet(int advertiser_id, int status) throws Exception {
-        logd("onScanResponseDataSet() advertiser_id=" + advertiser_id + ", status=" + status);
+        if (DBG)
+            Log.d(TAG, "onScanResponseDataSet() advertiser_id=" + advertiser_id + ", status="
+                            + status);
 
         Map.Entry<IBinder, AdvertiserInfo> entry = findAdvertiser(advertiser_id);
         if (entry == null) {
@@ -311,8 +319,10 @@ class AdvertiseManager {
 
     void onAdvertisingParametersUpdated(int advertiser_id, int tx_power, int status)
             throws Exception {
-        logd("onAdvertisingParametersUpdated() advertiser_id=" + advertiser_id + ", tx_power="
-                + tx_power + ", status=" + status);
+        if (DBG) {
+            Log.d(TAG, "onAdvertisingParametersUpdated() advertiser_id=" + advertiser_id
+                            + ", tx_power=" + tx_power + ", status=" + status);
+        }
 
         Map.Entry<IBinder, AdvertiserInfo> entry = findAdvertiser(advertiser_id);
         if (entry == null) {
@@ -325,8 +335,10 @@ class AdvertiseManager {
     }
 
     void onPeriodicAdvertisingParametersUpdated(int advertiser_id, int status) throws Exception {
-        logd("onPeriodicAdvertisingParametersUpdated() advertiser_id=" + advertiser_id + ", status="
-                + status);
+        if (DBG) {
+            Log.d(TAG, "onPeriodicAdvertisingParametersUpdated() advertiser_id=" + advertiser_id
+                            + ", status=" + status);
+        }
 
         Map.Entry<IBinder, AdvertiserInfo> entry = findAdvertiser(advertiser_id);
         if (entry == null) {
@@ -340,8 +352,10 @@ class AdvertiseManager {
     }
 
     void onPeriodicAdvertisingDataSet(int advertiser_id, int status) throws Exception {
-        logd("onPeriodicAdvertisingDataSet() advertiser_id=" + advertiser_id + ", status="
-                + status);
+        if (DBG) {
+            Log.d(TAG, "onPeriodicAdvertisingDataSet() advertiser_id=" + advertiser_id + ", status="
+                            + status);
+        }
 
         Map.Entry<IBinder, AdvertiserInfo> entry = findAdvertiser(advertiser_id);
         if (entry == null) {
@@ -355,8 +369,10 @@ class AdvertiseManager {
 
     void onPeriodicAdvertisingEnabled(int advertiser_id, boolean enable, int status)
             throws Exception {
-        logd("onPeriodicAdvertisingEnabled() advertiser_id=" + advertiser_id + ", status="
-                + status);
+        if (DBG) {
+            Log.d(TAG, "onPeriodicAdvertisingEnabled() advertiser_id=" + advertiser_id + ", status="
+                            + status);
+        }
 
         Map.Entry<IBinder, AdvertiserInfo> entry = findAdvertiser(advertiser_id);
         if (entry == null) {
@@ -366,12 +382,6 @@ class AdvertiseManager {
 
         IAdvertisingSetCallback callback = entry.getValue().callback;
         callback.onPeriodicAdvertisingEnabled(advertiser_id, enable, status);
-    }
-
-    private void logd(String s) {
-        if (DBG) {
-            Log.d(TAG, s);
-        }
     }
 
     static {

@@ -53,7 +53,7 @@ class PeriodicScanManager {
      * Constructor of {@link SyncManager}.
      */
     PeriodicScanManager(AdapterService adapterService) {
-        logd("advertise manager created");
+        if (DBG) Log.d(TAG, "advertise manager created");
         mAdapterService = adapterService;
     }
 
@@ -62,7 +62,7 @@ class PeriodicScanManager {
     }
 
     void cleanup() {
-        logd("cleanup()");
+        if (DBG) Log.d(TAG, "cleanup()");
         cleanupNative();
         mSyncs.clear();
         sTempRegistrationId = -1;
@@ -114,8 +114,10 @@ class PeriodicScanManager {
 
     void onSyncStarted(int reg_id, int sync_handle, int sid, int address_type, String address,
             int phy, int interval, int status) throws Exception {
-        logd("onSyncStarted() - reg_id=" + reg_id + ", sync_handle=" + sync_handle + ", status="
-                + status);
+        if (DBG) {
+            Log.d(TAG, "onSyncStarted() - reg_id=" + reg_id + ", sync_handle=" + sync_handle
+                            + ", status=" + status);
+        }
 
         Map.Entry<IBinder, SyncInfo> entry = findSync(reg_id);
         if (entry == null) {
@@ -140,7 +142,7 @@ class PeriodicScanManager {
 
     void onSyncReport(int sync_handle, int tx_power, int rssi, int data_status, byte[] data)
             throws Exception {
-        logd("onSyncReport() - sync_handle=" + sync_handle);
+        if (DBG) Log.d(TAG, "onSyncReport() - sync_handle=" + sync_handle);
 
         Map.Entry<IBinder, SyncInfo> entry = findSync(sync_handle);
         if (entry == null) {
@@ -155,7 +157,7 @@ class PeriodicScanManager {
     }
 
     void onSyncLost(int sync_handle) throws Exception {
-        logd("onSyncLost() - sync_handle=" + sync_handle);
+        if (DBG) Log.d(TAG, "onSyncLost() - sync_handle=" + sync_handle);
 
         Map.Entry<IBinder, SyncInfo> entry = findSync(sync_handle);
         if (entry == null) {
@@ -184,13 +186,13 @@ class PeriodicScanManager {
         int cb_id = --sTempRegistrationId;
         mSyncs.put(binder, new SyncInfo(cb_id, deathRecipient, callback));
 
-        logd("startSync() - reg_id=" + cb_id + ", callback: " + binder);
+        if (DBG) Log.d(TAG, "startSync() - reg_id=" + cb_id + ", callback: " + binder);
         startSyncNative(sid, address, skip, timeout, cb_id);
     }
 
     void stopSync(IPeriodicAdvertisingCallback callback) {
         IBinder binder = toBinder(callback);
-        logd("stopSync() " + binder);
+        if (DBG) Log.d(TAG, "stopSync() " + binder);
 
         SyncInfo sync = mSyncs.remove(binder);
         if (sync == null) {
@@ -208,12 +210,6 @@ class PeriodicScanManager {
         }
 
         stopSyncNative(sync_handle);
-    }
-
-    private void logd(String s) {
-        if (DBG) {
-            Log.d(TAG, s);
-        }
     }
 
     static {
