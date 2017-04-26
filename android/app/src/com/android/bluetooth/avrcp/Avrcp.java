@@ -2231,11 +2231,11 @@ public final class Avrcp {
         }
 
         MediaPlayerInfo info = getAddressedPlayerInfo();
-        if (info != null || !info.getPackageName().equals(browsedPlayer)) {
-            Log.w(TAG, browsedPlayer + " is not addressed player " + info.getPackageName());
+        String packageName = (info == null) ? "<none>" : info.getPackageName();
+        if (info == null || !packageName.equals(browsedPlayer)) {
+            if (DEBUG) Log.d(TAG, browsedPlayer + " is not addressed player " + packageName);
             return false;
         }
-
         return true;
     }
 
