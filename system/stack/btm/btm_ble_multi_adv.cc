@@ -98,9 +98,7 @@ struct AdvertisingInstance {
   }
 };
 
-#if (BLE_PRIVACY_SPT == TRUE)
 void btm_ble_adv_raddr_timer_timeout(void* data);
-#endif
 
 void DoNothing(uint8_t) {}
 void DoNothing2(uint8_t, uint8_t) {}
@@ -261,7 +259,6 @@ class BleAdvertisingManagerImpl
 
       p_inst->in_use = true;
 
-#if (BLE_PRIVACY_SPT == TRUE)
       // set up periodic timer to update address.
       if (BTM_BleLocalPrivacyEnabled()) {
         p_inst->own_address_type = BLE_ADDR_RANDOM;
@@ -279,14 +276,13 @@ class BleAdvertisingManagerImpl
               cb.Run(p_inst->inst_id, BTM_BLE_MULTI_ADV_SUCCESS);
             },
             p_inst, cb));
-      }
-#else
-      p_inst->own_address_type = BLE_ADDR_PUBLIC;
-      memcpy(p_inst->own_address,
-             controller_get_interface()->get_address()->address, BD_ADDR_LEN);
+      } else {
+        p_inst->own_address_type = BLE_ADDR_PUBLIC;
+        memcpy(p_inst->own_address,
+               controller_get_interface()->get_address()->address, BD_ADDR_LEN);
 
-      cb.Run(p_inst->inst_id, BTM_BLE_MULTI_ADV_SUCCESS);
-#endif
+        cb.Run(p_inst->inst_id, BTM_BLE_MULTI_ADV_SUCCESS);
+      }
       return;
     }
 
@@ -800,12 +796,10 @@ class BleAdvertisingManagerImpl
       return;
     }
 
-#if (BLE_PRIVACY_SPT == TRUE)
     if (BTM_BleLocalPrivacyEnabled() &&
         advertising_handle <= BTM_BLE_MULTI_ADV_MAX) {
       btm_acl_update_conn_addr(connection_handle, p_inst->own_address);
     }
-#endif
 
     VLOG(1) << "reneabling advertising";
 
@@ -833,12 +827,10 @@ class BleAdvertisingManagerImpl
 
 BleAdvertisingManager* instance;
 
-#if (BLE_PRIVACY_SPT == TRUE)
 void btm_ble_adv_raddr_timer_timeout(void* data) {
   ((BleAdvertisingManagerImpl*)BleAdvertisingManager::Get())
       ->ConfigureRpa((AdvertisingInstance*)data, base::Bind(DoNothing));
 }
-#endif
 }  // namespace
 
 void BleAdvertisingManager::Initialize(BleAdvertiserHciInterface* interface) {
