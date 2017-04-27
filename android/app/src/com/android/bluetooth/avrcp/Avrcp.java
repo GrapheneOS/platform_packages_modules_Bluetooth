@@ -81,12 +81,11 @@ public final class Avrcp {
     private PackageManager mPackageManager;
     private int mTransportControlFlags;
     private PlaybackState mCurrentPlayState;
-    private long mLastStateUpdate;
+    private int mA2dpState;
     private int mPlayStatusChangedNT;
     private int mTrackChangedNT;
     private int mPlayPosChangedNT;
     private long mTracksPlayed;
-    private long mSongLengthMs;
     private long mPlaybackIntervalMs;
     private long mLastReportedPosition;
     private long mNextPosMs;
@@ -235,11 +234,10 @@ public final class Avrcp {
     private Avrcp(Context context) {
         mMediaAttributes = new MediaAttributes(null);
         mCurrentPlayState = new PlaybackState.Builder().setState(PlaybackState.STATE_NONE, -1L, 0.0f).build();
+        mA2dpState = BluetoothA2dp.STATE_NOT_PLAYING;
         mPlayStatusChangedNT = AvrcpConstants.NOTIFICATION_TYPE_CHANGED;
         mTrackChangedNT = AvrcpConstants.NOTIFICATION_TYPE_CHANGED;
         mTracksPlayed = 0;
-        mLastStateUpdate = -1L;
-        mSongLengthMs = 0L;
         mPlaybackIntervalMs = 0L;
         mPlayPosChangedNT = AvrcpConstants.NOTIFICATION_TYPE_CHANGED;
         mLastReportedPosition = -1;
@@ -364,24 +362,13 @@ public final class Avrcp {
         @Override
         public void onMetadataChanged(MediaMetadata metadata) {
             Log.v(TAG, "MediaController metadata changed");
-            updateMetadata(metadata);
+            updateCurrentMediaState();
         }
 
         @Override
         public synchronized void onPlaybackStateChanged(PlaybackState state) {
             if (DEBUG) Log.v(TAG, "onPlaybackStateChanged: state " + state.toString());
-
-            updatePlaybackState(state);
-
-            byte stateBytes = (byte) convertPlayStateToBytes(state.getState());
-
-            /* updating play status in global media player list */
-            MediaPlayerInfo player = getAddressedPlayerInfo();
-            if (player != null) {
-                player.setPlayStatus(stateBytes);
-            } else {
-                Log.w(TAG, "onPlaybackStateChanged: no addressed player id=" + mCurrAddrPlayerID);
-            }
+            updateCurrentMediaState();
         }
 
         @Override
@@ -434,7 +421,7 @@ public final class Avrcp {
                 byte[] address = (byte[]) msg.obj;
                 if (DEBUG) Log.v(TAG, "MSG_NATIVE_REQ_GET_PLAY_STATUS");
                 getPlayStatusRspNative(address, convertPlayStateToPlayStatus(mCurrentPlayState),
-                        (int) mSongLengthMs, (int) getPlayPosition());
+                        (int) mMediaAttributes.getLength(), (int) getPlayPosition());
                 break;
             }
 
@@ -699,7 +686,8 @@ public final class Avrcp {
 
             case MSG_SET_A2DP_AUDIO_STATE:
                 if (DEBUG) Log.v(TAG, "MSG_SET_A2DP_AUDIO_STATE:" + msg.arg1);
-                updateA2dpAudioState(msg.arg1);
+                mA2dpState = msg.arg1;
+                updateCurrentMediaState();
                 break;
 
             case MSG_NATIVE_REQ_GET_FOLDER_ITEMS: {
@@ -792,28 +780,20 @@ public final class Avrcp {
         }
     }
 
-    private void updateA2dpAudioState(int state) {
-        boolean isPlaying = (state == BluetoothA2dp.STATE_PLAYING);
-        if (isPlaying != isPlayingState(mCurrentPlayState)) {
-            /* if a2dp is streaming, check to make sure music is active */
-            if (isPlaying && !mAudioManager.isMusicActive())
-                return;
-            PlaybackState.Builder builder = new PlaybackState.Builder();
-            if (isPlaying) {
-                builder.setState(PlaybackState.STATE_PLAYING,
-                        PlaybackState.PLAYBACK_POSITION_UNKNOWN, 1.0f);
-            } else {
-                builder.setState(PlaybackState.STATE_PAUSED,
-                        PlaybackState.PLAYBACK_POSITION_UNKNOWN, 0.0f);
-            }
-            updatePlaybackState(builder.build());
-        }
-    }
-
     private void updatePlaybackState(PlaybackState state) {
         if (state == null) {
           state = new PlaybackState.Builder().setState(PlaybackState.STATE_NONE,
                 PlaybackState.PLAYBACK_POSITION_UNKNOWN, 0.0f).build();
+        }
+
+        byte stateBytes = (byte) convertPlayStateToBytes(state.getState());
+
+        /* updating play status in global media player list */
+        MediaPlayerInfo player = getAddressedPlayerInfo();
+        if (player != null) {
+            player.setPlayStatus(stateBytes);
+        } else {
+            Log.w(TAG, "onPlaybackStateChanged: no addressed player id=" + mCurrAddrPlayerID);
         }
 
         int oldPlayStatus = convertPlayStateToPlayStatus(mCurrentPlayState);
@@ -826,7 +806,6 @@ public final class Avrcp {
         }
 
         mCurrentPlayState = state;
-        mLastStateUpdate = SystemClock.elapsedRealtime();
 
         sendPlayPosNotificationRsp(false);
 
@@ -849,7 +828,7 @@ public final class Avrcp {
         private String mediaNumber;
         private String mediaTotalNumber;
         private String genre;
-        private String playingTimeMs;
+        private long playingTimeMs;
 
         private static final int ATTR_TITLE = 1;
         private static final int ATTR_ARTIST_NAME = 2;
@@ -870,7 +849,7 @@ public final class Avrcp {
             mediaNumber = longStringOrBlank(data.getLong(MediaMetadata.METADATA_KEY_TRACK_NUMBER));
             mediaTotalNumber = longStringOrBlank(data.getLong(MediaMetadata.METADATA_KEY_NUM_TRACKS));
             genre = stringOrBlank(data.getString(MediaMetadata.METADATA_KEY_GENRE));
-            playingTimeMs = longStringOrBlank(data.getLong(MediaMetadata.METADATA_KEY_DURATION));
+            playingTimeMs = data.getLong(MediaMetadata.METADATA_KEY_DURATION);
 
             // Try harder for the title.
             title = data.getString(MediaMetadata.METADATA_KEY_TITLE);
@@ -888,6 +867,11 @@ public final class Avrcp {
                 title = new String();
         }
 
+        public long getLength() {
+            if (!exists) return 0L;
+            return playingTimeMs;
+        }
+
         public boolean equals(MediaAttributes other) {
             if (other == null)
                 return false;
@@ -898,13 +882,11 @@ public final class Avrcp {
             if (exists == false)
                 return true;
 
-            return (title.equals(other.title)) &&
-                (artistName.equals(other.artistName)) &&
-                (albumName.equals(other.albumName)) &&
-                (mediaNumber.equals(other.mediaNumber)) &&
-                (mediaTotalNumber.equals(other.mediaTotalNumber)) &&
-                (genre.equals(other.genre)) &&
-                (playingTimeMs.equals(other.playingTimeMs));
+            return (title.equals(other.title)) && (artistName.equals(other.artistName))
+                    && (albumName.equals(other.albumName))
+                    && (mediaNumber.equals(other.mediaNumber))
+                    && (mediaTotalNumber.equals(other.mediaTotalNumber))
+                    && (genre.equals(other.genre)) && (playingTimeMs == other.playingTimeMs);
         }
 
         public String getString(int attrId) {
@@ -925,7 +907,7 @@ public final class Avrcp {
                 case ATTR_GENRE:
                     return genre;
                 case ATTR_PLAYING_TIME_MS:
-                    return playingTimeMs;
+                    return Long.toString(playingTimeMs);
                 default:
                     return new String();
             }
@@ -944,40 +926,47 @@ public final class Avrcp {
                 return "[MediaAttributes: none]";
             }
 
-            return "[MediaAttributes: " + title + " - " + albumName + " by "
-                    + artistName + " (" + mediaNumber + "/" + mediaTotalNumber + ") "
-                    + genre + "]";
+            return "[MediaAttributes: " + title + " - " + albumName + " by " + artistName + " ("
+                    + playingTimeMs + " " + mediaNumber + "/" + mediaTotalNumber + ") " + genre
+                    + "]";
         }
     }
 
-    private void updateMetadata(MediaMetadata data) {
-        MediaAttributes oldAttributes = mMediaAttributes;
-        mMediaAttributes = new MediaAttributes(data);
-        if (data == null) {
-            mSongLengthMs = 0L;
-        } else {
-            mSongLengthMs = data.getLong(MediaMetadata.METADATA_KEY_DURATION);
+    private void updateCurrentMediaState() {
+        if (mMediaController == null) {
+            // Use A2DP state if we don't have a MediaControlller
+            boolean isPlaying = (mA2dpState == BluetoothA2dp.STATE_PLAYING);
+            if (isPlaying != isPlayingState(mCurrentPlayState)) {
+                /* if a2dp is streaming, check to make sure music is active */
+                if (isPlaying && !mAudioManager.isMusicActive()) return;
+                PlaybackState.Builder builder = new PlaybackState.Builder();
+                if (isPlaying) {
+                    builder.setState(PlaybackState.STATE_PLAYING,
+                            PlaybackState.PLAYBACK_POSITION_UNKNOWN, 1.0f);
+                } else {
+                    builder.setState(PlaybackState.STATE_PAUSED,
+                            PlaybackState.PLAYBACK_POSITION_UNKNOWN, 0.0f);
+                }
+                updatePlaybackState(builder.build());
+            }
+            // Can't get metadata from A2dp so we're done.
+            return;
         }
 
-        if (!oldAttributes.equals(mMediaAttributes)) {
+        MediaAttributes currentAttributes = mMediaAttributes;
+
+        PlaybackState newState = mMediaController.getPlaybackState();
+
+        // Metadata
+        mMediaAttributes = new MediaAttributes(mMediaController.getMetadata());
+
+        if (currentAttributes.equals(mMediaAttributes)) {
             Log.v(TAG, "MediaAttributes Changed to " + mMediaAttributes.toString());
             mTracksPlayed++;
-
-            if (mTrackChangedNT == AvrcpConstants.NOTIFICATION_TYPE_INTERIM) {
-                mTrackChangedNT = AvrcpConstants.NOTIFICATION_TYPE_CHANGED;
-                sendTrackChangedRsp();
-            }
-        } else {
-            Log.v(TAG, "Updated " + mMediaAttributes.toString() + " but no change!");
+            sendTrackChangedRsp(false);
         }
 
-        // Update the play state, which sends play state and play position
-        // notifications if needed.
-        if (mMediaController != null) {
-            updatePlaybackState(mMediaController.getPlaybackState());
-        } else {
-            updatePlaybackState(null);
-        }
+        updatePlaybackState(mMediaController.getPlaybackState());
     }
 
     private void getRcFeaturesRequestFromNative(byte[] address, int features) {
@@ -1021,7 +1010,7 @@ public final class Avrcp {
             case EVT_TRACK_CHANGED:
                 Log.v(TAG, "Track changed notification enabled");
                 mTrackChangedNT = AvrcpConstants.NOTIFICATION_TYPE_INTERIM;
-                sendTrackChangedRsp();
+                sendTrackChangedRsp(true);
                 break;
 
             case EVT_PLAY_POS_CHANGED:
@@ -1068,22 +1057,25 @@ public final class Avrcp {
         mHandler.sendMessage(msg);
     }
 
-    private void sendTrackChangedRsp() {
+    private void sendTrackChangedRsp(boolean requested) {
         MediaPlayerInfo info = getAddressedPlayerInfo();
         if (info != null && !info.isBrowseSupported()) {
             // for players which does not support Browse or when no track is currently selected
-            trackChangeRspForBrowseUnsupported();
+            trackChangeRspForBrowseUnsupported(requested);
         } else {
+            boolean changed =
+                    mAddressedMediaPlayer.sendTrackChangeWithId(requested, mMediaController);
             // for players which support browsing
-            mAddressedMediaPlayer.sendTrackChangeWithId(mTrackChangedNT, mMediaController);
+            if (changed) mTrackChangedNT = AvrcpConstants.NOTIFICATION_TYPE_CHANGED;
         }
     }
 
-    private void trackChangeRspForBrowseUnsupported() {
+    private void trackChangeRspForBrowseUnsupported(boolean requested) {
         byte[] track = AvrcpConstants.TRACK_IS_SELECTED;
-        if (mTrackChangedNT == AvrcpConstants.NOTIFICATION_TYPE_INTERIM
-                && !mMediaAttributes.exists) {
+        if (requested && !mMediaAttributes.exists) {
             track = AvrcpConstants.NO_TRACK_SELECTED;
+        } else if (!requested) {
+            mTrackChangedNT = AvrcpConstants.NOTIFICATION_TYPE_CHANGED;
         }
         registerNotificationRspTrackChangeNative(mTrackChangedNT, track);
     }
@@ -1098,7 +1090,9 @@ public final class Avrcp {
         }
 
         if (isPlayingState(mCurrentPlayState)) {
-            return SystemClock.elapsedRealtime() - mLastStateUpdate + mCurrentPlayState.getPosition();
+            long sinceUpdate =
+                    (SystemClock.elapsedRealtime() - mCurrentPlayState.getLastPositionUpdateTime());
+            return sinceUpdate + mCurrentPlayState.getPosition();
         }
 
         return mCurrentPlayState.getPosition();
@@ -2105,13 +2099,12 @@ public final class Avrcp {
             if (newController != null) {
                 mMediaController = newController;
                 mMediaController.registerCallback(mMediaControllerCb, mHandler);
-                updateMetadata(mMediaController.getMetadata());
                 mAddressedMediaPlayer.updateNowPlayingList(mMediaController.getQueue());
             } else {
-                updateMetadata(null);
                 mAddressedMediaPlayer.updateNowPlayingList(null);
                 registerRsp = false;
             }
+            updateCurrentMediaState();
         }
         return registerRsp;
     }
@@ -2264,10 +2257,8 @@ public final class Avrcp {
         ProfileService.println(sb, "mTransportControlFlags: " + mTransportControlFlags);
         ProfileService.println(sb, "mTracksPlayed: " + mTracksPlayed);
         ProfileService.println(sb, "mCurrentPlayState: " + mCurrentPlayState);
-        ProfileService.println(sb, "mLastStateUpdate: " + mLastStateUpdate);
         ProfileService.println(sb, "mPlayStatusChangedNT: " + mPlayStatusChangedNT);
         ProfileService.println(sb, "mTrackChangedNT: " + mTrackChangedNT);
-        ProfileService.println(sb, "mSongLengthMs: " + mSongLengthMs);
         ProfileService.println(sb, "mPlaybackIntervalMs: " + mPlaybackIntervalMs);
         ProfileService.println(sb, "mPlayPosChangedNT: " + mPlayPosChangedNT);
         ProfileService.println(sb, "mNextPosMs: " + mNextPosMs);
