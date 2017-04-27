@@ -703,8 +703,8 @@ public final class Avrcp {
                 break;
 
             case MSG_NATIVE_REQ_GET_FOLDER_ITEMS: {
-                if (DEBUG) Log.v(TAG, "MSG_NATIVE_REQ_GET_FOLDER_ITEMS");
                 AvrcpCmd.FolderItemsCmd folderObj = (AvrcpCmd.FolderItemsCmd) msg.obj;
+                if (DEBUG) Log.v(TAG, "MSG_NATIVE_REQ_GET_FOLDER_ITEMS " + folderObj);
                 switch (folderObj.mScope) {
                     case AvrcpConstants.BTRC_SCOPE_PLAYER_LIST:
                         handleMediaPlayerListRsp(folderObj);
@@ -731,8 +731,9 @@ public final class Avrcp {
 
             case MSG_NATIVE_REQ_GET_ITEM_ATTR:
                 // msg object contains the item attribute object
-                if (DEBUG) Log.v(TAG, "MSG_NATIVE_REQ_GET_ITEM_ATTR");
-                handleGetItemAttr((AvrcpCmd.ItemAttrCmd) msg.obj);
+                AvrcpCmd.ItemAttrCmd cmd = (AvrcpCmd.ItemAttrCmd) msg.obj;
+                if (DEBUG) Log.v(TAG, "MSG_NATIVE_REQ_GET_ITEM_ATTR " + cmd);
+                handleGetItemAttr(cmd);
                 break;
 
             case MSG_NATIVE_REQ_SET_BR_PLAYER:
@@ -760,11 +761,13 @@ public final class Avrcp {
 
             case MSG_NATIVE_REQ_PLAY_ITEM:
             {
-                if (DEBUG) Log.v(TAG, "MSG_NATIVE_REQ_PLAY_ITEM");
                 Bundle data = msg.getData();
                 byte[] bdaddr = data.getByteArray("BdAddress");
                 byte[] uid = data.getByteArray("uid");
                 byte scope = data.getByte("scope");
+                if (DEBUG)
+                    Log.v(TAG, "MSG_NATIVE_REQ_PLAY_ITEM scope=" + scope + " id="
+                                    + Utils.byteArrayToString(uid));
                 handlePlayItemResponse(bdaddr, uid, scope);
                 break;
             }
@@ -991,7 +994,7 @@ public final class Avrcp {
         mHandler.sendMessage(msg);
     }
 
-    private void getElementAttrRequestFromNative(byte[] address,byte numAttr, int[] attrs) {
+    private void getElementAttrRequestFromNative(byte[] address, byte numAttr, int[] attrs) {
         if (DEBUG) Log.v(TAG, "getElementAttrRequestFromNative: numAttr=" + numAttr);
         AvrcpCmd avrcpCmdobj = new AvrcpCmd();
         AvrcpCmd.ElementAttrCmd elemAttr = avrcpCmdobj.new ElementAttrCmd(address, numAttr, attrs);

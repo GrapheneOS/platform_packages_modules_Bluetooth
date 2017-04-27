@@ -25,6 +25,8 @@ import android.media.MediaMetadata;
 import android.os.Bundle;
 import android.util.Log;
 
+import com.android.bluetooth.Utils;
+
 import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Arrays;
@@ -93,7 +95,7 @@ public class AddressedMediaPlayer {
             return;
         }
 
-        if (DEBUG) printByteArray("getItemAttr-UID", itemAttr.mUid);
+        if (DEBUG) Log.d(TAG, "getItemAttr-UID: 0x" + Utils.byteArrayToString(itemAttr.mUid));
         for (MediaSession.QueueItem item : items) {
             if (item.getQueueId() == mediaId) {
                 getItemAttrFilterAttr(bdaddr, itemAttr, item, mediaController);
@@ -170,8 +172,7 @@ public class AddressedMediaPlayer {
             if (current == null) bundle.putString(key, metadata.getString(key));
         }
         for (String key : longKeys) {
-            String current = bundle.getString(key);
-            if (current == null) bundle.putString(key, metadata.getLong(key) + "");
+            if (!bundle.containsKey(key)) bundle.putLong(key, metadata.getLong(key));
         }
         return bundle;
     }
@@ -255,7 +256,7 @@ public class AddressedMediaPlayer {
         }
         /* for any item associated with NowPlaying, uid is queueId */
         track = ByteBuffer.allocate(AvrcpConstants.UID_SIZE).putLong(qid).array();
-        if (DEBUG) printByteArray("trackChangedRsp", track);
+        if (DEBUG) Log.d(TAG, "trackChangedRsp: 0x" + Utils.byteArrayToString(track));
         mMediaInterface.trackChangedRsp(trackChangedNT, track);
     }
 
@@ -316,8 +317,9 @@ public class AddressedMediaPlayer {
         ArrayList<Integer> attrId = new ArrayList<Integer>();
 
         for (int itemIndex = 0; itemIndex < result_items.size(); itemIndex++) {
+            MediaSession.QueueItem item = result_items.get(itemIndex);
             // get the queue id
-            long qid = result_items.get(itemIndex).getQueueId();
+            long qid = item.getQueueId();
             byte[] uid = ByteBuffer.allocate(AvrcpConstants.UID_SIZE).putLong(qid).array();
 
             // get the array of uid from 2d to array 1D array
@@ -327,7 +329,7 @@ public class AddressedMediaPlayer {
 
             /* Set display name for current item */
             folderDataNative.mDisplayNames[itemIndex] =
-                    result_items.get(itemIndex).getDescription().getTitle().toString();
+                    getAttrValue(AvrcpConstants.ATTRID_TITLE, item, mediaController);
 
             int maxAttributesRequested = 0;
             boolean isAllAttribRequested = false;
@@ -351,17 +353,11 @@ public class AddressedMediaPlayer {
 
                     int attribId =
                             isAllAttribRequested ? (idx + 1) : folderItemsReqObj.mAttrIDs[idx];
-                    if (attribId >= AvrcpConstants.ATTRID_TITLE
-                            && attribId <= AvrcpConstants.ATTRID_PLAY_TIME) {
-                        value = getAttrValue(
-                                attribId, result_items.get(itemIndex), mediaController);
-                        if (value != null) {
-                            attrArray.add(value);
-                            attrId.add(attribId);
-                            attrCnt++;
-                        }
-                    } else {
-                        Log.w(TAG, "invalid attribute id is requested: " + attribId);
+                    value = getAttrValue(attribId, item, mediaController);
+                    if (value != null) {
+                        attrArray.add(value);
+                        attrId.add(attribId);
+                        attrCnt++;
                     }
                 }
                 /* add num attr actually received from media player for a particular item */
@@ -403,6 +399,7 @@ public class AddressedMediaPlayer {
             PlaybackState state = mediaController.getPlaybackState();
             Bundle extras = desc.getExtras();
             if (state != null && (item.getQueueId() == state.getActiveQueueItemId())) {
+                if (DEBUG) Log.d(TAG, "getAttrValue: item is active, filling extra data");
                 extras = fillBundle(mediaController.getMetadata(), extras);
             }
             if (DEBUG) Log.d(TAG, "getAttrValue: item " + item + " : " + desc);
@@ -437,19 +434,21 @@ public class AddressedMediaPlayer {
                     break;
 
                 case AvrcpConstants.ATTRID_COVER_ART:
-                    Log.e(TAG, "Cover art attribute not supported");
-                    break;
+                    Log.e(TAG, "getAttrValue: Cover art attribute not supported");
+                    return null;
 
                 default:
-                    Log.e(TAG, "Unknown attribute ID");
+                    Log.e(TAG, "getAttrValue: Unknown attribute ID requested: " + attr);
+                    return null;
             }
         } catch (NullPointerException ex) {
             Log.w(TAG, "getAttrValue: attr id not found in result");
             /* checking if attribute is title, then it is mandatory and cannot send null */
             if (attr == AvrcpConstants.ATTRID_TITLE) {
-                return "<Unknown Title>";
+                attrValue = "<Unknown Title>";
+            } else {
+                return null;
             }
-            return null;
         }
         if (DEBUG) Log.d(TAG, "getAttrValue: attrvalue = " + attrValue + ", attr id:" + attr);
         return attrValue;
@@ -510,14 +509,5 @@ public class AddressedMediaPlayer {
             mMediaInterface.getItemAttrRsp(bdaddr, AvrcpConstants.RSP_NO_ERROR, rspObj);
             return;
         }
-    }
-
-    private void printByteArray(String arrName, byte[] array) {
-        StringBuilder byteArray = new StringBuilder(arrName + ": 0x");
-
-        for (int idx = 0; idx < array.length; idx++) {
-            byteArray.append(String.format(" %02x", array[idx]));
-        }
-        Log.d(TAG, byteArray + "");
     }
 }
