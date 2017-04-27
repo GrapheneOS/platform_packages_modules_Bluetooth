@@ -219,6 +219,13 @@ public class GattService extends ProfileService {
         return true;
     }
 
+    boolean permissionCheck(UUID uuid) {
+        if (isRestrictedCharUuid(uuid) && (0 != checkCallingOrSelfPermission(BLUETOOTH_PRIVILEGED)))
+            return false;
+        else
+            return true;
+    }
+
     boolean permissionCheck(int connId, int handle) {
         List<BluetoothGattService> db = gattClientDatabases.get(connId);
         if (db == null) return true;
@@ -460,6 +467,14 @@ public class GattService extends ProfileService {
             service.readCharacteristic(clientIf, address, handle, authReq);
         }
 
+        public void readUsingCharacteristicUuid(int clientIf, String address, ParcelUuid uuid,
+                int startHandle, int endHandle, int authReq) {
+            GattService service = getService();
+            if (service == null) return;
+            service.readUsingCharacteristicUuid(
+                    clientIf, address, uuid.getUuid(), startHandle, endHandle, authReq);
+        }
+
         public void writeCharacteristic(int clientIf, String address, int handle,
                              int writeType, int authReq, byte[] value) {
             GattService service = getService();
@@ -601,6 +616,12 @@ public class GattService extends ProfileService {
             GattService service = getService();
             if (service == null) return;
             service.stopAdvertisingSet(callback);
+        }
+
+        public void getOwnAddress(int advertiserId) {
+            GattService service = getService();
+            if (service == null) return;
+            service.getOwnAddress(advertiserId);
         }
 
         public void enableAdvertisingSet(
@@ -1708,6 +1729,11 @@ public class GattService extends ProfileService {
         mAdvertiseManager.stopAdvertisingSet(callback);
     }
 
+    void getOwnAddress(int advertiserId) {
+        enforcePrivilegedPermission();
+        mAdvertiseManager.getOwnAddress(advertiserId);
+    }
+
     void enableAdvertisingSet(int advertiserId, boolean enable, int duration, int maxExtAdvEvents) {
         enforceAdminPermission();
         mAdvertiseManager.enableAdvertisingSet(advertiserId, enable, duration, maxExtAdvEvents);
@@ -1869,6 +1895,27 @@ public class GattService extends ProfileService {
         }
 
         gattClientReadCharacteristicNative(connId, handle, authReq);
+    }
+
+    void readUsingCharacteristicUuid(
+            int clientIf, String address, UUID uuid, int startHandle, int endHandle, int authReq) {
+        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+
+        if (VDBG) Log.d(TAG, "readUsingCharacteristicUuid() - address=" + address);
+
+        Integer connId = mClientMap.connIdByAddress(clientIf, address);
+        if (connId == null) {
+            Log.e(TAG, "readUsingCharacteristicUuid() - No connection for " + address + "...");
+            return;
+        }
+
+        if (!permissionCheck(uuid)) {
+            Log.w(TAG, "readUsingCharacteristicUuid() - permission check failed!");
+            return;
+        }
+
+        gattClientReadUsingCharacteristicUuidNative(connId, uuid.getLeastSignificantBits(),
+                uuid.getMostSignificantBits(), startHandle, endHandle, authReq);
     }
 
     void writeCharacteristic(int clientIf, String address, int handle, int writeType,
@@ -2645,6 +2692,9 @@ public class GattService extends ProfileService {
     private native void gattClientGetGattDbNative(int conn_id);
 
     private native void gattClientReadCharacteristicNative(int conn_id, int handle, int authReq);
+
+    private native void gattClientReadUsingCharacteristicUuidNative(
+            int conn_id, long uuid_msb, long uuid_lsb, int s_handle, int e_handle, int authReq);
 
     private native void gattClientReadDescriptorNative(int conn_id, int handle, int authReq);
 

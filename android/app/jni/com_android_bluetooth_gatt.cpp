@@ -190,6 +190,7 @@ static jmethodID method_onServerConnUpdate;
  * Advertiser callback methods
  */
 static jmethodID method_onAdvertisingSetStarted;
+static jmethodID method_onOwnAddressRead;
 static jmethodID method_onAdvertisingEnabled;
 static jmethodID method_onAdvertisingDataSet;
 static jmethodID method_onScanResponseDataSet;
@@ -1083,6 +1084,17 @@ static void gattClientReadCharacteristicNative(JNIEnv* env, jobject object,
   sGattIf->client->read_characteristic(conn_id, handle, authReq);
 }
 
+static void gattClientReadUsingCharacteristicUuidNative(
+    JNIEnv* env, jobject object, jint conn_id, jlong uuid_lsb, jlong uuid_msb,
+    jint s_handle, jint e_handle, jint authReq) {
+  if (!sGattIf) return;
+
+  bt_uuid_t uuid;
+  set_uuid(uuid.uu, uuid_msb, uuid_lsb);
+  sGattIf->client->read_using_characteristic_uuid(conn_id, &uuid, s_handle,
+                                                  e_handle, authReq);
+}
+
 static void gattClientReadDescriptorNative(JNIEnv* env, jobject object,
                                            jint conn_id, jint handle,
                                            jint authReq) {
@@ -1672,6 +1684,8 @@ static void gattServerSendResponseNative(JNIEnv* env, jobject object,
 static void advertiseClassInitNative(JNIEnv* env, jclass clazz) {
   method_onAdvertisingSetStarted =
       env->GetMethodID(clazz, "onAdvertisingSetStarted", "(IIII)V");
+  method_onOwnAddressRead =
+      env->GetMethodID(clazz, "onOwnAddressRead", "(IILjava/lang/String;)V");
   method_onAdvertisingEnabled =
       env->GetMethodID(clazz, "onAdvertisingEnabled", "(IZI)V");
   method_onAdvertisingDataSet =
@@ -1832,6 +1846,24 @@ static void stopAdvertisingSetNative(JNIEnv* env, jobject object,
   if (!sGattIf) return;
 
   sGattIf->advertiser->Unregister(advertiser_id);
+}
+
+static void getOwnAddressCb(uint8_t advertiser_id, uint8_t address_type,
+                            bt_bdaddr_t address) {
+  CallbackEnv sCallbackEnv(__func__);
+  if (!sCallbackEnv.valid()) return;
+
+  ScopedLocalRef<jstring> addr(sCallbackEnv.get(),
+                               bdaddr2newjstr(sCallbackEnv.get(), &address));
+  sCallbackEnv->CallVoidMethod(mAdvertiseCallbacksObj, method_onOwnAddressRead,
+                               advertiser_id, address_type, addr.get());
+}
+
+static void getOwnAddressNative(JNIEnv* env, jobject object,
+                                jint advertiser_id) {
+  if (!sGattIf) return;
+  sGattIf->advertiser->GetOwnAddress(
+      advertiser_id, base::Bind(&getOwnAddressCb, advertiser_id));
 }
 
 static void callJniCallback(jmethodID method, uint8_t advertiser_id,
@@ -2055,6 +2087,7 @@ static JNINativeMethod sAdvertiseMethods[] = {
      "(Landroid/bluetooth/le/AdvertisingSetParameters;[B[BLandroid/bluetooth/"
      "le/PeriodicAdvertisingParameters;[BIII)V",
      (void*)startAdvertisingSetNative},
+    {"getOwnAddressNative", "(I)V", (void*)getOwnAddressNative},
     {"stopAdvertisingSetNative", "(I)V", (void*)stopAdvertisingSetNative},
     {"enableAdvertisingSetNative", "(IZII)V",
      (void*)enableAdvertisingSetNative},
@@ -2142,6 +2175,8 @@ static JNINativeMethod sMethods[] = {
     {"gattClientGetGattDbNative", "(I)V", (void*)gattClientGetGattDbNative},
     {"gattClientReadCharacteristicNative", "(III)V",
      (void*)gattClientReadCharacteristicNative},
+    {"gattClientReadUsingCharacteristicUuidNative", "(IJJIII)V",
+     (void*)gattClientReadUsingCharacteristicUuidNative},
     {"gattClientReadDescriptorNative", "(III)V",
      (void*)gattClientReadDescriptorNative},
     {"gattClientWriteCharacteristicNative", "(IIII[B)V",
