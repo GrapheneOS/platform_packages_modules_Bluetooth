@@ -45,15 +45,19 @@ public class AddressedMediaPlayer {
     private AvrcpMediaRspInterface mMediaInterface;
     private List<MediaSession.QueueItem> mNowPlayingList;
 
+    private long mLastTrackIdSent;
+
     public AddressedMediaPlayer(AvrcpMediaRspInterface mediaInterface) {
         mNowPlayingList = null;
         mMediaInterface = mediaInterface;
+        mLastTrackIdSent = MediaSession.QueueItem.UNKNOWN_ID;
     }
 
     void cleanup() {
         if (DEBUG) Log.v(TAG, "cleanup");
         mNowPlayingList = null;
         mMediaInterface = null;
+        mLastTrackIdSent = MediaSession.QueueItem.UNKNOWN_ID;
     }
 
     /* get now playing list from addressed player */
@@ -242,22 +246,27 @@ public class AddressedMediaPlayer {
         mMediaInterface.getTotalNumOfItemsRsp(bdaddr, AvrcpConstants.RSP_NO_ERROR, 0, items.size());
     }
 
-    void sendTrackChangeWithId(int trackChangedNT, MediaController mediaController) {
+    boolean sendTrackChangeWithId(boolean requesting, MediaController mediaController) {
         if (DEBUG) Log.d(TAG, "sendTrackChangeWithId");
         byte[] track;
-        if (mediaController == null) {
-            mMediaInterface.trackChangedRsp(trackChangedNT, AvrcpConstants.NO_TRACK_SELECTED);
-            return;
-        }
         long qid = MediaSession.QueueItem.UNKNOWN_ID;
-        PlaybackState state = mediaController.getPlaybackState();
-        if (state != null) {
-            qid = state.getActiveQueueItemId();
+        if (mediaController != null) {
+            PlaybackState state = mediaController.getPlaybackState();
+            /* for any item associated with NowPlaying, uid is queueId */
+            if (state != null) qid = state.getActiveQueueItemId();
         }
-        /* for any item associated with NowPlaying, uid is queueId */
+        if (!requesting && qid == mLastTrackIdSent) {
+            if (DEBUG) Log.d(TAG, "not sending duplicate track changed id " + qid);
+            return false;
+        }
         track = ByteBuffer.allocate(AvrcpConstants.UID_SIZE).putLong(qid).array();
         if (DEBUG) Log.d(TAG, "trackChangedRsp: 0x" + Utils.byteArrayToString(track));
+
+        int trackChangedNT = AvrcpConstants.NOTIFICATION_TYPE_CHANGED;
+        if (requesting) trackChangedNT = AvrcpConstants.NOTIFICATION_TYPE_INTERIM;
         mMediaInterface.trackChangedRsp(trackChangedNT, track);
+        mLastTrackIdSent = qid;
+        return (trackChangedNT == AvrcpConstants.NOTIFICATION_TYPE_CHANGED);
     }
 
     /*
@@ -418,11 +427,13 @@ public class AddressedMediaPlayer {
                     break;
 
                 case AvrcpConstants.ATTRID_TRACK_NUM:
-                    attrValue = extras.getString(MediaMetadata.METADATA_KEY_TRACK_NUMBER);
+                    attrValue =
+                            Long.toString(extras.getLong(MediaMetadata.METADATA_KEY_TRACK_NUMBER));
                     break;
 
                 case AvrcpConstants.ATTRID_NUM_TRACKS:
-                    attrValue = extras.getString(MediaMetadata.METADATA_KEY_NUM_TRACKS);
+                    attrValue =
+                            Long.toString(extras.getLong(MediaMetadata.METADATA_KEY_NUM_TRACKS));
                     break;
 
                 case AvrcpConstants.ATTRID_GENRE:
@@ -430,7 +441,7 @@ public class AddressedMediaPlayer {
                     break;
 
                 case AvrcpConstants.ATTRID_PLAY_TIME:
-                    attrValue = extras.getString(MediaMetadata.METADATA_KEY_DURATION);
+                    attrValue = Long.toString(extras.getLong(MediaMetadata.METADATA_KEY_DURATION));
                     break;
 
                 case AvrcpConstants.ATTRID_COVER_ART:
