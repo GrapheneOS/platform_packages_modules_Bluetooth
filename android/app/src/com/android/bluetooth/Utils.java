@@ -98,6 +98,15 @@ final public class Utils {
         return converter.getInt(offset);
     }
 
+    public static String byteArrayToString(byte[] valueBuf) {
+        StringBuilder sb = new StringBuilder();
+        for (int idx = 0; idx < valueBuf.length; idx++) {
+            if (idx != 0) sb.append(" ");
+            sb.append(String.format("%02x", valueBuf[idx]));
+        }
+        return sb.toString();
+    }
+
     public static byte[] intToByteArray(int value) {
         ByteBuffer converter = ByteBuffer.allocate(4);
         converter.order(ByteOrder.nativeOrder());
