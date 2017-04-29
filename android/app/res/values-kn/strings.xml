@@ -29,7 +29,7 @@
     <string name="bt_enable_line1" msgid="7203551583048149">"ಬ್ಲೂಟೂತ್‌ ಸೇವೆಗಳನ್ನು ಬಳಸಲು, ಮೊದಲು ನೀವದನ್ನು ಆನ್‌ ಮಾಡಬೇಕು."</string>
     <string name="bt_enable_line2" msgid="4341936569415937994">"ಇದೀಗ ಬ್ಲೂಟೂತ್‌ ಆನ್‌ ಮಾಡುವುದೇ?"</string>
     <string name="bt_enable_cancel" msgid="1988832367505151727">"ರದ್ದುಮಾಡಿ"</string>
-    <string name="bt_enable_ok" msgid="3432462749994538265">"ಆನ್ ಮಾಡು"</string>
+    <string name="bt_enable_ok" msgid="3432462749994538265">"ಆನ್‌ ಮಾಡಿ"</string>
     <string name="incoming_file_confirm_title" msgid="8139874248612182627">"ಫೈಲ್ ವರ್ಗಾವಣೆ"</string>
     <string name="incoming_file_confirm_content" msgid="2752605552743148036">"ಒಳಬರುವ ಫೈಲ್‌ಗಳನ್ನು ಸ್ವೀಕರಿಸುವುದೇ?"</string>
     <string name="incoming_file_confirm_cancel" msgid="2973321832477704805">"ನಿರಾಕರಿಸಿ"</string>
@@ -51,7 +51,7 @@
     <string name="download_line3" msgid="4384821622908676061">"ಫೈಲ್‌ ಗಾತ್ರ: <xliff:g id="SIZE">%1$s</xliff:g>"</string>
     <string name="download_line4" msgid="8535996869722666525"></string>
     <string name="download_line5" msgid="3069560415845295386">"ಫೈಲ್‌ ಸ್ವೀಕರಿಸಲಾಗುತ್ತಿದೆ…"</string>
-    <string name="download_cancel" msgid="9177305996747500768">"ನಿಲ್ಲಿಸು"</string>
+    <string name="download_cancel" msgid="9177305996747500768">"ನಿಲ್ಲಿಸಿ"</string>
     <string name="download_ok" msgid="5000360731674466039">"ಮರೆಮಾಡು"</string>
     <string name="incoming_line1" msgid="2127419875681087545">"ಇವರಿಂದ"</string>
     <string name="incoming_line2" msgid="3348994249285315873">"ಫೈಲ್‌ಹೆಸರು"</string>
