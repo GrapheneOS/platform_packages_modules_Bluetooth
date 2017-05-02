@@ -1581,8 +1581,11 @@ public final class Avrcp {
 
     private void setAddressedMediaSessionPackage(String packageName) {
         if (DEBUG) Log.v(TAG, "Setting addressed media session to " + packageName);
-        // Can't set no player, that handled by onActiveSessionsChanged
-        if (packageName == null) return;
+        if (packageName == null) {
+            // Should only happen when there's no media players, reset to no available player.
+            updateCurrentController(0, mCurrBrowsePlayerID);
+            return;
+        }
         // No change.
         if (getPackageName(mCurrAddrPlayerID).equals(packageName)) return;
         // If the player doesn't exist, we need to add it.
@@ -2653,8 +2656,12 @@ public final class Avrcp {
 
                 @Override
                 public void onAddressedPlayerChanged(ComponentName receiver) {
-                    // We only get this if there isn't an active media session.
-                    // We can still get a passthrough.
+                    if (receiver == null) {
+                        // No active sessions, and no session to revive, give up.
+                        setAddressedMediaSessionPackage(null);
+                        return;
+                    }
+                    // We can still get a passthrough which will revive this player.
                     setAddressedMediaSessionPackage(receiver.getPackageName());
                 }
             };
