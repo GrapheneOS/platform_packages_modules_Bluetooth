@@ -29,7 +29,7 @@
     <string name="bt_enable_line1" msgid="7203551583048149">"‏כדי להשתמש בשירותי Bluetooth, עליך להפעיל תחילה את Bluetooth."</string>
     <string name="bt_enable_line2" msgid="4341936569415937994">"‏להפעיל Bluetooth כעת?"</string>
     <string name="bt_enable_cancel" msgid="1988832367505151727">"ביטול"</string>
-    <string name="bt_enable_ok" msgid="3432462749994538265">"הפעל"</string>
+    <string name="bt_enable_ok" msgid="3432462749994538265">"הפעלה"</string>
     <string name="incoming_file_confirm_title" msgid="8139874248612182627">"העברת קבצים"</string>
     <string name="incoming_file_confirm_content" msgid="2752605552743148036">"האם לקבל את הקובץ הנכנס?"</string>
     <string name="incoming_file_confirm_cancel" msgid="2973321832477704805">"דחה"</string>
@@ -127,7 +127,7 @@
     <string name="transfer_menu_clear" msgid="5854038118831427492">"נקה מהרשימה"</string>
     <string name="transfer_clear_dlg_title" msgid="2953444575556460386">"נקה"</string>
     <string name="bluetooth_map_settings_save" msgid="7635491847388074606">"שמור"</string>
-    <string name="bluetooth_map_settings_cancel" msgid="9205350798049865699">"בטל"</string>
+    <string name="bluetooth_map_settings_cancel" msgid="9205350798049865699">"ביטול"</string>
     <string name="bluetooth_map_settings_intro" msgid="6482369468223987562">"‏בחר בחשבונות שברצונך לשתף באמצעות Bluetooth. עדיין יהיה עליך לאשר גישה אל החשבונות בעת החיבור."</string>
     <string name="bluetooth_map_settings_count" msgid="4557473074937024833">"מקומות נותרים:"</string>
     <string name="bluetooth_map_settings_app_icon" msgid="7105805610929114707">"סמל אפליקציה"</string>
