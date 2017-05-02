@@ -37,7 +37,6 @@ import android.util.Log;
 
 import com.android.bluetooth.Utils;
 import com.android.bluetooth.btservice.AdapterService;
-import com.android.internal.app.IBatteryStats;
 
 import java.util.ArrayDeque;
 import java.util.Collections;
@@ -83,7 +82,6 @@ public class ScanManager {
 
     private Integer curUsedTrackableAdvertisements;
     private GattService mService;
-    private IBatteryStats mBatteryStats;
     private BroadcastReceiver mBatchAlarmReceiver;
     private boolean mBatchAlarmReceiverRegistered;
     private ScanNative mScanNative;
@@ -103,7 +101,6 @@ public class ScanManager {
     }
 
     void start() {
-        mBatteryStats = IBatteryStats.Stub.asInterface(ServiceManager.getService("batterystats"));
         HandlerThread thread = new HandlerThread("BluetoothScanManager");
         thread.start();
         mHandler = new ClientHandler(thread.getLooper());
@@ -254,13 +251,6 @@ public class ScanManager {
                         mHandler.sendMessageDelayed(msg, AppScanStats.SCAN_TIMEOUT_MS);
                     }
                 }
-
-                // Update BatteryStats with this workload.
-                try {
-                    mBatteryStats.noteBleScanStarted(client.workSource);
-                } catch (RemoteException e) {
-                    /* ignore */
-                }
             }
         }
 
@@ -269,16 +259,6 @@ public class ScanManager {
             if (client == null) return;
 
             if (mRegularScanClients.contains(client)) {
-                // Update BatteryStats with this workload.
-                try {
-                    // The ScanClient passed in just holds the scannerId. We retrieve the real
-                    // client, which may have workSource set.
-                    ScanClient workClient = mScanNative.getRegularScanClient(client.scannerId);
-                    if (workClient != null) mBatteryStats.noteBleScanStopped(workClient.workSource);
-                } catch (RemoteException e) {
-                    /* ignore */
-                }
-
                 mScanNative.stopRegularScan(client);
 
                 if (mScanNative.numRegularScanClients() == 0) {
