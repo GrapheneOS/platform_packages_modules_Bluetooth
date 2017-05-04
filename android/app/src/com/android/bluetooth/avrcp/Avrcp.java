@@ -1773,8 +1773,9 @@ public final class Avrcp {
                 new ArrayList<android.media.session.MediaController>();
         synchronized (mMediaPlayerInfoList) {
             for (MediaPlayerInfo info : mMediaPlayerInfoList.values()) {
-                if (info.getMediaController() != null) {
-                    controllers.add(info.getMediaController().getWrappedInstance());
+                MediaController controller = info.getMediaController();
+                if (controller != null) {
+                    controllers.add(controller.getWrappedInstance());
                 }
             }
         }
@@ -1852,7 +1853,8 @@ public final class Avrcp {
     private void removeMediaController(android.media.session.MediaController controller) {
         synchronized (mMediaPlayerInfoList) {
             for (MediaPlayerInfo info : mMediaPlayerInfoList.values()) {
-                if (info.getMediaController().equals(controller)) info.setMediaController(null);
+                MediaController c = info.getMediaController();
+                if (c != null && c.equals(controller)) info.setMediaController(null);
             }
         }
     }
