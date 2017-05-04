@@ -139,6 +139,22 @@ public class MediaController {
         return mDelegate.controlsSameSession(other);
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (o instanceof android.media.session.MediaController) {
+            return mDelegate.equals(o);
+        } else if (o instanceof MediaController) {
+            MediaController other = (MediaController) o;
+            return mDelegate.equals(other.mDelegate);
+        }
+        return false;
+    }
+
+    @Override
+    public String toString() {
+        return super.toString() + "(wraps " + mDelegate + ")";
+    }
+
     public static abstract class Callback extends android.media.session.MediaController.Callback { }
 
     public class TransportControls {
