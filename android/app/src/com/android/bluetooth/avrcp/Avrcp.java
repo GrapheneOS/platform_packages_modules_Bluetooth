@@ -112,6 +112,8 @@ public final class Avrcp {
     private int mAbsVolRetryTimes;
     private int mSkipAmount;
 
+    private static final int NO_PLAYER_ID = 0;
+
     private int mCurrAddrPlayerID;
     private int mCurrBrowsePlayerID;
     private int mLastUsedPlayerID;
@@ -256,7 +258,7 @@ public final class Avrcp {
         mAbsVolThreshold = 0;
         mVolumeMapping = new HashMap<Integer, Integer>();
         sUIDCounter = AvrcpConstants.DEFAULT_UID_COUNTER;
-        mCurrAddrPlayerID = 0;
+        mCurrAddrPlayerID = NO_PLAYER_ID;
         mCurrBrowsePlayerID = 0;
         mContext = context;
         mLastUsedPlayerID = 0;
@@ -374,6 +376,11 @@ public final class Avrcp {
         @Override
         public void onSessionDestroyed() {
             Log.v(TAG, "MediaController session destroyed");
+            if (mMediaController != null) {
+                removeMediaController(mMediaController.getWrappedInstance());
+                mMediaController.unregisterCallback(mMediaControllerCb);
+                mMediaController = null;
+            }
         }
 
         @Override
@@ -933,12 +940,14 @@ public final class Avrcp {
     }
 
     private void updateCurrentMediaState() {
+        MediaAttributes currentAttributes = mMediaAttributes;
+        PlaybackState newState = mCurrentPlayState;
         if (mMediaController == null) {
             // Use A2DP state if we don't have a MediaControlller
-            boolean isPlaying = (mA2dpState == BluetoothA2dp.STATE_PLAYING);
+            boolean isPlaying =
+                    (mA2dpState == BluetoothA2dp.STATE_PLAYING) && mAudioManager.isMusicActive();
             if (isPlaying != isPlayingState(mCurrentPlayState)) {
                 /* if a2dp is streaming, check to make sure music is active */
-                if (isPlaying && !mAudioManager.isMusicActive()) return;
                 PlaybackState.Builder builder = new PlaybackState.Builder();
                 if (isPlaying) {
                     builder.setState(PlaybackState.STATE_PLAYING,
@@ -947,26 +956,21 @@ public final class Avrcp {
                     builder.setState(PlaybackState.STATE_PAUSED,
                             PlaybackState.PLAYBACK_POSITION_UNKNOWN, 0.0f);
                 }
-                updatePlaybackState(builder.build());
+                newState = builder.build();
             }
-            // Can't get metadata from A2dp so we're done.
-            return;
+            mMediaAttributes = new MediaAttributes(null);
+        } else {
+            newState = mMediaController.getPlaybackState();
+            mMediaAttributes = new MediaAttributes(mMediaController.getMetadata());
         }
 
-        MediaAttributes currentAttributes = mMediaAttributes;
-
-        PlaybackState newState = mMediaController.getPlaybackState();
-
-        // Metadata
-        mMediaAttributes = new MediaAttributes(mMediaController.getMetadata());
-
-        if (currentAttributes.equals(mMediaAttributes)) {
+        if (!currentAttributes.equals(mMediaAttributes)) {
             Log.v(TAG, "MediaAttributes Changed to " + mMediaAttributes.toString());
             mTracksPlayed++;
             sendTrackChangedRsp(false);
         }
 
-        updatePlaybackState(mMediaController.getPlaybackState());
+        updatePlaybackState(newState);
     }
 
     private void getRcFeaturesRequestFromNative(byte[] address, int features) {
@@ -1409,6 +1413,7 @@ public final class Avrcp {
         if (DEBUG) Log.d(TAG, "packageName: " + packageName + " removed: " + removed);
 
         if (removed) {
+            removeMediaPlayerInfo(packageName);
             // old package is removed, updating local browsable player's list
             if (isBrowseSupported(packageName)) {
                 removePackageFromBrowseList(packageName);
@@ -1562,14 +1567,18 @@ public final class Avrcp {
                             getMediaControllers();
                     for (android.media.session.MediaController controller : currentControllers) {
                         if (!newControllers.contains(controller)) {
-                            removeMediaPlayerInfo(controller.getPackageName());
-                            playersChanged = true;
+                            removeMediaController(controller);
+                            if (mMediaController != null && mMediaController.equals(controller)) {
+                                if (DEBUG) Log.v(TAG, "Active Controller is gone!");
+                                mMediaController.unregisterCallback(mMediaControllerCb);
+                                mMediaController = null;
+                            }
                         }
                     }
 
                     if (playersChanged) {
                         mHandler.sendEmptyMessage(MSG_AVAILABLE_PLAYERS_CHANGED_RSP);
-                        if (newControllers.size() > 0 && (mMediaController == null)) {
+                        if (newControllers.size() > 0 && getAddressedPlayerInfo() == null) {
                             if (DEBUG)
                                 Log.v(TAG,
                                         "No addressed player but active sessions, taking first.");
@@ -1794,7 +1803,6 @@ public final class Avrcp {
      *  @return true if an item was updated, false if it was added instead
      */
     private boolean addMediaPlayerInfo(MediaPlayerInfo info) {
-        if (DEBUG) Log.d(TAG, "add " + info.toString());
         int updateId = -1;
         boolean updated = false;
         synchronized (mMediaPlayerInfoList) {
@@ -1809,10 +1817,13 @@ public final class Avrcp {
                 // New player
                 mLastUsedPlayerID++;
                 updateId = mLastUsedPlayerID;
-            } else if (updateId == mCurrAddrPlayerID) {
-                updateCurrentController(mCurrAddrPlayerID, mCurrBrowsePlayerID);
             }
             mMediaPlayerInfoList.put(updateId, info);
+            if (DEBUG)
+                Log.d(TAG, (updated ? "update #" : "add #") + updateId + ":" + info.toString());
+            if (updateId == mCurrAddrPlayerID) {
+                updateCurrentController(mCurrAddrPlayerID, mCurrBrowsePlayerID);
+            }
         }
         return updated;
     }
@@ -1828,10 +1839,21 @@ public final class Avrcp {
                 }
             }
             if (removeKey != -1) {
+                if (DEBUG)
+                    Log.d(TAG, "remove #" + removeKey + ":" + mMediaPlayerInfoList.get(removeKey));
                 return mMediaPlayerInfoList.remove(removeKey);
             }
 
             return null;
+        }
+    }
+
+    /** Remove the controller referenced by |controller| from any player in the list */
+    private void removeMediaController(android.media.session.MediaController controller) {
+        synchronized (mMediaPlayerInfoList) {
+            for (MediaPlayerInfo info : mMediaPlayerInfoList.values()) {
+                if (info.getMediaController().equals(controller)) info.setMediaController(null);
+            }
         }
     }
 
@@ -2096,11 +2118,10 @@ public final class Avrcp {
 
         if (DEBUG)
             Log.d(TAG, "updateCurrentController: " + mMediaController + " to " + newController);
-        if (mMediaController == null || newController == null
-                || (mMediaController.getWrappedInstance() != newController.getWrappedInstance())) {
+        if (mMediaController == null || (!mMediaController.equals(newController))) {
             if (mMediaController != null) mMediaController.unregisterCallback(mMediaControllerCb);
-            if (newController != null) {
-                mMediaController = newController;
+            mMediaController = newController;
+            if (mMediaController != null) {
                 mMediaController.registerCallback(mMediaControllerCb, mHandler);
                 mAddressedMediaPlayer.updateNowPlayingList(mMediaController.getQueue());
             } else {
@@ -2183,13 +2204,17 @@ public final class Avrcp {
     }
 
     private void handleGetItemAttr(AvrcpCmd.ItemAttrCmd itemAttr) {
-        if(itemAttr.mScope == AvrcpConstants.BTRC_SCOPE_NOW_PLAYING) {
-            mAddressedMediaPlayer.getItemAttr(itemAttr.mAddress, itemAttr, mMediaController);
-        }
-        else {
-            if (mAvrcpBrowseManager.getBrowsedMediaPlayer(itemAttr.mAddress) != null)
+        if (itemAttr.mScope == AvrcpConstants.BTRC_SCOPE_NOW_PLAYING) {
+            if (mCurrAddrPlayerID == NO_PLAYER_ID) {
+                getItemAttrRspNative(
+                        itemAttr.mAddress, AvrcpConstants.RSP_NO_AVBL_PLAY, (byte) 0, null, null);
+            } else {
+                mAddressedMediaPlayer.getItemAttr(itemAttr.mAddress, itemAttr, mMediaController);
+            }
+        } else {
+            if (mAvrcpBrowseManager.getBrowsedMediaPlayer(itemAttr.mAddress) != null) {
                 mAvrcpBrowseManager.getBrowsedMediaPlayer(itemAttr.mAddress).getItemAttr(itemAttr);
-            else {
+            } else {
                 Log.e(TAG, "Could not get attributes. mBrowsedMediaPlayer is null");
                 getItemAttrRspNative(itemAttr.mAddress, AvrcpConstants.RSP_INTERNAL_ERR,
                         (byte) 0, null, null);
@@ -2279,7 +2304,8 @@ public final class Avrcp {
         ProfileService.println(sb, "mSkipAmount: " + mSkipAmount);
         ProfileService.println(sb, "mVolumeMapping: " + mVolumeMapping.toString());
         if (mMediaController != null)
-            ProfileService.println(sb, "mMediaSession pkg: " + mMediaController.getPackageName());
+            ProfileService.println(sb, "mMediaController: " + mMediaController.getWrappedInstance()
+                            + " pkg " + mMediaController.getPackageName());
 
         ProfileService.println(sb, "\nMedia Players:");
         synchronized (mMediaPlayerInfoList) {
