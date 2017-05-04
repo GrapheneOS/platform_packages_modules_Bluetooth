@@ -27,7 +27,7 @@ class AdvertiseHelper {
 
   private static final String TAG = "AdvertiseHelper";
 
-  private static final int DEVICE_NAME_MAX = 18;
+  private static final int DEVICE_NAME_MAX = 26;
 
   private static final int COMPLETE_LIST_16_BIT_SERVICE_UUIDS = 0X03;
   private static final int COMPLETE_LIST_32_BIT_SERVICE_UUIDS = 0X05;
