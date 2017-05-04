@@ -1488,31 +1488,41 @@ public final class Avrcp {
     }
 
     private void setAddressedPlayer(byte[] bdaddr, int selectedId) {
-        int status = AvrcpConstants.RSP_NO_ERROR;
+        String functionTag = "setAddressedPlayer(" + selectedId + "): ";
 
         synchronized (mMediaPlayerInfoList) {
             if (mMediaPlayerInfoList.isEmpty()) {
-                status = AvrcpConstants.RSP_NO_AVBL_PLAY;
-                Log.w(TAG, " No Available Players to set, sending response back ");
-            } else if (!mMediaPlayerInfoList.containsKey(selectedId)) {
-                status = AvrcpConstants.RSP_INV_PLAYER;
-                Log.w(TAG, " Invalid Player id: " + selectedId + " to set, sending response back ");
-            } else if (!isPlayerAlreadyAddressed(selectedId)) {
-                // register new Media Controller Callback and update the current Ids
-                if (!updateCurrentController(selectedId, mCurrBrowsePlayerID)) {
-                    status = AvrcpConstants.RSP_INTERNAL_ERR;
-                    Log.e(TAG, "register for new Address player failed: " + mCurrAddrPlayerID);
-                }
-            } else {
+                Log.w(TAG, functionTag + "no players, send no available players");
+                setAddressedPlayerRspNative(bdaddr, AvrcpConstants.RSP_NO_AVBL_PLAY);
+                return;
+            }
+            if (!mMediaPlayerInfoList.containsKey(selectedId)) {
+                Log.w(TAG, functionTag + "invalid id, sending response back ");
+                setAddressedPlayerRspNative(bdaddr, AvrcpConstants.RSP_INV_PLAYER);
+                return;
+            }
+
+            if (isPlayerAlreadyAddressed(selectedId)) {
                 MediaPlayerInfo info = getAddressedPlayerInfo();
-                Log.i(TAG, "addressed player " + info + "is already focused");
+                Log.i(TAG, functionTag + "player already addressed: " + info);
+                setAddressedPlayerRspNative(bdaddr, AvrcpConstants.RSP_NO_ERROR);
+                return;
+            }
+            // register new Media Controller Callback and update the current IDs
+            if (!updateCurrentController(selectedId, mCurrBrowsePlayerID)) {
+                Log.e(TAG, functionTag + "updateCurrentController failed!");
+                setAddressedPlayerRspNative(bdaddr, AvrcpConstants.RSP_INTERNAL_ERR);
+                return;
+            }
+            // If we don't have a controller, try to launch the player
+            MediaPlayerInfo info = getAddressedPlayerInfo();
+            if (info.getMediaController() == null) {
+                Intent launch = mPackageManager.getLaunchIntentForPackage(info.getPackageName());
+                Log.i(TAG, functionTag + "launching player " + launch);
+                mContext.startActivity(launch);
             }
         }
-
-        if (DEBUG) Log.d(TAG, "setAddressedPlayer for selectedId: " + selectedId +
-                " , status: " + status);
-        // Sending address player response to remote
-        setAddressedPlayerRspNative(bdaddr, status);
+        setAddressedPlayerRspNative(bdaddr, AvrcpConstants.RSP_NO_ERROR);
     }
 
     private void setBrowsedPlayer(byte[] bdaddr, int selectedId) {
@@ -1721,20 +1731,6 @@ public final class Avrcp {
         public void onConnectionFailed() {
             Log.d(TAG, "BrowsablePlayerListBuilder: " + mCurrentPlayer.packageName + " FAIL");
             connectNextPlayer();
-        }
-    }
-
-    private void startBrowsedPlayer(int browseId) {
-        if (browseId < 0 || browseId >= mBrowsePlayerInfoList.size()) return;
-        BrowsePlayerInfo player = mBrowsePlayerInfoList.get(browseId);
-
-        Intent intent = new Intent();
-        intent.setComponent(new ComponentName(player.packageName, player.serviceClass));
-        Log.i(TAG, "Starting service:" + player.packageName + ", " + player.serviceClass);
-        try {
-            mContext.startService(intent);
-        } catch (SecurityException ex) {
-            Log.e(TAG, "Can't start " + player.serviceClass + ": " + ex.getMessage());
         }
     }
 
@@ -2107,14 +2103,6 @@ public final class Avrcp {
 
         MediaController newController = null;
         MediaPlayerInfo info = getAddressedPlayerInfo();
-        if (info != null) {
-            newController = info.getMediaController();
-            if (newController == null) {
-                // Browsable player, try to start it, which will trigger an update via
-                // MesiaSessionManager
-                startBrowsedPlayer(getBrowseId(info.getPackageName()));
-            }
-        }
 
         if (DEBUG)
             Log.d(TAG, "updateCurrentController: " + mMediaController + " to " + newController);
