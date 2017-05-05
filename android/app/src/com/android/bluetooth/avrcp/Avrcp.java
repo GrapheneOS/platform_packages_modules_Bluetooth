@@ -16,6 +16,7 @@
 
 package com.android.bluetooth.avrcp;
 
+import android.annotation.Nullable;
 import android.bluetooth.BluetoothA2dp;
 import android.bluetooth.BluetoothAvrcp;
 import android.bluetooth.BluetoothDevice;
@@ -52,8 +53,8 @@ import com.android.bluetooth.btservice.ProfileService;
 import com.android.bluetooth.R;
 import com.android.bluetooth.Utils;
 
-import java.util.concurrent.CountDownLatch;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -190,7 +191,7 @@ public final class Avrcp {
     /* Recording passthrough key dispatches */
     static private final int PASSTHROUGH_LOG_MAX_SIZE = DEBUG ? 50 : 10;
     private EvictingQueue<MediaKeyLog> mPassthroughLogs; // Passthorugh keys dispatched
-    private ArrayList<MediaKeyLog> mPassthroughPending; // Passthrough keys sent not dispatched yet
+    private List<MediaKeyLog> mPassthroughPending; // Passthrough keys sent not dispatched yet
     private int mPassthroughDispatched; // Number of keys dispatched
 
     private class MediaKeyLog {
@@ -205,8 +206,6 @@ public final class Avrcp {
         }
 
         public boolean addDispatch(long time, KeyEvent event, String packageName) {
-            if (DEBUG)
-                Log.v(TAG, "addDispatch: Trying to match " + mEvent + " and record " + packageName);
             if (mPackage != null) return false;
             if (event.getAction() != mEvent.getAction()) return false;
             if (event.getKeyCode() != mEvent.getKeyCode()) return false;
@@ -302,7 +301,7 @@ public final class Avrcp {
         mBrowsePlayerInfoList = new ArrayList<BrowsePlayerInfo>();
         mPassthroughDispatched = 0;
         mPassthroughLogs = new EvictingQueue<MediaKeyLog>(PASSTHROUGH_LOG_MAX_SIZE);
-        mPassthroughPending = new ArrayList<MediaKeyLog>();
+        mPassthroughPending = Collections.synchronizedList(new ArrayList<MediaKeyLog>());
         if (mMediaSessionManager != null) {
             mMediaSessionManager.addOnActiveSessionsChangedListener(mActiveSessionListener, null,
                     mHandler);
@@ -1598,8 +1597,7 @@ public final class Avrcp {
                 }
             };
 
-    private void setAddressedMediaSessionPackage(String packageName) {
-        if (DEBUG) Log.v(TAG, "Setting addressed media session to " + packageName);
+    private void setAddressedMediaSessionPackage(@Nullable String packageName) {
         if (packageName == null) {
             // Should only happen when there's no media players, reset to no available player.
             updateCurrentController(0, mCurrBrowsePlayerID);
@@ -1607,6 +1605,7 @@ public final class Avrcp {
         }
         // No change.
         if (getPackageName(mCurrAddrPlayerID).equals(packageName)) return;
+        if (DEBUG) Log.v(TAG, "Changing addressed media session to " + packageName);
         // If the player doesn't exist, we need to add it.
         if (getMediaPlayerInfo(packageName) == null) {
             addMediaPlayerPackage(packageName);
@@ -2105,6 +2104,7 @@ public final class Avrcp {
 
         MediaController newController = null;
         MediaPlayerInfo info = getAddressedPlayerInfo();
+        if (info != null) newController = info.getMediaController();
 
         if (DEBUG)
             Log.d(TAG, "updateCurrentController: " + mMediaController + " to " + newController);
@@ -2152,11 +2152,11 @@ public final class Avrcp {
 
     /* utility function to update the global values of current Addressed and browsed player */
     private void updateNewIds(int addrId, int browseId) {
+        if (DEBUG)
+            Log.v(TAG, "updateNewIds: Addressed:" + mCurrAddrPlayerID + " to " + addrId
+                            + ", Browse:" + mCurrBrowsePlayerID + " to " + browseId);
         mCurrAddrPlayerID = addrId;
         mCurrBrowsePlayerID = browseId;
-
-        if (DEBUG) Log.v(TAG, "Updated CurrentIds: AddrPlayerID:" + mCurrAddrPlayerID + " to "
-                + addrId + ", BrowsePlayerID:" + mCurrBrowsePlayerID + " to " + browseId);
     }
 
     /* Getting the application's displayable name from package name */
@@ -2297,7 +2297,8 @@ public final class Avrcp {
             ProfileService.println(sb, "mMediaController: " + mMediaController.getWrappedInstance()
                             + " pkg " + mMediaController.getPackageName());
 
-        ProfileService.println(sb, "\nMedia Players:");
+        ProfileService.println(sb, "");
+        ProfileService.println(sb, "Media Players:");
         synchronized (mMediaPlayerInfoList) {
             for (Map.Entry<Integer, MediaPlayerInfo> entry : mMediaPlayerInfoList.entrySet()) {
                 int key = entry.getKey();
@@ -2306,12 +2307,18 @@ public final class Avrcp {
             }
         }
 
-        ProfileService.println(sb, "Passthrough operations: ");
-        for (MediaKeyLog log : mPassthroughLogs) {
-            ProfileService.println(sb, "  " + log);
+        ProfileService.println(sb, mPassthroughDispatched + " passthrough operations: ");
+        if (mPassthroughDispatched > mPassthroughLogs.size())
+            ProfileService.println(sb, "  (last " + mPassthroughLogs.size() + ")");
+        synchronized (mPassthroughLogs) {
+            for (MediaKeyLog log : mPassthroughLogs) {
+                ProfileService.println(sb, "  " + log);
+            }
         }
-        for (MediaKeyLog log : mPassthroughPending) {
-            ProfileService.println(sb, "  " + log);
+        synchronized (mPassthroughPending) {
+            for (MediaKeyLog log : mPassthroughPending) {
+                ProfileService.println(sb, "  " + log);
+            }
         }
     }
 
@@ -2627,14 +2634,13 @@ public final class Avrcp {
     }
 
     private void addKeyPending(KeyEvent event) {
-        synchronized (mPassthroughPending) {
-            mPassthroughPending.add(new MediaKeyLog(System.currentTimeMillis(), event));
-        }
+        mPassthroughPending.add(new MediaKeyLog(System.currentTimeMillis(), event));
     }
 
     private void recordKeyDispatched(KeyEvent event, String packageName) {
         long time = System.currentTimeMillis();
         Log.v(TAG, "recordKeyDispatched: " + event + " dispatched to " + packageName);
+        setAddressedMediaSessionPackage(packageName);
         synchronized (mPassthroughPending) {
             Iterator<MediaKeyLog> pending = mPassthroughPending.iterator();
             while (pending.hasNext()) {
@@ -2646,6 +2652,7 @@ public final class Avrcp {
                     return;
                 }
             }
+            Log.w(TAG, "recordKeyDispatch: can't find matching log!");
         }
     }
 
