@@ -113,7 +113,6 @@ public class GattService extends ProfileService {
         PendingIntent intent;
         ScanSettings settings;
         List<ScanFilter> filters;
-        WorkSource workSource;
         String callingPackage;
 
         @Override
@@ -368,10 +367,10 @@ public class GattService extends ProfileService {
             service.unregisterClient(clientIf);
         }
 
-        public void registerScanner(IScannerCallback callback) {
+        public void registerScanner(IScannerCallback callback, WorkSource workSource) {
             GattService service = getService();
             if (service == null) return;
-            service.registerScanner(callback);
+            service.registerScanner(callback, workSource);
         }
 
         public void unregisterScanner(int scannerId) {
@@ -381,13 +380,11 @@ public class GattService extends ProfileService {
         }
 
         @Override
-        public void startScan(int scannerId, ScanSettings settings,
-                List<ScanFilter> filters, WorkSource workSource, List storages,
-                String callingPackage) {
+        public void startScan(int scannerId, ScanSettings settings, List<ScanFilter> filters,
+                List storages, String callingPackage) {
             GattService service = getService();
             if (service == null) return;
-            service.startScan(scannerId, settings, filters, workSource, storages,
-                    callingPackage);
+            service.startScan(scannerId, settings, filters, storages, callingPackage);
         }
 
         @Override
@@ -1545,12 +1542,17 @@ public class GattService extends ProfileService {
         return deviceList;
     }
 
-    void registerScanner(IScannerCallback callback) {
+    void registerScanner(IScannerCallback callback, WorkSource workSource) {
         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
 
         UUID uuid = UUID.randomUUID();
         if (DBG) Log.d(TAG, "registerScanner() - UUID=" + uuid);
-        mScannerMap.add(uuid, callback, null, this);
+
+        if (workSource != null) {
+            enforceImpersonatationPermission();
+        }
+
+        mScannerMap.add(uuid, workSource, callback, null, this);
         mScanManager.registerScanner(uuid);
     }
 
@@ -1562,22 +1564,14 @@ public class GattService extends ProfileService {
         mScanManager.unregisterScanner(scannerId);
     }
 
-    void startScan(int scannerId, ScanSettings settings,
-            List<ScanFilter> filters, WorkSource workSource,
+    void startScan(int scannerId, ScanSettings settings, List<ScanFilter> filters,
             List<List<ResultStorageDescriptor>> storages, String callingPackage) {
         if (DBG) Log.d(TAG, "start scan with filters");
         enforceAdminPermission();
         if (needsPrivilegedPermissionForScan(settings)) {
             enforcePrivilegedPermission();
         }
-        if (workSource != null) {
-            enforceImpersonatationPermission();
-        } else {
-            // Blame the caller if the work source is unspecified.
-            workSource = new WorkSource(Binder.getCallingUid(), callingPackage);
-        }
-        final ScanClient scanClient = new ScanClient(scannerId, settings, filters, workSource,
-                storages);
+        final ScanClient scanClient = new ScanClient(scannerId, settings, filters, storages);
         scanClient.hasLocationPermission = Utils.checkCallerHasLocationPermission(this, mAppOps,
                 callingPackage);
         scanClient.hasPeersMacAddressPermission = Utils.checkCallerHasPeersMacAddressPermission(
@@ -1609,8 +1603,6 @@ public class GattService extends ProfileService {
         if (needsPrivilegedPermissionForScan(settings)) {
             enforcePrivilegedPermission();
         }
-        // Blame the caller if the work source is unspecified.
-        WorkSource workSource = new WorkSource(Binder.getCallingUid(), callingPackage);
 
         UUID uuid = UUID.randomUUID();
         if (DBG) Log.d(TAG, "startScan(PI) - UUID=" + uuid);
@@ -1618,15 +1610,14 @@ public class GattService extends ProfileService {
         piInfo.intent = pendingIntent;
         piInfo.settings = settings;
         piInfo.filters = filters;
-        piInfo.workSource = workSource;
         piInfo.callingPackage = callingPackage;
-        mScannerMap.add(uuid, null, piInfo, this);
+        mScannerMap.add(uuid, null, null, piInfo, this);
         mScanManager.registerScanner(uuid);
     }
 
     void continuePiStartScan(int scannerId, PendingIntentInfo piInfo) {
         final ScanClient scanClient =
-                new ScanClient(scannerId, piInfo.settings, piInfo.filters, piInfo.workSource, null);
+                new ScanClient(scannerId, piInfo.settings, piInfo.filters, null);
         scanClient.hasLocationPermission =
                 true; // Utils.checkCallerHasLocationPermission(this, mAppOps,
         // piInfo.callingPackage);
@@ -1782,7 +1773,7 @@ public class GattService extends ProfileService {
         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
 
         if (DBG) Log.d(TAG, "registerClient() - UUID=" + uuid);
-        mClientMap.add(uuid, callback, null, this);
+        mClientMap.add(uuid, null, callback, null, this);
         gattClientRegisterAppNative(uuid.getLeastSignificantBits(),
                                     uuid.getMostSignificantBits());
     }
@@ -2322,7 +2313,7 @@ public class GattService extends ProfileService {
         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
 
         if (DBG) Log.d(TAG, "registerServer() - UUID=" + uuid);
-        mServerMap.add(uuid, callback, null, this);
+        mServerMap.add(uuid, null, callback, null, this);
         gattServerRegisterAppNative(uuid.getLeastSignificantBits(),
                                     uuid.getMostSignificantBits());
     }
