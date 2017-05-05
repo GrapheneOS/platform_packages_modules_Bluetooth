@@ -20,6 +20,7 @@ import android.os.IBinder;
 import android.os.IBinder.DeathRecipient;
 import android.os.IInterface;
 import android.os.RemoteException;
+import android.os.WorkSource;
 import android.util.Log;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -150,7 +151,7 @@ import com.android.bluetooth.btservice.BluetoothProto;
     /**
      * Add an entry to the application context list.
      */
-    void add(UUID uuid, C callback, T info, GattService service) {
+    void add(UUID uuid, WorkSource workSource, C callback, T info, GattService service) {
         String appName = service.getPackageManager().getNameForUid(
                              Binder.getCallingUid());
         if (appName == null) {
@@ -160,7 +161,7 @@ import com.android.bluetooth.btservice.BluetoothProto;
         synchronized (mApps) {
             AppScanStats appScanStats = mAppScanStats.get(appName);
             if (appScanStats == null) {
-                appScanStats = new AppScanStats(appName, this, service);
+                appScanStats = new AppScanStats(appName, workSource, this, service);
                 mAppScanStats.put(appName, appScanStats);
             }
             mApps.add(new App(uuid, callback, info, appName, appScanStats));
