@@ -334,15 +334,17 @@ public final class Avrcp {
 
     public void doQuit() {
         if (DEBUG) Log.d(TAG, "doQuit");
+        if (mMediaController != null) mMediaController.unregisterCallback(mMediaControllerCb);
+        if (mMediaSessionManager != null) {
+            mMediaSessionManager.setCallback(null, null);
+            mMediaSessionManager.removeOnActiveSessionsChangedListener(mActiveSessionListener);
+        }
+
         mHandler.removeCallbacksAndMessages(null);
         Looper looper = mHandler.getLooper();
         if (looper != null) {
             looper.quit();
         }
-
-        if (mMediaController != null) mMediaController.unregisterCallback(mMediaControllerCb);
-
-        mMediaSessionManager.removeOnActiveSessionsChangedListener(mActiveSessionListener);
 
         mHandler = null;
         mContext.unregisterReceiver(mAvrcpReceiver);
