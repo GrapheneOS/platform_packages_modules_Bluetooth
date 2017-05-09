@@ -33,6 +33,7 @@
 package com.android.bluetooth.pbap;
 
 import android.app.Notification;
+import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
@@ -144,6 +145,8 @@ public class BluetoothPbapService extends ProfileService {
     private static final int NOTIFICATION_ID_ACCESS = -1000001;
 
     private static final int NOTIFICATION_ID_AUTH = -1000002;
+
+    private static final String PBAP_NOTIFICATION_CHANNEL = "pbap_notification_channel";
 
     private PowerManager.WakeLock mWakeLock = null;
 
@@ -704,6 +707,9 @@ public class BluetoothPbapService extends ProfileService {
 
         NotificationManager nm = (NotificationManager)
             getSystemService(Context.NOTIFICATION_SERVICE);
+        NotificationChannel notificationChannel = new NotificationChannel(PBAP_NOTIFICATION_CHANNEL,
+                getString(R.string.pbap_notification_group), NotificationManager.IMPORTANCE_HIGH);
+        nm.createNotificationChannel(notificationChannel);
 
         // Create an intent triggered by clicking on the status icon.
         Intent clickIntent = new Intent();
@@ -721,7 +727,7 @@ public class BluetoothPbapService extends ProfileService {
 
         if (action.equals(AUTH_CHALL_ACTION)) {
             Notification notification =
-                    new Notification.Builder(this)
+                    new Notification.Builder(this, PBAP_NOTIFICATION_CHANNEL)
                             .setWhen(System.currentTimeMillis())
                             .setContentTitle(getString(R.string.auth_notif_title))
                             .setContentText(getString(R.string.auth_notif_message, name))
