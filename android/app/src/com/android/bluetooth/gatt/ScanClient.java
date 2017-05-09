@@ -19,7 +19,6 @@ package com.android.bluetooth.gatt;
 import android.bluetooth.le.ResultStorageDescriptor;
 import android.bluetooth.le.ScanFilter;
 import android.bluetooth.le.ScanSettings;
-import android.os.WorkSource;
 
 import java.util.List;
 import java.util.Objects;
@@ -43,46 +42,35 @@ import java.util.UUID;
     // Pre-M apps are allowed to get scan results even if location is disabled
     boolean legacyForegroundApp;
 
-    // Who is responsible for this scan.
-    WorkSource workSource;
-
     AppScanStats stats = null;
 
     private static final ScanSettings DEFAULT_SCAN_SETTINGS = new ScanSettings.Builder()
             .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY).build();
 
     ScanClient(int scannerId) {
-        this(scannerId, new UUID[0], DEFAULT_SCAN_SETTINGS, null, null, null);
+        this(scannerId, new UUID[0], DEFAULT_SCAN_SETTINGS, null, null);
     }
 
     ScanClient(int scannerId, UUID[] uuids) {
-        this(scannerId, uuids, DEFAULT_SCAN_SETTINGS, null, null, null);
+        this(scannerId, uuids, DEFAULT_SCAN_SETTINGS, null, null);
     }
 
     ScanClient(int scannerId, ScanSettings settings,
             List<ScanFilter> filters) {
-        this(scannerId, new UUID[0], settings, filters, null, null);
+        this(scannerId, new UUID[0], settings, filters, null);
     }
 
-    ScanClient(int scannerId, ScanSettings settings,
-            List<ScanFilter> filters, List<List<ResultStorageDescriptor>> storages) {
-        this(scannerId, new UUID[0], settings, filters, null, storages);
+    ScanClient(int scannerId, ScanSettings settings, List<ScanFilter> filters,
+            List<List<ResultStorageDescriptor>> storages) {
+        this(scannerId, new UUID[0], settings, filters, storages);
     }
 
-    ScanClient(int scannerId, ScanSettings settings,
-               List<ScanFilter> filters, WorkSource workSource,
-               List<List<ResultStorageDescriptor>> storages) {
-        this(scannerId, new UUID[0], settings, filters, workSource, storages);
-    }
-
-    private ScanClient(int scannerId, UUID[] uuids, ScanSettings settings,
-            List<ScanFilter> filters, WorkSource workSource,
+    private ScanClient(int scannerId, UUID[] uuids, ScanSettings settings, List<ScanFilter> filters,
             List<List<ResultStorageDescriptor>> storages) {
         this.scannerId = scannerId;
         this.uuids = uuids;
         this.settings = settings;
         this.filters = filters;
-        this.workSource = workSource;
         this.storages = storages;
     }
 
