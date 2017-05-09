@@ -96,6 +96,7 @@ public final class Avrcp {
     private int mRemoteVolume;
     private int mLastRemoteVolume;
     private int mInitialRemoteVolume;
+    private BrowsablePlayerListBuilder mBrowsableListBuilder;
 
     /* Local volume in audio index 0-15 */
     private int mLocalVolume;
@@ -276,6 +277,8 @@ public final class Avrcp {
             mAbsVolThreshold = resources.getInteger(R.integer.a2dp_absolute_volume_initial_threshold);
         }
 
+        mBrowsableListBuilder = new BrowsablePlayerListBuilder();
+
         // Register for package removal intent broadcasts for media button receiver persistence
         IntentFilter pkgFilter = new IntentFilter();
         pkgFilter.addAction(Intent.ACTION_PACKAGE_REMOVED);
@@ -321,7 +324,7 @@ public final class Avrcp {
         if (manager == null || manager.isUserUnlocked()) {
             if (DEBUG) Log.d(TAG, "User already unlocked, initializing player lists");
             // initialize browsable player list and build media player list
-            (new BrowsablePlayerListBuilder()).start();
+            mBrowsableListBuilder.start();
         }
     }
 
@@ -350,6 +353,7 @@ public final class Avrcp {
         mContext.unregisterReceiver(mAvrcpReceiver);
         mContext.unregisterReceiver(mBootReceiver);
 
+        mBrowsableListBuilder.cleanup();
         mAddressedMediaPlayer.cleanup();
         mAvrcpBrowseManager.cleanup();
     }
@@ -1377,7 +1381,7 @@ public final class Avrcp {
             if (action.equals(Intent.ACTION_BOOT_COMPLETED)) {
                 if (DEBUG) Log.d(TAG, "Boot completed, initializing player lists");
                 /* initializing media player's list */
-                (new BrowsablePlayerListBuilder()).start();
+                mBrowsableListBuilder.start();
             }
         }
     }
@@ -1423,7 +1427,7 @@ public final class Avrcp {
             // new package has been added.
             if (isBrowsableListUpdated(packageName)) {
                 // Rebuilding browsable players list
-                (new BrowsablePlayerListBuilder()).start();
+                mBrowsableListBuilder.start();
             }
         }
     }
@@ -1681,10 +1685,16 @@ public final class Avrcp {
 
         public void start() {
             mBrowsePlayerInfoList.clear();
-            mPlayersChanged = false;
+            cleanup();
             Intent intent = new Intent(android.service.media.MediaBrowserService.SERVICE_INTERFACE);
             mWaiting = mPackageManager.queryIntentServices(intent, PackageManager.MATCH_ALL);
             connectNextPlayer();
+        }
+
+        public void cleanup() {
+            if (mWaiting != null) mWaiting.clear();
+            mPlayersChanged = false;
+            if (mCurrentBrowser != null) mCurrentBrowser.disconnect();
         }
 
         private void connectNextPlayer() {
@@ -1711,6 +1721,8 @@ public final class Avrcp {
         @Override
         public void onConnected() {
             Log.d(TAG, "BrowsablePlayerListBuilder: " + mCurrentPlayer.packageName + " OK");
+            mCurrentBrowser.disconnect();
+            mCurrentBrowser = null;
             mBrowsePlayerInfoList.add(mCurrentPlayer);
             MediaPlayerInfo info = getMediaPlayerInfo(mCurrentPlayer.packageName);
             if (info != null) {
@@ -1724,7 +1736,6 @@ public final class Avrcp {
                 addMediaPlayerPackage(mCurrentPlayer.packageName);
             }
             mPlayersChanged = true;
-            mCurrentBrowser.disconnect();
             connectNextPlayer();
         }
 
