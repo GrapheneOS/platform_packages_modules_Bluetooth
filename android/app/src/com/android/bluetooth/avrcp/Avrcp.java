@@ -180,7 +180,7 @@ public final class Avrcp {
     private SortedMap<Integer, MediaPlayerInfo> mMediaPlayerInfoList;
 
     /* List of media players which supports browse */
-    private ArrayList<BrowsePlayerInfo> mBrowsePlayerInfoList;
+    private List<BrowsePlayerInfo> mBrowsePlayerInfoList;
 
     /* Manage browsed players */
     private AvrcpBrowseManager mAvrcpBrowseManager;
@@ -301,7 +301,7 @@ public final class Avrcp {
         mMediaControllerCb = new MediaControllerListener();
         mAvrcpMediaRsp = new AvrcpMediaRsp();
         mMediaPlayerInfoList = new TreeMap<Integer, MediaPlayerInfo>();
-        mBrowsePlayerInfoList = new ArrayList<BrowsePlayerInfo>();
+        mBrowsePlayerInfoList = Collections.synchronizedList(new ArrayList<BrowsePlayerInfo>());
         mPassthroughDispatched = 0;
         mPassthroughLogs = new EvictingQueue<MediaKeyLog>(PASSTHROUGH_LOG_MAX_SIZE);
         mPassthroughPending = Collections.synchronizedList(new ArrayList<MediaKeyLog>());
@@ -1725,13 +1725,10 @@ public final class Avrcp {
             mCurrentBrowser = null;
             mBrowsePlayerInfoList.add(mCurrentPlayer);
             MediaPlayerInfo info = getMediaPlayerInfo(mCurrentPlayer.packageName);
-            if (info != null) {
-                // Refresh the media player entry so it notices we can browse
-                MediaController controller = info.getMediaController();
-                if (controller != null) {
-                    addMediaPlayerController(controller.getWrappedInstance());
-                }
-                // If there's no controller, the entry is already browsable-only.
+            MediaController controller = (info == null) ? null : info.getMediaController();
+            // Refresh the media player entry so it notices we can browse
+            if (controller != null) {
+                addMediaPlayerController(controller.getWrappedInstance());
             } else {
                 addMediaPlayerPackage(mCurrentPlayer.packageName);
             }
