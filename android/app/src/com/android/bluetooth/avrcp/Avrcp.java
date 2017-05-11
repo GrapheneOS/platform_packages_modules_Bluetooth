@@ -16,6 +16,7 @@
 
 package com.android.bluetooth.avrcp;
 
+import android.annotation.NonNull;
 import android.annotation.Nullable;
 import android.bluetooth.BluetoothA2dp;
 import android.bluetooth.BluetoothAvrcp;
@@ -76,17 +77,16 @@ public final class Avrcp {
     private final AudioManager mAudioManager;
     private AvrcpMessageHandler mHandler;
     private MediaSessionManager mMediaSessionManager;
-    private MediaController mMediaController;
+    private @Nullable MediaController mMediaController;
     private MediaControllerListener mMediaControllerCb;
     private MediaAttributes mMediaAttributes;
     private PackageManager mPackageManager;
     private int mTransportControlFlags;
-    private PlaybackState mCurrentPlayState;
+    private @NonNull PlaybackState mCurrentPlayState;
     private int mA2dpState;
     private int mPlayStatusChangedNT;
     private int mTrackChangedNT;
     private int mPlayPosChangedNT;
-    private long mTracksPlayed;
     private long mPlaybackIntervalMs;
     private long mLastReportedPosition;
     private long mNextPosMs;
@@ -239,7 +239,6 @@ public final class Avrcp {
         mA2dpState = BluetoothA2dp.STATE_NOT_PLAYING;
         mPlayStatusChangedNT = AvrcpConstants.NOTIFICATION_TYPE_CHANGED;
         mTrackChangedNT = AvrcpConstants.NOTIFICATION_TYPE_CHANGED;
-        mTracksPlayed = 0;
         mPlaybackIntervalMs = 0L;
         mPlayPosChangedNT = AvrcpConstants.NOTIFICATION_TYPE_CHANGED;
         mLastReportedPosition = -1;
@@ -368,10 +367,9 @@ public final class Avrcp {
     private class MediaControllerListener extends MediaController.Callback {
         @Override
         public void onMetadataChanged(MediaMetadata metadata) {
-            Log.v(TAG, "MediaController metadata changed");
+            if (DEBUG) Log.v(TAG, "onMetadataChanged");
             updateCurrentMediaState();
         }
-
         @Override
         public synchronized void onPlaybackStateChanged(PlaybackState state) {
             if (DEBUG) Log.v(TAG, "onPlaybackStateChanged: state " + state.toString());
@@ -969,10 +967,15 @@ public final class Avrcp {
             mMediaAttributes = new MediaAttributes(mMediaController.getMetadata());
         }
 
-        if (!currentAttributes.equals(mMediaAttributes)) {
-            Log.v(TAG, "MediaAttributes Changed to " + mMediaAttributes.toString());
-            mTracksPlayed++;
+        long oldQueueId = mCurrentPlayState.getActiveQueueItemId();
+        long newQueueId = MediaSession.QueueItem.UNKNOWN_ID;
+        if (newState != null) newQueueId = newState.getActiveQueueItemId();
+        if ((oldQueueId != newQueueId) || (!currentAttributes.equals(mMediaAttributes))) {
+            Log.v(TAG, "Media change: id " + oldQueueId + "➡" + newQueueId + ":"
+                            + mMediaAttributes.toString());
             sendTrackChangedRsp(false);
+        } else {
+            Log.v(TAG, "Media didn't change: id " + oldQueueId);
         }
 
         updatePlaybackState(newState);
@@ -2283,7 +2286,6 @@ public final class Avrcp {
         sb.append("AVRCP:\n");
         ProfileService.println(sb, "mMediaAttributes: " + mMediaAttributes);
         ProfileService.println(sb, "mTransportControlFlags: " + mTransportControlFlags);
-        ProfileService.println(sb, "mTracksPlayed: " + mTracksPlayed);
         ProfileService.println(sb, "mCurrentPlayState: " + mCurrentPlayState);
         ProfileService.println(sb, "mPlayStatusChangedNT: " + mPlayStatusChangedNT);
         ProfileService.println(sb, "mTrackChangedNT: " + mTrackChangedNT);
