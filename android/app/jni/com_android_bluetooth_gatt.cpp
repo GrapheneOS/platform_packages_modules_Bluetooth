@@ -1774,10 +1774,10 @@ static PeriodicAdvertisingParameters parsePeriodicParams(JNIEnv* env,
   jclass clazz = env->GetObjectClass(i);
   jmethodID methodId;
 
-  methodId = env->GetMethodID(clazz, "getIncludeTxPower", "()B");
+  methodId = env->GetMethodID(clazz, "getIncludeTxPower", "()Z");
   jboolean includeTxPower = env->CallBooleanMethod(i, methodId);
   methodId = env->GetMethodID(clazz, "getInterval", "()I");
-  jboolean interval = env->CallBooleanMethod(i, methodId);
+  uint16_t interval = env->CallIntMethod(i, methodId);
 
   p.enable = true;
   p.min_interval = interval;
