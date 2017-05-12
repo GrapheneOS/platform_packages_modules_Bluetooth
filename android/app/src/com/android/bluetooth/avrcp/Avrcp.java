@@ -381,8 +381,6 @@ public final class Avrcp {
             Log.v(TAG, "MediaController session destroyed");
             if (mMediaController != null) {
                 removeMediaController(mMediaController.getWrappedInstance());
-                mMediaController.unregisterCallback(mMediaControllerCb);
-                mMediaController = null;
             }
         }
 
@@ -1586,11 +1584,6 @@ public final class Avrcp {
                     for (android.media.session.MediaController controller : currentControllers) {
                         if (!newControllers.contains(controller)) {
                             removeMediaController(controller);
-                            if (mMediaController != null && mMediaController.equals(controller)) {
-                                if (DEBUG) Log.v(TAG, "Active Controller is gone!");
-                                mMediaController.unregisterCallback(mMediaControllerCb);
-                                mMediaController = null;
-                            }
                         }
                     }
 
@@ -1858,11 +1851,18 @@ public final class Avrcp {
     }
 
     /** Remove the controller referenced by |controller| from any player in the list */
-    private void removeMediaController(android.media.session.MediaController controller) {
+    private void removeMediaController(@Nullable android.media.session.MediaController controller) {
+        if (controller == null) return;
         synchronized (mMediaPlayerInfoList) {
-            for (MediaPlayerInfo info : mMediaPlayerInfoList.values()) {
+            for (Map.Entry<Integer, MediaPlayerInfo> entry : mMediaPlayerInfoList.entrySet()) {
+                MediaPlayerInfo info = entry.getValue();
                 MediaController c = info.getMediaController();
-                if (c != null && c.equals(controller)) info.setMediaController(null);
+                if (c != null && c.equals(controller)) {
+                    info.setMediaController(null);
+                    if (entry.getKey() == mCurrAddrPlayerID) {
+                        updateCurrentController(mCurrAddrPlayerID, mCurrBrowsePlayerID);
+                    }
+                }
             }
         }
     }
@@ -2122,14 +2122,18 @@ public final class Avrcp {
         if (DEBUG)
             Log.d(TAG, "updateCurrentController: " + mMediaController + " to " + newController);
         if (mMediaController == null || (!mMediaController.equals(newController))) {
-            if (mMediaController != null) mMediaController.unregisterCallback(mMediaControllerCb);
-            mMediaController = newController;
-            if (mMediaController != null) {
-                mMediaController.registerCallback(mMediaControllerCb, mHandler);
-                mAddressedMediaPlayer.updateNowPlayingList(mMediaController.getQueue());
-            } else {
-                mAddressedMediaPlayer.updateNowPlayingList(null);
-                registerRsp = false;
+            synchronized (this) {
+                if (mMediaController != null) {
+                    mMediaController.unregisterCallback(mMediaControllerCb);
+                }
+                mMediaController = newController;
+                if (mMediaController != null) {
+                    mMediaController.registerCallback(mMediaControllerCb, mHandler);
+                    mAddressedMediaPlayer.updateNowPlayingList(mMediaController.getQueue());
+                } else {
+                    mAddressedMediaPlayer.updateNowPlayingList(null);
+                    registerRsp = false;
+                }
             }
             updateCurrentMediaState();
         }
