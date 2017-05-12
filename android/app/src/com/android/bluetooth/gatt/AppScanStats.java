@@ -105,8 +105,19 @@ import com.android.bluetooth.btservice.BluetoothProto;
     }
 
     synchronized void addResult() {
-        if (!lastScans.isEmpty())
-            lastScans.get(lastScans.size() - 1).results++;
+        if (!lastScans.isEmpty()) {
+            int batteryStatsResults = ++lastScans.get(lastScans.size() - 1).results;
+
+            // Only update battery stats after receiving 100 new results in order
+            // to lower the cost of the binder transaction
+            if (batteryStatsResults % 100 == 0) {
+                try {
+                    batteryStats.noteBleScanResults(workSource, 100);
+                } catch (RemoteException e) {
+                    /* ignore */
+                }
+            }
+        }
 
         results++;
     }
@@ -168,6 +179,9 @@ import com.android.bluetooth.btservice.BluetoothProto;
         gattService.addScanEvent(scanEvent);
 
         try {
+            // Inform battery stats of any results it might be missing on
+            // scan stop
+            batteryStats.noteBleScanResults(workSource, curr.results % 100);
             batteryStats.noteBleScanStopped(workSource);
         } catch (RemoteException e) {
             /* ignore */
