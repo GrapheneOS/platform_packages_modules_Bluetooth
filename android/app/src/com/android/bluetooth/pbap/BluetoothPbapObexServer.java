@@ -37,6 +37,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.os.Handler;
 import android.os.Message;
+import android.os.UserManager;
 import android.provider.CallLog;
 import android.provider.CallLog.Calls;
 import android.text.TextUtils;
@@ -431,6 +432,12 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
         if (type == null) {
             return ResponseCodes.OBEX_HTTP_NOT_ACCEPTABLE;
         }
+
+        if (!UserManager.get(mContext).isUserUnlocked()) {
+            Log.e(TAG, "Storage locked, " + type + " failed");
+            return ResponseCodes.OBEX_HTTP_UNAVAILABLE;
+        }
+
         // Accroding to specification,the name header could be omitted such as
         // sony erriccsonHBH-DS980
 
