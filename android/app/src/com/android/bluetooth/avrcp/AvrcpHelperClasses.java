@@ -185,11 +185,11 @@ class ItemAttrRsp {
     int[] mAttributesIds;
     String[] mAttributesArray;
 
-    public ItemAttrRsp(byte status, byte numAttr, int[] attributesIds, String[] attributesArray) {
-        this.mStatus = status;
-        this.mNumAttr = numAttr;
-        this.mAttributesIds = attributesIds;
-        this.mAttributesArray = attributesArray;
+    public ItemAttrRsp(byte status, int[] attributesIds, String[] attributesArray) {
+        mStatus = status;
+        mNumAttr = (byte) attributesIds.length;
+        mAttributesIds = attributesIds;
+        mAttributesArray = attributesArray;
     }
 }
 
