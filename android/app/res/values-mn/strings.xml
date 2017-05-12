@@ -126,7 +126,7 @@
     <string name="bluetooth_map_settings_cancel" msgid="9205350798049865699">"Цуцлах"</string>
     <string name="bluetooth_map_settings_intro" msgid="6482369468223987562">"Bluetooth-ээр хуваалцахыг хүсч буй дансаа сонго. Холболт хийх үед данс руу нэвтрэх аливаа хандалтыг хүлээн зөвшөөрөх хэрэгтэй болно."</string>
     <string name="bluetooth_map_settings_count" msgid="4557473074937024833">"Үлдсэн слот:"</string>
-    <string name="bluetooth_map_settings_app_icon" msgid="7105805610929114707">"Аппликешний дүрс"</string>
+    <string name="bluetooth_map_settings_app_icon" msgid="7105805610929114707">"Аппликейшний дүрс"</string>
     <string name="bluetooth_map_settings_title" msgid="7420332483392851321">"Bluetooth мессеж хуваалцах тохиргоо"</string>
     <string name="bluetooth_map_settings_no_account_slots_left" msgid="1796029082612965251">"Дансыг сонгох боломжгүй. 0 слот үлдсэн"</string>
     <string name="bluetooth_connected" msgid="6718623220072656906">"Bluetooth аудиог холбосон"</string>
