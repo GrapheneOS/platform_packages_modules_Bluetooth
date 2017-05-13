@@ -12,4 +12,5 @@
     <string name="unknownName" msgid="2841414754740600042">"အမည်မသိ"</string>
     <string name="localPhoneName" msgid="2349001318925409159">"ကျွန်ုပ်နာမည်"</string>
     <string name="defaultnumber" msgid="8520116145890867338">"၀၀၀၀၀၀"</string>
+    <string name="pbap_notification_group" msgid="8487669554703627168">"ဘလူးတုသ်ဖြင့် အဆက်အသွယ်မျှဝေခြင်း"</string>
 </resources>

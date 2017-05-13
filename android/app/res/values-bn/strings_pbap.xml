@@ -12,4 +12,6 @@
     <string name="unknownName" msgid="2841414754740600042">"অজানা নাম"</string>
     <string name="localPhoneName" msgid="2349001318925409159">"আমার নাম"</string>
     <string name="defaultnumber" msgid="8520116145890867338">"০০০০০০"</string>
+    <!-- no translation found for pbap_notification_group (8487669554703627168) -->
+    <skip />
 </resources>
