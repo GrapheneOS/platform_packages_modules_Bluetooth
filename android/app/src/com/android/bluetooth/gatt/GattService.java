@@ -458,6 +458,12 @@ public class GattService extends ProfileService {
             service.discoverServices(clientIf, address);
         }
 
+        public void discoverServiceByUuid(int clientIf, String address, ParcelUuid uuid) {
+            GattService service = getService();
+            if (service == null) return;
+            service.discoverServiceByUuid(clientIf, address, uuid.getUuid());
+        }
+
         public void readCharacteristic(int clientIf, String address, int handle, int authReq) {
             GattService service = getService();
             if (service == null) return;
@@ -1869,6 +1875,17 @@ public class GattService extends ProfileService {
             Log.e(TAG, "discoverServices() - No connection for " + address + "...");
     }
 
+    void discoverServiceByUuid(int clientIf, String address, UUID uuid) {
+        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+
+        Integer connId = mClientMap.connIdByAddress(clientIf, address);
+        if (connId != null)
+            gattClientDiscoverServiceByUuidNative(
+                    connId, uuid.getLeastSignificantBits(), uuid.getMostSignificantBits());
+        else
+            Log.e(TAG, "discoverServiceByUuid() - No connection for " + address + "...");
+    }
+
     void readCharacteristic(int clientIf, String address, int handle, int authReq) {
         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
 
@@ -2679,6 +2696,9 @@ public class GattService extends ProfileService {
 
     private native void gattClientSearchServiceNative(int conn_id,
             boolean search_all, long service_uuid_lsb, long service_uuid_msb);
+
+    private native void gattClientDiscoverServiceByUuidNative(
+            int conn_id, long service_uuid_lsb, long service_uuid_msb);
 
     private native void gattClientGetGattDbNative(int conn_id);
 

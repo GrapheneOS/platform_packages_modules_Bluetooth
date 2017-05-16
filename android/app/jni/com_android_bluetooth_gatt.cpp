@@ -1069,6 +1069,17 @@ static void gattClientSearchServiceNative(JNIEnv* env, jobject object,
   sGattIf->client->search_service(conn_id, search_all ? 0 : &uuid);
 }
 
+static void gattClientDiscoverServiceByUuidNative(JNIEnv* env, jobject object,
+                                                  jint conn_id,
+                                                  jlong service_uuid_lsb,
+                                                  jlong service_uuid_msb) {
+  if (!sGattIf) return;
+
+  bt_uuid_t uuid;
+  set_uuid(uuid.uu, service_uuid_msb, service_uuid_lsb);
+  sGattIf->client->btif_gattc_discover_service_by_uuid(conn_id, &uuid);
+}
+
 static void gattClientGetGattDbNative(JNIEnv* env, jobject object,
                                       jint conn_id) {
   if (!sGattIf) return;
@@ -2172,6 +2183,8 @@ static JNINativeMethod sMethods[] = {
      (void*)gattClientRefreshNative},
     {"gattClientSearchServiceNative", "(IZJJ)V",
      (void*)gattClientSearchServiceNative},
+    {"gattClientDiscoverServiceByUuidNative", "(IJJ)V",
+     (void*)gattClientDiscoverServiceByUuidNative},
     {"gattClientGetGattDbNative", "(I)V", (void*)gattClientGetGattDbNative},
     {"gattClientReadCharacteristicNative", "(III)V",
      (void*)gattClientReadCharacteristicNative},
