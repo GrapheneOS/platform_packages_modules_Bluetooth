@@ -601,9 +601,11 @@ class BrowsedMediaPlayer {
 
                 case AvrcpConstants.ATTRID_GENRE:
                     attrValue = extras.getString(MediaMetadata.METADATA_KEY_GENRE);
+                    break;
 
                 case AvrcpConstants.ATTRID_PLAY_TIME:
                     attrValue = extras.getString(MediaMetadata.METADATA_KEY_DURATION);
+                    break;
 
                 case AvrcpConstants.ATTRID_COVER_ART:
                     Log.e(TAG, "getAttrValue: Cover art attribute not supported");
