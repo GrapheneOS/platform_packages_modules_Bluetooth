@@ -267,13 +267,8 @@ public class AddressedMediaPlayer {
             /* for any item associated with NowPlaying, uid is queueId */
             if (state != null) qid = state.getActiveQueueItemId();
         }
-        if (!requesting && qid == mLastTrackIdSent) {
-            if (DEBUG) Log.d(TAG, "not sending duplicate track changed id " + qid);
-            return false;
-        }
         track = ByteBuffer.allocate(AvrcpConstants.UID_SIZE).putLong(qid).array();
         if (DEBUG) Log.d(TAG, "trackChangedRsp: 0x" + Utils.byteArrayToString(track));
-
         int trackChangedNT = AvrcpConstants.NOTIFICATION_TYPE_CHANGED;
         if (requesting) trackChangedNT = AvrcpConstants.NOTIFICATION_TYPE_INTERIM;
         mMediaInterface.trackChangedRsp(trackChangedNT, track);
@@ -488,7 +483,6 @@ public class AddressedMediaPlayer {
         /* variables to temperorily add attrs */
         ArrayList<String> attrArray = new ArrayList<String>();
         ArrayList<Integer> attrId = new ArrayList<Integer>();
-
         ArrayList<Integer> attrTempId = new ArrayList<Integer>();
 
         /* check if remote device has requested for attributes */
