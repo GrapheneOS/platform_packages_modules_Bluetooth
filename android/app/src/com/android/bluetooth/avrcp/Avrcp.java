@@ -1583,6 +1583,9 @@ public final class Avrcp {
                             getMediaControllers();
                     for (android.media.session.MediaController controller : currentControllers) {
                         if (!newControllers.contains(controller)) {
+                            if (DEBUG)
+                                Log.v(TAG, "Removing gone controller for "
+                                                + controller.getPackageName());
                             removeMediaController(controller);
                         }
                     }
@@ -2215,17 +2218,18 @@ public final class Avrcp {
             if (mCurrAddrPlayerID == NO_PLAYER_ID) {
                 getItemAttrRspNative(
                         itemAttr.mAddress, AvrcpConstants.RSP_NO_AVBL_PLAY, (byte) 0, null, null);
-            } else {
-                mAddressedMediaPlayer.getItemAttr(itemAttr.mAddress, itemAttr, mMediaController);
+                return;
             }
+            mAddressedMediaPlayer.getItemAttr(itemAttr.mAddress, itemAttr, mMediaController);
+            return;
+        }
+        // All other scopes use browsed player
+        if (mAvrcpBrowseManager.getBrowsedMediaPlayer(itemAttr.mAddress) != null) {
+            mAvrcpBrowseManager.getBrowsedMediaPlayer(itemAttr.mAddress).getItemAttr(itemAttr);
         } else {
-            if (mAvrcpBrowseManager.getBrowsedMediaPlayer(itemAttr.mAddress) != null) {
-                mAvrcpBrowseManager.getBrowsedMediaPlayer(itemAttr.mAddress).getItemAttr(itemAttr);
-            } else {
-                Log.e(TAG, "Could not get attributes. mBrowsedMediaPlayer is null");
-                getItemAttrRspNative(itemAttr.mAddress, AvrcpConstants.RSP_INTERNAL_ERR,
-                        (byte) 0, null, null);
-            }
+            Log.e(TAG, "Could not get attributes. mBrowsedMediaPlayer is null");
+            getItemAttrRspNative(
+                    itemAttr.mAddress, AvrcpConstants.RSP_INTERNAL_ERR, (byte) 0, null, null);
         }
     }
 
