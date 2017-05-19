@@ -59,7 +59,6 @@ static void cleanup_items(btrc_folder_items_t* p_items, int numItems);
 
 static void btavrcp_remote_features_callback(bt_bdaddr_t* bd_addr,
                                              btrc_remote_features_t features) {
-  ALOGI("%s", __func__);
   CallbackEnv sCallbackEnv(__func__);
   if (!sCallbackEnv.valid()) return;
 
@@ -83,7 +82,6 @@ static void btavrcp_remote_features_callback(bt_bdaddr_t* bd_addr,
 
 /** Callback for play status request */
 static void btavrcp_get_play_status_callback(bt_bdaddr_t* bd_addr) {
-  ALOGI("%s", __func__);
   CallbackEnv sCallbackEnv(__func__);
   if (!sCallbackEnv.valid()) return;
 
@@ -107,7 +105,6 @@ static void btavrcp_get_play_status_callback(bt_bdaddr_t* bd_addr) {
 static void btavrcp_get_element_attr_callback(uint8_t num_attr,
                                               btrc_media_attr_t* p_attrs,
                                               bt_bdaddr_t* bd_addr) {
-  ALOGI("%s", __func__);
   CallbackEnv sCallbackEnv(__func__);
   if (!sCallbackEnv.valid()) return;
 
@@ -164,7 +161,6 @@ static void btavrcp_register_notification_callback(btrc_event_id_t event_id,
 
 static void btavrcp_volume_change_callback(uint8_t volume, uint8_t ctype,
                                            bt_bdaddr_t* bd_addr) {
-  ALOGI("%s", __func__);
   CallbackEnv sCallbackEnv(__func__);
   if (!sCallbackEnv.valid()) return;
 
@@ -189,7 +185,6 @@ static void btavrcp_volume_change_callback(uint8_t volume, uint8_t ctype,
 
 static void btavrcp_passthrough_command_callback(int id, int pressed,
                                                  bt_bdaddr_t* bd_addr) {
-  ALOGI("%s", __func__);
   CallbackEnv sCallbackEnv(__func__);
   if (!sCallbackEnv.valid()) return;
 
@@ -213,7 +208,6 @@ static void btavrcp_passthrough_command_callback(int id, int pressed,
 
 static void btavrcp_set_addressed_player_callback(uint16_t player_id,
                                                   bt_bdaddr_t* bd_addr) {
-  ALOGI("%s", __func__);
   CallbackEnv sCallbackEnv(__func__);
   if (!sCallbackEnv.valid()) return;
 
@@ -237,7 +231,6 @@ static void btavrcp_set_addressed_player_callback(uint16_t player_id,
 
 static void btavrcp_set_browsed_player_callback(uint16_t player_id,
                                                 bt_bdaddr_t* bd_addr) {
-  ALOGI("%s", __func__);
   CallbackEnv sCallbackEnv(__func__);
   if (!sCallbackEnv.valid()) return;
   if (!mCallbacksObj) {
@@ -261,7 +254,6 @@ static void btavrcp_set_browsed_player_callback(uint16_t player_id,
 static void btavrcp_get_folder_items_callback(
     uint8_t scope, uint32_t start_item, uint32_t end_item, uint8_t num_attr,
     uint32_t* p_attr_ids, bt_bdaddr_t* bd_addr) {
-  ALOGI("%s", __func__);
   CallbackEnv sCallbackEnv(__func__);
   if (!sCallbackEnv.valid()) return;
 
@@ -302,7 +294,6 @@ static void btavrcp_get_folder_items_callback(
 
 static void btavrcp_change_path_callback(uint8_t direction, uint8_t* folder_uid,
                                          bt_bdaddr_t* bd_addr) {
-  ALOGI("%s", __func__);
   CallbackEnv sCallbackEnv(__func__);
   if (!sCallbackEnv.valid()) return;
 
@@ -338,7 +329,6 @@ static void btavrcp_get_item_attr_callback(uint8_t scope, uint8_t* uid,
                                            uint8_t num_attr,
                                            btrc_media_attr_t* p_attrs,
                                            bt_bdaddr_t* bd_addr) {
-  ALOGI("%s", __func__);
   CallbackEnv sCallbackEnv(__func__);
   if (!sCallbackEnv.valid()) return;
 
@@ -391,7 +381,7 @@ static void btavrcp_play_item_callback(uint8_t scope, uint16_t uid_counter,
   ScopedLocalRef<jbyteArray> attrs(sCallbackEnv.get(),
                                    sCallbackEnv->NewByteArray(BTRC_UID_SIZE));
   if (!attrs.get()) {
-    ALOGE("%s:Fail to new jByteArray attrs for play_item command", __func__);
+    ALOGE("%s: Fail to new jByteArray attrs for play_item command", __func__);
     return;
   }
 

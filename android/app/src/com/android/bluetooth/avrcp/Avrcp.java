@@ -91,7 +91,6 @@ public final class Avrcp {
     private long mLastReportedPosition;
     private long mNextPosMs;
     private long mPrevPosMs;
-    private long mSkipStartTime;
     private int mFeatures;
     private int mRemoteVolume;
     private int mLastRemoteVolume;
@@ -112,7 +111,6 @@ public final class Avrcp {
     private boolean mVolCmdAdjustInProgress;
     private boolean mVolCmdSetInProgress;
     private int mAbsVolRetryTimes;
-    private int mSkipAmount;
 
     private static final int NO_PLAYER_ID = 0;
 
@@ -427,9 +425,13 @@ public final class Avrcp {
             case MSG_NATIVE_REQ_GET_PLAY_STATUS:
             {
                 byte[] address = (byte[]) msg.obj;
-                if (DEBUG) Log.v(TAG, "MSG_NATIVE_REQ_GET_PLAY_STATUS");
-                getPlayStatusRspNative(address, convertPlayStateToPlayStatus(mCurrentPlayState),
-                        (int) mMediaAttributes.getLength(), (int) getPlayPosition());
+                int btstate = convertPlayStateToPlayStatus(mCurrentPlayState);
+                int length = (int) mMediaAttributes.getLength();
+                int position = (int) getPlayPosition();
+                if (DEBUG)
+                    Log.v(TAG, "MSG_NATIVE_REQ_GET_PLAY_STATUS, responding with state " + btstate
+                                    + " len " + length + " pos " + position);
+                getPlayStatusRspNative(address, btstate, length, position);
                 break;
             }
 
@@ -441,11 +443,13 @@ public final class Avrcp {
                 int[] attrIds = elem.mAttrIDs;
                 if (DEBUG) Log.v(TAG, "MSG_NATIVE_REQ_GET_ELEM_ATTRS:numAttr=" + numAttr);
                 textArray = new String[numAttr];
+                StringBuilder responseDebug = new StringBuilder();
+                responseDebug.append("getElementAttr response: ");
                 for (int i = 0; i < numAttr; ++i) {
                     textArray[i] = mMediaAttributes.getString(attrIds[i]);
-                    Log.v(TAG, "getAttributeString:attrId=" + attrIds[i] +
-                            " str=" + textArray[i]);
+                    responseDebug.append("[" + attrIds[i] + "=" + textArray[i] + "] ");
                 }
+                Log.v(TAG, responseDebug.toString());
                 byte[] bdaddr = elem.mAddress;
                 getElementAttrRspNative(bdaddr, numAttr, attrIds, textArray);
                 break;
@@ -472,13 +476,13 @@ public final class Avrcp {
                 break;
 
             case MSG_ADDRESSED_PLAYER_CHANGED_RSP:
-                if (DEBUG)
-                    Log.v(TAG, "MSG_ADDRESSED_PLAYER_CHANGED_RSP: newAddrPlayer = " + msg.arg1);
                 // Later addressed players override earlier ones.
                 if (hasMessages(MSG_ADDRESSED_PLAYER_CHANGED_RSP)) {
                     Log.i(TAG, "MSG_ADDRESSED_PLAYER_CHANGED_RSP: skip, more changes in queue");
                     break;
                 }
+                if (DEBUG)
+                    Log.v(TAG, "MSG_ADDRESSED_PLAYER_CHANGED_RSP: newAddrPlayer = " + msg.arg1);
                 registerNotificationRspAddrPlayerChangedNative(
                         AvrcpConstants.NOTIFICATION_TYPE_CHANGED, msg.arg1, sUIDCounter);
                 break;
@@ -490,12 +494,13 @@ public final class Avrcp {
 
             case MSG_NATIVE_REQ_VOLUME_CHANGE:
                 if (!isAbsoluteVolumeSupported()) {
-                    if (DEBUG) Log.v(TAG, "ignore MSG_NATIVE_REQ_VOLUME_CHANGE");
+                    if (DEBUG) Log.v(TAG, "MSG_NATIVE_REQ_VOLUME_CHANGE ignored, not supported");
                     break;
                 }
-
-                if (DEBUG) Log.v(TAG, "MSG_NATIVE_REQ_VOLUME_CHANGE: volume=" + ((byte) msg.arg1 & 0x7f)
-                        + " ctype=" + msg.arg2);
+                byte absVol = (byte) ((byte) msg.arg1 & 0x7f); // discard MSB as it is RFD
+                if (DEBUG)
+                    Log.v(TAG, "MSG_NATIVE_REQ_VOLUME_CHANGE: volume=" + absVol + " ctype="
+                                    + msg.arg2);
 
                 boolean volAdj = false;
                 if (msg.arg2 == AVRC_RSP_ACCEPT || msg.arg2 == AVRC_RSP_REJ) {
@@ -511,7 +516,6 @@ public final class Avrcp {
                     mAbsVolRetryTimes = 0;
                 }
 
-                byte absVol = (byte) ((byte) msg.arg1 & 0x7f); // discard MSB as it is RFD
                 // convert remote volume to local volume
                 int volIndex = convertToAudioStreamVolume(absVol);
                 if (mInitialRemoteVolume == -1) {
@@ -980,21 +984,18 @@ public final class Avrcp {
     }
 
     private void getRcFeaturesRequestFromNative(byte[] address, int features) {
-        if (DEBUG) Log.v(TAG, "getRcFeaturesRequestFromNative: address=" + address.toString());
         Message msg = mHandler.obtainMessage(MSG_NATIVE_REQ_GET_RC_FEATURES, features, 0,
                 Utils.getAddressStringFromByte(address));
         mHandler.sendMessage(msg);
     }
 
     private void getPlayStatusRequestFromNative(byte[] address) {
-        if (DEBUG) Log.v(TAG, "getPlayStatusRequestFromNative: address" + address.toString());
         Message msg = mHandler.obtainMessage(MSG_NATIVE_REQ_GET_PLAY_STATUS);
         msg.obj = address;
         mHandler.sendMessage(msg);
     }
 
     private void getElementAttrRequestFromNative(byte[] address, byte numAttr, int[] attrs) {
-        if (DEBUG) Log.v(TAG, "getElementAttrRequestFromNative: numAttr=" + numAttr);
         AvrcpCmd avrcpCmdobj = new AvrcpCmd();
         AvrcpCmd.ElementAttrCmd elemAttr = avrcpCmdobj.new ElementAttrCmd(address, numAttr, attrs);
         Message msg = mHandler.obtainMessage(MSG_NATIVE_REQ_GET_ELEM_ATTRS);
@@ -1003,7 +1004,6 @@ public final class Avrcp {
     }
 
     private void registerNotificationRequestFromNative(byte[] address,int eventId, int param) {
-        if (DEBUG) Log.v(TAG, "registerNotificationRequestFromNative: eventId=" + eventId);
         Message msg = mHandler.obtainMessage(MSG_NATIVE_REQ_REGISTER_NOTIFICATION, eventId, param);
         msg.obj = address;
         mHandler.sendMessage(msg);
@@ -1242,7 +1242,6 @@ public final class Avrcp {
 
     private void getFolderItemsRequestFromNative(
             byte[] address, byte scope, long startItem, long endItem, byte numAttr, int[] attrIds) {
-        if (DEBUG) Log.v(TAG, "getFolderItemsRequestFromNative: scope=" + scope + ", numAttr=" + numAttr);
         AvrcpCmd avrcpCmdobj = new AvrcpCmd();
         AvrcpCmd.FolderItemsCmd folderObj = avrcpCmdobj.new FolderItemsCmd(address, scope,
                 startItem, endItem, numAttr, attrIds);
@@ -1252,21 +1251,18 @@ public final class Avrcp {
     }
 
     private void setAddressedPlayerRequestFromNative(byte[] address, int playerId) {
-        if (DEBUG) Log.v(TAG, "setAddrPlayerRequestFromNative: playerId=" + playerId);
         Message msg = mHandler.obtainMessage(MSG_NATIVE_REQ_SET_ADDR_PLAYER, playerId, 0);
         msg.obj = address;
         mHandler.sendMessage(msg);
     }
 
     private void setBrowsedPlayerRequestFromNative(byte[] address, int playerId) {
-        if (DEBUG) Log.v(TAG, "setBrPlayerRequestFromNative: playerId=" + playerId);
         Message msg = mHandler.obtainMessage(MSG_NATIVE_REQ_SET_BR_PLAYER, playerId, 0);
         msg.obj = address;
         mHandler.sendMessage(msg);
     }
 
     private void changePathRequestFromNative(byte[] address, byte direction, byte[] folderUid) {
-        if (DEBUG) Log.v(TAG, "changePathRequestFromNative: direction=" + direction);
         Bundle data = new Bundle();
         Message msg = mHandler.obtainMessage(MSG_NATIVE_REQ_CHANGE_PATH);
         data.putByteArray("BdAddress" , address);
@@ -1278,7 +1274,6 @@ public final class Avrcp {
 
     private void getItemAttrRequestFromNative(byte[] address, byte scope, byte[] itemUid, int uidCounter,
             byte numAttr, int[] attrs) {
-        if (DEBUG) Log.v(TAG, "getItemAttrRequestFromNative: scope=" + scope + ", numAttr=" + numAttr);
         AvrcpCmd avrcpCmdobj = new AvrcpCmd();
         AvrcpCmd.ItemAttrCmd itemAttr = avrcpCmdobj.new ItemAttrCmd(address, scope,
                 itemUid, uidCounter, numAttr, attrs);
@@ -1288,14 +1283,12 @@ public final class Avrcp {
     }
 
     private void searchRequestFromNative(byte[] address, int charsetId, byte[] searchStr) {
-        if (DEBUG) Log.v(TAG, "searchRequestFromNative");
         /* Search is not supported */
-        if (DEBUG) Log.d(TAG, "search is not supported");
+        Log.w(TAG, "searchRequestFromNative: search is not supported");
         searchRspNative(address, AvrcpConstants.RSP_SRCH_NOT_SPRTD, 0, 0);
     }
 
     private void playItemRequestFromNative(byte[] address, byte scope, int uidCounter, byte[] uid) {
-        if (DEBUG) Log.v(TAG, "playItemRequestFromNative: scope=" + scope);
         Bundle data = new Bundle();
         Message msg = mHandler.obtainMessage(MSG_NATIVE_REQ_PLAY_ITEM);
         data.putByteArray("BdAddress" , address);
@@ -1307,14 +1300,12 @@ public final class Avrcp {
     }
 
     private void addToPlayListRequestFromNative(byte[] address, byte scope, byte[] uid, int uidCounter) {
-        if (DEBUG) Log.v(TAG, "addToPlayListRequestFromNative: scope=" + scope);
         /* add to NowPlaying not supported */
-        Log.w(TAG, "Add to NowPlayingList is not supported");
+        Log.w(TAG, "addToPlayListRequestFromNative: not supported! scope=" + scope);
         addToNowPlayingRspNative(address, AvrcpConstants.RSP_INTERNAL_ERR);
     }
 
     private void getTotalNumOfItemsRequestFromNative(byte[] address, byte scope) {
-        if (DEBUG) Log.v(TAG, "getTotalNumOfItemsRequestFromNative: scope=" + scope);
         Bundle data = new Bundle();
         Message msg = mHandler.obtainMessage(MSG_NATIVE_REQ_GET_TOTAL_NUM_OF_ITEMS);
         msg.arg1 = scope;
@@ -2301,7 +2292,6 @@ public final class Avrcp {
         ProfileService.println(sb, "mPlayPosChangedNT: " + mPlayPosChangedNT);
         ProfileService.println(sb, "mNextPosMs: " + mNextPosMs);
         ProfileService.println(sb, "mPrevPosMs: " + mPrevPosMs);
-        ProfileService.println(sb, "mSkipStartTime: " + mSkipStartTime);
         ProfileService.println(sb, "mFeatures: " + mFeatures);
         ProfileService.println(sb, "mRemoteVolume: " + mRemoteVolume);
         ProfileService.println(sb, "mLastRemoteVolume: " + mLastRemoteVolume);
@@ -2311,7 +2301,6 @@ public final class Avrcp {
         ProfileService.println(sb, "mVolCmdAdjustInProgress: " + mVolCmdAdjustInProgress);
         ProfileService.println(sb, "mVolCmdSetInProgress: " + mVolCmdSetInProgress);
         ProfileService.println(sb, "mAbsVolRetryTimes: " + mAbsVolRetryTimes);
-        ProfileService.println(sb, "mSkipAmount: " + mSkipAmount);
         ProfileService.println(sb, "mVolumeMapping: " + mVolumeMapping.toString());
         if (mMediaController != null)
             ProfileService.println(sb, "mMediaController: " + mMediaController.getWrappedInstance()
@@ -2327,6 +2316,10 @@ public final class Avrcp {
             }
         }
 
+        ProfileService.println(sb, "");
+        mAddressedMediaPlayer.dump(sb, mMediaController);
+
+        ProfileService.println(sb, "");
         ProfileService.println(sb, mPassthroughDispatched + " passthrough operations: ");
         if (mPassthroughDispatched > mPassthroughLogs.size())
             ProfileService.println(sb, "  (last " + mPassthroughLogs.size() + ")");
