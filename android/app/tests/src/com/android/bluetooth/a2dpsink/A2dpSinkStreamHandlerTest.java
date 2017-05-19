@@ -27,6 +27,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import android.content.Context;
+import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.media.AudioManager;
 import android.media.AudioManager.OnAudioFocusChangeListener;
@@ -56,6 +57,8 @@ public class A2dpSinkStreamHandlerTest extends AndroidTestCase {
 
     @Mock Resources mockResources;
 
+    @Mock PackageManager mockPackageManager;
+
     @Before
     public void setUp() {
         // Mock the looper
@@ -77,6 +80,8 @@ public class A2dpSinkStreamHandlerTest extends AndroidTestCase {
         when(mockAudioManager.abandonAudioFocus(any())).thenReturn(AudioManager.AUDIOFOCUS_GAIN);
         doNothing().when(mockA2dpSink).informAudioTrackGainNative(anyFloat());
         when(mockContext.getMainLooper()).thenReturn(mHandlerThread.getLooper());
+        when(mockContext.getPackageManager()).thenReturn(mockPackageManager);
+        when(mockPackageManager.hasSystemFeature(any())).thenReturn(false);
 
         streamHandler = spy(new A2dpSinkStreamHandler(mockA2dpSink, mockContext));
     }
@@ -135,6 +140,16 @@ public class A2dpSinkStreamHandlerTest extends AndroidTestCase {
         verify(mockAudioManager, times(0)).requestAudioFocus(any(), anyInt(), anyInt());
         verify(mockA2dpSink, times(0)).informAudioFocusStateNative(1);
         verify(mockA2dpSink, times(0)).informAudioTrackGainNative(1.0f);
+    }
+
+    @Test
+    public void testSrcPlayIot() {
+        // Play was pressed remotely for an iot device, expect streaming to start.
+        when(mockPackageManager.hasSystemFeature(any())).thenReturn(true);
+        streamHandler.handleMessage(streamHandler.obtainMessage(A2dpSinkStreamHandler.SRC_PLAY));
+        verify(mockAudioManager, times(1)).requestAudioFocus(any(), anyInt(), anyInt());
+        verify(mockA2dpSink, times(1)).informAudioFocusStateNative(1);
+        verify(mockA2dpSink, times(1)).informAudioTrackGainNative(1.0f);
     }
 
     @Test
