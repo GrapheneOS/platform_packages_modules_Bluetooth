@@ -27,6 +27,7 @@ import android.media.MediaMetadata;
 import android.os.Bundle;
 import android.util.Log;
 
+import com.android.bluetooth.btservice.ProfileService;
 import com.android.bluetooth.Utils;
 
 import java.nio.ByteBuffer;
@@ -260,14 +261,8 @@ public class AddressedMediaPlayer {
     boolean sendTrackChangeWithId(boolean requesting, @Nullable MediaController mediaController) {
         if (DEBUG)
             Log.d(TAG, "sendTrackChangeWithId (" + requesting + "): controller " + mediaController);
-        byte[] track;
-        long qid = MediaSession.QueueItem.UNKNOWN_ID;
-        if (mediaController != null) {
-            PlaybackState state = mediaController.getPlaybackState();
-            /* for any item associated with NowPlaying, uid is queueId */
-            if (state != null) qid = state.getActiveQueueItemId();
-        }
-        track = ByteBuffer.allocate(AvrcpConstants.UID_SIZE).putLong(qid).array();
+        long qid = getActiveQueueItemId(mediaController);
+        byte[] track = ByteBuffer.allocate(AvrcpConstants.UID_SIZE).putLong(qid).array();
         if (DEBUG) Log.d(TAG, "trackChangedRsp: 0x" + Utils.byteArrayToString(track));
         int trackChangedNT = AvrcpConstants.NOTIFICATION_TYPE_CHANGED;
         if (requesting) trackChangedNT = AvrcpConstants.NOTIFICATION_TYPE_INTERIM;
@@ -413,12 +408,9 @@ public class AddressedMediaPlayer {
         try {
             MediaDescription desc = item.getDescription();
             Bundle extras = desc.getExtras();
-            if (mediaController != null) {
-                PlaybackState state = mediaController.getPlaybackState();
-                if (state != null && (item.getQueueId() == state.getActiveQueueItemId())) {
-                    if (DEBUG) Log.d(TAG, "getAttrValue: item is active, filling extra data");
-                    extras = fillBundle(mediaController.getMetadata(), extras);
-                }
+            if (item.getQueueId() == getActiveQueueItemId(mediaController)) {
+                if (DEBUG) Log.d(TAG, "getAttrValue: item is active, filling extra data");
+                extras = fillBundle(mediaController.getMetadata(), extras);
             }
             if (DEBUG) Log.d(TAG, "getAttrValue: item " + item + " : " + desc);
             switch (attr) {
@@ -528,6 +520,26 @@ public class AddressedMediaPlayer {
                     (byte)attrCounter, attrIds, attrValues);
             mMediaInterface.getItemAttrRsp(bdaddr, AvrcpConstants.RSP_NO_ERROR, rspObj);
             return;
+        }
+    }
+
+    private long getActiveQueueItemId(@Nullable MediaController controller) {
+        if (controller == null) return MediaSession.QueueItem.UNKNOWN_ID;
+        PlaybackState state = controller.getPlaybackState();
+        if (state == null) return MediaSession.QueueItem.UNKNOWN_ID;
+        return state.getActiveQueueItemId();
+    }
+
+    public void dump(StringBuilder sb, @Nullable MediaController mediaController) {
+        ProfileService.println(sb, "AddressedPlayer info:");
+        ProfileService.println(sb, "mLastTrackIdSent: " + mLastTrackIdSent);
+        ProfileService.println(sb, "mNowPlayingList: " + mNowPlayingList);
+        List<MediaSession.QueueItem> queue = getNowPlayingList(mediaController);
+        ProfileService.println(sb, "Current Queue: " + queue.size() + " elements");
+        long currentQueueId = getActiveQueueItemId(mediaController);
+        for (MediaSession.QueueItem item : queue) {
+            long itemId = item.getQueueId();
+            ProfileService.println(sb, (itemId == currentQueueId ? "*" : " ") + item.toString());
         }
     }
 }
