@@ -259,8 +259,6 @@ public class AdapterService extends Service {
                 doUpdate=true;
             }
         }
-        debugLog("processProfileServiceStateChanged() serviceName=" + serviceName
-            + ", state=" + state +", doUpdate=" + doUpdate);
 
         if (!doUpdate) {
             return;
@@ -299,11 +297,8 @@ public class AdapterService extends Service {
                 Iterator<Map.Entry<String,Integer>> i = mProfileServicesState.entrySet().iterator();
                 while (i.hasNext()) {
                     Map.Entry<String,Integer> entry = i.next();
-                    debugLog("Service: " + entry.getKey());
-                    if (entry.getKey().equals("com.android.bluetooth.gatt.GattService")) {
-                        debugLog("Skip GATT service - already started before");
-                        continue;
-                    }
+                    if (entry.getKey().equals("com.android.bluetooth.gatt.GattService")) continue;
+
                     if (BluetoothAdapter.STATE_OFF != entry.getValue()) {
                         debugLog("onProfileServiceStateChange() - Profile still running: "
                             + entry.getKey());
@@ -325,11 +320,8 @@ public class AdapterService extends Service {
                 Iterator<Map.Entry<String,Integer>> i = mProfileServicesState.entrySet().iterator();
                 while (i.hasNext()) {
                     Map.Entry<String,Integer> entry = i.next();
-                    debugLog("Service: " + entry.getKey());
-                    if (entry.getKey().equals("com.android.bluetooth.gatt.GattService")) {
-                        debugLog("Skip GATT service - already started before");
-                        continue;
-                    }
+                    if (entry.getKey().equals("com.android.bluetooth.gatt.GattService")) continue;
+
                     if (BluetoothAdapter.STATE_ON != entry.getValue()) {
                         debugLog("onProfileServiceStateChange() - Profile still not running:"
                             + entry.getKey());
