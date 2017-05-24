@@ -946,23 +946,20 @@ public final class Avrcp {
 
     private void updateCurrentMediaState() {
         MediaAttributes currentAttributes = mMediaAttributes;
-        PlaybackState newState = mCurrentPlayState;
+        PlaybackState newState = null;
         if (mMediaController == null) {
             // Use A2DP state if we don't have a MediaControlller
             boolean isPlaying =
                     (mA2dpState == BluetoothA2dp.STATE_PLAYING) && mAudioManager.isMusicActive();
-            if (isPlaying != isPlayingState(mCurrentPlayState)) {
-                /* if a2dp is streaming, check to make sure music is active */
-                PlaybackState.Builder builder = new PlaybackState.Builder();
-                if (isPlaying) {
-                    builder.setState(PlaybackState.STATE_PLAYING,
-                            PlaybackState.PLAYBACK_POSITION_UNKNOWN, 1.0f);
-                } else {
-                    builder.setState(PlaybackState.STATE_PAUSED,
-                            PlaybackState.PLAYBACK_POSITION_UNKNOWN, 0.0f);
-                }
-                newState = builder.build();
+            PlaybackState.Builder builder = new PlaybackState.Builder();
+            if (isPlaying) {
+                builder.setState(
+                        PlaybackState.STATE_PLAYING, PlaybackState.PLAYBACK_POSITION_UNKNOWN, 1.0f);
+            } else {
+                builder.setState(
+                        PlaybackState.STATE_PAUSED, PlaybackState.PLAYBACK_POSITION_UNKNOWN, 0.0f);
             }
+            newState = builder.build();
             mMediaAttributes = new MediaAttributes(null);
         } else {
             newState = mMediaController.getPlaybackState();
@@ -1568,14 +1565,6 @@ public final class Avrcp {
                     for (android.media.session.MediaController controller : newControllers) {
                         addMediaPlayerController(controller);
                         playersChanged = true;
-                    }
-
-                    List<android.media.session.MediaController> currentControllers =
-                            getMediaControllers();
-                    for (android.media.session.MediaController controller : currentControllers) {
-                        if (!newControllers.contains(controller)) {
-                            removeMediaController(controller);
-                        }
                     }
 
                     if (playersChanged) {
