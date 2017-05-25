@@ -20,7 +20,6 @@
 #include "com_android_bluetooth.h"
 #include "cutils/properties.h"
 #include "hardware/bt_sock.h"
-#include "nativehelper/ScopedLocalFrame.h"
 #include "utils/Log.h"
 #include "utils/misc.h"
 
@@ -161,8 +160,6 @@ static void remote_device_properties_callback(bt_status_t status,
     ALOGE("%s: Status %d is incorrect", __func__, status);
     return;
   }
-
-  ScopedLocalFrame local_frame(sCallbackEnv.get());
 
   ScopedLocalRef<jbyteArray> val(
       sCallbackEnv.get(),
