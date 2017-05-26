@@ -16,6 +16,7 @@
 
 package com.android.bluetooth.avrcp;
 
+import android.annotation.NonNull;
 import android.content.ComponentName;
 import android.content.Context;
 import android.media.MediaDescription;
@@ -77,8 +78,6 @@ class BrowsedMediaPlayer {
 
     /* command objects from avrcp handler */
     private AvrcpCmd.FolderItemsCmd mFolderItemsReqObj;
-
-    private AvrcpCmd.ItemAttrCmd mItemAttrReqObj;
 
     /* store result of getfolderitems with scope="vfs" */
     private List<MediaBrowser.MediaItem> mFolderItems = null;
@@ -147,46 +146,101 @@ class BrowsedMediaPlayer {
     };
 
     /* callback from media player in response to getitemAttr request */
-    private MediaBrowser.SubscriptionCallback itemAttrCb =
-            new MediaBrowser.SubscriptionCallback() {
+    private class ItemAttribSubscriber extends MediaBrowser.SubscriptionCallback {
+        private String mMediaId;
+        private AvrcpCmd.ItemAttrCmd mAttrReq;
+
+        public ItemAttribSubscriber(
+                @NonNull AvrcpCmd.ItemAttrCmd attrReq, @NonNull String mediaId) {
+            mAttrReq = attrReq;
+            mMediaId = mediaId;
+        }
+
         @Override
         public void onChildrenLoaded(String parentId, List<MediaBrowser.MediaItem> children) {
-            if (DEBUG) Log.d(TAG, "itemAttrCb OnChildren Loaded");
-            int status = AvrcpConstants.RSP_NO_ERROR;
+            String logprefix = "ItemAttribSubscriber(" + mMediaId + "): ";
+            if (DEBUG) Log.d(TAG, logprefix + "OnChildren Loaded");
+            int status = AvrcpConstants.RSP_INV_ITEM;
 
-            if (children != null) {
-                boolean isChildrenFound = false;
-                /* some players may return all items in folder containing requested media item */
-                for (int itemIndex = 0; itemIndex < children.size(); itemIndex++) {
-                    if (children.get(itemIndex).getMediaId().equals(parentId)) {
-                        if (DEBUG) Log.d(TAG, "found an item " + itemIndex +
-                                children.get(itemIndex).getMediaId());
-                        getItemAttrFilterAttr(children.get(itemIndex));
-                        isChildrenFound = true;
+            if (children == null) {
+                Log.w(TAG, logprefix + "children list is null parentId: " + parentId);
+            } else {
+                /* find the item in the folder */
+                for (MediaBrowser.MediaItem item : children) {
+                    if (item.getMediaId().equals(mMediaId)) {
+                        if (DEBUG) Log.d(TAG, logprefix + "found item");
+                        getItemAttrFilterAttr(item);
+                        status = AvrcpConstants.RSP_NO_ERROR;
                         break;
                     }
                 }
-
-                if (!isChildrenFound) {
-                    Log.e(TAG, "not able to find the item:" + parentId);
-                    status = AvrcpConstants.RSP_INV_ITEM;
-                }
-            } else {
-                Log.e(TAG, "children list is null for parent id:" + parentId);
-                status = AvrcpConstants.RSP_INV_ITEM;
             }
-            //  send only error from here, in case of success it will sent the attributes from getItemAttrFilterAttr
+            /* Send only error from here, in case of success, getItemAttrFilterAttr sends */
             if (status != AvrcpConstants.RSP_NO_ERROR) {
-                /* send invalid uid rsp to remote device */
+                Log.e(TAG, logprefix + "not able to find item from " + parentId);
                 mMediaInterface.getItemAttrRsp(mBDAddr, status, null);
             }
+            mMediaBrowser.unsubscribe(parentId);
         }
+
         @Override
         public void onError(String id) {
-            Log.e(TAG, "Could not get attributes from media player. id: " + id);
+            Log.e(TAG, "Could not get attributes from media player id: " + id);
             mMediaInterface.getItemAttrRsp(mBDAddr, AvrcpConstants.RSP_INTERNAL_ERR, null);
         }
-    };
+
+        /* helper method to filter required attibuteand send GetItemAttr response */
+        private void getItemAttrFilterAttr(@NonNull MediaBrowser.MediaItem mediaItem) {
+            /* Response parameters */
+            int[] attrIds = null; /* array of attr ids */
+            String[] attrValues = null; /* array of attr values */
+
+            /* variables to temperorily add attrs */
+            ArrayList<Integer> attrIdArray = new ArrayList<Integer>();
+            ArrayList<String> attrValueArray = new ArrayList<String>();
+            ArrayList<Integer> attrReqIds = new ArrayList<Integer>();
+
+            if (mAttrReq.mNumAttr == AvrcpConstants.NUM_ATTR_NONE) {
+                // Note(jamuraa): the stack should never send this, remove?
+                Log.i(TAG, "getItemAttrFilterAttr: No attributes requested");
+                mMediaInterface.getItemAttrRsp(mBDAddr, AvrcpConstants.RSP_BAD_PARAM, null);
+                return;
+            }
+
+            /* check if remote device has requested all attributes */
+            if (mAttrReq.mNumAttr == AvrcpConstants.NUM_ATTR_ALL
+                    || mAttrReq.mNumAttr == AvrcpConstants.MAX_NUM_ATTR) {
+                for (int idx = 1; idx <= AvrcpConstants.MAX_NUM_ATTR; idx++) {
+                    attrReqIds.add(idx); /* attr id 0x00 is unused */
+                }
+            } else {
+                /* get only the requested attribute ids from the request */
+                for (int idx = 0; idx < mAttrReq.mNumAttr; idx++) {
+                    attrReqIds.add(mAttrReq.mAttrIDs[idx]);
+                }
+            }
+
+            /* lookup and copy values of attributes for ids requested above */
+            for (int attrId : attrReqIds) {
+                /* check if media player provided requested attributes */
+                String value = getAttrValue(attrId, mediaItem);
+                if (value != null) {
+                    attrIdArray.add(attrId);
+                    attrValueArray.add(value);
+                }
+            }
+
+            /* copy filtered attr ids and attr values to response parameters */
+            attrIds = new int[attrIdArray.size()];
+            for (int i = 0; i < attrIdArray.size(); i++) attrIds[i] = attrIdArray.get(i);
+
+            attrValues = attrValueArray.toArray(new String[attrIdArray.size()]);
+
+            /* create rsp object and send response */
+            ItemAttrRsp rspObj = new ItemAttrRsp(AvrcpConstants.RSP_NO_ERROR, attrIds, attrValues);
+            mMediaInterface.getItemAttrRsp(mBDAddr, AvrcpConstants.RSP_NO_ERROR, rspObj);
+        }
+    }
 
     /* Constructor */
     public BrowsedMediaPlayer(byte[] address, Context context,
@@ -261,6 +315,7 @@ class BrowsedMediaPlayer {
         mHmap = null;
         mMediaController = null;
         mMediaBrowser = null;
+        mPathStack = null;
     }
 
     public boolean isPlayerConnected() {
@@ -330,12 +385,6 @@ class BrowsedMediaPlayer {
         String mediaID;
         if (DEBUG) Log.d(TAG, "getItemAttr");
 
-        /*
-         * store request parameters for reference. To be used to filter
-         * attributes when sending response
-         */
-        mItemAttrReqObj = itemAttr;
-
         /* check if uid is valid by doing a lookup in hashmap */
         mediaID = byteToString(itemAttr.mUid);
         if (mediaID == null) {
@@ -357,7 +406,8 @@ class BrowsedMediaPlayer {
             return;
         }
 
-        mMediaBrowser.subscribe(mediaID, itemAttrCb);
+        /* Subscribe to the parent to list items and retrieve the right one */
+        mMediaBrowser.subscribe(mPathStack.peek(), new ItemAttribSubscriber(itemAttr, mediaID));
     }
 
     public void getTotalNumOfItems(byte scope) {
@@ -628,68 +678,6 @@ class BrowsedMediaPlayer {
         return attrValue;
     }
 
-    /* helper method to filter required attibutes before sending getItemAttrdg response */
-    private void getItemAttrFilterAttr(MediaBrowser.MediaItem mediaItem) {
-        /* Response parameters */
-        int[] attrIds = null; /* array of attr ids */
-        String[] attrValues = null; /* array of attr values */
-        int attrCounter = 0; /* num attributes for each item */
-        /* variables to temperorily add attrs */
-        ArrayList<String> attrArray = new ArrayList<String>();
-        ArrayList<Integer> attrId = new ArrayList<Integer>();
-
-        if (mediaItem == null) {
-            Log.e(TAG, "getItemAttrFilterAttr: media item is null");
-            mMediaInterface.getItemAttrRsp(mBDAddr, AvrcpConstants.RSP_INTERNAL_ERR, null);
-            return;
-        }
-
-        ArrayList<Integer> attrTempId = new ArrayList<Integer>();
-
-        /* check if remote device has requested for attributes */
-        if (mItemAttrReqObj.mNumAttr != AvrcpConstants.NUM_ATTR_NONE) {
-            if (mItemAttrReqObj.mNumAttr == AvrcpConstants.NUM_ATTR_ALL ||
-                    mItemAttrReqObj.mNumAttr == AvrcpConstants.MAX_NUM_ATTR) {
-                for (int idx = 1; idx <= AvrcpConstants.MAX_NUM_ATTR; idx++) {
-                    attrTempId.add(idx); /* attr id 0x00 is unused */
-                }
-            } else {
-                /* get only the requested attribute ids from the request */
-                for (int idx = 0; idx < mItemAttrReqObj.mNumAttr; idx++) {
-                    attrTempId.add(mItemAttrReqObj.mAttrIDs[idx]);
-                }
-            }
-
-            /* lookup and copy values of attributes for ids requested above */
-            for (int idx = 0; idx < attrTempId.size(); idx++) {
-                /* check if media player provided requested attributes */
-                String value = getAttrValue(attrTempId.get(idx), mediaItem);
-                if (value != null) {
-                    attrArray.add(value);
-                    attrId.add(attrTempId.get(idx));
-                    attrCounter++;
-                }
-            }
-            attrTempId = null;
-        } else {
-            Log.i(TAG, "getItemAttrFilterAttr: No attributes requested");
-        }
-
-        /* copy filtered attr ids and attr values to response parameters */
-        if (this.mItemAttrReqObj.mNumAttr != AvrcpConstants.NUM_ATTR_NONE) {
-            attrIds = new int[attrId.size()];
-
-            for (int attrIndex = 0; attrIndex < attrId.size(); attrIndex++)
-                attrIds[attrIndex] = attrId.get(attrIndex);
-
-            attrValues = attrArray.toArray(new String[attrId.size()]);
-
-            /* create rsp object and send response */
-            ItemAttrRsp rspObj = new ItemAttrRsp(AvrcpConstants.RSP_NO_ERROR,
-                    (byte)attrCounter, attrIds, attrValues);
-            mMediaInterface.getItemAttrRsp(mBDAddr, AvrcpConstants.RSP_NO_ERROR, rspObj);
-        }
-    }
 
     public String getPackageName() {
         return mPackageName;
