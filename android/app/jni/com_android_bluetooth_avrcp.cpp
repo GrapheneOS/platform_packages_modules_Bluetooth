@@ -806,9 +806,14 @@ static jboolean registerNotificationRspTrackChangeNative(JNIEnv* env,
   }
 
   btrc_register_notification_t param;
+  uint64_t uid = 0;
   for (int uid_idx = 0; uid_idx < BTRC_UID_SIZE; ++uid_idx) {
     param.track[uid_idx] = trk[uid_idx];
+    uid = uid + (trk[uid_idx] << (BTRC_UID_SIZE - 1 - uid_idx));
   }
+
+  ALOGV("%s: Sending track change notification: %d -> %llu", __func__, type,
+        uid);
 
   bt_status_t status = sBluetoothAvrcpInterface->register_notification_rsp(
       BTRC_EVT_TRACK_CHANGE, (btrc_notification_type_t)type, &param);
