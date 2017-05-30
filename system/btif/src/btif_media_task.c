@@ -494,7 +494,11 @@ UNUSED_ATTR static const char *dump_media_event(UINT16 event)
 
 static void btm_read_rssi_cb(void *data)
 {
-    assert(data);
+    if (data == NULL)
+    {
+        LOG_ERROR(LOG_TAG, "%s RSSI request timed out", __func__);
+        return;
+    }
 
     tBTM_RSSI_RESULTS *result = (tBTM_RSSI_RESULTS*)data;
     if (result->status != BTM_SUCCESS)
