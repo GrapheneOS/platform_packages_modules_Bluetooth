@@ -146,7 +146,8 @@ import com.android.bluetooth.btservice.BluetoothProto;
         gattService.addScanEvent(scanEvent);
 
         try {
-            batteryStats.noteBleScanStarted(workSource);
+            boolean isUnoptimized = !(scan.filtered || scan.background || scan.opportunistic);
+            batteryStats.noteBleScanStarted(workSource, isUnoptimized);
         } catch (RemoteException e) {
             /* ignore */
         }
