@@ -24,6 +24,8 @@
 #include "utils/Log.h"
 
 #include <string.h>
+#include <mutex>
+#include <shared_mutex>
 
 namespace android {
 
@@ -48,7 +50,10 @@ static jmethodID method_onAtBind;
 static jmethodID method_onAtBiev;
 
 static const bthf_interface_t* sBluetoothHfpInterface = NULL;
+static std::shared_timed_mutex interface_mutex;
+
 static jobject mCallbacksObj = NULL;
+static std::shared_timed_mutex callbacks_mutex;
 
 static jbyteArray marshall_bda(bt_bdaddr_t* bd_addr) {
   CallbackEnv sCallbackEnv(__func__);
@@ -68,8 +73,10 @@ static void connection_state_callback(bthf_connection_state_t state,
                                       bt_bdaddr_t* bd_addr) {
   ALOGI("%s", __func__);
 
+  std::shared_lock<std::shared_timed_mutex> lock(callbacks_mutex);
   CallbackEnv sCallbackEnv(__func__);
-  if (!sCallbackEnv.valid()) return;
+  if (!sCallbackEnv.valid() || mCallbacksObj == NULL) return;
+
   ScopedLocalRef<jbyteArray> addr(sCallbackEnv.get(), marshall_bda(bd_addr));
   if (!addr.get()) return;
 
@@ -79,8 +86,10 @@ static void connection_state_callback(bthf_connection_state_t state,
 
 static void audio_state_callback(bthf_audio_state_t state,
                                  bt_bdaddr_t* bd_addr) {
+  std::shared_lock<std::shared_timed_mutex> lock(callbacks_mutex);
   CallbackEnv sCallbackEnv(__func__);
-  if (!sCallbackEnv.valid()) return;
+  if (!sCallbackEnv.valid() || mCallbacksObj == NULL) return;
+
   ScopedLocalRef<jbyteArray> addr(sCallbackEnv.get(), marshall_bda(bd_addr));
   if (!addr.get()) return;
 
@@ -90,8 +99,10 @@ static void audio_state_callback(bthf_audio_state_t state,
 
 static void voice_recognition_callback(bthf_vr_state_t state,
                                        bt_bdaddr_t* bd_addr) {
+  std::shared_lock<std::shared_timed_mutex> lock(callbacks_mutex);
   CallbackEnv sCallbackEnv(__func__);
-  if (!sCallbackEnv.valid()) return;
+  if (!sCallbackEnv.valid() || mCallbacksObj == NULL) return;
+
   ScopedLocalRef<jbyteArray> addr(sCallbackEnv.get(), marshall_bda(bd_addr));
   if (!addr.get()) {
     ALOGE("Fail to new jbyteArray bd addr for audio state");
@@ -103,8 +114,10 @@ static void voice_recognition_callback(bthf_vr_state_t state,
 }
 
 static void answer_call_callback(bt_bdaddr_t* bd_addr) {
+  std::shared_lock<std::shared_timed_mutex> lock(callbacks_mutex);
   CallbackEnv sCallbackEnv(__func__);
-  if (!sCallbackEnv.valid()) return;
+  if (!sCallbackEnv.valid() || mCallbacksObj == NULL) return;
+
   ScopedLocalRef<jbyteArray> addr(sCallbackEnv.get(), marshall_bda(bd_addr));
   if (!addr.get()) {
     ALOGE("Fail to new jbyteArray bd addr for audio state");
@@ -115,8 +128,10 @@ static void answer_call_callback(bt_bdaddr_t* bd_addr) {
 }
 
 static void hangup_call_callback(bt_bdaddr_t* bd_addr) {
+  std::shared_lock<std::shared_timed_mutex> lock(callbacks_mutex);
   CallbackEnv sCallbackEnv(__func__);
-  if (!sCallbackEnv.valid()) return;
+  if (!sCallbackEnv.valid() || mCallbacksObj == NULL) return;
+
   ScopedLocalRef<jbyteArray> addr(sCallbackEnv.get(), marshall_bda(bd_addr));
   if (!addr.get()) {
     ALOGE("Fail to new jbyteArray bd addr for audio state");
@@ -128,8 +143,10 @@ static void hangup_call_callback(bt_bdaddr_t* bd_addr) {
 
 static void volume_control_callback(bthf_volume_type_t type, int volume,
                                     bt_bdaddr_t* bd_addr) {
+  std::shared_lock<std::shared_timed_mutex> lock(callbacks_mutex);
   CallbackEnv sCallbackEnv(__func__);
-  if (!sCallbackEnv.valid()) return;
+  if (!sCallbackEnv.valid() || mCallbacksObj == NULL) return;
+
   ScopedLocalRef<jbyteArray> addr(sCallbackEnv.get(), marshall_bda(bd_addr));
   if (!addr.get()) {
     ALOGE("Fail to new jbyteArray bd addr for audio state");
@@ -141,8 +158,10 @@ static void volume_control_callback(bthf_volume_type_t type, int volume,
 }
 
 static void dial_call_callback(char* number, bt_bdaddr_t* bd_addr) {
+  std::shared_lock<std::shared_timed_mutex> lock(callbacks_mutex);
   CallbackEnv sCallbackEnv(__func__);
-  if (!sCallbackEnv.valid()) return;
+  if (!sCallbackEnv.valid() || mCallbacksObj == NULL) return;
+
   ScopedLocalRef<jbyteArray> addr(sCallbackEnv.get(), marshall_bda(bd_addr));
   if (!addr.get()) {
     ALOGE("Fail to new jbyteArray bd addr for audio state");
@@ -156,8 +175,10 @@ static void dial_call_callback(char* number, bt_bdaddr_t* bd_addr) {
 }
 
 static void dtmf_cmd_callback(char dtmf, bt_bdaddr_t* bd_addr) {
+  std::shared_lock<std::shared_timed_mutex> lock(callbacks_mutex);
   CallbackEnv sCallbackEnv(__func__);
-  if (!sCallbackEnv.valid()) return;
+  if (!sCallbackEnv.valid() || mCallbacksObj == NULL) return;
+
   ScopedLocalRef<jbyteArray> addr(sCallbackEnv.get(), marshall_bda(bd_addr));
   if (!addr.get()) {
     ALOGE("Fail to new jbyteArray bd addr for audio state");
@@ -170,8 +191,10 @@ static void dtmf_cmd_callback(char dtmf, bt_bdaddr_t* bd_addr) {
 }
 
 static void noice_reduction_callback(bthf_nrec_t nrec, bt_bdaddr_t* bd_addr) {
+  std::shared_lock<std::shared_timed_mutex> lock(callbacks_mutex);
   CallbackEnv sCallbackEnv(__func__);
-  if (!sCallbackEnv.valid()) return;
+  if (!sCallbackEnv.valid() || mCallbacksObj == NULL) return;
+
   ScopedLocalRef<jbyteArray> addr(sCallbackEnv.get(), marshall_bda(bd_addr));
   if (!addr.get()) {
     ALOGE("Fail to new jbyteArray bd addr for audio state");
@@ -182,8 +205,9 @@ static void noice_reduction_callback(bthf_nrec_t nrec, bt_bdaddr_t* bd_addr) {
 }
 
 static void wbs_callback(bthf_wbs_config_t wbs_config, bt_bdaddr_t* bd_addr) {
+  std::shared_lock<std::shared_timed_mutex> lock(callbacks_mutex);
   CallbackEnv sCallbackEnv(__func__);
-  if (!sCallbackEnv.valid()) return;
+  if (!sCallbackEnv.valid() || mCallbacksObj == NULL) return;
 
   ScopedLocalRef<jbyteArray> addr(sCallbackEnv.get(), marshall_bda(bd_addr));
   if (addr.get() == NULL) return;
@@ -193,8 +217,10 @@ static void wbs_callback(bthf_wbs_config_t wbs_config, bt_bdaddr_t* bd_addr) {
 }
 
 static void at_chld_callback(bthf_chld_type_t chld, bt_bdaddr_t* bd_addr) {
+  std::shared_lock<std::shared_timed_mutex> lock(callbacks_mutex);
   CallbackEnv sCallbackEnv(__func__);
-  if (!sCallbackEnv.valid()) return;
+  if (!sCallbackEnv.valid() || mCallbacksObj == NULL) return;
+
   ScopedLocalRef<jbyteArray> addr(
       sCallbackEnv.get(), sCallbackEnv->NewByteArray(sizeof(bt_bdaddr_t)));
   if (!addr.get()) {
@@ -209,8 +235,10 @@ static void at_chld_callback(bthf_chld_type_t chld, bt_bdaddr_t* bd_addr) {
 }
 
 static void at_cnum_callback(bt_bdaddr_t* bd_addr) {
+  std::shared_lock<std::shared_timed_mutex> lock(callbacks_mutex);
   CallbackEnv sCallbackEnv(__func__);
-  if (!sCallbackEnv.valid()) return;
+  if (!sCallbackEnv.valid() || mCallbacksObj == NULL) return;
+
   ScopedLocalRef<jbyteArray> addr(sCallbackEnv.get(), marshall_bda(bd_addr));
   if (!addr.get()) {
     ALOGE("Fail to new jbyteArray bd addr for audio state");
@@ -221,8 +249,10 @@ static void at_cnum_callback(bt_bdaddr_t* bd_addr) {
 }
 
 static void at_cind_callback(bt_bdaddr_t* bd_addr) {
+  std::shared_lock<std::shared_timed_mutex> lock(callbacks_mutex);
   CallbackEnv sCallbackEnv(__func__);
-  if (!sCallbackEnv.valid()) return;
+  if (!sCallbackEnv.valid() || mCallbacksObj == NULL) return;
+
   ScopedLocalRef<jbyteArray> addr(sCallbackEnv.get(), marshall_bda(bd_addr));
   if (!addr.get()) {
     ALOGE("Fail to new jbyteArray bd addr for audio state");
@@ -233,8 +263,10 @@ static void at_cind_callback(bt_bdaddr_t* bd_addr) {
 }
 
 static void at_cops_callback(bt_bdaddr_t* bd_addr) {
+  std::shared_lock<std::shared_timed_mutex> lock(callbacks_mutex);
   CallbackEnv sCallbackEnv(__func__);
-  if (!sCallbackEnv.valid()) return;
+  if (!sCallbackEnv.valid() || mCallbacksObj == NULL) return;
+
   ScopedLocalRef<jbyteArray> addr(sCallbackEnv.get(), marshall_bda(bd_addr));
   if (!addr.get()) {
     ALOGE("Fail to new jbyteArray bd addr for audio state");
@@ -245,8 +277,10 @@ static void at_cops_callback(bt_bdaddr_t* bd_addr) {
 }
 
 static void at_clcc_callback(bt_bdaddr_t* bd_addr) {
+  std::shared_lock<std::shared_timed_mutex> lock(callbacks_mutex);
   CallbackEnv sCallbackEnv(__func__);
-  if (!sCallbackEnv.valid()) return;
+  if (!sCallbackEnv.valid() || mCallbacksObj == NULL) return;
+
   ScopedLocalRef<jbyteArray> addr(sCallbackEnv.get(), marshall_bda(bd_addr));
   if (!addr.get()) {
     ALOGE("Fail to new jbyteArray bd addr for audio state");
@@ -257,8 +291,10 @@ static void at_clcc_callback(bt_bdaddr_t* bd_addr) {
 }
 
 static void unknown_at_callback(char* at_string, bt_bdaddr_t* bd_addr) {
+  std::shared_lock<std::shared_timed_mutex> lock(callbacks_mutex);
   CallbackEnv sCallbackEnv(__func__);
-  if (!sCallbackEnv.valid()) return;
+  if (!sCallbackEnv.valid() || mCallbacksObj == NULL) return;
+
   ScopedLocalRef<jbyteArray> addr(sCallbackEnv.get(), marshall_bda(bd_addr));
   if (!addr.get()) {
     ALOGE("Fail to new jbyteArray bd addr for audio state");
@@ -272,8 +308,10 @@ static void unknown_at_callback(char* at_string, bt_bdaddr_t* bd_addr) {
 }
 
 static void key_pressed_callback(bt_bdaddr_t* bd_addr) {
+  std::shared_lock<std::shared_timed_mutex> lock(callbacks_mutex);
   CallbackEnv sCallbackEnv(__func__);
-  if (!sCallbackEnv.valid()) return;
+  if (!sCallbackEnv.valid() || mCallbacksObj == NULL) return;
+
   ScopedLocalRef<jbyteArray> addr(sCallbackEnv.get(), marshall_bda(bd_addr));
   if (!addr.get()) {
     ALOGE("Fail to new jbyteArray bd addr for audio state");
@@ -284,8 +322,9 @@ static void key_pressed_callback(bt_bdaddr_t* bd_addr) {
 }
 
 static void at_bind_callback(char* at_string, bt_bdaddr_t* bd_addr) {
+  std::shared_lock<std::shared_timed_mutex> lock(callbacks_mutex);
   CallbackEnv sCallbackEnv(__func__);
-  if (!sCallbackEnv.valid()) return;
+  if (!sCallbackEnv.valid() || mCallbacksObj == NULL) return;
 
   ScopedLocalRef<jbyteArray> addr(sCallbackEnv.get(), marshall_bda(bd_addr));
   if (addr.get() == NULL) return;
@@ -299,8 +338,9 @@ static void at_bind_callback(char* at_string, bt_bdaddr_t* bd_addr) {
 
 static void at_biev_callback(bthf_hf_ind_type_t ind_id, int ind_value,
                              bt_bdaddr_t* bd_addr) {
+  std::shared_lock<std::shared_timed_mutex> lock(callbacks_mutex);
   CallbackEnv sCallbackEnv(__func__);
-  if (!sCallbackEnv.valid()) return;
+  if (!sCallbackEnv.valid() || mCallbacksObj == NULL) return;
 
   ScopedLocalRef<jbyteArray> addr(sCallbackEnv.get(), marshall_bda(bd_addr));
   if (addr.get() == NULL) return;
@@ -365,6 +405,9 @@ static void classInitNative(JNIEnv* env, jclass clazz) {
 
 static void initializeNative(JNIEnv* env, jobject object, jint max_hf_clients,
                              jboolean inband_ringing_support) {
+  std::unique_lock<std::shared_timed_mutex> interface_lock(interface_mutex);
+  std::unique_lock<std::shared_timed_mutex> callbacks_lock(callbacks_mutex);
+
   const bt_interface_t* btInf = getBluetoothInterface();
   if (btInf == NULL) {
     ALOGE("Bluetooth module is not loaded");
@@ -402,8 +445,10 @@ static void initializeNative(JNIEnv* env, jobject object, jint max_hf_clients,
 }
 
 static void cleanupNative(JNIEnv* env, jobject object) {
-  const bt_interface_t* btInf = getBluetoothInterface();
+  std::unique_lock<std::shared_timed_mutex> interface_lock(interface_mutex);
+  std::unique_lock<std::shared_timed_mutex> callbacks_lock(callbacks_mutex);
 
+  const bt_interface_t* btInf = getBluetoothInterface();
   if (btInf == NULL) {
     ALOGE("Bluetooth module is not loaded");
     return;
@@ -425,6 +470,7 @@ static void cleanupNative(JNIEnv* env, jobject object) {
 static jboolean connectHfpNative(JNIEnv* env, jobject object,
                                  jbyteArray address) {
   ALOGI("%s: sBluetoothHfpInterface: %p", __func__, sBluetoothHfpInterface);
+  std::shared_lock<std::shared_timed_mutex> lock(interface_mutex);
   if (!sBluetoothHfpInterface) return JNI_FALSE;
 
   jbyte* addr = env->GetByteArrayElements(address, NULL);
@@ -443,6 +489,7 @@ static jboolean connectHfpNative(JNIEnv* env, jobject object,
 
 static jboolean disconnectHfpNative(JNIEnv* env, jobject object,
                                     jbyteArray address) {
+  std::shared_lock<std::shared_timed_mutex> lock(interface_mutex);
   if (!sBluetoothHfpInterface) return JNI_FALSE;
 
   jbyte* addr = env->GetByteArrayElements(address, NULL);
@@ -461,6 +508,7 @@ static jboolean disconnectHfpNative(JNIEnv* env, jobject object,
 
 static jboolean connectAudioNative(JNIEnv* env, jobject object,
                                    jbyteArray address) {
+  std::shared_lock<std::shared_timed_mutex> lock(interface_mutex);
   if (!sBluetoothHfpInterface) return JNI_FALSE;
 
   jbyte* addr = env->GetByteArrayElements(address, NULL);
@@ -480,6 +528,7 @@ static jboolean connectAudioNative(JNIEnv* env, jobject object,
 
 static jboolean disconnectAudioNative(JNIEnv* env, jobject object,
                                       jbyteArray address) {
+  std::shared_lock<std::shared_timed_mutex> lock(interface_mutex);
   if (!sBluetoothHfpInterface) return JNI_FALSE;
 
   jbyte* addr = env->GetByteArrayElements(address, NULL);
@@ -499,6 +548,7 @@ static jboolean disconnectAudioNative(JNIEnv* env, jobject object,
 
 static jboolean startVoiceRecognitionNative(JNIEnv* env, jobject object,
                                             jbyteArray address) {
+  std::shared_lock<std::shared_timed_mutex> lock(interface_mutex);
   if (!sBluetoothHfpInterface) return JNI_FALSE;
 
   jbyte* addr = env->GetByteArrayElements(address, NULL);
@@ -518,6 +568,7 @@ static jboolean startVoiceRecognitionNative(JNIEnv* env, jobject object,
 
 static jboolean stopVoiceRecognitionNative(JNIEnv* env, jobject object,
                                            jbyteArray address) {
+  std::shared_lock<std::shared_timed_mutex> lock(interface_mutex);
   if (!sBluetoothHfpInterface) return JNI_FALSE;
 
   jbyte* addr = env->GetByteArrayElements(address, NULL);
@@ -537,6 +588,7 @@ static jboolean stopVoiceRecognitionNative(JNIEnv* env, jobject object,
 
 static jboolean setVolumeNative(JNIEnv* env, jobject object, jint volume_type,
                                 jint volume, jbyteArray address) {
+  std::shared_lock<std::shared_timed_mutex> lock(interface_mutex);
   if (!sBluetoothHfpInterface) return JNI_FALSE;
 
   jbyte* addr = env->GetByteArrayElements(address, NULL);
@@ -557,6 +609,7 @@ static jboolean setVolumeNative(JNIEnv* env, jobject object, jint volume_type,
 static jboolean notifyDeviceStatusNative(JNIEnv* env, jobject object,
                                          jint network_state, jint service_type,
                                          jint signal, jint battery_charge) {
+  std::shared_lock<std::shared_timed_mutex> lock(interface_mutex);
   if (!sBluetoothHfpInterface) return JNI_FALSE;
 
   bt_status_t status = sBluetoothHfpInterface->device_status_notification(
@@ -570,6 +623,7 @@ static jboolean notifyDeviceStatusNative(JNIEnv* env, jobject object,
 
 static jboolean copsResponseNative(JNIEnv* env, jobject object,
                                    jstring operator_str, jbyteArray address) {
+  std::shared_lock<std::shared_timed_mutex> lock(interface_mutex);
   if (!sBluetoothHfpInterface) return JNI_FALSE;
 
   jbyte* addr = env->GetByteArrayElements(address, NULL);
@@ -595,6 +649,8 @@ static jboolean cindResponseNative(JNIEnv* env, jobject object, jint service,
                                    jint call_state, jint signal, jint roam,
                                    jint battery_charge, jbyteArray address) {
   ALOGI("%s: sBluetoothHfpInterface: %p", __func__, sBluetoothHfpInterface);
+
+  std::shared_lock<std::shared_timed_mutex> lock(interface_mutex);
   if (!sBluetoothHfpInterface) return JNI_FALSE;
 
   jbyte* addr = env->GetByteArrayElements(address, NULL);
@@ -617,6 +673,7 @@ static jboolean bindResponseNative(JNIEnv* env, jobject object, jint ind_id,
                                    jboolean ind_status, jbyteArray address) {
   ALOGI("%s: sBluetoothHfpInterface: %p", __func__, sBluetoothHfpInterface);
 
+  std::shared_lock<std::shared_timed_mutex> lock(interface_mutex);
   if (!sBluetoothHfpInterface) return JNI_FALSE;
 
   jbyte* addr = env->GetByteArrayElements(address, NULL);
@@ -640,6 +697,7 @@ static jboolean bindResponseNative(JNIEnv* env, jobject object, jint ind_id,
 static jboolean atResponseStringNative(JNIEnv* env, jobject object,
                                        jstring response_str,
                                        jbyteArray address) {
+  std::shared_lock<std::shared_timed_mutex> lock(interface_mutex);
   if (!sBluetoothHfpInterface) return JNI_FALSE;
 
   jbyte* addr = env->GetByteArrayElements(address, NULL);
@@ -663,6 +721,7 @@ static jboolean atResponseStringNative(JNIEnv* env, jobject object,
 static jboolean atResponseCodeNative(JNIEnv* env, jobject object,
                                      jint response_code, jint cmee_code,
                                      jbyteArray address) {
+  std::shared_lock<std::shared_timed_mutex> lock(interface_mutex);
   if (!sBluetoothHfpInterface) return JNI_FALSE;
 
   jbyte* addr = env->GetByteArrayElements(address, NULL);
@@ -684,6 +743,7 @@ static jboolean clccResponseNative(JNIEnv* env, jobject object, jint index,
                                    jint dir, jint callStatus, jint mode,
                                    jboolean mpty, jstring number_str, jint type,
                                    jbyteArray address) {
+  std::shared_lock<std::shared_timed_mutex> lock(interface_mutex);
   if (!sBluetoothHfpInterface) return JNI_FALSE;
 
   jbyte* addr = env->GetByteArrayElements(address, NULL);
@@ -712,6 +772,7 @@ static jboolean phoneStateChangeNative(JNIEnv* env, jobject object,
                                        jint num_active, jint num_held,
                                        jint call_state, jstring number_str,
                                        jint type) {
+  std::shared_lock<std::shared_timed_mutex> lock(interface_mutex);
   if (!sBluetoothHfpInterface) return JNI_FALSE;
 
   const char* number = env->GetStringUTFChars(number_str, NULL);
@@ -728,6 +789,7 @@ static jboolean phoneStateChangeNative(JNIEnv* env, jobject object,
 
 static jboolean configureWBSNative(JNIEnv* env, jobject object,
                                    jbyteArray address, jint codec_config) {
+  std::shared_lock<std::shared_timed_mutex> lock(interface_mutex);
   if (!sBluetoothHfpInterface) return JNI_FALSE;
 
   jbyte* addr = env->GetByteArrayElements(address, NULL);
