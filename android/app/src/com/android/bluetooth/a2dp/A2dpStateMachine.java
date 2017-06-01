@@ -267,14 +267,22 @@ final class A2dpStateMachine extends StateMachine {
         @Override
         public void enter() {
             log("Enter Disconnected: " + getCurrentMessage().what);
+            if (mCurrentDevice != null || mTargetDevice != null || mIncomingDevice != null) {
+                loge("ERROR: enter() inconsistent state in Disconnected: current = "
+                        + mCurrentDevice + " target = " + mTargetDevice + " incoming = "
+                        + mIncomingDevice);
+            }
         }
 
         @Override
         public boolean processMessage(Message message) {
             log("Disconnected process message: " + message.what);
             if (mCurrentDevice != null || mTargetDevice != null  || mIncomingDevice != null) {
-                loge("ERROR: current, target, or mIncomingDevice not null in Disconnected");
-                return NOT_HANDLED;
+                loge("ERROR: not null state in Disconnected: current = " + mCurrentDevice
+                        + " target = " + mTargetDevice + " incoming = " + mIncomingDevice);
+                mCurrentDevice = null;
+                mTargetDevice = null;
+                mIncomingDevice = null;
             }
 
             boolean retValue = HANDLED;
@@ -374,6 +382,10 @@ final class A2dpStateMachine extends StateMachine {
         @Override
         public void enter() {
             log("Enter Pending: " + getCurrentMessage().what);
+            if (mTargetDevice != null && mIncomingDevice != null) {
+                loge("ERROR: enter() inconsistent state in Pending: current = " + mCurrentDevice
+                        + " target = " + mTargetDevice + " incoming = " + mIncomingDevice);
+            }
         }
 
         @Override
@@ -580,6 +592,11 @@ final class A2dpStateMachine extends StateMachine {
             removeDeferredMessages(CONNECT);
 
             log("Enter Connected: " + getCurrentMessage().what);
+            if (mTargetDevice != null || mIncomingDevice != null) {
+                loge("ERROR: enter() inconsistent state in Connected: current = " + mCurrentDevice
+                        + " target = " + mTargetDevice + " incoming = " + mIncomingDevice);
+            }
+
             // Upon connected, the audio starts out as stopped
             broadcastAudioState(mCurrentDevice, BluetoothA2dp.STATE_NOT_PLAYING,
                                 BluetoothA2dp.STATE_PLAYING);
@@ -629,7 +646,9 @@ final class A2dpStateMachine extends StateMachine {
                                        BluetoothProfile.STATE_DISCONNECTED);
                         break;
                     }
-                    transitionTo(mPending);
+                    synchronized (A2dpStateMachine.this) {
+                        transitionTo(mPending);
+                    }
                 }
                     break;
                 case STACK_EVENT:
