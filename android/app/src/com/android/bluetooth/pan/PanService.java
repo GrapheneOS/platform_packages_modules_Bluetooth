@@ -29,6 +29,7 @@ import android.net.LinkAddress;
 import android.net.NetworkUtils;
 import android.os.Handler;
 import android.os.IBinder;
+import android.os.Binder;
 import android.os.INetworkManagementService;
 import android.os.Message;
 import android.os.ServiceManager;
@@ -324,10 +325,19 @@ public class PanService extends ProfileService {
 
     void setBluetoothTethering(boolean value) {
         if(DBG) Log.d(TAG, "setBluetoothTethering: " + value +", mTetherOn: " + mTetherOn);
+        enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH_ADMIN permission");
         final Context context = getBaseContext();
         String pkgName = context.getOpPackageName();
-        ConnectivityManager.enforceTetherChangePermission(context, pkgName);
-        enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH_ADMIN permission");
+
+        // Clear caller identity temporarily so enforceTetherChangePermission UID checks work
+        // correctly
+        final long identityToken = Binder.clearCallingIdentity();
+        try {
+            ConnectivityManager.enforceTetherChangePermission(context, pkgName);
+        } finally {
+            Binder.restoreCallingIdentity(identityToken);
+        }
+
         UserManager um = (UserManager) getSystemService(Context.USER_SERVICE);
         if (um.hasUserRestriction(UserManager.DISALLOW_CONFIG_TETHERING)) {
             throw new SecurityException("DISALLOW_CONFIG_TETHERING is enabled for this user.");
