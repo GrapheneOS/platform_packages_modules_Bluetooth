@@ -252,8 +252,13 @@ public class HeadsetService extends ProfileService {
             if (service != null) {
                 return service.getAudioRouteAllowed();
             }
-
             return false;
+        }
+
+        public void setForceScoAudio(boolean forced) {
+            HeadsetService service = getService();
+            if (service == null) return;
+            service.setForceScoAudio(forced);
         }
 
         public boolean startScoUsingVirtualVoiceCall(BluetoothDevice device) {
@@ -467,6 +472,11 @@ public class HeadsetService extends ProfileService {
 
     public boolean getAudioRouteAllowed() {
         return mStateMachine.getAudioRouteAllowed();
+    }
+
+    public void setForceScoAudio(boolean forced) {
+        enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH_ADMIN permission");
+        mStateMachine.setForceScoAudio(forced);
     }
 
     boolean connectAudio() {
