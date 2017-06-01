@@ -334,7 +334,9 @@ public final class Avrcp {
 
     public void doQuit() {
         if (DEBUG) Log.d(TAG, "doQuit");
-        if (mMediaController != null) mMediaController.unregisterCallback(mMediaControllerCb);
+        synchronized (this) {
+            if (mMediaController != null) mMediaController.unregisterCallback(mMediaControllerCb);
+        }
         if (mMediaSessionManager != null) {
             mMediaSessionManager.setCallback(null, null);
             mMediaSessionManager.removeOnActiveSessionsChangedListener(mActiveSessionListener);
@@ -377,8 +379,9 @@ public final class Avrcp {
         @Override
         public void onSessionDestroyed() {
             Log.v(TAG, "MediaController session destroyed");
-            if (mMediaController != null) {
-                removeMediaController(mMediaController.getWrappedInstance());
+            synchronized (Avrcp.this) {
+                if (mMediaController != null)
+                    removeMediaController(mMediaController.getWrappedInstance());
             }
         }
 
@@ -947,23 +950,25 @@ public final class Avrcp {
     private void updateCurrentMediaState() {
         MediaAttributes currentAttributes = mMediaAttributes;
         PlaybackState newState = null;
-        if (mMediaController == null) {
-            // Use A2DP state if we don't have a MediaControlller
-            boolean isPlaying =
-                    (mA2dpState == BluetoothA2dp.STATE_PLAYING) && mAudioManager.isMusicActive();
-            PlaybackState.Builder builder = new PlaybackState.Builder();
-            if (isPlaying) {
-                builder.setState(
-                        PlaybackState.STATE_PLAYING, PlaybackState.PLAYBACK_POSITION_UNKNOWN, 1.0f);
+        synchronized (this) {
+            if (mMediaController == null) {
+                // Use A2DP state if we don't have a MediaControlller
+                boolean isPlaying = (mA2dpState == BluetoothA2dp.STATE_PLAYING)
+                        && mAudioManager.isMusicActive();
+                PlaybackState.Builder builder = new PlaybackState.Builder();
+                if (isPlaying) {
+                    builder.setState(PlaybackState.STATE_PLAYING,
+                            PlaybackState.PLAYBACK_POSITION_UNKNOWN, 1.0f);
+                } else {
+                    builder.setState(PlaybackState.STATE_PAUSED,
+                            PlaybackState.PLAYBACK_POSITION_UNKNOWN, 0.0f);
+                }
+                newState = builder.build();
+                mMediaAttributes = new MediaAttributes(null);
             } else {
-                builder.setState(
-                        PlaybackState.STATE_PAUSED, PlaybackState.PLAYBACK_POSITION_UNKNOWN, 0.0f);
+                newState = mMediaController.getPlaybackState();
+                mMediaAttributes = new MediaAttributes(mMediaController.getMetadata());
             }
-            newState = builder.build();
-            mMediaAttributes = new MediaAttributes(null);
-        } else {
-            newState = mMediaController.getPlaybackState();
-            mMediaAttributes = new MediaAttributes(mMediaController.getMetadata());
         }
 
         long oldQueueId = mCurrentPlayState.getActiveQueueItemId();
@@ -2101,8 +2106,8 @@ public final class Avrcp {
 
         if (DEBUG)
             Log.d(TAG, "updateCurrentController: " + mMediaController + " to " + newController);
-        if (mMediaController == null || (!mMediaController.equals(newController))) {
-            synchronized (this) {
+        synchronized (this) {
+            if (mMediaController == null || (!mMediaController.equals(newController))) {
                 if (mMediaController != null) {
                     mMediaController.unregisterCallback(mMediaControllerCb);
                 }
@@ -2115,8 +2120,8 @@ public final class Avrcp {
                     registerRsp = false;
                 }
             }
-            updateCurrentMediaState();
         }
+        updateCurrentMediaState();
         return registerRsp;
     }
 
@@ -2288,10 +2293,12 @@ public final class Avrcp {
         ProfileService.println(sb, "mVolCmdSetInProgress: " + mVolCmdSetInProgress);
         ProfileService.println(sb, "mAbsVolRetryTimes: " + mAbsVolRetryTimes);
         ProfileService.println(sb, "mVolumeMapping: " + mVolumeMapping.toString());
-        if (mMediaController != null)
-            ProfileService.println(sb, "mMediaController: " + mMediaController.getWrappedInstance()
-                            + " pkg " + mMediaController.getPackageName());
-
+        synchronized (this) {
+            if (mMediaController != null)
+                ProfileService.println(sb, "mMediaController: "
+                                + mMediaController.getWrappedInstance() + " pkg "
+                                + mMediaController.getPackageName());
+        }
         ProfileService.println(sb, "");
         ProfileService.println(sb, "Media Players:");
         synchronized (mMediaPlayerInfoList) {
