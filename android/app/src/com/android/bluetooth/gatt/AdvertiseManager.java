@@ -240,6 +240,12 @@ class AdvertiseManager {
         }
 
         stopAdvertisingSetNative(advertiser_id);
+
+        try {
+            callback.onAdvertisingSetStopped(advertiser_id);
+        } catch (RemoteException e) {
+            Log.i(TAG, "error sending onAdvertisingSetStopped callback", e);
+        }
     }
 
     void enableAdvertisingSet(int advertiserId, boolean enable, int duration, int maxExtAdvEvents) {
