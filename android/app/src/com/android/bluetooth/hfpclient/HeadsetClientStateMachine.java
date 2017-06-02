@@ -104,6 +104,8 @@ public class HeadsetClientStateMachine extends StateMachine {
 
     // Timeouts.
     static final int CONNECTING_TIMEOUT_MS = 10000;  // 10s
+    static final int ROUTING_DELAY_MS = 250;
+    static final int SCO_DISCONNECT_TIMEOUT_MS = 750;
 
     static final int MAX_HFP_SCO_VOICE_CALL_VOLUME = 15; // HFP 1.5 spec.
     static final int MIN_HFP_SCO_VOICE_CALL_VOLUME = 1; // HFP 1.5 spec.
@@ -460,6 +462,8 @@ public class HeadsetClientStateMachine extends StateMachine {
                     action = HeadsetClientHalConstants.CALL_ACTION_CHLD_1;
                 } else if (getCall(BluetoothHeadsetClientCall.CALL_STATE_ACTIVE) != null) {
                     action = HeadsetClientHalConstants.CALL_ACTION_CHLD_3;
+                } else if (flag == BluetoothHeadsetClient.CALL_ACCEPT_NONE) {
+                    action = HeadsetClientHalConstants.CALL_ACTION_CHLD_2;
                 } else {
                     action = HeadsetClientHalConstants.CALL_ACTION_CHLD_2;
                 }
@@ -581,6 +585,7 @@ public class HeadsetClientStateMachine extends StateMachine {
         if (c != null) {
             if (NativeInterface.handleCallActionNative(getByteAddress(mCurrentDevice), action, 0)) {
                 addQueuedAction(TERMINATE_CALL, action);
+                sendMessageDelayed(DISCONNECT_AUDIO, SCO_DISCONNECT_TIMEOUT_MS);
             } else {
                 Log.e(TAG, "ERROR: Couldn't terminate outgoing call");
             }
@@ -1065,7 +1070,6 @@ public class HeadsetClientStateMachine extends StateMachine {
                     }
 
                     NativeInterface.connectNative(getByteAddress(device));
-                    // deferMessage(message);
                     break;
                 case DISCONNECT:
                     BluetoothDevice dev = (BluetoothDevice) message.obj;
@@ -1083,11 +1087,8 @@ public class HeadsetClientStateMachine extends StateMachine {
                     break;
 
                 case CONNECT_AUDIO:
-                    if (!mService.isScoAvailable()
-                            || !NativeInterface.connectAudioNative(
-                                       getByteAddress(mCurrentDevice))) {
-                        Log.e(TAG, "ERROR: Couldn't connect Audio for device " + mCurrentDevice
-                                        + " isScoAvailable " + mService.isScoAvailable());
+                    if (!NativeInterface.connectAudioNative(getByteAddress(mCurrentDevice))) {
+                        Log.e(TAG, "ERROR: Couldn't connect Audio for device " + mCurrentDevice);
                         broadcastAudioState(mCurrentDevice,
                                 BluetoothHeadsetClient.STATE_AUDIO_DISCONNECTED,
                                 BluetoothHeadsetClient.STATE_AUDIO_DISCONNECTED);
@@ -1398,6 +1399,16 @@ public class HeadsetClientStateMachine extends StateMachine {
                     // for routing and volume purposes.
                     // NOTE: All calls here are routed via the setParameters which changes the
                     // routing at the Audio HAL level.
+
+                    if (mService.isScoRouted()) {
+                        StackEvent event =
+                                new StackEvent(StackEvent.EVENT_TYPE_AUDIO_STATE_CHANGED);
+                        event.valueInt = state;
+                        event.device = device;
+                        sendMessageDelayed(StackEvent.STACK_EVENT, event, ROUTING_DELAY_MS);
+                        break;
+                    }
+
                     mAudioState = BluetoothHeadsetClient.STATE_AUDIO_CONNECTED;
 
                     // We need to set the volume after switching into HFP mode as some Audio HALs
@@ -1501,6 +1512,11 @@ public class HeadsetClientStateMachine extends StateMachine {
                         mAudioManager.setParameters("hfp_enable=false");
                     }
                     break;
+
+                case HOLD_CALL:
+                    holdCall();
+                    break;
+
                 case StackEvent.STACK_EVENT:
                     StackEvent event = (StackEvent) message.obj;
                     if (DBG) {
@@ -1561,6 +1577,7 @@ public class HeadsetClientStateMachine extends StateMachine {
 
             switch (state) {
                 case HeadsetClientHalConstants.AUDIO_STATE_DISCONNECTED:
+                    removeMessages(DISCONNECT_AUDIO);
                     mAudioState = BluetoothHeadsetClient.STATE_AUDIO_DISCONNECTED;
                     // Audio focus may still be held by the entity controlling the actual call
                     // (such as Telecom) and hence this will still keep the call around, there
