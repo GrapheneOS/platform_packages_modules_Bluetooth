@@ -1927,7 +1927,7 @@ static void setAdvertisingParametersNativeCb(uint8_t advertiser_id,
                                              uint8_t status, int8_t tx_power) {
   CallbackEnv sCallbackEnv(__func__);
   if (!sCallbackEnv.valid()) return;
-  sCallbackEnv->CallVoidMethod(mCallbacksObj,
+  sCallbackEnv->CallVoidMethod(mAdvertiseCallbacksObj,
                                method_onAdvertisingParametersUpdated,
                                advertiser_id, tx_power, status);
 }
@@ -1940,7 +1940,7 @@ static void setAdvertisingParametersNative(JNIEnv* env, jobject object,
   AdvertiseParameters params = parseParams(env, parameters);
   sGattIf->advertiser->SetParameters(
       advertiser_id, params,
-      base::Bind(setAdvertisingParametersNativeCb, advertiser_id));
+      base::Bind(&setAdvertisingParametersNativeCb, advertiser_id));
 }
 
 static void setPeriodicAdvertisingParametersNative(
@@ -1971,7 +1971,7 @@ static void enablePeriodicSetCb(uint8_t advertiser_id, bool enable,
                                 uint8_t status) {
   CallbackEnv sCallbackEnv(__func__);
   if (!sCallbackEnv.valid()) return;
-  sCallbackEnv->CallVoidMethod(mCallbacksObj,
+  sCallbackEnv->CallVoidMethod(mAdvertiseCallbacksObj,
                                method_onPeriodicAdvertisingEnabled,
                                advertiser_id, enable, status);
 }
