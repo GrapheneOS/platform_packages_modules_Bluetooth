@@ -974,12 +974,10 @@ public final class Avrcp {
         long oldQueueId = mCurrentPlayState.getActiveQueueItemId();
         long newQueueId = MediaSession.QueueItem.UNKNOWN_ID;
         if (newState != null) newQueueId = newState.getActiveQueueItemId();
-        if ((oldQueueId != newQueueId) || (!currentAttributes.equals(mMediaAttributes))) {
-            Log.v(TAG, "Media change: id " + oldQueueId + "➡" + newQueueId + ":"
-                            + mMediaAttributes.toString());
+        Log.v(TAG, "Media update: id " + oldQueueId + "➡" + newQueueId + ":"
+                        + mMediaAttributes.toString());
+        if (oldQueueId != newQueueId || !currentAttributes.equals(mMediaAttributes)) {
             sendTrackChangedRsp(false);
-        } else {
-            Log.v(TAG, "Media didn't change: id " + oldQueueId);
         }
 
         updatePlaybackState(newState);
@@ -1071,6 +1069,10 @@ public final class Avrcp {
 
     private void sendTrackChangedRsp(boolean requested) {
         MediaPlayerInfo info = getAddressedPlayerInfo();
+        if (!requested && mTrackChangedNT != AvrcpConstants.NOTIFICATION_TYPE_INTERIM) {
+            if (DEBUG) Log.d(TAG, "sendTrackChangedRsp: Not registered or requesting.");
+            return;
+        }
         if (info != null && !info.isBrowseSupported()) {
             // for players which does not support Browse or when no track is currently selected
             trackChangeRspForBrowseUnsupported(requested);
