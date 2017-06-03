@@ -175,18 +175,18 @@ public class AddressedMediaPlayer {
             return currentExtras;
         }
 
-        String[] stringKeys = {MediaMetadata.METADATA_KEY_ARTIST, MediaMetadata.METADATA_KEY_ALBUM,
-                MediaMetadata.METADATA_KEY_GENRE};
-        String[] longKeys = {MediaMetadata.METADATA_KEY_TRACK_NUMBER,
-                MediaMetadata.METADATA_KEY_NUM_TRACKS, MediaMetadata.METADATA_KEY_DURATION};
-
         Bundle bundle = currentExtras;
         if (bundle == null) bundle = new Bundle();
 
+        String[] stringKeys = {MediaMetadata.METADATA_KEY_TITLE, MediaMetadata.METADATA_KEY_ARTIST,
+                MediaMetadata.METADATA_KEY_ALBUM, MediaMetadata.METADATA_KEY_GENRE};
         for (String key : stringKeys) {
             String current = bundle.getString(key);
             if (current == null) bundle.putString(key, metadata.getString(key));
         }
+
+        String[] longKeys = {MediaMetadata.METADATA_KEY_TRACK_NUMBER,
+                MediaMetadata.METADATA_KEY_NUM_TRACKS, MediaMetadata.METADATA_KEY_DURATION};
         for (String key : longKeys) {
             if (!bundle.containsKey(key)) bundle.putLong(key, metadata.getLong(key));
         }
@@ -408,15 +408,20 @@ public class AddressedMediaPlayer {
         try {
             MediaDescription desc = item.getDescription();
             Bundle extras = desc.getExtras();
-            if (item.getQueueId() == getActiveQueueItemId(mediaController)) {
-                if (DEBUG) Log.d(TAG, "getAttrValue: item is active, filling extra data");
+            boolean isCurrentTrack = item.getQueueId() == getActiveQueueItemId(mediaController);
+            if (isCurrentTrack) {
+                if (DEBUG) Log.d(TAG, "getAttrValue: item is active, using current data");
                 extras = fillBundle(mediaController.getMetadata(), extras);
             }
             if (DEBUG) Log.d(TAG, "getAttrValue: item " + item + " : " + desc);
             switch (attr) {
                 case AvrcpConstants.ATTRID_TITLE:
                     /* Title is mandatory attribute */
-                    attrValue = desc.getTitle().toString();
+                    if (isCurrentTrack) {
+                        attrValue = extras.getString(MediaMetadata.METADATA_KEY_TITLE);
+                    } else {
+                        attrValue = desc.getTitle().toString();
+                    }
                     break;
 
                 case AvrcpConstants.ATTRID_ARTIST:
