@@ -209,6 +209,10 @@
                   android:excludeFromRecents="true"
                   android:configChanges="orientation|keyboardHidden"
                   android:enabled="@bool/profile_supported_opp">
+            <intent-filter>
+                <action android:name="com.android.bluetooth.action.TransferHistory" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
         </activity>
         <activity android:name=".pbap.BluetoothPbapActivity"
             android:process="@string/process"
