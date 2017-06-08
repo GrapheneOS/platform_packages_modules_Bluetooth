@@ -678,6 +678,7 @@ public class ScanManager {
                 Log.w(TAG,
                         "Moving scan client to opportunistic (scannerId " + client.scannerId + ")");
                 setOpportunisticScanClient(client);
+                removeScanFilters(client.scannerId);
                 client.stats.setScanTimeout();
             }
 
@@ -762,6 +763,12 @@ public class ScanManager {
             int scannerId = client.scannerId;
             int deliveryMode = getDeliveryMode(client);
             int trackEntries = 0;
+
+            // Do not add any filters set by opportunistic scan clients
+            if (isOpportunisticScanClient(client)) {
+                return;
+            }
+
             if (!shouldAddAllPassFilterToController(client, deliveryMode)) {
                 return;
             }
