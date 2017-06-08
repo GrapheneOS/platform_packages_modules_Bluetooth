@@ -2113,6 +2113,7 @@ final class HeadsetStateMachine extends StateMachine {
 
     public void setAudioRouteAllowed(boolean allowed) {
         mAudioRouteAllowed = allowed;
+        setScoAllowedNative(allowed);
     }
 
     public boolean getAudioRouteAllowed() {
@@ -3429,4 +3430,5 @@ final class HeadsetStateMachine extends StateMachine {
     private native boolean phoneStateChangeNative(
             int numActive, int numHeld, int callState, String number, int type);
     private native boolean configureWBSNative(byte[] address, int condec_config);
+    private native boolean setScoAllowedNative(boolean value);
 }
