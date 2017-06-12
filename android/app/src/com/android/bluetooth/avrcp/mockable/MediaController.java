@@ -8,6 +8,7 @@ import android.content.pm.ParceledListSlice;
 import android.media.AudioAttributes;
 import android.media.AudioManager;
 import android.media.MediaMetadata;
+import android.media.MediaDescription;
 import android.media.Rating;
 import android.media.VolumeProvider;
 import android.media.session.PlaybackState;
@@ -29,7 +30,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class MediaController {
-    public android.media.session.MediaController mDelegate;
+    public @NonNull android.media.session.MediaController mDelegate;
     public android.media.session.MediaController.TransportControls mTransportDelegate;
     public TransportControls mTransportControls;
 
@@ -152,7 +153,10 @@ public class MediaController {
 
     @Override
     public String toString() {
-        return super.toString() + "(wraps " + mDelegate + ")";
+        MediaMetadata data = getMetadata();
+        MediaDescription desc = (data == null) ? null : data.getDescription();
+        return "MediaController (" + getPackageName() + "@"
+                + Integer.toHexString(mDelegate.hashCode()) + ") " + desc;
     }
 
     public static abstract class Callback extends android.media.session.MediaController.Callback { }
