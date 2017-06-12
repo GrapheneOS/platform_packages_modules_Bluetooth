@@ -236,19 +236,15 @@ public class AddressedMediaPlayer {
         mMediaInterface.getTotalNumOfItemsRsp(bdaddr, AvrcpConstants.RSP_NO_ERROR, 0, items.size());
     }
 
-    boolean sendTrackChangeWithId(boolean requesting, @Nullable MediaController mediaController) {
+    void sendTrackChangeWithId(int type, @Nullable MediaController mediaController) {
         if (DEBUG)
-            Log.d(TAG, "sendTrackChangeWithId (" + requesting + "): controller " + mediaController);
+            Log.d(TAG, "sendTrackChangeWithId (" + type + "): controller " + mediaController);
         long qid = getActiveQueueItemId(mediaController);
         byte[] track = ByteBuffer.allocate(AvrcpConstants.UID_SIZE).putLong(qid).array();
-        if (DEBUG) Log.d(TAG, "trackChangedRsp: 0x" + Utils.byteArrayToString(track));
-        int trackChangedNT = AvrcpConstants.NOTIFICATION_TYPE_CHANGED;
-        if (requesting) trackChangedNT = AvrcpConstants.NOTIFICATION_TYPE_INTERIM;
-        mMediaInterface.trackChangedRsp(trackChangedNT, track);
+        mMediaInterface.trackChangedRsp(type, track);
         mLastTrackIdSent = qid;
         // The nowPlaying might have changed.
         updateNowPlayingList(mediaController);
-        return (trackChangedNT == AvrcpConstants.NOTIFICATION_TYPE_CHANGED);
     }
 
     /*
