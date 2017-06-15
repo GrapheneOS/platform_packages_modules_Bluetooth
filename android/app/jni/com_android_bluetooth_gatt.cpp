@@ -848,7 +848,7 @@ static void classInitNative(JNIEnv* env, jclass clazz) {
   method_onGetGattDb =
       env->GetMethodID(clazz, "onGetGattDb", "(ILjava/util/ArrayList;)V");
   method_onClientPhyRead =
-      env->GetMethodID(clazz, "onClientPhyRead", "(IIII)V");
+      env->GetMethodID(clazz, "onClientPhyRead", "(ILjava/lang/String;III)V");
   method_onClientPhyUpdate =
       env->GetMethodID(clazz, "onClientPhyUpdate", "(IIII)V");
   method_onClientConnUpdate =
@@ -884,7 +884,7 @@ static void classInitNative(JNIEnv* env, jclass clazz) {
       env->GetMethodID(clazz, "onServerCongestion", "(IZ)V");
   method_onServerMtuChanged = env->GetMethodID(clazz, "onMtuChanged", "(II)V");
   method_onServerPhyRead =
-      env->GetMethodID(clazz, "onServerPhyRead", "(IIII)V");
+      env->GetMethodID(clazz, "onServerPhyRead", "(ILjava/lang/String;III)V");
   method_onServerPhyUpdate =
       env->GetMethodID(clazz, "onServerPhyUpdate", "(IIII)V");
   method_onServerConnUpdate =
@@ -1027,26 +1027,35 @@ static void gattClientDisconnectNative(JNIEnv* env, jobject object,
 }
 
 static void gattClientSetPreferredPhyNative(JNIEnv* env, jobject object,
-                                            jint clientIf, jint conn_id,
+                                            jint clientIf, jstring address,
                                             jint tx_phy, jint rx_phy,
                                             jint phy_options) {
   if (!sGattIf) return;
-  sGattIf->client->set_preferred_phy(conn_id, tx_phy, rx_phy, phy_options);
+  bt_bdaddr_t bda;
+  jstr2bdaddr(env, &bda, address);
+  sGattIf->client->set_preferred_phy(bda, tx_phy, rx_phy, phy_options);
 }
 
-static void readClientPhyCb(int conn_id, uint8_t tx_phy, uint8_t rx_phy,
-                            uint8_t status) {
+static void readClientPhyCb(uint8_t clientIf, bt_bdaddr_t bda, uint8_t tx_phy,
+                            uint8_t rx_phy, uint8_t status) {
   CallbackEnv sCallbackEnv(__func__);
   if (!sCallbackEnv.valid()) return;
 
-  sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onClientPhyRead, conn_id,
-                               tx_phy, rx_phy, status);
+  ScopedLocalRef<jstring> address(sCallbackEnv.get(),
+                                  bdaddr2newjstr(sCallbackEnv.get(), &bda));
+
+  sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onClientPhyRead, clientIf,
+                               address.get(), tx_phy, rx_phy, status);
 }
 
 static void gattClientReadPhyNative(JNIEnv* env, jobject object, jint clientIf,
-                                    jint conn_id) {
+                                    jstring address) {
   if (!sGattIf) return;
-  sGattIf->client->read_phy(conn_id, base::Bind(readClientPhyCb, conn_id));
+
+  bt_bdaddr_t bda;
+  jstr2bdaddr(env, &bda, address);
+
+  sGattIf->client->read_phy(bda, base::Bind(&readClientPhyCb, clientIf, bda));
 }
 
 static void gattClientRefreshNative(JNIEnv* env, jobject object, jint clientIf,
@@ -1055,6 +1064,7 @@ static void gattClientRefreshNative(JNIEnv* env, jobject object, jint clientIf,
 
   bt_bdaddr_t bda;
   jstr2bdaddr(env, &bda, address);
+
   sGattIf->client->refresh(clientIf, &bda);
 }
 
@@ -1535,26 +1545,34 @@ static void gattServerDisconnectNative(JNIEnv* env, jobject object,
 }
 
 static void gattServerSetPreferredPhyNative(JNIEnv* env, jobject object,
-                                            jint serverIf, jint conn_id,
+                                            jint serverIf, jstring address,
                                             jint tx_phy, jint rx_phy,
                                             jint phy_options) {
   if (!sGattIf) return;
-  sGattIf->server->set_preferred_phy(conn_id, tx_phy, rx_phy, phy_options);
+  bt_bdaddr_t bda;
+  jstr2bdaddr(env, &bda, address);
+  sGattIf->server->set_preferred_phy(bda, tx_phy, rx_phy, phy_options);
 }
 
-static void readServerPhyCb(int conn_id, uint8_t tx_phy, uint8_t rx_phy,
-                            uint8_t status) {
+static void readServerPhyCb(uint8_t serverIf, bt_bdaddr_t bda, uint8_t tx_phy,
+                            uint8_t rx_phy, uint8_t status) {
   CallbackEnv sCallbackEnv(__func__);
   if (!sCallbackEnv.valid()) return;
 
-  sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onServerPhyRead, conn_id,
-                               tx_phy, rx_phy, status);
+  ScopedLocalRef<jstring> address(sCallbackEnv.get(),
+                                  bdaddr2newjstr(sCallbackEnv.get(), &bda));
+
+  sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onServerPhyRead, serverIf,
+                               address.get(), tx_phy, rx_phy, status);
 }
 
 static void gattServerReadPhyNative(JNIEnv* env, jobject object, jint serverIf,
-                                    jint conn_id) {
+                                    jstring address) {
   if (!sGattIf) return;
-  sGattIf->server->read_phy(conn_id, base::Bind(readServerPhyCb, conn_id));
+
+  bt_bdaddr_t bda;
+  jstr2bdaddr(env, &bda, address);
+  sGattIf->server->read_phy(bda, base::Bind(&readServerPhyCb, serverIf, bda));
 }
 
 static void gattServerAddServiceNative(JNIEnv* env, jobject object,
@@ -2176,9 +2194,10 @@ static JNINativeMethod sMethods[] = {
      (void*)gattClientConnectNative},
     {"gattClientDisconnectNative", "(ILjava/lang/String;I)V",
      (void*)gattClientDisconnectNative},
-    {"gattClientSetPreferredPhyNative", "(IIIII)V",
+    {"gattClientSetPreferredPhyNative", "(ILjava/lang/String;III)V",
      (void*)gattClientSetPreferredPhyNative},
-    {"gattClientReadPhyNative", "(II)V", (void*)gattClientReadPhyNative},
+    {"gattClientReadPhyNative", "(ILjava/lang/String;)V",
+     (void*)gattClientReadPhyNative},
     {"gattClientRefreshNative", "(ILjava/lang/String;)V",
      (void*)gattClientRefreshNative},
     {"gattClientSearchServiceNative", "(IZJJ)V",
@@ -2214,9 +2233,10 @@ static JNINativeMethod sMethods[] = {
      (void*)gattServerConnectNative},
     {"gattServerDisconnectNative", "(ILjava/lang/String;I)V",
      (void*)gattServerDisconnectNative},
-    {"gattServerSetPreferredPhyNative", "(IIIII)V",
+    {"gattServerSetPreferredPhyNative", "(ILjava/lang/String;III)V",
      (void*)gattServerSetPreferredPhyNative},
-    {"gattServerReadPhyNative", "(II)V", (void*)gattServerReadPhyNative},
+    {"gattServerReadPhyNative", "(ILjava/lang/String;)V",
+     (void*)gattServerReadPhyNative},
     {"gattServerAddServiceNative", "(ILjava/util/List;)V",
      (void*)gattServerAddServiceNative},
     {"gattServerStopServiceNative", "(II)V",
