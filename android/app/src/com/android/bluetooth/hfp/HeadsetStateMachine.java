@@ -3024,12 +3024,17 @@ final class HeadsetStateMachine extends StateMachine {
         }
     }
 
-    private void sendIndicatorIntent(BluetoothDevice device, int ind_id, String ind_value) {
+    /**
+     * Send HF indicator value changed intent
+     * @param device Device whose HF indicator value has changed
+     * @param ind_id Indicator ID [0-65535]
+     * @param ind_value Indicator Value [0-65535], -1 means invalid but ind_id is supported
+     */
+    private void sendIndicatorIntent(BluetoothDevice device, int ind_id, int ind_value) {
         Intent intent = new Intent(BluetoothHeadset.ACTION_HF_INDICATORS_VALUE_CHANGED);
         intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
         intent.putExtra(BluetoothHeadset.EXTRA_HF_INDICATORS_IND_ID, ind_id);
-        if (ind_value != null)
-            intent.putExtra(BluetoothHeadset.EXTRA_HF_INDICATORS_IND_VALUE, ind_value);
+        intent.putExtra(BluetoothHeadset.EXTRA_HF_INDICATORS_IND_VALUE, ind_value);
 
         mService.sendBroadcast(intent, HeadsetService.BLUETOOTH_PERM);
     }
@@ -3047,7 +3052,7 @@ final class HeadsetStateMachine extends StateMachine {
             String id = at_string.substring(iter, iter1);
 
             try {
-                ind_id = new Integer(id);
+                ind_id = Integer.valueOf(id);
             } catch (NumberFormatException e) {
                 Log.e(TAG, Log.getStackTraceString(new Throwable()));
             }
@@ -3056,12 +3061,12 @@ final class HeadsetStateMachine extends StateMachine {
                 case HeadsetHalConstants.HF_INDICATOR_ENHANCED_DRIVER_SAFETY:
                     log("Send Broadcast intent for the"
                             + "Enhanced Driver Safety indicator.");
-                    sendIndicatorIntent(device, ind_id, null);
+                    sendIndicatorIntent(device, ind_id, -1);
                     break;
                 case HeadsetHalConstants.HF_INDICATOR_BATTERY_LEVEL_STATUS:
                     log("Send Broadcast intent for the"
                             + "Battery Level indicator.");
-                    sendIndicatorIntent(device, ind_id, null);
+                    sendIndicatorIntent(device, ind_id, -1);
                     break;
                 default:
                     log("Invalid HF Indicator Received");
@@ -3074,12 +3079,7 @@ final class HeadsetStateMachine extends StateMachine {
 
     private void processAtBiev(int ind_id, int ind_value, BluetoothDevice device) {
         log(" Process AT + BIEV Command : " + ind_id + ", " + ind_value);
-
-        String ind_value_str = Integer.toString(ind_value);
-
-        Intent intent = new Intent(BluetoothHeadset.ACTION_HF_INDICATORS_VALUE_CHANGED);
-        intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
-        sendIndicatorIntent(device, ind_id, ind_value_str);
+        sendIndicatorIntent(device, ind_id, ind_value);
     }
 
     private void onConnectionStateChanged(int state, byte[] address) {
