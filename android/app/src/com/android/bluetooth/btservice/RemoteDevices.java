@@ -93,6 +93,8 @@ final class RemoteDevices {
         filter.addAction(BluetoothHeadset.ACTION_VENDOR_SPECIFIC_HEADSET_EVENT);
         filter.addCategory(BluetoothHeadset.VENDOR_SPECIFIC_HEADSET_EVENT_COMPANY_ID_CATEGORY + "."
                 + BluetoothAssignedNumbers.PLANTRONICS);
+        filter.addCategory(BluetoothHeadset.VENDOR_SPECIFIC_HEADSET_EVENT_COMPANY_ID_CATEGORY + "."
+                + BluetoothAssignedNumbers.APPLE);
         mAdapterService.registerReceiver(mReceiver, filter);
     }
 
@@ -625,12 +627,67 @@ final class RemoteDevices {
             case BluetoothHeadset.VENDOR_SPECIFIC_HEADSET_EVENT_XEVENT:
                 batteryPercent = getBatteryLevelFromXEventVsc(args);
                 break;
+            case BluetoothHeadset.VENDOR_SPECIFIC_HEADSET_EVENT_IPHONEACCEV:
+                batteryPercent = getBatteryLevelFromAppleBatteryVsc(args);
+                break;
         }
         if (batteryPercent != BluetoothDevice.BATTERY_LEVEL_UNKNOWN) {
             updateBatteryLevel(device, batteryPercent);
             infoLog("Updated device " + device + " battery level to "
                     + String.valueOf(batteryPercent) + "%");
         }
+    }
+
+    /**
+     * Parse
+     *      AT+IPHONEACCEV=[NumberOfIndicators],[IndicatorType],[IndicatorValue]
+     * vendor specific event
+     * @param args Array of arguments on the right side of assignment
+     * @return Battery level in percents, [0-100], {@link BluetoothDevice#BATTERY_LEVEL_UNKNOWN}
+     *         when there is an error parsing the arguments
+     */
+    @VisibleForTesting
+    static int getBatteryLevelFromAppleBatteryVsc(Object[] args) {
+        if (args.length == 0) {
+            Log.w(TAG, "getBatteryLevelFromAppleBatteryVsc() empty arguments");
+            return BluetoothDevice.BATTERY_LEVEL_UNKNOWN;
+        }
+        int numKvPair;
+        if (args[0] instanceof Integer) {
+            numKvPair = (Integer) args[0];
+        } else {
+            Log.w(TAG, "getBatteryLevelFromAppleBatteryVsc() error parsing number of arguments");
+            return BluetoothDevice.BATTERY_LEVEL_UNKNOWN;
+        }
+        if (args.length != (numKvPair * 2 + 1)) {
+            Log.w(TAG, "getBatteryLevelFromAppleBatteryVsc() number of arguments does not match");
+            return BluetoothDevice.BATTERY_LEVEL_UNKNOWN;
+        }
+        int indicatorType;
+        int indicatorValue = -1;
+        for (int i = 0; i < numKvPair; ++i) {
+            Object indicatorTypeObj = args[2 * i + 1];
+            if (indicatorTypeObj instanceof Integer) {
+                indicatorType = (Integer) indicatorTypeObj;
+            } else {
+                Log.w(TAG, "getBatteryLevelFromAppleBatteryVsc() error parsing indicator type");
+                return BluetoothDevice.BATTERY_LEVEL_UNKNOWN;
+            }
+            if (indicatorType
+                    != BluetoothHeadset.VENDOR_SPECIFIC_HEADSET_EVENT_IPHONEACCEV_BATTERY_LEVEL) {
+                continue;
+            }
+            Object indicatorValueObj = args[2 * i + 2];
+            if (indicatorValueObj instanceof Integer) {
+                indicatorValue = (Integer) indicatorValueObj;
+            } else {
+                Log.w(TAG, "getBatteryLevelFromAppleBatteryVsc() error parsing indicator value");
+                return BluetoothDevice.BATTERY_LEVEL_UNKNOWN;
+            }
+            break;
+        }
+        return (indicatorValue < 0 || indicatorValue > 9) ? BluetoothDevice.BATTERY_LEVEL_UNKNOWN
+                                                          : (indicatorValue + 1) * 10;
     }
 
     /**
