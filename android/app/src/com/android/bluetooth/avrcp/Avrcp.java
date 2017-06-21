@@ -449,7 +449,14 @@ public final class Avrcp {
                 responseDebug.append("getElementAttr response: ");
                 for (int i = 0; i < numAttr; ++i) {
                     textArray[i] = mMediaAttributes.getString(attrIds[i]);
-                    responseDebug.append("[" + attrIds[i] + "=" + textArray[i] + "] ");
+                    responseDebug.append("[" + attrIds[i] + "=");
+                    if (attrIds[i] == AvrcpConstants.ATTRID_TITLE
+                            || attrIds[i] == AvrcpConstants.ATTRID_ARTIST
+                            || attrIds[i] == AvrcpConstants.ATTRID_ALBUM) {
+                        responseDebug.append(Utils.ellipsize(textArray[i]) + "] ");
+                    } else {
+                        responseDebug.append(textArray[i] + "] ");
+                    }
                 }
                 Log.v(TAG, responseDebug.toString());
                 byte[] bdaddr = elem.mAddress;
@@ -942,6 +949,17 @@ public final class Avrcp {
                     + playingTimeMs + " " + mediaNumber + "/" + mediaTotalNumber + ") " + genre
                     + "]";
         }
+
+        public String toRedactedString() {
+            if (!exists) {
+                return "[MediaAttributes: none]";
+            }
+
+            return "[MediaAttributes: " + Utils.ellipsize(title) + " - "
+                    + Utils.ellipsize(albumName) + " by " + Utils.ellipsize(artistName) + " ("
+                    + playingTimeMs + " " + mediaNumber + "/" + mediaTotalNumber + ") " + genre
+                    + "]";
+        }
     }
 
     private void updateCurrentMediaState(boolean registering) {
@@ -971,7 +989,7 @@ public final class Avrcp {
         long newQueueId = MediaSession.QueueItem.UNKNOWN_ID;
         if (newState != null) newQueueId = newState.getActiveQueueItemId();
         Log.v(TAG, "Media update: id " + mLastQueueId + "➡" + newQueueId + "? "
-                        + currentAttributes.toString());
+                        + currentAttributes.toRedactedString());
         // Notify track changed if:
         //  - The CT is registering for the notification
         //  - Queue ID is UNKNOWN and MediaMetadata is different
@@ -2278,7 +2296,7 @@ public final class Avrcp {
 
     public void dump(StringBuilder sb) {
         sb.append("AVRCP:\n");
-        ProfileService.println(sb, "mMediaAttributes: " + mMediaAttributes);
+        ProfileService.println(sb, "mMediaAttributes: " + mMediaAttributes.toRedactedString());
         ProfileService.println(sb, "mTransportControlFlags: " + mTransportControlFlags);
         ProfileService.println(sb, "mCurrentPlayState: " + mCurrentPlayState);
         ProfileService.println(sb, "mPlayStatusChangedNT: " + mPlayStatusChangedNT);
