@@ -292,7 +292,7 @@ public final class Avrcp {
         context.registerReceiver(mBootReceiver, bootFilter);
     }
 
-    private void start() {
+    private synchronized void start() {
         HandlerThread thread = new HandlerThread("BluetoothAvrcpHandler");
         thread.start();
         Looper looper = thread.getLooper();
@@ -334,11 +334,9 @@ public final class Avrcp {
         return ar;
     }
 
-    public void doQuit() {
+    public synchronized void doQuit() {
         if (DEBUG) Log.d(TAG, "doQuit");
-        synchronized (this) {
-            if (mMediaController != null) mMediaController.unregisterCallback(mMediaControllerCb);
-        }
+        if (mMediaController != null) mMediaController.unregisterCallback(mMediaControllerCb);
         if (mMediaSessionManager != null) {
             mMediaSessionManager.setCallback(null, null);
             mMediaSessionManager.removeOnActiveSessionsChangedListener(mActiveSessionListener);
