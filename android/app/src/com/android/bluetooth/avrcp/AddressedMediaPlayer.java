@@ -133,7 +133,9 @@ public class AddressedMediaPlayer {
         }
         mNowPlayingList = items;
         // TODO (jamuraa): test to see if the single-item queue is the same and don't send
-        mMediaInterface.nowPlayingChangedRsp(AvrcpConstants.NOTIFICATION_TYPE_CHANGED);
+        if (mMediaInterface != null) {
+            mMediaInterface.nowPlayingChangedRsp(AvrcpConstants.NOTIFICATION_TYPE_CHANGED);
+        }
         return items;
     }
 
