@@ -175,6 +175,14 @@ final public class Utils {
         }
     }
 
+    public static String ellipsize(String s) {
+        // Only ellipsize release builds
+        if (!Build.TYPE.equals("user")) return s;
+        if (s == null) return null;
+        if (s.length() < 3) return s;
+        return s.charAt(0) + "⋯" + s.charAt(s.length() - 1);
+    }
+
     public static void copyStream(InputStream is, OutputStream os, int bufferSize)
             throws IOException {
         if (is != null && os != null) {
