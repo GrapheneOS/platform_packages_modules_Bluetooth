@@ -54,12 +54,14 @@ public class AddressedMediaPlayer {
     private final List<MediaSession.QueueItem> mEmptyNowPlayingList;
 
     private long mLastTrackIdSent;
+    private boolean mNowPlayingListUpdated;
 
     public AddressedMediaPlayer(AvrcpMediaRspInterface mediaInterface) {
         mEmptyNowPlayingList = new ArrayList<MediaSession.QueueItem>();
         mNowPlayingList = mEmptyNowPlayingList;
         mMediaInterface = mediaInterface;
         mLastTrackIdSent = MediaSession.QueueItem.UNKNOWN_ID;
+        mNowPlayingListUpdated = false;
     }
 
     void cleanup() {
@@ -67,12 +69,12 @@ public class AddressedMediaPlayer {
         mNowPlayingList = mEmptyNowPlayingList;
         mMediaInterface = null;
         mLastTrackIdSent = MediaSession.QueueItem.UNKNOWN_ID;
+        mNowPlayingListUpdated = false;
     }
 
     /* get now playing list from addressed player */
     void getFolderItemsNowPlaying(byte[] bdaddr, AvrcpCmd.FolderItemsCmd reqObj,
             @Nullable MediaController mediaController) {
-        if (DEBUG) Log.v(TAG, "getFolderItemsNowPlaying");
         if (mediaController == null) {
             // No players (if a player exists, we would have selected it)
             Log.e(TAG, "mediaController = null, sending no available players response");
@@ -120,7 +122,10 @@ public class AddressedMediaPlayer {
             @Nullable MediaController mediaController) {
         if (mediaController == null) return mEmptyNowPlayingList;
         List<MediaSession.QueueItem> items = mediaController.getQueue();
-        if (items == mNowPlayingList) return mNowPlayingList;
+        if (items != null && !mNowPlayingListUpdated) {
+            mNowPlayingList = items;
+            return mNowPlayingList;
+        }
         if (items == null) {
             Log.i(TAG, "null queue from " + mediaController.getPackageName()
                             + ", constructing single-item list");
@@ -131,12 +136,19 @@ public class AddressedMediaPlayer {
             items = new ArrayList<MediaSession.QueueItem>();
             items.add(current);
         }
+
         mNowPlayingList = items;
-        // TODO (jamuraa): test to see if the single-item queue is the same and don't send
-        if (mMediaInterface != null) {
-            mMediaInterface.nowPlayingChangedRsp(AvrcpConstants.NOTIFICATION_TYPE_CHANGED);
-        }
-        return items;
+
+        if (mNowPlayingListUpdated) sendNowPlayingListChanged();
+
+        return mNowPlayingList;
+    }
+
+    private void sendNowPlayingListChanged() {
+        if (mMediaInterface == null) return;
+        mMediaInterface.uidsChangedRsp(AvrcpConstants.NOTIFICATION_TYPE_CHANGED);
+        mMediaInterface.nowPlayingChangedRsp(AvrcpConstants.NOTIFICATION_TYPE_CHANGED);
+        mNowPlayingListUpdated = false;
     }
 
     /* Constructs a queue item representing the current playing metadata from an
@@ -196,6 +208,7 @@ public class AddressedMediaPlayer {
     }
 
     void updateNowPlayingList(@Nullable MediaController mediaController) {
+        mNowPlayingListUpdated = true;
         getNowPlayingList(mediaController);
     }
 
@@ -239,14 +252,13 @@ public class AddressedMediaPlayer {
     }
 
     void sendTrackChangeWithId(int type, @Nullable MediaController mediaController) {
-        if (DEBUG)
-            Log.d(TAG, "sendTrackChangeWithId (" + type + "): controller " + mediaController);
+        Log.d(TAG, "sendTrackChangeWithId (" + type + "): controller " + mediaController);
         long qid = getActiveQueueItemId(mediaController);
         byte[] track = ByteBuffer.allocate(AvrcpConstants.UID_SIZE).putLong(qid).array();
+        // The nowPlayingList changed: the new list has the full data for the current item
+        if (type == AvrcpConstants.NOTIFICATION_TYPE_CHANGED) sendNowPlayingListChanged();
         mMediaInterface.trackChangedRsp(type, track);
         mLastTrackIdSent = qid;
-        // The nowPlaying might have changed.
-        updateNowPlayingList(mediaController);
     }
 
     /*
