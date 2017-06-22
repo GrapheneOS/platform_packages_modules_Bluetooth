@@ -93,6 +93,7 @@ class AdapterProperties {
     private boolean mIsLePeriodicAdvertisingSupported;
     private int mLeMaximumAdvertisingDataLength;
 
+    private boolean mReceiverRegistered;
     private BroadcastReceiver mReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -158,6 +159,7 @@ class AdapterProperties {
         filter.addAction(BluetoothPbapClient.ACTION_CONNECTION_STATE_CHANGED);
         filter.addAction(BluetoothDevice.ACTION_UUID);
         mService.registerReceiver(mReceiver, filter);
+        mReceiverRegistered = true;
     }
 
     public void cleanup() {
@@ -166,7 +168,10 @@ class AdapterProperties {
             mProfileConnectionState.clear();
             mProfileConnectionState = null;
         }
-        mService.unregisterReceiver(mReceiver);
+        if (mReceiverRegistered) {
+            mService.unregisterReceiver(mReceiver);
+            mReceiverRegistered = false;
+        }
         mService = null;
         mBondedDevices.clear();
     }
