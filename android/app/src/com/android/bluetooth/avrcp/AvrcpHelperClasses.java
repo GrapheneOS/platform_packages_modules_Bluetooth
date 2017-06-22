@@ -16,6 +16,8 @@
 
 package com.android.bluetooth.avrcp;
 
+import android.annotation.NonNull;
+import android.annotation.Nullable;
 import android.media.session.MediaSession;
 
 import com.android.bluetooth.Utils;
@@ -200,17 +202,19 @@ class MediaPlayerInfo {
     private int subType;
     private byte playStatus;
     private short[] featureBitMask;
-    private String packageName;
-    private String displayableName;
-    private MediaController mediaController;
+    private @NonNull String packageName;
+    private @NonNull String displayableName;
+    private @Nullable MediaController mediaController;
 
-    MediaPlayerInfo(MediaController controller, byte majorType, int subType, byte playStatus,
-            short[] featureBitMask, String packageName, String displayableName) {
+    MediaPlayerInfo(@Nullable MediaController controller, byte majorType, int subType,
+            byte playStatus, short[] featureBitMask, @NonNull String packageName,
+            @Nullable String displayableName) {
         this.setMajorType(majorType);
         this.setSubType(subType);
         this.playStatus = playStatus;
         // store a copy the FeatureBitMask array
         this.featureBitMask = Arrays.copyOf(featureBitMask, featureBitMask.length);
+        Arrays.sort(this.featureBitMask);
         this.setPackageName(packageName);
         this.setDisplayableName(displayableName);
         this.setMediaController(controller);
@@ -236,7 +240,7 @@ class MediaPlayerInfo {
         this.mediaController = mediaController;
     }
 
-    void setPackageName(String name) {
+    void setPackageName(@NonNull String name) {
         // Controller determines package name when it is set.
         if (mediaController != null) return;
         this.packageName = name;
@@ -271,7 +275,8 @@ class MediaPlayerInfo {
         return displayableName;
     }
 
-    void setDisplayableName(String displayableName) {
+    void setDisplayableName(@Nullable String displayableName) {
+        if (displayableName == null) displayableName = "";
         this.displayableName = displayableName;
     }
 
@@ -282,6 +287,7 @@ class MediaPlayerInfo {
     void setFeatureBitMask(short[] featureBitMask) {
         synchronized (this) {
             this.featureBitMask = Arrays.copyOf(featureBitMask, featureBitMask.length);
+            Arrays.sort(this.featureBitMask);
         }
     }
 
@@ -293,6 +299,14 @@ class MediaPlayerInfo {
             }
         }
         return false;
+    }
+
+    /** Tests if the view of this player presented to the controller is different enough to
+     *  justify sending an Available Players Changed update */
+    public boolean equalView(MediaPlayerInfo other) {
+        return (this.majorType == other.getMajorType()) && (this.subType == other.getSubType())
+                && Arrays.equals(this.featureBitMask, other.getFeatureBitMask())
+                && this.displayableName.equals(other.getDisplayableName());
     }
 
     @Override
