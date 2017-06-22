@@ -507,6 +507,27 @@ public class AddressedMediaPlayer {
         return MediaSession.QueueItem.UNKNOWN_ID;
     }
 
+    String displayMediaItem(MediaSession.QueueItem item) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("#");
+        sb.append(item.getQueueId());
+        sb.append(": ");
+        sb.append(Utils.ellipsize(getAttrValue(AvrcpConstants.ATTRID_TITLE, item, null)));
+        sb.append(" - ");
+        sb.append(Utils.ellipsize(getAttrValue(AvrcpConstants.ATTRID_ALBUM, item, null)));
+        sb.append(" by ");
+        sb.append(Utils.ellipsize(getAttrValue(AvrcpConstants.ATTRID_ARTIST, item, null)));
+        sb.append(" (");
+        sb.append(getAttrValue(AvrcpConstants.ATTRID_PLAY_TIME, item, null));
+        sb.append(" ");
+        sb.append(getAttrValue(AvrcpConstants.ATTRID_TRACK_NUM, item, null));
+        sb.append("/");
+        sb.append(getAttrValue(AvrcpConstants.ATTRID_NUM_TRACKS, item, null));
+        sb.append(") ");
+        sb.append(getAttrValue(AvrcpConstants.ATTRID_GENRE, item, null));
+        return sb.toString();
+    }
+
     public void dump(StringBuilder sb, @Nullable MediaController mediaController) {
         ProfileService.println(sb, "AddressedPlayer info:");
         ProfileService.println(sb, "mLastTrackIdSent: " + mLastTrackIdSent);
@@ -514,7 +535,8 @@ public class AddressedMediaPlayer {
         long currentQueueId = getActiveQueueItemId(mediaController);
         for (MediaSession.QueueItem item : mNowPlayingList) {
             long itemId = item.getQueueId();
-            ProfileService.println(sb, (itemId == currentQueueId ? "*" : " ") + item.toString());
+            ProfileService.println(
+                    sb, (itemId == currentQueueId ? "*" : " ") + displayMediaItem(item));
         }
     }
 }
