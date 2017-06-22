@@ -502,7 +502,7 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
 
         // Last obex transaction is finished, we start to listen for incoming
         // connection again
-        if (mAdapter.isEnabled()) {
+        if (mAdapter != null && mAdapter.isEnabled()) {
             startSocketListeners();
         }
         setState(BluetoothPbap.STATE_DISCONNECTED);
