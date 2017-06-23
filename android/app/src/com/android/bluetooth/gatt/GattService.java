@@ -748,7 +748,7 @@ public class GattService extends ProfileService {
             }
 
             try {
-                app.appScanStats.addResult();
+                app.appScanStats.addResult(client.scannerId);
                 app.callback.onScanResult(result);
             } catch (RemoteException e) {
                 Log.e(TAG, "Exception: " + e);
@@ -1483,7 +1483,7 @@ public class GattService extends ProfileService {
             scanClient.stats = app;
 
             boolean isFilteredScan = (filters != null) && !filters.isEmpty();
-            app.recordScanStart(settings, isFilteredScan);
+            app.recordScanStart(settings, isFilteredScan, scannerId);
         }
 
         mScanManager.startScan(scanClient);
@@ -1502,7 +1502,7 @@ public class GattService extends ProfileService {
 
         AppScanStats app = null;
         app = mScannerMap.getAppScanStatsById(client.scannerId);
-        if (app != null) app.recordScanStop();
+        if (app != null) app.recordScanStop(client.scannerId);
 
         mScanManager.stopScan(client);
     }
