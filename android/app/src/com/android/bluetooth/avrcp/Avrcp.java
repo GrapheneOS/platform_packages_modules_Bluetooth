@@ -2496,7 +2496,7 @@ public final class Avrcp {
             }
         }
 
-        public void uidsChangedRsp(byte[] address, int type, int uidCounter) {
+        public void uidsChangedRsp(int type) {
             if (!registerNotificationRspUIDsChangedNative(type, sUIDCounter)) {
                 Log.e(TAG, "registerNotificationRspUIDsChangedNative failed!");
             }
