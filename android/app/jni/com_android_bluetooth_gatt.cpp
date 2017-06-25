@@ -101,8 +101,8 @@ static void bd_addr_str_to_addr(const char* str, uint8_t* bd_addr) {
   }
 }
 
-static bt_bdaddr_t str2addr(JNIEnv* env, jstring address) {
-  bt_bdaddr_t bda;
+static RawAddress str2addr(JNIEnv* env, jstring address) {
+  RawAddress bda;
   const char* c_bda = env->GetStringUTFChars(address, NULL);
   if (!c_bda || strlen(c_bda) != 17) return bda;
 
@@ -111,7 +111,7 @@ static bt_bdaddr_t str2addr(JNIEnv* env, jstring address) {
   return bda;
 }
 
-static jstring bdaddr2newjstr(JNIEnv* env, const bt_bdaddr_t* bda) {
+static jstring bdaddr2newjstr(JNIEnv* env, const RawAddress* bda) {
   char c_address[32];
   snprintf(c_address, sizeof(c_address), "%02X:%02X:%02X:%02X:%02X:%02X",
            bda->address[0], bda->address[1], bda->address[2], bda->address[3],
@@ -230,7 +230,7 @@ void btgattc_register_app_cb(int status, int clientIf,
 }
 
 void btgattc_scan_result_cb(uint16_t event_type, uint8_t addr_type,
-                            bt_bdaddr_t* bda, uint8_t primary_phy,
+                            RawAddress* bda, uint8_t primary_phy,
                             uint8_t secondary_phy, uint8_t advertising_sid,
                             int8_t tx_power, int8_t rssi,
                             uint16_t periodic_adv_int,
@@ -252,7 +252,7 @@ void btgattc_scan_result_cb(uint16_t event_type, uint8_t addr_type,
 }
 
 void btgattc_open_cb(int conn_id, int status, int clientIf,
-                     const bt_bdaddr_t& bda) {
+                     const RawAddress& bda) {
   CallbackEnv sCallbackEnv(__func__);
   if (!sCallbackEnv.valid()) return;
 
@@ -263,7 +263,7 @@ void btgattc_open_cb(int conn_id, int status, int clientIf,
 }
 
 void btgattc_close_cb(int conn_id, int status, int clientIf,
-                      const bt_bdaddr_t& bda) {
+                      const RawAddress& bda) {
   CallbackEnv sCallbackEnv(__func__);
   if (!sCallbackEnv.valid()) return;
 
@@ -368,7 +368,7 @@ void btgattc_write_descriptor_cb(int conn_id, int status, uint16_t handle) {
                                status, handle);
 }
 
-void btgattc_remote_rssi_cb(int client_if, const bt_bdaddr_t& bda, int rssi,
+void btgattc_remote_rssi_cb(int client_if, const RawAddress& bda, int rssi,
                             int status) {
   CallbackEnv sCallbackEnv(__func__);
   if (!sCallbackEnv.valid()) return;
@@ -593,7 +593,7 @@ void btgatts_register_app_cb(int status, int server_if, const bt_uuid_t& uuid) {
 }
 
 void btgatts_connection_cb(int conn_id, int server_if, int connected,
-                           const bt_bdaddr_t& bda) {
+                           const RawAddress& bda) {
   CallbackEnv sCallbackEnv(__func__);
   if (!sCallbackEnv.valid()) return;
 
@@ -637,7 +637,7 @@ void btgatts_service_deleted_cb(int status, int server_if, int srvc_handle) {
 }
 
 void btgatts_request_read_characteristic_cb(int conn_id, int trans_id,
-                                            const bt_bdaddr_t& bda,
+                                            const RawAddress& bda,
                                             int attr_handle, int offset,
                                             bool is_long) {
   CallbackEnv sCallbackEnv(__func__);
@@ -651,7 +651,7 @@ void btgatts_request_read_characteristic_cb(int conn_id, int trans_id,
 }
 
 void btgatts_request_read_descriptor_cb(int conn_id, int trans_id,
-                                        const bt_bdaddr_t& bda, int attr_handle,
+                                        const RawAddress& bda, int attr_handle,
                                         int offset, bool is_long) {
   CallbackEnv sCallbackEnv(__func__);
   if (!sCallbackEnv.valid()) return;
@@ -664,7 +664,7 @@ void btgatts_request_read_descriptor_cb(int conn_id, int trans_id,
 }
 
 void btgatts_request_write_characteristic_cb(int conn_id, int trans_id,
-                                             const bt_bdaddr_t& bda,
+                                             const RawAddress& bda,
                                              int attr_handle, int offset,
                                              bool need_rsp, bool is_prep,
                                              std::vector<uint8_t> value) {
@@ -685,9 +685,9 @@ void btgatts_request_write_characteristic_cb(int conn_id, int trans_id,
 }
 
 void btgatts_request_write_descriptor_cb(int conn_id, int trans_id,
-                                         const bt_bdaddr_t& bda,
-                                         int attr_handle, int offset,
-                                         bool need_rsp, bool is_prep,
+                                         const RawAddress& bda, int attr_handle,
+                                         int offset, bool need_rsp,
+                                         bool is_prep,
                                          std::vector<uint8_t> value) {
   CallbackEnv sCallbackEnv(__func__);
   if (!sCallbackEnv.valid()) return;
@@ -706,7 +706,7 @@ void btgatts_request_write_descriptor_cb(int conn_id, int trans_id,
 }
 
 void btgatts_request_exec_write_cb(int conn_id, int trans_id,
-                                   const bt_bdaddr_t& bda, int exec_write) {
+                                   const RawAddress& bda, int exec_write) {
   CallbackEnv sCallbackEnv(__func__);
   if (!sCallbackEnv.valid()) return;
 
@@ -1036,7 +1036,7 @@ static void gattClientSetPreferredPhyNative(JNIEnv* env, jobject object,
                                      phy_options);
 }
 
-static void readClientPhyCb(uint8_t clientIf, bt_bdaddr_t bda, uint8_t tx_phy,
+static void readClientPhyCb(uint8_t clientIf, RawAddress bda, uint8_t tx_phy,
                             uint8_t rx_phy, uint8_t status) {
   CallbackEnv sCallbackEnv(__func__);
   if (!sCallbackEnv.valid()) return;
@@ -1052,7 +1052,7 @@ static void gattClientReadPhyNative(JNIEnv* env, jobject object, jint clientIf,
                                     jstring address) {
   if (!sGattIf) return;
 
-  bt_bdaddr_t bda = str2addr(env, address);
+  RawAddress bda = str2addr(env, address);
   sGattIf->client->read_phy(bda, base::Bind(&readClientPhyCb, clientIf, bda));
 }
 
@@ -1173,7 +1173,7 @@ static void gattClientRegisterForNotificationsNative(
     jboolean enable) {
   if (!sGattIf) return;
 
-  bt_bdaddr_t bd_addr;
+  RawAddress bd_addr;
   const char* c_address = env->GetStringUTFChars(address, NULL);
   bd_addr_str_to_addr(c_address, bd_addr.address);
 
@@ -1301,7 +1301,7 @@ static void gattClientScanFilterAddRemoveNative(
   switch (filt_type) {
     case 0:  // BTM_BLE_PF_ADDR_FILTER
     {
-      bt_bdaddr_t bda = str2addr(env, address);
+      RawAddress bda = str2addr(env, address);
       sGattIf->scanner->ScanFilterAddRemove(
           action, filt_type, filt_index, 0, 0, NULL, NULL, &bda, addr_type, {},
           {}, base::Bind(&scan_filter_cfg_cb, client_if));
@@ -1517,7 +1517,7 @@ static void gattServerConnectNative(JNIEnv* env, jobject object, jint server_if,
                                     jint transport) {
   if (!sGattIf) return;
 
-  bt_bdaddr_t bd_addr;
+  RawAddress bd_addr;
   const char* c_address = env->GetStringUTFChars(address, NULL);
   bd_addr_str_to_addr(c_address, bd_addr.address);
 
@@ -1536,11 +1536,11 @@ static void gattServerSetPreferredPhyNative(JNIEnv* env, jobject object,
                                             jint tx_phy, jint rx_phy,
                                             jint phy_options) {
   if (!sGattIf) return;
-  bt_bdaddr_t bda = str2addr(env, address);
+  RawAddress bda = str2addr(env, address);
   sGattIf->server->set_preferred_phy(bda, tx_phy, rx_phy, phy_options);
 }
 
-static void readServerPhyCb(uint8_t serverIf, bt_bdaddr_t bda, uint8_t tx_phy,
+static void readServerPhyCb(uint8_t serverIf, RawAddress bda, uint8_t tx_phy,
                             uint8_t rx_phy, uint8_t status) {
   CallbackEnv sCallbackEnv(__func__);
   if (!sCallbackEnv.valid()) return;
@@ -1556,7 +1556,7 @@ static void gattServerReadPhyNative(JNIEnv* env, jobject object, jint serverIf,
                                     jstring address) {
   if (!sGattIf) return;
 
-  bt_bdaddr_t bda = str2addr(env, address);
+  RawAddress bda = str2addr(env, address);
   sGattIf->server->read_phy(bda, base::Bind(&readServerPhyCb, serverIf, bda));
 }
 
@@ -1863,7 +1863,7 @@ static void stopAdvertisingSetNative(JNIEnv* env, jobject object,
 }
 
 static void getOwnAddressCb(uint8_t advertiser_id, uint8_t address_type,
-                            bt_bdaddr_t address) {
+                            RawAddress address) {
   CallbackEnv sCallbackEnv(__func__);
   if (!sCallbackEnv.valid()) return;
 
@@ -2014,8 +2014,8 @@ static void periodicScanCleanupNative(JNIEnv* env, jobject object) {
 }
 
 static void onSyncStarted(int reg_id, uint8_t status, uint16_t sync_handle,
-                          uint8_t sid, uint8_t address_type,
-                          bt_bdaddr_t address, uint8_t phy, uint16_t interval) {
+                          uint8_t sid, uint8_t address_type, RawAddress address,
+                          uint8_t phy, uint16_t interval) {
   CallbackEnv sCallbackEnv(__func__);
   if (!sCallbackEnv.valid()) return;
 
@@ -2069,7 +2069,7 @@ static void gattTestNative(JNIEnv* env, jobject object, jint command,
                            jint p1, jint p2, jint p3, jint p4, jint p5) {
   if (!sGattIf) return;
 
-  bt_bdaddr_t bt_bda1 = str2addr(env, bda1);
+  RawAddress bt_bda1 = str2addr(env, bda1);
 
   bt_uuid_t uuid1;
   set_uuid(uuid1.uu, uuid1_msb, uuid1_lsb);
