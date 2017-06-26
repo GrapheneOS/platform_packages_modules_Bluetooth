@@ -17,7 +17,10 @@
 package com.android.bluetooth.hfp;
 
 import android.bluetooth.BluetoothDevice;
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.telephony.PhoneStateListener;
 import android.telephony.ServiceState;
 import android.telephony.SignalStrength;
@@ -25,6 +28,9 @@ import android.telephony.TelephonyManager;
 import android.telephony.SubscriptionManager;
 import android.telephony.SubscriptionManager.OnSubscriptionsChangedListener;
 import android.util.Log;
+
+import com.android.internal.telephony.IccCardConstants;
+import com.android.internal.telephony.TelephonyIntents;
 
 
 // Note:
@@ -247,15 +253,42 @@ class HeadsetPhoneState {
         PhoneStateListener mPhoneStateListener = new PhoneStateListener(subId) {
             @Override
             public void onServiceStateChanged(ServiceState serviceState) {
-
                 mServiceState = serviceState;
-                mService = (serviceState.getState() == ServiceState.STATE_IN_SERVICE) ?
+                int newService = (serviceState.getState() == ServiceState.STATE_IN_SERVICE) ?
                     HeadsetHalConstants.NETWORK_STATE_AVAILABLE :
                     HeadsetHalConstants.NETWORK_STATE_NOT_AVAILABLE;
-                setRoam(serviceState.getRoaming() ? HeadsetHalConstants.SERVICE_TYPE_ROAMING
-                                                  : HeadsetHalConstants.SERVICE_TYPE_HOME);
+                int newRoam = serviceState.getRoaming() ? HeadsetHalConstants.SERVICE_TYPE_ROAMING
+                                                  : HeadsetHalConstants.SERVICE_TYPE_HOME;
 
-                sendDeviceStateChanged();
+                if (newService == mService && newRoam == mRoam) {
+                    // Debounce the state change
+                    return;
+                }
+                mService = newService;
+                mRoam = newRoam;
+
+                // If this is due to a SIM insertion, we want to defer sending device state changed
+                // until all the SIM config is loaded.
+                if (newService == HeadsetHalConstants.NETWORK_STATE_NOT_AVAILABLE) {
+                    sendDeviceStateChanged();
+                    return;
+                }
+                IntentFilter simStateChangedFilter =
+                        new IntentFilter(TelephonyIntents.ACTION_SIM_STATE_CHANGED);
+                mContext.registerReceiver(new BroadcastReceiver() {
+                    @Override
+                    public void onReceive(Context context, Intent intent) {
+                        if (TelephonyIntents.ACTION_SIM_STATE_CHANGED.equals(intent.getAction())) {
+                            // This is a sticky broadcast, so if it's already been loaded,
+                            // this'll execute immediately.
+                            if (IccCardConstants.INTENT_VALUE_ICC_LOADED.equals(
+                                    intent.getStringExtra(IccCardConstants.INTENT_KEY_ICC_STATE))) {
+                                sendDeviceStateChanged();
+                                mContext.unregisterReceiver(this);
+                            }
+                        }
+                    }
+                }, simStateChangedFilter);
             }
 
             @Override
