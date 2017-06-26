@@ -45,7 +45,7 @@ public interface AvrcpMediaRspInterface {
 
     public void avalPlayerChangedRsp(byte[] address, int type);
 
-    public void uidsChangedRsp(byte[] address, int type, int uidCounter);
+    public void uidsChangedRsp(int type);
 
     public void nowPlayingChangedRsp(int type);
 
