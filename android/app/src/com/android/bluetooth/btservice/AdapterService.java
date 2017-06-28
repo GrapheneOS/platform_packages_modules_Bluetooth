@@ -1273,6 +1273,17 @@ public class AdapterService extends Service {
             return service.sdpSearch(device,uuid);
         }
 
+        public int getBatteryLevel(BluetoothDevice device) {
+            if (!Utils.checkCaller()) {
+                Log.w(TAG, "getBatteryLevel(): not allowed for non-active user");
+                return BluetoothDevice.BATTERY_LEVEL_UNKNOWN;
+            }
+
+            AdapterService service = getService();
+            if (service == null) return BluetoothDevice.BATTERY_LEVEL_UNKNOWN;
+            return service.getBatteryLevel(device);
+        }
+
         public boolean factoryReset() {
             AdapterService service = getService();
             if (service == null) return false;
@@ -1685,6 +1696,13 @@ public class AdapterService extends Service {
         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
         mRemoteDevices.fetchUuids(device);
         return true;
+    }
+
+    int getBatteryLevel(BluetoothDevice device) {
+        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+        DeviceProperties deviceProp = mRemoteDevices.getDeviceProperties(device);
+        if (deviceProp == null) return BluetoothDevice.BATTERY_LEVEL_UNKNOWN;
+        return deviceProp.getBatteryLevel();
     }
 
     boolean setPin(BluetoothDevice device, boolean accept, int len, byte[] pinCode) {
