@@ -23,6 +23,7 @@ import android.content.Intent;
 import android.os.Handler;
 import android.os.Message;
 import android.os.ParcelUuid;
+import android.support.annotation.VisibleForTesting;
 import android.util.Log;
 import com.android.bluetooth.R;
 import com.android.bluetooth.Utils;
@@ -41,7 +42,7 @@ final class RemoteDevices {
     private static BluetoothAdapter mAdapter;
     private static AdapterService mAdapterService;
     private static ArrayList<BluetoothDevice> mSdpTracker;
-    private Object mObject = new Object();
+    private final Object mObject = new Object();
 
     private static final int UUID_INTENT_DELAY = 6000;
     private static final int MESSAGE_UUID_INTENT = 1;
@@ -121,6 +122,7 @@ final class RemoteDevices {
         private int mBondState;
         private BluetoothDevice mDevice;
         private boolean isBondingInitiatedLocally;
+        private int mBatteryLevel = BluetoothDevice.BATTERY_LEVEL_UNKNOWN;
 
         DeviceProperties() {
             mBondState = BluetoothDevice.BOND_NONE;
@@ -256,6 +258,21 @@ final class RemoteDevices {
                 return isBondingInitiatedLocally;
             }
         }
+
+        int getBatteryLevel() {
+            synchronized (mObject) {
+                return mBatteryLevel;
+            }
+        }
+
+        /**
+         * @param batteryLevel the mBatteryLevel to set
+         */
+        void setBatteryLevel(int batteryLevel) {
+            synchronized (mObject) {
+                this.mBatteryLevel = batteryLevel;
+            }
+        }
     }
 
     private void sendUuidIntent(BluetoothDevice device) {
@@ -269,11 +286,12 @@ final class RemoteDevices {
         mSdpTracker.remove(device);
     }
 
-  /**
-   * When bonding is initiated to remote device that we have never seen, i.e Out Of Band pairing, we
-   * must add device first before setting it's properties. This is a helper method for doing that.
-   */
-  void setBondingInitiatedLocally(byte[] address) {
+    /**
+     * When bonding is initiated to remote device that we have never seen, i.e Out Of Band pairing,
+     * we must add device first before setting it's properties. This is a helper method for doing
+     * that.
+     */
+    void setBondingInitiatedLocally(byte[] address) {
         DeviceProperties properties;
 
         BluetoothDevice device = getDevice(address);
@@ -286,6 +304,57 @@ final class RemoteDevices {
         properties.setBondingInitiatedLocally(true);
     }
 
+    /**
+     * Update battery level in device properties
+     * @param device The remote device to be updated
+     * @param batteryLevel Battery level Indicator between 0-100,
+     *                    {@link BluetoothDevice#BATTERY_LEVEL_UNKNOWN} is error
+     */
+    @VisibleForTesting
+    void updateBatteryLevel(BluetoothDevice device, int batteryLevel) {
+        if (device == null || batteryLevel < 0 || batteryLevel > 100) {
+            warnLog("Invalid parameters device=" + String.valueOf(device == null)
+                    + ", batteryLevel=" + String.valueOf(batteryLevel));
+            return;
+        }
+        DeviceProperties deviceProperties = getDeviceProperties(device);
+        if (deviceProperties == null) {
+            deviceProperties = addDeviceProperties(Utils.getByteAddress(device));
+        }
+        synchronized (mObject) {
+            int currentBatteryLevel = deviceProperties.getBatteryLevel();
+            if (batteryLevel == currentBatteryLevel) {
+                debugLog("Same battery level for device " + device + " received "
+                        + String.valueOf(batteryLevel) + "%");
+                return;
+            }
+            deviceProperties.setBatteryLevel(batteryLevel);
+        }
+        Intent intent = new Intent(BluetoothDevice.ACTION_BATTERY_LEVEL_CHANGED);
+        intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
+        intent.putExtra(BluetoothDevice.EXTRA_BATTERY_LEVEL, batteryLevel);
+        intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY_BEFORE_BOOT);
+        mAdapterService.sendBroadcast(intent, AdapterService.BLUETOOTH_PERM);
+        Log.d(TAG, "Updated device " + device + " battery level to " + String.valueOf(batteryLevel)
+                        + "%");
+    }
+
+    /**
+     * Reset battery level property to {@link BluetoothDevice#BATTERY_LEVEL_UNKNOWN} for a device
+     * @param device device whose battery level property needs to be reset
+     */
+    @VisibleForTesting
+    void resetBatteryLevel(BluetoothDevice device) {
+        if (device == null) {
+            warnLog("device is null");
+            return;
+        }
+        DeviceProperties deviceProperties = getDeviceProperties(device);
+        if (deviceProperties == null) {
+            return;
+        }
+        deviceProperties.setBatteryLevel(BluetoothDevice.BATTERY_LEVEL_UNKNOWN);
+    }
 
     void devicePropertyChangedCallback(byte[] address, int[] types, byte[][] values) {
         Intent intent;
@@ -419,6 +488,10 @@ final class RemoteDevices {
             } else if (state == BluetoothAdapter.STATE_BLE_ON || state == BluetoothAdapter.STATE_BLE_TURNING_OFF) {
                 intent = new Intent(BluetoothAdapter.ACTION_BLE_ACL_DISCONNECTED);
             }
+            // Reset battery level on complete disconnection
+            if (mAdapterService.getConnectionState(device) == 0) {
+                resetBatteryLevel(device);
+            }
             debugLog("aclStateChangeCallback: Adapter State: "
                     + BluetoothAdapter.nameForState(state) + " Disconnected: " + device);
         }
@@ -459,19 +532,19 @@ final class RemoteDevices {
         }
     };
 
-    private void errorLog(String msg) {
+    private static void errorLog(String msg) {
         Log.e(TAG, msg);
     }
 
-    private void debugLog(String msg) {
+    private static void debugLog(String msg) {
         if (DBG) Log.d(TAG, msg);
     }
 
-    private void infoLog(String msg) {
+    private static void infoLog(String msg) {
         if (DBG) Log.i(TAG, msg);
     }
 
-    private void warnLog(String msg) {
+    private static void warnLog(String msg) {
         Log.w(TAG, msg);
     }
 
