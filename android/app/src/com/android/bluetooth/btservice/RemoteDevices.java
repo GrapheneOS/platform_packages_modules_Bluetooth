@@ -19,7 +19,11 @@ package com.android.bluetooth.btservice;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothClass;
 import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothHeadset;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Handler;
 import android.os.Message;
 import android.os.ParcelUuid;
@@ -27,6 +31,8 @@ import android.support.annotation.VisibleForTesting;
 import android.util.Log;
 import com.android.bluetooth.R;
 import com.android.bluetooth.Utils;
+import com.android.bluetooth.hfp.HeadsetHalConstants;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -47,8 +53,24 @@ final class RemoteDevices {
     private static final int UUID_INTENT_DELAY = 6000;
     private static final int MESSAGE_UUID_INTENT = 1;
 
-    private HashMap<String, DeviceProperties> mDevices;
+    private final HashMap<String, DeviceProperties> mDevices;
     private Queue<String> mDeviceQueue;
+
+    private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Log.d(TAG, "Received intent: " + intent);
+            String action = intent.getAction();
+            switch (action) {
+                case BluetoothHeadset.ACTION_HF_INDICATORS_VALUE_CHANGED:
+                    onHfIndicatorValueChanged(intent);
+                    break;
+                default:
+                    Log.w(TAG, "Unhandled intent: " + intent);
+                    break;
+            }
+        }
+    };
 
     RemoteDevices(AdapterService service) {
         mAdapter = BluetoothAdapter.getDefaultAdapter();
@@ -58,8 +80,29 @@ final class RemoteDevices {
         mDeviceQueue = new LinkedList<String>();
     }
 
+    /**
+     * Init should be called before using this RemoteDevices object
+     */
+    void init() {
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(BluetoothHeadset.ACTION_HF_INDICATORS_VALUE_CHANGED);
+        mAdapterService.registerReceiver(mReceiver, filter);
+    }
 
+    /**
+     * Clean up should be called when this object is no longer needed, must be called after init()
+     */
     void cleanup() {
+        // Unregister receiver first, mAdapterService is never null
+        mAdapterService.unregisterReceiver(mReceiver);
+        reset();
+    }
+
+    /**
+     * Reset should be called when the state of this object needs to be cleared
+     * RemoteDevices is still usable after reset
+     */
+    void reset() {
         if (mSdpTracker !=null)
             mSdpTracker.clear();
 
@@ -346,7 +389,7 @@ final class RemoteDevices {
     @VisibleForTesting
     void resetBatteryLevel(BluetoothDevice device) {
         if (device == null) {
-            warnLog("device is null");
+            warnLog("Device is null");
             return;
         }
         DeviceProperties deviceProperties = getDeviceProperties(device);
@@ -524,6 +567,20 @@ final class RemoteDevices {
         Message message = mHandler.obtainMessage(MESSAGE_UUID_INTENT);
         message.obj = device;
         mHandler.sendMessage(message);
+    }
+
+    @VisibleForTesting
+    void onHfIndicatorValueChanged(Intent intent) {
+        BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+        if (device == null) {
+            Log.e(TAG, "onHfIndicatorValueChanged() remote device is null");
+            return;
+        }
+        int indicatorId = intent.getIntExtra(BluetoothHeadset.EXTRA_HF_INDICATORS_IND_ID, -1);
+        int indicatorValue = intent.getIntExtra(BluetoothHeadset.EXTRA_HF_INDICATORS_IND_VALUE, -1);
+        if (indicatorId == HeadsetHalConstants.HF_INDICATOR_BATTERY_LEVEL_STATUS) {
+            updateBatteryLevel(device, indicatorValue);
+        }
     }
 
     private final Handler mHandler = new Handler() {
