@@ -205,8 +205,12 @@ final class HeadsetStateMachine extends StateMachine {
         classInitNative();
 
         VENDOR_SPECIFIC_AT_COMMAND_COMPANY_ID = new HashMap<String, Integer>();
-        VENDOR_SPECIFIC_AT_COMMAND_COMPANY_ID.put("+XEVENT", BluetoothAssignedNumbers.PLANTRONICS);
-        VENDOR_SPECIFIC_AT_COMMAND_COMPANY_ID.put("+ANDROID", BluetoothAssignedNumbers.GOOGLE);
+        VENDOR_SPECIFIC_AT_COMMAND_COMPANY_ID.put(
+                BluetoothHeadset.VENDOR_SPECIFIC_HEADSET_EVENT_XEVENT,
+                BluetoothAssignedNumbers.PLANTRONICS);
+        VENDOR_SPECIFIC_AT_COMMAND_COMPANY_ID.put(
+                BluetoothHeadset.VENDOR_RESULT_CODE_COMMAND_ANDROID,
+                BluetoothAssignedNumbers.GOOGLE);
     }
 
     private HeadsetStateMachine(HeadsetService context) {
