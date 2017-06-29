@@ -261,6 +261,24 @@ public class RemoteDevicesTest {
     }
 
     @Test
+    public void testOnVendorSpecificHeadsetEvent_testCorrectAppleBatteryVsc() {
+        // Verify that device property is null initially
+        Assert.assertNull(mRemoteDevices.getDeviceProperties(mDevice1));
+
+        // Verify that correct ACTION_VENDOR_SPECIFIC_HEADSET_EVENT updates battery level
+        mRemoteDevices.onVendorSpecificHeadsetEvent(getVendorSpecificHeadsetEventIntent(
+                BluetoothHeadset.VENDOR_SPECIFIC_HEADSET_EVENT_IPHONEACCEV,
+                BluetoothAssignedNumbers.APPLE, BluetoothHeadset.AT_CMD_TYPE_SET,
+                new Object[] {3,
+                        BluetoothHeadset.VENDOR_SPECIFIC_HEADSET_EVENT_IPHONEACCEV_BATTERY_LEVEL, 5,
+                        2, 1, 3, 10},
+                mDevice1));
+        verify(mAdapterService).sendBroadcast(mIntentArgument.capture(), mStringArgument.capture());
+        verfyBatteryLevelChangedIntent(mDevice1, 60, mIntentArgument);
+        Assert.assertEquals(AdapterService.BLUETOOTH_PERM, mStringArgument.getValue());
+    }
+
+    @Test
     public void testGetBatteryLevelFromXEventVsc() {
         Assert.assertEquals(37, RemoteDevices.getBatteryLevelFromXEventVsc(getXEventArray(3, 8)));
         Assert.assertEquals(100, RemoteDevices.getBatteryLevelFromXEventVsc(getXEventArray(1, 1)));
@@ -270,6 +288,43 @@ public class RemoteDevicesTest {
                 RemoteDevices.getBatteryLevelFromXEventVsc(getXEventArray(-1, 1)));
         Assert.assertEquals(BluetoothDevice.BATTERY_LEVEL_UNKNOWN,
                 RemoteDevices.getBatteryLevelFromXEventVsc(getXEventArray(-1, -1)));
+    }
+
+    @Test
+    public void testGetBatteryLevelFromAppleBatteryVsc() {
+        Assert.assertEquals(10,
+                RemoteDevices.getBatteryLevelFromAppleBatteryVsc(new Object[] {1,
+                        BluetoothHeadset.VENDOR_SPECIFIC_HEADSET_EVENT_IPHONEACCEV_BATTERY_LEVEL,
+                        0}));
+        Assert.assertEquals(100,
+                RemoteDevices.getBatteryLevelFromAppleBatteryVsc(new Object[] {1,
+                        BluetoothHeadset.VENDOR_SPECIFIC_HEADSET_EVENT_IPHONEACCEV_BATTERY_LEVEL,
+                        9}));
+        Assert.assertEquals(60,
+                RemoteDevices.getBatteryLevelFromAppleBatteryVsc(new Object[] {3,
+                        BluetoothHeadset.VENDOR_SPECIFIC_HEADSET_EVENT_IPHONEACCEV_BATTERY_LEVEL, 5,
+                        2, 1, 3, 10}));
+        Assert.assertEquals(BluetoothDevice.BATTERY_LEVEL_UNKNOWN,
+                RemoteDevices.getBatteryLevelFromAppleBatteryVsc(new Object[] {3,
+                        BluetoothHeadset.VENDOR_SPECIFIC_HEADSET_EVENT_IPHONEACCEV_BATTERY_LEVEL, 5,
+                        2, 1, 3}));
+        Assert.assertEquals(BluetoothDevice.BATTERY_LEVEL_UNKNOWN,
+                RemoteDevices.getBatteryLevelFromAppleBatteryVsc(new Object[] {1,
+                        BluetoothHeadset.VENDOR_SPECIFIC_HEADSET_EVENT_IPHONEACCEV_BATTERY_LEVEL,
+                        10}));
+        Assert.assertEquals(BluetoothDevice.BATTERY_LEVEL_UNKNOWN,
+                RemoteDevices.getBatteryLevelFromAppleBatteryVsc(new Object[] {1,
+                        BluetoothHeadset.VENDOR_SPECIFIC_HEADSET_EVENT_IPHONEACCEV_BATTERY_LEVEL,
+                        -1}));
+        Assert.assertEquals(BluetoothDevice.BATTERY_LEVEL_UNKNOWN,
+                RemoteDevices.getBatteryLevelFromAppleBatteryVsc(new Object[] {1,
+                        BluetoothHeadset.VENDOR_SPECIFIC_HEADSET_EVENT_IPHONEACCEV_BATTERY_LEVEL,
+                        "5"}));
+        Assert.assertEquals(BluetoothDevice.BATTERY_LEVEL_UNKNOWN,
+                RemoteDevices.getBatteryLevelFromAppleBatteryVsc(new Object[] {1, 35, 37}));
+        Assert.assertEquals(BluetoothDevice.BATTERY_LEVEL_UNKNOWN,
+                RemoteDevices.getBatteryLevelFromAppleBatteryVsc(
+                        new Object[] {1, "WRONG", "WRONG"}));
     }
 
     private static void verfyBatteryLevelChangedIntent(
