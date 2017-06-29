@@ -216,12 +216,6 @@ public class AdapterService extends Service {
                 debugLog("AdapterService() - REFCOUNT: CREATED. INSTANCE_COUNT" + sRefCount);
             }
         }
-
-        // This is initialized at the beginning in order to prevent
-        // NullPointerException from happening if AdapterService
-        // functions are called before BLE is turned on due to
-        // |mRemoteDevices| being null.
-        mRemoteDevices = new RemoteDevices(this);
     }
 
     public void addProfile(ProfileService profile) {
@@ -401,6 +395,8 @@ public class AdapterService extends Service {
     public void onCreate() {
         super.onCreate();
         debugLog("onCreate()");
+        mRemoteDevices = new RemoteDevices(this);
+        mRemoteDevices.init();
         mBinder = new AdapterServiceBinder(this);
         mAdapterProperties = new AdapterProperties(this);
         mAdapterStateMachine =  AdapterState.make(this, mAdapterProperties);
@@ -494,7 +490,7 @@ public class AdapterService extends Service {
         // turned off then on. The same effect can be achieved by
         // calling cleanup but this may not be necessary at all
         // We should figure out why this is needed later
-        mRemoteDevices.cleanup();
+        mRemoteDevices.reset();
         mAdapterProperties.init(mRemoteDevices);
 
         debugLog("BleOnProcessStart() - Make Bond State Machine");
