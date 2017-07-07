@@ -80,13 +80,10 @@ public class BluetoothOppService extends ProfileService implements IObexConnecti
     private static final boolean D = Constants.DEBUG;
     private static final boolean V = Constants.VERBOSE;
 
-    private static final byte OPP_FORMAT_VCARD21 = 0x01;
-    private static final byte OPP_FORMAT_VCARD30 = 0x02;
-    private static final byte OPP_FORMAT_VCAL10 = 0x03;
-    private static final byte OPP_FORMAT_ANY_TYPE_OF_OBJ = (byte) 0xFF;
-
     private static final byte[] SUPPORTED_OPP_FORMAT = {
-            OPP_FORMAT_VCARD21, OPP_FORMAT_VCARD30, OPP_FORMAT_VCAL10, OPP_FORMAT_ANY_TYPE_OF_OBJ};
+            0x01 /* vCard 2.1 */, 0x02 /* vCard 3.0 */, 0x03 /* vCal 1.0 */, 0x04 /* iCal 2.0 */,
+            (byte) 0xFF /* Any type of object */
+    };
 
     private boolean userAccepted = false;
 
