@@ -71,44 +71,15 @@ static uint64_t uuid_msb(const bt_uuid_t& uuid) {
   return msb;
 }
 
-static void bd_addr_str_to_addr(const char* str, uint8_t* bd_addr) {
-  int i;
-  char c;
-
-  c = *str++;
-  for (i = 0; i < BD_ADDR_LEN; i++) {
-    if (c >= '0' && c <= '9')
-      bd_addr[i] = c - '0';
-    else if (c >= 'a' && c <= 'z')
-      bd_addr[i] = c - 'a' + 10;
-    else  // (c >= 'A' && c <= 'Z')
-      bd_addr[i] = c - 'A' + 10;
-
-    c = *str++;
-    if (c != ':') {
-      bd_addr[i] <<= 4;
-      if (c >= '0' && c <= '9')
-        bd_addr[i] |= c - '0';
-      else if (c >= 'a' && c <= 'z')
-        bd_addr[i] |= c - 'a' + 10;
-      else  // (c >= 'A' && c <= 'Z')
-        bd_addr[i] |= c - 'A' + 10;
-
-      c = *str++;
-    }
-
-    c = *str++;
-  }
-}
-
 static RawAddress str2addr(JNIEnv* env, jstring address) {
-  RawAddress bda;
-  const char* c_bda = env->GetStringUTFChars(address, NULL);
-  if (!c_bda || strlen(c_bda) != 17) return bda;
+  RawAddress bd_addr;
+  const char* c_address = env->GetStringUTFChars(address, NULL);
+  if (!c_address) return bd_addr;
 
-  bd_addr_str_to_addr(c_bda, bda.address);
-  env->ReleaseStringUTFChars(address, c_bda);
-  return bda;
+  RawAddress::FromString(std::string(c_address), bd_addr);
+  env->ReleaseStringUTFChars(address, c_address);
+
+  return bd_addr;
 }
 
 static jstring bdaddr2newjstr(JNIEnv* env, const RawAddress* bda) {
@@ -1173,10 +1144,7 @@ static void gattClientRegisterForNotificationsNative(
     jboolean enable) {
   if (!sGattIf) return;
 
-  RawAddress bd_addr;
-  const char* c_address = env->GetStringUTFChars(address, NULL);
-  bd_addr_str_to_addr(c_address, bd_addr.address);
-
+  RawAddress bd_addr = str2addr(env, address);
   if (enable)
     sGattIf->client->register_for_notification(clientIf, bd_addr, handle);
   else
@@ -1517,10 +1485,7 @@ static void gattServerConnectNative(JNIEnv* env, jobject object, jint server_if,
                                     jint transport) {
   if (!sGattIf) return;
 
-  RawAddress bd_addr;
-  const char* c_address = env->GetStringUTFChars(address, NULL);
-  bd_addr_str_to_addr(c_address, bd_addr.address);
-
+  RawAddress bd_addr = str2addr(env, address);
   sGattIf->server->connect(server_if, bd_addr, is_direct, transport);
 }
 

@@ -17,6 +17,7 @@ cc_library_shared {
     ],
     include_dirs: [
         "libnativehelper/include/nativehelper",
+        "system/bt/types",
     ],
     shared_libs: [
         "libandroid_runtime",
@@ -26,6 +27,9 @@ cc_library_shared {
         "libutils",
         "liblog",
         "libhardware",
+    ],
+    static_libs: [
+        "libbluetooth-types",
     ],
     cflags: [
         "-Wall",
