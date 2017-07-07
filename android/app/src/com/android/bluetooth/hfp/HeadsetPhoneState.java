@@ -323,7 +323,8 @@ class HeadsetPhoneState {
              */
             private int gsmAsuToSignal(SignalStrength signalStrength) {
                 int asu = signalStrength.getGsmSignalStrength();
-                if      (asu >= 16) return 5;
+                if      (asu == 99) return 0;
+                else if (asu >= 16) return 5;
                 else if (asu >= 8)  return 4;
                 else if (asu >= 4)  return 3;
                 else if (asu >= 2)  return 2;
