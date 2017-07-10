@@ -57,9 +57,11 @@ import com.android.bluetooth.Utils;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
@@ -1582,9 +1584,15 @@ public final class Avrcp {
                 @Override
                 public void onActiveSessionsChanged(
                         List<android.media.session.MediaController> newControllers) {
+                    Set<String> updatedPackages = new HashSet<String>();
                     // Update the current players
                     for (android.media.session.MediaController controller : newControllers) {
+                        String packageName = controller.getPackageName();
+                        if (DEBUG) Log.v(TAG, "ActiveSession: " + MediaController.wrap(controller));
+                        // Only use the first (highest priority) controller from each package
+                        if (updatedPackages.contains(packageName)) continue;
                         addMediaPlayerController(controller);
+                        updatedPackages.add(packageName);
                     }
 
                     if (newControllers.size() > 0 && getAddressedPlayerInfo() == null) {
