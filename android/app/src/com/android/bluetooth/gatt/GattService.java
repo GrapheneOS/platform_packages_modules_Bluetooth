@@ -417,11 +417,11 @@ public class GattService extends ProfileService {
         }
 
         @Override
-        public void clientConnect(
-                int clientIf, String address, boolean isDirect, int transport, int phy) {
+        public void clientConnect(int clientIf, String address, boolean isDirect, int transport,
+                boolean opportunistic, int phy) {
             GattService service = getService();
             if (service == null) return;
-            service.clientConnect(clientIf, address, isDirect, transport, phy);
+            service.clientConnect(clientIf, address, isDirect, transport, opportunistic, phy);
         }
 
         @Override
@@ -1802,14 +1802,15 @@ public class GattService extends ProfileService {
         gattClientUnregisterAppNative(clientIf);
     }
 
-    void clientConnect(int clientIf, String address, boolean isDirect, int transport, int phy) {
+    void clientConnect(int clientIf, String address, boolean isDirect, int transport,
+            boolean opportunistic, int phy) {
         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
 
         if (DBG) {
-            Log.d(TAG, "clientConnect() - address=" + address + ", isDirect=" + isDirect + ", phy= "
-                            + phy);
+            Log.d(TAG, "clientConnect() - address=" + address + ", isDirect=" + isDirect +
+                    ", opportunistic=" + opportunistic + ", phy=" + phy);
         }
-        gattClientConnectNative(clientIf, address, isDirect, transport, phy);
+        gattClientConnectNative(clientIf, address, isDirect, transport, opportunistic, phy);
     }
 
     void clientDisconnect(int clientIf, String address) {
@@ -2696,8 +2697,8 @@ public class GattService extends ProfileService {
 
     private native void gattClientUnregisterAppNative(int clientIf);
 
-    private native void gattClientConnectNative(
-            int clientIf, String address, boolean isDirect, int transport, int initiating_phys);
+    private native void gattClientConnectNative(int clientIf, String address, boolean isDirect,
+            int transport, boolean opportunistic, int initiating_phys);
 
     private native void gattClientDisconnectNative(int clientIf, String address,
             int conn_id);
