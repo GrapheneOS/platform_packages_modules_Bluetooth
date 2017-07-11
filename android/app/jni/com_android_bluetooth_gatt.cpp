@@ -25,6 +25,7 @@
 
 #include <base/bind.h>
 #include <string.h>
+#include <array>
 #include <memory>
 
 #include <cutils/log.h>
@@ -38,34 +39,38 @@
 #define asrt(s) \
   if (!(s)) ALOGE("%s(L%d): ASSERT %s failed! ##", __func__, __LINE__, #s)
 
-#define BD_ADDR_LEN 6
+using bluetooth::Uuid;
 
 #define UUID_PARAMS(uuid) uuid_lsb(uuid), uuid_msb(uuid)
 
-static void set_uuid(uint8_t* uuid, jlong uuid_msb, jlong uuid_lsb) {
-  for (int i = 0; i != 8; ++i) {
-    uuid[i] = (uuid_lsb >> (8 * i)) & 0xFF;
-    uuid[i + 8] = (uuid_msb >> (8 * i)) & 0xFF;
+static Uuid from_java_uuid(jlong uuid_msb, jlong uuid_lsb) {
+  std::array<uint8_t, Uuid::kNumBytes128> uu;
+  for (int i = 0; i < 8; i++) {
+    uu[7 - i] = (uuid_msb >> (8 * i)) & 0xFF;
+    uu[15 - i] = (uuid_lsb >> (8 * i)) & 0xFF;
   }
+  return Uuid::From128BitBE(uu);
 }
 
-static uint64_t uuid_lsb(const bt_uuid_t& uuid) {
+static uint64_t uuid_lsb(const Uuid& uuid) {
   uint64_t lsb = 0;
 
-  for (int i = 7; i >= 0; i--) {
+  auto uu = uuid.To128BitBE();
+  for (int i = 8; i <= 15; i++) {
     lsb <<= 8;
-    lsb |= uuid.uu[i];
+    lsb |= uu[i];
   }
 
   return lsb;
 }
 
-static uint64_t uuid_msb(const bt_uuid_t& uuid) {
+static uint64_t uuid_msb(const Uuid& uuid) {
   uint64_t msb = 0;
 
-  for (int i = 15; i >= 8; i--) {
+  auto uu = uuid.To128BitBE();
+  for (int i = 0; i <= 7; i++) {
     msb <<= 8;
-    msb |= uuid.uu[i];
+    msb |= uu[i];
   }
 
   return msb;
@@ -192,8 +197,7 @@ static jobject mPeriodicScanCallbacksObj = NULL;
  * BTA client callbacks
  */
 
-void btgattc_register_app_cb(int status, int clientIf,
-                             const bt_uuid_t& app_uuid) {
+void btgattc_register_app_cb(int status, int clientIf, const Uuid& app_uuid) {
   CallbackEnv sCallbackEnv(__func__);
   if (!sCallbackEnv.valid()) return;
   sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onClientRegistered, status,
@@ -556,7 +560,7 @@ static const btgatt_client_callbacks_t sGattClientCallbacks = {
  * BTA server callbacks
  */
 
-void btgatts_register_app_cb(int status, int server_if, const bt_uuid_t& uuid) {
+void btgatts_register_app_cb(int status, int server_if, const Uuid& uuid) {
   CallbackEnv sCallbackEnv(__func__);
   if (!sCallbackEnv.valid()) return;
   sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onServerRegistered, status,
@@ -939,10 +943,8 @@ static int gattClientGetDeviceTypeNative(JNIEnv* env, jobject object,
 static void gattClientRegisterAppNative(JNIEnv* env, jobject object,
                                         jlong app_uuid_lsb,
                                         jlong app_uuid_msb) {
-  bt_uuid_t uuid;
-
   if (!sGattIf) return;
-  set_uuid(uuid.uu, app_uuid_msb, app_uuid_lsb);
+  Uuid uuid = from_java_uuid(app_uuid_msb, app_uuid_lsb);
   sGattIf->client->register_client(uuid);
 }
 
@@ -952,7 +954,7 @@ static void gattClientUnregisterAppNative(JNIEnv* env, jobject object,
   sGattIf->client->unregister_client(clientIf);
 }
 
-void btgattc_register_scanner_cb(bt_uuid_t app_uuid, uint8_t scannerId,
+void btgattc_register_scanner_cb(const Uuid& app_uuid, uint8_t scannerId,
                                  uint8_t status) {
   CallbackEnv sCallbackEnv(__func__);
   if (!sCallbackEnv.valid()) return;
@@ -964,8 +966,7 @@ static void registerScannerNative(JNIEnv* env, jobject object,
                                   jlong app_uuid_lsb, jlong app_uuid_msb) {
   if (!sGattIf) return;
 
-  bt_uuid_t uuid;
-  set_uuid(uuid.uu, app_uuid_msb, app_uuid_lsb);
+  Uuid uuid = from_java_uuid(app_uuid_msb, app_uuid_lsb);
   sGattIf->scanner->RegisterScanner(
       base::Bind(&btgattc_register_scanner_cb, uuid));
 }
@@ -1041,8 +1042,7 @@ static void gattClientSearchServiceNative(JNIEnv* env, jobject object,
                                           jlong service_uuid_msb) {
   if (!sGattIf) return;
 
-  bt_uuid_t uuid;
-  set_uuid(uuid.uu, service_uuid_msb, service_uuid_lsb);
+  Uuid uuid = from_java_uuid(service_uuid_msb, service_uuid_lsb);
   sGattIf->client->search_service(conn_id, search_all ? 0 : &uuid);
 }
 
@@ -1052,8 +1052,7 @@ static void gattClientDiscoverServiceByUuidNative(JNIEnv* env, jobject object,
                                                   jlong service_uuid_msb) {
   if (!sGattIf) return;
 
-  bt_uuid_t uuid;
-  set_uuid(uuid.uu, service_uuid_msb, service_uuid_lsb);
+  Uuid uuid = from_java_uuid(service_uuid_msb, service_uuid_lsb);
   sGattIf->client->btif_gattc_discover_service_by_uuid(conn_id, uuid);
 }
 
@@ -1077,8 +1076,7 @@ static void gattClientReadUsingCharacteristicUuidNative(
     jint s_handle, jint e_handle, jint authReq) {
   if (!sGattIf) return;
 
-  bt_uuid_t uuid;
-  set_uuid(uuid.uu, uuid_msb, uuid_lsb);
+  Uuid uuid = from_java_uuid(uuid_msb, uuid_lsb);
   sGattIf->client->read_using_characteristic_uuid(conn_id, uuid, s_handle,
                                                   e_handle, authReq);
 }
@@ -1299,9 +1297,8 @@ static void gattClientScanFilterAddRemoveNative(
     case 2:  // BTM_BLE_PF_SRVC_UUID
     case 3:  // BTM_BLE_PF_SRVC_SOL_UUID
     {
-      bt_uuid_t uuid, uuid_mask;
-      set_uuid(uuid.uu, uuid_msb, uuid_lsb);
-      set_uuid(uuid_mask.uu, uuid_mask_msb, uuid_mask_lsb);
+      Uuid uuid = from_java_uuid(uuid_msb, uuid_lsb);
+      Uuid uuid_mask = from_java_uuid(uuid_mask_msb, uuid_mask_lsb);
       if (uuid_mask_lsb != 0 && uuid_mask_msb != 0)
         sGattIf->scanner->ScanFilterAddRemove(
             action, filt_type, filt_index, 0, 0, &uuid, &uuid_mask, NULL, 0, {},
@@ -1469,9 +1466,8 @@ static void gattClientReadScanReportsNative(JNIEnv* env, jobject object,
 static void gattServerRegisterAppNative(JNIEnv* env, jobject object,
                                         jlong app_uuid_lsb,
                                         jlong app_uuid_msb) {
-  bt_uuid_t uuid;
   if (!sGattIf) return;
-  set_uuid(uuid.uu, app_uuid_msb, app_uuid_lsb);
+  Uuid uuid = from_java_uuid(app_uuid_msb, app_uuid_lsb);
   sGattIf->server->register_server(uuid);
 }
 
@@ -1566,7 +1562,7 @@ static void gattServerAddServiceNative(JNIEnv* env, jobject object,
     if (uuid.get() != NULL) {
       jlong uuid_msb = env->CallLongMethod(uuid.get(), uuidGetMsb);
       jlong uuid_lsb = env->CallLongMethod(uuid.get(), uuidGetLsb);
-      set_uuid(curr.uuid.uu, uuid_msb, uuid_lsb);
+      curr.uuid = from_java_uuid(uuid_msb, uuid_lsb);
     }
 
     fid = env->GetFieldID(gattDbElementClazz, "type", "I");
@@ -2046,8 +2042,7 @@ static void gattTestNative(JNIEnv* env, jobject object, jint command,
 
   RawAddress bt_bda1 = str2addr(env, bda1);
 
-  bt_uuid_t uuid1;
-  set_uuid(uuid1.uu, uuid1_msb, uuid1_lsb);
+  Uuid uuid1 = from_java_uuid(uuid1_msb, uuid1_lsb);
 
   btgatt_test_params_t params;
   params.bda1 = &bt_bda1;
@@ -2224,4 +2219,4 @@ int register_com_android_bluetooth_gatt(JNIEnv* env) {
          jniRegisterNativeMethods(env, "com/android/bluetooth/gatt/GattService",
                                   sMethods, NELEM(sMethods));
 }
-}
+}  // namespace android
