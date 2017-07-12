@@ -2197,9 +2197,7 @@ public final class Avrcp {
                 mMediaController = newController;
                 if (mMediaController != null) {
                     mMediaController.registerCallback(mMediaControllerCb, mHandler);
-                    mAddressedMediaPlayer.updateNowPlayingList(mMediaController);
                 } else {
-                    mAddressedMediaPlayer.updateNowPlayingList(null);
                     registerRsp = false;
                 }
             }
