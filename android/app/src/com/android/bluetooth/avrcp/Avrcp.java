@@ -400,7 +400,7 @@ public final class Avrcp {
             }
 
             Log.v(TAG, "onQueueChanged: NowPlaying list changed, Queue Size = "+ queue.size());
-            mHandler.sendEmptyMessage(MSG_NOW_PLAYING_CHANGED_RSP);
+            mHandler.sendEmptyMessageDelayed(MSG_NOW_PLAYING_CHANGED_RSP, MEDIA_DWELL_TIME);
         }
     }
 
@@ -2137,11 +2137,10 @@ public final class Avrcp {
                 mMediaController = newController;
                 if (mMediaController != null) {
                     mMediaController.registerCallback(mMediaControllerCb, mHandler);
-                    mAddressedMediaPlayer.updateNowPlayingList(mMediaController);
                 } else {
-                    mAddressedMediaPlayer.updateNowPlayingList(null);
                     registerRsp = false;
                 }
+                mHandler.sendEmptyMessageDelayed(MSG_NOW_PLAYING_CHANGED_RSP, MEDIA_DWELL_TIME);
             }
         }
         scheduleMediaUpdate();
