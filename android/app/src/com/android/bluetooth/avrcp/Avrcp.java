@@ -991,6 +991,8 @@ public final class Avrcp {
             }
             if (mAddrPlayerChangedNT == AvrcpConstants.NOTIFICATION_TYPE_INTERIM
                     && mReportedPlayerID != mCurrAddrPlayerID) {
+                registerNotificationRspAvalPlayerChangedNative(
+                        AvrcpConstants.NOTIFICATION_TYPE_CHANGED);
                 registerNotificationRspAddrPlayerChangedNative(
                         AvrcpConstants.NOTIFICATION_TYPE_CHANGED, mCurrAddrPlayerID, sUIDCounter);
                 mAddrPlayerChangedNT = AvrcpConstants.NOTIFICATION_TYPE_CHANGED;
@@ -2049,14 +2051,17 @@ public final class Avrcp {
             short[] featureBitMaskValues =
                     new short[numPlayers * AvrcpConstants.AVRC_FEATURE_MASK_SIZE];
 
-            int players = 0;
+            // Reserve the first spot for the currently addressed player
+            int players = 1;
             for (Map.Entry<Integer, MediaPlayerInfo> entry : mMediaPlayerInfoList.entrySet()) {
+                int idx = players;
+                if (entry.getKey() == mCurrAddrPlayerID) idx = 0;
                 MediaPlayerInfo info = entry.getValue();
-                playerIds[players] = entry.getKey();
-                playerTypes[players] = info.getMajorType();
-                playerSubTypes[players] = info.getSubType();
-                displayableNameArray[players] = info.getDisplayableName();
-                playStatusValues[players] = info.getPlayStatus();
+                playerIds[idx] = entry.getKey();
+                playerTypes[idx] = info.getMajorType();
+                playerSubTypes[idx] = info.getSubType();
+                displayableNameArray[idx] = info.getDisplayableName();
+                playStatusValues[idx] = info.getPlayStatus();
 
                 short[] featureBits = info.getFeatureBitMask();
                 for (int numBit = 0; numBit < featureBits.length; numBit++) {
@@ -2064,19 +2069,18 @@ public final class Avrcp {
                     byte octet = (byte) (featureBits[numBit] / 8);
                     /* gives the bit position within the octet */
                     byte bit = (byte) (featureBits[numBit] % 8);
-                    featureBitMaskValues[(players * AvrcpConstants.AVRC_FEATURE_MASK_SIZE)
-                            + octet] |= (1 << bit);
+                    featureBitMaskValues[(idx * AvrcpConstants.AVRC_FEATURE_MASK_SIZE) + octet] |=
+                            (1 << bit);
                 }
 
                 /* printLogs */
                 if (DEBUG) {
-                    Log.d(TAG, "Player " + playerIds[players] + ": " + displayableNameArray[players]
-                                    + " type: " + playerTypes[players] + ", "
-                                    + playerSubTypes[players] + " status: "
-                                    + playStatusValues[players]);
+                    Log.d(TAG, "Player " + playerIds[idx] + ": " + displayableNameArray[idx]
+                                    + " type: " + playerTypes[idx] + ", " + playerSubTypes[idx]
+                                    + " status: " + playStatusValues[idx]);
                 }
 
-                players++;
+                if (idx != 0) players++;
             }
 
             if (DEBUG) Log.d(TAG, "prepareMediaPlayerRspObj: numPlayers = " + numPlayers);
