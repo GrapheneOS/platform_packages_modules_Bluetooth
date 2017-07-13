@@ -47,6 +47,10 @@ class HeadsetPhoneState {
     // HFP 1.6 CIND service
     private int mService = HeadsetHalConstants.NETWORK_STATE_NOT_AVAILABLE;
 
+    // Check this before sending out service state to the device -- if the SIM isn't fully
+    // loaded, don't expose that the network is available.
+    private boolean mIsSimStateLoaded = false;
+
     // Number of active (foreground) calls
     private int mNumActive = 0;
 
@@ -235,17 +239,20 @@ class HeadsetPhoneState {
 
     void sendDeviceStateChanged()
     {
+        int service =
+                mIsSimStateLoaded ? mService : HeadsetHalConstants.NETWORK_STATE_NOT_AVAILABLE;
         // When out of service, send signal strength as 0. Some devices don't
         // use the service indicator, but only the signal indicator
-        int signal = mService == HeadsetHalConstants.NETWORK_STATE_AVAILABLE ? mSignal : 0;
+        int signal = service == HeadsetHalConstants.NETWORK_STATE_AVAILABLE ? mSignal : 0;
 
         Log.d(TAG, "sendDeviceStateChanged. mService="+ mService +
+                   " mIsSimStateLoaded=" + mIsSimStateLoaded +
                    " mSignal=" + signal +" mRoam="+ mRoam +
                    " mBatteryCharge=" + mBatteryCharge);
         HeadsetStateMachine sm = mStateMachine;
         if (sm != null) {
             sm.sendMessage(HeadsetStateMachine.DEVICE_STATE_CHANGED,
-                new HeadsetDeviceState(mService, mRoam, signal, mBatteryCharge));
+                new HeadsetDeviceState(service, mRoam, signal, mBatteryCharge));
         }
     }
 
@@ -270,6 +277,7 @@ class HeadsetPhoneState {
                 // If this is due to a SIM insertion, we want to defer sending device state changed
                 // until all the SIM config is loaded.
                 if (newService == HeadsetHalConstants.NETWORK_STATE_NOT_AVAILABLE) {
+                    mIsSimStateLoaded = false;
                     sendDeviceStateChanged();
                     return;
                 }
@@ -283,6 +291,7 @@ class HeadsetPhoneState {
                             // this'll execute immediately.
                             if (IccCardConstants.INTENT_VALUE_ICC_LOADED.equals(
                                     intent.getStringExtra(IccCardConstants.INTENT_KEY_ICC_STATE))) {
+                                mIsSimStateLoaded = true;
                                 sendDeviceStateChanged();
                                 mContext.unregisterReceiver(this);
                             }
