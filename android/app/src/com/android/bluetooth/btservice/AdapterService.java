@@ -122,6 +122,7 @@ public class AdapterService extends Service {
     public static final String BLUETOOTH_PRIVILEGED =
                 android.Manifest.permission.BLUETOOTH_PRIVILEGED;
     static final String BLUETOOTH_PERM = android.Manifest.permission.BLUETOOTH;
+    static final String LOCAL_MAC_ADDRESS_PERM = android.Manifest.permission.LOCAL_MAC_ADDRESS;
     static final String RECEIVE_MAP_PERM = android.Manifest.permission.RECEIVE_BLUETOOTH_MAP;
 
     private static final String PHONEBOOK_ACCESS_PERMISSION_PREFERENCE_FILE =
@@ -1446,6 +1447,7 @@ public class AdapterService extends Service {
 
      String getAddress() {
         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+        enforceCallingOrSelfPermission(LOCAL_MAC_ADDRESS_PERM, "Need LOCAL_MAC_ADDRESS permission");
 
         String addrString = null;
         byte[] address = mAdapterProperties.getAddress();
