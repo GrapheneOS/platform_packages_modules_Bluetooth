@@ -2146,7 +2146,7 @@ public final class Avrcp {
                 }
             }
         }
-        scheduleMediaUpdate();
+        updateCurrentMediaState(false);
         return registerRsp;
     }
 
