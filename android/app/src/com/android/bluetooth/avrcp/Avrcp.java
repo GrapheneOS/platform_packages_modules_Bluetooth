@@ -2146,10 +2146,9 @@ public final class Avrcp {
                 } else {
                     registerRsp = false;
                 }
-                mHandler.sendEmptyMessageDelayed(MSG_NOW_PLAYING_CHANGED_RSP, MEDIA_DWELL_TIME);
             }
         }
-        scheduleMediaUpdate();
+        updateCurrentMediaState(false);
         return registerRsp;
     }
 
