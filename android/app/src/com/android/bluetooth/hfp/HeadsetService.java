@@ -487,12 +487,11 @@ public class HeadsetService extends ProfileService {
         // TODO(BT) BLUETOOTH or BLUETOOTH_ADMIN permission
         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
         if (!mStateMachine.isConnected()) {
-            return false;
-        }
-        if (!mStateMachine.isSlcConnected()) {
+            Log.w(TAG, "connectAudio: profile not connected");
             return false;
         }
         if (mStateMachine.isAudioOn()) {
+            Log.w(TAG, "connectAudio: audio is already ON");
             return false;
         }
         mStateMachine.sendMessage(HeadsetStateMachine.CONNECT_AUDIO);
