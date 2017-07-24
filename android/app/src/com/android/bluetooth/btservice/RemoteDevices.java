@@ -513,7 +513,8 @@ final class RemoteDevices {
         BluetoothDevice device = getDevice(address);
 
         if (device == null) {
-            errorLog("aclStateChangeCallback: Device is NULL");
+            errorLog("aclStateChangeCallback: device is NULL, address="
+                    + Utils.getAddressStringFromByte(address) + ", newState=" + newState);
             return;
         }
         int state = mAdapterService.getState();
