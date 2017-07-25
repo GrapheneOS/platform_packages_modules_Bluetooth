@@ -157,14 +157,12 @@ import com.android.bluetooth.btservice.BluetoothProto;
         scanEvent.setInitiator(truncateAppName(appName));
         gattService.addScanEvent(scanEvent);
 
-        if (!isScanning()) {
-            try {
-                boolean isUnoptimized = !(scan.filtered || scan.background || scan.opportunistic);
-                mScanStartTime = startTime;
-                batteryStats.noteBleScanStarted(workSource, isUnoptimized);
-            } catch (RemoteException e) {
-                /* ignore */
-            }
+        if (!isScanning()) mScanStartTime = startTime;
+        try {
+            boolean isUnoptimized = !(scan.filtered || scan.background || scan.opportunistic);
+            batteryStats.noteBleScanStarted(workSource, isUnoptimized);
+        } catch (RemoteException e) {
+            /* ignore */
         }
 
         ongoingScans.put(scannerId, scan);
@@ -193,18 +191,20 @@ import com.android.bluetooth.btservice.BluetoothProto;
         gattService.addScanEvent(scanEvent);
 
         if (!isScanning()) {
-            try {
-                long totalDuration = stopTime - mScanStartTime;
-                mTotalScanTime += totalDuration;
-                minScanTime = Math.min(totalDuration, minScanTime);
-                maxScanTime = Math.max(totalDuration, maxScanTime);
-                // Inform battery stats of any results it might be missing on
-                // scan stop
-                batteryStats.noteBleScanResults(workSource, scan.results % 100);
-                batteryStats.noteBleScanStopped(workSource);
-            } catch (RemoteException e) {
-                /* ignore */
-            }
+            long totalDuration = stopTime - mScanStartTime;
+            mTotalScanTime += totalDuration;
+            minScanTime = Math.min(totalDuration, minScanTime);
+            maxScanTime = Math.max(totalDuration, maxScanTime);
+        }
+
+        try {
+            // Inform battery stats of any results it might be missing on
+            // scan stop
+            boolean isUnoptimized = !(scan.filtered || scan.background || scan.opportunistic);
+            batteryStats.noteBleScanResults(workSource, scan.results % 100);
+            batteryStats.noteBleScanStopped(workSource, isUnoptimized);
+        } catch (RemoteException e) {
+            /* ignore */
         }
     }
 
