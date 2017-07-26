@@ -21,6 +21,7 @@ import android.bluetooth.BluetoothAssignedNumbers;
 import android.bluetooth.BluetoothClass;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothHeadset;
+import android.bluetooth.BluetoothProfile;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -60,7 +61,6 @@ final class RemoteDevices {
     private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            Log.d(TAG, "Received intent: " + intent);
             String action = intent.getAction();
             switch (action) {
                 case BluetoothHeadset.ACTION_HF_INDICATORS_VALUE_CHANGED:
@@ -68,6 +68,9 @@ final class RemoteDevices {
                     break;
                 case BluetoothHeadset.ACTION_VENDOR_SPECIFIC_HEADSET_EVENT:
                     onVendorSpecificHeadsetEvent(intent);
+                    break;
+                case BluetoothHeadset.ACTION_CONNECTION_STATE_CHANGED:
+                    onHeadsetConnectionStateChanged(intent);
                     break;
                 default:
                     Log.w(TAG, "Unhandled intent: " + intent);
@@ -95,6 +98,7 @@ final class RemoteDevices {
                 + BluetoothAssignedNumbers.PLANTRONICS);
         filter.addCategory(BluetoothHeadset.VENDOR_SPECIFIC_HEADSET_EVENT_COMPANY_ID_CATEGORY + "."
                 + BluetoothAssignedNumbers.APPLE);
+        filter.addAction(BluetoothHeadset.ACTION_CONNECTION_STATE_CHANGED);
         mAdapterService.registerReceiver(mReceiver, filter);
     }
 
@@ -382,13 +386,8 @@ final class RemoteDevices {
             }
             deviceProperties.setBatteryLevel(batteryLevel);
         }
-        Intent intent = new Intent(BluetoothDevice.ACTION_BATTERY_LEVEL_CHANGED);
-        intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
-        intent.putExtra(BluetoothDevice.EXTRA_BATTERY_LEVEL, batteryLevel);
-        intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY_BEFORE_BOOT);
-        mAdapterService.sendBroadcast(intent, AdapterService.BLUETOOTH_PERM);
-        Log.d(TAG, "Updated device " + device + " battery level to " + String.valueOf(batteryLevel)
-                        + "%");
+        sendBatteryLevelChangedBroadcast(device, batteryLevel);
+        Log.d(TAG, "Updated device " + device + " battery level to " + batteryLevel + "%");
     }
 
     /**
@@ -405,7 +404,23 @@ final class RemoteDevices {
         if (deviceProperties == null) {
             return;
         }
-        deviceProperties.setBatteryLevel(BluetoothDevice.BATTERY_LEVEL_UNKNOWN);
+        synchronized (mObject) {
+            if (deviceProperties.getBatteryLevel() == BluetoothDevice.BATTERY_LEVEL_UNKNOWN) {
+                debugLog("Battery level was never set or is already reset, device=" + device);
+                return;
+            }
+            deviceProperties.setBatteryLevel(BluetoothDevice.BATTERY_LEVEL_UNKNOWN);
+        }
+        sendBatteryLevelChangedBroadcast(device, BluetoothDevice.BATTERY_LEVEL_UNKNOWN);
+        Log.d(TAG, "Reset battery level, device=" + device);
+    }
+
+    private void sendBatteryLevelChangedBroadcast(BluetoothDevice device, int batteryLevel) {
+        Intent intent = new Intent(BluetoothDevice.ACTION_BATTERY_LEVEL_CHANGED);
+        intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
+        intent.putExtra(BluetoothDevice.EXTRA_BATTERY_LEVEL, batteryLevel);
+        intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY_BEFORE_BOOT);
+        mAdapterService.sendBroadcast(intent, AdapterService.BLUETOOTH_PERM);
     }
 
     void devicePropertyChangedCallback(byte[] address, int[] types, byte[][] values) {
@@ -577,6 +592,24 @@ final class RemoteDevices {
         Message message = mHandler.obtainMessage(MESSAGE_UUID_INTENT);
         message.obj = device;
         mHandler.sendMessage(message);
+    }
+
+    /**
+     * Handles headset connection state change event
+     * @param intent must be {@link BluetoothHeadset#ACTION_CONNECTION_STATE_CHANGED} intent
+     */
+    @VisibleForTesting
+    void onHeadsetConnectionStateChanged(Intent intent) {
+        BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+        if (device == null) {
+            Log.e(TAG, "onHeadsetConnectionStateChanged() remote device is null");
+            return;
+        }
+        if (intent.getIntExtra(BluetoothProfile.EXTRA_STATE, BluetoothProfile.STATE_DISCONNECTED)
+                == BluetoothProfile.STATE_DISCONNECTED) {
+            // TODO: Rework this when non-HFP sources of battery level indication is added
+            resetBatteryLevel(device);
+        }
     }
 
     @VisibleForTesting
