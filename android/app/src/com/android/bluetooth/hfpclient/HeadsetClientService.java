@@ -646,6 +646,24 @@ public class HeadsetClientService extends ProfileService {
 
     boolean acceptCall(BluetoothDevice device, int flag) {
         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+        /* Phonecalls from a single device are supported, hang up any calls on the other phone */
+        synchronized (this) {
+            for (Map.Entry<BluetoothDevice, HeadsetClientStateMachine> entry :
+                    mStateMachineMap.entrySet()) {
+                if (entry.getValue() == null) {
+                    continue;
+                }
+                int connectionState = entry.getValue().getConnectionState(entry.getKey());
+                if (DBG) {
+                    Log.d(TAG, "Accepting a call on device " + device
+                                    + ". Possibly disconnecting on " + entry.getValue());
+                }
+                if (connectionState == BluetoothProfile.STATE_CONNECTED)
+                    entry.getValue()
+                            .obtainMessage(HeadsetClientStateMachine.TERMINATE_CALL)
+                            .sendToTarget();
+            }
+        }
         HeadsetClientStateMachine sm = getStateMachine(device);
         if (sm == null) {
             Log.e(TAG, "Cannot allocate SM for device " + device);
@@ -653,8 +671,7 @@ public class HeadsetClientService extends ProfileService {
         }
 
         int connectionState = sm.getConnectionState(device);
-        if (connectionState != BluetoothProfile.STATE_CONNECTED &&
-                connectionState != BluetoothProfile.STATE_CONNECTING) {
+        if (connectionState != BluetoothProfile.STATE_CONNECTED) {
             return false;
         }
         Message msg = sm.obtainMessage(HeadsetClientStateMachine.ACCEPT_CALL);
@@ -872,19 +889,22 @@ public class HeadsetClientService extends ProfileService {
         return sm;
     }
 
-    // Check if any of the state machines are currently holding the SCO audio stream
-    // This function is *only* called from the SMs which are themselves run the same thread and
-    // hence we do not need synchronization here
-    boolean isScoAvailable() {
-        for (BluetoothDevice bd : mStateMachineMap.keySet()) {
-            HeadsetClientStateMachine sm = mStateMachineMap.get(bd);
-            int audioState = sm.getAudioState(bd);
-            if (audioState != BluetoothHeadsetClient.STATE_AUDIO_DISCONNECTED) {
-                Log.w(TAG, "Device " + bd + " audio state " + audioState + " not disconnected");
-                return false;
+    // Check if any of the state machines have routed the SCO audio stream.
+    synchronized boolean isScoRouted() {
+        for (Map.Entry<BluetoothDevice, HeadsetClientStateMachine> entry :
+                mStateMachineMap.entrySet()) {
+            if (entry.getValue() != null) {
+                int audioState = entry.getValue().getAudioState(entry.getKey());
+                if (audioState == BluetoothHeadsetClient.STATE_AUDIO_CONNECTED) {
+                    if (DBG) {
+                        Log.d(TAG, "Device " + entry.getKey() + " audio state " + audioState
+                                        + " Connected");
+                    }
+                    return true;
+                }
             }
         }
-        return true;
+        return false;
     }
 
     @Override
