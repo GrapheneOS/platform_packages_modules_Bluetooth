@@ -650,7 +650,7 @@ public class HeadsetClientService extends ProfileService {
         synchronized (this) {
             for (Map.Entry<BluetoothDevice, HeadsetClientStateMachine> entry :
                     mStateMachineMap.entrySet()) {
-                if (entry.getValue() == null) {
+                if (entry.getValue() == null || entry.getKey().equals(device)) {
                     continue;
                 }
                 int connectionState = entry.getValue().getConnectionState(entry.getKey());
@@ -658,10 +658,11 @@ public class HeadsetClientService extends ProfileService {
                     Log.d(TAG, "Accepting a call on device " + device
                                     + ". Possibly disconnecting on " + entry.getValue());
                 }
-                if (connectionState == BluetoothProfile.STATE_CONNECTED)
+                if (connectionState == BluetoothProfile.STATE_CONNECTED) {
                     entry.getValue()
                             .obtainMessage(HeadsetClientStateMachine.TERMINATE_CALL)
                             .sendToTarget();
+                }
             }
         }
         HeadsetClientStateMachine sm = getStateMachine(device);
