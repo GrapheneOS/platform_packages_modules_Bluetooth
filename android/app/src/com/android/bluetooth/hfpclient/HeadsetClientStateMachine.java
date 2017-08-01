@@ -559,11 +559,6 @@ public class HeadsetClientStateMachine extends StateMachine {
             action = HeadsetClientHalConstants.CALL_ACTION_CHLD_2;
         }
 
-        // Set HFP enable to false in case the call is being held to accept a cellular call. This
-        // allows the cellular call's audio to be correctly routed.
-        Log.d(TAG,"hfp_enable=false");
-        mAudioManager.setParameters("hfp_enable=false");
-
         if (NativeInterface.handleCallActionNative(getByteAddress(mCurrentDevice), action, 0)) {
             addQueuedAction(HOLD_CALL, action);
         } else {
