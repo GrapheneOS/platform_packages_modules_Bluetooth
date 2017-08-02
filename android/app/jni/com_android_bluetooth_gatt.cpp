@@ -1731,6 +1731,10 @@ static void advertiseCleanupNative(JNIEnv* env, jobject object) {
   }
 }
 
+static uint32_t INTERVAL_MAX = 0xFFFFFF;
+// Always give controller 31.25ms difference between min and max
+static uint32_t INTERVAL_DELTA = 50;
+
 static AdvertiseParameters parseParams(JNIEnv* env, jobject i) {
   AdvertiseParameters p;
 
@@ -1763,9 +1767,13 @@ static AdvertiseParameters parseParams(JNIEnv* env, jobject i) {
   if (isAnonymous) props |= 0x20;
   if (includeTxPower) props |= 0x40;
 
+  if (interval > INTERVAL_MAX - INTERVAL_DELTA) {
+    interval = INTERVAL_MAX - INTERVAL_DELTA;
+  }
+
   p.advertising_event_properties = props;
   p.min_interval = interval;
-  p.max_interval = interval + 50;
+  p.max_interval = interval + INTERVAL_DELTA;
   p.channel_map = 0x07; /* all channels */
   p.tx_power = txPowerLevel;
   p.primary_advertising_phy = primaryPhy;
