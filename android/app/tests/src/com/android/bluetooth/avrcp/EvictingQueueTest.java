@@ -1,9 +1,11 @@
 package com.android.bluetooth.avrcp;
 
 import android.test.AndroidTestCase;
+import android.support.test.filters.MediumTest;
 
 import junit.framework.Assert;
 
+@MediumTest
 /** Unit tests for {@link EvictingQueue}. */
 public class EvictingQueueTest extends AndroidTestCase {
     public void testEvictingQueue_canAddItems() {

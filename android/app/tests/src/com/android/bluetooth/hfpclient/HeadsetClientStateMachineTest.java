@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.media.AudioManager;
 import android.os.Bundle;
+import android.support.test.filters.MediumTest;
 import android.test.AndroidTestCase;
 import android.util.Log;
 
@@ -20,6 +21,7 @@ import com.android.bluetooth.btservice.AdapterService;
 import static org.mockito.Mockito.*;
 import org.mockito.ArgumentCaptor;
 
+@MediumTest
 public class HeadsetClientStateMachineTest extends AndroidTestCase {
     private BluetoothAdapter mAdapter = null;
 

@@ -15,6 +15,7 @@ import android.bluetooth.BluetoothHeadset;
 import android.bluetooth.BluetoothProfile;
 import android.content.Intent;
 import android.os.Looper;
+import android.support.test.filters.MediumTest;
 import android.support.test.runner.AndroidJUnit4;
 
 import com.android.bluetooth.Utils;
@@ -30,6 +31,7 @@ import org.mockito.MockitoAnnotations;
 
 import java.util.ArrayList;
 
+@MediumTest
 @RunWith(AndroidJUnit4.class)
 public class RemoteDevicesTest {
     private static final String TEST_BT_ADDR_1 = "00:11:22:33:44:55";

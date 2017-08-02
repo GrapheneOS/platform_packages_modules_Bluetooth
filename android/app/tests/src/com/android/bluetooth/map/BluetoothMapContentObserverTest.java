@@ -10,6 +10,7 @@ import android.os.Looper;
 import android.os.RemoteException;
 import android.os.UserManager;
 import android.provider.Telephony.Sms;
+import android.support.test.filters.MediumTest;
 import android.test.AndroidTestCase;
 import android.test.mock.MockContentResolver;
 import android.test.mock.MockContentProvider;
@@ -21,8 +22,8 @@ import junit.framework.Assert;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+@MediumTest
 public class BluetoothMapContentObserverTest extends AndroidTestCase {
-
     class ExceptionTestProvider extends MockContentProvider {
         public ExceptionTestProvider(Context context) {
             super(context);

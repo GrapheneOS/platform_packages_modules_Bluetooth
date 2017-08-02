@@ -14,6 +14,7 @@ import android.media.AudioManager;
 import android.media.session.MediaSessionManager;
 import android.os.Bundle;
 import android.os.Looper;
+import android.support.test.filters.MediumTest;
 import android.test.AndroidTestCase;
 import android.util.Log;
 
@@ -27,8 +28,8 @@ import static org.mockito.Mockito.anyInt;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+@MediumTest
 public class AvrcpTest extends AndroidTestCase {
-
     public void testCanStart() {
         if (Looper.myLooper() == null) Looper.prepare();
 
