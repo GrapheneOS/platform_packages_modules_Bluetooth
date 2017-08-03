@@ -339,7 +339,7 @@ public class PanService extends ProfileService {
         }
 
         UserManager um = (UserManager) getSystemService(Context.USER_SERVICE);
-        if (um.hasUserRestriction(UserManager.DISALLOW_CONFIG_TETHERING)) {
+        if (um.hasUserRestriction(UserManager.DISALLOW_CONFIG_TETHERING) && value) {
             throw new SecurityException("DISALLOW_CONFIG_TETHERING is enabled for this user.");
         }
         if(mTetherOn != value) {
