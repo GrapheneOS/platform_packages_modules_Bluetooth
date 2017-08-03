@@ -88,7 +88,7 @@ public final class Avrcp {
     private @NonNull PlaybackState mCurrentPlayState;
     private int mA2dpState;
     private int mPlayStatusChangedNT;
-    private int mReportedPlayStatus;
+    private byte mReportedPlayStatus;
     private int mTrackChangedNT;
     private int mPlayPosChangedNT;
     private int mAddrPlayerChangedNT;
@@ -830,10 +830,6 @@ public final class Avrcp {
 
         if (newState != null) mCurrentPlayState = newState;
 
-        if (mPlayStatusChangedNT == AvrcpConstants.NOTIFICATION_TYPE_INTERIM
-                && (mReportedPlayStatus != newPlayStatus)) {
-            sendPlaybackStatus(AvrcpConstants.NOTIFICATION_TYPE_CHANGED, newPlayStatus);
-        }
         return mCurrentPlayState;
     }
 
@@ -1009,6 +1005,8 @@ public final class Avrcp {
             }
         }
 
+        byte newPlayStatus = getBluetoothPlayState(newState);
+
         if (newState.getState() != PlaybackState.STATE_BUFFERING
                 && newState.getState() != PlaybackState.STATE_NONE) {
             long newQueueId = MediaSession.QueueItem.UNKNOWN_ID;
@@ -1024,6 +1022,20 @@ public final class Avrcp {
                 mAddressedMediaPlayer.updateNowPlayingList(mMediaController);
             }
 
+            if ((newQueueId == -1 || newQueueId != mLastQueueId)
+                    && currentAttributes.equals(mMediaAttributes)
+                    && newPlayStatus == PLAYSTATUS_PLAYING
+                    && mReportedPlayStatus != PLAYSTATUS_PLAYING) {
+                // Most carkits like seeing the track changed before the
+                // playback state changed, but some controllers are slow
+                // to update their metadata. Hold of on sending the playback state
+                // update until after we know the current metadata is up to date
+                // and track changed has been sent. This was seen on BMW carkits
+                Log.i(TAG, "Waiting for metadata update to send track changed");
+
+                return;
+            }
+
             // Notify track changed if:
             //  - The CT is registering for the notification
             //  - Queue ID is UNKNOWN and MediaMetadata is different
@@ -1037,6 +1049,13 @@ public final class Avrcp {
             }
         } else {
             Log.i(TAG, "Skipping update due to invalid playback state");
+        }
+
+        // still send the updated play state if the playback state is none or buffering
+        Log.e(TAG, "play status change " + mReportedPlayStatus + "➡" + newPlayStatus);
+        if (mPlayStatusChangedNT == AvrcpConstants.NOTIFICATION_TYPE_INTERIM
+                && (mReportedPlayStatus != newPlayStatus)) {
+            sendPlaybackStatus(AvrcpConstants.NOTIFICATION_TYPE_CHANGED, newPlayStatus);
         }
 
         sendPlayPosNotificationRsp(false);
@@ -1073,8 +1092,7 @@ public final class Avrcp {
             case EVT_PLAY_STATUS_CHANGED:
                 mPlayStatusChangedNT = AvrcpConstants.NOTIFICATION_TYPE_CHANGED;
                 updatePlaybackState();
-                sendPlaybackStatus(AvrcpConstants.NOTIFICATION_TYPE_INTERIM,
-                        getBluetoothPlayState(mCurrentPlayState));
+                sendPlaybackStatus(AvrcpConstants.NOTIFICATION_TYPE_INTERIM, mReportedPlayStatus);
                 break;
 
             case EVT_TRACK_CHANGED:
