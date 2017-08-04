@@ -969,11 +969,13 @@ public final class Avrcp {
                 registerNotificationRspAvalPlayerChangedNative(
                         AvrcpConstants.NOTIFICATION_TYPE_CHANGED);
                 mAvailablePlayerViewChanged = false;
+                return;
             }
             if (mAddrPlayerChangedNT == AvrcpConstants.NOTIFICATION_TYPE_INTERIM
                     && mReportedPlayerID != mCurrAddrPlayerID) {
                 registerNotificationRspAvalPlayerChangedNative(
                         AvrcpConstants.NOTIFICATION_TYPE_CHANGED);
+                mAvailablePlayerViewChanged = false;
                 registerNotificationRspAddrPlayerChangedNative(
                         AvrcpConstants.NOTIFICATION_TYPE_CHANGED, mCurrAddrPlayerID, sUIDCounter);
                 mAddrPlayerChangedNT = AvrcpConstants.NOTIFICATION_TYPE_CHANGED;
