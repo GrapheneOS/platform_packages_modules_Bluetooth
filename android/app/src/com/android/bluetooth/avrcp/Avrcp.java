@@ -291,7 +291,7 @@ public final class Avrcp {
         context.registerReceiver(mAvrcpReceiver, pkgFilter);
 
         IntentFilter bootFilter = new IntentFilter();
-        bootFilter.addAction(Intent.ACTION_BOOT_COMPLETED);
+        bootFilter.addAction(Intent.ACTION_USER_UNLOCKED);
         context.registerReceiver(mBootReceiver, bootFilter);
     }
 
@@ -1414,8 +1414,8 @@ public final class Avrcp {
         @Override
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
-            if (action.equals(Intent.ACTION_BOOT_COMPLETED)) {
-                if (DEBUG) Log.d(TAG, "Boot completed, initializing player lists");
+            if (action.equals(Intent.ACTION_USER_UNLOCKED)) {
+                if (DEBUG) Log.d(TAG, "User unlocked, initializing player lists");
                 /* initializing media player's list */
                 buildBrowsablePlayerList();
             }
