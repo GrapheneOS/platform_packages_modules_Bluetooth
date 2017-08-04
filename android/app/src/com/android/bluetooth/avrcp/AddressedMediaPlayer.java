@@ -256,7 +256,6 @@ public class AddressedMediaPlayer {
         long qid = getActiveQueueItemId(mediaController);
         byte[] track = ByteBuffer.allocate(AvrcpConstants.UID_SIZE).putLong(qid).array();
         // The nowPlayingList changed: the new list has the full data for the current item
-        if (type == AvrcpConstants.NOTIFICATION_TYPE_CHANGED) sendNowPlayingListChanged();
         mMediaInterface.trackChangedRsp(type, track);
         mLastTrackIdSent = qid;
     }
@@ -511,7 +510,9 @@ public class AddressedMediaPlayer {
     private long getActiveQueueItemId(@Nullable MediaController controller) {
         if (controller == null) return MediaSession.QueueItem.UNKNOWN_ID;
         PlaybackState state = controller.getPlaybackState();
-        if (state == null) return MediaSession.QueueItem.UNKNOWN_ID;
+        if (state == null || state.getState() == PlaybackState.STATE_BUFFERING
+                || state.getState() == PlaybackState.STATE_NONE)
+            return MediaSession.QueueItem.UNKNOWN_ID;
         long qid = state.getActiveQueueItemId();
         if (qid != MediaSession.QueueItem.UNKNOWN_ID) return qid;
         // Check if we're presenting a "one item queue"
