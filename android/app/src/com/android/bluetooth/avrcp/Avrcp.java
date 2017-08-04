@@ -93,6 +93,7 @@ public final class Avrcp {
     private int mPlayPosChangedNT;
     private int mAddrPlayerChangedNT;
     private int mReportedPlayerID;
+    private int mNowPlayingListChangedNT;
     private long mPlaybackIntervalMs;
     private long mLastReportedPosition;
     private long mNextPosMs;
@@ -244,6 +245,7 @@ public final class Avrcp {
         mTrackChangedNT = AvrcpConstants.NOTIFICATION_TYPE_CHANGED;
         mPlayPosChangedNT = AvrcpConstants.NOTIFICATION_TYPE_CHANGED;
         mAddrPlayerChangedNT = AvrcpConstants.NOTIFICATION_TYPE_CHANGED;
+        mNowPlayingListChangedNT = AvrcpConstants.NOTIFICATION_TYPE_CHANGED;
         mPlaybackIntervalMs = 0L;
         mLastReportedPosition = -1;
         mNextPosMs = -1;
@@ -988,6 +990,8 @@ public final class Avrcp {
                 mPlayStatusChangedNT = AvrcpConstants.NOTIFICATION_TYPE_CHANGED;
                 mTrackChangedNT = AvrcpConstants.NOTIFICATION_TYPE_CHANGED;
                 mPlayPosChangedNT = AvrcpConstants.NOTIFICATION_TYPE_CHANGED;
+                mNowPlayingListChangedNT = AvrcpConstants.NOTIFICATION_TYPE_CHANGED;
+                mAddressedMediaPlayer.updateNowPlayingList(mMediaController);
                 // If the player changed, they need to re-request anything here again
                 // so we can skip the rest of the update.
                 return;
@@ -1111,6 +1115,7 @@ public final class Avrcp {
             case EVENT_NOW_PLAYING_CONTENT_CHANGED:
                 if (DEBUG) Log.d(TAG, "Now Playing List changed notification enabled");
                 /* send interim response to remote device */
+                mNowPlayingListChangedNT = AvrcpConstants.NOTIFICATION_TYPE_INTERIM;
                 if (!registerNotificationRspNowPlayingChangedNative(
                         AvrcpConstants.NOTIFICATION_TYPE_INTERIM)) {
                     Log.e(TAG, "EVENT_NOW_PLAYING_CONTENT_CHANGED: " +
@@ -2526,9 +2531,15 @@ public final class Avrcp {
         }
 
         public void nowPlayingChangedRsp(int type) {
+            if (mNowPlayingListChangedNT != AvrcpConstants.NOTIFICATION_TYPE_INTERIM) {
+                if (DEBUG) Log.d(TAG, "NowPlayingListChanged: Not registered or requesting.");
+                return;
+            }
+
             if (!registerNotificationRspNowPlayingChangedNative(type)) {
                 Log.e(TAG, "registerNotificationRspNowPlayingChangedNative failed!");
             }
+            mNowPlayingListChangedNT = AvrcpConstants.NOTIFICATION_TYPE_CHANGED;
         }
 
         public void trackChangedRsp(int type, byte[] uid) {
