@@ -102,7 +102,6 @@ public final class Avrcp {
     private int mRemoteVolume;
     private int mLastRemoteVolume;
     private int mInitialRemoteVolume;
-    private BrowsablePlayerListBuilder mBrowsableListBuilder;
 
     /* Local volume in audio index 0-15 */
     private int mLocalVolume;
@@ -282,8 +281,6 @@ public final class Avrcp {
             mAbsVolThreshold = resources.getInteger(R.integer.a2dp_absolute_volume_initial_threshold);
         }
 
-        mBrowsableListBuilder = new BrowsablePlayerListBuilder();
-
         // Register for package removal intent broadcasts for media button receiver persistence
         IntentFilter pkgFilter = new IntentFilter();
         pkgFilter.addAction(Intent.ACTION_PACKAGE_REMOVED);
@@ -330,7 +327,7 @@ public final class Avrcp {
         if (manager == null || manager.isUserUnlocked()) {
             if (DEBUG) Log.d(TAG, "User already unlocked, initializing player lists");
             // initialize browsable player list and build media player list
-            mBrowsableListBuilder.start();
+            buildBrowsablePlayerList();
         }
     }
 
@@ -359,7 +356,6 @@ public final class Avrcp {
         mContext.unregisterReceiver(mAvrcpReceiver);
         mContext.unregisterReceiver(mBootReceiver);
 
-        mBrowsableListBuilder.cleanup();
         mAddressedMediaPlayer.cleanup();
         mAvrcpBrowseManager.cleanup();
     }
@@ -1421,7 +1417,7 @@ public final class Avrcp {
             if (action.equals(Intent.ACTION_BOOT_COMPLETED)) {
                 if (DEBUG) Log.d(TAG, "Boot completed, initializing player lists");
                 /* initializing media player's list */
-                mBrowsableListBuilder.start();
+                buildBrowsablePlayerList();
             }
         }
     }
@@ -1467,7 +1463,7 @@ public final class Avrcp {
             // new package has been added.
             if (isBrowsableListUpdated(packageName)) {
                 // Rebuilding browsable players list
-                mBrowsableListBuilder.start();
+                buildBrowsablePlayerList();
             }
         }
     }
@@ -1708,71 +1704,33 @@ public final class Avrcp {
         return browseServiceName;
     }
 
-    private class BrowsablePlayerListBuilder extends MediaBrowser.ConnectionCallback {
-        List<ResolveInfo> mWaiting;
-        BrowsePlayerInfo mCurrentPlayer;
-        MediaBrowser mCurrentBrowser;
-        boolean mPlayersChanged;
-
-        public BrowsablePlayerListBuilder() {}
-
-        public void start() {
+    void buildBrowsablePlayerList() {
+        synchronized (mBrowsePlayerInfoList) {
             mBrowsePlayerInfoList.clear();
-            cleanup();
             Intent intent = new Intent(android.service.media.MediaBrowserService.SERVICE_INTERFACE);
-            mWaiting = mPackageManager.queryIntentServices(intent, PackageManager.MATCH_ALL);
-            connectNextPlayer();
-        }
+            List<ResolveInfo> playerList =
+                    mPackageManager.queryIntentServices(intent, PackageManager.MATCH_ALL);
 
-        public void cleanup() {
-            if (mWaiting != null) mWaiting.clear();
-            mPlayersChanged = false;
-            if (mCurrentBrowser != null) mCurrentBrowser.disconnect();
-        }
+            for (ResolveInfo info : playerList) {
+                String displayableName = info.loadLabel(mPackageManager).toString();
+                String serviceName = info.serviceInfo.name;
+                String packageName = info.serviceInfo.packageName;
 
-        private void connectNextPlayer() {
-            if (mWaiting.isEmpty()) {
-                // Done. Send players changed if needed.
-                if (mPlayersChanged) {
-                    registerNotificationRspAvalPlayerChangedNative(
-                            AvrcpConstants.NOTIFICATION_TYPE_CHANGED);
+                if (DEBUG) Log.d(TAG, "Adding " + serviceName + " to list of browsable players");
+                BrowsePlayerInfo currentPlayer =
+                        new BrowsePlayerInfo(packageName, displayableName, serviceName);
+                mBrowsePlayerInfoList.add(currentPlayer);
+                MediaPlayerInfo playerInfo = getMediaPlayerInfo(packageName);
+                MediaController controller =
+                        (playerInfo == null) ? null : playerInfo.getMediaController();
+                // Refresh the media player entry so it notices we can browse
+                if (controller != null) {
+                    addMediaPlayerController(controller.getWrappedInstance());
+                } else {
+                    addMediaPlayerPackage(packageName);
                 }
-                return;
             }
-            ResolveInfo info = mWaiting.remove(0);
-            String displayableName = info.loadLabel(mPackageManager).toString();
-            String serviceName = info.serviceInfo.name;
-            String packageName = info.serviceInfo.packageName;
-
-            mCurrentPlayer = new BrowsePlayerInfo(packageName, displayableName, serviceName);
-            mCurrentBrowser = new MediaBrowser(
-                    mContext, new ComponentName(packageName, serviceName), this, null);
-            if (DEBUG) Log.d(TAG, "Trying to connect to " + serviceName);
-            mCurrentBrowser.connect();
-        }
-
-        @Override
-        public void onConnected() {
-            Log.d(TAG, "BrowsablePlayerListBuilder: " + mCurrentPlayer.packageName + " OK");
-            mCurrentBrowser.disconnect();
-            mCurrentBrowser = null;
-            mBrowsePlayerInfoList.add(mCurrentPlayer);
-            MediaPlayerInfo info = getMediaPlayerInfo(mCurrentPlayer.packageName);
-            MediaController controller = (info == null) ? null : info.getMediaController();
-            // Refresh the media player entry so it notices we can browse
-            if (controller != null) {
-                addMediaPlayerController(controller.getWrappedInstance());
-            } else {
-                addMediaPlayerPackage(mCurrentPlayer.packageName);
-            }
-            mPlayersChanged = true;
-            connectNextPlayer();
-        }
-
-        @Override
-        public void onConnectionFailed() {
-            Log.d(TAG, "BrowsablePlayerListBuilder: " + mCurrentPlayer.packageName + " FAIL");
-            connectNextPlayer();
+            updateCurrentMediaState(false);
         }
     }
 
