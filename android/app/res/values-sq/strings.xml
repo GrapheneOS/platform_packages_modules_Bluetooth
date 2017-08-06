@@ -101,6 +101,7 @@
     <string name="status_protocol_error" msgid="3245444473429269539">"Kërkesa nuk mund të trajtohet si duhet."</string>
     <string name="status_unknown_error" msgid="8156660554237824912">"Gabim i panjohur."</string>
     <string name="btopp_live_folder" msgid="7967791481444474554">"Marrjet përmes Bluetooth-it"</string>
+    <string name="opp_notification_group" msgid="3486303082135789982">"Shpërndarja përmes \"Bluetooth-it\""</string>
     <string name="download_success" msgid="7036160438766730871">"<xliff:g id="FILE_SIZE">%1$s</xliff:g> - Marrja përfundoi."</string>
     <string name="upload_success" msgid="4014469387779648949">"<xliff:g id="FILE_SIZE">%1$s</xliff:g> Dërgimi përfundoi."</string>
     <string name="inbound_history_title" msgid="6940914942271327563">"Transferimet hyrëse"</string>

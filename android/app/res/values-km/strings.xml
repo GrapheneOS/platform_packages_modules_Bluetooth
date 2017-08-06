@@ -101,6 +101,7 @@
     <string name="status_protocol_error" msgid="3245444473429269539">"មិន​អាច​ដោះស្រាយ​សំណើ​​​​ដោយ​ត្រឹមត្រូវ​ទេ។"</string>
     <string name="status_unknown_error" msgid="8156660554237824912">"មិន​ស្គាល់​កំហុស។"</string>
     <string name="btopp_live_folder" msgid="7967791481444474554">"​បាន​ទទួល​​ប៊្លូ​ធូ​ស"</string>
+    <string name="opp_notification_group" msgid="3486303082135789982">"ការ​ចែករំលែក​ប៊្លូ​ធូ​ស"</string>
     <string name="download_success" msgid="7036160438766730871">"បាន​ទទួល​ពេញ​លេញ <xliff:g id="FILE_SIZE">%1$s</xliff:g> ។"</string>
     <string name="upload_success" msgid="4014469387779648949">"បាន​ផ្ញើ​ពេញ​លេញ <xliff:g id="FILE_SIZE">%1$s</xliff:g> ។"</string>
     <string name="inbound_history_title" msgid="6940914942271327563">"ការ​ផ្ទេរ​ចូល"</string>

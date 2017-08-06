@@ -84,7 +84,7 @@
     <string name="bt_toast_4" msgid="4678812947604395649">"Се испраќа датотека до „<xliff:g id="RECIPIENT">%1$s</xliff:g>“"</string>
     <string name="bt_toast_5" msgid="2846870992823019494">"Се испраќаат <xliff:g id="NUMBER">%1$s</xliff:g> датотеки до „<xliff:g id="RECIPIENT">%2$s</xliff:g>“"</string>
     <string name="bt_toast_6" msgid="1855266596936622458">"Испраќањето на датотеката до „<xliff:g id="RECIPIENT">%1$s</xliff:g>“ запре"</string>
-    <string name="bt_sm_2_1" product="nosdcard" msgid="352165168004521000">"Нема доволно простор на УСБ меморијата да се зачува датотеката од „<xliff:g id="SENDER">%1$s</xliff:g>’"</string>
+    <string name="bt_sm_2_1" product="nosdcard" msgid="352165168004521000">"Нема доволно простор на USB меморијата да се зачува датотеката од „<xliff:g id="SENDER">%1$s</xliff:g>’"</string>
     <string name="bt_sm_2_1" product="default" msgid="1989018443456803630">"Нема доволно простор на СД картичката да се зачува датотеката од „<xliff:g id="SENDER">%1$s</xliff:g>“"</string>
     <string name="bt_sm_2_2" msgid="2965243265852680543">"Потребен простор: <xliff:g id="SIZE">%1$s</xliff:g>"</string>
     <string name="ErrorTooManyRequests" msgid="8578277541472944529">"Се обработуваат премногу барања. Обидете се повторно подоцна."</string>
@@ -95,12 +95,13 @@
     <string name="status_forbidden" msgid="613956401054050725">"Преносот е забранет од целниот уред."</string>
     <string name="status_canceled" msgid="6664490318773098285">"Преносот е откажан од страна на корисникот."</string>
     <string name="status_file_error" msgid="3671917770630165299">"Проблем со меморија."</string>
-    <string name="status_no_sd_card" product="nosdcard" msgid="1112125377088421469">"Нема УСБ меморија."</string>
+    <string name="status_no_sd_card" product="nosdcard" msgid="1112125377088421469">"Нема USB меморија."</string>
     <string name="status_no_sd_card" product="default" msgid="5760944071743325592">"Нема СД картичка. Вметнете СД картичка да се зачуваат пренесените датотеки."</string>
     <string name="status_connection_error" msgid="947681831523219891">"Врската е неуспешна."</string>
     <string name="status_protocol_error" msgid="3245444473429269539">"Барањето не може да се обработи правилно."</string>
     <string name="status_unknown_error" msgid="8156660554237824912">"Непозната грешка."</string>
     <string name="btopp_live_folder" msgid="7967791481444474554">"Примен Bluetooth"</string>
+    <string name="opp_notification_group" msgid="3486303082135789982">"Споделено преку Bluetooth"</string>
     <string name="download_success" msgid="7036160438766730871">"<xliff:g id="FILE_SIZE">%1$s</xliff:g> Примањето е завршено."</string>
     <string name="upload_success" msgid="4014469387779648949">"<xliff:g id="FILE_SIZE">%1$s</xliff:g> Праќањето е завршено."</string>
     <string name="inbound_history_title" msgid="6940914942271327563">"Влезни преноси"</string>

@@ -23,7 +23,7 @@
     <string name="bt_share_picker_label" msgid="6268100924487046932">"ဘလူးတုသ်"</string>
     <string name="unknown_device" msgid="9221903979877041009">"မသိသော စက်"</string>
     <string name="unknownNumber" msgid="4994750948072751566">"အကြောင်းအရာ မသိရှိ"</string>
-    <string name="airplane_error_title" msgid="2683839635115739939">"လေယာဉ်ပျံပေါ်သုံးစနစ်"</string>
+    <string name="airplane_error_title" msgid="2683839635115739939">"လေယာဉ်ပျံမုဒ်"</string>
     <string name="airplane_error_msg" msgid="8698965595254137230">"လေယာဥ်ပျံပေါ်သုံးစနစ်တွင် ဘလူးတုသ်အသုံးပြုမရပါ"</string>
     <string name="bt_enable_title" msgid="8657832550503456572"></string>
     <string name="bt_enable_line1" msgid="7203551583048149">"ဘလူးတုသ်ဆားဗစ်ကိုအသုံးပြုရန် ပထမဦးစွာ ဘလူးတုသ်ကိုဖွင့်ပါ"</string>
@@ -101,6 +101,7 @@
     <string name="status_protocol_error" msgid="3245444473429269539">"တောင်းခံခြင်းကို မှန်ကန်စွာကိုင်တွယ်မရပါ"</string>
     <string name="status_unknown_error" msgid="8156660554237824912">"အမည်မသိသော မှားယွင်းမှု"</string>
     <string name="btopp_live_folder" msgid="7967791481444474554">"ဘလူးတုသ် လက်ခံရပြီး"</string>
+    <string name="opp_notification_group" msgid="3486303082135789982">"ဘလူးတုသ် မျှဝေမှု"</string>
     <string name="download_success" msgid="7036160438766730871">"<xliff:g id="FILE_SIZE">%1$s</xliff:g> လက်ခံရရှိပြီး"</string>
     <string name="upload_success" msgid="4014469387779648949">"<xliff:g id="FILE_SIZE">%1$s</xliff:g> ပို့ခြင်း ပြီးဆုံးပြီး"</string>
     <string name="inbound_history_title" msgid="6940914942271327563">"ပြန်လည်ရောက်လာသော လွှဲမှုများ"</string>

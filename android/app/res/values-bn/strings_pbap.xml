@@ -12,4 +12,5 @@
     <string name="unknownName" msgid="2841414754740600042">"অজানা নাম"</string>
     <string name="localPhoneName" msgid="2349001318925409159">"আমার নাম"</string>
     <string name="defaultnumber" msgid="8520116145890867338">"০০০০০০"</string>
+    <string name="pbap_notification_group" msgid="8487669554703627168">"ব্লুটুথ পরিচিতির সাথে শেয়ার করা"</string>
 </resources>
