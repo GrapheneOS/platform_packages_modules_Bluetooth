@@ -533,7 +533,7 @@ class BrowsedMediaPlayer {
      */
     private List<MediaBrowser.MediaItem> checkIndexOutofBounds(
             byte[] bdaddr, List<MediaBrowser.MediaItem> children, long startItem, long endItem) {
-        if (endItem > children.size()) endItem = children.size() - 1;
+        if (endItem >= children.size()) endItem = children.size() - 1;
         if (startItem >= Integer.MAX_VALUE) startItem = Integer.MAX_VALUE;
         try {
             List<MediaBrowser.MediaItem> childrenSubList =
