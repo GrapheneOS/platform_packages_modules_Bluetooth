@@ -1023,7 +1023,7 @@ public final class Avrcp {
             if ((newQueueId == -1 || newQueueId != mLastQueueId)
                     && currentAttributes.equals(mMediaAttributes)
                     && newPlayStatus == PLAYSTATUS_PLAYING
-                    && mReportedPlayStatus != PLAYSTATUS_PLAYING) {
+                    && mReportedPlayStatus == PLAYSTATUS_STOPPED) {
                 // Most carkits like seeing the track changed before the
                 // playback state changed, but some controllers are slow
                 // to update their metadata. Hold of on sending the playback state
