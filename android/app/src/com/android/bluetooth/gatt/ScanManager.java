@@ -16,6 +16,7 @@
 
 package com.android.bluetooth.gatt;
 
+import android.app.ActivityManager;
 import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.bluetooth.BluetoothAdapter;
@@ -73,6 +74,7 @@ public class ScanManager {
     private static final int MSG_SCAN_TIMEOUT = 3;
     private static final int MSG_SUSPEND_SCANS = 4;
     private static final int MSG_RESUME_SCANS = 5;
+    private static final int MSG_IMPORTANCE_CHANGE = 6;
     private static final String ACTION_REFRESH_BATCHED_SCAN =
             "com.android.bluetooth.gatt.REFRESH_BATCHED_SCAN";
 
@@ -98,6 +100,19 @@ public class ScanManager {
 
     private DisplayManager mDm;
 
+    private ActivityManager mActivityManager;
+    private static final int FOREGROUND_IMPORTANCE_CUTOFF =
+            ActivityManager.RunningAppProcessInfo.IMPORTANCE_FOREGROUND_SERVICE;
+
+    private class UidImportance {
+        int uid;
+        int importance;
+        UidImportance(int uid, int importance) {
+            this.uid = uid;
+            this.importance = importance;
+        }
+    };
+
     ScanManager(GattService service) {
         mRegularScanClients = Collections.newSetFromMap(new ConcurrentHashMap<ScanClient, Boolean>());
         mBatchClients = Collections.newSetFromMap(new ConcurrentHashMap<ScanClient, Boolean>());
@@ -107,6 +122,7 @@ public class ScanManager {
         mScanNative = new ScanNative();
         curUsedTrackableAdvertisements = 0;
         mDm = (DisplayManager) mService.getSystemService(Context.DISPLAY_SERVICE);
+        mActivityManager = (ActivityManager) mService.getSystemService(Context.ACTIVITY_SERVICE);
     }
 
     void start() {
@@ -116,6 +132,10 @@ public class ScanManager {
         if (mDm != null) {
             mDm.registerDisplayListener(mDisplayListener, null);
         }
+        if (mActivityManager != null) {
+            mActivityManager.addOnUidImportanceListener(
+                    mUidImportanceListener, FOREGROUND_IMPORTANCE_CUTOFF);
+        }
     }
 
     void cleanup() {
@@ -123,6 +143,10 @@ public class ScanManager {
         mBatchClients.clear();
         mSuspendedScanClients.clear();
         mScanNative.cleanup();
+
+        if (mActivityManager != null) {
+            mActivityManager.removeOnUidImportanceListener(mUidImportanceListener);
+        }
 
         if (mDm != null) {
             mDm.unregisterDisplayListener(mDisplayListener);
@@ -218,25 +242,27 @@ public class ScanManager {
 
         @Override
         public void handleMessage(Message msg) {
-            ScanClient client = (ScanClient) msg.obj;
             switch (msg.what) {
                 case MSG_START_BLE_SCAN:
-                    handleStartScan(client);
+                    handleStartScan((ScanClient) msg.obj);
                     break;
                 case MSG_STOP_BLE_SCAN:
-                    handleStopScan(client);
+                    handleStopScan((ScanClient) msg.obj);
                     break;
                 case MSG_FLUSH_BATCH_RESULTS:
-                    handleFlushBatchResults(client);
+                    handleFlushBatchResults((ScanClient) msg.obj);
                     break;
                 case MSG_SCAN_TIMEOUT:
-                    mScanNative.regularScanTimeout(client);
+                    mScanNative.regularScanTimeout((ScanClient) msg.obj);
                     break;
                 case MSG_SUSPEND_SCANS:
                     handleSuspendScans();
                     break;
                 case MSG_RESUME_SCANS:
                     handleResumeScans();
+                    break;
+                case MSG_IMPORTANCE_CHANGE:
+                    handleImportanceChange((UidImportance) msg.obj);
                     break;
                 default:
                     // Shouldn't happen.
@@ -423,12 +449,12 @@ public class ScanManager {
         /**
          * Scan params corresponding to regular scan setting
          */
-        private static final int SCAN_MODE_LOW_POWER_WINDOW_MS = 500;
-        private static final int SCAN_MODE_LOW_POWER_INTERVAL_MS = 5000;
-        private static final int SCAN_MODE_BALANCED_WINDOW_MS = 2000;
-        private static final int SCAN_MODE_BALANCED_INTERVAL_MS = 5000;
-        private static final int SCAN_MODE_LOW_LATENCY_WINDOW_MS = 5000;
-        private static final int SCAN_MODE_LOW_LATENCY_INTERVAL_MS = 5000;
+        private static final int SCAN_MODE_LOW_POWER_WINDOW_MS = 1024;
+        private static final int SCAN_MODE_LOW_POWER_INTERVAL_MS = 10240;
+        private static final int SCAN_MODE_BALANCED_WINDOW_MS = 1024;
+        private static final int SCAN_MODE_BALANCED_INTERVAL_MS = 4096;
+        private static final int SCAN_MODE_LOW_LATENCY_WINDOW_MS = 4096;
+        private static final int SCAN_MODE_LOW_LATENCY_INTERVAL_MS = 4096;
 
         /**
          * Onfound/onlost for scan settings
@@ -1085,8 +1111,7 @@ public class ScanManager {
         }
 
         private int getScanIntervalMillis(ScanSettings settings) {
-            if (settings == null)
-                return SCAN_MODE_LOW_POWER_INTERVAL_MS;
+            if (settings == null) return SCAN_MODE_LOW_POWER_INTERVAL_MS;
             switch (settings.getScanMode()) {
                 case ScanSettings.SCAN_MODE_LOW_LATENCY:
                     return SCAN_MODE_LOW_LATENCY_INTERVAL_MS;
@@ -1261,4 +1286,53 @@ public class ScanManager {
                     }
                 }
             };
+
+    private ActivityManager.OnUidImportanceListener mUidImportanceListener =
+            new ActivityManager.OnUidImportanceListener() {
+                @Override
+                public void onUidImportance(final int uid, final int importance) {
+                    if (mService.mScannerMap.getAppScanStatsByUid(uid) != null) {
+                        Message message = new Message();
+                        message.what = MSG_IMPORTANCE_CHANGE;
+                        message.obj = new UidImportance(uid, importance);
+                        mHandler.sendMessage(message);
+                    }
+                }
+            };
+
+    private void handleImportanceChange(UidImportance imp) {
+        if (imp == null) {
+            return;
+        }
+        int uid = imp.uid;
+        int importance = imp.importance;
+        boolean updatedScanParams = false;
+        if (importance <= ActivityManager.RunningAppProcessInfo.IMPORTANCE_FOREGROUND_SERVICE) {
+            for (ScanClient client : mRegularScanClients) {
+                if (client.appUid == uid && client.passiveSettings != null) {
+                    client.settings = client.passiveSettings;
+                    client.passiveSettings = null;
+                    updatedScanParams = true;
+                }
+            }
+        } else {
+            for (ScanClient client : mRegularScanClients) {
+                if (client.appUid == uid && !mScanNative.isOpportunisticScanClient(client)) {
+                    client.passiveSettings = client.settings;
+                    ScanSettings.Builder builder = new ScanSettings.Builder();
+                    ScanSettings settings = client.settings;
+                    builder.setScanMode(ScanSettings.SCAN_MODE_LOW_POWER);
+                    builder.setCallbackType(settings.getCallbackType());
+                    builder.setScanResultType(settings.getScanResultType());
+                    builder.setReportDelay(settings.getReportDelayMillis());
+                    builder.setNumOfMatches(settings.getNumOfMatches());
+                    client.settings = builder.build();
+                    updatedScanParams = true;
+                }
+            }
+        }
+        if (updatedScanParams) {
+            mScanNative.configureRegularScanParams();
+        }
+    }
 }
