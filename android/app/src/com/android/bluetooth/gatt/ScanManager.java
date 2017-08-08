@@ -107,13 +107,15 @@ public class ScanManager {
         mScanNative = new ScanNative();
         curUsedTrackableAdvertisements = 0;
         mDm = (DisplayManager) mService.getSystemService(Context.DISPLAY_SERVICE);
-        mDm.registerDisplayListener(mDisplayListener, null);
     }
 
     void start() {
         HandlerThread thread = new HandlerThread("BluetoothScanManager");
         thread.start();
         mHandler = new ClientHandler(thread.getLooper());
+        if (mDm != null) {
+            mDm.registerDisplayListener(mDisplayListener, null);
+        }
     }
 
     void cleanup() {
@@ -121,6 +123,10 @@ public class ScanManager {
         mBatchClients.clear();
         mSuspendedScanClients.clear();
         mScanNative.cleanup();
+
+        if (mDm != null) {
+            mDm.unregisterDisplayListener(mDisplayListener);
+        }
 
         if (mHandler != null) {
             // Shut down the thread
