@@ -2045,7 +2045,8 @@ public final class Avrcp {
             int players = 1;
             for (Map.Entry<Integer, MediaPlayerInfo> entry : mMediaPlayerInfoList.entrySet()) {
                 int idx = players;
-                if (entry.getKey() == mCurrAddrPlayerID) idx = 0;
+                if (entry.getKey() == mCurrAddrPlayerID || mMediaPlayerInfoList.size() == 1)
+                    idx = 0;
                 MediaPlayerInfo info = entry.getValue();
                 playerIds[idx] = entry.getKey();
                 playerTypes[idx] = info.getMajorType();
