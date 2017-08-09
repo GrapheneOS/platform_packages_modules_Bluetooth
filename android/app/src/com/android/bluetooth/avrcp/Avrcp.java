@@ -1023,7 +1023,7 @@ public final class Avrcp {
             if ((newQueueId == -1 || newQueueId != mLastQueueId)
                     && currentAttributes.equals(mMediaAttributes)
                     && newPlayStatus == PLAYSTATUS_PLAYING
-                    && mReportedPlayStatus != PLAYSTATUS_PLAYING) {
+                    && mReportedPlayStatus == PLAYSTATUS_STOPPED) {
                 // Most carkits like seeing the track changed before the
                 // playback state changed, but some controllers are slow
                 // to update their metadata. Hold of on sending the playback state
@@ -2045,7 +2045,8 @@ public final class Avrcp {
             int players = 1;
             for (Map.Entry<Integer, MediaPlayerInfo> entry : mMediaPlayerInfoList.entrySet()) {
                 int idx = players;
-                if (entry.getKey() == mCurrAddrPlayerID) idx = 0;
+                if (entry.getKey() == mCurrAddrPlayerID || mMediaPlayerInfoList.size() == 1)
+                    idx = 0;
                 MediaPlayerInfo info = entry.getValue();
                 playerIds[idx] = entry.getKey();
                 playerTypes[idx] = info.getMajorType();
