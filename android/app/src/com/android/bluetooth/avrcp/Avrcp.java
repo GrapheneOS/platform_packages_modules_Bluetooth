@@ -1641,6 +1641,10 @@ public final class Avrcp {
             updateCurrentController(0, mCurrBrowsePlayerID);
             return;
         }
+        if (packageName.equals("com.android.server.telecom")) {
+            Log.d(TAG, "Ignore addressed media session change to telecom");
+            return;
+        }
         // No change.
         if (getPackageName(mCurrAddrPlayerID).equals(packageName)) return;
         if (DEBUG) Log.v(TAG, "Changing addressed media session to " + packageName);
@@ -1667,6 +1671,10 @@ public final class Avrcp {
     private void setActiveMediaSession(MediaSession.Token token) {
         android.media.session.MediaController activeController =
                 new android.media.session.MediaController(mContext, token);
+        if (activeController.getPackageName().equals("com.android.server.telecom")) {
+            Log.d(TAG, "Ignore active media session change to telecom");
+            return;
+        }
         if (DEBUG) Log.v(TAG, "Set active media session " + activeController.getPackageName());
         addMediaPlayerController(activeController);
         setAddressedMediaSessionPackage(activeController.getPackageName());
@@ -1805,6 +1813,10 @@ public final class Avrcp {
         int updateId = -1;
         boolean updated = false;
         boolean currentRemoved = false;
+        if (info.getPackageName().equals("com.android.server.telecom")) {
+            Log.d(TAG, "Skip adding telecom to the media player info list");
+            return updated;
+        }
         synchronized (mMediaPlayerInfoList) {
             for (Map.Entry<Integer, MediaPlayerInfo> entry : mMediaPlayerInfoList.entrySet()) {
                 MediaPlayerInfo current = entry.getValue();
