@@ -2053,12 +2053,12 @@ public final class Avrcp {
             short[] featureBitMaskValues =
                     new short[numPlayers * AvrcpConstants.AVRC_FEATURE_MASK_SIZE];
 
-            // Reserve the first spot for the currently addressed player
-            int players = 1;
+            // Reserve the first spot for the currently addressed player if
+            // we have one
+            int players = mMediaPlayerInfoList.containsKey(mCurrAddrPlayerID) ? 1 : 0;
             for (Map.Entry<Integer, MediaPlayerInfo> entry : mMediaPlayerInfoList.entrySet()) {
                 int idx = players;
-                if (entry.getKey() == mCurrAddrPlayerID || mMediaPlayerInfoList.size() == 1)
-                    idx = 0;
+                if (entry.getKey() == mCurrAddrPlayerID) idx = 0;
                 MediaPlayerInfo info = entry.getValue();
                 playerIds[idx] = entry.getKey();
                 playerTypes[idx] = info.getMajorType();
