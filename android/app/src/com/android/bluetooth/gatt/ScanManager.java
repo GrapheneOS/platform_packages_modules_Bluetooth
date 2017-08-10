@@ -686,7 +686,7 @@ public class ScanManager {
                         "Moving scan client to opportunistic (scannerId " + client.scannerId + ")");
                 setOpportunisticScanClient(client);
                 removeScanFilters(client.scannerId);
-                client.stats.setScanTimeout();
+                client.stats.setScanTimeout(client.scannerId);
             }
 
             // The scan should continue for background scans
