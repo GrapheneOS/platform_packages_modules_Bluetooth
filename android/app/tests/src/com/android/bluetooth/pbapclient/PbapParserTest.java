@@ -20,6 +20,7 @@ import android.accounts.Account;
 import android.content.res.Resources;
 import android.database.Cursor;
 import android.provider.CallLog.Calls;
+import android.support.test.filters.MediumTest;
 import android.test.AndroidTestCase;
 
 import java.io.IOException;
@@ -28,6 +29,7 @@ import java.io.InputStream;
 import org.junit.Before;
 import org.junit.Test;
 
+@MediumTest
 public class PbapParserTest extends AndroidTestCase {
     private Account mAccount;
     private Resources testResources;

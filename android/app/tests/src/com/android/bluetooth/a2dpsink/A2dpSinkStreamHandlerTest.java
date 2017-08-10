@@ -33,6 +33,7 @@ import android.media.AudioManager.OnAudioFocusChangeListener;
 import android.os.HandlerThread;
 import android.os.Looper;
 import android.test.AndroidTestCase;
+import android.test.suitebuilder.annotation.MediumTest;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -41,6 +42,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
+@MediumTest
 @RunWith(MockitoJUnitRunner.class)
 public class A2dpSinkStreamHandlerTest extends AndroidTestCase {
     static final int DUCK_PERCENT = 75;
