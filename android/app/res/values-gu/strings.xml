@@ -16,7 +16,7 @@
 
 <resources xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-    <string name="permlab_bluetoothShareManager" msgid="311492132450338925">"ઍક્સેસ ડાઉનલોડ સંચાલક."</string>
+    <string name="permlab_bluetoothShareManager" msgid="311492132450338925">"ઍક્સેસ ડાઉનલોડ મેનેજર."</string>
     <string name="permdesc_bluetoothShareManager" msgid="8930572979123190223">"એપ્લિકેશનને BluetoothShare મેનેજર અ‍ૅક્સેસ કરવાની અને ફાઇલો સ્થાનાંતરિત કરવા માટે તેનો ઉપયોગ કરવાની મંજૂરી આપે છે."</string>
     <string name="permlab_bluetoothWhitelist" msgid="7091552898592306386">"વ્હાઇટલિસ્ટ Bluetooth ઉપકરણ ઍક્સેસ."</string>
     <string name="permdesc_bluetoothWhitelist" msgid="5494513855192170109">"એપ્લિકેશનને અસ્થાયી ધોરણે Bluetooth ઉપકરણને વ્હાઇટલિસ્ટ કરવાની મંજૂરી આપે છે, તે ઉપકરણને આ ઉપકરણ પર વપરાશકર્તા પુષ્ટિ વિના ફાઇલો મોકલવાની મંજૂરી આપીને."</string>
@@ -95,7 +95,7 @@
     <string name="status_forbidden" msgid="613956401054050725">"સ્થાનાંતરણ લક્ષિત ઉપકરણ દ્વારા પ્રતિબંધિત."</string>
     <string name="status_canceled" msgid="6664490318773098285">"વપરાશકર્તા દ્વારા સ્થાનાંતરણ રદ."</string>
     <string name="status_file_error" msgid="3671917770630165299">"સંગ્રહ સમસ્યા."</string>
-    <string name="status_no_sd_card" product="nosdcard" msgid="1112125377088421469">"કોઈ USB સંગ્રહ નથી."</string>
+    <string name="status_no_sd_card" product="nosdcard" msgid="1112125377088421469">"કોઈ USB સ્ટોરેજ નથી."</string>
     <string name="status_no_sd_card" product="default" msgid="5760944071743325592">"SD કાર્ડ નથી. સ્થાનાંતરિત ફાઇલો સાચવવા માટે એક SD કાર્ડ શામેલ કરો."</string>
     <string name="status_connection_error" msgid="947681831523219891">"કનેક્શન અસફળ."</string>
     <string name="status_protocol_error" msgid="3245444473429269539">"વિનંતી યોગ્ય રીતે હેન્ડલ કરી શકાતી નથી."</string>
