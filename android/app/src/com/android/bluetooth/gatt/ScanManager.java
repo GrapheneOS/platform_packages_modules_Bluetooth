@@ -260,10 +260,13 @@ public class ScanManager {
             }
 
             if (!mScanNative.isOpportunisticScanClient(client) && !isScreenOn() && !isFiltered) {
-                Log.e(TAG,
+                Log.w(TAG,
                         "Cannot start unfiltered scan in screen-off. This scan will be resumed later: "
                                 + client.scannerId);
                 mSuspendedScanClients.add(client);
+                if (client.stats != null) {
+                    client.stats.recordScanSuspend(client.scannerId);
+                }
                 return;
             }
 
