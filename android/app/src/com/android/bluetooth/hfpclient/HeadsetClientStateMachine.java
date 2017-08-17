@@ -1051,12 +1051,15 @@ public class HeadsetClientStateMachine extends StateMachine {
     }
 
     class Connected extends State {
+        int mCommandedSpeakerVolume = -1;
+
         @Override
         public void enter() {
             if (DBG) {
                 Log.d(TAG, "Enter Connected: " + getCurrentMessage().what);
             }
             mAudioWbs = false;
+            mCommandedSpeakerVolume = -1;
         }
 
         @Override
@@ -1120,11 +1123,15 @@ public class HeadsetClientStateMachine extends StateMachine {
                     // This message should always contain the volume in AudioManager max normalized.
                     int amVol = message.arg1;
                     int hfVol = amToHfVol(amVol);
-                    Log.d(TAG,"HF volume is set to " + hfVol);
-                    sAudioManager.setParameters("hfp_volume=" + hfVol);
-                    // We do not set the volume in native because multiple devices might be
-                    // connected and it does not make sense to synchronize them. Car becomes the
-                    // master in such case.
+                    if (amVol != mCommandedSpeakerVolume) {
+                        Log.d(TAG, "Volume" + amVol + ":" + mCommandedSpeakerVolume);
+                        // Volume was changed by a 3rd party
+                        mCommandedSpeakerVolume = -1;
+                        if (NativeInterface.setVolumeNative(getByteAddress(mCurrentDevice),
+                                    HeadsetClientHalConstants.VOLUME_TYPE_SPK, hfVol)) {
+                            addQueuedAction(SET_SPEAKER_VOLUME);
+                        }
+                    }
                     break;
                 case DIAL_NUMBER:
                     // Add the call as an outgoing call.
@@ -1305,12 +1312,12 @@ public class HeadsetClientStateMachine extends StateMachine {
                             break;
                         case StackEvent.EVENT_TYPE_VOLUME_CHANGED:
                             if (event.valueInt == HeadsetClientHalConstants.VOLUME_TYPE_SPK) {
-                                Log.d(TAG, "AM volume set to " +
-                                      hfToAmVol(event.valueInt2));
+                                mCommandedSpeakerVolume = hfToAmVol(event.valueInt2);
+                                Log.d(TAG, "AM volume set to " + mCommandedSpeakerVolume);
                                 sAudioManager.setStreamVolume(AudioManager.STREAM_VOICE_CALL,
-                                        hfToAmVol(event.valueInt2), AudioManager.FLAG_SHOW_UI);
-                            } else if (event.valueInt ==
-                                    HeadsetClientHalConstants.VOLUME_TYPE_MIC) {
+                                        +mCommandedSpeakerVolume, AudioManager.FLAG_SHOW_UI);
+                            } else if (event.valueInt
+                                    == HeadsetClientHalConstants.VOLUME_TYPE_MIC) {
                                 sAudioManager.setMicrophoneMute(event.valueInt2 == 0);
                             }
                             break;
