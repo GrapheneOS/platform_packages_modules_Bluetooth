@@ -20,6 +20,7 @@ import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothClass;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.BluetoothUuid;
@@ -866,6 +867,17 @@ public class AdapterService extends Service {
             return service.setName(name);
         }
 
+        public boolean setBluetoothClass(BluetoothClass bluetoothClass) {
+            if (!Utils.checkCaller()) {
+                Log.w(TAG, "setBluetoothClass() - Not allowed for non-active user");
+                return false;
+            }
+
+            AdapterService service = getService();
+            if (service == null) return false;
+            return service.setBluetoothClass(bluetoothClass);
+        }
+
         public int getScanMode() {
             if (!Utils.checkCallerAllowManagedProfiles(mService)) {
                 Log.w(TAG, "getScanMode() - Not allowed for non-active user");
@@ -1469,7 +1481,14 @@ public class AdapterService extends Service {
         return mAdapterProperties.setName(name);
     }
 
-     int getScanMode() {
+    boolean setBluetoothClass(BluetoothClass bluetoothClass) {
+        enforceCallingOrSelfPermission(
+                BLUETOOTH_PRIVILEGED, "Need BLUETOOTH PRIVILEGED permission");
+
+        return mAdapterProperties.setBluetoothClass(bluetoothClass.getClassOfDeviceBytes());
+    }
+
+    int getScanMode() {
         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
 
         return mAdapterProperties.getScanMode();
