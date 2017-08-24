@@ -2043,7 +2043,12 @@ public final class Avrcp {
     /* prepare media list & return the media player list response object */
     private MediaPlayerListRsp prepareMediaPlayerRspObj() {
         synchronized (mMediaPlayerInfoList) {
-            int numPlayers = mMediaPlayerInfoList.size();
+            // TODO(apanicke): This hack will go away as soon as a developer
+            // option to enable or disable player selection is created. Right
+            // now this is needed to fix BMW i3 carkits and any other carkits
+            // that might try to connect to a player that isnt the current
+            // player based on this list
+            int numPlayers = 1;
 
             int[] playerIds = new int[numPlayers];
             byte[] playerTypes = new byte[numPlayers];
@@ -2058,7 +2063,10 @@ public final class Avrcp {
             int players = mMediaPlayerInfoList.containsKey(mCurrAddrPlayerID) ? 1 : 0;
             for (Map.Entry<Integer, MediaPlayerInfo> entry : mMediaPlayerInfoList.entrySet()) {
                 int idx = players;
-                if (entry.getKey() == mCurrAddrPlayerID) idx = 0;
+                if (entry.getKey() == mCurrAddrPlayerID)
+                    idx = 0;
+                else
+                    continue; // TODO(apanicke): Remove, see above note
                 MediaPlayerInfo info = entry.getValue();
                 playerIds[idx] = entry.getKey();
                 playerTypes[idx] = info.getMajorType();
