@@ -139,7 +139,6 @@ public class AddressedMediaPlayer {
     private void sendNowPlayingListChanged() {
         if (mMediaInterface == null) return;
         if (DEBUG) Log.d(TAG, "sendNowPlayingListChanged()");
-        mMediaInterface.uidsChangedRsp(AvrcpConstants.NOTIFICATION_TYPE_CHANGED);
         mMediaInterface.nowPlayingChangedRsp(AvrcpConstants.NOTIFICATION_TYPE_CHANGED);
     }
 
