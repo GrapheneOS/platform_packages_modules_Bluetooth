@@ -73,7 +73,7 @@
     <string name="upload_fail_cancel" msgid="9118496285835687125">"বন্ধ করুন"</string>
     <string name="bt_error_btn_ok" msgid="5965151173011534240">"ঠিক আছে"</string>
     <string name="unknown_file" msgid="6092727753965095366">"অজানা ফাইল"</string>
-    <string name="unknown_file_desc" msgid="480434281415453287">"এই ধরণের ফাইল পরিচালনা করার জন্য কোনো অ্যাপ্লিকেশান নেই। \n"</string>
+    <string name="unknown_file_desc" msgid="480434281415453287">"এই ধরণের ফাইল পরিচালনা করার জন্য কোনো অ্যাপ্লিকেশন নেই। \n"</string>
     <string name="not_exist_file" msgid="3489434189599716133">"কোনো ফাইল নেই"</string>
     <string name="not_exist_file_desc" msgid="4059531573790529229">"ফাইলটির অস্তিত্ব নেই। \n"</string>
     <string name="enabling_progress_title" msgid="436157952334723406">"দয়া করে অপেক্ষা করুন..."</string>
@@ -93,7 +93,7 @@
     <string name="status_success" msgid="239573225847565868">"ফাইল স্থানান্তর করা সফলভাবে সম্পন্ন হয়েছে।"</string>
     <string name="status_not_accept" msgid="1695082417193780738">"সামগ্রী সমর্থিত নয়।"</string>
     <string name="status_forbidden" msgid="613956401054050725">"স্থানান্তর করা টার্গেট ডিভাইস দ্বারা নিষিদ্ধ করা হয়েছে।"</string>
-    <string name="status_canceled" msgid="6664490318773098285">"ব্যবহারকারী দ্বারা স্থানান্তর করা বাতিল করা হয়েছে।"</string>
+    <string name="status_canceled" msgid="6664490318773098285">"ব্যবহারকারী দ্বারা ট্রান্সফার করা বাতিল করা হয়েছে।"</string>
     <string name="status_file_error" msgid="3671917770630165299">"সঞ্চয়স্থান সমস্যা।"</string>
     <string name="status_no_sd_card" product="nosdcard" msgid="1112125377088421469">"কোনো USB সঞ্চয়স্থান নেই।"</string>
     <string name="status_no_sd_card" product="default" msgid="5760944071743325592">"কোনো SD কার্ড নেই। স্থানান্তর করা ফাইলগুলি সংরক্ষণ করতে SD কার্ড ঢোকান।"</string>
