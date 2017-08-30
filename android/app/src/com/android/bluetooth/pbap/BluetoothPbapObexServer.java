@@ -763,7 +763,7 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
                 for (int pos = appParamValue.listStartOffset;
                         pos < listSize && itemsFound < requestSize; pos++) {
                     currentValue = nameList.get(pos);
-                    if (D) Log.d(TAG, "currentValue=" + currentValue);
+                    if (V) Log.d(TAG, "currentValue=" + currentValue);
                     if (currentValue.equals(compareValue)) {
                         itemsFound++;
                         if (currentValue.contains(","))
