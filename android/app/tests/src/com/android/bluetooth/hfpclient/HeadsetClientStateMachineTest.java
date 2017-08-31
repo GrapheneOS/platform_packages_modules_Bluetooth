@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import com.android.bluetooth.btservice.AdapterService;
 
 import static org.mockito.Mockito.*;
+
 import org.mockito.ArgumentCaptor;
 
 @MediumTest
@@ -27,7 +28,7 @@ public class HeadsetClientStateMachineTest extends AndroidTestCase {
 
     @Override
     protected void setUp() throws Exception {
-        AdapterService inst = AdapterService.getAdapterService();
+        AdapterService inst = mock(AdapterService.class);
         assertTrue(inst != null);
         mAdapter = BluetoothAdapter.getDefaultAdapter();
     }
