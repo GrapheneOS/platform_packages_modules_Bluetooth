@@ -435,6 +435,9 @@ final class HeadsetStateMachine extends StateMachine {
                                         + device.getBondState() + ", device=" + device);
                         // reject the connection and stay in Disconnected state itself
                         disconnectHfpNative(getByteAddress(device));
+                        // the other profile connection should be initiated
+                        broadcastConnectionState(device, BluetoothProfile.STATE_DISCONNECTED,
+                                BluetoothProfile.STATE_DISCONNECTED);
                     }
                     break;
                 case HeadsetHalConstants.CONNECTION_STATE_DISCONNECTING:
@@ -517,6 +520,60 @@ final class HeadsetStateMachine extends StateMachine {
                             break;
                         case EVENT_TYPE_BIND:
                             processAtBind(event.valueString, event.device);
+                            break;
+                        // Unexpected AT commands, we only handle them for comparability reasons
+                        case EVENT_TYPE_VR_STATE_CHANGED:
+                            Log.w(TAG,
+                                    "Pending: Unexpected VR event, device=" + event.device
+                                            + ", state=" + event.valueInt);
+                            processVrEvent(event.valueInt, event.device);
+                            break;
+                        case EVENT_TYPE_DIAL_CALL:
+                            Log.w(TAG, "Pending: Unexpected dial event, device=" + event.device);
+                            processDialCall(event.valueString, event.device);
+                            break;
+                        case EVENT_TYPE_SUBSCRIBER_NUMBER_REQUEST:
+                            Log.w(TAG,
+                                    "Pending: Unexpected subscriber number event for" + event.device
+                                            + ", state=" + event.valueInt);
+                            processSubscriberNumberRequest(event.device);
+                            break;
+                        case EVENT_TYPE_AT_COPS:
+                            Log.w(TAG, "Pending: Unexpected COPS event for " + event.device);
+                            processAtCops(event.device);
+                            break;
+                        case EVENT_TYPE_AT_CLCC:
+                            Log.w(TAG, "Pending: Unexpected CLCC event for" + event.device);
+                            processAtClcc(event.device);
+                            break;
+                        case EVENT_TYPE_UNKNOWN_AT:
+                            Log.w(TAG,
+                                    "Pending: Unexpected unknown AT event for" + event.device
+                                            + ", cmd=" + event.valueString);
+                            processUnknownAt(event.valueString, event.device);
+                            break;
+                        case EVENT_TYPE_KEY_PRESSED:
+                            Log.w(TAG, "Pending: Unexpected key-press event for " + event.device);
+                            processKeyPressed(event.device);
+                            break;
+                        case EVENT_TYPE_BIEV:
+                            Log.w(TAG,
+                                    "Pending: Unexpected BIEV event for " + event.device
+                                            + ", indId=" + event.valueInt
+                                            + ", indVal=" + event.valueInt2);
+                            processAtBiev(event.valueInt, event.valueInt2, event.device);
+                            break;
+                        case EVENT_TYPE_VOLUME_CHANGED:
+                            Log.w(TAG, "Pending: Unexpected volume event for " + event.device);
+                            processVolumeEvent(event.valueInt, event.valueInt2, event.device);
+                            break;
+                        case EVENT_TYPE_ANSWER_CALL:
+                            Log.w(TAG, "Pending: Unexpected answer event for " + event.device);
+                            processAnswerCall(event.device);
+                            break;
+                        case EVENT_TYPE_HANGUP_CALL:
+                            Log.w(TAG, "Pending: Unexpected hangup event for " + event.device);
+                            processHangupCall(event.device);
                             break;
                         default:
                             Log.e(TAG, "Pending: Unexpected event: " + event.type);
@@ -920,11 +977,9 @@ final class HeadsetStateMachine extends StateMachine {
                             processVrEvent(event.valueInt, event.device);
                             break;
                         case EVENT_TYPE_ANSWER_CALL:
-                            // TODO(BT) could answer call happen on Connected state?
                             processAnswerCall(event.device);
                             break;
                         case EVENT_TYPE_HANGUP_CALL:
-                            // TODO(BT) could hangup call happen on Connected state?
                             processHangupCall(event.device);
                             break;
                         case EVENT_TYPE_VOLUME_CHANGED:
