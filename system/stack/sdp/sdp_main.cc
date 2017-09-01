@@ -257,6 +257,16 @@ static void sdp_disconnect_ind(uint16_t l2cap_cid, bool ack_needed) {
     return;
   }
 
+  if (ack_needed) {
+    sdpu_process_pend_ccb(p_ccb->connection_id, false);
+  } else {
+    SDP_TRACE_WARNING(
+        "SDP - Rcvd L2CAP disc, "
+        "ACL disc clear pend sdp ccb: 0x%x",
+        l2cap_cid);
+    sdpu_clear_pend_ccb(p_ccb->connection_id);
+  }
+
   SDP_TRACE_EVENT("SDP - Rcvd L2CAP disc, CID: 0x%x", l2cap_cid);
   /* Tell the user if there is a callback */
   if (p_ccb->p_cb)
@@ -345,7 +355,17 @@ tCONN_CB* sdp_conn_originate(const RawAddress& p_bd_addr) {
    */
   p_ccb->con_state = SDP_STATE_CONN_SETUP;
 
-  cid = L2CA_ConnectReq2(BT_PSM_SDP, p_bd_addr, BTM_SEC_NONE);
+  // Look for any active sdp connection on the remote device
+  cid = sdpu_get_active_ccb_cid(p_bd_addr);
+
+  if (cid == 0) {
+    p_ccb->con_state = SDP_STATE_CONN_SETUP;
+    cid = L2CA_ConnectReq2(BT_PSM_SDP, p_bd_addr, BTM_SEC_NONE);
+  } else {
+    p_ccb->con_state = SDP_STATE_CONN_PEND;
+    SDP_TRACE_WARNING("SDP already active for peer %s. cid=%#0x",
+                      p_bd_addr.ToString().c_str(), cid);
+  }
 
   /* Check if L2CAP started the connection process */
   if (cid == 0) {
@@ -372,8 +392,20 @@ void sdp_disconnect(tCONN_CB* p_ccb, tSDP_REASON reason) {
 
   /* Check if we have a connection ID */
   if (p_ccb->connection_id != 0) {
-    L2CA_DisconnectReq(p_ccb->connection_id);
     p_ccb->disconnect_reason = reason;
+    if (SDP_SUCCESS == reason &&
+        (true == sdpu_process_pend_ccb(p_ccb->connection_id, true))) {
+      /* Tell the user if he has a callback */
+      if (p_ccb->p_cb)
+        (*p_ccb->p_cb)(static_cast<tSDP_STATUS>(p_ccb->disconnect_reason));
+      else if (p_ccb->p_cb2)
+        (*p_ccb->p_cb2)(static_cast<tSDP_STATUS>(p_ccb->disconnect_reason),
+                        p_ccb->user_data);
+      sdpu_release_ccb(p_ccb);
+      return;
+    } else {
+      L2CA_DisconnectReq(p_ccb->connection_id);
+    }
   }
 
   /* If at setup state, we may not get callback ind from L2CAP */
@@ -412,6 +444,7 @@ static void sdp_disconnect_cfm(uint16_t l2cap_cid,
 
   SDP_TRACE_EVENT("SDP - Rcvd L2CAP disc cfm, CID: 0x%x", l2cap_cid);
 
+  sdpu_process_pend_ccb(p_ccb->connection_id, false);
   /* Tell the user if there is a callback */
   if (p_ccb->p_cb)
     (*p_ccb->p_cb)(static_cast<tSDP_STATUS>(p_ccb->disconnect_reason));
@@ -439,6 +472,8 @@ void sdp_conn_timer_timeout(void* data) {
                   p_ccb->connection_id);
 
   L2CA_DisconnectReq(p_ccb->connection_id);
+  sdpu_clear_pend_ccb(p_ccb->connection_id);
+
   /* Tell the user if there is a callback */
   if (p_ccb->p_cb)
     (*p_ccb->p_cb)(SDP_CONN_FAILED);
