@@ -267,20 +267,7 @@ public class BluetoothMapContentObserver {
         mAccount = account;
         mMasInstance = masInstance;
         mMasId = mMasInstance.getMasId();
-
-        mMapSupportedFeatures = mMasInstance.getRemoteFeatureMask();
-        if (D) Log.d(TAG, "BluetoothMapContentObserver: Supported features " +
-                Integer.toHexString(mMapSupportedFeatures) ) ;
-
-        if((BluetoothMapUtils.MAP_FEATURE_EXTENDED_EVENT_REPORT_11_BIT
-                & mMapSupportedFeatures) != 0){
-            mMapEventReportVersion = BluetoothMapUtils.MAP_EVENT_REPORT_V11;
-        }
-        // Make sure support for all formats result in latest version returned
-        if((BluetoothMapUtils.MAP_FEATURE_EVENT_REPORT_V12_BIT
-                & mMapSupportedFeatures) != 0){
-            mMapEventReportVersion = BluetoothMapUtils.MAP_EVENT_REPORT_V12;
-        }
+        setObserverRemoteFeatureMask(mMasInstance.getRemoteFeatureMask());
 
         if(account != null) {
             mAuthority = Uri.parse(account.mBase_uri).getAuthority();
@@ -337,7 +324,8 @@ public class BluetoothMapContentObserver {
     }
 
     public void setObserverRemoteFeatureMask(int remoteSupportedFeatures) {
-        mMapSupportedFeatures = remoteSupportedFeatures;
+        mMapSupportedFeatures =
+                remoteSupportedFeatures & BluetoothMapMasInstance.SDP_MAP_MAS_FEATURES;
         if ((BluetoothMapUtils.MAP_FEATURE_EXTENDED_EVENT_REPORT_11_BIT
                 & mMapSupportedFeatures) != 0) {
             mMapEventReportVersion = BluetoothMapUtils.MAP_EVENT_REPORT_V11;
@@ -346,9 +334,20 @@ public class BluetoothMapContentObserver {
         if ((BluetoothMapUtils.MAP_FEATURE_EVENT_REPORT_V12_BIT
                 & mMapSupportedFeatures) != 0) {
             mMapEventReportVersion = BluetoothMapUtils.MAP_EVENT_REPORT_V12;
+        } else if (((BluetoothMapUtils.MAP_FEATURE_PARTICIPANT_PRESENCE_CHANGE_BIT
+                            | BluetoothMapUtils.MAP_FEATURE_PARTICIPANT_CHAT_STATE_CHANGE_BIT)
+                           & mMapSupportedFeatures)
+                != 0) {
+            // Warning according to page 46/123 of MAP 1.3 spec
+            Log.w(TAG,
+                    "setObserverRemoteFeatureMask: Extended Event Reports 1.2 is not set even"
+                            + "though PARTICIPANT_PRESENCE_CHANGE_BIT or PARTICIPANT_CHAT_STATE_CHANGE_BIT"
+                            + " were set, mMapSupportedFeatures=" + mMapSupportedFeatures);
         }
-        if (V) Log.d(TAG, "setObserverRemoteFeatureMask : " + mMapEventReportVersion
-            + " mMapSupportedFeatures : " + mMapSupportedFeatures);
+        if (D)
+            Log.d(TAG,
+                    "setObserverRemoteFeatureMask: mMapEventReportVersion=" + mMapEventReportVersion
+                            + " mMapSupportedFeatures=" + mMapSupportedFeatures);
     }
 
     private Map<Long, Msg> getMsgListSms() {
@@ -738,12 +737,12 @@ public class BluetoothMapContentObserver {
                 xmlEvtReport.startDocument("UTF-8", true);
                 xmlEvtReport.text("\r\n");
                 xmlEvtReport.startTag("", "MAP-event-report");
-                if (mMapEventReportVersion == BluetoothMapUtils.MAP_EVENT_REPORT_V10) {
-                    xmlEvtReport.attribute("", "version", BluetoothMapUtils.MAP_V10_STR);
+                if (mMapEventReportVersion == BluetoothMapUtils.MAP_EVENT_REPORT_V12) {
+                    xmlEvtReport.attribute("", "version", BluetoothMapUtils.MAP_V12_STR);
                 } else if (mMapEventReportVersion == BluetoothMapUtils.MAP_EVENT_REPORT_V11) {
                     xmlEvtReport.attribute("", "version", BluetoothMapUtils.MAP_V11_STR);
                 } else {
-                    xmlEvtReport.attribute("", "version", BluetoothMapUtils.MAP_V12_STR);
+                    xmlEvtReport.attribute("", "version", BluetoothMapUtils.MAP_V10_STR);
                 }
                 xmlEvtReport.startTag("", "event");
                 xmlEvtReport.attribute("", "type", eventType);
