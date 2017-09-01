@@ -128,6 +128,7 @@ typedef struct {
 #define SDP_STATE_CONN_SETUP 1
 #define SDP_STATE_CFG_SETUP 2
 #define SDP_STATE_CONNECTED 3
+#define SDP_STATE_CONN_PEND 4
   uint8_t con_state;
 
 #define SDP_FLAGS_IS_ORIG 0x01
@@ -236,6 +237,9 @@ extern bool sdpu_is_service_id_avrc_target(const tSDP_ATTRIBUTE* p_attr);
 extern bool spdu_is_avrcp_version_valid(const uint16_t version);
 extern void sdpu_set_avrc_target_version(const tSDP_ATTRIBUTE* p_attr,
                                          const RawAddress* bdaddr);
+extern uint16_t sdpu_get_active_ccb_cid(const RawAddress& remote_bd_addr);
+extern bool sdpu_process_pend_ccb(uint16_t cid, bool use_cur_chnl);
+extern void sdpu_clear_pend_ccb(uint16_t cid);
 
 /* Functions provided by sdp_db.cc
  */
