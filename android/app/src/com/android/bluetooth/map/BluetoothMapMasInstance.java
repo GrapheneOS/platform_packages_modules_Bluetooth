@@ -54,7 +54,7 @@ public class BluetoothMapMasInstance implements IObexConnectionHandler {
     private static final int SDP_MAP_MAS_VERSION       = 0x0102;
 
     /* TODO: Should these be adaptive for each MAS? - e.g. read from app? */
-    private static final int SDP_MAP_MAS_FEATURES      = 0x0000007F;
+    static final int SDP_MAP_MAS_FEATURES = 0x0000007F;
 
     private ServerSession mServerSession = null;
     // The handle to the socket registration with SDP
@@ -443,7 +443,7 @@ public class BluetoothMapMasInstance implements IObexConnectionHandler {
 
     public void setRemoteFeatureMask(int supportedFeatures) {
        if(V) Log.v(TAG, "setRemoteFeatureMask : Curr: "+ mRemoteFeatureMask);
-       mRemoteFeatureMask  = supportedFeatures;
+       mRemoteFeatureMask = supportedFeatures & SDP_MAP_MAS_FEATURES;
        if (mObserver != null) {
            mObserver.setObserverRemoteFeatureMask(mRemoteFeatureMask);
            if(V) Log.v(TAG, "setRemoteFeatureMask : set: " + mRemoteFeatureMask);
