@@ -97,10 +97,15 @@ final class BondStateMachine extends StateMachine {
         quitNow();
     }
 
-    public void cleanup() {
+    private void cleanup() {
         mAdapterService = null;
         mRemoteDevices = null;
         mAdapterProperties = null;
+    }
+
+    @Override
+    protected void onQuitting() {
+        cleanup();
     }
 
     private class StableState extends State {
