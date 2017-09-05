@@ -583,12 +583,10 @@ public class AdapterService extends Service {
 
         if (mAdapterStateMachine != null) {
             mAdapterStateMachine.doQuit();
-            mAdapterStateMachine.cleanup();
         }
 
         if (mBondStateMachine != null) {
             mBondStateMachine.doQuit();
-            mBondStateMachine.cleanup();
         }
 
         if (mRemoteDevices != null) {
