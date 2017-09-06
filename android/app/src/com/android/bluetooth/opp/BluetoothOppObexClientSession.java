@@ -53,6 +53,7 @@ import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.lang.IllegalArgumentException;
 import java.lang.Thread;
 
 /**
@@ -341,16 +342,7 @@ public class BluetoothOppObexClientSession implements BluetoothOppObexSession {
             int status = BluetoothShare.STATUS_SUCCESS;
             Uri contentUri = Uri.parse(BluetoothShare.CONTENT_URI + "/" + mInfo.mId);
             ContentValues updateValues;
-            HeaderSet request;
-            request = new HeaderSet();
-            request.setHeader(HeaderSet.NAME, fileInfo.mFileName);
-            request.setHeader(HeaderSet.TYPE, fileInfo.mMimetype);
-
-            applyRemoteDeviceQuirks(request, mInfo.mDestination, fileInfo.mFileName);
-
-            Constants.updateShareStatus(mContext1, mInfo.mId, BluetoothShare.STATUS_RUNNING);
-
-            request.setHeader(HeaderSet.LENGTH, fileInfo.mLength);
+            HeaderSet request = new HeaderSet();
             ClientOperation putOperation = null;
             OutputStream outputStream = null;
             InputStream inputStream = null;
@@ -359,8 +351,24 @@ public class BluetoothOppObexClientSession implements BluetoothOppObexSession {
                     mWaitingForRemote = true;
                 }
                 try {
+                    if (V) Log.v(TAG, "Set header items for " + fileInfo.mFileName);
+                    request.setHeader(HeaderSet.NAME, fileInfo.mFileName);
+                    request.setHeader(HeaderSet.TYPE, fileInfo.mMimetype);
+
+                    applyRemoteDeviceQuirks(request, mInfo.mDestination, fileInfo.mFileName);
+                    Constants.updateShareStatus(
+                            mContext1, mInfo.mId, BluetoothShare.STATUS_RUNNING);
+
+                    request.setHeader(HeaderSet.LENGTH, fileInfo.mLength);
+
                     if (V) Log.v(TAG, "put headerset for " + fileInfo.mFileName);
                     putOperation = (ClientOperation)mCs.put(request);
+                } catch (IllegalArgumentException e) {
+                    status = BluetoothShare.STATUS_OBEX_DATA_ERROR;
+                    Constants.updateShareStatus(mContext1, mInfo.mId, status);
+
+                    Log.e(TAG, "Error setting header items for request: " + e);
+                    error = true;
                 } catch (IOException e) {
                     status = BluetoothShare.STATUS_OBEX_DATA_ERROR;
                     Constants.updateShareStatus(mContext1, mInfo.mId, status);
