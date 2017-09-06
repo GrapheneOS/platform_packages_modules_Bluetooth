@@ -1563,10 +1563,11 @@ static void gattServerAddServiceNative(JNIEnv* env, jobject object,
 
     fid = env->GetFieldID(gattDbElementClazz, "uuid", "Ljava/util/UUID;");
     ScopedLocalRef<jobject> uuid(env, env->GetObjectField(element.get(), fid));
-
-    jlong uuid_msb = env->CallLongMethod(uuid.get(), uuidGetMsb);
-    jlong uuid_lsb = env->CallLongMethod(uuid.get(), uuidGetLsb);
-    set_uuid(curr.uuid.uu, uuid_msb, uuid_lsb);
+    if (uuid.get() != NULL) {
+      jlong uuid_msb = env->CallLongMethod(uuid.get(), uuidGetMsb);
+      jlong uuid_lsb = env->CallLongMethod(uuid.get(), uuidGetLsb);
+      set_uuid(curr.uuid.uu, uuid_msb, uuid_lsb);
+    }
 
     fid = env->GetFieldID(gattDbElementClazz, "type", "I");
     curr.type =
