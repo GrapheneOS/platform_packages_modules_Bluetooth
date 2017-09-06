@@ -51,6 +51,8 @@ import android.util.Log;
 
 import java.io.File;
 import java.io.IOException;
+import java.math.RoundingMode;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
@@ -271,14 +273,13 @@ public class BluetoothOppUtility {
      * Helper function to build the progress text.
      */
     public static String formatProgressText(long totalBytes, long currentBytes) {
-        if (totalBytes <= 0) {
-            return "0%";
+        DecimalFormat df = new DecimalFormat("0%");
+        df.setRoundingMode(RoundingMode.DOWN);
+        double percent = 0.0;
+        if (totalBytes > 0) {
+            percent = currentBytes / (double) totalBytes;
         }
-        long progress = currentBytes * 100 / totalBytes;
-        StringBuilder sb = new StringBuilder();
-        sb.append(progress);
-        sb.append('%');
-        return sb.toString();
+        return df.format(percent);
     }
 
     /**
