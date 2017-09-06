@@ -119,11 +119,16 @@ final class AdapterState extends StateMachine {
         quitNow();
     }
 
-    public void cleanup() {
+    private void cleanup() {
         if(mAdapterProperties != null)
             mAdapterProperties = null;
         if(mAdapterService != null)
             mAdapterService = null;
+    }
+
+    @Override
+    protected void onQuitting() {
+        cleanup();
     }
 
     private class OffState extends State {
