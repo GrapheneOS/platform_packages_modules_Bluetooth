@@ -272,6 +272,8 @@ final class A2dpStateMachine extends StateMachine {
                         + mCurrentDevice + " target = " + mTargetDevice + " incoming = "
                         + mIncomingDevice);
             }
+            // Remove Timeout msg when moved to stable state
+            removeMessages(CONNECT_TIMEOUT);
         }
 
         @Override
@@ -398,6 +400,7 @@ final class A2dpStateMachine extends StateMachine {
                     deferMessage(message);
                     break;
                 case CONNECT_TIMEOUT:
+                    disconnectA2dpNative(getByteAddress(mTargetDevice));
                     onConnectionStateChanged(CONNECTION_STATE_DISCONNECTED,
                                              getByteAddress(mTargetDevice));
                     break;
@@ -419,7 +422,6 @@ final class A2dpStateMachine extends StateMachine {
                     StackEvent event = (StackEvent) message.obj;
                     switch (event.type) {
                         case EVENT_TYPE_CONNECTION_STATE_CHANGED:
-                            removeMessages(CONNECT_TIMEOUT);
                             processConnectionEvent(event.valueInt, event.device);
                             break;
                         default:
@@ -597,6 +599,10 @@ final class A2dpStateMachine extends StateMachine {
                         + " target = " + mTargetDevice + " incoming = " + mIncomingDevice);
             }
 
+            // remove timeout for connected device only.
+            if (mTargetDevice == null) {
+                removeMessages(CONNECT_TIMEOUT);
+            }
             // Upon connected, the audio starts out as stopped
             broadcastAudioState(mCurrentDevice, BluetoothA2dp.STATE_NOT_PLAYING,
                                 BluetoothA2dp.STATE_PLAYING);
@@ -654,6 +660,17 @@ final class A2dpStateMachine extends StateMachine {
                         transitionTo(mPending);
                     }
                 }
+                    break;
+                case CONNECT_TIMEOUT:
+                    if (mTargetDevice == null) {
+                        loge("CONNECT_TIMEOUT received for unknown device");
+                    } else {
+                        loge("CONNECT_TIMEOUT received : connected device : " + mCurrentDevice
+                                + " : timedout device : " + mTargetDevice);
+                        broadcastConnectionState(mTargetDevice, BluetoothProfile.STATE_DISCONNECTED,
+                                BluetoothProfile.STATE_CONNECTING);
+                        mTargetDevice = null;
+                    }
                     break;
                 case STACK_EVENT:
                     StackEvent event = (StackEvent) message.obj;
