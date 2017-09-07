@@ -16,7 +16,7 @@
 
 <resources xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-    <string name="permlab_bluetoothShareManager" msgid="311492132450338925">"ഡൗൺലോഡ് മാനേജർ ആക്‌സസ്സുചെയ്യുക."</string>
+    <string name="permlab_bluetoothShareManager" msgid="311492132450338925">"ഡൗൺലോഡ് മാനേജർ ആക്‌സസ്സ് ചെയ്യുക."</string>
     <string name="permdesc_bluetoothShareManager" msgid="8930572979123190223">"BluetoothShare മാനേജർ ആക്‌സസ്സുചെയ്യാനും ഫയലുകൾ കൈമാറാൻ അത് ഉപയോഗിക്കാനും അപ്ലിക്കേഷനെ അനുവദിക്കുന്നു."</string>
     <string name="permlab_bluetoothWhitelist" msgid="7091552898592306386">"വൈറ്റ്‌ലിസ്റ്റ് ബ്ലൂടൂത്ത് ഉപകരണ ആക്‌സസ്സ്."</string>
     <string name="permdesc_bluetoothWhitelist" msgid="5494513855192170109">"ഒരു ബ്ലൂടൂത്ത് ഉപകരണം താൽക്കാലികമായി വൈറ്റ്‌ലിസ്റ്റുചെയ്യാൻ അപ്ലിക്കേഷനെ അനുവദിക്കുന്നു, അത് ഉപയോക്താവിന്റെ സ്ഥിരീകരണമില്ലാതെ ഈ ഉപകരണത്തിലേക്ക് ഫയലുകൾ അയയ്‌ക്കാൻ ആ ഉപകരണത്തെ അനുവദിക്കുന്നു."</string>

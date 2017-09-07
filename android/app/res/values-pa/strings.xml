@@ -17,10 +17,10 @@
 <resources xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="permlab_bluetoothShareManager" msgid="311492132450338925">"ਡਾਊਨਲੋਡ ਪ੍ਰਬੰਧਕ ਤੱਕ ਪਹੁੰਚ।"</string>
-    <string name="permdesc_bluetoothShareManager" msgid="8930572979123190223">"ਐਪ ਨੂੰ BluetoothShare ਪ੍ਰਬੰਧਕ ਤੱਕ ਪਹੁੰਚ ਅਤੇ ਫਾਈਲਾਂ ਟ੍ਰਾਂਸਫਰ ਕਰਨ ਲਈ ਇਸਦੀ ਵਰਤੋਂ ਕਰਨ ਦੀ ਆਗਿਆ ਦਿੰਦਾ ਹੈ।"</string>
+    <string name="permdesc_bluetoothShareManager" msgid="8930572979123190223">"ਐਪ ਨੂੰ ਬਲੂਟੁੱਥShare ਪ੍ਰਬੰਧਕ ਤੱਕ ਪਹੁੰਚ ਅਤੇ ਫ਼ਾਈਲਾਂ ਟ੍ਰਾਂਸਫਰ ਕਰਨ ਲਈ ਇਸਦੀ ਵਰਤੋਂ ਕਰਨ ਦੀ ਆਗਿਆ ਦਿੰਦਾ ਹੈ।"</string>
     <string name="permlab_bluetoothWhitelist" msgid="7091552898592306386">"ਵਾਈਟਲਿਸਟ ਬਲੂਟੱਥ ਡੀਵਾਈਸ ਪਹੁੰਚ।"</string>
     <string name="permdesc_bluetoothWhitelist" msgid="5494513855192170109">"ਐਪ ਨੂੰ ਇਹ ਆਗਿਆ ਦਿੰਦੇ ਹੋਏ ਕਿ ਡੀਵਾਈਸ ਵਰਤੋਂਕਾਰ ਦੀ ਪੁਸ਼ਟੀ ਤੋਂ ਬਿਨਾਂ ਇਸ ਡੀਵਾਈਸ ਨੂੰ ਫ਼ਾਈਲਾਂ ਭੇਜੇ, ਇੱਕ ਬਲੂਟੁੱਥ ਡੀਵਾਈਸ ਨੂੰ ਅਸਥਾਈ ਤੌਰ ਤੇ ਵਾਈਟਲਿਸਟ ਕਰਨ ਦੀ ਆਗਿਆ ਦਿੰਦਾ ਹੈ।"</string>
-    <string name="bt_share_picker_label" msgid="6268100924487046932">"Bluetooth"</string>
+    <string name="bt_share_picker_label" msgid="6268100924487046932">"ਬਲੂਟੁੱਥ"</string>
     <string name="unknown_device" msgid="9221903979877041009">"ਅਗਿਆਤ ਡੀਵਾਈਸ"</string>
     <string name="unknownNumber" msgid="4994750948072751566">"ਅਗਿਆਤ"</string>
     <string name="airplane_error_title" msgid="2683839635115739939">"ਏਅਰਪਲੇਨ ਮੋਡ"</string>
@@ -63,7 +63,7 @@
     <string name="download_succ_line5" msgid="4509944688281573595">"ਫਾਈਲ ਪ੍ਰਾਪਤ ਕੀਤੀ"</string>
     <string name="download_succ_ok" msgid="7053688246357050216">"ਖੋਲ੍ਹੋ"</string>
     <string name="upload_line1" msgid="2055952074059709052">"ਨੂੰ: \"<xliff:g id="RECIPIENT">%1$s</xliff:g>\""</string>
-    <string name="upload_line3" msgid="4920689672457037437">"ਫਾਈਲ ਪ੍ਰਕਾਰ: <xliff:g id="TYPE">%1$s</xliff:g> (<xliff:g id="SIZE">%2$s</xliff:g>)"</string>
+    <string name="upload_line3" msgid="4920689672457037437">"ਫ਼ਾਈਲ ਦੀ ਕਿਸਮ: <xliff:g id="TYPE">%1$s</xliff:g> (<xliff:g id="SIZE">%2$s</xliff:g>)"</string>
     <string name="upload_line5" msgid="7759322537674229752">"ਫਾਈਲ ਭੇਜ ਰਿਹਾ ਹੈ…"</string>
     <string name="upload_succ_line5" msgid="5687317197463383601">"ਫਾਈਲ ਭੇਜੀ ਗਈ"</string>
     <string name="upload_succ_ok" msgid="7705428476405478828">"ਠੀਕ"</string>
@@ -73,7 +73,7 @@
     <string name="upload_fail_cancel" msgid="9118496285835687125">"ਬੰਦ ਕਰੋ"</string>
     <string name="bt_error_btn_ok" msgid="5965151173011534240">"ਠੀਕ"</string>
     <string name="unknown_file" msgid="6092727753965095366">"ਅਗਿਆਤ ਫਾਈਲ"</string>
-    <string name="unknown_file_desc" msgid="480434281415453287">"ਇਸ ਪ੍ਰਕਾਰ ਦੀ ਫਾਈਲ ਨੂੰ ਸੰਭਾਲਣ ਲਈ ਕੋਈ ਐਪ ਨਹੀਂ ਹੈ। \n"</string>
+    <string name="unknown_file_desc" msgid="480434281415453287">"ਇਸ ਕਿਸਮ ਦੀ ਫ਼ਾਈਲ ਨੂੰ ਸੰਭਾਲਣ ਲਈ ਕੋਈ ਐਪ ਨਹੀਂ ਹੈ। \n"</string>
     <string name="not_exist_file" msgid="3489434189599716133">"ਕੋਈ ਫਾਈਲ ਨਹੀਂ"</string>
     <string name="not_exist_file_desc" msgid="4059531573790529229">"ਫਾਈਲ ਮੌਜੂਦ ਨਹੀਂ ਹੈ। \n"</string>
     <string name="enabling_progress_title" msgid="436157952334723406">"ਕਿਰਪਾ ਕਰਕੇ ਠਹਿਰੋ..."</string>
@@ -127,9 +127,9 @@
     <string name="bluetooth_map_settings_intro" msgid="6482369468223987562">"ਉਹਨਾਂ ਖਾਤਿਆਂ ਨੂੰ ਚੁਣੋ ਜਿਨ੍ਹਾਂ ਨੂੰ ਤੁਸੀਂ ਬਲੂਟੁੱਥ ਦੇ ਰਾਹੀਂ ਸਾਂਝਾ ਕਰਨਾ ਚਾਹੁੰਦੇ ਹੋ। ਤੁਹਾਨੂੰ ਹਾਲੇ ਵੀ ਕਨੈਕਟ ਕਰਨ ਦੌਰਾਨ ਖਾਤਿਆਂ \'ਤੇ ਕਿਸੇ ਵੀ ਪਹੁੰਚ ਨੂੰ ਸਵੀਕਾਰ ਕਰਨਾ ਹੋਵੇਗਾ।"</string>
     <string name="bluetooth_map_settings_count" msgid="4557473074937024833">"ਸਲੌਟ ਬਾਕੀ:"</string>
     <string name="bluetooth_map_settings_app_icon" msgid="7105805610929114707">"ਐਪਲੀਕੇਸ਼ਨ ਆਈਕਨ"</string>
-    <string name="bluetooth_map_settings_title" msgid="7420332483392851321">"ਬਲੂਟੁੱਥ ਸੁਨੇਹਾ ਸ਼ੇਅਰਿੰਗ ਸੈੱਟਿੰਗਜ਼"</string>
+    <string name="bluetooth_map_settings_title" msgid="7420332483392851321">"ਬਲੂਟੁੱਥ ਸੁਨੇਹਾ ਸਾਂਝਾਕਰਨ ਸੈਟਿੰਗਾਂ"</string>
     <string name="bluetooth_map_settings_no_account_slots_left" msgid="1796029082612965251">"ਖਾਤਾ ਨਹੀਂ ਚੁਣ ਸਕਦਾ। 0 ਸਲੌਟ ਬਾਕੀ"</string>
-    <string name="bluetooth_connected" msgid="6718623220072656906">"ਬਲੂਟੁੱਥ ਔਡੀਓ ਕਨੈਕਟ ਕੀਤੀ ਗਈ"</string>
-    <string name="bluetooth_disconnected" msgid="3318303728981478873">"ਬਲੂਟੁੱਥ ਔਡੀਓ ਡਿਸਕਨੈਕਟ ਕੀਤੀ ਗਈ"</string>
-    <string name="a2dp_sink_mbs_label" msgid="7566075853395412558">"ਬਲੂਟੁੱਥ ਔਡੀਓ"</string>
+    <string name="bluetooth_connected" msgid="6718623220072656906">"ਬਲੂਟੁੱਥ  ਆਡੀਓ  ਕਨੈਕਟ ਕੀਤੀ ਗਈ"</string>
+    <string name="bluetooth_disconnected" msgid="3318303728981478873">"ਬਲੂਟੁੱਥ  ਆਡੀਓ  ਡਿਸਕਨੈਕਟ ਕੀਤੀ ਗਈ"</string>
+    <string name="a2dp_sink_mbs_label" msgid="7566075853395412558">"ਬਲੂਟੁੱਥ  ਆਡੀਓ"</string>
 </resources>
