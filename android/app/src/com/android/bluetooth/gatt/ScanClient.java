@@ -20,10 +20,11 @@ import android.bluetooth.le.ResultStorageDescriptor;
 import android.bluetooth.le.ScanFilter;
 import android.bluetooth.le.ScanSettings;
 
+import android.os.Binder;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
-
+import android.util.Log;
 /**
  * Helper class identifying a client that has requested LE scan results.
  *
@@ -33,6 +34,8 @@ import java.util.UUID;
     int scannerId;
     UUID[] uuids;
     ScanSettings settings;
+    ScanSettings passiveSettings;
+    int appUid;
     List<ScanFilter> filters;
     List<List<ResultStorageDescriptor>> storages;
     // App associated with the scan client died.
@@ -70,8 +73,10 @@ import java.util.UUID;
         this.scannerId = scannerId;
         this.uuids = uuids;
         this.settings = settings;
+        this.passiveSettings = null;
         this.filters = filters;
         this.storages = storages;
+        this.appUid = Binder.getCallingUid();
     }
 
     @Override
