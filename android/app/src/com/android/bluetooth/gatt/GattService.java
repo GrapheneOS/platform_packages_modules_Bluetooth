@@ -60,6 +60,7 @@ import com.android.bluetooth.btservice.ProfileService;
 import com.android.bluetooth.util.NumberUtils;
 import com.android.internal.annotations.VisibleForTesting;
 
+import java.security.Security;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -846,7 +847,7 @@ public class GattService extends ProfileService {
                 if (cbApp.callback != null) {
                     cbApp.linkToDeath(new ScannerDeathRecipient(scannerId));
                 } else {
-                    continuePiStartScan(scannerId, cbApp.info);
+                    continuePiStartScan(scannerId, cbApp);
                 }
             } else {
                 mScannerMap.remove(scannerId);
@@ -1629,26 +1630,36 @@ public class GattService extends ProfileService {
         piInfo.settings = settings;
         piInfo.filters = filters;
         piInfo.callingPackage = callingPackage;
-        mScannerMap.add(uuid, null, null, piInfo, this);
+        ScannerMap.App app = mScannerMap.add(uuid, null, null, piInfo, this);
+        try {
+            app.hasLocationPermisson =
+                    Utils.checkCallerHasLocationPermission(this, mAppOps, callingPackage);
+        } catch (SecurityException se) {
+            // No need to throw here. Just mark as not granted.
+            app.hasLocationPermisson = false;
+        }
+        try {
+            app.hasPeersMacAddressPermission = Utils.checkCallerHasPeersMacAddressPermission(this);
+        } catch (SecurityException se) {
+            // No need to throw here. Just mark as not granted.
+            app.hasPeersMacAddressPermission = false;
+        }
         mScanManager.registerScanner(uuid);
     }
 
-    void continuePiStartScan(int scannerId, PendingIntentInfo piInfo) {
+    void continuePiStartScan(int scannerId, ScannerMap.App app) {
+        final PendingIntentInfo piInfo = app.info;
         final ScanClient scanClient =
                 new ScanClient(scannerId, piInfo.settings, piInfo.filters, null);
-        scanClient.hasLocationPermission =
-                true; // Utils.checkCallerHasLocationPermission(this, mAppOps,
-        // piInfo.callingPackage);
-        scanClient.hasPeersMacAddressPermission =
-                true; // Utils.checkCallerHasPeersMacAddressPermission(
-        // this);
+        scanClient.hasLocationPermission = app.hasLocationPermisson;
+        scanClient.hasPeersMacAddressPermission = app.hasPeersMacAddressPermission;
         scanClient.legacyForegroundApp = Utils.isLegacyForegroundApp(this, piInfo.callingPackage);
 
-        AppScanStats app = mScannerMap.getAppScanStatsById(scannerId);
-        if (app != null) {
-            scanClient.stats = app;
+        AppScanStats scanStats = mScannerMap.getAppScanStatsById(scannerId);
+        if (scanStats != null) {
+            scanClient.stats = scanStats;
             boolean isFilteredScan = (piInfo.filters != null) && !piInfo.filters.isEmpty();
-            app.recordScanStart(piInfo.settings, isFilteredScan, scannerId);
+            scanStats.recordScanStart(piInfo.settings, isFilteredScan, scannerId);
         }
 
         mScanManager.startScan(scanClient);
