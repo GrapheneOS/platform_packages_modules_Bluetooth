@@ -387,9 +387,10 @@ class PhonePolicy {
         switch (profileId) {
             case BluetoothProfile.HEADSET:
                 HeadsetService hsService = mFactory.getHeadsetService();
-                List<BluetoothDevice> deviceList = hsService.getConnectedDevices();
-                if ((hsService != null) && (BluetoothProfile.PRIORITY_AUTO_CONNECT
-                                                   != hsService.getPriority(device))) {
+                if ((hsService != null)
+                        && (BluetoothProfile.PRIORITY_AUTO_CONNECT
+                                   != hsService.getPriority(device))) {
+                    List<BluetoothDevice> deviceList = hsService.getConnectedDevices();
                     adjustOtherHeadsetPriorities(hsService, deviceList);
                     hsService.setPriority(device, BluetoothProfile.PRIORITY_AUTO_CONNECT);
                 }
