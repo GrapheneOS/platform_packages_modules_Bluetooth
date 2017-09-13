@@ -2418,9 +2418,14 @@ public class GattService extends ProfileService {
         }
 
         for (BluetoothGattService includedService : service.getIncludedServices()) {
-            int inclSrvc = mHandleMap.getServiceHandle(includedService.getUuid(),
-                    includedService.getType(), includedService.getInstanceId());
-            db.add(GattDbElement.createIncludedService(inclSrvc));
+            int inclSrvcHandle = includedService.getInstanceId();
+
+            if (mHandleMap.checkServiceExists(includedService.getUuid(), inclSrvcHandle)) {
+                db.add(GattDbElement.createIncludedService(inclSrvcHandle));
+            } else {
+                Log.e(TAG,
+                        "included service with UUID " + includedService.getUuid() + " not found!");
+            }
         }
 
         gattServerAddServiceNative(serverIf, db);
