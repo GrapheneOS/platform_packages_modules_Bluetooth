@@ -21,6 +21,7 @@ import android.os.IBinder.DeathRecipient;
 import android.os.IInterface;
 import android.os.RemoteException;
 import android.os.WorkSource;
+import android.os.SystemClock;
 import android.util.Log;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -55,7 +56,7 @@ import com.android.bluetooth.btservice.BluetoothProto;
             this.connId = connId;
             this.address = address;
             this.appId = appId;
-            this.startTime = System.currentTimeMillis();
+            this.startTime = SystemClock.elapsedRealtime();
         }
     }
 
