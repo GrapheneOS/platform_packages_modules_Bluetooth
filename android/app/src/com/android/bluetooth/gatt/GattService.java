@@ -1047,33 +1047,40 @@ public class GattService extends ProfileService {
             {
                 case GattDbElement.TYPE_PRIMARY_SERVICE:
                 case GattDbElement.TYPE_SECONDARY_SERVICE:
-                    if (DBG) Log.d(TAG, "got service with UUID=" + el.uuid);
+                    if (DBG) Log.d(TAG, "got service with UUID=" + el.uuid + " id: " + el.id);
 
                     currSrvc = new BluetoothGattService(el.uuid, el.id, el.type);
                     db_out.add(currSrvc);
                     break;
 
                 case GattDbElement.TYPE_CHARACTERISTIC:
-                    if (DBG) Log.d(TAG, "got characteristic with UUID=" + el.uuid);
+                    if (DBG)
+                        Log.d(TAG, "got characteristic with UUID=" + el.uuid + " id: " + el.id);
 
                     currChar = new BluetoothGattCharacteristic(el.uuid, el.id, el.properties, 0);
                     currSrvc.addCharacteristic(currChar);
                     break;
 
                 case GattDbElement.TYPE_DESCRIPTOR:
-                    if (DBG) Log.d(TAG, "got descriptor with UUID=" + el.uuid);
+                    if (DBG) Log.d(TAG, "got descriptor with UUID=" + el.uuid + " id: " + el.id);
 
                     currChar.addDescriptor(new BluetoothGattDescriptor(el.uuid, el.id, 0));
                     break;
 
                 case GattDbElement.TYPE_INCLUDED_SERVICE:
-                    if (DBG) Log.d(TAG, "got included service with UUID=" + el.uuid);
+                    if (DBG)
+                        Log.d(TAG,
+                                "got included service with UUID=" + el.uuid + " id: " + el.id
+                                        + " startHandle: " + el.startHandle);
 
-                    currSrvc.addIncludedService(new BluetoothGattService(el.uuid, el.id, el.type));
+                    currSrvc.addIncludedService(
+                            new BluetoothGattService(el.uuid, el.startHandle, el.type));
                     break;
 
                 default:
-                    Log.e(TAG, "got unknown element with type=" + el.type + " and UUID=" + el.uuid);
+                    Log.e(TAG,
+                            "got unknown element with type=" + el.type + " and UUID=" + el.uuid
+                                    + " id: " + el.id);
             }
         }
 
