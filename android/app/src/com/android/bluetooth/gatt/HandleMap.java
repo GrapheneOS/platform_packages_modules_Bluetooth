@@ -131,31 +131,13 @@ class HandleMap {
         return null;
     }
 
-    int getServiceHandle(UUID uuid, int serviceType, int instance) {
+    boolean checkServiceExists(UUID uuid, int handle) {
         for(Entry entry : mEntries) {
-            if (entry.type == TYPE_SERVICE &&
-                entry.serviceType == serviceType &&
-                entry.instance == instance &&
-                entry.uuid.equals(uuid)) {
-                return entry.handle;
+            if (entry.type == TYPE_SERVICE && entry.handle == handle && entry.uuid.equals(uuid)) {
+                return true;
             }
         }
-        Log.e(TAG, "getServiceHandle() - UUID " + uuid + " not found!");
-        return 0;
-    }
-
-    int getCharacteristicHandle(int serviceHandle, UUID uuid, int instance) {
-        for(Entry entry : mEntries) {
-            if (entry.type == TYPE_CHARACTERISTIC &&
-                entry.serviceHandle == serviceHandle &&
-                entry.instance == instance &&
-                entry.uuid.equals(uuid)) {
-                return entry.handle;
-            }
-        }
-        Log.e(TAG, "getCharacteristicHandle() - Service " + serviceHandle
-                    + ", UUID " + uuid + " not found!");
-        return 0;
+        return false;
     }
 
     void deleteService(int serverIf, int serviceHandle) {
