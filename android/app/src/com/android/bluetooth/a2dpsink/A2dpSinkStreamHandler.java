@@ -19,6 +19,7 @@ package com.android.bluetooth.a2dpsink;
 import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.media.AudioAttributes;
+import android.media.AudioFocusRequest;
 import android.media.AudioManager;
 import android.media.AudioManager.OnAudioFocusChangeListener;
 import android.os.Handler;
@@ -212,8 +213,22 @@ public class A2dpSinkStreamHandler extends Handler {
      * Utility functions.
      */
     private int requestAudioFocus() {
-        int focusRequestStatus = mAudioManager.requestAudioFocus(
-                mAudioFocusListener, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN);
+        // Bluetooth A2DP may carry Music, Audio Books, Navigation, or other sounds so mark content
+        // type unknown.
+        AudioAttributes streamAttributes =
+                new AudioAttributes.Builder()
+                        .setUsage(AudioAttributes.USAGE_MEDIA)
+                        .setContentType(AudioAttributes.CONTENT_TYPE_UNKNOWN)
+                        .build();
+        // Bluetooth ducking is handled at the native layer so tell the Audio Manger to notify the
+        // focus change listener via .setWillPauseWhenDucked().
+        AudioFocusRequest focusRequest =
+                new AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN)
+                        .setAudioAttributes(streamAttributes)
+                        .setWillPauseWhenDucked(true)
+                        .setOnAudioFocusChangeListener(mAudioFocusListener, this)
+                        .build();
+        int focusRequestStatus = mAudioManager.requestAudioFocus(focusRequest);
         // If the request is granted begin streaming immediately and schedule an upgrade.
         if (focusRequestStatus == AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
             startAvrcpUpdates();
