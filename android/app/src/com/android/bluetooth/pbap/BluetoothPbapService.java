@@ -444,6 +444,10 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
 
         closeConnectionSocket();
         closeServerSocket();
+        if (mServerSockets != null) {
+            mServerSockets.shutdown(false);
+            mServerSockets = null;
+        }
         if (mSessionStatusHandler != null) mSessionStatusHandler.removeCallbacksAndMessages(null);
         if (VERBOSE) Log.v(TAG, "Pbap Service closeService out");
     }
