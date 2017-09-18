@@ -501,6 +501,7 @@ public class A2dpSinkStateMachine extends StateMachine {
                     mStreaming = new A2dpSinkStreamHandler(A2dpSinkStateMachine.this, mContext);
                 }
             }
+            informAudioFocusStateNative(0);
         }
 
         @Override
