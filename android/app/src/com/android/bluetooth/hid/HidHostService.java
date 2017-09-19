@@ -180,7 +180,7 @@ public class HidHostService extends ProfileService {
                         if (DBG) {
                             Log.d(TAG, "Incoming HID connection rejected");
                         }
-                        disconnectHidNative(Utils.getByteAddress(device));
+                        virtualUnPlugNative(Utils.getByteAddress(device));
                     } else {
                         broadcastConnectionState(device, convertHalState(halState));
                     }
