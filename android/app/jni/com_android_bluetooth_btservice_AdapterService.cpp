@@ -18,7 +18,6 @@
 #include "android_runtime/AndroidRuntime.h"
 #include "android_runtime/Log.h"
 #include "com_android_bluetooth.h"
-#include "cutils/properties.h"
 #include "hardware/bt_sock.h"
 #include "utils/Log.h"
 #include "utils/misc.h"
@@ -622,11 +621,7 @@ static void classInitNative(JNIEnv* env, jclass clazz) {
   method_energyInfo = env->GetMethodID(
       clazz, "energyInfoCallback", "(IIJJJJ[Landroid/bluetooth/UidTraffic;)V");
 
-  char value[PROPERTY_VALUE_MAX];
-  property_get("bluetooth.mock_stack", value, "");
-
-  const char* id =
-      (strcmp(value, "1") ? BT_STACK_MODULE_ID : BT_STACK_TEST_MODULE_ID);
+  const char* id = BT_STACK_MODULE_ID;
 
   hw_module_t* module;
   int err = hw_get_module(id, (hw_module_t const**)&module);
