@@ -23,8 +23,6 @@ cc_library_shared {
         "libandroid_runtime",
         "libchrome",
         "libnativehelper",
-        "libcutils",
-        "libutils",
         "liblog",
         "libhardware",
     ],
