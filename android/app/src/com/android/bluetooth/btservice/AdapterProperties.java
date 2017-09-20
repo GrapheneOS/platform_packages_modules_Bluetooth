@@ -454,8 +454,8 @@ class AdapterProperties {
                 "PROFILE_CONNECTION_STATE_CHANGE: profile=" + profile + ", device=" + device + ", "
                         + prevState + " -> " + state);
         if (!isNormalStateTransition(prevState, state)) {
-            Log.e(TAG,
-                    "PROFILE_CONNECTION_STATE_CHANGE: invalid transition for profile=" + profile
+            Log.w(TAG,
+                    "PROFILE_CONNECTION_STATE_CHANGE: unexpected transition for profile=" + profile
                             + ", device=" + device + ", " + prevState + " -> " + state);
         }
         sendConnectionStateChange(device, profile, state, prevState);
@@ -489,8 +489,8 @@ class AdapterProperties {
                         "ADAPTER_CONNECTION_STATE_CHANGE: " + device + ": " + prevAdapterState
                                 + " -> " + newAdapterState);
                 if (!isNormalStateTransition(prevState, state)) {
-                    Log.e(TAG,
-                            "ADAPTER_CONNECTION_STATE_CHANGE: invalid transition for profile="
+                    Log.w(TAG,
+                            "ADAPTER_CONNECTION_STATE_CHANGE: unexpected transition for profile="
                                     + profile + ", device=" + device + ", " + prevState + " -> "
                                     + state);
                 }
