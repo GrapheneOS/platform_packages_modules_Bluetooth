@@ -41,6 +41,7 @@ import com.android.bluetooth.hfp.HeadsetService;
 import com.android.bluetooth.pan.PanService;
 import com.android.internal.R;
 
+import java.util.HashSet;
 import java.util.List;
 
 // Describes the phone policy
@@ -84,6 +85,8 @@ class PhonePolicy {
     final private AdapterService mAdapterService;
     final private ServiceFactory mFactory;
     final private Handler mHandler;
+    final private HashSet<BluetoothDevice> mHeadsetRetrySet = new HashSet<>();
+    final private HashSet<BluetoothDevice> mA2dpRetrySet = new HashSet<>();
 
     // Broadcast receiver for all changes to states of various profiles
     private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
@@ -174,6 +177,7 @@ class PhonePolicy {
 
                 case MESSAGE_ADAPTER_STATE_TURNED_ON:
                     // Call auto connect when adapter switches state to ON
+                    resetStates();
                     autoConnect();
                     break;
             }
@@ -191,6 +195,7 @@ class PhonePolicy {
     }
     protected void cleanup() {
         mAdapterService.unregisterReceiver(mReceiver);
+        resetStates();
     }
 
     PhonePolicy(AdapterService service, ServiceFactory factory) {
@@ -248,9 +253,22 @@ class PhonePolicy {
                 + prevState + " -> " + nextState);
         if (((profileId == BluetoothProfile.A2DP) || (profileId == BluetoothProfile.HEADSET))
                 && (nextState == BluetoothProfile.STATE_CONNECTED)) {
+            switch (profileId) {
+                case BluetoothProfile.A2DP:
+                    mA2dpRetrySet.remove(device);
+                    break;
+                case BluetoothProfile.HEADSET:
+                    mHeadsetRetrySet.remove(device);
+                    break;
+            }
             connectOtherProfile(device);
             setProfileAutoConnectionPriority(device, profileId);
         }
+    }
+
+    private void resetStates() {
+        mHeadsetRetrySet.clear();
+        mA2dpRetrySet.clear();
     }
 
     private void autoConnect() {
@@ -351,26 +369,30 @@ class PhonePolicy {
         }
 
         if (allProfilesEmpty) {
+            // considered as fully disconnected, don't bother connecting others.
             debugLog("processConnectOtherProfiles, all profiles disconnected for " + device);
-            // must have connected then disconnected, don't bother connecting others.
+            // reset retry status so that in the next round we can start retrying connections again
+            resetStates();
             return;
         }
 
         if (hsService != null) {
-            if (hsConnDevList.isEmpty()
+            if (hsConnDevList.isEmpty() && !mHeadsetRetrySet.contains(device)
                     && (hsService.getPriority(device) >= BluetoothProfile.PRIORITY_ON)
                     && (hsService.getConnectionState(device)
                                == BluetoothProfile.STATE_DISCONNECTED)) {
                 debugLog("Retrying connection to Headset with device " + device);
+                mHeadsetRetrySet.add(device);
                 hsService.connect(device);
             }
         }
         if (a2dpService != null) {
-            if (a2dpConnDevList.isEmpty()
+            if (a2dpConnDevList.isEmpty() && !mA2dpRetrySet.contains(device)
                     && (a2dpService.getPriority(device) >= BluetoothProfile.PRIORITY_ON)
                     && (a2dpService.getConnectionState(device)
                                == BluetoothProfile.STATE_DISCONNECTED)) {
                 debugLog("Retrying connection to A2DP with device " + device);
+                mA2dpRetrySet.add(device);
                 a2dpService.connect(device);
             }
         }
