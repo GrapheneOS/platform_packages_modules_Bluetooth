@@ -1577,7 +1577,6 @@ public class GattService extends ProfileService {
             enforceImpersonatationPermission();
         }
 
-        mScannerMap.add(uuid, workSource, callback, null, this);
         AppScanStats app = mScannerMap.getAppScanStatsByUid(Binder.getCallingUid());
         if (app != null && app.isScanningTooFrequently()
                 && checkCallingOrSelfPermission(BLUETOOTH_PRIVILEGED) != PERMISSION_GRANTED) {
@@ -1586,6 +1585,7 @@ public class GattService extends ProfileService {
             return;
         }
 
+        mScannerMap.add(uuid, workSource, callback, null, this);
         mScanManager.registerScanner(uuid);
     }
 
