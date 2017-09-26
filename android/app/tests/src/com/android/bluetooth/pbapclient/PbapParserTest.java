@@ -24,6 +24,7 @@ import android.test.AndroidTestCase;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.TimeZone;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -81,11 +82,10 @@ public class PbapParserTest extends AndroidTestCase {
         processor.setResults(pbapVCardList.getList());
 
         // Verify that these entries aren't in the call log to start.
-        // EST is default Time Zone
-        assertFalse(verifyCallLog("555-0002", "1483250460000", "3"));
+        assertFalse(verifyCallLog("555-0002", "1483232460000", "3"));
         // Finish processing the data and verify entries were added to the call log.
         processor.onPullComplete();
-        assertTrue(verifyCallLog("555-0002", "1483250460000", "3"));
+        assertTrue(verifyCallLog("555-0002", "1483232460000", "3"));
     }
 
     // testUnknownCall should parse two calls with no phone number.
@@ -102,14 +102,13 @@ public class PbapParserTest extends AndroidTestCase {
         processor.setResults(pbapVCardList.getList());
 
         // Verify that these entries aren't in the call log to start.
-        // EST is default Time Zone
-        assertFalse(verifyCallLog("", "1483250520000", "3"));
-        assertFalse(verifyCallLog("", "1483250580000", "3"));
+        assertFalse(verifyCallLog("", "1483232520000", "3"));
+        assertFalse(verifyCallLog("", "1483232580000", "3"));
 
         // Finish processing the data and verify entries were added to the call log.
         processor.onPullComplete();
-        assertTrue(verifyCallLog("", "1483250520000", "3"));
-        assertTrue(verifyCallLog("", "1483250580000", "3"));
+        assertTrue(verifyCallLog("", "1483232520000", "3"));
+        assertTrue(verifyCallLog("", "1483232580000", "3"));
     }
 
     // Find Entries in call log with type matching number and date.
@@ -118,6 +117,9 @@ public class PbapParserTest extends AndroidTestCase {
         String[] query = new String[] {Calls.NUMBER, Calls.DATE, Calls.TYPE};
         Cursor cursor = mContext.getContentResolver().query(Calls.CONTENT_URI, query,
                 Calls.TYPE + "= " + type, null, Calls.DATE + ", " + Calls.NUMBER);
+        if (date != null) {
+            date = adjDate(date);
+        }
         if (cursor != null) {
             while (cursor.moveToNext()) {
                 String foundNumber = cursor.getString(cursor.getColumnIndex(Calls.NUMBER));
@@ -130,5 +132,12 @@ public class PbapParserTest extends AndroidTestCase {
             cursor.close();
         }
         return false;
+    }
+
+    // Get time zone from device and adjust date to the device's time zone.
+    String adjDate(String date) {
+        TimeZone tz = TimeZone.getDefault();
+        long dt = Long.valueOf(date) - tz.getRawOffset();
+        return Long.toString(dt);
     }
 }
