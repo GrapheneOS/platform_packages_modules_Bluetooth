@@ -29,6 +29,8 @@
 #include <sys/prctl.h>
 #include <sys/stat.h>
 
+using bluetooth::Uuid;
+
 namespace android {
 // OOB_LE_BD_ADDR_SIZE is 6 bytes addres + 1 byte address type
 #define OOB_LE_BD_ADDR_SIZE 7
@@ -1085,20 +1087,23 @@ static int connectSocketNative(JNIEnv* env, jobject object, jbyteArray address,
     return -1;
   }
 
-  jbyte* uuid = NULL;
+  Uuid uuid;
   if (uuidObj != NULL) {
-    uuid = env->GetByteArrayElements(uuidObj, NULL);
-    if (!uuid) {
+    jbyte* tmp = env->GetByteArrayElements(uuidObj, NULL);
+    if (!tmp) {
       ALOGE("failed to get uuid");
       env->ReleaseByteArrayElements(address, addr, 0);
       return -1;
     }
+
+    uuid = Uuid::From128BitBE(reinterpret_cast<uint8_t*>(tmp));
+    env->ReleaseByteArrayElements(uuidObj, tmp, 0);
   }
 
   int socket_fd = -1;
   bt_status_t status = sBluetoothSocketInterface->connect(
-      (RawAddress*)addr, (btsock_type_t)type, (const uint8_t*)uuid, channel,
-      &socket_fd, flag, callingUid);
+      (RawAddress*)addr, (btsock_type_t)type, uuidObj ? &uuid : nullptr,
+      channel, &socket_fd, flag, callingUid);
   if (status != BT_STATUS_SUCCESS) {
     ALOGE("Socket connection failed: %d", status);
     socket_fd = -1;
@@ -1107,7 +1112,6 @@ static int connectSocketNative(JNIEnv* env, jobject object, jbyteArray address,
   }
 
   env->ReleaseByteArrayElements(address, addr, 0);
-  env->ReleaseByteArrayElements(uuidObj, uuid, 0);
   return socket_fd;
 }
 
@@ -1123,19 +1127,22 @@ static int createSocketChannelNative(JNIEnv* env, jobject object, jint type,
     service_name = env->GetStringUTFChars(name_str, NULL);
   }
 
-  jbyte* uuid = NULL;
+  Uuid uuid;
   if (uuidObj != NULL) {
-    uuid = env->GetByteArrayElements(uuidObj, NULL);
-    if (!uuid) {
+    jbyte* tmp = env->GetByteArrayElements(uuidObj, NULL);
+    if (!tmp) {
       ALOGE("failed to get uuid");
       if (service_name) env->ReleaseStringUTFChars(name_str, service_name);
       return -1;
     }
+
+    uuid = Uuid::From128BitBE(reinterpret_cast<uint8_t*>(tmp));
+    env->ReleaseByteArrayElements(uuidObj, tmp, 0);
   }
 
   int socket_fd = -1;
   bt_status_t status = sBluetoothSocketInterface->listen(
-      (btsock_type_t)type, service_name, (const uint8_t*)uuid, channel,
+      (btsock_type_t)type, service_name, uuidObj ? &uuid : nullptr, channel,
       &socket_fd, flag, callingUid);
   if (status != BT_STATUS_SUCCESS) {
     ALOGE("Socket listen failed: %d", status);
@@ -1145,7 +1152,6 @@ static int createSocketChannelNative(JNIEnv* env, jobject object, jint type,
   }
 
   if (service_name) env->ReleaseStringUTFChars(name_str, service_name);
-  if (uuid) env->ReleaseByteArrayElements(uuidObj, uuid, 0);
   return socket_fd;
 }
 
