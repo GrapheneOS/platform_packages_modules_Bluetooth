@@ -29,6 +29,7 @@ import android.os.HandlerThread;
 import android.os.Looper;
 import android.os.Message;
 import android.os.ParcelUuid;
+import android.support.test.filters.MediumTest;
 import android.util.Log;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -46,6 +47,7 @@ import com.android.bluetooth.Utils;
 
 import static org.mockito.Mockito.*;
 
+@MediumTest
 public class PhonePolicyTest extends AndroidTestCase {
     private static final String TAG = "PhonePolicyTest";
     private static final int ASYNC_CALL_TIMEOUT = 2000; // 2s
