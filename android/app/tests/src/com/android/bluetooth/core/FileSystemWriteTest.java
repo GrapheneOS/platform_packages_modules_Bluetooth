@@ -1,9 +1,12 @@
 package com.android.bluetooth;
 
 import android.test.AndroidTestCase;
+import android.support.test.filters.MediumTest;
+
 import java.io.IOException;
 import java.io.File;
 
+@MediumTest
 // Test Bluetooth's ability to write to the different directories that it
 // is supposed to own
 public class FileSystemWriteTest extends AndroidTestCase {
