@@ -108,6 +108,14 @@ class HeadsetPhoneState {
         mStateMachine = null;
     }
 
+    public String toString() {
+        return "HeadsetPhoneState [mService=" + mService + ", mNumActive=" + mNumActive
+                + ", mCallState=" + mCallState + ", mNumHeld=" + mNumHeld + ", mSignal=" + mSignal
+                + ", mRoam=" + mRoam + ", mBatteryCharge=" + mBatteryCharge
+                + ", mSpeakerVolume=" + mSpeakerVolume + ", mMicVolume=" + mMicVolume
+                + ", mListening=" + mListening + ", mSlcReady=" + mSlcReady + "]";
+    }
+
     void listenForPhoneState(boolean start) {
 
         mSlcReady = start;
