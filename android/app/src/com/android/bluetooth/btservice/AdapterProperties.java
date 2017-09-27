@@ -218,6 +218,18 @@ class AdapterProperties {
     }
 
     /**
+     * Set the Bluetooth Class of Device (CoD) of the adapter.
+     *
+     * @param bytes BluetoothClass of the device
+     */
+    boolean setBluetoothClass(byte[] bytes) {
+        synchronized (mObject) {
+            return mService.setAdapterPropertyNative(
+                    AbstractionLayer.BT_PROPERTY_CLASS_OF_DEVICE, bytes);
+        }
+    }
+
+    /**
      * @return the mClass
      */
     int getBluetoothClass() {
