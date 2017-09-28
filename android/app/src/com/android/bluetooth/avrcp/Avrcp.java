@@ -279,6 +279,13 @@ public final class Avrcp {
         Resources resources = context.getResources();
         if (resources != null) {
             mAbsVolThreshold = resources.getInteger(R.integer.a2dp_absolute_volume_initial_threshold);
+
+            // Update the threshold if the threshold_percent is valid
+            int threshold_percent =
+                    resources.getInteger(R.integer.a2dp_absolute_volume_initial_threshold_percent);
+            if (threshold_percent >= 0 && threshold_percent <= 100) {
+                mAbsVolThreshold = (threshold_percent * mAudioStreamMax) / 100;
+            }
         }
 
         // Register for package removal intent broadcasts for media button receiver persistence
