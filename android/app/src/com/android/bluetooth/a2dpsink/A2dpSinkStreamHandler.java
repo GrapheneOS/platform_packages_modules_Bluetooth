@@ -18,6 +18,7 @@ package com.android.bluetooth.a2dpsink;
 
 import android.bluetooth.BluetoothDevice;
 import android.content.Context;
+import android.content.pm.PackageManager;
 import android.media.AudioAttributes;
 import android.media.AudioFocusRequest;
 import android.media.AudioManager;
@@ -135,7 +136,16 @@ public class A2dpSinkStreamHandler extends Handler {
                 break;
 
             case SRC_PLAY:
-                // Remote play command, if we have audio focus update avrcp, otherwise send pause.
+                // Remote play command.
+                // If is an iot device gain focus and start avrcp updates.
+                if (isIotDevice()) {
+                    if (mAudioFocus == AudioManager.AUDIOFOCUS_NONE) {
+                        requestAudioFocus();
+                    }
+                    startAvrcpUpdates();
+                    break;
+                }
+                // Otherwise, pause if we don't have focus
                 if (mAudioFocus == AudioManager.AUDIOFOCUS_NONE) {
                     sendAvrcpPause();
                 } else {
@@ -336,5 +346,9 @@ public class A2dpSinkStreamHandler extends Handler {
         } else {
             Log.e(TAG, "Passthrough not sent, connection un-available.");
         }
+    }
+
+    private boolean isIotDevice() {
+        return mContext.getPackageManager().hasSystemFeature(PackageManager.FEATURE_EMBEDDED);
     }
 }
