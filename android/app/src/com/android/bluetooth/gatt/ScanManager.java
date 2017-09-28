@@ -90,7 +90,7 @@ public class ScanManager {
     private BroadcastReceiver mBatchAlarmReceiver;
     private boolean mBatchAlarmReceiverRegistered;
     private ScanNative mScanNative;
-    private ClientHandler mHandler;
+    private volatile ClientHandler mHandler;
 
     private Set<ScanClient> mRegularScanClients;
     private Set<ScanClient> mBatchClients;
@@ -157,7 +157,7 @@ public class ScanManager {
             mHandler.removeCallbacksAndMessages(null);
             Looper looper = mHandler.getLooper();
             if (looper != null) {
-                looper.quit();
+                looper.quitSafely();
             }
             mHandler = null;
         }
@@ -222,10 +222,15 @@ public class ScanManager {
     }
 
     private void sendMessage(int what, ScanClient client) {
+        final ClientHandler handler = mHandler;
+        if (handler == null) {
+            Log.d(TAG, "sendMessage: mHandler is null.");
+            return;
+        }
         Message message = new Message();
         message.what = what;
         message.obj = client;
-        mHandler.sendMessage(message);
+        handler.sendMessage(message);
     }
 
     private boolean isFilteringSupported() {
@@ -307,10 +312,10 @@ public class ScanManager {
                     mScanNative.configureRegularScanParams();
 
                     if (!mScanNative.isExemptFromScanDowngrade(client)) {
-                        Message msg = mHandler.obtainMessage(MSG_SCAN_TIMEOUT);
+                        Message msg = obtainMessage(MSG_SCAN_TIMEOUT);
                         msg.obj = client;
                         // Only one timeout message should exist at any time
-                        mHandler.sendMessageDelayed(msg, AppScanStats.SCAN_TIMEOUT_MS);
+                        sendMessageDelayed(msg, AppScanStats.SCAN_TIMEOUT_MS);
                     }
                 }
             }
@@ -328,7 +333,7 @@ public class ScanManager {
                 mScanNative.stopRegularScan(client);
 
                 if (mScanNative.numRegularScanClients() == 0) {
-                    mHandler.removeMessages(MSG_SCAN_TIMEOUT);
+                    removeMessages(MSG_SCAN_TIMEOUT);
                 }
 
                 if (!mScanNative.isOpportunisticScanClient(client)) {
