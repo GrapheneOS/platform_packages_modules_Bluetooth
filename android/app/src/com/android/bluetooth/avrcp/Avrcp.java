@@ -279,6 +279,13 @@ public final class Avrcp {
         Resources resources = context.getResources();
         if (resources != null) {
             mAbsVolThreshold = resources.getInteger(R.integer.a2dp_absolute_volume_initial_threshold);
+
+            // Update the threshold if the threshold_percent is valid
+            int threshold_percent =
+                    resources.getInteger(R.integer.a2dp_absolute_volume_initial_threshold_percent);
+            if (threshold_percent >= 0 && threshold_percent <= 100) {
+                mAbsVolThreshold = (threshold_percent * mAudioStreamMax) / 100;
+            }
         }
 
         // Register for package removal intent broadcasts for media button receiver persistence
@@ -413,10 +420,13 @@ public final class Avrcp {
             case MSG_NATIVE_REQ_GET_RC_FEATURES:
             {
                 String address = (String) msg.obj;
-                if (DEBUG) Log.v(TAG, "MSG_NATIVE_REQ_GET_RC_FEATURES: address="+address+
-                        ", features="+msg.arg1);
                 mFeatures = msg.arg1;
                 mFeatures = modifyRcFeatureFromBlacklist(mFeatures, address);
+                if (DEBUG) {
+                    Log.v(TAG,
+                            "MSG_NATIVE_REQ_GET_RC_FEATURES: address=" + address
+                                    + ", features=" + msg.arg1 + ", mFeatures=" + mFeatures);
+                }
                 mAudioManager.avrcpSupportsAbsoluteVolume(address, isAbsoluteVolumeSupported());
                 mLastLocalVolume = -1;
                 mRemoteVolume = -1;
