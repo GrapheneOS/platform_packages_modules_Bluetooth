@@ -402,9 +402,11 @@ import com.android.bluetooth.btservice.BluetoothProto;
             Iterator<ContextMap.Connection> ii = connections.iterator();
             while(ii.hasNext()) {
                 ContextMap.Connection connection = ii.next();
-                long connectionTime = SystemClock.elapsedRealtime() - connection.startTime;
-                sb.append("    " + connection.connId + ": " +
-                          connection.address + " " + connectionTime + "ms\n");
+                long connectionTime = elapsedRt - connection.startTime;
+                Date timestamp = new Date(currentTime - elapsedRt + connection.startTime);
+                sb.append("    " + dateFormat.format(timestamp) + " - ");
+                sb.append((connectionTime) + "ms ");
+                sb.append(": " + connection.address + " (" + connection.connId + ")\n");
             }
         }
         sb.append("\n");
