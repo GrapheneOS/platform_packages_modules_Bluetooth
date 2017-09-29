@@ -420,10 +420,13 @@ public final class Avrcp {
             case MSG_NATIVE_REQ_GET_RC_FEATURES:
             {
                 String address = (String) msg.obj;
-                if (DEBUG) Log.v(TAG, "MSG_NATIVE_REQ_GET_RC_FEATURES: address="+address+
-                        ", features="+msg.arg1);
                 mFeatures = msg.arg1;
                 mFeatures = modifyRcFeatureFromBlacklist(mFeatures, address);
+                if (DEBUG) {
+                    Log.v(TAG,
+                            "MSG_NATIVE_REQ_GET_RC_FEATURES: address=" + address
+                                    + ", features=" + msg.arg1 + ", mFeatures=" + mFeatures);
+                }
                 mAudioManager.avrcpSupportsAbsoluteVolume(address, isAbsoluteVolumeSupported());
                 mLastLocalVolume = -1;
                 mRemoteVolume = -1;
