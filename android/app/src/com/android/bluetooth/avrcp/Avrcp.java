@@ -33,6 +33,7 @@ import android.content.pm.ResolveInfo;
 import android.content.res.Resources;
 import android.content.SharedPreferences;
 import android.media.AudioManager;
+import android.media.AudioPlaybackConfiguration;
 import android.media.MediaDescription;
 import android.media.MediaMetadata;
 import android.media.browse.MediaBrowser;
@@ -78,6 +79,8 @@ public final class Avrcp {
     private Context mContext;
     private final AudioManager mAudioManager;
     private AvrcpMessageHandler mHandler;
+    private Handler mAudioManagerPlaybackHandler;
+    private AudioManagerPlaybackListener mAudioManagerPlaybackCb;
     private MediaSessionManager mMediaSessionManager;
     private @Nullable MediaController mMediaController;
     private MediaControllerListener mMediaControllerCb;
@@ -87,6 +90,7 @@ public final class Avrcp {
     private int mTransportControlFlags;
     private @NonNull PlaybackState mCurrentPlayState;
     private int mA2dpState;
+    private boolean mAudioManagerIsPlaying;
     private int mPlayStatusChangedNT;
     private byte mReportedPlayStatus;
     private int mTrackChangedNT;
@@ -240,6 +244,7 @@ public final class Avrcp {
         mCurrentPlayState = new PlaybackState.Builder().setState(PlaybackState.STATE_NONE, -1L, 0.0f).build();
         mReportedPlayStatus = PLAYSTATUS_ERROR;
         mA2dpState = BluetoothA2dp.STATE_NOT_PLAYING;
+        mAudioManagerIsPlaying = false;
         mPlayStatusChangedNT = AvrcpConstants.NOTIFICATION_TYPE_CHANGED;
         mTrackChangedNT = AvrcpConstants.NOTIFICATION_TYPE_CHANGED;
         mPlayPosChangedNT = AvrcpConstants.NOTIFICATION_TYPE_CHANGED;
@@ -307,6 +312,8 @@ public final class Avrcp {
         thread.start();
         Looper looper = thread.getLooper();
         mHandler = new AvrcpMessageHandler(looper);
+        mAudioManagerPlaybackHandler = new Handler(looper);
+        mAudioManagerPlaybackCb = new AudioManagerPlaybackListener();
         mMediaControllerCb = new MediaControllerListener();
         mAvrcpMediaRsp = new AvrcpMediaRsp();
         mMediaPlayerInfoList = new TreeMap<Integer, MediaPlayerInfo>();
@@ -336,6 +343,9 @@ public final class Avrcp {
             // initialize browsable player list and build media player list
             buildBrowsablePlayerList();
         }
+
+        mAudioManager.registerAudioPlaybackCallback(
+                mAudioManagerPlaybackCb, mAudioManagerPlaybackHandler);
     }
 
     public static Avrcp make(Context context) {
@@ -347,18 +357,23 @@ public final class Avrcp {
 
     public synchronized void doQuit() {
         if (DEBUG) Log.d(TAG, "doQuit");
+        if (mAudioManager != null) {
+            mAudioManager.unregisterAudioPlaybackCallback(mAudioManagerPlaybackCb);
+        }
         if (mMediaController != null) mMediaController.unregisterCallback(mMediaControllerCb);
         if (mMediaSessionManager != null) {
             mMediaSessionManager.setCallback(null, null);
             mMediaSessionManager.removeOnActiveSessionsChangedListener(mActiveSessionListener);
         }
 
+        mAudioManagerPlaybackHandler.removeCallbacksAndMessages(null);
         mHandler.removeCallbacksAndMessages(null);
         Looper looper = mHandler.getLooper();
         if (looper != null) {
             looper.quit();
         }
 
+        mAudioManagerPlaybackHandler = null;
         mHandler = null;
         mContext.unregisterReceiver(mAvrcpReceiver);
         mContext.unregisterReceiver(mBootReceiver);
@@ -372,6 +387,30 @@ public final class Avrcp {
         cleanupNative();
         if (mVolumeMapping != null)
             mVolumeMapping.clear();
+    }
+
+    private class AudioManagerPlaybackListener extends AudioManager.AudioPlaybackCallback {
+        @Override
+        public void onPlaybackConfigChanged(List<AudioPlaybackConfiguration> configs) {
+            super.onPlaybackConfigChanged(configs);
+            boolean isPlaying = false;
+            for (AudioPlaybackConfiguration config : configs) {
+                if (DEBUG) {
+                    Log.d(TAG,
+                            "AudioManager Player: "
+                                    + AudioPlaybackConfiguration.toLogFriendlyString(config));
+                }
+                if (config.getPlayerState() == AudioPlaybackConfiguration.PLAYER_STATE_STARTED) {
+                    isPlaying = true;
+                    break;
+                }
+            }
+            if (DEBUG) Log.d(TAG, "AudioManager isPlaying: " + isPlaying);
+            if (mAudioManagerIsPlaying != isPlaying) {
+                mAudioManagerIsPlaying = isPlaying;
+                updateCurrentMediaState();
+            }
+        }
     }
 
     private class MediaControllerListener extends MediaController.Callback {
@@ -807,10 +846,22 @@ public final class Avrcp {
 
             if (controllerState != null) {
                 newState = controllerState;
-            } else if (mAudioManager != null && mAudioManager.isMusicActive()) {
-                // Use A2DP state if we don't have a state from MediaControlller
+            }
+            // Use the AudioManager to update the playback state.
+            // NOTE: We cannot use the
+            //    (mA2dpState == BluetoothA2dp.STATE_PLAYING)
+            // check, because after Pause, the A2DP state remains in
+            // STATE_PLAYING for 3 more seconds.
+            // As a result of that, if we pause the music, on carkits the
+            // Play status indicator will continue to display "Playing"
+            // for 3 more seconds which can be confusing.
+            if (mAudioManagerIsPlaying
+                    || (controllerState == null && mAudioManager != null
+                               && mAudioManager.isMusicActive())) {
+                // Use AudioManager playback state if we don't have the state
+                // from MediaControlller
                 PlaybackState.Builder builder = new PlaybackState.Builder();
-                if (mA2dpState == BluetoothA2dp.STATE_PLAYING) {
+                if (mAudioManagerIsPlaying) {
                     builder.setState(PlaybackState.STATE_PLAYING,
                             PlaybackState.PLAYBACK_POSITION_UNKNOWN, 1.0f);
                 } else {
@@ -1026,22 +1077,6 @@ public final class Avrcp {
                 mAddressedMediaPlayer.updateNowPlayingList(mMediaController);
             }
 
-            if ((newQueueId == -1 || newQueueId != mLastQueueId)
-                    && currentAttributes.equals(mMediaAttributes)
-                    && newPlayStatus == PLAYSTATUS_PLAYING
-                    && mReportedPlayStatus == PLAYSTATUS_STOPPED) {
-                // Most carkits like seeing the track changed before the
-                // playback state changed, but some controllers are slow
-                // to update their metadata. Hold of on sending the playback state
-                // update until after we know the current metadata is up to date
-                // and track changed has been sent. This was seen on BMW carkits
-                Log.i(TAG,
-                        "Waiting for metadata update to send track changed: " + newQueueId + " : "
-                                + currentAttributes + " : " + mMediaAttributes);
-
-                return;
-            }
-
             // Notify track changed if:
             //  - The CT is registered for the notification
             //  - Queue ID is UNKNOWN and MediaMetadata is different
@@ -1060,9 +1095,11 @@ public final class Avrcp {
         }
 
         // still send the updated play state if the playback state is none or buffering
-        Log.e(TAG, "play status change " + mReportedPlayStatus + "➡" + newPlayStatus);
+        Log.e(TAG,
+                "play status change " + mReportedPlayStatus + "➡" + newPlayStatus
+                        + " mPlayStatusChangedNT: " + mPlayStatusChangedNT);
         if (mPlayStatusChangedNT == AvrcpConstants.NOTIFICATION_TYPE_INTERIM
-                && (mReportedPlayStatus != newPlayStatus)) {
+                || (mReportedPlayStatus != newPlayStatus)) {
             sendPlaybackStatus(AvrcpConstants.NOTIFICATION_TYPE_CHANGED, newPlayStatus);
         }
 
