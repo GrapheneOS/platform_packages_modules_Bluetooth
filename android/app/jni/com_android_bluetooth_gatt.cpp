@@ -1362,19 +1362,6 @@ static void gattClientScanFilterAddNative(
       address, addr_type, data, mask);
 }
 
-static void gattClientScanFilterDeleteNative(
-    JNIEnv* env, jobject object, jint client_if, jint filt_type,
-    jint filt_index, jint company_id, jint company_id_mask, jlong uuid_lsb,
-    jlong uuid_msb, jlong uuid_mask_lsb, jlong uuid_mask_msb, jstring name,
-    jstring address, jbyte addr_type, jbyteArray data, jbyteArray mask) {
-  if (!sGattIf) return;
-  int action = 1;
-  gattClientScanFilterAddRemoveNative(
-      env, object, client_if, action, filt_type, filt_index, company_id,
-      company_id_mask, uuid_lsb, uuid_msb, uuid_mask_lsb, uuid_mask_msb, name,
-      address, addr_type, data, mask);
-}
-
 static void gattClientScanFilterClearNative(JNIEnv* env, jobject object,
                                             jint client_if, jint filt_index) {
   if (!sGattIf) return;
@@ -2120,9 +2107,6 @@ static JNINativeMethod sScanMethods[] = {
     {"gattClientScanFilterAddNative",
      "(IIIIIJJJJLjava/lang/String;Ljava/lang/String;B[B[B)V",
      (void*)gattClientScanFilterAddNative},
-    {"gattClientScanFilterDeleteNative",
-     "(IIIIIJJJJLjava/lang/String;Ljava/lang/String;B[B[B)V",
-     (void*)gattClientScanFilterDeleteNative},
     {"gattClientScanFilterClearNative", "(II)V",
      (void*)gattClientScanFilterClearNative},
     {"gattClientScanFilterEnableNative", "(IZ)V",
