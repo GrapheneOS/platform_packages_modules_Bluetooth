@@ -239,7 +239,7 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
     private BluetoothPbapContentObserver mContactChangeObserver;
 
     public BluetoothPbapService() {
-        mState = BluetoothPbap.STATE_DISCONNECTED;
+        mState = BluetoothProfile.STATE_DISCONNECTED;
         mContext = this;
     }
 
@@ -480,7 +480,7 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
         }
         BluetoothObexTransport transport = new BluetoothObexTransport(mConnSocket);
         mServerSession = new ServerSession(transport, mPbapServer, mAuth);
-        setState(BluetoothPbap.STATE_CONNECTED);
+        setState(BluetoothProfile.STATE_CONNECTED);
 
         mSessionStatusHandler.removeMessages(MSG_RELEASE_WAKE_LOCK);
         mSessionStatusHandler.sendMessageDelayed(mSessionStatusHandler
@@ -512,7 +512,7 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
         if (mAdapter != null && mAdapter.isEnabled()) {
             startSocketListeners();
         }
-        setState(BluetoothPbap.STATE_DISCONNECTED);
+        setState(BluetoothProfile.STATE_DISCONNECTED);
     }
 
     private void notifyAuthKeyInput(final String key) {
@@ -732,7 +732,7 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
                     + result);
             int prevState = mState;
             mState = state;
-            Intent intent = new Intent(BluetoothPbap.PBAP_STATE_CHANGED_ACTION);
+            Intent intent = new Intent(BluetoothPbap.ACTION_CONNECTION_STATE_CHANGED);
             intent.putExtra(BluetoothProfile.EXTRA_PREVIOUS_STATE, prevState);
             intent.putExtra(BluetoothProfile.EXTRA_STATE, mState);
             intent.putExtra(BluetoothDevice.EXTRA_DEVICE, mRemoteDevice);
@@ -858,13 +858,13 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
             Log.w(TAG, "Unable to unregister pbap receiver", e);
         }
         mSessionStatusHandler.obtainMessage(SHUTDOWN).sendToTarget();
-        setState(BluetoothPbap.STATE_DISCONNECTED, BluetoothPbap.RESULT_CANCELED);
+        setState(BluetoothProfile.STATE_DISCONNECTED, BluetoothPbap.RESULT_CANCELED);
         return true;
     }
 
     protected void disconnect() {
         synchronized (this) {
-            if (mState == BluetoothPbap.STATE_CONNECTED) {
+            if (mState == BluetoothProfile.STATE_CONNECTED) {
                 if (mServerSession != null) {
                     mServerSession.close();
                     mServerSession = null;
@@ -872,7 +872,7 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
 
                 closeConnectionSocket();
 
-                setState(BluetoothPbap.STATE_DISCONNECTED, BluetoothPbap.RESULT_CANCELED);
+                setState(BluetoothProfile.STATE_DISCONNECTED, BluetoothPbap.RESULT_CANCELED);
             }
         }
     }
@@ -906,7 +906,7 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
         public int getState() {
             if (DEBUG) Log.d(TAG, "getState = " + mService.getState());
             BluetoothPbapService service = getService(BLUETOOTH_PERM);
-            if (service == null) return BluetoothPbap.STATE_DISCONNECTED;
+            if (service == null) return BluetoothProfile.STATE_DISCONNECTED;
 
             return service.getState();
         }
@@ -922,7 +922,7 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
             if (DEBUG) Log.d(TAG, "isConnected " + device);
             BluetoothPbapService service = getService(BLUETOOTH_PERM);
             if (service == null) return false;
-            return service.getState() == BluetoothPbap.STATE_CONNECTED
+            return service.getState() == BluetoothProfile.STATE_CONNECTED
                     && service.getRemoteDevice().equals(device);
         }
 
