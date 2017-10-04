@@ -76,8 +76,7 @@ public class A2dpSinkStreamHandlerTest extends AndroidTestCase {
         when(mockContext.getSystemService(Context.AUDIO_SERVICE)).thenReturn(mockAudioManager);
         when(mockContext.getResources()).thenReturn(mockResources);
         when(mockResources.getInteger(anyInt())).thenReturn(DUCK_PERCENT);
-        when(mockAudioManager.requestAudioFocus(audioFocusChangeListenerArgumentCaptor.capture(),
-                     eq(AudioManager.STREAM_MUSIC), eq(AudioManager.AUDIOFOCUS_GAIN)))
+        when(mockAudioManager.requestAudioFocus(any()))
                 .thenReturn(AudioManager.AUDIOFOCUS_REQUEST_GRANTED);
         when(mockAudioManager.abandonAudioFocus(any())).thenReturn(AudioManager.AUDIOFOCUS_GAIN);
         doNothing().when(mockA2dpSink).informAudioTrackGainNative(anyFloat());
@@ -93,7 +92,7 @@ public class A2dpSinkStreamHandlerTest extends AndroidTestCase {
         // Stream started without local play, expect no change in streaming.
         streamHandler.handleMessage(
                 streamHandler.obtainMessage(A2dpSinkStreamHandler.SRC_STR_START));
-        verify(mockAudioManager, times(0)).requestAudioFocus(any(), anyInt(), anyInt());
+        verify(mockAudioManager, times(0)).requestAudioFocus(any());
         verify(mockA2dpSink, times(0)).informAudioFocusStateNative(1);
         verify(mockA2dpSink, times(0)).informAudioTrackGainNative(1.0f);
     }
@@ -103,7 +102,7 @@ public class A2dpSinkStreamHandlerTest extends AndroidTestCase {
         // Stream stopped without local play, expect no change in streaming.
         streamHandler.handleMessage(
                 streamHandler.obtainMessage(A2dpSinkStreamHandler.SRC_STR_STOP));
-        verify(mockAudioManager, times(0)).requestAudioFocus(any(), anyInt(), anyInt());
+        verify(mockAudioManager, times(0)).requestAudioFocus(any());
         verify(mockA2dpSink, times(0)).informAudioFocusStateNative(1);
         verify(mockA2dpSink, times(0)).informAudioTrackGainNative(1.0f);
     }
@@ -112,7 +111,7 @@ public class A2dpSinkStreamHandlerTest extends AndroidTestCase {
     public void testSnkPlay() {
         // Play was pressed locally, expect streaming to start.
         streamHandler.handleMessage(streamHandler.obtainMessage(A2dpSinkStreamHandler.SNK_PLAY));
-        verify(mockAudioManager, times(1)).requestAudioFocus(any(), anyInt(), anyInt());
+        verify(mockAudioManager, times(1)).requestAudioFocus(any());
         verify(mockA2dpSink, times(1)).informAudioFocusStateNative(1);
         verify(mockA2dpSink, times(1)).informAudioTrackGainNative(1.0f);
     }
@@ -121,7 +120,7 @@ public class A2dpSinkStreamHandlerTest extends AndroidTestCase {
     public void testSnkPause() {
         // Pause was pressed locally, expect streaming to stop.
         streamHandler.handleMessage(streamHandler.obtainMessage(A2dpSinkStreamHandler.SNK_PAUSE));
-        verify(mockAudioManager, times(0)).requestAudioFocus(any(), anyInt(), anyInt());
+        verify(mockAudioManager, times(0)).requestAudioFocus(any());
         verify(mockA2dpSink, times(0)).informAudioFocusStateNative(1);
         verify(mockA2dpSink, times(0)).informAudioTrackGainNative(1.0f);
     }
@@ -139,7 +138,7 @@ public class A2dpSinkStreamHandlerTest extends AndroidTestCase {
     public void testSrcPlay() {
         // Play was pressed remotely, expect no streaming due to lack of audio focus.
         streamHandler.handleMessage(streamHandler.obtainMessage(A2dpSinkStreamHandler.SRC_PLAY));
-        verify(mockAudioManager, times(0)).requestAudioFocus(any(), anyInt(), anyInt());
+        verify(mockAudioManager, times(0)).requestAudioFocus(any());
         verify(mockA2dpSink, times(0)).informAudioFocusStateNative(1);
         verify(mockA2dpSink, times(0)).informAudioTrackGainNative(1.0f);
     }
@@ -149,7 +148,7 @@ public class A2dpSinkStreamHandlerTest extends AndroidTestCase {
         // Play was pressed remotely for an iot device, expect streaming to start.
         when(mockPackageManager.hasSystemFeature(any())).thenReturn(true);
         streamHandler.handleMessage(streamHandler.obtainMessage(A2dpSinkStreamHandler.SRC_PLAY));
-        verify(mockAudioManager, times(1)).requestAudioFocus(any(), anyInt(), anyInt());
+        verify(mockAudioManager, times(1)).requestAudioFocus(any());
         verify(mockA2dpSink, times(1)).informAudioFocusStateNative(1);
         verify(mockA2dpSink, times(1)).informAudioTrackGainNative(1.0f);
     }
@@ -158,7 +157,7 @@ public class A2dpSinkStreamHandlerTest extends AndroidTestCase {
     public void testSrcPause() {
         // Play was pressed locally, expect streaming to start.
         streamHandler.handleMessage(streamHandler.obtainMessage(A2dpSinkStreamHandler.SRC_PLAY));
-        verify(mockAudioManager, times(0)).requestAudioFocus(any(), anyInt(), anyInt());
+        verify(mockAudioManager, times(0)).requestAudioFocus(any());
         verify(mockA2dpSink, times(0)).informAudioFocusStateNative(1);
         verify(mockA2dpSink, times(0)).informAudioTrackGainNative(1.0f);
     }
@@ -169,7 +168,7 @@ public class A2dpSinkStreamHandlerTest extends AndroidTestCase {
         testSnkPlay();
         streamHandler.handleMessage(streamHandler.obtainMessage(
                 A2dpSinkStreamHandler.AUDIO_FOCUS_CHANGE, AudioManager.AUDIOFOCUS_GAIN));
-        verify(mockAudioManager, times(1)).requestAudioFocus(any(), anyInt(), anyInt());
+        verify(mockAudioManager, times(1)).requestAudioFocus(any());
         verify(mockA2dpSink, times(2)).informAudioFocusStateNative(1);
         verify(mockA2dpSink, times(2)).informAudioTrackGainNative(1.0f);
     }
