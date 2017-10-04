@@ -1224,12 +1224,6 @@ public class ScanManager {
                 long uuid_mask_lsb, long uuid_mask_msb, String name,
                 String address, byte addr_type, byte[] data, byte[] mask);
 
-        private native void gattClientScanFilterDeleteNative(int client_if,
-                int filter_type, int filter_index, int company_id,
-                int company_id_mask, long uuid_lsb, long uuid_msb,
-                long uuid_mask_lsb, long uuid_mask_msb, String name,
-                String address, byte addr_type, byte[] data, byte[] mask);
-
         private native void gattClientScanFilterParamAddNative(FilterParams FiltValue);
 
         // Note this effectively remove scan filters for ALL clients.
