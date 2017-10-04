@@ -139,6 +139,9 @@ class AdapterProperties {
                 case BluetoothPbapClient.ACTION_CONNECTION_STATE_CHANGED:
                     sendConnectionStateChange(BluetoothProfile.PBAP_CLIENT, intent);
                     break;
+                case BluetoothPbap.ACTION_CONNECTION_STATE_CHANGED:
+                    sendConnectionStateChange(BluetoothProfile.PBAP, intent);
+                    break;
                 default:
                     Log.w(TAG, "Received unknown intent " + intent);
                     break;
