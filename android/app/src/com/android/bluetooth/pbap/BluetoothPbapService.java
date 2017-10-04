@@ -437,12 +437,16 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
             mWakeLock = null;
         }
 
+        // Step 1: clean up active server session
         if (mServerSession != null) {
             mServerSession.close();
             mServerSession = null;
         }
-
+        // Step 2: clean up existing connection socket
         closeConnectionSocket();
+        // Step 3: clean up SDP record
+        cleanUpSdpRecord();
+        // Step 4: clean up existing server socket(s)
         closeServerSocket();
         if (mServerSockets != null) {
             mServerSockets.shutdown(false);
@@ -450,6 +454,24 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
         }
         if (mSessionStatusHandler != null) mSessionStatusHandler.removeCallbacksAndMessages(null);
         if (VERBOSE) Log.v(TAG, "Pbap Service closeService out");
+    }
+
+    private void cleanUpSdpRecord() {
+        if (mSdpHandle < 0) {
+            if (VERBOSE) Log.v(TAG, "cleanUpSdpRecord, SDP record never created");
+            return;
+        }
+        int sdpHandle = mSdpHandle;
+        mSdpHandle = -1;
+        SdpManager sdpManager = SdpManager.getDefaultManager();
+        if (sdpManager == null) {
+            Log.e(TAG, "cleanUpSdpRecord failed, sdpManager is null, sdpHandle=" + sdpHandle);
+            return;
+        }
+        Log.i(TAG, "cleanUpSdpRecord, mSdpHandle=" + sdpHandle);
+        if (!sdpManager.removeSdpRecord(sdpHandle)) {
+            Log.e(TAG, "cleanUpSdpRecord, removeSdpRecord failed, sdpHandle=" + sdpHandle);
+        }
     }
 
     private final void startObexServerSession() throws IOException {
@@ -939,6 +961,10 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
         }
     }
 
+    /**
+     * Start server side socket listeners. Caller should make sure that adapter is in a ready state
+     * and SDP record is cleaned up. Otherwise, this method will fail.
+     */
     synchronized private void startSocketListeners() {
         if (DEBUG) Log.d(TAG, "startsocketListener");
         if (mServerSession != null) {
@@ -956,16 +982,9 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
                 Log.e(TAG, "Failed to start the listeners");
                 return;
             }
-            SdpManager sdpManager = SdpManager.getDefaultManager();
-            if (sdpManager == null) {
-                Log.e(TAG, "Failed to start the listeners sdp null ");
+            if (mSdpHandle >= 0) {
+                Log.e(TAG, "SDP handle was not cleaned up, mSdpHandle=" + mSdpHandle);
                 return;
-            }
-            if (mAdapter != null && mSdpHandle >= 0) {
-                Log.d(TAG, "Removing SDP record for PBAP with SDP handle:" + mSdpHandle);
-                boolean status = sdpManager.removeSdpRecord(mSdpHandle);
-                Log.d(TAG, "RemoveSDPrecord returns " + status);
-                mSdpHandle = -1;
             }
             mSdpHandle = SdpManager.getDefaultManager().createPbapPseRecord(
                     "OBEX Phonebook Access Server", mServerSockets.getRfcommChannel(),
@@ -1057,8 +1076,13 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
      */
     @Override
     public synchronized void onAcceptFailed() {
+        // Clean up SDP record first
+        cleanUpSdpRecord();
         // Force socket listener to restart
-        mServerSockets = null;
+        if (mServerSockets != null) {
+            mServerSockets.shutdown(false);
+            mServerSockets = null;
+        }
         if (!mInterrupted && mAdapter != null && mAdapter.isEnabled()) {
             startSocketListeners();
         }
