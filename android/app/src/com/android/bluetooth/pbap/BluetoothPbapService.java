@@ -266,15 +266,16 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
             return;
         }
 
-        if (action.equals(BluetoothDevice.ACTION_ACL_DISCONNECTED) && mIsWaitingAuthorization) {
+        if (action.equals(BluetoothDevice.ACTION_ACL_DISCONNECTED)) {
             BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
 
             if (mRemoteDevice == null) return;
             if (DEBUG) Log.d(TAG,"ACL disconnected for "+ device);
-            if (mRemoteDevice.equals(device)) {
+            if (mIsWaitingAuthorization && mRemoteDevice.equals(device)) {
                 mSessionStatusHandler.removeMessages(USER_TIMEOUT);
                 mSessionStatusHandler.obtainMessage(USER_TIMEOUT).sendToTarget();
             }
+            mSessionStatusHandler.obtainMessage(MSG_SERVERSESSION_CLOSE).sendToTarget();
             return;
         }
 
@@ -305,7 +306,7 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
                     if (mConnSocket != null) {
                         startObexServerSession();
                     } else {
-                        stopObexServerSession();
+                        mSessionStatusHandler.obtainMessage(MSG_SERVERSESSION_CLOSE).sendToTarget();
                     }
                 } catch (IOException ex) {
                     Log.e(TAG, "Caught the error: " + ex.toString());
@@ -318,7 +319,7 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
                         Log.v(TAG, "setPhonebookAccessPermission(ACCESS_REJECTED)=" + result);
                     }
                 }
-                stopObexServerSession();
+                mSessionStatusHandler.obtainMessage(MSG_SERVERSESSION_CLOSE).sendToTarget();
             }
             return;
         }
