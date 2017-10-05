@@ -65,8 +65,8 @@ class AdapterProperties {
     private CopyOnWriteArrayList<BluetoothDevice> mBondedDevices = new CopyOnWriteArrayList<BluetoothDevice>();
 
     private int mProfilesConnecting, mProfilesConnected, mProfilesDisconnecting;
-    private HashMap<Integer, Pair<Integer, Integer>> mProfileConnectionState;
-
+    private final HashMap<Integer, Pair<Integer, Integer>> mProfileConnectionState =
+            new HashMap<>();
 
     private volatile int mConnectionState = BluetoothAdapter.STATE_DISCONNECTED;
     private volatile int mState = BluetoothAdapter.STATE_OFF;
@@ -159,11 +159,7 @@ class AdapterProperties {
         mAdapter = BluetoothAdapter.getDefaultAdapter();
     }
     public void init(RemoteDevices remoteDevices) {
-        if (mProfileConnectionState ==null) {
-            mProfileConnectionState = new HashMap<Integer, Pair<Integer, Integer>>();
-        } else {
-            mProfileConnectionState.clear();
-        }
+        mProfileConnectionState.clear();
         mRemoteDevices = remoteDevices;
 
         IntentFilter filter = new IntentFilter();
@@ -185,10 +181,7 @@ class AdapterProperties {
 
     public void cleanup() {
         mRemoteDevices = null;
-        if (mProfileConnectionState != null) {
-            mProfileConnectionState.clear();
-            mProfileConnectionState = null;
-        }
+        mProfileConnectionState.clear();
         if (mReceiverRegistered) {
             mService.unregisterReceiver(mReceiver);
             mReceiverRegistered = false;
@@ -777,12 +770,17 @@ class AdapterProperties {
     }
 
     void onBluetoothReady() {
-        Log.d(TAG, "ScanMode =  " + mScanMode );
-        Log.d(TAG, "State =  " + getState() );
+        debugLog("onBluetoothReady, state=" + getState() + ", ScanMode=" + mScanMode);
 
-        // When BT is being turned on, all adapter properties will be sent in 1
-        // callback. At this stage, set the scan mode.
         synchronized (mObject) {
+            // Reset adapter and profile connection states
+            setConnectionState(BluetoothAdapter.STATE_DISCONNECTED);
+            mProfileConnectionState.clear();
+            mProfilesConnected = 0;
+            mProfilesConnecting = 0;
+            mProfilesDisconnecting = 0;
+            // When BT is being turned on, all adapter properties will be sent in 1
+            // callback. At this stage, set the scan mode.
             if (getState() == BluetoothAdapter.STATE_TURNING_ON &&
                     mScanMode == BluetoothAdapter.SCAN_MODE_NONE) {
                     /* mDiscoverableTimeout is part of the

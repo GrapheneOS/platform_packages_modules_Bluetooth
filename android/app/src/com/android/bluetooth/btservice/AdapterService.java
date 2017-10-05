@@ -1516,6 +1516,7 @@ public class AdapterService extends Service {
     }
 
      boolean startDiscovery() {
+        debugLog("startDiscovery");
         enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM,
                                        "Need BLUETOOTH ADMIN permission");
 
@@ -1523,6 +1524,7 @@ public class AdapterService extends Service {
     }
 
      boolean cancelDiscovery() {
+        debugLog("cancelDiscovery");
         enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM,
                                        "Need BLUETOOTH ADMIN permission");
 
