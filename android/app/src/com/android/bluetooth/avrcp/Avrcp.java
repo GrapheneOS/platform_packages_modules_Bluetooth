@@ -2366,6 +2366,20 @@ public final class Avrcp {
                 ProfileService.println(sb, "  " + log);
             }
         }
+
+        // Print the blacklisted devices (for absolute volume control)
+        SharedPreferences pref =
+                mContext.getSharedPreferences(ABSOLUTE_VOLUME_BLACKLIST, Context.MODE_PRIVATE);
+        Map<String, ?> allKeys = pref.getAll();
+        ProfileService.println(sb, "");
+        ProfileService.println(sb, "Runtime Blacklisted Devices (absolute volume):");
+        if (allKeys.isEmpty()) {
+            ProfileService.println(sb, "  None");
+        } else {
+            for (String key : allKeys.keySet()) {
+                ProfileService.println(sb, "  " + key);
+            }
+        }
     }
 
     public class AvrcpBrowseManager {
