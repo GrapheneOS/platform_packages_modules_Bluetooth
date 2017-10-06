@@ -490,6 +490,7 @@ public class AtPhonebook {
         // Check phonebook
         PhonebookResult pbr = getPhonebookResult(mCurrentPhonebook, true); //false);
         if (pbr == null) {
+            Log.e(TAG, "pbr is null");
             atCommandErrorCode = BluetoothCmeError.OPERATION_NOT_ALLOWED;
             return atCommandResult;
         }
@@ -499,11 +500,17 @@ public class AtPhonebook {
         // When we send error, certain kits like BMW disconnect the
         // Handsfree connection.
         if (pbr.cursor.getCount() == 0 || mCpbrIndex1 <= 0 || mCpbrIndex2 < mCpbrIndex1  ||
-            mCpbrIndex2 > pbr.cursor.getCount() || mCpbrIndex1 > pbr.cursor.getCount()) {
+            mCpbrIndex1 > pbr.cursor.getCount()) {
             atCommandResult = HeadsetHalConstants.AT_RESPONSE_OK;
+            Log.e(TAG, "Invalid request or no results, returning");
             return atCommandResult;
         }
 
+        if (mCpbrIndex2 > pbr.cursor.getCount()) {
+            Log.w(TAG, "max index requested is greater than number of records"
+                        + " available, resetting it");
+            mCpbrIndex2 = pbr.cursor.getCount();
+        }
         // Process
         atCommandResult = HeadsetHalConstants.AT_RESPONSE_OK;
         int errorDetected = -1; // no error
