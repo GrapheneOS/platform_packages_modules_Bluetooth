@@ -378,13 +378,13 @@ public final class Avrcp {
         @Override
         public void onMetadataChanged(MediaMetadata metadata) {
             if (DEBUG) Log.v(TAG, "onMetadataChanged");
-            updateCurrentMediaState(false);
+            updateCurrentMediaState();
         }
         @Override
         public synchronized void onPlaybackStateChanged(PlaybackState state) {
             if (DEBUG) Log.v(TAG, "onPlaybackStateChanged: state " + state.toString());
 
-            updateCurrentMediaState(false);
+            updateCurrentMediaState();
         }
 
         @Override
@@ -487,7 +487,7 @@ public final class Avrcp {
             case MSG_NOW_PLAYING_CHANGED_RSP:
                 if (DEBUG) Log.v(TAG, "MSG_NOW_PLAYING_CHANGED_RSP");
                 removeMessages(MSG_NOW_PLAYING_CHANGED_RSP);
-                updateCurrentMediaState(false);
+                updateCurrentMediaState();
                 break;
 
             case MSG_PLAY_INTERVAL_TIMEOUT:
@@ -701,7 +701,7 @@ public final class Avrcp {
             case MSG_SET_A2DP_AUDIO_STATE:
                 if (DEBUG) Log.v(TAG, "MSG_SET_A2DP_AUDIO_STATE:" + msg.arg1);
                 mA2dpState = msg.arg1;
-                updateCurrentMediaState(false);
+                updateCurrentMediaState();
                 break;
 
             case MSG_NATIVE_REQ_GET_FOLDER_ITEMS: {
@@ -972,36 +972,8 @@ public final class Avrcp {
         }
     }
 
-    private void updateCurrentMediaState(boolean registering) {
+    private void updateCurrentMediaState() {
         // Only do player updates when we aren't registering for track changes.
-        if (!registering) {
-            if (mAvailablePlayerViewChanged) {
-                registerNotificationRspAvalPlayerChangedNative(
-                        AvrcpConstants.NOTIFICATION_TYPE_CHANGED);
-                mAvailablePlayerViewChanged = false;
-                return;
-            }
-            if (mAddrPlayerChangedNT == AvrcpConstants.NOTIFICATION_TYPE_INTERIM
-                    && mReportedPlayerID != mCurrAddrPlayerID) {
-                registerNotificationRspAvalPlayerChangedNative(
-                        AvrcpConstants.NOTIFICATION_TYPE_CHANGED);
-                mAvailablePlayerViewChanged = false;
-                registerNotificationRspAddrPlayerChangedNative(
-                        AvrcpConstants.NOTIFICATION_TYPE_CHANGED, mCurrAddrPlayerID, sUIDCounter);
-                mAddrPlayerChangedNT = AvrcpConstants.NOTIFICATION_TYPE_CHANGED;
-                // Changing player sends reject to anything else we would notify...
-                mReportedPlayerID = mCurrAddrPlayerID;
-                mPlayStatusChangedNT = AvrcpConstants.NOTIFICATION_TYPE_CHANGED;
-                mTrackChangedNT = AvrcpConstants.NOTIFICATION_TYPE_CHANGED;
-                mPlayPosChangedNT = AvrcpConstants.NOTIFICATION_TYPE_CHANGED;
-                mNowPlayingListChangedNT = AvrcpConstants.NOTIFICATION_TYPE_CHANGED;
-                mAddressedMediaPlayer.updateNowPlayingList(mMediaController);
-                // If the player changed, they need to re-request anything here again
-                // so we can skip the rest of the update.
-                return;
-            }
-        }
-
         MediaAttributes currentAttributes;
         PlaybackState newState = updatePlaybackState();
 
@@ -1023,6 +995,30 @@ public final class Avrcp {
                             + currentAttributes.toRedactedString() + " : "
                             + mMediaAttributes.toRedactedString());
 
+            if (mAvailablePlayerViewChanged) {
+                registerNotificationRspAvalPlayerChangedNative(
+                        AvrcpConstants.NOTIFICATION_TYPE_CHANGED);
+                mAvailablePlayerViewChanged = false;
+                return;
+            }
+
+            if (mAddrPlayerChangedNT == AvrcpConstants.NOTIFICATION_TYPE_INTERIM
+                    && mReportedPlayerID != mCurrAddrPlayerID) {
+                registerNotificationRspAvalPlayerChangedNative(
+                        AvrcpConstants.NOTIFICATION_TYPE_CHANGED);
+                registerNotificationRspAddrPlayerChangedNative(
+                        AvrcpConstants.NOTIFICATION_TYPE_CHANGED, mCurrAddrPlayerID, sUIDCounter);
+
+                mAvailablePlayerViewChanged = false;
+                mAddrPlayerChangedNT = AvrcpConstants.NOTIFICATION_TYPE_CHANGED;
+                mReportedPlayerID = mCurrAddrPlayerID;
+
+                // Update the now playing list without sending the notification
+                mNowPlayingListChangedNT = AvrcpConstants.NOTIFICATION_TYPE_CHANGED;
+                mAddressedMediaPlayer.updateNowPlayingList(mMediaController);
+                mNowPlayingListChangedNT = AvrcpConstants.NOTIFICATION_TYPE_INTERIM;
+            }
+
             // Dont send now playing list changed if the player doesn't support browsing
             MediaPlayerInfo info = getAddressedPlayerInfo();
             if (info != null && info.isBrowseSupported()) {
@@ -1039,21 +1035,25 @@ public final class Avrcp {
                 // to update their metadata. Hold of on sending the playback state
                 // update until after we know the current metadata is up to date
                 // and track changed has been sent. This was seen on BMW carkits
-                Log.i(TAG, "Waiting for metadata update to send track changed");
+                Log.i(TAG,
+                        "Waiting for metadata update to send track changed: " + newQueueId + " : "
+                                + currentAttributes + " : " + mMediaAttributes);
 
                 return;
             }
 
             // Notify track changed if:
-            //  - The CT is registering for the notification
+            //  - The CT is registered for the notification
             //  - Queue ID is UNKNOWN and MediaMetadata is different
-            //  - Queue ID is valid and different and MediaMetadata is different
-            if (registering || ((newQueueId == -1 || newQueueId != mLastQueueId)
-                                       && !currentAttributes.equals(mMediaAttributes))) {
+            //  - Queue ID is valid and different from last Queue ID sent
+            if ((newQueueId == -1 || newQueueId != mLastQueueId)
+                    && mTrackChangedNT == AvrcpConstants.NOTIFICATION_TYPE_INTERIM
+                    && !currentAttributes.equals(mMediaAttributes)
+                    && newPlayStatus == PLAYSTATUS_PLAYING) {
                 Log.v(TAG, "Send track changed");
                 mMediaAttributes = currentAttributes;
                 mLastQueueId = newQueueId;
-                sendTrackChangedRsp(registering);
+                sendTrackChangedRsp(false);
             }
         } else {
             Log.i(TAG, "Skipping update due to invalid playback state");
@@ -1641,7 +1641,7 @@ public final class Avrcp {
                             Log.v(TAG, "No addressed player but active sessions, taking first.");
                         setAddressedMediaSessionPackage(newControllers.get(0).getPackageName());
                     }
-                    updateCurrentMediaState(false);
+                    updateCurrentMediaState();
                 }
             };
 
@@ -1661,7 +1661,7 @@ public final class Avrcp {
         // If the player doesn't exist, we need to add it.
         if (getMediaPlayerInfo(packageName) == null) {
             addMediaPlayerPackage(packageName);
-            updateCurrentMediaState(false);
+            updateCurrentMediaState();
         }
         synchronized (mMediaPlayerInfoList) {
             for (Map.Entry<Integer, MediaPlayerInfo> entry : mMediaPlayerInfoList.entrySet()) {
@@ -1669,7 +1669,7 @@ public final class Avrcp {
                     int newAddrID = entry.getKey();
                     if (DEBUG) Log.v(TAG, "Set addressed #" + newAddrID + " " + entry.getValue());
                     updateCurrentController(newAddrID, mCurrBrowsePlayerID);
-                    updateCurrentMediaState(false);
+                    updateCurrentMediaState();
                     return;
                 }
             }
@@ -1750,7 +1750,7 @@ public final class Avrcp {
                     addMediaPlayerPackage(packageName);
                 }
             }
-            updateCurrentMediaState(false);
+            updateCurrentMediaState();
         }
     }
 
@@ -1774,7 +1774,7 @@ public final class Avrcp {
                 addMediaPlayerController(controller);
             }
 
-            updateCurrentMediaState(false);
+            updateCurrentMediaState();
 
             if (mMediaPlayerInfoList.size() > 0) {
                 // Set the first one as the Addressed Player
@@ -2053,7 +2053,12 @@ public final class Avrcp {
     /* prepare media list & return the media player list response object */
     private MediaPlayerListRsp prepareMediaPlayerRspObj() {
         synchronized (mMediaPlayerInfoList) {
-            int numPlayers = mMediaPlayerInfoList.size();
+            // TODO(apanicke): This hack will go away as soon as a developer
+            // option to enable or disable player selection is created. Right
+            // now this is needed to fix BMW i3 carkits and any other carkits
+            // that might try to connect to a player that isnt the current
+            // player based on this list
+            int numPlayers = 1;
 
             int[] playerIds = new int[numPlayers];
             byte[] playerTypes = new byte[numPlayers];
@@ -2068,7 +2073,10 @@ public final class Avrcp {
             int players = mMediaPlayerInfoList.containsKey(mCurrAddrPlayerID) ? 1 : 0;
             for (Map.Entry<Integer, MediaPlayerInfo> entry : mMediaPlayerInfoList.entrySet()) {
                 int idx = players;
-                if (entry.getKey() == mCurrAddrPlayerID) idx = 0;
+                if (entry.getKey() == mCurrAddrPlayerID)
+                    idx = 0;
+                else
+                    continue; // TODO(apanicke): Remove, see above note
                 MediaPlayerInfo info = entry.getValue();
                 playerIds[idx] = entry.getKey();
                 playerTypes[idx] = info.getMajorType();
@@ -2155,7 +2163,7 @@ public final class Avrcp {
                 }
             }
         }
-        updateCurrentMediaState(false);
+        updateCurrentMediaState();
         return registerRsp;
     }
 
@@ -2583,6 +2591,7 @@ public final class Avrcp {
         if (!KeyEvent.isMediaKey(code)) {
             Log.w(TAG, "Passthrough non-media key " + op + " (code " + code + ") state " + state);
         }
+
         mMediaSessionManager.dispatchMediaKeyEvent(event);
         addKeyPending(event);
     }
