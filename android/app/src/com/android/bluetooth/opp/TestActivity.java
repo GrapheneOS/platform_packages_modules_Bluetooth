@@ -506,7 +506,7 @@ class TestTcpServer extends ServerRequestHandler implements Runnable {
 
             File f = new File((String)op.getReceivedHeader().getHeader(HeaderSet.NAME));
             fos = new FileOutputStream(f);
-            byte b[] = new byte[1000];
+            byte[] b = new byte[1000];
             int len;
 
             while (is.available() > 0 && (len = is.read(b)) > 0) {

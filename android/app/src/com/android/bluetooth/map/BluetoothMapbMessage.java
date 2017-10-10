@@ -557,7 +557,7 @@ public abstract class BluetoothMapbMessage {
         // Parse the properties - which end with either a VCARD or a BENV
         while(!line.contains("BEGIN:VCARD") && !line.contains("BEGIN:BENV")) {
             if(line.contains("STATUS")){
-                String arg[] = line.split(":");
+                String[] arg = line.split(":");
                 if (arg != null && arg.length == 2) {
                     if (arg[1].trim().equals("READ")) {
                         status = true;
@@ -571,7 +571,7 @@ public abstract class BluetoothMapbMessage {
                 }
             }
             if(line.contains("EXTENDEDDATA")){
-                String arg[] = line.split(":");
+                String[] arg = line.split(":");
                 if (arg != null && arg.length == 2) {
                     String value = arg[1].trim();
                     //FIXME what should we do with this
@@ -579,7 +579,7 @@ public abstract class BluetoothMapbMessage {
                 }
             }
             if(line.contains("TYPE")) {
-                String arg[] = line.split(":");
+                String[] arg = line.split(":");
                 if (arg != null && arg.length == 2) {
                     String value = arg[1].trim();
                     /* Will throw IllegalArgumentException if value is wrong */
@@ -684,7 +684,7 @@ public abstract class BluetoothMapbMessage {
         parseMsgInit();
         while(!line.contains("END:")) {
             if(line.contains("PARTID:")) {
-                String arg[] = line.split(":");
+                String[] arg = line.split(":");
                 if (arg != null && arg.length == 2) {
                     try {
                     mPartId = Long.parseLong(arg[1].trim());
@@ -696,7 +696,7 @@ public abstract class BluetoothMapbMessage {
                 }
             }
             else if(line.contains("ENCODING:")) {
-                String arg[] = line.split(":");
+                String[] arg = line.split(":");
                 if (arg != null && arg.length == 2) {
                     mEncoding = arg[1].trim();
                     // If needed validation will be done when the value is used
@@ -705,7 +705,7 @@ public abstract class BluetoothMapbMessage {
                 }
             }
             else if(line.contains("CHARSET:")) {
-                String arg[] = line.split(":");
+                String[] arg = line.split(":");
                 if (arg != null && arg.length == 2) {
                     mCharset = arg[1].trim();
                     // If needed validation will be done when the value is used
@@ -714,7 +714,7 @@ public abstract class BluetoothMapbMessage {
                 }
             }
             else if(line.contains("LANGUAGE:")) {
-                String arg[] = line.split(":");
+                String[] arg = line.split(":");
                 if (arg != null && arg.length == 2) {
                     mLanguage = arg[1].trim();
                     // If needed validation will be done when the value is used
@@ -723,7 +723,7 @@ public abstract class BluetoothMapbMessage {
                 }
             }
             else if(line.contains("LENGTH:")) {
-                String arg[] = line.split(":");
+                String[] arg = line.split(":");
                 if (arg != null && arg.length == 2) {
                     try {
                         mBMsgLength = Integer.parseInt(arg[1].trim());
