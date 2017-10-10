@@ -572,7 +572,7 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
             AppParamValue appParamValue) {
         int i = 0;
         boolean parseOk = true;
-        while ((i < appParam.length) && (parseOk == true)) {
+        while ((i < appParam.length) && (parseOk)) {
             switch (appParam[i]) {
                 case ApplicationParameter.TRIPLET_TAGID.PROPERTY_SELECTOR_TAGID:
                     i += 2; // length and tag field in triplet
@@ -1112,7 +1112,7 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
             int dotIndex = name.indexOf(".");
             String vcf = "vcf";
             if (dotIndex >= 0 && dotIndex <= name.length()) {
-                if (name.regionMatches(dotIndex + 1, vcf, 0, vcf.length()) == false) {
+                if (!name.regionMatches(dotIndex + 1, vcf, 0, vcf.length())) {
                     Log.w(TAG, "name is not .vcf");
                     return ResponseCodes.OBEX_HTTP_NOT_ACCEPTABLE;
                 }

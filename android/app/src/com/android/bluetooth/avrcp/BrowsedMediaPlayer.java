@@ -371,7 +371,7 @@ class BrowsedMediaPlayer {
         if (DEBUG) Log.d(TAG, "changePath.direction = " + direction);
         String newPath = "";
 
-        if (isPlayerConnected() == false) {
+        if (!isPlayerConnected()) {
             Log.w(TAG, "changePath: disconnected from player service, sending internal error");
             mMediaInterface.changePathRsp(mBDAddr, AvrcpConstants.RSP_INTERNAL_ERR, 0);
             return;
@@ -388,11 +388,11 @@ class BrowsedMediaPlayer {
             if ((newPath = byteToString(folderUid)) == null) {
                 Log.e(TAG, "Could not get media item from folder Uid, sending err response");
                 mMediaInterface.changePathRsp(mBDAddr, AvrcpConstants.RSP_INV_ITEM, 0);
-            } else if (isBrowsableFolderDn(newPath) == false) {
+            } else if (!isBrowsableFolderDn(newPath)) {
                 /* new path is not browsable */
                 Log.e(TAG, "ItemUid received from changePath cmd is not browsable");
                 mMediaInterface.changePathRsp(mBDAddr, AvrcpConstants.RSP_INV_DIRECTORY, 0);
-            } else if (mPathStack.peek().equals(newPath) == true) {
+            } else if (mPathStack.peek().equals(newPath)) {
                 /* new_folder is same as current folder */
                 Log.e(TAG, "new_folder is same as current folder, Invalid direction!");
                 mMediaInterface.changePathRsp(mBDAddr, AvrcpConstants.RSP_INV_DIRN, 0);
@@ -402,7 +402,7 @@ class BrowsedMediaPlayer {
                 mPathStack.push(newPath);
             }
         } else if (direction == AvrcpConstants.DIR_UP) { /* move up */
-            if (isBrowsableFolderUp() == false) {
+            if (!isBrowsableFolderUp()) {
                 /* Already on the root, cannot allow up: PTS: test case TC_TG_MCN_CB_BI_02_C
                  * This is required, otherwise some CT will keep on sending change path up
                  * until they receive error */

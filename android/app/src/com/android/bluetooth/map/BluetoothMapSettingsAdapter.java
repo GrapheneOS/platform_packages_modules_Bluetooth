@@ -153,7 +153,7 @@ public class BluetoothMapSettingsAdapter extends BaseExpandableListAdapter {
                         if (isAllChildClicked) {
                             parentGroup.mIsChecked = true;
                             if(!(BluetoothMapSettingsDataHolder.mCheckedChilds.containsKey(
-                                child.getName())==true)){
+                                child.getName()))){
                                 BluetoothMapSettingsDataHolder.mCheckedChilds.put(child.getName(),
                                         parentGroup.getName());
                             }

@@ -299,7 +299,7 @@ public class BluetoothMapMessageListingElement
             if(mRecipientAddressing != null)
                 xmlMsgElement.attribute(null, "recipient_addressing", mRecipientAddressing);
             /* Avoid NPE for possible "null" value of mType */
-            if(mMsgTypeAppParamSet == true && mType != null)
+            if(mMsgTypeAppParamSet && mType != null)
                 xmlMsgElement.attribute(null, "type", mType.name());
             if(mSize != -1)
                 xmlMsgElement.attribute(null, "size", Integer.toString(mSize));
@@ -322,9 +322,9 @@ public class BluetoothMapMessageListingElement
                 xmlMsgElement.attribute(null, "sent", mSent);
             if(mProtect != null)
                 xmlMsgElement.attribute(null, "protected", mProtect);
-            if(mThreadId != null && includeThreadId == true)
+            if(mThreadId != null && includeThreadId)
                 xmlMsgElement.attribute(null, "conversation_id", mThreadId);
-            if(mThreadName != null && includeThreadId == true)
+            if(mThreadName != null && includeThreadId)
                 xmlMsgElement.attribute(null, "conversation_name", mThreadName);
             if(mFolderType != null )
                 xmlMsgElement.attribute(null, "folder_type", mFolderType);
