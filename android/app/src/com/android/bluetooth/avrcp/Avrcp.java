@@ -855,7 +855,7 @@ public final class Avrcp {
             // As a result of that, if we pause the music, on carkits the
             // Play status indicator will continue to display "Playing"
             // for 3 more seconds which can be confusing.
-            if (mAudioManagerIsPlaying
+            if ((mAudioManagerIsPlaying && newState.getState() != PlaybackState.STATE_PLAYING)
                     || (controllerState == null && mAudioManager != null
                                && mAudioManager.isMusicActive())) {
                 // Use AudioManager playback state if we don't have the state
