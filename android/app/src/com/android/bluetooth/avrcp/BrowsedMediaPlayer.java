@@ -269,7 +269,8 @@ class BrowsedMediaPlayer {
     /* initialize mediacontroller in order to communicate with media player. */
     private void onBrowseConnect(String connectedPackage, MediaBrowser browser) {
         if (!connectedPackage.equals(mConnectingPackageName)) {
-            Log.w(TAG, "onBrowseConnect: recieved callback for package we aren't connecting to "
+            Log.w(TAG,
+                    "onBrowseConnect: recieved callback for package we aren't connecting to "
                             + connectedPackage);
             return;
         }
