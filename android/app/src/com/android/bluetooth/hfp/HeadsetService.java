@@ -342,10 +342,10 @@ public class HeadsetService extends ProfileService {
         }
 
         @Override
-        public void bindResponse(int ind_id, boolean ind_status) {
+        public void bindResponse(int indId, boolean indStatus) {
             HeadsetService service = getService();
             if (service == null) return;
-            service.bindResponse(ind_id, ind_status);
+            service.bindResponse(indId, indStatus);
         }
     };
 
@@ -624,7 +624,7 @@ public class HeadsetService extends ProfileService {
         return true;
     }
 
-    private boolean bindResponse(int ind_id, boolean ind_status) {
+    private boolean bindResponse(int indId, boolean indStatus) {
         for (BluetoothDevice device : getConnectedDevices()) {
             int connectionState = mStateMachine.getConnectionState(device);
             if (connectionState != BluetoothProfile.STATE_CONNECTED
@@ -634,8 +634,8 @@ public class HeadsetService extends ProfileService {
             if (DBG) Log.d("Bind Response sent for", device.getAddress());
             Message msg = mStateMachine.obtainMessage(HeadsetStateMachine.BIND_RESPONSE);
             msg.obj = device;
-            msg.arg1 = ind_id;
-            msg.arg2 = ind_status ? 1 : 0;
+            msg.arg1 = indId;
+            msg.arg2 = indStatus ? 1 : 0;
             mStateMachine.sendMessage(msg);
             return true;
         }

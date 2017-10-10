@@ -764,21 +764,21 @@ public class GattService extends ProfileService {
      * Callback functions - CLIENT
      *************************************************************************/
 
-    void onScanResult(int event_type, int address_type, String address, int primary_phy,
-            int secondary_phy, int advertising_sid, int tx_power, int rssi, int periodic_adv_int,
-            byte[] adv_data) {
+    void onScanResult(int eventType, int addressType, String address, int primaryPhy,
+            int secondaryPhy, int advertisingSid, int txPower, int rssi, int periodicAdvInt,
+            byte[] advData) {
         if (VDBG) {
-            Log.d(TAG, "onScanResult() - event_type=0x" + Integer.toHexString(event_type)
-                            + ", address_type=" + address_type + ", address=" + address
-                            + ", primary_phy=" + primary_phy + ", secondary_phy=" + secondary_phy
-                            + ", advertising_sid=0x" + Integer.toHexString(advertising_sid)
-                            + ", tx_power=" + tx_power + ", rssi=" + rssi + ", periodic_adv_int=0x"
-                            + Integer.toHexString(periodic_adv_int));
+            Log.d(TAG, "onScanResult() - eventType=0x" + Integer.toHexString(eventType)
+                            + ", addressType=" + addressType + ", address=" + address
+                            + ", primaryPhy=" + primaryPhy + ", secondaryPhy=" + secondaryPhy
+                            + ", advertisingSid=0x" + Integer.toHexString(advertisingSid)
+                            + ", txPower=" + txPower + ", rssi=" + rssi + ", periodicAdvInt=0x"
+                            + Integer.toHexString(periodicAdvInt));
         }
-        List<UUID> remoteUuids = parseUuids(adv_data);
+        List<UUID> remoteUuids = parseUuids(advData);
         addScanResult();
 
-        byte[] legacy_adv_data = Arrays.copyOfRange(adv_data, 0, 62);
+        byte[] legacy_adv_data = Arrays.copyOfRange(advData, 0, 62);
 
         for (ScanClient client : mScanManager.getRegularScanQueue()) {
             if (client.uuids.length > 0) {
@@ -806,7 +806,7 @@ public class GattService extends ProfileService {
             byte[] scan_record_data;
             // This is for compability with applications that assume fixed size scan data.
             if (settings.getLegacy()) {
-                if ((event_type & ET_LEGACY_MASK) == 0) {
+                if ((eventType & ET_LEGACY_MASK) == 0) {
                     // If this is legacy scan, but nonlegacy result - skip.
                     continue;
                 } else {
@@ -814,11 +814,11 @@ public class GattService extends ProfileService {
                     scan_record_data = legacy_adv_data;
                 }
             } else {
-                scan_record_data = adv_data;
+                scan_record_data = advData;
             }
 
-            ScanResult result = new ScanResult(device, event_type, primary_phy, secondary_phy,
-                    advertising_sid, tx_power, rssi, periodic_adv_int,
+            ScanResult result = new ScanResult(device, eventType, primaryPhy, secondaryPhy,
+                    advertisingSid, txPower, rssi, periodicAdvInt,
                     ScanRecord.parseFromBytes(scan_record_data),
                     SystemClock.elapsedRealtimeNanos());
             // Do no report if location mode is OFF or the client has no location permission
@@ -1452,15 +1452,15 @@ public class GattService extends ProfileService {
         flushPendingBatchResults(clientIf);
     }
 
-    AdvtFilterOnFoundOnLostInfo CreateonTrackAdvFoundLostObject(int client_if, int adv_pkt_len,
-                    byte[] adv_pkt, int scan_rsp_len, byte[] scan_rsp, int filt_index, int adv_state,
-                    int adv_info_present, String address, int addr_type, int tx_power, int rssi_value,
-                    int time_stamp) {
+    AdvtFilterOnFoundOnLostInfo CreateonTrackAdvFoundLostObject(int clientIf, int advPktLen,
+                    byte[] advPkt, int scanRspLen, byte[] scanRsp, int filtIndex, int advState,
+                    int advInfoPresent, String address, int addrType, int txPower, int rssiValue,
+                    int timeStamp) {
 
-        return new AdvtFilterOnFoundOnLostInfo(client_if, adv_pkt_len, adv_pkt,
-                    scan_rsp_len, scan_rsp, filt_index, adv_state,
-                    adv_info_present, address, addr_type, tx_power,
-                    rssi_value, time_stamp);
+        return new AdvtFilterOnFoundOnLostInfo(clientIf, advPktLen, advPkt,
+                    scanRspLen, scanRsp, filtIndex, advState,
+                    advInfoPresent, address, addrType, txPower,
+                    rssiValue, timeStamp);
     }
 
     void onTrackAdvFoundLost(AdvtFilterOnFoundOnLostInfo trackingInfo) throws RemoteException {
@@ -2642,21 +2642,21 @@ public class GattService extends ProfileService {
         }
     }
 
-    private List<UUID> parseUuids(byte[] adv_data) {
+    private List<UUID> parseUuids(byte[] advData) {
         List<UUID> uuids = new ArrayList<UUID>();
 
         int offset = 0;
-        while(offset < (adv_data.length-2)) {
-            int len = Byte.toUnsignedInt(adv_data[offset++]);
+        while(offset < (advData.length-2)) {
+            int len = Byte.toUnsignedInt(advData[offset++]);
             if (len == 0) break;
 
-            int type = adv_data[offset++];
+            int type = advData[offset++];
             switch (type) {
                 case 0x02: // Partial list of 16-bit UUIDs
                 case 0x03: // Complete list of 16-bit UUIDs
                     while (len > 1) {
-                        int uuid16 = adv_data[offset++];
-                        uuid16 += (adv_data[offset++] << 8);
+                        int uuid16 = advData[offset++];
+                        uuid16 += (advData[offset++] << 8);
                         len -= 2;
                         uuids.add(UUID.fromString(String.format(
                             "%08x-0000-1000-8000-00805f9b34fb", uuid16)));
@@ -2735,7 +2735,7 @@ public class GattService extends ProfileService {
     }
 
     private native void gattTestNative(int command,
-                                    long uuid1_lsb, long uuid1_msb, String bda1,
+                                    long uuid1Lsb, long uuid1Msb, String bda1,
                                     int p1, int p2, int p3, int p4, int p5);
 
     /**************************************************************************
@@ -2748,46 +2748,46 @@ public class GattService extends ProfileService {
 
     private native int gattClientGetDeviceTypeNative(String address);
 
-    private native void gattClientRegisterAppNative(long app_uuid_lsb,
-                                                    long app_uuid_msb);
+    private native void gattClientRegisterAppNative(long appUuidLsb,
+                                                    long appUuidMsb);
 
     private native void gattClientUnregisterAppNative(int clientIf);
 
     private native void gattClientConnectNative(int clientIf, String address, boolean isDirect,
-            int transport, boolean opportunistic, int initiating_phys);
+            int transport, boolean opportunistic, int initiatingPhys);
 
     private native void gattClientDisconnectNative(int clientIf, String address,
-            int conn_id);
+            int connId);
 
     private native void gattClientSetPreferredPhyNative(
-            int clientIf, String address, int tx_phy, int rx_phy, int phy_options);
+            int clientIf, String address, int txPhy, int rxPhy, int phyOptions);
 
     private native void gattClientReadPhyNative(int clientIf, String address);
 
     private native void gattClientRefreshNative(int clientIf, String address);
 
-    private native void gattClientSearchServiceNative(int conn_id,
-            boolean search_all, long service_uuid_lsb, long service_uuid_msb);
+    private native void gattClientSearchServiceNative(int connId,
+            boolean searchAll, long serviceUuidLsb, long serviceUuidMsb);
 
     private native void gattClientDiscoverServiceByUuidNative(
-            int conn_id, long service_uuid_lsb, long service_uuid_msb);
+            int connId, long serviceUuidLsb, long serviceUuidMsb);
 
-    private native void gattClientGetGattDbNative(int conn_id);
+    private native void gattClientGetGattDbNative(int connId);
 
-    private native void gattClientReadCharacteristicNative(int conn_id, int handle, int authReq);
+    private native void gattClientReadCharacteristicNative(int connId, int handle, int authReq);
 
     private native void gattClientReadUsingCharacteristicUuidNative(
-            int conn_id, long uuid_msb, long uuid_lsb, int s_handle, int e_handle, int authReq);
+            int connId, long uuidMsb, long uuidLsb, int sHandle, int eHandle, int authReq);
 
-    private native void gattClientReadDescriptorNative(int conn_id, int handle, int authReq);
+    private native void gattClientReadDescriptorNative(int connId, int handle, int authReq);
 
-    private native void gattClientWriteCharacteristicNative(int conn_id,
-            int handle, int write_type, int auth_req, byte[] value);
+    private native void gattClientWriteCharacteristicNative(int connId,
+            int handle, int writeType, int authReq, byte[] value);
 
-    private native void gattClientWriteDescriptorNative(int conn_id, int handle,
-            int auth_req, byte[] value);
+    private native void gattClientWriteDescriptorNative(int connId, int handle,
+            int authReq, byte[] value);
 
-    private native void gattClientExecuteWriteNative(int conn_id, boolean execute);
+    private native void gattClientExecuteWriteNative(int connId, boolean execute);
 
     private native void gattClientRegisterForNotificationsNative(int clientIf,
             String address, int handle, boolean enable);
@@ -2795,42 +2795,42 @@ public class GattService extends ProfileService {
     private native void gattClientReadRemoteRssiNative(int clientIf,
             String address);
 
-    private native void gattClientConfigureMTUNative(int conn_id, int mtu);
+    private native void gattClientConfigureMTUNative(int connId, int mtu);
 
-    private native void gattConnectionParameterUpdateNative(int client_if, String address,
+    private native void gattConnectionParameterUpdateNative(int clientIf, String address,
             int minInterval, int maxInterval, int latency, int timeout);
 
-    private native void gattServerRegisterAppNative(long app_uuid_lsb,
-                                                    long app_uuid_msb);
+    private native void gattServerRegisterAppNative(long appUuidLsb,
+                                                    long appUuidMsb);
 
     private native void gattServerUnregisterAppNative(int serverIf);
 
-    private native void gattServerConnectNative(int server_if, String address,
-                                             boolean is_direct, int transport);
+    private native void gattServerConnectNative(int serverIf, String address,
+                                             boolean isDirect, int transport);
 
     private native void gattServerDisconnectNative(int serverIf, String address,
-                                              int conn_id);
+                                              int connId);
 
     private native void gattServerSetPreferredPhyNative(
-            int clientIf, String address, int tx_phy, int rx_phy, int phy_options);
+            int clientIf, String address, int txPhy, int rxPhy, int phyOptions);
 
     private native void gattServerReadPhyNative(int clientIf, String address);
 
-    private native void gattServerAddServiceNative(int server_if, List<GattDbElement> service);
+    private native void gattServerAddServiceNative(int serverIf, List<GattDbElement> service);
 
-    private native void gattServerStopServiceNative (int server_if,
-                                                     int svc_handle);
+    private native void gattServerStopServiceNative (int serverIf,
+                                                     int svcHandle);
 
-    private native void gattServerDeleteServiceNative (int server_if,
-                                                       int svc_handle);
+    private native void gattServerDeleteServiceNative (int serverIf,
+                                                       int svcHandle);
 
-    private native void gattServerSendIndicationNative (int server_if,
-            int attr_handle, int conn_id, byte[] val);
+    private native void gattServerSendIndicationNative (int serverIf,
+            int attrHandle, int connId, byte[] val);
 
-    private native void gattServerSendNotificationNative (int server_if,
-            int attr_handle, int conn_id, byte[] val);
+    private native void gattServerSendNotificationNative (int serverIf,
+            int attrHandle, int connId, byte[] val);
 
-    private native void gattServerSendResponseNative (int server_if,
-            int conn_id, int trans_id, int status, int handle, int offset,
-            byte[] val, int auth_req);
+    private native void gattServerSendResponseNative (int serverIf,
+            int connId, int transId, int status, int handle, int offset,
+            byte[] val, int authReq);
 }

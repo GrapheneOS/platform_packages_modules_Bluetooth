@@ -122,7 +122,7 @@ import java.util.UUID;
      * then as an ineger.
      * @hide
      */
-    private static int getHandleExtra(Intent intent, String extra, int default_value) {
+    private static int getHandleExtra(Intent intent, String extra, int defaultValue) {
         Bundle extras = intent.getExtras();
         Object uuid = extras != null ? extras.get(extra) : null;
         if (uuid != null && uuid.getClass().getName().equals("java.lang.String")) {
@@ -130,11 +130,11 @@ import java.util.UUID;
             {
                 return Integer.parseInt(extras.getString(extra), 16);
             } catch (NumberFormatException e) {
-                return default_value;
+                return defaultValue;
             }
         }
 
-        return intent.getIntExtra(extra, default_value);
+        return intent.getIntExtra(extra, defaultValue);
     }
 
     /**

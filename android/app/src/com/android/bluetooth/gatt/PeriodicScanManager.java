@@ -101,10 +101,10 @@ class PeriodicScanManager {
         }
     }
 
-    Map.Entry<IBinder, SyncInfo> findSync(int sync_handle) {
+    Map.Entry<IBinder, SyncInfo> findSync(int syncHandle) {
         Map.Entry<IBinder, SyncInfo> entry = null;
         for (Map.Entry<IBinder, SyncInfo> e : mSyncs.entrySet()) {
-            if (e.getValue().id == sync_handle) {
+            if (e.getValue().id == syncHandle) {
                 entry = e;
                 break;
             }
@@ -112,24 +112,24 @@ class PeriodicScanManager {
         return entry;
     }
 
-    void onSyncStarted(int reg_id, int sync_handle, int sid, int address_type, String address,
+    void onSyncStarted(int regId, int syncHandle, int sid, int addressType, String address,
             int phy, int interval, int status) throws Exception {
         if (DBG) {
-            Log.d(TAG, "onSyncStarted() - reg_id=" + reg_id + ", sync_handle=" + sync_handle
+            Log.d(TAG, "onSyncStarted() - regId=" + regId + ", syncHandle=" + syncHandle
                             + ", status=" + status);
         }
 
-        Map.Entry<IBinder, SyncInfo> entry = findSync(reg_id);
+        Map.Entry<IBinder, SyncInfo> entry = findSync(regId);
         if (entry == null) {
-            Log.i(TAG, "onSyncStarted() - no callback found for reg_id " + reg_id);
+            Log.i(TAG, "onSyncStarted() - no callback found for regId " + regId);
             // Sync was stopped before it was properly registered.
-            stopSyncNative(sync_handle);
+            stopSyncNative(syncHandle);
             return;
         }
 
         IPeriodicAdvertisingCallback callback = entry.getValue().callback;
         if (status == 0) {
-            entry.setValue(new SyncInfo(sync_handle, entry.getValue().deathRecipient, callback));
+            entry.setValue(new SyncInfo(syncHandle, entry.getValue().deathRecipient, callback));
         } else {
             IBinder binder = entry.getKey();
             binder.unlinkToDeath(entry.getValue().deathRecipient, 0);
@@ -137,37 +137,37 @@ class PeriodicScanManager {
         }
 
         // TODO: fix callback arguments
-        // callback.onSyncStarted(sync_handle, tx_power, status);
+        // callback.onSyncStarted(syncHandle, tx_power, status);
     }
 
-    void onSyncReport(int sync_handle, int tx_power, int rssi, int data_status, byte[] data)
+    void onSyncReport(int syncHandle, int txPower, int rssi, int dataStatus, byte[] data)
             throws Exception {
-        if (DBG) Log.d(TAG, "onSyncReport() - sync_handle=" + sync_handle);
+        if (DBG) Log.d(TAG, "onSyncReport() - syncHandle=" + syncHandle);
 
-        Map.Entry<IBinder, SyncInfo> entry = findSync(sync_handle);
+        Map.Entry<IBinder, SyncInfo> entry = findSync(syncHandle);
         if (entry == null) {
-            Log.i(TAG, "onSyncReport() - no callback found for sync_handle " + sync_handle);
+            Log.i(TAG, "onSyncReport() - no callback found for syncHandle " + syncHandle);
             return;
         }
 
         IPeriodicAdvertisingCallback callback = entry.getValue().callback;
         PeriodicAdvertisingReport report = new PeriodicAdvertisingReport(
-                sync_handle, tx_power, rssi, data_status, ScanRecord.parseFromBytes(data));
+                syncHandle, txPower, rssi, dataStatus, ScanRecord.parseFromBytes(data));
         callback.onPeriodicAdvertisingReport(report);
     }
 
-    void onSyncLost(int sync_handle) throws Exception {
-        if (DBG) Log.d(TAG, "onSyncLost() - sync_handle=" + sync_handle);
+    void onSyncLost(int syncHandle) throws Exception {
+        if (DBG) Log.d(TAG, "onSyncLost() - syncHandle=" + syncHandle);
 
-        Map.Entry<IBinder, SyncInfo> entry = findSync(sync_handle);
+        Map.Entry<IBinder, SyncInfo> entry = findSync(syncHandle);
         if (entry == null) {
-            Log.i(TAG, "onSyncLost() - no callback found for sync_handle " + sync_handle);
+            Log.i(TAG, "onSyncLost() - no callback found for syncHandle " + syncHandle);
             return;
         }
 
         IPeriodicAdvertisingCallback callback = entry.getValue().callback;
         mSyncs.remove(entry);
-        callback.onSyncLost(sync_handle);
+        callback.onSyncLost(syncHandle);
     }
 
     void startSync(
@@ -219,6 +219,6 @@ class PeriodicScanManager {
     private static native void classInitNative();
     private native void initializeNative();
     private native void cleanupNative();
-    private native void startSyncNative(int sid, String address, int skip, int timeout, int reg_id);
-    private native void stopSyncNative(int sync_handle);
+    private native void startSyncNative(int sid, String address, int skip, int timeout, int regId);
+    private native void stopSyncNative(int syncHandle);
 }
