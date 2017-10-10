@@ -1197,7 +1197,7 @@ public class BluetoothMapContent {
 
     }
 
-    static public String getTextPartsMms(ContentResolver r, long id) {
+    public static String getTextPartsMms(ContentResolver r, long id) {
         String text = "";
         String selection = new String("mid=" + id);
         String uriStr = new String(Mms.CONTENT_URI + "/" + id + "/part");
@@ -1328,7 +1328,7 @@ public class BluetoothMapContent {
      * Get SMS RecipientAddresses for DRAFT folder based on threadId
      *
     */
-    static public String getCanonicalAddressSms(ContentResolver r,  int threadId) {
+    public static String getCanonicalAddressSms(ContentResolver r,  int threadId) {
        String [] RECIPIENT_ID_PROJECTION = { Threads.RECIPIENT_IDS };
         /*
          1. Get Recipient Ids from Threads.CONTENT_URI
@@ -1390,7 +1390,7 @@ public class BluetoothMapContent {
         return recipientAddress;
      }
 
-    static public String getAddressMms(ContentResolver r, long id, int type) {
+    public static String getAddressMms(ContentResolver r, long id, int type) {
         String selection = new String("msg_id=" + id + " AND type=" + type);
         String uriStr = new String(Mms.CONTENT_URI + "/" + id + "/addr");
         Uri uriAddress = Uri.parse(uriStr);

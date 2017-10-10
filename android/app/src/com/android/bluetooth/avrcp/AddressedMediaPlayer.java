@@ -42,14 +42,14 @@ import java.util.ArrayList;
  ************************************************************************************************/
 
 public class AddressedMediaPlayer {
-    static private final String TAG = "AddressedMediaPlayer";
-    static private final Boolean DEBUG = false;
+    private static final String TAG = "AddressedMediaPlayer";
+    private static final Boolean DEBUG = false;
 
-    static private final long SINGLE_QID = 1;
-    static private final String UNKNOWN_TITLE = "(unknown)";
+    private static final long SINGLE_QID = 1;
+    private static final String UNKNOWN_TITLE = "(unknown)";
 
     private AvrcpMediaRspInterface mMediaInterface;
-    private @NonNull List<MediaSession.QueueItem> mNowPlayingList;
+    @NonNull private List<MediaSession.QueueItem> mNowPlayingList;
 
     private final List<MediaSession.QueueItem> mEmptyNowPlayingList;
 
@@ -236,7 +236,8 @@ public class AddressedMediaPlayer {
      * helper method to check if startItem and endItem index is with range of
      * MediaItem list. (Resultset containing all items in current path)
      */
-    private @Nullable List<MediaSession.QueueItem> getQueueSubset(
+    @Nullable
+    private List<MediaSession.QueueItem> getQueueSubset(
             @NonNull List<MediaSession.QueueItem> items, long startItem, long endItem) {
         if (endItem > items.size()) endItem = items.size() - 1;
         if (startItem > Integer.MAX_VALUE) startItem = Integer.MAX_VALUE;

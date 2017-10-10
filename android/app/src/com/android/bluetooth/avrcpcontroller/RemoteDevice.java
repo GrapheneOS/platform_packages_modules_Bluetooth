@@ -59,31 +59,31 @@ class RemoteDevice {
         mRemoteFeatures = remoteFeatures;
     }
 
-    synchronized public byte[] getBluetoothAddress() {
+    public synchronized byte[] getBluetoothAddress() {
         return Utils.getByteAddress(mBTDevice);
     }
 
-    synchronized public void setNotificationLabel(int label) {
+    public synchronized void setNotificationLabel(int label) {
         mNotificationLabel = label;
     }
 
-    synchronized public int getNotificationLabel() {
+    public synchronized int getNotificationLabel() {
         return mNotificationLabel;
     }
 
-    synchronized public void setAbsVolNotificationRequested(boolean request) {
+    public synchronized void setAbsVolNotificationRequested(boolean request) {
         mAbsVolNotificationRequested = request;
     }
 
-    synchronized public boolean getAbsVolNotificationRequested() {
+    public synchronized boolean getAbsVolNotificationRequested() {
         return mAbsVolNotificationRequested;
     }
 
-    synchronized public void setFirstAbsVolCmdRecvd() {
+    public synchronized void setFirstAbsVolCmdRecvd() {
         mFirstAbsVolCmdRecvd = true;
     }
 
-    synchronized public boolean getFirstAbsVolCmdRecvd() {
+    public synchronized boolean getFirstAbsVolCmdRecvd() {
         return mFirstAbsVolCmdRecvd;
     }
 }

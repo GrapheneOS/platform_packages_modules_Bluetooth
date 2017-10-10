@@ -216,7 +216,7 @@ class PeriodicScanManager {
         classInitNative();
     }
 
-    private native static void classInitNative();
+    private static native void classInitNative();
     private native void initializeNative();
     private native void cleanupNative();
     private native void startSyncNative(int sid, String address, int skip, int timeout, int reg_id);

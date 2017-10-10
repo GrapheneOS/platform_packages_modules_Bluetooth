@@ -134,15 +134,15 @@ public class BluetoothMapSmsPdu {
 
 
         /* PDU parsing/modification functionality */
-        private final static byte TELESERVICE_IDENTIFIER                    = 0x00;
-        private final static byte SERVICE_CATEGORY                          = 0x01;
-        private final static byte ORIGINATING_ADDRESS                       = 0x02;
-        private final static byte ORIGINATING_SUB_ADDRESS                   = 0x03;
-        private final static byte DESTINATION_ADDRESS                       = 0x04;
-        private final static byte DESTINATION_SUB_ADDRESS                   = 0x05;
-        private final static byte BEARER_REPLY_OPTION                       = 0x06;
-        private final static byte CAUSE_CODES                               = 0x07;
-        private final static byte BEARER_DATA                               = 0x08;
+        private static final byte TELESERVICE_IDENTIFIER                    = 0x00;
+        private static final byte SERVICE_CATEGORY                          = 0x01;
+        private static final byte ORIGINATING_ADDRESS                       = 0x02;
+        private static final byte ORIGINATING_SUB_ADDRESS                   = 0x03;
+        private static final byte DESTINATION_ADDRESS                       = 0x04;
+        private static final byte DESTINATION_SUB_ADDRESS                   = 0x05;
+        private static final byte BEARER_REPLY_OPTION                       = 0x06;
+        private static final byte CAUSE_CODES                               = 0x07;
+        private static final byte BEARER_DATA                               = 0x08;
 
         /**
          * Find and return the offset to the specified parameter ID
@@ -183,7 +183,7 @@ public class BluetoothMapSmsPdu {
                 return 0;
         }
 
-        private final static byte BEARER_DATA_MSG_ID = 0x00;
+        private static final byte BEARER_DATA_MSG_ID = 0x00;
 
         private int cdmaGetSubParameterOffset(byte subParameterId) {
             ByteArrayInputStream pdu = new ByteArrayInputStream(mData);

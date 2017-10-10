@@ -966,7 +966,7 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
      * Start server side socket listeners. Caller should make sure that adapter is in a ready state
      * and SDP record is cleaned up. Otherwise, this method will fail.
      */
-    synchronized private void startSocketListeners() {
+    private synchronized void startSocketListeners() {
         if (DEBUG) Log.d(TAG, "startsocketListener");
         if (mServerSession != null) {
             if (DEBUG) Log.d(TAG, "mServerSession exists - shutting it down...");

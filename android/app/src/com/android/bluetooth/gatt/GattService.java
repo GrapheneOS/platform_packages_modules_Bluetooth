@@ -2692,7 +2692,7 @@ public class GattService extends ProfileService {
      * Native functions prototypes
      *************************************************************************/
 
-    private native static void classInitNative();
+    private static native void classInitNative();
     private native void initializeNative();
     private native void cleanupNative();
 

@@ -676,12 +676,12 @@ public class HidDevService extends ProfileService {
     }
   }
 
-  private final static int CONN_STATE_CONNECTED = 0;
-  private final static int CONN_STATE_CONNECTING = 1;
-  private final static int CONN_STATE_DISCONNECTED = 2;
-  private final static int CONN_STATE_DISCONNECTING = 3;
+  private static final int CONN_STATE_CONNECTED = 0;
+  private static final int CONN_STATE_CONNECTING = 1;
+  private static final int CONN_STATE_DISCONNECTED = 2;
+  private static final int CONN_STATE_DISCONNECTING = 3;
 
-  private native static void classInitNative();
+  private static native void classInitNative();
   private native void initNative();
   private native void cleanupNative();
   private native boolean registerAppNative(String name, String description,

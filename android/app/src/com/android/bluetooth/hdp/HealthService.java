@@ -902,7 +902,7 @@ public class HealthService extends ProfileService {
     private static final int CHANNEL_TYPE_STREAMING = 1;
     private static final int CHANNEL_TYPE_ANY =2;
 
-    private native static void classInitNative();
+    private static native void classInitNative();
     private native void initializeNative();
     private native void cleanupNative();
     private native int registerHealthAppNative(int dataType, int role, String name, int channelType);

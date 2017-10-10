@@ -72,14 +72,14 @@ public abstract class BluetoothMapEmailProvider extends ContentProvider {
      * @param out the FileOurputStream to write to.
      * @throws IOException
      */
-    abstract protected void WriteMessageToStream(long accountId, long messageId,
+    protected abstract void WriteMessageToStream(long accountId, long messageId,
             boolean includeAttachment, boolean download, FileOutputStream out)
         throws IOException;
 
     /**
      * @return the CONTENT_URI exposed. This will be used to send out notifications.
      */
-    abstract protected Uri getContentUri();
+    protected abstract Uri getContentUri();
 
    /**
     * Implementation is provided by the parent class.
@@ -170,7 +170,7 @@ public abstract class BluetoothMapEmailProvider extends ContentProvider {
      * @param accountId the accountId
      * @param messageId ID of the message to update
      */
-    abstract protected void UpdateMimeMessageFromStream(FileInputStream input, long accountId,
+    protected abstract void UpdateMimeMessageFromStream(FileInputStream input, long accountId,
             long messageId) throws IOException;
 
     public class PipeWriter implements PipeDataWriter<Cursor> {
@@ -421,7 +421,7 @@ public abstract class BluetoothMapEmailProvider extends ContentProvider {
      * @param messageId the ID of the message to delete.
      * @return the number of messages deleted - 0 if the message was not found.
      */
-    abstract protected int deleteMessage(String accountId, String messageId);
+    protected abstract int deleteMessage(String accountId, String messageId);
 
     /**
      * Insert is used to add new messages to the data base.
@@ -469,7 +469,7 @@ public abstract class BluetoothMapEmailProvider extends ContentProvider {
      * @param folderId the ID of the folder to create a new message in.
      * @return the message id as a string
      */
-    abstract protected String insertMessage(String accountId, String folderId);
+    protected abstract String insertMessage(String accountId, String folderId);
 
      /**
      * Utility function to build a projection based on a projectionMap.
@@ -525,7 +525,7 @@ public abstract class BluetoothMapEmailProvider extends ContentProvider {
      * @param sortOrder
      * @return a cursor to the accounts that are subject to exposure over BT.
      */
-    abstract protected Cursor queryAccount(String[] projection, String selection, String[] selectionArgs,
+    protected abstract Cursor queryAccount(String[] projection, String selection, String[] selectionArgs,
             String sortOrder);
 
     /**
@@ -538,7 +538,7 @@ public abstract class BluetoothMapEmailProvider extends ContentProvider {
      * @param sortOrder
      * @return
      */
-    abstract protected Cursor queryFolder(String accountId, String[] projection, String selection, String[] selectionArgs,
+    protected abstract Cursor queryFolder(String accountId, String[] projection, String selection, String[] selectionArgs,
             String sortOrder);
     /**
      * For the message table the selection (where clause) can only include the following columns:
@@ -558,7 +558,7 @@ public abstract class BluetoothMapEmailProvider extends ContentProvider {
      * @param sortOrder
      * @return a cursor to query result
      */
-    abstract protected Cursor queryMessage(String accountId, String[] projection, String selection, String[] selectionArgs,
+    protected abstract Cursor queryMessage(String accountId, String[] projection, String selection, String[] selectionArgs,
             String sortOrder);
 
     /**
@@ -623,7 +623,7 @@ public abstract class BluetoothMapEmailProvider extends ContentProvider {
      * @param flagExpose the updated value.
      * @return the number of entries changed - 0 if account not found or value cannot be changed.
      */
-    abstract protected int updateAccount(String accountId, int flagExpose);
+    protected abstract int updateAccount(String accountId, int flagExpose);
 
     /**
      * Update an entry in the message table.
@@ -633,7 +633,7 @@ public abstract class BluetoothMapEmailProvider extends ContentProvider {
      * @param flagRead the new flagRead value to set - ignore if null.
      * @return
      */
-    abstract protected int updateMessage(String accountId, Long messageId, Long folderId, Boolean flagRead);
+    protected abstract int updateMessage(String accountId, Long messageId, Long folderId, Boolean flagRead);
 
 
     @Override
@@ -671,7 +671,7 @@ public abstract class BluetoothMapEmailProvider extends ContentProvider {
      * @param folderId the ID of the folder.
      * @return 0 at success
      */
-    abstract protected int syncFolder(long accountId, long folderId);
+    protected abstract int syncFolder(long accountId, long folderId);
 
     /**
      * Need this to suppress warning in unit tests.

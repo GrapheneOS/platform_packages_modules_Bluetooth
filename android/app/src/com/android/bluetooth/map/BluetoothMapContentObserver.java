@@ -620,7 +620,7 @@ public class BluetoothMapContentObserver {
         String presenceStatus = null;
         int chatState = BluetoothMapContract.ChatState.UNKNOWN;
 
-        final static String PATH = "telecom/msg/";
+        static final String PATH = "telecom/msg/";
 
         private void setFolderPath(String name, TYPE type) {
             if (name != null) {
@@ -3250,7 +3250,7 @@ public class BluetoothMapContentObserver {
      * @param intent The intent received
      * @param result The result
      */
-    static public void actionMmsSent(Context context, Intent intent, int result,
+    public static void actionMmsSent(Context context, Intent intent, int result,
             Map<Long, Msg> mmsMsgList) {
         /*
          * if transparent:
@@ -3303,7 +3303,7 @@ public class BluetoothMapContentObserver {
         }
     }
 
-    static public void actionMessageSentDisconnected(Context context, Intent intent, int result) {
+    public static void actionMessageSentDisconnected(Context context, Intent intent, int result) {
         TYPE type = TYPE.fromOrdinal(
         intent.getIntExtra(EXTRA_MESSAGE_SENT_MSG_TYPE, TYPE.NONE.ordinal()));
         if(type == TYPE.MMS) {
@@ -3313,7 +3313,7 @@ public class BluetoothMapContentObserver {
         }
     }
 
-    static public void actionSmsSentDisconnected(Context context, Intent intent, int result) {
+    public static void actionSmsSentDisconnected(Context context, Intent intent, int result) {
         /* Check permission for message deletion. */
         if ((Binder.getCallingPid() != Process.myPid()) ||
             (context.checkCallingOrSelfPermission("android.Manifest.permission.WRITE_SMS")

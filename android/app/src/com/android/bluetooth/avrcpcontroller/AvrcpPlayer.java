@@ -93,11 +93,11 @@ class AvrcpPlayer {
         return new PlaybackState.Builder().setState(mPlayStatus, position, speed).build();
     }
 
-    synchronized public void updateCurrentTrack(TrackInfo update) {
+    public synchronized void updateCurrentTrack(TrackInfo update) {
         mCurrentTrack = update;
     }
 
-    synchronized public TrackInfo getCurrentTrack() {
+    public synchronized TrackInfo getCurrentTrack() {
         return mCurrentTrack;
     }
 }
