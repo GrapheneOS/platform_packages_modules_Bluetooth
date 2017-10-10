@@ -178,6 +178,7 @@ public abstract class BluetoothMapEmailProvider extends ContentProvider {
          * Generate a message based on the cursor, and write the encoded data to the stream.
          */
 
+        @Override
         public void writeDataToPipe(ParcelFileDescriptor output, Uri uri, String mimeType,
                 Bundle opts, Cursor c) {
             if (D) Log.d(TAG, "writeDataToPipe(): uri=" + uri.toString() +

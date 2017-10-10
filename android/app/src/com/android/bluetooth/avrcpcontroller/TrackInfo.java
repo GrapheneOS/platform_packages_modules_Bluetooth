@@ -91,6 +91,7 @@ class TrackInfo {
         mTrackLen = (attribute != null && !attribute.isEmpty()) ? Long.valueOf(attribute) : TOTAL_TRACK_TIME_INVALID;
     }
 
+    @Override
     public String toString() {
         return "Metadata [artist=" + mArtistName + " trackTitle= " + mTrackTitle +
                 " albumTitle= " + mAlbumTitle + " genre= " +mGenre+" trackNum= "+

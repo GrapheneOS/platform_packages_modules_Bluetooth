@@ -233,6 +233,7 @@ public class BluetoothOppTransferHistory extends Activity implements
         new AlertDialog.Builder(this).setTitle(R.string.transfer_clear_dlg_title).setMessage(
                 R.string.transfer_clear_dlg_msg).setPositiveButton(android.R.string.ok,
                 new DialogInterface.OnClickListener() {
+                    @Override
                     public void onClick(DialogInterface dialog, int whichButton) {
                         clearAllDownloads();
                     }
@@ -279,6 +280,7 @@ public class BluetoothOppTransferHistory extends Activity implements
      * android.widget.AdapterView.OnItemClickListener#onItemClick(android.widget
      * .AdapterView, android.view.View, int, long)
      */
+    @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         // Open the selected item
         if (V) Log.v(TAG, "onItemClick: ContextMenu = " + mContextMenu);

@@ -269,6 +269,7 @@ final class AdapterState extends StateMachine {
         private boolean mIsBleTurningOn;
         private boolean mIsBleTurningOff;
 
+        @Override
         public void enter() {
             infoLog("Entering PendingCommandState");
         }

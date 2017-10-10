@@ -111,6 +111,7 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
         mPartialWakeLock.setReferenceCounted(false);
     }
 
+    @Override
     public void unblock() {
         mServerBlocking = false;
     }
@@ -131,6 +132,7 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
     /**
      * Called from BluetoothOppTransfer to start the "Transfer"
      */
+    @Override
     public void start(Handler handler, int numShares) {
         if (D) Log.d(TAG, "Start!");
         mCallback = handler;
@@ -141,6 +143,7 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
      * Called from BluetoothOppTransfer to cancel the "Transfer" Otherwise,
      * server should end by itself.
      */
+    @Override
     public void stop() {
         /*
          * TODO now we implement in a tough way, just close the socket.
@@ -160,6 +163,7 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
         mSession = null;
     }
 
+    @Override
     public void addShare(BluetoothOppShareInfo info) {
         if (D) Log.d(TAG, "addShare for id " + info.mId);
         mInfo = info;

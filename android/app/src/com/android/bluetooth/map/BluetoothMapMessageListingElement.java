@@ -252,6 +252,7 @@ public class BluetoothMapMessageListingElement
         this.mFolderType = folderType;
     }
 
+    @Override
     public int compareTo(BluetoothMapMessageListingElement e) {
         if (this.mDateTime < e.mDateTime) {
             return 1;
