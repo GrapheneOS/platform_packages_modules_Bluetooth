@@ -44,7 +44,7 @@ import java.util.NoSuchElementException;
 public class HidDevService extends ProfileService {
     private static final boolean DBG = false;
 
-    private static final String TAG = HidDevService.class.getSimpleName();
+    private static final String TAG = "BluetoothHidDevService";
 
     private static final int MESSAGE_APPLICATION_STATE_CHANGED = 1;
     private static final int MESSAGE_CONNECT_STATE_CHANGED = 2;
@@ -75,7 +75,7 @@ public class HidDevService extends ProfileService {
         @Override
         public void handleMessage(Message msg) {
             if (DBG) {
-                Log.v(TAG, "handleMessage(): msg.what=" + msg.what);
+                Log.d(TAG, "handleMessage(): msg.what=" + msg.what);
             }
 
             switch (msg.what) {
@@ -280,7 +280,7 @@ public class HidDevService extends ProfileService {
                 BluetoothHidDeviceAppSdpSettings sdp, BluetoothHidDeviceAppQosSettings inQos,
                 BluetoothHidDeviceAppQosSettings outQos, IBluetoothHidDeviceCallback callback) {
             if (DBG) {
-                Log.v(TAG, "registerApp()");
+                Log.d(TAG, "registerApp()");
             }
 
             HidDevService service = getService();
@@ -294,7 +294,7 @@ public class HidDevService extends ProfileService {
         @Override
         public boolean unregisterApp(BluetoothHidDeviceAppConfiguration config) {
             if (DBG) {
-                Log.v(TAG, "unregisterApp()");
+                Log.d(TAG, "unregisterApp()");
             }
 
             HidDevService service = getService();
@@ -308,7 +308,7 @@ public class HidDevService extends ProfileService {
         @Override
         public boolean sendReport(BluetoothDevice device, int id, byte[] data) {
             if (DBG) {
-                Log.v(TAG, "sendReport(): device=" + device + "  id=" + id);
+                Log.d(TAG, "sendReport(): device=" + device + "  id=" + id);
             }
 
             HidDevService service = getService();
@@ -322,7 +322,7 @@ public class HidDevService extends ProfileService {
         @Override
         public boolean replyReport(BluetoothDevice device, byte type, byte id, byte[] data) {
             if (DBG) {
-                Log.v(TAG, "replyReport(): device=" + device + " type=" + type + " id=" + id);
+                Log.d(TAG, "replyReport(): device=" + device + " type=" + type + " id=" + id);
             }
 
             HidDevService service = getService();
@@ -336,7 +336,7 @@ public class HidDevService extends ProfileService {
         @Override
         public boolean unplug(BluetoothDevice device) {
             if (DBG) {
-                Log.v(TAG, "unplug(): device=" + device);
+                Log.d(TAG, "unplug(): device=" + device);
             }
 
             HidDevService service = getService();
@@ -350,7 +350,7 @@ public class HidDevService extends ProfileService {
         @Override
         public boolean connect(BluetoothDevice device) {
             if (DBG) {
-                Log.v(TAG, "connect(): device=" + device);
+                Log.d(TAG, "connect(): device=" + device);
             }
 
             HidDevService service = getService();
@@ -364,7 +364,7 @@ public class HidDevService extends ProfileService {
         @Override
         public boolean disconnect(BluetoothDevice device) {
             if (DBG) {
-                Log.v(TAG, "disconnect(): device=" + device);
+                Log.d(TAG, "disconnect(): device=" + device);
             }
 
             HidDevService service = getService();
@@ -378,7 +378,7 @@ public class HidDevService extends ProfileService {
         @Override
         public boolean reportError(BluetoothDevice device, byte error) {
             if (DBG) {
-                Log.v(TAG, "reportError(): device=" + device + " error=" + error);
+                Log.d(TAG, "reportError(): device=" + device + " error=" + error);
             }
 
             HidDevService service = getService();
@@ -392,7 +392,7 @@ public class HidDevService extends ProfileService {
         @Override
         public int getConnectionState(BluetoothDevice device) {
             if (DBG) {
-                Log.v(TAG, "getConnectionState(): device=" + device);
+                Log.d(TAG, "getConnectionState(): device=" + device);
             }
 
             HidDevService service = getService();
@@ -406,7 +406,7 @@ public class HidDevService extends ProfileService {
         @Override
         public List<BluetoothDevice> getConnectedDevices() {
             if (DBG) {
-                Log.v(TAG, "getConnectedDevices()");
+                Log.d(TAG, "getConnectedDevices()");
             }
 
             return getDevicesMatchingConnectionStates(new int[]{BluetoothProfile.STATE_CONNECTED});
@@ -415,7 +415,7 @@ public class HidDevService extends ProfileService {
         @Override
         public List<BluetoothDevice> getDevicesMatchingConnectionStates(int[] states) {
             if (DBG) {
-                Log.v(TAG,
+                Log.d(TAG,
                         "getDevicesMatchingConnectionStates(): states=" + Arrays.toString(states));
             }
 
@@ -445,10 +445,11 @@ public class HidDevService extends ProfileService {
             BluetoothHidDeviceAppSdpSettings sdp, BluetoothHidDeviceAppQosSettings inQos,
             BluetoothHidDeviceAppQosSettings outQos, IBluetoothHidDeviceCallback callback) {
         if (DBG) {
-            Log.v(TAG, "registerApp()");
+            Log.d(TAG, "registerApp()");
         }
 
         if (mAppConfig != null) {
+            Log.w(TAG, "registerApp: failed because app configuration already exists. ");
             return false;
         }
 
@@ -462,10 +463,15 @@ public class HidDevService extends ProfileService {
 
     synchronized boolean unregisterApp(BluetoothHidDeviceAppConfiguration config) {
         if (DBG) {
-            Log.v(TAG, "unregisterApp()");
+            Log.d(TAG, "unregisterApp()");
+        }
+        if (config == null) {
+            Log.w(TAG, "unregisterApp: failed. The config in parameter should not be null");
+            return false;
         }
 
-        if (mAppConfig == null || config == null || !config.equals(mAppConfig)) {
+        if (mAppConfig == null ||  !config.equals(mAppConfig)) {
+            Log.w(TAG, "unregisterApp: failed. The app configuration does not match the record");
             return false;
         }
 
@@ -474,7 +480,7 @@ public class HidDevService extends ProfileService {
 
     synchronized boolean sendReport(BluetoothDevice device, int id, byte[] data) {
         if (DBG) {
-            Log.v(TAG, "sendReport(): device=" + device + " id=" + id);
+            Log.d(TAG, "sendReport(): device=" + device + " id=" + id);
         }
 
         if (!checkDevice(device)) {
@@ -486,7 +492,7 @@ public class HidDevService extends ProfileService {
 
     synchronized boolean replyReport(BluetoothDevice device, byte type, byte id, byte[] data) {
         if (DBG) {
-            Log.v(TAG, "replyReport(): device=" + device + " type=" + type + " id=" + id);
+            Log.d(TAG, "replyReport(): device=" + device + " type=" + type + " id=" + id);
         }
 
         if (!checkDevice(device)) {
@@ -498,7 +504,7 @@ public class HidDevService extends ProfileService {
 
     synchronized boolean unplug(BluetoothDevice device) {
         if (DBG) {
-            Log.v(TAG, "unplug(): device=" + device);
+            Log.d(TAG, "unplug(): device=" + device);
         }
 
         if (!checkDevice(device)) {
@@ -510,7 +516,7 @@ public class HidDevService extends ProfileService {
 
     synchronized boolean connect(BluetoothDevice device) {
         if (DBG) {
-            Log.v(TAG, "connect(): device=" + device);
+            Log.d(TAG, "connect(): device=" + device);
         }
 
         return connectNative(Utils.getByteAddress(device));
@@ -518,7 +524,7 @@ public class HidDevService extends ProfileService {
 
     synchronized boolean disconnect(BluetoothDevice device) {
         if (DBG) {
-            Log.v(TAG, "disconnect(): device=" + device);
+            Log.d(TAG, "disconnect(): device=" + device);
         }
 
         if (!checkDevice(device)) {
@@ -530,7 +536,7 @@ public class HidDevService extends ProfileService {
 
     synchronized boolean reportError(BluetoothDevice device, byte error) {
         if (DBG) {
-            Log.v(TAG, "reportError(): device=" + device + " error=" + error);
+            Log.d(TAG, "reportError(): device=" + device + " error=" + error);
         }
 
         if (!checkDevice(device)) {
@@ -599,7 +605,7 @@ public class HidDevService extends ProfileService {
 
     private synchronized void onApplicationStateChanged(byte[] address, boolean registered) {
         if (DBG) {
-            Log.v(TAG, "onApplicationStateChanged(): registered=" + registered);
+            Log.d(TAG, "onApplicationStateChanged(): registered=" + registered);
         }
 
         Message msg = mHandler.obtainMessage(MESSAGE_APPLICATION_STATE_CHANGED);
@@ -610,7 +616,7 @@ public class HidDevService extends ProfileService {
 
     private synchronized void onConnectStateChanged(byte[] address, int state) {
         if (DBG) {
-            Log.v(TAG, "onConnectStateChanged(): address=" + Arrays.toString(address) + " state="
+            Log.d(TAG, "onConnectStateChanged(): address=" + Arrays.toString(address) + " state="
                     + state);
         }
 
@@ -622,7 +628,7 @@ public class HidDevService extends ProfileService {
 
     private synchronized void onGetReport(byte type, byte id, short bufferSize) {
         if (DBG) {
-            Log.v(TAG, "onGetReport(): type=" + type + " id=" + id + " bufferSize=" + bufferSize);
+            Log.d(TAG, "onGetReport(): type=" + type + " id=" + id + " bufferSize=" + bufferSize);
         }
 
         Message msg = mHandler.obtainMessage(MESSAGE_GET_REPORT);
@@ -634,7 +640,7 @@ public class HidDevService extends ProfileService {
 
     private synchronized void onSetReport(byte reportType, byte reportId, byte[] data) {
         if (DBG) {
-            Log.v(TAG, "onSetReport(): reportType=" + reportType + " reportId=" + reportId);
+            Log.d(TAG, "onSetReport(): reportType=" + reportType + " reportId=" + reportId);
         }
 
         ByteBuffer bb = ByteBuffer.wrap(data);
@@ -648,7 +654,7 @@ public class HidDevService extends ProfileService {
 
     private synchronized void onSetProtocol(byte protocol) {
         if (DBG) {
-            Log.v(TAG, "onSetProtocol(): protocol=" + protocol);
+            Log.d(TAG, "onSetProtocol(): protocol=" + protocol);
         }
 
         Message msg = mHandler.obtainMessage(MESSAGE_SET_PROTOCOL);
@@ -658,7 +664,7 @@ public class HidDevService extends ProfileService {
 
     private synchronized void onIntrData(byte reportId, byte[] data) {
         if (DBG) {
-            Log.v(TAG, "onIntrData(): reportId=" + reportId);
+            Log.d(TAG, "onIntrData(): reportId=" + reportId);
         }
 
         ByteBuffer bb = ByteBuffer.wrap(data);
@@ -671,7 +677,7 @@ public class HidDevService extends ProfileService {
 
     private synchronized void onVirtualCableUnplug() {
         if (DBG) {
-            Log.v(TAG, "onVirtualCableUnplug()");
+            Log.d(TAG, "onVirtualCableUnplug()");
         }
 
         Message msg = mHandler.obtainMessage(MESSAGE_VC_UNPLUG);
@@ -680,7 +686,7 @@ public class HidDevService extends ProfileService {
 
     private void broadcastConnectionState(BluetoothDevice device, int newState) {
         if (DBG) {
-            Log.v(TAG, "broadcastConnectionState(): device=" + device.getAddress() + " newState="
+            Log.d(TAG, "broadcastConnectionState(): device=" + device.getAddress() + " newState="
                     + newState);
         }
 
