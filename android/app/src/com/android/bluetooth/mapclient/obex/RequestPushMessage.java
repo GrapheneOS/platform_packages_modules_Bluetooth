@@ -40,7 +40,7 @@ final class RequestPushMessage extends Request {
         mHeaderSet.setHeader(HeaderSet.NAME, folder);
     }
 
-    public RequestPushMessage(String folder, Bmessage msg,
+    RequestPushMessage(String folder, Bmessage msg,
             CharsetType charset,
             boolean transparent, boolean retry) {
         this(folder);

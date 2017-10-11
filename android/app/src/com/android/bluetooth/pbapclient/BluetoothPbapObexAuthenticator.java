@@ -37,7 +37,7 @@ class BluetoothPbapObexAuthenticator implements Authenticator {
 
     private final Handler mCallback;
 
-    public BluetoothPbapObexAuthenticator(Handler callback) {
+    BluetoothPbapObexAuthenticator(Handler callback) {
         mCallback = callback;
     }
 

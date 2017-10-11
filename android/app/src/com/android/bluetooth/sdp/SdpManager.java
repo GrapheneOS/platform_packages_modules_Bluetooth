@@ -103,7 +103,7 @@ public class SdpManager {
         /* TODO: If we change the API to use another mechanism than intents for
          *       delivering the results, this would be the place to keep a list
          *       of the objects to deliver the results to. */
-        public SdpSearchInstance(int status, BluetoothDevice device, ParcelUuid uuid){
+        SdpSearchInstance(int status, BluetoothDevice device, ParcelUuid uuid){
             this.mDevice = device;
             this.mUuid = uuid;
             this.mStatus = status;

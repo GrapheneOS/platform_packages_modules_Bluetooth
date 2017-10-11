@@ -198,7 +198,7 @@ public class BluetoothOppTransfer implements BluetoothOppBatch.BluetoothOppBatch
      * Receives events from mConnectThread & mSession back in the main thread.
      */
     private class EventHandler extends Handler {
-        public EventHandler(Looper looper) {
+        EventHandler(Looper looper) {
             super(looper);
         }
 
@@ -626,7 +626,7 @@ public class BluetoothOppTransfer implements BluetoothOppBatch.BluetoothOppBatch
         private boolean isInterrupted = false;
 
         /* create a Rfcomm/L2CAP Socket */
-        public SocketConnectThread(BluetoothDevice device, boolean retry) {
+        SocketConnectThread(BluetoothDevice device, boolean retry) {
             super("Socket Connect Thread");
             this.device = device;
             this.host = null;
@@ -637,7 +637,7 @@ public class BluetoothOppTransfer implements BluetoothOppBatch.BluetoothOppBatch
         }
 
         /* create a Rfcomm/L2CAP Socket */
-        public SocketConnectThread(
+        SocketConnectThread(
                 BluetoothDevice device, boolean retry, boolean sdpInitiated, int l2capChannel) {
             super("Socket Connect Thread");
             this.device = device;

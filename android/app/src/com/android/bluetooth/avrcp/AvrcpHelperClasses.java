@@ -35,7 +35,7 @@ import java.util.Collection;
 
 class AvrcpCmd {
 
-    public AvrcpCmd() {}
+    AvrcpCmd() {}
 
     /* Helper classes to pass parameters from callbacks to Avrcp handler */
     class FolderItemsCmd {
@@ -46,7 +46,7 @@ class AvrcpCmd {
         int[] mAttrIDs;
         public byte[] mAddress;
 
-        public FolderItemsCmd(byte[] address, byte scope, long startItem, long endItem,
+        FolderItemsCmd(byte[] address, byte scope, long startItem, long endItem,
                 byte numAttr, int[] attrIds) {
             mAddress = address;
             this.mScope = scope;
@@ -79,7 +79,7 @@ class AvrcpCmd {
         int[] mAttrIDs;
         public byte[] mAddress;
 
-        public ItemAttrCmd(byte[] address, byte scope, byte[] uid, int uidCounter, byte numAttr,
+        ItemAttrCmd(byte[] address, byte scope, byte[] uid, int uidCounter, byte numAttr,
                 int[] attrIDs) {
             mAddress = address;
             mScope = scope;
@@ -108,7 +108,7 @@ class AvrcpCmd {
         int[] mAttrIDs;
         public byte[] mAddress;
 
-        public ElementAttrCmd(byte[] address, byte numAttr, int[] attrIDs) {
+        ElementAttrCmd(byte[] address, byte numAttr, int[] attrIDs) {
             mAddress = address;
             mNumAttr = numAttr;
             mAttrIDs = attrIDs;
@@ -129,7 +129,7 @@ class MediaPlayerListRsp {
     String[] mPlayerNameList;
     int mNumItems;
 
-    public MediaPlayerListRsp(byte status, short uidCounter, int numItems, byte itemType,
+    MediaPlayerListRsp(byte status, short uidCounter, int numItems, byte itemType,
             int[] playerIds, byte[] playerTypes, int[] playerSubTypes, byte[] playStatusValues,
             short[] featureBitMaskValues, String[] playerNameList) {
         this.mStatus = status;
@@ -165,7 +165,7 @@ class FolderItemsRsp {
     int[] mAttrIds;
     String[] mAttrValues;
 
-    public FolderItemsRsp(byte status, short uidCounter, byte scope, int numItems,
+    FolderItemsRsp(byte status, short uidCounter, byte scope, int numItems,
             byte[] folderTypes, byte[] playable, byte[] itemTypes, byte[] itemsUid,
             String[] displayNameArray, int[] attributesNum, int[] attrIds, String[] attrValues) {
         this.mStatus = status;
@@ -189,7 +189,7 @@ class ItemAttrRsp {
     int[] mAttributesIds;
     String[] mAttributesArray;
 
-    public ItemAttrRsp(byte status, int[] attributesIds, String[] attributesArray) {
+    ItemAttrRsp(byte status, int[] attributesIds, String[] attributesArray) {
         mStatus = status;
         mNumAttr = (byte) attributesIds.length;
         mAttributesIds = attributesIds;
@@ -338,7 +338,7 @@ class BrowsePlayerInfo {
     String displayableName;
     String serviceClass;
 
-    public BrowsePlayerInfo(String packageName, String displayableName, String serviceClass) {
+    BrowsePlayerInfo(String packageName, String displayableName, String serviceClass) {
         this.packageName = packageName;
         this.displayableName = displayableName;
         this.serviceClass = serviceClass;
@@ -368,7 +368,7 @@ class FolderItemsData {
     String[] mAttrValues;
     int attrCounter;
 
-    public FolderItemsData(int size) {
+    FolderItemsData(int size) {
         mNumItems = size;
         mAttributesNum = new int[size];
 
@@ -395,17 +395,17 @@ class FolderItemsData {
 class EvictingQueue<E> extends ArrayDeque<E> {
     private int mMaxSize;
 
-    public EvictingQueue(int maxSize) {
+    EvictingQueue(int maxSize) {
         super();
         mMaxSize = maxSize;
     }
 
-    public EvictingQueue(int maxSize, int initialElements) {
+    EvictingQueue(int maxSize, int initialElements) {
         super(initialElements);
         mMaxSize = maxSize;
     }
 
-    public EvictingQueue(int maxSize, Collection<? extends E> c) {
+    EvictingQueue(int maxSize, Collection<? extends E> c) {
         super(c);
         mMaxSize = maxSize;
     }

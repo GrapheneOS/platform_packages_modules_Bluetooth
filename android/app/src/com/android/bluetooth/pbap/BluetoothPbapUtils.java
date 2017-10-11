@@ -82,13 +82,13 @@ public class BluetoothPbapUtils {
         private ArrayList<String> phone;
         private ArrayList<String> address;
 
-        public ContactData() {
+        ContactData() {
             phone = new ArrayList<String>();
             email = new ArrayList<String>();
             address = new ArrayList<String>();
         }
 
-        public ContactData(String name, ArrayList<String> phone, ArrayList<String> email,
+        ContactData(String name, ArrayList<String> phone, ArrayList<String> email,
                 ArrayList<String> address) {
             this.name = name;
             this.phone = phone;

@@ -61,7 +61,7 @@ import com.android.bluetooth.btservice.BluetoothProto;
         int results;
         int scannerId;
 
-        public LastScan(long timestamp, long duration, boolean opportunistic, boolean background,
+        LastScan(long timestamp, long duration, boolean opportunistic, boolean background,
                 boolean filtered, int scannerId) {
             this.duration = duration;
             this.timestamp = timestamp;
@@ -103,7 +103,7 @@ import com.android.bluetooth.btservice.BluetoothProto;
     long stopTime = 0;
     int results = 0;
 
-    public AppScanStats(String name, WorkSource source, ContextMap map, GattService service) {
+    AppScanStats(String name, WorkSource source, ContextMap map, GattService service) {
         appName = name;
         contextMap = map;
         gattService = service;

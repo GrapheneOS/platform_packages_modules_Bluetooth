@@ -53,7 +53,7 @@ public class ProfileObserver extends ContentObserver {
     private static class AdapterStateObserver extends BroadcastReceiver {
         private ProfileObserver mProfileObserver;
 
-        public AdapterStateObserver(ProfileObserver observer) {
+        AdapterStateObserver(ProfileObserver observer) {
             mProfileObserver = observer;
         }
 
