@@ -417,11 +417,11 @@ public class PanService extends ProfileService {
             this.local_role = localRole;
             this.remote_role = remoteRole;
         }
-        byte[] addr;
-        int state;
-        int error;
-        int local_role;
-        int remote_role;
+        public byte[] addr;
+        public int state;
+        public int error;
+        public int local_role;
+        public int remote_role;
     };
     private void onConnectStateChanged(byte[] address, int state, int error, int localRole,
             int remoteRole) {

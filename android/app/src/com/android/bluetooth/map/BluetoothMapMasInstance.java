@@ -39,7 +39,7 @@ import android.os.RemoteException;
 import android.util.Log;
 
 public class BluetoothMapMasInstance implements IObexConnectionHandler {
-    private final String TAG;
+    private final String mTag;
     private static volatile int sInstanceCounter = 0;
 
     private static final boolean D = BluetoothMapService.DEBUG;
@@ -115,7 +115,7 @@ public class BluetoothMapMasInstance implements IObexConnectionHandler {
             BluetoothMapAccountItem account,
             int masId,
             boolean enableSmsMms) {
-        TAG = "BluetoothMapMasInstance" + sInstanceCounter++;
+        mTag = "BluetoothMapMasInstance" + sInstanceCounter++;
         mMapService = mapService;
         mServiceHandler = mapService.getHandler();
         mContext = context;
@@ -131,17 +131,17 @@ public class BluetoothMapMasInstance implements IObexConnectionHandler {
     private void removeSdpRecord() {
         if (mAdapter != null && mSdpHandle >= 0 &&
                 SdpManager.getDefaultManager() != null) {
-            if (V) Log.d(TAG, "Removing SDP record for MAS instance: " + mMasInstanceId +
+            if (V) Log.d(mTag, "Removing SDP record for MAS instance: " + mMasInstanceId +
                     " Object reference: " + this + "SDP handle: " + mSdpHandle);
             boolean status = SdpManager.getDefaultManager().removeSdpRecord(mSdpHandle);
-            Log.d(TAG, "RemoveSDPrecord returns " + status);
+            Log.d(mTag, "RemoveSDPrecord returns " + status);
             mSdpHandle = -1;
         }
     }
 
     /* Needed only for test */
     protected BluetoothMapMasInstance() {
-        TAG = "BluetoothMapMasInstance" + sInstanceCounter++;
+        mTag = "BluetoothMapMasInstance" + sInstanceCounter++;
     }
 
     @Override
@@ -260,15 +260,15 @@ public class BluetoothMapMasInstance implements IObexConnectionHandler {
     }
 
     public synchronized void startRfcommSocketListener() {
-        if (D) Log.d(TAG, "Map Service startRfcommSocketListener");
+        if (D) Log.d(mTag, "Map Service startRfcommSocketListener");
 
         if (mServerSession != null) {
-            if (D) Log.d(TAG, "mServerSession exists - shutting it down...");
+            if (D) Log.d(mTag, "mServerSession exists - shutting it down...");
             mServerSession.close();
             mServerSession = null;
         }
         if (mObserver != null) {
-            if (D) Log.d(TAG, "mObserver exists - shutting it down...");
+            if (D) Log.d(mTag, "mObserver exists - shutting it down...");
             mObserver.deinit();
             mObserver = null;
         }
@@ -283,14 +283,14 @@ public class BluetoothMapMasInstance implements IObexConnectionHandler {
 
             if(mServerSockets == null) {
                 // TODO: Handle - was not handled before
-                Log.e(TAG, "Failed to start the listeners");
+                Log.e(mTag, "Failed to start the listeners");
                 return;
             }
             removeSdpRecord();
             mSdpHandle = createMasSdpRecord(mServerSockets.getRfcommChannel(),
                     mServerSockets.getL2capPsm());
             // Here we might have changed crucial data, hence reset DB identifier
-            if(V) Log.d(TAG, "Creating new SDP record for MAS instance: " + mMasInstanceId +
+            if(V) Log.d(mTag, "Creating new SDP record for MAS instance: " + mMasInstanceId +
                     " Object reference: " + this + "SDP handle: " + mSdpHandle);
             updateDbIdentifier();
         }
@@ -343,7 +343,7 @@ public class BluetoothMapMasInstance implements IObexConnectionHandler {
      * Returns true at success. */
     public boolean startObexServerSession(BluetoothMnsObexClient mnsClient)
             throws IOException, RemoteException {
-        if (D) Log.d(TAG, "Map Service startObexServerSession masid = " + mMasInstanceId);
+        if (D) Log.d(mTag, "Map Service startObexServerSession masid = " + mMasInstanceId);
 
         if (mConnSocket != null) {
             if(mServerSession != null) {
@@ -369,11 +369,11 @@ public class BluetoothMapMasInstance implements IObexConnectionHandler {
             // setup transport
             BluetoothObexTransport transport = new BluetoothObexTransport(mConnSocket);
             mServerSession = new ServerSession(transport, mapServer, null);
-            if (D) Log.d(TAG, "    ServerSession started.");
+            if (D) Log.d(mTag, "    ServerSession started.");
 
             return true;
         }
-        if (D) Log.d(TAG, "    No connection for this instance");
+        if (D) Log.d(mTag, "    No connection for this instance");
         return false;
     }
 
@@ -393,7 +393,7 @@ public class BluetoothMapMasInstance implements IObexConnectionHandler {
     }
 
     public void shutdown() {
-        if (D) Log.d(TAG, "MAP Service shutdown");
+        if (D) Log.d(mTag, "MAP Service shutdown");
 
         if (mServerSession != null) {
             mServerSession.close();
@@ -415,7 +415,7 @@ public class BluetoothMapMasInstance implements IObexConnectionHandler {
      * Signal to the ServerSockets handler that a new connection may be accepted.
      */
     public void restartObexServerSession() {
-        if (D) Log.d(TAG, "MAP Service restartObexServerSession()");
+        if (D) Log.d(mTag, "MAP Service restartObexServerSession()");
         startRfcommSocketListener();
     }
 
@@ -434,7 +434,7 @@ public class BluetoothMapMasInstance implements IObexConnectionHandler {
             try {
                 mConnSocket.close();
             } catch (IOException e) {
-                Log.e(TAG, "Close Connection Socket error: ", e);
+                Log.e(mTag, "Close Connection Socket error: ", e);
             } finally {
                 mConnSocket = null;
             }
@@ -442,11 +442,11 @@ public class BluetoothMapMasInstance implements IObexConnectionHandler {
     }
 
     public void setRemoteFeatureMask(int supportedFeatures) {
-       if(V) Log.v(TAG, "setRemoteFeatureMask : Curr: "+ mRemoteFeatureMask);
+       if(V) Log.v(mTag, "setRemoteFeatureMask : Curr: "+ mRemoteFeatureMask);
        mRemoteFeatureMask = supportedFeatures & SDP_MAP_MAS_FEATURES;
        if (mObserver != null) {
            mObserver.setObserverRemoteFeatureMask(mRemoteFeatureMask);
-           if(V) Log.v(TAG, "setRemoteFeatureMask : set: " + mRemoteFeatureMask);
+           if(V) Log.v(mTag, "setRemoteFeatureMask : set: " + mRemoteFeatureMask);
        }
     }
 
@@ -477,9 +477,9 @@ public class BluetoothMapMasInstance implements IObexConnectionHandler {
     public synchronized void onAcceptFailed() {
         mServerSockets = null; // Will cause a new to be created when calling start.
         if(mShutdown) {
-            Log.e(TAG,"Failed to accept incomming connection - " + "shutdown");
+            Log.e(mTag,"Failed to accept incomming connection - " + "shutdown");
         } else {
-            Log.e(TAG,"Failed to accept incomming connection - " + "restarting");
+            Log.e(mTag,"Failed to accept incomming connection - " + "restarting");
             startRfcommSocketListener();
         }
     }

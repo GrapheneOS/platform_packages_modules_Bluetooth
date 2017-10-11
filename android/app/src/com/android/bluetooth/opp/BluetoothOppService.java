@@ -85,7 +85,7 @@ public class BluetoothOppService extends ProfileService implements IObexConnecti
             (byte) 0xFF /* Any type of object */
     };
 
-    private boolean userAccepted = false;
+    private boolean mUserAccepted = false;
 
     private class BluetoothShareContentObserver extends ContentObserver {
 
@@ -442,16 +442,16 @@ public class BluetoothOppService extends ProfileService implements IObexConnecti
     }
 
     private class UpdateThread extends Thread {
-        private boolean isInterrupted ;
+        private boolean mIsInterrupted;
         UpdateThread() {
             super("Bluetooth Share Service");
-            isInterrupted = false;
+            mIsInterrupted = false;
         }
 
         @Override
         public void interrupt() {
-            isInterrupted = true;
-            if (D) Log.d(TAG, "Interrupted :" + isInterrupted);
+            mIsInterrupted = true;
+            if (D) Log.d(TAG, "Interrupted :" + mIsInterrupted);
             super.interrupt();
         }
 
@@ -461,7 +461,7 @@ public class BluetoothOppService extends ProfileService implements IObexConnecti
             Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
 
             boolean keepService = false;
-            while (!isInterrupted) {
+            while (!mIsInterrupted) {
                 synchronized (BluetoothOppService.this) {
                     if (mUpdateThread != this) {
                         throw new IllegalStateException(
@@ -469,7 +469,7 @@ public class BluetoothOppService extends ProfileService implements IObexConnecti
                     }
                     if (V) Log.v(TAG, "pendingUpdate is " + mPendingUpdate + " keepUpdateThread is "
                                 + keepService + " sListenStarted is " + mListenStarted +
-                                " isInterrupted :" + isInterrupted );
+                                " isInterrupted :" + mIsInterrupted);
                     if (!mPendingUpdate) {
                         mUpdateThread = null;
                         return;
@@ -553,7 +553,7 @@ public class BluetoothOppService extends ProfileService implements IObexConnecti
                             } else if (arrayId == id) {
                                 // This cursor row already exists in the stored
                                 // array
-                                updateShare(cursor, arrayPos, userAccepted);
+                                updateShare(cursor, arrayPos, mUserAccepted);
                                 if (shouldScanFile(arrayPos) && (!scanFile(cursor, arrayPos))) {
                                     keepService = true;
                                 }

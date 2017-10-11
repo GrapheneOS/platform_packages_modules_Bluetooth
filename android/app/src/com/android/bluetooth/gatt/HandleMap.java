@@ -33,16 +33,16 @@ class HandleMap {
     public static final int TYPE_DESCRIPTOR = 3;
 
     class Entry {
-        int serverIf = 0;
-        int type = TYPE_UNDEFINED;
-        int handle = 0;
-        UUID uuid = null;
-        int instance = 0;
-        int serviceType = 0;
-        int serviceHandle = 0;
-        int charHandle = 0;
-        boolean started = false;
-        boolean advertisePreferred = false;
+        public int serverIf = 0;
+        public int type = TYPE_UNDEFINED;
+        public int handle = 0;
+        public UUID uuid = null;
+        public int instance = 0;
+        public int serviceType = 0;
+        public int serviceHandle = 0;
+        public int charHandle = 0;
+        public boolean started = false;
+        public boolean advertisePreferred = false;
 
         Entry(int serverIf, int handle, UUID uuid, int serviceType, int instance) {
             this.serverIf = serverIf;
