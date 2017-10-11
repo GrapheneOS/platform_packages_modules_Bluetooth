@@ -27,8 +27,8 @@ import android.bluetooth.BluetoothDevice;
 import android.util.Log;
 
 class NativeInterface {
-    private static String TAG = "NativeInterface";
-    private static boolean DBG = false;
+    private static final String TAG = "NativeInterface";
+    private static final boolean DBG = false;
 
     NativeInterface() {}
 
