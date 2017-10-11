@@ -18,7 +18,6 @@ package com.android.bluetooth.pbapclient;
 import com.android.vcard.VCardEntry;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 
@@ -42,11 +41,12 @@ public class PhonebookEntry {
             }
 
             Name n = ((Name) o);
-            return (Objects.equals(family, n.family) || family != null && family.equals(n.family)) &&
-                    (Objects.equals(given, n.given) ||  given != null && given.equals(n.given)) &&
-                    (Objects.equals(middle, n.middle) || middle != null && middle.equals(n.middle)) &&
-                    (Objects.equals(prefix, n.prefix) || prefix != null && prefix.equals(n.prefix)) &&
-                    (Objects.equals(suffix, n.suffix) || suffix != null && suffix.equals(n.suffix));
+            return (Objects.equals(family, n.family) || family != null && family.equals(n.family))
+                    && (Objects.equals(given, n.given) || given != null && given.equals(n.given))
+                    && (Objects.equals(middle, n.middle) || middle != null && middle.equals(
+                    n.middle)) && (Objects.equals(prefix, n.prefix)
+                    || prefix != null && prefix.equals(n.prefix)) && (
+                    Objects.equals(suffix, n.suffix) || suffix != null && suffix.equals(n.suffix));
         }
 
         @Override

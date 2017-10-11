@@ -36,9 +36,9 @@ import android.content.ContentProvider;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.content.UriMatcher;
 import android.database.Cursor;
 import android.database.SQLException;
-import android.content.UriMatcher;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.database.sqlite.SQLiteQueryBuilder;
@@ -110,7 +110,9 @@ public final class BluetoothOppProvider extends ContentProvider {
          */
         @Override
         public void onCreate(final SQLiteDatabase db) {
-            if (V) Log.v(TAG, "populating new database");
+            if (V) {
+                Log.v(TAG, "populating new database");
+            }
             createTable(db);
         }
 
@@ -144,8 +146,8 @@ public final class BluetoothOppProvider extends ContentProvider {
                 // from NOP_FROM is the same as upgrading from NOP_TO.
                 oldV = DB_VERSION_NOP_UPGRADE_TO;
             }
-            Log.i(TAG, "Upgrading downloads database from version " + oldV + " to "
-                    + newV + ", which will destroy all old data");
+            Log.i(TAG, "Upgrading downloads database from version " + oldV + " to " + newV
+                    + ", which will destroy all old data");
             dropTable(db);
             createTable(db);
         }
@@ -190,7 +192,9 @@ public final class BluetoothOppProvider extends ContentProvider {
                 return SHARE_TYPE;
             }
             default: {
-                if (D) Log.d(TAG, "calling getType on an unknown URI: " + uri);
+                if (D) {
+                    Log.d(TAG, "calling getType on an unknown URI: " + uri);
+                }
                 throw new IllegalArgumentException("Unknown URI: " + uri);
             }
         }
@@ -222,7 +226,9 @@ public final class BluetoothOppProvider extends ContentProvider {
         SQLiteDatabase db = mOpenHelper.getWritableDatabase();
 
         if (sURIMatcher.match(uri) != SHARES) {
-            if (D) Log.d(TAG, "calling insert on an unknown/invalid URI: " + uri);
+            if (D) {
+                Log.d(TAG, "calling insert on an unknown/invalid URI: " + uri);
+            }
             throw new IllegalArgumentException("Unknown/Invalid URI " + uri);
         }
 
@@ -274,8 +280,10 @@ public final class BluetoothOppProvider extends ContentProvider {
             ret = Uri.parse(BluetoothShare.CONTENT_URI + "/" + rowID);
             context.getContentResolver().notifyChange(uri, null);
         } else {
-            if (D) Log.d(TAG, "couldn't insert into btopp database");
+            if (D) {
+                Log.d(TAG, "couldn't insert into btopp database");
             }
+        }
 
         return ret;
     }
@@ -307,7 +315,9 @@ public final class BluetoothOppProvider extends ContentProvider {
                 break;
             }
             default: {
-                if (D) Log.d(TAG, "querying unknown URI: " + uri);
+                if (D) {
+                    Log.d(TAG, "querying unknown URI: " + uri);
+                }
                 throw new IllegalArgumentException("Unknown URI: " + uri);
             }
         }
@@ -362,8 +372,10 @@ public final class BluetoothOppProvider extends ContentProvider {
                 Log.v(TAG, "created cursor " + ret + " on behalf of ");
             }
         } else {
-            if (D) Log.d(TAG, "query failed in downloads database");
+            if (D) {
+                Log.d(TAG, "query failed in downloads database");
             }
+        }
 
         return ret;
     }
@@ -403,7 +415,9 @@ public final class BluetoothOppProvider extends ContentProvider {
                 break;
             }
             default: {
-                if (D) Log.d(TAG, "updating unknown/invalid URI: " + uri);
+                if (D) {
+                    Log.d(TAG, "updating unknown/invalid URI: " + uri);
+                }
                 throw new UnsupportedOperationException("Cannot update URI: " + uri);
             }
         }
@@ -440,7 +454,9 @@ public final class BluetoothOppProvider extends ContentProvider {
                 break;
             }
             default: {
-                if (D) Log.d(TAG, "deleting unknown/invalid URI: " + uri);
+                if (D) {
+                    Log.d(TAG, "deleting unknown/invalid URI: " + uri);
+                }
                 throw new UnsupportedOperationException("Cannot delete URI: " + uri);
             }
         }

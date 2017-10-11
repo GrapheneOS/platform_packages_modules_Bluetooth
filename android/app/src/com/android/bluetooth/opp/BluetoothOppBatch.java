@@ -32,15 +32,15 @@
 
 package com.android.bluetooth.opp;
 
-import java.io.File;
-import java.util.ArrayList;
-
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.util.Log;
 
 import com.google.android.collect.Lists;
+
+import java.io.File;
+import java.util.ArrayList;
 
 /**
  * This class stores information about a batch of OPP shares that should be
@@ -112,7 +112,9 @@ public class BluetoothOppBatch {
         mStatus = Constants.BATCH_STATUS_PENDING;
         mShares.add(info);
 
-        if (V) Log.v(TAG, "New Batch created for info " + info.mId);
+        if (V) {
+            Log.v(TAG, "New Batch created for info " + info.mId);
+        }
     }
 
     /**
@@ -121,7 +123,6 @@ public class BluetoothOppBatch {
     /* There are 2 cases: Service scans the databases and it's multiple send
      * Service receives database update and know additional file should be received
      */
-
     public void addShare(BluetoothOppShareInfo info) {
         mShares.add(info);
         if (mListener != null) {
@@ -137,7 +138,9 @@ public class BluetoothOppBatch {
      * 3) update ContentProvider for these canceled transfer
      */
     public void cancelBatch() {
-        if (V) Log.v(TAG, "batch " + this.mId + " is canceled");
+        if (V) {
+            Log.v(TAG, "batch " + this.mId + " is canceled");
+        }
 
         if (mListener != null) {
             mListener.onBatchCanceled();
@@ -150,7 +153,9 @@ public class BluetoothOppBatch {
                 if (info.mDirection == BluetoothShare.DIRECTION_INBOUND && info.mFilename != null) {
                     new File(info.mFilename).delete();
                 }
-                if (V) Log.v(TAG, "Cancel batch for info " + info.mId);
+                if (V) {
+                    Log.v(TAG, "Cancel batch for info " + info.mId);
+                }
 
                 Constants.updateShareStatus(mContext, info.mId, BluetoothShare.STATUS_CANCELED);
             }

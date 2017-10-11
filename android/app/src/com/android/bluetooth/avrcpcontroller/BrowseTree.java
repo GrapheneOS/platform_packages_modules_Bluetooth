@@ -16,18 +16,16 @@
 
 package com.android.bluetooth.avrcpcontroller;
 
+import android.media.MediaDescription;
 import android.media.browse.MediaBrowser;
 import android.media.browse.MediaBrowser.MediaItem;
-import android.media.MediaDescription;
 import android.os.Bundle;
-import android.os.ResultReceiver;
 import android.service.media.MediaBrowserService.Result;
 import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Stack;
 
 // Browsing hierarchy.
 // Root:
@@ -152,8 +150,9 @@ public class BrowseTree {
         // This may not be unique hence this combined with direction will define the
         // browsing here.
         synchronized String getFolderUID() {
-            return mItem.getDescription().getExtras().getString(
-                AvrcpControllerService.MEDIA_ITEM_UID_KEY);
+            return mItem.getDescription()
+                    .getExtras()
+                    .getString(AvrcpControllerService.MEDIA_ITEM_UID_KEY);
         }
 
         synchronized MediaItem getMediaItem() {
@@ -266,9 +265,8 @@ public class BrowseTree {
         } else if (fromFolder.equals(toFolder)) {
             return DIRECTION_SAME;
         } else {
-            Log.w(TAG, "from folder " + mCurrentBrowseNode + " children " +
-                fromFolder.getChildren() + "to folder " + toUID + " children " +
-                toFolder.getChildren());
+            Log.w(TAG, "from folder " + mCurrentBrowseNode + " children " + fromFolder.getChildren()
+                    + "to folder " + toUID + " children " + toFolder.getChildren());
             return DIRECTION_UNKNOWN;
         }
     }

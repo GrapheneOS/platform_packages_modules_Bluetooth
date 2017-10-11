@@ -16,7 +16,6 @@
 
 package com.android.bluetooth.gatt;
 
-import android.bluetooth.le.AdvertiseData;
 import android.bluetooth.le.IPeriodicAdvertisingCallback;
 import android.bluetooth.le.PeriodicAdvertisingReport;
 import android.bluetooth.le.ScanRecord;
@@ -25,16 +24,12 @@ import android.os.IBinder;
 import android.os.IInterface;
 import android.os.RemoteException;
 import android.util.Log;
-import com.android.bluetooth.Utils;
+
 import com.android.bluetooth.btservice.AdapterService;
+
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Manages Bluetooth LE Periodic scans
@@ -53,7 +48,9 @@ class PeriodicScanManager {
      * Constructor of {@link SyncManager}.
      */
     PeriodicScanManager(AdapterService adapterService) {
-        if (DBG) Log.d(TAG, "advertise manager created");
+        if (DBG) {
+            Log.d(TAG, "advertise manager created");
+        }
         mAdapterService = adapterService;
     }
 
@@ -62,7 +59,9 @@ class PeriodicScanManager {
     }
 
     void cleanup() {
-        if (DBG) Log.d(TAG, "cleanup()");
+        if (DBG) {
+            Log.d(TAG, "cleanup()");
+        }
         cleanupNative();
         mSyncs.clear();
         sTempRegistrationId = -1;
@@ -96,7 +95,9 @@ class PeriodicScanManager {
 
         @Override
         public void binderDied() {
-            if (DBG) Log.d(TAG, "Binder is dead - unregistering advertising set");
+            if (DBG) {
+                Log.d(TAG, "Binder is dead - unregistering advertising set");
+            }
             stopSync(callback);
         }
     }
@@ -112,11 +113,12 @@ class PeriodicScanManager {
         return entry;
     }
 
-    void onSyncStarted(int regId, int syncHandle, int sid, int addressType, String address,
-            int phy, int interval, int status) throws Exception {
+    void onSyncStarted(int regId, int syncHandle, int sid, int addressType, String address, int phy,
+            int interval, int status) throws Exception {
         if (DBG) {
-            Log.d(TAG, "onSyncStarted() - regId=" + regId + ", syncHandle=" + syncHandle
-                            + ", status=" + status);
+            Log.d(TAG,
+                    "onSyncStarted() - regId=" + regId + ", syncHandle=" + syncHandle + ", status="
+                            + status);
         }
 
         Map.Entry<IBinder, SyncInfo> entry = findSync(regId);
@@ -142,7 +144,9 @@ class PeriodicScanManager {
 
     void onSyncReport(int syncHandle, int txPower, int rssi, int dataStatus, byte[] data)
             throws Exception {
-        if (DBG) Log.d(TAG, "onSyncReport() - syncHandle=" + syncHandle);
+        if (DBG) {
+            Log.d(TAG, "onSyncReport() - syncHandle=" + syncHandle);
+        }
 
         Map.Entry<IBinder, SyncInfo> entry = findSync(syncHandle);
         if (entry == null) {
@@ -151,13 +155,16 @@ class PeriodicScanManager {
         }
 
         IPeriodicAdvertisingCallback callback = entry.getValue().callback;
-        PeriodicAdvertisingReport report = new PeriodicAdvertisingReport(
-                syncHandle, txPower, rssi, dataStatus, ScanRecord.parseFromBytes(data));
+        PeriodicAdvertisingReport report =
+                new PeriodicAdvertisingReport(syncHandle, txPower, rssi, dataStatus,
+                        ScanRecord.parseFromBytes(data));
         callback.onPeriodicAdvertisingReport(report);
     }
 
     void onSyncLost(int syncHandle) throws Exception {
-        if (DBG) Log.d(TAG, "onSyncLost() - syncHandle=" + syncHandle);
+        if (DBG) {
+            Log.d(TAG, "onSyncLost() - syncHandle=" + syncHandle);
+        }
 
         Map.Entry<IBinder, SyncInfo> entry = findSync(syncHandle);
         if (entry == null) {
@@ -170,8 +177,8 @@ class PeriodicScanManager {
         callback.onSyncLost(syncHandle);
     }
 
-    void startSync(
-            ScanResult scanResult, int skip, int timeout, IPeriodicAdvertisingCallback callback) {
+    void startSync(ScanResult scanResult, int skip, int timeout,
+            IPeriodicAdvertisingCallback callback) {
         SyncDeathRecipient deathRecipient = new SyncDeathRecipient(callback);
         IBinder binder = toBinder(callback);
         try {
@@ -186,13 +193,17 @@ class PeriodicScanManager {
         int cbId = --sTempRegistrationId;
         mSyncs.put(binder, new SyncInfo(cbId, deathRecipient, callback));
 
-        if (DBG) Log.d(TAG, "startSync() - reg_id=" + cbId + ", callback: " + binder);
+        if (DBG) {
+            Log.d(TAG, "startSync() - reg_id=" + cbId + ", callback: " + binder);
+        }
         startSyncNative(sid, address, skip, timeout, cbId);
     }
 
     void stopSync(IPeriodicAdvertisingCallback callback) {
         IBinder binder = toBinder(callback);
-        if (DBG) Log.d(TAG, "stopSync() " + binder);
+        if (DBG) {
+            Log.d(TAG, "stopSync() " + binder);
+        }
 
         SyncInfo sync = mSyncs.remove(binder);
         if (sync == null) {
@@ -217,8 +228,12 @@ class PeriodicScanManager {
     }
 
     private static native void classInitNative();
+
     private native void initializeNative();
+
     private native void cleanupNative();
+
     private native void startSyncNative(int sid, String address, int skip, int timeout, int regId);
+
     private native void stopSyncNative(int syncHandle);
 }

@@ -60,7 +60,7 @@ public final class BluetoothMapContract {
     /**
      * Constructor - should not be used
      */
-    private BluetoothMapContract(){
+    private BluetoothMapContract() {
       /* class should not be instantiated */
     }
 
@@ -162,8 +162,11 @@ public final class BluetoothMapContract {
      */
     public static Uri buildAccountUri(String authority) {
         return new Uri.Builder().scheme(ContentResolver.SCHEME_CONTENT)
-                .authority(authority).appendPath(TABLE_ACCOUNT).build();
+                .authority(authority)
+                .appendPath(TABLE_ACCOUNT)
+                .build();
     }
+
     /**
      * Build URI representing the given Account data-set with specific Id in a
      * Bluetooth provider. When queried, the direct URI for the account
@@ -176,6 +179,7 @@ public final class BluetoothMapContract {
                 .appendPath(accountId)
                 .build();
     }
+
     /**
      * Build URI representing the entire Message table in a
      * Bluetooth provider.
@@ -186,6 +190,7 @@ public final class BluetoothMapContract {
                 .appendPath(TABLE_MESSAGE)
                 .build();
     }
+
     /**
      * Build URI representing the given Message data-set in a
      * Bluetooth provider. When queried, the URI for the Messages
@@ -198,12 +203,13 @@ public final class BluetoothMapContract {
                 .appendPath(TABLE_MESSAGE)
                 .build();
     }
+
     /**
      * Build URI representing the given Message data-set with specific messageId in a
      * Bluetooth provider. When queried, the direct URI for the account
      * with the given accountID is returned.
      */
-    public static Uri buildMessageUriWithId(String authority, String accountId,String messageId) {
+    public static Uri buildMessageUriWithId(String authority, String accountId, String messageId) {
         return new Uri.Builder().scheme(ContentResolver.SCHEME_CONTENT)
                 .authority(authority)
                 .appendPath(accountId)
@@ -211,6 +217,7 @@ public final class BluetoothMapContract {
                 .appendPath(messageId)
                 .build();
     }
+
     /**
      * Build URI representing the given Message data-set in a
      * Bluetooth provider. When queried, the direct URI for the folder
@@ -261,6 +268,7 @@ public final class BluetoothMapContract {
                 .appendPath(TABLE_CONVOCONTACT)
                 .build();
     }
+
     /**
      * Build URI representing the given Contact data-set in a
      * Bluetooth provider. When queried, the direct URI for the contact
@@ -275,15 +283,16 @@ public final class BluetoothMapContract {
                 .appendPath(contactId)
                 .build();
     }
+
     /**
      *  @hide
      */
-    public static final String TABLE_ACCOUNT        = "Account";
-    public static final String TABLE_MESSAGE        = "Message";
-    public static final String TABLE_MESSAGE_PART   = "Part";
-    public static final String TABLE_FOLDER         = "Folder";
-    public static final String TABLE_CONVERSATION   = "Conversation";
-    public static final String TABLE_CONVOCONTACT   = "ConvoContact";
+    public static final String TABLE_ACCOUNT = "Account";
+    public static final String TABLE_MESSAGE = "Message";
+    public static final String TABLE_MESSAGE_PART = "Part";
+    public static final String TABLE_FOLDER = "Folder";
+    public static final String TABLE_CONVERSATION = "Conversation";
+    public static final String TABLE_CONVOCONTACT = "ConvoContact";
 
 
     /**
@@ -292,22 +301,22 @@ public final class BluetoothMapContract {
      * E.g. as a mapping for them such that the naming will match the underlying
      * matching folder ID's.
      */
-    public static final String FOLDER_NAME_INBOX   = "INBOX";
-    public static final String FOLDER_NAME_SENT    = "SENT";
-    public static final String FOLDER_NAME_OUTBOX  = "OUTBOX";
-    public static final String FOLDER_NAME_DRAFT   = "DRAFT";
+    public static final String FOLDER_NAME_INBOX = "INBOX";
+    public static final String FOLDER_NAME_SENT = "SENT";
+    public static final String FOLDER_NAME_OUTBOX = "OUTBOX";
+    public static final String FOLDER_NAME_DRAFT = "DRAFT";
     public static final String FOLDER_NAME_DELETED = "DELETED";
-    public static final String FOLDER_NAME_OTHER   = "OTHER";
+    public static final String FOLDER_NAME_OTHER = "OTHER";
 
     /**
      * Folder IDs to be used with Instant Messaging virtual folders
      */
-    public static final long FOLDER_ID_OTHER      = 0;
-    public static final long FOLDER_ID_INBOX      = 1;
-    public static final long FOLDER_ID_SENT       = 2;
-    public static final long FOLDER_ID_DRAFT      = 3;
-    public static final long FOLDER_ID_OUTBOX     = 4;
-    public static final long FOLDER_ID_DELETED    = 5;
+    public static final long FOLDER_ID_OTHER = 0;
+    public static final long FOLDER_ID_INBOX = 1;
+    public static final long FOLDER_ID_SENT = 2;
+    public static final long FOLDER_ID_DRAFT = 3;
+    public static final long FOLDER_ID_OUTBOX = 4;
+    public static final long FOLDER_ID_DELETED = 5;
 
 
     /**
@@ -510,6 +519,7 @@ public final class BluetoothMapContract {
         String RAW_DATA = "raw_data";
 
     }
+
     /**
      * The actual message table containing all messages.
      * Content that must support filtering using WHERE clauses:
@@ -663,7 +673,6 @@ public final class BluetoothMapContract {
     }
 
     public interface EmailMessageColumns {
-
 
 
         /**
@@ -874,10 +883,10 @@ public final class BluetoothMapContract {
 // Should not be needed anymore        public static final String _ID = "_id";
 
         /**
-        * The ID of the conversation the contact is part of.
-        * <P>Type: INTEGER (long)</P>
-        * read-only
-        */
+         * The ID of the conversation the contact is part of.
+         * <P>Type: INTEGER (long)</P>
+         * read-only
+         */
         String CONVO_ID = "convo_id";
 
         /**
@@ -953,12 +962,12 @@ public final class BluetoothMapContract {
 
 
     public interface ChatState {
-        int UNKNOWN     = 0;
-        int INACITVE    = 1;
-        int ACITVE      = 2;
-        int COMPOSING   = 3;
-        int PAUSED      = 4;
-        int GONE        = 5;
+        int UNKNOWN = 0;
+        int INACITVE = 1;
+        int ACITVE = 2;
+        int COMPOSING = 3;
+        int PAUSED = 4;
+        int GONE = 5;
     }
 
     /**
@@ -1010,13 +1019,13 @@ public final class BluetoothMapContract {
     }
 
     public interface PresenceState {
-        int UNKNOWN         = 0;
-        int OFFLINE         = 1;
-        int ONLINE          = 2;
-        int AWAY            = 3;
-        int DO_NOT_DISTURB  = 4;
-        int BUSY            = 5;
-        int IN_A_MEETING    = 6;
+        int UNKNOWN = 0;
+        int OFFLINE = 1;
+        int ONLINE = 2;
+        int AWAY = 3;
+        int DO_NOT_DISTURB = 4;
+        int BUSY = 5;
+        int IN_A_MEETING = 6;
     }
 
     /**
@@ -1070,149 +1079,146 @@ public final class BluetoothMapContract {
     /**
      * A projection of all the columns in the Message table
      */
-    public static final String[] BT_MESSAGE_PROJECTION = new String[] {
-        MessageColumns._ID,
-        MessageColumns.DATE,
-        MessageColumns.SUBJECT,
-        //TODO REMOVE WHEN Parts Table is in place
-        MessageColumns.BODY,
-        MessageColumns.MESSAGE_SIZE,
-        MessageColumns.FOLDER_ID,
-        MessageColumns.FLAG_READ,
-        MessageColumns.FLAG_PROTECTED,
-        MessageColumns.FLAG_HIGH_PRIORITY,
-        MessageColumns.FLAG_ATTACHMENT,
-        MessageColumns.ATTACHMENT_SIZE,
-        MessageColumns.FROM_LIST,
-        MessageColumns.TO_LIST,
-        MessageColumns.CC_LIST,
-        MessageColumns.BCC_LIST,
-        MessageColumns.REPLY_TO_LIST,
-        MessageColumns.RECEPTION_STATE,
-        MessageColumns.DEVILERY_STATE,
-        MessageColumns.THREAD_ID
+    public static final String[] BT_MESSAGE_PROJECTION = new String[]{
+            MessageColumns._ID,
+            MessageColumns.DATE,
+            MessageColumns.SUBJECT,
+            //TODO REMOVE WHEN Parts Table is in place
+            MessageColumns.BODY,
+            MessageColumns.MESSAGE_SIZE,
+            MessageColumns.FOLDER_ID,
+            MessageColumns.FLAG_READ,
+            MessageColumns.FLAG_PROTECTED,
+            MessageColumns.FLAG_HIGH_PRIORITY,
+            MessageColumns.FLAG_ATTACHMENT,
+            MessageColumns.ATTACHMENT_SIZE,
+            MessageColumns.FROM_LIST,
+            MessageColumns.TO_LIST,
+            MessageColumns.CC_LIST,
+            MessageColumns.BCC_LIST,
+            MessageColumns.REPLY_TO_LIST,
+            MessageColumns.RECEPTION_STATE,
+            MessageColumns.DEVILERY_STATE,
+            MessageColumns.THREAD_ID
     };
 
-    public static final String[] BT_INSTANT_MESSAGE_PROJECTION = new String[] {
-        MessageColumns._ID,
-        MessageColumns.DATE,
-        MessageColumns.SUBJECT,
-        MessageColumns.MESSAGE_SIZE,
-        MessageColumns.FOLDER_ID,
-        MessageColumns.FLAG_READ,
-        MessageColumns.FLAG_PROTECTED,
-        MessageColumns.FLAG_HIGH_PRIORITY,
-        MessageColumns.FLAG_ATTACHMENT,
-        MessageColumns.ATTACHMENT_SIZE,
-        MessageColumns.ATTACHMENT_MINE_TYPES,
-        MessageColumns.FROM_LIST,
-        MessageColumns.TO_LIST,
-        MessageColumns.RECEPTION_STATE,
-        MessageColumns.DEVILERY_STATE,
-        MessageColumns.THREAD_ID,
-        MessageColumns.THREAD_NAME
+    public static final String[] BT_INSTANT_MESSAGE_PROJECTION = new String[]{
+            MessageColumns._ID,
+            MessageColumns.DATE,
+            MessageColumns.SUBJECT,
+            MessageColumns.MESSAGE_SIZE,
+            MessageColumns.FOLDER_ID,
+            MessageColumns.FLAG_READ,
+            MessageColumns.FLAG_PROTECTED,
+            MessageColumns.FLAG_HIGH_PRIORITY,
+            MessageColumns.FLAG_ATTACHMENT,
+            MessageColumns.ATTACHMENT_SIZE,
+            MessageColumns.ATTACHMENT_MINE_TYPES,
+            MessageColumns.FROM_LIST,
+            MessageColumns.TO_LIST,
+            MessageColumns.RECEPTION_STATE,
+            MessageColumns.DEVILERY_STATE,
+            MessageColumns.THREAD_ID,
+            MessageColumns.THREAD_NAME
     };
 
     /**
      * A projection of all the columns in the Account table
      */
-    public static final String[] BT_ACCOUNT_PROJECTION = new String[] {
-        AccountColumns._ID,
-        AccountColumns.ACCOUNT_DISPLAY_NAME,
-        AccountColumns.FLAG_EXPOSE,
+    public static final String[] BT_ACCOUNT_PROJECTION = new String[]{
+            AccountColumns._ID, AccountColumns.ACCOUNT_DISPLAY_NAME, AccountColumns.FLAG_EXPOSE,
     };
 
     /**
      * A projection of all the columns in the Account table
      * TODO: Is this the way to differentiate
      */
-    public static final String[] BT_IM_ACCOUNT_PROJECTION = new String[] {
-        AccountColumns._ID,
-        AccountColumns.ACCOUNT_DISPLAY_NAME,
-        AccountColumns.FLAG_EXPOSE,
-        AccountColumns.ACCOUNT_UCI,
-        AccountColumns.ACCOUNT_UCI_PREFIX
+    public static final String[] BT_IM_ACCOUNT_PROJECTION = new String[]{
+            AccountColumns._ID,
+            AccountColumns.ACCOUNT_DISPLAY_NAME,
+            AccountColumns.FLAG_EXPOSE,
+            AccountColumns.ACCOUNT_UCI,
+            AccountColumns.ACCOUNT_UCI_PREFIX
     };
 
     /**
      * A projection of all the columns in the Folder table
      */
-    public static final String[] BT_FOLDER_PROJECTION = new String[] {
-        FolderColumns._ID,
-        FolderColumns.NAME,
-        FolderColumns.ACCOUNT_ID,
-        FolderColumns.PARENT_FOLDER_ID
+    public static final String[] BT_FOLDER_PROJECTION = new String[]{
+            FolderColumns._ID,
+            FolderColumns.NAME,
+            FolderColumns.ACCOUNT_ID,
+            FolderColumns.PARENT_FOLDER_ID
     };
 
 
     /**
      * A projection of all the columns in the Conversation table
      */
-    public static final String[] BT_CONVERSATION_PROJECTION = new String[] {
+    public static final String[] BT_CONVERSATION_PROJECTION = new String[]{
         /* Thread information */
-        ConversationColumns.THREAD_ID,
-        ConversationColumns.THREAD_NAME,
-        ConversationColumns.READ_STATUS,
-        ConversationColumns.LAST_THREAD_ACTIVITY,
-        ConversationColumns.VERSION_COUNTER,
-        ConversationColumns.SUMMARY,
+            ConversationColumns.THREAD_ID,
+            ConversationColumns.THREAD_NAME,
+            ConversationColumns.READ_STATUS,
+            ConversationColumns.LAST_THREAD_ACTIVITY,
+            ConversationColumns.VERSION_COUNTER,
+            ConversationColumns.SUMMARY,
         /* Contact information */
-        ConversationColumns.UCI,
-        ConversationColumns.NAME,
-        ConversationColumns.NICKNAME,
-        ConversationColumns.CHAT_STATE,
-        ConversationColumns.LAST_ACTIVE,
-        ConversationColumns.X_BT_UID,
-        ConversationColumns.PRESENCE_STATE,
-        ConversationColumns.STATUS_TEXT,
-        ConversationColumns.PRIORITY
+            ConversationColumns.UCI,
+            ConversationColumns.NAME,
+            ConversationColumns.NICKNAME,
+            ConversationColumns.CHAT_STATE,
+            ConversationColumns.LAST_ACTIVE,
+            ConversationColumns.X_BT_UID,
+            ConversationColumns.PRESENCE_STATE,
+            ConversationColumns.STATUS_TEXT,
+            ConversationColumns.PRIORITY
     };
 
     /**
      * A projection of the Contact Info and Presence columns in the Contact Info in table
      */
-    public static final String[] BT_CONTACT_CHATSTATE_PRESENCE_PROJECTION = new String[] {
-        ConvoContactColumns.UCI,
-        ConvoContactColumns.CONVO_ID,
-        ConvoContactColumns.NAME,
-        ConvoContactColumns.NICKNAME,
-        ConvoContactColumns.X_BT_UID,
-        ConvoContactColumns.CHAT_STATE,
-        ConvoContactColumns.LAST_ACTIVE,
-        ConvoContactColumns.PRESENCE_STATE,
-        ConvoContactColumns.PRIORITY,
-        ConvoContactColumns.STATUS_TEXT,
-        ConvoContactColumns.LAST_ONLINE
+    public static final String[] BT_CONTACT_CHATSTATE_PRESENCE_PROJECTION = new String[]{
+            ConvoContactColumns.UCI,
+            ConvoContactColumns.CONVO_ID,
+            ConvoContactColumns.NAME,
+            ConvoContactColumns.NICKNAME,
+            ConvoContactColumns.X_BT_UID,
+            ConvoContactColumns.CHAT_STATE,
+            ConvoContactColumns.LAST_ACTIVE,
+            ConvoContactColumns.PRESENCE_STATE,
+            ConvoContactColumns.PRIORITY,
+            ConvoContactColumns.STATUS_TEXT,
+            ConvoContactColumns.LAST_ONLINE
     };
 
     /**
      * A projection of the Contact Info the columns in Contacts Info table
      */
-    public static final String[] BT_CONTACT_PROJECTION = new String[] {
-        ConvoContactColumns.UCI,
-        ConvoContactColumns.CONVO_ID,
-        ConvoContactColumns.X_BT_UID,
-        ConvoContactColumns.NAME,
-        ConvoContactColumns.NICKNAME
+    public static final String[] BT_CONTACT_PROJECTION = new String[]{
+            ConvoContactColumns.UCI,
+            ConvoContactColumns.CONVO_ID,
+            ConvoContactColumns.X_BT_UID,
+            ConvoContactColumns.NAME,
+            ConvoContactColumns.NICKNAME
     };
 
 
     /**
      * A projection of all the columns in the Chat Status table
      */
-    public static final String[] BT_CHATSTATUS_PROJECTION = new String[] {
-        ChatStatusColumns.CHAT_STATE,
-        ChatStatusColumns.LAST_ACTIVE,
+    public static final String[] BT_CHATSTATUS_PROJECTION = new String[]{
+            ChatStatusColumns.CHAT_STATE, ChatStatusColumns.LAST_ACTIVE,
     };
 
     /**
      * A projection of all the columns in the Presence table
      */
-    public static final String[] BT_PRESENCE_PROJECTION = new String[] {
-        PresenceColumns.PRESENCE_STATE,
-        PresenceColumns.PRIORITY,
-        PresenceColumns.STATUS_TEXT,
-        PresenceColumns.LAST_ONLINE
+    public static final String[] BT_PRESENCE_PROJECTION = new String[]{
+            PresenceColumns.PRESENCE_STATE,
+            PresenceColumns.PRIORITY,
+            PresenceColumns.STATUS_TEXT,
+            PresenceColumns.LAST_ONLINE
     };
 
 }

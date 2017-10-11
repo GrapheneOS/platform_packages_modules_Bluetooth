@@ -24,9 +24,9 @@ import android.content.IntentFilter;
 import android.telephony.PhoneStateListener;
 import android.telephony.ServiceState;
 import android.telephony.SignalStrength;
-import android.telephony.TelephonyManager;
 import android.telephony.SubscriptionManager;
 import android.telephony.SubscriptionManager.OnSubscriptionsChangedListener;
+import android.telephony.TelephonyManager;
 import android.util.Log;
 
 import com.android.internal.telephony.IccCardConstants;
@@ -86,12 +86,12 @@ class HeadsetPhoneState {
 
     private OnSubscriptionsChangedListener mOnSubscriptionsChangedListener =
             new OnSubscriptionsChangedListener() {
-        @Override
-        public void onSubscriptionsChanged() {
-            listenForPhoneState(false);
-            listenForPhoneState(true);
-        }
-    };
+                @Override
+                public void onSubscriptionsChanged() {
+                    listenForPhoneState(false);
+                    listenForPhoneState(true);
+                }
+            };
 
 
     HeadsetPhoneState(Context context, HeadsetStateMachine stateMachine) {
@@ -99,7 +99,7 @@ class HeadsetPhoneState {
         mTelephonyManager = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
         if (mTelephonyManager == null) {
             Log.e(TAG, "getSystemService(Context.TELEPHONY_SERVICE) failed, "
-                  + "cannot register for SubscriptionInfo changes");
+                    + "cannot register for SubscriptionInfo changes");
         }
         mContext = context;
 
@@ -122,9 +122,9 @@ class HeadsetPhoneState {
     public String toString() {
         return "HeadsetPhoneState [mService=" + mService + ", mNumActive=" + mNumActive
                 + ", mCallState=" + mCallState + ", mNumHeld=" + mNumHeld + ", mSignal=" + mSignal
-                + ", mRoam=" + mRoam + ", mBatteryCharge=" + mBatteryCharge
-                + ", mSpeakerVolume=" + mSpeakerVolume + ", mMicVolume=" + mMicVolume
-                + ", mListening=" + mListening + ", mSlcReady=" + mSlcReady + "]";
+                + ", mRoam=" + mRoam + ", mBatteryCharge=" + mBatteryCharge + ", mSpeakerVolume="
+                + mSpeakerVolume + ", mMicVolume=" + mMicVolume + ", mListening=" + mListening
+                + ", mSlcReady=" + mSlcReady + "]";
     }
 
     void listenForPhoneState(boolean start) {
@@ -148,11 +148,11 @@ class HeadsetPhoneState {
                 mPhoneStateListener = getPhoneStateListener(subId);
                 if (mTelephonyManager == null) {
                     Log.e(TAG, "mTelephonyManager is null, "
-                         + "cannot start listening for phone state changes");
+                            + "cannot start listening for phone state changes");
                 } else {
                     mTelephonyManager.listen(mPhoneStateListener,
-                                             PhoneStateListener.LISTEN_SERVICE_STATE |
-                                             PhoneStateListener.LISTEN_SIGNAL_STRENGTHS);
+                            PhoneStateListener.LISTEN_SERVICE_STATE
+                                    | PhoneStateListener.LISTEN_SIGNAL_STRENGTHS);
                     mListening = true;
                 }
             }
@@ -164,7 +164,7 @@ class HeadsetPhoneState {
 
             if (mTelephonyManager == null) {
                 Log.e(TAG, "mTelephonyManager is null, "
-                     + "cannot send request to stop listening for phone state changes");
+                        + "cannot send request to stop listening for phone state changes");
             } else {
                 mTelephonyManager.listen(mPhoneStateListener, PhoneStateListener.LISTEN_NONE);
                 mListening = false;
@@ -246,22 +246,20 @@ class HeadsetPhoneState {
         return (mNumActive >= 1);
     }
 
-    void sendDeviceStateChanged()
-    {
+    void sendDeviceStateChanged() {
         int service =
                 mIsSimStateLoaded ? mService : HeadsetHalConstants.NETWORK_STATE_NOT_AVAILABLE;
         // When out of service, send signal strength as 0. Some devices don't
         // use the service indicator, but only the signal indicator
         int signal = service == HeadsetHalConstants.NETWORK_STATE_AVAILABLE ? mSignal : 0;
 
-        Log.d(TAG, "sendDeviceStateChanged. mService="+ mService +
-                   " mIsSimStateLoaded=" + mIsSimStateLoaded +
-                   " mSignal=" + signal +" mRoam="+ mRoam +
-                   " mBatteryCharge=" + mBatteryCharge);
+        Log.d(TAG, "sendDeviceStateChanged. mService=" + mService + " mIsSimStateLoaded="
+                + mIsSimStateLoaded + " mSignal=" + signal + " mRoam=" + mRoam + " mBatteryCharge="
+                + mBatteryCharge);
         HeadsetStateMachine sm = mStateMachine;
         if (sm != null) {
             sm.sendMessage(HeadsetStateMachine.DEVICE_STATE_CHANGED,
-                new HeadsetDeviceState(service, mRoam, signal, mBatteryCharge));
+                    new HeadsetDeviceState(service, mRoam, signal, mBatteryCharge));
         }
     }
 
@@ -270,11 +268,11 @@ class HeadsetPhoneState {
             @Override
             public void onServiceStateChanged(ServiceState serviceState) {
                 mServiceState = serviceState;
-                int newService = (serviceState.getState() == ServiceState.STATE_IN_SERVICE) ?
-                    HeadsetHalConstants.NETWORK_STATE_AVAILABLE :
-                    HeadsetHalConstants.NETWORK_STATE_NOT_AVAILABLE;
+                int newService = (serviceState.getState() == ServiceState.STATE_IN_SERVICE)
+                        ? HeadsetHalConstants.NETWORK_STATE_AVAILABLE
+                        : HeadsetHalConstants.NETWORK_STATE_NOT_AVAILABLE;
                 int newRoam = serviceState.getRoaming() ? HeadsetHalConstants.SERVICE_TYPE_ROAMING
-                                                  : HeadsetHalConstants.SERVICE_TYPE_HOME;
+                        : HeadsetHalConstants.SERVICE_TYPE_HOME;
 
                 if (newService == mService && newRoam == mRoam) {
                     // Debounce the state change
@@ -341,13 +339,21 @@ class HeadsetPhoneState {
              */
             private int gsmAsuToSignal(SignalStrength signalStrength) {
                 int asu = signalStrength.getGsmSignalStrength();
-                if      (asu == 99) return 0;
-                else if (asu >= 16) return 5;
-                else if (asu >= 8)  return 4;
-                else if (asu >= 4)  return 3;
-                else if (asu >= 2)  return 2;
-                else if (asu >= 1)  return 1;
-                else                return 0;
+                if (asu == 99) {
+                    return 0;
+                } else if (asu >= 16) {
+                    return 5;
+                } else if (asu >= 8) {
+                    return 4;
+                } else if (asu >= 4) {
+                    return 3;
+                } else if (asu >= 2) {
+                    return 2;
+                } else if (asu >= 1) {
+                    return 1;
+                } else {
+                    return 0;
+                }
             }
 
             /**
@@ -365,49 +371,72 @@ class HeadsetPhoneState {
                 int cdmaDbm = signalStrength.getCdmaDbm();
                 int cdmaEcio = signalStrength.getCdmaEcio();
 
-                if (cdmaDbm >= -75) levelDbm = 4;
-                else if (cdmaDbm >= -85) levelDbm = 3;
-                else if (cdmaDbm >= -95) levelDbm = 2;
-                else if (cdmaDbm >= -100) levelDbm = 1;
-                else levelDbm = 0;
+                if (cdmaDbm >= -75) {
+                    levelDbm = 4;
+                } else if (cdmaDbm >= -85) {
+                    levelDbm = 3;
+                } else if (cdmaDbm >= -95) {
+                    levelDbm = 2;
+                } else if (cdmaDbm >= -100) {
+                    levelDbm = 1;
+                } else {
+                    levelDbm = 0;
+                }
 
                 // Ec/Io are in dB*10
-                if (cdmaEcio >= -90) levelEcio = 4;
-                else if (cdmaEcio >= -110) levelEcio = 3;
-                else if (cdmaEcio >= -130) levelEcio = 2;
-                else if (cdmaEcio >= -150) levelEcio = 1;
-                else levelEcio = 0;
+                if (cdmaEcio >= -90) {
+                    levelEcio = 4;
+                } else if (cdmaEcio >= -110) {
+                    levelEcio = 3;
+                } else if (cdmaEcio >= -130) {
+                    levelEcio = 2;
+                } else if (cdmaEcio >= -150) {
+                    levelEcio = 1;
+                } else {
+                    levelEcio = 0;
+                }
 
                 cdmaIconLevel = (levelDbm < levelEcio) ? levelDbm : levelEcio;
 
                 // STOPSHIP: Change back to getRilVoiceRadioTechnology
-                if (mServiceState != null &&
-                      (mServiceState.getRadioTechnology() ==
-                          ServiceState.RIL_RADIO_TECHNOLOGY_EVDO_0 ||
-                       mServiceState.getRadioTechnology() ==
-                           ServiceState.RIL_RADIO_TECHNOLOGY_EVDO_A)) {
-                      int evdoEcio = signalStrength.getEvdoEcio();
-                      int evdoSnr = signalStrength.getEvdoSnr();
-                      int levelEvdoEcio = 0;
-                      int levelEvdoSnr = 0;
+                if (mServiceState != null && (mServiceState.getRadioTechnology()
+                        == ServiceState.RIL_RADIO_TECHNOLOGY_EVDO_0
+                        || mServiceState.getRadioTechnology()
+                        == ServiceState.RIL_RADIO_TECHNOLOGY_EVDO_A)) {
+                    int evdoEcio = signalStrength.getEvdoEcio();
+                    int evdoSnr = signalStrength.getEvdoSnr();
+                    int levelEvdoEcio = 0;
+                    int levelEvdoSnr = 0;
 
-                      // Ec/Io are in dB*10
-                      if (evdoEcio >= -650) levelEvdoEcio = 4;
-                      else if (evdoEcio >= -750) levelEvdoEcio = 3;
-                      else if (evdoEcio >= -900) levelEvdoEcio = 2;
-                      else if (evdoEcio >= -1050) levelEvdoEcio = 1;
-                      else levelEvdoEcio = 0;
+                    // Ec/Io are in dB*10
+                    if (evdoEcio >= -650) {
+                        levelEvdoEcio = 4;
+                    } else if (evdoEcio >= -750) {
+                        levelEvdoEcio = 3;
+                    } else if (evdoEcio >= -900) {
+                        levelEvdoEcio = 2;
+                    } else if (evdoEcio >= -1050) {
+                        levelEvdoEcio = 1;
+                    } else {
+                        levelEvdoEcio = 0;
+                    }
 
-                      if (evdoSnr > 7) levelEvdoSnr = 4;
-                      else if (evdoSnr > 5) levelEvdoSnr = 3;
-                      else if (evdoSnr > 3) levelEvdoSnr = 2;
-                      else if (evdoSnr > 1) levelEvdoSnr = 1;
-                      else levelEvdoSnr = 0;
+                    if (evdoSnr > 7) {
+                        levelEvdoSnr = 4;
+                    } else if (evdoSnr > 5) {
+                        levelEvdoSnr = 3;
+                    } else if (evdoSnr > 3) {
+                        levelEvdoSnr = 2;
+                    } else if (evdoSnr > 1) {
+                        levelEvdoSnr = 1;
+                    } else {
+                        levelEvdoSnr = 0;
+                    }
 
-                      evdoIconLevel = (levelEvdoEcio < levelEvdoSnr) ? levelEvdoEcio : levelEvdoSnr;
+                    evdoIconLevel = (levelEvdoEcio < levelEvdoSnr) ? levelEvdoEcio : levelEvdoSnr;
                 }
                 // TODO(): There is a bug open regarding what should be sent.
-                return (cdmaIconLevel > evdoIconLevel) ?  cdmaIconLevel : evdoIconLevel;
+                return (cdmaIconLevel > evdoIconLevel) ? cdmaIconLevel : evdoIconLevel;
             }
         };
         return mPhoneStateListener;
@@ -454,8 +483,8 @@ class HeadsetClccResponse {
     String mNumber;
     int mType;
 
-    HeadsetClccResponse(int index, int direction, int status, int mode, boolean mpty,
-                               String number, int type) {
+    HeadsetClccResponse(int index, int direction, int status, int mode, boolean mpty, String number,
+            int type) {
         mIndex = index;
         mDirection = direction;
         mStatus = status;

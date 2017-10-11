@@ -21,16 +21,13 @@ import android.bluetooth.BluetoothAvrcpPlayerSettings;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.IBluetoothAvrcpController;
-import android.content.Context;
-import android.media.AudioManager;
-import android.media.browse.MediaBrowser;
-import android.media.browse.MediaBrowser.MediaItem;
 import android.media.MediaDescription;
 import android.media.MediaMetadata;
+import android.media.browse.MediaBrowser;
+import android.media.browse.MediaBrowser.MediaItem;
 import android.media.session.PlaybackState;
 import android.os.Bundle;
 import android.os.HandlerThread;
-import android.os.Looper;
 import android.os.Message;
 import android.util.Log;
 
@@ -39,9 +36,7 @@ import com.android.bluetooth.btservice.ProfileService;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -56,10 +51,10 @@ public class AvrcpControllerService extends ProfileService {
      */
     private static final byte JNI_PLAY_STATUS_STOPPED = 0x00;
     private static final byte JNI_PLAY_STATUS_PLAYING = 0x01;
-    private static final byte JNI_PLAY_STATUS_PAUSED  = 0x02;
+    private static final byte JNI_PLAY_STATUS_PAUSED = 0x02;
     private static final byte JNI_PLAY_STATUS_FWD_SEEK = 0x03;
     private static final byte JNI_PLAY_STATUS_REV_SEEK = 0x04;
-    private static final byte JNI_PLAY_STATUS_ERROR    = -1;
+    private static final byte JNI_PLAY_STATUS_ERROR = -1;
 
     /*
      * Browsing Media Item Attribute IDs
@@ -110,7 +105,7 @@ public class AvrcpControllerService extends ProfileService {
      * receive.
      */
     public static final String ACTION_BROWSE_CONNECTION_STATE_CHANGED =
-        "android.bluetooth.avrcp-controller.profile.action.BROWSE_CONNECTION_STATE_CHANGED";
+            "android.bluetooth.avrcp-controller.profile.action.BROWSE_CONNECTION_STATE_CHANGED";
 
     /**
      * intent used to broadcast the change in metadata state of playing track on the avrcp
@@ -124,7 +119,7 @@ public class AvrcpControllerService extends ProfileService {
      * </ul>
      */
     public static final String ACTION_TRACK_EVENT =
-        "android.bluetooth.avrcp-controller.profile.action.TRACK_EVENT";
+            "android.bluetooth.avrcp-controller.profile.action.TRACK_EVENT";
 
     /**
      * Intent used to broadcast the change of folder list.
@@ -136,14 +131,14 @@ public class AvrcpControllerService extends ProfileService {
      * </ul>
      */
     public static final String ACTION_FOLDER_LIST =
-        "android.bluetooth.avrcp-controller.profile.action.FOLDER_LIST";
+            "android.bluetooth.avrcp-controller.profile.action.FOLDER_LIST";
 
     public static final String EXTRA_FOLDER_LIST =
             "android.bluetooth.avrcp-controller.profile.extra.FOLDER_LIST";
 
     public static final String EXTRA_FOLDER_ID = "com.android.bluetooth.avrcp.EXTRA_FOLDER_ID";
     public static final String EXTRA_FOLDER_BT_ID =
-        "com.android.bluetooth.avrcp-controller.EXTRA_FOLDER_BT_ID";
+            "com.android.bluetooth.avrcp-controller.EXTRA_FOLDER_BT_ID";
 
     public static final String EXTRA_METADATA =
             "android.bluetooth.avrcp-controller.profile.extra.METADATA";
@@ -243,8 +238,7 @@ public class AvrcpControllerService extends ProfileService {
     public static synchronized AvrcpControllerService getAvrcpControllerService() {
         if (sAvrcpControllerService != null && sAvrcpControllerService.isAvailable()) {
             if (DBG) {
-                Log.d(TAG, "getAvrcpControllerService(): returning "
-                    + sAvrcpControllerService);
+                Log.d(TAG, "getAvrcpControllerService(): returning " + sAvrcpControllerService);
             }
             return sAvrcpControllerService;
         }
@@ -304,11 +298,12 @@ public class AvrcpControllerService extends ProfileService {
 
     public synchronized int getConnectionState(BluetoothDevice device) {
         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
-        return (mConnectedDevice != null ? BluetoothProfile.STATE_CONNECTED :
-            BluetoothProfile.STATE_DISCONNECTED);
+        return (mConnectedDevice != null ? BluetoothProfile.STATE_CONNECTED
+                : BluetoothProfile.STATE_DISCONNECTED);
     }
 
-    public synchronized void sendGroupNavigationCmd(BluetoothDevice device, int keyCode, int keyState) {
+    public synchronized void sendGroupNavigationCmd(BluetoothDevice device, int keyCode,
+            int keyState) {
         Log.v(TAG, "sendGroupNavigationCmd keyCode: " + keyCode + " keyState: " + keyState);
         if (device == null) {
             Log.e(TAG, "sendGroupNavigationCmd device is null");
@@ -320,7 +315,7 @@ public class AvrcpControllerService extends ProfileService {
         }
         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
         Message msg = mAvrcpCtSm.obtainMessage(AvrcpControllerStateMachine.
-            MESSAGE_SEND_GROUP_NAVIGATION_CMD, keyCode, keyState, device);
+                MESSAGE_SEND_GROUP_NAVIGATION_CMD, keyCode, keyState, device);
         mAvrcpCtSm.sendMessage(msg);
     }
 
@@ -337,20 +332,20 @@ public class AvrcpControllerService extends ProfileService {
         }
 
         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
-        Message msg = mAvrcpCtSm
-            .obtainMessage(AvrcpControllerStateMachine.MESSAGE_SEND_PASS_THROUGH_CMD,
-                keyCode, keyState, device);
+        Message msg =
+                mAvrcpCtSm.obtainMessage(AvrcpControllerStateMachine.MESSAGE_SEND_PASS_THROUGH_CMD,
+                        keyCode, keyState, device);
         mAvrcpCtSm.sendMessage(msg);
     }
 
     public void startAvrcpUpdates() {
-        mAvrcpCtSm.obtainMessage(
-            AvrcpControllerStateMachine.MESSAGE_START_METADATA_BROADCASTS).sendToTarget();
+        mAvrcpCtSm.obtainMessage(AvrcpControllerStateMachine.MESSAGE_START_METADATA_BROADCASTS)
+                .sendToTarget();
     }
 
     public void stopAvrcpUpdates() {
-        mAvrcpCtSm.obtainMessage(
-            AvrcpControllerStateMachine.MESSAGE_STOP_METADATA_BROADCASTS).sendToTarget();
+        mAvrcpCtSm.obtainMessage(AvrcpControllerStateMachine.MESSAGE_STOP_METADATA_BROADCASTS)
+                .sendToTarget();
     }
 
     public synchronized MediaMetadata getMetaData(BluetoothDevice device) {
@@ -436,8 +431,8 @@ public class AvrcpControllerService extends ProfileService {
      * start - number of item to start scanning from
      * items - number of items to fetch
      */
-    public synchronized boolean getChildren(
-            BluetoothDevice device, String parentMediaId, int start, int items) {
+    public synchronized boolean getChildren(BluetoothDevice device, String parentMediaId, int start,
+            int items) {
         if (DBG) {
             Log.d(TAG, "getChildren device = " + device + " parent " + parentMediaId);
         }
@@ -448,8 +443,7 @@ public class AvrcpControllerService extends ProfileService {
         }
 
         if (!device.equals(mConnectedDevice)) {
-            Log.e(TAG, "getChildren device " + device + " does not match " +
-                mConnectedDevice);
+            Log.e(TAG, "getChildren device " + device + " does not match " + mConnectedDevice);
             return false;
         }
 
@@ -465,11 +459,11 @@ public class AvrcpControllerService extends ProfileService {
         return true;
     }
 
-    public synchronized boolean getNowPlayingList(
-            BluetoothDevice device, String id, int start, int items) {
+    public synchronized boolean getNowPlayingList(BluetoothDevice device, String id, int start,
+            int items) {
         if (DBG) {
-            Log.d(TAG, "getNowPlayingList device = " + device + " start = " + start +
-                "items = " + items);
+            Log.d(TAG, "getNowPlayingList device = " + device + " start = " + start + "items = "
+                    + items);
         }
 
         if (device == null) {
@@ -478,8 +472,8 @@ public class AvrcpControllerService extends ProfileService {
         }
 
         if (!device.equals(mConnectedDevice)) {
-            Log.e(TAG, "getNowPlayingList device " + device + " does not match " +
-                mConnectedDevice);
+            Log.e(TAG,
+                    "getNowPlayingList device " + device + " does not match " + mConnectedDevice);
             return false;
         }
 
@@ -490,17 +484,18 @@ public class AvrcpControllerService extends ProfileService {
 
         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
 
-        Message msg = mAvrcpCtSm.obtainMessage(
-            AvrcpControllerStateMachine.MESSAGE_GET_NOW_PLAYING_LIST, start, items, id);
+        Message msg =
+                mAvrcpCtSm.obtainMessage(AvrcpControllerStateMachine.MESSAGE_GET_NOW_PLAYING_LIST,
+                        start, items, id);
         mAvrcpCtSm.sendMessage(msg);
         return true;
     }
 
-    public synchronized boolean getFolderList(
-            BluetoothDevice device, String id, int start, int items) {
+    public synchronized boolean getFolderList(BluetoothDevice device, String id, int start,
+            int items) {
         if (DBG) {
-            Log.d(TAG, "getFolderListing device = " + device + " start = " + start +
-                "items = " + items);
+            Log.d(TAG, "getFolderListing device = " + device + " start = " + start + "items = "
+                    + items);
         }
 
         if (device == null) {
@@ -520,16 +515,17 @@ public class AvrcpControllerService extends ProfileService {
 
         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
 
-        Message msg = mAvrcpCtSm.obtainMessage(
-            AvrcpControllerStateMachine.MESSAGE_GET_FOLDER_LIST, start, items, id);
+        Message msg =
+                mAvrcpCtSm.obtainMessage(AvrcpControllerStateMachine.MESSAGE_GET_FOLDER_LIST, start,
+                        items, id);
         mAvrcpCtSm.sendMessage(msg);
         return true;
     }
 
     public synchronized boolean getPlayerList(BluetoothDevice device, int start, int items) {
         if (DBG) {
-            Log.d(TAG, "getPlayerList device = " + device + " start = " + start +
-                "items = " + items);
+            Log.d(TAG,
+                    "getPlayerList device = " + device + " start = " + start + "items = " + items);
         }
 
         if (device == null) {
@@ -549,17 +545,18 @@ public class AvrcpControllerService extends ProfileService {
 
         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
 
-        Message msg = mAvrcpCtSm.obtainMessage(
-            AvrcpControllerStateMachine.MESSAGE_GET_PLAYER_LIST, start, items);
+        Message msg =
+                mAvrcpCtSm.obtainMessage(AvrcpControllerStateMachine.MESSAGE_GET_PLAYER_LIST, start,
+                        items);
         mAvrcpCtSm.sendMessage(msg);
         return true;
     }
 
-    public synchronized boolean changeFolderPath(
-            BluetoothDevice device, int direction, String uid, String fid) {
+    public synchronized boolean changeFolderPath(BluetoothDevice device, int direction, String uid,
+            String fid) {
         if (DBG) {
-            Log.d(TAG, "changeFolderPath device = " + device + " direction " +
-                direction + " uid " + uid);
+            Log.d(TAG, "changeFolderPath device = " + device + " direction " + direction + " uid "
+                    + uid);
         }
 
         if (device == null) {
@@ -568,8 +565,7 @@ public class AvrcpControllerService extends ProfileService {
         }
 
         if (!device.equals(mConnectedDevice)) {
-            Log.e(TAG, "changeFolderPath device " + device + " does not match " +
-                mConnectedDevice);
+            Log.e(TAG, "changeFolderPath device " + device + " does not match " + mConnectedDevice);
             return false;
         }
 
@@ -583,8 +579,9 @@ public class AvrcpControllerService extends ProfileService {
         Bundle b = new Bundle();
         b.putString(EXTRA_FOLDER_ID, fid);
         b.putString(EXTRA_FOLDER_BT_ID, uid);
-        Message msg = mAvrcpCtSm.obtainMessage(
-            AvrcpControllerStateMachine.MESSAGE_CHANGE_FOLDER_PATH, direction, 0, b);
+        Message msg =
+                mAvrcpCtSm.obtainMessage(AvrcpControllerStateMachine.MESSAGE_CHANGE_FOLDER_PATH,
+                        direction, 0, b);
         mAvrcpCtSm.sendMessage(msg);
         return true;
     }
@@ -600,8 +597,7 @@ public class AvrcpControllerService extends ProfileService {
         }
 
         if (!device.equals(mConnectedDevice)) {
-            Log.e(TAG, "changeFolderPath device " + device + " does not match " +
-                mConnectedDevice);
+            Log.e(TAG, "changeFolderPath device " + device + " does not match " + mConnectedDevice);
             return false;
         }
 
@@ -612,8 +608,9 @@ public class AvrcpControllerService extends ProfileService {
 
         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
 
-        Message msg = mAvrcpCtSm.obtainMessage(
-            AvrcpControllerStateMachine.MESSAGE_SET_BROWSED_PLAYER, id, 0, fid);
+        Message msg =
+                mAvrcpCtSm.obtainMessage(AvrcpControllerStateMachine.MESSAGE_SET_BROWSED_PLAYER, id,
+                        0, fid);
         mAvrcpCtSm.sendMessage(msg);
         return true;
     }
@@ -629,8 +626,8 @@ public class AvrcpControllerService extends ProfileService {
         }
 
         if (!device.equals(mConnectedDevice)) {
-            Log.e(TAG, "fetchAttrAndPlayItem device " + device + " does not match " +
-                mConnectedDevice);
+            Log.e(TAG, "fetchAttrAndPlayItem device " + device + " does not match "
+                    + mConnectedDevice);
             return;
         }
 
@@ -643,7 +640,7 @@ public class AvrcpControllerService extends ProfileService {
 
     //Binder object: Must be static class or memory leak may occur
     private static class BluetoothAvrcpControllerBinder extends IBluetoothAvrcpController.Stub
-        implements IProfileServiceBinder {
+            implements IProfileServiceBinder {
 
         private AvrcpControllerService mService;
 
@@ -695,7 +692,7 @@ public class AvrcpControllerService extends ProfileService {
             }
 
             if (device == null) {
-              throw new IllegalStateException("Device cannot be null!");
+                throw new IllegalStateException("Device cannot be null!");
             }
 
             return service.getConnectionState(device);
@@ -710,7 +707,7 @@ public class AvrcpControllerService extends ProfileService {
             }
 
             if (device == null) {
-              throw new IllegalStateException("Device cannot be null!");
+                throw new IllegalStateException("Device cannot be null!");
             }
 
             service.sendGroupNavigationCmd(device, keyCode, keyState);
@@ -725,7 +722,7 @@ public class AvrcpControllerService extends ProfileService {
             }
 
             if (device == null) {
-              throw new IllegalStateException("Device cannot be null!");
+                throw new IllegalStateException("Device cannot be null!");
             }
 
             return service.getPlayerSettings(device);
@@ -744,8 +741,9 @@ public class AvrcpControllerService extends ProfileService {
 
     // Called by JNI when a passthrough key was received.
     private void handlePassthroughRsp(int id, int keyState, byte[] address) {
-        Log.d(TAG, "passthrough response received as: key: " + id + " state: " + keyState +
-            "address:" + address);
+        Log.d(TAG,
+                "passthrough response received as: key: " + id + " state: " + keyState + "address:"
+                        + address);
     }
 
     private void handleGroupNavigationRsp(int id, int keyState) {
@@ -753,21 +751,21 @@ public class AvrcpControllerService extends ProfileService {
     }
 
     // Called by JNI when a device has connected or disconnected.
-    private synchronized void onConnectionStateChanged(
-            boolean rcConnected, boolean brConnected, byte[] address) {
+    private synchronized void onConnectionStateChanged(boolean rcConnected, boolean brConnected,
+            byte[] address) {
         BluetoothDevice device = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(address);
-        Log.d(TAG, "onConnectionStateChanged " + rcConnected + " " + brConnected +
-            device + " conn device " + mConnectedDevice);
+        Log.d(TAG, "onConnectionStateChanged " + rcConnected + " " + brConnected + device
+                + " conn device " + mConnectedDevice);
         if (device == null) {
             Log.e(TAG, "onConnectionStateChanged Device is null");
             return;
         }
 
         // Adjust the AVRCP connection state.
-        int oldState = (device.equals(mConnectedDevice) ? BluetoothProfile.STATE_CONNECTED :
-            BluetoothProfile.STATE_DISCONNECTED);
-        int newState = (rcConnected ? BluetoothProfile.STATE_CONNECTED :
-            BluetoothProfile.STATE_DISCONNECTED);
+        int oldState = (device.equals(mConnectedDevice) ? BluetoothProfile.STATE_CONNECTED
+                : BluetoothProfile.STATE_DISCONNECTED);
+        int newState = (rcConnected ? BluetoothProfile.STATE_CONNECTED
+                : BluetoothProfile.STATE_DISCONNECTED);
 
         if (rcConnected && oldState == BluetoothProfile.STATE_DISCONNECTED) {
             /* AVRCPControllerService supports single connection */
@@ -777,14 +775,14 @@ public class AvrcpControllerService extends ProfileService {
             }
             mConnectedDevice = device;
             Message msg = mAvrcpCtSm.obtainMessage(
-                AvrcpControllerStateMachine.MESSAGE_PROCESS_CONNECTION_CHANGE, newState,
-                oldState, device);
+                    AvrcpControllerStateMachine.MESSAGE_PROCESS_CONNECTION_CHANGE, newState,
+                    oldState, device);
             mAvrcpCtSm.sendMessage(msg);
         } else if (!rcConnected && oldState == BluetoothProfile.STATE_CONNECTED) {
             mConnectedDevice = null;
             Message msg = mAvrcpCtSm.obtainMessage(
-                AvrcpControllerStateMachine.MESSAGE_PROCESS_CONNECTION_CHANGE, newState,
-                oldState, device);
+                    AvrcpControllerStateMachine.MESSAGE_PROCESS_CONNECTION_CHANGE, newState,
+                    oldState, device);
             mAvrcpCtSm.sendMessage(msg);
         }
 
@@ -793,7 +791,7 @@ public class AvrcpControllerService extends ProfileService {
         if (rcConnected && brConnected) {
             mBrowseConnected = true;
             Message msg = mAvrcpCtSm.obtainMessage(
-               AvrcpControllerStateMachine.MESSAGE_PROCESS_BROWSE_CONNECTION_CHANGE);
+                    AvrcpControllerStateMachine.MESSAGE_PROCESS_BROWSE_CONNECTION_CHANGE);
             msg.arg1 = 1;
             msg.obj = device;
             mAvrcpCtSm.sendMessage(msg);
@@ -803,8 +801,9 @@ public class AvrcpControllerService extends ProfileService {
     // Called by JNI to notify Avrcp of features supported by the Remote device.
     private void getRcFeatures(byte[] address, int features) {
         BluetoothDevice device = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(address);
-        Message msg = mAvrcpCtSm.obtainMessage(
-            AvrcpControllerStateMachine.MESSAGE_PROCESS_RC_FEATURES, features, 0, device);
+        Message msg =
+                mAvrcpCtSm.obtainMessage(AvrcpControllerStateMachine.MESSAGE_PROCESS_RC_FEATURES,
+                        features, 0, device);
         mAvrcpCtSm.sendMessage(msg);
     }
 
@@ -822,7 +821,7 @@ public class AvrcpControllerService extends ProfileService {
             return;
         }
         Message msg = mAvrcpCtSm.obtainMessage(AvrcpControllerStateMachine.
-            MESSAGE_PROCESS_REGISTER_ABS_VOL_NOTIFICATION, (int) label, 0);
+                MESSAGE_PROCESS_REGISTER_ABS_VOL_NOTIFICATION, (int) label, 0);
         mAvrcpCtSm.sendMessage(msg);
     }
 
@@ -835,13 +834,13 @@ public class AvrcpControllerService extends ProfileService {
             return;
         }
         Message msg = mAvrcpCtSm.obtainMessage(
-            AvrcpControllerStateMachine.MESSAGE_PROCESS_SET_ABS_VOL_CMD, absVol, label);
+                AvrcpControllerStateMachine.MESSAGE_PROCESS_SET_ABS_VOL_CMD, absVol, label);
         mAvrcpCtSm.sendMessage(msg);
     }
 
     // Called by JNI when a track changes and local AvrcpController is registered for updates.
     private synchronized void onTrackChanged(byte[] address, byte numAttributes, int[] attributes,
-        String[] attribVals) {
+            String[] attribVals) {
         if (DBG) {
             Log.d(TAG, "onTrackChanged");
         }
@@ -861,12 +860,13 @@ public class AvrcpControllerService extends ProfileService {
             Log.d(TAG, "onTrackChanged " + trackInfo);
         }
         Message msg = mAvrcpCtSm.obtainMessage(AvrcpControllerStateMachine.
-            MESSAGE_PROCESS_TRACK_CHANGED, trackInfo);
+                MESSAGE_PROCESS_TRACK_CHANGED, trackInfo);
         mAvrcpCtSm.sendMessage(msg);
     }
 
     // Called by JNI periodically based upon timer to update play position
-    private synchronized void onPlayPositionChanged(byte[] address, int songLen, int currSongPosition) {
+    private synchronized void onPlayPositionChanged(byte[] address, int songLen,
+            int currSongPosition) {
         if (DBG) {
             Log.d(TAG, "onPlayPositionChanged pos " + currSongPosition);
         }
@@ -876,7 +876,7 @@ public class AvrcpControllerService extends ProfileService {
             return;
         }
         Message msg = mAvrcpCtSm.obtainMessage(AvrcpControllerStateMachine.
-            MESSAGE_PROCESS_PLAY_POS_CHANGED, songLen, currSongPosition);
+                MESSAGE_PROCESS_PLAY_POS_CHANGED, songLen, currSongPosition);
         mAvrcpCtSm.sendMessage(msg);
     }
 
@@ -893,10 +893,10 @@ public class AvrcpControllerService extends ProfileService {
         int playbackState = PlaybackState.STATE_NONE;
         switch (playStatus) {
             case JNI_PLAY_STATUS_STOPPED:
-                playbackState =  PlaybackState.STATE_STOPPED;
+                playbackState = PlaybackState.STATE_STOPPED;
                 break;
             case JNI_PLAY_STATUS_PLAYING:
-                playbackState =  PlaybackState.STATE_PLAYING;
+                playbackState = PlaybackState.STATE_PLAYING;
                 break;
             case JNI_PLAY_STATUS_PAUSED:
                 playbackState = PlaybackState.STATE_PAUSED;
@@ -911,12 +911,13 @@ public class AvrcpControllerService extends ProfileService {
                 playbackState = PlaybackState.STATE_NONE;
         }
         Message msg = mAvrcpCtSm.obtainMessage(AvrcpControllerStateMachine.
-            MESSAGE_PROCESS_PLAY_STATUS_CHANGED, playbackState);
+                MESSAGE_PROCESS_PLAY_STATUS_CHANGED, playbackState);
         mAvrcpCtSm.sendMessage(msg);
     }
 
     // Called by JNI to report remote Player's capabilities
-    private synchronized void handlePlayerAppSetting(byte[] address, byte[] playerAttribRsp, int rspLen) {
+    private synchronized void handlePlayerAppSetting(byte[] address, byte[] playerAttribRsp,
+            int rspLen) {
         if (DBG) {
             Log.d(TAG, "handlePlayerAppSetting rspLen = " + rspLen);
         }
@@ -926,11 +927,12 @@ public class AvrcpControllerService extends ProfileService {
             return;
         }
         PlayerApplicationSettings supportedSettings = PlayerApplicationSettings.
-            makeSupportedSettings(playerAttribRsp);
+                makeSupportedSettings(playerAttribRsp);
         /* Do nothing */
     }
 
-    private synchronized void onPlayerAppSettingChanged(byte[] address, byte[] playerAttribRsp, int rspLen) {
+    private synchronized void onPlayerAppSettingChanged(byte[] address, byte[] playerAttribRsp,
+            int rspLen) {
         if (DBG) {
             Log.d(TAG, "onPlayerAppSettingChanged ");
         }
@@ -940,15 +942,15 @@ public class AvrcpControllerService extends ProfileService {
             return;
         }
         PlayerApplicationSettings desiredSettings = PlayerApplicationSettings.
-            makeSettings(playerAttribRsp);
+                makeSettings(playerAttribRsp);
         /* Do nothing */
     }
 
     // Browsing related JNI callbacks.
     void handleGetFolderItemsRsp(int status, MediaItem[] items) {
         if (DBG) {
-            Log.d(TAG, "handleGetFolderItemsRsp called with status " + status +
-                " items "  + items.length + " items.");
+            Log.d(TAG, "handleGetFolderItemsRsp called with status " + status + " items "
+                    + items.length + " items.");
         }
 
         if (status == JNI_AVRC_INV_RANGE) {
@@ -956,7 +958,7 @@ public class AvrcpControllerService extends ProfileService {
             // Send a special message since this could be used by state machine
             // to take as a signal that fetch is finished.
             Message msg = mAvrcpCtSm.obtainMessage(AvrcpControllerStateMachine.
-                MESSAGE_PROCESS_GET_FOLDER_ITEMS_OUT_OF_RANGE);
+                    MESSAGE_PROCESS_GET_FOLDER_ITEMS_OUT_OF_RANGE);
             mAvrcpCtSm.sendMessage(msg);
             return;
         }
@@ -971,7 +973,7 @@ public class AvrcpControllerService extends ProfileService {
             itemsList.add(item);
         }
         Message msg = mAvrcpCtSm.obtainMessage(AvrcpControllerStateMachine.
-            MESSAGE_PROCESS_GET_FOLDER_ITEMS, itemsList);
+                MESSAGE_PROCESS_GET_FOLDER_ITEMS, itemsList);
         mAvrcpCtSm.sendMessage(msg);
     }
 
@@ -990,16 +992,16 @@ public class AvrcpControllerService extends ProfileService {
         }
 
         Message msg = mAvrcpCtSm.obtainMessage(AvrcpControllerStateMachine.
-            MESSAGE_PROCESS_GET_PLAYER_ITEMS, itemsList);
+                MESSAGE_PROCESS_GET_PLAYER_ITEMS, itemsList);
         mAvrcpCtSm.sendMessage(msg);
     }
 
     // JNI Helper functions to convert native objects to java.
-    MediaItem createFromNativeMediaItem(
-            byte[] uid, int type, String name, int[] attrIds, String[] attrVals) {
+    MediaItem createFromNativeMediaItem(byte[] uid, int type, String name, int[] attrIds,
+            String[] attrVals) {
         if (DBG) {
-            Log.d(TAG, "createFromNativeMediaItem uid: " + uid + " type " + type + " name " +
-                name + " attrids " + attrIds + " attrVals " + attrVals);
+            Log.d(TAG, "createFromNativeMediaItem uid: " + uid + " type " + type + " name " + name
+                    + " attrids " + attrIds + " attrVals " + attrVals);
         }
         MediaDescription.Builder mdb = new MediaDescription.Builder();
 
@@ -1020,11 +1022,10 @@ public class AvrcpControllerService extends ProfileService {
         return new MediaItem(mdb.build(), MediaItem.FLAG_PLAYABLE);
     }
 
-    MediaItem createFromNativeFolderItem(
-            byte[] uid, int type, String name, int playable) {
+    MediaItem createFromNativeFolderItem(byte[] uid, int type, String name, int playable) {
         if (DBG) {
-            Log.d(TAG, "createFromNativeFolderItem uid: " + uid + " type " + type +
-                " name " + name + " playable " + playable);
+            Log.d(TAG, "createFromNativeFolderItem uid: " + uid + " type " + type + " name " + name
+                    + " playable " + playable);
         }
         MediaDescription.Builder mdb = new MediaDescription.Builder();
 
@@ -1044,12 +1045,12 @@ public class AvrcpControllerService extends ProfileService {
         return new MediaItem(mdb.build(), MediaItem.FLAG_BROWSABLE);
     }
 
-    AvrcpPlayer createFromNativePlayerItem(
-            int id, String name, byte[] transportFlags, int playStatus, int playerType) {
+    AvrcpPlayer createFromNativePlayerItem(int id, String name, byte[] transportFlags,
+            int playStatus, int playerType) {
         if (DBG) {
-            Log.d(TAG, "createFromNativePlayerItem name: " + name + " transportFlags " +
-                transportFlags + " play status " + playStatus + " player type " +
-                playerType);
+            Log.d(TAG,
+                    "createFromNativePlayerItem name: " + name + " transportFlags " + transportFlags
+                            + " play status " + playStatus + " player type " + playerType);
         }
         AvrcpPlayer player = new AvrcpPlayer(id, name, 0, playStatus, playerType);
         return player;
@@ -1059,8 +1060,9 @@ public class AvrcpControllerService extends ProfileService {
         if (DBG) {
             Log.d(TAG, "handleChangeFolderRsp count: " + count);
         }
-        Message msg = mAvrcpCtSm.obtainMessage(
-            AvrcpControllerStateMachine.MESSAGE_PROCESS_FOLDER_PATH, count);
+        Message msg =
+                mAvrcpCtSm.obtainMessage(AvrcpControllerStateMachine.MESSAGE_PROCESS_FOLDER_PATH,
+                        count);
         mAvrcpCtSm.sendMessage(msg);
     }
 
@@ -1069,7 +1071,7 @@ public class AvrcpControllerService extends ProfileService {
             Log.d(TAG, "handleSetBrowsedPlayerRsp depth: " + depth);
         }
         Message msg = mAvrcpCtSm.obtainMessage(
-            AvrcpControllerStateMachine.MESSAGE_PROCESS_SET_BROWSED_PLAYER, items, depth);
+                AvrcpControllerStateMachine.MESSAGE_PROCESS_SET_BROWSED_PLAYER, items, depth);
         mAvrcpCtSm.sendMessage(msg);
     }
 
@@ -1078,7 +1080,7 @@ public class AvrcpControllerService extends ProfileService {
             Log.d(TAG, "handleSetAddressedPlayerRsp status: " + status);
         }
         Message msg = mAvrcpCtSm.obtainMessage(
-            AvrcpControllerStateMachine.MESSAGE_PROCESS_SET_ADDRESSED_PLAYER);
+                AvrcpControllerStateMachine.MESSAGE_PROCESS_SET_ADDRESSED_PLAYER);
         mAvrcpCtSm.sendMessage(msg);
     }
 
@@ -1108,8 +1110,8 @@ public class AvrcpControllerService extends ProfileService {
         int len = uidStr.length();
         byte[] data = new byte[len / 2];
         for (int i = 0; i < len; i += 2) {
-          data[i / 2] = (byte) ((Character.digit(uidStr.charAt(i), 16) << 4)
-              + Character.digit(uidStr.charAt(i + 1), 16));
+            data[i / 2] = (byte) ((Character.digit(uidStr.charAt(i), 16) << 4) + Character.digit(
+                    uidStr.charAt(i + 1), 16));
         }
         return data;
     }
@@ -1123,30 +1125,36 @@ public class AvrcpControllerService extends ProfileService {
     static native boolean sendPassThroughCommandNative(byte[] address, int keyCode, int keyState);
 
     static native boolean sendGroupNavigationCommandNative(byte[] address, int keyCode,
-        int keyState);
+            int keyState);
 
     static native void setPlayerApplicationSettingValuesNative(byte[] address, byte numAttrib,
-        byte[] atttibIds, byte[] attribVal);
+            byte[] atttibIds, byte[] attribVal);
 
     /* This api is used to send response to SET_ABS_VOL_CMD */
     static native void sendAbsVolRspNative(byte[] address, int absVol, int label);
 
     /* This api is used to inform remote for any volume level changes */
     static native void sendRegisterAbsVolRspNative(byte[] address, byte rspType, int absVol,
-        int label);
+            int label);
 
     /* API used to fetch the playback state */
     static native void getPlaybackStateNative(byte[] address);
+
     /* API used to fetch the current now playing list */
     static native void getNowPlayingListNative(byte[] address, byte start, byte end);
+
     /* API used to fetch the current folder's listing */
     static native void getFolderListNative(byte[] address, byte start, byte end);
+
     /* API used to fetch the listing of players */
     static native void getPlayerListNative(byte[] address, byte start, byte end);
+
     /* API used to change the folder */
     static native void changeFolderPathNative(byte[] address, byte direction, byte[] uid);
-    static native void playItemNative(
-        byte[] address, byte scope, byte[] uid, int uidCounter);
+
+    static native void playItemNative(byte[] address, byte scope, byte[] uid, int uidCounter);
+
     static native void setBrowsedPlayerNative(byte[] address, int playerId);
+
     static native void setAddressedPlayerNative(byte[] address, int playerId);
 }

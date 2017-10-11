@@ -31,6 +31,7 @@ import android.os.Message;
 import android.os.ParcelUuid;
 import android.support.annotation.VisibleForTesting;
 import android.util.Log;
+
 import com.android.bluetooth.R;
 import com.android.bluetooth.Utils;
 import com.android.bluetooth.hfp.HeadsetHalConstants;
@@ -116,14 +117,17 @@ final class RemoteDevices {
      * RemoteDevices is still usable after reset
      */
     void reset() {
-        if (sSdpTracker !=null)
+        if (sSdpTracker != null) {
             sSdpTracker.clear();
+        }
 
-        if (mDevices != null)
+        if (mDevices != null) {
             mDevices.clear();
+        }
 
-        if (mDeviceQueue != null)
+        if (mDeviceQueue != null) {
             mDeviceQueue.clear();
+        }
     }
 
     @Override
@@ -139,8 +143,9 @@ final class RemoteDevices {
 
     BluetoothDevice getDevice(byte[] address) {
         DeviceProperties prop = mDevices.get(Utils.getAddressStringFromByte(address));
-        if (prop == null)
-           return null;
+        if (prop == null) {
+            return null;
+        }
         return prop.getDevice();
     }
 
@@ -157,7 +162,9 @@ final class RemoteDevices {
                 if (mDeviceQueue.size() > MAX_DEVICE_QUEUE_SIZE) {
                     String deleteKey = mDeviceQueue.poll();
                     for (BluetoothDevice device : sAdapterService.getBondedDevices()) {
-                        if (device.getAddress().equals(deleteKey)) return prop;
+                        if (device.getAddress().equals(deleteKey)) {
+                            return prop;
+                        }
                     }
                     debugLog("Removing device " + deleteKey + " from property map");
                     mDevices.remove(deleteKey);
@@ -263,7 +270,7 @@ final class RemoteDevices {
             synchronized (mObject) {
                 this.mAlias = mAlias;
                 sAdapterService.setDevicePropertyNative(mAddress,
-                    AbstractionLayer.BT_PROPERTY_REMOTE_FRIENDLY_NAME, mAlias.getBytes());
+                        AbstractionLayer.BT_PROPERTY_REMOTE_FRIENDLY_NAME, mAlias.getBytes());
                 Intent intent = new Intent(BluetoothDevice.ACTION_ALIAS_CHANGED);
                 intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
                 intent.putExtra(BluetoothDevice.EXTRA_NAME, mAlias);
@@ -277,8 +284,7 @@ final class RemoteDevices {
         void setBondState(int mBondState) {
             synchronized (mObject) {
                 this.mBondState = mBondState;
-                if (mBondState == BluetoothDevice.BOND_NONE)
-                {
+                if (mBondState == BluetoothDevice.BOND_NONE) {
                     /* Clearing the Uuids local copy when the device is unpaired. If not cleared,
                     cachedBluetoothDevice issued a connect using the local cached copy of uuids,
                     without waiting for the ACTION_UUID intent.
@@ -380,8 +386,8 @@ final class RemoteDevices {
         synchronized (mObject) {
             int currentBatteryLevel = deviceProperties.getBatteryLevel();
             if (batteryLevel == currentBatteryLevel) {
-                debugLog("Same battery level for device " + device + " received "
-                        + String.valueOf(batteryLevel) + "%");
+                debugLog("Same battery level for device " + device + " received " + String.valueOf(
+                        batteryLevel) + "%");
                 return;
             }
             deviceProperties.setBatteryLevel(batteryLevel);
@@ -446,7 +452,7 @@ final class RemoteDevices {
             type = types[j];
             val = values[j];
             if (val.length > 0) {
-                synchronized(mObject) {
+                synchronized (mObject) {
                     debugLog("Property type: " + type);
                     switch (type) {
                         case AbstractionLayer.BT_PROPERTY_BDNAME:
@@ -461,8 +467,7 @@ final class RemoteDevices {
                         case AbstractionLayer.BT_PROPERTY_REMOTE_FRIENDLY_NAME:
                             if (device.mAlias != null) {
                                 System.arraycopy(val, 0, device.mAlias, 0, val.length);
-                            }
-                            else {
+                            } else {
                                 device.mAlias = new String(val);
                             }
                             break;
@@ -471,7 +476,7 @@ final class RemoteDevices {
                             debugLog("Remote Address is:" + Utils.getAddressStringFromByte(val));
                             break;
                         case AbstractionLayer.BT_PROPERTY_CLASS_OF_DEVICE:
-                            device.mBluetoothClass =  Utils.byteArrayToInt(val);
+                            device.mBluetoothClass = Utils.byteArrayToInt(val);
                             intent = new Intent(BluetoothDevice.ACTION_CLASS_CHANGED);
                             intent.putExtra(BluetoothDevice.EXTRA_DEVICE, bdDevice);
                             intent.putExtra(BluetoothDevice.EXTRA_CLASS,
@@ -481,10 +486,11 @@ final class RemoteDevices {
                             debugLog("Remote class is:" + device.mBluetoothClass);
                             break;
                         case AbstractionLayer.BT_PROPERTY_UUIDS:
-                            int numUuids = val.length/AbstractionLayer.BT_UUID_SIZE;
+                            int numUuids = val.length / AbstractionLayer.BT_UUID_SIZE;
                             device.mUuids = Utils.byteArrayToUuid(val);
-                            if (sAdapterService.getState() == BluetoothAdapter.STATE_ON)
+                            if (sAdapterService.getState() == BluetoothAdapter.STATE_ON) {
                                 sendUuidIntent(bdDevice);
+                            }
                             break;
                         case AbstractionLayer.BT_PROPERTY_TYPE_OF_DEVICE:
                             // The device type from hal layer, defined in bluetooth.h,
@@ -519,9 +525,9 @@ final class RemoteDevices {
         intent.putExtra(BluetoothDevice.EXTRA_RSSI, deviceProp.mRssi);
         intent.putExtra(BluetoothDevice.EXTRA_NAME, deviceProp.mName);
 
-        sAdapterService.sendBroadcastMultiplePermissions(intent,
-                new String[] {AdapterService.BLUETOOTH_PERM,
-                        android.Manifest.permission.ACCESS_COARSE_LOCATION});
+        sAdapterService.sendBroadcastMultiplePermissions(intent, new String[]{
+                AdapterService.BLUETOOTH_PERM, android.Manifest.permission.ACCESS_COARSE_LOCATION
+        });
     }
 
     void aclStateChangeCallback(int status, byte[] address, int newState) {
@@ -538,11 +544,13 @@ final class RemoteDevices {
         if (newState == AbstractionLayer.BT_ACL_STATE_CONNECTED) {
             if (state == BluetoothAdapter.STATE_ON || state == BluetoothAdapter.STATE_TURNING_ON) {
                 intent = new Intent(BluetoothDevice.ACTION_ACL_CONNECTED);
-            } else if (state == BluetoothAdapter.STATE_BLE_ON || state == BluetoothAdapter.STATE_BLE_TURNING_ON) {
+            } else if (state == BluetoothAdapter.STATE_BLE_ON
+                    || state == BluetoothAdapter.STATE_BLE_TURNING_ON) {
                 intent = new Intent(BluetoothAdapter.ACTION_BLE_ACL_CONNECTED);
             }
-            debugLog("aclStateChangeCallback: Adapter State: "
-                    + BluetoothAdapter.nameForState(state) + " Connected: " + device);
+            debugLog(
+                    "aclStateChangeCallback: Adapter State: " + BluetoothAdapter.nameForState(state)
+                            + " Connected: " + device);
         } else {
             if (device.getBondState() == BluetoothDevice.BOND_BONDING) {
                 // Send PAIRING_CANCEL intent to dismiss any dialog requesting bonding.
@@ -553,15 +561,17 @@ final class RemoteDevices {
             }
             if (state == BluetoothAdapter.STATE_ON || state == BluetoothAdapter.STATE_TURNING_OFF) {
                 intent = new Intent(BluetoothDevice.ACTION_ACL_DISCONNECTED);
-            } else if (state == BluetoothAdapter.STATE_BLE_ON || state == BluetoothAdapter.STATE_BLE_TURNING_OFF) {
+            } else if (state == BluetoothAdapter.STATE_BLE_ON
+                    || state == BluetoothAdapter.STATE_BLE_TURNING_OFF) {
                 intent = new Intent(BluetoothAdapter.ACTION_BLE_ACL_DISCONNECTED);
             }
             // Reset battery level on complete disconnection
             if (sAdapterService.getConnectionState(device) == 0) {
                 resetBatteryLevel(device);
             }
-            debugLog("aclStateChangeCallback: Adapter State: "
-                    + BluetoothAdapter.nameForState(state) + " Disconnected: " + device);
+            debugLog(
+                    "aclStateChangeCallback: Adapter State: " + BluetoothAdapter.nameForState(state)
+                            + " Disconnected: " + device);
         }
 
         if (intent != null) {
@@ -578,7 +588,9 @@ final class RemoteDevices {
 
 
     void fetchUuids(BluetoothDevice device) {
-        if (sSdpTracker.contains(device)) return;
+        if (sSdpTracker.contains(device)) {
+            return;
+        }
         sSdpTracker.add(device);
 
         Message message = mHandler.obtainMessage(MESSAGE_UUID_INTENT);
@@ -643,15 +655,16 @@ final class RemoteDevices {
             Log.e(TAG, "onVendorSpecificHeadsetEvent() command is null");
             return;
         }
-        int cmdType = intent.getIntExtra(
-                BluetoothHeadset.EXTRA_VENDOR_SPECIFIC_HEADSET_EVENT_CMD_TYPE, -1);
+        int cmdType =
+                intent.getIntExtra(BluetoothHeadset.EXTRA_VENDOR_SPECIFIC_HEADSET_EVENT_CMD_TYPE,
+                        -1);
         // Only process set command
         if (cmdType != BluetoothHeadset.AT_CMD_TYPE_SET) {
             debugLog("onVendorSpecificHeadsetEvent() only SET command is processed");
             return;
         }
-        Object[] args = (Object[]) intent.getExtras().get(
-                BluetoothHeadset.EXTRA_VENDOR_SPECIFIC_HEADSET_EVENT_ARGS);
+        Object[] args = (Object[]) intent.getExtras()
+                .get(BluetoothHeadset.EXTRA_VENDOR_SPECIFIC_HEADSET_EVENT_ARGS);
         if (args == null) {
             Log.e(TAG, "onVendorSpecificHeadsetEvent() arguments are null");
             return;
@@ -667,8 +680,8 @@ final class RemoteDevices {
         }
         if (batteryPercent != BluetoothDevice.BATTERY_LEVEL_UNKNOWN) {
             updateBatteryLevel(device, batteryPercent);
-            infoLog("Updated device " + device + " battery level to "
-                    + String.valueOf(batteryPercent) + "%");
+            infoLog("Updated device " + device + " battery level to " + String.valueOf(
+                    batteryPercent) + "%");
         }
     }
 
@@ -721,7 +734,7 @@ final class RemoteDevices {
             break;
         }
         return (indicatorValue < 0 || indicatorValue > 9) ? BluetoothDevice.BATTERY_LEVEL_UNKNOWN
-                                                          : (indicatorValue + 1) * 10;
+                : (indicatorValue + 1) * 10;
     }
 
     /**
@@ -745,13 +758,13 @@ final class RemoteDevices {
         }
         String eventName = (String) eventNameObj;
         if (!eventName.equals(
-                    BluetoothHeadset.VENDOR_SPECIFIC_HEADSET_EVENT_XEVENT_BATTERY_LEVEL)) {
+                BluetoothHeadset.VENDOR_SPECIFIC_HEADSET_EVENT_XEVENT_BATTERY_LEVEL)) {
             infoLog("getBatteryLevelFromXEventVsc() skip none BATTERY event: " + eventName);
             return BluetoothDevice.BATTERY_LEVEL_UNKNOWN;
         }
         if (args.length != 5) {
             Log.w(TAG, "getBatteryLevelFromXEventVsc() wrong battery level event length: "
-                            + String.valueOf(args.length));
+                    + String.valueOf(args.length));
             return BluetoothDevice.BATTERY_LEVEL_UNKNOWN;
         }
         if (!(args[1] instanceof Integer) || !(args[2] instanceof Integer)) {
@@ -762,8 +775,8 @@ final class RemoteDevices {
         int numberOfLevels = (Integer) args[2];
         if (batteryLevel < 0 || numberOfLevels < 0 || batteryLevel > numberOfLevels) {
             Log.w(TAG, "getBatteryLevelFromXEventVsc() wrong event value, batteryLevel="
-                            + String.valueOf(batteryLevel) + ", numberOfLevels="
-                            + String.valueOf(numberOfLevels));
+                    + String.valueOf(batteryLevel) + ", numberOfLevels=" + String.valueOf(
+                    numberOfLevels));
             return BluetoothDevice.BATTERY_LEVEL_UNKNOWN;
         }
         return batteryLevel * 100 / numberOfLevels;
@@ -773,12 +786,12 @@ final class RemoteDevices {
         @Override
         public void handleMessage(Message msg) {
             switch (msg.what) {
-            case MESSAGE_UUID_INTENT:
-                BluetoothDevice device = (BluetoothDevice)msg.obj;
-                if (device != null) {
-                    sendUuidIntent(device);
-                }
-                break;
+                case MESSAGE_UUID_INTENT:
+                    BluetoothDevice device = (BluetoothDevice) msg.obj;
+                    if (device != null) {
+                        sendUuidIntent(device);
+                    }
+                    break;
             }
         }
     };
@@ -788,11 +801,15 @@ final class RemoteDevices {
     }
 
     private static void debugLog(String msg) {
-        if (DBG) Log.d(TAG, msg);
+        if (DBG) {
+            Log.d(TAG, msg);
+        }
     }
 
     private static void infoLog(String msg) {
-        if (DBG) Log.i(TAG, msg);
+        if (DBG) {
+            Log.i(TAG, msg);
+        }
     }
 
     private static void warnLog(String msg) {

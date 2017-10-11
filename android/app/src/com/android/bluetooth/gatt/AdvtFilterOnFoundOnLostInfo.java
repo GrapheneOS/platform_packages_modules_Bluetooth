@@ -15,6 +15,7 @@
  */
 
 package com.android.bluetooth.gatt;
+
 import android.annotation.Nullable;
 
 /** @hide */
@@ -22,13 +23,11 @@ public class AdvtFilterOnFoundOnLostInfo {
     private int mClientIf;
 
     private int mAdvPktLen;
-    @Nullable
-    private byte[] mAdvPkt;
+    @Nullable private byte[] mAdvPkt;
 
     private int mScanRspLen;
 
-    @Nullable
-    private byte[] mScanRsp;
+    @Nullable private byte[] mScanRsp;
 
     private int mFiltIndex;
     private int mAdvState;
@@ -40,10 +39,9 @@ public class AdvtFilterOnFoundOnLostInfo {
     private int mRssiValue;
     private int mTimeStamp;
 
-    public AdvtFilterOnFoundOnLostInfo(int clientIf, int advPktLen, byte[] advPkt,
-                    int scanRspLen, byte[] scanRsp, int filtIndex, int advState,
-                    int advInfoPresent, String address, int addrType, int txPower,
-                    int rssiValue, int timeStamp){
+    public AdvtFilterOnFoundOnLostInfo(int clientIf, int advPktLen, byte[] advPkt, int scanRspLen,
+            byte[] scanRsp, int filtIndex, int advState, int advInfoPresent, String address,
+            int addrType, int txPower, int rssiValue, int timeStamp) {
 
         mClientIf = clientIf;
         mAdvPktLen = advPktLen;
@@ -60,31 +58,31 @@ public class AdvtFilterOnFoundOnLostInfo {
         mTimeStamp = timeStamp;
     }
 
-    public int getClientIf () {
+    public int getClientIf() {
         return mClientIf;
     }
 
-    public int getFiltIndex () {
+    public int getFiltIndex() {
         return mFiltIndex;
     }
 
-    public int getAdvState () {
+    public int getAdvState() {
         return mAdvState;
     }
 
-    public int getTxPower () {
+    public int getTxPower() {
         return mTxPower;
     }
 
-    public int getTimeStamp () {
+    public int getTimeStamp() {
         return mTimeStamp;
     }
 
-    public int getRSSIValue () {
+    public int getRSSIValue() {
         return mRssiValue;
     }
 
-    public int getAdvInfoPresent () {
+    public int getAdvInfoPresent() {
         return mAdvInfoPresent;
     }
 
@@ -112,10 +110,10 @@ public class AdvtFilterOnFoundOnLostInfo {
         return mScanRspLen;
     }
 
-    public byte [] getResult() {
+    public byte[] getResult() {
         int resultLength = mAdvPkt.length + ((mScanRsp != null) ? mScanRsp.length : 0);
         byte[] result = new byte[resultLength];
-        System.arraycopy(mAdvPkt, 0, result, 0,  mAdvPkt.length);
+        System.arraycopy(mAdvPkt, 0, result, 0, mAdvPkt.length);
         if (mScanRsp != null) {
             System.arraycopy(mScanRsp, 0, result, mAdvPkt.length, mScanRsp.length);
         }
