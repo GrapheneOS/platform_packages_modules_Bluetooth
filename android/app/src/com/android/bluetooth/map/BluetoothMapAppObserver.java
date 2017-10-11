@@ -30,6 +30,7 @@ import android.net.Uri;
 import android.util.Log;
 
 import com.android.bluetooth.mapapi.BluetoothMapContract;
+import java.util.Objects;
 
 /**
  * Class to construct content observers for for email applications on the system.
@@ -100,7 +101,7 @@ public class BluetoothMapAppObserver{
             mFullList.put(app, newAccountList);
             for(BluetoothMapAccountItem newAcc: newAccountList){
                 for(BluetoothMapAccountItem oldAcc: oldAccountList){
-                    if(newAcc.getId() == oldAcc.getId()){
+                    if(Objects.equals(newAcc.getId(), oldAcc.getId())){
                         // For each match remove from both removed and added lists
                         removedAccountList.remove(oldAcc);
                         addedAccountList.remove(newAcc);
@@ -235,17 +236,17 @@ public class BluetoothMapAppObserver{
                         if (resInfos != null ) {
                             if(D) Log.d(TAG,"Found " + resInfos.size()
                                     + " application(s) with intent "
-                                    + searchIntent.getAction().toString());
+                                    + searchIntent.getAction());
                             for (ResolveInfo rInfo : resInfos) {
                                 if(rInfo != null) {
                                     // Find out if package contain Bluetooth MAP support
                                     if (packageName.equals(rInfo.providerInfo.packageName)) {
                                         resolveInfo = rInfo;
-                                        if(searchIntent.getAction() ==
-                                                BluetoothMapContract.PROVIDER_INTERFACE_EMAIL){
+                                        if(Objects.equals(searchIntent.getAction(),
+                                                BluetoothMapContract.PROVIDER_INTERFACE_EMAIL)){
                                             msgType = BluetoothMapUtils.TYPE.EMAIL;
-                                        } else if (searchIntent.getAction() ==
-                                                BluetoothMapContract.PROVIDER_INTERFACE_IM){
+                                        } else if (Objects.equals(searchIntent.getAction(),
+                                                BluetoothMapContract.PROVIDER_INTERFACE_IM)){
                                             msgType = BluetoothMapUtils.TYPE.IM;
                                         }
                                         break;

@@ -320,7 +320,7 @@ public class TestActivity extends Activity {
     public OnClickListener deleteAllRecordListener = new OnClickListener() {
         @Override
         public void onClick(View view) {
-            Uri contentUri = Uri.parse(BluetoothShare.CONTENT_URI + "");
+            Uri contentUri = Uri.parse(String.valueOf(BluetoothShare.CONTENT_URI));
             getContentResolver().delete(contentUri, null, null);
         }
     };
