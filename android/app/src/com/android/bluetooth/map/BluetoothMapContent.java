@@ -547,7 +547,7 @@ public class BluetoothMapContent {
         String setread = null;
 
         if (V) Log.d(TAG, "setRead: " + setread);
-        e.setRead((read==1?true:false), ((ap.getParameterMask() & MASK_READ) != 0));
+        e.setRead((read == 1), ((ap.getParameterMask() & MASK_READ) != 0));
     }
     private void setConvoRead(BluetoothMapConvoListingElement e, Cursor c,
             FilterInfo fi, BluetoothMapAppParams ap) {
@@ -557,7 +557,7 @@ public class BluetoothMapContent {
 
 
         if (V) Log.d(TAG, "setRead: " + setread);
-        e.setRead((read==1?true:false), ((ap.getParameterMask() & MASK_READ) != 0));
+        e.setRead((read == 1), ((ap.getParameterMask() & MASK_READ) != 0));
     }
 
     private void setPriority(BluetoothMapMessageListingElement e, Cursor c,
@@ -1275,7 +1275,7 @@ public class BluetoothMapContent {
         BluetoothMapMessageListingElement e = new BluetoothMapMessageListingElement();
         setHandle(e, c, fi, ap);
         setDateTime(e, c, fi, ap);
-        e.setType(getType(c, fi), ((ap.getParameterMask() & MASK_TYPE) != 0) ? true : false);
+        e.setType(getType(c, fi), (ap.getParameterMask() & MASK_TYPE) != 0);
         setRead(e, c, fi, ap);
         // we set number and name for sender/recipient later
         // they require lookup on contacts so no need to
@@ -2449,7 +2449,7 @@ public class BluetoothMapContent {
         }
 
         if (D) Log.d(TAG, "msgListingHasUnread: numUnread = " + cnt);
-        return (cnt>0)?true:false;
+        return cnt > 0;
     }
 
     /**
@@ -2732,8 +2732,7 @@ public class BluetoothMapContent {
                         // name is not used for SMS/MMS.
                         // msg delete will be handled by update folderVersionCounter().
                         long last_activity = cursor.getLong(MMS_SMS_THREAD_COL_DATE);
-                        boolean read = (cursor.getInt(MMS_SMS_THREAD_COL_READ) == 1) ?
-                                true : false;
+                        boolean read = cursor.getInt(MMS_SMS_THREAD_COL_READ) == 1;
 
                         if(last_activity != convoElement.getLastActivity()) {
                             convoChanged = true;
@@ -2824,8 +2823,7 @@ public class BluetoothMapContent {
                         String name = imEmailCursor.getString(fi.mConvoColName);
                         String summary = imEmailCursor.getString(fi.mConvoColSummary);
                         long last_activity = imEmailCursor.getLong(fi.mConvoColLastActivity);
-                        boolean read = (imEmailCursor.getInt(fi.mConvoColRead) == 1) ?
-                                true : false;
+                        boolean read = imEmailCursor.getInt(fi.mConvoColRead) == 1;
 
                         if(last_activity != convoElement.getLastActivity()) {
                             convoChanged = true;
@@ -2900,8 +2898,7 @@ public class BluetoothMapContent {
             convoElement.setVersionCounter(0);
         }
         long last_activity = cursor.getLong(MMS_SMS_THREAD_COL_DATE);
-        boolean read = (cursor.getInt(MMS_SMS_THREAD_COL_READ) == 1) ?
-                true : false;
+        boolean read = cursor.getInt(MMS_SMS_THREAD_COL_READ) == 1;
 
         if(last_activity != convoElement.getLastActivity()) {
             convoChanged = true;
@@ -2947,8 +2944,7 @@ public class BluetoothMapContent {
         }
         String name = cursor.getString(fi.mConvoColName);
         long last_activity = cursor.getLong(fi.mConvoColLastActivity);
-        boolean read = (cursor.getInt(fi.mConvoColRead) == 1) ?
-                true : false;
+        boolean read = cursor.getInt(fi.mConvoColRead) == 1;
 
         if(last_activity != convoElement.getLastActivity()) {
             convoChanged = true;
@@ -2994,8 +2990,7 @@ public class BluetoothMapContent {
         ele.setConvoId(BluetoothMapUtils.CONVO_ID_TYPE_SMS_MMS,
                 smsMmsCursor.getLong(MMS_SMS_THREAD_COL_ID));
 
-        boolean read = (smsMmsCursor.getInt(MMS_SMS_THREAD_COL_READ) == 1) ?
-                true : false;
+        boolean read = smsMmsCursor.getInt(MMS_SMS_THREAD_COL_READ) == 1;
         if((parameterMask & CONVO_PARAM_MASK_CONVO_READ_STATUS) != 0) {
             ele.setRead(read, true);
         } else {
@@ -3063,7 +3058,7 @@ public class BluetoothMapContent {
         if((parameterMask & CONVO_PARAM_MASK_CONVO_READ_STATUS) != 0) {
             reportRead = true;
         }
-        ele.setRead(((1==tmpCursor.getInt(fi.mConvoColRead))?true:false), reportRead);
+        ele.setRead((1 == tmpCursor.getInt(fi.mConvoColRead)), reportRead);
 
         long timestamp = tmpCursor.getLong(fi.mConvoColLastActivity);
         if((parameterMask & CONVO_PARAM_MASK_CONVO_LAST_ACTIVITY) != 0) {
@@ -3718,8 +3713,8 @@ public class BluetoothMapContent {
                 message.setMessageId(c.getString(c.getColumnIndex(Mms.MESSAGE_ID)));
                 message.setContentType(c.getString(c.getColumnIndex(Mms.CONTENT_TYPE)));
                 message.setDate(c.getLong(c.getColumnIndex(Mms.DATE)) * 1000L);
-                message.setTextOnly(c.getInt(c.getColumnIndex(Mms.TEXT_ONLY)) == 0 ? false : true);
-                message.setIncludeAttachments(appParams.getAttachment() == 0 ? false : true);
+                message.setTextOnly(c.getInt(c.getColumnIndex(Mms.TEXT_ONLY)) != 0);
+                message.setIncludeAttachments(appParams.getAttachment() != 0);
                 // c.getLong(c.getColumnIndex(Mms.DATE_SENT)); - this is never used
                 // c.getInt(c.getColumnIndex(Mms.STATUS)); - don't know what this is
 
@@ -3940,10 +3935,10 @@ public class BluetoothMapContent {
                        c.getColumnIndex(BluetoothMapContract.MessageColumns._ID)));
                message.setDate(c.getLong(
                        c.getColumnIndex(BluetoothMapContract.MessageColumns.DATE)));
-               message.setTextOnly(c.getInt(c.getColumnIndex(
-                       BluetoothMapContract.MessageColumns.ATTACHMENT_SIZE)) != 0 ? false : true);
+               message.setTextOnly(c.getInt(
+                       c.getColumnIndex(BluetoothMapContract.MessageColumns.ATTACHMENT_SIZE)) == 0);
 
-               message.setIncludeAttachments(appParams.getAttachment() == 0 ? false : true);
+               message.setIncludeAttachments(appParams.getAttachment() != 0);
 
                // c.getLong(c.getColumnIndex(Mms.DATE_SENT)); - this is never used
                // c.getInt(c.getColumnIndex(Mms.STATUS)); - don't know what this is
