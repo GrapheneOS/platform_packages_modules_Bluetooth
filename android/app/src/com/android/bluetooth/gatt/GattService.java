@@ -54,6 +54,7 @@ import android.util.Log;
 
 import com.android.bluetooth.R;
 import com.android.bluetooth.Utils;
+import com.android.bluetooth.btservice.AbstractionLayer;
 import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.BluetoothProto;
 import com.android.bluetooth.btservice.ProfileService;
@@ -778,7 +779,7 @@ public class GattService extends ProfileService {
         List<UUID> remoteUuids = parseUuids(advData);
         addScanResult();
 
-        byte[] legacy_adv_data = Arrays.copyOfRange(advData, 0, 62);
+        byte[] legacyAdvData = Arrays.copyOfRange(advData, 0, 62);
 
         for (ScanClient client : mScanManager.getRegularScanQueue()) {
             if (client.uuids.length > 0) {
@@ -803,7 +804,7 @@ public class GattService extends ProfileService {
             BluetoothDevice device = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(address);
 
             ScanSettings settings = client.settings;
-            byte[] scan_record_data;
+            byte[] scanRecordData;
             // This is for compability with applications that assume fixed size scan data.
             if (settings.getLegacy()) {
                 if ((eventType & ET_LEGACY_MASK) == 0) {
@@ -811,15 +812,15 @@ public class GattService extends ProfileService {
                     continue;
                 } else {
                     // Some apps are used to fixed-size advertise data.
-                    scan_record_data = legacy_adv_data;
+                    scanRecordData = legacyAdvData;
                 }
             } else {
-                scan_record_data = advData;
+                scanRecordData = advData;
             }
 
             ScanResult result = new ScanResult(device, eventType, primaryPhy, secondaryPhy,
                     advertisingSid, txPower, rssi, periodicAdvInt,
-                    ScanRecord.parseFromBytes(scan_record_data),
+                    ScanRecord.parseFromBytes(scanRecordData),
                     SystemClock.elapsedRealtimeNanos());
             // Do no report if location mode is OFF or the client has no location permission
             // PEERS_MAC_ADDRESS permission holders always get results
@@ -1087,7 +1088,7 @@ public class GattService extends ProfileService {
             return;
         }
 
-        List<BluetoothGattService> db_out = new ArrayList<BluetoothGattService>();
+        List<BluetoothGattService> dbOut = new ArrayList<BluetoothGattService>();
 
         BluetoothGattService currSrvc = null;
         BluetoothGattCharacteristic currChar = null;
@@ -1100,7 +1101,7 @@ public class GattService extends ProfileService {
                     if (DBG) Log.d(TAG, "got service with UUID=" + el.uuid + " id: " + el.id);
 
                     currSrvc = new BluetoothGattService(el.uuid, el.id, el.type);
-                    db_out.add(currSrvc);
+                    dbOut.add(currSrvc);
                     break;
 
                 case GattDbElement.TYPE_CHARACTERISTIC:
@@ -1135,8 +1136,8 @@ public class GattService extends ProfileService {
         }
 
         // Search is complete when there was error, or nothing more to process
-        gattClientDatabases.put(connId, db_out);
-        app.callback.onSearchComplete(address, db_out, 0 /* status */);
+        gattClientDatabases.put(connId, dbOut);
+        app.callback.onSearchComplete(address, dbOut, 0 /* status */);
     }
 
     void onRegisterForNotifications(int connId, int status, int registered, int handle) {
@@ -1575,8 +1576,6 @@ public class GattService extends ProfileService {
     List<BluetoothDevice> getDevicesMatchingConnectionStates(int[] states) {
         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
 
-        final int DEVICE_TYPE_BREDR = 0x1;
-
         Map<BluetoothDevice, Integer> deviceStates = new HashMap<BluetoothDevice,
                                                                  Integer>();
 
@@ -1584,7 +1583,7 @@ public class GattService extends ProfileService {
 
         Set<BluetoothDevice> bondedDevices = mAdapter.getBondedDevices();
         for (BluetoothDevice device : bondedDevices) {
-            if (getDeviceType(device) != DEVICE_TYPE_BREDR) {
+            if (getDeviceType(device) != AbstractionLayer.BT_DEVICE_TYPE_BREDR) {
                 deviceStates.put(device, BluetoothProfile.STATE_DISCONNECTED);
             }
         }
@@ -2548,15 +2547,15 @@ public class GattService extends ProfileService {
     }
 
     private boolean isHidUuid(final UUID uuid) {
-        for (UUID hid_uuid : HID_UUIDS) {
-            if (hid_uuid.equals(uuid)) return true;
+        for (UUID hidUuid : HID_UUIDS) {
+            if (hidUuid.equals(uuid)) return true;
         }
         return false;
     }
 
     private boolean isFidoUUID(final UUID uuid) {
-        for (UUID fido_uuid : FIDO_UUIDS) {
-            if (fido_uuid.equals(uuid)) return true;
+        for (UUID fidoUuid : FIDO_UUIDS) {
+            if (fidoUuid.equals(uuid)) return true;
         }
         return false;
     }

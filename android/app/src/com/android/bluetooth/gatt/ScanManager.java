@@ -1076,10 +1076,10 @@ public class ScanManager {
                 Log.d(TAG, "configureFilterParamter " + onFoundTimeout + " " + onLostTimeout + " "
                                 + onFoundCount + " " + numOfTrackingEntries);
             }
-            FilterParams FiltValue = new FilterParams(scannerId, filterIndex, featureSelection,
+            FilterParams filtValue = new FilterParams(scannerId, filterIndex, featureSelection,
                     LIST_LOGIC_TYPE, FILTER_LOGIC_TYPE, rssiThreshold, rssiThreshold, deliveryMode,
                     onFoundTimeout, onLostTimeout, onFoundCount, numOfTrackingEntries);
-            gattClientScanFilterParamAddNative(FiltValue);
+            gattClientScanFilterParamAddNative(filtValue);
         }
 
         // Get delivery mode based on scan settings.

@@ -1689,13 +1689,13 @@ public class BluetoothMapContentObserver {
                                     evt = new Event(EVENT_TYPE_NEW, id, newFolder,
                                             mAccount.getType(), date, subject, address, priority);
                                 } else {
-                                    long thread_id = c.getLong(c.getColumnIndex(
+                                    long threadId = c.getLong(c.getColumnIndex(
                                             BluetoothMapContract.MessageColumns.THREAD_ID));
-                                    String thread_name = c.getString(c.getColumnIndex(
+                                    String threadName = c.getString(c.getColumnIndex(
                                             BluetoothMapContract.MessageColumns.THREAD_NAME));
                                     evt = new Event(EVENT_TYPE_NEW, id, newFolder,
                                             mAccount.getType(), date, subject, address, priority,
-                                            thread_id, thread_name);
+                                            threadId, threadName);
                                 }
                             } else {
                                 evt = new Event(EVENT_TYPE_NEW, id, newFolder, null, TYPE.EMAIL);
