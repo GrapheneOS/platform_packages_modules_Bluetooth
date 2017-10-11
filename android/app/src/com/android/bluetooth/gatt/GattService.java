@@ -226,10 +226,8 @@ public class GattService extends ProfileService {
     }
 
     boolean permissionCheck(UUID uuid) {
-        if (isRestrictedCharUuid(uuid) && (0 != checkCallingOrSelfPermission(BLUETOOTH_PRIVILEGED)))
-            return false;
-        else
-            return true;
+        return !(isRestrictedCharUuid(uuid) && (0 != checkCallingOrSelfPermission(
+                BLUETOOTH_PRIVILEGED)));
     }
 
     boolean permissionCheck(int connId, int handle) {
@@ -239,22 +237,16 @@ public class GattService extends ProfileService {
         for (BluetoothGattService service : db) {
             for (BluetoothGattCharacteristic characteristic: service.getCharacteristics()) {
                 if (handle == characteristic.getInstanceId()) {
-                    if ((isRestrictedCharUuid(characteristic.getUuid()) ||
-                         isRestrictedSrvcUuid(service.getUuid())) &&
-                        (0 != checkCallingOrSelfPermission(BLUETOOTH_PRIVILEGED)))
-                        return false;
-                    else
-                        return true;
+                    return !((isRestrictedCharUuid(characteristic.getUuid())
+                            || isRestrictedSrvcUuid(service.getUuid()))
+                            && (0 != checkCallingOrSelfPermission(BLUETOOTH_PRIVILEGED)));
                 }
 
                 for (BluetoothGattDescriptor descriptor: characteristic.getDescriptors()) {
                     if (handle == descriptor.getInstanceId()) {
-                        if ((isRestrictedCharUuid(characteristic.getUuid()) ||
-                             isRestrictedSrvcUuid(service.getUuid())) &&
-                            (0 != checkCallingOrSelfPermission(BLUETOOTH_PRIVILEGED)))
-                            return false;
-                        else
-                            return true;
+                        return !((isRestrictedCharUuid(characteristic.getUuid())
+                                || isRestrictedSrvcUuid(service.getUuid()))
+                                && (0 != checkCallingOrSelfPermission(BLUETOOTH_PRIVILEGED)));
                     }
                 }
             }
