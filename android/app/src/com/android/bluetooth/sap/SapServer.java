@@ -650,6 +650,7 @@ public class SapServer extends Thread implements Callback {
                 // todo: rild should be back up since message was sent with a delay. this is a hack.
                 mRilBtReceiver.getSapProxy();
             }
+            break;
         default:
             /* Message not handled */
             return false;
