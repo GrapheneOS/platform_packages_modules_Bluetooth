@@ -54,7 +54,9 @@ public class RemoteDevicesTest {
     @Test
     public void testSendUuidIntent() {
         mRemoteDevices.updateUuids(mDevice1);
-        Looper.myLooper().quitSafely();
+        if (Looper.myLooper() != null) {
+            Looper.myLooper().quitSafely();
+        }
         Looper.loop();
 
         verify(mAdapterService).sendBroadcast(any(), anyString());
