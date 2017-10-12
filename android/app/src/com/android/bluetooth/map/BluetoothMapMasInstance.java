@@ -460,7 +460,7 @@ public class BluetoothMapMasInstance implements IObexConnectionHandler {
          */
         boolean isValid = mMapService.onConnect(device, BluetoothMapMasInstance.this);
 
-        if(isValid == true) {
+        if(isValid) {
             mRemoteDevice = device;
             mConnSocket = socket;
         }

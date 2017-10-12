@@ -2561,7 +2561,7 @@ public class GattService extends ProfileService {
             for(HandleMap.Entry entry : entries) {
                 if (entry.type != HandleMap.TYPE_SERVICE ||
                     entry.serverIf != serverIf ||
-                    entry.started == false)
+                    !entry.started)
                         continue;
 
                 gattServerStopServiceNative(serverIf, entry.handle);
