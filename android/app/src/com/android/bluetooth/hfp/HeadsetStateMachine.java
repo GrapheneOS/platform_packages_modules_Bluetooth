@@ -2008,11 +2008,13 @@ final class HeadsetStateMachine extends StateMachine {
     }
 
     private final ServiceConnection mConnection = new ServiceConnection() {
+        @Override
         public void onServiceConnected(ComponentName className, IBinder service) {
             if (DBG) Log.d(TAG, "Proxy object connected");
             mPhoneProxy = IBluetoothHeadsetPhone.Stub.asInterface(service);
         }
 
+        @Override
         public void onServiceDisconnected(ComponentName className) {
             if (DBG) Log.d(TAG, "Proxy object disconnected");
             mPhoneProxy = null;

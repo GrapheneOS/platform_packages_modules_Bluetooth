@@ -209,6 +209,7 @@ public class BluetoothPbapActivity extends AlertActivity implements
         sendBroadcast(intent);
     }
 
+    @Override
     public void onClick(DialogInterface dialog, int which) {
         switch (which) {
             case DialogInterface.BUTTON_POSITIVE:
@@ -264,16 +265,20 @@ public class BluetoothPbapActivity extends AlertActivity implements
         unregisterReceiver(mReceiver);
     }
 
+    @Override
     public boolean onPreferenceChange(Preference preference, Object newValue) {
         return true;
     }
 
+    @Override
     public void beforeTextChanged(CharSequence s, int start, int before, int after) {
     }
 
+    @Override
     public void onTextChanged(CharSequence s, int start, int before, int count) {
     }
 
+    @Override
     public void afterTextChanged(android.text.Editable s) {
         if (s.length() > 0) {
             mOkButton.setEnabled(true);

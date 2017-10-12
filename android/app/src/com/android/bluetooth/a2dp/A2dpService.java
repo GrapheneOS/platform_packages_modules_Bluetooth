@@ -98,14 +98,17 @@ public class A2dpService extends ProfileService {
         BluetoothUuid.AudioSink
     };
 
+    @Override
     protected String getName() {
         return TAG;
     }
 
+    @Override
     protected IProfileServiceBinder initBinder() {
         return new BluetoothA2dpBinder(this);
     }
 
+    @Override
     protected boolean start() {
         mAvrcp = Avrcp.make(this);
         mStateMachine = A2dpStateMachine.make(this, this);
@@ -119,6 +122,7 @@ public class A2dpService extends ProfileService {
         return true;
     }
 
+    @Override
     protected boolean stop() {
         if (mStateMachine != null) {
             mStateMachine.doQuit();
@@ -129,6 +133,7 @@ public class A2dpService extends ProfileService {
         return true;
     }
 
+    @Override
     protected boolean cleanup() {
         if (mConnectionStateChangedReceiver != null) {
             unregisterReceiver(mConnectionStateChangedReceiver);
@@ -365,95 +370,111 @@ public class A2dpService extends ProfileService {
             mService = svc;
         }
 
+        @Override
         public boolean cleanup()  {
             mService = null;
             return true;
         }
 
+        @Override
         public boolean connect(BluetoothDevice device) {
             A2dpService service = getService();
             if (service == null) return false;
             return service.connect(device);
         }
 
+        @Override
         public boolean disconnect(BluetoothDevice device) {
             A2dpService service = getService();
             if (service == null) return false;
             return service.disconnect(device);
         }
 
+        @Override
         public List<BluetoothDevice> getConnectedDevices() {
             A2dpService service = getService();
             if (service == null) return new ArrayList<BluetoothDevice>(0);
             return service.getConnectedDevices();
         }
 
+        @Override
         public List<BluetoothDevice> getDevicesMatchingConnectionStates(int[] states) {
             A2dpService service = getService();
             if (service == null) return new ArrayList<BluetoothDevice>(0);
             return service.getDevicesMatchingConnectionStates(states);
         }
 
+        @Override
         public int getConnectionState(BluetoothDevice device) {
             A2dpService service = getService();
             if (service == null) return BluetoothProfile.STATE_DISCONNECTED;
             return service.getConnectionState(device);
         }
 
+        @Override
         public boolean setPriority(BluetoothDevice device, int priority) {
             A2dpService service = getService();
             if (service == null) return false;
             return service.setPriority(device, priority);
         }
 
+        @Override
         public int getPriority(BluetoothDevice device) {
             A2dpService service = getService();
             if (service == null) return BluetoothProfile.PRIORITY_UNDEFINED;
             return service.getPriority(device);
         }
 
+        @Override
         public boolean isAvrcpAbsoluteVolumeSupported() {
             A2dpService service = getService();
             if (service == null) return false;
             return service.isAvrcpAbsoluteVolumeSupported();
         }
 
+        @Override
         public void adjustAvrcpAbsoluteVolume(int direction) {
             A2dpService service = getService();
             if (service == null) return;
             service.adjustAvrcpAbsoluteVolume(direction);
         }
 
+        @Override
         public void setAvrcpAbsoluteVolume(int volume) {
             A2dpService service = getService();
             if (service == null) return;
             service.setAvrcpAbsoluteVolume(volume);
         }
 
+        @Override
         public boolean isA2dpPlaying(BluetoothDevice device) {
             A2dpService service = getService();
             if (service == null) return false;
             return service.isA2dpPlaying(device);
         }
 
+        @Override
         public BluetoothCodecStatus getCodecStatus() {
             A2dpService service = getService();
             if (service == null) return null;
             return service.getCodecStatus();
         }
 
+        @Override
         public void setCodecConfigPreference(BluetoothCodecConfig codecConfig) {
             A2dpService service = getService();
             if (service == null) return;
             service.setCodecConfigPreference(codecConfig);
         }
 
+        @Override
         public void enableOptionalCodecs() {
             A2dpService service = getService();
             if (service == null) return;
             service.enableOptionalCodecs();
         }
 
+        @Override
         public void disableOptionalCodecs() {
             A2dpService service = getService();
             if (service == null) return;

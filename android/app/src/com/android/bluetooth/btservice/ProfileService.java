@@ -86,6 +86,7 @@ public abstract class ProfileService extends Service {
         }
     }
 
+    @Override
     protected void finalize() {
         if (DBG) {
             synchronized (sReferenceCount) {
@@ -110,6 +111,7 @@ public abstract class ProfileService extends Service {
         create();
     }
 
+    @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         if (DBG) log("onStartCommand()");
         AdapterService adapterService = AdapterService.getAdapterService();
@@ -149,6 +151,7 @@ public abstract class ProfileService extends Service {
         return PROFILE_SERVICE_MODE;
     }
 
+    @Override
     public IBinder onBind(Intent intent) {
         if (DBG) log("onBind");
         if (mAdapter != null && mBinder == null) {
@@ -158,6 +161,7 @@ public abstract class ProfileService extends Service {
         return mBinder;
     }
 
+    @Override
     public boolean onUnbind(Intent intent) {
         if (DBG) log("onUnbind");
         return super.onUnbind(intent);

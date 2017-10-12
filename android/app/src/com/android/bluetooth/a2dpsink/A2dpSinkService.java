@@ -44,14 +44,17 @@ public class A2dpSinkService extends ProfileService {
     private A2dpSinkStateMachine mStateMachine;
     private static A2dpSinkService sA2dpSinkService;
 
+    @Override
     protected String getName() {
         return TAG;
     }
 
+    @Override
     protected IProfileServiceBinder initBinder() {
         return new BluetoothA2dpSinkBinder(this);
     }
 
+    @Override
     protected boolean start() {
         if (DBG) {
             Log.d(TAG, "start()");
@@ -64,6 +67,7 @@ public class A2dpSinkService extends ProfileService {
         return true;
     }
 
+    @Override
     protected boolean stop() {
         if (DBG) {
             Log.d(TAG, "stop()");
@@ -76,6 +80,7 @@ public class A2dpSinkService extends ProfileService {
         return true;
     }
 
+    @Override
     protected boolean cleanup() {
         if (mStateMachine!= null) {
             mStateMachine.cleanup();
@@ -260,59 +265,69 @@ public class A2dpSinkService extends ProfileService {
             mService = svc;
         }
 
+        @Override
         public boolean cleanup()  {
             mService = null;
             return true;
         }
 
+        @Override
         public boolean connect(BluetoothDevice device) {
             A2dpSinkService service = getService();
             if (service == null) return false;
             return service.connect(device);
         }
 
+        @Override
         public boolean disconnect(BluetoothDevice device) {
             A2dpSinkService service = getService();
             if (service == null) return false;
             return service.disconnect(device);
         }
 
+        @Override
         public List<BluetoothDevice> getConnectedDevices() {
             A2dpSinkService service = getService();
             if (service == null) return new ArrayList<BluetoothDevice>(0);
             return service.getConnectedDevices();
         }
 
+        @Override
         public List<BluetoothDevice> getDevicesMatchingConnectionStates(int[] states) {
             A2dpSinkService service = getService();
             if (service == null) return new ArrayList<BluetoothDevice>(0);
             return service.getDevicesMatchingConnectionStates(states);
         }
 
+        @Override
         public int getConnectionState(BluetoothDevice device) {
             A2dpSinkService service = getService();
             if (service == null) return BluetoothProfile.STATE_DISCONNECTED;
             return service.getConnectionState(device);
         }
 
+        @Override
         public boolean isA2dpPlaying(BluetoothDevice device) {
             A2dpSinkService service = getService();
             if (service == null) return false;
             return service.isA2dpPlaying(device);
         }
 
+        @Override
         public boolean setPriority(BluetoothDevice device, int priority) {
             A2dpSinkService service = getService();
             if (service == null) return false;
             return service.setPriority(device, priority);
         }
 
+        @Override
         public int getPriority(BluetoothDevice device) {
             A2dpSinkService service = getService();
             if (service == null) return BluetoothProfile.PRIORITY_UNDEFINED;
             return service.getPriority(device);
         }
 
+        @Override
         public BluetoothAudioConfig getAudioConfig(BluetoothDevice device) {
             A2dpSinkService service = getService();
             if (service == null) return null;

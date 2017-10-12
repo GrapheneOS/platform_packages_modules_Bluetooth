@@ -109,6 +109,7 @@ public class BluetoothOppLauncherActivity extends Activity {
                     // Save type/stream, will be used when adding transfer
                     // session to DB.
                     Thread t = new Thread(new Runnable() {
+                        @Override
                         public void run() {
                             sendFileInfo(type, stream.toString(), false /* isHandover */,
                                     true /* fromExternal */);
@@ -122,6 +123,7 @@ public class BluetoothOppLauncherActivity extends Activity {
                     final Uri fileUri = creatFileForSharedContent(this.createCredentialProtectedStorageContext(), extra_text);
                     if (fileUri != null) {
                         Thread t = new Thread(new Runnable() {
+                            @Override
                             public void run() {
                                 sendFileInfo(type, fileUri.toString(), false /* isHandover */,
                                         false /* fromExternal */);
@@ -146,6 +148,7 @@ public class BluetoothOppLauncherActivity extends Activity {
                     if (V) Log.v(TAG, "Get ACTION_SHARE_MULTIPLE intent: uris " + uris + "\n Type= "
                                 + mimeType);
                     Thread t = new Thread(new Runnable() {
+                        @Override
                         public void run() {
                             try {
                                 BluetoothOppManager.getInstance(BluetoothOppLauncherActivity.this)

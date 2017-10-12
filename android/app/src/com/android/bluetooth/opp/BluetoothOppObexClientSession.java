@@ -85,6 +85,7 @@ public class BluetoothOppObexClientSession implements BluetoothOppObexSession {
         mTransport = transport;
     }
 
+    @Override
     public void start(Handler handler, int numShares) {
         if (D) Log.d(TAG, "Start!");
         mCallback = handler;
@@ -92,6 +93,7 @@ public class BluetoothOppObexClientSession implements BluetoothOppObexSession {
         mThread.start();
     }
 
+    @Override
     public void stop() {
         if (D) Log.d(TAG, "Stop!");
         if (mThread != null) {
@@ -112,6 +114,7 @@ public class BluetoothOppObexClientSession implements BluetoothOppObexSession {
         mCallback = null;
     }
 
+    @Override
     public void addShare(BluetoothOppShareInfo share) {
         mThread.addShare(share);
     }
@@ -623,6 +626,7 @@ public class BluetoothOppObexClientSession implements BluetoothOppObexSession {
         }
     }
 
+    @Override
     public void unblock() {
         // Not used for client case
     }
