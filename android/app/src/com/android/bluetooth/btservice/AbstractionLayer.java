@@ -20,7 +20,7 @@ package com.android.bluetooth.btservice;
  * @hide
  */
 
-final public class AbstractionLayer {
+public final class AbstractionLayer {
     // Do not modify without upating the HAL files.
 
     // TODO: Some of the constants are repeated from BluetoothAdapter.java.

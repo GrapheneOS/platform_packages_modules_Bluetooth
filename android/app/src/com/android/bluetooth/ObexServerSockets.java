@@ -212,7 +212,7 @@ public class ObexServerSockets {
      * Set state to accept new incoming connection. Will cause the next incoming connection to be
      * Signaled through {@link IObexConnectionValidator#onConnect()};
      */
-    synchronized public void prepareForNewConnect() {
+    public synchronized void prepareForNewConnect() {
         if(D) Log.d(TAG, "prepareForNewConnect()");
         mConAccepted = false;
     }
@@ -226,7 +226,7 @@ public class ObexServerSockets {
      * @param conSocket the socket associated with the connection.
      * @return true if the connection is accepted, false otherwise.
      */
-    synchronized private boolean onConnect(BluetoothDevice device, BluetoothSocket conSocket) {
+    private synchronized boolean onConnect(BluetoothDevice device, BluetoothSocket conSocket) {
         if(D) Log.d(TAG, "onConnect() socket: " + conSocket + " mConAccepted = " + mConAccepted);
         if(mConAccepted  == false && mConHandler.onConnect(device, conSocket) == true) {
             mConAccepted = true; // TODO: Reset this when ready to accept new connection
@@ -240,7 +240,7 @@ public class ObexServerSockets {
     /**
      * Signal to the {@link IObexConnectionHandler} that an error have occurred.
      */
-    synchronized private void onAcceptFailed() {
+    private synchronized void onAcceptFailed() {
         shutdown(false);
         BluetoothAdapter mAdapter = BluetoothAdapter.getDefaultAdapter();
         if ((mAdapter != null) && (mAdapter.getState() == BluetoothAdapter.STATE_ON)) {
@@ -254,7 +254,7 @@ public class ObexServerSockets {
      * @param block Set true to block the calling thread until the AcceptThreads
      * has ended execution
      */
-    synchronized public void shutdown(boolean block) {
+    public synchronized void shutdown(boolean block) {
         if(D) Log.d(TAG, "shutdown(block = " + block + ")");
         if(mRfcommThread != null) {
             mRfcommThread.shutdown();

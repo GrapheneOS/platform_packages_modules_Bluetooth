@@ -30,7 +30,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class MediaController {
-    public @NonNull android.media.session.MediaController mDelegate;
+    @NonNull public android.media.session.MediaController mDelegate;
     public android.media.session.MediaController.TransportControls mTransportDelegate;
     public TransportControls mTransportControls;
 
@@ -49,7 +49,8 @@ public class MediaController {
         return mDelegate;
     }
 
-    public @NonNull TransportControls getTransportControls() {
+    @NonNull
+    public TransportControls getTransportControls() {
         return mTransportControls;
     }
 
@@ -57,23 +58,28 @@ public class MediaController {
         return mDelegate.dispatchMediaButtonEvent(keyEvent);
     }
 
-    public @Nullable PlaybackState getPlaybackState() {
+    @Nullable
+    public PlaybackState getPlaybackState() {
         return mDelegate.getPlaybackState();
     }
 
-    public @Nullable MediaMetadata getMetadata() {
+    @Nullable
+    public MediaMetadata getMetadata() {
         return mDelegate.getMetadata();
     }
 
-    public @Nullable List<MediaSession.QueueItem> getQueue() {
+    @Nullable
+    public List<MediaSession.QueueItem> getQueue() {
         return mDelegate.getQueue();
     }
 
-    public @Nullable CharSequence getQueueTitle() {
+    @Nullable
+    public CharSequence getQueueTitle() {
         return mDelegate.getQueueTitle();
     }
 
-    public @Nullable Bundle getExtras() {
+    @Nullable
+    public Bundle getExtras() {
         return mDelegate.getExtras();
     }
 
@@ -85,15 +91,18 @@ public class MediaController {
         return mDelegate.getFlags();
     }
 
-    public @Nullable android.media.session.MediaController.PlaybackInfo getPlaybackInfo() {
+    @Nullable
+    public android.media.session.MediaController.PlaybackInfo getPlaybackInfo() {
         return mDelegate.getPlaybackInfo();
     }
 
-    public @Nullable PendingIntent getSessionActivity() {
+    @Nullable
+    public PendingIntent getSessionActivity() {
         return mDelegate.getSessionActivity();
     }
 
-    public @NonNull MediaSession.Token getSessionToken() {
+    @NonNull
+    public MediaSession.Token getSessionToken() {
         return mDelegate.getSessionToken();
     }
 
@@ -159,7 +168,7 @@ public class MediaController {
                 + Integer.toHexString(mDelegate.hashCode()) + ") " + desc;
     }
 
-    public static abstract class Callback extends android.media.session.MediaController.Callback { }
+    public abstract static class Callback extends android.media.session.MediaController.Callback { }
 
     public class TransportControls {
 
