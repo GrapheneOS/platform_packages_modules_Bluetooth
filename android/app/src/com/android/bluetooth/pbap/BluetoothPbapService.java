@@ -921,11 +921,13 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
             mService = service;
         }
 
+        @Override
         public boolean cleanup() {
             mService = null;
             return true;
         }
 
+        @Override
         public int getState() {
             if (DEBUG) Log.d(TAG, "getState = " + mService.getState());
             BluetoothPbapService service = getService(BLUETOOTH_PERM);
@@ -934,6 +936,7 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
             return service.getState();
         }
 
+        @Override
         public BluetoothDevice getClient() {
             if (DEBUG) Log.d(TAG, "getClient = " + mService.getRemoteDevice());
             BluetoothPbapService service = getService(BLUETOOTH_PERM);
@@ -941,6 +944,7 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
             return service.getRemoteDevice();
         }
 
+        @Override
         public boolean isConnected(BluetoothDevice device) {
             if (DEBUG) Log.d(TAG, "isConnected " + device);
             BluetoothPbapService service = getService(BLUETOOTH_PERM);
@@ -949,11 +953,13 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
                     && service.getRemoteDevice().equals(device);
         }
 
+        @Override
         public boolean connect(BluetoothDevice device) {
             BluetoothPbapService service = getService(BLUETOOTH_ADMIN_PERM);
             return false;
         }
 
+        @Override
         public void disconnect() {
             if (DEBUG) Log.d(TAG, "disconnect");
             BluetoothPbapService service = getService(BLUETOOTH_ADMIN_PERM);

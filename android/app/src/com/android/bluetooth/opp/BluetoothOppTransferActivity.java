@@ -346,6 +346,7 @@ public class BluetoothOppTransferActivity extends AlertActivity implements
         }
     }
 
+    @Override
     public void onClick(DialogInterface dialog, int which) {
         switch (which) {
             case DialogInterface.BUTTON_POSITIVE:

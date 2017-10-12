@@ -46,14 +46,17 @@ public class HeadsetService extends ProfileService {
     private HeadsetStateMachine mStateMachine;
     private static HeadsetService sHeadsetService;
 
+    @Override
     protected String getName() {
         return TAG;
     }
 
+    @Override
     public IProfileServiceBinder initBinder() {
         return new BluetoothHeadsetBinder(this);
     }
 
+    @Override
     protected boolean start() {
         mStateMachine = HeadsetStateMachine.make(this);
         IntentFilter filter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
@@ -68,6 +71,7 @@ public class HeadsetService extends ProfileService {
         return true;
     }
 
+    @Override
     protected boolean stop() {
         try {
             unregisterReceiver(mHeadsetReceiver);
@@ -80,6 +84,7 @@ public class HeadsetService extends ProfileService {
         return true;
     }
 
+    @Override
     protected boolean cleanup() {
         if (mStateMachine != null) {
             mStateMachine.cleanup();
@@ -121,6 +126,7 @@ public class HeadsetService extends ProfileService {
         public BluetoothHeadsetBinder(HeadsetService svc) {
             mService = svc;
         }
+        @Override
         public boolean cleanup() {
             mService = null;
             return true;
@@ -138,12 +144,14 @@ public class HeadsetService extends ProfileService {
             return null;
         }
 
+        @Override
         public boolean connect(BluetoothDevice device) {
             HeadsetService service = getService();
             if (service == null) return false;
             return service.connect(device);
         }
 
+        @Override
         public boolean disconnect(BluetoothDevice device) {
             HeadsetService service = getService();
             if (service == null) return false;
@@ -151,102 +159,119 @@ public class HeadsetService extends ProfileService {
             return service.disconnect(device);
         }
 
+        @Override
         public List<BluetoothDevice> getConnectedDevices() {
             HeadsetService service = getService();
             if (service == null) return new ArrayList<BluetoothDevice>(0);
             return service.getConnectedDevices();
         }
 
+        @Override
         public List<BluetoothDevice> getDevicesMatchingConnectionStates(int[] states) {
             HeadsetService service = getService();
             if (service == null) return new ArrayList<BluetoothDevice>(0);
             return service.getDevicesMatchingConnectionStates(states);
         }
 
+        @Override
         public int getConnectionState(BluetoothDevice device) {
             HeadsetService service = getService();
             if (service == null) return BluetoothProfile.STATE_DISCONNECTED;
             return service.getConnectionState(device);
         }
 
+        @Override
         public boolean setPriority(BluetoothDevice device, int priority) {
             HeadsetService service = getService();
             if (service == null) return false;
             return service.setPriority(device, priority);
         }
 
+        @Override
         public int getPriority(BluetoothDevice device) {
             HeadsetService service = getService();
             if (service == null) return BluetoothProfile.PRIORITY_UNDEFINED;
             return service.getPriority(device);
         }
 
+        @Override
         public boolean startVoiceRecognition(BluetoothDevice device) {
             HeadsetService service = getService();
             if (service == null) return false;
             return service.startVoiceRecognition(device);
         }
 
+        @Override
         public boolean stopVoiceRecognition(BluetoothDevice device) {
             HeadsetService service = getService();
             if (service == null) return false;
             return service.stopVoiceRecognition(device);
         }
 
+        @Override
         public boolean isAudioOn() {
             HeadsetService service = getService();
             if (service == null) return false;
             return service.isAudioOn();
         }
 
+        @Override
         public boolean isAudioConnected(BluetoothDevice device) {
             HeadsetService service = getService();
             if (service == null) return false;
             return service.isAudioConnected(device);
         }
 
+        @Override
         public int getBatteryUsageHint(BluetoothDevice device) {
             HeadsetService service = getService();
             if (service == null) return 0;
             return service.getBatteryUsageHint(device);
         }
 
+        @Override
         public boolean acceptIncomingConnect(BluetoothDevice device) {
             HeadsetService service = getService();
             if (service == null) return false;
             return service.acceptIncomingConnect(device);
         }
 
+        @Override
         public boolean rejectIncomingConnect(BluetoothDevice device) {
             HeadsetService service = getService();
             if (service == null) return false;
             return service.rejectIncomingConnect(device);
         }
 
+        @Override
         public int getAudioState(BluetoothDevice device) {
             HeadsetService service = getService();
             if (service == null) return BluetoothHeadset.STATE_AUDIO_DISCONNECTED;
             return service.getAudioState(device);
         }
 
+        @Override
         public boolean connectAudio() {
             HeadsetService service = getService();
             if (service == null) return false;
             return service.connectAudio();
         }
 
+        @Override
         public boolean disconnectAudio() {
             HeadsetService service = getService();
             if (service == null) return false;
             return service.disconnectAudio();
         }
 
+        @Override
         public void setAudioRouteAllowed(boolean allowed) {
             HeadsetService service = getService();
             if (service == null) return;
             service.setAudioRouteAllowed(allowed);
         }
 
+        @Override
         public boolean getAudioRouteAllowed() {
             HeadsetService service = getService();
             if (service != null) {
@@ -255,24 +280,28 @@ public class HeadsetService extends ProfileService {
             return false;
         }
 
+        @Override
         public void setForceScoAudio(boolean forced) {
             HeadsetService service = getService();
             if (service == null) return;
             service.setForceScoAudio(forced);
         }
 
+        @Override
         public boolean startScoUsingVirtualVoiceCall(BluetoothDevice device) {
             HeadsetService service = getService();
             if (service == null) return false;
             return service.startScoUsingVirtualVoiceCall(device);
         }
 
+        @Override
         public boolean stopScoUsingVirtualVoiceCall(BluetoothDevice device) {
             HeadsetService service = getService();
             if (service == null) return false;
             return service.stopScoUsingVirtualVoiceCall(device);
         }
 
+        @Override
         public void phoneStateChanged(
                 int numActive, int numHeld, int callState, String number, int type) {
             HeadsetService service = getService();
@@ -280,6 +309,7 @@ public class HeadsetService extends ProfileService {
             service.phoneStateChanged(numActive, numHeld, callState, number, type);
         }
 
+        @Override
         public void clccResponse(int index, int direction, int status, int mode, boolean mpty,
                 String number, int type) {
             HeadsetService service = getService();
@@ -287,6 +317,7 @@ public class HeadsetService extends ProfileService {
             service.clccResponse(index, direction, status, mode, mpty, number, type);
         }
 
+        @Override
         public boolean sendVendorSpecificResultCode(
                 BluetoothDevice device, String command, String arg) {
             HeadsetService service = getService();
@@ -296,18 +327,21 @@ public class HeadsetService extends ProfileService {
             return service.sendVendorSpecificResultCode(device, command, arg);
         }
 
+        @Override
         public boolean enableWBS() {
             HeadsetService service = getService();
             if (service == null) return false;
             return service.enableWBS();
         }
 
+        @Override
         public boolean disableWBS() {
             HeadsetService service = getService();
             if (service == null) return false;
             return service.disableWBS();
         }
 
+        @Override
         public void bindResponse(int ind_id, boolean ind_status) {
             HeadsetService service = getService();
             if (service == null) return;
