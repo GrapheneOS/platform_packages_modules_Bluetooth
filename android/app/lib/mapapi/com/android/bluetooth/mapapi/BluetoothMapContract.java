@@ -380,7 +380,7 @@ public final class BluetoothMapContract {
          * The unique ID for a row.
          * <P>Type: INTEGER (long)</P>
          */
-        public static final String _ID = "_id";
+        String _ID = "_id";
 
         /**
          * The account name to display to the user on the device when selecting whether
@@ -395,7 +395,7 @@ public final class BluetoothMapContract {
          * <P>Type: TEXT</P>
          * read-only
          */
-        public static final String ACCOUNT_DISPLAY_NAME = "account_display_name";
+        String ACCOUNT_DISPLAY_NAME = "account_display_name";
 
         /**
          * Expose this account to other authenticated Bluetooth devices. If the expose flag
@@ -414,7 +414,7 @@ public final class BluetoothMapContract {
          *
          * <P>Type: INTEGER (boolean) hide = 0, show = 1</P>
          */
-        public static final String FLAG_EXPOSE = "flag_expose";
+        String FLAG_EXPOSE = "flag_expose";
 
 
         /**
@@ -428,7 +428,7 @@ public final class BluetoothMapContract {
          * <P>Type: TEXT</P>
          * read-only
          */
-        public static final String ACCOUNT_UCI = "account_uci";
+        String ACCOUNT_UCI = "account_uci";
 
 
         /**
@@ -444,7 +444,7 @@ public final class BluetoothMapContract {
          * <P>Type: TEXT</P>
          * read-only
          */
-        public static final String ACCOUNT_UCI_PREFIX = "account_uci_PREFIX";
+        String ACCOUNT_UCI_PREFIX = "account_uci_PREFIX";
 
     }
 
@@ -462,14 +462,14 @@ public final class BluetoothMapContract {
          * <P>Type: INTEGER (long)</P>
          * read-only
          */
-        public static final String _ID = "_id";
+        String _ID = "_id";
         // FIXME add message parts for IM attachments
         /**
          * is this a text part  yes/no?
          * <P>Type: TEXT</P>
          * read-only
          */
-        public static final String TEXT = "text";
+        String TEXT = "text";
 
         /**
          * The charset used in the content if it is text or 8BIT if it is
@@ -478,7 +478,7 @@ public final class BluetoothMapContract {
          * <P>Type: TEXT</P>
          * read-only
          */
-        public static final String CHARSET = "charset";
+        String CHARSET = "charset";
 
         /**
          * The filename representing the data file of the raw data in the database
@@ -489,7 +489,7 @@ public final class BluetoothMapContract {
          * read-only
          */
 
-        public static final String FILENAME = "filename";
+        String FILENAME = "filename";
 
         /**
          * Identifier for the content in the data. This can be used to
@@ -499,7 +499,7 @@ public final class BluetoothMapContract {
          * read-only
          */
 
-        public static final String CONTENT_ID = "cid";
+        String CONTENT_ID = "cid";
 
         /**
          * The raw data in either text format or binary format
@@ -507,7 +507,7 @@ public final class BluetoothMapContract {
          * <P>Type: BLOB</P>
          * read-only
          */
-        public static final String RAW_DATA = "raw_data";
+        String RAW_DATA = "raw_data";
 
     }
     /**
@@ -531,7 +531,7 @@ public final class BluetoothMapContract {
          * The unique ID for a row.
          * <P>Type: INTEGER (long)</P>
          */
-        public static final String _ID = "_id";
+        String _ID = "_id";
 
         /**
          * The date the message was received as a unix timestamp
@@ -540,7 +540,7 @@ public final class BluetoothMapContract {
          * <P>Type: INTEGER (long)</P>
          * read-only
          */
-        public static final String DATE = "date";
+        String DATE = "date";
 
         //TODO REMOVE WHEN Parts Table is in place
         /**
@@ -548,59 +548,59 @@ public final class BluetoothMapContract {
          * <P>Type: TEXT</P>
          * read-only.
          */
-        public static final String BODY = "body";
+        String BODY = "body";
 
         /**
          * Message subject.
          * <P>Type: TEXT</P>
          * read-only.
          */
-        public static final String SUBJECT = "subject";
+        String SUBJECT = "subject";
 
         /**
          * Message Read flag
          * <P>Type: INTEGER (boolean) unread = 0, read = 1</P>
          *  read/write
          */
-        public static final String FLAG_READ = "flag_read";
+        String FLAG_READ = "flag_read";
 
         /**
          * Message Priority flag
          * <P>Type: INTEGER (boolean) normal priority = 0, high priority = 1</P>
          * read-only
          */
-        public static final String FLAG_HIGH_PRIORITY = "high_priority";
+        String FLAG_HIGH_PRIORITY = "high_priority";
 
         /**
          * Reception state - the amount of the message that have been loaded from the server.
          * <P>Type: TEXT see RECEPTION_STATE_* constants below </P>
          * read-only
          */
-        public static final String RECEPTION_STATE = "reception_state";
+        String RECEPTION_STATE = "reception_state";
 
         /**
          * Delivery state - the amount of the message that have been loaded from the server.
          * <P>Type: TEXT see DELIVERY_STATE_* constants below </P>
          * read-only
          */
-        public static final String DEVILERY_STATE = "delivery_state";
+        String DEVILERY_STATE = "delivery_state";
 
         /** To be able to filter messages with attachments, we need this flag.
          * <P>Type: INTEGER (boolean) no attachment = 0, attachment = 1 </P>
          * read-only
          */
-        public static final String FLAG_ATTACHMENT = "flag_attachment";
+        String FLAG_ATTACHMENT = "flag_attachment";
 
         /** The overall size in bytes of the attachments of the message.
          * <P>Type: INTEGER </P>
          */
-        public static final String ATTACHMENT_SIZE = "attachment_size";
+        String ATTACHMENT_SIZE = "attachment_size";
 
         /** The mine type of the attachments for the message.
          * <P>Type: TEXT </P>
          * read-only
          */
-        public static final String ATTACHMENT_MINE_TYPES = "attachment_mime_types";
+        String ATTACHMENT_MINE_TYPES = "attachment_mime_types";
 
         /** The overall size in bytes of the message including any attachments.
          * This value is informative only and should be the size an email client
@@ -608,13 +608,13 @@ public final class BluetoothMapContract {
          * <P>Type: INTEGER </P>
          * read-only
          */
-        public static final String MESSAGE_SIZE = "message_size";
+        String MESSAGE_SIZE = "message_size";
 
         /** Indicates that the message or a part of it is protected by a DRM scheme.
          * <P>Type: INTEGER (boolean) no DRM = 0, DRM protected = 1 </P>
          * read-only
          */
-        public static final String FLAG_PROTECTED = "flag_protected";
+        String FLAG_PROTECTED = "flag_protected";
 
         /**
          * A comma-delimited list of FROM addresses in RFC2822 format.
@@ -622,7 +622,7 @@ public final class BluetoothMapContract {
          * <P>Type: TEXT</P>
          * read-only
          */
-        public static final String FROM_LIST = "from_list";
+        String FROM_LIST = "from_list";
 
         /**
          * A comma-delimited list of TO addresses in RFC2822 format.
@@ -630,21 +630,21 @@ public final class BluetoothMapContract {
          * <P>Type: TEXT</P>
          * read-only
          */
-        public static final String TO_LIST = "to_list";
+        String TO_LIST = "to_list";
 
         /**
          * The unique ID for a row in the folder table in which this message belongs.
          * <P>Type: INTEGER (long)</P>
          * read/write
          */
-        public static final String FOLDER_ID = "folder_id";
+        String FOLDER_ID = "folder_id";
 
         /**
          * The unique ID for a row in the account table which owns this message.
          * <P>Type: INTEGER (long)</P>
          * read-only
          */
-        public static final String ACCOUNT_ID = "account_id";
+        String ACCOUNT_ID = "account_id";
 
         /**
          * The ID identify the thread/conversation a message belongs to.
@@ -652,14 +652,14 @@ public final class BluetoothMapContract {
          * <P>Type: INTEGER (long)</P>
          * read-only
          */
-        public static final String THREAD_ID = "thread_id";
+        String THREAD_ID = "thread_id";
 
         /**
          * The Name of the thread/conversation a message belongs to.
          * <P>Type: TEXT</P>
          * read-only
          */
-        public static final String THREAD_NAME = "thread_name";
+        String THREAD_NAME = "thread_name";
     }
 
     public interface EmailMessageColumns {
@@ -672,7 +672,7 @@ public final class BluetoothMapContract {
          * <P>Type: TEXT</P>
          * read-only
          */
-        public static final String CC_LIST = "cc_list";
+        String CC_LIST = "cc_list";
 
         /**
          * A comma-delimited list of BCC addresses in RFC2822 format.
@@ -680,7 +680,7 @@ public final class BluetoothMapContract {
          * <P>Type: TEXT</P>
          * read-only
          */
-        public static final String BCC_LIST = "bcc_list";
+        String BCC_LIST = "bcc_list";
 
         /**
          * A comma-delimited list of REPLY-TO addresses in RFC2822 format.
@@ -688,7 +688,7 @@ public final class BluetoothMapContract {
          * <P>Type: TEXT</P>
          * read-only
          */
-        public static final String REPLY_TO_LIST = "reply_to_List";
+        String REPLY_TO_LIST = "reply_to_List";
 
 
     }
@@ -737,28 +737,28 @@ public final class BluetoothMapContract {
          * <P>Type: INTEGER (long)</P>
          * read-only
          */
-        public static final String _ID = "_id";
+        String _ID = "_id";
 
         /**
          * The folder display name to present to the user.
          * <P>Type: TEXT</P>
          * read-only
          */
-        public static final String NAME = "name";
+        String NAME = "name";
 
         /**
          * The _id-key to the account this folder refers to.
          * <P>Type: INTEGER (long)</P>
          * read-only
          */
-        public static final String ACCOUNT_ID = "account_id";
+        String ACCOUNT_ID = "account_id";
 
         /**
          * The _id-key to the parent folder. -1 for root folders.
          * <P>Type: INTEGER (long)</P>
          * read-only
          */
-        public static final String PARENT_FOLDER_ID = "parent_id";
+        String PARENT_FOLDER_ID = "parent_id";
     }
 
     /**
@@ -793,7 +793,7 @@ public final class BluetoothMapContract {
          * <P>Type: INTEGER (long)</P>
          * read-only
          */
-        public static final String THREAD_ID = "thread_id";
+        String THREAD_ID = "thread_id";
 
         /**
          * The unique ID for a row.
@@ -818,7 +818,7 @@ public final class BluetoothMapContract {
          * <P>Type: TEXT</P>
          * read-only
          */
-        public static final String THREAD_NAME = "thread_name";
+        String THREAD_NAME = "thread_name";
 
         /**
          * The time stamp of the last activity in the conversation as a unix timestamp
@@ -826,14 +826,14 @@ public final class BluetoothMapContract {
          * <P>Type: INTEGER (long)</P>
          * read-only
          */
-        public static final String LAST_THREAD_ACTIVITY = "last_thread_activity";
+        String LAST_THREAD_ACTIVITY = "last_thread_activity";
 
         /**
          * The status on the conversation, either 'read' or 'unread'
          *  <P>Type: INTEGER (boolean) unread = 0, read = 1</P>
          * read/write
          */
-        public static final String READ_STATUS = "read_status";
+        String READ_STATUS = "read_status";
 
         /**
          * A counter that keep tack of version of the table content, count up on ID reuse
@@ -845,7 +845,7 @@ public final class BluetoothMapContract {
         //     BT-ON
         // UPDATE: TODO: Change to the last_activity time stamp (as a long value). This will
         //         provide the information needed for BT clients - currently unused
-        public static final String VERSION_COUNTER = "version_counter";
+        String VERSION_COUNTER = "version_counter";
 
         /**
          * A short description of the latest activity on conversation - typically
@@ -853,7 +853,7 @@ public final class BluetoothMapContract {
          * <P>Type: TEXT</P>
          * read-only
          */
-        public static final String SUMMARY = "convo_summary";
+        String SUMMARY = "convo_summary";
 
 
     }
@@ -878,21 +878,21 @@ public final class BluetoothMapContract {
         * <P>Type: INTEGER (long)</P>
         * read-only
         */
-        public static final String CONVO_ID = "convo_id";
+        String CONVO_ID = "convo_id";
 
         /**
          * The name of contact in instant message application
          * <P>Type: TEXT</P>
          * read-only
          */
-        public static final String NAME = "name";
+        String NAME = "name";
 
         /**
          * The nickname of contact in instant message group chat conversation.
          * <P>Type: TEXT</P>
          * read-only
          */
-        public static final String NICKNAME = "nickname";
+        String NICKNAME = "nickname";
 
 
         /**
@@ -900,7 +900,7 @@ public final class BluetoothMapContract {
          * <P>Type: INTEGER (long)</P>
          * read-only
          */
-        public static final String X_BT_UID = "x_bt_uid";
+        String X_BT_UID = "x_bt_uid";
 
         /**
          * The unique ID for the contact within the domain of the interfacing service.
@@ -913,7 +913,7 @@ public final class BluetoothMapContract {
          * <P>Type: TEXT</P>
          * read-only
          */
-        public static final String UCI = "x_bt_uci";
+        String UCI = "x_bt_uci";
     }
 
     /**
@@ -990,7 +990,7 @@ public final class BluetoothMapContract {
          * <P>Type: INTERGER</P>
          * read-only
          */
-        public static final String CHAT_STATE = "chat_state";
+        String CHAT_STATE = "chat_state";
 
 //        /**
 //         * The geo location of the contact
@@ -1005,7 +1005,7 @@ public final class BluetoothMapContract {
          * <P>Type: INTEGER (long)</P>
          * read-only
          */
-        public static final String LAST_ACTIVE = "last_active";
+        String LAST_ACTIVE = "last_active";
 
     }
 
@@ -1040,7 +1040,7 @@ public final class BluetoothMapContract {
          * <P>Type: INTERGER</P>
          * read-only
          */
-        public static final String PRESENCE_STATE = "presence_state";
+        String PRESENCE_STATE = "presence_state";
 
         /**
          * The priority of contact presence
@@ -1048,21 +1048,21 @@ public final class BluetoothMapContract {
          * read-only
          */
 // TODO: IS THIS NEEDED - not in latest specification
-        public static final String PRIORITY = "priority";
+        String PRIORITY = "priority";
 
         /**
          * The last status text from contact
          * <P>Type: TEXT</P>
          * read-only
          */
-        public static final String STATUS_TEXT = "status_text";
+        String STATUS_TEXT = "status_text";
 
         /**
          * The time stamp of the last time the contact was online
          * <P>Type: INTEGER (long)</P>
          * read-only
          */
-        public static final String LAST_ONLINE = "last_online";
+        String LAST_ONLINE = "last_online";
 
     }
 
