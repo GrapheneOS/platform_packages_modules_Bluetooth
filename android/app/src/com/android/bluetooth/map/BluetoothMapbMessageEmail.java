@@ -34,6 +34,7 @@ public class BluetoothMapbMessageEmail extends BluetoothMapbMessage {
         return mEmailBody;
     }
 
+    @Override
     public void parseMsgPart(String msgPart) {
         if (mEmailBody == null)
             mEmailBody = msgPart;
@@ -45,10 +46,12 @@ public class BluetoothMapbMessageEmail extends BluetoothMapbMessage {
      * Set initial values before parsing - will be called is a message body is found
      * during parsing.
      */
+    @Override
     public void parseMsgInit() {
         // Not used for e-mail
     }
 
+    @Override
     public byte[] encode() throws UnsupportedEncodingException
     {
         ArrayList<byte[]> bodyFragments = new ArrayList<byte[]>();

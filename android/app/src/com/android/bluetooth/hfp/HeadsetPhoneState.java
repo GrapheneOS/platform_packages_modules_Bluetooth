@@ -118,6 +118,7 @@ class HeadsetPhoneState {
         mStateMachine = null;
     }
 
+    @Override
     public String toString() {
         return "HeadsetPhoneState [mService=" + mService + ", mNumActive=" + mNumActive
                 + ", mCallState=" + mCallState + ", mNumHeld=" + mNumHeld + ", mSignal=" + mSignal

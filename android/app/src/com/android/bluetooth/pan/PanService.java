@@ -78,10 +78,12 @@ public class PanService extends ProfileService {
         classInitNative();
     }
 
+    @Override
     protected String getName() {
         return TAG;
     }
 
+    @Override
     public IProfileServiceBinder initBinder() {
         return new BluetoothPanBinder(this);
     }
@@ -120,6 +122,7 @@ public class PanService extends ProfileService {
         }
     }
 
+    @Override
     protected boolean start() {
         mPanDevices = new HashMap<BluetoothDevice, BluetoothPanDevice>();
         mBluetoothIfaceAddresses = new ArrayList<String>();
@@ -139,11 +142,13 @@ public class PanService extends ProfileService {
         return true;
     }
 
+    @Override
     protected boolean stop() {
         mHandler.removeCallbacksAndMessages(null);
         return true;
     }
 
+    @Override
     protected boolean cleanup() {
         if (mNativeAvailable) {
             cleanupNative();
@@ -217,6 +222,7 @@ public class PanService extends ProfileService {
         public BluetoothPanBinder(PanService svc) {
             mService = svc;
         }
+        @Override
         public boolean cleanup() {
             mService = null;
             return true;
@@ -232,16 +238,19 @@ public class PanService extends ProfileService {
             }
             return null;
         }
+        @Override
         public boolean connect(BluetoothDevice device) {
             PanService service = getService();
             if (service == null) return false;
             return service.connect(device);
         }
+        @Override
         public boolean disconnect(BluetoothDevice device) {
             PanService service = getService();
             if (service == null) return false;
             return service.disconnect(device);
         }
+        @Override
         public int getConnectionState(BluetoothDevice device) {
             PanService service = getService();
             if (service == null) return BluetoothPan.STATE_DISCONNECTED;
@@ -258,12 +267,14 @@ public class PanService extends ProfileService {
             if (service == null) return false;
             return service.isPanUOn();
         }
+        @Override
         public boolean isTetheringOn() {
             // TODO(BT) have a variable marking the on/off state
             PanService service = getService();
             if (service == null) return false;
             return service.isTetheringOn();
         }
+        @Override
         public void setBluetoothTethering(boolean value) {
             PanService service = getService();
             if (service == null) return;
@@ -271,12 +282,14 @@ public class PanService extends ProfileService {
             service.setBluetoothTethering(value);
         }
 
+        @Override
         public List<BluetoothDevice> getConnectedDevices() {
             PanService service = getService();
             if (service == null) return new ArrayList<BluetoothDevice>(0);
             return service.getConnectedDevices();
         }
 
+        @Override
         public List<BluetoothDevice> getDevicesMatchingConnectionStates(int[] states) {
             PanService service = getService();
             if (service == null) return new ArrayList<BluetoothDevice>(0);
