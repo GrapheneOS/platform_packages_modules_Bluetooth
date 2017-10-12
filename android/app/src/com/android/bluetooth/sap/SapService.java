@@ -133,7 +133,7 @@ public class SapService extends ProfileService {
         }
     }
 
-    private final boolean initSocket() {
+    private boolean initSocket() {
         if (VERBOSE) Log.v(TAG, "Sap Service initSocket");
 
         boolean initSocketOK = false;
@@ -185,7 +185,7 @@ public class SapService extends ProfileService {
         return initSocketOK;
     }
 
-    private final synchronized void closeServerSocket() {
+    private synchronized void closeServerSocket() {
         // exit SocketAcceptThread early
         if (mServerSocket != null) {
             try {
@@ -197,7 +197,7 @@ public class SapService extends ProfileService {
             }
         }
     }
-    private final synchronized void closeConnectionSocket() {
+    private synchronized void closeConnectionSocket() {
         if (mConnSocket != null) {
             try {
                 mConnSocket.close();
@@ -208,7 +208,7 @@ public class SapService extends ProfileService {
         }
     }
 
-    private final void closeService() {
+    private void closeService() {
         if (VERBOSE) Log.v(TAG, "SAP Service closeService in");
 
         // exit initSocket early
@@ -237,7 +237,7 @@ public class SapService extends ProfileService {
         if (VERBOSE) Log.v(TAG, "SAP Service closeService out");
     }
 
-    private final void startSapServerSession() throws IOException {
+    private void startSapServerSession() throws IOException {
         if (VERBOSE) Log.v(TAG, "Sap Service startSapServerSession");
 
         // acquire the wakeLock before start SAP transaction thread

@@ -196,21 +196,21 @@ public final class BluetoothOppProvider extends ContentProvider {
         }
     }
 
-    private static final void copyString(String key, ContentValues from, ContentValues to) {
+    private static void copyString(String key, ContentValues from, ContentValues to) {
         String s = from.getAsString(key);
         if (s != null) {
             to.put(key, s);
         }
     }
 
-    private static final void copyInteger(String key, ContentValues from, ContentValues to) {
+    private static void copyInteger(String key, ContentValues from, ContentValues to) {
         Integer i = from.getAsInteger(key);
         if (i != null) {
             to.put(key, i);
         }
     }
 
-    private static final void copyLong(String key, ContentValues from, ContentValues to) {
+    private static void copyLong(String key, ContentValues from, ContentValues to) {
         Long i = from.getAsLong(key);
         if (i != null) {
             to.put(key, i);
