@@ -136,7 +136,7 @@ public class BluetoothMapAccountLoader {
                     name,
                     rInfo.providerInfo.packageName,
                     provider,
-                    (includeIcon == false)? null : rInfo.loadIcon(mPackageManager),
+                    (!includeIcon)? null : rInfo.loadIcon(mPackageManager),
                     type);
             return app;
         }

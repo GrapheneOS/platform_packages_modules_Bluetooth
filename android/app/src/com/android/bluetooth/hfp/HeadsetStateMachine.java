@@ -3325,7 +3325,7 @@ final class HeadsetStateMachine extends StateMachine {
         boolean ret = false;
         // check if this is an incoming connection in Quiet mode.
         if ((adapterService == null)
-                || ((adapterService.isQuietModeEnabled() == true) && (mTargetDevice == null))) {
+                || ((adapterService.isQuietModeEnabled()) && (mTargetDevice == null))) {
             ret = false;
         }
         // check priority and accept or reject the connection. if priority is undefined

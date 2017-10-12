@@ -545,7 +545,7 @@ public final class Avrcp {
 
                 boolean volAdj = false;
                 if (msg.arg2 == AVRC_RSP_ACCEPT || msg.arg2 == AVRC_RSP_REJ) {
-                    if (mVolCmdAdjustInProgress == false && mVolCmdSetInProgress == false) {
+                    if (!mVolCmdAdjustInProgress && !mVolCmdSetInProgress) {
                         Log.e(TAG, "Unsolicited response, ignored");
                         break;
                     }
@@ -959,7 +959,7 @@ public final class Avrcp {
             if (exists != other.exists)
                 return false;
 
-            if (exists == false)
+            if (!exists)
                 return true;
 
             return (title.equals(other.title)) && (artistName.equals(other.artistName))

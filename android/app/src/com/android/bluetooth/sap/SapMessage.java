@@ -363,7 +363,7 @@ public class SapMessage {
             skip(is, 2); // Skip the 2 padding bytes
             if(paramCount > 0) {
                 if(VERBOSE) Log.i(TAG, "Parsing message with paramCount: " + paramCount);
-                if(newMessage.parseParameters(paramCount, is) == false)
+                if(!newMessage.parseParameters(paramCount, is))
                     return null;
             }
         } catch (IOException e) {
@@ -727,7 +727,7 @@ public class SapMessage {
         Log.e(TAG, "callISapReq: called for mMsgType " + mMsgType + " rilSerial " + rilSerial);
 
         /* Update the ongoing requests queue */
-        if (mClearRilQueue == true) {
+        if (mClearRilQueue) {
             resetPendingRilMessages();
         }
         // No need to synchronize this, as the HashList is already doing this.
@@ -881,8 +881,8 @@ public class SapMessage {
     private void createSolicited(MsgHeader msg) throws IOException,
                                                        InvalidProtocolBufferMicroException{
         /* re-evaluate if we should just ignore these - we could simply catch the exception? */
-        if(msg.hasToken() == false) throw new IOException("Token is missing");
-        if(msg.hasError() == false) throw new IOException("Error code is missing");
+        if(!msg.hasToken()) throw new IOException("Token is missing");
+        if(!msg.hasError()) throw new IOException("Error code is missing");
         int serial = msg.getToken();
         int error = msg.getError();
         Integer reqType = null;
