@@ -368,7 +368,7 @@ public class BluetoothMapUtils {
         if(text == null) {
             return "";
         }
-        char out[] = new char[text.length()];
+        char[] out = new char[text.length()];
         int i, o, l;
         for(i=0, o=0, l=text.length(); i<l; i++){
             char c = text.charAt(i);
