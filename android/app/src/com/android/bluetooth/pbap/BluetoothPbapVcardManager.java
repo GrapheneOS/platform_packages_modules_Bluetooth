@@ -119,7 +119,7 @@ public class BluetoothPbapVcardManager {
      * @param vcardType21
      * @return
      */
-    private final String getOwnerPhoneNumberVcardFromProfile(
+    private String getOwnerPhoneNumberVcardFromProfile(
             final boolean vcardType21, final byte[] filter) {
         // Currently only support Generic Vcard 2.1 and 3.0
         int vcardType;
@@ -665,7 +665,7 @@ public class BluetoothPbapVcardManager {
         }
     }
 
-    private final int composeContactsAndSendVCards(Operation op, final Cursor contactIdCursor,
+    private int composeContactsAndSendVCards(Operation op, final Cursor contactIdCursor,
             final boolean vcardType21, String ownerVCard, boolean ignorefilter, byte[] filter) {
         long timestamp = 0;
         if (V) timestamp = System.currentTimeMillis();
@@ -755,7 +755,7 @@ public class BluetoothPbapVcardManager {
         return ResponseCodes.OBEX_HTTP_OK;
     }
 
-    private final int composeContactsAndSendSelectedVCards(Operation op,
+    private int composeContactsAndSendSelectedVCards(Operation op,
             final Cursor contactIdCursor, final boolean vcardType21, String ownerVCard,
             int needSendBody, int pbSize, boolean ignorefilter, byte[] filter, byte[] selector,
             String vcardselectorop) {
@@ -859,7 +859,7 @@ public class BluetoothPbapVcardManager {
         return ResponseCodes.OBEX_HTTP_OK;
     }
 
-    private final int composeCallLogsAndSendSelectedVCards(Operation op, final String selection,
+    private int composeCallLogsAndSendSelectedVCards(Operation op, final String selection,
             final boolean vcardType21, int needSendBody, int pbSize, String ownerVCard,
             boolean ignorefilter, byte[] filter, byte[] selector, String vcardselectorop,
             boolean vCardSelct) {
@@ -1207,7 +1207,7 @@ public class BluetoothPbapVcardManager {
         }
     }
 
-    private static final Uri getPhoneLookupFilterUri() {
+    private static Uri getPhoneLookupFilterUri() {
         return PhoneLookup.ENTERPRISE_CONTENT_FILTER_URI;
     }
 
@@ -1215,7 +1215,7 @@ public class BluetoothPbapVcardManager {
      * Get size of the cursor without duplicated contact id. This assumes the
      * given cursor is sorted by CONTACT_ID.
      */
-    private static final int getDistinctContactIdSize(Cursor cursor) {
+    private static int getDistinctContactIdSize(Cursor cursor) {
         final int contactIdColumn = cursor.getColumnIndex(Data.CONTACT_ID);
         final int idColumn = cursor.getColumnIndex(Data._ID);
         long previousContactId = -1;

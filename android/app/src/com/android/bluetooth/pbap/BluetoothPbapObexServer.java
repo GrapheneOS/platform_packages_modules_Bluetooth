@@ -497,7 +497,7 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
     }
 
     /** check whether path is legal */
-    private final boolean isLegalPath(final String str) {
+    private boolean isLegalPath(final String str) {
         if (str.length() == 0) {
             return true;
         }
@@ -568,7 +568,7 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
     }
 
     /** To parse obex application parameter */
-    private final boolean parseApplicationParameter(final byte[] appParam,
+    private boolean parseApplicationParameter(final byte[] appParam,
             AppParamValue appParamValue) {
         int i = 0;
         boolean parseOk = true;
@@ -681,7 +681,7 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
     }
 
     /** Form and Send an XML format String to client for Phone book listing */
-    private final int sendVcardListingXml(
+    private int sendVcardListingXml(
             AppParamValue appParamValue, Operation op, int needSendBody, int size) {
         StringBuilder result = new StringBuilder();
         int itemsFound = 0;
@@ -799,7 +799,7 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
      * Function to send obex header back to client such as get phonebook size
      * request
      */
-    private final int pushHeader(final Operation op, final HeaderSet reply) {
+    private int pushHeader(final Operation op, final HeaderSet reply) {
         OutputStream outputStream = null;
 
         if (D) Log.d(TAG, "Push Header");
@@ -822,7 +822,7 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
     }
 
     /** Function to send vcard data to client */
-    private final int pushBytes(Operation op, final String vcardString) {
+    private int pushBytes(Operation op, final String vcardString) {
         if (vcardString == null) {
             Log.w(TAG, "vcardString is null!");
             return ResponseCodes.OBEX_HTTP_OK;
@@ -846,7 +846,7 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
         return pushResult;
     }
 
-    private final int handleAppParaForResponse(
+    private int handleAppParaForResponse(
             AppParamValue appParamValue, int size, HeaderSet reply, Operation op, String name) {
         byte[] misnum = new byte[1];
         ApplicationParameter ap = new ApplicationParameter();
@@ -989,7 +989,7 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
         return NEED_SEND_BODY;
     }
 
-    private final int pullVcardListing(byte[] appParam, AppParamValue appParamValue,
+    private int pullVcardListing(byte[] appParam, AppParamValue appParamValue,
             HeaderSet reply, Operation op, String name) {
         String searchAttr = appParamValue.searchAttr.trim();
 
@@ -1048,7 +1048,7 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
         return sendVcardListingXml(appParamValue, op, needSendBody, size);
     }
 
-    private final int pullVcardEntry(byte[] appParam, AppParamValue appParamValue, Operation op,
+    private int pullVcardEntry(byte[] appParam, AppParamValue appParamValue, Operation op,
             HeaderSet reply, final String name, final String current_path) {
         if (name == null || name.length() < VCARD_NAME_SUFFIX_LENGTH) {
             if (D) Log.d(TAG, "Name is Null, or the length of name < 5 !");
@@ -1105,7 +1105,7 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
         return ResponseCodes.OBEX_HTTP_OK;
     }
 
-    private final int pullPhonebook(byte[] appParam, AppParamValue appParamValue, HeaderSet reply,
+    private int pullPhonebook(byte[] appParam, AppParamValue appParamValue, HeaderSet reply,
             Operation op, final String name) {
         // code start for passing PTS3.2 TC_PSE_PBD_BI_01_C
         if (name != null) {
