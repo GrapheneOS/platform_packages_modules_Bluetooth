@@ -56,7 +56,7 @@ public abstract class BluetoothMapIMProvider extends ContentProvider {
     /**
      * @return the CONTENT_URI exposed. This will be used to send out notifications.
      */
-    abstract protected Uri getContentUri();
+    protected abstract Uri getContentUri();
 
     /**
      * Implementation is provided by the parent class.
@@ -222,7 +222,7 @@ public abstract class BluetoothMapIMProvider extends ContentProvider {
      * @param messageId the ID of the message to delete.
      * @return the number of messages deleted - 0 if the message was not found.
      */
-    abstract protected int deleteMessage(String accountId, String messageId);
+    protected abstract int deleteMessage(String accountId, String messageId);
 
     /**
      * Insert is used to add new messages to the data base.
@@ -270,7 +270,7 @@ public abstract class BluetoothMapIMProvider extends ContentProvider {
      * @param folderId the ID of the folder to create a new message in.
      * @return the message id as a string
      */
-    abstract protected String insertMessage(String accountId, ContentValues values);
+    protected abstract String insertMessage(String accountId, ContentValues values);
 
      /**
      * Utility function to build a projection based on a projectionMap.
@@ -359,7 +359,7 @@ public abstract class BluetoothMapIMProvider extends ContentProvider {
      * @param sortOrder
      * @return a cursor to the accounts that are subject to exposure over BT.
      */
-    abstract protected Cursor queryAccount(String[] projection, String selection,
+    protected abstract Cursor queryAccount(String[] projection, String selection,
             String[] selectionArgs, String sortOrder);
 
     /**
@@ -378,7 +378,7 @@ public abstract class BluetoothMapIMProvider extends ContentProvider {
      * @param sortOrder
      * @return a cursor to query result
      */
-    abstract protected Cursor queryMessage(String accountId, String[] projection, String selection,
+    protected abstract Cursor queryMessage(String accountId, String[] projection, String selection,
             String[] selectionArgs, String sortOrder);
 
     /**
@@ -426,7 +426,7 @@ public abstract class BluetoothMapIMProvider extends ContentProvider {
      * @param sortOrder  the sort order
      * @return a Cursor representing the query result.
      */
-    abstract protected Cursor queryConversation(String accountId, Long threadId, Boolean read,
+    protected abstract Cursor queryConversation(String accountId, Long threadId, Boolean read,
             Long periodEnd, Long periodBegin, String searchString, String[] projection,
             String sortOrder);
 
@@ -450,7 +450,7 @@ public abstract class BluetoothMapIMProvider extends ContentProvider {
      * @param sortOrder
      * @return a cursor to query result
      */
-    abstract protected Cursor queryConvoContact(String accountId, Long contactId,
+    protected abstract Cursor queryConvoContact(String accountId, Long contactId,
             String[] projection, String selection, String[] selectionArgs, String sortOrder);
 
     /**
@@ -534,7 +534,7 @@ public abstract class BluetoothMapIMProvider extends ContentProvider {
      * @param flagExpose the updated value.
      * @return the number of entries changed - 0 if account not found or value cannot be changed.
      */
-    abstract protected int updateAccount(String accountId, Integer flagExpose);
+    protected abstract int updateAccount(String accountId, Integer flagExpose);
 
     /**
      * Update an entry in the message table.
@@ -544,7 +544,7 @@ public abstract class BluetoothMapIMProvider extends ContentProvider {
      * @param flagRead the new flagRead value to set - ignore if null.
      * @return
      */
-    abstract protected int updateMessage(String accountId, Long messageId, Long folderId,
+    protected abstract int updateMessage(String accountId, Long messageId, Long folderId,
             Boolean flagRead);
 
     /**
@@ -637,7 +637,7 @@ public abstract class BluetoothMapIMProvider extends ContentProvider {
      * @param folderId the ID of the folder.
      * @return 0 at success
      */
-    abstract protected int syncFolder(long accountId, long folderId);
+    protected abstract int syncFolder(long accountId, long folderId);
 
     /**
      * Set the properties that should change presence or chat state of owner
@@ -650,7 +650,7 @@ public abstract class BluetoothMapIMProvider extends ContentProvider {
      * @param convoId ID to the conversation to change
      * @return 0 at success
      */
-    abstract protected int setOwnerStatus(int presenceState, String presenceStatus,
+    protected abstract int setOwnerStatus(int presenceState, String presenceStatus,
             long lastActive, int chatState, String convoId);
 
     /**
@@ -658,7 +658,7 @@ public abstract class BluetoothMapIMProvider extends ContentProvider {
      * @param bluetoothState 'on' of 'off'
      * @return 0 at success
      */
-    abstract protected int setBluetoothStatus(boolean bluetoothState);
+    protected abstract int setBluetoothStatus(boolean bluetoothState);
 
 
 

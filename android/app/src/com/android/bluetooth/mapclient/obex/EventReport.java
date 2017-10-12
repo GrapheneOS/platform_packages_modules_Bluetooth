@@ -36,7 +36,7 @@ import java.util.HashMap;
  * callback message.
  */
 public class EventReport {
-    private final static String TAG = "EventReport";
+    private static final String TAG = "EventReport";
     private final Type mType;
     private final String mHandle;
     private final String mFolder;

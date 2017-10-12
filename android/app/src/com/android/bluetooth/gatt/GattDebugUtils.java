@@ -122,7 +122,7 @@ import java.util.UUID;
      * then as an ineger.
      * @hide
      */
-    static private int getHandleExtra(Intent intent, String extra, int default_value) {
+    private static int getHandleExtra(Intent intent, String extra, int default_value) {
         Bundle extras = intent.getExtras();
         Object uuid = extras != null ? extras.get(extra) : null;
         if (uuid != null && uuid.getClass().getName().equals("java.lang.String")) {
@@ -143,7 +143,7 @@ import java.util.UUID;
      * the default Bluetooth UUID is appended.
      * @hide
      */
-    static private UUID getUuidExtra(Intent intent) {
+    private static UUID getUuidExtra(Intent intent) {
         String uuidStr = intent.getStringExtra(EXTRA_UUID);
         if (uuidStr != null && uuidStr.length() == 4) {
             uuidStr = String.format("0000%s-0000-1000-8000-00805f9b34fb", uuidStr);
@@ -155,7 +155,7 @@ import java.util.UUID;
      * Log usage information.
      * @hide
      */
-    static private void logUsageInfo() {
+    private static void logUsageInfo() {
         StringBuilder b = new StringBuilder();
         b.append(  "------------ GATT TEST ACTIONS  ----------------");
         b.append("\nGATT_TEST_ENABLE");
