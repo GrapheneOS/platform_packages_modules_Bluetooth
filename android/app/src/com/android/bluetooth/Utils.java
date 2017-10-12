@@ -46,7 +46,7 @@ import java.util.concurrent.TimeUnit;
  * @hide
  */
 
-final public class Utils {
+public final class Utils {
     private static final String TAG = "BluetoothUtils";
     private static final int MICROS_PER_UNIT = 625;
 

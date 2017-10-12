@@ -77,7 +77,7 @@ abstract class Request {
         mHeaderSet = new HeaderSet();
     }
 
-    abstract public void execute(ClientSession session) throws IOException;
+    public abstract void execute(ClientSession session) throws IOException;
 
     protected void executeGet(ClientSession session) throws IOException {
         ClientOperation op = null;
@@ -139,7 +139,7 @@ abstract class Request {
         }
     }
 
-    final public boolean isSuccess() {
+    public final boolean isSuccess() {
         return (mResponseCode == ResponseCodes.OBEX_HTTP_OK);
     }
 

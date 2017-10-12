@@ -1109,39 +1109,39 @@ public class AvrcpControllerService extends ProfileService {
         return data;
     }
 
-    private native static void classInitNative();
+    private static native void classInitNative();
 
     private native void initNative();
 
     private native void cleanupNative();
 
-    native static boolean sendPassThroughCommandNative(byte[] address, int keyCode, int keyState);
+    static native boolean sendPassThroughCommandNative(byte[] address, int keyCode, int keyState);
 
-    native static boolean sendGroupNavigationCommandNative(byte[] address, int keyCode,
+    static native boolean sendGroupNavigationCommandNative(byte[] address, int keyCode,
         int keyState);
 
-    native static void setPlayerApplicationSettingValuesNative(byte[] address, byte numAttrib,
+    static native void setPlayerApplicationSettingValuesNative(byte[] address, byte numAttrib,
         byte[] atttibIds, byte[] attribVal);
 
     /* This api is used to send response to SET_ABS_VOL_CMD */
-    native static void sendAbsVolRspNative(byte[] address, int absVol, int label);
+    static native void sendAbsVolRspNative(byte[] address, int absVol, int label);
 
     /* This api is used to inform remote for any volume level changes */
-    native static void sendRegisterAbsVolRspNative(byte[] address, byte rspType, int absVol,
+    static native void sendRegisterAbsVolRspNative(byte[] address, byte rspType, int absVol,
         int label);
 
     /* API used to fetch the playback state */
-    native static void getPlaybackStateNative(byte[] address);
+    static native void getPlaybackStateNative(byte[] address);
     /* API used to fetch the current now playing list */
-    native static void getNowPlayingListNative(byte[] address, byte start, byte end);
+    static native void getNowPlayingListNative(byte[] address, byte start, byte end);
     /* API used to fetch the current folder's listing */
-    native static void getFolderListNative(byte[] address, byte start, byte end);
+    static native void getFolderListNative(byte[] address, byte start, byte end);
     /* API used to fetch the listing of players */
-    native static void getPlayerListNative(byte[] address, byte start, byte end);
+    static native void getPlayerListNative(byte[] address, byte start, byte end);
     /* API used to change the folder */
-    native static void changeFolderPathNative(byte[] address, byte direction, byte[] uid);
-    native static void playItemNative(
+    static native void changeFolderPathNative(byte[] address, byte direction, byte[] uid);
+    static native void playItemNative(
         byte[] address, byte scope, byte[] uid, int uidCounter);
-    native static void setBrowsedPlayerNative(byte[] address, int playerId);
-    native static void setAddressedPlayerNative(byte[] address, int playerId);
+    static native void setBrowsedPlayerNative(byte[] address, int playerId);
+    static native void setAddressedPlayerNative(byte[] address, int playerId);
 }

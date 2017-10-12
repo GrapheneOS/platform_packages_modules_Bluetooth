@@ -42,8 +42,8 @@ public class ObexRejectServer extends ServerRequestHandler implements Callback {
     private final int mResult;
     private final HandlerThread mHandlerThread;
     private final Handler mMessageHandler;
-    private final static int MSG_ID_TIMEOUT = 0x01;
-    private final static int TIMEOUT_VALUE = 5*1000; // ms
+    private static final int MSG_ID_TIMEOUT = 0x01;
+    private static final int TIMEOUT_VALUE = 5*1000; // ms
     private final BluetoothSocket mSocket;
 
     /**
