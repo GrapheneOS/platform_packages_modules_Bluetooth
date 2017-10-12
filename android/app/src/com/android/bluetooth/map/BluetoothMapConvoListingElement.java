@@ -229,6 +229,7 @@ public class BluetoothMapConvoListingElement
         mSmsMmsContacts = smsMmsContacts;
     }
 
+    @Override
     public int compareTo(BluetoothMapConvoListingElement e) {
         if (this.mLastActivity < e.mLastActivity) {
             return 1;

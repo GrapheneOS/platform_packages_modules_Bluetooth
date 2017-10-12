@@ -310,6 +310,7 @@ public class BluetoothPbapVcardManager {
         composer = BluetoothPbapUtils.createFilteredVCardComposer(mContext, vcardType, null);
         composer.setPhoneNumberTranslationCallback(new VCardPhoneNumberTranslationCallback() {
 
+            @Override
             public String onValueReceived(
                     String rawValue, int type, String label, boolean isPrimary) {
                 String numberWithControlSequence = rawValue.replace(PhoneNumberUtils.PAUSE, 'p')
@@ -694,6 +695,7 @@ public class BluetoothPbapVcardManager {
             // other formatting
             // done by vCard library by default.
             composer.setPhoneNumberTranslationCallback(new VCardPhoneNumberTranslationCallback() {
+                @Override
                 public String onValueReceived(String rawValue, int type, String label,
                         boolean isPrimary) {
                     // 'p' and 'w' are the standard characters for pause and
@@ -786,6 +788,7 @@ public class BluetoothPbapVcardManager {
             /* BT does want PAUSE/WAIT conversion while it doesn't want the
              * other formatting done by vCard library by default. */
             composer.setPhoneNumberTranslationCallback(new VCardPhoneNumberTranslationCallback() {
+                @Override
                 public String onValueReceived(
                         String rawValue, int type, String label, boolean isPrimary) {
                     /* 'p' and 'w' are the standard characters for pause and wait

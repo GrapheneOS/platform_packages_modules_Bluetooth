@@ -601,6 +601,7 @@ public class SapService extends ProfileService {
         return true;
     }
 
+    @Override
     public boolean cleanup()  {
         setState(BluetoothSap.STATE_DISCONNECTED, BluetoothSap.RESULT_CANCELED);
         closeService();
@@ -792,11 +793,13 @@ public class SapService extends ProfileService {
             mService = service;
         }
 
+        @Override
         public boolean cleanup()  {
             mService = null;
             return true;
         }
 
+        @Override
         public int getState() {
             Log.v(TAG, "getState()");
             SapService service = getService();
@@ -804,6 +807,7 @@ public class SapService extends ProfileService {
             return getService().getState();
         }
 
+        @Override
         public BluetoothDevice getClient() {
             Log.v(TAG, "getClient()");
             SapService service = getService();
@@ -812,6 +816,7 @@ public class SapService extends ProfileService {
             return service.getRemoteDevice();
         }
 
+        @Override
         public boolean isConnected(BluetoothDevice device) {
             Log.v(TAG, "isConnected()");
             SapService service = getService();
@@ -820,6 +825,7 @@ public class SapService extends ProfileService {
                     && service.getRemoteDevice().equals(device));
         }
 
+        @Override
         public boolean connect(BluetoothDevice device) {
             Log.v(TAG, "connect()");
             SapService service = getService();
@@ -827,6 +833,7 @@ public class SapService extends ProfileService {
             return false;
         }
 
+        @Override
         public boolean disconnect(BluetoothDevice device) {
             Log.v(TAG, "disconnect()");
             SapService service = getService();
@@ -834,6 +841,7 @@ public class SapService extends ProfileService {
             return service.disconnect(device);
         }
 
+        @Override
         public List<BluetoothDevice> getConnectedDevices() {
             Log.v(TAG, "getConnectedDevices()");
             SapService service = getService();
@@ -841,6 +849,7 @@ public class SapService extends ProfileService {
             return service.getConnectedDevices();
         }
 
+        @Override
         public List<BluetoothDevice> getDevicesMatchingConnectionStates(int[] states) {
             Log.v(TAG, "getDevicesMatchingConnectionStates()");
             SapService service = getService();
@@ -848,6 +857,7 @@ public class SapService extends ProfileService {
             return service.getDevicesMatchingConnectionStates(states);
         }
 
+        @Override
         public int getConnectionState(BluetoothDevice device) {
             Log.v(TAG, "getConnectionState()");
             SapService service = getService();
@@ -855,12 +865,14 @@ public class SapService extends ProfileService {
             return service.getConnectionState(device);
         }
 
+        @Override
         public boolean setPriority(BluetoothDevice device, int priority) {
             SapService service = getService();
             if (service == null) return false;
             return service.setPriority(device, priority);
         }
 
+        @Override
         public int getPriority(BluetoothDevice device) {
             SapService service = getService();
             if (service == null) return BluetoothProfile.PRIORITY_UNDEFINED;

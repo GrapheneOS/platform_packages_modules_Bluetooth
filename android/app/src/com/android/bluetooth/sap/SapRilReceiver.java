@@ -74,6 +74,7 @@ public class SapRilReceiver {
     }
 
     class SapCallback extends ISapCallback.Stub {
+        @Override
         public void connectResponse(int token, int sapConnectRsp, int maxMsgSize) {
             Log.d(TAG, "connectResponse: token " + token + " sapConnectRsp " + sapConnectRsp
                             + " maxMsgSize " + maxMsgSize);
@@ -87,6 +88,7 @@ public class SapRilReceiver {
             removeOngoingReqAndSendMessage(token, sapMessage);
         }
 
+        @Override
         public void disconnectResponse(int token) {
             Log.d(TAG, "disconnectResponse: token " + token);
             SapService.notifyUpdateWakeLock(mSapServiceHandler);
@@ -95,6 +97,7 @@ public class SapRilReceiver {
             removeOngoingReqAndSendMessage(token, sapMessage);
         }
 
+        @Override
         public void disconnectIndication(int token, int disconnectType) {
             Log.d(TAG,
                     "disconnectIndication: token " + token + " disconnectType " + disconnectType);
@@ -104,6 +107,7 @@ public class SapRilReceiver {
             sendSapMessage(sapMessage);
         }
 
+        @Override
         public void apduResponse(int token, int resultCode, ArrayList<Byte> apduRsp) {
             Log.d(TAG, "apduResponse: token " + token);
             SapService.notifyUpdateWakeLock(mSapServiceHandler);
@@ -115,6 +119,7 @@ public class SapRilReceiver {
             removeOngoingReqAndSendMessage(token, sapMessage);
         }
 
+        @Override
         public void transferAtrResponse(int token, int resultCode, ArrayList<Byte> atr) {
             Log.d(TAG, "transferAtrResponse: token " + token + " resultCode " + resultCode);
             SapService.notifyUpdateWakeLock(mSapServiceHandler);
@@ -126,6 +131,7 @@ public class SapRilReceiver {
             removeOngoingReqAndSendMessage(token, sapMessage);
         }
 
+        @Override
         public void powerResponse(int token, int resultCode) {
             Log.d(TAG, "powerResponse: token " + token + " resultCode " + resultCode);
             SapService.notifyUpdateWakeLock(mSapServiceHandler);
@@ -146,6 +152,7 @@ public class SapRilReceiver {
             sendSapMessage(sapMessage);
         }
 
+        @Override
         public void resetSimResponse(int token, int resultCode) {
             Log.d(TAG, "resetSimResponse: token " + token + " resultCode " + resultCode);
             SapService.notifyUpdateWakeLock(mSapServiceHandler);
@@ -154,6 +161,7 @@ public class SapRilReceiver {
             removeOngoingReqAndSendMessage(token, sapMessage);
         }
 
+        @Override
         public void statusIndication(int token, int status) {
             Log.d(TAG, "statusIndication: token " + token + " status " + status);
             SapService.notifyUpdateWakeLock(mSapServiceHandler);
@@ -162,6 +170,7 @@ public class SapRilReceiver {
             sendSapMessage(sapMessage);
         }
 
+        @Override
         public void transferCardReaderStatusResponse(
                 int token, int resultCode, int cardReaderStatus) {
             Log.d(TAG, "transferCardReaderStatusResponse: token " + token + " resultCode "
@@ -175,6 +184,7 @@ public class SapRilReceiver {
             removeOngoingReqAndSendMessage(token, sapMessage);
         }
 
+        @Override
         public void errorResponse(int token) {
             Log.d(TAG, "errorResponse: token " + token);
             SapService.notifyUpdateWakeLock(mSapServiceHandler);
@@ -184,6 +194,7 @@ public class SapRilReceiver {
             sendSapMessage(sapMessage);
         }
 
+        @Override
         public void transferProtocolResponse(int token, int resultCode) {
             Log.d(TAG, "transferProtocolResponse: token " + token + " resultCode " + resultCode);
             SapService.notifyUpdateWakeLock(mSapServiceHandler);

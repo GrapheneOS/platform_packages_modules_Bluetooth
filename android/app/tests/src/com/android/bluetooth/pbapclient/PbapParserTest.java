@@ -37,6 +37,7 @@ public class PbapParserTest extends AndroidTestCase {
     private static final String mTestAccountName = "PBAPTESTACCOUNT";
     private static final String mTestPackageName = "com.android.bluetooth.tests";
 
+    @Override
     @Before
     public void setUp() {
         mAccount = new Account(mTestAccountName,

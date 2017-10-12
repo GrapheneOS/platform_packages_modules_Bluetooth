@@ -816,6 +816,7 @@ public class BluetoothMapService extends ProfileService {
         return true;
     }
 
+    @Override
     public boolean cleanup()  {
         if (DEBUG) Log.d(TAG, "cleanup()");
         setState(BluetoothMap.STATE_DISCONNECTED, BluetoothMap.RESULT_CANCELED);
@@ -1156,11 +1157,13 @@ public class BluetoothMapService extends ProfileService {
             mService = service;
         }
 
+        @Override
         public boolean cleanup()  {
             mService = null;
             return true;
         }
 
+        @Override
         public int getState() {
             if (VERBOSE) Log.v(TAG, "getState()");
             BluetoothMapService service = getService();
@@ -1168,6 +1171,7 @@ public class BluetoothMapService extends ProfileService {
             return getService().getState();
         }
 
+        @Override
         public BluetoothDevice getClient() {
             if (VERBOSE) Log.v(TAG, "getClient()");
             BluetoothMapService service = getService();
@@ -1176,6 +1180,7 @@ public class BluetoothMapService extends ProfileService {
             return service.getRemoteDevice();
         }
 
+        @Override
         public boolean isConnected(BluetoothDevice device) {
             if (VERBOSE) Log.v(TAG, "isConnected()");
             BluetoothMapService service = getService();
@@ -1184,6 +1189,7 @@ public class BluetoothMapService extends ProfileService {
                     && service.getRemoteDevice().equals(device);
         }
 
+        @Override
         public boolean connect(BluetoothDevice device) {
             if (VERBOSE) Log.v(TAG, "connect()");
             BluetoothMapService service = getService();
@@ -1191,6 +1197,7 @@ public class BluetoothMapService extends ProfileService {
             return false;
         }
 
+        @Override
         public boolean disconnect(BluetoothDevice device) {
             if (VERBOSE) Log.v(TAG, "disconnect()");
             BluetoothMapService service = getService();
@@ -1198,6 +1205,7 @@ public class BluetoothMapService extends ProfileService {
             return service.disconnect(device);
         }
 
+        @Override
         public List<BluetoothDevice> getConnectedDevices() {
             if (VERBOSE) Log.v(TAG, "getConnectedDevices()");
             BluetoothMapService service = getService();
@@ -1205,6 +1213,7 @@ public class BluetoothMapService extends ProfileService {
             return service.getConnectedDevices();
         }
 
+        @Override
         public List<BluetoothDevice> getDevicesMatchingConnectionStates(int[] states) {
             if (VERBOSE) Log.v(TAG, "getDevicesMatchingConnectionStates()");
             BluetoothMapService service = getService();
@@ -1212,6 +1221,7 @@ public class BluetoothMapService extends ProfileService {
             return service.getDevicesMatchingConnectionStates(states);
         }
 
+        @Override
         public int getConnectionState(BluetoothDevice device) {
             if (VERBOSE) Log.v(TAG, "getConnectionState()");
             BluetoothMapService service = getService();
@@ -1219,12 +1229,14 @@ public class BluetoothMapService extends ProfileService {
             return service.getConnectionState(device);
         }
 
+        @Override
         public boolean setPriority(BluetoothDevice device, int priority) {
             BluetoothMapService service = getService();
             if (service == null) return false;
             return service.setPriority(device, priority);
         }
 
+        @Override
         public int getPriority(BluetoothDevice device) {
             BluetoothMapService service = getService();
             if (service == null) return BluetoothProfile.PRIORITY_UNDEFINED;

@@ -1203,6 +1203,7 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
 
     // Reserved for future use. In case PSE challenge PCE and PCE input wrong
     // session key.
+    @Override
     public final void onAuthenticationFailure(final byte[] userName) {
     }
 

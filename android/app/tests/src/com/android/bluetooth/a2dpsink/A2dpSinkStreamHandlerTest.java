@@ -61,6 +61,7 @@ public class A2dpSinkStreamHandlerTest extends AndroidTestCase {
 
     @Mock PackageManager mockPackageManager;
 
+    @Override
     @Before
     public void setUp() {
         // Mock the looper

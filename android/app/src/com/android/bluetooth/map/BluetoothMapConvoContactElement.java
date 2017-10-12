@@ -179,6 +179,7 @@ public class BluetoothMapConvoContactElement
         return mUci;
     }
 
+    @Override
     public int compareTo(BluetoothMapConvoContactElement e) {
         if (this.mLastActivity < e.mLastActivity) {
             return 1;

@@ -85,6 +85,7 @@ public class BluetoothTetheringNetworkFactory extends NetworkFactory {
         // of IpManager. This will likely necessitate a rethink about
         // NetworkAgent, NetworkInfo, and associated instance lifetimes.
         Thread ipProvisioningThread = new Thread(new Runnable() {
+            @Override
             public void run() {
                 LinkProperties linkProperties;
                 final WaitForProvisioningCallback ipmCallback = new WaitForProvisioningCallback() {
@@ -130,6 +131,7 @@ public class BluetoothTetheringNetworkFactory extends NetworkFactory {
                     // Create our NetworkAgent.
                     mNetworkAgent = new NetworkAgent(getLooper(), mContext, NETWORK_TYPE,
                             mNetworkInfo, mNetworkCapabilities, linkProperties, NETWORK_SCORE) {
+                        @Override
                         public void unwanted() {
                             BluetoothTetheringNetworkFactory.this.onCancelRequest();
                         };

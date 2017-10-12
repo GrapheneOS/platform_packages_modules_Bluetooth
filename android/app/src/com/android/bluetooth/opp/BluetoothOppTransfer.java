@@ -578,6 +578,7 @@ public class BluetoothOppTransfer implements BluetoothOppBatch.BluetoothOppBatch
     public void confirmStatusChanged() {
         /* unblock server session */
         final Thread notifyThread = new Thread("Server Unblock thread") {
+            @Override
             public void run() {
                 synchronized (mSession) {
                     mSession.unblock();
@@ -648,6 +649,7 @@ public class BluetoothOppTransfer implements BluetoothOppBatch.BluetoothOppBatch
             l2cChannel = l2capChannel;
         }
 
+        @Override
         public void interrupt() {
             if (D) Log.d(TAG, "start interrupt :" + btSocket);
             isInterrupted = true;
@@ -795,6 +797,7 @@ public class BluetoothOppTransfer implements BluetoothOppBatch.BluetoothOppBatch
     /**
      * Process when a share is added to current transfer
      */
+    @Override
     public void onShareAdded(int id) {
         BluetoothOppShareInfo info = mBatch.getPendingShare();
         if (info.mDirection == BluetoothShare.DIRECTION_INBOUND) {
@@ -825,6 +828,7 @@ public class BluetoothOppTransfer implements BluetoothOppBatch.BluetoothOppBatch
     /**
      * Process when a share is deleted from current transfer
      */
+    @Override
     public void onShareDeleted(int id) {
 
     }
@@ -832,6 +836,7 @@ public class BluetoothOppTransfer implements BluetoothOppBatch.BluetoothOppBatch
     /**
      * Process when current transfer is canceled
      */
+    @Override
     public void onBatchCanceled() {
         if (V) Log.v(TAG, "Transfer on Batch canceled");
 
