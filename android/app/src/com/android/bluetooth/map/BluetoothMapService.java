@@ -248,7 +248,7 @@ public class BluetoothMapService extends ProfileService {
         for(int i=0, c=mMasInstances.size(); i < c; i++) {
             try {
                 if(mMasInstances.valueAt(i)
-                        .startObexServerSession(mBluetoothMnsObexClient) == true) {
+                    .startObexServerSession(mBluetoothMnsObexClient)) {
                     connected = true;
                 }
             } catch (IOException e) {
@@ -438,8 +438,8 @@ public class BluetoothMapService extends ProfileService {
     };
 
     private void onConnectHandler(int masId) {
-        if (mIsWaitingAuthorization == true || mRemoteDevice == null
-                || mSdpSearchInitiated == true) {
+        if (mIsWaitingAuthorization || mRemoteDevice == null
+                || mSdpSearchInitiated) {
             return;
         }
         BluetoothMapMasInstance masInst = mMasInstances.get(masId);
@@ -965,7 +965,7 @@ public class BluetoothMapService extends ProfileService {
             mSessionStatusHandler.removeCallbacksAndMessages(null);
             // Request release of all resources
             Message msg = mSessionStatusHandler.obtainMessage(SHUTDOWN);
-            if( mSessionStatusHandler.sendMessage(msg) == false) {
+            if(!mSessionStatusHandler.sendMessage(msg)) {
                 /* most likely caused by shutdown being called from multiple sources - e.g.BT off
                  * signaled through intent and a service shutdown simultaneously.
                  * Intended behavior not documented, hence we need to be able to handle all cases*/
@@ -1102,7 +1102,7 @@ public class BluetoothMapService extends ProfileService {
                         handled = true;
                     }
                 }
-                if(handled == false)
+                if(!handled)
                 {
                     /* We do not have a connection to a device, hence we need to move
                        the SMS to the correct folder. */

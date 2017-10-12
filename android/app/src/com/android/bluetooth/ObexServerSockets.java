@@ -228,7 +228,7 @@ public class ObexServerSockets {
      */
     private synchronized boolean onConnect(BluetoothDevice device, BluetoothSocket conSocket) {
         if(D) Log.d(TAG, "onConnect() socket: " + conSocket + " mConAccepted = " + mConAccepted);
-        if(mConAccepted  == false && mConHandler.onConnect(device, conSocket) == true) {
+        if(!mConAccepted && mConHandler.onConnect(device, conSocket)) {
             mConAccepted = true; // TODO: Reset this when ready to accept new connection
             /* Signal the remaining threads to stop.
             shutdown(false); */ // UPDATE: TODO: remove - redesigned to keep running...
@@ -262,7 +262,7 @@ public class ObexServerSockets {
         if(mL2capThread != null){
             mL2capThread.shutdown();
         }
-        if(block == true) {
+        if(block) {
             while(mRfcommThread != null || mL2capThread != null) {
                 try {
                     if(mRfcommThread != null) {
@@ -345,7 +345,7 @@ public class ObexServerSockets {
                          */
                         boolean isValid = ObexServerSockets.this.onConnect(device, connSocket);
 
-                        if(isValid == false) {
+                        if(!isValid) {
                             /* Close connection if we already have a connection with another device
                              * by responding to the OBEX connect request.
                              */
@@ -364,7 +364,7 @@ public class ObexServerSockets {
                             // now wait for a new connect
                         }
                     } catch (IOException ex) {
-                        if(mStopped == true) {
+                        if(mStopped) {
                             // Expected exception because of shutdown.
                         } else {
                             Log.w(TAG, "Accept exception for " +
@@ -385,7 +385,7 @@ public class ObexServerSockets {
          * are ready to be disconnected.
          */
         public void shutdown() {
-            if(mStopped == false) {
+            if(!mStopped) {
                 mStopped = true;
                 // TODO: According to the documentation, this should not close the accepted
                 //       sockets - and that is true, but it closes the l2cap connections, and

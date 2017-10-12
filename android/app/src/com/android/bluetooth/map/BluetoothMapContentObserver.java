@@ -1097,7 +1097,7 @@ public class BluetoothMapContentObserver {
 
     private void sendEvent(Event evt) {
 
-        if(mTransmitEvents == false) {
+        if(!mTransmitEvents) {
             if(V) Log.v(TAG, "mTransmitEvents == false - don't send event.");
             return;
         }
@@ -1106,7 +1106,7 @@ public class BluetoothMapContentObserver {
                 + evt.oldFolder + " " + evt.msgType.name() + " " + evt.datetime + " "
                 + evt.subject + " " + evt.senderName + " " + evt.priority );
 
-        if (mMnsClient == null || mMnsClient.isConnected() == false) {
+        if (mMnsClient == null || !mMnsClient.isConnected()) {
             Log.d(TAG, "sendEvent: No MNS client registered or connected- don't send event");
             return;
         }
@@ -1358,7 +1358,7 @@ public class BluetoothMapContentObserver {
                             msgListSms.put(id, msg);
                             listChanged = true;
                             Event evt;
-                            if (mTransmitEvents == true && // extract contact details only if needed
+                            if (mTransmitEvents && // extract contact details only if needed
                                     mMapEventReportVersion >
                             BluetoothMapUtils.MAP_EVENT_REPORT_V10) {
                                 String date = BluetoothMapUtils.getDateTimeString(
@@ -1517,7 +1517,7 @@ public class BluetoothMapContentObserver {
                             msg = new Msg(id, type, threadId, read);
                             msgListMms.put(id, msg);
                             Event evt;
-                            if (mTransmitEvents == true && // extract contact details only if needed
+                            if (mTransmitEvents && // extract contact details only if needed
                                     mMapEventReportVersion !=
                                     BluetoothMapUtils.MAP_EVENT_REPORT_V10) {
                                 String date = BluetoothMapUtils.getDateTimeString(
@@ -1562,7 +1562,7 @@ public class BluetoothMapContentObserver {
                                 Log.d(TAG, "new type: " + type + " old type: " + msg.type);
                                 Event evt;
                                 listChanged = true;
-                                if(msg.localInitiatedSend == false) {
+                                if(!msg.localInitiatedSend) {
                                     // Only send events about local initiated changes
                                     evt = new Event(EVENT_TYPE_SHIFT, id, getMmsFolderName(type),
                                             getMmsFolderName(msg.type), TYPE.MMS);
@@ -1572,7 +1572,7 @@ public class BluetoothMapContentObserver {
 
                                 if (getMmsFolderName(type).equalsIgnoreCase(
                                         BluetoothMapContract.FOLDER_NAME_SENT)
-                                        && msg.localInitiatedSend == true) {
+                                        && msg.localInitiatedSend) {
                                     // Stop tracking changes for this message
                                     msg.localInitiatedSend = false;
                                     evt = new Event(EVENT_TYPE_SENDING_SUCCESS, id,
@@ -1735,7 +1735,7 @@ public class BluetoothMapContentObserver {
                                     sendEvent(evt);
                                 } else if(sentFolder != null
                                         && sentFolder.getFolderId() == folderId
-                                        && msg.localInitiatedSend == true) {
+                                        && msg.localInitiatedSend) {
                                     if(msg.transparent) {
                                         mResolver.delete(
                                                 ContentUris.withAppendedId(mMessageUri, id),
@@ -1788,7 +1788,7 @@ public class BluetoothMapContentObserver {
                  * new message in sent. We cannot track the message anymore, hence send both a
                  * send success and delete message.
                  */
-                if(msg.localInitiatedSend == true) {
+                if(msg.localInitiatedSend) {
                     msg.localInitiatedSend = false;
                     // If message is send with transparency don't set folder as message is deleted
                     if (msg.transparent)
@@ -2137,7 +2137,7 @@ public class BluetoothMapContentObserver {
                         + " status: " + status);
             }
         }
-        if(res == false) {
+        if(!res) {
             Log.w(TAG, "Set delete status " + status + " failed.");
         }
         return res;
@@ -2546,7 +2546,7 @@ public class BluetoothMapContentObserver {
                      * then convert the MMS to type SMS and then proceed
                      */
                     if (msg.getType().equals(TYPE.MMS) &&
-                            (((BluetoothMapbMessageMime) msg).getTextOnly() == true)) {
+                            (((BluetoothMapbMessageMime) msg).getTextOnly())) {
                         msgBody = ((BluetoothMapbMessageMime) msg).getMessageAsText();
                         SmsManager smsMng = SmsManager.getDefault();
                         ArrayList<String> parts = smsMng.divideMessage(msgBody);
@@ -2754,7 +2754,7 @@ public class BluetoothMapContentObserver {
         values.put(Mms.TRANSACTION_ID, "T"+ Long.toHexString(System.currentTimeMillis()));
         values.put(Mms.DELIVERY_REPORT, PduHeaders.VALUE_NO);
         values.put(Mms.LOCKED, 0);
-        if(msg.getTextOnly() == true)
+        if(msg.getTextOnly())
             values.put(Mms.TEXT_ONLY, true);
         values.put(Mms.MESSAGE_SIZE, msg.getSize());
 
@@ -3105,7 +3105,7 @@ public class BluetoothMapContentObserver {
 
             msgInfo.sendInProgress = false;
 
-            if (msgInfo.failedSent == false) {
+            if (!msgInfo.failedSent) {
                 if(D) Log.d(TAG, "actionMessageSent: result OK");
                 if (msgInfo.transparent == 0) {
                     if (!Sms.moveMessageToFolder(context, msgInfo.uri,
@@ -3145,7 +3145,7 @@ public class BluetoothMapContentObserver {
                 }
             }
 
-            if (delete == true) {
+            if (delete) {
                 /* Delete from Observer message list to avoid delete notifications */
                 synchronized(getMsgListSms()) {
                     getMsgListSms().remove(msgInfo.id);
@@ -3394,8 +3394,8 @@ public class BluetoothMapContentObserver {
                     long id = c.getLong(c.getColumnIndex(Sms._ID));
                     String msgBody = c.getString(c.getColumnIndex(Sms.BODY));
                     PushMsgInfo msgInfo = mPushMsgList.get(id);
-                    if (msgInfo == null || msgInfo.resend == false ||
-                            msgInfo.sendInProgress == true) {
+                    if (msgInfo == null || !msgInfo.resend ||
+                        msgInfo.sendInProgress) {
                         continue;
                     }
                     msgInfo.sendInProgress = true;
@@ -3420,7 +3420,7 @@ public class BluetoothMapContentObserver {
                     long id = c.getLong(c.getColumnIndex(Sms._ID));
                     String msgBody = c.getString(c.getColumnIndex(Sms.BODY));
                     PushMsgInfo msgInfo = mPushMsgList.get(id);
-                    if (msgInfo == null || msgInfo.resend == false) {
+                    if (msgInfo == null || !msgInfo.resend) {
                         continue;
                     }
                     Sms.moveMessageToFolder(mContext, msgInfo.uri,
@@ -3489,7 +3489,7 @@ public class BluetoothMapContentObserver {
 
     public boolean handleMmsSendIntent(Context context, Intent intent){
         if(D) Log.w(TAG, "handleMmsSendIntent()");
-        if(mMnsClient.isConnected() == false) {
+        if(!mMnsClient.isConnected()) {
             // No need to handle notifications, just use default handling
             if(D) Log.w(TAG, "MNS not connected - use static handling");
             return false;
