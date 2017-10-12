@@ -396,7 +396,7 @@ public class PanService extends ProfileService {
         return panDevices;
     }
 
-    static protected class ConnectState {
+    protected static class ConnectState {
         public ConnectState(byte[] address, int state, int error, int local_role, int remote_role) {
             this.addr = address;
             this.state = state;
@@ -656,12 +656,12 @@ public class PanService extends ProfileService {
 
     // Constants matching Hal header file bt_hh.h
     // bthh_connection_state_t
-    private final static int CONN_STATE_CONNECTED = 0;
-    private final static int CONN_STATE_CONNECTING = 1;
-    private final static int CONN_STATE_DISCONNECTED = 2;
-    private final static int CONN_STATE_DISCONNECTING = 3;
+    private static final int CONN_STATE_CONNECTED = 0;
+    private static final int CONN_STATE_CONNECTING = 1;
+    private static final int CONN_STATE_DISCONNECTED = 2;
+    private static final int CONN_STATE_DISCONNECTING = 3;
 
-    private native static void classInitNative();
+    private static native void classInitNative();
     private native void initializeNative();
     private native void cleanupNative();
     private native boolean connectPanNative(byte[] btAddress, int local_role, int remote_role);

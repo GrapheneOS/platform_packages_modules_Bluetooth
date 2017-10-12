@@ -2261,7 +2261,7 @@ public class AdapterService extends Service {
         }
     };
 
-    private native static void classInitNative();
+    private static native void classInitNative();
     private native boolean initNative();
     private native void cleanupNative();
     /*package*/ native boolean enableNative(boolean startRestricted);

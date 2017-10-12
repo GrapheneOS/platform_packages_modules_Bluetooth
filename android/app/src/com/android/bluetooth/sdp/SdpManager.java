@@ -71,7 +71,7 @@ public class SdpManager {
         classInitNative();
     }
 
-    private native static void classInitNative();
+    private static native void classInitNative();
     private native void initializeNative();
     private native void cleanupNative();
     private native boolean sdpSearchNative(byte[] address, byte[] uuid);

@@ -259,7 +259,7 @@ public class BluetoothMapMasInstance implements IObexConnectionHandler {
         return combinedVersionCounter;
     }
 
-    synchronized public void startRfcommSocketListener() {
+    public synchronized void startRfcommSocketListener() {
         if (D) Log.d(TAG, "Map Service startRfcommSocketListener");
 
         if (mServerSession != null) {

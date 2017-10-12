@@ -51,7 +51,7 @@ public class BluetoothMapFolderElement implements Comparable<BluetoothMapFolderE
     private static final boolean D = BluetoothMapService.DEBUG;
     private static final boolean V = BluetoothMapService.VERBOSE;
 
-    private final static String TAG = "BluetoothMapFolderElement";
+    private static final String TAG = "BluetoothMapFolderElement";
 
     public BluetoothMapFolderElement( String name, BluetoothMapFolderElement parrent){
         this.mName = name;

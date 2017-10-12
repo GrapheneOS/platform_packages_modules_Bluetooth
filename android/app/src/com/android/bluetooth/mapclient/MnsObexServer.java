@@ -31,7 +31,7 @@ import javax.obex.ServerRequestHandler;
 
 class MnsObexServer extends ServerRequestHandler {
 
-    private final static String TAG = "MnsObexServer";
+    private static final String TAG = "MnsObexServer";
     private boolean VDBG = MapClientService.VDBG;
 
     private static final byte[] MNS_TARGET = new byte[]{
@@ -39,7 +39,7 @@ class MnsObexServer extends ServerRequestHandler {
             0x08, 0x00, 0x20, 0x0c, (byte) 0x9a, 0x66
     };
 
-    private final static String TYPE = "x-bt/MAP-event-report";
+    private static final String TYPE = "x-bt/MAP-event-report";
 
     private final WeakReference<MceStateMachine> mStateMachineReference;
     private final ObexServerSockets mObexServerSockets;
