@@ -53,7 +53,7 @@ abstract class BluetoothPbapRequest {
         mHeaderSet = new HeaderSet();
     }
 
-    final public boolean isSuccess() {
+    public final boolean isSuccess() {
         return (mResponseCode == ResponseCodes.OBEX_HTTP_OK);
     }
 

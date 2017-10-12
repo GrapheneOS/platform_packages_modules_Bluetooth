@@ -43,12 +43,12 @@ class MnsService {
     /* MNS features: Notification Feature */
     private static final int MNS_FEATURE_BITS = 0x0002;
     /* these are shared across instances */
-    static private SocketAcceptor mAcceptThread = null;
-    static private Handler mSessionHandler = null;
-    static private BluetoothServerSocket mServerSocket = null;
-    static private ObexServerSockets mServerSockets = null;
+    private static SocketAcceptor mAcceptThread = null;
+    private static Handler mSessionHandler = null;
+    private static BluetoothServerSocket mServerSocket = null;
+    private static ObexServerSockets mServerSockets = null;
 
-    static private MapClientService mContext;
+    private static MapClientService mContext;
     private volatile boolean mShutdown = false;         // Used to interrupt socket accept thread
 
     MnsService(MapClientService context) {
