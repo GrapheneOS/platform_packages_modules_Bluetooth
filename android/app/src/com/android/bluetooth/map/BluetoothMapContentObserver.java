@@ -2522,7 +2522,7 @@ public class BluetoothMapContentObserver {
                  * avoid sending a NewMessage Event. */
                 /*TODO: We need to add the new 1.1 parameter as well:-) e.g. read*/
                 Msg newMsg = new Msg(handle, folderId, 1); // TODO: Create define for read-state
-                newMsg.transparent = (transparent == 1) ? true : false;
+                newMsg.transparent = transparent == 1;
                 if ( folderId == folderElement.getFolderByName(
                         BluetoothMapContract.FOLDER_NAME_OUTBOX).getFolderId() ) {
                     newMsg.localInitiatedSend = true;
