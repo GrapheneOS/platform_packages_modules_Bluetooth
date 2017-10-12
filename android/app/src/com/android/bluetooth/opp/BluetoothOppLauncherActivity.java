@@ -192,7 +192,7 @@ public class BluetoothOppLauncherActivity extends Activity {
      * Turns on Bluetooth if not already on, or launches device picker if Bluetooth is on
      * @return
      */
-    private final void launchDevicePicker() {
+    private void launchDevicePicker() {
         // TODO: In the future, we may send intent to DevicePickerActivity
         // directly,
         // and let DevicePickerActivity to handle Bluetooth Enable.
@@ -217,7 +217,7 @@ public class BluetoothOppLauncherActivity extends Activity {
         }
     }
     /* Returns true if Bluetooth is allowed given current airplane mode settings. */
-    private final boolean isBluetoothAllowed() {
+    private boolean isBluetoothAllowed() {
         final ContentResolver resolver = this.getContentResolver();
 
         // Check if airplane mode is on
