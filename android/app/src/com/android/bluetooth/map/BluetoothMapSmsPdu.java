@@ -309,7 +309,7 @@ public class BluetoothMapSmsPdu {
 
             pdu.skip(gsmSubmitGetTpUdlOffset());
             int userDataLength = pdu.read();
-            if(gsmSubmitHasUserDataHeader() == true) {
+            if(gsmSubmitHasUserDataHeader()) {
                 int userDataHeaderLength = pdu.read();
 
                 // This part is only needed to extract the language info, hence only needed for 7 bit encoding

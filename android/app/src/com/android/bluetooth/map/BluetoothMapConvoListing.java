@@ -184,8 +184,7 @@ public class BluetoothMapConvoListing {
             }
             // Skip until we get a folder-listing tag
             String name = parser.getName();
-            if(name.trim().equalsIgnoreCase(BluetoothMapConvoListingElement.XML_TAG_CONVERSATION)
-                    == false) {
+            if(!name.trim().equalsIgnoreCase(BluetoothMapConvoListingElement.XML_TAG_CONVERSATION)) {
                 if(D) Log.i(TAG,"Unknown XML tag: " + name);
                 XmlUtils.skipCurrentTag(parser);
                 continue;

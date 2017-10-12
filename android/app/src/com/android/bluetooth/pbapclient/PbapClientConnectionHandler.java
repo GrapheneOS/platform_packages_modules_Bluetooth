@@ -212,7 +212,7 @@ class PbapClientConnectionHandler extends Handler {
             case MSG_DOWNLOAD:
                 try {
                     mAccountCreated = addAccount(mAccount);
-                    if (mAccountCreated == false) {
+                    if (!mAccountCreated) {
                         Log.e(TAG, "Account creation failed.");
                         return;
                     }

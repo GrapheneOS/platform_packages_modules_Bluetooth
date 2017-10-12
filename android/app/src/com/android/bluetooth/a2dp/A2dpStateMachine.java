@@ -883,7 +883,7 @@ final class A2dpStateMachine extends StateMachine {
         boolean ret = false;
         //check if this is an incoming connection in Quiet mode.
         if((adapterService == null) ||
-           ((adapterService.isQuietModeEnabled() == true) &&
+           ((adapterService.isQuietModeEnabled()) &&
            (mTargetDevice == null))){
             ret = false;
         }
