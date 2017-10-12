@@ -522,23 +522,23 @@ public class BluetoothMapbMessageMime extends BluetoothMapbMessage {
              */
             if(headerType.contains("FROM")) {
                 headerValue = BluetoothMapUtils.stripEncoding(headerValue);
-                Rfc822Token tokens[] = Rfc822Tokenizer.tokenize(headerValue);
+                Rfc822Token[] tokens = Rfc822Tokenizer.tokenize(headerValue);
                 from = new ArrayList<Rfc822Token>(Arrays.asList(tokens));
             } else if(headerType.contains("TO")) {
                 headerValue = BluetoothMapUtils.stripEncoding(headerValue);
-                Rfc822Token tokens[] = Rfc822Tokenizer.tokenize(headerValue);
+                Rfc822Token[] tokens = Rfc822Tokenizer.tokenize(headerValue);
                 to = new ArrayList<Rfc822Token>(Arrays.asList(tokens));
             } else if(headerType.contains("CC")) {
                 headerValue = BluetoothMapUtils.stripEncoding(headerValue);
-                Rfc822Token tokens[] = Rfc822Tokenizer.tokenize(headerValue);
+                Rfc822Token[] tokens = Rfc822Tokenizer.tokenize(headerValue);
                 cc = new ArrayList<Rfc822Token>(Arrays.asList(tokens));
             } else if(headerType.contains("BCC")) {
                 headerValue = BluetoothMapUtils.stripEncoding(headerValue);
-                Rfc822Token tokens[] = Rfc822Tokenizer.tokenize(headerValue);
+                Rfc822Token[] tokens = Rfc822Tokenizer.tokenize(headerValue);
                 bcc = new ArrayList<Rfc822Token>(Arrays.asList(tokens));
             } else if(headerType.contains("REPLY-TO")) {
                 headerValue = BluetoothMapUtils.stripEncoding(headerValue);
-                Rfc822Token tokens[] = Rfc822Tokenizer.tokenize(headerValue);
+                Rfc822Token[] tokens = Rfc822Tokenizer.tokenize(headerValue);
                 replyTo = new ArrayList<Rfc822Token>(Arrays.asList(tokens));
             } else if(headerType.contains("SUBJECT")) { // Other headers
                 subject = BluetoothMapUtils.stripEncoding(headerValue);
