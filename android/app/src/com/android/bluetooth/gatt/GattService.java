@@ -263,10 +263,9 @@ public class GattService extends ProfileService {
         for (BluetoothGattService service : db) {
             for (BluetoothGattCharacteristic characteristic : service.getCharacteristics()) {
                 if (handle == characteristic.getInstanceId()) {
-                    return !(
-                            (isRestrictedCharUuid(characteristic.getUuid()) || isRestrictedSrvcUuid(
-                                    service.getUuid())) && (0 != checkCallingOrSelfPermission(
-                                    BLUETOOTH_PRIVILEGED)));
+                    return !((isRestrictedCharUuid(characteristic.getUuid())
+                            || isRestrictedSrvcUuid(service.getUuid()))
+                            && (0 != checkCallingOrSelfPermission(BLUETOOTH_PRIVILEGED)));
                 }
 
                 for (BluetoothGattDescriptor descriptor : characteristic.getDescriptors()) {

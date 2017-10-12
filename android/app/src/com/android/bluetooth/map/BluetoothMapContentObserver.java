@@ -1922,8 +1922,9 @@ public class BluetoothMapContentObserver {
 
                     if (mMapEventReportVersion != BluetoothMapUtils.MAP_EVENT_REPORT_V10
                             && mMapEventReportVersion != BluetoothMapUtils.MAP_EVENT_REPORT_V11) {
-                        c = mProviderClient.query(mContactUri, BluetoothMapContract.
-                                BT_CONTACT_CHATSTATE_PRESENCE_PROJECTION, null, null, null);
+                        c = mProviderClient.query(mContactUri,
+                                BluetoothMapContract.BT_CONTACT_CHATSTATE_PRESENCE_PROJECTION,
+                                null, null, null);
                         cInfo.setConvoColunms(c);
                     } else {
                         if (V) {
@@ -2116,8 +2117,8 @@ public class BluetoothMapContentObserver {
 
         int updateCount = 0;
         ContentValues contentValues = new ContentValues();
-        BluetoothMapFolderElement deleteFolder = mFolders.
-                getFolderByName(BluetoothMapContract.FOLDER_NAME_DELETED);
+        BluetoothMapFolderElement deleteFolder =
+                mFolders.getFolderByName(BluetoothMapContract.FOLDER_NAME_DELETED);
         contentValues.put(BluetoothMapContract.MessageColumns._ID, handle);
         synchronized (getMsgListMsg()) {
             Msg msg = getMsgListMsg().get(handle);
@@ -2153,8 +2154,8 @@ public class BluetoothMapContentObserver {
                         && msg.folderId == deleteFolder.getFolderId()) {
                     /* Only modify messages in the 'Deleted' folder */
                     long folderId = -1;
-                    BluetoothMapFolderElement inboxFolder = mCurrentFolder.
-                            getFolderByName(BluetoothMapContract.FOLDER_NAME_INBOX);
+                    BluetoothMapFolderElement inboxFolder =
+                            mCurrentFolder.getFolderByName(BluetoothMapContract.FOLDER_NAME_INBOX);
                     if (msg != null && msg.oldFolderId != -1) {
                         folderId = msg.oldFolderId;
                     } else {

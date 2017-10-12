@@ -314,8 +314,9 @@ public class AvrcpControllerService extends ProfileService {
             return;
         }
         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
-        Message msg = mAvrcpCtSm.obtainMessage(AvrcpControllerStateMachine.
-                MESSAGE_SEND_GROUP_NAVIGATION_CMD, keyCode, keyState, device);
+        Message msg = mAvrcpCtSm.obtainMessage(
+                AvrcpControllerStateMachine.MESSAGE_SEND_GROUP_NAVIGATION_CMD,
+                keyCode, keyState, device);
         mAvrcpCtSm.sendMessage(msg);
     }
 
@@ -820,8 +821,9 @@ public class AvrcpControllerService extends ProfileService {
             Log.e(TAG, "handleRegisterNotificationAbsVol device not found " + address);
             return;
         }
-        Message msg = mAvrcpCtSm.obtainMessage(AvrcpControllerStateMachine.
-                MESSAGE_PROCESS_REGISTER_ABS_VOL_NOTIFICATION, (int) label, 0);
+        Message msg = mAvrcpCtSm.obtainMessage(
+                AvrcpControllerStateMachine.MESSAGE_PROCESS_REGISTER_ABS_VOL_NOTIFICATION,
+                (int) label, 0);
         mAvrcpCtSm.sendMessage(msg);
     }
 
@@ -859,8 +861,8 @@ public class AvrcpControllerService extends ProfileService {
         if (DBG) {
             Log.d(TAG, "onTrackChanged " + trackInfo);
         }
-        Message msg = mAvrcpCtSm.obtainMessage(AvrcpControllerStateMachine.
-                MESSAGE_PROCESS_TRACK_CHANGED, trackInfo);
+        Message msg = mAvrcpCtSm.obtainMessage(
+                AvrcpControllerStateMachine.MESSAGE_PROCESS_TRACK_CHANGED, trackInfo);
         mAvrcpCtSm.sendMessage(msg);
     }
 
@@ -875,8 +877,9 @@ public class AvrcpControllerService extends ProfileService {
             Log.e(TAG, "onPlayPositionChanged not found device not found " + address);
             return;
         }
-        Message msg = mAvrcpCtSm.obtainMessage(AvrcpControllerStateMachine.
-                MESSAGE_PROCESS_PLAY_POS_CHANGED, songLen, currSongPosition);
+        Message msg = mAvrcpCtSm.obtainMessage(
+                AvrcpControllerStateMachine.MESSAGE_PROCESS_PLAY_POS_CHANGED,
+                songLen, currSongPosition);
         mAvrcpCtSm.sendMessage(msg);
     }
 
@@ -910,8 +913,8 @@ public class AvrcpControllerService extends ProfileService {
             default:
                 playbackState = PlaybackState.STATE_NONE;
         }
-        Message msg = mAvrcpCtSm.obtainMessage(AvrcpControllerStateMachine.
-                MESSAGE_PROCESS_PLAY_STATUS_CHANGED, playbackState);
+        Message msg = mAvrcpCtSm.obtainMessage(
+                AvrcpControllerStateMachine.MESSAGE_PROCESS_PLAY_STATUS_CHANGED, playbackState);
         mAvrcpCtSm.sendMessage(msg);
     }
 
@@ -926,8 +929,8 @@ public class AvrcpControllerService extends ProfileService {
             Log.e(TAG, "handlePlayerAppSetting not found device not found " + address);
             return;
         }
-        PlayerApplicationSettings supportedSettings = PlayerApplicationSettings.
-                makeSupportedSettings(playerAttribRsp);
+        PlayerApplicationSettings supportedSettings =
+                PlayerApplicationSettings.makeSupportedSettings(playerAttribRsp);
         /* Do nothing */
     }
 
@@ -941,8 +944,8 @@ public class AvrcpControllerService extends ProfileService {
             Log.e(TAG, "onPlayerAppSettingChanged not found device not found " + address);
             return;
         }
-        PlayerApplicationSettings desiredSettings = PlayerApplicationSettings.
-                makeSettings(playerAttribRsp);
+        PlayerApplicationSettings desiredSettings =
+                PlayerApplicationSettings.makeSettings(playerAttribRsp);
         /* Do nothing */
     }
 
@@ -957,8 +960,8 @@ public class AvrcpControllerService extends ProfileService {
             Log.w(TAG, "Sending out of range message.");
             // Send a special message since this could be used by state machine
             // to take as a signal that fetch is finished.
-            Message msg = mAvrcpCtSm.obtainMessage(AvrcpControllerStateMachine.
-                    MESSAGE_PROCESS_GET_FOLDER_ITEMS_OUT_OF_RANGE);
+            Message msg = mAvrcpCtSm.obtainMessage(
+                    AvrcpControllerStateMachine.MESSAGE_PROCESS_GET_FOLDER_ITEMS_OUT_OF_RANGE);
             mAvrcpCtSm.sendMessage(msg);
             return;
         }
@@ -972,8 +975,8 @@ public class AvrcpControllerService extends ProfileService {
         for (MediaItem item : items) {
             itemsList.add(item);
         }
-        Message msg = mAvrcpCtSm.obtainMessage(AvrcpControllerStateMachine.
-                MESSAGE_PROCESS_GET_FOLDER_ITEMS, itemsList);
+        Message msg = mAvrcpCtSm.obtainMessage(
+                AvrcpControllerStateMachine.MESSAGE_PROCESS_GET_FOLDER_ITEMS, itemsList);
         mAvrcpCtSm.sendMessage(msg);
     }
 
@@ -991,8 +994,8 @@ public class AvrcpControllerService extends ProfileService {
             itemsList.add(p);
         }
 
-        Message msg = mAvrcpCtSm.obtainMessage(AvrcpControllerStateMachine.
-                MESSAGE_PROCESS_GET_PLAYER_ITEMS, itemsList);
+        Message msg = mAvrcpCtSm.obtainMessage(
+                AvrcpControllerStateMachine.MESSAGE_PROCESS_GET_PLAYER_ITEMS, itemsList);
         mAvrcpCtSm.sendMessage(msg);
     }
 

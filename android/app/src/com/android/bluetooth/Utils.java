@@ -301,15 +301,15 @@ public final class Utils {
      */
     public static boolean checkCallerHasLocationPermission(Context context, AppOpsManager appOps,
             String callingPackage) {
-        if (context.checkCallingOrSelfPermission(android.Manifest.permission.
-                ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED && isAppOppAllowed(
-                appOps, AppOpsManager.OP_FINE_LOCATION, callingPackage)) {
+        if (context.checkCallingOrSelfPermission(android.Manifest.permission.ACCESS_FINE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED && isAppOppAllowed(
+                        appOps, AppOpsManager.OP_FINE_LOCATION, callingPackage)) {
             return true;
         }
 
-        if (context.checkCallingOrSelfPermission(android.Manifest.permission.
-                ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED && isAppOppAllowed(
-                appOps, AppOpsManager.OP_COARSE_LOCATION, callingPackage)) {
+        if (context.checkCallingOrSelfPermission(android.Manifest.permission.ACCESS_COARSE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED && isAppOppAllowed(
+                        appOps, AppOpsManager.OP_COARSE_LOCATION, callingPackage)) {
             return true;
         }
         // Enforce location permission for apps targeting M and later versions

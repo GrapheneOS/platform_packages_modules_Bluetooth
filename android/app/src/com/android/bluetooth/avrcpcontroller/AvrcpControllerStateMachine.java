@@ -420,8 +420,8 @@ class AvrcpControllerStateMachine extends StateMachine {
                     case MESSAGE_PROCESS_TRACK_CHANGED:
                         mAddressedPlayer.updateCurrentTrack((TrackInfo) msg.obj);
                         if (mBroadcastMetadata) {
-                            broadcastMetaDataChanged(mAddressedPlayer.getCurrentTrack().
-                                    getMediaMetaData());
+                            broadcastMetaDataChanged(
+                                    mAddressedPlayer.getCurrentTrack().getMediaMetaData());
                         }
                         break;
 
@@ -1133,23 +1133,23 @@ class AvrcpControllerStateMachine extends StateMachine {
         }
         if ((supportedSetting & BluetoothAvrcpPlayerSettings.SETTING_EQUALIZER) != 0) {
             sb.append(" EQ : ");
-            sb.append(Integer.toString(mSett.getSettingValue(BluetoothAvrcpPlayerSettings.
-                    SETTING_EQUALIZER)));
+            sb.append(Integer.toString(mSett.getSettingValue(
+                    BluetoothAvrcpPlayerSettings.SETTING_EQUALIZER)));
         }
         if ((supportedSetting & BluetoothAvrcpPlayerSettings.SETTING_REPEAT) != 0) {
             sb.append(" REPEAT : ");
-            sb.append(Integer.toString(mSett.getSettingValue(BluetoothAvrcpPlayerSettings.
-                    SETTING_REPEAT)));
+            sb.append(Integer.toString(mSett.getSettingValue(
+                    BluetoothAvrcpPlayerSettings.SETTING_REPEAT)));
         }
         if ((supportedSetting & BluetoothAvrcpPlayerSettings.SETTING_SHUFFLE) != 0) {
             sb.append(" SHUFFLE : ");
-            sb.append(Integer.toString(mSett.getSettingValue(BluetoothAvrcpPlayerSettings.
-                    SETTING_SHUFFLE)));
+            sb.append(Integer.toString(mSett.getSettingValue(
+                    BluetoothAvrcpPlayerSettings.SETTING_SHUFFLE)));
         }
         if ((supportedSetting & BluetoothAvrcpPlayerSettings.SETTING_SCAN) != 0) {
             sb.append(" SCAN : ");
-            sb.append(Integer.toString(mSett.getSettingValue(BluetoothAvrcpPlayerSettings.
-                    SETTING_SCAN)));
+            sb.append(Integer.toString(mSett.getSettingValue(
+                    BluetoothAvrcpPlayerSettings.SETTING_SCAN)));
         }
         return sb.toString();
     }

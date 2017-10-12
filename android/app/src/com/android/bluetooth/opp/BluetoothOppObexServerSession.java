@@ -203,8 +203,8 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler
         } else {
             destination = "FF:FF:FF:00:00:00";
         }
-        boolean isWhitelisted = BluetoothOppManager.getInstance(mContext).
-                isWhitelisted(destination);
+        boolean isWhitelisted =
+                BluetoothOppManager.getInstance(mContext).isWhitelisted(destination);
 
         try {
             boolean preReject = false;
@@ -615,8 +615,8 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler
         } else {
             destination = "FF:FF:FF:00:00:00";
         }
-        boolean isHandover = BluetoothOppManager.getInstance(mContext).
-                isWhitelisted(destination);
+        boolean isHandover =
+                BluetoothOppManager.getInstance(mContext).isWhitelisted(destination);
         if (isHandover) {
             // Notify the handover requester file transfer has started
             Intent intent = new Intent(Constants.ACTION_HANDOVER_STARTED);
