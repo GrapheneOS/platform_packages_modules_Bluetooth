@@ -179,6 +179,7 @@ class BluetoothOppNotification {
     // 4. Handler checks if there are any more updates after 1 second.
     // 5. If there is an update, update it else stop.
     private Handler mHandler = new Handler() {
+        @Override
         public void handleMessage(Message msg) {
             switch (msg.what) {
                 case NOTIFY:

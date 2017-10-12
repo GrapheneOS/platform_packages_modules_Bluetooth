@@ -56,6 +56,7 @@ class AvrcpCmd {
             this.mAttrIDs = attrIds;
         }
 
+        @Override
         public String toString() {
             StringBuilder sb = new StringBuilder();
             sb.append("[FolderItemCmd: scope " + mScope);
@@ -88,6 +89,7 @@ class AvrcpCmd {
             mAttrIDs = attrIDs;
         }
 
+        @Override
         public String toString() {
             StringBuilder sb = new StringBuilder();
             sb.append("[ItemAttrCmd: scope " + mScope);

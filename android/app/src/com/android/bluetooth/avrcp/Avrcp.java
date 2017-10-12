@@ -220,6 +220,7 @@ public final class Avrcp {
             return true;
         }
 
+        @Override
         public String toString() {
             StringBuilder sb = new StringBuilder();
             sb.append(android.text.format.DateFormat.format("MM-dd HH:mm:ss", mTimeSent));
@@ -1001,6 +1002,7 @@ public final class Avrcp {
             return s == null ? new String() : s.toString();
         }
 
+        @Override
         public String toString() {
             if (!exists) {
                 return "[MediaAttributes: none]";
@@ -2500,12 +2502,14 @@ public final class Avrcp {
     private class AvrcpMediaRsp implements AvrcpMediaRspInterface {
         private static final String TAG = "AvrcpMediaRsp";
 
+        @Override
         public void setAddrPlayerRsp(byte[] address, int rspStatus) {
             if (!setAddressedPlayerRspNative(address, rspStatus)) {
                 Log.e(TAG, "setAddrPlayerRsp failed!");
             }
         }
 
+        @Override
         public void setBrowsedPlayerRsp(byte[] address, int rspStatus, byte depth, int numItems,
                 String[] textArray) {
             if (!setBrowsedPlayerRspNative(address, rspStatus, depth, numItems, textArray)) {
@@ -2513,6 +2517,7 @@ public final class Avrcp {
             }
         }
 
+        @Override
         public void mediaPlayerListRsp(byte[] address, int rspStatus, MediaPlayerListRsp rspObj) {
             if (rspObj != null && rspStatus == AvrcpConstants.RSP_NO_ERROR) {
                 if (!mediaPlayerListRspNative(address, rspStatus, sUIDCounter, rspObj.itemType,
@@ -2528,6 +2533,7 @@ public final class Avrcp {
             }
         }
 
+        @Override
         public void folderItemsRsp(byte[] address, int rspStatus, FolderItemsRsp rspObj) {
             if (rspObj != null && rspStatus == AvrcpConstants.RSP_NO_ERROR) {
                 if (!getFolderItemsRspNative(address, rspStatus, sUIDCounter, rspObj.mScope,
@@ -2544,11 +2550,13 @@ public final class Avrcp {
 
         }
 
+        @Override
         public void changePathRsp(byte[] address, int rspStatus, int numItems) {
             if (!changePathRspNative(address, rspStatus, numItems))
                 Log.e(TAG, "changePathRspNative failed!");
         }
 
+        @Override
         public void getItemAttrRsp(byte[] address, int rspStatus, ItemAttrRsp rspObj) {
             if (rspObj != null && rspStatus == AvrcpConstants.RSP_NO_ERROR) {
                 if (!getItemAttrRspNative(address, rspStatus, rspObj.mNumAttr,
@@ -2561,12 +2569,14 @@ public final class Avrcp {
             }
         }
 
+        @Override
         public void playItemRsp(byte[] address, int rspStatus) {
             if (!playItemRspNative(address, rspStatus)) {
                 Log.e(TAG, "playItemRspNative failed!");
             }
         }
 
+        @Override
         public void getTotalNumOfItemsRsp(byte[] address, int rspStatus, int uidCounter,
                 int numItems) {
             if (!getTotalNumOfItemsRspNative(address, rspStatus, sUIDCounter, numItems)) {
@@ -2574,24 +2584,28 @@ public final class Avrcp {
             }
         }
 
+        @Override
         public void addrPlayerChangedRsp(int type, int playerId, int uidCounter) {
             if (!registerNotificationRspAddrPlayerChangedNative(type, playerId, sUIDCounter)) {
                 Log.e(TAG, "registerNotificationRspAddrPlayerChangedNative failed!");
             }
         }
 
+        @Override
         public void avalPlayerChangedRsp(byte[] address, int type) {
             if (!registerNotificationRspAvalPlayerChangedNative(type)) {
                 Log.e(TAG, "registerNotificationRspAvalPlayerChangedNative failed!");
             }
         }
 
+        @Override
         public void uidsChangedRsp(int type) {
             if (!registerNotificationRspUIDsChangedNative(type, sUIDCounter)) {
                 Log.e(TAG, "registerNotificationRspUIDsChangedNative failed!");
             }
         }
 
+        @Override
         public void nowPlayingChangedRsp(int type) {
             if (mNowPlayingListChangedNT != AvrcpConstants.NOTIFICATION_TYPE_INTERIM) {
                 if (DEBUG) Log.d(TAG, "NowPlayingListChanged: Not registered or requesting.");
@@ -2604,6 +2618,7 @@ public final class Avrcp {
             mNowPlayingListChangedNT = AvrcpConstants.NOTIFICATION_TYPE_CHANGED;
         }
 
+        @Override
         public void trackChangedRsp(int type, byte[] uid) {
             if (!registerNotificationRspTrackChangeNative(type, uid)) {
                 Log.e(TAG, "registerNotificationRspTrackChangeNative failed!");

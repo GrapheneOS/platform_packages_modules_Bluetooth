@@ -169,6 +169,7 @@ public class BluetoothOppService extends ProfileService implements IObexConnecti
 
         final ContentResolver contentResolver = getContentResolver();
         new Thread("trimDatabase") {
+            @Override
             public void run() {
                 trimDatabase(contentResolver);
             }
@@ -1027,11 +1028,13 @@ public class BluetoothOppService extends ProfileService implements IObexConnecti
             mConnection.connect();
         }
 
+        @Override
         public void onMediaScannerConnected() {
             if (V) Log.v(TAG, "MediaScannerConnection onMediaScannerConnected");
             mConnection.scanFile(mInfo.mFilename, mInfo.mMimetype);
         }
 
+        @Override
         public void onScanCompleted(String path, Uri uri) {
             try {
                 if (V) {

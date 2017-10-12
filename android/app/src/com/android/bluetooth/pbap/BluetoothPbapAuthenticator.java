@@ -88,6 +88,7 @@ public class BluetoothPbapAuthenticator implements Authenticator {
         }
     }
 
+    @Override
     public PasswordAuthentication onAuthenticationChallenge(final String description,
             final boolean isUserIdRequired, final boolean isFullAccess) {
         waitUserConfirmation();
@@ -99,6 +100,7 @@ public class BluetoothPbapAuthenticator implements Authenticator {
     }
 
     // TODO: Reserved for future use only, in case PSE challenge PCE
+    @Override
     public byte[] onAuthenticationResponse(final byte[] userName) {
         byte[] b = null;
         return b;

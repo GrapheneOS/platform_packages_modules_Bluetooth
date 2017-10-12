@@ -209,14 +209,17 @@ public class AvrcpControllerService extends ProfileService {
         initNative();
     }
 
+    @Override
     protected String getName() {
         return TAG;
     }
 
+    @Override
     protected IProfileServiceBinder initBinder() {
         return new BluetoothAvrcpControllerBinder(this);
     }
 
+    @Override
     protected boolean start() {
         HandlerThread thread = new HandlerThread("BluetoothAvrcpHandler");
         thread.start();
@@ -227,6 +230,7 @@ public class AvrcpControllerService extends ProfileService {
         return true;
     }
 
+    @Override
     protected boolean stop() {
         if (mAvrcpCtSm != null) {
             mAvrcpCtSm.doQuit();
@@ -659,6 +663,7 @@ public class AvrcpControllerService extends ProfileService {
             mService = svc;
         }
 
+        @Override
         public boolean cleanup() {
             mService = null;
             return true;

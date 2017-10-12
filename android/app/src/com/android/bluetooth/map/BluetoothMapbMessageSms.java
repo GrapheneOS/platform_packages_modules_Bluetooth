@@ -68,6 +68,7 @@ public class BluetoothMapbMessageSms extends BluetoothMapbMessage {
         mSmsBody = "";
     }
 
+    @Override
     public byte[] encode() throws UnsupportedEncodingException
     {
         ArrayList<byte[]> bodyFragments = new ArrayList<byte[]>();
