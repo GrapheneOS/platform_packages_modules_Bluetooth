@@ -233,7 +233,7 @@ public class BluetoothMnsObexClient {
             /* Connect if we do not have a connection, and start the content observers providing
              * this thread as Handler.
              */
-            if (isConnected() == false) {
+            if (!isConnected()) {
                 if(D) Log.d(TAG, "handleRegistration: connect");
                 connect();
             }

@@ -2508,13 +2508,13 @@ public class BluetoothMapContent {
         try {
             if (smsSelected(fi, ap) || mmsSelected(ap)) {
                 String limit = "";
-                if((sizeOnly == false) && (ap.getMaxListCount()>0) &&
+                if((!sizeOnly) && (ap.getMaxListCount()>0) &&
                         (ap.getFilterRecipient()==null)){
                     /* We can only use limit if we do not have a contacts filter */
                     limit=" LIMIT " + maxThreads;
                 }
                 StringBuilder sortOrder = new StringBuilder(Threads.DATE + " DESC");
-                if((sizeOnly == false) &&
+                if((!sizeOnly) &&
                         ((msgTypesInclude & ~(BluetoothMapAppParams.FILTER_NO_SMS_GSM |
                         BluetoothMapAppParams.FILTER_NO_SMS_CDMA) |
                         BluetoothMapAppParams.FILTER_NO_MMS) == 0)
@@ -2554,7 +2554,7 @@ public class BluetoothMapContent {
                             convoElement = createConvoElement(smsMmsCursor, fi, ap);
                             convoList.add(convoElement);
                             count++;
-                            if(sizeOnly == false && count >= maxThreads) {
+                            if(!sizeOnly && count >= maxThreads) {
                                 break;
                             }
                         }
@@ -2573,7 +2573,7 @@ public class BluetoothMapContent {
                             if(addSmsMmsContacts(convoElement, contacts, idsStr,
                                     ap.getFilterRecipient(), ap)) {
                                 convoList.add(convoElement);
-                                if(sizeOnly == false && count >= maxThreads) {
+                                if(!sizeOnly && count >= maxThreads) {
                                     break;
                                 }
                             }
@@ -2608,7 +2608,7 @@ public class BluetoothMapContent {
                     boolean isValid = imEmailCursor.moveToNext();
                     if(D) Log.d(TAG, "Found " + imEmailCursor.getCount()
                             + " EMAIL/IM conversations. isValid = " + isValid);
-                    while (isValid && ((sizeOnly == true) || (count < maxThreads))) {
+                    while (isValid && ((sizeOnly) || (count < maxThreads))) {
                         long threadId = imEmailCursor.getLong(fi.mConvoColConvoId);
                         long nextThreadId;
                         count ++;
@@ -2622,7 +2622,7 @@ public class BluetoothMapContent {
                             // TODO: This seems rather inefficient in the case where we do not need
                             //       to reduce the list.
                         } while ((nextThreadId == threadId) &&
-                                (isValid = imEmailCursor.moveToNext() == true));
+                                (isValid = imEmailCursor.moveToNext()));
                     }
                 }
             }
@@ -2852,7 +2852,7 @@ public class BluetoothMapContent {
                             if(V) Log.i(TAG, "  threadId = " + id + " newThreadId = " +
                                     nextThreadId);
                         } while ((nextThreadId == id) &&
-                                (isValid = imEmailCursor.moveToNext() == true));
+                                (isValid = imEmailCursor.moveToNext()));
 
                         if(convoChanged) {
                             listChangeDetected = true;
@@ -3113,7 +3113,7 @@ public class BluetoothMapContent {
                     c.setName(tmpCursor.getString(fi.mContactColName));
                 }
                 ele.addContact(c);
-            } while (tmpCursor.moveToNext() == true
+            } while (tmpCursor.moveToNext()
                     && tmpCursor.getLong(fi.mConvoColConvoId) == threadId);
         }
     }
@@ -3231,7 +3231,7 @@ public class BluetoothMapContent {
             }
         }
 
-        if(foundContact == true) {
+        if(foundContact) {
             foundContact = false;
             for (long id : longIds) {
                 String addr = contacts.getPhoneNumber(mResolver, id);
@@ -3378,7 +3378,7 @@ public class BluetoothMapContent {
             }
         }
 
-        if (incoming == true) {
+        if (incoming) {
             if(V) Log.d(TAG, "Adding originator for phone:" + phone);
             // Use version 3.0 as we only have a formatted name
             message.addOriginator(contactName, contactName, phoneNumbers, emailAddresses,null,null);
@@ -3782,9 +3782,9 @@ public class BluetoothMapContent {
                                    +  " - send compete message" );
                        }
                        // Check if message is complete and if not - request message from server
-                       if (c.getString(c.getColumnIndex(
-                               BluetoothMapContract.MessageColumns.RECEPTION_STATE)).equalsIgnoreCase(
-                                       BluetoothMapContract.RECEPTION_STATE_COMPLETE) == false)  {
+                       if (!c.getString(c.getColumnIndex(
+                           BluetoothMapContract.MessageColumns.RECEPTION_STATE)).equalsIgnoreCase(
+                           BluetoothMapContract.RECEPTION_STATE_COMPLETE))  {
                            // TODO: request message from server
                            Log.w(TAG, "getEmailMessage - receptionState not COMPLETE -  Not Implemented!" );
                        }

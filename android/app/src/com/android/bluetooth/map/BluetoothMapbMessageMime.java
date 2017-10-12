@@ -396,7 +396,7 @@ public class BluetoothMapbMessageMime extends BluetoothMapbMessage {
             encodeHeaderAddresses(sb, "Bcc: ", bcc); // This includes folding if needed.
         if(replyTo != null)
             encodeHeaderAddresses(sb, "Reply-To: ", replyTo); // This includes folding if needed.
-        if(includeAttachments == true)
+        if(includeAttachments)
         {
             if(messageId != null)
                 sb.append("Message-Id: ").append(messageId).append("\r\n");
@@ -453,7 +453,7 @@ public class BluetoothMapbMessageMime extends BluetoothMapbMessage {
 
         encodeHeaders(sb);
         if(parts != null) {
-            if(getIncludeAttachments() == false) {
+            if(!getIncludeAttachments()) {
                 for(MimePart part : parts) {
                     /* We call encode on all parts, to include a tag,
                      * where an attachment is missing. */
