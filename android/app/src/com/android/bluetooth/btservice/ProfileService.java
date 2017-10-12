@@ -41,8 +41,8 @@ public abstract class ProfileService extends Service {
     public static final String BLUETOOTH_PRIVILEGED =
         android.Manifest.permission.BLUETOOTH_PRIVILEGED;
 
-    public static interface IProfileServiceBinder extends IBinder {
-        public boolean cleanup();
+    public interface IProfileServiceBinder extends IBinder {
+        boolean cleanup();
     }
     //Profile services will not be automatically restarted.
     //They must be explicitly restarted by AdapterService

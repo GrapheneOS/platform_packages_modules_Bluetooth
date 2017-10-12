@@ -125,8 +125,8 @@ public abstract class BluetoothMapEmailProvider extends ContentProvider {
          * @param opts Options supplied by caller.
          * @param args Your own custom arguments.
          */
-        public void readDataFromPipe(ParcelFileDescriptor input, Uri uri, String mimeType,
-                Bundle opts, T args);
+        void readDataFromPipe(ParcelFileDescriptor input, Uri uri, String mimeType, Bundle opts,
+                T args);
     }
 
     public class PipeReader implements PipeDataReader<Cursor> {

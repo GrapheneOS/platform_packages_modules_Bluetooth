@@ -83,18 +83,18 @@ public class BluetoothOppBatch {
          * Called to notify when a share is added into the batch
          * @param id , BluetoothOppShareInfo.id
          */
-        public void onShareAdded(int id);
+        void onShareAdded(int id);
 
         /**
          * Called to notify when a share is deleted from the batch
          * @param id , BluetoothOppShareInfo.id
          */
-        public void onShareDeleted(int id);
+        void onShareDeleted(int id);
 
         /**
          * Called to notify when the batch is canceled
          */
-        public void onBatchCanceled();
+        void onBatchCanceled();
     }
 
     /**
