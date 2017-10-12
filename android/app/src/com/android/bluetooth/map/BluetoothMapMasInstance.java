@@ -420,7 +420,7 @@ public class BluetoothMapMasInstance implements IObexConnectionHandler {
     }
 
 
-    private final synchronized void closeServerSockets(boolean block) {
+    private synchronized void closeServerSockets(boolean block) {
         // exit SocketAcceptThread early
         ObexServerSockets sockets = mServerSockets;
         if (sockets != null) {
@@ -429,7 +429,7 @@ public class BluetoothMapMasInstance implements IObexConnectionHandler {
         }
     }
 
-    private final synchronized void closeConnectionSocket() {
+    private synchronized void closeConnectionSocket() {
         if (mConnSocket != null) {
             try {
                 mConnSocket.close();

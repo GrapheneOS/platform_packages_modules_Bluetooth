@@ -195,7 +195,7 @@ public class BluetoothPbapCallLogComposer {
      * Format according to RFC 2445 DATETIME type.
      * The format is: ("%Y%m%dT%H%M%S").
      */
-    private final String toRfc2455Format(final long millSecs) {
+    private String toRfc2455Format(final long millSecs) {
         Time startDate = new Time();
         startDate.set(millSecs);
         return startDate.format2445();
