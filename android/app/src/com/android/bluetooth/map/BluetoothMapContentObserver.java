@@ -2475,7 +2475,7 @@ public class BluetoothMapContentObserver {
             if (V) {
                 int length = msgBody.length();
                 Log.v(TAG, "pushMessage: message string length = " + length);
-                String messages[] = msgBody.split("\r\n");
+                String[] messages = msgBody.split("\r\n");
                 Log.v(TAG, "pushMessage: messages count=" + messages.length);
                 for(int i = 0; i < messages.length; i++) {
                     Log.v(TAG, "part " + i + ":" + messages[i]);

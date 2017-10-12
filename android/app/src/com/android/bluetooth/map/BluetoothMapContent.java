@@ -807,7 +807,7 @@ public class BluetoothMapContent {
 
         StringBuilder sb = new StringBuilder();
         if (toAddress != null) {
-            Rfc822Token tokens[] = Rfc822Tokenizer.tokenize(toAddress);
+            Rfc822Token[] tokens = Rfc822Tokenizer.tokenize(toAddress);
             if (tokens.length != 0) {
                 if(D) Log.d(TAG, "toName count= " + tokens.length);
                 int i = 0;
@@ -827,7 +827,7 @@ public class BluetoothMapContent {
             }
         }
         if (ccAddress != null) {
-            Rfc822Token tokens[] = Rfc822Tokenizer.tokenize(ccAddress);
+            Rfc822Token[] tokens = Rfc822Tokenizer.tokenize(ccAddress);
             if (tokens.length != 0) {
                 if(D) Log.d(TAG, "ccName count= " + tokens.length);
                 int i = 0;
@@ -846,7 +846,7 @@ public class BluetoothMapContent {
             }
         }
         if (bccAddress != null) {
-            Rfc822Token tokens[] = Rfc822Tokenizer.tokenize(bccAddress);
+            Rfc822Token[] tokens = Rfc822Tokenizer.tokenize(bccAddress);
             if (tokens.length != 0) {
                 if(D) Log.d(TAG, "bccName count= " + tokens.length);
                 int i = 0;
@@ -874,7 +874,7 @@ public class BluetoothMapContent {
 
         StringBuilder sb = new StringBuilder();
         if (toAddress != null) {
-            Rfc822Token tokens[] = Rfc822Tokenizer.tokenize(toAddress);
+            Rfc822Token[] tokens = Rfc822Tokenizer.tokenize(toAddress);
             if (tokens.length != 0) {
                 if(D) Log.d(TAG, "toAddress count= " + tokens.length);
                 int i = 0;
@@ -894,7 +894,7 @@ public class BluetoothMapContent {
             }
         }
         if (ccAddress != null) {
-            Rfc822Token tokens[] = Rfc822Tokenizer.tokenize(ccAddress);
+            Rfc822Token[] tokens = Rfc822Tokenizer.tokenize(ccAddress);
             if (tokens.length != 0) {
                 if(D) Log.d(TAG, "ccAddress count= " + tokens.length);
                 int i = 0;
@@ -913,7 +913,7 @@ public class BluetoothMapContent {
             }
         }
         if (bccAddress != null) {
-            Rfc822Token tokens[] = Rfc822Tokenizer.tokenize(bccAddress);
+            Rfc822Token[] tokens = Rfc822Tokenizer.tokenize(bccAddress);
             if (tokens.length != 0) {
                 if(D) Log.d(TAG, "bccAddress count= " + tokens.length);
                 int i = 0;
@@ -1040,7 +1040,7 @@ public class BluetoothMapContent {
             } else if (fi.mMsgType == FilterInfo.TYPE_EMAIL/* ||
                        fi.mMsgType == FilterInfo.TYPE_IM*/) {
                 String nameEmail = c.getString(fi.mMessageColFromAddress);
-                Rfc822Token tokens[] = Rfc822Tokenizer.tokenize(nameEmail);
+                Rfc822Token[] tokens = Rfc822Tokenizer.tokenize(nameEmail);
                 if (tokens.length != 0) {
                     if(D) Log.d(TAG, "Originator count= " + tokens.length);
                     int i = 0;
@@ -1111,7 +1111,7 @@ public class BluetoothMapContent {
             } else if (fi.mMsgType == FilterInfo.TYPE_EMAIL/*  ||
                        fi.mMsgType == FilterInfo.TYPE_IM*/) {
                 String nameEmail = c.getString(fi.mMessageColFromAddress);
-                Rfc822Token tokens[] = Rfc822Tokenizer.tokenize(nameEmail);
+                Rfc822Token[] tokens = Rfc822Tokenizer.tokenize(nameEmail);
                 if (tokens.length != 0) {
                     if(D) Log.d(TAG, "Originator count= " + tokens.length);
                     int i = 0;
@@ -1360,7 +1360,7 @@ public class BluetoothMapContent {
         }
         if (V) Log.v(TAG, "recipientIds with spaces: "+ recipientIds +"\n");
         if(recipientIds != null) {
-            String recipients[] = null;
+            String[] recipients = null;
             whereClause = "";
             recipients = recipientIds.split(" ");
             for (String id: recipients) {
@@ -3809,7 +3809,7 @@ public class BluetoothMapContent {
                    // Set recipient:
                    String nameEmail = c.getString(
                                        c.getColumnIndex(BluetoothMapContract.MessageColumns.TO_LIST));
-                   Rfc822Token tokens[] = Rfc822Tokenizer.tokenize(nameEmail);
+                   Rfc822Token[] tokens = Rfc822Tokenizer.tokenize(nameEmail);
                    if (tokens.length != 0) {
                        if(D) Log.d(TAG, "Recipient count= " + tokens.length);
                        int i = 0;
@@ -3971,13 +3971,13 @@ public class BluetoothMapContent {
                if(contacts != null && contacts.moveToFirst()){
                    String name = contacts.getString(contacts.getColumnIndex(
                            BluetoothMapContract.ConvoContactColumns.NAME));
-                   String btUid[] = new String[1];
+                   String[] btUid = new String[1];
                    btUid[0]= contacts.getString(contacts.getColumnIndex(
                            BluetoothMapContract.ConvoContactColumns.X_BT_UID));
                    String nickname = contacts.getString(contacts.getColumnIndex(
                            BluetoothMapContract.ConvoContactColumns.NICKNAME));
-                   String btUci[] = new String[1];
-                   String btOwnUci[] = new String[1];
+                   String[] btUci = new String[1];
+                   String[] btOwnUci = new String[1];
                    btOwnUci[0] = mAccount.getUciFull();
                    btUci[0] = contacts.getString(contacts.getColumnIndex(
                            BluetoothMapContract.ConvoContactColumns.UCI));

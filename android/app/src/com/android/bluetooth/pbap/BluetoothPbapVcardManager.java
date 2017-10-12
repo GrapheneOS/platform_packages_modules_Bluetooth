@@ -934,7 +934,7 @@ public class BluetoothPbapVcardManager {
     }
 
     public String StripTelephoneNumber (String vCard){
-        String attr [] = vCard.split(System.getProperty("line.separator"));
+        String[] attr = vCard.split(System.getProperty("line.separator"));
         String Vcard = "";
             for (int i=0; i < attr.length; i++) {
                 if(attr[i].startsWith("TEL")) {
@@ -1062,7 +1062,7 @@ public class BluetoothPbapVcardManager {
 
         public String apply(String vCard, boolean vCardType21){
             if (filter == null) return vCard;
-            String lines[] = vCard.split(SEPARATOR);
+            String[] lines = vCard.split(SEPARATOR);
             StringBuilder filteredVCard = new StringBuilder();
             boolean filteredIn = false;
 
@@ -1146,7 +1146,7 @@ public class BluetoothPbapVcardManager {
         }
 
         private boolean checkprop(String vcard, String prop) {
-            String lines[] = vcard.split(SEPARATOR);
+            String[] lines = vcard.split(SEPARATOR);
             boolean isPresent = false;
             for (String line : lines) {
                 if (!Character.isWhitespace(line.charAt(0)) && !line.startsWith("=")) {
@@ -1191,7 +1191,7 @@ public class BluetoothPbapVcardManager {
         }
 
         private String getName(String vcard) {
-            String lines[] = vcard.split(SEPARATOR);
+            String[] lines = vcard.split(SEPARATOR);
             String name = "";
             for (String line : lines) {
                 if (!Character.isWhitespace(line.charAt(0)) && !line.startsWith("=")) {
