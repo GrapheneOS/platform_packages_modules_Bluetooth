@@ -3594,7 +3594,6 @@ public class BluetoothMapContent {
                         Log.d(TAG,"extractMmsParts",e);
                         part.mData = null;
                         part.mCharsetName = null;
-                    } finally {
                     }
                     part.mFileName = filename;
                 } while(c.moveToNext());
@@ -3664,7 +3663,6 @@ public class BluetoothMapContent {
                         Log.d(TAG,"extractIMParts",e);
                         part.mData = null;
                         part.mCharsetName = null;
-                    } finally {
                     }
                     part.mFileName = filename;
                 } while(c.moveToNext());
