@@ -351,7 +351,7 @@ public class HfpClientConnectionService extends ConnectionService {
 
     public static boolean hasHfpClientEcc(BluetoothHeadsetClient client, BluetoothDevice device) {
         Bundle features = client.getCurrentAgEvents(device);
-        return features == null ? false :
-                features.getBoolean(BluetoothHeadsetClient.EXTRA_AG_FEATURE_ECC, false);
+        return features != null && features.getBoolean(BluetoothHeadsetClient.EXTRA_AG_FEATURE_ECC,
+                false);
     }
 }
