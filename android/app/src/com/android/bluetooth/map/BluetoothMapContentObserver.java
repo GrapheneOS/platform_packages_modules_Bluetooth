@@ -75,6 +75,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 import javax.obex.ResponseCodes;
@@ -1117,62 +1118,62 @@ public class BluetoothMapContentObserver {
         /* This should have been a switch on the string, but it is not allowed in Java 1.6 */
         /* WARNING: Here we do pointer compare for the string to speed up things, that is.
          * HENCE: always use the EVENT_TYPE_"defines" */
-        if(evt.eventType == EVENT_TYPE_NEW) {
+        if(Objects.equals(evt.eventType, EVENT_TYPE_NEW)) {
             if(!sendEventNewMessage(eventFilter)) {
                 if(D)Log.d(TAG, "Skip sending event of type: " + evt.eventType);
                 return;
             }
-        } else if(evt.eventType == EVENT_TYPE_DELETE) {
+        } else if(Objects.equals(evt.eventType, EVENT_TYPE_DELETE)) {
             if(!sendEventMessageDeleted(eventFilter)) {
                 if(D)Log.d(TAG, "Skip sending event of type: " + evt.eventType);
                 return;
             }
-        } else if(evt.eventType == EVENT_TYPE_REMOVED) {
+        } else if(Objects.equals(evt.eventType, EVENT_TYPE_REMOVED)) {
             if(!sendEventMessageRemoved(eventFilter)) {
                 if(D)Log.d(TAG, "Skip sending event of type: " + evt.eventType);
                 return;
             }
-        } else if(evt.eventType == EVENT_TYPE_SHIFT) {
+        } else if(Objects.equals(evt.eventType, EVENT_TYPE_SHIFT)) {
             if(!sendEventMessageShift(eventFilter)) {
                 if(D)Log.d(TAG, "Skip sending event of type: " + evt.eventType);
                 return;
             }
-        } else if(evt.eventType == EVENT_TYPE_DELEVERY_SUCCESS) {
+        } else if(Objects.equals(evt.eventType, EVENT_TYPE_DELEVERY_SUCCESS)) {
             if(!sendEventDeliverySuccess(eventFilter)) {
                 if(D)Log.d(TAG, "Skip sending event of type: " + evt.eventType);
                 return;
             }
-        } else if(evt.eventType == EVENT_TYPE_SENDING_SUCCESS) {
+        } else if(Objects.equals(evt.eventType, EVENT_TYPE_SENDING_SUCCESS)) {
             if(!sendEventSendingSuccess(eventFilter)) {
                 if(D)Log.d(TAG, "Skip sending event of type: " + evt.eventType);
                 return;
             }
-        } else if(evt.eventType == EVENT_TYPE_SENDING_FAILURE) {
+        } else if(Objects.equals(evt.eventType, EVENT_TYPE_SENDING_FAILURE)) {
             if(!sendEventSendingFailed(eventFilter)) {
                 if(D)Log.d(TAG, "Skip sending event of type: " + evt.eventType);
                 return;
             }
-        } else if(evt.eventType == EVENT_TYPE_DELIVERY_FAILURE) {
+        } else if(Objects.equals(evt.eventType, EVENT_TYPE_DELIVERY_FAILURE)) {
             if(!sendEventDeliveryFailed(eventFilter)) {
                 if(D)Log.d(TAG, "Skip sending event of type: " + evt.eventType);
                 return;
             }
-        } else if(evt.eventType == EVENT_TYPE_READ_STATUS) {
+        } else if(Objects.equals(evt.eventType, EVENT_TYPE_READ_STATUS)) {
             if(!sendEventReadStatusChanged(eventFilter)) {
                 if(D)Log.d(TAG, "Skip sending event of type: " + evt.eventType);
                 return;
             }
-        } else if(evt.eventType == EVENT_TYPE_CONVERSATION) {
+        } else if(Objects.equals(evt.eventType, EVENT_TYPE_CONVERSATION)) {
             if(!sendEventConversationChanged(eventFilter)) {
                 if(D)Log.d(TAG, "Skip sending event of type: " + evt.eventType);
                 return;
             }
-        } else if(evt.eventType == EVENT_TYPE_PRESENCE) {
+        } else if(Objects.equals(evt.eventType, EVENT_TYPE_PRESENCE)) {
             if(!sendEventParticipantPresenceChanged(eventFilter)) {
                 if(D)Log.d(TAG, "Skip sending event of type: " + evt.eventType);
                 return;
             }
-        } else if(evt.eventType == EVENT_TYPE_CHAT_STATE) {
+        } else if(Objects.equals(evt.eventType, EVENT_TYPE_CHAT_STATE)) {
             if(!sendEventParticipantChatstateChanged(eventFilter)) {
                 if(D)Log.d(TAG, "Skip sending event of type: " + evt.eventType);
                 return;
@@ -1980,7 +1981,8 @@ public class BluetoothMapContentObserver {
                                     String currentPresenceStatus = contact
                                             .getPresenceStatus();
                                     if (contact.getPresenceAvailability() != presenceState
-                                            || currentPresenceStatus != presenceStatus) {
+                                            || !Objects.equals(currentPresenceStatus,
+                                            presenceStatus)) {
                                         long lastOnline = c
                                                 .getLong(cInfo.mContactColLastOnline);
                                         contact.setPresenceAvailability(presenceState);

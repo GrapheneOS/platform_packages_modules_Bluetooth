@@ -211,7 +211,7 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler implemen
                 obexResponse = ResponseCodes.OBEX_HTTP_LENGTH_REQUIRED;
             }
 
-            if (name == null || name.equals("")) {
+            if (name == null || name.isEmpty()) {
                 if (D) Log.w(TAG, "name is null or empty, reject the transfer");
                 pre_reject = true;
                 obexResponse = ResponseCodes.OBEX_HTTP_BAD_REQUEST;
