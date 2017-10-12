@@ -571,7 +571,7 @@ public class AtPhonebook {
 
             // TODO(): Handle IRA commands. It's basically
             // a 7 bit ASCII character set.
-            if (!name.equals("") && mCharacterSet.equals("GSM")) {
+            if (!name.isEmpty() && mCharacterSet.equals("GSM")) {
                 byte[] nameByte = GsmAlphabet.stringToGsm8BitPacked(name);
                 if (nameByte == null) {
                     name = mContext.getString(R.string.unknownNumber);

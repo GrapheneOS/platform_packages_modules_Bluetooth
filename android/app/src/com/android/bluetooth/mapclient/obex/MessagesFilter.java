@@ -60,7 +60,7 @@ public final class MessagesFilter {
     }
 
     public void setRecipient(String filter) {
-        if ("".equals(filter)) {
+        if (filter != null && filter.isEmpty()) {
             recipient = null;
         } else {
             recipient = filter;
@@ -68,7 +68,7 @@ public final class MessagesFilter {
     }
 
     public void setOriginator(String filter) {
-        if ("".equals(filter)) {
+        if (filter != null && filter.isEmpty()) {
             originator = null;
         } else {
             originator = filter;

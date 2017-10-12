@@ -501,7 +501,7 @@ public class BluetoothMapbMessageMime extends BluetoothMapbMessage {
              * Skip empty lines, and then parse headers until a non-header line is found,
              * at which point we treat the remaining as plain text.
              */
-            if(header.trim() == "")
+            if(header.trim().isEmpty())
                 continue;
             String[] headerParts = header.split(":",2);
             if(headerParts.length != 2) {

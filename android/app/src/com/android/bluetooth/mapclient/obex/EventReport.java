@@ -67,7 +67,7 @@ public class EventReport {
         if (mType != Type.MEMORY_FULL && mType != Type.MEMORY_AVAILABLE) {
             String s = attrs.get("msg_type");
 
-            if ("".equals(s)) {
+            if (s != null && s.isEmpty()) {
                 // Some phones (e.g. SGS3 for MessageDeleted) send empty
                 // msg_type, in such case leave it as null rather than throw
                 // parse exception
