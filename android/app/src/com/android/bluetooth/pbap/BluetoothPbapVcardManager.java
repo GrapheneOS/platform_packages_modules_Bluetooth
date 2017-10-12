@@ -949,7 +949,7 @@ public class BluetoothPbapVcardManager {
             }
 
             for (int i=0; i < attr.length; i++) {
-                if(!attr[i].equals("")){
+                if(!attr[i].isEmpty()){
                     Vcard = Vcard.concat(attr[i] + "\n");
                 }
             }
