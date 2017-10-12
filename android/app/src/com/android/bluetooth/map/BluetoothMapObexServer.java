@@ -446,10 +446,9 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
                 return ResponseCodes.OBEX_HTTP_OK;
             } else if (type.equals(TYPE_SET_MESSAGE_STATUS)) {
                 if(V) {
-                    Log.d(TAG,"TYPE_SET_MESSAGE_STATUS: " +
-                              "StatusIndicator: " + appParams.getStatusIndicator()
-                            + ", StatusValue: " + appParams.getStatusValue()
-                            + ", ExtentedData: " + "" ); // TODO:   appParams.getExtendedImData());
+                    Log.d(TAG, "TYPE_SET_MESSAGE_STATUS: " + "StatusIndicator: "
+                            + appParams.getStatusIndicator() + ", StatusValue: "
+                            + appParams.getStatusValue() + ", ExtentedData: "); // TODO:   appParams.getExtendedImData());
                 }
                 if (!isUserUnlocked()) {
                     Log.e(TAG, "Storage locked, " + type + " failed");

@@ -981,9 +981,9 @@ public abstract class BluetoothMapbMessage {
             }
         }
         sb.append("BEGIN:BBODY").append("\r\n");
-        if(mEncoding != null && mEncoding != "")
+        if(mEncoding != null && !mEncoding.isEmpty())
             sb.append("ENCODING:").append(mEncoding).append("\r\n");
-        if(mCharset != null && mCharset != "")
+        if(mCharset != null && !mCharset.isEmpty())
             sb.append("CHARSET:").append(mCharset).append("\r\n");
 
 
