@@ -293,7 +293,7 @@ class PhonePolicy {
             errorLog("autoConnectHeadset, service is null");
             return;
         }
-        final BluetoothDevice bondedDevices[] = mAdapterService.getBondedDevices();
+        final BluetoothDevice[] bondedDevices = mAdapterService.getBondedDevices();
         if (bondedDevices == null) {
             errorLog("autoConnectHeadset, bondedDevices are null");
             return;
@@ -313,7 +313,7 @@ class PhonePolicy {
             errorLog("autoConnectA2dp, service is null");
             return;
         }
-        final BluetoothDevice bondedDevices[] = mAdapterService.getBondedDevices();
+        final BluetoothDevice[] bondedDevices = mAdapterService.getBondedDevices();
         if (bondedDevices == null) {
             errorLog("autoConnectA2dp, bondedDevices are null");
             return;

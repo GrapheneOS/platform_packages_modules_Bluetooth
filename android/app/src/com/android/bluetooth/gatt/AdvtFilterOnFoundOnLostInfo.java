@@ -114,7 +114,7 @@ public class AdvtFilterOnFoundOnLostInfo {
 
     public byte [] getResult() {
         int resultLength = mAdvPkt.length + ((mScanRsp != null) ? mScanRsp.length : 0);
-        byte result[] = new byte[resultLength];
+        byte[] result = new byte[resultLength];
         System.arraycopy(mAdvPkt, 0, result, 0,  mAdvPkt.length);
         if (mScanRsp != null) {
             System.arraycopy(mScanRsp, 0, result, mAdvPkt.length, mScanRsp.length);
