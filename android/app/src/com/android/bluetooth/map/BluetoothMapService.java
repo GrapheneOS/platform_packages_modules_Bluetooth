@@ -208,7 +208,7 @@ public class BluetoothMapService extends ProfileService {
      * Starts the RFComm listener threads for each MAS
      * @throws IOException
      */
-    private final void startRfcommSocketListeners(int masId) {
+    private void startRfcommSocketListeners(int masId) {
         if(masId == -1) {
             for(int i=0, c=mMasInstances.size(); i < c; i++) {
                 mMasInstances.valueAt(i).startRfcommSocketListener();
@@ -226,7 +226,7 @@ public class BluetoothMapService extends ProfileService {
     /**
      * Start a MAS instance for SMS/MMS and each e-mail account.
      */
-    private final void startObexServerSessions() {
+    private void startObexServerSessions() {
         if (DEBUG) Log.d(TAG, "Map Service START ObexServerSessions()");
 
         // acquire the wakeLock before start Obex transaction thread

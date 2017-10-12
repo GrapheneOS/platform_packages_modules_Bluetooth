@@ -1620,7 +1620,7 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
         }
     }
 
-    private static final void logHeader(HeaderSet hs) {
+    private static void logHeader(HeaderSet hs) {
         Log.v(TAG, "Dumping HeaderSet " + hs.toString());
         try {
             Log.v(TAG, "CONNECTION_ID : " + hs.getHeader(HeaderSet.CONNECTION_ID));

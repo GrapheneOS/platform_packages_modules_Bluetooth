@@ -344,7 +344,7 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
         }
     };
 
-    private final boolean initSocket() {
+    private boolean initSocket() {
         if (VERBOSE) Log.v(TAG, "Pbap Service initSocket");
 
         boolean initSocketOK = false;
@@ -399,7 +399,7 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
         return initSocketOK;
     }
 
-    private final synchronized void closeServerSocket() {
+    private synchronized void closeServerSocket() {
         // exit SocketAcceptThread early
         if (mServerSocket != null) {
             try {
@@ -412,7 +412,7 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
         }
     }
 
-    private final synchronized void closeConnectionSocket() {
+    private synchronized void closeConnectionSocket() {
         if (mConnSocket != null) {
             try {
                 mConnSocket.close();
@@ -423,7 +423,7 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
         }
     }
 
-    private final void closeService() {
+    private void closeService() {
         if (VERBOSE) Log.v(TAG, "Pbap Service closeService in");
 
         BluetoothPbapUtils.savePbapParams(this, BluetoothPbapUtils.primaryVersionCounter,
@@ -475,7 +475,7 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
         }
     }
 
-    private final void startObexServerSession() throws IOException {
+    private void startObexServerSession() throws IOException {
         if (VERBOSE) Log.v(TAG, "Pbap Service startObexServerSession");
 
         // acquire the wakeLock before start Obex transaction thread
