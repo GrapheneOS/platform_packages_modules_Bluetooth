@@ -90,7 +90,7 @@ class PeriodicScanManager {
     class SyncDeathRecipient implements IBinder.DeathRecipient {
         IPeriodicAdvertisingCallback callback;
 
-        public SyncDeathRecipient(IPeriodicAdvertisingCallback callback) {
+        SyncDeathRecipient(IPeriodicAdvertisingCallback callback) {
             this.callback = callback;
         }
 

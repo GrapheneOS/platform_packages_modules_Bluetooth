@@ -299,7 +299,7 @@ public class HealthService extends ProfileService {
         private BluetoothHealthAppConfiguration mConfig;
         private HealthService mService;
 
-        public BluetoothHealthDeathRecipient(HealthService service, BluetoothHealthAppConfiguration config) {
+        BluetoothHealthDeathRecipient(HealthService service, BluetoothHealthAppConfiguration config) {
             mService = service;
             mConfig = config;
         }
@@ -322,7 +322,7 @@ public class HealthService extends ProfileService {
     private static class BluetoothHealthBinder extends IBluetoothHealth.Stub implements IProfileServiceBinder {
         private HealthService mService;
 
-        public BluetoothHealthBinder(HealthService svc) {
+        BluetoothHealthBinder(HealthService svc) {
             mService = svc;
         }
 

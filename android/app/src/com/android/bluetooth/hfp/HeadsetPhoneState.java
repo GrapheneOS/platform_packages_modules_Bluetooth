@@ -436,7 +436,7 @@ class HeadsetCallState {
     String mNumber;
     int mType;
 
-    public HeadsetCallState(int numActive, int numHeld, int callState, String number, int type) {
+    HeadsetCallState(int numActive, int numHeld, int callState, String number, int type) {
         mNumActive = numActive;
         mNumHeld = numHeld;
         mCallState = callState;
@@ -454,7 +454,7 @@ class HeadsetClccResponse {
     String mNumber;
     int mType;
 
-    public HeadsetClccResponse(int index, int direction, int status, int mode, boolean mpty,
+    HeadsetClccResponse(int index, int direction, int status, int mode, boolean mpty,
                                String number, int type) {
         mIndex = index;
         mDirection = direction;
@@ -471,7 +471,7 @@ class HeadsetVendorSpecificResultCode {
     String mCommand;
     String mArg;
 
-    public HeadsetVendorSpecificResultCode(BluetoothDevice device, String command, String arg) {
+    HeadsetVendorSpecificResultCode(BluetoothDevice device, String command, String arg) {
         mDevice = device;
         mCommand = command;
         mArg = arg;

@@ -73,7 +73,7 @@ abstract class Request {
 
     protected int mResponseCode;
 
-    public Request() {
+    Request() {
         mHeaderSet = new HeaderSet();
     }
 

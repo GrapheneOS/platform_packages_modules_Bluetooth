@@ -634,7 +634,7 @@ public class BluetoothMapContentObserver {
             }
         }
 
-        public Event(String eventType, long handle, String folder,
+        Event(String eventType, long handle, String folder,
                 String oldFolder, TYPE msgType) {
             this.eventType = eventType;
             this.handle = handle;
@@ -651,7 +651,7 @@ public class BluetoothMapContentObserver {
             this.msgType = msgType;
         }
 
-        public Event(String eventType, long handle, String folder, TYPE msgType) {
+        Event(String eventType, long handle, String folder, TYPE msgType) {
             this.eventType = eventType;
             this.handle = handle;
             setFolderPath(folder, msgType);
@@ -659,7 +659,7 @@ public class BluetoothMapContentObserver {
         }
 
         /* extended event type 1.1 */
-        public Event(String eventType, long handle, String folder, TYPE msgType,
+        Event(String eventType, long handle, String folder, TYPE msgType,
                 String datetime, String subject, String senderName, String priority) {
             this.eventType = eventType;
             this.handle = handle;
@@ -676,7 +676,7 @@ public class BluetoothMapContentObserver {
         }
 
         /* extended event type 1.2 message events */
-        public Event(String eventType, long handle, String folder, TYPE msgType,
+        Event(String eventType, long handle, String folder, TYPE msgType,
                 String datetime, String subject, String senderName, String priority,
                 long conversationID, String conversationName) {
             this.eventType = eventType;
@@ -700,7 +700,7 @@ public class BluetoothMapContentObserver {
         }
 
         /* extended event type 1.2 for conversation, presence or chat state changed events */
-        public Event(String eventType, String uci, TYPE msgType, String name, String priority,
+        Event(String eventType, String uci, TYPE msgType, String name, String priority,
                 String lastActivity, long conversationID, String conversationName,
                 int presenceState, String presenceStatus, int chatState) {
             this.eventType = eventType;
@@ -842,13 +842,13 @@ public class BluetoothMapContentObserver {
         boolean transparent = false; // Used for EMAIL to delete message sent with transparency
         int flagRead = -1;      // Message status read/unread
 
-        public Msg(long id, int type, int threadId, int readFlag) {
+        Msg(long id, int type, int threadId, int readFlag) {
             this.id = id;
             this.type = type;
             this.threadId = threadId;
             this.flagRead = readFlag;
         }
-        public Msg(long id, long folderId, int readFlag) {
+        Msg(long id, long folderId, int readFlag) {
             this.id = id;
             this.folderId = folderId;
             this.flagRead = readFlag;
@@ -2427,7 +2427,7 @@ public class BluetoothMapContentObserver {
         boolean failedSent; // Set to true if a single part sent fail is received.
         int statusDelivered; // Set to != 0 if a single part deliver fail is received.
 
-        public PushMsgInfo(long id, int transparent,
+        PushMsgInfo(long id, int transparent,
                 int retry, String phone, Uri uri) {
             this.id = id;
             this.transparent = transparent;

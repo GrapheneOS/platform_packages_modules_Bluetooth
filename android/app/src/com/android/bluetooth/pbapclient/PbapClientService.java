@@ -154,7 +154,7 @@ public class PbapClientService extends ProfileService {
             implements IProfileServiceBinder {
         private PbapClientService mService;
 
-        public BluetoothPbapClientBinder(PbapClientService svc) {
+        BluetoothPbapClientBinder(PbapClientService svc) {
             mService = svc;
         }
 

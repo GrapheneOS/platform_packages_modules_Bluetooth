@@ -89,7 +89,7 @@ public class BluetoothOppService extends ProfileService implements IObexConnecti
 
     private class BluetoothShareContentObserver extends ContentObserver {
 
-        public BluetoothShareContentObserver() {
+        BluetoothShareContentObserver() {
             super(new Handler());
         }
 
@@ -443,7 +443,7 @@ public class BluetoothOppService extends ProfileService implements IObexConnecti
 
     private class UpdateThread extends Thread {
         private boolean isInterrupted ;
-        public UpdateThread() {
+        UpdateThread() {
             super("Bluetooth Share Service");
             isInterrupted = false;
         }
@@ -1013,7 +1013,7 @@ public class BluetoothOppService extends ProfileService implements IObexConnecti
 
         private Handler mCallback;
 
-        public MediaScannerNotifier(Context context, BluetoothOppShareInfo info, Handler handler) {
+        MediaScannerNotifier(Context context, BluetoothOppShareInfo info, Handler handler) {
             mContext = context;
             mInfo = info;
             mCallback = handler;
