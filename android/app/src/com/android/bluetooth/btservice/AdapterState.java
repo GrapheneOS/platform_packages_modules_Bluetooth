@@ -153,7 +153,7 @@ final class AdapterState extends StateMachine {
                    mPendingCommandState.setBleTurningOn(true);
                    transitionTo(mPendingCommandState);
                    sendMessageDelayed(BLE_START_TIMEOUT, BLE_START_TIMEOUT_DELAY);
-                   adapterService.BleOnProcessStart();
+                   adapterService.bleOnProcessStart();
                    break;
 
                case USER_TURN_OFF:
