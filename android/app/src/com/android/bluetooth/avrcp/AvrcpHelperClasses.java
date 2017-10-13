@@ -129,11 +129,11 @@ class MediaPlayerListRsp {
     String[] mPlayerNameList;
     int mNumItems;
 
-    public MediaPlayerListRsp(byte status, short UIDCounter, int numItems, byte itemType,
+    public MediaPlayerListRsp(byte status, short uidCounter, int numItems, byte itemType,
             int[] playerIds, byte[] playerTypes, int[] playerSubTypes, byte[] playStatusValues,
             short[] featureBitMaskValues, String[] playerNameList) {
         this.mStatus = status;
-        this.mUIDCounter = UIDCounter;
+        this.mUIDCounter = uidCounter;
         this.mNumItems = numItems;
         this.itemType = itemType;
         this.mPlayerIds = playerIds;
@@ -165,20 +165,20 @@ class FolderItemsRsp {
     int[] mAttrIds;
     String[] mAttrValues;
 
-    public FolderItemsRsp(byte Status, short UIDCounter, byte scope, int numItems,
-            byte[] folderTypes, byte[] playable, byte[] ItemTypes, byte[] ItemsUid,
-            String[] displayNameArray, int[] AttributesNum, int[] AttrIds, String[] attrValues) {
-        this.mStatus = Status;
-        this.mUIDCounter = UIDCounter;
+    public FolderItemsRsp(byte status, short uidCounter, byte scope, int numItems,
+            byte[] folderTypes, byte[] playable, byte[] itemTypes, byte[] itemsUid,
+            String[] displayNameArray, int[] attributesNum, int[] attrIds, String[] attrValues) {
+        this.mStatus = status;
+        this.mUIDCounter = uidCounter;
         this.mScope = scope;
         this.mNumItems = numItems;
         this.mFolderTypes = folderTypes;
         this.mPlayable = playable;
-        this.mItemTypes = ItemTypes;
-        this.mItemUid = ItemsUid;
+        this.mItemTypes = itemTypes;
+        this.mItemUid = itemsUid;
         this.mDisplayNames = displayNameArray;
-        this.mAttributesNum = AttributesNum;
-        this.mAttrIds = AttrIds;
+        this.mAttributesNum = attributesNum;
+        this.mAttrIds = attrIds;
         this.mAttrValues = attrValues;
     }
 }

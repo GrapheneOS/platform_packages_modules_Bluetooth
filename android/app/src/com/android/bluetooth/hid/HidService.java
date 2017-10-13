@@ -645,12 +645,12 @@ public class HidService extends ProfileService {
         mHandler.sendMessage(msg);
     }
 
-    private void onGetReport(byte[] address, byte[] report, int rpt_size) {
+    private void onGetReport(byte[] address, byte[] report, int rptSize) {
         Message msg = mHandler.obtainMessage(MESSAGE_ON_GET_REPORT);
         msg.obj = address;
         Bundle data = new Bundle();
         data.putByteArray(BluetoothInputDevice.EXTRA_REPORT, report);
-        data.putInt(BluetoothInputDevice.EXTRA_REPORT_BUFFER_SIZE, rpt_size);
+        data.putInt(BluetoothInputDevice.EXTRA_REPORT_BUFFER_SIZE, rptSize);
         msg.setData(data);
         mHandler.sendMessage(msg);
     }
@@ -716,11 +716,11 @@ public class HidService extends ProfileService {
         if (DBG) log("Protocol Mode (" + device + "): " + protocolMode);
     }
 
-    private void broadcastReport(BluetoothDevice device, byte[] report, int rpt_size) {
+    private void broadcastReport(BluetoothDevice device, byte[] report, int rptSize) {
         Intent intent = new Intent(BluetoothInputDevice.ACTION_REPORT);
         intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
         intent.putExtra(BluetoothInputDevice.EXTRA_REPORT, report);
-        intent.putExtra(BluetoothInputDevice.EXTRA_REPORT_BUFFER_SIZE, rpt_size);
+        intent.putExtra(BluetoothInputDevice.EXTRA_REPORT_BUFFER_SIZE, rptSize);
         intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY_BEFORE_BOOT);
         sendBroadcast(intent, BLUETOOTH_PERM);
     }
