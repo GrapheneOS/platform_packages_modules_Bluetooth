@@ -1139,9 +1139,9 @@ public class BluetoothPbapVcardManager {
             this.selector = selector;
         }
 
-        private boolean checkbit(int attr_bit, byte[] selector) {
+        private boolean checkbit(int attrBit, byte[] selector) {
             int selectorlen = selector.length;
-            if (((selector[selectorlen - 1 - ((int) attr_bit / 8)] >> (attr_bit % 8)) & 0x01)
+            if (((selector[selectorlen - 1 - ((int) attrBit / 8)] >> (attrBit % 8)) & 0x01)
                     == 0) {
                 return false;
             }

@@ -966,7 +966,7 @@ public class HeadsetClientStateMachine extends StateMachine {
 
         // in Connecting state
         private void processConnectionEvent(
-                int state, int peer_feat, int chld_feat, BluetoothDevice device) {
+                int state, int peerFeat, int chldFeat, BluetoothDevice device) {
             switch (state) {
                 case HeadsetClientHalConstants.CONNECTION_STATE_DISCONNECTED:
                     broadcastConnectionState(mCurrentDevice, BluetoothProfile.STATE_DISCONNECTED,
@@ -977,8 +977,8 @@ public class HeadsetClientStateMachine extends StateMachine {
                 case HeadsetClientHalConstants.CONNECTION_STATE_SLC_CONNECTED:
                     Log.d(TAG, "HFPClient Connected from Connecting state");
 
-                    mPeerFeatures = peer_feat;
-                    mChldFeatures = chld_feat;
+                    mPeerFeatures = peerFeat;
+                    mChldFeatures = chldFeat;
 
                     // We do not support devices which do not support enhanced call status (ECS).
                     if ((mPeerFeatures & HeadsetClientHalConstants.PEER_FEAT_ECS) == 0) {
