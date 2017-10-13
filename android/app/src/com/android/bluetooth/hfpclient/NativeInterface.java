@@ -60,11 +60,11 @@ class NativeInterface {
 
     // Callbacks from the native back into the java framework. All callbacks are routed via the
     // Service which will disambiguate which state machine the message should be routed through.
-    private void onConnectionStateChanged(int state, int peer_feat, int chld_feat, byte[] address) {
+    private void onConnectionStateChanged(int state, int peerFeat, int chldFeat, byte[] address) {
         StackEvent event = new StackEvent(StackEvent.EVENT_TYPE_CONNECTION_STATE_CHANGED);
         event.valueInt = state;
-        event.valueInt2 = peer_feat;
-        event.valueInt3 = chld_feat;
+        event.valueInt2 = peerFeat;
+        event.valueInt3 = chldFeat;
         event.device = getDevice(address);
         // BluetoothAdapter.getDefaultAdapter().getRemoteDevice(Utils.getAddressStringFromByte(address));
         if (DBG) {
@@ -237,9 +237,9 @@ class NativeInterface {
         }
     }
 
-    private void onRespAndHold(int resp_and_hold, byte[] address) {
+    private void onRespAndHold(int respAndHold, byte[] address) {
         StackEvent event = new StackEvent(StackEvent.EVENT_TYPE_RESP_AND_HOLD);
-        event.valueInt = resp_and_hold;
+        event.valueInt = respAndHold;
         event.device = getDevice(address);
         if (DBG) {
             Log.d(TAG, "onRespAndHold: address " + address + " event "  + event);
@@ -350,7 +350,7 @@ class NativeInterface {
         }
     }
 
-    private void onInBandRing(int in_band, byte[] address) {
+    private void onInBandRing(int inBand, byte[] address) {
         Log.w(TAG, "onInBandRing not supported");
     }
 

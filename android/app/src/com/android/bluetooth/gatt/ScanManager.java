@@ -1209,47 +1209,47 @@ public class ScanManager {
 
 
         /************************** Regular scan related native methods **************************/
-        private native void registerScannerNative(long app_uuid_lsb, long app_uuid_msb);
+        private native void registerScannerNative(long appUuidLsb, long appUuidMsb);
         private native void unregisterScannerNative(int scannerId);
 
         private native void gattClientScanNative(boolean start);
 
-        private native void gattSetScanParametersNative(int client_if, int scan_interval,
-                int scan_window);
+        private native void gattSetScanParametersNative(int clientIf, int scanInterval,
+                int scanWindow);
 
         /************************** Filter related native methods ********************************/
-        private native void gattClientScanFilterAddNative(int client_if,
-                int filter_type, int filter_index, int company_id,
-                int company_id_mask, long uuid_lsb, long uuid_msb,
-                long uuid_mask_lsb, long uuid_mask_msb, String name,
-                String address, byte addr_type, byte[] data, byte[] mask);
+        private native void gattClientScanFilterAddNative(int clientIf,
+                int filterType, int filterIndex, int companyId,
+                int companyIdMask, long uuidLsb, long uuidMsb,
+                long uuidMaskLsb, long uuidMaskMsb, String name,
+                String address, byte addrType, byte[] data, byte[] mask);
 
-        private native void gattClientScanFilterParamAddNative(FilterParams FiltValue);
+        private native void gattClientScanFilterParamAddNative(FilterParams filtValue);
 
         // Note this effectively remove scan filters for ALL clients.
         private native void gattClientScanFilterParamClearAllNative(
-                int client_if);
+                int clientIf);
 
         private native void gattClientScanFilterParamDeleteNative(
-                int client_if, int filt_index);
+                int clientIf, int filtIndex);
 
-        private native void gattClientScanFilterClearNative(int client_if,
-                int filter_index);
+        private native void gattClientScanFilterClearNative(int clientIf,
+                int filterIndex);
 
-        private native void gattClientScanFilterEnableNative(int client_if,
+        private native void gattClientScanFilterEnableNative(int clientIf,
                 boolean enable);
 
         /************************** Batch related native methods *********************************/
-        private native void gattClientConfigBatchScanStorageNative(int client_if,
-                int max_full_reports_percent, int max_truncated_reports_percent,
-                int notify_threshold_percent);
+        private native void gattClientConfigBatchScanStorageNative(int clientIf,
+                int maxFullReportsPercent, int maxTruncatedReportsPercent,
+                int notifyThresholdPercent);
 
-        private native void gattClientStartBatchScanNative(int client_if, int scan_mode,
-                int scan_interval_unit, int scan_window_unit, int address_type, int discard_rule);
+        private native void gattClientStartBatchScanNative(int clientIf, int scanMode,
+                int scanIntervalUnit, int scanWindowUnit, int addressType, int discardRule);
 
-        private native void gattClientStopBatchScanNative(int client_if);
+        private native void gattClientStopBatchScanNative(int clientIf);
 
-        private native void gattClientReadScanReportsNative(int client_if, int scan_type);
+        private native void gattClientReadScanReportsNative(int clientIf, int scanType);
     }
 
     private boolean isScreenOn() {

@@ -254,8 +254,8 @@ public class SapRilReceiver {
         }
     }
 
-    public SapRilReceiver(Handler SapServerMsgHandler, Handler sapServiceHandler) {
-        mSapServerMsgHandler = SapServerMsgHandler;
+    public SapRilReceiver(Handler sapServerMsgHandler, Handler sapServiceHandler) {
+        mSapServerMsgHandler = sapServerMsgHandler;
         mSapServiceHandler = sapServiceHandler;
         mSapCallback = new SapCallback();
         mSapProxyDeathRecipient = new SapProxyDeathRecipient();

@@ -1049,7 +1049,7 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
     }
 
     private int pullVcardEntry(byte[] appParam, AppParamValue appParamValue, Operation op,
-            HeaderSet reply, final String name, final String current_path) {
+            HeaderSet reply, final String name, final String currentPath) {
         if (name == null || name.length() < VCARD_NAME_SUFFIX_LENGTH) {
             if (D) Log.d(TAG, "Name is Null, or the length of name < 5 !");
             return ResponseCodes.OBEX_HTTP_NOT_ACCEPTABLE;
