@@ -131,7 +131,7 @@ public class BluetoothOppObexClientSession implements BluetoothOppObexSession {
 
     private class ClientThread extends Thread {
 
-        private static final int sSleepTime = 500;
+        private static final int SLEEP_TIME = 500;
 
         private Context mContext1;
 
@@ -191,8 +191,8 @@ public class BluetoothOppObexClientSession implements BluetoothOppObexSession {
                 } else {
                     try {
                         if (D) Log.d(TAG, "Client thread waiting for next share, sleep for "
-                                    + sSleepTime);
-                        Thread.sleep(sSleepTime);
+                                    + SLEEP_TIME);
+                        Thread.sleep(SLEEP_TIME);
                     } catch (InterruptedException e) {
 
                     }
