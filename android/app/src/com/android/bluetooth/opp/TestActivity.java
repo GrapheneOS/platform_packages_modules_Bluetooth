@@ -214,6 +214,7 @@ public class TestActivity extends Activity {
     }
 
     public OnClickListener insertRecordListener = new OnClickListener() {
+        @Override
         public void onClick(View view) {
 
             String address = null;
@@ -275,6 +276,7 @@ public class TestActivity extends Activity {
     };
 
     public OnClickListener deleteRecordListener = new OnClickListener() {
+        @Override
         public void onClick(View view) {
             Uri contentUri = Uri.parse(BluetoothShare.CONTENT_URI + "/"
                     + mDeleteView.getText().toString());
@@ -283,6 +285,7 @@ public class TestActivity extends Activity {
     };
 
     public OnClickListener updateRecordListener = new OnClickListener() {
+        @Override
         public void onClick(View view) {
             Uri contentUri = Uri.parse(BluetoothShare.CONTENT_URI + "/"
                     + mUpdateView.getText().toString());
@@ -299,6 +302,7 @@ public class TestActivity extends Activity {
     };
 
     public OnClickListener ackRecordListener = new OnClickListener() {
+        @Override
         public void onClick(View view) {
             Uri contentUri = Uri.parse(BluetoothShare.CONTENT_URI + "/"
                     + mAckView.getText().toString());
@@ -314,13 +318,15 @@ public class TestActivity extends Activity {
     };
 
     public OnClickListener deleteAllRecordListener = new OnClickListener() {
+        @Override
         public void onClick(View view) {
-            Uri contentUri = Uri.parse(BluetoothShare.CONTENT_URI + "");
+            Uri contentUri = Uri.parse(String.valueOf(BluetoothShare.CONTENT_URI));
             getContentResolver().delete(contentUri, null, null);
         }
     };
 
     public OnClickListener startTcpServerListener = new OnClickListener() {
+        @Override
         public void onClick(View view) {
             server = new TestTcpServer();
             Thread server_thread = new Thread(server);
@@ -330,8 +336,10 @@ public class TestActivity extends Activity {
     };
 
     public OnClickListener notifyTcpServerListener = new OnClickListener() {
+        @Override
         public void onClick(View view) {
             final Thread notifyThread = new Thread() {
+                @Override
                 public void run() {
                     synchronized (server) {
                         server.a = true;
@@ -385,6 +393,7 @@ class TestTcpListener {
             mSocketAcceptThread = new Thread(TAG) {
                 ServerSocket mServerSocket;
 
+                @Override
                 public void run() {
                     if (D) Log.d(TAG, "RfcommSocket listen thread starting");
                     try {
@@ -462,6 +471,7 @@ class TestTcpServer extends ServerRequestHandler implements Runnable {
     public boolean a = false;
 
     // TextView serverStatus = null;
+    @Override
     public void run() {
         try {
             updateStatus("[server:] listen on port " + port);
@@ -479,6 +489,7 @@ class TestTcpServer extends ServerRequestHandler implements Runnable {
         updateStatus("enter construtor of TcpServer");
     }
 
+    @Override
     public int onConnect(HeaderSet request, HeaderSet reply) {
 
         updateStatus("[server:] The client has created an OBEX session");
@@ -496,6 +507,7 @@ class TestTcpServer extends ServerRequestHandler implements Runnable {
         return ResponseCodes.OBEX_HTTP_OK;
     }
 
+    @Override
     public int onPut(Operation op) {
         FileOutputStream fos = null;
         try {
@@ -506,7 +518,7 @@ class TestTcpServer extends ServerRequestHandler implements Runnable {
 
             File f = new File((String)op.getReceivedHeader().getHeader(HeaderSet.NAME));
             fos = new FileOutputStream(f);
-            byte b[] = new byte[1000];
+            byte[] b = new byte[1000];
             int len;
 
             while (is.available() > 0 && (len = is.read(b)) > 0) {
@@ -529,26 +541,32 @@ class TestTcpServer extends ServerRequestHandler implements Runnable {
         return ResponseCodes.OBEX_HTTP_OK;
     }
 
+    @Override
     public void onDisconnect(HeaderSet req, HeaderSet resp) {
         updateStatus("[server:] The client has disconnected the OBEX session");
     }
 
+    @Override
     public void updateStatus(String message) {
         Log.v(TAG, "\n" + message);
     }
 
+    @Override
     public void onAuthenticationFailure(byte[] userName) {
     }
 
+    @Override
     public int onSetPath(HeaderSet request, HeaderSet reply, boolean backup, boolean create) {
 
         return ResponseCodes.OBEX_HTTP_NOT_IMPLEMENTED;
     }
 
+    @Override
     public int onDelete(HeaderSet request, HeaderSet reply) {
         return ResponseCodes.OBEX_HTTP_NOT_IMPLEMENTED;
     }
 
+    @Override
     public int onGet(Operation op) {
         return ResponseCodes.OBEX_HTTP_NOT_IMPLEMENTED;
     }
@@ -600,41 +618,50 @@ class TestTcpTransport implements ObexTransport {
         this.s = s;
     }
 
+    @Override
     public void close() throws IOException {
         s.close();
     }
 
+    @Override
     public DataInputStream openDataInputStream() throws IOException {
         return new DataInputStream(openInputStream());
     }
 
+    @Override
     public DataOutputStream openDataOutputStream() throws IOException {
         return new DataOutputStream(openOutputStream());
     }
 
+    @Override
     public InputStream openInputStream() throws IOException {
         return s.getInputStream();
     }
 
+    @Override
     public OutputStream openOutputStream() throws IOException {
         return s.getOutputStream();
     }
 
+    @Override
     public void connect() throws IOException {
         // TODO Auto-generated method stub
 
     }
 
+    @Override
     public void create() throws IOException {
         // TODO Auto-generated method stub
 
     }
 
+    @Override
     public void disconnect() throws IOException {
         // TODO Auto-generated method stub
 
     }
 
+    @Override
     public void listen() throws IOException {
         // TODO Auto-generated method stub
 

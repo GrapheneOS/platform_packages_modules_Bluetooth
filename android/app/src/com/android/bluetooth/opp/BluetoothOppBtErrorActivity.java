@@ -76,6 +76,7 @@ public class BluetoothOppBtErrorActivity extends AlertActivity implements
         return view;
     }
 
+    @Override
     public void onClick(DialogInterface dialog, int which) {
         switch (which) {
             case DialogInterface.BUTTON_POSITIVE:

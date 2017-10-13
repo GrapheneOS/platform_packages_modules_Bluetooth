@@ -174,14 +174,17 @@ public class GattService extends ProfileService {
         classInitNative();
     }
 
+    @Override
     protected String getName() {
         return TAG;
     }
 
+    @Override
     protected IProfileServiceBinder initBinder() {
         return new BluetoothGattBinder(this);
     }
 
+    @Override
     protected boolean start() {
         if (DBG) Log.d(TAG, "start()");
         initializeNative();
@@ -198,6 +201,7 @@ public class GattService extends ProfileService {
         return true;
     }
 
+    @Override
     protected boolean stop() {
         if (DBG) Log.d(TAG, "stop()");
         mScannerMap.clear();
@@ -211,6 +215,7 @@ public class GattService extends ProfileService {
         return true;
     }
 
+    @Override
     protected boolean cleanup() {
         if (DBG) Log.d(TAG, "cleanup()");
         cleanupNative();
@@ -311,6 +316,7 @@ public class GattService extends ProfileService {
             mAppIf = appIf;
         }
 
+        @Override
         public void binderDied() {
             if (DBG) Log.d(TAG, "Binder is dead - unregistering server (" + mAppIf + ")!");
             unregisterServer(mAppIf);
@@ -324,6 +330,7 @@ public class GattService extends ProfileService {
             mAppIf = appIf;
         }
 
+        @Override
         public void binderDied() {
             if (DBG) Log.d(TAG, "Binder is dead - unregistering client (" + mAppIf + ")!");
             unregisterClient(mAppIf);
@@ -340,6 +347,7 @@ public class GattService extends ProfileService {
             mService = svc;
         }
 
+        @Override
         public boolean cleanup()  {
             mService = null;
             return true;
@@ -351,24 +359,28 @@ public class GattService extends ProfileService {
             return null;
         }
 
+        @Override
         public List<BluetoothDevice> getDevicesMatchingConnectionStates(int[] states) {
             GattService service = getService();
             if (service == null) return new ArrayList<BluetoothDevice>();
             return service.getDevicesMatchingConnectionStates(states);
         }
 
+        @Override
         public void registerClient(ParcelUuid uuid, IBluetoothGattCallback callback) {
             GattService service = getService();
             if (service == null) return;
             service.registerClient(uuid.getUuid(), callback);
         }
 
+        @Override
         public void unregisterClient(int clientIf) {
             GattService service = getService();
             if (service == null) return;
             service.unregisterClient(clientIf);
         }
 
+        @Override
         public void registerScanner(IScannerCallback callback, WorkSource workSource)
                 throws RemoteException {
             GattService service = getService();
@@ -376,6 +388,7 @@ public class GattService extends ProfileService {
             service.registerScanner(callback, workSource);
         }
 
+        @Override
         public void unregisterScanner(int scannerId) {
             GattService service = getService();
             if (service == null) return;
@@ -406,6 +419,7 @@ public class GattService extends ProfileService {
             service.stopScan(intent, callingPackage);
         }
 
+        @Override
         public void stopScan(int scannerId) {
             GattService service = getService();
             if (service == null) return;
@@ -449,30 +463,35 @@ public class GattService extends ProfileService {
             service.clientReadPhy(clientIf, address);
         }
 
+        @Override
         public void refreshDevice(int clientIf, String address) {
             GattService service = getService();
             if (service == null) return;
             service.refreshDevice(clientIf, address);
         }
 
+        @Override
         public void discoverServices(int clientIf, String address) {
             GattService service = getService();
             if (service == null) return;
             service.discoverServices(clientIf, address);
         }
 
+        @Override
         public void discoverServiceByUuid(int clientIf, String address, ParcelUuid uuid) {
             GattService service = getService();
             if (service == null) return;
             service.discoverServiceByUuid(clientIf, address, uuid.getUuid());
         }
 
+        @Override
         public void readCharacteristic(int clientIf, String address, int handle, int authReq) {
             GattService service = getService();
             if (service == null) return;
             service.readCharacteristic(clientIf, address, handle, authReq);
         }
 
+        @Override
         public void readUsingCharacteristicUuid(int clientIf, String address, ParcelUuid uuid,
                 int startHandle, int endHandle, int authReq) {
             GattService service = getService();
@@ -481,6 +500,7 @@ public class GattService extends ProfileService {
                     clientIf, address, uuid.getUuid(), startHandle, endHandle, authReq);
         }
 
+        @Override
         public void writeCharacteristic(int clientIf, String address, int handle,
                              int writeType, int authReq, byte[] value) {
             GattService service = getService();
@@ -488,12 +508,14 @@ public class GattService extends ProfileService {
             service.writeCharacteristic(clientIf, address, handle, writeType, authReq, value);
         }
 
+        @Override
         public void readDescriptor(int clientIf, String address, int handle, int authReq) {
             GattService service = getService();
             if (service == null) return;
             service.readDescriptor(clientIf, address, handle, authReq);
         }
 
+        @Override
         public void writeDescriptor(int clientIf, String address, int handle,
                                     int authReq, byte[] value) {
             GattService service = getService();
@@ -501,36 +523,42 @@ public class GattService extends ProfileService {
             service.writeDescriptor(clientIf, address, handle, authReq, value);
         }
 
+        @Override
         public void beginReliableWrite(int clientIf, String address) {
             GattService service = getService();
             if (service == null) return;
             service.beginReliableWrite(clientIf, address);
         }
 
+        @Override
         public void endReliableWrite(int clientIf, String address, boolean execute) {
             GattService service = getService();
             if (service == null) return;
             service.endReliableWrite(clientIf, address, execute);
         }
 
+        @Override
         public void registerForNotification(int clientIf, String address, int handle, boolean enable) {
             GattService service = getService();
             if (service == null) return;
             service.registerForNotification(clientIf, address, handle, enable);
         }
 
+        @Override
         public void readRemoteRssi(int clientIf, String address) {
             GattService service = getService();
             if (service == null) return;
             service.readRemoteRssi(clientIf, address);
         }
 
+        @Override
         public void configureMTU(int clientIf, String address, int mtu) {
             GattService service = getService();
             if (service == null) return;
             service.configureMTU(clientIf, address, mtu);
         }
 
+        @Override
         public void connectionParameterUpdate(int clientIf, String address,
                                               int connectionPriority) {
             GattService service = getService();
@@ -538,30 +566,35 @@ public class GattService extends ProfileService {
             service.connectionParameterUpdate(clientIf, address, connectionPriority);
         }
 
+        @Override
         public void registerServer(ParcelUuid uuid, IBluetoothGattServerCallback callback) {
             GattService service = getService();
             if (service == null) return;
             service.registerServer(uuid.getUuid(), callback);
         }
 
+        @Override
         public void unregisterServer(int serverIf) {
             GattService service = getService();
             if (service == null) return;
             service.unregisterServer(serverIf);
         }
 
+        @Override
         public void serverConnect(int serverIf, String address, boolean isDirect, int transport) {
             GattService service = getService();
             if (service == null) return;
             service.serverConnect(serverIf, address, isDirect, transport);
         }
 
+        @Override
         public void serverDisconnect(int serverIf, String address) {
             GattService service = getService();
             if (service == null) return;
             service.serverDisconnect(serverIf, address);
         }
 
+        @Override
         public void serverSetPreferredPhy(
                 int serverIf, String address, int txPhy, int rxPhy, int phyOptions) {
             GattService service = getService();
@@ -569,12 +602,14 @@ public class GattService extends ProfileService {
             service.serverSetPreferredPhy(serverIf, address, txPhy, rxPhy, phyOptions);
         }
 
+        @Override
         public void serverReadPhy(int clientIf, String address) {
             GattService service = getService();
             if (service == null) return;
             service.serverReadPhy(clientIf, address);
         }
 
+        @Override
         public void addService(int serverIf, BluetoothGattService svc) {
             GattService service = getService();
             if (service == null) return;
@@ -582,18 +617,21 @@ public class GattService extends ProfileService {
             service.addService(serverIf, svc);
         }
 
+        @Override
         public void removeService(int serverIf, int handle) {
             GattService service = getService();
             if (service == null) return;
             service.removeService(serverIf, handle);
         }
 
+        @Override
         public void clearServices(int serverIf) {
             GattService service = getService();
             if (service == null) return;
             service.clearServices(serverIf);
         }
 
+        @Override
         public void sendResponse(int serverIf, String address, int requestId,
                                  int status, int offset, byte[] value) {
             GattService service = getService();
@@ -601,6 +639,7 @@ public class GattService extends ProfileService {
             service.sendResponse(serverIf, address, requestId, status, offset, value);
         }
 
+        @Override
         public void sendNotification(int serverIf, String address, int handle,
                                               boolean confirm, byte[] value) {
             GattService service = getService();
@@ -608,6 +647,7 @@ public class GattService extends ProfileService {
             service.sendNotification(serverIf, address, handle, confirm, value);
         }
 
+        @Override
         public void startAdvertisingSet(AdvertisingSetParameters parameters,
                 AdvertiseData advertiseData, AdvertiseData scanResponse,
                 PeriodicAdvertisingParameters periodicParameters, AdvertiseData periodicData,
@@ -618,18 +658,21 @@ public class GattService extends ProfileService {
                     periodicData, duration, maxExtAdvEvents, callback);
         }
 
+        @Override
         public void stopAdvertisingSet(IAdvertisingSetCallback callback) {
             GattService service = getService();
             if (service == null) return;
             service.stopAdvertisingSet(callback);
         }
 
+        @Override
         public void getOwnAddress(int advertiserId) {
             GattService service = getService();
             if (service == null) return;
             service.getOwnAddress(advertiserId);
         }
 
+        @Override
         public void enableAdvertisingSet(
                 int advertiserId, boolean enable, int duration, int maxExtAdvEvents) {
             GattService service = getService();
@@ -637,18 +680,21 @@ public class GattService extends ProfileService {
             service.enableAdvertisingSet(advertiserId, enable, duration, maxExtAdvEvents);
         }
 
+        @Override
         public void setAdvertisingData(int advertiserId, AdvertiseData data) {
             GattService service = getService();
             if (service == null) return;
             service.setAdvertisingData(advertiserId, data);
         }
 
+        @Override
         public void setScanResponseData(int advertiserId, AdvertiseData data) {
             GattService service = getService();
             if (service == null) return;
             service.setScanResponseData(advertiserId, data);
         }
 
+        @Override
         public void setAdvertisingParameters(
                 int advertiserId, AdvertisingSetParameters parameters) {
             GattService service = getService();
@@ -656,6 +702,7 @@ public class GattService extends ProfileService {
             service.setAdvertisingParameters(advertiserId, parameters);
         }
 
+        @Override
         public void setPeriodicAdvertisingParameters(
                 int advertiserId, PeriodicAdvertisingParameters parameters) {
             GattService service = getService();
@@ -663,12 +710,14 @@ public class GattService extends ProfileService {
             service.setPeriodicAdvertisingParameters(advertiserId, parameters);
         }
 
+        @Override
         public void setPeriodicAdvertisingData(int advertiserId, AdvertiseData data) {
             GattService service = getService();
             if (service == null) return;
             service.setPeriodicAdvertisingData(advertiserId, data);
         }
 
+        @Override
         public void setPeriodicAdvertisingEnable(int advertiserId, boolean enable) {
             GattService service = getService();
             if (service == null) return;
@@ -1016,6 +1065,7 @@ public class GattService extends ProfileService {
         // This callback was called from the jni_workqueue thread. If we make request to the stack
         // on the same thread, it might cause deadlock. Schedule request on a new thread instead.
         Thread t = new Thread(new Runnable() {
+            @Override
             public void run() {
                 gattClientGetGattDbNative(connId);
             }
@@ -2572,7 +2622,7 @@ public class GattService extends ProfileService {
             for(HandleMap.Entry entry : entries) {
                 if (entry.type != HandleMap.TYPE_SERVICE ||
                     entry.serverIf != serverIf ||
-                    entry.started == false)
+                    !entry.started)
                         continue;
 
                 gattServerStopServiceNative(serverIf, entry.handle);
@@ -2703,7 +2753,7 @@ public class GattService extends ProfileService {
      * Native functions prototypes
      *************************************************************************/
 
-    private native static void classInitNative();
+    private static native void classInitNative();
     private native void initializeNative();
     private native void cleanupNative();
 

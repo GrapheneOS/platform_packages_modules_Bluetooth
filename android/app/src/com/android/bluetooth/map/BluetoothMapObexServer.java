@@ -446,10 +446,9 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
                 return ResponseCodes.OBEX_HTTP_OK;
             } else if (type.equals(TYPE_SET_MESSAGE_STATUS)) {
                 if(V) {
-                    Log.d(TAG,"TYPE_SET_MESSAGE_STATUS: " +
-                              "StatusIndicator: " + appParams.getStatusIndicator()
-                            + ", StatusValue: " + appParams.getStatusValue()
-                            + ", ExtentedData: " + "" ); // TODO:   appParams.getExtendedImData());
+                    Log.d(TAG, "TYPE_SET_MESSAGE_STATUS: " + "StatusIndicator: "
+                            + appParams.getStatusIndicator() + ", StatusValue: "
+                            + appParams.getStatusValue() + ", ExtentedData: "); // TODO:   appParams.getExtendedImData());
                 }
                 if (!isUserUnlocked()) {
                     Log.e(TAG, "Storage locked, " + type + " failed");
@@ -646,7 +645,7 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
             return ResponseCodes.OBEX_HTTP_PRECON_FAILED;
         } catch (IOException e) {
             if (D) Log.e(TAG, "Exception occured: ", e);
-            if(mIsAborted == true) {
+            if(mIsAborted) {
                 if(D) Log.d(TAG, "PushMessage Operation Aborted");
                 return ResponseCodes.OBEX_HTTP_OK;
             } else {
@@ -804,7 +803,7 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
                           " backup: " + backup +
                           " create: " + create);
 
-        if(backup == true){
+        if(backup){
             if(mCurrentFolder.getParent() != null)
                 mCurrentFolder = mCurrentFolder.getParent();
             else
@@ -812,7 +811,7 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
         }
 
         if (folderName == null || folderName.trim().isEmpty()) {
-            if(backup == false)
+            if(!backup)
                 mCurrentFolder = mCurrentFolder.getRoot();
         }
         else {
@@ -961,7 +960,7 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
             } else {
                 Log.e(TAG, "Exception occured while handling request");
             }
-            if(mIsAborted == true) {
+            if(mIsAborted) {
                 if(D) Log.d(TAG, "onGet Operation Aborted");
                 return ResponseCodes.OBEX_HTTP_OK;
             } else {
@@ -1084,7 +1083,7 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
         } catch (IOException e) {
             Log.w(TAG,"sendMessageListingRsp: IOException - sending OBEX_HTTP_BAD_REQUEST", e);
             if(outStream != null) { try { outStream.close(); } catch (IOException ex) {} }
-            if(mIsAborted == true) {
+            if(mIsAborted) {
                 if(D) Log.d(TAG, "sendMessageListingRsp Operation Aborted");
                 return ResponseCodes.OBEX_HTTP_OK;
             } else {
@@ -1100,7 +1099,7 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
         maxChunkSize = op.getMaxPacketSize(); // This must be called after setting the headers.
         if(outBytes != null) {
             try {
-                while (bytesWritten < outBytes.length && mIsAborted == false) {
+                while (bytesWritten < outBytes.length && !mIsAborted) {
                     bytesToWrite = Math.min(maxChunkSize, outBytes.length - bytesWritten);
                     outStream.write(outBytes, bytesWritten, bytesToWrite);
                     bytesWritten += bytesToWrite;
@@ -1242,7 +1241,7 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
         } catch (IOException e) {
             Log.w(TAG,"sendConvoListingRsp: IOException - sending OBEX_HTTP_BAD_REQUEST", e);
             if(outStream != null) { try { outStream.close(); } catch (IOException ex) {} }
-            if(mIsAborted == true) {
+            if(mIsAborted) {
                 if(D) Log.d(TAG, "sendConvoListingRsp Operation Aborted");
                 return ResponseCodes.OBEX_HTTP_OK;
             } else {
@@ -1258,7 +1257,7 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
         maxChunkSize = op.getMaxPacketSize(); // This must be called after setting the headers.
         if(outBytes != null) {
             try {
-                while (bytesWritten < outBytes.length && mIsAborted == false) {
+                while (bytesWritten < outBytes.length && !mIsAborted) {
                     bytesToWrite = Math.min(maxChunkSize, outBytes.length - bytesWritten);
                     outStream.write(outBytes, bytesWritten, bytesToWrite);
                     bytesWritten += bytesToWrite;
@@ -1336,7 +1335,7 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
             Log.w(TAG,"sendFolderListingRsp: IOException" +
                     " - sending OBEX_HTTP_BAD_REQUEST Exception:", e1);
             if(outStream != null) { try { outStream.close(); } catch (IOException e) {} }
-            if(mIsAborted == true) {
+            if(mIsAborted) {
                 if(D) Log.d(TAG, "sendFolderListingRsp Operation Aborted");
                 return ResponseCodes.OBEX_HTTP_OK;
             } else {
@@ -1353,7 +1352,7 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
 
         if(outBytes != null) {
             try {
-                while (bytesWritten < outBytes.length && mIsAborted == false) {
+                while (bytesWritten < outBytes.length && !mIsAborted) {
                     bytesToWrite = Math.min(maxChunkSize, outBytes.length - bytesWritten);
                     outStream.write(outBytes, bytesWritten, bytesToWrite);
                     bytesWritten += bytesToWrite;
@@ -1435,7 +1434,7 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
         } catch (IOException e) {
             Log.w(TAG,"sendMASInstanceInformationRsp: IOException" +
                     " - sending OBEX_HTTP_BAD_REQUEST", e);
-            if(mIsAborted == true) {
+            if(mIsAborted) {
                 if(D) Log.d(TAG, "sendMASInstanceInformationRsp Operation Aborted");
                 return ResponseCodes.OBEX_HTTP_OK;
             } else {
@@ -1447,7 +1446,7 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
 
         if(outBytes != null) {
             try {
-                while (bytesWritten < outBytes.length && mIsAborted == false) {
+                while (bytesWritten < outBytes.length && !mIsAborted) {
                     bytesToWrite = Math.min(maxChunkSize, outBytes.length - bytesWritten);
                     outStream.write(outBytes, bytesWritten, bytesToWrite);
                     bytesWritten += bytesToWrite;
@@ -1512,7 +1511,7 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
         } catch (IOException e) {
             Log.w(TAG,"sendGetMessageRsp: IOException - sending OBEX_HTTP_BAD_REQUEST", e);
             if(outStream != null) { try { outStream.close(); } catch (IOException ex) {} }
-            if(mIsAborted == true) {
+            if(mIsAborted) {
                 if(D) Log.d(TAG, "sendGetMessageRsp Operation Aborted");
                 return ResponseCodes.OBEX_HTTP_OK;
             } else {
@@ -1529,7 +1528,7 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
 
         if(outBytes != null) {
             try {
-                while (bytesWritten < outBytes.length && mIsAborted == false) {
+                while (bytesWritten < outBytes.length && !mIsAborted) {
                     bytesToWrite = Math.min(maxChunkSize, outBytes.length - bytesWritten);
                     outStream.write(outBytes, bytesWritten, bytesToWrite);
                     bytesWritten += bytesToWrite;
@@ -1620,7 +1619,7 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
         }
     }
 
-    private static final void logHeader(HeaderSet hs) {
+    private static void logHeader(HeaderSet hs) {
         Log.v(TAG, "Dumping HeaderSet " + hs.toString());
         try {
             Log.v(TAG, "CONNECTION_ID : " + hs.getHeader(HeaderSet.CONNECTION_ID));

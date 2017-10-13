@@ -73,14 +73,17 @@ public class HealthService extends ProfileService {
         classInitNative();
     }
 
+    @Override
     protected String getName() {
         return TAG;
     }
 
+    @Override
     protected IProfileServiceBinder initBinder() {
         return new BluetoothHealthBinder(this);
     }
 
+    @Override
     protected boolean start() {
         mHealthChannels = Collections.synchronizedList(new ArrayList<HealthChannel>());
         mApps = Collections.synchronizedMap(new HashMap<BluetoothHealthAppConfiguration,
@@ -96,6 +99,7 @@ public class HealthService extends ProfileService {
         return true;
     }
 
+    @Override
     protected boolean stop() {
         if (mHandler != null) {
             mHandler.removeCallbacksAndMessages(null);
@@ -121,6 +125,7 @@ public class HealthService extends ProfileService {
             }
         }
     }
+    @Override
     protected boolean cleanup() {
         mHandler = null;
         //Cleanup native
@@ -299,6 +304,7 @@ public class HealthService extends ProfileService {
             mConfig = config;
         }
 
+        @Override
         public void binderDied() {
             if (DBG) Log.d(TAG,"Binder is dead.");
             mService.unregisterAppConfiguration(mConfig);
@@ -320,6 +326,7 @@ public class HealthService extends ProfileService {
             mService = svc;
         }
 
+        @Override
         public boolean cleanup()  {
             mService = null;
             return true;
@@ -337,6 +344,7 @@ public class HealthService extends ProfileService {
             return null;
         }
 
+        @Override
         public boolean registerAppConfiguration(BluetoothHealthAppConfiguration config,
                                                 IBluetoothHealthCallback callback) {
             HealthService service = getService();
@@ -344,12 +352,14 @@ public class HealthService extends ProfileService {
             return service.registerAppConfiguration(config, callback);
         }
 
+        @Override
         public boolean unregisterAppConfiguration(BluetoothHealthAppConfiguration config) {
             HealthService service = getService();
             if (service == null) return false;
             return service.unregisterAppConfiguration(config);
         }
 
+        @Override
         public boolean connectChannelToSource(BluetoothDevice device,
                                               BluetoothHealthAppConfiguration config) {
             HealthService service = getService();
@@ -357,6 +367,7 @@ public class HealthService extends ProfileService {
             return service.connectChannelToSource(device, config);
         }
 
+        @Override
         public boolean connectChannelToSink(BluetoothDevice device,
                            BluetoothHealthAppConfiguration config, int channelType) {
             HealthService service = getService();
@@ -364,6 +375,7 @@ public class HealthService extends ProfileService {
             return service.connectChannelToSink(device, config, channelType);
         }
 
+        @Override
         public boolean disconnectChannel(BluetoothDevice device,
                                          BluetoothHealthAppConfiguration config, int channelId) {
             HealthService service = getService();
@@ -371,6 +383,7 @@ public class HealthService extends ProfileService {
             return service.disconnectChannel(device, config, channelId);
         }
 
+        @Override
         public ParcelFileDescriptor getMainChannelFd(BluetoothDevice device,
                                                      BluetoothHealthAppConfiguration config) {
             HealthService service = getService();
@@ -378,18 +391,21 @@ public class HealthService extends ProfileService {
             return service.getMainChannelFd(device, config);
         }
 
+        @Override
         public int getHealthDeviceConnectionState(BluetoothDevice device) {
             HealthService service = getService();
             if (service == null) return BluetoothHealth.STATE_DISCONNECTED;
             return service.getHealthDeviceConnectionState(device);
         }
 
+        @Override
         public List<BluetoothDevice> getConnectedHealthDevices() {
             HealthService service = getService();
             if (service == null) return new ArrayList<BluetoothDevice> (0);
             return service.getConnectedHealthDevices();
         }
 
+        @Override
         public List<BluetoothDevice> getHealthDevicesMatchingConnectionStates(int[] states) {
             HealthService service = getService();
             if (service == null) return new ArrayList<BluetoothDevice> (0);
@@ -902,7 +918,7 @@ public class HealthService extends ProfileService {
     private static final int CHANNEL_TYPE_STREAMING = 1;
     private static final int CHANNEL_TYPE_ANY =2;
 
-    private native static void classInitNative();
+    private static native void classInitNative();
     private native void initializeNative();
     private native void cleanupNative();
     private native int registerHealthAppNative(int dataType, int role, String name, int channelType);

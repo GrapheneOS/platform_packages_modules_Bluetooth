@@ -104,6 +104,7 @@ public class MmsFileProvider extends ContentProvider {
          * Generate a message based on the cursor, and write the encoded data to the stream.
          */
 
+        @Override
         public void writeDataToPipe(ParcelFileDescriptor output, Uri uri, String mimeType,
                 Bundle opts, Cursor c) {
             if (BluetoothMapService.DEBUG) Log.d(TAG, "writeDataToPipe(): uri=" + uri.toString() +

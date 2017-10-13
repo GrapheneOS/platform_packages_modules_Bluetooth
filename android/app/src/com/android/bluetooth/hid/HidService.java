@@ -72,14 +72,17 @@ public class HidService extends ProfileService {
         classInitNative();
     }
 
+    @Override
     public String getName() {
         return TAG;
     }
 
+    @Override
     public IProfileServiceBinder initBinder() {
         return new BluetoothInputDeviceBinder(this);
     }
 
+    @Override
     protected boolean start() {
         mInputDevices = Collections.synchronizedMap(new HashMap<BluetoothDevice, Integer>());
         initializeNative();
@@ -88,11 +91,13 @@ public class HidService extends ProfileService {
         return true;
     }
 
+    @Override
     protected boolean stop() {
         if (DBG) log("Stopping Bluetooth HidService");
         return true;
     }
 
+    @Override
     protected boolean cleanup() {
         if (mNativeAvailable) {
             cleanupNative();
@@ -322,6 +327,7 @@ public class HidService extends ProfileService {
             mService = svc;
         }
 
+        @Override
         public boolean cleanup() {
             mService = null;
             return true;
@@ -339,41 +345,48 @@ public class HidService extends ProfileService {
             return null;
         }
 
+        @Override
         public boolean connect(BluetoothDevice device) {
             HidService service = getService();
             if (service == null) return false;
             return service.connect(device);
         }
 
+        @Override
         public boolean disconnect(BluetoothDevice device) {
             HidService service = getService();
             if (service == null) return false;
             return service.disconnect(device);
         }
 
+        @Override
         public int getConnectionState(BluetoothDevice device) {
             HidService service = getService();
             if (service == null) return BluetoothInputDevice.STATE_DISCONNECTED;
             return service.getConnectionState(device);
         }
 
+        @Override
         public List<BluetoothDevice> getConnectedDevices() {
             return getDevicesMatchingConnectionStates(
                     new int[] {BluetoothProfile.STATE_CONNECTED});
         }
 
+        @Override
         public List<BluetoothDevice> getDevicesMatchingConnectionStates(int[] states) {
             HidService service = getService();
             if (service == null) return new ArrayList<BluetoothDevice>(0);
             return service.getDevicesMatchingConnectionStates(states);
         }
 
+        @Override
         public boolean setPriority(BluetoothDevice device, int priority) {
             HidService service = getService();
             if (service == null) return false;
             return service.setPriority(device, priority);
         }
 
+        @Override
         public int getPriority(BluetoothDevice device) {
             HidService service = getService();
             if (service == null) return BluetoothProfile.PRIORITY_UNDEFINED;
@@ -381,48 +394,56 @@ public class HidService extends ProfileService {
         }
 
         /* The following APIs regarding test app for compliance */
+        @Override
         public boolean getProtocolMode(BluetoothDevice device) {
             HidService service = getService();
             if (service == null) return false;
             return service.getProtocolMode(device);
         }
 
+        @Override
         public boolean virtualUnplug(BluetoothDevice device) {
             HidService service = getService();
             if (service == null) return false;
             return service.virtualUnplug(device);
         }
 
+        @Override
         public boolean setProtocolMode(BluetoothDevice device, int protocolMode) {
             HidService service = getService();
             if (service == null) return false;
             return service.setProtocolMode(device, protocolMode);
         }
         
+        @Override
         public boolean getReport(BluetoothDevice device, byte reportType, byte reportId, int bufferSize) {
             HidService service = getService();
             if (service == null) return false;
             return service.getReport(device, reportType, reportId, bufferSize) ;
         }
 
+        @Override
         public boolean setReport(BluetoothDevice device, byte reportType, String report) {
             HidService service = getService();
             if (service == null) return false;
             return service.setReport(device, reportType, report);
         }
 
+        @Override
         public boolean sendData(BluetoothDevice device, String report) {
             HidService service = getService();
             if (service == null) return false;
             return service.sendData(device, report);
         }
 
+        @Override
         public boolean setIdleTime(BluetoothDevice device, byte idleTime) {
             HidService service = getService();
             if (service == null) return false;
             return service.setIdleTime(device, idleTime);
         }
 
+        @Override
         public boolean getIdleTime(BluetoothDevice device) {
             HidService service = getService();
             if (service == null) return false;
@@ -761,12 +782,12 @@ public class HidService extends ProfileService {
 
     // Constants matching Hal header file bt_hh.h
     // bthh_connection_state_t
-    private final static int CONN_STATE_CONNECTED = 0;
-    private final static int CONN_STATE_CONNECTING = 1;
-    private final static int CONN_STATE_DISCONNECTED = 2;
-    private final static int CONN_STATE_DISCONNECTING = 3;
+    private static final int CONN_STATE_CONNECTED = 0;
+    private static final int CONN_STATE_CONNECTING = 1;
+    private static final int CONN_STATE_DISCONNECTED = 2;
+    private static final int CONN_STATE_DISCONNECTING = 3;
 
-    private native static void classInitNative();
+    private static native void classInitNative();
     private native void initializeNative();
     private native void cleanupNative();
     private native boolean connectHidNative(byte[] btAddress);

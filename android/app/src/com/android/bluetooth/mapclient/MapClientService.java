@@ -180,6 +180,7 @@ public class MapClientService extends ProfileService {
         return true;
     }
 
+    @Override
     public boolean cleanup() {
         if (DBG) Log.d(TAG, "cleanup()");
         return true;
@@ -227,11 +228,13 @@ public class MapClientService extends ProfileService {
             return null;
         }
 
+        @Override
         public boolean cleanup() {
             mService = null;
             return true;
         }
 
+        @Override
         public boolean isConnected(BluetoothDevice device) {
             if (VDBG) Log.v(TAG, "isConnected()");
             MapClientService service = getService();
@@ -239,6 +242,7 @@ public class MapClientService extends ProfileService {
             return service.getConnectionState(device) == BluetoothProfile.STATE_CONNECTED;
         }
 
+        @Override
         public boolean connect(BluetoothDevice device) {
             if (VDBG) Log.v(TAG, "connect()");
             MapClientService service = getService();
@@ -246,6 +250,7 @@ public class MapClientService extends ProfileService {
             return service.connect(device);
         }
 
+        @Override
         public boolean disconnect(BluetoothDevice device) {
             if (VDBG) Log.v(TAG, "disconnect()");
             MapClientService service = getService();
@@ -253,6 +258,7 @@ public class MapClientService extends ProfileService {
             return service.disconnect(device);
         }
 
+        @Override
         public List<BluetoothDevice> getConnectedDevices() {
             if (VDBG) Log.v(TAG, "getConnectedDevices()");
             MapClientService service = getService();
@@ -260,6 +266,7 @@ public class MapClientService extends ProfileService {
             return service.getConnectedDevices();
         }
 
+        @Override
         public List<BluetoothDevice> getDevicesMatchingConnectionStates(int[] states) {
             if (VDBG) Log.v(TAG, "getDevicesMatchingConnectionStates()");
             MapClientService service = getService();
@@ -267,6 +274,7 @@ public class MapClientService extends ProfileService {
             return service.getDevicesMatchingConnectionStates(states);
         }
 
+        @Override
         public int getConnectionState(BluetoothDevice device) {
             if (VDBG) Log.v(TAG, "getConnectionState()");
             MapClientService service = getService();
@@ -274,18 +282,21 @@ public class MapClientService extends ProfileService {
             return service.getConnectionState(device);
         }
 
+        @Override
         public boolean setPriority(BluetoothDevice device, int priority) {
             MapClientService service = getService();
             if (service == null) return false;
             return service.setPriority(device, priority);
         }
 
+        @Override
         public int getPriority(BluetoothDevice device) {
             MapClientService service = getService();
             if (service == null) return BluetoothProfile.PRIORITY_UNDEFINED;
             return service.getPriority(device);
         }
 
+        @Override
         public boolean sendMessage(BluetoothDevice device, Uri[] contacts, String message,
                 PendingIntent sentIntent, PendingIntent deliveredIntent) {
             MapClientService service = getService();
@@ -297,6 +308,7 @@ public class MapClientService extends ProfileService {
             return service.sendMessage(device, contacts, message, sentIntent, deliveredIntent);
         }
 
+        @Override
         public boolean getUnreadMessages(BluetoothDevice device) {
             MapClientService service = getService();
             if (service == null) return false;

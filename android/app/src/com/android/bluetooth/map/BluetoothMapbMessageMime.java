@@ -396,7 +396,7 @@ public class BluetoothMapbMessageMime extends BluetoothMapbMessage {
             encodeHeaderAddresses(sb, "Bcc: ", bcc); // This includes folding if needed.
         if(replyTo != null)
             encodeHeaderAddresses(sb, "Reply-To: ", replyTo); // This includes folding if needed.
-        if(includeAttachments == true)
+        if(includeAttachments)
         {
             if(messageId != null)
                 sb.append("Message-Id: ").append(messageId).append("\r\n");
@@ -453,7 +453,7 @@ public class BluetoothMapbMessageMime extends BluetoothMapbMessage {
 
         encodeHeaders(sb);
         if(parts != null) {
-            if(getIncludeAttachments() == false) {
+            if(!getIncludeAttachments()) {
                 for(MimePart part : parts) {
                     /* We call encode on all parts, to include a tag,
                      * where an attachment is missing. */
@@ -501,7 +501,7 @@ public class BluetoothMapbMessageMime extends BluetoothMapbMessage {
              * Skip empty lines, and then parse headers until a non-header line is found,
              * at which point we treat the remaining as plain text.
              */
-            if(header.trim() == "")
+            if(header.trim().isEmpty())
                 continue;
             String[] headerParts = header.split(":",2);
             if(headerParts.length != 2) {
@@ -522,23 +522,23 @@ public class BluetoothMapbMessageMime extends BluetoothMapbMessage {
              */
             if(headerType.contains("FROM")) {
                 headerValue = BluetoothMapUtils.stripEncoding(headerValue);
-                Rfc822Token tokens[] = Rfc822Tokenizer.tokenize(headerValue);
+                Rfc822Token[] tokens = Rfc822Tokenizer.tokenize(headerValue);
                 from = new ArrayList<Rfc822Token>(Arrays.asList(tokens));
             } else if(headerType.contains("TO")) {
                 headerValue = BluetoothMapUtils.stripEncoding(headerValue);
-                Rfc822Token tokens[] = Rfc822Tokenizer.tokenize(headerValue);
+                Rfc822Token[] tokens = Rfc822Tokenizer.tokenize(headerValue);
                 to = new ArrayList<Rfc822Token>(Arrays.asList(tokens));
             } else if(headerType.contains("CC")) {
                 headerValue = BluetoothMapUtils.stripEncoding(headerValue);
-                Rfc822Token tokens[] = Rfc822Tokenizer.tokenize(headerValue);
+                Rfc822Token[] tokens = Rfc822Tokenizer.tokenize(headerValue);
                 cc = new ArrayList<Rfc822Token>(Arrays.asList(tokens));
             } else if(headerType.contains("BCC")) {
                 headerValue = BluetoothMapUtils.stripEncoding(headerValue);
-                Rfc822Token tokens[] = Rfc822Tokenizer.tokenize(headerValue);
+                Rfc822Token[] tokens = Rfc822Tokenizer.tokenize(headerValue);
                 bcc = new ArrayList<Rfc822Token>(Arrays.asList(tokens));
             } else if(headerType.contains("REPLY-TO")) {
                 headerValue = BluetoothMapUtils.stripEncoding(headerValue);
-                Rfc822Token tokens[] = Rfc822Tokenizer.tokenize(headerValue);
+                Rfc822Token[] tokens = Rfc822Tokenizer.tokenize(headerValue);
                 replyTo = new ArrayList<Rfc822Token>(Arrays.asList(tokens));
             } else if(headerType.contains("SUBJECT")) { // Other headers
                 subject = BluetoothMapUtils.stripEncoding(headerValue);

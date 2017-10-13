@@ -155,7 +155,7 @@ public class BluetoothMapConvoListingElement
     }
 
     public String getRead() {
-        if(mReportRead == false) {
+        if(!mReportRead) {
             return "UNKNOWN";
         }
         return (mRead?"READ":"UNREAD");
@@ -229,6 +229,7 @@ public class BluetoothMapConvoListingElement
         mSmsMmsContacts = smsMmsContacts;
     }
 
+    @Override
     public int compareTo(BluetoothMapConvoListingElement e) {
         if (this.mLastActivity < e.mLastActivity) {
             return 1;
@@ -258,7 +259,7 @@ public class BluetoothMapConvoListingElement
                         getLastActivityString());
             }
             // Even though this is implied, the value "UNKNOWN" kind of indicated it is required.
-            if(mReportRead == true) {
+            if(mReportRead) {
                 xmlConvoElement.attribute(null, XML_ATT_READ, getRead());
             }
             if(mVersionCounter != -1) {

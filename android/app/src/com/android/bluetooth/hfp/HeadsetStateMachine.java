@@ -2008,11 +2008,13 @@ final class HeadsetStateMachine extends StateMachine {
     }
 
     private final ServiceConnection mConnection = new ServiceConnection() {
+        @Override
         public void onServiceConnected(ComponentName className, IBinder service) {
             if (DBG) Log.d(TAG, "Proxy object connected");
             mPhoneProxy = IBluetoothHeadsetPhone.Stub.asInterface(service);
         }
 
+        @Override
         public void onServiceDisconnected(ComponentName className) {
             if (DBG) Log.d(TAG, "Proxy object disconnected");
             mPhoneProxy = null;
@@ -2893,7 +2895,7 @@ final class HeadsetStateMachine extends StateMachine {
      * Find a character ch, ignoring quoted sections.
      * Return input.length() if not found.
      */
-    static private int findChar(char ch, String input, int fromIndex) {
+    private static int findChar(char ch, String input, int fromIndex) {
         for (int i = fromIndex; i < input.length(); i++) {
             char c = input.charAt(i);
             if (c == '"') {
@@ -2913,7 +2915,7 @@ final class HeadsetStateMachine extends StateMachine {
      * Integer arguments are turned into Integer objects. Otherwise a String
      * object is used.
      */
-    static private Object[] generateArgs(String input) {
+    private static Object[] generateArgs(String input) {
         int i = 0;
         int j;
         ArrayList<Object> out = new ArrayList<Object>();
@@ -3325,7 +3327,7 @@ final class HeadsetStateMachine extends StateMachine {
         boolean ret = false;
         // check if this is an incoming connection in Quiet mode.
         if ((adapterService == null)
-                || ((adapterService.isQuietModeEnabled() == true) && (mTargetDevice == null))) {
+                || ((adapterService.isQuietModeEnabled()) && (mTargetDevice == null))) {
             ret = false;
         }
         // check priority and accept or reject the connection. if priority is undefined
@@ -3394,26 +3396,26 @@ final class HeadsetStateMachine extends StateMachine {
     private static final String SCHEME_TEL = "tel";
 
     // Event types for STACK_EVENT message
-    final private static int EVENT_TYPE_NONE = 0;
-    final private static int EVENT_TYPE_CONNECTION_STATE_CHANGED = 1;
-    final private static int EVENT_TYPE_AUDIO_STATE_CHANGED = 2;
-    final private static int EVENT_TYPE_VR_STATE_CHANGED = 3;
-    final private static int EVENT_TYPE_ANSWER_CALL = 4;
-    final private static int EVENT_TYPE_HANGUP_CALL = 5;
-    final private static int EVENT_TYPE_VOLUME_CHANGED = 6;
-    final private static int EVENT_TYPE_DIAL_CALL = 7;
-    final private static int EVENT_TYPE_SEND_DTMF = 8;
-    final private static int EVENT_TYPE_NOICE_REDUCTION = 9;
-    final private static int EVENT_TYPE_AT_CHLD = 10;
-    final private static int EVENT_TYPE_SUBSCRIBER_NUMBER_REQUEST = 11;
-    final private static int EVENT_TYPE_AT_CIND = 12;
-    final private static int EVENT_TYPE_AT_COPS = 13;
-    final private static int EVENT_TYPE_AT_CLCC = 14;
-    final private static int EVENT_TYPE_UNKNOWN_AT = 15;
-    final private static int EVENT_TYPE_KEY_PRESSED = 16;
-    final private static int EVENT_TYPE_WBS = 17;
-    final private static int EVENT_TYPE_BIND = 18;
-    final private static int EVENT_TYPE_BIEV = 19;
+    private static final int EVENT_TYPE_NONE = 0;
+    private static final int EVENT_TYPE_CONNECTION_STATE_CHANGED = 1;
+    private static final int EVENT_TYPE_AUDIO_STATE_CHANGED = 2;
+    private static final int EVENT_TYPE_VR_STATE_CHANGED = 3;
+    private static final int EVENT_TYPE_ANSWER_CALL = 4;
+    private static final int EVENT_TYPE_HANGUP_CALL = 5;
+    private static final int EVENT_TYPE_VOLUME_CHANGED = 6;
+    private static final int EVENT_TYPE_DIAL_CALL = 7;
+    private static final int EVENT_TYPE_SEND_DTMF = 8;
+    private static final int EVENT_TYPE_NOICE_REDUCTION = 9;
+    private static final int EVENT_TYPE_AT_CHLD = 10;
+    private static final int EVENT_TYPE_SUBSCRIBER_NUMBER_REQUEST = 11;
+    private static final int EVENT_TYPE_AT_CIND = 12;
+    private static final int EVENT_TYPE_AT_COPS = 13;
+    private static final int EVENT_TYPE_AT_CLCC = 14;
+    private static final int EVENT_TYPE_UNKNOWN_AT = 15;
+    private static final int EVENT_TYPE_KEY_PRESSED = 16;
+    private static final int EVENT_TYPE_WBS = 17;
+    private static final int EVENT_TYPE_BIND = 18;
+    private static final int EVENT_TYPE_BIEV = 19;
 
     private class StackEvent {
         int type = EVENT_TYPE_NONE;
@@ -3431,7 +3433,7 @@ final class HeadsetStateMachine extends StateMachine {
             int responseCode, int errorCode, byte[] address);
     /*package*/ native boolean atResponseStringNative(String responseString, byte[] address);
 
-    private native static void classInitNative();
+    private static native void classInitNative();
     private native void initializeNative(int max_hf_clients, boolean inband_ring_enable);
     private native void cleanupNative();
     private native boolean connectHfpNative(byte[] address);

@@ -547,7 +547,7 @@ public class BluetoothMapContent {
         String setread = null;
 
         if (V) Log.d(TAG, "setRead: " + setread);
-        e.setRead((read==1?true:false), ((ap.getParameterMask() & MASK_READ) != 0));
+        e.setRead((read == 1), ((ap.getParameterMask() & MASK_READ) != 0));
     }
     private void setConvoRead(BluetoothMapConvoListingElement e, Cursor c,
             FilterInfo fi, BluetoothMapAppParams ap) {
@@ -557,7 +557,7 @@ public class BluetoothMapContent {
 
 
         if (V) Log.d(TAG, "setRead: " + setread);
-        e.setRead((read==1?true:false), ((ap.getParameterMask() & MASK_READ) != 0));
+        e.setRead((read == 1), ((ap.getParameterMask() & MASK_READ) != 0));
     }
 
     private void setPriority(BluetoothMapMessageListingElement e, Cursor c,
@@ -807,7 +807,7 @@ public class BluetoothMapContent {
 
         StringBuilder sb = new StringBuilder();
         if (toAddress != null) {
-            Rfc822Token tokens[] = Rfc822Tokenizer.tokenize(toAddress);
+            Rfc822Token[] tokens = Rfc822Tokenizer.tokenize(toAddress);
             if (tokens.length != 0) {
                 if(D) Log.d(TAG, "toName count= " + tokens.length);
                 int i = 0;
@@ -827,7 +827,7 @@ public class BluetoothMapContent {
             }
         }
         if (ccAddress != null) {
-            Rfc822Token tokens[] = Rfc822Tokenizer.tokenize(ccAddress);
+            Rfc822Token[] tokens = Rfc822Tokenizer.tokenize(ccAddress);
             if (tokens.length != 0) {
                 if(D) Log.d(TAG, "ccName count= " + tokens.length);
                 int i = 0;
@@ -846,7 +846,7 @@ public class BluetoothMapContent {
             }
         }
         if (bccAddress != null) {
-            Rfc822Token tokens[] = Rfc822Tokenizer.tokenize(bccAddress);
+            Rfc822Token[] tokens = Rfc822Tokenizer.tokenize(bccAddress);
             if (tokens.length != 0) {
                 if(D) Log.d(TAG, "bccName count= " + tokens.length);
                 int i = 0;
@@ -874,7 +874,7 @@ public class BluetoothMapContent {
 
         StringBuilder sb = new StringBuilder();
         if (toAddress != null) {
-            Rfc822Token tokens[] = Rfc822Tokenizer.tokenize(toAddress);
+            Rfc822Token[] tokens = Rfc822Tokenizer.tokenize(toAddress);
             if (tokens.length != 0) {
                 if(D) Log.d(TAG, "toAddress count= " + tokens.length);
                 int i = 0;
@@ -894,7 +894,7 @@ public class BluetoothMapContent {
             }
         }
         if (ccAddress != null) {
-            Rfc822Token tokens[] = Rfc822Tokenizer.tokenize(ccAddress);
+            Rfc822Token[] tokens = Rfc822Tokenizer.tokenize(ccAddress);
             if (tokens.length != 0) {
                 if(D) Log.d(TAG, "ccAddress count= " + tokens.length);
                 int i = 0;
@@ -913,7 +913,7 @@ public class BluetoothMapContent {
             }
         }
         if (bccAddress != null) {
-            Rfc822Token tokens[] = Rfc822Tokenizer.tokenize(bccAddress);
+            Rfc822Token[] tokens = Rfc822Tokenizer.tokenize(bccAddress);
             if (tokens.length != 0) {
                 if(D) Log.d(TAG, "bccAddress count= " + tokens.length);
                 int i = 0;
@@ -1040,7 +1040,7 @@ public class BluetoothMapContent {
             } else if (fi.mMsgType == FilterInfo.TYPE_EMAIL/* ||
                        fi.mMsgType == FilterInfo.TYPE_IM*/) {
                 String nameEmail = c.getString(fi.mMessageColFromAddress);
-                Rfc822Token tokens[] = Rfc822Tokenizer.tokenize(nameEmail);
+                Rfc822Token[] tokens = Rfc822Tokenizer.tokenize(nameEmail);
                 if (tokens.length != 0) {
                     if(D) Log.d(TAG, "Originator count= " + tokens.length);
                     int i = 0;
@@ -1111,7 +1111,7 @@ public class BluetoothMapContent {
             } else if (fi.mMsgType == FilterInfo.TYPE_EMAIL/*  ||
                        fi.mMsgType == FilterInfo.TYPE_IM*/) {
                 String nameEmail = c.getString(fi.mMessageColFromAddress);
-                Rfc822Token tokens[] = Rfc822Tokenizer.tokenize(nameEmail);
+                Rfc822Token[] tokens = Rfc822Tokenizer.tokenize(nameEmail);
                 if (tokens.length != 0) {
                     if(D) Log.d(TAG, "Originator count= " + tokens.length);
                     int i = 0;
@@ -1197,7 +1197,7 @@ public class BluetoothMapContent {
 
     }
 
-    static public String getTextPartsMms(ContentResolver r, long id) {
+    public static String getTextPartsMms(ContentResolver r, long id) {
         String text = "";
         String selection = new String("mid=" + id);
         String uriStr = new String(Mms.CONTENT_URI + "/" + id + "/part");
@@ -1275,7 +1275,7 @@ public class BluetoothMapContent {
         BluetoothMapMessageListingElement e = new BluetoothMapMessageListingElement();
         setHandle(e, c, fi, ap);
         setDateTime(e, c, fi, ap);
-        e.setType(getType(c, fi), ((ap.getParameterMask() & MASK_TYPE) != 0) ? true : false);
+        e.setType(getType(c, fi), (ap.getParameterMask() & MASK_TYPE) != 0);
         setRead(e, c, fi, ap);
         // we set number and name for sender/recipient later
         // they require lookup on contacts so no need to
@@ -1328,7 +1328,7 @@ public class BluetoothMapContent {
      * Get SMS RecipientAddresses for DRAFT folder based on threadId
      *
     */
-    static public String getCanonicalAddressSms(ContentResolver r,  int threadId) {
+    public static String getCanonicalAddressSms(ContentResolver r,  int threadId) {
        String [] RECIPIENT_ID_PROJECTION = { Threads.RECIPIENT_IDS };
         /*
          1. Get Recipient Ids from Threads.CONTENT_URI
@@ -1360,7 +1360,7 @@ public class BluetoothMapContent {
         }
         if (V) Log.v(TAG, "recipientIds with spaces: "+ recipientIds +"\n");
         if(recipientIds != null) {
-            String recipients[] = null;
+            String[] recipients = null;
             whereClause = "";
             recipients = recipientIds.split(" ");
             for (String id: recipients) {
@@ -1390,7 +1390,7 @@ public class BluetoothMapContent {
         return recipientAddress;
      }
 
-    static public String getAddressMms(ContentResolver r, long id, int type) {
+    public static String getAddressMms(ContentResolver r, long id, int type) {
         String selection = new String("msg_id=" + id + " AND type=" + type);
         String uriStr = new String(Mms.CONTENT_URI + "/" + id + "/addr");
         Uri uriAddress = Uri.parse(uriStr);
@@ -2449,7 +2449,7 @@ public class BluetoothMapContent {
         }
 
         if (D) Log.d(TAG, "msgListingHasUnread: numUnread = " + cnt);
-        return (cnt>0)?true:false;
+        return cnt > 0;
     }
 
     /**
@@ -2508,13 +2508,13 @@ public class BluetoothMapContent {
         try {
             if (smsSelected(fi, ap) || mmsSelected(ap)) {
                 String limit = "";
-                if((sizeOnly == false) && (ap.getMaxListCount()>0) &&
+                if((!sizeOnly) && (ap.getMaxListCount()>0) &&
                         (ap.getFilterRecipient()==null)){
                     /* We can only use limit if we do not have a contacts filter */
                     limit=" LIMIT " + maxThreads;
                 }
                 StringBuilder sortOrder = new StringBuilder(Threads.DATE + " DESC");
-                if((sizeOnly == false) &&
+                if((!sizeOnly) &&
                         ((msgTypesInclude & ~(BluetoothMapAppParams.FILTER_NO_SMS_GSM |
                         BluetoothMapAppParams.FILTER_NO_SMS_CDMA) |
                         BluetoothMapAppParams.FILTER_NO_MMS) == 0)
@@ -2554,7 +2554,7 @@ public class BluetoothMapContent {
                             convoElement = createConvoElement(smsMmsCursor, fi, ap);
                             convoList.add(convoElement);
                             count++;
-                            if(sizeOnly == false && count >= maxThreads) {
+                            if(!sizeOnly && count >= maxThreads) {
                                 break;
                             }
                         }
@@ -2573,7 +2573,7 @@ public class BluetoothMapContent {
                             if(addSmsMmsContacts(convoElement, contacts, idsStr,
                                     ap.getFilterRecipient(), ap)) {
                                 convoList.add(convoElement);
-                                if(sizeOnly == false && count >= maxThreads) {
+                                if(!sizeOnly && count >= maxThreads) {
                                     break;
                                 }
                             }
@@ -2608,7 +2608,7 @@ public class BluetoothMapContent {
                     boolean isValid = imEmailCursor.moveToNext();
                     if(D) Log.d(TAG, "Found " + imEmailCursor.getCount()
                             + " EMAIL/IM conversations. isValid = " + isValid);
-                    while (isValid && ((sizeOnly == true) || (count < maxThreads))) {
+                    while (isValid && ((sizeOnly) || (count < maxThreads))) {
                         long threadId = imEmailCursor.getLong(fi.mConvoColConvoId);
                         long nextThreadId;
                         count ++;
@@ -2622,7 +2622,7 @@ public class BluetoothMapContent {
                             // TODO: This seems rather inefficient in the case where we do not need
                             //       to reduce the list.
                         } while ((nextThreadId == threadId) &&
-                                (isValid = imEmailCursor.moveToNext() == true));
+                                (isValid = imEmailCursor.moveToNext()));
                     }
                 }
             }
@@ -2732,8 +2732,7 @@ public class BluetoothMapContent {
                         // name is not used for SMS/MMS.
                         // msg delete will be handled by update folderVersionCounter().
                         long last_activity = cursor.getLong(MMS_SMS_THREAD_COL_DATE);
-                        boolean read = (cursor.getInt(MMS_SMS_THREAD_COL_READ) == 1) ?
-                                true : false;
+                        boolean read = cursor.getInt(MMS_SMS_THREAD_COL_READ) == 1;
 
                         if(last_activity != convoElement.getLastActivity()) {
                             convoChanged = true;
@@ -2824,8 +2823,7 @@ public class BluetoothMapContent {
                         String name = imEmailCursor.getString(fi.mConvoColName);
                         String summary = imEmailCursor.getString(fi.mConvoColSummary);
                         long last_activity = imEmailCursor.getLong(fi.mConvoColLastActivity);
-                        boolean read = (imEmailCursor.getInt(fi.mConvoColRead) == 1) ?
-                                true : false;
+                        boolean read = imEmailCursor.getInt(fi.mConvoColRead) == 1;
 
                         if(last_activity != convoElement.getLastActivity()) {
                             convoChanged = true;
@@ -2852,7 +2850,7 @@ public class BluetoothMapContent {
                             if(V) Log.i(TAG, "  threadId = " + id + " newThreadId = " +
                                     nextThreadId);
                         } while ((nextThreadId == id) &&
-                                (isValid = imEmailCursor.moveToNext() == true));
+                                (isValid = imEmailCursor.moveToNext()));
 
                         if(convoChanged) {
                             listChangeDetected = true;
@@ -2900,8 +2898,7 @@ public class BluetoothMapContent {
             convoElement.setVersionCounter(0);
         }
         long last_activity = cursor.getLong(MMS_SMS_THREAD_COL_DATE);
-        boolean read = (cursor.getInt(MMS_SMS_THREAD_COL_READ) == 1) ?
-                true : false;
+        boolean read = cursor.getInt(MMS_SMS_THREAD_COL_READ) == 1;
 
         if(last_activity != convoElement.getLastActivity()) {
             convoChanged = true;
@@ -2947,8 +2944,7 @@ public class BluetoothMapContent {
         }
         String name = cursor.getString(fi.mConvoColName);
         long last_activity = cursor.getLong(fi.mConvoColLastActivity);
-        boolean read = (cursor.getInt(fi.mConvoColRead) == 1) ?
-                true : false;
+        boolean read = cursor.getInt(fi.mConvoColRead) == 1;
 
         if(last_activity != convoElement.getLastActivity()) {
             convoChanged = true;
@@ -2994,8 +2990,7 @@ public class BluetoothMapContent {
         ele.setConvoId(BluetoothMapUtils.CONVO_ID_TYPE_SMS_MMS,
                 smsMmsCursor.getLong(MMS_SMS_THREAD_COL_ID));
 
-        boolean read = (smsMmsCursor.getInt(MMS_SMS_THREAD_COL_READ) == 1) ?
-                true : false;
+        boolean read = smsMmsCursor.getInt(MMS_SMS_THREAD_COL_READ) == 1;
         if((parameterMask & CONVO_PARAM_MASK_CONVO_READ_STATUS) != 0) {
             ele.setRead(read, true);
         } else {
@@ -3063,7 +3058,7 @@ public class BluetoothMapContent {
         if((parameterMask & CONVO_PARAM_MASK_CONVO_READ_STATUS) != 0) {
             reportRead = true;
         }
-        ele.setRead(((1==tmpCursor.getInt(fi.mConvoColRead))?true:false), reportRead);
+        ele.setRead((1 == tmpCursor.getInt(fi.mConvoColRead)), reportRead);
 
         long timestamp = tmpCursor.getLong(fi.mConvoColLastActivity);
         if((parameterMask & CONVO_PARAM_MASK_CONVO_LAST_ACTIVITY) != 0) {
@@ -3113,7 +3108,7 @@ public class BluetoothMapContent {
                     c.setName(tmpCursor.getString(fi.mContactColName));
                 }
                 ele.addContact(c);
-            } while (tmpCursor.moveToNext() == true
+            } while (tmpCursor.moveToNext()
                     && tmpCursor.getLong(fi.mConvoColConvoId) == threadId);
         }
     }
@@ -3231,7 +3226,7 @@ public class BluetoothMapContent {
             }
         }
 
-        if(foundContact == true) {
+        if(foundContact) {
             foundContact = false;
             for (long id : longIds) {
                 String addr = contacts.getPhoneNumber(mResolver, id);
@@ -3378,7 +3373,7 @@ public class BluetoothMapContent {
             }
         }
 
-        if (incoming == true) {
+        if (incoming) {
             if(V) Log.d(TAG, "Adding originator for phone:" + phone);
             // Use version 3.0 as we only have a formatted name
             message.addOriginator(contactName, contactName, phoneNumbers, emailAddresses,null,null);
@@ -3599,7 +3594,6 @@ public class BluetoothMapContent {
                         Log.d(TAG,"extractMmsParts",e);
                         part.mData = null;
                         part.mCharsetName = null;
-                    } finally {
                     }
                     part.mFileName = filename;
                 } while(c.moveToNext());
@@ -3669,7 +3663,6 @@ public class BluetoothMapContent {
                         Log.d(TAG,"extractIMParts",e);
                         part.mData = null;
                         part.mCharsetName = null;
-                    } finally {
                     }
                     part.mFileName = filename;
                 } while(c.moveToNext());
@@ -3718,8 +3711,8 @@ public class BluetoothMapContent {
                 message.setMessageId(c.getString(c.getColumnIndex(Mms.MESSAGE_ID)));
                 message.setContentType(c.getString(c.getColumnIndex(Mms.CONTENT_TYPE)));
                 message.setDate(c.getLong(c.getColumnIndex(Mms.DATE)) * 1000L);
-                message.setTextOnly(c.getInt(c.getColumnIndex(Mms.TEXT_ONLY)) == 0 ? false : true);
-                message.setIncludeAttachments(appParams.getAttachment() == 0 ? false : true);
+                message.setTextOnly(c.getInt(c.getColumnIndex(Mms.TEXT_ONLY)) != 0);
+                message.setIncludeAttachments(appParams.getAttachment() != 0);
                 // c.getLong(c.getColumnIndex(Mms.DATE_SENT)); - this is never used
                 // c.getInt(c.getColumnIndex(Mms.STATUS)); - don't know what this is
 
@@ -3782,9 +3775,9 @@ public class BluetoothMapContent {
                                    +  " - send compete message" );
                        }
                        // Check if message is complete and if not - request message from server
-                       if (c.getString(c.getColumnIndex(
-                               BluetoothMapContract.MessageColumns.RECEPTION_STATE)).equalsIgnoreCase(
-                                       BluetoothMapContract.RECEPTION_STATE_COMPLETE) == false)  {
+                       if (!c.getString(c.getColumnIndex(
+                           BluetoothMapContract.MessageColumns.RECEPTION_STATE)).equalsIgnoreCase(
+                           BluetoothMapContract.RECEPTION_STATE_COMPLETE))  {
                            // TODO: request message from server
                            Log.w(TAG, "getEmailMessage - receptionState not COMPLETE -  Not Implemented!" );
                        }
@@ -3809,7 +3802,7 @@ public class BluetoothMapContent {
                    // Set recipient:
                    String nameEmail = c.getString(
                                        c.getColumnIndex(BluetoothMapContract.MessageColumns.TO_LIST));
-                   Rfc822Token tokens[] = Rfc822Tokenizer.tokenize(nameEmail);
+                   Rfc822Token[] tokens = Rfc822Tokenizer.tokenize(nameEmail);
                    if (tokens.length != 0) {
                        if(D) Log.d(TAG, "Recipient count= " + tokens.length);
                        int i = 0;
@@ -3940,10 +3933,10 @@ public class BluetoothMapContent {
                        c.getColumnIndex(BluetoothMapContract.MessageColumns._ID)));
                message.setDate(c.getLong(
                        c.getColumnIndex(BluetoothMapContract.MessageColumns.DATE)));
-               message.setTextOnly(c.getInt(c.getColumnIndex(
-                       BluetoothMapContract.MessageColumns.ATTACHMENT_SIZE)) != 0 ? false : true);
+               message.setTextOnly(c.getInt(
+                       c.getColumnIndex(BluetoothMapContract.MessageColumns.ATTACHMENT_SIZE)) == 0);
 
-               message.setIncludeAttachments(appParams.getAttachment() == 0 ? false : true);
+               message.setIncludeAttachments(appParams.getAttachment() != 0);
 
                // c.getLong(c.getColumnIndex(Mms.DATE_SENT)); - this is never used
                // c.getInt(c.getColumnIndex(Mms.STATUS)); - don't know what this is
@@ -3971,13 +3964,13 @@ public class BluetoothMapContent {
                if(contacts != null && contacts.moveToFirst()){
                    String name = contacts.getString(contacts.getColumnIndex(
                            BluetoothMapContract.ConvoContactColumns.NAME));
-                   String btUid[] = new String[1];
+                   String[] btUid = new String[1];
                    btUid[0]= contacts.getString(contacts.getColumnIndex(
                            BluetoothMapContract.ConvoContactColumns.X_BT_UID));
                    String nickname = contacts.getString(contacts.getColumnIndex(
                            BluetoothMapContract.ConvoContactColumns.NICKNAME));
-                   String btUci[] = new String[1];
-                   String btOwnUci[] = new String[1];
+                   String[] btUci = new String[1];
+                   String[] btOwnUci = new String[1];
                    btOwnUci[0] = mAccount.getUciFull();
                    btUci[0] = contacts.getString(contacts.getColumnIndex(
                            BluetoothMapContract.ConvoContactColumns.UCI));

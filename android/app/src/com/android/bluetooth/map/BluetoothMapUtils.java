@@ -115,7 +115,7 @@ public class BluetoothMapUtils {
         }
     }
 
-    static public String getDateTimeString(long timestamp) {
+    public static String getDateTimeString(long timestamp) {
         SimpleDateFormat format = new SimpleDateFormat("yyyyMMdd'T'HHmmss");
         Date date = new Date(timestamp);
         return format.format(date); // Format to YYYYMMDDTHHMMSS local time
@@ -313,7 +313,7 @@ public class BluetoothMapUtils {
      * @param mapHandle the handle string
      * @return the handle value
      */
-    static public long getMsgHandleAsLong(String mapHandle){
+    public static long getMsgHandleAsLong(String mapHandle){
         return Long.parseLong(mapHandle, 16);
     }
     /**
@@ -321,7 +321,7 @@ public class BluetoothMapUtils {
      * @param mapHandle handle to convert from
      * @return content provider handle without message type mask
      */
-    static public long getCpHandle(String mapHandle)
+    public static long getCpHandle(String mapHandle)
     {
         long cpHandle = getMsgHandleAsLong(mapHandle);
         if(D)Log.d(TAG,"-> MAP handle:"+mapHandle);
@@ -337,7 +337,7 @@ public class BluetoothMapUtils {
      * @param mapHandle
      * @return
      */
-    static public TYPE getMsgTypeFromHandle(String mapHandle) {
+    public static TYPE getMsgTypeFromHandle(String mapHandle) {
         long cpHandle = getMsgHandleAsLong(mapHandle);
 
         if((cpHandle & HANDLE_TYPE_MMS_MASK) != 0)
@@ -364,11 +364,11 @@ public class BluetoothMapUtils {
      * @return the same string if valid, otherwise a new String stripped for
      * any illegal characters. If a null pointer is passed an empty string will be returned.
      */
-    static public String stripInvalidChars(String text) {
+    public static String stripInvalidChars(String text) {
         if(text == null) {
             return "";
         }
-        char out[] = new char[text.length()];
+        char[] out = new char[text.length()];
         int i, o, l;
         for(i=0, o=0, l=text.length(); i<l; i++){
             char c = text.charAt(i);
@@ -391,7 +391,7 @@ public class BluetoothMapUtils {
      * @return byte array containing valid utf8 characters with max length
      * @throws UnsupportedEncodingException
      */
-    static public byte[] truncateUtf8StringToBytearray(String utf8String, int maxLength)
+    public static byte[] truncateUtf8StringToBytearray(String utf8String, int maxLength)
             throws UnsupportedEncodingException {
 
         byte[] utf8Bytes = new byte[utf8String.length() + 1];
@@ -431,7 +431,7 @@ public class BluetoothMapUtils {
      * @param in the string with encoding
      * @return decoded string if success - else the same string as was as input.
      */
-    static public String stripEncoding(String in){
+    public static String stripEncoding(String in){
         String str = null;
         if(in.contains("=?") && in.contains("?=")){
             String encoding;

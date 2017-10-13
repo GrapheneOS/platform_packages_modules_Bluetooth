@@ -181,25 +181,25 @@ public class BluetoothOppTransferActivity extends AlertActivity implements
         boolean isComplete = BluetoothShare.isStatusCompleted(mTransInfo.mStatus);
 
         if (direction == BluetoothShare.DIRECTION_INBOUND) {
-            if (isComplete == true) {
-                if (isSuccess == true) {
+            if (isComplete) {
+                if (isSuccess) {
                     // should not go here
                     mWhichDialog = DIALOG_RECEIVE_COMPLETE_SUCCESS;
-                } else if (isSuccess == false) {
+                } else if (!isSuccess) {
                     mWhichDialog = DIALOG_RECEIVE_COMPLETE_FAIL;
                 }
-            } else if (isComplete == false) {
+            } else if (!isComplete) {
                 mWhichDialog = DIALOG_RECEIVE_ONGOING;
             }
         } else if (direction == BluetoothShare.DIRECTION_OUTBOUND) {
-            if (isComplete == true) {
-                if (isSuccess == true) {
+            if (isComplete) {
+                if (isSuccess) {
                     mWhichDialog = DIALOG_SEND_COMPLETE_SUCCESS;
 
-                } else if (isSuccess == false) {
+                } else if (!isSuccess) {
                     mWhichDialog = DIALOG_SEND_COMPLETE_FAIL;
                 }
-            } else if (isComplete == false) {
+            } else if (!isComplete) {
                 mWhichDialog = DIALOG_SEND_ONGOING;
             }
         }
@@ -346,6 +346,7 @@ public class BluetoothOppTransferActivity extends AlertActivity implements
         }
     }
 
+    @Override
     public void onClick(DialogInterface dialog, int which) {
         switch (which) {
             case DialogInterface.BUTTON_POSITIVE:

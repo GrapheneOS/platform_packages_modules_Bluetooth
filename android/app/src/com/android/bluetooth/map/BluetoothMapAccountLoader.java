@@ -18,6 +18,7 @@ package com.android.bluetooth.map;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Objects;
 
 import android.content.ContentProviderClient;
 import android.content.ContentResolver;
@@ -82,9 +83,9 @@ public class BluetoothMapAccountLoader {
                 mPackageManager.queryIntentContentProviders(searchIntent, 0);
             if (resInfos != null ) {
                 if(D) Log.d(TAG,"Found " + resInfos.size() + " application(s) with intent "
-                        + searchIntent.getAction().toString());
-                BluetoothMapUtils.TYPE msgType = (searchIntent.getAction().toString() ==
-                        BluetoothMapContract.PROVIDER_INTERFACE_EMAIL) ?
+                        + searchIntent.getAction());
+                BluetoothMapUtils.TYPE msgType = (Objects.equals(searchIntent.getAction(),
+                        BluetoothMapContract.PROVIDER_INTERFACE_EMAIL)) ?
                         BluetoothMapUtils.TYPE.EMAIL : BluetoothMapUtils.TYPE.IM;
                 for (ResolveInfo rInfo : resInfos) {
                     if(D) Log.d(TAG,"ResolveInfo " + rInfo.toString());
@@ -136,7 +137,7 @@ public class BluetoothMapAccountLoader {
                     name,
                     rInfo.providerInfo.packageName,
                     provider,
-                    (includeIcon == false)? null : rInfo.loadIcon(mPackageManager),
+                    (!includeIcon)? null : rInfo.loadIcon(mPackageManager),
                     type);
             return app;
         }

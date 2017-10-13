@@ -73,6 +73,7 @@ public class BluetoothMapSettingsAdapter extends BaseExpandableListAdapter {
 
         listView.setOnGroupExpandListener(new OnGroupExpandListener() {
 
+            @Override
             public void onGroupExpand(int groupPosition) {
                 BluetoothMapAccountItem group = mMainGroup.get(groupPosition);
                 if (mProupList.get(group).size() > 0)
@@ -120,6 +121,7 @@ public class BluetoothMapSettingsAdapter extends BaseExpandableListAdapter {
             final BluetoothMapAccountItem child =  getChild(groupPosition, childPosition);
             holder.cb.setOnCheckedChangeListener(new OnCheckedChangeListener() {
 
+                @Override
                 public void onCheckedChanged(CompoundButton buttonView,
                         boolean isChecked) {
                     BluetoothMapAccountItem parentGroup = 
@@ -153,7 +155,7 @@ public class BluetoothMapSettingsAdapter extends BaseExpandableListAdapter {
                         if (isAllChildClicked) {
                             parentGroup.mIsChecked = true;
                             if(!(BluetoothMapSettingsDataHolder.mCheckedChilds.containsKey(
-                                child.getName())==true)){
+                                child.getName()))){
                                 BluetoothMapSettingsDataHolder.mCheckedChilds.put(child.getName(),
                                         parentGroup.getName());
                             }
@@ -249,6 +251,7 @@ public class BluetoothMapSettingsAdapter extends BaseExpandableListAdapter {
 
         holder.cb.setOnCheckedChangeListener(new OnCheckedChangeListener() {
 
+            @Override
             public void onCheckedChanged(CompoundButton buttonView,
                     boolean isChecked) {
                 if (mCheckAll) {
@@ -272,6 +275,7 @@ public class BluetoothMapSettingsAdapter extends BaseExpandableListAdapter {
                 notifyDataSetChanged();
                 new Handler().postDelayed(new Runnable() {
 
+                    @Override
                     public void run() {
                         if (!mCheckAll)
                             mCheckAll = true;

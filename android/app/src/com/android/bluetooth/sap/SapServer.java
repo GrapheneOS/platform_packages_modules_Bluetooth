@@ -404,7 +404,7 @@ public class SapServer extends Thread implements Callback {
                             }
                         }
 
-                        if(msg != null && msg.getSendToRil() == true) {
+                        if(msg != null && msg.getSendToRil()) {
                             changeState(SAP_STATE.CONNECTED_BUSY);
                             sendRilThreadMessage(msg);
                         }
@@ -437,7 +437,7 @@ public class SapServer extends Thread implements Callback {
                 changeState(SAP_STATE.DISCONNECTED);
             } else if (mState != SAP_STATE.DISCONNECTED) {
                 if(mState != SAP_STATE.DISCONNECTING &&
-                        mIsLocalInitDisconnect != true) {
+                    !mIsLocalInitDisconnect) {
                     sendDisconnectInd(SapMessage.DISC_FORCED);
                 }
                 if(DEBUG) Log.i(TAG, "Waiting for deinit to complete");
@@ -515,7 +515,7 @@ public class SapServer extends Thread implements Callback {
             // Store the MaxMsgSize for future use
             mMaxMsgSize = msg.getMaxMsgSize();
             // All parameters OK, examine if a call is ongoing and start the RIL-BT listener thread
-            if (isCallOngoing() == true) {
+            if (isCallOngoing()) {
                 /* If a call is ongoing we set the state, inform the SAP client and wait for a state
                  * change intent from the TelephonyManager with state IDLE. */
                 reply.setConnectionStatus(SapMessage.CON_STATUS_OK_ONGOING_CALL);
@@ -650,6 +650,7 @@ public class SapServer extends Thread implements Callback {
                 // todo: rild should be back up since message was sent with a delay. this is a hack.
                 mRilBtReceiver.getSapProxy();
             }
+            break;
         default:
             /* Message not handled */
             return false;
@@ -774,7 +775,7 @@ public class SapServer extends Thread implements Callback {
                         mDeinitSignal.countDown(); /* Signal deinit complete */
                     } else { /* DISCONNECTED */
                         mDeinitSignal.countDown(); /* Signal deinit complete */
-                        if(mIsLocalInitDisconnect == true) {
+                        if(mIsLocalInitDisconnect) {
                             if(VERBOSE) Log.i(TAG_HANDLER, "This is a FORCED disconnect.");
                             /* We needed to force the disconnect, hence no hope for the client to
                              * close the RFCOMM connection, hence we do it here. */

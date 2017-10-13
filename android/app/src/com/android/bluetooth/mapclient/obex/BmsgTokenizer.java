@@ -77,7 +77,7 @@ public final class BmsgTokenizer {
         return mPos + mOffset;
     }
 
-    static public class Property {
+    public static class Property {
         public final String name;
         public final String value;
 

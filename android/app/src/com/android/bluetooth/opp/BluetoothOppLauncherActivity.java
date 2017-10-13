@@ -109,6 +109,7 @@ public class BluetoothOppLauncherActivity extends Activity {
                     // Save type/stream, will be used when adding transfer
                     // session to DB.
                     Thread t = new Thread(new Runnable() {
+                        @Override
                         public void run() {
                             sendFileInfo(type, stream.toString(), false /* isHandover */,
                                     true /* fromExternal */);
@@ -122,6 +123,7 @@ public class BluetoothOppLauncherActivity extends Activity {
                     final Uri fileUri = creatFileForSharedContent(this.createCredentialProtectedStorageContext(), extra_text);
                     if (fileUri != null) {
                         Thread t = new Thread(new Runnable() {
+                            @Override
                             public void run() {
                                 sendFileInfo(type, fileUri.toString(), false /* isHandover */,
                                         false /* fromExternal */);
@@ -146,6 +148,7 @@ public class BluetoothOppLauncherActivity extends Activity {
                     if (V) Log.v(TAG, "Get ACTION_SHARE_MULTIPLE intent: uris " + uris + "\n Type= "
                                 + mimeType);
                     Thread t = new Thread(new Runnable() {
+                        @Override
                         public void run() {
                             try {
                                 BluetoothOppManager.getInstance(BluetoothOppLauncherActivity.this)
@@ -189,7 +192,7 @@ public class BluetoothOppLauncherActivity extends Activity {
      * Turns on Bluetooth if not already on, or launches device picker if Bluetooth is on
      * @return
      */
-    private final void launchDevicePicker() {
+    private void launchDevicePicker() {
         // TODO: In the future, we may send intent to DevicePickerActivity
         // directly,
         // and let DevicePickerActivity to handle Bluetooth Enable.
@@ -214,7 +217,7 @@ public class BluetoothOppLauncherActivity extends Activity {
         }
     }
     /* Returns true if Bluetooth is allowed given current airplane mode settings. */
-    private final boolean isBluetoothAllowed() {
+    private boolean isBluetoothAllowed() {
         final ContentResolver resolver = this.getContentResolver();
 
         // Check if airplane mode is on
@@ -227,8 +230,9 @@ public class BluetoothOppLauncherActivity extends Activity {
         // Check if airplane mode matters
         final String airplaneModeRadios =
                 Settings.System.getString(resolver, Settings.Global.AIRPLANE_MODE_RADIOS);
-        final boolean isAirplaneSensitive = airplaneModeRadios == null ? true :
-                airplaneModeRadios.contains(Settings.System.RADIO_BLUETOOTH);
+        final boolean isAirplaneSensitive =
+                airplaneModeRadios == null || airplaneModeRadios.contains(
+                        Settings.System.RADIO_BLUETOOTH);
         if (!isAirplaneSensitive) {
             return true;
         }
@@ -236,9 +240,9 @@ public class BluetoothOppLauncherActivity extends Activity {
         // Check if Bluetooth may be enabled in airplane mode
         final String airplaneModeToggleableRadios = Settings.System.getString(
                 resolver, Settings.Global.AIRPLANE_MODE_TOGGLEABLE_RADIOS);
-        final boolean isAirplaneToggleable = airplaneModeToggleableRadios == null
-                ? false
-                : airplaneModeToggleableRadios.contains(Settings.Global.RADIO_BLUETOOTH);
+        final boolean isAirplaneToggleable =
+                airplaneModeToggleableRadios != null && airplaneModeToggleableRadios.contains(
+                        Settings.Global.RADIO_BLUETOOTH);
         if (isAirplaneToggleable) {
             return true;
         }

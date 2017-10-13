@@ -259,7 +259,7 @@ public class BluetoothMapMasInstance implements IObexConnectionHandler {
         return combinedVersionCounter;
     }
 
-    synchronized public void startRfcommSocketListener() {
+    public synchronized void startRfcommSocketListener() {
         if (D) Log.d(TAG, "Map Service startRfcommSocketListener");
 
         if (mServerSession != null) {
@@ -420,7 +420,7 @@ public class BluetoothMapMasInstance implements IObexConnectionHandler {
     }
 
 
-    private final synchronized void closeServerSockets(boolean block) {
+    private synchronized void closeServerSockets(boolean block) {
         // exit SocketAcceptThread early
         ObexServerSockets sockets = mServerSockets;
         if (sockets != null) {
@@ -429,7 +429,7 @@ public class BluetoothMapMasInstance implements IObexConnectionHandler {
         }
     }
 
-    private final synchronized void closeConnectionSocket() {
+    private synchronized void closeConnectionSocket() {
         if (mConnSocket != null) {
             try {
                 mConnSocket.close();
@@ -460,7 +460,7 @@ public class BluetoothMapMasInstance implements IObexConnectionHandler {
          */
         boolean isValid = mMapService.onConnect(device, BluetoothMapMasInstance.this);
 
-        if(isValid == true) {
+        if(isValid) {
             mRemoteDevice = device;
             mConnSocket = socket;
         }

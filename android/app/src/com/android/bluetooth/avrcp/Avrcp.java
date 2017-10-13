@@ -82,13 +82,13 @@ public final class Avrcp {
     private Handler mAudioManagerPlaybackHandler;
     private AudioManagerPlaybackListener mAudioManagerPlaybackCb;
     private MediaSessionManager mMediaSessionManager;
-    private @Nullable MediaController mMediaController;
+    @Nullable private MediaController mMediaController;
     private MediaControllerListener mMediaControllerCb;
     private MediaAttributes mMediaAttributes;
     private long mLastQueueId;
     private PackageManager mPackageManager;
     private int mTransportControlFlags;
-    private @NonNull PlaybackState mCurrentPlayState;
+    @NonNull private PlaybackState mCurrentPlayState;
     private int mA2dpState;
     private boolean mAudioManagerIsPlaying;
     private int mPlayStatusChangedNT;
@@ -195,7 +195,7 @@ public final class Avrcp {
     private final BroadcastReceiver mBootReceiver = new AvrcpServiceBootReceiver();
 
     /* Recording passthrough key dispatches */
-    static private final int PASSTHROUGH_LOG_MAX_SIZE = DEBUG ? 50 : 10;
+    private static final int PASSTHROUGH_LOG_MAX_SIZE = DEBUG ? 50 : 10;
     private EvictingQueue<MediaKeyLog> mPassthroughLogs; // Passthorugh keys dispatched
     private List<MediaKeyLog> mPassthroughPending; // Passthrough keys sent not dispatched yet
     private int mPassthroughDispatched; // Number of keys dispatched
@@ -220,6 +220,7 @@ public final class Avrcp {
             return true;
         }
 
+        @Override
         public String toString() {
             StringBuilder sb = new StringBuilder();
             sb.append(android.text.format.DateFormat.format("MM-dd HH:mm:ss", mTimeSent));
@@ -545,7 +546,7 @@ public final class Avrcp {
 
                 boolean volAdj = false;
                 if (msg.arg2 == AVRC_RSP_ACCEPT || msg.arg2 == AVRC_RSP_REJ) {
-                    if (mVolCmdAdjustInProgress == false && mVolCmdSetInProgress == false) {
+                    if (!mVolCmdAdjustInProgress && !mVolCmdSetInProgress) {
                         Log.e(TAG, "Unsolicited response, ignored");
                         break;
                     }
@@ -959,7 +960,7 @@ public final class Avrcp {
             if (exists != other.exists)
                 return false;
 
-            if (exists == false)
+            if (!exists)
                 return true;
 
             return (title.equals(other.title)) && (artistName.equals(other.artistName))
@@ -1001,6 +1002,7 @@ public final class Avrcp {
             return s == null ? new String() : s.toString();
         }
 
+        @Override
         public String toString() {
             if (!exists) {
                 return "[MediaAttributes: none]";
@@ -2498,12 +2500,14 @@ public final class Avrcp {
     private class AvrcpMediaRsp implements AvrcpMediaRspInterface {
         private static final String TAG = "AvrcpMediaRsp";
 
+        @Override
         public void setAddrPlayerRsp(byte[] address, int rspStatus) {
             if (!setAddressedPlayerRspNative(address, rspStatus)) {
                 Log.e(TAG, "setAddrPlayerRsp failed!");
             }
         }
 
+        @Override
         public void setBrowsedPlayerRsp(byte[] address, int rspStatus, byte depth, int numItems,
                 String[] textArray) {
             if (!setBrowsedPlayerRspNative(address, rspStatus, depth, numItems, textArray)) {
@@ -2511,6 +2515,7 @@ public final class Avrcp {
             }
         }
 
+        @Override
         public void mediaPlayerListRsp(byte[] address, int rspStatus, MediaPlayerListRsp rspObj) {
             if (rspObj != null && rspStatus == AvrcpConstants.RSP_NO_ERROR) {
                 if (!mediaPlayerListRspNative(address, rspStatus, sUIDCounter, rspObj.itemType,
@@ -2526,6 +2531,7 @@ public final class Avrcp {
             }
         }
 
+        @Override
         public void folderItemsRsp(byte[] address, int rspStatus, FolderItemsRsp rspObj) {
             if (rspObj != null && rspStatus == AvrcpConstants.RSP_NO_ERROR) {
                 if (!getFolderItemsRspNative(address, rspStatus, sUIDCounter, rspObj.mScope,
@@ -2542,11 +2548,13 @@ public final class Avrcp {
 
         }
 
+        @Override
         public void changePathRsp(byte[] address, int rspStatus, int numItems) {
             if (!changePathRspNative(address, rspStatus, numItems))
                 Log.e(TAG, "changePathRspNative failed!");
         }
 
+        @Override
         public void getItemAttrRsp(byte[] address, int rspStatus, ItemAttrRsp rspObj) {
             if (rspObj != null && rspStatus == AvrcpConstants.RSP_NO_ERROR) {
                 if (!getItemAttrRspNative(address, rspStatus, rspObj.mNumAttr,
@@ -2559,12 +2567,14 @@ public final class Avrcp {
             }
         }
 
+        @Override
         public void playItemRsp(byte[] address, int rspStatus) {
             if (!playItemRspNative(address, rspStatus)) {
                 Log.e(TAG, "playItemRspNative failed!");
             }
         }
 
+        @Override
         public void getTotalNumOfItemsRsp(byte[] address, int rspStatus, int uidCounter,
                 int numItems) {
             if (!getTotalNumOfItemsRspNative(address, rspStatus, sUIDCounter, numItems)) {
@@ -2572,24 +2582,28 @@ public final class Avrcp {
             }
         }
 
+        @Override
         public void addrPlayerChangedRsp(int type, int playerId, int uidCounter) {
             if (!registerNotificationRspAddrPlayerChangedNative(type, playerId, sUIDCounter)) {
                 Log.e(TAG, "registerNotificationRspAddrPlayerChangedNative failed!");
             }
         }
 
+        @Override
         public void avalPlayerChangedRsp(byte[] address, int type) {
             if (!registerNotificationRspAvalPlayerChangedNative(type)) {
                 Log.e(TAG, "registerNotificationRspAvalPlayerChangedNative failed!");
             }
         }
 
+        @Override
         public void uidsChangedRsp(int type) {
             if (!registerNotificationRspUIDsChangedNative(type, sUIDCounter)) {
                 Log.e(TAG, "registerNotificationRspUIDsChangedNative failed!");
             }
         }
 
+        @Override
         public void nowPlayingChangedRsp(int type) {
             if (mNowPlayingListChangedNT != AvrcpConstants.NOTIFICATION_TYPE_INTERIM) {
                 if (DEBUG) Log.d(TAG, "NowPlayingListChanged: Not registered or requesting.");
@@ -2602,6 +2616,7 @@ public final class Avrcp {
             mNowPlayingListChangedNT = AvrcpConstants.NOTIFICATION_TYPE_CHANGED;
         }
 
+        @Override
         public void trackChangedRsp(int type, byte[] uid) {
             if (!registerNotificationRspTrackChangeNative(type, uid)) {
                 Log.e(TAG, "registerNotificationRspTrackChangeNative failed!");
@@ -2806,37 +2821,37 @@ public final class Avrcp {
     // Do not modify without updating the HAL bt_rc.h files.
 
     // match up with btrc_play_status_t enum of bt_rc.h
-    final static byte PLAYSTATUS_STOPPED = 0;
-    final static byte PLAYSTATUS_PLAYING = 1;
-    final static byte PLAYSTATUS_PAUSED = 2;
-    final static byte PLAYSTATUS_FWD_SEEK = 3;
-    final static byte PLAYSTATUS_REV_SEEK = 4;
-    final static byte PLAYSTATUS_ERROR = (byte) 255;
+    static final byte PLAYSTATUS_STOPPED = 0;
+    static final byte PLAYSTATUS_PLAYING = 1;
+    static final byte PLAYSTATUS_PAUSED = 2;
+    static final byte PLAYSTATUS_FWD_SEEK = 3;
+    static final byte PLAYSTATUS_REV_SEEK = 4;
+    static final byte PLAYSTATUS_ERROR = (byte) 255;
 
     // match up with btrc_media_attr_t enum of bt_rc.h
-    final static int MEDIA_ATTR_TITLE = 1;
-    final static int MEDIA_ATTR_ARTIST = 2;
-    final static int MEDIA_ATTR_ALBUM = 3;
-    final static int MEDIA_ATTR_TRACK_NUM = 4;
-    final static int MEDIA_ATTR_NUM_TRACKS = 5;
-    final static int MEDIA_ATTR_GENRE = 6;
-    final static int MEDIA_ATTR_PLAYING_TIME = 7;
+    static final int MEDIA_ATTR_TITLE = 1;
+    static final int MEDIA_ATTR_ARTIST = 2;
+    static final int MEDIA_ATTR_ALBUM = 3;
+    static final int MEDIA_ATTR_TRACK_NUM = 4;
+    static final int MEDIA_ATTR_NUM_TRACKS = 5;
+    static final int MEDIA_ATTR_GENRE = 6;
+    static final int MEDIA_ATTR_PLAYING_TIME = 7;
 
     // match up with btrc_event_id_t enum of bt_rc.h
-    final static int EVT_PLAY_STATUS_CHANGED = 1;
-    final static int EVT_TRACK_CHANGED = 2;
-    final static int EVT_TRACK_REACHED_END = 3;
-    final static int EVT_TRACK_REACHED_START = 4;
-    final static int EVT_PLAY_POS_CHANGED = 5;
-    final static int EVT_BATT_STATUS_CHANGED = 6;
-    final static int EVT_SYSTEM_STATUS_CHANGED = 7;
-    final static int EVT_APP_SETTINGS_CHANGED = 8;
-    final static int EVENT_NOW_PLAYING_CONTENT_CHANGED = 9;
-    final static int EVT_AVBL_PLAYERS_CHANGED = 0xa;
-    final static int EVT_ADDR_PLAYER_CHANGED = 0xb;
-    final static int EVENT_UIDS_CHANGED = 0x0c;
+    static final int EVT_PLAY_STATUS_CHANGED = 1;
+    static final int EVT_TRACK_CHANGED = 2;
+    static final int EVT_TRACK_REACHED_END = 3;
+    static final int EVT_TRACK_REACHED_START = 4;
+    static final int EVT_PLAY_POS_CHANGED = 5;
+    static final int EVT_BATT_STATUS_CHANGED = 6;
+    static final int EVT_SYSTEM_STATUS_CHANGED = 7;
+    static final int EVT_APP_SETTINGS_CHANGED = 8;
+    static final int EVENT_NOW_PLAYING_CONTENT_CHANGED = 9;
+    static final int EVT_AVBL_PLAYERS_CHANGED = 0xa;
+    static final int EVT_ADDR_PLAYER_CHANGED = 0xb;
+    static final int EVENT_UIDS_CHANGED = 0x0c;
 
-    private native static void classInitNative();
+    private static native void classInitNative();
     private native void initNative();
     private native void cleanupNative();
     private native boolean getPlayStatusRspNative(byte[] address, int playStatus, int songLen,

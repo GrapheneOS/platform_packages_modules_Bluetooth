@@ -344,7 +344,7 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
         }
     };
 
-    private final boolean initSocket() {
+    private boolean initSocket() {
         if (VERBOSE) Log.v(TAG, "Pbap Service initSocket");
 
         boolean initSocketOK = false;
@@ -399,7 +399,7 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
         return initSocketOK;
     }
 
-    private final synchronized void closeServerSocket() {
+    private synchronized void closeServerSocket() {
         // exit SocketAcceptThread early
         if (mServerSocket != null) {
             try {
@@ -412,7 +412,7 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
         }
     }
 
-    private final synchronized void closeConnectionSocket() {
+    private synchronized void closeConnectionSocket() {
         if (mConnSocket != null) {
             try {
                 mConnSocket.close();
@@ -423,7 +423,7 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
         }
     }
 
-    private final void closeService() {
+    private void closeService() {
         if (VERBOSE) Log.v(TAG, "Pbap Service closeService in");
 
         BluetoothPbapUtils.savePbapParams(this, BluetoothPbapUtils.primaryVersionCounter,
@@ -475,7 +475,7 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
         }
     }
 
-    private final void startObexServerSession() throws IOException {
+    private void startObexServerSession() throws IOException {
         if (VERBOSE) Log.v(TAG, "Pbap Service startObexServerSession");
 
         // acquire the wakeLock before start Obex transaction thread
@@ -921,11 +921,13 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
             mService = service;
         }
 
+        @Override
         public boolean cleanup() {
             mService = null;
             return true;
         }
 
+        @Override
         public int getState() {
             if (DEBUG) Log.d(TAG, "getState = " + mService.getState());
             BluetoothPbapService service = getService(BLUETOOTH_PERM);
@@ -934,6 +936,7 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
             return service.getState();
         }
 
+        @Override
         public BluetoothDevice getClient() {
             if (DEBUG) Log.d(TAG, "getClient = " + mService.getRemoteDevice());
             BluetoothPbapService service = getService(BLUETOOTH_PERM);
@@ -941,6 +944,7 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
             return service.getRemoteDevice();
         }
 
+        @Override
         public boolean isConnected(BluetoothDevice device) {
             if (DEBUG) Log.d(TAG, "isConnected " + device);
             BluetoothPbapService service = getService(BLUETOOTH_PERM);
@@ -949,11 +953,13 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
                     && service.getRemoteDevice().equals(device);
         }
 
+        @Override
         public boolean connect(BluetoothDevice device) {
             BluetoothPbapService service = getService(BLUETOOTH_ADMIN_PERM);
             return false;
         }
 
+        @Override
         public void disconnect() {
             if (DEBUG) Log.d(TAG, "disconnect");
             BluetoothPbapService service = getService(BLUETOOTH_ADMIN_PERM);
@@ -966,7 +972,7 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
      * Start server side socket listeners. Caller should make sure that adapter is in a ready state
      * and SDP record is cleaned up. Otherwise, this method will fail.
      */
-    synchronized private void startSocketListeners() {
+    private synchronized void startSocketListeners() {
         if (DEBUG) Log.d(TAG, "startsocketListener");
         if (mServerSession != null) {
             if (DEBUG) Log.d(TAG, "mServerSession exists - shutting it down...");

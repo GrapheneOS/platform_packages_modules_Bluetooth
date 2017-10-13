@@ -56,6 +56,7 @@ class AvrcpCmd {
             this.mAttrIDs = attrIds;
         }
 
+        @Override
         public String toString() {
             StringBuilder sb = new StringBuilder();
             sb.append("[FolderItemCmd: scope " + mScope);
@@ -88,6 +89,7 @@ class AvrcpCmd {
             mAttrIDs = attrIDs;
         }
 
+        @Override
         public String toString() {
             StringBuilder sb = new StringBuilder();
             sb.append("[ItemAttrCmd: scope " + mScope);
@@ -202,9 +204,9 @@ class MediaPlayerInfo {
     private int subType;
     private byte playStatus;
     private short[] featureBitMask;
-    private @NonNull String packageName;
-    private @NonNull String displayableName;
-    private @Nullable MediaController mediaController;
+    @NonNull private String packageName;
+    @NonNull private String displayableName;
+    @Nullable private MediaController mediaController;
 
     MediaPlayerInfo(@Nullable MediaController controller, byte majorType, int subType,
             byte playStatus, short[] featureBitMask, @NonNull String packageName,
