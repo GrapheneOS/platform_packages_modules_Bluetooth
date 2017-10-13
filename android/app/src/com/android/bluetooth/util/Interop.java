@@ -35,8 +35,8 @@ public class Interop {
     String address;
     int workaround_id;
 
-    public Entry(int workaround_id, String address) {
-      this.workaround_id = workaround_id;
+    public Entry(int workaroundId, String address) {
+      this.workaround_id = workaroundId;
       this.address = address;
     }
   }
@@ -68,15 +68,15 @@ public class Interop {
 
   /**
    * Checks wheter a given device identified by |address| is a match
-   * for a given workaround identified by |workaround_id|.
+   * for a given workaround identified by |workaroundId|.
    * Return true if the address matches, false otherwise.
    */
-  public static boolean matchByAddress(int workaround_id, String address) {
+  public static boolean matchByAddress(int workaroundId, String address) {
     if (address == null || address.isEmpty()) return false;
 
     lazyInitInteropDatabase();
     for (Entry entry : entries) {
-      if (entry.workaround_id == workaround_id &&
+      if (entry.workaround_id == workaroundId &&
           entry.address.startsWith(address.toLowerCase())) {
         return true;
       }

@@ -40,24 +40,24 @@ public class AdvtFilterOnFoundOnLostInfo {
     private int mRssiValue;
     private int mTimeStamp;
 
-    public AdvtFilterOnFoundOnLostInfo(int client_if, int adv_pkt_len, byte[] adv_pkt,
-                    int scan_rsp_len, byte[] scan_rsp, int filt_index, int adv_state,
-                    int adv_info_present, String address, int addr_type, int tx_power,
-                    int rssi_value, int time_stamp){
+    public AdvtFilterOnFoundOnLostInfo(int clientIf, int advPktLen, byte[] advPkt,
+                    int scanRspLen, byte[] scanRsp, int filtIndex, int advState,
+                    int advInfoPresent, String address, int addrType, int txPower,
+                    int rssiValue, int timeStamp){
 
-        mClientIf = client_if;
-        mAdvPktLen = adv_pkt_len;
-        mAdvPkt = adv_pkt;
-        mScanRspLen = scan_rsp_len;
-        mScanRsp = scan_rsp;
-        mFiltIndex = filt_index;
-        mAdvState = adv_state;
-        mAdvInfoPresent = adv_info_present;
+        mClientIf = clientIf;
+        mAdvPktLen = advPktLen;
+        mAdvPkt = advPkt;
+        mScanRspLen = scanRspLen;
+        mScanRsp = scanRsp;
+        mFiltIndex = filtIndex;
+        mAdvState = advState;
+        mAdvInfoPresent = advInfoPresent;
         mAddress = address;
-        mAddrType = addr_type;
-        mTxPower = tx_power;
-        mRssiValue = rssi_value;
-        mTimeStamp = time_stamp;
+        mAddrType = addrType;
+        mTxPower = txPower;
+        mRssiValue = rssiValue;
+        mTimeStamp = timeStamp;
     }
 
     public int getClientIf () {

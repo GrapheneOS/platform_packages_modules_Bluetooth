@@ -410,12 +410,12 @@ public class PanService extends ProfileService {
     }
 
     protected static class ConnectState {
-        public ConnectState(byte[] address, int state, int error, int local_role, int remote_role) {
+        public ConnectState(byte[] address, int state, int error, int localRole, int remoteRole) {
             this.addr = address;
             this.state = state;
             this.error = error;
-            this.local_role = local_role;
-            this.remote_role = remote_role;
+            this.local_role = localRole;
+            this.remote_role = remoteRole;
         }
         byte[] addr;
         int state;
@@ -423,17 +423,17 @@ public class PanService extends ProfileService {
         int local_role;
         int remote_role;
     };
-    private void onConnectStateChanged(byte[] address, int state, int error, int local_role,
-            int remote_role) {
+    private void onConnectStateChanged(byte[] address, int state, int error, int localRole,
+            int remoteRole) {
         if (DBG) {
-            log("onConnectStateChanged: " + state + ", local role:" + local_role +
-                    ", remote_role: " + remote_role);
+            log("onConnectStateChanged: " + state + ", local role:" + localRole +
+                    ", remoteRole: " + remoteRole);
         }
         Message msg = mHandler.obtainMessage(MESSAGE_CONNECT_STATE_CHANGED);
-        msg.obj = new ConnectState(address, state, error, local_role, remote_role);
+        msg.obj = new ConnectState(address, state, error, localRole, remoteRole);
         mHandler.sendMessage(msg);
     }
-    private void onControlStateChanged(int local_role, int state, int error, String ifname) {
+    private void onControlStateChanged(int localRole, int state, int error, String ifname) {
         if (DBG)
             log("onControlStateChanged: " + state + ", error: " + error + ", ifname: " + ifname);
         if(error == 0)
@@ -457,11 +457,11 @@ public class PanService extends ProfileService {
     }
 
     void handlePanDeviceStateChange(BluetoothDevice device,
-                                    String iface, int state, int local_role, int remote_role) {
+                                    String iface, int state, int localRole, int remoteRole) {
         if(DBG) {
             Log.d(TAG, "handlePanDeviceStateChange: device: " + device + ", iface: " + iface +
-                    ", state: " + state + ", local_role:" + local_role + ", remote_role:" +
-                    remote_role);
+                    ", state: " + state + ", localRole:" + localRole + ", remoteRole:" +
+                    remoteRole);
         }
         int prevState;
 
@@ -469,12 +469,12 @@ public class PanService extends ProfileService {
         if (panDevice == null) {
             Log.i(TAG, "state " + state + " Num of connected pan devices: " + mPanDevices.size());
             prevState = BluetoothProfile.STATE_DISCONNECTED;
-            panDevice = new BluetoothPanDevice(state, iface, local_role);
+            panDevice = new BluetoothPanDevice(state, iface, localRole);
             mPanDevices.put(device, panDevice);
         } else {
             prevState = panDevice.mState;
             panDevice.mState = state;
-            panDevice.mLocalRole = local_role;
+            panDevice.mLocalRole = localRole;
             panDevice.mIface = iface;
         }
 
@@ -491,9 +491,9 @@ public class PanService extends ProfileService {
 
         Log.d(TAG, "handlePanDeviceStateChange preState: " + prevState + " state: " + state);
         if (prevState == state) return;
-        if (remote_role == BluetoothPan.LOCAL_PANU_ROLE) {
+        if (remoteRole == BluetoothPan.LOCAL_PANU_ROLE) {
             if (state == BluetoothProfile.STATE_CONNECTED) {
-                if ((!mTetherOn) || (local_role == BluetoothPan.LOCAL_PANU_ROLE)) {
+                if ((!mTetherOn) || (localRole == BluetoothPan.LOCAL_PANU_ROLE)) {
                     Log.d(TAG, "handlePanDeviceStateChange BT tethering is off/Local role"
                             + " is PANU drop the connection");
                     mPanDevices.remove(device);
@@ -542,7 +542,7 @@ public class PanService extends ProfileService {
         intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
         intent.putExtra(BluetoothPan.EXTRA_PREVIOUS_STATE, prevState);
         intent.putExtra(BluetoothPan.EXTRA_STATE, state);
-        intent.putExtra(BluetoothPan.EXTRA_LOCAL_ROLE, local_role);
+        intent.putExtra(BluetoothPan.EXTRA_LOCAL_ROLE, localRole);
         sendBroadcast(intent, BLUETOOTH_PERM);
     }
 
@@ -677,9 +677,9 @@ public class PanService extends ProfileService {
     private static native void classInitNative();
     private native void initializeNative();
     private native void cleanupNative();
-    private native boolean connectPanNative(byte[] btAddress, int local_role, int remote_role);
+    private native boolean connectPanNative(byte[] btAddress, int localRole, int remoteRole);
     private native boolean disconnectPanNative(byte[] btAddress);
-    private native boolean enablePanNative(int local_role);
+    private native boolean enablePanNative(int localRole);
     private native int getPanLocalRoleNative();
 
 }

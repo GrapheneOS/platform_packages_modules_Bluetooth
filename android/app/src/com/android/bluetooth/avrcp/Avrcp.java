@@ -2867,11 +2867,11 @@ public final class Avrcp {
     private native boolean setBrowsedPlayerRspNative(byte[] address, int rspStatus, byte depth,
             int numItems, String[] textArray);
     private native boolean mediaPlayerListRspNative(byte[] address, int rsStatus, int uidCounter,
-            byte item_type, int numItems, int[] playerIds, byte[] playerTypes, int[] playerSubTypes,
+            byte itemType, int numItems, int[] playerIds, byte[] playerTypes, int[] playerSubTypes,
             byte[] playStatusValues, short[] featureBitMaskValues, String[] textArray);
     private native boolean getFolderItemsRspNative(byte[] address, int rspStatus, short uidCounter,
             byte scope, int numItems, byte[] folderTypes, byte[] playable, byte[] itemTypes,
-            byte[] itemUidArray, String[] textArray, int[] AttributesNum, int[] AttributesIds,
+            byte[] itemUidArray, String[] textArray, int[] attributesNum, int[] attributesIds,
             String[] attributesArray);
     private native boolean changePathRspNative(byte[] address, int rspStatus, int numItems);
     private native boolean getItemAttrRspNative(byte[] address, int rspStatus, byte numAttr,
