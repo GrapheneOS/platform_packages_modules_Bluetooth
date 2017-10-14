@@ -145,7 +145,11 @@ public class ScanManager {
         mScanNative.cleanup();
 
         if (mActivityManager != null) {
-            mActivityManager.removeOnUidImportanceListener(mUidImportanceListener);
+            try {
+                mActivityManager.removeOnUidImportanceListener(mUidImportanceListener);
+            } catch (IllegalArgumentException e) {
+                Log.w(TAG, "exception when invoking removeOnUidImportanceListener", e);
+            }
         }
 
         if (mDm != null) {
