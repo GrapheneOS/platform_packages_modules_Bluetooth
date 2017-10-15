@@ -68,8 +68,6 @@ import java.util.List;
 import java.util.Queue;
 import java.util.Set;
 
-import com.android.bluetooth.R;
-
 public class HeadsetClientStateMachine extends StateMachine {
     private static final String TAG = "HeadsetClientStateMachine";
     private static final boolean DBG = false;
@@ -598,7 +596,7 @@ public class HeadsetClientStateMachine extends StateMachine {
             !c.isMultiParty()) return;
 
         if (NativeInterface.handleCallActionNative(getByteAddress(mCurrentDevice),
-                HeadsetClientHalConstants.CALL_ACTION_CHLD_2x, idx)) {
+                HeadsetClientHalConstants.CALL_ACTION_CHLD_2X, idx)) {
             addQueuedAction(ENTER_PRIVATE_MODE, c);
         } else {
             Log.e(TAG, "ERROR: Couldn't enter private " + " id:" + idx);

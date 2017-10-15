@@ -34,17 +34,17 @@ import org.junit.Test;
 public class PbapParserTest extends AndroidTestCase {
     private Account mAccount;
     private Resources testResources;
-    private static final String mTestAccountName = "PBAPTESTACCOUNT";
-    private static final String mTestPackageName = "com.android.bluetooth.tests";
+    private static final String TEST_ACCOUNT_NAME = "PBAPTESTACCOUNT";
+    private static final String TEST_PACKAGE_NAME = "com.android.bluetooth.tests";
 
     @Override
     @Before
     public void setUp() {
-        mAccount = new Account(mTestAccountName,
+        mAccount = new Account(TEST_ACCOUNT_NAME,
                 mContext.getString(com.android.bluetooth.R.string.pbap_account_type));
         try {
             testResources =
-                    mContext.getPackageManager().getResourcesForApplication(mTestPackageName);
+                    mContext.getPackageManager().getResourcesForApplication(TEST_PACKAGE_NAME);
         } catch (Exception e) {
             fail("Setup Failure Unable to get resources" + e.toString());
         }

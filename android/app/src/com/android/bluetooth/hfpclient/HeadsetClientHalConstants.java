@@ -106,8 +106,8 @@ public final class HeadsetClientHalConstants {
     static final int CALL_ACTION_CHLD_2 = 2;
     static final int CALL_ACTION_CHLD_3 = 3;
     static final int CALL_ACTION_CHLD_4 = 4;
-    static final int CALL_ACTION_CHLD_1x = 5;
-    static final int CALL_ACTION_CHLD_2x = 6;
+    static final int CALL_ACTION_CHLD_1X = 5;
+    static final int CALL_ACTION_CHLD_2X = 6;
     static final int CALL_ACTION_ATA = 7;
     static final int CALL_ACTION_CHUP = 8;
     static final int CALL_ACTION_BTRH_0 = 9;
