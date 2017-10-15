@@ -3057,29 +3057,29 @@ final class HeadsetStateMachine extends StateMachine {
     /**
      * Send HF indicator value changed intent
      * @param device Device whose HF indicator value has changed
-     * @param ind_id Indicator ID [0-65535]
-     * @param ind_value Indicator Value [0-65535], -1 means invalid but ind_id is supported
+     * @param indId Indicator ID [0-65535]
+     * @param indValue Indicator Value [0-65535], -1 means invalid but indId is supported
      */
-    private void sendIndicatorIntent(BluetoothDevice device, int ind_id, int ind_value) {
+    private void sendIndicatorIntent(BluetoothDevice device, int indId, int indValue) {
         Intent intent = new Intent(BluetoothHeadset.ACTION_HF_INDICATORS_VALUE_CHANGED);
         intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
-        intent.putExtra(BluetoothHeadset.EXTRA_HF_INDICATORS_IND_ID, ind_id);
-        intent.putExtra(BluetoothHeadset.EXTRA_HF_INDICATORS_IND_VALUE, ind_value);
+        intent.putExtra(BluetoothHeadset.EXTRA_HF_INDICATORS_IND_ID, indId);
+        intent.putExtra(BluetoothHeadset.EXTRA_HF_INDICATORS_IND_VALUE, indValue);
 
         mService.sendBroadcast(intent, HeadsetService.BLUETOOTH_PERM);
     }
 
-    private void processAtBind(String at_string, BluetoothDevice device) {
-        log("processAtBind: " + at_string);
+    private void processAtBind(String atString, BluetoothDevice device) {
+        log("processAtBind: " + atString);
 
         // Parse the AT String to find the Indicator Ids that are supported
         int ind_id = 0;
         int iter = 0;
         int iter1 = 0;
 
-        while (iter < at_string.length()) {
-            iter1 = findChar(',', at_string, iter);
-            String id = at_string.substring(iter, iter1);
+        while (iter < atString.length()) {
+            iter1 = findChar(',', atString, iter);
+            String id = atString.substring(iter, iter1);
 
             try {
                 ind_id = Integer.valueOf(id);
@@ -3230,10 +3230,10 @@ final class HeadsetStateMachine extends StateMachine {
         sendMessage(STACK_EVENT, event);
     }
 
-    private void onATBiev(int ind_id, int ind_value, byte[] address) {
+    private void onATBiev(int indId, int indValue, byte[] address) {
         StackEvent event = new StackEvent(EVENT_TYPE_BIEV);
-        event.valueInt = ind_id;
-        event.valueInt2 = ind_value;
+        event.valueInt = indId;
+        event.valueInt2 = indValue;
         event.device = getDevice(address);
         sendMessage(STACK_EVENT, event);
     }
@@ -3434,7 +3434,7 @@ final class HeadsetStateMachine extends StateMachine {
     /*package*/ native boolean atResponseStringNative(String responseString, byte[] address);
 
     private static native void classInitNative();
-    private native void initializeNative(int max_hf_clients, boolean inband_ring_enable);
+    private native void initializeNative(int maxHfClients, boolean inbandRingEnable);
     private native void cleanupNative();
     private native boolean connectHfpNative(byte[] address);
     private native boolean disconnectHfpNative(byte[] address);
@@ -3445,7 +3445,7 @@ final class HeadsetStateMachine extends StateMachine {
     private native boolean setVolumeNative(int volumeType, int volume, byte[] address);
     private native boolean cindResponseNative(int service, int numActive, int numHeld,
             int callState, int signal, int roam, int batteryCharge, byte[] address);
-    private native boolean bindResponseNative(int ind_id, boolean ind_status, byte[] address);
+    private native boolean bindResponseNative(int indId, boolean indStatus, byte[] address);
     private native boolean notifyDeviceStatusNative(
             int networkState, int serviceType, int signal, int batteryCharge);
 
@@ -3455,6 +3455,6 @@ final class HeadsetStateMachine extends StateMachine {
 
     private native boolean phoneStateChangeNative(
             int numActive, int numHeld, int callState, String number, int type);
-    private native boolean configureWBSNative(byte[] address, int condec_config);
+    private native boolean configureWBSNative(byte[] address, int condecConfig);
     private native boolean setScoAllowedNative(boolean value);
 }

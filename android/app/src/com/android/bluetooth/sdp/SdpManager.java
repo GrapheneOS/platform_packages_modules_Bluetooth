@@ -86,12 +86,12 @@ public class SdpManager {
             int l2capPsm, int version, int repositories, int features);
 
     private native int sdpCreateOppOpsRecordNative(String serviceName,
-            int rfcommChannel, int l2capPsm, int version, byte[] formats_list);
+            int rfcommChannel, int l2capPsm, int version, byte[] formatsList);
 
     private native int sdpCreateSapsRecordNative(String serviceName, int rfcommChannel,
             int version);
 
-    private native boolean sdpRemoveSdpRecordNative(int record_id);
+    private native boolean sdpRemoveSdpRecordNative(int recordId);
 
 
     /* Inner class used for wrapping sdp search instance data */
@@ -375,7 +375,7 @@ public class SdpManager {
 
     /* TODO: Test or remove! */
     void sdpRecordFoundCallback(int status, byte[] address, byte[] uuid,
-            int size_record, byte[] record) {
+            int sizeRecord, byte[] record) {
         synchronized(mTrackerLock) {
 
             SdpSearchInstance inst = sSdpSearchTracker.getSearchInstance(address, uuid);
@@ -387,9 +387,9 @@ public class SdpManager {
             inst.setStatus(status);
             if(status == AbstractionLayer.BT_STATUS_SUCCESS) {
                 if(D) Log.d(TAG, "sdpRecordFoundCallback: found a sdp record of size "
-                        + size_record );
+                        + sizeRecord );
                 if(D) Log.d(TAG, "Record:"+ Arrays.toString(record));
-                sdpRecord = new SdpRecord(size_record, record);
+                sdpRecord = new SdpRecord(sizeRecord, record);
             }
             if(D) Log.d(TAG, "UUID: " + Arrays.toString(uuid));
             if(D) Log.d(TAG, "UUID in parcel: " + ((Utils.byteArrayToUuid(uuid))[0]).toString());

@@ -754,9 +754,9 @@ public class AvrcpControllerService extends ProfileService {
 
     // Called by JNI when a device has connected or disconnected.
     private synchronized void onConnectionStateChanged(
-            boolean rc_connected, boolean br_connected, byte[] address) {
+            boolean rcConnected, boolean brConnected, byte[] address) {
         BluetoothDevice device = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(address);
-        Log.d(TAG, "onConnectionStateChanged " + rc_connected + " " + br_connected +
+        Log.d(TAG, "onConnectionStateChanged " + rcConnected + " " + brConnected +
             device + " conn device " + mConnectedDevice);
         if (device == null) {
             Log.e(TAG, "onConnectionStateChanged Device is null");
@@ -766,10 +766,10 @@ public class AvrcpControllerService extends ProfileService {
         // Adjust the AVRCP connection state.
         int oldState = (device.equals(mConnectedDevice) ? BluetoothProfile.STATE_CONNECTED :
             BluetoothProfile.STATE_DISCONNECTED);
-        int newState = (rc_connected ? BluetoothProfile.STATE_CONNECTED :
+        int newState = (rcConnected ? BluetoothProfile.STATE_CONNECTED :
             BluetoothProfile.STATE_DISCONNECTED);
 
-        if (rc_connected && oldState == BluetoothProfile.STATE_DISCONNECTED) {
+        if (rcConnected && oldState == BluetoothProfile.STATE_DISCONNECTED) {
             /* AVRCPControllerService supports single connection */
             if (mConnectedDevice != null) {
                 Log.d(TAG, "A Connection already exists, returning");
@@ -780,7 +780,7 @@ public class AvrcpControllerService extends ProfileService {
                 AvrcpControllerStateMachine.MESSAGE_PROCESS_CONNECTION_CHANGE, newState,
                 oldState, device);
             mAvrcpCtSm.sendMessage(msg);
-        } else if (!rc_connected && oldState == BluetoothProfile.STATE_CONNECTED) {
+        } else if (!rcConnected && oldState == BluetoothProfile.STATE_CONNECTED) {
             mConnectedDevice = null;
             Message msg = mAvrcpCtSm.obtainMessage(
                 AvrcpControllerStateMachine.MESSAGE_PROCESS_CONNECTION_CHANGE, newState,
@@ -790,7 +790,7 @@ public class AvrcpControllerService extends ProfileService {
 
         // Adjust the browse connection state. If RC is connected we should have already sent the
         // connection status out.
-        if (rc_connected && br_connected) {
+        if (rcConnected && brConnected) {
             mBrowseConnected = true;
             Message msg = mAvrcpCtSm.obtainMessage(
                AvrcpControllerStateMachine.MESSAGE_PROCESS_BROWSE_CONNECTION_CHANGE);
