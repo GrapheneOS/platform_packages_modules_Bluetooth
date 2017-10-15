@@ -134,7 +134,7 @@ static jmethodID method_onBatchScanStartStopped;
 static jmethodID method_onBatchScanReports;
 static jmethodID method_onBatchScanThresholdCrossed;
 
-static jmethodID method_CreateonTrackAdvFoundLostObject;
+static jmethodID method_createOnTrackAdvFoundLostObject;
 static jmethodID method_onTrackAdvFoundLost;
 static jmethodID method_onScanParamSetupCompleted;
 static jmethodID method_getSampleGattDbElement;
@@ -415,7 +415,7 @@ void btgattc_track_adv_event_cb(btgatt_track_adv_info_t* p_adv_track_info) {
   ScopedLocalRef<jobject> trackadv_obj(
       sCallbackEnv.get(),
       sCallbackEnv->CallObjectMethod(
-          mCallbacksObj, method_CreateonTrackAdvFoundLostObject,
+          mCallbacksObj, method_createOnTrackAdvFoundLostObject,
           p_adv_track_info->client_if, p_adv_track_info->adv_pkt_len,
           jb_adv_pkt.get(), p_adv_track_info->scan_rsp_len, jb_scan_rsp.get(),
           p_adv_track_info->filt_index, p_adv_track_info->advertiser_state,
@@ -815,8 +815,8 @@ static void classInitNative(JNIEnv* env, jclass clazz) {
       env->GetMethodID(clazz, "onBatchScanReports", "(IIII[B)V");
   method_onBatchScanThresholdCrossed =
       env->GetMethodID(clazz, "onBatchScanThresholdCrossed", "(I)V");
-  method_CreateonTrackAdvFoundLostObject =
-      env->GetMethodID(clazz, "CreateonTrackAdvFoundLostObject",
+  method_createOnTrackAdvFoundLostObject =
+      env->GetMethodID(clazz, "createOnTrackAdvFoundLostObject",
                        "(II[BI[BIIILjava/lang/String;IIII)Lcom/android/"
                        "bluetooth/gatt/AdvtFilterOnFoundOnLostInfo;");
   method_onTrackAdvFoundLost = env->GetMethodID(
@@ -825,7 +825,7 @@ static void classInitNative(JNIEnv* env, jclass clazz) {
   method_onScanParamSetupCompleted =
       env->GetMethodID(clazz, "onScanParamSetupCompleted", "(II)V");
   method_getSampleGattDbElement =
-      env->GetMethodID(clazz, "GetSampleGattDbElement",
+      env->GetMethodID(clazz, "getSampleGattDbElement",
                        "()Lcom/android/bluetooth/gatt/GattDbElement;");
   method_onGetGattDb =
       env->GetMethodID(clazz, "onGetGattDb", "(ILjava/util/ArrayList;)V");

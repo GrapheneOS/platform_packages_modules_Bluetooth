@@ -463,8 +463,8 @@ public class AdapterService extends Service {
         }
     }
 
-    void BleOnProcessStart() {
-        debugLog("BleOnProcessStart()");
+    void bleOnProcessStart() {
+        debugLog("bleOnProcessStart()");
 
         if (getResources().getBoolean(
                 R.bool.config_bluetooth_reload_supported_profiles_when_enabled)) {
@@ -489,7 +489,7 @@ public class AdapterService extends Service {
         mRemoteDevices.reset();
         mAdapterProperties.init(mRemoteDevices);
 
-        debugLog("BleOnProcessStart() - Make Bond State Machine");
+        debugLog("bleOnProcessStart() - Make Bond State Machine");
         mBondStateMachine = BondStateMachine.make(this, mAdapterProperties, mRemoteDevices);
 
         mJniCallbacks.init(mBondStateMachine,mRemoteDevices);

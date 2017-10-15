@@ -47,7 +47,6 @@ import android.provider.Telephony.Sms.Inbox;
 import android.telephony.PhoneStateListener;
 import android.telephony.ServiceState;
 import android.telephony.SmsManager;
-import android.telephony.SmsMessage;
 import android.telephony.TelephonyManager;
 import android.text.format.DateUtils;
 import android.text.TextUtils;
@@ -2450,7 +2449,7 @@ public class BluetoothMapContentObserver {
             BluetoothMapAppParams ap, String emailBaseUri)
                     throws IllegalArgumentException, RemoteException, IOException {
         if (D) Log.d(TAG, "pushMessage");
-        ArrayList<BluetoothMapbMessage.vCard> recipientList = msg.getRecipients();
+        ArrayList<BluetoothMapbMessage.VCard> recipientList = msg.getRecipients();
         int transparent = (ap.getTransparent() == BluetoothMapAppParams.INVALID_VALUE_PARAMETER) ?
                 0 : ap.getTransparent();
         int retry = ap.getRetry();
@@ -2460,9 +2459,9 @@ public class BluetoothMapContentObserver {
 
         if (recipientList == null) {
             if (folderElement.getName().equalsIgnoreCase(BluetoothMapContract.FOLDER_NAME_DRAFT)) {
-                BluetoothMapbMessage.vCard empty =
-                    new BluetoothMapbMessage.vCard("", "", null, null, 0);
-                recipientList = new ArrayList<BluetoothMapbMessage.vCard>();
+                BluetoothMapbMessage.VCard empty =
+                    new BluetoothMapbMessage.VCard("", "", null, null, 0);
+                recipientList = new ArrayList<BluetoothMapbMessage.VCard>();
                 recipientList.add(empty);
                 Log.w(TAG, "Added empty recipient to draft message");
             } else {
@@ -2532,7 +2531,7 @@ public class BluetoothMapContentObserver {
                 getMsgListMsg().put(handle, newMsg);
             }
         } else { // type SMS_* of MMS
-            for (BluetoothMapbMessage.vCard recipient : recipientList) {
+            for (BluetoothMapbMessage.VCard recipient : recipientList) {
                 // Only send the message to the top level recipient
                 if(recipient.getEnvLevel() == 0)
                 {
