@@ -30,7 +30,6 @@ import android.util.Log;
 
 import com.android.bluetooth.SignedLongLong;
 import com.android.bluetooth.map.BluetoothMapUtils.TYPE;
-import com.android.bluetooth.map.BluetoothMapMasInstance;
 import com.android.bluetooth.mapapi.BluetoothMapContract;
 
 import java.io.IOException;
@@ -1073,7 +1072,7 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
                 outAppParams.setFolderVerCounter(mMasInstance.getFolderVersionCounter(), 0);
             }
             outAppParams.setMseTime(Calendar.getInstance().getTime().getTime());
-            replyHeaders.setHeader(HeaderSet.APPLICATION_PARAMETER, outAppParams.EncodeParams());
+            replyHeaders.setHeader(HeaderSet.APPLICATION_PARAMETER, outAppParams.encodeParams());
             op.sendHeaders(replyHeaders);
 
         } catch (IOException e) {
@@ -1231,7 +1230,7 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
             // Build the application parameter header
             // The MseTime is not in the CR - but I think it is missing.
             outAppParams.setMseTime(Calendar.getInstance().getTime().getTime());
-            replyHeaders.setHeader(HeaderSet.APPLICATION_PARAMETER, outAppParams.EncodeParams());
+            replyHeaders.setHeader(HeaderSet.APPLICATION_PARAMETER, outAppParams.encodeParams());
             op.sendHeaders(replyHeaders);
 
         } catch (IOException e) {
@@ -1324,7 +1323,7 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
             }
 
             // Build and set the application parameter header
-            replyHeaders.setHeader(HeaderSet.APPLICATION_PARAMETER, outAppParams.EncodeParams());
+            replyHeaders.setHeader(HeaderSet.APPLICATION_PARAMETER, outAppParams.encodeParams());
             op.sendHeaders(replyHeaders);
 
         } catch (IOException e1) {
@@ -1498,7 +1497,7 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
                 outAppParams.setFractionDeliver(BluetoothMapAppParams.FRACTION_DELIVER_LAST);
                 // Build and set the application parameter header
                 replyHeaders.setHeader(HeaderSet.APPLICATION_PARAMETER,
-                        outAppParams.EncodeParams());
+                        outAppParams.encodeParams());
                 op.sendHeaders(replyHeaders);
                 if(V) Log.v(TAG,"sendGetMessageRsp fractionRequest - " +
                         "set FRACTION_DELIVER_LAST header");

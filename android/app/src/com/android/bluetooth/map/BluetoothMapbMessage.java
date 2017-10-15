@@ -56,11 +56,11 @@ public abstract class BluetoothMapbMessage {
 
     private int mBMsgLength = INVALID_VALUE;
 
-    private ArrayList<vCard> mOriginator = null;
-    private ArrayList<vCard> mRecipient = null;
+    private ArrayList<VCard> mOriginator = null;
+    private ArrayList<VCard> mRecipient = null;
 
 
-    public static class vCard {
+    public static class VCard {
         /* VCARD attributes */
         private String mVersion;
         private String mName = null;
@@ -79,7 +79,7 @@ public abstract class BluetoothMapbMessage {
          * @param emailAddresses a String[] of email addresses
          * @param the bmessage envelope level (0 is the top/most outer level)
          */
-        public vCard(String name, String formattedName, String[] phoneNumbers,
+        public VCard(String name, String formattedName, String[] phoneNumbers,
                 String[] emailAddresses, int envLevel) {
             this.mEnvLevel = envLevel;
             this.mVersion = "3.0";
@@ -97,7 +97,7 @@ public abstract class BluetoothMapbMessage {
          * @param emailAddresses a String[] of email addresses
          * @param the bmessage envelope level (0 is the top/most outer level)
          */
-        public vCard(String name, String[] phoneNumbers,
+        public VCard(String name, String[] phoneNumbers,
                 String[] emailAddresses, int envLevel) {
             this.mEnvLevel = envLevel;
             this.mVersion = "2.1";
@@ -116,7 +116,7 @@ public abstract class BluetoothMapbMessage {
          * @param btUids a String[] of X-BT-UIDs if available, else null
          * @param btUcis a String[] of X-BT-UCIs if available, else null
          */
-        public vCard(String name, String formattedName,
+        public VCard(String name, String formattedName,
                      String[] phoneNumbers,
                      String[] emailAddresses,
                      String[] btUids,
@@ -139,7 +139,7 @@ public abstract class BluetoothMapbMessage {
          * @param phoneNumbers a String[] of phone numbers
          * @param emailAddresses a String[] of email addresses
          */
-        public vCard(String name, String[] phoneNumbers, String[] emailAddresses) {
+        public VCard(String name, String[] phoneNumbers, String[] emailAddresses) {
             this.mVersion = "2.1";
             this.mName = name != null ? name : "";
             setPhoneNumbers(phoneNumbers);
@@ -242,7 +242,7 @@ public abstract class BluetoothMapbMessage {
          * @param envLevel
          * @return
          */
-        public static vCard parseVcard(BMsgReader reader, int envLevel) {
+        public static VCard parseVcard(BMsgReader reader, int envLevel) {
             String formattedName = null;
             String name = null;
             ArrayList<String> phoneNumbers = null;
@@ -314,7 +314,7 @@ public abstract class BluetoothMapbMessage {
 
                 line = reader.getLineEnforce();
             }
-            return new vCard(name, formattedName,
+            return new VCard(name, formattedName,
                     phoneNumbers == null?
                             null : phoneNumbers.toArray(new String[phoneNumbers.size()]),
                     emailAddresses == null ?
@@ -632,7 +632,7 @@ public abstract class BluetoothMapbMessage {
         // Now check for originator VCARDs
         while(line.contains("BEGIN:VCARD")){
             if(D) Log.d(TAG,"Decoding vCard");
-            newBMsg.addOriginator(vCard.parseVcard(reader,0));
+            newBMsg.addOriginator(VCard.parseVcard(reader,0));
             line = reader.getLineEnforce();
         }
         if(line.contains("BEGIN:BENV")) {
@@ -664,8 +664,8 @@ public abstract class BluetoothMapbMessage {
        while(line.contains("BEGIN:VCARD")){
            if(D) Log.d(TAG,"Decoding recipient vCard level " + level);
             if(mRecipient == null)
-                mRecipient = new ArrayList<vCard>(1);
-            mRecipient.add(vCard.parseVcard(reader, level));
+                mRecipient = new ArrayList<VCard>(1);
+            mRecipient.add(VCard.parseVcard(reader, level));
             line = reader.getLineEnforce();
         }
         if(line.contains("BEGIN:BENV")) {
@@ -817,13 +817,13 @@ public abstract class BluetoothMapbMessage {
         this.mEncoding = encoding;
     }
 
-    public ArrayList<vCard> getOriginators() {
+    public ArrayList<VCard> getOriginators() {
         return mOriginator;
     }
 
-    public void addOriginator(vCard originator) {
+    public void addOriginator(VCard originator) {
         if(this.mOriginator == null)
-            this.mOriginator = new ArrayList<vCard>();
+            this.mOriginator = new ArrayList<VCard>();
         this.mOriginator.add(originator);
     }
 
@@ -840,16 +840,16 @@ public abstract class BluetoothMapbMessage {
                               String[] btUids,
                               String[] btUcis) {
         if(mOriginator == null)
-            mOriginator = new ArrayList<vCard>();
-        mOriginator.add(new vCard(name, formattedName, phoneNumbers,
+            mOriginator = new ArrayList<VCard>();
+        mOriginator.add(new VCard(name, formattedName, phoneNumbers,
                     emailAddresses, btUids, btUcis));
     }
 
 
     public void addOriginator(String[] btUcis, String[] btUids) {
         if(mOriginator == null)
-            mOriginator = new ArrayList<vCard>();
-        mOriginator.add(new vCard(null,null,null,null,btUids, btUcis));
+            mOriginator = new ArrayList<VCard>();
+        mOriginator.add(new VCard(null,null,null,null,btUids, btUcis));
     }
 
 
@@ -861,23 +861,23 @@ public abstract class BluetoothMapbMessage {
      */
     public void addOriginator(String name, String[] phoneNumbers, String[] emailAddresses) {
         if(mOriginator == null)
-            mOriginator = new ArrayList<vCard>();
-        mOriginator.add(new vCard(name, phoneNumbers, emailAddresses));
+            mOriginator = new ArrayList<VCard>();
+        mOriginator.add(new VCard(name, phoneNumbers, emailAddresses));
     }
 
-    public ArrayList<vCard> getRecipients() {
+    public ArrayList<VCard> getRecipients() {
         return mRecipient;
     }
 
-    public void setRecipient(vCard recipient) {
+    public void setRecipient(VCard recipient) {
         if(this.mRecipient == null)
-            this.mRecipient = new ArrayList<vCard>();
+            this.mRecipient = new ArrayList<VCard>();
         this.mRecipient.add(recipient);
     }
     public void addRecipient(String[] btUcis, String[] btUids) {
         if(mRecipient == null)
-            mRecipient = new ArrayList<vCard>();
-        mRecipient.add(new vCard(null,null,null,null,btUids, btUcis));
+            mRecipient = new ArrayList<VCard>();
+        mRecipient.add(new VCard(null,null,null,null,btUids, btUcis));
     }
     public void addRecipient(String name, String formattedName,
                              String[] phoneNumbers,
@@ -885,15 +885,15 @@ public abstract class BluetoothMapbMessage {
                              String[] btUids,
                              String[] btUcis) {
         if(mRecipient == null)
-            mRecipient = new ArrayList<vCard>();
-        mRecipient.add(new vCard(name, formattedName, phoneNumbers,
+            mRecipient = new ArrayList<VCard>();
+        mRecipient.add(new VCard(name, formattedName, phoneNumbers,
                     emailAddresses,btUids, btUcis));
     }
 
     public void addRecipient(String name, String[] phoneNumbers, String[] emailAddresses) {
         if(mRecipient == null)
-            mRecipient = new ArrayList<vCard>();
-        mRecipient.add(new vCard(name, phoneNumbers, emailAddresses));
+            mRecipient = new ArrayList<VCard>();
+        mRecipient.add(new VCard(name, phoneNumbers, emailAddresses));
     }
 
     /**
@@ -966,7 +966,7 @@ public abstract class BluetoothMapbMessage {
             sb.append("EXTENDEDDATA:").append("\r\n");
         }
         if(mOriginator != null){
-            for(vCard element : mOriginator)
+            for(VCard element : mOriginator)
                 element.encode(sb);
         }
         /* If we need the three levels of env. at some point - we do have a level in the
@@ -975,7 +975,7 @@ public abstract class BluetoothMapbMessage {
 
         sb.append("BEGIN:BENV").append("\r\n");
         if(mRecipient != null){
-            for(vCard element : mRecipient) {
+            for(VCard element : mRecipient) {
                 if(V) Log.v(TAG, "encodeGeneric: recipient email" + element.getFirstEmail());
                 element.encode(sb);
             }

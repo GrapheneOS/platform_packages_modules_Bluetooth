@@ -205,7 +205,7 @@ public class BluetoothMapAppParams {
      */
     public BluetoothMapAppParams(final byte[] appParams)
                  throws IllegalArgumentException, ParseException {
-        ParseParams(appParams);
+        parseParams(appParams);
     }
 
     /**
@@ -220,7 +220,7 @@ public class BluetoothMapAppParams {
      * @throws ParseException
      *             if a parameter string if formated incorrectly.
      */
-    private void ParseParams(final byte[] appParams) throws ParseException,
+    private void parseParams(final byte[] appParams) throws ParseException,
               IllegalArgumentException {
         int i = 0;
         int tagId, tagLength;
@@ -589,7 +589,7 @@ public class BluetoothMapAppParams {
      * @throws UnsupportedEncodingException
      *             if the platform does not support UTF-8 encoding.
      */
-    public byte[] EncodeParams() throws UnsupportedEncodingException {
+    public byte[] encodeParams() throws UnsupportedEncodingException {
         ByteBuffer appParamBuf = ByteBuffer.allocate(getParamMaxLength());
         appParamBuf.order(ByteOrder.BIG_ENDIAN);
         byte[] retBuf;
