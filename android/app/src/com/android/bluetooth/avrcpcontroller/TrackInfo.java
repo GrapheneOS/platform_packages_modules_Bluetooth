@@ -62,11 +62,11 @@ class TrackInfo {
     private final long mTotalTracks;// total number of tracks on original recording
     private final long mTrackLen;// full length of AudioFile.
 
-    public TrackInfo() {
+    TrackInfo() {
         this(new ArrayList<Integer>(), new ArrayList<String>());
     }
 
-    public TrackInfo(List<Integer> attrIds, List<String> attrMap) {
+    TrackInfo(List<Integer> attrIds, List<String> attrMap) {
         Map<Integer, String> attributeMap = new HashMap<>();
         for (int i = 0; i < attrIds.size(); i++) {
             attributeMap.put(attrIds.get(i), attrMap.get(i));

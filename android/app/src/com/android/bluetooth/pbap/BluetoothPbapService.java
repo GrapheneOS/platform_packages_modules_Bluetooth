@@ -220,7 +220,7 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
             "com.android.settings.bluetooth.BluetoothPermissionRequest";
 
     private class BluetoothPbapContentObserver extends ContentObserver {
-        public BluetoothPbapContentObserver() {
+        BluetoothPbapContentObserver() {
             super(new Handler());
         }
 

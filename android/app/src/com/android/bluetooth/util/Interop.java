@@ -35,7 +35,7 @@ public class Interop {
     String address;
     int workaround_id;
 
-    public Entry(int workaroundId, String address) {
+    Entry(int workaroundId, String address) {
       this.workaround_id = workaroundId;
       this.address = address;
     }

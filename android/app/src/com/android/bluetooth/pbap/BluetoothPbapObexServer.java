@@ -542,7 +542,7 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
 
         public byte[] callHistoryVersionCounter;
 
-        public AppParamValue() {
+        AppParamValue() {
             maxListCount = 0xFFFF;
             listStartOffset = 0;
             searchValue = "";

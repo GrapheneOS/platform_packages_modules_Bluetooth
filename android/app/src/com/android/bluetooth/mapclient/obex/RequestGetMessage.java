@@ -42,7 +42,7 @@ final class RequestGetMessage extends Request {
 
     private Bmessage mBmessage;
 
-    public RequestGetMessage(String handle, MasClient.CharsetType charset,
+    RequestGetMessage(String handle, MasClient.CharsetType charset,
             boolean attachment) {
 
         mHeaderSet.setHeader(HeaderSet.NAME, handle);

@@ -198,7 +198,7 @@ public class HeadsetClientService extends ProfileService {
             implements IProfileServiceBinder {
         private HeadsetClientService mService;
 
-        public BluetoothHeadsetClientBinder(HeadsetClientService svc) {
+        BluetoothHeadsetClientBinder(HeadsetClientService svc) {
             mService = svc;
         }
 

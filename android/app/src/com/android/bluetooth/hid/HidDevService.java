@@ -214,7 +214,7 @@ public class HidDevService extends ProfileService {
         private HidDevService mService;
         private BluetoothHidDeviceAppConfiguration mAppConfig;
 
-        public BluetoothHidDeviceDeathRecipient(
+        BluetoothHidDeviceDeathRecipient(
                 HidDevService service, BluetoothHidDeviceAppConfiguration config) {
             mService = service;
             mAppConfig = config;
@@ -240,7 +240,7 @@ public class HidDevService extends ProfileService {
 
     private HidDevService mService;
 
-    public BluetoothHidDeviceBinder(HidDevService service) {
+    BluetoothHidDeviceBinder(HidDevService service) {
       mService = service;
     }
 

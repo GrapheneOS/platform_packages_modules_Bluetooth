@@ -279,7 +279,7 @@ public class GattService extends ProfileService {
     class ScannerDeathRecipient implements IBinder.DeathRecipient {
         int mScannerId;
 
-        public ScannerDeathRecipient(int scannerId) {
+        ScannerDeathRecipient(int scannerId) {
             mScannerId = scannerId;
         }
 
@@ -312,7 +312,7 @@ public class GattService extends ProfileService {
     class ServerDeathRecipient implements IBinder.DeathRecipient {
         int mAppIf;
 
-        public ServerDeathRecipient(int appIf) {
+        ServerDeathRecipient(int appIf) {
             mAppIf = appIf;
         }
 
@@ -326,7 +326,7 @@ public class GattService extends ProfileService {
     class ClientDeathRecipient implements IBinder.DeathRecipient {
         int mAppIf;
 
-        public ClientDeathRecipient(int appIf) {
+        ClientDeathRecipient(int appIf) {
             mAppIf = appIf;
         }
 
@@ -343,7 +343,7 @@ public class GattService extends ProfileService {
     private static class BluetoothGattBinder extends IBluetoothGatt.Stub implements IProfileServiceBinder {
         private GattService mService;
 
-        public BluetoothGattBinder(GattService svc) {
+        BluetoothGattBinder(GattService svc) {
             mService = svc;
         }
 

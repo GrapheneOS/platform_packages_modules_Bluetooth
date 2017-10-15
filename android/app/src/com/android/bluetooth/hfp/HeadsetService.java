@@ -123,7 +123,7 @@ public class HeadsetService extends ProfileService {
             extends IBluetoothHeadset.Stub implements IProfileServiceBinder {
         private HeadsetService mService;
 
-        public BluetoothHeadsetBinder(HeadsetService svc) {
+        BluetoothHeadsetBinder(HeadsetService svc) {
             mService = svc;
         }
         @Override

@@ -88,7 +88,7 @@ class BrowsedMediaPlayer {
         private String mCallbackPackageName;
         private MediaBrowser mBrowser;
 
-        public MediaConnectionCallback(String packageName) {
+        MediaConnectionCallback(String packageName) {
             this.mCallbackPackageName = packageName;
         }
 
@@ -166,7 +166,7 @@ class BrowsedMediaPlayer {
         private String mMediaId;
         private AvrcpCmd.ItemAttrCmd mAttrReq;
 
-        public ItemAttribSubscriber(
+        ItemAttribSubscriber(
                 @NonNull AvrcpCmd.ItemAttrCmd attrReq, @NonNull String mediaId) {
             mAttrReq = attrReq;
             mMediaId = mediaId;
@@ -259,7 +259,7 @@ class BrowsedMediaPlayer {
     }
 
     /* Constructor */
-    public BrowsedMediaPlayer(byte[] address, Context context,
+    BrowsedMediaPlayer(byte[] address, Context context,
             AvrcpMediaRspInterface mAvrcpMediaRspInterface) {
         mContext = context;
         mMediaInterface = mAvrcpMediaRspInterface;
