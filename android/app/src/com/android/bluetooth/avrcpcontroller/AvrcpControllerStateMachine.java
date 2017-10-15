@@ -490,7 +490,7 @@ class AvrcpControllerStateMachine extends StateMachine {
                     // Update the folder depth.
                     if (mTmpIncrDirection ==
                         AvrcpControllerService.FOLDER_NAVIGATION_DIRECTION_UP) {
-                        mBrowseDepth -= 1;;
+                        mBrowseDepth -= 1;
                     } else if (mTmpIncrDirection ==
                         AvrcpControllerService.FOLDER_NAVIGATION_DIRECTION_DOWN) {
                         mBrowseDepth += 1;

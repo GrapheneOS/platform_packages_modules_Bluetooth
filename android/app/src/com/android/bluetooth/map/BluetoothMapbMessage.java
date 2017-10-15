@@ -276,8 +276,8 @@ public abstract class BluetoothMapbMessage {
                             phoneNumbers = new ArrayList<String>(1);
                         // only keep actual phone number
                         phoneNumbers.add(subParts[subParts.length-1]);
-                    } else {}
-                        // Empty phone number - ignore
+                    }
+                    // Empty phone number - ignore
                 }
                 else if(line.startsWith("EMAIL:")){
                     parts = line.split("[^\\\\]:"); // Split on "un-escaped" :
@@ -287,8 +287,8 @@ public abstract class BluetoothMapbMessage {
                             emailAddresses = new ArrayList<String>(1);
                         // only keep actual email address
                         emailAddresses.add(subParts[subParts.length-1]);
-                    } else {}
-                        // Empty email address entry - ignore
+                    }
+                    // Empty email address entry - ignore
                 }
                 else if(line.startsWith("X-BT-UCI:")){
                     parts = line.split("[^\\\\]:"); // Split on "un-escaped" :
@@ -297,8 +297,8 @@ public abstract class BluetoothMapbMessage {
                         if(btUcis == null)
                             btUcis = new ArrayList<String>(1);
                         btUcis.add(subParts[subParts.length-1]); // only keep actual UCI
-                    } else {}
-                        // Empty UCIentry - ignore
+                    }
+                    // Empty UCIentry - ignore
                 }
                 else if(line.startsWith("X-BT-UID:")){
                     parts = line.split("[^\\\\]:"); // Split on "un-escaped" :
@@ -307,8 +307,8 @@ public abstract class BluetoothMapbMessage {
                         if(btUids == null)
                             btUids = new ArrayList<String>(1);
                         btUids.add(subParts[subParts.length-1]); // only keep actual UID
-                    } else {}
-                        // Empty UID entry - ignore
+                    }
+                    // Empty UID entry - ignore
                 }
 
 
