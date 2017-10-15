@@ -37,7 +37,6 @@ import com.android.bluetooth.R;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.app.Notification;
-import android.app.Notification.Action;
 import android.app.NotificationManager;
 import android.app.NotificationChannel;
 import android.app.PendingIntent;
@@ -61,25 +60,25 @@ class BluetoothOppNotification {
     private static final String TAG = "BluetoothOppNotification";
     private static final boolean V = Constants.VERBOSE;
 
-    static final String status = "(" + BluetoothShare.STATUS + " == '192'" + ")";
+    static final String STATUS = "(" + BluetoothShare.STATUS + " == '192'" + ")";
 
-    static final String visible = "(" + BluetoothShare.VISIBILITY + " IS NULL OR "
+    static final String VISIBLE = "(" + BluetoothShare.VISIBILITY + " IS NULL OR "
             + BluetoothShare.VISIBILITY + " == '" + BluetoothShare.VISIBILITY_VISIBLE + "'" + ")";
 
-    static final String confirm = "(" + BluetoothShare.USER_CONFIRMATION + " == '"
+    static final String CONFIRM = "(" + BluetoothShare.USER_CONFIRMATION + " == '"
             + BluetoothShare.USER_CONFIRMATION_CONFIRMED + "' OR "
             + BluetoothShare.USER_CONFIRMATION + " == '"
             + BluetoothShare.USER_CONFIRMATION_AUTO_CONFIRMED  + "' OR "
             + BluetoothShare.USER_CONFIRMATION + " == '"
             + BluetoothShare.USER_CONFIRMATION_HANDOVER_CONFIRMED + "'" + ")";
 
-    static final String not_through_handover = "(" + BluetoothShare.USER_CONFIRMATION + " != '"
+    static final String NOT_THROUGH_HANDOVER = "(" + BluetoothShare.USER_CONFIRMATION + " != '"
             + BluetoothShare.USER_CONFIRMATION_HANDOVER_CONFIRMED + "'" + ")";
 
-    static final String WHERE_RUNNING = status + " AND " + visible + " AND " + confirm;
+    static final String WHERE_RUNNING = STATUS + " AND " + VISIBLE + " AND " + CONFIRM;
 
-    static final String WHERE_COMPLETED = BluetoothShare.STATUS + " >= '200' AND " + visible +
-            " AND " + not_through_handover; // Don't show handover-initiated transfers
+    static final String WHERE_COMPLETED = BluetoothShare.STATUS + " >= '200' AND " + VISIBLE +
+            " AND " + NOT_THROUGH_HANDOVER; // Don't show handover-initiated transfers
 
     private static final String WHERE_COMPLETED_OUTBOUND = WHERE_COMPLETED + " AND " + "("
             + BluetoothShare.DIRECTION + " == " + BluetoothShare.DIRECTION_OUTBOUND + ")";
@@ -88,7 +87,7 @@ class BluetoothOppNotification {
             + BluetoothShare.DIRECTION + " == " + BluetoothShare.DIRECTION_INBOUND + ")";
 
     static final String WHERE_CONFIRM_PENDING = BluetoothShare.USER_CONFIRMATION + " == '"
-            + BluetoothShare.USER_CONFIRMATION_PENDING + "'" + " AND " + visible;
+            + BluetoothShare.USER_CONFIRMATION_PENDING + "'" + " AND " + VISIBLE;
 
     public NotificationManager mNotificationMgr;
 
