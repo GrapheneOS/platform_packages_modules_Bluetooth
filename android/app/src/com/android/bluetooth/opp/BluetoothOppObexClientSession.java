@@ -151,7 +151,7 @@ public class BluetoothOppObexClientSession implements BluetoothOppObexSession {
 
         private int mNumShares;
 
-        public ClientThread(Context context, ObexTransport transport, int initialNumShares) {
+        ClientThread(Context context, ObexTransport transport, int initialNumShares) {
             super("BtOpp ClientThread");
             mContext1 = context;
             mTransport1 = transport;

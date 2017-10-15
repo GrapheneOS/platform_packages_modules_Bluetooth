@@ -154,7 +154,7 @@ class AdapterProperties {
     // can be added here.
     private final Object mObject = new Object();
 
-    public AdapterProperties(AdapterService service) {
+    AdapterProperties(AdapterService service) {
         mService = service;
         mAdapter = BluetoothAdapter.getDefaultAdapter();
     }

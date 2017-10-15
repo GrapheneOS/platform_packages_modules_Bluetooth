@@ -49,7 +49,7 @@ abstract class BluetoothPbapRequest {
 
     private ClientOperation mOp = null;
 
-    public BluetoothPbapRequest() {
+    BluetoothPbapRequest() {
         mHeaderSet = new HeaderSet();
     }
 

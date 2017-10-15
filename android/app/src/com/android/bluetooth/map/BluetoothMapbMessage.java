@@ -325,7 +325,7 @@ public abstract class BluetoothMapbMessage {
 
     private static class BMsgReader {
         InputStream mInStream;
-        public BMsgReader(InputStream is)
+        BMsgReader(InputStream is)
         {
             this.mInStream = is;
         }
