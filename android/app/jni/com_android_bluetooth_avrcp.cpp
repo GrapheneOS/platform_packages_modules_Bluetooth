@@ -23,6 +23,7 @@
 #include "hardware/bt_rc.h"
 #include "utils/Log.h"
 
+#include <inttypes.h>
 #include <string.h>
 
 namespace android {
@@ -812,7 +813,7 @@ static jboolean registerNotificationRspTrackChangeNative(JNIEnv* env,
     uid = uid + (trk[uid_idx] << (BTRC_UID_SIZE - 1 - uid_idx));
   }
 
-  ALOGV("%s: Sending track change notification: %d -> %llu", __func__, type,
+  ALOGV("%s: Sending track change notification: %d -> %" PRIu64, __func__, type,
         uid);
 
   bt_status_t status = sBluetoothAvrcpInterface->register_notification_rsp(
