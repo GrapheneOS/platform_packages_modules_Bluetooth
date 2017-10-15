@@ -386,7 +386,7 @@ public class BluetoothOppManager {
 
         private final boolean mIsHandoverInitiated;
 
-        public InsertShareInfoThread(BluetoothDevice device, boolean multiple,
+        InsertShareInfoThread(BluetoothDevice device, boolean multiple,
                 String typeOfSingleFile, String uri, String typeOfMultipleFiles,
                 ArrayList<Uri> uris, boolean handoverInitiated) {
             super("Insert ShareInfo Thread");

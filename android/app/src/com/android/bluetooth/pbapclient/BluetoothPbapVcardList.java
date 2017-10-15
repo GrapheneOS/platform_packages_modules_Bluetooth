@@ -52,7 +52,7 @@ class BluetoothPbapVcardList {
         }
     }
 
-    public BluetoothPbapVcardList(Account account, InputStream in, byte format) throws IOException {
+    BluetoothPbapVcardList(Account account, InputStream in, byte format) throws IOException {
         mAccount = account;
         parse(in, format);
     }
