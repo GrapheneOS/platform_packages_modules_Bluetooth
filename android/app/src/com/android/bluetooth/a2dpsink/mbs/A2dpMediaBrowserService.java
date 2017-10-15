@@ -47,6 +47,7 @@ import com.android.bluetooth.avrcpcontroller.BrowseTree;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -101,7 +102,6 @@ public class A2dpMediaBrowserService extends MediaBrowserService {
     private BluetoothDevice mA2dpDevice = null;
     private Handler mAvrcpCommandQueue;
     private final Map<String, Result<List<MediaItem>>> mParentIdToRequestMap = new HashMap<>();
-    private static final List<MediaItem> mEmptyList = new ArrayList<MediaItem>();
 
     // Browsing related structures.
     private List<MediaItem> mNowPlayingList = null;
@@ -203,13 +203,13 @@ public class A2dpMediaBrowserService extends MediaBrowserService {
             final String parentMediaId, final Result<List<MediaItem>> result) {
         if (mAvrcpCtrlSrvc == null) {
             Log.e(TAG, "AVRCP not yet connected.");
-            result.sendResult(mEmptyList);
+            result.sendResult(Collections.emptyList());
             return;
         }
 
         Log.d(TAG, "onLoadChildren parentMediaId=" + parentMediaId);
         if (!mAvrcpCtrlSrvc.getChildren(mA2dpDevice, parentMediaId, 0, 0xff)) {
-            result.sendResult(mEmptyList);
+            result.sendResult(Collections.emptyList());
             return;
         }
 
