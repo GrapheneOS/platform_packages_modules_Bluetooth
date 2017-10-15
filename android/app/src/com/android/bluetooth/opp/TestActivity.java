@@ -379,11 +379,11 @@ class TestTcpListener {
 
     private int mBtOppRfcommChannel = -1;
 
-    public TestTcpListener() {
+    TestTcpListener() {
         this(DEFAULT_OPP_CHANNEL);
     }
 
-    public TestTcpListener(int channel) {
+    TestTcpListener(int channel) {
         mBtOppRfcommChannel = channel;
     }
 
@@ -485,7 +485,7 @@ class TestTcpServer extends ServerRequestHandler implements Runnable {
         }
     }
 
-    public TestTcpServer() {
+    TestTcpServer() {
         updateStatus("enter construtor of TcpServer");
     }
 
@@ -582,7 +582,7 @@ class TestTcpSessionNotifier {
 
     private static final String TAG = "TestTcpSessionNotifier";
 
-    public TestTcpSessionNotifier(int port) throws IOException {
+    TestTcpSessionNotifier(int port) throws IOException {
         server = new ServerSocket(port);
     }
 
@@ -613,7 +613,7 @@ class TestTcpTransport implements ObexTransport {
 
     Socket s = null;
 
-    public TestTcpTransport(Socket s) {
+    TestTcpTransport(Socket s) {
         super();
         this.s = s;
     }

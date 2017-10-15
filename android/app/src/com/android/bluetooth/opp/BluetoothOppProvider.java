@@ -101,7 +101,7 @@ public final class BluetoothOppProvider extends ContentProvider {
      */
     private final class DatabaseHelper extends SQLiteOpenHelper {
 
-        public DatabaseHelper(final Context context) {
+        DatabaseHelper(final Context context) {
             super(context, DB_NAME, null, DB_VERSION);
         }
 

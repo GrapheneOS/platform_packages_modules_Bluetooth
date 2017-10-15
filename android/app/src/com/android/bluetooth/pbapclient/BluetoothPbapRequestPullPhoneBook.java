@@ -44,7 +44,7 @@ final class BluetoothPbapRequestPullPhoneBook extends BluetoothPbapRequest {
 
     private final byte mFormat;
 
-    public BluetoothPbapRequestPullPhoneBook(
+    BluetoothPbapRequestPullPhoneBook(
             String pbName, Account account, long filter, byte format,
             int maxListCount, int listStartOffset) {
         mAccount = account;

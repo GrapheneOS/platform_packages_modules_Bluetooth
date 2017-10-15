@@ -300,7 +300,7 @@ public class ObexServerSockets {
          * @param latch shall never be null.
          * @throws IllegalArgumentException
          */
-        public SocketAcceptThread(BluetoothServerSocket serverSocket) {
+        SocketAcceptThread(BluetoothServerSocket serverSocket) {
             if(serverSocket == null) {
                 throw new IllegalArgumentException("serverSocket cannot be null");
             }

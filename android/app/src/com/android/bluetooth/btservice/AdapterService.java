@@ -760,7 +760,7 @@ public class AdapterService extends Service {
     private static class AdapterServiceBinder extends IBluetooth.Stub {
         private AdapterService mService;
 
-        public AdapterServiceBinder(AdapterService svc) {
+        AdapterServiceBinder(AdapterService svc) {
             mService = svc;
         }
         public boolean cleanup() {

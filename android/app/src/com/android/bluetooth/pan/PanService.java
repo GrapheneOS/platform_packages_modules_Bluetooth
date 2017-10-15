@@ -219,7 +219,7 @@ public class PanService extends ProfileService {
     private static class BluetoothPanBinder extends IBluetoothPan.Stub
             implements IProfileServiceBinder {
         private PanService mService;
-        public BluetoothPanBinder(PanService svc) {
+        BluetoothPanBinder(PanService svc) {
             mService = svc;
         }
         @Override
