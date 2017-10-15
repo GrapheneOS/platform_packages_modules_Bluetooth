@@ -262,6 +262,7 @@ class BmessageParser {
             prop = mParser.next();
 
             if (prop.name.equals("PARTID")) {
+                // Do nothing
             } else if (prop.name.equals("ENCODING")) {
                 mBmsg.mBbodyEncoding = prop.value;
 

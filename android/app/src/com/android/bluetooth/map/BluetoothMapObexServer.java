@@ -713,10 +713,6 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
                 return ResponseCodes.OBEX_HTTP_UNAVAILABLE;
             }
         }
-        if (extendedData != null) {
-
-        }
-
         return ResponseCodes.OBEX_HTTP_OK;
     }
 
