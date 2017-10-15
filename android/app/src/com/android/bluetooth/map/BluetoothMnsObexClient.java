@@ -408,7 +408,7 @@ public class BluetoothMnsObexClient {
 
         try {
             request.setHeader(HeaderSet.TYPE, TYPE_EVENT);
-            request.setHeader(HeaderSet.APPLICATION_PARAMETER, appParams.EncodeParams());
+            request.setHeader(HeaderSet.APPLICATION_PARAMETER, appParams.encodeParams());
 
             if (mHsConnect.mConnectionID != null) {
                 request.mConnectionID = new byte[4];
