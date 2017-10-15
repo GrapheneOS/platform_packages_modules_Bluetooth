@@ -111,11 +111,11 @@ import java.util.UUID;
         mEntries.add(entry);
     }
 
-    void addUuid(UUID uuid, UUID uuid_mask) {
+    void addUuid(UUID uuid, UUID uuidMask) {
         Entry entry = new Entry();
         entry.type = TYPE_SERVICE_UUID;
         entry.uuid = uuid;
-        entry.uuid_mask = uuid_mask;
+        entry.uuid_mask = uuidMask;
         mEntries.add(entry);
     }
 
@@ -144,13 +144,13 @@ import java.util.UUID;
         mEntries.add(entry);
     }
 
-    void addManufacturerData(int company, int company_mask, byte[] data, byte[] data_mask) {
+    void addManufacturerData(int company, int companyMask, byte[] data, byte[] dataMask) {
         Entry entry = new Entry();
         entry.type = TYPE_MANUFACTURER_DATA;
         entry.company = company;
-        entry.company_mask = company_mask;
+        entry.company_mask = companyMask;
         entry.data = data;
-        entry.data_mask = data_mask;
+        entry.data_mask = dataMask;
         mEntries.add(entry);
     }
 

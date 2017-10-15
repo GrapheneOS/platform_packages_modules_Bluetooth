@@ -122,8 +122,8 @@ class AvrcpControllerStateMachine extends StateMachine {
     private final MoveToRoot mMoveToRoot;
 
     private final Object mLock = new Object();
-    private static final ArrayList<MediaItem> mEmptyMediaItemList = new ArrayList<>();
-    private static final MediaMetadata mEmptyMMD = new MediaMetadata.Builder().build();
+    private static final ArrayList<MediaItem> EMPTY_MEDIA_ITEM_LIST = new ArrayList<>();
+    private static final MediaMetadata EMPTY_MEDIA_METADATA = new MediaMetadata.Builder().build();
 
     // APIs exist to access these so they must be thread safe
     private Boolean mIsConnected = false;
@@ -490,7 +490,7 @@ class AvrcpControllerStateMachine extends StateMachine {
                     // Update the folder depth.
                     if (mTmpIncrDirection ==
                         AvrcpControllerService.FOLDER_NAVIGATION_DIRECTION_UP) {
-                        mBrowseDepth -= 1;;
+                        mBrowseDepth -= 1;
                     } else if (mTmpIncrDirection ==
                         AvrcpControllerService.FOLDER_NAVIGATION_DIRECTION_DOWN) {
                         mBrowseDepth += 1;
@@ -503,7 +503,7 @@ class AvrcpControllerStateMachine extends StateMachine {
                         sendMessage(MESSAGE_GET_FOLDER_LIST, 0, msg.arg1 -1, mID);
                     } else {
                         // Return an empty response to the upper layer.
-                        broadcastFolderList(mID, mEmptyMediaItemList);
+                        broadcastFolderList(mID, EMPTY_MEDIA_ITEM_LIST);
                     }
                     mBrowseTree.setCurrentBrowsedFolder(mID);
                     transitionTo(mConnected);
@@ -514,7 +514,7 @@ class AvrcpControllerStateMachine extends StateMachine {
                     // We timed out changing folders. It is imperative we tell
                     // the upper layers that we failed by giving them an empty list.
                     Log.e(STATE_TAG, "change folder failed, sending empty list.");
-                    broadcastFolderList(mID, mEmptyMediaItemList);
+                    broadcastFolderList(mID, EMPTY_MEDIA_ITEM_LIST);
                     transitionTo(mConnected);
                     break;
 
@@ -688,7 +688,7 @@ class AvrcpControllerStateMachine extends StateMachine {
                 case MESSAGE_INTERNAL_CMD_TIMEOUT:
                     // We have timed out to execute the request.
                     // Send an empty list here.
-                    broadcastFolderList(BrowseTree.ROOT, mEmptyMediaItemList);
+                    broadcastFolderList(BrowseTree.ROOT, EMPTY_MEDIA_ITEM_LIST);
                     transitionTo(mConnected);
                     break;
 
@@ -774,7 +774,7 @@ class AvrcpControllerStateMachine extends StateMachine {
                     // If we already on top of player and there is no content.
                     // This should very rarely happen.
                     if (mBrowseDepth == 0 && msg.arg1 == 0) {
-                        broadcastFolderList(mID, mEmptyMediaItemList);
+                        broadcastFolderList(mID, EMPTY_MEDIA_ITEM_LIST);
                         transitionTo(mConnected);
                     } else {
                         // Otherwise move to root and fetch the listing.
@@ -788,7 +788,7 @@ class AvrcpControllerStateMachine extends StateMachine {
                     break;
 
                 case MESSAGE_INTERNAL_CMD_TIMEOUT:
-                    broadcastFolderList(mID, mEmptyMediaItemList);
+                    broadcastFolderList(mID, EMPTY_MEDIA_ITEM_LIST);
                     transitionTo(mConnected);
                     break;
 
@@ -888,7 +888,7 @@ class AvrcpControllerStateMachine extends StateMachine {
                     Log.d(TAG, "getCurrentMetaData mmd " + mmd);
                 }
             }
-            return mEmptyMMD;
+            return EMPTY_MEDIA_METADATA;
         }
     }
 
@@ -924,7 +924,7 @@ class AvrcpControllerStateMachine extends StateMachine {
         BrowseTree.BrowseNode bn = mBrowseTree.findBrowseNodeByID(parentMediaId);
         if (bn == null) {
             Log.e(TAG, "Invalid folder to browse " + mBrowseTree);
-            broadcastFolderList(parentMediaId, mEmptyMediaItemList);
+            broadcastFolderList(parentMediaId, EMPTY_MEDIA_ITEM_LIST);
             return;
         }
 
@@ -984,7 +984,7 @@ class AvrcpControllerStateMachine extends StateMachine {
                 if (btDirection == BrowseTree.DIRECTION_UNKNOWN) {
                     Log.w(TAG, "parent " + bn + " is not a direct " +
                         "successor or predeccessor of current folder " + currFol);
-                    broadcastFolderList(parentMediaId, mEmptyMediaItemList);
+                    broadcastFolderList(parentMediaId, EMPTY_MEDIA_ITEM_LIST);
                     return;
                 }
 

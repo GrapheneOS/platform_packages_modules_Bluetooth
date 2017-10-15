@@ -463,8 +463,8 @@ public class AdapterService extends Service {
         }
     }
 
-    void BleOnProcessStart() {
-        debugLog("BleOnProcessStart()");
+    void bleOnProcessStart() {
+        debugLog("bleOnProcessStart()");
 
         if (getResources().getBoolean(
                 R.bool.config_bluetooth_reload_supported_profiles_when_enabled)) {
@@ -489,7 +489,7 @@ public class AdapterService extends Service {
         mRemoteDevices.reset();
         mAdapterProperties.init(mRemoteDevices);
 
-        debugLog("BleOnProcessStart() - Make Bond State Machine");
+        debugLog("bleOnProcessStart() - Make Bond State Machine");
         mBondStateMachine = BondStateMachine.make(this, mAdapterProperties, mRemoteDevices);
 
         mJniCallbacks.init(mBondStateMachine,mRemoteDevices);
@@ -2167,18 +2167,18 @@ public class AdapterService extends Service {
         return true;
     }
 
-    private void energyInfoCallback(int status, int ctrl_state, long tx_time, long rx_time,
-            long idle_time, long energy_used, UidTraffic[] data) throws RemoteException {
-        if (ctrl_state >= BluetoothActivityEnergyInfo.BT_STACK_STATE_INVALID
-                && ctrl_state <= BluetoothActivityEnergyInfo.BT_STACK_STATE_STATE_IDLE) {
+    private void energyInfoCallback(int status, int ctrlState, long txTime, long rxTime,
+            long idleTime, long energyUsed, UidTraffic[] data) throws RemoteException {
+        if (ctrlState >= BluetoothActivityEnergyInfo.BT_STACK_STATE_INVALID
+                && ctrlState <= BluetoothActivityEnergyInfo.BT_STACK_STATE_STATE_IDLE) {
             // Energy is product of mA, V and ms. If the chipset doesn't
             // report it, we have to compute it from time
-            if (energy_used == 0) {
+            if (energyUsed == 0) {
                 try {
-                    final long txMah = Math.multiplyExact(tx_time, getTxCurrentMa());
-                    final long rxMah = Math.multiplyExact(rx_time, getRxCurrentMa());
-                    final long idleMah = Math.multiplyExact(idle_time, getIdleCurrentMa());
-                    energy_used = (long) (Math.addExact(Math.addExact(txMah, rxMah), idleMah)
+                    final long txMah = Math.multiplyExact(txTime, getTxCurrentMa());
+                    final long rxMah = Math.multiplyExact(rxTime, getRxCurrentMa());
+                    final long idleMah = Math.multiplyExact(idleTime, getIdleCurrentMa());
+                    energyUsed = (long) (Math.addExact(Math.addExact(txMah, rxMah), idleMah)
                             * getOperatingVolt());
                 } catch (ArithmeticException e) {
                     Slog.wtf(TAG, "overflow in bluetooth energy callback", e);
@@ -2187,16 +2187,16 @@ public class AdapterService extends Service {
             }
 
             synchronized (mEnergyInfoLock) {
-                mStackReportedState = ctrl_state;
+                mStackReportedState = ctrlState;
                 long totalTxTimeMs;
                 long totalRxTimeMs;
                 long totalIdleTimeMs;
                 long totalEnergy;
                 try {
-                    totalTxTimeMs = Math.addExact(mTxTimeTotalMs, tx_time);
-                    totalRxTimeMs = Math.addExact(mRxTimeTotalMs, rx_time);
-                    totalIdleTimeMs = Math.addExact(mIdleTimeTotalMs, idle_time);
-                    totalEnergy = Math.addExact(mEnergyUsedTotalVoltAmpSecMicro, energy_used);
+                    totalTxTimeMs = Math.addExact(mTxTimeTotalMs, txTime);
+                    totalRxTimeMs = Math.addExact(mRxTimeTotalMs, rxTime);
+                    totalIdleTimeMs = Math.addExact(mIdleTimeTotalMs, idleTime);
+                    totalEnergy = Math.addExact(mEnergyUsedTotalVoltAmpSecMicro, energyUsed);
                 } catch (ArithmeticException e) {
                     // This could be because we accumulated a lot of time, or we got a very strange
                     // value from the controller (more likely). Discard this data.
@@ -2225,9 +2225,9 @@ public class AdapterService extends Service {
             }
         }
 
-        verboseLog("energyInfoCallback() status = " + status + "tx_time = " + tx_time + "rx_time = "
-                + rx_time + "idle_time = " + idle_time + "energy_used = " + energy_used
-                + "ctrl_state = " + ctrl_state + "traffic = " + Arrays.toString(data));
+        verboseLog("energyInfoCallback() status = " + status + "txTime = " + txTime + "rxTime = "
+                + rxTime + "idleTime = " + idleTime + "energyUsed = " + energyUsed
+                + "ctrlState = " + ctrlState + "traffic = " + Arrays.toString(data));
     }
 
     private int getIdleCurrentMa() {

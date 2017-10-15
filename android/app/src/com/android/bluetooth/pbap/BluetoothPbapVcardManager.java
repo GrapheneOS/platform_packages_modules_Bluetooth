@@ -351,7 +351,7 @@ public class BluetoothPbapVcardManager {
                     }
                     if (V) Log.v(TAG, "Checking selected bits in the vcard composer" + vcard);
 
-                    if (!vcardselector.CheckVcardSelector(vcard, vcardselectorop)) {
+                    if (!vcardselector.checkVCardSelector(vcard, vcardselectorop)) {
                         Log.e(TAG, "vcard selector check fail");
                         vcard = null;
                         pbSize--;
@@ -731,7 +731,7 @@ public class BluetoothPbapVcardManager {
                 if (V) Log.v(TAG, "vCard from composer: " + vcard);
 
                 vcard = vcardfilter.apply(vcard, vcardType21);
-                vcard = StripTelephoneNumber(vcard);
+                vcard = stripTelephoneNumber(vcard);
 
                 if (V) Log.v(TAG, "vCard after cleanup: " + vcard);
 
@@ -820,7 +820,7 @@ public class BluetoothPbapVcardManager {
                 }
                 if (V) Log.v(TAG, "Checking selected bits in the vcard composer" + vcard);
 
-                if (!vcardselector.CheckVcardSelector(vcard, vcardselectorop)) {
+                if (!vcardselector.checkVCardSelector(vcard, vcardselectorop)) {
                     Log.e(TAG, "vcard selector check fail");
                     vcard = null;
                     pbSize--;
@@ -831,7 +831,7 @@ public class BluetoothPbapVcardManager {
 
                 if (needSendBody == NEED_SEND_BODY) {
                     vcard = vcardfilter.apply(vcard, vcardType21);
-                    vcard = StripTelephoneNumber(vcard);
+                    vcard = stripTelephoneNumber(vcard);
 
                     if (V) Log.v(TAG, "vCard after cleanup: " + vcard);
 
@@ -887,7 +887,7 @@ public class BluetoothPbapVcardManager {
                 }
                 String vcard = composer.createOneEntry(vcardType21);
                 if (vCardSelct) {
-                    if (!vcardselector.CheckVcardSelector(vcard, vcardselectorop)) {
+                    if (!vcardselector.checkVCardSelector(vcard, vcardselectorop)) {
                         Log.e(TAG, "Checking vcard selector for call log");
                         vcard = null;
                         pbSize--;
@@ -936,9 +936,9 @@ public class BluetoothPbapVcardManager {
         return ResponseCodes.OBEX_HTTP_OK;
     }
 
-    public String StripTelephoneNumber (String vCard){
+    public String stripTelephoneNumber(String vCard){
         String[] attr = vCard.split(System.getProperty("line.separator"));
-        String Vcard = "";
+        String stripedVCard = "";
             for (int i=0; i < attr.length; i++) {
                 if(attr[i].startsWith("TEL")) {
                     attr[i] = attr[i].replace("(", "");
@@ -950,11 +950,11 @@ public class BluetoothPbapVcardManager {
 
             for (int i=0; i < attr.length; i++) {
                 if(!attr[i].isEmpty()){
-                    Vcard = Vcard.concat(attr[i] + "\n");
+                    stripedVCard = stripedVCard.concat(attr[i] + "\n");
                 }
             }
-        if (V) Log.v(TAG, "Vcard with stripped telephone no.: " + Vcard);
-        return Vcard;
+        if (V) Log.v(TAG, "Vcard with stripped telephone no.: " + stripedVCard);
+        return stripedVCard;
     }
 
     /**
@@ -1139,9 +1139,9 @@ public class BluetoothPbapVcardManager {
             this.selector = selector;
         }
 
-        private boolean checkbit(int attr_bit, byte[] selector) {
+        private boolean checkbit(int attrBit, byte[] selector) {
             int selectorlen = selector.length;
-            if (((selector[selectorlen - 1 - ((int) attr_bit / 8)] >> (attr_bit % 8)) & 0x01)
+            if (((selector[selectorlen - 1 - ((int) attrBit / 8)] >> (attrBit % 8)) & 0x01)
                     == 0) {
                 return false;
             }
@@ -1165,7 +1165,7 @@ public class BluetoothPbapVcardManager {
             return isPresent;
         }
 
-        private boolean CheckVcardSelector(String vcard, String vcardselectorop) {
+        private boolean checkVCardSelector(String vcard, String vcardselectorop) {
             boolean selectedIn = true;
 
             for (PropertyMask bit : PropertyMask.values()) {

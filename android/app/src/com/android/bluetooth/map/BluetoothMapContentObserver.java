@@ -47,7 +47,6 @@ import android.provider.Telephony.Sms.Inbox;
 import android.telephony.PhoneStateListener;
 import android.telephony.ServiceState;
 import android.telephony.SmsManager;
-import android.telephony.SmsMessage;
 import android.telephony.TelephonyManager;
 import android.text.format.DateUtils;
 import android.text.TextUtils;
@@ -2450,7 +2449,7 @@ public class BluetoothMapContentObserver {
             BluetoothMapAppParams ap, String emailBaseUri)
                     throws IllegalArgumentException, RemoteException, IOException {
         if (D) Log.d(TAG, "pushMessage");
-        ArrayList<BluetoothMapbMessage.vCard> recipientList = msg.getRecipients();
+        ArrayList<BluetoothMapbMessage.VCard> recipientList = msg.getRecipients();
         int transparent = (ap.getTransparent() == BluetoothMapAppParams.INVALID_VALUE_PARAMETER) ?
                 0 : ap.getTransparent();
         int retry = ap.getRetry();
@@ -2460,9 +2459,9 @@ public class BluetoothMapContentObserver {
 
         if (recipientList == null) {
             if (folderElement.getName().equalsIgnoreCase(BluetoothMapContract.FOLDER_NAME_DRAFT)) {
-                BluetoothMapbMessage.vCard empty =
-                    new BluetoothMapbMessage.vCard("", "", null, null, 0);
-                recipientList = new ArrayList<BluetoothMapbMessage.vCard>();
+                BluetoothMapbMessage.VCard empty =
+                    new BluetoothMapbMessage.VCard("", "", null, null, 0);
+                recipientList = new ArrayList<BluetoothMapbMessage.VCard>();
                 recipientList.add(empty);
                 Log.w(TAG, "Added empty recipient to draft message");
             } else {
@@ -2532,7 +2531,7 @@ public class BluetoothMapContentObserver {
                 getMsgListMsg().put(handle, newMsg);
             }
         } else { // type SMS_* of MMS
-            for (BluetoothMapbMessage.vCard recipient : recipientList) {
+            for (BluetoothMapbMessage.VCard recipient : recipientList) {
                 // Only send the message to the top level recipient
                 if(recipient.getEnvLevel() == 0)
                 {
@@ -2646,7 +2645,7 @@ public class BluetoothMapContentObserver {
         return handle;
     }
 
-    public long sendMmsMessage(String folder, String to_address, BluetoothMapbMessageMime msg,
+    public long sendMmsMessage(String folder, String toAddress, BluetoothMapbMessageMime msg,
             int transparent, int retry) {
         /*
          *strategy:
@@ -2661,7 +2660,7 @@ public class BluetoothMapContentObserver {
          * */
         if (folder != null && (folder.equalsIgnoreCase(BluetoothMapContract.FOLDER_NAME_OUTBOX)
                 ||  folder.equalsIgnoreCase(BluetoothMapContract.FOLDER_NAME_DRAFT))) {
-            long handle = pushMmsToFolder(Mms.MESSAGE_BOX_DRAFTS, to_address, msg);
+            long handle = pushMmsToFolder(Mms.MESSAGE_BOX_DRAFTS, toAddress, msg);
             /* if invalid handle (-1) then just return the handle
              * - else continue sending (if folder is outbox) */
             if (BluetoothMapAppParams.INVALID_VALUE_PARAMETER != handle &&
@@ -2724,7 +2723,8 @@ public class BluetoothMapContentObserver {
             }
         }
     }
-    private long pushMmsToFolder(int folder, String to_address, BluetoothMapbMessageMime msg) {
+
+    private long pushMmsToFolder(int folder, String toAddress, BluetoothMapbMessageMime msg) {
         /**
          * strategy:
          * 1) parse msg into parts + header
@@ -2762,7 +2762,7 @@ public class BluetoothMapContentObserver {
 
         // Get thread id
         Set<String> recipients = new HashSet<String>();
-        recipients.addAll(Arrays.asList(to_address));
+        recipients.addAll(Arrays.asList(toAddress));
         values.put(Mms.THREAD_ID, Telephony.Threads.getOrCreateThreadId(mContext, recipients));
         Uri uri = Mms.CONTENT_URI;
 
@@ -2909,7 +2909,7 @@ public class BluetoothMapContentObserver {
 
         values.clear();
         values.put(Mms.Addr.CONTACT_ID, "null");
-        values.put(Mms.Addr.ADDRESS, to_address);
+        values.put(Mms.Addr.ADDRESS, toAddress);
         values.put(Mms.Addr.TYPE, BluetoothMapContent.MMS_TO);
         values.put(Mms.Addr.CHARSET, 106);
 
