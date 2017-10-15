@@ -1073,7 +1073,7 @@ public class GattService extends ProfileService {
         t.start();
     }
 
-    GattDbElement GetSampleGattDbElement() {
+    GattDbElement getSampleGattDbElement() {
         return new GattDbElement();
     }
 
@@ -1453,7 +1453,7 @@ public class GattService extends ProfileService {
         flushPendingBatchResults(clientIf);
     }
 
-    AdvtFilterOnFoundOnLostInfo CreateonTrackAdvFoundLostObject(int clientIf, int advPktLen,
+    AdvtFilterOnFoundOnLostInfo createOnTrackAdvFoundLostObject(int clientIf, int advPktLen,
                     byte[] advPkt, int scanRspLen, byte[] scanRsp, int filtIndex, int advState,
                     int advInfoPresent, String address, int addrType, int txPower, int rssiValue,
                     int timeStamp) {

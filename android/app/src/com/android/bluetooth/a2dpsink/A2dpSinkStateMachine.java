@@ -843,8 +843,8 @@ public class A2dpSinkStateMachine extends StateMachine {
         }
     }
 
-    public boolean SendPassThruPlay(BluetoothDevice mDevice) {
-            log("SendPassThruPlay + ");
+    public boolean sendPassThruPlay(BluetoothDevice mDevice) {
+            log("sendPassThruPlay + ");
             AvrcpControllerService avrcpCtrlService = AvrcpControllerService.getAvrcpControllerService();
             if ((avrcpCtrlService != null) && (mDevice != null) &&
                 (avrcpCtrlService.getConnectedDevices().contains(mDevice))){
@@ -854,7 +854,7 @@ public class A2dpSinkStateMachine extends StateMachine {
                 avrcpCtrlService.sendPassThroughCmd(mDevice,
                     AvrcpControllerService.PASS_THRU_CMD_ID_PLAY,
                     AvrcpControllerService.KEY_STATE_RELEASED);
-                log(" SendPassThruPlay command sent - ");
+                log(" sendPassThruPlay command sent - ");
                 return true;
             } else {
                 log("passthru command not sent, connection unavailable");
