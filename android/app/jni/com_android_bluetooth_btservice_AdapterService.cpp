@@ -22,6 +22,10 @@
 #include "utils/Log.h"
 #include "utils/misc.h"
 
+#include <base/logging.h>
+#include <base/strings/stringprintf.h>
+#include <dlfcn.h>
+#include <errno.h>
 #include <pthread.h>
 #include <string.h>
 
@@ -29,6 +33,7 @@
 #include <sys/prctl.h>
 #include <sys/stat.h>
 
+using base::StringPrintf;
 using bluetooth::Uuid;
 
 namespace android {
@@ -582,6 +587,58 @@ static bt_os_callouts_t sBluetoothOsCallouts = {
     acquire_wake_lock_callout, release_wake_lock_callout,
 };
 
+#if defined(__LP64__)
+#define BLUETOOTH_LIBRARY_NAME "/system/lib64/hw/bluetooth.default.so"
+#else
+#define BLUETOOTH_LIBRARY_NAME "/system/lib/hw/bluetooth.default.so"
+#endif
+
+int hal_util_load_bt_library(const struct hw_module_t** module) {
+  const char* id = BT_STACK_MODULE_ID;
+  const char* sym = HAL_MODULE_INFO_SYM_AS_STR;
+  struct hw_module_t* hmi = nullptr;
+
+  // Always try to load the default Bluetooth stack on GN builds.
+  const char* path = BLUETOOTH_LIBRARY_NAME;
+  void* handle = dlopen(path, RTLD_NOW);
+  if (!handle) {
+    const char* err_str = dlerror();
+    LOG(ERROR) << __func__ << ": failed to load Bluetooth library " << path
+               << ", error=" << (err_str ? err_str : "error unknown");
+    goto error;
+  }
+
+  // Get the address of the struct hal_module_info.
+  hmi = (struct hw_module_t*)dlsym(handle, sym);
+  if (!hmi) {
+    LOG(ERROR) << __func__ << ": failed to load symbol from Bluetooth library "
+               << sym;
+    goto error;
+  }
+
+  // Check that the id matches.
+  if (strcmp(id, hmi->id) != 0) {
+    LOG(ERROR) << StringPrintf("%s: id=%s does not match HAL module ID: %s",
+                               __func__, id, hmi->id);
+    goto error;
+  }
+
+  hmi->dso = handle;
+
+  // Success.
+  LOG(INFO) << StringPrintf("%s: loaded HAL id=%s path=%s hmi=%p handle=%p",
+                            __func__, id, path, hmi, handle);
+
+  *module = hmi;
+  return 0;
+
+error:
+  *module = NULL;
+  if (handle) dlclose(handle);
+
+  return -EINVAL;
+}
+
 static void classInitNative(JNIEnv* env, jclass clazz) {
   jclass jniUidTrafficClass = env->FindClass("android/bluetooth/UidTraffic");
   android_bluetooth_UidTraffic.constructor =
@@ -623,14 +680,12 @@ static void classInitNative(JNIEnv* env, jclass clazz) {
   method_energyInfo = env->GetMethodID(
       clazz, "energyInfoCallback", "(IIJJJJ[Landroid/bluetooth/UidTraffic;)V");
 
-  const char* id = BT_STACK_MODULE_ID;
-
   hw_module_t* module;
-  int err = hw_get_module(id, (hw_module_t const**)&module);
+  int err = hal_util_load_bt_library((hw_module_t const**)&module);
 
   if (err == 0) {
     hw_device_t* abstraction;
-    err = module->methods->open(module, id, &abstraction);
+    err = module->methods->open(module, BT_STACK_MODULE_ID, &abstraction);
     if (err == 0) {
       bluetooth_module_t* btStack = (bluetooth_module_t*)abstraction;
       sBluetoothInterface = btStack->get_bluetooth_interface();
