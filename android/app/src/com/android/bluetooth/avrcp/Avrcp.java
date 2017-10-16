@@ -206,7 +206,7 @@ public final class Avrcp {
         private String mPackage;
         private KeyEvent mEvent;
 
-        public MediaKeyLog(long time, KeyEvent event) {
+        MediaKeyLog(long time, KeyEvent event) {
             mEvent = event;
             mTimeSent = time;
         }
@@ -920,7 +920,7 @@ public final class Avrcp {
         private static final int ATTR_PLAYING_TIME_MS = 7;
 
 
-        public MediaAttributes(MediaMetadata data) {
+        MediaAttributes(MediaMetadata data) {
             exists = data != null;
             if (!exists)
                 return;

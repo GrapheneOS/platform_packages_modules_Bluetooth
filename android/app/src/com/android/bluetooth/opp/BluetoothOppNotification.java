@@ -201,7 +201,7 @@ class BluetoothOppNotification {
 
     private class NotificationUpdateThread extends Thread {
 
-        public NotificationUpdateThread() {
+        NotificationUpdateThread() {
             super("Notification Update Thread");
         }
 

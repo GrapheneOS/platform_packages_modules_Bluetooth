@@ -117,7 +117,7 @@ public class BluetoothOppTransferActivity extends AlertActivity implements
     private boolean mNeedUpdateButton = false;
 
     private class BluetoothTransferContentObserver extends ContentObserver {
-        public BluetoothTransferContentObserver() {
+        BluetoothTransferContentObserver() {
             super(new Handler());
         }
 

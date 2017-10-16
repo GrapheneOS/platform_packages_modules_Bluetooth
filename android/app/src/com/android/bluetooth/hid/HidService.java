@@ -323,7 +323,7 @@ public class HidService extends ProfileService {
      */
     private static class BluetoothInputDeviceBinder extends IBluetoothInputDevice.Stub implements IProfileServiceBinder{
         private HidService mService;
-        public BluetoothInputDeviceBinder(HidService svc) {
+        BluetoothInputDeviceBinder(HidService svc) {
             mService = svc;
         }
 

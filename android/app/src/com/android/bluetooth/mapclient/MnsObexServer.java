@@ -44,7 +44,7 @@ class MnsObexServer extends ServerRequestHandler {
     private final WeakReference<MceStateMachine> mStateMachineReference;
     private final ObexServerSockets mObexServerSockets;
 
-    public MnsObexServer(MceStateMachine stateMachine, ObexServerSockets socketOriginator) {
+    MnsObexServer(MceStateMachine stateMachine, ObexServerSockets socketOriginator) {
         super();
         mStateMachineReference = new WeakReference<>(stateMachine);
         mObexServerSockets = socketOriginator;
