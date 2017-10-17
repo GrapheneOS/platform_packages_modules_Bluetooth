@@ -297,30 +297,30 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
         if (V) logHeader(request);
         if (D) Log.d(TAG, "before setPath, mCurrentPath ==  " + mCurrentPath);
         notifyUpdateWakeLock();
-        String current_path_tmp = mCurrentPath;
-        String tmp_path = null;
+        String currentPathTmp = mCurrentPath;
+        String tmpPath = null;
         try {
-            tmp_path = (String)request.getHeader(HeaderSet.NAME);
+            tmpPath = (String)request.getHeader(HeaderSet.NAME);
         } catch (IOException e) {
             Log.e(TAG, "Get name header fail");
             return ResponseCodes.OBEX_HTTP_INTERNAL_ERROR;
         }
-        if (D) Log.d(TAG, "backup=" + backup + " create=" + create + " name=" + tmp_path);
+        if (D) Log.d(TAG, "backup=" + backup + " create=" + create + " name=" + tmpPath);
 
         if (backup) {
-            if (current_path_tmp.length() != 0) {
-                current_path_tmp = current_path_tmp.substring(0,
-                        current_path_tmp.lastIndexOf("/"));
+            if (currentPathTmp.length() != 0) {
+                currentPathTmp = currentPathTmp.substring(0,
+                        currentPathTmp.lastIndexOf("/"));
             }
         } else {
-            if (tmp_path == null) {
-                current_path_tmp = "";
+            if (tmpPath == null) {
+                currentPathTmp = "";
             } else {
-                current_path_tmp = current_path_tmp + "/" + tmp_path;
+                currentPathTmp = currentPathTmp + "/" + tmpPath;
             }
         }
 
-        if ((current_path_tmp.length() != 0) && (!isLegalPath(current_path_tmp))) {
+        if ((currentPathTmp.length() != 0) && (!isLegalPath(currentPathTmp))) {
             if (create) {
                 Log.w(TAG, "path create is forbidden!");
                 return ResponseCodes.OBEX_HTTP_FORBIDDEN;
@@ -329,7 +329,7 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
                 return ResponseCodes.OBEX_HTTP_NOT_FOUND;
             }
         }
-        mCurrentPath = current_path_tmp;
+        mCurrentPath = currentPathTmp;
         if (V) Log.v(TAG, "after setPath, mCurrentPath ==  " + mCurrentPath);
 
         return ResponseCodes.OBEX_HTTP_OK;
