@@ -954,40 +954,37 @@ public class BluetoothOppService extends ProfileService implements IObexConnecti
                 info.mConfirm != BluetoothShare.USER_CONFIRMATION_HANDOVER_CONFIRMED;
     }
 
+    private static final String INVISIBLE = BluetoothShare.VISIBILITY + "=" +
+            BluetoothShare.VISIBILITY_HIDDEN;
+    private static final String WHERE_INVISIBLE_COMPLETE_OUTBOUND = BluetoothShare.DIRECTION + "="
+            + BluetoothShare.DIRECTION_OUTBOUND + " AND " + BluetoothShare.STATUS + ">="
+            + BluetoothShare.STATUS_SUCCESS + " AND " + INVISIBLE;
+    private static final String WHERE_INVISIBLE_COMPLETE_INBOUND_FAILED = BluetoothShare.DIRECTION + "="
+            + BluetoothShare.DIRECTION_INBOUND + " AND " + BluetoothShare.STATUS + ">"
+            + BluetoothShare.STATUS_SUCCESS + " AND " + INVISIBLE;
+    private static final String WHERE_INBOUND_SUCCESS = BluetoothShare.DIRECTION + "="
+            + BluetoothShare.DIRECTION_INBOUND + " AND " + BluetoothShare.STATUS + "="
+            + BluetoothShare.STATUS_SUCCESS + " AND " + INVISIBLE;
     // Run in a background thread at boot.
     private static void trimDatabase(ContentResolver contentResolver) {
-        final String INVISIBLE = BluetoothShare.VISIBILITY + "=" +
-                BluetoothShare.VISIBILITY_HIDDEN;
-
         // remove the invisible/complete/outbound shares
-        final String WHERE_INVISIBLE_COMPLETE_OUTBOUND = BluetoothShare.DIRECTION + "="
-                + BluetoothShare.DIRECTION_OUTBOUND + " AND " + BluetoothShare.STATUS + ">="
-                + BluetoothShare.STATUS_SUCCESS + " AND " + INVISIBLE;
         int delNum = contentResolver.delete(BluetoothShare.CONTENT_URI,
                 WHERE_INVISIBLE_COMPLETE_OUTBOUND, null);
         if (V) Log.v(TAG, "Deleted complete outbound shares, number =  " + delNum);
 
         // remove the invisible/finished/inbound/failed shares
-        final String WHERE_INVISIBLE_COMPLETE_INBOUND_FAILED = BluetoothShare.DIRECTION + "="
-                + BluetoothShare.DIRECTION_INBOUND + " AND " + BluetoothShare.STATUS + ">"
-                + BluetoothShare.STATUS_SUCCESS + " AND " + INVISIBLE;
         delNum = contentResolver.delete(BluetoothShare.CONTENT_URI,
                 WHERE_INVISIBLE_COMPLETE_INBOUND_FAILED, null);
         if (V) Log.v(TAG, "Deleted complete inbound failed shares, number = " + delNum);
 
         // Only keep the inbound and successful shares for LiverFolder use
         // Keep the latest 1000 to easy db query
-        final String WHERE_INBOUND_SUCCESS = BluetoothShare.DIRECTION + "="
-                + BluetoothShare.DIRECTION_INBOUND + " AND " + BluetoothShare.STATUS + "="
-                + BluetoothShare.STATUS_SUCCESS + " AND " + INVISIBLE;
         Cursor cursor = contentResolver.query(BluetoothShare.CONTENT_URI, new String[] {
             BluetoothShare._ID
         }, WHERE_INBOUND_SUCCESS, null, BluetoothShare._ID); // sort by id
-
         if (cursor == null) {
             return;
         }
-
         int recordNum = cursor.getCount();
         if (recordNum > Constants.MAX_RECORDS_IN_DATABASE) {
             int numToDelete = recordNum - Constants.MAX_RECORDS_IN_DATABASE;

@@ -222,8 +222,8 @@ public class SapServer extends Thread implements Callback {
          * without first sending a graceful disconnect.
          * To enable this option set
          * bt.sap.pts="true" */
-        String pts_enabled = SystemProperties.get("bt.sap.pts");
-        Boolean pts_test = Boolean.parseBoolean(pts_enabled);
+        String ptsEnabled = SystemProperties.get("bt.sap.pts");
+        Boolean ptsTest = Boolean.parseBoolean(ptsEnabled);
 
         /* put notification up for the user to be able to disconnect from the client*/
         Intent sapDisconnectIntent = new Intent(SapServer.SAP_DISCONNECT_ACTION);
@@ -238,7 +238,7 @@ public class SapServer extends Thread implements Callback {
             text = mContext.getString(R.string.bluetooth_sap_notif_disconnecting);
             ticker = mContext.getString(R.string.bluetooth_sap_notif_ticker);
         }
-        if (!pts_test) {
+        if (!ptsTest) {
             sapDisconnectIntent.putExtra(SapServer.SAP_DISCONNECT_TYPE_EXTRA, type);
             PendingIntent pIntentDisconnect = PendingIntent.getBroadcast(mContext, type,
                     sapDisconnectIntent,flags);

@@ -97,7 +97,7 @@ public class BluetoothOppLauncherActivity extends Activity {
                 // TODO: handle type == null case
                 final String type = intent.getType();
                 final Uri stream = (Uri)intent.getParcelableExtra(Intent.EXTRA_STREAM);
-                CharSequence extra_text = intent.getCharSequenceExtra(Intent.EXTRA_TEXT);
+                CharSequence extraText = intent.getCharSequenceExtra(Intent.EXTRA_TEXT);
                 // If we get ACTION_SEND intent with EXTRA_STREAM, we'll use the
                 // uri data;
                 // If we get ACTION_SEND intent without EXTRA_STREAM, but with
@@ -117,10 +117,10 @@ public class BluetoothOppLauncherActivity extends Activity {
                     });
                     t.start();
                     return;
-                } else if (extra_text != null && type != null) {
+                } else if (extraText != null && type != null) {
                     if (V) Log.v(TAG, "Get ACTION_SEND intent with Extra_text = "
-                                + extra_text.toString() + "; mimetype = " + type);
-                    final Uri fileUri = creatFileForSharedContent(this.createCredentialProtectedStorageContext(), extra_text);
+                                + extraText.toString() + "; mimetype = " + type);
+                    final Uri fileUri = creatFileForSharedContent(this.createCredentialProtectedStorageContext(), extraText);
                     if (fileUri != null) {
                         Thread t = new Thread(new Runnable() {
                             @Override

@@ -751,10 +751,10 @@ public abstract class BluetoothMapbMessage {
 
                 // Read until we receive END:MSG as some carkits send bad message lengths
                 String data = "";
-                String message_line = "";
-                while (!message_line.equals("END:MSG")) {
-                    data += message_line;
-                    message_line = reader.getLineEnforce();
+                String messageLine = "";
+                while (!messageLine.equals("END:MSG")) {
+                    data += messageLine;
+                    messageLine = reader.getLineEnforce();
                 }
 
                 // The MAP spec says that all END:MSG strings in the body
