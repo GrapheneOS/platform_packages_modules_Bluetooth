@@ -267,22 +267,22 @@ public class AddressedMediaPlayer {
         if (DEBUG) Log.d(TAG, "getFolderItemsFilterAttr: startItem =" + startItem + ", endItem = "
                 + endItem);
 
-        List<MediaSession.QueueItem> result_items = getQueueSubset(items, startItem, endItem);
+        List<MediaSession.QueueItem> resultItems = getQueueSubset(items, startItem, endItem);
         /* check for index out of bound errors */
-        if (result_items == null) {
-            Log.w(TAG, "getFolderItemsFilterAttr: result_items is empty");
+        if (resultItems == null) {
+            Log.w(TAG, "getFolderItemsFilterAttr: resultItems is empty");
             mMediaInterface.folderItemsRsp(bdaddr, AvrcpConstants.RSP_INV_RANGE, null);
             return;
         }
 
-        FolderItemsData folderDataNative = new FolderItemsData(result_items.size());
+        FolderItemsData folderDataNative = new FolderItemsData(resultItems.size());
 
         /* variables to accumulate attrs */
         ArrayList<String> attrArray = new ArrayList<String>();
         ArrayList<Integer> attrId = new ArrayList<Integer>();
 
-        for (int itemIndex = 0; itemIndex < result_items.size(); itemIndex++) {
-            MediaSession.QueueItem item = result_items.get(itemIndex);
+        for (int itemIndex = 0; itemIndex < resultItems.size(); itemIndex++) {
+            MediaSession.QueueItem item = resultItems.get(itemIndex);
             // get the queue id
             long qid = item.getQueueId();
             byte[] uid = ByteBuffer.allocate(AvrcpConstants.UID_SIZE).putLong(qid).array();

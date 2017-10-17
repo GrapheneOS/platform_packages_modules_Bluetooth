@@ -309,11 +309,11 @@ public class BluetoothPbapUtils {
 
     protected static void updateSecondaryVersionCounter(Context mContext, Handler mHandler) {
         try {
-            /* updated_list stores list of contacts which are added/updated after
+            /* updatedList stores list of contacts which are added/updated after
              * the time when contacts were last updated. (contactsLastUpdated
              * indicates the time when contact/contacts were last updated and
              * corresponding changes were reflected in Folder Version Counters).*/
-            ArrayList<String> updated_list = new ArrayList<String>();
+            ArrayList<String> updatedList = new ArrayList<String>();
             HashSet<String> currentContactSet = new HashSet<String>();
             int currentContactCount = 0;
 
@@ -329,22 +329,22 @@ public class BluetoothPbapUtils {
                 String contactId = c.getString(0);
                 long lastUpdatedTime = c.getLong(1);
                 if (lastUpdatedTime > contactsLastUpdated) {
-                    updated_list.add(contactId);
+                    updatedList.add(contactId);
                 }
                 currentContactSet.add(contactId);
             }
             currentContactCount = c.getCount();
             c.close();
 
-            if (V) Log.v(TAG, "updated list =" + updated_list);
+            if (V) Log.v(TAG, "updated list =" + updatedList);
             String[] dataProjection = {Data.CONTACT_ID, Data.DATA1, Data.MIMETYPE};
 
             String whereClause = Data.CONTACT_ID + "=?";
 
             /* code to check if new contact/contacts are added */
             if (currentContactCount > totalContacts) {
-                for (int i = 0; i < updated_list.size(); i++) {
-                    String[] selectionArgs = {updated_list.get(i)};
+                for (int i = 0; i < updatedList.size(); i++) {
+                    String[] selectionArgs = {updatedList.get(i)};
                     fetchAndSetContacts(
                             mContext, mHandler, dataProjection, whereClause, selectionArgs, false);
                     secondaryVersionCounter++;
@@ -387,15 +387,15 @@ public class BluetoothPbapUtils {
                 /* When contacts are updated. i.e. Fields of existing contacts are
                  * added/updated/deleted */
             } else {
-                for (int i = 0; i < updated_list.size(); i++) {
+                for (int i = 0; i < updatedList.size(); i++) {
                     primaryVersionCounter++;
-                    ArrayList<String> phone_tmp = new ArrayList<String>();
-                    ArrayList<String> email_tmp = new ArrayList<String>();
-                    ArrayList<String> address_tmp = new ArrayList<String>();
-                    String name_tmp = null, updatedCID = updated_list.get(i);
+                    ArrayList<String> phoneTmp = new ArrayList<String>();
+                    ArrayList<String> emailTmp = new ArrayList<String>();
+                    ArrayList<String> addressTmp = new ArrayList<String>();
+                    String nameTmp = null, updatedCID = updatedList.get(i);
                     boolean updated = false;
 
-                    String[] selectionArgs = {updated_list.get(i)};
+                    String[] selectionArgs = {updatedList.get(i)};
                     Cursor dataCursor = mContext.getContentResolver().query(
                             Data.CONTENT_URI, dataProjection, whereClause, selectionArgs, null);
 
@@ -413,34 +413,34 @@ public class BluetoothPbapUtils {
                         mimeType = dataCursor.getString(indexMimeType);
                         switch (mimeType) {
                             case Email.CONTENT_ITEM_TYPE:
-                                email_tmp.add(data);
+                                emailTmp.add(data);
                                 break;
                             case Phone.CONTENT_ITEM_TYPE:
-                                phone_tmp.add(data);
+                                phoneTmp.add(data);
                                 break;
                             case StructuredPostal.CONTENT_ITEM_TYPE:
-                                address_tmp.add(data);
+                                addressTmp.add(data);
                                 break;
                             case StructuredName.CONTENT_ITEM_TYPE:
-                                name_tmp = new String(data);
+                                nameTmp = new String(data);
                                 break;
                         }
                     }
                     ContactData cData =
-                            new ContactData(name_tmp, phone_tmp, email_tmp, address_tmp);
+                            new ContactData(nameTmp, phoneTmp, emailTmp, addressTmp);
                     dataCursor.close();
 
-                    if ((name_tmp == null && contactDataset.get(updatedCID).name != null)
-                            || (name_tmp != null && contactDataset.get(updatedCID).name == null)
-                            || (!(name_tmp == null && contactDataset.get(updatedCID).name == null)
-                                       && !name_tmp.equals(contactDataset.get(updatedCID).name))) {
+                    if ((nameTmp == null && contactDataset.get(updatedCID).name != null)
+                            || (nameTmp != null && contactDataset.get(updatedCID).name == null)
+                            || (!(nameTmp == null && contactDataset.get(updatedCID).name == null)
+                                       && !nameTmp.equals(contactDataset.get(updatedCID).name))) {
                         updated = true;
-                    } else if (checkFieldUpdates(contactDataset.get(updatedCID).phone, phone_tmp)) {
+                    } else if (checkFieldUpdates(contactDataset.get(updatedCID).phone, phoneTmp)) {
                         updated = true;
-                    } else if (checkFieldUpdates(contactDataset.get(updatedCID).email, email_tmp)) {
+                    } else if (checkFieldUpdates(contactDataset.get(updatedCID).email, emailTmp)) {
                         updated = true;
                     } else if (checkFieldUpdates(
-                                       contactDataset.get(updatedCID).address, address_tmp)) {
+                                       contactDataset.get(updatedCID).address, addressTmp)) {
                         updated = true;
                     }
 

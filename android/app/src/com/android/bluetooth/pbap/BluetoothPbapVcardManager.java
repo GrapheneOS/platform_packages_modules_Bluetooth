@@ -210,15 +210,16 @@ public class BluetoothPbapVcardManager {
         return size;
     }
 
+    private static final int CALLS_NUMBER_COLUMN_INDEX = 0;
+    private static final int CALLS_NAME_COLUMN_INDEX = 1;
+    private static final int CALLS_NUMBER_PRESENTATION_COLUMN_INDEX = 2;
     public final ArrayList<String> loadCallHistoryList(final int type) {
         final Uri myUri = CallLog.Calls.CONTENT_URI;
         String selection = BluetoothPbapObexServer.createSelectionPara(type);
         String[] projection = new String[] {
                 Calls.NUMBER, Calls.CACHED_NAME, Calls.NUMBER_PRESENTATION
         };
-        final int CALLS_NUMBER_COLUMN_INDEX = 0;
-        final int CALLS_NAME_COLUMN_INDEX = 1;
-        final int CALLS_NUMBER_PRESENTATION_COLUMN_INDEX = 2;
+
 
         Cursor callCursor = null;
         ArrayList<String> list = new ArrayList<String>();
@@ -464,6 +465,10 @@ public class BluetoothPbapVcardManager {
         return pvc.array();
     }
 
+    private static final String[] CALLLOG_PROJECTION = new String[] {
+            CallLog.Calls._ID, // 0
+    };
+    private static final int ID_COLUMN_INDEX = 0;
     final int composeAndSendSelectedCallLogVcards(final int type, Operation op,
             final int startPoint, final int endPoint, final boolean vcardType21, int needSendBody,
             int pbSize, boolean ignorefilter, byte[] filter, byte[] vcardselector,
@@ -475,11 +480,6 @@ public class BluetoothPbapVcardManager {
         String typeSelection = BluetoothPbapObexServer.createSelectionPara(type);
 
         final Uri myUri = CallLog.Calls.CONTENT_URI;
-        final String[] CALLLOG_PROJECTION = new String[] {
-            CallLog.Calls._ID, // 0
-        };
-        final int ID_COLUMN_INDEX = 0;
-
         Cursor callsCursor = null;
         long startPointId = 0;
         long endPointId = 0;
@@ -953,7 +953,7 @@ public class BluetoothPbapVcardManager {
                     stripedVCard = stripedVCard.concat(attr[i] + "\n");
                 }
             }
-        if (V) Log.v(TAG, "Vcard with stripped telephone no.: " + stripedVCard);
+        if (V) Log.v(TAG, "vCard with stripped telephone no.: " + stripedVCard);
         return stripedVCard;
     }
 
@@ -1048,11 +1048,11 @@ public class BluetoothPbapVcardManager {
         //This function returns true if the attributes needs to be included in the filtered vcard.
         private boolean isFilteredIn(FilterBit bit, boolean vCardType21) {
             final int offset = (bit.pos / 8) + 1;
-            final int bit_pos = bit.pos % 8;
+            final int bitPos = bit.pos % 8;
             if (!vCardType21 && bit.onlyCheckV21) return true;
             if (vCardType21 && bit.excludeForV21) return false;
             if (filter == null || offset >= filter.length) return true;
-            return ((filter[filter.length - offset] >> bit_pos) & 0x01) != 0;
+            return ((filter[filter.length - offset] >> bitPos) & 0x01) != 0;
         }
 
         VCardFilter(byte[] filter) {

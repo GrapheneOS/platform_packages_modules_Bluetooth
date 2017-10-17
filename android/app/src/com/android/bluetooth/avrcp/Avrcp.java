@@ -286,11 +286,11 @@ public final class Avrcp {
         if (resources != null) {
             mAbsVolThreshold = resources.getInteger(R.integer.a2dp_absolute_volume_initial_threshold);
 
-            // Update the threshold if the threshold_percent is valid
-            int threshold_percent =
+            // Update the threshold if the thresholdPercent is valid
+            int thresholdPercent =
                     resources.getInteger(R.integer.a2dp_absolute_volume_initial_threshold_percent);
-            if (threshold_percent >= 0 && threshold_percent <= 100) {
-                mAbsVolThreshold = (threshold_percent * mAudioStreamMax) / 100;
+            if (thresholdPercent >= 0 && thresholdPercent <= 100) {
+                mAbsVolThreshold = (thresholdPercent * mAudioStreamMax) / 100;
             }
         }
 
@@ -606,10 +606,10 @@ public final class Avrcp {
                     /* oops, the volume is still same, remote does not like the value
                      * retry a volume one step up/down */
                     if (DEBUG) Log.d(TAG, "Remote device didn't tune volume, let's try one more step.");
-                    int retry_volume = Math.min(AVRCP_MAX_VOL,
+                    int retryVolume = Math.min(AVRCP_MAX_VOL,
                             Math.max(0, mLastRemoteVolume + mLastDirection));
-                    if (setVolumeNative(retry_volume)) {
-                        mLastRemoteVolume = retry_volume;
+                    if (setVolumeNative(retryVolume)) {
+                        mLastRemoteVolume = retryVolume;
                         sendMessageDelayed(obtainMessage(MSG_ABS_VOL_TIMEOUT), CMD_TIMEOUT_DELAY);
                         mVolCmdAdjustInProgress = true;
                     }

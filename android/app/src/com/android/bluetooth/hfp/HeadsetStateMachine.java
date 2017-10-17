@@ -240,9 +240,9 @@ final class HeadsetStateMachine extends StateMachine {
             Log.e(TAG, "Could not bind to Bluetooth Headset Phone Service");
         }
 
-        String max_hfp_clients = SystemProperties.get("bt.max.hfpclient.connections");
-        if (!max_hfp_clients.isEmpty() && (Integer.parseInt(max_hfp_clients) == 2)) {
-            max_hf_connections = Integer.parseInt(max_hfp_clients);
+        String maxHfpClients = SystemProperties.get("bt.max.hfpclient.connections");
+        if (!maxHfpClients.isEmpty() && (Integer.parseInt(maxHfpClients) == 2)) {
+            max_hf_connections = Integer.parseInt(maxHfpClients);
         }
         Log.d(TAG, "max_hf_connections = " + max_hf_connections);
         Log.d(TAG,
@@ -2349,24 +2349,24 @@ final class HeadsetStateMachine extends StateMachine {
 
     private void configAudioParameters(BluetoothDevice device) {
         // Reset NREC on connect event. Headset will override later
-        HashMap<String, Integer> AudioParamConfig = new HashMap<String, Integer>();
-        AudioParamConfig.put("NREC", 1);
-        mHeadsetAudioParam.put(device, AudioParamConfig);
+        HashMap<String, Integer> audioParamConfig = new HashMap<String, Integer>();
+        audioParamConfig.put("NREC", 1);
+        mHeadsetAudioParam.put(device, audioParamConfig);
         mAudioManager.setParameters(
                 HEADSET_NAME + "=" + getCurrentDeviceName(device) + ";" + HEADSET_NREC + "=on");
         Log.d(TAG, "configAudioParameters for device:" + device + " are: nrec = "
-                        + AudioParamConfig.get("NREC"));
+                        + audioParamConfig.get("NREC"));
     }
 
     private void setAudioParameters(BluetoothDevice device) {
         // 1. update nrec value
         // 2. update headset name
         int mNrec = 0;
-        HashMap<String, Integer> AudioParam = mHeadsetAudioParam.get(device);
-        if (AudioParam != null && !AudioParam.isEmpty()) {
-            mNrec = AudioParam.get("NREC");
+        HashMap<String, Integer> audioParam = mHeadsetAudioParam.get(device);
+        if (audioParam != null && !audioParam.isEmpty()) {
+            mNrec = audioParam.get("NREC");
         } else {
-            Log.e(TAG, "setAudioParameters: AudioParam not found");
+            Log.e(TAG, "setAudioParameters: audioParam not found");
         }
 
         if (mNrec == 1) {
@@ -2672,15 +2672,15 @@ final class HeadsetStateMachine extends StateMachine {
     // 1 enable noice reduction
     // 0 disable noice reduction
     private void processNoiceReductionEvent(int enable, BluetoothDevice device) {
-        HashMap<String, Integer> AudioParamNrec = mHeadsetAudioParam.get(device);
-        if (AudioParamNrec != null && !AudioParamNrec.isEmpty()) {
+        HashMap<String, Integer> audioParamNrec = mHeadsetAudioParam.get(device);
+        if (audioParamNrec != null && !audioParamNrec.isEmpty()) {
             if (enable == 1)
-                AudioParamNrec.put("NREC", 1);
+                audioParamNrec.put("NREC", 1);
             else
-                AudioParamNrec.put("NREC", 0);
-            log("NREC value for device :" + device + " is: " + AudioParamNrec.get("NREC"));
+                audioParamNrec.put("NREC", 0);
+            log("NREC value for device :" + device + " is: " + audioParamNrec.get("NREC"));
         } else {
-            Log.e(TAG, "processNoiceReductionEvent: AudioParamNrec is null ");
+            Log.e(TAG, "processNoiceReductionEvent: audioParamNrec is null ");
         }
 
         if (mActiveScoDevice != null && mActiveScoDevice.equals(device)
@@ -2762,7 +2762,7 @@ final class HeadsetStateMachine extends StateMachine {
     }
 
     private void processAtCind(BluetoothDevice device) {
-        int call, call_setup;
+        int call, callSetup;
 
         if (device == null) {
             Log.w(TAG, "processAtCind device is null");
@@ -2774,14 +2774,14 @@ final class HeadsetStateMachine extends StateMachine {
          for the virtual call too.*/
         if (isVirtualCallInProgress()) {
             call = 1;
-            call_setup = 0;
+            callSetup = 0;
         } else {
             // regular phone call
             call = mPhoneState.getNumActiveCall();
-            call_setup = mPhoneState.getNumHeldCall();
+            callSetup = mPhoneState.getNumHeldCall();
         }
 
-        cindResponseNative(mPhoneState.getService(), call, call_setup, mPhoneState.getCallState(),
+        cindResponseNative(mPhoneState.getService(), call, callSetup, mPhoneState.getCallState(),
                 mPhoneState.getSignal(), mPhoneState.getRoam(), mPhoneState.getBatteryCharge(),
                 getByteAddress(device));
     }
@@ -3073,7 +3073,7 @@ final class HeadsetStateMachine extends StateMachine {
         log("processAtBind: " + atString);
 
         // Parse the AT String to find the Indicator Ids that are supported
-        int ind_id = 0;
+        int indId = 0;
         int iter = 0;
         int iter1 = 0;
 
@@ -3082,19 +3082,19 @@ final class HeadsetStateMachine extends StateMachine {
             String id = atString.substring(iter, iter1);
 
             try {
-                ind_id = Integer.valueOf(id);
+                indId = Integer.valueOf(id);
             } catch (NumberFormatException e) {
                 Log.e(TAG, Log.getStackTraceString(new Throwable()));
             }
 
-            switch (ind_id) {
+            switch (indId) {
                 case HeadsetHalConstants.HF_INDICATOR_ENHANCED_DRIVER_SAFETY:
                     log("Send Broadcast intent for the Enhanced Driver Safety indicator.");
-                    sendIndicatorIntent(device, ind_id, -1);
+                    sendIndicatorIntent(device, indId, -1);
                     break;
                 case HeadsetHalConstants.HF_INDICATOR_BATTERY_LEVEL_STATUS:
                     log("Send Broadcast intent for the Battery Level indicator.");
-                    sendIndicatorIntent(device, ind_id, -1);
+                    sendIndicatorIntent(device, indId, -1);
                     break;
                 default:
                     log("Invalid HF Indicator Received");

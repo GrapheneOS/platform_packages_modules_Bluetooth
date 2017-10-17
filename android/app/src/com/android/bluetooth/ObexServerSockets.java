@@ -96,6 +96,7 @@ public class ObexServerSockets {
                 BluetoothAdapter.SOCKET_CHANNEL_AUTO_STATIC_NO_SDP, false);
     }
 
+    private static final int CREATE_RETRY_TIME = 10;
     /**
      * Creates an RFCOMM {@link BluetoothServerSocket} and a L2CAP {@link BluetoothServerSocket}
      * with specific l2cap and RFCOMM channel numbers. It is the responsibility of the caller to
@@ -120,7 +121,6 @@ public class ObexServerSockets {
         BluetoothServerSocket rfcommSocket = null;
         BluetoothServerSocket l2capSocket = null;
         boolean initSocketOK = false;
-        final int CREATE_RETRY_TIME = 10;
 
         // It's possible that create will fail in some cases. retry for 10 times
         for (int i = 0; i < CREATE_RETRY_TIME; i++) {
