@@ -107,10 +107,10 @@ public class BluetoothMapUtils {
         SMS_CDMA,
         MMS,
         IM;
-        private static TYPE[] allValues = values();
+        private static TYPE[] sAllValues = values();
         public static TYPE fromOrdinal(int n) {
-            if(n < allValues.length)
-               return allValues[n];
+            if(n < sAllValues.length)
+               return sAllValues[n];
             return NONE;
         }
     }
@@ -424,7 +424,7 @@ public class BluetoothMapUtils {
         }
         return utf8Bytes;
     }
-    private static Pattern p = Pattern.compile("=\\?(.+?)\\?(.)\\?(.+?(?=\\?=))\\?=");
+    private static final Pattern PATTERN = Pattern.compile("=\\?(.+?)\\?(.)\\?(.+?(?=\\?=))\\?=");
 
     /**
      * Method for converting quoted printable og base64 encoded string from headers.
@@ -438,7 +438,7 @@ public class BluetoothMapUtils {
             String charset;
             String encodedText;
             String match;
-            Matcher m = p.matcher(in);
+            Matcher m = PATTERN.matcher(in);
             while(m.find()){
                 match = m.group(0);
                 charset = m.group(1);
@@ -582,9 +582,9 @@ public class BluetoothMapUtils {
      * @return UTF-8 string containing quoted-printable characters
      */
 
-    private static byte ESCAPE_CHAR = '=';
-    private static byte TAB = 9;
-    private static byte SPACE = 32;
+    private static final byte ESCAPE_CHAR = '=';
+    private static final byte TAB = 9;
+    private static final byte SPACE = 32;
 
     public static final String encodeQuotedPrintable(byte[] bytes) {
         if (bytes == null) {

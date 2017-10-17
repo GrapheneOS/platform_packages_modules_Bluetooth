@@ -425,8 +425,8 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
     private void closeService() {
         if (VERBOSE) Log.v(TAG, "Pbap Service closeService in");
 
-        BluetoothPbapUtils.savePbapParams(this, BluetoothPbapUtils.primaryVersionCounter,
-                BluetoothPbapUtils.secondaryVersionCounter, BluetoothPbapUtils.mDbIdentifier.get(),
+        BluetoothPbapUtils.savePbapParams(this, BluetoothPbapUtils.sPrimaryVersionCounter,
+                BluetoothPbapUtils.sSecondaryVersionCounter, BluetoothPbapUtils.sDbIdentifier.get(),
                 BluetoothPbapUtils.contactsLastUpdated, BluetoothPbapUtils.totalFields,
                 BluetoothPbapUtils.totalSvcFields, BluetoothPbapUtils.totalContacts);
 
@@ -1004,7 +1004,7 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
     }
 
     long getDbIdentifier() {
-        return BluetoothPbapUtils.mDbIdentifier.get();
+        return BluetoothPbapUtils.sDbIdentifier.get();
     }
 
     private void setUserTimeoutAlarm() {

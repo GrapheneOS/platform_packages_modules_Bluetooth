@@ -42,9 +42,9 @@ public class BluetoothMapSmsPdu {
 
     private static final String TAG = "BluetoothMapSmsPdu";
     private static final boolean V = false;
-    private static int INVALID_VALUE = -1;
-    public static int SMS_TYPE_GSM = 1;
-    public static int SMS_TYPE_CDMA = 2;
+    private static final int INVALID_VALUE = -1;
+    public static final int SMS_TYPE_GSM = 1;
+    public static final int SMS_TYPE_CDMA = 2;
 
 
     /* We need to handle the SC-address mentioned in errata 4335.

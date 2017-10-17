@@ -44,7 +44,7 @@ public class Interop {
   /**
    * The actual "database" of interop entries.
    */
-  private static List<Entry> entries = null;
+  private static List<Entry> sEntries = null;
 
   /**
    * Workaround ID for deivces which do not accept non-ASCII
@@ -59,11 +59,11 @@ public class Interop {
    * device as to what problem the workaround addresses.
    */
   private static void lazyInitInteropDatabase() {
-    if (entries != null) return;
-    entries = new ArrayList<Entry>();
+    if (sEntries != null) return;
+    sEntries = new ArrayList<Entry>();
 
     /** Mercedes Benz NTG 4.5 does not handle non-ASCII characters in SMS */
-    entries.add(new Entry(INTEROP_MAP_ASCIIONLY, "00:26:e8"));
+    sEntries.add(new Entry(INTEROP_MAP_ASCIIONLY, "00:26:e8"));
   }
 
   /**
@@ -75,7 +75,7 @@ public class Interop {
     if (address == null || address.isEmpty()) return false;
 
     lazyInitInteropDatabase();
-    for (Entry entry : entries) {
+    for (Entry entry : sEntries) {
       if (entry.workaround_id == workaroundId &&
           entry.address.startsWith(address.toLowerCase())) {
         return true;
