@@ -133,11 +133,11 @@ public class SapService extends ProfileService {
         }
     }
 
+    private static final int CREATE_RETRY_TIME = 10;
     private boolean initSocket() {
         if (VERBOSE) Log.v(TAG, "Sap Service initSocket");
 
         boolean initSocketOK = false;
-        final int CREATE_RETRY_TIME = 10;
 
         // It's possible that create will fail in some cases. retry for 10 times
         for (int i = 0; i < CREATE_RETRY_TIME && !mInterrupted; i++) {

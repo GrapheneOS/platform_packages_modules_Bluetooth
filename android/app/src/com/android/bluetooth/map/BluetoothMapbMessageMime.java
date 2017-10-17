@@ -310,13 +310,13 @@ public class BluetoothMapbMessageMime extends BluetoothMapbMessage {
         }
     }
     public int getSize() {
-        int message_size = 0;
+        int messageSize = 0;
         if(parts != null) {
             for(MimePart part : parts) {
-                message_size += part.mData.length;
+                messageSize += part.mData.length;
             }
         }
-        return message_size;
+        return messageSize;
     }
 
     /**

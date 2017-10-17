@@ -205,22 +205,22 @@ final class MceStateMachine extends StateMachine {
 
             for (Uri contact : contacts) {
                 // Who to send the message to.
-                VCardEntry dest_entry = new VCardEntry();
-                VCardProperty dest_entry_phone = new VCardProperty();
+                VCardEntry destEntry = new VCardEntry();
+                VCardProperty destEntryPhone = new VCardProperty();
                 if (DBG) Log.d(TAG, "Scheme " + contact.getScheme());
                 if (PhoneAccount.SCHEME_TEL.equals(contact.getScheme())) {
-                    dest_entry_phone.setName(VCardConstants.PROPERTY_TEL);
-                    dest_entry_phone.addValues(contact.getSchemeSpecificPart());
+                    destEntryPhone.setName(VCardConstants.PROPERTY_TEL);
+                    destEntryPhone.addValues(contact.getSchemeSpecificPart());
                     if (DBG) {
                         Log.d(TAG,
-                                "Sending to phone numbers " + dest_entry_phone.getValueList());
+                                "Sending to phone numbers " + destEntryPhone.getValueList());
                     }
                 } else {
                     if (DBG) Log.w(TAG, "Scheme " + contact.getScheme() + " not supported.");
                     return false;
                 }
-                dest_entry.addProperty(dest_entry_phone);
-                bmsg.addRecipient(dest_entry);
+                destEntry.addProperty(destEntryPhone);
+                bmsg.addRecipient(destEntry);
             }
 
             // Message of the body.
