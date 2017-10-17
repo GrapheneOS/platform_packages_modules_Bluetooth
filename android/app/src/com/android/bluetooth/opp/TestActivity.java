@@ -329,9 +329,8 @@ public class TestActivity extends Activity {
         @Override
         public void onClick(View view) {
             server = new TestTcpServer();
-            Thread server_thread = new Thread(server);
-            server_thread.start();
-
+            Thread serverThread = new Thread(server);
+            serverThread.start();
         }
     };
 

@@ -88,8 +88,8 @@ import java.util.UUID;
         } else if (ACTION_GATT_TEST_CONNECT.equals(action)) {
             String address = intent.getStringExtra(EXTRA_ADDRESS);
             int type = intent.getIntExtra(EXTRA_TYPE, 2 /* LE device */);
-            int addr_type = intent.getIntExtra(EXTRA_ADDR_TYPE, 0 /* Static */);
-            svc.gattTestCommand( 0x02, null, address, type, addr_type, 0,0,0);
+            int addrType = intent.getIntExtra(EXTRA_ADDR_TYPE, 0 /* Static */);
+            svc.gattTestCommand( 0x02, null, address, type, addrType, 0,0,0);
 
         } else if (ACTION_GATT_TEST_DISCONNECT.equals(action)) {
             svc.gattTestCommand( 0x03, null, null, 0,0,0,0,0);
@@ -102,13 +102,13 @@ import java.util.UUID;
             svc.gattTestCommand( 0x04, uuid, null, type, shdl, ehdl, 0,0);
 
         } else if (ACTION_GATT_PAIRING_CONFIG.equals(action)) {
-            int auth_req = intent.getIntExtra(EXTRA_AUTH_REQ, 5);
-            int io_cap = intent.getIntExtra(EXTRA_IO_CAP, 4);
-            int init_key = intent.getIntExtra(EXTRA_INIT_KEY, 7);
-            int resp_key = intent.getIntExtra(EXTRA_RESP_KEY, 7);
-            int max_key = intent.getIntExtra(EXTRA_MAX_KEY, 16);
-            svc.gattTestCommand( 0xF0, null, null, auth_req, io_cap, init_key,
-                                 resp_key, max_key);
+            int authReq = intent.getIntExtra(EXTRA_AUTH_REQ, 5);
+            int ioCap = intent.getIntExtra(EXTRA_IO_CAP, 4);
+            int initKey = intent.getIntExtra(EXTRA_INIT_KEY, 7);
+            int respKey = intent.getIntExtra(EXTRA_RESP_KEY, 7);
+            int maxKey = intent.getIntExtra(EXTRA_MAX_KEY, 16);
+            svc.gattTestCommand( 0xF0, null, null, authReq, ioCap, initKey,
+                                 respKey, maxKey);
 
         } else {
             return false;

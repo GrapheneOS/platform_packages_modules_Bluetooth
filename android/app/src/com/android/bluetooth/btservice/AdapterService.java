@@ -335,12 +335,12 @@ public class AdapterService extends Service {
     private void updateInteropDatabase() {
         interopDatabaseClearNative();
 
-        String interop_string = Settings.Global.getString(getContentResolver(),
+        String interopString = Settings.Global.getString(getContentResolver(),
                                             Settings.Global.BLUETOOTH_INTEROPERABILITY_LIST);
-        if (interop_string == null) return;
-        Log.d(TAG, "updateInteropDatabase: [" + interop_string + "]");
+        if (interopString == null) return;
+        Log.d(TAG, "updateInteropDatabase: [" + interopString + "]");
 
-        String[] entries = interop_string.split(";");
+        String[] entries = interopString.split(";");
         for (String entry : entries) {
             String[] tokens = entry.split(",");
             if (tokens.length != 2) continue;

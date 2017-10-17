@@ -1058,14 +1058,14 @@ public class BluetoothMapContent {
                 }
             } else if(fi.mMsgType == FilterInfo.TYPE_IM) {
                 // TODO: For IM we add the contact ID in the addressing
-                long contact_id = c.getLong(fi.mMessageColFromAddress);
+                long contactId = c.getLong(fi.mMessageColFromAddress);
                 // TODO: This is a BAD hack, that we map the contact ID to a conversation ID!!!
                 //       We need to reach a conclusion on what to do
                 Uri contactsUri = Uri.parse(mBaseUri + BluetoothMapContract.TABLE_CONVOCONTACT);
                 Cursor contacts = mResolver.query(contactsUri,
                                            BluetoothMapContract.BT_CONTACT_PROJECTION,
                                            BluetoothMapContract.ConvoContactColumns.CONVO_ID
-                                           + " = " + contact_id, null, null);
+                                           + " = " + contactId, null, null);
                 try {
                     // TODO this will not work for group-chats
                     if(contacts != null && contacts.moveToFirst()){
@@ -1129,12 +1129,12 @@ public class BluetoothMapContent {
                 }
             } else if(fi.mMsgType == FilterInfo.TYPE_IM) {
                 // For IM we add the contact ID in the addressing
-                long contact_id = c.getLong(fi.mMessageColFromAddress);
+                long contactId = c.getLong(fi.mMessageColFromAddress);
                 Uri contactsUri = Uri.parse(mBaseUri + BluetoothMapContract.TABLE_CONVOCONTACT);
                 Cursor contacts = mResolver.query(contactsUri,
                                            BluetoothMapContract.BT_CONTACT_PROJECTION,
                                            BluetoothMapContract.ConvoContactColumns.CONVO_ID
-                                           + " = " + contact_id, null, null);
+                                           + " = " + contactId, null, null);
                 try {
                     // TODO this will not work for group-chats
                     if(contacts != null && contacts.moveToFirst()){
@@ -1324,12 +1324,14 @@ public class BluetoothMapContent {
         }
         return name;
     }
+
+    private static final String[] RECIPIENT_ID_PROJECTION = { Threads.RECIPIENT_IDS };
     /**
      * Get SMS RecipientAddresses for DRAFT folder based on threadId
      *
     */
     public static String getCanonicalAddressSms(ContentResolver r,  int threadId) {
-       String [] RECIPIENT_ID_PROJECTION = { Threads.RECIPIENT_IDS };
+
         /*
          1. Get Recipient Ids from Threads.CONTENT_URI
          2. Get Recipient Address for corresponding Id from canonical-addresses table.
@@ -2728,15 +2730,15 @@ public class BluetoothMapContent {
                             listChangeDetected = true;
                             convoElement.setVersionCounter(0);
                         }
-                        // Currently we only need to compare name, last_activity and read_status, and
+                        // Currently we only need to compare name, lastActivity and read_status, and
                         // name is not used for SMS/MMS.
                         // msg delete will be handled by update folderVersionCounter().
-                        long last_activity = cursor.getLong(MMS_SMS_THREAD_COL_DATE);
+                        long lastActivity = cursor.getLong(MMS_SMS_THREAD_COL_DATE);
                         boolean read = cursor.getInt(MMS_SMS_THREAD_COL_READ) == 1;
 
-                        if(last_activity != convoElement.getLastActivity()) {
+                        if(lastActivity != convoElement.getLastActivity()) {
                             convoChanged = true;
-                            convoElement.setLastActivity(last_activity);
+                            convoElement.setLastActivity(lastActivity);
                         }
 
                         if(read != convoElement.getReadBool()) {
@@ -2822,12 +2824,12 @@ public class BluetoothMapContent {
                         }
                         String name = imEmailCursor.getString(fi.mConvoColName);
                         String summary = imEmailCursor.getString(fi.mConvoColSummary);
-                        long last_activity = imEmailCursor.getLong(fi.mConvoColLastActivity);
+                        long lastActivity = imEmailCursor.getLong(fi.mConvoColLastActivity);
                         boolean read = imEmailCursor.getInt(fi.mConvoColRead) == 1;
 
-                        if(last_activity != convoElement.getLastActivity()) {
+                        if(lastActivity != convoElement.getLastActivity()) {
                             convoChanged = true;
-                            convoElement.setLastActivity(last_activity);
+                            convoElement.setLastActivity(lastActivity);
                         }
 
                         if(read != convoElement.getReadBool()) {
@@ -2897,12 +2899,12 @@ public class BluetoothMapContent {
             listChangeDetected = true;
             convoElement.setVersionCounter(0);
         }
-        long last_activity = cursor.getLong(MMS_SMS_THREAD_COL_DATE);
+        long lastActivity = cursor.getLong(MMS_SMS_THREAD_COL_DATE);
         boolean read = cursor.getInt(MMS_SMS_THREAD_COL_READ) == 1;
 
-        if(last_activity != convoElement.getLastActivity()) {
+        if(lastActivity != convoElement.getLastActivity()) {
             convoChanged = true;
-            convoElement.setLastActivity(last_activity);
+            convoElement.setLastActivity(lastActivity);
         }
 
         if(read != convoElement.getReadBool()) {
@@ -2943,12 +2945,12 @@ public class BluetoothMapContent {
             convoElement.setVersionCounter(0);
         }
         String name = cursor.getString(fi.mConvoColName);
-        long last_activity = cursor.getLong(fi.mConvoColLastActivity);
+        long lastActivity = cursor.getLong(fi.mConvoColLastActivity);
         boolean read = cursor.getInt(fi.mConvoColRead) == 1;
 
-        if(last_activity != convoElement.getLastActivity()) {
+        if(lastActivity != convoElement.getLastActivity()) {
             convoChanged = true;
-            convoElement.setLastActivity(last_activity);
+            convoElement.setLastActivity(lastActivity);
         }
 
         if(read != convoElement.getReadBool()) {
