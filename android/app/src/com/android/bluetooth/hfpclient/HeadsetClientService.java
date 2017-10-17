@@ -64,7 +64,7 @@ public class HeadsetClientService extends ProfileService {
     // Maxinum number of devices we can try connecting to in one session
     private static final int MAX_STATE_MACHINES_POSSIBLE = 100;
 
-    public static String HFP_CLIENT_STOP_TAG = "hfp_client_stop_tag";
+    public static final String HFP_CLIENT_STOP_TAG = "hfp_client_stop_tag";
 
     static {
         NativeInterface.classInitNative();

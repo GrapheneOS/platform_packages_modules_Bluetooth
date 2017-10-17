@@ -53,8 +53,8 @@ public class SdpManager {
      * mTrackerLock must be held, when using/changing sSdpSearchTracker
      * and mSearchInProgress. */
     static SdpSearchTracker sSdpSearchTracker;
-    static boolean mSearchInProgress = false;
-    static Object mTrackerLock = new Object();
+    static boolean sSearchInProgress = false;
+    static final Object TRACKER_LOCK = new Object();
 
     /* The timeout to wait for reply from native. Should never fire. */
     private static final int SDP_INTENT_DELAY = 11000;
@@ -213,7 +213,7 @@ public class SdpManager {
 
     public void cleanup() {
         if (sSdpSearchTracker !=null) {
-            synchronized(mTrackerLock) {
+            synchronized(TRACKER_LOCK) {
                 sSdpSearchTracker.clear();
             }
         }
@@ -236,7 +236,7 @@ public class SdpManager {
             String serviceName,
             boolean moreResults) {
 
-        synchronized(mTrackerLock) {
+        synchronized(TRACKER_LOCK) {
             SdpSearchInstance inst = sSdpSearchTracker.getSearchInstance(address, uuid);
             SdpMasRecord sdpRecord = null;
             if (inst == null) {
@@ -266,7 +266,7 @@ public class SdpManager {
             int supportedFeatures,
             String serviceName,
             boolean moreResults) {
-        synchronized(mTrackerLock) {
+        synchronized(TRACKER_LOCK) {
 
             SdpSearchInstance inst = sSdpSearchTracker.getSearchInstance(address, uuid);
             SdpMnsRecord sdpRecord = null;
@@ -296,7 +296,7 @@ public class SdpManager {
                                         int supportedRepositories,
                                         String serviceName,
                                         boolean moreResults) {
-        synchronized(mTrackerLock) {
+        synchronized(TRACKER_LOCK) {
             SdpSearchInstance inst = sSdpSearchTracker.getSearchInstance(address, uuid);
             SdpPseRecord sdpRecord = null;
             if (inst == null) {
@@ -326,7 +326,7 @@ public class SdpManager {
             byte[] formatsList,
             boolean moreResults) {
 
-        synchronized(mTrackerLock) {
+        synchronized(TRACKER_LOCK) {
             SdpSearchInstance inst = sSdpSearchTracker.getSearchInstance(address, uuid);
             SdpOppOpsRecord sdpRecord = null;
 
@@ -354,7 +354,7 @@ public class SdpManager {
             String serviceName,
             boolean moreResults) {
 
-        synchronized(mTrackerLock) {
+        synchronized(TRACKER_LOCK) {
             SdpSearchInstance inst = sSdpSearchTracker.getSearchInstance(address, uuid);
             SdpSapsRecord sdpRecord = null;
             if (inst == null) {
@@ -376,7 +376,7 @@ public class SdpManager {
     /* TODO: Test or remove! */
     void sdpRecordFoundCallback(int status, byte[] address, byte[] uuid,
             int sizeRecord, byte[] record) {
-        synchronized(mTrackerLock) {
+        synchronized(TRACKER_LOCK) {
 
             SdpSearchInstance inst = sSdpSearchTracker.getSearchInstance(address, uuid);
             SdpRecord sdpRecord = null;
@@ -402,7 +402,7 @@ public class SdpManager {
             Log.e(TAG, "Native not initialized!");
             return;
         }
-        synchronized (mTrackerLock) {
+        synchronized (TRACKER_LOCK) {
             if (sSdpSearchTracker.isSearching(device, uuid)) {
                 /* Search already in progress */
                 return;
@@ -421,9 +421,9 @@ public class SdpManager {
 
         SdpSearchInstance inst = sSdpSearchTracker.getNext();
 
-        if((inst != null) && (!mSearchInProgress)) {
+        if((inst != null) && (!sSearchInProgress)) {
             if(D) Log.d(TAG, "Starting search for UUID: "+ inst.getUuid());
-            mSearchInProgress = true;
+            sSearchInProgress = true;
 
             inst.startSearch(); // Trigger timeout message
 
@@ -432,7 +432,7 @@ public class SdpManager {
         } // Else queue is empty.
         else {
             if(D) Log.d(TAG, "startSearch(): nextInst = " + inst +
-                    " mSearchInProgress = " + mSearchInProgress
+                    " mSearchInProgress = " + sSearchInProgress
                     + " - search busy or queue empty.");
         }
     }
@@ -458,7 +458,7 @@ public class SdpManager {
         if(!moreResults) {
             //Remove the outstanding UUID request
             sSdpSearchTracker.remove(inst);
-            mSearchInProgress = false;
+            sSearchInProgress = false;
             startSearch();
         }
     }
@@ -470,7 +470,7 @@ public class SdpManager {
             case MESSAGE_SDP_INTENT:
                 SdpSearchInstance msgObj = (SdpSearchInstance)msg.obj;
                 Log.w(TAG, "Search timedout for UUID " + msgObj.getUuid());
-                synchronized (mTrackerLock) {
+                synchronized (TRACKER_LOCK) {
                     sendSdpIntent(msgObj, null, false);
                 }
                 break;

@@ -89,7 +89,7 @@ public class A2dpService extends ProfileService {
         }
     };
 
-    private static A2dpService sAd2dpService;
+    private static A2dpService sA2dpService;
     static final ParcelUuid[] A2DP_SOURCE_UUID = {
         BluetoothUuid.AudioSource
     };
@@ -154,14 +154,14 @@ public class A2dpService extends ProfileService {
     //API Methods
 
     public static synchronized A2dpService getA2dpService(){
-        if (sAd2dpService != null && sAd2dpService.isAvailable()) {
-            if (DBG) Log.d(TAG, "getA2DPService(): returning " + sAd2dpService);
-            return sAd2dpService;
+        if (sA2dpService != null && sA2dpService.isAvailable()) {
+            if (DBG) Log.d(TAG, "getA2DPService(): returning " + sA2dpService);
+            return sA2dpService;
         }
         if (DBG)  {
-            if (sAd2dpService == null) {
+            if (sA2dpService == null) {
                 Log.d(TAG, "getA2dpService(): service is NULL");
-            } else if (!(sAd2dpService.isAvailable())) {
+            } else if (!(sA2dpService.isAvailable())) {
                 Log.d(TAG,"getA2dpService(): service is not available");
             }
         }
@@ -170,13 +170,13 @@ public class A2dpService extends ProfileService {
 
     private static synchronized void setA2dpService(A2dpService instance) {
         if (instance != null && instance.isAvailable()) {
-            if (DBG) Log.d(TAG, "setA2dpService(): set to: " + sAd2dpService);
-            sAd2dpService = instance;
+            if (DBG) Log.d(TAG, "setA2dpService(): set to: " + sA2dpService);
+            sA2dpService = instance;
         } else {
             if (DBG)  {
-                if (sAd2dpService == null) {
+                if (sA2dpService == null) {
                     Log.d(TAG, "setA2dpService(): service not available");
-                } else if (!sAd2dpService.isAvailable()) {
+                } else if (!sA2dpService.isAvailable()) {
                     Log.d(TAG,"setA2dpService(): service is cleaning up");
                 }
             }
@@ -184,7 +184,7 @@ public class A2dpService extends ProfileService {
     }
 
     private static synchronized void clearA2dpService() {
-        sAd2dpService = null;
+        sA2dpService = null;
     }
 
     public boolean connect(BluetoothDevice device) {

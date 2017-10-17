@@ -48,10 +48,10 @@ public class BluetoothOppPreference {
     private static final String TAG = "BluetoothOppPreference";
     private static final boolean V = Constants.VERBOSE;
 
-    private static BluetoothOppPreference INSTANCE;
+    private static BluetoothOppPreference sInstance;
 
     /* Used when obtaining a reference to the singleton instance. */
-    private static Object INSTANCE_LOCK = new Object();
+    private static final Object INSTANCE_LOCK = new Object();
 
     private boolean mInitialized;
 
@@ -67,13 +67,13 @@ public class BluetoothOppPreference {
 
     public static BluetoothOppPreference getInstance(Context context) {
         synchronized (INSTANCE_LOCK) {
-            if (INSTANCE == null) {
-                INSTANCE = new BluetoothOppPreference();
+            if (sInstance == null) {
+                sInstance = new BluetoothOppPreference();
             }
-            if (!INSTANCE.init(context)) {
+            if (!sInstance.init(context)) {
                 return null;
             }
-            return INSTANCE;
+            return sInstance;
         }
     }
 
