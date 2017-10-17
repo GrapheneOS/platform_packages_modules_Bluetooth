@@ -70,7 +70,7 @@ public class Config {
             R.bool.profile_supported_hidd, R.bool.profile_supported_opp,
             R.bool.profile_supported_pbap};
 
-    private static Class[] SUPPORTED_PROFILES = new Class[0];
+    private static Class[] sSupportedProfiles = new Class[0];
 
     static void init(Context ctx) {
         if (ctx == null) {
@@ -89,11 +89,11 @@ public class Config {
                 profiles.add(PROFILE_SERVICES[i]);
             }
         }
-        SUPPORTED_PROFILES = profiles.toArray(new Class[profiles.size()]);
+        sSupportedProfiles = profiles.toArray(new Class[profiles.size()]);
     }
 
     static Class[]  getSupportedProfiles() {
-        return SUPPORTED_PROFILES;
+        return sSupportedProfiles;
     }
 
     static long getSupportedProfilesBitMask() {
