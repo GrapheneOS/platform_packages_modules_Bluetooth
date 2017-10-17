@@ -3,7 +3,7 @@ cc_defaults {
     defaults: ["fluoride_defaults"],
     include_dirs: [
         "packages/modules/Bluetooth/system",
-        "packages/modules/Bluetooth/system/include",
+        "packages/modules/Bluetooth/system/internal_include",
         "packages/modules/Bluetooth/system/osi/src/protos",
         "packages/modules/Bluetooth/system/utils/include",
         "packages/modules/Bluetooth/system/stack/include",
