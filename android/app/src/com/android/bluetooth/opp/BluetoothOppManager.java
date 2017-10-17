@@ -61,10 +61,10 @@ public class BluetoothOppManager {
     private static final String TAG = "BluetoothOppManager";
     private static final boolean V = Constants.VERBOSE;
 
-    private static BluetoothOppManager INSTANCE;
+    private static BluetoothOppManager sInstance;
 
     /** Used when obtaining a reference to the singleton instance. */
-    private static Object INSTANCE_LOCK = new Object();
+    private static final Object INSTANCE_LOCK = new Object();
 
     private boolean mInitialized;
 
@@ -122,12 +122,12 @@ public class BluetoothOppManager {
      */
     public static BluetoothOppManager getInstance(Context context) {
         synchronized (INSTANCE_LOCK) {
-            if (INSTANCE == null) {
-                INSTANCE = new BluetoothOppManager();
+            if (sInstance == null) {
+                sInstance = new BluetoothOppManager();
             }
-            INSTANCE.init(context);
+            sInstance.init(context);
 
-            return INSTANCE;
+            return sInstance;
         }
     }
 

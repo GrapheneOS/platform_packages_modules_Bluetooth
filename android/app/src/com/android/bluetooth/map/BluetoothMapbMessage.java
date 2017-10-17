@@ -32,13 +32,13 @@ import com.android.bluetooth.map.BluetoothMapUtils.TYPE;
 
 public abstract class BluetoothMapbMessage {
 
-    protected static String TAG = "BluetoothMapbMessage";
+    protected static final String TAG = "BluetoothMapbMessage";
     protected static final boolean D = BluetoothMapService.DEBUG;
     protected static final boolean V = BluetoothMapService.VERBOSE;
 
     private String mVersionString = "VERSION:1.0";
 
-    public static int INVALID_VALUE = -1;
+    public static final int INVALID_VALUE = -1;
 
     protected int mAppParamCharset = BluetoothMapAppParams.INVALID_VALUE_PARAMETER;
 

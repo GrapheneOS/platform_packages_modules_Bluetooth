@@ -1340,8 +1340,8 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
         ByteBuffer pvc = ByteBuffer.allocate(16);
         pvc.putLong(primaryVcMsb);
 
-        Log.d(TAG, "primaryVersionCounter is " + BluetoothPbapUtils.primaryVersionCounter);
-        pvc.putLong(BluetoothPbapUtils.primaryVersionCounter);
+        Log.d(TAG, "primaryVersionCounter is " + BluetoothPbapUtils.sPrimaryVersionCounter);
+        pvc.putLong(BluetoothPbapUtils.sPrimaryVersionCounter);
         return pvc.array();
     }
 
@@ -1350,8 +1350,8 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
         ByteBuffer svc = ByteBuffer.allocate(16);
         svc.putLong(secondaryVcMsb);
 
-        Log.d(TAG, "secondaryVersionCounter is " + BluetoothPbapUtils.secondaryVersionCounter);
-        svc.putLong(BluetoothPbapUtils.secondaryVersionCounter);
+        Log.d(TAG, "secondaryVersionCounter is " + BluetoothPbapUtils.sSecondaryVersionCounter);
+        svc.putLong(BluetoothPbapUtils.sSecondaryVersionCounter);
         return svc.array();
     }
 

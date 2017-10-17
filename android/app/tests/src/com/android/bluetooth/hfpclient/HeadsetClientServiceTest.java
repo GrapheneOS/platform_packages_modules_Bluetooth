@@ -26,8 +26,8 @@ import org.mockito.ArgumentCaptor;
 @MediumTest
 public class HeadsetClientServiceTest extends AndroidTestCase {
     // Time to wait for the service to be initialized
-    private static int SERVICE_START_TIMEOUT_MS = 5000;  // 5 sec
-    private static int STATE_MACHINE_TRANSITION_TIMEOUT_MS = 5000;  // 5 sec
+    private static final int SERVICE_START_TIMEOUT_MS = 5000;  // 5 sec
+    private static final int STATE_MACHINE_TRANSITION_TIMEOUT_MS = 5000;  // 5 sec
     private HeadsetClientService mService = null;
     private BluetoothAdapter mAdapter = null;
 
