@@ -43,9 +43,7 @@ import android.util.SparseArray;
 
 import com.android.bluetooth.R;
 import com.android.bluetooth.Utils;
-import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.ProfileService;
-import com.android.bluetooth.btservice.ProfileService.IProfileServiceBinder;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -132,7 +130,7 @@ public class BluetoothMapService extends ProfileService {
     private HashMap<BluetoothMapAccountItem, BluetoothMapMasInstance> mMasInstanceMap =
             new HashMap<BluetoothMapAccountItem, BluetoothMapMasInstance>(1);
 
-    private static BluetoothDevice mRemoteDevice = null; // The remote connected device - protect access
+    private static BluetoothDevice sRemoteDevice = null; // The remote connected device - protect access
 
     private ArrayList<BluetoothMapAccountItem> mEnabledAccounts = null;
     private static String sRemoteDeviceName = null;
@@ -199,7 +197,7 @@ public class BluetoothMapService extends ProfileService {
             mSessionStatusHandler = null;
             if(VERBOSE) Log.i(TAG, "Remove Handler");
         }
-        mRemoteDevice = null;
+        sRemoteDevice = null;
 
         if (VERBOSE) Log.v(TAG, "MAP Service closeService out");
     }
@@ -241,7 +239,7 @@ public class BluetoothMapService extends ProfileService {
 
         if(mBluetoothMnsObexClient == null) {
             mBluetoothMnsObexClient =
-                    new BluetoothMnsObexClient(mRemoteDevice, mMnsRecord, mSessionStatusHandler);
+                    new BluetoothMnsObexClient(sRemoteDevice, mMnsRecord, mSessionStatusHandler);
         }
 
         boolean connected = false;
@@ -312,7 +310,7 @@ public class BluetoothMapService extends ProfileService {
         if(lastMasInst) {
             setState(BluetoothMap.STATE_DISCONNECTED);
             mPermission = BluetoothDevice.ACCESS_UNKNOWN;
-            mRemoteDevice = null;
+            sRemoteDevice = null;
             if(mAccountChanged) {
                 updateMasInstances(UPDATE_MAS_INSTANCES_ACCOUNT_DISCONNECT);
             }
@@ -358,7 +356,7 @@ public class BluetoothMapService extends ProfileService {
                     if (mIsWaitingAuthorization) {
                         Intent intent = new Intent(BluetoothDevice.ACTION_CONNECTION_ACCESS_CANCEL);
                         intent.setPackage(getString(R.string.pairing_ui_package));
-                        intent.putExtra(BluetoothDevice.EXTRA_DEVICE, mRemoteDevice);
+                        intent.putExtra(BluetoothDevice.EXTRA_DEVICE, sRemoteDevice);
                         intent.putExtra(BluetoothDevice.EXTRA_ACCESS_REQUEST_TYPE,
                                 BluetoothDevice.REQUEST_TYPE_MESSAGE_ACCESS);
                         sendBroadcast(intent);
@@ -408,9 +406,9 @@ public class BluetoothMapService extends ProfileService {
                     }
                     break;
                 case MSG_MNS_SDP_SEARCH:
-                    if (mRemoteDevice != null) {
+                    if (sRemoteDevice != null) {
                         if (DEBUG) Log.d(TAG,"MNS SDP Initiate Search ..");
-                        mRemoteDevice.sdpSearch(BluetoothMnsObexClient.BLUETOOTH_UUID_OBEX_MNS);
+                        sRemoteDevice.sdpSearch(BluetoothMnsObexClient.BLUETOOTH_UUID_OBEX_MNS);
                     } else {
                         Log.w(TAG, "remoteDevice info not available");
                     }
@@ -438,7 +436,7 @@ public class BluetoothMapService extends ProfileService {
     };
 
     private void onConnectHandler(int masId) {
-        if (mIsWaitingAuthorization || mRemoteDevice == null
+        if (mIsWaitingAuthorization || sRemoteDevice == null
                 || mSdpSearchInitiated) {
             return;
         }
@@ -470,7 +468,7 @@ public class BluetoothMapService extends ProfileService {
         return !mStartError;
     }
     public static BluetoothDevice getRemoteDevice() {
-        return mRemoteDevice;
+        return sRemoteDevice;
     }
     private void setState(int state) {
         setState(state, BluetoothMap.RESULT_SUCCESS);
@@ -485,7 +483,7 @@ public class BluetoothMapService extends ProfileService {
             Intent intent = new Intent(BluetoothMap.ACTION_CONNECTION_STATE_CHANGED);
             intent.putExtra(BluetoothProfile.EXTRA_PREVIOUS_STATE, prevState);
             intent.putExtra(BluetoothProfile.EXTRA_STATE, mState);
-            intent.putExtra(BluetoothDevice.EXTRA_DEVICE, mRemoteDevice);
+            intent.putExtra(BluetoothDevice.EXTRA_DEVICE, sRemoteDevice);
             sendBroadcast(intent, BLUETOOTH_PERM);
         }
     }
@@ -520,8 +518,8 @@ public class BluetoothMapService extends ProfileService {
     public List<BluetoothDevice> getConnectedDevices() {
         List<BluetoothDevice> devices = new ArrayList<BluetoothDevice>();
         synchronized(this) {
-            if (mState == BluetoothMap.STATE_CONNECTED && mRemoteDevice != null) {
-                devices.add(mRemoteDevice);
+            if (mState == BluetoothMap.STATE_CONNECTED && sRemoteDevice != null) {
+                devices.add(sRemoteDevice);
             }
         }
         return devices;
@@ -838,15 +836,15 @@ public class BluetoothMapService extends ProfileService {
 
         // As this can be called from each MasInstance, we need to lock access to member variables
         synchronized(this) {
-            if (mRemoteDevice == null) {
-                mRemoteDevice = remoteDevice;
-                sRemoteDeviceName = mRemoteDevice.getName();
+            if (sRemoteDevice == null) {
+                sRemoteDevice = remoteDevice;
+                sRemoteDeviceName = sRemoteDevice.getName();
                 // In case getRemoteName failed and return null
                 if (TextUtils.isEmpty(sRemoteDeviceName)) {
                     sRemoteDeviceName = getString(R.string.defaultname);
                 }
 
-                mPermission = mRemoteDevice.getMessageAccessPermission();
+                mPermission = sRemoteDevice.getMessageAccessPermission();
                 if (mPermission == BluetoothDevice.ACCESS_UNKNOWN) {
                     sendIntent = true;
                     mIsWaitingAuthorization = true;
@@ -854,10 +852,10 @@ public class BluetoothMapService extends ProfileService {
                 } else if (mPermission == BluetoothDevice.ACCESS_REJECTED) {
                     cancelConnection = true;
                 } else if(mPermission == BluetoothDevice.ACCESS_ALLOWED) {
-                    mRemoteDevice.sdpSearch(BluetoothMnsObexClient.BLUETOOTH_UUID_OBEX_MNS);
+                    sRemoteDevice.sdpSearch(BluetoothMnsObexClient.BLUETOOTH_UUID_OBEX_MNS);
                     mSdpSearchInitiated = true;
                 }
-            } else if (!mRemoteDevice.equals(remoteDevice)) {
+            } else if (!sRemoteDevice.equals(remoteDevice)) {
                 Log.w(TAG, "Unexpected connection from a second Remote Device received. name: " +
                             ((remoteDevice==null)?"unknown":remoteDevice.getName()));
                 return false; /* The connecting device is different from what is already
@@ -871,7 +869,7 @@ public class BluetoothMapService extends ProfileService {
             intent.setPackage(getString(R.string.pairing_ui_package));
             intent.putExtra(BluetoothDevice.EXTRA_ACCESS_REQUEST_TYPE,
                             BluetoothDevice.REQUEST_TYPE_MESSAGE_ACCESS);
-            intent.putExtra(BluetoothDevice.EXTRA_DEVICE, mRemoteDevice);
+            intent.putExtra(BluetoothDevice.EXTRA_DEVICE, sRemoteDevice);
             sendOrderedBroadcast(intent, BLUETOOTH_ADMIN_PERM);
 
             if (VERBOSE) Log.v(TAG, "waiting for authorization for connection from: "
@@ -1032,7 +1030,7 @@ public class BluetoothMapService extends ProfileService {
                     // Bluetooth connection accepted by user
                     mPermission = BluetoothDevice.ACCESS_ALLOWED;
                     if (intent.getBooleanExtra(BluetoothDevice.EXTRA_ALWAYS_ALLOWED, false)) {
-                        boolean result = mRemoteDevice.setMessageAccessPermission(
+                        boolean result = sRemoteDevice.setMessageAccessPermission(
                                 BluetoothDevice.ACCESS_ALLOWED);
                         if (DEBUG) {
                             Log.d(TAG, "setMessageAccessPermission(ACCESS_ALLOWED) result="
@@ -1040,14 +1038,14 @@ public class BluetoothMapService extends ProfileService {
                         }
                     }
 
-                    mRemoteDevice.sdpSearch(BluetoothMnsObexClient.BLUETOOTH_UUID_OBEX_MNS);
+                    sRemoteDevice.sdpSearch(BluetoothMnsObexClient.BLUETOOTH_UUID_OBEX_MNS);
                     mSdpSearchInitiated = true;
                 } else {
                     // Auth. declined by user, serverSession should not be running, but
                     // call stop anyway to restart listener.
                     mPermission = BluetoothDevice.ACCESS_REJECTED;
                     if (intent.getBooleanExtra(BluetoothDevice.EXTRA_ALWAYS_ALLOWED, false)) {
-                        boolean result = mRemoteDevice.setMessageAccessPermission(
+                        boolean result = sRemoteDevice.setMessageAccessPermission(
                                 BluetoothDevice.ACCESS_REJECTED);
                         if (DEBUG) {
                             Log.d(TAG, "setMessageAccessPermission(ACCESS_REJECTED) result="
@@ -1114,14 +1112,14 @@ public class BluetoothMapService extends ProfileService {
                     mIsWaitingAuthorization) {
                 BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
 
-                if (mRemoteDevice == null || device == null) {
+                if (sRemoteDevice == null || device == null) {
                     Log.e(TAG, "Unexpected error!");
                     return;
                 }
 
                 if (VERBOSE) Log.v(TAG,"ACL disconnected for " + device);
 
-                if (mRemoteDevice.equals(device)) {
+                if (sRemoteDevice.equals(device)) {
                     // Send any pending timeout now, since ACL got disconnected
                     mSessionStatusHandler.removeMessages(USER_TIMEOUT);
                     mSessionStatusHandler.obtainMessage(USER_TIMEOUT).sendToTarget();
@@ -1247,7 +1245,7 @@ public class BluetoothMapService extends ProfileService {
     @Override
     public void dump(StringBuilder sb) {
         super.dump(sb);
-        println(sb, "mRemoteDevice: " + mRemoteDevice);
+        println(sb, "mRemoteDevice: " + sRemoteDevice);
         println(sb, "sRemoteDeviceName: " + sRemoteDeviceName);
         println(sb, "mState: " + mState);
         println(sb, "mAppObserver: " + mAppObserver);

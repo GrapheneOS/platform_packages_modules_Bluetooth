@@ -465,7 +465,7 @@ class TestTcpServer extends ServerRequestHandler implements Runnable {
 
     private static final boolean V = Constants.VERBOSE;
 
-    static final int port = 6500;
+    static final int PORT = 6500;
 
     public boolean a = false;
 
@@ -473,8 +473,8 @@ class TestTcpServer extends ServerRequestHandler implements Runnable {
     @Override
     public void run() {
         try {
-            updateStatus("[server:] listen on port " + port);
-            TestTcpSessionNotifier rsn = new TestTcpSessionNotifier(port);
+            updateStatus("[server:] listen on port " + PORT);
+            TestTcpSessionNotifier rsn = new TestTcpSessionNotifier(PORT);
 
             updateStatus("[server:] Now waiting for a client to connect");
             rsn.acceptAndOpen(this);

@@ -40,7 +40,6 @@ import android.widget.CompoundButton;
 
 import com.android.bluetooth.R;
 
-import com.android.bluetooth.map.BluetoothMapAccountItem;
 import com.android.bluetooth.mapapi.BluetoothMapContract;
 
 public class BluetoothMapSettingsAdapter extends BaseExpandableListAdapter {
@@ -139,7 +138,7 @@ public class BluetoothMapSettingsAdapter extends BaseExpandableListAdapter {
                                     BluetoothMapAccountItem siblings = childList.get(i);
                                     if (!siblings.mIsChecked) {
                                         isAllChildClicked = false;
-                                            BluetoothMapSettingsDataHolder.mCheckedChilds.put(
+                                            BluetoothMapSettingsDataHolder.sCheckedChilds.put(
                                                 child.getName(), parentGroup.getName());
                                         break;
 
@@ -154,9 +153,9 @@ public class BluetoothMapSettingsAdapter extends BaseExpandableListAdapter {
                         }
                         if (isAllChildClicked) {
                             parentGroup.mIsChecked = true;
-                            if(!(BluetoothMapSettingsDataHolder.mCheckedChilds.containsKey(
+                            if(!(BluetoothMapSettingsDataHolder.sCheckedChilds.containsKey(
                                 child.getName()))){
-                                BluetoothMapSettingsDataHolder.mCheckedChilds.put(child.getName(),
+                                BluetoothMapSettingsDataHolder.sCheckedChilds.put(child.getName(),
                                         parentGroup.getName());
                             }
                             mCheckAll = false;
@@ -167,10 +166,10 @@ public class BluetoothMapSettingsAdapter extends BaseExpandableListAdapter {
                         if (parentGroup.mIsChecked) {
                             parentGroup.mIsChecked = false;
                             mCheckAll = false;
-                            BluetoothMapSettingsDataHolder.mCheckedChilds.remove(child.getName());
+                            BluetoothMapSettingsDataHolder.sCheckedChilds.remove(child.getName());
                         } else {
                             mCheckAll = true;
-                            BluetoothMapSettingsDataHolder.mCheckedChilds.remove(child.getName());
+                            BluetoothMapSettingsDataHolder.sCheckedChilds.remove(child.getName());
                         }
                         // child.isChecked =false;
                     }
@@ -185,7 +184,7 @@ public class BluetoothMapSettingsAdapter extends BaseExpandableListAdapter {
 
             holder.cb.setChecked(child.mIsChecked);
             holder.title.setText(child.getName());
-            if(D)Log.i("childs are", BluetoothMapSettingsDataHolder.mCheckedChilds.toString());
+            if(D)Log.i("childs are", BluetoothMapSettingsDataHolder.sCheckedChilds.toString());
             return convertView;
 
     }

@@ -37,7 +37,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Random;
 import java.io.UnsupportedEncodingException;
-import java.nio.charset.Charset;
 
 import android.content.ContentResolver;
 import android.content.ContentValues;
@@ -244,7 +243,7 @@ public class BluetoothOppReceiveFileInfo {
         if (!new File(fullfilename).exists()) {
             return fullfilename;
         }
-        filename = filename + Constants.filename_SEQUENCE_SEPARATOR;
+        filename = filename + Constants.FILENAME_SEQUENCE_SEPARATOR;
         /*
          * This number is used to generate partially randomized filenames to
          * avoid collisions. It starts at 1. The next 9 iterations increment it
