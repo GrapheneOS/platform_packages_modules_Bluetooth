@@ -25,7 +25,7 @@ cc_binary {
     ],
     include_dirs: [
       "packages/modules/Bluetooth/system",
-      "packages/modules/Bluetooth/system/include",
+      "packages/modules/Bluetooth/system/internal_include",
       "packages/modules/Bluetooth/system/stack/include",
       "packages/modules/Bluetooth/system/btcore/include",
     ],
