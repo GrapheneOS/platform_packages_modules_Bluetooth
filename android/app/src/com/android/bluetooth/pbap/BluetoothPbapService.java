@@ -196,7 +196,7 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
 
     private static final int SDP_PBAP_SERVER_VERSION = 0x0102;
 
-    private static final int SDP_PBAP_SUPPORTED_REPOSITORIES = 0x0003;
+    private static final int SDP_PBAP_SUPPORTED_REPOSITORIES = 0x0001;
 
     private static final int SDP_PBAP_SUPPORTED_FEATURES = 0x021F;
 
