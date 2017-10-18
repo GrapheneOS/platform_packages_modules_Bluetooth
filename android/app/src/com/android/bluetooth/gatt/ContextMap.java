@@ -17,7 +17,6 @@ package com.android.bluetooth.gatt;
 
 import android.os.Binder;
 import android.os.IBinder;
-import android.os.IBinder.DeathRecipient;
 import android.os.IInterface;
 import android.os.RemoteException;
 import android.os.WorkSource;
@@ -33,8 +32,6 @@ import java.util.UUID;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.android.bluetooth.btservice.BluetoothProto;
-
 /**
  * Helper class that keeps track of registered GATT applications.
  * This class manages application callbacks and keeps track of GATT connections.
@@ -47,10 +44,10 @@ import com.android.bluetooth.btservice.BluetoothProto;
      * Connection class helps map connection IDs to device addresses.
      */
     class Connection {
-        int connId;
-        String address;
-        int appId;
-        long startTime;
+        public int connId;
+        public String address;
+        public int appId;
+        public long startTime;
 
         Connection(int connId, String address,int appId) {
             this.connId = connId;
@@ -65,30 +62,30 @@ import com.android.bluetooth.btservice.BluetoothProto;
      */
     class App {
         /** The UUID of the application */
-        UUID uuid;
+        public UUID uuid;
 
         /** The id of the application */
-        int id;
+        public int id;
 
         /** The package name of the application */
-        String name;
+        public String name;
 
         /** Statistics for this app */
-        AppScanStats appScanStats;
+        public AppScanStats appScanStats;
 
         /** Application callbacks */
-        C callback;
+        public C callback;
 
         /** Context information */
-        T info;
+        public T info;
         /** Death receipient */
         private IBinder.DeathRecipient mDeathRecipient;
 
         /** Flag to signal that transport is congested */
-        Boolean isCongested = false;
+        public Boolean isCongested = false;
 
         /** Internal callback info queue, waiting to be send on congestion clear */
-        private List<CallbackInfo> congestionQueue = new ArrayList<CallbackInfo>();
+        private List<CallbackInfo> mCongestionQueue = new ArrayList<CallbackInfo>();
 
         /**
          * Creates a new app context.
@@ -131,12 +128,12 @@ import com.android.bluetooth.btservice.BluetoothProto;
         }
 
         void queueCallback(CallbackInfo callbackInfo) {
-            congestionQueue.add(callbackInfo);
+            mCongestionQueue.add(callbackInfo);
         }
 
         CallbackInfo popQueuedCallback() {
-            if (congestionQueue.size() == 0) return null;
-            return congestionQueue.remove(0);
+            if (mCongestionQueue.size() == 0) return null;
+            return mCongestionQueue.remove(0);
         }
     }
 

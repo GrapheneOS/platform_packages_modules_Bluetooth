@@ -20,7 +20,6 @@ import android.annotation.NonNull;
 import android.annotation.Nullable;
 import android.bluetooth.BluetoothA2dp;
 import android.bluetooth.BluetoothAvrcp;
-import android.bluetooth.BluetoothDevice;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
@@ -36,9 +35,7 @@ import android.media.AudioManager;
 import android.media.AudioPlaybackConfiguration;
 import android.media.MediaDescription;
 import android.media.MediaMetadata;
-import android.media.browse.MediaBrowser;
 import android.media.session.MediaSession;
-import android.media.session.MediaSession.QueueItem;
 import android.media.session.MediaSessionManager;
 import android.media.session.PlaybackState;
 import android.os.Bundle;
@@ -902,14 +899,14 @@ public final class Avrcp {
     }
 
     class MediaAttributes {
-        private boolean exists;
-        private String title;
-        private String artistName;
-        private String albumName;
-        private String mediaNumber;
-        private String mediaTotalNumber;
-        private String genre;
-        private long playingTimeMs;
+        private boolean mExists;
+        private String mTitle;
+        private String mArtistName;
+        private String mAlbumName;
+        private String mMediaNumber;
+        private String mMediaTotalNumber;
+        private String mGenre;
+        private long mPlayingTimeMs;
 
         private static final int ATTR_TITLE = 1;
         private static final int ATTR_ARTIST_NAME = 2;
@@ -921,74 +918,74 @@ public final class Avrcp {
 
 
         MediaAttributes(MediaMetadata data) {
-            exists = data != null;
-            if (!exists)
+            mExists = data != null;
+            if (!mExists)
                 return;
 
-            artistName = stringOrBlank(data.getString(MediaMetadata.METADATA_KEY_ARTIST));
-            albumName = stringOrBlank(data.getString(MediaMetadata.METADATA_KEY_ALBUM));
-            mediaNumber = longStringOrBlank(data.getLong(MediaMetadata.METADATA_KEY_TRACK_NUMBER));
-            mediaTotalNumber = longStringOrBlank(data.getLong(MediaMetadata.METADATA_KEY_NUM_TRACKS));
-            genre = stringOrBlank(data.getString(MediaMetadata.METADATA_KEY_GENRE));
-            playingTimeMs = data.getLong(MediaMetadata.METADATA_KEY_DURATION);
+            mArtistName = stringOrBlank(data.getString(MediaMetadata.METADATA_KEY_ARTIST));
+            mAlbumName = stringOrBlank(data.getString(MediaMetadata.METADATA_KEY_ALBUM));
+            mMediaNumber = longStringOrBlank(data.getLong(MediaMetadata.METADATA_KEY_TRACK_NUMBER));
+            mMediaTotalNumber = longStringOrBlank(data.getLong(MediaMetadata.METADATA_KEY_NUM_TRACKS));
+            mGenre = stringOrBlank(data.getString(MediaMetadata.METADATA_KEY_GENRE));
+            mPlayingTimeMs = data.getLong(MediaMetadata.METADATA_KEY_DURATION);
 
             // Try harder for the title.
-            title = data.getString(MediaMetadata.METADATA_KEY_TITLE);
+            mTitle = data.getString(MediaMetadata.METADATA_KEY_TITLE);
 
-            if (title == null) {
+            if (mTitle == null) {
                 MediaDescription desc = data.getDescription();
                 if (desc != null) {
                     CharSequence val = desc.getDescription();
                     if (val != null)
-                        title = val.toString();
+                        mTitle = val.toString();
                 }
             }
 
-            if (title == null)
-                title = new String();
+            if (mTitle == null)
+                mTitle = new String();
         }
 
         public long getLength() {
-            if (!exists) return 0L;
-            return playingTimeMs;
+            if (!mExists) return 0L;
+            return mPlayingTimeMs;
         }
 
         public boolean equals(MediaAttributes other) {
             if (other == null)
                 return false;
 
-            if (exists != other.exists)
+            if (mExists != other.mExists)
                 return false;
 
-            if (!exists)
+            if (!mExists)
                 return true;
 
-            return (title.equals(other.title)) && (artistName.equals(other.artistName))
-                    && (albumName.equals(other.albumName))
-                    && (mediaNumber.equals(other.mediaNumber))
-                    && (mediaTotalNumber.equals(other.mediaTotalNumber))
-                    && (genre.equals(other.genre)) && (playingTimeMs == other.playingTimeMs);
+            return (mTitle.equals(other.mTitle)) && (mArtistName.equals(other.mArtistName))
+                    && (mAlbumName.equals(other.mAlbumName))
+                    && (mMediaNumber.equals(other.mMediaNumber))
+                    && (mMediaTotalNumber.equals(other.mMediaTotalNumber))
+                    && (mGenre.equals(other.mGenre)) && (mPlayingTimeMs == other.mPlayingTimeMs);
         }
 
         public String getString(int attrId) {
-            if (!exists)
+            if (!mExists)
                 return new String();
 
             switch (attrId) {
                 case ATTR_TITLE:
-                    return title;
+                    return mTitle;
                 case ATTR_ARTIST_NAME:
-                    return artistName;
+                    return mArtistName;
                 case ATTR_ALBUM_NAME:
-                    return albumName;
+                    return mAlbumName;
                 case ATTR_MEDIA_NUMBER:
-                    return mediaNumber;
+                    return mMediaNumber;
                 case ATTR_MEDIA_TOTAL_NUMBER:
-                    return mediaTotalNumber;
+                    return mMediaTotalNumber;
                 case ATTR_GENRE:
-                    return genre;
+                    return mGenre;
                 case ATTR_PLAYING_TIME_MS:
-                    return Long.toString(playingTimeMs);
+                    return Long.toString(mPlayingTimeMs);
                 default:
                     return new String();
             }
@@ -1004,23 +1001,23 @@ public final class Avrcp {
 
         @Override
         public String toString() {
-            if (!exists) {
+            if (!mExists) {
                 return "[MediaAttributes: none]";
             }
 
-            return "[MediaAttributes: " + title + " - " + albumName + " by " + artistName + " ("
-                    + playingTimeMs + " " + mediaNumber + "/" + mediaTotalNumber + ") " + genre
+            return "[MediaAttributes: " + mTitle + " - " + mAlbumName + " by " + mArtistName + " ("
+                    + mPlayingTimeMs + " " + mMediaNumber + "/" + mMediaTotalNumber + ") " + mGenre
                     + "]";
         }
 
         public String toRedactedString() {
-            if (!exists) {
+            if (!mExists) {
                 return "[MediaAttributes: none]";
             }
 
-            return "[MediaAttributes: " + Utils.ellipsize(title) + " - "
-                    + Utils.ellipsize(albumName) + " by " + Utils.ellipsize(artistName) + " ("
-                    + playingTimeMs + " " + mediaNumber + "/" + mediaTotalNumber + ") " + genre
+            return "[MediaAttributes: " + Utils.ellipsize(mTitle) + " - "
+                    + Utils.ellipsize(mAlbumName) + " by " + Utils.ellipsize(mArtistName) + " ("
+                    + mPlayingTimeMs + " " + mMediaNumber + "/" + mMediaTotalNumber + ") " + mGenre
                     + "]";
         }
     }
@@ -1208,7 +1205,7 @@ public final class Avrcp {
         // for non-browsable players or no player
         if (info != null && !info.isBrowseSupported()) {
             byte[] track = AvrcpConstants.TRACK_IS_SELECTED;
-            if (!mMediaAttributes.exists) track = AvrcpConstants.NO_TRACK_SELECTED;
+            if (!mMediaAttributes.mExists) track = AvrcpConstants.NO_TRACK_SELECTED;
             registerNotificationRspTrackChangeNative(mTrackChangedNT, track);
             return;
         }
@@ -2172,7 +2169,7 @@ public final class Avrcp {
         }
         if (DEBUG) Log.d(TAG, "handleMediaPlayerListRsp: sending " + rspObj.mNumItems + " players");
         mediaPlayerListRspNative(folderObj.mAddress, rspObj.mStatus, rspObj.mUIDCounter,
-                rspObj.itemType, rspObj.mNumItems, rspObj.mPlayerIds, rspObj.mPlayerTypes,
+                rspObj.mItemType, rspObj.mNumItems, rspObj.mPlayerIds, rspObj.mPlayerTypes,
                 rspObj.mPlayerSubTypes, rspObj.mPlayStatusValues, rspObj.mFeatureBitMaskValues,
                 rspObj.mPlayerNameList);
     }
@@ -2430,7 +2427,7 @@ public final class Avrcp {
     }
 
     public class AvrcpBrowseManager {
-        Map<String, BrowsedMediaPlayer> connList = new HashMap<String, BrowsedMediaPlayer>();
+        public Map<String, BrowsedMediaPlayer> connList = new HashMap<String, BrowsedMediaPlayer>();
         private AvrcpMediaRspInterface mMediaInterface;
         private Context mContext;
 
@@ -2518,7 +2515,7 @@ public final class Avrcp {
         @Override
         public void mediaPlayerListRsp(byte[] address, int rspStatus, MediaPlayerListRsp rspObj) {
             if (rspObj != null && rspStatus == AvrcpConstants.RSP_NO_ERROR) {
-                if (!mediaPlayerListRspNative(address, rspStatus, sUIDCounter, rspObj.itemType,
+                if (!mediaPlayerListRspNative(address, rspStatus, sUIDCounter, rspObj.mItemType,
                             rspObj.mNumItems, rspObj.mPlayerIds, rspObj.mPlayerTypes,
                             rspObj.mPlayerSubTypes, rspObj.mPlayStatusValues,
                             rspObj.mFeatureBitMaskValues, rspObj.mPlayerNameList))

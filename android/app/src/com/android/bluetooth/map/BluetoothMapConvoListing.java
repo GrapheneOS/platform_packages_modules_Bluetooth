@@ -34,7 +34,7 @@ import com.android.internal.util.FastXmlSerializer;
 import com.android.internal.util.XmlUtils;
 
 public class BluetoothMapConvoListing {
-    private boolean hasUnread = false;
+    private boolean mHasUnread = false;
     private static final String TAG = "BluetoothMapConvoListing";
     private static final boolean D = BluetoothMapService.DEBUG;
     private static final String XML_TAG = "MAP-convo-listing";
@@ -49,7 +49,7 @@ public class BluetoothMapConvoListing {
         /* update info regarding whether the list contains unread conversations */
         if (element.getReadBool())
         {
-            hasUnread = true;
+            mHasUnread = true;
         }
     }
 
@@ -71,7 +71,7 @@ public class BluetoothMapConvoListing {
      */
     public boolean hasUnread()
     {
-        return hasUnread;
+        return mHasUnread;
     }
 
 
@@ -207,7 +207,7 @@ public class BluetoothMapConvoListing {
             return false;
         }
         BluetoothMapConvoListing other = (BluetoothMapConvoListing) obj;
-        if (hasUnread != other.hasUnread) {
+        if (mHasUnread != other.mHasUnread) {
             return false;
         }
         if (mList == null) {

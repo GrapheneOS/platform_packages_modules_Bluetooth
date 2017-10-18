@@ -32,8 +32,8 @@ public class Interop {
    * to match against.
    */
   private static class Entry {
-    String address;
-    int workaround_id;
+    public String address;
+    public int workaround_id;
 
     Entry(int workaroundId, String address) {
       this.workaround_id = workaroundId;
