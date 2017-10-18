@@ -110,7 +110,7 @@ class AdvertiseManager {
     }
 
     class AdvertisingSetDeathRecipient implements IBinder.DeathRecipient {
-        IAdvertisingSetCallback callback;
+        public IAdvertisingSetCallback callback;
 
         AdvertisingSetDeathRecipient(IAdvertisingSetCallback callback) {
             this.callback = callback;

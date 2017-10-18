@@ -115,21 +115,21 @@ class BluetoothOppNotification {
      * This inner class is used to describe some properties for one transfer.
      */
     static class NotificationItem {
-        int id; // This first field _id in db;
+        public int id; // This first field _id in db;
 
-        int direction; // to indicate sending or receiving
+        public int direction; // to indicate sending or receiving
 
-        long totalCurrent = 0; // current transfer bytes
+        public long totalCurrent = 0; // current transfer bytes
 
-        long totalTotal = 0; // total bytes for current transfer
+        public long totalTotal = 0; // total bytes for current transfer
 
-        long timeStamp = 0; // Database time stamp. Used for sorting ongoing transfers.
+        public long timeStamp = 0; // Database time stamp. Used for sorting ongoing transfers.
 
-        String description; // the text above progress bar
+        public String description; // the text above progress bar
 
-        boolean handoverInitiated = false; // transfer initiated by connection handover (eg NFC)
+        public boolean handoverInitiated = false; // transfer initiated by connection handover (eg NFC)
 
-        String destination; // destination associated with this transfer
+        public String destination; // destination associated with this transfer
     }
 
     /**

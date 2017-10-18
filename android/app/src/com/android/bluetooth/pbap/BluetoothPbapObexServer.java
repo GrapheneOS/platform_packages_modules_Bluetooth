@@ -41,7 +41,6 @@ import android.provider.CallLog;
 import android.provider.CallLog.Calls;
 import android.text.TextUtils;
 import android.util.Log;
-import android.os.SystemProperties;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -158,11 +157,11 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
 
     private int mOrderBy  = ORDER_BY_INDEXED;
 
-    private static int CALLLOG_NUM_LIMIT = 50;
+    private static final int CALLLOG_NUM_LIMIT = 50;
 
-    public static int ORDER_BY_INDEXED = 0;
+    public static final int ORDER_BY_INDEXED = 0;
 
-    public static int ORDER_BY_ALPHABETICAL = 1;
+    public static final int ORDER_BY_ALPHABETICAL = 1;
 
     public static boolean sIsAborted = false;
 
@@ -170,11 +169,11 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
 
     private long mDatabaseIdentifierHigh = INVALID_VALUE_PARAMETER;
 
-    private long folderVersionCounterbitMask = 0x0008;
+    private long mFolderVersionCounterbitMask = 0x0008;
 
-    private long databaseIdentifierBitMask = 0x0004;
+    private long mDatabaseIdentifierBitMask = 0x0004;
 
-    private AppParamValue connAppParamValue;
+    private AppParamValue mConnAppParamValue;
 
     public static class ContentType {
         public static final int PHONEBOOK = 1;
@@ -236,9 +235,9 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
 
         try {
             byte[] appParam = null;
-            connAppParamValue = new AppParamValue();
+            mConnAppParamValue = new AppParamValue();
             appParam = (byte[]) request.getHeader(HeaderSet.APPLICATION_PARAMETER);
-            if ((appParam != null) && !parseApplicationParameter(appParam, connAppParamValue)) {
+            if ((appParam != null) && !parseApplicationParameter(appParam, mConnAppParamValue)) {
                 return ResponseCodes.OBEX_HTTP_BAD_REQUEST;
             }
         } catch (IOException e) {
@@ -854,10 +853,10 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
         if (isNameMatchTarget(name, MCH) || isNameMatchTarget(name, ICH)
                 || isNameMatchTarget(name, OCH) || isNameMatchTarget(name, CCH))
             needSendCallHistoryVersionCounters =
-                    checkPbapFeatureSupport(folderVersionCounterbitMask);
+                    checkPbapFeatureSupport(mFolderVersionCounterbitMask);
         boolean needSendPhonebookVersionCounters = false;
         if (isNameMatchTarget(name, PB))
-            needSendPhonebookVersionCounters = checkPbapFeatureSupport(folderVersionCounterbitMask);
+            needSendPhonebookVersionCounters = checkPbapFeatureSupport(mFolderVersionCounterbitMask);
 
         // In such case, PCE only want the number of index.
         // So response not contain any Body header.
@@ -895,7 +894,7 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
                 if (D) Log.d(TAG, "handleAppParaForResponse(): mNeedNewMissedCallsNum=true,  num= " + nmnum);
             }
 
-            if (checkPbapFeatureSupport(databaseIdentifierBitMask)) {
+            if (checkPbapFeatureSupport(mDatabaseIdentifierBitMask)) {
                 setDbCounters(ap);
             }
             if (needSendPhonebookVersionCounters) {
@@ -953,7 +952,7 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
             }
         }
 
-        if (checkPbapFeatureSupport(databaseIdentifierBitMask)) {
+        if (checkPbapFeatureSupport(mDatabaseIdentifierBitMask)) {
             setDbCounters(ap);
             reply.setHeader(HeaderSet.APPLICATION_PARAMETER, ap.getAPPparam());
             try {
@@ -1357,7 +1356,7 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
 
     private boolean checkPbapFeatureSupport(long featureBitMask) {
         Log.d(TAG, "checkPbapFeatureSupport featureBitMask is " + featureBitMask);
-        return ((ByteBuffer.wrap(connAppParamValue.supportedFeature).getInt() & featureBitMask)
+        return ((ByteBuffer.wrap(mConnAppParamValue.supportedFeature).getInt() & featureBitMask)
                 != 0);
     }
 }

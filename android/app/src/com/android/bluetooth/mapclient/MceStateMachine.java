@@ -54,7 +54,6 @@ import android.content.IntentFilter;
 import android.net.Uri;
 import android.os.Message;
 import android.os.ParcelUuid;
-import android.provider.ContactsContract;
 import android.telecom.PhoneAccount;
 import android.util.Log;
 
@@ -115,11 +114,11 @@ final class MceStateMachine extends StateMachine {
     private BluetoothDevice mDevice;
     private MapClientService mService;
     private MasClient mMasClient;
-    private HashMap<String, Bmessage> sentMessageLog =
+    private HashMap<String, Bmessage> mSentMessageLog =
             new HashMap<>(MAX_MESSAGES);
-    private HashMap<Bmessage, PendingIntent> sentReceiptRequested = new HashMap<>(
+    private HashMap<Bmessage, PendingIntent> mSentReceiptRequested = new HashMap<>(
             MAX_MESSAGES);
-    private HashMap<Bmessage, PendingIntent> deliveryReceiptRequested = new HashMap<>(
+    private HashMap<Bmessage, PendingIntent> mDeliveryReceiptRequested = new HashMap<>(
             MAX_MESSAGES);
     private Bmessage.Type mDefaultMessageType = Bmessage.Type.SMS_CDMA;
     private MapBroadcastReceiver mMapReceiver = new MapBroadcastReceiver();
@@ -226,10 +225,10 @@ final class MceStateMachine extends StateMachine {
             // Message of the body.
             bmsg.setBodyContent(message);
             if (sentIntent != null) {
-                sentReceiptRequested.put(bmsg, sentIntent);
+                mSentReceiptRequested.put(bmsg, sentIntent);
             }
             if (deliveredIntent != null) {
-                deliveryReceiptRequested.put(bmsg, deliveredIntent);
+                mDeliveryReceiptRequested.put(bmsg, deliveredIntent);
             }
             sendMessage(MSG_OUTBOUND_MESSAGE, bmsg);
             return true;
@@ -429,7 +428,7 @@ final class MceStateMachine extends StateMachine {
                         String messageHandle =
                                 ((RequestPushMessage) message.obj).getMsgHandle();
                         if (DBG) Log.d(TAG, "Message Sent......." + messageHandle);
-                        sentMessageLog.put(messageHandle,
+                        mSentMessageLog.put(messageHandle,
                                 ((RequestPushMessage) message.obj).getBMsg());
                     } else if (message.obj instanceof RequestGetMessagesListing) {
                         processMessageListing((RequestGetMessagesListing) message.obj);
@@ -543,9 +542,9 @@ final class MceStateMachine extends StateMachine {
             if (DBG) Log.d(TAG, "got a status for " + handle + " Status = " + status);
             PendingIntent intentToSend = null;
             if (status == EventReport.Type.SENDING_SUCCESS) {
-                intentToSend = sentReceiptRequested.remove(sentMessageLog.get(handle));
+                intentToSend = mSentReceiptRequested.remove(mSentMessageLog.get(handle));
             } else if (status == EventReport.Type.DELIVERY_SUCCESS) {
-                intentToSend = deliveryReceiptRequested.remove(sentMessageLog.get(handle));
+                intentToSend = mDeliveryReceiptRequested.remove(mSentMessageLog.get(handle));
             }
 
             if (intentToSend != null) {

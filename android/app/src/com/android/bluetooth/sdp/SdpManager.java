@@ -146,23 +146,23 @@ public class SdpManager {
      * As we use a mix of byte[] and object instances, this is more
      * efficient than implementing comparable. */
     class SdpSearchTracker {
-        private final ArrayList<SdpSearchInstance> list = new ArrayList<SdpSearchInstance>();
+        private final ArrayList<SdpSearchInstance> mList = new ArrayList<SdpSearchInstance>();
 
         void clear() {
-            list.clear();
+            mList.clear();
         }
 
         boolean add(SdpSearchInstance inst){
-            return list.add(inst);
+            return mList.add(inst);
         }
 
         boolean remove(SdpSearchInstance inst) {
-            return list.remove(inst);
+            return mList.remove(inst);
         }
 
         SdpSearchInstance getNext() {
-            if(list.size() > 0) {
-                return list.get(0);
+            if(mList.size() > 0) {
+                return mList.get(0);
             }
             return null;
         }
@@ -170,7 +170,7 @@ public class SdpManager {
         SdpSearchInstance getSearchInstance(byte[] address, byte[] uuidBytes) {
             String addressString = Utils.getAddressStringFromByte(address);
             ParcelUuid uuid = Utils.byteArrayToUuid(uuidBytes)[0];
-            for (SdpSearchInstance inst : list) {
+            for (SdpSearchInstance inst : mList) {
                 if (inst.getDevice().getAddress().equals(addressString)
                         && inst.getUuid().equals(uuid)) {
                     return inst;
@@ -181,7 +181,7 @@ public class SdpManager {
 
         boolean isSearching(BluetoothDevice device, ParcelUuid uuid) {
             String addressString = device.getAddress();
-            for (SdpSearchInstance inst : list) {
+            for (SdpSearchInstance inst : mList) {
                 if (inst.getDevice().getAddress().equals(addressString)
                         && inst.getUuid().equals(uuid)) {
                     return inst.isSearching();

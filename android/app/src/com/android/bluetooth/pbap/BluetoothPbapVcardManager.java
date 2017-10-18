@@ -58,11 +58,6 @@ import android.text.TextUtils;
 import android.util.Log;
 import java.nio.ByteBuffer;
 import java.util.Collections;
-import java.util.Comparator;
-import com.android.bluetooth.R;
-import com.android.vcard.VCardComposer;
-import com.android.vcard.VCardConfig;
-import com.android.vcard.VCardPhoneNumberTranslationCallback;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -961,25 +956,25 @@ public class BluetoothPbapVcardManager {
      * Handler to emit vCards to PCE.
      */
     public class HandlerForStringBuffer {
-        private Operation operation;
+        private Operation mOperation;
 
-        private OutputStream outputStream;
+        private OutputStream mOutputStream;
 
-        private String phoneOwnVCard = null;
+        private String mPhoneOwnVCard = null;
 
         public HandlerForStringBuffer(Operation op, String ownerVCard) {
-            operation = op;
+            mOperation = op;
             if (ownerVCard != null) {
-                phoneOwnVCard = ownerVCard;
+                mPhoneOwnVCard = ownerVCard;
                 if (V) Log.v(TAG, "phone own number vcard:");
-                if (V) Log.v(TAG, phoneOwnVCard);
+                if (V) Log.v(TAG, mPhoneOwnVCard);
             }
         }
 
         private boolean write(String vCard) {
             try {
                 if (vCard != null) {
-                    outputStream.write(vCard.getBytes());
+                    mOutputStream.write(vCard.getBytes());
                     return true;
                 }
             } catch (IOException e) {
@@ -990,9 +985,9 @@ public class BluetoothPbapVcardManager {
 
         public boolean onInit(Context context) {
             try {
-                outputStream = operation.openOutputStream();
-                if (phoneOwnVCard != null) {
-                    return write(phoneOwnVCard);
+                mOutputStream = mOperation.openOutputStream();
+                if (mPhoneOwnVCard != null) {
+                    return write(mPhoneOwnVCard);
                 }
                 return true;
             } catch (IOException e) {
@@ -1006,7 +1001,7 @@ public class BluetoothPbapVcardManager {
         }
 
         public void onTerminate() {
-            if (!BluetoothPbapObexServer.closeStream(outputStream, operation)) {
+            if (!BluetoothPbapObexServer.closeStream(mOutputStream, mOperation)) {
                 if (V) Log.v(TAG, "CloseStream failed!");
             } else {
                 if (V) Log.v(TAG, "CloseStream ok!");
@@ -1043,7 +1038,7 @@ public class BluetoothPbapVcardManager {
         }
 
         private static final String SEPARATOR = System.getProperty("line.separator");
-        private final byte[] filter;
+        private final byte[] mFilter;
 
         //This function returns true if the attributes needs to be included in the filtered vcard.
         private boolean isFilteredIn(FilterBit bit, boolean vCardType21) {
@@ -1051,12 +1046,12 @@ public class BluetoothPbapVcardManager {
             final int bitPos = bit.pos % 8;
             if (!vCardType21 && bit.onlyCheckV21) return true;
             if (vCardType21 && bit.excludeForV21) return false;
-            if (filter == null || offset >= filter.length) return true;
-            return ((filter[filter.length - offset] >> bitPos) & 0x01) != 0;
+            if (mFilter == null || offset >= mFilter.length) return true;
+            return ((mFilter[mFilter.length - offset] >> bitPos) & 0x01) != 0;
         }
 
         VCardFilter(byte[] filter) {
-            this.filter = filter;
+            this.mFilter = filter;
         }
 
         public boolean isPhotoEnabled() {
@@ -1064,7 +1059,7 @@ public class BluetoothPbapVcardManager {
         }
 
         public String apply(String vCard, boolean vCardType21){
-            if (filter == null) return vCard;
+            if (mFilter == null) return vCard;
             String[] lines = vCard.split(SEPARATOR);
             StringBuilder filteredVCard = new StringBuilder();
             boolean filteredIn = false;
@@ -1133,10 +1128,10 @@ public class BluetoothPbapVcardManager {
         }
 
         private static final String SEPARATOR = System.getProperty("line.separator");
-        private final byte[] selector;
+        private final byte[] mSelector;
 
         PropertySelector(byte[] selector) {
-            this.selector = selector;
+            this.mSelector = selector;
         }
 
         private boolean checkbit(int attrBit, byte[] selector) {
@@ -1169,7 +1164,7 @@ public class BluetoothPbapVcardManager {
             boolean selectedIn = true;
 
             for (PropertyMask bit : PropertyMask.values()) {
-                if (checkbit(bit.pos, selector)) {
+                if (checkbit(bit.pos, mSelector)) {
                     Log.d(TAG, "checking for prop :" + bit.prop);
                     if (vcardselectorop.equals("0")) {
                         if (checkprop(vcard, bit.prop)) {

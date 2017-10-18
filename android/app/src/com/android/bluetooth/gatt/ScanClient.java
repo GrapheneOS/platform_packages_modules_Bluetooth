@@ -31,21 +31,21 @@ import android.util.Log;
  * @hide
  */
 /* package */class ScanClient {
-    int scannerId;
-    UUID[] uuids;
-    ScanSettings settings;
-    ScanSettings passiveSettings;
-    int appUid;
-    List<ScanFilter> filters;
-    List<List<ResultStorageDescriptor>> storages;
+    public int scannerId;
+    public UUID[] uuids;
+    public ScanSettings settings;
+    public ScanSettings passiveSettings;
+    public int appUid;
+    public List<ScanFilter> filters;
+    public List<List<ResultStorageDescriptor>> storages;
     // App associated with the scan client died.
-    boolean appDied;
-    boolean hasLocationPermission;
-    boolean hasPeersMacAddressPermission;
+    public boolean appDied;
+    public boolean hasLocationPermission;
+    public boolean hasPeersMacAddressPermission;
     // Pre-M apps are allowed to get scan results even if location is disabled
-    boolean legacyForegroundApp;
+    public boolean legacyForegroundApp;
 
-    AppScanStats stats = null;
+    public AppScanStats stats = null;
 
     private static final ScanSettings DEFAULT_SCAN_SETTINGS = new ScanSettings.Builder()
             .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY).build();

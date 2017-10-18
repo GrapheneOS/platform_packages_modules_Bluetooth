@@ -810,10 +810,10 @@ public class A2dpSinkStateMachine extends StateMachine {
     }
 
     private class StackEvent {
-        int type = EVENT_TYPE_NONE;
-        int valueInt = 0;
-        BluetoothDevice device = null;
-        BluetoothAudioConfig audioConfig = null;
+        public int type = EVENT_TYPE_NONE;
+        public int valueInt = 0;
+        public BluetoothDevice device = null;
+        public BluetoothAudioConfig audioConfig = null;
 
         private StackEvent(int type) {
             this.type = type;
