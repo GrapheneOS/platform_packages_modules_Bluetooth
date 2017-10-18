@@ -18,7 +18,6 @@
 package com.android.bluetooth.pbap;
 
 import android.content.Context;
-import android.content.ContentResolver;
 import android.content.res.AssetFileDescriptor;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
@@ -32,7 +31,6 @@ import android.provider.ContactsContract.CommonDataKinds.Email;
 import android.provider.ContactsContract.CommonDataKinds.StructuredName;
 import android.provider.ContactsContract.CommonDataKinds.StructuredPostal;
 import android.provider.ContactsContract.Data;
-import android.provider.ContactsContract.RawContacts;
 import android.provider.ContactsContract.Profile;
 import android.provider.ContactsContract.RawContactsEntity;
 
@@ -41,7 +39,6 @@ import android.util.Log;
 import com.android.vcard.VCardComposer;
 import com.android.vcard.VCardConfig;
 import com.android.bluetooth.Utils;
-import com.android.bluetooth.pbap.BluetoothPbapService;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -58,15 +55,15 @@ public class BluetoothPbapUtils {
     private static final String TAG = "BluetoothPbapUtils";
     private static final boolean V = BluetoothPbapService.VERBOSE;
 
-    public static int FILTER_PHOTO = 3;
-    public static int FILTER_TEL = 7;
-    public static int FILTER_NICKNAME = 23;
+    public static final int FILTER_PHOTO = 3;
+    public static final int FILTER_TEL = 7;
+    public static final int FILTER_NICKNAME = 23;
     private static final long QUERY_CONTACT_RETRY_INTERVAL = 4000;
 
-    protected static AtomicLong mDbIdentifier = new AtomicLong();
+    protected static AtomicLong sDbIdentifier = new AtomicLong();
 
-    protected static long primaryVersionCounter = 0;
-    protected static long secondaryVersionCounter = 0;
+    protected static long sPrimaryVersionCounter = 0;
+    protected static long sSecondaryVersionCounter = 0;
     public static long totalContacts = 0;
 
     /* totalFields and totalSvcFields used to update primary/secondary version
@@ -77,29 +74,29 @@ public class BluetoothPbapUtils {
     public static boolean contactsLoaded = false;
 
     private static class ContactData {
-        private String name;
-        private ArrayList<String> email;
-        private ArrayList<String> phone;
-        private ArrayList<String> address;
+        private String mName;
+        private ArrayList<String> mEmail;
+        private ArrayList<String> mPhone;
+        private ArrayList<String> mAddress;
 
         ContactData() {
-            phone = new ArrayList<String>();
-            email = new ArrayList<String>();
-            address = new ArrayList<String>();
+            mPhone = new ArrayList<String>();
+            mEmail = new ArrayList<String>();
+            mAddress = new ArrayList<String>();
         }
 
         ContactData(String name, ArrayList<String> phone, ArrayList<String> email,
                 ArrayList<String> address) {
-            this.name = name;
-            this.phone = phone;
-            this.email = email;
-            this.address = address;
+            this.mName = name;
+            this.mPhone = phone;
+            this.mEmail = email;
+            this.mAddress = address;
         }
     }
 
-    private static HashMap<String, ContactData> contactDataset = new HashMap<String, ContactData>();
+    private static HashMap<String, ContactData> sContactDataset = new HashMap<String, ContactData>();
 
-    private static HashSet<String> ContactSet = new HashSet<String>();
+    private static HashSet<String> sContactSet = new HashSet<String>();
 
     private static final String TYPE_NAME = "name";
     private static final String TYPE_PHONE = "phone";
@@ -277,9 +274,9 @@ public class BluetoothPbapUtils {
     protected static void fetchPbapParams(Context ctx) {
         SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(ctx);
         long timeStamp = Calendar.getInstance().getTimeInMillis();
-        BluetoothPbapUtils.mDbIdentifier.set(pref.getLong("mDbIdentifier", timeStamp));
-        BluetoothPbapUtils.primaryVersionCounter = pref.getLong("primary", 0);
-        BluetoothPbapUtils.secondaryVersionCounter = pref.getLong("secondary", 0);
+        BluetoothPbapUtils.sDbIdentifier.set(pref.getLong("mDbIdentifier", timeStamp));
+        BluetoothPbapUtils.sPrimaryVersionCounter = pref.getLong("primary", 0);
+        BluetoothPbapUtils.sSecondaryVersionCounter = pref.getLong("secondary", 0);
         BluetoothPbapUtils.totalFields = pref.getLong("totalContacts", 0);
         BluetoothPbapUtils.contactsLastUpdated = pref.getLong("lastUpdatedTimestamp", timeStamp);
         BluetoothPbapUtils.totalFields = pref.getLong("totalFields", 0);
@@ -309,11 +306,11 @@ public class BluetoothPbapUtils {
 
     protected static void updateSecondaryVersionCounter(Context mContext, Handler mHandler) {
         try {
-            /* updated_list stores list of contacts which are added/updated after
+            /* updatedList stores list of contacts which are added/updated after
              * the time when contacts were last updated. (contactsLastUpdated
              * indicates the time when contact/contacts were last updated and
              * corresponding changes were reflected in Folder Version Counters).*/
-            ArrayList<String> updated_list = new ArrayList<String>();
+            ArrayList<String> updatedList = new ArrayList<String>();
             HashSet<String> currentContactSet = new HashSet<String>();
             int currentContactCount = 0;
 
@@ -329,26 +326,26 @@ public class BluetoothPbapUtils {
                 String contactId = c.getString(0);
                 long lastUpdatedTime = c.getLong(1);
                 if (lastUpdatedTime > contactsLastUpdated) {
-                    updated_list.add(contactId);
+                    updatedList.add(contactId);
                 }
                 currentContactSet.add(contactId);
             }
             currentContactCount = c.getCount();
             c.close();
 
-            if (V) Log.v(TAG, "updated list =" + updated_list);
+            if (V) Log.v(TAG, "updated list =" + updatedList);
             String[] dataProjection = {Data.CONTACT_ID, Data.DATA1, Data.MIMETYPE};
 
             String whereClause = Data.CONTACT_ID + "=?";
 
             /* code to check if new contact/contacts are added */
             if (currentContactCount > totalContacts) {
-                for (int i = 0; i < updated_list.size(); i++) {
-                    String[] selectionArgs = {updated_list.get(i)};
+                for (int i = 0; i < updatedList.size(); i++) {
+                    String[] selectionArgs = {updatedList.get(i)};
                     fetchAndSetContacts(
                             mContext, mHandler, dataProjection, whereClause, selectionArgs, false);
-                    secondaryVersionCounter++;
-                    primaryVersionCounter++;
+                    sSecondaryVersionCounter++;
+                    sPrimaryVersionCounter++;
                     totalContacts = currentContactCount;
                 }
                 /* When contact/contacts are deleted */
@@ -357,15 +354,15 @@ public class BluetoothPbapUtils {
                 ArrayList<String> svcFields = new ArrayList<String>(
                         Arrays.asList(StructuredName.CONTENT_ITEM_TYPE, Phone.CONTENT_ITEM_TYPE,
                                 Email.CONTENT_ITEM_TYPE, StructuredPostal.CONTENT_ITEM_TYPE));
-                HashSet<String> deletedContacts = new HashSet<String>(ContactSet);
+                HashSet<String> deletedContacts = new HashSet<String>(sContactSet);
                 deletedContacts.removeAll(currentContactSet);
-                primaryVersionCounter += deletedContacts.size();
-                secondaryVersionCounter += deletedContacts.size();
+                sPrimaryVersionCounter += deletedContacts.size();
+                sSecondaryVersionCounter += deletedContacts.size();
                 if (V) Log.v(TAG, "Deleted Contacts : " + deletedContacts);
 
                 // to decrement totalFields and totalSvcFields count
                 for (String deletedContact : deletedContacts) {
-                    ContactSet.remove(deletedContact);
+                    sContactSet.remove(deletedContact);
                     String[] selectionArgs = {deletedContact};
                     Cursor dataCursor = mContext.getContentResolver().query(
                             Data.CONTENT_URI, dataProjection, whereClause, selectionArgs, null);
@@ -387,15 +384,15 @@ public class BluetoothPbapUtils {
                 /* When contacts are updated. i.e. Fields of existing contacts are
                  * added/updated/deleted */
             } else {
-                for (int i = 0; i < updated_list.size(); i++) {
-                    primaryVersionCounter++;
-                    ArrayList<String> phone_tmp = new ArrayList<String>();
-                    ArrayList<String> email_tmp = new ArrayList<String>();
-                    ArrayList<String> address_tmp = new ArrayList<String>();
-                    String name_tmp = null, updatedCID = updated_list.get(i);
+                for (int i = 0; i < updatedList.size(); i++) {
+                    sPrimaryVersionCounter++;
+                    ArrayList<String> phoneTmp = new ArrayList<String>();
+                    ArrayList<String> emailTmp = new ArrayList<String>();
+                    ArrayList<String> addressTmp = new ArrayList<String>();
+                    String nameTmp = null, updatedCID = updatedList.get(i);
                     boolean updated = false;
 
-                    String[] selectionArgs = {updated_list.get(i)};
+                    String[] selectionArgs = {updatedList.get(i)};
                     Cursor dataCursor = mContext.getContentResolver().query(
                             Data.CONTENT_URI, dataProjection, whereClause, selectionArgs, null);
 
@@ -413,49 +410,49 @@ public class BluetoothPbapUtils {
                         mimeType = dataCursor.getString(indexMimeType);
                         switch (mimeType) {
                             case Email.CONTENT_ITEM_TYPE:
-                                email_tmp.add(data);
+                                emailTmp.add(data);
                                 break;
                             case Phone.CONTENT_ITEM_TYPE:
-                                phone_tmp.add(data);
+                                phoneTmp.add(data);
                                 break;
                             case StructuredPostal.CONTENT_ITEM_TYPE:
-                                address_tmp.add(data);
+                                addressTmp.add(data);
                                 break;
                             case StructuredName.CONTENT_ITEM_TYPE:
-                                name_tmp = new String(data);
+                                nameTmp = new String(data);
                                 break;
                         }
                     }
                     ContactData cData =
-                            new ContactData(name_tmp, phone_tmp, email_tmp, address_tmp);
+                            new ContactData(nameTmp, phoneTmp, emailTmp, addressTmp);
                     dataCursor.close();
 
-                    if ((name_tmp == null && contactDataset.get(updatedCID).name != null)
-                            || (name_tmp != null && contactDataset.get(updatedCID).name == null)
-                            || (!(name_tmp == null && contactDataset.get(updatedCID).name == null)
-                                       && !name_tmp.equals(contactDataset.get(updatedCID).name))) {
+                    if ((nameTmp == null && sContactDataset.get(updatedCID).mName != null)
+                            || (nameTmp != null && sContactDataset.get(updatedCID).mName == null)
+                            || (!(nameTmp == null && sContactDataset.get(updatedCID).mName == null)
+                                       && !nameTmp.equals(sContactDataset.get(updatedCID).mName))) {
                         updated = true;
-                    } else if (checkFieldUpdates(contactDataset.get(updatedCID).phone, phone_tmp)) {
+                    } else if (checkFieldUpdates(sContactDataset.get(updatedCID).mPhone, phoneTmp)) {
                         updated = true;
-                    } else if (checkFieldUpdates(contactDataset.get(updatedCID).email, email_tmp)) {
+                    } else if (checkFieldUpdates(sContactDataset.get(updatedCID).mEmail, emailTmp)) {
                         updated = true;
                     } else if (checkFieldUpdates(
-                                       contactDataset.get(updatedCID).address, address_tmp)) {
+                                        sContactDataset.get(updatedCID).mAddress, addressTmp)) {
                         updated = true;
                     }
 
                     if (updated) {
-                        secondaryVersionCounter++;
-                        contactDataset.put(updatedCID, cData);
+                        sSecondaryVersionCounter++;
+                        sContactDataset.put(updatedCID, cData);
                     }
                 }
             }
 
-            Log.d(TAG, "primaryVersionCounter = " + primaryVersionCounter
-                            + ", secondaryVersionCounter=" + secondaryVersionCounter);
+            Log.d(TAG, "primaryVersionCounter = " + sPrimaryVersionCounter
+                            + ", secondaryVersionCounter=" + sSecondaryVersionCounter);
 
             // check if Primary/Secondary version Counter has rolled over
-            if (secondaryVersionCounter < 0 || primaryVersionCounter < 0)
+            if (sSecondaryVersionCounter < 0 || sPrimaryVersionCounter < 0)
                 mHandler.sendMessage(
                         mHandler.obtainMessage(BluetoothPbapService.ROLLOVER_COUNTERS));
         } catch (Exception e) {
@@ -543,7 +540,7 @@ public class BluetoothPbapUtils {
                     currentSvcFieldCount++;
                     break;
             }
-            ContactSet.add(contactId);
+            sContactSet.add(contactId);
             currentTotalFields++;
         }
         c.close();
@@ -551,26 +548,26 @@ public class BluetoothPbapUtils {
         /* This code checks if there is any update in contacts after last pbap
          * disconnect has happenned (even if BT is turned OFF during this time)*/
         if (isLoad && currentTotalFields != totalFields) {
-            primaryVersionCounter += Math.abs(totalContacts - ContactSet.size());
+            sPrimaryVersionCounter += Math.abs(totalContacts - sContactSet.size());
 
             if (currentSvcFieldCount != totalSvcFields)
-                if (totalContacts != ContactSet.size())
-                    secondaryVersionCounter += Math.abs(totalContacts - ContactSet.size());
+                if (totalContacts != sContactSet.size())
+                    sSecondaryVersionCounter += Math.abs(totalContacts - sContactSet.size());
                 else
-                    secondaryVersionCounter++;
-            if (primaryVersionCounter < 0 || secondaryVersionCounter < 0) rolloverCounters();
+                    sSecondaryVersionCounter++;
+            if (sPrimaryVersionCounter < 0 || sSecondaryVersionCounter < 0) rolloverCounters();
 
             totalFields = currentTotalFields;
             totalSvcFields = currentSvcFieldCount;
             contactsLastUpdated = System.currentTimeMillis();
             Log.d(TAG, "Contacts updated between last BT OFF and current"
-                            + "Pbap Connect, primaryVersionCounter=" + primaryVersionCounter
-                            + ", secondaryVersionCounter=" + secondaryVersionCounter);
+                            + "Pbap Connect, primaryVersionCounter=" + sPrimaryVersionCounter
+                            + ", secondaryVersionCounter=" + sSecondaryVersionCounter);
         } else if (!isLoad) {
             totalFields++;
             totalSvcFields++;
         }
-        return ContactSet.size();
+        return sContactSet.size();
     }
 
     /* setContactFields() is used to store contacts data in local cache (phone,
@@ -580,35 +577,35 @@ public class BluetoothPbapUtils {
 
     protected static void setContactFields(String fieldType, String contactId, String data) {
         ContactData cData = null;
-        if (contactDataset.containsKey(contactId))
-            cData = contactDataset.get(contactId);
+        if (sContactDataset.containsKey(contactId))
+            cData = sContactDataset.get(contactId);
         else
             cData = new ContactData();
 
         switch (fieldType) {
             case TYPE_NAME:
-                cData.name = data;
+                cData.mName = data;
                 break;
             case TYPE_PHONE:
-                cData.phone.add(data);
+                cData.mPhone.add(data);
                 break;
             case TYPE_EMAIL:
-                cData.email.add(data);
+                cData.mEmail.add(data);
                 break;
             case TYPE_ADDRESS:
-                cData.address.add(data);
+                cData.mAddress.add(data);
                 break;
         }
-        contactDataset.put(contactId, cData);
+        sContactDataset.put(contactId, cData);
     }
 
     /* As per Pbap 1.2 specification, Database Identifies shall be
      * re-generated when a Folder Version Counter rolls over or starts over.*/
 
     protected static void rolloverCounters() {
-        mDbIdentifier.set(Calendar.getInstance().getTimeInMillis());
-        primaryVersionCounter = (primaryVersionCounter < 0) ? 0 : primaryVersionCounter;
-        secondaryVersionCounter = (secondaryVersionCounter < 0) ? 0 : secondaryVersionCounter;
-        if (V) Log.v(TAG, "mDbIdentifier rolled over to:" + mDbIdentifier);
+        sDbIdentifier.set(Calendar.getInstance().getTimeInMillis());
+        sPrimaryVersionCounter = (sPrimaryVersionCounter < 0) ? 0 : sPrimaryVersionCounter;
+        sSecondaryVersionCounter = (sSecondaryVersionCounter < 0) ? 0 : sSecondaryVersionCounter;
+        if (V) Log.v(TAG, "mDbIdentifier rolled over to:" + sDbIdentifier);
     }
 }

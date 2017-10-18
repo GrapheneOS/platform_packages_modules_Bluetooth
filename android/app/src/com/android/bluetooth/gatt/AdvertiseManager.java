@@ -110,7 +110,7 @@ class AdvertiseManager {
     }
 
     class AdvertisingSetDeathRecipient implements IBinder.DeathRecipient {
-        IAdvertisingSetCallback callback;
+        public IAdvertisingSetCallback callback;
 
         AdvertisingSetDeathRecipient(IAdvertisingSetCallback callback) {
             this.callback = callback;
@@ -193,16 +193,16 @@ class AdvertiseManager {
         }
 
         String deviceName = AdapterService.getAdapterService().getName();
-        byte[] adv_data = AdvertiseHelper.advertiseDataToBytes(advertiseData, deviceName);
-        byte[] scan_response = AdvertiseHelper.advertiseDataToBytes(scanResponse, deviceName);
-        byte[] periodic_data = AdvertiseHelper.advertiseDataToBytes(periodicData, deviceName);
+        byte[] advDataBytes = AdvertiseHelper.advertiseDataToBytes(advertiseData, deviceName);
+        byte[] scanResponseBytes = AdvertiseHelper.advertiseDataToBytes(scanResponse, deviceName);
+        byte[] periodicDataBytes = AdvertiseHelper.advertiseDataToBytes(periodicData, deviceName);
 
-        int cb_id = --sTempRegistrationId;
-        mAdvertisers.put(binder, new AdvertiserInfo(cb_id, deathRecipient, callback));
+        int cbId = --sTempRegistrationId;
+        mAdvertisers.put(binder, new AdvertiserInfo(cbId, deathRecipient, callback));
 
-        if (DBG) Log.d(TAG, "startAdvertisingSet() - reg_id=" + cb_id + ", callback: " + binder);
-        startAdvertisingSetNative(parameters, adv_data, scan_response, periodicParameters,
-                periodic_data, duration, maxExtAdvEvents, cb_id);
+        if (DBG) Log.d(TAG, "startAdvertisingSet() - reg_id=" + cbId + ", callback: " + binder);
+        startAdvertisingSetNative(parameters, advDataBytes, scanResponseBytes, periodicParameters,
+                periodicDataBytes, duration, maxExtAdvEvents, cbId);
     }
 
     void onOwnAddressRead(int advertiserId, int addressType, String address)
@@ -233,19 +233,19 @@ class AdvertiseManager {
             return;
         }
 
-        Integer advertiser_id = adv.id;
+        Integer advertiserId = adv.id;
         binder.unlinkToDeath(adv.deathRecipient, 0);
 
-        if (advertiser_id < 0) {
+        if (advertiserId < 0) {
             Log.i(TAG, "stopAdvertisingSet() - advertiser not finished registration yet");
             // Advertiser will be freed once initiated in onAdvertisingSetStarted()
             return;
         }
 
-        stopAdvertisingSetNative(advertiser_id);
+        stopAdvertisingSetNative(advertiserId);
 
         try {
-            callback.onAdvertisingSetStopped(advertiser_id);
+            callback.onAdvertisingSetStopped(advertiserId);
         } catch (RemoteException e) {
             Log.i(TAG, "error sending onAdvertisingSetStopped callback", e);
         }

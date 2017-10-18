@@ -145,12 +145,11 @@ public class BluetoothOppUtility {
     // This function is used when UI show batch transfer. Currently only show single transfer.
     public static ArrayList<String> queryTransfersInBatch(Context context, Long timeStamp) {
         ArrayList<String> uris = Lists.newArrayList();
-        final String WHERE = BluetoothShare.TIMESTAMP + " == " + timeStamp;
-
+        final String where = BluetoothShare.TIMESTAMP + " == " + timeStamp;
         Cursor metadataCursor = context.getContentResolver().query(BluetoothShare.CONTENT_URI,
                 new String[] {
                     BluetoothShare._DATA
-                }, WHERE, null, BluetoothShare._ID);
+                }, where, null, BluetoothShare._ID);
 
         if (metadataCursor == null) {
             return null;

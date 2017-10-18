@@ -155,8 +155,8 @@ public class PanService extends ProfileService {
             mNativeAvailable=false;
         }
         if(mPanDevices != null) {
-            List<BluetoothDevice> DevList = getConnectedDevices();
-            for(BluetoothDevice dev : DevList) {
+            List<BluetoothDevice> devList = getConnectedDevices();
+            for(BluetoothDevice dev : devList) {
                 handlePanDeviceStateChange(dev, mPanIfName, BluetoothProfile.STATE_DISCONNECTED,
                         BluetoothPan.LOCAL_PANU_ROLE, BluetoothPan.REMOTE_NAP_ROLE);
             }
@@ -358,8 +358,8 @@ public class PanService extends ProfileService {
         if(mTetherOn != value) {
             //drop any existing panu or pan-nap connection when changing the tethering state
             mTetherOn = value;
-            List<BluetoothDevice> DevList = getConnectedDevices();
-            for(BluetoothDevice dev : DevList)
+            List<BluetoothDevice> devList = getConnectedDevices();
+            for(BluetoothDevice dev : devList)
                 disconnect(dev);
         }
     }
@@ -417,11 +417,11 @@ public class PanService extends ProfileService {
             this.local_role = localRole;
             this.remote_role = remoteRole;
         }
-        byte[] addr;
-        int state;
-        int error;
-        int local_role;
-        int remote_role;
+        public byte[] addr;
+        public int state;
+        public int error;
+        public int local_role;
+        public int remote_role;
     };
     private void onConnectStateChanged(byte[] address, int state, int error, int localRole,
             int remoteRole) {

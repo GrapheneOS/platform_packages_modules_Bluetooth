@@ -115,21 +115,21 @@ class BluetoothOppNotification {
      * This inner class is used to describe some properties for one transfer.
      */
     static class NotificationItem {
-        int id; // This first field _id in db;
+        public int id; // This first field _id in db;
 
-        int direction; // to indicate sending or receiving
+        public int direction; // to indicate sending or receiving
 
-        long totalCurrent = 0; // current transfer bytes
+        public long totalCurrent = 0; // current transfer bytes
 
-        long totalTotal = 0; // total bytes for current transfer
+        public long totalTotal = 0; // total bytes for current transfer
 
-        long timeStamp = 0; // Database time stamp. Used for sorting ongoing transfers.
+        public long timeStamp = 0; // Database time stamp. Used for sorting ongoing transfers.
 
-        String description; // the text above progress bar
+        public String description; // the text above progress bar
 
-        boolean handoverInitiated = false; // transfer initiated by connection handover (eg NFC)
+        public boolean handoverInitiated = false; // transfer initiated by connection handover (eg NFC)
 
-        String destination; // destination associated with this transfer
+        public String destination; // destination associated with this transfer
     }
 
     /**
@@ -403,15 +403,15 @@ class BluetoothOppNotification {
         outboundNum = outboundSuccNumber + outboundFailNumber;
         // create the outbound notification
         if (outboundNum > 0) {
-            String unsuccess_caption = mContext.getResources().getQuantityString(
+            String unsuccessCaption = mContext.getResources().getQuantityString(
                     R.plurals.noti_caption_unsuccessful, outboundFailNumber, outboundFailNumber);
             String caption = mContext.getResources().getQuantityString(
                     R.plurals.noti_caption_success, outboundSuccNumber, outboundSuccNumber,
-                    unsuccess_caption);
-            Intent content_intent = new Intent(Constants.ACTION_OPEN_OUTBOUND_TRANSFER)
+                    unsuccessCaption);
+            Intent contentIntent = new Intent(Constants.ACTION_OPEN_OUTBOUND_TRANSFER)
                     .setClassName(Constants.THIS_PACKAGE_NAME,
                             BluetoothOppReceiver.class.getName());
-            Intent delete_intent = new Intent(Constants.ACTION_COMPLETE_HIDE)
+            Intent deleteIntent = new Intent(Constants.ACTION_COMPLETE_HIDE)
                     .setClassName(Constants.THIS_PACKAGE_NAME,
                             BluetoothOppReceiver.class.getName());
             Notification outNoti =
@@ -424,9 +424,9 @@ class BluetoothOppNotification {
                                     com.android.internal.R.color.system_notification_accent_color,
                                     mContext.getTheme()))
                             .setContentIntent(
-                                    PendingIntent.getBroadcast(mContext, 0, content_intent, 0))
+                                    PendingIntent.getBroadcast(mContext, 0, contentIntent, 0))
                             .setDeleteIntent(
-                                    PendingIntent.getBroadcast(mContext, 0, delete_intent, 0))
+                                    PendingIntent.getBroadcast(mContext, 0, deleteIntent, 0))
                             .setWhen(timeStamp)
                             .build();
             mNotificationMgr.notify(NOTIFICATION_ID_OUTBOUND_COMPLETE, outNoti);
@@ -463,15 +463,15 @@ class BluetoothOppNotification {
         inboundNum = inboundSuccNumber + inboundFailNumber;
         // create the inbound notification
         if (inboundNum > 0) {
-            String unsuccess_caption = mContext.getResources().getQuantityString(
+            String unsuccessCaption = mContext.getResources().getQuantityString(
                     R.plurals.noti_caption_unsuccessful, inboundFailNumber, inboundFailNumber);
             String caption = mContext.getResources().getQuantityString(
                     R.plurals.noti_caption_success, inboundSuccNumber, inboundSuccNumber,
-                    unsuccess_caption);
-            Intent content_intent = new Intent(Constants.ACTION_OPEN_INBOUND_TRANSFER)
+                    unsuccessCaption);
+            Intent contentIntent = new Intent(Constants.ACTION_OPEN_INBOUND_TRANSFER)
                     .setClassName(Constants.THIS_PACKAGE_NAME,
                             BluetoothOppReceiver.class.getName());
-            Intent delete_intent = new Intent(Constants.ACTION_COMPLETE_HIDE)
+            Intent deleteIntent = new Intent(Constants.ACTION_COMPLETE_HIDE)
                     .setClassName(Constants.THIS_PACKAGE_NAME,
                             BluetoothOppReceiver.class.getName());
             Notification inNoti =
@@ -484,9 +484,9 @@ class BluetoothOppNotification {
                                     com.android.internal.R.color.system_notification_accent_color,
                                     mContext.getTheme()))
                             .setContentIntent(
-                                    PendingIntent.getBroadcast(mContext, 0, content_intent, 0))
+                                    PendingIntent.getBroadcast(mContext, 0, contentIntent, 0))
                             .setDeleteIntent(
-                                    PendingIntent.getBroadcast(mContext, 0, delete_intent, 0))
+                                    PendingIntent.getBroadcast(mContext, 0, deleteIntent, 0))
                             .setWhen(timeStamp)
                             .build();
             mNotificationMgr.notify(NOTIFICATION_ID_INBOUND_COMPLETE, inNoti);

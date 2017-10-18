@@ -67,7 +67,7 @@ public class BluetoothMnsObexClient {
     public static final int MSG_MNS_SDP_SEARCH_REGISTRATION = 3;
 
     //Copy SdpManager.SDP_INTENT_DELAY - The timeout to wait for reply from native.
-    private final int MNS_SDP_SEARCH_DELAY = 6000;
+    private static final int MNS_SDP_SEARCH_DELAY = 6000;
     public MnsSdpSearchInfo mMnsLstRegRqst = null;
     private static final int MNS_NOTIFICATION_DELAY = 10;
     public static final ParcelUuid BLUETOOTH_UUID_OBEX_MNS =
@@ -95,22 +95,22 @@ public class BluetoothMnsObexClient {
     }
 
     class MnsSdpSearchInfo {
-        private boolean isSearchInProgress;
-        int lastMasId;
-        int lastNotificationStatus;
+        private boolean mIsSearchInProgress;
+        public int lastMasId;
+        public int lastNotificationStatus;
 
         MnsSdpSearchInfo (boolean isSearchON, int masId, int notification) {
-            isSearchInProgress = isSearchON;
+            mIsSearchInProgress = isSearchON;
             lastMasId = masId;
             lastNotificationStatus = notification;
         }
 
         public boolean isSearchInProgress() {
-            return isSearchInProgress;
+            return mIsSearchInProgress;
         }
 
         public void setIsSearchInProgress(boolean isSearchON) {
-            isSearchInProgress = isSearchON;
+            mIsSearchInProgress = isSearchON;
         }
     }
 

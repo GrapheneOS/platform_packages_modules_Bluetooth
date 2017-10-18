@@ -34,9 +34,9 @@ import java.util.Date;
 import java.util.List;
 
 public class CallLogPullRequest extends PullRequest {
-    private static boolean DBG = true;
-    private static boolean VDBG = false;
-    private static String TAG = "PbapCallLogPullRequest";
+    private static final boolean DBG = true;
+    private static final boolean VDBG = false;
+    private static final String TAG = "PbapCallLogPullRequest";
     private static final String TIMESTAMP_PROPERTY = "X-IRMC-CALL-DATETIME";
     private static final String TIMESTAMP_FORMAT = "yyyyMMdd'T'HHmmss";
 

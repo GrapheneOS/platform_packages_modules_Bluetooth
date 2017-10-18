@@ -43,36 +43,36 @@ class MnsService {
     /* MNS features: Notification Feature */
     private static final int MNS_FEATURE_BITS = 0x0002;
     /* these are shared across instances */
-    private static SocketAcceptor mAcceptThread = null;
-    private static Handler mSessionHandler = null;
-    private static BluetoothServerSocket mServerSocket = null;
-    private static ObexServerSockets mServerSockets = null;
+    private static SocketAcceptor sAcceptThread = null;
+    private static Handler sSessionHandler = null;
+    private static BluetoothServerSocket sServerSocket = null;
+    private static ObexServerSockets sServerSockets = null;
 
-    private static MapClientService mContext;
+    private static MapClientService sContext;
     private volatile boolean mShutdown = false;         // Used to interrupt socket accept thread
     private int mSdpHandle = -1;
 
     MnsService(MapClientService context) {
         if (VDBG) Log.v(TAG, "MnsService()");
-        mContext = context;
-        mAcceptThread = new SocketAcceptor();
-        mServerSockets = ObexServerSockets.create(mAcceptThread);
+        sContext = context;
+        sAcceptThread = new SocketAcceptor();
+        sServerSockets = ObexServerSockets.create(sAcceptThread);
         SdpManager sdpManager = SdpManager.getDefaultManager();
         if (sdpManager == null) {
             Log.e(TAG, "SdpManager is null");
             return;
         }
         mSdpHandle = sdpManager.createMapMnsRecord("MAP Message Notification Service",
-                mServerSockets.getRfcommChannel(), -1, MNS_VERSION, MNS_FEATURE_BITS);
+                sServerSockets.getRfcommChannel(), -1, MNS_VERSION, MNS_FEATURE_BITS);
     }
 
     void stop() {
         if (VDBG) Log.v(TAG, "stop()");
         mShutdown = true;
         cleanUpSdpRecord();
-        if (mServerSockets != null) {
-            mServerSockets.shutdown(false);
-            mServerSockets = null;
+        if (sServerSockets != null) {
+            sServerSockets.shutdown(false);
+            sServerSockets = null;
         }
     }
 
@@ -106,7 +106,7 @@ class MnsService {
         @Override
         public synchronized void onAcceptFailed() {
             Log.e(TAG, "OnAcceptFailed");
-            mServerSockets = null; // Will cause a new to be created when calling start.
+            sServerSockets = null; // Will cause a new to be created when calling start.
             if (mShutdown) {
                 Log.e(TAG, "Failed to accept incomming connection - " + "shutdown");
             }
@@ -117,7 +117,7 @@ class MnsService {
             if (DBG) Log.d(TAG, "onConnect" + device + " SOCKET: " + socket);
             /* Signal to the service that we have received an incoming connection.*/
             MnsObexServer srv = new MnsObexServer(
-                    mContext.mMceStateMachine, mServerSockets);
+                    sContext.mMceStateMachine, sServerSockets);
             BluetoothObexTransport transport = new BluetoothObexTransport(socket);
             try {
                 new ServerSession(transport, srv, null);

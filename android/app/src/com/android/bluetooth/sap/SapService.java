@@ -31,9 +31,7 @@ import android.util.Log;
 
 import com.android.bluetooth.R;
 import com.android.bluetooth.Utils;
-import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.ProfileService;
-import com.android.bluetooth.btservice.ProfileService.IProfileServiceBinder;
 import com.android.bluetooth.sdp.SdpManager;
 
 @TargetApi(Build.VERSION_CODES.ECLAIR)
@@ -133,11 +131,11 @@ public class SapService extends ProfileService {
         }
     }
 
+    private static final int CREATE_RETRY_TIME = 10;
     private boolean initSocket() {
         if (VERBOSE) Log.v(TAG, "Sap Service initSocket");
 
         boolean initSocketOK = false;
-        final int CREATE_RETRY_TIME = 10;
 
         // It's possible that create will fail in some cases. retry for 10 times
         for (int i = 0; i < CREATE_RETRY_TIME && !mInterrupted; i++) {
@@ -297,7 +295,7 @@ public class SapService extends ProfileService {
      */
     private class SocketAcceptThread extends Thread {
 
-        private boolean stopped = false;
+        private boolean mStopped = false;
 
         @Override
         public void run() {
@@ -308,7 +306,7 @@ public class SapService extends ProfileService {
                 }
             }
 
-            while (!stopped) {
+            while (!mStopped) {
                 try {
                     if (VERBOSE) Log.v(TAG, "Accepting socket connection...");
                     serverSocket = mServerSocket;
@@ -371,16 +369,16 @@ public class SapService extends ProfileService {
                         if (mSessionStatusHandler != null)
                             mSessionStatusHandler.sendEmptyMessage(MSG_SERVERSESSION_CLOSE);
                     }
-                    stopped = true; // job done ,close this thread;
+                    mStopped = true; // job done ,close this thread;
                 } catch (IOException ex) {
-                    stopped=true;
+                    mStopped =true;
                     if (VERBOSE) Log.v(TAG, "Accept exception: ", ex);
                 }
             }
         }
 
         void shutdown() {
-            stopped = true;
+            mStopped = true;
             interrupt();
         }
     }

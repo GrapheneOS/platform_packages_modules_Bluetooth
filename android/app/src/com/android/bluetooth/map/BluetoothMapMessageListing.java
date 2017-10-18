@@ -27,7 +27,7 @@ import org.xmlpull.v1.XmlSerializer;
 import android.util.Log;
 
 public class BluetoothMapMessageListing {
-    private boolean hasUnread = false;
+    private boolean mHasUnread = false;
     private static final String TAG = "BluetoothMapMessageListing";
     private static final boolean D = BluetoothMapService.DEBUG;
 
@@ -41,7 +41,7 @@ public class BluetoothMapMessageListing {
         /* update info regarding whether the list contains unread messages */
         if (element.getReadBool())
         {
-            hasUnread = true;
+            mHasUnread = true;
         }
     }
 
@@ -63,7 +63,7 @@ public class BluetoothMapMessageListing {
      */
     public boolean hasUnread()
     {
-        return hasUnread;
+        return mHasUnread;
     }
 
 

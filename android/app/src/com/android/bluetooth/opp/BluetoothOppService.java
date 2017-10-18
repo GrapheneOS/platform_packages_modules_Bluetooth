@@ -85,7 +85,7 @@ public class BluetoothOppService extends ProfileService implements IObexConnecti
             (byte) 0xFF /* Any type of object */
     };
 
-    private boolean userAccepted = false;
+    private boolean mUserAccepted = false;
 
     private class BluetoothShareContentObserver extends ContentObserver {
 
@@ -442,16 +442,16 @@ public class BluetoothOppService extends ProfileService implements IObexConnecti
     }
 
     private class UpdateThread extends Thread {
-        private boolean isInterrupted ;
+        private boolean mIsInterrupted;
         UpdateThread() {
             super("Bluetooth Share Service");
-            isInterrupted = false;
+            mIsInterrupted = false;
         }
 
         @Override
         public void interrupt() {
-            isInterrupted = true;
-            if (D) Log.d(TAG, "Interrupted :" + isInterrupted);
+            mIsInterrupted = true;
+            if (D) Log.d(TAG, "Interrupted :" + mIsInterrupted);
             super.interrupt();
         }
 
@@ -461,7 +461,7 @@ public class BluetoothOppService extends ProfileService implements IObexConnecti
             Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
 
             boolean keepService = false;
-            while (!isInterrupted) {
+            while (!mIsInterrupted) {
                 synchronized (BluetoothOppService.this) {
                     if (mUpdateThread != this) {
                         throw new IllegalStateException(
@@ -469,7 +469,7 @@ public class BluetoothOppService extends ProfileService implements IObexConnecti
                     }
                     if (V) Log.v(TAG, "pendingUpdate is " + mPendingUpdate + " keepUpdateThread is "
                                 + keepService + " sListenStarted is " + mListenStarted +
-                                " isInterrupted :" + isInterrupted );
+                                " isInterrupted :" + mIsInterrupted);
                     if (!mPendingUpdate) {
                         mUpdateThread = null;
                         return;
@@ -553,7 +553,7 @@ public class BluetoothOppService extends ProfileService implements IObexConnecti
                             } else if (arrayId == id) {
                                 // This cursor row already exists in the stored
                                 // array
-                                updateShare(cursor, arrayPos, userAccepted);
+                                updateShare(cursor, arrayPos, mUserAccepted);
                                 if (shouldScanFile(arrayPos) && (!scanFile(cursor, arrayPos))) {
                                     keepService = true;
                                 }
@@ -954,40 +954,37 @@ public class BluetoothOppService extends ProfileService implements IObexConnecti
                 info.mConfirm != BluetoothShare.USER_CONFIRMATION_HANDOVER_CONFIRMED;
     }
 
+    private static final String INVISIBLE = BluetoothShare.VISIBILITY + "=" +
+            BluetoothShare.VISIBILITY_HIDDEN;
+    private static final String WHERE_INVISIBLE_COMPLETE_OUTBOUND = BluetoothShare.DIRECTION + "="
+            + BluetoothShare.DIRECTION_OUTBOUND + " AND " + BluetoothShare.STATUS + ">="
+            + BluetoothShare.STATUS_SUCCESS + " AND " + INVISIBLE;
+    private static final String WHERE_INVISIBLE_COMPLETE_INBOUND_FAILED = BluetoothShare.DIRECTION + "="
+            + BluetoothShare.DIRECTION_INBOUND + " AND " + BluetoothShare.STATUS + ">"
+            + BluetoothShare.STATUS_SUCCESS + " AND " + INVISIBLE;
+    private static final String WHERE_INBOUND_SUCCESS = BluetoothShare.DIRECTION + "="
+            + BluetoothShare.DIRECTION_INBOUND + " AND " + BluetoothShare.STATUS + "="
+            + BluetoothShare.STATUS_SUCCESS + " AND " + INVISIBLE;
     // Run in a background thread at boot.
     private static void trimDatabase(ContentResolver contentResolver) {
-        final String INVISIBLE = BluetoothShare.VISIBILITY + "=" +
-                BluetoothShare.VISIBILITY_HIDDEN;
-
         // remove the invisible/complete/outbound shares
-        final String WHERE_INVISIBLE_COMPLETE_OUTBOUND = BluetoothShare.DIRECTION + "="
-                + BluetoothShare.DIRECTION_OUTBOUND + " AND " + BluetoothShare.STATUS + ">="
-                + BluetoothShare.STATUS_SUCCESS + " AND " + INVISIBLE;
         int delNum = contentResolver.delete(BluetoothShare.CONTENT_URI,
                 WHERE_INVISIBLE_COMPLETE_OUTBOUND, null);
         if (V) Log.v(TAG, "Deleted complete outbound shares, number =  " + delNum);
 
         // remove the invisible/finished/inbound/failed shares
-        final String WHERE_INVISIBLE_COMPLETE_INBOUND_FAILED = BluetoothShare.DIRECTION + "="
-                + BluetoothShare.DIRECTION_INBOUND + " AND " + BluetoothShare.STATUS + ">"
-                + BluetoothShare.STATUS_SUCCESS + " AND " + INVISIBLE;
         delNum = contentResolver.delete(BluetoothShare.CONTENT_URI,
                 WHERE_INVISIBLE_COMPLETE_INBOUND_FAILED, null);
         if (V) Log.v(TAG, "Deleted complete inbound failed shares, number = " + delNum);
 
         // Only keep the inbound and successful shares for LiverFolder use
         // Keep the latest 1000 to easy db query
-        final String WHERE_INBOUND_SUCCESS = BluetoothShare.DIRECTION + "="
-                + BluetoothShare.DIRECTION_INBOUND + " AND " + BluetoothShare.STATUS + "="
-                + BluetoothShare.STATUS_SUCCESS + " AND " + INVISIBLE;
         Cursor cursor = contentResolver.query(BluetoothShare.CONTENT_URI, new String[] {
             BluetoothShare._ID
         }, WHERE_INBOUND_SUCCESS, null, BluetoothShare._ID); // sort by id
-
         if (cursor == null) {
             return;
         }
-
         int recordNum = cursor.getCount();
         if (recordNum > Constants.MAX_RECORDS_IN_DATABASE) {
             int numToDelete = recordNum - Constants.MAX_RECORDS_IN_DATABASE;

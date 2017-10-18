@@ -88,7 +88,7 @@ class PeriodicScanManager {
     }
 
     class SyncDeathRecipient implements IBinder.DeathRecipient {
-        IPeriodicAdvertisingCallback callback;
+        public IPeriodicAdvertisingCallback callback;
 
         SyncDeathRecipient(IPeriodicAdvertisingCallback callback) {
             this.callback = callback;
@@ -183,11 +183,11 @@ class PeriodicScanManager {
         String address = scanResult.getDevice().getAddress();
         int sid = scanResult.getAdvertisingSid();
 
-        int cb_id = --sTempRegistrationId;
-        mSyncs.put(binder, new SyncInfo(cb_id, deathRecipient, callback));
+        int cbId = --sTempRegistrationId;
+        mSyncs.put(binder, new SyncInfo(cbId, deathRecipient, callback));
 
-        if (DBG) Log.d(TAG, "startSync() - reg_id=" + cb_id + ", callback: " + binder);
-        startSyncNative(sid, address, skip, timeout, cb_id);
+        if (DBG) Log.d(TAG, "startSync() - reg_id=" + cbId + ", callback: " + binder);
+        startSyncNative(sid, address, skip, timeout, cbId);
     }
 
     void stopSync(IPeriodicAdvertisingCallback callback) {
@@ -200,16 +200,16 @@ class PeriodicScanManager {
             return;
         }
 
-        Integer sync_handle = sync.id;
+        Integer syncHandle = sync.id;
         binder.unlinkToDeath(sync.deathRecipient, 0);
 
-        if (sync_handle < 0) {
+        if (syncHandle < 0) {
             Log.i(TAG, "stopSync() - not finished registration yet");
             // Sync will be freed once initiated in onSyncStarted()
             return;
         }
 
-        stopSyncNative(sync_handle);
+        stopSyncNative(syncHandle);
     }
 
     static {

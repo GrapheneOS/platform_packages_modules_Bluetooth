@@ -59,9 +59,6 @@ import android.bluetooth.SdpOppOpsRecord;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.net.Socket;
-import java.net.UnknownHostException;
 
 /**
  * This class run an actual Opp transfer session (from connect target device to
@@ -605,33 +602,33 @@ public class BluetoothOppTransfer implements BluetoothOppBatch.BluetoothOppBatch
     private SocketConnectThread mConnectThread;
 
     private class SocketConnectThread extends Thread {
-        private final String host;
+        private final String mHost;
 
-        private final BluetoothDevice device;
+        private final BluetoothDevice mDevice;
 
-        private final int channel;
+        private final int mChannel;
 
-        private int l2cChannel = 0;
+        private int mL2cChannel = 0;
 
-        private boolean isConnected;
+        private boolean mIsConnected;
 
-        private long timestamp;
+        private long mTimestamp;
 
-        private BluetoothSocket btSocket = null;
+        private BluetoothSocket mBtSocket = null;
 
         private boolean mRetry = false;
 
         private boolean mSdpInitiated = false;
 
-        private boolean isInterrupted = false;
+        private boolean mIsInterrupted = false;
 
         /* create a Rfcomm/L2CAP Socket */
         SocketConnectThread(BluetoothDevice device, boolean retry) {
             super("Socket Connect Thread");
-            this.device = device;
-            this.host = null;
-            this.channel = -1;
-            isConnected = false;
+            this.mDevice = device;
+            this.mHost = null;
+            this.mChannel = -1;
+            mIsConnected = false;
             mRetry = retry;
             mSdpInitiated = false;
         }
@@ -640,22 +637,22 @@ public class BluetoothOppTransfer implements BluetoothOppBatch.BluetoothOppBatch
         SocketConnectThread(
                 BluetoothDevice device, boolean retry, boolean sdpInitiated, int l2capChannel) {
             super("Socket Connect Thread");
-            this.device = device;
-            this.host = null;
-            this.channel = -1;
-            isConnected = false;
+            this.mDevice = device;
+            this.mHost = null;
+            this.mChannel = -1;
+            mIsConnected = false;
             mRetry = retry;
             mSdpInitiated = sdpInitiated;
-            l2cChannel = l2capChannel;
+            mL2cChannel = l2capChannel;
         }
 
         @Override
         public void interrupt() {
-            if (D) Log.d(TAG, "start interrupt :" + btSocket);
-            isInterrupted = true;
-            if (btSocket != null) {
+            if (D) Log.d(TAG, "start interrupt :" + mBtSocket);
+            mIsInterrupted = true;
+            if (mBtSocket != null) {
                 try {
-                    btSocket.close();
+                    mBtSocket.close();
                 } catch (IOException e) {
                     Log.v(TAG, "Error when close socket");
                 }
@@ -665,28 +662,28 @@ public class BluetoothOppTransfer implements BluetoothOppBatch.BluetoothOppBatch
         private void connectRfcommSocket() {
             if (V) Log.v(TAG, "connectRfcommSocket");
             try {
-                if (isInterrupted) {
+                if (mIsInterrupted) {
                     Log.d(TAG, "connectRfcommSocket interrupted");
-                    markConnectionFailed(btSocket);
+                    markConnectionFailed(mBtSocket);
                     return;
                 }
-                btSocket = device.createInsecureRfcommSocketToServiceRecord(
+                mBtSocket = mDevice.createInsecureRfcommSocketToServiceRecord(
                         BluetoothUuid.ObexObjectPush.getUuid());
             } catch (IOException e1) {
                 Log.e(TAG, "Rfcomm socket create error", e1);
-                markConnectionFailed(btSocket);
+                markConnectionFailed(mBtSocket);
                 return;
             }
             try {
-                btSocket.connect();
+                mBtSocket.connect();
 
                 if (V)
                     Log.v(TAG, "Rfcomm socket connection attempt took "
-                                    + (System.currentTimeMillis() - timestamp) + " ms");
+                                    + (System.currentTimeMillis() - mTimestamp) + " ms");
                 BluetoothObexTransport transport;
-                transport = new BluetoothObexTransport(btSocket);
+                transport = new BluetoothObexTransport(mBtSocket);
 
-                BluetoothOppPreference.getInstance(mContext).setName(device, device.getName());
+                BluetoothOppPreference.getInstance(mContext).setName(mDevice, mDevice.getName());
 
                 if (V) Log.v(TAG, "Send transport message " + transport.toString());
 
@@ -700,22 +697,22 @@ public class BluetoothOppTransfer implements BluetoothOppBatch.BluetoothOppBatch
                 // inform this socket asking it to retry apart from a blind
                 // delayed retry.
                 if (!mRetry && e.getMessage().equals(SOCKET_LINK_KEY_ERROR)) {
-                    Message msg = mSessionHandler.obtainMessage(SOCKET_ERROR_RETRY, -1, -1, device);
+                    Message msg = mSessionHandler.obtainMessage(SOCKET_ERROR_RETRY, -1, -1, mDevice);
                     mSessionHandler.sendMessageDelayed(msg, 1500);
                 } else {
-                    markConnectionFailed(btSocket);
+                    markConnectionFailed(mBtSocket);
                 }
             }
         }
 
         @Override
         public void run() {
-            timestamp = System.currentTimeMillis();
-            if (D) Log.d(TAG, "sdp initiated = " + mSdpInitiated + " l2cChannel :" + l2cChannel);
+            mTimestamp = System.currentTimeMillis();
+            if (D) Log.d(TAG, "sdp initiated = " + mSdpInitiated + " l2cChannel :" + mL2cChannel);
             // check if sdp initiated successfully for l2cap or not. If not
             // connect
             // directly to rfcomm
-            if (!mSdpInitiated || l2cChannel < 0) {
+            if (!mSdpInitiated || mL2cChannel < 0) {
                 /* sdp failed for some reason, connect on rfcomm */
                 Log.d(TAG, "sdp not initiated, connecting on rfcomm");
                 connectRfcommSocket();
@@ -727,12 +724,12 @@ public class BluetoothOppTransfer implements BluetoothOppBatch.BluetoothOppBatch
 
             /* Use BluetoothSocket to connect */
             try {
-                if (isInterrupted) {
+                if (mIsInterrupted) {
                     Log.e(TAG, "btSocket connect interrupted ");
-                    markConnectionFailed(btSocket);
+                    markConnectionFailed(mBtSocket);
                     return;
                 } else {
-                    btSocket = device.createInsecureL2capSocket(l2cChannel);
+                    mBtSocket = mDevice.createInsecureL2capSocket(mL2cChannel);
                 }
             } catch (IOException e1) {
                 Log.e(TAG, "L2cap socket create error", e1);
@@ -740,19 +737,19 @@ public class BluetoothOppTransfer implements BluetoothOppBatch.BluetoothOppBatch
                 return;
             }
             try {
-                btSocket.connect();
+                mBtSocket.connect();
                 if (V)
                     Log.v(TAG, "L2cap socket connection attempt took "
-                                    + (System.currentTimeMillis() - timestamp) + " ms");
+                                    + (System.currentTimeMillis() - mTimestamp) + " ms");
                 BluetoothObexTransport transport;
-                transport = new BluetoothObexTransport(btSocket);
-                BluetoothOppPreference.getInstance(mContext).setName(device, device.getName());
+                transport = new BluetoothObexTransport(mBtSocket);
+                BluetoothOppPreference.getInstance(mContext).setName(mDevice, mDevice.getName());
                 if (V) Log.v(TAG, "Send transport message " + transport.toString());
                 mSessionHandler.obtainMessage(TRANSPORT_CONNECTED, transport).sendToTarget();
             } catch (IOException e) {
                 Log.e(TAG, "L2cap socket connect exception", e);
                 try {
-                    btSocket.close();
+                    mBtSocket.close();
                 } catch (IOException e3) {
                     Log.e(TAG, "Bluetooth socket close error ", e3);
                 }

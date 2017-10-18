@@ -24,19 +24,19 @@ public final class MessagesFilter {
     public static final byte PRIORITY_HIGH = 0x01;
     public static final byte PRIORITY_NON_HIGH = 0x02;
 
-    byte messageType = MESSAGE_TYPE_ALL;
+    public byte messageType = MESSAGE_TYPE_ALL;
 
-    String periodBegin = null;
+    public String periodBegin = null;
 
-    String periodEnd = null;
+    public String periodEnd = null;
 
-    byte readStatus = READ_STATUS_ANY;
+    public byte readStatus = READ_STATUS_ANY;
 
-    String recipient = null;
+    public String recipient = null;
 
-    String originator = null;
+    public String originator = null;
 
-    byte priority = PRIORITY_ANY;
+    public byte priority = PRIORITY_ANY;
 
     public MessagesFilter() {
     }

@@ -32,7 +32,7 @@ import javax.obex.ServerRequestHandler;
 class MnsObexServer extends ServerRequestHandler {
 
     private static final String TAG = "MnsObexServer";
-    private boolean VDBG = MapClientService.VDBG;
+    private static final boolean VDBG = MapClientService.VDBG;
 
     private static final byte[] MNS_TARGET = new byte[]{
             (byte) 0xbb, 0x58, 0x2b, 0x41, 0x42, 0x0c, 0x11, (byte) 0xdb, (byte) 0xb0, (byte) 0xde,

@@ -24,7 +24,6 @@ import android.media.MediaMetadata;
 import android.media.browse.MediaBrowser;
 import android.media.browse.MediaBrowser.MediaItem;
 import android.media.session.MediaSession;
-import android.media.session.MediaSession.QueueItem;
 import android.os.Bundle;
 import android.util.Log;
 
@@ -127,7 +126,7 @@ class BrowsedMediaPlayer {
     }
 
     /* Subscription callback handler. Subscribe to a folder to get its contents */
-    private MediaBrowser.SubscriptionCallback folderItemsCb =
+    private MediaBrowser.SubscriptionCallback mFolderItemsCb =
             new MediaBrowser.SubscriptionCallback() {
 
         @Override
@@ -309,7 +308,7 @@ class BrowsedMediaPlayer {
                 mMediaController = MediaController.wrap(
                     new android.media.session.MediaController(mContext, token));
                 /* get root folder items */
-                mMediaBrowser.subscribe(mRootFolderUid, folderItemsCb);
+                mMediaBrowser.subscribe(mRootFolderUid, mFolderItemsCb);
                 return;
             }
         } catch (NullPointerException ex) {
@@ -397,7 +396,7 @@ class BrowsedMediaPlayer {
                 Log.e(TAG, "new_folder is same as current folder, Invalid direction!");
                 mMediaInterface.changePathRsp(mBDAddr, AvrcpConstants.RSP_INV_DIRN, 0);
             } else {
-                mMediaBrowser.subscribe(newPath, folderItemsCb);
+                mMediaBrowser.subscribe(newPath, mFolderItemsCb);
                 /* assume that call is success and update stack with new folder path */
                 mPathStack.push(newPath);
             }
@@ -412,7 +411,7 @@ class BrowsedMediaPlayer {
                 /* move folder up */
                 mPathStack.pop();
                 newPath = mPathStack.peek();
-                mMediaBrowser.subscribe(newPath, folderItemsCb);
+                mMediaBrowser.subscribe(newPath, mFolderItemsCb);
             }
         } else { /* invalid direction */
             Log.w(TAG, "changePath : Invalid direction " + direction);
@@ -563,7 +562,7 @@ class BrowsedMediaPlayer {
             Log.d(TAG,
                     "getFolderItemsFilterAttr: startItem =" + startItem + ", endItem = " + endItem);
 
-        List<MediaBrowser.MediaItem> result_items = new ArrayList<MediaBrowser.MediaItem>();
+        List<MediaBrowser.MediaItem> resultItems = new ArrayList<MediaBrowser.MediaItem>();
 
         if (children == null) {
             Log.e(TAG, "Error: children are null in getFolderItemsFilterAttr");
@@ -572,21 +571,21 @@ class BrowsedMediaPlayer {
         }
 
         /* check for index out of bound errors */
-        result_items = checkIndexOutofBounds(bdaddr, children, startItem, endItem);
-        if (result_items == null) {
-            Log.w(TAG, "result_items is null.");
+        resultItems = checkIndexOutofBounds(bdaddr, children, startItem, endItem);
+        if (resultItems == null) {
+            Log.w(TAG, "resultItems is null.");
             mMediaInterface.folderItemsRsp(bdaddr, AvrcpConstants.RSP_INV_RANGE, null);
             return;
         }
-        FolderItemsData folderDataNative = new FolderItemsData(result_items.size());
+        FolderItemsData folderDataNative = new FolderItemsData(resultItems.size());
 
         /* variables to temperorily add attrs */
         ArrayList<String> attrArray = new ArrayList<String>();
         ArrayList<Integer> attrId = new ArrayList<Integer>();
 
-        for (int itemIndex = 0; itemIndex < result_items.size(); itemIndex++) {
+        for (int itemIndex = 0; itemIndex < resultItems.size(); itemIndex++) {
             /* item type. Needs to be set by media player */
-            MediaBrowser.MediaItem item = result_items.get(itemIndex);
+            MediaBrowser.MediaItem item = resultItems.get(itemIndex);
             int flags = item.getFlags();
             if ((flags & MediaBrowser.MediaItem.FLAG_BROWSABLE) != 0) {
                 folderDataNative.mItemTypes[itemIndex] = AvrcpConstants.BTRC_ITEM_FOLDER;
@@ -632,7 +631,7 @@ class BrowsedMediaPlayer {
 
                     int attribId = isAllAttribRequested ? (idx + 1) :
                             mFolderItemsReqObj.mAttrIDs[idx];
-                    value = getAttrValue(attribId, result_items.get(itemIndex));
+                    value = getAttrValue(attribId, resultItems.get(itemIndex));
                     if (value != null) {
                         attrArray.add(value);
                         attrId.add(attribId);

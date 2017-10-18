@@ -109,8 +109,8 @@ public class HeadsetClientStateMachine extends StateMachine {
     static final int MIN_HFP_SCO_VOICE_CALL_VOLUME = 1; // HFP 1.5 spec.
 
     public static final Integer HF_ORIGINATED_CALL_ID = new Integer(-1);
-    private long OUTGOING_TIMEOUT_MILLI = 10 * 1000; // 10 seconds
-    private long QUERY_CURRENT_CALLS_WAIT_MILLIS = 2 * 1000; // 2 seconds
+    private static final long OUTGOING_TIMEOUT_MILLI = 10 * 1000; // 10 seconds
+    private static final long QUERY_CURRENT_CALLS_WAIT_MILLIS = 2 * 1000; // 2 seconds
 
     // Keep track of audio routing across all devices.
     private static boolean sAudioIsRouted = true;
@@ -138,8 +138,8 @@ public class HeadsetClientStateMachine extends StateMachine {
     private String mOperatorName;
     private String mSubscriberInfo;
 
-    private static int mMaxAmVcVol;
-    private static int mMinAmVcVol;
+    private static int sMaxAmVcVol;
+    private static int sMinAmVcVol;
 
     // queue of send actions (pair action, action_data)
     private Queue<Pair<Integer, Object>> mQueuedActions;
@@ -681,8 +681,8 @@ public class HeadsetClientStateMachine extends StateMachine {
         mIndicatorNetworkSignal = 0;
         mIndicatorBatteryLevel = 0;
 
-        mMaxAmVcVol = sAudioManager.getStreamMaxVolume(AudioManager.STREAM_VOICE_CALL);
-        mMinAmVcVol = sAudioManager.getStreamMinVolume(AudioManager.STREAM_VOICE_CALL);
+        sMaxAmVcVol = sAudioManager.getStreamMaxVolume(AudioManager.STREAM_VOICE_CALL);
+        sMinAmVcVol = sAudioManager.getStreamMinVolume(AudioManager.STREAM_VOICE_CALL);
 
         mOperatorName = null;
         mSubscriberInfo = null;
@@ -739,19 +739,19 @@ public class HeadsetClientStateMachine extends StateMachine {
     }
 
     static int hfToAmVol(int hfVol) {
-        int amRange = mMaxAmVcVol - mMinAmVcVol;
+        int amRange = sMaxAmVcVol - sMinAmVcVol;
         int hfRange = MAX_HFP_SCO_VOICE_CALL_VOLUME - MIN_HFP_SCO_VOICE_CALL_VOLUME;
         int amOffset =
             (amRange * (hfVol - MIN_HFP_SCO_VOICE_CALL_VOLUME)) / hfRange;
-        int amVol = mMinAmVcVol + amOffset;
+        int amVol = sMinAmVcVol + amOffset;
         Log.d(TAG, "HF -> AM " + hfVol + " " + amVol);
         return amVol;
     }
 
     static int amToHfVol(int amVol) {
-        int amRange = (mMaxAmVcVol > mMinAmVcVol) ? (mMaxAmVcVol - mMinAmVcVol) : 1;
+        int amRange = (sMaxAmVcVol > sMinAmVcVol) ? (sMaxAmVcVol - sMinAmVcVol) : 1;
         int hfRange = MAX_HFP_SCO_VOICE_CALL_VOLUME - MIN_HFP_SCO_VOICE_CALL_VOLUME;
-        int hfOffset = (hfRange * (amVol - mMinAmVcVol)) / amRange;
+        int hfOffset = (hfRange * (amVol - sMinAmVcVol)) / amRange;
         int hfVol = MIN_HFP_SCO_VOICE_CALL_VOLUME + hfOffset;
         Log.d(TAG, "AM -> HF " + amVol + " " + hfVol);
         return hfVol;
