@@ -358,7 +358,9 @@ public final class BluetoothOppProvider extends ContentProvider {
 
         if (ret != null) {
             ret.setNotificationUri(getContext().getContentResolver(), uri);
-            if (V) Log.v(TAG, "created cursor " + ret + " on behalf of ");// +
+            if (V) {
+                Log.v(TAG, "created cursor " + ret + " on behalf of ");
+            }
         } else {
             if (D) Log.d(TAG, "query failed in downloads database");
             }

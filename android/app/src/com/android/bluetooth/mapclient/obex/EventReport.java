@@ -206,7 +206,7 @@ public class EventReport {
 
         private final String mSpecName;
 
-        private Type(String specName) {
+        Type(String specName) {
             mSpecName = specName;
         }
 

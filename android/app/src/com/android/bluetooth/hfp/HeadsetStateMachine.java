@@ -2408,14 +2408,15 @@ final class HeadsetStateMachine extends StateMachine {
         atCommand = atCommand.trim();
         if (atCommand.length() > 5) {
             atString = atCommand.substring(5);
-            if (atString.startsWith("?")) // Read
+            if (atString.startsWith("?")) { // Read
                 commandType = mPhonebook.TYPE_READ;
-            else if (atString.startsWith("=?")) // Test
+            } else if (atString.startsWith("=?")) { // Test
                 commandType = mPhonebook.TYPE_TEST;
-            else if (atString.startsWith("=")) // Set
+            } else if (atString.startsWith("=")) { // Set
                 commandType = mPhonebook.TYPE_SET;
-            else
+            } else {
                 commandType = mPhonebook.TYPE_UNKNOWN;
+            }
         }
         return commandType;
     }
@@ -3324,21 +3325,20 @@ final class HeadsetStateMachine extends StateMachine {
     boolean okToConnect(BluetoothDevice device) {
         AdapterService adapterService = AdapterService.getAdapterService();
         int priority = mService.getPriority(device);
-        boolean ret = false;
         // check if this is an incoming connection in Quiet mode.
         if ((adapterService == null)
                 || ((adapterService.isQuietModeEnabled()) && (mTargetDevice == null))) {
-            ret = false;
+            return false;
         }
         // check priority and accept or reject the connection. if priority is undefined
         // it is likely that our SDP has not completed and peer is initiating the
         // connection. Allow this connection, provided the device is bonded
-        else if ((BluetoothProfile.PRIORITY_OFF < priority)
-                || ((BluetoothProfile.PRIORITY_UNDEFINED == priority)
-                           && (device.getBondState() != BluetoothDevice.BOND_NONE))) {
-            ret = true;
+        if ((BluetoothProfile.PRIORITY_OFF < priority) || (
+                (BluetoothProfile.PRIORITY_UNDEFINED == priority) && (device.getBondState()
+                        != BluetoothDevice.BOND_NONE))) {
+            return true;
         }
-        return ret;
+        return false;
     }
 
     @Override
