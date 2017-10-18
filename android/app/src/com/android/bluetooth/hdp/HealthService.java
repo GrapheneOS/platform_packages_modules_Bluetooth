@@ -277,9 +277,8 @@ public class HealthService extends ProfileService {
                             Log.e(TAG, "failed to dup ParcelFileDescriptor");
                             break;
                         }
-                    }
-                    /*set the channel fd to null if channel state isnot equal to connected*/
-                    else{
+                    } else{
+                        /*set the channel fd to null if channel state isnot equal to connected*/
                         chan.mChannelFd = null;
                     }
                     callHealthChannelCallback(chan.mConfig, chan.mDevice, newState,

@@ -153,7 +153,7 @@ public class BluetoothMapAppObserver{
     /**
      * Adds a new content observer to the list of content observers.
      * The key for the observer is the uri as string
-     * @param uri uri for the package that supports MAP email
+     * @param app app item for the package that supports MAP email
      */
 
     public void registerObserver(BluetoothMapAccountItem app) {
