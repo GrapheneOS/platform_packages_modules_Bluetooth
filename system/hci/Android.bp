@@ -31,7 +31,7 @@ cc_library_static {
     ],
     include_dirs: [
         "packages/modules/Bluetooth/system",
-        "packages/modules/Bluetooth/system/include",
+        "packages/modules/Bluetooth/system/internal_include",
         "packages/modules/Bluetooth/system/btcore/include",
         "packages/modules/Bluetooth/system/stack/include",
         "packages/modules/Bluetooth/system/utils/include",
@@ -51,7 +51,7 @@ cc_test {
     ],
     include_dirs: [
         "packages/modules/Bluetooth/system",
-        "packages/modules/Bluetooth/system/include",
+        "packages/modules/Bluetooth/system/internal_include",
         "packages/modules/Bluetooth/system/btcore/include",
         "packages/modules/Bluetooth/system/osi/test",
         "packages/modules/Bluetooth/system/stack/include",

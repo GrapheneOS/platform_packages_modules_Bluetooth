@@ -30,7 +30,7 @@ cc_library_static {
         "packages/modules/Bluetooth/system/vnd/ble",
         "packages/modules/Bluetooth/system/btif/include",
         "packages/modules/Bluetooth/system/hci/include",
-        "packages/modules/Bluetooth/system/include",
+        "packages/modules/Bluetooth/system/internal_include",
         "packages/modules/Bluetooth/system/udrv/include",
         "packages/modules/Bluetooth/system/bta/include",
         "packages/modules/Bluetooth/system/bta/sys",
@@ -189,7 +189,7 @@ cc_test {
     ],
     include_dirs: [
         "packages/modules/Bluetooth/system",
-        "packages/modules/Bluetooth/system/include",
+        "packages/modules/Bluetooth/system/internal_include",
     ],
     srcs: ["test/stack_a2dp_test.cc"],
     shared_libs: [
@@ -217,7 +217,7 @@ cc_test {
     ],
     include_dirs: [
         "packages/modules/Bluetooth/system",
-        "packages/modules/Bluetooth/system/include",
+        "packages/modules/Bluetooth/system/internal_include",
         "packages/modules/Bluetooth/system/btcore/include",
         "packages/modules/Bluetooth/system/hci/include",
         "packages/modules/Bluetooth/system/utils/include",
@@ -252,10 +252,10 @@ cc_test {
     ],
     include_dirs: [
         "packages/modules/Bluetooth/system",
-        "packages/modules/Bluetooth/system/include",
+        "packages/modules/Bluetooth/system/internal_include",
         "packages/modules/Bluetooth/system/btcore/include",
         "packages/modules/Bluetooth/system/hci/include",
-        "packages/modules/Bluetooth/system/include",
+        "packages/modules/Bluetooth/system/internal_include",
         "packages/modules/Bluetooth/system/utils/include",
     ],
     srcs: [
@@ -301,7 +301,7 @@ cc_test {
     ],
     include_dirs: [
         "packages/modules/Bluetooth/system/",
-        "packages/modules/Bluetooth/system/include",
+        "packages/modules/Bluetooth/system/internal_include",
         "packages/modules/Bluetooth/system/btcore/include",
         "packages/modules/Bluetooth/system/bta/include",
     ],
