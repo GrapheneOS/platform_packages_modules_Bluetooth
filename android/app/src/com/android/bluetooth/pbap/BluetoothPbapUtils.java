@@ -18,7 +18,6 @@
 package com.android.bluetooth.pbap;
 
 import android.content.Context;
-import android.content.ContentResolver;
 import android.content.res.AssetFileDescriptor;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
@@ -32,7 +31,6 @@ import android.provider.ContactsContract.CommonDataKinds.Email;
 import android.provider.ContactsContract.CommonDataKinds.StructuredName;
 import android.provider.ContactsContract.CommonDataKinds.StructuredPostal;
 import android.provider.ContactsContract.Data;
-import android.provider.ContactsContract.RawContacts;
 import android.provider.ContactsContract.Profile;
 import android.provider.ContactsContract.RawContactsEntity;
 
@@ -41,7 +39,6 @@ import android.util.Log;
 import com.android.vcard.VCardComposer;
 import com.android.vcard.VCardConfig;
 import com.android.bluetooth.Utils;
-import com.android.bluetooth.pbap.BluetoothPbapService;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -77,23 +74,23 @@ public class BluetoothPbapUtils {
     public static boolean contactsLoaded = false;
 
     private static class ContactData {
-        private String name;
-        private ArrayList<String> email;
-        private ArrayList<String> phone;
-        private ArrayList<String> address;
+        private String mName;
+        private ArrayList<String> mEmail;
+        private ArrayList<String> mPhone;
+        private ArrayList<String> mAddress;
 
         ContactData() {
-            phone = new ArrayList<String>();
-            email = new ArrayList<String>();
-            address = new ArrayList<String>();
+            mPhone = new ArrayList<String>();
+            mEmail = new ArrayList<String>();
+            mAddress = new ArrayList<String>();
         }
 
         ContactData(String name, ArrayList<String> phone, ArrayList<String> email,
                 ArrayList<String> address) {
-            this.name = name;
-            this.phone = phone;
-            this.email = email;
-            this.address = address;
+            this.mName = name;
+            this.mPhone = phone;
+            this.mEmail = email;
+            this.mAddress = address;
         }
     }
 
@@ -430,17 +427,17 @@ public class BluetoothPbapUtils {
                             new ContactData(nameTmp, phoneTmp, emailTmp, addressTmp);
                     dataCursor.close();
 
-                    if ((nameTmp == null && sContactDataset.get(updatedCID).name != null)
-                            || (nameTmp != null && sContactDataset.get(updatedCID).name == null)
-                            || (!(nameTmp == null && sContactDataset.get(updatedCID).name == null)
-                                       && !nameTmp.equals(sContactDataset.get(updatedCID).name))) {
+                    if ((nameTmp == null && sContactDataset.get(updatedCID).mName != null)
+                            || (nameTmp != null && sContactDataset.get(updatedCID).mName == null)
+                            || (!(nameTmp == null && sContactDataset.get(updatedCID).mName == null)
+                                       && !nameTmp.equals(sContactDataset.get(updatedCID).mName))) {
                         updated = true;
-                    } else if (checkFieldUpdates(sContactDataset.get(updatedCID).phone, phoneTmp)) {
+                    } else if (checkFieldUpdates(sContactDataset.get(updatedCID).mPhone, phoneTmp)) {
                         updated = true;
-                    } else if (checkFieldUpdates(sContactDataset.get(updatedCID).email, emailTmp)) {
+                    } else if (checkFieldUpdates(sContactDataset.get(updatedCID).mEmail, emailTmp)) {
                         updated = true;
                     } else if (checkFieldUpdates(
-                                        sContactDataset.get(updatedCID).address, addressTmp)) {
+                                        sContactDataset.get(updatedCID).mAddress, addressTmp)) {
                         updated = true;
                     }
 
@@ -587,16 +584,16 @@ public class BluetoothPbapUtils {
 
         switch (fieldType) {
             case TYPE_NAME:
-                cData.name = data;
+                cData.mName = data;
                 break;
             case TYPE_PHONE:
-                cData.phone.add(data);
+                cData.mPhone.add(data);
                 break;
             case TYPE_EMAIL:
-                cData.email.add(data);
+                cData.mEmail.add(data);
                 break;
             case TYPE_ADDRESS:
-                cData.address.add(data);
+                cData.mAddress.add(data);
                 break;
         }
         sContactDataset.put(contactId, cData);

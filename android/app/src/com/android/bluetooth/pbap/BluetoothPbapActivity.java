@@ -77,7 +77,7 @@ public class BluetoothPbapActivity extends AlertActivity implements
 
     private EditText mKeyView;
 
-    private TextView messageView;
+    private TextView mMessageView;
 
     private String mSessionKey = "";
 
@@ -156,8 +156,8 @@ public class BluetoothPbapActivity extends AlertActivity implements
         switch (id) {
             case DIALOG_YES_NO_AUTH:
                 mView = getLayoutInflater().inflate(R.layout.auth, null);
-                messageView = (TextView)mView.findViewById(R.id.message);
-                messageView.setText(createDisplayText(id));
+                mMessageView = (TextView)mView.findViewById(R.id.message);
+                mMessageView.setText(createDisplayText(id));
                 mKeyView = (EditText)mView.findViewById(R.id.text);
                 mKeyView.addTextChangedListener(this);
                 mKeyView.setFilters(new InputFilter[] {
@@ -230,7 +230,7 @@ public class BluetoothPbapActivity extends AlertActivity implements
     private void onTimeout() {
         mTimeout = true;
         if (mCurrentDialog == DIALOG_YES_NO_AUTH) {
-            messageView.setText(getString(R.string.pbap_authentication_timeout_message,
+            mMessageView.setText(getString(R.string.pbap_authentication_timeout_message,
                     BluetoothPbapService.getRemoteDeviceName()));
             mKeyView.setVisibility(View.GONE);
             mKeyView.clearFocus();

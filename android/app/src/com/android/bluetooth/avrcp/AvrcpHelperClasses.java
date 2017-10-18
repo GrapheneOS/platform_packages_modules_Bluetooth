@@ -18,11 +18,9 @@ package com.android.bluetooth.avrcp;
 
 import android.annotation.NonNull;
 import android.annotation.Nullable;
-import android.media.session.MediaSession;
 
 import com.android.bluetooth.Utils;
 
-import java.util.List;
 import java.util.Arrays;
 import java.util.ArrayDeque;
 import java.util.Collection;
@@ -120,7 +118,7 @@ class AvrcpCmd {
 class MediaPlayerListRsp {
     byte mStatus;
     short mUIDCounter;
-    byte itemType;
+    byte mItemType;
     int[] mPlayerIds;
     byte[] mPlayerTypes;
     int[] mPlayerSubTypes;
@@ -135,7 +133,7 @@ class MediaPlayerListRsp {
         this.mStatus = status;
         this.mUIDCounter = uidCounter;
         this.mNumItems = numItems;
-        this.itemType = itemType;
+        this.mItemType = itemType;
         this.mPlayerIds = playerIds;
         this.mPlayerTypes = playerTypes;
         this.mPlayerSubTypes = new int[numItems];
@@ -200,23 +198,23 @@ class ItemAttrRsp {
 /* stores information of Media Players in the system */
 class MediaPlayerInfo {
 
-    private byte majorType;
-    private int subType;
-    private byte playStatus;
-    private short[] featureBitMask;
-    @NonNull private String packageName;
-    @NonNull private String displayableName;
-    @Nullable private MediaController mediaController;
+    private byte mMajorType;
+    private int mSubType;
+    private byte mPlayStatus;
+    private short[] mFeatureBitMask;
+    @NonNull private String mPackageName;
+    @NonNull private String mDisplayableName;
+    @Nullable private MediaController mMediaController;
 
     MediaPlayerInfo(@Nullable MediaController controller, byte majorType, int subType,
             byte playStatus, short[] featureBitMask, @NonNull String packageName,
             @Nullable String displayableName) {
         this.setMajorType(majorType);
         this.setSubType(subType);
-        this.playStatus = playStatus;
+        this.mPlayStatus = playStatus;
         // store a copy the FeatureBitMask array
-        this.featureBitMask = Arrays.copyOf(featureBitMask, featureBitMask.length);
-        Arrays.sort(this.featureBitMask);
+        this.mFeatureBitMask = Arrays.copyOf(featureBitMask, featureBitMask.length);
+        Arrays.sort(this.mFeatureBitMask);
         this.setPackageName(packageName);
         this.setDisplayableName(displayableName);
         this.setMediaController(controller);
@@ -224,79 +222,79 @@ class MediaPlayerInfo {
 
     /* getters and setters */
     byte getPlayStatus() {
-        return playStatus;
+        return mPlayStatus;
     }
 
     void setPlayStatus(byte playStatus) {
-        this.playStatus = playStatus;
+        this.mPlayStatus = playStatus;
     }
 
     MediaController getMediaController() {
-        return mediaController;
+        return mMediaController;
     }
 
     void setMediaController(MediaController mediaController) {
         if (mediaController != null) {
-            this.packageName = mediaController.getPackageName();
+            this.mPackageName = mediaController.getPackageName();
         }
-        this.mediaController = mediaController;
+        this.mMediaController = mediaController;
     }
 
     void setPackageName(@NonNull String name) {
         // Controller determines package name when it is set.
-        if (mediaController != null) return;
-        this.packageName = name;
+        if (mMediaController != null) return;
+        this.mPackageName = name;
     }
 
     String getPackageName() {
-        if (mediaController != null) {
-            return mediaController.getPackageName();
-        } else if (packageName != null) {
-            return packageName;
+        if (mMediaController != null) {
+            return mMediaController.getPackageName();
+        } else if (mPackageName != null) {
+            return mPackageName;
         }
         return null;
     }
 
     byte getMajorType() {
-        return majorType;
+        return mMajorType;
     }
 
     void setMajorType(byte majorType) {
-        this.majorType = majorType;
+        this.mMajorType = majorType;
     }
 
     int getSubType() {
-        return subType;
+        return mSubType;
     }
 
     void setSubType(int subType) {
-        this.subType = subType;
+        this.mSubType = subType;
     }
 
     String getDisplayableName() {
-        return displayableName;
+        return mDisplayableName;
     }
 
     void setDisplayableName(@Nullable String displayableName) {
         if (displayableName == null) displayableName = "";
-        this.displayableName = displayableName;
+        this.mDisplayableName = displayableName;
     }
 
     short[] getFeatureBitMask() {
-        return featureBitMask;
+        return mFeatureBitMask;
     }
 
     void setFeatureBitMask(short[] featureBitMask) {
         synchronized (this) {
-            this.featureBitMask = Arrays.copyOf(featureBitMask, featureBitMask.length);
-            Arrays.sort(this.featureBitMask);
+            this.mFeatureBitMask = Arrays.copyOf(featureBitMask, featureBitMask.length);
+            Arrays.sort(this.mFeatureBitMask);
         }
     }
 
     boolean isBrowseSupported() {
         synchronized (this) {
-            if (this.featureBitMask == null) return false;
-            for (short bit : this.featureBitMask) {
+            if (this.mFeatureBitMask == null) return false;
+            for (short bit : this.mFeatureBitMask) {
                 if (bit == AvrcpConstants.AVRC_PF_BROWSE_BIT_NO) return true;
             }
         }
@@ -306,9 +304,9 @@ class MediaPlayerInfo {
     /** Tests if the view of this player presented to the controller is different enough to
      *  justify sending an Available Players Changed update */
     public boolean equalView(MediaPlayerInfo other) {
-        return (this.majorType == other.getMajorType()) && (this.subType == other.getSubType())
-                && Arrays.equals(this.featureBitMask, other.getFeatureBitMask())
-                && this.displayableName.equals(other.getDisplayableName());
+        return (this.mMajorType == other.getMajorType()) && (this.mSubType == other.getSubType())
+                && Arrays.equals(this.mFeatureBitMask, other.getFeatureBitMask())
+                && this.mDisplayableName.equals(other.getDisplayableName());
     }
 
     @Override
@@ -319,7 +317,7 @@ class MediaPlayerInfo {
         sb.append(" (as '" + getDisplayableName() + "')");
         sb.append(" Type = " + getMajorType());
         sb.append(", SubType = " + getSubType());
-        sb.append(", Status = " + playStatus);
+        sb.append(", Status = " + mPlayStatus);
         sb.append(" Feature Bits [");
         short[] bits = getFeatureBitMask();
         for (int i = 0; i < bits.length; i++) {
@@ -334,9 +332,9 @@ class MediaPlayerInfo {
 
 /* stores information for browsable Media Players available in the system */
 class BrowsePlayerInfo {
-    String packageName;
-    String displayableName;
-    String serviceClass;
+    public String packageName;
+    public String displayableName;
+    public String serviceClass;
 
     BrowsePlayerInfo(String packageName, String displayableName, String serviceClass) {
         this.packageName = packageName;
@@ -366,7 +364,7 @@ class FolderItemsData {
     String[] mDisplayNames;
     int[] mAttrIds;
     String[] mAttrValues;
-    int attrCounter;
+    int mAttrCounter;
 
     FolderItemsData(int size) {
         mNumItems = size;

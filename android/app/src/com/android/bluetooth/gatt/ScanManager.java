@@ -33,7 +33,6 @@ import android.os.HandlerThread;
 import android.os.Looper;
 import android.os.Message;
 import android.os.RemoteException;
-import android.os.ServiceManager;
 import android.os.SystemClock;
 import android.util.Log;
 import android.view.Display;
@@ -85,7 +84,7 @@ public class ScanManager {
     // Scan parameters for batch scan.
     private BatchScanParams mBatchScanParms;
 
-    private Integer curUsedTrackableAdvertisements;
+    private Integer mCurUsedTrackableAdvertisements;
     private GattService mService;
     private BroadcastReceiver mBatchAlarmReceiver;
     private boolean mBatchAlarmReceiverRegistered;
@@ -105,8 +104,8 @@ public class ScanManager {
             ActivityManager.RunningAppProcessInfo.IMPORTANCE_FOREGROUND_SERVICE;
 
     private class UidImportance {
-        int uid;
-        int importance;
+        public int uid;
+        public int importance;
         UidImportance(int uid, int importance) {
             this.uid = uid;
             this.importance = importance;
@@ -120,7 +119,7 @@ public class ScanManager {
                 Collections.newSetFromMap(new ConcurrentHashMap<ScanClient, Boolean>());
         mService = service;
         mScanNative = new ScanNative();
-        curUsedTrackableAdvertisements = 0;
+        mCurUsedTrackableAdvertisements = 0;
         mDm = (DisplayManager) mService.getSystemService(Context.DISPLAY_SERVICE);
         mActivityManager = (ActivityManager) mService.getSystemService(Context.ACTIVITY_SERVICE);
     }
@@ -410,9 +409,9 @@ public class ScanManager {
      * Parameters for batch scans.
      */
     class BatchScanParams {
-        int scanMode;
-        int fullScanscannerId;
-        int truncatedScanscannerId;
+        public int scanMode;
+        public int fullScanscannerId;
+        public int truncatedScanscannerId;
 
         BatchScanParams() {
             scanMode = -1;
@@ -436,7 +435,7 @@ public class ScanManager {
     }
 
     public int getCurrentUsedTrackingAdvertisement() {
-        return curUsedTrackableAdvertisements;
+        return mCurUsedTrackableAdvertisements;
     }
 
     private class ScanNative {
@@ -1190,21 +1189,21 @@ public class ScanManager {
                             boolean allocate) {
             int maxTotalTrackableAdvertisements =
                     AdapterService.getAdapterService().getTotalNumOfTrackableAdvertisements();
-            synchronized(curUsedTrackableAdvertisements) {
+            synchronized(mCurUsedTrackableAdvertisements) {
                 int availableEntries = maxTotalTrackableAdvertisements
-                                            - curUsedTrackableAdvertisements;
+                                            - mCurUsedTrackableAdvertisements;
                 if (allocate) {
                     if (availableEntries >= numOfTrackableAdvertisement) {
-                        curUsedTrackableAdvertisements += numOfTrackableAdvertisement;
+                        mCurUsedTrackableAdvertisements += numOfTrackableAdvertisement;
                         return true;
                     } else {
                         return false;
                     }
                 } else {
-                    if (numOfTrackableAdvertisement > curUsedTrackableAdvertisements) {
+                    if (numOfTrackableAdvertisement > mCurUsedTrackableAdvertisements) {
                         return false;
                     } else {
-                         curUsedTrackableAdvertisements -= numOfTrackableAdvertisement;
+                         mCurUsedTrackableAdvertisements -= numOfTrackableAdvertisement;
                          return true;
                     }
                 }

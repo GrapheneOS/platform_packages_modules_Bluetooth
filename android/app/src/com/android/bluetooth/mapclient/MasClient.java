@@ -58,7 +58,7 @@ public class MasClient {
     private BluetoothObexTransport mTransport;
     private BluetoothDevice mRemoteDevice;
     private ClientSession mSession;
-    private HandlerThread thread;
+    private HandlerThread mThread;
     private boolean mConnected = false;
     SdpMasRecord mSdpMasRecord;
 
@@ -70,11 +70,11 @@ public class MasClient {
         mRemoteDevice = remoteDevice;
         mCallback = callback;
         mSdpMasRecord = sdpMasRecord;
-        thread = new HandlerThread("Client");
-        thread.start();
+        mThread = new HandlerThread("Client");
+        mThread.start();
         /* This will block until the looper have started, hence it will be safe to use it,
            when the constructor completes */
-        Looper looper = thread.getLooper();
+        Looper looper = mThread.getLooper();
         mHandler = new MasClientHandler(looper, this);
 
         mHandler.obtainMessage(CONNECT).sendToTarget();
@@ -163,7 +163,7 @@ public class MasClient {
 
     public void shutdown() {
         mHandler.obtainMessage(DISCONNECT).sendToTarget();
-        thread.quitSafely();
+        mThread.quitSafely();
     }
 
     public enum CharsetType {

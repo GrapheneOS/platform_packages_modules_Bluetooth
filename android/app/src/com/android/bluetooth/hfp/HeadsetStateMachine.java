@@ -118,7 +118,7 @@ final class HeadsetStateMachine extends StateMachine {
     private static final int CONNECT_TIMEOUT_MILLIS = 30000;
 
     // Max number of HF connections at any time
-    private int max_hf_connections = 1;
+    private int mMaxHfConnections = 1;
 
     private static final int NBS_CODEC = 1;
     private static final int WBS_CODEC = 2;
@@ -242,12 +242,12 @@ final class HeadsetStateMachine extends StateMachine {
 
         String maxHfpClients = SystemProperties.get("bt.max.hfpclient.connections");
         if (!maxHfpClients.isEmpty() && (Integer.parseInt(maxHfpClients) == 2)) {
-            max_hf_connections = Integer.parseInt(maxHfpClients);
+            mMaxHfConnections = Integer.parseInt(maxHfpClients);
         }
-        Log.d(TAG, "max_hf_connections = " + max_hf_connections);
+        Log.d(TAG, "max_hf_connections = " + mMaxHfConnections);
         Log.d(TAG,
                 "in-band_ringing_support = " + BluetoothHeadset.isInbandRingingSupported(mService));
-        initializeNative(max_hf_connections, BluetoothHeadset.isInbandRingingSupported(mService));
+        initializeNative(mMaxHfConnections, BluetoothHeadset.isInbandRingingSupported(mService));
         mNativeAvailable = true;
 
         mDisconnected = new Disconnected();
@@ -811,7 +811,7 @@ final class HeadsetStateMachine extends StateMachine {
                         Log.w(TAG, "Connected: CONNECT, device " + device + " is connected");
                         break;
                     }
-                    if (mConnectedDevicesList.size() >= max_hf_connections) {
+                    if (mConnectedDevicesList.size() >= mMaxHfConnections) {
                         BluetoothDevice disconnectDevice = mConnectedDevicesList.get(0);
                         Log.d(TAG, "Connected: Reach to max size, disconnect " + disconnectDevice);
                         broadcastConnectionState(device, BluetoothProfile.STATE_CONNECTING,
@@ -828,14 +828,14 @@ final class HeadsetStateMachine extends StateMachine {
                         }
                         synchronized (HeadsetStateMachine.this) {
                             mTargetDevice = device;
-                            if (max_hf_connections == 1) {
+                            if (mMaxHfConnections == 1) {
                                 transitionTo(mPending);
                             } else {
                                 mMultiDisconnectDevice = disconnectDevice;
                                 transitionTo(mMultiHFPending);
                             }
                         }
-                    } else if (mConnectedDevicesList.size() < max_hf_connections) {
+                    } else if (mConnectedDevicesList.size() < mMaxHfConnections) {
                         broadcastConnectionState(device, BluetoothProfile.STATE_CONNECTING,
                                 BluetoothProfile.STATE_DISCONNECTED);
                         if (!connectHfpNative(getByteAddress(device))) {
@@ -1061,7 +1061,7 @@ final class HeadsetStateMachine extends StateMachine {
                 case HeadsetHalConstants.CONNECTION_STATE_SLC_CONNECTED:
                     // Should have been rejected in CONNECTION_STATE_CONNECTED
                     if (okToConnect(device)
-                            && (mConnectedDevicesList.size() < max_hf_connections)) {
+                            && (mConnectedDevicesList.size() < mMaxHfConnections)) {
                         broadcastConnectionState(device, BluetoothProfile.STATE_CONNECTED,
                                 BluetoothProfile.STATE_DISCONNECTED);
                         synchronized (HeadsetStateMachine.this) {
@@ -1086,7 +1086,7 @@ final class HeadsetStateMachine extends StateMachine {
                     }
                     Log.w(TAG, "HFP to be Connected in Connected state");
                     if (!okToConnect(device)
-                            || (mConnectedDevicesList.size() >= max_hf_connections)) {
+                            || (mConnectedDevicesList.size() >= mMaxHfConnections)) {
                         // reject the connection and stay in Connected state itself
                         Log.i(TAG, "Incoming Hf rejected. priority=" + mService.getPriority(device)
                                         + " bondState=" + device.getBondState());
@@ -1179,7 +1179,7 @@ final class HeadsetStateMachine extends StateMachine {
                         break;
                     }
 
-                    if (max_hf_connections == 1) {
+                    if (mMaxHfConnections == 1) {
                         deferMessage(obtainMessage(DISCONNECT, mCurrentDevice));
                         deferMessage(obtainMessage(CONNECT, device));
                         if (disconnectAudioNative(getByteAddress(mCurrentDevice))) {
@@ -1190,7 +1190,7 @@ final class HeadsetStateMachine extends StateMachine {
                         break;
                     }
 
-                    if (mConnectedDevicesList.size() >= max_hf_connections) {
+                    if (mConnectedDevicesList.size() >= mMaxHfConnections) {
                         BluetoothDevice disconnectDevice = mConnectedDevicesList.get(0);
                         Log.d(TAG, "AudioOn: Reach to max size, disconnect " + disconnectDevice);
 
@@ -1217,7 +1217,7 @@ final class HeadsetStateMachine extends StateMachine {
                             mMultiDisconnectDevice = disconnectDevice;
                             transitionTo(mMultiHFPending);
                         }
-                    } else if (mConnectedDevicesList.size() < max_hf_connections) {
+                    } else if (mConnectedDevicesList.size() < mMaxHfConnections) {
                         broadcastConnectionState(device, BluetoothProfile.STATE_CONNECTING,
                                 BluetoothProfile.STATE_DISCONNECTED);
                         if (!connectHfpNative(getByteAddress(device))) {
@@ -1454,7 +1454,7 @@ final class HeadsetStateMachine extends StateMachine {
                 case HeadsetHalConstants.CONNECTION_STATE_SLC_CONNECTED:
                     // Should have been rejected in CONNECTION_STATE_CONNECTED
                     if (okToConnect(device)
-                            && (mConnectedDevicesList.size() < max_hf_connections)) {
+                            && (mConnectedDevicesList.size() < mMaxHfConnections)) {
                         Log.i(TAG, "AudioOn: accepted incoming HF");
                         broadcastConnectionState(device, BluetoothProfile.STATE_CONNECTED,
                                 BluetoothProfile.STATE_DISCONNECTED);
@@ -1479,7 +1479,7 @@ final class HeadsetStateMachine extends StateMachine {
                     }
                     Log.w(TAG, "AudioOn: HFP to be connected device=" + device);
                     if (!okToConnect(device)
-                            || (mConnectedDevicesList.size() >= max_hf_connections)) {
+                            || (mConnectedDevicesList.size() >= mMaxHfConnections)) {
                         // reject the connection and stay in Connected state itself
                         Log.i(TAG,
                                 "AudioOn: rejected incoming HF, priority="
@@ -1851,7 +1851,7 @@ final class HeadsetStateMachine extends StateMachine {
                                 "MultiPending: unknown incoming HF connected on RFCOMM"
                                         + ", device=" + device);
                         if (!okToConnect(device)
-                                || (mConnectedDevicesList.size() >= max_hf_connections)) {
+                                || (mConnectedDevicesList.size() >= mMaxHfConnections)) {
                             // reject the connection and stay in Pending state itself
                             Log.i(TAG,
                                     "MultiPending: unknown incoming HF rejected on RFCOMM"
@@ -3418,11 +3418,11 @@ final class HeadsetStateMachine extends StateMachine {
     private static final int EVENT_TYPE_BIEV = 19;
 
     private class StackEvent {
-        int type = EVENT_TYPE_NONE;
-        int valueInt = 0;
-        int valueInt2 = 0;
-        String valueString = null;
-        BluetoothDevice device = null;
+        public int type = EVENT_TYPE_NONE;
+        public int valueInt = 0;
+        public int valueInt2 = 0;
+        public String valueString = null;
+        public BluetoothDevice device = null;
 
         private StackEvent(int type) {
             this.type = type;

@@ -25,7 +25,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.media.AudioManager;
-import android.media.browse.MediaBrowser;
 import android.media.browse.MediaBrowser.MediaItem;
 import android.media.MediaDescription;
 import android.media.MediaMetadata;
@@ -40,10 +39,7 @@ import com.android.bluetooth.btservice.ProfileService;
 import com.android.internal.util.State;
 import com.android.internal.util.StateMachine;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Queue;
 
 /**
  * Provides Bluetooth AVRCP Controller State Machine responsible for all remote control connections
@@ -133,7 +129,7 @@ class AvrcpControllerStateMachine extends StateMachine {
     // Only accessed from State Machine processMessage
     private boolean mAbsoluteVolumeChangeInProgress = false;
     private boolean mBroadcastMetadata = false;
-    private int previousPercentageVol = -1;
+    private int mPreviousPercentageVol = -1;
 
     // Depth from root of current browsing. This can be used to move to root directly.
     private int mBrowseDepth = 0;
@@ -409,12 +405,12 @@ class AvrcpControllerStateMachine extends StateMachine {
                         } else {
                             if (mRemoteDevice.getAbsVolNotificationRequested()) {
                                 int percentageVol = getVolumePercentage();
-                                if (percentageVol != previousPercentageVol) {
+                                if (percentageVol != mPreviousPercentageVol) {
                                     AvrcpControllerService.sendRegisterAbsVolRspNative(
                                         mRemoteDevice.getBluetoothAddress(),
                                         NOTIFICATION_RSP_TYPE_CHANGED,
                                         percentageVol, mRemoteDevice.getNotificationLabel());
-                                    previousPercentageVol = percentageVol;
+                                    mPreviousPercentageVol = percentageVol;
                                     mRemoteDevice.setAbsVolNotificationRequested(false);
                                 }
                             }
@@ -460,7 +456,7 @@ class AvrcpControllerStateMachine extends StateMachine {
     // a) Send Change folder command
     // b) Once successful transition to folder fetch state.
     class ChangeFolderPath extends CmdState {
-        private String STATE_TAG = "AVRCPSM.ChangeFolderPath";
+        private static final String STATE_TAG = "AVRCPSM.ChangeFolderPath";
         private int mTmpIncrDirection;
         private String mID = "";
 
@@ -530,7 +526,7 @@ class AvrcpControllerStateMachine extends StateMachine {
     // a) Fetch the listing of folders
     // b) Once completed return the object listing
     class GetFolderList extends CmdState {
-        private String STATE_TAG = "AVRCPSM.GetFolderList";
+        private static final String STATE_TAG = "AVRCPSM.GetFolderList";
 
         String mID = "";
         int mStartInd;
@@ -665,7 +661,7 @@ class AvrcpControllerStateMachine extends StateMachine {
     // a) Fetch the listing of players
     // b) Once completed return the object listing
     class GetPlayerListing extends CmdState {
-        private String STATE_TAG = "AVRCPSM.GetPlayerList";
+        private static final String STATE_TAG = "AVRCPSM.GetPlayerList";
 
         @Override
         public boolean processMessage(Message msg) {
@@ -701,7 +697,7 @@ class AvrcpControllerStateMachine extends StateMachine {
     }
 
     class MoveToRoot extends CmdState {
-        private String STATE_TAG = "AVRCPSM.MoveToRoot";
+        private static final String STATE_TAG = "AVRCPSM.MoveToRoot";
         private String mID = "";
 
         public void setFolder(String id) {
@@ -755,7 +751,7 @@ class AvrcpControllerStateMachine extends StateMachine {
     }
 
     class SetBrowsedPlayer extends CmdState {
-        private String STATE_TAG = "AVRCPSM.SetBrowsedPlayer";
+        private static final String STATE_TAG = "AVRCPSM.SetBrowsedPlayer";
         String mID = "";
 
         public void setFolder(String id) {
@@ -801,7 +797,7 @@ class AvrcpControllerStateMachine extends StateMachine {
     }
 
     class SetAddresedPlayerAndPlayItem extends CmdState {
-        private String STATE_TAG = "AVRCPSM.SetAddresedPlayerAndPlayItem";
+        private static final String STATE_TAG = "AVRCPSM.SetAddresedPlayerAndPlayItem";
         int mScope;
         String mPlayItemId;
         String mAddrPlayerId;
