@@ -41,7 +41,7 @@ public class SapRilReceiver {
     private Handler mSapServiceHandler = null;
 
     public static final int RIL_MAX_COMMAND_BYTES = (8 * 1024);
-    byte[] buffer = new byte[RIL_MAX_COMMAND_BYTES];
+    public byte[] buffer = new byte[RIL_MAX_COMMAND_BYTES];
 
     final class SapProxyDeathRecipient implements HwBinder.DeathRecipient {
         @Override

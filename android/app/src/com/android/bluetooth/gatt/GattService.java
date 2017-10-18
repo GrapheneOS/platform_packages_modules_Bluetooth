@@ -113,10 +113,10 @@ public class GattService extends ProfileService {
      * Keep the arguments passed in for the PendingIntent.
      */
     class PendingIntentInfo {
-        PendingIntent intent;
-        ScanSettings settings;
-        List<ScanFilter> filters;
-        String callingPackage;
+        public PendingIntent intent;
+        public ScanSettings settings;
+        public List<ScanFilter> filters;
+        public String callingPackage;
 
         @Override
         public boolean equals(Object other) {
@@ -158,7 +158,7 @@ public class GattService extends ProfileService {
     ArrayList<BluetoothProto.ScanEvent> mScanEvents =
         new ArrayList<BluetoothProto.ScanEvent>(NUM_SCAN_EVENTS_KEPT);
 
-    private Map<Integer, List<BluetoothGattService>> gattClientDatabases =
+    private Map<Integer, List<BluetoothGattService>> mGattClientDatabases =
             new HashMap<Integer, List<BluetoothGattService>>();
 
     private AdvertiseManager mAdvertiseManager;
@@ -234,7 +234,7 @@ public class GattService extends ProfileService {
     }
 
     boolean permissionCheck(int connId, int handle) {
-        List<BluetoothGattService> db = gattClientDatabases.get(connId);
+        List<BluetoothGattService> db = mGattClientDatabases.get(connId);
         if (db == null) return true;
 
         for (BluetoothGattService service : db) {
@@ -1137,7 +1137,7 @@ public class GattService extends ProfileService {
         }
 
         // Search is complete when there was error, or nothing more to process
-        gattClientDatabases.put(connId, dbOut);
+        mGattClientDatabases.put(connId, dbOut);
         app.callback.onSearchComplete(address, dbOut, 0 /* status */);
     }
 

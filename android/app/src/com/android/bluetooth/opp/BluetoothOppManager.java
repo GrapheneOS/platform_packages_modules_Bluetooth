@@ -106,7 +106,7 @@ public class BluetoothOppManager {
 
     public boolean mMultipleFlag;
 
-    private int mfileNumInBatch;
+    private int mFileNumInBatch;
 
     private int mInsertShareThreadNum = 0;
 
@@ -329,7 +329,7 @@ public class BluetoothOppManager {
 
     public int getBatchSize() {
         synchronized (BluetoothOppManager.this) {
-            return mfileNumInBatch;
+            return mFileNumInBatch;
         }
     }
 
@@ -356,7 +356,7 @@ public class BluetoothOppManager {
                     mUriOfSendingFile, mMimeTypeOfSendingFiles, mUrisOfSendingFiles,
                     mIsHandoverInitiated);
             if (mMultipleFlag) {
-                mfileNumInBatch = mUrisOfSendingFiles.size();
+                mFileNumInBatch = mUrisOfSendingFiles.size();
             }
         }
 

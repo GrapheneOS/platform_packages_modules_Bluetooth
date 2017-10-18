@@ -33,7 +33,7 @@ import org.junit.Test;
 @MediumTest
 public class PbapParserTest extends AndroidTestCase {
     private Account mAccount;
-    private Resources testResources;
+    private Resources mTestResources;
     private static final String TEST_ACCOUNT_NAME = "PBAPTESTACCOUNT";
     private static final String TEST_PACKAGE_NAME = "com.android.bluetooth.tests";
 
@@ -43,7 +43,7 @@ public class PbapParserTest extends AndroidTestCase {
         mAccount = new Account(TEST_ACCOUNT_NAME,
                 mContext.getString(com.android.bluetooth.R.string.pbap_account_type));
         try {
-            testResources =
+            mTestResources =
                     mContext.getPackageManager().getResourcesForApplication(TEST_PACKAGE_NAME);
         } catch (Exception e) {
             fail("Setup Failure Unable to get resources" + e.toString());
@@ -54,7 +54,7 @@ public class PbapParserTest extends AndroidTestCase {
     @Test
     public void testNoTimestamp() throws IOException {
         InputStream fileStream;
-        fileStream = testResources.openRawResource(
+        fileStream = mTestResources.openRawResource(
                 com.android.bluetooth.tests.R.raw.no_timestamp_call_log);
         BluetoothPbapVcardList pbapVCardList = new BluetoothPbapVcardList(
                 mAccount, fileStream, PbapClientConnectionHandler.VCARD_TYPE_30);
@@ -76,7 +76,7 @@ public class PbapParserTest extends AndroidTestCase {
     public void testMissedCall() throws IOException {
         InputStream fileStream;
         fileStream =
-                testResources.openRawResource(com.android.bluetooth.tests.R.raw.single_missed_call);
+                mTestResources.openRawResource(com.android.bluetooth.tests.R.raw.single_missed_call);
         BluetoothPbapVcardList pbapVCardList = new BluetoothPbapVcardList(
                 mAccount, fileStream, PbapClientConnectionHandler.VCARD_TYPE_30);
         assertEquals(1, pbapVCardList.getCount());
@@ -95,7 +95,7 @@ public class PbapParserTest extends AndroidTestCase {
     @Test
     public void testUnknownCall() throws IOException {
         InputStream fileStream;
-        fileStream = testResources.openRawResource(
+        fileStream = mTestResources.openRawResource(
                 com.android.bluetooth.tests.R.raw.unknown_number_call);
         BluetoothPbapVcardList pbapVCardList = new BluetoothPbapVcardList(
                 mAccount, fileStream, PbapClientConnectionHandler.VCARD_TYPE_30);

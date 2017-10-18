@@ -89,9 +89,11 @@ public class A2dpMediaBrowserService extends MediaBrowserService {
     private static final int MSG_FOLDER_LIST = 9;
 
     // Custom actions for PTS testing.
-    private String CUSTOM_ACTION_VOL_UP = "com.android.bluetooth.a2dpsink.mbs.CUSTOM_ACTION_VOL_UP";
-    private String CUSTOM_ACTION_VOL_DN = "com.android.bluetooth.a2dpsink.mbs.CUSTOM_ACTION_VOL_DN";
-    private String CUSTOM_ACTION_GET_PLAY_STATUS_NATIVE =
+    private static final String CUSTOM_ACTION_VOL_UP =
+            "com.android.bluetooth.a2dpsink.mbs.CUSTOM_ACTION_VOL_UP";
+    private static final String CUSTOM_ACTION_VOL_DN =
+            "com.android.bluetooth.a2dpsink.mbs.CUSTOM_ACTION_VOL_DN";
+    private static final String CUSTOM_ACTION_GET_PLAY_STATUS_NATIVE =
         "com.android.bluetooth.a2dpsink.mbs.CUSTOM_ACTION_GET_PLAY_STATUS_NATIVE";
 
     private MediaSession mSession;

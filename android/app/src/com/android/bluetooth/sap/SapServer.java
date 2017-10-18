@@ -89,7 +89,7 @@ public class SapServer extends Thread implements Callback {
     public static final int ISAP_GET_SERVICE_DELAY_MILLIS = 3 * 1000;
     private static final int DISCONNECT_TIMEOUT_IMMEDIATE = 5000; /* ms */
     private static final int DISCONNECT_TIMEOUT_RFCOMM = 2000; /* ms */
-    private PendingIntent pDiscIntent = null; // Holds a reference to disconnect timeout intents
+    private PendingIntent mPendingDiscIntent = null; // Holds a reference to disconnect timeout intents
 
     /* We store the mMaxMessageSize, as we need a copy of it when the init. sequence completes */
     private int mMaxMsgSize = 0;
@@ -687,12 +687,12 @@ public class SapServer extends Thread implements Callback {
             sapDisconnectIntent.putExtra(SAP_DISCONNECT_TYPE_EXTRA, discType);
             AlarmManager alarmManager =
                     (AlarmManager) mContext.getSystemService(Context.ALARM_SERVICE);
-            pDiscIntent = PendingIntent.getBroadcast(mContext,
+            mPendingDiscIntent = PendingIntent.getBroadcast(mContext,
                                                     discType,
                                                     sapDisconnectIntent,
                                                     PendingIntent.FLAG_CANCEL_CURRENT);
             alarmManager.set(AlarmManager.ELAPSED_REALTIME_WAKEUP,
-                    SystemClock.elapsedRealtime() + timeMs, pDiscIntent);
+                    SystemClock.elapsedRealtime() + timeMs, mPendingDiscIntent);
 
             if(VERBOSE) Log.d(TAG_HANDLER, "Setting alarm for " + timeMs +
                     " ms to activate disconnect type " + discType);
@@ -701,16 +701,16 @@ public class SapServer extends Thread implements Callback {
 
     private void stopDisconnectTimer() {
         synchronized (this) {
-            if(pDiscIntent != null)
+            if(mPendingDiscIntent != null)
             {
                 AlarmManager alarmManager =
                         (AlarmManager) mContext.getSystemService(Context.ALARM_SERVICE);
-                alarmManager.cancel(pDiscIntent);
-                pDiscIntent.cancel();
+                alarmManager.cancel(mPendingDiscIntent);
+                mPendingDiscIntent.cancel();
                 if(VERBOSE) {
                     Log.d(TAG_HANDLER, "Canceling disconnect alarm");
                 }
-                pDiscIntent = null;
+                mPendingDiscIntent = null;
             }
         }
     }

@@ -24,7 +24,6 @@ import android.media.MediaMetadata;
 import android.media.browse.MediaBrowser;
 import android.media.browse.MediaBrowser.MediaItem;
 import android.media.session.MediaSession;
-import android.media.session.MediaSession.QueueItem;
 import android.os.Bundle;
 import android.util.Log;
 
@@ -127,7 +126,7 @@ class BrowsedMediaPlayer {
     }
 
     /* Subscription callback handler. Subscribe to a folder to get its contents */
-    private MediaBrowser.SubscriptionCallback folderItemsCb =
+    private MediaBrowser.SubscriptionCallback mFolderItemsCb =
             new MediaBrowser.SubscriptionCallback() {
 
         @Override
@@ -309,7 +308,7 @@ class BrowsedMediaPlayer {
                 mMediaController = MediaController.wrap(
                     new android.media.session.MediaController(mContext, token));
                 /* get root folder items */
-                mMediaBrowser.subscribe(mRootFolderUid, folderItemsCb);
+                mMediaBrowser.subscribe(mRootFolderUid, mFolderItemsCb);
                 return;
             }
         } catch (NullPointerException ex) {
@@ -397,7 +396,7 @@ class BrowsedMediaPlayer {
                 Log.e(TAG, "new_folder is same as current folder, Invalid direction!");
                 mMediaInterface.changePathRsp(mBDAddr, AvrcpConstants.RSP_INV_DIRN, 0);
             } else {
-                mMediaBrowser.subscribe(newPath, folderItemsCb);
+                mMediaBrowser.subscribe(newPath, mFolderItemsCb);
                 /* assume that call is success and update stack with new folder path */
                 mPathStack.push(newPath);
             }
@@ -412,7 +411,7 @@ class BrowsedMediaPlayer {
                 /* move folder up */
                 mPathStack.pop();
                 newPath = mPathStack.peek();
-                mMediaBrowser.subscribe(newPath, folderItemsCb);
+                mMediaBrowser.subscribe(newPath, mFolderItemsCb);
             }
         } else { /* invalid direction */
             Log.w(TAG, "changePath : Invalid direction " + direction);

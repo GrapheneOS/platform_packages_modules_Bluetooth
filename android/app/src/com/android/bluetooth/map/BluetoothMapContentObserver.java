@@ -602,23 +602,23 @@ public class BluetoothMapContentObserver {
     }
 
     private class Event {
-        String eventType;
-        long handle;
-        String folder = null;
-        String oldFolder = null;
-        TYPE msgType;
+        public String eventType;
+        public long handle;
+        public String folder = null;
+        public String oldFolder = null;
+        public TYPE msgType;
         /* Extended event parameters in MAP Event version 1.1 */
-        String datetime = null; // OBEX time "YYYYMMDDTHHMMSS"
-        String uci = null;
-        String subject = null;
-        String senderName = null;
-        String priority = null;
+        public String datetime = null; // OBEX time "YYYYMMDDTHHMMSS"
+        public String uci = null;
+        public String subject = null;
+        public String senderName = null;
+        public String priority = null;
         /* Event parameters in MAP Event version 1.2 */
-        String conversationName = null;
-        long conversationID = -1;
-        int presenceState = BluetoothMapContract.PresenceState.UNKNOWN;
-        String presenceStatus = null;
-        int chatState = BluetoothMapContract.ChatState.UNKNOWN;
+        public String conversationName = null;
+        public long conversationID = -1;
+        public int presenceState = BluetoothMapContract.PresenceState.UNKNOWN;
+        public String presenceStatus = null;
+        public int chatState = BluetoothMapContract.ChatState.UNKNOWN;
 
         static final String PATH = "telecom/msg/";
 
@@ -833,14 +833,14 @@ public class BluetoothMapContentObserver {
     }
 
     /*package*/ class Msg {
-        long id;
-        int type;               // Used as folder for SMS/MMS
-        int threadId;           // Used for SMS/MMS at delete
-        long folderId = -1;     // Email folder ID
-        long oldFolderId = -1;  // Used for email undelete
-        boolean localInitiatedSend = false; // Used for MMS to filter out events
-        boolean transparent = false; // Used for EMAIL to delete message sent with transparency
-        int flagRead = -1;      // Message status read/unread
+        public long id;
+        public int type;               // Used as folder for SMS/MMS
+        public int threadId;           // Used for SMS/MMS at delete
+        public long folderId = -1;     // Email folder ID
+        public long oldFolderId = -1;  // Used for email undelete
+        public boolean localInitiatedSend = false; // Used for MMS to filter out events
+        public boolean transparent = false; // Used for EMAIL to delete message sent with transparency
+        public int flagRead = -1;      // Message status read/unread
 
         Msg(long id, int type, int threadId, int readFlag) {
             this.id = id;
@@ -2413,19 +2413,19 @@ public class BluetoothMapContentObserver {
     }
 
     private class PushMsgInfo {
-        long id;
-        int transparent;
-        int retry;
-        String phone;
-        Uri uri;
-        long timestamp;
-        int parts;
-        int partsSent;
-        int partsDelivered;
-        boolean resend;
-        boolean sendInProgress;
-        boolean failedSent; // Set to true if a single part sent fail is received.
-        int statusDelivered; // Set to != 0 if a single part deliver fail is received.
+        public long id;
+        public int transparent;
+        public int retry;
+        public String phone;
+        public Uri uri;
+        public long timestamp;
+        public int parts;
+        public int partsSent;
+        public int partsDelivered;
+        public boolean resend;
+        public boolean sendInProgress;
+        public boolean failedSent; // Set to true if a single part sent fail is received.
+        public int statusDelivered; // Set to != 0 if a single part deliver fail is received.
 
         PushMsgInfo(long id, int transparent,
                 int retry, String phone, Uri uri) {
@@ -3031,10 +3031,10 @@ public class BluetoothMapContentObserver {
         }
     }
 
-    private class SmsBroadcastReceiver extends BroadcastReceiver {
-        private final String[] ID_PROJECTION = new String[] { Sms._ID };
-        private final Uri UPDATE_STATUS_URI = Uri.withAppendedPath(Sms.CONTENT_URI, "/status");
+    private static final String[] ID_PROJECTION = new String[] { Sms._ID };
+    private static final Uri UPDATE_STATUS_URI = Uri.withAppendedPath(Sms.CONTENT_URI, "/status");
 
+    private class SmsBroadcastReceiver extends BroadcastReceiver {
         public void register() {
             Handler handler = new Handler(Looper.getMainLooper());
 

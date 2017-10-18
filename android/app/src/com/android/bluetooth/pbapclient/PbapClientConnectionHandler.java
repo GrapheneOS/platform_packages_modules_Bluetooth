@@ -117,11 +117,11 @@ class PbapClientConnectionHandler extends Handler {
      * @param Builder To build  BluetoothPbapClientHandler Instance.
      */
     PbapClientConnectionHandler(Builder pceHandlerbuild) {
-        super(pceHandlerbuild.looper);
+        super(pceHandlerbuild.mLooper);
         mAdapter = BluetoothAdapter.getDefaultAdapter();
-        mDevice = pceHandlerbuild.device;
-        mContext = pceHandlerbuild.context;
-        mPbapClientStateMachine = pceHandlerbuild.clientStateMachine;
+        mDevice = pceHandlerbuild.mDevice;
+        mContext = pceHandlerbuild.mContext;
+        mPbapClientStateMachine = pceHandlerbuild.mClientStateMachine;
         mAuth = new BluetoothPbapObexAuthenticator(this);
         mAccountManager = AccountManager.get(mPbapClientStateMachine.getContext());
         mAccount = new Account(mDevice.getAddress(), mContext.getString(
@@ -130,28 +130,28 @@ class PbapClientConnectionHandler extends Handler {
 
     public static class Builder {
 
-        private Looper looper;
-        private Context context;
-        private BluetoothDevice device;
-        private PbapClientStateMachine clientStateMachine;
+        private Looper mLooper;
+        private Context mContext;
+        private BluetoothDevice mDevice;
+        private PbapClientStateMachine mClientStateMachine;
 
         public Builder setLooper(Looper loop) {
-            this.looper = loop;
+            this.mLooper = loop;
             return this;
         }
 
         public Builder setClientSM(PbapClientStateMachine clientStateMachine) {
-            this.clientStateMachine = clientStateMachine;
+            this.mClientStateMachine = clientStateMachine;
             return this;
         }
 
         public Builder setRemoteDevice(BluetoothDevice device) {
-            this.device = device;
+            this.mDevice = device;
             return this;
         }
 
         public Builder setContext(Context context) {
-            this.context = context;
+            this.mContext = context;
             return this;
         }
 

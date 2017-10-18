@@ -37,7 +37,6 @@ import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
-import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothPbap;
@@ -49,12 +48,10 @@ import android.bluetooth.IBluetoothPbap;
 import android.database.sqlite.SQLiteException;
 import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.ContentResolver;
 import android.database.ContentObserver;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Handler;
-import android.os.IBinder;
 import android.os.Message;
 import android.os.PowerManager;
 import android.telephony.TelephonyManager;
@@ -63,7 +60,6 @@ import android.util.Log;
 
 import com.android.bluetooth.BluetoothObexTransport;
 import com.android.bluetooth.btservice.ProfileService;
-import com.android.bluetooth.btservice.ProfileService.IProfileServiceBinder;
 import com.android.bluetooth.IObexConnectionHandler;
 import com.android.bluetooth.ObexServerSockets;
 import com.android.bluetooth.R;
@@ -72,9 +68,6 @@ import com.android.bluetooth.Utils;
 import com.android.bluetooth.util.DevicePolicyUtils;
 
 import java.io.IOException;
-import java.util.Calendar;
-import java.util.concurrent.atomic.AtomicLong;
-import java.util.HashMap;
 
 import javax.obex.ServerSession;
 
@@ -210,7 +203,7 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
 
     private boolean mSdpSearchInitiated = false;
 
-    private boolean isRegisteredObserver = false;
+    private boolean mIsRegisteredObserver = false;
 
     protected Context mContext;
 
@@ -562,7 +555,7 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
      */
     private class SocketAcceptThread extends Thread {
 
-        private boolean stopped = false;
+        private boolean mStopped = false;
 
         @Override
         public void run() {
@@ -573,7 +566,7 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
                 }
             }
 
-            while (!stopped) {
+            while (!mStopped) {
                 try {
                     if (VERBOSE) Log.v(TAG, "Accepting socket connection...");
                     serverSocket = mServerSocket;
@@ -646,9 +639,9 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
                         // We will continue the process when we receive
                         // BluetoothDevice.ACTION_CONNECTION_ACCESS_REPLY from Settings app.
                     }
-                    stopped = true; // job done ,close this thread;
+                    mStopped = true; // job done ,close this thread;
                 } catch (IOException ex) {
-                    stopped=true;
+                    mStopped =true;
                     /*
                     if (stopped) {
                         break;
@@ -660,7 +653,7 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
         }
 
         void shutdown() {
-            stopped = true;
+            mStopped = true;
             interrupt();
         }
     }
