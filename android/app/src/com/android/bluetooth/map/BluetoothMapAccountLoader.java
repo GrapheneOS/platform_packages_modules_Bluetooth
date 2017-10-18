@@ -97,9 +97,9 @@ public class BluetoothMapAccountLoader {
                         if (app != null){
                             ArrayList<BluetoothMapAccountItem> accounts = parseAccounts(app);
                             // we do not want to list apps without accounts
-                            if(accounts.size() > 0)
-                            {// we need to make sure that the "select all" checkbox
-                             // is checked if all accounts in the list are checked
+                            if (accounts.size() > 0) {
+                                // we need to make sure that the "select all" checkbox
+                                // is checked if all accounts in the list are checked
                                 app.mIsChecked = true;
                                 for (BluetoothMapAccountItem acc: accounts)
                                 {

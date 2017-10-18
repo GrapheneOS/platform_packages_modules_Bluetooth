@@ -270,8 +270,10 @@ public class BluetoothMapSmsPdu {
             /* calculate the offset to TP_PID.
              * The TP-DA has variable length, and the length excludes the 2 byte length and type headers.
              * The TP-DA is two bytes within the PDU */
-            int offset = 2 + ((mData[2]+1) & 0xff)/2 + 2; // data[2] is the number of semi-octets in the phone number (ceil result)
-            if((offset > mData.length) || (offset > (2 + 12))) // max length of TP_DA is 12 bytes + two byte offset.
+            // data[2] is the number of semi-octets in the phone number (ceil result)
+            int offset = 2 + ((mData[2]+1) & 0xff)/2 + 2;
+            // max length of TP_DA is 12 bytes + two byte offset.
+            if((offset > mData.length) || (offset > (2 + 12)))
                 throw new IllegalArgumentException("wrongly formatted gsm submit PDU. offset = " + offset);
             return offset;
         }
@@ -614,9 +616,12 @@ public class BluetoothMapSmsPdu {
         /* The format of a native GSM SMS is: <sc-address><pdu> where sc-address is:
          * <length-byte><type-byte><number-bytes> */
         int addressLength = data[0] & 0xff; // Treat the byte value as an unsigned value
-        if(addressLength >= data.length) // We could verify that the address-length is no longer than 11 bytes
-            throw new IllegalArgumentException("Length of address exeeds the length of the PDU data.");
-        int pduLength = data.length-(1+addressLength);
+        // We could verify that the address-length is no longer than 11 bytes
+        if (addressLength >= data.length) {
+            throw new IllegalArgumentException(
+                    "Length of address exeeds the length of the PDU data.");
+        }
+        int pduLength = data.length - (1 + addressLength);
         byte[] newData = new byte[pduLength];
         System.arraycopy(data, 1+addressLength, newData, 0, pduLength);
         return newData;

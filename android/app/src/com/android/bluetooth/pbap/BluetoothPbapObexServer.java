@@ -462,13 +462,11 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
         // listing request
         if (type.equals(TYPE_LISTING)) {
             return pullVcardListing(appParam, appParamValue, reply, op, name);
-        }
-        // pull vcard entry request
-        else if (type.equals(TYPE_VCARD)) {
+        } else if (type.equals(TYPE_VCARD)) {
+            // pull vcard entry request
             return pullVcardEntry(appParam, appParamValue, op, reply, name, mCurrentPath);
-        }
-        // down load phone book request
-        else if (type.equals(TYPE_PB)) {
+        } else if (type.equals(TYPE_PB)) {
+            // down load phone book request
             return pullPhonebook(appParam, appParamValue, reply, op, name);
         } else {
             Log.w(TAG, "unknown type request!!!");
@@ -643,7 +641,7 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
                     i += ApplicationParameter.TRIPLET_LENGTH.LISTSTARTOFFSET_LENGTH;
                     break;
                 case ApplicationParameter.TRIPLET_TAGID.FORMAT_TAGID:
-                    i += 2;// length field in triplet
+                    i += 2; // length field in triplet
                     if (appParam[i] != 0) {
                         appParamValue.vcard21 = false;
                     }
@@ -701,9 +699,8 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
             } else {
                 return ResponseCodes.OBEX_HTTP_PRECON_FAILED;
             }
-        }
-        // Call history listing request
-        else {
+        } else {
+            // Call history listing request
             ArrayList<String> nameList = mVcardManager.loadCallHistoryList(appParamValue.needTag);
             int requestSize = nameList.size() >= appParamValue.maxListCount
                     ? appParamValue.maxListCount
@@ -866,8 +863,8 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
 
             byte[] pbsize = new byte[2];
 
-            pbsize[0] = (byte)((size / 256) & 0xff);// HIGH VALUE
-            pbsize[1] = (byte)((size % 256) & 0xff);// LOW VALUE
+            pbsize[0] = (byte) ((size / 256) & 0xff); // HIGH VALUE
+            pbsize[1] = (byte) ((size % 256) & 0xff); // LOW VALUE
             ap.addAPPHeader(ApplicationParameter.TRIPLET_TAGID.PHONEBOOKSIZE_TAGID,
                     ApplicationParameter.TRIPLET_LENGTH.PHONEBOOKSIZE_LENGTH, pbsize);
 

@@ -56,7 +56,7 @@ public class BluetoothMapbMessageMime extends BluetoothMapbMessage {
             } else {
                 charset = charset.toUpperCase();
                 try {
-                    if(Charset.isSupported(charset) == false) {
+                    if(!Charset.isSupported(charset)) {
                         charset = "UTF-8";
                     }
                 } catch (IllegalCharsetNameException e) {
@@ -70,7 +70,9 @@ public class BluetoothMapbMessageMime extends BluetoothMapbMessage {
                 /* This cannot happen unless Charset.isSupported() is out of sync with String */
                 try{
                     result = new String(mData, "UTF-8");
-                } catch (UnsupportedEncodingException e2) {/* This cannot happen */}
+                } catch (UnsupportedEncodingException e2) {
+                    Log.e(TAG, "getDataAsString: " + e);
+                }
             }
             return result;
         }
@@ -144,7 +146,7 @@ public class BluetoothMapbMessageMime extends BluetoothMapbMessage {
     private ArrayList<Rfc822Token> mTo = null;     // Shall not be empty
     private ArrayList<Rfc822Token> mCc = null;     // Can be empty
     private ArrayList<Rfc822Token> mBcc = null;    // Can be empty
-    private ArrayList<Rfc822Token> mReplyTo = null;// Can be empty
+    private ArrayList<Rfc822Token> mReplyTo = null; // Can be empty
     private String mMessageId = null;
     private ArrayList<MimePart> mParts = null;
     private String mContentType = null;
@@ -155,9 +157,10 @@ public class BluetoothMapbMessageMime extends BluetoothMapbMessage {
     private String mMyEncoding = null;
 
     private String getBoundary() {
-        if(mBoundary == null)
-            // Include "=_" as these cannot occur in quoted printable text
+        // Include "=_" as these cannot occur in quoted printable text
+        if (mBoundary == null) {
             mBoundary = "--=_" + UUID.randomUUID();
+        }
         return mBoundary;
     }
 
@@ -338,8 +341,7 @@ public class BluetoothMapbMessageMime extends BluetoothMapbMessage {
         for(Rfc822Token address : addresses) {
             partLength = address.toString().getBytes().length+1;
             // Add folding if needed
-            if(lineLength + partLength >= 998) // max line length in RFC2822
-            {
+            if (lineLength + partLength >= 998 /* max line length in RFC2822 */) {
                 sb.append("\r\n "); // Append a FWS (folding whitespace)
                 lineLength = 0;
             }

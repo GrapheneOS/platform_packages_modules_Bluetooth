@@ -168,7 +168,8 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
      * Build the default minimal folder structure, as defined in the MAP specification.
      */
     private void buildFolderStructure() throws RemoteException {
-        mCurrentFolder = new BluetoothMapFolderElement("root", null);//This will be the root element
+        //This will be the root element
+        mCurrentFolder = new BluetoothMapFolderElement("root", null);
         mCurrentFolder.setHasSmsMmsContent(mEnableSmsMms);
         boolean hasIM = false;
         boolean hasEmail = false;
@@ -306,7 +307,8 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
         if (D) Log.d(TAG, "onConnect():");
         if (V) logHeader(request);
         mThreadIdSupport = false; // Always assume not supported at new connect.
-        mMessageVersion = BluetoothMapUtils.MAP_V10_STR;//always assume version 1.0 to start with
+        //always assume version 1.0 to start with
+        mMessageVersion = BluetoothMapUtils.MAP_V10_STR;
         notifyUpdateWakeLock();
         Long threadedMailKey = null;
         try {

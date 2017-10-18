@@ -147,12 +147,12 @@ class PlayerApplicationSettings {
         try {
             if ((supportedSettings & settingSubset) == settingSubset) {
                 for (Integer settingId : mSettings.keySet()) {
-                    if ((settingId & settingSubset )== settingId &&
-                        (!mSupportedValues.get(settingId).contains(settingsToCheck.
-                            getSettingValue(settingId))))
-                        // The setting is in both settings to check and supported settings but the
-                        // value is not supported.
+                    // The setting is in both settings to check and supported settings but the
+                    // value is not supported.
+                    if ((settingId & settingSubset) == settingId && (!mSupportedValues.get(
+                            settingId).contains(settingsToCheck.getSettingValue(settingId)))) {
                         return false;
+                    }
                 }
                 return true;
             }
