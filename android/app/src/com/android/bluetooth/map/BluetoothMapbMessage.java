@@ -77,7 +77,7 @@ public abstract class BluetoothMapbMessage {
          * @param formattedName Formatted name
          * @param phoneNumbers a String[] of phone numbers
          * @param emailAddresses a String[] of email addresses
-         * @param the bmessage envelope level (0 is the top/most outer level)
+         * @param envLevel the bmessage envelope level (0 is the top/most outer level)
          */
         public VCard(String name, String formattedName, String[] phoneNumbers,
                 String[] emailAddresses, int envLevel) {
@@ -95,7 +95,7 @@ public abstract class BluetoothMapbMessage {
          * @param name Structured name
          * @param phoneNumbers a String[] of phone numbers
          * @param emailAddresses a String[] of email addresses
-         * @param the bmessage envelope level (0 is the top/most outer level)
+         * @param envLevel the bmessage envelope level (0 is the top/most outer level)
          */
         public VCard(String name, String[] phoneNumbers,
                 String[] emailAddresses, int envLevel) {

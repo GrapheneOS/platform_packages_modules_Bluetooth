@@ -324,10 +324,10 @@ public class AtPhonebook {
                 }
                 String atCommand = (atString.split("="))[1];
                 String[] indices = atCommand.split(",");
-                for(int i = 0; i < indices.length; i++)
-                    //replace AT command separator ';' from the index if any
+                //replace AT command separator ';' from the index if any
+                for (int i = 0; i < indices.length; i++) {
                     indices[i] = indices[i].replace(';', ' ').trim();
-                try {
+                } try {
                     index1 = Integer.parseInt(indices[0]);
                     if (indices.length == 1)
                         index2 = index1;

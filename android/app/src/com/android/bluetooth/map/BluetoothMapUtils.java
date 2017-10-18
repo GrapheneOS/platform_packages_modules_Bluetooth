@@ -387,7 +387,7 @@ public class BluetoothMapUtils {
     /**
      * Truncate UTF-8 string encoded byte array to desired length
      * @param utf8String String to convert to bytes array h
-     * @param length Max length of byte array returned including null termination
+     * @param maxLength Max length of byte array returned including null termination
      * @return byte array containing valid utf8 characters with max length
      * @throws UnsupportedEncodingException
      */
@@ -553,7 +553,7 @@ public class BluetoothMapUtils {
         } else {
             charset = charset.toUpperCase();
             try {
-                if(Charset.isSupported(charset) == false) {
+                if(!Charset.isSupported(charset)) {
                     charset = "UTF-8";
                 }
             } catch (IllegalCharsetNameException e) {
@@ -567,7 +567,9 @@ public class BluetoothMapUtils {
             /* This cannot happen unless Charset.isSupported() is out of sync with String */
             try{
                 result = new String(output, 0, out, "UTF-8");
-            } catch (UnsupportedEncodingException e2) {/* This cannot happen */}
+            } catch (UnsupportedEncodingException e2) {
+                Log.e(TAG, "quotedPrintableToUtf8: " + e);
+            }
         }
         return result.getBytes(); /* return the result as "UTF-8" bytes */
     }

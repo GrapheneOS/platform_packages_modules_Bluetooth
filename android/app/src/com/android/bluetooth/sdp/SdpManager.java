@@ -428,12 +428,12 @@ public class SdpManager {
             inst.startSearch(); // Trigger timeout message
 
             sdpSearchNative(Utils.getBytesFromAddress(inst.getDevice().getAddress()),
-                                            Utils.uuidToByteArray(inst.getUuid()));
-        } // Else queue is empty.
-        else {
-            if(D) Log.d(TAG, "startSearch(): nextInst = " + inst +
-                    " mSearchInProgress = " + sSearchInProgress
-                    + " - search busy or queue empty.");
+                    Utils.uuidToByteArray(inst.getUuid()));
+        } else { // Else queue is empty.
+            if (D) {
+                Log.d(TAG, "startSearch(): nextInst = " + inst + " mSearchInProgress = "
+                        + sSearchInProgress + " - search busy or queue empty.");
+            }
         }
     }
 
