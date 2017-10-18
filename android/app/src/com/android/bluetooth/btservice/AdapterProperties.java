@@ -547,24 +547,33 @@ class AdapterProperties {
     private boolean updateCountersAndCheckForConnectionStateChange(int state, int prevState) {
         switch (prevState) {
             case BluetoothProfile.STATE_CONNECTING:
-                if (mProfilesConnecting > 0)
+                if (mProfilesConnecting > 0) {
                     mProfilesConnecting--;
-                else
+                } else {
                     Log.e(TAG, "mProfilesConnecting " + mProfilesConnecting);
+                    throw new IllegalStateException(
+                            "Invalid state transition, " + prevState + " -> " + state);
+                }
                 break;
 
             case BluetoothProfile.STATE_CONNECTED:
-                if (mProfilesConnected > 0)
+                if (mProfilesConnected > 0) {
                     mProfilesConnected--;
-                else
+                } else {
                     Log.e(TAG, "mProfilesConnected " + mProfilesConnected);
+                    throw new IllegalStateException(
+                            "Invalid state transition, " + prevState + " -> " + state);
+                }
                 break;
 
             case BluetoothProfile.STATE_DISCONNECTING:
-                if (mProfilesDisconnecting > 0)
+                if (mProfilesDisconnecting > 0) {
                     mProfilesDisconnecting--;
-                else
+                } else {
                     Log.e(TAG, "mProfilesDisconnecting " + mProfilesDisconnecting);
+                    throw new IllegalStateException(
+                            "Invalid state transition, " + prevState + " -> " + state);
+                }
                 break;
         }
 
