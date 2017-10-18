@@ -109,8 +109,8 @@ public class HeadsetClientStateMachine extends StateMachine {
     static final int MIN_HFP_SCO_VOICE_CALL_VOLUME = 1; // HFP 1.5 spec.
 
     public static final Integer HF_ORIGINATED_CALL_ID = new Integer(-1);
-    private long OUTGOING_TIMEOUT_MILLI = 10 * 1000; // 10 seconds
-    private long QUERY_CURRENT_CALLS_WAIT_MILLIS = 2 * 1000; // 2 seconds
+    private static final long OUTGOING_TIMEOUT_MILLI = 10 * 1000; // 10 seconds
+    private static final long QUERY_CURRENT_CALLS_WAIT_MILLIS = 2 * 1000; // 2 seconds
 
     // Keep track of audio routing across all devices.
     private static boolean sAudioIsRouted = true;

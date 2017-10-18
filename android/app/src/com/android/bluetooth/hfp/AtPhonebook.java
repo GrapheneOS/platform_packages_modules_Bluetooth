@@ -92,10 +92,10 @@ public class AtPhonebook {
     private final HashMap<String, PhonebookResult> mPhonebooks =
             new HashMap<String, PhonebookResult>(4);
 
-    final int TYPE_UNKNOWN = -1;
-    final int TYPE_READ = 0;
-    final int TYPE_SET = 1;
-    final int TYPE_TEST = 2;
+    static final int TYPE_UNKNOWN = -1;
+    static final int TYPE_READ = 0;
+    static final int TYPE_SET = 1;
+    static final int TYPE_TEST = 2;
 
     public AtPhonebook(Context context, HeadsetStateMachine headsetState) {
         mContext = context;

@@ -46,13 +46,13 @@ public class StackEvent {
     public static final int EVENT_TYPE_RESP_AND_HOLD = 18;
     public static final int EVENT_TYPE_RING_INDICATION= 21;
 
-    int type = EVENT_TYPE_NONE;
-    int valueInt = 0;
-    int valueInt2 = 0;
-    int valueInt3 = 0;
-    int valueInt4 = 0;
-    String valueString = null;
-    BluetoothDevice device = null;
+    public int type = EVENT_TYPE_NONE;
+    public int valueInt = 0;
+    public int valueInt2 = 0;
+    public int valueInt3 = 0;
+    public int valueInt4 = 0;
+    public String valueString = null;
+    public BluetoothDevice device = null;
 
     StackEvent(int type) {
         this.type = type;

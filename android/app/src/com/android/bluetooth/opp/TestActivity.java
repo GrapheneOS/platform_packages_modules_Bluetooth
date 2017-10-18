@@ -86,7 +86,7 @@ public class TestActivity extends Activity {
 
     EditText mMediaView;
 
-    TestTcpServer server;
+    TestTcpServer mServer;
 
     /** Called when the activity is first created. */
     @Override
@@ -328,8 +328,8 @@ public class TestActivity extends Activity {
     public OnClickListener startTcpServerListener = new OnClickListener() {
         @Override
         public void onClick(View view) {
-            server = new TestTcpServer();
-            Thread serverThread = new Thread(server);
+            mServer = new TestTcpServer();
+            Thread serverThread = new Thread(mServer);
             serverThread.start();
         }
     };
@@ -340,9 +340,9 @@ public class TestActivity extends Activity {
             final Thread notifyThread = new Thread() {
                 @Override
                 public void run() {
-                    synchronized (server) {
-                        server.a = true;
-                        server.notify();
+                    synchronized (mServer) {
+                        mServer.a = true;
+                        mServer.notify();
                     }
                 }
 
@@ -575,26 +575,26 @@ class TestTcpServer extends ServerRequestHandler implements Runnable {
 class TestTcpSessionNotifier {
     /* implements SessionNotifier */
 
-    ServerSocket server = null;
+    ServerSocket mServer = null;
 
-    Socket conn = null;
+    Socket mConn = null;
 
     private static final String TAG = "TestTcpSessionNotifier";
 
     TestTcpSessionNotifier(int port) throws IOException {
-        server = new ServerSocket(port);
+        mServer = new ServerSocket(port);
     }
 
     public ServerSession acceptAndOpen(ServerRequestHandler handler, Authenticator auth)
             throws IOException {
         try {
-            conn = server.accept();
+            mConn = mServer.accept();
 
         } catch (Exception ex) {
             Log.v(TAG, "ex");
         }
 
-        TestTcpTransport tt = new TestTcpTransport(conn);
+        TestTcpTransport tt = new TestTcpTransport(mConn);
 
         return new ServerSession((ObexTransport)tt, handler, auth);
 
@@ -610,16 +610,16 @@ class TestTcpSessionNotifier {
 
 class TestTcpTransport implements ObexTransport {
 
-    Socket s = null;
+    Socket mSocket = null;
 
     TestTcpTransport(Socket s) {
         super();
-        this.s = s;
+        this.mSocket = s;
     }
 
     @Override
     public void close() throws IOException {
-        s.close();
+        mSocket.close();
     }
 
     @Override
@@ -634,12 +634,12 @@ class TestTcpTransport implements ObexTransport {
 
     @Override
     public InputStream openInputStream() throws IOException {
-        return s.getInputStream();
+        return mSocket.getInputStream();
     }
 
     @Override
     public OutputStream openOutputStream() throws IOException {
-        return s.getOutputStream();
+        return mSocket.getOutputStream();
     }
 
     @Override
@@ -667,7 +667,7 @@ class TestTcpTransport implements ObexTransport {
     }
 
     public boolean isConnected() throws IOException {
-        return s.isConnected();
+        return mSocket.isConnected();
     }
 
     @Override

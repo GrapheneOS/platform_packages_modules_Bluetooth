@@ -137,13 +137,13 @@ public class BluetoothOppObexClientSession implements BluetoothOppObexSession {
 
         private BluetoothOppShareInfo mInfo;
 
-        private volatile boolean waitingForShare;
+        private volatile boolean mWaitingForShare;
 
         private ObexTransport mTransport1;
 
         private ClientSession mCs;
 
-        private WakeLock wakeLock;
+        private WakeLock mWakeLock;
 
         private BluetoothOppSendFileInfo mFileInfo = null;
 
@@ -155,17 +155,17 @@ public class BluetoothOppObexClientSession implements BluetoothOppObexSession {
             super("BtOpp ClientThread");
             mContext1 = context;
             mTransport1 = transport;
-            waitingForShare = true;
+            mWaitingForShare = true;
             mWaitingForRemote = false;
             mNumShares = initialNumShares;
             PowerManager pm = (PowerManager)mContext1.getSystemService(Context.POWER_SERVICE);
-            wakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, TAG);
+            mWakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, TAG);
         }
 
         public void addShare(BluetoothOppShareInfo info) {
             mInfo = info;
             mFileInfo = processShareInfo();
-            waitingForShare = false;
+            mWaitingForShare = false;
         }
 
         @Override
@@ -173,7 +173,7 @@ public class BluetoothOppObexClientSession implements BluetoothOppObexSession {
             Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
 
             if (V) Log.v(TAG, "acquire partial WakeLock");
-            wakeLock.acquire();
+            mWakeLock.acquire();
 
             try {
                 Thread.sleep(100);
@@ -186,7 +186,7 @@ public class BluetoothOppObexClientSession implements BluetoothOppObexSession {
             }
 
             while (!mInterrupted) {
-                if (!waitingForShare) {
+                if (!mWaitingForShare) {
                     doSend();
                 } else {
                     try {
@@ -200,9 +200,9 @@ public class BluetoothOppObexClientSession implements BluetoothOppObexSession {
             }
             disconnect();
 
-            if (wakeLock.isHeld()) {
+            if (mWakeLock.isHeld()) {
                 if (V) Log.v(TAG, "release partial WakeLock");
-                wakeLock.release();
+                mWakeLock.release();
             }
             Message msg = Message.obtain(mCallback);
             msg.what = BluetoothOppObexSession.MSG_SESSION_COMPLETE;
@@ -292,7 +292,7 @@ public class BluetoothOppObexClientSession implements BluetoothOppObexSession {
                     /* this is invalid request */
                     status = mFileInfo.mStatus;
                 }
-                waitingForShare = true;
+                mWaitingForShare = true;
             } else {
                 Constants.updateShareStatus(mContext1, mInfo.mId, status);
             }
