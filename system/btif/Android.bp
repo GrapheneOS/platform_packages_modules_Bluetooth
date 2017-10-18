@@ -7,7 +7,7 @@ btifCommonIncludes = [
     "packages/modules/Bluetooth/system/bta/dm",
     "packages/modules/Bluetooth/system/btcore/include",
     "packages/modules/Bluetooth/system/device/include",
-    "packages/modules/Bluetooth/system/include",
+    "packages/modules/Bluetooth/system/internal_include",
     "packages/modules/Bluetooth/system/stack/include",
     "packages/modules/Bluetooth/system/stack/l2cap",
     "packages/modules/Bluetooth/system/stack/a2dp",
