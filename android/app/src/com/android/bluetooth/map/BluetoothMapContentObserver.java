@@ -1389,7 +1389,7 @@ public class BluetoothMapContentObserver {
                                         }
                                     }
                                 }
-                                String priority = "no";// no priority for sms
+                                String priority = "no"; // no priority for sms
                                 /* Incoming message from the network */
                                 if (mMapEventReportVersion ==
                                         BluetoothMapUtils.MAP_EVENT_REPORT_V11) {

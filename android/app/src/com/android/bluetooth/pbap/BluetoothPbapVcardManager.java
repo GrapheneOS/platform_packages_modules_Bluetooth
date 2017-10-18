@@ -1010,7 +1010,7 @@ public class BluetoothPbapVcardManager {
     }
 
     public static class VCardFilter {
-        private static enum FilterBit {
+        private enum FilterBit {
             //       bit  property                  onlyCheckV21  excludeForV21
             FN (       1, "FN",                       true,         false),
             PHOTO(     3, "PHOTO",                    false,        false),
@@ -1100,7 +1100,7 @@ public class BluetoothPbapVcardManager {
     }
 
     private static class PropertySelector {
-        private static enum PropertyMask {
+        private enum PropertyMask {
             //               bit    property
             VERSION(0, "VERSION"),
             FN(1, "FN"),

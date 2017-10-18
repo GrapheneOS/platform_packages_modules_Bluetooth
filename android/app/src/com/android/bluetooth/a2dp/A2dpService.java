@@ -349,9 +349,9 @@ public class A2dpService extends ProfileService {
                 value);
     }
 
-    //Binder object: Must be static class or memory leak may occur 
-    private static class BluetoothA2dpBinder extends IBluetoothA2dp.Stub 
-        implements IProfileServiceBinder {
+    //Binder object: Must be static class or memory leak may occur
+    private static class BluetoothA2dpBinder extends IBluetoothA2dp.Stub
+            implements IProfileServiceBinder {
         private A2dpService mService;
 
         private A2dpService getService() {

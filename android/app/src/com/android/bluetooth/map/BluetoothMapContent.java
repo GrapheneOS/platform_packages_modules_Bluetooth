@@ -486,11 +486,11 @@ public class BluetoothMapContent {
                 threadId = c.getLong(fi.mSmsColThreadId);
             } else if (fi.mMsgType == FilterInfo.TYPE_MMS) {
                 threadId = c.getLong(fi.mMmsColThreadId);
-                type = TYPE.MMS;// Just used for handle encoding
+                type = TYPE.MMS; // Just used for handle encoding
             } else if (fi.mMsgType == FilterInfo.TYPE_EMAIL ||
                        fi.mMsgType == FilterInfo.TYPE_IM) {
                 threadId = c.getLong(fi.mMessageColThreadId);
-                type = TYPE.EMAIL;// Just used for handle encoding
+                type = TYPE.EMAIL; // Just used for handle encoding
             }
             e.setThreadId(threadId,type);
             if (V) Log.d(TAG, "setThreadId: " + threadId + "\n");
@@ -1581,11 +1581,7 @@ public class BluetoothMapContent {
     }
 
     private boolean matchAddresses(Cursor c, FilterInfo fi, BluetoothMapAppParams ap) {
-        if (matchOriginator(c, fi, ap) && matchRecipient(c, fi, ap)) {
-            return true;
-        } else {
-            return false;
-        }
+        return matchOriginator(c, fi, ap) && matchRecipient(c, fi, ap);
     }
 
     /*
@@ -2045,7 +2041,7 @@ public class BluetoothMapContent {
 
     /**
      * Get a listing of message in folder after applying filter.
-     * @param folder Must contain a valid folder string != null
+     * @param folderElement Must contain a valid folder string != null
      * @param ap Parameters specifying message content and filters
      * @return Listing object containing requested messages
      */
@@ -2283,7 +2279,7 @@ public class BluetoothMapContent {
 
     /**
      * Get the size of the message listing
-     * @param folder Must contain a valid folder string != null
+     * @param folderElement Must contain a valid folder string != null
      * @param ap Parameters specifying message content and filters
      * @return Integer equal to message listing size
      */
@@ -2365,7 +2361,7 @@ public class BluetoothMapContent {
 
     /**
      * Return true if there are unread messages in the requested list of messages
-     * @param folder folder where the message listing should come from
+     * @param folderElement folder where the message listing should come from
      * @param ap application parameter object
      * @return true if unread messages are in the list, else false
      */
@@ -3021,8 +3017,10 @@ public class BluetoothMapContent {
             if(summary != null && cs != null && !cs.equals("UTF-8")) {
                 try {
                     // TODO: Not sure this is how to convert to UTF-8
-                    summary = new String(summary.getBytes(cs),"UTF-8");
-                } catch (UnsupportedEncodingException e){/*Cannot happen*/}
+                    summary = new String(summary.getBytes(cs), "UTF-8");
+                } catch (UnsupportedEncodingException e) {
+                    Log.e(TAG, "populateSmsMmsConvoElement: " + e);
+                }
             }
             ele.setSummary(summary);
         }
@@ -3431,17 +3429,18 @@ public class BluetoothMapContent {
                     phone  = getCanonicalAddressSms(mResolver, threadId);
                 }
                 time = c.getLong(c.getColumnIndex(Sms.DATE));
-                if(type == 1) // Inbox message needs to set the vCard as originator
+                if (type == 1) { // Inbox message needs to set the vCard as originator
                     setVCardFromPhoneNumber(message, phone, true);
-                else          // Other messages sets the vCard as the recipient
+                } else { // Other messages sets the vCard as the recipient
                     setVCardFromPhoneNumber(message, phone, false);
-
-                if(charset == MAP_MESSAGE_CHARSET_NATIVE) {
-                    if(type == 1) //Inbox
-                        message.setSmsBodyPdus(BluetoothMapSmsPdu.getDeliverPdus(msgBody,
-                                    phone, time));
-                    else
+                }
+                if (charset == MAP_MESSAGE_CHARSET_NATIVE) {
+                    if (type == 1) { //Inbox
+                        message.setSmsBodyPdus(
+                                BluetoothMapSmsPdu.getDeliverPdus(msgBody, phone, time));
+                    } else {
                         message.setSmsBodyPdus(BluetoothMapSmsPdu.getSubmitPdus(msgBody, phone));
+                    }
                 } else /*if (charset == MAP_MESSAGE_CHARSET_UTF8)*/ {
                     message.setSmsBody(msgBody);
                 }
