@@ -23,12 +23,12 @@ import android.provider.CallLog.Calls;
 import android.support.test.filters.MediumTest;
 import android.test.AndroidTestCase;
 
+import org.junit.Before;
+import org.junit.Test;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.TimeZone;
-
-import org.junit.Before;
-import org.junit.Test;
 
 @MediumTest
 public class PbapParserTest extends AndroidTestCase {
@@ -56,8 +56,8 @@ public class PbapParserTest extends AndroidTestCase {
         InputStream fileStream;
         fileStream = mTestResources.openRawResource(
                 com.android.bluetooth.tests.R.raw.no_timestamp_call_log);
-        BluetoothPbapVcardList pbapVCardList = new BluetoothPbapVcardList(
-                mAccount, fileStream, PbapClientConnectionHandler.VCARD_TYPE_30);
+        BluetoothPbapVcardList pbapVCardList = new BluetoothPbapVcardList(mAccount, fileStream,
+                PbapClientConnectionHandler.VCARD_TYPE_30);
         assertEquals(1, pbapVCardList.getCount());
         CallLogPullRequest processor =
                 new CallLogPullRequest(mContext, PbapClientConnectionHandler.MCH_PATH);
@@ -75,10 +75,10 @@ public class PbapParserTest extends AndroidTestCase {
     @Test
     public void testMissedCall() throws IOException {
         InputStream fileStream;
-        fileStream =
-                mTestResources.openRawResource(com.android.bluetooth.tests.R.raw.single_missed_call);
-        BluetoothPbapVcardList pbapVCardList = new BluetoothPbapVcardList(
-                mAccount, fileStream, PbapClientConnectionHandler.VCARD_TYPE_30);
+        fileStream = mTestResources.openRawResource(
+                com.android.bluetooth.tests.R.raw.single_missed_call);
+        BluetoothPbapVcardList pbapVCardList = new BluetoothPbapVcardList(mAccount, fileStream,
+                PbapClientConnectionHandler.VCARD_TYPE_30);
         assertEquals(1, pbapVCardList.getCount());
         CallLogPullRequest processor =
                 new CallLogPullRequest(mContext, PbapClientConnectionHandler.MCH_PATH);
@@ -97,8 +97,8 @@ public class PbapParserTest extends AndroidTestCase {
         InputStream fileStream;
         fileStream = mTestResources.openRawResource(
                 com.android.bluetooth.tests.R.raw.unknown_number_call);
-        BluetoothPbapVcardList pbapVCardList = new BluetoothPbapVcardList(
-                mAccount, fileStream, PbapClientConnectionHandler.VCARD_TYPE_30);
+        BluetoothPbapVcardList pbapVCardList = new BluetoothPbapVcardList(mAccount, fileStream,
+                PbapClientConnectionHandler.VCARD_TYPE_30);
         assertEquals(2, pbapVCardList.getCount());
         CallLogPullRequest processor =
                 new CallLogPullRequest(mContext, PbapClientConnectionHandler.MCH_PATH);
@@ -117,9 +117,10 @@ public class PbapParserTest extends AndroidTestCase {
     // Find Entries in call log with type matching number and date.
     // If number or date is null it will match any number or date respectively.
     boolean verifyCallLog(String number, String date, String type) {
-        String[] query = new String[] {Calls.NUMBER, Calls.DATE, Calls.TYPE};
-        Cursor cursor = mContext.getContentResolver().query(Calls.CONTENT_URI, query,
-                Calls.TYPE + "= " + type, null, Calls.DATE + ", " + Calls.NUMBER);
+        String[] query = new String[]{Calls.NUMBER, Calls.DATE, Calls.TYPE};
+        Cursor cursor = mContext.getContentResolver()
+                .query(Calls.CONTENT_URI, query, Calls.TYPE + "= " + type, null,
+                        Calls.DATE + ", " + Calls.NUMBER);
         if (date != null) {
             date = adjDate(date);
         }
@@ -127,8 +128,8 @@ public class PbapParserTest extends AndroidTestCase {
             while (cursor.moveToNext()) {
                 String foundNumber = cursor.getString(cursor.getColumnIndex(Calls.NUMBER));
                 String foundDate = cursor.getString(cursor.getColumnIndex(Calls.DATE));
-                if ((number == null || number.equals(foundNumber))
-                        && (date == null || date.equals(foundDate))) {
+                if ((number == null || number.equals(foundNumber)) && (date == null || date.equals(
+                        foundDate))) {
                     return true;
                 }
             }

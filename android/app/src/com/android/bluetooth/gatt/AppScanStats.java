@@ -17,20 +17,22 @@ package com.android.bluetooth.gatt;
 
 import android.bluetooth.le.ScanSettings;
 import android.os.Binder;
-import android.os.WorkSource;
+import android.os.RemoteException;
 import android.os.ServiceManager;
 import android.os.SystemClock;
-import android.os.RemoteException;
+import android.os.WorkSource;
+
+import com.android.bluetooth.btservice.BluetoothProto;
 import com.android.internal.app.IBatteryStats;
+
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.HashMap;
 
-import com.android.bluetooth.btservice.BluetoothProto;
 /**
  * ScanStats class helps keep track of information about scans
  * on a per application basis.
@@ -39,14 +41,12 @@ import com.android.bluetooth.btservice.BluetoothProto;
 /*package*/ class AppScanStats {
     static final DateFormat DATE_FORMAT = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
 
-    /* ContextMap here is needed to grab Apps and Connections */
-    ContextMap mContextMap;
+    /* ContextMap here is needed to grab Apps and Connections */ ContextMap mContextMap;
 
-    /* GattService is needed to add scan event protos to be dumped later */
-    GattService mGattService;
+    /* GattService is needed to add scan event protos to be dumped later */ GattService
+            mGattService;
 
-    /* Battery stats is used to keep track of scans and result stats */
-    IBatteryStats mBatteryStats;
+    /* Battery stats is used to keep track of scans and result stats */ IBatteryStats mBatteryStats;
 
     class LastScan {
         public long duration;
@@ -153,8 +153,9 @@ import com.android.bluetooth.btservice.BluetoothProto;
 
         LastScan scan = new LastScan(startTime, 0, false, false, filtered, scannerId);
         if (settings != null) {
-          scan.opportunistic = settings.getScanMode() == ScanSettings.SCAN_MODE_OPPORTUNISTIC;
-          scan.background = (settings.getCallbackType() & ScanSettings.CALLBACK_TYPE_FIRST_MATCH) != 0;
+            scan.opportunistic = settings.getScanMode() == ScanSettings.SCAN_MODE_OPPORTUNISTIC;
+            scan.background =
+                    (settings.getCallbackType() & ScanSettings.CALLBACK_TYPE_FIRST_MATCH) != 0;
         }
 
         BluetoothProto.ScanEvent scanEvent = new BluetoothProto.ScanEvent();
@@ -164,7 +165,9 @@ import com.android.bluetooth.btservice.BluetoothProto;
         scanEvent.setInitiator(truncateAppName(appName));
         mGattService.addScanEvent(scanEvent);
 
-        if (!isScanning()) mScanStartTime = startTime;
+        if (!isScanning()) {
+            mScanStartTime = startTime;
+        }
         try {
             boolean isUnoptimized = !(scan.filtered || scan.background || scan.opportunistic);
             mBatteryStats.noteBleScanStarted(workSource, isUnoptimized);
@@ -243,7 +246,9 @@ import com.android.bluetooth.btservice.BluetoothProto;
     }
 
     synchronized void setScanTimeout(int scannerId) {
-        if (!isScanning()) return;
+        if (!isScanning()) {
+            return;
+        }
 
         LastScan scan = getScanFromScannerId(scannerId);
         if (scan != null) {
@@ -277,9 +282,7 @@ import com.android.bluetooth.btservice.BluetoothProto;
         String initiator = name;
         String[] nameSplit = initiator.split("\\.");
         if (nameSplit.length > 3) {
-            initiator = nameSplit[0] + "." +
-                        nameSplit[1] + "." +
-                        nameSplit[2];
+            initiator = nameSplit[0] + "." + nameSplit[1] + "." + nameSplit[2];
         } else if (nameSplit.length == 3) {
             initiator = nameSplit[0] + "." + nameSplit[1];
         }
@@ -314,29 +317,35 @@ import com.android.bluetooth.btservice.BluetoothProto;
         }
 
         sb.append("  " + appName);
-        if (isRegistered) sb.append(" (Registered)");
+        if (isRegistered) {
+            sb.append(" (Registered)");
+        }
 
         if (!mLastScans.isEmpty()) {
             LastScan lastScan = mLastScans.get(mLastScans.size() - 1);
-            if (lastScan.opportunistic) sb.append(" (Opportunistic)");
-            if (lastScan.background) sb.append(" (Background)");
-            if (lastScan.timeout) sb.append(" (Forced-Opportunistic)");
-            if (lastScan.filtered) sb.append(" (Filtered)");
+            if (lastScan.opportunistic) {
+                sb.append(" (Opportunistic)");
+            }
+            if (lastScan.background) {
+                sb.append(" (Background)");
+            }
+            if (lastScan.timeout) {
+                sb.append(" (Forced-Opportunistic)");
+            }
+            if (lastScan.filtered) {
+                sb.append(" (Filtered)");
+            }
         }
         sb.append("\n");
 
         sb.append("  LE scans (started/stopped)         : " + mScansStarted + " / " + mScansStopped
                 + "\n");
-        sb.append("  Scan time in ms (min/max/avg/total): " +
-                  minScan + " / " +
-                  maxScan + " / " +
-                  avgScan + " / " +
-                  totalScanTime + "\n");
+        sb.append("  Scan time in ms (min/max/avg/total): " + minScan + " / " + maxScan + " / "
+                + avgScan + " / " + totalScanTime + "\n");
         if (mTotalSuspendTime != 0) {
             sb.append("  Total time suspended               : " + mTotalSuspendTime + "ms\n");
         }
-        sb.append("  Total number of results            : " +
-                  results + "\n");
+        sb.append("  Total number of results            : " + results + "\n");
 
         long currentTime = System.currentTimeMillis();
         long elapsedRt = SystemClock.elapsedRealtime();
@@ -348,16 +357,23 @@ import com.android.bluetooth.btservice.BluetoothProto;
                 Date timestamp = new Date(currentTime - elapsedRt + scan.timestamp);
                 sb.append("    " + DATE_FORMAT.format(timestamp) + " - ");
                 sb.append(scan.duration + "ms ");
-                if (scan.opportunistic) sb.append("Opp ");
-                if (scan.background) sb.append("Back ");
-                if (scan.timeout) sb.append("Forced ");
-                if (scan.filtered) sb.append("Filter ");
+                if (scan.opportunistic) {
+                    sb.append("Opp ");
+                }
+                if (scan.background) {
+                    sb.append("Back ");
+                }
+                if (scan.timeout) {
+                    sb.append("Forced ");
+                }
+                if (scan.filtered) {
+                    sb.append("Filter ");
+                }
                 sb.append(scan.results + " results");
                 sb.append(" (" + scan.scannerId + ")");
                 sb.append("\n");
                 if (scan.suspendDuration != 0) {
-                    sb.append("      └"
-                            + " Suspended Time: " + scan.suspendDuration + "ms\n");
+                    sb.append("      └" + " Suspended Time: " + scan.suspendDuration + "ms\n");
                 }
             }
         }
@@ -369,37 +385,43 @@ import com.android.bluetooth.btservice.BluetoothProto;
                 Date timestamp = new Date(currentTime - elapsedRt + scan.timestamp);
                 sb.append("    " + DATE_FORMAT.format(timestamp) + " - ");
                 sb.append((elapsedRt - scan.timestamp) + "ms ");
-                if (scan.opportunistic) sb.append("Opp ");
-                if (scan.background) sb.append("Back ");
-                if (scan.timeout) sb.append("Forced ");
-                if (scan.filtered) sb.append("Filter ");
-                if (scan.isSuspended) sb.append("Suspended ");
+                if (scan.opportunistic) {
+                    sb.append("Opp ");
+                }
+                if (scan.background) {
+                    sb.append("Back ");
+                }
+                if (scan.timeout) {
+                    sb.append("Forced ");
+                }
+                if (scan.filtered) {
+                    sb.append("Filter ");
+                }
+                if (scan.isSuspended) {
+                    sb.append("Suspended ");
+                }
                 sb.append(scan.results + " results");
                 sb.append(" (" + scan.scannerId + ")");
                 sb.append("\n");
                 if (scan.suspendStartTime != 0) {
-                    long duration = scan.suspendDuration
-                            + (scan.isSuspended ? (elapsedRt - scan.suspendStartTime) : 0);
-                    sb.append("      └"
-                            + " Suspended Time: " + duration + "ms\n");
+                    long duration = scan.suspendDuration + (scan.isSuspended ? (elapsedRt
+                            - scan.suspendStartTime) : 0);
+                    sb.append("      └" + " Suspended Time: " + duration + "ms\n");
                 }
             }
         }
 
         ContextMap.App appEntry = mContextMap.getByName(appName);
         if (appEntry != null && isRegistered) {
-            sb.append("  Application ID                     : " +
-                      appEntry.id + "\n");
-            sb.append("  UUID                               : " +
-                      appEntry.uuid + "\n");
+            sb.append("  Application ID                     : " + appEntry.id + "\n");
+            sb.append("  UUID                               : " + appEntry.uuid + "\n");
 
-            List<ContextMap.Connection> connections =
-              mContextMap.getConnectionByApp(appEntry.id);
+            List<ContextMap.Connection> connections = mContextMap.getConnectionByApp(appEntry.id);
 
             sb.append("  Connections: " + connections.size() + "\n");
 
             Iterator<ContextMap.Connection> ii = connections.iterator();
-            while(ii.hasNext()) {
+            while (ii.hasNext()) {
                 ContextMap.Connection connection = ii.next();
                 long connectionTime = elapsedRt - connection.startTime;
                 Date timestamp = new Date(currentTime - elapsedRt + connection.startTime);

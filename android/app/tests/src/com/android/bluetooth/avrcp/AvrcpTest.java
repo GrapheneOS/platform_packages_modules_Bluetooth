@@ -1,43 +1,34 @@
 package com.android.bluetooth.avrcp;
 
-import android.bluetooth.BluetoothAvrcp;
+import static org.mockito.Mockito.*;
+
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.content.pm.ServiceInfo;
-import android.media.session.MediaSession;
-import android.media.session.MediaSession.QueueItem;
-import android.media.MediaDescription;
-import android.media.MediaMetadata;
 import android.media.AudioManager;
-import android.media.session.MediaSessionManager;
-import android.os.Bundle;
 import android.os.Looper;
 import android.support.test.filters.MediumTest;
 import android.test.AndroidTestCase;
-import android.util.Log;
 
-import java.nio.ByteBuffer;
-import java.util.List;
-import java.util.Arrays;
 import java.util.ArrayList;
-
-import static org.mockito.Mockito.isA;
-import static org.mockito.Mockito.anyInt;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import java.util.List;
 
 @MediumTest
 public class AvrcpTest extends AndroidTestCase {
     public void testCanStart() {
-        if (Looper.myLooper() == null) Looper.prepare();
+        if (Looper.myLooper() == null) {
+            Looper.prepare();
+        }
 
         Avrcp a = Avrcp.make(getContext());
     }
 
     public void testFailedBrowseStart() {
-        if (Looper.myLooper() == null) Looper.prepare();
+        if (Looper.myLooper() == null) {
+            Looper.prepare();
+        }
 
         Context mockContext = mock(Context.class);
         AudioManager mockAudioManager = mock(AudioManager.class);
@@ -63,7 +54,8 @@ public class AvrcpTest extends AndroidTestCase {
         fakePackage.serviceInfo = fakeService;
         fakePackage.nonLocalizedLabel = "Fake Package";
         resInfos.add(fakePackage);
-        when(mockPackageManager.queryIntentServices(isA(Intent.class), anyInt())).thenReturn(resInfos);
+        when(mockPackageManager.queryIntentServices(isA(Intent.class), anyInt())).thenReturn(
+                resInfos);
 
         when(mockContext.startService(isA(Intent.class))).thenThrow(new SecurityException("test"));
 

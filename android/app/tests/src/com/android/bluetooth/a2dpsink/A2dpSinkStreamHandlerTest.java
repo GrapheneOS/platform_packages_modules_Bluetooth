@@ -16,15 +16,7 @@
 
 package com.android.bluetooth.a2dpsink;
 
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.anyFloat;
-import static org.mockito.Mockito.anyInt;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.eq;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import android.content.Context;
 import android.content.pm.PackageManager;
@@ -77,8 +69,8 @@ public class A2dpSinkStreamHandlerTest extends AndroidTestCase {
         when(mMockContext.getSystemService(Context.AUDIO_SERVICE)).thenReturn(mMockAudioManager);
         when(mMockContext.getResources()).thenReturn(mMockResources);
         when(mMockResources.getInteger(anyInt())).thenReturn(DUCK_PERCENT);
-        when(mMockAudioManager.requestAudioFocus(any()))
-                .thenReturn(AudioManager.AUDIOFOCUS_REQUEST_GRANTED);
+        when(mMockAudioManager.requestAudioFocus(any())).thenReturn(
+                AudioManager.AUDIOFOCUS_REQUEST_GRANTED);
         when(mMockAudioManager.abandonAudioFocus(any())).thenReturn(AudioManager.AUDIOFOCUS_GAIN);
         doNothing().when(mMockA2dpSink).informAudioTrackGainNative(anyFloat());
         when(mMockContext.getMainLooper()).thenReturn(mHandlerThread.getLooper());
@@ -130,7 +122,8 @@ public class A2dpSinkStreamHandlerTest extends AndroidTestCase {
     public void testDisconnect() {
         // Remote device was disconnected, expect streaming to stop.
         testSnkPlay();
-        mStreamHandler.handleMessage(mStreamHandler.obtainMessage(A2dpSinkStreamHandler.DISCONNECT));
+        mStreamHandler.handleMessage(
+                mStreamHandler.obtainMessage(A2dpSinkStreamHandler.DISCONNECT));
         verify(mMockAudioManager, times(1)).abandonAudioFocus(any());
         verify(mMockA2dpSink, times(1)).informAudioFocusStateNative(0);
     }
@@ -167,8 +160,9 @@ public class A2dpSinkStreamHandlerTest extends AndroidTestCase {
     public void testFocusGain() {
         // Focus was gained, expect streaming to resume.
         testSnkPlay();
-        mStreamHandler.handleMessage(mStreamHandler.obtainMessage(
-                A2dpSinkStreamHandler.AUDIO_FOCUS_CHANGE, AudioManager.AUDIOFOCUS_GAIN));
+        mStreamHandler.handleMessage(
+                mStreamHandler.obtainMessage(A2dpSinkStreamHandler.AUDIO_FOCUS_CHANGE,
+                        AudioManager.AUDIOFOCUS_GAIN));
         verify(mMockAudioManager, times(1)).requestAudioFocus(any());
         verify(mMockA2dpSink, times(2)).informAudioFocusStateNative(1);
         verify(mMockA2dpSink, times(2)).informAudioTrackGainNative(1.0f);
@@ -188,8 +182,9 @@ public class A2dpSinkStreamHandlerTest extends AndroidTestCase {
     public void testFocusLostTransient() {
         // Focus was lost transiently, expect streaming to stop.
         testSnkPlay();
-        mStreamHandler.handleMessage(mStreamHandler.obtainMessage(
-                A2dpSinkStreamHandler.AUDIO_FOCUS_CHANGE, AudioManager.AUDIOFOCUS_LOSS_TRANSIENT));
+        mStreamHandler.handleMessage(
+                mStreamHandler.obtainMessage(A2dpSinkStreamHandler.AUDIO_FOCUS_CHANGE,
+                        AudioManager.AUDIOFOCUS_LOSS_TRANSIENT));
         verify(mMockAudioManager, times(0)).abandonAudioFocus(any());
         verify(mMockA2dpSink, times(1)).informAudioFocusStateNative(0);
     }
@@ -198,8 +193,9 @@ public class A2dpSinkStreamHandlerTest extends AndroidTestCase {
     public void testFocusLost() {
         // Focus was lost permanently, expect streaming to stop.
         testSnkPlay();
-        mStreamHandler.handleMessage(mStreamHandler.obtainMessage(
-                A2dpSinkStreamHandler.AUDIO_FOCUS_CHANGE, AudioManager.AUDIOFOCUS_LOSS));
+        mStreamHandler.handleMessage(
+                mStreamHandler.obtainMessage(A2dpSinkStreamHandler.AUDIO_FOCUS_CHANGE,
+                        AudioManager.AUDIOFOCUS_LOSS));
         verify(mMockAudioManager, times(1)).abandonAudioFocus(any());
         verify(mMockA2dpSink, times(1)).informAudioFocusStateNative(0);
     }

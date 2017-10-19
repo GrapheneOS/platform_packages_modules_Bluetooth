@@ -22,6 +22,7 @@ import java.util.ArrayList;
 
 import javax.obex.ClientSession;
 import javax.obex.HeaderSet;
+
 /* Get a listing of subdirectories. */
 final class RequestGetFolderListing extends Request {
 

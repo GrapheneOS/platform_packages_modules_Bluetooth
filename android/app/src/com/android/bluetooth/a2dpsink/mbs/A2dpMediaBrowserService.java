@@ -16,7 +16,6 @@
 
 package com.android.bluetooth.a2dpsink.mbs;
 
-import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothAvrcpController;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothProfile;
@@ -24,10 +23,9 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.media.MediaMetadata;
 import android.media.browse.MediaBrowser;
 import android.media.browse.MediaBrowser.MediaItem;
-import android.media.MediaDescription;
-import android.media.MediaMetadata;
 import android.media.session.MediaController;
 import android.media.session.MediaSession;
 import android.media.session.PlaybackState;
@@ -36,10 +34,9 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 import android.os.Parcelable;
-import android.os.ResultReceiver;
 import android.service.media.MediaBrowserService;
-import android.util.Pair;
 import android.util.Log;
+import android.util.Pair;
 
 import com.android.bluetooth.R;
 import com.android.bluetooth.avrcpcontroller.AvrcpControllerService;
@@ -94,7 +91,7 @@ public class A2dpMediaBrowserService extends MediaBrowserService {
     private static final String CUSTOM_ACTION_VOL_DN =
             "com.android.bluetooth.a2dpsink.mbs.CUSTOM_ACTION_VOL_DN";
     private static final String CUSTOM_ACTION_GET_PLAY_STATUS_NATIVE =
-        "com.android.bluetooth.a2dpsink.mbs.CUSTOM_ACTION_GET_PLAY_STATUS_NATIVE";
+            "com.android.bluetooth.a2dpsink.mbs.CUSTOM_ACTION_GET_PLAY_STATUS_NATIVE";
 
     private MediaSession mSession;
     private MediaMetadata mA2dpMetadata;
@@ -136,7 +133,7 @@ public class A2dpMediaBrowserService extends MediaBrowserService {
                     break;
                 case MSG_TRACK:
                     Pair<PlaybackState, MediaMetadata> pair =
-                        (Pair<PlaybackState, MediaMetadata>) (msg.obj);
+                            (Pair<PlaybackState, MediaMetadata>) (msg.obj);
                     inst.msgTrack(pair.first, pair.second);
                     break;
                 case MSG_AVRCP_PASSTHRU:
@@ -168,8 +165,8 @@ public class A2dpMediaBrowserService extends MediaBrowserService {
         mSession = new MediaSession(this, TAG);
         setSessionToken(mSession.getSessionToken());
         mSession.setCallback(mSessionCallbacks);
-        mSession.setFlags(MediaSession.FLAG_HANDLES_MEDIA_BUTTONS |
-                MediaSession.FLAG_HANDLES_TRANSPORT_CONTROLS);
+        mSession.setFlags(MediaSession.FLAG_HANDLES_MEDIA_BUTTONS
+                | MediaSession.FLAG_HANDLES_TRANSPORT_CONTROLS);
         mSession.setActive(true);
         mAvrcpCommandQueue = new AvrcpCommandQueueHandler(Looper.getMainLooper(), this);
 
@@ -201,8 +198,8 @@ public class A2dpMediaBrowserService extends MediaBrowserService {
     }
 
     @Override
-    public synchronized void onLoadChildren(
-            final String parentMediaId, final Result<List<MediaItem>> result) {
+    public synchronized void onLoadChildren(final String parentMediaId,
+            final Result<List<MediaItem>> result) {
         if (mAvrcpCtrlSrvc == null) {
             Log.e(TAG, "AVRCP not yet connected.");
             result.sendResult(Collections.emptyList());
@@ -232,25 +229,24 @@ public class A2dpMediaBrowserService extends MediaBrowserService {
         @Override
         public void onPlay() {
             Log.d(TAG, "onPlay");
-            mAvrcpCommandQueue.obtainMessage(
-                MSG_AVRCP_PASSTHRU, AvrcpControllerService.PASS_THRU_CMD_ID_PLAY).sendToTarget();
+            mAvrcpCommandQueue.obtainMessage(MSG_AVRCP_PASSTHRU,
+                    AvrcpControllerService.PASS_THRU_CMD_ID_PLAY).sendToTarget();
             // TRACK_EVENT should be fired eventually and the UI should be hence updated.
         }
 
         @Override
         public void onPause() {
             Log.d(TAG, "onPause");
-            mAvrcpCommandQueue.obtainMessage(
-                MSG_AVRCP_PASSTHRU, AvrcpControllerService.PASS_THRU_CMD_ID_PAUSE).sendToTarget();
+            mAvrcpCommandQueue.obtainMessage(MSG_AVRCP_PASSTHRU,
+                    AvrcpControllerService.PASS_THRU_CMD_ID_PAUSE).sendToTarget();
             // TRACK_EVENT should be fired eventually and the UI should be hence updated.
         }
 
         @Override
         public void onSkipToNext() {
             Log.d(TAG, "onSkipToNext");
-            mAvrcpCommandQueue.obtainMessage(
-                MSG_AVRCP_PASSTHRU, AvrcpControllerService.PASS_THRU_CMD_ID_FORWARD)
-                .sendToTarget();
+            mAvrcpCommandQueue.obtainMessage(MSG_AVRCP_PASSTHRU,
+                    AvrcpControllerService.PASS_THRU_CMD_ID_FORWARD).sendToTarget();
             // TRACK_EVENT should be fired eventually and the UI should be hence updated.
         }
 
@@ -258,33 +254,31 @@ public class A2dpMediaBrowserService extends MediaBrowserService {
         public void onSkipToPrevious() {
             Log.d(TAG, "onSkipToPrevious");
 
-            mAvrcpCommandQueue.obtainMessage(
-                MSG_AVRCP_PASSTHRU, AvrcpControllerService.PASS_THRU_CMD_ID_BACKWARD)
-                .sendToTarget();
+            mAvrcpCommandQueue.obtainMessage(MSG_AVRCP_PASSTHRU,
+                    AvrcpControllerService.PASS_THRU_CMD_ID_BACKWARD).sendToTarget();
             // TRACK_EVENT should be fired eventually and the UI should be hence updated.
         }
 
         @Override
         public void onStop() {
             Log.d(TAG, "onStop");
-            mAvrcpCommandQueue.obtainMessage(
-                    MSG_AVRCP_PASSTHRU, AvrcpControllerService.PASS_THRU_CMD_ID_STOP)
-                    .sendToTarget();
+            mAvrcpCommandQueue.obtainMessage(MSG_AVRCP_PASSTHRU,
+                    AvrcpControllerService.PASS_THRU_CMD_ID_STOP).sendToTarget();
         }
 
         @Override
         public void onRewind() {
             Log.d(TAG, "onRewind");
-            mAvrcpCommandQueue.obtainMessage(
-                MSG_AVRCP_PASSTHRU, AvrcpControllerService.PASS_THRU_CMD_ID_REWIND).sendToTarget();
+            mAvrcpCommandQueue.obtainMessage(MSG_AVRCP_PASSTHRU,
+                    AvrcpControllerService.PASS_THRU_CMD_ID_REWIND).sendToTarget();
             // TRACK_EVENT should be fired eventually and the UI should be hence updated.
         }
 
         @Override
         public void onFastForward() {
             Log.d(TAG, "onFastForward");
-            mAvrcpCommandQueue.obtainMessage(
-                MSG_AVRCP_PASSTHRU, AvrcpControllerService.PASS_THRU_CMD_ID_FF).sendToTarget();
+            mAvrcpCommandQueue.obtainMessage(MSG_AVRCP_PASSTHRU,
+                    AvrcpControllerService.PASS_THRU_CMD_ID_FF).sendToTarget();
             // TRACK_EVENT should be fired eventually and the UI should be hence updated.
         }
 
@@ -306,17 +300,14 @@ public class A2dpMediaBrowserService extends MediaBrowserService {
         public void onCustomAction(String action, Bundle extras) {
             Log.d(TAG, "onCustomAction " + action);
             if (CUSTOM_ACTION_VOL_UP.equals(action)) {
-                mAvrcpCommandQueue.obtainMessage(
-                    MSG_AVRCP_PASSTHRU,
-                    AvrcpControllerService.PASS_THRU_CMD_ID_VOL_UP).sendToTarget();
+                mAvrcpCommandQueue.obtainMessage(MSG_AVRCP_PASSTHRU,
+                        AvrcpControllerService.PASS_THRU_CMD_ID_VOL_UP).sendToTarget();
             } else if (CUSTOM_ACTION_VOL_DN.equals(action)) {
-                mAvrcpCommandQueue.obtainMessage(
-                    MSG_AVRCP_PASSTHRU,
-                    AvrcpControllerService.PASS_THRU_CMD_ID_VOL_DOWN).sendToTarget();
+                mAvrcpCommandQueue.obtainMessage(MSG_AVRCP_PASSTHRU,
+                        AvrcpControllerService.PASS_THRU_CMD_ID_VOL_DOWN).sendToTarget();
             } else if (CUSTOM_ACTION_GET_PLAY_STATUS_NATIVE.equals(action)) {
-                mAvrcpCommandQueue.obtainMessage(
-                    MSG_AVRCP_GET_PLAY_STATUS_NATIVE).sendToTarget();
-            }else {
+                mAvrcpCommandQueue.obtainMessage(MSG_AVRCP_GET_PLAY_STATUS_NATIVE).sendToTarget();
+            } else {
                 Log.w(TAG, "Custom action " + action + " not supported.");
             }
         }
@@ -332,8 +323,7 @@ public class A2dpMediaBrowserService extends MediaBrowserService {
             int state = intent.getIntExtra(BluetoothProfile.EXTRA_STATE, -1);
 
             if (BluetoothAvrcpController.ACTION_CONNECTION_STATE_CHANGED.equals(action)) {
-                Log.d(TAG, "handleConnectionStateChange: newState="
-                        + state + " btDev=" + btDev);
+                Log.d(TAG, "handleConnectionStateChange: newState=" + state + " btDev=" + btDev);
 
                 // Connected state will be handled when AVRCP BluetoothProfile gets connected.
                 if (state == BluetoothProfile.STATE_CONNECTED) {
@@ -348,22 +338,21 @@ public class A2dpMediaBrowserService extends MediaBrowserService {
                     }
                 }
             } else if (AvrcpControllerService.ACTION_BROWSE_CONNECTION_STATE_CHANGED.equals(
-                action)) {
+                    action)) {
                 if (state == BluetoothProfile.STATE_CONNECTED) {
-                    mAvrcpCommandQueue.obtainMessage(
-                        MSG_DEVICE_BROWSE_CONNECT, btDev).sendToTarget();
+                    mAvrcpCommandQueue.obtainMessage(MSG_DEVICE_BROWSE_CONNECT, btDev)
+                            .sendToTarget();
                 } else if (state == BluetoothProfile.STATE_DISCONNECTED) {
-                    mAvrcpCommandQueue.obtainMessage(
-                        MSG_DEVICE_BROWSE_DISCONNECT, btDev).sendToTarget();
+                    mAvrcpCommandQueue.obtainMessage(MSG_DEVICE_BROWSE_DISCONNECT, btDev)
+                            .sendToTarget();
                 }
             } else if (AvrcpControllerService.ACTION_TRACK_EVENT.equals(action)) {
                 PlaybackState pbb =
                         intent.getParcelableExtra(AvrcpControllerService.EXTRA_PLAYBACK);
                 MediaMetadata mmd =
                         intent.getParcelableExtra(AvrcpControllerService.EXTRA_METADATA);
-                mAvrcpCommandQueue
-                        .obtainMessage(MSG_TRACK, new Pair<PlaybackState, MediaMetadata>(pbb, mmd))
-                        .sendToTarget();
+                mAvrcpCommandQueue.obtainMessage(MSG_TRACK,
+                        new Pair<PlaybackState, MediaMetadata>(pbb, mmd)).sendToTarget();
             } else if (AvrcpControllerService.ACTION_FOLDER_LIST.equals(action)) {
                 mAvrcpCommandQueue.obtainMessage(MSG_FOLDER_LIST, intent).sendToTarget();
             }
@@ -419,15 +408,15 @@ public class A2dpMediaBrowserService extends MediaBrowserService {
             Log.w(TAG, "Already disconnected - nothing to do here.");
             return;
         } else if (!mA2dpDevice.equals(device)) {
-            Log.e(TAG, "Not the right device to disconnect current " +
-                mA2dpDevice + " dc " + device);
+            Log.e(TAG,
+                    "Not the right device to disconnect current " + mA2dpDevice + " dc " + device);
             return;
         }
 
         // Unset the session.
         PlaybackState.Builder pbb = new PlaybackState.Builder();
         pbb = pbb.setState(PlaybackState.STATE_ERROR, PlaybackState.PLAYBACK_POSITION_UNKNOWN,
-                    PLAYBACK_SPEED)
+                PLAYBACK_SPEED)
                 .setActions(mTransportControlFlags)
                 .setErrorMessage(getString(R.string.bluetooth_disconnected));
         mSession.setPlaybackState(pbb.build());
@@ -484,10 +473,10 @@ public class A2dpMediaBrowserService extends MediaBrowserService {
         }
 
         // Send the pass through.
-        mAvrcpCtrlSrvc.sendPassThroughCmd(
-            mA2dpDevice, cmd, AvrcpControllerService.KEY_STATE_PRESSED);
-        mAvrcpCtrlSrvc.sendPassThroughCmd(
-            mA2dpDevice, cmd, AvrcpControllerService.KEY_STATE_RELEASED);
+        mAvrcpCtrlSrvc.sendPassThroughCmd(mA2dpDevice, cmd,
+                AvrcpControllerService.KEY_STATE_PRESSED);
+        mAvrcpCtrlSrvc.sendPassThroughCmd(mA2dpDevice, cmd,
+                AvrcpControllerService.KEY_STATE_RELEASED);
     }
 
     private synchronized void msgGetPlayStatusNative() {
@@ -506,8 +495,8 @@ public class A2dpMediaBrowserService extends MediaBrowserService {
         Log.d(TAG, "msgDeviceBrowseConnect device " + device);
         // We should already be connected to this device over A2DP.
         if (!device.equals(mA2dpDevice)) {
-            Log.e(TAG, "Browse connected over different device a2dp " + mA2dpDevice +
-                " browse " + device);
+            Log.e(TAG, "Browse connected over different device a2dp " + mA2dpDevice + " browse "
+                    + device);
             return;
         }
         mBrowseConnected = true;
@@ -518,8 +507,8 @@ public class A2dpMediaBrowserService extends MediaBrowserService {
     private void msgFolderList(Intent intent) {
         // Parse the folder list for children list and id.
         List<Parcelable> extraParcelableList =
-            (ArrayList<Parcelable>) intent.getParcelableArrayListExtra(
-                AvrcpControllerService.EXTRA_FOLDER_LIST);
+                (ArrayList<Parcelable>) intent.getParcelableArrayListExtra(
+                        AvrcpControllerService.EXTRA_FOLDER_LIST);
         List<MediaItem> folderList = new ArrayList<MediaItem>();
         for (Parcelable p : extraParcelableList) {
             folderList.add((MediaItem) p);
@@ -545,8 +534,8 @@ public class A2dpMediaBrowserService extends MediaBrowserService {
         Log.d(TAG, "msgDeviceBrowseDisconnect device " + device);
         // Disconnect only if mA2dpDevice is non null
         if (!device.equals(mA2dpDevice)) {
-            Log.w(TAG, "Browse disconnecting from different device a2dp " + mA2dpDevice +
-                " browse " + device);
+            Log.w(TAG, "Browse disconnecting from different device a2dp " + mA2dpDevice + " browse "
+                    + device);
             return;
         }
         mBrowseConnected = false;

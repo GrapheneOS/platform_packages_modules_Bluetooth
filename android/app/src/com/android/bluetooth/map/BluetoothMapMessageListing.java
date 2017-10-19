@@ -14,17 +14,18 @@
 */
 package com.android.bluetooth.map;
 
+import android.util.Log;
+
+import com.android.internal.util.FastXmlSerializer;
+
+import org.xmlpull.v1.XmlSerializer;
+
 import java.io.IOException;
 import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import com.android.internal.util.FastXmlSerializer;
-
-import org.xmlpull.v1.XmlSerializer;
-
-import android.util.Log;
 
 public class BluetoothMapMessageListing {
     private boolean mHasUnread = false;
@@ -33,14 +34,14 @@ public class BluetoothMapMessageListing {
 
     private List<BluetoothMapMessageListingElement> mList;
 
-    public BluetoothMapMessageListing(){
+    public BluetoothMapMessageListing() {
         mList = new ArrayList<BluetoothMapMessageListingElement>();
     }
+
     public void add(BluetoothMapMessageListingElement element) {
         mList.add(element);
         /* update info regarding whether the list contains unread messages */
-        if (element.getReadBool())
-        {
+        if (element.getReadBool()) {
             mHasUnread = true;
         }
     }
@@ -50,8 +51,7 @@ public class BluetoothMapMessageListing {
      * @return the number of elements in the list.
      */
     public int getCount() {
-        if(mList != null)
-        {
+        if (mList != null) {
             return mList.size();
         }
         return 0;
@@ -61,8 +61,7 @@ public class BluetoothMapMessageListing {
      * does the list contain any unread messages
      * @return true if unread messages have been added to the list, else false
      */
-    public boolean hasUnread()
-    {
+    public boolean hasUnread() {
         return mHasUnread;
     }
 
@@ -71,7 +70,7 @@ public class BluetoothMapMessageListing {
      *  returns the entire list as a list
      * @return list
      */
-    public List<BluetoothMapMessageListingElement> getList(){
+    public List<BluetoothMapMessageListingElement> getList() {
         return mList;
     }
 
@@ -87,7 +86,8 @@ public class BluetoothMapMessageListing {
      *             if UTF-8 encoding is unsupported on the platform.
      */
     // TODO: Remove includeThreadId when MAP-IM is adopted
-    public byte[] encode(boolean includeThreadId, String version) throws UnsupportedEncodingException {
+    public byte[] encode(boolean includeThreadId, String version)
+            throws UnsupportedEncodingException {
         StringWriter sw = new StringWriter();
         XmlSerializer xmlMsgElement = new FastXmlSerializer();
         try {
@@ -120,15 +120,15 @@ public class BluetoothMapMessageListing {
         count = Math.min(count, mList.size() - offset);
         if (count > 0) {
             mList = mList.subList(offset, offset + count);
-            if(mList == null) {
+            if (mList == null) {
                 mList = new ArrayList<BluetoothMapMessageListingElement>(); // Return an empty list
             }
         } else {
-            if(offset > mList.size()) {
-               mList = new ArrayList<BluetoothMapMessageListingElement>();
-               Log.d(TAG, "offset greater than list size. Returning empty list");
+            if (offset > mList.size()) {
+                mList = new ArrayList<BluetoothMapMessageListingElement>();
+                Log.d(TAG, "offset greater than list size. Returning empty list");
             } else {
-               mList = mList.subList(offset, mList.size());
+                mList = mList.subList(offset, mList.size());
             }
         }
     }

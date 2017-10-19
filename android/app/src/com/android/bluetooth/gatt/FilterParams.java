@@ -31,11 +31,9 @@ public class FilterParams {
     private int mFoundTimeOutCnt;
     private int mNumOfTrackEntries;
 
-    public FilterParams(int clientIf, int filtIndex,
-        int featSeln, int listLogicType, int filtLogicType,
-        int rssiHighThres, int rssiLowThres, int delyMode,
-        int foundTimeout, int lostTimeout, int foundTimeoutCnt,
-        int numOfTrackingEntries) {
+    public FilterParams(int clientIf, int filtIndex, int featSeln, int listLogicType,
+            int filtLogicType, int rssiHighThres, int rssiLowThres, int delyMode, int foundTimeout,
+            int lostTimeout, int foundTimeoutCnt, int numOfTrackingEntries) {
 
         mClientIf = clientIf;
         mFiltIndex = filtIndex;
@@ -51,51 +49,51 @@ public class FilterParams {
         mNumOfTrackEntries = numOfTrackingEntries;
     }
 
-    public int getClientIf () {
+    public int getClientIf() {
         return mClientIf;
     }
 
-    public int getFiltIndex () {
+    public int getFiltIndex() {
         return mFiltIndex;
     }
 
-    public int getFeatSeln () {
+    public int getFeatSeln() {
         return mFeatSeln;
     }
 
-    public int getDelyMode () {
+    public int getDelyMode() {
         return mDelyMode;
     }
 
-    public int getListLogicType () {
+    public int getListLogicType() {
         return mListLogicType;
     }
 
-    public int getFiltLogicType () {
+    public int getFiltLogicType() {
         return mFiltLogicType;
     }
 
-    public int getRSSIHighValue () {
+    public int getRSSIHighValue() {
         return mRssiHighValue;
     }
 
-    public int getRSSILowValue () {
+    public int getRSSILowValue() {
         return mRssiLowValue;
     }
 
-    public int getFoundTimeout () {
+    public int getFoundTimeout() {
         return mFoundTimeOut;
     }
 
-    public int getFoundTimeOutCnt () {
+    public int getFoundTimeOutCnt() {
         return mFoundTimeOutCnt;
     }
 
-    public int getLostTimeout () {
+    public int getLostTimeout() {
         return mLostTimeOut;
     }
 
-    public int getNumOfTrackEntries () {
+    public int getNumOfTrackEntries() {
         return mNumOfTrackEntries;
     }
 

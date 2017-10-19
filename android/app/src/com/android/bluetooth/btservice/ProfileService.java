@@ -16,10 +16,6 @@
 
 package com.android.bluetooth.btservice;
 
-import java.util.HashMap;
-
-import com.android.bluetooth.Utils;
-
 import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -28,29 +24,33 @@ import android.content.pm.PackageManager;
 import android.os.IBinder;
 import android.util.Log;
 
+import com.android.bluetooth.Utils;
+
+import java.util.HashMap;
+
 public abstract class ProfileService extends Service {
     private static final boolean DBG = false;
     private static final String TAG = "BluetoothProfileService";
 
     //For Debugging only
-    private static HashMap<String, Integer> sReferenceCount = new HashMap<String,Integer>();
+    private static HashMap<String, Integer> sReferenceCount = new HashMap<String, Integer>();
 
-    public static final String BLUETOOTH_ADMIN_PERM =
-            android.Manifest.permission.BLUETOOTH_ADMIN;
+    public static final String BLUETOOTH_ADMIN_PERM = android.Manifest.permission.BLUETOOTH_ADMIN;
     public static final String BLUETOOTH_PERM = android.Manifest.permission.BLUETOOTH;
     public static final String BLUETOOTH_PRIVILEGED =
-        android.Manifest.permission.BLUETOOTH_PRIVILEGED;
+            android.Manifest.permission.BLUETOOTH_PRIVILEGED;
 
     public interface IProfileServiceBinder extends IBinder {
         boolean cleanup();
     }
+
     //Profile services will not be automatically restarted.
     //They must be explicitly restarted by AdapterService
-    private static final int PROFILE_SERVICE_MODE=Service.START_NOT_STICKY;
+    private static final int PROFILE_SERVICE_MODE = Service.START_NOT_STICKY;
     protected String mName;
     protected BluetoothAdapter mAdapter;
     protected IProfileServiceBinder mBinder;
-    protected boolean mStartError=false;
+    protected boolean mStartError = false;
     private boolean mCleaningUp = false;
 
     protected String getName() {
@@ -64,8 +64,11 @@ public abstract class ProfileService extends Service {
     protected abstract IProfileServiceBinder initBinder();
 
     protected abstract boolean start();
+
     protected abstract boolean stop();
+
     protected void create() {}
+
     protected boolean cleanup() {
         return true;
     }
@@ -75,13 +78,15 @@ public abstract class ProfileService extends Service {
         if (DBG) {
             synchronized (sReferenceCount) {
                 Integer refCount = sReferenceCount.get(mName);
-                if (refCount==null) {
+                if (refCount == null) {
                     refCount = 1;
                 } else {
-                    refCount = refCount+1;
+                    refCount = refCount + 1;
                 }
                 sReferenceCount.put(mName, refCount);
-                if (DBG) log("REFCOUNT: CREATED. INSTANCE_COUNT=" +refCount);
+                if (DBG) {
+                    log("REFCOUNT: CREATED. INSTANCE_COUNT=" + refCount);
+                }
             }
         }
     }
@@ -91,20 +96,22 @@ public abstract class ProfileService extends Service {
         if (DBG) {
             synchronized (sReferenceCount) {
                 Integer refCount = sReferenceCount.get(mName);
-                if (refCount!=null) {
-                    refCount = refCount-1;
+                if (refCount != null) {
+                    refCount = refCount - 1;
                 } else {
                     refCount = 0;
                 }
                 sReferenceCount.put(mName, refCount);
-                log("REFCOUNT: FINALIZED. INSTANCE_COUNT=" +refCount);
+                log("REFCOUNT: FINALIZED. INSTANCE_COUNT=" + refCount);
             }
         }
     }
 
     @Override
     public void onCreate() {
-        if (DBG) log("onCreate");
+        if (DBG) {
+            log("onCreate");
+        }
         super.onCreate();
         mAdapter = BluetoothAdapter.getDefaultAdapter();
         mBinder = initBinder();
@@ -113,7 +120,9 @@ public abstract class ProfileService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        if (DBG) log("onStartCommand()");
+        if (DBG) {
+            log("onStartCommand()");
+        }
         AdapterService adapterService = AdapterService.getAdapterService();
         if (adapterService != null) {
             adapterService.addProfile(this);
@@ -127,7 +136,8 @@ public abstract class ProfileService extends Service {
             return PROFILE_SERVICE_MODE;
         }
 
-        if (checkCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM)!=PackageManager.PERMISSION_GRANTED) {
+        if (checkCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM)
+                != PackageManager.PERMISSION_GRANTED) {
             Log.e(mName, "Permission denied!");
             return PROFILE_SERVICE_MODE;
         }
@@ -138,8 +148,9 @@ public abstract class ProfileService extends Service {
         } else {
             String action = intent.getStringExtra(AdapterService.EXTRA_ACTION);
             if (AdapterService.ACTION_SERVICE_STATE_CHANGED.equals(action)) {
-                int state= intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.ERROR);
-                if(state==BluetoothAdapter.STATE_OFF) {
+                int state =
+                        intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.ERROR);
+                if (state == BluetoothAdapter.STATE_OFF) {
                     Log.d(mName, "Received stop request...Stopping profile...");
                     doStop(intent);
                 } else if (state == BluetoothAdapter.STATE_ON) {
@@ -153,7 +164,9 @@ public abstract class ProfileService extends Service {
 
     @Override
     public IBinder onBind(Intent intent) {
-        if (DBG) log("onBind");
+        if (DBG) {
+            log("onBind");
+        }
         if (mAdapter != null && mBinder == null) {
             // initBinder returned null, you can't bind
             throw new UnsupportedOperationException("Cannot bind to " + mName);
@@ -163,7 +176,9 @@ public abstract class ProfileService extends Service {
 
     @Override
     public boolean onUnbind(Intent intent) {
-        if (DBG) log("onUnbind");
+        if (DBG) {
+            log("onUnbind");
+        }
         return super.onUnbind(intent);
     }
 
@@ -185,19 +200,27 @@ public abstract class ProfileService extends Service {
 
     @Override
     public void onDestroy() {
-        if (DBG) log("Destroying service.");
+        if (DBG) {
+            log("Destroying service.");
+        }
         AdapterService adapterService = AdapterService.getAdapterService();
-        if (adapterService != null) adapterService.removeProfile(this);
+        if (adapterService != null) {
+            adapterService.removeProfile(this);
+        }
 
         if (mCleaningUp) {
-            if (DBG) log("Cleanup already started... Skipping cleanup()...");
+            if (DBG) {
+                log("Cleanup already started... Skipping cleanup()...");
+            }
         } else {
-            if (DBG) log("cleanup()");
+            if (DBG) {
+                log("cleanup()");
+            }
             mCleaningUp = true;
             cleanup();
             if (mBinder != null) {
                 mBinder.cleanup();
-                mBinder= null;
+                mBinder = null;
             }
         }
         super.onDestroy();
@@ -209,7 +232,9 @@ public abstract class ProfileService extends Service {
         if (mAdapter == null) {
             Log.e(mName, "Error starting profile. BluetoothAdapter is null");
         } else {
-            if (DBG) log("start()");
+            if (DBG) {
+                log("start()");
+            }
             mStartError = !start();
             if (!mStartError) {
                 notifyProfileServiceStateChanged(BluetoothAdapter.STATE_ON);
@@ -221,7 +246,9 @@ public abstract class ProfileService extends Service {
 
     private void doStop(Intent intent) {
         if (stop()) {
-            if (DBG) log("stop()");
+            if (DBG) {
+                log("stop()");
+            }
             notifyProfileServiceStateChanged(BluetoothAdapter.STATE_OFF);
             stopSelf();
         } else {
@@ -238,7 +265,7 @@ public abstract class ProfileService extends Service {
     }
 
     protected BluetoothDevice getDevice(byte[] address) {
-        if(mAdapter != null){
+        if (mAdapter != null) {
             return mAdapter.getRemoteDevice(Utils.getAddressStringFromByte(address));
         }
         return null;

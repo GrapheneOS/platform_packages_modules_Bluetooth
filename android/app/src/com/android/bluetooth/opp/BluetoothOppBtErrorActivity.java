@@ -32,22 +32,21 @@
 
 package com.android.bluetooth.opp;
 
-import com.android.bluetooth.R;
-
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.TextView;
 
+import com.android.bluetooth.R;
 import com.android.internal.app.AlertActivity;
 import com.android.internal.app.AlertController;
 
 /**
  * This class is designed to show BT error messages;
  */
-public class BluetoothOppBtErrorActivity extends AlertActivity implements
-        DialogInterface.OnClickListener {
+public class BluetoothOppBtErrorActivity extends AlertActivity
+        implements DialogInterface.OnClickListener {
 
     private String mErrorContent;
 
@@ -71,7 +70,7 @@ public class BluetoothOppBtErrorActivity extends AlertActivity implements
 
     private View createView() {
         View view = getLayoutInflater().inflate(R.layout.confirm_dialog, null);
-        TextView contentView = (TextView)view.findViewById(R.id.content);
+        TextView contentView = (TextView) view.findViewById(R.id.content);
         contentView.setText(mErrorContent);
         return view;
     }
