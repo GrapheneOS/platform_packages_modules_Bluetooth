@@ -15,7 +15,7 @@ cc_library_shared {
         "com_android_bluetooth_gatt.cpp",
         "com_android_bluetooth_sdp.cpp",
     ],
-    header_libs: ["bluetooth.default_headers"],
+    header_libs: ["libbluetooth_headers"],
     include_dirs: [
         "libnativehelper/include/nativehelper",
         "system/bt/types",
