@@ -27,8 +27,8 @@ import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
 
-import com.android.bluetooth.avrcpcontroller.AvrcpControllerService;
 import com.android.bluetooth.R;
+import com.android.bluetooth.avrcpcontroller.AvrcpControllerService;
 
 import java.util.List;
 
@@ -182,8 +182,8 @@ public class A2dpSinkStreamHandler extends Handler {
 
                     case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK:
                         // Make the volume duck.
-                        int duckPercent = mContext.getResources().getInteger(
-                                R.integer.a2dp_sink_duck_percent);
+                        int duckPercent = mContext.getResources()
+                                .getInteger(R.integer.a2dp_sink_duck_percent);
                         if (duckPercent < 0 || duckPercent > 100) {
                             Log.e(TAG, "Invalid duck percent using default.");
                             duckPercent = DEFAULT_DUCK_PERCENT;
@@ -227,15 +227,14 @@ public class A2dpSinkStreamHandler extends Handler {
         // Bluetooth A2DP may carry Music, Audio Books, Navigation, or other sounds so mark content
         // type unknown.
         AudioAttributes streamAttributes =
-                new AudioAttributes.Builder()
-                        .setUsage(AudioAttributes.USAGE_MEDIA)
+                new AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_MEDIA)
                         .setContentType(AudioAttributes.CONTENT_TYPE_UNKNOWN)
                         .build();
         // Bluetooth ducking is handled at the native layer so tell the Audio Manger to notify the
         // focus change listener via .setWillPauseWhenDucked().
         AudioFocusRequest focusRequest =
-                new AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN)
-                        .setAudioAttributes(streamAttributes)
+                new AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN).setAudioAttributes(
+                        streamAttributes)
                         .setWillPauseWhenDucked(true)
                         .setOnAudioFocusChangeListener(mAudioFocusListener, this)
                         .build();

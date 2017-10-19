@@ -3,30 +3,17 @@ package com.android.bluetooth.avrcp;
 import android.annotation.NonNull;
 import android.annotation.Nullable;
 import android.app.PendingIntent;
-import android.content.Context;
-import android.content.pm.ParceledListSlice;
-import android.media.AudioAttributes;
-import android.media.AudioManager;
-import android.media.MediaMetadata;
 import android.media.MediaDescription;
+import android.media.MediaMetadata;
 import android.media.Rating;
-import android.media.VolumeProvider;
-import android.media.session.PlaybackState;
 import android.media.session.MediaSession;
-import android.media.session.MediaSession.QueueItem;
+import android.media.session.PlaybackState;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.Looper;
-import android.os.Message;
-import android.os.RemoteException;
 import android.os.ResultReceiver;
-import android.text.TextUtils;
-import android.util.Log;
 import android.view.KeyEvent;
 
-import java.lang.ref.WeakReference;
-import java.util.ArrayList;
 import java.util.List;
 
 public class MediaController {
@@ -36,7 +23,7 @@ public class MediaController {
 
     @Nullable
     public static MediaController wrap(@Nullable android.media.session.MediaController delegate) {
-      return (delegate != null) ? new MediaController(delegate) : null;
+        return (delegate != null) ? new MediaController(delegate) : null;
     }
 
     public MediaController(@NonNull android.media.session.MediaController delegate) {
@@ -164,11 +151,11 @@ public class MediaController {
     public String toString() {
         MediaMetadata data = getMetadata();
         MediaDescription desc = (data == null) ? null : data.getDescription();
-        return "MediaController (" + getPackageName() + "@"
-                + Integer.toHexString(mDelegate.hashCode()) + ") " + desc;
+        return "MediaController (" + getPackageName() + "@" + Integer.toHexString(
+                mDelegate.hashCode()) + ") " + desc;
     }
 
-    public abstract static class Callback extends android.media.session.MediaController.Callback { }
+    public abstract static class Callback extends android.media.session.MediaController.Callback {}
 
     public class TransportControls {
 

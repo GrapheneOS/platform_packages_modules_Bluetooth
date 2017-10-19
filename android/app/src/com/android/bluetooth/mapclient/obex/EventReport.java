@@ -198,10 +198,14 @@ public class EventReport {
     }
 
     public enum Type {
-        NEW_MESSAGE("NewMessage"), DELIVERY_SUCCESS("DeliverySuccess"),
-        SENDING_SUCCESS("SendingSuccess"), DELIVERY_FAILURE("DeliveryFailure"),
-        SENDING_FAILURE("SendingFailure"), MEMORY_FULL("MemoryFull"),
-        MEMORY_AVAILABLE("MemoryAvailable"), MESSAGE_DELETED("MessageDeleted"),
+        NEW_MESSAGE("NewMessage"),
+        DELIVERY_SUCCESS("DeliverySuccess"),
+        SENDING_SUCCESS("SendingSuccess"),
+        DELIVERY_FAILURE("DeliveryFailure"),
+        SENDING_FAILURE("SendingFailure"),
+        MEMORY_FULL("MemoryFull"),
+        MEMORY_AVAILABLE("MemoryAvailable"),
+        MESSAGE_DELETED("MessageDeleted"),
         MESSAGE_SHIFT("MessageShift");
 
         private final String mSpecName;

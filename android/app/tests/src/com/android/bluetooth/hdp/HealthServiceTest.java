@@ -1,9 +1,7 @@
 package com.android.bluetooth.hdp;
 
-import android.test.InstrumentationTestCase;
 import android.support.test.filters.MediumTest;
-
-import junit.framework.Assert;
+import android.test.InstrumentationTestCase;
 
 @MediumTest
 public class HealthServiceTest extends InstrumentationTestCase {

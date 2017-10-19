@@ -19,12 +19,12 @@ package com.android.bluetooth.gatt;
 import android.bluetooth.le.ResultStorageDescriptor;
 import android.bluetooth.le.ScanFilter;
 import android.bluetooth.le.ScanSettings;
-
 import android.os.Binder;
+
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
-import android.util.Log;
+
 /**
  * Helper class identifying a client that has requested LE scan results.
  *
@@ -47,8 +47,8 @@ import android.util.Log;
 
     public AppScanStats stats = null;
 
-    private static final ScanSettings DEFAULT_SCAN_SETTINGS = new ScanSettings.Builder()
-            .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY).build();
+    private static final ScanSettings DEFAULT_SCAN_SETTINGS =
+            new ScanSettings.Builder().setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY).build();
 
     ScanClient(int scannerId) {
         this(scannerId, new UUID[0], DEFAULT_SCAN_SETTINGS, null, null);
@@ -58,8 +58,7 @@ import android.util.Log;
         this(scannerId, uuids, DEFAULT_SCAN_SETTINGS, null, null);
     }
 
-    ScanClient(int scannerId, ScanSettings settings,
-            List<ScanFilter> filters) {
+    ScanClient(int scannerId, ScanSettings settings, List<ScanFilter> filters) {
         this(scannerId, new UUID[0], settings, filters, null);
     }
 

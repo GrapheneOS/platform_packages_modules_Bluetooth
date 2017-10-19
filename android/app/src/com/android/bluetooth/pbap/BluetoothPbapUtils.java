@@ -18,38 +18,36 @@
 package com.android.bluetooth.pbap;
 
 import android.content.Context;
-import android.content.res.AssetFileDescriptor;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
+import android.content.res.AssetFileDescriptor;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Handler;
 import android.preference.PreferenceManager;
-import android.provider.ContactsContract.Contacts;
-import android.provider.ContactsContract.CommonDataKinds.Phone;
 import android.provider.ContactsContract.CommonDataKinds.Email;
+import android.provider.ContactsContract.CommonDataKinds.Phone;
 import android.provider.ContactsContract.CommonDataKinds.StructuredName;
 import android.provider.ContactsContract.CommonDataKinds.StructuredPostal;
+import android.provider.ContactsContract.Contacts;
 import android.provider.ContactsContract.Data;
 import android.provider.ContactsContract.Profile;
 import android.provider.ContactsContract.RawContactsEntity;
-
 import android.util.Log;
 
+import com.android.bluetooth.Utils;
 import com.android.vcard.VCardComposer;
 import com.android.vcard.VCardConfig;
-import com.android.bluetooth.Utils;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.lang.Math;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class BluetoothPbapUtils {
     private static final String TAG = "BluetoothPbapUtils";
@@ -94,7 +92,8 @@ public class BluetoothPbapUtils {
         }
     }
 
-    private static HashMap<String, ContactData> sContactDataset = new HashMap<String, ContactData>();
+    private static HashMap<String, ContactData> sContactDataset =
+            new HashMap<String, ContactData>();
 
     private static HashSet<String> sContactSet = new HashSet<String>();
 
@@ -156,22 +155,24 @@ public class BluetoothPbapUtils {
         return false;
     }
 
-    public static VCardComposer createFilteredVCardComposer(final Context ctx,
-            final int vcardType, final byte[] filter) {
+    public static VCardComposer createFilteredVCardComposer(final Context ctx, final int vcardType,
+            final byte[] filter) {
         int vType = vcardType;
-        boolean includePhoto = BluetoothPbapConfig.includePhotosInVcard()
-                    && (!hasFilter(filter) || isFilterBitSet(filter, FILTER_PHOTO));
+        boolean includePhoto =
+                BluetoothPbapConfig.includePhotosInVcard() && (!hasFilter(filter) || isFilterBitSet(
+                        filter, FILTER_PHOTO));
         if (!includePhoto) {
-            if (V) Log.v(TAG, "Excluding images from VCardComposer...");
+            if (V) {
+                Log.v(TAG, "Excluding images from VCardComposer...");
+            }
             vType |= VCardConfig.FLAG_REFRAIN_IMAGE_EXPORT;
         }
         return new VCardComposer(ctx, vType, true);
     }
 
     public static boolean isProfileSet(Context context) {
-        Cursor c = context.getContentResolver().query(
-                Profile.CONTENT_VCARD_URI, new String[] { Profile._ID }, null,
-                null, null);
+        Cursor c = context.getContentResolver()
+                .query(Profile.CONTENT_VCARD_URI, new String[]{Profile._ID}, null, null, null);
         boolean isSet = (c != null && c.getCount() > 0);
         if (c != null) {
             c.close();
@@ -181,11 +182,10 @@ public class BluetoothPbapUtils {
     }
 
     public static String getProfileName(Context context) {
-        Cursor c = context.getContentResolver().query(
-                Profile.CONTENT_URI, new String[] { Profile.DISPLAY_NAME}, null,
-                null, null);
-        String ownerName =null;
-        if (c!= null && c.moveToFirst()) {
+        Cursor c = context.getContentResolver()
+                .query(Profile.CONTENT_URI, new String[]{Profile.DISPLAY_NAME}, null, null, null);
+        String ownerName = null;
+        if (c != null && c.moveToFirst()) {
             ownerName = c.getString(0);
         }
         if (c != null) {
@@ -194,21 +194,20 @@ public class BluetoothPbapUtils {
         }
         return ownerName;
     }
-    public static final String createProfileVCard(Context ctx, final int vcardType,final byte[] filter) {
+
+    public static final String createProfileVCard(Context ctx, final int vcardType,
+            final byte[] filter) {
         VCardComposer composer = null;
         String vcard = null;
         try {
             composer = createFilteredVCardComposer(ctx, vcardType, filter);
-            if (composer
-                    .init(Profile.CONTENT_URI, null, null, null, null, Uri
-                            .withAppendedPath(Profile.CONTENT_URI,
-                                    RawContactsEntity.CONTENT_URI
-                                            .getLastPathSegment()))) {
+            if (composer.init(Profile.CONTENT_URI, null, null, null, null,
+                    Uri.withAppendedPath(Profile.CONTENT_URI,
+                            RawContactsEntity.CONTENT_URI.getLastPathSegment()))) {
                 vcard = composer.createOneEntry();
             } else {
-                Log.e(TAG,
-                        "Unable to create profile vcard. Error initializing composer: "
-                                + composer.getErrorReason());
+                Log.e(TAG, "Unable to create profile vcard. Error initializing composer: "
+                        + composer.getErrorReason());
             }
         } catch (Throwable t) {
             Log.e(TAG, "Unable to create profile vcard.", t);
@@ -231,8 +230,7 @@ public class BluetoothPbapUtils {
             AssetFileDescriptor fd = context.getContentResolver()
                     .openAssetFileDescriptor(Profile.CONTENT_VCARD_URI, "r");
 
-            if(fd == null)
-            {
+            if (fd == null) {
                 return false;
             }
             is = fd.createInputStream();
@@ -261,9 +259,10 @@ public class BluetoothPbapUtils {
         edit.putLong("totalSvcFields", totalSvcFields);
         edit.apply();
 
-        if (V)
+        if (V) {
             Log.v(TAG, "Saved Primary:" + primaryCounter + ", Secondary:" + secondaryCounter
-                            + ", Database Identifier: " + dbIdentifier);
+                    + ", Database Identifier: " + dbIdentifier);
+        }
     }
 
     /* fetchPbapParams() loads preserved value of Database Identifiers and folder
@@ -281,22 +280,26 @@ public class BluetoothPbapUtils {
         BluetoothPbapUtils.contactsLastUpdated = pref.getLong("lastUpdatedTimestamp", timeStamp);
         BluetoothPbapUtils.totalFields = pref.getLong("totalFields", 0);
         BluetoothPbapUtils.totalSvcFields = pref.getLong("totalSvcFields", 0);
-        if (V) Log.v(TAG, " fetchPbapParams " + pref.getAll());
+        if (V) {
+            Log.v(TAG, " fetchPbapParams " + pref.getAll());
+        }
     }
 
     /* loadAllContacts() fetches data like name,phone,email or addrees related to
      * all contacts. It is required to determine which field of the contact is
      * added/updated/deleted to increment secondary version counter accordingly.*/
     protected static void loadAllContacts(Context mContext, Handler mHandler) {
-        if (V) Log.v(TAG, "Loading Contacts ...");
+        if (V) {
+            Log.v(TAG, "Loading Contacts ...");
+        }
 
         try {
             String[] projection = {Data.CONTACT_ID, Data.DATA1, Data.MIMETYPE};
             int contactCount = 0;
-            if ((contactCount = fetchAndSetContacts(
-                         mContext, mHandler, projection, null, null, true))
-                    < 0)
+            if ((contactCount =
+                    fetchAndSetContacts(mContext, mHandler, projection, null, null, true)) < 0) {
                 return;
+            }
             totalContacts = contactCount; // to set total contacts count fetched on Connect
             contactsLoaded = true;
         } catch (Exception e) {
@@ -315,8 +318,8 @@ public class BluetoothPbapUtils {
             int currentContactCount = 0;
 
             String[] projection = {Contacts._ID, Contacts.CONTACT_LAST_UPDATED_TIMESTAMP};
-            Cursor c = mContext.getContentResolver().query(
-                    Contacts.CONTENT_URI, projection, null, null, null);
+            Cursor c = mContext.getContentResolver()
+                    .query(Contacts.CONTENT_URI, projection, null, null, null);
 
             if (c == null) {
                 Log.d(TAG, "Failed to fetch data from contact database");
@@ -333,7 +336,9 @@ public class BluetoothPbapUtils {
             currentContactCount = c.getCount();
             c.close();
 
-            if (V) Log.v(TAG, "updated list =" + updatedList);
+            if (V) {
+                Log.v(TAG, "updated list =" + updatedList);
+            }
             String[] dataProjection = {Data.CONTACT_ID, Data.DATA1, Data.MIMETYPE};
 
             String whereClause = Data.CONTACT_ID + "=?";
@@ -342,8 +347,8 @@ public class BluetoothPbapUtils {
             if (currentContactCount > totalContacts) {
                 for (int i = 0; i < updatedList.size(); i++) {
                     String[] selectionArgs = {updatedList.get(i)};
-                    fetchAndSetContacts(
-                            mContext, mHandler, dataProjection, whereClause, selectionArgs, false);
+                    fetchAndSetContacts(mContext, mHandler, dataProjection, whereClause,
+                            selectionArgs, false);
                     sSecondaryVersionCounter++;
                     sPrimaryVersionCounter++;
                     totalContacts = currentContactCount;
@@ -358,14 +363,17 @@ public class BluetoothPbapUtils {
                 deletedContacts.removeAll(currentContactSet);
                 sPrimaryVersionCounter += deletedContacts.size();
                 sSecondaryVersionCounter += deletedContacts.size();
-                if (V) Log.v(TAG, "Deleted Contacts : " + deletedContacts);
+                if (V) {
+                    Log.v(TAG, "Deleted Contacts : " + deletedContacts);
+                }
 
                 // to decrement totalFields and totalSvcFields count
                 for (String deletedContact : deletedContacts) {
                     sContactSet.remove(deletedContact);
                     String[] selectionArgs = {deletedContact};
-                    Cursor dataCursor = mContext.getContentResolver().query(
-                            Data.CONTENT_URI, dataProjection, whereClause, selectionArgs, null);
+                    Cursor dataCursor = mContext.getContentResolver()
+                            .query(Data.CONTENT_URI, dataProjection, whereClause, selectionArgs,
+                                    null);
 
                     if (dataCursor == null) {
                         Log.d(TAG, "Failed to fetch data from contact database");
@@ -374,8 +382,9 @@ public class BluetoothPbapUtils {
 
                     while (dataCursor.moveToNext()) {
                         if (svcFields.contains(
-                                    dataCursor.getString(dataCursor.getColumnIndex(Data.MIMETYPE))))
+                                dataCursor.getString(dataCursor.getColumnIndex(Data.MIMETYPE)))) {
                             totalSvcFields--;
+                        }
                         totalFields--;
                     }
                     dataCursor.close();
@@ -393,8 +402,9 @@ public class BluetoothPbapUtils {
                     boolean updated = false;
 
                     String[] selectionArgs = {updatedList.get(i)};
-                    Cursor dataCursor = mContext.getContentResolver().query(
-                            Data.CONTENT_URI, dataProjection, whereClause, selectionArgs, null);
+                    Cursor dataCursor = mContext.getContentResolver()
+                            .query(Data.CONTENT_URI, dataProjection, whereClause, selectionArgs,
+                                    null);
 
                     if (dataCursor == null) {
                         Log.d(TAG, "Failed to fetch data from contact database");
@@ -423,21 +433,22 @@ public class BluetoothPbapUtils {
                                 break;
                         }
                     }
-                    ContactData cData =
-                            new ContactData(nameTmp, phoneTmp, emailTmp, addressTmp);
+                    ContactData cData = new ContactData(nameTmp, phoneTmp, emailTmp, addressTmp);
                     dataCursor.close();
 
-                    if ((nameTmp == null && sContactDataset.get(updatedCID).mName != null)
-                            || (nameTmp != null && sContactDataset.get(updatedCID).mName == null)
-                            || (!(nameTmp == null && sContactDataset.get(updatedCID).mName == null)
-                                       && !nameTmp.equals(sContactDataset.get(updatedCID).mName))) {
+                    if ((nameTmp == null && sContactDataset.get(updatedCID).mName != null) || (
+                            nameTmp != null && sContactDataset.get(updatedCID).mName == null) || (
+                            !(nameTmp == null && sContactDataset.get(updatedCID).mName == null)
+                                    && !nameTmp.equals(sContactDataset.get(updatedCID).mName))) {
                         updated = true;
-                    } else if (checkFieldUpdates(sContactDataset.get(updatedCID).mPhone, phoneTmp)) {
+                    } else if (checkFieldUpdates(sContactDataset.get(updatedCID).mPhone,
+                            phoneTmp)) {
                         updated = true;
-                    } else if (checkFieldUpdates(sContactDataset.get(updatedCID).mEmail, emailTmp)) {
+                    } else if (checkFieldUpdates(sContactDataset.get(updatedCID).mEmail,
+                            emailTmp)) {
                         updated = true;
-                    } else if (checkFieldUpdates(
-                                        sContactDataset.get(updatedCID).mAddress, addressTmp)) {
+                    } else if (checkFieldUpdates(sContactDataset.get(updatedCID).mAddress,
+                            addressTmp)) {
                         updated = true;
                     }
 
@@ -449,12 +460,13 @@ public class BluetoothPbapUtils {
             }
 
             Log.d(TAG, "primaryVersionCounter = " + sPrimaryVersionCounter
-                            + ", secondaryVersionCounter=" + sSecondaryVersionCounter);
+                    + ", secondaryVersionCounter=" + sSecondaryVersionCounter);
 
             // check if Primary/Secondary version Counter has rolled over
-            if (sSecondaryVersionCounter < 0 || sPrimaryVersionCounter < 0)
+            if (sSecondaryVersionCounter < 0 || sPrimaryVersionCounter < 0) {
                 mHandler.sendMessage(
                         mHandler.obtainMessage(BluetoothPbapService.ROLLOVER_COUNTERS));
+            }
         } catch (Exception e) {
             Log.e(TAG, "Exception while updating secondary version counter:" + e);
         }
@@ -463,8 +475,8 @@ public class BluetoothPbapUtils {
     /* checkFieldUpdates checks update contact fields of a particular contact.
      * Field update can be a field updated/added/deleted in an existing contact.
      * Returns true if any contact field is updated else return false. */
-    protected static boolean checkFieldUpdates(
-            ArrayList<String> oldFields, ArrayList<String> newFields) {
+    protected static boolean checkFieldUpdates(ArrayList<String> oldFields,
+            ArrayList<String> newFields) {
         if (newFields != null && oldFields != null) {
             if (newFields.size() != oldFields.size()) {
                 totalSvcFields += Math.abs(newFields.size() - oldFields.size());
@@ -498,18 +510,19 @@ public class BluetoothPbapUtils {
     protected static int fetchAndSetContacts(Context mContext, Handler mHandler,
             String[] projection, String whereClause, String[] selectionArgs, boolean isLoad) {
         long currentTotalFields = 0, currentSvcFieldCount = 0;
-        Cursor c = mContext.getContentResolver().query(
-                Data.CONTENT_URI, projection, whereClause, selectionArgs, null);
+        Cursor c = mContext.getContentResolver()
+                .query(Data.CONTENT_URI, projection, whereClause, selectionArgs, null);
 
         /* send delayed message to loadContact when ContentResolver is unable
          * to fetch data from contact database using the specified URI at that
          * moment (Case: immediate Pbap connect on system boot with BT ON)*/
         if (c == null) {
             Log.d(TAG, "Failed to fetch contacts data from database..");
-            if (isLoad)
+            if (isLoad) {
                 mHandler.sendMessageDelayed(
                         mHandler.obtainMessage(BluetoothPbapService.LOAD_CONTACTS),
                         QUERY_CONTACT_RETRY_INTERVAL);
+            }
             return -1;
         }
 
@@ -550,19 +563,23 @@ public class BluetoothPbapUtils {
         if (isLoad && currentTotalFields != totalFields) {
             sPrimaryVersionCounter += Math.abs(totalContacts - sContactSet.size());
 
-            if (currentSvcFieldCount != totalSvcFields)
-                if (totalContacts != sContactSet.size())
+            if (currentSvcFieldCount != totalSvcFields) {
+                if (totalContacts != sContactSet.size()) {
                     sSecondaryVersionCounter += Math.abs(totalContacts - sContactSet.size());
-                else
+                } else {
                     sSecondaryVersionCounter++;
-            if (sPrimaryVersionCounter < 0 || sSecondaryVersionCounter < 0) rolloverCounters();
+                }
+            }
+            if (sPrimaryVersionCounter < 0 || sSecondaryVersionCounter < 0) {
+                rolloverCounters();
+            }
 
             totalFields = currentTotalFields;
             totalSvcFields = currentSvcFieldCount;
             contactsLastUpdated = System.currentTimeMillis();
             Log.d(TAG, "Contacts updated between last BT OFF and current"
-                            + "Pbap Connect, primaryVersionCounter=" + sPrimaryVersionCounter
-                            + ", secondaryVersionCounter=" + sSecondaryVersionCounter);
+                    + "Pbap Connect, primaryVersionCounter=" + sPrimaryVersionCounter
+                    + ", secondaryVersionCounter=" + sSecondaryVersionCounter);
         } else if (!isLoad) {
             totalFields++;
             totalSvcFields++;
@@ -577,10 +594,11 @@ public class BluetoothPbapUtils {
 
     protected static void setContactFields(String fieldType, String contactId, String data) {
         ContactData cData = null;
-        if (sContactDataset.containsKey(contactId))
+        if (sContactDataset.containsKey(contactId)) {
             cData = sContactDataset.get(contactId);
-        else
+        } else {
             cData = new ContactData();
+        }
 
         switch (fieldType) {
             case TYPE_NAME:
@@ -606,6 +624,8 @@ public class BluetoothPbapUtils {
         sDbIdentifier.set(Calendar.getInstance().getTimeInMillis());
         sPrimaryVersionCounter = (sPrimaryVersionCounter < 0) ? 0 : sPrimaryVersionCounter;
         sSecondaryVersionCounter = (sSecondaryVersionCounter < 0) ? 0 : sSecondaryVersionCounter;
-        if (V) Log.v(TAG, "mDbIdentifier rolled over to:" + sDbIdentifier);
+        if (V) {
+            Log.v(TAG, "mDbIdentifier rolled over to:" + sDbIdentifier);
+        }
     }
 }
