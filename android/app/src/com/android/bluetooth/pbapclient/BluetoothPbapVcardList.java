@@ -67,7 +67,7 @@ class BluetoothPbapVcardList {
         }
 
         VCardEntryConstructor constructor =
-            new VCardEntryConstructor(VCardConfig.VCARD_TYPE_V21_GENERIC, mAccount);
+                new VCardEntryConstructor(VCardConfig.VCARD_TYPE_V21_GENERIC, mAccount);
         VCardEntryCounter counter = new VCardEntryCounter();
         CardEntryHandler handler = new CardEntryHandler();
 

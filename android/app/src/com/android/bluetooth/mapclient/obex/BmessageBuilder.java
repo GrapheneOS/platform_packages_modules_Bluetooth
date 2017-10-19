@@ -22,6 +22,7 @@ import com.android.vcard.VCardEntry.NameData;
 import com.android.vcard.VCardEntry.PhoneData;
 
 import java.util.List;
+
 /* BMessage as defined by MAP_SPEC_V101 Section 3.1.3 Message format (x-bt/message) */
 class BmessageBuilder {
     private static final String CRLF = "\r\n";

@@ -16,36 +16,24 @@
 
 package com.android.bluetooth.btservice;
 
+import static org.mockito.Mockito.*;
+
 import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothClass;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothHeadset;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.BluetoothUuid;
 import android.content.BroadcastReceiver;
 import android.content.Intent;
-import android.os.Handler;
 import android.os.HandlerThread;
-import android.os.Looper;
-import android.os.Message;
 import android.os.ParcelUuid;
 import android.support.test.filters.MediumTest;
-import android.util.Log;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.Queue;
-import java.lang.Thread;
-
 import android.test.AndroidTestCase;
 
-import com.android.bluetooth.hfp.HeadsetService;
 import com.android.bluetooth.a2dp.A2dpService;
-import com.android.bluetooth.btservice.PhonePolicy;
-import com.android.bluetooth.btservice.ServiceFactory;
-import com.android.bluetooth.Utils;
+import com.android.bluetooth.hfp.HeadsetService;
 
-import static org.mockito.Mockito.*;
+import java.util.ArrayList;
 
 @MediumTest
 public class PhonePolicyTest extends AndroidTestCase {
@@ -83,8 +71,8 @@ public class PhonePolicyTest extends AndroidTestCase {
 
         // Mock the HeadsetService
         when(mockServiceFactory.getHeadsetService()).thenReturn(mockHeadsetService);
-        when(mockHeadsetService.getPriority(device))
-                .thenReturn(BluetoothProfile.PRIORITY_UNDEFINED);
+        when(mockHeadsetService.getPriority(device)).thenReturn(
+                BluetoothProfile.PRIORITY_UNDEFINED);
 
         // Mock the A2DP service
         when(mockServiceFactory.getA2dpService()).thenReturn(mockA2dpService);
@@ -112,10 +100,10 @@ public class PhonePolicyTest extends AndroidTestCase {
         injector.onReceive(null /* context */, intent);
 
         // Check that the priorities of the devices for preferred profiles are set to ON
-        verify(mockHeadsetService, timeout(ASYNC_CALL_TIMEOUT).times(1))
-                .setPriority(eq(device), eq(BluetoothProfile.PRIORITY_ON));
-        verify(mockA2dpService, timeout(ASYNC_CALL_TIMEOUT).times(1))
-                .setPriority(eq(device), eq(BluetoothProfile.PRIORITY_ON));
+        verify(mockHeadsetService, timeout(ASYNC_CALL_TIMEOUT).times(1)).setPriority(eq(device),
+                eq(BluetoothProfile.PRIORITY_ON));
+        verify(mockA2dpService, timeout(ASYNC_CALL_TIMEOUT).times(1)).setPriority(eq(device),
+                eq(BluetoothProfile.PRIORITY_ON));
     }
 
     // Test that when the adapter is turned ON then we call autoconnect on devices that have HFP and
@@ -144,10 +132,10 @@ public class PhonePolicyTest extends AndroidTestCase {
         when(mockAdapterService.getBondedDevices()).thenReturn(bondedDevices);
 
         // Return PRIORITY_AUTO_CONNECT over HFP and A2DP
-        when(mockHeadsetService.getPriority(device))
-                .thenReturn(BluetoothProfile.PRIORITY_AUTO_CONNECT);
-        when(mockA2dpService.getPriority(device))
-                .thenReturn(BluetoothProfile.PRIORITY_AUTO_CONNECT);
+        when(mockHeadsetService.getPriority(device)).thenReturn(
+                BluetoothProfile.PRIORITY_AUTO_CONNECT);
+        when(mockA2dpService.getPriority(device)).thenReturn(
+                BluetoothProfile.PRIORITY_AUTO_CONNECT);
 
         // Mock the looper
         when(mockAdapterService.getMainLooper()).thenReturn(mHandlerThread.getLooper());
@@ -193,10 +181,10 @@ public class PhonePolicyTest extends AndroidTestCase {
 
         // Return PRIORITY_AUTO_CONNECT over HFP and A2DP. This would imply that the profiles are
         // auto-connectable.
-        when(mockHeadsetService.getPriority(device))
-                .thenReturn(BluetoothProfile.PRIORITY_AUTO_CONNECT);
-        when(mockA2dpService.getPriority(device))
-                .thenReturn(BluetoothProfile.PRIORITY_AUTO_CONNECT);
+        when(mockHeadsetService.getPriority(device)).thenReturn(
+                BluetoothProfile.PRIORITY_AUTO_CONNECT);
+        when(mockA2dpService.getPriority(device)).thenReturn(
+                BluetoothProfile.PRIORITY_AUTO_CONNECT);
 
         when(mockAdapterService.getState()).thenReturn(BluetoothAdapter.STATE_ON);
 
@@ -227,8 +215,8 @@ public class PhonePolicyTest extends AndroidTestCase {
         hsConnectedDevices.add(device);
         when(mockHeadsetService.getConnectedDevices()).thenReturn(hsConnectedDevices);
         // Also the A2DP should say that its not connected for same device
-        when(mockA2dpService.getConnectionState(device))
-                .thenReturn(BluetoothProfile.STATE_DISCONNECTED);
+        when(mockA2dpService.getConnectionState(device)).thenReturn(
+                BluetoothProfile.STATE_DISCONNECTED);
 
         // Check that we get a call to A2DP connect
         verify(mockA2dpService, timeout(RETRY_TIMEOUT).times(1)).connect(eq(device));
@@ -256,10 +244,10 @@ public class PhonePolicyTest extends AndroidTestCase {
 
         // Return PRIORITY_AUTO_CONNECT over HFP and A2DP. This would imply that the profiles are
         // auto-connectable.
-        when(mockHeadsetService.getPriority(device))
-                .thenReturn(BluetoothProfile.PRIORITY_AUTO_CONNECT);
-        when(mockA2dpService.getPriority(device))
-                .thenReturn(BluetoothProfile.PRIORITY_AUTO_CONNECT);
+        when(mockHeadsetService.getPriority(device)).thenReturn(
+                BluetoothProfile.PRIORITY_AUTO_CONNECT);
+        when(mockA2dpService.getPriority(device)).thenReturn(
+                BluetoothProfile.PRIORITY_AUTO_CONNECT);
 
         when(mockAdapterService.getState()).thenReturn(BluetoothAdapter.STATE_ON);
 
@@ -288,8 +276,8 @@ public class PhonePolicyTest extends AndroidTestCase {
         when(mockHeadsetService.getConnectedDevices()).thenReturn(hsConnectedDevices);
 
         // Also the A2DP should say that its not connected for same device
-        when(mockA2dpService.getConnectionState(device))
-                .thenReturn(BluetoothProfile.STATE_DISCONNECTED);
+        when(mockA2dpService.getConnectionState(device)).thenReturn(
+                BluetoothProfile.STATE_DISCONNECTED);
 
         // To check that we have processed all the messages we need to have a hard sleep here. The
         // reason being mockito can only verify synchronous calls, asynchronous calls are hidden
@@ -319,8 +307,8 @@ public class PhonePolicyTest extends AndroidTestCase {
 
         // Mock the HeadsetService
         when(mockServiceFactory.getHeadsetService()).thenReturn(mockHeadsetService);
-        when(mockHeadsetService.getPriority(device))
-                .thenReturn(BluetoothProfile.PRIORITY_UNDEFINED);
+        when(mockHeadsetService.getPriority(device)).thenReturn(
+                BluetoothProfile.PRIORITY_UNDEFINED);
 
         // Mock the A2DP service
         when(mockServiceFactory.getA2dpService()).thenReturn(mockA2dpService);
@@ -351,8 +339,8 @@ public class PhonePolicyTest extends AndroidTestCase {
         }
 
         // Check that we do not crash and not call any setPriority methods
-        verify(mockHeadsetService, never())
-                .setPriority(eq(device), eq(BluetoothProfile.PRIORITY_ON));
+        verify(mockHeadsetService, never()).setPriority(eq(device),
+                eq(BluetoothProfile.PRIORITY_ON));
         verify(mockA2dpService, never()).setPriority(eq(device), eq(BluetoothProfile.PRIORITY_ON));
     }
 }

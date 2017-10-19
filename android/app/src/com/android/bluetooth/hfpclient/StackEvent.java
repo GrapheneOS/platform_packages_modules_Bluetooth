@@ -44,7 +44,7 @@ public class StackEvent {
     public static final int EVENT_TYPE_CMD_RESULT = 16;
     public static final int EVENT_TYPE_SUBSCRIBER_INFO = 17;
     public static final int EVENT_TYPE_RESP_AND_HOLD = 18;
-    public static final int EVENT_TYPE_RING_INDICATION= 21;
+    public static final int EVENT_TYPE_RING_INDICATION = 21;
 
     public int type = EVENT_TYPE_NONE;
     public int valueInt = 0;

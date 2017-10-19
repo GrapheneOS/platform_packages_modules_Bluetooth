@@ -20,8 +20,6 @@
  */
 package com.android.bluetooth.hfpclient;
 
-import com.android.bluetooth.Utils;
-
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.util.Log;
@@ -34,25 +32,43 @@ class NativeInterface {
 
     // Native methods that call into the JNI interface
     static native void classInitNative();
+
     static native void initializeNative();
+
     static native void cleanupNative();
+
     static native boolean connectNative(byte[] address);
+
     static native boolean disconnectNative(byte[] address);
+
     static native boolean connectAudioNative(byte[] address);
+
     static native boolean disconnectAudioNative(byte[] address);
+
     static native boolean startVoiceRecognitionNative(byte[] address);
+
     static native boolean stopVoiceRecognitionNative(byte[] address);
+
     static native boolean setVolumeNative(byte[] address, int volumeType, int volume);
+
     static native boolean dialNative(byte[] address, String number);
+
     static native boolean dialMemoryNative(byte[] address, int location);
+
     static native boolean handleCallActionNative(byte[] address, int action, int index);
+
     static native boolean queryCurrentCallsNative(byte[] address);
+
     static native boolean queryCurrentOperatorNameNative(byte[] address);
+
     static native boolean retrieveSubscriberInfoNative(byte[] address);
+
     static native boolean sendDtmfNative(byte[] address, byte code);
+
     static native boolean requestLastVoiceTagNumberNative(byte[] address);
-    static native boolean sendATCmdNative(byte[] address, int atCmd, int val1,
-            int val2, String arg);
+
+    static native boolean sendATCmdNative(byte[] address, int atCmd, int val1, int val2,
+            String arg);
 
     private BluetoothDevice getDevice(byte[] address) {
         return BluetoothAdapter.getDefaultAdapter().getRemoteDevice(address);
@@ -66,9 +82,10 @@ class NativeInterface {
         event.valueInt2 = peerFeat;
         event.valueInt3 = chldFeat;
         event.device = getDevice(address);
-        // BluetoothAdapter.getDefaultAdapter().getRemoteDevice(Utils.getAddressStringFromByte(address));
+        // BluetoothAdapter.getDefaultAdapter().getRemoteDevice(Utils.getAddressStringFromByte
+        // (address));
         if (DBG) {
-            Log.d(TAG, "Device addr "  + event.device.getAddress() + " State " + state);
+            Log.d(TAG, "Device addr " + event.device.getAddress() + " State " + state);
         }
         HeadsetClientService service = HeadsetClientService.getHeadsetClientService();
         if (service != null) {
@@ -83,13 +100,14 @@ class NativeInterface {
         event.valueInt = state;
         event.device = getDevice(address);
         if (DBG) {
-            Log.d(TAG, "onAudioStateChanged: address " + address + " event "  + event);
+            Log.d(TAG, "onAudioStateChanged: address " + address + " event " + event);
         }
         HeadsetClientService service = HeadsetClientService.getHeadsetClientService();
         if (service != null) {
             service.messageFromNative(event);
         } else {
-            Log.w(TAG, "onAudioStateChanged: Ignoring message because service not available: " + event);
+            Log.w(TAG, "onAudioStateChanged: Ignoring message because service not available: "
+                    + event);
         }
     }
 
@@ -102,14 +120,15 @@ class NativeInterface {
         event.valueInt = state;
         event.device = getDevice(address);
         if (DBG) {
-            Log.d(TAG, "onVrStateChanged: address " + address + " event "  + event);
+            Log.d(TAG, "onVrStateChanged: address " + address + " event " + event);
         }
 
         HeadsetClientService service = HeadsetClientService.getHeadsetClientService();
         if (service != null) {
             service.messageFromNative(event);
         } else {
-            Log.w(TAG, "onVrStateChanged: Ignoring message because service not available: " + event);
+            Log.w(TAG,
+                    "onVrStateChanged: Ignoring message because service not available: " + event);
         }
     }
 
@@ -124,7 +143,8 @@ class NativeInterface {
         if (service != null) {
             service.messageFromNative(event);
         } else {
-            Log.w(TAG, "onNetworkRoaming: Ignoring message because service not available: " + event);
+            Log.w(TAG,
+                    "onNetworkRoaming: Ignoring message because service not available: " + event);
         }
     }
 
@@ -133,7 +153,7 @@ class NativeInterface {
         event.valueInt = signal;
         event.device = getDevice(address);
         if (DBG) {
-            Log.d(TAG, "onNetworkSignal: address " + address + " event "  + event);
+            Log.d(TAG, "onNetworkSignal: address " + address + " event " + event);
         }
         HeadsetClientService service = HeadsetClientService.getHeadsetClientService();
         if (service != null) {
@@ -148,7 +168,7 @@ class NativeInterface {
         event.valueInt = level;
         event.device = getDevice(address);
         if (DBG) {
-            Log.d(TAG, "onBatteryLevel: address " + address + " event "  + event);
+            Log.d(TAG, "onBatteryLevel: address " + address + " event " + event);
         }
         HeadsetClientService service = HeadsetClientService.getHeadsetClientService();
         if (service != null) {
@@ -163,13 +183,14 @@ class NativeInterface {
         event.valueString = name;
         event.device = getDevice(address);
         if (DBG) {
-            Log.d(TAG, "onCurrentOperator: address " + address + " event "  + event);
+            Log.d(TAG, "onCurrentOperator: address " + address + " event " + event);
         }
         HeadsetClientService service = HeadsetClientService.getHeadsetClientService();
         if (service != null) {
             service.messageFromNative(event);
         } else {
-            Log.w(TAG, "onCurrentOperator: Ignoring message because service not available: " + event);
+            Log.w(TAG,
+                    "onCurrentOperator: Ignoring message because service not available: " + event);
         }
     }
 
@@ -178,7 +199,7 @@ class NativeInterface {
         event.valueInt = call;
         event.device = getDevice(address);
         if (DBG) {
-            Log.d(TAG, "onCall: address " + address + " event "  + event);
+            Log.d(TAG, "onCall: address " + address + " event " + event);
         }
         HeadsetClientService service = HeadsetClientService.getHeadsetClientService();
         if (service != null) {
@@ -203,7 +224,7 @@ class NativeInterface {
         event.device = getDevice(address);
         if (DBG) {
             Log.d(TAG, "onCallSetup: addr " + address + " device" + event.device);
-            Log.d(TAG, "onCallSetup: address " + address + " event "  + event);
+            Log.d(TAG, "onCallSetup: address " + address + " event " + event);
         }
         HeadsetClientService service = HeadsetClientService.getHeadsetClientService();
         if (service != null) {
@@ -227,7 +248,7 @@ class NativeInterface {
         event.valueInt = callheld;
         event.device = getDevice(address);
         if (DBG) {
-            Log.d(TAG, "onCallHeld: address " + address + " event "  + event);
+            Log.d(TAG, "onCallHeld: address " + address + " event " + event);
         }
         HeadsetClientService service = HeadsetClientService.getHeadsetClientService();
         if (service != null) {
@@ -242,7 +263,7 @@ class NativeInterface {
         event.valueInt = respAndHold;
         event.device = getDevice(address);
         if (DBG) {
-            Log.d(TAG, "onRespAndHold: address " + address + " event "  + event);
+            Log.d(TAG, "onRespAndHold: address " + address + " event " + event);
         }
         HeadsetClientService service = HeadsetClientService.getHeadsetClientService();
         if (service != null) {
@@ -257,7 +278,7 @@ class NativeInterface {
         event.valueString = number;
         event.device = getDevice(address);
         if (DBG) {
-            Log.d(TAG, "onClip: address " + address + " event "  + event);
+            Log.d(TAG, "onClip: address " + address + " event " + event);
         }
         HeadsetClientService service = HeadsetClientService.getHeadsetClientService();
         if (service != null) {
@@ -272,7 +293,7 @@ class NativeInterface {
         event.valueString = number;
         event.device = getDevice(address);
         if (DBG) {
-            Log.d(TAG, "onCallWaiting: address " + address + " event "  + event);
+            Log.d(TAG, "onCallWaiting: address " + address + " event " + event);
         }
         HeadsetClientService service = HeadsetClientService.getHeadsetClientService();
         if (service != null) {
@@ -282,8 +303,8 @@ class NativeInterface {
         }
     }
 
-    private void onCurrentCalls(
-            int index, int dir, int state, int mparty, String number, byte[] address) {
+    private void onCurrentCalls(int index, int dir, int state, int mparty, String number,
+            byte[] address) {
         StackEvent event = new StackEvent(StackEvent.EVENT_TYPE_CURRENT_CALLS);
         event.valueInt = index;
         event.valueInt2 = dir;
@@ -292,7 +313,7 @@ class NativeInterface {
         event.valueString = number;
         event.device = getDevice(address);
         if (DBG) {
-            Log.d(TAG, "onCurrentCalls: address " + address + " event "  + event);
+            Log.d(TAG, "onCurrentCalls: address " + address + " event " + event);
         }
         HeadsetClientService service = HeadsetClientService.getHeadsetClientService();
         if (service != null) {
@@ -308,7 +329,7 @@ class NativeInterface {
         event.valueInt2 = volume;
         event.device = getDevice(address);
         if (DBG) {
-            Log.d(TAG, "onVolumeChange: address " + address + " event "  + event);
+            Log.d(TAG, "onVolumeChange: address " + address + " event " + event);
         }
         HeadsetClientService service = HeadsetClientService.getHeadsetClientService();
         if (service != null) {
@@ -324,7 +345,7 @@ class NativeInterface {
         event.valueInt2 = cme;
         event.device = getDevice(address);
         if (DBG) {
-            Log.d(TAG, "onCmdResult: address " + address + " event "  + event);
+            Log.d(TAG, "onCmdResult: address " + address + " event " + event);
         }
         HeadsetClientService service = HeadsetClientService.getHeadsetClientService();
         if (service != null) {
@@ -340,13 +361,14 @@ class NativeInterface {
         event.valueString = number;
         event.device = getDevice(address);
         if (DBG) {
-            Log.d(TAG, "onSubscriberInfo: address " + address + " event "  + event);
+            Log.d(TAG, "onSubscriberInfo: address " + address + " event " + event);
         }
         HeadsetClientService service = HeadsetClientService.getHeadsetClientService();
         if (service != null) {
             service.messageFromNative(event);
         } else {
-            Log.w(TAG, "onSubscriberInfo: Ignoring message because service not available: " + event);
+            Log.w(TAG,
+                    "onSubscriberInfo: Ignoring message because service not available: " + event);
         }
     }
 
@@ -362,13 +384,14 @@ class NativeInterface {
         StackEvent event = new StackEvent(StackEvent.EVENT_TYPE_RING_INDICATION);
         event.device = getDevice(address);
         if (DBG) {
-            Log.d(TAG, "onRingIndication: address " + address + " event "  + event);
+            Log.d(TAG, "onRingIndication: address " + address + " event " + event);
         }
         HeadsetClientService service = HeadsetClientService.getHeadsetClientService();
         if (service != null) {
             service.messageFromNative(event);
         } else {
-            Log.w(TAG, "onRingIndication: Ignoring message because service not available: " + event);
+            Log.w(TAG,
+                    "onRingIndication: Ignoring message because service not available: " + event);
         }
     }
 }
