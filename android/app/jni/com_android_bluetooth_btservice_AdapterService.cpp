@@ -587,11 +587,7 @@ static bt_os_callouts_t sBluetoothOsCallouts = {
     acquire_wake_lock_callout, release_wake_lock_callout,
 };
 
-#if defined(__LP64__)
-#define BLUETOOTH_LIBRARY_NAME "/system/lib64/hw/bluetooth.default.so"
-#else
-#define BLUETOOTH_LIBRARY_NAME "/system/lib/hw/bluetooth.default.so"
-#endif
+#define BLUETOOTH_LIBRARY_NAME "libbluetooth.so"
 
 int hal_util_load_bt_library(const bt_interface_t** interface) {
   const char* sym = BLUETOOTH_INTERFACE_STRING;
@@ -602,8 +598,8 @@ int hal_util_load_bt_library(const bt_interface_t** interface) {
   void* handle = dlopen(path, RTLD_NOW);
   if (!handle) {
     const char* err_str = dlerror();
-    LOG(ERROR) << __func__ << ": failed to load Bluetooth library " << path
-               << ", error=" << (err_str ? err_str : "error unknown");
+    LOG(ERROR) << __func__ << ": failed to load Bluetooth library, error="
+               << (err_str ? err_str : "error unknown");
     goto error;
   }
 
