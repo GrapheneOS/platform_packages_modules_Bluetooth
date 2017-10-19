@@ -43,13 +43,13 @@ import android.net.Uri;
  * this interface, the {@code provider} tag for the Bluetooth related content provider must
  * have an intent-filter like the following in the manifest:
  * <pre class="prettyprint">&lt;provider  android:authorities="[PROVIDER AUTHORITY]"
-              android:exported="true"
-              android:enabled="true"
-              android:permission="android.permission.BLUETOOTH_MAP"&gt;
+ *             android:exported="true"
+ *             android:enabled="true"
+ *             android:permission="android.permission.BLUETOOTH_MAP"&gt;
  *   ...
  *      &lt;intent-filter&gt;
-           &lt;action android:name="android.content.action.BLEUETOOT_MAP_PROVIDER" /&gt;
-        &lt;/intent-filter&gt;
+ *          &lt;action android:name="android.content.action.BLEUETOOT_MAP_PROVIDER" /&gt;
+ *       &lt;/intent-filter&gt;
  *   ...
  *   &lt;/provider&gt;
  * [PROVIDER AUTHORITY] shall be the providers authority value which implements this
