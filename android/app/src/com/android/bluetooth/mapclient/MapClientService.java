@@ -52,7 +52,9 @@ public class MapClientService extends ProfileService {
 
     public static synchronized MapClientService getMapClientService() {
         if (sMapClientService != null && sMapClientService.isAvailable()) {
-            if (DBG) Log.d(TAG, "getMapClientService(): returning " + sMapClientService);
+            if (DBG) {
+                Log.d(TAG, "getMapClientService(): returning " + sMapClientService);
+            }
             return sMapClientService;
         }
         if (DBG) {
@@ -67,7 +69,9 @@ public class MapClientService extends ProfileService {
 
     private static synchronized void setService(MapClientService instance) {
         if (instance != null && instance.isAvailable()) {
-            if (DBG) Log.d(TAG, "setMapMceService(): replacing old instance: " + sMapClientService);
+            if (DBG) {
+                Log.d(TAG, "setMapMceService(): replacing old instance: " + sMapClientService);
+            }
             sMapClientService = instance;
         } else {
             if (DBG) {
@@ -122,9 +126,10 @@ public class MapClientService extends ProfileService {
 
     public boolean setPriority(BluetoothDevice device, int priority) {
         Settings.Global.putInt(getContentResolver(),
-                Settings.Global.getBluetoothMapClientPriorityKey(device.getAddress()),
-                priority);
-        if (VDBG) Log.v(TAG, "Saved priority " + device + " = " + priority);
+                Settings.Global.getBluetoothMapClientPriorityKey(device.getAddress()), priority);
+        if (VDBG) {
+            Log.v(TAG, "Saved priority " + device + " = " + priority);
+        }
         return true;
     }
 
@@ -152,7 +157,9 @@ public class MapClientService extends ProfileService {
 
     @Override
     protected boolean start() {
-        if (DBG) Log.d(TAG, "start()");
+        if (DBG) {
+            Log.d(TAG, "start()");
+        }
         setService(this);
 
         if (mMnsServer == null) {
@@ -169,7 +176,9 @@ public class MapClientService extends ProfileService {
 
     @Override
     protected synchronized boolean stop() {
-        if (DBG) Log.d(TAG, "stop()");
+        if (DBG) {
+            Log.d(TAG, "stop()");
+        }
         if (mMnsServer != null) {
             mMnsServer.stop();
         }
@@ -182,7 +191,9 @@ public class MapClientService extends ProfileService {
 
     @Override
     public boolean cleanup() {
-        if (DBG) Log.d(TAG, "cleanup()");
+        if (DBG) {
+            Log.d(TAG, "cleanup()");
+        }
         return true;
     }
 
@@ -201,16 +212,18 @@ public class MapClientService extends ProfileService {
     }
 
     //Binder object: Must be static class or memory leak may occur
+
     /**
      * This class implements the IClient interface - or actually it validates the
      * preconditions for calling the actual functionality in the MapClientService, and calls it.
      */
-    private static class Binder extends IBluetoothMapClient.Stub
-            implements IProfileServiceBinder {
+    private static class Binder extends IBluetoothMapClient.Stub implements IProfileServiceBinder {
         private MapClientService mService;
 
         Binder(MapClientService service) {
-            if (VDBG) Log.v(TAG, "Binder()");
+            if (VDBG) {
+                Log.v(TAG, "Binder()");
+            }
             mService = service;
         }
 
@@ -236,63 +249,91 @@ public class MapClientService extends ProfileService {
 
         @Override
         public boolean isConnected(BluetoothDevice device) {
-            if (VDBG) Log.v(TAG, "isConnected()");
+            if (VDBG) {
+                Log.v(TAG, "isConnected()");
+            }
             MapClientService service = getService();
-            if (service == null) return false;
+            if (service == null) {
+                return false;
+            }
             return service.getConnectionState(device) == BluetoothProfile.STATE_CONNECTED;
         }
 
         @Override
         public boolean connect(BluetoothDevice device) {
-            if (VDBG) Log.v(TAG, "connect()");
+            if (VDBG) {
+                Log.v(TAG, "connect()");
+            }
             MapClientService service = getService();
-            if (service == null) return false;
+            if (service == null) {
+                return false;
+            }
             return service.connect(device);
         }
 
         @Override
         public boolean disconnect(BluetoothDevice device) {
-            if (VDBG) Log.v(TAG, "disconnect()");
+            if (VDBG) {
+                Log.v(TAG, "disconnect()");
+            }
             MapClientService service = getService();
-            if (service == null) return false;
+            if (service == null) {
+                return false;
+            }
             return service.disconnect(device);
         }
 
         @Override
         public List<BluetoothDevice> getConnectedDevices() {
-            if (VDBG) Log.v(TAG, "getConnectedDevices()");
+            if (VDBG) {
+                Log.v(TAG, "getConnectedDevices()");
+            }
             MapClientService service = getService();
-            if (service == null) return new ArrayList<BluetoothDevice>(0);
+            if (service == null) {
+                return new ArrayList<BluetoothDevice>(0);
+            }
             return service.getConnectedDevices();
         }
 
         @Override
         public List<BluetoothDevice> getDevicesMatchingConnectionStates(int[] states) {
-            if (VDBG) Log.v(TAG, "getDevicesMatchingConnectionStates()");
+            if (VDBG) {
+                Log.v(TAG, "getDevicesMatchingConnectionStates()");
+            }
             MapClientService service = getService();
-            if (service == null) return new ArrayList<BluetoothDevice>(0);
+            if (service == null) {
+                return new ArrayList<BluetoothDevice>(0);
+            }
             return service.getDevicesMatchingConnectionStates(states);
         }
 
         @Override
         public int getConnectionState(BluetoothDevice device) {
-            if (VDBG) Log.v(TAG, "getConnectionState()");
+            if (VDBG) {
+                Log.v(TAG, "getConnectionState()");
+            }
             MapClientService service = getService();
-            if (service == null) return BluetoothProfile.STATE_DISCONNECTED;
+            if (service == null) {
+                return BluetoothProfile.STATE_DISCONNECTED;
+            }
             return service.getConnectionState(device);
         }
 
         @Override
         public boolean setPriority(BluetoothDevice device, int priority) {
             MapClientService service = getService();
-            if (service == null) return false;
+            if (service == null) {
+                return false;
+            }
             return service.setPriority(device, priority);
         }
 
         @Override
         public int getPriority(BluetoothDevice device) {
             MapClientService service = getService();
-            if (service == null) return BluetoothProfile.PRIORITY_UNDEFINED;
+            if (service == null) {
+                return BluetoothProfile.PRIORITY_UNDEFINED;
+            }
             return service.getPriority(device);
         }
 
@@ -300,7 +341,9 @@ public class MapClientService extends ProfileService {
         public boolean sendMessage(BluetoothDevice device, Uri[] contacts, String message,
                 PendingIntent sentIntent, PendingIntent deliveredIntent) {
             MapClientService service = getService();
-            if (service == null) return false;
+            if (service == null) {
+                return false;
+            }
             Log.d(TAG, "Checking Permission of sendMessage");
             mService.enforceCallingOrSelfPermission(Manifest.permission.SEND_SMS,
                     "Need SEND_SMS permission");
@@ -311,7 +354,9 @@ public class MapClientService extends ProfileService {
         @Override
         public boolean getUnreadMessages(BluetoothDevice device) {
             MapClientService service = getService();
-            if (service == null) return false;
+            if (service == null) {
+                return false;
+            }
             mService.enforceCallingOrSelfPermission(Manifest.permission.READ_SMS,
                     "Need READ_SMS permission");
             return service.getUnreadMessages(device);

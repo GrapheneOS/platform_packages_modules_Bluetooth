@@ -32,14 +32,11 @@
 
 package com.android.bluetooth.opp;
 
-import com.android.bluetooth.R;
-
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.ContentResolver;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
@@ -54,13 +51,15 @@ import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ListView;
 
+import com.android.bluetooth.R;
+
 /**
  * View showing the user's finished bluetooth opp transfers that the user does
  * not confirm. Including outbound and inbound transfers, both successful and
  * failed. *
  */
-public class BluetoothOppTransferHistory extends Activity implements
-        View.OnCreateContextMenuListener, OnItemClickListener {
+public class BluetoothOppTransferHistory extends Activity
+        implements View.OnCreateContextMenuListener, OnItemClickListener {
     private static final String TAG = "BluetoothOppTransferHistory";
 
     private static final boolean V = Constants.VERBOSE;
@@ -86,11 +85,10 @@ public class BluetoothOppTransferHistory extends Activity implements
     public void onCreate(Bundle icicle) {
         super.onCreate(icicle);
         setContentView(R.layout.bluetooth_transfers_page);
-        mListView = (ListView)findViewById(R.id.list);
+        mListView = (ListView) findViewById(R.id.list);
         mListView.setEmptyView(findViewById(R.id.empty));
 
-        mShowAllIncoming = getIntent().getBooleanExtra(
-                Constants.EXTRA_SHOW_ALL_FILES, false);
+        mShowAllIncoming = getIntent().getBooleanExtra(Constants.EXTRA_SHOW_ALL_FILES, false);
 
         String direction;
         int dir = getIntent().getIntExtra("direction", 0);
@@ -111,28 +109,33 @@ public class BluetoothOppTransferHistory extends Activity implements
         String selection = BluetoothShare.STATUS + " >= '200' AND " + direction;
 
         if (!mShowAllIncoming) {
-            selection = selection + " AND ("
-                    + BluetoothShare.VISIBILITY + " IS NULL OR "
-                    + BluetoothShare.VISIBILITY + " == '"
-                    + BluetoothShare.VISIBILITY_VISIBLE + "')";
+            selection = selection + " AND (" + BluetoothShare.VISIBILITY + " IS NULL OR "
+                    + BluetoothShare.VISIBILITY + " == '" + BluetoothShare.VISIBILITY_VISIBLE
+                    + "')";
         }
 
         final String sortOrder = BluetoothShare.TIMESTAMP + " DESC";
 
-        mTransferCursor = getContentResolver().query(BluetoothShare.CONTENT_URI,
-                new String[] {"_id", BluetoothShare.FILENAME_HINT, BluetoothShare.STATUS,
-                        BluetoothShare.TOTAL_BYTES, BluetoothShare._DATA, BluetoothShare.TIMESTAMP,
-                        BluetoothShare.VISIBILITY, BluetoothShare.DESTINATION,
-                        BluetoothShare.DIRECTION},
-                selection, null, sortOrder);
+        mTransferCursor = getContentResolver().query(BluetoothShare.CONTENT_URI, new String[]{
+                "_id",
+                BluetoothShare.FILENAME_HINT,
+                BluetoothShare.STATUS,
+                BluetoothShare.TOTAL_BYTES,
+                BluetoothShare._DATA,
+                BluetoothShare.TIMESTAMP,
+                BluetoothShare.VISIBILITY,
+                BluetoothShare.DESTINATION,
+                BluetoothShare.DIRECTION
+        }, selection, null, sortOrder);
 
         // only attach everything to the listbox if we can access
         // the transfer database. Otherwise, just show it empty
         if (mTransferCursor != null) {
             mIdColumnId = mTransferCursor.getColumnIndexOrThrow(BluetoothShare._ID);
             // Create a list "controller" for the data
-            mTransferAdapter = new BluetoothOppTransferAdapter(this,
-                    R.layout.bluetooth_transfer_item, mTransferCursor);
+            mTransferAdapter =
+                    new BluetoothOppTransferAdapter(this, R.layout.bluetooth_transfer_item,
+                            mTransferCursor);
             mListView.setAdapter(mTransferAdapter);
             mListView.setScrollBarStyle(View.SCROLLBARS_INSIDE_INSET);
             mListView.setOnCreateContextMenuListener(this);
@@ -206,12 +209,12 @@ public class BluetoothOppTransferHistory extends Activity implements
     public void onCreateContextMenu(ContextMenu menu, View v, ContextMenuInfo menuInfo) {
         if (mTransferCursor != null) {
             mContextMenu = true;
-            AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo)menuInfo;
+            AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) menuInfo;
             mTransferCursor.moveToPosition(info.position);
             mContextMenuPosition = info.position;
 
-            String fileName = mTransferCursor.getString(mTransferCursor
-                    .getColumnIndexOrThrow(BluetoothShare.FILENAME_HINT));
+            String fileName = mTransferCursor.getString(
+                    mTransferCursor.getColumnIndexOrThrow(BluetoothShare.FILENAME_HINT));
             if (fileName == null) {
                 fileName = this.getString(R.string.unknown_file);
             }
@@ -230,14 +233,16 @@ public class BluetoothOppTransferHistory extends Activity implements
      * Prompt the user if they would like to clear the transfer history
      */
     private void promptClearList() {
-        new AlertDialog.Builder(this).setTitle(R.string.transfer_clear_dlg_title).setMessage(
-                R.string.transfer_clear_dlg_msg).setPositiveButton(android.R.string.ok,
-                new DialogInterface.OnClickListener() {
+        new AlertDialog.Builder(this).setTitle(R.string.transfer_clear_dlg_title)
+                .setMessage(R.string.transfer_clear_dlg_msg)
+                .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int whichButton) {
                         clearAllDownloads();
                     }
-                }).setNegativeButton(android.R.string.cancel, null).show();
+                })
+                .setNegativeButton(android.R.string.cancel, null)
+                .show();
     }
 
     /**
@@ -283,7 +288,9 @@ public class BluetoothOppTransferHistory extends Activity implements
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         // Open the selected item
-        if (V) Log.v(TAG, "onItemClick: ContextMenu = " + mContextMenu);
+        if (V) {
+            Log.v(TAG, "onItemClick: ContextMenu = " + mContextMenu);
+        }
         if (!mContextMenu) {
             mTransferCursor.moveToPosition(position);
             openCompleteTransfer();
@@ -325,7 +332,9 @@ public class BluetoothOppTransferHistory extends Activity implements
     private void updateNotificationWhenBtDisabled() {
         BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
         if (!adapter.isEnabled()) {
-            if (V) Log.v(TAG, "Bluetooth is not enabled, update notification manually.");
+            if (V) {
+                Log.v(TAG, "Bluetooth is not enabled, update notification manually.");
+            }
             mNotifier.updateNotification();
         }
     }

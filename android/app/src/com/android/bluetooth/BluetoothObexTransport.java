@@ -84,7 +84,7 @@ public class BluetoothObexTransport implements ObexTransport {
     @Override
     public int getMaxTransmitPacketSize() {
         if (mSocket.getConnectionType() != BluetoothSocket.TYPE_L2CAP) {
-           return -1;
+            return -1;
         }
         return mSocket.getMaxTransmitPacketSize();
     }
@@ -98,14 +98,15 @@ public class BluetoothObexTransport implements ObexTransport {
     }
 
     public String getRemoteAddress() {
-        if (mSocket == null)
+        if (mSocket == null) {
             return null;
+        }
         return mSocket.getRemoteDevice().getAddress();
     }
 
     @Override
     public boolean isSrmSupported() {
-        if(mSocket.getConnectionType() == BluetoothSocket.TYPE_L2CAP) {
+        if (mSocket.getConnectionType() == BluetoothSocket.TYPE_L2CAP) {
             return true;
         }
         return false;

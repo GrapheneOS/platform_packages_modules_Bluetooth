@@ -21,9 +21,9 @@ import android.media.MediaMetadata;
 import android.util.Log;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.HashMap;
 
 /*
  * Contains information about tracks that either currently playing or maintained in playlist
@@ -80,42 +80,40 @@ class TrackInfo {
         mAlbumTitle = attributeMap.getOrDefault(MEDIA_ATTRIBUTE_ALBUM_NAME, UNPOPULATED_ATTRIBUTE);
 
         attribute = attributeMap.get(MEDIA_ATTRIBUTE_TRACK_NUMBER);
-        mTrackNum = (attribute != null && !attribute.isEmpty()) ? Long.valueOf(attribute) : TRACK_NUM_INVALID;
+        mTrackNum = (attribute != null && !attribute.isEmpty()) ? Long.valueOf(attribute)
+                : TRACK_NUM_INVALID;
 
         attribute = attributeMap.get(MEDIA_ATTRIBUTE_TOTAL_TRACK_NUMBER);
-        mTotalTracks = (attribute != null && !attribute.isEmpty()) ? Long.valueOf(attribute) : TOTAL_TRACKS_INVALID;
+        mTotalTracks = (attribute != null && !attribute.isEmpty()) ? Long.valueOf(attribute)
+                : TOTAL_TRACKS_INVALID;
 
         mGenre = attributeMap.getOrDefault(MEDIA_ATTRIBUTE_GENRE, UNPOPULATED_ATTRIBUTE);
 
         attribute = attributeMap.get(MEDIA_ATTRIBUTE_PLAYING_TIME);
-        mTrackLen = (attribute != null && !attribute.isEmpty()) ? Long.valueOf(attribute) : TOTAL_TRACK_TIME_INVALID;
+        mTrackLen = (attribute != null && !attribute.isEmpty()) ? Long.valueOf(attribute)
+                : TOTAL_TRACK_TIME_INVALID;
     }
 
     @Override
     public String toString() {
-        return "Metadata [artist=" + mArtistName + " trackTitle= " + mTrackTitle +
-                " albumTitle= " + mAlbumTitle + " genre= " +mGenre+" trackNum= "+
-                Long.toString(mTrackNum) + " track_len : "+ Long.toString(mTrackLen) +
-                " TotalTracks " + Long.toString(mTotalTracks) + "]";
+        return "Metadata [artist=" + mArtistName + " trackTitle= " + mTrackTitle + " albumTitle= "
+                + mAlbumTitle + " genre= " + mGenre + " trackNum= " + Long.toString(mTrackNum)
+                + " track_len : " + Long.toString(mTrackLen) + " TotalTracks " + Long.toString(
+                mTotalTracks) + "]";
     }
 
     public MediaMetadata getMediaMetaData() {
-        if (DBG) Log.d(TAG, " TrackInfo " + toString());
+        if (DBG) {
+            Log.d(TAG, " TrackInfo " + toString());
+        }
         MediaMetadata.Builder mMetaDataBuilder = new MediaMetadata.Builder();
-        mMetaDataBuilder.putString(MediaMetadata.METADATA_KEY_ARTIST,
-            mArtistName);
-        mMetaDataBuilder.putString(MediaMetadata.METADATA_KEY_TITLE,
-            mTrackTitle);
-        mMetaDataBuilder.putString(MediaMetadata.METADATA_KEY_ALBUM,
-            mAlbumTitle);
-        mMetaDataBuilder.putString(MediaMetadata.METADATA_KEY_GENRE,
-            mGenre);
-        mMetaDataBuilder.putLong(MediaMetadata.METADATA_KEY_TRACK_NUMBER,
-            mTrackNum);
-        mMetaDataBuilder.putLong(MediaMetadata.METADATA_KEY_NUM_TRACKS,
-            mTotalTracks);
-        mMetaDataBuilder.putLong(MediaMetadata.METADATA_KEY_DURATION,
-            mTrackLen);
+        mMetaDataBuilder.putString(MediaMetadata.METADATA_KEY_ARTIST, mArtistName);
+        mMetaDataBuilder.putString(MediaMetadata.METADATA_KEY_TITLE, mTrackTitle);
+        mMetaDataBuilder.putString(MediaMetadata.METADATA_KEY_ALBUM, mAlbumTitle);
+        mMetaDataBuilder.putString(MediaMetadata.METADATA_KEY_GENRE, mGenre);
+        mMetaDataBuilder.putLong(MediaMetadata.METADATA_KEY_TRACK_NUMBER, mTrackNum);
+        mMetaDataBuilder.putLong(MediaMetadata.METADATA_KEY_NUM_TRACKS, mTotalTracks);
+        mMetaDataBuilder.putLong(MediaMetadata.METADATA_KEY_DURATION, mTrackLen);
         return mMetaDataBuilder.build();
     }
 
@@ -125,18 +123,25 @@ class TrackInfo {
         StringBuffer sb = new StringBuffer();
         /* getDescription only contains artist, title and album */
         sb.append(metaData.getDescription().toString() + " ");
-        if(metaData.containsKey(MediaMetadata.METADATA_KEY_GENRE))
+        if (metaData.containsKey(MediaMetadata.METADATA_KEY_GENRE)) {
             sb.append(metaData.getString(MediaMetadata.METADATA_KEY_GENRE) + " ");
-        if(metaData.containsKey(MediaMetadata.METADATA_KEY_MEDIA_ID))
+        }
+        if (metaData.containsKey(MediaMetadata.METADATA_KEY_MEDIA_ID)) {
             sb.append(metaData.getString(MediaMetadata.METADATA_KEY_MEDIA_ID) + " ");
-        if(metaData.containsKey(MediaMetadata.METADATA_KEY_TRACK_NUMBER))
-            sb.append(Long.toString(metaData.getLong(MediaMetadata.METADATA_KEY_TRACK_NUMBER)) + " ");
-        if(metaData.containsKey(MediaMetadata.METADATA_KEY_NUM_TRACKS))
+        }
+        if (metaData.containsKey(MediaMetadata.METADATA_KEY_TRACK_NUMBER)) {
+            sb.append(
+                    Long.toString(metaData.getLong(MediaMetadata.METADATA_KEY_TRACK_NUMBER)) + " ");
+        }
+        if (metaData.containsKey(MediaMetadata.METADATA_KEY_NUM_TRACKS)) {
             sb.append(Long.toString(metaData.getLong(MediaMetadata.METADATA_KEY_NUM_TRACKS)) + " ");
-        if(metaData.containsKey(MediaMetadata.METADATA_KEY_TRACK_NUMBER))
+        }
+        if (metaData.containsKey(MediaMetadata.METADATA_KEY_TRACK_NUMBER)) {
             sb.append(Long.toString(metaData.getLong(MediaMetadata.METADATA_KEY_DURATION)) + " ");
-        if(metaData.containsKey(MediaMetadata.METADATA_KEY_TRACK_NUMBER))
+        }
+        if (metaData.containsKey(MediaMetadata.METADATA_KEY_TRACK_NUMBER)) {
             sb.append(Long.toString(metaData.getLong(MediaMetadata.METADATA_KEY_DURATION)) + " ");
+        }
         return sb.toString();
     }
 }

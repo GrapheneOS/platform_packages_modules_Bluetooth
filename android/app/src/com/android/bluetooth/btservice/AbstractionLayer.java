@@ -80,6 +80,6 @@ public final class AbstractionLayer {
     public static final int BT_STATUS_UNHANDLED = 8;
     public static final int BT_STATUS_AUTH_FAILURE = 9;
     public static final int BT_STATUS_RMT_DEV_DOWN = 10;
-    public static final int BT_STATUS_AUTH_REJECTED =11;
+    public static final int BT_STATUS_AUTH_REJECTED = 11;
     public static final int BT_STATUS_AUTH_TIMEOUT = 12;
 }
