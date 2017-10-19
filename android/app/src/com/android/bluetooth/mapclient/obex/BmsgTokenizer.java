@@ -100,8 +100,7 @@ public final class BmsgTokenizer {
         @Override
         public boolean equals(Object o) {
             return ((o instanceof Property) && ((Property) o).name.equals(name)
-                    && ((Property) o).value
-                    .equals(value));
+                    && ((Property) o).value.equals(value));
         }
     }
 }

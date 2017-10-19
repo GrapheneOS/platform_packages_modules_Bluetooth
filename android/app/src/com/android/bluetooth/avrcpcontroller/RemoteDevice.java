@@ -16,14 +16,9 @@
 
 package com.android.bluetooth.avrcpcontroller;
 
-import android.bluetooth.BluetoothAvrcpPlayerSettings;
 import android.bluetooth.BluetoothDevice;
-import android.media.session.PlaybackState;
 
 import com.android.bluetooth.Utils;
-
-import java.util.ArrayList;
-import java.nio.ByteBuffer;
 
 /*
  * Contains information about remote device specifically the player and features enabled on it along

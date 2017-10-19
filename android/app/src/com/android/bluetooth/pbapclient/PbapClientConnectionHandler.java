@@ -53,8 +53,22 @@ class PbapClientConnectionHandler extends Handler {
     // The following constants are pulled from the Bluetooth Phone Book Access Profile specification
     // 1.1
     private static final byte[] PBAP_TARGET = new byte[]{
-            0x79, 0x61, 0x35, (byte) 0xf0, (byte) 0xf0, (byte) 0xc5, 0x11, (byte) 0xd8, 0x09, 0x66,
-            0x08, 0x00, 0x20, 0x0c, (byte) 0x9a, 0x66
+            0x79,
+            0x61,
+            0x35,
+            (byte) 0xf0,
+            (byte) 0xf0,
+            (byte) 0xc5,
+            0x11,
+            (byte) 0xd8,
+            0x09,
+            0x66,
+            0x08,
+            0x00,
+            0x20,
+            0x0c,
+            (byte) 0x9a,
+            0x66
     };
 
     private static final int PBAP_FEATURE_DEFAULT_IMAGE_FORMAT = 0x00000200;
@@ -72,9 +86,9 @@ class PbapClientConnectionHandler extends Handler {
 
     private static final int PBAP_SUPPORTED_FEATURE =
             PBAP_FEATURE_DEFAULT_IMAGE_FORMAT | PBAP_FEATURE_BROWSING | PBAP_FEATURE_DOWNLOADING;
-    private static final long PBAP_REQUESTED_FIELDS = PBAP_FILTER_VERSION | PBAP_FILTER_FN
-            | PBAP_FILTER_N | PBAP_FILTER_PHOTO | PBAP_FILTER_ADR | PBAP_FILTER_TEL
-            | PBAP_FILTER_NICKNAME;
+    private static final long PBAP_REQUESTED_FIELDS =
+            PBAP_FILTER_VERSION | PBAP_FILTER_FN | PBAP_FILTER_N | PBAP_FILTER_PHOTO
+                    | PBAP_FILTER_ADR | PBAP_FILTER_TEL | PBAP_FILTER_NICKNAME;
     private static final int PBAP_V1_2 = 0x0102;
     private static final int L2CAP_INVALID_PSM = -1;
 
@@ -107,8 +121,8 @@ class PbapClientConnectionHandler extends Handler {
         mPbapClientStateMachine = stateMachine;
         mAuth = new BluetoothPbapObexAuthenticator(this);
         mAccountManager = AccountManager.get(mPbapClientStateMachine.getContext());
-        mAccount = new Account(mDevice.getAddress(), mContext.getString(
-                R.string.pbap_account_type));
+        mAccount =
+                new Account(mDevice.getAddress(), mContext.getString(R.string.pbap_account_type));
     }
 
     /**
@@ -124,8 +138,8 @@ class PbapClientConnectionHandler extends Handler {
         mPbapClientStateMachine = pceHandlerbuild.mClientStateMachine;
         mAuth = new BluetoothPbapObexAuthenticator(this);
         mAccountManager = AccountManager.get(mPbapClientStateMachine.getContext());
-        mAccount = new Account(mDevice.getAddress(), mContext.getString(
-                R.string.pbap_account_type));
+        mAccount =
+                new Account(mDevice.getAddress(), mContext.getString(R.string.pbap_account_type));
     }
 
     public static class Builder {
@@ -164,13 +178,17 @@ class PbapClientConnectionHandler extends Handler {
 
     @Override
     public void handleMessage(Message msg) {
-        if (DBG) Log.d(TAG, "Handling Message = " + msg.what);
+        if (DBG) {
+            Log.d(TAG, "Handling Message = " + msg.what);
+        }
         switch (msg.what) {
             case MSG_CONNECT:
                 mPseRec = (SdpPseRecord) msg.obj;
                 /* To establish a connection, first open a socket and then create an OBEX session */
                 if (connectSocket()) {
-                    if (DBG) Log.d(TAG, "Socket connected");
+                    if (DBG) {
+                        Log.d(TAG, "Socket connected");
+                    }
                 } else {
                     Log.w(TAG, "Socket CONNECT Failure ");
                     mPbapClientStateMachine.obtainMessage(
@@ -188,25 +206,32 @@ class PbapClientConnectionHandler extends Handler {
                 break;
 
             case MSG_DISCONNECT:
-                if (DBG) Log.d(TAG, "Starting Disconnect");
+                if (DBG) {
+                    Log.d(TAG, "Starting Disconnect");
+                }
                 try {
                     if (mObexSession != null) {
-                        if (DBG) Log.d(TAG, "obexSessionDisconnect" + mObexSession);
+                        if (DBG) {
+                            Log.d(TAG, "obexSessionDisconnect" + mObexSession);
+                        }
                         mObexSession.disconnect(null);
                         mObexSession.close();
                     }
 
-                    if (DBG) Log.d(TAG, "Closing Socket");
+                    if (DBG) {
+                        Log.d(TAG, "Closing Socket");
+                    }
                     closeSocket();
                 } catch (IOException e) {
                     Log.w(TAG, "DISCONNECT Failure ", e);
                 }
-                if (DBG) Log.d(TAG, "Completing Disconnect");
+                if (DBG) {
+                    Log.d(TAG, "Completing Disconnect");
+                }
                 removeAccount(mAccount);
-                mContext.getContentResolver()
-                        .delete(CallLog.Calls.CONTENT_URI, null, null);
-                mPbapClientStateMachine.obtainMessage(
-                        PbapClientStateMachine.MSG_CONNECTION_CLOSED).sendToTarget();
+                mContext.getContentResolver().delete(CallLog.Calls.CONTENT_URI, null, null);
+                mPbapClientStateMachine.obtainMessage(PbapClientStateMachine.MSG_CONNECTION_CLOSED)
+                        .sendToTarget();
                 break;
 
             case MSG_DOWNLOAD:
@@ -218,8 +243,8 @@ class PbapClientConnectionHandler extends Handler {
                     }
                     // Start at contact 1 to exclued Owner Card PBAP 1.1 sec 3.1.5.2
                     BluetoothPbapRequestPullPhoneBook request =
-                            new BluetoothPbapRequestPullPhoneBook(
-                                    PB_PATH, mAccount, PBAP_REQUESTED_FIELDS, VCARD_TYPE_30, 0, 1);
+                            new BluetoothPbapRequestPullPhoneBook(PB_PATH, mAccount,
+                                    PBAP_REQUESTED_FIELDS, VCARD_TYPE_30, 0, 1);
                     request.execute(mObexSession);
                     PhonebookPullRequest processor =
                             new PhonebookPullRequest(mPbapClientStateMachine.getContext(),
@@ -249,8 +274,8 @@ class PbapClientConnectionHandler extends Handler {
             if (mPseRec == null) {
                 // BackWardCompatability: Fall back to create RFCOMM through UUID.
                 Log.v(TAG, "connectSocket: UUID: " + BluetoothUuid.PBAP_PSE.getUuid());
-                mSocket = mDevice.createRfcommSocketToServiceRecord(
-                        BluetoothUuid.PBAP_PSE.getUuid());
+                mSocket =
+                        mDevice.createRfcommSocketToServiceRecord(BluetoothUuid.PBAP_PSE.getUuid());
             } else if (mPseRec.getL2capPsm() != L2CAP_INVALID_PSM) {
                 Log.v(TAG, "connectSocket: PSM: " + mPseRec.getL2capPsm());
                 mSocket = mDevice.createL2capSocket(mPseRec.getL2capPsm());
@@ -277,7 +302,9 @@ class PbapClientConnectionHandler extends Handler {
         boolean connectionSuccessful = false;
 
         try {
-            if (DBG) Log.v(TAG, "Start Obex Client Session");
+            if (DBG) {
+                Log.v(TAG, "Start Obex Client Session");
+            }
             BluetoothObexTransport transport = new BluetoothObexTransport(mSocket);
             mObexSession = new ClientSession(transport);
             mObexSession.setAuthenticator(mAuth);
@@ -287,8 +314,7 @@ class PbapClientConnectionHandler extends Handler {
 
             if (mPseRec != null) {
                 if (DBG) {
-                    Log.d(TAG, "Remote PbapSupportedFeatures "
-                            + mPseRec.getSupportedFeatures());
+                    Log.d(TAG, "Remote PbapSupportedFeatures " + mPseRec.getSupportedFeatures());
                 }
 
                 ObexAppParameters oap = new ObexAppParameters();
@@ -302,9 +328,11 @@ class PbapClientConnectionHandler extends Handler {
             }
             HeaderSet connectionResponse = mObexSession.connect(connectionRequest);
 
-            connectionSuccessful = (connectionResponse.getResponseCode() ==
-                    ResponseCodes.OBEX_HTTP_OK);
-            if (DBG) Log.d(TAG, "Success = " + Boolean.toString(connectionSuccessful));
+            connectionSuccessful =
+                    (connectionResponse.getResponseCode() == ResponseCodes.OBEX_HTTP_OK);
+            if (DBG) {
+                Log.d(TAG, "Success = " + Boolean.toString(connectionSuccessful));
+            }
         } catch (IOException e) {
             Log.w(TAG, "CONNECT Failure " + e.toString());
             closeSocket();
@@ -322,7 +350,9 @@ class PbapClientConnectionHandler extends Handler {
     private void closeSocket() {
         try {
             if (mSocket != null) {
-                if (DBG) Log.d(TAG, "Closing socket" + mSocket);
+                if (DBG) {
+                    Log.d(TAG, "Closing socket" + mSocket);
+                }
                 mSocket.close();
                 mSocket = null;
             }

@@ -32,8 +32,6 @@
 
 package com.android.bluetooth.opp;
 
-import com.android.bluetooth.R;
-
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.ContentResolver;
@@ -47,6 +45,8 @@ import android.os.SystemClock;
 import android.text.TextUtils;
 import android.util.Log;
 import android.util.Pair;
+
+import com.android.bluetooth.R;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -112,7 +112,7 @@ public class BluetoothOppManager {
 
     // A list of devices that may send files over OPP to this device
     // without user confirmation. Used for connection handover from forex NFC.
-    private List<Pair<String,Long> > mWhitelist = new ArrayList<Pair<String, Long> >();
+    private List<Pair<String, Long>> mWhitelist = new ArrayList<Pair<String, Long>>();
 
     // The time for which the whitelist entries remain valid.
     private static final int WHITELIST_DURATION_MS = 15000;
@@ -135,15 +135,18 @@ public class BluetoothOppManager {
      * init
      */
     private boolean init(Context context) {
-        if (mInitialized)
+        if (mInitialized) {
             return true;
+        }
         mInitialized = true;
 
         mContext = context;
 
         mAdapter = BluetoothAdapter.getDefaultAdapter();
         if (mAdapter == null) {
-            if (V) Log.v(TAG, "BLUETOOTH_SERVICE is not started! ");
+            if (V) {
+                Log.v(TAG, "BLUETOOTH_SERVICE is not started! ");
+            }
         }
 
         // Restore data from preference
@@ -156,20 +159,24 @@ public class BluetoothOppManager {
     private void cleanupWhitelist() {
         // Removes expired entries
         long curTime = SystemClock.elapsedRealtime();
-        for (Iterator<Pair<String,Long>> iter = mWhitelist.iterator(); iter.hasNext(); ) {
-            Pair<String,Long> entry = iter.next();
+        for (Iterator<Pair<String, Long>> iter = mWhitelist.iterator(); iter.hasNext(); ) {
+            Pair<String, Long> entry = iter.next();
             if (curTime - entry.second > WHITELIST_DURATION_MS) {
-                if (V) Log.v(TAG, "Cleaning out whitelist entry " + entry.first);
+                if (V) {
+                    Log.v(TAG, "Cleaning out whitelist entry " + entry.first);
+                }
                 iter.remove();
             }
         }
     }
 
     public synchronized void addToWhitelist(String address) {
-        if (address == null) return;
+        if (address == null) {
+            return;
+        }
         // Remove any existing entries
-        for (Iterator<Pair<String,Long>> iter = mWhitelist.iterator(); iter.hasNext(); ) {
-            Pair<String,Long> entry = iter.next();
+        for (Iterator<Pair<String, Long>> iter = mWhitelist.iterator(); iter.hasNext(); ) {
+            Pair<String, Long> entry = iter.next();
             if (entry.first.equals(address)) {
                 iter.remove();
             }
@@ -179,8 +186,10 @@ public class BluetoothOppManager {
 
     public synchronized boolean isWhitelisted(String address) {
         cleanupWhitelist();
-        for (Pair<String,Long> entry : mWhitelist) {
-            if (entry.first.equals(address)) return true;
+        for (Pair<String, Long> entry : mWhitelist) {
+            if (entry.first.equals(address)) {
+                return true;
+            }
         }
         return false;
     }
@@ -198,8 +207,10 @@ public class BluetoothOppManager {
         mMimeTypeOfSendingFiles = settings.getString(MIME_TYPE_MULTIPLE, null);
         mMultipleFlag = settings.getBoolean(MULTIPLE_FLAG, false);
 
-        if (V) Log.v(TAG, "restoreApplicationData! " + mSendingFlag + mMultipleFlag
+        if (V) {
+            Log.v(TAG, "restoreApplicationData! " + mSendingFlag + mMultipleFlag
                     + mMimeTypeOfSendingFile + mUriOfSendingFile);
+        }
 
         String strUris = settings.getString(FILE_URIS, null);
         mUrisOfSendingFiles = new ArrayList<Uri>();
@@ -207,7 +218,9 @@ public class BluetoothOppManager {
             String[] splitUri = strUris.split(ARRAYLIST_ITEM_SEPERATOR);
             for (int i = 0; i < splitUri.length; i++) {
                 mUrisOfSendingFiles.add(Uri.parse(splitUri[i]));
-                if (V) Log.v(TAG, "Uri in batch:  " + Uri.parse(splitUri[i]));
+                if (V) {
+                    Log.v(TAG, "Uri in batch:  " + Uri.parse(splitUri[i]));
+                }
             }
         }
 
@@ -218,8 +231,8 @@ public class BluetoothOppManager {
      * Save application data to preference, need restore these data when service restart
      */
     private void storeApplicationData() {
-        SharedPreferences.Editor editor = mContext.getSharedPreferences(OPP_PREFERENCE_FILE, 0)
-                .edit();
+        SharedPreferences.Editor editor =
+                mContext.getSharedPreferences(OPP_PREFERENCE_FILE, 0).edit();
         editor.putBoolean(SENDING_FLAG, mSendingFlag);
         editor.putBoolean(MULTIPLE_FLAG, mMultipleFlag);
         if (mMultipleFlag) {
@@ -243,7 +256,9 @@ public class BluetoothOppManager {
             editor.remove(FILE_URIS);
         }
         editor.apply();
-        if (V) Log.v(TAG, "Application data stored to SharedPreference! ");
+        if (V) {
+            Log.v(TAG, "Application data stored to SharedPreference! ");
+        }
     }
 
     public void saveSendingFileInfo(String mimeType, String uriString, boolean isHandover,
@@ -254,9 +269,9 @@ public class BluetoothOppManager {
             mUriOfSendingFile = uriString;
             mIsHandoverInitiated = isHandover;
             Uri uri = Uri.parse(uriString);
-            BluetoothOppUtility.putSendFileInfo(
-                    uri, BluetoothOppSendFileInfo.generateFileInfo(
-                                 mContext, uri, mimeType, fromExternal));
+            BluetoothOppUtility.putSendFileInfo(uri,
+                    BluetoothOppSendFileInfo.generateFileInfo(mContext, uri, mimeType,
+                            fromExternal));
             storeApplicationData();
         }
     }
@@ -269,9 +284,9 @@ public class BluetoothOppManager {
             mUrisOfSendingFiles = uris;
             mIsHandoverInitiated = isHandover;
             for (Uri uri : uris) {
-                BluetoothOppUtility.putSendFileInfo(
-                        uri, BluetoothOppSendFileInfo.generateFileInfo(
-                                     mContext, uri, mimeType, fromExternal));
+                BluetoothOppUtility.putSendFileInfo(uri,
+                        BluetoothOppSendFileInfo.generateFileInfo(mContext, uri, mimeType,
+                                fromExternal));
             }
             storeApplicationData();
         }
@@ -285,7 +300,9 @@ public class BluetoothOppManager {
         if (mAdapter != null) {
             return mAdapter.isEnabled();
         } else {
-            if (V) Log.v(TAG, "BLUETOOTH_SERVICE is not available! ");
+            if (V) {
+                Log.v(TAG, "BLUETOOTH_SERVICE is not available! ");
+            }
             return false;
         }
     }
@@ -337,7 +354,9 @@ public class BluetoothOppManager {
      * Fork a thread to insert share info to db.
      */
     public void startTransfer(BluetoothDevice device) {
-        if (V) Log.v(TAG, "Active InsertShareThread number is : " + mInsertShareThreadNum);
+        if (V) {
+            Log.v(TAG, "Active InsertShareThread number is : " + mInsertShareThreadNum);
+        }
         InsertShareInfoThread insertThread;
         synchronized (BluetoothOppManager.this) {
             if (mInsertShareThreadNum > ALLOWED_INSERT_SHARE_THREAD_NUMBER) {
@@ -386,9 +405,9 @@ public class BluetoothOppManager {
 
         private final boolean mIsHandoverInitiated;
 
-        InsertShareInfoThread(BluetoothDevice device, boolean multiple,
-                String typeOfSingleFile, String uri, String typeOfMultipleFiles,
-                ArrayList<Uri> uris, boolean handoverInitiated) {
+        InsertShareInfoThread(BluetoothDevice device, boolean multiple, String typeOfSingleFile,
+                String uri, String typeOfMultipleFiles, ArrayList<Uri> uris,
+                boolean handoverInitiated) {
             super("Insert ShareInfo Thread");
             this.mRemoteDevice = device;
             this.mIsMultiple = multiple;
@@ -402,7 +421,9 @@ public class BluetoothOppManager {
                 mInsertShareThreadNum++;
             }
 
-            if (V) Log.v(TAG, "Thread id is: " + this.getId());
+            if (V) {
+                Log.v(TAG, "Thread id is: " + this.getId());
+            }
         }
 
         @Override
@@ -432,7 +453,9 @@ public class BluetoothOppManager {
                 Uri fileUri = mUris.get(i);
                 ContentResolver contentResolver = mContext.getContentResolver();
                 String contentType = contentResolver.getType(fileUri);
-                if (V) Log.v(TAG, "Got mimetype: " + contentType + "  Got uri: " + fileUri);
+                if (V) {
+                    Log.v(TAG, "Got mimetype: " + contentType + "  Got uri: " + fileUri);
+                }
                 if (TextUtils.isEmpty(contentType)) {
                     contentType = mTypeOfMultipleFiles;
                 }
@@ -446,14 +469,16 @@ public class BluetoothOppManager {
                     values.put(BluetoothShare.USER_CONFIRMATION,
                             BluetoothShare.USER_CONFIRMATION_HANDOVER_CONFIRMED);
                 }
-                final Uri contentUri = mContext.getContentResolver().insert(
-                        BluetoothShare.CONTENT_URI, values);
-                if (V) Log.v(TAG, "Insert contentUri: " + contentUri + "  to device: "
-                            + getDeviceName(mRemoteDevice));
+                final Uri contentUri =
+                        mContext.getContentResolver().insert(BluetoothShare.CONTENT_URI, values);
+                if (V) {
+                    Log.v(TAG, "Insert contentUri: " + contentUri + "  to device: " + getDeviceName(
+                            mRemoteDevice));
+                }
             }
         }
 
-         /**
+        /**
          * Insert single sending session to db, only used by Opp application.
          */
         private void insertSingleShare() {
@@ -465,16 +490,20 @@ public class BluetoothOppManager {
                 values.put(BluetoothShare.USER_CONFIRMATION,
                         BluetoothShare.USER_CONFIRMATION_HANDOVER_CONFIRMED);
             }
-            final Uri contentUri = mContext.getContentResolver().insert(BluetoothShare.CONTENT_URI,
-                    values);
-            if (V) Log.v(TAG, "Insert contentUri: " + contentUri + "  to device: "
-                                + getDeviceName(mRemoteDevice));
+            final Uri contentUri =
+                    mContext.getContentResolver().insert(BluetoothShare.CONTENT_URI, values);
+            if (V) {
+                Log.v(TAG, "Insert contentUri: " + contentUri + "  to device: " + getDeviceName(
+                        mRemoteDevice));
+            }
         }
     }
 
     void cleanUpSendingFileInfo() {
         synchronized (BluetoothOppManager.this) {
-            if (V) Log.v(TAG, "cleanUpSendingFileInfo: mMultipleFlag = " + mMultipleFlag);
+            if (V) {
+                Log.v(TAG, "cleanUpSendingFileInfo: mMultipleFlag = " + mMultipleFlag);
+            }
             if (!mMultipleFlag && (mUriOfSendingFile != null)) {
                 Uri uri = Uri.parse(mUriOfSendingFile);
                 BluetoothOppUtility.closeSendFileInfo(uri);

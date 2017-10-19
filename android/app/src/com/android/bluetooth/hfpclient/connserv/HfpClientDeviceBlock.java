@@ -50,9 +50,7 @@ public class HfpClientDeviceBlock {
 
     private BluetoothHeadsetClient mHeadsetProfile;
 
-    HfpClientDeviceBlock(
-            HfpClientConnectionService connServ,
-            BluetoothDevice device,
+    HfpClientDeviceBlock(HfpClientConnectionService connServ, BluetoothDevice device,
             BluetoothHeadsetClient headsetProfile) {
         mConnServ = connServ;
         mContext = connServ;
@@ -69,8 +67,7 @@ public class HfpClientDeviceBlock {
 
         // Read the current calls and add them to telecom if already present
         if (mHeadsetProfile != null) {
-            List<BluetoothHeadsetClientCall> calls =
-                    mHeadsetProfile.getCurrentCalls(mDevice);
+            List<BluetoothHeadsetClientCall> calls = mHeadsetProfile.getCurrentCalls(mDevice);
             if (DBG) {
                 Log.d(mTAG, "Got calls " + calls);
             }
@@ -126,8 +123,8 @@ public class HfpClientDeviceBlock {
 
     synchronized void onConference(Connection connection1, Connection connection2) {
         if (mConference == null) {
-            mConference = new HfpClientConference(
-                mPhoneAccount.getAccountHandle(), mDevice, mHeadsetProfile);
+            mConference = new HfpClientConference(mPhoneAccount.getAccountHandle(), mDevice,
+                    mHeadsetProfile);
         }
 
         if (connection1.getConference() == null) {
@@ -227,17 +224,18 @@ public class HfpClientDeviceBlock {
         if (DBG) {
             Log.d(mTAG, "prevConn " + prevConn.isClosing() + " new call " + newCall.getState());
         }
-        if (prevConn.isClosing() &&
-                newCall.getState() != BluetoothHeadsetClientCall.CALL_STATE_TERMINATED) {
+        if (prevConn.isClosing()
+                && newCall.getState() != BluetoothHeadsetClientCall.CALL_STATE_TERMINATED) {
             return true;
         }
         return false;
     }
 
-    private synchronized HfpClientConnection buildConnection(
-            BluetoothHeadsetClientCall call, Uri number) {
+    private synchronized HfpClientConnection buildConnection(BluetoothHeadsetClientCall call,
+            Uri number) {
         if (mHeadsetProfile == null) {
-            Log.e(mTAG, "Cannot create connection for call " + call + " when Profile not available");
+            Log.e(mTAG,
+                    "Cannot create connection for call " + call + " when Profile not available");
             return null;
         }
 
@@ -268,8 +266,8 @@ public class HfpClientDeviceBlock {
     private void updateConferenceableConnections() {
         boolean addConf = false;
         if (DBG) {
-            Log.d(mTAG, "Existing connections: " + mConnections + " existing conference " +
-                mConference);
+            Log.d(mTAG, "Existing connections: " + mConnections + " existing conference "
+                    + mConference);
         }
 
         // If we have an existing conference call then loop through all connections and update any
@@ -292,8 +290,8 @@ public class HfpClientDeviceBlock {
             if (((HfpClientConnection) otherConn).inConference()) {
                 // If this is the first connection with conference, create the conference first.
                 if (mConference == null) {
-                    mConference = new HfpClientConference(
-                        mPhoneAccount.getAccountHandle(), mDevice, mHeadsetProfile);
+                    mConference = new HfpClientConference(mPhoneAccount.getAccountHandle(), mDevice,
+                            mHeadsetProfile);
                 }
                 if (mConference.addConnection(otherConn)) {
                     if (DBG) {

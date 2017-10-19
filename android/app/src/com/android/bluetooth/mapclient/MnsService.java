@@ -53,7 +53,9 @@ class MnsService {
     private int mSdpHandle = -1;
 
     MnsService(MapClientService context) {
-        if (VDBG) Log.v(TAG, "MnsService()");
+        if (VDBG) {
+            Log.v(TAG, "MnsService()");
+        }
         sContext = context;
         sAcceptThread = new SocketAcceptor();
         sServerSockets = ObexServerSockets.create(sAcceptThread);
@@ -67,7 +69,9 @@ class MnsService {
     }
 
     void stop() {
-        if (VDBG) Log.v(TAG, "stop()");
+        if (VDBG) {
+            Log.v(TAG, "stop()");
+        }
         mShutdown = true;
         cleanUpSdpRecord();
         if (sServerSockets != null) {
@@ -114,10 +118,11 @@ class MnsService {
 
         @Override
         public synchronized boolean onConnect(BluetoothDevice device, BluetoothSocket socket) {
-            if (DBG) Log.d(TAG, "onConnect" + device + " SOCKET: " + socket);
+            if (DBG) {
+                Log.d(TAG, "onConnect" + device + " SOCKET: " + socket);
+            }
             /* Signal to the service that we have received an incoming connection.*/
-            MnsObexServer srv = new MnsObexServer(
-                    sContext.mMceStateMachine, sServerSockets);
+            MnsObexServer srv = new MnsObexServer(sContext.mMceStateMachine, sServerSockets);
             BluetoothObexTransport transport = new BluetoothObexTransport(socket);
             try {
                 new ServerSession(transport, srv, null);

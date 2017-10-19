@@ -127,42 +127,42 @@ public final class HeadsetClientHalConstants {
     // AG features masks
     // match up with masks in bt_hf_client.h
     // Three-way calling
-    static final int PEER_FEAT_3WAY     = 0x00000001;
+    static final int PEER_FEAT_3WAY = 0x00000001;
     // Echo cancellation and/or noise reduction
-    static final int PEER_FEAT_ECNR     = 0x00000002;
+    static final int PEER_FEAT_ECNR = 0x00000002;
     // Voice recognition
-    static final int PEER_FEAT_VREC     = 0x00000004;
+    static final int PEER_FEAT_VREC = 0x00000004;
     // In-band ring tone
-    static final int PEER_FEAT_INBAND   = 0x00000008;
+    static final int PEER_FEAT_INBAND = 0x00000008;
     // Attach a phone number to a voice tag
-    static final int PEER_FEAT_VTAG     = 0x00000010;
+    static final int PEER_FEAT_VTAG = 0x00000010;
     // Ability to reject incoming call
-    static final int PEER_FEAT_REJECT   = 0x00000020;
+    static final int PEER_FEAT_REJECT = 0x00000020;
     // Enhanced Call Status
-    static final int PEER_FEAT_ECS      = 0x00000040;
+    static final int PEER_FEAT_ECS = 0x00000040;
     // Enhanced Call Control
-    static final int PEER_FEAT_ECC      = 0x00000080;
+    static final int PEER_FEAT_ECC = 0x00000080;
     // Extended error codes
-    static final int PEER_FEAT_EXTERR   = 0x00000100;
+    static final int PEER_FEAT_EXTERR = 0x00000100;
     // Codec Negotiation
-    static final int PEER_FEAT_CODEC    = 0x00000200;
+    static final int PEER_FEAT_CODEC = 0x00000200;
 
     // AG's 3WC features masks
     // match up with masks in bt_hf_client.h
     // 0  Release waiting call or held calls
-    static final int CHLD_FEAT_REL           = 0x00000001;
+    static final int CHLD_FEAT_REL = 0x00000001;
     // 1  Release active calls and accept other (waiting or held) cal
-    static final int CHLD_FEAT_REL_ACC       = 0x00000002;
+    static final int CHLD_FEAT_REL_ACC = 0x00000002;
     // 1x Release specified active call only
-    static final int CHLD_FEAT_REL_X         = 0x00000004;
+    static final int CHLD_FEAT_REL_X = 0x00000004;
     // 2  Active calls on hold and accept other (waiting or held) call
-    static final int CHLD_FEAT_HOLD_ACC      = 0x00000008;
+    static final int CHLD_FEAT_HOLD_ACC = 0x00000008;
     // 2x Request private mode with specified call (put the rest on hold)
-    static final int CHLD_FEAT_PRIV_X        = 0x00000010;
+    static final int CHLD_FEAT_PRIV_X = 0x00000010;
     // 3  Add held call to multiparty */
-    static final int CHLD_FEAT_MERGE         = 0x00000020;
+    static final int CHLD_FEAT_MERGE = 0x00000020;
     // 4  Connect two calls and leave (disconnect from) multiparty */
-    static final int CHLD_FEAT_MERGE_DETACH  = 0x00000040;
+    static final int CHLD_FEAT_MERGE_DETACH = 0x00000040;
 
     // AT Commands
     // These Commands values must match with Constants defined in

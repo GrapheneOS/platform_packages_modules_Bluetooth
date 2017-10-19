@@ -1,27 +1,13 @@
 package com.android.bluetooth.hfpclient;
 
+import static org.mockito.Mockito.*;
+
 import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothProfile;
-import android.content.Context;
 import android.content.Intent;
-import android.media.AudioManager;
-import android.os.Bundle;
-import android.os.HandlerThread;
 import android.support.test.filters.MediumTest;
 import android.test.AndroidTestCase;
-import android.util.Log;
-
-import java.nio.ByteBuffer;
-import java.util.Arrays;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 
 import com.android.bluetooth.btservice.AdapterService;
-
-import static org.mockito.Mockito.*;
-import org.mockito.ArgumentCaptor;
 
 @MediumTest
 public class HeadsetClientServiceTest extends AndroidTestCase {
@@ -37,7 +23,8 @@ public class HeadsetClientServiceTest extends AndroidTestCase {
 
         try {
             Thread.sleep(SERVICE_START_TIMEOUT_MS);
-        } catch (Exception ex) {}
+        } catch (Exception ex) {
+        }
 
         // At this point the service should have started so check NOT null
         mService = HeadsetClientService.getHeadsetClientService();

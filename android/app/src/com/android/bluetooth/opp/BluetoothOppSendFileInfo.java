@@ -58,8 +58,8 @@ public class BluetoothOppSendFileInfo {
 
 
     /** Reusable SendFileInfo for error status. */
-    static final BluetoothOppSendFileInfo SEND_FILE_INFO_ERROR = new BluetoothOppSendFileInfo(
-            null, null, 0, null, BluetoothShare.STATUS_FILE_ERROR);
+    static final BluetoothOppSendFileInfo SEND_FILE_INFO_ERROR =
+            new BluetoothOppSendFileInfo(null, null, 0, null, BluetoothShare.STATUS_FILE_ERROR);
 
     /** readable media file name */
     public final String mFileName;
@@ -97,8 +97,8 @@ public class BluetoothOppSendFileInfo {
         mStatus = status;
     }
 
-    public static BluetoothOppSendFileInfo generateFileInfo(
-            Context context, Uri uri, String type, boolean fromExternal) {
+    public static BluetoothOppSendFileInfo generateFileInfo(Context context, Uri uri, String type,
+            boolean fromExternal) {
         ContentResolver contentResolver = context.getContentResolver();
         String scheme = uri.getScheme();
         String fileName = null;
@@ -111,7 +111,7 @@ public class BluetoothOppSendFileInfo {
             contentType = contentResolver.getType(uri);
             Cursor metadataCursor;
             try {
-                metadataCursor = contentResolver.query(uri, new String[] {
+                metadataCursor = contentResolver.query(uri, new String[]{
                         OpenableColumns.DISPLAY_NAME, OpenableColumns.SIZE
                 }, null, null, null);
             } catch (SQLiteException e) {
@@ -129,7 +129,9 @@ public class BluetoothOppSendFileInfo {
                                 metadataCursor.getColumnIndex(OpenableColumns.DISPLAY_NAME));
                         length = metadataCursor.getLong(
                                 metadataCursor.getColumnIndex(OpenableColumns.SIZE));
-                        if (D) Log.d(TAG, "fileName = " + fileName + " length = " + length);
+                        if (D) {
+                            Log.d(TAG, "fileName = " + fileName + " length = " + length);
+                        }
                     }
                 } finally {
                     metadataCursor.close();
@@ -146,8 +148,8 @@ public class BluetoothOppSendFileInfo {
             }
             if (fromExternal && !BluetoothOppUtility.isInExternalStorageDir(uri)) {
                 EventLog.writeEvent(0x534e4554, "35310991", -1, uri.getPath());
-                Log.e(TAG,
-                        "File based URI not in Environment.getExternalStorageDirectory() is not allowed.");
+                Log.e(TAG, "File based URI not in Environment.getExternalStorageDirectory() is not "
+                        + "allowed.");
                 return SEND_FILE_INFO_ERROR;
             }
             fileName = uri.getLastPathSegment();
@@ -168,8 +170,8 @@ public class BluetoothOppSendFileInfo {
                 AssetFileDescriptor fd = contentResolver.openAssetFileDescriptor(uri, "r");
                 long statLength = fd.getLength();
                 if (length != statLength && statLength > 0) {
-                    Log.e(TAG, "Content provider length is wrong (" + Long.toString(length) +
-                            "), using stat length (" + Long.toString(statLength) + ")");
+                    Log.e(TAG, "Content provider length is wrong (" + Long.toString(length)
+                            + "), using stat length (" + Long.toString(statLength) + ")");
                     length = statLength;
                 }
 
@@ -183,8 +185,7 @@ public class BluetoothOppSendFileInfo {
                     // by reading through the entire stream
                     if (length == 0) {
                         length = getStreamSize(is);
-                        Log.w(TAG, "File length not provided. Length from stream = "
-                                   + length);
+                        Log.w(TAG, "File length not provided. Length from stream = " + length);
                         // Reset the stream
                         fd = contentResolver.openAssetFileDescriptor(uri, "r");
                         is = fd.createInputStream();

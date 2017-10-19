@@ -1,26 +1,18 @@
 package com.android.bluetooth.sap;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicLong;
-
-import org.android.btsap.SapApi.MsgHeader;
-
-import com.google.protobuf.micro.CodedInputStreamMicro;
-import com.google.protobuf.micro.CodedOutputStreamMicro;
-
 import android.hardware.radio.V1_0.ISap;
 import android.hardware.radio.V1_0.ISapCallback;
-
-import android.net.LocalSocket;
-import android.net.LocalSocketAddress;
 import android.os.Handler;
 import android.os.HwBinder;
 import android.os.Message;
 import android.os.RemoteException;
 import android.util.Log;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class SapRilReceiver {
     private static final String TAG = "SapRilReceiver";
@@ -67,8 +59,8 @@ public class SapRilReceiver {
     private void removeOngoingReqAndSendMessage(int token, SapMessage sapMessage) {
         Integer reqType = SapMessage.sOngoingRequests.remove(token);
         if (VERBOSE) {
-            Log.d(TAG, "removeOngoingReqAndSendMessage: token " + token + " reqType "
-                            + (reqType == null ? "null" : SapMessage.getMsgTypeName(reqType)));
+            Log.d(TAG, "removeOngoingReqAndSendMessage: token " + token + " reqType " + (
+                    reqType == null ? "null" : SapMessage.getMsgTypeName(reqType)));
         }
         sendSapMessage(sapMessage);
     }
@@ -77,7 +69,7 @@ public class SapRilReceiver {
         @Override
         public void connectResponse(int token, int sapConnectRsp, int maxMsgSize) {
             Log.d(TAG, "connectResponse: token " + token + " sapConnectRsp " + sapConnectRsp
-                            + " maxMsgSize " + maxMsgSize);
+                    + " maxMsgSize " + maxMsgSize);
             SapService.notifyUpdateWakeLock(mSapServiceHandler);
             SapMessage sapMessage = new SapMessage(SapMessage.ID_CONNECT_RESP);
             sapMessage.setConnectionStatus(sapConnectRsp);
@@ -137,8 +129,8 @@ public class SapRilReceiver {
             SapService.notifyUpdateWakeLock(mSapServiceHandler);
             Integer reqType = SapMessage.sOngoingRequests.remove(token);
             if (VERBOSE) {
-                Log.d(TAG, "powerResponse: reqType "
-                                + (reqType == null ? "null" : SapMessage.getMsgTypeName(reqType)));
+                Log.d(TAG, "powerResponse: reqType " + (reqType == null ? "null"
+                        : SapMessage.getMsgTypeName(reqType)));
             }
             SapMessage sapMessage;
             if (reqType == SapMessage.ID_POWER_SIM_OFF_REQ) {
@@ -171,10 +163,11 @@ public class SapRilReceiver {
         }
 
         @Override
-        public void transferCardReaderStatusResponse(
-                int token, int resultCode, int cardReaderStatus) {
-            Log.d(TAG, "transferCardReaderStatusResponse: token " + token + " resultCode "
-                            + resultCode + " cardReaderStatus " + cardReaderStatus);
+        public void transferCardReaderStatusResponse(int token, int resultCode,
+                int cardReaderStatus) {
+            Log.d(TAG,
+                    "transferCardReaderStatusResponse: token " + token + " resultCode " + resultCode
+                            + " cardReaderStatus " + cardReaderStatus);
             SapService.notifyUpdateWakeLock(mSapServiceHandler);
             SapMessage sapMessage = new SapMessage(SapMessage.ID_TRANSFER_CARD_READER_STATUS_RESP);
             sapMessage.setResultCode(resultCode);
@@ -225,8 +218,8 @@ public class SapRilReceiver {
             try {
                 mSapProxy = ISap.getService(SERVICE_NAME_RIL_BT);
                 if (mSapProxy != null) {
-                    mSapProxy.linkToDeath(
-                            mSapProxyDeathRecipient, mSapProxyCookie.incrementAndGet());
+                    mSapProxy.linkToDeath(mSapProxyDeathRecipient,
+                            mSapProxyCookie.incrementAndGet());
                     mSapProxy.setCallback(mSapCallback);
                 } else {
                     Log.e(TAG, "getSapProxy: mSapProxy == null");
@@ -240,9 +233,8 @@ public class SapRilReceiver {
                 // if service is not up, treat it like death notification to try to get service
                 // again
                 mSapServerMsgHandler.sendMessageDelayed(
-                        mSapServerMsgHandler.obtainMessage(
-                                SapServer.SAP_PROXY_DEAD, mSapProxyCookie.get()),
-                        SapServer.ISAP_GET_SERVICE_DELAY_MILLIS);
+                        mSapServerMsgHandler.obtainMessage(SapServer.SAP_PROXY_DEAD,
+                                mSapProxyCookie.get()), SapServer.ISAP_GET_SERVICE_DELAY_MILLIS);
             }
             return mSapProxy;
         }
@@ -268,10 +260,14 @@ public class SapRilReceiver {
      * Notify SapServer that this class is ready for shutdown.
      */
     void notifyShutdown() {
-        if (DEBUG) Log.i(TAG, "notifyShutdown()");
+        if (DEBUG) {
+            Log.i(TAG, "notifyShutdown()");
+        }
         // If we are already shutdown, don't bother sending a notification.
         synchronized (mSapProxyLock) {
-            if (mSapProxy != null) sendShutdownMessage();
+            if (mSapProxy != null) {
+                sendShutdownMessage();
+            }
         }
     }
 
@@ -294,7 +290,7 @@ public class SapRilReceiver {
         do {
             countRead = is.read(buffer, offset, remaining);
 
-            if (countRead < 0 ) {
+            if (countRead < 0) {
                 Log.e(TAG, "Hit EOS reading message length");
                 return -1;
             }
@@ -303,20 +299,22 @@ public class SapRilReceiver {
             remaining -= countRead;
         } while (remaining > 0);
 
-        messageLength = ((buffer[0] & 0xff) << 24)
-                | ((buffer[1] & 0xff) << 16)
-                | ((buffer[2] & 0xff) << 8)
-                | (buffer[3] & 0xff);
-        if (VERBOSE) Log.e(TAG,"Message length found to be: "+messageLength);
+        messageLength =
+                ((buffer[0] & 0xff) << 24) | ((buffer[1] & 0xff) << 16) | ((buffer[2] & 0xff) << 8)
+                        | (buffer[3] & 0xff);
+        if (VERBOSE) {
+            Log.e(TAG, "Message length found to be: " + messageLength);
+        }
         // Read the message
         offset = 0;
         remaining = messageLength;
         do {
             countRead = is.read(buffer, offset, remaining);
 
-            if (countRead < 0 ) {
-                Log.e(TAG, "Hit EOS reading message.  messageLength=" + messageLength
-                        + " remaining=" + remaining);
+            if (countRead < 0) {
+                Log.e(TAG,
+                        "Hit EOS reading message.  messageLength=" + messageLength + " remaining="
+                                + remaining);
                 return -1;
             }
 
