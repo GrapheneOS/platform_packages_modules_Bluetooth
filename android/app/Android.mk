@@ -28,7 +28,7 @@ LOCAL_STATIC_ANDROID_LIBRARIES := \
         android-support-v4
 LOCAL_PROTOC_OPTIMIZE_TYPE := micro
 
-LOCAL_REQUIRED_MODULES := bluetooth.default
+LOCAL_REQUIRED_MODULES := libbluetooth
 
 LOCAL_PROGUARD_ENABLED := disabled
 
