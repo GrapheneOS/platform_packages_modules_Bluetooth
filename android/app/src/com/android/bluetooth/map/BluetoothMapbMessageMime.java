@@ -14,6 +14,11 @@
 */
 package com.android.bluetooth.map;
 
+import android.text.util.Rfc822Token;
+import android.text.util.Rfc822Tokenizer;
+import android.util.Base64;
+import android.util.Log;
+
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
 import java.nio.charset.IllegalCharsetNameException;
@@ -23,11 +28,6 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.Locale;
 import java.util.UUID;
-
-import android.text.util.Rfc822Token;
-import android.text.util.Rfc822Tokenizer;
-import android.util.Base64;
-import android.util.Log;
 
 public class BluetoothMapbMessageMime extends BluetoothMapbMessage {
 
@@ -51,12 +51,12 @@ public class BluetoothMapbMessageMime extends BluetoothMapbMessage {
             String charset = mCharsetName;
             // Figure out if we support the charset, else fall back to UTF-8, as this is what
             // the MAP specification suggest to use, and is compatible with US-ASCII.
-            if(charset == null){
+            if (charset == null) {
                 charset = "UTF-8";
             } else {
                 charset = charset.toUpperCase();
                 try {
-                    if(Charset.isSupported(charset) == false) {
+                    if (!Charset.isSupported(charset)) {
                         charset = "UTF-8";
                     }
                 } catch (IllegalCharsetNameException e) {
@@ -64,75 +64,82 @@ public class BluetoothMapbMessageMime extends BluetoothMapbMessage {
                     charset = "UTF-8";
                 }
             }
-            try{
+            try {
                 result = new String(mData, charset);
             } catch (UnsupportedEncodingException e) {
                 /* This cannot happen unless Charset.isSupported() is out of sync with String */
-                try{
+                try {
                     result = new String(mData, "UTF-8");
-                } catch (UnsupportedEncodingException e2) {/* This cannot happen */}
+                } catch (UnsupportedEncodingException e2) {
+                    Log.e(TAG, "getDataAsString: " + e);
+                }
             }
             return result;
         }
 
         public void encode(StringBuilder sb, String boundaryTag, boolean last)
-                                                       throws UnsupportedEncodingException {
+                throws UnsupportedEncodingException {
             sb.append("--").append(boundaryTag).append("\r\n");
-            if(mContentType != null)
+            if (mContentType != null) {
                 sb.append("Content-Type: ").append(mContentType);
-            if(mCharsetName != null)
+            }
+            if (mCharsetName != null) {
                 sb.append("; ").append("charset=\"").append(mCharsetName).append("\"");
+            }
             sb.append("\r\n");
-            if(mContentLocation != null)
+            if (mContentLocation != null) {
                 sb.append("Content-Location: ").append(mContentLocation).append("\r\n");
-            if(mContentId != null)
+            }
+            if (mContentId != null) {
                 sb.append("Content-ID: ").append(mContentId).append("\r\n");
-            if(mContentDisposition != null)
+            }
+            if (mContentDisposition != null) {
                 sb.append("Content-Disposition: ").append(mContentDisposition).append("\r\n");
-            if(mData != null) {
-                /* TODO: If errata 4176 is adopted in the current form (it is not in either 1.1 or 1.2),
+            }
+            if (mData != null) {
+                /* TODO: If errata 4176 is adopted in the current form (it is not in either 1.1
+                or 1.2),
                 the below use of UTF-8 is not allowed, Base64 should be used for text. */
 
-                if(mContentType != null &&
-                        (mContentType.toUpperCase().contains("TEXT") ||
-                         mContentType.toUpperCase().contains("SMIL") )) {
-                    String text = new String(mData,"UTF-8");
-                    if(text.getBytes().length == text.getBytes("UTF-8").length){
+                if (mContentType != null && (mContentType.toUpperCase().contains("TEXT")
+                        || mContentType.toUpperCase().contains("SMIL"))) {
+                    String text = new String(mData, "UTF-8");
+                    if (text.getBytes().length == text.getBytes("UTF-8").length) {
                         /* Add the header split empty line */
                         sb.append("Content-Transfer-Encoding: 8BIT\r\n\r\n");
-                    }else {
+                    } else {
                         /* Add the header split empty line */
                         sb.append("Content-Transfer-Encoding: Quoted-Printable\r\n\r\n");
                         text = BluetoothMapUtils.encodeQuotedPrintable(mData);
                     }
                     sb.append(text).append("\r\n");
-                }
-                else {
+                } else {
                     /* Add the header split empty line */
                     sb.append("Content-Transfer-Encoding: Base64\r\n\r\n");
                     sb.append(Base64.encodeToString(mData, Base64.DEFAULT)).append("\r\n");
                 }
             }
-            if(last) {
+            if (last) {
                 sb.append("--").append(boundaryTag).append("--").append("\r\n");
             }
         }
 
         public void encodePlainText(StringBuilder sb) throws UnsupportedEncodingException {
-            if(mContentType != null && mContentType.toUpperCase().contains("TEXT")) {
+            if (mContentType != null && mContentType.toUpperCase().contains("TEXT")) {
                 String text = new String(mData, "UTF-8");
-                if(text.getBytes().length != text.getBytes("UTF-8").length){
-                        text = BluetoothMapUtils.encodeQuotedPrintable(mData);
+                if (text.getBytes().length != text.getBytes("UTF-8").length) {
+                    text = BluetoothMapUtils.encodeQuotedPrintable(mData);
                 }
                 sb.append(text).append("\r\n");
-            } else if(mContentType != null && mContentType.toUpperCase().contains("/SMIL")) {
+            } else if (mContentType != null && mContentType.toUpperCase().contains("/SMIL")) {
                 /* Skip the smil.xml, as no-one knows what it is. */
             } else {
                 /* Not a text part, just print the filename or part name if they exist. */
-                if(mPartName != null)
+                if (mPartName != null) {
                     sb.append("<").append(mPartName).append(">\r\n");
-                else
+                } else {
                     sb.append("<").append("attachment").append(">\r\n");
+                }
             }
         }
     }
@@ -144,7 +151,7 @@ public class BluetoothMapbMessageMime extends BluetoothMapbMessage {
     private ArrayList<Rfc822Token> mTo = null;     // Shall not be empty
     private ArrayList<Rfc822Token> mCc = null;     // Can be empty
     private ArrayList<Rfc822Token> mBcc = null;    // Can be empty
-    private ArrayList<Rfc822Token> mReplyTo = null;// Can be empty
+    private ArrayList<Rfc822Token> mReplyTo = null; // Can be empty
     private String mMessageId = null;
     private ArrayList<MimePart> mParts = null;
     private String mContentType = null;
@@ -155,9 +162,10 @@ public class BluetoothMapbMessageMime extends BluetoothMapbMessage {
     private String mMyEncoding = null;
 
     private String getBoundary() {
-        if(mBoundary == null)
-            // Include "=_" as these cannot occur in quoted printable text
+        // Include "=_" as these cannot occur in quoted printable text
+        if (mBoundary == null) {
             mBoundary = "--=_" + UUID.randomUUID();
+        }
         return mBoundary;
     }
 
@@ -170,149 +178,191 @@ public class BluetoothMapbMessageMime extends BluetoothMapbMessage {
 
     public String getMessageAsText() {
         StringBuilder sb = new StringBuilder();
-        if(mSubject != null && !mSubject.isEmpty()) {
+        if (mSubject != null && !mSubject.isEmpty()) {
             sb.append("<Sub:").append(mSubject).append("> ");
         }
-        if(mParts != null) {
-            for(MimePart part : mParts) {
-                if(part.mContentType.toUpperCase().contains("TEXT")) {
+        if (mParts != null) {
+            for (MimePart part : mParts) {
+                if (part.mContentType.toUpperCase().contains("TEXT")) {
                     sb.append(new String(part.mData));
                 }
             }
         }
         return sb.toString();
     }
+
     public MimePart addMimePart() {
-        if(mParts == null)
+        if (mParts == null) {
             mParts = new ArrayList<BluetoothMapbMessageMime.MimePart>();
+        }
         MimePart newPart = new MimePart();
         mParts.add(newPart);
         return newPart;
     }
+
     public String getDateString() {
         SimpleDateFormat format = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss Z", Locale.US);
         Date dateObj = new Date(mDate);
         return format.format(dateObj); // Format according to RFC 2822 page 14
     }
+
     public long getDate() {
         return mDate;
     }
+
     public void setDate(long date) {
         this.mDate = date;
     }
+
     public String getSubject() {
         return mSubject;
     }
+
     public void setSubject(String subject) {
         this.mSubject = subject;
     }
+
     public ArrayList<Rfc822Token> getFrom() {
         return mFrom;
     }
+
     public void setFrom(ArrayList<Rfc822Token> from) {
         this.mFrom = from;
     }
+
     public void addFrom(String name, String address) {
-        if(this.mFrom == null)
+        if (this.mFrom == null) {
             this.mFrom = new ArrayList<Rfc822Token>(1);
+        }
         this.mFrom.add(new Rfc822Token(name, address, null));
     }
+
     public ArrayList<Rfc822Token> getSender() {
         return mSender;
     }
+
     public void setSender(ArrayList<Rfc822Token> sender) {
         this.mSender = sender;
     }
+
     public void addSender(String name, String address) {
-        if(this.mSender == null)
+        if (this.mSender == null) {
             this.mSender = new ArrayList<Rfc822Token>(1);
-        this.mSender.add(new Rfc822Token(name,address,null));
+        }
+        this.mSender.add(new Rfc822Token(name, address, null));
     }
+
     public ArrayList<Rfc822Token> getTo() {
         return mTo;
     }
+
     public void setTo(ArrayList<Rfc822Token> to) {
         this.mTo = to;
     }
+
     public void addTo(String name, String address) {
-        if(this.mTo == null)
+        if (this.mTo == null) {
             this.mTo = new ArrayList<Rfc822Token>(1);
+        }
         this.mTo.add(new Rfc822Token(name, address, null));
     }
+
     public ArrayList<Rfc822Token> getCc() {
         return mCc;
     }
+
     public void setCc(ArrayList<Rfc822Token> cc) {
         this.mCc = cc;
     }
+
     public void addCc(String name, String address) {
-        if(this.mCc == null)
+        if (this.mCc == null) {
             this.mCc = new ArrayList<Rfc822Token>(1);
+        }
         this.mCc.add(new Rfc822Token(name, address, null));
     }
+
     public ArrayList<Rfc822Token> getBcc() {
         return mBcc;
     }
+
     public void setBcc(ArrayList<Rfc822Token> bcc) {
         this.mBcc = bcc;
     }
+
     public void addBcc(String name, String address) {
-        if(this.mBcc == null)
+        if (this.mBcc == null) {
             this.mBcc = new ArrayList<Rfc822Token>(1);
+        }
         this.mBcc.add(new Rfc822Token(name, address, null));
     }
+
     public ArrayList<Rfc822Token> getReplyTo() {
         return mReplyTo;
     }
+
     public void setReplyTo(ArrayList<Rfc822Token> replyTo) {
         this.mReplyTo = replyTo;
     }
+
     public void addReplyTo(String name, String address) {
-        if(this.mReplyTo == null)
+        if (this.mReplyTo == null) {
             this.mReplyTo = new ArrayList<Rfc822Token>(1);
+        }
         this.mReplyTo.add(new Rfc822Token(name, address, null));
     }
+
     public void setMessageId(String messageId) {
         this.mMessageId = messageId;
     }
+
     public String getMessageId() {
         return mMessageId;
     }
+
     public void setContentType(String contentType) {
         this.mContentType = contentType;
     }
+
     public String getContentType() {
         return mContentType;
     }
+
     public void setTextOnly(boolean textOnly) {
         this.mTextonly = textOnly;
     }
+
     public boolean getTextOnly() {
         return mTextonly;
     }
+
     public void setIncludeAttachments(boolean includeAttachments) {
         this.mIncludeAttachments = includeAttachments;
     }
+
     public boolean getIncludeAttachments() {
         return mIncludeAttachments;
     }
+
     public void updateCharset() {
-        if(mParts != null) {
+        if (mParts != null) {
             mCharset = null;
-            for(MimePart part : mParts) {
-                if(part.mContentType != null &&
-                   part.mContentType.toUpperCase().contains("TEXT")) {
+            for (MimePart part : mParts) {
+                if (part.mContentType != null && part.mContentType.toUpperCase().contains("TEXT")) {
                     mCharset = "UTF-8";
-                    if(V) Log.v(TAG,"Charset set to UTF-8");
+                    if (V) {
+                        Log.v(TAG, "Charset set to UTF-8");
+                    }
                     break;
                 }
             }
         }
     }
+
     public int getSize() {
         int messageSize = 0;
-        if(mParts != null) {
-            for(MimePart part : mParts) {
+        if (mParts != null) {
+            for (MimePart part : mParts) {
                 messageSize += part.mData.length;
             }
         }
@@ -335,11 +385,10 @@ public class BluetoothMapbMessageMime extends BluetoothMapbMessage {
         int partLength, lineLength = 0;
         lineLength += headerName.getBytes().length;
         sb.append(headerName);
-        for(Rfc822Token address : addresses) {
-            partLength = address.toString().getBytes().length+1;
+        for (Rfc822Token address : addresses) {
+            partLength = address.toString().getBytes().length + 1;
             // Add folding if needed
-            if(lineLength + partLength >= 998) // max line length in RFC2822
-            {
+            if (lineLength + partLength >= 998 /* max line length in RFC2822 */) {
                 sb.append("\r\n "); // Append a FWS (folding whitespace)
                 lineLength = 0;
             }
@@ -349,8 +398,7 @@ public class BluetoothMapbMessageMime extends BluetoothMapbMessage {
         sb.append("\r\n");
     }
 
-    public void encodeHeaders(StringBuilder sb) throws UnsupportedEncodingException
-    {
+    public void encodeHeaders(StringBuilder sb) throws UnsupportedEncodingException {
         /* TODO: From RFC-4356 - about the RFC-(2)822 headers:
          *    "Current Internet Message format requires that only 7-bit US-ASCII
          *     characters be present in headers.  Non-7-bit characters in an address
@@ -360,8 +408,9 @@ public class BluetoothMapbMessageMime extends BluetoothMapbMessage {
          *     according to [Hdr-Enc]."
          *    We need to add the address encoding in encodeHeaderAddresses, but it is not
          *    straight forward, as it is unclear how to do this.  */
-        if (mDate != INVALID_VALUE)
+        if (mDate != INVALID_VALUE) {
             sb.append("Date: ").append(getDateString()).append("\r\n");
+        }
         /* According to RFC-2822 headers must use US-ASCII, where the MAP specification states
          * UTF-8 should be used for the entire <bmessage-body-content>. We let the MAP specification
          * take precedence above the RFC-2822.
@@ -375,35 +424,49 @@ public class BluetoothMapbMessageMime extends BluetoothMapbMessage {
             sb.append(Base64.encodeToString(subject.getBytes("utf-8"), Base64.DEFAULT));
             sb.append("?=\r\n");
         }*/
-        if (mSubject != null)
+        if (mSubject != null) {
             sb.append("Subject: ").append(mSubject).append("\r\n");
-        if(mFrom == null)
+        }
+        if (mFrom == null) {
             sb.append("From: \r\n");
-        if(mFrom != null)
+        }
+        if (mFrom != null) {
             encodeHeaderAddresses(sb, "From: ", mFrom); // This includes folding if needed.
-        if(mSender != null)
+        }
+        if (mSender != null) {
             encodeHeaderAddresses(sb, "Sender: ", mSender); // This includes folding if needed.
+        }
         /* For MMS one recipient(to, cc or bcc) must exists, if none: 'To:  undisclosed-
          * recipients:;' could be used.
          */
-        if(mTo == null && mCc == null && mBcc == null)
+        if (mTo == null && mCc == null && mBcc == null) {
             sb.append("To:  undisclosed-recipients:;\r\n");
-        if(mTo != null)
-            encodeHeaderAddresses(sb, "To: ", mTo); // This includes folding if needed.
-        if(mCc != null)
-            encodeHeaderAddresses(sb, "Cc: ", mCc); // This includes folding if needed.
-        if(mBcc != null)
-            encodeHeaderAddresses(sb, "Bcc: ", mBcc); // This includes folding if needed.
-        if(mReplyTo != null)
-            encodeHeaderAddresses(sb, "Reply-To: ", mReplyTo); // This includes folding if needed.
-        if(mIncludeAttachments)
-        {
-            if(mMessageId != null)
-                sb.append("Message-Id: ").append(mMessageId).append("\r\n");
-            if(mContentType != null)
-                sb.append("Content-Type: ").append(mContentType).append("; boundary=").append(getBoundary()).append("\r\n");
         }
-     // If no headers exists, we still need two CRLF, hence keep it out of the if above.
+        if (mTo != null) {
+            encodeHeaderAddresses(sb, "To: ", mTo); // This includes folding if needed.
+        }
+        if (mCc != null) {
+            encodeHeaderAddresses(sb, "Cc: ", mCc); // This includes folding if needed.
+        }
+        if (mBcc != null) {
+            encodeHeaderAddresses(sb, "Bcc: ", mBcc); // This includes folding if needed.
+        }
+        if (mReplyTo != null) {
+            encodeHeaderAddresses(sb, "Reply-To: ", mReplyTo); // This includes folding if needed.
+        }
+        if (mIncludeAttachments) {
+            if (mMessageId != null) {
+                sb.append("Message-Id: ").append(mMessageId).append("\r\n");
+            }
+            if (mContentType != null) {
+                sb.append("Content-Type: ")
+                        .append(mContentType)
+                        .append("; boundary=")
+                        .append(getBoundary())
+                        .append("\r\n");
+            }
+        }
+        // If no headers exists, we still need two CRLF, hence keep it out of the if above.
         sb.append("\r\n");
     }
 
@@ -441,8 +504,7 @@ public class BluetoothMapbMessageMime extends BluetoothMapbMessage {
      * @return
      * @throws UnsupportedEncodingException
      */
-    public byte[] encodeMime() throws UnsupportedEncodingException
-    {
+    public byte[] encodeMime() throws UnsupportedEncodingException {
         ArrayList<byte[]> bodyFragments = new ArrayList<byte[]>();
         StringBuilder sb = new StringBuilder();
         int count = 0;
@@ -451,15 +513,15 @@ public class BluetoothMapbMessageMime extends BluetoothMapbMessage {
         mMyEncoding = "8BIT"; // The encoding used
 
         encodeHeaders(sb);
-        if(mParts != null) {
-            if(!getIncludeAttachments()) {
-                for(MimePart part : mParts) {
+        if (mParts != null) {
+            if (!getIncludeAttachments()) {
+                for (MimePart part : mParts) {
                     /* We call encode on all parts, to include a tag,
                      * where an attachment is missing. */
                     part.encodePlainText(sb);
                 }
             } else {
-                for(MimePart part : mParts) {
+                for (MimePart part : mParts) {
                     count++;
                     part.encode(sb, getBoundary(), (count == mParts.size()));
                 }
@@ -468,8 +530,8 @@ public class BluetoothMapbMessageMime extends BluetoothMapbMessage {
 
         mimeBody = sb.toString();
 
-        if(mimeBody != null) {
-           // Replace any occurrences of END:MSG with \END:MSG
+        if (mimeBody != null) {
+            // Replace any occurrences of END:MSG with \END:MSG
             String tmpBody = mimeBody.replaceAll("END:MSG", "/END\\:MSG");
             bodyFragments.add(tmpBody.getBytes("UTF-8"));
         } else {
@@ -488,26 +550,32 @@ public class BluetoothMapbMessageMime extends BluetoothMapbMessage {
      */
     private String parseMimeHeaders(String hdrPart) {
         String[] headers = hdrPart.split("\r\n");
-        if(D) Log.d(TAG,"Header count=" + headers.length);
+        if (D) {
+            Log.d(TAG, "Header count=" + headers.length);
+        }
         String header;
         mHasHeaders = false;
 
-        for(int i = 0, c = headers.length; i < c; i++) {
+        for (int i = 0, c = headers.length; i < c; i++) {
             header = headers[i];
-            if(D) Log.d(TAG,"Header[" + i + "]: " + header);
+            if (D) {
+                Log.d(TAG, "Header[" + i + "]: " + header);
+            }
             /* We need to figure out if any headers are present, in cases where devices do
              * not follow the e-mail RFCs.
              * Skip empty lines, and then parse headers until a non-header line is found,
              * at which point we treat the remaining as plain text.
              */
-            if(header.trim().isEmpty())
+            if (header.trim().isEmpty()) {
                 continue;
-            String[] headerParts = header.split(":",2);
-            if(headerParts.length != 2) {
+            }
+            String[] headerParts = header.split(":", 2);
+            if (headerParts.length != 2) {
                 // We treat the remaining content as plain text.
                 StringBuilder remaining = new StringBuilder();
-                for(; i < c; i++)
+                for (; i < c; i++) {
                     remaining.append(headers[i]);
+                }
 
                 return remaining.toString();
             }
@@ -519,56 +587,60 @@ public class BluetoothMapbMessageMime extends BluetoothMapbMessage {
             /* If this is empty, the MSE needs to fill it in before sending the message.
              * This happens when sending the MMS.
              */
-            if(headerType.contains("FROM")) {
+            if (headerType.contains("FROM")) {
                 headerValue = BluetoothMapUtils.stripEncoding(headerValue);
                 Rfc822Token[] tokens = Rfc822Tokenizer.tokenize(headerValue);
                 mFrom = new ArrayList<Rfc822Token>(Arrays.asList(tokens));
-            } else if(headerType.contains("TO")) {
+            } else if (headerType.contains("TO")) {
                 headerValue = BluetoothMapUtils.stripEncoding(headerValue);
                 Rfc822Token[] tokens = Rfc822Tokenizer.tokenize(headerValue);
                 mTo = new ArrayList<Rfc822Token>(Arrays.asList(tokens));
-            } else if(headerType.contains("CC")) {
+            } else if (headerType.contains("CC")) {
                 headerValue = BluetoothMapUtils.stripEncoding(headerValue);
                 Rfc822Token[] tokens = Rfc822Tokenizer.tokenize(headerValue);
                 mCc = new ArrayList<Rfc822Token>(Arrays.asList(tokens));
-            } else if(headerType.contains("BCC")) {
+            } else if (headerType.contains("BCC")) {
                 headerValue = BluetoothMapUtils.stripEncoding(headerValue);
                 Rfc822Token[] tokens = Rfc822Tokenizer.tokenize(headerValue);
                 mBcc = new ArrayList<Rfc822Token>(Arrays.asList(tokens));
-            } else if(headerType.contains("REPLY-TO")) {
+            } else if (headerType.contains("REPLY-TO")) {
                 headerValue = BluetoothMapUtils.stripEncoding(headerValue);
                 Rfc822Token[] tokens = Rfc822Tokenizer.tokenize(headerValue);
                 mReplyTo = new ArrayList<Rfc822Token>(Arrays.asList(tokens));
-            } else if(headerType.contains("SUBJECT")) { // Other headers
+            } else if (headerType.contains("SUBJECT")) { // Other headers
                 mSubject = BluetoothMapUtils.stripEncoding(headerValue);
-            } else if(headerType.contains("MESSAGE-ID")) {
+            } else if (headerType.contains("MESSAGE-ID")) {
                 mMessageId = headerValue;
-            } else if(headerType.contains("DATE")) {
+            } else if (headerType.contains("DATE")) {
                 /* The date is not needed, as the time stamp will be set in the DB
                  * when the message is send. */
-            } else if(headerType.contains("MIME-VERSION")) {
+            } else if (headerType.contains("MIME-VERSION")) {
                 /* The mime version is not needed */
-            } else if(headerType.contains("CONTENT-TYPE")) {
+            } else if (headerType.contains("CONTENT-TYPE")) {
                 String[] contentTypeParts = headerValue.split(";");
                 mContentType = contentTypeParts[0];
                 // Extract the boundary if it exists
-                for(int j=1, n=contentTypeParts.length; j<n; j++)
-                {
-                    if(contentTypeParts[j].contains("boundary")) {
+                for (int j = 1, n = contentTypeParts.length; j < n; j++) {
+                    if (contentTypeParts[j].contains("boundary")) {
                         mBoundary = contentTypeParts[j].split("boundary[\\s]*=", 2)[1].trim();
                         // removing quotes from boundary string
-                        if ((mBoundary.charAt(0) == '\"')
-                                && (mBoundary.charAt(mBoundary.length()-1) == '\"'))
-                            mBoundary = mBoundary.substring(1, mBoundary.length()-1);
-                        if(D) Log.d(TAG,"Boundary tag=" + mBoundary);
-                    } else if(contentTypeParts[j].contains("charset")) {
+                        if ((mBoundary.charAt(0) == '\"') && (
+                                mBoundary.charAt(mBoundary.length() - 1) == '\"')) {
+                            mBoundary = mBoundary.substring(1, mBoundary.length() - 1);
+                        }
+                        if (D) {
+                            Log.d(TAG, "Boundary tag=" + mBoundary);
+                        }
+                    } else if (contentTypeParts[j].contains("charset")) {
                         mCharset = contentTypeParts[j].split("charset[\\s]*=", 2)[1].trim();
                     }
                 }
-            } else if(headerType.contains("CONTENT-TRANSFER-ENCODING")) {
+            } else if (headerType.contains("CONTENT-TRANSFER-ENCODING")) {
                 mMyEncoding = headerValue;
             } else {
-                if(D) Log.w(TAG,"Skipping unknown header: " + headerType + " (" + header + ")");
+                if (D) {
+                    Log.w(TAG, "Skipping unknown header: " + headerType + " (" + header + ")");
+                }
             }
         }
         return null;
@@ -581,64 +653,66 @@ public class BluetoothMapbMessageMime extends BluetoothMapbMessage {
         String body;
 
         String[] headers = parts[0].split("\r\n");
-        if(D) Log.d(TAG, "parseMimePart: headers count=" + headers.length);
+        if (D) {
+            Log.d(TAG, "parseMimePart: headers count=" + headers.length);
+        }
 
-        if(parts.length != 2) {
+        if (parts.length != 2) {
             body = partStr;
         } else {
-            for(String header : headers) {
+            for (String header : headers) {
                 // Skip empty lines(the \r\n after the boundary tag) and endBoundary tags
-                if((header.length() == 0)
-                        || (header.trim().isEmpty())
-                        || header.trim().equals("--"))
-                    continue;
-
-                String[] headerParts = header.split(":",2);
-                if(headerParts.length != 2) {
-                    if(D) Log.w(TAG, "part-Header not formatted correctly: ");
+                if ((header.length() == 0) || (header.trim().isEmpty()) || header.trim()
+                        .equals("--")) {
                     continue;
                 }
-                if(D) Log.d(TAG, "parseMimePart: header=" + header);
+
+                String[] headerParts = header.split(":", 2);
+                if (headerParts.length != 2) {
+                    if (D) {
+                        Log.w(TAG, "part-Header not formatted correctly: ");
+                    }
+                    continue;
+                }
+                if (D) {
+                    Log.d(TAG, "parseMimePart: header=" + header);
+                }
                 String headerType = headerParts[0].toUpperCase();
                 String headerValue = headerParts[1].trim();
-                if(headerType.contains("CONTENT-TYPE")) {
+                if (headerType.contains("CONTENT-TYPE")) {
                     String[] contentTypeParts = headerValue.split(";");
                     newPart.mContentType = contentTypeParts[0];
                     // Extract the boundary if it exists
-                    for(int j=1, n=contentTypeParts.length; j<n; j++)
-                    {
+                    for (int j = 1, n = contentTypeParts.length; j < n; j++) {
                         String value = contentTypeParts[j].toLowerCase();
-                        if(value.contains("charset")) {
+                        if (value.contains("charset")) {
                             newPart.mCharsetName = value.split("charset[\\s]*=", 2)[1].trim();
                         }
                     }
-                }
-                else if(headerType.contains("CONTENT-LOCATION")) {
+                } else if (headerType.contains("CONTENT-LOCATION")) {
                     // This is used if the smil refers to a file name in its src
                     newPart.mContentLocation = headerValue;
                     newPart.mPartName = headerValue;
-                }
-                else if(headerType.contains("CONTENT-TRANSFER-ENCODING")) {
+                } else if (headerType.contains("CONTENT-TRANSFER-ENCODING")) {
                     partEncoding = headerValue;
-                }
-                else if(headerType.contains("CONTENT-ID")) {
+                } else if (headerType.contains("CONTENT-ID")) {
                     // This is used if the smil refers to a cid:<xxx> in it's src
                     newPart.mContentId = headerValue;
-                }
-                else if(headerType.contains("CONTENT-DISPOSITION")) {
+                } else if (headerType.contains("CONTENT-DISPOSITION")) {
                     // This is used if the smil refers to a cid:<xxx> in it's src
                     newPart.mContentDisposition = headerValue;
-                }
-                else {
-                    if(D) Log.w(TAG,"Skipping unknown part-header: " + headerType
-                                                                     + " (" + header + ")");
+                } else {
+                    if (D) {
+                        Log.w(TAG, "Skipping unknown part-header: " + headerType + " (" + header
+                                + ")");
+                    }
                 }
             }
             body = parts[1];
-            if(body.length() > 2) {
-                if(body.charAt(body.length()-2) == '\r'
-                        && body.charAt(body.length()-2) == '\n') {
-                    body = body.substring(0, body.length()-2);
+            if (body.length() > 2) {
+                if (body.charAt(body.length() - 2) == '\r'
+                        && body.charAt(body.length() - 2) == '\n') {
+                    body = body.substring(0, body.length() - 2);
                 }
             }
         }
@@ -653,11 +727,11 @@ public class BluetoothMapbMessageMime extends BluetoothMapbMessage {
     }
 
     private byte[] decodeBody(String body, String encoding, String charset) {
-        if(encoding != null && encoding.toUpperCase().contains("BASE64")) {
+        if (encoding != null && encoding.toUpperCase().contains("BASE64")) {
             return Base64.decode(body, Base64.DEFAULT);
-        } else if(encoding != null && encoding.toUpperCase().contains("QUOTED-PRINTABLE")) {
+        } else if (encoding != null && encoding.toUpperCase().contains("QUOTED-PRINTABLE")) {
             return BluetoothMapUtils.quotedPrintableToUtf8(body, charset);
-        }else{
+        } else {
             // TODO: handle other encoding types? - here we simply store the string data as bytes
             try {
 
@@ -683,40 +757,41 @@ public class BluetoothMapbMessageMime extends BluetoothMapbMessage {
         String messageBody = null;
         message = message.replaceAll("\\r\\n[ \\\t]+", ""); // Unfold
         messageParts = message.split("\r\n\r\n", 2); // Split the header from the body
-        if(messageParts.length != 2) {
+        if (messageParts.length != 2) {
             // Handle entire message as plain text
             messageBody = message;
-        }
-        else
-        {
+        } else {
             remaining = parseMimeHeaders(messageParts[0]);
             // If we have some text not being a header, add it to the message body.
-            if(remaining != null) {
+            if (remaining != null) {
                 messageBody = remaining + messageParts[1];
-                if(D) Log.d(TAG, "parseMime remaining=" + remaining );
+                if (D) {
+                    Log.d(TAG, "parseMime remaining=" + remaining);
+                }
             } else {
                 messageBody = messageParts[1];
             }
         }
 
-        if(mBoundary == null)
-        {
+        if (mBoundary == null) {
             // If the boundary is not set, handle as non-multi-part
             parseMimeBody(messageBody);
             setTextOnly(true);
-            if(mContentType == null)
+            if (mContentType == null) {
                 mContentType = "text/plain";
+            }
             mParts.get(0).mContentType = mContentType;
-        }
-        else
-        {
+        } else {
             mimeParts = messageBody.split("--" + mBoundary);
-            if(D) Log.d(TAG, "mimePart count=" + mimeParts.length);
+            if (D) {
+                Log.d(TAG, "mimePart count=" + mimeParts.length);
+            }
             // Part 0 is the message to clients not capable of decoding MIME
-            for(int i = 1; i < mimeParts.length - 1; i++) {
+            for (int i = 1; i < mimeParts.length - 1; i++) {
                 String part = mimeParts[i];
-                if (part != null && (part.length() > 0))
+                if (part != null && (part.length() > 0)) {
                     parseMimePart(part);
+                }
             }
         }
     }

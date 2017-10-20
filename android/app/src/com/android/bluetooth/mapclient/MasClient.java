@@ -34,6 +34,7 @@ import java.lang.ref.WeakReference;
 import javax.obex.ClientSession;
 import javax.obex.HeaderSet;
 import javax.obex.ResponseCodes;
+
 /* MasClient is a one time use connection to a server defined by the SDP record passed in at
  * construction.  After use shutdown() must be called to properly clean up.
  */
@@ -45,8 +46,22 @@ public class MasClient {
     private static final boolean DBG = MapClientService.DBG;
     private static final boolean VDBG = MapClientService.VDBG;
     private static final byte[] BLUETOOTH_UUID_OBEX_MAS = new byte[]{
-            (byte) 0xbb, 0x58, 0x2b, 0x40, 0x42, 0x0c, 0x11, (byte) 0xdb, (byte) 0xb0, (byte) 0xde,
-            0x08, 0x00, 0x20, 0x0c, (byte) 0x9a, 0x66
+            (byte) 0xbb,
+            0x58,
+            0x2b,
+            0x40,
+            0x42,
+            0x0c,
+            0x11,
+            (byte) 0xdb,
+            (byte) 0xb0,
+            (byte) 0xde,
+            0x08,
+            0x00,
+            0x20,
+            0x0c,
+            (byte) 0x9a,
+            0x66
     };
     private static final byte OAP_TAGID_MAP_SUPPORTED_FEATURES = 0x29;
     private static final int MAP_FEATURE_NOTIFICATION_REGISTRATION = 0x00000001;
@@ -62,8 +77,8 @@ public class MasClient {
     private boolean mConnected = false;
     SdpMasRecord mSdpMasRecord;
 
-    public MasClient(BluetoothDevice remoteDevice,
-            StateMachine callback, SdpMasRecord sdpMasRecord) {
+    public MasClient(BluetoothDevice remoteDevice, StateMachine callback,
+            SdpMasRecord sdpMasRecord) {
         if (remoteDevice == null) {
             throw new NullPointerException("Obex transport is null");
         }
@@ -96,8 +111,7 @@ public class MasClient {
             headerset.setHeader(HeaderSet.TARGET, BLUETOOTH_UUID_OBEX_MAS);
             ObexAppParameters oap = new ObexAppParameters();
 
-            oap.add(OAP_TAGID_MAP_SUPPORTED_FEATURES,
-                    MAP_SUPPORTED_FEATURES);
+            oap.add(OAP_TAGID_MAP_SUPPORTED_FEATURES, MAP_SUPPORTED_FEATURES);
 
             oap.addToHeaderSet(headerset);
 
@@ -105,10 +119,11 @@ public class MasClient {
             Log.d(TAG, "Connection results" + headerset.getResponseCode());
 
             if (headerset.getResponseCode() == ResponseCodes.OBEX_HTTP_OK) {
-                if (DBG) Log.d(TAG, "Connection Successful");
+                if (DBG) {
+                    Log.d(TAG, "Connection Successful");
+                }
                 mConnected = true;
-                mCallback.obtainMessage(
-                        MceStateMachine.MSG_MAS_CONNECTED).sendToTarget();
+                mCallback.obtainMessage(MceStateMachine.MSG_MAS_CONNECTED).sendToTarget();
             } else {
                 disconnect();
             }
@@ -141,17 +156,21 @@ public class MasClient {
     private void executeRequest(Request request) {
         try {
             request.execute(mSession);
-            mCallback.obtainMessage(MceStateMachine.MSG_MAS_REQUEST_COMPLETED,
-                    request).sendToTarget();
+            mCallback.obtainMessage(MceStateMachine.MSG_MAS_REQUEST_COMPLETED, request)
+                    .sendToTarget();
         } catch (IOException e) {
-            if (DBG) Log.d(TAG, "Request failed: " + request);
+            if (DBG) {
+                Log.d(TAG, "Request failed: " + request);
+            }
             // Disconnect to cleanup.
             disconnect();
         }
     }
 
     public boolean makeRequest(Request request) {
-        if (DBG) Log.d(TAG, "makeRequest called with: " + request);
+        if (DBG) {
+            Log.d(TAG, "makeRequest called with: " + request);
+        }
 
         boolean status = mHandler.sendMessage(mHandler.obtainMessage(REQUEST, request));
         if (!status) {

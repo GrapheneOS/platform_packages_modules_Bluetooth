@@ -21,8 +21,8 @@ import android.annotation.Nullable;
 
 import com.android.bluetooth.Utils;
 
-import java.util.Arrays;
 import java.util.ArrayDeque;
+import java.util.Arrays;
 import java.util.Collection;
 
 /*************************************************************************************************
@@ -44,8 +44,8 @@ class AvrcpCmd {
         int[] mAttrIDs;
         public byte[] mAddress;
 
-        FolderItemsCmd(byte[] address, byte scope, long startItem, long endItem,
-                byte numAttr, int[] attrIds) {
+        FolderItemsCmd(byte[] address, byte scope, long startItem, long endItem, byte numAttr,
+                int[] attrIds) {
             mAddress = address;
             this.mScope = scope;
             this.mStartItem = startItem;
@@ -127,8 +127,8 @@ class MediaPlayerListRsp {
     String[] mPlayerNameList;
     int mNumItems;
 
-    MediaPlayerListRsp(byte status, short uidCounter, int numItems, byte itemType,
-            int[] playerIds, byte[] playerTypes, int[] playerSubTypes, byte[] playStatusValues,
+    MediaPlayerListRsp(byte status, short uidCounter, int numItems, byte itemType, int[] playerIds,
+            byte[] playerTypes, int[] playerSubTypes, byte[] playStatusValues,
             short[] featureBitMaskValues, String[] playerNameList) {
         this.mStatus = status;
         this.mUIDCounter = uidCounter;
@@ -163,9 +163,9 @@ class FolderItemsRsp {
     int[] mAttrIds;
     String[] mAttrValues;
 
-    FolderItemsRsp(byte status, short uidCounter, byte scope, int numItems,
-            byte[] folderTypes, byte[] playable, byte[] itemTypes, byte[] itemsUid,
-            String[] displayNameArray, int[] attributesNum, int[] attrIds, String[] attrValues) {
+    FolderItemsRsp(byte status, short uidCounter, byte scope, int numItems, byte[] folderTypes,
+            byte[] playable, byte[] itemTypes, byte[] itemsUid, String[] displayNameArray,
+            int[] attributesNum, int[] attrIds, String[] attrValues) {
         this.mStatus = status;
         this.mUIDCounter = uidCounter;
         this.mScope = scope;
@@ -242,7 +242,9 @@ class MediaPlayerInfo {
 
     void setPackageName(@NonNull String name) {
         // Controller determines package name when it is set.
-        if (mMediaController != null) return;
+        if (mMediaController != null) {
+            return;
+        }
         this.mPackageName = name;
     }
 
@@ -276,7 +278,9 @@ class MediaPlayerInfo {
     }
 
     void setDisplayableName(@Nullable String displayableName) {
-        if (displayableName == null) displayableName = "";
+        if (displayableName == null) {
+            displayableName = "";
+        }
         this.mDisplayableName = displayableName;
     }
 
@@ -293,9 +297,13 @@ class MediaPlayerInfo {
 
     boolean isBrowseSupported() {
         synchronized (this) {
-            if (this.mFeatureBitMask == null) return false;
+            if (this.mFeatureBitMask == null) {
+                return false;
+            }
             for (short bit : this.mFeatureBitMask) {
-                if (bit == AvrcpConstants.AVRC_PF_BROWSE_BIT_NO) return true;
+                if (bit == AvrcpConstants.AVRC_PF_BROWSE_BIT_NO) {
+                    return true;
+                }
             }
         }
         return false;
@@ -321,7 +329,9 @@ class MediaPlayerInfo {
         sb.append(" Feature Bits [");
         short[] bits = getFeatureBitMask();
         for (int i = 0; i < bits.length; i++) {
-            if (i != 0) sb.append(" ");
+            if (i != 0) {
+                sb.append(" ");
+            }
             sb.append(bits[i]);
         }
         sb.append("] Controller: ");
@@ -354,8 +364,7 @@ class BrowsePlayerInfo {
 }
 
 class FolderItemsData {
-    /* initialize sizes for rsp parameters */
-    int mNumItems;
+    /* initialize sizes for rsp parameters */ int mNumItems;
     int[] mAttributesNum;
     byte[] mFolderTypes;
     byte[] mItemTypes;
@@ -410,7 +419,9 @@ class EvictingQueue<E> extends ArrayDeque<E> {
 
     @Override
     public void addFirst(E e) {
-        if (super.size() == mMaxSize) return;
+        if (super.size() == mMaxSize) {
+            return;
+        }
         super.addFirst(e);
     }
 
@@ -424,7 +435,9 @@ class EvictingQueue<E> extends ArrayDeque<E> {
 
     @Override
     public boolean offerFirst(E e) {
-        if (super.size() == mMaxSize) return false;
+        if (super.size() == mMaxSize) {
+            return false;
+        }
         return super.offerFirst(e);
     }
 

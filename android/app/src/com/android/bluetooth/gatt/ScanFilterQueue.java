@@ -61,10 +61,8 @@ import java.util.UUID;
 
         @Override
         public int hashCode() {
-            return Objects.hash(address, addr_type, type, uuid, uuid_mask,
-                                name, company, company_mask,
-                                Arrays.hashCode(data),
-                                Arrays.hashCode(data_mask));
+            return Objects.hash(address, addr_type, type, uuid, uuid_mask, name, company,
+                    company_mask, Arrays.hashCode(data), Arrays.hashCode(data_mask));
         }
 
         @Override
@@ -76,14 +74,12 @@ import java.util.UUID;
                 return false;
             }
             Entry other = (Entry) obj;
-            return Objects.equals(address, other.address) &&
-                    addr_type == other.addr_type && type == other.type &&
-                    Objects.equals(uuid, other.uuid) &&
-                    Objects.equals(uuid_mask, other.uuid_mask) &&
-                    Objects.equals(name, other.name) &&
-                            company == other.company && company_mask == other.company_mask &&
-                    Objects.deepEquals(data, other.data) &&
-                    Objects.deepEquals(data_mask, other.data_mask);
+            return Objects.equals(address, other.address) && addr_type == other.addr_type
+                    && type == other.type && Objects.equals(uuid, other.uuid) && Objects.equals(
+                    uuid_mask, other.uuid_mask) && Objects.equals(name, other.name)
+                    && company == other.company && company_mask == other.company_mask
+                    && Objects.deepEquals(data, other.data) && Objects.deepEquals(data_mask,
+                    other.data_mask);
         }
     }
 
@@ -177,10 +173,11 @@ import java.util.UUID;
     }
 
     void clearUuids() {
-        for (Iterator<Entry> it = mEntries.iterator(); it.hasNext();) {
+        for (Iterator<Entry> it = mEntries.iterator(); it.hasNext(); ) {
             Entry entry = it.next();
-            if (entry.type == TYPE_SERVICE_UUID)
+            if (entry.type == TYPE_SERVICE_UUID) {
                 it.remove();
+            }
         }
     }
 
@@ -203,8 +200,9 @@ import java.util.UUID;
      * Add ScanFilter to scan filter queue.
      */
     void addScanFilter(ScanFilter filter) {
-        if (filter == null)
+        if (filter == null) {
             return;
+        }
         if (filter.getDeviceName() != null) {
             addName(filter.getDeviceName());
         }
@@ -215,8 +213,7 @@ import java.util.UUID;
             if (filter.getServiceUuidMask() == null) {
                 addUuid(filter.getServiceUuid().getUuid());
             } else {
-                addUuid(filter.getServiceUuid().getUuid(),
-                        filter.getServiceUuidMask().getUuid());
+                addUuid(filter.getServiceUuid().getUuid(), filter.getServiceUuidMask().getUuid());
             }
         }
         if (filter.getManufacturerData() != null) {
@@ -251,8 +248,7 @@ import java.util.UUID;
         }
         byte[] concated = new byte[dataLen];
         // Extract 16 bit UUID value.
-        int uuidValue = BluetoothUuid.getServiceIdentifierFromParcelUuid(
-                serviceDataUuid);
+        int uuidValue = BluetoothUuid.getServiceIdentifierFromParcelUuid(serviceDataUuid);
         // First two bytes are service data UUID in little-endian.
         concated[0] = (byte) (uuidValue & 0xFF);
         concated[1] = (byte) ((uuidValue >> 8) & 0xFF);

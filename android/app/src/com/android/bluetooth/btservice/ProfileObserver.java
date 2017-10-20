@@ -26,9 +26,10 @@ public class ProfileObserver extends ContentObserver {
     }
 
     public void start() {
-        mContext.getContentResolver().registerContentObserver(
-                Settings.Global.getUriFor(Settings.Global.BLUETOOTH_DISABLED_PROFILES), false,
-                this);
+        mContext.getContentResolver()
+                .registerContentObserver(
+                        Settings.Global.getUriFor(Settings.Global.BLUETOOTH_DISABLED_PROFILES),
+                        false, this);
     }
 
     private void onBluetoothOff() {

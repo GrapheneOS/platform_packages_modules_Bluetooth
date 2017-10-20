@@ -30,7 +30,6 @@ import com.android.vcard.VCardEntry.PhoneData;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 public class CallLogPullRequest extends PullRequest {
@@ -104,7 +103,9 @@ public class CallLogPullRequest extends PullRequest {
                 }
 
                 ops.add(ContentProviderOperation.newInsert(CallLog.Calls.CONTENT_URI)
-                        .withValues(values).withYieldAllowed(true).build());
+                        .withValues(values)
+                        .withYieldAllowed(true)
+                        .build());
             }
             mContext.getContentResolver().applyBatch(CallLog.AUTHORITY, ops);
             Log.d(TAG, "Updated call logs.");

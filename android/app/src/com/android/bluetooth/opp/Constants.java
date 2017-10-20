@@ -32,16 +32,16 @@
 
 package com.android.bluetooth.opp;
 
-import java.io.IOException;
-import java.util.regex.Pattern;
-
-import javax.obex.HeaderSet;
-
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.util.Log;
+
+import java.io.IOException;
+import java.util.regex.Pattern;
+
+import javax.obex.HeaderSet;
 
 /**
  * Bluetooth OPP internal constants definition
@@ -60,19 +60,24 @@ public class Constants {
     public static final String ACTION_OPEN = "android.btopp.intent.action.OPEN";
 
     /** the intent that gets sent when clicking outbound transfer notification */
-    public static final String ACTION_OPEN_OUTBOUND_TRANSFER = "android.btopp.intent.action.OPEN_OUTBOUND";
+    public static final String ACTION_OPEN_OUTBOUND_TRANSFER =
+            "android.btopp.intent.action.OPEN_OUTBOUND";
 
     /** the intent that gets sent when clicking a inbound transfer notification */
-    public static final String ACTION_OPEN_INBOUND_TRANSFER = "android.btopp.intent.action.OPEN_INBOUND";
+    public static final String ACTION_OPEN_INBOUND_TRANSFER =
+            "android.btopp.intent.action.OPEN_INBOUND";
 
     /** the intent that gets sent from the Settings app to show the received files */
-    public static final String ACTION_OPEN_RECEIVED_FILES = "android.btopp.intent.action.OPEN_RECEIVED_FILES";
+    public static final String ACTION_OPEN_RECEIVED_FILES =
+            "android.btopp.intent.action.OPEN_RECEIVED_FILES";
 
     /** the intent that whitelists a remote bluetooth device for auto-receive confirmation (NFC) */
-    public static final String ACTION_WHITELIST_DEVICE = "android.btopp.intent.action.WHITELIST_DEVICE";
+    public static final String ACTION_WHITELIST_DEVICE =
+            "android.btopp.intent.action.WHITELIST_DEVICE";
 
     /** the intent that can be sent by handover requesters to stop a BTOPP transfer */
-    public static final String ACTION_STOP_HANDOVER = "android.btopp.intent.action.STOP_HANDOVER_TRANSFER";
+    public static final String ACTION_STOP_HANDOVER =
+            "android.btopp.intent.action.STOP_HANDOVER_TRANSFER";
 
     /** the intent extra to show all received files in the transfer history */
     public static final String EXTRA_SHOW_ALL_FILES = "android.btopp.intent.extra.SHOW_ALL";
@@ -105,8 +110,7 @@ public class Constants {
             "android.nfc.handover.intent.extra.TRANSFER_STATUS";
 
     /** intent extra used to indicate the address associated with the transfer */
-    public static final String EXTRA_BT_OPP_ADDRESS =
-            "android.nfc.handover.intent.extra.ADDRESS";
+    public static final String EXTRA_BT_OPP_ADDRESS = "android.nfc.handover.intent.extra.ADDRESS";
 
     public static final String EXTRA_BT_OPP_OBJECT_COUNT =
             "android.nfc.handover.intent.extra.OBJECT_COUNT";
@@ -147,8 +151,8 @@ public class Constants {
             "android.permission.NFC_HANDOVER_STATUS";
 
     /** intent extra that indicates this transfer is a handover from another
-      * transport (NFC, WIFI)
-      */
+     * transport (NFC, WIFI)
+     */
     public static final String EXTRA_CONNECTION_HANDOVER =
             "com.android.intent.extra.CONNECTION_HANDOVER";
 
@@ -197,32 +201,32 @@ public class Constants {
      * This is in essence a "white list" of acceptable types.
      * Today, restricted to images, audio, video and certain text types.
      */
-    public static final String[] ACCEPTABLE_SHARE_INBOUND_TYPES = new String[] {
-        "image/*",
-        "video/*",
-        "audio/*",
-        "text/x-vcard",
-        "text/x-vcalendar",
-        "text/calendar",
-        "text/plain",
-        "text/html",
-        "text/xml",
-        "application/zip",
-        "application/vnd.ms-excel",
-        "application/msword",
-        "application/vnd.ms-powerpoint",
-        "application/pdf",
-        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-        "application/vnd.openxmlformats-officedocument.presentationml.presentation",
-        "application/x-hwp",
+    public static final String[] ACCEPTABLE_SHARE_INBOUND_TYPES = new String[]{
+            "image/*",
+            "video/*",
+            "audio/*",
+            "text/x-vcard",
+            "text/x-vcalendar",
+            "text/calendar",
+            "text/plain",
+            "text/html",
+            "text/xml",
+            "application/zip",
+            "application/vnd.ms-excel",
+            "application/msword",
+            "application/vnd.ms-powerpoint",
+            "application/pdf",
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+            "application/x-hwp",
     };
 
     /**
      * The MIME type(s) of we could not accept from other device. TODO: define
      * correct type list
      */
-    public static final String[] UNACCEPTABLE_SHARE_INBOUND_TYPES = new String[] {};
+    public static final String[] UNACCEPTABLE_SHARE_INBOUND_TYPES = new String[]{};
 
     /** Where we store Bluetooth received files on the external storage */
     public static final String DEFAULT_STORE_SUBDIR = "/bluetooth";
@@ -296,8 +300,8 @@ public class Constants {
     }
 
     public static boolean mimeTypeMatches(String mimeType, String matchAgainst) {
-        Pattern p = Pattern.compile(matchAgainst.replaceAll("\\*", "\\.\\*"),
-                Pattern.CASE_INSENSITIVE);
+        Pattern p =
+                Pattern.compile(matchAgainst.replaceAll("\\*", "\\.\\*"), Pattern.CASE_INSENSITIVE);
         return p.matcher(mimeType).matches();
     }
 

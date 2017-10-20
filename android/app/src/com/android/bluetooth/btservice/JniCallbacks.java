@@ -23,7 +23,7 @@ final class JniCallbacks {
     private AdapterState mAdapterStateMachine;
     private BondStateMachine mBondStateMachine;
 
-    JniCallbacks(AdapterState adapterStateMachine,AdapterProperties adapterProperties) {
+    JniCallbacks(AdapterState adapterStateMachine, AdapterProperties adapterProperties) {
         mAdapterStateMachine = adapterStateMachine;
         mAdapterProperties = adapterProperties;
     }
@@ -45,11 +45,10 @@ final class JniCallbacks {
         throw new CloneNotSupportedException();
     }
 
-    void sspRequestCallback(byte[] address, byte[] name, int cod, int pairingVariant,
-            int passkey) {
-        mBondStateMachine.sspRequestCallback(address, name, cod, pairingVariant,
-            passkey);
+    void sspRequestCallback(byte[] address, byte[] name, int cod, int pairingVariant, int passkey) {
+        mBondStateMachine.sspRequestCallback(address, name, cod, pairingVariant, passkey);
     }
+
     void devicePropertyChangedCallback(byte[] address, int[] types, byte[][] val) {
         mRemoteDevices.devicePropertyChangedCallback(address, types, val);
     }
