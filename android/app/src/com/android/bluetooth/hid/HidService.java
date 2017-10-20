@@ -43,8 +43,8 @@ import java.util.Map;
  * @hide
  */
 public class HidService extends ProfileService {
-    private static final boolean DBG = true;
-    private static final String TAG = "HidService";
+    private static final boolean DBG = false;
+    private static final String TAG = "BluetoothHidService";
 
     private Map<BluetoothDevice, Integer> mInputDevices;
     private boolean mNativeAvailable;
@@ -94,13 +94,14 @@ public class HidService extends ProfileService {
     @Override
     protected boolean stop() {
         if (DBG) {
-            log("Stopping Bluetooth HidService");
+            Log.d(TAG, "Stopping Bluetooth HidService");
         }
         return true;
     }
 
     @Override
     protected boolean cleanup() {
+        if (DBG) Log.d(TAG, "Stopping Bluetooth HidService");
         if (mNativeAvailable) {
             cleanupNative();
             mNativeAvailable = false;
@@ -162,6 +163,8 @@ public class HidService extends ProfileService {
 
         @Override
         public void handleMessage(Message msg) {
+            if (DBG) Log.v(TAG, "handleMessage(): msg.what=" + msg.what);
+
             switch (msg.what) {
                 case MESSAGE_CONNECT: {
                     BluetoothDevice device = (BluetoothDevice) msg.obj;
@@ -346,6 +349,7 @@ public class HidService extends ProfileService {
             if (mService != null && mService.isAvailable()) {
                 return mService;
             }
+            Log.w(TAG, "Service is null");
             return null;
         }
 
@@ -487,6 +491,7 @@ public class HidService extends ProfileService {
 
     //APIs
     boolean connect(BluetoothDevice device) {
+        if (DBG) Log.d(TAG, "connect: " + device.getAddress());
         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
         if (getConnectionState(device) != BluetoothInputDevice.STATE_DISCONNECTED) {
             Log.e(TAG, "Hid Device not disconnected: " + device);
@@ -503,6 +508,7 @@ public class HidService extends ProfileService {
     }
 
     boolean disconnect(BluetoothDevice device) {
+        if (DBG) Log.d(TAG, "disconnect: " + device.getAddress());
         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
         Message msg = mHandler.obtainMessage(MESSAGE_DISCONNECT, device);
         mHandler.sendMessage(msg);
@@ -510,6 +516,7 @@ public class HidService extends ProfileService {
     }
 
     int getConnectionState(BluetoothDevice device) {
+        if (DBG) Log.d(TAG, "getConnectionState: " + device.getAddress());
         if (mInputDevices.get(device) == null) {
             return BluetoothInputDevice.STATE_DISCONNECTED;
         }
@@ -517,6 +524,7 @@ public class HidService extends ProfileService {
     }
 
     List<BluetoothDevice> getDevicesMatchingConnectionStates(int[] states) {
+        if (DBG) Log.d(TAG, "getDevicesMatchingConnectionStates()");
         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
         List<BluetoothDevice> inputDevices = new ArrayList<BluetoothDevice>();
 
@@ -534,6 +542,9 @@ public class HidService extends ProfileService {
 
     public boolean setPriority(BluetoothDevice device, int priority) {
         enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH_ADMIN permission");
+        if (DBG) {
+            Log.d(TAG, "setPriority: " + device.getAddress());
+        }
         Settings.Global.putInt(getContentResolver(),
                 Settings.Global.getBluetoothInputDevicePriorityKey(device.getAddress()), priority);
         if (DBG) {
@@ -544,6 +555,9 @@ public class HidService extends ProfileService {
 
     public int getPriority(BluetoothDevice device) {
         enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH_ADMIN permission");
+        if (DBG) {
+            Log.d(TAG, "getPriority: " + device.getAddress());
+        }
         int priority = Settings.Global.getInt(getContentResolver(),
                 Settings.Global.getBluetoothInputDevicePriorityKey(device.getAddress()),
                 BluetoothProfile.PRIORITY_UNDEFINED);
@@ -553,6 +567,9 @@ public class HidService extends ProfileService {
     /* The following APIs regarding test app for compliance */
     boolean getProtocolMode(BluetoothDevice device) {
         enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH_ADMIN permission");
+        if (DBG) {
+            Log.d(TAG, "getProtocolMode: " + device.getAddress());
+        }
         int state = this.getConnectionState(device);
         if (state != BluetoothInputDevice.STATE_CONNECTED) {
             return false;
@@ -566,6 +583,9 @@ public class HidService extends ProfileService {
 
     boolean virtualUnplug(BluetoothDevice device) {
         enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH_ADMIN permission");
+        if (DBG) {
+            Log.d(TAG, "virtualUnplug: " + device.getAddress());
+        }
         int state = this.getConnectionState(device);
         if (state != BluetoothInputDevice.STATE_CONNECTED) {
             return false;
@@ -577,6 +597,9 @@ public class HidService extends ProfileService {
 
     boolean setProtocolMode(BluetoothDevice device, int protocolMode) {
         enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH_ADMIN permission");
+        if (DBG) {
+            Log.d(TAG, "setProtocolMode: " + device.getAddress());
+        }
         int state = this.getConnectionState(device);
         if (state != BluetoothInputDevice.STATE_CONNECTED) {
             return false;
@@ -590,6 +613,9 @@ public class HidService extends ProfileService {
 
     boolean getReport(BluetoothDevice device, byte reportType, byte reportId, int bufferSize) {
         enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH_ADMIN permission");
+        if (DBG) {
+            Log.d(TAG, "getReport: " + device.getAddress());
+        }
         int state = this.getConnectionState(device);
         if (state != BluetoothInputDevice.STATE_CONNECTED) {
             return false;
@@ -607,6 +633,9 @@ public class HidService extends ProfileService {
 
     boolean setReport(BluetoothDevice device, byte reportType, String report) {
         enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH_ADMIN permission");
+        if (DBG) {
+            Log.d(TAG, "setReport: " + device.getAddress());
+        }
         int state = this.getConnectionState(device);
         if (state != BluetoothInputDevice.STATE_CONNECTED) {
             return false;
@@ -624,6 +653,9 @@ public class HidService extends ProfileService {
 
     boolean sendData(BluetoothDevice device, String report) {
         enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH_ADMIN permission");
+        if (DBG) {
+            Log.d(TAG, "sendData: " + device.getAddress());
+        }
         int state = this.getConnectionState(device);
         if (state != BluetoothInputDevice.STATE_CONNECTED) {
             return false;
@@ -634,6 +666,7 @@ public class HidService extends ProfileService {
 
     boolean getIdleTime(BluetoothDevice device) {
         enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH_ADMIN permission");
+        if (DBG) Log.d(TAG, "getIdleTime: " + device.getAddress());
         int state = this.getConnectionState(device);
         if (state != BluetoothInputDevice.STATE_CONNECTED) {
             return false;
@@ -645,6 +678,7 @@ public class HidService extends ProfileService {
 
     boolean setIdleTime(BluetoothDevice device, byte idleTime) {
         enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH_ADMIN permission");
+        if (DBG) Log.d(TAG, "setIdleTime: " + device.getAddress());
         int state = this.getConnectionState(device);
         if (state != BluetoothInputDevice.STATE_CONNECTED) {
             return false;
@@ -659,6 +693,7 @@ public class HidService extends ProfileService {
     }
 
     private void onGetProtocolMode(byte[] address, int mode) {
+        if (DBG) Log.d(TAG, "onGetProtocolMode()");
         Message msg = mHandler.obtainMessage(MESSAGE_ON_GET_PROTOCOL_MODE);
         msg.obj = address;
         msg.arg1 = mode;
@@ -666,6 +701,7 @@ public class HidService extends ProfileService {
     }
 
     private void onGetIdleTime(byte[] address, int idleTime) {
+        if (DBG) Log.d(TAG, "onGetIdleTime()");
         Message msg = mHandler.obtainMessage(MESSAGE_ON_GET_IDLE_TIME);
         msg.obj = address;
         msg.arg1 = idleTime;
@@ -673,6 +709,7 @@ public class HidService extends ProfileService {
     }
 
     private void onGetReport(byte[] address, byte[] report, int rptSize) {
+        if (DBG) Log.d(TAG, "onGetReport()");
         Message msg = mHandler.obtainMessage(MESSAGE_ON_GET_REPORT);
         msg.obj = address;
         Bundle data = new Bundle();
@@ -683,6 +720,7 @@ public class HidService extends ProfileService {
     }
 
     private void onHandshake(byte[] address, int status) {
+        if (DBG) Log.d(TAG, "onHandshake: status=" + status);
         Message msg = mHandler.obtainMessage(MESSAGE_ON_HANDSHAKE);
         msg.obj = address;
         msg.arg1 = status;
@@ -690,6 +728,7 @@ public class HidService extends ProfileService {
     }
 
     private void onVirtualUnplug(byte[] address, int status) {
+        if (DBG) Log.d(TAG, "onVirtualUnplug: status=" + status);
         Message msg = mHandler.obtainMessage(MESSAGE_ON_VIRTUAL_UNPLUG);
         msg.obj = address;
         msg.arg1 = status;
@@ -697,6 +736,7 @@ public class HidService extends ProfileService {
     }
 
     private void onConnectStateChanged(byte[] address, int state) {
+        if (DBG) Log.d(TAG, "onConnectStateChanged: state=" + state);
         Message msg = mHandler.obtainMessage(MESSAGE_CONNECT_STATE_CHANGED);
         msg.obj = address;
         msg.arg1 = state;
