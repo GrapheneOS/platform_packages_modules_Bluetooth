@@ -582,13 +582,33 @@ public class HeadsetClientService extends ProfileService {
     }
 
     boolean startVoiceRecognition(BluetoothDevice device) {
-        Log.e(TAG, "startVoiceRecognition API not available");
-        return false;
+        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+        HeadsetClientStateMachine sm = getStateMachine(device);
+        if (sm == null) {
+            Log.e(TAG, "Cannot allocate SM for device " + device);
+            return false;
+        }
+        int connectionState = sm.getConnectionState(device);
+        if (connectionState != BluetoothProfile.STATE_CONNECTED) {
+            return false;
+        }
+        sm.sendMessage(HeadsetClientStateMachine.VOICE_RECOGNITION_START);
+        return true;
     }
 
     boolean stopVoiceRecognition(BluetoothDevice device) {
-        Log.e(TAG, "stopVoiceRecognition API not available");
-        return false;
+        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+        HeadsetClientStateMachine sm = getStateMachine(device);
+        if (sm == null) {
+            Log.e(TAG, "Cannot allocate SM for device " + device);
+            return false;
+        }
+        int connectionState = sm.getConnectionState(device);
+        if (connectionState != BluetoothProfile.STATE_CONNECTED) {
+            return false;
+        }
+        sm.sendMessage(HeadsetClientStateMachine.VOICE_RECOGNITION_STOP);
+        return true;
     }
 
     int getAudioState(BluetoothDevice device) {

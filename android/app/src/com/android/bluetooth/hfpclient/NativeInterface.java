@@ -111,12 +111,8 @@ class NativeInterface {
         }
     }
 
-    private void onVrStateChanged(int state) {
-        Log.w(TAG, "onVrStateChanged not supported");
-    }
-
-    private void onNetworkState(int state, byte[] address) {
-        StackEvent event = new StackEvent(StackEvent.EVENT_TYPE_NETWORK_STATE);
+    private void onVrStateChanged(int state, byte[] address) {
+        StackEvent event = new StackEvent(StackEvent.EVENT_TYPE_VR_STATE_CHANGED);
         event.valueInt = state;
         event.device = getDevice(address);
         if (DBG) {
@@ -129,6 +125,24 @@ class NativeInterface {
         } else {
             Log.w(TAG,
                     "onVrStateChanged: Ignoring message because service not available: " + event);
+        }
+    }
+
+    private void onNetworkState(int state, byte[] address) {
+        StackEvent event = new StackEvent(StackEvent.EVENT_TYPE_NETWORK_STATE);
+        event.valueInt = state;
+        event.device = getDevice(address);
+        if (DBG) {
+            Log.d(TAG, "onNetworkStateChanged: address " + address + " event " + event);
+        }
+
+        HeadsetClientService service = HeadsetClientService.getHeadsetClientService();
+        if (service != null) {
+            service.messageFromNative(event);
+        } else {
+            Log.w(TAG,
+                    "onNetworkStateChanged: Ignoring message because service not available: "
+                            + event);
         }
     }
 
