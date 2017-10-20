@@ -75,10 +75,13 @@ public class HeadsetClientStateMachine extends StateMachine {
     static final int NO_ACTION = 0;
 
     // external actions
+    public static final int AT_OK = 0;
     public static final int CONNECT = 1;
     public static final int DISCONNECT = 2;
     public static final int CONNECT_AUDIO = 3;
     public static final int DISCONNECT_AUDIO = 4;
+    public static final int VOICE_RECOGNITION_START = 5;
+    public static final int VOICE_RECOGNITION_STOP = 6;
     public static final int SET_MIC_VOLUME = 7;
     public static final int SET_SPEAKER_VOLUME = 8;
     public static final int DIAL_NUMBER = 10;
@@ -151,6 +154,7 @@ public class HeadsetClientStateMachine extends StateMachine {
     private static AudioManager sAudioManager;
     private int mAudioState;
     private boolean mAudioWbs;
+    private int mVoiceRecognitionActive;
     private final BluetoothAdapter mAdapter;
     private TelecomManager mTelecomManager;
 
@@ -674,6 +678,7 @@ public class HeadsetClientStateMachine extends StateMachine {
         }
         mAudioState = BluetoothHeadsetClient.STATE_AUDIO_DISCONNECTED;
         mAudioWbs = false;
+        mVoiceRecognitionActive = HeadsetClientHalConstants.VR_STATE_STOPPED;
 
         mTelecomManager = (TelecomManager) context.getSystemService(context.TELECOM_SERVICE);
 
@@ -1111,6 +1116,28 @@ public class HeadsetClientStateMachine extends StateMachine {
                     }
                     break;
 
+                case VOICE_RECOGNITION_START:
+                    if (mVoiceRecognitionActive == HeadsetClientHalConstants.VR_STATE_STOPPED) {
+                        if (NativeInterface.startVoiceRecognitionNative(
+                                    getByteAddress(mCurrentDevice))) {
+                            addQueuedAction(VOICE_RECOGNITION_START);
+                        } else {
+                            Log.e(TAG, "ERROR: Couldn't start voice recognition");
+                        }
+                    }
+                    break;
+
+                case VOICE_RECOGNITION_STOP:
+                    if (mVoiceRecognitionActive == HeadsetClientHalConstants.VR_STATE_STARTED) {
+                        if (NativeInterface.stopVoiceRecognitionNative(
+                                    getByteAddress(mCurrentDevice))) {
+                            addQueuedAction(VOICE_RECOGNITION_STOP);
+                        } else {
+                            Log.e(TAG, "ERROR: Couldn't stop voice recognition");
+                        }
+                    }
+                    break;
+
                 // Called only for Mute/Un-mute - Mic volume change is not allowed.
                 case SET_MIC_VOLUME:
                     break;
@@ -1283,6 +1310,17 @@ public class HeadsetClientStateMachine extends StateMachine {
                             intent.putExtra(BluetoothDevice.EXTRA_DEVICE, event.device);
                             mService.sendBroadcast(intent, ProfileService.BLUETOOTH_PERM);
                             break;
+                        case StackEvent.EVENT_TYPE_VR_STATE_CHANGED:
+                            if (mVoiceRecognitionActive != event.valueInt) {
+                                mVoiceRecognitionActive = event.valueInt;
+
+                                intent = new Intent(BluetoothHeadsetClient.ACTION_AG_EVENT);
+                                intent.putExtra(BluetoothHeadsetClient.EXTRA_VOICE_RECOGNITION,
+                                        mVoiceRecognitionActive);
+                                intent.putExtra(BluetoothDevice.EXTRA_DEVICE, event.device);
+                                mService.sendBroadcast(intent, ProfileService.BLUETOOTH_PERM);
+                            }
+                            break;
                         case StackEvent.EVENT_TYPE_CALL:
                         case StackEvent.EVENT_TYPE_CALLSETUP:
                         case StackEvent.EVENT_TYPE_CALLHELD:
@@ -1326,6 +1364,18 @@ public class HeadsetClientStateMachine extends StateMachine {
                             switch (queuedAction.first) {
                                 case QUERY_CURRENT_CALLS:
                                     queryCallsDone();
+                                    break;
+                                case VOICE_RECOGNITION_START:
+                                    if (event.valueInt == AT_OK) {
+                                        mVoiceRecognitionActive =
+                                                HeadsetClientHalConstants.VR_STATE_STARTED;
+                                    }
+                                    break;
+                                case VOICE_RECOGNITION_STOP:
+                                    if (event.valueInt == AT_OK) {
+                                        mVoiceRecognitionActive =
+                                                HeadsetClientHalConstants.VR_STATE_STOPPED;
+                                    }
                                     break;
                                 default:
                                     Log.w(TAG, "Unhandled AT OK " + event);
