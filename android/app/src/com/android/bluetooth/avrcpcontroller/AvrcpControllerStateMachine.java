@@ -418,11 +418,11 @@ class AvrcpControllerStateMachine extends StateMachine {
                     break;
 
                     case MESSAGE_PROCESS_TRACK_CHANGED:
+                        // Music start playing automatically and update Metadata
+                        mBroadcastMetadata = true;
                         mAddressedPlayer.updateCurrentTrack((TrackInfo) msg.obj);
-                        if (mBroadcastMetadata) {
-                            broadcastMetaDataChanged(
-                                    mAddressedPlayer.getCurrentTrack().getMediaMetaData());
-                        }
+                        broadcastMetaDataChanged(
+                                mAddressedPlayer.getCurrentTrack().getMediaMetaData());
                         break;
 
                     case MESSAGE_PROCESS_PLAY_POS_CHANGED:
