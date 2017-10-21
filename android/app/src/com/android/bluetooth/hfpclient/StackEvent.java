@@ -29,6 +29,7 @@ public class StackEvent {
     public static final int EVENT_TYPE_NONE = 0;
     public static final int EVENT_TYPE_CONNECTION_STATE_CHANGED = 1;
     public static final int EVENT_TYPE_AUDIO_STATE_CHANGED = 2;
+    public static final int EVENT_TYPE_VR_STATE_CHANGED = 3;
     public static final int EVENT_TYPE_NETWORK_STATE = 4;
     public static final int EVENT_TYPE_ROAMING_STATE = 5;
     public static final int EVENT_TYPE_NETWORK_SIGNAL = 6;
