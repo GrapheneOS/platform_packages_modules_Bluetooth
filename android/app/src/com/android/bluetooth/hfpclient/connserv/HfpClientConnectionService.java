@@ -122,6 +122,7 @@ public class HfpClientConnectionService extends ConnectionService {
         }
         mAdapter = BluetoothAdapter.getDefaultAdapter();
         mTelecomManager = (TelecomManager) getSystemService(Context.TELECOM_SERVICE);
+        if (mTelecomManager != null) mTelecomManager.clearPhoneAccounts();
         mAdapter.getProfileProxy(this, mServiceListener, BluetoothProfile.HEADSET_CLIENT);
     }
 
