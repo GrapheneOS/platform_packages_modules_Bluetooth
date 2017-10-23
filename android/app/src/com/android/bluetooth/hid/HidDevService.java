@@ -20,10 +20,10 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothHidDeviceAppConfiguration;
 import android.bluetooth.BluetoothHidDeviceAppQosSettings;
 import android.bluetooth.BluetoothHidDeviceAppSdpSettings;
-import android.bluetooth.BluetoothInputHost;
+import android.bluetooth.BluetoothHidDevice;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.IBluetoothHidDeviceCallback;
-import android.bluetooth.IBluetoothInputHost;
+import android.bluetooth.IBluetoothHidDevice;
 import android.content.Intent;
 import android.os.Handler;
 import android.os.IBinder;
@@ -58,7 +58,7 @@ public class HidDevService extends ProfileService {
 
     private BluetoothDevice mHidDevice = null;
 
-    private int mHidDeviceState = BluetoothInputHost.STATE_DISCONNECTED;
+    private int mHidDeviceState = BluetoothHidDevice.STATE_DISCONNECTED;
 
     private BluetoothHidDeviceAppConfiguration mAppConfig = null;
 
@@ -139,7 +139,7 @@ public class HidDevService extends ProfileService {
                     int halState = msg.arg1;
                     int state = convertHalState(halState);
 
-                    if (state != BluetoothInputHost.STATE_DISCONNECTED) {
+                    if (state != BluetoothHidDevice.STATE_DISCONNECTED) {
                         mHidDevice = device;
                     }
 
@@ -245,7 +245,7 @@ public class HidDevService extends ProfileService {
         }
     }
 
-    private static class BluetoothHidDeviceBinder extends IBluetoothInputHost.Stub
+    private static class BluetoothHidDeviceBinder extends IBluetoothHidDevice.Stub
             implements IProfileServiceBinder {
 
         private static final String TAG = BluetoothHidDeviceBinder.class.getSimpleName();
@@ -397,7 +397,7 @@ public class HidDevService extends ProfileService {
 
             HidDevService service = getService();
             if (service == null) {
-                return BluetoothInputHost.STATE_DISCONNECTED;
+                return BluetoothHidDevice.STATE_DISCONNECTED;
             }
 
             return service.getConnectionState(device);
@@ -585,7 +585,7 @@ public class HidDevService extends ProfileService {
         if (mHidDevice != null && mHidDevice.equals(device)) {
             return mHidDeviceState;
         }
-        return BluetoothInputHost.STATE_DISCONNECTED;
+        return BluetoothHidDevice.STATE_DISCONNECTED;
     }
 
     List<BluetoothDevice> getDevicesMatchingConnectionStates(int[] states) {
@@ -705,7 +705,7 @@ public class HidDevService extends ProfileService {
             return;
         }
 
-        Intent intent = new Intent(BluetoothInputHost.ACTION_CONNECTION_STATE_CHANGED);
+        Intent intent = new Intent(BluetoothHidDevice.ACTION_CONNECTION_STATE_CHANGED);
         intent.putExtra(BluetoothProfile.EXTRA_PREVIOUS_STATE, prevState);
         intent.putExtra(BluetoothProfile.EXTRA_STATE, newState);
         intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
