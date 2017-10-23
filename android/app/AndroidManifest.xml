@@ -324,7 +324,7 @@
             android:name = ".hid.HidService"
             android:enabled="@bool/profile_supported_hid">
             <intent-filter>
-                <action android:name="android.bluetooth.IBluetoothInputDevice" />
+                <action android:name="android.bluetooth.IBluetoothHidHost" />
             </intent-filter>
         </service>
         <service
@@ -386,7 +386,7 @@
             android:name = ".hid.HidDevService"
             android:enabled="@bool/profile_supported_hidd">
             <intent-filter>
-                <action android:name="android.bluetooth.IBluetoothInputHost" />
+                <action android:name="android.bluetooth.IBluetoothHidDevice" />
             </intent-filter>
         </service>
     </application>
