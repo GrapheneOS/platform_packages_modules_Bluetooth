@@ -23,8 +23,8 @@ import android.bluetooth.BluetoothAvrcpController;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothHeadset;
 import android.bluetooth.BluetoothHeadsetClient;
-import android.bluetooth.BluetoothInputDevice;
-import android.bluetooth.BluetoothInputHost;
+import android.bluetooth.BluetoothHidDevice;
+import android.bluetooth.BluetoothHidHost;
 import android.bluetooth.BluetoothMap;
 import android.bluetooth.BluetoothMapClient;
 import android.bluetooth.BluetoothPan;
@@ -115,11 +115,11 @@ class AdapterProperties {
                 case BluetoothA2dpSink.ACTION_CONNECTION_STATE_CHANGED:
                     sendConnectionStateChange(BluetoothProfile.A2DP_SINK, intent);
                     break;
-                case BluetoothInputHost.ACTION_CONNECTION_STATE_CHANGED:
-                    sendConnectionStateChange(BluetoothProfile.INPUT_HOST, intent);
+                case BluetoothHidDevice.ACTION_CONNECTION_STATE_CHANGED:
+                    sendConnectionStateChange(BluetoothProfile.HID_DEVICE, intent);
                     break;
-                case BluetoothInputDevice.ACTION_CONNECTION_STATE_CHANGED:
-                    sendConnectionStateChange(BluetoothProfile.INPUT_DEVICE, intent);
+                case BluetoothHidHost.ACTION_CONNECTION_STATE_CHANGED:
+                    sendConnectionStateChange(BluetoothProfile.HID_HOST, intent);
                     break;
                 case BluetoothAvrcpController.ACTION_CONNECTION_STATE_CHANGED:
                     sendConnectionStateChange(BluetoothProfile.AVRCP_CONTROLLER, intent);
@@ -168,8 +168,8 @@ class AdapterProperties {
         filter.addAction(BluetoothHeadsetClient.ACTION_CONNECTION_STATE_CHANGED);
         filter.addAction(BluetoothA2dp.ACTION_CONNECTION_STATE_CHANGED);
         filter.addAction(BluetoothA2dpSink.ACTION_CONNECTION_STATE_CHANGED);
-        filter.addAction(BluetoothInputHost.ACTION_CONNECTION_STATE_CHANGED);
-        filter.addAction(BluetoothInputDevice.ACTION_CONNECTION_STATE_CHANGED);
+        filter.addAction(BluetoothHidDevice.ACTION_CONNECTION_STATE_CHANGED);
+        filter.addAction(BluetoothHidHost.ACTION_CONNECTION_STATE_CHANGED);
         filter.addAction(BluetoothAvrcpController.ACTION_CONNECTION_STATE_CHANGED);
         filter.addAction(BluetoothPan.ACTION_CONNECTION_STATE_CHANGED);
         filter.addAction(BluetoothMap.ACTION_CONNECTION_STATE_CHANGED);
