@@ -8,25 +8,36 @@ import android.bluetooth.BluetoothProfile;
 import android.content.Context;
 import android.content.Intent;
 import android.media.AudioManager;
+import android.support.test.InstrumentationRegistry;
 import android.support.test.filters.MediumTest;
-import android.test.AndroidTestCase;
+import android.support.test.runner.AndroidJUnit4;
 
 import com.android.bluetooth.btservice.AdapterService;
 
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 
 @MediumTest
-public class HeadsetClientStateMachineTest extends AndroidTestCase {
+@RunWith(AndroidJUnit4.class)
+public class HeadsetClientStateMachineTest {
     private BluetoothAdapter mAdapter = null;
+    private Context mTargetContext;
 
-    @Override
-    protected void setUp() throws Exception {
+    @Before
+    public void setUp() throws Exception {
+        mTargetContext = InstrumentationRegistry.getTargetContext();
         AdapterService inst = mock(AdapterService.class);
-        assertTrue(inst != null);
+        Assert.assertTrue(inst != null);
         mAdapter = BluetoothAdapter.getDefaultAdapter();
     }
 
-    // Test that default state is disconnected
+    /**
+     * Test that default state is disconnected
+     */
+    @Test
     public void testDefaultDisconnectedState() {
         HeadsetClientService mockService = mock(HeadsetClientService.class);
         AudioManager mockAudioManager = mock(AudioManager.class);
@@ -34,12 +45,15 @@ public class HeadsetClientStateMachineTest extends AndroidTestCase {
         when(mockService.getSystemService(Context.AUDIO_SERVICE)).thenReturn(mockAudioManager);
 
         HeadsetClientStateMachine mockSM =
-                new HeadsetClientStateMachine(mockService, getContext().getMainLooper());
-        assertEquals(mockSM.getConnectionState((BluetoothDevice) null),
+                new HeadsetClientStateMachine(mockService, mTargetContext.getMainLooper());
+        Assert.assertEquals(mockSM.getConnectionState((BluetoothDevice) null),
                 BluetoothProfile.STATE_DISCONNECTED);
     }
 
-    // Test that an incoming connection with low priority is rejected
+    /**
+     * Test that an incoming connection with low priority is rejected
+     */
+    @Test
     public void testIncomingPriorityReject() {
         HeadsetClientService mockService = mock(HeadsetClientService.class);
         AudioManager mockAudioManager = mock(AudioManager.class);
@@ -48,7 +62,7 @@ public class HeadsetClientStateMachineTest extends AndroidTestCase {
         when(mockService.getSystemService(Context.AUDIO_SERVICE)).thenReturn(mockAudioManager);
 
         HeadsetClientStateMachine mockSM =
-                new HeadsetClientStateMachine(mockService, getContext().getMainLooper());
+                new HeadsetClientStateMachine(mockService, mTargetContext.getMainLooper());
         mockSM.start();
 
         // Return false for priority.
@@ -66,10 +80,14 @@ public class HeadsetClientStateMachineTest extends AndroidTestCase {
         // Verify that no connection state broadcast is executed
         verify(mockService, never()).sendBroadcast(any(Intent.class), anyString());
         // Check we are in disconnected state still.
-        assertTrue(mockSM.getCurrentState() instanceof HeadsetClientStateMachine.Disconnected);
+        Assert.assertTrue(
+                mockSM.getCurrentState() instanceof HeadsetClientStateMachine.Disconnected);
     }
 
-    // Test that an incoming connection with high priority is accepted
+    /**
+     * Test that an incoming connection with high priority is accepted
+     */
+    @Test
     public void testIncomingPriorityAccept() {
         HeadsetClientService mockService = mock(HeadsetClientService.class);
         AudioManager mockAudioManager = mock(AudioManager.class);
@@ -83,7 +101,7 @@ public class HeadsetClientStateMachineTest extends AndroidTestCase {
 
 
         HeadsetClientStateMachine mockSM =
-                new HeadsetClientStateMachine(mockService, getContext().getMainLooper());
+                new HeadsetClientStateMachine(mockService, mTargetContext.getMainLooper());
         mockSM.start();
 
         // Return false for priority.
@@ -101,11 +119,11 @@ public class HeadsetClientStateMachineTest extends AndroidTestCase {
         // Verify that one connection state broadcast is executed
         ArgumentCaptor<Intent> intentArgument1 = ArgumentCaptor.forClass(Intent.class);
         verify(mockService, timeout(1000)).sendBroadcast(intentArgument1.capture(), anyString());
-        assertEquals(BluetoothProfile.STATE_CONNECTING,
+        Assert.assertEquals(BluetoothProfile.STATE_CONNECTING,
                 intentArgument1.getValue().getIntExtra(BluetoothProfile.EXTRA_STATE, -1));
 
         // Check we are in connecting state now.
-        assertTrue(mockSM.getCurrentState() instanceof HeadsetClientStateMachine.Connecting);
+        Assert.assertTrue(mockSM.getCurrentState() instanceof HeadsetClientStateMachine.Connecting);
 
         // Send a message to trigger SLC connection
         StackEvent slcEvent = new StackEvent(StackEvent.EVENT_TYPE_CONNECTION_STATE_CHANGED);
@@ -119,13 +137,16 @@ public class HeadsetClientStateMachineTest extends AndroidTestCase {
         ArgumentCaptor<Intent> intentArgument2 = ArgumentCaptor.forClass(Intent.class);
         verify(mockService, timeout(1000).times(2)).sendBroadcast(intentArgument2.capture(),
                 anyString());
-        assertEquals(BluetoothProfile.STATE_CONNECTED,
+        Assert.assertEquals(BluetoothProfile.STATE_CONNECTED,
                 intentArgument2.getValue().getIntExtra(BluetoothProfile.EXTRA_STATE, -1));
         // Check we are in connecting state now.
-        assertTrue(mockSM.getCurrentState() instanceof HeadsetClientStateMachine.Connected);
+        Assert.assertTrue(mockSM.getCurrentState() instanceof HeadsetClientStateMachine.Connected);
     }
 
-    // Test that an incoming connection that times out
+    /**
+     * Test that an incoming connection that times out
+     */
+    @Test
     public void testIncomingTimeout() {
         HeadsetClientService mockService = mock(HeadsetClientService.class);
         AudioManager mockAudioManager = mock(AudioManager.class);
@@ -139,7 +160,7 @@ public class HeadsetClientStateMachineTest extends AndroidTestCase {
 
 
         HeadsetClientStateMachine mockSM =
-                new HeadsetClientStateMachine(mockService, getContext().getMainLooper());
+                new HeadsetClientStateMachine(mockService, mTargetContext.getMainLooper());
         mockSM.start();
 
         // Return false for priority.
@@ -157,20 +178,21 @@ public class HeadsetClientStateMachineTest extends AndroidTestCase {
         // Verify that one connection state broadcast is executed
         ArgumentCaptor<Intent> intentArgument1 = ArgumentCaptor.forClass(Intent.class);
         verify(mockService, timeout(1000)).sendBroadcast(intentArgument1.capture(), anyString());
-        assertEquals(BluetoothProfile.STATE_CONNECTING,
+        Assert.assertEquals(BluetoothProfile.STATE_CONNECTING,
                 intentArgument1.getValue().getIntExtra(BluetoothProfile.EXTRA_STATE, -1));
 
         // Check we are in connecting state now.
-        assertTrue(mockSM.getCurrentState() instanceof HeadsetClientStateMachine.Connecting);
+        Assert.assertTrue(mockSM.getCurrentState() instanceof HeadsetClientStateMachine.Connecting);
 
         // Verify that one connection state broadcast is executed
         ArgumentCaptor<Intent> intentArgument2 = ArgumentCaptor.forClass(Intent.class);
         verify(mockService, timeout(HeadsetClientStateMachine.CONNECTING_TIMEOUT_MS * 2).times(
                 2)).sendBroadcast(intentArgument2.capture(), anyString());
-        assertEquals(BluetoothProfile.STATE_DISCONNECTED,
+        Assert.assertEquals(BluetoothProfile.STATE_DISCONNECTED,
                 intentArgument2.getValue().getIntExtra(BluetoothProfile.EXTRA_STATE, -1));
 
         // Check we are in connecting state now.
-        assertTrue(mockSM.getCurrentState() instanceof HeadsetClientStateMachine.Disconnected);
+        Assert.assertTrue(
+                mockSM.getCurrentState() instanceof HeadsetClientStateMachine.Disconnected);
     }
 }
