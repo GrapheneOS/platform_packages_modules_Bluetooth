@@ -511,6 +511,33 @@ public class AdapterService extends Service {
         setGattProfileServiceState(supportedProfileServices, BluetoothAdapter.STATE_ON);
     }
 
+    /**
+     * Sets the Bluetooth CoD value of the local adapter if there exists a config value for it.
+     */
+    void setBluetoothClassFromConfig() {
+        int bluetoothClassConfig = retrieveBluetoothClassConfig();
+        if (bluetoothClassConfig != 0) {
+            mAdapterProperties.setBluetoothClass(
+                    new BluetoothClass(bluetoothClassConfig).getClassOfDeviceBytes());
+        }
+    }
+
+    private int retrieveBluetoothClassConfig() {
+        return Settings.Global.getInt(
+                getContentResolver(), Settings.Global.BLUETOOTH_CLASS_OF_DEVICE, 0);
+    }
+
+    private boolean storeBluetoothClassConfig(int bluetoothClass) {
+        boolean result = Settings.Global.putInt(
+                getContentResolver(), Settings.Global.BLUETOOTH_CLASS_OF_DEVICE, bluetoothClass);
+
+        if (!result) {
+            Log.e(TAG, "Error storing BluetoothClass config - " + bluetoothClass);
+        }
+
+        return result;
+    }
+
     void startCoreServices() {
         debugLog("startCoreServices()");
         Class[] supportedProfileServices = Config.getSupportedProfiles();
@@ -1687,11 +1714,25 @@ public class AdapterService extends Service {
         return mAdapterProperties.setName(name);
     }
 
+    /**
+     * Sets the Bluetooth CoD on the local adapter and also modifies the storage config for it.
+     *
+     * <p>Once set, this value persists across reboots.
+     */
     boolean setBluetoothClass(BluetoothClass bluetoothClass) {
         enforceCallingOrSelfPermission(BLUETOOTH_PRIVILEGED,
                 "Need BLUETOOTH PRIVILEGED permission");
 
-        return mAdapterProperties.setBluetoothClass(bluetoothClass.getClassOfDeviceBytes());
+        boolean result =
+                mAdapterProperties.setBluetoothClass(bluetoothClass.getClassOfDeviceBytes());
+
+        if (!result) {
+            Log.e(TAG,
+                    "Failed to set BluetoothClass (" + bluetoothClass
+                            + ") on local Bluetooth adapter.");
+        }
+
+        return result && storeBluetoothClassConfig(bluetoothClass.getClassOfDevice());
     }
 
     int getScanMode() {
