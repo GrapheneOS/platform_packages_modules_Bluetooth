@@ -22,40 +22,37 @@ import android.content.Context;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.media.AudioManager;
-import android.media.AudioManager.OnAudioFocusChangeListener;
 import android.os.HandlerThread;
 import android.os.Looper;
-import android.test.AndroidTestCase;
-import android.test.suitebuilder.annotation.MediumTest;
+import android.support.test.filters.MediumTest;
+import android.support.test.runner.AndroidJUnit4;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.MockitoAnnotations;
 
 @MediumTest
-@RunWith(MockitoJUnitRunner.class)
-public class A2dpSinkStreamHandlerTest extends AndroidTestCase {
-    static final int DUCK_PERCENT = 75;
+@RunWith(AndroidJUnit4.class)
+public class A2dpSinkStreamHandlerTest {
+    private static final int DUCK_PERCENT = 75;
     private HandlerThread mHandlerThread;
-    A2dpSinkStreamHandler mStreamHandler;
-    ArgumentCaptor<OnAudioFocusChangeListener> mAudioFocusChangeListenerArgumentCaptor;
+    private A2dpSinkStreamHandler mStreamHandler;
 
-    @Mock Context mMockContext;
+    @Mock private Context mMockContext;
 
-    @Mock A2dpSinkStateMachine mMockA2dpSink;
+    @Mock private A2dpSinkStateMachine mMockA2dpSink;
 
-    @Mock AudioManager mMockAudioManager;
+    @Mock private AudioManager mMockAudioManager;
 
-    @Mock Resources mMockResources;
+    @Mock private Resources mMockResources;
 
-    @Mock PackageManager mMockPackageManager;
+    @Mock private PackageManager mMockPackageManager;
 
-    @Override
     @Before
     public void setUp() {
+        MockitoAnnotations.initMocks(this);
         // Mock the looper
         if (Looper.myLooper() == null) {
             Looper.prepare();
@@ -64,8 +61,6 @@ public class A2dpSinkStreamHandlerTest extends AndroidTestCase {
         mHandlerThread = new HandlerThread("A2dpSinkStreamHandlerTest");
         mHandlerThread.start();
 
-        mAudioFocusChangeListenerArgumentCaptor =
-                ArgumentCaptor.forClass(OnAudioFocusChangeListener.class);
         when(mMockContext.getSystemService(Context.AUDIO_SERVICE)).thenReturn(mMockAudioManager);
         when(mMockContext.getResources()).thenReturn(mMockResources);
         when(mMockResources.getInteger(anyInt())).thenReturn(DUCK_PERCENT);
