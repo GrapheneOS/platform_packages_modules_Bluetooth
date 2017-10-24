@@ -230,6 +230,7 @@ final class AdapterState extends StateMachine {
                 return;
             }
             adapterService.updateUuids();
+            adapterService.setBluetoothClassFromConfig();
         }
 
         @Override
