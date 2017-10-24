@@ -28,15 +28,21 @@ import android.content.Intent;
 import android.os.HandlerThread;
 import android.os.ParcelUuid;
 import android.support.test.filters.MediumTest;
-import android.test.AndroidTestCase;
+import android.support.test.runner.AndroidJUnit4;
 
 import com.android.bluetooth.a2dp.A2dpService;
 import com.android.bluetooth.hfp.HeadsetService;
 
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+
 import java.util.ArrayList;
 
 @MediumTest
-public class PhonePolicyTest extends AndroidTestCase {
+@RunWith(AndroidJUnit4.class)
+public class PhonePolicyTest {
     private static final String TAG = "PhonePolicyTest";
     private static final int ASYNC_CALL_TIMEOUT = 2000; // 2s
     private static final int RETRY_TIMEOUT = 10000; // 10s
@@ -44,21 +50,24 @@ public class PhonePolicyTest extends AndroidTestCase {
     private HandlerThread mHandlerThread;
     private BluetoothAdapter mAdapter;
 
-    @Override
-    protected void setUp() {
+    @Before
+    public void setUp() {
         mHandlerThread = new HandlerThread("PhonePolicyTest");
         mHandlerThread.start();
         mAdapter = BluetoothAdapter.getDefaultAdapter();
     }
 
-    @Override
-    protected void tearDown() {
+    @After
+    public void tearDown() {
         mHandlerThread.quit();
     }
 
-    // Test that when new UUIDs are refreshed for a device then we set the priorities for various
-    // profiles accurately. The following profiles should have ON priorities:
-    // A2DP, HFP, HID and PAN
+    /**
+     * Test that when new UUIDs are refreshed for a device then we set the priorities for various
+     * profiles accurately. The following profiles should have ON priorities:
+     *     A2DP, HFP, HID and PAN
+     */
+    @Test
     public void testProcessInitProfilePriorities() {
         BluetoothAdapter inst = BluetoothAdapter.getDefaultAdapter();
         BluetoothDevice device = inst.getRemoteDevice("00:01:02:03:04:05");
@@ -106,10 +115,13 @@ public class PhonePolicyTest extends AndroidTestCase {
                 eq(BluetoothProfile.PRIORITY_ON));
     }
 
-    // Test that when the adapter is turned ON then we call autoconnect on devices that have HFP and
-    // A2DP enabled. NOTE that the assumption is that we have already done the pairing previously
-    // and hence the priorities for the device is already set to AUTO_CONNECT over HFP and A2DP (as
-    // part of post pairing process).
+    /**
+     * Test that when the adapter is turned ON then we call autoconnect on devices that have HFP and
+     * A2DP enabled. NOTE that the assumption is that we have already done the pairing previously
+     * and hence the priorities for the device is already set to AUTO_CONNECT over HFP and A2DP (as
+     * part of post pairing process).
+     */
+    @Test
     public void testAdapterOnAutoConnect() {
         BluetoothAdapter inst = BluetoothAdapter.getDefaultAdapter();
         BluetoothDevice device = inst.getRemoteDevice("00:01:02:03:04:05");
@@ -158,8 +170,11 @@ public class PhonePolicyTest extends AndroidTestCase {
         verify(mockA2dpService, timeout(ASYNC_CALL_TIMEOUT).times(1)).connect(eq(device));
     }
 
-    // Test that we will try to re-connect to a profile on a device if an attempt failed previously.
-    // This is to add robustness to the connection mechanism
+    /**
+     * Test that we will try to re-connect to a profile on a device if an attempt failed previously.
+     * This is to add robustness to the connection mechanism
+     */
+    @Test
     public void testReconnectOnPartialConnect() {
         BluetoothAdapter inst = BluetoothAdapter.getDefaultAdapter();
         BluetoothDevice device = inst.getRemoteDevice("00:01:02:03:04:05");
@@ -222,7 +237,10 @@ public class PhonePolicyTest extends AndroidTestCase {
         verify(mockA2dpService, timeout(RETRY_TIMEOUT).times(1)).connect(eq(device));
     }
 
-    // Test that we will not try to reconnect on a profile if all the connections failed
+    /**
+     * Test that we will not try to reconnect on a profile if all the connections failed
+     */
+    @Test
     public void testNoReconnectOnNoConnect() {
         BluetoothAdapter inst = BluetoothAdapter.getDefaultAdapter();
         BluetoothDevice device = inst.getRemoteDevice("00:01:02:03:04:05");
@@ -293,8 +311,11 @@ public class PhonePolicyTest extends AndroidTestCase {
         verify(mockHeadsetService, never()).connect(eq(device));
     }
 
-    // Test that a device with no supported uuids is initialized properly and does not crash the
-    // stack
+    /**
+     * Test that a device with no supported uuids is initialized properly and does not crash the
+     * stack
+     */
+    @Test
     public void testNoSupportedUuids() {
         BluetoothAdapter inst = BluetoothAdapter.getDefaultAdapter();
         BluetoothDevice device = inst.getRemoteDevice("00:01:02:03:04:05");

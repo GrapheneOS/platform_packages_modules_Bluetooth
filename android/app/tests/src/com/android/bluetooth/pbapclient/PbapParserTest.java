@@ -17,36 +17,43 @@
 package com.android.bluetooth.pbapclient;
 
 import android.accounts.Account;
+import android.content.Context;
+import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.database.Cursor;
 import android.provider.CallLog.Calls;
+import android.support.test.InstrumentationRegistry;
 import android.support.test.filters.MediumTest;
-import android.test.AndroidTestCase;
+import android.support.test.runner.AndroidJUnit4;
 
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.TimeZone;
 
 @MediumTest
-public class PbapParserTest extends AndroidTestCase {
+@RunWith(AndroidJUnit4.class)
+public class PbapParserTest {
     private Account mAccount;
     private Resources mTestResources;
+    private Context mTargetContext;
     private static final String TEST_ACCOUNT_NAME = "PBAPTESTACCOUNT";
     private static final String TEST_PACKAGE_NAME = "com.android.bluetooth.tests";
 
-    @Override
     @Before
     public void setUp() {
+        mTargetContext = InstrumentationRegistry.getTargetContext();
         mAccount = new Account(TEST_ACCOUNT_NAME,
-                mContext.getString(com.android.bluetooth.R.string.pbap_account_type));
+                mTargetContext.getString(com.android.bluetooth.R.string.pbap_account_type));
         try {
-            mTestResources =
-                    mContext.getPackageManager().getResourcesForApplication(TEST_PACKAGE_NAME);
-        } catch (Exception e) {
-            fail("Setup Failure Unable to get resources" + e.toString());
+            mTestResources = mTargetContext.getPackageManager()
+                    .getResourcesForApplication(TEST_PACKAGE_NAME);
+        } catch (PackageManager.NameNotFoundException e) {
+            Assert.fail("Setup Failure Unable to get resources" + e.toString());
         }
         cleanupCallLog();
     }
@@ -59,17 +66,17 @@ public class PbapParserTest extends AndroidTestCase {
                 com.android.bluetooth.tests.R.raw.no_timestamp_call_log);
         BluetoothPbapVcardList pbapVCardList = new BluetoothPbapVcardList(mAccount, fileStream,
                 PbapClientConnectionHandler.VCARD_TYPE_30);
-        assertEquals(1, pbapVCardList.getCount());
+        Assert.assertEquals(1, pbapVCardList.getCount());
         CallLogPullRequest processor =
-                new CallLogPullRequest(mContext, PbapClientConnectionHandler.MCH_PATH);
+                new CallLogPullRequest(mTargetContext, PbapClientConnectionHandler.MCH_PATH);
         processor.setResults(pbapVCardList.getList());
 
         // Verify that these entries aren't in the call log to start.
-        assertFalse(verifyCallLog("555-0001", null, "3"));
+        Assert.assertFalse(verifyCallLog("555-0001", null, "3"));
 
         // Finish processing the data and verify entries were added to the call log.
         processor.onPullComplete();
-        assertTrue(verifyCallLog("555-0001", null, "3"));
+        Assert.assertTrue(verifyCallLog("555-0001", null, "3"));
     }
 
     // testMissedCall should parse one phonecall correctly.
@@ -80,16 +87,16 @@ public class PbapParserTest extends AndroidTestCase {
                 com.android.bluetooth.tests.R.raw.single_missed_call);
         BluetoothPbapVcardList pbapVCardList = new BluetoothPbapVcardList(mAccount, fileStream,
                 PbapClientConnectionHandler.VCARD_TYPE_30);
-        assertEquals(1, pbapVCardList.getCount());
+        Assert.assertEquals(1, pbapVCardList.getCount());
         CallLogPullRequest processor =
-                new CallLogPullRequest(mContext, PbapClientConnectionHandler.MCH_PATH);
+                new CallLogPullRequest(mTargetContext, PbapClientConnectionHandler.MCH_PATH);
         processor.setResults(pbapVCardList.getList());
 
         // Verify that these entries aren't in the call log to start.
-        assertFalse(verifyCallLog("555-0002", "1483232460000", "3"));
+        Assert.assertFalse(verifyCallLog("555-0002", "1483232460000", "3"));
         // Finish processing the data and verify entries were added to the call log.
         processor.onPullComplete();
-        assertTrue(verifyCallLog("555-0002", "1483232460000", "3"));
+        Assert.assertTrue(verifyCallLog("555-0002", "1483232460000", "3"));
     }
 
     // testUnknownCall should parse two calls with no phone number.
@@ -100,30 +107,30 @@ public class PbapParserTest extends AndroidTestCase {
                 com.android.bluetooth.tests.R.raw.unknown_number_call);
         BluetoothPbapVcardList pbapVCardList = new BluetoothPbapVcardList(mAccount, fileStream,
                 PbapClientConnectionHandler.VCARD_TYPE_30);
-        assertEquals(2, pbapVCardList.getCount());
+        Assert.assertEquals(2, pbapVCardList.getCount());
         CallLogPullRequest processor =
-                new CallLogPullRequest(mContext, PbapClientConnectionHandler.MCH_PATH);
+                new CallLogPullRequest(mTargetContext, PbapClientConnectionHandler.MCH_PATH);
         processor.setResults(pbapVCardList.getList());
 
         // Verify that these entries aren't in the call log to start.
-        assertFalse(verifyCallLog("", "1483232520000", "3"));
-        assertFalse(verifyCallLog("", "1483232580000", "3"));
+        Assert.assertFalse(verifyCallLog("", "1483232520000", "3"));
+        Assert.assertFalse(verifyCallLog("", "1483232580000", "3"));
 
         // Finish processing the data and verify entries were added to the call log.
         processor.onPullComplete();
-        assertTrue(verifyCallLog("", "1483232520000", "3"));
-        assertTrue(verifyCallLog("", "1483232580000", "3"));
+        Assert.assertTrue(verifyCallLog("", "1483232520000", "3"));
+        Assert.assertTrue(verifyCallLog("", "1483232580000", "3"));
     }
 
-    void cleanupCallLog() {
-        mContext.getContentResolver().delete(Calls.CONTENT_URI, null, null);
+    private void cleanupCallLog() {
+        mTargetContext.getContentResolver().delete(Calls.CONTENT_URI, null, null);
     }
 
     // Find Entries in call log with type matching number and date.
     // If number or date is null it will match any number or date respectively.
-    boolean verifyCallLog(String number, String date, String type) {
+    private boolean verifyCallLog(String number, String date, String type) {
         String[] query = new String[]{Calls.NUMBER, Calls.DATE, Calls.TYPE};
-        Cursor cursor = mContext.getContentResolver()
+        Cursor cursor = mTargetContext.getContentResolver()
                 .query(Calls.CONTENT_URI, query, Calls.TYPE + "= " + type, null,
                         Calls.DATE + ", " + Calls.NUMBER);
         if (date != null) {
@@ -144,7 +151,7 @@ public class PbapParserTest extends AndroidTestCase {
     }
 
     // Get time zone from device and adjust date to the device's time zone.
-    String adjDate(String date) {
+    private static String adjDate(String date) {
         TimeZone tz = TimeZone.getDefault();
         long dt = Long.valueOf(date) - tz.getRawOffset();
         return Long.toString(dt);
