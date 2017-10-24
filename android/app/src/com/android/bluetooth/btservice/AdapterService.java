@@ -406,6 +406,7 @@ public class AdapterService extends Service {
         //Load the name and address
         getAdapterPropertyNative(AbstractionLayer.BT_PROPERTY_BDADDR);
         getAdapterPropertyNative(AbstractionLayer.BT_PROPERTY_BDNAME);
+        getAdapterPropertyNative(AbstractionLayer.BT_PROPERTY_CLASS_OF_DEVICE);
         mAlarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
         mPowerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
         mUserManager = (UserManager) getSystemService(Context.USER_SERVICE);
@@ -517,8 +518,7 @@ public class AdapterService extends Service {
     void setBluetoothClassFromConfig() {
         int bluetoothClassConfig = retrieveBluetoothClassConfig();
         if (bluetoothClassConfig != 0) {
-            mAdapterProperties.setBluetoothClass(
-                    new BluetoothClass(bluetoothClassConfig).getClassOfDeviceBytes());
+            mAdapterProperties.setBluetoothClass(new BluetoothClass(bluetoothClassConfig));
         }
     }
 
@@ -926,6 +926,17 @@ public class AdapterService extends Service {
                 return false;
             }
             return service.setName(name);
+        }
+
+        public BluetoothClass getBluetoothClass() {
+            if (!Utils.checkCaller()) {
+                Log.w(TAG, "getBluetoothClass() - Not allowed for non-active user");
+                return null;
+            }
+
+            AdapterService service = getService();
+            if (service == null) return null;
+            return service.getBluetoothClass();
         }
 
         public boolean setBluetoothClass(BluetoothClass bluetoothClass) {
@@ -1714,6 +1725,12 @@ public class AdapterService extends Service {
         return mAdapterProperties.setName(name);
     }
 
+    BluetoothClass getBluetoothClass() {
+        enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH ADMIN permission");
+
+        return mAdapterProperties.getBluetoothClass();
+    }
+
     /**
      * Sets the Bluetooth CoD on the local adapter and also modifies the storage config for it.
      *
@@ -1723,8 +1740,7 @@ public class AdapterService extends Service {
         enforceCallingOrSelfPermission(BLUETOOTH_PRIVILEGED,
                 "Need BLUETOOTH PRIVILEGED permission");
 
-        boolean result =
-                mAdapterProperties.setBluetoothClass(bluetoothClass.getClassOfDeviceBytes());
+        boolean result = mAdapterProperties.setBluetoothClass(bluetoothClass);
 
         if (!result) {
             Log.e(TAG,
