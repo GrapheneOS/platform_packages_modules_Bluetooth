@@ -406,6 +406,7 @@ public class AdapterService extends Service {
         //Load the name and address
         getAdapterPropertyNative(AbstractionLayer.BT_PROPERTY_BDADDR);
         getAdapterPropertyNative(AbstractionLayer.BT_PROPERTY_BDNAME);
+        getAdapterPropertyNative(AbstractionLayer.BT_PROPERTY_CLASS_OF_DEVICE);
         mAlarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
         mPowerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
         mUserManager = (UserManager) getSystemService(Context.USER_SERVICE);
@@ -509,6 +510,32 @@ public class AdapterService extends Service {
 
         //Start Gatt service
         setGattProfileServiceState(supportedProfileServices, BluetoothAdapter.STATE_ON);
+    }
+
+    /**
+     * Sets the Bluetooth CoD value of the local adapter if there exists a config value for it.
+     */
+    void setBluetoothClassFromConfig() {
+        int bluetoothClassConfig = retrieveBluetoothClassConfig();
+        if (bluetoothClassConfig != 0) {
+            mAdapterProperties.setBluetoothClass(new BluetoothClass(bluetoothClassConfig));
+        }
+    }
+
+    private int retrieveBluetoothClassConfig() {
+        return Settings.Global.getInt(
+                getContentResolver(), Settings.Global.BLUETOOTH_CLASS_OF_DEVICE, 0);
+    }
+
+    private boolean storeBluetoothClassConfig(int bluetoothClass) {
+        boolean result = Settings.Global.putInt(
+                getContentResolver(), Settings.Global.BLUETOOTH_CLASS_OF_DEVICE, bluetoothClass);
+
+        if (!result) {
+            Log.e(TAG, "Error storing BluetoothClass config - " + bluetoothClass);
+        }
+
+        return result;
     }
 
     void startCoreServices() {
@@ -899,6 +926,17 @@ public class AdapterService extends Service {
                 return false;
             }
             return service.setName(name);
+        }
+
+        public BluetoothClass getBluetoothClass() {
+            if (!Utils.checkCaller()) {
+                Log.w(TAG, "getBluetoothClass() - Not allowed for non-active user");
+                return null;
+            }
+
+            AdapterService service = getService();
+            if (service == null) return null;
+            return service.getBluetoothClass();
         }
 
         public boolean setBluetoothClass(BluetoothClass bluetoothClass) {
@@ -1687,11 +1725,30 @@ public class AdapterService extends Service {
         return mAdapterProperties.setName(name);
     }
 
+    BluetoothClass getBluetoothClass() {
+        enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH ADMIN permission");
+
+        return mAdapterProperties.getBluetoothClass();
+    }
+
+    /**
+     * Sets the Bluetooth CoD on the local adapter and also modifies the storage config for it.
+     *
+     * <p>Once set, this value persists across reboots.
+     */
     boolean setBluetoothClass(BluetoothClass bluetoothClass) {
         enforceCallingOrSelfPermission(BLUETOOTH_PRIVILEGED,
                 "Need BLUETOOTH PRIVILEGED permission");
 
-        return mAdapterProperties.setBluetoothClass(bluetoothClass.getClassOfDeviceBytes());
+        boolean result = mAdapterProperties.setBluetoothClass(bluetoothClass);
+
+        if (!result) {
+            Log.e(TAG,
+                    "Failed to set BluetoothClass (" + bluetoothClass
+                            + ") on local Bluetooth adapter.");
+        }
+
+        return result && storeBluetoothClassConfig(bluetoothClass.getClassOfDevice());
     }
 
     int getScanMode() {

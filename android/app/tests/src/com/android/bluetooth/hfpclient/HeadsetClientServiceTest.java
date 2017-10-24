@@ -7,13 +7,13 @@ import android.content.Intent;
 import android.support.test.filters.MediumTest;
 import android.test.AndroidTestCase;
 
+import com.android.bluetooth.R;
 import com.android.bluetooth.btservice.AdapterService;
 
 @MediumTest
 public class HeadsetClientServiceTest extends AndroidTestCase {
     // Time to wait for the service to be initialized
     private static final int SERVICE_START_TIMEOUT_MS = 5000;  // 5 sec
-    private static final int STATE_MACHINE_TRANSITION_TIMEOUT_MS = 5000;  // 5 sec
     private HeadsetClientService mService = null;
     private BluetoothAdapter mAdapter = null;
 
@@ -41,6 +41,11 @@ public class HeadsetClientServiceTest extends AndroidTestCase {
 
     @Override
     protected void setUp() throws Exception {
+        // On phone side, HeadsetClientService may not be included in the APK and thus the test
+        // should be skipped
+        if (!getContext().getResources().getBoolean(R.bool.profile_supported_hfpclient)) {
+            return;
+        }
         startServices();
     }
 

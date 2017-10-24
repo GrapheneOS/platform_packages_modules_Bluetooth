@@ -156,7 +156,7 @@ public class Config {
         } else if (profile == A2dpSinkService.class) {
             profileIndex = BluetoothProfile.A2DP_SINK;
         } else if (profile == HidService.class) {
-            profileIndex = BluetoothProfile.INPUT_DEVICE;
+            profileIndex = BluetoothProfile.HID_HOST;
         } else if (profile == HealthService.class) {
             profileIndex = BluetoothProfile.HEALTH;
         } else if (profile == PanService.class) {
@@ -176,7 +176,7 @@ public class Config {
         } else if (profile == MapClientService.class) {
             profileIndex = BluetoothProfile.MAP_CLIENT;
         } else if (profile == HidDevService.class) {
-            profileIndex = BluetoothProfile.INPUT_HOST;
+            profileIndex = BluetoothProfile.HID_DEVICE;
         }
 
         return profileIndex;

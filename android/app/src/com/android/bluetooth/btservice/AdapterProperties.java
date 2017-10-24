@@ -20,11 +20,12 @@ import android.bluetooth.BluetoothA2dp;
 import android.bluetooth.BluetoothA2dpSink;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothAvrcpController;
+import android.bluetooth.BluetoothClass;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothHeadset;
 import android.bluetooth.BluetoothHeadsetClient;
-import android.bluetooth.BluetoothInputDevice;
-import android.bluetooth.BluetoothInputHost;
+import android.bluetooth.BluetoothHidDevice;
+import android.bluetooth.BluetoothHidHost;
 import android.bluetooth.BluetoothMap;
 import android.bluetooth.BluetoothMapClient;
 import android.bluetooth.BluetoothPan;
@@ -57,7 +58,7 @@ class AdapterProperties {
 
     private volatile String mName;
     private volatile byte[] mAddress;
-    private volatile int mBluetoothClass;
+    private volatile BluetoothClass mBluetoothClass;
     private volatile int mScanMode;
     private volatile int mDiscoverableTimeout;
     private volatile ParcelUuid[] mUuids;
@@ -115,11 +116,11 @@ class AdapterProperties {
                 case BluetoothA2dpSink.ACTION_CONNECTION_STATE_CHANGED:
                     sendConnectionStateChange(BluetoothProfile.A2DP_SINK, intent);
                     break;
-                case BluetoothInputHost.ACTION_CONNECTION_STATE_CHANGED:
-                    sendConnectionStateChange(BluetoothProfile.INPUT_HOST, intent);
+                case BluetoothHidDevice.ACTION_CONNECTION_STATE_CHANGED:
+                    sendConnectionStateChange(BluetoothProfile.HID_DEVICE, intent);
                     break;
-                case BluetoothInputDevice.ACTION_CONNECTION_STATE_CHANGED:
-                    sendConnectionStateChange(BluetoothProfile.INPUT_DEVICE, intent);
+                case BluetoothHidHost.ACTION_CONNECTION_STATE_CHANGED:
+                    sendConnectionStateChange(BluetoothProfile.HID_HOST, intent);
                     break;
                 case BluetoothAvrcpController.ACTION_CONNECTION_STATE_CHANGED:
                     sendConnectionStateChange(BluetoothProfile.AVRCP_CONTROLLER, intent);
@@ -168,8 +169,8 @@ class AdapterProperties {
         filter.addAction(BluetoothHeadsetClient.ACTION_CONNECTION_STATE_CHANGED);
         filter.addAction(BluetoothA2dp.ACTION_CONNECTION_STATE_CHANGED);
         filter.addAction(BluetoothA2dpSink.ACTION_CONNECTION_STATE_CHANGED);
-        filter.addAction(BluetoothInputHost.ACTION_CONNECTION_STATE_CHANGED);
-        filter.addAction(BluetoothInputDevice.ACTION_CONNECTION_STATE_CHANGED);
+        filter.addAction(BluetoothHidDevice.ACTION_CONNECTION_STATE_CHANGED);
+        filter.addAction(BluetoothHidHost.ACTION_CONNECTION_STATE_CHANGED);
         filter.addAction(BluetoothAvrcpController.ACTION_CONNECTION_STATE_CHANGED);
         filter.addAction(BluetoothPan.ACTION_CONNECTION_STATE_CHANGED);
         filter.addAction(BluetoothMap.ACTION_CONNECTION_STATE_CHANGED);
@@ -217,20 +218,37 @@ class AdapterProperties {
     /**
      * Set the Bluetooth Class of Device (CoD) of the adapter.
      *
-     * @param bytes BluetoothClass of the device
+     * <p>Bluetooth stack stores some adapter properties in native BT stack storage and some in the
+     * Java Android stack. Bluetooth CoD is stored in the Android layer through
+     * {@link android.provider.Settings.Global#BLUETOOTH_CLASS_OF_DEVICE}.
+     *
+     * <p>Due to this, the getAdapterPropertyNative and adapterPropertyChangedCallback methods don't
+     * actually update mBluetoothClass. Hence, we update the field mBluetoothClass every time we
+     * successfully update BluetoothClass.
+     *
+     * @param bluetoothClass BluetoothClass of the device
      */
-    boolean setBluetoothClass(byte[] bytes) {
+    boolean setBluetoothClass(BluetoothClass bluetoothClass) {
         synchronized (mObject) {
-            return mService.setAdapterPropertyNative(AbstractionLayer.BT_PROPERTY_CLASS_OF_DEVICE,
-                    bytes);
+            boolean result =
+                    mService.setAdapterPropertyNative(AbstractionLayer.BT_PROPERTY_CLASS_OF_DEVICE,
+                            bluetoothClass.getClassOfDeviceBytes());
+
+            if (result) {
+                mBluetoothClass = bluetoothClass;
+            }
+
+            return result;
         }
     }
 
     /**
-     * @return the mClass
+     * @return the BluetoothClass of the Bluetooth adapter.
      */
-    int getBluetoothClass() {
-        return mBluetoothClass;
+    BluetoothClass getBluetoothClass() {
+        synchronized (mObject) {
+            return mBluetoothClass;
+        }
     }
 
     /**
@@ -678,7 +696,15 @@ class AdapterProperties {
                                 AdapterService.BLUETOOTH_PERM);
                         break;
                     case AbstractionLayer.BT_PROPERTY_CLASS_OF_DEVICE:
-                        mBluetoothClass = Utils.byteArrayToInt(val, 0);
+                        if (val == null || val.length != 3) {
+                            debugLog("Invalid BT CoD value from stack.");
+                            return;
+                        }
+                        int bluetoothClass =
+                                ((int) val[0] << 16) + ((int) val[1] << 8) + (int) val[2];
+                        if (bluetoothClass != 0) {
+                            mBluetoothClass = new BluetoothClass(bluetoothClass);
+                        }
                         debugLog("BT Class:" + mBluetoothClass);
                         break;
                     case AbstractionLayer.BT_PROPERTY_ADAPTER_SCAN_MODE:
