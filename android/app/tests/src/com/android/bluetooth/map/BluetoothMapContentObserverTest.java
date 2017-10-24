@@ -10,13 +10,18 @@ import android.os.Looper;
 import android.os.RemoteException;
 import android.os.UserManager;
 import android.support.test.filters.MediumTest;
+import android.support.test.runner.AndroidJUnit4;
 import android.telephony.TelephonyManager;
-import android.test.AndroidTestCase;
 import android.test.mock.MockContentProvider;
 import android.test.mock.MockContentResolver;
 
+import org.junit.Assert;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+
 @MediumTest
-public class BluetoothMapContentObserverTest extends AndroidTestCase {
+@RunWith(AndroidJUnit4.class)
+public class BluetoothMapContentObserverTest {
     class ExceptionTestProvider extends MockContentProvider {
         public ExceptionTestProvider(Context context) {
             super(context);
@@ -28,6 +33,7 @@ public class BluetoothMapContentObserverTest extends AndroidTestCase {
         }
     }
 
+    @Test
     public void testInitMsgList() {
         if (Looper.myLooper() == null) {
             Looper.prepare();
@@ -53,9 +59,9 @@ public class BluetoothMapContentObserverTest extends AndroidTestCase {
             // The constructor of BluetoothMapContentObserver calls initMsgList
             observer = new BluetoothMapContentObserver(mockContext, null, mockMas, null, true);
         } catch (RemoteException e) {
-            fail("Failed to created BluetoothMapContentObserver object");
+            Assert.fail("Failed to created BluetoothMapContentObserver object");
         } catch (SQLiteException e) {
-            fail("Threw SQLiteException instead of failing cleanly");
+            Assert.fail("Threw SQLiteException instead of Assert.failing cleanly");
         }
     }
 }

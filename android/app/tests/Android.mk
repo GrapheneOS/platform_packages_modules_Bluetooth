@@ -22,6 +22,8 @@ LOCAL_SRC_FILES := $(call all-java-files-under, src)
 
 LOCAL_PACKAGE_NAME := BluetoothInstrumentationTests
 
+LOCAL_COMPATIBILITY_SUITE := device-tests
+
 LOCAL_INSTRUMENTATION_FOR := Bluetooth
 
 include $(BUILD_PACKAGE)

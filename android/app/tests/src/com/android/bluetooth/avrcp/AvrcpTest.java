@@ -9,22 +9,34 @@ import android.content.pm.ResolveInfo;
 import android.content.pm.ServiceInfo;
 import android.media.AudioManager;
 import android.os.Looper;
+import android.support.test.InstrumentationRegistry;
 import android.support.test.filters.MediumTest;
-import android.test.AndroidTestCase;
+import android.support.test.runner.AndroidJUnit4;
+
+import org.junit.Assert;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import java.util.ArrayList;
 import java.util.List;
 
+
+/**
+ * Unit tests for {@link Avrcp}
+ */
 @MediumTest
-public class AvrcpTest extends AndroidTestCase {
+@RunWith(AndroidJUnit4.class)
+public class AvrcpTest {
+    @Test
     public void testCanStart() {
         if (Looper.myLooper() == null) {
             Looper.prepare();
         }
 
-        Avrcp a = Avrcp.make(getContext());
+        Avrcp a = Avrcp.make(InstrumentationRegistry.getTargetContext());
     }
 
+    @Test
     public void testFailedBrowseStart() {
         if (Looper.myLooper() == null) {
             Looper.prepare();
@@ -64,7 +76,8 @@ public class AvrcpTest extends AndroidTestCase {
         try {
             Avrcp a = Avrcp.make(mockContext);
         } catch (SecurityException e) {
-            fail("Threw SecurityException instead of protecting against it: " + e.toString());
+            Assert.fail(
+                    "Threw SecurityException instead of protecting against it: " + e.toString());
         }
     }
 }
