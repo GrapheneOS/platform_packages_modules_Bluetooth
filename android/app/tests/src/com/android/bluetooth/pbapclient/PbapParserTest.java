@@ -48,6 +48,7 @@ public class PbapParserTest extends AndroidTestCase {
         } catch (Exception e) {
             fail("Setup Failure Unable to get resources" + e.toString());
         }
+        cleanupCallLog();
     }
 
     // testNoTimestamp should parse 1 poorly formed vcard and not crash.
@@ -112,6 +113,10 @@ public class PbapParserTest extends AndroidTestCase {
         processor.onPullComplete();
         assertTrue(verifyCallLog("", "1483232520000", "3"));
         assertTrue(verifyCallLog("", "1483232580000", "3"));
+    }
+
+    void cleanupCallLog() {
+        mContext.getContentResolver().delete(Calls.CONTENT_URI, null, null);
     }
 
     // Find Entries in call log with type matching number and date.
