@@ -75,7 +75,7 @@ public final class Avrcp {
 
     private Context mContext;
     private final AudioManager mAudioManager;
-    private AvrcpMessageHandler mHandler;
+    private volatile AvrcpMessageHandler mHandler;
     private Handler mAudioManagerPlaybackHandler;
     private AudioManagerPlaybackListener mAudioManagerPlaybackCb;
     private MediaSessionManager mMediaSessionManager;
@@ -383,12 +383,12 @@ public final class Avrcp {
         mAudioManagerPlaybackHandler.removeCallbacksAndMessages(null);
         mHandler.removeCallbacksAndMessages(null);
         Looper looper = mHandler.getLooper();
+        mHandler = null;
         if (looper != null) {
-            looper.quit();
+            looper.quitSafely();
         }
 
         mAudioManagerPlaybackHandler = null;
-        mHandler = null;
         mContext.unregisterReceiver(mAvrcpReceiver);
         mContext.unregisterReceiver(mBootReceiver);
 
@@ -466,8 +466,15 @@ public final class Avrcp {
                 return;
             }
 
-            Log.v(TAG, "onQueueChanged: NowPlaying list changed, Queue Size = " + queue.size());
-            mHandler.sendEmptyMessage(MSG_NOW_PLAYING_CHANGED_RSP);
+            final AvrcpMessageHandler handler = mHandler;
+            if (handler == null) {
+                if (DEBUG) Log.d(TAG, "onQueueChanged: mHandler is already null");
+                return;
+            }
+
+            Log.v(TAG, "onQueueChanged: NowPlaying list changed, Queue Size = "
+                    + queue.size());
+            handler.sendEmptyMessage(MSG_NOW_PLAYING_CHANGED_RSP);
         }
     }
 
@@ -601,9 +608,9 @@ public final class Avrcp {
                                 Log.v(TAG, "remote inital volume too high " + volIndex + ">"
                                         + mAbsVolThreshold);
                             }
-                            Message msg1 = mHandler.obtainMessage(MSG_SET_ABSOLUTE_VOLUME,
+                            Message msg1 = this.obtainMessage(MSG_SET_ABSOLUTE_VOLUME,
                                     mAbsVolThreshold, 0);
-                            mHandler.sendMessage(msg1);
+                            this.sendMessage(msg1);
                             mRemoteVolume = absVol;
                             mLocalVolume = volIndex;
                             break;
@@ -1220,15 +1227,27 @@ public final class Avrcp {
     }
 
     private void getRcFeaturesRequestFromNative(byte[] address, int features) {
-        Message msg = mHandler.obtainMessage(MSG_NATIVE_REQ_GET_RC_FEATURES, features, 0,
+        final AvrcpMessageHandler handler = mHandler;
+        if (handler == null) {
+            if (DEBUG) Log.d(TAG, "getRcFeaturesRequestFromNative: mHandler is already null");
+            return;
+        }
+
+        Message msg = handler.obtainMessage(MSG_NATIVE_REQ_GET_RC_FEATURES, features, 0,
                 Utils.getAddressStringFromByte(address));
-        mHandler.sendMessage(msg);
+        handler.sendMessage(msg);
     }
 
     private void getPlayStatusRequestFromNative(byte[] address) {
-        Message msg = mHandler.obtainMessage(MSG_NATIVE_REQ_GET_PLAY_STATUS);
+        final AvrcpMessageHandler handler = mHandler;
+        if (handler == null) {
+            if (DEBUG) Log.d(TAG, "getPlayStatusRequestFromNative: mHandler is already null");
+            return;
+        }
+
+        Message msg = handler.obtainMessage(MSG_NATIVE_REQ_GET_PLAY_STATUS);
         msg.obj = address;
-        mHandler.sendMessage(msg);
+        handler.sendMessage(msg);
     }
 
     private void getElementAttrRequestFromNative(byte[] address, byte numAttr, int[] attrs) {
@@ -1240,9 +1259,16 @@ public final class Avrcp {
     }
 
     private void registerNotificationRequestFromNative(byte[] address, int eventId, int param) {
-        Message msg = mHandler.obtainMessage(MSG_NATIVE_REQ_REGISTER_NOTIFICATION, eventId, param);
+        final AvrcpMessageHandler handler = mHandler;
+        if (handler == null) {
+            if (DEBUG) {
+                Log.d(TAG, "registerNotificationRequestFromNative: mHandler is already null");
+            }
+            return;
+        }
+        Message msg = handler.obtainMessage(MSG_NATIVE_REQ_REGISTER_NOTIFICATION, eventId, param);
         msg.obj = address;
-        mHandler.sendMessage(msg);
+        handler.sendMessage(msg);
     }
 
     private void processRegisterNotification(byte[] address, int eventId, int param) {
@@ -1310,8 +1336,16 @@ public final class Avrcp {
     }
 
     private void handlePassthroughCmdRequestFromNative(byte[] address, int id, int keyState) {
-        Message msg = mHandler.obtainMessage(MSG_NATIVE_REQ_PASS_THROUGH, id, keyState);
-        mHandler.sendMessage(msg);
+        final AvrcpMessageHandler handler = mHandler;
+        if (handler == null) {
+            if (DEBUG) {
+                Log.d(TAG, "handlePassthroughCmdRequestFromNative: mHandler is already null");
+            }
+            return;
+        }
+
+        Message msg = handler.obtainMessage(MSG_NATIVE_REQ_PASS_THROUGH, id, keyState);
+        handler.sendMessage(msg);
     }
 
     private void sendTrackChangedRsp(boolean registering) {
@@ -1380,6 +1414,12 @@ public final class Avrcp {
             return;
         }
 
+        final AvrcpMessageHandler handler = mHandler;
+        if (handler == null) {
+            if (DEBUG) Log.d(TAG, "sendPlayPosNotificationRsp: handler is already null");
+            return;
+        }
+
         long playPositionMs = getPlayPosition();
         String debugLine = "sendPlayPosNotificationRsp: ";
 
@@ -1413,10 +1453,10 @@ public final class Avrcp {
             }
         }
 
-        mHandler.removeMessages(MSG_PLAY_INTERVAL_TIMEOUT);
+        handler.removeMessages(MSG_PLAY_INTERVAL_TIMEOUT);
         if (mPlayPosChangedNT == AvrcpConstants.NOTIFICATION_TYPE_INTERIM && isPlayingState(
                 mCurrentPlayState)) {
-            Message msg = mHandler.obtainMessage(MSG_PLAY_INTERVAL_TIMEOUT);
+            Message msg = handler.obtainMessage(MSG_PLAY_INTERVAL_TIMEOUT);
             long delay = mPlaybackIntervalMs;
             if (mNextPosMs != -1) {
                 delay = mNextPosMs - (playPositionMs > 0 ? playPositionMs : 0);
@@ -1424,7 +1464,7 @@ public final class Avrcp {
             if (DEBUG) {
                 debugLine += " Timeout " + delay + "ms";
             }
-            mHandler.sendMessageDelayed(msg, delay);
+            handler.sendMessageDelayed(msg, delay);
         }
         if (DEBUG) {
             Log.d(TAG, debugLine);
@@ -1444,8 +1484,14 @@ public final class Avrcp {
      * requesting our handler to call setVolumeNative()
      */
     public void adjustVolume(int direction) {
-        Message msg = mHandler.obtainMessage(MSG_ADJUST_VOLUME, direction, 0);
-        mHandler.sendMessage(msg);
+        final AvrcpMessageHandler handler = mHandler;
+        if (handler == null) {
+            if (DEBUG) Log.d(TAG, "adjustVolume: mHandler is already null");
+            return;
+        }
+
+        Message msg = handler.obtainMessage(MSG_ADJUST_VOLUME, direction, 0);
+        handler.sendMessage(msg);
     }
 
     public void setAbsoluteVolume(int volume) {
@@ -1456,9 +1502,15 @@ public final class Avrcp {
             return;
         }
 
-        mHandler.removeMessages(MSG_ADJUST_VOLUME);
-        Message msg = mHandler.obtainMessage(MSG_SET_ABSOLUTE_VOLUME, volume, 0);
-        mHandler.sendMessage(msg);
+        final AvrcpMessageHandler handler = mHandler;
+        if (handler == null) {
+            if (DEBUG) Log.d(TAG, "setAbsoluteVolume: mHandler is already null");
+            return;
+        }
+
+        handler.removeMessages(MSG_ADJUST_VOLUME);
+        Message msg = handler.obtainMessage(MSG_SET_ABSOLUTE_VOLUME, volume, 0);
+        handler.sendMessage(msg);
     }
 
     /* Called in the native layer as a btrc_callback to return the volume set on the carkit in the
@@ -1469,54 +1521,88 @@ public final class Avrcp {
      * AudioService to update the UI
      */
     private void volumeChangeRequestFromNative(byte[] address, int volume, int ctype) {
-        Message msg = mHandler.obtainMessage(MSG_NATIVE_REQ_VOLUME_CHANGE, volume, ctype);
+        final AvrcpMessageHandler handler = mHandler;
+        if (handler == null) {
+            if (DEBUG) Log.d(TAG, "volumeChangeRequestFromNative: mHandler is already null");
+            return;
+        }
+
+        Message msg = handler.obtainMessage(MSG_NATIVE_REQ_VOLUME_CHANGE, volume, ctype);
         Bundle data = new Bundle();
         data.putByteArray("BdAddress", address);
         msg.setData(data);
-        mHandler.sendMessage(msg);
+        handler.sendMessage(msg);
     }
 
     private void getFolderItemsRequestFromNative(byte[] address, byte scope, long startItem,
             long endItem, byte numAttr, int[] attrIds) {
+        final AvrcpMessageHandler handler = mHandler;
+        if (handler == null) {
+            if (DEBUG) Log.d(TAG, "getFolderItemsRequestFromNative: mHandler is already null");
+            return;
+        }
         AvrcpCmd avrcpCmdobj = new AvrcpCmd();
         AvrcpCmd.FolderItemsCmd folderObj =
                 avrcpCmdobj.new FolderItemsCmd(address, scope, startItem, endItem, numAttr,
                         attrIds);
-        Message msg = mHandler.obtainMessage(MSG_NATIVE_REQ_GET_FOLDER_ITEMS, 0, 0);
+        Message msg = handler.obtainMessage(MSG_NATIVE_REQ_GET_FOLDER_ITEMS, 0, 0);
         msg.obj = folderObj;
-        mHandler.sendMessage(msg);
+        handler.sendMessage(msg);
     }
 
     private void setAddressedPlayerRequestFromNative(byte[] address, int playerId) {
-        Message msg = mHandler.obtainMessage(MSG_NATIVE_REQ_SET_ADDR_PLAYER, playerId, 0);
+        final AvrcpMessageHandler handler = mHandler;
+        if (handler == null) {
+            if (DEBUG) Log.d(TAG, "setAddressedPlayerRequestFromNative: mHandler is already null");
+            return;
+        }
+
+        Message msg = handler.obtainMessage(MSG_NATIVE_REQ_SET_ADDR_PLAYER, playerId, 0);
         msg.obj = address;
-        mHandler.sendMessage(msg);
+        handler.sendMessage(msg);
     }
 
     private void setBrowsedPlayerRequestFromNative(byte[] address, int playerId) {
-        Message msg = mHandler.obtainMessage(MSG_NATIVE_REQ_SET_BR_PLAYER, playerId, 0);
+        final AvrcpMessageHandler handler = mHandler;
+        if (handler == null) {
+            if (DEBUG) Log.d(TAG, "setBrowsedPlayerRequestFromNative: mHandler is already null");
+            return;
+        }
+
+        Message msg = handler.obtainMessage(MSG_NATIVE_REQ_SET_BR_PLAYER, playerId, 0);
         msg.obj = address;
-        mHandler.sendMessage(msg);
+        handler.sendMessage(msg);
     }
 
     private void changePathRequestFromNative(byte[] address, byte direction, byte[] folderUid) {
+        final AvrcpMessageHandler handler = mHandler;
+        if (handler == null) {
+            if (DEBUG) Log.d(TAG, "changePathRequestFromNative: mHandler is already null");
+            return;
+        }
+
         Bundle data = new Bundle();
-        Message msg = mHandler.obtainMessage(MSG_NATIVE_REQ_CHANGE_PATH);
+        Message msg = handler.obtainMessage(MSG_NATIVE_REQ_CHANGE_PATH);
         data.putByteArray("BdAddress", address);
         data.putByteArray("folderUid", folderUid);
         data.putByte("direction", direction);
         msg.setData(data);
-        mHandler.sendMessage(msg);
+        handler.sendMessage(msg);
     }
 
     private void getItemAttrRequestFromNative(byte[] address, byte scope, byte[] itemUid,
             int uidCounter, byte numAttr, int[] attrs) {
+        final AvrcpMessageHandler handler = mHandler;
+        if (handler == null) {
+            if (DEBUG) Log.d(TAG, "getItemAttrRequestFromNative: mHandler is already null");
+            return;
+        }
         AvrcpCmd avrcpCmdobj = new AvrcpCmd();
         AvrcpCmd.ItemAttrCmd itemAttr =
                 avrcpCmdobj.new ItemAttrCmd(address, scope, itemUid, uidCounter, numAttr, attrs);
-        Message msg = mHandler.obtainMessage(MSG_NATIVE_REQ_GET_ITEM_ATTR);
+        Message msg = handler.obtainMessage(MSG_NATIVE_REQ_GET_ITEM_ATTR);
         msg.obj = itemAttr;
-        mHandler.sendMessage(msg);
+        handler.sendMessage(msg);
     }
 
     private void searchRequestFromNative(byte[] address, int charsetId, byte[] searchStr) {
@@ -1526,14 +1612,21 @@ public final class Avrcp {
     }
 
     private void playItemRequestFromNative(byte[] address, byte scope, int uidCounter, byte[] uid) {
+        final AvrcpMessageHandler handler = mHandler;
+        if (handler == null) {
+            if (DEBUG) Log.d(TAG, "playItemRequestFromNative: mHandler is already null");
+            return;
+        }
+
         Bundle data = new Bundle();
-        Message msg = mHandler.obtainMessage(MSG_NATIVE_REQ_PLAY_ITEM);
+        Message msg = handler.obtainMessage(MSG_NATIVE_REQ_PLAY_ITEM);
         data.putByteArray("BdAddress", address);
         data.putByteArray("uid", uid);
         data.putInt("uidCounter", uidCounter);
         data.putByte("scope", scope);
+
         msg.setData(data);
-        mHandler.sendMessage(msg);
+        handler.sendMessage(msg);
     }
 
     private void addToPlayListRequestFromNative(byte[] address, byte scope, byte[] uid,
@@ -1544,11 +1637,17 @@ public final class Avrcp {
     }
 
     private void getTotalNumOfItemsRequestFromNative(byte[] address, byte scope) {
+        final AvrcpMessageHandler handler = mHandler;
+        if (handler == null) {
+            if (DEBUG) Log.d(TAG, "getTotalNumOfItemsRequestFromNative: mHandler is already null");
+            return;
+        }
+
         Bundle data = new Bundle();
-        Message msg = mHandler.obtainMessage(MSG_NATIVE_REQ_GET_TOTAL_NUM_OF_ITEMS);
+        Message msg = handler.obtainMessage(MSG_NATIVE_REQ_GET_TOTAL_NUM_OF_ITEMS);
         msg.arg1 = scope;
         msg.obj = address;
-        mHandler.sendMessage(msg);
+        handler.sendMessage(msg);
     }
 
     private void notifyVolumeChanged(int volume) {
@@ -1600,8 +1699,14 @@ public final class Avrcp {
      * This is called from A2dpStateMachine to set A2dp audio state.
      */
     public void setA2dpAudioState(int state) {
-        Message msg = mHandler.obtainMessage(MSG_SET_A2DP_AUDIO_STATE, state, 0);
-        mHandler.sendMessage(msg);
+        final AvrcpMessageHandler handler = mHandler;
+        if (handler == null) {
+            if (DEBUG) Log.d(TAG, "setA2dpAudioState: mHandler is already null");
+            return;
+        }
+
+        Message msg = handler.obtainMessage(MSG_SET_A2DP_AUDIO_STATE, state, 0);
+        handler.sendMessage(msg);
     }
 
     private class AvrcpServiceBootReceiver extends BroadcastReceiver {
