@@ -692,7 +692,7 @@ public final class Avrcp {
                     if (mInitialRemoteVolume == -1) {
                         Log.d(TAG, "remote " + mAddress
                                 + " never tell us initial volume, black list it.");
-                        blackListCurrentDevice();
+                        blackListCurrentDevice("MSG_ADJUST_VOLUME");
                         break;
                     }
 
@@ -791,7 +791,7 @@ public final class Avrcp {
                             Log.d(TAG, "remote " + mAddress
                                     + " never tell us initial volume, black list it.");
                         }
-                        blackListCurrentDevice();
+                        blackListCurrentDevice("MSG_SET_ABSOLUTE_VOLUME");
                         break;
                     }
 
@@ -821,7 +821,7 @@ public final class Avrcp {
                     if (mAbsVolRetryTimes >= MAX_ERROR_RETRY_TIMES) {
                         mAbsVolRetryTimes = 0;
                     /* too many volume change failures, black list the device */
-                        blackListCurrentDevice();
+                        blackListCurrentDevice("MSG_ABS_VOL_TIMEOUT");
                     } else {
                         mAbsVolRetryTimes += 1;
                         if (setVolumeNative(mLastRemoteVolume)) {
@@ -1664,14 +1664,21 @@ public final class Avrcp {
         return (int) Math.ceil((double) volume * AVRCP_MAX_VOL / mAudioStreamMax);
     }
 
-    private void blackListCurrentDevice() {
+    private void blackListCurrentDevice(String reason) {
         mFeatures &= ~BTRC_FEAT_ABSOLUTE_VOLUME;
         mAudioManager.avrcpSupportsAbsoluteVolume(mAddress, isAbsoluteVolumeSupported());
 
         SharedPreferences pref =
                 mContext.getSharedPreferences(ABSOLUTE_VOLUME_BLACKLIST, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = pref.edit();
-        editor.putBoolean(mAddress, true);
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("Time: ");
+        sb.append(android.text.format.DateFormat.format("yyyy/MM/dd HH:mm:ss",
+                                                        System.currentTimeMillis()));
+        sb.append(" Reason: ");
+        sb.append(reason);
+        editor.putString(mAddress, sb.toString());
         editor.apply();
     }
 
@@ -1681,10 +1688,7 @@ public final class Avrcp {
         if (!pref.contains(address)) {
             return feature;
         }
-        if (pref.getBoolean(address, false)) {
-            feature &= ~BTRC_FEAT_ABSOLUTE_VOLUME;
-        }
-        return feature;
+        return feature & ~BTRC_FEAT_ABSOLUTE_VOLUME;
     }
 
     public void resetBlackList(String address) {
@@ -2750,8 +2754,14 @@ public final class Avrcp {
         if (allKeys.isEmpty()) {
             ProfileService.println(sb, "  None");
         } else {
-            for (String key : allKeys.keySet()) {
-                ProfileService.println(sb, "  " + key);
+            for (Map.Entry<String, ?> entry : allKeys.entrySet()) {
+                String key = entry.getKey();
+                Object value = entry.getValue();
+                if (value instanceof String) {
+                    ProfileService.println(sb, "  " + key + " " + value);
+                } else {
+                    ProfileService.println(sb, "  " + key + " Reason: Unknown");
+                }
             }
         }
     }
