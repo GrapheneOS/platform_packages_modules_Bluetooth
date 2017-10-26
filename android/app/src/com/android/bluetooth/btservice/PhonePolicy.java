@@ -35,7 +35,7 @@ import android.util.Log;
 
 import com.android.bluetooth.a2dp.A2dpService;
 import com.android.bluetooth.hfp.HeadsetService;
-import com.android.bluetooth.hid.HidService;
+import com.android.bluetooth.hid.HidHostService;
 import com.android.bluetooth.pan.PanService;
 import com.android.internal.R;
 
@@ -206,7 +206,7 @@ class PhonePolicy {
     // Policy implementation, all functions MUST be private
     private void processInitProfilePriorities(BluetoothDevice device, ParcelUuid[] uuids) {
         debugLog("processInitProfilePriorities() - device " + device);
-        HidService hidService = mFactory.getHidService();
+        HidHostService hidService = mFactory.getHidHostService();
         A2dpService a2dpService = mFactory.getA2dpService();
         HeadsetService headsetService = mFactory.getHeadsetService();
         PanService panService = mFactory.getPanService();

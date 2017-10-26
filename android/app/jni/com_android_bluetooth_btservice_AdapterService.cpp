@@ -1347,13 +1347,13 @@ jint JNI_OnLoad(JavaVM* jvm, void* reserved) {
     return JNI_ERR;
   }
 
-  status = android::register_com_android_bluetooth_hid(e);
+  status = android::register_com_android_bluetooth_hid_host(e);
   if (status < 0) {
     ALOGE("jni hid registration failure: %d", status);
     return JNI_ERR;
   }
 
-  status = android::register_com_android_bluetooth_hidd(e);
+  status = android::register_com_android_bluetooth_hid_device(e);
   if (status < 0) {
     ALOGE("jni hidd registration failure: %d", status);
     return JNI_ERR;
