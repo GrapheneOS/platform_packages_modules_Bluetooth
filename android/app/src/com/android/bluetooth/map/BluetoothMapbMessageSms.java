@@ -16,6 +16,7 @@ package com.android.bluetooth.map;
 
 import android.util.Log;
 
+import com.android.bluetooth.DeviceWorkArounds;
 import com.android.bluetooth.map.BluetoothMapSmsPdu.SmsPdu;
 import com.android.bluetooth.map.BluetoothMapUtils.TYPE;
 
@@ -84,6 +85,25 @@ public class BluetoothMapbMessageSms extends BluetoothMapbMessage {
         if (mSmsBody != null) {
             String tmpBody = mSmsBody.replaceAll("END:MSG",
                     "/END\\:MSG"); // Replace any occurrences of END:MSG with \END:MSG
+            String remoteAddress = BluetoothMapService.getRemoteDevice().getAddress();
+            /* Fix IOT issue with PCM carkit where carkit is unable to parse
+               message if carriage return is present in it */
+            if (DeviceWorkArounds.addressStartsWith(remoteAddress, DeviceWorkArounds.PCM_CARKIT)) {
+                tmpBody = tmpBody.replaceAll("\r", "");
+                /* Fix Message Display issue with FORD SYNC carkit -
+                 * Remove line feed and include only carriage return */
+            } else if (DeviceWorkArounds.addressStartsWith(
+                               remoteAddress, DeviceWorkArounds.FORD_SYNC_CARKIT)) {
+                tmpBody = tmpBody.replaceAll("\n", "");
+                /* Fix IOT issue with SYNC carkit to remove trailing line feeds in the message body
+                 */
+            } else if (DeviceWorkArounds.addressStartsWith(
+                               remoteAddress, DeviceWorkArounds.SYNC_CARKIT)
+                    && tmpBody.length() > 0) {
+                int trailingLF = 0;
+                while ((tmpBody.charAt(tmpBody.length() - trailingLF - 1)) == '\n') trailingLF++;
+                tmpBody = tmpBody.substring(0, (tmpBody.length() - trailingLF));
+            }
             bodyFragments.add(tmpBody.getBytes("UTF-8"));
         } else if (mSmsBodyPdus != null && mSmsBodyPdus.size() > 0) {
             for (SmsPdu pdu : mSmsBodyPdus) {
