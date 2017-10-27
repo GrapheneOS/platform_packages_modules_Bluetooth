@@ -326,8 +326,8 @@
         </service>
         <service
             android:process="@string/process"
-            android:name = ".hid.HidService"
-            android:enabled="@bool/profile_supported_hid">
+            android:name = ".hid.HidHostService"
+            android:enabled="@bool/profile_supported_hid_host">
             <intent-filter>
                 <action android:name="android.bluetooth.IBluetoothHidHost" />
             </intent-filter>
@@ -388,8 +388,8 @@
                 android:resource="@xml/authenticator" />
         </service>
         <service
-            android:name = ".hid.HidDevService"
-            android:enabled="@bool/profile_supported_hidd">
+            android:name = ".hid.HidDeviceService"
+            android:enabled="@bool/profile_supported_hid_device">
             <intent-filter>
                 <action android:name="android.bluetooth.IBluetoothHidDevice" />
             </intent-filter>

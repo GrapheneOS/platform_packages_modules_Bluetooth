@@ -32,7 +32,7 @@ import com.android.bluetooth.a2dpsink.A2dpSinkService;
 import com.android.bluetooth.btservice.RemoteDevices.DeviceProperties;
 import com.android.bluetooth.hfp.HeadsetService;
 import com.android.bluetooth.hfpclient.HeadsetClientService;
-import com.android.bluetooth.hid.HidService;
+import com.android.bluetooth.hid.HidHostService;
 import com.android.bluetooth.pbapclient.PbapClientService;
 import com.android.internal.util.State;
 import com.android.internal.util.StateMachine;
@@ -447,7 +447,7 @@ final class BondStateMachine extends StateMachine {
     }
 
     private void clearProfilePriority(BluetoothDevice device) {
-        HidService hidService = HidService.getHidService();
+        HidHostService hidService = HidHostService.getHidHostService();
         A2dpService a2dpService = A2dpService.getA2dpService();
         HeadsetService headsetService = HeadsetService.getHeadsetService();
         HeadsetClientService headsetClientService = HeadsetClientService.getHeadsetClientService();
