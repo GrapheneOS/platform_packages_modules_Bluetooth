@@ -561,9 +561,13 @@ public class BluetoothOppObexClientSession implements BluetoothOppObexSession {
                     if (outputStream != null) {
                         outputStream.close();
                     }
+                } catch (IOException e) {
+                    Log.e(TAG, "Error when closing output stream after send");
+                }
 
-                    // Close InputStream and remove SendFileInfo from map
-                    BluetoothOppUtility.closeSendFileInfo(mInfo.mUri);
+                // Close InputStream and remove SendFileInfo from map
+                BluetoothOppUtility.closeSendFileInfo(mInfo.mUri);
+                try {
                     if (!error) {
                         responseCode = putOperation.getResponseCode();
                         if (responseCode != -1) {
