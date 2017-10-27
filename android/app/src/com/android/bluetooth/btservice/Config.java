@@ -31,8 +31,8 @@ import com.android.bluetooth.gatt.GattService;
 import com.android.bluetooth.hdp.HealthService;
 import com.android.bluetooth.hfp.HeadsetService;
 import com.android.bluetooth.hfpclient.HeadsetClientService;
-import com.android.bluetooth.hid.HidDevService;
-import com.android.bluetooth.hid.HidService;
+import com.android.bluetooth.hid.HidDeviceService;
+import com.android.bluetooth.hid.HidHostService;
 import com.android.bluetooth.map.BluetoothMapService;
 import com.android.bluetooth.mapclient.MapClientService;
 import com.android.bluetooth.opp.BluetoothOppService;
@@ -55,7 +55,7 @@ public class Config {
             HeadsetService.class,
             A2dpService.class,
             A2dpSinkService.class,
-            HidService.class,
+            HidHostService.class,
             HealthService.class,
             PanService.class,
             GattService.class,
@@ -65,7 +65,7 @@ public class Config {
             SapService.class,
             PbapClientService.class,
             MapClientService.class,
-            HidDevService.class,
+            HidDeviceService.class,
             BluetoothOppService.class,
             BluetoothPbapService.class
     };
@@ -76,7 +76,7 @@ public class Config {
             R.bool.profile_supported_hs_hfp,
             R.bool.profile_supported_a2dp,
             R.bool.profile_supported_a2dp_sink,
-            R.bool.profile_supported_hid,
+            R.bool.profile_supported_hid_host,
             R.bool.profile_supported_hdp,
             R.bool.profile_supported_pan,
             R.bool.profile_supported_gatt,
@@ -86,7 +86,7 @@ public class Config {
             R.bool.profile_supported_sap,
             R.bool.profile_supported_pbapclient,
             R.bool.profile_supported_mapmce,
-            R.bool.profile_supported_hidd,
+            R.bool.profile_supported_hid_device,
             R.bool.profile_supported_opp,
             R.bool.profile_supported_pbap
     };
@@ -155,7 +155,7 @@ public class Config {
             profileIndex = BluetoothProfile.A2DP;
         } else if (profile == A2dpSinkService.class) {
             profileIndex = BluetoothProfile.A2DP_SINK;
-        } else if (profile == HidService.class) {
+        } else if (profile == HidHostService.class) {
             profileIndex = BluetoothProfile.HID_HOST;
         } else if (profile == HealthService.class) {
             profileIndex = BluetoothProfile.HEALTH;
@@ -175,7 +175,7 @@ public class Config {
             profileIndex = BluetoothProfile.PBAP_CLIENT;
         } else if (profile == MapClientService.class) {
             profileIndex = BluetoothProfile.MAP_CLIENT;
-        } else if (profile == HidDevService.class) {
+        } else if (profile == HidDeviceService.class) {
             profileIndex = BluetoothProfile.HID_DEVICE;
         }
 
