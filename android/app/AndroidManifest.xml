@@ -334,6 +334,14 @@
         </service>
         <service
             android:process="@string/process"
+            android:name = ".hid.HidDeviceService"
+            android:enabled="@bool/profile_supported_hid_device">
+            <intent-filter>
+                <action android:name="android.bluetooth.IBluetoothHidDevice" />
+            </intent-filter>
+        </service>
+        <service
+            android:process="@string/process"
             android:name = ".hdp.HealthService"
             android:enabled="@bool/profile_supported_hdp">
             <intent-filter>
@@ -386,13 +394,6 @@
             <meta-data
                 android:name="android.accounts.AccountAuthenticator"
                 android:resource="@xml/authenticator" />
-        </service>
-        <service
-            android:name = ".hid.HidDeviceService"
-            android:enabled="@bool/profile_supported_hid_device">
-            <intent-filter>
-                <action android:name="android.bluetooth.IBluetoothHidDevice" />
-            </intent-filter>
         </service>
     </application>
 </manifest>
