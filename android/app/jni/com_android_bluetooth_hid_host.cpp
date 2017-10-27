@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#define LOG_TAG "BluetoothHidServiceJni"
+#define LOG_TAG "BluetoothHidHostServiceJni"
 
 #define LOG_NDEBUG 1
 
@@ -514,8 +514,9 @@ static JNINativeMethod sMethods[] = {
     {"setIdleTimeNative", "([BB)Z", (void*)setIdleTimeNative},
 };
 
-int register_com_android_bluetooth_hid(JNIEnv* env) {
-  return jniRegisterNativeMethods(env, "com/android/bluetooth/hid/HidService",
+int register_com_android_bluetooth_hid_host(JNIEnv* env) {
+  return jniRegisterNativeMethods(env,
+                                  "com/android/bluetooth/hid/HidHostService",
                                   sMethods, NELEM(sMethods));
 }
-}
+}  // namespace android
