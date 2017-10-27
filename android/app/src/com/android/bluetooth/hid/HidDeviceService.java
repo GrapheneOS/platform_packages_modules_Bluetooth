@@ -44,7 +44,7 @@ import java.util.NoSuchElementException;
 public class HidDeviceService extends ProfileService {
     private static final boolean DBG = false;
 
-    private static final String TAG = "BluetoothHidDeviceService";
+    private static final String TAG = HidDeviceService.class.getSimpleName();
 
     private static final int MESSAGE_APPLICATION_STATE_CHANGED = 1;
     private static final int MESSAGE_CONNECT_STATE_CHANGED = 2;
@@ -579,6 +579,13 @@ public class HidDeviceService extends ProfileService {
         }
 
         return true;
+    }
+
+    @Override
+    public boolean onUnbind(Intent intent) {
+        Log.d(TAG, "Need to unregister app");
+        unregisterApp(mAppConfig);
+        return super.onUnbind(intent);
     }
 
     int getConnectionState(BluetoothDevice device) {
