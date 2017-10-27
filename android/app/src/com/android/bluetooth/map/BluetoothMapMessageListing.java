@@ -16,6 +16,7 @@ package com.android.bluetooth.map;
 
 import android.util.Log;
 
+import com.android.bluetooth.DeviceWorkArounds;
 import com.android.internal.util.FastXmlSerializer;
 
 import org.xmlpull.v1.XmlSerializer;
@@ -108,6 +109,15 @@ public class BluetoothMapMessageListing {
             Log.w(TAG, e);
         } catch (IOException e) {
             Log.w(TAG, e);
+        }
+        /* Fix IOT issue to replace '&amp;' by '&', &lt; by < and '&gt; by '>' in MessageListing */
+        if (DeviceWorkArounds.addressStartsWith(BluetoothMapService.getRemoteDevice().getAddress(),
+                    DeviceWorkArounds.BREZZA_ZDI_CARKIT)) {
+            return sw.toString()
+                    .replaceAll("&amp;", "&")
+                    .replaceAll("&lt;", "<")
+                    .replaceAll("&gt;", ">")
+                    .getBytes("UTF-8");
         }
         return sw.toString().getBytes("UTF-8");
     }
