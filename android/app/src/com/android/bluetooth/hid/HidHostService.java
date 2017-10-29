@@ -42,13 +42,13 @@ import java.util.Map;
  * the Bluetooth application.
  * @hide
  */
-public class HidService extends ProfileService {
+public class HidHostService extends ProfileService {
     private static final boolean DBG = false;
-    private static final String TAG = "BluetoothHidService";
+    private static final String TAG = "BluetoothHidHostService";
 
     private Map<BluetoothDevice, Integer> mInputDevices;
     private boolean mNativeAvailable;
-    private static HidService sHidService;
+    private static HidHostService sHidHostService;
     private BluetoothDevice mTargetDevice = null;
 
     private static final int MESSAGE_CONNECT = 1;
@@ -87,21 +87,21 @@ public class HidService extends ProfileService {
         mInputDevices = Collections.synchronizedMap(new HashMap<BluetoothDevice, Integer>());
         initializeNative();
         mNativeAvailable = true;
-        setHidService(this);
+        setHidHostService(this);
         return true;
     }
 
     @Override
     protected boolean stop() {
         if (DBG) {
-            Log.d(TAG, "Stopping Bluetooth HidService");
+            Log.d(TAG, "Stopping Bluetooth HidHostService");
         }
         return true;
     }
 
     @Override
     protected boolean cleanup() {
-        if (DBG) Log.d(TAG, "Stopping Bluetooth HidService");
+        if (DBG) Log.d(TAG, "Stopping Bluetooth HidHostService");
         if (mNativeAvailable) {
             cleanupNative();
             mNativeAvailable = false;
@@ -116,46 +116,46 @@ public class HidService extends ProfileService {
             }
             mInputDevices.clear();
         }
-        clearHidService();
+        clearHidHostService();
         return true;
     }
 
-    public static synchronized HidService getHidService() {
-        if (sHidService != null && sHidService.isAvailable()) {
+    public static synchronized HidHostService getHidHostService() {
+        if (sHidHostService != null && sHidHostService.isAvailable()) {
             if (DBG) {
-                Log.d(TAG, "getHidService(): returning " + sHidService);
+                Log.d(TAG, "getHidHostService(): returning " + sHidHostService);
             }
-            return sHidService;
+            return sHidHostService;
         }
         if (DBG) {
-            if (sHidService == null) {
-                Log.d(TAG, "getHidService(): service is NULL");
-            } else if (!(sHidService.isAvailable())) {
-                Log.d(TAG, "getHidService(): service is not available");
+            if (sHidHostService == null) {
+                Log.d(TAG, "getHidHostService(): service is NULL");
+            } else if (!(sHidHostService.isAvailable())) {
+                Log.d(TAG, "getHidHostService(): service is not available");
             }
         }
         return null;
     }
 
-    private static synchronized void setHidService(HidService instance) {
+    private static synchronized void setHidHostService(HidHostService instance) {
         if (instance != null && instance.isAvailable()) {
             if (DBG) {
-                Log.d(TAG, "setHidService(): set to: " + sHidService);
+                Log.d(TAG, "setHidHostService(): set to: " + sHidHostService);
             }
-            sHidService = instance;
+            sHidHostService = instance;
         } else {
             if (DBG) {
-                if (sHidService == null) {
-                    Log.d(TAG, "setHidService(): service not available");
-                } else if (!sHidService.isAvailable()) {
-                    Log.d(TAG, "setHidService(): service is cleaning up");
+                if (sHidHostService == null) {
+                    Log.d(TAG, "setHidHostService(): service not available");
+                } else if (!sHidHostService.isAvailable()) {
+                    Log.d(TAG, "setHidHostService(): service is cleaning up");
                 }
             }
         }
     }
 
-    private static synchronized void clearHidService() {
-        sHidService = null;
+    private static synchronized void clearHidHostService() {
+        sHidHostService = null;
     }
 
 
@@ -328,9 +328,9 @@ public class HidService extends ProfileService {
      */
     private static class BluetoothHidHostBinder extends IBluetoothHidHost.Stub
             implements IProfileServiceBinder {
-        private HidService mService;
+        private HidHostService mService;
 
-        BluetoothHidHostBinder(HidService svc) {
+        BluetoothHidHostBinder(HidHostService svc) {
             mService = svc;
         }
 
@@ -340,7 +340,7 @@ public class HidService extends ProfileService {
             return true;
         }
 
-        private HidService getService() {
+        private HidHostService getService() {
             if (!Utils.checkCaller()) {
                 Log.w(TAG, "InputDevice call not allowed for non-active user");
                 return null;
@@ -355,7 +355,7 @@ public class HidService extends ProfileService {
 
         @Override
         public boolean connect(BluetoothDevice device) {
-            HidService service = getService();
+            HidHostService service = getService();
             if (service == null) {
                 return false;
             }
@@ -364,7 +364,7 @@ public class HidService extends ProfileService {
 
         @Override
         public boolean disconnect(BluetoothDevice device) {
-            HidService service = getService();
+            HidHostService service = getService();
             if (service == null) {
                 return false;
             }
@@ -373,7 +373,7 @@ public class HidService extends ProfileService {
 
         @Override
         public int getConnectionState(BluetoothDevice device) {
-            HidService service = getService();
+            HidHostService service = getService();
             if (service == null) {
                 return BluetoothHidHost.STATE_DISCONNECTED;
             }
@@ -387,7 +387,7 @@ public class HidService extends ProfileService {
 
         @Override
         public List<BluetoothDevice> getDevicesMatchingConnectionStates(int[] states) {
-            HidService service = getService();
+            HidHostService service = getService();
             if (service == null) {
                 return new ArrayList<BluetoothDevice>(0);
             }
@@ -396,7 +396,7 @@ public class HidService extends ProfileService {
 
         @Override
         public boolean setPriority(BluetoothDevice device, int priority) {
-            HidService service = getService();
+            HidHostService service = getService();
             if (service == null) {
                 return false;
             }
@@ -405,7 +405,7 @@ public class HidService extends ProfileService {
 
         @Override
         public int getPriority(BluetoothDevice device) {
-            HidService service = getService();
+            HidHostService service = getService();
             if (service == null) {
                 return BluetoothProfile.PRIORITY_UNDEFINED;
             }
@@ -415,7 +415,7 @@ public class HidService extends ProfileService {
         /* The following APIs regarding test app for compliance */
         @Override
         public boolean getProtocolMode(BluetoothDevice device) {
-            HidService service = getService();
+            HidHostService service = getService();
             if (service == null) {
                 return false;
             }
@@ -424,7 +424,7 @@ public class HidService extends ProfileService {
 
         @Override
         public boolean virtualUnplug(BluetoothDevice device) {
-            HidService service = getService();
+            HidHostService service = getService();
             if (service == null) {
                 return false;
             }
@@ -433,7 +433,7 @@ public class HidService extends ProfileService {
 
         @Override
         public boolean setProtocolMode(BluetoothDevice device, int protocolMode) {
-            HidService service = getService();
+            HidHostService service = getService();
             if (service == null) {
                 return false;
             }
@@ -443,7 +443,7 @@ public class HidService extends ProfileService {
         @Override
         public boolean getReport(BluetoothDevice device, byte reportType, byte reportId,
                 int bufferSize) {
-            HidService service = getService();
+            HidHostService service = getService();
             if (service == null) {
                 return false;
             }
@@ -452,7 +452,7 @@ public class HidService extends ProfileService {
 
         @Override
         public boolean setReport(BluetoothDevice device, byte reportType, String report) {
-            HidService service = getService();
+            HidHostService service = getService();
             if (service == null) {
                 return false;
             }
@@ -461,7 +461,7 @@ public class HidService extends ProfileService {
 
         @Override
         public boolean sendData(BluetoothDevice device, String report) {
-            HidService service = getService();
+            HidHostService service = getService();
             if (service == null) {
                 return false;
             }
@@ -470,7 +470,7 @@ public class HidService extends ProfileService {
 
         @Override
         public boolean setIdleTime(BluetoothDevice device, byte idleTime) {
-            HidService service = getService();
+            HidHostService service = getService();
             if (service == null) {
                 return false;
             }
@@ -479,7 +479,7 @@ public class HidService extends ProfileService {
 
         @Override
         public boolean getIdleTime(BluetoothDevice device) {
-            HidService service = getService();
+            HidHostService service = getService();
             if (service == null) {
                 return false;
             }

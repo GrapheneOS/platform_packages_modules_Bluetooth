@@ -160,6 +160,7 @@ public class BluetoothOppTransfer implements BluetoothOppBatch.BluetoothOppBatch
                             intent.getParcelableExtra(BluetoothDevice.EXTRA_SDP_RECORD);
                     if (record == null) {
                         Log.w(TAG, " Invalid SDP , ignoring !!");
+                        markConnectionFailed(null);
                         return;
                     }
                     mConnectThread =
@@ -827,26 +828,24 @@ public class BluetoothOppTransfer implements BluetoothOppBatch.BluetoothOppBatch
                 return;
             }
         }
+    };
 
-        private void markConnectionFailed(BluetoothSocket s) {
-            if (V) {
-                Log.v(TAG, "markConnectionFailed " + s);
-            }
-            try {
-                if (s != null) {
-                    s.close();
-                }
-            } catch (IOException e) {
-                if (V) {
-                    Log.e(TAG, "Error when close socket");
-                }
-            }
-            mSessionHandler.obtainMessage(TRANSPORT_ERROR).sendToTarget();
-            return;
+    private void markConnectionFailed(BluetoothSocket s) {
+        if (V) {
+            Log.v(TAG, "markConnectionFailed " + s);
         }
+        try {
+            if (s != null) {
+                s.close();
+            }
+        } catch (IOException e) {
+            if (V) {
+                Log.e(TAG, "Error when close socket");
+            }
+        }
+        mSessionHandler.obtainMessage(TRANSPORT_ERROR).sendToTarget();
+        return;
     }
-
-    ;
 
     /* update a trivial field of a share to notify Provider the batch status change */
     private void tickShareStatus(BluetoothOppShareInfo share) {

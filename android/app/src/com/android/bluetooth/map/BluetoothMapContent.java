@@ -37,6 +37,7 @@ import android.text.util.Rfc822Token;
 import android.text.util.Rfc822Tokenizer;
 import android.util.Log;
 
+import com.android.bluetooth.DeviceWorkArounds;
 import com.android.bluetooth.SignedLongLong;
 import com.android.bluetooth.map.BluetoothMapUtils.TYPE;
 import com.android.bluetooth.map.BluetoothMapbMessageMime.MimePart;
@@ -1319,7 +1320,10 @@ public class BluetoothMapContent {
             subLength = 256;
         }
 
-        if ((ap.getParameterMask() & MASK_SUBJECT) != 0) {
+        // Fix Subject Display issue with HONDA Carkit - Ignore subject Mask.
+        if (DeviceWorkArounds.addressStartsWith(BluetoothMapService.getRemoteDevice().getAddress(),
+                    DeviceWorkArounds.HONDA_CARKIT)
+                || (ap.getParameterMask() & MASK_SUBJECT) != 0) {
             if (fi.mMsgType == FilterInfo.TYPE_SMS) {
                 subject = c.getString(fi.mSmsColSubject);
             } else if (fi.mMsgType == FilterInfo.TYPE_MMS) {

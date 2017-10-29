@@ -17,13 +17,13 @@
 package com.android.bluetooth.hid;
 
 import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothHidDevice;
 import android.bluetooth.BluetoothHidDeviceAppConfiguration;
 import android.bluetooth.BluetoothHidDeviceAppQosSettings;
 import android.bluetooth.BluetoothHidDeviceAppSdpSettings;
-import android.bluetooth.BluetoothHidDevice;
 import android.bluetooth.BluetoothProfile;
-import android.bluetooth.IBluetoothHidDeviceCallback;
 import android.bluetooth.IBluetoothHidDevice;
+import android.bluetooth.IBluetoothHidDeviceCallback;
 import android.content.Intent;
 import android.os.Handler;
 import android.os.IBinder;
@@ -41,10 +41,10 @@ import java.util.List;
 import java.util.NoSuchElementException;
 
 /** @hide */
-public class HidDevService extends ProfileService {
+public class HidDeviceService extends ProfileService {
     private static final boolean DBG = false;
 
-    private static final String TAG = "BluetoothHidDevService";
+    private static final String TAG = HidDeviceService.class.getSimpleName();
 
     private static final int MESSAGE_APPLICATION_STATE_CHANGED = 1;
     private static final int MESSAGE_CONNECT_STATE_CHANGED = 2;
@@ -101,7 +101,7 @@ public class HidDevService extends ProfileService {
                     }
 
                     if (success) {
-                        mDeathRcpt = new BluetoothHidDeviceDeathRecipient(HidDevService.this,
+                        mDeathRcpt = new BluetoothHidDeviceDeathRecipient(HidDeviceService.this,
                                 mAppConfig);
                         if (mCallback != null) {
                             IBinder binder = mCallback.asBinder();
@@ -224,10 +224,10 @@ public class HidDevService extends ProfileService {
     };
 
     private static class BluetoothHidDeviceDeathRecipient implements IBinder.DeathRecipient {
-        private HidDevService mService;
+        private HidDeviceService mService;
         private BluetoothHidDeviceAppConfiguration mAppConfig;
 
-        BluetoothHidDeviceDeathRecipient(HidDevService service,
+        BluetoothHidDeviceDeathRecipient(HidDeviceService service,
                 BluetoothHidDeviceAppConfiguration config) {
             mService = service;
             mAppConfig = config;
@@ -250,9 +250,9 @@ public class HidDevService extends ProfileService {
 
         private static final String TAG = BluetoothHidDeviceBinder.class.getSimpleName();
 
-        private HidDevService mService;
+        private HidDeviceService mService;
 
-        BluetoothHidDeviceBinder(HidDevService service) {
+        BluetoothHidDeviceBinder(HidDeviceService service) {
             mService = service;
         }
 
@@ -262,7 +262,7 @@ public class HidDevService extends ProfileService {
             return true;
         }
 
-        private HidDevService getService() {
+        private HidDeviceService getService() {
             if (!Utils.checkCaller()) {
                 Log.w(TAG, "HidDevice call not allowed for non-active user");
                 return null;
@@ -283,7 +283,7 @@ public class HidDevService extends ProfileService {
                 Log.d(TAG, "registerApp()");
             }
 
-            HidDevService service = getService();
+            HidDeviceService service = getService();
             if (service == null) {
                 return false;
             }
@@ -297,7 +297,7 @@ public class HidDevService extends ProfileService {
                 Log.d(TAG, "unregisterApp()");
             }
 
-            HidDevService service = getService();
+            HidDeviceService service = getService();
             if (service == null) {
                 return false;
             }
@@ -311,7 +311,7 @@ public class HidDevService extends ProfileService {
                 Log.d(TAG, "sendReport(): device=" + device + "  id=" + id);
             }
 
-            HidDevService service = getService();
+            HidDeviceService service = getService();
             if (service == null) {
                 return false;
             }
@@ -325,7 +325,7 @@ public class HidDevService extends ProfileService {
                 Log.d(TAG, "replyReport(): device=" + device + " type=" + type + " id=" + id);
             }
 
-            HidDevService service = getService();
+            HidDeviceService service = getService();
             if (service == null) {
                 return false;
             }
@@ -339,7 +339,7 @@ public class HidDevService extends ProfileService {
                 Log.d(TAG, "unplug(): device=" + device);
             }
 
-            HidDevService service = getService();
+            HidDeviceService service = getService();
             if (service == null) {
                 return false;
             }
@@ -353,7 +353,7 @@ public class HidDevService extends ProfileService {
                 Log.d(TAG, "connect(): device=" + device);
             }
 
-            HidDevService service = getService();
+            HidDeviceService service = getService();
             if (service == null) {
                 return false;
             }
@@ -367,7 +367,7 @@ public class HidDevService extends ProfileService {
                 Log.d(TAG, "disconnect(): device=" + device);
             }
 
-            HidDevService service = getService();
+            HidDeviceService service = getService();
             if (service == null) {
                 return false;
             }
@@ -381,7 +381,7 @@ public class HidDevService extends ProfileService {
                 Log.d(TAG, "reportError(): device=" + device + " error=" + error);
             }
 
-            HidDevService service = getService();
+            HidDeviceService service = getService();
             if (service == null) {
                 return false;
             }
@@ -395,7 +395,7 @@ public class HidDevService extends ProfileService {
                 Log.d(TAG, "getConnectionState(): device=" + device);
             }
 
-            HidDevService service = getService();
+            HidDeviceService service = getService();
             if (service == null) {
                 return BluetoothHidDevice.STATE_DISCONNECTED;
             }
@@ -419,7 +419,7 @@ public class HidDevService extends ProfileService {
                         "getDevicesMatchingConnectionStates(): states=" + Arrays.toString(states));
             }
 
-            HidDevService service = getService();
+            HidDeviceService service = getService();
             if (service == null) {
                 return new ArrayList<BluetoothDevice>(0);
             }
@@ -579,6 +579,13 @@ public class HidDevService extends ProfileService {
         }
 
         return true;
+    }
+
+    @Override
+    public boolean onUnbind(Intent intent) {
+        Log.d(TAG, "Need to unregister app");
+        unregisterApp(mAppConfig);
+        return super.onUnbind(intent);
     }
 
     int getConnectionState(BluetoothDevice device) {
