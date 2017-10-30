@@ -14,8 +14,8 @@
 */
 package com.android.bluetooth.map;
 
+import com.android.bluetooth.DeviceWorkArounds;
 import com.android.bluetooth.map.BluetoothMapUtils.TYPE;
-import com.android.bluetooth.util.Interop;
 
 import org.xmlpull.v1.XmlSerializer;
 
@@ -274,8 +274,9 @@ public class BluetoothMapMessageListingElement
         if (mSubject != null) {
             String stripped = BluetoothMapUtils.stripInvalidChars(mSubject);
 
-            if (Interop.matchByAddress(Interop.INTEROP_MAP_ASCIIONLY,
-                    BluetoothMapService.getRemoteDevice().getAddress())) {
+            if (DeviceWorkArounds.addressStartsWith(BluetoothMapService
+                    .getRemoteDevice().getAddress(), DeviceWorkArounds
+                    .MERCEDES_BENZ_CARKIT)) {
                 stripped = stripped.replaceAll("[\\P{ASCII}&\"><]", "");
                 if (stripped.isEmpty()) {
                     stripped = "---";
