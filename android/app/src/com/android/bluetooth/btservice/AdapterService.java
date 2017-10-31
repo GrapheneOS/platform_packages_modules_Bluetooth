@@ -39,6 +39,7 @@ import android.os.Binder;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
+import android.os.Looper;
 import android.os.Message;
 import android.os.ParcelFileDescriptor;
 import android.os.ParcelUuid;
@@ -394,7 +395,7 @@ public class AdapterService extends Service {
     public void onCreate() {
         super.onCreate();
         debugLog("onCreate()");
-        mRemoteDevices = new RemoteDevices(this);
+        mRemoteDevices = new RemoteDevices(this, Looper.getMainLooper());
         mRemoteDevices.init();
         mBinder = new AdapterServiceBinder(this);
         mAdapterProperties = new AdapterProperties(this);
