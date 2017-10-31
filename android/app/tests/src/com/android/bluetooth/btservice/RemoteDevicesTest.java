@@ -49,11 +49,14 @@ public class RemoteDevicesTest {
 
     @Test
     public void testSendUuidIntent() {
-        MyAdapterSvc m = new MyAdapterSvc();
-        RemoteDevices instance = new RemoteDevices(m);
-        instance.updateUuids(mDevice1);
+        mRemoteDevices.updateUuids(mDevice1);
+        if (Looper.myLooper() != null) {
+            Looper.myLooper().quitSafely();
+        }
         Looper.loop();
-        Assert.assertTrue(m.isRecvd());
+
+        verify(mAdapterService).sendBroadcast(any(), anyString());
+        verifyNoMoreInteractions(mAdapterService);
     }
 
     @Test
@@ -461,19 +464,5 @@ public class RemoteDevicesTest {
         list.add(0);
         list.add(0);
         return list.toArray();
-    }
-
-    public class MyAdapterSvc extends AdapterService {
-        private boolean recvd = false;
-
-        @Override
-        public void sendBroadcast(Intent intent, String receiverPermission) {
-            recvd = (intent.getAction() == BluetoothDevice.ACTION_UUID);
-            if (recvd || Looper.myQueue().isIdle()) Looper.myLooper().quitSafely();
-        }
-
-        boolean isRecvd() {
-            return recvd;
-        }
     }
 }
