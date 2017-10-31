@@ -3224,7 +3224,7 @@ public class BluetoothMapContentObserver {
                 }
 
                 if (msgInfo.partsSent == msgInfo.parts) {
-                    actionMessageSent(context, intent, msgInfo);
+                    actionMessageSent(context, intent, msgInfo, handle);
                 }
             } else if (action.equals(ACTION_MESSAGE_DELIVERY)) {
                 long timestamp = intent.getLongExtra(EXTRA_MESSAGE_SENT_TIMESTAMP, 0);
@@ -3237,7 +3237,8 @@ public class BluetoothMapContentObserver {
             }
         }
 
-        private void actionMessageSent(Context context, Intent intent, PushMsgInfo msgInfo) {
+        private void actionMessageSent(
+                Context context, Intent intent, PushMsgInfo msgInfo, long handle) {
             /* As the MESSAGE_SENT intent is forwarded from the MAP service, we use the intent
              * to carry the result, as getResult() will not return the correct value.
              */
@@ -3297,7 +3298,9 @@ public class BluetoothMapContentObserver {
                 }
 
                 /* Delete from DB */
-                mResolver.delete(msgInfo.uri, null, null);
+                Uri msgUri = ContentUris.withAppendedId(Sms.CONTENT_URI, handle);
+                int nRows = mResolver.delete(msgUri, null, null);
+                if (V && nRows > 0) Log.v(TAG, "Deleted message with Uri = " + msgUri);
             }
         }
 
