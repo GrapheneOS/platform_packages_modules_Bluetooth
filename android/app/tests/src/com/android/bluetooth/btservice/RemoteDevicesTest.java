@@ -8,13 +8,17 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothHeadset;
 import android.bluetooth.BluetoothProfile;
 import android.content.Intent;
-import android.os.Looper;
+import android.os.HandlerThread;
+import android.os.Message;
+import android.os.TestLooperManager;
+import android.support.test.InstrumentationRegistry;
 import android.support.test.filters.MediumTest;
 import android.support.test.runner.AndroidJUnit4;
 
 import com.android.bluetooth.Utils;
 import com.android.bluetooth.hfp.HeadsetHalConstants;
 
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -34,27 +38,37 @@ public class RemoteDevicesTest {
     private ArgumentCaptor<String> mStringArgument = ArgumentCaptor.forClass(String.class);
     private BluetoothDevice mDevice1;
     private RemoteDevices mRemoteDevices;
+    private HandlerThread mHandlerThread;
+    private TestLooperManager mTestLooperManager;
 
     @Mock private AdapterService mAdapterService;
 
     @Before
     public void setUp() {
         MockitoAnnotations.initMocks(this);
-        if (Looper.myLooper() == null) {
-            Looper.prepare();
-        }
         mDevice1 = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(TEST_BT_ADDR_1);
-        mRemoteDevices = new RemoteDevices(mAdapterService);
+        mHandlerThread = new HandlerThread("RemoteDevicesTestHandlerThread");
+        mHandlerThread.start();
+        mTestLooperManager = InstrumentationRegistry.getInstrumentation()
+                .acquireLooperManager(mHandlerThread.getLooper());
+        mRemoteDevices = new RemoteDevices(mAdapterService, mHandlerThread.getLooper());
+    }
+
+    @After
+    public void tearDown() {
+        mTestLooperManager.release();
+        mHandlerThread.quit();
     }
 
     @Test
     public void testSendUuidIntent() {
+        // Verify that a handler message is sent by the method call
         mRemoteDevices.updateUuids(mDevice1);
-        if (Looper.myLooper() != null) {
-            Looper.myLooper().quitSafely();
-        }
-        Looper.loop();
+        Message msg = mTestLooperManager.next();
+        Assert.assertNotNull(msg);
 
+        // Verify that executing that message results in a broadcast intent
+        mTestLooperManager.execute(msg);
         verify(mAdapterService).sendBroadcast(any(), anyString());
         verifyNoMoreInteractions(mAdapterService);
     }
