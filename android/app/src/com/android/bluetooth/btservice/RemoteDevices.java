@@ -27,6 +27,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Handler;
+import android.os.Looper;
 import android.os.Message;
 import android.os.ParcelUuid;
 import android.support.annotation.VisibleForTesting;
@@ -59,6 +60,30 @@ final class RemoteDevices {
     private final HashMap<String, DeviceProperties> mDevices;
     private Queue<String> mDeviceQueue;
 
+    private final Handler mHandler;
+    private class RemoteDevicesHandler extends Handler {
+
+        /**
+         * Handler must be created from an explicit looper to avoid threading ambiguity
+         * @param looper The looper that this handler should be executed on
+         */
+        RemoteDevicesHandler(Looper looper) {
+            super(looper);
+        }
+
+        @Override
+        public void handleMessage(Message msg) {
+            switch (msg.what) {
+                case MESSAGE_UUID_INTENT:
+                    BluetoothDevice device = (BluetoothDevice) msg.obj;
+                    if (device != null) {
+                        sendUuidIntent(device);
+                    }
+                    break;
+            }
+        }
+    }
+
     private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -80,12 +105,13 @@ final class RemoteDevices {
         }
     };
 
-    RemoteDevices(AdapterService service) {
+    RemoteDevices(AdapterService service, Looper looper) {
         sAdapter = BluetoothAdapter.getDefaultAdapter();
         sAdapterService = service;
         sSdpTracker = new ArrayList<BluetoothDevice>();
         mDevices = new HashMap<String, DeviceProperties>();
         mDeviceQueue = new LinkedList<String>();
+        mHandler = new RemoteDevicesHandler(looper);
     }
 
     /**
@@ -781,20 +807,6 @@ final class RemoteDevices {
         }
         return batteryLevel * 100 / numberOfLevels;
     }
-
-    private final Handler mHandler = new Handler() {
-        @Override
-        public void handleMessage(Message msg) {
-            switch (msg.what) {
-                case MESSAGE_UUID_INTENT:
-                    BluetoothDevice device = (BluetoothDevice) msg.obj;
-                    if (device != null) {
-                        sendUuidIntent(device);
-                    }
-                    break;
-            }
-        }
-    };
 
     private static void errorLog(String msg) {
         Log.e(TAG, msg);

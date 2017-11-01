@@ -15,6 +15,7 @@
 package com.android.bluetooth.map;
 
 import android.util.Log;
+import android.util.Xml;
 
 import com.android.bluetooth.DeviceWorkArounds;
 import com.android.internal.util.FastXmlSerializer;
@@ -90,11 +91,25 @@ public class BluetoothMapMessageListing {
     public byte[] encode(boolean includeThreadId, String version)
             throws UnsupportedEncodingException {
         StringWriter sw = new StringWriter();
-        XmlSerializer xmlMsgElement = new FastXmlSerializer();
+        XmlSerializer xmlMsgElement = null;
+        boolean isBenzCarkit = DeviceWorkArounds.addressStartsWith(
+                BluetoothMapService.getRemoteDevice().getAddress(),
+                DeviceWorkArounds.MERCEDES_BENZ_CARKIT);
         try {
-            xmlMsgElement.setOutput(sw);
-            xmlMsgElement.startDocument("UTF-8", true);
-            xmlMsgElement.setFeature("http://xmlpull.org/v1/doc/features.html#indent-output", true);
+            if (isBenzCarkit) {
+                Log.d(TAG, "java_interop: Remote is Mercedes Benz, "
+                        + "using Xml Workaround.");
+                xmlMsgElement = Xml.newSerializer();
+                xmlMsgElement.setOutput(sw);
+                xmlMsgElement.text("\n");
+            } else {
+                xmlMsgElement = new FastXmlSerializer();
+                xmlMsgElement.setOutput(sw);
+                xmlMsgElement.startDocument("UTF-8", true);
+                xmlMsgElement.text("\n");
+                xmlMsgElement.setFeature(
+                        "http://xmlpull.org/v1/doc/features.html#indent-output", true);
+            }
             xmlMsgElement.startTag(null, "MAP-msg-listing");
             xmlMsgElement.attribute(null, "version", version);
             // Do the XML encoding of list
