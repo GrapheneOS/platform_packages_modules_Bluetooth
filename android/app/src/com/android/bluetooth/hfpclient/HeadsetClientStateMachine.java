@@ -578,6 +578,11 @@ public class HeadsetClientStateMachine extends StateMachine {
         BluetoothHeadsetClientCall c = getCall(BluetoothHeadsetClientCall.CALL_STATE_DIALING,
                 BluetoothHeadsetClientCall.CALL_STATE_ALERTING,
                 BluetoothHeadsetClientCall.CALL_STATE_ACTIVE);
+        if (c == null) {
+            // If the call being terminated is currently held, switch the action to CHLD_0
+            c = getCall(BluetoothHeadsetClientCall.CALL_STATE_HELD);
+            action = HeadsetClientHalConstants.CALL_ACTION_CHLD_0;
+        }
         if (c != null) {
             if (NativeInterface.handleCallActionNative(getByteAddress(mCurrentDevice), action, 0)) {
                 addQueuedAction(TERMINATE_CALL, action);

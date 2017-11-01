@@ -88,10 +88,9 @@ public class HfpClientDeviceBlock {
     }
 
     synchronized Connection onCreateIncomingConnection(BluetoothHeadsetClientCall call) {
-        HfpClientConnection connection = connection = mConnections.get(call.getUUID());
+        HfpClientConnection connection = mConnections.get(call.getUUID());
         if (connection != null) {
             connection.onAdded();
-            updateConferenceableConnections();
             return connection;
         } else {
             Log.e(mTAG, "Call " + call + " ignored: connection does not exist");
@@ -109,11 +108,10 @@ public class HfpClientDeviceBlock {
 
     synchronized Connection onCreateUnknownConnection(BluetoothHeadsetClientCall call) {
         Uri number = Uri.fromParts(PhoneAccount.SCHEME_TEL, call.getNumber(), null);
-        HfpClientConnection connection = connection = mConnections.get(call.getUUID());
+        HfpClientConnection connection = mConnections.get(call.getUUID());
 
         if (connection != null) {
             connection.onAdded();
-            updateConferenceableConnections();
             return connection;
         } else {
             Log.e(mTAG, "Call " + call + " ignored: connection does not exist");
@@ -176,7 +174,8 @@ public class HfpClientDeviceBlock {
             Bundle b = new Bundle();
             if (call.getState() == BluetoothHeadsetClientCall.CALL_STATE_DIALING
                     || call.getState() == BluetoothHeadsetClientCall.CALL_STATE_ALERTING
-                    || call.getState() == BluetoothHeadsetClientCall.CALL_STATE_ACTIVE) {
+                    || call.getState() == BluetoothHeadsetClientCall.CALL_STATE_ACTIVE
+                    || call.getState() == BluetoothHeadsetClientCall.CALL_STATE_HELD) {
                 // This is an outgoing call. Even if it is an active call we do not have a way of
                 // putting that parcelable in a seaprate field.
                 b.putParcelable(TelecomManager.EXTRA_OUTGOING_CALL_EXTRAS, call);
