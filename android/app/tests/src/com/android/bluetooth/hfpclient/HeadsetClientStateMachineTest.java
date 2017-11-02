@@ -4,14 +4,17 @@ import static org.mockito.Mockito.*;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothHeadsetClient;
 import android.bluetooth.BluetoothProfile;
 import android.content.Context;
 import android.content.Intent;
 import android.media.AudioManager;
 import android.os.HandlerThread;
+import android.support.test.espresso.intent.matcher.IntentMatchers;
 import android.support.test.filters.MediumTest;
 import android.support.test.runner.AndroidJUnit4;
 
+import org.hamcrest.core.AllOf;
 import org.hamcrest.core.IsInstanceOf;
 import org.junit.After;
 import org.junit.Assert;
@@ -21,6 +24,7 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.mockito.hamcrest.MockitoHamcrest;
 
 @MediumTest
 @RunWith(AndroidJUnit4.class)
@@ -54,10 +58,12 @@ public class HeadsetClientStateMachineTest {
         // Manage looper execution in main test thread explicitly to guarantee timing consistency
         mHeadsetClientStateMachine =
                 new HeadsetClientStateMachine(mHeadsetClientService, mHandlerThread.getLooper());
+        mHeadsetClientStateMachine.start();
     }
 
     @After
     public void tearDown() {
+        mHeadsetClientStateMachine.doQuit();
         mHandlerThread.quit();
     }
 
@@ -75,8 +81,6 @@ public class HeadsetClientStateMachineTest {
      */
     @Test
     public void testIncomingPriorityReject() {
-        mHeadsetClientStateMachine.start();
-
         // Return false for priority.
         when(mHeadsetClientService.getPriority(any(BluetoothDevice.class))).thenReturn(
                 BluetoothProfile.PRIORITY_OFF);
@@ -87,8 +91,14 @@ public class HeadsetClientStateMachineTest {
         connStCh.device = mTestDevice;
         mHeadsetClientStateMachine.sendMessage(StackEvent.STACK_EVENT, connStCh);
 
-        // Verify that no connection state broadcast is executed
-        verify(mHeadsetClientService, never()).sendBroadcast(any(Intent.class), anyString());
+        // Verify that only DISCONNECTED -> DISCONNECTED broadcast is fired
+        verify(mHeadsetClientService, timeout(1000)).sendBroadcast(MockitoHamcrest.argThat(
+                AllOf.allOf(IntentMatchers.hasAction(
+                        BluetoothHeadsetClient.ACTION_CONNECTION_STATE_CHANGED),
+                        IntentMatchers.hasExtra(BluetoothProfile.EXTRA_STATE,
+                                BluetoothProfile.STATE_DISCONNECTED),
+                        IntentMatchers.hasExtra(BluetoothProfile.EXTRA_PREVIOUS_STATE,
+                                BluetoothProfile.STATE_DISCONNECTED))), anyString());
         // Check we are in disconnected state still.
         Assert.assertThat(mHeadsetClientStateMachine.getCurrentState(),
                 IsInstanceOf.instanceOf(HeadsetClientStateMachine.Disconnected.class));
@@ -99,8 +109,6 @@ public class HeadsetClientStateMachineTest {
      */
     @Test
     public void testIncomingPriorityAccept() {
-        mHeadsetClientStateMachine.start();
-
         // Return true for priority.
         when(mHeadsetClientService.getPriority(any(BluetoothDevice.class))).thenReturn(
                 BluetoothProfile.PRIORITY_ON);
@@ -145,8 +153,6 @@ public class HeadsetClientStateMachineTest {
      */
     @Test
     public void testIncomingTimeout() {
-        mHeadsetClientStateMachine.start();
-
         // Return true for priority.
         when(mHeadsetClientService.getPriority(any(BluetoothDevice.class))).thenReturn(
                 BluetoothProfile.PRIORITY_ON);
