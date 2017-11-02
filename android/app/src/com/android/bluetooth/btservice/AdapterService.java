@@ -16,6 +16,7 @@
 
 package com.android.bluetooth.btservice;
 
+import android.app.ActivityManager;
 import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.app.Service;
@@ -456,6 +457,12 @@ public class AdapterService extends Service {
             // Some platforms, such as wearables do not have a system ui.
             Log.w(TAG, "Unable to resolve SystemUI's UID.", e);
         }
+
+        IntentFilter filter = new IntentFilter(Intent.ACTION_USER_SWITCHED);
+        getApplicationContext().registerReceiverAsUser(sUserSwitchedReceiver, UserHandle.ALL,
+                filter, null, null);
+        int fuid = ActivityManager.getCurrentUser();
+        Utils.setForegroundUserId(fuid);
     }
 
     @Override
@@ -481,6 +488,16 @@ public class AdapterService extends Service {
             System.exit(0);
         }
     }
+
+    public static final BroadcastReceiver sUserSwitchedReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (Intent.ACTION_USER_SWITCHED.equals(intent.getAction())) {
+                int fuid = intent.getIntExtra(Intent.EXTRA_USER_HANDLE, 0);
+                Utils.setForegroundUserId(fuid);
+            }
+        }
+    };
 
     void bleOnProcessStart() {
         debugLog("bleOnProcessStart()");
