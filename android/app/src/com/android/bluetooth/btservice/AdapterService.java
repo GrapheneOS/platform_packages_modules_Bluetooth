@@ -33,6 +33,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.os.AsyncTask;
 import android.os.BatteryStats;
 import android.os.Binder;
@@ -445,6 +446,16 @@ public class AdapterService extends Service {
                 return null;
             }
         }.execute();
+
+        try {
+            int systemUiUid = getApplicationContext().getPackageManager().getPackageUidAsUser(
+                    "com.android.systemui", PackageManager.MATCH_SYSTEM_ONLY,
+                    UserHandle.USER_SYSTEM);
+            Utils.setSystemUiUid(systemUiUid);
+        } catch (PackageManager.NameNotFoundException e) {
+            // Some platforms, such as wearables do not have a system ui.
+            Log.w(TAG, "Unable to resolve SystemUI's UID.", e);
+        }
     }
 
     @Override
