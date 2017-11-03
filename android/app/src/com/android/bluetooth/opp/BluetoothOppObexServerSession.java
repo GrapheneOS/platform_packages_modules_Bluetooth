@@ -32,7 +32,6 @@
 
 package com.android.bluetooth.opp;
 
-import android.app.NotificationManager;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
@@ -567,6 +566,7 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler
                 Log.e(TAG, "Error when closing stream after send");
             }
         }
+        BluetoothOppUtility.cancelNotification(mContext);
         return status;
     }
 
@@ -660,11 +660,7 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler
             }
             mServerSocket.prepareForNewConnect();
         }
-
-        NotificationManager nm =
-                (NotificationManager) mContext.getSystemService(Context.NOTIFICATION_SERVICE);
-        nm.cancel(BluetoothOppNotification.NOTIFICATION_ID_PROGRESS);
-
+        BluetoothOppUtility.cancelNotification(mContext);
         /* onClose could happen even before start() where mCallback is set */
         if (mCallback != null) {
             Message msg = Message.obtain(mCallback);

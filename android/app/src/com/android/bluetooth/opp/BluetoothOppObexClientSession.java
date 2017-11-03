@@ -32,7 +32,6 @@
 
 package com.android.bluetooth.opp;
 
-import android.app.NotificationManager;
 import android.content.ContentValues;
 import android.content.Context;
 import android.net.Uri;
@@ -113,10 +112,7 @@ public class BluetoothOppObexClientSession implements BluetoothOppObexSession {
                 }
             }
         }
-        NotificationManager nm =
-                (NotificationManager) mContext.getSystemService(Context.NOTIFICATION_SERVICE);
-        nm.cancel(BluetoothOppNotification.NOTIFICATION_ID_PROGRESS);
-
+        BluetoothOppUtility.cancelNotification(mContext);
         mCallback = null;
     }
 
@@ -610,6 +606,7 @@ public class BluetoothOppObexClientSession implements BluetoothOppObexSession {
                     }
                 }
             }
+            BluetoothOppUtility.cancelNotification(mContext);
             return status;
         }
 

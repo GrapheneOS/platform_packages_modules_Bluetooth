@@ -32,6 +32,7 @@
 
 package com.android.bluetooth.opp;
 
+import android.app.NotificationManager;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.ActivityNotFoundException;
@@ -410,4 +411,11 @@ public class BluetoothOppUtility {
             return false;
         }
     }
+
+    protected static void cancelNotification(Context ctx) {
+        NotificationManager nm = (NotificationManager) ctx
+                .getSystemService(Context.NOTIFICATION_SERVICE);
+        nm.cancel(BluetoothOppNotification.NOTIFICATION_ID_PROGRESS);
+    }
+
 }
