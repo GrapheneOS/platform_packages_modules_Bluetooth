@@ -27,6 +27,8 @@ import android.content.BroadcastReceiver;
 import android.content.Intent;
 import android.os.HandlerThread;
 import android.os.ParcelUuid;
+import android.os.TestLooperManager;
+import android.support.test.InstrumentationRegistry;
 import android.support.test.filters.MediumTest;
 import android.support.test.runner.AndroidJUnit4;
 
@@ -37,28 +39,47 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
 import java.util.ArrayList;
 
 @MediumTest
 @RunWith(AndroidJUnit4.class)
 public class PhonePolicyTest {
-    private static final String TAG = "PhonePolicyTest";
-    private static final int ASYNC_CALL_TIMEOUT = 2000; // 2s
-    private static final int RETRY_TIMEOUT = 10000; // 10s
-
     private HandlerThread mHandlerThread;
+    private TestLooperManager mTestLooperManager;
     private BluetoothAdapter mAdapter;
+    private BluetoothDevice mTestDevice;
+
+    @Mock private AdapterService mAdapterService;
+    @Mock private ServiceFactory mServiceFactory;
+    @Mock private HeadsetService mHeadsetService;
+    @Mock private A2dpService mA2dpService;
 
     @Before
     public void setUp() {
-        mHandlerThread = new HandlerThread("PhonePolicyTest");
+        MockitoAnnotations.initMocks(this);
+        // Setup the mocked factory to return mocked services
+        doReturn(mHeadsetService).when(mServiceFactory).getHeadsetService();
+        doReturn(mA2dpService).when(mServiceFactory).getA2dpService();
+        // Start handler thread for this test
+        mHandlerThread = new HandlerThread("PhonePolicyTestHandlerThread");
         mHandlerThread.start();
+        mTestLooperManager = InstrumentationRegistry.getInstrumentation()
+                .acquireLooperManager(mHandlerThread.getLooper());
+        // Mock the looper
+        doReturn(mHandlerThread.getLooper()).when(mAdapterService).getMainLooper();
+        // Tell the AdapterService that it is a mock (see isMock documentation)
+        doReturn(true).when(mAdapterService).isMock();
+        // Must be called to initialize services
         mAdapter = BluetoothAdapter.getDefaultAdapter();
+        mTestDevice = mAdapter.getRemoteDevice("00:01:02:03:04:05");
     }
 
     @After
     public void tearDown() {
+        mTestLooperManager.release();
         mHandlerThread.quit();
     }
 
@@ -69,38 +90,21 @@ public class PhonePolicyTest {
      */
     @Test
     public void testProcessInitProfilePriorities() {
-        BluetoothAdapter inst = BluetoothAdapter.getDefaultAdapter();
-        BluetoothDevice device = inst.getRemoteDevice("00:01:02:03:04:05");
-
-        // Create the mock objects required
-        AdapterService mockAdapterService = mock(AdapterService.class);
-        ServiceFactory mockServiceFactory = mock(ServiceFactory.class);
-        HeadsetService mockHeadsetService = mock(HeadsetService.class);
-        A2dpService mockA2dpService = mock(A2dpService.class);
-
-        // Mock the HeadsetService
-        when(mockServiceFactory.getHeadsetService()).thenReturn(mockHeadsetService);
-        when(mockHeadsetService.getPriority(device)).thenReturn(
+        // Mock the HeadsetService to return undefined priority
+        when(mHeadsetService.getPriority(mTestDevice)).thenReturn(
                 BluetoothProfile.PRIORITY_UNDEFINED);
 
-        // Mock the A2DP service
-        when(mockServiceFactory.getA2dpService()).thenReturn(mockA2dpService);
-        when(mockA2dpService.getPriority(device)).thenReturn(BluetoothProfile.PRIORITY_UNDEFINED);
+        // Mock the A2DP service to return undefined priority
+        when(mA2dpService.getPriority(mTestDevice)).thenReturn(BluetoothProfile.PRIORITY_UNDEFINED);
 
-        // Mock the looper
-        when(mockAdapterService.getMainLooper()).thenReturn(mHandlerThread.getLooper());
-
-        // Tell the AdapterService that it is a mock (see isMock documentation)
-        when(mockAdapterService.isMock()).thenReturn(true);
-
-        PhonePolicy phPol = new PhonePolicy(mockAdapterService, mockServiceFactory);
+        PhonePolicy phPol = new PhonePolicy(mAdapterService, mServiceFactory);
 
         // Get the broadcast receiver to inject events.
         BroadcastReceiver injector = phPol.getBroadcastReceiver();
 
         // Inject an event for UUIDs updated for a remote device with only HFP enabled
         Intent intent = new Intent(BluetoothDevice.ACTION_UUID);
-        intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
+        intent.putExtra(BluetoothDevice.EXTRA_DEVICE, mTestDevice);
         ParcelUuid[] uuids = new ParcelUuid[2];
         uuids[0] = BluetoothUuid.Handsfree;
         uuids[1] = BluetoothUuid.AudioSink;
@@ -109,9 +113,10 @@ public class PhonePolicyTest {
         injector.onReceive(null /* context */, intent);
 
         // Check that the priorities of the devices for preferred profiles are set to ON
-        verify(mockHeadsetService, timeout(ASYNC_CALL_TIMEOUT).times(1)).setPriority(eq(device),
+        executePendingMessages(1);
+        verify(mHeadsetService, times(1)).setPriority(eq(mTestDevice),
                 eq(BluetoothProfile.PRIORITY_ON));
-        verify(mockA2dpService, timeout(ASYNC_CALL_TIMEOUT).times(1)).setPriority(eq(device),
+        verify(mA2dpService, times(1)).setPriority(eq(mTestDevice),
                 eq(BluetoothProfile.PRIORITY_ON));
     }
 
@@ -123,39 +128,22 @@ public class PhonePolicyTest {
      */
     @Test
     public void testAdapterOnAutoConnect() {
-        BluetoothAdapter inst = BluetoothAdapter.getDefaultAdapter();
-        BluetoothDevice device = inst.getRemoteDevice("00:01:02:03:04:05");
-
-        // Create the mock objects required
-        AdapterService mockAdapterService = mock(AdapterService.class);
-        ServiceFactory mockServiceFactory = mock(ServiceFactory.class);
-        HeadsetService mockHeadsetService = mock(HeadsetService.class);
-        A2dpService mockA2dpService = mock(A2dpService.class);
-
         // Return desired values from the mocked object(s)
-        when(mockAdapterService.getState()).thenReturn(BluetoothAdapter.STATE_ON);
-        when(mockAdapterService.isQuietModeEnabled()).thenReturn(false);
-        when(mockServiceFactory.getHeadsetService()).thenReturn(mockHeadsetService);
-        when(mockServiceFactory.getA2dpService()).thenReturn(mockA2dpService);
+        when(mAdapterService.getState()).thenReturn(BluetoothAdapter.STATE_ON);
+        when(mAdapterService.isQuietModeEnabled()).thenReturn(false);
 
         // Return a list of bonded devices (just one)
         BluetoothDevice[] bondedDevices = new BluetoothDevice[1];
-        bondedDevices[0] = device;
-        when(mockAdapterService.getBondedDevices()).thenReturn(bondedDevices);
+        bondedDevices[0] = mTestDevice;
+        when(mAdapterService.getBondedDevices()).thenReturn(bondedDevices);
 
         // Return PRIORITY_AUTO_CONNECT over HFP and A2DP
-        when(mockHeadsetService.getPriority(device)).thenReturn(
+        when(mHeadsetService.getPriority(mTestDevice)).thenReturn(
                 BluetoothProfile.PRIORITY_AUTO_CONNECT);
-        when(mockA2dpService.getPriority(device)).thenReturn(
+        when(mA2dpService.getPriority(mTestDevice)).thenReturn(
                 BluetoothProfile.PRIORITY_AUTO_CONNECT);
 
-        // Mock the looper
-        when(mockAdapterService.getMainLooper()).thenReturn(mHandlerThread.getLooper());
-
-        // Tell the AdapterService that it is a mock (see isMock documentation)
-        when(mockAdapterService.isMock()).thenReturn(true);
-
-        PhonePolicy phPol = new PhonePolicy(mockAdapterService, mockServiceFactory);
+        PhonePolicy phPol = new PhonePolicy(mAdapterService, mServiceFactory);
 
         // Get the broadcast receiver to inject events
         BroadcastReceiver injector = phPol.getBroadcastReceiver();
@@ -166,8 +154,9 @@ public class PhonePolicyTest {
         injector.onReceive(null /* context */, intent);
 
         // Check that we got a request to connect over HFP and A2DP
-        verify(mockHeadsetService, timeout(ASYNC_CALL_TIMEOUT).times(1)).connect(eq(device));
-        verify(mockA2dpService, timeout(ASYNC_CALL_TIMEOUT).times(1)).connect(eq(device));
+        executePendingMessages(1);
+        verify(mHeadsetService, times(1)).connect(eq(mTestDevice));
+        verify(mA2dpService, times(1)).connect(eq(mTestDevice));
     }
 
     /**
@@ -176,40 +165,31 @@ public class PhonePolicyTest {
      */
     @Test
     public void testReconnectOnPartialConnect() {
-        BluetoothAdapter inst = BluetoothAdapter.getDefaultAdapter();
-        BluetoothDevice device = inst.getRemoteDevice("00:01:02:03:04:05");
-
-        // Create the mock objects required
-        AdapterService mockAdapterService = mock(AdapterService.class);
-        ServiceFactory mockServiceFactory = mock(ServiceFactory.class);
-        HeadsetService mockHeadsetService = mock(HeadsetService.class);
-        A2dpService mockA2dpService = mock(A2dpService.class);
-
-        // Setup the mocked factory to return mocked services
-        when(mockServiceFactory.getHeadsetService()).thenReturn(mockHeadsetService);
-        when(mockServiceFactory.getA2dpService()).thenReturn(mockA2dpService);
-
         // Return a list of bonded devices (just one)
         BluetoothDevice[] bondedDevices = new BluetoothDevice[1];
-        bondedDevices[0] = device;
-        when(mockAdapterService.getBondedDevices()).thenReturn(bondedDevices);
+        bondedDevices[0] = mTestDevice;
+        when(mAdapterService.getBondedDevices()).thenReturn(bondedDevices);
 
         // Return PRIORITY_AUTO_CONNECT over HFP and A2DP. This would imply that the profiles are
         // auto-connectable.
-        when(mockHeadsetService.getPriority(device)).thenReturn(
+        when(mHeadsetService.getPriority(mTestDevice)).thenReturn(
                 BluetoothProfile.PRIORITY_AUTO_CONNECT);
-        when(mockA2dpService.getPriority(device)).thenReturn(
+        when(mA2dpService.getPriority(mTestDevice)).thenReturn(
                 BluetoothProfile.PRIORITY_AUTO_CONNECT);
 
-        when(mockAdapterService.getState()).thenReturn(BluetoothAdapter.STATE_ON);
+        when(mAdapterService.getState()).thenReturn(BluetoothAdapter.STATE_ON);
 
-        // Mock the looper
-        when(mockAdapterService.getMainLooper()).thenReturn(mHandlerThread.getLooper());
+        PhonePolicy phPol = new PhonePolicy(mAdapterService, mServiceFactory);
 
-        // Tell the AdapterService that it is a mock (see isMock documentation)
-        when(mockAdapterService.isMock()).thenReturn(true);
-
-        PhonePolicy phPol = new PhonePolicy(mockAdapterService, mockServiceFactory);
+        // We want to trigger (in CONNECT_OTHER_PROFILES_TIMEOUT) a call to connect A2DP
+        // To enable that we need to make sure that HeadsetService returns the device as list of
+        // connected devices
+        ArrayList<BluetoothDevice> hsConnectedDevices = new ArrayList<>();
+        hsConnectedDevices.add(mTestDevice);
+        when(mHeadsetService.getConnectedDevices()).thenReturn(hsConnectedDevices);
+        // Also the A2DP should say that its not connected for same device
+        when(mA2dpService.getConnectionState(mTestDevice)).thenReturn(
+                BluetoothProfile.STATE_DISCONNECTED);
 
         // Get the broadcast receiver to inject events
         BroadcastReceiver injector = phPol.getBroadcastReceiver();
@@ -217,24 +197,15 @@ public class PhonePolicyTest {
         // We send a connection successful for one profile since the re-connect *only* works if we
         // have already connected successfully over one of the profiles
         Intent intent = new Intent(BluetoothHeadset.ACTION_CONNECTION_STATE_CHANGED);
-        intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
+        intent.putExtra(BluetoothDevice.EXTRA_DEVICE, mTestDevice);
         intent.putExtra(BluetoothProfile.EXTRA_PREVIOUS_STATE, BluetoothProfile.STATE_DISCONNECTED);
         intent.putExtra(BluetoothProfile.EXTRA_STATE, BluetoothProfile.STATE_CONNECTED);
         intent.addFlags(Intent.FLAG_RECEIVER_INCLUDE_BACKGROUND);
         injector.onReceive(null /* context */, intent);
 
-        // We should see (in CONNECT_OTHER_PROFILES_TIMEOUT) a call to connect A2DP
-        // To enable that we need to make sure that HeadsetService returns the device as list of
-        // connected devices
-        ArrayList<BluetoothDevice> hsConnectedDevices = new ArrayList<>();
-        hsConnectedDevices.add(device);
-        when(mockHeadsetService.getConnectedDevices()).thenReturn(hsConnectedDevices);
-        // Also the A2DP should say that its not connected for same device
-        when(mockA2dpService.getConnectionState(device)).thenReturn(
-                BluetoothProfile.STATE_DISCONNECTED);
-
         // Check that we get a call to A2DP connect
-        verify(mockA2dpService, timeout(RETRY_TIMEOUT).times(1)).connect(eq(device));
+        executePendingMessages(2);
+        verify(mA2dpService, times(1)).connect(eq(mTestDevice));
     }
 
     /**
@@ -242,40 +213,29 @@ public class PhonePolicyTest {
      */
     @Test
     public void testNoReconnectOnNoConnect() {
-        BluetoothAdapter inst = BluetoothAdapter.getDefaultAdapter();
-        BluetoothDevice device = inst.getRemoteDevice("00:01:02:03:04:05");
-
-        // Create the mock objects required
-        AdapterService mockAdapterService = mock(AdapterService.class);
-        ServiceFactory mockServiceFactory = mock(ServiceFactory.class);
-        HeadsetService mockHeadsetService = mock(HeadsetService.class);
-        A2dpService mockA2dpService = mock(A2dpService.class);
-
-        // Setup the mocked factory to return mocked services
-        when(mockServiceFactory.getHeadsetService()).thenReturn(mockHeadsetService);
-        when(mockServiceFactory.getA2dpService()).thenReturn(mockA2dpService);
-
         // Return a list of bonded devices (just one)
         BluetoothDevice[] bondedDevices = new BluetoothDevice[1];
-        bondedDevices[0] = device;
-        when(mockAdapterService.getBondedDevices()).thenReturn(bondedDevices);
+        bondedDevices[0] = mTestDevice;
+        when(mAdapterService.getBondedDevices()).thenReturn(bondedDevices);
 
         // Return PRIORITY_AUTO_CONNECT over HFP and A2DP. This would imply that the profiles are
         // auto-connectable.
-        when(mockHeadsetService.getPriority(device)).thenReturn(
+        when(mHeadsetService.getPriority(mTestDevice)).thenReturn(
                 BluetoothProfile.PRIORITY_AUTO_CONNECT);
-        when(mockA2dpService.getPriority(device)).thenReturn(
+        when(mA2dpService.getPriority(mTestDevice)).thenReturn(
                 BluetoothProfile.PRIORITY_AUTO_CONNECT);
 
-        when(mockAdapterService.getState()).thenReturn(BluetoothAdapter.STATE_ON);
+        when(mAdapterService.getState()).thenReturn(BluetoothAdapter.STATE_ON);
 
-        // Mock the looper
-        when(mockAdapterService.getMainLooper()).thenReturn(mHandlerThread.getLooper());
+        // Return an empty list simulating that the above connection successful was nullified
+        ArrayList<BluetoothDevice> hsConnectedDevices = new ArrayList<>();
+        when(mHeadsetService.getConnectedDevices()).thenReturn(hsConnectedDevices);
 
-        // Tell the AdapterService that it is a mock (see isMock documentation)
-        when(mockAdapterService.isMock()).thenReturn(true);
+        // Also the A2DP should say that its not connected for same device
+        when(mA2dpService.getConnectionState(mTestDevice)).thenReturn(
+                BluetoothProfile.STATE_DISCONNECTED);
 
-        PhonePolicy phPol = new PhonePolicy(mockAdapterService, mockServiceFactory);
+        PhonePolicy phPol = new PhonePolicy(mAdapterService, mServiceFactory);
 
         // Get the broadcast receiver to inject events
         BroadcastReceiver injector = phPol.getBroadcastReceiver();
@@ -283,32 +243,16 @@ public class PhonePolicyTest {
         // We send a connection successful for one profile since the re-connect *only* works if we
         // have already connected successfully over one of the profiles
         Intent intent = new Intent(BluetoothHeadset.ACTION_CONNECTION_STATE_CHANGED);
-        intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
+        intent.putExtra(BluetoothDevice.EXTRA_DEVICE, mTestDevice);
         intent.putExtra(BluetoothProfile.EXTRA_PREVIOUS_STATE, BluetoothProfile.STATE_DISCONNECTED);
         intent.putExtra(BluetoothProfile.EXTRA_STATE, BluetoothProfile.STATE_CONNECTED);
         intent.addFlags(Intent.FLAG_RECEIVER_INCLUDE_BACKGROUND);
         injector.onReceive(null /* context */, intent);
 
-        // Return an empty list simulating that the above connection successful was nullified
-        ArrayList<BluetoothDevice> hsConnectedDevices = new ArrayList<>();
-        when(mockHeadsetService.getConnectedDevices()).thenReturn(hsConnectedDevices);
-
-        // Also the A2DP should say that its not connected for same device
-        when(mockA2dpService.getConnectionState(device)).thenReturn(
-                BluetoothProfile.STATE_DISCONNECTED);
-
-        // To check that we have processed all the messages we need to have a hard sleep here. The
-        // reason being mockito can only verify synchronous calls, asynchronous calls are hidden
-        // from its mocking framework. Also, Looper does not provide a way to wait until all future
-        // messages are proceed.
-        try {
-            Thread.sleep(RETRY_TIMEOUT);
-        } catch (Exception ex) {
-        }
-
         // Check that we don't get any calls to reconnect
-        verify(mockA2dpService, never()).connect(eq(device));
-        verify(mockHeadsetService, never()).connect(eq(device));
+        executePendingMessages(1);
+        verify(mA2dpService, never()).connect(eq(mTestDevice));
+        verify(mHeadsetService, never()).connect(eq(mTestDevice));
     }
 
     /**
@@ -317,51 +261,37 @@ public class PhonePolicyTest {
      */
     @Test
     public void testNoSupportedUuids() {
-        BluetoothAdapter inst = BluetoothAdapter.getDefaultAdapter();
-        BluetoothDevice device = inst.getRemoteDevice("00:01:02:03:04:05");
-
-        // Create the mock objects required
-        AdapterService mockAdapterService = mock(AdapterService.class);
-        ServiceFactory mockServiceFactory = mock(ServiceFactory.class);
-        HeadsetService mockHeadsetService = mock(HeadsetService.class);
-        A2dpService mockA2dpService = mock(A2dpService.class);
-
-        // Mock the HeadsetService
-        when(mockServiceFactory.getHeadsetService()).thenReturn(mockHeadsetService);
-        when(mockHeadsetService.getPriority(device)).thenReturn(
+        // Mock the HeadsetService to return undefined priority
+        when(mHeadsetService.getPriority(mTestDevice)).thenReturn(
                 BluetoothProfile.PRIORITY_UNDEFINED);
 
-        // Mock the A2DP service
-        when(mockServiceFactory.getA2dpService()).thenReturn(mockA2dpService);
-        when(mockA2dpService.getPriority(device)).thenReturn(BluetoothProfile.PRIORITY_UNDEFINED);
+        // Mock the A2DP service to return undefined priority
+        when(mA2dpService.getPriority(mTestDevice)).thenReturn(BluetoothProfile.PRIORITY_UNDEFINED);
 
-        // Mock the looper
-        when(mockAdapterService.getMainLooper()).thenReturn(mHandlerThread.getLooper());
-
-        PhonePolicy phPol = new PhonePolicy(mockAdapterService, mockServiceFactory);
+        PhonePolicy phPol = new PhonePolicy(mAdapterService, mServiceFactory);
 
         // Get the broadcast receiver to inject events.
         BroadcastReceiver injector = phPol.getBroadcastReceiver();
 
         // Inject an event for UUIDs updated for a remote device with only HFP enabled
         Intent intent = new Intent(BluetoothDevice.ACTION_UUID);
-        intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
+        intent.putExtra(BluetoothDevice.EXTRA_DEVICE, mTestDevice);
 
         // Put no UUIDs
         injector.onReceive(null /* context */, intent);
 
-        // To check that we have processed all the messages we need to have a hard sleep here. The
-        // reason being mockito can only verify synchronous calls, asynchronous calls are hidden
-        // from its mocking framework. Also, Looper does not provide a way to wait until all future
-        // messages are proceed.
-        try {
-            Thread.sleep(RETRY_TIMEOUT);
-        } catch (Exception ex) {
-        }
-
         // Check that we do not crash and not call any setPriority methods
-        verify(mockHeadsetService, never()).setPriority(eq(device),
+        executePendingMessages(1);
+        verify(mHeadsetService, never()).setPriority(eq(mTestDevice),
                 eq(BluetoothProfile.PRIORITY_ON));
-        verify(mockA2dpService, never()).setPriority(eq(device), eq(BluetoothProfile.PRIORITY_ON));
+        verify(mA2dpService, never()).setPriority(eq(mTestDevice),
+                eq(BluetoothProfile.PRIORITY_ON));
+    }
+
+    private void executePendingMessages(int numMessage) {
+        while (numMessage > 0) {
+            mTestLooperManager.execute(mTestLooperManager.next());
+            numMessage--;
+        }
     }
 }
