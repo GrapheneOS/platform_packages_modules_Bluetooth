@@ -242,6 +242,14 @@ public class SapRilReceiver {
 
     public void resetSapProxy() {
         synchronized (mSapProxyLock) {
+            if (DEBUG) Log.d(TAG, "resetSapProxy :" + mSapProxy);
+            try {
+                if (mSapProxy != null) {
+                    mSapProxy.unlinkToDeath(mSapProxyDeathRecipient);
+                }
+            } catch (RemoteException | RuntimeException e) {
+                Log.e(TAG, "resetSapProxy: exception: " + e);
+            }
             mSapProxy = null;
         }
     }
