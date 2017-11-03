@@ -31,6 +31,7 @@ import android.os.Looper;
 import android.os.Message;
 import android.os.ParcelUuid;
 import android.os.Parcelable;
+import android.support.annotation.VisibleForTesting;
 import android.util.Log;
 
 import com.android.bluetooth.a2dp.A2dpService;
@@ -124,8 +125,8 @@ class PhonePolicy {
         }
     };
 
-    // ONLY for testing
-    public BroadcastReceiver getBroadcastReceiver() {
+    @VisibleForTesting
+    BroadcastReceiver getBroadcastReceiver() {
         return mReceiver;
     }
 
