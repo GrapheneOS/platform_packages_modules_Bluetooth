@@ -30,10 +30,19 @@ using ::android::binder::Status;
 class BluetoothSocketManagerBinderServer : public BnBluetoothSocketManager {
  public:
   explicit BluetoothSocketManagerBinderServer(
-      const btsock_interface_t* socketInterface) {}
+      const btsock_interface_t* socketInterface)
+      : socketInterface(socketInterface) {}
   ~BluetoothSocketManagerBinderServer() override = default;
 
+  Status createSocketChannel(
+      int32_t type, const std::unique_ptr<::android::String16>& serviceName,
+      const std::unique_ptr<::android::os::ParcelUuid>& uuid, int32_t port,
+      int32_t flag,
+      std::unique_ptr<::android::os::ParcelFileDescriptor>* _aidl_return)
+      override;
+
  private:
+  const btsock_interface_t* socketInterface;
   DISALLOW_COPY_AND_ASSIGN(BluetoothSocketManagerBinderServer);
 };
 }  // namespace bluetooth
