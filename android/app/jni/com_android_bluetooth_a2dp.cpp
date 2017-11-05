@@ -24,6 +24,7 @@
 #include "utils/Log.h"
 
 #include <string.h>
+#include <shared_mutex>
 
 namespace android {
 static jmethodID method_onConnectionStateChanged;
@@ -44,14 +45,19 @@ static struct {
   jmethodID getCodecSpecific4;
 } android_bluetooth_BluetoothCodecConfig;
 
-static const btav_source_interface_t* sBluetoothA2dpInterface = NULL;
-static jobject mCallbacksObj = NULL;
+static const btav_source_interface_t* sBluetoothA2dpInterface = nullptr;
+static std::shared_timed_mutex interface_mutex;
+
+static jobject mCallbacksObj = nullptr;
+static std::shared_timed_mutex callbacks_mutex;
 
 static void bta2dp_connection_state_callback(btav_connection_state_t state,
                                              RawAddress* bd_addr) {
   ALOGI("%s", __func__);
+
+  std::shared_lock<std::shared_timed_mutex> lock(callbacks_mutex);
   CallbackEnv sCallbackEnv(__func__);
-  if (!sCallbackEnv.valid()) return;
+  if (!sCallbackEnv.valid() || mCallbacksObj == nullptr) return;
 
   ScopedLocalRef<jbyteArray> addr(
       sCallbackEnv.get(), sCallbackEnv->NewByteArray(sizeof(RawAddress)));
@@ -69,8 +75,10 @@ static void bta2dp_connection_state_callback(btav_connection_state_t state,
 static void bta2dp_audio_state_callback(btav_audio_state_t state,
                                         RawAddress* bd_addr) {
   ALOGI("%s", __func__);
+
+  std::shared_lock<std::shared_timed_mutex> lock(callbacks_mutex);
   CallbackEnv sCallbackEnv(__func__);
-  if (!sCallbackEnv.valid()) return;
+  if (!sCallbackEnv.valid() || mCallbacksObj == nullptr) return;
 
   ScopedLocalRef<jbyteArray> addr(
       sCallbackEnv.get(), sCallbackEnv->NewByteArray(sizeof(RawAddress)));
@@ -90,8 +98,10 @@ static void bta2dp_audio_config_callback(
     std::vector<btav_a2dp_codec_config_t> codecs_local_capabilities,
     std::vector<btav_a2dp_codec_config_t> codecs_selectable_capabilities) {
   ALOGI("%s", __func__);
+
+  std::shared_lock<std::shared_timed_mutex> lock(callbacks_mutex);
   CallbackEnv sCallbackEnv(__func__);
-  if (!sCallbackEnv.valid()) return;
+  if (!sCallbackEnv.valid() || mCallbacksObj == nullptr) return;
 
   jobject codecConfigObj = sCallbackEnv->NewObject(
       android_bluetooth_BluetoothCodecConfig.clazz,
@@ -106,7 +116,7 @@ static void bta2dp_audio_config_callback(
   jsize i = 0;
   jobjectArray local_capabilities_array = sCallbackEnv->NewObjectArray(
       (jsize)codecs_local_capabilities.size(),
-      android_bluetooth_BluetoothCodecConfig.clazz, NULL);
+      android_bluetooth_BluetoothCodecConfig.clazz, nullptr);
   for (auto const& cap : codecs_local_capabilities) {
     jobject capObj = sCallbackEnv->NewObject(
         android_bluetooth_BluetoothCodecConfig.clazz,
@@ -122,7 +132,7 @@ static void bta2dp_audio_config_callback(
   i = 0;
   jobjectArray selectable_capabilities_array = sCallbackEnv->NewObjectArray(
       (jsize)codecs_selectable_capabilities.size(),
-      android_bluetooth_BluetoothCodecConfig.clazz, NULL);
+      android_bluetooth_BluetoothCodecConfig.clazz, nullptr);
   for (auto const& cap : codecs_selectable_capabilities) {
     jobject capObj = sCallbackEnv->NewObject(
         android_bluetooth_BluetoothCodecConfig.clazz,
@@ -237,25 +247,28 @@ static std::vector<btav_a2dp_codec_config_t> prepareCodecPreferences(
 
 static void initNative(JNIEnv* env, jobject object,
                        jobjectArray codecConfigArray) {
+  std::unique_lock<std::shared_timed_mutex> interface_lock(interface_mutex);
+  std::unique_lock<std::shared_timed_mutex> callbacks_lock(callbacks_mutex);
+
   const bt_interface_t* btInf = getBluetoothInterface();
-  if (btInf == NULL) {
+  if (btInf == nullptr) {
     ALOGE("Bluetooth module is not loaded");
     return;
   }
 
-  if (sBluetoothA2dpInterface != NULL) {
+  if (sBluetoothA2dpInterface != nullptr) {
     ALOGW("Cleaning up A2DP Interface before initializing...");
     sBluetoothA2dpInterface->cleanup();
-    sBluetoothA2dpInterface = NULL;
+    sBluetoothA2dpInterface = nullptr;
   }
 
-  if (mCallbacksObj != NULL) {
+  if (mCallbacksObj != nullptr) {
     ALOGW("Cleaning up A2DP callback object");
     env->DeleteGlobalRef(mCallbacksObj);
-    mCallbacksObj = NULL;
+    mCallbacksObj = nullptr;
   }
 
-  if ((mCallbacksObj = env->NewGlobalRef(object)) == NULL) {
+  if ((mCallbacksObj = env->NewGlobalRef(object)) == nullptr) {
     ALOGE("Failed to allocate Global Ref for A2DP Callbacks");
     return;
   }
@@ -270,7 +283,7 @@ static void initNative(JNIEnv* env, jobject object,
   sBluetoothA2dpInterface =
       (btav_source_interface_t*)btInf->get_profile_interface(
           BT_PROFILE_ADVANCED_AUDIO_ID);
-  if (sBluetoothA2dpInterface == NULL) {
+  if (sBluetoothA2dpInterface == nullptr) {
     ALOGE("Failed to get Bluetooth A2DP Interface");
     return;
   }
@@ -282,38 +295,42 @@ static void initNative(JNIEnv* env, jobject object,
       sBluetoothA2dpInterface->init(&sBluetoothA2dpCallbacks, codec_priorities);
   if (status != BT_STATUS_SUCCESS) {
     ALOGE("Failed to initialize Bluetooth A2DP, status: %d", status);
-    sBluetoothA2dpInterface = NULL;
+    sBluetoothA2dpInterface = nullptr;
     return;
   }
 }
 
 static void cleanupNative(JNIEnv* env, jobject object) {
+  std::unique_lock<std::shared_timed_mutex> interface_lock(interface_mutex);
+  std::unique_lock<std::shared_timed_mutex> callbacks_lock(callbacks_mutex);
+
   const bt_interface_t* btInf = getBluetoothInterface();
-  if (btInf == NULL) {
+  if (btInf == nullptr) {
     ALOGE("Bluetooth module is not loaded");
     return;
   }
 
-  if (sBluetoothA2dpInterface != NULL) {
+  if (sBluetoothA2dpInterface != nullptr) {
     sBluetoothA2dpInterface->cleanup();
-    sBluetoothA2dpInterface = NULL;
+    sBluetoothA2dpInterface = nullptr;
   }
 
   env->DeleteGlobalRef(android_bluetooth_BluetoothCodecConfig.clazz);
   android_bluetooth_BluetoothCodecConfig.clazz = nullptr;
 
-  if (mCallbacksObj != NULL) {
+  if (mCallbacksObj != nullptr) {
     env->DeleteGlobalRef(mCallbacksObj);
-    mCallbacksObj = NULL;
+    mCallbacksObj = nullptr;
   }
 }
 
 static jboolean connectA2dpNative(JNIEnv* env, jobject object,
                                   jbyteArray address) {
   ALOGI("%s: sBluetoothA2dpInterface: %p", __func__, sBluetoothA2dpInterface);
+  std::shared_lock<std::shared_timed_mutex> lock(interface_mutex);
   if (!sBluetoothA2dpInterface) return JNI_FALSE;
 
-  jbyte* addr = env->GetByteArrayElements(address, NULL);
+  jbyte* addr = env->GetByteArrayElements(address, nullptr);
   if (!addr) {
     jniThrowIOException(env, EINVAL);
     return JNI_FALSE;
@@ -329,9 +346,11 @@ static jboolean connectA2dpNative(JNIEnv* env, jobject object,
 
 static jboolean disconnectA2dpNative(JNIEnv* env, jobject object,
                                      jbyteArray address) {
+  ALOGI("%s: sBluetoothA2dpInterface: %p", __func__, sBluetoothA2dpInterface);
+  std::shared_lock<std::shared_timed_mutex> lock(interface_mutex);
   if (!sBluetoothA2dpInterface) return JNI_FALSE;
 
-  jbyte* addr = env->GetByteArrayElements(address, NULL);
+  jbyte* addr = env->GetByteArrayElements(address, nullptr);
   if (!addr) {
     jniThrowIOException(env, EINVAL);
     return JNI_FALSE;
@@ -347,6 +366,8 @@ static jboolean disconnectA2dpNative(JNIEnv* env, jobject object,
 
 static jboolean setCodecConfigPreferenceNative(JNIEnv* env, jobject object,
                                                jobjectArray codecConfigArray) {
+  ALOGI("%s: sBluetoothA2dpInterface: %p", __func__, sBluetoothA2dpInterface);
+  std::shared_lock<std::shared_timed_mutex> lock(interface_mutex);
   if (!sBluetoothA2dpInterface) return JNI_FALSE;
 
   std::vector<btav_a2dp_codec_config_t> codec_preferences =
