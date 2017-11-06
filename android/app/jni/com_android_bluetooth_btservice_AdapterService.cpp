@@ -1113,45 +1113,6 @@ static jboolean getRemoteServicesNative(JNIEnv* env, jobject obj,
   return (ret == BT_STATUS_SUCCESS) ? JNI_TRUE : JNI_FALSE;
 }
 
-static int connectSocketNative(JNIEnv* env, jobject object, jbyteArray address,
-                               jint type, jbyteArray uuidObj, jint channel,
-                               jint flag, jint callingUid) {
-  if (!sBluetoothSocketInterface) return -1;
-
-  jbyte* addr = env->GetByteArrayElements(address, NULL);
-  if (!addr) {
-    ALOGE("failed to get Bluetooth device address");
-    return -1;
-  }
-
-  Uuid uuid;
-  if (uuidObj != NULL) {
-    jbyte* tmp = env->GetByteArrayElements(uuidObj, NULL);
-    if (!tmp) {
-      ALOGE("failed to get uuid");
-      env->ReleaseByteArrayElements(address, addr, 0);
-      return -1;
-    }
-
-    uuid = Uuid::From128BitBE(reinterpret_cast<uint8_t*>(tmp));
-    env->ReleaseByteArrayElements(uuidObj, tmp, 0);
-  }
-
-  int socket_fd = -1;
-  bt_status_t status = sBluetoothSocketInterface->connect(
-      (RawAddress*)addr, (btsock_type_t)type, uuidObj ? &uuid : nullptr,
-      channel, &socket_fd, flag, callingUid);
-  if (status != BT_STATUS_SUCCESS) {
-    ALOGE("Socket connection failed: %d", status);
-    socket_fd = -1;
-  } else if (socket_fd < 0) {
-    ALOGE("Fail to create file descriptor on socket fd");
-  }
-
-  env->ReleaseByteArrayElements(address, addr, 0);
-  return socket_fd;
-}
-
 static jobject getSocketManagerNative(JNIEnv* env) {
   if (!socketManager.get())
     socketManager =
@@ -1256,7 +1217,6 @@ static JNINativeMethod sMethods[] = {
     {"pinReplyNative", "([BZI[B)Z", (void*)pinReplyNative},
     {"sspReplyNative", "([BIZI)Z", (void*)sspReplyNative},
     {"getRemoteServicesNative", "([B)Z", (void*)getRemoteServicesNative},
-    {"connectSocketNative", "([BI[BIII)I", (void*)connectSocketNative},
     {"getSocketManagerNative", "()Landroid/os/IBinder;",
      (void*)getSocketManagerNative},
     {"setSystemUiUidNative", "(I)V", (void*)setSystemUiUidNative},
