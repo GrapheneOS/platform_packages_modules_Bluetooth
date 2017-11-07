@@ -848,7 +848,7 @@ static JNINativeMethod sMethods[] = {
 
 int register_com_android_bluetooth_hfp(JNIEnv* env) {
   return jniRegisterNativeMethods(
-      env, "com/android/bluetooth/hfp/HeadsetStateMachine", sMethods,
+      env, "com/android/bluetooth/hfp/HeadsetNativeInterface", sMethods,
       NELEM(sMethods));
 }
 
