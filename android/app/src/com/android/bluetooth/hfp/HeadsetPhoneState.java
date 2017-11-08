@@ -21,6 +21,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.os.Looper;
 import android.telephony.PhoneStateListener;
 import android.telephony.ServiceState;
 import android.telephony.SignalStrength;
@@ -33,66 +34,74 @@ import com.android.internal.telephony.IccCardConstants;
 import com.android.internal.telephony.TelephonyIntents;
 
 
-// Note:
-// All methods in this class are not thread safe, donot call them from
-// multiple threads. Call them from the HeadsetPhoneStateMachine message
-// handler only.
-class HeadsetPhoneState {
+/**
+ * Class that manages Telephony states
+ *
+ * Note:
+ * The methods in this class are not thread safe, don't call them from
+ * multiple threads. Call them from the HeadsetPhoneStateMachine message
+ * handler only.
+ */
+public class HeadsetPhoneState {
     private static final String TAG = "HeadsetPhoneState";
 
-    private HeadsetStateMachine mStateMachine;
-    private TelephonyManager mTelephonyManager;
+    private final Context mContext;
+    private final HeadsetStateMachine mStateMachine;
+    private final TelephonyManager mTelephonyManager;
+    private final SubscriptionManager mSubMgr;
+
     private ServiceState mServiceState;
 
-    // HFP 1.6 CIND service
+    // HFP 1.6 CIND service value
     private int mService = HeadsetHalConstants.NETWORK_STATE_NOT_AVAILABLE;
 
     // Check this before sending out service state to the device -- if the SIM isn't fully
     // loaded, don't expose that the network is available.
-    private boolean mIsSimStateLoaded = false;
+    private boolean mIsSimStateLoaded;
 
     // Number of active (foreground) calls
-    private int mNumActive = 0;
+    private int mNumActive;
 
     // Current Call Setup State
     private int mCallState = HeadsetHalConstants.CALL_STATE_IDLE;
 
     // Number of held (background) calls
-    private int mNumHeld = 0;
+    private int mNumHeld;
 
     // HFP 1.6 CIND signal
-    private int mSignal = 0;
+    private int mSignal;
 
     // HFP 1.6 CIND roam
     private int mRoam = HeadsetHalConstants.SERVICE_TYPE_HOME;
 
     // HFP 1.6 CIND battchg
-    private int mBatteryCharge = 0;
+    private int mBatteryCharge;
 
-    private int mSpeakerVolume = 0;
+    private int mSpeakerVolume;
 
-    private int mMicVolume = 0;
+    private int mMicVolume;
 
-    private boolean mListening = false;
+    private boolean mListening;
 
     // when HFP Service Level Connection is established
-    private boolean mSlcReady = false;
+    private boolean mSlcReady;
 
-    private Context mContext = null;
+    private PhoneStateListener mPhoneStateListener;
 
-    private PhoneStateListener mPhoneStateListener = null;
+    private OnSubscriptionsChangedListener mOnSubscriptionsChangedListener;
 
-    private SubscriptionManager mSubMgr;
+    private class HeadsetPhoneStateOnSubscriptionChangedListener
+            extends OnSubscriptionsChangedListener {
+        HeadsetPhoneStateOnSubscriptionChangedListener(Looper looper) {
+            super(looper);
+        }
 
-    private OnSubscriptionsChangedListener mOnSubscriptionsChangedListener =
-            new OnSubscriptionsChangedListener() {
-                @Override
-                public void onSubscriptionsChanged() {
-                    listenForPhoneState(false);
-                    listenForPhoneState(true);
-                }
-            };
-
+        @Override
+        public void onSubscriptionsChanged() {
+            listenForPhoneState(false);
+            listenForPhoneState(true);
+        }
+    }
 
     HeadsetPhoneState(Context context, HeadsetStateMachine stateMachine) {
         mStateMachine = stateMachine;
@@ -107,15 +116,18 @@ class HeadsetPhoneState {
         // to invoke onSubscriptionInfoChanged and which in turns calls
         // loadInBackgroud.
         mSubMgr = SubscriptionManager.from(mContext);
+        // Initialize subscription on the handler thread
+        mOnSubscriptionsChangedListener = new HeadsetPhoneStateOnSubscriptionChangedListener(
+                stateMachine.getHandler().getLooper());
         mSubMgr.addOnSubscriptionsChangedListener(mOnSubscriptionsChangedListener);
     }
 
     public void cleanup() {
         listenForPhoneState(false);
-        mSubMgr.removeOnSubscriptionsChangedListener(mOnSubscriptionsChangedListener);
-
-        mTelephonyManager = null;
-        mStateMachine = null;
+        if (mOnSubscriptionsChangedListener != null) {
+            mSubMgr.removeOnSubscriptionsChangedListener(mOnSubscriptionsChangedListener);
+            mOnSubscriptionsChangedListener = null;
+        }
     }
 
     @Override
@@ -128,22 +140,17 @@ class HeadsetPhoneState {
     }
 
     void listenForPhoneState(boolean start) {
-
         mSlcReady = start;
-
         if (start) {
             startListenForPhoneState();
         } else {
             stopListenForPhoneState();
         }
-
     }
 
     private void startListenForPhoneState() {
         if (!mListening && mSlcReady && mTelephonyManager != null) {
-
             int subId = SubscriptionManager.getDefaultSubscriptionId();
-
             if (SubscriptionManager.isValidSubscriptionId(subId)) {
                 mPhoneStateListener = getPhoneStateListener(subId);
                 if (mTelephonyManager == null) {
