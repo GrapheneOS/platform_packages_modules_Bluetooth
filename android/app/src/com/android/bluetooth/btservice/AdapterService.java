@@ -27,6 +27,7 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.IBluetooth;
 import android.bluetooth.IBluetoothCallback;
+import android.bluetooth.IBluetoothSocketManager;
 import android.bluetooth.OobData;
 import android.bluetooth.UidTraffic;
 import android.content.BroadcastReceiver;
@@ -1490,6 +1491,15 @@ public class AdapterService extends Service {
         }
 
         @Override
+        public IBluetoothSocketManager getSocketManager() {
+            AdapterService service = getService();
+            if (service == null) {
+                return null;
+            }
+            return service.getSocketManager();
+        }
+
+        @Override
         public boolean sdpSearch(BluetoothDevice device, ParcelUuid uuid) {
             if (!Utils.checkCaller()) {
                 Log.w(TAG, "sdpSea(): not allowed for non-active user");
@@ -2184,6 +2194,15 @@ public class AdapterService extends Service {
         return ParcelFileDescriptor.adoptFd(fd);
     }
 
+    IBluetoothSocketManager getSocketManager() {
+        android.os.IBinder obj = getSocketManagerNative();
+        if (obj == null) {
+            return null;
+        }
+
+        return IBluetoothSocketManager.Stub.asInterface(obj);
+    }
+
     boolean factoryReset() {
         enforceCallingOrSelfPermission(BLUETOOTH_PRIVILEGED, "Need BLUETOOTH permission");
         return factoryResetNative();
@@ -2651,8 +2670,12 @@ public class AdapterService extends Service {
     private native int createSocketChannelNative(int type, String serviceName, byte[] uuid,
             int port, int flag, int callingUid);
 
+    private native IBinder getSocketManagerNative();
+
     private native void setSystemUiUidNative(int systemUiUid);
+
     private static native void setForegroundUserIdNative(int foregroundUserId);
+
     /*package*/
     native boolean factoryResetNative();
 

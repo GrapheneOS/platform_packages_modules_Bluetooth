@@ -2,6 +2,7 @@ cc_library_shared {
     name: "libbluetooth_jni",
     compile_multilib: "first",
     srcs: [
+        "bluetooth_socket_manager.cc",
         "com_android_bluetooth_btservice_AdapterService.cpp",
         "com_android_bluetooth_hfp.cpp",
         "com_android_bluetooth_hfpclient.cpp",
@@ -26,6 +27,7 @@ cc_library_shared {
     shared_libs: [
         "libandroid_runtime",
         "libbinder",
+        "libbluetooth-binder",
         "libchrome",
         "libnativehelper",
         "liblog",
