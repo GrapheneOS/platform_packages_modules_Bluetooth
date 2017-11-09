@@ -41,6 +41,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
 /**
  * Provides Bluetooth HearingAid profile, as a service in the Bluetooth application.
@@ -58,7 +59,12 @@ public class HearingAidService extends ProfileService {
 
     private BluetoothDevice mActiveDevice;
 
+    private final Map<BluetoothDevice, HearingAidStateMachine> mStateMachines =
+            new HashMap<>();
     private final Map<BluetoothDevice, Integer> mDeviceMap = new HashMap<>();
+
+    // Upper limit of all HearingAid devices: Bonded or Connected
+    private static final int MAX_HEARING_AID_STATE_MACHINES = 10;
 
     private BroadcastReceiver mBondStateChangedReceiver;
     private BroadcastReceiver mConnectionStateChangedReceiver;
@@ -93,7 +99,7 @@ public class HearingAidService extends ProfileService {
         // TODO: Add native interface
 
         // Start handler thread for state machines
-        // TODO: Clear state machines
+        mStateMachines.clear();
         mStateMachinesThread = new HandlerThread("HearingAidService.StateMachines");
         mStateMachinesThread.start();
 
@@ -145,7 +151,14 @@ public class HearingAidService extends ProfileService {
         // TODO: Cleanup native interface
 
         // Destroy state machines and stop handler thread
-        // TODO: Implement me: destroy state machine
+        synchronized (mStateMachines) {
+            for (HearingAidStateMachine sm : mStateMachines.values()) {
+                sm.doQuit();
+                sm.cleanup();
+            }
+            mStateMachines.clear();
+        }
+
         if (mStateMachinesThread != null) {
             mStateMachinesThread.quitSafely();
             mStateMachinesThread = null;
@@ -205,8 +218,15 @@ public class HearingAidService extends ProfileService {
             return false;
         }
 
-        // TODO: Implement me
-        return false;
+        synchronized (mStateMachines) {
+            HearingAidStateMachine smConnect = getOrCreateStateMachine(device);
+            if (smConnect == null) {
+                Log.e(TAG, "Cannot connect to " + device + " : no state machine");
+                return false;
+            }
+            smConnect.sendMessage(HearingAidStateMachine.CONNECT);
+            return true;
+        }
     }
 
     boolean disconnect(BluetoothDevice device) {
@@ -215,14 +235,34 @@ public class HearingAidService extends ProfileService {
             Log.d(TAG, "disconnect(): " + device);
         }
 
-        // TODO: Implement me
-        return false;
+        int hiSyncId = mDeviceMap.get(device);
+        for (BluetoothDevice storedDevice : mDeviceMap.keySet()) {
+            if (mDeviceMap.get(storedDevice) != hiSyncId) {
+                continue;
+            }
+            synchronized (mStateMachines) {
+                HearingAidStateMachine sm = mStateMachines.get(device);
+                if (sm == null) {
+                    Log.e(TAG, "Ignored disconnect request for " + device + " : no state machine");
+                    continue;
+                }
+                sm.sendMessage(HearingAidStateMachine.DISCONNECT);
+            }
+        }
+        return true;
     }
 
     List<BluetoothDevice> getConnectedDevices() {
         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
-        // TODO: Implement me
-        return new ArrayList<>();
+        synchronized (mStateMachines) {
+            List<BluetoothDevice> devices = new ArrayList<>();
+            for (HearingAidStateMachine sm : mStateMachines.values()) {
+                if (sm.isConnected()) {
+                    devices.add(sm.getDevice());
+                }
+            }
+            return devices;
+        }
     }
 
     /**
@@ -232,14 +272,54 @@ public class HearingAidService extends ProfileService {
      * @param device the peer device to connect to
      * @return true if connection is allowed, otherwise false
      */
-    boolean okToConnect(BluetoothDevice device) {
-        throw new IllegalStateException("Implement me");
+    @VisibleForTesting(otherwise = VisibleForTesting.PACKAGE_PRIVATE)
+    public boolean okToConnect(BluetoothDevice device) {
+        // Check if this is an incoming connection in Quiet mode.
+        if (mAdapterService.isQuietModeEnabled()) {
+            Log.e(TAG, "okToConnect: cannot connect to " + device + " : quiet mode enabled");
+            return false;
+        }
+        // Check priority and accept or reject the connection
+        int priority = getPriority(device);
+        int bondState = mAdapterService.getBondState(device);
+        // Allow the connection only if the device is bonded or bonding.
+        if ((priority == BluetoothProfile.PRIORITY_UNDEFINED)
+                && (bondState == BluetoothDevice.BOND_NONE)) {
+            Log.e(TAG, "okToConnect: cannot connect to " + device + " : priority=" + priority
+                    + " bondState=" + bondState);
+            return false;
+        }
+        if (priority <= BluetoothProfile.PRIORITY_OFF) {
+            Log.e(TAG, "okToConnect: cannot connect to " + device + " : priority=" + priority);
+            return false;
+        }
+        return true;
     }
 
     List<BluetoothDevice> getDevicesMatchingConnectionStates(int[] states) {
         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
-        // TODO: Implement me
-        return new ArrayList<>();
+        synchronized (mStateMachines) {
+            List<BluetoothDevice> devices = new ArrayList<>();
+            Set<BluetoothDevice> bondedDevices = mAdapter.getBondedDevices();
+
+            for (BluetoothDevice device : bondedDevices) {
+                ParcelUuid[] featureUuids = device.getUuids();
+                if (!BluetoothUuid.isUuidPresent(featureUuids, BluetoothUuid.HearingAid)) {
+                    continue;
+                }
+                int connectionState = BluetoothProfile.STATE_DISCONNECTED;
+                HearingAidStateMachine sm = mStateMachines.get(device);
+                if (sm != null) {
+                    connectionState = sm.getConnectionState();
+                }
+                for (int state : states) {
+                    if (connectionState == state) {
+                        devices.add(device);
+                    }
+                }
+            }
+            return devices;
+        }
     }
 
     /**
@@ -249,14 +329,24 @@ public class HearingAidService extends ProfileService {
      */
     @VisibleForTesting
     List<BluetoothDevice> getDevices() {
-        // TODO: Implement me
-        return new ArrayList<>();
+        List<BluetoothDevice> devices = new ArrayList<>();
+        synchronized (mStateMachines) {
+            for (HearingAidStateMachine sm : mStateMachines.values()) {
+                devices.add(sm.getDevice());
+            }
+            return devices;
+        }
     }
 
     int getConnectionState(BluetoothDevice device) {
         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
-        // TODO: Implement me
-        return BluetoothProfile.STATE_DISCONNECTED;
+        synchronized (mStateMachines) {
+            HearingAidStateMachine sm = mStateMachines.get(device);
+            if (sm == null) {
+                return BluetoothProfile.STATE_DISCONNECTED;
+            }
+            return sm.getConnectionState();
+        }
     }
 
     /**
@@ -267,7 +357,7 @@ public class HearingAidService extends ProfileService {
      */
     public synchronized boolean setActiveDevice(BluetoothDevice device) {
         enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH ADMIN permission");
-        // TODO: Implement me
+
         return false;
     }
 
@@ -278,11 +368,15 @@ public class HearingAidService extends ProfileService {
      */
     public synchronized BluetoothDevice getActiveDevice() {
         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
-        throw new IllegalStateException("Implement me");
+        synchronized (mStateMachines) {
+            return mActiveDevice;
+        }
     }
 
     private synchronized boolean isActiveDevice(BluetoothDevice device) {
-        throw new IllegalStateException("Implement me");
+        synchronized (mStateMachines) {
+            return (device != null) && Objects.equals(device, mActiveDevice);
+        }
     }
 
     /**
@@ -301,18 +395,38 @@ public class HearingAidService extends ProfileService {
         }
         return true;
     }
-    /**
-     * Get the priority of the Hearing Aid profile.
-     *
-     * @param device the remote device
-     * @return the profile priority
-     */
+
     public int getPriority(BluetoothDevice device) {
         enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH_ADMIN permission");
         int priority = Settings.Global.getInt(getContentResolver(),
                 Settings.Global.getBluetoothHearingAidPriorityKey(device.getAddress()),
                 BluetoothProfile.PRIORITY_UNDEFINED);
         return priority;
+    }
+
+    private HearingAidStateMachine getOrCreateStateMachine(BluetoothDevice device) {
+        if (device == null) {
+            Log.e(TAG, "getOrCreateStateMachine failed: device cannot be null");
+            return null;
+        }
+        synchronized (mStateMachines) {
+            HearingAidStateMachine sm = mStateMachines.get(device);
+            if (sm != null) {
+                return sm;
+            }
+            // Limit the maximum number of state machines to avoid DoS attack
+            if (mStateMachines.size() >= MAX_HEARING_AID_STATE_MACHINES) {
+                Log.e(TAG, "Maximum number of HearingAid state machines reached: "
+                        + MAX_HEARING_AID_STATE_MACHINES);
+                return null;
+            }
+            if (DBG) {
+                Log.d(TAG, "Creating a new state machine for " + device);
+            }
+            sm = HearingAidStateMachine.make(device, this, mStateMachinesThread.getLooper());
+            mStateMachines.put(device, sm);
+            return sm;
+        }
     }
 
     private void broadcastActiveDevice(BluetoothDevice device) {
@@ -337,13 +451,8 @@ public class HearingAidService extends ProfileService {
             int state = intent.getIntExtra(BluetoothDevice.EXTRA_BOND_STATE,
                                            BluetoothDevice.ERROR);
             BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-            if (DBG) {
-                Log.d(TAG, "Bond state changed for device: " + device + " state: " + state);
-            }
-            if (state != BluetoothDevice.BOND_NONE) {
-                return;
-            }
-            // TODO: Implement me
+            Objects.requireNonNull(device, "ACTION_BOND_STATE_CHANGED with no EXTRA_DEVICE");
+            bondStateChanged(device, state);
         }
     }
 
@@ -365,12 +474,45 @@ public class HearingAidService extends ProfileService {
         if (bondState != BluetoothDevice.BOND_NONE) {
             return;
         }
-        // TODO: Implement me
+        synchronized (mStateMachines) {
+            HearingAidStateMachine sm = mStateMachines.get(device);
+            if (sm == null) {
+                return;
+            }
+            if (sm.getConnectionState() != BluetoothProfile.STATE_DISCONNECTED) {
+                return;
+            }
+            removeStateMachine(device);
+        }
+    }
+
+    private void removeStateMachine(BluetoothDevice device) {
+        synchronized (mStateMachines) {
+            HearingAidStateMachine sm = mStateMachines.get(device);
+            if (sm == null) {
+                Log.w(TAG, "removeStateMachine: device " + device
+                        + " does not have a state machine");
+                return;
+            }
+            Log.i(TAG, "removeStateMachine: removing state machine for device: " + device);
+            sm.doQuit();
+            sm.cleanup();
+            mStateMachines.remove(device);
+        }
     }
 
     private synchronized void connectionStateChanged(BluetoothDevice device, int fromState,
                                                      int toState) {
-        // TODO: Implement me
+        if ((device == null) || (fromState == toState)) {
+            return;
+        }
+        // Check if the device is disconnected - if unbond, remove the state machine
+        if (toState == BluetoothProfile.STATE_DISCONNECTED) {
+            int bondState = mAdapterService.getBondState(device);
+            if (bondState == BluetoothDevice.BOND_NONE) {
+                removeStateMachine(device);
+            }
+        }
     }
 
     private class ConnectionStateChangedReceiver extends BroadcastReceiver {
@@ -400,6 +542,14 @@ public class HearingAidService extends ProfileService {
                 return null;
             }
 
+            if (mService != null && mService.isAvailable()) {
+                return mService;
+            }
+            return null;
+        }
+
+        @VisibleForTesting
+        HearingAidService getServiceForTesting() {
             if (mService != null && mService.isAvailable()) {
                 return mService;
             }
@@ -511,5 +661,8 @@ public class HearingAidService extends ProfileService {
     public void dump(StringBuilder sb) {
         super.dump(sb);
         ProfileService.println(sb, "mActiveDevice: " + mActiveDevice);
+        for (HearingAidStateMachine sm : mStateMachines.values()) {
+            sm.dump(sb);
+        }
     }
 }
