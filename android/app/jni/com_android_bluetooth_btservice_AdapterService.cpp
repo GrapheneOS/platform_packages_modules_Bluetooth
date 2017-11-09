@@ -17,12 +17,14 @@
 #define LOG_TAG "BluetoothServiceJni"
 #include "android_runtime/AndroidRuntime.h"
 #include "android_runtime/Log.h"
+#include "bluetooth_socket_manager.h"
 #include "com_android_bluetooth.h"
 #include "hardware/bt_sock.h"
 #include "permission_helpers.h"
 #include "utils/Log.h"
 #include "utils/misc.h"
 
+#include <android_util_Binder.h>
 #include <base/logging.h>
 #include <base/strings/stringprintf.h>
 #include <dlfcn.h>
@@ -36,6 +38,7 @@
 
 using base::StringPrintf;
 using bluetooth::Uuid;
+using android::bluetooth::BluetoothSocketManagerBinderServer;
 
 namespace android {
 // OOB_LE_BD_ADDR_SIZE is 6 bytes addres + 1 byte address type
@@ -70,6 +73,10 @@ static JNIEnv* callbackEnv = NULL;
 static jobject sJniAdapterServiceObj;
 static jobject sJniCallbacksObj;
 static jfieldID sJniCallbacksField;
+
+namespace {
+android::sp<BluetoothSocketManagerBinderServer> socketManager = NULL;
+}
 
 const bt_interface_t* getBluetoothInterface() { return sBluetoothInterface; }
 
@@ -732,6 +739,7 @@ static bool cleanupNative(JNIEnv* env, jobject obj) {
     android_bluetooth_UidTraffic.clazz = NULL;
   }
 
+  socketManager = nullptr;
   return JNI_TRUE;
 }
 
@@ -1184,6 +1192,14 @@ static int createSocketChannelNative(JNIEnv* env, jobject object, jint type,
   return socket_fd;
 }
 
+static jobject getSocketManagerNative(JNIEnv* env) {
+  if (!socketManager.get())
+    socketManager =
+        new BluetoothSocketManagerBinderServer(sBluetoothSocketInterface);
+
+  return javaObjectForIBinder(env, IInterface::asBinder(socketManager));
+}
+
 static void setSystemUiUidNative(JNIEnv* env, jobject obj, jint uid) {
   android::bluetooth::systemUiUid = uid;
 }
@@ -1283,6 +1299,8 @@ static JNINativeMethod sMethods[] = {
     {"connectSocketNative", "([BI[BIII)I", (void*)connectSocketNative},
     {"createSocketChannelNative", "(ILjava/lang/String;[BIII)I",
      (void*)createSocketChannelNative},
+    {"getSocketManagerNative", "()Landroid/os/IBinder;",
+     (void*)getSocketManagerNative},
     {"setSystemUiUidNative", "(I)V", (void*)setSystemUiUidNative},
     {"setForegroundUserIdNative", "(I)V", (void*)setForegroundUserIdNative},
     {"alarmFiredNative", "()V", (void*)alarmFiredNative},
