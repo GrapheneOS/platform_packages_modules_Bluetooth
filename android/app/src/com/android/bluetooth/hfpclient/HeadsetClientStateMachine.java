@@ -786,9 +786,6 @@ public class HeadsetClientStateMachine extends StateMachine {
             mQueuedActions = new LinkedList<Pair<Integer, Object>>();
             clearPendingAction();
 
-
-            mCurrentDevice = null;
-
             mCalls.clear();
             mCallsUpdate.clear();
 
@@ -807,6 +804,7 @@ public class HeadsetClientStateMachine extends StateMachine {
                 Log.e(TAG, "Connected: Illegal state transition from " + mPrevState.getName()
                         + " to Connecting, mCurrentDevice=" + mCurrentDevice);
             }
+            mCurrentDevice = null;
         }
 
         @Override
