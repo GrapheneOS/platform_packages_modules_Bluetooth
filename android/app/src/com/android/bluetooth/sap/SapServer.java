@@ -899,7 +899,7 @@ public class SapServer extends Thread implements Callback {
         }
 
         switch (sapMsg.getMsgType()) {
-            case SapMessage.ID_DISCONNECT_IND: {
+            case SapMessage.ID_RIL_UNSOL_DISCONNECT_IND: {
                 if (mState != SAP_STATE.DISCONNECTED && mState != SAP_STATE.DISCONNECTING) {
                 /* we only send disconnect indication to the client if we are actually connected*/
                     SapMessage reply = new SapMessage(SapMessage.ID_DISCONNECT_IND);
