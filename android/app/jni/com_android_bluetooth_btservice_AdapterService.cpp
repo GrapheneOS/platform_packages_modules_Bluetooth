@@ -19,6 +19,7 @@
 #include "android_runtime/Log.h"
 #include "com_android_bluetooth.h"
 #include "hardware/bt_sock.h"
+#include "permission_helpers.h"
 #include "utils/Log.h"
 #include "utils/misc.h"
 
@@ -1183,6 +1184,14 @@ static int createSocketChannelNative(JNIEnv* env, jobject object, jint type,
   return socket_fd;
 }
 
+static void setSystemUiUidNative(JNIEnv* env, jobject obj, jint uid) {
+  android::bluetooth::systemUiUid = uid;
+}
+
+static void setForegroundUserIdNative(JNIEnv* env, jclass clazz, jint id) {
+  android::bluetooth::foregroundUserId = id;
+}
+
 static int readEnergyInfo() {
   ALOGV("%s", __func__);
 
@@ -1274,6 +1283,8 @@ static JNINativeMethod sMethods[] = {
     {"connectSocketNative", "([BI[BIII)I", (void*)connectSocketNative},
     {"createSocketChannelNative", "(ILjava/lang/String;[BIII)I",
      (void*)createSocketChannelNative},
+    {"setSystemUiUidNative", "(I)V", (void*)setSystemUiUidNative},
+    {"setForegroundUserIdNative", "(I)V", (void*)setForegroundUserIdNative},
     {"alarmFiredNative", "()V", (void*)alarmFiredNative},
     {"readEnergyInfo", "()I", (void*)readEnergyInfo},
     {"dumpNative", "(Ljava/io/FileDescriptor;[Ljava/lang/String;)V",

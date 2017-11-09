@@ -15,6 +15,8 @@ cc_library_shared {
         "com_android_bluetooth_pan.cpp",
         "com_android_bluetooth_gatt.cpp",
         "com_android_bluetooth_sdp.cpp",
+        "IUserManager.cc",
+        "permission_helpers.cc",
     ],
     header_libs: ["libbluetooth_headers"],
     include_dirs: [
@@ -23,12 +25,14 @@ cc_library_shared {
     ],
     shared_libs: [
         "libandroid_runtime",
+        "libbinder",
         "libchrome",
         "libnativehelper",
         "liblog",
     ],
     static_libs: [
         "libbluetooth-types",
+        "libutils",
     ],
     cflags: [
         "-Wall",
