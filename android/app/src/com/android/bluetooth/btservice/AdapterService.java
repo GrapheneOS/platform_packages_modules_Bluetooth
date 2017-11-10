@@ -1476,21 +1476,6 @@ public class AdapterService extends Service {
         }
 
         @Override
-        public ParcelFileDescriptor createSocketChannel(int type, String serviceName,
-                ParcelUuid uuid, int port, int flag) {
-            if (!Utils.checkCallerAllowManagedProfiles(mService)) {
-                Log.w(TAG, "createSocketChannel() - Not allowed for non-active user");
-                return null;
-            }
-
-            AdapterService service = getService();
-            if (service == null) {
-                return null;
-            }
-            return service.createSocketChannel(type, serviceName, uuid, port, flag);
-        }
-
-        @Override
         public IBluetoothSocketManager getSocketManager() {
             AdapterService service = getService();
             if (service == null) {
@@ -2182,18 +2167,6 @@ public class AdapterService extends Service {
         return ParcelFileDescriptor.adoptFd(fd);
     }
 
-    ParcelFileDescriptor createSocketChannel(int type, String serviceName, ParcelUuid uuid,
-            int port, int flag) {
-        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
-        int fd = createSocketChannelNative(type, serviceName, Utils.uuidToByteArray(uuid), port,
-                flag, Binder.getCallingUid());
-        if (fd < 0) {
-            errorLog("Failed to create socket channel");
-            return null;
-        }
-        return ParcelFileDescriptor.adoptFd(fd);
-    }
-
     IBluetoothSocketManager getSocketManager() {
         android.os.IBinder obj = getSocketManagerNative();
         if (obj == null) {
@@ -2666,9 +2639,6 @@ public class AdapterService extends Service {
     // TODO(BT) move this to ../btsock dir
     private native int connectSocketNative(byte[] address, int type, byte[] uuid, int port,
             int flag, int callingUid);
-
-    private native int createSocketChannelNative(int type, String serviceName, byte[] uuid,
-            int port, int flag, int callingUid);
 
     private native IBinder getSocketManagerNative();
 
