@@ -1152,46 +1152,6 @@ static int connectSocketNative(JNIEnv* env, jobject object, jbyteArray address,
   return socket_fd;
 }
 
-static int createSocketChannelNative(JNIEnv* env, jobject object, jint type,
-                                     jstring name_str, jbyteArray uuidObj,
-                                     jint channel, jint flag, jint callingUid) {
-  if (!sBluetoothSocketInterface) return -1;
-
-  ALOGV("%s: SOCK FLAG = %x", __func__, flag);
-
-  const char* service_name = NULL;
-  if (name_str != NULL) {
-    service_name = env->GetStringUTFChars(name_str, NULL);
-  }
-
-  Uuid uuid;
-  if (uuidObj != NULL) {
-    jbyte* tmp = env->GetByteArrayElements(uuidObj, NULL);
-    if (!tmp) {
-      ALOGE("failed to get uuid");
-      if (service_name) env->ReleaseStringUTFChars(name_str, service_name);
-      return -1;
-    }
-
-    uuid = Uuid::From128BitBE(reinterpret_cast<uint8_t*>(tmp));
-    env->ReleaseByteArrayElements(uuidObj, tmp, 0);
-  }
-
-  int socket_fd = -1;
-  bt_status_t status = sBluetoothSocketInterface->listen(
-      (btsock_type_t)type, service_name, uuidObj ? &uuid : nullptr, channel,
-      &socket_fd, flag, callingUid);
-  if (status != BT_STATUS_SUCCESS) {
-    ALOGE("Socket listen failed: %d", status);
-    socket_fd = -1;
-  } else if (socket_fd < 0) {
-    ALOGE("Fail to creat file descriptor on socket fd");
-  }
-
-  if (service_name) env->ReleaseStringUTFChars(name_str, service_name);
-  return socket_fd;
-}
-
 static jobject getSocketManagerNative(JNIEnv* env) {
   if (!socketManager.get())
     socketManager =
@@ -1297,8 +1257,6 @@ static JNINativeMethod sMethods[] = {
     {"sspReplyNative", "([BIZI)Z", (void*)sspReplyNative},
     {"getRemoteServicesNative", "([B)Z", (void*)getRemoteServicesNative},
     {"connectSocketNative", "([BI[BIII)I", (void*)connectSocketNative},
-    {"createSocketChannelNative", "(ILjava/lang/String;[BIII)I",
-     (void*)createSocketChannelNative},
     {"getSocketManagerNative", "()Landroid/os/IBinder;",
      (void*)getSocketManagerNative},
     {"setSystemUiUidNative", "(I)V", (void*)setSystemUiUidNative},
