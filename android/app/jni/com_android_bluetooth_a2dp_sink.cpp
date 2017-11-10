@@ -33,8 +33,8 @@ static jmethodID method_onAudioConfigChanged;
 static const btav_sink_interface_t* sBluetoothA2dpInterface = NULL;
 static jobject mCallbacksObj = NULL;
 
-static void bta2dp_connection_state_callback(btav_connection_state_t state,
-                                             RawAddress* bd_addr) {
+static void bta2dp_connection_state_callback(RawAddress* bd_addr,
+                                             btav_connection_state_t state) {
   ALOGI("%s", __func__);
   CallbackEnv sCallbackEnv(__func__);
   if (!sCallbackEnv.valid()) return;
@@ -49,11 +49,11 @@ static void bta2dp_connection_state_callback(btav_connection_state_t state,
   sCallbackEnv->SetByteArrayRegion(addr.get(), 0, sizeof(RawAddress),
                                    (jbyte*)bd_addr);
   sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onConnectionStateChanged,
-                               (jint)state, addr.get());
+                               addr.get(), (jint)state);
 }
 
-static void bta2dp_audio_state_callback(btav_audio_state_t state,
-                                        RawAddress* bd_addr) {
+static void bta2dp_audio_state_callback(RawAddress* bd_addr,
+                                        btav_audio_state_t state) {
   ALOGI("%s", __func__);
   CallbackEnv sCallbackEnv(__func__);
   if (!sCallbackEnv.valid()) return;
@@ -68,7 +68,7 @@ static void bta2dp_audio_state_callback(btav_audio_state_t state,
   sCallbackEnv->SetByteArrayRegion(addr.get(), 0, sizeof(RawAddress),
                                    (jbyte*)bd_addr);
   sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onAudioStateChanged,
-                               (jint)state, addr.get());
+                               addr.get(), (jint)state);
 }
 
 static void bta2dp_audio_config_callback(RawAddress* bd_addr,
@@ -99,10 +99,10 @@ static btav_sink_callbacks_t sBluetoothA2dpCallbacks = {
 
 static void classInitNative(JNIEnv* env, jclass clazz) {
   method_onConnectionStateChanged =
-      env->GetMethodID(clazz, "onConnectionStateChanged", "(I[B)V");
+      env->GetMethodID(clazz, "onConnectionStateChanged", "([BI)V");
 
   method_onAudioStateChanged =
-      env->GetMethodID(clazz, "onAudioStateChanged", "(I[B)V");
+      env->GetMethodID(clazz, "onAudioStateChanged", "([BI)V");
 
   method_onAudioConfigChanged =
       env->GetMethodID(clazz, "onAudioConfigChanged", "([BII)V");
