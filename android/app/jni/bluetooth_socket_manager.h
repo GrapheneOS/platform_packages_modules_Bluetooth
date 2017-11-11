@@ -34,6 +34,12 @@ class BluetoothSocketManagerBinderServer : public BnBluetoothSocketManager {
       : socketInterface(socketInterface) {}
   ~BluetoothSocketManagerBinderServer() override = default;
 
+  Status connectSocket(
+      const BluetoothDevice& device, int32_t type,
+      const std::unique_ptr<::android::os::ParcelUuid>& uuid, int32_t port,
+      int32_t flag,
+      std::unique_ptr<::android::os::ParcelFileDescriptor>* _aidl_return);
+
   Status createSocketChannel(
       int32_t type, const std::unique_ptr<::android::String16>& serviceName,
       const std::unique_ptr<::android::os::ParcelUuid>& uuid, int32_t port,

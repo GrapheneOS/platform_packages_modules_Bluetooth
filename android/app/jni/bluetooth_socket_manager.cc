@@ -20,14 +20,47 @@
 #include <base/logging.h>
 #include <binder/IPCThreadState.h>
 
-using ::android::binder::Status;
 using ::android::OK;
+using ::android::String8;
+using ::android::binder::Status;
 using ::android::os::ParcelFileDescriptor;
 using ::android::os::ParcelUuid;
-using ::android::String8;
 
 namespace android {
 namespace bluetooth {
+
+Status BluetoothSocketManagerBinderServer::connectSocket(
+    const BluetoothDevice& device, int32_t type,
+    const std::unique_ptr<ParcelUuid>& uuid, int32_t port, int32_t flag,
+    std::unique_ptr<ParcelFileDescriptor>* _aidl_return) {
+  if (!isCallerActiveUserOrManagedProfile()) {
+    LOG(WARNING) << "connectSocket() - Not allowed for non-active users";
+    return Status::ok();
+  }
+
+  ENFORCE_PERMISSION(PERMISSION_BLUETOOTH);
+
+  IPCThreadState* ipc = IPCThreadState::self();
+
+  int socket_fd = -1;
+  bt_status_t status = socketInterface->connect(
+      &device.address, (btsock_type_t)type, uuid ? &uuid->uuid : nullptr, port,
+      &socket_fd, flag, ipc->getCallingUid());
+  if (status != BT_STATUS_SUCCESS) {
+    LOG(ERROR) << "Socket connection failed: " << +status;
+    socket_fd = -1;
+  }
+
+  if (socket_fd < 0) {
+    LOG(ERROR) << "Fail to create file descriptor on socket fd";
+    return Status::ok();
+  }
+
+  _aidl_return->reset(new ParcelFileDescriptor());
+  (*_aidl_return)->fd = socket_fd;
+  return Status::ok();
+}
+
 Status BluetoothSocketManagerBinderServer::createSocketChannel(
     int32_t type, const std::unique_ptr<::android::String16>& serviceName,
     const std::unique_ptr<ParcelUuid>& uuid, int32_t port, int32_t flag,
