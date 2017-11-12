@@ -17,11 +17,14 @@
 #define LOG_TAG "BluetoothServiceJni"
 #include "android_runtime/AndroidRuntime.h"
 #include "android_runtime/Log.h"
+#include "bluetooth_socket_manager.h"
 #include "com_android_bluetooth.h"
 #include "hardware/bt_sock.h"
+#include "permission_helpers.h"
 #include "utils/Log.h"
 #include "utils/misc.h"
 
+#include <android_util_Binder.h>
 #include <base/logging.h>
 #include <base/strings/stringprintf.h>
 #include <dlfcn.h>
@@ -35,6 +38,7 @@
 
 using base::StringPrintf;
 using bluetooth::Uuid;
+using android::bluetooth::BluetoothSocketManagerBinderServer;
 
 namespace android {
 // OOB_LE_BD_ADDR_SIZE is 6 bytes addres + 1 byte address type
@@ -69,6 +73,10 @@ static JNIEnv* callbackEnv = NULL;
 static jobject sJniAdapterServiceObj;
 static jobject sJniCallbacksObj;
 static jfieldID sJniCallbacksField;
+
+namespace {
+android::sp<BluetoothSocketManagerBinderServer> socketManager = NULL;
+}
 
 const bt_interface_t* getBluetoothInterface() { return sBluetoothInterface; }
 
@@ -731,6 +739,7 @@ static bool cleanupNative(JNIEnv* env, jobject obj) {
     android_bluetooth_UidTraffic.clazz = NULL;
   }
 
+  socketManager = nullptr;
   return JNI_TRUE;
 }
 
@@ -1104,83 +1113,20 @@ static jboolean getRemoteServicesNative(JNIEnv* env, jobject obj,
   return (ret == BT_STATUS_SUCCESS) ? JNI_TRUE : JNI_FALSE;
 }
 
-static int connectSocketNative(JNIEnv* env, jobject object, jbyteArray address,
-                               jint type, jbyteArray uuidObj, jint channel,
-                               jint flag, jint callingUid) {
-  if (!sBluetoothSocketInterface) return -1;
+static jobject getSocketManagerNative(JNIEnv* env) {
+  if (!socketManager.get())
+    socketManager =
+        new BluetoothSocketManagerBinderServer(sBluetoothSocketInterface);
 
-  jbyte* addr = env->GetByteArrayElements(address, NULL);
-  if (!addr) {
-    ALOGE("failed to get Bluetooth device address");
-    return -1;
-  }
-
-  Uuid uuid;
-  if (uuidObj != NULL) {
-    jbyte* tmp = env->GetByteArrayElements(uuidObj, NULL);
-    if (!tmp) {
-      ALOGE("failed to get uuid");
-      env->ReleaseByteArrayElements(address, addr, 0);
-      return -1;
-    }
-
-    uuid = Uuid::From128BitBE(reinterpret_cast<uint8_t*>(tmp));
-    env->ReleaseByteArrayElements(uuidObj, tmp, 0);
-  }
-
-  int socket_fd = -1;
-  bt_status_t status = sBluetoothSocketInterface->connect(
-      (RawAddress*)addr, (btsock_type_t)type, uuidObj ? &uuid : nullptr,
-      channel, &socket_fd, flag, callingUid);
-  if (status != BT_STATUS_SUCCESS) {
-    ALOGE("Socket connection failed: %d", status);
-    socket_fd = -1;
-  } else if (socket_fd < 0) {
-    ALOGE("Fail to create file descriptor on socket fd");
-  }
-
-  env->ReleaseByteArrayElements(address, addr, 0);
-  return socket_fd;
+  return javaObjectForIBinder(env, IInterface::asBinder(socketManager));
 }
 
-static int createSocketChannelNative(JNIEnv* env, jobject object, jint type,
-                                     jstring name_str, jbyteArray uuidObj,
-                                     jint channel, jint flag, jint callingUid) {
-  if (!sBluetoothSocketInterface) return -1;
+static void setSystemUiUidNative(JNIEnv* env, jobject obj, jint uid) {
+  android::bluetooth::systemUiUid = uid;
+}
 
-  ALOGV("%s: SOCK FLAG = %x", __func__, flag);
-
-  const char* service_name = NULL;
-  if (name_str != NULL) {
-    service_name = env->GetStringUTFChars(name_str, NULL);
-  }
-
-  Uuid uuid;
-  if (uuidObj != NULL) {
-    jbyte* tmp = env->GetByteArrayElements(uuidObj, NULL);
-    if (!tmp) {
-      ALOGE("failed to get uuid");
-      if (service_name) env->ReleaseStringUTFChars(name_str, service_name);
-      return -1;
-    }
-
-    uuid = Uuid::From128BitBE(reinterpret_cast<uint8_t*>(tmp));
-    env->ReleaseByteArrayElements(uuidObj, tmp, 0);
-  }
-
-  int socket_fd = -1;
-  bt_status_t status = sBluetoothSocketInterface->listen(
-      (btsock_type_t)type, service_name, uuidObj ? &uuid : nullptr, channel,
-      &socket_fd, flag, callingUid);
-  if (status != BT_STATUS_SUCCESS) {
-    ALOGE("Socket listen failed: %d", status);
-    socket_fd = -1;
-  } else if (socket_fd < 0) {
-    ALOGE("Fail to creat file descriptor on socket fd");
-  }
-
-  if (service_name) env->ReleaseStringUTFChars(name_str, service_name);
-  return socket_fd;
+static void setForegroundUserIdNative(JNIEnv* env, jclass clazz, jint id) {
+  android::bluetooth::foregroundUserId = id;
 }
 
 static int readEnergyInfo() {
@@ -1271,9 +1217,10 @@ static JNINativeMethod sMethods[] = {
     {"pinReplyNative", "([BZI[B)Z", (void*)pinReplyNative},
     {"sspReplyNative", "([BIZI)Z", (void*)sspReplyNative},
     {"getRemoteServicesNative", "([B)Z", (void*)getRemoteServicesNative},
-    {"connectSocketNative", "([BI[BIII)I", (void*)connectSocketNative},
-    {"createSocketChannelNative", "(ILjava/lang/String;[BIII)I",
-     (void*)createSocketChannelNative},
+    {"getSocketManagerNative", "()Landroid/os/IBinder;",
+     (void*)getSocketManagerNative},
+    {"setSystemUiUidNative", "(I)V", (void*)setSystemUiUidNative},
+    {"setForegroundUserIdNative", "(I)V", (void*)setForegroundUserIdNative},
     {"alarmFiredNative", "()V", (void*)alarmFiredNative},
     {"readEnergyInfo", "()I", (void*)readEnergyInfo},
     {"dumpNative", "(Ljava/io/FileDescriptor;[Ljava/lang/String;)V",

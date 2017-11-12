@@ -1248,6 +1248,8 @@ public class SapMessage {
                     return "ID_SET_TRANSPORT_PROTOCOL_RESP";
                 case ID_RIL_UNSOL_CONNECTED:
                     return "ID_RIL_UNSOL_CONNECTED";
+                case ID_RIL_UNSOL_DISCONNECT_IND:
+                    return "ID_RIL_UNSOL_DISCONNECT_IND";
                 case ID_RIL_UNKNOWN:
                     return "ID_RIL_UNKNOWN";
                 case ID_RIL_GET_SIM_STATUS_REQ:

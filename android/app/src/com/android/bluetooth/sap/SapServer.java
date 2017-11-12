@@ -5,6 +5,7 @@ import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothSap;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -450,6 +451,12 @@ public class SapServer extends Thread implements Callback {
             /* TODO: Change to the needed Exception types when done testing */
             Log.w(TAG, e);
         } finally {
+            BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
+            int state = (adapter != null) ? adapter.getState() : -1;
+            if (state != BluetoothAdapter.STATE_ON) {
+                if (DEBUG) Log.d(TAG, "BT State :" + state);
+                mDeinitSignal.countDown();
+            }
             // Do cleanup even if an exception occurs
             stopDisconnectTimer();
             /* In case of e.g. a RFCOMM close while connected:
@@ -899,7 +906,7 @@ public class SapServer extends Thread implements Callback {
         }
 
         switch (sapMsg.getMsgType()) {
-            case SapMessage.ID_DISCONNECT_IND: {
+            case SapMessage.ID_RIL_UNSOL_DISCONNECT_IND: {
                 if (mState != SAP_STATE.DISCONNECTED && mState != SAP_STATE.DISCONNECTING) {
                 /* we only send disconnect indication to the client if we are actually connected*/
                     SapMessage reply = new SapMessage(SapMessage.ID_DISCONNECT_IND);

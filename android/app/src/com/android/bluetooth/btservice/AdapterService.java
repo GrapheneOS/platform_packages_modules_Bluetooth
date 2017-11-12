@@ -16,6 +16,7 @@
 
 package com.android.bluetooth.btservice;
 
+import android.app.ActivityManager;
 import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.app.Service;
@@ -26,6 +27,7 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.IBluetooth;
 import android.bluetooth.IBluetoothCallback;
+import android.bluetooth.IBluetoothSocketManager;
 import android.bluetooth.OobData;
 import android.bluetooth.UidTraffic;
 import android.content.BroadcastReceiver;
@@ -42,7 +44,6 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
 import android.os.Message;
-import android.os.ParcelFileDescriptor;
 import android.os.ParcelUuid;
 import android.os.PowerManager;
 import android.os.Process;
@@ -452,10 +453,18 @@ public class AdapterService extends Service {
                     "com.android.systemui", PackageManager.MATCH_SYSTEM_ONLY,
                     UserHandle.USER_SYSTEM);
             Utils.setSystemUiUid(systemUiUid);
+            setSystemUiUidNative(systemUiUid);
         } catch (PackageManager.NameNotFoundException e) {
             // Some platforms, such as wearables do not have a system ui.
             Log.w(TAG, "Unable to resolve SystemUI's UID.", e);
         }
+
+        IntentFilter filter = new IntentFilter(Intent.ACTION_USER_SWITCHED);
+        getApplicationContext().registerReceiverAsUser(sUserSwitchedReceiver, UserHandle.ALL,
+                filter, null, null);
+        int fuid = ActivityManager.getCurrentUser();
+        Utils.setForegroundUserId(fuid);
+        setForegroundUserIdNative(fuid);
     }
 
     @Override
@@ -481,6 +490,17 @@ public class AdapterService extends Service {
             System.exit(0);
         }
     }
+
+    public static final BroadcastReceiver sUserSwitchedReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (Intent.ACTION_USER_SWITCHED.equals(intent.getAction())) {
+                int fuid = intent.getIntExtra(Intent.EXTRA_USER_HANDLE, 0);
+                Utils.setForegroundUserId(fuid);
+                setForegroundUserIdNative(fuid);
+            }
+        }
+    };
 
     void bleOnProcessStart() {
         debugLog("bleOnProcessStart()");
@@ -1440,33 +1460,12 @@ public class AdapterService extends Service {
         }
 
         @Override
-        public ParcelFileDescriptor connectSocket(BluetoothDevice device, int type, ParcelUuid uuid,
-                int port, int flag) {
-            if (!Utils.checkCallerAllowManagedProfiles(mService)) {
-                Log.w(TAG, "connectSocket() - Not allowed for non-active user");
-                return null;
-            }
-
+        public IBluetoothSocketManager getSocketManager() {
             AdapterService service = getService();
             if (service == null) {
                 return null;
             }
-            return service.connectSocket(device, type, uuid, port, flag);
-        }
-
-        @Override
-        public ParcelFileDescriptor createSocketChannel(int type, String serviceName,
-                ParcelUuid uuid, int port, int flag) {
-            if (!Utils.checkCallerAllowManagedProfiles(mService)) {
-                Log.w(TAG, "createSocketChannel() - Not allowed for non-active user");
-                return null;
-            }
-
-            AdapterService service = getService();
-            if (service == null) {
-                return null;
-            }
-            return service.createSocketChannel(type, serviceName, uuid, port, flag);
+            return service.getSocketManager();
         }
 
         @Override
@@ -2140,28 +2139,13 @@ public class AdapterService extends Service {
 
     }
 
-    ParcelFileDescriptor connectSocket(BluetoothDevice device, int type, ParcelUuid uuid, int port,
-            int flag) {
-        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
-        int fd = connectSocketNative(Utils.getBytesFromAddress(device.getAddress()), type,
-                Utils.uuidToByteArray(uuid), port, flag, Binder.getCallingUid());
-        if (fd < 0) {
-            errorLog("Failed to connect socket");
+    IBluetoothSocketManager getSocketManager() {
+        android.os.IBinder obj = getSocketManagerNative();
+        if (obj == null) {
             return null;
         }
-        return ParcelFileDescriptor.adoptFd(fd);
-    }
 
-    ParcelFileDescriptor createSocketChannel(int type, String serviceName, ParcelUuid uuid,
-            int port, int flag) {
-        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
-        int fd = createSocketChannelNative(type, serviceName, Utils.uuidToByteArray(uuid), port,
-                flag, Binder.getCallingUid());
-        if (fd < 0) {
-            errorLog("Failed to create socket channel");
-            return null;
-        }
-        return ParcelFileDescriptor.adoptFd(fd);
+        return IBluetoothSocketManager.Stub.asInterface(obj);
     }
 
     boolean factoryReset() {
@@ -2624,12 +2608,11 @@ public class AdapterService extends Service {
 
     private native int readEnergyInfo();
 
-    // TODO(BT) move this to ../btsock dir
-    private native int connectSocketNative(byte[] address, int type, byte[] uuid, int port,
-            int flag, int callingUid);
+    private native IBinder getSocketManagerNative();
 
-    private native int createSocketChannelNative(int type, String serviceName, byte[] uuid,
-            int port, int flag, int callingUid);
+    private native void setSystemUiUidNative(int systemUiUid);
+
+    private static native void setForegroundUserIdNative(int foregroundUserId);
 
     /*package*/
     native boolean factoryResetNative();
