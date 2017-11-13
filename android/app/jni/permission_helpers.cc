@@ -63,6 +63,10 @@ bool isCallerActiveUserOrManagedProfile() {
   uid_t callingUser = callingUid / PER_USER_RANGE;
   // if (!callingUid) return true;  // It's a local call
 
+  if ((foregroundUserId == callingUser) || (systemUiUid == callingUid) ||
+      (SYSTEM_UID == callingUid))
+    return true;
+
   uid_t parentUser = callingUser;
 
   sp<IServiceManager> sm = defaultServiceManager();
@@ -75,9 +79,7 @@ bool isCallerActiveUserOrManagedProfile() {
     ipcState->restoreCallingIdentity(ident);
   }
 
-  return (foregroundUserId == callingUser) ||
-         (foregroundUserId == parentUser) || (systemUiUid == callingUid) ||
-         (SYSTEM_UID == callingUid);
+  return foregroundUserId == parentUser;
 }
 
 }  // namespace bluetooth
