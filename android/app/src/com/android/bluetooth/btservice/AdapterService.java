@@ -44,7 +44,6 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
 import android.os.Message;
-import android.os.ParcelFileDescriptor;
 import android.os.ParcelUuid;
 import android.os.PowerManager;
 import android.os.Process;
@@ -1461,21 +1460,6 @@ public class AdapterService extends Service {
         }
 
         @Override
-        public ParcelFileDescriptor connectSocket(BluetoothDevice device, int type, ParcelUuid uuid,
-                int port, int flag) {
-            if (!Utils.checkCallerAllowManagedProfiles(mService)) {
-                Log.w(TAG, "connectSocket() - Not allowed for non-active user");
-                return null;
-            }
-
-            AdapterService service = getService();
-            if (service == null) {
-                return null;
-            }
-            return service.connectSocket(device, type, uuid, port, flag);
-        }
-
-        @Override
         public IBluetoothSocketManager getSocketManager() {
             AdapterService service = getService();
             if (service == null) {
@@ -2155,18 +2139,6 @@ public class AdapterService extends Service {
 
     }
 
-    ParcelFileDescriptor connectSocket(BluetoothDevice device, int type, ParcelUuid uuid, int port,
-            int flag) {
-        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
-        int fd = connectSocketNative(Utils.getBytesFromAddress(device.getAddress()), type,
-                Utils.uuidToByteArray(uuid), port, flag, Binder.getCallingUid());
-        if (fd < 0) {
-            errorLog("Failed to connect socket");
-            return null;
-        }
-        return ParcelFileDescriptor.adoptFd(fd);
-    }
-
     IBluetoothSocketManager getSocketManager() {
         android.os.IBinder obj = getSocketManagerNative();
         if (obj == null) {
@@ -2635,10 +2607,6 @@ public class AdapterService extends Service {
     native boolean getRemoteMasInstancesNative(byte[] address);
 
     private native int readEnergyInfo();
-
-    // TODO(BT) move this to ../btsock dir
-    private native int connectSocketNative(byte[] address, int type, byte[] uuid, int port,
-            int flag, int callingUid);
 
     private native IBinder getSocketManagerNative();
 
