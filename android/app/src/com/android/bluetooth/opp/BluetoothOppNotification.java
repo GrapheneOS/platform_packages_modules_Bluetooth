@@ -545,7 +545,6 @@ class BluetoothOppNotification {
         if (cursor == null) {
             return;
         }
-
         for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) {
             BluetoothOppTransferInfo info = new BluetoothOppTransferInfo();
             BluetoothOppUtility.fillRecord(mContext, cursor, info);
@@ -592,5 +591,11 @@ class BluetoothOppNotification {
             mNotificationMgr.notify(NOTIFICATION_ID_PROGRESS, n);
         }
         cursor.close();
+    }
+
+    void cancelNotifications() {
+        if (V) Log.v(TAG, "cancelNotifications ");
+        mHandler.removeCallbacksAndMessages(null);
+        mNotificationMgr.cancelAll();
     }
 }
