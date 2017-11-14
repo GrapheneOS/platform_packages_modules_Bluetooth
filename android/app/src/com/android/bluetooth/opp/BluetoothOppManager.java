@@ -329,12 +329,13 @@ public class BluetoothOppManager {
      * Get device name per bluetooth address.
      */
     public String getDeviceName(BluetoothDevice device) {
-        String deviceName;
+        String deviceName = null;
 
-        deviceName = BluetoothOppPreference.getInstance(mContext).getName(device);
-
-        if (deviceName == null && mAdapter != null) {
-            deviceName = device.getName();
+        if (device != null) {
+            deviceName = device.getAliasName();
+            if (deviceName == null) {
+                deviceName = BluetoothOppPreference.getInstance(mContext).getName(device);
+            }
         }
 
         if (deviceName == null) {
