@@ -163,7 +163,13 @@ public class BluetoothOppService extends ProfileService implements IObexConnecti
         }
         mShares = Lists.newArrayList();
         mBatchs = Lists.newArrayList();
+        mObserver = new BluetoothShareContentObserver();
+        getContentResolver().registerContentObserver(BluetoothShare.CONTENT_URI, true, mObserver);
         mBatchId = 1;
+        mNotifier = new BluetoothOppNotification(this);
+        mNotifier.mNotificationMgr.cancelAll();
+        mNotifier.updateNotification();
+
         final ContentResolver contentResolver = getContentResolver();
         new Thread("trimDatabase") {
             @Override
@@ -191,12 +197,6 @@ public class BluetoothOppService extends ProfileService implements IObexConnecti
         if (V) {
             Log.v(TAG, "start()");
         }
-        /* Register observer during BT on */
-        mObserver = new BluetoothShareContentObserver();
-        getContentResolver().registerContentObserver(BluetoothShare.CONTENT_URI, true, mObserver);
-        mNotifier = new BluetoothOppNotification(this);
-        mNotifier.mNotificationMgr.cancelAll();
-        mNotifier.updateNotification();
         updateFromProvider();
         return true;
     }
@@ -248,7 +248,6 @@ public class BluetoothOppService extends ProfileService implements IObexConnecti
                         mTransfer.onBatchCanceled();
                         mTransfer = null;
                     }
-                    unregisterReceivers();
                     synchronized (BluetoothOppService.this) {
                         if (mUpdateThread != null) {
                             try {
@@ -260,7 +259,6 @@ public class BluetoothOppService extends ProfileService implements IObexConnecti
                             mUpdateThread = null;
                         }
                     }
-                    mNotifier.cancelNotifications();
                     break;
                 case START_LISTENER:
                     if (mAdapter.isEnabled()) {
@@ -389,6 +387,8 @@ public class BluetoothOppService extends ProfileService implements IObexConnecti
         if (V) {
             Log.v(TAG, "onDestroy");
         }
+        getContentResolver().unregisterContentObserver(mObserver);
+        unregisterReceiver(mBluetoothReceiver);
         stopListeners();
         if (mBatchs != null) {
             mBatchs.clear();
@@ -400,18 +400,6 @@ public class BluetoothOppService extends ProfileService implements IObexConnecti
             mHandler.removeCallbacksAndMessages(null);
         }
         return true;
-    }
-
-    private void unregisterReceivers() {
-        try {
-            if (mObserver != null) {
-                getContentResolver().unregisterContentObserver(mObserver);
-                mObserver = null;
-            }
-            unregisterReceiver(mBluetoothReceiver);
-        } catch (IllegalArgumentException e) {
-            Log.w(TAG, "unregisterReceivers already " + e.toString());
-        }
     }
 
     /* suppose we auto accept an incoming OPUSH connection */
@@ -1073,14 +1061,6 @@ public class BluetoothOppService extends ProfileService implements IObexConnecti
         if (V) {
             Log.v(TAG, "Deleted complete inbound failed shares, number = " + delNum);
         }
-
-        // remove unconfirmed inbound shares.
-        final String whereConfirmationPendingInbound = BluetoothShare.DIRECTION + "="
-                + BluetoothShare.DIRECTION_INBOUND + " AND " + BluetoothShare.USER_CONFIRMATION
-                + "=" + BluetoothShare.USER_CONFIRMATION_PENDING;
-        delNum = contentResolver.delete(
-                BluetoothShare.CONTENT_URI, whereConfirmationPendingInbound, null);
-        if (V) Log.v(TAG, "Deleted unconfirmed incoming shares, number = " + delNum);
 
         // Only keep the inbound and successful shares for LiverFolder use
         // Keep the latest 1000 to easy db query
