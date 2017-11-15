@@ -23,6 +23,7 @@ package com.android.bluetooth.a2dp;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothCodecConfig;
+import android.bluetooth.BluetoothCodecStatus;
 import android.bluetooth.BluetoothDevice;
 import android.support.annotation.VisibleForTesting;
 import android.util.Log;
@@ -135,11 +136,11 @@ public class A2dpNativeInterface {
     // All callbacks are routed via the Service which will disambiguate which
     // state machine the message should be routed to.
 
-    private void onConnectionStateChanged(int state, byte[] address) {
+    private void onConnectionStateChanged(byte[] address, int state) {
         A2dpStackEvent event =
                 new A2dpStackEvent(A2dpStackEvent.EVENT_TYPE_CONNECTION_STATE_CHANGED);
-        event.valueInt = state;
         event.device = getDevice(address);
+        event.valueInt = state;
 
         if (DBG) {
             Log.d(TAG, "onConnectionStateChanged: " + event);
@@ -147,10 +148,10 @@ public class A2dpNativeInterface {
         sendMessageToService(event);
     }
 
-    private void onAudioStateChanged(int state, byte[] address) {
+    private void onAudioStateChanged(byte[] address, int state) {
         A2dpStackEvent event = new A2dpStackEvent(A2dpStackEvent.EVENT_TYPE_AUDIO_STATE_CHANGED);
-        event.valueInt = state;
         event.device = getDevice(address);
+        event.valueInt = state;
 
         if (DBG) {
             Log.d(TAG, "onAudioStateChanged: " + event);
@@ -158,21 +159,19 @@ public class A2dpNativeInterface {
         sendMessageToService(event);
     }
 
-    private void onCodecConfigChanged(BluetoothCodecConfig newCodecConfig,
+    private void onCodecConfigChanged(byte[] address,
+            BluetoothCodecConfig newCodecConfig,
             BluetoothCodecConfig[] codecsLocalCapabilities,
             BluetoothCodecConfig[] codecsSelectableCapabilities) {
+        A2dpStackEvent event = new A2dpStackEvent(A2dpStackEvent.EVENT_TYPE_CODEC_CONFIG_CHANGED);
+        event.device = getDevice(address);
+        event.codecStatus = new BluetoothCodecStatus(newCodecConfig,
+                                                     codecsLocalCapabilities,
+                                                     codecsSelectableCapabilities);
         if (DBG) {
-            Log.d(TAG, "onCodecConfigChanged: " + newCodecConfig);
+            Log.d(TAG, "onCodecConfigChanged: " + event);
         }
-        // TODO: We need to use A2dpStackEvent instead of specialized service calls.
-        A2dpService service = A2dpService.getA2dpService();
-        if (service != null) {
-            service.onCodecConfigChangedFromNative(newCodecConfig,
-                                                   codecsLocalCapabilities,
-                                                   codecsSelectableCapabilities);
-        } else {
-            Log.w(TAG, "onCodecConfigChanged ignored: service not available");
-        }
+        sendMessageToService(event);
     }
 
     // Native methods that call into the JNI interface
