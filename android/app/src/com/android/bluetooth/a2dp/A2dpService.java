@@ -27,6 +27,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.os.HandlerThread;
 import android.os.ParcelUuid;
 import android.provider.Settings;
 import android.util.Log;
@@ -44,13 +45,19 @@ import java.util.Objects;
  * @hide
  */
 public class A2dpService extends ProfileService {
-    private static final boolean DBG = false;
+    private static final boolean DBG = true;
     private static final String TAG = "A2dpService";
 
+    private HandlerThread mStateMachinesThread = null;
     private A2dpStateMachine mStateMachine;
     private Avrcp mAvrcp;
+    private A2dpNativeInterface mA2dpNativeInterface = null;
 
     private BroadcastReceiver mConnectionStateChangedReceiver = null;
+
+    public A2dpService() {
+        mA2dpNativeInterface = A2dpNativeInterface.getInstance();
+    }
 
     private class CodecSupportReceiver extends BroadcastReceiver {
         @Override
@@ -113,8 +120,16 @@ public class A2dpService extends ProfileService {
 
     @Override
     protected boolean start() {
+        if (DBG) {
+            Log.d(TAG, "start()");
+        }
+
+        mStateMachinesThread = new HandlerThread("A2dpService.StateMachines");
+        mStateMachinesThread.start();
+
         mAvrcp = Avrcp.make(this);
-        mStateMachine = A2dpStateMachine.make(this, this);
+        mStateMachine = A2dpStateMachine.make(this, this, mA2dpNativeInterface,
+                                              mStateMachinesThread.getLooper());
         setA2dpService(this);
         if (mConnectionStateChangedReceiver == null) {
             IntentFilter filter = new IntentFilter();
@@ -127,17 +142,29 @@ public class A2dpService extends ProfileService {
 
     @Override
     protected boolean stop() {
+        if (DBG) {
+            Log.d(TAG, "stop()");
+        }
+
         if (mStateMachine != null) {
             mStateMachine.doQuit();
         }
         if (mAvrcp != null) {
             mAvrcp.doQuit();
         }
+        if (mStateMachinesThread != null) {
+            mStateMachinesThread.quit();
+            mStateMachinesThread = null;
+        }
         return true;
     }
 
     @Override
     protected boolean cleanup() {
+        if (DBG) {
+            Log.d(TAG, "cleanup()");
+        }
+
         if (mConnectionStateChangedReceiver != null) {
             unregisterReceiver(mConnectionStateChangedReceiver);
             mConnectionStateChangedReceiver = null;
@@ -176,7 +203,7 @@ public class A2dpService extends ProfileService {
     private static synchronized void setA2dpService(A2dpService instance) {
         if (instance != null && instance.isAvailable()) {
             if (DBG) {
-                Log.d(TAG, "setA2dpService(): set to: " + sA2dpService);
+                Log.d(TAG, "setA2dpService(): set to: " + instance);
             }
             sA2dpService = instance;
         } else {
@@ -195,6 +222,10 @@ public class A2dpService extends ProfileService {
     }
 
     public boolean connect(BluetoothDevice device) {
+        if (DBG) {
+            Log.d(TAG, "connect(): " + device);
+        }
+
         enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH ADMIN permission");
 
         if (getPriority(device) == BluetoothProfile.PRIORITY_OFF) {
@@ -218,6 +249,10 @@ public class A2dpService extends ProfileService {
     }
 
     boolean disconnect(BluetoothDevice device) {
+        if (DBG) {
+            Log.d(TAG, "disconnect(): " + device);
+        }
+
         enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH ADMIN permission");
         int connectionState = mStateMachine.getConnectionState(device);
         if (connectionState != BluetoothProfile.STATE_CONNECTED
@@ -360,6 +395,23 @@ public class A2dpService extends ProfileService {
         Settings.Global.putInt(getContentResolver(),
                 Settings.Global.getBluetoothA2dpOptionalCodecsEnabledKey(device.getAddress()),
                 value);
+    }
+
+    // Handle messages from native (JNI) to Java
+    void messageFromNative(A2dpStackEvent stackEvent) {
+        if (DBG) {
+            Log.d(TAG, "messageFromNative(): " + stackEvent);
+        }
+        mStateMachine.sendMessage(A2dpStateMachine.STACK_EVENT, stackEvent);
+    }
+
+    // TODO: This method should go away and should be replaced with
+    // the messageFromNative(A2dpStackEvent) mechanism
+    void onCodecConfigChangedFromNative(BluetoothCodecConfig newCodecConfig,
+                                        BluetoothCodecConfig[] codecsLocalCapabilities,
+                                        BluetoothCodecConfig[] codecsSelectableCapabilities) {
+        mStateMachine.onCodecConfigChanged(newCodecConfig, codecsLocalCapabilities,
+                                           codecsSelectableCapabilities);
     }
 
     //Binder object: Must be static class or memory leak may occur
