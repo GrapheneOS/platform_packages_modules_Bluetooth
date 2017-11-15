@@ -399,22 +399,10 @@ public class A2dpService extends ProfileService {
 
     // Handle messages from native (JNI) to Java
     void messageFromNative(A2dpStackEvent stackEvent) {
-        if (DBG) {
-            Log.d(TAG, "messageFromNative(): " + stackEvent);
-        }
         mStateMachine.sendMessage(A2dpStateMachine.STACK_EVENT, stackEvent);
     }
 
-    // TODO: This method should go away and should be replaced with
-    // the messageFromNative(A2dpStackEvent) mechanism
-    void onCodecConfigChangedFromNative(BluetoothCodecConfig newCodecConfig,
-                                        BluetoothCodecConfig[] codecsLocalCapabilities,
-                                        BluetoothCodecConfig[] codecsSelectableCapabilities) {
-        mStateMachine.onCodecConfigChanged(newCodecConfig, codecsLocalCapabilities,
-                                           codecsSelectableCapabilities);
-    }
-
-    //Binder object: Must be static class or memory leak may occur
+    // Binder object: Must be static class or memory leak may occur
     private static class BluetoothA2dpBinder extends IBluetoothA2dp.Stub
             implements IProfileServiceBinder {
         private A2dpService mService;

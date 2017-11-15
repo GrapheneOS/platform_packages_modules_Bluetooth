@@ -274,7 +274,9 @@ final class A2dpStateMachine extends StateMachine {
 
         @Override
         public boolean processMessage(Message message) {
-            Log.e(TAG, "Disconnected process message: " + message.what);
+            if (DBG) {
+                Log.d(TAG, "Disconnected process message: " + message.what);
+            }
             if (mCurrentDevice != null || mTargetDevice != null || mIncomingDevice != null) {
                 Log.e(TAG, "ERROR: not null state in Disconnected: current = " + mCurrentDevice
                         + " target = " + mTargetDevice + " incoming = " + mIncomingDevice);
@@ -310,7 +312,7 @@ final class A2dpStateMachine extends StateMachine {
                 case STACK_EVENT:
                     A2dpStackEvent event = (A2dpStackEvent) message.obj;
                     if (DBG) {
-                        Log.d(TAG, "Stack event: " + event);
+                        Log.d(TAG, "Disconnected: stack event: " + event);
                     }
                     switch (event.type) {
                         case A2dpStackEvent.EVENT_TYPE_CONNECTION_STATE_CHANGED:
@@ -318,7 +320,10 @@ final class A2dpStateMachine extends StateMachine {
                                 Log.d(TAG, "Disconnected: Connection " + event.device
                                         + " state changed:" + event.valueInt);
                             }
-                            processConnectionEvent(event.valueInt, event.device);
+                            processConnectionEvent(event.device, event.valueInt);
+                            break;
+                        case A2dpStackEvent.EVENT_TYPE_CODEC_CONFIG_CHANGED:
+                            processCodecConfigEvent(event.device, event.codecStatus);
                             break;
                         default:
                             Log.e(TAG, "Unexpected stack event: " + event);
@@ -339,7 +344,7 @@ final class A2dpStateMachine extends StateMachine {
         }
 
         // in Disconnected state
-        private void processConnectionEvent(int state, BluetoothDevice device) {
+        private void processConnectionEvent(BluetoothDevice device, int state) {
             switch (state) {
                 case CONNECTION_STATE_DISCONNECTED:
                     Log.w(TAG, "Ignore A2DP DISCONNECTED event, device: " + device);
@@ -415,8 +420,8 @@ final class A2dpStateMachine extends StateMachine {
                     mA2dpNativeInterface.disconnectA2dp(mTargetDevice);
                     A2dpStackEvent event =
                             new A2dpStackEvent(A2dpStackEvent.EVENT_TYPE_CONNECTION_STATE_CHANGED);
-                    event.valueInt = CONNECTION_STATE_DISCONNECTED;
                     event.device = mTargetDevice;
+                    event.valueInt = CONNECTION_STATE_DISCONNECTED;
                     sendMessage(STACK_EVENT, event);
                     break;
                 }
@@ -437,7 +442,7 @@ final class A2dpStateMachine extends StateMachine {
                 case STACK_EVENT:
                     A2dpStackEvent event = (A2dpStackEvent) message.obj;
                     if (DBG) {
-                        Log.d(TAG, "Pending: event: " + event);
+                        Log.d(TAG, "Pending: stack event: " + event);
                     }
                     switch (event.type) {
                         case A2dpStackEvent.EVENT_TYPE_CONNECTION_STATE_CHANGED:
@@ -446,7 +451,10 @@ final class A2dpStateMachine extends StateMachine {
                                         "Pending: Connection " + event.device + " state changed: "
                                         + event.valueInt);
                             }
-                            processConnectionEvent(event.valueInt, event.device);
+                            processConnectionEvent(event.device, event.valueInt);
+                            break;
+                        case A2dpStackEvent.EVENT_TYPE_CODEC_CONFIG_CHANGED:
+                            processCodecConfigEvent(event.device, event.codecStatus);
                             break;
                         case A2dpStackEvent.EVENT_TYPE_AUDIO_STATE_CHANGED:
                         default:
@@ -461,7 +469,7 @@ final class A2dpStateMachine extends StateMachine {
         }
 
         // in Pending state
-        private void processConnectionEvent(int state, BluetoothDevice device) {
+        private void processConnectionEvent(BluetoothDevice device, int state) {
             switch (state) {
                 case CONNECTION_STATE_DISCONNECTED:
                     if ((mCurrentDevice != null) && mCurrentDevice.equals(device)) {
@@ -714,10 +722,13 @@ final class A2dpStateMachine extends StateMachine {
                     }
                     switch (event.type) {
                         case A2dpStackEvent.EVENT_TYPE_CONNECTION_STATE_CHANGED:
-                            processConnectionEvent(event.valueInt, event.device);
+                            processConnectionEvent(event.device, event.valueInt);
                             break;
                         case A2dpStackEvent.EVENT_TYPE_AUDIO_STATE_CHANGED:
-                            processAudioStateEvent(event.valueInt, event.device);
+                            processAudioStateEvent(event.device, event.valueInt);
+                            break;
+                        case A2dpStackEvent.EVENT_TYPE_CODEC_CONFIG_CHANGED:
+                            processCodecConfigEvent(event.device, event.codecStatus);
                             break;
                         default:
                             Log.e(TAG, "Unexpected stack event: " + event);
@@ -731,7 +742,7 @@ final class A2dpStateMachine extends StateMachine {
         }
 
         // in Connected state
-        private void processConnectionEvent(int state, BluetoothDevice device) {
+        private void processConnectionEvent(BluetoothDevice device, int state) {
             switch (state) {
                 case CONNECTION_STATE_DISCONNECTED:
                     if (mCurrentDevice.equals(device)) {
@@ -760,7 +771,7 @@ final class A2dpStateMachine extends StateMachine {
             }
         }
 
-        private void processAudioStateEvent(int state, BluetoothDevice device) {
+        private void processAudioStateEvent(BluetoothDevice device, int state) {
             if (!mCurrentDevice.equals(device)) {
                 Log.e(TAG, "Audio State Device:" + device + "is different from ConnectedDevice:"
                         + mCurrentDevice);
@@ -848,37 +859,39 @@ final class A2dpStateMachine extends StateMachine {
         }
     }
 
-    void onCodecConfigChanged(BluetoothCodecConfig newCodecConfig,
-            BluetoothCodecConfig[] codecsLocalCapabilities,
-            BluetoothCodecConfig[] codecsSelectableCapabilities) {
+    // NOTE: This event is processed in any state
+    private void processCodecConfigEvent(BluetoothDevice device,
+                                         BluetoothCodecStatus newCodecStatus) {
         BluetoothCodecConfig prevCodecConfig = null;
         synchronized (this) {
             if (mCodecStatus != null) {
                 prevCodecConfig = mCodecStatus.getCodecConfig();
             }
-            mCodecStatus = new BluetoothCodecStatus(newCodecConfig, codecsLocalCapabilities,
-                    codecsSelectableCapabilities);
+            mCodecStatus = newCodecStatus;
+        }
+
+        if (DBG) {
+            Log.d(TAG, "A2DP Codec Config: " + prevCodecConfig + "->"
+                    + newCodecStatus.getCodecConfig());
+            for (BluetoothCodecConfig codecConfig :
+                     newCodecStatus.getCodecsLocalCapabilities()) {
+                Log.d(TAG, "A2DP Codec Local Capability: " + codecConfig);
+            }
+            for (BluetoothCodecConfig codecConfig :
+                     newCodecStatus.getCodecsSelectableCapabilities()) {
+                Log.d(TAG, "A2DP Codec Selectable Capability: " + codecConfig);
+            }
         }
 
         Intent intent = new Intent(BluetoothA2dp.ACTION_CODEC_CONFIG_CHANGED);
         intent.putExtra(BluetoothCodecStatus.EXTRA_CODEC_STATUS, mCodecStatus);
         intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY_BEFORE_BOOT);
 
-        if (DBG) {
-            Log.d(TAG, "A2DP Codec Config: " + prevCodecConfig + "->" + newCodecConfig);
-            for (BluetoothCodecConfig codecConfig : codecsLocalCapabilities) {
-                Log.d(TAG, "A2DP Codec Local Capability: " + codecConfig);
-            }
-            for (BluetoothCodecConfig codecConfig : codecsSelectableCapabilities) {
-                Log.d(TAG, "A2DP Codec Selectable Capability: " + codecConfig);
-            }
-        }
-
         // Inform the Audio Service about the codec configuration change,
         // so the Audio Service can reset accordingly the audio feeding
         // parameters in the Audio HAL to the Bluetooth stack.
-        if (!newCodecConfig.sameAudioFeedingParameters(prevCodecConfig) && (mCurrentDevice != null)
-                && (getCurrentState() == mConnected)) {
+        if (!newCodecStatus.getCodecConfig().sameAudioFeedingParameters(prevCodecConfig)
+                && (mCurrentDevice != null) && (getCurrentState() == mConnected)) {
             // Add the device only if it is currently connected
             intent.putExtra(BluetoothDevice.EXTRA_DEVICE, mCurrentDevice);
             mAudioManager.handleBluetoothA2dpDeviceConfigChange(mCurrentDevice);
