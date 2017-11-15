@@ -16,6 +16,7 @@
 
 package com.android.bluetooth.a2dp;
 
+import android.bluetooth.BluetoothCodecStatus;
 import android.bluetooth.BluetoothDevice;
 
 /**
@@ -27,10 +28,12 @@ public class A2dpStackEvent {
     private static final int EVENT_TYPE_NONE = 0;
     public static final int EVENT_TYPE_CONNECTION_STATE_CHANGED = 1;
     public static final int EVENT_TYPE_AUDIO_STATE_CHANGED = 2;
+    public static final int EVENT_TYPE_CODEC_CONFIG_CHANGED = 3;
 
     public int type = EVENT_TYPE_NONE;
-    public int valueInt = 0;
     public BluetoothDevice device = null;
+    public int valueInt = 0;
+    public BluetoothCodecStatus codecStatus = null;
 
     A2dpStackEvent(int type) {
         this.type = type;
@@ -41,8 +44,12 @@ public class A2dpStackEvent {
         // event dump
         StringBuilder result = new StringBuilder();
         result.append("A2dpStackEvent {type:" + eventTypeToString(type));
+        result.append(", device:" + device);
         result.append(", value1:" + valueInt);
-        result.append(", device:" + device + "}");
+        if (codecStatus != null) {
+            result.append(", codecStatus:" + codecStatus);
+        }
+        result.append("}");
         return result.toString();
     }
 
@@ -55,6 +62,8 @@ public class A2dpStackEvent {
                 return "EVENT_TYPE_CONNECTION_STATE_CHANGED";
             case EVENT_TYPE_AUDIO_STATE_CHANGED:
                 return "EVENT_TYPE_AUDIO_STATE_CHANGED";
+            case EVENT_TYPE_CODEC_CONFIG_CHANGED:
+                return "EVENT_TYPE_CODEC_CONFIG_CHANGED";
             default:
                 return "EVENT_TYPE_UNKNOWN:" + type;
         }
