@@ -221,10 +221,10 @@ public class A2dpSinkStateMachine extends StateMachine {
                     StackEvent event = (StackEvent) message.obj;
                     switch (event.type) {
                         case EVENT_TYPE_CONNECTION_STATE_CHANGED:
-                            processConnectionEvent(event.valueInt, event.device);
+                            processConnectionEvent(event.device, event.valueInt);
                             break;
                         case EVENT_TYPE_AUDIO_CONFIG_CHANGED:
-                            processAudioConfigEvent(event.audioConfig, event.device);
+                            processAudioConfigEvent(event.device, event.audioConfig);
                             break;
                         default:
                             loge("Unexpected stack event: " + event.type);
@@ -243,7 +243,7 @@ public class A2dpSinkStateMachine extends StateMachine {
         }
 
         // in Disconnected state
-        private void processConnectionEvent(int state, BluetoothDevice device) {
+        private void processConnectionEvent(BluetoothDevice device, int state) {
             switch (state) {
                 case CONNECTION_STATE_DISCONNECTED:
                     logw("Ignore A2DP DISCONNECTED event, device: " + device);
@@ -305,8 +305,8 @@ public class A2dpSinkStateMachine extends StateMachine {
                     deferMessage(message);
                     break;
                 case CONNECT_TIMEOUT:
-                    onConnectionStateChanged(CONNECTION_STATE_DISCONNECTED,
-                            getByteAddress(mTargetDevice));
+                    onConnectionStateChanged(getByteAddress(mTargetDevice),
+                                             CONNECTION_STATE_DISCONNECTED);
                     break;
                 case DISCONNECT:
                     BluetoothDevice device = (BluetoothDevice) message.obj;
@@ -328,10 +328,10 @@ public class A2dpSinkStateMachine extends StateMachine {
                     switch (event.type) {
                         case EVENT_TYPE_CONNECTION_STATE_CHANGED:
                             removeMessages(CONNECT_TIMEOUT);
-                            processConnectionEvent(event.valueInt, event.device);
+                            processConnectionEvent(event.device, event.valueInt);
                             break;
                         case EVENT_TYPE_AUDIO_CONFIG_CHANGED:
-                            processAudioConfigEvent(event.audioConfig, event.device);
+                            processAudioConfigEvent(event.device, event.audioConfig);
                             break;
                         default:
                             loge("Unexpected stack event: " + event.type);
@@ -345,7 +345,7 @@ public class A2dpSinkStateMachine extends StateMachine {
         }
 
         // in Pending state
-        private void processConnectionEvent(int state, BluetoothDevice device) {
+        private void processConnectionEvent(BluetoothDevice device, int state) {
             log("processConnectionEvent state " + state);
             log("Devices curr: " + mCurrentDevice + " target: " + mTargetDevice + " incoming: "
                     + mIncomingDevice + " device: " + device);
@@ -556,13 +556,13 @@ public class A2dpSinkStateMachine extends StateMachine {
                     StackEvent event = (StackEvent) message.obj;
                     switch (event.type) {
                         case EVENT_TYPE_CONNECTION_STATE_CHANGED:
-                            processConnectionEvent(event.valueInt, event.device);
+                            processConnectionEvent(event.device, event.valueInt);
                             break;
                         case EVENT_TYPE_AUDIO_STATE_CHANGED:
-                            processAudioStateEvent(event.valueInt, event.device);
+                            processAudioStateEvent(event.device, event.valueInt);
                             break;
                         case EVENT_TYPE_AUDIO_CONFIG_CHANGED:
-                            processAudioConfigEvent(event.audioConfig, event.device);
+                            processAudioConfigEvent(event.device, event.audioConfig);
                             break;
                         default:
                             loge("Unexpected stack event: " + event.type);
@@ -593,7 +593,7 @@ public class A2dpSinkStateMachine extends StateMachine {
         }
 
         // in Connected state
-        private void processConnectionEvent(int state, BluetoothDevice device) {
+        private void processConnectionEvent(BluetoothDevice device, int state) {
             switch (state) {
                 case CONNECTION_STATE_DISCONNECTED:
                     mAudioConfigs.remove(device);
@@ -621,7 +621,7 @@ public class A2dpSinkStateMachine extends StateMachine {
             }
         }
 
-        private void processAudioStateEvent(int state, BluetoothDevice device) {
+        private void processAudioStateEvent(BluetoothDevice device, int state) {
             if (!mCurrentDevice.equals(device)) {
                 loge("Audio State Device:" + device + "is different from ConnectedDevice:"
                         + mCurrentDevice);
@@ -643,7 +643,7 @@ public class A2dpSinkStateMachine extends StateMachine {
         }
     }
 
-    private void processAudioConfigEvent(BluetoothAudioConfig audioConfig, BluetoothDevice device) {
+    private void processAudioConfigEvent(BluetoothDevice device, BluetoothAudioConfig audioConfig) {
         log("processAudioConfigEvent: " + device);
         mAudioConfigs.put(device, audioConfig);
         broadcastAudioConfig(device, audioConfig);
@@ -776,27 +776,27 @@ public class A2dpSinkStateMachine extends StateMachine {
         return Utils.getBytesFromAddress(device.getAddress());
     }
 
-    private void onConnectionStateChanged(int state, byte[] address) {
+    private void onConnectionStateChanged(byte[] address, int state) {
         StackEvent event = new StackEvent(EVENT_TYPE_CONNECTION_STATE_CHANGED);
-        event.valueInt = state;
         event.device = getDevice(address);
+        event.valueInt = state;
         sendMessage(STACK_EVENT, event);
     }
 
-    private void onAudioStateChanged(int state, byte[] address) {
+    private void onAudioStateChanged(byte[] address, int state) {
         StackEvent event = new StackEvent(EVENT_TYPE_AUDIO_STATE_CHANGED);
-        event.valueInt = state;
         event.device = getDevice(address);
+        event.valueInt = state;
         sendMessage(STACK_EVENT, event);
     }
 
     private void onAudioConfigChanged(byte[] address, int sampleRate, int channelCount) {
         StackEvent event = new StackEvent(EVENT_TYPE_AUDIO_CONFIG_CHANGED);
+        event.device = getDevice(address);
         int channelConfig =
                 (channelCount == 1 ? AudioFormat.CHANNEL_IN_MONO : AudioFormat.CHANNEL_IN_STEREO);
         event.audioConfig =
                 new BluetoothAudioConfig(sampleRate, channelConfig, AudioFormat.ENCODING_PCM_16BIT);
-        event.device = getDevice(address);
         sendMessage(STACK_EVENT, event);
     }
 
@@ -806,8 +806,8 @@ public class A2dpSinkStateMachine extends StateMachine {
 
     private class StackEvent {
         public int type = EVENT_TYPE_NONE;
-        public int valueInt = 0;
         public BluetoothDevice device = null;
+        public int valueInt = 0;
         public BluetoothAudioConfig audioConfig = null;
 
         private StackEvent(int type) {
