@@ -527,7 +527,9 @@ public class ScanManager {
                             return;
                         }
                         // Note this actually flushes all pending batch data.
-                        flushBatchScanResults(mBatchClients.iterator().next());
+                        if (mBatchClients.iterator().hasNext()) {
+                            flushBatchScanResults(mBatchClients.iterator().next());
+                        }
                     }
                 }
             };
