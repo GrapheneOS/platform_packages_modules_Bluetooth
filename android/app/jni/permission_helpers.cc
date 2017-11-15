@@ -48,20 +48,24 @@ Status checkPermission(const char* permission) {
 }
 
 bool isCallerActiveUser() {
-  IPCThreadState* ipcState = IPCThreadState::self();
+  IPCThreadState* ipcState = IPCThreadState::selfOrNull();
+  if (!ipcState) return true;  // It's a local call
+
   uid_t callingUid = ipcState->getCallingUid();
   uid_t callingUser = callingUid / PER_USER_RANGE;
-  if (!callingUid) return true;  // It's a local call
+  if (callingUid == getuid()) return true;  // It's a local call
 
   return (foregroundUserId == callingUser) || (systemUiUid == callingUid) ||
          (SYSTEM_UID == callingUid);
 }
 
 bool isCallerActiveUserOrManagedProfile() {
-  IPCThreadState* ipcState = IPCThreadState::self();
+  IPCThreadState* ipcState = IPCThreadState::selfOrNull();
+  if (!ipcState) return true;  // It's a local call
+
   uid_t callingUid = ipcState->getCallingUid();
   uid_t callingUser = callingUid / PER_USER_RANGE;
-  // if (!callingUid) return true;  // It's a local call
+  if (callingUid == getuid()) return true;  // It's a local call
 
   if ((foregroundUserId == callingUser) || (systemUiUid == callingUid) ||
       (SYSTEM_UID == callingUid))
