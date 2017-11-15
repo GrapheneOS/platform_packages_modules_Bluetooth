@@ -393,8 +393,8 @@ static JNINativeMethod sMethods[] = {
 };
 
 int register_com_android_bluetooth_a2dp(JNIEnv* env) {
-  return jniRegisterNativeMethods(env,
-                                  "com/android/bluetooth/a2dp/A2dpStateMachine",
-                                  sMethods, NELEM(sMethods));
+  return jniRegisterNativeMethods(
+      env, "com/android/bluetooth/a2dp/A2dpNativeInterface", sMethods,
+      NELEM(sMethods));
 }
 }
