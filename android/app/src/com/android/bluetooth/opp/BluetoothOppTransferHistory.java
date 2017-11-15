@@ -38,6 +38,7 @@ import android.bluetooth.BluetoothAdapter;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
+import android.database.StaleDataException;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
@@ -158,8 +159,7 @@ public class BluetoothOppTransferHistory extends Activity
     @Override
     public boolean onPrepareOptionsMenu(Menu menu) {
         if (!mShowAllIncoming) {
-            boolean showClear = getClearableCount() > 0;
-            menu.findItem(R.id.transfer_menu_clear_all).setEnabled(showClear);
+            menu.findItem(R.id.transfer_menu_clear_all).setEnabled(isTransferComplete());
         }
         return super.onPrepareOptionsMenu(menu);
     }
@@ -246,21 +246,24 @@ public class BluetoothOppTransferHistory extends Activity
     }
 
     /**
-     * Get the number of finished transfers, including error and success.
+     * Returns true if the device has finished transfers, including error and success.
      */
-    private int getClearableCount() {
-        int count = 0;
-        if (mTransferCursor.moveToFirst()) {
-            while (!mTransferCursor.isAfterLast()) {
-                int statusColumnId = mTransferCursor.getColumnIndexOrThrow(BluetoothShare.STATUS);
-                int status = mTransferCursor.getInt(statusColumnId);
-                if (BluetoothShare.isStatusCompleted(status)) {
-                    count++;
+    private boolean isTransferComplete() {
+        try {
+            if (mTransferCursor.moveToFirst()) {
+                while (!mTransferCursor.isAfterLast()) {
+                    int statusColumnId = mTransferCursor
+                                             .getColumnIndexOrThrow(BluetoothShare.STATUS);
+                    int status = mTransferCursor.getInt(statusColumnId);
+                    if (BluetoothShare.isStatusCompleted(status)) {
+                        return true;
+                    }
+                    mTransferCursor.moveToNext();
                 }
-                mTransferCursor.moveToNext();
             }
+        } catch (StaleDataException e) {
         }
-        return count;
+        return false;
     }
 
     /**
