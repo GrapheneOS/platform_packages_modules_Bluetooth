@@ -70,7 +70,7 @@ bool isCallerActiveUserOrManagedProfile() {
   uid_t parentUser = callingUser;
 
   sp<IServiceManager> sm = defaultServiceManager();
-  sp<IBinder> binder = sm->getService(String16("users"));
+  sp<IBinder> binder = sm->getService(String16("user"));
   sp<IUserManager> um = interface_cast<IUserManager>(binder);
   if (um != NULL) {
     // Must use Bluetooth process identity when making call to get parent user
