@@ -79,7 +79,7 @@ bool isCallerActiveUserOrManagedProfile() {
   if (um != NULL) {
     // Must use Bluetooth process identity when making call to get parent user
     int64_t ident = ipcState->clearCallingIdentity();
-    parentUser = um->getCredentialOwnerProfile(callingUser);
+    parentUser = um->getProfileParentId(callingUser);
     ipcState->restoreCallingIdentity(ident);
   }
 

@@ -47,6 +47,25 @@ class BpUserManager : public BpInterface<IUserManager> {
 
     return reply.readInt32();
   }
+
+  virtual int32_t getProfileParentId(int32_t user_handle) {
+    Parcel data, reply;
+    data.writeInterfaceToken(IUserManager::getInterfaceDescriptor());
+    data.writeInt32(user_handle);
+    status_t rc = remote()->transact(GET_PROFILE_PARENT_ID, data, &reply, 0);
+    if (rc != NO_ERROR) {
+      ALOGE("%s: failed (%d)\n", __func__, rc);
+      return -1;
+    }
+
+    int32_t exception = reply.readExceptionCode();
+    if (exception != 0) {
+      ALOGE("%s: got exception (%d)\n", __func__, exception);
+      return -1;
+    }
+
+    return reply.readInt32();
+  }
 };
 
 IMPLEMENT_META_INTERFACE(UserManager, "android.os.IUserManager");
