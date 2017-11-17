@@ -474,8 +474,8 @@ static JNINativeMethod sMethods[] = {
 };
 
 int register_com_android_bluetooth_hid_device(JNIEnv* env) {
-  return jniRegisterNativeMethods(env,
-                                  "com/android/bluetooth/hid/HidDeviceService",
-                                  sMethods, NELEM(sMethods));
+  return jniRegisterNativeMethods(
+      env, "com/android/bluetooth/hid/HidDeviceNativeInterface", sMethods,
+      NELEM(sMethods));
 }
 }  // namespace android
