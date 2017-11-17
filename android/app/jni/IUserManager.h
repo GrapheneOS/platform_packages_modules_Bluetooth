@@ -33,9 +33,11 @@ class IUserManager : public IInterface {
   // must be kept in sync with IUserManager.aidl
   enum {
     GET_CREDENTIAL_OWNER_PROFILE = IBinder::FIRST_CALL_TRANSACTION + 0,
+    GET_PROFILE_PARENT_ID,
   };
 
   virtual int32_t getCredentialOwnerProfile(int32_t user_id) = 0;
+  virtual int32_t getProfileParentId(int32_t user_handle) = 0;
 
   DECLARE_META_INTERFACE(UserManager);
 };
