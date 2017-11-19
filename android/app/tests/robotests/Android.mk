@@ -12,7 +12,7 @@ LOCAL_STATIC_JAVA_LIBRARIES := \
 
 LOCAL_JAVA_LIBRARIES := \
     junit \
-    platform-robolectric-prebuilt \
+    platform-robolectric-3.1.1-prebuilt \
     sdk_vcurrent
 
 LOCAL_INSTRUMENTATION_FOR := Bluetooth
@@ -38,4 +38,4 @@ LOCAL_TEST_PACKAGE := Bluetooth
 
 LOCAL_INSTRUMENT_SOURCE_DIRS := $(dir $(LOCAL_PATH))../src
 
-include prebuilts/misc/common/robolectric/run_robotests.mk
+include prebuilts/misc/common/robolectric/3.1.1/run_robotests.mk
