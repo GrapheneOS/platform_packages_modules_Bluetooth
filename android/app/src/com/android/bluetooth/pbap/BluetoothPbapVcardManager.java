@@ -970,10 +970,20 @@ public class BluetoothPbapVcardManager {
         String stripedVCard = "";
         for (int i = 0; i < attr.length; i++) {
             if (attr[i].startsWith("TEL")) {
-                attr[i] = attr[i].replace("(", "");
-                attr[i] = attr[i].replace(")", "");
-                attr[i] = attr[i].replace("-", "");
-                attr[i] = attr[i].replace(" ", "");
+                String[] vTagAndTel = attr[i].split(":", 2);
+                int telLenBefore = vTagAndTel[1].length();
+                // Remove '-', '(', ')' or ' ' from TEL number
+                vTagAndTel[1] = vTagAndTel[1].replace("-", "")
+                                             .replace("(", "")
+                                             .replace(")", "")
+                                             .replace(" ", "");
+                if (vTagAndTel[1].length() < telLenBefore) {
+                    if (V) {
+                        Log.v(TAG, "Fixing vCard TEL to " + vTagAndTel[1]);
+                    }
+                    attr[i] = new StringBuilder().append(vTagAndTel[0]).append(":")
+                                                 .append(vTagAndTel[1]).toString();
+                }
             }
         }
 
