@@ -3176,8 +3176,13 @@ public class BluetoothMapContentObserver {
 
             Log.d(TAG, "sendMessage to " + msgInfo.phone);
 
-            smsMng.sendMultipartTextMessage(msgInfo.phone, null, parts, sentIntents,
-                    deliveryIntents);
+            if (parts.size() == 1) {
+                smsMng.sendTextMessageWithoutPersisting(msgInfo.phone, null, parts.get(0),
+                        sentIntents.get(0), deliveryIntents.get(0));
+            } else {
+                smsMng.sendMultipartTextMessageWithoutPersisting(msgInfo.phone, null, parts,
+                        sentIntents, deliveryIntents);
+            }
         }
     }
 
