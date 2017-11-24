@@ -1174,9 +1174,6 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
         }
 
         try {
-            // Open the OBEX body stream
-            outStream = op.openOutputStream();
-
             if (appParams.getMaxListCount() == BluetoothMapAppParams.INVALID_VALUE_PARAMETER) {
                 appParams.setMaxListCount(1024);
             }
@@ -1229,6 +1226,8 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
             replyHeaders.setHeader(HeaderSet.APPLICATION_PARAMETER, outAppParams.encodeParams());
             op.sendHeaders(replyHeaders);
 
+            // Open the OBEX body stream
+            outStream = op.openOutputStream();
         } catch (IOException e) {
             Log.w(TAG, "sendMessageListingRsp: IOException - sending OBEX_HTTP_BAD_REQUEST", e);
             if (outStream != null) {
@@ -1366,9 +1365,6 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
 
         // Check to see if we only need to send the size - hence no need to encode.
         try {
-            // Open the OBEX body stream
-            outStream = op.openOutputStream();
-
             if (appParams.getMaxListCount() == BluetoothMapAppParams.INVALID_VALUE_PARAMETER) {
                 appParams.setMaxListCount(1024);
             }
@@ -1416,6 +1412,8 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
             replyHeaders.setHeader(HeaderSet.APPLICATION_PARAMETER, outAppParams.encodeParams());
             op.sendHeaders(replyHeaders);
 
+            // Open the OBEX body stream
+            outStream = op.openOutputStream();
         } catch (IOException e) {
             Log.w(TAG, "sendConvoListingRsp: IOException - sending OBEX_HTTP_BAD_REQUEST", e);
             if (outStream != null) {
@@ -1524,7 +1522,6 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
 
             if (maxListCount != 0) {
                 outBytes = mCurrentFolder.encode(listStartOffset, maxListCount);
-                outStream = op.openOutputStream();
             } else {
                 // ESR08 specified that this shall only be included for MaxListCount=0
                 outAppParams.setFolderListingSize(mCurrentFolder.getSubFolderCount());
@@ -1535,6 +1532,9 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
             replyHeaders.setHeader(HeaderSet.APPLICATION_PARAMETER, outAppParams.encodeParams());
             op.sendHeaders(replyHeaders);
 
+            if (maxListCount != 0) {
+                outStream = op.openOutputStream();
+            }
         } catch (IOException e1) {
             Log.w(TAG, "sendFolderListingRsp: IOException"
                     + " - sending OBEX_HTTP_BAD_REQUEST Exception:", e1);
@@ -1723,7 +1723,6 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
 
         try {
             outBytes = mOutContent.getMessage(handle, appParams, mCurrentFolder, version);
-            outStream = op.openOutputStream();
 
             // If it is a fraction request of Email message, set header before responding
             if ((BluetoothMapUtils.getMsgTypeFromHandle(handle).equals(TYPE.EMAIL)
@@ -1742,6 +1741,7 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
                             + "set FRACTION_DELIVER_LAST header");
                 }
             }
+            outStream = op.openOutputStream();
 
         } catch (IOException e) {
             Log.w(TAG, "sendGetMessageRsp: IOException - sending OBEX_HTTP_BAD_REQUEST", e);
