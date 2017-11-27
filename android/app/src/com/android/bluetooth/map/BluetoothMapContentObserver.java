@@ -3626,8 +3626,10 @@ public class BluetoothMapContentObserver {
             mSmsBroadcastReceiver.unregister();
         }
         unRegisterPhoneServiceStateListener();
-        failPendingMessages();
-        removeDeletedMessages();
+        if (UserManager.get(mContext).isUserUnlocked()) {
+            failPendingMessages();
+            removeDeletedMessages();
+        }
     }
 
     public boolean handleSmsSendIntent(Context context, Intent intent) {
