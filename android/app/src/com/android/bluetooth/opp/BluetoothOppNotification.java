@@ -593,4 +593,12 @@ class BluetoothOppNotification {
         }
         cursor.close();
     }
+
+    void cancelNotifications() {
+        if (V) {
+            Log.v(TAG, "cancelNotifications ");
+        }
+        mHandler.removeCallbacksAndMessages(null);
+        mNotificationMgr.cancelAll();
+    }
 }
