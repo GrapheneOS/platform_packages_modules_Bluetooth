@@ -423,6 +423,14 @@ class AvrcpControllerStateMachine extends StateMachine {
                         mAddressedPlayer.updateCurrentTrack((TrackInfo) msg.obj);
                         broadcastMetaDataChanged(
                                 mAddressedPlayer.getCurrentTrack().getMediaMetaData());
+
+                        //update playerList
+                        byte start = (byte) 0b00000000;
+                        byte end = (byte) 0b11111111;
+                        AvrcpControllerService.getPlayerListNative(
+                                mRemoteDevice.getBluetoothAddress(), start, end);
+                        transitionTo(mGetPlayerListing);
+                        sendMessageDelayed(MESSAGE_INTERNAL_CMD_TIMEOUT, CMD_TIMEOUT_MILLIS);
                         break;
 
                     case MESSAGE_PROCESS_PLAY_POS_CHANGED:
