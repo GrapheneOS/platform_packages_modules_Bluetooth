@@ -34,6 +34,7 @@ import com.android.bluetooth.btservice.AdapterService;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
@@ -42,6 +43,7 @@ import org.mockito.MockitoAnnotations;
 
 import java.lang.reflect.Method;
 
+@Ignore("Flaky tests. Ignore until the following CL is merged: https://android-review.googlesource.com/c/platform/packages/apps/Bluetooth/+/540316")
 @MediumTest
 @RunWith(AndroidJUnit4.class)
 public class A2dpStateMachineTest {
