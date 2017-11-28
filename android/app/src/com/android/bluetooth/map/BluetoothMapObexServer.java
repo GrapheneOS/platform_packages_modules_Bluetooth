@@ -25,6 +25,7 @@ import android.os.Message;
 import android.os.ParcelUuid;
 import android.os.RemoteException;
 import android.os.UserManager;
+import android.telephony.TelephonyManager;
 import android.text.format.DateUtils;
 import android.util.Log;
 
@@ -676,6 +677,24 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
             // Decode the messageBody
             message = BluetoothMapbMessage.parse(bMsgStream, appParams.getCharset());
             message.setVersionString(messageVersion);
+            if (D) {
+                Log.d(TAG, "pushMessage: charset" + appParams.getCharset() + "folderId: "
+                                + folderElement.getFolderId() + "Name: " + folderName + "TYPE: "
+                                + message.getType());
+            }
+            if (message.getType().equals(TYPE.SMS_GSM) || message.getType().equals(TYPE.SMS_CDMA)) {
+                // Convert messages to the default network type.
+                TelephonyManager tm =
+                        (TelephonyManager) mContext.getSystemService(Context.TELEPHONY_SERVICE);
+                if (tm.getPhoneType() == TelephonyManager.PHONE_TYPE_GSM) {
+                    message.setType(TYPE.SMS_GSM);
+                } else if (tm.getPhoneType() == TelephonyManager.PHONE_TYPE_CDMA) {
+                    message.setType(TYPE.SMS_CDMA);
+                }
+                if (D) {
+                    Log.d(TAG, "Updated message type: " + message.getType());
+                }
+            }
             // Send message
             if (mObserver == null || message == null) {
                 // Should not happen except at shutdown.
