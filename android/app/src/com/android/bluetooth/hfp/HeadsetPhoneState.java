@@ -182,14 +182,12 @@ public class HeadsetPhoneState {
         return mCindRoam;
     }
 
-    void setCindRoam(int cindRoam) {
-        if (mCindRoam != cindRoam) {
-            mCindRoam = cindRoam;
-            sendDeviceStateChanged();
-        }
-    }
-
-    void setCindBatteryCharge(int batteryLevel) {
+    /**
+     * Set battery level value used for +CIND result
+     *
+     * @param batteryLevel battery level value
+     */
+    public void setCindBatteryCharge(int batteryLevel) {
         if (mCindBatteryCharge != batteryLevel) {
             mCindBatteryCharge = batteryLevel;
             sendDeviceStateChanged();
