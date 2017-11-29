@@ -24,6 +24,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.os.UserHandle;
 import android.provider.Settings;
 import android.util.Log;
 
@@ -763,7 +764,7 @@ public class HidHostService extends ProfileService {
         intent.putExtra(BluetoothProfile.EXTRA_STATE, newState);
         intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
         intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY_BEFORE_BOOT);
-        sendBroadcast(intent, BLUETOOTH_PERM);
+        sendBroadcastAsUser(intent, UserHandle.ALL, BLUETOOTH_PERM);
     }
 
     private void broadcastHandshake(BluetoothDevice device, int status) {
