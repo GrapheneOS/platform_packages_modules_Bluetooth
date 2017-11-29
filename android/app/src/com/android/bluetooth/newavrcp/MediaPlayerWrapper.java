@@ -103,7 +103,12 @@ class MediaPlayerWrapper {
         }
 
         MediaPlayerWrapper newWrapper;
-        newWrapper = new MediaPlayerWrapper();
+        if (controller.getPackageName().equals("com.google.android.music")) {
+            Log.v(TAG, "Creating compatibility wrapper for Google Play Music");
+            newWrapper = new GPMWrapper();
+        } else {
+            newWrapper = new MediaPlayerWrapper();
+        }
 
         newWrapper.mMediaController = controller;
         newWrapper.mPackageName = controller.getPackageName();
