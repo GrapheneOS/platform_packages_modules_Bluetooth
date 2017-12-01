@@ -18,7 +18,6 @@ package com.android.bluetooth.hid;
 
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothHidDevice;
-import android.bluetooth.BluetoothHidDeviceAppConfiguration;
 import android.bluetooth.BluetoothHidDeviceAppQosSettings;
 import android.bluetooth.BluetoothHidDeviceAppSdpSettings;
 import android.bluetooth.BluetoothProfile;
@@ -94,8 +93,7 @@ public class HidDeviceService extends ProfileService {
 
                     try {
                         if (mCallback != null) {
-                            // TODO(hsz) remove AppConfig in frameworks/base in the follow-up CL
-                            mCallback.onAppStatusChanged(device, null, success);
+                            mCallback.onAppStatusChanged(device, success);
                         } else {
                             break;
                         }
@@ -283,9 +281,9 @@ public class HidDeviceService extends ProfileService {
         }
 
         @Override
-        public boolean registerApp(BluetoothHidDeviceAppConfiguration config,
-                BluetoothHidDeviceAppSdpSettings sdp, BluetoothHidDeviceAppQosSettings inQos,
-                BluetoothHidDeviceAppQosSettings outQos, IBluetoothHidDeviceCallback callback) {
+        public boolean registerApp(BluetoothHidDeviceAppSdpSettings sdp,
+                BluetoothHidDeviceAppQosSettings inQos, BluetoothHidDeviceAppQosSettings outQos,
+                IBluetoothHidDeviceCallback callback) {
             if (DBG) {
                 Log.d(TAG, "registerApp()");
             }
@@ -299,7 +297,7 @@ public class HidDeviceService extends ProfileService {
         }
 
         @Override
-        public boolean unregisterApp(BluetoothHidDeviceAppConfiguration config) {
+        public boolean unregisterApp() {
             if (DBG) {
                 Log.d(TAG, "unregisterApp()");
             }
