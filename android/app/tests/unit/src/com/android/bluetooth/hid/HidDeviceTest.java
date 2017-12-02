@@ -60,6 +60,7 @@ public class HidDeviceTest {
     private BluetoothDevice mTestDevice;
     private HidDeviceService mHidDeviceService;
     private Context mTargetContext;
+    private BluetoothHidDeviceAppSdpSettings mSettings;
 
     @Rule public final ServiceTestRule mServiceRule = new ServiceTestRule();
 
@@ -120,6 +121,12 @@ public class HidDeviceTest {
         HidDeviceNativeInterface nativeInterface =
                 (HidDeviceNativeInterface) field.get(mHidDeviceService);
         Assert.assertEquals(nativeInterface, sHidDeviceNativeInterface);
+
+        // Dummy SDP settings
+        mSettings = new BluetoothHidDeviceAppSdpSettings(
+                "Unit test", "test", "Android",
+                BluetoothHidDevice.SUBCLASS1_COMBO, new byte[] {});
+
     }
 
     @After
@@ -127,6 +134,7 @@ public class HidDeviceTest {
         mHidDeviceService.stop();
         mHidDeviceService.cleanup();
         mHidDeviceService = null;
+        reset(sHidDeviceNativeInterface);
     }
 
     /**
@@ -142,17 +150,15 @@ public class HidDeviceTest {
      */
     @Test
     public void testRegisterApp() throws Exception {
-        // Dummy SDP settings
-        BluetoothHidDeviceAppSdpSettings settings = new BluetoothHidDeviceAppSdpSettings(
-                "Unit test", "test", "Android",
-                BluetoothHidDevice.SUBCLASS1_COMBO, new byte[] {});
         doReturn(true).when(sHidDeviceNativeInterface)
                 .registerApp(anyString(), anyString(), anyString(), anyByte(), any(byte[].class),
                         isNull(), isNull());
 
+        verify(sHidDeviceNativeInterface, never()).registerApp(anyString(), anyString(),
+                anyString(), anyByte(), any(byte[].class), isNull(), isNull());
+
         // Register app
-        Assert.assertEquals(true,
-                mHidDeviceService.registerApp(null, settings, null, null, null));
+        Assert.assertTrue(mHidDeviceService.registerApp(mSettings, null, null, null));
 
         verify(sHidDeviceNativeInterface).registerApp(anyString(), anyString(), anyString(),
                 anyByte(), any(byte[].class), isNull(), isNull());
@@ -167,6 +173,11 @@ public class HidDeviceTest {
         // sendReport() should fail without app registered
         Assert.assertEquals(false,
                 mHidDeviceService.sendReport(mTestDevice, 0, SAMPLE_OUTGOING_HID_REPORT));
+
+        // register app
+        doReturn(true).when(sHidDeviceNativeInterface).registerApp(anyString(), anyString(),
+                anyString(), anyByte(), any(byte[].class), isNull(), isNull());
+        mHidDeviceService.registerApp(mSettings, null, null, null);
 
         // app registered
         mHidDeviceService.onApplicationStateChangedFromNative(mTestDevice, true);
