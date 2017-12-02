@@ -25,9 +25,11 @@ import android.bluetooth.BluetoothProfile;
 import android.bluetooth.IBluetoothHidDevice;
 import android.bluetooth.IBluetoothHidDeviceCallback;
 import android.content.Intent;
+import android.os.Binder;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
+import android.os.Process;
 import android.os.RemoteException;
 import android.util.Log;
 
@@ -44,7 +46,6 @@ import java.util.NoSuchElementException;
 /** @hide */
 public class HidDeviceService extends ProfileService {
     private static final boolean DBG = false;
-
     private static final String TAG = HidDeviceService.class.getSimpleName();
 
     private static final int MESSAGE_APPLICATION_STATE_CHANGED = 1;
@@ -60,15 +61,10 @@ public class HidDeviceService extends ProfileService {
     private HidDeviceNativeInterface mHidDeviceNativeInterface;
 
     private boolean mNativeAvailable = false;
-
     private BluetoothDevice mHidDevice;
-
     private int mHidDeviceState = BluetoothHidDevice.STATE_DISCONNECTED;
-
-    private BluetoothHidDeviceAppConfiguration mAppConfig;
-
+    private int mUserUid = 0;
     private IBluetoothHidDeviceCallback mCallback;
-
     private BluetoothHidDeviceDeathRecipient mDeathRcpt;
 
     private HidDeviceServiceHandler mHandler;
@@ -98,7 +94,8 @@ public class HidDeviceService extends ProfileService {
 
                     try {
                         if (mCallback != null) {
-                            mCallback.onAppStatusChanged(device, mAppConfig, success);
+                            // TODO(hsz) remove AppConfig in frameworks/base in the follow-up CL
+                            mCallback.onAppStatusChanged(device, null, success);
                         } else {
                             break;
                         }
@@ -108,8 +105,7 @@ public class HidDeviceService extends ProfileService {
                     }
 
                     if (success) {
-                        mDeathRcpt = new BluetoothHidDeviceDeathRecipient(HidDeviceService.this,
-                                mAppConfig);
+                        mDeathRcpt = new BluetoothHidDeviceDeathRecipient(HidDeviceService.this);
                         if (mCallback != null) {
                             IBinder binder = mCallback.asBinder();
                             try {
@@ -134,7 +130,6 @@ public class HidDeviceService extends ProfileService {
                     }
 
                     if (!success) {
-                        mAppConfig = null;
                         mCallback = null;
                     }
 
@@ -232,23 +227,19 @@ public class HidDeviceService extends ProfileService {
 
     private static class BluetoothHidDeviceDeathRecipient implements IBinder.DeathRecipient {
         private HidDeviceService mService;
-        private BluetoothHidDeviceAppConfiguration mAppConfig;
 
-        BluetoothHidDeviceDeathRecipient(HidDeviceService service,
-                BluetoothHidDeviceAppConfiguration config) {
+        BluetoothHidDeviceDeathRecipient(HidDeviceService service) {
             mService = service;
-            mAppConfig = config;
         }
 
         @Override
         public void binderDied() {
             Log.w(TAG, "Binder died, need to unregister app :(");
-            mService.unregisterApp(mAppConfig);
+            mService.unregisterApp();
         }
 
         public void cleanup() {
             mService = null;
-            mAppConfig = null;
         }
     }
 
@@ -304,7 +295,7 @@ public class HidDeviceService extends ProfileService {
                 return false;
             }
 
-            return service.registerApp(config, sdp, inQos, outQos, callback);
+            return service.registerApp(sdp, inQos, outQos, callback);
         }
 
         @Override
@@ -318,7 +309,7 @@ public class HidDeviceService extends ProfileService {
                 return false;
             }
 
-            return service.unregisterApp(config);
+            return service.unregisterApp();
         }
 
         @Override
@@ -457,19 +448,27 @@ public class HidDeviceService extends ProfileService {
         return true;
     }
 
-    synchronized boolean registerApp(BluetoothHidDeviceAppConfiguration config,
-            BluetoothHidDeviceAppSdpSettings sdp, BluetoothHidDeviceAppQosSettings inQos,
-            BluetoothHidDeviceAppQosSettings outQos, IBluetoothHidDeviceCallback callback) {
-        if (DBG) {
-            Log.d(TAG, "registerApp()");
+    private boolean checkCallingUid() {
+        int callingUid = Binder.getCallingUid();
+        if (callingUid != mUserUid) {
+            Log.w(TAG, "checkCallingUid(): caller UID doesn't match registered user UID");
+            return false;
         }
+        return true;
+    }
 
-        if (mAppConfig != null) {
-            Log.w(TAG, "registerApp: failed because app configuration already exists. ");
+    synchronized boolean registerApp(BluetoothHidDeviceAppSdpSettings sdp,
+            BluetoothHidDeviceAppQosSettings inQos, BluetoothHidDeviceAppQosSettings outQos,
+            IBluetoothHidDeviceCallback callback) {
+        if (mUserUid != 0) {
+            Log.w(TAG, "registerApp(): failed because another app is registered");
             return false;
         }
 
-        mAppConfig = config;
+        mUserUid = Binder.getCallingUid();
+        if (DBG) {
+            Log.d(TAG, "registerApp(): calling uid=" + mUserUid);
+        }
         mCallback = callback;
 
         return mHidDeviceNativeInterface.registerApp(sdp.name, sdp.description, sdp.provider,
@@ -477,21 +476,18 @@ public class HidDeviceService extends ProfileService {
                 outQos == null ? null : outQos.toArray());
     }
 
-    synchronized boolean unregisterApp(BluetoothHidDeviceAppConfiguration config) {
+    synchronized boolean unregisterApp() {
         if (DBG) {
             Log.d(TAG, "unregisterApp()");
         }
-        if (config == null) {
-            Log.w(TAG, "unregisterApp: failed. The config in parameter should not be null");
-            return false;
-        }
 
-        if (mAppConfig == null ||  !config.equals(mAppConfig)) {
-            Log.w(TAG, "unregisterApp: failed. The app configuration does not match the record");
-            return false;
+        int callingUid = Binder.getCallingUid();
+        if (callingUid == mUserUid || callingUid < Process.FIRST_APPLICATION_UID) {
+            mUserUid = 0;
+            return mHidDeviceNativeInterface.unregisterApp();
         }
-
-        return mHidDeviceNativeInterface.unregisterApp();
+        Log.w(TAG, "unregisterApp(): caller UID doesn't match user UID");
+        return false;
     }
 
     synchronized boolean sendReport(BluetoothDevice device, int id, byte[] data) {
@@ -499,11 +495,8 @@ public class HidDeviceService extends ProfileService {
             Log.d(TAG, "sendReport(): device=" + device + " id=" + id);
         }
 
-        if (!checkDevice(device)) {
-            return false;
-        }
-
-        return mHidDeviceNativeInterface.sendReport(id, data);
+        return checkDevice(device) && checkCallingUid()
+                && mHidDeviceNativeInterface.sendReport(id, data);
     }
 
     synchronized boolean replyReport(BluetoothDevice device, byte type, byte id, byte[] data) {
@@ -511,11 +504,8 @@ public class HidDeviceService extends ProfileService {
             Log.d(TAG, "replyReport(): device=" + device + " type=" + type + " id=" + id);
         }
 
-        if (!checkDevice(device)) {
-            return false;
-        }
-
-        return mHidDeviceNativeInterface.replyReport(type, id, data);
+        return checkDevice(device) && checkCallingUid()
+                && mHidDeviceNativeInterface.replyReport(type, id, data);
     }
 
     synchronized boolean unplug(BluetoothDevice device) {
@@ -523,11 +513,8 @@ public class HidDeviceService extends ProfileService {
             Log.d(TAG, "unplug(): device=" + device);
         }
 
-        if (!checkDevice(device)) {
-            return false;
-        }
-
-        return mHidDeviceNativeInterface.unplug();
+        return checkDevice(device) && checkCallingUid()
+                && mHidDeviceNativeInterface.unplug();
     }
 
     synchronized boolean connect(BluetoothDevice device) {
@@ -535,7 +522,7 @@ public class HidDeviceService extends ProfileService {
             Log.d(TAG, "connect(): device=" + device);
         }
 
-        return mHidDeviceNativeInterface.connect(device);
+        return checkCallingUid() && mHidDeviceNativeInterface.connect(device);
     }
 
     synchronized boolean disconnect(BluetoothDevice device) {
@@ -543,11 +530,12 @@ public class HidDeviceService extends ProfileService {
             Log.d(TAG, "disconnect(): device=" + device);
         }
 
-        if (!checkDevice(device)) {
+        int callingUid = Binder.getCallingUid();
+        if (callingUid != mUserUid && callingUid >= Process.FIRST_APPLICATION_UID) {
+            Log.w(TAG, "disconnect(): caller UID doesn't match user UID");
             return false;
         }
-
-        return mHidDeviceNativeInterface.disconnect();
+        return checkDevice(device) && mHidDeviceNativeInterface.disconnect();
     }
 
     synchronized boolean reportError(BluetoothDevice device, byte error) {
@@ -555,11 +543,8 @@ public class HidDeviceService extends ProfileService {
             Log.d(TAG, "reportError(): device=" + device + " error=" + error);
         }
 
-        if (!checkDevice(device)) {
-            return false;
-        }
-
-        return mHidDeviceNativeInterface.reportError(error);
+        return checkDevice(device) && checkCallingUid()
+                && mHidDeviceNativeInterface.reportError(error);
     }
 
     @Override
@@ -601,7 +586,7 @@ public class HidDeviceService extends ProfileService {
     @Override
     public boolean onUnbind(Intent intent) {
         Log.d(TAG, "Need to unregister app");
-        unregisterApp(mAppConfig);
+        unregisterApp();
         return super.onUnbind(intent);
     }
 
