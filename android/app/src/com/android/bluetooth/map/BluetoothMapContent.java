@@ -3679,10 +3679,11 @@ public class BluetoothMapContent {
                     Log.v(TAG, "c.count: " + c.getCount());
                 }
 
-                if (tm.getPhoneType() == TelephonyManager.PHONE_TYPE_GSM) {
-                    message.setType(TYPE.SMS_GSM);
-                } else if (tm.getPhoneType() == TelephonyManager.PHONE_TYPE_CDMA) {
+                if (tm.getPhoneType() == TelephonyManager.PHONE_TYPE_CDMA) {
                     message.setType(TYPE.SMS_CDMA);
+                } else {
+                    // set SMS_GSM by default
+                    message.setType(TYPE.SMS_GSM);
                 }
                 message.setVersionString(mMessageVersion);
                 String read = c.getString(c.getColumnIndex(Sms.READ));
