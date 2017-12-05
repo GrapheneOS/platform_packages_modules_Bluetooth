@@ -253,7 +253,7 @@ public class BluetoothPbapUtils {
         edit.putLong("primary", primaryCounter);
         edit.putLong("secondary", secondaryCounter);
         edit.putLong("dbIdentifier", dbIdentifier);
-        edit.putLong("totalContacts", totalContacts);
+        if (contactsLoaded) edit.putLong("totalContacts", totalContacts);
         edit.putLong("lastUpdatedTimestamp", lastUpdatedTimestamp);
         edit.putLong("totalFields", totalFields);
         edit.putLong("totalSvcFields", totalSvcFields);
@@ -295,12 +295,12 @@ public class BluetoothPbapUtils {
 
         try {
             String[] projection = {Data.CONTACT_ID, Data.DATA1, Data.MIMETYPE};
-            int contactCount = 0;
-            if ((contactCount =
-                    fetchAndSetContacts(mContext, mHandler, projection, null, null, true)) < 0) {
+            totalContacts = fetchAndSetContacts(mContext, mHandler, projection,
+                null, null, true);
+            if (totalContacts < 0) {
+                totalContacts = 0;
                 return;
             }
-            totalContacts = contactCount; // to set total contacts count fetched on Connect
             contactsLoaded = true;
         } catch (Exception e) {
             Log.e(TAG, "Exception occurred in load contacts: " + e);

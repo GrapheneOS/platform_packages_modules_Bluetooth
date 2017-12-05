@@ -200,6 +200,10 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
     private static final String ACCESS_AUTHORITY_CLASS =
             "com.android.settings.bluetooth.BluetoothPermissionRequest";
 
+    private Thread mThreadLoadContacts = null;
+
+    private Thread mThreadUpdateSecVersionCounter = null;
+
     private class BluetoothPbapContentObserver extends ContentObserver {
         BluetoothPbapContentObserver() {
             super(new Handler());
@@ -263,11 +267,14 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
             if (DEBUG) {
                 Log.d(TAG, "ACL disconnected for " + device);
             }
-            if (mIsWaitingAuthorization && mRemoteDevice.equals(device)) {
-                mSessionStatusHandler.removeMessages(USER_TIMEOUT);
-                mSessionStatusHandler.obtainMessage(USER_TIMEOUT).sendToTarget();
+            if (mRemoteDevice.equals(device)) {
+                if (mIsWaitingAuthorization) {
+                    mSessionStatusHandler.removeMessages(USER_TIMEOUT);
+                    mSessionStatusHandler.obtainMessage(USER_TIMEOUT).sendToTarget();
+                }
+                mSessionStatusHandler.obtainMessage(MSG_SERVERSESSION_CLOSE)
+                    .sendToTarget();
             }
-            mSessionStatusHandler.obtainMessage(MSG_SERVERSESSION_CLOSE).sendToTarget();
             return;
         }
 
@@ -383,6 +390,7 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
         if (mSessionStatusHandler != null) {
             mSessionStatusHandler.removeCallbacksAndMessages(null);
         }
+        mRemoteDevice = null;
         if (VERBOSE) {
             Log.v(TAG, "Pbap Service closeService out");
         }
@@ -561,10 +569,10 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
                     closeService();
                     break;
                 case LOAD_CONTACTS:
-                    BluetoothPbapUtils.loadAllContacts(mContext, this);
+                    loadAllContacts();
                     break;
                 case CHECK_SECONDARY_VERSION_COUNTER:
-                    BluetoothPbapUtils.updateSecondaryVersionCounter(mContext, this);
+                    updateSecondaryVersion();
                     break;
                 case ROLLOVER_COUNTERS:
                     BluetoothPbapUtils.rolloverCounters();
@@ -941,4 +949,35 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
             startSocketListeners();
         }
     }
+
+    private void loadAllContacts() {
+        if (mThreadLoadContacts == null) {
+            Runnable r = new Runnable() {
+                @Override
+                public void run() {
+                    BluetoothPbapUtils.loadAllContacts(mContext,
+                            mSessionStatusHandler);
+                    mThreadLoadContacts = null;
+                }
+            };
+            mThreadLoadContacts = new Thread(r);
+            mThreadLoadContacts.start();
+        }
+    }
+
+    private void updateSecondaryVersion() {
+        if (mThreadUpdateSecVersionCounter == null) {
+            Runnable r = new Runnable() {
+                @Override
+                public void run() {
+                    BluetoothPbapUtils.updateSecondaryVersionCounter(mContext,
+                            mSessionStatusHandler);
+                    mThreadUpdateSecVersionCounter = null;
+                }
+            };
+            mThreadUpdateSecVersionCounter = new Thread(r);
+            mThreadUpdateSecVersionCounter.start();
+        }
+    }
+
 }
