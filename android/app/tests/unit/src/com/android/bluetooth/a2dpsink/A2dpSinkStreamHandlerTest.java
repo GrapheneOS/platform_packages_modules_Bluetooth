@@ -119,8 +119,8 @@ public class A2dpSinkStreamHandlerTest {
         testSnkPlay();
         mStreamHandler.handleMessage(
                 mStreamHandler.obtainMessage(A2dpSinkStreamHandler.DISCONNECT));
-        verify(mMockAudioManager, times(1)).abandonAudioFocus(any());
-        verify(mMockA2dpSink, times(1)).informAudioFocusStateNative(0);
+        verify(mMockAudioManager, times(0)).abandonAudioFocus(any());
+        verify(mMockA2dpSink, times(0)).informAudioFocusStateNative(0);
     }
 
     @Test
