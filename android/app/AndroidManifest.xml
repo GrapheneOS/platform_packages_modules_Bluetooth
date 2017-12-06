@@ -211,7 +211,8 @@
                   android:label=""
                   android:excludeFromRecents="true"
                   android:configChanges="orientation|keyboardHidden"
-                  android:enabled="@bool/profile_supported_opp">
+                  android:enabled="@bool/profile_supported_opp"
+                  android:theme="@android:style/Theme.DeviceDefault.Settings">
             <intent-filter>
                 <action android:name="com.android.bluetooth.action.TransferHistory" />
                 <category android:name="android.intent.category.DEFAULT" />

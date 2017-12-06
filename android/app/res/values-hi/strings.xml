@@ -17,7 +17,7 @@
 <resources xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="permlab_bluetoothShareManager" msgid="311492132450338925">"डाउनलोड प्रबंधक में पहुंच प्राप्त करें."</string>
-    <string name="permdesc_bluetoothShareManager" msgid="8930572979123190223">"ऐप्स  को BluetoothShare प्रबंधक में पहुंच प्राप्त करने और फ़ाइलों को स्थानांतरित करने के लिए उसका उपयोग करने देता है."</string>
+    <string name="permdesc_bluetoothShareManager" msgid="8930572979123190223">"ऐप्लिकेशन को BluetoothShare प्रबंधक के इस्तेमाल की मंज़ूरी देता है और फ़ाइलों को ट्रांसफ़र करने के लिए उसका उपयोग करने देता है."</string>
     <string name="permlab_bluetoothWhitelist" msgid="7091552898592306386">"श्वेतसूची bluetooth डिवाइस पहुंच."</string>
     <string name="permdesc_bluetoothWhitelist" msgid="5494513855192170109">"ऐप को, ब्लूटूथ डिवाइस को उपयोगकर्ता की पुष्टि के बिना इस डिवाइस पर फ़ाइल भेजने की‍ अनुमति देकर, कुछ देर के लिए स्वीकृति देता है"</string>
     <string name="bt_share_picker_label" msgid="6268100924487046932">"ब्लूटूथ"</string>
@@ -96,7 +96,7 @@
     <string name="status_canceled" msgid="6664490318773098285">"उपयोगकर्ता ने ट्रांसफर रद्द किया."</string>
     <string name="status_file_error" msgid="3671917770630165299">"मेमोरी समस्या."</string>
     <string name="status_no_sd_card" product="nosdcard" msgid="1112125377088421469">"कोई USB मेमोरी नहीं."</string>
-    <string name="status_no_sd_card" product="default" msgid="5760944071743325592">"कोई SD कार्ड नहीं. स्थानांतरित फ़ाइलें सहेजने के लिए SD कार्ड डालें."</string>
+    <string name="status_no_sd_card" product="default" msgid="5760944071743325592">"कोई SD कार्ड नहीं. ट्रांसफ़र की गई फ़ाइलें सेव करने के लिए SD कार्ड डालें."</string>
     <string name="status_connection_error" msgid="947681831523219891">"कनेक्‍शन विफल."</string>
     <string name="status_protocol_error" msgid="3245444473429269539">"अनुरोध को सही तरह से प्रबंधित नहीं किया जा सकता."</string>
     <string name="status_unknown_error" msgid="8156660554237824912">"अज्ञात गड़बड़ी‍."</string>
