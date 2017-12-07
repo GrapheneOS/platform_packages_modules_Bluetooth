@@ -747,9 +747,8 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
         }
 
         @Override
-        public boolean cleanup() {
+        public void cleanup() {
             mService = null;
-            return true;
         }
 
         @Override

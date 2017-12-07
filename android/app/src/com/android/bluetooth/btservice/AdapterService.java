@@ -830,9 +830,8 @@ public class AdapterService extends Service {
             mService = svc;
         }
 
-        public boolean cleanup() {
+        public void cleanup() {
             mService = null;
-            return true;
         }
 
         public AdapterService getService() {

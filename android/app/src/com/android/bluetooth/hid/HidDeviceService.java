@@ -258,9 +258,8 @@ public class HidDeviceService extends ProfileService {
         }
 
         @Override
-        public boolean cleanup() {
+        public void cleanup() {
             mService = null;
-            return true;
         }
 
         private HidDeviceService getService() {
@@ -565,7 +564,7 @@ public class HidDeviceService extends ProfileService {
     }
 
     @Override
-    protected boolean cleanup() {
+    protected void cleanup() {
         if (DBG) {
             Log.d(TAG, "cleanup()");
         }
@@ -574,8 +573,6 @@ public class HidDeviceService extends ProfileService {
             mHidDeviceNativeInterface.cleanup();
             mNativeAvailable = false;
         }
-
-        return true;
     }
 
     @Override

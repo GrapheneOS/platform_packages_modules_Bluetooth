@@ -160,7 +160,7 @@ public class A2dpService extends ProfileService {
     }
 
     @Override
-    protected boolean cleanup() {
+    protected void cleanup() {
         if (DBG) {
             Log.d(TAG, "cleanup()");
         }
@@ -178,7 +178,6 @@ public class A2dpService extends ProfileService {
             mAvrcp = null;
         }
         clearA2dpService();
-        return true;
     }
 
     //API Methods
@@ -424,9 +423,8 @@ public class A2dpService extends ProfileService {
         }
 
         @Override
-        public boolean cleanup() {
+        public void cleanup() {
             mService = null;
-            return true;
         }
 
         @Override
