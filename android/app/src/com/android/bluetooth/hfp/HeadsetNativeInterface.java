@@ -433,6 +433,16 @@ public class HeadsetNativeInterface {
         return sendBsirNative(value, Utils.getByteAddress(device));
     }
 
+    /**
+     * Set the current active headset device for SCO audio
+     * @param device current active SCO device
+     * @return true on success
+     */
+    @VisibleForTesting
+    public boolean setActiveDevice(BluetoothDevice device) {
+        return setActiveDeviceNative(Utils.getByteAddress(device));
+    }
+
     /* Native methods */
     private static native void classInitNative();
 
@@ -475,4 +485,6 @@ public class HeadsetNativeInterface {
     private native boolean setScoAllowedNative(boolean value);
 
     private native boolean sendBsirNative(boolean value, byte[] address);
+
+    private native boolean setActiveDeviceNative(byte[] address);
 }
