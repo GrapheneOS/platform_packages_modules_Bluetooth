@@ -68,10 +68,6 @@ public class HidDeviceService extends ProfileService {
 
     private HidDeviceServiceHandler mHandler;
 
-    public HidDeviceService() {
-        mHidDeviceNativeInterface = HidDeviceNativeInterface.getInstance();
-    }
-
     private class HidDeviceServiceHandler extends Handler {
         @Override
         public void handleMessage(Message msg) {
@@ -553,6 +549,7 @@ public class HidDeviceService extends ProfileService {
 
         mHandler = new HidDeviceServiceHandler();
         setHidDeviceService(this);
+        mHidDeviceNativeInterface = HidDeviceNativeInterface.getInstance();
         mHidDeviceNativeInterface.init();
         mNativeAvailable = true;
         return true;
@@ -741,21 +738,21 @@ public class HidDeviceService extends ProfileService {
 
     private static int convertHalState(int halState) {
         switch (halState) {
-            case CONN_STATE_CONNECTED:
+            case HAL_CONN_STATE_CONNECTED:
                 return BluetoothProfile.STATE_CONNECTED;
-            case CONN_STATE_CONNECTING:
+            case HAL_CONN_STATE_CONNECTING:
                 return BluetoothProfile.STATE_CONNECTING;
-            case CONN_STATE_DISCONNECTED:
+            case HAL_CONN_STATE_DISCONNECTED:
                 return BluetoothProfile.STATE_DISCONNECTED;
-            case CONN_STATE_DISCONNECTING:
+            case HAL_CONN_STATE_DISCONNECTING:
                 return BluetoothProfile.STATE_DISCONNECTING;
             default:
                 return BluetoothProfile.STATE_DISCONNECTED;
         }
     }
 
-    private static final int CONN_STATE_CONNECTED = 0;
-    private static final int CONN_STATE_CONNECTING = 1;
-    private static final int CONN_STATE_DISCONNECTED = 2;
-    private static final int CONN_STATE_DISCONNECTING = 3;
+    static final int HAL_CONN_STATE_CONNECTED = 0;
+    static final int HAL_CONN_STATE_CONNECTING = 1;
+    static final int HAL_CONN_STATE_DISCONNECTED = 2;
+    static final int HAL_CONN_STATE_DISCONNECTING = 3;
 }
