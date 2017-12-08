@@ -344,19 +344,6 @@ public class HeadsetNativeInterface {
     }
 
     /**
-     * Response for BIND command
-     *
-     * @param device target device
-     * @param indId indicator id
-     * @param indStatus indicator value
-     * @return True on success, False on failure
-     */
-    @VisibleForTesting
-    public boolean bindResponse(BluetoothDevice device, int indId, boolean indStatus) {
-        return bindResponseNative(indId, indStatus, Utils.getByteAddress(device));
-    }
-
-    /**
      * Combined device status change notification
      *
      * @param deviceState device status object
@@ -424,18 +411,6 @@ public class HeadsetNativeInterface {
     }
 
     /**
-     * Configure Wid-Band-Speech codec for HFP audio (SCO)
-     *
-     * @param device target device
-     * @param codecConfig codec configuration
-     * @return True on success, False on failure
-     */
-    @VisibleForTesting
-    public boolean configureWBS(BluetoothDevice device, int codecConfig) {
-        return configureWBSNative(Utils.getByteAddress(device), codecConfig);
-    }
-
-    /**
      * Set whether we will initiate SCO or not
      *
      * @param value True to enable, False to disable
@@ -474,8 +449,6 @@ public class HeadsetNativeInterface {
     private native boolean cindResponseNative(int service, int numActive, int numHeld,
             int callState, int signal, int roam, int batteryCharge, byte[] address);
 
-    private native boolean bindResponseNative(int indId, boolean indStatus, byte[] address);
-
     private native boolean notifyDeviceStatusNative(int networkState, int serviceType, int signal,
             int batteryCharge);
 
@@ -486,8 +459,6 @@ public class HeadsetNativeInterface {
 
     private native boolean phoneStateChangeNative(int numActive, int numHeld, int callState,
             String number, int type);
-
-    private native boolean configureWBSNative(byte[] address, int codecConfig);
 
     private native boolean setScoAllowedNative(boolean value);
 }

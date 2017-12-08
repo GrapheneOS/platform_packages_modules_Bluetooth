@@ -287,33 +287,6 @@ public class HeadsetService extends ProfileService {
         }
 
         @Override
-        public int getBatteryUsageHint(BluetoothDevice device) {
-            HeadsetService service = getService();
-            if (service == null) {
-                return 0;
-            }
-            return service.getBatteryUsageHint(device);
-        }
-
-        @Override
-        public boolean acceptIncomingConnect(BluetoothDevice device) {
-            HeadsetService service = getService();
-            if (service == null) {
-                return false;
-            }
-            return service.acceptIncomingConnect(device);
-        }
-
-        @Override
-        public boolean rejectIncomingConnect(BluetoothDevice device) {
-            HeadsetService service = getService();
-            if (service == null) {
-                return false;
-            }
-            return service.rejectIncomingConnect(device);
-        }
-
-        @Override
         public int getAudioState(BluetoothDevice device) {
             HeadsetService service = getService();
             if (service == null) {
@@ -413,33 +386,6 @@ public class HeadsetService extends ProfileService {
                 return false;
             }
             return service.sendVendorSpecificResultCode(device, command, arg);
-        }
-
-        @Override
-        public boolean enableWBS() {
-            HeadsetService service = getService();
-            if (service == null) {
-                return false;
-            }
-            return service.enableWBS();
-        }
-
-        @Override
-        public boolean disableWBS() {
-            HeadsetService service = getService();
-            if (service == null) {
-                return false;
-            }
-            return service.disableWBS();
-        }
-
-        @Override
-        public void bindResponse(int indId, boolean indStatus) {
-            HeadsetService service = getService();
-            if (service == null) {
-                return;
-            }
-            service.bindResponse(indId, indStatus);
         }
     }
 
@@ -569,21 +515,6 @@ public class HeadsetService extends ProfileService {
         return mStateMachine.isAudioConnected(device);
     }
 
-    int getBatteryUsageHint(BluetoothDevice device) {
-        // TODO(BT) ask for BT stack support?
-        return 0;
-    }
-
-    boolean acceptIncomingConnect(BluetoothDevice device) {
-        // TODO(BT) remove it if stack does access control
-        return false;
-    }
-
-    boolean rejectIncomingConnect(BluetoothDevice device) {
-        // TODO(BT) remove it if stack does access control
-        return false;
-    }
-
     int getAudioState(BluetoothDevice device) {
         return mStateMachine.getAudioState(device);
     }
@@ -674,58 +605,6 @@ public class HeadsetService extends ProfileService {
         mStateMachine.sendMessage(HeadsetStateMachine.SEND_VENDOR_SPECIFIC_RESULT_CODE,
                 new HeadsetVendorSpecificResultCode(device, command, arg));
         return true;
-    }
-
-    boolean enableWBS() {
-        // TODO(BT) BLUETOOTH or BLUETOOTH_ADMIN permission
-        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
-        if (!mStateMachine.isConnected()) {
-            return false;
-        }
-        if (mStateMachine.isAudioOn()) {
-            return false;
-        }
-
-        for (BluetoothDevice device : getConnectedDevices()) {
-            mStateMachine.sendMessage(HeadsetStateMachine.ENABLE_WBS, device);
-        }
-
-        return true;
-    }
-
-    boolean disableWBS() {
-        // TODO(BT) BLUETOOTH or BLUETOOTH_ADMIN permission
-        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
-        if (!mStateMachine.isConnected()) {
-            return false;
-        }
-        if (mStateMachine.isAudioOn()) {
-            return false;
-        }
-        for (BluetoothDevice device : getConnectedDevices()) {
-            mStateMachine.sendMessage(HeadsetStateMachine.DISABLE_WBS, device);
-        }
-        return true;
-    }
-
-    private boolean bindResponse(int indId, boolean indStatus) {
-        for (BluetoothDevice device : getConnectedDevices()) {
-            int connectionState = mStateMachine.getConnectionState(device);
-            if (connectionState != BluetoothProfile.STATE_CONNECTED
-                    && connectionState != BluetoothProfile.STATE_CONNECTING) {
-                continue;
-            }
-            if (DBG) {
-                Log.d("Bind Response sent for", device.getAddress());
-            }
-            Message msg = mStateMachine.obtainMessage(HeadsetStateMachine.BIND_RESPONSE);
-            msg.obj = device;
-            msg.arg1 = indId;
-            msg.arg2 = indStatus ? 1 : 0;
-            mStateMachine.sendMessage(msg);
-            return true;
-        }
-        return false;
     }
 
     @Override
