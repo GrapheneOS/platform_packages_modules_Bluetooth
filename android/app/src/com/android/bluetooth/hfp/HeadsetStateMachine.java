@@ -106,11 +106,6 @@ final class HeadsetStateMachine extends StateMachine {
     static final int VIRTUAL_CALL_START = 14;
     static final int VIRTUAL_CALL_STOP = 15;
 
-    static final int ENABLE_WBS = 16;
-    static final int DISABLE_WBS = 17;
-
-    static final int BIND_RESPONSE = 18;
-
     static final int STACK_EVENT = 101;
     private static final int DIALING_OUT_TIMEOUT = 102;
     private static final int START_VR_TIMEOUT = 103;
@@ -513,11 +508,6 @@ final class HeadsetStateMachine extends StateMachine {
                 case CALL_STATE_CHANGED:
                     processCallState((HeadsetCallState) message.obj, message.arg1 == 1);
                     break;
-                case BIND_RESPONSE: {
-                    BluetoothDevice device = (BluetoothDevice) message.obj;
-                    mNativeInterface.bindResponse(device, message.arg1, message.arg2 == 1);
-                    break;
-                }
                 case DEVICE_STATE_CHANGED:
                     log("Pending: ignoring DEVICE_STATE_CHANGED event");
                     break;
@@ -947,21 +937,6 @@ final class HeadsetStateMachine extends StateMachine {
                 case VIRTUAL_CALL_STOP:
                     terminateScoUsingVirtualVoiceCall();
                     break;
-                case ENABLE_WBS: {
-                    BluetoothDevice device = (BluetoothDevice) message.obj;
-                    mNativeInterface.configureWBS(device, WBS_CODEC);
-                    break;
-                }
-                case DISABLE_WBS: {
-                    BluetoothDevice device = (BluetoothDevice) message.obj;
-                    mNativeInterface.configureWBS(device, NBS_CODEC);
-                    break;
-                }
-                case BIND_RESPONSE: {
-                    BluetoothDevice device = (BluetoothDevice) message.obj;
-                    mNativeInterface.bindResponse(device, message.arg1, message.arg2 == 1);
-                    break;
-                }
                 case START_VR_TIMEOUT: {
                     BluetoothDevice device = (BluetoothDevice) message.obj;
                     if (mWaitingForVoiceRecognition) {
