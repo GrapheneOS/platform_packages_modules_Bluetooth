@@ -57,7 +57,7 @@ Status BluetoothSocketManagerBinderServer::connectSocket(
   }
 
   _aidl_return->reset(new ParcelFileDescriptor());
-  (*_aidl_return)->fd = socket_fd;
+  (*_aidl_return)->setFileDescriptor(socket_fd, true);
   return Status::ok();
 }
 
@@ -96,7 +96,7 @@ Status BluetoothSocketManagerBinderServer::createSocketChannel(
   }
 
   _aidl_return->reset(new ParcelFileDescriptor());
-  (*_aidl_return)->fd = socket_fd;
+  (*_aidl_return)->setFileDescriptor(socket_fd, true);
   return Status::ok();
 }
 
