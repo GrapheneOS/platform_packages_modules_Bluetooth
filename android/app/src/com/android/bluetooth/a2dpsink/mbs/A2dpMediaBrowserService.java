@@ -39,6 +39,7 @@ import android.util.Log;
 import android.util.Pair;
 
 import com.android.bluetooth.R;
+import com.android.bluetooth.a2dpsink.A2dpSinkService;
 import com.android.bluetooth.avrcpcontroller.AvrcpControllerService;
 import com.android.bluetooth.avrcpcontroller.BrowseTree;
 
@@ -99,6 +100,7 @@ public class A2dpMediaBrowserService extends MediaBrowserService {
     private AvrcpControllerService mAvrcpCtrlSrvc;
     private boolean mBrowseConnected = false;
     private BluetoothDevice mA2dpDevice = null;
+    private A2dpSinkService mA2dpSinkService = null;
     private Handler mAvrcpCommandQueue;
     private final Map<String, Result<List<MediaItem>>> mParentIdToRequestMap = new HashMap<>();
 
@@ -267,6 +269,14 @@ public class A2dpMediaBrowserService extends MediaBrowserService {
         }
 
         @Override
+        public void onPrepare() {
+            Log.d(TAG, "onPrepare");
+            if (mA2dpSinkService != null) {
+                mA2dpSinkService.requestAudioFocus(mA2dpDevice, true);
+            }
+        }
+
+        @Override
         public void onRewind() {
             Log.d(TAG, "onRewind");
             mAvrcpCommandQueue.obtainMessage(MSG_AVRCP_PASSTHRU,
@@ -390,6 +400,7 @@ public class A2dpMediaBrowserService extends MediaBrowserService {
             return;
         }
         mA2dpDevice = devices.get(0);
+        mA2dpSinkService = A2dpSinkService.getA2dpSinkService();
 
         PlaybackState playbackState = mAvrcpCtrlSrvc.getPlaybackState(mA2dpDevice);
         // Add actions required for playback and rebuild the object.

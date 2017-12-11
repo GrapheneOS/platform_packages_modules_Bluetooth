@@ -66,6 +66,7 @@ public class A2dpSinkStreamHandler extends Handler {
     public static final int SRC_PAUSE = 5; // Pause command was generated from remote device
     public static final int DISCONNECT = 6; // Remote device was disconnected
     public static final int AUDIO_FOCUS_CHANGE = 7; // Audio focus callback with associated change
+    public static final int REQUEST_FOCUS = 8; // Request focus when the media service is active
 
     // Used to indicate focus lost
     private static final int STATE_FOCUS_LOST = 0;
@@ -159,11 +160,15 @@ public class A2dpSinkStreamHandler extends Handler {
                 stopAvrcpUpdates();
                 break;
 
+            case REQUEST_FOCUS:
+                if (mAudioFocus == AudioManager.AUDIOFOCUS_NONE) {
+                    requestAudioFocus();
+                }
+                break;
+
             case DISCONNECT:
                 // Remote device has disconnected, restore everything to default state.
-                sendAvrcpPause();
                 stopAvrcpUpdates();
-                abandonAudioFocus();
                 mSentPause = false;
                 break;
 
@@ -208,7 +213,6 @@ public class A2dpSinkStreamHandler extends Handler {
                     case AudioManager.AUDIOFOCUS_LOSS:
                         // Permanent loss of focus probably due to another audio app, abandon focus
                         // and stop playback.
-                        mAudioFocus = AudioManager.AUDIOFOCUS_NONE;
                         abandonAudioFocus();
                         sendAvrcpPause();
                         break;
@@ -223,7 +227,7 @@ public class A2dpSinkStreamHandler extends Handler {
     /**
      * Utility functions.
      */
-    private int requestAudioFocus() {
+    private synchronized int requestAudioFocus() {
         // Bluetooth A2DP may carry Music, Audio Books, Navigation, or other sounds so mark content
         // type unknown.
         AudioAttributes streamAttributes =
@@ -249,7 +253,7 @@ public class A2dpSinkStreamHandler extends Handler {
     }
 
 
-    private void abandonAudioFocus() {
+    private synchronized void abandonAudioFocus() {
         stopFluorideStreaming();
         mAudioManager.abandonAudioFocus(mAudioFocusListener);
         mAudioFocus = AudioManager.AUDIOFOCUS_NONE;
@@ -346,6 +350,10 @@ public class A2dpSinkStreamHandler extends Handler {
         } else {
             Log.e(TAG, "Passthrough not sent, connection un-available.");
         }
+    }
+
+    synchronized int getAudioFocus() {
+        return mAudioFocus;
     }
 
     private boolean isIotDevice() {
