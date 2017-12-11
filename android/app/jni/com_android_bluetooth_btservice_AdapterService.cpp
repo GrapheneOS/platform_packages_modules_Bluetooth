@@ -36,6 +36,8 @@
 #include <sys/prctl.h>
 #include <sys/stat.h>
 
+#include <mutex>
+
 using base::StringPrintf;
 using bluetooth::Uuid;
 using android::bluetooth::BluetoothSocketManagerBinderServer;
@@ -75,7 +77,8 @@ static jobject sJniCallbacksObj;
 static jfieldID sJniCallbacksField;
 
 namespace {
-android::sp<BluetoothSocketManagerBinderServer> socketManager = NULL;
+android::sp<BluetoothSocketManagerBinderServer> sSocketManager = NULL;
+std::mutex sSocketManagerMutex;
 }
 
 const bt_interface_t* getBluetoothInterface() { return sBluetoothInterface; }
@@ -738,8 +741,10 @@ static bool cleanupNative(JNIEnv* env, jobject obj) {
     env->DeleteGlobalRef(android_bluetooth_UidTraffic.clazz);
     android_bluetooth_UidTraffic.clazz = NULL;
   }
-
-  socketManager = nullptr;
+  {
+    std::lock_guard<std::mutex> lock(sSocketManagerMutex);
+    sSocketManager = nullptr;
+  }
   return JNI_TRUE;
 }
 
@@ -1114,11 +1119,12 @@ static jboolean getRemoteServicesNative(JNIEnv* env, jobject obj,
 }
 
 static jobject getSocketManagerNative(JNIEnv* env) {
-  if (!socketManager.get())
-    socketManager =
+  std::lock_guard<std::mutex> lock(sSocketManagerMutex);
+  if (!sSocketManager.get()) {
+    sSocketManager =
         new BluetoothSocketManagerBinderServer(sBluetoothSocketInterface);
-
-  return javaObjectForIBinder(env, IInterface::asBinder(socketManager));
+  }
+  return javaObjectForIBinder(env, IInterface::asBinder(sSocketManager));
 }
 
 static void setSystemUiUidNative(JNIEnv* env, jobject obj, jint uid) {
