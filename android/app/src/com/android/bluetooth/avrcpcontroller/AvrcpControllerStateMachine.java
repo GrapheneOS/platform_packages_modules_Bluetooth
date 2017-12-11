@@ -544,9 +544,10 @@ class AvrcpControllerStateMachine extends StateMachine {
 
         @Override
         public void enter() {
+            // Setup the timeouts.
+            super.enter();
             mCurrInd = 0;
             mFolderList.clear();
-
             callNativeFunctionForScope(mStartInd,
                     Math.min(mEndInd, mStartInd + GET_FOLDER_ITEMS_PAGINATION_SIZE - 1));
         }
@@ -743,6 +744,11 @@ class AvrcpControllerStateMachine extends StateMachine {
                     }
 
                     sendMessage(MESSAGE_INTERNAL_MOVE_N_LEVELS_UP);
+                    break;
+
+                case MESSAGE_INTERNAL_CMD_TIMEOUT:
+                    broadcastFolderList(BrowseTree.ROOT, EMPTY_MEDIA_ITEM_LIST);
+                    transitionTo(mConnected);
                     break;
 
                 default:
