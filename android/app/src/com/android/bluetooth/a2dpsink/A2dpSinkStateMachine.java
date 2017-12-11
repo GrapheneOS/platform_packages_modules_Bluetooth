@@ -37,6 +37,7 @@ import android.bluetooth.BluetoothUuid;
 import android.content.Context;
 import android.content.Intent;
 import android.media.AudioFormat;
+import android.media.AudioManager;
 import android.os.Handler;
 import android.os.Message;
 import android.os.ParcelUuid;
@@ -67,6 +68,7 @@ public class A2dpSinkStateMachine extends StateMachine {
     public static final int EVENT_AVRCP_CT_PAUSE = 302;
     public static final int EVENT_AVRCP_TG_PLAY = 303;
     public static final int EVENT_AVRCP_TG_PAUSE = 304;
+    public static final int EVENT_REQUEST_FOCUS = 305;
 
     private static final int IS_INVALID_DEVICE = 0;
     private static final int IS_VALID_DEVICE = 1;
@@ -500,7 +502,9 @@ public class A2dpSinkStateMachine extends StateMachine {
                     mStreaming = new A2dpSinkStreamHandler(A2dpSinkStateMachine.this, mContext);
                 }
             }
-            informAudioFocusStateNative(0);
+            if (mStreaming.getAudioFocus() == AudioManager.AUDIOFOCUS_NONE) {
+                informAudioFocusStateNative(0);
+            }
         }
 
         @Override
@@ -584,6 +588,10 @@ public class A2dpSinkStateMachine extends StateMachine {
 
                 case EVENT_AVRCP_TG_PAUSE:
                     mStreaming.obtainMessage(A2dpSinkStreamHandler.SRC_PAUSE).sendToTarget();
+                    break;
+
+                case EVENT_REQUEST_FOCUS:
+                    mStreaming.obtainMessage(A2dpSinkStreamHandler.REQUEST_FOCUS).sendToTarget();
                     break;
 
                 default:
