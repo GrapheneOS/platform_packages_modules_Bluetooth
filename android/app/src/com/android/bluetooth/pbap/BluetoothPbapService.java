@@ -66,6 +66,8 @@ import com.android.bluetooth.sdp.SdpManager;
 import com.android.bluetooth.util.DevicePolicyUtils;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.obex.ServerSession;
 
@@ -602,12 +604,33 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
         }
     }
 
-    protected int getState() {
+    int getConnectionState(BluetoothDevice device) {
+        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
         return mState;
     }
 
-    protected BluetoothDevice getRemoteDevice() {
-        return mRemoteDevice;
+    List<BluetoothDevice> getConnectedDevices() {
+        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+        List<BluetoothDevice> devices = new ArrayList<>();
+        if (mRemoteDevice != null) {
+            devices.add(mRemoteDevice);
+        }
+        return devices;
+    }
+
+    List<BluetoothDevice> getDevicesMatchingConnectionStates(int[] states) {
+        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+        List<BluetoothDevice> devices = new ArrayList<BluetoothDevice>();
+
+        if (mRemoteDevice != null) {
+            for (int state : states) {
+                if (state == mState) {
+                    devices.add(mRemoteDevice);
+                    break;
+                }
+            }
+        }
+        return devices;
     }
 
     private void createPbapNotification(String action) {
@@ -726,7 +749,9 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
         return true;
     }
 
-    protected void disconnect() {
+    void disconnect(BluetoothDevice device) {
+        enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH_ADMIN permission");
+        // TODO: disconnect the specified device.
         synchronized (this) {
             if (mState == BluetoothProfile.STATE_CONNECTED) {
                 if (mServerSession != null) {
@@ -745,13 +770,12 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
     private static class PbapBinder extends IBluetoothPbap.Stub implements IProfileServiceBinder {
         private BluetoothPbapService mService;
 
-        private BluetoothPbapService getService(String perm) {
+        private BluetoothPbapService getService() {
             if (!Utils.checkCaller()) {
                 Log.w(TAG, "not allowed for non-active user");
                 return null;
             }
             if (mService != null && mService.isAvailable()) {
-                mService.enforceCallingOrSelfPermission(perm, "Need " + perm + " permission");
                 return mService;
             }
             return null;
@@ -769,59 +793,51 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
         }
 
         @Override
-        public int getState() {
+        public List<BluetoothDevice> getConnectedDevices() {
             if (DEBUG) {
-                Log.d(TAG, "getState = " + mService.getState());
+                Log.d(TAG, "getConnectedDevices");
             }
-            BluetoothPbapService service = getService(BLUETOOTH_PERM);
+            BluetoothPbapService service = getService();
             if (service == null) {
-                return BluetoothProfile.STATE_DISCONNECTED;
+                return new ArrayList<>(0);
             }
-
-            return service.getState();
+            return service.getConnectedDevices();
         }
 
         @Override
-        public BluetoothDevice getClient() {
+        public List<BluetoothDevice> getDevicesMatchingConnectionStates(int[] states) {
             if (DEBUG) {
-                Log.d(TAG, "getClient = " + mService.getRemoteDevice());
+                Log.d(TAG, "getDevicesMatchingConnectionStates");
             }
-            BluetoothPbapService service = getService(BLUETOOTH_PERM);
+            BluetoothPbapService service = getService();
             if (service == null) {
-                return null;
+                return new ArrayList<>(0);
             }
-            return service.getRemoteDevice();
+            return service.getDevicesMatchingConnectionStates(states);
         }
 
         @Override
-        public boolean isConnected(BluetoothDevice device) {
+        public int getConnectionState(BluetoothDevice device) {
             if (DEBUG) {
-                Log.d(TAG, "isConnected " + device);
+                Log.d(TAG, "getConnectionState: " + device);
             }
-            BluetoothPbapService service = getService(BLUETOOTH_PERM);
+            BluetoothPbapService service = getService();
             if (service == null) {
-                return false;
+                return BluetoothAdapter.STATE_DISCONNECTED;
             }
-            return service.getState() == BluetoothProfile.STATE_CONNECTED
-                    && service.getRemoteDevice().equals(device);
+            return service.getConnectionState(device);
         }
 
         @Override
-        public boolean connect(BluetoothDevice device) {
-            BluetoothPbapService service = getService(BLUETOOTH_ADMIN_PERM);
-            return false;
-        }
-
-        @Override
-        public void disconnect() {
+        public void disconnect(BluetoothDevice device) {
             if (DEBUG) {
                 Log.d(TAG, "disconnect");
             }
-            BluetoothPbapService service = getService(BLUETOOTH_ADMIN_PERM);
+            BluetoothPbapService service = getService();
             if (service == null) {
                 return;
             }
-            service.disconnect();
+            service.disconnect(device);
         }
     }
 
