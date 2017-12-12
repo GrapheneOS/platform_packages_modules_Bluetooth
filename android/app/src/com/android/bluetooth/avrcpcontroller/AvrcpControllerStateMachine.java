@@ -625,6 +625,10 @@ class AvrcpControllerStateMachine extends StateMachine {
 
         private void sendFolderBroadcastAndUpdateNode() {
             BrowseTree.BrowseNode bn = mBrowseTree.findBrowseNodeByID(mID);
+            if (bn == null) {
+                Log.e(TAG, "Can not find BrowseNode by ID: " + mID);
+                return;
+            }
             if (bn.isPlayer()) {
                 // Add the now playing folder.
                 MediaDescription.Builder mdb = new MediaDescription.Builder();
