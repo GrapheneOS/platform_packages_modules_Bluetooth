@@ -50,7 +50,7 @@
     <string name="download_line2" msgid="5876973543019417712">"फाइल: <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="download_line3" msgid="4384821622908676061">"फाइल आकार: <xliff:g id="SIZE">%1$s</xliff:g>"</string>
     <string name="download_line4" msgid="8535996869722666525"></string>
-    <string name="download_line5" msgid="3069560415845295386">"फाइल प्राप्त करीत आहे..."</string>
+    <string name="download_line5" msgid="3069560415845295386">"फाइल प्राप्त करत आहे..."</string>
     <string name="download_cancel" msgid="9177305996747500768">"थांबा"</string>
     <string name="download_ok" msgid="5000360731674466039">"लपवा"</string>
     <string name="incoming_line1" msgid="2127419875681087545">"प्रेषक"</string>
@@ -132,4 +132,5 @@
     <string name="bluetooth_connected" msgid="6718623220072656906">"ब्लूटूथ ऑडिओ कनेक्ट केला"</string>
     <string name="bluetooth_disconnected" msgid="3318303728981478873">"ब्लूटूथ ऑडिओ डिस्कनेक्ट केला"</string>
     <string name="a2dp_sink_mbs_label" msgid="7566075853395412558">"ब्लूटूथ ऑडिओ"</string>
+    <string name="bluetooth_opp_file_limit_exceeded" msgid="8894450394309084519">"4 GB हून मोठ्या फायली ट्रांसफर करता येणार नाहीत"</string>
 </resources>
