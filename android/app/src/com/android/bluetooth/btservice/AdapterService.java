@@ -63,6 +63,7 @@ import android.util.SparseArray;
 
 import com.android.bluetooth.Utils;
 import com.android.bluetooth.btservice.RemoteDevices.DeviceProperties;
+import com.android.bluetooth.gatt.GattService;
 import com.android.bluetooth.sdp.SdpManager;
 import com.android.internal.R;
 import com.android.internal.app.IBatteryStats;
@@ -96,7 +97,7 @@ public class AdapterService extends Service {
     private long mRxTimeTotalMs;
     private long mIdleTimeTotalMs;
     private long mEnergyUsedTotalVoltAmpSecMicro;
-    private SparseArray<UidTraffic> mUidTraffic = new SparseArray<>();
+    private final SparseArray<UidTraffic> mUidTraffic = new SparseArray<>();
 
     private final ArrayList<ProfileService> mProfiles = new ArrayList<ProfileService>();
 
@@ -153,14 +154,14 @@ public class AdapterService extends Service {
     private static synchronized void setAdapterService(AdapterService instance) {
         if (instance != null && !instance.mCleaningUp) {
             if (DBG) {
-                Log.d(TAG, "setAdapterService() - set to: " + sAdapterService);
+                Log.d(TAG, "setAdapterService() - set to: " + instance);
             }
             sAdapterService = instance;
         } else {
             if (DBG) {
-                if (sAdapterService == null) {
+                if (instance == null) {
                     Log.d(TAG, "setAdapterService() - Service not available");
-                } else if (sAdapterService.mCleaningUp) {
+                } else if (instance.mCleaningUp) {
                     Log.d(TAG, "setAdapterService() - Service is cleaning up");
                 }
             }
@@ -183,7 +184,7 @@ public class AdapterService extends Service {
     private boolean mProfilesStarted;
     private boolean mNativeAvailable;
     private boolean mCleaningUp;
-    private HashMap<String, Integer> mProfileServicesState = new HashMap<String, Integer>();
+    private final HashMap<String, Integer> mProfileServicesState = new HashMap<String, Integer>();
     //Only BluetoothManagerService should be registered
     private RemoteCallbackList<IBluetoothCallback> mCallbacks;
     private int mCurrentRequestId;
@@ -263,7 +264,7 @@ public class AdapterService extends Service {
                         + isBleTurningOn + " isBleTurningOff=" + isBleTurningOff);
 
         if (isBleTurningOn) {
-            if (serviceName.equals("com.android.bluetooth.gatt.GattService")) {
+            if (GattService.class.getName().equals(serviceName)) {
                 debugLog("GattService is started");
                 mAdapterStateMachine.sendMessage(
                         mAdapterStateMachine.obtainMessage(AdapterState.BLE_STARTED));
@@ -271,7 +272,7 @@ public class AdapterService extends Service {
             }
 
         } else if (isBleTurningOff) {
-            if (serviceName.equals("com.android.bluetooth.gatt.GattService")) {
+            if (GattService.class.getName().equals(serviceName)) {
                 debugLog("GattService stopped");
                 mAdapterStateMachine.sendMessage(
                         mAdapterStateMachine.obtainMessage(AdapterState.BLE_STOPPED));
@@ -287,7 +288,7 @@ public class AdapterService extends Service {
                         mProfileServicesState.entrySet().iterator();
                 while (i.hasNext()) {
                     Map.Entry<String, Integer> entry = i.next();
-                    if (entry.getKey().equals("com.android.bluetooth.gatt.GattService")) {
+                    if (GattService.class.getName().equals(entry.getKey())) {
                         continue;
                     }
 
@@ -314,7 +315,7 @@ public class AdapterService extends Service {
                         mProfileServicesState.entrySet().iterator();
                 while (i.hasNext()) {
                     Map.Entry<String, Integer> entry = i.next();
-                    if (entry.getKey().equals("com.android.bluetooth.gatt.GattService")) {
+                    if (GattService.class.getName().equals(entry.getKey())) {
                         continue;
                     }
 
@@ -512,9 +513,8 @@ public class AdapterService extends Service {
 
         Class[] supportedProfileServices = Config.getSupportedProfiles();
         //Initialize data objects
-        for (int i = 0; i < supportedProfileServices.length; i++) {
-            mProfileServicesState.put(supportedProfileServices[i].getName(),
-                    BluetoothAdapter.STATE_OFF);
+        for (Class service : supportedProfileServices) {
+            mProfileServicesState.put(service.getName(), BluetoothAdapter.STATE_OFF);
         }
 
         // Reset |mRemoteDevices| whenever BLE is turned off then on
@@ -735,11 +735,11 @@ public class AdapterService extends Service {
             pendingState = BluetoothAdapter.STATE_TURNING_OFF;
         }
 
-        for (int i = 0; i < services.length; i++) {
-            String serviceName = services[i].getName();
-            String simpleName = services[i].getSimpleName();
+        for (Class service : services) {
+            String serviceName = service.getName();
+            String simpleName = service.getSimpleName();
 
-            if (simpleName.equals("GattService")) {
+            if (GattService.class.getSimpleName().equals(simpleName)) {
                 Integer serviceState = mProfileServicesState.get(serviceName);
 
                 if (serviceState != null && serviceState != expectedCurrentState) {
@@ -752,7 +752,7 @@ public class AdapterService extends Service {
                         ? "Stopping" : "Starting") + " service " + serviceName);
 
                 mProfileServicesState.put(serviceName, pendingState);
-                Intent intent = new Intent(this, services[i]);
+                Intent intent = new Intent(this, service);
                 intent.putExtra(EXTRA_ACTION, ACTION_SERVICE_STATE_CHANGED);
                 intent.putExtra(BluetoothAdapter.EXTRA_STATE, state);
                 startService(intent);
@@ -776,11 +776,11 @@ public class AdapterService extends Service {
             pendingState = BluetoothAdapter.STATE_TURNING_OFF;
         }
 
-        for (int i = 0; i < services.length; i++) {
-            String serviceName = services[i].getName();
-            String simpleName = services[i].getSimpleName();
+        for (Class service : services) {
+            String serviceName = service.getName();
+            String simpleName = service.getSimpleName();
 
-            if (simpleName.equals("GattService")) {
+            if (GattService.class.getSimpleName().equals(simpleName)) {
                 continue;
             }
 
@@ -796,7 +796,7 @@ public class AdapterService extends Service {
                     ? "Stopping" : "Starting") + " service " + serviceName);
 
             mProfileServicesState.put(serviceName, pendingState);
-            Intent intent = new Intent(this, services[i]);
+            Intent intent = new Intent(this, service);
             intent.putExtra(EXTRA_ACTION, ACTION_SERVICE_STATE_CHANGED);
             intent.putExtra(BluetoothAdapter.EXTRA_STATE, state);
             startService(intent);
@@ -1687,7 +1687,7 @@ public class AdapterService extends Service {
             return false;
         }
 
-        debugLog("enable() - Enable called with quiet mode status =  " + mQuietmode);
+        debugLog("enable() - Enable called with quiet mode status =  " + quietMode);
         mQuietmode = quietMode;
         Message m = mAdapterStateMachine.obtainMessage(AdapterState.BLE_TURN_ON);
         mAdapterStateMachine.sendMessage(m);
@@ -1750,13 +1750,10 @@ public class AdapterService extends Service {
     boolean setBluetoothClass(BluetoothClass bluetoothClass) {
         enforceCallingOrSelfPermission(BLUETOOTH_PRIVILEGED,
                 "Need BLUETOOTH PRIVILEGED permission");
-
+        debugLog("setBluetoothClass() to " + bluetoothClass);
         boolean result = mAdapterProperties.setBluetoothClass(bluetoothClass);
-
         if (!result) {
-            Log.e(TAG,
-                    "Failed to set BluetoothClass (" + bluetoothClass
-                            + ") on local Bluetooth adapter.");
+            Log.e(TAG, "setBluetoothClass() to " + bluetoothClass + " failed");
         }
 
         return result && storeBluetoothClassConfig(bluetoothClass.getClassOfDevice());
@@ -2466,17 +2463,14 @@ public class AdapterService extends Service {
             return;
         }
 
-        if (args.length > 0) {
-            verboseLog(
-                    "dumpsys arguments, check for protobuf output: " + TextUtils.join(" ", args));
-            if (args[0].startsWith("--proto")) {
-                if (args[0].equals("--proto-java-bin")) {
-                    dumpJava(fd);
-                } else {
-                    dumpNative(fd, args);
-                }
-                return;
+        verboseLog("dumpsys arguments, check for protobuf output: " + TextUtils.join(" ", args));
+        if (args[0].startsWith("--proto")) {
+            if (args[0].equals("--proto-java-bin")) {
+                dumpJava(fd);
+            } else {
+                dumpNative(fd, args);
             }
+            return;
         }
 
         writer.println("Bonded devices:");
