@@ -214,20 +214,20 @@ public class BluetoothMapService extends ProfileService {
     }
 
     /**
-     * Starts the RFComm listener threads for each MAS
+     * Starts the Socket listener threads for each MAS
      * @throws IOException
      */
-    private void startRfcommSocketListeners(int masId) {
+    private void startSocketListeners(int masId) {
         if (masId == -1) {
             for (int i = 0, c = mMasInstances.size(); i < c; i++) {
-                mMasInstances.valueAt(i).startRfcommSocketListener();
+                mMasInstances.valueAt(i).startSocketListeners();
             }
         } else {
             BluetoothMapMasInstance masInst = mMasInstances.get(masId); // returns null for -1
             if (masInst != null) {
-                masInst.startRfcommSocketListener();
+                masInst.startSocketListeners();
             } else {
-                Log.w(TAG, "startRfcommSocketListeners(): Invalid MasId: " + masId);
+                Log.w(TAG, "startSocketListeners(): Invalid MasId: " + masId);
             }
         }
     }
@@ -363,7 +363,7 @@ public class BluetoothMapService extends ProfileService {
                     break;
                 case START_LISTENER:
                     if (mAdapter.isEnabled()) {
-                        startRfcommSocketListeners(msg.arg1);
+                        startSocketListeners(msg.arg1);
                     }
                     break;
                 case MSG_MAS_CONNECT:
@@ -754,7 +754,7 @@ public class BluetoothMapService extends ProfileService {
                     changed = true;
                     /* Start the new instance */
                     if (mAdapter.isEnabled()) {
-                        newInst.startRfcommSocketListener();
+                        newInst.startSocketListeners();
                     }
                 }
             }
