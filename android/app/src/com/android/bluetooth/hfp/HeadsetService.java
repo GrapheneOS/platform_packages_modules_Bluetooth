@@ -37,9 +37,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Provides Bluetooth Headset and Handsfree profile, as a service in
- * the Bluetooth application.
- * @hide
+ * Provides Bluetooth Headset and Handsfree profile, as a service in the Bluetooth application.
  */
 public class HeadsetService extends ProfileService {
     private static final boolean DBG = false;
@@ -122,8 +120,13 @@ public class HeadsetService extends ProfileService {
         return isAvailable() && mCreated && mStarted;
     }
 
-    // Handle messages from native (JNI) to Java
-    void messageFromNative(HeadsetStackEvent stackEvent) {
+    /**
+     * Handle messages from native (JNI) to Java. This needs to be synchronized to avoid posting
+     * messages to state machine before start() is done
+     *
+     * @param stackEvent event from native stack
+     */
+    synchronized void messageFromNative(HeadsetStackEvent stackEvent) {
         mStateMachine.sendMessage(HeadsetStateMachine.STACK_EVENT, stackEvent);
     }
 
@@ -473,10 +476,9 @@ public class HeadsetService extends ProfileService {
 
     public int getPriority(BluetoothDevice device) {
         enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH_ADMIN permission");
-        int priority = Settings.Global.getInt(getContentResolver(),
+        return Settings.Global.getInt(getContentResolver(),
                 Settings.Global.getBluetoothHeadsetPriorityKey(device.getAddress()),
                 BluetoothProfile.PRIORITY_UNDEFINED);
-        return priority;
     }
 
     boolean startVoiceRecognition(BluetoothDevice device) {
@@ -507,16 +509,16 @@ public class HeadsetService extends ProfileService {
 
     boolean isAudioOn() {
         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
-        return mStateMachine.isAudioOn();
+        return mStateMachine.getAudioState() != BluetoothHeadset.STATE_AUDIO_DISCONNECTED;
     }
 
     boolean isAudioConnected(BluetoothDevice device) {
         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
-        return mStateMachine.isAudioConnected(device);
+        return mStateMachine.getAudioState() == BluetoothHeadset.STATE_AUDIO_CONNECTED;
     }
 
     int getAudioState(BluetoothDevice device) {
-        return mStateMachine.getAudioState(device);
+        return mStateMachine.getAudioState();
     }
 
     public void setAudioRouteAllowed(boolean allowed) {
@@ -535,25 +537,30 @@ public class HeadsetService extends ProfileService {
     boolean connectAudio() {
         // TODO(BT) BLUETOOTH or BLUETOOTH_ADMIN permission
         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
-        if (!mStateMachine.isConnected()) {
+        if (mStateMachine.getConnectionState(mStateMachine.getCurrentDevice())
+                != BluetoothProfile.STATE_CONNECTED) {
             Log.w(TAG, "connectAudio: profile not connected");
             return false;
         }
-        if (mStateMachine.isAudioOn()) {
-            Log.w(TAG, "connectAudio: audio is already ON");
+        if (isAudioOn()) {
+            Log.w(TAG, "connectAudio: audio is not idle, current state "
+                    + mStateMachine.getAudioState());
             return false;
         }
-        mStateMachine.sendMessage(HeadsetStateMachine.CONNECT_AUDIO);
+        mStateMachine.sendMessage(HeadsetStateMachine.CONNECT_AUDIO,
+                mStateMachine.getCurrentDevice());
         return true;
     }
 
     boolean disconnectAudio() {
         // TODO(BT) BLUETOOTH or BLUETOOTH_ADMIN permission
         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
-        if (!mStateMachine.isAudioOn()) {
+        if (mStateMachine.getAudioState() != BluetoothHeadset.STATE_AUDIO_CONNECTED) {
+            Log.w(TAG, "disconnectAudio, audio is not connected");
             return false;
         }
-        mStateMachine.sendMessage(HeadsetStateMachine.DISCONNECT_AUDIO);
+        mStateMachine.sendMessage(HeadsetStateMachine.DISCONNECT_AUDIO,
+                mStateMachine.getCurrentDevice());
         return true;
     }
 
