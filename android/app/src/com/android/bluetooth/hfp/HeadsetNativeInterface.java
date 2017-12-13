@@ -24,9 +24,9 @@ import android.util.Log;
 import com.android.bluetooth.Utils;
 
 /**
- * Defines native calls that is used by state machine/service to either send or receive
- * messages from the native stack. This file is registered for the native methods in corresponding
- * CPP file.
+ * Defines native calls that are used by state machine/service to either send or receive
+ * messages to/from the native stack. This file is registered for the native methods in
+ * corresponding CPP file.
  */
 public class HeadsetNativeInterface {
     private static final String TAG = "HeadsetNativeInterface";
