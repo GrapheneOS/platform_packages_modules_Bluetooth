@@ -232,6 +232,13 @@ public class Constants {
     public static final String DEFAULT_STORE_SUBDIR = "/bluetooth";
 
     /**
+     * Notify NFC of the transfer progress per this period
+     * to NFC Handover still consider this transfer to be "alive"
+     * This value is taken into account the timeout value 20sec in NFC and delaying broadcast
+     */
+    public static final int NFC_ALIVE_CHECK_MS = 10000;
+
+    /**
      * Debug level logging
      */
     public static final boolean DEBUG = true;
