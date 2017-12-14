@@ -40,6 +40,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.os.PowerManager;
 import android.os.PowerManager.WakeLock;
+import android.os.SystemClock;
 import android.util.Log;
 import android.webkit.MimeTypeMap;
 
@@ -491,11 +492,13 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler
             byte[] b = new byte[outputBufferSize];
             int readLength = 0;
             long timestamp = 0;
+            long currentTime = 0;
+            long prevTimestamp = SystemClock.elapsedRealtime();
             try {
                 while ((!mInterrupted) && (position != fileInfo.mLength)) {
 
                     if (V) {
-                        timestamp = System.currentTimeMillis();
+                        timestamp = SystemClock.elapsedRealtime();
                     }
 
                     readLength = is.read(b);
@@ -510,20 +513,23 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler
                     bos.write(b, 0, readLength);
                     position += readLength;
                     percent = position * 100 / fileInfo.mLength;
+                    currentTime = SystemClock.elapsedRealtime();
 
                     if (V) {
                         Log.v(TAG,
                                 "Receive file position = " + position + " readLength " + readLength
-                                        + " bytes took " + (System.currentTimeMillis() - timestamp)
-                                        + " ms");
+                                        + " bytes took " + (currentTime - timestamp) + " ms");
                     }
 
                     // Update the Progress Bar only if there is change in percentage
-                    if (percent > prevPercent) {
+                    // or once per a period to notify NFC of this transfer is still alive
+                    if (percent > prevPercent
+                            || currentTime - prevTimestamp > Constants.NFC_ALIVE_CHECK_MS) {
                         ContentValues updateValues = new ContentValues();
                         updateValues.put(BluetoothShare.CURRENT_BYTES, position);
                         mContext.getContentResolver().update(contentUri, updateValues, null, null);
                         prevPercent = percent;
+                        prevTimestamp = currentTime;
                     }
                 }
             } catch (IOException e1) {
