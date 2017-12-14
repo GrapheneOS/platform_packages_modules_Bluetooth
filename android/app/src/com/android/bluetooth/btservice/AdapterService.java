@@ -2620,7 +2620,7 @@ public class AdapterService extends Service {
     private native void interopDatabaseAddNative(int feature, byte[] address, int length);
 
     @Override
-    protected void finalize() {
+    public void finalize() {
         debugLog("finalize() - clean up object " + this);
         cleanup();
         if (TRACE_REF) {
