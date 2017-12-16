@@ -22,7 +22,6 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothHeadset;
 import android.bluetooth.BluetoothProfile;
-import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.media.AudioManager;
@@ -31,8 +30,6 @@ import android.os.UserHandle;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.filters.MediumTest;
 import android.support.test.runner.AndroidJUnit4;
-import android.telephony.SubscriptionManager;
-import android.telephony.TelephonyManager;
 
 import com.android.bluetooth.btservice.AdapterService;
 
@@ -66,9 +63,9 @@ public class HeadsetStateMachineTest {
     private ArgumentCaptor<Intent> mIntentArgument = ArgumentCaptor.forClass(Intent.class);
 
     @Mock private HeadsetService mHeadsetService;
+    @Mock private HeadsetSystemInterface mSystemInterface;
     @Mock private AudioManager mAudioManager;
-    @Mock private SubscriptionManager mSubscriptionManager;
-    @Mock private TelephonyManager mTelephonyManager;
+    @Mock private HeadsetPhoneState mPhoneState;
     private HeadsetNativeInterface mNativeInterface;
 
     private static AdapterService sAdapterService;
@@ -94,6 +91,9 @@ public class HeadsetStateMachineTest {
     public void setUp() throws Exception {
         // Setup mocks and test assets
         MockitoAnnotations.initMocks(this);
+        // Stub system interface
+        when(mSystemInterface.getHeadsetPhoneState()).thenReturn(mPhoneState);
+        when(mSystemInterface.getAudioManager()).thenReturn(mAudioManager);
         // This line must be called to make sure relevant objects are initialized properly
         mAdapter = BluetoothAdapter.getDefaultAdapter();
         // Get a device for testing
@@ -105,17 +105,7 @@ public class HeadsetStateMachineTest {
         doReturn(true).when(mNativeInterface).disconnectHfp(mTestDevice);
         doReturn(true).when(mNativeInterface).connectAudio(mTestDevice);
         doReturn(true).when(mNativeInterface).disconnectAudio(mTestDevice);
-        // Set a valid volume
-        when(mAudioManager.getStreamVolume(anyInt())).thenReturn(2);
-        when(mAudioManager.getStreamMaxVolume(anyInt())).thenReturn(10);
-        when(mAudioManager.getStreamMinVolume(anyInt())).thenReturn(1);
-        when(mHeadsetService.getSystemService(Context.AUDIO_SERVICE)).thenReturn(mAudioManager);
-        when(mHeadsetService.getSystemService(Context.POWER_SERVICE)).thenReturn(
-                InstrumentationRegistry.getContext().getSystemService(Context.POWER_SERVICE));
-        when(mHeadsetService.getSystemService(Context.TELEPHONY_SUBSCRIPTION_SERVICE)).thenReturn(
-                mSubscriptionManager);
-        when(mHeadsetService.getSystemService(Context.TELEPHONY_SERVICE)).thenReturn(
-                mTelephonyManager);
+        // Stub headset service
         when(mHeadsetService.bindService(any(Intent.class), any(ServiceConnection.class), anyInt()))
                 .thenReturn(true);
         when(mHeadsetService.getResources()).thenReturn(
@@ -129,8 +119,8 @@ public class HeadsetStateMachineTest {
         mHandlerThread.start();
         // Modify CONNECT timeout to a smaller value for test only
         HeadsetStateMachine.sConnectTimeoutMillis = CONNECT_TIMEOUT_TEST_MILLIS;
-        mHeadsetStateMachine = HeadsetStateMachine.make(mHeadsetService, mHandlerThread.getLooper(),
-                mNativeInterface);
+        mHeadsetStateMachine = HeadsetStateMachine.make(mHandlerThread.getLooper(), mHeadsetService,
+                mNativeInterface, mSystemInterface);
         mHeadsetStateMachine.setForceScoAudio(true);
     }
 
