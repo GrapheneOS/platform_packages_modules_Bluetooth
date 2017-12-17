@@ -25,7 +25,9 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.media.AudioManager;
+import android.os.BatteryManager;
 import android.os.HandlerThread;
+import android.os.Looper;
 import android.os.Message;
 import android.provider.Settings;
 import android.util.Log;
@@ -40,12 +42,15 @@ import java.util.List;
  * Provides Bluetooth Headset and Handsfree profile, as a service in the Bluetooth application.
  */
 public class HeadsetService extends ProfileService {
-    private static final boolean DBG = false;
     private static final String TAG = "HeadsetService";
+    private static final boolean DBG = false;
     private static final String MODIFY_PHONE_STATE = android.Manifest.permission.MODIFY_PHONE_STATE;
+    private static final int MAX_HEADSET_CONNECTIONS = 1;
 
     private HandlerThread mStateMachinesThread;
     private HeadsetStateMachine mStateMachine;
+    private HeadsetNativeInterface mNativeInterface;
+    private HeadsetSystemInterface mSystemInterface;
     private boolean mStarted;
     private boolean mCreated;
     private static HeadsetService sHeadsetService;
@@ -68,15 +73,27 @@ public class HeadsetService extends ProfileService {
     @Override
     protected synchronized boolean start() {
         Log.i(TAG, "start()");
+        // Step 1: Start handler thread for state machines
         mStateMachinesThread = new HandlerThread("HeadsetService.StateMachines");
         mStateMachinesThread.start();
-        mStateMachine = HeadsetStateMachine.make(this, mStateMachinesThread.getLooper(),
-                HeadsetNativeInterface.getInstance());
+        // Step 2: Initialize system interface
+        mSystemInterface = new HeadsetSystemInterface(this);
+        mSystemInterface.init();
+        // Step 3: Initialize native interface
+        mNativeInterface = HeadsetNativeInterface.getInstance();
+        mNativeInterface.init(MAX_HEADSET_CONNECTIONS,
+                BluetoothHeadset.isInbandRingingSupported(this));
+        // Step 4: Initialize state machine
+        mStateMachine =
+                HeadsetStateMachine.make(mStateMachinesThread.getLooper(), this, mNativeInterface,
+                        mSystemInterface);
+        // Step 5: Setup broadcast receivers
         IntentFilter filter = new IntentFilter();
         filter.addAction(Intent.ACTION_BATTERY_CHANGED);
         filter.addAction(AudioManager.VOLUME_CHANGED_ACTION);
         filter.addAction(BluetoothDevice.ACTION_CONNECTION_ACCESS_REPLY);
         registerReceiver(mHeadsetReceiver, filter);
+        // Step 6: Mark service as started
         setHeadsetService(this);
         mStarted = true;
         return true;
@@ -90,10 +107,18 @@ public class HeadsetService extends ProfileService {
             // Still return true because it is considered "stopped"
             return true;
         }
+        // Step 6: Mark service as stopped
         mStarted = false;
+        // Step 5: Tear down broadcast receivers
         unregisterReceiver(mHeadsetReceiver);
+        // Step 4: Destroy state machine
         HeadsetStateMachine.destroy(mStateMachine);
         mStateMachine = null;
+        // Step 3: Destroy native interface
+        mNativeInterface.cleanup();
+        // Step 2: Destroy system interface
+        mSystemInterface.stop();
+        // Step 1: Stop handler thread
         mStateMachinesThread.quitSafely();
         mStateMachinesThread = null;
         setHeadsetService(null);
@@ -120,6 +145,14 @@ public class HeadsetService extends ProfileService {
         return isAvailable() && mCreated && mStarted;
     }
 
+    synchronized Looper getStateMachinesThreadLooper() {
+        return mStateMachinesThread.getLooper();
+    }
+
+    synchronized void onDeviceStateChanged(HeadsetDeviceState deviceState) {
+        mStateMachine.sendMessage(HeadsetStateMachine.DEVICE_STATE_CHANGED, deviceState);
+    }
+
     /**
      * Handle messages from native (JNI) to Java. This needs to be synchronized to avoid posting
      * messages to state machine before start() is done
@@ -134,21 +167,45 @@ public class HeadsetService extends ProfileService {
         @Override
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
-            if (action.equals(Intent.ACTION_BATTERY_CHANGED)) {
-                mStateMachine.sendMessage(HeadsetStateMachine.INTENT_BATTERY_CHANGED, intent);
-            } else if (action.equals(AudioManager.VOLUME_CHANGED_ACTION)) {
-                int streamType = intent.getIntExtra(AudioManager.EXTRA_VOLUME_STREAM_TYPE, -1);
-                if (streamType == AudioManager.STREAM_BLUETOOTH_SCO) {
-                    mStateMachine.sendMessage(HeadsetStateMachine.INTENT_SCO_VOLUME_CHANGED,
-                            intent);
+            if (action == null) {
+                Log.w(TAG, "mHeadsetReceiver, action is null");
+                return;
+            }
+            switch (action) {
+                case Intent.ACTION_BATTERY_CHANGED: {
+                    int batteryLevel = intent.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
+                    int scale = intent.getIntExtra(BatteryManager.EXTRA_SCALE, -1);
+                    if (batteryLevel < 0 || scale <= 0) {
+                        Log.e(TAG, "Bad Battery Changed intent: batteryLevel=" + batteryLevel
+                                + ", scale=" + scale);
+                        return;
+                    }
+                    batteryLevel = batteryLevel * 5 / scale;
+                    mSystemInterface.getHeadsetPhoneState().setCindBatteryCharge(batteryLevel);
+                    return;
                 }
-            } else if (action.equals(BluetoothDevice.ACTION_CONNECTION_ACCESS_REPLY)) {
-                int requestType = intent.getIntExtra(BluetoothDevice.EXTRA_ACCESS_REQUEST_TYPE,
-                        BluetoothDevice.REQUEST_TYPE_PHONEBOOK_ACCESS);
-                if (requestType == BluetoothDevice.REQUEST_TYPE_PHONEBOOK_ACCESS) {
-                    Log.v(TAG, "Received BluetoothDevice.ACTION_CONNECTION_ACCESS_REPLY");
-                    mStateMachine.handleAccessPermissionResult(intent);
+                case AudioManager.VOLUME_CHANGED_ACTION: {
+                    int streamType = intent.getIntExtra(AudioManager.EXTRA_VOLUME_STREAM_TYPE, -1);
+                    if (streamType == AudioManager.STREAM_BLUETOOTH_SCO) {
+                        mStateMachine.sendMessage(HeadsetStateMachine.INTENT_SCO_VOLUME_CHANGED,
+                                intent);
+                    }
+                    return;
                 }
+                case BluetoothDevice.ACTION_CONNECTION_ACCESS_REPLY: {
+                    int requestType = intent.getIntExtra(BluetoothDevice.EXTRA_ACCESS_REQUEST_TYPE,
+                            BluetoothDevice.REQUEST_TYPE_PHONEBOOK_ACCESS);
+                    if (requestType == BluetoothDevice.REQUEST_TYPE_PHONEBOOK_ACCESS) {
+                        if (DBG) {
+                            Log.d(TAG, "Received BluetoothDevice.REQUEST_TYPE_PHONEBOOK_ACCESS");
+                        }
+                        mStateMachine.sendMessage(
+                                HeadsetStateMachine.INTENT_CONNECTION_ACCESS_REPLY, intent);
+                    }
+                    return;
+                }
+                default:
+                    Log.w(TAG, "Unknown action " + action);
             }
         }
     };
@@ -488,7 +545,7 @@ public class HeadsetService extends ProfileService {
                 && connectionState != BluetoothProfile.STATE_CONNECTING) {
             return false;
         }
-        mStateMachine.sendMessage(HeadsetStateMachine.VOICE_RECOGNITION_START);
+        mStateMachine.sendMessage(HeadsetStateMachine.VOICE_RECOGNITION_START, device);
         return true;
     }
 
@@ -502,8 +559,7 @@ public class HeadsetService extends ProfileService {
                 && connectionState != BluetoothProfile.STATE_CONNECTING) {
             return false;
         }
-        mStateMachine.sendMessage(HeadsetStateMachine.VOICE_RECOGNITION_STOP);
-        // TODO is this return correct when the voice recognition is not on?
+        mStateMachine.sendMessage(HeadsetStateMachine.VOICE_RECOGNITION_STOP, device);
         return true;
     }
 

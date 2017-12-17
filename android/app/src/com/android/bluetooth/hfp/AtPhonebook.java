@@ -104,11 +104,8 @@ public class AtPhonebook {
         mPhonebooks.put("RC", new PhonebookResult());  // received calls
         mPhonebooks.put("MC", new PhonebookResult());  // missed calls
         mPhonebooks.put("ME", new PhonebookResult());  // mobile phonebook
-
         mCurrentPhonebook = "ME";  // default to mobile phonebook
-
         mCpbrIndex1 = mCpbrIndex2 = -1;
-        mCheckingAccessPermission = false;
     }
 
     public void cleanup() {
@@ -172,7 +169,7 @@ public class AtPhonebook {
             case TYPE_SET: // Set
                 log("handleCscsCommand - Set Command");
                 String[] args = atString.split("=");
-                if (args.length < 2 || !(args[1] instanceof String)) {
+                if (args.length < 2 || args[1] == null) {
                     mNativeInterface.atResponseCode(device, atCommandResult, atCommandErrorCode);
                     break;
                 }
@@ -234,7 +231,7 @@ public class AtPhonebook {
                 log("handleCpbsCommand - set command");
                 String[] args = atString.split("=");
                 // Select phonebook memory
-                if (args.length < 2 || !(args[1] instanceof String)) {
+                if (args.length < 2 || args[1] == null) {
                     atCommandErrorCode = BluetoothCmeError.OPERATION_NOT_SUPPORTED;
                     break;
                 }
@@ -266,7 +263,7 @@ public class AtPhonebook {
         mNativeInterface.atResponseCode(device, atCommandResult, atCommandErrorCode);
     }
 
-    public void handleCpbrCommand(String atString, int type, BluetoothDevice remoteDevice) {
+    void handleCpbrCommand(String atString, int type, BluetoothDevice remoteDevice) {
         log("handleCpbrCommand - atString = " + atString);
         int atCommandResult = HeadsetHalConstants.AT_RESPONSE_ERROR;
         int atCommandErrorCode = -1;
