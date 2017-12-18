@@ -259,7 +259,7 @@ public class HidDeviceTest {
             }
         }
 
-        public void onIntrData(BluetoothDevice device, byte reportId, byte[] data) {
+        public void onInterruptData(BluetoothDevice device, byte reportId, byte[] data) {
             try {
                 mCallbackQueue.put(CALLBACK_ON_INTR_DATA);
             } catch (InterruptedException e) {
@@ -492,7 +492,7 @@ public class HidDeviceTest {
 
     /**
      * Test the logic in callback functions from native stack: onGetReport, onSetReport,
-     * onSetProtocol, onIntrData, onVirtualCableUnplug. The HID Device server should send the
+     * onSetProtocol, onInterruptData, onVirtualCableUnplug. The HID Device server should send the
      * callback to the user app.
      */
     @Test
@@ -529,8 +529,8 @@ public class HidDeviceTest {
         mHidDeviceService.onSetProtocolFromNative(BluetoothHidDevice.PROTOCOL_BOOT_MODE);
         verifyCallback(TIMEOUT_MS, CALLBACK_ON_SET_PROTOCOL, mCallbackQueue);
 
-        // Received callback: onIntrData
-        mHidDeviceService.onIntrDataFromNative(SAMPLE_REPORT_ID, SAMPLE_HID_REPORT);
+        // Received callback: onInterruptData
+        mHidDeviceService.onInterruptDataFromNative(SAMPLE_REPORT_ID, SAMPLE_HID_REPORT);
         verifyCallback(TIMEOUT_MS, CALLBACK_ON_INTR_DATA, mCallbackQueue);
 
         // Received callback: onVirtualCableUnplug

@@ -32,7 +32,7 @@ static jmethodID method_onConnectStateChanged;
 static jmethodID method_onGetReport;
 static jmethodID method_onSetReport;
 static jmethodID method_onSetProtocol;
-static jmethodID method_onIntrData;
+static jmethodID method_onInterruptData;
 static jmethodID method_onVirtualCableUnplug;
 
 static const bthd_interface_t* sHiddIf = NULL;
@@ -132,7 +132,7 @@ static void intr_data_callback(uint8_t report_id, uint16_t len,
   }
   sCallbackEnv->SetByteArrayRegion(data.get(), 0, len, (jbyte*)p_data);
 
-  sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onIntrData,
+  sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onInterruptData,
                                (jbyte)report_id, data.get());
 }
 
@@ -163,7 +163,7 @@ static void classInitNative(JNIEnv* env, jclass clazz) {
   method_onGetReport = env->GetMethodID(clazz, "onGetReport", "(BBS)V");
   method_onSetReport = env->GetMethodID(clazz, "onSetReport", "(BB[B)V");
   method_onSetProtocol = env->GetMethodID(clazz, "onSetProtocol", "(B)V");
-  method_onIntrData = env->GetMethodID(clazz, "onIntrData", "(B[B)V");
+  method_onInterruptData = env->GetMethodID(clazz, "onInterruptData", "(B[B)V");
   method_onVirtualCableUnplug =
       env->GetMethodID(clazz, "onVirtualCableUnplug", "()V");
 }
