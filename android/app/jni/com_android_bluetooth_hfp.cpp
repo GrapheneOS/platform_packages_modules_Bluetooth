@@ -763,12 +763,32 @@ static jboolean phoneStateChangeNative(JNIEnv* env, jobject object,
 
 static jboolean setScoAllowedNative(JNIEnv* env, jobject object,
                                     jboolean value) {
+  std::shared_lock<std::shared_timed_mutex> lock(interface_mutex);
   if (!sBluetoothHfpInterface) return JNI_FALSE;
 
   bt_status_t status =
       sBluetoothHfpInterface->set_sco_allowed(value == JNI_TRUE);
   if (status != BT_STATUS_SUCCESS) {
     ALOGE("Failed HF set sco allowed, status: %d", status);
+  }
+  return (status == BT_STATUS_SUCCESS) ? JNI_TRUE : JNI_FALSE;
+}
+
+static jboolean sendBsirNative(JNIEnv* env, jobject object, jboolean value,
+                               jbyteArray address) {
+  std::shared_lock<std::shared_timed_mutex> lock(interface_mutex);
+  if (!sBluetoothHfpInterface) return JNI_FALSE;
+
+  jbyte* addr = env->GetByteArrayElements(address, NULL);
+  if (!addr) {
+    jniThrowIOException(env, EINVAL);
+    return JNI_FALSE;
+  }
+
+  bt_status_t status =
+      sBluetoothHfpInterface->send_bsir(value == JNI_TRUE, (RawAddress*)addr);
+  if (status != BT_STATUS_SUCCESS) {
+    ALOGE("Failed sending BSIR, value=%d, status=%d", value, status);
   }
   return (status == BT_STATUS_SUCCESS) ? JNI_TRUE : JNI_FALSE;
 }
@@ -797,6 +817,7 @@ static JNINativeMethod sMethods[] = {
     {"phoneStateChangeNative", "(IIILjava/lang/String;I)Z",
      (void*)phoneStateChangeNative},
     {"setScoAllowedNative", "(Z)Z", (void*)setScoAllowedNative},
+    {"sendBsirNative", "(Z[B)Z", (void*)sendBsirNative},
 };
 
 int register_com_android_bluetooth_hfp(JNIEnv* env) {
