@@ -421,6 +421,18 @@ public class HeadsetNativeInterface {
         return setScoAllowedNative(value);
     }
 
+    /**
+     * Enable or disable in-band ringing for the current service level connection through sending
+     * +BSIR AT command
+     *
+     * @param value True to enable, False to disable
+     * @return True on success, False on failure
+     */
+    @VisibleForTesting
+    public boolean sendBsir(BluetoothDevice device,  boolean value) {
+        return sendBsirNative(value, Utils.getByteAddress(device));
+    }
+
     /* Native methods */
     private static native void classInitNative();
 
@@ -461,4 +473,6 @@ public class HeadsetNativeInterface {
             String number, int type);
 
     private native boolean setScoAllowedNative(boolean value);
+
+    private native boolean sendBsirNative(boolean value, byte[] address);
 }
