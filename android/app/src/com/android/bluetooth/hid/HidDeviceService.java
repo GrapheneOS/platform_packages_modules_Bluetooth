@@ -198,7 +198,7 @@ public class HidDeviceService extends ProfileService {
 
                     try {
                         if (mCallback != null) {
-                            mCallback.onIntrData(mHidDevice, reportId, data);
+                            mCallback.onInterruptData(mHidDevice, reportId, data);
                         }
                     } catch (RemoteException e) {
                         e.printStackTrace();
@@ -687,9 +687,9 @@ public class HidDeviceService extends ProfileService {
         mHandler.sendMessage(msg);
     }
 
-    synchronized void onIntrDataFromNative(byte reportId, byte[] data) {
+    synchronized void onInterruptDataFromNative(byte reportId, byte[] data) {
         if (DBG) {
-            Log.d(TAG, "onIntrData(): reportId=" + reportId);
+            Log.d(TAG, "onInterruptData(): reportId=" + reportId);
         }
 
         ByteBuffer bb = ByteBuffer.wrap(data);
