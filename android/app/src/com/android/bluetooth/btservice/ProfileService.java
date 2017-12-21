@@ -265,7 +265,7 @@ public abstract class ProfileService extends Service {
             if (!mStartError) {
                 notifyProfileServiceStateChanged(BluetoothAdapter.STATE_ON);
             } else {
-                Log.e(mName, "Error starting profile. BluetoothAdapter is null");
+                Log.e(mName, "Error starting profile. start() returned false.");
             }
         }
     }
