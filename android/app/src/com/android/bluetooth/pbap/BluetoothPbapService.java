@@ -371,6 +371,21 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
         }
     }
 
+
+    private void createSdpRecord() {
+        if (mSdpHandle > -1) {
+            Log.w(TAG, "createSdpRecord, SDP record already created");
+        }
+        mSdpHandle = SdpManager.getDefaultManager()
+                .createPbapPseRecord("OBEX Phonebook Access Server",
+                        mServerSockets.getRfcommChannel(), mServerSockets.getL2capPsm(),
+                        SDP_PBAP_SERVER_VERSION, SDP_PBAP_SUPPORTED_REPOSITORIES,
+                        SDP_PBAP_SUPPORTED_FEATURES);
+        if (DEBUG) {
+            Log.d(TAG, "created Sdp record, mSdpHandle=" + mSdpHandle);
+        }
+    }
+
     private void cleanUpSdpRecord() {
         if (mSdpHandle < 0) {
             Log.w(TAG, "cleanUpSdpRecord, SDP record never created");
@@ -451,7 +466,7 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
 
         // Last obex transaction is finished, we start to listen for incoming
         // connection again
-        startSocketListeners();
+        prepareServerSocket();
         setState(BluetoothProfile.STATE_DISCONNECTED);
     }
 
@@ -481,7 +496,10 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
 
             switch (msg.what) {
                 case START_LISTENER:
-                    startSocketListeners();
+                    mServerSockets = ObexServerSockets.create(BluetoothPbapService.this);
+                    createSdpRecord();
+                    // fetch Pbap Params to check if significant change has happened to Database
+                    BluetoothPbapUtils.fetchPbapParams(mContext);
                     break;
                 case USER_TIMEOUT:
                     Intent intent = new Intent(BluetoothDevice.ACTION_CONNECTION_ACCESS_CANCEL);
@@ -675,7 +693,6 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
         filter.addAction(AUTH_CANCELLED_ACTION);
         mInterrupted = false;
         BluetoothPbapConfig.init(this);
-        mSessionStatusHandler.sendMessage(mSessionStatusHandler.obtainMessage(START_LISTENER));
         registerReceiver(mPbapReceiver, filter);
         try {
             mContactChangeObserver = new BluetoothPbapContentObserver();
@@ -687,6 +704,7 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
         } catch (IllegalStateException e) {
             Log.e(TAG, "Illegal state exception, content observer is already registered");
         }
+        mSessionStatusHandler.sendMessage(mSessionStatusHandler.obtainMessage(START_LISTENER));
         return true;
     }
 
@@ -802,45 +820,14 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
     }
 
     /**
-     * Start server side socket listeners. Caller should make sure that adapter is in a ready state
-     * and SDP record is cleaned up. Otherwise, this method will fail.
+     * Reset the server side socket listener to accept new connection.
      */
-    private synchronized void startSocketListeners() {
+    private synchronized void prepareServerSocket() {
         if (DEBUG) {
-            Log.d(TAG, "startsocketListener");
+            Log.d(TAG, "prepareServerSocket");
         }
-        if (mServerSession != null) {
-            if (DEBUG) {
-                Log.d(TAG, "mServerSession exists - shutting it down...");
-            }
-            mServerSession.close();
-            mServerSession = null;
-        }
-        closeConnectionSocket();
         if (mServerSockets != null) {
             mServerSockets.prepareForNewConnect();
-        } else {
-            mServerSockets = ObexServerSockets.create(this);
-            if (mServerSockets == null) {
-                // TODO: Handle - was not handled before
-                Log.e(TAG, "Failed to start the listeners");
-                return;
-            }
-            if (mSdpHandle >= 0) {
-                Log.e(TAG, "SDP handle was not cleaned up, mSdpHandle=" + mSdpHandle);
-                return;
-            }
-            mSdpHandle = SdpManager.getDefaultManager()
-                    .createPbapPseRecord("OBEX Phonebook Access Server",
-                            mServerSockets.getRfcommChannel(), mServerSockets.getL2capPsm(),
-                            SDP_PBAP_SERVER_VERSION, SDP_PBAP_SUPPORTED_REPOSITORIES,
-                            SDP_PBAP_SUPPORTED_FEATURES);
-            // fetch Pbap Params to check if significant change has happened to Database
-            BluetoothPbapUtils.fetchPbapParams(mContext);
-
-            if (DEBUG) {
-                Log.d(TAG, "PBAP server with handle:" + mSdpHandle);
-            }
         }
     }
 
@@ -931,9 +918,7 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
             mSessionStatusHandler.removeCallbacksAndMessages(null);
         }
 
-        if (!mInterrupted) {
-            startSocketListeners();
-        }
+        mSessionStatusHandler.sendMessage(mSessionStatusHandler.obtainMessage(START_LISTENER));
     }
 
     private void loadAllContacts() {
