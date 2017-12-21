@@ -691,6 +691,8 @@ public class BluetoothPbapVcardManager {
             int vcardType;
             if (vcardType21) {
                 vcardType = VCardConfig.VCARD_TYPE_V21_GENERIC;
+                vcardType |= VCardConfig.FLAG_CONVERT_PHONETIC_NAME_STRINGS;
+                vcardType |= VCardConfig.FLAG_REFRAIN_QP_TO_NAME_PROPERTIES;
             } else {
                 vcardType = VCardConfig.VCARD_TYPE_V30_GENERIC;
             }
@@ -1074,6 +1076,7 @@ public class BluetoothPbapVcardManager {
             TITLE(12, "TITLE", false, false),
             ORG(16, "ORG", false, false),
             NOTE(17, "NOTE", false, false),
+            SOUND(19, "SOUND", false, false),
             URL(20, "URL", false, false),
             NICKNAME(23, "NICKNAME", false, true),
             DATETIME(28, "X-IRMC-CALL-DATETIME", false, false);
