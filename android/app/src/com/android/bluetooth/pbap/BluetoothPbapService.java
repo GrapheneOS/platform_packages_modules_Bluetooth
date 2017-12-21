@@ -671,6 +671,7 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
                             .setDefaults(Notification.DEFAULT_SOUND)
                             .setContentIntent(PendingIntent.getActivity(this, 0, clickIntent, 0))
                             .setDeleteIntent(PendingIntent.getBroadcast(this, 0, deleteIntent, 0))
+                            .setLocalOnly(true)
                             .build();
             nm.notify(NOTIFICATION_ID_AUTH, notification);
         }

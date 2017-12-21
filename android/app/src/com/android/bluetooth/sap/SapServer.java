@@ -263,6 +263,7 @@ public class SapServer extends Thread implements Callback {
                             .setAutoCancel(false)
                             .setPriority(Notification.PRIORITY_MAX)
                             .setOnlyAlertOnce(true)
+                            .setLocalOnly(true)
                             .build();
         } else {
             sapDisconnectIntent.putExtra(SapServer.SAP_DISCONNECT_TYPE_EXTRA,
@@ -293,6 +294,7 @@ public class SapServer extends Thread implements Callback {
                             .setAutoCancel(false)
                             .setPriority(Notification.PRIORITY_MAX)
                             .setOnlyAlertOnce(true)
+                            .setLocalOnly(true)
                             .build();
         }
 
