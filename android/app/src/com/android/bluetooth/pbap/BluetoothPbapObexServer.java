@@ -300,14 +300,6 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
         }
         notifyUpdateWakeLock();
         resp.responseCode = ResponseCodes.OBEX_HTTP_OK;
-        if (mCallback != null) {
-            Message msg = Message.obtain(mCallback);
-            msg.what = BluetoothPbapService.MSG_SESSION_DISCONNECTED;
-            msg.sendToTarget();
-            if (V) {
-                Log.v(TAG, "onDisconnect(): msg MSG_SESSION_DISCONNECTED sent out.");
-            }
-        }
     }
 
     @Override
