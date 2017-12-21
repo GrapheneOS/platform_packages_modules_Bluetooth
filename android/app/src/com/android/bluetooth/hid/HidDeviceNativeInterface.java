@@ -225,12 +225,12 @@ public class HidDeviceNativeInterface {
         }
     }
 
-    private synchronized void onIntrData(byte reportId, byte[] data) {
+    private synchronized void onInterruptData(byte reportId, byte[] data) {
         HidDeviceService service = HidDeviceService.getHidDeviceService();
         if (service != null) {
-            service.onIntrDataFromNative(reportId, data);
+            service.onInterruptDataFromNative(reportId, data);
         } else {
-            Log.wtfStack(TAG, "FATAL: onIntrData() "
+            Log.wtfStack(TAG, "FATAL: onInterruptData() "
                     + "is called from the stack while service is not available.");
         }
     }
