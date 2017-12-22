@@ -649,13 +649,12 @@ public class SapService extends ProfileService {
     }
 
     @Override
-    public boolean cleanup() {
+    protected void cleanup() {
         setState(BluetoothSap.STATE_DISCONNECTED, BluetoothSap.RESULT_CANCELED);
         closeService();
         if (mSessionStatusHandler != null) {
             mSessionStatusHandler.removeCallbacksAndMessages(null);
         }
-        return true;
     }
 
     private void setUserTimeoutAlarm() {
@@ -858,9 +857,8 @@ public class SapService extends ProfileService {
         }
 
         @Override
-        public boolean cleanup() {
+        public void cleanup() {
             mService = null;
-            return true;
         }
 
         @Override

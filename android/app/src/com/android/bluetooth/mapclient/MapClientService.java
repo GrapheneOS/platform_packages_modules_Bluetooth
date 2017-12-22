@@ -190,11 +190,10 @@ public class MapClientService extends ProfileService {
     }
 
     @Override
-    public boolean cleanup() {
+    protected void cleanup() {
         if (DBG) {
             Log.d(TAG, "cleanup()");
         }
-        return true;
     }
 
     public synchronized boolean getUnreadMessages(BluetoothDevice device) {
@@ -242,9 +241,8 @@ public class MapClientService extends ProfileService {
         }
 
         @Override
-        public boolean cleanup() {
+        public void cleanup() {
             mService = null;
-            return true;
         }
 
         @Override

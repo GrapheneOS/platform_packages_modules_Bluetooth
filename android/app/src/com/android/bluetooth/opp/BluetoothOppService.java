@@ -417,7 +417,7 @@ public class BluetoothOppService extends ProfileService implements IObexConnecti
     }
 
     @Override
-    public boolean cleanup() {
+    protected void cleanup() {
         if (V) {
             Log.v(TAG, "onDestroy");
         }
@@ -431,7 +431,6 @@ public class BluetoothOppService extends ProfileService implements IObexConnecti
         if (mHandler != null) {
             mHandler.removeCallbacksAndMessages(null);
         }
-        return true;
     }
 
     private void unregisterReceivers() {
