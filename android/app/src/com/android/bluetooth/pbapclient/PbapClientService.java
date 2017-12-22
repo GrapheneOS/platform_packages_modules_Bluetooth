@@ -96,10 +96,9 @@ public class PbapClientService extends ProfileService {
     }
 
     @Override
-    protected boolean cleanup() {
+    protected void cleanup() {
         removeUncleanAccounts();
         clearPbapClientService();
-        return true;
     }
 
     void cleanupDevice(BluetoothDevice device) {
@@ -160,9 +159,8 @@ public class PbapClientService extends ProfileService {
         }
 
         @Override
-        public boolean cleanup() {
+        public void cleanup() {
             mService = null;
-            return true;
         }
 
         private PbapClientService getService() {

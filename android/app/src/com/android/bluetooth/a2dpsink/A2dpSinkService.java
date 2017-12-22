@@ -80,12 +80,11 @@ public class A2dpSinkService extends ProfileService {
     }
 
     @Override
-    protected boolean cleanup() {
+    protected void cleanup() {
         if (mStateMachine != null) {
             mStateMachine.cleanup();
         }
         clearA2dpSinkService();
-        return true;
     }
 
     //API Methods
@@ -276,9 +275,8 @@ public class A2dpSinkService extends ProfileService {
         }
 
         @Override
-        public boolean cleanup() {
+        public void cleanup() {
             mService = null;
-            return true;
         }
 
         @Override

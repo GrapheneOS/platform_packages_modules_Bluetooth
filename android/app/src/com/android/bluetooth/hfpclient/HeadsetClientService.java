@@ -144,10 +144,9 @@ public class HeadsetClientService extends ProfileService {
     }
 
     @Override
-    protected boolean cleanup() {
+    protected void cleanup() {
         HeadsetClientStateMachine.cleanup();
         clearHeadsetClientService();
-        return true;
     }
 
     private final BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
@@ -200,9 +199,8 @@ public class HeadsetClientService extends ProfileService {
         }
 
         @Override
-        public boolean cleanup() {
+        public void cleanup() {
             mService = null;
-            return true;
         }
 
         private HeadsetClientService getService() {

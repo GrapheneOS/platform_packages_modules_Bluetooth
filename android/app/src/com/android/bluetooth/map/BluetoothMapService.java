@@ -865,7 +865,7 @@ public class BluetoothMapService extends ProfileService {
     }
 
     @Override
-    public boolean cleanup() {
+    public void cleanup() {
         if (DEBUG) {
             Log.d(TAG, "cleanup()");
         }
@@ -876,7 +876,7 @@ public class BluetoothMapService extends ProfileService {
                 Log.d(TAG, "Service Not Available to STOP or Shutdown already"
                                 + " in progress - Ignoring");
             }
-            return true;
+            return;
         } else {
             if (VERBOSE) Log.d(TAG, "Service Stoping()");
         }
@@ -889,7 +889,6 @@ public class BluetoothMapService extends ProfileService {
             sendShutdownMessage();
         }
         mServiceStarted = false;
-        return true;
     }
 
     /**
@@ -1273,9 +1272,8 @@ public class BluetoothMapService extends ProfileService {
         }
 
         @Override
-        public boolean cleanup() {
+        public synchronized void cleanup() {
             mService = null;
-            return true;
         }
 
         @Override

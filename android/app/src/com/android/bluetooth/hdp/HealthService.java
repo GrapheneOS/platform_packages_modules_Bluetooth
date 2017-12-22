@@ -126,7 +126,7 @@ public class HealthService extends ProfileService {
     }
 
     @Override
-    protected boolean cleanup() {
+    protected void cleanup() {
         mHandler = null;
         //Cleanup native
         if (mNativeAvailable) {
@@ -142,7 +142,6 @@ public class HealthService extends ProfileService {
         if (mApps != null) {
             mApps.clear();
         }
-        return true;
     }
 
     private final class HealthServiceMessageHandler extends Handler {
@@ -333,9 +332,8 @@ public class HealthService extends ProfileService {
         }
 
         @Override
-        public boolean cleanup() {
+        public void cleanup() {
             mService = null;
-            return true;
         }
 
         private HealthService getService() {

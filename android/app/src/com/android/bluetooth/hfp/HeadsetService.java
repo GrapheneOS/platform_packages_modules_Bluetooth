@@ -126,15 +126,12 @@ public class HeadsetService extends ProfileService {
     }
 
     @Override
-    protected synchronized boolean cleanup() {
+    protected synchronized void cleanup() {
         Log.i(TAG, "cleanup");
         if (!mCreated) {
             Log.w(TAG, "cleanup() called before create()");
-            // Still return true as it is considered "not created"
-            return true;
         }
         mCreated = false;
-        return true;
     }
 
     /**
@@ -222,9 +219,8 @@ public class HeadsetService extends ProfileService {
         }
 
         @Override
-        public boolean cleanup() {
+        public void cleanup() {
             mService = null;
-            return true;
         }
 
         private HeadsetService getService() {
