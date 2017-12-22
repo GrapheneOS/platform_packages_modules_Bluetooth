@@ -149,7 +149,7 @@ public class PanService extends ProfileService {
     }
 
     @Override
-    protected boolean cleanup() {
+    protected void cleanup() {
         if (mNativeAvailable) {
             cleanupNative();
             mNativeAvailable = false;
@@ -162,7 +162,6 @@ public class PanService extends ProfileService {
             }
             mPanDevices.clear();
         }
-        return true;
     }
 
     private final Handler mHandler = new Handler() {
@@ -222,9 +221,8 @@ public class PanService extends ProfileService {
         }
 
         @Override
-        public boolean cleanup() {
+        public void cleanup() {
             mService = null;
-            return true;
         }
 
         private PanService getService() {

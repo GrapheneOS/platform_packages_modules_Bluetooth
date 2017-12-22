@@ -101,7 +101,7 @@ public class HidHostService extends ProfileService {
     }
 
     @Override
-    protected boolean cleanup() {
+    protected void cleanup() {
         if (DBG) Log.d(TAG, "Stopping Bluetooth HidHostService");
         if (mNativeAvailable) {
             cleanupNative();
@@ -118,7 +118,6 @@ public class HidHostService extends ProfileService {
             mInputDevices.clear();
         }
         clearHidHostService();
-        return true;
     }
 
     public static synchronized HidHostService getHidHostService() {
@@ -336,9 +335,8 @@ public class HidHostService extends ProfileService {
         }
 
         @Override
-        public boolean cleanup() {
+        public void cleanup() {
             mService = null;
-            return true;
         }
 
         private HidHostService getService() {

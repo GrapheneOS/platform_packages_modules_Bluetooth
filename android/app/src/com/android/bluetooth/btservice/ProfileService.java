@@ -44,7 +44,10 @@ public abstract class ProfileService extends Service {
             android.Manifest.permission.BLUETOOTH_PRIVILEGED;
 
     public interface IProfileServiceBinder extends IBinder {
-        boolean cleanup();
+        /**
+         * Called in {@link #onDestroy()}
+         */
+        void cleanup();
     }
 
     //Profile services will not be automatically restarted.
@@ -92,12 +95,8 @@ public abstract class ProfileService extends Service {
 
     /**
      * Called in {@link #onDestroy()} when this object is completely discarded
-     *
-     * @return True in successful condition, False otherwise
      */
-    protected boolean cleanup() {
-        return true;
-    }
+    protected void cleanup() {}
 
     protected ProfileService() {
         mName = getName();
