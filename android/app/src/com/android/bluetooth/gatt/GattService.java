@@ -233,7 +233,7 @@ public class GattService extends ProfileService {
     }
 
     @Override
-    protected boolean cleanup() {
+    protected void cleanup() {
         if (DBG) {
             Log.d(TAG, "cleanup()");
         }
@@ -247,7 +247,6 @@ public class GattService extends ProfileService {
         if (mPeriodicScanManager != null) {
             mPeriodicScanManager.cleanup();
         }
-        return true;
     }
 
     boolean permissionCheck(UUID uuid) {
@@ -374,9 +373,8 @@ public class GattService extends ProfileService {
         }
 
         @Override
-        public boolean cleanup() {
+        public void cleanup() {
             mService = null;
-            return true;
         }
 
         private GattService getService() {
