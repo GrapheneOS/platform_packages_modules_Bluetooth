@@ -63,7 +63,10 @@ import com.android.bluetooth.sdp.SdpManager;
 import com.google.android.collect.Lists;
 
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.Locale;
 
 import javax.obex.ObexTransport;
 
@@ -229,6 +232,21 @@ public class BluetoothOppService extends ProfileService implements IObexConnecti
                 }
                 mHandler.sendMessage(mHandler.obtainMessage(START_LISTENER));
                 mListenStarted = true;
+            }
+        }
+    }
+
+    @Override
+    public void dump(StringBuilder sb) {
+        super.dump(sb);
+        if (mShares.size() > 0) {
+            println(sb, "Shares:");
+            for (BluetoothOppShareInfo info : mShares) {
+                String dir = info.mDirection == BluetoothShare.DIRECTION_OUTBOUND ? "->" : "<-";
+                SimpleDateFormat format = new SimpleDateFormat("MM'.'dd'@'HH':'mm':'ss", Locale.US);
+                Date date = new Date(info.mTimestamp);
+                println(sb, "  " + format.format(date) + ": " + dir + " " + info.mCurrentBytes + "/"
+                        + info.mTotalBytes + "B ");
             }
         }
     }
@@ -399,7 +417,7 @@ public class BluetoothOppService extends ProfileService implements IObexConnecti
     }
 
     @Override
-    public boolean cleanup() {
+    protected void cleanup() {
         if (V) {
             Log.v(TAG, "onDestroy");
         }
@@ -413,7 +431,6 @@ public class BluetoothOppService extends ProfileService implements IObexConnecti
         if (mHandler != null) {
             mHandler.removeCallbacksAndMessages(null);
         }
-        return true;
     }
 
     private void unregisterReceivers() {

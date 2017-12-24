@@ -132,6 +132,5 @@
     <string name="bluetooth_connected" msgid="6718623220072656906">"Áudio Bluetooth ligado"</string>
     <string name="bluetooth_disconnected" msgid="3318303728981478873">"Áudio Bluetooth desligado"</string>
     <string name="a2dp_sink_mbs_label" msgid="7566075853395412558">"Áudio Bluetooth"</string>
-    <!-- no translation found for bluetooth_opp_file_limit_exceeded (8894450394309084519) -->
-    <skip />
+    <string name="bluetooth_opp_file_limit_exceeded" msgid="8894450394309084519">"Não é possível transferir os ficheiros com mais de 4 GB."</string>
 </resources>

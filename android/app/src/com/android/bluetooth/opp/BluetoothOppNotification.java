@@ -383,6 +383,7 @@ class BluetoothOppNotification {
                 }
             }
             b.setOngoing(true);
+            b.setLocalOnly(true);
 
             Intent intent = new Intent(Constants.ACTION_LIST);
             intent.setClassName(Constants.THIS_PACKAGE_NAME, BluetoothOppReceiver.class.getName());
@@ -460,6 +461,7 @@ class BluetoothOppNotification {
                             .setDeleteIntent(
                                     PendingIntent.getBroadcast(mContext, 0, deleteIntent, 0))
                             .setWhen(timeStamp)
+                            .setLocalOnly(true)
                             .build();
             mNotificationMgr.notify(NOTIFICATION_ID_OUTBOUND_COMPLETE, outNoti);
         } else {
@@ -525,6 +527,7 @@ class BluetoothOppNotification {
                             .setDeleteIntent(
                                     PendingIntent.getBroadcast(mContext, 0, deleteIntent, 0))
                             .setWhen(timeStamp)
+                            .setLocalOnly(true)
                             .build();
             mNotificationMgr.notify(NOTIFICATION_ID_INBOUND_COMPLETE, inNoti);
         } else {
@@ -588,6 +591,7 @@ class BluetoothOppNotification {
                                     info.mDeviceName, info.mFileName)))
                             .setContentInfo(Formatter.formatFileSize(mContext, info.mTotalBytes))
                             .setSmallIcon(R.drawable.bt_incomming_file_notification)
+                            .setLocalOnly(true)
                             .build();
             mNotificationMgr.notify(NOTIFICATION_ID_PROGRESS, n);
         }
