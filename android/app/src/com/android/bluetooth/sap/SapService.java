@@ -649,7 +649,7 @@ public class SapService extends ProfileService {
     }
 
     @Override
-    protected void cleanup() {
+    public void cleanup() {
         setState(BluetoothSap.STATE_DISCONNECTED, BluetoothSap.RESULT_CANCELED);
         closeService();
         if (mSessionStatusHandler != null) {
