@@ -122,7 +122,13 @@ class MnsService {
                 Log.d(TAG, "onConnect" + device + " SOCKET: " + socket);
             }
             /* Signal to the service that we have received an incoming connection.*/
-            MnsObexServer srv = new MnsObexServer(sContext.mMceStateMachine, sServerSockets);
+            MceStateMachine stateMachine = sContext.getMceStateMachineForDevice(device);
+            if (stateMachine == null) {
+                Log.e(TAG, "Error: NO statemachine for device: " + device.getAddress()
+                        + " (name: " + device.getName());
+                return false;
+            }
+            MnsObexServer srv = new MnsObexServer(stateMachine, sServerSockets);
             BluetoothObexTransport transport = new BluetoothObexTransport(socket);
             try {
                 new ServerSession(transport, srv, null);
