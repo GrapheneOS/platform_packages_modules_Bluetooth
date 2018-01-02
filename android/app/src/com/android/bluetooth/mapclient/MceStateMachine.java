@@ -512,6 +512,20 @@ final class MceStateMachine extends StateMachine {
             }
         }
 
+        // Sets the specified message status to "read" (from "unread" status, mostly)
+        private void markMessageRead(RequestGetMessage request) {
+            if (DBG) Log.d(TAG, "markMessageRead");
+            mMasClient.makeRequest(new RequestSetMessageStatus(
+                    request.getHandle(), RequestSetMessageStatus.StatusIndicator.READ));
+        }
+
+        // Sets the specified message status to "deleted"
+        private void markMessageDeleted(RequestGetMessage request) {
+            if (DBG) Log.d(TAG, "markMessageDeleted");
+            mMasClient.makeRequest(new RequestSetMessageStatus(
+                    request.getHandle(), RequestSetMessageStatus.StatusIndicator.DELETED));
+        }
+
         private void processMessageListing(RequestGetMessagesListing request) {
             if (DBG) {
                 Log.d(TAG, "processMessageListing");
