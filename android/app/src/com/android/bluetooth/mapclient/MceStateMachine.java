@@ -47,13 +47,9 @@ import android.bluetooth.BluetoothMapClient;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.BluetoothUuid;
 import android.bluetooth.SdpMasRecord;
-import android.content.BroadcastReceiver;
-import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.net.Uri;
 import android.os.Message;
-import android.os.ParcelUuid;
 import android.telecom.PhoneAccount;
 import android.util.Log;
 
@@ -66,6 +62,7 @@ import com.android.vcard.VCardEntry;
 import com.android.vcard.VCardProperty;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 
@@ -111,7 +108,7 @@ final class MceStateMachine extends StateMachine {
     private State mConnected;
     private State mDisconnecting;
 
-    private BluetoothDevice mDevice;
+    private final BluetoothDevice mDevice;
     private MapClientService mService;
     private MasClient mMasClient;
     private HashMap<String, Bmessage> mSentMessageLog = new HashMap<>(MAX_MESSAGES);
@@ -119,14 +116,14 @@ final class MceStateMachine extends StateMachine {
     private HashMap<Bmessage, PendingIntent> mDeliveryReceiptRequested =
             new HashMap<>(MAX_MESSAGES);
     private Bmessage.Type mDefaultMessageType = Bmessage.Type.SMS_CDMA;
-    private MapBroadcastReceiver mMapReceiver = new MapBroadcastReceiver();
 
-    MceStateMachine(MapClientService service) {
+    MceStateMachine(MapClientService service, BluetoothDevice device) {
         super(TAG);
         mService = service;
 
         mPreviousState = BluetoothProfile.STATE_DISCONNECTED;
 
+        mDevice = device;
         mDisconnected = new Disconnected();
         mConnecting = new Connecting();
         mDisconnecting = new Disconnecting();
@@ -136,12 +133,19 @@ final class MceStateMachine extends StateMachine {
         addState(mConnecting);
         addState(mDisconnecting);
         addState(mConnected);
-        setInitialState(mDisconnected);
+        setInitialState(mConnecting);
         start();
     }
 
     public void doQuit() {
         quitNow();
+    }
+
+    @Override
+    protected void onQuitting() {
+        if (mService != null) {
+            mService.cleanupDevice(mDevice);
+        }
     }
 
     synchronized BluetoothDevice getDevice() {
@@ -181,19 +185,11 @@ final class MceStateMachine extends StateMachine {
         return BluetoothProfile.STATE_DISCONNECTED;
     }
 
-    public boolean connect(BluetoothDevice device) {
+    public boolean disconnect() {
         if (DBG) {
-            Log.d(TAG, "Connect Request " + device.getAddress());
+            Log.d(TAG, "Disconnect Request " + mDevice.getAddress());
         }
-        sendMessage(MSG_CONNECT, device);
-        return true;
-    }
-
-    public boolean disconnect(BluetoothDevice device) {
-        if (DBG) {
-            Log.d(TAG, "Disconnect Request " + device.getAddress());
-        }
-        sendMessage(MSG_DISCONNECT, device);
+        sendMessage(MSG_DISCONNECT, mDevice);
         return true;
     }
 
@@ -291,6 +287,11 @@ final class MceStateMachine extends StateMachine {
         }
     }
 
+    public void dump(StringBuilder sb) {
+        ProfileService.println(sb, "mCurrentDevice: " + mDevice.getAddress() + " (name = "
+                + mDevice.getName() + "), StateMachine: " + this.toString());
+    }
+
     class Disconnected extends State {
         @Override
         public void enter() {
@@ -299,24 +300,7 @@ final class MceStateMachine extends StateMachine {
             }
             onConnectionStateChanged(mPreviousState, BluetoothProfile.STATE_DISCONNECTED);
             mPreviousState = BluetoothProfile.STATE_DISCONNECTED;
-        }
-
-        @Override
-        public boolean processMessage(Message message) {
-            switch (message.what) {
-                case MSG_CONNECT:
-                    synchronized (MceStateMachine.this) {
-                        mDevice = (BluetoothDevice) message.obj;
-                    }
-                    transitionTo(mConnecting);
-                    break;
-
-                default:
-                    Log.w(TAG, "Unexpected message: " + message.what + " from state:"
-                            + this.getName());
-                    return NOT_HANDLED;
-            }
-            return HANDLED;
+            quit();
         }
 
         @Override
@@ -332,12 +316,6 @@ final class MceStateMachine extends StateMachine {
                 Log.d(TAG, "Enter Connecting: " + getCurrentMessage().what);
             }
             onConnectionStateChanged(mPreviousState, BluetoothProfile.STATE_CONNECTING);
-
-            IntentFilter filter = new IntentFilter();
-            filter.addAction(BluetoothDevice.ACTION_SDP_RECORD);
-            filter.addAction(BluetoothDevice.ACTION_ACL_DISCONNECTED);
-            // unregisterReceiver in Disconnecting
-            mService.registerReceiver(mMapReceiver, filter);
 
             BluetoothAdapter.getDefaultAdapter().cancelDiscovery();
             // When commanded to connect begin SDP to find the MAS server.
@@ -437,11 +415,15 @@ final class MceStateMachine extends StateMachine {
                     break;
 
                 case MSG_GET_MESSAGE_LISTING:
+                    // Get latest 50 Unread messages in the last week
                     MessagesFilter filter = new MessagesFilter();
                     filter.setMessageType((byte) 0);
-                    mMasClient.makeRequest(
-                            new RequestGetMessagesListing((String) message.obj, 0, filter, 0, 1,
-                                    0));
+                    filter.setReadStatus(MessagesFilter.READ_STATUS_UNREAD);
+                    Calendar calendar = Calendar.getInstance();
+                    calendar.add(Calendar.DATE, -7);
+                    filter.setPeriod(calendar.getTime(), null);
+                    mMasClient.makeRequest(new RequestGetMessagesListing(
+                            (String) message.obj, 0, filter, 0, 50, 0));
                     break;
 
                 case MSG_MAS_REQUEST_COMPLETED:
@@ -633,7 +615,6 @@ final class MceStateMachine extends StateMachine {
                 Log.d(TAG, "Enter Disconnecting: " + getCurrentMessage().what);
             }
             onConnectionStateChanged(mPreviousState, BluetoothProfile.STATE_DISCONNECTING);
-            mService.unregisterReceiver(mMapReceiver);
 
             if (mMasClient != null) {
                 mMasClient.makeRequest(new RequestSetNotificationRegistration(false));
@@ -682,46 +663,5 @@ final class MceStateMachine extends StateMachine {
             Log.d(TAG, "Message handle = " + ev.getHandle());
         }
         sendMessage(MSG_NOTIFICATION, ev);
-    }
-
-    private class MapBroadcastReceiver extends BroadcastReceiver {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            if (DBG) {
-                Log.d(TAG, "onReceive");
-            }
-            String action = intent.getAction();
-            if (DBG) {
-                Log.d(TAG, "onReceive: " + action);
-            }
-            if (action.equals(BluetoothDevice.ACTION_ACL_DISCONNECTED)) {
-                BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-                if (getDevice().equals(device) && getState() == BluetoothProfile.STATE_CONNECTED) {
-                    disconnect(device);
-                }
-            }
-
-            if (BluetoothDevice.ACTION_SDP_RECORD.equals(intent.getAction())) {
-                ParcelUuid uuid = intent.getParcelableExtra(BluetoothDevice.EXTRA_UUID);
-                if (DBG) {
-                    Log.d(TAG, "UUID of SDP: " + uuid);
-                }
-
-                if (uuid.equals(BluetoothUuid.MAS)) {
-                    // Check if we have a valid SDP record.
-                    SdpMasRecord masRecord =
-                            intent.getParcelableExtra(BluetoothDevice.EXTRA_SDP_RECORD);
-                    if (DBG) {
-                        Log.d(TAG, "SDP = " + masRecord);
-                    }
-                    int status = intent.getIntExtra(BluetoothDevice.EXTRA_SDP_SEARCH_STATUS, -1);
-                    if (masRecord == null) {
-                        Log.w(TAG, "SDP search ended with no MAS record. Status: " + status);
-                        return;
-                    }
-                    obtainMessage(MceStateMachine.MSG_MAS_SDP_DONE, masRecord).sendToTarget();
-                }
-            }
-        }
     }
 }
