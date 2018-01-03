@@ -928,11 +928,11 @@ public class ScanManager {
                     queue.addScanFilter(filter);
                     int featureSelection = queue.getFeatureSelection();
                     int filterIndex = mFilterIndexStack.pop();
-                    while (!queue.isEmpty()) {
-                        resetCountDownLatch();
-                        addFilterToController(scannerId, queue.pop(), filterIndex);
-                        waitForCallback();
-                    }
+
+                    resetCountDownLatch();
+                    gattClientScanFilterAddNative(scannerId, queue.toArray(), filterIndex);
+                    waitForCallback();
+
                     resetCountDownLatch();
                     if (deliveryMode == DELIVERY_MODE_ON_FOUND_LOST) {
                         trackEntries = getNumOfTrackingAdvertisements(client.settings);
@@ -1037,55 +1037,6 @@ public class ScanManager {
                 return true;
             }
             return client.filters.size() > mFilterIndexStack.size();
-        }
-
-        private void addFilterToController(int scannerId, ScanFilterQueue.Entry entry,
-                int filterIndex) {
-            if (DBG) {
-                Log.d(TAG, "addFilterToController: " + entry.type);
-            }
-            switch (entry.type) {
-                case ScanFilterQueue.TYPE_DEVICE_ADDRESS:
-                    if (DBG) {
-                        Log.d(TAG, "add address " + entry.address);
-                    }
-                    gattClientScanFilterAddNative(scannerId, entry.type, filterIndex, 0, 0, 0, 0, 0,
-                            0, "", entry.address, (byte) entry.addr_type, new byte[0], new byte[0]);
-                    break;
-
-                case ScanFilterQueue.TYPE_SERVICE_DATA:
-                    gattClientScanFilterAddNative(scannerId, entry.type, filterIndex, 0, 0, 0, 0, 0,
-                            0, "", "", (byte) 0, entry.data, entry.data_mask);
-                    break;
-
-                case ScanFilterQueue.TYPE_SERVICE_UUID:
-                case ScanFilterQueue.TYPE_SOLICIT_UUID:
-                    gattClientScanFilterAddNative(scannerId, entry.type, filterIndex, 0, 0,
-                            entry.uuid.getLeastSignificantBits(),
-                            entry.uuid.getMostSignificantBits(),
-                            entry.uuid_mask.getLeastSignificantBits(),
-                            entry.uuid_mask.getMostSignificantBits(), "", "", (byte) 0, new byte[0],
-                            new byte[0]);
-                    break;
-
-                case ScanFilterQueue.TYPE_LOCAL_NAME:
-                    if (DBG) {
-                        Log.d(TAG, "adding filters: " + entry.name);
-                    }
-                    gattClientScanFilterAddNative(scannerId, entry.type, filterIndex, 0, 0, 0, 0, 0,
-                            0, entry.name, "", (byte) 0, new byte[0], new byte[0]);
-                    break;
-
-                case ScanFilterQueue.TYPE_MANUFACTURER_DATA:
-                    int len = entry.data.length;
-                    if (entry.data_mask.length != len) {
-                        return;
-                    }
-                    gattClientScanFilterAddNative(scannerId, entry.type, filterIndex, entry.company,
-                            entry.company_mask, 0, 0, 0, 0, "", "", (byte) 0, entry.data,
-                            entry.data_mask);
-                    break;
-            }
         }
 
         private void initFilterIndexStack() {
@@ -1264,10 +1215,8 @@ public class ScanManager {
                 int scanWindow);
 
         /************************** Filter related native methods ********************************/
-        private native void gattClientScanFilterAddNative(int clientIf, int filterType,
-                int filterIndex, int companyId, int companyIdMask, long uuidLsb, long uuidMsb,
-                long uuidMaskLsb, long uuidMaskMsb, String name, String address, byte addrType,
-                byte[] data, byte[] mask);
+        private native void gattClientScanFilterAddNative(int clientId,
+                ScanFilterQueue.Entry[] entries, int filterIndex);
 
         private native void gattClientScanFilterParamAddNative(FilterParams filtValue);
 
