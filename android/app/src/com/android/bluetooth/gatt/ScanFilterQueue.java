@@ -23,7 +23,6 @@ import android.os.ParcelUuid;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
@@ -48,9 +47,9 @@ import java.util.UUID;
     private static final byte DEVICE_TYPE_ALL = 2;
 
     class Entry {
+        public byte type;
         public String address;
         public byte addr_type;
-        public byte type;
         public UUID uuid;
         public UUID uuid_mask;
         public String name;
@@ -58,29 +57,6 @@ import java.util.UUID;
         public int company_mask;
         public byte[] data;
         public byte[] data_mask;
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(address, addr_type, type, uuid, uuid_mask, name, company,
-                    company_mask, Arrays.hashCode(data), Arrays.hashCode(data_mask));
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            if (this == obj) {
-                return true;
-            }
-            if (obj == null || getClass() != obj.getClass()) {
-                return false;
-            }
-            Entry other = (Entry) obj;
-            return Objects.equals(address, other.address) && addr_type == other.addr_type
-                    && type == other.type && Objects.equals(uuid, other.uuid) && Objects.equals(
-                    uuid_mask, other.uuid_mask) && Objects.equals(name, other.name)
-                    && company == other.company && company_mask == other.company_mask
-                    && Objects.deepEquals(data, other.data) && Objects.deepEquals(data_mask,
-                    other.data_mask);
-        }
     }
 
     private Set<Entry> mEntries = new HashSet<Entry>();
@@ -159,30 +135,13 @@ import java.util.UUID;
     }
 
     Entry pop() {
-        if (isEmpty()) {
+        if (mEntries.isEmpty()) {
             return null;
         }
         Iterator<Entry> iterator = mEntries.iterator();
         Entry entry = iterator.next();
         iterator.remove();
         return entry;
-    }
-
-    boolean isEmpty() {
-        return mEntries.isEmpty();
-    }
-
-    void clearUuids() {
-        for (Iterator<Entry> it = mEntries.iterator(); it.hasNext(); ) {
-            Entry entry = it.next();
-            if (entry.type == TYPE_SERVICE_UUID) {
-                it.remove();
-            }
-        }
-    }
-
-    void clear() {
-        mEntries.clear();
     }
 
     /**
@@ -194,6 +153,10 @@ import java.util.UUID;
             selc |= (1 << entry.type);
         }
         return selc;
+    }
+
+    ScanFilterQueue.Entry[] toArray() {
+        return mEntries.toArray(new ScanFilterQueue.Entry[mEntries.size()]);
     }
 
     /**
