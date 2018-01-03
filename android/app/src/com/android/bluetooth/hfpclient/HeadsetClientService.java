@@ -784,7 +784,7 @@ public class HeadsetClientService extends ProfileService {
         BluetoothHeadsetClientCall call = new BluetoothHeadsetClientCall(device,
                 HeadsetClientStateMachine.HF_ORIGINATED_CALL_ID,
                 BluetoothHeadsetClientCall.CALL_STATE_DIALING, number, false  /* multiparty */,
-                true  /* outgoing */);
+                true  /* outgoing */, sm.getInBandRing());
         Message msg = sm.obtainMessage(HeadsetClientStateMachine.DIAL_NUMBER);
         msg.obj = call;
         sm.sendMessage(msg);
