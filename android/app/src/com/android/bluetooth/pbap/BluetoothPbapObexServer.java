@@ -171,16 +171,12 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
 
     private boolean mVcardSelector = false;
 
-    private int mMissedCallSize = 0;
-
     // record current path the client are browsing
     private String mCurrentPath = "";
 
     private Handler mCallback = null;
 
     private Context mContext;
-
-    private BluetoothPbapService mService;
 
     private BluetoothPbapVcardManager mVcardManager;
 
@@ -204,6 +200,8 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
 
     private AppParamValue mConnAppParamValue;
 
+    private PbapStateMachine mStateMachine;
+
     public static class ContentType {
         public static final int PHONEBOOK = 1;
 
@@ -216,12 +214,13 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
         public static final int COMBINED_CALL_HISTORY = 5;
     }
 
-    public BluetoothPbapObexServer(Handler callback, BluetoothPbapService service) {
+    public BluetoothPbapObexServer(Handler callback, Context context,
+            PbapStateMachine stateMachine) {
         super();
         mCallback = callback;
-        mService = service;
-        mContext = service.getApplicationContext();
+        mContext = context;
         mVcardManager = new BluetoothPbapVcardManager(mContext);
+        mStateMachine = stateMachine;
     }
 
     @Override
@@ -284,9 +283,6 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
             Log.v(TAG, "onConnect(): uuid is ok, will send out " + "MSG_SESSION_ESTABLISHED msg.");
         }
 
-        Message msg = Message.obtain(mCallback);
-        msg.what = BluetoothPbapService.MSG_SESSION_ESTABLISHED;
-        msg.sendToTarget();
         return ResponseCodes.OBEX_HTTP_OK;
     }
 
@@ -383,14 +379,7 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
 
     @Override
     public void onClose() {
-        if (mCallback != null) {
-            Message msg = Message.obtain(mCallback);
-            msg.what = BluetoothPbapService.MSG_SERVERSESSION_CLOSE;
-            msg.sendToTarget();
-            if (D) {
-                Log.d(TAG, "onClose(): msg MSG_SERVERSESSION_CLOSE sent out.");
-            }
-        }
+        mStateMachine.sendMessage(PbapStateMachine.DISCONNECT);
     }
 
     @Override
@@ -1439,7 +1428,7 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
 
     private byte[] getDatabaseIdentifier() {
         mDatabaseIdentifierHigh = 0;
-        mDatabaseIdentifierLow = mService.getDbIdentifier();
+        mDatabaseIdentifierLow = BluetoothPbapUtils.sDbIdentifier.get();
         if (mDatabaseIdentifierLow != INVALID_VALUE_PARAMETER
                 && mDatabaseIdentifierHigh != INVALID_VALUE_PARAMETER) {
             ByteBuffer ret = ByteBuffer.allocate(16);
