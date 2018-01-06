@@ -29,6 +29,7 @@ import android.os.BatteryManager;
 import android.os.HandlerThread;
 import android.os.Looper;
 import android.os.Message;
+import android.os.UserHandle;
 import android.provider.Settings;
 import android.util.Log;
 
@@ -47,6 +48,7 @@ public class HeadsetService extends ProfileService {
     private static final String MODIFY_PHONE_STATE = android.Manifest.permission.MODIFY_PHONE_STATE;
     private static final int MAX_HEADSET_CONNECTIONS = 1;
 
+    private BluetoothDevice mActiveDevice;
     private HandlerThread mStateMachinesThread;
     private HeadsetStateMachine mStateMachine;
     private HeadsetNativeInterface mNativeInterface;
@@ -443,6 +445,24 @@ public class HeadsetService extends ProfileService {
             }
             return service.sendVendorSpecificResultCode(device, command, arg);
         }
+
+        @Override
+        public boolean setActiveDevice(BluetoothDevice device) {
+            HeadsetService service = getService();
+            if (service == null) {
+                return false;
+            }
+            return service.setActiveDevice(device);
+        }
+
+        @Override
+        public BluetoothDevice getActiveDevice() {
+            HeadsetService service = getService();
+            if (service == null) {
+                return null;
+            }
+            return service.getActiveDevice();
+        }
     }
 
     // API methods
@@ -586,6 +606,47 @@ public class HeadsetService extends ProfileService {
         mStateMachine.setForceScoAudio(forced);
     }
 
+    /**
+     * Set the active device.
+     *
+     * @param device the active device
+     * @return true on success, otherwise false
+     */
+    public synchronized boolean setActiveDevice(BluetoothDevice device) {
+        enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH_ADMIN permission");
+        if (DBG) {
+            Log.d(TAG, "setActiveDevice: " + device);
+        }
+        if (device == null) {
+            // Clear the active device
+            mActiveDevice = null;
+            broadcastActiveDevice(null);
+            return true;
+        }
+        if (getConnectionState(device) != BluetoothProfile.STATE_CONNECTED) {
+            Log.e(TAG, "setActiveDevice: Cannot set " + device
+                    + " as active, device is not connected");
+            return false;
+        }
+        if (!mNativeInterface.setActiveDevice(device)) {
+            Log.e(TAG, "setActiveDevice: Cannot set " + device + " as active in native layer");
+            return false;
+        }
+        mActiveDevice = device;
+        broadcastActiveDevice(mActiveDevice);
+        return true;
+    }
+
+    /**
+     * Get the active device.
+     *
+     * @return the active device or null if no device is active
+     */
+    public synchronized BluetoothDevice getActiveDevice() {
+        enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH_ADMIN permission");
+        return mActiveDevice;
+    }
+
     boolean connectAudio() {
         // TODO(BT) BLUETOOTH or BLUETOOTH_ADMIN permission
         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
@@ -664,6 +725,29 @@ public class HeadsetService extends ProfileService {
         mStateMachine.sendMessage(HeadsetStateMachine.SEND_VENDOR_SPECIFIC_RESULT_CODE,
                 new HeadsetVendorSpecificResultCode(device, command, arg));
         return true;
+    }
+
+    void connectionStateChanged(BluetoothDevice device, int fromState, int toState) {
+        if (fromState != BluetoothProfile.STATE_CONNECTED
+                && toState == BluetoothProfile.STATE_CONNECTED) {
+            // Assume only one connected device
+            setActiveDevice(device);
+        }
+        if (fromState == BluetoothProfile.STATE_CONNECTED
+                && toState != BluetoothProfile.STATE_CONNECTED) {
+            setActiveDevice(null);
+        }
+    }
+
+    private void broadcastActiveDevice(BluetoothDevice device) {
+        if (DBG) {
+            Log.d(TAG, "broadcastActiveDevice: " + device);
+        }
+        Intent intent = new Intent(BluetoothHeadset.ACTION_ACTIVE_DEVICE_CHANGED);
+        intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
+        intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY_BEFORE_BOOT
+                | Intent.FLAG_RECEIVER_INCLUDE_BACKGROUND);
+        sendBroadcastAsUser(intent, UserHandle.ALL, HeadsetService.BLUETOOTH_PERM);
     }
 
     @Override
