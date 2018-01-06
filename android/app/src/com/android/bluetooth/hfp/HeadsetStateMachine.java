@@ -308,6 +308,7 @@ final class HeadsetStateMachine extends StateMachine {
                 // Headset is disconnecting, stop Virtual call if active.
                 terminateScoUsingVirtualVoiceCall();
             }
+            mService.connectionStateChanged(device, fromState, toState);
             Intent intent = new Intent(BluetoothHeadset.ACTION_CONNECTION_STATE_CHANGED);
             intent.putExtra(BluetoothProfile.EXTRA_PREVIOUS_STATE, fromState);
             intent.putExtra(BluetoothProfile.EXTRA_STATE, toState);
@@ -2443,8 +2444,16 @@ final class HeadsetStateMachine extends StateMachine {
         if (mForceScoAudio) {
             return true;
         }
-        return mAudioRouteAllowed && (mVoiceRecognitionStarted || isInCall() || (
-                BluetoothHeadset.isInbandRingingSupported(mService) && isRinging()));
+        if (!mService.getAudioRouteAllowed()) {
+            return false;
+        }
+        if (isInCall() || mVoiceRecognitionStarted) {
+            return true;
+        }
+        if (isRinging() && BluetoothHeadset.isInbandRingingSupported(mService)) {
+            return true;
+        }
+        return false;
     }
 
     private boolean okToAcceptConnection(BluetoothDevice device) {
