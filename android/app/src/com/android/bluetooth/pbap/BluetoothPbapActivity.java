@@ -32,6 +32,7 @@
 
 package com.android.bluetooth.pbap;
 
+import android.bluetooth.BluetoothDevice;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -47,7 +48,6 @@ import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
-import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.TextView;
 
@@ -85,15 +85,13 @@ public class BluetoothPbapActivity extends AlertActivity
 
     private Button mOkButton;
 
-    private CheckBox mAlwaysAllowed;
-
     private boolean mTimeout = false;
-
-    private boolean mAlwaysAllowedValue = true;
 
     private static final int DISMISS_TIMEOUT_DIALOG = 0;
 
     private static final int DISMISS_TIMEOUT_DIALOG_VALUE = 2000;
+
+    private BluetoothDevice mDevice;
 
     private BroadcastReceiver mReceiver = new BroadcastReceiver() {
         @Override
@@ -110,6 +108,7 @@ public class BluetoothPbapActivity extends AlertActivity
         super.onCreate(savedInstanceState);
         Intent i = getIntent();
         String action = i.getAction();
+        mDevice = i.getParcelableExtra(BluetoothPbapService.EXTRA_DEVICE);
         if (action.equals(BluetoothPbapService.AUTH_CHALL_ACTION)) {
             showPbapDialog(DIALOG_YES_NO_AUTH);
             mCurrentDialog = DIALOG_YES_NO_AUTH;
@@ -142,10 +141,9 @@ public class BluetoothPbapActivity extends AlertActivity
     }
 
     private String createDisplayText(final int id) {
-        String mRemoteName = BluetoothPbapService.getRemoteDeviceName();
         switch (id) {
             case DIALOG_YES_NO_AUTH:
-                String mMessage2 = getString(R.string.pbap_session_key_dialog_title, mRemoteName);
+                String mMessage2 = getString(R.string.pbap_session_key_dialog_title, mDevice);
                 return mMessage2;
             default:
                 return null;
@@ -193,16 +191,7 @@ public class BluetoothPbapActivity extends AlertActivity
             final String extraValue) {
         Intent intent = new Intent(intentName);
         intent.setPackage(BluetoothPbapService.THIS_PACKAGE_NAME);
-        if (extraName != null) {
-            intent.putExtra(extraName, extraValue);
-        }
-        sendBroadcast(intent);
-    }
-
-    private void sendIntentToReceiver(final String intentName, final String extraName,
-            final boolean extraValue) {
-        Intent intent = new Intent(intentName);
-        intent.setPackage(BluetoothPbapService.THIS_PACKAGE_NAME);
+        intent.putExtra(BluetoothPbapService.EXTRA_DEVICE, mDevice);
         if (extraName != null) {
             intent.putExtra(extraName, extraValue);
         }
@@ -230,8 +219,7 @@ public class BluetoothPbapActivity extends AlertActivity
     private void onTimeout() {
         mTimeout = true;
         if (mCurrentDialog == DIALOG_YES_NO_AUTH) {
-            mMessageView.setText(getString(R.string.pbap_authentication_timeout_message,
-                    BluetoothPbapService.getRemoteDeviceName()));
+            mMessageView.setText(getString(R.string.pbap_authentication_timeout_message, mDevice));
             mKeyView.setVisibility(View.GONE);
             mKeyView.clearFocus();
             mKeyView.removeTextChangedListener(this);
