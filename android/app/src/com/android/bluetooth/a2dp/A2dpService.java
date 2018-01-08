@@ -278,6 +278,48 @@ public class A2dpService extends ProfileService {
         return mStateMachine.getConnectionState(device);
     }
 
+    /**
+     * Set the active device.
+     *
+     * @param device the active device
+     * @return true on success, otherwise false
+     */
+    public boolean setActiveDevice(BluetoothDevice device) {
+        if (DBG) {
+            Log.d(TAG, "setActiveDevice(): " + device);
+        }
+
+        enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH ADMIN permission");
+
+        if (getPriority(device) == BluetoothProfile.PRIORITY_OFF) {
+            return false;
+        }
+        ParcelUuid[] featureUuids = device.getUuids();
+        if ((BluetoothUuid.containsAnyUuid(featureUuids, A2DP_SOURCE_UUID))
+                && !(BluetoothUuid.containsAllUuids(featureUuids, A2DP_SOURCE_SINK_UUIDS))) {
+            Log.e(TAG, "Remote does not have A2dp Sink UUID");
+            return false;
+        }
+
+        int connectionState = mStateMachine.getConnectionState(device);
+        if (connectionState != BluetoothProfile.STATE_CONNECTED) {
+            return false;
+        }
+
+        mStateMachine.sendMessage(A2dpStateMachine.SET_ACTIVE_DEVICE, device);
+        return true;
+    }
+
+    /**
+     * Get the active device.
+     *
+     * @return the active device or null if no device is active
+     */
+    public BluetoothDevice getActiveDevice() {
+        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+        return mStateMachine.getActiveDevice();
+    }
+
     public boolean setPriority(BluetoothDevice device, int priority) {
         enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH_ADMIN permission");
         Settings.Global.putInt(getContentResolver(),
@@ -470,6 +512,24 @@ public class A2dpService extends ProfileService {
                 return BluetoothProfile.STATE_DISCONNECTED;
             }
             return service.getConnectionState(device);
+        }
+
+        @Override
+        public boolean setActiveDevice(BluetoothDevice device) {
+            A2dpService service = getService();
+            if (service == null) {
+                return false;
+            }
+            return service.setActiveDevice(device);
+        }
+
+        @Override
+        public BluetoothDevice getActiveDevice() {
+            A2dpService service = getService();
+            if (service == null) {
+                return null;
+            }
+            return service.getActiveDevice();
         }
 
         @Override
