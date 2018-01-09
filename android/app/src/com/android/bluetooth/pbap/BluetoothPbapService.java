@@ -356,6 +356,10 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
             switch (msg.what) {
                 case START_LISTENER:
                     mServerSockets = ObexServerSockets.create(BluetoothPbapService.this);
+                    if (mServerSockets == null) {
+                        Log.w(TAG, "ObexServerSockets.create() returned null");
+                        break;
+                    }
                     createSdpRecord();
                     // fetch Pbap Params to check if significant change has happened to Database
                     BluetoothPbapUtils.fetchPbapParams(mContext);
