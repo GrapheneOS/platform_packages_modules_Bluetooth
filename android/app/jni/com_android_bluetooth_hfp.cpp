@@ -799,6 +799,26 @@ static jboolean sendBsirNative(JNIEnv* env, jobject object, jboolean value,
   return (status == BT_STATUS_SUCCESS) ? JNI_TRUE : JNI_FALSE;
 }
 
+static jboolean setActiveDeviceNative(JNIEnv* env, jobject object,
+                                      jbyteArray address) {
+  std::shared_lock<std::shared_timed_mutex> lock(interface_mutex);
+  if (!sBluetoothHfpInterface) return JNI_FALSE;
+
+  jbyte* addr = env->GetByteArrayElements(address, NULL);
+  if (!addr) {
+    jniThrowIOException(env, EINVAL);
+    return JNI_FALSE;
+  }
+
+  bt_status_t status =
+      sBluetoothHfpInterface->SetActiveDevice((RawAddress*)addr);
+  if (status != BT_STATUS_SUCCESS) {
+    ALOGE("Failed to set active device, status: %d", status);
+  }
+  env->ReleaseByteArrayElements(address, addr, 0);
+  return (status == BT_STATUS_SUCCESS) ? JNI_TRUE : JNI_FALSE;
+}
+
 static JNINativeMethod sMethods[] = {
     {"classInitNative", "()V", (void*)classInitNative},
     {"initializeNative", "(IZ)V", (void*)initializeNative},
@@ -824,6 +844,7 @@ static JNINativeMethod sMethods[] = {
      (void*)phoneStateChangeNative},
     {"setScoAllowedNative", "(Z)Z", (void*)setScoAllowedNative},
     {"sendBsirNative", "(Z[B)Z", (void*)sendBsirNative},
+    {"setActiveDeviceNative", "([B)Z", (void*)setActiveDeviceNative},
 };
 
 int register_com_android_bluetooth_hfp(JNIEnv* env) {

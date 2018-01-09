@@ -63,6 +63,7 @@ final class A2dpStateMachine extends StateMachine {
 
     static final int CONNECT = 1;
     static final int DISCONNECT = 2;
+    static final int SET_ACTIVE_DEVICE = 3;
     @VisibleForTesting
     static final int STACK_EVENT = 101;
     private static final int CONNECT_TIMEOUT = 201;
@@ -82,6 +83,8 @@ final class A2dpStateMachine extends StateMachine {
     private final AudioManager mAudioManager;
     private BluetoothCodecConfig[] mCodecConfigPriorities;
 
+    // mActiveDevice is the connected device that is connected and selected
+    //     as active.
     // mCurrentDevice is the device connected before the state changes
     // mTargetDevice is the device to be connected
     // mIncomingDevice is the device connecting to us, valid only in Pending state
@@ -104,6 +107,7 @@ final class A2dpStateMachine extends StateMachine {
     //                        mCurrentDevice is not null, mTargetDevice is null
     //   Incoming connections Pending
     //                        Both mCurrentDevice and mTargetDevice are null
+    private BluetoothDevice mActiveDevice = null;
     private BluetoothDevice mCurrentDevice = null;
     private BluetoothDevice mTargetDevice = null;
     private BluetoothDevice mIncomingDevice = null;
@@ -277,12 +281,15 @@ final class A2dpStateMachine extends StateMachine {
             if (DBG) {
                 Log.d(TAG, "Disconnected process message: " + message.what);
             }
-            if (mCurrentDevice != null || mTargetDevice != null || mIncomingDevice != null) {
+            if (mCurrentDevice != null || mTargetDevice != null
+                    || mIncomingDevice != null || mActiveDevice != null) {
                 Log.e(TAG, "ERROR: not null state in Disconnected: current = " + mCurrentDevice
-                        + " target = " + mTargetDevice + " incoming = " + mIncomingDevice);
+                        + " target = " + mTargetDevice + " incoming = " + mIncomingDevice
+                        + " active = " + mActiveDevice);
                 mCurrentDevice = null;
                 mTargetDevice = null;
                 mIncomingDevice = null;
+                mActiveDevice = null;
             }
 
             boolean retValue = HANDLED;
@@ -308,6 +315,13 @@ final class A2dpStateMachine extends StateMachine {
                     break;
                 case DISCONNECT:
                     // ignore
+                    break;
+                case SET_ACTIVE_DEVICE:
+                    BluetoothDevice activeDevice = (BluetoothDevice) message.obj;
+                    // Cannot set the active device: not connected
+                    Log.e(TAG, "Disconnected: Cannot set active device to "
+                            + activeDevice);
+                    broadcastActiveDevice(null);
                     break;
                 case STACK_EVENT:
                     A2dpStackEvent event = (A2dpStackEvent) message.obj;
@@ -438,6 +452,13 @@ final class A2dpStateMachine extends StateMachine {
                     } else {
                         deferMessage(message);
                     }
+                    break;
+                case SET_ACTIVE_DEVICE:
+                    BluetoothDevice activeDevice = (BluetoothDevice) message.obj;
+                    // Cannot set the active device: not connected
+                    Log.e(TAG, "Pending: Cannot set active device to "
+                            + activeDevice);
+                    broadcastActiveDevice(null);
                     break;
                 case STACK_EVENT:
                     A2dpStackEvent event = (A2dpStackEvent) message.obj;
@@ -704,6 +725,21 @@ final class A2dpStateMachine extends StateMachine {
                     }
                 }
                 break;
+                case SET_ACTIVE_DEVICE: {
+                    BluetoothDevice device = (BluetoothDevice) message.obj;
+                    if (!mCurrentDevice.equals(device)) {
+                        Log.e(TAG, "Connected: Cannot set active device to "
+                                + device + " : current connected device is " + mCurrentDevice);
+                        mActiveDevice = null;
+                    } else {
+                        if (DBG) {
+                            Log.d(TAG, "Connected: Active device set to " + device);
+                        }
+                        mActiveDevice = device;
+                    }
+                    broadcastActiveDevice(mActiveDevice);
+                }
+                break;
                 case CONNECT_TIMEOUT:
                     if (mTargetDevice == null) {
                         Log.e(TAG, "CONNECT_TIMEOUT received for unknown device");
@@ -842,6 +878,15 @@ final class A2dpStateMachine extends StateMachine {
             }
         }
         return devices;
+    }
+
+    BluetoothDevice getActiveDevice() {
+        synchronized (this) {
+            if (getCurrentState() == mConnected) {
+                return mActiveDevice;
+            }
+        }
+        return null;
     }
 
     boolean isPlaying(BluetoothDevice device) {
@@ -997,6 +1042,18 @@ final class A2dpStateMachine extends StateMachine {
         mService.sendBroadcast(intent, ProfileService.BLUETOOTH_PERM);
     }
 
+    private void broadcastActiveDevice(BluetoothDevice device) {
+        if (DBG) {
+            Log.d(TAG, "Active device: " + device);
+        }
+
+        Intent intent = new Intent(BluetoothA2dp.ACTION_ACTIVE_DEVICE_CHANGED);
+        intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
+        intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY_BEFORE_BOOT
+                        | Intent.FLAG_RECEIVER_INCLUDE_BACKGROUND);
+        mService.sendBroadcast(intent, ProfileService.BLUETOOTH_PERM);
+    }
+
     private void broadcastAudioState(BluetoothDevice device, int newState,
                                      int prevState) {
         if (DBG) {
@@ -1013,6 +1070,7 @@ final class A2dpStateMachine extends StateMachine {
     }
 
     public void dump(StringBuilder sb) {
+        ProfileService.println(sb, "mActiveDevice: " + mActiveDevice);
         ProfileService.println(sb, "mCurrentDevice: " + mCurrentDevice);
         ProfileService.println(sb, "mTargetDevice: " + mTargetDevice);
         ProfileService.println(sb, "mIncomingDevice: " + mIncomingDevice);

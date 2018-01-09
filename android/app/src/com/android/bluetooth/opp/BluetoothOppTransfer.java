@@ -49,7 +49,6 @@ import android.os.HandlerThread;
 import android.os.Looper;
 import android.os.Message;
 import android.os.ParcelUuid;
-import android.os.PowerManager;
 import android.os.Process;
 import android.util.Log;
 
@@ -172,11 +171,9 @@ public class BluetoothOppTransfer implements BluetoothOppBatch.BluetoothOppBatch
         }
     }
 
-    ;
-
     private OppConnectionReceiver mBluetoothReceiver;
 
-    public BluetoothOppTransfer(Context context, PowerManager powerManager, BluetoothOppBatch batch,
+    public BluetoothOppTransfer(Context context, BluetoothOppBatch batch,
             BluetoothOppObexSession session) {
 
         mContext = context;
@@ -188,9 +185,8 @@ public class BluetoothOppTransfer implements BluetoothOppBatch.BluetoothOppBatch
 
     }
 
-    public BluetoothOppTransfer(Context context, PowerManager powerManager,
-            BluetoothOppBatch batch) {
-        this(context, powerManager, batch, null);
+    public BluetoothOppTransfer(Context context, BluetoothOppBatch batch) {
+        this(context, batch, null);
     }
 
     public int getBatchId() {
@@ -828,7 +824,7 @@ public class BluetoothOppTransfer implements BluetoothOppBatch.BluetoothOppBatch
                 return;
             }
         }
-    };
+    }
 
     private void markConnectionFailed(BluetoothSocket s) {
         if (V) {
