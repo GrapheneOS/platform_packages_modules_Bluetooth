@@ -203,11 +203,11 @@ public class HeadsetNativeInterface {
      * Initialize native stack
      *
      * @param maxHfClients maximum number of headset clients that can be connected simultaneously
-     * @param inbandRingingSupported whether in-band ringing is supported on this AG
+     * @param inbandRingingEnabled whether in-band ringing is enabled on this AG
      */
     @VisibleForTesting
-    public void init(int maxHfClients, boolean inbandRingingSupported) {
-        initializeNative(maxHfClients, inbandRingingSupported);
+    public void init(int maxHfClients, boolean inbandRingingEnabled) {
+        initializeNative(maxHfClients, inbandRingingEnabled);
     }
 
     /**
@@ -450,7 +450,7 @@ public class HeadsetNativeInterface {
 
     private native boolean atResponseStringNative(String responseString, byte[] address);
 
-    private native void initializeNative(int maxHfClients, boolean inbandRingEnable);
+    private native void initializeNative(int maxHfClients, boolean inbandRingingEnabled);
 
     private native void cleanupNative();
 
