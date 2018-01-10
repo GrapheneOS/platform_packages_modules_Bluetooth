@@ -2450,7 +2450,7 @@ final class HeadsetStateMachine extends StateMachine {
         if (isInCall() || mVoiceRecognitionStarted) {
             return true;
         }
-        if (isRinging() && BluetoothHeadset.isInbandRingingSupported(mService)) {
+        if (isRinging() && mService.isInbandRingingEnabled()) {
             return true;
         }
         return false;

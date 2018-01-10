@@ -29,6 +29,7 @@ import android.os.BatteryManager;
 import android.os.HandlerThread;
 import android.os.Looper;
 import android.os.Message;
+import android.os.SystemProperties;
 import android.os.UserHandle;
 import android.provider.Settings;
 import android.util.Log;
@@ -47,6 +48,8 @@ public class HeadsetService extends ProfileService {
     private static final boolean DBG = false;
     private static final String MODIFY_PHONE_STATE = android.Manifest.permission.MODIFY_PHONE_STATE;
     private static final int MAX_HEADSET_CONNECTIONS = 1;
+    private static final String DISABLE_INBAND_RINGING_PROPERTY =
+            "persist.bluetooth.disableinbandringing";
 
     private BluetoothDevice mActiveDevice;
     private HandlerThread mStateMachinesThread;
@@ -83,8 +86,7 @@ public class HeadsetService extends ProfileService {
         mSystemInterface.init();
         // Step 3: Initialize native interface
         mNativeInterface = HeadsetNativeInterface.getInstance();
-        mNativeInterface.init(MAX_HEADSET_CONNECTIONS,
-                BluetoothHeadset.isInbandRingingSupported(this));
+        mNativeInterface.init(MAX_HEADSET_CONNECTIONS, isInbandRingingEnabled());
         // Step 4: Initialize state machine
         mStateMachine =
                 HeadsetStateMachine.make(mStateMachinesThread.getLooper(), this, mNativeInterface,
@@ -463,6 +465,15 @@ public class HeadsetService extends ProfileService {
             }
             return service.getActiveDevice();
         }
+
+        @Override
+        public boolean isInbandRingingEnabled() {
+            HeadsetService service = getService();
+            if (service == null) {
+                return false;
+            }
+            return service.isInbandRingingEnabled();
+        }
     }
 
     // API methods
@@ -725,6 +736,12 @@ public class HeadsetService extends ProfileService {
         mStateMachine.sendMessage(HeadsetStateMachine.SEND_VENDOR_SPECIFIC_RESULT_CODE,
                 new HeadsetVendorSpecificResultCode(device, command, arg));
         return true;
+    }
+
+    boolean isInbandRingingEnabled() {
+        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+        return BluetoothHeadset.isInbandRingingSupported(this)
+                && !SystemProperties.getBoolean(DISABLE_INBAND_RINGING_PROPERTY, false);
     }
 
     void connectionStateChanged(BluetoothDevice device, int fromState, int toState) {

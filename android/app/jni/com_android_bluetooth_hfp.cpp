@@ -401,7 +401,7 @@ static void classInitNative(JNIEnv* env, jclass clazz) {
 }
 
 static void initializeNative(JNIEnv* env, jobject object, jint max_hf_clients,
-                             jboolean inband_ringing_support) {
+                             jboolean inband_ringing_enabled) {
   std::unique_lock<std::shared_timed_mutex> interface_lock(interface_mutex);
   std::unique_lock<std::shared_timed_mutex> callbacks_lock(callbacks_mutex);
 
@@ -433,7 +433,7 @@ static void initializeNative(JNIEnv* env, jobject object, jint max_hf_clients,
 
   bt_status_t status =
       sBluetoothHfpInterface->Init(JniHeadsetCallbacks::GetInstance(),
-                                   max_hf_clients, inband_ringing_support);
+                                   max_hf_clients, inband_ringing_enabled);
   if (status != BT_STATUS_SUCCESS) {
     ALOGE("Failed to initialize Bluetooth HFP, status: %d", status);
     sBluetoothHfpInterface = nullptr;
