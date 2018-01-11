@@ -2271,27 +2271,18 @@ public class AdapterService extends Service {
                 }
             }
 
-            // Copy the traffic objects whose byte counts are > 0 and reset the originals.
+            // Copy the traffic objects whose byte counts are > 0
             final UidTraffic[] result = arrayLen > 0 ? new UidTraffic[arrayLen] : null;
             int putIdx = 0;
             for (int i = 0; i < mUidTraffic.size(); i++) {
                 final UidTraffic traffic = mUidTraffic.valueAt(i);
                 if (traffic.getTxBytes() != 0 || traffic.getRxBytes() != 0) {
                     result[putIdx++] = traffic.clone();
-                    traffic.setRxBytes(0);
-                    traffic.setTxBytes(0);
                 }
             }
 
             info.setUidTraffic(result);
 
-            // Read on clear values; a record of data is created with
-            // timstamp and new samples are collected until read again
-            mStackReportedState = 0;
-            mTxTimeTotalMs = 0;
-            mRxTimeTotalMs = 0;
-            mIdleTimeTotalMs = 0;
-            mEnergyUsedTotalVoltAmpSecMicro = 0;
             return info;
         }
     }
