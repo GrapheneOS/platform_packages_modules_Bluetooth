@@ -63,7 +63,6 @@ import com.android.bluetooth.btservice.ProfileService;
 import com.android.bluetooth.util.NumberUtils;
 import com.android.internal.annotations.VisibleForTesting;
 
-import java.security.Security;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -2890,9 +2889,9 @@ public class GattService extends ProfileService {
             handle = entry.handle;
         }
 
-        int connId = mServerMap.connIdByAddress(serverIf, address);
-        gattServerSendResponseNative(serverIf, connId, requestId, (byte) status, handle, offset,
-                value, (byte) 0);
+        Integer connId = mServerMap.connIdByAddress(serverIf, address);
+        gattServerSendResponseNative(serverIf, connId != null ? connId : 0, requestId,
+                (byte) status, handle, offset, value, (byte) 0);
         mHandleMap.deleteRequest(requestId);
     }
 
@@ -2903,8 +2902,8 @@ public class GattService extends ProfileService {
             Log.d(TAG, "sendNotification() - address=" + address + " handle=" + handle);
         }
 
-        int connId = mServerMap.connIdByAddress(serverIf, address);
-        if (connId == 0) {
+        Integer connId = mServerMap.connIdByAddress(serverIf, address);
+        if (connId == null || connId == 0) {
             return;
         }
 
