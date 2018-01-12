@@ -575,7 +575,9 @@ public class AdapterService extends Service {
         Class[] supportedProfileServices = Config.getSupportedProfiles();
 
         //Start profile services
-        if (!mProfilesStarted && supportedProfileServices.length > 0) {
+        if (!mProfilesStarted && supportedProfileServices.length > 0
+                && !(supportedProfileServices.length == 1
+                     && supportedProfileServices[0] == GattService.class)) {
             //Startup all profile services
             setProfileServiceState(supportedProfileServices, BluetoothAdapter.STATE_ON);
         } else {
