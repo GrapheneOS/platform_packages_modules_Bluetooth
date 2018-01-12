@@ -347,7 +347,18 @@ class PbapStateMachine extends StateMachine {
         }
     }
 
+    /**
+     * Get the current connection state of this state machine
+     *
+     * @return current connection state, one of {@link BluetoothProfile#STATE_DISCONNECTED},
+     * {@link BluetoothProfile#STATE_CONNECTING}, {@link BluetoothProfile#STATE_CONNECTED}, or
+     * {@link BluetoothProfile#STATE_DISCONNECTING}
+     */
     synchronized int getConnectionState() {
-        return ((PbapStateBase) getCurrentState()).getConnectionStateInt();
+        PbapStateBase state = (PbapStateBase) getCurrentState();
+        if (state == null) {
+            return BluetoothProfile.STATE_DISCONNECTED;
+        }
+        return state.getConnectionStateInt();
     }
 }
