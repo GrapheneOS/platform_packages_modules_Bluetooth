@@ -407,7 +407,6 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
                     BluetoothPbapUtils.rolloverCounters();
                     break;
                 case MSG_STATE_MACHINE_DONE:
-                    mServerSockets.prepareForNewConnect();
                 default:
                     break;
             }
