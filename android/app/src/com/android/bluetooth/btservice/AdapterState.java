@@ -150,6 +150,7 @@ final class AdapterState extends StateMachine {
             debugLog("Current state: OFF, message: " + msg.what);
 
             switch (msg.what) {
+                case ENABLED_READY:
                 case BLE_TURN_ON:
                     notifyAdapterStateChange(BluetoothAdapter.STATE_BLE_TURNING_ON);
                     mPendingCommandState.setBleTurningOn(true);
@@ -244,6 +245,7 @@ final class AdapterState extends StateMachine {
             debugLog("Current state: ON, message: " + msg.what);
 
             switch (msg.what) {
+                case DISABLED:
                 case BLE_TURN_OFF:
                     notifyAdapterStateChange(BluetoothAdapter.STATE_TURNING_OFF);
                     mPendingCommandState.setTurningOff(true);
