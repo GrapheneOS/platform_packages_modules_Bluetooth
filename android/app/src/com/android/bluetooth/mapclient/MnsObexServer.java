@@ -69,7 +69,6 @@ class MnsObexServer extends ServerRequestHandler {
         if (VDBG) {
             Log.v(TAG, "onConnect");
         }
-        mObexServerSockets.prepareForNewConnect();
 
         try {
             byte[] uuid = (byte[]) request.getHeader(HeaderSet.TARGET);

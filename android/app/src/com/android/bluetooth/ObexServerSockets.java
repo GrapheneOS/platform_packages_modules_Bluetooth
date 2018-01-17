@@ -55,12 +55,10 @@ public class ObexServerSockets {
     private final BluetoothServerSocket mRfcommSocket;
     private final BluetoothServerSocket mL2capSocket;
     /* Handles to the accept threads. Needed for shutdown. */
-    private SocketAcceptThread mRfcommThread = null;
-    private SocketAcceptThread mL2capThread = null;
+    private SocketAcceptThread mRfcommThread;
+    private SocketAcceptThread mL2capThread;
 
-    private volatile boolean mConAccepted = false;
-
-    private static volatile int sInstanceCounter = 0;
+    private static volatile int sInstanceCounter;
 
     private ObexServerSockets(IObexConnectionHandler conHandler, BluetoothServerSocket rfcommSocket,
             BluetoothServerSocket l2capSocket) {
@@ -207,7 +205,6 @@ public class ObexServerSockets {
         if (D) {
             Log.d(mTag, "startAccept()");
         }
-        prepareForNewConnect();
 
         mRfcommThread = new SocketAcceptThread(mRfcommSocket);
         mRfcommThread.start();
@@ -217,36 +214,16 @@ public class ObexServerSockets {
     }
 
     /**
-     * Set state to accept new incoming connection. Will cause the next incoming connection to be
-     * Signaled through {@link IObexConnectionValidator#onConnect()};
-     */
-    public synchronized void prepareForNewConnect() {
-        if (D) {
-            Log.d(mTag, "prepareForNewConnect()");
-        }
-        mConAccepted = false;
-    }
-
-    /**
      * Called from the AcceptThreads to signal an incoming connection.
-     * This is the entry point that needs to synchronize between the accept
-     * threads, and ensure only a single connection is accepted.
-     * {@link mAcceptedSocket} is used a state variable.
      * @param device the connecting device.
      * @param conSocket the socket associated with the connection.
      * @return true if the connection is accepted, false otherwise.
      */
     private synchronized boolean onConnect(BluetoothDevice device, BluetoothSocket conSocket) {
         if (D) {
-            Log.d(mTag, "onConnect() socket: " + conSocket + " mConAccepted = " + mConAccepted);
+            Log.d(mTag, "onConnect() socket: " + conSocket);
         }
-        if (!mConAccepted && mConHandler.onConnect(device, conSocket)) {
-            mConAccepted = true; // TODO: Reset this when ready to accept new connection
-            /* Signal the remaining threads to stop.
-            shutdown(false); */ // UPDATE: TODO: remove - redesigned to keep running...
-            return true;
-        }
-        return false;
+        return mConHandler.onConnect(device, conSocket);
     }
 
     /**
