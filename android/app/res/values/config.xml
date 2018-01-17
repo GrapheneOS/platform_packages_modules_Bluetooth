@@ -100,4 +100,7 @@
           - BluetoothDevice.ACTION_CONNECTION_ACCESS_CANCEL to cancel access requests -->
     <string name="pairing_ui_package">com.android.settings</string>
 
+    <!-- Flag whether or not to keep polling AG with CLCC for call information every 2 seconds -->
+    <bool name="hfp_clcc_poll_during_call">true</bool>
+
 </resources>
