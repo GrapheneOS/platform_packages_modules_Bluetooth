@@ -254,11 +254,11 @@ public class BluetoothOppService extends ProfileService implements IObexConnecti
         if (mShares.size() > 0) {
             println(sb, "Shares:");
             for (BluetoothOppShareInfo info : mShares) {
-                String dir = info.mDirection == BluetoothShare.DIRECTION_OUTBOUND ? "->" : "<-";
-                SimpleDateFormat format = new SimpleDateFormat("MM'.'dd'@'HH':'mm':'ss", Locale.US);
+                String dir = info.mDirection == BluetoothShare.DIRECTION_OUTBOUND ? " -> " : " <- ";
+                SimpleDateFormat format = new SimpleDateFormat("MM-dd HH:mm:ss", Locale.US);
                 Date date = new Date(info.mTimestamp);
-                println(sb, "  " + format.format(date) + ": " + dir + " " + info.mCurrentBytes + "/"
-                        + info.mTotalBytes + "B ");
+                println(sb, "  " + format.format(date) + dir + info.mCurrentBytes + "/"
+                        + info.mTotalBytes);
             }
         }
     }
