@@ -1496,6 +1496,16 @@ public class AdapterService extends Service {
         }
 
         @Override
+        public int getMaxConnectedAudioDevices() {
+            // don't check caller, may be called from system UI
+            AdapterService service = getService();
+            if (service == null) {
+                return AdapterProperties.MIN_CONNECTED_AUDIO_DEVICES;
+            }
+            return service.getMaxConnectedAudioDevices();
+        }
+
+        @Override
         public boolean factoryReset() {
             AdapterService service = getService();
             if (service == null) {
@@ -2006,6 +2016,12 @@ public class AdapterService extends Service {
             return BluetoothDevice.BATTERY_LEVEL_UNKNOWN;
         }
         return deviceProp.getBatteryLevel();
+    }
+
+    int getMaxConnectedAudioDevices() {
+        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+
+        return mAdapterProperties.getMaxConnectedAudioDevices();
     }
 
     boolean setPin(BluetoothDevice device, boolean accept, int len, byte[] pinCode) {
