@@ -50,6 +50,7 @@ import android.os.SystemClock;
 import android.support.annotation.VisibleForTesting;
 import android.util.Log;
 import android.util.Pair;
+import com.android.bluetooth.R;
 
 import com.android.bluetooth.Utils;
 import com.android.bluetooth.btservice.AdapterService;
@@ -389,7 +390,14 @@ public class HeadsetClientStateMachine extends StateMachine {
         }
 
         if (mCalls.size() > 0) {
-            sendMessageDelayed(QUERY_CURRENT_CALLS, QUERY_CURRENT_CALLS_WAIT_MILLIS);
+            if (mService.getResources().getBoolean(R.bool.hfp_clcc_poll_during_call)) {
+                sendMessageDelayed(QUERY_CURRENT_CALLS, QUERY_CURRENT_CALLS_WAIT_MILLIS);
+            } else {
+                if (getCall(BluetoothHeadsetClientCall.CALL_STATE_INCOMING) != null) {
+                    Log.d(TAG, "Still have incoming call; polling");
+                    sendMessageDelayed(QUERY_CURRENT_CALLS, QUERY_CURRENT_CALLS_WAIT_MILLIS);
+                }
+            }
         }
 
         mCallsUpdate.clear();
