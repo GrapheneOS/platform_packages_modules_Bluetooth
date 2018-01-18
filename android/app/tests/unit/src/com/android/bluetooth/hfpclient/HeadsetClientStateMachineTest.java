@@ -11,11 +11,14 @@ import android.bluetooth.BluetoothHeadsetClientCall;
 import android.bluetooth.BluetoothProfile;
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.Resources;
 import android.media.AudioManager;
 import android.os.HandlerThread;
 import android.support.test.espresso.intent.matcher.IntentMatchers;
 import android.support.test.filters.MediumTest;
 import android.support.test.runner.AndroidJUnit4;
+
+import com.android.bluetooth.R;
 
 import org.hamcrest.core.AllOf;
 import org.hamcrest.core.IsInstanceOf;
@@ -38,6 +41,8 @@ public class HeadsetClientStateMachineTest {
     private BluetoothDevice mTestDevice;
 
     @Mock
+    private Resources mMockHfpResources;
+    @Mock
     private HeadsetClientService mHeadsetClientService;
     @Mock
     private AudioManager mAudioManager;
@@ -52,6 +57,9 @@ public class HeadsetClientStateMachineTest {
         when(mAudioManager.getStreamMinVolume(anyInt())).thenReturn(1);
         when(mHeadsetClientService.getSystemService(Context.AUDIO_SERVICE)).thenReturn(
                 mAudioManager);
+        when(mHeadsetClientService.getResources()).thenReturn(mMockHfpResources);
+        when(mMockHfpResources.getBoolean(R.bool.hfp_clcc_poll_during_call)).thenReturn(true);
+
         // This line must be called to make sure relevant objects are initialized properly
         mAdapter = BluetoothAdapter.getDefaultAdapter();
         // Get a device for testing
