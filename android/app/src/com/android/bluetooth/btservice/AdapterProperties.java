@@ -38,6 +38,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.ParcelUuid;
+import android.os.SystemProperties;
 import android.os.UserHandle;
 import android.util.Log;
 import android.util.Pair;
@@ -52,6 +53,10 @@ class AdapterProperties {
     private static final boolean DBG = true;
     private static final boolean VDBG = false;
     private static final String TAG = "BluetoothAdapterProperties";
+
+    private static final String MAX_CONNECTED_AUDIO_DEVICES_PROPERTY =
+            "persist.bluetooth.maxconnectedaudiodevices";
+    static final int MIN_CONNECTED_AUDIO_DEVICES = 1;
 
     private static final long DEFAULT_DISCOVERY_TIMEOUT_MS = 12800;
     private static final int BD_ADDR_LEN = 6; // in bytes
@@ -71,6 +76,7 @@ class AdapterProperties {
 
     private volatile int mConnectionState = BluetoothAdapter.STATE_DISCONNECTED;
     private volatile int mState = BluetoothAdapter.STATE_OFF;
+    private int mMaxConnectedAudioDevices = 1;
 
     private AdapterService mService;
     private boolean mDiscovering;
@@ -163,6 +169,9 @@ class AdapterProperties {
     public void init(RemoteDevices remoteDevices) {
         mProfileConnectionState.clear();
         mRemoteDevices = remoteDevices;
+
+        mMaxConnectedAudioDevices = SystemProperties.getInt(
+                MAX_CONNECTED_AUDIO_DEVICES_PROPERTY, MIN_CONNECTED_AUDIO_DEVICES);
 
         IntentFilter filter = new IntentFilter();
         filter.addAction(BluetoothHeadset.ACTION_CONNECTION_STATE_CHANGED);
@@ -395,6 +404,13 @@ class AdapterProperties {
      */
     int getTotalNumOfTrackableAdvertisements() {
         return mTotNumOfTrackableAdv;
+    }
+
+    /**
+     * @return the maximum number of connected audio devices
+     */
+    int getMaxConnectedAudioDevices() {
+        return mMaxConnectedAudioDevices;
     }
 
     /**
