@@ -184,6 +184,7 @@ public class HfpClientDeviceBlock {
                     || call.getState() == BluetoothHeadsetClientCall.CALL_STATE_WAITING) {
                 // This is an incoming call.
                 b.putParcelable(TelecomManager.EXTRA_INCOMING_CALL_EXTRAS, call);
+                b.putBoolean(TelecomManager.EXTRA_CALL_EXTERNAL_RINGER, call.isInBandRing());
                 mTelecomManager.addNewIncomingCall(mPhoneAccount.getAccountHandle(), b);
             }
         } else if (call.getState() == BluetoothHeadsetClientCall.CALL_STATE_TERMINATED) {
