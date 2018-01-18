@@ -38,13 +38,14 @@ public class StackEvent {
     public static final int EVENT_TYPE_CALL = 9;
     public static final int EVENT_TYPE_CALLSETUP = 10;
     public static final int EVENT_TYPE_CALLHELD = 11;
-    public static final int EVENT_TYPE_CLIP = 12;
-    public static final int EVENT_TYPE_CALL_WAITING = 13;
-    public static final int EVENT_TYPE_CURRENT_CALLS = 14;
-    public static final int EVENT_TYPE_VOLUME_CHANGED = 15;
-    public static final int EVENT_TYPE_CMD_RESULT = 16;
-    public static final int EVENT_TYPE_SUBSCRIBER_INFO = 17;
-    public static final int EVENT_TYPE_RESP_AND_HOLD = 18;
+    public static final int EVENT_TYPE_RESP_AND_HOLD = 12;
+    public static final int EVENT_TYPE_CLIP = 13;
+    public static final int EVENT_TYPE_CALL_WAITING = 14;
+    public static final int EVENT_TYPE_CURRENT_CALLS = 15;
+    public static final int EVENT_TYPE_VOLUME_CHANGED = 16;
+    public static final int EVENT_TYPE_CMD_RESULT = 17;
+    public static final int EVENT_TYPE_SUBSCRIBER_INFO = 18;
+    public static final int EVENT_TYPE_IN_BAND_RINGTONE = 19;
     public static final int EVENT_TYPE_RING_INDICATION = 21;
 
     public int type = EVENT_TYPE_NONE;
