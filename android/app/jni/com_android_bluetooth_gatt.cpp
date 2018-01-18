@@ -1265,12 +1265,6 @@ static void gattClientScanFilterAddNative(JNIEnv* env, jobject object,
                                           jint filter_index) {
   if (!sGattIf) return;
 
-  int numFilters = env->GetArrayLength(filters);
-
-  jclass entryClazz = NULL;
-  if (numFilters > 0)
-    entryClazz = env->GetObjectClass(env->GetObjectArrayElement(filters, 0));
-
   jclass uuidClazz = env->FindClass("java/util/UUID");
   jmethodID uuidGetMsb =
       env->GetMethodID(uuidClazz, "getMostSignificantBits", "()J");
@@ -1278,6 +1272,16 @@ static void gattClientScanFilterAddNative(JNIEnv* env, jobject object,
       env->GetMethodID(uuidClazz, "getLeastSignificantBits", "()J");
 
   std::vector<ApcfCommand> native_filters;
+
+  int numFilters = env->GetArrayLength(filters);
+  if (numFilters == 0) {
+    sGattIf->scanner->ScanFilterAdd(filter_index, std::move(native_filters),
+                                    base::Bind(&scan_filter_cfg_cb, client_if));
+    return;
+  }
+
+  jclass entryClazz =
+      env->GetObjectClass(env->GetObjectArrayElement(filters, 0));
 
   jfieldID typeFid = env->GetFieldID(entryClazz, "type", "B");
   jfieldID addressFid =
