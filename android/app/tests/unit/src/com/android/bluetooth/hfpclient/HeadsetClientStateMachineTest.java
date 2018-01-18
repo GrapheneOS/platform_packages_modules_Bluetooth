@@ -1,10 +1,13 @@
 package com.android.bluetooth.hfpclient;
 
+import static com.android.bluetooth.hfpclient.HeadsetClientStateMachine.AT_OK;
+
 import static org.mockito.Mockito.*;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothHeadsetClient;
+import android.bluetooth.BluetoothHeadsetClientCall;
 import android.bluetooth.BluetoothProfile;
 import android.content.Context;
 import android.content.Intent;
@@ -34,8 +37,10 @@ public class HeadsetClientStateMachineTest {
     private HeadsetClientStateMachine mHeadsetClientStateMachine;
     private BluetoothDevice mTestDevice;
 
-    @Mock private HeadsetClientService mHeadsetClientService;
-    @Mock private AudioManager mAudioManager;
+    @Mock
+    private HeadsetClientService mHeadsetClientService;
+    @Mock
+    private AudioManager mAudioManager;
 
     @Before
     public void setUp() {
@@ -185,5 +190,109 @@ public class HeadsetClientStateMachineTest {
         // Check we are in connecting state now.
         Assert.assertThat(mHeadsetClientStateMachine.getCurrentState(),
                 IsInstanceOf.instanceOf(HeadsetClientStateMachine.Disconnected.class));
+    }
+
+    /**
+     * Test that In Band Ringtone information is relayed from phone.
+     */
+    @Test
+    public void testInBandRingtone() {
+        // Return true for priority.
+        when(mHeadsetClientService.getPriority(any(BluetoothDevice.class))).thenReturn(
+                BluetoothProfile.PRIORITY_ON);
+
+        Assert.assertEquals(false, mHeadsetClientStateMachine.getInBandRing());
+
+        // Inject an event for when incoming connection is requested
+        StackEvent connStCh = new StackEvent(StackEvent.EVENT_TYPE_CONNECTION_STATE_CHANGED);
+        connStCh.valueInt = HeadsetClientHalConstants.CONNECTION_STATE_CONNECTED;
+        connStCh.device = mTestDevice;
+        mHeadsetClientStateMachine.sendMessage(StackEvent.STACK_EVENT, connStCh);
+
+        // Verify that one connection state broadcast is executed
+        ArgumentCaptor<Intent> intentArgument = ArgumentCaptor.forClass(Intent.class);
+        verify(mHeadsetClientService, timeout(1000)).sendBroadcast(intentArgument.capture(),
+                anyString());
+        Assert.assertEquals(BluetoothProfile.STATE_CONNECTING,
+                intentArgument.getValue().getIntExtra(BluetoothProfile.EXTRA_STATE, -1));
+
+        // Send a message to trigger SLC connection
+        StackEvent slcEvent = new StackEvent(StackEvent.EVENT_TYPE_CONNECTION_STATE_CHANGED);
+        slcEvent.valueInt = HeadsetClientHalConstants.CONNECTION_STATE_SLC_CONNECTED;
+        slcEvent.valueInt2 = HeadsetClientHalConstants.PEER_FEAT_ECS;
+        slcEvent.device = mTestDevice;
+        mHeadsetClientStateMachine.sendMessage(StackEvent.STACK_EVENT, slcEvent);
+
+        verify(mHeadsetClientService, timeout(1000).times(2)).sendBroadcast(
+                intentArgument.capture(),
+                anyString());
+
+        Assert.assertEquals(BluetoothProfile.STATE_CONNECTED,
+                intentArgument.getValue().getIntExtra(BluetoothProfile.EXTRA_STATE, -1));
+
+        StackEvent event = new StackEvent(StackEvent.EVENT_TYPE_IN_BAND_RINGTONE);
+        event.valueInt = 0;
+        event.device = mTestDevice;
+
+        // Enable In Band Ring and verify state gets propagated.
+        StackEvent eventInBandRing = new StackEvent(StackEvent.EVENT_TYPE_IN_BAND_RINGTONE);
+        eventInBandRing.valueInt = 1;
+        eventInBandRing.device = mTestDevice;
+        mHeadsetClientStateMachine.sendMessage(StackEvent.STACK_EVENT, eventInBandRing);
+        verify(mHeadsetClientService, timeout(1000).times(3)).sendBroadcast(
+                intentArgument.capture(),
+                anyString());
+        Assert.assertEquals(1,
+                intentArgument.getValue().getIntExtra(BluetoothHeadsetClient.EXTRA_IN_BAND_RING,
+                        -1));
+        Assert.assertEquals(true, mHeadsetClientStateMachine.getInBandRing());
+
+
+        // Simulate a new incoming phone call
+        StackEvent eventCallStatusUpdated = new StackEvent(StackEvent.EVENT_TYPE_CLIP);
+        mHeadsetClientStateMachine.sendMessage(StackEvent.STACK_EVENT, eventCallStatusUpdated);
+        verify(mHeadsetClientService, timeout(1000).times(3)).sendBroadcast(
+                intentArgument.capture(),
+                anyString());
+
+        // Provide information about the new call
+        StackEvent eventIncomingCall = new StackEvent(StackEvent.EVENT_TYPE_CURRENT_CALLS);
+        eventIncomingCall.valueInt = 1; //index
+        eventIncomingCall.valueInt2 = 1; //direction
+        eventIncomingCall.valueInt3 = 4; //state
+        eventIncomingCall.valueInt4 = 0; //multi party
+        eventIncomingCall.valueString = "5551212"; //phone number
+        eventIncomingCall.device = mTestDevice;
+
+        mHeadsetClientStateMachine.sendMessage(StackEvent.STACK_EVENT, eventIncomingCall);
+        verify(mHeadsetClientService, timeout(1000).times(3)).sendBroadcast(
+                intentArgument.capture(),
+                anyString());
+
+
+        // Signal that the complete list of calls was received.
+        StackEvent eventCommandStatus = new StackEvent(StackEvent.EVENT_TYPE_CMD_RESULT);
+        eventCommandStatus.valueInt = AT_OK;
+        mHeadsetClientStateMachine.sendMessage(StackEvent.STACK_EVENT, eventCommandStatus);
+        verify(mHeadsetClientService, timeout(1000).times(4)).sendBroadcast(
+                intentArgument.capture(),
+                anyString());
+
+        // Verify that the new call is being registered with the inBandRing flag set.
+        Assert.assertEquals(true,
+                ((BluetoothHeadsetClientCall) intentArgument.getValue().getParcelableExtra(
+                        BluetoothHeadsetClient.EXTRA_CALL)).isInBandRing());
+
+        // Disable In Band Ring and verify state gets propagated.
+        eventInBandRing.valueInt = 0;
+        mHeadsetClientStateMachine.sendMessage(StackEvent.STACK_EVENT, eventInBandRing);
+        verify(mHeadsetClientService, timeout(1000).times(5)).sendBroadcast(
+                intentArgument.capture(),
+                anyString());
+        Assert.assertEquals(0,
+                intentArgument.getValue().getIntExtra(BluetoothHeadsetClient.EXTRA_IN_BAND_RING,
+                        -1));
+        Assert.assertEquals(false, mHeadsetClientStateMachine.getInBandRing());
+
     }
 }
