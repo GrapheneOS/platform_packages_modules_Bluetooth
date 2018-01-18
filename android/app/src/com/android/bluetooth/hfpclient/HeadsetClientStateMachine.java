@@ -50,6 +50,7 @@ import android.os.SystemClock;
 import android.support.annotation.VisibleForTesting;
 import android.util.Log;
 import android.util.Pair;
+import com.android.bluetooth.R;
 
 import com.android.bluetooth.Utils;
 import com.android.bluetooth.btservice.AdapterService;
@@ -73,6 +74,7 @@ public class HeadsetClientStateMachine extends StateMachine {
     private static final boolean DBG = false;
 
     static final int NO_ACTION = 0;
+    static final int IN_BAND_RING_ENABLED = 1;
 
     // external actions
     public static final int AT_OK = 0;
@@ -138,6 +140,7 @@ public class HeadsetClientStateMachine extends StateMachine {
     private int mIndicatorNetworkType;
     private int mIndicatorNetworkSignal;
     private int mIndicatorBatteryLevel;
+    private boolean mInBandRing;
 
     private String mOperatorName;
     private String mSubscriberInfo;
@@ -168,6 +171,11 @@ public class HeadsetClientStateMachine extends StateMachine {
     // Accessor for the states, useful for reusing the state machines
     public IState getDisconnectedState() {
         return mDisconnected;
+    }
+
+    // Get if in band ring is currently enabled on device.
+    public boolean getInBandRing() {
+        return mInBandRing;
     }
 
     public void dump(StringBuilder sb) {
@@ -389,7 +397,14 @@ public class HeadsetClientStateMachine extends StateMachine {
         }
 
         if (mCalls.size() > 0) {
-            sendMessageDelayed(QUERY_CURRENT_CALLS, QUERY_CURRENT_CALLS_WAIT_MILLIS);
+            if (mService.getResources().getBoolean(R.bool.hfp_clcc_poll_during_call)) {
+                sendMessageDelayed(QUERY_CURRENT_CALLS, QUERY_CURRENT_CALLS_WAIT_MILLIS);
+            } else {
+                if (getCall(BluetoothHeadsetClientCall.CALL_STATE_INCOMING) != null) {
+                    Log.d(TAG, "Still have incoming call; polling");
+                    sendMessageDelayed(QUERY_CURRENT_CALLS, QUERY_CURRENT_CALLS_WAIT_MILLIS);
+                }
+            }
         }
 
         mCallsUpdate.clear();
@@ -402,7 +417,7 @@ public class HeadsetClientStateMachine extends StateMachine {
         }
         mCallsUpdate.put(id,
                 new BluetoothHeadsetClientCall(mCurrentDevice, id, state, number, multiParty,
-                        outgoing));
+                        outgoing, mInBandRing));
     }
 
     private void acceptCall(int flag) {
@@ -775,6 +790,7 @@ public class HeadsetClientStateMachine extends StateMachine {
             mIndicatorNetworkType = HeadsetClientHalConstants.SERVICE_TYPE_HOME;
             mIndicatorNetworkSignal = 0;
             mIndicatorBatteryLevel = 0;
+            mInBandRing = false;
 
             mAudioWbs = false;
 
@@ -1399,6 +1415,18 @@ public class HeadsetClientStateMachine extends StateMachine {
                                     mSubscriberInfo);
                             intent.putExtra(BluetoothDevice.EXTRA_DEVICE, event.device);
                             mService.sendBroadcast(intent, ProfileService.BLUETOOTH_PERM);
+                            break;
+                        case StackEvent.EVENT_TYPE_IN_BAND_RINGTONE:
+                            intent = new Intent(BluetoothHeadsetClient.ACTION_AG_EVENT);
+                            mInBandRing = event.valueInt == IN_BAND_RING_ENABLED;
+                            intent.putExtra(BluetoothHeadsetClient.EXTRA_IN_BAND_RING,
+                                    event.valueInt);
+                            intent.putExtra(BluetoothDevice.EXTRA_DEVICE, event.device);
+                            mService.sendBroadcast(intent, ProfileService.BLUETOOTH_PERM);
+                            if (DBG) {
+                                Log.d(TAG,
+                                        event.device.toString() + "onInBandRing" + event.valueInt);
+                            }
                             break;
                         case StackEvent.EVENT_TYPE_RING_INDICATION:
                             // Ringing is not handled at this indication and rather should be
