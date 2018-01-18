@@ -39,7 +39,7 @@ import java.util.List;
  * @hide
  */
 /*package*/ class AppScanStats {
-    static final DateFormat DATE_FORMAT = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+    static final DateFormat DATE_FORMAT = new SimpleDateFormat("MM-dd HH:mm:ss");
 
     /* ContextMap here is needed to grab Apps and Connections */ ContextMap mContextMap;
 
