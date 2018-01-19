@@ -143,7 +143,7 @@ public class BluetoothOppReceiver extends BroadcastReceiver {
                 BluetoothOppUtility.updateVisibilityToHidden(context, uri);
             } else {
                 Intent in = new Intent(context, BluetoothOppTransferActivity.class);
-                in.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                in.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
                 in.setDataAndNormalize(uri);
                 context.startActivity(in);
             }
