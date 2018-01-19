@@ -43,7 +43,7 @@ public class BluetoothMapMessageListing {
     public void add(BluetoothMapMessageListingElement element) {
         mList.add(element);
         /* update info regarding whether the list contains unread messages */
-        if (element.getReadBool()) {
+        if (!element.getReadBool()) {
             mHasUnread = true;
         }
     }
