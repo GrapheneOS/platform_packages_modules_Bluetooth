@@ -45,50 +45,56 @@ import java.util.ArrayList;
 
 public class Config {
     private static final String TAG = "AdapterServiceConfig";
+
+    private static class ProfileConfig {
+        Class mClass;
+        int mSupported;
+        long mMask;
+
+        ProfileConfig(Class theClass, int supportedFlag, long mask) {
+            mClass = theClass;
+            mSupported = supportedFlag;
+            mMask = mask;
+        }
+    }
+
     /**
-     * List of profile services.
+     * List of profile services with the profile-supported resource flag and bit mask.
      */
-    @SuppressWarnings("rawtypes")
-    // Do not inclue OPP and PBAP, because their services
-    // are not managed by AdapterService
-    private static final Class[] PROFILE_SERVICES = {
-            HeadsetService.class,
-            A2dpService.class,
-            A2dpSinkService.class,
-            HidHostService.class,
-            HealthService.class,
-            PanService.class,
-            GattService.class,
-            BluetoothMapService.class,
-            HeadsetClientService.class,
-            AvrcpControllerService.class,
-            SapService.class,
-            PbapClientService.class,
-            MapClientService.class,
-            HidDeviceService.class,
-            BluetoothOppService.class,
-            BluetoothPbapService.class
-    };
-    /**
-     * Resource flag to indicate whether profile is supported or not.
-     */
-    private static final int[] PROFILE_SERVICES_FLAG = {
-            R.bool.profile_supported_hs_hfp,
-            R.bool.profile_supported_a2dp,
-            R.bool.profile_supported_a2dp_sink,
-            R.bool.profile_supported_hid_host,
-            R.bool.profile_supported_hdp,
-            R.bool.profile_supported_pan,
-            R.bool.profile_supported_gatt,
-            R.bool.profile_supported_map,
-            R.bool.profile_supported_hfpclient,
-            R.bool.profile_supported_avrcp_controller,
-            R.bool.profile_supported_sap,
-            R.bool.profile_supported_pbapclient,
-            R.bool.profile_supported_mapmce,
-            R.bool.profile_supported_hid_device,
-            R.bool.profile_supported_opp,
-            R.bool.profile_supported_pbap
+    private static final ProfileConfig[] PROFILE_SERVICES_AND_FLAGS = {
+            new ProfileConfig(HeadsetService.class, R.bool.profile_supported_hs_hfp,
+                    (1 << BluetoothProfile.HEADSET)),
+            new ProfileConfig(A2dpService.class, R.bool.profile_supported_a2dp,
+                    (1 << BluetoothProfile.A2DP)),
+            new ProfileConfig(A2dpSinkService.class, R.bool.profile_supported_a2dp_sink,
+                    (1 << BluetoothProfile.A2DP_SINK)),
+            new ProfileConfig(HidHostService.class, R.bool.profile_supported_hid_host,
+                    (1 << BluetoothProfile.HID_HOST)),
+            new ProfileConfig(HealthService.class, R.bool.profile_supported_hdp,
+                    (1 << BluetoothProfile.HEALTH)),
+            new ProfileConfig(PanService.class, R.bool.profile_supported_pan,
+                    (1 << BluetoothProfile.PAN)),
+            new ProfileConfig(GattService.class, R.bool.profile_supported_gatt,
+                    (1 << BluetoothProfile.GATT)),
+            new ProfileConfig(BluetoothMapService.class, R.bool.profile_supported_map,
+                    (1 << BluetoothProfile.MAP)),
+            new ProfileConfig(HeadsetClientService.class, R.bool.profile_supported_hfpclient,
+                    (1 << BluetoothProfile.HEADSET_CLIENT)),
+            new ProfileConfig(AvrcpControllerService.class,
+                    R.bool.profile_supported_avrcp_controller,
+                    (1 << BluetoothProfile.AVRCP_CONTROLLER)),
+            new ProfileConfig(SapService.class, R.bool.profile_supported_sap,
+                    (1 << BluetoothProfile.SAP)),
+            new ProfileConfig(PbapClientService.class, R.bool.profile_supported_pbapclient,
+                    (1 << BluetoothProfile.PBAP_CLIENT)),
+            new ProfileConfig(MapClientService.class, R.bool.profile_supported_mapmce,
+                    (1 << BluetoothProfile.MAP_CLIENT)),
+            new ProfileConfig(HidDeviceService.class, R.bool.profile_supported_hid_device,
+                    (1 << BluetoothProfile.HID_DEVICE)),
+            new ProfileConfig(BluetoothOppService.class, R.bool.profile_supported_opp,
+                    (1 << BluetoothProfile.OPP)),
+            new ProfileConfig(BluetoothPbapService.class, R.bool.profile_supported_pbap,
+                    (1 << BluetoothProfile.PBAP))
     };
 
     private static Class[] sSupportedProfiles = new Class[0];
@@ -102,83 +108,44 @@ public class Config {
             return;
         }
 
-        ArrayList<Class> profiles = new ArrayList<Class>(PROFILE_SERVICES.length);
-        for (int i = 0; i < PROFILE_SERVICES_FLAG.length; i++) {
-            boolean supported = resources.getBoolean(PROFILE_SERVICES_FLAG[i]);
-            if (supported && !isProfileDisabled(ctx, PROFILE_SERVICES[i])) {
-                Log.d(TAG, "Adding " + PROFILE_SERVICES[i].getSimpleName());
-                profiles.add(PROFILE_SERVICES[i]);
+        ArrayList<Class> profiles = new ArrayList<>(PROFILE_SERVICES_AND_FLAGS.length);
+        for (ProfileConfig config : PROFILE_SERVICES_AND_FLAGS) {
+            boolean supported = resources.getBoolean(config.mSupported);
+            if (supported && !isProfileDisabled(ctx, config.mMask)) {
+                Log.v(TAG, "Adding " + config.mClass.getSimpleName());
+                profiles.add(config.mClass);
             }
+            sSupportedProfiles = profiles.toArray(new Class[profiles.size()]);
         }
-        sSupportedProfiles = profiles.toArray(new Class[profiles.size()]);
     }
 
     static Class[] getSupportedProfiles() {
         return sSupportedProfiles;
     }
 
+    private static long getProfileMask(Class profile) {
+        for (ProfileConfig config : PROFILE_SERVICES_AND_FLAGS) {
+            if (config.mClass == profile) {
+                return config.mMask;
+            }
+        }
+        Log.w(TAG, "Could not find profile bit mask for " + profile.getSimpleName());
+        return 0;
+    }
+
     static long getSupportedProfilesBitMask() {
         long mask = 0;
         for (final Class profileClass : getSupportedProfiles()) {
-            final int profileIndex = getProfileIndex(profileClass);
-
-            if (profileIndex != -1) {
-                mask |= 1 << getProfileIndex(profileClass);
-            }
+            mask |= getProfileMask(profileClass);
         }
-
         return mask;
     }
 
-    private static boolean isProfileDisabled(Context context, Class profile) {
-        final int profileIndex = getProfileIndex(profile);
-
-        if (profileIndex == -1) {
-            Log.w(TAG, "Could not find profile bit mask");
-            return false;
-        }
-
+    private static boolean isProfileDisabled(Context context, long profileMask) {
         final ContentResolver resolver = context.getContentResolver();
         final long disabledProfilesBitMask =
                 Settings.Global.getLong(resolver, Settings.Global.BLUETOOTH_DISABLED_PROFILES, 0);
-        final long profileBit = 1 << profileIndex;
 
-        return (disabledProfilesBitMask & profileBit) != 0;
-    }
-
-    private static int getProfileIndex(Class profile) {
-        int profileIndex = -1;
-
-        if (profile == HeadsetService.class) {
-            profileIndex = BluetoothProfile.HEADSET;
-        } else if (profile == A2dpService.class) {
-            profileIndex = BluetoothProfile.A2DP;
-        } else if (profile == A2dpSinkService.class) {
-            profileIndex = BluetoothProfile.A2DP_SINK;
-        } else if (profile == HidHostService.class) {
-            profileIndex = BluetoothProfile.HID_HOST;
-        } else if (profile == HealthService.class) {
-            profileIndex = BluetoothProfile.HEALTH;
-        } else if (profile == PanService.class) {
-            profileIndex = BluetoothProfile.PAN;
-        } else if (profile == GattService.class) {
-            profileIndex = BluetoothProfile.GATT;
-        } else if (profile == BluetoothMapService.class) {
-            profileIndex = BluetoothProfile.MAP;
-        } else if (profile == HeadsetClientService.class) {
-            profileIndex = BluetoothProfile.HEADSET_CLIENT;
-        } else if (profile == AvrcpControllerService.class) {
-            profileIndex = BluetoothProfile.AVRCP_CONTROLLER;
-        } else if (profile == SapService.class) {
-            profileIndex = BluetoothProfile.SAP;
-        } else if (profile == PbapClientService.class) {
-            profileIndex = BluetoothProfile.PBAP_CLIENT;
-        } else if (profile == MapClientService.class) {
-            profileIndex = BluetoothProfile.MAP_CLIENT;
-        } else if (profile == HidDeviceService.class) {
-            profileIndex = BluetoothProfile.HID_DEVICE;
-        }
-
-        return profileIndex;
+        return (disabledProfilesBitMask & profileMask) != 0;
     }
 }
