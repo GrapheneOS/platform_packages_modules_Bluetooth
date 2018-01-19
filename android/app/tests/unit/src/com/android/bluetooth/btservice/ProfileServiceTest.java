@@ -44,7 +44,6 @@ import java.util.concurrent.TimeoutException;
 @MediumTest
 @RunWith(AndroidJUnit4.class)
 public class ProfileServiceTest {
-    private static final int ASYNC_CALL_TIMEOUT_MILLIS = 250;
     private static final int PROFILE_START_MILLIS = 1250;
 
     @Rule public final ServiceTestRule mServiceTestRule = new ServiceTestRule();
@@ -132,10 +131,10 @@ public class ProfileServiceTest {
         }
         for (Class profile : mProfiles) {
             verify(mMockAdapterService,
-                    timeout(ASYNC_CALL_TIMEOUT_MILLIS)).onProfileServiceStateChanged(
+                    timeout(PROFILE_START_MILLIS)).onProfileServiceStateChanged(
                     eq(profile.getName()), eq(BluetoothAdapter.STATE_ON));
             verify(mMockAdapterService,
-                    timeout(ASYNC_CALL_TIMEOUT_MILLIS)).onProfileServiceStateChanged(
+                    timeout(PROFILE_START_MILLIS)).onProfileServiceStateChanged(
                     eq(profile.getName()), eq(BluetoothAdapter.STATE_OFF));
         }
     }
