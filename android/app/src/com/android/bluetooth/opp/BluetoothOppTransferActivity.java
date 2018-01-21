@@ -464,6 +464,10 @@ public class BluetoothOppTransferActivity extends AlertActivity
         // DIALOG_SEND_COMPLETE_SUCCESS/DIALOG_SEND_COMPLETE_FAIL
         if (!mIsComplete && BluetoothShare.isStatusCompleted(mTransInfo.mStatus)
                 && mNeedUpdateButton) {
+            if (mObserver != null) {
+                getContentResolver().unregisterContentObserver(mObserver);
+                mObserver = null;
+            }
             displayWhichDialog();
             updateButton();
             customizeViewContent();

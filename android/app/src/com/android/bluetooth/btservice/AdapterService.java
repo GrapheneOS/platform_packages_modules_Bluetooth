@@ -2020,12 +2020,6 @@ public class AdapterService extends Service {
         return deviceProp.getBatteryLevel();
     }
 
-    int getMaxConnectedAudioDevices() {
-        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
-
-        return mAdapterProperties.getMaxConnectedAudioDevices();
-    }
-
     boolean setPin(BluetoothDevice device, boolean accept, int len, byte[] pinCode) {
         enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH ADMIN permission");
         DeviceProperties deviceProp = mRemoteDevices.getDeviceProperties(device);
@@ -2233,6 +2227,16 @@ public class AdapterService extends Service {
     public int getLeMaximumAdvertisingDataLength() {
         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
         return mAdapterProperties.getLeMaximumAdvertisingDataLength();
+    }
+
+    /**
+     * Get the maximum number of connected audio devices.
+     *
+     * @return the maximum number of connected audio devices
+     */
+    public int getMaxConnectedAudioDevices() {
+        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+        return mAdapterProperties.getMaxConnectedAudioDevices();
     }
 
     private BluetoothActivityEnergyInfo reportActivityInfo() {
