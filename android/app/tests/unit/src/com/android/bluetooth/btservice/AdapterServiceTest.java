@@ -125,7 +125,7 @@ public class AdapterServiceTest {
 
     @After
     public void tearDown() {
-        mAdapterService.finalize();
+        mAdapterService.cleanup();
     }
 
     /**

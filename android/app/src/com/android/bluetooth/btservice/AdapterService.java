@@ -137,39 +137,22 @@ public class AdapterService extends Service {
     private static AdapterService sAdapterService;
 
     public static synchronized AdapterService getAdapterService() {
-        if (sAdapterService != null && !sAdapterService.mCleaningUp) {
-            Log.d(TAG, "getAdapterService() - returning " + sAdapterService);
-            return sAdapterService;
-        }
-        if (DBG) {
-            if (sAdapterService == null) {
-                Log.d(TAG, "getAdapterService() - Service not available");
-            } else if (sAdapterService.mCleaningUp) {
-                Log.d(TAG, "getAdapterService() - Service is cleaning up");
-            }
-        }
-        return null;
+        Log.d(TAG, "getAdapterService() - returning " + sAdapterService);
+        return sAdapterService;
     }
 
     private static synchronized void setAdapterService(AdapterService instance) {
-        if (instance != null && !instance.mCleaningUp) {
-            if (DBG) {
-                Log.d(TAG, "setAdapterService() - set to: " + instance);
-            }
-            sAdapterService = instance;
-        } else {
-            if (DBG) {
-                if (instance == null) {
-                    Log.d(TAG, "setAdapterService() - Service not available");
-                } else if (instance.mCleaningUp) {
-                    Log.d(TAG, "setAdapterService() - Service is cleaning up");
-                }
-            }
+        Log.d(TAG, "setAdapterService() - trying to set service to " + instance);
+        if (instance == null) {
+            return;
         }
+        sAdapterService = instance;
     }
 
-    private static synchronized void clearAdapterService() {
-        sAdapterService = null;
+    private static synchronized void clearAdapterService(AdapterService current) {
+        if (sAdapterService == current) {
+            sAdapterService = null;
+        }
     }
 
     private AdapterProperties mAdapterProperties;
@@ -634,6 +617,8 @@ public class AdapterService extends Service {
             return;
         }
 
+        clearAdapterService(this);
+
         mCleaningUp = true;
 
         unregisterReceiver(mAlarmBroadcastReceiver);
@@ -692,8 +677,6 @@ public class AdapterService extends Service {
         if (mProfileServicesState != null) {
             mProfileServicesState.clear();
         }
-
-        clearAdapterService();
 
         if (mBinder != null) {
             mBinder.cleanup();
@@ -2642,8 +2625,6 @@ public class AdapterService extends Service {
 
     @Override
     public void finalize() {
-        debugLog("finalize() - clean up object " + this);
-        cleanup();
         if (TRACE_REF) {
             synchronized (AdapterService.class) {
                 sRefCount--;
