@@ -33,6 +33,7 @@ import com.android.bluetooth.BluetoothObexTransport;
 import com.android.bluetooth.R;
 
 import java.io.IOException;
+import java.util.HashMap;
 
 import javax.obex.ClientSession;
 import javax.obex.HeaderSet;
@@ -96,6 +97,7 @@ class PbapClientConnectionHandler extends Handler {
     public static final String MCH_PATH = "telecom/mch.vcf";
     public static final String ICH_PATH = "telecom/ich.vcf";
     public static final String OCH_PATH = "telecom/och.vcf";
+
     public static final byte VCARD_TYPE_21 = 0;
     public static final byte VCARD_TYPE_30 = 1;
 
@@ -251,10 +253,10 @@ class PbapClientConnectionHandler extends Handler {
                                     mAccount);
                     processor.setResults(request.getList());
                     processor.onPullComplete();
-
-                    downloadCallLog(MCH_PATH);
-                    downloadCallLog(ICH_PATH);
-                    downloadCallLog(OCH_PATH);
+                    HashMap<String, Integer> callCounter = new HashMap<>();
+                    downloadCallLog(MCH_PATH, callCounter);
+                    downloadCallLog(ICH_PATH, callCounter);
+                    downloadCallLog(OCH_PATH, callCounter);
                 } catch (IOException e) {
                     Log.w(TAG, "DOWNLOAD_CONTACTS Failure" + e.toString());
                 }
@@ -362,13 +364,13 @@ class PbapClientConnectionHandler extends Handler {
         }
     }
 
-    void downloadCallLog(String path) {
+    void downloadCallLog(String path, HashMap<String, Integer> callCounter) {
         try {
             BluetoothPbapRequestPullPhoneBook request =
                     new BluetoothPbapRequestPullPhoneBook(path, mAccount, 0, VCARD_TYPE_30, 0, 0);
             request.execute(mObexSession);
             CallLogPullRequest processor =
-                    new CallLogPullRequest(mPbapClientStateMachine.getContext(), path);
+                    new CallLogPullRequest(mPbapClientStateMachine.getContext(), path, callCounter);
             processor.setResults(request.getList());
             processor.onPullComplete();
         } catch (IOException e) {
