@@ -33,6 +33,7 @@ import org.junit.runner.RunWith;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.HashMap;
 import java.util.TimeZone;
 
 @MediumTest
@@ -68,7 +69,8 @@ public class PbapParserTest {
                 PbapClientConnectionHandler.VCARD_TYPE_30);
         Assert.assertEquals(1, pbapVCardList.getCount());
         CallLogPullRequest processor =
-                new CallLogPullRequest(mTargetContext, PbapClientConnectionHandler.MCH_PATH);
+                new CallLogPullRequest(mTargetContext, PbapClientConnectionHandler.MCH_PATH,
+                    new HashMap<>());
         processor.setResults(pbapVCardList.getList());
 
         // Verify that these entries aren't in the call log to start.
@@ -89,7 +91,8 @@ public class PbapParserTest {
                 PbapClientConnectionHandler.VCARD_TYPE_30);
         Assert.assertEquals(1, pbapVCardList.getCount());
         CallLogPullRequest processor =
-                new CallLogPullRequest(mTargetContext, PbapClientConnectionHandler.MCH_PATH);
+                new CallLogPullRequest(mTargetContext, PbapClientConnectionHandler.MCH_PATH,
+                    new HashMap<>());
         processor.setResults(pbapVCardList.getList());
 
         // Verify that these entries aren't in the call log to start.
@@ -109,7 +112,8 @@ public class PbapParserTest {
                 PbapClientConnectionHandler.VCARD_TYPE_30);
         Assert.assertEquals(2, pbapVCardList.getCount());
         CallLogPullRequest processor =
-                new CallLogPullRequest(mTargetContext, PbapClientConnectionHandler.MCH_PATH);
+                new CallLogPullRequest(mTargetContext, PbapClientConnectionHandler.MCH_PATH,
+                    new HashMap<>());
         processor.setResults(pbapVCardList.getList());
 
         // Verify that these entries aren't in the call log to start.
