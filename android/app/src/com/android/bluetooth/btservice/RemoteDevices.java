@@ -39,8 +39,10 @@ import com.android.bluetooth.hfp.HeadsetHalConstants;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Queue;
+import java.util.Set;
 
 final class RemoteDevices {
     private static final boolean DBG = false;
@@ -455,6 +457,22 @@ final class RemoteDevices {
         sAdapterService.sendBroadcast(intent, AdapterService.BLUETOOTH_PERM);
     }
 
+    private static boolean areUuidsEqual(ParcelUuid[] uuids1, ParcelUuid[] uuids2) {
+        final int length1 = uuids1 == null ? 0 : uuids1.length;
+        final int length2 = uuids2 == null ? 0 : uuids2.length;
+        if (length1 != length2) {
+            return false;
+        }
+        Set<ParcelUuid> set = new HashSet<>();
+        for (int i = 0; i < length1; ++i) {
+            set.add(uuids1[i]);
+        }
+        for (int i = 0; i < length2; ++i) {
+            set.remove(uuids2[i]);
+        }
+        return set.isEmpty();
+    }
+
     void devicePropertyChangedCallback(byte[] address, int[] types, byte[][] values) {
         Intent intent;
         byte[] val;
@@ -482,7 +500,12 @@ final class RemoteDevices {
                     debugLog("Property type: " + type);
                     switch (type) {
                         case AbstractionLayer.BT_PROPERTY_BDNAME:
-                            device.mName = new String(val);
+                            final String newName = new String(val);
+                            if (newName.equals(device.mName)) {
+                                Log.w(TAG, "Skip name update for " + bdDevice);
+                                break;
+                            }
+                            device.mName = newName;
                             intent = new Intent(BluetoothDevice.ACTION_NAME_CHANGED);
                             intent.putExtra(BluetoothDevice.EXTRA_DEVICE, bdDevice);
                             intent.putExtra(BluetoothDevice.EXTRA_NAME, device.mName);
@@ -502,6 +525,11 @@ final class RemoteDevices {
                             debugLog("Remote Address is:" + Utils.getAddressStringFromByte(val));
                             break;
                         case AbstractionLayer.BT_PROPERTY_CLASS_OF_DEVICE:
+                            final int newClass = Utils.byteArrayToInt(val);
+                            if (newClass == device.mBluetoothClass) {
+                                Log.w(TAG, "Skip class update for " + bdDevice);
+                                break;
+                            }
                             device.mBluetoothClass = Utils.byteArrayToInt(val);
                             intent = new Intent(BluetoothDevice.ACTION_CLASS_CHANGED);
                             intent.putExtra(BluetoothDevice.EXTRA_DEVICE, bdDevice);
@@ -513,7 +541,12 @@ final class RemoteDevices {
                             break;
                         case AbstractionLayer.BT_PROPERTY_UUIDS:
                             int numUuids = val.length / AbstractionLayer.BT_UUID_SIZE;
-                            device.mUuids = Utils.byteArrayToUuid(val);
+                            final ParcelUuid[] newUuids = Utils.byteArrayToUuid(val);
+                            if (areUuidsEqual(newUuids, device.mUuids)) {
+                                Log.w(TAG, "Skip uuids update for " + bdDevice.getAddress());
+                                break;
+                            }
+                            device.mUuids = newUuids;
                             if (sAdapterService.getState() == BluetoothAdapter.STATE_ON) {
                                 sendUuidIntent(bdDevice);
                             }
