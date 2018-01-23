@@ -26,17 +26,12 @@ import android.util.Log;
 
 import com.android.bluetooth.Utils;
 
-import java.util.HashMap;
-
 /**
  * Base class for a background service that runs a Bluetooth profile
  */
 public abstract class ProfileService extends Service {
     private static final boolean DBG = false;
     private static final String TAG = "BluetoothProfileService";
-
-    //For Debugging only
-    private static final HashMap<String, Integer> sReferenceCount = new HashMap<String, Integer>();
 
     public static final String BLUETOOTH_ADMIN_PERM = android.Manifest.permission.BLUETOOTH_ADMIN;
     public static final String BLUETOOTH_PERM = android.Manifest.permission.BLUETOOTH;
@@ -100,36 +95,6 @@ public abstract class ProfileService extends Service {
 
     protected ProfileService() {
         mName = getName();
-        if (DBG) {
-            synchronized (sReferenceCount) {
-                Integer refCount = sReferenceCount.get(mName);
-                if (refCount == null) {
-                    refCount = 1;
-                } else {
-                    refCount = refCount + 1;
-                }
-                sReferenceCount.put(mName, refCount);
-                if (DBG) {
-                    log("REFCOUNT: CREATED. INSTANCE_COUNT=" + refCount);
-                }
-            }
-        }
-    }
-
-    @Override
-    protected void finalize() {
-        if (DBG) {
-            synchronized (sReferenceCount) {
-                Integer refCount = sReferenceCount.get(mName);
-                if (refCount != null) {
-                    refCount = refCount - 1;
-                } else {
-                    refCount = 0;
-                }
-                sReferenceCount.put(mName, refCount);
-                log("REFCOUNT: FINALIZED. INSTANCE_COUNT=" + refCount);
-            }
-        }
     }
 
     @Override
