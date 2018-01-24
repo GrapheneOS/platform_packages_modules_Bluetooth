@@ -18,6 +18,8 @@ package com.android.bluetooth.hfp;
 
 import android.bluetooth.BluetoothDevice;
 
+import java.util.Objects;
+
 /**
  * Callback events from native layer
  */
@@ -57,7 +59,7 @@ public class HeadsetStackEvent {
      */
     public HeadsetStackEvent(int type, BluetoothDevice device) {
         this.type = type;
-        this.device = device;
+        this.device = Objects.requireNonNull(device);
     }
 
     /**
@@ -70,7 +72,7 @@ public class HeadsetStackEvent {
     public HeadsetStackEvent(int type, int valueInt, BluetoothDevice device) {
         this.type = type;
         this.valueInt = valueInt;
-        this.device = device;
+        this.device = Objects.requireNonNull(device);
     }
 
     /**
@@ -85,7 +87,7 @@ public class HeadsetStackEvent {
         this.type = type;
         this.valueInt = valueInt;
         this.valueInt2 = valueInt2;
-        this.device = device;
+        this.device = Objects.requireNonNull(device);
     }
 
     /**
@@ -98,7 +100,7 @@ public class HeadsetStackEvent {
     public HeadsetStackEvent(int type, String valueString, BluetoothDevice device) {
         this.type = type;
         this.valueString = valueString;
-        this.device = device;
+        this.device = Objects.requireNonNull(device);
     }
 
     /**

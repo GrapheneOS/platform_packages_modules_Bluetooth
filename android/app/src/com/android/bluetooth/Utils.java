@@ -355,4 +355,31 @@ public final class Utils {
     public static int millsToUnit(int milliseconds) {
         return (int) (TimeUnit.MILLISECONDS.toMicros(milliseconds) / MICROS_PER_UNIT);
     }
+
+    /**
+     * Check if we are running in BluetoothInstrumentationTest context by trying to load
+     * com.android.bluetooth.FileSystemWriteTest. If we are not in Instrumentation test mode, this
+     * class should not be found. Thus, the assumption is that FileSystemWriteTest must exist.
+     * If FileSystemWriteTest is removed in the future, another test class in
+     * BluetoothInstrumentationTest should be used instead
+     *
+     * @return true if in BluetoothInstrumentationTest, false otherwise
+     */
+    public static boolean isInstrumentationTestMode() {
+        try {
+            return Class.forName("com.android.bluetooth.FileSystemWriteTest") != null;
+        } catch (ClassNotFoundException exception) {
+            return false;
+        }
+    }
+
+    /**
+     * Throws {@link IllegalStateException} if we are not in BluetoothInstrumentationTest. Useful
+     * for ensuring certain methods only get called in BluetoothInstrumentationTest
+     */
+    public static void enforceInstrumentationTestMode() {
+        if (!isInstrumentationTestMode()) {
+            throw new IllegalStateException("Not in BluetoothInstrumentationTest");
+        }
+    }
 }

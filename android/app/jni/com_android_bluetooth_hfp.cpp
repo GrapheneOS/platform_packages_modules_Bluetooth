@@ -406,19 +406,21 @@ static void initializeNative(JNIEnv* env, jobject object, jint max_hf_clients,
   std::unique_lock<std::shared_timed_mutex> callbacks_lock(callbacks_mutex);
 
   const bt_interface_t* btInf = getBluetoothInterface();
-  if (btInf == nullptr) {
-    ALOGE("Bluetooth module is not loaded");
+  if (!btInf) {
+    ALOGE("%s: Bluetooth module is not loaded", __func__);
+    jniThrowIOException(env, EINVAL);
     return;
   }
 
-  if (sBluetoothHfpInterface != nullptr) {
-    ALOGW("Cleaning up Bluetooth Handsfree Interface before initializing...");
+  if (sBluetoothHfpInterface) {
+    ALOGI("%s: Cleaning up Bluetooth Handsfree Interface before initializing",
+          __func__);
     sBluetoothHfpInterface->Cleanup();
     sBluetoothHfpInterface = nullptr;
   }
 
-  if (mCallbacksObj != nullptr) {
-    ALOGW("Cleaning up Bluetooth Handsfree callback object");
+  if (mCallbacksObj) {
+    ALOGI("%s: Cleaning up Bluetooth Handsfree callback object", __func__);
     env->DeleteGlobalRef(mCallbacksObj);
     mCallbacksObj = nullptr;
   }
@@ -426,16 +428,16 @@ static void initializeNative(JNIEnv* env, jobject object, jint max_hf_clients,
   sBluetoothHfpInterface =
       (bluetooth::headset::Interface*)btInf->get_profile_interface(
           BT_PROFILE_HANDSFREE_ID);
-  if (sBluetoothHfpInterface == nullptr) {
-    ALOGE("Failed to get Bluetooth Handsfree Interface");
-    return;
+  if (!sBluetoothHfpInterface) {
+    ALOGW("%s: Failed to get Bluetooth Handsfree Interface", __func__);
+    jniThrowIOException(env, EINVAL);
   }
-
   bt_status_t status =
       sBluetoothHfpInterface->Init(JniHeadsetCallbacks::GetInstance(),
                                    max_hf_clients, inband_ringing_enabled);
   if (status != BT_STATUS_SUCCESS) {
-    ALOGE("Failed to initialize Bluetooth HFP, status: %d", status);
+    ALOGE("%s: Failed to initialize Bluetooth Handsfree Interface, status: %d",
+          __func__, status);
     sBluetoothHfpInterface = nullptr;
     return;
   }
@@ -449,18 +451,18 @@ static void cleanupNative(JNIEnv* env, jobject object) {
 
   const bt_interface_t* btInf = getBluetoothInterface();
   if (!btInf) {
-    ALOGE("Bluetooth module is not loaded");
+    ALOGW("%s: Bluetooth module is not loaded", __func__);
     return;
   }
 
   if (sBluetoothHfpInterface) {
-    ALOGW("Cleaning up Bluetooth Handsfree Interface...");
+    ALOGI("%s: Cleaning up Bluetooth Handsfree Interface", __func__);
     sBluetoothHfpInterface->Cleanup();
     sBluetoothHfpInterface = nullptr;
   }
 
   if (mCallbacksObj) {
-    ALOGW("Cleaning up Bluetooth Handsfree callback object");
+    ALOGI("%s: Cleaning up Bluetooth Handsfree callback object", __func__);
     env->DeleteGlobalRef(mCallbacksObj);
     mCallbacksObj = nullptr;
   }
@@ -468,16 +470,18 @@ static void cleanupNative(JNIEnv* env, jobject object) {
 
 static jboolean connectHfpNative(JNIEnv* env, jobject object,
                                  jbyteArray address) {
-  ALOGI("%s: sBluetoothHfpInterface: %p", __func__, sBluetoothHfpInterface);
   std::shared_lock<std::shared_timed_mutex> lock(interface_mutex);
-  if (!sBluetoothHfpInterface) return JNI_FALSE;
-
+  if (!sBluetoothHfpInterface) {
+    ALOGW("%s: sBluetoothHfpInterface is null", __func__);
+    return JNI_FALSE;
+  }
   jbyte* addr = env->GetByteArrayElements(address, nullptr);
   if (!addr) {
+    ALOGE("%s: failed to get device address", __func__);
     jniThrowIOException(env, EINVAL);
     return JNI_FALSE;
   }
-
+  ALOGI("%s: device %s", __func__, ((RawAddress*)addr)->ToString().c_str());
   bt_status_t status = sBluetoothHfpInterface->Connect((RawAddress*)addr);
   if (status != BT_STATUS_SUCCESS) {
     ALOGE("Failed HF connection, status: %d", status);
@@ -489,14 +493,17 @@ static jboolean connectHfpNative(JNIEnv* env, jobject object,
 static jboolean disconnectHfpNative(JNIEnv* env, jobject object,
                                     jbyteArray address) {
   std::shared_lock<std::shared_timed_mutex> lock(interface_mutex);
-  if (!sBluetoothHfpInterface) return JNI_FALSE;
-
+  if (!sBluetoothHfpInterface) {
+    ALOGW("%s: sBluetoothHfpInterface is null", __func__);
+    return JNI_FALSE;
+  }
   jbyte* addr = env->GetByteArrayElements(address, nullptr);
   if (!addr) {
+    ALOGE("%s: failed to get device address", __func__);
     jniThrowIOException(env, EINVAL);
     return JNI_FALSE;
   }
-
+  ALOGI("%s: device %s", __func__, ((RawAddress*)addr)->ToString().c_str());
   bt_status_t status = sBluetoothHfpInterface->Disconnect((RawAddress*)addr);
   if (status != BT_STATUS_SUCCESS) {
     ALOGE("Failed HF disconnection, status: %d", status);
@@ -508,14 +515,17 @@ static jboolean disconnectHfpNative(JNIEnv* env, jobject object,
 static jboolean connectAudioNative(JNIEnv* env, jobject object,
                                    jbyteArray address) {
   std::shared_lock<std::shared_timed_mutex> lock(interface_mutex);
-  if (!sBluetoothHfpInterface) return JNI_FALSE;
-
+  if (!sBluetoothHfpInterface) {
+    ALOGW("%s: sBluetoothHfpInterface is null", __func__);
+    return JNI_FALSE;
+  }
   jbyte* addr = env->GetByteArrayElements(address, nullptr);
   if (!addr) {
+    ALOGE("%s: failed to get device address", __func__);
     jniThrowIOException(env, EINVAL);
     return JNI_FALSE;
   }
-
+  ALOGI("%s: device %s", __func__, ((RawAddress*)addr)->ToString().c_str());
   bt_status_t status = sBluetoothHfpInterface->ConnectAudio((RawAddress*)addr);
   if (status != BT_STATUS_SUCCESS) {
     ALOGE("Failed HF audio connection, status: %d", status);
@@ -527,14 +537,17 @@ static jboolean connectAudioNative(JNIEnv* env, jobject object,
 static jboolean disconnectAudioNative(JNIEnv* env, jobject object,
                                       jbyteArray address) {
   std::shared_lock<std::shared_timed_mutex> lock(interface_mutex);
-  if (!sBluetoothHfpInterface) return JNI_FALSE;
-
+  if (!sBluetoothHfpInterface) {
+    ALOGW("%s: sBluetoothHfpInterface is null", __func__);
+    return JNI_FALSE;
+  }
   jbyte* addr = env->GetByteArrayElements(address, nullptr);
   if (!addr) {
+    ALOGE("%s: failed to get device address", __func__);
     jniThrowIOException(env, EINVAL);
     return JNI_FALSE;
   }
-
+  ALOGI("%s: device %s", __func__, ((RawAddress*)addr)->ToString().c_str());
   bt_status_t status =
       sBluetoothHfpInterface->DisconnectAudio((RawAddress*)addr);
   if (status != BT_STATUS_SUCCESS) {
@@ -547,14 +560,16 @@ static jboolean disconnectAudioNative(JNIEnv* env, jobject object,
 static jboolean startVoiceRecognitionNative(JNIEnv* env, jobject object,
                                             jbyteArray address) {
   std::shared_lock<std::shared_timed_mutex> lock(interface_mutex);
-  if (!sBluetoothHfpInterface) return JNI_FALSE;
-
+  if (!sBluetoothHfpInterface) {
+    ALOGW("%s: sBluetoothHfpInterface is null", __func__);
+    return JNI_FALSE;
+  }
   jbyte* addr = env->GetByteArrayElements(address, nullptr);
   if (!addr) {
+    ALOGE("%s: failed to get device address", __func__);
     jniThrowIOException(env, EINVAL);
     return JNI_FALSE;
   }
-
   bt_status_t status =
       sBluetoothHfpInterface->StartVoiceRecognition((RawAddress*)addr);
   if (status != BT_STATUS_SUCCESS) {
@@ -567,14 +582,16 @@ static jboolean startVoiceRecognitionNative(JNIEnv* env, jobject object,
 static jboolean stopVoiceRecognitionNative(JNIEnv* env, jobject object,
                                            jbyteArray address) {
   std::shared_lock<std::shared_timed_mutex> lock(interface_mutex);
-  if (!sBluetoothHfpInterface) return JNI_FALSE;
-
+  if (!sBluetoothHfpInterface) {
+    ALOGW("%s: sBluetoothHfpInterface is null", __func__);
+    return JNI_FALSE;
+  }
   jbyte* addr = env->GetByteArrayElements(address, nullptr);
   if (!addr) {
+    ALOGE("%s: failed to get device address", __func__);
     jniThrowIOException(env, EINVAL);
     return JNI_FALSE;
   }
-
   bt_status_t status =
       sBluetoothHfpInterface->StopVoiceRecognition((RawAddress*)addr);
   if (status != BT_STATUS_SUCCESS) {
@@ -587,14 +604,16 @@ static jboolean stopVoiceRecognitionNative(JNIEnv* env, jobject object,
 static jboolean setVolumeNative(JNIEnv* env, jobject object, jint volume_type,
                                 jint volume, jbyteArray address) {
   std::shared_lock<std::shared_timed_mutex> lock(interface_mutex);
-  if (!sBluetoothHfpInterface) return JNI_FALSE;
-
+  if (!sBluetoothHfpInterface) {
+    ALOGW("%s: sBluetoothHfpInterface is null", __func__);
+    return JNI_FALSE;
+  }
   jbyte* addr = env->GetByteArrayElements(address, nullptr);
   if (!addr) {
+    ALOGE("%s: failed to get device address", __func__);
     jniThrowIOException(env, EINVAL);
     return JNI_FALSE;
   }
-
   bt_status_t status = sBluetoothHfpInterface->VolumeControl(
       (bluetooth::headset::bthf_volume_type_t)volume_type, volume,
       (RawAddress*)addr);
@@ -607,14 +626,24 @@ static jboolean setVolumeNative(JNIEnv* env, jobject object, jint volume_type,
 
 static jboolean notifyDeviceStatusNative(JNIEnv* env, jobject object,
                                          jint network_state, jint service_type,
-                                         jint signal, jint battery_charge) {
+                                         jint signal, jint battery_charge,
+                                         jbyteArray address) {
   std::shared_lock<std::shared_timed_mutex> lock(interface_mutex);
-  if (!sBluetoothHfpInterface) return JNI_FALSE;
-
+  if (!sBluetoothHfpInterface) {
+    ALOGW("%s: sBluetoothHfpInterface is null", __func__);
+    return JNI_FALSE;
+  }
+  jbyte* addr = env->GetByteArrayElements(address, nullptr);
+  if (!addr) {
+    ALOGE("%s: failed to get device address", __func__);
+    jniThrowIOException(env, EINVAL);
+    return JNI_FALSE;
+  }
   bt_status_t status = sBluetoothHfpInterface->DeviceStatusNotification(
       (bluetooth::headset::bthf_network_state_t)network_state,
       (bluetooth::headset::bthf_service_type_t)service_type, signal,
-      battery_charge);
+      battery_charge, (RawAddress*)addr);
+  env->ReleaseByteArrayElements(address, addr, 0);
   if (status != BT_STATUS_SUCCESS) {
     ALOGE("FAILED to notify device status, status: %d", status);
   }
@@ -624,16 +653,17 @@ static jboolean notifyDeviceStatusNative(JNIEnv* env, jobject object,
 static jboolean copsResponseNative(JNIEnv* env, jobject object,
                                    jstring operator_str, jbyteArray address) {
   std::shared_lock<std::shared_timed_mutex> lock(interface_mutex);
-  if (!sBluetoothHfpInterface) return JNI_FALSE;
-
+  if (!sBluetoothHfpInterface) {
+    ALOGW("%s: sBluetoothHfpInterface is null", __func__);
+    return JNI_FALSE;
+  }
   jbyte* addr = env->GetByteArrayElements(address, nullptr);
   if (!addr) {
+    ALOGE("%s: failed to get device address", __func__);
     jniThrowIOException(env, EINVAL);
     return JNI_FALSE;
   }
-
   const char* operator_name = env->GetStringUTFChars(operator_str, nullptr);
-
   bt_status_t status =
       sBluetoothHfpInterface->CopsResponse(operator_name, (RawAddress*)addr);
   if (status != BT_STATUS_SUCCESS) {
@@ -648,23 +678,23 @@ static jboolean cindResponseNative(JNIEnv* env, jobject object, jint service,
                                    jint num_active, jint num_held,
                                    jint call_state, jint signal, jint roam,
                                    jint battery_charge, jbyteArray address) {
-  ALOGI("%s: sBluetoothHfpInterface: %p", __func__, sBluetoothHfpInterface);
-
   std::shared_lock<std::shared_timed_mutex> lock(interface_mutex);
-  if (!sBluetoothHfpInterface) return JNI_FALSE;
-
+  if (!sBluetoothHfpInterface) {
+    ALOGW("%s: sBluetoothHfpInterface is null", __func__);
+    return JNI_FALSE;
+  }
   jbyte* addr = env->GetByteArrayElements(address, nullptr);
   if (!addr) {
+    ALOGE("%s: failed to get device address", __func__);
     jniThrowIOException(env, EINVAL);
     return JNI_FALSE;
   }
-
   bt_status_t status = sBluetoothHfpInterface->CindResponse(
       service, num_active, num_held,
       (bluetooth::headset::bthf_call_state_t)call_state, signal, roam,
       battery_charge, (RawAddress*)addr);
   if (status != BT_STATUS_SUCCESS) {
-    ALOGE("Failed cind_response, status: %d", status);
+    ALOGE("%s: failed, status: %d", __func__, status);
   }
   env->ReleaseByteArrayElements(address, addr, 0);
   return (status == BT_STATUS_SUCCESS) ? JNI_TRUE : JNI_FALSE;
@@ -674,16 +704,17 @@ static jboolean atResponseStringNative(JNIEnv* env, jobject object,
                                        jstring response_str,
                                        jbyteArray address) {
   std::shared_lock<std::shared_timed_mutex> lock(interface_mutex);
-  if (!sBluetoothHfpInterface) return JNI_FALSE;
-
+  if (!sBluetoothHfpInterface) {
+    ALOGW("%s: sBluetoothHfpInterface is null", __func__);
+    return JNI_FALSE;
+  }
   jbyte* addr = env->GetByteArrayElements(address, nullptr);
   if (!addr) {
+    ALOGE("%s: failed to get device address", __func__);
     jniThrowIOException(env, EINVAL);
     return JNI_FALSE;
   }
-
   const char* response = env->GetStringUTFChars(response_str, nullptr);
-
   bt_status_t status =
       sBluetoothHfpInterface->FormattedAtResponse(response, (RawAddress*)addr);
   if (status != BT_STATUS_SUCCESS) {
@@ -698,14 +729,16 @@ static jboolean atResponseCodeNative(JNIEnv* env, jobject object,
                                      jint response_code, jint cmee_code,
                                      jbyteArray address) {
   std::shared_lock<std::shared_timed_mutex> lock(interface_mutex);
-  if (!sBluetoothHfpInterface) return JNI_FALSE;
-
+  if (!sBluetoothHfpInterface) {
+    ALOGW("%s: sBluetoothHfpInterface is null", __func__);
+    return JNI_FALSE;
+  }
   jbyte* addr = env->GetByteArrayElements(address, nullptr);
   if (!addr) {
+    ALOGE("%s: failed to get device address", __func__);
     jniThrowIOException(env, EINVAL);
     return JNI_FALSE;
   }
-
   bt_status_t status = sBluetoothHfpInterface->AtResponse(
       (bluetooth::headset::bthf_at_response_t)response_code, cmee_code,
       (RawAddress*)addr);
@@ -721,17 +754,20 @@ static jboolean clccResponseNative(JNIEnv* env, jobject object, jint index,
                                    jboolean mpty, jstring number_str, jint type,
                                    jbyteArray address) {
   std::shared_lock<std::shared_timed_mutex> lock(interface_mutex);
-  if (!sBluetoothHfpInterface) return JNI_FALSE;
-
+  if (!sBluetoothHfpInterface) {
+    ALOGW("%s: sBluetoothHfpInterface is null", __func__);
+    return JNI_FALSE;
+  }
   jbyte* addr = env->GetByteArrayElements(address, nullptr);
   if (!addr) {
+    ALOGE("%s: failed to get device address", __func__);
     jniThrowIOException(env, EINVAL);
     return JNI_FALSE;
   }
-
   const char* number = nullptr;
-  if (number_str) number = env->GetStringUTFChars(number_str, nullptr);
-
+  if (number_str) {
+    number = env->GetStringUTFChars(number_str, nullptr);
+  }
   bt_status_t status = sBluetoothHfpInterface->ClccResponse(
       index, (bluetooth::headset::bthf_call_direction_t)dir,
       (bluetooth::headset::bthf_call_state_t)callStatus,
@@ -744,34 +780,47 @@ static jboolean clccResponseNative(JNIEnv* env, jobject object, jint index,
     ALOGE("Failed sending CLCC response, status: %d", status);
   }
   env->ReleaseByteArrayElements(address, addr, 0);
-  if (number) env->ReleaseStringUTFChars(number_str, number);
+  if (number) {
+    env->ReleaseStringUTFChars(number_str, number);
+  }
   return (status == BT_STATUS_SUCCESS) ? JNI_TRUE : JNI_FALSE;
 }
 
 static jboolean phoneStateChangeNative(JNIEnv* env, jobject object,
                                        jint num_active, jint num_held,
                                        jint call_state, jstring number_str,
-                                       jint type) {
+                                       jint type, jbyteArray address) {
   std::shared_lock<std::shared_timed_mutex> lock(interface_mutex);
-  if (!sBluetoothHfpInterface) return JNI_FALSE;
-
+  if (!sBluetoothHfpInterface) {
+    ALOGW("%s: sBluetoothHfpInterface is null", __func__);
+    return JNI_FALSE;
+  }
+  jbyte* addr = env->GetByteArrayElements(address, nullptr);
+  if (!addr) {
+    ALOGE("%s: failed to get device address", __func__);
+    jniThrowIOException(env, EINVAL);
+    return JNI_FALSE;
+  }
   const char* number = env->GetStringUTFChars(number_str, nullptr);
-
   bt_status_t status = sBluetoothHfpInterface->PhoneStateChange(
       num_active, num_held, (bluetooth::headset::bthf_call_state_t)call_state,
-      number, (bluetooth::headset::bthf_call_addrtype_t)type);
+      number, (bluetooth::headset::bthf_call_addrtype_t)type,
+      (RawAddress*)addr);
   if (status != BT_STATUS_SUCCESS) {
     ALOGE("Failed report phone state change, status: %d", status);
   }
   env->ReleaseStringUTFChars(number_str, number);
+  env->ReleaseByteArrayElements(address, addr, 0);
   return (status == BT_STATUS_SUCCESS) ? JNI_TRUE : JNI_FALSE;
 }
 
 static jboolean setScoAllowedNative(JNIEnv* env, jobject object,
                                     jboolean value) {
   std::shared_lock<std::shared_timed_mutex> lock(interface_mutex);
-  if (!sBluetoothHfpInterface) return JNI_FALSE;
-
+  if (!sBluetoothHfpInterface) {
+    ALOGW("%s: sBluetoothHfpInterface is null", __func__);
+    return JNI_FALSE;
+  }
   bt_status_t status = sBluetoothHfpInterface->SetScoAllowed(value == JNI_TRUE);
   if (status != BT_STATUS_SUCCESS) {
     ALOGE("Failed HF set sco allowed, status: %d", status);
@@ -782,14 +831,16 @@ static jboolean setScoAllowedNative(JNIEnv* env, jobject object,
 static jboolean sendBsirNative(JNIEnv* env, jobject object, jboolean value,
                                jbyteArray address) {
   std::shared_lock<std::shared_timed_mutex> lock(interface_mutex);
-  if (!sBluetoothHfpInterface) return JNI_FALSE;
-
+  if (!sBluetoothHfpInterface) {
+    ALOGW("%s: sBluetoothHfpInterface is null", __func__);
+    return JNI_FALSE;
+  }
   jbyte* addr = env->GetByteArrayElements(address, NULL);
   if (!addr) {
+    ALOGE("%s: failed to get device address", __func__);
     jniThrowIOException(env, EINVAL);
     return JNI_FALSE;
   }
-
   bt_status_t status =
       sBluetoothHfpInterface->SendBsir(value == JNI_TRUE, (RawAddress*)addr);
   if (status != BT_STATUS_SUCCESS) {
@@ -802,14 +853,16 @@ static jboolean sendBsirNative(JNIEnv* env, jobject object, jboolean value,
 static jboolean setActiveDeviceNative(JNIEnv* env, jobject object,
                                       jbyteArray address) {
   std::shared_lock<std::shared_timed_mutex> lock(interface_mutex);
-  if (!sBluetoothHfpInterface) return JNI_FALSE;
-
+  if (!sBluetoothHfpInterface) {
+    ALOGW("%s: sBluetoothHfpInterface is null", __func__);
+    return JNI_FALSE;
+  }
   jbyte* addr = env->GetByteArrayElements(address, NULL);
   if (!addr) {
+    ALOGE("%s: failed to get device address", __func__);
     jniThrowIOException(env, EINVAL);
     return JNI_FALSE;
   }
-
   bt_status_t status =
       sBluetoothHfpInterface->SetActiveDevice((RawAddress*)addr);
   if (status != BT_STATUS_SUCCESS) {
@@ -831,7 +884,7 @@ static JNINativeMethod sMethods[] = {
      (void*)startVoiceRecognitionNative},
     {"stopVoiceRecognitionNative", "([B)Z", (void*)stopVoiceRecognitionNative},
     {"setVolumeNative", "(II[B)Z", (void*)setVolumeNative},
-    {"notifyDeviceStatusNative", "(IIII)Z", (void*)notifyDeviceStatusNative},
+    {"notifyDeviceStatusNative", "(IIII[B)Z", (void*)notifyDeviceStatusNative},
     {"copsResponseNative", "(Ljava/lang/String;[B)Z",
      (void*)copsResponseNative},
     {"cindResponseNative", "(IIIIIII[B)Z", (void*)cindResponseNative},
@@ -840,7 +893,7 @@ static JNINativeMethod sMethods[] = {
     {"atResponseCodeNative", "(II[B)Z", (void*)atResponseCodeNative},
     {"clccResponseNative", "(IIIIZLjava/lang/String;I[B)Z",
      (void*)clccResponseNative},
-    {"phoneStateChangeNative", "(IIILjava/lang/String;I)Z",
+    {"phoneStateChangeNative", "(IIILjava/lang/String;I[B)Z",
      (void*)phoneStateChangeNative},
     {"setScoAllowedNative", "(Z)Z", (void*)setScoAllowedNative},
     {"sendBsirNative", "(Z[B)Z", (void*)sendBsirNative},
