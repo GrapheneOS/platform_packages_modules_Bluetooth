@@ -24,6 +24,7 @@ import android.bluetooth.le.ScanCallback;
 import android.bluetooth.le.ScanFilter;
 import android.bluetooth.le.ScanSettings;
 import android.content.BroadcastReceiver;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -34,6 +35,7 @@ import android.os.Looper;
 import android.os.Message;
 import android.os.RemoteException;
 import android.os.SystemClock;
+import android.provider.Settings;
 import android.util.Log;
 import android.view.Display;
 
@@ -1090,34 +1092,67 @@ public class ScanManager {
         }
 
         private int getScanWindowMillis(ScanSettings settings) {
+            ContentResolver resolver = mService.getContentResolver();
             if (settings == null) {
-                return SCAN_MODE_LOW_POWER_WINDOW_MS;
+                return Settings.Global.getInt(
+                    resolver,
+                    Settings.Global.BLE_SCAN_LOW_POWER_WINDOW_MS,
+                    SCAN_MODE_LOW_POWER_WINDOW_MS);
             }
+
             switch (settings.getScanMode()) {
                 case ScanSettings.SCAN_MODE_LOW_LATENCY:
-                    return SCAN_MODE_LOW_LATENCY_WINDOW_MS;
+                    return Settings.Global.getInt(
+                        resolver,
+                        Settings.Global.BLE_SCAN_LOW_LATENCY_WINDOW_MS,
+                        SCAN_MODE_LOW_LATENCY_WINDOW_MS);
                 case ScanSettings.SCAN_MODE_BALANCED:
-                    return SCAN_MODE_BALANCED_WINDOW_MS;
+                    return Settings.Global.getInt(
+                        resolver,
+                        Settings.Global.BLE_SCAN_BALANCED_WINDOW_MS,
+                        SCAN_MODE_BALANCED_WINDOW_MS);
                 case ScanSettings.SCAN_MODE_LOW_POWER:
-                    return SCAN_MODE_LOW_POWER_WINDOW_MS;
+                    return Settings.Global.getInt(
+                        resolver,
+                        Settings.Global.BLE_SCAN_LOW_POWER_WINDOW_MS,
+                        SCAN_MODE_LOW_POWER_WINDOW_MS);
                 default:
-                    return SCAN_MODE_LOW_POWER_WINDOW_MS;
+                    return Settings.Global.getInt(
+                        resolver,
+                        Settings.Global.BLE_SCAN_LOW_POWER_WINDOW_MS,
+                        SCAN_MODE_LOW_POWER_WINDOW_MS);
             }
         }
 
         private int getScanIntervalMillis(ScanSettings settings) {
+            ContentResolver resolver = mService.getContentResolver();
             if (settings == null) {
-                return SCAN_MODE_LOW_POWER_INTERVAL_MS;
+                return Settings.Global.getInt(
+                    resolver,
+                    Settings.Global.BLE_SCAN_LOW_POWER_INTERVAL_MS,
+                    SCAN_MODE_LOW_POWER_INTERVAL_MS);
             }
             switch (settings.getScanMode()) {
                 case ScanSettings.SCAN_MODE_LOW_LATENCY:
-                    return SCAN_MODE_LOW_LATENCY_INTERVAL_MS;
+                    return Settings.Global.getInt(
+                        resolver,
+                        Settings.Global.BLE_SCAN_LOW_LATENCY_INTERVAL_MS,
+                        SCAN_MODE_LOW_LATENCY_INTERVAL_MS);
                 case ScanSettings.SCAN_MODE_BALANCED:
-                    return SCAN_MODE_BALANCED_INTERVAL_MS;
+                    return Settings.Global.getInt(
+                        resolver,
+                        Settings.Global.BLE_SCAN_BALANCED_INTERVAL_MS,
+                        SCAN_MODE_BALANCED_INTERVAL_MS);
                 case ScanSettings.SCAN_MODE_LOW_POWER:
-                    return SCAN_MODE_LOW_POWER_INTERVAL_MS;
+                    return Settings.Global.getInt(
+                        resolver,
+                        Settings.Global.BLE_SCAN_LOW_POWER_INTERVAL_MS,
+                        SCAN_MODE_LOW_POWER_INTERVAL_MS);
                 default:
-                    return SCAN_MODE_LOW_POWER_INTERVAL_MS;
+                    return Settings.Global.getInt(
+                        resolver,
+                        Settings.Global.BLE_SCAN_LOW_POWER_INTERVAL_MS,
+                        SCAN_MODE_LOW_POWER_INTERVAL_MS);
             }
         }
 
