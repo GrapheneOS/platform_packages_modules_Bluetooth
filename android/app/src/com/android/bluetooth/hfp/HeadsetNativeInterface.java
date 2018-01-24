@@ -346,13 +346,14 @@ public class HeadsetNativeInterface {
     /**
      * Combined device status change notification
      *
+     * @param device target device
      * @param deviceState device status object
      * @return True on success, False on failure
      */
     @VisibleForTesting
-    public boolean notifyDeviceStatus(HeadsetDeviceState deviceState) {
+    public boolean notifyDeviceStatus(BluetoothDevice device, HeadsetDeviceState deviceState) {
         return notifyDeviceStatusNative(deviceState.mService, deviceState.mRoam,
-                deviceState.mSignal, deviceState.mBatteryCharge);
+                deviceState.mSignal, deviceState.mBatteryCharge, Utils.getByteAddress(device));
     }
 
     /**
@@ -401,13 +402,15 @@ public class HeadsetNativeInterface {
      *                   This will take one of the values from BtHfCallState
      *    3. number & type: valid only for incoming & waiting call
      *
+     * @param device target device for this update
      * @param callState callstate structure
      * @return True on success, False on failure
      */
     @VisibleForTesting
-    public boolean phoneStateChange(HeadsetCallState callState) {
+    public boolean phoneStateChange(BluetoothDevice device, HeadsetCallState callState) {
         return phoneStateChangeNative(callState.mNumActive, callState.mNumHeld,
-                callState.mCallState, callState.mNumber, callState.mType);
+                callState.mCallState, callState.mNumber, callState.mType,
+                Utils.getByteAddress(device));
     }
 
     /**
@@ -429,7 +432,7 @@ public class HeadsetNativeInterface {
      * @return True on success, False on failure
      */
     @VisibleForTesting
-    public boolean sendBsir(BluetoothDevice device,  boolean value) {
+    public boolean sendBsir(BluetoothDevice device, boolean value) {
         return sendBsirNative(value, Utils.getByteAddress(device));
     }
 
@@ -472,7 +475,7 @@ public class HeadsetNativeInterface {
             int callState, int signal, int roam, int batteryCharge, byte[] address);
 
     private native boolean notifyDeviceStatusNative(int networkState, int serviceType, int signal,
-            int batteryCharge);
+            int batteryCharge, byte[] address);
 
     private native boolean clccResponseNative(int index, int dir, int status, int mode,
             boolean mpty, String number, int type, byte[] address);
@@ -480,7 +483,7 @@ public class HeadsetNativeInterface {
     private native boolean copsResponseNative(String operatorName, byte[] address);
 
     private native boolean phoneStateChangeNative(int numActive, int numHeld, int callState,
-            String number, int type);
+            String number, int type, byte[] address);
 
     private native boolean setScoAllowedNative(boolean value);
 

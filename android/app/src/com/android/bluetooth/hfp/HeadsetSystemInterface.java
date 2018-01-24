@@ -81,7 +81,10 @@ public class HeadsetSystemInterface {
         mHeadsetPhoneState = new HeadsetPhoneState(mHeadsetService);
     }
 
-    synchronized void init() {
+    /**
+     * Initialize this system interface
+     */
+    public synchronized void init() {
         // Bind to Telecom phone proxy service
         Intent intent = new Intent(IBluetoothHeadsetPhone.class.getName());
         intent.setComponent(intent.resolveSystemService(mHeadsetService.getPackageManager(), 0));
@@ -92,7 +95,10 @@ public class HeadsetSystemInterface {
         }
     }
 
-    synchronized void stop() {
+    /**
+     * Stop this system interface
+     */
+    public synchronized void stop() {
         if (mPhoneProxy != null) {
             if (DBG) {
                 Log.d(TAG, "Unbinding phone proxy");
@@ -150,6 +156,7 @@ public class HeadsetSystemInterface {
 
         if (mPhoneProxy != null) {
             try {
+                mHeadsetService.setActiveDevice(device);
                 mPhoneProxy.answerCall();
             } catch (RemoteException e) {
                 Log.e(TAG, Log.getStackTraceString(new Throwable()));
@@ -314,4 +321,27 @@ public class HeadsetSystemInterface {
             Log.e(TAG, "Handsfree phone proxy null for query phone state");
         }
     }
+
+    /**
+     * Check if we are currently in a phone call
+     *
+     * @return True iff we are in a phone call
+     */
+    @VisibleForTesting
+    public boolean isInCall() {
+        return ((mHeadsetPhoneState.getNumActiveCall() > 0) || (mHeadsetPhoneState.getNumHeldCall()
+                > 0) || ((mHeadsetPhoneState.getCallState() != HeadsetHalConstants.CALL_STATE_IDLE)
+                && (mHeadsetPhoneState.getCallState() != HeadsetHalConstants.CALL_STATE_INCOMING)));
+    }
+
+    /**
+     * Check if there is currently an incoming call
+     *
+     * @return True iff there is an incoming call
+     */
+    @VisibleForTesting
+    public boolean isRinging() {
+        return mHeadsetPhoneState.getCallState() == HeadsetHalConstants.CALL_STATE_INCOMING;
+    }
+
 }

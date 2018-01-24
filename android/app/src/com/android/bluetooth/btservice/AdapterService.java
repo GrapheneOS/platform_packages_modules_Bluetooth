@@ -66,6 +66,7 @@ import com.android.bluetooth.btservice.RemoteDevices.DeviceProperties;
 import com.android.bluetooth.gatt.GattService;
 import com.android.bluetooth.sdp.SdpManager;
 import com.android.internal.R;
+import com.android.internal.annotations.VisibleForTesting;
 import com.android.internal.app.IBatteryStats;
 
 import java.io.FileDescriptor;
@@ -1979,7 +1980,14 @@ public class AdapterService extends Service {
         return deviceProp.getBluetoothClass();
     }
 
-    ParcelUuid[] getRemoteUuids(BluetoothDevice device) {
+    /**
+     * Get UUIDs for service supported by a remote device
+     *
+     * @param device the remote device that we want to get UUIDs from
+     * @return
+     */
+    @VisibleForTesting
+    public ParcelUuid[] getRemoteUuids(BluetoothDevice device) {
         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
         DeviceProperties deviceProp = mRemoteDevices.getDeviceProperties(device);
         if (deviceProp == null) {
