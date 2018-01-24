@@ -15,7 +15,9 @@ import android.content.res.Resources;
 import android.media.AudioManager;
 import android.os.HandlerThread;
 import android.support.test.espresso.intent.matcher.IntentMatchers;
+import android.support.test.filters.LargeTest;
 import android.support.test.filters.MediumTest;
+import android.support.test.filters.SmallTest;
 import android.support.test.runner.AndroidJUnit4;
 
 import com.android.bluetooth.R;
@@ -32,7 +34,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.hamcrest.MockitoHamcrest;
 
-@MediumTest
+@LargeTest
 @RunWith(AndroidJUnit4.class)
 public class HeadsetClientStateMachineTest {
     private BluetoothAdapter mAdapter;
@@ -46,6 +48,11 @@ public class HeadsetClientStateMachineTest {
     private HeadsetClientService mHeadsetClientService;
     @Mock
     private AudioManager mAudioManager;
+
+    private static final int STANDARD_WAIT_MILLIS = 1000;
+    private static final int QUERY_CURRENT_CALLS_WAIT_MILLIS = 2000;
+    private static final int QUERY_CURRENT_CALLS_TEST_WAIT_MILLIS = QUERY_CURRENT_CALLS_WAIT_MILLIS
+            * 3 / 2;
 
     @Before
     public void setUp() {
@@ -83,6 +90,7 @@ public class HeadsetClientStateMachineTest {
     /**
      * Test that default state is disconnected
      */
+    @SmallTest
     @Test
     public void testDefaultDisconnectedState() {
         Assert.assertEquals(mHeadsetClientStateMachine.getConnectionState(null),
@@ -92,6 +100,7 @@ public class HeadsetClientStateMachineTest {
     /**
      * Test that an incoming connection with low priority is rejected
      */
+    @MediumTest
     @Test
     public void testIncomingPriorityReject() {
         // Return false for priority.
@@ -105,7 +114,8 @@ public class HeadsetClientStateMachineTest {
         mHeadsetClientStateMachine.sendMessage(StackEvent.STACK_EVENT, connStCh);
 
         // Verify that only DISCONNECTED -> DISCONNECTED broadcast is fired
-        verify(mHeadsetClientService, timeout(1000)).sendBroadcast(MockitoHamcrest.argThat(
+        verify(mHeadsetClientService, timeout(STANDARD_WAIT_MILLIS)).sendBroadcast(MockitoHamcrest
+                .argThat(
                 AllOf.allOf(IntentMatchers.hasAction(
                         BluetoothHeadsetClient.ACTION_CONNECTION_STATE_CHANGED),
                         IntentMatchers.hasExtra(BluetoothProfile.EXTRA_STATE,
@@ -120,6 +130,7 @@ public class HeadsetClientStateMachineTest {
     /**
      * Test that an incoming connection with high priority is accepted
      */
+    @MediumTest
     @Test
     public void testIncomingPriorityAccept() {
         // Return true for priority.
@@ -134,7 +145,8 @@ public class HeadsetClientStateMachineTest {
 
         // Verify that one connection state broadcast is executed
         ArgumentCaptor<Intent> intentArgument1 = ArgumentCaptor.forClass(Intent.class);
-        verify(mHeadsetClientService, timeout(1000)).sendBroadcast(intentArgument1.capture(),
+        verify(mHeadsetClientService, timeout(STANDARD_WAIT_MILLIS)).sendBroadcast(intentArgument1
+                .capture(),
                 anyString());
         Assert.assertEquals(BluetoothProfile.STATE_CONNECTING,
                 intentArgument1.getValue().getIntExtra(BluetoothProfile.EXTRA_STATE, -1));
@@ -152,7 +164,7 @@ public class HeadsetClientStateMachineTest {
 
         // Verify that one connection state broadcast is executed
         ArgumentCaptor<Intent> intentArgument2 = ArgumentCaptor.forClass(Intent.class);
-        verify(mHeadsetClientService, timeout(1000).times(2)).sendBroadcast(
+        verify(mHeadsetClientService, timeout(STANDARD_WAIT_MILLIS).times(2)).sendBroadcast(
                 intentArgument2.capture(), anyString());
         Assert.assertEquals(BluetoothProfile.STATE_CONNECTED,
                 intentArgument2.getValue().getIntExtra(BluetoothProfile.EXTRA_STATE, -1));
@@ -164,6 +176,7 @@ public class HeadsetClientStateMachineTest {
     /**
      * Test that an incoming connection that times out
      */
+    @MediumTest
     @Test
     public void testIncomingTimeout() {
         // Return true for priority.
@@ -178,7 +191,8 @@ public class HeadsetClientStateMachineTest {
 
         // Verify that one connection state broadcast is executed
         ArgumentCaptor<Intent> intentArgument1 = ArgumentCaptor.forClass(Intent.class);
-        verify(mHeadsetClientService, timeout(1000)).sendBroadcast(intentArgument1.capture(),
+        verify(mHeadsetClientService, timeout(STANDARD_WAIT_MILLIS)).sendBroadcast(intentArgument1
+                .capture(),
                 anyString());
         Assert.assertEquals(BluetoothProfile.STATE_CONNECTING,
                 intentArgument1.getValue().getIntExtra(BluetoothProfile.EXTRA_STATE, -1));
@@ -203,6 +217,7 @@ public class HeadsetClientStateMachineTest {
     /**
      * Test that In Band Ringtone information is relayed from phone.
      */
+    @LargeTest
     @Test
     public void testInBandRingtone() {
         // Return true for priority.
@@ -219,7 +234,8 @@ public class HeadsetClientStateMachineTest {
 
         // Verify that one connection state broadcast is executed
         ArgumentCaptor<Intent> intentArgument = ArgumentCaptor.forClass(Intent.class);
-        verify(mHeadsetClientService, timeout(1000)).sendBroadcast(intentArgument.capture(),
+        verify(mHeadsetClientService, timeout(STANDARD_WAIT_MILLIS)).sendBroadcast(intentArgument
+                .capture(),
                 anyString());
         Assert.assertEquals(BluetoothProfile.STATE_CONNECTING,
                 intentArgument.getValue().getIntExtra(BluetoothProfile.EXTRA_STATE, -1));
@@ -231,7 +247,7 @@ public class HeadsetClientStateMachineTest {
         slcEvent.device = mTestDevice;
         mHeadsetClientStateMachine.sendMessage(StackEvent.STACK_EVENT, slcEvent);
 
-        verify(mHeadsetClientService, timeout(1000).times(2)).sendBroadcast(
+        verify(mHeadsetClientService, timeout(STANDARD_WAIT_MILLIS).times(2)).sendBroadcast(
                 intentArgument.capture(),
                 anyString());
 
@@ -247,7 +263,7 @@ public class HeadsetClientStateMachineTest {
         eventInBandRing.valueInt = 1;
         eventInBandRing.device = mTestDevice;
         mHeadsetClientStateMachine.sendMessage(StackEvent.STACK_EVENT, eventInBandRing);
-        verify(mHeadsetClientService, timeout(1000).times(3)).sendBroadcast(
+        verify(mHeadsetClientService, timeout(STANDARD_WAIT_MILLIS).times(3)).sendBroadcast(
                 intentArgument.capture(),
                 anyString());
         Assert.assertEquals(1,
@@ -259,7 +275,7 @@ public class HeadsetClientStateMachineTest {
         // Simulate a new incoming phone call
         StackEvent eventCallStatusUpdated = new StackEvent(StackEvent.EVENT_TYPE_CLIP);
         mHeadsetClientStateMachine.sendMessage(StackEvent.STACK_EVENT, eventCallStatusUpdated);
-        verify(mHeadsetClientService, timeout(1000).times(3)).sendBroadcast(
+        verify(mHeadsetClientService, timeout(STANDARD_WAIT_MILLIS).times(3)).sendBroadcast(
                 intentArgument.capture(),
                 anyString());
 
@@ -273,7 +289,7 @@ public class HeadsetClientStateMachineTest {
         eventIncomingCall.device = mTestDevice;
 
         mHeadsetClientStateMachine.sendMessage(StackEvent.STACK_EVENT, eventIncomingCall);
-        verify(mHeadsetClientService, timeout(1000).times(3)).sendBroadcast(
+        verify(mHeadsetClientService, timeout(STANDARD_WAIT_MILLIS).times(3)).sendBroadcast(
                 intentArgument.capture(),
                 anyString());
 
@@ -282,7 +298,8 @@ public class HeadsetClientStateMachineTest {
         StackEvent eventCommandStatus = new StackEvent(StackEvent.EVENT_TYPE_CMD_RESULT);
         eventCommandStatus.valueInt = AT_OK;
         mHeadsetClientStateMachine.sendMessage(StackEvent.STACK_EVENT, eventCommandStatus);
-        verify(mHeadsetClientService, timeout(1000).times(4)).sendBroadcast(
+        verify(mHeadsetClientService, timeout(QUERY_CURRENT_CALLS_TEST_WAIT_MILLIS).times(4))
+                .sendBroadcast(
                 intentArgument.capture(),
                 anyString());
 
@@ -294,7 +311,7 @@ public class HeadsetClientStateMachineTest {
         // Disable In Band Ring and verify state gets propagated.
         eventInBandRing.valueInt = 0;
         mHeadsetClientStateMachine.sendMessage(StackEvent.STACK_EVENT, eventInBandRing);
-        verify(mHeadsetClientService, timeout(1000).times(5)).sendBroadcast(
+        verify(mHeadsetClientService, timeout(STANDARD_WAIT_MILLIS).times(5)).sendBroadcast(
                 intentArgument.capture(),
                 anyString());
         Assert.assertEquals(0,
