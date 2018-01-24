@@ -36,7 +36,7 @@ public abstract class ProfileService extends Service {
     private static final String TAG = "BluetoothProfileService";
 
     //For Debugging only
-    private static HashMap<String, Integer> sReferenceCount = new HashMap<String, Integer>();
+    private static final HashMap<String, Integer> sReferenceCount = new HashMap<String, Integer>();
 
     public static final String BLUETOOTH_ADMIN_PERM = android.Manifest.permission.BLUETOOTH_ADMIN;
     public static final String BLUETOOTH_PERM = android.Manifest.permission.BLUETOOTH;
