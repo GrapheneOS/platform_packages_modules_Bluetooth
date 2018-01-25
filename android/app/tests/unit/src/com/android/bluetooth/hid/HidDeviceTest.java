@@ -28,7 +28,6 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.os.IBinder;
 import android.os.Looper;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.filters.MediumTest;
@@ -124,10 +123,15 @@ public class HidDeviceTest {
         // Get a device for testing
         mTestDevice = mAdapter.getRemoteDevice("10:11:12:13:14:15");
 
-        IBinder binder = mServiceRule.bindService(
-                new Intent(mTargetContext, HidDeviceService.class));
-        mHidDeviceService = ((HidDeviceService.BluetoothHidDeviceBinder) binder)
-                .getServiceForTesting();
+        Intent startIntent =
+                new Intent(InstrumentationRegistry.getTargetContext(), HidDeviceService.class);
+        startIntent.putExtra(AdapterService.EXTRA_ACTION,
+                AdapterService.ACTION_SERVICE_STATE_CHANGED);
+        startIntent.putExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.STATE_ON);
+        mServiceRule.startService(startIntent);
+        verify(sAdapterService, timeout(TIMEOUT_MS)).onProfileServiceStateChanged(
+                eq(HidDeviceService.class.getName()), eq(BluetoothAdapter.STATE_ON));
+        mHidDeviceService = HidDeviceService.getHidDeviceService();
         Assert.assertNotNull(mHidDeviceService);
 
         InstrumentationRegistry.getInstrumentation().runOnMainSync(new Runnable() {
@@ -156,7 +160,7 @@ public class HidDeviceTest {
         filter.addAction(BluetoothHidDevice.ACTION_CONNECTION_STATE_CHANGED);
         mConnectionStateChangedReceiver = new ConnectionStateChangedReceiver();
         mTargetContext.registerReceiver(mConnectionStateChangedReceiver, filter);
-        reset(sHidDeviceNativeInterface);
+        reset(sHidDeviceNativeInterface, sAdapterService);
     }
 
     @After
