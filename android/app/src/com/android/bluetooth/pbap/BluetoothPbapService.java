@@ -48,6 +48,7 @@ import android.os.HandlerThread;
 import android.os.Looper;
 import android.os.Message;
 import android.os.PowerManager;
+import android.os.UserManager;
 import android.support.annotation.VisibleForTesting;
 import android.telephony.TelephonyManager;
 import android.text.TextUtils;
@@ -175,11 +176,15 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
         @Override
         public void onChange(boolean selfChange) {
             Log.d(TAG, " onChange on contact uri ");
-            if (mContactsLoaded) {
-                if (!mSessionStatusHandler.hasMessages(CHECK_SECONDARY_VERSION_COUNTER)) {
-                    mSessionStatusHandler.sendMessage(
-                            mSessionStatusHandler.obtainMessage(CHECK_SECONDARY_VERSION_COUNTER));
-                }
+            sendUpdateRequest();
+        }
+    }
+
+    private void sendUpdateRequest() {
+        if (mContactsLoaded) {
+            if (!mSessionStatusHandler.hasMessages(CHECK_SECONDARY_VERSION_COUNTER)) {
+                mSessionStatusHandler.sendMessage(
+                        mSessionStatusHandler.obtainMessage(CHECK_SECONDARY_VERSION_COUNTER));
             }
         }
     }
@@ -563,6 +568,21 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
             Log.d(TAG, "setBluetoothPbapService(): set to: " + instance);
         }
         sBluetoothPbapService = instance;
+    }
+
+    @Override
+    protected void setCurrentUser(int userId) {
+        Log.i(TAG, "setCurrentUser(" + userId + ")");
+        UserManager userManager = (UserManager) getSystemService(Context.USER_SERVICE);
+        if (userManager.isUserUnlocked(userId)) {
+            setUserUnlocked(userId);
+        }
+    }
+
+    @Override
+    protected void setUserUnlocked(int userId) {
+        Log.i(TAG, "setUserUnlocked(" + userId + ")");
+        sendUpdateRequest();
     }
 
     private static class PbapBinder extends IBluetoothPbap.Stub implements IProfileServiceBinder {
