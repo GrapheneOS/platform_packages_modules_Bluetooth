@@ -85,9 +85,9 @@ public class HeadsetStateMachineTest {
     @AfterClass
     public static void tearDownOnlyOnce() throws Exception {
         Method method =
-                AdapterService.class.getDeclaredMethod("clearAdapterService");
+                AdapterService.class.getDeclaredMethod("clearAdapterService", AdapterService.class);
         method.setAccessible(true);
-        method.invoke(null);
+        method.invoke(null, sAdapterService);
         sAdapterService = null;
     }
 

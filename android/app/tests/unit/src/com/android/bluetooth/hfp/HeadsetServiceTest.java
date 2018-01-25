@@ -103,9 +103,9 @@ public class HeadsetServiceTest {
     @AfterClass
     public static void tearDownClassOnlyOnce() throws Exception {
         Method method =
-                AdapterService.class.getDeclaredMethod("clearAdapterService");
+                AdapterService.class.getDeclaredMethod("clearAdapterService", AdapterService.class);
         method.setAccessible(true);
-        method.invoke(null);
+        method.invoke(null, sAdapterService);
         sAdapterService = null;
         method = HeadsetObjectsFactory.class.getDeclaredMethod("setInstanceForTesting",
                 HeadsetObjectsFactory.class);
