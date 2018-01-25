@@ -79,11 +79,15 @@ public class HeadsetStateMachineTest {
         Method method =
                 AdapterService.class.getDeclaredMethod("setAdapterService", AdapterService.class);
         method.setAccessible(true);
-        method.invoke(sAdapterService, sAdapterService);
+        method.invoke(null, sAdapterService);
     }
 
     @AfterClass
-    public static void tearDownOnlyOnce() {
+    public static void tearDownOnlyOnce() throws Exception {
+        Method method =
+                AdapterService.class.getDeclaredMethod("clearAdapterService", AdapterService.class);
+        method.setAccessible(true);
+        method.invoke(null, sAdapterService);
         sAdapterService = null;
     }
 
@@ -114,19 +118,21 @@ public class HeadsetStateMachineTest {
                 InstrumentationRegistry.getContext().getPackageManager());
         when(mHeadsetService.getPriority(any(BluetoothDevice.class))).thenReturn(
                 BluetoothProfile.PRIORITY_ON);
+        when(mHeadsetService.getForceScoAudio()).thenReturn(true);
+        when(mHeadsetService.okToAcceptConnection(any(BluetoothDevice.class))).thenReturn(true);
         // Setup thread and looper
         mHandlerThread = new HandlerThread("HeadsetStateMachineTestHandlerThread");
         mHandlerThread.start();
         // Modify CONNECT timeout to a smaller value for test only
-        HeadsetStateMachine.sConnectTimeoutMillis = CONNECT_TIMEOUT_TEST_MILLIS;
-        mHeadsetStateMachine = HeadsetStateMachine.make(mHandlerThread.getLooper(), mHeadsetService,
-                mNativeInterface, mSystemInterface);
-        mHeadsetStateMachine.setForceScoAudio(true);
+        HeadsetStateMachine.sConnectTimeoutMs = CONNECT_TIMEOUT_TEST_MILLIS;
+        mHeadsetStateMachine = HeadsetObjectsFactory.getInstance()
+                .makeStateMachine(mTestDevice, mHandlerThread.getLooper(), mHeadsetService,
+                        mNativeInterface, mSystemInterface);
     }
 
     @After
     public void tearDown() {
-        HeadsetStateMachine.destroy(mHeadsetStateMachine);
+        HeadsetObjectsFactory.getInstance().destroyStateMachine(mHeadsetStateMachine);
         mHandlerThread.quit();
     }
 
@@ -136,7 +142,7 @@ public class HeadsetStateMachineTest {
     @Test
     public void testDefaultDisconnectedState() {
         Assert.assertEquals(BluetoothProfile.STATE_DISCONNECTED,
-                mHeadsetStateMachine.getConnectionState(null));
+                mHeadsetStateMachine.getConnectionState());
         Assert.assertThat(mHeadsetStateMachine.getCurrentState(),
                 IsInstanceOf.instanceOf(HeadsetStateMachine.Disconnected.class));
     }
@@ -148,7 +154,7 @@ public class HeadsetStateMachineTest {
     public void testSetupConnectedState() {
         setUpConnectedState();
         Assert.assertEquals(BluetoothProfile.STATE_CONNECTED,
-                mHeadsetStateMachine.getConnectionState(mTestDevice));
+                mHeadsetStateMachine.getConnectionState());
         Assert.assertThat(mHeadsetStateMachine.getCurrentState(),
                 IsInstanceOf.instanceOf(HeadsetStateMachine.Connected.class));
     }
