@@ -60,10 +60,7 @@ class PbapStateMachine extends StateMachine {
     private static final String TAG = "PbapStateMachine";
     private static final boolean DEBUG = true;
     private static final boolean VERBOSE = true;
-
     private static final String PBAP_OBEX_NOTIFICATION_CHANNEL = "pbap_obex_notification_channel";
-    private static final int NOTIFICATION_ID_AUTH = -1000002;
-    // TODO: set a notification channel for each sm
 
     static final int AUTHORIZED = 1;
     static final int REJECTED = 2;
@@ -86,16 +83,18 @@ class PbapStateMachine extends StateMachine {
     private BluetoothPbapObexServer mPbapServer;
     private BluetoothPbapAuthenticator mObexAuth;
     private ServerSession mServerSession;
+    private int mNotificationId;
 
     private PbapStateMachine(@NonNull BluetoothPbapService service, Looper looper,
             @NonNull BluetoothDevice device, @NonNull BluetoothSocket connSocket,
-            IObexConnectionHandler obexConnectionHandler, Handler pbapHandler) {
+            IObexConnectionHandler obexConnectionHandler, Handler pbapHandler, int notificationId) {
         super(TAG, looper);
         mService = service;
         mIObexConnectionHandler = obexConnectionHandler;
         mRemoteDevice = device;
         mServiceHandler = pbapHandler;
         mConnSocket = connSocket;
+        mNotificationId = notificationId;
 
         addState(mFinished);
         addState(mWaitingForAuth);
@@ -105,9 +104,9 @@ class PbapStateMachine extends StateMachine {
 
     static PbapStateMachine make(BluetoothPbapService service, Looper looper,
             BluetoothDevice device, BluetoothSocket connSocket,
-            IObexConnectionHandler obexConnectionHandler, Handler pbapHandler) {
+            IObexConnectionHandler obexConnectionHandler, Handler pbapHandler, int notificationId) {
         PbapStateMachine stateMachine = new PbapStateMachine(service, looper, device, connSocket,
-                obexConnectionHandler, pbapHandler);
+                obexConnectionHandler, pbapHandler, notificationId);
         stateMachine.start();
         return stateMachine;
     }
@@ -135,13 +134,10 @@ class PbapStateMachine extends StateMachine {
         }
 
         @Override
-        public void enter() {
-            mService.checkOrGetPhonebookPermission(PbapStateMachine.this);
-        }
-
-        @Override
         public boolean processMessage(Message message) {
             switch (message.what) {
+                case REQUEST_PERMISSION:
+                    mService.checkOrGetPhonebookPermission(PbapStateMachine.this);
                 case AUTHORIZED:
                     transitionTo(mConnected);
                     break;
@@ -150,11 +146,10 @@ class PbapStateMachine extends StateMachine {
                     transitionTo(mFinished);
                     break;
                 case DISCONNECT:
-                    mServiceHandler.removeMessages(BluetoothPbapService.USER_TIMEOUT);
-                    Message msg = mServiceHandler.obtainMessage(
-                            BluetoothPbapService.USER_TIMEOUT);
-                    msg.obj = PbapStateMachine.this;
-                    msg.sendToTarget();
+                    mServiceHandler.removeMessages(BluetoothPbapService.USER_TIMEOUT,
+                            PbapStateMachine.this);
+                    mServiceHandler.obtainMessage(BluetoothPbapService.USER_TIMEOUT,
+                            PbapStateMachine.this).sendToTarget();
                     transitionTo(mFinished);
                     break;
             }
@@ -198,10 +193,9 @@ class PbapStateMachine extends StateMachine {
                 Log.e(TAG, "Close Connection Socket error: " + e.toString());
             }
 
-            mServiceHandler.obtainMessage(BluetoothPbapService.MSG_STATE_MACHINE_DONE)
-                    .sendToTarget();
+            mServiceHandler.obtainMessage(BluetoothPbapService.MSG_STATE_MACHINE_DONE,
+                    PbapStateMachine.this).sendToTarget();
         }
-
     }
 
     class Connected extends PbapStateBase {
@@ -236,7 +230,7 @@ class PbapStateMachine extends StateMachine {
                     Intent i = new Intent(BluetoothPbapService.USER_CONFIRM_TIMEOUT_ACTION);
                     mService.sendBroadcast(i);
                     notifyAuthCancelled();
-                    removePbapNotification(NOTIFICATION_ID_AUTH);
+                    removePbapNotification(mNotificationId);
                     break;
                 case AUTH_KEY_INPUT:
                     String key = (String) message.obj;
@@ -320,7 +314,7 @@ class PbapStateMachine extends StateMachine {
                                     0))
                             .setLocalOnly(true)
                             .build();
-            nm.notify(NOTIFICATION_ID_AUTH, notification);
+            nm.notify(mNotificationId, notification);
         }
 
         private void removePbapNotification(int id) {
