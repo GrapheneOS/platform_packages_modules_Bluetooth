@@ -270,14 +270,13 @@ public class MapClientService extends ProfileService {
         }
 
         mAdapter = BluetoothAdapter.getDefaultAdapter();
-        mStartError = false;
 
         IntentFilter filter = new IntentFilter();
         filter.addAction(BluetoothDevice.ACTION_SDP_RECORD);
         filter.addAction(BluetoothDevice.ACTION_ACL_DISCONNECTED);
         registerReceiver(mMapReceiver, filter);
         removeUncleanAccounts();
-        return !mStartError;
+        return true;
     }
 
     @Override
