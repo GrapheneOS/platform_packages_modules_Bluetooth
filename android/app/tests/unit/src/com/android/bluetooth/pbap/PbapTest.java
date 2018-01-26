@@ -44,6 +44,7 @@ import java.lang.reflect.Method;
 @MediumTest
 @RunWith(AndroidJUnit4.class)
 public class PbapTest {
+    private static final int TEST_NOTIFICATION_ID = 1000000;
     private static AdapterService sAdapterService;
 
     private BluetoothAdapter mAdapter;
@@ -84,7 +85,7 @@ public class PbapTest {
         mBluetoothPbapService = mock(BluetoothPbapService.class);
         doNothing().when(mBluetoothPbapService).checkOrGetPhonebookPermission(any());
         mPbapStateMachine = PbapStateMachine.make(mBluetoothPbapService, mHandlerThread.getLooper(),
-                mTestDevice, mSocket, mBluetoothPbapService, mHandler);
+                mTestDevice, mSocket, mBluetoothPbapService, mHandler, TEST_NOTIFICATION_ID);
     }
 
     @After
