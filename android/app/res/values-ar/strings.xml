@@ -74,7 +74,7 @@
     <string name="bt_error_btn_ok" msgid="5965151173011534240">"حسنًا"</string>
     <string name="unknown_file" msgid="6092727753965095366">"ملف غير معروف"</string>
     <string name="unknown_file_desc" msgid="480434281415453287">"ليس هناك تطبيق لمعالجة هذا النوع من الملفات. \n"</string>
-    <string name="not_exist_file" msgid="3489434189599716133">"ليست هناك أية ملفات"</string>
+    <string name="not_exist_file" msgid="3489434189599716133">"ليست هناك أي ملفات"</string>
     <string name="not_exist_file_desc" msgid="4059531573790529229">"الملف غير موجود. \n"</string>
     <string name="enabling_progress_title" msgid="436157952334723406">"يرجى الانتظار…"</string>
     <string name="enabling_progress_content" msgid="4601542238119927904">"جارٍ تشغيل البلوتوث..."</string>
