@@ -180,6 +180,7 @@ public class AdapterService extends Service {
 
     private ProfileObserver mProfileObserver;
     private PhonePolicy mPhonePolicy;
+    private ActiveDeviceManager mActiveDeviceManager;
 
     public void addProfile(ProfileService profile) {
         synchronized (mProfiles) {
@@ -401,6 +402,9 @@ public class AdapterService extends Service {
         } else {
             Log.i(TAG, "Phone policy disabled");
         }
+
+        mActiveDeviceManager = new ActiveDeviceManager(this, new ServiceFactory());
+        mActiveDeviceManager.start();
 
         setAdapterService(this);
 
@@ -659,6 +663,10 @@ public class AdapterService extends Service {
 
         if (mPhonePolicy != null) {
             mPhonePolicy.cleanup();
+        }
+
+        if (mActiveDeviceManager != null) {
+            mActiveDeviceManager.cleanup();
         }
 
         if (mProfileServicesState != null) {
