@@ -192,37 +192,26 @@ public class A2dpService extends ProfileService {
     }
 
     public static synchronized A2dpService getA2dpService() {
-        if (sA2dpService != null && sA2dpService.isAvailable()) {
+        if (sA2dpService == null) {
             if (DBG) {
-                Log.d(TAG, "getA2dpService(): returning " + sA2dpService);
-            }
-            return sA2dpService;
-        }
-        if (DBG) {
-            if (sA2dpService == null) {
                 Log.d(TAG, "getA2dpService(): service is NULL");
-            } else if (!(sA2dpService.isAvailable())) {
+            }
+            return null;
+        }
+        if (!sA2dpService.isAvailable()) {
+            if (DBG) {
                 Log.d(TAG, "getA2dpService(): service is not available");
             }
+            return null;
         }
-        return null;
+        return sA2dpService;
     }
 
     private static synchronized void setA2dpService(A2dpService instance) {
-        if (instance != null && instance.isAvailable()) {
-            if (DBG) {
-                Log.d(TAG, "setA2dpService(): set to: " + instance);
-            }
-            sA2dpService = instance;
-        } else {
-            if (DBG) {
-                if (sA2dpService == null) {
-                    Log.d(TAG, "setA2dpService(): service not available");
-                } else if (!sA2dpService.isAvailable()) {
-                    Log.d(TAG, "setA2dpService(): service is cleaning up");
-                }
-            }
+        if (DBG) {
+            Log.d(TAG, "setA2dpService(): set to: " + instance);
         }
+        sA2dpService = instance;
     }
 
     private static synchronized void clearA2dpService() {
