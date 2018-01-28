@@ -363,9 +363,6 @@ public class BluetoothOppService extends ProfileService implements IObexConnecti
                             } catch (IOException e) {
                                 Log.e(TAG, "close tranport error");
                             }
-                        } else if (Constants.USE_TCP_DEBUG && !Constants.USE_TCP_SIMPLE_SERVER) {
-                            Log.i(TAG, "Start Obex Server in TCP DEBUG mode");
-                            createServerSession(transport);
                         } else {
                             Log.i(TAG, "OPP busy! Retry after 1 second");
                             mIncomingRetries = mIncomingRetries + 1;
@@ -789,19 +786,6 @@ public class BluetoothOppService extends ProfileService implements IObexConnecti
                     if (V) {
                         Log.v(TAG,
                                 "Service add new Batch " + newBatch.mId + " for info " + info.mId);
-                    }
-                    if (Constants.USE_TCP_DEBUG && !Constants.USE_TCP_SIMPLE_SERVER) {
-                        // only allow  concurrent serverTransfer in debug mode
-                        if (info.mDirection == BluetoothShare.DIRECTION_INBOUND) {
-                            if (V) {
-                                Log.v(TAG,
-                                        "TCP_DEBUG start server transfer new Batch " + newBatch.mId
-                                                + " for info " + info.mId);
-                            }
-                            mServerTransfer =
-                                    new BluetoothOppTransfer(this, newBatch, mServerSession);
-                            mServerTransfer.start();
-                        }
                     }
                 }
             }

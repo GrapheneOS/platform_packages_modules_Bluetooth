@@ -84,13 +84,9 @@ public class AdapterService extends Service {
     private static final String TAG = "BluetoothAdapterService";
     private static final boolean DBG = true;
     private static final boolean VERBOSE = false;
-    private static final boolean TRACE_REF = false;
     private static final int MIN_ADVT_INSTANCES_FOR_MA = 5;
     private static final int MIN_OFFLOADED_FILTERS = 10;
     private static final int MIN_OFFLOADED_SCAN_STORAGE_BYTES = 1024;
-    //For Debugging only
-    private static int sRefCount = 0;
-    private long mBluetoothStartTime = 0;
 
     private final Object mEnergyInfoLock = new Object();
     private int mStackReportedState;
@@ -184,16 +180,7 @@ public class AdapterService extends Service {
 
     private ProfileObserver mProfileObserver;
     private PhonePolicy mPhonePolicy;
-
-    public AdapterService() {
-        super();
-        if (TRACE_REF) {
-            synchronized (AdapterService.class) {
-                sRefCount++;
-                debugLog("AdapterService() - REFCOUNT: CREATED. INSTANCE_COUNT" + sRefCount);
-            }
-        }
-    }
+    private ActiveDeviceManager mActiveDeviceManager;
 
     public void addProfile(ProfileService profile) {
         synchronized (mProfiles) {
@@ -415,6 +402,9 @@ public class AdapterService extends Service {
         } else {
             Log.i(TAG, "Phone policy disabled");
         }
+
+        mActiveDeviceManager = new ActiveDeviceManager(this, new ServiceFactory());
+        mActiveDeviceManager.start();
 
         setAdapterService(this);
 
@@ -673,6 +663,10 @@ public class AdapterService extends Service {
 
         if (mPhonePolicy != null) {
             mPhonePolicy.cleanup();
+        }
+
+        if (mActiveDeviceManager != null) {
+            mActiveDeviceManager.cleanup();
         }
 
         if (mProfileServicesState != null) {
@@ -1686,7 +1680,6 @@ public class AdapterService extends Service {
         mQuietmode = quietMode;
         Message m = mAdapterStateMachine.obtainMessage(AdapterState.BLE_TURN_ON);
         mAdapterStateMachine.sendMessage(m);
-        mBluetoothStartTime = System.currentTimeMillis();
         return true;
     }
 
@@ -2630,16 +2623,6 @@ public class AdapterService extends Service {
     private native void interopDatabaseClearNative();
 
     private native void interopDatabaseAddNative(int feature, byte[] address, int length);
-
-    @Override
-    public void finalize() {
-        if (TRACE_REF) {
-            synchronized (AdapterService.class) {
-                sRefCount--;
-                debugLog("finalize() - REFCOUNT: FINALIZED. INSTANCE_COUNT= " + sRefCount);
-            }
-        }
-    }
 
     // Returns if this is a mock object. This is currently used in testing so that we may not call
     // System.exit() while finalizing the object. Otherwise GC of mock objects unfortunately ends up

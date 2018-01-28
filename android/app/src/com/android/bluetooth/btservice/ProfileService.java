@@ -16,27 +16,27 @@
 
 package com.android.bluetooth.btservice;
 
+import android.app.ActivityManager;
 import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.os.IBinder;
+import android.os.UserHandle;
+import android.os.UserManager;
 import android.util.Log;
 
 import com.android.bluetooth.Utils;
-
-import java.util.HashMap;
 
 /**
  * Base class for a background service that runs a Bluetooth profile
  */
 public abstract class ProfileService extends Service {
     private static final boolean DBG = false;
-    private static final String TAG = "BluetoothProfileService";
-
-    //For Debugging only
-    private static final HashMap<String, Integer> sReferenceCount = new HashMap<String, Integer>();
 
     public static final String BLUETOOTH_ADMIN_PERM = android.Manifest.permission.BLUETOOTH_ADMIN;
     public static final String BLUETOOTH_PERM = android.Manifest.permission.BLUETOOTH;
@@ -53,18 +53,19 @@ public abstract class ProfileService extends Service {
     //Profile services will not be automatically restarted.
     //They must be explicitly restarted by AdapterService
     private static final int PROFILE_SERVICE_MODE = Service.START_NOT_STICKY;
-    protected String mName;
+    protected final String mName;
     protected BluetoothAdapter mAdapter;
+    protected AdapterService mAdapterService;
     protected IProfileServiceBinder mBinder;
-    protected boolean mStartError = false;
-    private boolean mCleaningUp = false;
+    private BroadcastReceiver mUserSwitchedReceiver;
+    private boolean mProfileStarted = false;
 
     protected String getName() {
         return getClass().getSimpleName();
     }
 
     protected boolean isAvailable() {
-        return !mStartError && !mCleaningUp;
+        return mProfileStarted;
     }
 
     /**
@@ -98,38 +99,18 @@ public abstract class ProfileService extends Service {
      */
     protected void cleanup() {}
 
+    /**
+     * @param userId is equivalent to the result of ActivityManager.getCurrentUser()
+     */
+    protected void setCurrentUser(int userId) {}
+
+    /**
+     * @param userId is equivalent to the result of ActivityManager.getCurrentUser()
+     */
+    protected void setUserUnlocked(int userId) {}
+
     protected ProfileService() {
         mName = getName();
-        if (DBG) {
-            synchronized (sReferenceCount) {
-                Integer refCount = sReferenceCount.get(mName);
-                if (refCount == null) {
-                    refCount = 1;
-                } else {
-                    refCount = refCount + 1;
-                }
-                sReferenceCount.put(mName, refCount);
-                if (DBG) {
-                    log("REFCOUNT: CREATED. INSTANCE_COUNT=" + refCount);
-                }
-            }
-        }
-    }
-
-    @Override
-    protected void finalize() {
-        if (DBG) {
-            synchronized (sReferenceCount) {
-                Integer refCount = sReferenceCount.get(mName);
-                if (refCount != null) {
-                    refCount = refCount - 1;
-                } else {
-                    refCount = 0;
-                }
-                sReferenceCount.put(mName, refCount);
-                log("REFCOUNT: FINALIZED. INSTANCE_COUNT=" + refCount);
-            }
-        }
     }
 
     @Override
@@ -148,18 +129,6 @@ public abstract class ProfileService extends Service {
         if (DBG) {
             log("onStartCommand()");
         }
-        AdapterService adapterService = AdapterService.getAdapterService();
-        if (adapterService != null) {
-            adapterService.addProfile(this);
-        } else {
-            Log.w(TAG, "Could not add this profile because AdapterService is null.");
-        }
-
-        if (mStartError || mAdapter == null) {
-            Log.w(mName, "Stopping profile service: device does not have BT");
-            doStop(intent);
-            return PROFILE_SERVICE_MODE;
-        }
 
         if (checkCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM)
                 != PackageManager.PERMISSION_GRANTED) {
@@ -168,20 +137,17 @@ public abstract class ProfileService extends Service {
         }
 
         if (intent == null) {
-            Log.d(mName, "Restarting profile service...");
+            Log.d(mName, "onStartCommand ignoring null intent.");
             return PROFILE_SERVICE_MODE;
-        } else {
-            String action = intent.getStringExtra(AdapterService.EXTRA_ACTION);
-            if (AdapterService.ACTION_SERVICE_STATE_CHANGED.equals(action)) {
-                int state =
-                        intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.ERROR);
-                if (state == BluetoothAdapter.STATE_OFF) {
-                    Log.d(mName, "Received stop request...Stopping profile...");
-                    doStop(intent);
-                } else if (state == BluetoothAdapter.STATE_ON) {
-                    Log.d(mName, "Received start request. Starting profile...");
-                    doStart(intent);
-                }
+        }
+
+        String action = intent.getStringExtra(AdapterService.EXTRA_ACTION);
+        if (AdapterService.ACTION_SERVICE_STATE_CHANGED.equals(action)) {
+            int state = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.ERROR);
+            if (state == BluetoothAdapter.STATE_OFF) {
+                doStop();
+            } else if (state == BluetoothAdapter.STATE_ON) {
+                doStart();
             }
         }
         return PROFILE_SERVICE_MODE;
@@ -207,16 +173,32 @@ public abstract class ProfileService extends Service {
         return super.onUnbind(intent);
     }
 
-    // for dumpsys support
+    /**
+     * Support dumping profile-specific information for dumpsys
+     *
+     * @param sb StringBuilder from the profile.
+     */
     public void dump(StringBuilder sb) {
-        sb.append("\nProfile: " + mName + "\n");
+        sb.append("\nProfile: ");
+        sb.append(mName);
+        sb.append("\n");
     }
 
+    /**
+     * Support dumping scan events from GattService
+     *
+     * @param proto
+     */
     public void dumpProto(BluetoothProto.BluetoothLog proto) {
         // Do nothing
     }
 
-    // with indenting for subclasses
+    /**
+     * Append an indented String for adding dumpsys support to subclasses.
+     *
+     * @param sb StringBuilder from the profile.
+     * @param s String to indent and append.
+     */
     public static void println(StringBuilder sb, String s) {
         sb.append("  ");
         sb.append(s);
@@ -225,68 +207,88 @@ public abstract class ProfileService extends Service {
 
     @Override
     public void onDestroy() {
-        if (DBG) {
-            log("Destroying service.");
-        }
-        AdapterService adapterService = AdapterService.getAdapterService();
-        if (adapterService != null) {
-            adapterService.removeProfile(this);
+        if (mAdapterService != null) {
+            mAdapterService.removeProfile(this);
         }
 
-        if (mCleaningUp) {
-            if (DBG) {
-                log("Cleanup already started... Skipping cleanup()...");
-            }
-        } else {
-            if (DBG) {
-                log("cleanup()");
-            }
-            mCleaningUp = true;
-            cleanup();
-            if (mBinder != null) {
-                mBinder.cleanup();
-                mBinder = null;
-            }
+        cleanup();
+        if (mBinder != null) {
+            mBinder.cleanup();
+            mBinder = null;
         }
         super.onDestroy();
         mAdapter = null;
     }
 
-    private void doStart(Intent intent) {
-        //Start service
+    private void doStart() {
         if (mAdapter == null) {
-            Log.e(mName, "Error starting profile. BluetoothAdapter is null");
-        } else {
-            if (DBG) {
-                log("start()");
-            }
-            mStartError = !start();
-            if (!mStartError) {
-                notifyProfileServiceStateChanged(BluetoothAdapter.STATE_ON);
-            } else {
-                Log.e(mName, "Error starting profile. start() returned false.");
-            }
+            Log.w(mName, "Can't start profile service: device does not have BT");
+            return;
         }
+
+        mAdapterService = AdapterService.getAdapterService();
+        if (mAdapterService == null) {
+            Log.w(mName, "Could not add this profile because AdapterService is null.");
+            return;
+        }
+        mAdapterService.addProfile(this);
+
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(Intent.ACTION_USER_SWITCHED);
+        filter.addAction(Intent.ACTION_USER_UNLOCKED);
+        mUserSwitchedReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                final String action = intent.getAction();
+                final int userId =
+                        intent.getIntExtra(Intent.EXTRA_USER_HANDLE, UserHandle.USER_NULL);
+                if (userId == UserHandle.USER_NULL) {
+                    Log.e(mName, "userChangeReceiver received an invalid EXTRA_USER_HANDLE");
+                    return;
+                }
+                if (Intent.ACTION_USER_SWITCHED.equals(action)) {
+                    Log.d(mName, "User switched to userId " + userId);
+                    setCurrentUser(userId);
+                } else if (Intent.ACTION_USER_UNLOCKED.equals(intent.getAction())) {
+                    Log.d(mName, "Unlocked userId " + userId);
+                    setUserUnlocked(userId);
+                }
+            }
+        };
+
+        getApplicationContext().registerReceiver(mUserSwitchedReceiver, filter);
+        int currentUserId = ActivityManager.getCurrentUser();
+        setCurrentUser(currentUserId);
+        UserManager userManager = UserManager.get(getApplicationContext());
+        if (userManager.isUserUnlocked(currentUserId)) {
+            setUserUnlocked(currentUserId);
+        }
+        mProfileStarted = start();
+        if (!mProfileStarted) {
+            Log.e(mName, "Error starting profile. start() returned false.");
+            return;
+        }
+        mAdapterService.onProfileServiceStateChanged(getClass().getName(),
+                BluetoothAdapter.STATE_ON);
     }
 
-    private void doStop(Intent intent) {
-        if (stop()) {
-            if (DBG) {
-                log("stop()");
-            }
-            notifyProfileServiceStateChanged(BluetoothAdapter.STATE_OFF);
-            stopSelf();
-        } else {
+    private void doStop() {
+        if (!mProfileStarted) {
+            Log.w(mName, "doStop() called, but the profile is not running.");
+        }
+        mProfileStarted = false;
+        if (mAdapterService != null) {
+            mAdapterService.onProfileServiceStateChanged(getClass().getName(),
+                    BluetoothAdapter.STATE_OFF);
+        }
+        if (!stop()) {
             Log.e(mName, "Unable to stop profile");
         }
-    }
-
-    protected void notifyProfileServiceStateChanged(int state) {
-        //Notify adapter service
-        AdapterService adapterService = AdapterService.getAdapterService();
-        if (adapterService != null) {
-            adapterService.onProfileServiceStateChanged(getClass().getName(), state);
+        if (mUserSwitchedReceiver != null) {
+            getApplicationContext().unregisterReceiver(mUserSwitchedReceiver);
+            mUserSwitchedReceiver = null;
         }
+        stopSelf();
     }
 
     protected BluetoothDevice getDevice(byte[] address) {
