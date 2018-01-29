@@ -74,8 +74,7 @@ public class A2dpService extends ProfileService {
     // Upper limit of all A2DP devices: Bonded or Connected
     private static final int MAX_A2DP_STATE_MACHINES = 50;
     // Upper limit of all A2DP devices that are Connected or Connecting
-    @VisibleForTesting
-    int mMaxConnectedAudioDevices = 1;
+    private int mMaxConnectedAudioDevices = 1;
 
     private BroadcastReceiver mBondStateChangedReceiver = null;
     private BroadcastReceiver mConnectionStateChangedReceiver = null;
@@ -282,7 +281,8 @@ public class A2dpService extends ProfileService {
      * @param device the peer device to connect to
      * @return true if connection is allowed, otherwise false
      */
-    boolean canConnectToDevice(BluetoothDevice device) {
+    @VisibleForTesting
+    public boolean canConnectToDevice(BluetoothDevice device) {
         int connected = 0;
         // Count devices that are in the process of connecting or already connected
         synchronized (mStateMachines) {
@@ -810,14 +810,6 @@ public class A2dpService extends ProfileService {
                 return null;
             }
 
-            if (mService != null && mService.isAvailable()) {
-                return mService;
-            }
-            return null;
-        }
-
-        @VisibleForTesting
-        A2dpService getServiceForTesting() {
             if (mService != null && mService.isAvailable()) {
                 return mService;
             }

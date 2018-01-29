@@ -35,7 +35,6 @@ import org.hamcrest.core.IsInstanceOf;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
@@ -46,7 +45,6 @@ import java.lang.reflect.Method;
 
 @MediumTest
 @RunWith(AndroidJUnit4.class)
-@Ignore("Test is broken - mocking side-effect of mA2dpService")
 public class A2dpStateMachineTest {
     private BluetoothAdapter mAdapter;
     private Context mTargetContext;
@@ -105,13 +103,29 @@ public class A2dpStateMachineTest {
     }
 
     /**
+     * Allow/disallow connection to any device.
+     *
+     * @param allow if true, connection is allowed
+     */
+    private void allowConnection(boolean allow) {
+        if (allow) {
+            // Update the device priority so okToConnect() returns true
+            doReturn(BluetoothProfile.PRIORITY_ON).when(mA2dpService)
+                    .getPriority(any(BluetoothDevice.class));
+        } else {
+            // Update the device priority so okToConnect() returns false
+            doReturn(BluetoothProfile.PRIORITY_OFF).when(mA2dpService)
+                    .getPriority(any(BluetoothDevice.class));
+        }
+        doReturn(true).when(mA2dpService).canConnectToDevice(any(BluetoothDevice.class));
+    }
+
+    /**
      * Test that an incoming connection with low priority is rejected
      */
     @Test
     public void testIncomingPriorityReject() {
-        // Update the device priority so okToConnect() returns false
-        when(mA2dpService.getPriority(any(BluetoothDevice.class))).thenReturn(
-                BluetoothProfile.PRIORITY_OFF);
+        allowConnection(false);
 
         // Inject an event for when incoming connection is requested
         A2dpStackEvent connStCh =
@@ -133,9 +147,7 @@ public class A2dpStateMachineTest {
      */
     @Test
     public void testIncomingPriorityAccept() {
-        // Update the device priority so okToConnect() returns true
-        when(mA2dpService.getPriority(any(BluetoothDevice.class))).thenReturn(
-                BluetoothProfile.PRIORITY_ON);
+        allowConnection(true);
 
         // Inject an event for when incoming connection is requested
         A2dpStackEvent connStCh =
@@ -182,12 +194,11 @@ public class A2dpStateMachineTest {
     /**
      * Test that an outgoing connection times out
      */
-    @Ignore("Test is broken - mocking side-effect of mA2dpService")
     @Test
     public void testOutgoingTimeout() {
-        when(mA2dpService.canConnectToDevice(any(BluetoothDevice.class))).thenReturn(true);
-        when(mA2dpNativeInterface.connectA2dp(any(BluetoothDevice.class))).thenReturn(true);
-        when(mA2dpNativeInterface.disconnectA2dp(any(BluetoothDevice.class))).thenReturn(true);
+        allowConnection(true);
+        doReturn(true).when(mA2dpNativeInterface).connectA2dp(any(BluetoothDevice.class));
+        doReturn(true).when(mA2dpNativeInterface).disconnectA2dp(any(BluetoothDevice.class));
 
         // Send a connect request
         mA2dpStateMachine.sendMessage(A2dpStateMachine.CONNECT, mTestDevice);
