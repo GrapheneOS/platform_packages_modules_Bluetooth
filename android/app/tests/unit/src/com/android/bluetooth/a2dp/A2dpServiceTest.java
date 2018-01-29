@@ -26,7 +26,6 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.os.IBinder;
 import android.os.Looper;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.filters.MediumTest;
@@ -38,7 +37,6 @@ import com.android.bluetooth.btservice.AdapterService;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -53,7 +51,6 @@ import java.util.concurrent.TimeoutException;
 
 @MediumTest
 @RunWith(AndroidJUnit4.class)
-@Ignore("Test is broken - mocking side-effect of mA2dpService")
 public class A2dpServiceTest {
     private BluetoothAdapter mAdapter;
     private Context mTargetContext;
@@ -85,11 +82,12 @@ public class A2dpServiceTest {
                                                                AdapterService.class);
         method.setAccessible(true);
         method.invoke(mAdapterService, mAdapterService);
+        doReturn(1).when(mAdapterService).getMaxConnectedAudioDevices();
 
         mTargetContext = InstrumentationRegistry.getTargetContext();
         mAdapter = BluetoothAdapter.getDefaultAdapter();
 
-        bondService();
+        startService();
         mA2dpService.mA2dpNativeInterface = mA2dpNativeInterface;
 
         // Override the timeout value to speed up the test
@@ -101,27 +99,42 @@ public class A2dpServiceTest {
         mConnectionStateChangedReceiver = new ConnectionStateChangedReceiver();
         mTargetContext.registerReceiver(mConnectionStateChangedReceiver, filter);
 
-        mA2dpService.start();
-
         // Get a device for testing
         mTestDevice = mAdapter.getRemoteDevice("00:01:02:03:04:05");
         mA2dpService.setPriority(mTestDevice, BluetoothProfile.PRIORITY_UNDEFINED);
     }
-    private void bondService() throws TimeoutException {
-        IBinder binder = mServiceRule.bindService(
-                new Intent(mTargetContext, A2dpService.class));
-        mA2dpService = ((A2dpService.BluetoothA2dpBinder) binder).getServiceForTesting();
+
+    @After
+    public void tearDown() throws Exception {
+        stopService();
+        mTargetContext.unregisterReceiver(mConnectionStateChangedReceiver);
+        mConnectionStateChangedQueue.clear();
+    }
+
+    private void startService() throws TimeoutException {
+        Intent startIntent =
+                new Intent(InstrumentationRegistry.getTargetContext(), A2dpService.class);
+        startIntent.putExtra(AdapterService.EXTRA_ACTION,
+                             AdapterService.ACTION_SERVICE_STATE_CHANGED);
+        startIntent.putExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.STATE_ON);
+        mServiceRule.startService(startIntent);
+        verify(mAdapterService, timeout(TIMEOUT_MS)).onProfileServiceStateChanged(
+                eq(A2dpService.class.getName()), eq(BluetoothAdapter.STATE_ON));
+        mA2dpService = A2dpService.getA2dpService();
         Assert.assertNotNull(mA2dpService);
     }
 
-    @After
-    public void tearDown() {
-        mA2dpService.stop();
-        mA2dpService.cleanup();
-        mA2dpService = null;
-
-        mTargetContext.unregisterReceiver(mConnectionStateChangedReceiver);
-        mConnectionStateChangedQueue.clear();
+    private void stopService() throws TimeoutException {
+        Intent stopIntent =
+                new Intent(InstrumentationRegistry.getTargetContext(), A2dpService.class);
+        stopIntent.putExtra(AdapterService.EXTRA_ACTION,
+                            AdapterService.ACTION_SERVICE_STATE_CHANGED);
+        stopIntent.putExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.STATE_OFF);
+        mServiceRule.startService(stopIntent);
+        verify(mAdapterService, timeout(TIMEOUT_MS)).onProfileServiceStateChanged(
+                eq(A2dpService.class.getName()), eq(BluetoothAdapter.STATE_OFF));
+        mA2dpService = A2dpService.getA2dpService();
+        Assert.assertNull(mA2dpService);
     }
 
     private class ConnectionStateChangedReceiver extends BroadcastReceiver {
@@ -202,8 +215,8 @@ public class A2dpServiceTest {
     public void testOutgoingConnectTimeout() {
         // Update the device priority so okToConnect() returns true
         mA2dpService.setPriority(mTestDevice, BluetoothProfile.PRIORITY_ON);
-        when(mA2dpNativeInterface.connectA2dp(any(BluetoothDevice.class))).thenReturn(true);
-        when(mA2dpNativeInterface.disconnectA2dp(any(BluetoothDevice.class))).thenReturn(true);
+        doReturn(true).when(mA2dpNativeInterface).connectA2dp(any(BluetoothDevice.class));
+        doReturn(true).when(mA2dpNativeInterface).disconnectA2dp(any(BluetoothDevice.class));
 
         // Send a connect request
         Assert.assertTrue("Connect failed", mA2dpService.connect(mTestDevice));
@@ -231,8 +244,8 @@ public class A2dpServiceTest {
 
         // Update the device priority so okToConnect() returns true
         mA2dpService.setPriority(mTestDevice, BluetoothProfile.PRIORITY_ON);
-        when(mA2dpNativeInterface.connectA2dp(any(BluetoothDevice.class))).thenReturn(true);
-        when(mA2dpNativeInterface.disconnectA2dp(any(BluetoothDevice.class))).thenReturn(true);
+        doReturn(true).when(mA2dpNativeInterface).connectA2dp(any(BluetoothDevice.class));
+        doReturn(true).when(mA2dpNativeInterface).disconnectA2dp(any(BluetoothDevice.class));
 
         // Send a connect request
         Assert.assertTrue("Connect failed", mA2dpService.connect(mTestDevice));
