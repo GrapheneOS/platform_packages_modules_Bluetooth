@@ -205,11 +205,6 @@ public class AvrcpControllerService extends ProfileService {
     }
 
     @Override
-    protected String getName() {
-        return TAG;
-    }
-
-    @Override
     protected IProfileServiceBinder initBinder() {
         return new BluetoothAvrcpControllerBinder(this);
     }

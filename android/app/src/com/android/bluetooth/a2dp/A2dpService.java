@@ -92,11 +92,6 @@ public class A2dpService extends ProfileService {
     };
 
     @Override
-    protected String getName() {
-        return TAG;
-    }
-
-    @Override
     protected IProfileServiceBinder initBinder() {
         return new BluetoothA2dpBinder(this);
     }

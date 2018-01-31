@@ -44,11 +44,6 @@ public class A2dpSinkService extends ProfileService {
     private static A2dpSinkService sA2dpSinkService;
 
     @Override
-    protected String getName() {
-        return TAG;
-    }
-
-    @Override
     protected IProfileServiceBinder initBinder() {
         return new BluetoothA2dpSinkBinder(this);
     }

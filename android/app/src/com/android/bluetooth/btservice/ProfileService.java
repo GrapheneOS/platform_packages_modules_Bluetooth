@@ -60,7 +60,7 @@ public abstract class ProfileService extends Service {
     private BroadcastReceiver mUserSwitchedReceiver;
     private boolean mProfileStarted = false;
 
-    protected String getName() {
+    public String getName() {
         return getClass().getSimpleName();
     }
 
