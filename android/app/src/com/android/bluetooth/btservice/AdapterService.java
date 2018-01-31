@@ -1800,6 +1800,11 @@ public class AdapterService extends Service {
         return mAdapterProperties.discoveryEndMillis();
     }
 
+    /**
+     * Same as API method {@link BluetoothAdapter#getBondedDevices()}
+     *
+     * @return array of bonded {@link BluetoothDevice} or null on error
+     */
     public BluetoothDevice[] getBondedDevices() {
         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
         return mAdapterProperties.getBondedDevices();
@@ -1895,7 +1900,17 @@ public class AdapterService extends Service {
         return true;
     }
 
-    int getBondState(BluetoothDevice device) {
+    /**
+     * Get the bond state of a particular {@link BluetoothDevice}
+     *
+     * @param device remote device of interest
+     * @return bond state <p>Possible values are
+     * {@link BluetoothDevice#BOND_NONE},
+     * {@link BluetoothDevice#BOND_BONDING},
+     * {@link BluetoothDevice#BOND_BONDED}.
+     */
+    @VisibleForTesting
+    public int getBondState(BluetoothDevice device) {
         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
         DeviceProperties deviceProp = mRemoteDevices.getDeviceProperties(device);
         if (deviceProp == null) {
@@ -1923,7 +1938,13 @@ public class AdapterService extends Service {
         return getConnectionStateNative(addr);
     }
 
-    String getRemoteName(BluetoothDevice device) {
+    /**
+     * Same as API method {@link BluetoothDevice#getName()}
+     *
+     * @param device remote device of interest
+     * @return remote device name
+     */
+    public String getRemoteName(BluetoothDevice device) {
         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
         if (mRemoteDevices == null) {
             return null;
