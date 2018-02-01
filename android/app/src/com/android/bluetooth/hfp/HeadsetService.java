@@ -234,10 +234,8 @@ public class HeadsetService extends ProfileService {
      * @param stackEvent event from native stack
      */
     void messageFromNative(HeadsetStackEvent stackEvent) {
-        if (stackEvent.device == null) {
-            Log.wtfStack(TAG, "messageFromNative, device is null, event: " + stackEvent);
-            return;
-        }
+        Objects.requireNonNull(stackEvent.device,
+                "Device should never be null, event: " + stackEvent);
         synchronized (mStateMachines) {
             HeadsetStateMachine stateMachine = mStateMachines.get(stackEvent.device);
             if (stackEvent.type == HeadsetStackEvent.EVENT_TYPE_CONNECTION_STATE_CHANGED) {
@@ -248,16 +246,17 @@ public class HeadsetService extends ProfileService {
                         if (stateMachine == null) {
                             stateMachine = HeadsetObjectsFactory.getInstance()
                                     .makeStateMachine(stackEvent.device,
-                                            mStateMachinesThread.getLooper(), this,
+                                            mStateMachinesThread.getLooper(), this, mAdapterService,
                                             mNativeInterface, mSystemInterface);
                             mStateMachines.put(stackEvent.device, stateMachine);
                         }
                         break;
                     }
                 }
-            } else if (stateMachine == null) {
-                Log.wtfStack(TAG, "State machine not found for stack event: " + stackEvent);
-                return;
+            }
+            if (stateMachine == null) {
+                throw new IllegalStateException(
+                        "State machine not found for stack event: " + stackEvent);
             }
             stateMachine.sendMessage(HeadsetStateMachine.STACK_EVENT, stackEvent);
         }
@@ -315,8 +314,9 @@ public class HeadsetService extends ProfileService {
                 case BluetoothDevice.ACTION_BOND_STATE_CHANGED: {
                     int state = intent.getIntExtra(BluetoothDevice.EXTRA_BOND_STATE,
                             BluetoothDevice.ERROR);
-                    BluetoothDevice device =
-                            intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+                    BluetoothDevice device = Objects.requireNonNull(
+                            intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE),
+                            "ACTION_BOND_STATE_CHANGED with no EXTRA_DEVICE");
                     logD("Bond state changed for device: " + device + " state: " + state);
                     if (state != BluetoothDevice.BOND_NONE) {
                         break;
@@ -326,9 +326,11 @@ public class HeadsetService extends ProfileService {
                         if (stateMachine == null) {
                             break;
                         }
-                        logD("Removing state machine for device: " + device);
-                        HeadsetObjectsFactory.getInstance().destroyStateMachine(stateMachine);
-                        mStateMachines.remove(device);
+                        if (stateMachine.getConnectionState()
+                                != BluetoothProfile.STATE_DISCONNECTED) {
+                            break;
+                        }
+                        removeStateMachine(device);
                     }
                     break;
                 }
@@ -626,13 +628,18 @@ public class HeadsetService extends ProfileService {
             Log.w(TAG, "connect: PRIORITY_OFF, device=" + device);
             return false;
         }
+        ParcelUuid[] featureUuids = mAdapterService.getRemoteUuids(device);
+        if (!BluetoothUuid.containsAnyUuid(featureUuids, HEADSET_UUIDS)) {
+            Log.e(TAG, "connect: Cannot connect to " + device + ": no headset UUID");
+            return false;
+        }
         synchronized (mStateMachines) {
             Log.i(TAG, "connect: device=" + device);
             HeadsetStateMachine stateMachine = mStateMachines.get(device);
             if (stateMachine == null) {
                 stateMachine = HeadsetObjectsFactory.getInstance()
                         .makeStateMachine(device, mStateMachinesThread.getLooper(), this,
-                                mNativeInterface, mSystemInterface);
+                                mAdapterService, mNativeInterface, mSystemInterface);
                 mStateMachines.put(device, stateMachine);
             }
             int connectionState = stateMachine.getConnectionState();
@@ -699,7 +706,14 @@ public class HeadsetService extends ProfileService {
         return devices;
     }
 
-    private List<BluetoothDevice> getDevicesMatchingConnectionStates(int[] states) {
+    /**
+     * Same as the API method {@link BluetoothHeadset#getDevicesMatchingConnectionStates(int[])}
+     *
+     * @param states an array of states from {@link BluetoothProfile}
+     * @return a list of devices matching the array of connection states
+     */
+    @VisibleForTesting
+    public List<BluetoothDevice> getDevicesMatchingConnectionStates(int[] states) {
         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
         ArrayList<BluetoothDevice> devices = new ArrayList<>();
         if (states == null) {
@@ -1217,7 +1231,7 @@ public class HeadsetService extends ProfileService {
         // Check priority and accept or reject the connection.
         // Note: Logic can be simplified, but keeping it this way for readability
         int priority = getPriority(device);
-        int bondState = device.getBondState();
+        int bondState = mAdapterService.getBondState(device);
         // If priority is undefined, it is likely that our SDP has not completed and peer is
         // initiating the connection. Allow this connection only if the device is bonded or bonding
         if ((priority == BluetoothProfile.PRIORITY_UNDEFINED) && (bondState
@@ -1238,6 +1252,24 @@ public class HeadsetService extends ProfileService {
             return false;
         }
         return true;
+    }
+
+    /**
+     * Remove state machine in {@link #mStateMachines} for a {@link BluetoothDevice}
+     *
+     * @param device device whose state machine is to be removed.
+     */
+    void removeStateMachine(BluetoothDevice device) {
+        synchronized (mStateMachines) {
+            HeadsetStateMachine stateMachine = mStateMachines.get(device);
+            if (stateMachine == null) {
+                Log.w(TAG, "removeStateMachine(), " + device + " does not have a state machine");
+                return;
+            }
+            Log.i(TAG, "removeStateMachine(), removing state machine for device: " + device);
+            HeadsetObjectsFactory.getInstance().destroyStateMachine(stateMachine);
+            mStateMachines.remove(device);
+        }
     }
 
     @Override

@@ -110,6 +110,8 @@ public class HeadsetStateMachineTest {
         doReturn(true).when(mNativeInterface).connectAudio(mTestDevice);
         doReturn(true).when(mNativeInterface).disconnectAudio(mTestDevice);
         // Stub headset service
+        doReturn(BluetoothDevice.BOND_BONDED).when(sAdapterService)
+                .getBondState(any(BluetoothDevice.class));
         when(mHeadsetService.bindService(any(Intent.class), any(ServiceConnection.class), anyInt()))
                 .thenReturn(true);
         when(mHeadsetService.getResources()).thenReturn(
@@ -127,13 +129,14 @@ public class HeadsetStateMachineTest {
         HeadsetStateMachine.sConnectTimeoutMs = CONNECT_TIMEOUT_TEST_MILLIS;
         mHeadsetStateMachine = HeadsetObjectsFactory.getInstance()
                 .makeStateMachine(mTestDevice, mHandlerThread.getLooper(), mHeadsetService,
-                        mNativeInterface, mSystemInterface);
+                        sAdapterService, mNativeInterface, mSystemInterface);
     }
 
     @After
     public void tearDown() {
         HeadsetObjectsFactory.getInstance().destroyStateMachine(mHeadsetStateMachine);
         mHandlerThread.quit();
+        reset(sAdapterService);
     }
 
     /**
@@ -800,7 +803,6 @@ public class HeadsetStateMachineTest {
         Assert.assertThat(mHeadsetStateMachine.getCurrentState(),
                 IsInstanceOf.instanceOf(HeadsetStateMachine.Disconnected.class));
     }
-
 
     /**
      * Setup Connecting State
