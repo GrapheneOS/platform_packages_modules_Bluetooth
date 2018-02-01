@@ -36,6 +36,7 @@
 #include <sys/prctl.h>
 #include <sys/stat.h>
 
+#include <hardware/bluetooth.h>
 #include <mutex>
 
 using base::StringPrintf;
@@ -1172,6 +1173,19 @@ static void dumpNative(JNIEnv* env, jobject obj, jobject fdObj,
   delete[] argObjs;
 }
 
+static jbyteArray dumpMetricsNative(JNIEnv* env, jobject obj) {
+  ALOGI("%s", __func__);
+  if (!sBluetoothInterface) return env->NewByteArray(0);
+
+  std::string output;
+  sBluetoothInterface->dumpMetrics(&output);
+  jsize output_size = output.size() * sizeof(char);
+  jbyteArray output_bytes = env->NewByteArray(output_size);
+  env->SetByteArrayRegion(output_bytes, 0, output_size,
+                          (const jbyte*)output.data());
+  return output_bytes;
+}
+
 static jboolean factoryResetNative(JNIEnv* env, jobject obj) {
   ALOGV("%s", __func__);
   if (!sBluetoothInterface) return JNI_FALSE;
@@ -1231,6 +1245,7 @@ static JNINativeMethod sMethods[] = {
     {"readEnergyInfo", "()I", (void*)readEnergyInfo},
     {"dumpNative", "(Ljava/io/FileDescriptor;[Ljava/lang/String;)V",
      (void*)dumpNative},
+    {"dumpMetricsNative", "()[B", (void*)dumpMetricsNative},
     {"factoryResetNative", "()Z", (void*)factoryResetNative},
     {"interopDatabaseClearNative", "()V", (void*)interopDatabaseClearNative},
     {"interopDatabaseAddNative", "(I[BI)V", (void*)interopDatabaseAddNative}};
