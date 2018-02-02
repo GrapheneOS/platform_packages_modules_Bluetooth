@@ -69,11 +69,6 @@ public class HeadsetClientService extends ProfileService {
     }
 
     @Override
-    protected String getName() {
-        return TAG;
-    }
-
-    @Override
     public IProfileServiceBinder initBinder() {
         return new BluetoothHeadsetClientBinder(this);
     }
