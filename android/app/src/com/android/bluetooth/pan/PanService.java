@@ -79,11 +79,6 @@ public class PanService extends ProfileService {
     }
 
     @Override
-    protected String getName() {
-        return TAG;
-    }
-
-    @Override
     public IProfileServiceBinder initBinder() {
         return new BluetoothPanBinder(this);
     }

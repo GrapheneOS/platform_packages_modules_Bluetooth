@@ -72,11 +72,6 @@ public class HealthService extends ProfileService {
     }
 
     @Override
-    protected String getName() {
-        return TAG;
-    }
-
-    @Override
     protected IProfileServiceBinder initBinder() {
         return new BluetoothHealthBinder(this);
     }

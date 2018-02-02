@@ -74,11 +74,6 @@ public class HidHostService extends ProfileService {
     }
 
     @Override
-    public String getName() {
-        return TAG;
-    }
-
-    @Override
     public IProfileServiceBinder initBinder() {
         return new BluetoothHidHostBinder(this);
     }
