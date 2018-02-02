@@ -69,11 +69,12 @@ import com.android.internal.R;
 import com.android.internal.annotations.VisibleForTesting;
 import com.android.internal.app.IBatteryStats;
 
+import com.google.protobuf.micro.InvalidProtocolBufferMicroException;
+
 import java.io.FileDescriptor;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -1639,6 +1640,7 @@ public class AdapterService extends Service {
                 return;
             }
             service.dump(fd, writer, args);
+            writer.close();
         }
     }
 
@@ -2491,10 +2493,18 @@ public class AdapterService extends Service {
 
         verboseLog("dumpsys arguments, check for protobuf output: " + TextUtils.join(" ", args));
         if (args[0].startsWith("--proto")) {
-            if (args[0].equals("--proto-java-bin")) {
-                dumpJava(fd);
-            } else {
-                dumpNative(fd, args);
+            if (args[0].equals("--proto-bin")) {
+                dumpMetrics(fd);
+            } else if (args[0].equals("--proto-java-bin")) {
+                // TODO: Remove once --proto-java-bin is no longer used
+                BluetoothProto.BluetoothLog metrics = new BluetoothProto.BluetoothLog();
+                byte[] metricsBytes = Base64.encode(metrics.toByteArray(), Base64.DEFAULT);
+                Log.w(TAG, "proto-java-bin dump, empty metrics size is " + metricsBytes.length);
+                try (FileOutputStream protoOut = new FileOutputStream(fd)) {
+                    protoOut.write(metricsBytes);
+                } catch (IOException e) {
+                    errorLog("Unable to write Java protobuf to file descriptor.");
+                }
             }
             return;
         }
@@ -2520,21 +2530,28 @@ public class AdapterService extends Service {
         dumpNative(fd, args);
     }
 
-    private void dumpJava(FileDescriptor fd) {
-        BluetoothProto.BluetoothLog log = new BluetoothProto.BluetoothLog();
-        log.setNumBondedDevices(getBondedDevices().length);
-
+    private void dumpMetrics(FileDescriptor fd) {
+        BluetoothProto.BluetoothLog metrics = new BluetoothProto.BluetoothLog();
+        metrics.setNumBondedDevices(getBondedDevices().length);
         for (ProfileService profile : mProfiles) {
-            profile.dumpProto(log);
+            profile.dumpProto(metrics);
         }
-
-        try {
-            FileOutputStream protoOut = new FileOutputStream(fd);
-            String protoOutString = Base64.encodeToString(log.toByteArray(), Base64.DEFAULT);
-            protoOut.write(protoOutString.getBytes(StandardCharsets.UTF_8));
-            protoOut.close();
+        byte[] nativeMetricsBytes = dumpMetricsNative();
+        debugLog("dumpMetrics: native metrics size is " + nativeMetricsBytes.length);
+        if (nativeMetricsBytes.length > 0) {
+            try {
+                metrics.mergeFrom(nativeMetricsBytes);
+            } catch (InvalidProtocolBufferMicroException ex) {
+                Log.w(TAG, "dumpMetrics: problem parsing metrics protobuf, " + ex.getMessage());
+                return;
+            }
+        }
+        byte[] metricsBytes = Base64.encode(metrics.toByteArray(), Base64.DEFAULT);
+        debugLog("dumpMetrics: combined metrics size is " + metricsBytes.length);
+        try (FileOutputStream protoOut = new FileOutputStream(fd)) {
+            protoOut.write(metricsBytes);
         } catch (IOException e) {
-            errorLog("Unable to write Java protobuf to file descriptor.");
+            errorLog("dumpMetrics: error writing combined protobuf to fd, " + e.getMessage());
         }
     }
 
@@ -2640,6 +2657,8 @@ public class AdapterService extends Service {
     private native void alarmFiredNative();
 
     private native void dumpNative(FileDescriptor fd, String[] arguments);
+
+    private native byte[] dumpMetricsNative();
 
     private native void interopDatabaseClearNative();
 
