@@ -470,8 +470,8 @@ public class ScanManager {
         /**
          * Scan params corresponding to regular scan setting
          */
-        private static final int SCAN_MODE_LOW_POWER_WINDOW_MS = 1024;
-        private static final int SCAN_MODE_LOW_POWER_INTERVAL_MS = 10240;
+        private static final int SCAN_MODE_LOW_POWER_WINDOW_MS = 512;
+        private static final int SCAN_MODE_LOW_POWER_INTERVAL_MS = 5120;
         private static final int SCAN_MODE_BALANCED_WINDOW_MS = 1024;
         private static final int SCAN_MODE_BALANCED_INTERVAL_MS = 4096;
         private static final int SCAN_MODE_LOW_LATENCY_WINDOW_MS = 4096;
