@@ -54,11 +54,6 @@ public class PbapClientService extends ProfileService {
     private PbapBroadcastReceiver mPbapBroadcastReceiver = new PbapBroadcastReceiver();
 
     @Override
-    protected String getName() {
-        return TAG;
-    }
-
-    @Override
     public IProfileServiceBinder initBinder() {
         return new BluetoothPbapClientBinder(this);
     }
