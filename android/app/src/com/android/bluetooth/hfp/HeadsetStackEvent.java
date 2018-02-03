@@ -23,7 +23,7 @@ import java.util.Objects;
 /**
  * Callback events from native layer
  */
-public class HeadsetStackEvent {
+public class HeadsetStackEvent extends HeadsetMessageObject {
     public static final int EVENT_TYPE_NONE = 0;
     public static final int EVENT_TYPE_CONNECTION_STATE_CHANGED = 1;
     public static final int EVENT_TYPE_AUDIO_STATE_CHANGED = 2;
@@ -109,76 +109,68 @@ public class HeadsetStackEvent {
      * @return String that represents this event
      */
     public String getTypeString() {
-        String eventName = "UNKNOWN";
         switch (type) {
             case EVENT_TYPE_NONE:
-                eventName = "EVENT_TYPE_NONE";
-                break;
+                return "EVENT_TYPE_NONE";
             case EVENT_TYPE_CONNECTION_STATE_CHANGED:
-                eventName = "EVENT_TYPE_CONNECTION_STATE_CHANGED";
-                break;
+                return "EVENT_TYPE_CONNECTION_STATE_CHANGED";
             case EVENT_TYPE_AUDIO_STATE_CHANGED:
-                eventName = "EVENT_TYPE_AUDIO_STATE_CHANGED";
-                break;
+                return "EVENT_TYPE_AUDIO_STATE_CHANGED";
             case EVENT_TYPE_VR_STATE_CHANGED:
-                eventName = "EVENT_TYPE_VR_STATE_CHANGED";
-                break;
+                return "EVENT_TYPE_VR_STATE_CHANGED";
             case EVENT_TYPE_ANSWER_CALL:
-                eventName = "EVENT_TYPE_ANSWER_CALL";
-                break;
+                return "EVENT_TYPE_ANSWER_CALL";
             case EVENT_TYPE_HANGUP_CALL:
-                eventName = "EVENT_TYPE_HANGUP_CALL";
-                break;
+                return "EVENT_TYPE_HANGUP_CALL";
             case EVENT_TYPE_VOLUME_CHANGED:
-                eventName = "EVENT_TYPE_VOLUME_CHANGED";
-                break;
+                return "EVENT_TYPE_VOLUME_CHANGED";
             case EVENT_TYPE_DIAL_CALL:
-                eventName = "EVENT_TYPE_DIAL_CALL";
-                break;
+                return "EVENT_TYPE_DIAL_CALL";
             case EVENT_TYPE_SEND_DTMF:
-                eventName = "EVENT_TYPE_SEND_DTMF";
-                break;
+                return "EVENT_TYPE_SEND_DTMF";
             case EVENT_TYPE_NOICE_REDUCTION:
-                eventName = "EVENT_TYPE_NOICE_REDUCTION";
-                break;
+                return "EVENT_TYPE_NOICE_REDUCTION";
             case EVENT_TYPE_AT_CHLD:
-                eventName = "EVENT_TYPE_AT_CHLD";
-                break;
+                return "EVENT_TYPE_AT_CHLD";
             case EVENT_TYPE_SUBSCRIBER_NUMBER_REQUEST:
-                eventName = "EVENT_TYPE_SUBSCRIBER_NUMBER_REQUEST";
-                break;
+                return "EVENT_TYPE_SUBSCRIBER_NUMBER_REQUEST";
             case EVENT_TYPE_AT_CIND:
-                eventName = "EVENT_TYPE_AT_CIND";
-                break;
+                return "EVENT_TYPE_AT_CIND";
             case EVENT_TYPE_AT_COPS:
-                eventName = "EVENT_TYPE_AT_COPS";
-                break;
+                return "EVENT_TYPE_AT_COPS";
             case EVENT_TYPE_AT_CLCC:
-                eventName = "EVENT_TYPE_AT_CLCC";
-                break;
+                return "EVENT_TYPE_AT_CLCC";
             case EVENT_TYPE_UNKNOWN_AT:
-                eventName = "EVENT_TYPE_UNKNOWN_AT";
-                break;
+                return "EVENT_TYPE_UNKNOWN_AT";
             case EVENT_TYPE_KEY_PRESSED:
-                eventName = "EVENT_TYPE_KEY_PRESSED";
-                break;
+                return "EVENT_TYPE_KEY_PRESSED";
             case EVENT_TYPE_WBS:
-                eventName = "EVENT_TYPE_WBS";
-                break;
+                return "EVENT_TYPE_WBS";
             case EVENT_TYPE_BIND:
-                eventName = "EVENT_TYPE_BIND";
-                break;
+                return "EVENT_TYPE_BIND";
             case EVENT_TYPE_BIEV:
-                eventName = "EVENT_TYPE_BIEV";
-                break;
-            // do nothing by default
+                return "EVENT_TYPE_BIEV";
+            default:
+                return "UNKNOWN";
         }
-        return eventName;
     }
 
     @Override
-    public String toString() {
-        return String.format("%s[%d], valInt=%d, valInt2=%d, valString=%s, device=%s",
-                getTypeString(), type, valueInt, valueInt2, valueString, device);
+    public void buildString(StringBuilder builder) {
+        if (builder == null) {
+            return;
+        }
+        builder.append(getTypeString())
+                .append("[")
+                .append(type)
+                .append("]")
+                .append(", valInt=")
+                .append(valueInt)
+                .append(", valInt2=")
+                .append(valueInt2)
+                .append(", valString=")
+                .append(valueString)
+                .append(", device=")
+                .append(device);
     }
 }
