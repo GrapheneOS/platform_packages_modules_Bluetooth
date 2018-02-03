@@ -590,7 +590,8 @@ public class AdapterService extends Service {
     void updateAdapterState(int prevState, int newState) {
         if (mCallbacks != null) {
             int n = mCallbacks.beginBroadcast();
-            debugLog("updateAdapterState() - Broadcasting state to " + n + " receivers.");
+            debugLog("updateAdapterState() - Broadcasting state " + BluetoothAdapter.nameForState(
+                    newState) + " to " + n + " receivers.");
             for (int i = 0; i < n; i++) {
                 try {
                     mCallbacks.getBroadcastItem(i).onBluetoothStateChange(prevState, newState);

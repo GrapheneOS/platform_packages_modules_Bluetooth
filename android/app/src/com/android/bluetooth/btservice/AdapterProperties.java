@@ -52,7 +52,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 class AdapterProperties {
     private static final boolean DBG = true;
     private static final boolean VDBG = false;
-    private static final String TAG = "BluetoothAdapterProperties";
+    private static final String TAG = "AdapterProperties";
 
     private static final String MAX_CONNECTED_AUDIO_DEVICES_PROPERTY =
             "persist.bluetooth.maxconnectedaudiodevices";
@@ -311,7 +311,7 @@ class AdapterProperties {
      * @param mState the mState to set
      */
     void setState(int mState) {
-        debugLog("Setting state to " + mState);
+        debugLog("Setting state to " + BluetoothAdapter.nameForState(mState));
         this.mState = mState;
     }
 
