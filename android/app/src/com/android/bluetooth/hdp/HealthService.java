@@ -28,6 +28,7 @@ import android.os.Looper;
 import android.os.Message;
 import android.os.ParcelFileDescriptor;
 import android.os.RemoteException;
+import android.support.annotation.VisibleForTesting;
 import android.util.Log;
 
 import com.android.bluetooth.Utils;
@@ -67,6 +68,8 @@ public class HealthService extends ProfileService {
     private static final int MESSAGE_APP_REGISTRATION_CALLBACK = 11;
     private static final int MESSAGE_CHANNEL_STATE_CALLBACK = 12;
 
+    private static HealthService sHealthService;
+
     static {
         classInitNative();
     }
@@ -89,11 +92,13 @@ public class HealthService extends ProfileService {
         mHandler = new HealthServiceMessageHandler(looper);
         initializeNative();
         mNativeAvailable = true;
+        setHealthService(this);
         return true;
     }
 
     @Override
     protected boolean stop() {
+        setHealthService(null);
         if (mHandler != null) {
             mHandler.removeCallbacksAndMessages(null);
             Looper looper = mHandler.getLooper();
@@ -137,6 +142,31 @@ public class HealthService extends ProfileService {
         if (mApps != null) {
             mApps.clear();
         }
+    }
+
+    /**
+     * Get a static reference to the current health service instance
+     *
+     * @return current health service instance
+     */
+    @VisibleForTesting
+    public static synchronized HealthService getHealthService() {
+        if (sHealthService == null) {
+            Log.w(TAG, "getHealthService(): service is null");
+            return null;
+        }
+        if (!sHealthService.isAvailable()) {
+            Log.w(TAG, "getHealthService(): service is not available");
+            return null;
+        }
+        return sHealthService;
+    }
+
+    private static synchronized void setHealthService(HealthService instance) {
+        if (DBG) {
+            Log.d(TAG, "setHealthService(): set to: " + instance);
+        }
+        sHealthService = instance;
     }
 
     private final class HealthServiceMessageHandler extends Handler {

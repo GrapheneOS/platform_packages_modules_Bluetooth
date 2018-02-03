@@ -24,9 +24,13 @@ import android.content.res.Resources;
 import android.media.AudioManager;
 import android.os.HandlerThread;
 import android.os.Looper;
+import android.support.test.InstrumentationRegistry;
 import android.support.test.filters.MediumTest;
 import android.support.test.runner.AndroidJUnit4;
 
+import com.android.bluetooth.R;
+
+import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -39,6 +43,7 @@ public class A2dpSinkStreamHandlerTest {
     private static final int DUCK_PERCENT = 75;
     private HandlerThread mHandlerThread;
     private A2dpSinkStreamHandler mStreamHandler;
+    private Context mTargetContext;
 
     @Mock private Context mMockContext;
 
@@ -52,6 +57,9 @@ public class A2dpSinkStreamHandlerTest {
 
     @Before
     public void setUp() {
+        mTargetContext = InstrumentationRegistry.getTargetContext();
+        Assume.assumeTrue("Ignore test when A2dpSinkService is not enabled",
+                mTargetContext.getResources().getBoolean(R.bool.profile_supported_a2dp_sink));
         MockitoAnnotations.initMocks(this);
         // Mock the looper
         if (Looper.myLooper() == null) {

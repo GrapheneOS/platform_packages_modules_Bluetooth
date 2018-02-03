@@ -102,7 +102,6 @@ public class HeadsetClientService extends ProfileService {
         // Create the thread on which all State Machines will run
         mSmThread = new HandlerThread("HeadsetClient.SM");
         mSmThread.start();
-        NativeInterface.initializeNative();
 
         return true;
     }
@@ -141,7 +140,8 @@ public class HeadsetClientService extends ProfileService {
     @Override
     protected void cleanup() {
         HeadsetClientStateMachine.cleanup();
-        clearHeadsetClientService();
+        // TODO(b/72948646): should be moved to stop()
+        setHeadsetClientService(null);
     }
 
     private final BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
@@ -445,41 +445,22 @@ public class HeadsetClientService extends ProfileService {
 
     // API methods
     public static synchronized HeadsetClientService getHeadsetClientService() {
-        if (sHeadsetClientService != null && sHeadsetClientService.isAvailable()) {
-            if (DBG) {
-                Log.d(TAG, "getHeadsetClientService(): returning " + sHeadsetClientService);
-            }
-            return sHeadsetClientService;
+        if (sHeadsetClientService == null) {
+            Log.w(TAG, "getHeadsetClientService(): service is null");
+            return null;
         }
-        if (DBG) {
-            if (sHeadsetClientService == null) {
-                Log.d(TAG, "getHeadsetClientService(): service is NULL");
-            } else if (!(sHeadsetClientService.isAvailable())) {
-                Log.d(TAG, "getHeadsetClientService(): service is not available");
-            }
+        if (!sHeadsetClientService.isAvailable()) {
+            Log.w(TAG, "getHeadsetClientService(): service is not available ");
+            return null;
         }
-        return null;
+        return sHeadsetClientService;
     }
 
     private static synchronized void setHeadsetClientService(HeadsetClientService instance) {
-        if (instance != null && instance.isAvailable()) {
-            if (DBG) {
-                Log.d(TAG, "setHeadsetClientService(): set to: " + sHeadsetClientService);
-            }
-            sHeadsetClientService = instance;
-        } else {
-            if (DBG) {
-                if (sHeadsetClientService == null) {
-                    Log.d(TAG, "setHeadsetClientService(): service not available");
-                } else if (!sHeadsetClientService.isAvailable()) {
-                    Log.d(TAG, "setHeadsetClientService(): service is cleaning up");
-                }
-            }
+        if (DBG) {
+            Log.d(TAG, "setHeadsetClientService(): set to: " + instance);
         }
-    }
-
-    private static synchronized void clearHeadsetClientService() {
-        sHeadsetClientService = null;
+        sHeadsetClientService = instance;
     }
 
     public boolean connect(BluetoothDevice device) {

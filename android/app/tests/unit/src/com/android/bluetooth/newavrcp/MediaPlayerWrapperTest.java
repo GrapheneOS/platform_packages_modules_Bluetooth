@@ -48,10 +48,10 @@ import java.util.List;
 public class MediaPlayerWrapperTest {
     private static final int MSG_TIMEOUT = 0;
 
-    HandlerThread mThread;
-    MediaMetadata.Builder mTestMetadata;
-    ArrayList<MediaDescription.Builder> mTestQueue;
-    PlaybackState.Builder mTestState;
+    private HandlerThread mThread;
+    private MediaMetadata.Builder mTestMetadata;
+    private ArrayList<MediaDescription.Builder> mTestQueue;
+    private PlaybackState.Builder mTestState;
 
     @Captor ArgumentCaptor<MediaController.Callback> mControllerCbs;
     @Captor ArgumentCaptor<MediaPlayerWrapper.MediaData> mMediaUpdateData;

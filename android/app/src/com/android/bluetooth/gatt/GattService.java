@@ -171,6 +171,8 @@ public class GattService extends ProfileService {
     private ScanManager mScanManager;
     private AppOpsManager mAppOps;
 
+    private static GattService sGattService;
+
     /**
      * Reliable write queue
      */
@@ -201,6 +203,7 @@ public class GattService extends ProfileService {
         mPeriodicScanManager = new PeriodicScanManager(AdapterService.getAdapterService());
         mPeriodicScanManager.start();
 
+        setGattService(this);
         return true;
     }
 
@@ -209,6 +212,7 @@ public class GattService extends ProfileService {
         if (DBG) {
             Log.d(TAG, "stop()");
         }
+        setGattService(null);
         mScannerMap.clear();
         mClientMap.clear();
         mServerMap.clear();
@@ -241,6 +245,32 @@ public class GattService extends ProfileService {
         if (mPeriodicScanManager != null) {
             mPeriodicScanManager.cleanup();
         }
+    }
+
+
+    /**
+     * Get the current instance of {@link GattService}
+     *
+     * @return current instance of {@link GattService}
+     */
+    @VisibleForTesting
+    public static synchronized GattService getGattService() {
+        if (sGattService == null) {
+            Log.w(TAG, "getGattService(): service is null");
+            return null;
+        }
+        if (!sGattService.isAvailable()) {
+            Log.w(TAG, "getGattService(): service is not available");
+            return null;
+        }
+        return sGattService;
+    }
+
+    private static synchronized void setGattService(GattService instance) {
+        if (DBG) {
+            Log.d(TAG, "setGattService(): set to: " + instance);
+        }
+        sGattService = instance;
     }
 
     boolean permissionCheck(UUID uuid) {
