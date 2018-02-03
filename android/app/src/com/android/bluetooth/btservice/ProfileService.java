@@ -116,7 +116,7 @@ public abstract class ProfileService extends Service {
     @Override
     public void onCreate() {
         if (DBG) {
-            log("onCreate");
+            Log.d(mName, "onCreate");
         }
         super.onCreate();
         mAdapter = BluetoothAdapter.getDefaultAdapter();
@@ -127,7 +127,7 @@ public abstract class ProfileService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         if (DBG) {
-            log("onStartCommand()");
+            Log.d(mName, "onStartCommand()");
         }
 
         if (checkCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM)
@@ -156,7 +156,7 @@ public abstract class ProfileService extends Service {
     @Override
     public IBinder onBind(Intent intent) {
         if (DBG) {
-            log("onBind");
+            Log.d(mName, "onBind");
         }
         if (mAdapter != null && mBinder == null) {
             // initBinder returned null, you can't bind
@@ -168,7 +168,7 @@ public abstract class ProfileService extends Service {
     @Override
     public boolean onUnbind(Intent intent) {
         if (DBG) {
-            log("onUnbind");
+            Log.d(mName, "onUnbind");
         }
         return super.onUnbind(intent);
     }
@@ -296,9 +296,5 @@ public abstract class ProfileService extends Service {
             return mAdapter.getRemoteDevice(Utils.getAddressStringFromByte(address));
         }
         return null;
-    }
-
-    protected void log(String msg) {
-        Log.d(mName, msg);
     }
 }
