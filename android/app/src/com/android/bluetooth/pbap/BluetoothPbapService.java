@@ -541,8 +541,12 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
         if (VERBOSE) {
             Log.v(TAG, "stop()");
         }
-        mSessionStatusHandler.obtainMessage(SHUTDOWN).sendToTarget();
-        mHandlerThread.quitSafely();
+        if (mSessionStatusHandler != null) {
+            mSessionStatusHandler.obtainMessage(SHUTDOWN).sendToTarget();
+        }
+        if (mHandlerThread != null) {
+            mHandlerThread.quitSafely();
+        }
         if (mContactChangeObserver == null) {
             Log.i(TAG, "Avoid unregister when receiver it is not registered");
             return true;
