@@ -525,7 +525,8 @@ final class AdapterState extends StateMachine {
 
         int oldState = adapterProperties.getState();
         adapterProperties.setState(newState);
-        infoLog("Bluetooth adapter state changed: " + oldState + "-> " + newState);
+        infoLog("Bluetooth adapter state changed: " + BluetoothAdapter.nameForState(oldState)
+                + "-> " + BluetoothAdapter.nameForState(newState));
         adapterService.updateAdapterState(oldState, newState);
     }
 
