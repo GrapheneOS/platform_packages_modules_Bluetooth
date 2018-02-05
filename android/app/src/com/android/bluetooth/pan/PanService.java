@@ -79,11 +79,6 @@ public class PanService extends ProfileService {
     }
 
     @Override
-    protected String getName() {
-        return TAG;
-    }
-
-    @Override
     public IProfileServiceBinder initBinder() {
         return new BluetoothPanBinder(this);
     }
@@ -199,7 +194,8 @@ public class PanService extends ProfileService {
                     BluetoothDevice device = getDevice(cs.addr);
                     // TBD get iface from the msg
                     if (DBG) {
-                        log("MESSAGE_CONNECT_STATE_CHANGED: " + device + " state: " + cs.state);
+                        Log.d(TAG,
+                                "MESSAGE_CONNECT_STATE_CHANGED: " + device + " state: " + cs.state);
                     }
                     handlePanDeviceStateChange(device, mPanIfName /* iface */,
                             convertHalState(cs.state), cs.local_role, cs.remote_role);
@@ -467,8 +463,8 @@ public class PanService extends ProfileService {
     private void onConnectStateChanged(byte[] address, int state, int error, int localRole,
             int remoteRole) {
         if (DBG) {
-            log("onConnectStateChanged: " + state + ", local role:" + localRole + ", remoteRole: "
-                    + remoteRole);
+            Log.d(TAG, "onConnectStateChanged: " + state + ", local role:" + localRole
+                    + ", remoteRole: " + remoteRole);
         }
         Message msg = mHandler.obtainMessage(MESSAGE_CONNECT_STATE_CHANGED);
         msg.obj = new ConnectState(address, state, error, localRole, remoteRole);
@@ -477,7 +473,8 @@ public class PanService extends ProfileService {
 
     private void onControlStateChanged(int localRole, int state, int error, String ifname) {
         if (DBG) {
-            log("onControlStateChanged: " + state + ", error: " + error + ", ifname: " + ifname);
+            Log.d(TAG, "onControlStateChanged: " + state + ", error: " + error + ", ifname: "
+                    + ifname);
         }
         if (error == 0) {
             mPanIfName = ifname;

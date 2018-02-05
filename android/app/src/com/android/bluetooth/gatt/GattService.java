@@ -181,11 +181,6 @@ public class GattService extends ProfileService {
     }
 
     @Override
-    protected String getName() {
-        return TAG;
-    }
-
-    @Override
     protected IProfileServiceBinder initBinder() {
         return new BluetoothGattBinder(this);
     }
@@ -646,6 +641,19 @@ public class GattService extends ProfileService {
                 return;
             }
             service.connectionParameterUpdate(clientIf, address, connectionPriority);
+        }
+
+        @Override
+        public void leConnectionUpdate(int clientIf, String address,
+                int minConnectionInterval, int maxConnectionInterval,
+                int slaveLatency, int supervisionTimeout) {
+            GattService service = getService();
+            if (service == null) {
+                return;
+            }
+            service.leConnectionUpdate(clientIf, address, minConnectionInterval,
+                                                    maxConnectionInterval, slaveLatency,
+                                                    supervisionTimeout);
         }
 
         @Override
@@ -2448,6 +2456,20 @@ public class GattService extends ProfileService {
         }
         gattConnectionParameterUpdateNative(clientIf, address, minInterval, maxInterval, latency,
                 timeout);
+    }
+
+    void leConnectionUpdate(int clientIf, String address, int minInterval,
+                                         int maxInterval, int slaveLatency,
+                                         int supervisionTimeout) {
+        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+
+        if (DBG) {
+            Log.d(TAG, "leConnectionUpdate() - address=" + address + ", intervals="
+                        + minInterval + "/" + maxInterval + ", latency=" + slaveLatency
+                        + ", timeout=" + supervisionTimeout);
+        }
+        gattConnectionParameterUpdateNative(clientIf, address, minInterval, maxInterval,
+                                            slaveLatency, supervisionTimeout);
     }
 
     /**************************************************************************

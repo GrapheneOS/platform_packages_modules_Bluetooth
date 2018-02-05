@@ -72,11 +72,6 @@ public class HealthService extends ProfileService {
     }
 
     @Override
-    protected String getName() {
-        return TAG;
-    }
-
-    @Override
     protected IProfileServiceBinder initBinder() {
         return new BluetoothHealthBinder(this);
     }
@@ -152,7 +147,7 @@ public class HealthService extends ProfileService {
         @Override
         public void handleMessage(Message msg) {
             if (DBG) {
-                log("HealthService Handler msg: " + msg.what);
+                Log.d(TAG, "HealthService Handler msg: " + msg.what);
             }
             switch (msg.what) {
                 case MESSAGE_REGISTER_APPLICATION: {
@@ -165,8 +160,8 @@ public class HealthService extends ProfileService {
                     int halRole = convertRoleToHal(appConfig.getRole());
                     int halChannelType = convertChannelTypeToHal(appConfig.getChannelType());
                     if (VDBG) {
-                        log("register datatype: " + appConfig.getDataType() + " role: " + halRole
-                                + " name: " + appConfig.getName() + " channeltype: "
+                        Log.d(TAG, "register datatype: " + appConfig.getDataType() + " role: "
+                                + halRole + " name: " + appConfig.getName() + " channeltype: "
                                 + halChannelType);
                     }
                     int appId = registerHealthAppNative(appConfig.getDataType(), halRole,
@@ -559,7 +554,7 @@ public class HealthService extends ProfileService {
 
     private void callStatusCallback(BluetoothHealthAppConfiguration config, int status) {
         if (VDBG) {
-            log("Health Device Application: " + config + " State Change: status:" + status);
+            Log.d(TAG, "Health Device Application: " + config + " State Change: status:" + status);
         }
         IBluetoothHealthCallback callback = (mApps.get(config)).mCallback;
         if (callback == null) {
@@ -641,7 +636,8 @@ public class HealthService extends ProfileService {
             BluetoothDevice device, int state, int prevState, ParcelFileDescriptor fd, int id) {
         broadcastHealthDeviceStateChange(device, state);
 
-        log("Health Device Callback: " + device + " State Change: " + prevState + "->" + state);
+        Log.d(TAG,
+                "Health Device Callback: " + device + " State Change: " + prevState + "->" + state);
 
         ParcelFileDescriptor dupedFd = null;
         if (fd != null) {

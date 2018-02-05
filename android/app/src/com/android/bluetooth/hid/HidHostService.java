@@ -74,11 +74,6 @@ public class HidHostService extends ProfileService {
     }
 
     @Override
-    public String getName() {
-        return TAG;
-    }
-
-    @Override
     public IProfileServiceBinder initBinder() {
         return new BluetoothHidHostBinder(this);
     }
@@ -240,7 +235,7 @@ public class HidHostService extends ProfileService {
                 case MESSAGE_SET_PROTOCOL_MODE: {
                     BluetoothDevice device = (BluetoothDevice) msg.obj;
                     byte protocolMode = (byte) msg.arg1;
-                    log("sending set protocol mode(" + protocolMode + ")");
+                    Log.d(TAG, "sending set protocol mode(" + protocolMode + ")");
                     if (!setProtocolModeNative(Utils.getByteAddress(device), protocolMode)) {
                         Log.e(TAG, "Error: set protocol mode native returns false");
                     }
@@ -756,7 +751,7 @@ public class HidHostService extends ProfileService {
         /* Notifying the connection state change of the profile before sending the intent for
            connection state change, as it was causing a race condition, with the UI not being
            updated with the correct connection state. */
-        log("Connection state " + device + ": " + prevState + "->" + newState);
+        Log.d(TAG, "Connection state " + device + ": " + prevState + "->" + newState);
         Intent intent = new Intent(BluetoothHidHost.ACTION_CONNECTION_STATE_CHANGED);
         intent.putExtra(BluetoothProfile.EXTRA_PREVIOUS_STATE, prevState);
         intent.putExtra(BluetoothProfile.EXTRA_STATE, newState);
@@ -780,7 +775,7 @@ public class HidHostService extends ProfileService {
         intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY_BEFORE_BOOT);
         sendBroadcast(intent, BLUETOOTH_PERM);
         if (DBG) {
-            log("Protocol Mode (" + device + "): " + protocolMode);
+            Log.d(TAG, "Protocol Mode (" + device + "): " + protocolMode);
         }
     }
 
@@ -808,7 +803,7 @@ public class HidHostService extends ProfileService {
         intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY_BEFORE_BOOT);
         sendBroadcast(intent, BLUETOOTH_PERM);
         if (DBG) {
-            log("Idle time (" + device + "): " + idleTime);
+            Log.d(TAG, "Idle time (" + device + "): " + idleTime);
         }
     }
 
