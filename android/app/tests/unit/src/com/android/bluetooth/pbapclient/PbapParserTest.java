@@ -26,7 +26,10 @@ import android.support.test.InstrumentationRegistry;
 import android.support.test.filters.MediumTest;
 import android.support.test.runner.AndroidJUnit4;
 
+import com.android.bluetooth.R;
+
 import org.junit.Assert;
+import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -48,6 +51,8 @@ public class PbapParserTest {
     @Before
     public void setUp() {
         mTargetContext = InstrumentationRegistry.getTargetContext();
+        Assume.assumeTrue("Ignore test when PbapClientService is not enabled",
+                mTargetContext.getResources().getBoolean(R.bool.profile_supported_pbapclient));
         mAccount = new Account(TEST_ACCOUNT_NAME,
                 mTargetContext.getString(com.android.bluetooth.R.string.pbap_account_type));
         try {

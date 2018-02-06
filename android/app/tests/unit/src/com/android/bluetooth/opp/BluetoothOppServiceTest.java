@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.bluetooth.hdp;
+package com.android.bluetooth.opp;
 
 import android.bluetooth.BluetoothAdapter;
 import android.content.Context;
@@ -38,8 +38,8 @@ import org.mockito.MockitoAnnotations;
 
 @MediumTest
 @RunWith(AndroidJUnit4.class)
-public class HealthServiceTest {
-    private HealthService mService = null;
+public class BluetoothOppServiceTest {
+    private BluetoothOppService mService = null;
     private BluetoothAdapter mAdapter = null;
     private Context mTargetContext;
 
@@ -50,12 +50,12 @@ public class HealthServiceTest {
     @Before
     public void setUp() throws Exception {
         mTargetContext = InstrumentationRegistry.getTargetContext();
-        Assume.assumeTrue("Ignore test when HealthService is not enabled",
-                mTargetContext.getResources().getBoolean(R.bool.profile_supported_hdp));
+        Assume.assumeTrue("Ignore test when BluetoothOppService is not enabled",
+                mTargetContext.getResources().getBoolean(R.bool.profile_supported_opp));
         MockitoAnnotations.initMocks(this);
         TestUtils.setAdapterService(mAdapterService);
-        TestUtils.startService(mServiceRule, HealthService.class);
-        mService = HealthService.getHealthService();
+        TestUtils.startService(mServiceRule, BluetoothOppService.class);
+        mService = BluetoothOppService.getBluetoothOppService();
         Assert.assertNotNull(mService);
         // Try getting the Bluetooth adapter
         mAdapter = BluetoothAdapter.getDefaultAdapter();
@@ -64,23 +64,15 @@ public class HealthServiceTest {
 
     @After
     public void tearDown() throws Exception {
-        if (!mTargetContext.getResources().getBoolean(R.bool.profile_supported_hdp)) {
+        if (!mTargetContext.getResources().getBoolean(R.bool.profile_supported_opp)) {
             return;
         }
-        TestUtils.stopService(mServiceRule, HealthService.class);
-        mService = HealthService.getHealthService();
-        Assert.assertNull(mService);
+        TestUtils.stopService(mServiceRule, BluetoothOppService.class);
         TestUtils.clearAdapterService(mAdapterService);
     }
 
     @Test
     public void testInitialize() {
-        Assert.assertNotNull(HealthService.getHealthService());
-    }
-
-    @Test
-    public void testRegisterAppConfiguration() {
-        // Test registering a null config
-        Assert.assertEquals(false, mService.registerAppConfiguration(null, null));
+        Assert.assertNotNull(BluetoothOppService.getBluetoothOppService());
     }
 }

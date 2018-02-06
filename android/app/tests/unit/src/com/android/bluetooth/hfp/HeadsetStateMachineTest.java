@@ -22,6 +22,7 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothHeadset;
 import android.bluetooth.BluetoothProfile;
+import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.media.AudioManager;
@@ -31,21 +32,20 @@ import android.support.test.InstrumentationRegistry;
 import android.support.test.filters.MediumTest;
 import android.support.test.runner.AndroidJUnit4;
 
+import com.android.bluetooth.R;
+import com.android.bluetooth.TestUtils;
 import com.android.bluetooth.btservice.AdapterService;
 
 import org.hamcrest.core.IsInstanceOf;
 import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Assert;
+import org.junit.Assume;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-
-import java.lang.reflect.Method;
 
 /**
  * Tests for {@link HeadsetStateMachine}
@@ -56,45 +56,28 @@ public class HeadsetStateMachineTest {
     private static final int CONNECT_TIMEOUT_TEST_MILLIS = 1000;
     private static final int CONNECT_TIMEOUT_TEST_WAIT_MILLIS = CONNECT_TIMEOUT_TEST_MILLIS * 3 / 2;
     private static final int ASYNC_CALL_TIMEOUT_MILLIS = 250;
+    private Context mTargetContext;
     private BluetoothAdapter mAdapter;
     private HandlerThread mHandlerThread;
     private HeadsetStateMachine mHeadsetStateMachine;
     private BluetoothDevice mTestDevice;
     private ArgumentCaptor<Intent> mIntentArgument = ArgumentCaptor.forClass(Intent.class);
 
+    @Mock private AdapterService mAdapterService;
     @Mock private HeadsetService mHeadsetService;
     @Mock private HeadsetSystemInterface mSystemInterface;
     @Mock private AudioManager mAudioManager;
     @Mock private HeadsetPhoneState mPhoneState;
     private HeadsetNativeInterface mNativeInterface;
 
-    private static AdapterService sAdapterService;
-
-    @BeforeClass
-    public static void setUpClassOnlyOnce() throws Exception {
-        sAdapterService = mock(AdapterService.class);
-        // We cannot mock AdapterService.getAdapterService() with Mockito.
-        // Hence we need to use reflection to call a private method to
-        // initialize properly the AdapterService.sAdapterService field.
-        Method method =
-                AdapterService.class.getDeclaredMethod("setAdapterService", AdapterService.class);
-        method.setAccessible(true);
-        method.invoke(null, sAdapterService);
-    }
-
-    @AfterClass
-    public static void tearDownOnlyOnce() throws Exception {
-        Method method =
-                AdapterService.class.getDeclaredMethod("clearAdapterService", AdapterService.class);
-        method.setAccessible(true);
-        method.invoke(null, sAdapterService);
-        sAdapterService = null;
-    }
-
     @Before
     public void setUp() throws Exception {
+        mTargetContext = InstrumentationRegistry.getTargetContext();
+        Assume.assumeTrue("Ignore test when HeadsetService is not enabled",
+                mTargetContext.getResources().getBoolean(R.bool.profile_supported_hs_hfp));
         // Setup mocks and test assets
         MockitoAnnotations.initMocks(this);
+        TestUtils.setAdapterService(mAdapterService);
         // Stub system interface
         when(mSystemInterface.getHeadsetPhoneState()).thenReturn(mPhoneState);
         when(mSystemInterface.getAudioManager()).thenReturn(mAudioManager);
@@ -110,7 +93,7 @@ public class HeadsetStateMachineTest {
         doReturn(true).when(mNativeInterface).connectAudio(mTestDevice);
         doReturn(true).when(mNativeInterface).disconnectAudio(mTestDevice);
         // Stub headset service
-        doReturn(BluetoothDevice.BOND_BONDED).when(sAdapterService)
+        doReturn(BluetoothDevice.BOND_BONDED).when(mAdapterService)
                 .getBondState(any(BluetoothDevice.class));
         when(mHeadsetService.bindService(any(Intent.class), any(ServiceConnection.class), anyInt()))
                 .thenReturn(true);
@@ -129,14 +112,17 @@ public class HeadsetStateMachineTest {
         HeadsetStateMachine.sConnectTimeoutMs = CONNECT_TIMEOUT_TEST_MILLIS;
         mHeadsetStateMachine = HeadsetObjectsFactory.getInstance()
                 .makeStateMachine(mTestDevice, mHandlerThread.getLooper(), mHeadsetService,
-                        sAdapterService, mNativeInterface, mSystemInterface);
+                        mAdapterService, mNativeInterface, mSystemInterface);
     }
 
     @After
-    public void tearDown() {
+    public void tearDown() throws Exception {
+        if (!mTargetContext.getResources().getBoolean(R.bool.profile_supported_hs_hfp)) {
+            return;
+        }
         HeadsetObjectsFactory.getInstance().destroyStateMachine(mHeadsetStateMachine);
         mHandlerThread.quit();
-        reset(sAdapterService);
+        TestUtils.clearAdapterService(mAdapterService);
     }
 
     /**

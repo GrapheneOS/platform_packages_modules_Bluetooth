@@ -182,20 +182,17 @@ public class A2dpService extends ProfileService {
             mAvrcp.cleanup();
             mAvrcp = null;
         }
-        clearA2dpService();
+        // TODO(b/72948646): should be moved to stop()
+        setA2dpService(null);
     }
 
     public static synchronized A2dpService getA2dpService() {
         if (sA2dpService == null) {
-            if (DBG) {
-                Log.d(TAG, "getA2dpService(): service is NULL");
-            }
+            Log.w(TAG, "getA2dpService(): service is null");
             return null;
         }
         if (!sA2dpService.isAvailable()) {
-            if (DBG) {
-                Log.d(TAG, "getA2dpService(): service is not available");
-            }
+            Log.w(TAG, "getA2dpService(): service is not available");
             return null;
         }
         return sA2dpService;
@@ -206,10 +203,6 @@ public class A2dpService extends ProfileService {
             Log.d(TAG, "setA2dpService(): set to: " + instance);
         }
         sA2dpService = instance;
-    }
-
-    private static synchronized void clearA2dpService() {
-        sA2dpService = null;
     }
 
     public boolean connect(BluetoothDevice device) {

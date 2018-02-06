@@ -22,31 +22,34 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.BluetoothSocket;
+import android.content.Context;
 import android.os.Handler;
 import android.os.HandlerThread;
+import android.support.test.InstrumentationRegistry;
 import android.support.test.filters.MediumTest;
 import android.support.test.runner.AndroidJUnit4;
 
+import com.android.bluetooth.R;
+import com.android.bluetooth.TestUtils;
 import com.android.bluetooth.btservice.AdapterService;
 
 import org.hamcrest.core.IsInstanceOf;
 import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Assert;
+import org.junit.Assume;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import java.lang.reflect.Method;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
 @MediumTest
 @RunWith(AndroidJUnit4.class)
-public class PbapTest {
+public class PbapStateMachineTest {
     private static final int TEST_NOTIFICATION_ID = 1000000;
-    private static AdapterService sAdapterService;
 
+    private Context mTargetContext;
     private BluetoothAdapter mAdapter;
     private HandlerThread mHandlerThread;
     private PbapStateMachine mPbapStateMachine;
@@ -55,25 +58,15 @@ public class PbapTest {
     private BluetoothSocket mSocket;
     private BluetoothPbapService mBluetoothPbapService;
 
-    @BeforeClass
-    public static void setUpClassOnlyOnce() throws Exception {
-        sAdapterService = mock(AdapterService.class);
-        // We cannot mock AdapterService.getAdapterService() with Mockito.
-        // Hence we need to use reflection to call a private method to
-        // initialize properly the AdapterService.sAdapterService field.
-        Method method =
-                AdapterService.class.getDeclaredMethod("setAdapterService", AdapterService.class);
-        method.setAccessible(true);
-        method.invoke(sAdapterService, sAdapterService);
-    }
-
-    @AfterClass
-    public static void tearDownOnlyOnce() {
-        sAdapterService = null;
-    }
+    @Mock private AdapterService mAdapterService;
 
     @Before
     public void setUp() throws Exception {
+        mTargetContext = InstrumentationRegistry.getTargetContext();
+        Assume.assumeTrue("Ignore test when BluetoothPbapService is not enabled",
+                mTargetContext.getResources().getBoolean(R.bool.profile_supported_pbap));
+        MockitoAnnotations.initMocks(this);
+        TestUtils.setAdapterService(mAdapterService);
         // This line must be called to make sure relevant objects are initialized properly
         mAdapter = BluetoothAdapter.getDefaultAdapter();
         // Get a device for testing
@@ -89,8 +82,12 @@ public class PbapTest {
     }
 
     @After
-    public void tearDown() {
+    public void tearDown() throws Exception {
+        if (!mTargetContext.getResources().getBoolean(R.bool.profile_supported_pbap)) {
+            return;
+        }
         mHandlerThread.quitSafely();
+        TestUtils.clearAdapterService(mAdapterService);
     }
 
     /**
