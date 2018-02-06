@@ -14,6 +14,7 @@ import android.content.Intent;
 import android.content.res.Resources;
 import android.media.AudioManager;
 import android.os.HandlerThread;
+import android.support.test.InstrumentationRegistry;
 import android.support.test.espresso.intent.matcher.IntentMatchers;
 import android.support.test.filters.LargeTest;
 import android.support.test.filters.MediumTest;
@@ -26,6 +27,7 @@ import org.hamcrest.core.AllOf;
 import org.hamcrest.core.IsInstanceOf;
 import org.junit.After;
 import org.junit.Assert;
+import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -41,6 +43,7 @@ public class HeadsetClientStateMachineTest {
     private HandlerThread mHandlerThread;
     private HeadsetClientStateMachine mHeadsetClientStateMachine;
     private BluetoothDevice mTestDevice;
+    private Context mTargetContext;
 
     @Mock
     private Resources mMockHfpResources;
@@ -56,6 +59,9 @@ public class HeadsetClientStateMachineTest {
 
     @Before
     public void setUp() {
+        mTargetContext = InstrumentationRegistry.getTargetContext();
+        Assume.assumeTrue("Ignore test when HeadsetClientService is not enabled",
+                mTargetContext.getResources().getBoolean(R.bool.profile_supported_hfpclient));
         // Setup mocks and test assets
         MockitoAnnotations.initMocks(this);
         // Set a valid volume
@@ -83,6 +89,9 @@ public class HeadsetClientStateMachineTest {
 
     @After
     public void tearDown() {
+        if (!mTargetContext.getResources().getBoolean(R.bool.profile_supported_hfpclient)) {
+            return;
+        }
         mHeadsetClientStateMachine.doQuit();
         mHandlerThread.quit();
     }

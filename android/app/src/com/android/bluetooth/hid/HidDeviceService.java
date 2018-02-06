@@ -559,7 +559,6 @@ public class HidDeviceService extends ProfileService {
         if (DBG) {
             Log.d(TAG, "stop()");
         }
-
         return true;
     }
 
@@ -573,6 +572,8 @@ public class HidDeviceService extends ProfileService {
             mHidDeviceNativeInterface.cleanup();
             mNativeAvailable = false;
         }
+        // TODO(b/72948646): should be moved to stop()
+        setHidDeviceService(null);
     }
 
     @Override
@@ -599,6 +600,9 @@ public class HidDeviceService extends ProfileService {
     }
 
     private static synchronized void setHidDeviceService(HidDeviceService instance) {
+        if (DBG) {
+            Log.d(TAG, "setHidDeviceService(): set to: " + instance);
+        }
         sHidDeviceService = instance;
     }
 

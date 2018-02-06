@@ -37,6 +37,7 @@ import android.os.ParcelUuid;
 import android.os.PowerManager;
 import android.os.RemoteException;
 import android.provider.Settings;
+import android.support.annotation.VisibleForTesting;
 import android.text.TextUtils;
 import android.util.Log;
 import android.util.SparseArray;
@@ -149,6 +150,8 @@ public class BluetoothMapService extends ProfileService {
     SdpMnsRecord mMnsRecord = null;
     private MapServiceMessageHandler mSessionStatusHandler;
     private boolean mServiceStarted = false;
+
+    private static BluetoothMapService sBluetoothMapService;
 
     private boolean mSmsCapable = true;
 
@@ -673,8 +676,34 @@ public class BluetoothMapService extends ProfileService {
 
         // start RFCOMM listener
         sendStartListenerMessage(-1);
+        setBluetoothMapService(this);
         mServiceStarted = true;
         return mServiceStarted;
+    }
+
+    /**
+     * Get the current instance of {@link BluetoothMapService}
+     *
+     * @return current instance of {@link BluetoothMapService}
+     */
+    @VisibleForTesting
+    public static synchronized BluetoothMapService getBluetoothMapService() {
+        if (sBluetoothMapService == null) {
+            Log.w(TAG, "getBluetoothMapService(): service is null");
+            return null;
+        }
+        if (!sBluetoothMapService.isAvailable()) {
+            Log.w(TAG, "getBluetoothMapService(): service is not available");
+            return null;
+        }
+        return sBluetoothMapService;
+    }
+
+    private static synchronized void setBluetoothMapService(BluetoothMapService instance) {
+        if (DEBUG) {
+            Log.d(TAG, "setBluetoothMapService(): set to: " + instance);
+        }
+        sBluetoothMapService = instance;
     }
 
     /**
@@ -860,6 +889,7 @@ public class BluetoothMapService extends ProfileService {
         if (mSessionStatusHandler != null) {
             sendShutdownMessage();
         }
+        setBluetoothMapService(null);
         mServiceStarted = false;
         return true;
     }

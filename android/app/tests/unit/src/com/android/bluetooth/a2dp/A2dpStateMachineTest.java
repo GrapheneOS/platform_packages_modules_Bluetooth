@@ -29,19 +29,20 @@ import android.support.test.InstrumentationRegistry;
 import android.support.test.filters.MediumTest;
 import android.support.test.runner.AndroidJUnit4;
 
+import com.android.bluetooth.R;
+import com.android.bluetooth.TestUtils;
 import com.android.bluetooth.btservice.AdapterService;
 
 import org.hamcrest.core.IsInstanceOf;
 import org.junit.After;
 import org.junit.Assert;
+import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-
-import java.lang.reflect.Method;
 
 @MediumTest
 @RunWith(AndroidJUnit4.class)
@@ -59,18 +60,13 @@ public class A2dpStateMachineTest {
 
     @Before
     public void setUp() throws Exception {
+        mTargetContext = InstrumentationRegistry.getTargetContext();
+        Assume.assumeTrue("Ignore test when A2dpService is not enabled",
+                mTargetContext.getResources().getBoolean(R.bool.profile_supported_a2dp));
         // Set up mocks and test assets
         MockitoAnnotations.initMocks(this);
+        TestUtils.setAdapterService(mAdapterService);
 
-        // We cannot mock AdapterService.getAdapterService() with Mockito.
-        // Hence we need to use reflection to call a private method to
-        // initialize properly the AdapterService.sAdapterService field.
-        Method method = AdapterService.class.getDeclaredMethod("setAdapterService",
-                                                               AdapterService.class);
-        method.setAccessible(true);
-        method.invoke(mAdapterService, mAdapterService);
-
-        mTargetContext = InstrumentationRegistry.getTargetContext();
         mAdapter = BluetoothAdapter.getDefaultAdapter();
 
         // Get a device for testing
@@ -83,14 +79,18 @@ public class A2dpStateMachineTest {
                                                  mTargetContext, mA2dpNativeInterface,
                                                  mHandlerThread.getLooper());
         // Override the timeout value to speed up the test
-        mA2dpStateMachine.sConnectTimeoutMs = 1000;     // 1s
+        A2dpStateMachine.sConnectTimeoutMs = 1000;     // 1s
         mA2dpStateMachine.start();
     }
 
     @After
-    public void tearDown() {
+    public void tearDown() throws Exception {
+        if (!mTargetContext.getResources().getBoolean(R.bool.profile_supported_a2dp)) {
+            return;
+        }
         mA2dpStateMachine.doQuit();
         mHandlerThread.quit();
+        TestUtils.clearAdapterService(mAdapterService);
     }
 
     /**

@@ -222,6 +222,7 @@ public class AvrcpControllerService extends ProfileService {
 
     @Override
     protected boolean stop() {
+        setAvrcpControllerService(null);
         if (mAvrcpCtSm != null) {
             mAvrcpCtSm.doQuit();
         }
@@ -231,41 +232,22 @@ public class AvrcpControllerService extends ProfileService {
     //API Methods
 
     public static synchronized AvrcpControllerService getAvrcpControllerService() {
-        if (sAvrcpControllerService != null && sAvrcpControllerService.isAvailable()) {
-            if (DBG) {
-                Log.d(TAG, "getAvrcpControllerService(): returning " + sAvrcpControllerService);
-            }
-            return sAvrcpControllerService;
+        if (sAvrcpControllerService == null) {
+            Log.w(TAG, "getAvrcpControllerService(): service is null");
+            return null;
         }
-        if (DBG) {
-            if (sAvrcpControllerService == null) {
-                Log.d(TAG, "getAvrcpControllerService(): service is NULL");
-            } else if (!(sAvrcpControllerService.isAvailable())) {
-                Log.d(TAG, "getAvrcpControllerService(): service is not available");
-            }
+        if (!sAvrcpControllerService.isAvailable()) {
+            Log.w(TAG, "getAvrcpControllerService(): service is not available ");
+            return null;
         }
-        return null;
+        return sAvrcpControllerService;
     }
 
     private static synchronized void setAvrcpControllerService(AvrcpControllerService instance) {
-        if (instance != null && instance.isAvailable()) {
-            if (DBG) {
-                Log.d(TAG, "setAvrcpControllerService(): set to: " + sAvrcpControllerService);
-            }
-            sAvrcpControllerService = instance;
-        } else {
-            if (DBG) {
-                if (instance == null) {
-                    Log.d(TAG, "setAvrcpControllerService(): service not available");
-                } else if (!instance.isAvailable()) {
-                    Log.d(TAG, "setAvrcpControllerService(): service is cleaning up");
-                }
-            }
+        if (DBG) {
+            Log.d(TAG, "setAvrcpControllerService(): set to: " + instance);
         }
-    }
-
-    private static synchronized void clearAvrcpControllerService() {
-        sAvrcpControllerService = null;
+        sAvrcpControllerService = instance;
     }
 
     public synchronized List<BluetoothDevice> getConnectedDevices() {
