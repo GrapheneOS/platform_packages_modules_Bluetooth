@@ -47,6 +47,8 @@ class BluetoothSocketManagerBinderServer : public BnBluetoothSocketManager {
       std::unique_ptr<::android::os::ParcelFileDescriptor>* _aidl_return)
       override;
 
+  Status requestMaximumTxDataLength(const BluetoothDevice& device);
+
  private:
   const btsock_interface_t* socketInterface;
   DISALLOW_COPY_AND_ASSIGN(BluetoothSocketManagerBinderServer);
