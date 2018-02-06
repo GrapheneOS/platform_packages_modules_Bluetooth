@@ -26,6 +26,6 @@ class MapUtils {
     }
 
     static MnsService newMnsServiceInstance(MapClientService mapClientService) {
-        return (sMnsService != null) ? new MnsService(mapClientService) : sMnsService;
+        return (sMnsService == null) ? new MnsService(mapClientService) : sMnsService;
     }
 }
