@@ -2493,20 +2493,8 @@ public class AdapterService extends Service {
         }
 
         verboseLog("dumpsys arguments, check for protobuf output: " + TextUtils.join(" ", args));
-        if (args[0].startsWith("--proto")) {
-            if (args[0].equals("--proto-bin")) {
-                dumpMetrics(fd);
-            } else if (args[0].equals("--proto-java-bin")) {
-                // TODO: Remove once --proto-java-bin is no longer used
-                BluetoothProto.BluetoothLog metrics = new BluetoothProto.BluetoothLog();
-                byte[] metricsBytes = Base64.encode(metrics.toByteArray(), Base64.DEFAULT);
-                Log.w(TAG, "proto-java-bin dump, empty metrics size is " + metricsBytes.length);
-                try (FileOutputStream protoOut = new FileOutputStream(fd)) {
-                    protoOut.write(metricsBytes);
-                } catch (IOException e) {
-                    errorLog("Unable to write Java protobuf to file descriptor.");
-                }
-            }
+        if (args[0].equals("--proto-bin")) {
+            dumpMetrics(fd);
             return;
         }
 
