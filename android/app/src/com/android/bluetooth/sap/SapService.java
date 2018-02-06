@@ -21,6 +21,7 @@ import android.os.Message;
 import android.os.ParcelUuid;
 import android.os.PowerManager;
 import android.provider.Settings;
+import android.support.annotation.VisibleForTesting;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -88,6 +89,8 @@ public class SapService extends ProfileService {
 
     private boolean mIsWaitingAuthorization = false;
     private boolean mIsRegistered = false;
+
+    private static SapService sSapService;
 
     private static final ParcelUuid[] SAP_UUIDS = {
             BluetoothUuid.SAP,
@@ -627,6 +630,7 @@ public class SapService extends ProfileService {
         mAdapter = BluetoothAdapter.getDefaultAdapter();
         // start RFCOMM listener
         mSessionStatusHandler.sendMessage(mSessionStatusHandler.obtainMessage(START_LISTENER));
+        setSapService(this);
         return true;
     }
 
@@ -637,6 +641,7 @@ public class SapService extends ProfileService {
             Log.i(TAG, "Avoid unregister when receiver it is not registered");
             return true;
         }
+        setSapService(null);
         try {
             mIsRegistered = false;
             unregisterReceiver(mSapReceiver);
@@ -655,6 +660,31 @@ public class SapService extends ProfileService {
         if (mSessionStatusHandler != null) {
             mSessionStatusHandler.removeCallbacksAndMessages(null);
         }
+    }
+
+    /**
+     * Get the current instance of {@link SapService}
+     *
+     * @return current instance of {@link SapService}
+     */
+    @VisibleForTesting
+    public static synchronized SapService getSapService() {
+        if (sSapService == null) {
+            Log.w(TAG, "getSapService(): service is null");
+            return null;
+        }
+        if (!sSapService.isAvailable()) {
+            Log.w(TAG, "getSapService(): service is not available");
+            return null;
+        }
+        return sSapService;
+    }
+
+    private static synchronized void setSapService(SapService instance) {
+        if (DEBUG) {
+            Log.d(TAG, "setSapService(): set to: " + instance);
+        }
+        sSapService = instance;
     }
 
     private void setUserTimeoutAlarm() {

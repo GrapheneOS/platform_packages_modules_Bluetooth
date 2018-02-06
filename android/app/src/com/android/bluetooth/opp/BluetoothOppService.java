@@ -52,6 +52,7 @@ import android.os.Binder;
 import android.os.Handler;
 import android.os.Message;
 import android.os.Process;
+import android.support.annotation.VisibleForTesting;
 import android.util.Log;
 
 import com.android.bluetooth.BluetoothObexTransport;
@@ -162,6 +163,8 @@ public class BluetoothOppService extends ProfileService implements IObexConnecti
             "(" + BluetoothShare.STATUS + ">=" + BluetoothShare.STATUS_SUCCESS + " AND " + INVISIBLE
                     + ") OR (" + WHERE_CONFIRM_PENDING_INBOUND + ")";
 
+    private static BluetoothOppService sBluetoothOppService;
+
     /*
      * TODO No support for queue incoming from multiple devices.
      * Make an array list of server session to support receiving queue from
@@ -229,11 +232,13 @@ public class BluetoothOppService extends ProfileService implements IObexConnecti
         mNotifier.mNotificationMgr.cancelAll();
         mNotifier.updateNotification();
         updateFromProvider();
+        setBluetoothOppService(this);
         return true;
     }
 
     @Override
     public boolean stop() {
+        setBluetoothOppService(null);
         mHandler.sendMessage(mHandler.obtainMessage(STOP_LISTENER));
         return true;
     }
@@ -263,6 +268,31 @@ public class BluetoothOppService extends ProfileService implements IObexConnecti
                         + info.mTotalBytes);
             }
         }
+    }
+
+    /**
+     * Get the current instance of {@link BluetoothOppService}
+     *
+     * @return current instance of {@link BluetoothOppService}
+     */
+    @VisibleForTesting
+    public static synchronized BluetoothOppService getBluetoothOppService() {
+        if (sBluetoothOppService == null) {
+            Log.w(TAG, "getBluetoothOppService(): service is null");
+            return null;
+        }
+        if (!sBluetoothOppService.isAvailable()) {
+            Log.w(TAG, "getBluetoothOppService(): service is not available");
+            return null;
+        }
+        return sBluetoothOppService;
+    }
+
+    private static synchronized void setBluetoothOppService(BluetoothOppService instance) {
+        if (D) {
+            Log.d(TAG, "setBluetoothOppService(): set to: " + instance);
+        }
+        sBluetoothOppService = instance;
     }
 
     private static final int START_LISTENER = 1;
