@@ -2214,6 +2214,25 @@ public class HeadsetStateMachine extends StateMachine {
         }
     }
 
+    @Override
+    protected String getLogRecString(Message msg) {
+        StringBuilder builder = new StringBuilder();
+        builder.append(getMessageName(msg.what));
+        builder.append(": ");
+        builder.append("arg1=")
+                .append(msg.arg1)
+                .append(", arg2=")
+                .append(msg.arg2)
+                .append(", obj=");
+        if (msg.obj instanceof HeadsetMessageObject) {
+            HeadsetMessageObject object = (HeadsetMessageObject) msg.obj;
+            object.buildString(builder);
+        } else {
+            builder.append(msg.obj);
+        }
+        return builder.toString();
+    }
+
     private void handleAccessPermissionResult(Intent intent) {
         log("handleAccessPermissionResult");
         BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);

@@ -16,7 +16,6 @@
 
 package com.android.bluetooth.hfp;
 
-import android.bluetooth.BluetoothDevice;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -408,68 +407,5 @@ public class HeadsetPhoneState {
             // TODO(): There is a bug open regarding what should be sent.
             return (cdmaIconLevel > evdoIconLevel) ? cdmaIconLevel : evdoIconLevel;
         }
-    }
-}
-
-class HeadsetDeviceState {
-    int mService;
-    int mRoam;
-    int mSignal;
-    int mBatteryCharge;
-
-    HeadsetDeviceState(int service, int roam, int signal, int batteryCharge) {
-        mService = service;
-        mRoam = roam;
-        mSignal = signal;
-        mBatteryCharge = batteryCharge;
-    }
-}
-
-class HeadsetCallState {
-    int mNumActive;
-    int mNumHeld;
-    int mCallState;
-    String mNumber;
-    int mType;
-
-    HeadsetCallState(int numActive, int numHeld, int callState, String number, int type) {
-        mNumActive = numActive;
-        mNumHeld = numHeld;
-        mCallState = callState;
-        mNumber = number;
-        mType = type;
-    }
-}
-
-class HeadsetClccResponse {
-    int mIndex;
-    int mDirection;
-    int mStatus;
-    int mMode;
-    boolean mMpty;
-    String mNumber;
-    int mType;
-
-    HeadsetClccResponse(int index, int direction, int status, int mode, boolean mpty, String number,
-            int type) {
-        mIndex = index;
-        mDirection = direction;
-        mStatus = status;
-        mMode = mode;
-        mMpty = mpty;
-        mNumber = number;
-        mType = type;
-    }
-}
-
-class HeadsetVendorSpecificResultCode {
-    BluetoothDevice mDevice;
-    String mCommand;
-    String mArg;
-
-    HeadsetVendorSpecificResultCode(BluetoothDevice device, String command, String arg) {
-        mDevice = device;
-        mCommand = command;
-        mArg = arg;
     }
 }
