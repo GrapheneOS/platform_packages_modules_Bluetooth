@@ -35,7 +35,8 @@ Status BluetoothSocketManagerBinderServer::connectSocket(
     std::unique_ptr<ParcelFileDescriptor>* _aidl_return) {
   if (!isCallerActiveUserOrManagedProfile()) {
     LOG(WARNING) << "connectSocket() - Not allowed for non-active users";
-    return Status::ok();
+    return Status::fromExceptionCode(
+        Status::EX_SECURITY, String8("Not allowed for non-active users"));
   }
 
   ENFORCE_PERMISSION(PERMISSION_BLUETOOTH);
@@ -67,7 +68,8 @@ Status BluetoothSocketManagerBinderServer::createSocketChannel(
     std::unique_ptr<ParcelFileDescriptor>* _aidl_return) {
   if (!isCallerActiveUserOrManagedProfile()) {
     LOG(WARNING) << "createSocketChannel() - Not allowed for non-active users";
-    return Status::ok();
+    return Status::fromExceptionCode(
+        Status::EX_SECURITY, String8("Not allowed for non-active users"));
   }
 
   ENFORCE_PERMISSION(PERMISSION_BLUETOOTH);
@@ -97,6 +99,22 @@ Status BluetoothSocketManagerBinderServer::createSocketChannel(
 
   _aidl_return->reset(new ParcelFileDescriptor());
   (*_aidl_return)->setFileDescriptor(socket_fd, true);
+  return Status::ok();
+}
+
+Status BluetoothSocketManagerBinderServer::requestMaximumTxDataLength(
+    const BluetoothDevice& device) {
+  if (!isCallerActiveUserOrManagedProfile()) {
+    LOG(WARNING) << __func__ << ": Not allowed for non-active users";
+    return Status::fromExceptionCode(
+        Status::EX_SECURITY, String8("Not allowed for non-active users"));
+  }
+
+  ENFORCE_PERMISSION(PERMISSION_BLUETOOTH);
+
+  VLOG(1) << __func__;
+
+  socketInterface->request_max_tx_data_length(device.address);
   return Status::ok();
 }
 
