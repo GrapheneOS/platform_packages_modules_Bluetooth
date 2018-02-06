@@ -177,6 +177,8 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
 
     private Thread mThreadUpdateSecVersionCounter;
 
+    private static BluetoothPbapService sBluetoothPbapService;
+
     private class BluetoothPbapContentObserver extends ContentObserver {
         BluetoothPbapContentObserver() {
             super(new Handler());
@@ -533,6 +535,7 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
 
         mSessionStatusHandler.sendMessage(mSessionStatusHandler.obtainMessage(LOAD_CONTACTS));
         mSessionStatusHandler.sendMessage(mSessionStatusHandler.obtainMessage(START_LISTENER));
+        setBluetoothPbapService(this);
         return true;
     }
 
@@ -541,6 +544,7 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
         if (VERBOSE) {
             Log.v(TAG, "stop()");
         }
+        setBluetoothPbapService(null);
         if (mSessionStatusHandler != null) {
             mSessionStatusHandler.obtainMessage(SHUTDOWN).sendToTarget();
         }
@@ -559,6 +563,31 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
             Log.w(TAG, "Unable to unregister pbap receiver", e);
         }
         return true;
+    }
+
+    /**
+     * Get the current instance of {@link BluetoothPbapService}
+     *
+     * @return current instance of {@link BluetoothPbapService}
+     */
+    @VisibleForTesting
+    public static synchronized BluetoothPbapService getBluetoothPbapService() {
+        if (sBluetoothPbapService == null) {
+            Log.w(TAG, "getBluetoothPbapService(): service is null");
+            return null;
+        }
+        if (!sBluetoothPbapService.isAvailable()) {
+            Log.w(TAG, "getBluetoothPbapService(): service is not available");
+            return null;
+        }
+        return sBluetoothPbapService;
+    }
+
+    private static synchronized void setBluetoothPbapService(BluetoothPbapService instance) {
+        if (DEBUG) {
+            Log.d(TAG, "setBluetoothPbapService(): set to: " + instance);
+        }
+        sBluetoothPbapService = instance;
     }
 
     private static class PbapBinder extends IBluetoothPbap.Stub implements IProfileServiceBinder {

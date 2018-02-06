@@ -31,7 +31,10 @@ import java.io.IOException;
 
 import javax.obex.ServerSession;
 
-class MnsService {
+/**
+ * Message Notification Server implementation
+ */
+public class MnsService {
     static final int MSG_EVENT = 1;
     /* for Client */
     static final int EVENT_REPORT = 1001;

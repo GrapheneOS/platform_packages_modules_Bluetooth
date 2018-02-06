@@ -36,6 +36,7 @@ import com.android.bluetooth.R;
 
 import org.junit.After;
 import org.junit.Assert;
+import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -45,7 +46,7 @@ import java.util.concurrent.CountDownLatch;
 @MediumTest
 @RunWith(AndroidJUnit4.class)
 public class MapClientStateMachineTest {
-    private static final String TAG = "MapStateMachineTest";
+    private static final String TAG = MapClientStateMachineTest.class.getSimpleName();
     private BluetoothAdapter mAdapter;
     private MceStateMachine mMceStateMachine = null;
     private BluetoothDevice mTestDevice;
@@ -59,7 +60,8 @@ public class MapClientStateMachineTest {
     @Before
     public void setUp() {
         mTargetContext = InstrumentationRegistry.getTargetContext();
-        if (skipTest()) return;
+        Assume.assumeTrue("Ignore test when MapClientService is not enabled",
+                mTargetContext.getResources().getBoolean(R.bool.profile_supported_mapmce));
 
         // This line must be called to make sure relevant objects are initialized properly
         mAdapter = BluetoothAdapter.getDefaultAdapter();
@@ -78,15 +80,12 @@ public class MapClientStateMachineTest {
 
     @After
     public void tearDown() {
+        if (!mTargetContext.getResources().getBoolean(R.bool.profile_supported_mapmce)) {
+            return;
+        }
         if (mMceStateMachine != null) {
             mMceStateMachine.doQuit();
         }
-    }
-
-    private boolean skipTest() {
-        // On phone side, MapClient may not be included in the APK and thus the test
-        // should be skipped
-        return !mTargetContext.getResources().getBoolean(R.bool.profile_supported_mapmce);
     }
 
     /**
@@ -94,7 +93,6 @@ public class MapClientStateMachineTest {
      */
     @Test
     public void testDefaultDisconnectedState() {
-        if (skipTest()) return;
         Log.i(TAG, "in testDefaultDisconnectedState");
         Assert.assertEquals(BluetoothProfile.STATE_CONNECTING, mMceStateMachine.getState());
     }
@@ -104,7 +102,6 @@ public class MapClientStateMachineTest {
      */
     @Test
     public void testStateTransitionFromConnectingToConnected() {
-        if (skipTest()) return;
         Log.i(TAG, "in testStateTransitionFromConnectingToConnected");
 
         setupSdpRecordReceipt();

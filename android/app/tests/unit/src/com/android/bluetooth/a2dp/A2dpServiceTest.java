@@ -32,10 +32,13 @@ import android.support.test.filters.MediumTest;
 import android.support.test.rule.ServiceTestRule;
 import android.support.test.runner.AndroidJUnit4;
 
+import com.android.bluetooth.R;
+import com.android.bluetooth.TestUtils;
 import com.android.bluetooth.btservice.AdapterService;
 
 import org.junit.After;
 import org.junit.Assert;
+import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -43,7 +46,6 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import java.lang.reflect.Method;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -68,6 +70,9 @@ public class A2dpServiceTest {
 
     @Before
     public void setUp() throws Exception {
+        mTargetContext = InstrumentationRegistry.getTargetContext();
+        Assume.assumeTrue("Ignore test when A2dpService is not enabled",
+                mTargetContext.getResources().getBoolean(R.bool.profile_supported_a2dp));
         // Set up mocks and test assets
         MockitoAnnotations.initMocks(this);
 
@@ -75,16 +80,9 @@ public class A2dpServiceTest {
             Looper.prepare();
         }
 
-        // We cannot mock AdapterService.getAdapterService() with Mockito.
-        // Hence we need to use reflection to call a private method to
-        // initialize properly the AdapterService.sAdapterService field.
-        Method method = AdapterService.class.getDeclaredMethod("setAdapterService",
-                                                               AdapterService.class);
-        method.setAccessible(true);
-        method.invoke(mAdapterService, mAdapterService);
+        TestUtils.setAdapterService(mAdapterService);
         doReturn(1).when(mAdapterService).getMaxConnectedAudioDevices();
 
-        mTargetContext = InstrumentationRegistry.getTargetContext();
         mAdapter = BluetoothAdapter.getDefaultAdapter();
 
         startService();
@@ -106,33 +104,23 @@ public class A2dpServiceTest {
 
     @After
     public void tearDown() throws Exception {
+        if (!mTargetContext.getResources().getBoolean(R.bool.profile_supported_a2dp)) {
+            return;
+        }
         stopService();
         mTargetContext.unregisterReceiver(mConnectionStateChangedReceiver);
         mConnectionStateChangedQueue.clear();
+        TestUtils.clearAdapterService(mAdapterService);
     }
 
     private void startService() throws TimeoutException {
-        Intent startIntent =
-                new Intent(InstrumentationRegistry.getTargetContext(), A2dpService.class);
-        startIntent.putExtra(AdapterService.EXTRA_ACTION,
-                             AdapterService.ACTION_SERVICE_STATE_CHANGED);
-        startIntent.putExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.STATE_ON);
-        mServiceRule.startService(startIntent);
-        verify(mAdapterService, timeout(TIMEOUT_MS)).onProfileServiceStateChanged(
-                eq(A2dpService.class.getName()), eq(BluetoothAdapter.STATE_ON));
+        TestUtils.startService(mServiceRule, A2dpService.class);
         mA2dpService = A2dpService.getA2dpService();
         Assert.assertNotNull(mA2dpService);
     }
 
     private void stopService() throws TimeoutException {
-        Intent stopIntent =
-                new Intent(InstrumentationRegistry.getTargetContext(), A2dpService.class);
-        stopIntent.putExtra(AdapterService.EXTRA_ACTION,
-                            AdapterService.ACTION_SERVICE_STATE_CHANGED);
-        stopIntent.putExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.STATE_OFF);
-        mServiceRule.startService(stopIntent);
-        verify(mAdapterService, timeout(TIMEOUT_MS)).onProfileServiceStateChanged(
-                eq(A2dpService.class.getName()), eq(BluetoothAdapter.STATE_OFF));
+        TestUtils.stopService(mServiceRule, A2dpService.class);
         mA2dpService = A2dpService.getA2dpService();
         Assert.assertNull(mA2dpService);
     }

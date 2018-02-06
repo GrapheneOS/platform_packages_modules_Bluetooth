@@ -27,6 +27,7 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothHeadset;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.BluetoothUuid;
+import android.content.Context;
 import android.content.Intent;
 import android.media.AudioManager;
 import android.os.ParcelUuid;
@@ -35,24 +36,25 @@ import android.support.test.filters.MediumTest;
 import android.support.test.rule.ServiceTestRule;
 import android.support.test.runner.AndroidJUnit4;
 
+import com.android.bluetooth.R;
+import com.android.bluetooth.TestUtils;
 import com.android.bluetooth.btservice.AdapterService;
 
 import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Assert;
+import org.junit.Assume;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.mockito.Spy;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.concurrent.TimeoutException;
 
 /**
  * A set of integration test that involves both {@link HeadsetService} and
@@ -67,9 +69,7 @@ public class HeadsetServiceAndStateMachineTest {
 
     @Rule public final ServiceTestRule mServiceRule = new ServiceTestRule();
 
-    private static AdapterService sAdapterService;
-    private static HeadsetObjectsFactory sObjectsFactory;
-
+    private Context mTargetContext;
     private HeadsetService mHeadsetService;
     private BluetoothAdapter mAdapter;
     private HeadsetNativeInterface mNativeInterface;
@@ -78,60 +78,39 @@ public class HeadsetServiceAndStateMachineTest {
     private ArgumentCaptor<HeadsetStateMachine> mStateMachineArgument =
             ArgumentCaptor.forClass(HeadsetStateMachine.class);
 
+    @Spy private HeadsetObjectsFactory mObjectsFactory = HeadsetObjectsFactory.getInstance();
+    @Mock private AdapterService mAdapterService;
     @Mock private HeadsetSystemInterface mSystemInterface;
     @Mock private AudioManager mAudioManager;
     @Mock private HeadsetPhoneState mPhoneState;
 
-    @BeforeClass
-    public static void setUpClassOnlyOnce() throws Exception {
-        sAdapterService = mock(AdapterService.class);
-        // We cannot mock AdapterService.getAdapterService() with Mockito.
-        // Hence we need to use reflection to call a private method to
-        // initialize properly the AdapterService.sAdapterService field.
-        Method method =
-                AdapterService.class.getDeclaredMethod("setAdapterService", AdapterService.class);
-        method.setAccessible(true);
-        method.invoke(null, sAdapterService);
+    @Before
+    public void setUp() throws Exception {
+        mTargetContext = InstrumentationRegistry.getTargetContext();
+        Assume.assumeTrue("Ignore test when HeadsetService is not enabled",
+                mTargetContext.getResources().getBoolean(R.bool.profile_supported_hs_hfp));
+        MockitoAnnotations.initMocks(this);
+        TestUtils.setAdapterService(mAdapterService);
+        doReturn(true).when(mAdapterService).isEnabled();
+        doReturn(MAX_HEADSET_CONNECTIONS).when(mAdapterService).getMaxConnectedAudioDevices();
+        doReturn(new ParcelUuid[]{BluetoothUuid.Handsfree}).when(mAdapterService)
+                .getRemoteUuids(any(BluetoothDevice.class));
         // We cannot mock HeadsetObjectsFactory.getInstance() with Mockito.
         // Hence we need to use reflection to call a private method to
         // initialize properly the HeadsetObjectsFactory.sInstance field.
-        sObjectsFactory = spy(HeadsetObjectsFactory.getInstance());
-        method = HeadsetObjectsFactory.class.getDeclaredMethod("setInstanceForTesting",
+        Method method = HeadsetObjectsFactory.class.getDeclaredMethod("setInstanceForTesting",
                 HeadsetObjectsFactory.class);
         method.setAccessible(true);
-        method.invoke(null, sObjectsFactory);
-    }
-
-    @AfterClass
-    public static void tearDownClassOnlyOnce() throws Exception {
-        Method method =
-                AdapterService.class.getDeclaredMethod("clearAdapterService", AdapterService.class);
-        method.setAccessible(true);
-        method.invoke(null, sAdapterService);
-        sAdapterService = null;
-        method = HeadsetObjectsFactory.class.getDeclaredMethod("setInstanceForTesting",
-                HeadsetObjectsFactory.class);
-        method.setAccessible(true);
-        method.invoke(null, (HeadsetObjectsFactory) null);
-        sObjectsFactory = null;
-    }
-
-    @Before
-    public void setUp() throws TimeoutException {
-        MockitoAnnotations.initMocks(this);
-        doReturn(true).when(sAdapterService).isEnabled();
-        doReturn(MAX_HEADSET_CONNECTIONS).when(sAdapterService).getMaxConnectedAudioDevices();
-        doReturn(new ParcelUuid[]{BluetoothUuid.Handsfree}).when(sAdapterService)
-                .getRemoteUuids(any(BluetoothDevice.class));
+        method.invoke(null, mObjectsFactory);
         // This line must be called to make sure relevant objects are initialized properly
         mAdapter = BluetoothAdapter.getDefaultAdapter();
         // Mock methods in AdapterService
-        doReturn(FAKE_HEADSET_UUID).when(sAdapterService)
+        doReturn(FAKE_HEADSET_UUID).when(mAdapterService)
                 .getRemoteUuids(any(BluetoothDevice.class));
-        doReturn(BluetoothDevice.BOND_BONDED).when(sAdapterService)
+        doReturn(BluetoothDevice.BOND_BONDED).when(mAdapterService)
                 .getBondState(any(BluetoothDevice.class));
         doAnswer(invocation -> mBondedDevices.toArray(new BluetoothDevice[]{})).when(
-                sAdapterService).getBondedDevices();
+                mAdapterService).getBondedDevices();
         // Mock system interface
         doNothing().when(mSystemInterface).init();
         doNothing().when(mSystemInterface).stop();
@@ -148,39 +127,31 @@ public class HeadsetServiceAndStateMachineTest {
         doReturn(true).when(mNativeInterface).setActiveDevice(any(BluetoothDevice.class));
         doReturn(true).when(mNativeInterface).sendBsir(any(BluetoothDevice.class), anyBoolean());
         // Use real state machines here
-        doCallRealMethod().when(sObjectsFactory)
+        doCallRealMethod().when(mObjectsFactory)
                 .makeStateMachine(any(), any(), any(), any(), any(), any());
         // Mock methods in HeadsetObjectsFactory
-        doReturn(mSystemInterface).when(sObjectsFactory).makeSystemInterface(any());
-        doReturn(mNativeInterface).when(sObjectsFactory).getNativeInterface();
-        Intent startIntent =
-                new Intent(InstrumentationRegistry.getTargetContext(), HeadsetService.class);
-        startIntent.putExtra(AdapterService.EXTRA_ACTION,
-                AdapterService.ACTION_SERVICE_STATE_CHANGED);
-        startIntent.putExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.STATE_ON);
-        mServiceRule.startService(startIntent);
-        verify(sAdapterService, timeout(ASYNC_CALL_TIMEOUT_MILLIS)).onProfileServiceStateChanged(
-                eq(HeadsetService.class.getName()), eq(BluetoothAdapter.STATE_ON));
+        doReturn(mSystemInterface).when(mObjectsFactory).makeSystemInterface(any());
+        doReturn(mNativeInterface).when(mObjectsFactory).getNativeInterface();
+        TestUtils.startService(mServiceRule, HeadsetService.class);
         mHeadsetService = HeadsetService.getHeadsetService();
         Assert.assertNotNull(mHeadsetService);
-        verify(sObjectsFactory).makeSystemInterface(mHeadsetService);
-        verify(sObjectsFactory).getNativeInterface();
+        verify(mObjectsFactory).makeSystemInterface(mHeadsetService);
+        verify(mObjectsFactory).getNativeInterface();
     }
 
     @After
-    public void tearDown() throws TimeoutException {
-        Intent stopIntent =
-                new Intent(InstrumentationRegistry.getTargetContext(), HeadsetService.class);
-        stopIntent.putExtra(AdapterService.EXTRA_ACTION,
-                AdapterService.ACTION_SERVICE_STATE_CHANGED);
-        stopIntent.putExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.STATE_OFF);
-        mServiceRule.startService(stopIntent);
-        verify(sAdapterService, timeout(ASYNC_CALL_TIMEOUT_MILLIS)).onProfileServiceStateChanged(
-                eq(HeadsetService.class.getName()), eq(BluetoothAdapter.STATE_OFF));
+    public void tearDown() throws Exception {
+        if (!mTargetContext.getResources().getBoolean(R.bool.profile_supported_hs_hfp)) {
+            return;
+        }
+        TestUtils.stopService(mServiceRule, HeadsetService.class);
         mHeadsetService = HeadsetService.getHeadsetService();
         Assert.assertNull(mHeadsetService);
-        reset(sObjectsFactory, sAdapterService);
-        mCurrentDevice = null;
+        Method method = HeadsetObjectsFactory.class.getDeclaredMethod("setInstanceForTesting",
+                HeadsetObjectsFactory.class);
+        method.setAccessible(true);
+        method.invoke(null, (HeadsetObjectsFactory) null);
+        TestUtils.clearAdapterService(mAdapterService);
     }
 
     /**
@@ -205,8 +176,8 @@ public class HeadsetServiceAndStateMachineTest {
     public void testConnectFromApi() {
         mCurrentDevice = getTestDevice(0);
         Assert.assertTrue(mHeadsetService.connect(mCurrentDevice));
-        verify(sObjectsFactory).makeStateMachine(mCurrentDevice,
-                mHeadsetService.getStateMachinesThreadLooper(), mHeadsetService, sAdapterService,
+        verify(mObjectsFactory).makeStateMachine(mCurrentDevice,
+                mHeadsetService.getStateMachinesThreadLooper(), mHeadsetService, mAdapterService,
                 mNativeInterface, mSystemInterface);
         // Wait ASYNC_CALL_TIMEOUT_MILLIS for state to settle, timing is also tested here and
         // 250ms for processing two messages should be way more than enough. Anything that breaks
@@ -247,8 +218,8 @@ public class HeadsetServiceAndStateMachineTest {
     public void testUnbondDevice_disconnectBeforeUnbond() {
         mCurrentDevice = getTestDevice(0);
         Assert.assertTrue(mHeadsetService.connect(mCurrentDevice));
-        verify(sObjectsFactory).makeStateMachine(mCurrentDevice,
-                mHeadsetService.getStateMachinesThreadLooper(), mHeadsetService, sAdapterService,
+        verify(mObjectsFactory).makeStateMachine(mCurrentDevice,
+                mHeadsetService.getStateMachinesThreadLooper(), mHeadsetService, mAdapterService,
                 mNativeInterface, mSystemInterface);
         // Wait ASYNC_CALL_TIMEOUT_MILLIS for state to settle, timing is also tested here and
         // 250ms for processing two messages should be way more than enough. Anything that breaks
@@ -268,13 +239,13 @@ public class HeadsetServiceAndStateMachineTest {
             Assert.fail("Interrupted while waiting for callback to disconnected state");
         }
         // Send unbond intent
-        doReturn(BluetoothDevice.BOND_NONE).when(sAdapterService).getBondState(eq(mCurrentDevice));
+        doReturn(BluetoothDevice.BOND_NONE).when(mAdapterService).getBondState(eq(mCurrentDevice));
         Intent unbondIntent = new Intent(BluetoothDevice.ACTION_BOND_STATE_CHANGED);
         unbondIntent.putExtra(BluetoothDevice.EXTRA_BOND_STATE, BluetoothDevice.BOND_NONE);
         unbondIntent.putExtra(BluetoothDevice.EXTRA_DEVICE, mCurrentDevice);
         InstrumentationRegistry.getTargetContext().sendBroadcast(unbondIntent);
         // Check that the state machine is actually destroyed
-        verify(sObjectsFactory, timeout(ASYNC_CALL_TIMEOUT_MILLIS)).destroyStateMachine(
+        verify(mObjectsFactory, timeout(ASYNC_CALL_TIMEOUT_MILLIS)).destroyStateMachine(
                 mStateMachineArgument.capture());
         Assert.assertEquals(mCurrentDevice, mStateMachineArgument.getValue().getDevice());
     }
@@ -288,8 +259,8 @@ public class HeadsetServiceAndStateMachineTest {
     public void testUnbondDevice_disconnectAfterUnbond() {
         mCurrentDevice = getTestDevice(0);
         Assert.assertTrue(mHeadsetService.connect(mCurrentDevice));
-        verify(sObjectsFactory).makeStateMachine(mCurrentDevice,
-                mHeadsetService.getStateMachinesThreadLooper(), mHeadsetService, sAdapterService,
+        verify(mObjectsFactory).makeStateMachine(mCurrentDevice,
+                mHeadsetService.getStateMachinesThreadLooper(), mHeadsetService, mAdapterService,
                 mNativeInterface, mSystemInterface);
         // Wait ASYNC_CALL_TIMEOUT_MILLIS for state to settle, timing is also tested here and
         // 250ms for processing two messages should be way more than enough. Anything that breaks
@@ -313,13 +284,13 @@ public class HeadsetServiceAndStateMachineTest {
         Assert.assertEquals(Collections.singletonList(mCurrentDevice),
                 mHeadsetService.getConnectedDevices());
         // Send unbond intent
-        doReturn(BluetoothDevice.BOND_NONE).when(sAdapterService).getBondState(eq(mCurrentDevice));
+        doReturn(BluetoothDevice.BOND_NONE).when(mAdapterService).getBondState(eq(mCurrentDevice));
         Intent unbondIntent = new Intent(BluetoothDevice.ACTION_BOND_STATE_CHANGED);
         unbondIntent.putExtra(BluetoothDevice.EXTRA_BOND_STATE, BluetoothDevice.BOND_NONE);
         unbondIntent.putExtra(BluetoothDevice.EXTRA_DEVICE, mCurrentDevice);
         InstrumentationRegistry.getTargetContext().sendBroadcast(unbondIntent);
         // Check that the state machine is not destroyed
-        verify(sObjectsFactory, after(ASYNC_CALL_TIMEOUT_MILLIS).never()).destroyStateMachine(
+        verify(mObjectsFactory, after(ASYNC_CALL_TIMEOUT_MILLIS).never()).destroyStateMachine(
                 any());
         // Now disconnect the device
         HeadsetStackEvent connectingEvent =
@@ -327,7 +298,7 @@ public class HeadsetServiceAndStateMachineTest {
                         HeadsetHalConstants.CONNECTION_STATE_DISCONNECTED, mCurrentDevice);
         mHeadsetService.messageFromNative(connectingEvent);
         // Check that the state machine is actually destroyed after two async calls
-        verify(sObjectsFactory, timeout(ASYNC_CALL_TIMEOUT_MILLIS * 2)).destroyStateMachine(
+        verify(mObjectsFactory, timeout(ASYNC_CALL_TIMEOUT_MILLIS * 2)).destroyStateMachine(
                 mStateMachineArgument.capture());
         Assert.assertEquals(mCurrentDevice, mStateMachineArgument.getValue().getDevice());
     }

@@ -28,6 +28,8 @@ import android.support.test.rule.ServiceTestRule;
 import android.support.test.runner.AndroidJUnit4;
 import android.util.Log;
 
+import com.android.bluetooth.TestUtils;
+
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -38,7 +40,6 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.concurrent.TimeoutException;
 
 @MediumTest
@@ -83,16 +84,15 @@ public class ProfileServiceTest {
 
         mProfiles = Config.getSupportedProfiles();
 
-        Method method =
-                AdapterService.class.getDeclaredMethod("setAdapterService", AdapterService.class);
-        method.setAccessible(true);
-        method.invoke(null, mMockAdapterService);
+        TestUtils.setAdapterService(mMockAdapterService);
 
         Assert.assertNotNull(AdapterService.getAdapterService());
     }
 
     @After
-    public void tearDown() {
+    public void tearDown()
+            throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+        TestUtils.clearAdapterService(mMockAdapterService);
         mMockAdapterService = null;
         mProfiles = null;
     }

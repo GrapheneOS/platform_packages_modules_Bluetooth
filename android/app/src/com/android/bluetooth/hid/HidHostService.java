@@ -112,47 +112,28 @@ public class HidHostService extends ProfileService {
             }
             mInputDevices.clear();
         }
-        clearHidHostService();
+        // TODO(b/72948646): this should be moved to stop()
+        setHidHostService(null);
     }
 
     public static synchronized HidHostService getHidHostService() {
-        if (sHidHostService != null && sHidHostService.isAvailable()) {
-            if (DBG) {
-                Log.d(TAG, "getHidHostService(): returning " + sHidHostService);
-            }
-            return sHidHostService;
+        if (sHidHostService == null) {
+            Log.w(TAG, "getHidHostService(): service is null");
+            return null;
         }
-        if (DBG) {
-            if (sHidHostService == null) {
-                Log.d(TAG, "getHidHostService(): service is NULL");
-            } else if (!(sHidHostService.isAvailable())) {
-                Log.d(TAG, "getHidHostService(): service is not available");
-            }
+        if (!sHidHostService.isAvailable()) {
+            Log.w(TAG, "getHidHostService(): service is not available ");
+            return null;
         }
-        return null;
+        return sHidHostService;
     }
 
     private static synchronized void setHidHostService(HidHostService instance) {
-        if (instance != null && instance.isAvailable()) {
-            if (DBG) {
-                Log.d(TAG, "setHidHostService(): set to: " + sHidHostService);
-            }
-            sHidHostService = instance;
-        } else {
-            if (DBG) {
-                if (sHidHostService == null) {
-                    Log.d(TAG, "setHidHostService(): service not available");
-                } else if (!sHidHostService.isAvailable()) {
-                    Log.d(TAG, "setHidHostService(): service is cleaning up");
-                }
-            }
+        if (DBG) {
+            Log.d(TAG, "setHidHostService(): set to: " + instance);
         }
+        sHidHostService = instance;
     }
-
-    private static synchronized void clearHidHostService() {
-        sHidHostService = null;
-    }
-
 
     private final Handler mHandler = new Handler() {
 
