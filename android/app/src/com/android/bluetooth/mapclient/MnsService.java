@@ -43,8 +43,6 @@ public class MnsService {
     private static final Boolean VDBG = MapClientService.VDBG;
     /* MAP version 1.1 */
     private static final int MNS_VERSION = 0x0101;
-    /* MNS features: Notification Feature */
-    private static final int MNS_FEATURE_BITS = 0x0002;
     /* these are shared across instances */
     private static SocketAcceptor sAcceptThread = null;
     private static Handler sSessionHandler = null;
@@ -68,7 +66,8 @@ public class MnsService {
             return;
         }
         mSdpHandle = sdpManager.createMapMnsRecord("MAP Message Notification Service",
-                sServerSockets.getRfcommChannel(), -1, MNS_VERSION, MNS_FEATURE_BITS);
+                sServerSockets.getRfcommChannel(), -1, MNS_VERSION,
+                MasClient.MAP_SUPPORTED_FEATURES);
     }
 
     void stop() {

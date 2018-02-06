@@ -247,6 +247,11 @@ public class MapClientService extends ProfileService {
 
         if (mMnsServer == null) {
             mMnsServer = MapUtils.newMnsServiceInstance(this);
+            if (mMnsServer == null) {
+                // this can't happen
+                Log.w(TAG, "MnsService is *not* created!");
+                return false;
+            }
         }
 
         mAdapter = BluetoothAdapter.getDefaultAdapter();
