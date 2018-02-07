@@ -62,41 +62,22 @@ public class MapClientService extends ProfileService {
     private MapBroadcastReceiver mMapReceiver = new MapBroadcastReceiver();
 
     public static synchronized MapClientService getMapClientService() {
-        if (sMapClientService != null && sMapClientService.isAvailable()) {
-            if (DBG) {
-                Log.d(TAG, "getMapClientService(): returning " + sMapClientService);
-            }
-            return sMapClientService;
+        if (sMapClientService == null) {
+            Log.w(TAG, "getMapClientService(): service is null");
+            return null;
         }
+        if (!sMapClientService.isAvailable()) {
+            Log.w(TAG, "getMapClientService(): service is not available ");
+            return null;
+        }
+        return sMapClientService;
+    }
+
+    private static synchronized void setMapClientService(MapClientService instance) {
         if (DBG) {
-            if (sMapClientService == null) {
-                Log.d(TAG, "getMapClientService(): service is NULL");
-            } else if (!(sMapClientService.isAvailable())) {
-                Log.d(TAG, "getMapClientService(): service is not available");
-            }
+            Log.d(TAG, "setMapClientService(): set to: " + instance);
         }
-        return null;
-    }
-
-    private static synchronized void setService(MapClientService instance) {
-        if (instance != null && instance.isAvailable()) {
-            if (DBG) {
-                Log.d(TAG, "setMapMceService(): replacing old instance: " + sMapClientService);
-            }
-            sMapClientService = instance;
-        } else {
-            if (DBG) {
-                if (sMapClientService == null) {
-                    Log.d(TAG, "MapClientService service not available");
-                } else if (!sMapClientService.isAvailable()) {
-                    Log.d(TAG, "MapClientService service is cleaning up");
-                }
-            }
-        }
-    }
-
-    private static synchronized void clearMapClientService() {
-        sMapClientService = null;
+        sMapClientService = instance;
     }
 
     @VisibleForTesting
@@ -263,10 +244,14 @@ public class MapClientService extends ProfileService {
     @Override
     protected boolean start() {
         Log.e(TAG, "start()");
-        setService(this);
 
         if (mMnsServer == null) {
             mMnsServer = MapUtils.newMnsServiceInstance(this);
+            if (mMnsServer == null) {
+                // this can't happen
+                Log.w(TAG, "MnsService is *not* created!");
+                return false;
+            }
         }
 
         mAdapter = BluetoothAdapter.getDefaultAdapter();
@@ -276,6 +261,7 @@ public class MapClientService extends ProfileService {
         filter.addAction(BluetoothDevice.ACTION_ACL_DISCONNECTED);
         registerReceiver(mMapReceiver, filter);
         removeUncleanAccounts();
+        setMapClientService(this);
         return true;
     }
 
@@ -303,7 +289,8 @@ public class MapClientService extends ProfileService {
             Log.d(TAG, "in Cleanup");
         }
         removeUncleanAccounts();
-        clearMapClientService();
+        // TODO(b/72948646): should be moved to stop()
+        setMapClientService(null);
     }
 
     void cleanupDevice(BluetoothDevice device) {

@@ -50,8 +50,8 @@ import android.os.SystemClock;
 import android.support.annotation.VisibleForTesting;
 import android.util.Log;
 import android.util.Pair;
-import com.android.bluetooth.R;
 
+import com.android.bluetooth.R;
 import com.android.bluetooth.Utils;
 import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.ProfileService;
@@ -63,7 +63,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Hashtable;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
@@ -272,8 +271,6 @@ public class HeadsetClientStateMachine extends StateMachine {
         if (DBG) {
             Log.d(TAG, "queryCallsDone");
         }
-        Iterator<Hashtable.Entry<Integer, BluetoothHeadsetClientCall>> it;
-
         // mCalls has two types of calls:
         // (a) Calls that are received from AG of a previous iteration of queryCallsStart()
         // (b) Calls that are outgoing initiated from HF

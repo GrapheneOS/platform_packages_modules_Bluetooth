@@ -84,37 +84,22 @@ public class PanService extends ProfileService {
     }
 
     public static synchronized PanService getPanService() {
-        if (sPanService != null && sPanService.isAvailable()) {
-            if (DBG) {
-                Log.d(TAG, "getPanService(): returning " + sPanService);
-            }
-            return sPanService;
+        if (sPanService == null) {
+            Log.w(TAG, "getPanService(): service is null");
+            return null;
         }
-        if (DBG) {
-            if (sPanService == null) {
-                Log.d(TAG, "getPanService(): service is NULL");
-            } else if (!sPanService.isAvailable()) {
-                Log.d(TAG, "getPanService(): service is not available");
-            }
+        if (!sPanService.isAvailable()) {
+            Log.w(TAG, "getPanService(): service is not available ");
+            return null;
         }
-        return null;
+        return sPanService;
     }
 
     private static synchronized void setPanService(PanService instance) {
-        if (instance != null && instance.isAvailable()) {
-            if (DBG) {
-                Log.d(TAG, "setPanService(): set to: " + instance);
-            }
-            sPanService = instance;
-        } else {
-            if (DBG) {
-                if (instance == null) {
-                    Log.d(TAG, "setPanService(): service not available");
-                } else if (!instance.isAvailable()) {
-                    Log.d(TAG, "setPanService(): service is cleaning up");
-                }
-            }
+        if (DBG) {
+            Log.d(TAG, "setPanService(): set to: " + instance);
         }
+        sPanService = instance;
     }
 
     @Override
@@ -145,6 +130,8 @@ public class PanService extends ProfileService {
 
     @Override
     protected void cleanup() {
+        // TODO(b/72948646): this should be moved to stop()
+        setPanService(null);
         if (mNativeAvailable) {
             cleanupNative();
             mNativeAvailable = false;

@@ -93,7 +93,8 @@ public class PbapClientService extends ProfileService {
     @Override
     protected void cleanup() {
         removeUncleanAccounts();
-        clearPbapClientService();
+        // TODO: Should move to stop()
+        setPbapClientService(null);
     }
 
     void cleanupDevice(BluetoothDevice device) {
@@ -242,41 +243,22 @@ public class PbapClientService extends ProfileService {
 
     // API methods
     public static synchronized PbapClientService getPbapClientService() {
-        if (sPbapClientService != null && sPbapClientService.isAvailable()) {
-            if (DBG) {
-                Log.d(TAG, "getPbapClientService(): returning " + sPbapClientService);
-            }
-            return sPbapClientService;
+        if (sPbapClientService == null) {
+            Log.w(TAG, "getPbapClientService(): service is null");
+            return null;
         }
-        if (DBG) {
-            if (sPbapClientService == null) {
-                Log.d(TAG, "getPbapClientService(): service is NULL");
-            } else if (!(sPbapClientService.isAvailable())) {
-                Log.d(TAG, "getPbapClientService(): service is not available");
-            }
+        if (!sPbapClientService.isAvailable()) {
+            Log.w(TAG, "getPbapClientService(): service is not available");
+            return null;
         }
-        return null;
+        return sPbapClientService;
     }
 
     private static synchronized void setPbapClientService(PbapClientService instance) {
-        if (instance != null && instance.isAvailable()) {
-            if (DBG) {
-                Log.d(TAG, "setPbapClientService(): previously set to: " + sPbapClientService);
-            }
-            sPbapClientService = instance;
-        } else {
-            if (DBG) {
-                if (sPbapClientService == null) {
-                    Log.d(TAG, "setPbapClientService(): service not available");
-                } else if (!sPbapClientService.isAvailable()) {
-                    Log.d(TAG, "setPbapClientService(): service is cleaning up");
-                }
-            }
+        if (DBG) {
+            Log.d(TAG, "setPbapClientService(): set to: " + instance);
         }
-    }
-
-    private static synchronized void clearPbapClientService() {
-        sPbapClientService = null;
+        sPbapClientService = instance;
     }
 
     public boolean connect(BluetoothDevice device) {
