@@ -40,6 +40,7 @@
  */
 package com.android.bluetooth.mapclient;
 
+import android.app.Activity;
 import android.app.PendingIntent;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -51,6 +52,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Message;
 import android.telecom.PhoneAccount;
+import android.telephony.SmsManager;
 import android.util.Log;
 
 import com.android.bluetooth.btservice.ProfileService;
@@ -605,10 +607,10 @@ final class MceStateMachine extends StateMachine {
                     if (DBG) {
                         Log.d(TAG, "*******Sending " + intentToSend);
                     }
-                    int result = 0;
+                    int result = Activity.RESULT_OK;
                     if (status == EventReport.Type.SENDING_FAILURE
                             || status == EventReport.Type.DELIVERY_FAILURE) {
-                        result = -1;
+                        result = SmsManager.RESULT_ERROR_GENERIC_FAILURE;
                     }
                     intentToSend.send(result);
                 } catch (PendingIntent.CanceledException e) {
