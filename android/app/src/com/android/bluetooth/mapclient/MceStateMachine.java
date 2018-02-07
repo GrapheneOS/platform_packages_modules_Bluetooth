@@ -437,7 +437,8 @@ final class MceStateMachine extends StateMachine {
                         if (DBG) {
                             Log.d(TAG, "Message Sent......." + messageHandle);
                         }
-                        mSentMessageLog.put(messageHandle,
+                        // ignore the top-order byte (converted to string) in the handle for now
+                        mSentMessageLog.put(messageHandle.substring(2),
                                 ((RequestPushMessage) message.obj).getBMsg());
                     } else if (message.obj instanceof RequestGetMessagesListing) {
                         processMessageListing((RequestGetMessagesListing) message.obj);
@@ -589,10 +590,14 @@ final class MceStateMachine extends StateMachine {
                 Log.d(TAG, "got a status for " + handle + " Status = " + status);
             }
             PendingIntent intentToSend = null;
-            if (status == EventReport.Type.SENDING_SUCCESS) {
-                intentToSend = mSentReceiptRequested.remove(mSentMessageLog.get(handle));
-            } else if (status == EventReport.Type.DELIVERY_SUCCESS) {
-                intentToSend = mDeliveryReceiptRequested.remove(mSentMessageLog.get(handle));
+            // ignore the top-order byte (converted to string) in the handle for now
+            String shortHandle = handle.substring(2);
+            if (status == EventReport.Type.SENDING_FAILURE
+                    || status == EventReport.Type.SENDING_SUCCESS) {
+                intentToSend = mSentReceiptRequested.remove(mSentMessageLog.get(shortHandle));
+            } else if (status == EventReport.Type.DELIVERY_SUCCESS
+                    || status == EventReport.Type.DELIVERY_FAILURE) {
+                intentToSend = mDeliveryReceiptRequested.remove(mSentMessageLog.get(shortHandle));
             }
 
             if (intentToSend != null) {
@@ -600,10 +605,18 @@ final class MceStateMachine extends StateMachine {
                     if (DBG) {
                         Log.d(TAG, "*******Sending " + intentToSend);
                     }
-                    intentToSend.send();
+                    int result = 0;
+                    if (status == EventReport.Type.SENDING_FAILURE
+                            || status == EventReport.Type.DELIVERY_FAILURE) {
+                        result = -1;
+                    }
+                    intentToSend.send(result);
                 } catch (PendingIntent.CanceledException e) {
                     Log.w(TAG, "Notification Request Canceled" + e);
                 }
+            } else {
+                Log.e(TAG, "Received a notification on message with handle = "
+                        + handle + ", but it is NOT found in mSentMessageLog! where did it go?");
             }
         }
     }
