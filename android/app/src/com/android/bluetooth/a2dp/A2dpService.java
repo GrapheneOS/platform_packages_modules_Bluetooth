@@ -285,6 +285,44 @@ public class A2dpService extends ProfileService {
         return (connected < mMaxConnectedAudioDevices);
     }
 
+    /**
+     * Check whether can connect to a peer device.
+     * The check considers a number of factors during the evaluation.
+     *
+     * @param device the peer device to connect to
+     * @return true if connection is allowed, otherwise false
+     */
+    @VisibleForTesting(otherwise = VisibleForTesting.PACKAGE_PRIVATE)
+    public boolean okToConnect(BluetoothDevice device) {
+        // Check if this is an incoming connection in Quiet mode.
+        if (mAdapterService.isQuietModeEnabled()) {
+            Log.e(TAG, "okToConnect: cannot connect to " + device + " : quiet mode enabled");
+            return false;
+        }
+        // Check if too many devices
+        if (!canConnectToDevice(device)) {
+            Log.e(TAG, "okToConnect: cannot connect to " + device
+                    + " : too many connected devices");
+            return false;
+        }
+        // Check priority and accept or reject the connection
+        int priority = getPriority(device);
+        int bondState = mAdapterService.getBondState(device);
+        // If priority is undefined, it is likely that our SDP has not completed and peer is
+        // initiating the connection. Allow the connection only if the device is bonded or bonding.
+        if ((priority == BluetoothProfile.PRIORITY_UNDEFINED)
+                && (bondState == BluetoothDevice.BOND_NONE)) {
+            Log.e(TAG, "okToConnect: cannot connect to " + device + " : priority=" + priority
+                    + " bondState=" + bondState);
+            return false;
+        }
+        if (priority <= BluetoothProfile.PRIORITY_OFF) {
+            Log.e(TAG, "okToConnect: cannot connect to " + device + " : priority=" + priority);
+            return false;
+        }
+        return true;
+    }
+
     List<BluetoothDevice> getDevicesMatchingConnectionStates(int[] states) {
         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
         List<BluetoothDevice> devices = new ArrayList<>();
@@ -652,7 +690,7 @@ public class A2dpService extends ProfileService {
             if (DBG) {
                 Log.d(TAG, "Creating a new state machine for " + device);
             }
-            sm = A2dpStateMachine.make(device, this, this, mA2dpNativeInterface,
+            sm = A2dpStateMachine.make(device, this, mA2dpNativeInterface,
                                        mStateMachinesThread.getLooper());
             mStateMachines.put(device, sm);
             return sm;
