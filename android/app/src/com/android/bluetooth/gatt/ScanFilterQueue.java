@@ -204,19 +204,17 @@ import java.util.UUID;
     }
 
     private byte[] concate(ParcelUuid serviceDataUuid, byte[] serviceData) {
-        int dataLen = 2 + (serviceData == null ? 0 : serviceData.length);
+        byte[] uuid = BluetoothUuid.uuidToBytes(serviceDataUuid);
+
+        int dataLen = uuid.length + (serviceData == null ? 0 : serviceData.length);
         // If data is too long, don't add it to hardware scan filter.
         if (dataLen > MAX_LEN_PER_FIELD) {
             return null;
         }
         byte[] concated = new byte[dataLen];
-        // Extract 16 bit UUID value.
-        int uuidValue = BluetoothUuid.getServiceIdentifierFromParcelUuid(serviceDataUuid);
-        // First two bytes are service data UUID in little-endian.
-        concated[0] = (byte) (uuidValue & 0xFF);
-        concated[1] = (byte) ((uuidValue >> 8) & 0xFF);
+        System.arraycopy(uuid, 0, concated, 0, uuid.length);
         if (serviceData != null) {
-            System.arraycopy(serviceData, 0, concated, 2, serviceData.length);
+            System.arraycopy(serviceData, 0, concated, uuid.length, serviceData.length);
         }
         return concated;
     }
