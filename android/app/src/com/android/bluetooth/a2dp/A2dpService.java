@@ -57,16 +57,16 @@ public class A2dpService extends ProfileService {
     private static final boolean DBG = true;
     private static final String TAG = "A2dpService";
 
-    private BluetoothAdapter mAdapter = null;
-    private HandlerThread mStateMachinesThread = null;
+    private BluetoothAdapter mAdapter;
+    private HandlerThread mStateMachinesThread;
     private Avrcp mAvrcp;
 
     @VisibleForTesting
-    A2dpNativeInterface mA2dpNativeInterface = null;
+    A2dpNativeInterface mA2dpNativeInterface;
     private AudioManager mAudioManager;
 
-    private A2dpCodecConfig mA2dpCodecConfig = null;
-    private BluetoothDevice mActiveDevice = null;
+    private A2dpCodecConfig mA2dpCodecConfig;
+    private BluetoothDevice mActiveDevice;
 
     private final ConcurrentMap<BluetoothDevice, A2dpStateMachine> mStateMachines =
             new ConcurrentHashMap<>();
@@ -76,8 +76,8 @@ public class A2dpService extends ProfileService {
     // Upper limit of all A2DP devices that are Connected or Connecting
     private int mMaxConnectedAudioDevices = 1;
 
-    private BroadcastReceiver mBondStateChangedReceiver = null;
-    private BroadcastReceiver mConnectionStateChangedReceiver = null;
+    private BroadcastReceiver mBondStateChangedReceiver;
+    private BroadcastReceiver mConnectionStateChangedReceiver;
 
     public A2dpService() {
         mA2dpNativeInterface = A2dpNativeInterface.getInstance();
@@ -252,7 +252,7 @@ public class A2dpService extends ProfileService {
     public List<BluetoothDevice> getConnectedDevices() {
         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
         synchronized (mStateMachines) {
-            List<BluetoothDevice> devices = new ArrayList<BluetoothDevice>();
+            List<BluetoothDevice> devices = new ArrayList<>();
             for (A2dpStateMachine sm : mStateMachines.values()) {
                 if (sm.isConnected()) {
                     devices.add(sm.getDevice());
@@ -294,7 +294,7 @@ public class A2dpService extends ProfileService {
     List<BluetoothDevice> getDevicesMatchingConnectionStates(int[] states) {
         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
         synchronized (mStateMachines) {
-            List<BluetoothDevice> devices = new ArrayList<BluetoothDevice>();
+            List<BluetoothDevice> devices = new ArrayList<>();
             Set<BluetoothDevice> bondedDevices = mAdapter.getBondedDevices();
 
             for (BluetoothDevice device : bondedDevices) {
@@ -835,7 +835,7 @@ public class A2dpService extends ProfileService {
         public List<BluetoothDevice> getConnectedDevices() {
             A2dpService service = getService();
             if (service == null) {
-                return new ArrayList<BluetoothDevice>(0);
+                return new ArrayList<>(0);
             }
             return service.getConnectedDevices();
         }
@@ -844,7 +844,7 @@ public class A2dpService extends ProfileService {
         public List<BluetoothDevice> getDevicesMatchingConnectionStates(int[] states) {
             A2dpService service = getService();
             if (service == null) {
-                return new ArrayList<BluetoothDevice>(0);
+                return new ArrayList<>(0);
             }
             return service.getDevicesMatchingConnectionStates(states);
         }
