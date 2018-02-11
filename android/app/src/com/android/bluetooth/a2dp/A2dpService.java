@@ -30,7 +30,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.media.AudioManager;
 import android.os.HandlerThread;
-import android.os.ParcelUuid;
 import android.provider.Settings;
 import android.support.annotation.GuardedBy;
 import android.support.annotation.VisibleForTesting;
@@ -58,7 +57,10 @@ public class A2dpService extends ProfileService {
     private static final boolean DBG = true;
     private static final String TAG = "A2dpService";
 
+    private static A2dpService sA2dpService;
+
     private BluetoothAdapter mAdapter;
+    private AdapterService mAdapterService;
     private HandlerThread mStateMachinesThread;
     private Avrcp mAvrcp;
 
@@ -84,14 +86,6 @@ public class A2dpService extends ProfileService {
         mA2dpNativeInterface = A2dpNativeInterface.getInstance();
     }
 
-    private static A2dpService sA2dpService;
-    static final ParcelUuid[] A2DP_SOURCE_UUID = {
-            BluetoothUuid.AudioSource
-    };
-    static final ParcelUuid[] A2DP_SOURCE_SINK_UUIDS = {
-            BluetoothUuid.AudioSource, BluetoothUuid.AudioSink
-    };
-
     @Override
     protected IProfileServiceBinder initBinder() {
         return new BluetoothA2dpBinder(this);
@@ -103,9 +97,9 @@ public class A2dpService extends ProfileService {
             Log.d(TAG, "start()");
         }
 
-        AdapterService adapterService = Objects.requireNonNull(AdapterService.getAdapterService(),
+        mAdapterService = Objects.requireNonNull(AdapterService.getAdapterService(),
                 "AdapterService cannot be null when A2dpService starts");
-        mMaxConnectedAudioDevices = adapterService.getMaxConnectedAudioDevices();
+        mMaxConnectedAudioDevices = mAdapterService.getMaxConnectedAudioDevices();
         if (DBG) {
             Log.d(TAG, "Max connected audio devices set to " + mMaxConnectedAudioDevices);
         }
@@ -215,9 +209,8 @@ public class A2dpService extends ProfileService {
         if (getPriority(device) == BluetoothProfile.PRIORITY_OFF) {
             return false;
         }
-        ParcelUuid[] featureUuids = device.getUuids();
-        if ((BluetoothUuid.containsAnyUuid(featureUuids, A2DP_SOURCE_UUID))
-                && !(BluetoothUuid.containsAllUuids(featureUuids, A2DP_SOURCE_SINK_UUIDS))) {
+        if (!BluetoothUuid.isUuidPresent(mAdapterService.getRemoteUuids(device),
+                                         BluetoothUuid.AudioSink)) {
             Log.e(TAG, "Cannot connect to " + device + " : Remote does not have A2DP Sink UUID");
             return false;
         }
@@ -298,8 +291,8 @@ public class A2dpService extends ProfileService {
         Set<BluetoothDevice> bondedDevices = mAdapter.getBondedDevices();
         synchronized (mStateMachines) {
             for (BluetoothDevice device : bondedDevices) {
-                ParcelUuid[] featureUuids = device.getUuids();
-                if (!BluetoothUuid.isUuidPresent(featureUuids, BluetoothUuid.AudioSink)) {
+                if (!BluetoothUuid.isUuidPresent(mAdapterService.getRemoteUuids(device),
+                                                 BluetoothUuid.AudioSink)) {
                     continue;
                 }
                 int connectionState = BluetoothProfile.STATE_DISCONNECTED;
