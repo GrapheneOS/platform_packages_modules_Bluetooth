@@ -60,7 +60,7 @@ public class A2dpServiceTest {
     private BluetoothDevice mTestDevice;
     private static final int TIMEOUT_MS = 1000;    // 1s
 
-    private BroadcastReceiver mConnectionStateChangedReceiver = null;
+    private BroadcastReceiver mConnectionStateChangedReceiver;
     private final BlockingQueue<Intent> mConnectionStateChangedQueue = new LinkedBlockingQueue<>();
 
     @Mock private AdapterService mAdapterService;

@@ -42,9 +42,9 @@ public class A2dpStackEvent {
     static final int AUDIO_STATE_STARTED = 2;
 
     public int type = EVENT_TYPE_NONE;
-    public BluetoothDevice device = null;
+    public BluetoothDevice device;
     public int valueInt = 0;
-    public BluetoothCodecStatus codecStatus = null;
+    public BluetoothCodecStatus codecStatus;
 
     A2dpStackEvent(int type) {
         this.type = type;
