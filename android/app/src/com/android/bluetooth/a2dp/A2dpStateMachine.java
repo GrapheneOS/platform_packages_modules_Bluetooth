@@ -93,7 +93,7 @@ final class A2dpStateMachine extends StateMachine {
 
     private final BluetoothDevice mDevice;
     private boolean mIsPlaying = false;
-    private BluetoothCodecStatus mCodecStatus = null;
+    private BluetoothCodecStatus mCodecStatus;
 
     A2dpStateMachine(BluetoothDevice device, A2dpService svc, Context context,
                      A2dpNativeInterface a2dpNativeInterface, Looper looper) {
