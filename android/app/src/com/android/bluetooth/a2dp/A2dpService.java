@@ -30,7 +30,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.media.AudioManager;
 import android.os.HandlerThread;
-import android.os.ParcelUuid;
 import android.provider.Settings;
 import android.support.annotation.GuardedBy;
 import android.support.annotation.VisibleForTesting;
@@ -58,7 +57,10 @@ public class A2dpService extends ProfileService {
     private static final boolean DBG = true;
     private static final String TAG = "A2dpService";
 
+    private static A2dpService sA2dpService;
+
     private BluetoothAdapter mAdapter;
+    private AdapterService mAdapterService;
     private HandlerThread mStateMachinesThread;
     private Avrcp mAvrcp;
 
@@ -84,14 +86,6 @@ public class A2dpService extends ProfileService {
         mA2dpNativeInterface = A2dpNativeInterface.getInstance();
     }
 
-    private static A2dpService sA2dpService;
-    static final ParcelUuid[] A2DP_SOURCE_UUID = {
-            BluetoothUuid.AudioSource
-    };
-    static final ParcelUuid[] A2DP_SOURCE_SINK_UUIDS = {
-            BluetoothUuid.AudioSource, BluetoothUuid.AudioSink
-    };
-
     @Override
     protected IProfileServiceBinder initBinder() {
         return new BluetoothA2dpBinder(this);
@@ -103,9 +97,9 @@ public class A2dpService extends ProfileService {
             Log.d(TAG, "start()");
         }
 
-        AdapterService adapterService = Objects.requireNonNull(AdapterService.getAdapterService(),
+        mAdapterService = Objects.requireNonNull(AdapterService.getAdapterService(),
                 "AdapterService cannot be null when A2dpService starts");
-        mMaxConnectedAudioDevices = adapterService.getMaxConnectedAudioDevices();
+        mMaxConnectedAudioDevices = mAdapterService.getMaxConnectedAudioDevices();
         if (DBG) {
             Log.d(TAG, "Max connected audio devices set to " + mMaxConnectedAudioDevices);
         }
@@ -215,9 +209,8 @@ public class A2dpService extends ProfileService {
         if (getPriority(device) == BluetoothProfile.PRIORITY_OFF) {
             return false;
         }
-        ParcelUuid[] featureUuids = device.getUuids();
-        if ((BluetoothUuid.containsAnyUuid(featureUuids, A2DP_SOURCE_UUID))
-                && !(BluetoothUuid.containsAllUuids(featureUuids, A2DP_SOURCE_SINK_UUIDS))) {
+        if (!BluetoothUuid.isUuidPresent(mAdapterService.getRemoteUuids(device),
+                                         BluetoothUuid.AudioSink)) {
             Log.e(TAG, "Cannot connect to " + device + " : Remote does not have A2DP Sink UUID");
             return false;
         }
@@ -292,14 +285,52 @@ public class A2dpService extends ProfileService {
         return (connected < mMaxConnectedAudioDevices);
     }
 
+    /**
+     * Check whether can connect to a peer device.
+     * The check considers a number of factors during the evaluation.
+     *
+     * @param device the peer device to connect to
+     * @return true if connection is allowed, otherwise false
+     */
+    @VisibleForTesting(otherwise = VisibleForTesting.PACKAGE_PRIVATE)
+    public boolean okToConnect(BluetoothDevice device) {
+        // Check if this is an incoming connection in Quiet mode.
+        if (mAdapterService.isQuietModeEnabled()) {
+            Log.e(TAG, "okToConnect: cannot connect to " + device + " : quiet mode enabled");
+            return false;
+        }
+        // Check if too many devices
+        if (!canConnectToDevice(device)) {
+            Log.e(TAG, "okToConnect: cannot connect to " + device
+                    + " : too many connected devices");
+            return false;
+        }
+        // Check priority and accept or reject the connection
+        int priority = getPriority(device);
+        int bondState = mAdapterService.getBondState(device);
+        // If priority is undefined, it is likely that our SDP has not completed and peer is
+        // initiating the connection. Allow the connection only if the device is bonded or bonding.
+        if ((priority == BluetoothProfile.PRIORITY_UNDEFINED)
+                && (bondState == BluetoothDevice.BOND_NONE)) {
+            Log.e(TAG, "okToConnect: cannot connect to " + device + " : priority=" + priority
+                    + " bondState=" + bondState);
+            return false;
+        }
+        if (priority <= BluetoothProfile.PRIORITY_OFF) {
+            Log.e(TAG, "okToConnect: cannot connect to " + device + " : priority=" + priority);
+            return false;
+        }
+        return true;
+    }
+
     List<BluetoothDevice> getDevicesMatchingConnectionStates(int[] states) {
         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
         List<BluetoothDevice> devices = new ArrayList<>();
         Set<BluetoothDevice> bondedDevices = mAdapter.getBondedDevices();
         synchronized (mStateMachines) {
             for (BluetoothDevice device : bondedDevices) {
-                ParcelUuid[] featureUuids = device.getUuids();
-                if (!BluetoothUuid.isUuidPresent(featureUuids, BluetoothUuid.AudioSink)) {
+                if (!BluetoothUuid.isUuidPresent(mAdapterService.getRemoteUuids(device),
+                                                 BluetoothUuid.AudioSink)) {
                     continue;
                 }
                 int connectionState = BluetoothProfile.STATE_DISCONNECTED;
@@ -659,7 +690,7 @@ public class A2dpService extends ProfileService {
             if (DBG) {
                 Log.d(TAG, "Creating a new state machine for " + device);
             }
-            sm = A2dpStateMachine.make(device, this, this, mA2dpNativeInterface,
+            sm = A2dpStateMachine.make(device, this, mA2dpNativeInterface,
                                        mStateMachinesThread.getLooper());
             mStateMachines.put(device, sm);
             return sm;

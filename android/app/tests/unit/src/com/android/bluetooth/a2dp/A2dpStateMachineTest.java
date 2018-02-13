@@ -76,8 +76,7 @@ public class A2dpStateMachineTest {
         mHandlerThread = new HandlerThread("A2dpStateMachineTestHandlerThread");
         mHandlerThread.start();
         mA2dpStateMachine = new A2dpStateMachine(mTestDevice, mA2dpService,
-                                                 mTargetContext, mA2dpNativeInterface,
-                                                 mHandlerThread.getLooper());
+                                                 mA2dpNativeInterface, mHandlerThread.getLooper());
         // Override the timeout value to speed up the test
         A2dpStateMachine.sConnectTimeoutMs = 1000;     // 1s
         mA2dpStateMachine.start();
@@ -108,16 +107,7 @@ public class A2dpStateMachineTest {
      * @param allow if true, connection is allowed
      */
     private void allowConnection(boolean allow) {
-        if (allow) {
-            // Update the device priority so okToConnect() returns true
-            doReturn(BluetoothProfile.PRIORITY_ON).when(mA2dpService)
-                    .getPriority(any(BluetoothDevice.class));
-        } else {
-            // Update the device priority so okToConnect() returns false
-            doReturn(BluetoothProfile.PRIORITY_OFF).when(mA2dpService)
-                    .getPriority(any(BluetoothDevice.class));
-        }
-        doReturn(true).when(mA2dpService).canConnectToDevice(any(BluetoothDevice.class));
+        doReturn(allow).when(mA2dpService).okToConnect(any(BluetoothDevice.class));
     }
 
     /**
