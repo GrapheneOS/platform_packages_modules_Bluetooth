@@ -32,6 +32,7 @@ import android.media.AudioManager;
 import android.os.HandlerThread;
 import android.os.ParcelUuid;
 import android.provider.Settings;
+import android.support.annotation.GuardedBy;
 import android.support.annotation.VisibleForTesting;
 import android.util.Log;
 
@@ -64,10 +65,10 @@ public class A2dpService extends ProfileService {
     @VisibleForTesting
     A2dpNativeInterface mA2dpNativeInterface;
     private AudioManager mAudioManager;
-
     private A2dpCodecConfig mA2dpCodecConfig;
-    private BluetoothDevice mActiveDevice;
 
+    @GuardedBy("mStateMachines")
+    private BluetoothDevice mActiveDevice;
     private final ConcurrentMap<BluetoothDevice, A2dpStateMachine> mStateMachines =
             new ConcurrentHashMap<>();
 
@@ -293,10 +294,9 @@ public class A2dpService extends ProfileService {
 
     List<BluetoothDevice> getDevicesMatchingConnectionStates(int[] states) {
         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+        List<BluetoothDevice> devices = new ArrayList<>();
+        Set<BluetoothDevice> bondedDevices = mAdapter.getBondedDevices();
         synchronized (mStateMachines) {
-            List<BluetoothDevice> devices = new ArrayList<>();
-            Set<BluetoothDevice> bondedDevices = mAdapter.getBondedDevices();
-
             for (BluetoothDevice device : bondedDevices) {
                 ParcelUuid[] featureUuids = device.getUuids();
                 if (!BluetoothUuid.isUuidPresent(featureUuids, BluetoothUuid.AudioSink)) {
@@ -334,37 +334,36 @@ public class A2dpService extends ProfileService {
      * @param device the active device
      * @return true on success, otherwise false
      */
-    public synchronized boolean setActiveDevice(BluetoothDevice device) {
+    public boolean setActiveDevice(BluetoothDevice device) {
         enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH ADMIN permission");
-        BluetoothDevice previousActiveDevice = mActiveDevice;
-        if (DBG) {
-            Log.d(TAG, "setActiveDevice(" + device + "): previous is " + previousActiveDevice);
-        }
-        if (device == null) {
-            // Clear the active device
-            mActiveDevice = null;
-            broadcastActiveDevice(null);
-            if (previousActiveDevice != null) {
-                // Make sure the Audio Manager knows the previous Active device is disconnected
-                mAudioManager.setBluetoothA2dpDeviceConnectionState(
-                        previousActiveDevice,
-                        BluetoothProfile.STATE_DISCONNECTED,
-                        BluetoothProfile.A2DP);
-            }
-            return true;
-        }
-
-        BluetoothCodecStatus codecStatus = null;
         synchronized (mStateMachines) {
+            BluetoothDevice previousActiveDevice = mActiveDevice;
+            if (DBG) {
+                Log.d(TAG, "setActiveDevice(" + device + "): previous is " + previousActiveDevice);
+            }
+            if (device == null) {
+                // Clear the active device
+                mActiveDevice = null;
+                broadcastActiveDevice(null);
+                if (previousActiveDevice != null) {
+                    // Make sure the Audio Manager knows the previous Active device is disconnected
+                    mAudioManager.setBluetoothA2dpDeviceConnectionState(
+                            previousActiveDevice, BluetoothProfile.STATE_DISCONNECTED,
+                            BluetoothProfile.A2DP);
+                }
+                return true;
+            }
+
+            BluetoothCodecStatus codecStatus = null;
             A2dpStateMachine sm = mStateMachines.get(device);
             if (sm == null) {
                 Log.e(TAG, "setActiveDevice(" + device + "): Cannot set as active: "
-                        + "no state machine");
+                          + "no state machine");
                 return false;
             }
             if (sm.getConnectionState() != BluetoothProfile.STATE_CONNECTED) {
                 Log.e(TAG, "setActiveDevice(" + device + "): Cannot set as active: "
-                        + "device is not connected");
+                          + "device is not connected");
                 return false;
             }
             if (!mA2dpNativeInterface.setActiveDevice(device)) {
@@ -372,29 +371,30 @@ public class A2dpService extends ProfileService {
                 return false;
             }
             codecStatus = sm.getCodecStatus();
-        }
 
-        boolean deviceChanged = !Objects.equals(device, mActiveDevice);
-        mActiveDevice = device;
-        broadcastActiveDevice(mActiveDevice);
-        if (deviceChanged) {
-            // Send an intent with the active device codec config
-            if (codecStatus != null) {
-                broadcastCodecConfig(mActiveDevice, codecStatus);
-            }
-            // Make sure the Audio Manager knows the previous Active device is disconnected,
-            // and the new Active device is connected.
-            if (previousActiveDevice != null) {
+            boolean deviceChanged = !Objects.equals(device, mActiveDevice);
+            mActiveDevice = device;
+            broadcastActiveDevice(mActiveDevice);
+            if (deviceChanged) {
+                // Send an intent with the active device codec config
+                if (codecStatus != null) {
+                    broadcastCodecConfig(mActiveDevice, codecStatus);
+                }
+                // Make sure the Audio Manager knows the previous Active device is disconnected,
+                // and the new Active device is connected.
+                if (previousActiveDevice != null) {
+                    mAudioManager.setBluetoothA2dpDeviceConnectionStateSuppressNoisyIntent(
+                            previousActiveDevice, BluetoothProfile.STATE_DISCONNECTED,
+                            BluetoothProfile.A2DP, true);
+                }
                 mAudioManager.setBluetoothA2dpDeviceConnectionStateSuppressNoisyIntent(
-                        previousActiveDevice, BluetoothProfile.STATE_DISCONNECTED,
-                        BluetoothProfile.A2DP, true);
+                        mActiveDevice, BluetoothProfile.STATE_CONNECTED, BluetoothProfile.A2DP,
+                        true);
+                // Inform the Audio Service about the codec configuration
+                // change, so the Audio Service can reset accordingly the audio
+                // feeding parameters in the Audio HAL to the Bluetooth stack.
+                mAudioManager.handleBluetoothA2dpDeviceConfigChange(mActiveDevice);
             }
-            mAudioManager.setBluetoothA2dpDeviceConnectionStateSuppressNoisyIntent(
-                    mActiveDevice, BluetoothProfile.STATE_CONNECTED, BluetoothProfile.A2DP, true);
-            // Inform the Audio Service about the codec configuration
-            // change, so the Audio Service can reset accordingly the audio
-            // feeding parameters in the Audio HAL to the Bluetooth stack.
-            mAudioManager.handleBluetoothA2dpDeviceConfigChange(mActiveDevice);
         }
         return true;
     }
@@ -404,13 +404,17 @@ public class A2dpService extends ProfileService {
      *
      * @return the active device or null if no device is active
      */
-    public synchronized BluetoothDevice getActiveDevice() {
+    public BluetoothDevice getActiveDevice() {
         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
-        return mActiveDevice;
+        synchronized (mStateMachines) {
+            return mActiveDevice;
+        }
     }
 
-    private synchronized boolean isActiveDevice(BluetoothDevice device) {
-        return (device != null) && Objects.equals(device, mActiveDevice);
+    private boolean isActiveDevice(BluetoothDevice device) {
+        synchronized (mStateMachines) {
+            return (device != null) && Objects.equals(device, mActiveDevice);
+        }
     }
 
     public boolean setPriority(BluetoothDevice device, int priority) {
@@ -454,7 +458,7 @@ public class A2dpService extends ProfileService {
         }
     }
 
-    synchronized boolean isA2dpPlaying(BluetoothDevice device) {
+    boolean isA2dpPlaying(BluetoothDevice device) {
         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
         if (DBG) {
             Log.d(TAG, "isA2dpPlaying(" + device + ")");
@@ -481,13 +485,13 @@ public class A2dpService extends ProfileService {
         if (DBG) {
             Log.d(TAG, "getCodecStatus(" + device + ")");
         }
-        if (device == null) {
-            device = mActiveDevice;
-        }
-        if (device == null) {
-            return null;
-        }
         synchronized (mStateMachines) {
+            if (device == null) {
+                device = mActiveDevice;
+            }
+            if (device == null) {
+                return null;
+            }
             A2dpStateMachine sm = mStateMachines.get(device);
             if (sm != null) {
                 return sm.getCodecStatus();
@@ -751,24 +755,25 @@ public class A2dpService extends ProfileService {
         }
     }
 
-    private synchronized void connectionStateChanged(BluetoothDevice device, int fromState,
-                                                     int toState) {
+    private void connectionStateChanged(BluetoothDevice device, int fromState, int toState) {
         if ((device == null) || (fromState == toState)) {
             return;
         }
-        if (toState == BluetoothProfile.STATE_CONNECTED) {
-            // Each time a device connects, we want to re-check if it supports optional
-            // codecs (perhaps it's had a firmware update, etc.) and save that state if
-            // it differs from what we had saved before.
-            updateOptionalCodecsSupport(device);
-        }
-        // Set the active device if only one connected device is supported and it was connected
-        if (toState == BluetoothProfile.STATE_CONNECTED && (mMaxConnectedAudioDevices == 1)) {
-            setActiveDevice(device);
-        }
-        // Check if the active device has been disconnected
-        if (isActiveDevice(device) && (fromState == BluetoothProfile.STATE_CONNECTED)) {
-            setActiveDevice(null);
+        synchronized (mStateMachines) {
+            if (toState == BluetoothProfile.STATE_CONNECTED) {
+                // Each time a device connects, we want to re-check if it supports optional
+                // codecs (perhaps it's had a firmware update, etc.) and save that state if
+                // it differs from what we had saved before.
+                updateOptionalCodecsSupport(device);
+            }
+            // Set the active device if only one connected device is supported and it was connected
+            if (toState == BluetoothProfile.STATE_CONNECTED && (mMaxConnectedAudioDevices == 1)) {
+                setActiveDevice(device);
+            }
+            // Check if the active device has been disconnected
+            if (isActiveDevice(device) && (fromState == BluetoothProfile.STATE_CONNECTED)) {
+                setActiveDevice(null);
+            }
         }
     }
 
