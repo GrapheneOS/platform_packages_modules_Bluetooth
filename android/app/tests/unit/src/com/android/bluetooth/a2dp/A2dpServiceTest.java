@@ -22,11 +22,13 @@ import android.bluetooth.BluetoothA2dp;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothProfile;
+import android.bluetooth.BluetoothUuid;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Looper;
+import android.os.ParcelUuid;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.filters.MediumTest;
 import android.support.test.rule.ServiceTestRule;
@@ -100,6 +102,8 @@ public class A2dpServiceTest {
         // Get a device for testing
         mTestDevice = mAdapter.getRemoteDevice("00:01:02:03:04:05");
         mA2dpService.setPriority(mTestDevice, BluetoothProfile.PRIORITY_UNDEFINED);
+        doReturn(new ParcelUuid[]{BluetoothUuid.AudioSink}).when(mAdapterService)
+                .getRemoteUuids(any(BluetoothDevice.class));
     }
 
     @After
@@ -194,6 +198,24 @@ public class A2dpServiceTest {
         Assert.assertEquals("Setting device priority to PRIORITY_AUTO_CONNECT",
                             BluetoothProfile.PRIORITY_AUTO_CONNECT,
                             mA2dpService.getPriority(mTestDevice));
+    }
+
+    /**
+     * Test that an outgoing connection to device that does not have A2DP Sink UUID is rejected
+     */
+    @Test
+    public void testOutgoingConnectMissingAudioSinkUuid() {
+        // Update the device priority so okToConnect() returns true
+        mA2dpService.setPriority(mTestDevice, BluetoothProfile.PRIORITY_ON);
+        doReturn(true).when(mA2dpNativeInterface).connectA2dp(any(BluetoothDevice.class));
+        doReturn(true).when(mA2dpNativeInterface).disconnectA2dp(any(BluetoothDevice.class));
+
+        // Return AudioSource UUID instead of AudioSink
+        doReturn(new ParcelUuid[]{BluetoothUuid.AudioSource}).when(mAdapterService)
+                .getRemoteUuids(any(BluetoothDevice.class));
+
+        // Send a connect request
+        Assert.assertFalse("Connect expected to fail", mA2dpService.connect(mTestDevice));
     }
 
     /**
