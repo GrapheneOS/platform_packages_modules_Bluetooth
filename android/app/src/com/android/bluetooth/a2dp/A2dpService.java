@@ -41,9 +41,7 @@ import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.ProfileService;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -82,103 +80,125 @@ public class A2dpService extends ProfileService {
     private BroadcastReceiver mBondStateChangedReceiver;
     private BroadcastReceiver mConnectionStateChangedReceiver;
 
-    public A2dpService() {
-        mA2dpNativeInterface = A2dpNativeInterface.getInstance();
-    }
-
     @Override
     protected IProfileServiceBinder initBinder() {
         return new BluetoothA2dpBinder(this);
     }
 
     @Override
+    protected void create() {
+        Log.i(TAG, "create()");
+    }
+
+    @Override
     protected boolean start() {
-        if (DBG) {
-            Log.d(TAG, "start()");
+        Log.i(TAG, "start()");
+        if (sA2dpService != null) {
+            throw new IllegalStateException("start() called twice");
         }
 
+        // Step 1: Get BluetoothAdapter, AdapterService, A2dpNativeInterface, AudioManager.
+        // None of them can be null.
+        mAdapter = Objects.requireNonNull(BluetoothAdapter.getDefaultAdapter(),
+                "BluetoothAdapter cannot be null when A2dpService starts");
         mAdapterService = Objects.requireNonNull(AdapterService.getAdapterService(),
                 "AdapterService cannot be null when A2dpService starts");
-        mMaxConnectedAudioDevices = mAdapterService.getMaxConnectedAudioDevices();
-        if (DBG) {
-            Log.d(TAG, "Max connected audio devices set to " + mMaxConnectedAudioDevices);
-        }
-
+        mA2dpNativeInterface = Objects.requireNonNull(A2dpNativeInterface.getInstance(),
+                "A2dpNativeInterface cannot be null when A2dpService starts");
         mAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
-        mAdapter = BluetoothAdapter.getDefaultAdapter();
+        Objects.requireNonNull(mAudioManager,
+                               "AudioManager cannot be null when A2dpService starts");
+
+        // Step 2: Get maximum number of connected audio devices
+        mMaxConnectedAudioDevices = mAdapterService.getMaxConnectedAudioDevices();
+        Log.i(TAG, "Max connected audio devices set to " + mMaxConnectedAudioDevices);
+
+        // Step 3: Start handler thread for state machines
         mStateMachines.clear();
         mStateMachinesThread = new HandlerThread("A2dpService.StateMachines");
         mStateMachinesThread.start();
 
-        mAvrcp = Avrcp.make(this);
-        setA2dpService(this);
-
+        // Step 4: Setup codec config and clear active device
         mA2dpCodecConfig = new A2dpCodecConfig(this, mA2dpNativeInterface);
-        mA2dpNativeInterface.init(mA2dpCodecConfig.codecConfigPriorities());
         mActiveDevice = null;
 
-        if (mBondStateChangedReceiver == null) {
-            IntentFilter filter = new IntentFilter();
-            filter.addAction(BluetoothDevice.ACTION_BOND_STATE_CHANGED);
-            mBondStateChangedReceiver = new BondStateChangedReceiver();
-            registerReceiver(mBondStateChangedReceiver, filter);
-        }
-        if (mConnectionStateChangedReceiver == null) {
-            IntentFilter filter = new IntentFilter();
-            filter.addAction(BluetoothA2dp.ACTION_CONNECTION_STATE_CHANGED);
-            mConnectionStateChangedReceiver = new ConnectionStateChangedReceiver();
-            registerReceiver(mConnectionStateChangedReceiver, filter);
-        }
+        // Step 5: Setup AVRCP
+        mAvrcp = Avrcp.make(this);
+
+        // Step 6: Initialize native interface
+        mA2dpNativeInterface.init(mA2dpCodecConfig.codecConfigPriorities());
+
+        // Step 7: Setup broadcast receivers
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(BluetoothDevice.ACTION_BOND_STATE_CHANGED);
+        mBondStateChangedReceiver = new BondStateChangedReceiver();
+        registerReceiver(mBondStateChangedReceiver, filter);
+        filter = new IntentFilter();
+        filter.addAction(BluetoothA2dp.ACTION_CONNECTION_STATE_CHANGED);
+        mConnectionStateChangedReceiver = new ConnectionStateChangedReceiver();
+        registerReceiver(mConnectionStateChangedReceiver, filter);
+
+        // Step 8: Mark service as started
+        setA2dpService(this);
+
         return true;
     }
 
     @Override
     protected boolean stop() {
-        if (DBG) {
-            Log.d(TAG, "stop()");
+        Log.i(TAG, "stop()");
+        if (sA2dpService == null) {
+            Log.w(TAG, "stop() called before start()");
+            return true;
         }
 
-        for (A2dpStateMachine sm : mStateMachines.values()) {
-            sm.doQuit();
+        // Step 8: Mark service as stopped
+        setA2dpService(null);
+
+        // Step 7: Unregister broadcast receivers
+        unregisterReceiver(mConnectionStateChangedReceiver);
+        mConnectionStateChangedReceiver = null;
+        unregisterReceiver(mBondStateChangedReceiver);
+        mBondStateChangedReceiver = null;
+
+        // Step 6: Cleanup native interface
+        mA2dpNativeInterface.cleanup();
+        mA2dpNativeInterface = null;
+
+        // Step 5: Cleanup AVRCP
+        mAvrcp.cleanup();
+        mAvrcp = null;
+
+        // Step 4: Clear codec config and active device
+        mA2dpCodecConfig = null;
+        mActiveDevice = null;
+
+        // Step 3: Destroy state machines and stop handler thread
+        synchronized (mStateMachines) {
+            for (A2dpStateMachine sm : mStateMachines.values()) {
+                sm.doQuit();
+                sm.cleanup();
+            }
+            mStateMachines.clear();
         }
-        if (mAvrcp != null) {
-            mAvrcp.doQuit();
-        }
-        if (mStateMachinesThread != null) {
-            mStateMachinesThread.quit();
-            mStateMachinesThread = null;
-        }
+        mStateMachinesThread.quitSafely();
+        mStateMachinesThread = null;
+
+        // Step 2: Reset maximum number of connected audio devices
+        mMaxConnectedAudioDevices = 1;
+
+        // Step 1: Clear BluetoothAdapter, AdapterService, A2dpNativeInterface, AudioManager
+        mAudioManager = null;
+        mA2dpNativeInterface = null;
+        mAdapterService = null;
+        mAdapter = null;
+
         return true;
     }
 
     @Override
     protected void cleanup() {
-        if (DBG) {
-            Log.d(TAG, "cleanup()");
-        }
-
-        if (mConnectionStateChangedReceiver != null) {
-            unregisterReceiver(mConnectionStateChangedReceiver);
-            mConnectionStateChangedReceiver = null;
-        }
-        if (mBondStateChangedReceiver != null) {
-            unregisterReceiver(mBondStateChangedReceiver);
-            mBondStateChangedReceiver = null;
-        }
-        for (Iterator<Map.Entry<BluetoothDevice, A2dpStateMachine>> it =
-                 mStateMachines.entrySet().iterator(); it.hasNext(); ) {
-            A2dpStateMachine sm = it.next().getValue();
-            sm.cleanup();
-            it.remove();
-        }
-        mA2dpNativeInterface.cleanup();
-
-        if (mAvrcp != null) {
-            mAvrcp.cleanup();
-            mAvrcp = null;
-        }
-        // TODO(b/72948646): should be moved to stop()
-        setA2dpService(null);
+        Log.i(TAG, "cleanup()");
     }
 
     public static synchronized A2dpService getA2dpService() {
