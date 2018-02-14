@@ -207,6 +207,7 @@ public class A2dpService extends ProfileService {
         }
 
         if (getPriority(device) == BluetoothProfile.PRIORITY_OFF) {
+            Log.e(TAG, "Cannot connect to " + device + " : PRIORITY_OFF");
             return false;
         }
         if (!BluetoothUuid.isUuidPresent(mAdapterService.getRemoteUuids(device),
@@ -216,6 +217,10 @@ public class A2dpService extends ProfileService {
         }
 
         synchronized (mStateMachines) {
+            if (!connectionAllowedCheckMaxDevices(device)) {
+                Log.e(TAG, "Cannot connect to " + device + " : too many connected devices");
+                return false;
+            }
             A2dpStateMachine smConnect = getOrCreateStateMachine(device);
             if (smConnect == null) {
                 Log.e(TAG, "Cannot connect to " + device + " : no state machine");
@@ -263,8 +268,7 @@ public class A2dpService extends ProfileService {
      * @param device the peer device to connect to
      * @return true if connection is allowed, otherwise false
      */
-    @VisibleForTesting
-    public boolean canConnectToDevice(BluetoothDevice device) {
+    private boolean connectionAllowedCheckMaxDevices(BluetoothDevice device) {
         int connected = 0;
         // Count devices that are in the process of connecting or already connected
         synchronized (mStateMachines) {
@@ -300,7 +304,7 @@ public class A2dpService extends ProfileService {
             return false;
         }
         // Check if too many devices
-        if (!canConnectToDevice(device)) {
+        if (!connectionAllowedCheckMaxDevices(device)) {
             Log.e(TAG, "okToConnect: cannot connect to " + device
                     + " : too many connected devices");
             return false;
@@ -343,6 +347,22 @@ public class A2dpService extends ProfileService {
                         devices.add(device);
                     }
                 }
+            }
+            return devices;
+        }
+    }
+
+    /**
+     * Get the list of devices that have state machines.
+     *
+     * @return the list of devices that have state machines
+     */
+    @VisibleForTesting
+    List<BluetoothDevice> getDevices() {
+        List<BluetoothDevice> devices = new ArrayList<>();
+        synchronized (mStateMachines) {
+            for (A2dpStateMachine sm : mStateMachines.values()) {
+                devices.add(sm.getDevice());
             }
             return devices;
         }
@@ -639,12 +659,30 @@ public class A2dpService extends ProfileService {
 
     // Handle messages from native (JNI) to Java
     void messageFromNative(A2dpStackEvent stackEvent) {
+        Objects.requireNonNull(stackEvent.device,
+                               "Device should never be null, event: " + stackEvent);
         synchronized (mStateMachines) {
+            A2dpStateMachine sm = null;
             BluetoothDevice device = stackEvent.device;
-            A2dpStateMachine sm = getOrCreateStateMachine(device);
+            if (stackEvent.type == A2dpStackEvent.EVENT_TYPE_CONNECTION_STATE_CHANGED) {
+                switch (stackEvent.valueInt) {
+                    case A2dpStackEvent.CONNECTION_STATE_CONNECTED:
+                    case A2dpStackEvent.CONNECTION_STATE_CONNECTING:
+                        // Create a new state machine only when connecting to a device
+                        if (!connectionAllowedCheckMaxDevices(device)) {
+                            Log.e(TAG, "Cannot connect to " + device
+                                    + " : too many connected devices");
+                            return;
+                        }
+                        sm = getOrCreateStateMachine(device);
+                        break;
+                    default:
+                        sm = mStateMachines.get(device);
+                        break;
+                }
+            }
             if (sm == null) {
-                Log.e(TAG, "Cannot process stack event: no state machine: "
-                        + stackEvent);
+                Log.e(TAG, "Cannot process stack event: no state machine: " + stackEvent);
                 return;
             }
             sm.sendMessage(A2dpStateMachine.STACK_EVENT, stackEvent);
@@ -682,7 +720,7 @@ public class A2dpService extends ProfileService {
                 return sm;
             }
             // Limit the maximum number of state machines to avoid DoS attack
-            if (mStateMachines.size() > MAX_A2DP_STATE_MACHINES) {
+            if (mStateMachines.size() >= MAX_A2DP_STATE_MACHINES) {
                 Log.e(TAG, "Maximum number of A2DP state machines reached: "
                         + MAX_A2DP_STATE_MACHINES);
                 return null;
@@ -721,7 +759,6 @@ public class A2dpService extends ProfileService {
         sendBroadcast(intent, A2dpService.BLUETOOTH_PERM);
     }
 
-    // Remove state machine if the bonding for a device is removed
     private class BondStateChangedReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -731,24 +768,53 @@ public class A2dpService extends ProfileService {
             int state = intent.getIntExtra(BluetoothDevice.EXTRA_BOND_STATE,
                                            BluetoothDevice.ERROR);
             BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-            if (DBG) {
-                Log.d(TAG, "Bond state changed for device: " + device + " state: " + state);
-            }
-            if (state != BluetoothDevice.BOND_NONE) {
+            Objects.requireNonNull(device, "ACTION_BOND_STATE_CHANGED with no EXTRA_DEVICE");
+            bondStateChanged(device, state);
+        }
+    }
+
+    /**
+     * Process a change in the bonding state for a device.
+     *
+     * @param device the device whose bonding state has changed
+     * @param bondState the new bond state for the device. Possible values are:
+     * {@link BluetoothDevice#BOND_NONE},
+     * {@link BluetoothDevice#BOND_BONDING},
+     * {@link BluetoothDevice#BOND_BONDED}.
+     */
+    @VisibleForTesting
+    void bondStateChanged(BluetoothDevice device, int bondState) {
+        if (DBG) {
+            Log.d(TAG, "Bond state changed for device: " + device + " state: " + bondState);
+        }
+        // Remove state machine if the bonding for a device is removed
+        if (bondState != BluetoothDevice.BOND_NONE) {
+            return;
+        }
+        synchronized (mStateMachines) {
+            A2dpStateMachine sm = mStateMachines.get(device);
+            if (sm == null) {
                 return;
             }
-            synchronized (mStateMachines) {
-                A2dpStateMachine sm = mStateMachines.get(device);
-                if (sm == null) {
-                    return;
-                }
-                if (DBG) {
-                    Log.d(TAG, "Removing state machine for device: " + device);
-                }
-                sm.doQuit();
-                sm.cleanup();
-                mStateMachines.remove(device);
+            if (sm.getConnectionState() != BluetoothProfile.STATE_DISCONNECTED) {
+                return;
             }
+            removeStateMachine(device);
+        }
+    }
+
+    private void removeStateMachine(BluetoothDevice device) {
+        synchronized (mStateMachines) {
+            A2dpStateMachine sm = mStateMachines.get(device);
+            if (sm == null) {
+                Log.w(TAG, "removeStateMachine: device " + device
+                        + " does not have a state machine");
+                return;
+            }
+            Log.i(TAG, "removeStateMachine: removing state machine for device: " + device);
+            sm.doQuit();
+            sm.cleanup();
+            mStateMachines.remove(device);
         }
     }
 
@@ -757,7 +823,7 @@ public class A2dpService extends ProfileService {
         boolean supportsOptional = false;
 
         synchronized (mStateMachines) {
-            A2dpStateMachine sm = getOrCreateStateMachine(device);
+            A2dpStateMachine sm = mStateMachines.get(device);
             if (sm == null) {
                 return;
             }
@@ -801,14 +867,28 @@ public class A2dpService extends ProfileService {
             if (toState == BluetoothProfile.STATE_CONNECTED && (mMaxConnectedAudioDevices == 1)) {
                 setActiveDevice(device);
             }
-            // Check if the active device has been disconnected
+            // Check if the active device is not connected anymore
             if (isActiveDevice(device) && (fromState == BluetoothProfile.STATE_CONNECTED)) {
                 setActiveDevice(null);
+            }
+            // Check if the device is disconnected - if unbond, remove the state machine
+            if (toState == BluetoothProfile.STATE_DISCONNECTED) {
+                int bondState = mAdapterService.getBondState(device);
+                if (bondState == BluetoothDevice.BOND_NONE) {
+                    removeStateMachine(device);
+                }
             }
         }
     }
 
-    // Update codec support per device when device is (re)connected.
+    /**
+     * Receiver for processing device connection state changes.
+     *
+     * <ul>
+     * <li> Update codec support per device when device is (re)connected
+     * <li> Delete the state machine instance if the device is disconnected and unbond
+     * </ul>
+     */
     private class ConnectionStateChangedReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -822,7 +902,9 @@ public class A2dpService extends ProfileService {
         }
     }
 
-    // Binder object: Must be static class or memory leak may occur
+    /**
+     * Binder object: must be a static class or memory leak may occur.
+     */
     @VisibleForTesting
     static class BluetoothA2dpBinder extends IBluetoothA2dp.Stub
             implements IProfileServiceBinder {
