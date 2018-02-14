@@ -399,13 +399,11 @@ static jboolean setActiveDeviceNative(JNIEnv* env, jobject object,
   }
 
   jbyte* addr = env->GetByteArrayElements(address, nullptr);
-  if (!addr) {
-    jniThrowIOException(env, EINVAL);
-    return JNI_FALSE;
-  }
 
-  RawAddress bd_addr;
-  bd_addr.FromOctets(reinterpret_cast<const uint8_t*>(addr));
+  RawAddress bd_addr = RawAddress::kEmpty;
+  if (addr) {
+    bd_addr.FromOctets(reinterpret_cast<const uint8_t*>(addr));
+  }
   bt_status_t status = sBluetoothA2dpInterface->set_active_device(bd_addr);
   if (status != BT_STATUS_SUCCESS) {
     ALOGE("%s: Failed A2DP set_active_device, status: %d", __func__, status);
