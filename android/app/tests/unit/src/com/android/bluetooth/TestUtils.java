@@ -19,6 +19,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
 import android.content.Intent;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.rule.ServiceTestRule;
@@ -147,5 +148,21 @@ public class TestUtils {
         serviceTestRule.startService(stopIntent);
         verify(adapterService, timeout(SERVICE_TOGGLE_TIMEOUT_MS)).onProfileServiceStateChanged(
                 eq(profileServiceClass.getName()), eq(BluetoothAdapter.STATE_OFF));
+    }
+
+    /**
+     * Create a test device.
+     *
+     * @param bluetoothAdapter the Bluetooth adapter to use
+     * @param id the test device ID. It must be an integer in the interval [0, 0xFF].
+     * @return {@link BluetoothDevice} test device for the device ID
+     */
+    public static BluetoothDevice getTestDevice(BluetoothAdapter bluetoothAdapter, int id) {
+        Assert.assertTrue(id <= 0xFF);
+        Assert.assertNotNull(bluetoothAdapter);
+        BluetoothDevice testDevice =
+                bluetoothAdapter.getRemoteDevice(String.format("00:01:02:03:04:%02X", id));
+        Assert.assertNotNull(testDevice);
+        return testDevice;
     }
 }
