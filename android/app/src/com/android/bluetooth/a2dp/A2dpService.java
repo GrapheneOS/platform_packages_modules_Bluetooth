@@ -421,6 +421,11 @@ public class A2dpService extends ProfileService {
                     mAudioManager.setBluetoothA2dpDeviceConnectionState(
                             previousActiveDevice, BluetoothProfile.STATE_DISCONNECTED,
                             BluetoothProfile.A2DP);
+                    // Make sure the Active device in native layer is set to null and audio is off
+                    if (!mA2dpNativeInterface.setActiveDevice(null)) {
+                        Log.w(TAG, "setActiveDevice(null): Cannot remove active device in native "
+                                + "layer");
+                    }
                 }
                 return true;
             }
