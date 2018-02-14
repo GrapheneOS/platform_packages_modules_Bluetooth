@@ -223,8 +223,8 @@ final class A2dpStateMachine extends StateMachine {
         }
 
         // in Disconnected state
-        private void processConnectionEvent(int state) {
-            switch (state) {
+        private void processConnectionEvent(int event) {
+            switch (event) {
                 case A2dpStackEvent.CONNECTION_STATE_DISCONNECTED:
                     Log.w(TAG, "Ignore A2DP DISCONNECTED event: " + mDevice);
                     break;
@@ -253,7 +253,7 @@ final class A2dpStateMachine extends StateMachine {
                     Log.w(TAG, "Ignore A2DP DISCONNECTING event: " + mDevice);
                     break;
                 default:
-                    Log.e(TAG, "Incorrect state: " + state + " device: " + mDevice);
+                    Log.e(TAG, "Incorrect event: " + event + " device: " + mDevice);
                     break;
             }
         }
@@ -333,8 +333,8 @@ final class A2dpStateMachine extends StateMachine {
         }
 
         // in Connecting state
-        private void processConnectionEvent(int state) {
-            switch (state) {
+        private void processConnectionEvent(int event) {
+            switch (event) {
                 case A2dpStackEvent.CONNECTION_STATE_DISCONNECTED:
                     Log.w(TAG, "Connecting device disconnected: " + mDevice);
                     transitionTo(mDisconnected);
@@ -350,7 +350,7 @@ final class A2dpStateMachine extends StateMachine {
                     transitionTo(mDisconnecting);
                     break;
                 default:
-                    Log.e(TAG, "Incorrect state: " + state);
+                    Log.e(TAG, "Incorrect event: " + event);
                     break;
             }
         }
@@ -427,8 +427,8 @@ final class A2dpStateMachine extends StateMachine {
         }
 
         // in Disconnecting state
-        private void processConnectionEvent(int state) {
-            switch (state) {
+        private void processConnectionEvent(int event) {
+            switch (event) {
                 case A2dpStackEvent.CONNECTION_STATE_DISCONNECTED:
                     Log.i(TAG, "Disconnected: " + mDevice);
                     transitionTo(mDisconnected);
@@ -457,7 +457,7 @@ final class A2dpStateMachine extends StateMachine {
                     // We are already disconnecting, do nothing
                     break;
                 default:
-                    Log.e(TAG, "Incorrect state: " + state);
+                    Log.e(TAG, "Incorrect event: " + event);
                     break;
             }
         }
@@ -546,14 +546,24 @@ final class A2dpStateMachine extends StateMachine {
         }
 
         // in Connected state
-        private void processConnectionEvent(int state) {
-            switch (state) {
+        private void processConnectionEvent(int event) {
+            switch (event) {
                 case A2dpStackEvent.CONNECTION_STATE_DISCONNECTED:
                     Log.i(TAG, "Disconnected from " + mDevice);
                     transitionTo(mDisconnected);
                     break;
+                case A2dpStackEvent.CONNECTION_STATE_CONNECTED:
+                    Log.w(TAG, "Ignore A2DP CONNECTED event: " + mDevice);
+                    break;
+                case A2dpStackEvent.CONNECTION_STATE_CONNECTING:
+                    Log.w(TAG, "Ignore A2DP CONNECTING event: " + mDevice);
+                    break;
+                case A2dpStackEvent.CONNECTION_STATE_DISCONNECTING:
+                    Log.i(TAG, "Disconnecting from " + mDevice);
+                    transitionTo(mDisconnecting);
+                    break;
                 default:
-                    Log.e(TAG, "Connection State Device: " + mDevice + " bad state: " + state);
+                    Log.e(TAG, "Connection State Device: " + mDevice + " bad event: " + event);
                     break;
             }
         }
