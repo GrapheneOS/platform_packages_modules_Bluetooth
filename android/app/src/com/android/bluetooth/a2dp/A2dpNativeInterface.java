@@ -133,6 +133,9 @@ public class A2dpNativeInterface {
     }
 
     private byte[] getByteAddress(BluetoothDevice device) {
+        if (device == null) {
+            return Utils.getBytesFromAddress("00:00:00:00:00:00");
+        }
         return Utils.getBytesFromAddress(device.getAddress());
     }
 

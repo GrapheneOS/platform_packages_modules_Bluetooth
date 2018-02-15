@@ -421,6 +421,11 @@ public class A2dpService extends ProfileService {
                     mAudioManager.setBluetoothA2dpDeviceConnectionState(
                             previousActiveDevice, BluetoothProfile.STATE_DISCONNECTED,
                             BluetoothProfile.A2DP);
+                    // Make sure the Active device in native layer is set to null and audio is off
+                    if (!mA2dpNativeInterface.setActiveDevice(null)) {
+                        Log.w(TAG, "setActiveDevice(null): Cannot remove active device in native "
+                                + "layer");
+                    }
                 }
                 return true;
             }
@@ -682,23 +687,24 @@ public class A2dpService extends ProfileService {
         Objects.requireNonNull(stackEvent.device,
                                "Device should never be null, event: " + stackEvent);
         synchronized (mStateMachines) {
-            A2dpStateMachine sm = null;
             BluetoothDevice device = stackEvent.device;
-            if (stackEvent.type == A2dpStackEvent.EVENT_TYPE_CONNECTION_STATE_CHANGED) {
-                switch (stackEvent.valueInt) {
-                    case A2dpStackEvent.CONNECTION_STATE_CONNECTED:
-                    case A2dpStackEvent.CONNECTION_STATE_CONNECTING:
-                        // Create a new state machine only when connecting to a device
-                        if (!connectionAllowedCheckMaxDevices(device)) {
-                            Log.e(TAG, "Cannot connect to " + device
-                                    + " : too many connected devices");
-                            return;
-                        }
-                        sm = getOrCreateStateMachine(device);
-                        break;
-                    default:
-                        sm = mStateMachines.get(device);
-                        break;
+            A2dpStateMachine sm = mStateMachines.get(device);
+            if (sm == null) {
+                if (stackEvent.type == A2dpStackEvent.EVENT_TYPE_CONNECTION_STATE_CHANGED) {
+                    switch (stackEvent.valueInt) {
+                        case A2dpStackEvent.CONNECTION_STATE_CONNECTED:
+                        case A2dpStackEvent.CONNECTION_STATE_CONNECTING:
+                            // Create a new state machine only when connecting to a device
+                            if (!connectionAllowedCheckMaxDevices(device)) {
+                                Log.e(TAG, "Cannot connect to " + device
+                                        + " : too many connected devices");
+                                return;
+                            }
+                            sm = getOrCreateStateMachine(device);
+                            break;
+                        default:
+                            break;
+                    }
                 }
             }
             if (sm == null) {
