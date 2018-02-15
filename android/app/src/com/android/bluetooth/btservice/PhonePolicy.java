@@ -371,7 +371,7 @@ class PhonePolicy {
         }
 
         if (hsService != null) {
-            if (hsConnDevList.isEmpty() && !mHeadsetRetrySet.contains(device) && (
+            if (!mHeadsetRetrySet.contains(device) && (
                     hsService.getPriority(device) >= BluetoothProfile.PRIORITY_ON) && (
                     hsService.getConnectionState(device) == BluetoothProfile.STATE_DISCONNECTED)) {
                 debugLog("Retrying connection to Headset with device " + device);
@@ -380,7 +380,7 @@ class PhonePolicy {
             }
         }
         if (a2dpService != null) {
-            if (a2dpConnDevList.isEmpty() && !mA2dpRetrySet.contains(device) && (
+            if (!mA2dpRetrySet.contains(device) && (
                     a2dpService.getPriority(device) >= BluetoothProfile.PRIORITY_ON) && (
                     a2dpService.getConnectionState(device)
                             == BluetoothProfile.STATE_DISCONNECTED)) {
@@ -390,6 +390,8 @@ class PhonePolicy {
             }
         }
         if (panService != null) {
+            // TODO: the panConnDevList.isEmpty() check below should be removed once
+            // Multi-PAN is supported.
             if (panConnDevList.isEmpty() && (panService.getPriority(device)
                     >= BluetoothProfile.PRIORITY_ON) && (panService.getConnectionState(device)
                     == BluetoothProfile.STATE_DISCONNECTED)) {
