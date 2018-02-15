@@ -686,6 +686,20 @@ final class A2dpStateMachine extends StateMachine {
         mA2dpService.sendBroadcast(intent, A2dpService.BLUETOOTH_PERM);
     }
 
+    @Override
+    protected String getLogRecString(Message msg) {
+        StringBuilder builder = new StringBuilder();
+        builder.append(messageWhatToString(msg.what));
+        builder.append(": ");
+        builder.append("arg1=")
+                .append(msg.arg1)
+                .append(", arg2=")
+                .append(msg.arg2)
+                .append(", obj=")
+                .append(msg.obj);
+        return builder.toString();
+    }
+
     private static String messageWhatToString(int what) {
         switch (what) {
             case CONNECT:
