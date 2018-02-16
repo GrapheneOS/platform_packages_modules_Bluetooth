@@ -27,6 +27,7 @@
 #include <android_util_Binder.h>
 #include <base/logging.h>
 #include <base/strings/stringprintf.h>
+#include <cutils/properties.h>
 #include <dlfcn.h>
 #include <errno.h>
 #include <pthread.h>
@@ -599,14 +600,16 @@ static bt_os_callouts_t sBluetoothOsCallouts = {
     acquire_wake_lock_callout, release_wake_lock_callout,
 };
 
-#define BLUETOOTH_LIBRARY_NAME "libbluetooth.so"
+#define PROPERTY_BT_LIBRARY_NAME "ro.bluetooth.library_name"
+#define DEFAULT_BT_LIBRARY_NAME "libbluetooth.so"
 
 int hal_util_load_bt_library(const bt_interface_t** interface) {
   const char* sym = BLUETOOTH_INTERFACE_STRING;
   bt_interface_t* itf = nullptr;
 
-  // Always try to load the default Bluetooth stack on GN builds.
-  const char* path = BLUETOOTH_LIBRARY_NAME;
+  // The library name is not set by default, so the preset library name is used.
+  char path[PROPERTY_VALUE_MAX] = "";
+  property_get(PROPERTY_BT_LIBRARY_NAME, path, DEFAULT_BT_LIBRARY_NAME);
   void* handle = dlopen(path, RTLD_NOW);
   if (!handle) {
     const char* err_str = dlerror();
