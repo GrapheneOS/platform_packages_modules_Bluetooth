@@ -126,6 +126,7 @@ public class AdapterServiceTest {
     @After
     public void tearDown() {
         mAdapterService.cleanup();
+        Config.init(InstrumentationRegistry.getTargetContext());
     }
 
     /**

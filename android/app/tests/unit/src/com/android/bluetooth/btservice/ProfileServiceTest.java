@@ -84,6 +84,8 @@ public class ProfileServiceTest {
 
         mProfiles = Config.getSupportedProfiles();
 
+        mMockAdapterService.initNative();
+
         TestUtils.setAdapterService(mMockAdapterService);
 
         Assert.assertNotNull(AdapterService.getAdapterService());
@@ -92,6 +94,7 @@ public class ProfileServiceTest {
     @After
     public void tearDown()
             throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+        mMockAdapterService.cleanupNative();
         TestUtils.clearAdapterService(mMockAdapterService);
         mMockAdapterService = null;
         mProfiles = null;
