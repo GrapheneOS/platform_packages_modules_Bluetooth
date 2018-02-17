@@ -63,7 +63,6 @@ class BluetoothPbapUtils {
     private static long sTotalFields = 0;
     private static long sTotalSvcFields = 0;
     private static long sContactsLastUpdated = 0;
-    static boolean sContactsLoaded = false;
 
     private static class ContactData {
         private String mName;
@@ -167,9 +166,7 @@ class BluetoothPbapUtils {
         edit.putLong("primary", sPrimaryVersionCounter);
         edit.putLong("secondary", sSecondaryVersionCounter);
         edit.putLong("dbIdentifier", dbIdentifier);
-        if (sContactsLoaded) {
-            edit.putLong("totalContacts", sTotalContacts);
-        }
+        edit.putLong("totalContacts", sTotalContacts);
         edit.putLong("lastUpdatedTimestamp", sContactsLastUpdated);
         edit.putLong("totalFields", sTotalFields);
         edit.putLong("totalSvcFields", sTotalSvcFields);
@@ -212,7 +209,7 @@ class BluetoothPbapUtils {
             sTotalContacts = 0;
             return;
         }
-        sContactsLoaded = true;
+        handler.sendMessage(handler.obtainMessage(BluetoothPbapService.CONTACTS_LOADED));
     }
 
     static void updateSecondaryVersionCounter(Context context, Handler handler) {
