@@ -58,10 +58,12 @@ public class BluetoothPbapAuthenticator implements Authenticator {
 
     final synchronized void setChallenged(final boolean bool) {
         mChallenged = bool;
+        notify();
     }
 
     final synchronized void setCancelled(final boolean bool) {
         mAuthCancelled = bool;
+        notify();
     }
 
     final synchronized void setSessionKey(final String string) {
@@ -77,7 +79,7 @@ public class BluetoothPbapAuthenticator implements Authenticator {
                 try {
                     wait();
                 } catch (InterruptedException e) {
-                    Log.e(TAG, "Interrupted while waiting on isChalled");
+                    Log.e(TAG, "Interrupted while waiting on isChallenged or AuthCancelled");
                 }
             }
         }
