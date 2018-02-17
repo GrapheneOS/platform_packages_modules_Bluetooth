@@ -113,17 +113,17 @@ public class A2dpService extends ProfileService {
         mMaxConnectedAudioDevices = mAdapterService.getMaxConnectedAudioDevices();
         Log.i(TAG, "Max connected audio devices set to " + mMaxConnectedAudioDevices);
 
-        // Step 3: Start handler thread for state machines
+        // Step 3: Setup AVRCP
+        mAvrcp = Avrcp.make(this);
+
+        // Step 4: Start handler thread for state machines
         mStateMachines.clear();
         mStateMachinesThread = new HandlerThread("A2dpService.StateMachines");
         mStateMachinesThread.start();
 
-        // Step 4: Setup codec config and clear active device
+        // Step 5: Setup codec config and clear active device
         mA2dpCodecConfig = new A2dpCodecConfig(this, mA2dpNativeInterface);
         mActiveDevice = null;
-
-        // Step 5: Setup AVRCP
-        mAvrcp = Avrcp.make(this);
 
         // Step 6: Initialize native interface
         mA2dpNativeInterface.init(mA2dpCodecConfig.codecConfigPriorities());
@@ -165,15 +165,11 @@ public class A2dpService extends ProfileService {
         mA2dpNativeInterface.cleanup();
         mA2dpNativeInterface = null;
 
-        // Step 5: Cleanup AVRCP
-        mAvrcp.cleanup();
-        mAvrcp = null;
-
-        // Step 4: Clear codec config and active device
+        // Step 5: Clear codec config and active device
         mA2dpCodecConfig = null;
         mActiveDevice = null;
 
-        // Step 3: Destroy state machines and stop handler thread
+        // Step 4: Destroy state machines and stop handler thread
         synchronized (mStateMachines) {
             for (A2dpStateMachine sm : mStateMachines.values()) {
                 sm.doQuit();
@@ -183,6 +179,11 @@ public class A2dpService extends ProfileService {
         }
         mStateMachinesThread.quitSafely();
         mStateMachinesThread = null;
+
+        // Step 3: Cleanup AVRCP
+        mAvrcp.doQuit();
+        mAvrcp.cleanup();
+        mAvrcp = null;
 
         // Step 2: Reset maximum number of connected audio devices
         mMaxConnectedAudioDevices = 1;
