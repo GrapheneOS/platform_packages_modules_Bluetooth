@@ -121,8 +121,9 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
 
     static final int START_LISTENER = 1;
     static final int USER_TIMEOUT = 2;
-    static final int SHUTDOWN = 4;
-    static final int LOAD_CONTACTS = 5;
+    static final int SHUTDOWN = 3;
+    static final int LOAD_CONTACTS = 4;
+    static final int CONTACTS_LOADED = 5;
     static final int CHECK_SECONDARY_VERSION_COUNTER = 6;
     static final int ROLLOVER_COUNTERS = 7;
 
@@ -160,6 +161,7 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
             "com.android.settings.bluetooth.BluetoothPermissionRequest";
 
     private Thread mThreadLoadContacts;
+    private boolean mContactsLoaded = false;
 
     private Thread mThreadUpdateSecVersionCounter;
 
@@ -173,7 +175,7 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
         @Override
         public void onChange(boolean selfChange) {
             Log.d(TAG, " onChange on contact uri ");
-            if (BluetoothPbapUtils.sContactsLoaded) {
+            if (mContactsLoaded) {
                 if (!mSessionStatusHandler.hasMessages(CHECK_SECONDARY_VERSION_COUNTER)) {
                     mSessionStatusHandler.sendMessage(
                             mSessionStatusHandler.obtainMessage(CHECK_SECONDARY_VERSION_COUNTER));
@@ -384,6 +386,9 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
                 case LOAD_CONTACTS:
                     loadAllContacts();
                     break;
+                case CONTACTS_LOADED:
+                    mContactsLoaded = true;
+                    break;
                 case CHECK_SECONDARY_VERSION_COUNTER:
                     updateSecondaryVersion();
                     break;
@@ -476,6 +481,7 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
             Log.v(TAG, "start()");
         }
         mContext = this;
+        mContactsLoaded = false;
         mHandlerThread = new HandlerThread("PbapHandlerThread");
         mHandlerThread.start();
         mSessionStatusHandler = new PbapHandler(mHandlerThread.getLooper());
@@ -523,6 +529,7 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
         if (mHandlerThread != null) {
             mHandlerThread.quitSafely();
         }
+        mContactsLoaded = false;
         if (mContactChangeObserver == null) {
             Log.i(TAG, "Avoid unregister when receiver it is not registered");
             return true;
