@@ -323,21 +323,15 @@ class PbapStateMachine extends StateMachine {
             nm.cancel(id);
         }
 
-        private void notifyAuthCancelled() {
-            synchronized (this) {
-                mObexAuth.setCancelled(true);
-                mObexAuth.notify();
-            }
+        private synchronized void notifyAuthCancelled() {
+            mObexAuth.setCancelled(true);
         }
 
-        private void notifyAuthKeyInput(final String key) {
-            synchronized (this) {
-                if (key != null) {
-                    mObexAuth.setSessionKey(key);
-                }
-                mObexAuth.setChallenged(true);
-                mObexAuth.notify();
+        private synchronized void notifyAuthKeyInput(final String key) {
+            if (key != null) {
+                mObexAuth.setSessionKey(key);
             }
+            mObexAuth.setChallenged(true);
         }
     }
 
