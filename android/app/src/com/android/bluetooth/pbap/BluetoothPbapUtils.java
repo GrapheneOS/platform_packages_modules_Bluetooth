@@ -42,6 +42,7 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicLong;
 
 class BluetoothPbapUtils {
@@ -337,16 +338,19 @@ class BluetoothPbapUtils {
                 ContactData cData = new ContactData(nameTmp, phoneTmp, emailTmp, addressTmp);
                 dataCursor.close();
 
-                if ((nameTmp == null && sContactDataset.get(contact).mName != null) || (
-                        nameTmp != null && sContactDataset.get(contact).mName == null) || (
-                        nameTmp != null && sContactDataset.get(contact).mName != null
-                                && !nameTmp.equals(sContactDataset.get(contact).mName))) {
+                ContactData currentContactData = sContactDataset.get(contact);
+                if (currentContactData == null) {
+                    Log.e(TAG, "Null contact in the updateList: " + contact);
+                    continue;
+                }
+
+                if (!Objects.equals(nameTmp, currentContactData.mName)) {
                     updated = true;
-                } else if (checkFieldUpdates(sContactDataset.get(contact).mPhone, phoneTmp)) {
+                } else if (checkFieldUpdates(currentContactData.mPhone, phoneTmp)) {
                     updated = true;
-                } else if (checkFieldUpdates(sContactDataset.get(contact).mEmail, emailTmp)) {
+                } else if (checkFieldUpdates(currentContactData.mEmail, emailTmp)) {
                     updated = true;
-                } else if (checkFieldUpdates(sContactDataset.get(contact).mAddress, addressTmp)) {
+                } else if (checkFieldUpdates(currentContactData.mAddress, addressTmp)) {
                     updated = true;
                 }
 
