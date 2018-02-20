@@ -117,6 +117,7 @@ public class HeadsetServiceTest {
         doNothing().when(mSystemInterface).stop();
         when(mSystemInterface.getHeadsetPhoneState()).thenReturn(mPhoneState);
         when(mSystemInterface.getAudioManager()).thenReturn(mAudioManager);
+        when(mSystemInterface.isCallIdle()).thenReturn(true);
         // Mock methods in HeadsetNativeInterface
         mNativeInterface = spy(HeadsetNativeInterface.getInstance());
         doNothing().when(mNativeInterface).init(anyInt(), anyBoolean());
