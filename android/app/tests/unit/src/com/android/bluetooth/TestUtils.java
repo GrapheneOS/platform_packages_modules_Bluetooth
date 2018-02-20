@@ -28,7 +28,6 @@ import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.ProfileService;
 
 import org.junit.Assert;
-import org.mockito.ArgumentCaptor;
 import org.mockito.internal.util.MockUtil;
 
 import java.lang.reflect.InvocationTargetException;
@@ -118,10 +117,8 @@ public class TestUtils {
                 AdapterService.ACTION_SERVICE_STATE_CHANGED);
         startIntent.putExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.STATE_ON);
         serviceTestRule.startService(startIntent);
-        ArgumentCaptor<ProfileService> profile = ArgumentCaptor.forClass(profileServiceClass);
         verify(adapterService, timeout(SERVICE_TOGGLE_TIMEOUT_MS)).onProfileServiceStateChanged(
-                profile.capture(), eq(BluetoothAdapter.STATE_ON));
-        Assert.assertEquals(profileServiceClass.getName(), profile.getValue().getClass().getName());
+                eq(profileServiceClass.getName()), eq(BluetoothAdapter.STATE_ON));
     }
 
     /**
@@ -149,10 +146,8 @@ public class TestUtils {
                 AdapterService.ACTION_SERVICE_STATE_CHANGED);
         stopIntent.putExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.STATE_OFF);
         serviceTestRule.startService(stopIntent);
-        ArgumentCaptor<ProfileService> profile = ArgumentCaptor.forClass(profileServiceClass);
         verify(adapterService, timeout(SERVICE_TOGGLE_TIMEOUT_MS)).onProfileServiceStateChanged(
-                profile.capture(), eq(BluetoothAdapter.STATE_OFF));
-        Assert.assertEquals(profileServiceClass.getName(), profile.getValue().getClass().getName());
+                eq(profileServiceClass.getName()), eq(BluetoothAdapter.STATE_OFF));
     }
 
     /**
