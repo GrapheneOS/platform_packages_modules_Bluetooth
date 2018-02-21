@@ -26,6 +26,7 @@ import android.support.test.InstrumentationRegistry;
 import android.support.test.filters.MediumTest;
 import android.support.test.rule.ServiceTestRule;
 import android.support.test.runner.AndroidJUnit4;
+import android.util.Log;
 
 import com.android.bluetooth.TestUtils;
 
@@ -35,19 +36,16 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.lang.reflect.InvocationTargetException;
-import java.util.List;
 import java.util.concurrent.TimeoutException;
 
 @MediumTest
 @RunWith(AndroidJUnit4.class)
 public class ProfileServiceTest {
     private static final int PROFILE_START_MILLIS = 1250;
-    private static final int NUM_REPEATS = 5;
 
     @Rule public final ServiceTestRule mServiceTestRule = new ServiceTestRule();
 
@@ -63,19 +61,10 @@ public class ProfileServiceTest {
         for (Class profile : mProfiles) {
             setProfileState(profile, state);
         }
-        ArgumentCaptor<ProfileService> argument = ArgumentCaptor.forClass(ProfileService.class);
-        verify(mMockAdapterService, timeout(PROFILE_START_MILLIS).times(
-                mProfiles.length * invocationNumber)).onProfileServiceStateChanged(
-                argument.capture(), eq(state));
-        List<ProfileService> argumentProfiles = argument.getAllValues();
         for (Class profile : mProfiles) {
-            int matches = 0;
-            for (ProfileService arg : argumentProfiles) {
-                if (arg.getClass().getName().equals(profile.getName())) {
-                    matches += 1;
-                }
-            }
-            Assert.assertEquals(invocationNumber, matches);
+            verify(mMockAdapterService, timeout(PROFILE_START_MILLIS).times(
+                    invocationNumber)).onProfileServiceStateChanged(eq(profile.getName()),
+                    eq(state));
         }
     }
 
@@ -143,23 +132,13 @@ public class ProfileServiceTest {
             setProfileState(profile, BluetoothAdapter.STATE_ON);
             setProfileState(profile, BluetoothAdapter.STATE_OFF);
         }
-        ArgumentCaptor<ProfileService> starts = ArgumentCaptor.forClass(ProfileService.class);
-        ArgumentCaptor<ProfileService> stops = ArgumentCaptor.forClass(ProfileService.class);
-        int invocationNumber = mProfiles.length;
-        verify(mMockAdapterService,
-                timeout(PROFILE_START_MILLIS).times(invocationNumber)).onProfileServiceStateChanged(
-                starts.capture(), eq(BluetoothAdapter.STATE_ON));
-        verify(mMockAdapterService,
-                timeout(PROFILE_START_MILLIS).times(invocationNumber)).onProfileServiceStateChanged(
-                stops.capture(), eq(BluetoothAdapter.STATE_OFF));
-
-        List<ProfileService> startedArguments = starts.getAllValues();
-        List<ProfileService> stoppedArguments = stops.getAllValues();
-        Assert.assertEquals(startedArguments.size(), stoppedArguments.size());
-        for (ProfileService service : startedArguments) {
-            Assert.assertTrue(stoppedArguments.contains(service));
-            stoppedArguments.remove(service);
-            Assert.assertFalse(stoppedArguments.contains(service));
+        for (Class profile : mProfiles) {
+            verify(mMockAdapterService,
+                    timeout(PROFILE_START_MILLIS)).onProfileServiceStateChanged(
+                    eq(profile.getName()), eq(BluetoothAdapter.STATE_ON));
+            verify(mMockAdapterService,
+                    timeout(PROFILE_START_MILLIS)).onProfileServiceStateChanged(
+                    eq(profile.getName()), eq(BluetoothAdapter.STATE_OFF));
         }
     }
 
@@ -169,23 +148,20 @@ public class ProfileServiceTest {
      */
     @Test
     public void testRepeatedEnableDisableSingly() throws TimeoutException {
-        int profileNumber = 0;
         for (Class profile : mProfiles) {
-            for (int i = 0; i < NUM_REPEATS; i++) {
+            Log.d("Singly", "profile = " + profile.getSimpleName());
+            for (int i = 0; i < 5; i++) {
                 setProfileState(profile, BluetoothAdapter.STATE_ON);
-                ArgumentCaptor<ProfileService> start =
-                        ArgumentCaptor.forClass(ProfileService.class);
-                verify(mMockAdapterService, timeout(PROFILE_START_MILLIS).times(
-                        NUM_REPEATS * profileNumber + i + 1)).onProfileServiceStateChanged(
-                        start.capture(), eq(BluetoothAdapter.STATE_ON));
+                verify(mMockAdapterService,
+                        timeout(PROFILE_START_MILLIS).times(i + 1)).onProfileServiceStateChanged(
+                        eq(profile.getName()), eq(BluetoothAdapter.STATE_ON));
+                Log.d("Singly", "profile = " + profile.getSimpleName() + ": enabled " + i);
                 setProfileState(profile, BluetoothAdapter.STATE_OFF);
-                ArgumentCaptor<ProfileService> stop = ArgumentCaptor.forClass(ProfileService.class);
-                verify(mMockAdapterService, timeout(PROFILE_START_MILLIS).times(
-                        NUM_REPEATS * profileNumber + i + 1)).onProfileServiceStateChanged(
-                        stop.capture(), eq(BluetoothAdapter.STATE_OFF));
-                Assert.assertEquals(start.getValue(), stop.getValue());
+                verify(mMockAdapterService,
+                        timeout(PROFILE_START_MILLIS).times(i + 1)).onProfileServiceStateChanged(
+                        eq(profile.getName()), eq(BluetoothAdapter.STATE_OFF));
+                Log.d("Singly", " " + profile.getSimpleName() + ": disabled " + i);
             }
-            profileNumber += 1;
         }
     }
 }
