@@ -268,8 +268,7 @@ public abstract class ProfileService extends Service {
             Log.e(mName, "Error starting profile. start() returned false.");
             return;
         }
-        mAdapterService.onProfileServiceStateChanged(getClass().getName(),
-                BluetoothAdapter.STATE_ON);
+        mAdapterService.onProfileServiceStateChanged(this, BluetoothAdapter.STATE_ON);
     }
 
     private void doStop() {
@@ -278,8 +277,7 @@ public abstract class ProfileService extends Service {
         }
         mProfileStarted = false;
         if (mAdapterService != null) {
-            mAdapterService.onProfileServiceStateChanged(getClass().getName(),
-                    BluetoothAdapter.STATE_OFF);
+            mAdapterService.onProfileServiceStateChanged(this, BluetoothAdapter.STATE_OFF);
         }
         if (!stop()) {
             Log.e(mName, "Unable to stop profile");
