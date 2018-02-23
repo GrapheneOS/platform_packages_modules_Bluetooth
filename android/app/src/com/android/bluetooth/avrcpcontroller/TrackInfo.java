@@ -32,7 +32,7 @@ import java.util.Map;
  */
 class TrackInfo {
     private static final String TAG = "AvrcpTrackInfo";
-    private static final boolean DBG = true;
+    private static final boolean VDBG = false;
 
     /*
      * Default values for each of the items from JNI
@@ -103,7 +103,7 @@ class TrackInfo {
     }
 
     public MediaMetadata getMediaMetaData() {
-        if (DBG) {
+        if (VDBG) {
             Log.d(TAG, " TrackInfo " + toString());
         }
         MediaMetadata.Builder mMetaDataBuilder = new MediaMetadata.Builder();
