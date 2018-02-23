@@ -127,7 +127,7 @@ public class MapClientService extends ProfileService {
         if (state == BluetoothProfile.STATE_CONNECTED
                 || state == BluetoothProfile.STATE_CONNECTING) {
             Log.w(TAG, "Received connect request while already connecting/connected.");
-            return false;
+            return true;
         }
 
         // Statemachine exists but not in connecting or connected state! it should
@@ -527,7 +527,7 @@ public class MapClientService extends ProfileService {
                 Log.d(TAG, "broadcast has device: (" + device.getAddress() + ", "
                         + device.getName() + ")");
             }
-            MceStateMachine stateMachine = MapClientService.this.mMapInstanceMap.get(device);
+            MceStateMachine stateMachine = mMapInstanceMap.get(device);
             if (stateMachine == null) {
                 Log.e(TAG, "No Statemachine found for the device from broadcast");
                 return;
