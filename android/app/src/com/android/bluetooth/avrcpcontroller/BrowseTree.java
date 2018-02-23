@@ -40,7 +40,8 @@ import java.util.List;
 //      ....
 public class BrowseTree {
     private static final String TAG = "BrowseTree";
-    private static final boolean DBG = true;
+    private static final boolean DBG = false;
+    private static final boolean VDBG = false;
 
     public static final int DIRECTION_DOWN = 0;
     public static final int DIRECTION_UP = 1;
@@ -178,7 +179,11 @@ public class BrowseTree {
 
         @Override
         public String toString() {
-            return "ID: " + getID() + " desc: " + mItem;
+            if (VDBG) {
+                return "ID: " + getID() + " desc: " + mItem;
+            } else {
+                return "ID: " + getID();
+            }
         }
     }
 
@@ -208,7 +213,7 @@ public class BrowseTree {
 
         String parentID = parent.getID();
         // Make sure that the child list is clean.
-        if (DBG) {
+        if (VDBG) {
             Log.d(TAG, "parent " + parentID + " child list " + parent.getChildren());
         }
 
@@ -227,7 +232,7 @@ public class BrowseTree {
             Log.e(TAG, "folder " + parentID + " not found!");
             return null;
         }
-        if (DBG) {
+        if (VDBG) {
             Log.d(TAG, "Browse map: " + mBrowseMap);
         }
         return bn;
@@ -265,8 +270,7 @@ public class BrowseTree {
         } else if (fromFolder.equals(toFolder)) {
             return DIRECTION_SAME;
         } else {
-            Log.w(TAG, "from folder " + mCurrentBrowseNode + " children " + fromFolder.getChildren()
-                    + "to folder " + toUID + " children " + toFolder.getChildren());
+            Log.w(TAG, "from folder " + mCurrentBrowseNode + "to folder " + toUID);
             return DIRECTION_UNKNOWN;
         }
     }
