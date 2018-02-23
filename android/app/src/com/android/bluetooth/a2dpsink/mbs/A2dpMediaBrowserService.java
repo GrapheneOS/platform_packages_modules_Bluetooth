@@ -66,6 +66,9 @@ import java.util.Map;
  */
 public class A2dpMediaBrowserService extends MediaBrowserService {
     private static final String TAG = "A2dpMediaBrowserService";
+    private static final boolean DBG = false;
+    private static final boolean VDBG = false;
+
     private static final String UNKNOWN_BT_AUDIO = "__UNKNOWN_BT_AUDIO__";
     private static final float PLAYBACK_SPEED = 1.0f;
 
@@ -161,7 +164,7 @@ public class A2dpMediaBrowserService extends MediaBrowserService {
 
     @Override
     public void onCreate() {
-        Log.d(TAG, "onCreate");
+        if (DBG) Log.d(TAG, "onCreate");
         super.onCreate();
 
         mSession = new MediaSession(this, TAG);
@@ -188,7 +191,7 @@ public class A2dpMediaBrowserService extends MediaBrowserService {
 
     @Override
     public void onDestroy() {
-        Log.d(TAG, "onDestroy");
+        if (DBG) Log.d(TAG, "onDestroy");
         mSession.release();
         unregisterReceiver(mBtReceiver);
         super.onDestroy();
@@ -203,12 +206,12 @@ public class A2dpMediaBrowserService extends MediaBrowserService {
     public synchronized void onLoadChildren(final String parentMediaId,
             final Result<List<MediaItem>> result) {
         if (mAvrcpCtrlSrvc == null) {
-            Log.e(TAG, "AVRCP not yet connected.");
+            Log.w(TAG, "AVRCP not yet connected.");
             result.sendResult(Collections.emptyList());
             return;
         }
 
-        Log.d(TAG, "onLoadChildren parentMediaId=" + parentMediaId);
+        if (DBG) Log.d(TAG, "onLoadChildren parentMediaId=" + parentMediaId);
         if (!mAvrcpCtrlSrvc.getChildren(mA2dpDevice, parentMediaId, 0, 0xff)) {
             result.sendResult(Collections.emptyList());
             return;
@@ -230,7 +233,7 @@ public class A2dpMediaBrowserService extends MediaBrowserService {
     private MediaSession.Callback mSessionCallbacks = new MediaSession.Callback() {
         @Override
         public void onPlay() {
-            Log.d(TAG, "onPlay");
+            if (DBG) Log.d(TAG, "onPlay");
             mAvrcpCommandQueue.obtainMessage(MSG_AVRCP_PASSTHRU,
                     AvrcpControllerService.PASS_THRU_CMD_ID_PLAY).sendToTarget();
             // TRACK_EVENT should be fired eventually and the UI should be hence updated.
@@ -238,7 +241,7 @@ public class A2dpMediaBrowserService extends MediaBrowserService {
 
         @Override
         public void onPause() {
-            Log.d(TAG, "onPause");
+            if (DBG) Log.d(TAG, "onPause");
             mAvrcpCommandQueue.obtainMessage(MSG_AVRCP_PASSTHRU,
                     AvrcpControllerService.PASS_THRU_CMD_ID_PAUSE).sendToTarget();
             // TRACK_EVENT should be fired eventually and the UI should be hence updated.
@@ -246,7 +249,7 @@ public class A2dpMediaBrowserService extends MediaBrowserService {
 
         @Override
         public void onSkipToNext() {
-            Log.d(TAG, "onSkipToNext");
+            if (DBG) Log.d(TAG, "onSkipToNext");
             mAvrcpCommandQueue.obtainMessage(MSG_AVRCP_PASSTHRU,
                     AvrcpControllerService.PASS_THRU_CMD_ID_FORWARD).sendToTarget();
             // TRACK_EVENT should be fired eventually and the UI should be hence updated.
@@ -254,8 +257,7 @@ public class A2dpMediaBrowserService extends MediaBrowserService {
 
         @Override
         public void onSkipToPrevious() {
-            Log.d(TAG, "onSkipToPrevious");
-
+            if (DBG) Log.d(TAG, "onSkipToPrevious");
             mAvrcpCommandQueue.obtainMessage(MSG_AVRCP_PASSTHRU,
                     AvrcpControllerService.PASS_THRU_CMD_ID_BACKWARD).sendToTarget();
             // TRACK_EVENT should be fired eventually and the UI should be hence updated.
@@ -263,14 +265,14 @@ public class A2dpMediaBrowserService extends MediaBrowserService {
 
         @Override
         public void onStop() {
-            Log.d(TAG, "onStop");
+            if (DBG) Log.d(TAG, "onStop");
             mAvrcpCommandQueue.obtainMessage(MSG_AVRCP_PASSTHRU,
                     AvrcpControllerService.PASS_THRU_CMD_ID_STOP).sendToTarget();
         }
 
         @Override
         public void onPrepare() {
-            Log.d(TAG, "onPrepare");
+            if (DBG) Log.d(TAG, "onPrepare");
             if (mA2dpSinkService != null) {
                 mA2dpSinkService.requestAudioFocus(mA2dpDevice, true);
             }
@@ -278,7 +280,7 @@ public class A2dpMediaBrowserService extends MediaBrowserService {
 
         @Override
         public void onRewind() {
-            Log.d(TAG, "onRewind");
+            if (DBG) Log.d(TAG, "onRewind");
             mAvrcpCommandQueue.obtainMessage(MSG_AVRCP_PASSTHRU,
                     AvrcpControllerService.PASS_THRU_CMD_ID_REWIND).sendToTarget();
             // TRACK_EVENT should be fired eventually and the UI should be hence updated.
@@ -286,7 +288,7 @@ public class A2dpMediaBrowserService extends MediaBrowserService {
 
         @Override
         public void onFastForward() {
-            Log.d(TAG, "onFastForward");
+            if (DBG) Log.d(TAG, "onFastForward");
             mAvrcpCommandQueue.obtainMessage(MSG_AVRCP_PASSTHRU,
                     AvrcpControllerService.PASS_THRU_CMD_ID_FF).sendToTarget();
             // TRACK_EVENT should be fired eventually and the UI should be hence updated.
@@ -308,7 +310,7 @@ public class A2dpMediaBrowserService extends MediaBrowserService {
         // Support VOL UP and VOL DOWN events for PTS testing.
         @Override
         public void onCustomAction(String action, Bundle extras) {
-            Log.d(TAG, "onCustomAction " + action);
+            if (DBG) Log.d(TAG, "onCustomAction " + action);
             if (CUSTOM_ACTION_VOL_UP.equals(action)) {
                 mAvrcpCommandQueue.obtainMessage(MSG_AVRCP_PASSTHRU,
                         AvrcpControllerService.PASS_THRU_CMD_ID_VOL_UP).sendToTarget();
@@ -326,14 +328,17 @@ public class A2dpMediaBrowserService extends MediaBrowserService {
     private BroadcastReceiver mBtReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            Log.d(TAG, "onReceive intent=" + intent);
+            if (DBG) Log.d(TAG, "onReceive intent=" + intent);
             String action = intent.getAction();
             BluetoothDevice btDev =
                     (BluetoothDevice) intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
             int state = intent.getIntExtra(BluetoothProfile.EXTRA_STATE, -1);
 
             if (BluetoothAvrcpController.ACTION_CONNECTION_STATE_CHANGED.equals(action)) {
-                Log.d(TAG, "handleConnectionStateChange: newState=" + state + " btDev=" + btDev);
+                if (DBG) {
+                    Log.d(TAG, "handleConnectionStateChange: newState="
+                            + state + " btDev=" + btDev);
+                }
 
                 // Connected state will be handled when AVRCP BluetoothProfile gets connected.
                 if (state == BluetoothProfile.STATE_CONNECTED) {
@@ -370,7 +375,7 @@ public class A2dpMediaBrowserService extends MediaBrowserService {
     };
 
     private synchronized void msgDeviceConnect(BluetoothDevice device) {
-        Log.d(TAG, "msgDeviceConnect");
+        if (DBG) Log.d(TAG, "msgDeviceConnect");
         // We are connected to a new device via A2DP now.
         mA2dpDevice = device;
         mAvrcpCtrlSrvc = AvrcpControllerService.getAvrcpControllerService();
@@ -385,7 +390,7 @@ public class A2dpMediaBrowserService extends MediaBrowserService {
     // Refresh the UI if we have a connected device and AVRCP is initialized.
     private synchronized void refreshInitialPlayingState() {
         if (mA2dpDevice == null) {
-            Log.d(TAG, "device " + mA2dpDevice);
+            if (DBG) Log.d(TAG, "device " + mA2dpDevice);
             return;
         }
 
@@ -396,7 +401,7 @@ public class A2dpMediaBrowserService extends MediaBrowserService {
         }
 
         if (mA2dpDevice != null && !mA2dpDevice.equals(devices.get(0))) {
-            Log.e(TAG, "A2dp device : " + mA2dpDevice + " avrcp device " + devices.get(0));
+            Log.w(TAG, "A2dp device : " + mA2dpDevice + " avrcp device " + devices.get(0));
             return;
         }
         mA2dpDevice = devices.get(0);
@@ -408,13 +413,15 @@ public class A2dpMediaBrowserService extends MediaBrowserService {
         playbackState = pbb.setActions(mTransportControlFlags).build();
 
         MediaMetadata mediaMetadata = mAvrcpCtrlSrvc.getMetaData(mA2dpDevice);
-        Log.d(TAG, "Media metadata " + mediaMetadata + " playback state " + playbackState);
+        if (VDBG) {
+            Log.d(TAG, "Media metadata " + mediaMetadata + " playback state " + playbackState);
+        }
         mSession.setMetadata(mAvrcpCtrlSrvc.getMetaData(mA2dpDevice));
         mSession.setPlaybackState(playbackState);
     }
 
     private void msgDeviceDisconnect(BluetoothDevice device) {
-        Log.d(TAG, "msgDeviceDisconnect");
+        if (DBG) Log.d(TAG, "msgDeviceDisconnect");
         if (mA2dpDevice == null) {
             Log.w(TAG, "Already disconnected - nothing to do here.");
             return;
@@ -440,7 +447,7 @@ public class A2dpMediaBrowserService extends MediaBrowserService {
     }
 
     private void msgTrack(PlaybackState pb, MediaMetadata mmd) {
-        Log.d(TAG, "msgTrack: playback: " + pb + " mmd: " + mmd);
+        if (VDBG) Log.d(TAG, "msgTrack: playback: " + pb + " mmd: " + mmd);
         // Log the current track position/content.
         MediaController controller = mSession.getController();
         PlaybackState prevPS = controller.getPlaybackState();
@@ -453,16 +460,16 @@ public class A2dpMediaBrowserService extends MediaBrowserService {
         if (prevMM != null) {
             String title = prevMM.getString(MediaMetadata.METADATA_KEY_TITLE);
             long trackLen = prevMM.getLong(MediaMetadata.METADATA_KEY_DURATION);
-            Log.d(TAG, "prev MM title " + title + " track len " + trackLen);
+            if (VDBG) Log.d(TAG, "prev MM title " + title + " track len " + trackLen);
         }
 
         if (mmd != null) {
-            Log.d(TAG, "msgTrack() mmd " + mmd.getDescription());
+            if (VDBG) Log.d(TAG, "msgTrack() mmd " + mmd.getDescription());
             mSession.setMetadata(mmd);
         }
 
         if (pb != null) {
-            Log.d(TAG, "msgTrack() playbackstate " + pb);
+            if (DBG) Log.d(TAG, "msgTrack() playbackstate " + pb);
             PlaybackState.Builder pbb = new PlaybackState.Builder(pb);
             pb = pbb.setActions(mTransportControlFlags).build();
             mSession.setPlaybackState(pb);
@@ -476,10 +483,10 @@ public class A2dpMediaBrowserService extends MediaBrowserService {
     }
 
     private synchronized void msgPassThru(int cmd) {
-        Log.d(TAG, "msgPassThru " + cmd);
+        if (DBG) Log.d(TAG, "msgPassThru " + cmd);
         if (mA2dpDevice == null) {
             // We should have already disconnected - ignore this message.
-            Log.e(TAG, "Already disconnected ignoring.");
+            Log.w(TAG, "Already disconnected ignoring.");
             return;
         }
 
@@ -491,10 +498,10 @@ public class A2dpMediaBrowserService extends MediaBrowserService {
     }
 
     private synchronized void msgGetPlayStatusNative() {
-        Log.d(TAG, "msgGetPlayStatusNative");
+        if (DBG) Log.d(TAG, "msgGetPlayStatusNative");
         if (mA2dpDevice == null) {
             // We should have already disconnected - ignore this message.
-            Log.e(TAG, "Already disconnected ignoring.");
+            Log.w(TAG, "Already disconnected ignoring.");
             return;
         }
 
@@ -503,7 +510,7 @@ public class A2dpMediaBrowserService extends MediaBrowserService {
     }
 
     private void msgDeviceBrowseConnect(BluetoothDevice device) {
-        Log.d(TAG, "msgDeviceBrowseConnect device " + device);
+        if (DBG) Log.d(TAG, "msgDeviceBrowseConnect device " + device);
         // We should already be connected to this device over A2DP.
         if (!device.equals(mA2dpDevice)) {
             Log.e(TAG, "Browse connected over different device a2dp " + mA2dpDevice + " browse "
@@ -526,7 +533,7 @@ public class A2dpMediaBrowserService extends MediaBrowserService {
         }
 
         String id = intent.getStringExtra(AvrcpControllerService.EXTRA_FOLDER_ID);
-        Log.d(TAG, "Parent: " + id + " Folder list: " + folderList);
+        if (VDBG) Log.d(TAG, "Parent: " + id + " Folder list: " + folderList);
         synchronized (this) {
             // If we have a result object then we should send the result back
             // to client since it is blocking otherwise we may have gotten more items
@@ -542,7 +549,7 @@ public class A2dpMediaBrowserService extends MediaBrowserService {
     }
 
     private void msgDeviceBrowseDisconnect(BluetoothDevice device) {
-        Log.d(TAG, "msgDeviceBrowseDisconnect device " + device);
+        if (DBG) Log.d(TAG, "msgDeviceBrowseDisconnect device " + device);
         // Disconnect only if mA2dpDevice is non null
         if (!device.equals(mA2dpDevice)) {
             Log.w(TAG, "Browse disconnecting from different device a2dp " + mA2dpDevice + " browse "
