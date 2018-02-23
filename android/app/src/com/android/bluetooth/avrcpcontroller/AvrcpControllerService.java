@@ -44,8 +44,8 @@ import java.util.UUID;
  */
 public class AvrcpControllerService extends ProfileService {
     static final String TAG = "AvrcpControllerService";
-    static final boolean DBG = true;
-    static final boolean VDBG = Log.isLoggable(TAG, Log.VERBOSE);
+    static final boolean DBG = false;
+    static final boolean VDBG = false;
     /*
      *  Play State Values from JNI
      */
@@ -834,7 +834,7 @@ public class AvrcpControllerService extends ProfileService {
         }
         List<String> attrValList = Arrays.asList(attribVals);
         TrackInfo trackInfo = new TrackInfo(attrList, attrValList);
-        if (DBG) {
+        if (VDBG) {
             Log.d(TAG, "onTrackChanged " + trackInfo);
         }
         Message msg = mAvrcpCtSm.obtainMessage(
@@ -943,7 +943,7 @@ public class AvrcpControllerService extends ProfileService {
         }
 
         for (MediaItem item : items) {
-            if (DBG) {
+            if (VDBG) {
                 Log.d(TAG, "media item: " + item + " uid: " + item.getDescription().getMediaId());
             }
         }
@@ -961,7 +961,7 @@ public class AvrcpControllerService extends ProfileService {
             Log.d(TAG, "handleGetFolderItemsRsp called with " + items.length + " items.");
         }
         for (AvrcpPlayer item : items) {
-            if (DBG) {
+            if (VDBG) {
                 Log.d(TAG, "bt player item: " + item);
             }
         }
@@ -978,7 +978,7 @@ public class AvrcpControllerService extends ProfileService {
     // JNI Helper functions to convert native objects to java.
     MediaItem createFromNativeMediaItem(byte[] uid, int type, String name, int[] attrIds,
             String[] attrVals) {
-        if (DBG) {
+        if (VDBG) {
             Log.d(TAG, "createFromNativeMediaItem uid: " + uid + " type " + type + " name " + name
                     + " attrids " + attrIds + " attrVals " + attrVals);
         }
@@ -1002,7 +1002,7 @@ public class AvrcpControllerService extends ProfileService {
     }
 
     MediaItem createFromNativeFolderItem(byte[] uid, int type, String name, int playable) {
-        if (DBG) {
+        if (VDBG) {
             Log.d(TAG, "createFromNativeFolderItem uid: " + uid + " type " + type + " name " + name
                     + " playable " + playable);
         }
@@ -1026,7 +1026,7 @@ public class AvrcpControllerService extends ProfileService {
 
     AvrcpPlayer createFromNativePlayerItem(int id, String name, byte[] transportFlags,
             int playStatus, int playerType) {
-        if (DBG) {
+        if (VDBG) {
             Log.d(TAG,
                     "createFromNativePlayerItem name: " + name + " transportFlags " + transportFlags
                             + " play status " + playStatus + " player type " + playerType);
