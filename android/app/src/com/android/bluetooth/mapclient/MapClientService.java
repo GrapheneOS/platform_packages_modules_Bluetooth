@@ -189,20 +189,20 @@ public class MapClientService extends ProfileService {
     }
 
     public synchronized List<BluetoothDevice> getDevicesMatchingConnectionStates(int[] states) {
-        Log.d(TAG, "getDevicesMatchingConnectionStates" + Arrays.toString(states));
+        if (DBG) Log.d(TAG, "getDevicesMatchingConnectionStates" + Arrays.toString(states));
         List<BluetoothDevice> deviceList = new ArrayList<>();
         Set<BluetoothDevice> bondedDevices = mAdapter.getBondedDevices();
         int connectionState;
         for (BluetoothDevice device : bondedDevices) {
             connectionState = getConnectionState(device);
-            Log.d(TAG, "Device: " + device + "State: " + connectionState);
+            if (DBG) Log.d(TAG, "Device: " + device + "State: " + connectionState);
             for (int i = 0; i < states.length; i++) {
                 if (connectionState == states[i]) {
                     deviceList.add(device);
                 }
             }
         }
-        Log.d(TAG, deviceList.toString());
+        if (DBG) Log.d(TAG, deviceList.toString());
         return deviceList;
     }
 
@@ -487,7 +487,7 @@ public class MapClientService extends ProfileService {
             if (service == null) {
                 return false;
             }
-            Log.d(TAG, "Checking Permission of sendMessage");
+            if (DBG) Log.d(TAG, "Checking Permission of sendMessage");
             mService.enforceCallingOrSelfPermission(Manifest.permission.SEND_SMS,
                     "Need SEND_SMS permission");
 
