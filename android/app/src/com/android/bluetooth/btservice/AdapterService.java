@@ -554,18 +554,26 @@ public class AdapterService extends Service {
     void startProfileServices() {
         debugLog("startCoreServices()");
         Class[] supportedProfileServices = Config.getSupportedProfiles();
-        setAllProfileServiceStates(supportedProfileServices, BluetoothAdapter.STATE_ON);
+        if (supportedProfileServices.length == 1 && GattService.class.getSimpleName()
+                .equals(supportedProfileServices[0].getSimpleName())) {
+            updateUuids();
+            setBluetoothClassFromConfig();
+            mAdapterStateMachine.sendMessage(AdapterState.BREDR_STARTED);
+        } else {
+            setAllProfileServiceStates(supportedProfileServices, BluetoothAdapter.STATE_ON);
+        }
     }
 
     void stopProfileServices() {
         mAdapterProperties.onBluetoothDisable();
         Class[] supportedProfileServices = Config.getSupportedProfiles();
-        if (mRunningProfiles.size() < 1 || (mRunningProfiles.size() == 1
+        if (supportedProfileServices.length == 1 && (mRunningProfiles.size() == 1
                 && GattService.class.getSimpleName().equals(mRunningProfiles.get(0).getName()))) {
             debugLog("stopProfileServices() - No profiles services to stop or already stopped.");
             mAdapterStateMachine.sendMessage(AdapterState.BREDR_STOPPED);
+        } else {
+            setAllProfileServiceStates(supportedProfileServices, BluetoothAdapter.STATE_OFF);
         }
-        setAllProfileServiceStates(supportedProfileServices, BluetoothAdapter.STATE_OFF);
     }
 
     private void stopGattProfileService() {
