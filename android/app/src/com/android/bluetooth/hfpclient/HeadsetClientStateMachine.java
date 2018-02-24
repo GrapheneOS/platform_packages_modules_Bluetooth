@@ -400,6 +400,8 @@ public class HeadsetClientStateMachine extends StateMachine {
                 if (getCall(BluetoothHeadsetClientCall.CALL_STATE_INCOMING) != null) {
                     Log.d(TAG, "Still have incoming call; polling");
                     sendMessageDelayed(QUERY_CURRENT_CALLS, QUERY_CURRENT_CALLS_WAIT_MILLIS);
+                } else {
+                    removeMessages(QUERY_CURRENT_CALLS);
                 }
             }
         }
