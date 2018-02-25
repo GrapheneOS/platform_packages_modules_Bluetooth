@@ -400,6 +400,8 @@ public class HeadsetClientStateMachine extends StateMachine {
                 if (getCall(BluetoothHeadsetClientCall.CALL_STATE_INCOMING) != null) {
                     Log.d(TAG, "Still have incoming call; polling");
                     sendMessageDelayed(QUERY_CURRENT_CALLS, QUERY_CURRENT_CALLS_WAIT_MILLIS);
+                } else {
+                    removeMessages(QUERY_CURRENT_CALLS);
                 }
             }
         }
@@ -1118,11 +1120,7 @@ public class HeadsetClientStateMachine extends StateMachine {
                     if (!mCurrentDevice.equals(dev)) {
                         break;
                     }
-                    if (NativeInterface.disconnectNative(getByteAddress(dev))) {
-                        // No state transition is involved, fire broadcast immediately
-                        broadcastConnectionState(dev, BluetoothProfile.STATE_DISCONNECTING,
-                                BluetoothProfile.STATE_CONNECTED);
-                    } else {
+                    if (!NativeInterface.disconnectNative(getByteAddress(dev))) {
                         Log.e(TAG, "disconnectNative failed for " + dev);
                     }
                     break;

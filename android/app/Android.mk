@@ -18,6 +18,7 @@ LOCAL_SRC_FILES := \
         $(call all-proto-files-under, src)
 
 LOCAL_PACKAGE_NAME := Bluetooth
+LOCAL_PRIVATE_PLATFORM_APIS := true
 LOCAL_CERTIFICATE := platform
 LOCAL_USE_AAPT2 := true
 
