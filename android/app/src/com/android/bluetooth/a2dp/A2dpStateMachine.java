@@ -96,6 +96,7 @@ final class A2dpStateMachine extends StateMachine {
     A2dpStateMachine(BluetoothDevice device, A2dpService a2dpService,
                      A2dpNativeInterface a2dpNativeInterface, Looper looper) {
         super(TAG, looper);
+        setDbg(DBG);
         mDevice = device;
         mA2dpService = a2dpService;
         mA2dpNativeInterface = a2dpNativeInterface;
@@ -115,9 +116,7 @@ final class A2dpStateMachine extends StateMachine {
 
     static A2dpStateMachine make(BluetoothDevice device, A2dpService a2dpService,
                                  A2dpNativeInterface a2dpNativeInterface, Looper looper) {
-        if (DBG) {
-            Log.d(TAG, "make for device " + device);
-        }
+        Log.i(TAG, "make for device " + device);
         A2dpStateMachine a2dpSm = new A2dpStateMachine(device, a2dpService, a2dpNativeInterface,
                                                        looper);
         a2dpSm.start();
@@ -125,24 +124,21 @@ final class A2dpStateMachine extends StateMachine {
     }
 
     public void doQuit() {
-        if (DBG) {
-            Log.d(TAG, "doQuit for device " + mDevice);
-        }
+        log("doQuit for device " + mDevice);
         quitNow();
     }
 
     public void cleanup() {
-        if (DBG) {
-            Log.d(TAG, "cleanup for device " + mDevice);
-        }
+        log("cleanup for device " + mDevice);
     }
 
     @VisibleForTesting
     class Disconnected extends State {
         @Override
         public void enter() {
-            Log.i(TAG, "Enter Disconnected(" + mDevice + "): "
-                    + messageWhatToString(getCurrentMessage().what));
+            Message currentMessage = getCurrentMessage();
+            Log.i(TAG, "Enter Disconnected(" + mDevice + "): " + (currentMessage == null ? "null"
+                    : messageWhatToString(currentMessage.what)));
             mConnectionState = BluetoothProfile.STATE_DISCONNECTED;
 
             removeDeferredMessages(DISCONNECT);
@@ -164,19 +160,16 @@ final class A2dpStateMachine extends StateMachine {
 
         @Override
         public void exit() {
-            if (DBG) {
-                Log.d(TAG, "Exit Disconnected(" + mDevice + "): "
-                        + messageWhatToString(getCurrentMessage().what));
-            }
+            Message currentMessage = getCurrentMessage();
+            log("Exit Disconnected(" + mDevice + "): " + (currentMessage == null ? "null"
+                    : messageWhatToString(currentMessage.what)));
             mLastConnectionState = BluetoothProfile.STATE_DISCONNECTED;
         }
 
         @Override
         public boolean processMessage(Message message) {
-            if (DBG) {
-                Log.d(TAG, "Disconnected process message(" + mDevice + "): "
-                        + messageWhatToString(message.what));
-            }
+            log("Disconnected process message(" + mDevice + "): "
+                    + messageWhatToString(message.what));
 
             switch (message.what) {
                 case CONNECT:
@@ -198,9 +191,7 @@ final class A2dpStateMachine extends StateMachine {
                     break;
                 case STACK_EVENT:
                     A2dpStackEvent event = (A2dpStackEvent) message.obj;
-                    if (DBG) {
-                        Log.d(TAG, "Disconnected: stack event: " + event);
-                    }
+                    log("Disconnected: stack event: " + event);
                     if (!mDevice.equals(event.device)) {
                         Log.wtfStack(TAG, "Device(" + mDevice + "): event mismatch: " + event);
                     }
@@ -263,27 +254,25 @@ final class A2dpStateMachine extends StateMachine {
     class Connecting extends State {
         @Override
         public void enter() {
-            Log.i(TAG, "Enter Connecting(" + mDevice + "): "
-                    + messageWhatToString(getCurrentMessage().what));
+            Message currentMessage = getCurrentMessage();
+            Log.i(TAG, "Enter Connecting(" + mDevice + "): " + (currentMessage == null ? "null"
+                    : messageWhatToString(currentMessage.what)));
             mConnectionState = BluetoothProfile.STATE_CONNECTING;
             broadcastConnectionState(mConnectionState, mLastConnectionState);
         }
 
         @Override
         public void exit() {
-            if (DBG) {
-                Log.d(TAG, "Exit Connecting(" + mDevice + "): "
-                        + messageWhatToString(getCurrentMessage().what));
-            }
+            Message currentMessage = getCurrentMessage();
+            log("Exit Connecting(" + mDevice + "): " + (currentMessage == null ? "null"
+                    : messageWhatToString(currentMessage.what)));
             mLastConnectionState = BluetoothProfile.STATE_CONNECTING;
         }
 
         @Override
         public boolean processMessage(Message message) {
-            if (DBG) {
-                Log.d(TAG, "Connecting process message(" + mDevice + "): "
-                        + messageWhatToString(message.what));
-            }
+            log("Connecting process message(" + mDevice + "): "
+                    + messageWhatToString(message.what));
 
             switch (message.what) {
                 case CONNECT:
@@ -307,9 +296,7 @@ final class A2dpStateMachine extends StateMachine {
                     break;
                 case STACK_EVENT:
                     A2dpStackEvent event = (A2dpStackEvent) message.obj;
-                    if (DBG) {
-                        Log.d(TAG, "Connecting: stack event: " + event);
-                    }
+                    log("Connecting: stack event: " + event);
                     if (!mDevice.equals(event.device)) {
                         Log.wtfStack(TAG, "Device(" + mDevice + "): event mismatch: " + event);
                     }
@@ -360,27 +347,25 @@ final class A2dpStateMachine extends StateMachine {
     class Disconnecting extends State {
         @Override
         public void enter() {
-            Log.i(TAG, "Enter Disconnecting(" + mDevice + "): "
-                    + messageWhatToString(getCurrentMessage().what));
+            Message currentMessage = getCurrentMessage();
+            Log.i(TAG, "Enter Disconnecting(" + mDevice + "): " + (currentMessage == null ? "null"
+                    : messageWhatToString(currentMessage.what)));
             mConnectionState = BluetoothProfile.STATE_DISCONNECTING;
             broadcastConnectionState(mConnectionState, mLastConnectionState);
         }
 
         @Override
         public void exit() {
-            if (DBG) {
-                Log.d(TAG, "Exit Disconnecting(" + mDevice + "): "
-                        + messageWhatToString(getCurrentMessage().what));
-            }
+            Message currentMessage = getCurrentMessage();
+            log("Exit Disconnecting(" + mDevice + "): " + (currentMessage == null ? "null"
+                    : messageWhatToString(currentMessage.what)));
             mLastConnectionState = BluetoothProfile.STATE_DISCONNECTING;
         }
 
         @Override
         public boolean processMessage(Message message) {
-            if (DBG) {
-                Log.d(TAG, "Disconnecting process message(" + mDevice + "): "
-                        + messageWhatToString(message.what));
-            }
+            log("Disconnecting process message(" + mDevice + "): "
+                    + messageWhatToString(message.what));
 
             switch (message.what) {
                 case CONNECT:
@@ -401,9 +386,7 @@ final class A2dpStateMachine extends StateMachine {
                     break;
                 case STACK_EVENT:
                     A2dpStackEvent event = (A2dpStackEvent) message.obj;
-                    if (DBG) {
-                        Log.d(TAG, "Disconnecting: stack event: " + event);
-                    }
+                    log("Disconnecting: stack event: " + event);
                     if (!mDevice.equals(event.device)) {
                         Log.wtfStack(TAG, "Device(" + mDevice + "): event mismatch: " + event);
                     }
@@ -467,8 +450,9 @@ final class A2dpStateMachine extends StateMachine {
     class Connected extends State {
         @Override
         public void enter() {
-            Log.i(TAG, "Enter Connected(" + mDevice + "): "
-                    + messageWhatToString(getCurrentMessage().what));
+            Message currentMessage = getCurrentMessage();
+            Log.i(TAG, "Enter Connected(" + mDevice + "): " + (currentMessage == null ? "null"
+                    : messageWhatToString(currentMessage.what)));
             mConnectionState = BluetoothProfile.STATE_CONNECTED;
 
             removeDeferredMessages(CONNECT);
@@ -483,19 +467,15 @@ final class A2dpStateMachine extends StateMachine {
 
         @Override
         public void exit() {
-            if (DBG) {
-                Log.d(TAG, "Exit Connected(" + mDevice + "): "
-                        + messageWhatToString(getCurrentMessage().what));
-            }
+            Message currentMessage = getCurrentMessage();
+            log("Exit Connected(" + mDevice + "): " + (currentMessage == null ? "null"
+                    : messageWhatToString(currentMessage.what)));
             mLastConnectionState = BluetoothProfile.STATE_CONNECTED;
         }
 
         @Override
         public boolean processMessage(Message message) {
-            if (DBG) {
-                Log.d(TAG, "Connected process message(" + mDevice + "): "
-                        + messageWhatToString(message.what));
-            }
+            log("Connected process message(" + mDevice + "): " + messageWhatToString(message.what));
 
             switch (message.what) {
                 case CONNECT:
@@ -518,9 +498,7 @@ final class A2dpStateMachine extends StateMachine {
                     break;
                 case STACK_EVENT:
                     A2dpStackEvent event = (A2dpStackEvent) message.obj;
-                    if (DBG) {
-                        Log.d(TAG, "Connected: stack event: " + event);
-                    }
+                    log("Connected: stack event: " + event);
                     if (!mDevice.equals(event.device)) {
                         Log.wtfStack(TAG, "Device(" + mDevice + "): event mismatch: " + event);
                     }
@@ -657,10 +635,8 @@ final class A2dpStateMachine extends StateMachine {
 
     // This method does not check for error conditon (newState == prevState)
     private void broadcastConnectionState(int newState, int prevState) {
-        if (DBG) {
-            Log.d(TAG, "Connection state " + mDevice + ": " + profileStateToString(prevState)
+        log("Connection state " + mDevice + ": " + profileStateToString(prevState)
                     + "->" + profileStateToString(newState));
-        }
 
         Intent intent = new Intent(BluetoothA2dp.ACTION_CONNECTION_STATE_CHANGED);
         intent.putExtra(BluetoothProfile.EXTRA_PREVIOUS_STATE, prevState);
@@ -672,11 +648,8 @@ final class A2dpStateMachine extends StateMachine {
     }
 
     private void broadcastAudioState(int newState, int prevState) {
-        if (DBG) {
-            Log.d(TAG, "A2DP Playing state : device: " + mDevice + " State:"
-                    + audioStateToString(prevState) + "->"
-                    + audioStateToString(newState));
-        }
+        log("A2DP Playing state : device: " + mDevice + " State:" + audioStateToString(prevState)
+                + "->" + audioStateToString(newState));
 
         Intent intent = new Intent(BluetoothA2dp.ACTION_PLAYING_STATE_CHANGED);
         intent.putExtra(BluetoothDevice.EXTRA_DEVICE, mDevice);
@@ -767,5 +740,12 @@ final class A2dpStateMachine extends StateMachine {
             ProfileService.println(sb, "    " + line);
         }
         scanner.close();
+    }
+
+    @Override
+    protected void log(String msg) {
+        if (DBG) {
+            super.log(msg);
+        }
     }
 }
