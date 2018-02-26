@@ -142,8 +142,6 @@ final class A2dpStateMachine extends StateMachine {
             mConnectionState = BluetoothProfile.STATE_DISCONNECTED;
 
             removeDeferredMessages(DISCONNECT);
-            // Remove Timeout messages when moved to stable state
-            removeMessages(CONNECT_TIMEOUT);
 
             if (mLastConnectionState != -1) {
                 // Don't broadcast during startup
@@ -180,7 +178,6 @@ final class A2dpStateMachine extends StateMachine {
                     }
                     if (mA2dpService.okToConnect(mDevice)) {
                         transitionTo(mConnecting);
-                        sendMessageDelayed(CONNECT_TIMEOUT, sConnectTimeoutMs);
                     } else {
                         // Reject the request and stay in Disconnected state
                         Log.w(TAG, "Outgoing A2DP Connecting request rejected: " + mDevice);
@@ -257,6 +254,7 @@ final class A2dpStateMachine extends StateMachine {
             Message currentMessage = getCurrentMessage();
             Log.i(TAG, "Enter Connecting(" + mDevice + "): " + (currentMessage == null ? "null"
                     : messageWhatToString(currentMessage.what)));
+            sendMessageDelayed(CONNECT_TIMEOUT, sConnectTimeoutMs);
             mConnectionState = BluetoothProfile.STATE_CONNECTING;
             broadcastConnectionState(mConnectionState, mLastConnectionState);
         }
@@ -267,6 +265,7 @@ final class A2dpStateMachine extends StateMachine {
             log("Exit Connecting(" + mDevice + "): " + (currentMessage == null ? "null"
                     : messageWhatToString(currentMessage.what)));
             mLastConnectionState = BluetoothProfile.STATE_CONNECTING;
+            removeMessages(CONNECT_TIMEOUT);
         }
 
         @Override
@@ -350,6 +349,7 @@ final class A2dpStateMachine extends StateMachine {
             Message currentMessage = getCurrentMessage();
             Log.i(TAG, "Enter Disconnecting(" + mDevice + "): " + (currentMessage == null ? "null"
                     : messageWhatToString(currentMessage.what)));
+            sendMessageDelayed(CONNECT_TIMEOUT, sConnectTimeoutMs);
             mConnectionState = BluetoothProfile.STATE_DISCONNECTING;
             broadcastConnectionState(mConnectionState, mLastConnectionState);
         }
@@ -360,6 +360,7 @@ final class A2dpStateMachine extends StateMachine {
             log("Exit Disconnecting(" + mDevice + "): " + (currentMessage == null ? "null"
                     : messageWhatToString(currentMessage.what)));
             mLastConnectionState = BluetoothProfile.STATE_DISCONNECTING;
+            removeMessages(CONNECT_TIMEOUT);
         }
 
         @Override
@@ -456,8 +457,6 @@ final class A2dpStateMachine extends StateMachine {
             mConnectionState = BluetoothProfile.STATE_CONNECTED;
 
             removeDeferredMessages(CONNECT);
-            // Remove Timeout messages when moved to stable state
-            removeMessages(CONNECT_TIMEOUT);
 
             broadcastConnectionState(mConnectionState, mLastConnectionState);
             // Upon connected, the audio starts out as stopped
@@ -492,10 +491,6 @@ final class A2dpStateMachine extends StateMachine {
                     transitionTo(mDisconnecting);
                 }
                 break;
-                case CONNECT_TIMEOUT:
-                    // Ignore - nothing to timeout. We are already connected.
-                    Log.w(TAG, "Connected: CONNECT_TIMEOUT ignored: " + mDevice);
-                    break;
                 case STACK_EVENT:
                     A2dpStackEvent event = (A2dpStackEvent) message.obj;
                     log("Connected: stack event: " + event);
