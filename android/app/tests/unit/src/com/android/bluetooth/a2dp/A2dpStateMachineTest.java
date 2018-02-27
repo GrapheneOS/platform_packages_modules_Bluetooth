@@ -215,4 +215,43 @@ public class A2dpStateMachineTest {
         Assert.assertThat(mA2dpStateMachine.getCurrentState(),
                           IsInstanceOf.instanceOf(A2dpStateMachine.Disconnected.class));
     }
+
+    /**
+     * Test that an incoming connection times out
+     */
+    @Test
+    public void testIncomingTimeout() {
+        allowConnection(true);
+        doReturn(true).when(mA2dpNativeInterface).connectA2dp(any(BluetoothDevice.class));
+        doReturn(true).when(mA2dpNativeInterface).disconnectA2dp(any(BluetoothDevice.class));
+
+        // Inject an event for when incoming connection is requested
+        A2dpStackEvent connStCh =
+                new A2dpStackEvent(A2dpStackEvent.EVENT_TYPE_CONNECTION_STATE_CHANGED);
+        connStCh.device = mTestDevice;
+        connStCh.valueInt = A2dpStackEvent.CONNECTION_STATE_CONNECTING;
+        mA2dpStateMachine.sendMessage(A2dpStateMachine.STACK_EVENT, connStCh);
+
+        // Verify that one connection state broadcast is executed
+        ArgumentCaptor<Intent> intentArgument1 = ArgumentCaptor.forClass(Intent.class);
+        verify(mA2dpService, timeout(TIMEOUT_MS).times(1)).sendBroadcast(intentArgument1.capture(),
+                anyString());
+        Assert.assertEquals(BluetoothProfile.STATE_CONNECTING,
+                intentArgument1.getValue().getIntExtra(BluetoothProfile.EXTRA_STATE, -1));
+
+        // Check that we are in Connecting state
+        Assert.assertThat(mA2dpStateMachine.getCurrentState(),
+                IsInstanceOf.instanceOf(A2dpStateMachine.Connecting.class));
+
+        // Verify that one connection state broadcast is executed
+        ArgumentCaptor<Intent> intentArgument2 = ArgumentCaptor.forClass(Intent.class);
+        verify(mA2dpService, timeout(A2dpStateMachine.sConnectTimeoutMs * 2).times(
+                2)).sendBroadcast(intentArgument2.capture(), anyString());
+        Assert.assertEquals(BluetoothProfile.STATE_DISCONNECTED,
+                intentArgument2.getValue().getIntExtra(BluetoothProfile.EXTRA_STATE, -1));
+
+        // Check that we are in Disconnected state
+        Assert.assertThat(mA2dpStateMachine.getCurrentState(),
+                IsInstanceOf.instanceOf(A2dpStateMachine.Disconnected.class));
+    }
 }
