@@ -70,11 +70,13 @@ public class A2dpNativeInterface {
     /**
      * Initializes the native interface.
      *
+     * @param maxConnectedAudioDevices maximum number of A2DP Sink devices that can be connected
+     * simultaneously
      * @param codecConfigPriorities an array with the codec configuration
      * priorities to configure.
      */
-    public void init(BluetoothCodecConfig[] codecConfigPriorities) {
-        initNative(codecConfigPriorities);
+    public void init(int maxConnectedAudioDevices, BluetoothCodecConfig[] codecConfigPriorities) {
+        initNative(maxConnectedAudioDevices, codecConfigPriorities);
     }
 
     /**
@@ -192,7 +194,8 @@ public class A2dpNativeInterface {
 
     // Native methods that call into the JNI interface
     private static native void classInitNative();
-    private native void initNative(BluetoothCodecConfig[] codecConfigPriorities);
+    private native void initNative(int maxConnectedAudioDevices,
+                                   BluetoothCodecConfig[] codecConfigPriorities);
     private native void cleanupNative();
     private native boolean connectA2dpNative(byte[] address);
     private native boolean disconnectA2dpNative(byte[] address);
