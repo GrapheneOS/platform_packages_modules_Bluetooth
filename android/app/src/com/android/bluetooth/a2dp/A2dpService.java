@@ -125,7 +125,8 @@ public class A2dpService extends ProfileService {
         mA2dpCodecConfig = new A2dpCodecConfig(this, mA2dpNativeInterface);
 
         // Step 6: Initialize native interface
-        mA2dpNativeInterface.init(mA2dpCodecConfig.codecConfigPriorities());
+        mA2dpNativeInterface.init(mMaxConnectedAudioDevices,
+                                  mA2dpCodecConfig.codecConfigPriorities());
 
         // Step 7: Setup broadcast receivers
         IntentFilter filter = new IntentFilter();
