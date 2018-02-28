@@ -293,10 +293,15 @@ class PhonePolicy {
             return;
         }
         for (BluetoothDevice device : bondedDevices) {
-            debugLog("autoConnectHeadset, attempt auto-connect with device " + device);
-            if (hsService.getPriority(device) == BluetoothProfile.PRIORITY_AUTO_CONNECT) {
+            int priority = hsService.getPriority(device);
+            debugLog("autoConnectHeadset, attempt auto-connect with device " + device
+                     + " priority " + priority);
+            if (priority == BluetoothProfile.PRIORITY_AUTO_CONNECT) {
                 debugLog("autoConnectHeadset, Connecting HFP with " + device);
                 hsService.connect(device);
+            } else {
+                debugLog("autoConnectHeadset, skipped auto-connect with device " + device
+                         + " priority " + priority);
             }
         }
     }
@@ -313,10 +318,15 @@ class PhonePolicy {
             return;
         }
         for (BluetoothDevice device : bondedDevices) {
-            debugLog("autoConnectA2dp, attempt auto-connect with device " + device);
-            if (a2dpService.getPriority(device) == BluetoothProfile.PRIORITY_AUTO_CONNECT) {
+            int priority = a2dpService.getPriority(device);
+            debugLog("autoConnectA2dp, attempt auto-connect with device " + device
+                     + " priority " + priority);
+            if (priority == BluetoothProfile.PRIORITY_AUTO_CONNECT) {
                 debugLog("autoConnectA2dp, connecting A2DP with " + device);
                 a2dpService.connect(device);
+            } else {
+                debugLog("autoConnectA2dp, skipped auto-connect with device " + device
+                         + " priority " + priority);
             }
         }
     }
@@ -417,7 +427,8 @@ class PhonePolicy {
                 A2dpService a2dpService = mFactory.getA2dpService();
                 if ((a2dpService != null) && (BluetoothProfile.PRIORITY_AUTO_CONNECT
                         != a2dpService.getPriority(device))) {
-                    adjustOtherSinkPriorities(a2dpService, device);
+                    List<BluetoothDevice> deviceList = a2dpService.getConnectedDevices();
+                    adjustOtherSinkPriorities(a2dpService, deviceList);
                     a2dpService.setPriority(device, BluetoothProfile.PRIORITY_AUTO_CONNECT);
                 }
                 break;
@@ -433,16 +444,18 @@ class PhonePolicy {
         for (BluetoothDevice device : mAdapterService.getBondedDevices()) {
             if (hsService.getPriority(device) >= BluetoothProfile.PRIORITY_AUTO_CONNECT
                     && !connectedDeviceList.contains(device)) {
+                debugLog("adjustOtherHeadsetPriorities, device " + device + " PRIORITY_ON");
                 hsService.setPriority(device, BluetoothProfile.PRIORITY_ON);
             }
         }
     }
 
     private void adjustOtherSinkPriorities(A2dpService a2dpService,
-            BluetoothDevice connectedDevice) {
+            List<BluetoothDevice> connectedDeviceList) {
         for (BluetoothDevice device : mAdapterService.getBondedDevices()) {
-            if (a2dpService.getPriority(device) >= BluetoothProfile.PRIORITY_AUTO_CONNECT && !device
-                    .equals(connectedDevice)) {
+            if (a2dpService.getPriority(device) >= BluetoothProfile.PRIORITY_AUTO_CONNECT
+                    && !connectedDeviceList.contains(device)) {
+                debugLog("adjustOtherSinkPriorities, device " + device + " PRIORITY_ON");
                 a2dpService.setPriority(device, BluetoothProfile.PRIORITY_ON);
             }
         }
