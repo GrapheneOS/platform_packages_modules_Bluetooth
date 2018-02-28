@@ -1368,7 +1368,7 @@ public class AdapterService extends Service {
             // don't check caller, may be called from system UI
             AdapterService service = getService();
             if (service == null) {
-                return AdapterProperties.MIN_CONNECTED_AUDIO_DEVICES;
+                return AdapterProperties.MAX_CONNECTED_AUDIO_DEVICES_LOWER_BOND;
             }
             return service.getMaxConnectedAudioDevices();
         }
@@ -2370,6 +2370,11 @@ public class AdapterService extends Service {
             dumpMetrics(fd);
             return;
         }
+
+        writer.println("AdapterProperties");
+        writer.println("  " + "MaxConnectedAudioDevices: " + getMaxConnectedAudioDevices());
+        writer.println();
+
 
         writer.println("Bonded devices:");
         for (BluetoothDevice device : getBondedDevices()) {

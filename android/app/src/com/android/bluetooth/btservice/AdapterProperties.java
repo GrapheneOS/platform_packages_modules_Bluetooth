@@ -56,7 +56,8 @@ class AdapterProperties {
 
     private static final String MAX_CONNECTED_AUDIO_DEVICES_PROPERTY =
             "persist.bluetooth.maxconnectedaudiodevices";
-    static final int MIN_CONNECTED_AUDIO_DEVICES = 1;
+    static final int MAX_CONNECTED_AUDIO_DEVICES_LOWER_BOND = 1;
+    private static final int MAX_CONNECTED_AUDIO_DEVICES_UPPER_BOUND = 5;
 
     private static final long DEFAULT_DISCOVERY_TIMEOUT_MS = 12800;
     private static final int BD_ADDR_LEN = 6; // in bytes
@@ -170,8 +171,20 @@ class AdapterProperties {
         mProfileConnectionState.clear();
         mRemoteDevices = remoteDevices;
 
-        mMaxConnectedAudioDevices = SystemProperties.getInt(
-                MAX_CONNECTED_AUDIO_DEVICES_PROPERTY, MIN_CONNECTED_AUDIO_DEVICES);
+        // Get default max connected audio devices from config.xml in frameworks/base/core
+        int configDefaultMaxConnectedAudioDevices = mService.getResources().getInteger(
+                com.android.internal.R.integer.config_bluetooth_max_connected_audio_devices);
+        // Override max connected audio devices if MAX_CONNECTED_AUDIO_DEVICES_PROPERTY is set
+        int propertyOverlayedMaxConnectedAudioDevices =
+                SystemProperties.getInt(MAX_CONNECTED_AUDIO_DEVICES_PROPERTY,
+                        configDefaultMaxConnectedAudioDevices);
+        // Make sure the final value of max connected audio devices is within allowed range
+        mMaxConnectedAudioDevices = Math.min(Math.max(propertyOverlayedMaxConnectedAudioDevices,
+                MAX_CONNECTED_AUDIO_DEVICES_LOWER_BOND), MAX_CONNECTED_AUDIO_DEVICES_UPPER_BOUND);
+        Log.i(TAG, "init(), maxConnectedAudioDevices, default="
+                + configDefaultMaxConnectedAudioDevices + ", propertyOverlayed="
+                + propertyOverlayedMaxConnectedAudioDevices + ", finalValue="
+                + mMaxConnectedAudioDevices);
 
         IntentFilter filter = new IntentFilter();
         filter.addAction(BluetoothHeadset.ACTION_CONNECTION_STATE_CHANGED);
