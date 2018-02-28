@@ -18,6 +18,7 @@ package com.android.bluetooth.btservice;
 
 import static org.mockito.Mockito.*;
 
+import android.bluetooth.BluetoothA2dp;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothHeadset;
@@ -272,6 +273,162 @@ public class PhonePolicyTest {
         // Check that we get a call to A2DP connect
         executePendingMessages(2);
         verify(mA2dpService, times(1)).connect(eq(a2dpNotConnectedDevice));
+    }
+
+    /**
+     * Test that the connect priority of all devices are set as appropriate if there is one
+     * connected device.
+     * - The HFP and A2DP connect priority for connected devices is set to
+     *   BluetoothProfile.PRIORITY_AUTO_CONNECT
+     * - The HFP and A2DP connect priority for bonded devices is set to
+     *   BluetoothProfile.PRIORITY_ON
+     */
+    @Test
+    public void testSetPriorityMultipleDevices() {
+        // testDevices[0] - connected for both HFP and A2DP
+        // testDevices[1] - connected only for HFP - will auto-connect for A2DP
+        // testDevices[2] - connected only for A2DP - will auto-connect for HFP
+        // testDevices[3] - not connected
+        final int kMaxTestDevices = 4;
+        BluetoothDevice[] testDevices = new BluetoothDevice[kMaxTestDevices];
+        ArrayList<BluetoothDevice> hsConnectedDevices = new ArrayList<>();
+        ArrayList<BluetoothDevice> a2dpConnectedDevices = new ArrayList<>();
+
+        for (int i = 0; i < kMaxTestDevices; i++) {
+            BluetoothDevice testDevice = TestUtils.getTestDevice(mAdapter, i);
+            testDevices[i] = testDevice;
+
+            // Connect HFP and A2DP for each device as appropriate.
+            // Return PRIORITY_AUTO_CONNECT only for testDevices[0]
+            if (i == 0) {
+                hsConnectedDevices.add(testDevice);
+                a2dpConnectedDevices.add(testDevice);
+                when(mHeadsetService.getPriority(testDevice)).thenReturn(
+                        BluetoothProfile.PRIORITY_AUTO_CONNECT);
+                when(mA2dpService.getPriority(testDevice)).thenReturn(
+                        BluetoothProfile.PRIORITY_AUTO_CONNECT);
+            }
+            if (i == 1) {
+                hsConnectedDevices.add(testDevice);
+                when(mHeadsetService.getPriority(testDevice)).thenReturn(
+                        BluetoothProfile.PRIORITY_ON);
+                when(mA2dpService.getPriority(testDevice)).thenReturn(
+                        BluetoothProfile.PRIORITY_ON);
+            }
+            if (i == 2) {
+                a2dpConnectedDevices.add(testDevice);
+                when(mHeadsetService.getPriority(testDevice)).thenReturn(
+                        BluetoothProfile.PRIORITY_ON);
+                when(mA2dpService.getPriority(testDevice)).thenReturn(
+                        BluetoothProfile.PRIORITY_ON);
+            }
+            if (i == 3) {
+                // Device not connected
+                when(mHeadsetService.getPriority(testDevice)).thenReturn(
+                        BluetoothProfile.PRIORITY_ON);
+                when(mA2dpService.getPriority(testDevice)).thenReturn(
+                        BluetoothProfile.PRIORITY_ON);
+            }
+        }
+        when(mAdapterService.getBondedDevices()).thenReturn(testDevices);
+        when(mAdapterService.getState()).thenReturn(BluetoothAdapter.STATE_ON);
+        when(mHeadsetService.getConnectedDevices()).thenReturn(hsConnectedDevices);
+        when(mA2dpService.getConnectedDevices()).thenReturn(a2dpConnectedDevices);
+        // Some of the devices are not connected
+        // testDevices[0] - connected for both HFP and A2DP
+        when(mHeadsetService.getConnectionState(testDevices[0])).thenReturn(
+                BluetoothProfile.STATE_CONNECTED);
+        when(mA2dpService.getConnectionState(testDevices[0])).thenReturn(
+                BluetoothProfile.STATE_CONNECTED);
+        // testDevices[1] - connected only for HFP - will auto-connect for A2DP
+        when(mHeadsetService.getConnectionState(testDevices[1])).thenReturn(
+                BluetoothProfile.STATE_CONNECTED);
+        when(mA2dpService.getConnectionState(testDevices[1])).thenReturn(
+                BluetoothProfile.STATE_DISCONNECTED);
+        // testDevices[2] - connected only for A2DP - will auto-connect for HFP
+        when(mHeadsetService.getConnectionState(testDevices[2])).thenReturn(
+                BluetoothProfile.STATE_DISCONNECTED);
+        when(mA2dpService.getConnectionState(testDevices[2])).thenReturn(
+                BluetoothProfile.STATE_CONNECTED);
+        // testDevices[3] - not connected
+        when(mHeadsetService.getConnectionState(testDevices[3])).thenReturn(
+                BluetoothProfile.STATE_DISCONNECTED);
+        when(mA2dpService.getConnectionState(testDevices[3])).thenReturn(
+                BluetoothProfile.STATE_DISCONNECTED);
+
+        // Get the broadcast receiver to inject events
+        PhonePolicy phPol = new PhonePolicy(mAdapterService, mServiceFactory);
+        BroadcastReceiver injector = phPol.getBroadcastReceiver();
+
+        // Generate connection state changed for HFP for testDevices[1] and trigger
+        // auto-connect for A2DP.
+        Intent intent = new Intent(BluetoothHeadset.ACTION_CONNECTION_STATE_CHANGED);
+        intent.putExtra(BluetoothDevice.EXTRA_DEVICE, testDevices[1]);
+        intent.putExtra(BluetoothProfile.EXTRA_PREVIOUS_STATE, BluetoothProfile.STATE_DISCONNECTED);
+        intent.putExtra(BluetoothProfile.EXTRA_STATE, BluetoothProfile.STATE_CONNECTED);
+        intent.addFlags(Intent.FLAG_RECEIVER_INCLUDE_BACKGROUND);
+        injector.onReceive(null /* context */, intent);
+        // Check that we get a call to A2DP connect
+        executePendingMessages(2);
+        verify(mA2dpService, times(1)).connect(eq(testDevices[1]));
+
+        // testDevices[1] auto-connect completed for A2DP
+        a2dpConnectedDevices.add(testDevices[1]);
+        when(mA2dpService.getConnectedDevices()).thenReturn(a2dpConnectedDevices);
+        when(mA2dpService.getConnectionState(testDevices[1])).thenReturn(
+                BluetoothProfile.STATE_CONNECTED);
+
+        // Check the connect priorities for all devices
+        // - testDevices[0] - connected for HFP and A2DP: setPriority() should not be called
+        // - testDevices[1] - connection state changed for HFP - auto-connect completed for A2DP
+        //                    expect setPriority(PRIORITY_AUTO_CONNECT) for HFP
+        // - testDevices[2] - connected for A2DP: setPriority() should not be called
+        // - testDevices[3] - not connected for HFP nor A2DP: setPriority() should not be called
+        verify(mHeadsetService, times(0)).setPriority(eq(testDevices[0]), anyInt());
+        verify(mA2dpService, times(0)).setPriority(eq(testDevices[0]), anyInt());
+        verify(mHeadsetService, times(1)).setPriority(eq(testDevices[1]),
+                                                      eq(BluetoothProfile.PRIORITY_AUTO_CONNECT));
+        verify(mA2dpService, times(0)).setPriority(eq(testDevices[1]), anyInt());
+        verify(mHeadsetService, times(0)).setPriority(eq(testDevices[2]), anyInt());
+        verify(mA2dpService, times(0)).setPriority(eq(testDevices[2]), anyInt());
+        verify(mHeadsetService, times(0)).setPriority(eq(testDevices[3]), anyInt());
+        verify(mA2dpService, times(0)).setPriority(eq(testDevices[3]), anyInt());
+        clearInvocations(mHeadsetService, mA2dpService);
+
+        // Generate connection state changed for A2DP for testDevices[2] and trigger
+        // auto-connect for HFP.
+        intent = new Intent(BluetoothA2dp.ACTION_CONNECTION_STATE_CHANGED);
+        intent.putExtra(BluetoothDevice.EXTRA_DEVICE, testDevices[2]);
+        intent.putExtra(BluetoothProfile.EXTRA_PREVIOUS_STATE, BluetoothProfile.STATE_DISCONNECTED);
+        intent.putExtra(BluetoothProfile.EXTRA_STATE, BluetoothProfile.STATE_CONNECTED);
+        intent.addFlags(Intent.FLAG_RECEIVER_INCLUDE_BACKGROUND);
+        injector.onReceive(null /* context */, intent);
+        // Check that we get a call to HFP connect
+        executePendingMessages(2);
+        verify(mHeadsetService, times(1)).connect(eq(testDevices[2]));
+
+        // testDevices[2] auto-connect completed for HFP
+        hsConnectedDevices.add(testDevices[2]);
+        when(mHeadsetService.getConnectedDevices()).thenReturn(hsConnectedDevices);
+        when(mHeadsetService.getConnectionState(testDevices[2])).thenReturn(
+                BluetoothProfile.STATE_CONNECTED);
+
+        // Check the connect priorities for all devices
+        // - testDevices[0] - connected for HFP and A2DP: setPriority() should not be called
+        // - testDevices[1] - connected for HFP and A2DP: setPriority() should not be called
+        // - testDevices[2] - connection state changed for A2DP - auto-connect completed for HFP
+        //                    expected setPriority(PRIORITY_AUTO_CONNECT) for A2DP
+        // - testDevices[3] - not connected for HFP nor A2DP: setPriority() should not be called
+        verify(mHeadsetService, times(0)).setPriority(eq(testDevices[0]), anyInt());
+        verify(mA2dpService, times(0)).setPriority(eq(testDevices[0]), anyInt());
+        verify(mHeadsetService, times(0)).setPriority(eq(testDevices[1]), anyInt());
+        verify(mA2dpService, times(0)).setPriority(eq(testDevices[1]), anyInt());
+        verify(mHeadsetService, times(0)).setPriority(eq(testDevices[2]), anyInt());
+        verify(mA2dpService, times(1)).setPriority(eq(testDevices[2]),
+                                                   eq(BluetoothProfile.PRIORITY_AUTO_CONNECT));
+        verify(mHeadsetService, times(0)).setPriority(eq(testDevices[3]), anyInt());
+        verify(mA2dpService, times(0)).setPriority(eq(testDevices[3]), anyInt());
+        clearInvocations(mHeadsetService, mA2dpService);
     }
 
     /**
