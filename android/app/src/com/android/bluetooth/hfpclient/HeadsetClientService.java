@@ -86,12 +86,8 @@ public class HeadsetClientService extends ProfileService {
         mStateMachineMap.clear();
 
         IntentFilter filter = new IntentFilter(AudioManager.VOLUME_CHANGED_ACTION);
-        try {
-            registerReceiver(mBroadcastReceiver, filter);
-        } catch (Exception e) {
-            Log.w(TAG, "Unable to register broadcat receiver", e);
-        }
-        setHeadsetClientService(this);
+        registerReceiver(mBroadcastReceiver, filter);
+
         mNativeInterface = new NativeInterface();
 
         // Start the HfpClientConnectionService to create connection with telecom when HFP
@@ -103,16 +99,19 @@ public class HeadsetClientService extends ProfileService {
         mSmThread = new HandlerThread("HeadsetClient.SM");
         mSmThread.start();
 
+        setHeadsetClientService(this);
         return true;
     }
 
     @Override
     protected synchronized boolean stop() {
-        try {
-            unregisterReceiver(mBroadcastReceiver);
-        } catch (Exception e) {
-            Log.w(TAG, "Unable to unregister broadcast receiver", e);
+        if (sHeadsetClientService == null) {
+            Log.w(TAG, "stop() called without start()");
+            return false;
         }
+        setHeadsetClientService(null);
+
+        unregisterReceiver(mBroadcastReceiver);
 
         for (Iterator<Map.Entry<BluetoothDevice, HeadsetClientStateMachine>> it =
                 mStateMachineMap.entrySet().iterator(); it.hasNext(); ) {
@@ -135,13 +134,6 @@ public class HeadsetClientService extends ProfileService {
         NativeInterface.cleanupNative();
 
         return true;
-    }
-
-    @Override
-    protected void cleanup() {
-        HeadsetClientStateMachine.cleanup();
-        // TODO(b/72948646): should be moved to stop()
-        setHeadsetClientService(null);
     }
 
     private final BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
