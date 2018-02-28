@@ -758,9 +758,6 @@ public class HeadsetClientStateMachine extends StateMachine {
         quitNow();
     }
 
-    public static void cleanup() {
-    }
-
     static int hfToAmVol(int hfVol) {
         int amRange = sMaxAmVcVol - sMinAmVcVol;
         int hfRange = MAX_HFP_SCO_VOICE_CALL_VOLUME - MIN_HFP_SCO_VOICE_CALL_VOLUME;
