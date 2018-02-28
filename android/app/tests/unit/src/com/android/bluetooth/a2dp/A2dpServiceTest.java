@@ -50,6 +50,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -255,11 +256,37 @@ public class A2dpServiceTest {
     }
 
     /**
-     * Test getting A2DP Service: getA2dpService();
+     * Test getting A2DP Service: getA2dpService()
      */
     @Test
     public void testGetA2dpService() {
         Assert.assertEquals(mA2dpService, A2dpService.getA2dpService());
+    }
+
+    /**
+     * Test stop A2DP Service
+     */
+    @Test
+    public void testStopA2dpService() {
+        // Prepare: connect and set active device
+        doReturn(true).when(mA2dpNativeInterface).setActiveDevice(any(BluetoothDevice.class));
+        connectDevice(mTestDevice);
+        Assert.assertTrue(mA2dpService.setActiveDevice(mTestDevice));
+        verify(mA2dpNativeInterface).setActiveDevice(mTestDevice);
+        // A2DP Service is already running: test stop(). Note: must be done on the main thread.
+        InstrumentationRegistry.getInstrumentation().runOnMainSync(new Runnable() {
+            public void run() {
+                Assert.assertTrue(mA2dpService.stop());
+            }
+        });
+        // Verify that setActiveDevice(null) was called during shutdown
+        verify(mA2dpNativeInterface).setActiveDevice(null);
+        // Try to restart the service. Note: must be done on the main thread.
+        InstrumentationRegistry.getInstrumentation().runOnMainSync(new Runnable() {
+            public void run() {
+                Assert.assertTrue(mA2dpService.start());
+            }
+        });
     }
 
     /**
@@ -702,6 +729,45 @@ public class A2dpServiceTest {
         Assert.assertEquals(BluetoothProfile.STATE_DISCONNECTED,
                             mA2dpService.getConnectionState(mTestDevice));
         Assert.assertFalse(mA2dpService.getDevices().contains(mTestDevice));
+    }
+
+    private void connectDevice(BluetoothDevice device) {
+        A2dpStackEvent connCompletedEvent;
+
+        List<BluetoothDevice> prevConnectedDevices = mA2dpService.getConnectedDevices();
+
+        // Update the device priority so okToConnect() returns true
+        mA2dpService.setPriority(device, BluetoothProfile.PRIORITY_ON);
+        doReturn(true).when(mA2dpNativeInterface).connectA2dp(device);
+        doReturn(true).when(mA2dpNativeInterface).disconnectA2dp(device);
+
+        // Send a connect request
+        Assert.assertTrue("Connect failed", mA2dpService.connect(device));
+
+        // Verify the connection state broadcast, and that we are in Connecting state
+        verifyConnectionStateIntent(TIMEOUT_MS, device, BluetoothProfile.STATE_CONNECTING,
+                                    BluetoothProfile.STATE_DISCONNECTED);
+        Assert.assertEquals(BluetoothProfile.STATE_CONNECTING,
+                            mA2dpService.getConnectionState(device));
+
+        // Send a message to trigger connection completed
+        connCompletedEvent = new A2dpStackEvent(A2dpStackEvent.EVENT_TYPE_CONNECTION_STATE_CHANGED);
+        connCompletedEvent.device = device;
+        connCompletedEvent.valueInt = A2dpStackEvent.CONNECTION_STATE_CONNECTED;
+        mA2dpService.messageFromNative(connCompletedEvent);
+
+        // Verify the connection state broadcast, and that we are in Connected state
+        verifyConnectionStateIntent(TIMEOUT_MS, device, BluetoothProfile.STATE_CONNECTED,
+                                    BluetoothProfile.STATE_CONNECTING);
+        Assert.assertEquals(BluetoothProfile.STATE_CONNECTED,
+                            mA2dpService.getConnectionState(device));
+
+        // Verify that the device is in the list of connected devices
+        Assert.assertTrue(mA2dpService.getConnectedDevices().contains(device));
+        // Verify the list of previously connected devices
+        for (BluetoothDevice prevDevice : prevConnectedDevices) {
+            Assert.assertTrue(mA2dpService.getConnectedDevices().contains(prevDevice));
+        }
     }
 
     private void generateConnectionMessageFromNative(BluetoothDevice device, int newConnectionState,
