@@ -382,6 +382,14 @@
                 <action android:name="android.bluetooth.IBluetoothPbapClient" />
             </intent-filter>
         </service>
+        <service
+            android:process="@string/process"
+            android:name = ".hearingaid.HearingAidService"
+            android:enabled="@bool/profile_supported_hearing_aid">
+            <intent-filter>
+                <action android:name="android.bluetooth.IBluetoothHearingAid" />
+            </intent-filter>
+        </service>
         <!-- Authenticator for PBAP account. -->
         <service
             android:process="@string/process"
