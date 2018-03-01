@@ -115,7 +115,6 @@ public final class Avrcp {
     private int mLastDirection;
     private final int mVolumeStep;
     private final int mAudioStreamMax;
-    private boolean mVolCmdAdjustInProgress;
     private boolean mVolCmdSetInProgress;
     private int mAbsVolRetryTimes;
 
@@ -160,7 +159,6 @@ public final class Avrcp {
 
     /* other AVRC messages */
     private static final int MSG_PLAY_INTERVAL_TIMEOUT = 14;
-    private static final int MSG_ADJUST_VOLUME = 15;
     private static final int MSG_SET_ABSOLUTE_VOLUME = 16;
     private static final int MSG_ABS_VOL_TIMEOUT = 17;
     private static final int MSG_SET_A2DP_AUDIO_STATE = 18;
@@ -264,7 +262,6 @@ public final class Avrcp {
         mInitialRemoteVolume = -1;
         mLastRemoteVolume = -1;
         mLastDirection = 0;
-        mVolCmdAdjustInProgress = false;
         mVolCmdSetInProgress = false;
         mAbsVolRetryTimes = 0;
         mLocalVolume = -1;
@@ -584,16 +581,13 @@ public final class Avrcp {
                                 + msg.arg2);
                     }
 
-                    boolean volAdj = false;
                     if (msg.arg2 == AVRC_RSP_ACCEPT || msg.arg2 == AVRC_RSP_REJ) {
-                        if (!mVolCmdAdjustInProgress && !mVolCmdSetInProgress) {
+                        if (!mVolCmdSetInProgress) {
                             Log.e(TAG, "Unsolicited response, ignored");
                             break;
                         }
                         removeMessages(MSG_ABS_VOL_TIMEOUT);
 
-                        volAdj = mVolCmdAdjustInProgress;
-                        mVolCmdAdjustInProgress = false;
                         mVolCmdSetInProgress = false;
                         mAbsVolRetryTimes = 0;
                     }
@@ -633,16 +627,6 @@ public final class Avrcp {
                                 mLastLocalVolume = mLocalVolume;
                             }
                         }
-                        // remember the remote volume value, as it's the one supported by remote
-                        if (volAdj) {
-                            synchronized (mVolumeMapping) {
-                                mVolumeMapping.put(volIndex, (int) absVol);
-                                if (DEBUG) {
-                                    Log.v(TAG,
-                                            "remember volume mapping " + volIndex + "-" + absVol);
-                                }
-                            }
-                        }
 
                         notifyVolumeChanged(mLocalVolume);
                         mRemoteVolume = absVol;
@@ -650,119 +634,6 @@ public final class Avrcp {
                         Log.e(TAG, "percent volume changed: " + pecentVolChanged + "%");
                     } else if (msg.arg2 == AVRC_RSP_REJ) {
                         Log.e(TAG, "setAbsoluteVolume call rejected");
-                    } else if (volAdj && mLastRemoteVolume > 0 && mLastRemoteVolume < AVRCP_MAX_VOL
-                            && mLocalVolume == volIndex && (msg.arg2 == AVRC_RSP_ACCEPT)) {
-                    /* oops, the volume is still same, remote does not like the value
-                     * retry a volume one step up/down */
-                        if (DEBUG) {
-                            Log.d(TAG,
-                                    "Remote device didn't tune volume, let's try one more step.");
-                        }
-                        int retryVolume = Math.min(AVRCP_MAX_VOL,
-                                Math.max(0, mLastRemoteVolume + mLastDirection));
-                        if (setVolumeNative(retryVolume)) {
-                            mLastRemoteVolume = retryVolume;
-                            sendMessageDelayed(obtainMessage(MSG_ABS_VOL_TIMEOUT),
-                                    CMD_TIMEOUT_DELAY);
-                            mVolCmdAdjustInProgress = true;
-                        }
-                    }
-                    break;
-
-                case MSG_ADJUST_VOLUME:
-                    if (!isAbsoluteVolumeSupported()) {
-                        if (DEBUG) {
-                            Log.v(TAG, "ignore MSG_ADJUST_VOLUME");
-                        }
-                        break;
-                    }
-
-                    if (DEBUG) {
-                        Log.d(TAG, "MSG_ADJUST_VOLUME: direction=" + msg.arg1);
-                    }
-
-                    if (mVolCmdAdjustInProgress || mVolCmdSetInProgress) {
-                        if (DEBUG) {
-                            Log.w(TAG, "There is already a volume command in progress.");
-                        }
-                        break;
-                    }
-
-                    // Remote device didn't set initial volume. Let's black list it
-                    if (mInitialRemoteVolume == -1) {
-                        Log.d(TAG, "remote " + mAddress
-                                + " never tell us initial volume, black list it.");
-                        blackListCurrentDevice("MSG_ADJUST_VOLUME");
-                        break;
-                    }
-
-                    // Wait on verification on volume from device, before changing the volume.
-                    if (mRemoteVolume != -1 && (msg.arg1 == -1 || msg.arg1 == 1)) {
-                        int setVol = -1;
-                        int targetVolIndex = -1;
-                        if (mLocalVolume == 0 && msg.arg1 == -1) {
-                            if (DEBUG) {
-                                Log.w(TAG, "No need to Vol down from 0.");
-                            }
-                            break;
-                        }
-                        if (mLocalVolume == mAudioStreamMax && msg.arg1 == 1) {
-                            if (DEBUG) {
-                                Log.w(TAG, "No need to Vol up from max.");
-                            }
-                            break;
-                        }
-
-                        targetVolIndex = mLocalVolume + msg.arg1;
-                        if (DEBUG) {
-                            Log.d(TAG, "Adjusting volume to  " + targetVolIndex);
-                        }
-
-                        Integer i;
-                        synchronized (mVolumeMapping) {
-                            i = mVolumeMapping.get(targetVolIndex);
-                        }
-
-                        if (i != null) {
-                        /* if we already know this volume mapping, use it */
-                            setVol = i.byteValue();
-                            if (setVol == mRemoteVolume) {
-                                if (DEBUG) {
-                                    Log.d(TAG, "got same volume from mapping for " + targetVolIndex
-                                            + ", ignore.");
-                                }
-                                setVol = -1;
-                            }
-                            if (DEBUG) {
-                                Log.d(TAG,
-                                        "set volume from mapping " + targetVolIndex + "-" + setVol);
-                            }
-                        }
-
-                        if (setVol == -1) {
-                        /* otherwise use phone steps */
-                            setVol = Math.min(AVRCP_MAX_VOL,
-                                    convertToAvrcpVolume(Math.max(0, targetVolIndex)));
-                            if (DEBUG) {
-                                Log.d(TAG, "set volume from local volume " + targetVolIndex + "-"
-                                        + setVol);
-                            }
-                        }
-
-                        if (setVolumeNative(setVol)) {
-                            sendMessageDelayed(obtainMessage(MSG_ABS_VOL_TIMEOUT),
-                                    CMD_TIMEOUT_DELAY);
-                            mVolCmdAdjustInProgress = true;
-                            mLastDirection = msg.arg1;
-                            mLastRemoteVolume = setVol;
-                            mLastLocalVolume = targetVolIndex;
-                        } else {
-                            if (DEBUG) {
-                                Log.d(TAG, "setVolumeNative failed");
-                            }
-                        }
-                    } else {
-                        Log.e(TAG, "Unknown direction in MSG_ADJUST_VOLUME");
                     }
                     break;
 
@@ -778,7 +649,7 @@ public final class Avrcp {
                         Log.v(TAG, "MSG_SET_ABSOLUTE_VOLUME");
                     }
 
-                    if (mVolCmdSetInProgress || mVolCmdAdjustInProgress) {
+                    if (mVolCmdSetInProgress) {
                         if (DEBUG) {
                             Log.w(TAG, "There is already a volume command in progress.");
                         }
@@ -816,7 +687,6 @@ public final class Avrcp {
                     if (DEBUG) {
                         Log.v(TAG, "MSG_ABS_VOL_TIMEOUT: Volume change cmd timed out.");
                     }
-                    mVolCmdAdjustInProgress = false;
                     mVolCmdSetInProgress = false;
                     if (mAbsVolRetryTimes >= MAX_ERROR_RETRY_TIMES) {
                         mAbsVolRetryTimes = 0;
@@ -1483,17 +1353,6 @@ public final class Avrcp {
      * We get this call from AudioService. This will send a message to our handler object,
      * requesting our handler to call setVolumeNative()
      */
-    public void adjustVolume(int direction) {
-        final AvrcpMessageHandler handler = mHandler;
-        if (handler == null) {
-            if (DEBUG) Log.d(TAG, "adjustVolume: mHandler is already null");
-            return;
-        }
-
-        Message msg = handler.obtainMessage(MSG_ADJUST_VOLUME, direction, 0);
-        handler.sendMessage(msg);
-    }
-
     public void setAbsoluteVolume(int volume) {
         if (volume == mLocalVolume) {
             if (DEBUG) {
@@ -1508,7 +1367,6 @@ public final class Avrcp {
             return;
         }
 
-        handler.removeMessages(MSG_ADJUST_VOLUME);
         Message msg = handler.obtainMessage(MSG_SET_ABSOLUTE_VOLUME, volume, 0);
         handler.sendMessage(msg);
     }
@@ -2704,7 +2562,6 @@ public final class Avrcp {
         ProfileService.println(sb, "mLastDirection: " + mLastDirection);
         ProfileService.println(sb, "mVolumeStep: " + mVolumeStep);
         ProfileService.println(sb, "mAudioStreamMax: " + mAudioStreamMax);
-        ProfileService.println(sb, "mVolCmdAdjustInProgress: " + mVolCmdAdjustInProgress);
         ProfileService.println(sb, "mVolCmdSetInProgress: " + mVolCmdSetInProgress);
         ProfileService.println(sb, "mAbsVolRetryTimes: " + mAbsVolRetryTimes);
         ProfileService.println(sb, "mVolumeMapping: " + mVolumeMapping.toString());
