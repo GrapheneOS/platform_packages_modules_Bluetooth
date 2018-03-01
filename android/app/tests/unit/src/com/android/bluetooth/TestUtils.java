@@ -21,6 +21,8 @@ import static org.mockito.Mockito.*;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.Intent;
+import android.os.Handler;
+import android.os.Looper;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.rule.ServiceTestRule;
 
@@ -169,5 +171,67 @@ public class TestUtils {
                 bluetoothAdapter.getRemoteDevice(String.format("00:01:02:03:04:%02X", id));
         Assert.assertNotNull(testDevice);
         return testDevice;
+    }
+
+    /**
+     * Run synchronously a runnable action on a looper.
+     * The method will return after the action has been execution to completion.
+     *
+     * Example:
+     * <pre>
+     * {@code
+     * TestUtils.runOnMainSync(new Runnable() {
+     *       public void run() {
+     *           Assert.assertTrue(mA2dpService.stop());
+     *       }
+     *   });
+     * }
+     * </pre>
+     *
+     * @param looper the looper used to run the action
+     * @param action the action to run
+     */
+    public static void runOnLooperSync(Looper looper, Runnable action) {
+        if (Looper.myLooper() == looper) {
+            // requested thread is the same as the current thread. call directly.
+            action.run();
+        } else {
+            Handler handler = new Handler(looper);
+            SyncRunnable sr = new SyncRunnable(action);
+            handler.post(sr);
+            sr.waitForComplete();
+        }
+    }
+
+    /**
+     * Helper class used to run synchronously a runnable action on a looper.
+     */
+    private static final class SyncRunnable implements Runnable {
+        private final Runnable mTarget;
+        private volatile boolean mComplete = false;
+
+        SyncRunnable(Runnable target) {
+            mTarget = target;
+        }
+
+        @Override
+        public void run() {
+            mTarget.run();
+            synchronized (this) {
+                mComplete = true;
+                notifyAll();
+            }
+        }
+
+        public void waitForComplete() {
+            synchronized (this) {
+                while (!mComplete) {
+                    try {
+                        wait();
+                    } catch (InterruptedException e) {
+                    }
+                }
+            }
+        }
     }
 }
