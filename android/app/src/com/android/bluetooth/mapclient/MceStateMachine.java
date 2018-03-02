@@ -347,6 +347,10 @@ final class MceStateMachine extends StateMachine {
                     transitionTo(mConnected);
                     break;
 
+                case MSG_MAS_DISCONNECTED:
+                    transitionTo(mDisconnected);
+                    break;
+
                 case MSG_CONNECTING_TIMEOUT:
                     transitionTo(mDisconnecting);
                     break;
