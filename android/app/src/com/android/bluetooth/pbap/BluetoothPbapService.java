@@ -77,7 +77,7 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
 
     public static final boolean DEBUG = true;
 
-    public static final boolean VERBOSE = true;
+    public static final boolean VERBOSE = false;
 
     /**
      * Intent indicating incoming obex authentication request which is from
