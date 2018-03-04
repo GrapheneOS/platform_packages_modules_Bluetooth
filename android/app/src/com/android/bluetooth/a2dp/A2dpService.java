@@ -522,10 +522,6 @@ public class A2dpService extends ProfileService {
         return mAvrcp.isAbsoluteVolumeSupported();
     }
 
-    public void adjustAvrcpAbsoluteVolume(int direction) {
-        mAvrcp.adjustVolume(direction);
-    }
-
     public void setAvrcpAbsoluteVolume(int volume) {
         mAvrcp.setAbsoluteVolume(volume);
     }
@@ -1051,15 +1047,6 @@ public class A2dpService extends ProfileService {
                 return false;
             }
             return service.isAvrcpAbsoluteVolumeSupported();
-        }
-
-        @Override
-        public void adjustAvrcpAbsoluteVolume(int direction) {
-            A2dpService service = getService();
-            if (service == null) {
-                return;
-            }
-            service.adjustAvrcpAbsoluteVolume(direction);
         }
 
         @Override
