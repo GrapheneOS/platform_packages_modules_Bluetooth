@@ -30,6 +30,7 @@ import android.os.UserHandle;
 import android.os.UserManager;
 import android.util.Log;
 
+import com.android.bluetooth.BluetoothMetricsProto;
 import com.android.bluetooth.Utils;
 
 /**
@@ -187,9 +188,9 @@ public abstract class ProfileService extends Service {
     /**
      * Support dumping scan events from GattService
      *
-     * @param proto
+     * @param builder metrics proto builder
      */
-    public void dumpProto(BluetoothProto.BluetoothLog proto) {
+    public void dumpProto(BluetoothMetricsProto.BluetoothLog.Builder builder) {
         // Do nothing
     }
 
