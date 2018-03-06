@@ -29,6 +29,7 @@ import com.android.bluetooth.a2dpsink.A2dpSinkService;
 import com.android.bluetooth.avrcpcontroller.AvrcpControllerService;
 import com.android.bluetooth.gatt.GattService;
 import com.android.bluetooth.hdp.HealthService;
+import com.android.bluetooth.hearingaid.HearingAidService;
 import com.android.bluetooth.hfp.HeadsetService;
 import com.android.bluetooth.hfpclient.HeadsetClientService;
 import com.android.bluetooth.hid.HidDeviceService;
@@ -94,7 +95,9 @@ public class Config {
             new ProfileConfig(BluetoothOppService.class, R.bool.profile_supported_opp,
                     (1 << BluetoothProfile.OPP)),
             new ProfileConfig(BluetoothPbapService.class, R.bool.profile_supported_pbap,
-                    (1 << BluetoothProfile.PBAP))
+                    (1 << BluetoothProfile.PBAP)),
+            new ProfileConfig(HearingAidService.class, R.bool.profile_supported_hearing_aid,
+            (1 << BluetoothProfile.HEARING_AID))
     };
 
     private static Class[] sSupportedProfiles = new Class[0];
