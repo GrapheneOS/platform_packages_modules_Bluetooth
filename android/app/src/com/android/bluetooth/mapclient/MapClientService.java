@@ -135,7 +135,7 @@ public class MapClientService extends ProfileService {
         if (DBG) {
             Log.d(TAG, "Statemachine exists for a device in unexpected state: " + state);
         }
-        mMapInstanceMap.remove(mapStateMachine);
+        mMapInstanceMap.remove(device);
         addDeviceToMapAndConnect(device);
         if (DBG) {
             StringBuilder sb = new StringBuilder();
