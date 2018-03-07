@@ -54,11 +54,11 @@ import android.os.WorkSource;
 import android.provider.Settings;
 import android.util.Log;
 
+import com.android.bluetooth.BluetoothMetricsProto;
 import com.android.bluetooth.R;
 import com.android.bluetooth.Utils;
 import com.android.bluetooth.btservice.AbstractionLayer;
 import com.android.bluetooth.btservice.AdapterService;
-import com.android.bluetooth.btservice.BluetoothProto;
 import com.android.bluetooth.btservice.ProfileService;
 import com.android.bluetooth.util.NumberUtils;
 import com.android.internal.annotations.VisibleForTesting;
@@ -156,15 +156,14 @@ public class GattService extends ProfileService {
 
     private int mMaxScanFilters;
 
-    static final int NUM_SCAN_EVENTS_KEPT = 20;
+    private static final int NUM_SCAN_EVENTS_KEPT = 20;
     /**
      * Internal list of scan events to use with the proto
      */
-    ArrayList<BluetoothProto.ScanEvent> mScanEvents =
-            new ArrayList<BluetoothProto.ScanEvent>(NUM_SCAN_EVENTS_KEPT);
+    private final ArrayList<BluetoothMetricsProto.ScanEvent> mScanEvents =
+            new ArrayList<>(NUM_SCAN_EVENTS_KEPT);
 
-    private Map<Integer, List<BluetoothGattService>> mGattClientDatabases =
-            new HashMap<Integer, List<BluetoothGattService>>();
+    private final Map<Integer, List<BluetoothGattService>> mGattClientDatabases = new HashMap<>();
 
     private AdvertiseManager mAdvertiseManager;
     private PeriodicScanManager mPeriodicScanManager;
@@ -950,7 +949,6 @@ public class GattService extends ProfileService {
                     + rssi + ", periodicAdvInt=0x" + Integer.toHexString(periodicAdvInt));
         }
         List<UUID> remoteUuids = parseUuids(advData);
-        addScanResult();
 
         byte[] legacyAdvData = Arrays.copyOfRange(advData, 0, 62);
 
@@ -3143,16 +3141,7 @@ public class GattService extends ProfileService {
         mHandleMap.dump(sb);
     }
 
-    void addScanResult() {
-        if (mScanEvents.isEmpty()) {
-            return;
-        }
-
-        BluetoothProto.ScanEvent curr = mScanEvents.get(mScanEvents.size() - 1);
-        curr.setNumberResults(curr.getNumberResults() + 1);
-    }
-
-    void addScanEvent(BluetoothProto.ScanEvent event) {
+    void addScanEvent(BluetoothMetricsProto.ScanEvent event) {
         synchronized (mScanEvents) {
             if (mScanEvents.size() == NUM_SCAN_EVENTS_KEPT) {
                 mScanEvents.remove(0);
@@ -3162,11 +3151,9 @@ public class GattService extends ProfileService {
     }
 
     @Override
-    public void dumpProto(BluetoothProto.BluetoothLog proto) {
+    public void dumpProto(BluetoothMetricsProto.BluetoothLog.Builder builder) {
         synchronized (mScanEvents) {
-            for (BluetoothProto.ScanEvent event : mScanEvents) {
-                proto.addScanEvent(event);
-            }
+            builder.addAllScanEvent(mScanEvents);
         }
     }
 

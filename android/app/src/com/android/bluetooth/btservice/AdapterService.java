@@ -61,6 +61,7 @@ import android.util.Log;
 import android.util.Slog;
 import android.util.SparseArray;
 
+import com.android.bluetooth.BluetoothMetricsProto;
 import com.android.bluetooth.Utils;
 import com.android.bluetooth.btservice.RemoteDevices.DeviceProperties;
 import com.android.bluetooth.gatt.GattService;
@@ -69,7 +70,7 @@ import com.android.internal.R;
 import com.android.internal.annotations.VisibleForTesting;
 import com.android.internal.app.IBatteryStats;
 
-import com.google.protobuf.micro.InvalidProtocolBufferMicroException;
+import com.google.protobuf.InvalidProtocolBufferException;
 
 import java.io.FileDescriptor;
 import java.io.FileOutputStream;
@@ -2395,22 +2396,23 @@ public class AdapterService extends Service {
     }
 
     private void dumpMetrics(FileDescriptor fd) {
-        BluetoothProto.BluetoothLog metrics = new BluetoothProto.BluetoothLog();
-        metrics.setNumBondedDevices(getBondedDevices().length);
-        for (ProfileService profile : mRegisteredProfiles) {
-            profile.dumpProto(metrics);
-        }
+        BluetoothMetricsProto.BluetoothLog.Builder metricsBuilder =
+                BluetoothMetricsProto.BluetoothLog.newBuilder();
         byte[] nativeMetricsBytes = dumpMetricsNative();
         debugLog("dumpMetrics: native metrics size is " + nativeMetricsBytes.length);
         if (nativeMetricsBytes.length > 0) {
             try {
-                metrics.mergeFrom(nativeMetricsBytes);
-            } catch (InvalidProtocolBufferMicroException ex) {
+                metricsBuilder.mergeFrom(nativeMetricsBytes);
+            } catch (InvalidProtocolBufferException ex) {
                 Log.w(TAG, "dumpMetrics: problem parsing metrics protobuf, " + ex.getMessage());
                 return;
             }
         }
-        byte[] metricsBytes = Base64.encode(metrics.toByteArray(), Base64.DEFAULT);
+        metricsBuilder.setNumBondedDevices(getBondedDevices().length);
+        for (ProfileService profile : mRegisteredProfiles) {
+            profile.dumpProto(metricsBuilder);
+        }
+        byte[] metricsBytes = Base64.encode(metricsBuilder.build().toByteArray(), Base64.DEFAULT);
         debugLog("dumpMetrics: combined metrics size is " + metricsBytes.length);
         try (FileOutputStream protoOut = new FileOutputStream(fd)) {
             protoOut.write(metricsBytes);

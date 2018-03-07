@@ -22,7 +22,7 @@ import android.os.ServiceManager;
 import android.os.SystemClock;
 import android.os.WorkSource;
 
-import com.android.bluetooth.btservice.BluetoothProto;
+import com.android.bluetooth.BluetoothMetricsProto;
 import com.android.internal.app.IBatteryStats;
 
 import java.text.DateFormat;
@@ -158,11 +158,12 @@ import java.util.List;
                     (settings.getCallbackType() & ScanSettings.CALLBACK_TYPE_FIRST_MATCH) != 0;
         }
 
-        BluetoothProto.ScanEvent scanEvent = new BluetoothProto.ScanEvent();
-        scanEvent.setScanEventType(BluetoothProto.ScanEvent.SCAN_EVENT_START);
-        scanEvent.setScanTechnologyType(BluetoothProto.ScanEvent.SCAN_TECH_TYPE_LE);
-        scanEvent.setEventTimeMillis(System.currentTimeMillis());
-        scanEvent.setInitiator(truncateAppName(appName));
+        BluetoothMetricsProto.ScanEvent scanEvent = BluetoothMetricsProto.ScanEvent.newBuilder()
+                .setScanEventType(BluetoothMetricsProto.ScanEvent.ScanEventType.SCAN_EVENT_START)
+                .setScanTechnologyType(
+                        BluetoothMetricsProto.ScanEvent.ScanTechnologyType.SCAN_TECH_TYPE_LE)
+                .setEventTimeMillis(System.currentTimeMillis())
+                .setInitiator(truncateAppName(appName)).build();
         mGattService.addScanEvent(scanEvent);
 
         if (!isScanning()) {
@@ -198,11 +199,14 @@ import java.util.List;
         }
         mLastScans.add(scan);
 
-        BluetoothProto.ScanEvent scanEvent = new BluetoothProto.ScanEvent();
-        scanEvent.setScanEventType(BluetoothProto.ScanEvent.SCAN_EVENT_STOP);
-        scanEvent.setScanTechnologyType(BluetoothProto.ScanEvent.SCAN_TECH_TYPE_LE);
-        scanEvent.setEventTimeMillis(System.currentTimeMillis());
-        scanEvent.setInitiator(truncateAppName(appName));
+        BluetoothMetricsProto.ScanEvent scanEvent = BluetoothMetricsProto.ScanEvent.newBuilder()
+                .setScanEventType(BluetoothMetricsProto.ScanEvent.ScanEventType.SCAN_EVENT_STOP)
+                .setScanTechnologyType(
+                        BluetoothMetricsProto.ScanEvent.ScanTechnologyType.SCAN_TECH_TYPE_LE)
+                .setEventTimeMillis(System.currentTimeMillis())
+                .setInitiator(truncateAppName(appName))
+                .setNumberResults(scan.results)
+                .build();
         mGattService.addScanEvent(scanEvent);
 
         if (!isScanning()) {
