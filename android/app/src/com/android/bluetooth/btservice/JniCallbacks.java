@@ -20,11 +20,11 @@ final class JniCallbacks {
 
     private RemoteDevices mRemoteDevices;
     private AdapterProperties mAdapterProperties;
-    private AdapterState mAdapterStateMachine;
+    private AdapterService mAdapterService;
     private BondStateMachine mBondStateMachine;
 
-    JniCallbacks(AdapterState adapterStateMachine, AdapterProperties adapterProperties) {
-        mAdapterStateMachine = adapterStateMachine;
+    JniCallbacks(AdapterService adapterService, AdapterProperties adapterProperties) {
+        mAdapterService = adapterService;
         mAdapterProperties = adapterProperties;
     }
 
@@ -36,7 +36,7 @@ final class JniCallbacks {
     void cleanup() {
         mRemoteDevices = null;
         mAdapterProperties = null;
-        mAdapterStateMachine = null;
+        mAdapterService = null;
         mBondStateMachine = null;
     }
 
@@ -70,7 +70,7 @@ final class JniCallbacks {
     }
 
     void stateChangeCallback(int status) {
-        mAdapterStateMachine.stateChangeCallback(status);
+        mAdapterService.stateChangeCallback(status);
     }
 
     void discoveryStateChangeCallback(int state) {
