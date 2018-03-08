@@ -54,7 +54,7 @@ public class MediaPlayerWrapperTest {
     private PlaybackState.Builder mTestState;
 
     @Captor ArgumentCaptor<MediaController.Callback> mControllerCbs;
-    @Captor ArgumentCaptor<MediaPlayerWrapper.MediaData> mMediaUpdateData;
+    @Captor ArgumentCaptor<MediaData> mMediaUpdateData;
     @Mock Log.TerribleFailureHandler mFailHandler;
     @Mock MediaController mMockController;
     @Mock MediaPlayerWrapper.Callback mTestCbs;
@@ -76,7 +76,7 @@ public class MediaPlayerWrapperTest {
     public void setUp() {
         MockitoAnnotations.initMocks(this);
 
-        // Set failure handler to caputer Log.wtf messages
+        // Set failure handler to capture Log.wtf messages
         Log.setWtfHandler(mFailHandler);
 
         // Set up Looper thread for the timeout handler
@@ -127,7 +127,7 @@ public class MediaPlayerWrapperTest {
         doReturn(getQueueFromDescriptions(mTestQueue)).when(mMockController).getQueue();
 
         // Enable testing flag which enables Log.wtf statements. Some tests test against improper
-        // behaviour and the TerribleFailureListener is a good way to ensure that the error occured
+        // behaviour and the TerribleFailureListener is a good way to ensure that the error occurred
         MediaPlayerWrapper.sTesting = true;
     }
 
@@ -137,25 +137,54 @@ public class MediaPlayerWrapperTest {
      */
     @Test
     public void testNullControllerLooper() {
-        MediaPlayerWrapper wrapper = MediaPlayerWrapper.wrap(null, mThread.getLooper(), false);
+        MediaPlayerWrapper wrapper = MediaPlayerWrapper.wrap(null, mThread.getLooper());
         Assert.assertNull(wrapper);
 
-        wrapper = MediaPlayerWrapper.wrap(mMockController, null, false);
+        wrapper = MediaPlayerWrapper.wrap(mMockController, null);
         Assert.assertNull(wrapper);
+    }
+
+    /*
+     * Test to make sure that isReady() returns false if there is no playback state,
+     * there is no metadata, or if the metadata has no title.
+     */
+    @Test
+    public void testIsReady() {
+        MediaPlayerWrapper wrapper = MediaPlayerWrapper.wrap(mMockController, mThread.getLooper());
+        Assert.assertTrue(wrapper.isReady());
+
+        // Test isReady() is false when the playback state is null
+        doReturn(null).when(mMockController).getPlaybackState();
+        Assert.assertFalse(wrapper.isReady());
+
+        // Restore the old playback state
+        doReturn(mTestState.build()).when(mMockController).getPlaybackState();
+        Assert.assertTrue(wrapper.isReady());
+
+        // Test isReady() is false when the metadata is null
+        doReturn(null).when(mMockController).getMetadata();
+        Assert.assertFalse(wrapper.isReady());
+
+        // Restore the old metadata
+        doReturn(mTestMetadata.build()).when(mMockController).getMetadata();
+        Assert.assertTrue(wrapper.isReady());
     }
 
     /*
      * Test to make sure that a media player update gets sent whenever a Media metadata or playback
      * state change occurs instead of waiting for all data to be synced if the player doesn't
-     * support browsing and queues.
+     * support queues.
      */
     @Test
-    public void testNoBrowsingMediaUpdates() {
+    public void testNoQueueMediaUpdates() {
         // Create the wrapper object and register the looper with the timeout handler
         TestLooperManager looperManager = new TestLooperManager(mThread.getLooper());
         MediaPlayerWrapper wrapper =
-                MediaPlayerWrapper.wrap(mMockController, mThread.getLooper(), false);
+                MediaPlayerWrapper.wrap(mMockController, mThread.getLooper());
         wrapper.registerCallback(mTestCbs);
+
+        // Return null when getting the queue
+        doReturn(null).when(mMockController).getQueue();
 
         // Grab the callbacks the wrapper registered with the controller
         verify(mMockController).registerCallback(mControllerCbs.capture(), any());
@@ -168,7 +197,7 @@ public class MediaPlayerWrapperTest {
 
         // Assert that the metadata was updated and playback state wasn't
         verify(mTestCbs, times(1)).mediaUpdatedCallback(mMediaUpdateData.capture());
-        MediaPlayerWrapper.MediaData data = mMediaUpdateData.getValue();
+        MediaData data = mMediaUpdateData.getValue();
         Assert.assertEquals(
                 "Returned Metadata isn't equal to given Metadata",
                 data.metadata.getDescription(),
@@ -203,56 +232,21 @@ public class MediaPlayerWrapperTest {
     }
 
     /*
-     * Test that trying to get the queue on a player that doesn't support
-     * browsing returns false.
-     */
-    @Test
-    public void testNoBrowsingNullQueue() {
-        // Create the wrapper object and register the looper with the timeout handler
-        TestLooperManager looperManager = new TestLooperManager(mThread.getLooper());
-        MediaPlayerWrapper wrapper =
-                MediaPlayerWrapper.wrap(mMockController, mThread.getLooper(), false);
-        wrapper.registerCallback(mTestCbs);
-
-        // Grab the callbacks the wrapper registered with the controller
-        verify(mMockController).registerCallback(mControllerCbs.capture(), any());
-        MediaController.Callback controllerCallbacks = mControllerCbs.getValue();
-
-        // Update Queue returned by controller
-        mTestQueue.add(
-                new MediaDescription.Builder()
-                        .setTitle("New Title")
-                        .setSubtitle("BT Test Artist")
-                        .setDescription("BT Test Album")
-                        .setMediaId("103"));
-        doReturn(getQueueFromDescriptions(mTestQueue)).when(mMockController).getQueue();
-        controllerCallbacks.onQueueChanged(getQueueFromDescriptions(mTestQueue));
-
-        // Verify no updates happened
-        verify(mTestCbs, never()).mediaUpdatedCallback(any());
-
-        // Verify that getQueue() returns null
-        Assert.assertNull(wrapper.getQueue());
-
-        // Verify that there was an error message pending and there were no timeouts
-        Assert.assertFalse(wrapper.getTimeoutHandler().hasMessages(MSG_TIMEOUT));
-        verify(mFailHandler, times(1)).onTerribleFailure(any(), any(), anyBoolean());
-    }
-
-    /*
      * This test updates the metadata and playback state returned by the
      * controller then sends an update. This is to make sure that all relevant
-     * information is sent with every update. In the case without browsing,
+     * information is sent with every update. In the case without a queue,
      * metadata and playback state are updated.
      */
-
     @Test
-    public void testAllDataOnUpdate() {
+    public void testDataOnUpdateNoQueue() {
         // Create the wrapper object and register the looper with the timeout handler
         TestLooperManager looperManager = new TestLooperManager(mThread.getLooper());
         MediaPlayerWrapper wrapper =
-                MediaPlayerWrapper.wrap(mMockController, mThread.getLooper(), false);
+                MediaPlayerWrapper.wrap(mMockController, mThread.getLooper());
         wrapper.registerCallback(mTestCbs);
+
+        // Return null when getting the queue
+        doReturn(null).when(mMockController).getQueue();
 
         // Grab the callbacks the wrapper registered with the controller
         verify(mMockController).registerCallback(mControllerCbs.capture(), any());
@@ -271,7 +265,7 @@ public class MediaPlayerWrapperTest {
 
         // Assert that both metadata and playback state are there.
         verify(mTestCbs, times(1)).mediaUpdatedCallback(mMediaUpdateData.capture());
-        MediaPlayerWrapper.MediaData data = mMediaUpdateData.getValue();
+        MediaData data = mMediaUpdateData.getValue();
         Assert.assertEquals(
                 "Returned PlaybackState isn't equal to given PlaybackState",
                 data.state.toString(),
@@ -288,7 +282,7 @@ public class MediaPlayerWrapperTest {
     }
 
     /*
-     * This test sends repeted Playback State updates that only have a short
+     * This test sends repeated Playback State updates that only have a short
      * position update change to see if they get debounced.
      */
     @Test
@@ -296,8 +290,11 @@ public class MediaPlayerWrapperTest {
         // Create the wrapper object and register the looper with the timeout handler
         TestLooperManager looperManager = new TestLooperManager(mThread.getLooper());
         MediaPlayerWrapper wrapper =
-                MediaPlayerWrapper.wrap(mMockController, mThread.getLooper(), false);
+                MediaPlayerWrapper.wrap(mMockController, mThread.getLooper());
         wrapper.registerCallback(mTestCbs);
+
+        // Return null when getting the queue
+        doReturn(null).when(mMockController).getQueue();
 
         // Grab the callbacks the wrapper registered with the controller
         verify(mMockController).registerCallback(mControllerCbs.capture(), any());
@@ -310,7 +307,7 @@ public class MediaPlayerWrapperTest {
 
         // Assert that both metadata and only the first playback state is there.
         verify(mTestCbs, times(1)).mediaUpdatedCallback(mMediaUpdateData.capture());
-        MediaPlayerWrapper.MediaData data = mMediaUpdateData.getValue();
+        MediaData data = mMediaUpdateData.getValue();
         Assert.assertEquals(
                 "Returned PlaybackState isn't equal to given PlaybackState",
                 data.state.toString(),
@@ -350,7 +347,7 @@ public class MediaPlayerWrapperTest {
         // Create the wrapper object and register the looper with the timeout handler
         TestLooperManager looperManager = new TestLooperManager(mThread.getLooper());
         MediaPlayerWrapper wrapper =
-                MediaPlayerWrapper.wrap(mMockController, mThread.getLooper(), false);
+                MediaPlayerWrapper.wrap(mMockController, mThread.getLooper());
         wrapper.registerCallback(mTestCbs);
 
         // Cleanup the wrapper
@@ -370,7 +367,7 @@ public class MediaPlayerWrapperTest {
         // Create the wrapper object and register the looper with the timeout handler
         TestLooperManager looperManager = new TestLooperManager(mThread.getLooper());
         MediaPlayerWrapper wrapper =
-                MediaPlayerWrapper.wrap(mMockController, mThread.getLooper(), false);
+                MediaPlayerWrapper.wrap(mMockController, mThread.getLooper());
         wrapper.registerCallback(mTestCbs);
 
         // Grab the callbacks the wrapper registered with the controller
@@ -400,7 +397,7 @@ public class MediaPlayerWrapperTest {
         // Create the wrapper object and register the looper with the timeout handler
         TestLooperManager looperManager = new TestLooperManager(mThread.getLooper());
         MediaPlayerWrapper wrapper =
-                MediaPlayerWrapper.wrap(mMockController, mThread.getLooper(), true);
+                MediaPlayerWrapper.wrap(mMockController, mThread.getLooper());
         wrapper.registerCallback(mTestCbs);
 
         // Grab the callbacks the wrapper registered with the controller
@@ -430,7 +427,7 @@ public class MediaPlayerWrapperTest {
         // Assert that the callback was called with the updated data
         verify(mTestCbs, times(1)).mediaUpdatedCallback(mMediaUpdateData.capture());
         verify(mFailHandler, never()).onTerribleFailure(any(), any(), anyBoolean());
-        MediaPlayerWrapper.MediaData data = mMediaUpdateData.getValue();
+        MediaData data = mMediaUpdateData.getValue();
         Assert.assertEquals(
                 "Returned Metadata isn't equal to given Metadata",
                 data.metadata.getDescription(),
@@ -460,7 +457,7 @@ public class MediaPlayerWrapperTest {
                 InstrumentationRegistry.getInstrumentation()
                         .acquireLooperManager(mThread.getLooper());
         MediaPlayerWrapper wrapper =
-                MediaPlayerWrapper.wrap(mMockController, mThread.getLooper(), true);
+                MediaPlayerWrapper.wrap(mMockController, mThread.getLooper());
         wrapper.registerCallback(mTestCbs);
 
         // Grab the callbacks the wrapper registered with the controller
@@ -494,7 +491,7 @@ public class MediaPlayerWrapperTest {
                 InstrumentationRegistry.getInstrumentation()
                         .acquireLooperManager(mThread.getLooper());
         MediaPlayerWrapper wrapper =
-                MediaPlayerWrapper.wrap(mMockController, mThread.getLooper(), true);
+                MediaPlayerWrapper.wrap(mMockController, mThread.getLooper());
         wrapper.registerCallback(mTestCbs);
 
         // Grab the callbacks the wrapper registered with the controller
@@ -545,7 +542,7 @@ public class MediaPlayerWrapperTest {
             // Check that the callback was called a certain number of times and
             // that all the Media info matches what was given
             verify(mTestCbs, times(i)).mediaUpdatedCallback(mMediaUpdateData.capture());
-            MediaPlayerWrapper.MediaData data = mMediaUpdateData.getValue();
+            MediaData data = mMediaUpdateData.getValue();
             Assert.assertEquals(
                     "Returned Metadata isn't equal to given Metadata",
                     data.metadata.getDescription(),
