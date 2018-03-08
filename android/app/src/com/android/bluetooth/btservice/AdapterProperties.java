@@ -744,10 +744,6 @@ class AdapterProperties {
                         intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY_BEFORE_BOOT);
                         mService.sendBroadcast(intent, AdapterService.BLUETOOTH_PERM);
                         debugLog("Scan Mode:" + mScanMode);
-                        if (mBluetoothDisabling) {
-                            mBluetoothDisabling = false;
-                            mService.startBluetoothDisable();
-                        }
                         break;
                     case AbstractionLayer.BT_PROPERTY_UUIDS:
                         mUuids = Utils.byteArrayToUuid(val);
@@ -842,8 +838,6 @@ class AdapterProperties {
         }
     }
 
-    private boolean mBluetoothDisabling = false;
-
     void onBleDisable() {
         // Sequence BLE_ON to STATE_OFF - that is _complete_ OFF state.
         // When BT disable is invoked, set the scan_mode to NONE
@@ -862,7 +856,6 @@ class AdapterProperties {
         //Set flag to indicate we are disabling. When property change of scan mode done
         //continue with disable sequence
         debugLog("onBluetoothDisable()");
-        mBluetoothDisabling = true;
         if (getState() == BluetoothAdapter.STATE_TURNING_OFF) {
             // Turn off any Device Search/Inquiry
             mService.cancelDiscovery();
