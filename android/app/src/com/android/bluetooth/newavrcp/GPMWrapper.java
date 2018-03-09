@@ -31,12 +31,6 @@ class GPMWrapper extends MediaPlayerWrapper {
 
     private static final String GPM_KEY = "com.google.android.music.mediasession.music_metadata";
 
-    // Google Play Music should always be browsable.
-    @Override
-    boolean isBrowsable() {
-        return true;
-    }
-
     @Override
     boolean isMetadataSynced() {
         // Check if currentPlayingQueueId is in the queue
