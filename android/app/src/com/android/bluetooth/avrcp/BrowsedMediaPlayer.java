@@ -318,8 +318,7 @@ class BrowsedMediaPlayer {
                     mPathStack.push(mMediaId);
                 }
 
-                mMediaController = MediaController.wrap(
-                        new android.media.session.MediaController(mContext, token));
+                mMediaController = MediaControllerFactory.make(mContext, token);
                 /* get root folder items */
                 mMediaBrowser.subscribe(mRootFolderUid, mFolderItemsCb);
                 return;
