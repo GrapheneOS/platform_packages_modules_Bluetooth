@@ -179,6 +179,9 @@ public class AdapterServiceTest {
         verifyStateChange(BluetoothAdapter.STATE_TURNING_ON, BluetoothAdapter.STATE_ON,
                 invocationNumber + 1, CONTEXT_SWITCH_MS);
 
+        final int scanMode = mAdapterService.getScanMode();
+        Assert.assertTrue(scanMode == BluetoothAdapter.SCAN_MODE_CONNECTABLE
+                || scanMode == BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE);
         Assert.assertTrue(mAdapterService.isEnabled());
     }
 
