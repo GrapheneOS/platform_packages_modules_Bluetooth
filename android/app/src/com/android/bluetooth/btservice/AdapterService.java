@@ -273,6 +273,7 @@ public class AdapterService extends Service {
                         enableNativeWithGuestFlag();
                     } else if (mRegisteredProfiles.size() == Config.getSupportedProfiles().length
                             && mRegisteredProfiles.size() == mRunningProfiles.size()) {
+                        mAdapterProperties.onBluetoothReady();
                         updateUuids();
                         setBluetoothClassFromConfig();
                         mAdapterStateMachine.sendMessage(AdapterState.BREDR_STARTED);
@@ -556,6 +557,7 @@ public class AdapterService extends Service {
         Class[] supportedProfileServices = Config.getSupportedProfiles();
         if (supportedProfileServices.length == 1 && GattService.class.getSimpleName()
                 .equals(supportedProfileServices[0].getSimpleName())) {
+            mAdapterProperties.onBluetoothReady();
             updateUuids();
             setBluetoothClassFromConfig();
             mAdapterStateMachine.sendMessage(AdapterState.BREDR_STARTED);
