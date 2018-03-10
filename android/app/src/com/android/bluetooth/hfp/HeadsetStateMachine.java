@@ -1746,11 +1746,10 @@ public class HeadsetStateMachine extends StateMachine {
     }
 
     private void processVolumeEvent(int volumeType, int volume) {
-        // When there is an active call, only device in audio focus can change SCO volume
-        if (mSystemInterface.getHeadsetPhoneState().isInCall()
-                && getAudioState() != BluetoothHeadset.STATE_AUDIO_CONNECTED) {
-            Log.w(TAG, "processVolumeEvent, ignored because " + mDevice
-                    + " does not have audio focus");
+        // Only current active device can change SCO volume
+        if (!mDevice.equals(mHeadsetService.getActiveDevice())) {
+            Log.w(TAG, "processVolumeEvent, ignored because " + mDevice + " is not active");
+            return;
         }
         if (volumeType == HeadsetHalConstants.VOLUME_TYPE_SPK) {
             mSpeakerVolume = volume;
@@ -1761,7 +1760,7 @@ public class HeadsetStateMachine extends StateMachine {
             // Not used currently
             mMicVolume = volume;
         } else {
-            Log.e(TAG, "Bad voluem type: " + volumeType);
+            Log.e(TAG, "Bad volume type: " + volumeType);
         }
     }
 
