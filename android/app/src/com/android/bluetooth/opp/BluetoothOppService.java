@@ -146,6 +146,8 @@ public class BluetoothOppService extends ProfileService implements IObexConnecti
 
     boolean mAcceptNewConnections;
 
+    private BluetoothAdapter mAdapter;
+
     private static final String INVISIBLE =
             BluetoothShare.VISIBILITY + "=" + BluetoothShare.VISIBILITY_HIDDEN;
 
@@ -206,6 +208,7 @@ public class BluetoothOppService extends ProfileService implements IObexConnecti
         IntentFilter filter = new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED);
         registerReceiver(mBluetoothReceiver, filter);
 
+        mAdapter = BluetoothAdapter.getDefaultAdapter();
         synchronized (BluetoothOppService.this) {
             if (mAdapter == null) {
                 Log.w(TAG, "Local BT device is not enabled");
