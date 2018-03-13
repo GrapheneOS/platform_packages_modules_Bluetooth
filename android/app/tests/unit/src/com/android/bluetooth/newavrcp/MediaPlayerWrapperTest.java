@@ -200,13 +200,13 @@ public class MediaPlayerWrapperTest {
         MediaData data = mMediaUpdateData.getValue();
         Assert.assertEquals(
                 "Returned Metadata isn't equal to given Metadata",
-                data.metadata.getDescription(),
-                mTestMetadata.build().getDescription());
+                data.metadata,
+                Util.toMetadata(mTestMetadata.build()));
         Assert.assertEquals(
                 "Returned PlaybackState isn't equal to original PlaybackState",
                 data.state.toString(),
                 mTestState.build().toString());
-        Assert.assertNull("Returned Queue isn't null", data.queue);
+        Assert.assertEquals("Returned Queue isn't empty", data.queue.size(), 0);
 
         // Update PlaybackState returned by controller
         mTestState.setActiveQueueItemId(103);
@@ -222,9 +222,9 @@ public class MediaPlayerWrapperTest {
                 mTestState.build().toString());
         Assert.assertEquals(
                 "Returned Metadata isn't equal to given Metadata",
-                data.metadata.getDescription(),
-                mTestMetadata.build().getDescription());
-        Assert.assertNull("Returned Queue isn't null", data.queue);
+                data.metadata,
+                Util.toMetadata(mTestMetadata.build()));
+        Assert.assertEquals("Returned Queue isn't empty", data.queue.size(), 0);
 
         // Verify that there are no timeout messages pending and there were no timeouts
         Assert.assertFalse(wrapper.getTimeoutHandler().hasMessages(MSG_TIMEOUT));
@@ -272,9 +272,9 @@ public class MediaPlayerWrapperTest {
                 mTestState.build().toString());
         Assert.assertEquals(
                 "Returned Metadata isn't equal to given Metadata",
-                data.metadata.getDescription(),
-                mTestMetadata.build().getDescription());
-        Assert.assertNull("Returned Queue isn't null", data.queue);
+                data.metadata,
+                Util.toMetadata(mTestMetadata.build()));
+        Assert.assertEquals("Returned Queue isn't empty", data.queue.size(), 0);
 
         // Verify that there are no timeout messages pending and there were no timeouts
         Assert.assertFalse(wrapper.getTimeoutHandler().hasMessages(MSG_TIMEOUT));
@@ -314,9 +314,9 @@ public class MediaPlayerWrapperTest {
                 mTestState.build().toString());
         Assert.assertEquals(
                 "Returned Metadata isn't equal to given Metadata",
-                data.metadata.getDescription(),
-                mTestMetadata.build().getDescription());
-        Assert.assertNull("Returned Queue isn't null", data.queue);
+                data.metadata,
+                Util.toMetadata(mTestMetadata.build()));
+        Assert.assertEquals("Returned Queue isn't empty", data.queue.size(), 0);
 
         // Update PlaybackState returned by controller (Shouldn't trigger update)
         mTestState.setState(PlaybackState.STATE_PLAYING, 1020, 1.0f);
@@ -430,8 +430,8 @@ public class MediaPlayerWrapperTest {
         MediaData data = mMediaUpdateData.getValue();
         Assert.assertEquals(
                 "Returned Metadata isn't equal to given Metadata",
-                data.metadata.getDescription(),
-                mTestMetadata.build().getDescription());
+                data.metadata,
+                Util.toMetadata(mTestMetadata.build()));
         Assert.assertEquals(
                 "Returned PlaybackState isn't equal to given PlaybackState",
                 data.state.toString(),
@@ -439,7 +439,7 @@ public class MediaPlayerWrapperTest {
         Assert.assertEquals(
                 "Returned Queue isn't equal to given Queue",
                 data.queue,
-                getQueueFromDescriptions(mTestQueue));
+                Util.toMetadataList(getQueueFromDescriptions(mTestQueue)));
 
         // Verify that there are no timeout messages pending and there were no timeouts
         Assert.assertFalse(wrapper.getTimeoutHandler().hasMessages(MSG_TIMEOUT));
@@ -545,13 +545,15 @@ public class MediaPlayerWrapperTest {
             MediaData data = mMediaUpdateData.getValue();
             Assert.assertEquals(
                     "Returned Metadata isn't equal to given Metadata",
-                    data.metadata.getDescription(),
-                    m.build().getDescription());
+                    data.metadata,
+                    Util.toMetadata(m.build()));
             Assert.assertEquals(
                     "Returned PlaybackState isn't equal to given PlaybackState",
                     data.state.toString(),
                     s.build().toString());
-            Assert.assertEquals("Returned Queue isn't equal to given Queue", data.queue, q);
+            Assert.assertEquals("Returned Queue isn't equal to given Queue",
+                    data.queue,
+                    Util.toMetadataList(q));
         }
 
         // Verify that there are no timeout messages pending and there were no timeouts

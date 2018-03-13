@@ -16,8 +16,6 @@
 
 package com.android.bluetooth.avrcp;
 
-import android.media.MediaMetadata;
-import android.media.session.MediaSession;
 import android.media.session.PlaybackState;
 
 import java.util.List;
@@ -27,11 +25,11 @@ import java.util.Objects;
  * Helper class to transport metadata around AVRCP
  */
 class MediaData {
-    public List<MediaSession.QueueItem> queue;
+    public List<Metadata> queue;
     public PlaybackState state;
-    public MediaMetadata metadata;
+    public Metadata metadata;
 
-    MediaData(MediaMetadata m, PlaybackState s, List<MediaSession.QueueItem> q) {
+    MediaData(Metadata m, PlaybackState s, List<Metadata> q) {
         metadata = m;
         state = s;
         queue = q;
