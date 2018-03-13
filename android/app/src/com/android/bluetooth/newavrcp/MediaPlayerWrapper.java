@@ -96,8 +96,8 @@ class MediaPlayerWrapper {
         newWrapper.mPackageName = controller.getPackageName();
         newWrapper.mLooper = looper;
 
-        newWrapper.mCurrentData.queue = newWrapper.getQueue();
-        newWrapper.mCurrentData.metadata = newWrapper.getMetadata();
+        newWrapper.mCurrentData.queue = Util.toMetadataList(newWrapper.getQueue());
+        newWrapper.mCurrentData.metadata = Util.toMetadata(newWrapper.getMetadata());
         newWrapper.mCurrentData.state = newWrapper.getPlaybackState();
         return newWrapper;
     }
@@ -113,12 +113,16 @@ class MediaPlayerWrapper {
         return mPackageName;
     }
 
-    List<MediaSession.QueueItem> getQueue() {
+    protected List<MediaSession.QueueItem> getQueue() {
         return mMediaController.getQueue();
     }
 
-    MediaMetadata getMetadata() {
+    protected MediaMetadata getMetadata() {
         return mMediaController.getMetadata();
+    }
+
+    protected PlaybackState getPlaybackState() {
+        return mMediaController.getPlaybackState();
     }
 
     long getActiveQueueID() {
@@ -126,9 +130,6 @@ class MediaPlayerWrapper {
         return mMediaController.getPlaybackState().getActiveQueueItemId();
     }
 
-    PlaybackState getPlaybackState() {
-        return mMediaController.getPlaybackState();
-    }
 
     MediaData getCurrentMediaData() {
         return mCurrentData;
@@ -303,7 +304,10 @@ class MediaPlayerWrapper {
                 }
             }
 
-            MediaData newData = new MediaData(getMetadata(), getPlaybackState(), getQueue());
+            MediaData newData = new MediaData(
+                    Util.toMetadata(getMetadata()),
+                    getPlaybackState(),
+                    Util.toMetadataList(getQueue()));
 
             if (newData.equals(mCurrentData)) {
                 // This may happen if the controller is fully synced by the time the
