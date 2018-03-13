@@ -58,6 +58,8 @@ class AdapterProperties {
             "persist.bluetooth.maxconnectedaudiodevices";
     static final int MAX_CONNECTED_AUDIO_DEVICES_LOWER_BOND = 1;
     private static final int MAX_CONNECTED_AUDIO_DEVICES_UPPER_BOUND = 5;
+    private static final String A2DP_OFFLOAD_ENABLE_PROPERTY =
+            "persist.bluetooth.a2dp_offload.enable";
 
     private static final long DEFAULT_DISCOVERY_TIMEOUT_MS = 12800;
     private static final int BD_ADDR_LEN = 6; // in bytes
@@ -78,6 +80,7 @@ class AdapterProperties {
     private volatile int mConnectionState = BluetoothAdapter.STATE_DISCONNECTED;
     private volatile int mState = BluetoothAdapter.STATE_OFF;
     private int mMaxConnectedAudioDevices = 1;
+    private boolean mA2dpOffloadEnabled = false;
 
     private AdapterService mService;
     private boolean mDiscovering;
@@ -185,6 +188,9 @@ class AdapterProperties {
                 + configDefaultMaxConnectedAudioDevices + ", propertyOverlayed="
                 + propertyOverlayedMaxConnectedAudioDevices + ", finalValue="
                 + mMaxConnectedAudioDevices);
+
+        mA2dpOffloadEnabled = SystemProperties.getBoolean(
+                A2DP_OFFLOAD_ENABLE_PROPERTY, false);
 
         IntentFilter filter = new IntentFilter();
         filter.addAction(BluetoothHeadset.ACTION_CONNECTION_STATE_CHANGED);
@@ -424,6 +430,13 @@ class AdapterProperties {
      */
     int getMaxConnectedAudioDevices() {
         return mMaxConnectedAudioDevices;
+    }
+
+    /**
+     * @return A2DP offload support
+     */
+    boolean isA2dpOffloadEnabled() {
+        return mA2dpOffloadEnabled;
     }
 
     /**
