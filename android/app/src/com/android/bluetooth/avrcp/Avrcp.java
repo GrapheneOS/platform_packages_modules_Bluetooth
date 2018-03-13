@@ -69,7 +69,7 @@ import java.util.TreeMap;
  ******************************************************************************/
 
 public final class Avrcp {
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = false;
     private static final String TAG = "Avrcp";
     private static final String ABSOLUTE_VOLUME_BLACKLIST = "absolute_volume_blacklist";
 
@@ -1033,9 +1033,11 @@ public final class Avrcp {
             if (newState != null) {
                 newQueueId = newState.getActiveQueueItemId();
             }
-            Log.v(TAG,
-                    "Media update: id " + mLastQueueId + "➡" + newQueueId + "? " + currentAttributes
-                            .toRedactedString() + " : " + mMediaAttributes.toRedactedString());
+            if (DEBUG) {
+                Log.v(TAG,
+                        "Media update: id " + mLastQueueId + "➡" + newQueueId + "? " + currentAttributes
+                                .toRedactedString() + " : " + mMediaAttributes.toRedactedString());
+            }
 
             if (mAvailablePlayerViewChanged) {
                 registerNotificationRspAvalPlayerChangedNative(
@@ -1064,7 +1066,9 @@ public final class Avrcp {
             // Dont send now playing list changed if the player doesn't support browsing
             MediaPlayerInfo info = getAddressedPlayerInfo();
             if (info != null && info.isBrowseSupported()) {
-                Log.v(TAG, "Check if NowPlayingList is updated");
+                if (DEBUG) {
+                    Log.v(TAG, "Check if NowPlayingList is updated");
+                }
                 mAddressedMediaPlayer.updateNowPlayingList(mMediaController);
             }
 
@@ -1086,8 +1090,10 @@ public final class Avrcp {
         }
 
         // still send the updated play state if the playback state is none or buffering
-        Log.e(TAG, "play status change " + mReportedPlayStatus + "➡" + newPlayStatus
-                + " mPlayStatusChangedNT: " + mPlayStatusChangedNT);
+        if (DEBUG) {
+            Log.v(TAG, "play status change " + mReportedPlayStatus + "➡" + newPlayStatus
+                    + " mPlayStatusChangedNT: " + mPlayStatusChangedNT);
+        }
         if (mPlayStatusChangedNT == AvrcpConstants.NOTIFICATION_TYPE_INTERIM || (mReportedPlayStatus
                 != newPlayStatus)) {
             sendPlaybackStatus(AvrcpConstants.NOTIFICATION_TYPE_CHANGED, newPlayStatus);
