@@ -14,7 +14,10 @@
      limitations under the License.
 -->
 <configuration description="Runs Bluetooth Test Cases.">
-    <target_preparer class="com.android.tradefed.targetprep.TestAppInstallSetup">
+    <option name="test-suite-tag" value="apct" />
+    <option name="test-suite-tag" value="apct-instrumentation" />
+    <target_preparer class="com.android.tradefed.targetprep.suite.SuiteApkInstaller">
+        <option name="cleanup-apks" value="true" />
         <option name="test-file-name" value="BluetoothInstrumentationTests.apk" />
     </target_preparer>
     <target_preparer class="com.android.tradefed.targetprep.RunCommandTargetPreparer">
@@ -24,10 +27,8 @@
         <option name="teardown-command" value="settings put global ble_scan_always_enabled 1" />
     </target_preparer>
 
-    <option name="test-suite-tag" value="apct" />
     <option name="test-tag" value="BluetoothInstrumentationTests" />
-    <test class="com.android.tradefed.testtype.InstrumentationTest" >
+    <test class="com.android.tradefed.testtype.AndroidJUnitTest" >
         <option name="package" value="com.android.bluetooth.tests" />
-        <option name="runner" value="android.support.test.runner.AndroidJUnitRunner" />
     </test>
 </configuration>
