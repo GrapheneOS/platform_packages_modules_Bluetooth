@@ -76,6 +76,8 @@ public class A2dpService extends ProfileService {
     private static final int MAX_A2DP_STATE_MACHINES = 50;
     // Upper limit of all A2DP devices that are Connected or Connecting
     private int mMaxConnectedAudioDevices = 1;
+    // A2DP Offload Enabled in platform
+    boolean mA2dpOffloadEnabled = false;
 
     private BroadcastReceiver mBondStateChangedReceiver;
     private BroadcastReceiver mConnectionStateChangedReceiver;
@@ -128,7 +130,13 @@ public class A2dpService extends ProfileService {
         mA2dpNativeInterface.init(mMaxConnectedAudioDevices,
                                   mA2dpCodecConfig.codecConfigPriorities());
 
-        // Step 7: Setup broadcast receivers
+        // Step 7: Check if A2DP is in offload mode
+        mA2dpOffloadEnabled = mAdapterService.isA2dpOffloadEnabled();
+        if (DBG) {
+            Log.d(TAG, "A2DP offload flag set to " + mA2dpOffloadEnabled);
+        }
+
+        // Step 8: Setup broadcast receivers
         IntentFilter filter = new IntentFilter();
         filter.addAction(BluetoothDevice.ACTION_BOND_STATE_CHANGED);
         mBondStateChangedReceiver = new BondStateChangedReceiver();
@@ -138,10 +146,10 @@ public class A2dpService extends ProfileService {
         mConnectionStateChangedReceiver = new ConnectionStateChangedReceiver();
         registerReceiver(mConnectionStateChangedReceiver, filter);
 
-        // Step 8: Mark service as started
+        // Step 9: Mark service as started
         setA2dpService(this);
 
-        // Step 9: Clear active device
+        // Step 10: Clear active device
         setActiveDevice(null);
 
         return true;

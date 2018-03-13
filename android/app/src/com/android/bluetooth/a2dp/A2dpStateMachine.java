@@ -88,7 +88,7 @@ final class A2dpStateMachine extends StateMachine {
 
     private A2dpService mA2dpService;
     private A2dpNativeInterface mA2dpNativeInterface;
-
+    private boolean mA2dpOffloadEnabled = false;
     private final BluetoothDevice mDevice;
     private boolean mIsPlaying = false;
     private BluetoothCodecStatus mCodecStatus;
@@ -110,6 +110,7 @@ final class A2dpStateMachine extends StateMachine {
         addState(mConnecting);
         addState(mDisconnecting);
         addState(mConnected);
+        mA2dpOffloadEnabled = mA2dpService.mA2dpOffloadEnabled;
 
         setInitialState(mDisconnected);
     }
@@ -307,6 +308,7 @@ final class A2dpStateMachine extends StateMachine {
                             processCodecConfigEvent(event.codecStatus);
                             break;
                         case A2dpStackEvent.EVENT_TYPE_AUDIO_STATE_CHANGED:
+                            break;
                         default:
                             Log.e(TAG, "Connecting: ignoring stack event: " + event);
                             break;
@@ -621,6 +623,26 @@ final class A2dpStateMachine extends StateMachine {
                      newCodecStatus.getCodecsSelectableCapabilities()) {
                 Log.d(TAG, "A2DP Codec Selectable Capability: " + codecConfig);
             }
+        }
+
+        if (mA2dpOffloadEnabled) {
+            boolean update = false;
+            BluetoothCodecConfig newCodecConfig = mCodecStatus.getCodecConfig();
+            if ((prevCodecConfig != null)
+                    && (prevCodecConfig.getCodecType() != newCodecConfig.getCodecType())) {
+                update = true;
+            }
+            if (!newCodecConfig.sameAudioFeedingParameters(prevCodecConfig)) {
+                update = true;
+            }
+            if ((newCodecConfig.getCodecType() == BluetoothCodecConfig.SOURCE_CODEC_TYPE_LDAC)
+                    && prevCodecConfig.getCodecSpecific1() != newCodecConfig.getCodecSpecific1()) {
+                update = true;
+            }
+            if (update) {
+                mA2dpService.codecConfigUpdated(mDevice, mCodecStatus, false);
+            }
+            return;
         }
 
         boolean sameAudioFeedingParameters =
