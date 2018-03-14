@@ -54,10 +54,10 @@ public abstract class ProfileService extends Service {
     //Profile services will not be automatically restarted.
     //They must be explicitly restarted by AdapterService
     private static final int PROFILE_SERVICE_MODE = Service.START_NOT_STICKY;
-    protected final String mName;
-    protected BluetoothAdapter mAdapter;
-    protected AdapterService mAdapterService;
-    protected IProfileServiceBinder mBinder;
+    private BluetoothAdapter mAdapter;
+    private IProfileServiceBinder mBinder;
+    private final String mName;
+    private AdapterService mAdapterService;
     private BroadcastReceiver mUserSwitchedReceiver;
     private boolean mProfileStarted = false;
 
@@ -208,17 +208,13 @@ public abstract class ProfileService extends Service {
 
     @Override
     public void onDestroy() {
-        if (mAdapterService != null) {
-            mAdapterService.removeProfile(this);
-        }
-
         cleanup();
         if (mBinder != null) {
             mBinder.cleanup();
             mBinder = null;
         }
-        super.onDestroy();
         mAdapter = null;
+        super.onDestroy();
     }
 
     private void doStart() {
@@ -282,6 +278,9 @@ public abstract class ProfileService extends Service {
         }
         if (!stop()) {
             Log.e(mName, "Unable to stop profile");
+        }
+        if (mAdapterService != null) {
+            mAdapterService.removeProfile(this);
         }
         if (mUserSwitchedReceiver != null) {
             getApplicationContext().unregisterReceiver(mUserSwitchedReceiver);

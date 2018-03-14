@@ -165,6 +165,7 @@ public class GattService extends ProfileService {
 
     private final Map<Integer, List<BluetoothGattService>> mGattClientDatabases = new HashMap<>();
 
+    private BluetoothAdapter mAdapter;
     private AdvertiseManager mAdvertiseManager;
     private PeriodicScanManager mPeriodicScanManager;
     private ScanManager mScanManager;
@@ -192,6 +193,7 @@ public class GattService extends ProfileService {
             Log.d(TAG, "start()");
         }
         initializeNative();
+        mAdapter = BluetoothAdapter.getDefaultAdapter();
         mAppOps = getSystemService(AppOpsManager.class);
         mAdvertiseManager = new AdvertiseManager(this, AdapterService.getAdapterService());
         mAdvertiseManager.start();
