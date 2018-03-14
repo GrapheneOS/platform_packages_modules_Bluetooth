@@ -631,12 +631,13 @@ final class A2dpStateMachine extends StateMachine {
             if ((prevCodecConfig != null)
                     && (prevCodecConfig.getCodecType() != newCodecConfig.getCodecType())) {
                 update = true;
-            }
-            if (!newCodecConfig.sameAudioFeedingParameters(prevCodecConfig)) {
+            } else if (!newCodecConfig.sameAudioFeedingParameters(prevCodecConfig)) {
                 update = true;
-            }
-            if ((newCodecConfig.getCodecType() == BluetoothCodecConfig.SOURCE_CODEC_TYPE_LDAC)
-                    && prevCodecConfig.getCodecSpecific1() != newCodecConfig.getCodecSpecific1()) {
+            } else if ((newCodecConfig.getCodecType()
+                        == BluetoothCodecConfig.SOURCE_CODEC_TYPE_LDAC)
+                    && (prevCodecConfig != null)
+                    && (prevCodecConfig.getCodecSpecific1()
+                        != newCodecConfig.getCodecSpecific1())) {
                 update = true;
             }
             if (update) {
