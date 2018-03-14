@@ -188,4 +188,30 @@ public class ProfileServiceTest {
             profileNumber += 1;
         }
     }
+
+    /**
+     * Test: Start and stop a single profile repeatedly and verify that the profile services are
+     * registered and unregistered accordingly.
+     */
+    @Test
+    public void testProfileServiceRegisterUnregister() throws TimeoutException {
+        int profileNumber = 0;
+        for (Class profile : mProfiles) {
+            for (int i = 0; i < NUM_REPEATS; i++) {
+                setProfileState(profile, BluetoothAdapter.STATE_ON);
+                ArgumentCaptor<ProfileService> start =
+                        ArgumentCaptor.forClass(ProfileService.class);
+                verify(mMockAdapterService, timeout(PROFILE_START_MILLIS).times(
+                        NUM_REPEATS * profileNumber + i + 1)).addProfile(
+                        start.capture());
+                setProfileState(profile, BluetoothAdapter.STATE_OFF);
+                ArgumentCaptor<ProfileService> stop = ArgumentCaptor.forClass(ProfileService.class);
+                verify(mMockAdapterService, timeout(PROFILE_START_MILLIS).times(
+                        NUM_REPEATS * profileNumber + i + 1)).removeProfile(
+                        stop.capture());
+                Assert.assertEquals(start.getValue(), stop.getValue());
+            }
+            profileNumber += 1;
+        }
+    }
 }
