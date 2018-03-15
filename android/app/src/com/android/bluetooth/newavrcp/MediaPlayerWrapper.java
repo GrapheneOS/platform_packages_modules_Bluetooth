@@ -16,11 +16,9 @@
 
 package com.android.bluetooth.avrcp;
 
-import android.media.MediaDescription;
 import android.media.MediaMetadata;
 import android.media.session.MediaSession;
 import android.media.session.PlaybackState;
-import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
@@ -169,7 +167,7 @@ class MediaPlayerWrapper {
      * Return whether the queue, metadata, and queueID are all in sync.
      */
     boolean isMetadataSynced() {
-        if (getQueue() != null) {
+        if (getQueue() != null && getActiveQueueID() != -1) {
             // Check if currentPlayingQueueId is in the current Queue
             MediaSession.QueueItem currItem = null;
 
@@ -182,8 +180,9 @@ class MediaPlayerWrapper {
             }
 
             // Check if current playing song in Queue matches current Metadata
-            if (currItem == null
-                    || !currItem.getDescription().equals(getMetadata().getDescription())) {
+            Metadata qitem = Util.toMetadata(currItem);
+            Metadata mdata = Util.toMetadata(getMetadata());
+            if (currItem == null || !qitem.equals(mdata)) {
                 if (DEBUG) {
                     Log.d(TAG, "Metadata currently out of sync for " + mPackageName);
                     Log.d(TAG, "  └ Current queueItem: " + currItem);
@@ -446,44 +445,6 @@ class MediaPlayerWrapper {
         }
 
         return false;
-    }
-
-    // TODO: Use this function when returning the now playing list
-    /**
-     * Extracts different pieces of metadata from a MediaSession.QueueItem
-     * and builds a MediaMetadata Object out of it.
-     */
-    MediaMetadata queueItemToMetadata(MediaSession.QueueItem item) {
-        final String[] metadataStringKeys = {
-                MediaMetadata.METADATA_KEY_TITLE,
-                MediaMetadata.METADATA_KEY_ARTIST,
-                MediaMetadata.METADATA_KEY_ALBUM,
-                MediaMetadata.METADATA_KEY_GENRE };
-
-        MediaMetadata.Builder newMetadata = new MediaMetadata.Builder();
-        MediaDescription description = item.getDescription();
-        Bundle extras = description.getExtras();
-
-        for (String key : metadataStringKeys) {
-            String value = extras.getString(key);
-
-            if (key == MediaMetadata.METADATA_KEY_TITLE && value == null) {
-                value = description.getTitle().toString();
-            }
-
-            if (value == null) {
-                if (DEBUG) {
-                    Log.d(TAG, "queueItemToMetadata: " + description + " is missing key: " + key);
-                }
-                continue;
-            }
-            newMetadata.putString(key, value);
-        }
-
-        long duration = extras.getLong(MediaMetadata.METADATA_KEY_DURATION);
-        newMetadata.putLong(MediaMetadata.METADATA_KEY_DURATION, duration);
-
-        return newMetadata.build();
     }
 
     private static void e(String message) {
