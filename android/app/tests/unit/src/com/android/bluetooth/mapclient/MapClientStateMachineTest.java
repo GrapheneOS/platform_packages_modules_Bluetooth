@@ -40,13 +40,18 @@ import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 @MediumTest
 @RunWith(AndroidJUnit4.class)
 public class MapClientStateMachineTest {
-    private static final String TAG = MapClientStateMachineTest.class.getSimpleName();
+    private static final String TAG = "MapStateMachineTest";
+    private static final Integer TIMEOUT = 3000;
+
     private BluetoothAdapter mAdapter;
     private MceStateMachine mMceStateMachine = null;
     private BluetoothDevice mTestDevice;
@@ -56,9 +61,13 @@ public class MapClientStateMachineTest {
     private CountDownLatch mLock = null;
     private Handler mHandler;
 
+    @Mock
+    private MasClient mMockMasClient;
+
 
     @Before
     public void setUp() {
+        MockitoAnnotations.initMocks(this);
         mTargetContext = InstrumentationRegistry.getTargetContext();
         Assume.assumeTrue("Ignore test when MapClientService is not enabled",
                 mTargetContext.getResources().getBoolean(R.bool.profile_supported_mapmce));
@@ -70,7 +79,8 @@ public class MapClientStateMachineTest {
 
         mLock = new CountDownLatch(1);
         mFakeMapClientService = new FakeMapClientService(mLock);
-        mMceStateMachine = new MceStateMachine(mFakeMapClientService, mTestDevice);
+        when(mMockMasClient.makeRequest(any(Request.class))).thenReturn(true);
+        mMceStateMachine = new MceStateMachine(mFakeMapClientService, mTestDevice, mMockMasClient);
         Assert.assertNotNull(mMceStateMachine);
         if (Looper.myLooper() == null) {
             Looper.prepare();
@@ -112,11 +122,11 @@ public class MapClientStateMachineTest {
         // to MapClientService to change
         // state from STATE_CONNECTING to STATE_CONNECTED
         try {
-            mLock.await();
+            mLock.await(TIMEOUT, TimeUnit.MILLISECONDS);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-
+        Assert.assertNotNull(mMceStateMachine.getCurrentState());
         Assert.assertEquals(BluetoothProfile.STATE_CONNECTED, mMceStateMachine.getState());
     }
 

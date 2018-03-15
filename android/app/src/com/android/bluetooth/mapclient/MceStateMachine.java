@@ -56,6 +56,7 @@ import android.telephony.SmsManager;
 import android.util.Log;
 
 import com.android.bluetooth.btservice.ProfileService;
+import com.android.internal.annotations.VisibleForTesting;
 import com.android.internal.util.IState;
 import com.android.internal.util.State;
 import com.android.internal.util.StateMachine;
@@ -120,7 +121,13 @@ final class MceStateMachine extends StateMachine {
     private Bmessage.Type mDefaultMessageType = Bmessage.Type.SMS_CDMA;
 
     MceStateMachine(MapClientService service, BluetoothDevice device) {
+        this(service, device, null);
+    }
+
+    @VisibleForTesting
+    MceStateMachine(MapClientService service, BluetoothDevice device, MasClient masClient) {
         super(TAG);
+        mMasClient = masClient;
         mService = service;
 
         mPreviousState = BluetoothProfile.STATE_DISCONNECTED;
