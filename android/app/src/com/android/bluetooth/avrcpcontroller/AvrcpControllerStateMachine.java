@@ -129,7 +129,6 @@ class AvrcpControllerStateMachine extends StateMachine {
 
     // Only accessed from State Machine processMessage
     private boolean mAbsoluteVolumeChangeInProgress = false;
-    private boolean mBroadcastMetadata = false;
     private int mPreviousPercentageVol = -1;
 
     // Depth from root of current browsing. This can be used to move to root directly.
@@ -217,22 +216,6 @@ class AvrcpControllerStateMachine extends StateMachine {
             A2dpSinkService a2dpSinkService = A2dpSinkService.getA2dpSinkService();
             synchronized (mLock) {
                 switch (msg.what) {
-                    case MESSAGE_STOP_METADATA_BROADCASTS:
-                        mBroadcastMetadata = false;
-                        broadcastPlayBackStateChanged(
-                                new PlaybackState.Builder().setState(PlaybackState.STATE_PAUSED,
-                                        mAddressedPlayer.getPlayTime(), 0).build());
-                        break;
-
-                    case MESSAGE_START_METADATA_BROADCASTS:
-                        mBroadcastMetadata = true;
-                        broadcastPlayBackStateChanged(mAddressedPlayer.getPlaybackState());
-                        if (mAddressedPlayer.getCurrentTrack() != null) {
-                            broadcastMetaDataChanged(
-                                    mAddressedPlayer.getCurrentTrack().getMediaMetaData());
-                        }
-                        break;
-
                     case MESSAGE_SEND_PASS_THROUGH_CMD:
                         BluetoothDevice device = (BluetoothDevice) msg.obj;
                         AvrcpControllerService.sendPassThroughCommandNative(
@@ -421,7 +404,6 @@ class AvrcpControllerStateMachine extends StateMachine {
 
                     case MESSAGE_PROCESS_TRACK_CHANGED:
                         // Music start playing automatically and update Metadata
-                        mBroadcastMetadata = true;
                         mAddressedPlayer.updateCurrentTrack((TrackInfo) msg.obj);
                         broadcastMetaDataChanged(
                                 mAddressedPlayer.getCurrentTrack().getMediaMetaData());
@@ -436,8 +418,8 @@ class AvrcpControllerStateMachine extends StateMachine {
                         break;
 
                     case MESSAGE_PROCESS_PLAY_POS_CHANGED:
-                        mAddressedPlayer.setPlayTime(msg.arg2);
-                        if (mBroadcastMetadata) {
+                        if (msg.arg2 != -1) {
+                            mAddressedPlayer.setPlayTime(msg.arg2);
                             broadcastPlayBackStateChanged(getCurrentPlayBackState());
                         }
                         break;
@@ -445,6 +427,7 @@ class AvrcpControllerStateMachine extends StateMachine {
                     case MESSAGE_PROCESS_PLAY_STATUS_CHANGED:
                         int status = msg.arg1;
                         mAddressedPlayer.setPlayStatus(status);
+                        broadcastPlayBackStateChanged(getCurrentPlayBackState());
                         if (status == PlaybackState.STATE_PLAYING) {
                             a2dpSinkService.informTGStatePlaying(mRemoteDevice.mBTDevice, true);
                         } else if (status == PlaybackState.STATE_PAUSED
