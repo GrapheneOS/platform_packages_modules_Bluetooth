@@ -48,13 +48,9 @@ class Metadata implements Cloneable {
         if (!(o instanceof Metadata)) return false;
 
         final Metadata m = (Metadata) o;
-        if (!Objects.equals(mediaId, m.mediaId)) return false;
         if (!Objects.equals(title, m.title)) return false;
         if (!Objects.equals(artist, m.artist)) return false;
         if (!Objects.equals(album, m.album)) return false;
-        if (!Objects.equals(trackNum, m.trackNum)) return false;
-        if (!Objects.equals(numTracks, m.numTracks)) return false;
-        if (!Objects.equals(duration, m.duration)) return false;
         return true;
     }
 }
