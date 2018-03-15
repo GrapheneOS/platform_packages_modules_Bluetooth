@@ -18,6 +18,7 @@ package com.android.bluetooth.avrcp;
 
 import android.media.MediaDescription;
 import android.media.MediaMetadata;
+import android.media.browse.MediaBrowser.MediaItem;
 import android.media.session.MediaSession;
 import android.os.Bundle;
 import android.util.Log;
@@ -73,6 +74,11 @@ class Util {
         // If the bundle has title or artist use those over the description title or subtitle.
         if (desc.getExtras() != null) ret.putAll(desc.getExtras());
 
+        if (ret.containsKey(GPM_KEY)) {
+            if (DEBUG) Log.d(TAG, "MediaDescription contains GPM data");
+            ret.putAll(mediaMetadataToBundle((MediaMetadata) ret.get(GPM_KEY)));
+        }
+
         return ret;
     }
 
@@ -124,15 +130,10 @@ class Util {
         }
 
         Bundle bundle = descriptionToBundle(item.getDescription());
-        if (bundle.containsKey(GPM_KEY)) {
-            if (DEBUG) Log.d(TAG, "Queue item contains GPM data");
-            bundle.putAll(mediaMetadataToBundle((MediaMetadata) bundle.get(GPM_KEY)));
-        }
-
 
         if (DEBUG) {
             for (String key : bundle.keySet()) {
-                Log.e(TAG, "toMetadata: MediaDescription: ContainsKey: " + key);
+                Log.d(TAG, "toMetadata: QueueItem: ContainsKey: " + key);
             }
         }
 
@@ -160,12 +161,38 @@ class Util {
 
         // Prioritize the media metadata over the media description
         bundle.putAll(dataBundle);
+
+        if (DEBUG) {
+            for (String key : bundle.keySet()) {
+                Log.d(TAG, "toMetadata: MediaMetadata: ContainsKey: " + key);
+            }
+        }
+
         Metadata ret = bundleToMetadata(bundle);
 
         // This will always be currsong. The AVRCP service will overwrite the mediaId if it needs to
         // TODO (apanicke): Remove when the service is ready, right now it makes debugging much more
         // convenient
         ret.mediaId = "currsong";
+
+        return ret;
+    }
+
+    public static Metadata toMetadata(MediaItem item) {
+        if (item == null) {
+            return empty_data();
+        }
+
+        Bundle bundle = descriptionToBundle(item.getDescription());
+
+        if (DEBUG) {
+            for (String key : bundle.keySet()) {
+                Log.d(TAG, "toMetadata: MediaItem: ContainsKey: " + key);
+            }
+        }
+
+        Metadata ret = bundleToMetadata(bundle);
+        ret.mediaId = item.getMediaId();
 
         return ret;
     }
