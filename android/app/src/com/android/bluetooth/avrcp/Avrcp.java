@@ -1800,7 +1800,7 @@ public final class Avrcp {
                     for (android.media.session.MediaController controller : newControllers) {
                         String packageName = controller.getPackageName();
                         if (DEBUG) {
-                            Log.v(TAG, "ActiveSession: " + MediaController.wrap(controller));
+                            Log.v(TAG, "ActiveSession: " + MediaControllerFactory.wrap(controller));
                         }
                         // Only use the first (highest priority) controller from each package
                         if (updatedPackages.contains(packageName)) {
@@ -2000,7 +2000,7 @@ public final class Avrcp {
     /** Add (or update) a player to the media player list given an active controller */
     private boolean addMediaPlayerController(android.media.session.MediaController controller) {
         String packageName = controller.getPackageName();
-        MediaPlayerInfo info = new MediaPlayerInfo(MediaController.wrap(controller),
+        MediaPlayerInfo info = new MediaPlayerInfo(MediaControllerFactory.wrap(controller),
                 AvrcpConstants.PLAYER_TYPE_AUDIO, AvrcpConstants.PLAYER_SUBTYPE_NONE,
                 getBluetoothPlayState(controller.getPlaybackState()),
                 getFeatureBitMask(packageName), controller.getPackageName(),
