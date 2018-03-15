@@ -56,6 +56,7 @@ public class A2dpSinkStreamHandler extends Handler {
 
     // Configuration Variables
     private static final int DEFAULT_DUCK_PERCENT = 25;
+    private static final int SETTLE_TIMEOUT = 1000;
 
     // Incoming events.
     public static final int SRC_STR_START = 0; // Audio stream from remote device started
@@ -67,6 +68,7 @@ public class A2dpSinkStreamHandler extends Handler {
     public static final int DISCONNECT = 6; // Remote device was disconnected
     public static final int AUDIO_FOCUS_CHANGE = 7; // Audio focus callback with associated change
     public static final int REQUEST_FOCUS = 8; // Request focus when the media service is active
+    public static final int DELAYED_RESUME = 9; // If a call just ended allow stack time to settle
 
     // Used to indicate focus lost
     private static final int STATE_FOCUS_LOST = 0;
@@ -180,8 +182,7 @@ public class A2dpSinkStreamHandler extends Handler {
                         startAvrcpUpdates();
                         startFluorideStreaming();
                         if (mSentPause) {
-                            sendAvrcpPlay();
-                            mSentPause = false;
+                            sendMessageDelayed(obtainMessage(DELAYED_RESUME), SETTLE_TIMEOUT);
                         }
                         break;
 
@@ -218,6 +219,13 @@ public class A2dpSinkStreamHandler extends Handler {
                         break;
                 }
                 break;
+
+            case DELAYED_RESUME:
+                // Resume playback after source and sink states settle.
+                sendAvrcpPlay();
+                mSentPause = false;
+                break;
+
 
             default:
                 Log.w(TAG, "Received unexpected event: " + message.what);
