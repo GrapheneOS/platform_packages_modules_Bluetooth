@@ -85,13 +85,16 @@ final class HearingAidStateMachine extends StateMachine {
     private int mLastConnectionState = -1;
 
     private HearingAidService mService;
+    private HearingAidNativeInterface mNativeInterface;
 
     private final BluetoothDevice mDevice;
 
-    HearingAidStateMachine(BluetoothDevice device, HearingAidService svc, Looper looper) {
+    HearingAidStateMachine(BluetoothDevice device, HearingAidService svc,
+            HearingAidNativeInterface nativeInterface, Looper looper) {
         super(TAG, looper);
         mDevice = device;
         mService = svc;
+        mNativeInterface = nativeInterface;
 
         mDisconnected = new Disconnected();
         mConnecting = new Connecting();
@@ -107,9 +110,10 @@ final class HearingAidStateMachine extends StateMachine {
     }
 
     static HearingAidStateMachine make(BluetoothDevice device, HearingAidService svc,
-            Looper looper) {
+            HearingAidNativeInterface nativeInterface, Looper looper) {
         Log.i(TAG, "make for device " + device);
-        HearingAidStateMachine HearingAidSm = new HearingAidStateMachine(device, svc, looper);
+        HearingAidStateMachine HearingAidSm = new HearingAidStateMachine(device, svc,
+                nativeInterface, looper);
         HearingAidSm.start();
         return HearingAidSm;
     }
@@ -132,8 +136,6 @@ final class HearingAidStateMachine extends StateMachine {
             mConnectionState = BluetoothProfile.STATE_DISCONNECTED;
 
             removeDeferredMessages(DISCONNECT);
-            // Remove Timeout messages when moved to stable state
-            removeMessages(CONNECT_TIMEOUT);
 
             if (mLastConnectionState != -1) {
                 // Don't broadcast during startup
@@ -156,6 +158,10 @@ final class HearingAidStateMachine extends StateMachine {
             switch (message.what) {
                 case CONNECT:
                     log("Connecting to " + mDevice);
+                    if (!mNativeInterface.connectHearingAid(mDevice)) {
+                        Log.e(TAG, "Disconnected: error connecting to " + mDevice);
+                        break;
+                    }
                     if (mService.okToConnect(mDevice)) {
                         transitionTo(mConnecting);
                     } else {
@@ -166,10 +172,63 @@ final class HearingAidStateMachine extends StateMachine {
                 case DISCONNECT:
                     Log.w(TAG, "Disconnected: DISCONNECT ignored: " + mDevice);
                     break;
+                case STACK_EVENT:
+                    HearingAidStackEvent event = (HearingAidStackEvent) message.obj;
+                    if (DBG) {
+                        Log.d(TAG, "Disconnected: stack event: " + event);
+                    }
+                    if (!mDevice.equals(event.device)) {
+                        Log.wtfStack(TAG, "Device(" + mDevice + "): event mismatch: " + event);
+                    }
+                    switch (event.type) {
+                        case HearingAidStackEvent.EVENT_TYPE_CONNECTION_STATE_CHANGED:
+                            processConnectionEvent(event.valueInt1);
+                            break;
+                        default:
+                            Log.e(TAG, "Disconnected: ignoring stack event: " + event);
+                            break;
+                    }
+                    break;
                 default:
                     return NOT_HANDLED;
             }
             return HANDLED;
+        }
+
+        // in Disconnected state
+        private void processConnectionEvent(int state) {
+            switch (state) {
+                case HearingAidStackEvent.CONNECTION_STATE_DISCONNECTED:
+                    Log.w(TAG, "Ignore HearingAid DISCONNECTED event: " + mDevice);
+                    break;
+                case HearingAidStackEvent.CONNECTION_STATE_CONNECTING:
+                    if (mService.okToConnect(mDevice)) {
+                        Log.i(TAG, "Incoming HearingAid Connecting request accepted: " + mDevice);
+                        transitionTo(mConnecting);
+                    } else {
+                        // Reject the connection and stay in Disconnected state itself
+                        Log.w(TAG, "Incoming HearingAid Connecting request rejected: " + mDevice);
+                        mNativeInterface.disconnectHearingAid(mDevice);
+                    }
+                    break;
+                case HearingAidStackEvent.CONNECTION_STATE_CONNECTED:
+                    Log.w(TAG, "HearingAid Connected from Disconnected state: " + mDevice);
+                    if (mService.okToConnect(mDevice)) {
+                        Log.i(TAG, "Incoming HearingAid Connected request accepted: " + mDevice);
+                        transitionTo(mConnected);
+                    } else {
+                        // Reject the connection and stay in Disconnected state itself
+                        Log.w(TAG, "Incoming HearingAid Connected request rejected: " + mDevice);
+                        mNativeInterface.disconnectHearingAid(mDevice);
+                    }
+                    break;
+                case HearingAidStackEvent.CONNECTION_STATE_DISCONNECTING:
+                    Log.w(TAG, "Ignore HearingAid DISCONNECTING event: " + mDevice);
+                    break;
+                default:
+                    Log.e(TAG, "Incorrect state: " + state + " device: " + mDevice);
+                    break;
+            }
         }
     }
 
@@ -201,15 +260,62 @@ final class HearingAidStateMachine extends StateMachine {
                 case CONNECT:
                     deferMessage(message);
                     break;
+                case CONNECT_TIMEOUT:
+                    Log.w(TAG, "Connecting connection timeout: " + mDevice);
+                    mNativeInterface.disconnectHearingAid(mDevice);
+                    HearingAidStackEvent disconnectEvent =
+                            new HearingAidStackEvent(
+                                    HearingAidStackEvent.EVENT_TYPE_CONNECTION_STATE_CHANGED);
+                    disconnectEvent.device = mDevice;
+                    disconnectEvent.valueInt1 = HearingAidStackEvent.CONNECTION_STATE_DISCONNECTED;
+                    sendMessage(STACK_EVENT, disconnectEvent);
+                    break;
                 case DISCONNECT:
-                    // Cancel connection
                     log("Connecting: connection canceled to " + mDevice);
+                    mNativeInterface.disconnectHearingAid(mDevice);
                     transitionTo(mDisconnected);
+                    break;
+                case STACK_EVENT:
+                    HearingAidStackEvent event = (HearingAidStackEvent) message.obj;
+                    log("Connecting: stack event: " + event);
+                    if (!mDevice.equals(event.device)) {
+                        Log.wtfStack(TAG, "Device(" + mDevice + "): event mismatch: " + event);
+                    }
+                    switch (event.type) {
+                        case HearingAidStackEvent.EVENT_TYPE_CONNECTION_STATE_CHANGED:
+                            processConnectionEvent(event.valueInt1);
+                            break;
+                        default:
+                            Log.e(TAG, "Connecting: ignoring stack event: " + event);
+                            break;
+                    }
                     break;
                 default:
                     return NOT_HANDLED;
             }
             return HANDLED;
+        }
+
+        // in Connecting state
+        private void processConnectionEvent(int state) {
+            switch (state) {
+                case HearingAidStackEvent.CONNECTION_STATE_DISCONNECTED:
+                    Log.w(TAG, "Connecting device disconnected: " + mDevice);
+                    transitionTo(mDisconnected);
+                    break;
+                case HearingAidStackEvent.CONNECTION_STATE_CONNECTED:
+                    transitionTo(mConnected);
+                    break;
+                case HearingAidStackEvent.CONNECTION_STATE_CONNECTING:
+                    break;
+                case HearingAidStackEvent.CONNECTION_STATE_DISCONNECTING:
+                    Log.w(TAG, "Connecting interrupted: device is disconnecting: " + mDevice);
+                    transitionTo(mDisconnecting);
+                    break;
+                default:
+                    Log.e(TAG, "Incorrect state: " + state);
+                    break;
+            }
         }
     }
 
@@ -241,13 +347,74 @@ final class HearingAidStateMachine extends StateMachine {
                 case CONNECT:
                     deferMessage(message);
                     break;
+                case CONNECT_TIMEOUT: {
+                    Log.w(TAG, "Disconnecting connection timeout: " + mDevice);
+                    mNativeInterface.disconnectHearingAid(mDevice);
+                    HearingAidStackEvent disconnectEvent =
+                            new HearingAidStackEvent(
+                                    HearingAidStackEvent.EVENT_TYPE_CONNECTION_STATE_CHANGED);
+                    disconnectEvent.device = mDevice;
+                    disconnectEvent.valueInt1 = HearingAidStackEvent.CONNECTION_STATE_DISCONNECTED;
+                    sendMessage(STACK_EVENT, disconnectEvent);
+                    break;
+                }
                 case DISCONNECT:
                     deferMessage(message);
+                    break;
+                case STACK_EVENT:
+                    HearingAidStackEvent event = (HearingAidStackEvent) message.obj;
+                    log("Disconnecting: stack event: " + event);
+                    if (!mDevice.equals(event.device)) {
+                        Log.wtfStack(TAG, "Device(" + mDevice + "): event mismatch: " + event);
+                    }
+                    switch (event.type) {
+                        case HearingAidStackEvent.EVENT_TYPE_CONNECTION_STATE_CHANGED:
+                            processConnectionEvent(event.valueInt1);
+                            break;
+                        default:
+                            Log.e(TAG, "Disconnecting: ignoring stack event: " + event);
+                            break;
+                    }
                     break;
                 default:
                     return NOT_HANDLED;
             }
             return HANDLED;
+        }
+
+        // in Disconnecting state
+        private void processConnectionEvent(int state) {
+            switch (state) {
+                case HearingAidStackEvent.CONNECTION_STATE_DISCONNECTED:
+                    Log.i(TAG, "Disconnected: " + mDevice);
+                    transitionTo(mDisconnected);
+                    break;
+                case HearingAidStackEvent.CONNECTION_STATE_CONNECTED:
+                    if (mService.okToConnect(mDevice)) {
+                        Log.w(TAG, "Disconnecting interrupted: device is connected: " + mDevice);
+                        transitionTo(mConnected);
+                    } else {
+                        // Reject the connection and stay in Disconnecting state
+                        Log.w(TAG, "Incoming HearingAid Connected request rejected: " + mDevice);
+                        mNativeInterface.disconnectHearingAid(mDevice);
+                    }
+                    break;
+                case HearingAidStackEvent.CONNECTION_STATE_CONNECTING:
+                    if (mService.okToConnect(mDevice)) {
+                        Log.i(TAG, "Disconnecting interrupted: try to reconnect: " + mDevice);
+                        transitionTo(mConnecting);
+                    } else {
+                        // Reject the connection and stay in Disconnecting state
+                        Log.w(TAG, "Incoming HearingAid Connecting request rejected: " + mDevice);
+                        mNativeInterface.disconnectHearingAid(mDevice);
+                    }
+                    break;
+                case HearingAidStackEvent.CONNECTION_STATE_DISCONNECTING:
+                    break;
+                default:
+                    Log.e(TAG, "Incorrect state: " + state);
+                    break;
+            }
         }
     }
 
@@ -278,17 +445,52 @@ final class HearingAidStateMachine extends StateMachine {
                 case CONNECT:
                     Log.w(TAG, "Connected: CONNECT ignored: " + mDevice);
                     break;
-                case DISCONNECT: {
+                case DISCONNECT:
                     log("Disconnecting from " + mDevice);
+                    if (!mNativeInterface.disconnectHearingAid(mDevice)) {
+                        // If error in the native stack, transition directly to Disconnected state.
+                        Log.e(TAG, "Connected: error disconnecting from " + mDevice);
+                        transitionTo(mDisconnected);
+                        break;
+                    }
                     transitionTo(mDisconnecting);
-                }
-                break;
-                case CONNECT_TIMEOUT:
+                    break;
+                case STACK_EVENT:
+                    HearingAidStackEvent event = (HearingAidStackEvent) message.obj;
+                    log("Connected: stack event: " + event);
+                    if (!mDevice.equals(event.device)) {
+                        Log.wtfStack(TAG, "Device(" + mDevice + "): event mismatch: " + event);
+                    }
+                    switch (event.type) {
+                        case HearingAidStackEvent.EVENT_TYPE_CONNECTION_STATE_CHANGED:
+                            processConnectionEvent(event.valueInt1);
+                            break;
+                        default:
+                            Log.e(TAG, "Connected: ignoring stack event: " + event);
+                            break;
+                    }
                     break;
                 default:
                     return NOT_HANDLED;
             }
             return HANDLED;
+        }
+
+        // in Connected state
+        private void processConnectionEvent(int state) {
+            switch (state) {
+                case HearingAidStackEvent.CONNECTION_STATE_DISCONNECTED:
+                    Log.i(TAG, "Disconnected from " + mDevice);
+                    transitionTo(mDisconnected);
+                    break;
+                case HearingAidStackEvent.CONNECTION_STATE_DISCONNECTING:
+                    Log.i(TAG, "Disconnecting from " + mDevice);
+                    transitionTo(mDisconnecting);
+                    break;
+                default:
+                    Log.e(TAG, "Connection State Device: " + mDevice + " bad state: " + state);
+                    break;
+            }
         }
     }
 
@@ -301,7 +503,7 @@ final class HearingAidStateMachine extends StateMachine {
     }
 
     synchronized boolean isConnected() {
-        return (getCurrentState() == mConnected);
+        return getCurrentState() == mConnected;
     }
 
     // This method does not check for error condition (newState == prevState)

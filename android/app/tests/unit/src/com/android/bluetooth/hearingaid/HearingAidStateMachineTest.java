@@ -16,10 +16,13 @@
 
 package com.android.bluetooth.hearingaid;
 
+import static org.mockito.Mockito.*;
+
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothProfile;
 import android.content.Context;
+import android.content.Intent;
 import android.os.HandlerThread;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.filters.MediumTest;
@@ -29,12 +32,14 @@ import com.android.bluetooth.R;
 import com.android.bluetooth.TestUtils;
 import com.android.bluetooth.btservice.AdapterService;
 
+import org.hamcrest.core.IsInstanceOf;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
@@ -50,6 +55,7 @@ public class HearingAidStateMachineTest {
 
     @Mock private AdapterService mAdapterService;
     @Mock private HearingAidService mHearingAidService;
+    @Mock private HearingAidNativeInterface mHearingAidNativeInterface;
 
     @Before
     public void setUp() throws Exception {
@@ -69,7 +75,7 @@ public class HearingAidStateMachineTest {
         mHandlerThread = new HandlerThread("HearingAidStateMachineTestHandlerThread");
         mHandlerThread.start();
         mHearingAidStateMachine = new HearingAidStateMachine(mTestDevice, mHearingAidService,
-                mHandlerThread.getLooper());
+                mHearingAidNativeInterface, mHandlerThread.getLooper());
         // Override the timeout value to speed up the test
         mHearingAidStateMachine.sConnectTimeoutMs = 1000;     // 1s
         mHearingAidStateMachine.start();
@@ -94,4 +100,156 @@ public class HearingAidStateMachineTest {
                 mHearingAidStateMachine.getConnectionState());
     }
 
+    /**
+     * Allow/disallow connection to any device.
+     *
+     * @param allow if true, connection is allowed
+     */
+    private void allowConnection(boolean allow) {
+        doReturn(allow).when(mHearingAidService).okToConnect(any(BluetoothDevice.class));
+    }
+
+    /**
+     * Test that an incoming connection with low priority is rejected
+     */
+    @Test
+    public void testIncomingPriorityReject() {
+        allowConnection(false);
+
+        // Inject an event for when incoming connection is requested
+        HearingAidStackEvent connStCh =
+                new HearingAidStackEvent(HearingAidStackEvent.EVENT_TYPE_CONNECTION_STATE_CHANGED);
+        connStCh.device = mTestDevice;
+        connStCh.valueInt1 = HearingAidStackEvent.CONNECTION_STATE_CONNECTED;
+        mHearingAidStateMachine.sendMessage(HearingAidStateMachine.STACK_EVENT, connStCh);
+
+        // Verify that no connection state broadcast is executed
+        verify(mHearingAidService, after(TIMEOUT_MS).never()).sendBroadcast(any(Intent.class),
+                anyString());
+        // Check that we are in Disconnected state
+        Assert.assertThat(mHearingAidStateMachine.getCurrentState(),
+                IsInstanceOf.instanceOf(HearingAidStateMachine.Disconnected.class));
+    }
+
+    /**
+     * Test that an incoming connection with high priority is accepted
+     */
+    @Test
+    public void testIncomingPriorityAccept() {
+        allowConnection(true);
+
+        // Inject an event for when incoming connection is requested
+        HearingAidStackEvent connStCh =
+                new HearingAidStackEvent(HearingAidStackEvent.EVENT_TYPE_CONNECTION_STATE_CHANGED);
+        connStCh.device = mTestDevice;
+        connStCh.valueInt1 = HearingAidStackEvent.CONNECTION_STATE_CONNECTING;
+        mHearingAidStateMachine.sendMessage(HearingAidStateMachine.STACK_EVENT, connStCh);
+
+        // Verify that one connection state broadcast is executed
+        ArgumentCaptor<Intent> intentArgument1 = ArgumentCaptor.forClass(Intent.class);
+        verify(mHearingAidService, timeout(TIMEOUT_MS).times(1)).sendBroadcast(
+                intentArgument1.capture(), anyString());
+        Assert.assertEquals(BluetoothProfile.STATE_CONNECTING,
+                intentArgument1.getValue().getIntExtra(BluetoothProfile.EXTRA_STATE, -1));
+
+        // Check that we are in Connecting state
+        Assert.assertThat(mHearingAidStateMachine.getCurrentState(),
+                IsInstanceOf.instanceOf(HearingAidStateMachine.Connecting.class));
+
+        // Send a message to trigger connection completed
+        HearingAidStackEvent connCompletedEvent =
+                new HearingAidStackEvent(HearingAidStackEvent.EVENT_TYPE_CONNECTION_STATE_CHANGED);
+        connCompletedEvent.device = mTestDevice;
+        connCompletedEvent.valueInt1 = HearingAidStackEvent.CONNECTION_STATE_CONNECTED;
+        mHearingAidStateMachine.sendMessage(HearingAidStateMachine.STACK_EVENT, connCompletedEvent);
+
+        // Verify that the expected number of broadcasts are executed:
+        // - two calls to broadcastConnectionState(): Disconnected -> Conecting -> Connected
+        ArgumentCaptor<Intent> intentArgument2 = ArgumentCaptor.forClass(Intent.class);
+        verify(mHearingAidService, timeout(TIMEOUT_MS).times(2)).sendBroadcast(
+                intentArgument2.capture(), anyString());
+        // Check that we are in Connected state
+        Assert.assertThat(mHearingAidStateMachine.getCurrentState(),
+                IsInstanceOf.instanceOf(HearingAidStateMachine.Connected.class));
+    }
+
+    /**
+     * Test that an outgoing connection times out
+     */
+    @Test
+    public void testOutgoingTimeout() {
+        allowConnection(true);
+        doReturn(true).when(mHearingAidNativeInterface).connectHearingAid(any(
+                BluetoothDevice.class));
+        doReturn(true).when(mHearingAidNativeInterface).disconnectHearingAid(any(
+                BluetoothDevice.class));
+
+        // Send a connect request
+        mHearingAidStateMachine.sendMessage(HearingAidStateMachine.CONNECT, mTestDevice);
+
+        // Verify that one connection state broadcast is executed
+        ArgumentCaptor<Intent> intentArgument1 = ArgumentCaptor.forClass(Intent.class);
+        verify(mHearingAidService, timeout(TIMEOUT_MS).times(1)).sendBroadcast(
+                intentArgument1.capture(),
+                anyString());
+        Assert.assertEquals(BluetoothProfile.STATE_CONNECTING,
+                intentArgument1.getValue().getIntExtra(BluetoothProfile.EXTRA_STATE, -1));
+
+        // Check that we are in Connecting state
+        Assert.assertThat(mHearingAidStateMachine.getCurrentState(),
+                IsInstanceOf.instanceOf(HearingAidStateMachine.Connecting.class));
+
+        // Verify that one connection state broadcast is executed
+        ArgumentCaptor<Intent> intentArgument2 = ArgumentCaptor.forClass(Intent.class);
+        verify(mHearingAidService, timeout(HearingAidStateMachine.sConnectTimeoutMs * 2).times(
+                2)).sendBroadcast(intentArgument2.capture(), anyString());
+        Assert.assertEquals(BluetoothProfile.STATE_DISCONNECTED,
+                intentArgument2.getValue().getIntExtra(BluetoothProfile.EXTRA_STATE, -1));
+
+        // Check that we are in Disconnected state
+        Assert.assertThat(mHearingAidStateMachine.getCurrentState(),
+                IsInstanceOf.instanceOf(HearingAidStateMachine.Disconnected.class));
+    }
+
+    /**
+     * Test that an incoming connection times out
+     */
+    @Test
+    public void testIncomingTimeout() {
+        allowConnection(true);
+        doReturn(true).when(mHearingAidNativeInterface).connectHearingAid(any(
+                BluetoothDevice.class));
+        doReturn(true).when(mHearingAidNativeInterface).disconnectHearingAid(any(
+                BluetoothDevice.class));
+
+        // Inject an event for when incoming connection is requested
+        HearingAidStackEvent connStCh =
+                new HearingAidStackEvent(HearingAidStackEvent.EVENT_TYPE_CONNECTION_STATE_CHANGED);
+        connStCh.device = mTestDevice;
+        connStCh.valueInt1 = HearingAidStackEvent.CONNECTION_STATE_CONNECTING;
+        mHearingAidStateMachine.sendMessage(HearingAidStateMachine.STACK_EVENT, connStCh);
+
+        // Verify that one connection state broadcast is executed
+        ArgumentCaptor<Intent> intentArgument1 = ArgumentCaptor.forClass(Intent.class);
+        verify(mHearingAidService, timeout(TIMEOUT_MS).times(1)).sendBroadcast(
+                intentArgument1.capture(),
+                anyString());
+        Assert.assertEquals(BluetoothProfile.STATE_CONNECTING,
+                intentArgument1.getValue().getIntExtra(BluetoothProfile.EXTRA_STATE, -1));
+
+        // Check that we are in Connecting state
+        Assert.assertThat(mHearingAidStateMachine.getCurrentState(),
+                IsInstanceOf.instanceOf(HearingAidStateMachine.Connecting.class));
+
+        // Verify that one connection state broadcast is executed
+        ArgumentCaptor<Intent> intentArgument2 = ArgumentCaptor.forClass(Intent.class);
+        verify(mHearingAidService, timeout(HearingAidStateMachine.sConnectTimeoutMs * 2).times(
+                2)).sendBroadcast(intentArgument2.capture(), anyString());
+        Assert.assertEquals(BluetoothProfile.STATE_DISCONNECTED,
+                intentArgument2.getValue().getIntExtra(BluetoothProfile.EXTRA_STATE, -1));
+
+        // Check that we are in Disconnected state
+        Assert.assertThat(mHearingAidStateMachine.getCurrentState(),
+                IsInstanceOf.instanceOf(HearingAidStateMachine.Disconnected.class));
+    }
 }
