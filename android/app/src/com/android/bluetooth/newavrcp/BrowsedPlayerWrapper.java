@@ -18,7 +18,6 @@ package com.android.bluetooth.avrcp;
 
 import android.content.ComponentName;
 import android.content.Context;
-import android.content.pm.PackageManager;
 import android.media.browse.MediaBrowser.MediaItem;
 import android.util.Log;
 
@@ -60,7 +59,7 @@ class BrowsedPlayerWrapper {
     // TODO (apanicke): Store the context in the factories so that we don't need to save this.
     // As long as the service is alive those factories will have a valid context.
     private Context mContext;
-    private String mName;
+    private String mPackageName;
     private ConnectionCallback mCallback;
     private ConnectionState mConnectionState = ConnectionState.DISCONNECTED;
 
@@ -97,15 +96,7 @@ class BrowsedPlayerWrapper {
             ConnectionCallback cb) {
         mContext = context;
         mCallback = cb;
-
-        try {
-            PackageManager manager = mContext.getPackageManager();
-            mName = manager.getApplicationLabel(manager.getApplicationInfo(packageName, 0))
-                    .toString();
-        } catch (Exception e) {
-            Log.w(TAG, "Name Not Found using package name: " + packageName);
-            mName = packageName;
-        }
+        mPackageName = packageName;
 
         mWrappedBrowser = MediaBrowserFactory.make(
                 context,
@@ -127,21 +118,22 @@ class BrowsedPlayerWrapper {
 
     void connect(ConnectionCallback cb) {
         if (cb == null) {
-            Log.wtfStack(TAG, "connect: Trying to connect to " + mName + "with null callback");
+            Log.wtfStack(TAG, "connect: Trying to connect to " + mPackageName
+                    + "with null callback");
         }
         if (mCallback != null) {
-            Log.w(TAG, "connect: Already trying to connect to " + mName);
+            Log.w(TAG, "connect: Already trying to connect to " + mPackageName);
             return;
         }
 
-        if (DEBUG) Log.d(TAG, "connect: Connecting to browsable player: " + mName);
+        if (DEBUG) Log.d(TAG, "connect: Connecting to browsable player: " + mPackageName);
         mCallback = cb;
         mConnectionState = ConnectionState.CONNECTING;
         mWrappedBrowser.connect();
     }
 
     void disconnect() {
-        if (DEBUG) Log.d(TAG, "disconnect: Disconnecting from " + mName);
+        if (DEBUG) Log.d(TAG, "disconnect: Disconnecting from " + mPackageName);
         if (mConnectionState != ConnectionState.DISCONNECTED) {
             // According to the API, as soon as disconnect is sent we shouldn't receive
             // any more callbacks.
@@ -152,8 +144,8 @@ class BrowsedPlayerWrapper {
         mConnectionState = ConnectionState.DISCONNECTED;
     }
 
-    public String getName() {
-        return mName;
+    public String getPackageName() {
+        return mPackageName;
     }
 
     public String getRootId() {
@@ -168,7 +160,7 @@ class BrowsedPlayerWrapper {
         if (DEBUG) Log.d(TAG, "playItem: Play Item from media ID: " + mediaId);
         if (mConnectionState == ConnectionState.DISCONNECTED) {
             connect((int status, BrowsedPlayerWrapper wrapper) -> {
-                if (DEBUG) Log.d(TAG, "playItem: Connected to browsable player " + mName);
+                if (DEBUG) Log.d(TAG, "playItem: Connected to browsable player " + mPackageName);
 
                 MediaController controller = MediaControllerFactory.make(mContext,
                         wrapper.mWrappedBrowser.getSessionToken());
@@ -212,7 +204,7 @@ class BrowsedPlayerWrapper {
         // If we are disconnected, connect first then do the lookup
         if (mConnectionState == ConnectionState.DISCONNECTED) {
             connect((int status, BrowsedPlayerWrapper wrapper) -> {
-                Log.i(TAG, "getFolderItems: Connected to browsable player: " + mName);
+                Log.i(TAG, "getFolderItems: Connected to browsable player: " + mPackageName);
                 if (status != STATUS_SUCCESS) {
                     cb.run(status, "", new ArrayList<ListItem>());
                 }
@@ -237,7 +229,7 @@ class BrowsedPlayerWrapper {
         @Override
         public void onConnected() {
             mConnectionState = ConnectionState.CONNECTED;
-            Log.i(TAG, "onConnected: " + mName + " is connected");
+            Log.i(TAG, "onConnected: " + mPackageName + " is connected");
             // Get the root while connected because we may need to use it when disconnected.
             mRoot = mWrappedBrowser.getRoot();
             if (mCallback != null) mCallback.run(STATUS_SUCCESS, BrowsedPlayerWrapper.this);
@@ -248,7 +240,7 @@ class BrowsedPlayerWrapper {
         @Override
         public void onConnectionFailed() {
             mConnectionState = ConnectionState.DISCONNECTED;
-            Log.w(TAG, "onConnectionFailed: Connection Failed with " + mName);
+            Log.w(TAG, "onConnectionFailed: Connection Failed with " + mPackageName);
             if (mCallback != null) mCallback.run(STATUS_CONN_ERROR, BrowsedPlayerWrapper.this);
             mCallback = null;
         }
@@ -259,7 +251,7 @@ class BrowsedPlayerWrapper {
         public void onConnectionSuspended() {
             mConnectionState = ConnectionState.DISCONNECTED;
             mWrappedBrowser.disconnect();
-            Log.i(TAG, "onConnectionSuspended: Connection Suspended with " + mName);
+            Log.i(TAG, "onConnectionSuspended: Connection Suspended with " + mPackageName);
         }
     }
 
@@ -282,7 +274,7 @@ class BrowsedPlayerWrapper {
             }
 
             if (mCallback == null) {
-                Log.w(TAG, "onChildrenLoaded: " + mName
+                Log.w(TAG, "onChildrenLoaded: " + mPackageName
                         + " children loaded while callback is null");
             }
 
@@ -324,7 +316,7 @@ class BrowsedPlayerWrapper {
     }
 
     public void dump(StringBuilder sb) {
-        sb.append("Browsable Package Name: " + mName + "\n");
+        sb.append("Browsable Package Name: " + mPackageName + "\n");
         sb.append("   Cached Media ID's: ");
         for (String id : mCachedFolders.keySet()) {
             sb.append(id + " ");
