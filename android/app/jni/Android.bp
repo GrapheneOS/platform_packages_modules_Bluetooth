@@ -10,6 +10,7 @@ cc_library_shared {
         "com_android_bluetooth_a2dp_sink.cpp",
         "com_android_bluetooth_avrcp.cpp",
         "com_android_bluetooth_avrcp_controller.cpp",
+        "com_android_bluetooth_avrcp_target.cpp",
         "com_android_bluetooth_hid_host.cpp",
         "com_android_bluetooth_hid_device.cpp",
         "com_android_bluetooth_hearing_aid.cpp",
