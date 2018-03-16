@@ -111,7 +111,8 @@ public class BrowsablePlayerConnector {
                             return;
                         }
 
-                        Log.i(TAG, "Successfully added package to results: " + wrapper.getName());
+                        Log.i(TAG, "Successfully added package to results: "
+                                + wrapper.getPackageName());
                         mResults.add(wrapper);
                     } break;
 
@@ -119,7 +120,7 @@ public class BrowsablePlayerConnector {
                         BrowsedPlayerWrapper wrapper = (BrowsedPlayerWrapper) msg.obj;
 
                         if (msg.arg1 != BrowsedPlayerWrapper.STATUS_SUCCESS) {
-                            Log.i(TAG, wrapper.getName() + " is not browsable");
+                            Log.i(TAG, wrapper.getPackageName() + " is not browsable");
                             mPendingPlayers.remove(wrapper);
                             return;
                         }
@@ -149,7 +150,7 @@ public class BrowsablePlayerConnector {
                     case MSG_TIMEOUT: {
                         Log.v(TAG, "Timed out waiting for players");
                         for (BrowsedPlayerWrapper wrapper : mPendingPlayers) {
-                            if (DEBUG) Log.d(TAG, "Disconnecting " + wrapper.getName());
+                            if (DEBUG) Log.d(TAG, "Disconnecting " + wrapper.getPackageName());
                             wrapper.disconnect();
                         }
                         mPendingPlayers.clear();
