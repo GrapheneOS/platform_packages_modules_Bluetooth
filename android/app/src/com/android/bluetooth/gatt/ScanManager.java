@@ -1340,12 +1340,17 @@ public class ScanManager {
                 }
             }
         } else {
+            ContentResolver resolver = mService.getContentResolver();
+            int backgroundScanMode = Settings.Global.getInt(
+                    resolver,
+                    Settings.Global.BLE_SCAN_BACKGROUND_MODE,
+                    ScanSettings.SCAN_MODE_LOW_POWER);
             for (ScanClient client : mRegularScanClients) {
                 if (client.appUid == uid && !mScanNative.isOpportunisticScanClient(client)) {
                     client.passiveSettings = client.settings;
                     ScanSettings.Builder builder = new ScanSettings.Builder();
                     ScanSettings settings = client.settings;
-                    builder.setScanMode(ScanSettings.SCAN_MODE_LOW_POWER);
+                    builder.setScanMode(backgroundScanMode);
                     builder.setCallbackType(settings.getCallbackType());
                     builder.setScanResultType(settings.getScanResultType());
                     builder.setReportDelay(settings.getReportDelayMillis());
