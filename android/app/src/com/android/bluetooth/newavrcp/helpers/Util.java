@@ -16,6 +16,8 @@
 
 package com.android.bluetooth.avrcp;
 
+import android.content.Context;
+import android.content.pm.PackageManager;
 import android.media.MediaDescription;
 import android.media.MediaMetadata;
 import android.media.browse.MediaBrowser.MediaItem;
@@ -31,6 +33,9 @@ class Util {
     public static boolean DEBUG = true;
 
     private static final String GPM_KEY = "com.google.android.music.mediasession.music_metadata";
+
+    // TODO (apanicke): Remove this prefix later, for now it makes debugging easier.
+    public static final String NOW_PLAYING_PREFIX = "NowPlayingId";
 
     public static final Metadata empty_data() {
         Metadata ret = new Metadata();
@@ -69,6 +74,10 @@ class Util {
 
         if (desc.getSubtitle() != null) {
             ret.putString(MediaMetadata.METADATA_KEY_ARTIST, desc.getSubtitle().toString());
+        }
+
+        if (desc.getDescription() != null) {
+            ret.putString(MediaMetadata.METADATA_KEY_ALBUM, desc.getDescription().toString());
         }
 
         // If the bundle has title or artist use those over the description title or subtitle.
@@ -142,9 +151,7 @@ class Util {
         // For Queue Items, the Media Id will always be just its Queue ID
         // We don't need to use its actual ID since we don't promise UIDS being valid
         // between a file system and it's now playing list.
-        // TODO (apanicke): Remove this prefix later, for now it makes debugging
-        // easier.
-        ret.mediaId = "NowPlayingId" + item.getQueueId();
+        ret.mediaId = NOW_PLAYING_PREFIX + item.getQueueId();
 
         return ret;
     }
@@ -215,5 +222,16 @@ class Util {
         List<ListItem> clone = new ArrayList<ListItem>(list.size());
         for (ListItem item : list) clone.add(item.clone());
         return clone;
+    }
+
+    public static String getDisplayName(Context context, String packageName) {
+        try {
+            PackageManager manager = context.getPackageManager();
+            return manager.getApplicationLabel(manager.getApplicationInfo(packageName, 0))
+                    .toString();
+        } catch (Exception e) {
+            Log.w(TAG, "Name Not Found using package name: " + packageName);
+            return packageName;
+        }
     }
 }
