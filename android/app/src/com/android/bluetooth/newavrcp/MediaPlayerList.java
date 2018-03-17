@@ -132,6 +132,11 @@ public class MediaPlayerList {
                 (List<BrowsedPlayerWrapper> players) -> {
                 Log.i(TAG, "init: Browsable Player list size is " + players.size());
 
+                // Check to see if the list has been cleaned up before this completed
+                if (mMediaSessionManager == null) {
+                    return;
+                }
+
                 for (BrowsedPlayerWrapper wrapper : players) {
                     // Generate new id and add the browsable player
                     if (!mMediaPlayerIds.containsKey(wrapper.getPackageName())) {
