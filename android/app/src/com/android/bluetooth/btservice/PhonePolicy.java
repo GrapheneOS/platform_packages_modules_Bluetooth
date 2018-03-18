@@ -35,6 +35,7 @@ import android.support.annotation.VisibleForTesting;
 import android.util.Log;
 
 import com.android.bluetooth.a2dp.A2dpService;
+import com.android.bluetooth.hearingaid.HearingAidService;
 import com.android.bluetooth.hfp.HeadsetService;
 import com.android.bluetooth.hid.HidHostService;
 import com.android.bluetooth.pan.PanService;
@@ -211,6 +212,7 @@ class PhonePolicy {
         A2dpService a2dpService = mFactory.getA2dpService();
         HeadsetService headsetService = mFactory.getHeadsetService();
         PanService panService = mFactory.getPanService();
+        HearingAidService hearingAidService = mFactory.getHearingAidService();
 
         // Set profile priorities only for the profiles discovered on the remote device.
         // This avoids needless auto-connect attempts to profiles non-existent on the remote device
@@ -238,6 +240,13 @@ class PhonePolicy {
                 && mAdapterService.getResources()
                 .getBoolean(R.bool.config_bluetooth_pan_enable_autoconnect))) {
             panService.setPriority(device, BluetoothProfile.PRIORITY_ON);
+        }
+
+        if ((hearingAidService != null)
+                && BluetoothUuid.isUuidPresent(uuids, BluetoothUuid.HearingAid)
+                && (hearingAidService.getPriority(device) == BluetoothProfile.PRIORITY_UNDEFINED)) {
+            debugLog("setting hearing aid profile priority for device " + device);
+            hearingAidService.setPriority(device, BluetoothProfile.PRIORITY_ON);
         }
     }
 
@@ -463,7 +472,7 @@ class PhonePolicy {
 
     private static void debugLog(String msg) {
         if (DBG) {
-            Log.d(TAG, msg);
+            Log.i(TAG, msg);
         }
     }
 
