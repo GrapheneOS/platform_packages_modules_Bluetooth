@@ -30,7 +30,6 @@ import android.provider.Settings;
 import android.util.Log;
 
 import com.android.bluetooth.R;
-import com.android.bluetooth.Utils;
 import com.android.bluetooth.btservice.ProfileService;
 
 import java.util.ArrayList;
@@ -44,7 +43,9 @@ import java.util.concurrent.ConcurrentHashMap;
  * @hide
  */
 public class PbapClientService extends ProfileService {
-    private static final boolean DBG = false;
+    private static final boolean DBG = Utils.DBG;
+    private static final boolean VDBG = Utils.VDBG;
+
     private static final String TAG = "PbapClientService";
     // MAXIMUM_DEVICES set to 10 to prevent an excessive number of simultaneous devices.
     private static final int MAXIMUM_DEVICES = 10;
@@ -60,8 +61,8 @@ public class PbapClientService extends ProfileService {
 
     @Override
     protected boolean start() {
-        if (DBG) {
-            Log.d(TAG, "onStart");
+        if (VDBG) {
+            Log.v(TAG, "onStart");
         }
         IntentFilter filter = new IntentFilter();
         filter.addAction(BluetoothDevice.ACTION_ACL_DISCONNECTED);
@@ -98,7 +99,7 @@ public class PbapClientService extends ProfileService {
     }
 
     void cleanupDevice(BluetoothDevice device) {
-        Log.w(TAG, "Cleanup device: " + device);
+        if (DBG) Log.d(TAG, "Cleanup device: " + device);
         synchronized (mPbapClientStateMachineMap) {
             PbapClientStateMachine pbapClientStateMachine = mPbapClientStateMachineMap.get(device);
             if (pbapClientStateMachine != null) {
@@ -112,7 +113,7 @@ public class PbapClientService extends ProfileService {
         AccountManager accountManager = AccountManager.get(this);
         Account[] accounts =
                 accountManager.getAccountsByType(getString(R.string.pbap_account_type));
-        Log.w(TAG, "Found " + accounts.length + " unclean accounts");
+        if (VDBG) Log.v(TAG, "Found " + accounts.length + " unclean accounts");
         for (Account acc : accounts) {
             Log.w(TAG, "Deleting " + acc);
             // The device ID is the name of the account.
@@ -129,7 +130,7 @@ public class PbapClientService extends ProfileService {
         @Override
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
-            Log.v(TAG, "onReceive" + action);
+            if (DBG) Log.v(TAG, "onReceive" + action);
             if (action.equals(BluetoothDevice.ACTION_ACL_DISCONNECTED)) {
                 BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
                 if (getConnectionState(device) == BluetoothProfile.STATE_CONNECTED) {
@@ -160,7 +161,7 @@ public class PbapClientService extends ProfileService {
         }
 
         private PbapClientService getService() {
-            if (!Utils.checkCaller()) {
+            if (!com.android.bluetooth.Utils.checkCaller()) {
                 Log.w(TAG, "PbapClient call not allowed for non-active user");
                 return null;
             }
@@ -255,8 +256,8 @@ public class PbapClientService extends ProfileService {
     }
 
     private static synchronized void setPbapClientService(PbapClientService instance) {
-        if (DBG) {
-            Log.d(TAG, "setPbapClientService(): set to: " + instance);
+        if (VDBG) {
+            Log.v(TAG, "setPbapClientService(): set to: " + instance);
         }
         sPbapClientService = instance;
     }
@@ -266,7 +267,7 @@ public class PbapClientService extends ProfileService {
             throw new IllegalArgumentException("Null device");
         }
         enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH ADMIN permission");
-        Log.d(TAG, "Received request to ConnectPBAPPhonebook " + device.getAddress());
+        if (DBG) Log.d(TAG, "Received request to ConnectPBAPPhonebook " + device.getAddress());
         if (getPriority(device) <= BluetoothProfile.PRIORITY_OFF) {
             return false;
         }

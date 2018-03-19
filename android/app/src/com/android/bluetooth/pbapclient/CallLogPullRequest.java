@@ -37,8 +37,8 @@ import java.util.HashMap;
 import java.util.List;
 
 public class CallLogPullRequest extends PullRequest {
-    private static final boolean DBG = true;
-    private static final boolean VDBG = false;
+    private static final boolean DBG = Utils.DBG;
+    private static final boolean VDBG = Utils.VDBG;
     private static final String TAG = "PbapCallLogPullRequest";
     private static final String TIMESTAMP_PROPERTY = "X-IRMC-CALL-DATETIME";
     private static final String TIMESTAMP_FORMAT = "yyyyMMdd'T'HHmmss";
