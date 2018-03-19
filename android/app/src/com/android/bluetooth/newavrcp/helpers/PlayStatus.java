@@ -16,6 +16,8 @@
 
 package com.android.bluetooth.avrcp;
 
+import android.media.session.PlaybackState;
+
 /**
  * Carries the playback status information in a custom object.
  */
@@ -32,4 +34,44 @@ class PlayStatus {
     public long position = 0xFFFFFFFFFFFFFFFFL;
     public long duration = 0x00L;
     public byte state = STOPPED;
+
+    // Duration info isn't contained in the PlaybackState so the service must supply it.
+    static PlayStatus fromPlaybackState(PlaybackState state, long duration) {
+        PlayStatus ret = new PlayStatus();
+        if (state == null) return ret;
+
+        ret.state = playbackStateToAvrcpState(state.getState());
+        ret.position = state.getPosition();
+        ret.duration = duration;
+        return ret;
+    }
+
+    static byte playbackStateToAvrcpState(int playbackState) {
+        switch (playbackState) {
+            case PlaybackState.STATE_BUFFERING:
+            case PlaybackState.STATE_STOPPED:
+            case PlaybackState.STATE_NONE:
+            case PlaybackState.STATE_CONNECTING:
+                return PlayStatus.STOPPED;
+
+            case PlaybackState.STATE_PLAYING:
+                return PlayStatus.PLAYING;
+
+            case PlaybackState.STATE_PAUSED:
+                return PlayStatus.PAUSED;
+
+            case PlaybackState.STATE_FAST_FORWARDING:
+            case PlaybackState.STATE_SKIPPING_TO_NEXT:
+            case PlaybackState.STATE_SKIPPING_TO_QUEUE_ITEM:
+                return PlayStatus.FWD_SEEK;
+
+            case PlaybackState.STATE_REWINDING:
+            case PlaybackState.STATE_SKIPPING_TO_PREVIOUS:
+                return PlayStatus.REV_SEEK;
+
+            case PlaybackState.STATE_ERROR:
+            default:
+                return PlayStatus.ERROR;
+        }
+    }
 }

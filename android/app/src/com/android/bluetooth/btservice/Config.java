@@ -26,6 +26,7 @@ import android.util.Log;
 import com.android.bluetooth.R;
 import com.android.bluetooth.a2dp.A2dpService;
 import com.android.bluetooth.a2dpsink.A2dpSinkService;
+import com.android.bluetooth.avrcp.AvrcpTargetService;
 import com.android.bluetooth.avrcpcontroller.AvrcpControllerService;
 import com.android.bluetooth.gatt.GattService;
 import com.android.bluetooth.hdp.HealthService;
@@ -81,6 +82,8 @@ public class Config {
                     (1 << BluetoothProfile.MAP)),
             new ProfileConfig(HeadsetClientService.class, R.bool.profile_supported_hfpclient,
                     (1 << BluetoothProfile.HEADSET_CLIENT)),
+            new ProfileConfig(AvrcpTargetService.class, R.bool.profile_supported_avrcp_target,
+                    (1 << BluetoothProfile.AVRCP)),
             new ProfileConfig(AvrcpControllerService.class,
                     R.bool.profile_supported_avrcp_controller,
                     (1 << BluetoothProfile.AVRCP_CONTROLLER)),

@@ -1312,6 +1312,11 @@ jint JNI_OnLoad(JavaVM* jvm, void* reserved) {
     return JNI_ERR;
   }
 
+  status = android::register_com_android_bluetooth_avrcp_target(e);
+  if (status < 0) {
+    ALOGE("jni new avrcp target registration failure: %d", status);
+  }
+
   status = android::register_com_android_bluetooth_avrcp_controller(e);
   if (status < 0) {
     ALOGE("jni avrcp controller registration failure: %d", status);
