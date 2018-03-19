@@ -318,6 +318,14 @@
         </service>
         <service
             android:process="@string/process"
+            android:name = ".avrcp.AvrcpTargetService"
+            android:enabled = "@bool/profile_supported_avrcp_target" >
+            <intent-filter>
+                <action android:name="android.bluetooth.IBluetoothAvrcp" />
+            </intent-filter>
+        </service>
+        <service
+            android:process="@string/process"
             android:name = ".avrcpcontroller.AvrcpControllerService"
             android:enabled="@bool/profile_supported_avrcp_controller">
             <intent-filter>
