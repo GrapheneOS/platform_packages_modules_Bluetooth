@@ -27,7 +27,9 @@ import java.util.List;
 public class AvrcpNativeInterface {
     private static final String TAG = "NewAvrcpNativeInterface";
     private static final boolean DEBUG = true;
+
     private static AvrcpNativeInterface sInstance;
+    private AvrcpTargetService mAvrcpService;
 
     static {
         classInitNative();
@@ -41,68 +43,94 @@ public class AvrcpNativeInterface {
         return sInstance;
     }
 
-    // TODO (apanicke): Hook into the AVRCP Service when checked in
-    void init(/* AvrcpTargetService service */) {
+    void init(AvrcpTargetService service) {
         d("Init AvrcpNativeInterface");
+        mAvrcpService = service;
         initNative();
     }
 
     void cleanup() {
         d("Cleanup AvrcpNativeInterface");
+        mAvrcpService = null;
         cleanupNative();
     }
 
     Metadata getCurrentSongInfo() {
         d("getCurrentSongInfo");
-        // TODO (apanicke): Hook into the AVRCP Service when checked in
-        return null;
+        if (mAvrcpService == null) {
+            Log.w(TAG, "getCurrentSongInfo(): AvrcpTargetService is null");
+            return null;
+        }
+
+        return mAvrcpService.getCurrentSongInfo();
     }
 
     PlayStatus getPlayStatus() {
         d("getPlayStatus");
-        // TODO (apanicke): Hook into the AVRCP Service when checked in
-        return null;
+        if (mAvrcpService == null) {
+            Log.w(TAG, "getPlayStatus(): AvrcpTargetService is null");
+            return null;
+        }
+
+        return mAvrcpService.getPlayState();
     }
 
     void sendMediaKeyEvent(int keyEvent, int state) {
         d("sendMediaKeyEvent: keyEvent=" + keyEvent + " state=" + state);
-        // TODO (apanicke): Hook into the AVRCP Service when checked in
+        if (mAvrcpService == null) {
+            Log.w(TAG, "sendMediaKeyEvent(): AvrcpTargetService is null");
+            return;
+        }
+
+        mAvrcpService.sendMediaKeyEvent(keyEvent, state);
     }
 
     String getCurrentMediaId() {
         d("getCurrentMediaId");
-        // TODO (apanicke): Hook into the AVRCP Service when checked in
-        return null;
+        if (mAvrcpService == null) {
+            Log.w(TAG, "getMediaPlayerList(): AvrcpTargetService is null");
+            return "";
+        }
+
+        return mAvrcpService.getCurrentMediaId();
     }
 
     List<Metadata> getNowPlayingList() {
         d("getNowPlayingList");
-        // TODO (apanicke): Hook into the AVRCP Service when checked in
-        return null;
+        if (mAvrcpService == null) {
+            Log.w(TAG, "getMediaPlayerList(): AvrcpTargetService is null");
+            return null;
+        }
+
+        return mAvrcpService.getNowPlayingList();
     }
 
     int getCurrentPlayerId() {
         d("getCurrentPlayerId");
-        // TODO (apanicke): Hook into the AVRCP Service when checked in
-        return -1;
+        if (mAvrcpService == null) {
+            Log.w(TAG, "getMediaPlayerList(): AvrcpTargetService is null");
+            return -1;
+        }
+
+        return mAvrcpService.getCurrentPlayerId();
     }
 
     List<PlayerInfo> getMediaPlayerList() {
         d("getMediaPlayerList");
-        // TODO (apanicke): Hook into the AVRCP Service when checked in
-        return null;
+        if (mAvrcpService == null) {
+            Log.w(TAG, "getMediaPlayerList(): AvrcpTargetService is null");
+            return null;
+        }
+
+        return mAvrcpService.getMediaPlayerList();
     }
 
     // TODO(apanicke): This shouldn't be named setBrowsedPlayer as it doesn't actually connect
     // anything internally. It just returns the number of items in the root folder.
     void setBrowsedPlayer(int playerId) {
         d("setBrowsedPlayer: playerId=" + playerId);
-        // TODO (apanicke): Hook into the AVRCP Service when checked in
-    }
-
-    void getFolderItemsRequest(int playerId, String mediaId) {
-        d("getFolderItemsRequest: playerId=" + playerId + " mediaId=" + mediaId);
-        // TODO (apanicke): Hook into the AVRCP Service when checked in
+        mAvrcpService.getPlayerRoot(playerId, (a, b, c, d) ->
+                setBrowsedPlayerResponse(a, b, c, d));
     }
 
     void setBrowsedPlayerResponse(int playerId, boolean success, String rootId, int numItems) {
@@ -111,6 +139,11 @@ public class AvrcpNativeInterface {
                 + " rootId=" + rootId
                 + " numItems=" + numItems);
         setBrowsedPlayerResponseNative(playerId, success, rootId, numItems);
+    }
+
+    void getFolderItemsRequest(int playerId, String mediaId) {
+        d("getFolderItemsRequest: playerId=" + playerId + " mediaId=" + mediaId);
+        mAvrcpService.getFolderItems(playerId, mediaId, (a, b) -> getFolderItemsResponse(a, b));
     }
 
     void getFolderItemsResponse(String parentId, List<ListItem> items) {
@@ -134,7 +167,12 @@ public class AvrcpNativeInterface {
 
     void playItem(int playerId, boolean nowPlaying, String mediaId) {
         d("playItem: playerId=" + playerId + " nowPlaying=" + nowPlaying + " mediaId" + mediaId);
-        // TODO (apanicke): Hook into the AVRCP Service when checked in
+        if (mAvrcpService == null) {
+            Log.d(TAG, "playItem: AvrcpTargetService is null");
+            return;
+        }
+
+        mAvrcpService.playItem(playerId, nowPlaying, mediaId);
     }
 
     boolean connectDevice(String bdaddr) {
@@ -149,17 +187,27 @@ public class AvrcpNativeInterface {
 
     void setActiveDevice(String bdaddr) {
         d("setActiveDevice: bdaddr=" + bdaddr);
-        // TODO (apanicke): Hook into the AVRCP Service when checked in
+        mAvrcpService.setActiveDevice(bdaddr);
     }
 
     void deviceConnected(String bdaddr, boolean absoluteVolume) {
         d("deviceConnected: bdaddr=" + bdaddr + " absoluteVolume=" + absoluteVolume);
-        // TODO (apanicke): Hook into the AVRCP Service when checked in
+        if (mAvrcpService == null) {
+            Log.w(TAG, "deviceConnected: AvrcpTargetService is null");
+            return;
+        }
+
+        mAvrcpService.deviceConnected(bdaddr, absoluteVolume);
     }
 
     void deviceDisconnected(String bdaddr) {
         d("deviceDisconnected: bdaddr=" + bdaddr);
-        // TODO (apanicke): Hook into the AVRCP Service when checked in
+        if (mAvrcpService == null) {
+            Log.w(TAG, "deviceDisconnected: AvrcpTargetService is null");
+            return;
+        }
+
+        mAvrcpService.deviceDisconnected(bdaddr);
     }
 
     void sendVolumeChanged(int volume) {
@@ -169,7 +217,12 @@ public class AvrcpNativeInterface {
 
     void setVolume(int volume) {
         d("setVolume: volume=" + volume);
-        // TODO (apanicke): Hook into the AVRCP Service when checked in
+        if (mAvrcpService == null) {
+            Log.w(TAG, "setVolume: AvrcpTargetService is null");
+            return;
+        }
+
+        mAvrcpService.setVolume(volume);
     }
 
     private static native void classInitNative();
