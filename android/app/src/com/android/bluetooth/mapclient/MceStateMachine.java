@@ -487,10 +487,8 @@ final class MceStateMachine extends StateMachine {
                 case MSG_NOTIFICATION:
                     EventReport ev = (EventReport) msg.obj;
                     if (DBG) {
-                        Log.d(TAG, "Message Type = " + ev.getType());
-                    }
-                    if (DBG) {
-                        Log.d(TAG, "Message handle = " + ev.getHandle());
+                        Log.d(TAG, "Message Type = " + ev.getType()
+                                + ", Message handle = " + ev.getHandle());
                     }
                     switch (ev.getType()) {
 
@@ -683,10 +681,8 @@ final class MceStateMachine extends StateMachine {
 
     void receiveEvent(EventReport ev) {
         if (DBG) {
-            Log.d(TAG, "Message Type = " + ev.getType());
-        }
-        if (DBG) {
-            Log.d(TAG, "Message handle = " + ev.getHandle());
+            Log.d(TAG, "Message Type = " + ev.getType()
+                    + ", Message handle = " + ev.getHandle());
         }
         sendMessage(MSG_NOTIFICATION, ev);
     }
