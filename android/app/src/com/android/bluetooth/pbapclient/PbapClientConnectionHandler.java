@@ -45,8 +45,9 @@ import javax.obex.ResponseCodes;
  * controlling state machine.
  */
 class PbapClientConnectionHandler extends Handler {
-    static final String TAG = "PBAP PCE handler";
-    static final boolean DBG = true;
+    static final String TAG = "PbapClientConnHandler";
+    static final boolean DBG = Utils.DBG;
+    static final boolean VDBG = Utils.VDBG;
     static final int MSG_CONNECT = 1;
     static final int MSG_DISCONNECT = 2;
     static final int MSG_DOWNLOAD = 3;
@@ -275,14 +276,14 @@ class PbapClientConnectionHandler extends Handler {
             /* Use BluetoothSocket to connect */
             if (mPseRec == null) {
                 // BackWardCompatability: Fall back to create RFCOMM through UUID.
-                Log.v(TAG, "connectSocket: UUID: " + BluetoothUuid.PBAP_PSE.getUuid());
+                if (VDBG) Log.v(TAG, "connectSocket: UUID: " + BluetoothUuid.PBAP_PSE.getUuid());
                 mSocket =
                         mDevice.createRfcommSocketToServiceRecord(BluetoothUuid.PBAP_PSE.getUuid());
             } else if (mPseRec.getL2capPsm() != L2CAP_INVALID_PSM) {
-                Log.v(TAG, "connectSocket: PSM: " + mPseRec.getL2capPsm());
+                if (VDBG) Log.v(TAG, "connectSocket: PSM: " + mPseRec.getL2capPsm());
                 mSocket = mDevice.createL2capSocket(mPseRec.getL2capPsm());
             } else {
-                Log.v(TAG, "connectSocket: channel: " + mPseRec.getRfcommChannelNumber());
+                if (VDBG) Log.v(TAG, "connectSocket: channel: " + mPseRec.getRfcommChannelNumber());
                 mSocket = mDevice.createRfcommSocket(mPseRec.getRfcommChannelNumber());
             }
 
@@ -304,7 +305,7 @@ class PbapClientConnectionHandler extends Handler {
         boolean connectionSuccessful = false;
 
         try {
-            if (DBG) {
+            if (VDBG) {
                 Log.v(TAG, "Start Obex Client Session");
             }
             BluetoothObexTransport transport = new BluetoothObexTransport(mSocket);
