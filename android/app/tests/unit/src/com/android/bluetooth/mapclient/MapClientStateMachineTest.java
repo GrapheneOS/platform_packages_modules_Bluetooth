@@ -58,7 +58,8 @@ public class MapClientStateMachineTest {
     private Context mTargetContext;
 
     private FakeMapClientService mFakeMapClientService;
-    private CountDownLatch mLock = null;
+    private CountDownLatch mConnectedLatch = null;
+    private CountDownLatch mDisconnectedLatch = null;
     private Handler mHandler;
 
     @Mock
@@ -77,8 +78,9 @@ public class MapClientStateMachineTest {
         // Get a device for testing
         mTestDevice = mAdapter.getRemoteDevice("00:01:02:03:04:05");
 
-        mLock = new CountDownLatch(1);
-        mFakeMapClientService = new FakeMapClientService(mLock);
+        mConnectedLatch = new CountDownLatch(1);
+        mDisconnectedLatch = new CountDownLatch(1);
+        mFakeMapClientService = new FakeMapClientService();
         when(mMockMasClient.makeRequest(any(Request.class))).thenReturn(true);
         mMceStateMachine = new MceStateMachine(mFakeMapClientService, mTestDevice, mMockMasClient);
         Assert.assertNotNull(mMceStateMachine);
@@ -102,13 +104,26 @@ public class MapClientStateMachineTest {
      * Test that default state is STATE_CONNECTING
      */
     @Test
-    public void testDefaultDisconnectedState() {
-        Log.i(TAG, "in testDefaultDisconnectedState");
+    public void testDefaultConnectingState() {
+        Log.i(TAG, "in testDefaultConnectingState");
         Assert.assertEquals(BluetoothProfile.STATE_CONNECTING, mMceStateMachine.getState());
     }
 
     /**
-     * Test transition from STATE_CONNECTING --> MSG_MAS_CONNECTED
+     * Test transition from
+     *      STATE_CONNECTING --> (receive MSG_MAS_DISCONNECTED) --> STATE_DISCONNECTED
+     */
+    @Test
+    public void testStateTransitionFromConnectingToDisconnected() {
+        Log.i(TAG, "in testStateTransitionFromConnectingToDisconnected");
+        setupSdpRecordReceipt();
+        Message msg = Message.obtain(mHandler, MceStateMachine.MSG_MAS_DISCONNECTED);
+        mMceStateMachine.getCurrentState().processMessage(msg);
+        Assert.assertEquals(BluetoothProfile.STATE_CONNECTING, mMceStateMachine.getState());
+    }
+
+    /**
+     * Test transition from STATE_CONNECTING --> (receive MSG_MAS_CONNECTED) --> STATE_CONNECTED
      */
     @Test
     public void testStateTransitionFromConnectingToConnected() {
@@ -122,7 +137,7 @@ public class MapClientStateMachineTest {
         // to MapClientService to change
         // state from STATE_CONNECTING to STATE_CONNECTED
         try {
-            mLock.await(TIMEOUT, TimeUnit.MILLISECONDS);
+            mDisconnectedLatch.await(TIMEOUT, TimeUnit.MILLISECONDS);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -138,12 +153,6 @@ public class MapClientStateMachineTest {
     }
 
     private class FakeMapClientService extends MapClientService {
-        private final CountDownLatch mLatch;
-
-        FakeMapClientService(CountDownLatch latch) {
-            mLatch = latch;
-        }
-
         @Override
         void cleanupDevice(BluetoothDevice device) {}
         @Override
@@ -152,7 +161,10 @@ public class MapClientStateMachineTest {
             int state = intent.getIntExtra(BluetoothProfile.EXTRA_STATE, -1);
             if (prevState == BluetoothProfile.STATE_CONNECTING
                     && state == BluetoothProfile.STATE_CONNECTED) {
-                mLatch.countDown();
+                mConnectedLatch.countDown();
+            } else if (prevState == BluetoothProfile.STATE_CONNECTING
+                    && state == BluetoothProfile.STATE_DISCONNECTED) {
+                mDisconnectedLatch.countDown();
             }
         }
     }
