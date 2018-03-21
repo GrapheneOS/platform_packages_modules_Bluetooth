@@ -37,6 +37,7 @@ import android.util.Log;
 
 import com.android.bluetooth.Utils;
 import com.android.bluetooth.avrcp.Avrcp;
+import com.android.bluetooth.avrcp.AvrcpTargetService;
 import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.ProfileService;
 
@@ -531,6 +532,13 @@ public class A2dpService extends ProfileService {
     }
 
     public void setAvrcpAbsoluteVolume(int volume) {
+        // TODO (apanicke): Instead of using A2DP as a middleman for volume changes, add a binder
+        // service to the new AVRCP Profile and have the audio manager use that instead.
+        if (AvrcpTargetService.get() != null) {
+            AvrcpTargetService.get().sendVolumeChanged(volume);
+            return;
+        }
+
         mAvrcp.setAbsoluteVolume(volume);
     }
 
