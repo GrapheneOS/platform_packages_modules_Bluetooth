@@ -19,14 +19,17 @@ package com.android.bluetooth.avrcp;
 import android.bluetooth.BluetoothA2dp;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.bluetooth.IBluetoothAvrcpTarget;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.media.AudioManager;
 import android.os.Looper;
+import android.os.SystemProperties;
 import android.util.Log;
 
+import com.android.bluetooth.Utils;
 import com.android.bluetooth.a2dp.A2dpService;
 import com.android.bluetooth.btservice.ProfileService;
 
@@ -40,6 +43,7 @@ import java.util.Objects;
 public class AvrcpTargetService extends ProfileService {
     private static final String TAG = "NewAvrcpTargetService";
     private static final boolean DEBUG = true;
+    private static final String AVRCP_ENABLE_PROPERTY = "persist.bluetooth.enablenewavrcp";
 
     private static final int AVRCP_MAX_VOL = 127;
     private static int sDeviceMaxVolume = 0;
@@ -76,6 +80,8 @@ public class AvrcpTargetService extends ProfileService {
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
             if (action.equals(BluetoothA2dp.ACTION_ACTIVE_DEVICE_CHANGED)) {
+                if (mNativeInterface == null) return;
+
                 // Update all the playback status info for each connected device
                 mNativeInterface.sendMediaUpdate(false, true, false);
             }
@@ -83,7 +89,7 @@ public class AvrcpTargetService extends ProfileService {
     }
 
     /**
-     * Get the AvrcpTargetService instance. Returns null if the service hasn't been started yet.
+     * Get the AvrcpTargetService instance. Returns null if the service hasn't been initialized.
      */
     public static AvrcpTargetService get() {
         return sInstance;
@@ -96,21 +102,29 @@ public class AvrcpTargetService extends ProfileService {
 
     @Override
     protected IProfileServiceBinder initBinder() {
-        return null;
+        return new AvrcpTargetBinder(this);
     }
 
     @Override
     protected void setUserUnlocked(int userId) {
         Log.i(TAG, "User unlocked, initializing the service");
+
+        if (!SystemProperties.getBoolean(AVRCP_ENABLE_PROPERTY, false)) {
+            Log.w(TAG, "Skipping initialization of the new AVRCP Target Service");
+            sInstance = null;
+            return;
+        }
+
         init();
+
+        // Only allow the service to be used once it is initialized
+        sInstance = this;
     }
 
     @Override
     protected boolean start() {
         Log.i(TAG, "Starting the AVRCP Target Service");
-        sInstance = this;
         mCurrentData = new MediaData(null, null, null);
-        mNativeInterface = AvrcpNativeInterface.getInterface();
 
         mReceiver = new AvrcpBroadcastReceiver();
         IntentFilter filter = new IntentFilter();
@@ -149,6 +163,7 @@ public class AvrcpTargetService extends ProfileService {
 
         mMediaPlayerList = new MediaPlayerList();
         mMediaPlayerList.init(Looper.myLooper(), this, new ListCallback());
+        mNativeInterface = AvrcpNativeInterface.getInterface();
         mNativeInterface.init(AvrcpTargetService.this);
     }
 
@@ -259,5 +274,33 @@ public class AvrcpTargetService extends ProfileService {
      */
     public void dump(StringBuilder sb) {
         mMediaPlayerList.dump(sb);
+    }
+
+    private static class AvrcpTargetBinder extends IBluetoothAvrcpTarget.Stub
+            implements IProfileServiceBinder {
+        private AvrcpTargetService mService;
+
+        AvrcpTargetBinder(AvrcpTargetService service) {
+            mService = service;
+        }
+
+        @Override
+        public void cleanup() {
+            mService = null;
+        }
+
+        @Override
+        public void sendVolumeChanged(int volume) {
+            if (!Utils.checkCaller()) {
+                Log.w(TAG, "sendVolumeChanged not allowed for non-active user");
+                return;
+            }
+
+            if (mService == null) {
+                return;
+            }
+
+            mService.sendVolumeChanged(volume);
+        }
     }
 }
