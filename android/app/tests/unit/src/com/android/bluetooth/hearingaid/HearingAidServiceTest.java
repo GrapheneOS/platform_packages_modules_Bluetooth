@@ -63,7 +63,8 @@ public class HearingAidServiceTest {
     private HearingAidService mService;
     private BluetoothDevice mLeftDevice;
     private BluetoothDevice mRightDevice;
-    private static final int TIMEOUT_MS = 1000;    // 1s
+    private BluetoothDevice mSingleDevice;
+    private static final int TIMEOUT_MS = 1000;
 
     private BroadcastReceiver mHearingAidIntentReceiver;
     private final BlockingQueue<Intent> mConnectionStateChangedQueue = new LinkedBlockingQueue<>();
@@ -106,8 +107,23 @@ public class HearingAidServiceTest {
         // Get a device for testing
         mLeftDevice = mAdapter.getRemoteDevice("00:01:02:03:04:05");
         mRightDevice = mAdapter.getRemoteDevice("00:01:02:03:04:06");
+        mSingleDevice = mAdapter.getRemoteDevice("00:01:02:03:04:00");
         mService.setPriority(mLeftDevice, BluetoothProfile.PRIORITY_UNDEFINED);
         mService.setPriority(mRightDevice, BluetoothProfile.PRIORITY_UNDEFINED);
+        mService.setPriority(mSingleDevice, BluetoothProfile.PRIORITY_UNDEFINED);
+        HearingAidStackEvent event = new HearingAidStackEvent(
+                HearingAidStackEvent.EVENT_TYPE_DEVICE_AVAILABLE);
+        event.device = mLeftDevice;
+        event.valueInt1 = 0x02;
+        event.valueLong2 = 0x0101;
+        mService.messageFromNative(event);
+        event.device = mRightDevice;
+        event.valueInt1 = 0x03;
+        mService.messageFromNative(event);
+        event.device = mSingleDevice;
+        event.valueInt1 = 0x00;
+        event.valueLong2 = 0x0102;
+        mService.messageFromNative(event);
         doReturn(BluetoothDevice.BOND_BONDED).when(mAdapterService)
                 .getBondState(any(BluetoothDevice.class));
         doReturn(new ParcelUuid[]{BluetoothUuid.HearingAid}).when(mAdapterService)
@@ -588,6 +604,57 @@ public class HearingAidServiceTest {
         Assert.assertEquals(BluetoothProfile.STATE_DISCONNECTED,
                 mService.getConnectionState(mLeftDevice));
         Assert.assertFalse(mService.getDevices().contains(mLeftDevice));
+    }
+
+    @Test
+    public void testConnectionStateChangedActiveDevice() {
+        // Update the device priority so okToConnect() returns true
+        mService.setPriority(mLeftDevice, BluetoothProfile.PRIORITY_ON);
+        mService.setPriority(mRightDevice, BluetoothProfile.PRIORITY_ON);
+
+        generateConnectionMessageFromNative(mRightDevice, BluetoothProfile.STATE_CONNECTED,
+                BluetoothProfile.STATE_DISCONNECTED);
+        Assert.assertTrue(mService.isActiveDevice(mRightDevice));
+        Assert.assertFalse(mService.isActiveDevice(mLeftDevice));
+
+        generateConnectionMessageFromNative(mLeftDevice, BluetoothProfile.STATE_CONNECTED,
+                BluetoothProfile.STATE_DISCONNECTED);
+        Assert.assertTrue(mService.isActiveDevice(mRightDevice));
+        Assert.assertTrue(mService.isActiveDevice(mLeftDevice));
+
+        generateConnectionMessageFromNative(mRightDevice, BluetoothProfile.STATE_DISCONNECTED,
+                BluetoothProfile.STATE_CONNECTED);
+        Assert.assertFalse(mService.isActiveDevice(mRightDevice));
+        Assert.assertTrue(mService.isActiveDevice(mLeftDevice));
+
+        generateConnectionMessageFromNative(mLeftDevice, BluetoothProfile.STATE_DISCONNECTED,
+                BluetoothProfile.STATE_CONNECTED);
+        Assert.assertFalse(mService.isActiveDevice(mRightDevice));
+        Assert.assertFalse(mService.isActiveDevice(mLeftDevice));
+    }
+
+    @Test
+    public void testConnectionStateChangedAnotherActiveDevice() {
+        // Update the device priority so okToConnect() returns true
+        mService.setPriority(mLeftDevice, BluetoothProfile.PRIORITY_ON);
+        mService.setPriority(mRightDevice, BluetoothProfile.PRIORITY_ON);
+        mService.setPriority(mSingleDevice, BluetoothProfile.PRIORITY_ON);
+
+        generateConnectionMessageFromNative(mRightDevice, BluetoothProfile.STATE_CONNECTED,
+                BluetoothProfile.STATE_DISCONNECTED);
+        Assert.assertTrue(mService.isActiveDevice(mRightDevice));
+        Assert.assertFalse(mService.isActiveDevice(mLeftDevice));
+
+        generateConnectionMessageFromNative(mLeftDevice, BluetoothProfile.STATE_CONNECTED,
+                BluetoothProfile.STATE_DISCONNECTED);
+        Assert.assertTrue(mService.isActiveDevice(mRightDevice));
+        Assert.assertTrue(mService.isActiveDevice(mLeftDevice));
+
+        generateConnectionMessageFromNative(mSingleDevice, BluetoothProfile.STATE_CONNECTED,
+                BluetoothProfile.STATE_DISCONNECTED);
+        Assert.assertFalse(mService.isActiveDevice(mRightDevice));
+        Assert.assertFalse(mService.isActiveDevice(mLeftDevice));
+        Assert.assertTrue(mService.isActiveDevice(mSingleDevice));
     }
 
     private void connectDevice(BluetoothDevice device) {
