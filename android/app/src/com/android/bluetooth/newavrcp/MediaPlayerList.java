@@ -226,7 +226,7 @@ public class MediaPlayerList {
         final MediaPlayerWrapper player = getActivePlayer();
         if (player == null) return "";
 
-        final PlaybackState state = player.getCurrentMediaData().state;
+        final PlaybackState state = player.getPlaybackState();
         if (state == null || state.getActiveQueueItemId() == MediaSession.QueueItem.UNKNOWN_ID) {
             d("getCurrentMediaId: No active queue item Id: " + state);
             return "";
@@ -239,14 +239,14 @@ public class MediaPlayerList {
         final MediaPlayerWrapper player = getActivePlayer();
         if (player == null) return Util.empty_data();
 
-        return player.getCurrentMediaData().metadata;
+        return player.getCurrentMetadata();
     }
 
     PlaybackState getCurrentPlayStatus() {
         final MediaPlayerWrapper player = getActivePlayer();
         if (player == null) return null;
 
-        return player.getCurrentMediaData().state;
+        return player.getPlaybackState();
     }
 
     List<Metadata> getNowPlayingList() {
@@ -257,7 +257,7 @@ public class MediaPlayerList {
             return ret;
         }
 
-        return getActivePlayer().getCurrentMediaData().queue;
+        return getActivePlayer().getCurrentQueue();
     }
 
     void playItem(int playerId, boolean nowPlaying, String mediaId) {
