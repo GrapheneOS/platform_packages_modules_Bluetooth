@@ -119,7 +119,21 @@ public class MapClientStateMachineTest {
         setupSdpRecordReceipt();
         Message msg = Message.obtain(mHandler, MceStateMachine.MSG_MAS_DISCONNECTED);
         mMceStateMachine.getCurrentState().processMessage(msg);
-        Assert.assertEquals(BluetoothProfile.STATE_CONNECTING, mMceStateMachine.getState());
+
+        // Wait until the message is processed and a broadcast request is sent to
+        // to MapClientService to change
+        // state from STATE_CONNECTING to STATE_DISCONNECTED
+        boolean result = false;
+        try {
+            result = mDisconnectedLatch.await(TIMEOUT, TimeUnit.MILLISECONDS);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        // Test that the latch reached zero; i.e., that a broadcast of state-change was received.
+        Assert.assertTrue(result);
+        // When the state reaches STATE_DISCONNECTED, MceStateMachine object is in the process of
+        // being dismantled; i.e., can't rely on getting its current state. That means can't
+        // test its current state = STATE_DISCONNECTED.
     }
 
     /**
@@ -136,12 +150,14 @@ public class MapClientStateMachineTest {
         // Wait until the message is processed and a broadcast request is sent to
         // to MapClientService to change
         // state from STATE_CONNECTING to STATE_CONNECTED
+        boolean result = false;
         try {
-            mDisconnectedLatch.await(TIMEOUT, TimeUnit.MILLISECONDS);
+            result = mConnectedLatch.await(TIMEOUT, TimeUnit.MILLISECONDS);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        Assert.assertNotNull(mMceStateMachine.getCurrentState());
+        // Test that the latch reached zero; i.e., that a broadcast of state-change was received.
+        Assert.assertTrue(result);
         Assert.assertEquals(BluetoothProfile.STATE_CONNECTED, mMceStateMachine.getState());
     }
 
@@ -159,6 +175,8 @@ public class MapClientStateMachineTest {
         public void sendBroadcast(Intent intent, String receiverPermission) {
             int prevState = intent.getIntExtra(BluetoothProfile.EXTRA_PREVIOUS_STATE, -1);
             int state = intent.getIntExtra(BluetoothProfile.EXTRA_STATE, -1);
+            Log.i(TAG, "received broadcast: prevState = " + prevState
+                    + ", state = " + state);
             if (prevState == BluetoothProfile.STATE_CONNECTING
                     && state == BluetoothProfile.STATE_CONNECTED) {
                 mConnectedLatch.countDown();
