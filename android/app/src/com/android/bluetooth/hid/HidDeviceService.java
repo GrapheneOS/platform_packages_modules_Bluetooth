@@ -16,6 +16,7 @@
 
 package com.android.bluetooth.hid;
 
+import android.app.ActivityManager;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothHidDevice;
 import android.bluetooth.BluetoothHidDeviceAppQosSettings;
@@ -23,6 +24,7 @@ import android.bluetooth.BluetoothHidDeviceAppSdpSettings;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.IBluetoothHidDevice;
 import android.bluetooth.IBluetoothHidDeviceCallback;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Binder;
 import android.os.Handler;
@@ -54,6 +56,10 @@ public class HidDeviceService extends ProfileService {
     private static final int MESSAGE_SET_PROTOCOL = 5;
     private static final int MESSAGE_INTR_DATA = 6;
     private static final int MESSAGE_VC_UNPLUG = 7;
+    private static final int MESSAGE_IMPORTANCE_CHANGE = 8;
+
+    private static final int FOREGROUND_IMPORTANCE_CUTOFF =
+            ActivityManager.RunningAppProcessInfo.IMPORTANCE_VISIBLE;
 
     private static HidDeviceService sHidDeviceService;
 
@@ -65,6 +71,7 @@ public class HidDeviceService extends ProfileService {
     private int mUserUid = 0;
     private IBluetoothHidDeviceCallback mCallback;
     private BluetoothHidDeviceDeathRecipient mDeathRcpt;
+    private ActivityManager mActivityManager;
 
     private HidDeviceServiceHandler mHandler;
 
@@ -215,9 +222,18 @@ public class HidDeviceService extends ProfileService {
                     }
                     mHidDevice = null;
                     break;
+
+                case MESSAGE_IMPORTANCE_CHANGE:
+                    int importance = msg.arg1;
+                    int uid = msg.arg2;
+                    if (importance > FOREGROUND_IMPORTANCE_CUTOFF
+                            && uid >= Process.FIRST_APPLICATION_UID) {
+                        unregisterAppUid(uid);
+                    }
+                    break;
             }
         }
-    };
+    }
 
     private static class BluetoothHidDeviceDeathRecipient implements IBinder.DeathRecipient {
         private HidDeviceService mService;
@@ -236,6 +252,17 @@ public class HidDeviceService extends ProfileService {
             mService = null;
         }
     }
+
+    private ActivityManager.OnUidImportanceListener mUidImportanceListener =
+            new ActivityManager.OnUidImportanceListener() {
+                @Override
+                public void onUidImportance(final int uid, final int importance) {
+                    Message message = mHandler.obtainMessage(MESSAGE_IMPORTANCE_CHANGE);
+                    message.arg1 = importance;
+                    message.arg2 = uid;
+                    mHandler.sendMessage(message);
+                }
+            };
 
     @VisibleForTesting
     static class BluetoothHidDeviceBinder extends IBluetoothHidDevice.Stub
@@ -458,10 +485,16 @@ public class HidDeviceService extends ProfileService {
             return false;
         }
 
-        mUserUid = Binder.getCallingUid();
+        int callingUid = Binder.getCallingUid();
         if (DBG) {
-            Log.d(TAG, "registerApp(): calling uid=" + mUserUid);
+            Log.d(TAG, "registerApp(): calling uid=" + callingUid);
         }
+        if (callingUid >= Process.FIRST_APPLICATION_UID
+                && mActivityManager.getUidImportance(callingUid) > FOREGROUND_IMPORTANCE_CUTOFF) {
+            Log.w(TAG, "registerApp(): failed because the app is not foreground");
+            return false;
+        }
+        mUserUid = callingUid;
         mCallback = callback;
 
         return mHidDeviceNativeInterface.registerApp(sdp.name, sdp.description, sdp.provider,
@@ -475,11 +508,21 @@ public class HidDeviceService extends ProfileService {
         }
 
         int callingUid = Binder.getCallingUid();
-        if (callingUid == mUserUid || callingUid < Process.FIRST_APPLICATION_UID) {
+        return unregisterAppUid(callingUid);
+    }
+
+    private synchronized boolean unregisterAppUid(int uid) {
+        if (DBG) {
+            Log.d(TAG, "unregisterAppUid(): uid=" + uid);
+        }
+
+        if (uid == mUserUid || uid < Process.FIRST_APPLICATION_UID) {
             mUserUid = 0;
             return mHidDeviceNativeInterface.unregisterApp();
         }
-        Log.w(TAG, "unregisterApp(): caller UID doesn't match user UID");
+        if (DBG) {
+            Log.d(TAG, "unregisterAppUid(): caller UID doesn't match user UID");
+        }
         return false;
     }
 
@@ -547,10 +590,13 @@ public class HidDeviceService extends ProfileService {
         }
 
         mHandler = new HidDeviceServiceHandler();
-        setHidDeviceService(this);
         mHidDeviceNativeInterface = HidDeviceNativeInterface.getInstance();
         mHidDeviceNativeInterface.init();
         mNativeAvailable = true;
+        mActivityManager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
+        mActivityManager.addOnUidImportanceListener(mUidImportanceListener,
+                FOREGROUND_IMPORTANCE_CUTOFF);
+        setHidDeviceService(this);
         return true;
     }
 
@@ -559,21 +605,14 @@ public class HidDeviceService extends ProfileService {
         if (DBG) {
             Log.d(TAG, "stop()");
         }
-        return true;
-    }
 
-    @Override
-    protected void cleanup() {
-        if (DBG) {
-            Log.d(TAG, "cleanup()");
-        }
-
+        setHidDeviceService(null);
         if (mNativeAvailable) {
             mHidDeviceNativeInterface.cleanup();
             mNativeAvailable = false;
         }
-        // TODO(b/72948646): should be moved to stop()
-        setHidDeviceService(null);
+        mActivityManager.removeOnUidImportanceListener(mUidImportanceListener);
+        return true;
     }
 
     @Override
