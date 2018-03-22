@@ -117,13 +117,6 @@ public class HidDeviceTest {
         mHidDeviceService = HidDeviceService.getHidDeviceService();
         Assert.assertNotNull(mHidDeviceService);
 
-        InstrumentationRegistry.getInstrumentation().runOnMainSync(new Runnable() {
-            @Override
-            public void run() {
-                mHidDeviceService.start();
-            }
-        });
-
         // Force unregister app first
         mHidDeviceService.unregisterApp();
 
