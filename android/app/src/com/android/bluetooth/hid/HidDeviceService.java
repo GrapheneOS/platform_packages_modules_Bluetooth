@@ -497,9 +497,32 @@ public class HidDeviceService extends ProfileService {
         mUserUid = callingUid;
         mCallback = callback;
 
-        return mHidDeviceNativeInterface.registerApp(sdp.name, sdp.description, sdp.provider,
-                sdp.subclass, sdp.descriptors, inQos == null ? null : inQos.toArray(),
-                outQos == null ? null : outQos.toArray());
+        return mHidDeviceNativeInterface.registerApp(
+                sdp.getName(),
+                sdp.getDescription(),
+                sdp.getProvider(),
+                sdp.getSubclass(),
+                sdp.getDescriptors(),
+                inQos == null
+                        ? null
+                        : new int[] {
+                            inQos.getServiceType(),
+                            inQos.getTokenRate(),
+                            inQos.getTokenBucketSize(),
+                            inQos.getPeakBandwidth(),
+                            inQos.getLatency(),
+                            inQos.getDelayVariation()
+                        },
+                outQos == null
+                        ? null
+                        : new int[] {
+                            outQos.getServiceType(),
+                            outQos.getTokenRate(),
+                            outQos.getTokenBucketSize(),
+                            outQos.getPeakBandwidth(),
+                            outQos.getLatency(),
+                            outQos.getDelayVariation()
+                        });
     }
 
     synchronized boolean unregisterApp() {
