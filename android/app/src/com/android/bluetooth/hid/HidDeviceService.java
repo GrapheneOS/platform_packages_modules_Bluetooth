@@ -508,7 +508,15 @@ public class HidDeviceService extends ProfileService {
         }
 
         int callingUid = Binder.getCallingUid();
-        return unregisterAppUid(callingUid);
+
+        if (callingUid == mUserUid || callingUid < Process.FIRST_APPLICATION_UID) {
+            mUserUid = 0;
+            return mHidDeviceNativeInterface.unregisterApp();
+        }
+        if (DBG) {
+            Log.d(TAG, "unregisterAppUid(): caller UID doesn't match user UID");
+        }
+        return false;
     }
 
     private synchronized boolean unregisterAppUid(int uid) {
@@ -516,12 +524,9 @@ public class HidDeviceService extends ProfileService {
             Log.d(TAG, "unregisterAppUid(): uid=" + uid);
         }
 
-        if (uid == mUserUid || uid < Process.FIRST_APPLICATION_UID) {
+        if (uid == mUserUid) {
             mUserUid = 0;
             return mHidDeviceNativeInterface.unregisterApp();
-        }
-        if (DBG) {
-            Log.d(TAG, "unregisterAppUid(): caller UID doesn't match user UID");
         }
         return false;
     }
