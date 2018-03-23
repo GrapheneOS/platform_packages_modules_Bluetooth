@@ -122,10 +122,6 @@ public class AdapterService extends Service {
             "message_access_permission";
     private static final String SIM_ACCESS_PERMISSION_PREFERENCE_FILE = "sim_access_permission";
 
-    private static final String[] DEVICE_TYPE_NAMES = new String[]{
-            "???", "BR/EDR", "LE", "DUAL"
-    };
-
     private static final int CONTROLLER_ENERGY_UPDATE_TIMEOUT_MILLIS = 30;
 
     static {
@@ -2422,17 +2418,8 @@ public class AdapterService extends Service {
             return;
         }
 
-        writer.println("AdapterProperties");
-        writer.println("  " + "MaxConnectedAudioDevices: " + getMaxConnectedAudioDevices());
         writer.println();
-
-
-        writer.println("Bonded devices:");
-        for (BluetoothDevice device : getBondedDevices()) {
-            writer.println(
-                    "  " + device.getAddress() + " [" + DEVICE_TYPE_NAMES[device.getType()] + "] "
-                            + device.getName());
-        }
+        mAdapterProperties.dump(fd, writer, args);
 
         writer.println();
         mAdapterStateMachine.dump(fd, writer, args);
