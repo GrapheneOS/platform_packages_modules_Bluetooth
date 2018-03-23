@@ -273,7 +273,11 @@ public class AvrcpTargetService extends ProfileService {
      * Dump debugging information to the string builder
      */
     public void dump(StringBuilder sb) {
-        mMediaPlayerList.dump(sb);
+        if (mMediaPlayerList != null) {
+            mMediaPlayerList.dump(sb);
+        } else {
+            sb.append("\nMedia Player List is empty\n");
+        }
     }
 
     private static class AvrcpTargetBinder extends IBluetoothAvrcpTarget.Stub
