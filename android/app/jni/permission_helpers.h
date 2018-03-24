@@ -20,7 +20,7 @@
 namespace android {
 namespace bluetooth {
 
-const char PERMISSION_BLUETOOTH[] = "android.permission.BLUETOOTH_ADMIN";
+const char PERMISSION_BLUETOOTH[] = "android.permission.BLUETOOTH";
 const char PERMISSION_BLUETOOTH_ADMIN[] = "android.permission.BLUETOOTH_ADMIN";
 const char PERMISSION_BLUETOOTH_PRIVILEGED[] =
     "android.permission.BLUETOOTH_PRIVILEGED";
