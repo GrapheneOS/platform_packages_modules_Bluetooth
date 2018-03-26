@@ -12,6 +12,7 @@ cc_defaults {
         "packages/modules/Bluetooth/system",
         "packages/modules/Bluetooth/system/bta/include",
         "packages/modules/Bluetooth/system/btcore/include",
+        "packages/modules/Bluetooth/system/btif/avrcp",
         "packages/modules/Bluetooth/system/hci/include",
         "packages/modules/Bluetooth/system/internal_include",
         "packages/modules/Bluetooth/system/stack/include",
@@ -109,7 +110,10 @@ cc_library_static {
         "sys/bta_sys_main.cc",
         "sys/utl.cc",
     ],
-
+    static_libs: [
+        "avrcp-target-service",
+        "lib-bt-packets",
+    ],
     whole_static_libs: [
         "libaudio-hearing-aid-hw-utils",
     ],
