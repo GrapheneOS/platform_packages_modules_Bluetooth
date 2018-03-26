@@ -29,6 +29,7 @@ import android.os.Looper;
 import android.os.Message;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.filters.MediumTest;
+import android.support.test.filters.Suppress;
 import android.support.test.runner.AndroidJUnit4;
 import android.util.Log;
 
@@ -46,6 +47,7 @@ import org.mockito.MockitoAnnotations;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+@Suppress  // TODO: enable when b/74609188 is debugged
 @MediumTest
 @RunWith(AndroidJUnit4.class)
 public class MapClientStateMachineTest {
