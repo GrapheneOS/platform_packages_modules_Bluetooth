@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 The Android Open Source Project
+ * Copyright 2018 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 
 package com.android.bluetooth.avrcp;
 
-import android.media.MediaMetadata;
 import android.media.session.MediaSession;
 import android.util.Log;
 
@@ -28,8 +27,6 @@ import android.util.Log;
 class GPMWrapper extends MediaPlayerWrapper {
     private static final String TAG = "NewAvrcpGPMWrapper";
     private static final boolean DEBUG = true;
-
-    private static final String GPM_KEY = "com.google.android.music.mediasession.music_metadata";
 
     @Override
     boolean isMetadataSynced() {
@@ -56,16 +53,5 @@ class GPMWrapper extends MediaPlayerWrapper {
         }
 
         return true;
-    }
-
-    @Override
-    MediaMetadata queueItemToMetadata(MediaSession.QueueItem item) {
-        MediaMetadata gpmdata = (MediaMetadata) item.getDescription().getExtras().get(GPM_KEY);
-
-        MediaMetadata.Builder newMetadata = new MediaMetadata.Builder(gpmdata);
-        newMetadata.putString(MediaMetadata.METADATA_KEY_TITLE,
-                item.getDescription().getTitle().toString());
-
-        return newMetadata.build();
     }
 }
