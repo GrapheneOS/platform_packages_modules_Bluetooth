@@ -219,19 +219,19 @@ public class AdapterService extends Service {
     class AdapterServiceHandler extends Handler {
         @Override
         public void handleMessage(Message msg) {
-            debugLog("handleMessage() - Message: " + msg.what);
+            verboseLog("handleMessage() - Message: " + msg.what);
 
             switch (msg.what) {
                 case MESSAGE_PROFILE_SERVICE_STATE_CHANGED:
-                    debugLog("handleMessage() - MESSAGE_PROFILE_SERVICE_STATE_CHANGED");
+                    verboseLog("handleMessage() - MESSAGE_PROFILE_SERVICE_STATE_CHANGED");
                     processProfileServiceStateChanged((ProfileService) msg.obj, msg.arg1);
                     break;
                 case MESSAGE_PROFILE_SERVICE_REGISTERED:
-                    debugLog("handleMessage() - MESSAGE_PROFILE_SERVICE_REGISTERED");
+                    verboseLog("handleMessage() - MESSAGE_PROFILE_SERVICE_REGISTERED");
                     registerProfileService((ProfileService) msg.obj);
                     break;
                 case MESSAGE_PROFILE_SERVICE_UNREGISTERED:
-                    debugLog("handleMessage() - MESSAGE_PROFILE_SERVICE_UNREGISTERED");
+                    verboseLog("handleMessage() - MESSAGE_PROFILE_SERVICE_UNREGISTERED");
                     unregisterProfileService((ProfileService) msg.obj);
                     break;
             }
@@ -247,7 +247,7 @@ public class AdapterService extends Service {
 
         private void unregisterProfileService(ProfileService profile) {
             if (!mRegisteredProfiles.contains(profile)) {
-                Log.e(TAG, profile.getName() + " not registered (UNREGISTERED).");
+                Log.e(TAG, profile.getName() + " not registered (UNREGISTER).");
                 return;
             }
             mRegisteredProfiles.remove(profile);
