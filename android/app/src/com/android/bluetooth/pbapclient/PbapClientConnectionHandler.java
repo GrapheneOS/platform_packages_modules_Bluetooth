@@ -27,6 +27,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 import android.provider.CallLog;
+import android.provider.CallLog.Calls;
 import android.util.Log;
 
 import com.android.bluetooth.BluetoothObexTransport;
@@ -231,9 +232,10 @@ class PbapClientConnectionHandler extends Handler {
                     Log.d(TAG, "Completing Disconnect");
                 }
                 removeAccount(mAccount);
-                mContext.getContentResolver().delete(CallLog.Calls.CONTENT_URI, null, null);
+                removeCallLog(mAccount);
+
                 mPbapClientStateMachine.obtainMessage(PbapClientStateMachine.MSG_CONNECTION_CLOSED)
-                        .sendToTarget();
+                    .sendToTarget();
                 break;
 
             case MSG_DOWNLOAD:
@@ -370,7 +372,8 @@ class PbapClientConnectionHandler extends Handler {
                     new BluetoothPbapRequestPullPhoneBook(path, mAccount, 0, VCARD_TYPE_30, 0, 0);
             request.execute(mObexSession);
             CallLogPullRequest processor =
-                    new CallLogPullRequest(mPbapClientStateMachine.getContext(), path, callCounter);
+                    new CallLogPullRequest(mPbapClientStateMachine.getContext(), path,
+                        callCounter, mAccount);
             processor.setResults(request.getList());
             processor.onPullComplete();
         } catch (IOException e) {
@@ -388,13 +391,29 @@ class PbapClientConnectionHandler extends Handler {
         return false;
     }
 
-    private void removeAccount(Account acc) {
-        if (mAccountManager.removeAccountExplicitly(acc)) {
+    private void removeAccount(Account account) {
+        if (mAccountManager.removeAccountExplicitly(account)) {
             if (DBG) {
-                Log.d(TAG, "Removed account " + acc);
+                Log.d(TAG, "Removed account " + account);
             }
         } else {
             Log.e(TAG, "Failed to remove account " + mAccount);
+        }
+    }
+
+    private void removeCallLog(Account account) {
+        try {
+            // need to check call table is exist ?
+            if (mContext.getContentResolver() == null) {
+                if (DBG) {
+                    Log.d(TAG, "CallLog ContentResolver is not found");
+                }
+                return;
+            }
+            String where = Calls.PHONE_ACCOUNT_ID + "=" + account.hashCode();
+            mContext.getContentResolver().delete(CallLog.Calls.CONTENT_URI, where, null);
+        } catch (IllegalArgumentException e) {
+            Log.d(TAG, "Call Logs could not be deleted, they may not exist yet.");
         }
     }
 }
