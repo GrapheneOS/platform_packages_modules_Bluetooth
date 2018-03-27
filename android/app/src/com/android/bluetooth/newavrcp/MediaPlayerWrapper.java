@@ -119,7 +119,11 @@ class MediaPlayerWrapper {
         return mMediaController.getMetadata();
     }
 
-    protected PlaybackState getPlaybackState() {
+    Metadata getCurrentMetadata() {
+        return Util.toMetadata(getMetadata());
+    }
+
+    PlaybackState getPlaybackState() {
         return mMediaController.getPlaybackState();
     }
 
@@ -128,9 +132,17 @@ class MediaPlayerWrapper {
         return mMediaController.getPlaybackState().getActiveQueueItemId();
     }
 
+    List<Metadata> getCurrentQueue() {
+        return Util.toMetadataList(getQueue());
+    }
 
+    // We don't return the cached info here in order to always provide the freshest data.
     MediaData getCurrentMediaData() {
-        return mCurrentData;
+        MediaData data = new MediaData(
+                getCurrentMetadata(),
+                getPlaybackState(),
+                getCurrentQueue());
+        return data;
     }
 
     void playItemFromQueue(long qid) {
@@ -208,6 +220,14 @@ class MediaPlayerWrapper {
         synchronized (mCallbackLock) {
             mRegisteredCallback = callback;
         }
+
+        // Update the current data since it could have changed while we weren't registered for
+        // updates
+        mCurrentData = new MediaData(
+                Util.toMetadata(getMetadata()),
+                getPlaybackState(),
+                Util.toMetadataList(getQueue()));
+
         mControllerCallbacks = new MediaControllerListener(mLooper);
     }
 
@@ -236,6 +256,13 @@ class MediaPlayerWrapper {
 
         mControllerCallbacks.cleanup();
         mMediaController = newController;
+
+        // Update the current data since it could be different on the new controller for the player
+        mCurrentData = new MediaData(
+                Util.toMetadata(getMetadata()),
+                getPlaybackState(),
+                Util.toMetadataList(getQueue()));
+
         mControllerCallbacks = new MediaControllerListener(mLooper);
         d("Controller for " + mPackageName + " was updated.");
     }
