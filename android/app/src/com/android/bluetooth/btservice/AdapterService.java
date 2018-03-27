@@ -61,6 +61,7 @@ import android.util.Base64;
 import android.util.Log;
 import android.util.Slog;
 import android.util.SparseArray;
+import android.util.StatsLog;
 
 import com.android.bluetooth.BluetoothMetricsProto;
 import com.android.bluetooth.Utils;
@@ -507,6 +508,8 @@ public class AdapterService extends Service {
         } catch (RemoteException e) {
             Log.w(TAG, "RemoteException trying to send a reset to BatteryStats");
         }
+        StatsLog.write_non_chained(StatsLog.BLE_SCAN_STATE_CHANGED, -1, null,
+                StatsLog.BLE_SCAN_STATE_CHANGED__STATE__RESET, false, false, false);
 
         //Start Gatt service
         setProfileServiceState(GattService.class, BluetoothAdapter.STATE_ON);
