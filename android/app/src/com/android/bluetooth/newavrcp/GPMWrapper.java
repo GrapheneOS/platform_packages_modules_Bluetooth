@@ -40,10 +40,10 @@ class GPMWrapper extends MediaPlayerWrapper {
             }
         }
 
-        // Check if current playing song in queue matches current Metadata
-        if (currItem == null
-                || !queueItemToMetadata(currItem).getDescription()
-                        .equals(getMetadata().getDescription())) {
+        // Check if current playing song in Queue matches current Metadata
+        Metadata qitem = Util.toMetadata(currItem);
+        Metadata mdata = Util.toMetadata(getMetadata());
+        if (currItem == null || !qitem.equals(mdata)) {
             if (DEBUG) {
                 Log.d(TAG, "Metadata currently out of sync for Google Play Music");
                 Log.d(TAG, "  └ Current queueItem: " + currItem);
