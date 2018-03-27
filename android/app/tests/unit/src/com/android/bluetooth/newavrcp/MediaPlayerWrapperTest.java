@@ -171,6 +171,36 @@ public class MediaPlayerWrapperTest {
     }
 
     /*
+     * Test to make sure that if a new controller is registered with different metadata than the
+     * previous controller, the new metadata is pulled upon registration.
+     */
+    @Test
+    public void testControllerUpdate() {
+        // Create the wrapper object and register the looper with the timeout handler
+        MediaPlayerWrapper wrapper = MediaPlayerWrapper.wrap(mMockController, mThread.getLooper());
+        Assert.assertTrue(wrapper.isReady());
+        wrapper.registerCallback(mTestCbs);
+
+        // Create a new MediaController that has different metadata than the previous controller
+        MediaController mUpdatedController = mock(MediaController.class);
+        doReturn(mTestState.build()).when(mUpdatedController).getPlaybackState();
+        mTestMetadata.putString(MediaMetadata.METADATA_KEY_TITLE, "New Title");
+        doReturn(mTestMetadata.build()).when(mUpdatedController).getMetadata();
+        doReturn(null).when(mMockController).getQueue();
+
+        // Update the wrappers controller to the new controller
+        wrapper.updateMediaController(mUpdatedController);
+
+        // Send a metadata update with the same data that the controller had upon registering
+        verify(mUpdatedController).registerCallback(mControllerCbs.capture(), any());
+        MediaController.Callback controllerCallbacks = mControllerCbs.getValue();
+        controllerCallbacks.onMetadataChanged(mTestMetadata.build());
+
+        // Verify that a callback was never called since no data was updated
+        verify(mTestCbs, never()).mediaUpdatedCallback(any());
+    }
+
+    /*
      * Test to make sure that a media player update gets sent whenever a Media metadata or playback
      * state change occurs instead of waiting for all data to be synced if the player doesn't
      * support queues.
