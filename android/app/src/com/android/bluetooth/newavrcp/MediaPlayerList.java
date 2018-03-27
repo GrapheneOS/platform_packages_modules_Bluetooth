@@ -16,6 +16,7 @@
 
 package com.android.bluetooth.avrcp;
 
+import android.annotation.NonNull;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
@@ -222,42 +223,55 @@ public class MediaPlayerList {
         return ret;
     }
 
+    @NonNull
     String getCurrentMediaId() {
         final MediaPlayerWrapper player = getActivePlayer();
         if (player == null) return "";
 
-        final PlaybackState state = player.getCurrentMediaData().state;
-        if (state == null || state.getActiveQueueItemId() == MediaSession.QueueItem.UNKNOWN_ID) {
-            d("getCurrentMediaId: No active queue item Id: " + state);
+        final PlaybackState state = player.getPlaybackState();
+        final List<Metadata> queue = player.getCurrentQueue();
+
+        // Disable the now playing list if the player doesn't have a queue or provide an active
+        // queue ID that can be used to determine the active song in the queue.
+        if (state == null
+                || state.getActiveQueueItemId() == MediaSession.QueueItem.UNKNOWN_ID
+                || queue.size() == 0) {
+            d("getCurrentMediaId: No active queue item Id sending empty mediaId: PlaybackState="
+                     + state);
             return "";
         }
 
         return Util.NOW_PLAYING_PREFIX + state.getActiveQueueItemId();
     }
 
+    @NonNull
     Metadata getCurrentSongInfo() {
         final MediaPlayerWrapper player = getActivePlayer();
         if (player == null) return Util.empty_data();
 
-        return player.getCurrentMediaData().metadata;
+        return player.getCurrentMetadata();
     }
 
     PlaybackState getCurrentPlayStatus() {
         final MediaPlayerWrapper player = getActivePlayer();
         if (player == null) return null;
 
-        return player.getCurrentMediaData().state;
+        return player.getPlaybackState();
     }
 
+    @NonNull
     List<Metadata> getNowPlayingList() {
-        final MediaPlayerWrapper player = getActivePlayer();
-        if (player == null) {
+        // Only send the current song for the now playing if there is no active song. See
+        // |getCurrentMediaId()| for reasons why there might be no active song.
+        if (getCurrentMediaId().equals("")) {
             List<Metadata> ret = new ArrayList<Metadata>();
-            ret.add(Util.empty_data());
+            Metadata data = getCurrentSongInfo();
+            data.mediaId = "";
+            ret.add(data);
             return ret;
         }
 
-        return getActivePlayer().getCurrentMediaData().queue;
+        return getActivePlayer().getCurrentQueue();
     }
 
     void playItem(int playerId, boolean nowPlaying, String mediaId) {
