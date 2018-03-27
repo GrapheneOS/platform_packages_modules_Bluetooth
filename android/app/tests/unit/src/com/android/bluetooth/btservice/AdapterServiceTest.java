@@ -35,6 +35,7 @@ import android.os.Binder;
 import android.os.Looper;
 import android.os.PowerManager;
 import android.os.Process;
+import android.os.SystemProperties;
 import android.os.UserManager;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.filters.MediumTest;
@@ -408,5 +409,55 @@ public class AdapterServiceTest {
                 AdapterState.BLE_STOP_TIMEOUT_DELAY + CONTEXT_SWITCH_MS);
 
         Assert.assertFalse(mAdapterService.isEnabled());
+    }
+
+    /**
+     * Test: Toggle snoop logging setting
+     * Check whether the AdapterService restarts fully
+     */
+    @Test
+    public void testSnoopLoggingChange() {
+        String snoopSetting =
+                SystemProperties.get(AdapterService.BLUETOOTH_BTSNOOP_ENABLE_PROPERTY, "");
+        SystemProperties.set(AdapterService.BLUETOOTH_BTSNOOP_ENABLE_PROPERTY, "false");
+        doEnable(0, false);
+
+        Assert.assertTrue(mAdapterService.isEnabled());
+
+        Assert.assertFalse(
+                SystemProperties.getBoolean(AdapterService.BLUETOOTH_BTSNOOP_ENABLE_PROPERTY,
+                        true));
+
+        SystemProperties.set(AdapterService.BLUETOOTH_BTSNOOP_ENABLE_PROPERTY, "true");
+
+        mAdapterService.disable();
+
+        verifyStateChange(BluetoothAdapter.STATE_ON, BluetoothAdapter.STATE_TURNING_OFF, 1,
+                CONTEXT_SWITCH_MS);
+
+        // Stop PBAP and PAN
+        verify(mMockContext, timeout(ONE_SECOND_MS).times(5)).startService(any());
+        mAdapterService.onProfileServiceStateChanged(mMockService, BluetoothAdapter.STATE_OFF);
+        mAdapterService.onProfileServiceStateChanged(mMockService2, BluetoothAdapter.STATE_OFF);
+
+        verifyStateChange(BluetoothAdapter.STATE_TURNING_OFF, BluetoothAdapter.STATE_BLE_ON, 1,
+                CONTEXT_SWITCH_MS);
+
+        // Don't call onBrEdrDown().  The Adapter should turn itself off.
+
+        verifyStateChange(BluetoothAdapter.STATE_BLE_ON, BluetoothAdapter.STATE_BLE_TURNING_OFF, 1,
+                CONTEXT_SWITCH_MS);
+
+        // Stop GATT
+        verify(mMockContext, timeout(ONE_SECOND_MS).times(6)).startService(any());
+        mAdapterService.onProfileServiceStateChanged(mMockGattService, BluetoothAdapter.STATE_OFF);
+
+        verifyStateChange(BluetoothAdapter.STATE_BLE_TURNING_OFF, BluetoothAdapter.STATE_OFF, 1,
+                CONTEXT_SWITCH_MS);
+
+        Assert.assertFalse(mAdapterService.isEnabled());
+
+        // Restore earlier setting
+        SystemProperties.set(AdapterService.BLUETOOTH_BTSNOOP_ENABLE_PROPERTY, snoopSetting);
     }
 }
