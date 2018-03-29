@@ -140,7 +140,8 @@ final class BondStateMachine extends StateMachine {
                     /* if the link key was deleted by the stack */
                         sendIntent(dev, newState, 0);
                     } else {
-                        Log.e(TAG, "In stable state, received invalid newState: " + newState);
+                        Log.e(TAG, "In stable state, received invalid newState: "
+                                + state2str(newState));
                     }
                     break;
 
@@ -348,8 +349,8 @@ final class BondStateMachine extends StateMachine {
             intent.putExtra(BluetoothDevice.EXTRA_REASON, reason);
         }
         mAdapterService.sendBroadcastAsUser(intent, UserHandle.ALL, AdapterService.BLUETOOTH_PERM);
-        infoLog("Bond State Change Intent:" + device + " OldState: " + oldState + " NewState: "
-                + newState);
+        infoLog("Bond State Change Intent:" + device + " " + state2str(oldState) + " => "
+                + state2str(newState));
     }
 
     void bondStateChangeCallback(int status, byte[] address, int newState) {
@@ -477,6 +478,16 @@ final class BondStateMachine extends StateMachine {
         if (a2dpService != null) {
             a2dpService.resetAvrcpBlacklist(device);
         }
+    }
+
+    private String state2str(int state) {
+        if (state == BluetoothDevice.BOND_NONE) {
+            return "BOND_NONE";
+        } else if (state == BluetoothDevice.BOND_BONDING) {
+            return "BOND_BONDING";
+        } else if (state == BluetoothDevice.BOND_BONDED) {
+            return "BOND_BONDED";
+        } else return "UNKNOWN(" + state + ")";
     }
 
     private void infoLog(String msg) {
