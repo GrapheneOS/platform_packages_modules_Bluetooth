@@ -21,6 +21,7 @@ import android.os.RemoteException;
 import android.os.ServiceManager;
 import android.os.SystemClock;
 import android.os.WorkSource;
+import android.util.StatsLog;
 
 import com.android.bluetooth.BluetoothMetricsProto;
 import com.android.internal.app.IBatteryStats;
@@ -39,6 +40,8 @@ import java.util.List;
  * @hide
  */
 /*package*/ class AppScanStats {
+    private static final String TAG = AppScanStats.class.getSimpleName();
+
     static final DateFormat DATE_FORMAT = new SimpleDateFormat("MM-dd HH:mm:ss");
 
     /* ContextMap here is needed to grab Apps and Connections */ ContextMap mContextMap;
@@ -88,7 +91,7 @@ import java.util.List;
     static final int SCAN_TIMEOUT_MS = 30 * 60 * 1000;
 
     public String appName;
-    public WorkSource workSource; // Used for BatteryStats
+    public WorkSource mWorkSource; // Used for BatteryStats and StatsLog
     private int mScansStarted = 0;
     private int mScansStopped = 0;
     public boolean isRegistered = false;
@@ -113,7 +116,7 @@ import java.util.List;
             // Bill the caller if the work source isn't passed through
             source = new WorkSource(Binder.getCallingUid(), appName);
         }
-        workSource = source;
+        mWorkSource = source;
     }
 
     synchronized void addResult(int scannerId) {
@@ -125,7 +128,7 @@ import java.util.List;
             // to lower the cost of the binder transaction
             if (batteryStatsResults % 100 == 0) {
                 try {
-                    mBatteryStats.noteBleScanResults(workSource, 100);
+                    mBatteryStats.noteBleScanResults(mWorkSource, 100);
                 } catch (RemoteException e) {
                     /* ignore */
                 }
@@ -171,10 +174,11 @@ import java.util.List;
         }
         try {
             boolean isUnoptimized = !(scan.filtered || scan.background || scan.opportunistic);
-            mBatteryStats.noteBleScanStarted(workSource, isUnoptimized);
+            mBatteryStats.noteBleScanStarted(mWorkSource, isUnoptimized);
         } catch (RemoteException e) {
             /* ignore */
         }
+        writeToStatsLog(scan, StatsLog.BLE_SCAN_STATE_CHANGED__STATE__ON);
 
         mOngoingScans.put(scannerId, scan);
     }
@@ -220,11 +224,12 @@ import java.util.List;
             // Inform battery stats of any results it might be missing on
             // scan stop
             boolean isUnoptimized = !(scan.filtered || scan.background || scan.opportunistic);
-            mBatteryStats.noteBleScanResults(workSource, scan.results % 100);
-            mBatteryStats.noteBleScanStopped(workSource, isUnoptimized);
+            mBatteryStats.noteBleScanResults(mWorkSource, scan.results % 100);
+            mBatteryStats.noteBleScanStopped(mWorkSource, isUnoptimized);
         } catch (RemoteException e) {
             /* ignore */
         }
+        writeToStatsLog(scan, StatsLog.BLE_SCAN_STATE_CHANGED__STATE__OFF);
     }
 
     synchronized void recordScanSuspend(int scannerId) {
@@ -247,6 +252,24 @@ import java.util.List;
         suspendDuration = stopTime - scan.suspendStartTime;
         scan.suspendDuration += suspendDuration;
         mTotalSuspendTime += suspendDuration;
+    }
+
+    private void writeToStatsLog(LastScan scan, int statsLogState) {
+        for (int i = 0; i < mWorkSource.size(); i++) {
+            StatsLog.write_non_chained(StatsLog.BLE_SCAN_STATE_CHANGED,
+                    mWorkSource.get(i), null,
+                    statsLogState, scan.filtered, scan.background, scan.opportunistic);
+        }
+
+        final List<WorkSource.WorkChain> workChains = mWorkSource.getWorkChains();
+        if (workChains != null) {
+            for (int i = 0; i < workChains.size(); ++i) {
+                WorkSource.WorkChain workChain = workChains.get(i);
+                StatsLog.write(StatsLog.BLE_SCAN_STATE_CHANGED,
+                        workChain.getUids(), workChain.getTags(),
+                        statsLogState, scan.filtered, scan.background, scan.opportunistic);
+            }
+        }
     }
 
     synchronized void setScanTimeout(int scannerId) {
