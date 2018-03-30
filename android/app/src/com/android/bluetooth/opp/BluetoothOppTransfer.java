@@ -505,6 +505,13 @@ public class BluetoothOppTransfer implements BluetoothOppBatch.BluetoothOppBatch
         if (V) {
             Log.v(TAG, "stop");
         }
+        if (mSession != null) {
+            if (V) {
+                Log.v(TAG, "Stop mSession");
+            }
+            mSession.stop();
+        }
+
         cleanUp();
         if (mConnectThread != null) {
             try {
@@ -519,12 +526,6 @@ public class BluetoothOppTransfer implements BluetoothOppBatch.BluetoothOppBatch
                 }
             }
             mConnectThread = null;
-        }
-        if (mSession != null) {
-            if (V) {
-                Log.v(TAG, "Stop mSession");
-            }
-            mSession.stop();
         }
         // Prevent concurrent access
         synchronized (this) {
