@@ -313,6 +313,14 @@ class AvrcpControllerStateMachine extends StateMachine {
                         break;
                     }
 
+                    case MESSAGE_PROCESS_SET_ADDRESSED_PLAYER:
+                        AvrcpControllerService.getPlayerListNative(
+                                mRemoteDevice.getBluetoothAddress(), (byte) 0, (byte) 255);
+                        transitionTo(mGetPlayerListing);
+                        sendMessageDelayed(MESSAGE_INTERNAL_CMD_TIMEOUT, CMD_TIMEOUT_MILLIS);
+                        break;
+
+
                     case MESSAGE_PROCESS_CONNECTION_CHANGE:
                         if (msg.arg1 == BluetoothProfile.STATE_DISCONNECTED) {
                             synchronized (mLock) {
@@ -407,14 +415,6 @@ class AvrcpControllerStateMachine extends StateMachine {
                         mAddressedPlayer.updateCurrentTrack((TrackInfo) msg.obj);
                         broadcastMetaDataChanged(
                                 mAddressedPlayer.getCurrentTrack().getMediaMetaData());
-
-                        //update playerList
-                        byte start = (byte) 0b00000000;
-                        byte end = (byte) 0b11111111;
-                        AvrcpControllerService.getPlayerListNative(
-                                mRemoteDevice.getBluetoothAddress(), start, end);
-                        transitionTo(mGetPlayerListing);
-                        sendMessageDelayed(MESSAGE_INTERNAL_CMD_TIMEOUT, CMD_TIMEOUT_MILLIS);
                         break;
 
                     case MESSAGE_PROCESS_PLAY_POS_CHANGED:
@@ -507,6 +507,21 @@ class AvrcpControllerStateMachine extends StateMachine {
                     broadcastFolderList(mID, EMPTY_MEDIA_ITEM_LIST);
                     transitionTo(mConnected);
                     break;
+
+                case MESSAGE_SEND_PASS_THROUGH_CMD:
+                case MESSAGE_SEND_GROUP_NAVIGATION_CMD:
+                case MESSAGE_PROCESS_SET_ABS_VOL_CMD:
+                case MESSAGE_PROCESS_REGISTER_ABS_VOL_NOTIFICATION:
+                case MESSAGE_PROCESS_TRACK_CHANGED:
+                case MESSAGE_PROCESS_PLAY_POS_CHANGED:
+                case MESSAGE_PROCESS_PLAY_STATUS_CHANGED:
+                case MESSAGE_PROCESS_VOLUME_CHANGED_NOTIFICATION:
+                case MESSAGE_STOP_METADATA_BROADCASTS:
+                case MESSAGE_START_METADATA_BROADCASTS:
+                case MESSAGE_PROCESS_CONNECTION_CHANGE:
+                case MESSAGE_PROCESS_BROWSE_CONNECTION_CHANGE:
+                    // All of these messages should be handled by parent state immediately.
+                    return false;
 
                 default:
                     if (DBG) {
@@ -605,6 +620,21 @@ class AvrcpControllerStateMachine extends StateMachine {
                     transitionTo(mConnected);
                     break;
 
+                case MESSAGE_SEND_PASS_THROUGH_CMD:
+                case MESSAGE_SEND_GROUP_NAVIGATION_CMD:
+                case MESSAGE_PROCESS_SET_ABS_VOL_CMD:
+                case MESSAGE_PROCESS_REGISTER_ABS_VOL_NOTIFICATION:
+                case MESSAGE_PROCESS_TRACK_CHANGED:
+                case MESSAGE_PROCESS_PLAY_POS_CHANGED:
+                case MESSAGE_PROCESS_PLAY_STATUS_CHANGED:
+                case MESSAGE_PROCESS_VOLUME_CHANGED_NOTIFICATION:
+                case MESSAGE_STOP_METADATA_BROADCASTS:
+                case MESSAGE_START_METADATA_BROADCASTS:
+                case MESSAGE_PROCESS_CONNECTION_CHANGE:
+                case MESSAGE_PROCESS_BROWSE_CONNECTION_CHANGE:
+                    // All of these messages should be handled by parent state immediately.
+                    return false;
+
                 default:
                     if (DBG) Log.d(STATE_TAG, "deferring message " + msg.what + " to connected!");
                     deferMessage(msg);
@@ -685,6 +715,21 @@ class AvrcpControllerStateMachine extends StateMachine {
                     transitionTo(mConnected);
                     break;
 
+                case MESSAGE_SEND_PASS_THROUGH_CMD:
+                case MESSAGE_SEND_GROUP_NAVIGATION_CMD:
+                case MESSAGE_PROCESS_SET_ABS_VOL_CMD:
+                case MESSAGE_PROCESS_REGISTER_ABS_VOL_NOTIFICATION:
+                case MESSAGE_PROCESS_TRACK_CHANGED:
+                case MESSAGE_PROCESS_PLAY_POS_CHANGED:
+                case MESSAGE_PROCESS_PLAY_STATUS_CHANGED:
+                case MESSAGE_PROCESS_VOLUME_CHANGED_NOTIFICATION:
+                case MESSAGE_STOP_METADATA_BROADCASTS:
+                case MESSAGE_START_METADATA_BROADCASTS:
+                case MESSAGE_PROCESS_CONNECTION_CHANGE:
+                case MESSAGE_PROCESS_BROWSE_CONNECTION_CHANGE:
+                    // All of these messages should be handled by parent state immediately.
+                    return false;
+
                 default:
                     if (DBG) Log.d(STATE_TAG, "deferring message " + msg.what + " to connected!");
                     deferMessage(msg);
@@ -746,6 +791,21 @@ class AvrcpControllerStateMachine extends StateMachine {
                     transitionTo(mConnected);
                     break;
 
+                case MESSAGE_SEND_PASS_THROUGH_CMD:
+                case MESSAGE_SEND_GROUP_NAVIGATION_CMD:
+                case MESSAGE_PROCESS_SET_ABS_VOL_CMD:
+                case MESSAGE_PROCESS_REGISTER_ABS_VOL_NOTIFICATION:
+                case MESSAGE_PROCESS_TRACK_CHANGED:
+                case MESSAGE_PROCESS_PLAY_POS_CHANGED:
+                case MESSAGE_PROCESS_PLAY_STATUS_CHANGED:
+                case MESSAGE_PROCESS_VOLUME_CHANGED_NOTIFICATION:
+                case MESSAGE_STOP_METADATA_BROADCASTS:
+                case MESSAGE_START_METADATA_BROADCASTS:
+                case MESSAGE_PROCESS_CONNECTION_CHANGE:
+                case MESSAGE_PROCESS_BROWSE_CONNECTION_CHANGE:
+                    // All of these messages should be handled by parent state immediately.
+                    return false;
+
                 default:
                     if (DBG) Log.d(STATE_TAG, "deferring message " + msg.what + " to connected!");
                     deferMessage(msg);
@@ -792,6 +852,21 @@ class AvrcpControllerStateMachine extends StateMachine {
                     transitionTo(mConnected);
                     break;
 
+                case MESSAGE_SEND_PASS_THROUGH_CMD:
+                case MESSAGE_SEND_GROUP_NAVIGATION_CMD:
+                case MESSAGE_PROCESS_SET_ABS_VOL_CMD:
+                case MESSAGE_PROCESS_REGISTER_ABS_VOL_NOTIFICATION:
+                case MESSAGE_PROCESS_TRACK_CHANGED:
+                case MESSAGE_PROCESS_PLAY_POS_CHANGED:
+                case MESSAGE_PROCESS_PLAY_STATUS_CHANGED:
+                case MESSAGE_PROCESS_VOLUME_CHANGED_NOTIFICATION:
+                case MESSAGE_STOP_METADATA_BROADCASTS:
+                case MESSAGE_START_METADATA_BROADCASTS:
+                case MESSAGE_PROCESS_CONNECTION_CHANGE:
+                case MESSAGE_PROCESS_BROWSE_CONNECTION_CHANGE:
+                    // All of these messages should be handled by parent state immediately.
+                    return false;
+
                 default:
                     if (DBG) Log.d(STATE_TAG, "deferring message " + msg.what + " to connected!");
                     deferMessage(msg);
@@ -832,6 +907,21 @@ class AvrcpControllerStateMachine extends StateMachine {
                 case MESSAGE_INTERNAL_CMD_TIMEOUT:
                     transitionTo(mConnected);
                     break;
+
+                case MESSAGE_SEND_PASS_THROUGH_CMD:
+                case MESSAGE_SEND_GROUP_NAVIGATION_CMD:
+                case MESSAGE_PROCESS_SET_ABS_VOL_CMD:
+                case MESSAGE_PROCESS_REGISTER_ABS_VOL_NOTIFICATION:
+                case MESSAGE_PROCESS_TRACK_CHANGED:
+                case MESSAGE_PROCESS_PLAY_POS_CHANGED:
+                case MESSAGE_PROCESS_PLAY_STATUS_CHANGED:
+                case MESSAGE_PROCESS_VOLUME_CHANGED_NOTIFICATION:
+                case MESSAGE_STOP_METADATA_BROADCASTS:
+                case MESSAGE_START_METADATA_BROADCASTS:
+                case MESSAGE_PROCESS_CONNECTION_CHANGE:
+                case MESSAGE_PROCESS_BROWSE_CONNECTION_CHANGE:
+                    // All of these messages should be handled by parent state immediately.
+                    return false;
 
                 default:
                     if (DBG) Log.d(STATE_TAG, "deferring message " + msg.what + " to connected!");
