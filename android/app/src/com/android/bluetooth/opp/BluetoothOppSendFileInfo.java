@@ -127,10 +127,14 @@ public class BluetoothOppSendFileInfo {
             if (metadataCursor != null) {
                 try {
                     if (metadataCursor.moveToFirst()) {
-                        fileName = metadataCursor.getString(
-                                metadataCursor.getColumnIndex(OpenableColumns.DISPLAY_NAME));
-                        length = metadataCursor.getLong(
-                                metadataCursor.getColumnIndex(OpenableColumns.SIZE));
+                        int indexName = metadataCursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
+                        int indexSize = metadataCursor.getColumnIndex(OpenableColumns.SIZE);
+                        if (indexName != -1) {
+                            fileName = metadataCursor.getString(indexName);
+                        }
+                        if (indexSize != -1) {
+                            length = metadataCursor.getLong(indexSize);
+                        }
                         if (D) {
                             Log.d(TAG, "fileName = " + fileName + " length = " + length);
                         }
@@ -142,6 +146,7 @@ public class BluetoothOppSendFileInfo {
             if (fileName == null) {
                 // use last segment of URI if DISPLAY_NAME query fails
                 fileName = uri.getLastPathSegment();
+                if (D) Log.d(TAG, "fileName from URI :" + fileName);
             }
         } else if ("file".equals(scheme)) {
             if (uri.getPath() == null) {
