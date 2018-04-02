@@ -36,10 +36,12 @@ import android.util.Log;
 import androidx.annotation.GuardedBy;
 import androidx.annotation.VisibleForTesting;
 
+import com.android.bluetooth.BluetoothMetricsProto;
 import com.android.bluetooth.Utils;
 import com.android.bluetooth.avrcp.Avrcp;
 import com.android.bluetooth.avrcp.AvrcpTargetService;
 import com.android.bluetooth.btservice.AdapterService;
+import com.android.bluetooth.btservice.MetricsLogger;
 import com.android.bluetooth.btservice.ProfileService;
 
 import java.util.ArrayList;
@@ -907,6 +909,7 @@ public class A2dpService extends ProfileService {
                 // codecs (perhaps it's had a firmware update, etc.) and save that state if
                 // it differs from what we had saved before.
                 updateOptionalCodecsSupport(device);
+                MetricsLogger.logProfileConnectionEvent(BluetoothMetricsProto.ProfileId.A2DP);
             }
             // Set the active device if only one connected device is supported and it was connected
             if (toState == BluetoothProfile.STATE_CONNECTED && (mMaxConnectedAudioDevices == 1)) {

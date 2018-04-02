@@ -33,8 +33,10 @@ import android.os.Bundle;
 import android.os.Message;
 import android.util.Log;
 
+import com.android.bluetooth.BluetoothMetricsProto;
 import com.android.bluetooth.Utils;
 import com.android.bluetooth.a2dpsink.A2dpSinkService;
+import com.android.bluetooth.btservice.MetricsLogger;
 import com.android.bluetooth.btservice.ProfileService;
 import com.android.internal.util.State;
 import com.android.internal.util.StateMachine;
@@ -189,6 +191,8 @@ class AvrcpControllerStateMachine extends StateMachine {
                             mAddressedPlayer = new AvrcpPlayer();
                             mIsConnected = true;
                         }
+                        MetricsLogger.logProfileConnectionEvent(
+                                BluetoothMetricsProto.ProfileId.AVRCP_CONTROLLER);
                         Intent intent = new Intent(
                                 BluetoothAvrcpController.ACTION_CONNECTION_STATE_CHANGED);
                         intent.putExtra(BluetoothProfile.EXTRA_PREVIOUS_STATE,

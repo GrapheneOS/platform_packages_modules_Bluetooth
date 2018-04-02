@@ -33,8 +33,10 @@ import android.util.Log;
 
 import androidx.annotation.VisibleForTesting;
 
+import com.android.bluetooth.BluetoothMetricsProto;
 import com.android.bluetooth.Utils;
 import com.android.bluetooth.btservice.AdapterService;
+import com.android.bluetooth.btservice.MetricsLogger;
 import com.android.bluetooth.btservice.ProfileService;
 
 import java.util.ArrayList;
@@ -639,6 +641,16 @@ public class HearingAidService extends ProfileService {
         }
     }
 
+    private List<BluetoothDevice> getConnectedPeerDevices(long hiSyncId) {
+        List<BluetoothDevice> result = new ArrayList<>();
+        for (BluetoothDevice peerDevice : getConnectedDevices()) {
+            if (getHiSyncId(peerDevice) == hiSyncId) {
+                result.add(peerDevice);
+            }
+        }
+        return result;
+    }
+
     @VisibleForTesting
     synchronized void connectionStateChanged(BluetoothDevice device, int fromState,
                                                      int toState) {
@@ -648,6 +660,14 @@ public class HearingAidService extends ProfileService {
             return;
         }
         if (toState == BluetoothProfile.STATE_CONNECTED) {
+            long myHiSyncId = getHiSyncId(device);
+            if (myHiSyncId == BluetoothHearingAid.HI_SYNC_ID_INVALID
+                    || getConnectedPeerDevices(myHiSyncId).size() == 1) {
+                // Log hearing aid connection event if we are the first device in a set
+                // Or when the hiSyncId has not been found
+                MetricsLogger.logProfileConnectionEvent(
+                        BluetoothMetricsProto.ProfileId.HEARING_AID);
+            }
             setActiveDevice(device);
         }
         if (fromState == BluetoothProfile.STATE_CONNECTED && getConnectedDevices().isEmpty()) {

@@ -26,8 +26,10 @@ import android.util.Log;
 
 import androidx.annotation.VisibleForTesting;
 
+import com.android.bluetooth.BluetoothMetricsProto;
 import com.android.bluetooth.R;
 import com.android.bluetooth.Utils;
+import com.android.bluetooth.btservice.MetricsLogger;
 import com.android.bluetooth.btservice.ProfileService;
 import com.android.bluetooth.sdp.SdpManager;
 
@@ -509,6 +511,9 @@ public class SapService extends ProfileService {
         if (state != mState) {
             if (DEBUG) {
                 Log.d(TAG, "Sap state " + mState + " -> " + state + ", result = " + result);
+            }
+            if (state == BluetoothProfile.STATE_CONNECTED) {
+                MetricsLogger.logProfileConnectionEvent(BluetoothMetricsProto.ProfileId.SAP);
             }
             int prevState = mState;
             mState = state;
