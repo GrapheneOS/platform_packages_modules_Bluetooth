@@ -43,6 +43,9 @@ import android.os.Process;
 import android.os.SystemClock;
 import android.util.Log;
 
+import com.android.bluetooth.BluetoothMetricsProto;
+import com.android.bluetooth.btservice.MetricsLogger;
+
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -74,6 +77,8 @@ public class BluetoothOppObexClientSession implements BluetoothOppObexSession {
     private volatile boolean mWaitingForRemote;
 
     private Handler mCallback;
+
+    private int mNumFilesAttemptedToSend;
 
     public BluetoothOppObexClientSession(Context context, ObexTransport transport) {
         if (transport == null) {
@@ -194,6 +199,7 @@ public class BluetoothOppObexClientSession implements BluetoothOppObexSession {
                 connect(mNumShares);
             }
 
+            mNumFilesAttemptedToSend = 0;
             while (!mInterrupted) {
                 if (!mWaitingForShare) {
                     doSend();
@@ -216,6 +222,11 @@ public class BluetoothOppObexClientSession implements BluetoothOppObexSession {
                     Log.v(TAG, "release partial WakeLock");
                 }
                 mWakeLock.release();
+            }
+
+            if (mNumFilesAttemptedToSend > 0) {
+                // Log outgoing OPP transfer if more than one file is accepted by remote
+                MetricsLogger.logProfileConnectionEvent(BluetoothMetricsProto.ProfileId.OPP);
             }
             Message msg = Message.obtain(mCallback);
             msg.what = BluetoothOppObexSession.MSG_SESSION_COMPLETE;
@@ -487,6 +498,7 @@ public class BluetoothOppObexClientSession implements BluetoothOppObexSession {
                             updateValues.put(BluetoothShare.CURRENT_BYTES, position);
                             mContext1.getContentResolver()
                                     .update(contentUri, updateValues, null, null);
+                            mNumFilesAttemptedToSend++;
                         } else {
                             Log.i(TAG, "Remote reject, Response code is " + responseCode);
                         }
