@@ -29,8 +29,10 @@ import android.os.Looper;
 import android.os.SystemProperties;
 import android.util.Log;
 
+import com.android.bluetooth.BluetoothMetricsProto;
 import com.android.bluetooth.Utils;
 import com.android.bluetooth.a2dp.A2dpService;
+import com.android.bluetooth.btservice.MetricsLogger;
 import com.android.bluetooth.btservice.ProfileService;
 
 import java.util.List;
@@ -170,6 +172,7 @@ public class AvrcpTargetService extends ProfileService {
     void deviceConnected(String bdaddr, boolean absoluteVolume) {
         Log.i(TAG, "deviceConnected: bdaddr=" + bdaddr + " absoluteVolume=" + absoluteVolume);
         mAudioManager.avrcpSupportsAbsoluteVolume(bdaddr, absoluteVolume);
+        MetricsLogger.logProfileConnectionEvent(BluetoothMetricsProto.ProfileId.AVRCP);
     }
 
     void deviceDisconnected(String bdaddr) {

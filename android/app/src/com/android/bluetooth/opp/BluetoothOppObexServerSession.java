@@ -44,7 +44,9 @@ import android.os.SystemClock;
 import android.util.Log;
 import android.webkit.MimeTypeMap;
 
+import com.android.bluetooth.BluetoothMetricsProto;
 import com.android.bluetooth.BluetoothObexTransport;
+import com.android.bluetooth.btservice.MetricsLogger;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -99,6 +101,8 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler
     boolean mTimeoutMsgSent = false;
 
     private BluetoothOppService mBluetoothOppService;
+
+    private int mNumFilesAttemptedToReceive;
 
     public BluetoothOppObexServerSession(Context context, ObexTransport transport,
             BluetoothOppService service) {
@@ -346,6 +350,7 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler
                 || mAccepted == BluetoothShare.USER_CONFIRMATION_AUTO_CONFIRMED
                 || mAccepted == BluetoothShare.USER_CONFIRMATION_HANDOVER_CONFIRMED) {
             /* Confirm or auto-confirm */
+            mNumFilesAttemptedToReceive++;
 
             if (mFileInfo.mFileName == null) {
                 status = mFileInfo.mStatus;
@@ -601,6 +606,7 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler
             mContext.sendBroadcast(intent, Constants.HANDOVER_STATUS_PERMISSION);
         }
         mTimestamp = System.currentTimeMillis();
+        mNumFilesAttemptedToReceive = 0;
         return ResponseCodes.OBEX_HTTP_OK;
     }
 
@@ -608,6 +614,10 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler
     public void onDisconnect(HeaderSet req, HeaderSet resp) {
         if (D) {
             Log.d(TAG, "onDisconnect");
+        }
+        if (mNumFilesAttemptedToReceive > 0) {
+            // Log incoming OPP transfer if more than one file is accepted by user
+            MetricsLogger.logProfileConnectionEvent(BluetoothMetricsProto.ProfileId.OPP);
         }
         resp.responseCode = ResponseCodes.OBEX_HTTP_OK;
     }
