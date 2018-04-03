@@ -172,11 +172,6 @@ public class BluetoothOppIncomingFileConfirmActivity extends AlertActivity
             if (D) {
                 Log.d(TAG, "onKeyDown() called; Key: back key");
             }
-            mUpdateValues = new ContentValues();
-            mUpdateValues.put(BluetoothShare.VISIBILITY, BluetoothShare.VISIBILITY_HIDDEN);
-            this.getContentResolver().update(mUri, mUpdateValues, null, null);
-
-            Toast.makeText(this, getString(R.string.bt_toast_2), Toast.LENGTH_SHORT).show();
             finish();
             return true;
         }
