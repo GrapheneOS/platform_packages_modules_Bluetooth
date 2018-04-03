@@ -52,8 +52,9 @@ import android.os.Binder;
 import android.os.Handler;
 import android.os.Message;
 import android.os.Process;
-import android.support.annotation.VisibleForTesting;
 import android.util.Log;
+
+import androidx.annotation.VisibleForTesting;
 
 import com.android.bluetooth.BluetoothObexTransport;
 import com.android.bluetooth.IObexConnectionHandler;

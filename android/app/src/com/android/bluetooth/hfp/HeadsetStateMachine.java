@@ -32,9 +32,10 @@ import android.os.RemoteException;
 import android.os.ServiceManager;
 import android.os.SystemClock;
 import android.os.UserHandle;
-import android.support.annotation.VisibleForTesting;
 import android.telephony.PhoneNumberUtils;
 import android.util.Log;
+
+import androidx.annotation.VisibleForTesting;
 
 import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.ProfileService;

@@ -31,8 +31,9 @@ import android.os.Looper;
 import android.os.Message;
 import android.os.ParcelUuid;
 import android.os.Parcelable;
-import android.support.annotation.VisibleForTesting;
 import android.util.Log;
+
+import androidx.annotation.VisibleForTesting;
 
 import com.android.bluetooth.a2dp.A2dpService;
 import com.android.bluetooth.hearingaid.HearingAidService;

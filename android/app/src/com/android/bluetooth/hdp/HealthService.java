@@ -28,8 +28,9 @@ import android.os.Looper;
 import android.os.Message;
 import android.os.ParcelFileDescriptor;
 import android.os.RemoteException;
-import android.support.annotation.VisibleForTesting;
 import android.util.Log;
+
+import androidx.annotation.VisibleForTesting;
 
 import com.android.bluetooth.Utils;
 import com.android.bluetooth.btservice.ProfileService;

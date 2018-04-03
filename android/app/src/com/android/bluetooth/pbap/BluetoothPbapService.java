@@ -49,10 +49,11 @@ import android.os.Looper;
 import android.os.Message;
 import android.os.PowerManager;
 import android.os.UserManager;
-import android.support.annotation.VisibleForTesting;
 import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 import android.util.Log;
+
+import androidx.annotation.VisibleForTesting;
 
 import com.android.bluetooth.IObexConnectionHandler;
 import com.android.bluetooth.ObexServerSockets;

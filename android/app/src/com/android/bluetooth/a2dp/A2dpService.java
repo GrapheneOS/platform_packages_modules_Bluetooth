@@ -31,9 +31,10 @@ import android.content.IntentFilter;
 import android.media.AudioManager;
 import android.os.HandlerThread;
 import android.provider.Settings;
-import android.support.annotation.GuardedBy;
-import android.support.annotation.VisibleForTesting;
 import android.util.Log;
+
+import androidx.annotation.GuardedBy;
+import androidx.annotation.VisibleForTesting;
 
 import com.android.bluetooth.Utils;
 import com.android.bluetooth.avrcp.Avrcp;

@@ -21,9 +21,10 @@ import android.os.Message;
 import android.os.ParcelUuid;
 import android.os.PowerManager;
 import android.provider.Settings;
-import android.support.annotation.VisibleForTesting;
 import android.text.TextUtils;
 import android.util.Log;
+
+import androidx.annotation.VisibleForTesting;
 
 import com.android.bluetooth.R;
 import com.android.bluetooth.Utils;
