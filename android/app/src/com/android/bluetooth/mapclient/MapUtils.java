@@ -15,7 +15,7 @@
  */
 package com.android.bluetooth.mapclient;
 
-import android.support.annotation.VisibleForTesting;
+import androidx.annotation.VisibleForTesting;
 
 class MapUtils {
     private static MnsService sMnsService = null;
