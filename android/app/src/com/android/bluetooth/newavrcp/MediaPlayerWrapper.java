@@ -22,9 +22,10 @@ import android.media.session.PlaybackState;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
-import android.support.annotation.GuardedBy;
-import android.support.annotation.VisibleForTesting;
 import android.util.Log;
+
+import androidx.annotation.GuardedBy;
+import androidx.annotation.VisibleForTesting;
 
 import java.util.List;
 

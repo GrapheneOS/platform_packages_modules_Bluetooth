@@ -31,8 +31,9 @@ import android.content.IntentFilter;
 import android.net.Uri;
 import android.os.ParcelUuid;
 import android.provider.Settings;
-import android.support.annotation.VisibleForTesting;
 import android.util.Log;
+
+import androidx.annotation.VisibleForTesting;
 
 import com.android.bluetooth.Utils;
 import com.android.bluetooth.btservice.ProfileService;

@@ -27,7 +27,7 @@ LOCAL_STATIC_JAVA_LIBRARIES := \
         libprotobuf-java-lite \
         bluetooth-protos-lite
 
-LOCAL_STATIC_ANDROID_LIBRARIES := android-support-v4
+LOCAL_STATIC_ANDROID_LIBRARIES := androidx.legacy_legacy-support-v4
 LOCAL_REQUIRED_MODULES := libbluetooth
 LOCAL_PROGUARD_ENABLED := disabled
 include $(BUILD_PACKAGE)

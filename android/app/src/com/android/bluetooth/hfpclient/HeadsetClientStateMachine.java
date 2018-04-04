@@ -47,9 +47,10 @@ import android.os.Looper;
 import android.os.Message;
 import android.os.ParcelUuid;
 import android.os.SystemClock;
-import android.support.annotation.VisibleForTesting;
 import android.util.Log;
 import android.util.Pair;
+
+import androidx.annotation.VisibleForTesting;
 
 import com.android.bluetooth.R;
 import com.android.bluetooth.Utils;
