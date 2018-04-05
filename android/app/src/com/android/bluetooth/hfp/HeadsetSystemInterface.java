@@ -107,7 +107,6 @@ public class HeadsetSystemInterface {
             // Synchronization should make sure unbind can be successful
             mHeadsetService.unbindService(mPhoneProxyConnection);
         }
-        mHeadsetPhoneState.listenForPhoneState(false);
         mHeadsetPhoneState.cleanup();
     }
 

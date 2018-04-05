@@ -31,6 +31,7 @@ import android.os.UserHandle;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.filters.MediumTest;
 import android.support.test.runner.AndroidJUnit4;
+import android.telephony.PhoneStateListener;
 
 import com.android.bluetooth.R;
 import com.android.bluetooth.TestUtils;
@@ -788,6 +789,33 @@ public class HeadsetStateMachineTest {
                 mIntentArgument.getAllValues().get(mIntentArgument.getAllValues().size() - 1));
         Assert.assertThat(mHeadsetStateMachine.getCurrentState(),
                 IsInstanceOf.instanceOf(HeadsetStateMachine.Disconnected.class));
+    }
+
+    /**
+     * A test to verify that we correctly subscribe to phone state updates for service and signal
+     * strength information and further updates via AT+BIA command results in update
+     */
+    @Test
+    public void testAtBiaEvent_initialSubscriptionWithUpdates() {
+        setUpConnectedState();
+        verify(mPhoneState).listenForPhoneState(mTestDevice,
+                PhoneStateListener.LISTEN_SERVICE_STATE
+                        | PhoneStateListener.LISTEN_SIGNAL_STRENGTHS);
+        mHeadsetStateMachine.sendMessage(HeadsetStateMachine.STACK_EVENT,
+                new HeadsetStackEvent(HeadsetStackEvent.EVENT_TYPE_BIA,
+                        new HeadsetAgIndicatorEnableState(true, true, false, false), mTestDevice));
+        verify(mPhoneState, timeout(ASYNC_CALL_TIMEOUT_MILLIS)).listenForPhoneState(mTestDevice,
+                PhoneStateListener.LISTEN_SERVICE_STATE);
+        mHeadsetStateMachine.sendMessage(HeadsetStateMachine.STACK_EVENT,
+                new HeadsetStackEvent(HeadsetStackEvent.EVENT_TYPE_BIA,
+                        new HeadsetAgIndicatorEnableState(false, true, true, false), mTestDevice));
+        verify(mPhoneState, timeout(ASYNC_CALL_TIMEOUT_MILLIS)).listenForPhoneState(mTestDevice,
+                PhoneStateListener.LISTEN_SIGNAL_STRENGTHS);
+        mHeadsetStateMachine.sendMessage(HeadsetStateMachine.STACK_EVENT,
+                new HeadsetStackEvent(HeadsetStackEvent.EVENT_TYPE_BIA,
+                        new HeadsetAgIndicatorEnableState(false, true, false, false), mTestDevice));
+        verify(mPhoneState, timeout(ASYNC_CALL_TIMEOUT_MILLIS)).listenForPhoneState(mTestDevice,
+                PhoneStateListener.LISTEN_NONE);
     }
 
     /**

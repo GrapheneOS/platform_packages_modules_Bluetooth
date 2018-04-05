@@ -200,7 +200,8 @@ public class HeadsetService extends ProfileService {
      *
      * @return {@link Looper} for the state machine thread
      */
-    Looper getStateMachinesThreadLooper() {
+    @VisibleForTesting
+    public Looper getStateMachinesThreadLooper() {
         return mStateMachinesThread.getLooper();
     }
 
