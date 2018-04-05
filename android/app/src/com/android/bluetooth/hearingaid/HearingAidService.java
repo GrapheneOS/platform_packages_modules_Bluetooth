@@ -417,34 +417,68 @@ public class HearingAidService extends ProfileService {
     /**
      * Set the active device.
      * @param device the new active device
+     * @return true on success, otherwise false
      */
-    public void setActiveDevice(BluetoothDevice device) {
+    public boolean setActiveDevice(BluetoothDevice device) {
+        enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH ADMIN permission");
         if (DBG) {
             Log.d(TAG, "setActiveDevice:" + device);
         }
-        if (device == null) {
-            if (mActiveDeviceHiSyncId != BluetoothHearingAid.HI_SYNC_ID_INVALID) {
-                reportActiveDevice(null);
-                mActiveDeviceHiSyncId = BluetoothHearingAid.HI_SYNC_ID_INVALID;
+        synchronized (mStateMachines) {
+            if (device == null) {
+                if (mActiveDeviceHiSyncId != BluetoothHearingAid.HI_SYNC_ID_INVALID) {
+                    reportActiveDevice(null);
+                    mActiveDeviceHiSyncId = BluetoothHearingAid.HI_SYNC_ID_INVALID;
+                }
+                return true;
             }
-            return;
+            if (getConnectionState(device) != BluetoothProfile.STATE_CONNECTED) {
+                Log.e(TAG, "setActiveDevice(" + device + "): failed because device not connected");
+                return false;
+            }
+            Long deviceHiSyncId = mDeviceHiSyncIdMap.getOrDefault(device,
+                    BluetoothHearingAid.HI_SYNC_ID_INVALID);
+            if (deviceHiSyncId != mActiveDeviceHiSyncId) {
+                mActiveDeviceHiSyncId = deviceHiSyncId;
+                reportActiveDevice(device);
+            }
         }
-        Long deviceHiSyncId = mDeviceHiSyncIdMap.getOrDefault(device,
-                BluetoothHearingAid.HI_SYNC_ID_INVALID);
-        if (deviceHiSyncId != mActiveDeviceHiSyncId) {
-            reportActiveDevice(device);
-            mActiveDeviceHiSyncId = deviceHiSyncId;
-        }
+        return true;
     }
 
-    boolean isActiveDevice(BluetoothDevice device) {
+    /**
+     * Get the connected physical Hearing Aid devices that are active
+     *
+     * @return the list of active devices. The first element is the left active
+     * device; the second element is the right active device. If either or both side
+     * is not active, it will be null on that position
+     */
+    List<BluetoothDevice> getActiveDevices() {
         if (DBG) {
-            Log.d(TAG, "isActiveDevice:" + device);
+            Log.d(TAG, "getActiveDevices");
         }
-        return getConnectionState(device) == BluetoothProfile.STATE_CONNECTED
-                && mActiveDeviceHiSyncId != BluetoothHearingAid.HI_SYNC_ID_INVALID
-                && mActiveDeviceHiSyncId == mDeviceHiSyncIdMap.getOrDefault(device,
-                BluetoothHearingAid.HI_SYNC_ID_INVALID);
+        ArrayList<BluetoothDevice> activeDevices = new ArrayList<>();
+        activeDevices.add(null);
+        activeDevices.add(null);
+        synchronized (mStateMachines) {
+            if (mActiveDeviceHiSyncId == BluetoothHearingAid.HI_SYNC_ID_INVALID) {
+                return activeDevices;
+            }
+            for (BluetoothDevice device : mDeviceHiSyncIdMap.keySet()) {
+                if (getConnectionState(device) != BluetoothProfile.STATE_CONNECTED) {
+                    continue;
+                }
+                if (mDeviceHiSyncIdMap.get(device) == mActiveDeviceHiSyncId) {
+                    int deviceSide = getCapabilities(device) & 1;
+                    if (deviceSide == BluetoothHearingAid.SIDE_RIGHT) {
+                        activeDevices.set(1, device);
+                    } else {
+                        activeDevices.set(0, device);
+                    }
+                }
+            }
+        }
+        return activeDevices;
     }
 
     void messageFromNative(HearingAidStackEvent stackEvent) {
@@ -719,21 +753,21 @@ public class HearingAidService extends ProfileService {
         }
 
         @Override
-        public void setActiveDevice(BluetoothDevice device) {
-            HearingAidService service = getService();
-            if (service == null) {
-                return;
-            }
-            service.setActiveDevice(device);
-        }
-
-        @Override
-        public boolean isActiveDevice(BluetoothDevice device) {
+        public boolean setActiveDevice(BluetoothDevice device) {
             HearingAidService service = getService();
             if (service == null) {
                 return false;
             }
-            return service.isActiveDevice(device);
+            return service.setActiveDevice(device);
+        }
+
+        @Override
+        public List<BluetoothDevice> getActiveDevices() {
+            HearingAidService service = getService();
+            if (service == null) {
+                return new ArrayList<>();
+            }
+            return service.getActiveDevices();
         }
 
         @Override
