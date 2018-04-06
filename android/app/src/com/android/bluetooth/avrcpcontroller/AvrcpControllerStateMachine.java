@@ -32,6 +32,7 @@ import android.media.session.PlaybackState;
 import android.os.Bundle;
 import android.os.Message;
 import android.util.Log;
+import android.util.SparseArray;
 
 import com.android.bluetooth.BluetoothMetricsProto;
 import com.android.bluetooth.Utils;
@@ -73,6 +74,7 @@ class AvrcpControllerStateMachine extends StateMachine {
     static final int MESSAGE_PROCESS_FOLDER_PATH = 112;
     static final int MESSAGE_PROCESS_SET_BROWSED_PLAYER = 113;
     static final int MESSAGE_PROCESS_SET_ADDRESSED_PLAYER = 114;
+    static final int MESSAGE_PROCESS_ADDRESSED_PLAYER_CHANGED = 115;
 
     // commands from A2DP sink
     static final int MESSAGE_STOP_METADATA_BROADCASTS = 201;
@@ -136,6 +138,8 @@ class AvrcpControllerStateMachine extends StateMachine {
     // Only accessed from State Machine processMessage
     private int mVolumeChangedNotificationsToIgnore = 0;
     private int mPreviousPercentageVol = -1;
+    private int mAddressedPlayerID = -1;
+    private SparseArray<AvrcpPlayer> mAvailablePlayerList = new SparseArray<AvrcpPlayer>();
 
     // Depth from root of current browsing. This can be used to move to root directly.
     private int mBrowseDepth = 0;
@@ -458,6 +462,17 @@ class AvrcpControllerStateMachine extends StateMachine {
                         }
                         break;
 
+                    case MESSAGE_PROCESS_ADDRESSED_PLAYER_CHANGED:
+                        mAddressedPlayerID = msg.arg1;
+                        if (DBG) Log.d(TAG, "AddressedPlayer = " + mAddressedPlayerID);
+                        AvrcpPlayer updatedPlayer = mAvailablePlayerList.get(mAddressedPlayerID);
+                        if (updatedPlayer != null) {
+                            mAddressedPlayer = updatedPlayer;
+                            if (DBG) Log.d(TAG, "AddressedPlayer = " + mAddressedPlayer.getName());
+                        }
+                        sendMessage(MESSAGE_PROCESS_SET_ADDRESSED_PLAYER);
+                        break;
+
                     default:
                         return false;
                 }
@@ -729,11 +744,21 @@ class AvrcpControllerStateMachine extends StateMachine {
             switch (msg.what) {
                 case MESSAGE_PROCESS_GET_PLAYER_ITEMS:
                     List<AvrcpPlayer> playerList = (List<AvrcpPlayer>) msg.obj;
+                    mAvailablePlayerList.clear();
+                    for (AvrcpPlayer player : playerList) {
+                        mAvailablePlayerList.put(player.getId(), player);
+                    }
                     mBrowseTree.refreshChildren(BrowseTree.ROOT, playerList);
                     ArrayList<MediaItem> mediaItemList = new ArrayList<>();
                     for (BrowseTree.BrowseNode c : mBrowseTree.findBrowseNodeByID(BrowseTree.ROOT)
                             .getChildren()) {
                         mediaItemList.add(c.getMediaItem());
+                    }
+                    if (DBG) Log.d(TAG, "AddressedPlayer List Updated");
+                    AvrcpPlayer updatedPlayer = mAvailablePlayerList.get(mAddressedPlayerID);
+                    if (updatedPlayer != null) {
+                        mAddressedPlayer = updatedPlayer;
+                        if (DBG) Log.d(TAG, "AddressedPlayer = " + mAddressedPlayer.getName());
                     }
                     broadcastFolderList(BrowseTree.ROOT, mediaItemList);
                     mBrowseTree.setCurrentBrowsedFolder(BrowseTree.ROOT);

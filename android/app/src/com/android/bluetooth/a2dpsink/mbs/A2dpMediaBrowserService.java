@@ -106,12 +106,10 @@ public class A2dpMediaBrowserService extends MediaBrowserService {
     private A2dpSinkService mA2dpSinkService = null;
     private Handler mAvrcpCommandQueue;
     private final Map<String, Result<List<MediaItem>>> mParentIdToRequestMap = new HashMap<>();
+    private int mCurrentlyHeldKey = 0;
 
     // Browsing related structures.
     private List<MediaItem> mNowPlayingList = null;
-
-    private long mTransportControlFlags = PlaybackState.ACTION_PAUSE | PlaybackState.ACTION_PLAY
-            | PlaybackState.ACTION_SKIP_TO_NEXT | PlaybackState.ACTION_SKIP_TO_PREVIOUS;
 
     private static final class AvrcpCommandQueueHandler extends Handler {
         WeakReference<A2dpMediaBrowserService> mInst;
@@ -408,10 +406,6 @@ public class A2dpMediaBrowserService extends MediaBrowserService {
         mA2dpSinkService = A2dpSinkService.getA2dpSinkService();
 
         PlaybackState playbackState = mAvrcpCtrlSrvc.getPlaybackState(mA2dpDevice);
-        // Add actions required for playback and rebuild the object.
-        PlaybackState.Builder pbb = new PlaybackState.Builder(playbackState);
-        playbackState = pbb.setActions(mTransportControlFlags).build();
-
         MediaMetadata mediaMetadata = mAvrcpCtrlSrvc.getMetaData(mA2dpDevice);
         if (VDBG) {
             Log.d(TAG, "Media metadata " + mediaMetadata + " playback state " + playbackState);
@@ -435,7 +429,6 @@ public class A2dpMediaBrowserService extends MediaBrowserService {
         PlaybackState.Builder pbb = new PlaybackState.Builder();
         pbb = pbb.setState(PlaybackState.STATE_ERROR, PlaybackState.PLAYBACK_POSITION_UNKNOWN,
                 PLAYBACK_SPEED)
-                .setActions(mTransportControlFlags)
                 .setErrorMessage(getString(R.string.bluetooth_disconnected));
         mSession.setPlaybackState(pbb.build());
 
@@ -470,8 +463,6 @@ public class A2dpMediaBrowserService extends MediaBrowserService {
 
         if (pb != null) {
             if (DBG) Log.d(TAG, "msgTrack() playbackstate " + pb);
-            PlaybackState.Builder pbb = new PlaybackState.Builder(pb);
-            pb = pbb.setActions(mTransportControlFlags).build();
             mSession.setPlaybackState(pb);
 
             // If we are now playing then we should start pushing updates via MediaSession so that
@@ -482,6 +473,11 @@ public class A2dpMediaBrowserService extends MediaBrowserService {
         }
     }
 
+    private boolean isHoldableKey(int cmd) {
+        return  (cmd == AvrcpControllerService.PASS_THRU_CMD_ID_REWIND)
+                || (cmd == AvrcpControllerService.PASS_THRU_CMD_ID_FF);
+    }
+
     private synchronized void msgPassThru(int cmd) {
         if (DBG) Log.d(TAG, "msgPassThru " + cmd);
         if (mA2dpDevice == null) {
@@ -489,12 +485,24 @@ public class A2dpMediaBrowserService extends MediaBrowserService {
             Log.w(TAG, "Already disconnected ignoring.");
             return;
         }
+        // Some keys should be held until the next event.
+        if (mCurrentlyHeldKey != 0) {
+            mAvrcpCtrlSrvc.sendPassThroughCmd(mA2dpDevice, mCurrentlyHeldKey,
+                    AvrcpControllerService.KEY_STATE_RELEASED);
+            mCurrentlyHeldKey = 0;
+        }
 
         // Send the pass through.
         mAvrcpCtrlSrvc.sendPassThroughCmd(mA2dpDevice, cmd,
                 AvrcpControllerService.KEY_STATE_PRESSED);
-        mAvrcpCtrlSrvc.sendPassThroughCmd(mA2dpDevice, cmd,
+
+        if (isHoldableKey(cmd)) {
+            // Release cmd next time a command is sent.
+            mCurrentlyHeldKey = cmd;
+        } else {
+            mAvrcpCtrlSrvc.sendPassThroughCmd(mA2dpDevice, cmd,
                 AvrcpControllerService.KEY_STATE_RELEASED);
+        }
     }
 
     private synchronized void msgGetPlayStatusNative() {
