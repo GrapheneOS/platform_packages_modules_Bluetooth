@@ -453,6 +453,15 @@ public class HidDeviceService extends ProfileService {
 
             return service.getDevicesMatchingConnectionStates(states);
         }
+
+        @Override
+        public String getUserAppName() {
+            HidDeviceService service = getService();
+            if (service == null) {
+                return "";
+            }
+            return service.getUserAppName();
+        }
     }
 
     @Override
@@ -612,6 +621,15 @@ public class HidDeviceService extends ProfileService {
 
         return checkDevice(device) && checkCallingUid()
                 && mHidDeviceNativeInterface.reportError(error);
+    }
+
+    synchronized String getUserAppName() {
+        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+        if (mUserUid < Process.FIRST_APPLICATION_UID) {
+            return "";
+        }
+        String appName = getPackageManager().getNameForUid(mUserUid);
+        return appName != null ? appName : "";
     }
 
     @Override
