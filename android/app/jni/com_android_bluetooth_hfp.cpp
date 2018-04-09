@@ -49,6 +49,7 @@ static jmethodID method_onUnknownAt;
 static jmethodID method_onKeyPressed;
 static jmethodID method_onAtBind;
 static jmethodID method_onAtBiev;
+static jmethodID method_onAtBia;
 
 static bluetooth::headset::Interface* sBluetoothHfpInterface = nullptr;
 static std::shared_timed_mutex interface_mutex;
@@ -366,6 +367,19 @@ class JniHeadsetCallbacks : bluetooth::headset::Callbacks {
     sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onAtBiev, ind_id,
                                  (jint)ind_value, addr.get());
   }
+
+  void AtBiaCallback(bool service, bool roam, bool signal, bool battery,
+                     RawAddress* bd_addr) override {
+    std::shared_lock<std::shared_timed_mutex> lock(callbacks_mutex);
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid() || !mCallbacksObj) return;
+
+    ScopedLocalRef<jbyteArray> addr(sCallbackEnv.get(), marshall_bda(bd_addr));
+    if (addr.get() == nullptr) return;
+
+    sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onAtBia, service, roam,
+                                 signal, battery, addr.get());
+  }
 };
 
 static void classInitNative(JNIEnv* env, jclass clazz) {
@@ -396,6 +410,7 @@ static void classInitNative(JNIEnv* env, jclass clazz) {
   method_onAtBind =
       env->GetMethodID(clazz, "onATBind", "(Ljava/lang/String;[B)V");
   method_onAtBiev = env->GetMethodID(clazz, "onATBiev", "(II[B)V");
+  method_onAtBia = env->GetMethodID(clazz, "onAtBia", "(ZZZZ[B)V");
 
   ALOGI("%s: succeeds", __func__);
 }
