@@ -197,6 +197,16 @@ public class HeadsetNativeInterface {
         sendMessageToService(event);
     }
 
+    private void onAtBia(boolean service, boolean roam, boolean signal, boolean battery,
+            byte[] address) {
+        HeadsetAgIndicatorEnableState agIndicatorEnableState =
+                new HeadsetAgIndicatorEnableState(service, roam, signal, battery);
+        HeadsetStackEvent event =
+                new HeadsetStackEvent(HeadsetStackEvent.EVENT_TYPE_BIA, agIndicatorEnableState,
+                        getDevice(address));
+        sendMessageToService(event);
+    }
+
     // Native wrappers to help unit testing
 
     /**
