@@ -44,12 +44,14 @@ public class HeadsetStackEvent extends HeadsetMessageObject {
     public static final int EVENT_TYPE_WBS = 17;
     public static final int EVENT_TYPE_BIND = 18;
     public static final int EVENT_TYPE_BIEV = 19;
+    public static final int EVENT_TYPE_BIA = 20;
 
-    public int type = EVENT_TYPE_NONE;
-    public int valueInt = 0;
-    public int valueInt2 = 0;
-    public String valueString = null;
-    public BluetoothDevice device = null;
+    public final int type;
+    public final int valueInt;
+    public final int valueInt2;
+    public final String valueString;
+    public final HeadsetMessageObject valueObject;
+    public final BluetoothDevice device;
 
     /**
      * Create a headset stack event
@@ -58,8 +60,7 @@ public class HeadsetStackEvent extends HeadsetMessageObject {
      * @param device device of interest
      */
     public HeadsetStackEvent(int type, BluetoothDevice device) {
-        this.type = type;
-        this.device = Objects.requireNonNull(device);
+        this(type, 0, 0, null, null, device);
     }
 
     /**
@@ -70,9 +71,7 @@ public class HeadsetStackEvent extends HeadsetMessageObject {
      * @param device device of interest
      */
     public HeadsetStackEvent(int type, int valueInt, BluetoothDevice device) {
-        this.type = type;
-        this.valueInt = valueInt;
-        this.device = Objects.requireNonNull(device);
+        this(type, valueInt, 0, null, null, device);
     }
 
     /**
@@ -84,22 +83,48 @@ public class HeadsetStackEvent extends HeadsetMessageObject {
      * @param device device of interest
      */
     public HeadsetStackEvent(int type, int valueInt, int valueInt2, BluetoothDevice device) {
-        this.type = type;
-        this.valueInt = valueInt;
-        this.valueInt2 = valueInt2;
-        this.device = Objects.requireNonNull(device);
+        this(type, valueInt, valueInt2, null, null, device);
     }
 
     /**
      * Create a headset stack event
      *
      * @param type type of the event
-     * @param valueString an integer value in the event
+     * @param valueString an string value in the event
      * @param device device of interest
      */
     public HeadsetStackEvent(int type, String valueString, BluetoothDevice device) {
+        this(type, 0, 0, valueString, null, device);
+    }
+
+    /**
+     * Create a headset stack event
+     *
+     * @param type type of the event
+     * @param valueObject an object value in the event
+     * @param device device of interest
+     */
+    public HeadsetStackEvent(int type, HeadsetMessageObject valueObject, BluetoothDevice device) {
+        this(type, 0, 0, null, valueObject, device);
+    }
+
+    /**
+     * Create a headset stack event
+     *
+     * @param type type of the event
+     * @param valueInt an integer value in the event
+     * @param valueInt2 another integer value in the event
+     * @param valueString a string value in the event
+     * @param valueObject an object value in the event
+     * @param device device of interest
+     */
+    public HeadsetStackEvent(int type, int valueInt, int valueInt2, String valueString,
+            HeadsetMessageObject valueObject, BluetoothDevice device) {
         this.type = type;
+        this.valueInt = valueInt;
+        this.valueInt2 = valueInt2;
         this.valueString = valueString;
+        this.valueObject = valueObject;
         this.device = Objects.requireNonNull(device);
     }
 
@@ -150,6 +175,8 @@ public class HeadsetStackEvent extends HeadsetMessageObject {
                 return "EVENT_TYPE_BIND";
             case EVENT_TYPE_BIEV:
                 return "EVENT_TYPE_BIEV";
+            case EVENT_TYPE_BIA:
+                return "EVENT_TYPE_BIA";
             default:
                 return "UNKNOWN";
         }
@@ -170,6 +197,8 @@ public class HeadsetStackEvent extends HeadsetMessageObject {
                 .append(valueInt2)
                 .append(", valString=")
                 .append(valueString)
+                .append(", valObject=")
+                .append(valueObject)
                 .append(", device=")
                 .append(device);
     }
