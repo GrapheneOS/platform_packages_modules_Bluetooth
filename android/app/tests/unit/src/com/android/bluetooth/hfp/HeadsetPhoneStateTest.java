@@ -126,6 +126,9 @@ public class HeadsetPhoneStateTest {
                 | PhoneStateListener.LISTEN_SIGNAL_STRENGTHS);
         verify(mTelephonyManager).listen(any(), eq(PhoneStateListener.LISTEN_SERVICE_STATE
                 | PhoneStateListener.LISTEN_SIGNAL_STRENGTHS));
+        verify(mTelephonyManager).setRadioIndicationUpdateMode(
+                TelephonyManager.INDICATION_FILTER_SIGNAL_STRENGTH,
+                TelephonyManager.INDICATION_UPDATE_MODE_IGNORE_SCREEN_OFF);
         verifyNoMoreInteractions(mTelephonyManager);
     }
 
@@ -140,8 +143,14 @@ public class HeadsetPhoneStateTest {
                 | PhoneStateListener.LISTEN_SIGNAL_STRENGTHS);
         verify(mTelephonyManager).listen(any(), eq(PhoneStateListener.LISTEN_SERVICE_STATE
                 | PhoneStateListener.LISTEN_SIGNAL_STRENGTHS));
+        verify(mTelephonyManager).setRadioIndicationUpdateMode(
+                TelephonyManager.INDICATION_FILTER_SIGNAL_STRENGTH,
+                TelephonyManager.INDICATION_UPDATE_MODE_IGNORE_SCREEN_OFF);
         mHeadsetPhoneState.listenForPhoneState(device1, PhoneStateListener.LISTEN_SERVICE_STATE);
         verify(mTelephonyManager).listen(any(), eq(PhoneStateListener.LISTEN_NONE));
+        verify(mTelephonyManager).setRadioIndicationUpdateMode(
+                TelephonyManager.INDICATION_FILTER_SIGNAL_STRENGTH,
+                TelephonyManager.INDICATION_UPDATE_MODE_NORMAL);
         verify(mTelephonyManager).listen(any(), eq(PhoneStateListener.LISTEN_SERVICE_STATE));
         verifyNoMoreInteractions(mTelephonyManager);
     }
@@ -156,8 +165,14 @@ public class HeadsetPhoneStateTest {
                 | PhoneStateListener.LISTEN_SIGNAL_STRENGTHS);
         verify(mTelephonyManager).listen(any(), eq(PhoneStateListener.LISTEN_SERVICE_STATE
                 | PhoneStateListener.LISTEN_SIGNAL_STRENGTHS));
+        verify(mTelephonyManager).setRadioIndicationUpdateMode(
+                TelephonyManager.INDICATION_FILTER_SIGNAL_STRENGTH,
+                TelephonyManager.INDICATION_UPDATE_MODE_IGNORE_SCREEN_OFF);
         mHeadsetPhoneState.listenForPhoneState(device1, PhoneStateListener.LISTEN_NONE);
         verify(mTelephonyManager).listen(any(), eq(PhoneStateListener.LISTEN_NONE));
+        verify(mTelephonyManager).setRadioIndicationUpdateMode(
+                TelephonyManager.INDICATION_FILTER_SIGNAL_STRENGTH,
+                TelephonyManager.INDICATION_UPDATE_MODE_NORMAL);
         verifyNoMoreInteractions(mTelephonyManager);
     }
 
@@ -175,6 +190,9 @@ public class HeadsetPhoneStateTest {
                 | PhoneStateListener.LISTEN_SIGNAL_STRENGTHS);
         verify(mTelephonyManager).listen(any(), eq(PhoneStateListener.LISTEN_SERVICE_STATE
                 | PhoneStateListener.LISTEN_SIGNAL_STRENGTHS));
+        verify(mTelephonyManager).setRadioIndicationUpdateMode(
+                TelephonyManager.INDICATION_FILTER_SIGNAL_STRENGTH,
+                TelephonyManager.INDICATION_UPDATE_MODE_IGNORE_SCREEN_OFF);
         verifyNoMoreInteractions(mTelephonyManager);
         // Enabling updates from second device should not trigger the same subscription
         mHeadsetPhoneState.listenForPhoneState(device2, PhoneStateListener.LISTEN_SERVICE_STATE
@@ -186,6 +204,9 @@ public class HeadsetPhoneStateTest {
         // Disabling updates from second device should cancel subscription
         mHeadsetPhoneState.listenForPhoneState(device2, PhoneStateListener.LISTEN_NONE);
         verify(mTelephonyManager).listen(any(), eq(PhoneStateListener.LISTEN_NONE));
+        verify(mTelephonyManager).setRadioIndicationUpdateMode(
+                TelephonyManager.INDICATION_FILTER_SIGNAL_STRENGTH,
+                TelephonyManager.INDICATION_UPDATE_MODE_NORMAL);
         verifyNoMoreInteractions(mTelephonyManager);
     }
 
@@ -205,17 +226,32 @@ public class HeadsetPhoneStateTest {
         // Partially enabling updates from second device should trigger partial subscription
         mHeadsetPhoneState.listenForPhoneState(device2, PhoneStateListener.LISTEN_SIGNAL_STRENGTHS);
         verify(mTelephonyManager).listen(any(), eq(PhoneStateListener.LISTEN_NONE));
+        verify(mTelephonyManager).setRadioIndicationUpdateMode(
+                TelephonyManager.INDICATION_FILTER_SIGNAL_STRENGTH,
+                TelephonyManager.INDICATION_UPDATE_MODE_NORMAL);
         verify(mTelephonyManager).listen(any(), eq(PhoneStateListener.LISTEN_SERVICE_STATE
                 | PhoneStateListener.LISTEN_SIGNAL_STRENGTHS));
+        verify(mTelephonyManager).setRadioIndicationUpdateMode(
+                TelephonyManager.INDICATION_FILTER_SIGNAL_STRENGTH,
+                TelephonyManager.INDICATION_UPDATE_MODE_IGNORE_SCREEN_OFF);
         verifyNoMoreInteractions(mTelephonyManager);
         // Partially disabling updates from first device should not cancel all subscription
         mHeadsetPhoneState.listenForPhoneState(device1, PhoneStateListener.LISTEN_NONE);
         verify(mTelephonyManager, times(2)).listen(any(), eq(PhoneStateListener.LISTEN_NONE));
+        verify(mTelephonyManager, times(2)).setRadioIndicationUpdateMode(
+                TelephonyManager.INDICATION_FILTER_SIGNAL_STRENGTH,
+                TelephonyManager.INDICATION_UPDATE_MODE_NORMAL);
         verify(mTelephonyManager).listen(any(), eq(PhoneStateListener.LISTEN_SIGNAL_STRENGTHS));
+        verify(mTelephonyManager, times(2)).setRadioIndicationUpdateMode(
+                TelephonyManager.INDICATION_FILTER_SIGNAL_STRENGTH,
+                TelephonyManager.INDICATION_UPDATE_MODE_IGNORE_SCREEN_OFF);
         verifyNoMoreInteractions(mTelephonyManager);
         // Partially disabling updates from second device should cancel subscription
         mHeadsetPhoneState.listenForPhoneState(device2, PhoneStateListener.LISTEN_NONE);
         verify(mTelephonyManager, times(3)).listen(any(), eq(PhoneStateListener.LISTEN_NONE));
+        verify(mTelephonyManager, times(3)).setRadioIndicationUpdateMode(
+                TelephonyManager.INDICATION_FILTER_SIGNAL_STRENGTH,
+                TelephonyManager.INDICATION_UPDATE_MODE_NORMAL);
         verifyNoMoreInteractions(mTelephonyManager);
     }
 }
