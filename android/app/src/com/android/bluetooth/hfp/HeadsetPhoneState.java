@@ -16,6 +16,7 @@
 
 package com.android.bluetooth.hfp;
 
+import android.bluetooth.BluetoothDevice;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -33,6 +34,7 @@ import android.util.Log;
 import com.android.internal.telephony.IccCardConstants;
 import com.android.internal.telephony.TelephonyIntents;
 
+import java.util.HashMap;
 import java.util.Objects;
 
 
@@ -71,7 +73,7 @@ public class HeadsetPhoneState {
     // HFP 1.6 CIND battchg value
     private int mCindBatteryCharge;
 
-    private boolean mListening;
+    private final HashMap<BluetoothDevice, Integer> mDeviceEventMap = new HashMap<>();
     private PhoneStateListener mPhoneStateListener;
     private final OnSubscriptionsChangedListener mOnSubscriptionsChangedListener;
 
@@ -95,7 +97,10 @@ public class HeadsetPhoneState {
      * Cleanup this instance. Instance can no longer be used after calling this method.
      */
     public void cleanup() {
-        listenForPhoneState(false);
+        synchronized (mDeviceEventMap) {
+            mDeviceEventMap.clear();
+            stopListenForPhoneState();
+        }
         mSubscriptionManager.removeOnSubscriptionsChangedListener(mOnSubscriptionsChangedListener);
     }
 
@@ -104,45 +109,79 @@ public class HeadsetPhoneState {
         return "HeadsetPhoneState [mTelephonyServiceAvailability=" + mCindService + ", mNumActive="
                 + mNumActive + ", mCallState=" + mCallState + ", mNumHeld=" + mNumHeld
                 + ", mSignal=" + mCindSignal + ", mRoam=" + mCindRoam + ", mBatteryCharge="
-                + mCindBatteryCharge + ", mListening=" + mListening + "]";
+                + mCindBatteryCharge + ", TelephonyEvents=" + getTelephonyEventsToListen() + "]";
+    }
+
+    private int getTelephonyEventsToListen() {
+        synchronized (mDeviceEventMap) {
+            return mDeviceEventMap.values()
+                    .stream()
+                    .reduce(PhoneStateListener.LISTEN_NONE, (a, b) -> a | b);
+        }
     }
 
     /**
      * Start or stop listening for phone state change
-     * @param start True to start, False to stop
+     *
+     * @param device remote device that subscribes to this phone state update
+     * @param events events in {@link PhoneStateListener} to listen to
      */
     @VisibleForTesting
-    public void listenForPhoneState(boolean start) {
-        synchronized (mTelephonyManager) {
-            if (start) {
-                startListenForPhoneState();
+    public void listenForPhoneState(BluetoothDevice device, int events) {
+        synchronized (mDeviceEventMap) {
+            int prevEvents = getTelephonyEventsToListen();
+            if (events == PhoneStateListener.LISTEN_NONE) {
+                mDeviceEventMap.remove(device);
             } else {
+                mDeviceEventMap.put(device, events);
+            }
+            int updatedEvents = getTelephonyEventsToListen();
+            if (prevEvents != updatedEvents) {
                 stopListenForPhoneState();
+                startListenForPhoneState();
             }
         }
     }
 
     private void startListenForPhoneState() {
-        if (!mListening) {
-            int subId = SubscriptionManager.getDefaultSubscriptionId();
-            if (SubscriptionManager.isValidSubscriptionId(subId)) {
-                mPhoneStateListener = new HeadsetPhoneStateListener(subId,
-                        mHeadsetService.getStateMachinesThreadLooper());
-                mTelephonyManager.listen(mPhoneStateListener,
-                        PhoneStateListener.LISTEN_SERVICE_STATE
-                                | PhoneStateListener.LISTEN_SIGNAL_STRENGTHS);
-                mListening = true;
-            } else {
-                Log.w(TAG, "startListenForPhoneState, invalid subscription ID " + subId);
-            }
+        if (mPhoneStateListener != null) {
+            Log.w(TAG, "startListenForPhoneState, already listening");
+            return;
+        }
+        int events = getTelephonyEventsToListen();
+        if (events == PhoneStateListener.LISTEN_NONE) {
+            Log.w(TAG, "startListenForPhoneState, no event to listen");
+            return;
+        }
+        int subId = SubscriptionManager.getDefaultSubscriptionId();
+        if (!SubscriptionManager.isValidSubscriptionId(subId)) {
+            // Will retry listening for phone state in onSubscriptionsChanged() callback
+            Log.w(TAG, "startListenForPhoneState, invalid subscription ID " + subId);
+            return;
+        }
+        Log.i(TAG, "startListenForPhoneState(), subId=" + subId + ", enabled_events=" + events);
+        mPhoneStateListener = new HeadsetPhoneStateListener(subId,
+                mHeadsetService.getStateMachinesThreadLooper());
+        mTelephonyManager.listen(mPhoneStateListener, events);
+        if ((events & PhoneStateListener.LISTEN_SIGNAL_STRENGTHS) != 0) {
+            mTelephonyManager.setRadioIndicationUpdateMode(
+                    TelephonyManager.INDICATION_FILTER_SIGNAL_STRENGTH,
+                    TelephonyManager.INDICATION_UPDATE_MODE_IGNORE_SCREEN_OFF);
         }
     }
 
     private void stopListenForPhoneState() {
-        if (mListening) {
-            mTelephonyManager.listen(mPhoneStateListener, PhoneStateListener.LISTEN_NONE);
-            mListening = false;
+        if (mPhoneStateListener == null) {
+            Log.i(TAG, "stopListenForPhoneState(), no listener indicates nothing is listening");
+            return;
         }
+        Log.i(TAG, "stopListenForPhoneState(), stopping listener, enabled_events="
+                + getTelephonyEventsToListen());
+        mTelephonyManager.listen(mPhoneStateListener, PhoneStateListener.LISTEN_NONE);
+        mTelephonyManager.setRadioIndicationUpdateMode(
+                TelephonyManager.INDICATION_FILTER_SIGNAL_STRENGTH,
+                TelephonyManager.INDICATION_UPDATE_MODE_NORMAL);
+        mPhoneStateListener = null;
     }
 
     int getCindService() {
@@ -223,8 +262,10 @@ public class HeadsetPhoneState {
 
         @Override
         public void onSubscriptionsChanged() {
-            listenForPhoneState(false);
-            listenForPhoneState(true);
+            synchronized (mDeviceEventMap) {
+                stopListenForPhoneState();
+                startListenForPhoneState();
+            }
         }
     }
 
