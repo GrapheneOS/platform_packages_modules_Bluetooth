@@ -164,6 +164,11 @@ public class HeadsetPhoneState {
         mPhoneStateListener = new HeadsetPhoneStateListener(subId,
                 mHeadsetService.getStateMachinesThreadLooper());
         mTelephonyManager.listen(mPhoneStateListener, events);
+        if ((events & PhoneStateListener.LISTEN_SIGNAL_STRENGTHS) != 0) {
+            mTelephonyManager.setRadioIndicationUpdateMode(
+                    TelephonyManager.INDICATION_FILTER_SIGNAL_STRENGTH,
+                    TelephonyManager.INDICATION_UPDATE_MODE_IGNORE_SCREEN_OFF);
+        }
     }
 
     private void stopListenForPhoneState() {
@@ -174,6 +179,9 @@ public class HeadsetPhoneState {
         Log.i(TAG, "stopListenForPhoneState(), stopping listener, enabled_events="
                 + getTelephonyEventsToListen());
         mTelephonyManager.listen(mPhoneStateListener, PhoneStateListener.LISTEN_NONE);
+        mTelephonyManager.setRadioIndicationUpdateMode(
+                TelephonyManager.INDICATION_FILTER_SIGNAL_STRENGTH,
+                TelephonyManager.INDICATION_UPDATE_MODE_NORMAL);
         mPhoneStateListener = null;
     }
 
