@@ -41,9 +41,9 @@ class Util {
         Metadata ret = new Metadata();
         ret.mediaId = "Not Provided";
         ret.title = "Not Provided";
-        ret.artist = "Not Provided";
-        ret.album = "Not Provided";
-        ret.genre = "Not Provided";
+        ret.artist = "";
+        ret.album = "";
+        ret.genre = "";
         ret.trackNum = "1";
         ret.numTracks = "1";
         ret.duration = "0";
@@ -55,11 +55,11 @@ class Util {
 
         Metadata temp = new Metadata();
         temp.title = bundle.getString(MediaMetadata.METADATA_KEY_TITLE, "Not Provided");
-        temp.artist = bundle.getString(MediaMetadata.METADATA_KEY_ARTIST, "Not Provided");
-        temp.album = bundle.getString(MediaMetadata.METADATA_KEY_ALBUM, "Not Provided");
+        temp.artist = bundle.getString(MediaMetadata.METADATA_KEY_ARTIST, "");
+        temp.album = bundle.getString(MediaMetadata.METADATA_KEY_ALBUM, "");
         temp.trackNum = "" + bundle.getLong(MediaMetadata.METADATA_KEY_TRACK_NUMBER, 1);
         temp.numTracks = "" + bundle.getLong(MediaMetadata.METADATA_KEY_NUM_TRACKS, 1);
-        temp.genre = bundle.getString(MediaMetadata.METADATA_KEY_GENRE, "Not Provided");
+        temp.genre = bundle.getString(MediaMetadata.METADATA_KEY_GENRE, "");
         temp.duration = "" + bundle.getLong(MediaMetadata.METADATA_KEY_DURATION, 0);
         return temp;
     }
