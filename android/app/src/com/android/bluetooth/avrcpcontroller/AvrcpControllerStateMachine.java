@@ -315,7 +315,7 @@ class AvrcpControllerStateMachine extends StateMachine {
 
                     case MESSAGE_PROCESS_SET_ADDRESSED_PLAYER:
                         AvrcpControllerService.getPlayerListNative(
-                                mRemoteDevice.getBluetoothAddress(), (byte) 0, (byte) 255);
+                                mRemoteDevice.getBluetoothAddress(), 0, 255);
                         transitionTo(mGetPlayerListing);
                         sendMessageDelayed(MESSAGE_INTERNAL_CMD_TIMEOUT, CMD_TIMEOUT_MILLIS);
                         break;
@@ -598,7 +598,7 @@ class AvrcpControllerStateMachine extends StateMachine {
                         transitionTo(mConnected);
                     } else {
                         // Fetch the next set of items.
-                        callNativeFunctionForScope((byte) mCurrInd, (byte) Math.min(mEndInd,
+                        callNativeFunctionForScope(mCurrInd, Math.min(mEndInd,
                                 mCurrInd + GET_FOLDER_ITEMS_PAGINATION_SIZE - 1));
                         // Reset the timeout message since we are doing a new fetch now.
                         removeMessages(MESSAGE_INTERNAL_CMD_TIMEOUT);
@@ -618,6 +618,16 @@ class AvrcpControllerStateMachine extends StateMachine {
                     // already sent all the items to the client hence simply
                     // transition to Connected state here.
                     transitionTo(mConnected);
+                    break;
+
+                case MESSAGE_CHANGE_FOLDER_PATH:
+                case MESSAGE_FETCH_ATTR_AND_PLAY_ITEM:
+                case MESSAGE_GET_PLAYER_LIST:
+                case MESSAGE_GET_NOW_PLAYING_LIST:
+                case MESSAGE_SET_BROWSED_PLAYER:
+                    // A new request has come in, no need to fetch more.
+                    mEndInd = 0;
+                    deferMessage(msg);
                     break;
 
                 case MESSAGE_SEND_PASS_THROUGH_CMD:
@@ -673,11 +683,11 @@ class AvrcpControllerStateMachine extends StateMachine {
             switch (mScope) {
                 case AvrcpControllerService.BROWSE_SCOPE_NOW_PLAYING:
                     AvrcpControllerService.getNowPlayingListNative(
-                            mRemoteDevice.getBluetoothAddress(), (byte) start, (byte) end);
+                            mRemoteDevice.getBluetoothAddress(), start, end);
                     break;
                 case AvrcpControllerService.BROWSE_SCOPE_VFS:
                     AvrcpControllerService.getFolderListNative(mRemoteDevice.getBluetoothAddress(),
-                            (byte) start, (byte) end);
+                            start, end);
                     break;
                 default:
                     Log.e(STATE_TAG, "Scope " + mScope + " cannot be handled here.");
