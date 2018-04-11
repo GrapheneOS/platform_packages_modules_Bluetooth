@@ -100,11 +100,11 @@ public class MediaPlayerList {
         void run(String parentId, List<ListItem> items);
     }
 
-    void init(Looper looper, Context context, MediaUpdateCallback callback) {
-        Log.v(TAG, "Initializing MediaPlayerList");
+    MediaPlayerList(Looper looper, Context context) {
+        Log.v(TAG, "Creating MediaPlayerList");
+
         mLooper = looper;
         mContext = context;
-        mCallback = callback;
 
         // Register for intents where available players might have changed
         IntentFilter pkgFilter = new IntentFilter();
@@ -120,6 +120,11 @@ public class MediaPlayerList {
         mMediaSessionManager.addOnActiveSessionsChangedListener(
                 mActiveSessionsChangedListener, null, new Handler(looper));
         mMediaSessionManager.setCallback(mButtonDispatchCallback, null);
+    }
+
+    void init(MediaUpdateCallback callback) {
+        Log.v(TAG, "Initializing MediaPlayerList");
+        mCallback = callback;
 
         // Build the list of browsable players and afterwards, build the list of media players
         Intent intent = new Intent(android.service.media.MediaBrowserService.SERVICE_INTERFACE);
