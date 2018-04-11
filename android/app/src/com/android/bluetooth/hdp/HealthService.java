@@ -32,7 +32,9 @@ import android.util.Log;
 
 import androidx.annotation.VisibleForTesting;
 
+import com.android.bluetooth.BluetoothMetricsProto;
 import com.android.bluetooth.Utils;
+import com.android.bluetooth.btservice.MetricsLogger;
 import com.android.bluetooth.btservice.ProfileService;
 
 import java.io.FileDescriptor;
@@ -785,6 +787,10 @@ public class HealthService extends ProfileService {
             mHealthDevices.remove(device);
         } else {
             mHealthDevices.put(device, newDeviceState);
+        }
+        if (newDeviceState != prevDeviceState
+                && newDeviceState == BluetoothHealth.STATE_CONNECTED) {
+            MetricsLogger.logProfileConnectionEvent(BluetoothMetricsProto.ProfileId.HEALTH);
         }
     }
 
