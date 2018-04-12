@@ -27,10 +27,13 @@ import android.content.IntentFilter;
 import android.media.AudioManager;
 import android.os.Looper;
 import android.os.SystemProperties;
+import android.os.UserManager;
 import android.util.Log;
 
+import com.android.bluetooth.BluetoothMetricsProto;
 import com.android.bluetooth.Utils;
 import com.android.bluetooth.a2dp.A2dpService;
+import com.android.bluetooth.btservice.MetricsLogger;
 import com.android.bluetooth.btservice.ProfileService;
 
 import java.util.List;
@@ -110,19 +113,23 @@ public class AvrcpTargetService extends ProfileService {
         Log.i(TAG, "User unlocked, initializing the service");
 
         if (!SystemProperties.getBoolean(AVRCP_ENABLE_PROPERTY, false)) {
-            Log.w(TAG, "Skipping initialization of the new AVRCP Target Service");
+            Log.w(TAG, "Skipping initialization of the new AVRCP Target Player List");
             sInstance = null;
             return;
         }
 
-        init();
-
-        // Only allow the service to be used once it is initialized
-        sInstance = this;
+        if (mMediaPlayerList != null) {
+            mMediaPlayerList.init(new ListCallback());
+        }
     }
 
     @Override
     protected boolean start() {
+        if (sInstance != null) {
+            Log.wtfStack(TAG, "The service has already been initialized");
+            return false;
+        }
+
         Log.i(TAG, "Starting the AVRCP Target Service");
         mCurrentData = new MediaData(null, null, null);
 
@@ -130,6 +137,28 @@ public class AvrcpTargetService extends ProfileService {
         IntentFilter filter = new IntentFilter();
         filter.addAction(BluetoothA2dp.ACTION_ACTIVE_DEVICE_CHANGED);
         registerReceiver(mReceiver, filter);
+
+        if (!SystemProperties.getBoolean(AVRCP_ENABLE_PROPERTY, false)) {
+            Log.w(TAG, "Skipping initialization of the new AVRCP Target Service");
+            sInstance = null;
+            return true;
+        }
+
+        mAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+        sDeviceMaxVolume = mAudioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
+
+        mMediaPlayerList = new MediaPlayerList(Looper.myLooper(), this);
+
+        UserManager userManager = UserManager.get(getApplicationContext());
+        if (userManager.isUserUnlocked()) {
+            mMediaPlayerList.init(new ListCallback());
+        }
+
+        mNativeInterface = AvrcpNativeInterface.getInterface();
+        mNativeInterface.init(AvrcpTargetService.this);
+
+        // Only allow the service to be used once it is initialized
+        sInstance = this;
 
         return true;
     }
@@ -153,23 +182,12 @@ public class AvrcpTargetService extends ProfileService {
     }
 
     private void init() {
-        if (mMediaPlayerList != null) {
-            Log.wtfStack(TAG, "init: The service has already been initialized");
-            return;
-        }
-
-        mAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
-        sDeviceMaxVolume = mAudioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
-
-        mMediaPlayerList = new MediaPlayerList();
-        mMediaPlayerList.init(Looper.myLooper(), this, new ListCallback());
-        mNativeInterface = AvrcpNativeInterface.getInterface();
-        mNativeInterface.init(AvrcpTargetService.this);
     }
 
     void deviceConnected(String bdaddr, boolean absoluteVolume) {
         Log.i(TAG, "deviceConnected: bdaddr=" + bdaddr + " absoluteVolume=" + absoluteVolume);
         mAudioManager.avrcpSupportsAbsoluteVolume(bdaddr, absoluteVolume);
+        MetricsLogger.logProfileConnectionEvent(BluetoothMetricsProto.ProfileId.AVRCP);
     }
 
     void deviceDisconnected(String bdaddr) {
