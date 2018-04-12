@@ -33,10 +33,12 @@ import android.os.Message;
 import android.os.UserHandle;
 import android.util.Log;
 
+import com.android.bluetooth.BluetoothMetricsProto;
 import com.android.bluetooth.BluetoothObexTransport;
 import com.android.bluetooth.IObexConnectionHandler;
 import com.android.bluetooth.ObexRejectServer;
 import com.android.bluetooth.R;
+import com.android.bluetooth.btservice.MetricsLogger;
 import com.android.internal.util.State;
 import com.android.internal.util.StateMachine;
 
@@ -293,6 +295,7 @@ class PbapStateMachine extends StateMachine {
                 Log.e(TAG, "Caught exception starting OBEX server session" + ex.toString());
             }
             broadcastStateTransitions();
+            MetricsLogger.logProfileConnectionEvent(BluetoothMetricsProto.ProfileId.PBAP);
         }
 
         @Override
