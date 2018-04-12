@@ -37,7 +37,9 @@ import android.os.UserManager;
 import android.provider.Settings;
 import android.util.Log;
 
+import com.android.bluetooth.BluetoothMetricsProto;
 import com.android.bluetooth.Utils;
+import com.android.bluetooth.btservice.MetricsLogger;
 import com.android.bluetooth.btservice.ProfileService;
 
 import java.net.InetAddress;
@@ -571,6 +573,9 @@ public class PanService extends ProfileService {
             }
         }
 
+        if (state == BluetoothProfile.STATE_CONNECTED) {
+            MetricsLogger.logProfileConnectionEvent(BluetoothMetricsProto.ProfileId.PAN);
+        }
         /* Notifying the connection state change of the profile before sending the intent for
            connection state change, as it was causing a race condition, with the UI not being
            updated with the correct connection state. */
