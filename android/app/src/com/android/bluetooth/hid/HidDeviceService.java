@@ -34,7 +34,9 @@ import android.os.Process;
 import android.os.RemoteException;
 import android.util.Log;
 
+import com.android.bluetooth.BluetoothMetricsProto;
 import com.android.bluetooth.Utils;
+import com.android.bluetooth.btservice.MetricsLogger;
 import com.android.bluetooth.btservice.ProfileService;
 import com.android.internal.annotations.VisibleForTesting;
 
@@ -816,6 +818,10 @@ public class HidDeviceService extends ProfileService {
         if (prevState == newState) {
             Log.w(TAG, "Connection state is unchanged, ignoring");
             return;
+        }
+
+        if (newState == BluetoothProfile.STATE_CONNECTED) {
+            MetricsLogger.logProfileConnectionEvent(BluetoothMetricsProto.ProfileId.HID_DEVICE);
         }
 
         Intent intent = new Intent(BluetoothHidDevice.ACTION_CONNECTION_STATE_CHANGED);

@@ -28,8 +28,10 @@ import android.os.UserHandle;
 import android.provider.Settings;
 import android.util.Log;
 
+import com.android.bluetooth.BluetoothMetricsProto;
 import com.android.bluetooth.Utils;
 import com.android.bluetooth.btservice.AdapterService;
+import com.android.bluetooth.btservice.MetricsLogger;
 import com.android.bluetooth.btservice.ProfileService;
 
 import java.util.ArrayList;
@@ -726,6 +728,9 @@ public class HidHostService extends ProfileService {
         if (prevState == newState) {
             Log.w(TAG, "no state change: " + newState);
             return;
+        }
+        if (newState == BluetoothProfile.STATE_CONNECTED) {
+            MetricsLogger.logProfileConnectionEvent(BluetoothMetricsProto.ProfileId.HID_HOST);
         }
         mInputDevices.put(device, newState);
 
