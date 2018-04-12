@@ -1402,10 +1402,12 @@ static void gattConnectionParameterUpdateNative(JNIEnv* env, jobject object,
                                                 jint client_if, jstring address,
                                                 jint min_interval,
                                                 jint max_interval, jint latency,
-                                                jint timeout) {
+                                                jint timeout, jint min_ce_len,
+                                                jint max_ce_len) {
   if (!sGattIf) return;
-  sGattIf->client->conn_parameter_update(str2addr(env, address), min_interval,
-                                         max_interval, latency, timeout);
+  sGattIf->client->conn_parameter_update(
+      str2addr(env, address), min_interval, max_interval, latency, timeout,
+      (uint16_t)min_ce_len, (uint16_t)max_ce_len);
 }
 
 void batchscan_cfg_storage_cb(uint8_t client_if, uint8_t status) {
@@ -2168,7 +2170,7 @@ static JNINativeMethod sMethods[] = {
      (void*)gattClientReadRemoteRssiNative},
     {"gattClientConfigureMTUNative", "(II)V",
      (void*)gattClientConfigureMTUNative},
-    {"gattConnectionParameterUpdateNative", "(ILjava/lang/String;IIII)V",
+    {"gattConnectionParameterUpdateNative", "(ILjava/lang/String;IIIIII)V",
      (void*)gattConnectionParameterUpdateNative},
     {"gattServerRegisterAppNative", "(JJ)V",
      (void*)gattServerRegisterAppNative},
