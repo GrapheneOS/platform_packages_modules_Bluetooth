@@ -55,6 +55,8 @@ import android.telecom.PhoneAccount;
 import android.telephony.SmsManager;
 import android.util.Log;
 
+import com.android.bluetooth.BluetoothMetricsProto;
+import com.android.bluetooth.btservice.MetricsLogger;
 import com.android.bluetooth.btservice.ProfileService;
 import com.android.internal.annotations.VisibleForTesting;
 import com.android.internal.util.IState;
@@ -168,6 +170,9 @@ final class MceStateMachine extends StateMachine {
         }
         if (DBG) {
             Log.d(TAG, "Connection state " + mDevice + ": " + prevState + "->" + state);
+        }
+        if (prevState != state && state == BluetoothProfile.STATE_CONNECTED) {
+            MetricsLogger.logProfileConnectionEvent(BluetoothMetricsProto.ProfileId.MAP_CLIENT);
         }
         Intent intent = new Intent(BluetoothMapClient.ACTION_CONNECTION_STATE_CHANGED);
         intent.putExtra(BluetoothProfile.EXTRA_PREVIOUS_STATE, prevState);
