@@ -1120,13 +1120,13 @@ public class AvrcpControllerService extends ProfileService {
     static native void getPlaybackStateNative(byte[] address);
 
     /* API used to fetch the current now playing list */
-    static native void getNowPlayingListNative(byte[] address, byte start, byte end);
+    static native void getNowPlayingListNative(byte[] address, int start, int end);
 
     /* API used to fetch the current folder's listing */
-    static native void getFolderListNative(byte[] address, byte start, byte end);
+    static native void getFolderListNative(byte[] address, int start, int end);
 
     /* API used to fetch the listing of players */
-    static native void getPlayerListNative(byte[] address, byte start, byte end);
+    static native void getPlayerListNative(byte[] address, int start, int end);
 
     /* API used to change the folder */
     static native void changeFolderPathNative(byte[] address, byte direction, byte[] uid);
