@@ -133,7 +133,7 @@ class MediaPlayerWrapper {
     }
 
     List<Metadata> getCurrentQueue() {
-        return Util.toMetadataList(getQueue());
+        return mCurrentData.queue;
     }
 
     // We don't return the cached info here in order to always provide the freshest data.
