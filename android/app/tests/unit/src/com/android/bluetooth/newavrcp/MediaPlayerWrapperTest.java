@@ -312,6 +312,28 @@ public class MediaPlayerWrapperTest {
     }
 
     /*
+     * This test checks to see if the now playing queue data is cached.
+     */
+    @Test
+    public void testQueueCached() {
+        // Create the wrapper object and register the looper with the timeout handler
+        TestLooperManager looperManager = new TestLooperManager(mThread.getLooper());
+        MediaPlayerWrapper wrapper =
+                MediaPlayerWrapper.wrap(mMockController, mThread.getLooper());
+        wrapper.registerCallback(mTestCbs);
+
+        // Call getCurrentQueue() multiple times.
+        for (int i = 0; i < 3; i++) {
+            Assert.assertEquals(wrapper.getCurrentQueue(),
+                    Util.toMetadataList(getQueueFromDescriptions(mTestQueue)));
+        }
+
+        // Verify that getQueue() was only called twice. Once on creation and once during
+        // registration
+        verify(mMockController, times(2)).getQueue();
+    }
+
+    /*
      * This test sends repeated Playback State updates that only have a short
      * position update change to see if they get debounced.
      */
