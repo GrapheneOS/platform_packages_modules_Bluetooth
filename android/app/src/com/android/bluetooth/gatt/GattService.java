@@ -677,14 +677,16 @@ public class GattService extends ProfileService {
         @Override
         public void leConnectionUpdate(int clientIf, String address,
                 int minConnectionInterval, int maxConnectionInterval,
-                int slaveLatency, int supervisionTimeout) {
+                int slaveLatency, int supervisionTimeout,
+                int minConnectionEventLen, int maxConnectionEventLen) {
             GattService service = getService();
             if (service == null) {
                 return;
             }
             service.leConnectionUpdate(clientIf, address, minConnectionInterval,
-                                                    maxConnectionInterval, slaveLatency,
-                                                    supervisionTimeout);
+                                       maxConnectionInterval, slaveLatency,
+                                       supervisionTimeout, minConnectionEventLen,
+                                       maxConnectionEventLen);
         }
 
         @Override
@@ -2485,21 +2487,26 @@ public class GattService extends ProfileService {
                     + connectionPriority + " interval=" + minInterval + "/" + maxInterval);
         }
         gattConnectionParameterUpdateNative(clientIf, address, minInterval, maxInterval, latency,
-                timeout);
+                timeout, 0, 0);
     }
 
     void leConnectionUpdate(int clientIf, String address, int minInterval,
-                                         int maxInterval, int slaveLatency,
-                                         int supervisionTimeout) {
+                            int maxInterval, int slaveLatency,
+                            int supervisionTimeout, int minConnectionEventLen,
+                            int maxConnectionEventLen) {
         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
 
         if (DBG) {
             Log.d(TAG, "leConnectionUpdate() - address=" + address + ", intervals="
                         + minInterval + "/" + maxInterval + ", latency=" + slaveLatency
-                        + ", timeout=" + supervisionTimeout);
+                        + ", timeout=" + supervisionTimeout + "msec" + ", min_ce="
+                        + minConnectionEventLen + ", max_ce=" + maxConnectionEventLen);
+
+
         }
         gattConnectionParameterUpdateNative(clientIf, address, minInterval, maxInterval,
-                                            slaveLatency, supervisionTimeout);
+                                            slaveLatency, supervisionTimeout,
+                                            minConnectionEventLen, maxConnectionEventLen);
     }
 
     /**************************************************************************
@@ -3238,7 +3245,8 @@ public class GattService extends ProfileService {
     private native void gattClientConfigureMTUNative(int connId, int mtu);
 
     private native void gattConnectionParameterUpdateNative(int clientIf, String address,
-            int minInterval, int maxInterval, int latency, int timeout);
+            int minInterval, int maxInterval, int latency, int timeout, int minConnectionEventLen,
+            int maxConnectionEventLen);
 
     private native void gattServerRegisterAppNative(long appUuidLsb, long appUuidMsb);
 
