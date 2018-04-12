@@ -15,6 +15,7 @@
  */
 package com.android.bluetooth.pbapclient;
 
+import android.accounts.Account;
 import android.content.ContentProviderOperation;
 import android.content.ContentValues;
 import android.content.Context;
@@ -23,6 +24,7 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.RemoteException;
 import android.provider.CallLog;
+import android.provider.CallLog.Calls;
 import android.provider.ContactsContract;
 import android.util.Log;
 import android.util.Pair;
@@ -43,14 +45,16 @@ public class CallLogPullRequest extends PullRequest {
     private static final String TIMESTAMP_PROPERTY = "X-IRMC-CALL-DATETIME";
     private static final String TIMESTAMP_FORMAT = "yyyyMMdd'T'HHmmss";
 
-
+    private final Account mAccount;
     private Context mContext;
     private HashMap<String, Integer> mCallCounter;
 
-    public CallLogPullRequest(Context context, String path, HashMap<String, Integer> map) {
+    public CallLogPullRequest(Context context, String path, HashMap<String, Integer> map,
+            Account account) {
         mContext = context;
         this.path = path;
         mCallCounter = map;
+        mAccount = account;
     }
 
     @Override
@@ -84,7 +88,7 @@ public class CallLogPullRequest extends PullRequest {
                 ContentValues values = new ContentValues();
 
                 values.put(CallLog.Calls.TYPE, type);
-
+                values.put(Calls.PHONE_ACCOUNT_ID, mAccount.hashCode());
                 List<PhoneData> phones = vcard.getPhoneList();
                 if (phones == null || phones.get(0).getNumber().equals(";")) {
                     values.put(CallLog.Calls.NUMBER, "");
