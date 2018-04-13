@@ -55,6 +55,7 @@ public class AvrcpTargetService extends ProfileService {
     private AudioManager mAudioManager;
     private AvrcpBroadcastReceiver mReceiver;
     private AvrcpNativeInterface mNativeInterface;
+    private AvrcpVolumeManager mVolumeManager;
 
     // Only used to see if the metadata has changed from its previous value
     private MediaData mCurrentData;
@@ -157,6 +158,8 @@ public class AvrcpTargetService extends ProfileService {
         mNativeInterface = AvrcpNativeInterface.getInterface();
         mNativeInterface.init(AvrcpTargetService.this);
 
+        mVolumeManager = new AvrcpVolumeManager(this, mAudioManager, mNativeInterface);
+
         // Only allow the service to be used once it is initialized
         sInstance = this;
 
@@ -186,12 +189,25 @@ public class AvrcpTargetService extends ProfileService {
 
     void deviceConnected(String bdaddr, boolean absoluteVolume) {
         Log.i(TAG, "deviceConnected: bdaddr=" + bdaddr + " absoluteVolume=" + absoluteVolume);
-        mAudioManager.avrcpSupportsAbsoluteVolume(bdaddr, absoluteVolume);
+        mVolumeManager.deviceConnected(bdaddr, absoluteVolume);
         MetricsLogger.logProfileConnectionEvent(BluetoothMetricsProto.ProfileId.AVRCP);
     }
 
     void deviceDisconnected(String bdaddr) {
-        // Do nothing
+        Log.i(TAG, "deviceDisconnected: bdaddr=" + bdaddr);
+        mVolumeManager.deviceDisconnected(bdaddr);
+    }
+
+    /**
+     * Signal to the service that the current audio out device has changed. The current volume
+     * for the old device is saved and the new device has its volume restored. If there is no
+     * saved volume use the current system volume.
+     */
+    public void volumeDeviceSwitched(String bdaddr) {
+        if (DEBUG) {
+            Log.d(TAG, "volumeDeviceSwitched: bdaddr=" + bdaddr);
+        }
+        mVolumeManager.volumeDeviceSwitched(bdaddr);
     }
 
     // TODO (apanicke): Add checks to blacklist Absolute Volume devices if they behave poorly.
@@ -291,11 +307,20 @@ public class AvrcpTargetService extends ProfileService {
      * Dump debugging information to the string builder
      */
     public void dump(StringBuilder sb) {
+        sb.append("\nProfile: AvrcpTargetService:\n");
+        if (sInstance == null) {
+            sb.append("AvrcpTargetService not running");
+            return;
+        }
+
         if (mMediaPlayerList != null) {
             mMediaPlayerList.dump(sb);
         } else {
             sb.append("\nMedia Player List is empty\n");
         }
+
+        mVolumeManager.dump(sb);
+        sb.append("\n");
     }
 
     private static class AvrcpTargetBinder extends IBluetoothAvrcpTarget.Stub
