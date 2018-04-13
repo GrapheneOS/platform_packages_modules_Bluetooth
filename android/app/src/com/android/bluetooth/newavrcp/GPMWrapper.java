@@ -30,6 +30,10 @@ class GPMWrapper extends MediaPlayerWrapper {
 
     @Override
     boolean isMetadataSynced() {
+        if (getQueue() == null) {
+            return false;
+        }
+
         // Check if currentPlayingQueueId is in the queue
         MediaSession.QueueItem currItem = null;
         for (MediaSession.QueueItem item : getQueue()) {
@@ -47,7 +51,7 @@ class GPMWrapper extends MediaPlayerWrapper {
             if (DEBUG) {
                 Log.d(TAG, "Metadata currently out of sync for Google Play Music");
                 Log.d(TAG, "  └ Current queueItem: " + currItem);
-                Log.d(TAG, "  └ Current metadata : " + getMetadata().getDescription());
+                Log.d(TAG, "  └ Current metadata : " + getMetadata());
             }
             return false;
         }
