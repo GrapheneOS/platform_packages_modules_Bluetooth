@@ -21,7 +21,9 @@ import android.content.Context;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.database.Cursor;
+import android.net.Uri;
 import android.provider.CallLog.Calls;
+import android.provider.ContactsContract;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.filters.MediumTest;
 import android.support.test.runner.AndroidJUnit4;
@@ -62,6 +64,7 @@ public class PbapParserTest {
             Assert.fail("Setup Failure Unable to get resources" + e.toString());
         }
         cleanupCallLog();
+        cleanupPhonebook();
     }
 
     // testNoTimestamp should parse 1 poorly formed vcard and not crash.
@@ -75,7 +78,7 @@ public class PbapParserTest {
         Assert.assertEquals(1, pbapVCardList.getCount());
         CallLogPullRequest processor =
                 new CallLogPullRequest(mTargetContext, PbapClientConnectionHandler.MCH_PATH,
-                    new HashMap<>());
+                    new HashMap<>(), mAccount);
         processor.setResults(pbapVCardList.getList());
 
         // Verify that these entries aren't in the call log to start.
@@ -97,7 +100,7 @@ public class PbapParserTest {
         Assert.assertEquals(1, pbapVCardList.getCount());
         CallLogPullRequest processor =
                 new CallLogPullRequest(mTargetContext, PbapClientConnectionHandler.MCH_PATH,
-                    new HashMap<>());
+                    new HashMap<>(), mAccount);
         processor.setResults(pbapVCardList.getList());
 
         // Verify that these entries aren't in the call log to start.
@@ -118,7 +121,7 @@ public class PbapParserTest {
         Assert.assertEquals(2, pbapVCardList.getCount());
         CallLogPullRequest processor =
                 new CallLogPullRequest(mTargetContext, PbapClientConnectionHandler.MCH_PATH,
-                    new HashMap<>());
+                    new HashMap<>(), mAccount);
         processor.setResults(pbapVCardList.getList());
 
         // Verify that these entries aren't in the call log to start.
@@ -131,8 +134,28 @@ public class PbapParserTest {
         Assert.assertTrue(verifyCallLog("", "1483232580000", "3"));
     }
 
+    @Test
+    public void testPullPhoneBook() throws IOException {
+        InputStream fileStream;
+        fileStream = mTestResources.openRawResource(
+                com.android.bluetooth.tests.R.raw.v30_simple);
+        BluetoothPbapVcardList pbapVCardList = new BluetoothPbapVcardList(mAccount, fileStream,
+                PbapClientConnectionHandler.VCARD_TYPE_30);
+        Assert.assertEquals(1, pbapVCardList.getCount());
+        PhonebookPullRequest processor = new PhonebookPullRequest(mTargetContext, mAccount);
+        processor.setResults(pbapVCardList.getList());
+        Assert.assertFalse(verifyPhonebook("Roid And", "0300000000"));
+        processor.onPullComplete();
+        Assert.assertTrue(verifyPhonebook("Roid And", "0300000000"));
+    }
+
     private void cleanupCallLog() {
         mTargetContext.getContentResolver().delete(Calls.CONTENT_URI, null, null);
+    }
+
+    private void cleanupPhonebook() {
+        mTargetContext.getContentResolver().delete(ContactsContract.RawContacts.CONTENT_URI,
+                null, null);
     }
 
     // Find Entries in call log with type matching number and date.
@@ -165,4 +188,20 @@ public class PbapParserTest {
         long dt = Long.valueOf(date) - tz.getRawOffset();
         return Long.toString(dt);
     }
+
+    private boolean verifyPhonebook(String name, String number) {
+        Uri uri = Uri.withAppendedPath(ContactsContract.PhoneLookup.CONTENT_FILTER_URI,
+                Uri.encode(number));
+        Cursor c = mTargetContext.getContentResolver().query(uri, null, null, null);
+        if (c != null && c.getCount() > 0) {
+            c.moveToNext();
+            String displayName = c.getString(
+                    c.getColumnIndex(ContactsContract.PhoneLookup.DISPLAY_NAME));
+            if (displayName.equals(name)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
 }
