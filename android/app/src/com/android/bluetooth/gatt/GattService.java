@@ -2888,6 +2888,17 @@ public class GattService extends ProfileService {
             db.add(GattDbElement.createSecondaryService(service.getUuid()));
         }
 
+        for (BluetoothGattService includedService : service.getIncludedServices()) {
+            int inclSrvcHandle = includedService.getInstanceId();
+
+            if (mHandleMap.checkServiceExists(includedService.getUuid(), inclSrvcHandle)) {
+                db.add(GattDbElement.createIncludedService(inclSrvcHandle));
+            } else {
+                Log.e(TAG,
+                        "included service with UUID " + includedService.getUuid() + " not found!");
+            }
+        }
+
         for (BluetoothGattCharacteristic characteristic : service.getCharacteristics()) {
             int permission =
                     ((characteristic.getKeySize() - 7) << 12) + characteristic.getPermissions();
@@ -2898,17 +2909,6 @@ public class GattService extends ProfileService {
                 permission =
                         ((characteristic.getKeySize() - 7) << 12) + descriptor.getPermissions();
                 db.add(GattDbElement.createDescriptor(descriptor.getUuid(), permission));
-            }
-        }
-
-        for (BluetoothGattService includedService : service.getIncludedServices()) {
-            int inclSrvcHandle = includedService.getInstanceId();
-
-            if (mHandleMap.checkServiceExists(includedService.getUuid(), inclSrvcHandle)) {
-                db.add(GattDbElement.createIncludedService(inclSrvcHandle));
-            } else {
-                Log.e(TAG,
-                        "included service with UUID " + includedService.getUuid() + " not found!");
             }
         }
 
