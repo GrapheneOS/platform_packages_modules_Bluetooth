@@ -12,8 +12,7 @@ LOCAL_STATIC_JAVA_LIBRARIES := \
 
 LOCAL_JAVA_LIBRARIES := \
     junit \
-    platform-robolectric-prebuilt \
-    sdk_vcurrent
+    platform-robolectric-prebuilt
 
 LOCAL_INSTRUMENTATION_FOR := Bluetooth
 LOCAL_MODULE := BluetoothRoboTests
