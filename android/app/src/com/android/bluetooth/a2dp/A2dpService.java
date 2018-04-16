@@ -432,6 +432,8 @@ public class A2dpService extends ProfileService {
             if (device == null) {
                 // Clear the active device
                 mActiveDevice = null;
+                // This needs to happen before we inform the audio manager that the device
+                // disconnected. Please see comment in broadcastActiveDevice() for why.
                 broadcastActiveDevice(null);
                 if (previousActiveDevice != null) {
                     // Make sure the Audio Manager knows the previous Active device is disconnected
@@ -467,6 +469,8 @@ public class A2dpService extends ProfileService {
 
             boolean deviceChanged = !Objects.equals(device, mActiveDevice);
             mActiveDevice = device;
+            // This needs to happen before we inform the audio manager that the device
+            // disconnected. Please see comment in broadcastActiveDevice() for why.
             broadcastActiveDevice(mActiveDevice);
             if (deviceChanged) {
                 // Send an intent with the active device codec config
@@ -784,6 +788,16 @@ public class A2dpService extends ProfileService {
     private void broadcastActiveDevice(BluetoothDevice device) {
         if (DBG) {
             Log.d(TAG, "broadcastActiveDevice(" + device + ")");
+        }
+
+        // Currently the audio service can only remember the volume for a single device. We send
+        // active device changed intent after informing AVRCP that the device switched so it can
+        // set the stream volume to the new device before A2DP informs the audio service that the
+        // device has changed. This is to avoid the indeterminate volume state that exists when
+        // in the middle of switching devices.
+        if (AvrcpTargetService.get() != null) {
+            AvrcpTargetService.get().volumeDeviceSwitched(
+                    device != null ? device.getAddress() : "");
         }
 
         Intent intent = new Intent(BluetoothA2dp.ACTION_ACTIVE_DEVICE_CHANGED);
