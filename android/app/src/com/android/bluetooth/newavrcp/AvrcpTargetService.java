@@ -112,7 +112,7 @@ public class AvrcpTargetService extends ProfileService {
     protected void setUserUnlocked(int userId) {
         Log.i(TAG, "User unlocked, initializing the service");
 
-        if (!SystemProperties.getBoolean(AVRCP_ENABLE_PROPERTY, false)) {
+        if (!SystemProperties.getBoolean(AVRCP_ENABLE_PROPERTY, true)) {
             Log.w(TAG, "Skipping initialization of the new AVRCP Target Player List");
             sInstance = null;
             return;
@@ -138,7 +138,7 @@ public class AvrcpTargetService extends ProfileService {
         filter.addAction(BluetoothA2dp.ACTION_ACTIVE_DEVICE_CHANGED);
         registerReceiver(mReceiver, filter);
 
-        if (!SystemProperties.getBoolean(AVRCP_ENABLE_PROPERTY, false)) {
+        if (!SystemProperties.getBoolean(AVRCP_ENABLE_PROPERTY, true)) {
             Log.w(TAG, "Skipping initialization of the new AVRCP Target Service");
             sInstance = null;
             return true;
