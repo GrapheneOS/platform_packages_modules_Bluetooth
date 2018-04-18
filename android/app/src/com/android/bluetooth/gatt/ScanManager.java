@@ -29,7 +29,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.hardware.display.DisplayManager;
-import android.location.LocationManager;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
@@ -103,7 +102,6 @@ public class ScanManager {
     private DisplayManager mDm;
 
     private ActivityManager mActivityManager;
-    private LocationManager mLocationManager;
     private static final int FOREGROUND_IMPORTANCE_CUTOFF =
             ActivityManager.RunningAppProcessInfo.IMPORTANCE_FOREGROUND_SERVICE;
 
@@ -117,6 +115,8 @@ public class ScanManager {
         }
     }
 
+    ;
+
     ScanManager(GattService service) {
         mRegularScanClients =
                 Collections.newSetFromMap(new ConcurrentHashMap<ScanClient, Boolean>());
@@ -128,7 +128,6 @@ public class ScanManager {
         mCurUsedTrackableAdvertisements = 0;
         mDm = (DisplayManager) mService.getSystemService(Context.DISPLAY_SERVICE);
         mActivityManager = (ActivityManager) mService.getSystemService(Context.ACTIVITY_SERVICE);
-        mLocationManager = (LocationManager) mService.getSystemService(Context.LOCATION_SERVICE);
     }
 
     void start() {
@@ -142,8 +141,6 @@ public class ScanManager {
             mActivityManager.addOnUidImportanceListener(mUidImportanceListener,
                     FOREGROUND_IMPORTANCE_CUTOFF);
         }
-        IntentFilter locationIntentFilter = new IntentFilter(LocationManager.MODE_CHANGED_ACTION);
-        mService.registerReceiver(mLocationReceiver, locationIntentFilter);
     }
 
     void cleanup() {
@@ -173,8 +170,6 @@ public class ScanManager {
             }
             mHandler = null;
         }
-
-        mService.unregisterReceiver(mLocationReceiver);
     }
 
     void registerScanner(UUID uuid) {
@@ -318,17 +313,6 @@ public class ScanManager {
                 return;
             }
 
-            final boolean locationEnabled = mLocationManager.isLocationEnabled();
-            if (!locationEnabled && !isFiltered && !client.legacyForegroundApp) {
-                Log.i(TAG, "Cannot start unfiltered scan in location-off. This scan will be"
-                        + " resumed when location is on: " + client.scannerId);
-                mSuspendedScanClients.add(client);
-                if (client.stats != null) {
-                    client.stats.recordScanSuspend(client.scannerId);
-                }
-                return;
-            }
-
             // Begin scan operations.
             if (isBatchClient(client)) {
                 mBatchClients.add(client);
@@ -412,7 +396,7 @@ public class ScanManager {
         void handleSuspendScans() {
             for (ScanClient client : mRegularScanClients) {
                 if (!mScanNative.isOpportunisticScanClient(client) && (client.filters == null
-                        || client.filters.isEmpty()) && !client.legacyForegroundApp) {
+                        || client.filters.isEmpty())) {
                     /*Suspend unfiltered scans*/
                     if (client.stats != null) {
                         client.stats.recordScanSuspend(client.scannerId);
@@ -1319,7 +1303,7 @@ public class ScanManager {
 
                 @Override
                 public void onDisplayChanged(int displayId) {
-                    if (isScreenOn() && mLocationManager.isLocationEnabled()) {
+                    if (isScreenOn()) {
                         sendMessage(MSG_RESUME_SCANS, null);
                     } else {
                         sendMessage(MSG_SUSPEND_SCANS, null);
@@ -1336,22 +1320,6 @@ public class ScanManager {
                         message.what = MSG_IMPORTANCE_CHANGE;
                         message.obj = new UidImportance(uid, importance);
                         mHandler.sendMessage(message);
-                    }
-                }
-            };
-
-    private BroadcastReceiver mLocationReceiver =
-            new BroadcastReceiver() {
-                @Override
-                public void onReceive(Context context, Intent intent) {
-                    String action = intent.getAction();
-                    if (LocationManager.MODE_CHANGED_ACTION.equals(action)) {
-                        final boolean locationEnabled = mLocationManager.isLocationEnabled();
-                        if (locationEnabled && isScreenOn()) {
-                            sendMessage(MSG_RESUME_SCANS, null);
-                        } else {
-                            sendMessage(MSG_SUSPEND_SCANS, null);
-                        }
                     }
                 }
             };
