@@ -547,7 +547,7 @@ public class MediaPlayerList {
                 if (intent.getBooleanExtra(Intent.EXTRA_REPLACING, false)) return;
 
                 String packageName = intent.getData().getSchemeSpecificPart();
-                if (packageName != null) {
+                if (packageName != null && mMediaPlayerIds.containsKey(packageName)) {
                     removeMediaPlayer(mMediaPlayerIds.get(packageName));
                 }
             } else if (action.equals(Intent.ACTION_PACKAGE_ADDED)
