@@ -90,7 +90,7 @@ class PbapClientConnectionHandler extends Handler {
             PBAP_FEATURE_DEFAULT_IMAGE_FORMAT | PBAP_FEATURE_BROWSING | PBAP_FEATURE_DOWNLOADING;
     private static final long PBAP_REQUESTED_FIELDS =
             PBAP_FILTER_VERSION | PBAP_FILTER_FN | PBAP_FILTER_N | PBAP_FILTER_PHOTO
-                    | PBAP_FILTER_ADR | PBAP_FILTER_TEL | PBAP_FILTER_NICKNAME;
+                    | PBAP_FILTER_ADR | PBAP_FILTER_EMAIL | PBAP_FILTER_TEL | PBAP_FILTER_NICKNAME;
     private static final int PBAP_V1_2 = 0x0102;
     private static final int L2CAP_INVALID_PSM = -1;
 
