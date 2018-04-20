@@ -319,12 +319,15 @@ class BrowsedPlayerWrapper {
         }
     }
 
-    public void dump(StringBuilder sb) {
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
         sb.append("Browsable Package Name: " + mPackageName + "\n");
         sb.append("   Cached Media ID's: ");
         for (String id : mCachedFolders.keySet()) {
-            sb.append(id + " ");
+            sb.append("\"" + id + "\", ");
         }
-        sb.append("\n\n");
+        sb.append("\n");
+        return sb.toString();
     }
 }

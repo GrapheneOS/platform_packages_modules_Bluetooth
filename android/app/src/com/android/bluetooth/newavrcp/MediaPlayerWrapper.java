@@ -492,7 +492,17 @@ class MediaPlayerWrapper {
         return mControllerCallbacks.getTimeoutHandler();
     }
 
-    public void dump(StringBuilder sb) {
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
         sb.append(mMediaController.toString() + "\n");
+        sb.append("Current Data:\n");
+        sb.append("  Song: " + mCurrentData.metadata + "\n");
+        sb.append("  PlayState: " + mCurrentData.state + "\n");
+        sb.append("  Queue: size=" + mCurrentData.queue.size() + "\n");
+        for (Metadata data : mCurrentData.queue) {
+            sb.append("    " + data + "\n");
+        }
+        return sb.toString();
     }
 }
