@@ -610,13 +610,10 @@ public class A2dpServiceTest {
         Assert.assertTrue(mA2dpService.getDevices().contains(mTestDevice));
 
         // A2DP stack event: EVENT_TYPE_CODEC_CONFIG_CHANGED - Intent broadcast should be generated
-        // TODO: Commented-out for now because of b/73404858
-/*
         generateCodecMessageFromNative(mTestDevice, codecStatus);
         Assert.assertEquals(BluetoothProfile.STATE_CONNECTED,
                             mA2dpService.getConnectionState(mTestDevice));
         Assert.assertTrue(mA2dpService.getDevices().contains(mTestDevice));
-*/
 
         // A2DP stack event: CONNECTION_STATE_DISCONNECTED - state machine should be removed
         generateConnectionMessageFromNative(mTestDevice, BluetoothProfile.STATE_DISCONNECTED,
