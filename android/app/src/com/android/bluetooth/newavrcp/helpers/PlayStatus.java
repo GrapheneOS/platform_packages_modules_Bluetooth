@@ -74,4 +74,9 @@ class PlayStatus {
                 return PlayStatus.ERROR;
         }
     }
+
+    @Override
+    public String toString() {
+        return "{ state=" + state + " position=" + position + " duration=" + duration + " }";
+    }
 }
