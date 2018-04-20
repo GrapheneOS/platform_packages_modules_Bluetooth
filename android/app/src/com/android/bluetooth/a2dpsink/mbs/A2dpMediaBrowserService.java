@@ -97,6 +97,7 @@ public class A2dpMediaBrowserService extends MediaBrowserService {
     private static final String CUSTOM_ACTION_GET_PLAY_STATUS_NATIVE =
             "com.android.bluetooth.a2dpsink.mbs.CUSTOM_ACTION_GET_PLAY_STATUS_NATIVE";
 
+    private static A2dpMediaBrowserService sA2dpMediaBrowserService;
     private MediaSession mSession;
     private MediaMetadata mA2dpMetadata;
 
@@ -185,14 +186,36 @@ public class A2dpMediaBrowserService extends MediaBrowserService {
         synchronized (this) {
             mParentIdToRequestMap.clear();
         }
+        setA2dpMediaBrowserService(this);
+
     }
 
     @Override
     public void onDestroy() {
         if (DBG) Log.d(TAG, "onDestroy");
+        setA2dpMediaBrowserService(null);
         mSession.release();
         unregisterReceiver(mBtReceiver);
         super.onDestroy();
+    }
+
+
+    /**
+     *  getA2dpMediaBrowserService()
+     *  Routine to get direct access to MediaBrowserService from within the same process.
+     */
+    public static synchronized A2dpMediaBrowserService getA2dpMediaBrowserService() {
+        if (sA2dpMediaBrowserService == null) {
+            Log.w(TAG, "getA2dpMediaBrowserService(): service is NULL");
+            return null;
+        }
+        if (DBG) Log.d(TAG, "getA2dpMediaBrowserService(): returning " + sA2dpMediaBrowserService);
+        return sA2dpMediaBrowserService;
+    }
+
+    private static synchronized void setA2dpMediaBrowserService(A2dpMediaBrowserService instance) {
+        if (DBG) Log.d(TAG, "setA2dpMediaBrowserService(): set to: " + instance);
+        sA2dpMediaBrowserService = instance;
     }
 
     @Override
@@ -549,10 +572,23 @@ public class A2dpMediaBrowserService extends MediaBrowserService {
             Result<List<MediaItem>> results = mParentIdToRequestMap.remove(id);
             if (results == null) {
                 Log.w(TAG, "Request no longer exists, notifying that children changed.");
-                notifyChildrenChanged(id);
+                if (!id.equals("__ROOT__")) {
+                    notifyChildrenChanged(id);
+                }
             } else {
                 results.sendResult(folderList);
             }
+        }
+    }
+
+    /**
+     * processInternalEvent(Intent intent)
+     * Routine to provide MediaBrowserService with content updates from within the same process.
+     */
+    public void processInternalEvent(Intent intent) {
+        String action = intent.getAction();
+        if (AvrcpControllerService.ACTION_FOLDER_LIST.equals(action)) {
+            mAvrcpCommandQueue.obtainMessage(MSG_FOLDER_LIST, intent).sendToTarget();
         }
     }
 
@@ -566,4 +602,5 @@ public class A2dpMediaBrowserService extends MediaBrowserService {
         }
         mBrowseConnected = false;
     }
+
 }

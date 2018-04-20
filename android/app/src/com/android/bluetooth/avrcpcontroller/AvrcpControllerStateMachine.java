@@ -37,6 +37,7 @@ import android.util.SparseArray;
 import com.android.bluetooth.BluetoothMetricsProto;
 import com.android.bluetooth.Utils;
 import com.android.bluetooth.a2dpsink.A2dpSinkService;
+import com.android.bluetooth.a2dpsink.mbs.A2dpMediaBrowserService;
 import com.android.bluetooth.btservice.MetricsLogger;
 import com.android.bluetooth.btservice.ProfileService;
 import com.android.internal.util.State;
@@ -1181,6 +1182,7 @@ class AvrcpControllerStateMachine extends StateMachine {
             Log.d(TAG, " broadcastMetaDataChanged = " + metadata.getDescription());
         }
         mContext.sendBroadcast(intent, ProfileService.BLUETOOTH_PERM);
+
     }
 
     private void broadcastFolderList(String id, ArrayList<MediaItem> items) {
@@ -1188,7 +1190,11 @@ class AvrcpControllerStateMachine extends StateMachine {
         if (VDBG) Log.d(TAG, "broadcastFolderList id " + id + " items " + items);
         intent.putExtra(AvrcpControllerService.EXTRA_FOLDER_ID, id);
         intent.putParcelableArrayListExtra(AvrcpControllerService.EXTRA_FOLDER_LIST, items);
-        mContext.sendBroadcast(intent, ProfileService.BLUETOOTH_PERM);
+        A2dpMediaBrowserService a2dpMediaBrowserService =
+                A2dpMediaBrowserService.getA2dpMediaBrowserService();
+        if (a2dpMediaBrowserService != null) {
+            a2dpMediaBrowserService.processInternalEvent(intent);
+        }
     }
 
     private void broadcastPlayBackStateChanged(PlaybackState state) {
