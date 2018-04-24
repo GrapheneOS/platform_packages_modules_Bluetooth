@@ -292,8 +292,12 @@ class BrowsedPlayerWrapper {
                 }
 
                 if (item.isBrowsable()) {
-                    Folder f = new Folder(item.getMediaId(), false,
-                            item.getDescription().getTitle().toString());
+                    CharSequence titleCharSequence = item.getDescription().getTitle();
+                    String title = "Not Provided";
+                    if (titleCharSequence != null) {
+                        title = titleCharSequence.toString();
+                    }
+                    Folder f = new Folder(item.getMediaId(), false, title);
                     return_list.add(new ListItem(f));
                 } else {
                     return_list.add(new ListItem(Util.toMetadata(item)));
