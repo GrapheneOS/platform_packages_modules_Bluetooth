@@ -1231,16 +1231,21 @@ public class HeadsetService extends ProfileService {
         // Note: Logic can be simplified, but keeping it this way for readability
         int priority = getPriority(device);
         int bondState = mAdapterService.getBondState(device);
-        // If priority is undefined, it is likely that our SDP has not completed and peer is
-        // initiating the connection. Allow this connection only if the device is bonded or bonding
-        if ((priority == BluetoothProfile.PRIORITY_UNDEFINED) && (bondState
-                == BluetoothDevice.BOND_NONE)) {
-            Log.w(TAG, "okToAcceptConnection: return false, priority=" + priority + ", bondState="
+        // If priority is undefined, it is likely that service discovery has not completed and peer
+        // initiated the connection. Allow this connection only if the device is bonded or bonding
+        boolean serviceDiscoveryPending = (priority == BluetoothProfile.PRIORITY_UNDEFINED)
+                && (bondState == BluetoothDevice.BOND_BONDING
+                || bondState == BluetoothDevice.BOND_BONDED);
+        // Also allow connection when device is bonded/bonding and priority is ON/AUTO_CONNECT.
+        boolean isEnabled = (priority == BluetoothProfile.PRIORITY_ON
+                || priority == BluetoothProfile.PRIORITY_AUTO_CONNECT)
+                && (bondState == BluetoothDevice.BOND_BONDED
+                || bondState == BluetoothDevice.BOND_BONDING);
+        if (!serviceDiscoveryPending && !isEnabled) {
+            // Otherwise, reject the connection if no service discovery is pending and priority is
+            // neither PRIORITY_ON nor PRIORITY_AUTO_CONNECT
+            Log.w(TAG, "okToConnect: return false, priority=" + priority + ", bondState="
                     + bondState);
-            return false;
-        } else if (priority <= BluetoothProfile.PRIORITY_OFF) {
-            // Otherwise, reject the connection if priority is less than or equal to PRIORITY_OFF
-            Log.w(TAG, "okToAcceptConnection: return false, priority=" + priority);
             return false;
         }
         List<BluetoothDevice> connectingConnectedDevices =
