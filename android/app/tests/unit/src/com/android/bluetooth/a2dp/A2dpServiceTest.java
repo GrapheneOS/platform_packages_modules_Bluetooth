@@ -316,6 +316,59 @@ public class A2dpServiceTest {
     }
 
     /**
+     *  Test okToConnect method using various test cases
+     */
+    @Test
+    public void testOkToConnect() {
+        int badPriorityValue = 1024;
+        int badBondState = 42;
+        testOkToConnectCase(mTestDevice,
+                BluetoothDevice.BOND_NONE, BluetoothProfile.PRIORITY_UNDEFINED, false);
+        testOkToConnectCase(mTestDevice,
+                BluetoothDevice.BOND_NONE, BluetoothProfile.PRIORITY_OFF, false);
+        testOkToConnectCase(mTestDevice,
+                BluetoothDevice.BOND_NONE, BluetoothProfile.PRIORITY_ON, false);
+        testOkToConnectCase(mTestDevice,
+                BluetoothDevice.BOND_NONE, BluetoothProfile.PRIORITY_AUTO_CONNECT, false);
+        testOkToConnectCase(mTestDevice,
+                BluetoothDevice.BOND_NONE, badPriorityValue, false);
+        testOkToConnectCase(mTestDevice,
+                BluetoothDevice.BOND_BONDING, BluetoothProfile.PRIORITY_UNDEFINED, true);
+        testOkToConnectCase(mTestDevice,
+                BluetoothDevice.BOND_BONDING, BluetoothProfile.PRIORITY_OFF, false);
+        testOkToConnectCase(mTestDevice,
+                BluetoothDevice.BOND_BONDING, BluetoothProfile.PRIORITY_ON, true);
+        testOkToConnectCase(mTestDevice,
+                BluetoothDevice.BOND_BONDING, BluetoothProfile.PRIORITY_AUTO_CONNECT, true);
+        testOkToConnectCase(mTestDevice,
+                BluetoothDevice.BOND_BONDING, badPriorityValue, false);
+        testOkToConnectCase(mTestDevice,
+                BluetoothDevice.BOND_BONDED, BluetoothProfile.PRIORITY_UNDEFINED, true);
+        testOkToConnectCase(mTestDevice,
+                BluetoothDevice.BOND_BONDED, BluetoothProfile.PRIORITY_OFF, false);
+        testOkToConnectCase(mTestDevice,
+                BluetoothDevice.BOND_BONDED, BluetoothProfile.PRIORITY_ON, true);
+        testOkToConnectCase(mTestDevice,
+                BluetoothDevice.BOND_BONDED, BluetoothProfile.PRIORITY_AUTO_CONNECT, true);
+        testOkToConnectCase(mTestDevice,
+                BluetoothDevice.BOND_BONDED, badPriorityValue, false);
+        testOkToConnectCase(mTestDevice,
+                badBondState, BluetoothProfile.PRIORITY_UNDEFINED, false);
+        testOkToConnectCase(mTestDevice,
+                badBondState, BluetoothProfile.PRIORITY_OFF, false);
+        testOkToConnectCase(mTestDevice,
+                badBondState, BluetoothProfile.PRIORITY_ON, false);
+        testOkToConnectCase(mTestDevice,
+                badBondState, BluetoothProfile.PRIORITY_AUTO_CONNECT, false);
+        testOkToConnectCase(mTestDevice,
+                badBondState, badPriorityValue, false);
+        // Restore prirority to undefined for this test device
+        Assert.assertTrue(mA2dpService.setPriority(
+                mTestDevice, BluetoothProfile.PRIORITY_UNDEFINED));
+    }
+
+
+    /**
      * Test that an outgoing connection to device that does not have A2DP Sink UUID is rejected
      */
     @Test
@@ -834,4 +887,20 @@ public class A2dpServiceTest {
         // Verify the codec status broadcast
         verifyNoCodecConfigIntent(TIMEOUT_MS);
     }
+
+    /**
+     *  Helper function to test okToConnect() method
+     *
+     *  @param device test device
+     *  @param bondState bond state value, could be invalid
+     *  @param priority value, could be invalid, coudl be invalid
+     *  @param expected expected result from okToConnect()
+     */
+    private void testOkToConnectCase(BluetoothDevice device, int bondState, int priority,
+            boolean expected) {
+        doReturn(bondState).when(mAdapterService).getBondState(device);
+        Assert.assertTrue(mA2dpService.setPriority(device, priority));
+        Assert.assertEquals(expected, mA2dpService.okToConnect(device));
+    }
+
 }
