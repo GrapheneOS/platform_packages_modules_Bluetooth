@@ -212,6 +212,9 @@ public class HearingAidService extends ProfileService {
         if (DBG) {
             Log.d(TAG, "connect(): " + device);
         }
+        if (device == null) {
+            return false;
+        }
 
         if (getPriority(device) == BluetoothProfile.PRIORITY_OFF) {
             return false;
@@ -222,15 +225,34 @@ public class HearingAidService extends ProfileService {
             return false;
         }
 
-        synchronized (mStateMachines) {
-            HearingAidStateMachine smConnect = getOrCreateStateMachine(device);
-            if (smConnect == null) {
-                Log.e(TAG, "Cannot connect to " + device + " : no state machine");
-                return false;
+        long hiSyncId = mDeviceHiSyncIdMap.getOrDefault(device,
+                BluetoothHearingAid.HI_SYNC_ID_INVALID);
+
+        if (hiSyncId != mActiveDeviceHiSyncId) {
+            for (BluetoothDevice connectedDevice : getConnectedDevices()) {
+                disconnect(connectedDevice);
             }
-            smConnect.sendMessage(HearingAidStateMachine.CONNECT);
-            return true;
         }
+
+        for (BluetoothDevice storedDevice : mDeviceHiSyncIdMap.keySet()) {
+            if (mDeviceHiSyncIdMap.getOrDefault(storedDevice,
+                    BluetoothHearingAid.HI_SYNC_ID_INVALID) == hiSyncId) {
+                synchronized (mStateMachines) {
+                    HearingAidStateMachine sm = getOrCreateStateMachine(storedDevice);
+                    if (sm == null) {
+                        Log.e(TAG, "Ignored connect request for " + device + " : no state machine");
+                        continue;
+                    }
+                    sm.sendMessage(HearingAidStateMachine.CONNECT);
+
+                }
+                if (hiSyncId == BluetoothHearingAid.HI_SYNC_ID_INVALID
+                        && !device.equals(storedDevice)) {
+                    break;
+                }
+            }
+        }
+        return true;
     }
 
     boolean disconnect(BluetoothDevice device) {
@@ -243,31 +265,23 @@ public class HearingAidService extends ProfileService {
         }
         long hiSyncId = mDeviceHiSyncIdMap.getOrDefault(device,
                 BluetoothHearingAid.HI_SYNC_ID_INVALID);
-        synchronized (mStateMachines) {
-            HearingAidStateMachine sm = mStateMachines.get(device);
-            if (sm == null) {
-                Log.e(TAG, "Ignored disconnect request for " + device + " : no state machine");
-            } else {
-                sm.sendMessage(HearingAidStateMachine.DISCONNECT);
-            }
-        }
-        if (hiSyncId == BluetoothHearingAid.HI_SYNC_ID_INVALID) {
-            return true;
-        }
 
         for (BluetoothDevice storedDevice : mDeviceHiSyncIdMap.keySet()) {
             if (mDeviceHiSyncIdMap.getOrDefault(storedDevice,
-                    BluetoothHearingAid.HI_SYNC_ID_INVALID) != hiSyncId
-                    || storedDevice.equals(device)) {
-                continue;
-            }
-            synchronized (mStateMachines) {
-                HearingAidStateMachine sm = mStateMachines.get(storedDevice);
-                if (sm == null) {
-                    Log.e(TAG, "Ignored disconnect request for " + device + " : no state machine");
-                    continue;
+                    BluetoothHearingAid.HI_SYNC_ID_INVALID) == hiSyncId) {
+                synchronized (mStateMachines) {
+                    HearingAidStateMachine sm = mStateMachines.get(storedDevice);
+                    if (sm == null) {
+                        Log.e(TAG, "Ignored disconnect request for " + device
+                                + " : no state machine");
+                        continue;
+                    }
+                    sm.sendMessage(HearingAidStateMachine.DISCONNECT);
                 }
-                sm.sendMessage(HearingAidStateMachine.DISCONNECT);
+                if (hiSyncId == BluetoothHearingAid.HI_SYNC_ID_INVALID
+                        && !device.equals(storedDevice)) {
+                    break;
+                }
             }
         }
         return true;
