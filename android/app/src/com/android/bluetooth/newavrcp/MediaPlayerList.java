@@ -447,11 +447,11 @@ public class MediaPlayerList {
             mActivePlayerId = NO_ACTIVE_PLAYER;
         }
 
-        MediaPlayerWrapper wrapper = mMediaPlayers.get(playerId);
+        final MediaPlayerWrapper wrapper = mMediaPlayers.get(playerId);
         d("Removing media player " + wrapper.getPackageName());
         mMediaPlayerIds.remove(wrapper.getPackageName());
         mMediaPlayers.remove(playerId);
-        mMediaPlayers.get(playerId).cleanup();
+        wrapper.cleanup();
     }
 
     void setActivePlayer(int playerId) {
