@@ -32,6 +32,8 @@ import android.os.Looper;
 import android.os.Message;
 import android.util.Log;
 
+import androidx.annotation.VisibleForTesting;
+
 import com.android.bluetooth.a2dp.A2dpService;
 import com.android.bluetooth.hearingaid.HearingAidService;
 import com.android.bluetooth.hfp.HeadsetService;
@@ -391,5 +393,25 @@ class ActiveDeviceManager {
         mHfpActiveDevice = null;
 
         mHearingAidActiveDevice = null;
+    }
+
+    @VisibleForTesting
+    BroadcastReceiver getBroadcastReceiver() {
+        return mReceiver;
+    }
+
+    @VisibleForTesting
+    BluetoothDevice getA2dpActiveDevice() {
+        return mA2dpActiveDevice;
+    }
+
+    @VisibleForTesting
+    BluetoothDevice getHfpActiveDevice() {
+        return mHfpActiveDevice;
+    }
+
+    @VisibleForTesting
+    BluetoothDevice getHearingAidActiveDevice() {
+        return mHearingAidActiveDevice;
     }
 }
