@@ -36,6 +36,7 @@ import org.mockito.internal.util.MockUtil;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
@@ -189,6 +190,54 @@ public class TestUtils {
                 bluetoothAdapter.getRemoteDevice(String.format("00:01:02:03:04:%02X", id));
         Assert.assertNotNull(testDevice);
         return testDevice;
+    }
+
+    /**
+     * Wait and verify that an intent has been received.
+     *
+     * @param timeoutMs the time (in milliseconds) to wait for the intent
+     * @param queue the queue for the intent
+     * @return the received intent
+     */
+    public static Intent waitForIntent(int timeoutMs, BlockingQueue<Intent> queue) {
+        try {
+            Intent intent = queue.poll(timeoutMs, TimeUnit.MILLISECONDS);
+            Assert.assertNotNull(intent);
+            return intent;
+        } catch (InterruptedException e) {
+            Assert.fail("Cannot obtain an Intent from the queue: " + e.getMessage());
+        }
+        return null;
+    }
+
+    /**
+     * Wait and verify that no intent has been received.
+     *
+     * @param timeoutMs the time (in milliseconds) to wait and verify no intent
+     * has been received
+     * @param queue the queue for the intent
+     * @return the received intent. Should be null under normal circumstances
+     */
+    public static Intent waitForNoIntent(int timeoutMs, BlockingQueue<Intent> queue) {
+        try {
+            Intent intent = queue.poll(timeoutMs, TimeUnit.MILLISECONDS);
+            Assert.assertNull(intent);
+            return intent;
+        } catch (InterruptedException e) {
+            Assert.fail("Cannot obtain an Intent from the queue: " + e.getMessage());
+        }
+        return null;
+    }
+
+    /**
+     * Wait for looper to finish its current task and all tasks schedule before this
+     *
+     * @param looper looper of interest
+     */
+    public static void waitForLooperToFinishScheduledTask(Looper looper) {
+        runOnLooperSync(looper, () -> {
+            // do nothing, just need to make sure looper finishes current task
+        });
     }
 
     /**
