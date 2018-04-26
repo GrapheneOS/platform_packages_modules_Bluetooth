@@ -49,8 +49,8 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import java.util.HashMap;
 import java.util.List;
-import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -64,10 +64,10 @@ public class HearingAidServiceTest {
     private BluetoothDevice mLeftDevice;
     private BluetoothDevice mRightDevice;
     private BluetoothDevice mSingleDevice;
+    private HashMap<BluetoothDevice, LinkedBlockingQueue<Intent>> mDeviceQueueMap;
     private static final int TIMEOUT_MS = 1000;
 
     private BroadcastReceiver mHearingAidIntentReceiver;
-    private final BlockingQueue<Intent> mConnectionStateChangedQueue = new LinkedBlockingQueue<>();
 
     @Mock private AdapterService mAdapterService;
     @Mock private HearingAidNativeInterface mNativeInterface;
@@ -105,9 +105,13 @@ public class HearingAidServiceTest {
         mTargetContext.registerReceiver(mHearingAidIntentReceiver, filter);
 
         // Get a device for testing
-        mLeftDevice = mAdapter.getRemoteDevice("00:01:02:03:04:05");
-        mRightDevice = mAdapter.getRemoteDevice("00:01:02:33:44:55");
-        mSingleDevice = mAdapter.getRemoteDevice("10:11:12:13:14:15");
+        mLeftDevice = TestUtils.getTestDevice(mAdapter, 0);
+        mRightDevice = TestUtils.getTestDevice(mAdapter, 1);
+        mSingleDevice = TestUtils.getTestDevice(mAdapter, 2);
+        mDeviceQueueMap = new HashMap<>();
+        mDeviceQueueMap.put(mLeftDevice, new LinkedBlockingQueue<>());
+        mDeviceQueueMap.put(mRightDevice, new LinkedBlockingQueue<>());
+        mDeviceQueueMap.put(mSingleDevice, new LinkedBlockingQueue<>());
         mService.setPriority(mLeftDevice, BluetoothProfile.PRIORITY_UNDEFINED);
         mService.setPriority(mRightDevice, BluetoothProfile.PRIORITY_UNDEFINED);
         mService.setPriority(mSingleDevice, BluetoothProfile.PRIORITY_UNDEFINED);
@@ -137,7 +141,7 @@ public class HearingAidServiceTest {
         }
         stopService();
         mTargetContext.unregisterReceiver(mHearingAidIntentReceiver);
-        mConnectionStateChangedQueue.clear();
+        mDeviceQueueMap.clear();
         TestUtils.clearAdapterService(mAdapterService);
         reset(mAudioManager);
     }
@@ -159,7 +163,12 @@ public class HearingAidServiceTest {
         public void onReceive(Context context, Intent intent) {
             if (BluetoothHearingAid.ACTION_CONNECTION_STATE_CHANGED.equals(intent.getAction())) {
                 try {
-                    mConnectionStateChangedQueue.put(intent);
+                    BluetoothDevice device = intent.getParcelableExtra(
+                            BluetoothDevice.EXTRA_DEVICE);
+                    Assert.assertNotNull(device);
+                    LinkedBlockingQueue<Intent> queue = mDeviceQueueMap.get(device);
+                    Assert.assertNotNull(queue);
+                    queue.put(intent);
                 } catch (InterruptedException e) {
                     Assert.fail("Cannot add Intent to the Connection State queue: "
                             + e.getMessage());
@@ -175,8 +184,9 @@ public class HearingAidServiceTest {
      * @param queue the queue for the intent
      * @return the received intent
      */
-    private Intent waitForIntent(int timeoutMs, BlockingQueue<Intent> queue) {
+    private Intent waitForIntent(int timeoutMs, LinkedBlockingQueue<Intent> queue) {
         try {
+            Assert.assertNotNull(queue);
             Intent intent = queue.poll(timeoutMs, TimeUnit.MILLISECONDS);
             Assert.assertNotNull(intent);
             return intent;
@@ -194,8 +204,9 @@ public class HearingAidServiceTest {
      * @param queue the queue for the intent
      * @return the received intent. Should be null under normal circumstances
      */
-    private Intent waitForNoIntent(int timeoutMs, BlockingQueue<Intent> queue) {
+    private Intent waitForNoIntent(int timeoutMs, LinkedBlockingQueue<Intent> queue) {
         try {
+            Assert.assertNotNull(queue);
             Intent intent = queue.poll(timeoutMs, TimeUnit.MILLISECONDS);
             Assert.assertNull(intent);
             return intent;
@@ -207,7 +218,7 @@ public class HearingAidServiceTest {
 
     private void verifyConnectionStateIntent(int timeoutMs, BluetoothDevice device,
             int newState, int prevState) {
-        Intent intent = waitForIntent(timeoutMs, mConnectionStateChangedQueue);
+        Intent intent = waitForIntent(timeoutMs, mDeviceQueueMap.get(device));
         Assert.assertNotNull(intent);
         Assert.assertEquals(BluetoothHearingAid.ACTION_CONNECTION_STATE_CHANGED,
                 intent.getAction());
@@ -217,8 +228,8 @@ public class HearingAidServiceTest {
                 -1));
     }
 
-    private void verifyNoConnectionStateIntent(int timeoutMs) {
-        Intent intent = waitForNoIntent(timeoutMs, mConnectionStateChangedQueue);
+    private void verifyNoConnectionStateIntent(int timeoutMs, BluetoothDevice device) {
+        Intent intent = waitForNoIntent(timeoutMs, mDeviceQueueMap.get(device));
         Assert.assertNull(intent);
     }
 
@@ -867,7 +878,7 @@ public class HearingAidServiceTest {
         stackEvent.valueInt1 = newConnectionState;
         mService.messageFromNative(stackEvent);
         // Verify the connection state broadcast
-        verifyNoConnectionStateIntent(TIMEOUT_MS);
+        verifyNoConnectionStateIntent(TIMEOUT_MS, device);
     }
 
     /**
