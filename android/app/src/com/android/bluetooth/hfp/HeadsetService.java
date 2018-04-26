@@ -1156,9 +1156,6 @@ public class HeadsetService extends ProfileService {
                             stateMachine -> stateMachine.sendMessage(HeadsetStateMachine.SEND_BSIR,
                                     0));
                 }
-                if (mActiveDevice == null) {
-                    setActiveDevice(device);
-                }
                 MetricsLogger.logProfileConnectionEvent(BluetoothMetricsProto.ProfileId.HEADSET);
             }
             if (fromState == BluetoothProfile.STATE_CONNECTED
