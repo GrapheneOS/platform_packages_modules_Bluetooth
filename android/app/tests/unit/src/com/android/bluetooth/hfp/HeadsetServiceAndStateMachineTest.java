@@ -206,7 +206,6 @@ public class HeadsetServiceAndStateMachineTest {
         Assert.assertEquals(Collections.singletonList(mCurrentDevice),
                 mHeadsetService.getDevicesMatchingConnectionStates(
                         new int[]{BluetoothProfile.STATE_CONNECTED}));
-        Assert.assertEquals(mCurrentDevice, mHeadsetService.getActiveDevice());
     }
 
     /**
