@@ -354,7 +354,8 @@ public class HeadsetServiceTest {
                 mHeadsetService.getConnectedDevices());
         mHeadsetService.onConnectionStateChangedFromStateMachine(mCurrentDevice,
                 BluetoothProfile.STATE_DISCONNECTED, BluetoothProfile.STATE_CONNECTED);
-        // Test connect audio, the first connected device should be the default active device
+        // Test connect audio - set the device first as the active device
+        Assert.assertTrue(mHeadsetService.setActiveDevice(mCurrentDevice));
         Assert.assertTrue(mHeadsetService.connectAudio(mCurrentDevice));
         verify(mStateMachines.get(mCurrentDevice)).sendMessage(HeadsetStateMachine.CONNECT_AUDIO,
                 mCurrentDevice);
@@ -418,16 +419,11 @@ public class HeadsetServiceTest {
             Assert.assertThat(mHeadsetService.getConnectedDevices(),
                     Matchers.containsInAnyOrder(connectedDevices.toArray()));
             // Try to connect audio
-            if (i == 0) {
-                // Should only succeed with the first device
-                Assert.assertTrue(mHeadsetService.connectAudio(mCurrentDevice));
-            } else {
-                // Should fail for other devices
-                Assert.assertFalse(mHeadsetService.connectAudio(mCurrentDevice));
-                // Should succeed after setActiveDevice()
-                Assert.assertTrue(mHeadsetService.setActiveDevice(mCurrentDevice));
-                Assert.assertTrue(mHeadsetService.connectAudio(mCurrentDevice));
-            }
+            // Should fail
+            Assert.assertFalse(mHeadsetService.connectAudio(mCurrentDevice));
+            // Should succeed after setActiveDevice()
+            Assert.assertTrue(mHeadsetService.setActiveDevice(mCurrentDevice));
+            Assert.assertTrue(mHeadsetService.connectAudio(mCurrentDevice));
             verify(mStateMachines.get(mCurrentDevice)).sendMessage(
                     HeadsetStateMachine.CONNECT_AUDIO, mCurrentDevice);
             // Put device to audio connecting state
@@ -500,7 +496,8 @@ public class HeadsetServiceTest {
             // Try to connect audio
             BluetoothDevice firstDevice = connectedDevices.get(0);
             BluetoothDevice secondDevice = connectedDevices.get(1);
-            // First device is the default device
+            // Set the first device as the active device
+            Assert.assertTrue(mHeadsetService.setActiveDevice(firstDevice));
             Assert.assertTrue(mHeadsetService.connectAudio(firstDevice));
             verify(mStateMachines.get(firstDevice)).sendMessage(HeadsetStateMachine.CONNECT_AUDIO,
                     firstDevice);
@@ -572,6 +569,7 @@ public class HeadsetServiceTest {
         }
         // Try to connect audio
         BluetoothDevice firstDevice = connectedDevices.get(0);
+        Assert.assertTrue(mHeadsetService.setActiveDevice(firstDevice));
         Assert.assertTrue(mHeadsetService.connectAudio());
         verify(mStateMachines.get(firstDevice)).sendMessage(HeadsetStateMachine.CONNECT_AUDIO,
                 firstDevice);
