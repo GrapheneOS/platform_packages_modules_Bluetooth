@@ -30,6 +30,7 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
 import android.os.Message;
+import android.support.annotation.VisibleForTesting;
 import android.util.Log;
 
 import com.android.bluetooth.a2dp.A2dpService;
@@ -391,5 +392,25 @@ class ActiveDeviceManager {
         mHfpActiveDevice = null;
 
         mHearingAidActiveDevice = null;
+    }
+
+    @VisibleForTesting
+    BroadcastReceiver getBroadcastReceiver() {
+        return mReceiver;
+    }
+
+    @VisibleForTesting
+    BluetoothDevice getA2dpActiveDevice() {
+        return mA2dpActiveDevice;
+    }
+
+    @VisibleForTesting
+    BluetoothDevice getHfpActiveDevice() {
+        return mHfpActiveDevice;
+    }
+
+    @VisibleForTesting
+    BluetoothDevice getHearingAidActiveDevice() {
+        return mHearingAidActiveDevice;
     }
 }
