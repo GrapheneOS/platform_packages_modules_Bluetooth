@@ -32,7 +32,7 @@
     <bool name="profile_supported_pbapclient">false</bool>
     <bool name="profile_supported_mapmce">false</bool>
     <bool name="profile_supported_hid_device">true</bool>
-    <bool name="profile_supported_hearing_aid">true</bool>
+    <bool name="profile_supported_hearing_aid">false</bool>
 
     <!-- If true, we will require location to be enabled on the device to
          fire Bluetooth LE scan result callbacks in addition to having one
