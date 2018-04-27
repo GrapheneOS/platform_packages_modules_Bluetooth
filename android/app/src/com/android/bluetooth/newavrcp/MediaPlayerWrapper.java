@@ -27,6 +27,7 @@ import android.support.annotation.VisibleForTesting;
 import android.util.Log;
 
 import java.util.List;
+import java.util.Objects;
 
 /*
  * A class to synchronize Media Controller Callbacks and only pass through
@@ -423,17 +424,19 @@ class MediaPlayerWrapper {
                 return;
             }
 
-            if (!queue.equals(getQueue())) {
+            if (!Objects.equals(queue, getQueue())) {
                 e("The callback queue isn't the current queue");
             }
-            if (queue.equals(mCurrentData.queue)) {
+
+            List<Metadata> current_queue = Util.toMetadataList(queue);
+            if (current_queue.equals(mCurrentData.queue)) {
                 Log.w(TAG, "onQueueChanged(): " + mPackageName
                         + " tried to update with no new data");
                 return;
             }
 
             if (DEBUG) {
-                for (int i = 0; i < queue.size(); i++) {
+                for (int i = 0; i < current_queue.size(); i++) {
                     Log.d(TAG, "  └ QueueItem(" + i + "): " + queue.get(i));
                 }
             }
