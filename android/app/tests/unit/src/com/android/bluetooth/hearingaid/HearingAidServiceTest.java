@@ -115,19 +115,6 @@ public class HearingAidServiceTest {
         mService.setPriority(mLeftDevice, BluetoothProfile.PRIORITY_UNDEFINED);
         mService.setPriority(mRightDevice, BluetoothProfile.PRIORITY_UNDEFINED);
         mService.setPriority(mSingleDevice, BluetoothProfile.PRIORITY_UNDEFINED);
-        HearingAidStackEvent event = new HearingAidStackEvent(
-                HearingAidStackEvent.EVENT_TYPE_DEVICE_AVAILABLE);
-        event.device = mLeftDevice;
-        event.valueInt1 = 0x02;
-        event.valueLong2 = 0x0101;
-        mService.messageFromNative(event);
-        event.device = mRightDevice;
-        event.valueInt1 = 0x03;
-        mService.messageFromNative(event);
-        event.device = mSingleDevice;
-        event.valueInt1 = 0x00;
-        event.valueLong2 = 0x0102;
-        mService.messageFromNative(event);
         doReturn(BluetoothDevice.BOND_BONDED).when(mAdapterService)
                 .getBondState(any(BluetoothDevice.class));
         doReturn(new ParcelUuid[]{BluetoothUuid.HearingAid}).when(mAdapterService)
@@ -408,8 +395,8 @@ public class HearingAidServiceTest {
      */
     @Test
     public void testConnectAPair_connectBothDevices() {
-        HearingAidStackEvent connCompletedEvent;
-
+        // Update hiSyncId map
+        getHiSyncIdFromNative();
         // Update the device priority so okToConnect() returns true
         mService.setPriority(mLeftDevice, BluetoothProfile.PRIORITY_ON);
         mService.setPriority(mRightDevice, BluetoothProfile.PRIORITY_ON);
@@ -436,8 +423,8 @@ public class HearingAidServiceTest {
      */
     @Test
     public void testConnectAnotherPair_disconnectCurrentPair() {
-        HearingAidStackEvent connCompletedEvent;
-
+        // Update hiSyncId map
+        getHiSyncIdFromNative();
         // Update the device priority so okToConnect() returns true
         mService.setPriority(mLeftDevice, BluetoothProfile.PRIORITY_ON);
         mService.setPriority(mRightDevice, BluetoothProfile.PRIORITY_ON);
@@ -454,7 +441,7 @@ public class HearingAidServiceTest {
         verifyConnectionStateIntent(TIMEOUT_MS, mRightDevice, BluetoothProfile.STATE_CONNECTING,
                 BluetoothProfile.STATE_DISCONNECTED);
 
-
+        HearingAidStackEvent connCompletedEvent;
         // Send a message to trigger connection completed
         connCompletedEvent = new HearingAidStackEvent(
                 HearingAidStackEvent.EVENT_TYPE_CONNECTION_STATE_CHANGED);
@@ -496,8 +483,8 @@ public class HearingAidServiceTest {
      */
     @Test
     public void testAudioManagerConnectDisconnect() {
-        HearingAidStackEvent connCompletedEvent;
-
+        // Update hiSyncId map
+        getHiSyncIdFromNative();
         // Update the device priority so okToConnect() returns true
         mService.setPriority(mLeftDevice, BluetoothProfile.PRIORITY_ON);
         mService.setPriority(mRightDevice, BluetoothProfile.PRIORITY_ON);
@@ -519,6 +506,7 @@ public class HearingAidServiceTest {
         Assert.assertEquals(BluetoothProfile.STATE_CONNECTING,
                 mService.getConnectionState(mRightDevice));
 
+        HearingAidStackEvent connCompletedEvent;
         // Send a message to trigger connection completed
         connCompletedEvent = new HearingAidStackEvent(
                 HearingAidStackEvent.EVENT_TYPE_CONNECTION_STATE_CHANGED);
@@ -769,6 +757,8 @@ public class HearingAidServiceTest {
 
     @Test
     public void testConnectionStateChangedActiveDevice() {
+        // Update hiSyncId map
+        getHiSyncIdFromNative();
         // Update the device priority so okToConnect() returns true
         mService.setPriority(mLeftDevice, BluetoothProfile.PRIORITY_ON);
         mService.setPriority(mRightDevice, BluetoothProfile.PRIORITY_ON);
@@ -797,6 +787,8 @@ public class HearingAidServiceTest {
 
     @Test
     public void testConnectionStateChangedAnotherActiveDevice() {
+        // Update hiSyncId map
+        getHiSyncIdFromNative();
         // Update the device priority so okToConnect() returns true
         mService.setPriority(mLeftDevice, BluetoothProfile.PRIORITY_ON);
         mService.setPriority(mRightDevice, BluetoothProfile.PRIORITY_ON);
@@ -817,6 +809,151 @@ public class HearingAidServiceTest {
         Assert.assertFalse(mService.getActiveDevices().contains(mRightDevice));
         Assert.assertFalse(mService.getActiveDevices().contains(mLeftDevice));
         Assert.assertTrue(mService.getActiveDevices().contains(mSingleDevice));
+    }
+
+    /**
+     * Verify the correctness during first time connection.
+     * Connect to left device -> Get left device hiSyncId -> Connect to right device ->
+     * Get right device hiSyncId -> Both devices should be always connected
+     */
+    @Test
+    public void firstTimeConnection_shouldConnectToBothDevices() {
+        // Update the device priority so okToConnect() returns true
+        mService.setPriority(mLeftDevice, BluetoothProfile.PRIORITY_ON);
+        mService.setPriority(mRightDevice, BluetoothProfile.PRIORITY_ON);
+        doReturn(true).when(mNativeInterface).connectHearingAid(any(BluetoothDevice.class));
+        doReturn(true).when(mNativeInterface).disconnectHearingAid(any(BluetoothDevice.class));
+        // Send a connect request for left device
+        Assert.assertTrue("Connect failed", mService.connect(mLeftDevice));
+        // Verify the connection state broadcast, and that we are in Connecting state
+        verifyConnectionStateIntent(TIMEOUT_MS, mLeftDevice, BluetoothProfile.STATE_CONNECTING,
+                BluetoothProfile.STATE_DISCONNECTED);
+        Assert.assertEquals(BluetoothProfile.STATE_CONNECTING,
+                mService.getConnectionState(mLeftDevice));
+
+        HearingAidStackEvent connCompletedEvent;
+        // Send a message to trigger connection completed
+        connCompletedEvent = new HearingAidStackEvent(
+                HearingAidStackEvent.EVENT_TYPE_CONNECTION_STATE_CHANGED);
+        connCompletedEvent.device = mLeftDevice;
+        connCompletedEvent.valueInt1 = HearingAidStackEvent.CONNECTION_STATE_CONNECTED;
+        mService.messageFromNative(connCompletedEvent);
+
+        // Verify the connection state broadcast, and that we are in Connected state
+        verifyConnectionStateIntent(TIMEOUT_MS, mLeftDevice, BluetoothProfile.STATE_CONNECTED,
+                BluetoothProfile.STATE_CONNECTING);
+        Assert.assertEquals(BluetoothProfile.STATE_CONNECTED,
+                mService.getConnectionState(mLeftDevice));
+
+        // Get hiSyncId for left device
+        HearingAidStackEvent hiSyncIdEvent = new HearingAidStackEvent(
+                HearingAidStackEvent.EVENT_TYPE_DEVICE_AVAILABLE);
+        hiSyncIdEvent.device = mLeftDevice;
+        hiSyncIdEvent.valueInt1 = 0x02;
+        hiSyncIdEvent.valueLong2 = 0x0101;
+        mService.messageFromNative(hiSyncIdEvent);
+
+        // Send a connect request for right device
+        Assert.assertTrue("Connect failed", mService.connect(mRightDevice));
+        // Verify the connection state broadcast, and that we are in Connecting state
+        verifyConnectionStateIntent(TIMEOUT_MS, mRightDevice, BluetoothProfile.STATE_CONNECTING,
+                BluetoothProfile.STATE_DISCONNECTED);
+        Assert.assertEquals(BluetoothProfile.STATE_CONNECTING,
+                mService.getConnectionState(mRightDevice));
+        // Verify the left device is still connected
+        Assert.assertEquals(BluetoothProfile.STATE_CONNECTED,
+                mService.getConnectionState(mLeftDevice));
+
+        // Send a message to trigger connection completed
+        connCompletedEvent = new HearingAidStackEvent(
+                HearingAidStackEvent.EVENT_TYPE_CONNECTION_STATE_CHANGED);
+        connCompletedEvent.device = mRightDevice;
+        connCompletedEvent.valueInt1 = HearingAidStackEvent.CONNECTION_STATE_CONNECTED;
+        mService.messageFromNative(connCompletedEvent);
+
+        // Verify the connection state broadcast, and that we are in Connected state
+        verifyConnectionStateIntent(TIMEOUT_MS, mRightDevice, BluetoothProfile.STATE_CONNECTED,
+                BluetoothProfile.STATE_CONNECTING);
+        Assert.assertEquals(BluetoothProfile.STATE_CONNECTED,
+                mService.getConnectionState(mRightDevice));
+        Assert.assertEquals(BluetoothProfile.STATE_CONNECTED,
+                mService.getConnectionState(mLeftDevice));
+
+        // Get hiSyncId for right device
+        hiSyncIdEvent = new HearingAidStackEvent(
+                HearingAidStackEvent.EVENT_TYPE_DEVICE_AVAILABLE);
+        hiSyncIdEvent.device = mRightDevice;
+        hiSyncIdEvent.valueInt1 = 0x02;
+        hiSyncIdEvent.valueLong2 = 0x0101;
+        mService.messageFromNative(hiSyncIdEvent);
+
+        Assert.assertEquals(BluetoothProfile.STATE_CONNECTED,
+                mService.getConnectionState(mRightDevice));
+        Assert.assertEquals(BluetoothProfile.STATE_CONNECTED,
+                mService.getConnectionState(mLeftDevice));
+    }
+
+    /**
+     * Get the HiSyncId from native stack after connecting to left device, then connect right
+     */
+    @Test
+    public void getHiSyncId_afterFirstDeviceConnected() {
+        // Update the device priority so okToConnect() returns true
+        mService.setPriority(mLeftDevice, BluetoothProfile.PRIORITY_ON);
+        mService.setPriority(mRightDevice, BluetoothProfile.PRIORITY_ON);
+        mService.setPriority(mSingleDevice, BluetoothProfile.PRIORITY_ON);
+        doReturn(true).when(mNativeInterface).connectHearingAid(any(BluetoothDevice.class));
+        doReturn(true).when(mNativeInterface).disconnectHearingAid(any(BluetoothDevice.class));
+        // Send a connect request
+        Assert.assertTrue("Connect failed", mService.connect(mLeftDevice));
+        // Verify the connection state broadcast, and that we are in Connecting state
+        verifyConnectionStateIntent(TIMEOUT_MS, mLeftDevice, BluetoothProfile.STATE_CONNECTING,
+                BluetoothProfile.STATE_DISCONNECTED);
+        Assert.assertEquals(BluetoothProfile.STATE_CONNECTING,
+                mService.getConnectionState(mLeftDevice));
+        Assert.assertEquals(BluetoothProfile.STATE_DISCONNECTED,
+                mService.getConnectionState(mRightDevice));
+
+        HearingAidStackEvent connCompletedEvent;
+        // Send a message to trigger connection completed
+        connCompletedEvent = new HearingAidStackEvent(
+                HearingAidStackEvent.EVENT_TYPE_CONNECTION_STATE_CHANGED);
+        connCompletedEvent.device = mLeftDevice;
+        connCompletedEvent.valueInt1 = HearingAidStackEvent.CONNECTION_STATE_CONNECTED;
+        mService.messageFromNative(connCompletedEvent);
+        // Verify the connection state broadcast, and that we are in Connected state
+        verifyConnectionStateIntent(TIMEOUT_MS, mLeftDevice, BluetoothProfile.STATE_CONNECTED,
+                BluetoothProfile.STATE_CONNECTING);
+        Assert.assertEquals(BluetoothProfile.STATE_CONNECTED,
+                mService.getConnectionState(mLeftDevice));
+
+        // Get hiSyncId update from native stack
+        getHiSyncIdFromNative();
+        // Send a connect request for right
+        Assert.assertTrue("Connect failed", mService.connect(mRightDevice));
+        // Verify the connection state broadcast, and that we are in Connecting state
+        verifyConnectionStateIntent(TIMEOUT_MS, mRightDevice, BluetoothProfile.STATE_CONNECTING,
+                BluetoothProfile.STATE_DISCONNECTED);
+        Assert.assertEquals(BluetoothProfile.STATE_CONNECTING,
+                mService.getConnectionState(mRightDevice));
+        // Verify the left device is still connected
+        Assert.assertEquals(BluetoothProfile.STATE_CONNECTED,
+                mService.getConnectionState(mLeftDevice));
+
+        // Send a message to trigger connection completed
+        connCompletedEvent = new HearingAidStackEvent(
+                HearingAidStackEvent.EVENT_TYPE_CONNECTION_STATE_CHANGED);
+        connCompletedEvent.device = mRightDevice;
+        connCompletedEvent.valueInt1 = HearingAidStackEvent.CONNECTION_STATE_CONNECTED;
+        mService.messageFromNative(connCompletedEvent);
+
+        // Verify the connection state broadcast, and that we are in Connected state
+        verifyConnectionStateIntent(TIMEOUT_MS, mRightDevice, BluetoothProfile.STATE_CONNECTED,
+                BluetoothProfile.STATE_CONNECTING);
+        Assert.assertEquals(BluetoothProfile.STATE_CONNECTED,
+                mService.getConnectionState(mRightDevice));
+        Assert.assertEquals(BluetoothProfile.STATE_CONNECTED,
+                mService.getConnectionState(mLeftDevice));
     }
 
     private void connectDevice(BluetoothDevice device) {
@@ -896,4 +1033,19 @@ public class HearingAidServiceTest {
         Assert.assertEquals(expected, mService.okToConnect(device));
     }
 
+    private void getHiSyncIdFromNative() {
+        HearingAidStackEvent event = new HearingAidStackEvent(
+                HearingAidStackEvent.EVENT_TYPE_DEVICE_AVAILABLE);
+        event.device = mLeftDevice;
+        event.valueInt1 = 0x02;
+        event.valueLong2 = 0x0101;
+        mService.messageFromNative(event);
+        event.device = mRightDevice;
+        event.valueInt1 = 0x03;
+        mService.messageFromNative(event);
+        event.device = mSingleDevice;
+        event.valueInt1 = 0x00;
+        event.valueLong2 = 0x0102;
+        mService.messageFromNative(event);
+    }
 }
