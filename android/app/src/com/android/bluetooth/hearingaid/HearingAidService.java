@@ -112,6 +112,10 @@ public class HearingAidService extends ProfileService {
         mStateMachinesThread = new HandlerThread("HearingAidService.StateMachines");
         mStateMachinesThread.start();
 
+        // Clear HiSyncId map and capabilities map
+        mDeviceHiSyncIdMap.clear();
+        mDeviceCapabilitiesMap.clear();
+
         // Setup broadcast receivers
         IntentFilter filter = new IntentFilter();
         filter.addAction(BluetoothDevice.ACTION_BOND_STATE_CHANGED);
@@ -162,6 +166,10 @@ public class HearingAidService extends ProfileService {
             }
             mStateMachines.clear();
         }
+
+        // Clear HiSyncId map and capabilities map
+        mDeviceHiSyncIdMap.clear();
+        mDeviceCapabilitiesMap.clear();
 
         if (mStateMachinesThread != null) {
             mStateMachinesThread.quitSafely();
@@ -228,13 +236,26 @@ public class HearingAidService extends ProfileService {
         long hiSyncId = mDeviceHiSyncIdMap.getOrDefault(device,
                 BluetoothHearingAid.HI_SYNC_ID_INVALID);
 
-        if (hiSyncId != mActiveDeviceHiSyncId) {
+        if (hiSyncId != mActiveDeviceHiSyncId
+                && hiSyncId != BluetoothHearingAid.HI_SYNC_ID_INVALID
+                && mActiveDeviceHiSyncId != BluetoothHearingAid.HI_SYNC_ID_INVALID) {
             for (BluetoothDevice connectedDevice : getConnectedDevices()) {
                 disconnect(connectedDevice);
             }
         }
 
+        synchronized (mStateMachines) {
+            HearingAidStateMachine smConnect = getOrCreateStateMachine(device);
+            if (smConnect == null) {
+                Log.e(TAG, "Cannot connect to " + device + " : no state machine");
+            }
+            smConnect.sendMessage(HearingAidStateMachine.CONNECT);
+        }
+
         for (BluetoothDevice storedDevice : mDeviceHiSyncIdMap.keySet()) {
+            if (device.equals(storedDevice)) {
+                continue;
+            }
             if (mDeviceHiSyncIdMap.getOrDefault(storedDevice,
                     BluetoothHearingAid.HI_SYNC_ID_INVALID) == hiSyncId) {
                 synchronized (mStateMachines) {
@@ -244,7 +265,6 @@ public class HearingAidService extends ProfileService {
                         continue;
                     }
                     sm.sendMessage(HearingAidStateMachine.CONNECT);
-
                 }
                 if (hiSyncId == BluetoothHearingAid.HI_SYNC_ID_INVALID
                         && !device.equals(storedDevice)) {
@@ -512,6 +532,10 @@ public class HearingAidService extends ProfileService {
             BluetoothDevice device = stackEvent.device;
             int capabilities = stackEvent.valueInt1;
             long hiSyncId = stackEvent.valueLong2;
+            if (DBG) {
+                Log.d(TAG, "Device available: device=" + device + " capabilities="
+                        + capabilities + " hiSyncId=" + hiSyncId);
+            }
             mDeviceCapabilitiesMap.put(device, capabilities);
             mDeviceHiSyncIdMap.put(device, hiSyncId);
             return;
