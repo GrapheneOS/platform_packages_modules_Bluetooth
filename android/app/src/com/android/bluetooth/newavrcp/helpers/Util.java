@@ -30,7 +30,7 @@ import java.util.List;
 
 class Util {
     public static String TAG = "NewAvrcpUtil";
-    public static boolean DEBUG = true;
+    public static boolean DEBUG = false;
 
     private static final String GPM_KEY = "com.google.android.music.mediasession.music_metadata";
 

@@ -164,11 +164,64 @@ public class HeadsetServiceTest {
     public void testGetHeadsetService() {
         Assert.assertEquals(mHeadsetService, HeadsetService.getHeadsetService());
         // Verify default connection and audio states
-        mCurrentDevice = getTestDevice(0);
+        mCurrentDevice = TestUtils.getTestDevice(mAdapter, 0);
         Assert.assertEquals(BluetoothProfile.STATE_DISCONNECTED,
                 mHeadsetService.getConnectionState(mCurrentDevice));
         Assert.assertEquals(BluetoothHeadset.STATE_AUDIO_DISCONNECTED,
                 mHeadsetService.getAudioState(mCurrentDevice));
+    }
+
+    /**
+     *  Test okToAcceptConnection method using various test cases
+     */
+    @Test
+    public void testOkToAcceptConnection() {
+        mCurrentDevice = TestUtils.getTestDevice(mAdapter, 0);
+        int badPriorityValue = 1024;
+        int badBondState = 42;
+        testOkToAcceptConnectionCase(mCurrentDevice,
+                BluetoothDevice.BOND_NONE, BluetoothProfile.PRIORITY_UNDEFINED, false);
+        testOkToAcceptConnectionCase(mCurrentDevice,
+                BluetoothDevice.BOND_NONE, BluetoothProfile.PRIORITY_OFF, false);
+        testOkToAcceptConnectionCase(mCurrentDevice,
+                BluetoothDevice.BOND_NONE, BluetoothProfile.PRIORITY_ON, false);
+        testOkToAcceptConnectionCase(mCurrentDevice,
+                BluetoothDevice.BOND_NONE, BluetoothProfile.PRIORITY_AUTO_CONNECT, false);
+        testOkToAcceptConnectionCase(mCurrentDevice,
+                BluetoothDevice.BOND_NONE, badPriorityValue, false);
+        testOkToAcceptConnectionCase(mCurrentDevice,
+                BluetoothDevice.BOND_BONDING, BluetoothProfile.PRIORITY_UNDEFINED, true);
+        testOkToAcceptConnectionCase(mCurrentDevice,
+                BluetoothDevice.BOND_BONDING, BluetoothProfile.PRIORITY_OFF, false);
+        testOkToAcceptConnectionCase(mCurrentDevice,
+                BluetoothDevice.BOND_BONDING, BluetoothProfile.PRIORITY_ON, true);
+        testOkToAcceptConnectionCase(mCurrentDevice,
+                BluetoothDevice.BOND_BONDING, BluetoothProfile.PRIORITY_AUTO_CONNECT, true);
+        testOkToAcceptConnectionCase(mCurrentDevice,
+                BluetoothDevice.BOND_BONDING, badPriorityValue, false);
+        testOkToAcceptConnectionCase(mCurrentDevice,
+                BluetoothDevice.BOND_BONDED, BluetoothProfile.PRIORITY_UNDEFINED, true);
+        testOkToAcceptConnectionCase(mCurrentDevice,
+                BluetoothDevice.BOND_BONDED, BluetoothProfile.PRIORITY_OFF, false);
+        testOkToAcceptConnectionCase(mCurrentDevice,
+                BluetoothDevice.BOND_BONDED, BluetoothProfile.PRIORITY_ON, true);
+        testOkToAcceptConnectionCase(mCurrentDevice,
+                BluetoothDevice.BOND_BONDED, BluetoothProfile.PRIORITY_AUTO_CONNECT, true);
+        testOkToAcceptConnectionCase(mCurrentDevice,
+                BluetoothDevice.BOND_BONDED, badPriorityValue, false);
+        testOkToAcceptConnectionCase(mCurrentDevice,
+                badBondState, BluetoothProfile.PRIORITY_UNDEFINED, false);
+        testOkToAcceptConnectionCase(mCurrentDevice,
+                badBondState, BluetoothProfile.PRIORITY_OFF, false);
+        testOkToAcceptConnectionCase(mCurrentDevice,
+                badBondState, BluetoothProfile.PRIORITY_ON, false);
+        testOkToAcceptConnectionCase(mCurrentDevice,
+                badBondState, BluetoothProfile.PRIORITY_AUTO_CONNECT, false);
+        testOkToAcceptConnectionCase(mCurrentDevice,
+                badBondState, badPriorityValue, false);
+        // Restore prirority to undefined for this test device
+        Assert.assertTrue(mHeadsetService.setPriority(
+                mCurrentDevice, BluetoothProfile.PRIORITY_UNDEFINED));
     }
 
     /**
@@ -178,7 +231,7 @@ public class HeadsetServiceTest {
      */
     @Test
     public void testConnectDevice_connectDeviceBelowLimit() {
-        mCurrentDevice = getTestDevice(0);
+        mCurrentDevice = TestUtils.getTestDevice(mAdapter, 0);
         Assert.assertTrue(mHeadsetService.connect(mCurrentDevice));
         verify(mObjectsFactory).makeStateMachine(mCurrentDevice,
                 mHeadsetService.getStateMachinesThreadLooper(), mHeadsetService, mAdapterService,
@@ -211,7 +264,7 @@ public class HeadsetServiceTest {
      */
     @Test
     public void testMessageFromNative_deviceConnected() {
-        mCurrentDevice = getTestDevice(0);
+        mCurrentDevice = TestUtils.getTestDevice(mAdapter, 0);
         // Test connect from native
         HeadsetStackEvent connectedEvent =
                 new HeadsetStackEvent(HeadsetStackEvent.EVENT_TYPE_CONNECTION_STATE_CHANGED,
@@ -249,7 +302,7 @@ public class HeadsetServiceTest {
      */
     @Test
     public void testMessageFromNative_deviceConnectingUnknown() {
-        mCurrentDevice = getTestDevice(0);
+        mCurrentDevice = TestUtils.getTestDevice(mAdapter, 0);
         HeadsetStackEvent connectingEvent =
                 new HeadsetStackEvent(HeadsetStackEvent.EVENT_TYPE_CONNECTION_STATE_CHANGED,
                         HeadsetHalConstants.CONNECTION_STATE_CONNECTING, mCurrentDevice);
@@ -267,7 +320,7 @@ public class HeadsetServiceTest {
      */
     @Test
     public void testMessageFromNative_deviceDisconnectedUnknown() {
-        mCurrentDevice = getTestDevice(0);
+        mCurrentDevice = TestUtils.getTestDevice(mAdapter, 0);
         HeadsetStackEvent connectingEvent =
                 new HeadsetStackEvent(HeadsetStackEvent.EVENT_TYPE_CONNECTION_STATE_CHANGED,
                         HeadsetHalConstants.CONNECTION_STATE_DISCONNECTED, mCurrentDevice);
@@ -288,7 +341,7 @@ public class HeadsetServiceTest {
     public void testConnectDevice_connectDeviceAboveLimit() {
         ArrayList<BluetoothDevice> connectedDevices = new ArrayList<>();
         for (int i = 0; i < MAX_HEADSET_CONNECTIONS; ++i) {
-            mCurrentDevice = getTestDevice(i);
+            mCurrentDevice = TestUtils.getTestDevice(mAdapter, i);
             Assert.assertTrue(mHeadsetService.connect(mCurrentDevice));
             verify(mObjectsFactory).makeStateMachine(mCurrentDevice,
                     mHeadsetService.getStateMachinesThreadLooper(), mHeadsetService,
@@ -316,7 +369,7 @@ public class HeadsetServiceTest {
                     Matchers.containsInAnyOrder(connectedDevices.toArray()));
         }
         // Connect the next device will fail
-        mCurrentDevice = getTestDevice(MAX_HEADSET_CONNECTIONS);
+        mCurrentDevice = TestUtils.getTestDevice(mAdapter, MAX_HEADSET_CONNECTIONS);
         Assert.assertFalse(mHeadsetService.connect(mCurrentDevice));
         // Though connection failed, a new state machine is still lazily created for the device
         verify(mObjectsFactory, times(MAX_HEADSET_CONNECTIONS + 1)).makeStateMachine(
@@ -336,7 +389,7 @@ public class HeadsetServiceTest {
      */
     @Test
     public void testConnectAudio_withOneDevice() {
-        mCurrentDevice = getTestDevice(0);
+        mCurrentDevice = TestUtils.getTestDevice(mAdapter, 0);
         Assert.assertTrue(mHeadsetService.connect(mCurrentDevice));
         verify(mObjectsFactory).makeStateMachine(mCurrentDevice,
                 mHeadsetService.getStateMachinesThreadLooper(), mHeadsetService, mAdapterService,
@@ -386,7 +439,7 @@ public class HeadsetServiceTest {
     public void testConnectAudio_withMultipleDevices() {
         ArrayList<BluetoothDevice> connectedDevices = new ArrayList<>();
         for (int i = 0; i < MAX_HEADSET_CONNECTIONS; ++i) {
-            mCurrentDevice = getTestDevice(i);
+            mCurrentDevice = TestUtils.getTestDevice(mAdapter, i);
             Assert.assertTrue(mHeadsetService.connect(mCurrentDevice));
             verify(mObjectsFactory).makeStateMachine(mCurrentDevice,
                     mHeadsetService.getStateMachinesThreadLooper(), mHeadsetService,
@@ -459,7 +512,7 @@ public class HeadsetServiceTest {
     public void testConnectAudio_connectTwoAudioChannelsShouldFail() {
         ArrayList<BluetoothDevice> connectedDevices = new ArrayList<>();
         for (int i = 0; i < MAX_HEADSET_CONNECTIONS; ++i) {
-            mCurrentDevice = getTestDevice(i);
+            mCurrentDevice = TestUtils.getTestDevice(mAdapter, i);
             Assert.assertTrue(mHeadsetService.connect(mCurrentDevice));
             verify(mObjectsFactory).makeStateMachine(mCurrentDevice,
                     mHeadsetService.getStateMachinesThreadLooper(), mHeadsetService,
@@ -532,7 +585,7 @@ public class HeadsetServiceTest {
             return connectedDevices.toArray(devicesArray);
         }).when(mAdapterService).getBondedDevices();
         for (int i = 0; i < MAX_HEADSET_CONNECTIONS; ++i) {
-            mCurrentDevice = getTestDevice(i);
+            mCurrentDevice = TestUtils.getTestDevice(mAdapter, i);
             Assert.assertTrue(mHeadsetService.connect(mCurrentDevice));
             verify(mObjectsFactory).makeStateMachine(mCurrentDevice,
                     mHeadsetService.getStateMachinesThreadLooper(), mHeadsetService,
@@ -581,7 +634,7 @@ public class HeadsetServiceTest {
      */
     @Test
     public void testConnectAudio_deviceNeverConnected() {
-        mCurrentDevice = getTestDevice(0);
+        mCurrentDevice = TestUtils.getTestDevice(mAdapter, 0);
         Assert.assertFalse(mHeadsetService.connectAudio(mCurrentDevice));
     }
 
@@ -591,7 +644,7 @@ public class HeadsetServiceTest {
      */
     @Test
     public void testConnectAudio_deviceDisconnected() {
-        mCurrentDevice = getTestDevice(0);
+        mCurrentDevice = TestUtils.getTestDevice(mAdapter, 0);
         Assert.assertTrue(mHeadsetService.connect(mCurrentDevice));
         verify(mObjectsFactory).makeStateMachine(mCurrentDevice,
                 mHeadsetService.getStateMachinesThreadLooper(), mHeadsetService, mAdapterService,
@@ -613,8 +666,19 @@ public class HeadsetServiceTest {
                 eq(HeadsetStateMachine.CONNECT_AUDIO), any());
     }
 
-    private BluetoothDevice getTestDevice(int i) {
-        Assert.assertTrue(i <= 0xFF);
-        return mAdapter.getRemoteDevice(String.format("00:01:02:03:04:%02X", i));
+    /**
+     *  Helper function to test okToAcceptConnection() method
+     *
+     *  @param device test device
+     *  @param bondState bond state value, could be invalid
+     *  @param priority value, could be invalid, coudl be invalid
+     *  @param expected expected result from okToAcceptConnection()
+     */
+    private void testOkToAcceptConnectionCase(BluetoothDevice device, int bondState, int priority,
+            boolean expected) {
+        doReturn(bondState).when(mAdapterService).getBondState(device);
+        Assert.assertTrue(mHeadsetService.setPriority(device, priority));
+        Assert.assertEquals(expected, mHeadsetService.okToAcceptConnection(device));
     }
+
 }

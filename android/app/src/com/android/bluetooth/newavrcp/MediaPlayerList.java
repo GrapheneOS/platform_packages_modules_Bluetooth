@@ -447,11 +447,11 @@ public class MediaPlayerList {
             mActivePlayerId = NO_ACTIVE_PLAYER;
         }
 
-        MediaPlayerWrapper wrapper = mMediaPlayers.get(playerId);
+        final MediaPlayerWrapper wrapper = mMediaPlayers.get(playerId);
         d("Removing media player " + wrapper.getPackageName());
         mMediaPlayerIds.remove(wrapper.getPackageName());
         mMediaPlayers.remove(playerId);
-        mMediaPlayers.get(playerId).cleanup();
+        wrapper.cleanup();
     }
 
     void setActivePlayer(int playerId) {
@@ -634,24 +634,22 @@ public class MediaPlayerList {
 
 
     void dump(StringBuilder sb) {
-        sb.append("List of players:\n");
-        for (String key : mMediaPlayerIds.keySet()) {
-            if (mMediaPlayerIds.get(key) == mActivePlayerId) {
-                sb.append("*");
+        sb.append("List of MediaControllers: size=" + mMediaPlayers.size() + "\n");
+        for (int id : mMediaPlayers.keySet()) {
+            if (id == mActivePlayerId) {
+                sb.append("<Active> ");
             }
-            sb.append("Player " + mMediaPlayerIds.get(key) + ": " + key + "\n");
-        }
-        sb.append("\n");
-        sb.append("List of media controllers size: " + mMediaPlayers.size() + "\n");
-        for (MediaPlayerWrapper player: mMediaPlayers.values()) {
-            player.dump(sb);
-        }
-        sb.append("\n");
-        sb.append("Browsable Player list size: " + mBrowsablePlayers.size() + "\n");
-        for (BrowsedPlayerWrapper player : mBrowsablePlayers.values()) {
-            player.dump(sb);
+            MediaPlayerWrapper player = mMediaPlayers.get(id);
+            sb.append("  Media Player " + id + ": " + player.getPackageName() + "\n");
+            sb.append(player.toString().replaceAll("(?m)^", "  "));
+            sb.append("\n");
         }
 
+        sb.append("List of Browsers: size=" + mBrowsablePlayers.size() + "\n");
+        for (BrowsedPlayerWrapper player : mBrowsablePlayers.values()) {
+            sb.append(player.toString().replaceAll("(?m)^", "  "));
+            sb.append("\n");
+        }
         // TODO (apanicke): Add media key events
         // TODO (apanicke): Add last sent data
         // TODO (apanicke): Add addressed player history
