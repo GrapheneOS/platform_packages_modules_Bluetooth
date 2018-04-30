@@ -186,11 +186,13 @@ public class AvrcpNativeInterface {
     }
 
     void setActiveDevice(String bdaddr) {
+        bdaddr = bdaddr.toUpperCase();
         d("setActiveDevice: bdaddr=" + bdaddr);
         mAvrcpService.setActiveDevice(bdaddr);
     }
 
     void deviceConnected(String bdaddr, boolean absoluteVolume) {
+        bdaddr = bdaddr.toUpperCase();
         d("deviceConnected: bdaddr=" + bdaddr + " absoluteVolume=" + absoluteVolume);
         if (mAvrcpService == null) {
             Log.w(TAG, "deviceConnected: AvrcpTargetService is null");
@@ -201,6 +203,7 @@ public class AvrcpNativeInterface {
     }
 
     void deviceDisconnected(String bdaddr) {
+        bdaddr = bdaddr.toUpperCase();
         d("deviceDisconnected: bdaddr=" + bdaddr);
         if (mAvrcpService == null) {
             Log.w(TAG, "deviceDisconnected: AvrcpTargetService is null");
