@@ -44,19 +44,56 @@ class AvrcpVolumeManager {
     String mCurrentDeviceAddr = "";
     boolean mAbsoluteVolumeSupported = false;
 
-    int avrcpToSystemVolume(int avrcpVolume) {
+    static int avrcpToSystemVolume(int avrcpVolume) {
         return (int) Math.floor((double) avrcpVolume * sDeviceMaxVolume / AVRCP_MAX_VOL);
     }
 
-    int systemToAvrcpVolume(int deviceVolume) {
+    static int systemToAvrcpVolume(int deviceVolume) {
         int avrcpVolume = (int) Math.floor((double) deviceVolume
                 * AVRCP_MAX_VOL / sDeviceMaxVolume);
         if (avrcpVolume > 127) avrcpVolume = 127;
         return avrcpVolume;
     }
 
-    SharedPreferences getVolumeMap() {
+    private SharedPreferences getVolumeMap() {
         return mContext.getSharedPreferences(VOLUME_MAP, Context.MODE_PRIVATE);
+    }
+
+    private int getVolume(String bdaddr, int defaultValue) {
+        if (!mVolumeMap.containsKey(bdaddr)) {
+            Log.w(TAG, "getVolume: Couldn't find volume preference for device: " + bdaddr);
+            return defaultValue;
+        }
+
+        return mVolumeMap.get(bdaddr);
+    }
+
+    private void switchVolumeDevice(String bdaddr) {
+        // Inform the audio manager that the device has changed
+        mAudioManager.avrcpSupportsAbsoluteVolume(bdaddr, mDeviceMap.get(bdaddr));
+
+        // Get the current system volume and try to get the preference volume
+        int currVolume = mAudioManager.getStreamVolume(STREAM_MUSIC);
+        int savedVolume = getVolume(bdaddr, currVolume);
+
+        // If the preference volume isn't equal to the current stream volume then that means
+        // we had a stored preference.
+        if (DEBUG) {
+            Log.d(TAG, "switchVolumeDevice: currVolume=" + currVolume
+                    + " savedVolume=" + savedVolume);
+        }
+        if (savedVolume != currVolume) {
+            Log.i(TAG, "switchVolumeDevice: restoring volume level " + savedVolume);
+            mAudioManager.setStreamVolume(AudioManager.STREAM_MUSIC, savedVolume,
+                    AudioManager.FLAG_SHOW_UI | AudioManager.FLAG_BLUETOOTH_ABS_VOLUME);
+        }
+
+        // If absolute volume for the device is supported, set the volume for the device
+        if (mDeviceMap.get(bdaddr)) {
+            int avrcpVolume = systemToAvrcpVolume(savedVolume);
+            Log.i(TAG, "switchVolumeDevice: Updating device volume: avrcpVolume=" + avrcpVolume);
+            mNativeInterface.sendVolumeChanged(avrcpVolume);
+        }
     }
 
     AvrcpVolumeManager(Context context, AudioManager audioManager,
@@ -66,7 +103,7 @@ class AvrcpVolumeManager {
         mNativeInterface = nativeInterface;
         sDeviceMaxVolume = mAudioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
 
-        // Load the volume map into a hash map since shared preferences are slow
+        // Load the volume map into a hash map since shared preferences are slow to poll and update
         Map<String, ?> allKeys = getVolumeMap().getAll();
         for (Map.Entry<String, ?> entry : allKeys.entrySet()) {
             String key = entry.getKey();
@@ -75,15 +112,6 @@ class AvrcpVolumeManager {
                 mVolumeMap.put(key, (Integer) value);
             }
         }
-    }
-
-    int getVolume(String bdaddr, int defaultValue) {
-        if (!mVolumeMap.containsKey(bdaddr)) {
-            Log.w(TAG, "getVolume: Couldn't find volume preference for device: " + bdaddr);
-            return defaultValue;
-        }
-
-        return mVolumeMap.get(bdaddr);
     }
 
     void storeVolume() {
@@ -101,18 +129,18 @@ class AvrcpVolumeManager {
             Log.d(TAG, "deviceConnected: bdaddr=" + bdaddr + " absoluteVolume=" + absoluteVolume);
         }
 
-        mDeviceMap.put(bdaddr.toUpperCase(), absoluteVolume);
+        mDeviceMap.put(bdaddr, absoluteVolume);
 
         // AVRCP features lookup has completed after the device became active. Switch to the new
         // device now.
-        if (bdaddr == mCurrentDeviceAddr) {
+        if (bdaddr.equals(mCurrentDeviceAddr)) {
             switchVolumeDevice(bdaddr);
         }
     }
 
     void volumeDeviceSwitched(String bdaddr) {
         if (DEBUG) {
-            Log.d(TAG, "activeDeviceChanged: mCurrentDeviceAddr=" + mCurrentDeviceAddr
+            Log.d(TAG, "volumeDeviceSwitched: mCurrentDeviceAddr=" + mCurrentDeviceAddr
                     + " bdaddr=" + bdaddr);
         }
 
@@ -137,53 +165,29 @@ class AvrcpVolumeManager {
         // device supports absolute volume. Defer switching the device until AVRCP returns the
         // info.
         if (!mDeviceMap.containsKey(bdaddr)) {
-            Log.w(TAG, "Device isn't connected: " + bdaddr);
+            Log.w(TAG, "volumeDeviceSwitched: Device isn't connected: " + bdaddr);
             return;
         }
 
         switchVolumeDevice(bdaddr);
     }
 
-    void switchVolumeDevice(String bdaddr) {
-        // Inform the audio manager that the device has changed
-        mAudioManager.avrcpSupportsAbsoluteVolume(bdaddr, mDeviceMap.get(bdaddr));
-
-        // Get the current system volume and try to get the preference volume
-        int currVolume = mAudioManager.getStreamVolume(STREAM_MUSIC);
-        int savedVolume = getVolume(bdaddr, currVolume);
-
-        // If the preference volume isn't equal to the current stream volume then that means
-        // we had a stored preference.
-        if (DEBUG) {
-            Log.d(TAG, "activeDeviceChanged: currVolume=" + currVolume
-                    + " savedVolume=" + savedVolume);
-        }
-        if (savedVolume != currVolume) {
-            mAudioManager.setStreamVolume(AudioManager.STREAM_MUSIC, savedVolume,
-                    AudioManager.FLAG_SHOW_UI | AudioManager.FLAG_BLUETOOTH_ABS_VOLUME);
-        }
-
-        // If absolute volume for the device is supported, set the volume for the device
-        if (mDeviceMap.get(bdaddr)) {
-            int avrcpVolume = systemToAvrcpVolume(savedVolume);
-            Log.e(TAG, "activeDeviceChanged: Updating device volume: avrcpVolume=" + avrcpVolume);
-            mNativeInterface.sendVolumeChanged(avrcpVolume);
-        }
-    }
-
     void deviceDisconnected(String bdaddr) {
-        Log.e(TAG, "deviceDisconnected: bdaddr=" + bdaddr);
+        if (DEBUG) {
+            Log.d(TAG, "deviceDisconnected: bdaddr=" + bdaddr);
+        }
         mDeviceMap.remove(bdaddr);
     }
 
     public void dump(StringBuilder sb) {
         sb.append("Bluetooth Device Volume Map:\n");
+        sb.append("  Device Address    : Volume\n");
         Map<String, ?> allKeys = getVolumeMap().getAll();
         for (Map.Entry<String, ?> entry : allKeys.entrySet()) {
             String key = entry.getKey();
             Object value = entry.getValue();
             if (value instanceof Integer) {
-                sb.append("    " + key + " - " + (Integer) value + "\n");
+                sb.append("  " + key + " : " + (Integer) value + "\n");
                 mVolumeMap.put(key, (Integer) value);
             }
         }
