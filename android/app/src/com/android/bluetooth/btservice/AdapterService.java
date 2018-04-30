@@ -277,6 +277,8 @@ public class AdapterService extends Service {
                         mAdapterProperties.onBluetoothReady();
                         updateUuids();
                         setBluetoothClassFromConfig();
+                        getAdapterPropertyNative(AbstractionLayer.BT_PROPERTY_LOCAL_IO_CAPS);
+                        getAdapterPropertyNative(AbstractionLayer.BT_PROPERTY_LOCAL_IO_CAPS_BLE);
                         mAdapterStateMachine.sendMessage(AdapterState.BREDR_STARTED);
                     }
                     break;
@@ -873,6 +875,7 @@ public class AdapterService extends Service {
             return service.setName(name);
         }
 
+        @Override
         public BluetoothClass getBluetoothClass() {
             if (!Utils.checkCaller()) {
                 Log.w(TAG, "getBluetoothClass() - Not allowed for non-active user");
@@ -884,6 +887,7 @@ public class AdapterService extends Service {
             return service.getBluetoothClass();
         }
 
+        @Override
         public boolean setBluetoothClass(BluetoothClass bluetoothClass) {
             if (!Utils.checkCaller()) {
                 Log.w(TAG, "setBluetoothClass() - Not allowed for non-active user");
@@ -895,6 +899,54 @@ public class AdapterService extends Service {
                 return false;
             }
             return service.setBluetoothClass(bluetoothClass);
+        }
+
+        @Override
+        public int getIoCapability() {
+            if (!Utils.checkCaller()) {
+                Log.w(TAG, "setBluetoothClass() - Not allowed for non-active user");
+                return BluetoothAdapter.IO_CAPABILITY_UNKNOWN;
+            }
+
+            AdapterService service = getService();
+            if (service == null) return BluetoothAdapter.IO_CAPABILITY_UNKNOWN;
+            return service.getIoCapability();
+        }
+
+        @Override
+        public boolean setIoCapability(int capability) {
+            if (!Utils.checkCaller()) {
+                Log.w(TAG, "setBluetoothClass() - Not allowed for non-active user");
+                return false;
+            }
+
+            AdapterService service = getService();
+            if (service == null) return false;
+            return service.setIoCapability(capability);
+        }
+
+        @Override
+        public int getLeIoCapability() {
+            if (!Utils.checkCaller()) {
+                Log.w(TAG, "setBluetoothClass() - Not allowed for non-active user");
+                return BluetoothAdapter.IO_CAPABILITY_UNKNOWN;
+            }
+
+            AdapterService service = getService();
+            if (service == null) return BluetoothAdapter.IO_CAPABILITY_UNKNOWN;
+            return service.getLeIoCapability();
+        }
+
+        @Override
+        public boolean setLeIoCapability(int capability) {
+            if (!Utils.checkCaller()) {
+                Log.w(TAG, "setBluetoothClass() - Not allowed for non-active user");
+                return false;
+            }
+
+            AdapterService service = getService();
+            if (service == null) return false;
+            return service.setLeIoCapability(capability);
         }
 
         @Override
@@ -1688,6 +1740,47 @@ public class AdapterService extends Service {
         }
 
         return result && storeBluetoothClassConfig(bluetoothClass.getClassOfDevice());
+    }
+
+    private boolean validateInputOutputCapability(int capability) {
+        if (capability < 0 || capability >= BluetoothAdapter.IO_CAPABILITY_MAX) {
+            Log.e(TAG, "Invalid IO capability value - " + capability);
+            return false;
+        }
+
+        return true;
+    }
+
+    int getIoCapability() {
+        enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH ADMIN permission");
+
+        return mAdapterProperties.getIoCapability();
+    }
+
+    boolean setIoCapability(int capability) {
+        enforceCallingOrSelfPermission(
+                BLUETOOTH_PRIVILEGED, "Need BLUETOOTH PRIVILEGED permission");
+        if (!validateInputOutputCapability(capability)) {
+            return false;
+        }
+
+        return mAdapterProperties.setIoCapability(capability);
+    }
+
+    int getLeIoCapability() {
+        enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH ADMIN permission");
+
+        return mAdapterProperties.getLeIoCapability();
+    }
+
+    boolean setLeIoCapability(int capability) {
+        enforceCallingOrSelfPermission(
+                BLUETOOTH_PRIVILEGED, "Need BLUETOOTH PRIVILEGED permission");
+        if (!validateInputOutputCapability(capability)) {
+            return false;
+        }
+
+        return mAdapterProperties.setLeIoCapability(capability);
     }
 
     int getScanMode() {
