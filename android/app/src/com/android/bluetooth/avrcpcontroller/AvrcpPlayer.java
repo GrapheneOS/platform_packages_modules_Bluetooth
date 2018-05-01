@@ -26,7 +26,8 @@ import java.util.Arrays;
  */
 class AvrcpPlayer {
     private static final String TAG = "AvrcpPlayer";
-    private static final boolean DBG = true;
+    private static final boolean DBG = false;
+    private static final boolean VDBG = false;
 
     public static final int INVALID_ID = -1;
 
@@ -120,8 +121,15 @@ class AvrcpPlayer {
             .setActions(mAvailableActions).build();
     }
 
-    public synchronized void updateCurrentTrack(TrackInfo update) {
+    public synchronized boolean updateCurrentTrack(TrackInfo update) {
+        if (update != null && mCurrentTrack != null
+                && update.toString().equals(mCurrentTrack.toString())) {
+            if (DBG) Log.d(TAG, "Update same as original");
+            return false;
+        }
+        if (VDBG) Log.d(TAG, "Track Changed Was:" + mCurrentTrack + "now " + update);
         mCurrentTrack = update;
+        return true;
     }
 
     public synchronized TrackInfo getCurrentTrack() {

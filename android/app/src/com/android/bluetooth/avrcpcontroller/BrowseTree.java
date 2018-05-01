@@ -20,7 +20,6 @@ import android.media.MediaDescription;
 import android.media.browse.MediaBrowser;
 import android.media.browse.MediaBrowser.MediaItem;
 import android.os.Bundle;
-import android.service.media.MediaBrowserService.Result;
 import android.util.Log;
 
 import java.util.ArrayList;
@@ -43,12 +42,8 @@ public class BrowseTree {
     private static final boolean DBG = false;
     private static final boolean VDBG = false;
 
-    public static final int DIRECTION_DOWN = 0;
-    public static final int DIRECTION_UP = 1;
-    public static final int DIRECTION_SAME = 2;
-    public static final int DIRECTION_UNKNOWN = -1;
-
     public static final String ROOT = "__ROOT__";
+    public static final String UP = "__UP__";
     public static final String NOW_PLAYING_PREFIX = "NOW_PLAYING";
     public static final String PLAYER_PREFIX = "PLAYER";
 
@@ -57,19 +52,36 @@ public class BrowseTree {
     private BrowseNode mCurrentBrowseNode;
     private BrowseNode mCurrentBrowsedPlayer;
     private BrowseNode mCurrentAddressedPlayer;
+    private int mDepth = 0;
+    final BrowseNode mRootNode;
+    final BrowseNode mNavigateUpNode;
+    final BrowseNode mNowPlayingNode;
 
     BrowseTree() {
-    }
-
-    public void init() {
-        MediaDescription.Builder mdb = new MediaDescription.Builder();
-        mdb.setMediaId(ROOT);
-        mdb.setTitle(ROOT);
         Bundle mdBundle = new Bundle();
         mdBundle.putString(AvrcpControllerService.MEDIA_ITEM_UID_KEY, ROOT);
-        mdb.setExtras(mdBundle);
-        mBrowseMap.put(ROOT, new BrowseNode(new MediaItem(mdb.build(), MediaItem.FLAG_BROWSABLE)));
-        mCurrentBrowseNode = mBrowseMap.get(ROOT);
+        mRootNode = new BrowseNode(new MediaItem(new MediaDescription.Builder().setExtras(mdBundle)
+              .setMediaId(ROOT).setTitle(ROOT).build(), MediaItem.FLAG_BROWSABLE));
+        mRootNode.mBrowseScope = AvrcpControllerService.BROWSE_SCOPE_PLAYER_LIST;
+
+        Bundle upnodeBundle = new Bundle();
+        upnodeBundle.putString(AvrcpControllerService.MEDIA_ITEM_UID_KEY, UP);
+        mNavigateUpNode = new BrowseNode(new MediaItem(new MediaDescription.Builder()
+              .setExtras(upnodeBundle).setMediaId(UP).setTitle(UP).build(),
+              MediaItem.FLAG_BROWSABLE));
+
+        Bundle nowPlayingBundle = new Bundle();
+        nowPlayingBundle.putString(AvrcpControllerService.MEDIA_ITEM_UID_KEY, NOW_PLAYING_PREFIX);
+        mNowPlayingNode = new BrowseNode(new MediaItem(new MediaDescription.Builder()
+              .setExtras(nowPlayingBundle).setMediaId(NOW_PLAYING_PREFIX)
+              .setTitle(NOW_PLAYING_PREFIX).build(), MediaItem.FLAG_BROWSABLE));
+        mNowPlayingNode.mBrowseScope = AvrcpControllerService.BROWSE_SCOPE_NOW_PLAYING;
+        mNowPlayingNode.setExpectedChildren(255);
+        mBrowseMap.put(ROOT, mRootNode);
+        mRootNode.mChildren.add(mNowPlayingNode);
+        mBrowseMap.put(NOW_PLAYING_PREFIX, mNowPlayingNode);
+
+        mCurrentBrowseNode = mRootNode;
     }
 
     public void clear() {
@@ -91,12 +103,12 @@ public class BrowseTree {
         // without doing another fetch.
         boolean mCached = false;
 
-        // Result object if this node is not loaded yet. This result object will be used
-        // once loading is finished.
-        Result<List<MediaItem>> mResult = null;
+        int mBrowseScope = AvrcpControllerService.BROWSE_SCOPE_VFS;
 
         // List of children.
-        final List<BrowseNode> mChildren = new ArrayList<BrowseNode>();
+        private BrowseNode mParent;
+        private final List<BrowseNode> mChildren = new ArrayList<BrowseNode>();
+        private int mExpectedChildrenCount;
 
         BrowseNode(MediaItem item) {
             mItem = item;
@@ -118,25 +130,90 @@ public class BrowseTree {
             mItem = new MediaBrowser.MediaItem(mdb.build(), mediaItemFlags);
         }
 
+        private BrowseNode(String name) {
+            MediaDescription.Builder mdb = new MediaDescription.Builder();
+            Bundle mdExtra = new Bundle();
+            mdExtra.putString(AvrcpControllerService.MEDIA_ITEM_UID_KEY, name);
+            mdb.setExtras(mdExtra);
+            mdb.setMediaId(name);
+            mdb.setTitle(name);
+            mItem = new MediaBrowser.MediaItem(mdb.build(), MediaBrowser.MediaItem.FLAG_BROWSABLE);
+        }
+
+        synchronized void setExpectedChildren(int count) {
+            mExpectedChildrenCount = count;
+        }
+
+        synchronized int getExpectedChildren() {
+            return mExpectedChildrenCount;
+        }
+
+        synchronized <E> int addChildren(List<E> newChildren) {
+            for (E child : newChildren) {
+                BrowseNode currentNode = null;
+                if (child instanceof MediaItem) {
+                    currentNode = new BrowseNode((MediaItem) child);
+                } else if (child instanceof AvrcpPlayer) {
+                    currentNode = new BrowseNode((AvrcpPlayer) child);
+                }
+                if (currentNode != null) {
+                    currentNode.mParent = this;
+                    mChildren.add(currentNode);
+                    mBrowseMap.put(currentNode.getID(), currentNode);
+                }
+            }
+            return newChildren.size();
+        }
+
+        synchronized int getChildrenCount() {
+            return mChildren.size();
+        }
+
         synchronized List<BrowseNode> getChildren() {
             return mChildren;
         }
 
-        synchronized boolean isChild(BrowseNode node) {
-            for (BrowseNode bn : mChildren) {
-                if (bn.equals(node)) {
-                    return true;
+        synchronized BrowseNode getParent() {
+            return mParent;
+        }
+
+        synchronized List<MediaItem> getContents() {
+            if (mChildren != null) {
+                List<MediaItem> contents = new ArrayList<MediaItem>(mChildren.size());
+                for (BrowseNode child : mChildren) {
+                    contents.add(child.getMediaItem());
                 }
+                return contents;
             }
-            return false;
+            return null;
+        }
+
+        synchronized boolean isChild(BrowseNode node) {
+            return mChildren.contains(node);
         }
 
         synchronized boolean isCached() {
             return mCached;
         }
 
+        synchronized boolean isBrowsable() {
+            return mItem.isBrowsable();
+        }
+
         synchronized void setCached(boolean cached) {
+            if (DBG) Log.d(TAG, "Set Cache" + cached + "Node" + toString());
             mCached = cached;
+            if (!cached) {
+                for (BrowseNode child : mChildren) {
+                    mBrowseMap.remove(child.getID());
+                }
+                mChildren.clear();
+                if (this == mRootNode) {
+                    mNowPlayingNode.setCached(false);
+                    mRootNode.mChildren.add(mNowPlayingNode);
+                    mBrowseMap.put(NOW_PLAYING_PREFIX, mNowPlayingNode);
+                }
+            }
         }
 
         // Fetch the Unique UID for this item, this is unique across all elements in the tree.
@@ -147,6 +224,10 @@ public class BrowseTree {
         // Get the BT Player ID associated with this node.
         synchronized int getPlayerID() {
             return Integer.parseInt(getID().replace(PLAYER_PREFIX, ""));
+        }
+
+        synchronized int getScope() {
+            return mBrowseScope;
         }
 
         // Fetch the Folder UID that can be used to fetch folder listing via bluetooth.
@@ -182,50 +263,16 @@ public class BrowseTree {
         @Override
         public String toString() {
             if (VDBG) {
-                return "ID: " + getID() + " desc: " + mItem;
+                return "[ Name: " + mItem.getDescription().getTitle() + " expected Children: "
+                        + mExpectedChildrenCount + "] ";
             } else {
                 return "ID: " + getID();
             }
         }
-    }
-
-    synchronized <E> void refreshChildren(String parentID, List<E> children) {
-        BrowseNode parent = findFolderByIDLocked(parentID);
-        if (parent == null) {
-            Log.w(TAG, "parent not found for parentID " + parentID);
-            return;
+        // Returns true if target is a descendant of this.
+        synchronized boolean isDescendant(BrowseNode target) {
+            return getEldestChild(this, target) == null ? false : true;
         }
-        refreshChildren(parent, children);
-    }
-
-    synchronized <E> void refreshChildren(BrowseNode parent, List<E> children) {
-        if (children == null) {
-            Log.e(TAG, "children cannot be null ");
-            return;
-        }
-
-        List<BrowseNode> bnList = new ArrayList<BrowseNode>();
-        for (E child : children) {
-            if (child instanceof MediaItem) {
-                bnList.add(new BrowseNode((MediaItem) child));
-            } else if (child instanceof AvrcpPlayer) {
-                bnList.add(new BrowseNode((AvrcpPlayer) child));
-            }
-        }
-
-        String parentID = parent.getID();
-        // Make sure that the child list is clean.
-        if (VDBG) {
-            Log.d(TAG, "parent " + parentID + " child list " + parent.getChildren());
-        }
-
-        addChildrenLocked(parent, bnList);
-        List<MediaItem> childrenList = new ArrayList<MediaItem>();
-        for (BrowseNode bn : parent.getChildren()) {
-            childrenList.add(bn.getMediaItem());
-        }
-
-        parent.setCached(true);
     }
 
     synchronized BrowseNode findBrowseNodeByID(String parentID) {
@@ -235,50 +282,13 @@ public class BrowseTree {
             return null;
         }
         if (VDBG) {
-            Log.d(TAG, "Browse map: " + mBrowseMap);
+            Log.d(TAG, "Size" + mBrowseMap.size());
         }
         return bn;
     }
 
-    BrowseNode findFolderByIDLocked(String parentID) {
-        return mBrowseMap.get(parentID);
-    }
-
-    void addChildrenLocked(BrowseNode parent, List<BrowseNode> items) {
-        // Remove existing children and then add the new children.
-        for (BrowseNode c : parent.getChildren()) {
-            mBrowseMap.remove(c.getID());
-        }
-        parent.getChildren().clear();
-
-        for (BrowseNode bn : items) {
-            parent.getChildren().add(bn);
-            mBrowseMap.put(bn.getID(), bn);
-        }
-    }
-
-    synchronized int getDirection(String toUID) {
-        BrowseNode fromFolder = mCurrentBrowseNode;
-        BrowseNode toFolder = findFolderByIDLocked(toUID);
-        if (fromFolder == null || toFolder == null) {
-            Log.e(TAG, "from folder " + mCurrentBrowseNode + " or to folder " + toUID + " null!");
-        }
-
-        // Check the relationship.
-        if (fromFolder.isChild(toFolder)) {
-            return DIRECTION_DOWN;
-        } else if (toFolder.isChild(fromFolder)) {
-            return DIRECTION_UP;
-        } else if (fromFolder.equals(toFolder)) {
-            return DIRECTION_SAME;
-        } else {
-            Log.w(TAG, "from folder " + mCurrentBrowseNode + "to folder " + toUID);
-            return DIRECTION_UNKNOWN;
-        }
-    }
-
     synchronized boolean setCurrentBrowsedFolder(String uid) {
-        BrowseNode bn = findFolderByIDLocked(uid);
+        BrowseNode bn = mBrowseMap.get(uid);
         if (bn == null) {
             Log.e(TAG, "Setting an unknown browsed folder, ignoring bn " + uid);
             return false;
@@ -286,10 +296,8 @@ public class BrowseTree {
 
         // Set the previous folder as not cached so that we fetch the contents again.
         if (!bn.equals(mCurrentBrowseNode)) {
-            Log.d(TAG, "Set cache false " + bn + " curr " + mCurrentBrowseNode);
-            mCurrentBrowseNode.setCached(false);
+            Log.d(TAG, "Set cache  " + bn + " curr " + mCurrentBrowseNode);
         }
-
         mCurrentBrowseNode = bn;
         return true;
     }
@@ -298,13 +306,21 @@ public class BrowseTree {
         return mCurrentBrowseNode;
     }
 
-    synchronized boolean setCurrentBrowsedPlayer(String uid) {
-        BrowseNode bn = findFolderByIDLocked(uid);
+    synchronized boolean setCurrentBrowsedPlayer(String uid, int items, int depth) {
+        BrowseNode bn = mBrowseMap.get(uid);
         if (bn == null) {
             Log.e(TAG, "Setting an unknown browsed player, ignoring bn " + uid);
             return false;
         }
         mCurrentBrowsedPlayer = bn;
+        mCurrentBrowseNode = mCurrentBrowsedPlayer;
+        for (Integer level = 0; level < depth; level++) {
+            BrowseNode dummyNode = new BrowseNode(level.toString());
+            dummyNode.mParent = mCurrentBrowseNode;
+            mCurrentBrowseNode = dummyNode;
+        }
+        mCurrentBrowseNode.setExpectedChildren(items);
+        mDepth = depth;
         return true;
     }
 
@@ -313,9 +329,12 @@ public class BrowseTree {
     }
 
     synchronized boolean setCurrentAddressedPlayer(String uid) {
-        BrowseNode bn = findFolderByIDLocked(uid);
+        BrowseNode bn = mBrowseMap.get(uid);
         if (bn == null) {
-            Log.e(TAG, "Setting an unknown addressed player, ignoring bn " + uid);
+            if (DBG) Log.d(TAG, "Setting an unknown addressed player, ignoring bn " + uid);
+            mRootNode.setCached(false);
+            mRootNode.mChildren.add(mNowPlayingNode);
+            mBrowseMap.put(NOW_PLAYING_PREFIX, mNowPlayingNode);
             return false;
         }
         mCurrentAddressedPlayer = bn;
@@ -328,6 +347,60 @@ public class BrowseTree {
 
     @Override
     public String toString() {
-        return mBrowseMap.toString();
+        return "Size: " + mBrowseMap.size();
+    }
+
+    // Calculates the path to target node.
+    // Returns: UP node to go up
+    // Returns: target node if there
+    // Returns: named node to go down
+    // Returns: null node if unknown
+    BrowseNode getNextStepToFolder(BrowseNode target) {
+        if (target == null) {
+            return null;
+        } else if (target.equals(mCurrentBrowseNode)
+                || target.equals(mNowPlayingNode)) {
+            return target;
+        } else if (target.isPlayer()) {
+            if (mDepth > 0) {
+                mDepth--;
+                return mNavigateUpNode;
+            } else {
+                return target;
+            }
+        } else if (mBrowseMap.get(target.getID()) == null) {
+            return null;
+        } else {
+            BrowseNode nextChild = getEldestChild(mCurrentBrowseNode, target);
+            if (nextChild == null) {
+                return mNavigateUpNode;
+            } else {
+                return nextChild;
+            }
+        }
+          /*
+          if (mCurrentBrowseNode.isDescendant(target)) {
+            return getEldestChild(mCurrentBrowseNode, target);
+        } else {
+            if (DBG) Log.d(TAG, "NAVIGATING UP");
+            return mNavigateUpNode;
+        }
+        */
+    }
+
+    BrowseNode getEldestChild(BrowseNode ancestor, BrowseNode target) {
+        // ancestor is an ancestor of target
+        BrowseNode descendant = target;
+        if (DBG) {
+            Log.d(TAG, "NAVIGATING ancestor" + ancestor.toString() + "Target" + target.toString());
+        }
+        while (!ancestor.equals(descendant.mParent)) {
+            descendant = descendant.mParent;
+            if (descendant == null) {
+                return null;
+            }
+        }
+        if (DBG) Log.d(TAG, "NAVIGATING Descendant" + descendant.toString());
+        return descendant;
     }
 }

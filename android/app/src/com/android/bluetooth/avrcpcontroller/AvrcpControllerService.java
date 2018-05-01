@@ -172,8 +172,8 @@ public class AvrcpControllerService extends ProfileService {
     /* Folder navigation directions
      * This is borrowed from AVRCP 1.6 spec and must be kept with same values
      */
-    public static final int FOLDER_NAVIGATION_DIRECTION_UP = 0x00;
-    public static final int FOLDER_NAVIGATION_DIRECTION_DOWN = 0x01;
+    public static final byte FOLDER_NAVIGATION_DIRECTION_UP = 0x00;
+    public static final byte FOLDER_NAVIGATION_DIRECTION_DOWN = 0x01;
 
     /* Folder/Media Item scopes.
      * Keep in sync with AVRCP 1.6 sec. 6.10.1
@@ -398,77 +398,12 @@ public class AvrcpControllerService extends ProfileService {
     }
 
     /**
-     * Fetches the list of children for the parentID node.
-     *
-     * This function manages the overall tree for browsing structure.
-     *
-     * Arguments:
-     * device - Device to browse content for.
-     * parentMediaId - ID of the parent that we need to browse content for. Since most
-     * of the players are database unware, fetching a root invalidates all the children.
-     * start - number of item to start scanning from
-     * items - number of items to fetch
+     * Retreive the contents of the directory from the associated bluetooth device.
      */
-    public synchronized boolean getChildren(BluetoothDevice device, String parentMediaId, int start,
-            int items) {
-        if (DBG) {
-            Log.d(TAG, "getChildren device = " + device + " parent " + parentMediaId);
-        }
-
-        if (device == null) {
-            Log.e(TAG, "getChildren device is null");
-            return false;
-        }
-
-        if (!device.equals(mConnectedDevice)) {
-            Log.e(TAG, "getChildren device " + device + " does not match " + mConnectedDevice);
-            return false;
-        }
-
-        if (!mBrowseConnected) {
-            Log.e(TAG, "getChildren browse not yet connected");
-            return false;
-        }
-
-        if (!mAvrcpCtSm.isConnected()) {
-            return false;
-        }
-        mAvrcpCtSm.getChildren(parentMediaId, start, items);
-        return true;
+    public synchronized List<MediaItem> getContents(BluetoothDevice device, String parentMediaId) {
+        return mAvrcpCtSm.getContents(parentMediaId);
     }
-
-    public synchronized boolean getNowPlayingList(BluetoothDevice device, String id, int start,
-            int items) {
-        if (DBG) {
-            Log.d(TAG, "getNowPlayingList device = " + device + " start = " + start + "items = "
-                    + items);
-        }
-
-        if (device == null) {
-            Log.e(TAG, "getNowPlayingList device is null");
-            return false;
-        }
-
-        if (!device.equals(mConnectedDevice)) {
-            Log.e(TAG,
-                    "getNowPlayingList device " + device + " does not match " + mConnectedDevice);
-            return false;
-        }
-
-        if (!mBrowseConnected) {
-            Log.e(TAG, "getNowPlayingList browse not yet connected");
-            return false;
-        }
-
-        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
-
-        Message msg =
-                mAvrcpCtSm.obtainMessage(AvrcpControllerStateMachine.MESSAGE_GET_NOW_PLAYING_LIST,
-                        start, items, id);
-        mAvrcpCtSm.sendMessage(msg);
-        return true;
-    }
-
+/*
     public synchronized boolean getFolderList(BluetoothDevice device, String id, int start,
             int items) {
         if (DBG) {
@@ -499,100 +434,7 @@ public class AvrcpControllerService extends ProfileService {
         mAvrcpCtSm.sendMessage(msg);
         return true;
     }
-
-    public synchronized boolean getPlayerList(BluetoothDevice device, int start, int items) {
-        if (DBG) {
-            Log.d(TAG,
-                    "getPlayerList device = " + device + " start = " + start + "items = " + items);
-        }
-
-        if (device == null) {
-            Log.e(TAG, "getPlayerList device is null");
-            return false;
-        }
-
-        if (!device.equals(mConnectedDevice)) {
-            Log.e(TAG, "getPlayerList device " + device + " does not match " + mConnectedDevice);
-            return false;
-        }
-
-        if (!mBrowseConnected) {
-            Log.e(TAG, "getPlayerList browse not yet connected");
-            return false;
-        }
-
-        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
-
-        Message msg =
-                mAvrcpCtSm.obtainMessage(AvrcpControllerStateMachine.MESSAGE_GET_PLAYER_LIST, start,
-                        items);
-        mAvrcpCtSm.sendMessage(msg);
-        return true;
-    }
-
-    public synchronized boolean changeFolderPath(BluetoothDevice device, int direction, String uid,
-            String fid) {
-        if (DBG) {
-            Log.d(TAG, "changeFolderPath device = " + device + " direction " + direction + " uid "
-                    + uid);
-        }
-
-        if (device == null) {
-            Log.e(TAG, "changeFolderPath device is null");
-            return false;
-        }
-
-        if (!device.equals(mConnectedDevice)) {
-            Log.e(TAG, "changeFolderPath device " + device + " does not match " + mConnectedDevice);
-            return false;
-        }
-
-        if (!mBrowseConnected) {
-            Log.e(TAG, "changeFolderPath browse not yet connected");
-            return false;
-        }
-
-        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
-
-        Bundle b = new Bundle();
-        b.putString(EXTRA_FOLDER_ID, fid);
-        b.putString(EXTRA_FOLDER_BT_ID, uid);
-        Message msg =
-                mAvrcpCtSm.obtainMessage(AvrcpControllerStateMachine.MESSAGE_CHANGE_FOLDER_PATH,
-                        direction, 0, b);
-        mAvrcpCtSm.sendMessage(msg);
-        return true;
-    }
-
-    public synchronized boolean setBrowsedPlayer(BluetoothDevice device, int id, String fid) {
-        if (DBG) {
-            Log.d(TAG, "setBrowsedPlayer device = " + device + " id" + id + " fid " + fid);
-        }
-
-        if (device == null) {
-            Log.e(TAG, "setBrowsedPlayer device is null");
-            return false;
-        }
-
-        if (!device.equals(mConnectedDevice)) {
-            Log.e(TAG, "changeFolderPath device " + device + " does not match " + mConnectedDevice);
-            return false;
-        }
-
-        if (!mBrowseConnected) {
-            Log.e(TAG, "setBrowsedPlayer browse not yet connected");
-            return false;
-        }
-
-        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
-
-        Message msg =
-                mAvrcpCtSm.obtainMessage(AvrcpControllerStateMachine.MESSAGE_SET_BROWSED_PLAYER, id,
-                        0, fid);
-        mAvrcpCtSm.sendMessage(msg);
-        return true;
-    }
-
+*/
     public synchronized void fetchAttrAndPlayItem(BluetoothDevice device, String uid) {
         if (DBG) {
             Log.d(TAG, "fetchAttrAndPlayItem device = " + device + " uid " + uid);

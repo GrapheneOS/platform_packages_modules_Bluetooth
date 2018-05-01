@@ -33,7 +33,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
-import android.os.Parcelable;
 import android.service.media.MediaBrowserService;
 import android.util.Log;
 import android.util.Pair;
@@ -44,7 +43,6 @@ import com.android.bluetooth.avrcpcontroller.AvrcpControllerService;
 import com.android.bluetooth.avrcpcontroller.BrowseTree;
 
 import java.lang.ref.WeakReference;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -220,6 +218,7 @@ public class A2dpMediaBrowserService extends MediaBrowserService {
 
     @Override
     public BrowserRoot onGetRoot(String clientPackageName, int clientUid, Bundle rootHints) {
+        if (DBG) Log.d(TAG, "onGetRoot");
         return new BrowserRoot(BrowseTree.ROOT, null);
     }
 
@@ -233,17 +232,15 @@ public class A2dpMediaBrowserService extends MediaBrowserService {
         }
 
         if (DBG) Log.d(TAG, "onLoadChildren parentMediaId=" + parentMediaId);
-        if (!mAvrcpCtrlSrvc.getChildren(mA2dpDevice, parentMediaId, 0, 0xff)) {
-            result.sendResult(Collections.emptyList());
-            return;
+        List<MediaItem> contents = mAvrcpCtrlSrvc.getContents(mA2dpDevice, parentMediaId);
+        if (contents == null) {
+            mParentIdToRequestMap.put(parentMediaId, result);
+            result.detach();
+        } else {
+            result.sendResult(contents);
         }
 
-        // Since we are using this thread from a binder thread we should make sure that
-        // we synchronize against other such asynchronous calls.
-        synchronized (this) {
-            mParentIdToRequestMap.put(parentMediaId, result);
-        }
-        result.detach();
+        return;
     }
 
     @Override
@@ -555,16 +552,8 @@ public class A2dpMediaBrowserService extends MediaBrowserService {
 
     private void msgFolderList(Intent intent) {
         // Parse the folder list for children list and id.
-        List<Parcelable> extraParcelableList =
-                (ArrayList<Parcelable>) intent.getParcelableArrayListExtra(
-                        AvrcpControllerService.EXTRA_FOLDER_LIST);
-        List<MediaItem> folderList = new ArrayList<MediaItem>();
-        for (Parcelable p : extraParcelableList) {
-            folderList.add((MediaItem) p);
-        }
-
         String id = intent.getStringExtra(AvrcpControllerService.EXTRA_FOLDER_ID);
-        if (VDBG) Log.d(TAG, "Parent: " + id + " Folder list: " + folderList);
+        if (VDBG) Log.d(TAG, "Parent: " + id);
         synchronized (this) {
             // If we have a result object then we should send the result back
             // to client since it is blocking otherwise we may have gotten more items
@@ -572,10 +561,9 @@ public class A2dpMediaBrowserService extends MediaBrowserService {
             Result<List<MediaItem>> results = mParentIdToRequestMap.remove(id);
             if (results == null) {
                 Log.w(TAG, "Request no longer exists, notifying that children changed.");
-                if (!id.equals("__ROOT__")) {
                     notifyChildrenChanged(id);
-                }
             } else {
+                List<MediaItem> folderList = mAvrcpCtrlSrvc.getContents(mA2dpDevice, id);
                 results.sendResult(folderList);
             }
         }
