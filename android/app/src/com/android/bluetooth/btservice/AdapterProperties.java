@@ -897,48 +897,27 @@ class AdapterProperties {
             mProfilesConnected = 0;
             mProfilesConnecting = 0;
             mProfilesDisconnecting = 0;
-            // When BT is being turned on, all adapter properties will be sent in 1
-            // callback. At this stage, set the scan mode.
-            if (getState() == BluetoothAdapter.STATE_TURNING_ON
-                    && mScanMode == BluetoothAdapter.SCAN_MODE_NONE) {
-                    /* mDiscoverableTimeout is part of the
-                       adapterPropertyChangedCallback received before
-                       onBluetoothReady */
-                if (mDiscoverableTimeout != 0) {
-                    setScanMode(AbstractionLayer.BT_SCAN_MODE_CONNECTABLE);
-                } else /* if timeout == never (0) at startup */ {
-                    setScanMode(AbstractionLayer.BT_SCAN_MODE_CONNECTABLE_DISCOVERABLE);
-                }
-                    /* though not always required, this keeps NV up-to date on first-boot after
-                    flash */
-                setDiscoverableTimeout(mDiscoverableTimeout);
-            }
+            // adapterPropertyChangedCallback has already been received.  Set the scan mode.
+            setScanMode(AbstractionLayer.BT_SCAN_MODE_CONNECTABLE);
+            // This keeps NV up-to date on first-boot after flash.
+            setDiscoverableTimeout(mDiscoverableTimeout);
         }
     }
 
     void onBleDisable() {
         // Sequence BLE_ON to STATE_OFF - that is _complete_ OFF state.
-        // When BT disable is invoked, set the scan_mode to NONE
-        // so no incoming connections are possible
         debugLog("onBleDisable");
-        if (getState() == BluetoothAdapter.STATE_BLE_TURNING_OFF) {
-            setScanMode(AbstractionLayer.BT_SCAN_MODE_NONE);
-        }
+        // Set the scan_mode to NONE (no incoming connections).
+        setScanMode(AbstractionLayer.BT_SCAN_MODE_NONE);
     }
 
     void onBluetoothDisable() {
         // From STATE_ON to BLE_ON
-        // When BT disable is invoked, set the scan_mode to NONE
-        // so no incoming connections are possible
-
-        //Set flag to indicate we are disabling. When property change of scan mode done
-        //continue with disable sequence
         debugLog("onBluetoothDisable()");
-        if (getState() == BluetoothAdapter.STATE_TURNING_OFF) {
-            // Turn off any Device Search/Inquiry
-            mService.cancelDiscovery();
-            setScanMode(AbstractionLayer.BT_SCAN_MODE_NONE);
-        }
+        // Turn off any Device Search/Inquiry
+        mService.cancelDiscovery();
+        // Set the scan_mode to NONE (no incoming connections).
+        setScanMode(AbstractionLayer.BT_SCAN_MODE_NONE);
     }
 
     void discoveryStateChangeCallback(int state) {
