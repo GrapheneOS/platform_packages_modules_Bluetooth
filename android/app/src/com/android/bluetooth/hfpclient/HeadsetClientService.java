@@ -81,6 +81,12 @@ public class HeadsetClientService extends ProfileService {
         // Setup the JNI service
         NativeInterface.initializeNative();
         mAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+        if (mAudioManager == null) {
+            Log.e(TAG, "AudioManager service doesn't exist?");
+        } else {
+            // start AudioManager in a known state
+            mAudioManager.setParameters("hfp_enable=false");
+        }
 
         mSmFactory = new HeadsetClientStateMachineFactory();
         mStateMachineMap.clear();
@@ -922,5 +928,9 @@ public class HeadsetClientService extends ProfileService {
 
     protected void setSMFactory(HeadsetClientStateMachineFactory factory) {
         mSmFactory = factory;
+    }
+
+    AudioManager getAudioManager() {
+        return mAudioManager;
     }
 }
