@@ -57,101 +57,66 @@ public class BrowserPlayerWrapperTest {
 
     @Test
     public void testWrap() {
-        BrowsedPlayerWrapper wrapper = BrowsedPlayerWrapper.wrap(null, "test", "test", mConnCb);
+        BrowsedPlayerWrapper wrapper = BrowsedPlayerWrapper.wrap(null, "test", "test");
+        wrapper.connect(mConnCb);
         verify(mMockBrowser).testInit(any(), any(), mBrowserConnCb.capture(), any());
         verify(mMockBrowser).connect();
-        Assert.assertEquals(BrowsedPlayerWrapper.ConnectionState.CONNECTING,
-                wrapper.getConnectionState());
 
         MediaBrowser.ConnectionCallback browserConnCb = mBrowserConnCb.getValue();
         browserConnCb.onConnected();
 
         verify(mConnCb).run(eq(BrowsedPlayerWrapper.STATUS_SUCCESS), eq(wrapper));
-        Assert.assertEquals(BrowsedPlayerWrapper.ConnectionState.CONNECTED,
-                wrapper.getConnectionState());
+        verify(mMockBrowser).disconnect();
     }
 
     @Test
     public void testConnect() {
-        BrowsedPlayerWrapper wrapper = BrowsedPlayerWrapper.wrap(null, "test", "test", mConnCb);
+        BrowsedPlayerWrapper wrapper = BrowsedPlayerWrapper.wrap(null, "test", "test");
+        wrapper.connect(mConnCb);
         verify(mMockBrowser).testInit(any(), any(), mBrowserConnCb.capture(), any());
         MediaBrowser.ConnectionCallback browserConnCb = mBrowserConnCb.getValue();
         browserConnCb.onConnectionFailed();
 
         verify(mConnCb).run(eq(BrowsedPlayerWrapper.STATUS_CONN_ERROR), eq(wrapper));
-        Assert.assertEquals(BrowsedPlayerWrapper.ConnectionState.DISCONNECTED,
-                wrapper.getConnectionState());
 
         wrapper.connect(mConnCb);
         verify(mMockBrowser, times(2)).connect();
-        Assert.assertEquals(BrowsedPlayerWrapper.ConnectionState.CONNECTING,
-                wrapper.getConnectionState());
 
         browserConnCb.onConnected();
         verify(mConnCb).run(eq(BrowsedPlayerWrapper.STATUS_SUCCESS), eq(wrapper));
-        Assert.assertEquals(BrowsedPlayerWrapper.ConnectionState.CONNECTED,
-                wrapper.getConnectionState());
+        verify(mMockBrowser, times(2)).disconnect();
     }
 
     @Test
     public void testDisconnect() {
-        BrowsedPlayerWrapper wrapper = BrowsedPlayerWrapper.wrap(null, "test", "test", mConnCb);
+        BrowsedPlayerWrapper wrapper = BrowsedPlayerWrapper.wrap(null, "test", "test");
+        wrapper.connect(mConnCb);
         verify(mMockBrowser).testInit(any(), any(), mBrowserConnCb.capture(), any());
         MediaBrowser.ConnectionCallback browserConnCb = mBrowserConnCb.getValue();
         browserConnCb.onConnected();
-        Assert.assertEquals(BrowsedPlayerWrapper.ConnectionState.CONNECTED,
-                wrapper.getConnectionState());
-
-        wrapper.disconnect();
         verify(mMockBrowser).disconnect();
-        Assert.assertEquals(BrowsedPlayerWrapper.ConnectionState.DISCONNECTED,
-                wrapper.getConnectionState());
     }
 
     @Test
     public void testGetRootId() {
-        BrowsedPlayerWrapper wrapper = BrowsedPlayerWrapper.wrap(null, "test", "test", mConnCb);
+        BrowsedPlayerWrapper wrapper = BrowsedPlayerWrapper.wrap(null, "test", "test");
+        wrapper.connect(mConnCb);
         verify(mMockBrowser).testInit(any(), any(), mBrowserConnCb.capture(), any());
         MediaBrowser.ConnectionCallback browserConnCb = mBrowserConnCb.getValue();
         browserConnCb.onConnected();
-        Assert.assertEquals(BrowsedPlayerWrapper.ConnectionState.CONNECTED,
-                wrapper.getConnectionState());
 
         Assert.assertEquals("root_folder", wrapper.getRootId());
+        verify(mMockBrowser).disconnect();
     }
 
     @Test
-    public void testPlayItemWhileConnected() {
-        BrowsedPlayerWrapper wrapper = BrowsedPlayerWrapper.wrap(null, "test", "test", mConnCb);
+    public void testPlayItem() {
+        BrowsedPlayerWrapper wrapper = BrowsedPlayerWrapper.wrap(null, "test", "test");
         verify(mMockBrowser).testInit(any(), any(), mBrowserConnCb.capture(), any());
         MediaBrowser.ConnectionCallback browserConnCb = mBrowserConnCb.getValue();
-        browserConnCb.onConnected();
-        Assert.assertEquals(BrowsedPlayerWrapper.ConnectionState.CONNECTED,
-                wrapper.getConnectionState());
-
-        MediaController mockController = mock(MediaController.class);
-        MediaController.TransportControls mockTransport =
-                mock(MediaController.TransportControls.class);
-        when(mockController.getTransportControls()).thenReturn(mockTransport);
-        MediaControllerFactory.inject(mockController);
 
         wrapper.playItem("test_item");
-        verify(mockTransport).playFromMediaId(eq("test_item"), eq(null));
-    }
-
-    @Test
-    public void testPlayItemWhileDisconnected() {
-        BrowsedPlayerWrapper wrapper = BrowsedPlayerWrapper.wrap(null, "test", "test", mConnCb);
-        verify(mMockBrowser).testInit(any(), any(), mBrowserConnCb.capture(), any());
-        MediaBrowser.ConnectionCallback browserConnCb = mBrowserConnCb.getValue();
-        browserConnCb.onConnectionFailed();
-        Assert.assertEquals(BrowsedPlayerWrapper.ConnectionState.DISCONNECTED,
-                wrapper.getConnectionState());
-
-        wrapper.playItem("test_item");
-        verify(mMockBrowser, times(2)).connect();
-        Assert.assertEquals(BrowsedPlayerWrapper.ConnectionState.CONNECTING,
-                wrapper.getConnectionState());
+        verify(mMockBrowser, times(1)).connect();
 
         MediaController mockController = mock(MediaController.class);
         MediaController.TransportControls mockTransport =
@@ -161,18 +126,19 @@ public class BrowserPlayerWrapperTest {
 
         browserConnCb.onConnected();
         verify(mockTransport).playFromMediaId(eq("test_item"), eq(null));
+        verify(mMockBrowser).disconnect();
     }
 
     @Test
-    public void testGetFolderItemsWhileConnected() {
-        BrowsedPlayerWrapper wrapper = BrowsedPlayerWrapper.wrap(null, "test", "test", mConnCb);
+    public void testGetFolderItems() {
+        BrowsedPlayerWrapper wrapper = BrowsedPlayerWrapper.wrap(null, "test", "test");
         verify(mMockBrowser).testInit(any(), any(), mBrowserConnCb.capture(), any());
         MediaBrowser.ConnectionCallback browserConnCb = mBrowserConnCb.getValue();
-        browserConnCb.onConnected();
-        Assert.assertEquals(BrowsedPlayerWrapper.ConnectionState.CONNECTED,
-                wrapper.getConnectionState());
 
         wrapper.getFolderItems("test_folder", mBrowseCb);
+
+
+        browserConnCb.onConnected();
         verify(mMockBrowser).subscribe(any(), mSubscriptionCb.capture());
         MediaBrowser.SubscriptionCallback subscriptionCb = mSubscriptionCb.getValue();
 
@@ -195,5 +161,7 @@ public class BrowserPlayerWrapperTest {
             Assert.assertFalse(item_list.get(i).isFolder);
             Assert.assertEquals(item_list.get(i).song, Util.toMetadata(items.get(i)));
         }
+
+        verify(mMockBrowser).disconnect();
     }
 }
