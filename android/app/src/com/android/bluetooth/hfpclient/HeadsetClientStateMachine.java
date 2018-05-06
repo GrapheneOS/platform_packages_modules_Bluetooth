@@ -39,8 +39,9 @@ import android.bluetooth.BluetoothHeadsetClient;
 import android.bluetooth.BluetoothHeadsetClientCall;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.BluetoothUuid;
-import android.content.Context;
 import android.content.Intent;
+import android.media.AudioAttributes;
+import android.media.AudioFocusRequest;
 import android.media.AudioManager;
 import android.os.Bundle;
 import android.os.Looper;
@@ -156,7 +157,6 @@ public class HeadsetClientStateMachine extends StateMachine {
     // indicator
     private Pair<Integer, Object> mPendingAction;
 
-    private static AudioManager sAudioManager;
     private int mAudioState;
     private boolean mAudioWbs;
     private int mVoiceRecognitionActive;
@@ -168,6 +168,11 @@ public class HeadsetClientStateMachine extends StateMachine {
     // general peer features and call handling features
     private int mPeerFeatures;
     private int mChldFeatures;
+
+    // This is returned when requesting focus from AudioManager
+    private AudioFocusRequest mAudioFocusRequest;
+
+    private AudioManager mAudioManager;
 
     // Accessor for the states, useful for reusing the state machines
     public IState getDisconnectedState() {
@@ -690,13 +695,9 @@ public class HeadsetClientStateMachine extends StateMachine {
     HeadsetClientStateMachine(HeadsetClientService context, Looper looper) {
         super(TAG, looper);
         mService = context;
+        mAudioManager = mService.getAudioManager();
 
         mAdapter = BluetoothAdapter.getDefaultAdapter();
-        if (sAudioManager == null) {
-            sAudioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
-            // Initialize hfp_enable into a known state.
-            routeHfpAudio(false);
-        }
         mAudioState = BluetoothHeadsetClient.STATE_AUDIO_DISCONNECTED;
         mAudioWbs = false;
         mVoiceRecognitionActive = HeadsetClientHalConstants.VR_STATE_STOPPED;
@@ -706,8 +707,8 @@ public class HeadsetClientStateMachine extends StateMachine {
         mIndicatorNetworkSignal = 0;
         mIndicatorBatteryLevel = 0;
 
-        sMaxAmVcVol = sAudioManager.getStreamMaxVolume(AudioManager.STREAM_VOICE_CALL);
-        sMinAmVcVol = sAudioManager.getStreamMinVolume(AudioManager.STREAM_VOICE_CALL);
+        sMaxAmVcVol = mAudioManager.getStreamMaxVolume(AudioManager.STREAM_VOICE_CALL);
+        sMinAmVcVol = mAudioManager.getStreamMinVolume(AudioManager.STREAM_VOICE_CALL);
 
         mOperatorName = null;
         mSubscriberInfo = null;
@@ -740,24 +741,51 @@ public class HeadsetClientStateMachine extends StateMachine {
         return hfcsm;
     }
 
-    static synchronized void routeHfpAudio(boolean enable) {
+    synchronized void routeHfpAudio(boolean enable) {
+        if (mAudioManager == null) {
+            Log.e(TAG, "AudioManager is null!");
+            return;
+        }
         if (DBG) {
             Log.d(TAG, "hfp_enable=" + enable);
         }
         if (enable && !sAudioIsRouted) {
-            sAudioManager.setParameters("hfp_enable=true");
+            mAudioManager.setParameters("hfp_enable=true");
         } else if (!enable) {
-            sAudioManager.setParameters("hfp_enable=false");
+            mAudioManager.setParameters("hfp_enable=false");
         }
         sAudioIsRouted = enable;
     }
 
+    private AudioFocusRequest requestAudioFocus() {
+        AudioAttributes streamAttributes =
+                new AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_VOICE_COMMUNICATION)
+                        .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
+                        .build();
+        AudioFocusRequest focusRequest =
+                new AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT)
+                        .setAudioAttributes(streamAttributes)
+                        .build();
+        int focusRequestStatus = mAudioManager.requestAudioFocus(focusRequest);
+        if (DBG) {
+            String s = (focusRequestStatus == AudioManager.AUDIOFOCUS_REQUEST_GRANTED)
+                    ? "AudioFocus granted" : "AudioFocus NOT granted";
+            Log.d(TAG, "AudioManager requestAudioFocus returned: " + s);
+        }
+        return focusRequest;
+    }
+
     public void doQuit() {
         Log.d(TAG, "doQuit");
-        if (sAudioManager != null) {
-            routeHfpAudio(false);
-        }
+        routeHfpAudio(false);
+        returnAudioFocusIfNecessary();
         quitNow();
+    }
+
+    private void returnAudioFocusIfNecessary() {
+        if (mAudioFocusRequest == null) return;
+        mAudioManager.abandonAudioFocusRequest(mAudioFocusRequest);
+        mAudioFocusRequest = null;
     }
 
     static int hfToAmVol(int hfVol) {
@@ -1025,13 +1053,13 @@ public class HeadsetClientStateMachine extends StateMachine {
                         }
                     }
 
-                    int amVol = sAudioManager.getStreamVolume(AudioManager.STREAM_VOICE_CALL);
+                    int amVol = mAudioManager.getStreamVolume(AudioManager.STREAM_VOICE_CALL);
                     deferMessage(
                             obtainMessage(HeadsetClientStateMachine.SET_SPEAKER_VOLUME, amVol, 0));
                     // Mic is either in ON state (full volume) or OFF state. There is no way in
                     // Android to change the MIC volume.
                     deferMessage(obtainMessage(HeadsetClientStateMachine.SET_MIC_VOLUME,
-                            sAudioManager.isMicrophoneMute() ? 0 : 15, 0));
+                            mAudioManager.isMicrophoneMute() ? 0 : 15, 0));
                     // query subscriber info
                     deferMessage(obtainMessage(HeadsetClientStateMachine.SUBSCRIBER_INFO));
                     transitionTo(mConnected);
@@ -1361,11 +1389,11 @@ public class HeadsetClientStateMachine extends StateMachine {
                             if (event.valueInt == HeadsetClientHalConstants.VOLUME_TYPE_SPK) {
                                 mCommandedSpeakerVolume = hfToAmVol(event.valueInt2);
                                 Log.d(TAG, "AM volume set to " + mCommandedSpeakerVolume);
-                                sAudioManager.setStreamVolume(AudioManager.STREAM_VOICE_CALL,
+                                mAudioManager.setStreamVolume(AudioManager.STREAM_VOICE_CALL,
                                         +mCommandedSpeakerVolume, AudioManager.FLAG_SHOW_UI);
                             } else if (event.valueInt
                                     == HeadsetClientHalConstants.VOLUME_TYPE_MIC) {
-                                sAudioManager.setMicrophoneMute(event.valueInt2 == 0);
+                                mAudioManager.setMicrophoneMute(event.valueInt2 == 0);
                             }
                             break;
                         case StackEvent.EVENT_TYPE_CMD_RESULT:
@@ -1495,7 +1523,7 @@ public class HeadsetClientStateMachine extends StateMachine {
 
                     // We need to set the volume after switching into HFP mode as some Audio HALs
                     // reset the volume to a known-default on mode switch.
-                    final int amVol = sAudioManager.getStreamVolume(AudioManager.STREAM_VOICE_CALL);
+                    final int amVol = mAudioManager.getStreamVolume(AudioManager.STREAM_VOICE_CALL);
                     final int hfVol = amToHfVol(amVol);
 
                     if (DBG) {
@@ -1505,18 +1533,19 @@ public class HeadsetClientStateMachine extends StateMachine {
                         if (DBG) {
                             Log.d(TAG, "Setting sampling rate as 16000");
                         }
-                        sAudioManager.setParameters("hfp_set_sampling_rate=16000");
+                        mAudioManager.setParameters("hfp_set_sampling_rate=16000");
                     } else {
                         if (DBG) {
                             Log.d(TAG, "Setting sampling rate as 8000");
                         }
-                        sAudioManager.setParameters("hfp_set_sampling_rate=8000");
+                        mAudioManager.setParameters("hfp_set_sampling_rate=8000");
                     }
                     if (DBG) {
                         Log.d(TAG, "hf_volume " + hfVol);
                     }
                     routeHfpAudio(true);
-                    sAudioManager.setParameters("hfp_volume=" + hfVol);
+                    mAudioFocusRequest = requestAudioFocus();
+                    mAudioManager.setParameters("hfp_volume=" + hfVol);
                     transitionTo(mAudioOn);
                     break;
 
@@ -1590,6 +1619,7 @@ public class HeadsetClientStateMachine extends StateMachine {
                      */
                     if (NativeInterface.disconnectAudioNative(getByteAddress(mCurrentDevice))) {
                         routeHfpAudio(false);
+                        returnAudioFocusIfNecessary();
                     }
                     break;
 
@@ -1661,6 +1691,7 @@ public class HeadsetClientStateMachine extends StateMachine {
                     // is not much we can do here since dropping the call without user consent
                     // even if the audio connection snapped may not be a good idea.
                     routeHfpAudio(false);
+                    returnAudioFocusIfNecessary();
                     transitionTo(mConnected);
                     break;
 

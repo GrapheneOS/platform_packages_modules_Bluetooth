@@ -18,6 +18,8 @@
 
 #include <base/bind.h>
 #include <map>
+#include <mutex>
+#include <shared_mutex>
 #include <vector>
 
 #include "android_runtime/AndroidRuntime.h"
@@ -33,6 +35,8 @@ namespace android {
 static MediaCallbacks* mServiceCallbacks;
 static ServiceInterface* sServiceInterface;
 static jobject mJavaInterface;
+static std::shared_timed_mutex interface_mutex;
+static std::shared_timed_mutex callbacks_mutex;
 
 // Forward Declarations
 static void sendMediaKeyEvent(int, int);
@@ -204,6 +208,8 @@ static void classInitNative(JNIEnv* env, jclass clazz) {
 
 static void initNative(JNIEnv* env, jobject object) {
   ALOGD("%s", __func__);
+  std::unique_lock<std::shared_timed_mutex> interface_lock(interface_mutex);
+  std::unique_lock<std::shared_timed_mutex> callbacks_lock(callbacks_mutex);
   mJavaInterface = env->NewGlobalRef(object);
 
   sServiceInterface = getBluetoothInterface()->get_avrcp_service();
@@ -214,7 +220,12 @@ static void sendMediaUpdateNative(JNIEnv* env, jobject object,
                                   jboolean metadata, jboolean state,
                                   jboolean queue) {
   ALOGD("%s", __func__);
-  CHECK(mServiceCallbacks);
+  std::unique_lock<std::shared_timed_mutex> interface_lock(interface_mutex);
+  if (mServiceCallbacks == nullptr) {
+    ALOGW("%s: Service not loaded.", __func__);
+    return;
+  }
+
   mServiceCallbacks->SendMediaUpdate(metadata == JNI_TRUE, state == JNI_TRUE,
                                      queue == JNI_TRUE);
 }
@@ -223,13 +234,21 @@ static void sendFolderUpdateNative(JNIEnv* env, jobject object,
                                    jboolean available_players,
                                    jboolean addressed_player, jboolean uids) {
   ALOGD("%s", __func__);
-  CHECK(mServiceCallbacks);
+  std::unique_lock<std::shared_timed_mutex> interface_lock(interface_mutex);
+  if (mServiceCallbacks == nullptr) {
+    ALOGW("%s: Service not loaded.", __func__);
+    return;
+  }
+
   mServiceCallbacks->SendFolderUpdate(available_players == JNI_TRUE,
                                       addressed_player == JNI_TRUE,
                                       uids == JNI_TRUE);
 }
 
 static void cleanupNative(JNIEnv* env, jobject object) {
+  std::unique_lock<std::shared_timed_mutex> interface_lock(interface_mutex);
+  std::unique_lock<std::shared_timed_mutex> callbacks_lock(callbacks_mutex);
+
   sServiceInterface->Cleanup();
   env->DeleteGlobalRef(mJavaInterface);
   mJavaInterface = nullptr;
@@ -239,7 +258,11 @@ static void cleanupNative(JNIEnv* env, jobject object) {
 
 jboolean connectDeviceNative(JNIEnv* env, jobject object, jstring address) {
   ALOGD("%s", __func__);
-  if (!sServiceInterface) return JNI_FALSE;
+  std::unique_lock<std::shared_timed_mutex> interface_lock(interface_mutex);
+  if (mServiceCallbacks == nullptr) {
+    ALOGW("%s: Service not loaded.", __func__);
+    return JNI_FALSE;
+  }
 
   const char* tmp_addr = env->GetStringUTFChars(address, 0);
   RawAddress bdaddr;
@@ -254,7 +277,11 @@ jboolean connectDeviceNative(JNIEnv* env, jobject object, jstring address) {
 
 jboolean disconnectDeviceNative(JNIEnv* env, jobject object, jstring address) {
   ALOGD("%s", __func__);
-  if (!sServiceInterface) return JNI_FALSE;
+  std::unique_lock<std::shared_timed_mutex> interface_lock(interface_mutex);
+  if (mServiceCallbacks == nullptr) {
+    ALOGW("%s: Service not loaded.", __func__);
+    return JNI_FALSE;
+  }
 
   const char* tmp_addr = env->GetStringUTFChars(address, 0);
   RawAddress bdaddr;
@@ -269,8 +296,9 @@ jboolean disconnectDeviceNative(JNIEnv* env, jobject object, jstring address) {
 
 static void sendMediaKeyEvent(int key, int state) {
   ALOGD("%s", __func__);
+  std::shared_lock<std::shared_timed_mutex> lock(callbacks_mutex);
   CallbackEnv sCallbackEnv(__func__);
-  if (!sCallbackEnv.valid()) return;
+  if (!sCallbackEnv.valid() || !mJavaInterface) return;
   sCallbackEnv->CallVoidMethod(mJavaInterface, method_sendMediaKeyEvent, key,
                                state);
 }
@@ -393,7 +421,10 @@ static FolderInfo getFolderInfoFromJavaObj(JNIEnv* env, jobject folder) {
 
 static SongInfo getSongInfo() {
   ALOGD("%s", __func__);
+  std::shared_lock<std::shared_timed_mutex> lock(callbacks_mutex);
   CallbackEnv sCallbackEnv(__func__);
+  if (!sCallbackEnv.valid() || !mJavaInterface) return SongInfo();
+
   jobject metadata =
       sCallbackEnv->CallObjectMethod(mJavaInterface, method_getCurrentSongInfo);
   return getSongInfoFromJavaObj(sCallbackEnv.get(), metadata);
@@ -401,11 +432,11 @@ static SongInfo getSongInfo() {
 
 static PlayStatus getCurrentPlayStatus() {
   ALOGD("%s", __func__);
+  std::shared_lock<std::shared_timed_mutex> lock(callbacks_mutex);
+  CallbackEnv sCallbackEnv(__func__);
+  if (!sCallbackEnv.valid() || !mJavaInterface) return PlayStatus();
 
   PlayStatus status;
-  CallbackEnv sCallbackEnv(__func__);
-  if (!sCallbackEnv.valid()) return status;
-
   jobject playStatus =
       sCallbackEnv->CallObjectMethod(mJavaInterface, method_getPlaybackStatus);
   jclass class_playStatus = sCallbackEnv->GetObjectClass(playStatus);
@@ -425,8 +456,9 @@ static PlayStatus getCurrentPlayStatus() {
 
 static std::string getCurrentMediaId() {
   ALOGD("%s", __func__);
+  std::shared_lock<std::shared_timed_mutex> lock(callbacks_mutex);
   CallbackEnv sCallbackEnv(__func__);
-  if (!sCallbackEnv.valid()) return "";
+  if (!sCallbackEnv.valid() || !mJavaInterface) return "";
 
   jstring media_id = (jstring)sCallbackEnv->CallObjectMethod(
       mJavaInterface, method_getCurrentMediaId);
@@ -440,8 +472,9 @@ static std::string getCurrentMediaId() {
 
 static std::vector<SongInfo> getNowPlayingList() {
   ALOGD("%s", __func__);
+  std::shared_lock<std::shared_timed_mutex> lock(callbacks_mutex);
   CallbackEnv sCallbackEnv(__func__);
-  if (!sCallbackEnv.valid()) return std::vector<SongInfo>();
+  if (!sCallbackEnv.valid() || !mJavaInterface) return std::vector<SongInfo>();
 
   jobject song_list =
       sCallbackEnv->CallObjectMethod(mJavaInterface, method_getNowPlayingList);
@@ -468,9 +501,9 @@ static std::vector<SongInfo> getNowPlayingList() {
 
 static uint16_t getCurrentPlayerId() {
   ALOGD("%s", __func__);
-
+  std::shared_lock<std::shared_timed_mutex> lock(callbacks_mutex);
   CallbackEnv sCallbackEnv(__func__);
-  if (!sCallbackEnv.valid()) return 0u;
+  if (!sCallbackEnv.valid() || !mJavaInterface) return 0u;
 
   jint id =
       sCallbackEnv->CallIntMethod(mJavaInterface, method_getCurrentPlayerId);
@@ -480,7 +513,10 @@ static uint16_t getCurrentPlayerId() {
 
 static std::vector<MediaPlayerInfo> getMediaPlayerList() {
   ALOGD("%s", __func__);
+  std::shared_lock<std::shared_timed_mutex> lock(callbacks_mutex);
   CallbackEnv sCallbackEnv(__func__);
+  if (!sCallbackEnv.valid() || !mJavaInterface)
+    return std::vector<MediaPlayerInfo>();
 
   jobject player_list = (jobject)sCallbackEnv->CallObjectMethod(
       mJavaInterface, method_getMediaPlayerList);
@@ -535,7 +571,9 @@ SetBrowsedPlayerCb set_browsed_player_cb;
 
 static void setBrowsedPlayer(uint16_t player_id, SetBrowsedPlayerCb cb) {
   ALOGD("%s", __func__);
+  std::shared_lock<std::shared_timed_mutex> lock(callbacks_mutex);
   CallbackEnv sCallbackEnv(__func__);
+  if (!sCallbackEnv.valid() || !mJavaInterface) return;
 
   set_browsed_player_cb = cb;
   sCallbackEnv->CallVoidMethod(mJavaInterface, method_setBrowsedPlayer,
@@ -631,7 +669,9 @@ static void getFolderItemsResponseNative(JNIEnv* env, jobject object,
 static void getFolderItems(uint16_t player_id, std::string media_id,
                            GetFolderItemsCb cb) {
   ALOGD("%s", __func__);
+  std::shared_lock<std::shared_timed_mutex> lock(callbacks_mutex);
   CallbackEnv sCallbackEnv(__func__);
+  if (!sCallbackEnv.valid() || !mJavaInterface) return;
 
   // TODO (apanicke): Fix a potential media_id collision if two media players
   // use the same media_id scheme or two devices browse the same content.
@@ -645,7 +685,9 @@ static void getFolderItems(uint16_t player_id, std::string media_id,
 static void playItem(uint16_t player_id, bool now_playing,
                      std::string media_id) {
   ALOGD("%s", __func__);
+  std::shared_lock<std::shared_timed_mutex> lock(callbacks_mutex);
   CallbackEnv sCallbackEnv(__func__);
+  if (!sCallbackEnv.valid() || !mJavaInterface) return;
 
   jstring j_media_id = sCallbackEnv->NewStringUTF(media_id.c_str());
   sCallbackEnv->CallVoidMethod(mJavaInterface, method_playItem, player_id,
@@ -654,7 +696,9 @@ static void playItem(uint16_t player_id, bool now_playing,
 
 static void setActiveDevice(const RawAddress& address) {
   ALOGD("%s", __func__);
+  std::shared_lock<std::shared_timed_mutex> lock(callbacks_mutex);
   CallbackEnv sCallbackEnv(__func__);
+  if (!sCallbackEnv.valid() || !mJavaInterface) return;
 
   jstring j_bdaddr = sCallbackEnv->NewStringUTF(address.ToString().c_str());
   sCallbackEnv->CallVoidMethod(mJavaInterface, method_setActiveDevice,
@@ -663,7 +707,9 @@ static void setActiveDevice(const RawAddress& address) {
 
 static void volumeDeviceConnected(const RawAddress& address) {
   ALOGD("%s", __func__);
+  std::shared_lock<std::shared_timed_mutex> lock(callbacks_mutex);
   CallbackEnv sCallbackEnv(__func__);
+  if (!sCallbackEnv.valid() || !mJavaInterface) return;
 
   jstring j_bdaddr = sCallbackEnv->NewStringUTF(address.ToString().c_str());
   sCallbackEnv->CallVoidMethod(mJavaInterface, method_volumeDeviceConnected,
@@ -677,7 +723,9 @@ static void volumeDeviceConnected(
     const RawAddress& address,
     ::bluetooth::avrcp::VolumeInterface::VolumeChangedCb cb) {
   ALOGD("%s", __func__);
+  std::shared_lock<std::shared_timed_mutex> lock(callbacks_mutex);
   CallbackEnv sCallbackEnv(__func__);
+  if (!sCallbackEnv.valid() || !mJavaInterface) return;
 
   volumeCallbackMap.emplace(address, cb);
 
@@ -688,7 +736,9 @@ static void volumeDeviceConnected(
 
 static void volumeDeviceDisconnected(const RawAddress& address) {
   ALOGD("%s", __func__);
+  std::shared_lock<std::shared_timed_mutex> lock(callbacks_mutex);
   CallbackEnv sCallbackEnv(__func__);
+  if (!sCallbackEnv.valid() || !mJavaInterface) return;
 
   volumeCallbackMap.erase(address);
 
@@ -706,7 +756,9 @@ static void sendVolumeChangedNative(JNIEnv* env, jobject object, jint volume) {
 
 static void setVolume(int8_t volume) {
   ALOGD("%s", __func__);
+  std::shared_lock<std::shared_timed_mutex> lock(callbacks_mutex);
   CallbackEnv sCallbackEnv(__func__);
+  if (!sCallbackEnv.valid() || !mJavaInterface) return;
 
   sCallbackEnv->CallVoidMethod(mJavaInterface, method_setVolume, volume);
 }
