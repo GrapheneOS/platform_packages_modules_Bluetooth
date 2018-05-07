@@ -382,4 +382,13 @@ public final class Utils {
             throw new IllegalStateException("Not in BluetoothInstrumentationTest");
         }
     }
+
+    /**
+     * Get uid/pid string in a binder call
+     *
+     * @return "uid/pid=xxxx/yyyy"
+     */
+    public static String getUidPidString() {
+        return "uid/pid=" + Binder.getCallingUid() + "/" + Binder.getCallingPid();
+    }
 }
