@@ -15,6 +15,8 @@
  */
 package com.android.bluetooth.hfp;
 
+import java.util.Objects;
+
 /**
  * A blob of data representing an overall call state on the phone
  */
@@ -59,7 +61,7 @@ class HeadsetCallState extends HeadsetMessageObject {
                 .append(mNumActive)
                 .append(", numHeld=")
                 .append(mNumHeld)
-                .append(", callState")
+                .append(", callState=")
                 .append(mCallState)
                 .append(", number=");
         if (mNumber == null) {
@@ -68,5 +70,24 @@ class HeadsetCallState extends HeadsetMessageObject {
             builder.append("***");
         }
         builder.append(mNumber).append(", type=").append(mType).append("]");
+    }
+
+    @Override
+    public boolean equals(Object object) {
+        if (this == object) {
+            return true;
+        }
+        if (!(object instanceof HeadsetCallState)) {
+            return false;
+        }
+        HeadsetCallState that = (HeadsetCallState) object;
+        return mNumActive == that.mNumActive && mNumHeld == that.mNumHeld
+                && mCallState == that.mCallState && Objects.equals(mNumber, that.mNumber)
+                && mType == that.mType;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(mNumActive, mNumHeld, mCallState, mNumber, mType);
     }
 }
