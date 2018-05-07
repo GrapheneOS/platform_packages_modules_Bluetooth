@@ -193,7 +193,8 @@ public class HeadsetPhoneState {
         return mNumActive;
     }
 
-    void setNumActiveCall(int numActive) {
+    @VisibleForTesting(otherwise = VisibleForTesting.PACKAGE_PRIVATE)
+    public void setNumActiveCall(int numActive) {
         mNumActive = numActive;
     }
 
@@ -201,7 +202,8 @@ public class HeadsetPhoneState {
         return mCallState;
     }
 
-    void setCallState(int callState) {
+    @VisibleForTesting(otherwise = VisibleForTesting.PACKAGE_PRIVATE)
+    public void setCallState(int callState) {
         mCallState = callState;
     }
 
@@ -209,7 +211,8 @@ public class HeadsetPhoneState {
         return mNumHeld;
     }
 
-    void setNumHeldCall(int numHeldCall) {
+    @VisibleForTesting(otherwise = VisibleForTesting.PACKAGE_PRIVATE)
+    public void setNumHeldCall(int numHeldCall) {
         mNumHeld = numHeldCall;
     }
 
@@ -226,6 +229,7 @@ public class HeadsetPhoneState {
      *
      * @param batteryLevel battery level value
      */
+    @VisibleForTesting(otherwise = VisibleForTesting.PACKAGE_PRIVATE)
     public void setCindBatteryCharge(int batteryLevel) {
         if (mCindBatteryCharge != batteryLevel) {
             mCindBatteryCharge = batteryLevel;
