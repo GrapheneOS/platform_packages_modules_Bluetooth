@@ -480,10 +480,10 @@ public class MediaPlayerList {
         sendMediaUpdate(getActivePlayer().getCurrentMediaData());
     }
 
-    // TODO (apanicke): Add logging for media key events
-    void sendMediaKeyEvent(int key, int state) {
-        d("sendMediaKeyEvent: key=" + key + " state=" + state);
-        int action = state == 0 ? KeyEvent.ACTION_DOWN : KeyEvent.ACTION_UP;
+    // TODO (apanicke): Add logging for media key events in dumpsys
+    void sendMediaKeyEvent(int key, boolean pushed) {
+        d("sendMediaKeyEvent: key=" + key + " pushed=" + pushed);
+        int action = pushed ? KeyEvent.ACTION_DOWN : KeyEvent.ACTION_UP;
         KeyEvent event = new KeyEvent(action, AvrcpPassthrough.toKeyCode(key));
         mMediaSessionManager.dispatchMediaKeyEvent(event);
     }

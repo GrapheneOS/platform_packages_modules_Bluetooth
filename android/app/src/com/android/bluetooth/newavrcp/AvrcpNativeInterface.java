@@ -75,14 +75,14 @@ public class AvrcpNativeInterface {
         return mAvrcpService.getPlayState();
     }
 
-    void sendMediaKeyEvent(int keyEvent, int state) {
-        d("sendMediaKeyEvent: keyEvent=" + keyEvent + " state=" + state);
+    void sendMediaKeyEvent(int keyEvent, boolean pushed) {
+        d("sendMediaKeyEvent: keyEvent=" + keyEvent + " pushed=" + pushed);
         if (mAvrcpService == null) {
             Log.w(TAG, "sendMediaKeyEvent(): AvrcpTargetService is null");
             return;
         }
 
-        mAvrcpService.sendMediaKeyEvent(keyEvent, state);
+        mAvrcpService.sendMediaKeyEvent(keyEvent, pushed);
     }
 
     String getCurrentMediaId() {
