@@ -288,9 +288,9 @@ public class AvrcpTargetService extends ProfileService {
 
     // TODO (apanicke): Handle key events here in the service. Currently it was more convenient to
     // handle them there but logically they make more sense handled here.
-    void sendMediaKeyEvent(int event, int state) {
-        if (DEBUG) Log.d(TAG, "getMediaKeyEvent: event=" + event + " state=" + state);
-        mMediaPlayerList.sendMediaKeyEvent(event, state);
+    void sendMediaKeyEvent(int event, boolean pushed) {
+        if (DEBUG) Log.d(TAG, "getMediaKeyEvent: event=" + event + " pushed=" + pushed);
+        mMediaPlayerList.sendMediaKeyEvent(event, pushed);
     }
 
     void setActiveDevice(String address) {
