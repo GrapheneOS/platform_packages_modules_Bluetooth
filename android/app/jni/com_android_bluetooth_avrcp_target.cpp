@@ -39,7 +39,7 @@ static std::shared_timed_mutex interface_mutex;
 static std::shared_timed_mutex callbacks_mutex;
 
 // Forward Declarations
-static void sendMediaKeyEvent(int, int);
+static void sendMediaKeyEvent(int, KeyState);
 static std::string getCurrentMediaId();
 static SongInfo getSongInfo();
 static PlayStatus getCurrentPlayStatus();
@@ -67,8 +67,8 @@ static void setVolume(int8_t volume);
 // as it is hard to get a handle on the JNI thread from here.
 class AvrcpMediaInterfaceImpl : public MediaInterface {
  public:
-  void SendKeyEvent(uint8_t key, uint8_t status) {
-    sendMediaKeyEvent(key, status);
+  void SendKeyEvent(uint8_t key, KeyState state) {
+    sendMediaKeyEvent(key, state);
   }
 
   void GetSongInfo(SongInfoCallback cb) override {
@@ -169,7 +169,7 @@ static void classInitNative(JNIEnv* env, jclass clazz) {
       clazz, "getPlayStatus", "()Lcom/android/bluetooth/avrcp/PlayStatus;");
 
   method_sendMediaKeyEvent =
-      env->GetMethodID(clazz, "sendMediaKeyEvent", "(II)V");
+      env->GetMethodID(clazz, "sendMediaKeyEvent", "(IZ)V");
 
   method_getCurrentMediaId =
       env->GetMethodID(clazz, "getCurrentMediaId", "()Ljava/lang/String;");
@@ -294,13 +294,14 @@ jboolean disconnectDeviceNative(JNIEnv* env, jobject object, jstring address) {
                                                              : JNI_FALSE;
 }
 
-static void sendMediaKeyEvent(int key, int state) {
+static void sendMediaKeyEvent(int key, KeyState state) {
   ALOGD("%s", __func__);
   std::shared_lock<std::shared_timed_mutex> lock(callbacks_mutex);
   CallbackEnv sCallbackEnv(__func__);
   if (!sCallbackEnv.valid() || !mJavaInterface) return;
-  sCallbackEnv->CallVoidMethod(mJavaInterface, method_sendMediaKeyEvent, key,
-                               state);
+  sCallbackEnv->CallVoidMethod(
+      mJavaInterface, method_sendMediaKeyEvent, key,
+      state == KeyState::PUSHED ? JNI_TRUE : JNI_FALSE);
 }
 
 static SongInfo getSongInfoFromJavaObj(JNIEnv* env, jobject metadata) {
