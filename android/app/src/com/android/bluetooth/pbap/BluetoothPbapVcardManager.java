@@ -344,6 +344,9 @@ public class BluetoothPbapVcardManager {
                         Log.e(TAG, "Failed to read a contact. Error reason: "
                                 + composer.getErrorReason());
                         return nameList;
+                    } else if (vcard.isEmpty()) {
+                        Log.i(TAG, "Contact may have been deleted during operation");
+                        continue;
                     }
                     if (V) {
                         Log.v(TAG, "Checking selected bits in the vcard composer" + vcard);
@@ -739,6 +742,9 @@ public class BluetoothPbapVcardManager {
                     Log.e(TAG,
                             "Failed to read a contact. Error reason: " + composer.getErrorReason());
                     return ResponseCodes.OBEX_HTTP_INTERNAL_ERROR;
+                } else if (vcard.isEmpty()) {
+                    Log.i(TAG, "Contact may have been deleted during operation");
+                    continue;
                 }
                 if (V) {
                     Log.v(TAG, "vCard from composer: " + vcard);
@@ -835,6 +841,9 @@ public class BluetoothPbapVcardManager {
                     Log.e(TAG,
                             "Failed to read a contact. Error reason: " + composer.getErrorReason());
                     return ResponseCodes.OBEX_HTTP_INTERNAL_ERROR;
+                } else if (vcard.isEmpty()) {
+                    Log.i(TAG, "Contact may have been deleted during operation");
+                    continue;
                 }
                 if (V) {
                     Log.v(TAG, "Checking selected bits in the vcard composer" + vcard);
@@ -921,14 +930,16 @@ public class BluetoothPbapVcardManager {
                         continue;
                     }
                     if (needSendBody == NEED_SEND_BODY) {
-                        if (vcard != null) {
-                            vcard = vcardfilter.apply(vcard, vcardType21);
-                        }
                         if (vcard == null) {
                             Log.e(TAG, "Failed to read a contact. Error reason: "
                                     + composer.getErrorReason());
                             return ResponseCodes.OBEX_HTTP_INTERNAL_ERROR;
+                        } else if (vcard.isEmpty()) {
+                            Log.i(TAG, "Call Log may have been deleted during operation");
+                            continue;
                         }
+                        vcard = vcardfilter.apply(vcard, vcardType21);
+
                         if (V) {
                             Log.v(TAG, "Vcard Entry:");
                             Log.v(TAG, vcard);
