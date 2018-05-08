@@ -209,8 +209,11 @@ class Util {
 
         if (items == null) return list;
 
-        for (MediaSession.QueueItem item : items) {
-            list.add(toMetadata(item));
+        for (int i = 0; i < items.size(); i++) {
+            Metadata data = toMetadata(items.get(i));
+            data.trackNum = "" + (i + 1);
+            data.numTracks = "" + items.size();
+            list.add(data);
         }
 
         return list;
