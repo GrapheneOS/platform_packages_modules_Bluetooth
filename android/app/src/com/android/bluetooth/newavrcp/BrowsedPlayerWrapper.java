@@ -61,7 +61,6 @@ class BrowsedPlayerWrapper {
     private Context mContext;
     private String mPackageName;
     private ConnectionCallback mCallback;
-    private ConnectionState mConnectionState = ConnectionState.DISCONNECTED;
 
     // TODO(apanicke): We cache this because normally you can only grab the root
     // while connected. We shouldn't cache this since theres nothing in the framework documentation
@@ -92,10 +91,8 @@ class BrowsedPlayerWrapper {
     // TODO (apanicke): Investigate if there is a way to create this just by passing in the
     // MediaBrowser. Right now there is no obvious way to create the browser then update the
     // connection callback without being forced to re-create the object every time.
-    private BrowsedPlayerWrapper(Context context, String packageName, String className,
-            ConnectionCallback cb) {
+    private BrowsedPlayerWrapper(Context context, String packageName, String className) {
         mContext = context;
-        mCallback = cb;
         mPackageName = packageName;
 
         mWrappedBrowser = MediaBrowserFactory.make(
@@ -105,14 +102,10 @@ class BrowsedPlayerWrapper {
                 null);
     }
 
-    static BrowsedPlayerWrapper wrap(Context context, String packageName, String className,
-            ConnectionCallback cb) {
+    static BrowsedPlayerWrapper wrap(Context context, String packageName, String className) {
         Log.i(TAG, "Wrapping Media Browser " + packageName);
         BrowsedPlayerWrapper wrapper =
-                new BrowsedPlayerWrapper(context, packageName, className, cb);
-
-        wrapper.mConnectionState = ConnectionState.CONNECTING;
-        wrapper.mWrappedBrowser.connect();
+                new BrowsedPlayerWrapper(context, packageName, className);
         return wrapper;
     }
 
@@ -127,21 +120,17 @@ class BrowsedPlayerWrapper {
         }
 
         if (DEBUG) Log.d(TAG, "connect: Connecting to browsable player: " + mPackageName);
-        mCallback = cb;
-        mConnectionState = ConnectionState.CONNECTING;
+        mCallback = (int status, BrowsedPlayerWrapper wrapper) -> {
+            cb.run(status, wrapper);
+            wrapper.disconnect();
+        };
         mWrappedBrowser.connect();
     }
 
     void disconnect() {
         if (DEBUG) Log.d(TAG, "disconnect: Disconnecting from " + mPackageName);
-        if (mConnectionState != ConnectionState.DISCONNECTED) {
-            // According to the API, as soon as disconnect is sent we shouldn't receive
-            // any more callbacks.
-            mWrappedBrowser.disconnect();
-        }
-
+        mWrappedBrowser.disconnect();
         mCallback = null;
-        mConnectionState = ConnectionState.DISCONNECTED;
     }
 
     public String getPackageName() {
@@ -152,30 +141,18 @@ class BrowsedPlayerWrapper {
         return mRoot;
     }
 
-    public ConnectionState getConnectionState() {
-        return mConnectionState;
-    }
-
     public void playItem(String mediaId) {
         if (DEBUG) Log.d(TAG, "playItem: Play Item from media ID: " + mediaId);
-        if (mConnectionState == ConnectionState.DISCONNECTED) {
-            connect((int status, BrowsedPlayerWrapper wrapper) -> {
-                if (DEBUG) Log.d(TAG, "playItem: Connected to browsable player " + mPackageName);
+        connect((int status, BrowsedPlayerWrapper wrapper) -> {
+            if (DEBUG) Log.d(TAG, "playItem: Connected to browsable player " + mPackageName);
 
-                MediaController controller = MediaControllerFactory.make(mContext,
-                        wrapper.mWrappedBrowser.getSessionToken());
-                MediaController.TransportControls ctrl = controller.getTransportControls();
-                Log.i(TAG, "playItem: Playing " + mediaId);
-                ctrl.playFromMediaId(mediaId, null);
-            });
-            return;
-        }
-
-        MediaController controller = MediaControllerFactory.make(mContext,
-                mWrappedBrowser.getSessionToken());
-        MediaController.TransportControls ctrl = controller.getTransportControls();
-        Log.i(TAG, "playItem: Playing " + mediaId);
-        ctrl.playFromMediaId(mediaId, null);
+            MediaController controller = MediaControllerFactory.make(mContext,
+                    wrapper.mWrappedBrowser.getSessionToken());
+            MediaController.TransportControls ctrl = controller.getTransportControls();
+            Log.i(TAG, "playItem: Playing " + mediaId);
+            ctrl.playFromMediaId(mediaId, null);
+        });
+        return;
     }
 
     // Returns false if the player is in the connecting state. Wait for it to either be
@@ -194,29 +171,28 @@ class BrowsedPlayerWrapper {
             return true;
         }
 
-        // TODO (apanicke): Queue the command here instead of failing so that we can respond
-        // eventually.
-        if (mConnectionState == ConnectionState.CONNECTING) {
-            Log.w(TAG, "getFolderItems: Already trying to connect");
+        if (cb == null) {
+            Log.wtfStack(TAG, "connect: Trying to connect to " + mPackageName
+                    + "with null callback");
+        }
+        if (mCallback != null) {
+            Log.w(TAG, "connect: Already trying to connect to " + mPackageName);
             return false;
         }
 
-        // If we are disconnected, connect first then do the lookup
-        if (mConnectionState == ConnectionState.DISCONNECTED) {
-            connect((int status, BrowsedPlayerWrapper wrapper) -> {
-                Log.i(TAG, "getFolderItems: Connected to browsable player: " + mPackageName);
-                if (status != STATUS_SUCCESS) {
-                    cb.run(status, "", new ArrayList<ListItem>());
-                }
+        if (DEBUG) Log.d(TAG, "connect: Connecting to browsable player: " + mPackageName);
+        mCallback = (int status, BrowsedPlayerWrapper wrapper) -> {
+            Log.i(TAG, "getFolderItems: Connected to browsable player: " + mPackageName);
+            if (status != STATUS_SUCCESS) {
+                cb.run(status, "", new ArrayList<ListItem>());
+            }
 
-                getFolderItemsInternal(mediaId, cb);
-            });
-            return true;
-        }
+            // This will disconnect when the callback is called
+            getFolderItemsInternal(mediaId, cb);
+        };
+        mWrappedBrowser.connect();
 
-        // If already connected
-        Log.i(TAG, "getFolderItems: getting Items for mediaId=" + mediaId);
-        return getFolderItemsInternal(mediaId, cb);
+        return true;
     }
 
     // Internal function to call once the Browser is connected
@@ -228,7 +204,6 @@ class BrowsedPlayerWrapper {
     class MediaConnectionCallback extends MediaBrowser.ConnectionCallback {
         @Override
         public void onConnected() {
-            mConnectionState = ConnectionState.CONNECTED;
             Log.i(TAG, "onConnected: " + mPackageName + " is connected");
             // Get the root while connected because we may need to use it when disconnected.
             mRoot = mWrappedBrowser.getRoot();
@@ -239,7 +214,6 @@ class BrowsedPlayerWrapper {
 
         @Override
         public void onConnectionFailed() {
-            mConnectionState = ConnectionState.DISCONNECTED;
             Log.w(TAG, "onConnectionFailed: Connection Failed with " + mPackageName);
             if (mCallback != null) mCallback.run(STATUS_CONN_ERROR, BrowsedPlayerWrapper.this);
             mCallback = null;
@@ -249,7 +223,6 @@ class BrowsedPlayerWrapper {
         // after connection.
         @Override
         public void onConnectionSuspended() {
-            mConnectionState = ConnectionState.DISCONNECTED;
             mWrappedBrowser.disconnect();
             Log.i(TAG, "onConnectionSuspended: Connection Suspended with " + mPackageName);
         }
@@ -309,6 +282,7 @@ class BrowsedPlayerWrapper {
             // Clone the list so that the callee can mutate it without affecting the cached data
             mCallback.run(STATUS_SUCCESS, parentId, Util.cloneList(return_list));
             mCallback = null;
+            disconnect();
         }
 
         /* mediaId is invalid */
@@ -316,6 +290,7 @@ class BrowsedPlayerWrapper {
         public void onError(String id) {
             Log.e(TAG, "BrowserSubscriptionCallback: Could not get folder items");
             mCallback.run(STATUS_LOOKUP_ERROR, id, new ArrayList<ListItem>());
+            disconnect();
         }
     }
 
