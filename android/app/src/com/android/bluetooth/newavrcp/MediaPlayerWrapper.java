@@ -199,8 +199,8 @@ class MediaPlayerWrapper {
             if (currItem == null || !qitem.equals(mdata)) {
                 if (DEBUG) {
                     Log.d(TAG, "Metadata currently out of sync for " + mPackageName);
-                    Log.d(TAG, "  └ Current queueItem: " + currItem);
-                    Log.d(TAG, "  └ Current metadata : " + getMetadata().getDescription());
+                    Log.d(TAG, "  └ Current queueItem: " + qitem);
+                    Log.d(TAG, "  └ Current metadata : " + mdata);
                 }
                 return false;
             }
@@ -285,10 +285,11 @@ class MediaPlayerWrapper {
             }
 
             Log.e(TAG, "Timeout while waiting for metadata to sync for " + mPackageName);
-            Log.e(TAG, "  └ Current Metadata: " + getMetadata().getDescription());
+            Log.e(TAG, "  └ Current Metadata: " +  Util.toMetadata(getMetadata()));
             Log.e(TAG, "  └ Current Playstate: " + getPlaybackState());
-            for (int i = 0; getQueue() != null && i < getQueue().size(); i++) {
-                Log.e(TAG, "  └ QueueItem(" + i + "): " + getQueue().get(i));
+            List<Metadata> current_queue = Util.toMetadataList(getQueue());
+            for (int i = 0; i < current_queue.size(); i++) {
+                Log.e(TAG, "  └ QueueItem(" + i + "): " + current_queue.get(i));
             }
 
             // TODO(apanicke): Add metric collection here.
@@ -365,7 +366,7 @@ class MediaPlayerWrapper {
                 return;
             }
 
-            Log.v(TAG, "onMetadataChanged(): " + mPackageName + " : " + metadata.getDescription());
+            Log.v(TAG, "onMetadataChanged(): " + mPackageName + " : " + Util.toMetadata(metadata));
 
             if (!metadata.equals(getMetadata())) {
                 e("The callback metadata doesn't match controller metadata");
@@ -438,7 +439,7 @@ class MediaPlayerWrapper {
 
             if (DEBUG) {
                 for (int i = 0; i < current_queue.size(); i++) {
-                    Log.d(TAG, "  └ QueueItem(" + i + "): " + queue.get(i));
+                    Log.d(TAG, "  └ QueueItem(" + i + "): " + current_queue.get(i));
                 }
             }
 
