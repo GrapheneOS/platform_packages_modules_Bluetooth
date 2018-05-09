@@ -52,7 +52,6 @@ import org.mockito.MockitoAnnotations;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 @MediumTest
@@ -164,48 +163,9 @@ public class HearingAidServiceTest {
         }
     }
 
-    /**
-     * Wait and verify that an intent has been received.
-     *
-     * @param timeoutMs the time (in milliseconds) to wait for the intent
-     * @param queue the queue for the intent
-     * @return the received intent
-     */
-    private Intent waitForIntent(int timeoutMs, LinkedBlockingQueue<Intent> queue) {
-        try {
-            Assert.assertNotNull(queue);
-            Intent intent = queue.poll(timeoutMs, TimeUnit.MILLISECONDS);
-            Assert.assertNotNull(intent);
-            return intent;
-        } catch (InterruptedException e) {
-            Assert.fail("Cannot obtain an Intent from the queue: " + e.getMessage());
-        }
-        return null;
-    }
-
-    /**
-     * Wait and verify that no intent has been received.
-     *
-     * @param timeoutMs the time (in milliseconds) to wait and verify no intent
-     * has been received
-     * @param queue the queue for the intent
-     * @return the received intent. Should be null under normal circumstances
-     */
-    private Intent waitForNoIntent(int timeoutMs, LinkedBlockingQueue<Intent> queue) {
-        try {
-            Assert.assertNotNull(queue);
-            Intent intent = queue.poll(timeoutMs, TimeUnit.MILLISECONDS);
-            Assert.assertNull(intent);
-            return intent;
-        } catch (InterruptedException e) {
-            Assert.fail("Cannot obtain an Intent from the queue: " + e.getMessage());
-        }
-        return null;
-    }
-
     private void verifyConnectionStateIntent(int timeoutMs, BluetoothDevice device,
             int newState, int prevState) {
-        Intent intent = waitForIntent(timeoutMs, mDeviceQueueMap.get(device));
+        Intent intent = TestUtils.waitForIntent(timeoutMs, mDeviceQueueMap.get(device));
         Assert.assertNotNull(intent);
         Assert.assertEquals(BluetoothHearingAid.ACTION_CONNECTION_STATE_CHANGED,
                 intent.getAction());
@@ -216,7 +176,7 @@ public class HearingAidServiceTest {
     }
 
     private void verifyNoConnectionStateIntent(int timeoutMs, BluetoothDevice device) {
-        Intent intent = waitForNoIntent(timeoutMs, mDeviceQueueMap.get(device));
+        Intent intent = TestUtils.waitForNoIntent(timeoutMs, mDeviceQueueMap.get(device));
         Assert.assertNull(intent);
     }
 
