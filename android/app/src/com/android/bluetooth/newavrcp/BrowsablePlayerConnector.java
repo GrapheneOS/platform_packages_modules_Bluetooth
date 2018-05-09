@@ -72,23 +72,23 @@ public class BrowsablePlayerConnector {
 
         // Try to start connecting all the browsed player wrappers
         for (ResolveInfo info : players) {
-            newWrapper.mPendingPlayers.add(
-                    BrowsedPlayerWrapper.wrap(
+            BrowsedPlayerWrapper player = BrowsedPlayerWrapper.wrap(
                             context,
                             info.serviceInfo.packageName,
-                            info.serviceInfo.name,
-                            (int status, BrowsedPlayerWrapper wrapper) -> {
-                                // Use the handler to avoid concurrency issues
-                                if (DEBUG) {
-                                    Log.d(TAG, "Browse player callback called: package="
-                                            + info.serviceInfo.packageName
-                                            + " : status=" + status);
-                                }
-                                Message msg = newWrapper.mHandler.obtainMessage(MSG_CONNECT_CB);
-                                msg.arg1 = status;
-                                msg.obj = wrapper;
-                                newWrapper.mHandler.sendMessage(msg);
-                            }));
+                            info.serviceInfo.name);
+            newWrapper.mPendingPlayers.add(player);
+            player.connect((int status, BrowsedPlayerWrapper wrapper) -> {
+                // Use the handler to avoid concurrency issues
+                if (DEBUG) {
+                    Log.d(TAG, "Browse player callback called: package="
+                            + info.serviceInfo.packageName
+                            + " : status=" + status);
+                }
+                Message msg = newWrapper.mHandler.obtainMessage(MSG_CONNECT_CB);
+                msg.arg1 = status;
+                msg.obj = wrapper;
+                newWrapper.mHandler.sendMessage(msg);
+            });
         }
 
         Message msg = newWrapper.mHandler.obtainMessage(MSG_TIMEOUT);
@@ -126,6 +126,9 @@ public class BrowsablePlayerConnector {
                         }
 
                         // Check to see if the root folder has any items
+                        if (DEBUG) {
+                            Log.i(TAG, "Checking root contents for " + wrapper.getPackageName());
+                        }
                         wrapper.getFolderItems(wrapper.getRootId(),
                                 (int status, String mediaId, List<ListItem> results) -> {
                                     if (status != BrowsedPlayerWrapper.STATUS_SUCCESS) {
