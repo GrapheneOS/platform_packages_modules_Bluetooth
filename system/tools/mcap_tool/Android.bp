@@ -29,7 +29,6 @@ cc_binary {
       "packages/modules/Bluetooth/system/stack/include",
       "packages/modules/Bluetooth/system/btcore/include",
     ],
-    tags: ["debug", "optional"],
     shared_libs: [
       "libcutils",
       "libutils",
