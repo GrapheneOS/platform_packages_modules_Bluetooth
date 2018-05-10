@@ -442,10 +442,17 @@ public class A2dpService extends ProfileService {
                 // disconnected. Please see comment in broadcastActiveDevice() for why.
                 broadcastActiveDevice(null);
                 if (previousActiveDevice != null) {
-                    // Make sure the Audio Manager knows the previous Active device is disconnected
-                    mAudioManager.setBluetoothA2dpDeviceConnectionState(
+                    // Make sure the Audio Manager knows the previous Active device is disconnected.
+                    // However, if A2DP is still connected for that remote device, the user has
+                    // explicitly switched the output to the local device and music should
+                    // continue playing. Otherwise, the remote device has been indeed disconnected,
+                    // and audio should be suspended before switching the output to the local
+                    // device.
+                    mAudioManager.setBluetoothA2dpDeviceConnectionStateSuppressNoisyIntent(
                             previousActiveDevice, BluetoothProfile.STATE_DISCONNECTED,
-                            BluetoothProfile.A2DP);
+                            BluetoothProfile.A2DP,
+                            getConnectionState(previousActiveDevice)
+                                == BluetoothProfile.STATE_CONNECTED);
                     // Make sure the Active device in native layer is set to null and audio is off
                     if (!mA2dpNativeInterface.setActiveDevice(null)) {
                         Log.w(TAG, "setActiveDevice(null): Cannot remove active device in native "
