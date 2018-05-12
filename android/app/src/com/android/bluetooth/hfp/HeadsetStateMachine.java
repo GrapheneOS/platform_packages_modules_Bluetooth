@@ -1068,7 +1068,9 @@ public class HeadsetStateMachine extends StateMachine {
                 break;
                 case CONNECT_AUDIO:
                     stateLogD("CONNECT_AUDIO, device=" + mDevice);
+                    mSystemInterface.getAudioManager().setParameters("A2dpSuspended=true");
                     if (!mNativeInterface.connectAudio(mDevice)) {
+                        mSystemInterface.getAudioManager().setParameters("A2dpSuspended=false");
                         stateLogE("Failed to connect SCO audio for " + mDevice);
                         // No state change involved, fire broadcast immediately
                         broadcastAudioState(mDevice, BluetoothHeadset.STATE_AUDIO_DISCONNECTED,
@@ -1511,7 +1513,10 @@ public class HeadsetStateMachine extends StateMachine {
                 // Whereas for VoiceDial we want to activate the SCO connection but we are still
                 // in MODE_NORMAL and hence the need to explicitly suspend the A2DP stream
                 mSystemInterface.getAudioManager().setParameters("A2dpSuspended=true");
-                mNativeInterface.connectAudio(mDevice);
+                if (!mNativeInterface.connectAudio(mDevice)) {
+                    mSystemInterface.getAudioManager().setParameters("A2dpSuspended=false");
+                    Log.w(TAG, "processLocalVrEvent: failed connectAudio to " + mDevice);
+                }
             }
 
             if (mSystemInterface.getVoiceRecognitionWakeLock().isHeld()) {
@@ -1528,7 +1533,6 @@ public class HeadsetStateMachine extends StateMachine {
                 if (mNativeInterface.stopVoiceRecognition(mDevice) && !mSystemInterface.isInCall()
                         && getAudioState() != BluetoothHeadset.STATE_AUDIO_DISCONNECTED) {
                     mNativeInterface.disconnectAudio(mDevice);
-                    mSystemInterface.getAudioManager().setParameters("A2dpSuspended=false");
                 }
             }
         }
@@ -1940,7 +1944,11 @@ public class HeadsetStateMachine extends StateMachine {
         } else if (phoneState.getNumActiveCall() > 0) {
             if (getAudioState() != BluetoothHeadset.STATE_AUDIO_DISCONNECTED) {
                 mHeadsetService.setActiveDevice(mDevice);
-                mNativeInterface.connectAudio(mDevice);
+                mSystemInterface.getAudioManager().setParameters("A2dpSuspended=true");
+                if (!mNativeInterface.connectAudio(mDevice)) {
+                    mSystemInterface.getAudioManager().setParameters("A2dpSuspended=false");
+                    Log.w(TAG, "processKeyPressed: failed to connectAudio to " + mDevice);
+                }
             } else {
                 mSystemInterface.hangupCall(device);
             }
