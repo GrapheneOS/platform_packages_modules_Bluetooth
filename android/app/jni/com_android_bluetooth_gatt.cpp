@@ -1650,7 +1650,13 @@ static void gattServerSendResponseNative(JNIEnv* env, jobject object,
   response.attr_value.len = 0;
 
   if (val != NULL) {
-    response.attr_value.len = (uint16_t)env->GetArrayLength(val);
+    if (env->GetArrayLength(val) < BTGATT_MAX_ATTR_LEN) {
+      response.attr_value.len = (uint16_t)env->GetArrayLength(val);
+    } else {
+      android_errorWriteLog(0x534e4554, "78787521");
+      response.attr_value.len = BTGATT_MAX_ATTR_LEN;
+    }
+
     jbyte* array = env->GetByteArrayElements(val, 0);
 
     for (int i = 0; i != response.attr_value.len; ++i)
