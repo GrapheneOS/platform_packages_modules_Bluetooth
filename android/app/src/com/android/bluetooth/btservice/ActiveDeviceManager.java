@@ -26,6 +26,9 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.media.AudioDeviceCallback;
+import android.media.AudioDeviceInfo;
+import android.media.AudioManager;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
@@ -81,6 +84,20 @@ import java.util.Objects;
  *    contained in the broadcast is marked as active. However, if
  *    the contained device is null, the corresponding profile is marked
  *    as having no active device.
+ * 9) If a wired audio device is connected, the audio output is switched
+ *    by the Audio Framework itself to that device. We detect this here,
+ *    and the active device for each profile (A2DP/HFP/HearingAid) is set
+ *    to null to reflect the output device state change. However, if the
+ *    wired audio device is disconnected, we don't do anything explicit
+ *    and apply the default behavior instead:
+ * 9.1) If the wired headset is still the selected output device (i.e. the
+ *      active device is set to null), the Phone itself will become the output
+ *      device (i.e., the active device will remain null). If music was
+ *      playing, it will stop.
+ * 9.2) If one of the Bluetooth devices is the selected active device
+ *      (e.g., by the user in the UI), disconnecting the wired audio device
+ *      will have no impact. E.g., music will continue streaming over the
+ *      active Bluetooth device.
  */
 class ActiveDeviceManager {
     private static final boolean DBG = true;
@@ -98,6 +115,8 @@ class ActiveDeviceManager {
     private final ServiceFactory mFactory;
     private HandlerThread mHandlerThread = null;
     private Handler mHandler = null;
+    private final AudioManager mAudioManager;
+    private final AudioManagerAudioDeviceCallback mAudioManagerAudioDeviceCallback;
 
     private final List<BluetoothDevice> mA2dpConnectedDevices = new LinkedList<>();
     private final List<BluetoothDevice> mHfpConnectedDevices = new LinkedList<>();
@@ -305,9 +324,51 @@ class ActiveDeviceManager {
         }
     }
 
+    /** Notifications of audio device connection and disconnection events. */
+    private class AudioManagerAudioDeviceCallback extends AudioDeviceCallback {
+        private boolean isWiredAudioHeadset(AudioDeviceInfo deviceInfo) {
+            switch (deviceInfo.getType()) {
+                case AudioDeviceInfo.TYPE_WIRED_HEADSET:
+                case AudioDeviceInfo.TYPE_WIRED_HEADPHONES:
+                case AudioDeviceInfo.TYPE_USB_HEADSET:
+                    return true;
+                default:
+                    break;
+            }
+            return false;
+        }
+
+        @Override
+        public void onAudioDevicesAdded(AudioDeviceInfo[] addedDevices) {
+            if (DBG) {
+                Log.d(TAG, "onAudioDevicesAdded");
+            }
+            boolean hasAddedWiredDevice = false;
+            for (AudioDeviceInfo deviceInfo : addedDevices) {
+                if (DBG) {
+                    Log.d(TAG, "Audio device added: " + deviceInfo.getProductName() + " type: "
+                            + deviceInfo.getType());
+                }
+                if (isWiredAudioHeadset(deviceInfo)) {
+                    hasAddedWiredDevice = true;
+                    break;
+                }
+            }
+            if (hasAddedWiredDevice) {
+                wiredAudioDeviceConnected();
+            }
+        }
+
+        @Override
+        public void onAudioDevicesRemoved(AudioDeviceInfo[] removedDevices) {
+        }
+    }
+
     ActiveDeviceManager(AdapterService service, ServiceFactory factory) {
         mAdapterService = service;
         mFactory = factory;
+        mAudioManager = (AudioManager) service.getSystemService(Context.AUDIO_SERVICE);
+        mAudioManagerAudioDeviceCallback = new AudioManagerAudioDeviceCallback();
     }
 
     void start() {
@@ -327,6 +388,8 @@ class ActiveDeviceManager {
         filter.addAction(BluetoothHeadset.ACTION_ACTIVE_DEVICE_CHANGED);
         filter.addAction(BluetoothHearingAid.ACTION_ACTIVE_DEVICE_CHANGED);
         mAdapterService.registerReceiver(mReceiver, filter);
+
+        mAudioManager.registerAudioDeviceCallback(mAudioManagerAudioDeviceCallback, mHandler);
     }
 
     void cleanup() {
@@ -334,6 +397,7 @@ class ActiveDeviceManager {
             Log.d(TAG, "cleanup()");
         }
 
+        mAudioManager.unregisterAudioDeviceCallback(mAudioManagerAudioDeviceCallback);
         mAdapterService.unregisterReceiver(mReceiver);
         if (mHandlerThread != null) {
             mHandlerThread.quit();
@@ -412,5 +476,19 @@ class ActiveDeviceManager {
     @VisibleForTesting
     BluetoothDevice getHearingAidActiveDevice() {
         return mHearingAidActiveDevice;
+    }
+
+    /**
+     * Called when a wired audio device is connected.
+     * It might be called multiple times each time a wired audio device is connected.
+     */
+    @VisibleForTesting
+    void wiredAudioDeviceConnected() {
+        if (DBG) {
+            Log.d(TAG, "wiredAudioDeviceConnected");
+        }
+        setA2dpActiveDevice(null);
+        setHfpActiveDevice(null);
+        setHearingAidActiveDevice(null);
     }
 }

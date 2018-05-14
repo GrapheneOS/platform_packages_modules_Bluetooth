@@ -31,6 +31,7 @@ import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
+import android.media.AudioManager;
 import android.os.Binder;
 import android.os.Looper;
 import android.os.PowerManager;
@@ -67,6 +68,7 @@ public class AdapterServiceTest {
     private @Mock ProfileService mMockService2;
     private @Mock IBluetoothCallback mIBluetoothCallback;
     private @Mock Binder mBinder;
+    private @Mock AudioManager mAudioManager;
 
     private static final int CONTEXT_SWITCH_MS = 100;
     private static final int ONE_SECOND_MS = 1000;
@@ -104,6 +106,7 @@ public class AdapterServiceTest {
         when(mMockContext.getSystemService(Context.USER_SERVICE)).thenReturn(mMockUserManager);
         when(mMockContext.getSystemService(Context.POWER_SERVICE)).thenReturn(mPowerManager);
         when(mMockContext.getSystemService(Context.ALARM_SERVICE)).thenReturn(mMockAlarmManager);
+        when(mMockContext.getSystemService(Context.AUDIO_SERVICE)).thenReturn(mAudioManager);
 
         when(mMockResources.getBoolean(R.bool.profile_supported_gatt)).thenReturn(true);
         when(mMockResources.getBoolean(R.bool.profile_supported_pbap)).thenReturn(true);
