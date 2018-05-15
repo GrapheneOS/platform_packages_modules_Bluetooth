@@ -342,4 +342,14 @@ public class HeadsetSystemInterface {
         return mHeadsetPhoneState.getCallState() == HeadsetHalConstants.CALL_STATE_INCOMING;
     }
 
+    /**
+     * Check if call status is idle
+     *
+     * @return true if call state is neither ringing nor in call
+     */
+    @VisibleForTesting
+    public boolean isCallIdle() {
+        return !isInCall() && !isRinging();
+    }
+
 }
