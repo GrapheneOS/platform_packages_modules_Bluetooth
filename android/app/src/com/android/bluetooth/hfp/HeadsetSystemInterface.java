@@ -19,6 +19,7 @@ package com.android.bluetooth.hfp;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothHeadset;
 import android.bluetooth.IBluetoothHeadsetPhone;
+import android.content.ActivityNotFoundException;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -350,6 +351,41 @@ public class HeadsetSystemInterface {
     @VisibleForTesting
     public boolean isCallIdle() {
         return !isInCall() && !isRinging();
+    }
+
+    /**
+     * Activate voice recognition on Android system
+     *
+     * @return true if activation succeeds, caller should wait for
+     * {@link BluetoothHeadset#startVoiceRecognition(BluetoothDevice)} callback that will then
+     * trigger {@link HeadsetService#startVoiceRecognition(BluetoothDevice)}, false if failed to
+     * activate
+     */
+    @VisibleForTesting
+    public boolean activateVoiceRecognition() {
+        Intent intent = new Intent(Intent.ACTION_VOICE_COMMAND);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        try {
+            mHeadsetService.startActivity(intent);
+        } catch (ActivityNotFoundException e) {
+            Log.e(TAG, "activateVoiceRecognition, failed due to activity not found for " + intent);
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Deactivate voice recognition on Android system
+     *
+     * @return true if activation succeeds, caller should wait for
+     * {@link BluetoothHeadset#stopVoiceRecognition(BluetoothDevice)} callback that will then
+     * trigger {@link HeadsetService#stopVoiceRecognition(BluetoothDevice)}, false if failed to
+     * activate
+     */
+    @VisibleForTesting
+    public boolean deactivateVoiceRecognition() {
+        // TODO: need a method to deactivate voice recognition on Android
+        return true;
     }
 
 }
