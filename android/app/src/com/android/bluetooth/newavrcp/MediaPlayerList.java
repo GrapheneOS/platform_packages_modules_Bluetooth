@@ -213,7 +213,7 @@ public class MediaPlayerList {
     // In this case the displayed player is the Bluetooth Player, the number of items is equal
     // to the number of players. The root ID will always be empty string in this case as well.
     void getPlayerRoot(int playerId, GetPlayerRootCallback cb) {
-        cb.run(playerId, true, "", mBrowsablePlayers.size());
+        cb.run(playerId, playerId == BLUETOOTH_PLAYER_ID, "", mBrowsablePlayers.size());
     }
 
     // Return the "Bluetooth Player" as the only player always
