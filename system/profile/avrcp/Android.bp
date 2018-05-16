@@ -4,6 +4,7 @@ cc_library_static {
     host_supported: true,
     include_dirs: [
         "packages/modules/Bluetooth/system",
+        "packages/modules/Bluetooth/system/btcore/include",
         "packages/modules/Bluetooth/system/internal_include",
         "packages/modules/Bluetooth/system/stack/include",
     ],
@@ -25,6 +26,7 @@ cc_test {
     host_supported: true,
     include_dirs: [
         "packages/modules/Bluetooth/system",
+        "packages/modules/Bluetooth/system/btcore/include",
         "packages/modules/Bluetooth/system/internal_include",
         "packages/modules/Bluetooth/system/stack/include",
     ],
