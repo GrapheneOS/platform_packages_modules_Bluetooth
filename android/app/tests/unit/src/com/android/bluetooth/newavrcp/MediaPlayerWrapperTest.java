@@ -562,7 +562,7 @@ public class MediaPlayerWrapperTest {
         verify(mMockController).registerCallback(mControllerCbs.capture(), any());
         MediaController.Callback controllerCallbacks = mControllerCbs.getValue();
 
-        // Update Metdata returned by controller
+        // Update Metadata returned by controller
         mTestMetadata.putString(MediaMetadata.METADATA_KEY_TITLE, "Mismatch Title");
         doReturn(mTestMetadata.build()).when(mMockController).getMetadata();
         controllerCallbacks.onMetadataChanged(mTestMetadata.build());
@@ -572,6 +572,22 @@ public class MediaPlayerWrapperTest {
 
         // Assert that there was a timeout
         verify(mFailHandler).onTerribleFailure(any(), any(), anyBoolean());
+
+        // Assert that the callback was called with the mismatch data
+        verify(mTestCbs, times(1)).mediaUpdatedCallback(mMediaUpdateData.capture());
+        MediaData data = mMediaUpdateData.getValue();
+        Assert.assertEquals(
+                "Returned Metadata isn't equal to given Metadata",
+                data.metadata,
+                Util.toMetadata(mTestMetadata.build()));
+        Assert.assertEquals(
+                "Returned PlaybackState isn't equal to given PlaybackState",
+                data.state.toString(),
+                mTestState.build().toString());
+        Assert.assertEquals(
+                "Returned Queue isn't equal to given Queue",
+                data.queue,
+                Util.toMetadataList(getQueueFromDescriptions(mTestQueue)));
     }
 
     /*
