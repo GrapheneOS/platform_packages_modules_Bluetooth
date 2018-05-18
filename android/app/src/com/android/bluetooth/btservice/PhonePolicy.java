@@ -379,6 +379,7 @@ class PhonePolicy {
         A2dpService a2dpService = mFactory.getA2dpService();
         PanService panService = mFactory.getPanService();
 
+        boolean atLeastOneProfileConnectedForDevice = false;
         boolean allProfilesEmpty = true;
         List<BluetoothDevice> a2dpConnDevList = null;
         List<BluetoothDevice> hsConnDevList = null;
@@ -386,39 +387,46 @@ class PhonePolicy {
 
         if (hsService != null) {
             hsConnDevList = hsService.getConnectedDevices();
-            allProfilesEmpty = allProfilesEmpty && hsConnDevList.isEmpty();
+            allProfilesEmpty &= hsConnDevList.isEmpty();
+            atLeastOneProfileConnectedForDevice |= hsConnDevList.contains(device);
         }
         if (a2dpService != null) {
             a2dpConnDevList = a2dpService.getConnectedDevices();
-            allProfilesEmpty = allProfilesEmpty && a2dpConnDevList.isEmpty();
+            allProfilesEmpty &= a2dpConnDevList.isEmpty();
+            atLeastOneProfileConnectedForDevice |= a2dpConnDevList.contains(device);
         }
         if (panService != null) {
             panConnDevList = panService.getConnectedDevices();
-            allProfilesEmpty = allProfilesEmpty && panConnDevList.isEmpty();
+            allProfilesEmpty &= panConnDevList.isEmpty();
+            atLeastOneProfileConnectedForDevice |= panConnDevList.contains(device);
         }
 
-        if (allProfilesEmpty) {
-            // considered as fully disconnected, don't bother connecting others.
+        if (!atLeastOneProfileConnectedForDevice) {
+            // Consider this device as fully disconnected, don't bother connecting others
             debugLog("processConnectOtherProfiles, all profiles disconnected for " + device);
-            // reset retry status so that in the next round we can start retrying connections again
-            resetStates();
+            mHeadsetRetrySet.remove(device);
+            mA2dpRetrySet.remove(device);
+            if (allProfilesEmpty) {
+                debugLog("processConnectOtherProfiles, all profiles disconnected for all devices");
+                // reset retry status so that in the next round we can start retrying connections
+                resetStates();
+            }
             return;
         }
 
         if (hsService != null) {
-            if (!mHeadsetRetrySet.contains(device) && (
-                    hsService.getPriority(device) >= BluetoothProfile.PRIORITY_ON) && (
-                    hsService.getConnectionState(device) == BluetoothProfile.STATE_DISCONNECTED)) {
+            if (!mHeadsetRetrySet.contains(device) && (hsService.getPriority(device)
+                    >= BluetoothProfile.PRIORITY_ON) && (hsService.getConnectionState(device)
+                    == BluetoothProfile.STATE_DISCONNECTED)) {
                 debugLog("Retrying connection to Headset with device " + device);
                 mHeadsetRetrySet.add(device);
                 hsService.connect(device);
             }
         }
         if (a2dpService != null) {
-            if (!mA2dpRetrySet.contains(device) && (
-                    a2dpService.getPriority(device) >= BluetoothProfile.PRIORITY_ON) && (
-                    a2dpService.getConnectionState(device)
-                            == BluetoothProfile.STATE_DISCONNECTED)) {
+            if (!mA2dpRetrySet.contains(device) && (a2dpService.getPriority(device)
+                    >= BluetoothProfile.PRIORITY_ON) && (a2dpService.getConnectionState(device)
+                    == BluetoothProfile.STATE_DISCONNECTED)) {
                 debugLog("Retrying connection to A2DP with device " + device);
                 mA2dpRetrySet.add(device);
                 a2dpService.connect(device);
