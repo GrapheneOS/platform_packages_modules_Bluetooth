@@ -80,13 +80,15 @@ class PhonePolicy {
     private static final int MESSAGE_ADAPTER_STATE_TURNED_ON = 4;
 
     // Timeouts
-    private static final int CONNECT_OTHER_PROFILES_TIMEOUT = 6000; // 6s
+    @VisibleForTesting
+    static int sConnectOtherProfilesTimeoutMillis = 6000; // 6s
 
     private final AdapterService mAdapterService;
     private final ServiceFactory mFactory;
     private final Handler mHandler;
     private final HashSet<BluetoothDevice> mHeadsetRetrySet = new HashSet<>();
     private final HashSet<BluetoothDevice> mA2dpRetrySet = new HashSet<>();
+    private final HashSet<BluetoothDevice> mConnectOtherProfilesDeviceSet = new HashSet<>();
 
     // Broadcast receiver for all changes to states of various profiles
     private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
@@ -167,12 +169,14 @@ class PhonePolicy {
                 }
                 break;
 
-                case MESSAGE_CONNECT_OTHER_PROFILES:
+                case MESSAGE_CONNECT_OTHER_PROFILES: {
                     // Called when we try connect some profiles in processConnectOtherProfiles but
                     // we send a delayed message to try connecting the remaining profiles
-                    processConnectOtherProfiles((BluetoothDevice) msg.obj);
+                    BluetoothDevice device = (BluetoothDevice) msg.obj;
+                    processConnectOtherProfiles(device);
+                    mConnectOtherProfilesDeviceSet.remove(device);
                     break;
-
+                }
                 case MESSAGE_ADAPTER_STATE_TURNED_ON:
                     // Call auto connect when adapter switches state to ON
                     resetStates();
@@ -341,12 +345,18 @@ class PhonePolicy {
     }
 
     private void connectOtherProfile(BluetoothDevice device) {
-        if ((!mHandler.hasMessages(MESSAGE_CONNECT_OTHER_PROFILES))
-                && (!mAdapterService.isQuietModeEnabled())) {
-            Message m = mHandler.obtainMessage(MESSAGE_CONNECT_OTHER_PROFILES);
-            m.obj = device;
-            mHandler.sendMessageDelayed(m, CONNECT_OTHER_PROFILES_TIMEOUT);
+        if (mAdapterService.isQuietModeEnabled()) {
+            debugLog("connectOtherProfile: in quiet mode, skip connect other profile " + device);
+            return;
         }
+        if (mConnectOtherProfilesDeviceSet.contains(device)) {
+            debugLog("connectOtherProfile: already scheduled callback for " + device);
+            return;
+        }
+        mConnectOtherProfilesDeviceSet.add(device);
+        Message m = mHandler.obtainMessage(MESSAGE_CONNECT_OTHER_PROFILES);
+        m.obj = device;
+        mHandler.sendMessageDelayed(m, sConnectOtherProfilesTimeoutMillis);
     }
 
     // This function is called whenever a profile is connected.  This allows any other bluetooth
