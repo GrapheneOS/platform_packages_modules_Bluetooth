@@ -278,9 +278,36 @@ class MediaPlayerWrapper {
         d("Controller for " + mPackageName + " was updated.");
     }
 
+    private void sendMediaUpdate() {
+        MediaData newData = new MediaData(
+                Util.toMetadata(getMetadata()),
+                getPlaybackState(),
+                Util.toMetadataList(getQueue()));
+
+        if (newData.equals(mCurrentData)) {
+            // This may happen if the controller is fully synced by the time the
+            // first update is completed
+            Log.v(TAG, "Trying to update with last sent metadata");
+            return;
+        }
+
+        synchronized (mCallbackLock) {
+            if (mRegisteredCallback == null) {
+                Log.e(TAG, mPackageName
+                        + "Trying to send an update with no registered callback");
+                return;
+            }
+
+            Log.v(TAG, "trySendMediaUpdate(): Metadata has been updated for " + mPackageName);
+            mRegisteredCallback.mediaUpdatedCallback(newData);
+        }
+
+        mCurrentData = newData;
+    }
+
     class TimeoutHandler extends Handler {
         private static final int MSG_TIMEOUT = 0;
-        private static final long CALLBACK_TIMEOUT_MS = 1000;
+        private static final long CALLBACK_TIMEOUT_MS = 2000;
 
         TimeoutHandler(Looper looper) {
             super(looper);
@@ -299,6 +326,8 @@ class MediaPlayerWrapper {
             for (int i = 0; getQueue() != null && i < getQueue().size(); i++) {
                 Log.e(TAG, "  └ QueueItem(" + i + "): " + getQueue().get(i));
             }
+
+            sendMediaUpdate();
 
             // TODO(apanicke): Add metric collection here.
 
@@ -341,30 +370,7 @@ class MediaPlayerWrapper {
                 }
             }
 
-            MediaData newData = new MediaData(
-                    Util.toMetadata(getMetadata()),
-                    getPlaybackState(),
-                    Util.toMetadataList(getQueue()));
-
-            if (newData.equals(mCurrentData)) {
-                // This may happen if the controller is fully synced by the time the
-                // first update is completed
-                Log.v(TAG, "Trying to update with last sent metadata");
-                return;
-            }
-
-            synchronized (mCallbackLock) {
-                if (mRegisteredCallback == null) {
-                    Log.e(TAG, mPackageName
-                            + "Trying to send an update with no registered callback");
-                    return;
-                }
-
-                Log.v(TAG, "trySendMediaUpdate(): Metadata has been updated for " + mPackageName);
-                mRegisteredCallback.mediaUpdatedCallback(newData);
-            }
-
-            mCurrentData = newData;
+            sendMediaUpdate();
         }
 
         @Override
