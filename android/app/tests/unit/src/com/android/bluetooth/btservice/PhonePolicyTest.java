@@ -82,7 +82,7 @@ public class PhonePolicyTest {
         doReturn(true).when(mAdapterService).isMock();
         // Must be called to initialize services
         mAdapter = BluetoothAdapter.getDefaultAdapter();
-        mTestDevice = TestUtils.getTestDevice(mAdapter, 1);
+        mTestDevice = TestUtils.getTestDevice(mAdapter, 99);
         PhonePolicy.sConnectOtherProfilesTimeoutMillis = CONNECT_OTHER_PROFILES_TIMEOUT_MILLIS;
         mPhonePolicy = new PhonePolicy(mAdapterService, mServiceFactory);
     }
@@ -154,6 +154,109 @@ public class PhonePolicyTest {
         // Check that we got a request to connect over HFP and A2DP
         verify(mHeadsetService, timeout(ASYNC_CALL_TIMEOUT_MILLIS)).connect(eq(mTestDevice));
         verify(mA2dpService, timeout(ASYNC_CALL_TIMEOUT_MILLIS)).connect(eq(mTestDevice));
+    }
+
+    /**
+     * Test that when an auto connect device is disconnected, its priority is set to ON if its
+     * original priority is auto connect
+     */
+    @Test
+    public void testDisconnectNoAutoConnect() {
+        // Return desired values from the mocked object(s)
+        when(mAdapterService.getState()).thenReturn(BluetoothAdapter.STATE_ON);
+        when(mAdapterService.isQuietModeEnabled()).thenReturn(false);
+
+        // Return a list of bonded devices (just one)
+        BluetoothDevice[] bondedDevices = new BluetoothDevice[4];
+        bondedDevices[0] = TestUtils.getTestDevice(mAdapter, 0);
+        bondedDevices[1] = TestUtils.getTestDevice(mAdapter, 1);
+        bondedDevices[2] = TestUtils.getTestDevice(mAdapter, 2);
+        bondedDevices[3] = TestUtils.getTestDevice(mAdapter, 3);
+        when(mAdapterService.getBondedDevices()).thenReturn(bondedDevices);
+
+        ArrayList<BluetoothDevice> connectedDevices = new ArrayList<>();
+        doAnswer(invocation -> connectedDevices).when(mHeadsetService).getConnectedDevices();
+
+        // Make all devices auto connect
+        when(mHeadsetService.getPriority(bondedDevices[0])).thenReturn(
+                BluetoothProfile.PRIORITY_AUTO_CONNECT);
+        when(mHeadsetService.getPriority(bondedDevices[1])).thenReturn(
+                BluetoothProfile.PRIORITY_AUTO_CONNECT);
+        when(mHeadsetService.getPriority(bondedDevices[2])).thenReturn(
+                BluetoothProfile.PRIORITY_AUTO_CONNECT);
+        when(mHeadsetService.getPriority(bondedDevices[3])).thenReturn(
+                BluetoothProfile.PRIORITY_OFF);
+
+        // Make one of the device connected
+        connectedDevices.add(bondedDevices[0]);
+        when(mHeadsetService.getConnectionState(bondedDevices[0])).thenReturn(
+                BluetoothProfile.STATE_CONNECTED);
+        Intent intent = new Intent(BluetoothHeadset.ACTION_CONNECTION_STATE_CHANGED);
+        intent.putExtra(BluetoothDevice.EXTRA_DEVICE, bondedDevices[0]);
+        intent.putExtra(BluetoothProfile.EXTRA_PREVIOUS_STATE, BluetoothProfile.STATE_DISCONNECTED);
+        intent.putExtra(BluetoothProfile.EXTRA_STATE, BluetoothProfile.STATE_CONNECTED);
+        intent.addFlags(Intent.FLAG_RECEIVER_INCLUDE_BACKGROUND);
+        mPhonePolicy.getBroadcastReceiver().onReceive(null /* context */, intent);
+
+        // All other disconnected device's priority is set to ON, except disabled ones
+        verify(mHeadsetService, timeout(ASYNC_CALL_TIMEOUT_MILLIS)).setPriority(bondedDevices[0],
+                BluetoothProfile.PRIORITY_AUTO_CONNECT);
+        verify(mHeadsetService, timeout(ASYNC_CALL_TIMEOUT_MILLIS)).setPriority(bondedDevices[1],
+                BluetoothProfile.PRIORITY_ON);
+        verify(mHeadsetService, timeout(ASYNC_CALL_TIMEOUT_MILLIS)).setPriority(bondedDevices[2],
+                BluetoothProfile.PRIORITY_ON);
+        verify(mHeadsetService, never()).setPriority(eq(bondedDevices[3]), anyInt());
+        when(mHeadsetService.getPriority(bondedDevices[1])).thenReturn(
+                BluetoothProfile.PRIORITY_ON);
+        when(mHeadsetService.getPriority(bondedDevices[2])).thenReturn(
+                BluetoothProfile.PRIORITY_ON);
+
+        // Make another device connected
+        connectedDevices.add(bondedDevices[1]);
+        when(mHeadsetService.getConnectionState(bondedDevices[1])).thenReturn(
+                BluetoothProfile.STATE_CONNECTED);
+        intent = new Intent(BluetoothHeadset.ACTION_CONNECTION_STATE_CHANGED);
+        intent.putExtra(BluetoothDevice.EXTRA_DEVICE, bondedDevices[1]);
+        intent.putExtra(BluetoothProfile.EXTRA_PREVIOUS_STATE, BluetoothProfile.STATE_DISCONNECTED);
+        intent.putExtra(BluetoothProfile.EXTRA_STATE, BluetoothProfile.STATE_CONNECTED);
+        intent.addFlags(Intent.FLAG_RECEIVER_INCLUDE_BACKGROUND);
+        mPhonePolicy.getBroadcastReceiver().onReceive(null /* context */, intent);
+
+        // This device should be set to auto connect
+        verify(mHeadsetService, timeout(ASYNC_CALL_TIMEOUT_MILLIS)).setPriority(bondedDevices[1],
+                BluetoothProfile.PRIORITY_AUTO_CONNECT);
+        verify(mHeadsetService, never()).setPriority(eq(bondedDevices[3]), anyInt());
+        when(mHeadsetService.getPriority(bondedDevices[1])).thenReturn(
+                BluetoothProfile.PRIORITY_AUTO_CONNECT);
+
+        // Make one of the device disconnect
+        connectedDevices.remove(bondedDevices[0]);
+        when(mHeadsetService.getConnectionState(bondedDevices[0])).thenReturn(
+                BluetoothProfile.STATE_DISCONNECTED);
+        intent = new Intent(BluetoothHeadset.ACTION_CONNECTION_STATE_CHANGED);
+        intent.putExtra(BluetoothDevice.EXTRA_DEVICE, bondedDevices[0]);
+        intent.putExtra(BluetoothProfile.EXTRA_PREVIOUS_STATE, BluetoothProfile.STATE_CONNECTED);
+        intent.putExtra(BluetoothProfile.EXTRA_STATE, BluetoothProfile.STATE_DISCONNECTED);
+        intent.addFlags(Intent.FLAG_RECEIVER_INCLUDE_BACKGROUND);
+        mPhonePolicy.getBroadcastReceiver().onReceive(null /* context */, intent);
+
+        // This should not have any effect
+        verify(mHeadsetService, after(ASYNC_CALL_TIMEOUT_MILLIS).never())
+                .setPriority(bondedDevices[0], BluetoothProfile.PRIORITY_ON);
+
+        intent = new Intent(BluetoothHeadset.ACTION_CONNECTION_STATE_CHANGED);
+        intent.putExtra(BluetoothDevice.EXTRA_DEVICE, bondedDevices[0]);
+        intent.putExtra(BluetoothProfile.EXTRA_PREVIOUS_STATE, BluetoothProfile.STATE_CONNECTING);
+        intent.putExtra(BluetoothProfile.EXTRA_STATE, BluetoothProfile.STATE_DISCONNECTED);
+        intent.addFlags(Intent.FLAG_RECEIVER_INCLUDE_BACKGROUND);
+        mPhonePolicy.getBroadcastReceiver().onReceive(null /* context */, intent);
+
+        // This device should be set to ON
+        verify(mHeadsetService, timeout(ASYNC_CALL_TIMEOUT_MILLIS)).setPriority(bondedDevices[0],
+                BluetoothProfile.PRIORITY_ON);
+
+        // Verify that we are not setting priorities to random devices and values
+        verify(mHeadsetService, times(5)).setPriority(any(BluetoothDevice.class), anyInt());
     }
 
     /**
