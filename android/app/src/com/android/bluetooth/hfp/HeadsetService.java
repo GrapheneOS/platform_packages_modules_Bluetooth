@@ -1274,7 +1274,8 @@ public class HeadsetService extends ProfileService {
      * @param dialNumber number to dial
      * @return true on successful dial out
      */
-    boolean dialOutgoingCall(BluetoothDevice fromDevice, String dialNumber) {
+    @VisibleForTesting(visibility = VisibleForTesting.Visibility.PACKAGE)
+    public boolean dialOutgoingCall(BluetoothDevice fromDevice, String dialNumber) {
         synchronized (mStateMachines) {
             Log.i(TAG, "dialOutgoingCall: from " + fromDevice);
             if (!isOnStateMachineThread()) {
@@ -1306,7 +1307,13 @@ public class HeadsetService extends ProfileService {
         }
     }
 
-    boolean hasDeviceInitiatedDialingOut() {
+    /**
+     * Check if any connected headset has started dialing calls
+     *
+     * @return true if some device has started dialing calls
+     */
+    @VisibleForTesting(visibility = VisibleForTesting.Visibility.PACKAGE)
+    public boolean hasDeviceInitiatedDialingOut() {
         synchronized (mStateMachines) {
             return mDialingOutTimeoutEvent != null;
         }
