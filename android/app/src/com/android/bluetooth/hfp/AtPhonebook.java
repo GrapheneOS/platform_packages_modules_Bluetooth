@@ -119,11 +119,13 @@ public class AtPhonebook {
                 Calls.TYPE + "=" + Calls.OUTGOING_TYPE, null,
                 Calls.DEFAULT_SORT_ORDER + " LIMIT 1");
         if (cursor == null) {
+            Log.w(TAG, "getLastDialledNumber, cursor is null");
             return null;
         }
 
         if (cursor.getCount() < 1) {
             cursor.close();
+            Log.w(TAG, "getLastDialledNumber, cursor.getCount is 0");
             return null;
         }
         cursor.moveToNext();
