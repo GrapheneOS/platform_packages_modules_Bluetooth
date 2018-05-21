@@ -25,13 +25,18 @@ import android.bluetooth.BluetoothProfile;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.database.Cursor;
 import android.media.AudioManager;
+import android.net.Uri;
 import android.os.HandlerThread;
 import android.os.UserHandle;
+import android.provider.CallLog;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.filters.MediumTest;
 import android.support.test.runner.AndroidJUnit4;
 import android.telephony.PhoneStateListener;
+import android.test.mock.MockContentProvider;
+import android.test.mock.MockContentResolver;
 
 import com.android.bluetooth.R;
 import com.android.bluetooth.TestUtils;
@@ -57,6 +62,7 @@ public class HeadsetStateMachineTest {
     private static final int CONNECT_TIMEOUT_TEST_MILLIS = 1000;
     private static final int CONNECT_TIMEOUT_TEST_WAIT_MILLIS = CONNECT_TIMEOUT_TEST_MILLIS * 3 / 2;
     private static final int ASYNC_CALL_TIMEOUT_MILLIS = 250;
+    private static final String TEST_PHONE_NUMBER = "1234567890";
     private Context mTargetContext;
     private BluetoothAdapter mAdapter;
     private HandlerThread mHandlerThread;
@@ -69,6 +75,7 @@ public class HeadsetStateMachineTest {
     @Mock private HeadsetSystemInterface mSystemInterface;
     @Mock private AudioManager mAudioManager;
     @Mock private HeadsetPhoneState mPhoneState;
+    private MockContentResolver mMockContentResolver;
     private HeadsetNativeInterface mNativeInterface;
 
     @Before
@@ -94,6 +101,8 @@ public class HeadsetStateMachineTest {
         doReturn(true).when(mNativeInterface).connectAudio(mTestDevice);
         doReturn(true).when(mNativeInterface).disconnectAudio(mTestDevice);
         // Stub headset service
+        mMockContentResolver = new MockContentResolver();
+        when(mHeadsetService.getContentResolver()).thenReturn(mMockContentResolver);
         doReturn(BluetoothDevice.BOND_BONDED).when(mAdapterService)
                 .getBondState(any(BluetoothDevice.class));
         when(mHeadsetService.bindService(any(Intent.class), any(ServiceConnection.class), anyInt()))
@@ -838,6 +847,97 @@ public class HeadsetStateMachineTest {
                         new HeadsetAgIndicatorEnableState(false, true, false, false), mTestDevice));
         verify(mPhoneState, timeout(ASYNC_CALL_TIMEOUT_MILLIS)).listenForPhoneState(mTestDevice,
                 PhoneStateListener.LISTEN_NONE);
+    }
+
+    /**
+     * A test to verify that we correctly handles key pressed event from a HSP headset
+     */
+    @Test
+    public void testKeyPressedEventWhenIdleAndAudioOff_dialCall() {
+        setUpConnectedState();
+        Cursor cursor = mock(Cursor.class);
+        when(cursor.getCount()).thenReturn(1);
+        when(cursor.moveToNext()).thenReturn(true);
+        int magicNumber = 42;
+        when(cursor.getColumnIndexOrThrow(CallLog.Calls.NUMBER)).thenReturn(magicNumber);
+        when(cursor.getString(magicNumber)).thenReturn(TEST_PHONE_NUMBER);
+        MockContentProvider mockContentProvider = new MockContentProvider() {
+            @Override
+            public Cursor query(Uri uri, String[] projection, String selection,
+                    String[] selectionArgs, String sortOrder) {
+                if (uri == null || !uri.equals(CallLog.Calls.CONTENT_URI)) {
+                    return null;
+                }
+                if (projection == null || (projection.length == 0) || !projection[0].equals(
+                        CallLog.Calls.NUMBER)) {
+                    return null;
+                }
+                if (selection == null || !selection.equals(
+                        CallLog.Calls.TYPE + "=" + CallLog.Calls.OUTGOING_TYPE)) {
+                    return null;
+                }
+                if (selectionArgs != null) {
+                    return null;
+                }
+                if (sortOrder == null || !sortOrder.equals(
+                        CallLog.Calls.DEFAULT_SORT_ORDER + " LIMIT 1")) {
+                    return null;
+                }
+                return cursor;
+            }
+        };
+        mMockContentResolver.addProvider(CallLog.AUTHORITY, mockContentProvider);
+        mHeadsetStateMachine.sendMessage(HeadsetStateMachine.STACK_EVENT,
+                new HeadsetStackEvent(HeadsetStackEvent.EVENT_TYPE_KEY_PRESSED, mTestDevice));
+        verify(mHeadsetService, timeout(ASYNC_CALL_TIMEOUT_MILLIS)).dialOutgoingCall(mTestDevice,
+                TEST_PHONE_NUMBER);
+    }
+
+    /**
+     * A test to verify that we correctly handles key pressed event from a HSP headset
+     */
+    @Test
+    public void testKeyPressedEventDuringRinging_answerCall() {
+        setUpConnectedState();
+        when(mSystemInterface.isRinging()).thenReturn(true);
+        mHeadsetStateMachine.sendMessage(HeadsetStateMachine.STACK_EVENT,
+                new HeadsetStackEvent(HeadsetStackEvent.EVENT_TYPE_KEY_PRESSED, mTestDevice));
+        verify(mSystemInterface, timeout(ASYNC_CALL_TIMEOUT_MILLIS)).answerCall(mTestDevice);
+    }
+
+    /**
+     * A test to verify that we correctly handles key pressed event from a HSP headset
+     */
+    @Test
+    public void testKeyPressedEventInCallButAudioOff_setActiveDevice() {
+        setUpConnectedState();
+        when(mSystemInterface.isInCall()).thenReturn(true);
+        mHeadsetStateMachine.sendMessage(HeadsetStateMachine.STACK_EVENT,
+                new HeadsetStackEvent(HeadsetStackEvent.EVENT_TYPE_KEY_PRESSED, mTestDevice));
+        verify(mHeadsetService, timeout(ASYNC_CALL_TIMEOUT_MILLIS)).setActiveDevice(mTestDevice);
+    }
+
+    /**
+     * A test to verify that we correctly handles key pressed event from a HSP headset
+     */
+    @Test
+    public void testKeyPressedEventInCallAndAudioOn_hangupCall() {
+        setUpAudioOnState();
+        when(mSystemInterface.isInCall()).thenReturn(true);
+        mHeadsetStateMachine.sendMessage(HeadsetStateMachine.STACK_EVENT,
+                new HeadsetStackEvent(HeadsetStackEvent.EVENT_TYPE_KEY_PRESSED, mTestDevice));
+        verify(mSystemInterface, timeout(ASYNC_CALL_TIMEOUT_MILLIS)).hangupCall(mTestDevice);
+    }
+
+    /**
+     * A test to verify that we correctly handles key pressed event from a HSP headset
+     */
+    @Test
+    public void testKeyPressedEventWhenIdleAndAudioOn_disconnectAudio() {
+        setUpAudioOnState();
+        mHeadsetStateMachine.sendMessage(HeadsetStateMachine.STACK_EVENT,
+                new HeadsetStackEvent(HeadsetStackEvent.EVENT_TYPE_KEY_PRESSED, mTestDevice));
+        verify(mNativeInterface, timeout(ASYNC_CALL_TIMEOUT_MILLIS)).disconnectAudio(mTestDevice);
     }
 
     /**
