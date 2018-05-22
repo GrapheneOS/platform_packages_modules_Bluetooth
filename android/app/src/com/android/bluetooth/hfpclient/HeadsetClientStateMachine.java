@@ -120,7 +120,7 @@ public class HeadsetClientStateMachine extends StateMachine {
     private static final long QUERY_CURRENT_CALLS_WAIT_MILLIS = 2 * 1000; // 2 seconds
 
     // Keep track of audio routing across all devices.
-    private static boolean sAudioIsRouted = true;
+    private static boolean sAudioIsRouted = false;
 
     private final Disconnected mDisconnected;
     private final Connecting mConnecting;
