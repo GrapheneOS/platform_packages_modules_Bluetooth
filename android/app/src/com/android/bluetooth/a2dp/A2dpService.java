@@ -331,12 +331,15 @@ public class A2dpService extends ProfileService {
      * The check considers a number of factors during the evaluation.
      *
      * @param device the peer device to connect to
+     * @param isOutgoingRequest if true, the check is for outgoing connection
+     * request, otherwise is for incoming connection request
      * @return true if connection is allowed, otherwise false
      */
     @VisibleForTesting(otherwise = VisibleForTesting.PACKAGE_PRIVATE)
-    public boolean okToConnect(BluetoothDevice device) {
+    public boolean okToConnect(BluetoothDevice device, boolean isOutgoingRequest) {
+        Log.i(TAG, "okToConnect: device " + device + " isOutgoingRequest: " + isOutgoingRequest);
         // Check if this is an incoming connection in Quiet mode.
-        if (mAdapterService.isQuietModeEnabled()) {
+        if (mAdapterService.isQuietModeEnabled() && !isOutgoingRequest) {
             Log.e(TAG, "okToConnect: cannot connect to " + device + " : quiet mode enabled");
             return false;
         }
