@@ -803,14 +803,12 @@ public class A2dpService extends ProfileService {
             Log.d(TAG, "broadcastActiveDevice(" + device + ")");
         }
 
-        // Currently the audio service can only remember the volume for a single device. We send
-        // active device changed intent after informing AVRCP that the device switched so it can
-        // set the stream volume to the new device before A2DP informs the audio service that the
-        // device has changed. This is to avoid the indeterminate volume state that exists when
-        // in the middle of switching devices.
+        // We need to inform AVRCP that the device has switched before informing the audio service
+        // so that AVRCP can prepare and wait on audio service connecting the new stream before
+        // restoring the previous volume. Otherwise the updated volume could be applied to the
+        // old active device before the switch has fully completed.
         if (AvrcpTargetService.get() != null) {
-            AvrcpTargetService.get().volumeDeviceSwitched(
-                    device != null ? device.getAddress() : "");
+            AvrcpTargetService.get().volumeDeviceSwitched(device);
         }
 
         Intent intent = new Intent(BluetoothA2dp.ACTION_ACTIVE_DEVICE_CHANGED);
