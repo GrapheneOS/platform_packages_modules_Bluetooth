@@ -90,6 +90,7 @@ public class A2dpServiceTest {
 
         TestUtils.setAdapterService(mAdapterService);
         doReturn(MAX_CONNECTED_AUDIO_DEVICES).when(mAdapterService).getMaxConnectedAudioDevices();
+        doReturn(false).when(mAdapterService).isQuietModeEnabled();
 
         mAdapter = BluetoothAdapter.getDefaultAdapter();
 
@@ -851,18 +852,28 @@ public class A2dpServiceTest {
     }
 
     /**
-     *  Helper function to test okToConnect() method
+     * Helper function to test okToConnect() method.
      *
-     *  @param device test device
-     *  @param bondState bond state value, could be invalid
-     *  @param priority value, could be invalid, coudl be invalid
-     *  @param expected expected result from okToConnect()
+     * @param device test device
+     * @param bondState bond state value, could be invalid
+     * @param priority value, could be invalid, coudl be invalid
+     * @param expected expected result from okToConnect()
      */
     private void testOkToConnectCase(BluetoothDevice device, int bondState, int priority,
             boolean expected) {
         doReturn(bondState).when(mAdapterService).getBondState(device);
         Assert.assertTrue(mA2dpService.setPriority(device, priority));
-        Assert.assertEquals(expected, mA2dpService.okToConnect(device));
-    }
 
+        // Test when the AdapterService is in non-quiet mode: the result should not depend
+        // on whether the connection request is outgoing or incoming.
+        doReturn(false).when(mAdapterService).isQuietModeEnabled();
+        Assert.assertEquals(expected, mA2dpService.okToConnect(device, true));  // Outgoing
+        Assert.assertEquals(expected, mA2dpService.okToConnect(device, false)); // Incoming
+
+        // Test when the AdapterService is in quiet mode: the result should always be
+        // false when the connection request is incoming.
+        doReturn(true).when(mAdapterService).isQuietModeEnabled();
+        Assert.assertEquals(expected, mA2dpService.okToConnect(device, true));  // Outgoing
+        Assert.assertEquals(false, mA2dpService.okToConnect(device, false)); // Incoming
+    }
 }

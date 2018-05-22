@@ -107,7 +107,8 @@ public class A2dpStateMachineTest {
      * @param allow if true, connection is allowed
      */
     private void allowConnection(boolean allow) {
-        doReturn(allow).when(mA2dpService).okToConnect(any(BluetoothDevice.class));
+        doReturn(allow).when(mA2dpService).okToConnect(any(BluetoothDevice.class),
+                                                       anyBoolean());
     }
 
     /**
