@@ -17,7 +17,6 @@
 package com.android.bluetooth.avrcp;
 
 import android.bluetooth.BluetoothA2dp;
-import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.IBluetoothAvrcpTarget;
 import android.content.BroadcastReceiver;
@@ -187,15 +186,15 @@ public class AvrcpTargetService extends ProfileService {
     private void init() {
     }
 
-    void deviceConnected(String bdaddr, boolean absoluteVolume) {
-        Log.i(TAG, "deviceConnected: bdaddr=" + bdaddr + " absoluteVolume=" + absoluteVolume);
-        mVolumeManager.deviceConnected(bdaddr, absoluteVolume);
+    void deviceConnected(BluetoothDevice device, boolean absoluteVolume) {
+        Log.i(TAG, "deviceConnected: device=" + device + " absoluteVolume=" + absoluteVolume);
+        mVolumeManager.deviceConnected(device, absoluteVolume);
         MetricsLogger.logProfileConnectionEvent(BluetoothMetricsProto.ProfileId.AVRCP);
     }
 
-    void deviceDisconnected(String bdaddr) {
-        Log.i(TAG, "deviceDisconnected: bdaddr=" + bdaddr);
-        mVolumeManager.deviceDisconnected(bdaddr);
+    void deviceDisconnected(BluetoothDevice device) {
+        Log.i(TAG, "deviceDisconnected: device=" + device);
+        mVolumeManager.deviceDisconnected(device);
     }
 
     /**
@@ -203,11 +202,11 @@ public class AvrcpTargetService extends ProfileService {
      * for the old device is saved and the new device has its volume restored. If there is no
      * saved volume use the current system volume.
      */
-    public void volumeDeviceSwitched(String bdaddr) {
+    public void volumeDeviceSwitched(BluetoothDevice device) {
         if (DEBUG) {
-            Log.d(TAG, "volumeDeviceSwitched: bdaddr=" + bdaddr);
+            Log.d(TAG, "volumeDeviceSwitched: device=" + device);
         }
-        mVolumeManager.volumeDeviceSwitched(bdaddr);
+        mVolumeManager.volumeDeviceSwitched(device);
     }
 
     // TODO (apanicke): Add checks to blacklist Absolute Volume devices if they behave poorly.
@@ -293,14 +292,12 @@ public class AvrcpTargetService extends ProfileService {
         mMediaPlayerList.sendMediaKeyEvent(event, pushed);
     }
 
-    void setActiveDevice(String address) {
-        Log.i(TAG, "setActiveDevice: address=" + address);
-        BluetoothDevice d =
-                BluetoothAdapter.getDefaultAdapter().getRemoteDevice(address);
-        if (d == null) {
-            Log.wtfStack(TAG, "setActiveDevice: could not find device with address " + address);
+    void setActiveDevice(BluetoothDevice device) {
+        Log.i(TAG, "setActiveDevice: device=" + device);
+        if (device == null) {
+            Log.wtfStack(TAG, "setActiveDevice: could not find device " + device);
         }
-        A2dpService.getA2dpService().setActiveDevice(d);
+        A2dpService.getA2dpService().setActiveDevice(device);
     }
 
     /**
@@ -313,13 +310,17 @@ public class AvrcpTargetService extends ProfileService {
             return;
         }
 
+        StringBuilder tempBuilder = new StringBuilder();
         if (mMediaPlayerList != null) {
-            mMediaPlayerList.dump(sb);
+            mMediaPlayerList.dump(tempBuilder);
         } else {
-            sb.append("\nMedia Player List is empty\n");
+            tempBuilder.append("\nMedia Player List is empty\n");
         }
 
-        mVolumeManager.dump(sb);
+        mVolumeManager.dump(tempBuilder);
+
+        // Tab everything over by two spaces
+        sb.append(tempBuilder.toString().replaceAll("(?m)^", "  "));
     }
 
     private static class AvrcpTargetBinder extends IBluetoothAvrcpTarget.Stub
