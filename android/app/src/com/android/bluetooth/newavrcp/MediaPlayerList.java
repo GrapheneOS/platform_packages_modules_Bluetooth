@@ -194,10 +194,6 @@ public class MediaPlayerList {
             player.disconnect();
         }
         mBrowsablePlayers.clear();
-
-        mMediaPlayerIds = null;
-        mMediaPlayers = null;
-        mBrowsablePlayers = null;
     }
 
     int getCurrentPlayerId() {
