@@ -127,6 +127,14 @@ final class A2dpStateMachine extends StateMachine {
 
     public void doQuit() {
         log("doQuit for device " + mDevice);
+        if (mIsPlaying) {
+            // Stop if auido is still playing
+            log("doQuit: stopped playing " + mDevice);
+            mIsPlaying = false;
+            mA2dpService.setAvrcpAudioState(BluetoothA2dp.STATE_NOT_PLAYING);
+            broadcastAudioState(BluetoothA2dp.STATE_NOT_PLAYING,
+                                BluetoothA2dp.STATE_PLAYING);
+        }
         quitNow();
     }
 
