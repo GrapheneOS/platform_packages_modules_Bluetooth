@@ -91,8 +91,10 @@ class AvrcpControllerStateMachine extends StateMachine {
 
     static final int ABS_VOL_TIMEOUT_MILLIS = 1000; //1s
     static final int CMD_TIMEOUT_MILLIS = 5000; // 5s
-    // Fetch only 5 items at a time.
-    static final int GET_FOLDER_ITEMS_PAGINATION_SIZE = 5;
+    // Fetch only 20 items at a time.
+    static final int GET_FOLDER_ITEMS_PAGINATION_SIZE = 20;
+    // Fetch no more than 1000 items per directory.
+    static final int MAX_FOLDER_ITEMS = 1000;
 
     /*
      * Base value for absolute volume from JNI
@@ -590,7 +592,7 @@ class AvrcpControllerStateMachine extends StateMachine {
                 Log.d(STATE_TAG, "startInd " + startInd + " endInd " + endInd);
             }
             mStartInd = startInd;
-            mEndInd = endInd;
+            mEndInd = Math.min(endInd, MAX_FOLDER_ITEMS);
         }
 
         @Override
