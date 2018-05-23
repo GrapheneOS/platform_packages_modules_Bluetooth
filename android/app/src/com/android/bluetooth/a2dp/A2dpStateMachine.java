@@ -126,6 +126,14 @@ final class A2dpStateMachine extends StateMachine {
 
     public void doQuit() {
         log("doQuit for device " + mDevice);
+        if (mIsPlaying) {
+            // Stop if auido is still playing
+            log("doQuit: stopped playing " + mDevice);
+            mIsPlaying = false;
+            mA2dpService.setAvrcpAudioState(BluetoothA2dp.STATE_NOT_PLAYING);
+            broadcastAudioState(BluetoothA2dp.STATE_NOT_PLAYING,
+                                BluetoothA2dp.STATE_PLAYING);
+        }
         quitNow();
     }
 
@@ -177,7 +185,7 @@ final class A2dpStateMachine extends StateMachine {
                         Log.e(TAG, "Disconnected: error connecting to " + mDevice);
                         break;
                     }
-                    if (mA2dpService.okToConnect(mDevice)) {
+                    if (mA2dpService.okToConnect(mDevice, true)) {
                         transitionTo(mConnecting);
                     } else {
                         // Reject the request and stay in Disconnected state
@@ -218,7 +226,7 @@ final class A2dpStateMachine extends StateMachine {
                     Log.w(TAG, "Ignore A2DP DISCONNECTED event: " + mDevice);
                     break;
                 case A2dpStackEvent.CONNECTION_STATE_CONNECTING:
-                    if (mA2dpService.okToConnect(mDevice)) {
+                    if (mA2dpService.okToConnect(mDevice, false)) {
                         Log.i(TAG, "Incoming A2DP Connecting request accepted: " + mDevice);
                         transitionTo(mConnecting);
                     } else {
@@ -229,7 +237,7 @@ final class A2dpStateMachine extends StateMachine {
                     break;
                 case A2dpStackEvent.CONNECTION_STATE_CONNECTED:
                     Log.w(TAG, "A2DP Connected from Disconnected state: " + mDevice);
-                    if (mA2dpService.okToConnect(mDevice)) {
+                    if (mA2dpService.okToConnect(mDevice, false)) {
                         Log.i(TAG, "Incoming A2DP Connected request accepted: " + mDevice);
                         transitionTo(mConnected);
                     } else {
@@ -420,7 +428,7 @@ final class A2dpStateMachine extends StateMachine {
                     transitionTo(mDisconnected);
                     break;
                 case A2dpStackEvent.CONNECTION_STATE_CONNECTED:
-                    if (mA2dpService.okToConnect(mDevice)) {
+                    if (mA2dpService.okToConnect(mDevice, false)) {
                         Log.w(TAG, "Disconnecting interrupted: device is connected: " + mDevice);
                         transitionTo(mConnected);
                     } else {
@@ -430,7 +438,7 @@ final class A2dpStateMachine extends StateMachine {
                     }
                     break;
                 case A2dpStackEvent.CONNECTION_STATE_CONNECTING:
-                    if (mA2dpService.okToConnect(mDevice)) {
+                    if (mA2dpService.okToConnect(mDevice, false)) {
                         Log.i(TAG, "Disconnecting interrupted: try to reconnect: " + mDevice);
                         transitionTo(mConnecting);
                     } else {
