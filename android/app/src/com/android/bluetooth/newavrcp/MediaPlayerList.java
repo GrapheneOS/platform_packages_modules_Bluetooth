@@ -577,11 +577,6 @@ public class MediaPlayerList {
                 return;
             }
 
-            if (data.state.getState() == PlaybackState.STATE_BUFFERING) {
-                Log.d(TAG, "mediaUpdatedCallback(): Currently buffering, deferring update");
-                return;
-            }
-
             sendMediaUpdate(data);
         }
     };

@@ -48,12 +48,12 @@ class PlayStatus {
 
     static byte playbackStateToAvrcpState(int playbackState) {
         switch (playbackState) {
-            case PlaybackState.STATE_BUFFERING:
             case PlaybackState.STATE_STOPPED:
             case PlaybackState.STATE_NONE:
             case PlaybackState.STATE_CONNECTING:
                 return PlayStatus.STOPPED;
 
+            case PlaybackState.STATE_BUFFERING:
             case PlaybackState.STATE_PLAYING:
                 return PlayStatus.PLAYING;
 
