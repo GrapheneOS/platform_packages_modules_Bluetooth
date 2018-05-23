@@ -169,6 +169,11 @@ public class AvrcpTargetService extends ProfileService {
     protected boolean stop() {
         Log.i(TAG, "Stopping the AVRCP Target Service");
 
+        if (sInstance == null) {
+            Log.w(TAG, "stop() called before start()");
+            return true;
+        }
+
         sInstance = null;
         unregisterReceiver(mReceiver);
 

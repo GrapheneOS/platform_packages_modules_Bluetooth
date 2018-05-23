@@ -657,6 +657,11 @@ public class HidDeviceService extends ProfileService {
             Log.d(TAG, "stop()");
         }
 
+        if (sHidDeviceService == null) {
+            Log.w(TAG, "stop() called before start()");
+            return true;
+        }
+
         setHidDeviceService(null);
         if (mNativeAvailable) {
             mHidDeviceNativeInterface.cleanup();
