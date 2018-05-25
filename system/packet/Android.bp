@@ -17,6 +17,10 @@ cc_test {
     defaults: ["fluoride_defaults"],
     host_supported: true,
     local_include_dirs: ["tests"],
+    include_dirs: [
+        "packages/modules/Bluetooth/system/",
+        "packages/modules/Bluetooth/system/include",
+    ],
     srcs: [
         "tests/avrcp/avrcp_browse_packet_test.cc",
         "tests/avrcp/avrcp_packet_test.cc",
