@@ -302,8 +302,8 @@ final class MceStateMachine extends StateMachine {
     }
 
     public void dump(StringBuilder sb) {
-        ProfileService.println(sb, "mCurrentDevice: " + mDevice.getAddress() + " (name = "
-                + mDevice.getName() + "), StateMachine: " + this.toString());
+        ProfileService.println(sb, "mCurrentDevice: " + mDevice.getAddress() + "("
+                + mDevice.getName() + ") " + this.toString());
     }
 
     class Disconnected extends State {
