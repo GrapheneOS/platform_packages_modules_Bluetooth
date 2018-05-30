@@ -406,6 +406,20 @@ class ActiveDeviceManager {
         resetState();
     }
 
+    /**
+     * Get the {@link Looper} for the handler thread. This is used in testing and helper
+     * objects
+     *
+     * @return {@link Looper} for the handler thread
+     */
+    @VisibleForTesting
+    public Looper getHandlerLooper() {
+        if (mHandlerThread == null) {
+            return null;
+        }
+        return mHandlerThread.getLooper();
+    }
+
     private void setA2dpActiveDevice(BluetoothDevice device) {
         if (DBG) {
             Log.d(TAG, "setA2dpActiveDevice(" + device + ")");

@@ -66,6 +66,9 @@ public class PhonePolicyTest {
     @Before
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
+        // Stub A2DP and HFP
+        when(mHeadsetService.connect(any(BluetoothDevice.class))).thenReturn(true);
+        when(mA2dpService.connect(any(BluetoothDevice.class))).thenReturn(true);
         // Prepare the TestUtils
         TestUtils.setAdapterService(mAdapterService);
         // Configure the maximum connected audio devices
@@ -213,8 +216,8 @@ public class PhonePolicyTest {
         mPhonePolicy.getBroadcastReceiver().onReceive(null /* context */, intent);
 
         // This device should be set to auto connect while the first device is reset to ON
-        verify(mHeadsetService, timeout(ASYNC_CALL_TIMEOUT_MILLIS)).setPriority(bondedDevices[0],
-                BluetoothProfile.PRIORITY_ON);
+        verify(mHeadsetService, timeout(ASYNC_CALL_TIMEOUT_MILLIS).times(2)).setPriority(
+                bondedDevices[0], BluetoothProfile.PRIORITY_ON);
         verify(mHeadsetService, timeout(ASYNC_CALL_TIMEOUT_MILLIS)).setPriority(bondedDevices[1],
                 BluetoothProfile.PRIORITY_AUTO_CONNECT);
         verify(mHeadsetService, never()).setPriority(eq(bondedDevices[3]), anyInt());
