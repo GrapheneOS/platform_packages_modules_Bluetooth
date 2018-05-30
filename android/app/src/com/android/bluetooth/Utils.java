@@ -28,6 +28,7 @@ import android.os.Binder;
 import android.os.Build;
 import android.os.ParcelUuid;
 import android.os.Process;
+import android.os.SystemProperties;
 import android.os.UserHandle;
 import android.os.UserManager;
 import android.util.Log;
@@ -48,6 +49,7 @@ import java.util.concurrent.TimeUnit;
 public final class Utils {
     private static final String TAG = "BluetoothUtils";
     private static final int MICROS_PER_UNIT = 625;
+    private static final String PTS_TEST_MODE_PROPERTY = "persist.bluetooth.pts";
 
     static final int BD_ADDR_LEN = 6; // bytes
     static final int BD_UUID_LEN = 16; // bytes
@@ -381,6 +383,16 @@ public final class Utils {
         if (!isInstrumentationTestMode()) {
             throw new IllegalStateException("Not in BluetoothInstrumentationTest");
         }
+    }
+
+    /**
+     * Check if we are running in PTS test mode. To enable/disable PTS test mode, invoke
+     * {@code adb shell setprop persist.bluetooth.pts true/false}
+     *
+     * @return true if in PTS Test mode, false otherwise
+     */
+    public static boolean isPtsTestMode() {
+        return SystemProperties.getBoolean(PTS_TEST_MODE_PROPERTY, false);
     }
 
     /**
