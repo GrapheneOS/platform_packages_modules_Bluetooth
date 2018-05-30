@@ -32,6 +32,8 @@ import android.os.Looper;
 import android.util.Log;
 import android.view.KeyEvent;
 
+import com.android.bluetooth.Utils;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -86,7 +88,7 @@ public class MediaPlayerList {
             Collections.synchronizedMap(new HashMap<Integer, BrowsedPlayerWrapper>());
     private int mActivePlayerId = NO_ACTIVE_PLAYER;
 
-    private MediaUpdateCallback mCallback;
+    private AvrcpTargetService.ListCallback mCallback;
 
     interface MediaUpdateCallback {
         void run(MediaData data);
@@ -98,6 +100,10 @@ public class MediaPlayerList {
 
     interface GetFolderItemsCallback {
         void run(String parentId, List<ListItem> items);
+    }
+
+    interface FolderUpdateCallback {
+        void run(boolean availablePlayers, boolean addressedPlayers, boolean uids);
     }
 
     MediaPlayerList(Looper looper, Context context) {
@@ -122,7 +128,7 @@ public class MediaPlayerList {
         mMediaSessionManager.setCallback(mButtonDispatchCallback, null);
     }
 
-    void init(MediaUpdateCallback callback) {
+    void init(AvrcpTargetService.ListCallback callback) {
         Log.v(TAG, "Initializing MediaPlayerList");
         mCallback = callback;
 
@@ -473,6 +479,10 @@ public class MediaPlayerList {
             return;
         }
 
+        if (Utils.isPtsTestMode()) {
+            sendFolderUpdate(true, true, false);
+        }
+
         sendMediaUpdate(getActivePlayer().getCurrentMediaData());
     }
 
@@ -482,6 +492,16 @@ public class MediaPlayerList {
         int action = pushed ? KeyEvent.ACTION_DOWN : KeyEvent.ACTION_UP;
         KeyEvent event = new KeyEvent(action, AvrcpPassthrough.toKeyCode(key));
         mMediaSessionManager.dispatchMediaKeyEvent(event);
+    }
+
+    private void sendFolderUpdate(boolean availablePlayers, boolean addressedPlayers,
+            boolean uids) {
+        d("sendFolderUpdate");
+        if (mCallback == null) {
+            return;
+        }
+
+        mCallback.run(availablePlayers, addressedPlayers, uids);
     }
 
     private void sendMediaUpdate(MediaData data) {
