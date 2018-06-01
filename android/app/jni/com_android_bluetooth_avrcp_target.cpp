@@ -307,6 +307,8 @@ static void sendMediaKeyEvent(int key, KeyState state) {
 static SongInfo getSongInfoFromJavaObj(JNIEnv* env, jobject metadata) {
   SongInfo info;
 
+  if (metadata == nullptr) return info;
+
   jclass class_metadata = env->GetObjectClass(metadata);
   jfieldID field_mediaId =
       env->GetFieldID(class_metadata, "mediaId", "Ljava/lang/String;");
@@ -326,14 +328,14 @@ static SongInfo getSongInfoFromJavaObj(JNIEnv* env, jobject metadata) {
       env->GetFieldID(class_metadata, "duration", "Ljava/lang/String;");
 
   jstring jstr = (jstring)env->GetObjectField(metadata, field_mediaId);
-  if (jstr != NULL) {
+  if (jstr != nullptr) {
     const char* value = env->GetStringUTFChars(jstr, nullptr);
     info.media_id = std::string(value);
     env->ReleaseStringUTFChars(jstr, value);
   }
 
   jstr = (jstring)env->GetObjectField(metadata, field_title);
-  if (jstr != NULL) {
+  if (jstr != nullptr) {
     const char* value = env->GetStringUTFChars(jstr, nullptr);
     info.attributes.insert(
         AttributeEntry(Attribute::TITLE, std::string(value)));
@@ -341,7 +343,7 @@ static SongInfo getSongInfoFromJavaObj(JNIEnv* env, jobject metadata) {
   }
 
   jstr = (jstring)env->GetObjectField(metadata, field_artist);
-  if (jstr != NULL) {
+  if (jstr != nullptr) {
     const char* value = env->GetStringUTFChars(jstr, nullptr);
     info.attributes.insert(
         AttributeEntry(Attribute::ARTIST_NAME, std::string(value)));
@@ -349,7 +351,7 @@ static SongInfo getSongInfoFromJavaObj(JNIEnv* env, jobject metadata) {
   }
 
   jstr = (jstring)env->GetObjectField(metadata, field_album);
-  if (jstr != NULL) {
+  if (jstr != nullptr) {
     const char* value = env->GetStringUTFChars(jstr, nullptr);
     info.attributes.insert(
         AttributeEntry(Attribute::ALBUM_NAME, std::string(value)));
@@ -357,7 +359,7 @@ static SongInfo getSongInfoFromJavaObj(JNIEnv* env, jobject metadata) {
   }
 
   jstr = (jstring)env->GetObjectField(metadata, field_trackNum);
-  if (jstr != NULL) {
+  if (jstr != nullptr) {
     const char* value = env->GetStringUTFChars(jstr, nullptr);
     info.attributes.insert(
         AttributeEntry(Attribute::TRACK_NUMBER, std::string(value)));
@@ -365,7 +367,7 @@ static SongInfo getSongInfoFromJavaObj(JNIEnv* env, jobject metadata) {
   }
 
   jstr = (jstring)env->GetObjectField(metadata, field_numTracks);
-  if (jstr != NULL) {
+  if (jstr != nullptr) {
     const char* value = env->GetStringUTFChars(jstr, nullptr);
     info.attributes.insert(
         AttributeEntry(Attribute::TOTAL_NUMBER_OF_TRACKS, std::string(value)));
@@ -373,7 +375,7 @@ static SongInfo getSongInfoFromJavaObj(JNIEnv* env, jobject metadata) {
   }
 
   jstr = (jstring)env->GetObjectField(metadata, field_genre);
-  if (jstr != NULL) {
+  if (jstr != nullptr) {
     const char* value = env->GetStringUTFChars(jstr, nullptr);
     info.attributes.insert(
         AttributeEntry(Attribute::GENRE, std::string(value)));
@@ -381,7 +383,7 @@ static SongInfo getSongInfoFromJavaObj(JNIEnv* env, jobject metadata) {
   }
 
   jstr = (jstring)env->GetObjectField(metadata, field_playingTime);
-  if (jstr != NULL) {
+  if (jstr != nullptr) {
     const char* value = env->GetStringUTFChars(jstr, nullptr);
     info.attributes.insert(
         AttributeEntry(Attribute::PLAYING_TIME, std::string(value)));
@@ -402,7 +404,7 @@ static FolderInfo getFolderInfoFromJavaObj(JNIEnv* env, jobject folder) {
       env->GetFieldID(class_folder, "title", "Ljava/lang/String;");
 
   jstring jstr = (jstring)env->GetObjectField(folder, field_mediaId);
-  if (jstr != NULL) {
+  if (jstr != nullptr) {
     const char* value = env->GetStringUTFChars(jstr, nullptr);
     info.media_id = std::string(value);
     env->ReleaseStringUTFChars(jstr, value);
@@ -411,7 +413,7 @@ static FolderInfo getFolderInfoFromJavaObj(JNIEnv* env, jobject folder) {
   info.is_playable = env->GetBooleanField(folder, field_isPlayable) == JNI_TRUE;
 
   jstr = (jstring)env->GetObjectField(folder, field_name);
-  if (jstr != NULL) {
+  if (jstr != nullptr) {
     const char* value = env->GetStringUTFChars(jstr, nullptr);
     info.name = std::string(value);
     env->ReleaseStringUTFChars(jstr, value);
@@ -440,6 +442,12 @@ static PlayStatus getCurrentPlayStatus() {
   PlayStatus status;
   jobject playStatus =
       sCallbackEnv->CallObjectMethod(mJavaInterface, method_getPlaybackStatus);
+
+  if (playStatus == nullptr) {
+    ALOGE("%s: Got a null play status", __func__);
+    return status;
+  }
+
   jclass class_playStatus = sCallbackEnv->GetObjectClass(playStatus);
   jfieldID field_position =
       sCallbackEnv->GetFieldID(class_playStatus, "position", "J");
@@ -463,7 +471,10 @@ static std::string getCurrentMediaId() {
 
   jstring media_id = (jstring)sCallbackEnv->CallObjectMethod(
       mJavaInterface, method_getCurrentMediaId);
-  if (media_id == NULL) return "";
+  if (media_id == nullptr) {
+    ALOGE("%s: Got a null media ID", __func__);
+    return "";
+  }
 
   const char* value = sCallbackEnv->GetStringUTFChars(media_id, nullptr);
   std::string ret(value);
@@ -479,7 +490,7 @@ static std::vector<SongInfo> getNowPlayingList() {
 
   jobject song_list =
       sCallbackEnv->CallObjectMethod(mJavaInterface, method_getNowPlayingList);
-  if (song_list == NULL) {
+  if (song_list == nullptr) {
     ALOGE("%s: Got a null now playing list", __func__);
     return std::vector<SongInfo>();
   }
@@ -522,6 +533,11 @@ static std::vector<MediaPlayerInfo> getMediaPlayerList() {
   jobject player_list = (jobject)sCallbackEnv->CallObjectMethod(
       mJavaInterface, method_getMediaPlayerList);
 
+  if (player_list == nullptr) {
+    ALOGE("%s: Got a null media player list", __func__);
+    return std::vector<MediaPlayerInfo>();
+  }
+
   jclass class_list = sCallbackEnv->GetObjectClass(player_list);
   jmethodID method_get =
       sCallbackEnv->GetMethodID(class_list, "get", "(I)Ljava/lang/Object;");
@@ -549,7 +565,7 @@ static std::vector<MediaPlayerInfo> getMediaPlayerList() {
     temp.id = sCallbackEnv->GetIntField(player, field_playerId);
 
     jstring jstr = (jstring)sCallbackEnv->GetObjectField(player, field_name);
-    if (jstr != NULL) {
+    if (jstr != nullptr) {
       const char* value = sCallbackEnv->GetStringUTFChars(jstr, nullptr);
       temp.name = std::string(value);
       sCallbackEnv->ReleaseStringUTFChars(jstr, value);
@@ -587,7 +603,7 @@ static void setBrowsedPlayerResponseNative(JNIEnv* env, jobject object,
   ALOGD("%s", __func__);
 
   std::string root;
-  if (root_id != NULL) {
+  if (root_id != nullptr) {
     const char* value = env->GetStringUTFChars(root_id, nullptr);
     root = std::string(value);
     env->ReleaseStringUTFChars(root_id, value);
@@ -604,7 +620,7 @@ static void getFolderItemsResponseNative(JNIEnv* env, jobject object,
   ALOGD("%s", __func__);
 
   std::string id;
-  if (parent_id != NULL) {
+  if (parent_id != nullptr) {
     const char* value = env->GetStringUTFChars(parent_id, nullptr);
     id = std::string(value);
     env->ReleaseStringUTFChars(parent_id, value);
@@ -622,6 +638,12 @@ static void getFolderItemsResponseNative(JNIEnv* env, jobject object,
 
   auto callback = get_folder_items_cb_map.find(id)->second;
   get_folder_items_cb_map.erase(id);
+
+  if (list == nullptr) {
+    ALOGE("%s: Got a null get folder items response list", __func__);
+    callback.Run(std::vector<ListItem>());
+    return;
+  }
 
   jclass class_list = env->GetObjectClass(list);
   jmethodID method_get =
