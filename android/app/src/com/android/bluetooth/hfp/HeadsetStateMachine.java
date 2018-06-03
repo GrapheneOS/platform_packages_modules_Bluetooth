@@ -1014,8 +1014,9 @@ public class HeadsetStateMachine extends StateMachine {
             if (mConnectingTimestampMs == Long.MIN_VALUE) {
                 mConnectingTimestampMs = SystemClock.uptimeMillis();
             }
-            updateAgIndicatorEnableState(DEFAULT_AG_INDICATOR_ENABLE_STATE);
             if (mPrevState == mConnecting) {
+                // Reset AG indicator subscriptions, HF can set this later using AT+BIA command
+                updateAgIndicatorEnableState(DEFAULT_AG_INDICATOR_ENABLE_STATE);
                 // Reset NREC on connect event. Headset will override later
                 processNoiseReductionEvent(true);
                 // Query phone state for initial setup
