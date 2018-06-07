@@ -330,6 +330,7 @@ static SongInfo getSongInfoFromJavaObj(JNIEnv* env, jobject metadata) {
     const char* value = env->GetStringUTFChars(jstr, nullptr);
     info.media_id = std::string(value);
     env->ReleaseStringUTFChars(jstr, value);
+    env->DeleteLocalRef(jstr);
   }
 
   jstr = (jstring)env->GetObjectField(metadata, field_title);
@@ -338,6 +339,7 @@ static SongInfo getSongInfoFromJavaObj(JNIEnv* env, jobject metadata) {
     info.attributes.insert(
         AttributeEntry(Attribute::TITLE, std::string(value)));
     env->ReleaseStringUTFChars(jstr, value);
+    env->DeleteLocalRef(jstr);
   }
 
   jstr = (jstring)env->GetObjectField(metadata, field_artist);
@@ -346,6 +348,7 @@ static SongInfo getSongInfoFromJavaObj(JNIEnv* env, jobject metadata) {
     info.attributes.insert(
         AttributeEntry(Attribute::ARTIST_NAME, std::string(value)));
     env->ReleaseStringUTFChars(jstr, value);
+    env->DeleteLocalRef(jstr);
   }
 
   jstr = (jstring)env->GetObjectField(metadata, field_album);
@@ -354,6 +357,7 @@ static SongInfo getSongInfoFromJavaObj(JNIEnv* env, jobject metadata) {
     info.attributes.insert(
         AttributeEntry(Attribute::ALBUM_NAME, std::string(value)));
     env->ReleaseStringUTFChars(jstr, value);
+    env->DeleteLocalRef(jstr);
   }
 
   jstr = (jstring)env->GetObjectField(metadata, field_trackNum);
@@ -362,6 +366,7 @@ static SongInfo getSongInfoFromJavaObj(JNIEnv* env, jobject metadata) {
     info.attributes.insert(
         AttributeEntry(Attribute::TRACK_NUMBER, std::string(value)));
     env->ReleaseStringUTFChars(jstr, value);
+    env->DeleteLocalRef(jstr);
   }
 
   jstr = (jstring)env->GetObjectField(metadata, field_numTracks);
@@ -370,6 +375,7 @@ static SongInfo getSongInfoFromJavaObj(JNIEnv* env, jobject metadata) {
     info.attributes.insert(
         AttributeEntry(Attribute::TOTAL_NUMBER_OF_TRACKS, std::string(value)));
     env->ReleaseStringUTFChars(jstr, value);
+    env->DeleteLocalRef(jstr);
   }
 
   jstr = (jstring)env->GetObjectField(metadata, field_genre);
@@ -378,6 +384,7 @@ static SongInfo getSongInfoFromJavaObj(JNIEnv* env, jobject metadata) {
     info.attributes.insert(
         AttributeEntry(Attribute::GENRE, std::string(value)));
     env->ReleaseStringUTFChars(jstr, value);
+    env->DeleteLocalRef(jstr);
   }
 
   jstr = (jstring)env->GetObjectField(metadata, field_playingTime);
@@ -386,6 +393,7 @@ static SongInfo getSongInfoFromJavaObj(JNIEnv* env, jobject metadata) {
     info.attributes.insert(
         AttributeEntry(Attribute::PLAYING_TIME, std::string(value)));
     env->ReleaseStringUTFChars(jstr, value);
+    env->DeleteLocalRef(jstr);
   }
 
   return info;
@@ -495,6 +503,7 @@ static std::vector<SongInfo> getNowPlayingList() {
   for (int i = 0; i < size; i++) {
     jobject song = sCallbackEnv->CallObjectMethod(song_list, method_get, i);
     ret.push_back(getSongInfoFromJavaObj(sCallbackEnv.get(), song));
+    sCallbackEnv->DeleteLocalRef(song);
   }
 
   return ret;
@@ -553,6 +562,7 @@ static std::vector<MediaPlayerInfo> getMediaPlayerList() {
       const char* value = sCallbackEnv->GetStringUTFChars(jstr, nullptr);
       temp.name = std::string(value);
       sCallbackEnv->ReleaseStringUTFChars(jstr, value);
+      sCallbackEnv->DeleteLocalRef(jstr);
     }
 
     temp.browsing_supported =
@@ -561,6 +571,7 @@ static std::vector<MediaPlayerInfo> getMediaPlayerList() {
             : false;
 
     ret_list.push_back(std::move(temp));
+    sCallbackEnv->DeleteLocalRef(player);
   }
 
   return ret_list;
@@ -662,6 +673,7 @@ static void getFolderItemsResponseNative(JNIEnv* env, jobject object,
 
       ret_list.push_back(temp);
     }
+    env->DeleteLocalRef(item);
   }
 
   callback.Run(std::move(ret_list));
