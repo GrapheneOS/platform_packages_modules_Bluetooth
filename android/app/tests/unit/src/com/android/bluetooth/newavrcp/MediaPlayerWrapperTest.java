@@ -334,6 +334,35 @@ public class MediaPlayerWrapperTest {
     }
 
     @Test
+    public void testNullMetadata() {
+        // Create the wrapper object and register the looper with the timeout handler
+        TestLooperManager looperManager = new TestLooperManager(mThread.getLooper());
+        MediaPlayerWrapper wrapper =
+                MediaPlayerWrapper.wrap(mMockController, mThread.getLooper());
+        wrapper.registerCallback(mTestCbs);
+
+        // Return null when getting the queue
+        doReturn(null).when(mMockController).getQueue();
+
+        // Grab the callbacks the wrapper registered with the controller
+        verify(mMockController).registerCallback(mControllerCbs.capture(), any());
+        MediaController.Callback controllerCallbacks = mControllerCbs.getValue();
+
+        // Update Metadata returned by controller
+        mTestMetadata.putString(MediaMetadata.METADATA_KEY_TITLE, "New Title");
+        doReturn(mTestMetadata.build()).when(mMockController).getMetadata();
+
+        // Call the callback
+        controllerCallbacks.onMetadataChanged(null);
+
+        // Assert that the metadata returned by getMetadata() is used instead of null
+        verify(mTestCbs, times(1)).mediaUpdatedCallback(mMediaUpdateData.capture());
+        MediaData data = mMediaUpdateData.getValue();
+        Assert.assertEquals("Returned metadata is incorrect", data.metadata,
+                Util.toMetadata(mTestMetadata.build()));
+    }
+
+    @Test
     public void testNullQueue() {
         // Create the wrapper object and register the looper with the timeout handler
         TestLooperManager looperManager = new TestLooperManager(mThread.getLooper());
@@ -502,7 +531,7 @@ public class MediaPlayerWrapperTest {
         verify(mMockController).registerCallback(mControllerCbs.capture(), any());
         MediaController.Callback controllerCallbacks = mControllerCbs.getValue();
 
-        // Update Metdata returned by controller
+        // Update Metadata returned by controller
         mTestMetadata.putString(MediaMetadata.METADATA_KEY_TITLE, "New Title");
         doReturn(mTestMetadata.build()).when(mMockController).getMetadata();
         controllerCallbacks.onMetadataChanged(mTestMetadata.build());
