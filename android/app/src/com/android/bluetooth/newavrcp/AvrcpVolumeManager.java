@@ -16,20 +16,22 @@
 
 package com.android.bluetooth.avrcp;
 
+import android.annotation.NonNull;
+import android.annotation.Nullable;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.media.AudioDeviceCallback;
+import android.media.AudioDeviceInfo;
 import android.media.AudioManager;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.util.Log;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
-class AvrcpVolumeManager {
+class AvrcpVolumeManager extends AudioDeviceCallback {
     public static final String TAG = "NewAvrcpVolumeManager";
     public static final boolean DEBUG = true;
 
@@ -90,6 +92,8 @@ class AvrcpVolumeManager {
         mNativeInterface = nativeInterface;
         sDeviceMaxVolume = mAudioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
 
+        mAudioManager.registerAudioDeviceCallback(this, null);
+
         // Load the stored volume preferences into a hash map since shared preferences are slow
         // to poll and update. If the device has been unbonded since last start remove it from
         // the map.
@@ -133,6 +137,40 @@ class AvrcpVolumeManager {
         return mVolumeMap.get(device);
     }
 
+    @Override
+    public synchronized void onAudioDevicesAdded(AudioDeviceInfo[] addedDevices) {
+        if (mCurrentDevice == null) {
+            d("onAudioDevicesAdded: Not expecting device changed");
+            return;
+        }
+
+        boolean foundDevice = false;
+        d("onAudioDevicesAdded: size: " + addedDevices.length);
+        for (int i = 0; i < addedDevices.length; i++) {
+            d("onAudioDevicesAdded: address=" + addedDevices[i].getAddress());
+            if (addedDevices[i].getType() == AudioDeviceInfo.TYPE_BLUETOOTH_A2DP
+                    && Objects.equals(addedDevices[i].getAddress(), mCurrentDevice.getAddress())) {
+                foundDevice = true;
+                break;
+            }
+        }
+
+        if (!foundDevice) {
+            d("Didn't find deferred device in list: device=" + mCurrentDevice);
+            return;
+        }
+
+        // A2DP can sometimes connect and set a device to active before AVRCP has determined if the
+        // device supports absolute volume. Defer switching the device until AVRCP returns the
+        // info.
+        if (!mDeviceMap.containsKey(mCurrentDevice)) {
+            Log.w(TAG, "volumeDeviceSwitched: Device isn't connected: " + mCurrentDevice);
+            return;
+        }
+
+        switchVolumeDevice(mCurrentDevice);
+    }
+
     synchronized void deviceConnected(@NonNull BluetoothDevice device, boolean absoluteVolume) {
         d("deviceConnected: device=" + device + " absoluteVolume=" + absoluteVolume);
 
@@ -154,22 +192,6 @@ class AvrcpVolumeManager {
 
         // Wait until AudioManager informs us that the new device is connected
         mCurrentDevice = device;
-
-        // If device is null, that means that there is no active Bluetooth device
-        if (device == null) {
-            mCurrentDevice = null;
-            return;
-        }
-
-        // If the device is connected then switch the device which informs audio manager that
-        // absolute volume is supported and set the volume for the device. Otherwise disable
-        // absolute volume until the new device connects to prevent sending unattenuated audio.
-        if (mDeviceMap.containsKey(device)) {
-            switchVolumeDevice(device);
-        } else {
-            d("volumeDeviceSwitched: Set Absolute Volume support to false until device connects.");
-            mAudioManager.avrcpSupportsAbsoluteVolume(device.getAddress(), false);
-        }
     }
 
     void deviceDisconnected(@NonNull BluetoothDevice device) {

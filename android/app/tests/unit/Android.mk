@@ -9,13 +9,14 @@ LOCAL_JAVA_LIBRARIES := \
     javax.obex \
     android.test.runner \
     telephony-common \
-    libprotobuf-java-micro
+    libprotobuf-java-micro \
+    android.test.base \
+    android.test.mock
 
 LOCAL_STATIC_JAVA_LIBRARIES :=  \
     com.android.emailcommon \
     android-support-test \
     mockito-target \
-    legacy-android-test \
     espresso-intents
 
 # Include all test java files.

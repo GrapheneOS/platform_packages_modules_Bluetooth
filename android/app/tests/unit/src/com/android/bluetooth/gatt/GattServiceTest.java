@@ -1,5 +1,7 @@
 package com.android.bluetooth.gatt;
 
+import static org.mockito.Mockito.*;
+
 import android.content.Context;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.filters.SmallTest;
@@ -26,6 +28,7 @@ import org.mockito.MockitoAnnotations;
 @SmallTest
 @RunWith(AndroidJUnit4.class)
 public class GattServiceTest {
+    private static final int TIMES_UP_AND_DOWN = 3;
     private Context mTargetContext;
     private GattService mService;
 
@@ -59,6 +62,23 @@ public class GattServiceTest {
     @Test
     public void testInitialize() {
         Assert.assertNotNull(GattService.getGattService());
+    }
+
+    @Test
+    public void testServiceUpAndDown() throws Exception {
+        for (int i = 0; i < TIMES_UP_AND_DOWN; i++) {
+            GattService gattService = GattService.getGattService();
+            TestUtils.stopService(mServiceRule, GattService.class);
+            mService = GattService.getGattService();
+            Assert.assertNull(mService);
+            gattService.cleanup();
+            TestUtils.clearAdapterService(mAdapterService);
+            reset(mAdapterService);
+            TestUtils.setAdapterService(mAdapterService);
+            TestUtils.startService(mServiceRule, GattService.class);
+            mService = GattService.getGattService();
+            Assert.assertNotNull(mService);
+        }
     }
 
     @Test
