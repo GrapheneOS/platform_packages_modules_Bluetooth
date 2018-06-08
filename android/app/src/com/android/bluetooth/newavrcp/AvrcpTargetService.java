@@ -210,15 +210,34 @@ public class AvrcpTargetService extends ProfileService {
     }
 
     /**
-     * Signal to the service that the current audio out device has changed. The current volume
-     * for the old device is saved and the new device has its volume restored. If there is no
-     * saved volume use the current system volume.
+     * Signal to the service that the current audio out device has changed and to inform
+     * the audio service whether the new device supports absolute volume. If it does, also
+     * set the absolute volume level on the remote device.
      */
     public void volumeDeviceSwitched(BluetoothDevice device) {
         if (DEBUG) {
             Log.d(TAG, "volumeDeviceSwitched: device=" + device);
         }
         mVolumeManager.volumeDeviceSwitched(device);
+    }
+
+    /**
+     * Store the current system volume for a device in order to be retrieved later.
+     */
+    public void storeVolumeForDevice(BluetoothDevice device) {
+        if (device == null) return;
+
+        mVolumeManager.storeVolumeForDevice(device);
+    }
+
+    /**
+     * Retrieve the remembered volume for a device. Returns -1 if there is no volume for the
+     * device.
+     */
+    public int getRememberedVolumeForDevice(BluetoothDevice device) {
+        if (device == null) return -1;
+
+        return mVolumeManager.getVolume(device, -1);
     }
 
     // TODO (apanicke): Add checks to blacklist Absolute Volume devices if they behave poorly.
