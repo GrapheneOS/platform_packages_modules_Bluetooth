@@ -88,6 +88,23 @@ public class BrowserPlayerWrapperTest {
     }
 
     @Test
+    public void testEmptyRoot() {
+        BrowsedPlayerWrapper wrapper = BrowsedPlayerWrapper.wrap(null, "test", "test");
+
+        doReturn("").when(mMockBrowser).getRoot();
+
+        wrapper.connect(mConnCb);
+        verify(mMockBrowser).testInit(any(), any(), mBrowserConnCb.capture(), any());
+        MediaBrowser.ConnectionCallback browserConnCb = mBrowserConnCb.getValue();
+
+        verify(mMockBrowser, times(1)).connect();
+
+        browserConnCb.onConnected();
+        verify(mConnCb).run(eq(BrowsedPlayerWrapper.STATUS_CONN_ERROR), eq(wrapper));
+        verify(mMockBrowser, times(1)).disconnect();
+    }
+
+    @Test
     public void testDisconnect() {
         BrowsedPlayerWrapper wrapper = BrowsedPlayerWrapper.wrap(null, "test", "test");
         wrapper.connect(mConnCb);
