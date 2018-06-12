@@ -446,6 +446,7 @@ static void initializeNative(JNIEnv* env, jobject object, jint max_hf_clients,
   if (!sBluetoothHfpInterface) {
     ALOGW("%s: Failed to get Bluetooth Handsfree Interface", __func__);
     jniThrowIOException(env, EINVAL);
+    return;
   }
   bt_status_t status =
       sBluetoothHfpInterface->Init(JniHeadsetCallbacks::GetInstance(),
