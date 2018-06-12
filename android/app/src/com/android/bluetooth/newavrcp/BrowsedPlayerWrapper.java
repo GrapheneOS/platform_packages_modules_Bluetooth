@@ -207,7 +207,15 @@ class BrowsedPlayerWrapper {
             Log.i(TAG, "onConnected: " + mPackageName + " is connected");
             // Get the root while connected because we may need to use it when disconnected.
             mRoot = mWrappedBrowser.getRoot();
-            if (mCallback != null) mCallback.run(STATUS_SUCCESS, BrowsedPlayerWrapper.this);
+
+            if (mCallback == null) return;
+
+            if (mRoot == null || mRoot.isEmpty()) {
+                mCallback.run(STATUS_CONN_ERROR, BrowsedPlayerWrapper.this);
+                return;
+            }
+
+            mCallback.run(STATUS_SUCCESS, BrowsedPlayerWrapper.this);
             mCallback = null;
         }
 
