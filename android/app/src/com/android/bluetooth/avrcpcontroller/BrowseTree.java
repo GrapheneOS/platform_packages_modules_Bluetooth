@@ -113,7 +113,9 @@ public class BrowseTree {
             mdb.setExtras(mdExtra);
             mdb.setMediaId(playerKey);
             mdb.setTitle(player.getName());
-            mItem = new MediaBrowser.MediaItem(mdb.build(), MediaBrowser.MediaItem.FLAG_BROWSABLE);
+            int mediaItemFlags = player.supportsFeature(AvrcpPlayer.FEATURE_BROWSING)
+                    ? MediaBrowser.MediaItem.FLAG_BROWSABLE : 0;
+            mItem = new MediaBrowser.MediaItem(mdb.build(), mediaItemFlags);
         }
 
         synchronized List<BrowseNode> getChildren() {
