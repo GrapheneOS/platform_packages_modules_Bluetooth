@@ -431,7 +431,7 @@ final class PbapClientStateMachine extends StateMachine {
     }
 
     public void dump(StringBuilder sb) {
-        ProfileService.println(sb, "mCurrentDevice: " + mCurrentDevice);
-        ProfileService.println(sb, "StateMachine: " + this.toString());
+        ProfileService.println(sb, "mCurrentDevice: " + mCurrentDevice.getAddress() + "("
+                + mCurrentDevice.getName() + ") " + this.toString());
     }
 }
