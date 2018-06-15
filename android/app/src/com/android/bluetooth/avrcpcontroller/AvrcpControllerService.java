@@ -1031,7 +1031,7 @@ public class AvrcpControllerService extends ProfileService {
                     "createFromNativePlayerItem name: " + name + " transportFlags " + transportFlags
                             + " play status " + playStatus + " player type " + playerType);
         }
-        AvrcpPlayer player = new AvrcpPlayer(id, name, 0, playStatus, playerType);
+        AvrcpPlayer player = new AvrcpPlayer(id, name, transportFlags, playStatus, playerType);
         return player;
     }
 
@@ -1060,6 +1060,15 @@ public class AvrcpControllerService extends ProfileService {
         }
         Message msg = mAvrcpCtSm.obtainMessage(
                 AvrcpControllerStateMachine.MESSAGE_PROCESS_SET_ADDRESSED_PLAYER);
+        mAvrcpCtSm.sendMessage(msg);
+    }
+
+    private void handleAddressedPlayerChanged(int id) {
+        if (DBG) {
+            Log.d(TAG, "handleAddressedPlayerChanged id: " + id);
+        }
+        Message msg = mAvrcpCtSm.obtainMessage(
+                AvrcpControllerStateMachine.MESSAGE_PROCESS_ADDRESSED_PLAYER_CHANGED, id);
         mAvrcpCtSm.sendMessage(msg);
     }
 

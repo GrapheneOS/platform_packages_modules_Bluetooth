@@ -19,6 +19,8 @@ package com.android.bluetooth.avrcpcontroller;
 import android.media.session.PlaybackState;
 import android.util.Log;
 
+import java.util.Arrays;
+
 /*
  * Contains information about remote player
  */
@@ -28,21 +30,38 @@ class AvrcpPlayer {
 
     public static final int INVALID_ID = -1;
 
+    public static final int FEATURE_PLAY = 40;
+    public static final int FEATURE_STOP = 41;
+    public static final int FEATURE_PAUSE = 42;
+    public static final int FEATURE_REWIND = 44;
+    public static final int FEATURE_FAST_FORWARD = 45;
+    public static final int FEATURE_FORWARD = 47;
+    public static final int FEATURE_PREVIOUS = 48;
+    public static final int FEATURE_BROWSING = 59;
+
     private int mPlayStatus = PlaybackState.STATE_NONE;
     private long mPlayTime = PlaybackState.PLAYBACK_POSITION_UNKNOWN;
     private int mId;
     private String mName = "";
     private int mPlayerType;
+    private byte[] mPlayerFeatures;
+    private long mAvailableActions;
     private TrackInfo mCurrentTrack = new TrackInfo();
 
     AvrcpPlayer() {
         mId = INVALID_ID;
+        //Set Default Actions in case Player data isn't available.
+        mAvailableActions = PlaybackState.ACTION_PAUSE | PlaybackState.ACTION_PLAY
+            | PlaybackState.ACTION_SKIP_TO_NEXT | PlaybackState.ACTION_SKIP_TO_PREVIOUS;
     }
 
-    AvrcpPlayer(int id, String name, int transportFlags, int playStatus, int playerType) {
+    AvrcpPlayer(int id, String name, byte[] playerFeatures, int playStatus, int playerType) {
         mId = id;
         mName = name;
+        mPlayStatus = playStatus;
         mPlayerType = playerType;
+        mPlayerFeatures = Arrays.copyOf(playerFeatures, playerFeatures.length);
+        updateAvailableActions();
     }
 
     public int getId() {
@@ -63,6 +82,16 @@ class AvrcpPlayer {
 
     public void setPlayStatus(int playStatus) {
         mPlayStatus = playStatus;
+    }
+
+    public int getPlayStatus() {
+        return mPlayStatus;
+    }
+
+    public boolean supportsFeature(int featureId) {
+        int byteNumber = featureId / 8;
+        byte bitMask = (byte) (1 << (featureId % 8));
+        return (mPlayerFeatures[byteNumber] & bitMask) == bitMask;
     }
 
     public PlaybackState getPlaybackState() {
@@ -87,7 +116,8 @@ class AvrcpPlayer {
                 speed = -3;
                 break;
         }
-        return new PlaybackState.Builder().setState(mPlayStatus, position, speed).build();
+        return new PlaybackState.Builder().setState(mPlayStatus, position, speed)
+            .setActions(mAvailableActions).build();
     }
 
     public synchronized void updateCurrentTrack(TrackInfo update) {
@@ -96,5 +126,30 @@ class AvrcpPlayer {
 
     public synchronized TrackInfo getCurrentTrack() {
         return mCurrentTrack;
+    }
+
+    private void updateAvailableActions() {
+        if (supportsFeature(FEATURE_PLAY)) {
+            mAvailableActions = mAvailableActions | PlaybackState.ACTION_PLAY;
+        }
+        if (supportsFeature(FEATURE_STOP)) {
+            mAvailableActions = mAvailableActions | PlaybackState.ACTION_STOP;
+        }
+        if (supportsFeature(FEATURE_PAUSE)) {
+            mAvailableActions = mAvailableActions | PlaybackState.ACTION_PAUSE;
+        }
+        if (supportsFeature(FEATURE_REWIND)) {
+            mAvailableActions = mAvailableActions | PlaybackState.ACTION_REWIND;
+        }
+        if (supportsFeature(FEATURE_FAST_FORWARD)) {
+            mAvailableActions = mAvailableActions | PlaybackState.ACTION_FAST_FORWARD;
+        }
+        if (supportsFeature(FEATURE_FORWARD)) {
+            mAvailableActions = mAvailableActions | PlaybackState.ACTION_SKIP_TO_NEXT;
+        }
+        if (supportsFeature(FEATURE_PREVIOUS)) {
+            mAvailableActions = mAvailableActions | PlaybackState.ACTION_SKIP_TO_PREVIOUS;
+        }
+        if (DBG) Log.d(TAG, "Supported Actions = " + mAvailableActions);
     }
 }
