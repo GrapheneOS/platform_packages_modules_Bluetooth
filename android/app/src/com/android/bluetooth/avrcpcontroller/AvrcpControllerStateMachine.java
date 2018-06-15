@@ -999,7 +999,10 @@ class AvrcpControllerStateMachine extends StateMachine {
     }
 
     void dump(StringBuilder sb) {
-        ProfileService.println(sb, "StateMachine: " + this.toString());
+        BluetoothDevice device = mRemoteDevice.mBTDevice;
+        if (device == null) return;
+        ProfileService.println(sb, "mCurrentDevice: " + device.getAddress() + "("
+                + device.getName() + ") " + this.toString());
     }
 
     MediaMetadata getCurrentMetaData() {

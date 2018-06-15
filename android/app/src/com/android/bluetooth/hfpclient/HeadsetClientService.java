@@ -915,8 +915,6 @@ public class HeadsetClientService extends ProfileService {
         super.dump(sb);
         for (HeadsetClientStateMachine sm : mStateMachineMap.values()) {
             if (sm != null) {
-                println(sb, "State machine:");
-                println(sb, "=============");
                 sm.dump(sb);
             }
         }
