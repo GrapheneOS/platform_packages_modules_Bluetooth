@@ -350,7 +350,6 @@ public class MapClientService extends ProfileService {
     @Override
     public void dump(StringBuilder sb) {
         super.dump(sb);
-        ProfileService.println(sb, "# Services Connected: " + mMapInstanceMap.size());
         for (MceStateMachine stateMachine : mMapInstanceMap.values()) {
             stateMachine.dump(sb);
         }

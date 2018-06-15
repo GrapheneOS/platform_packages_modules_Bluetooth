@@ -177,10 +177,11 @@ public class A2dpSinkStateMachine extends StateMachine {
     }
 
     public void dump(StringBuilder sb) {
-        ProfileService.println(sb, "mCurrentDevice: " + mCurrentDevice);
+        if (mCurrentDevice == null) return;
+        ProfileService.println(sb, "mCurrentDevice: " + mCurrentDevice.getAddress() + "("
+                + mCurrentDevice.getName() + ") " + this.toString());
         ProfileService.println(sb, "mTargetDevice: " + mTargetDevice);
         ProfileService.println(sb, "mIncomingDevice: " + mIncomingDevice);
-        ProfileService.println(sb, "StateMachine: " + this.toString());
     }
 
     private class Disconnected extends State {
