@@ -152,7 +152,7 @@ public class MediaPlayerList {
                 for (BrowsedPlayerWrapper wrapper : players) {
                     // Generate new id and add the browsable player
                     if (!mMediaPlayerIds.containsKey(wrapper.getPackageName())) {
-                        mMediaPlayerIds.put(wrapper.getPackageName(), mMediaPlayerIds.size() + 1);
+                        mMediaPlayerIds.put(wrapper.getPackageName(), getFreeMediaPlayerId());
                     }
 
                     d("Adding Browser Wrapper for " + wrapper.getPackageName() + " with id "
@@ -204,6 +204,12 @@ public class MediaPlayerList {
 
     int getCurrentPlayerId() {
         return BLUETOOTH_PLAYER_ID;
+    }
+
+    int getFreeMediaPlayerId() {
+        int id = 0;
+        while (mMediaPlayerIds.containsValue(++id)) {}
+        return id;
     }
 
     MediaPlayerWrapper getActivePlayer() {
@@ -405,7 +411,7 @@ public class MediaPlayerList {
         // that key.
         String packageName = controller.getPackageName();
         if (!mMediaPlayerIds.containsKey(packageName)) {
-            mMediaPlayerIds.put(packageName, mMediaPlayerIds.size() + 1);
+            mMediaPlayerIds.put(packageName, getFreeMediaPlayerId());
         }
 
         int playerId = mMediaPlayerIds.get(packageName);
