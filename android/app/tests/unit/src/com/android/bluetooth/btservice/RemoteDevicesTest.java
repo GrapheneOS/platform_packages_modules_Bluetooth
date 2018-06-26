@@ -336,7 +336,7 @@ public class RemoteDevicesTest {
                 BluetoothAssignedNumbers.PLANTRONICS, BluetoothHeadset.AT_CMD_TYPE_SET,
                 getXEventArray(3, 8), mDevice1));
         verify(mAdapterService).sendBroadcast(mIntentArgument.capture(), mStringArgument.capture());
-        verifyBatteryLevelChangedIntent(mDevice1, 37, mIntentArgument);
+        verifyBatteryLevelChangedIntent(mDevice1, 42, mIntentArgument);
         Assert.assertEquals(AdapterService.BLUETOOTH_PERM, mStringArgument.getValue());
     }
 
@@ -364,8 +364,11 @@ public class RemoteDevicesTest {
 
     @Test
     public void testGetBatteryLevelFromXEventVsc() {
-        Assert.assertEquals(37, RemoteDevices.getBatteryLevelFromXEventVsc(getXEventArray(3, 8)));
-        Assert.assertEquals(100, RemoteDevices.getBatteryLevelFromXEventVsc(getXEventArray(1, 1)));
+        Assert.assertEquals(42, RemoteDevices.getBatteryLevelFromXEventVsc(getXEventArray(3, 8)));
+        Assert.assertEquals(100,
+                RemoteDevices.getBatteryLevelFromXEventVsc(getXEventArray(10, 11)));
+        Assert.assertEquals(BluetoothDevice.BATTERY_LEVEL_UNKNOWN,
+                RemoteDevices.getBatteryLevelFromXEventVsc(getXEventArray(1, 1)));
         Assert.assertEquals(BluetoothDevice.BATTERY_LEVEL_UNKNOWN,
                 RemoteDevices.getBatteryLevelFromXEventVsc(getXEventArray(3, 1)));
         Assert.assertEquals(BluetoothDevice.BATTERY_LEVEL_UNKNOWN,
