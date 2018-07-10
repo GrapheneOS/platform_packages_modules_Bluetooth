@@ -115,6 +115,8 @@ public class BluetoothOppService extends ProfileService implements IObexConnecti
 
     private UpdateThread mUpdateThread;
 
+    private boolean mUpdateThreadRunning;
+
     private ArrayList<BluetoothOppShareInfo> mShares;
 
     private ArrayList<BluetoothOppBatch> mBatches;
@@ -330,8 +332,19 @@ public class BluetoothOppService extends ProfileService implements IObexConnecti
                     unregisterReceivers();
                     synchronized (BluetoothOppService.this) {
                         if (mUpdateThread != null) {
+                            mUpdateThread.interrupt();
+                        }
+                    }
+                    while (mUpdateThread != null && mUpdateThreadRunning) {
+                        try {
+                            Thread.sleep(50);
+                        } catch (Exception e) {
+                            Log.e(TAG, "Thread sleep", e);
+                        }
+                    }
+                    synchronized (BluetoothOppService.this) {
+                        if (mUpdateThread != null) {
                             try {
-                                mUpdateThread.interrupt();
                                 mUpdateThread.join();
                             } catch (InterruptedException e) {
                                 Log.e(TAG, "Interrupted", e);
@@ -339,6 +352,7 @@ public class BluetoothOppService extends ProfileService implements IObexConnecti
                             mUpdateThread = null;
                         }
                     }
+
                     mNotifier.cancelNotifications();
                     break;
                 case START_LISTENER:
@@ -551,6 +565,7 @@ public class BluetoothOppService extends ProfileService implements IObexConnecti
             if (mUpdateThread == null) {
                 mUpdateThread = new UpdateThread();
                 mUpdateThread.start();
+                mUpdateThreadRunning = true;
             }
         }
     }
@@ -580,6 +595,7 @@ public class BluetoothOppService extends ProfileService implements IObexConnecti
             while (!mIsInterrupted) {
                 synchronized (BluetoothOppService.this) {
                     if (mUpdateThread != this) {
+                        mUpdateThreadRunning = false;
                         throw new IllegalStateException(
                                 "multiple UpdateThreads in BluetoothOppService");
                     }
@@ -589,6 +605,7 @@ public class BluetoothOppService extends ProfileService implements IObexConnecti
                     }
                     if (!mPendingUpdate) {
                         mUpdateThread = null;
+                        mUpdateThreadRunning = false;
                         return;
                     }
                     mPendingUpdate = false;
@@ -598,6 +615,7 @@ public class BluetoothOppService extends ProfileService implements IObexConnecti
                                 BluetoothShare._ID);
 
                 if (cursor == null) {
+                    mUpdateThreadRunning = false;
                     return;
                 }
 
@@ -691,6 +709,8 @@ public class BluetoothOppService extends ProfileService implements IObexConnecti
 
                 cursor.close();
             }
+
+            mUpdateThreadRunning = false;
         }
     }
 
