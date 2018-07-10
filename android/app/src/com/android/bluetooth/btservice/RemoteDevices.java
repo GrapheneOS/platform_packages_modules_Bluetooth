@@ -80,7 +80,8 @@ final class RemoteDevices {
                 case MESSAGE_UUID_INTENT:
                     BluetoothDevice device = (BluetoothDevice) msg.obj;
                     if (device != null) {
-                        sendUuidIntent(device);
+                        DeviceProperties prop = getDeviceProperties(device);
+                        sendUuidIntent(device, prop);
                     }
                     break;
             }
@@ -366,8 +367,7 @@ final class RemoteDevices {
         }
     }
 
-    private void sendUuidIntent(BluetoothDevice device) {
-        DeviceProperties prop = getDeviceProperties(device);
+    private void sendUuidIntent(BluetoothDevice device, DeviceProperties prop) {
         Intent intent = new Intent(BluetoothDevice.ACTION_UUID);
         intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
         intent.putExtra(BluetoothDevice.EXTRA_UUID, prop == null ? null : prop.mUuids);
@@ -546,7 +546,7 @@ final class RemoteDevices {
                             }
                             device.mUuids = newUuids;
                             if (sAdapterService.getState() == BluetoothAdapter.STATE_ON) {
-                                sendUuidIntent(bdDevice);
+                                sendUuidIntent(bdDevice, device);
                             }
                             break;
                         case AbstractionLayer.BT_PROPERTY_TYPE_OF_DEVICE:
