@@ -830,13 +830,13 @@ final class RemoteDevices {
         }
         int batteryLevel = (Integer) args[1];
         int numberOfLevels = (Integer) args[2];
-        if (batteryLevel < 0 || numberOfLevels < 0 || batteryLevel > numberOfLevels) {
+        if (batteryLevel < 0 || numberOfLevels <= 1 || batteryLevel > numberOfLevels) {
             Log.w(TAG, "getBatteryLevelFromXEventVsc() wrong event value, batteryLevel="
                     + String.valueOf(batteryLevel) + ", numberOfLevels=" + String.valueOf(
                     numberOfLevels));
             return BluetoothDevice.BATTERY_LEVEL_UNKNOWN;
         }
-        return batteryLevel * 100 / numberOfLevels;
+        return batteryLevel * 100 / (numberOfLevels - 1);
     }
 
     private static void errorLog(String msg) {
