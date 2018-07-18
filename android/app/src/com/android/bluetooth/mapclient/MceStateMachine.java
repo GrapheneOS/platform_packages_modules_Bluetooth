@@ -456,8 +456,12 @@ final class MceStateMachine extends StateMachine {
                             Log.d(TAG, "Message Sent......." + messageHandle);
                         }
                         // ignore the top-order byte (converted to string) in the handle for now
-                        mSentMessageLog.put(messageHandle.substring(2),
-                                ((RequestPushMessage) message.obj).getBMsg());
+                        // some test devices don't populate messageHandle field.
+                        // in such cases, no need to wait up for response for such messages.
+                        if (messageHandle != null && messageHandle.length() > 2) {
+                            mSentMessageLog.put(messageHandle.substring(2),
+                                    ((RequestPushMessage) message.obj).getBMsg());
+                        }
                     } else if (message.obj instanceof RequestGetMessagesListing) {
                         processMessageListing((RequestGetMessagesListing) message.obj);
                     }
@@ -605,6 +609,9 @@ final class MceStateMachine extends StateMachine {
             if (DBG) {
                 Log.d(TAG, "got a status for " + handle + " Status = " + status);
             }
+            // some test devices don't populate messageHandle field.
+            // in such cases, ignore such messages.
+            if (handle == null || handle.length() <= 2) return;
             PendingIntent intentToSend = null;
             // ignore the top-order byte (converted to string) in the handle for now
             String shortHandle = handle.substring(2);
