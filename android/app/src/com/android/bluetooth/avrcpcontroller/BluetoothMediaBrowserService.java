@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.android.bluetooth.a2dpsink.mbs;
+package com.android.bluetooth.avrcpcontroller;
 
 import android.bluetooth.BluetoothAvrcpController;
 import android.bluetooth.BluetoothDevice;
@@ -39,8 +39,6 @@ import android.util.Pair;
 
 import com.android.bluetooth.R;
 import com.android.bluetooth.a2dpsink.A2dpSinkService;
-import com.android.bluetooth.avrcpcontroller.AvrcpControllerService;
-import com.android.bluetooth.avrcpcontroller.BrowseTree;
 
 import java.lang.ref.WeakReference;
 import java.util.Collections;
@@ -62,8 +60,8 @@ import java.util.Map;
  * 2. The session is de-activated when the device disconnects. It will be connected again when (1)
  * happens.
  */
-public class A2dpMediaBrowserService extends MediaBrowserService {
-    private static final String TAG = "A2dpMediaBrowserService";
+public class BluetoothMediaBrowserService extends MediaBrowserService {
+    private static final String TAG = "BluetoothMediaBrowserService";
     private static final boolean DBG = false;
     private static final boolean VDBG = false;
 
@@ -89,13 +87,13 @@ public class A2dpMediaBrowserService extends MediaBrowserService {
 
     // Custom actions for PTS testing.
     private static final String CUSTOM_ACTION_VOL_UP =
-            "com.android.bluetooth.a2dpsink.mbs.CUSTOM_ACTION_VOL_UP";
+            "com.android.bluetooth.avrcpcontroller.CUSTOM_ACTION_VOL_UP";
     private static final String CUSTOM_ACTION_VOL_DN =
-            "com.android.bluetooth.a2dpsink.mbs.CUSTOM_ACTION_VOL_DN";
+            "com.android.bluetooth.avrcpcontroller.CUSTOM_ACTION_VOL_DN";
     private static final String CUSTOM_ACTION_GET_PLAY_STATUS_NATIVE =
-            "com.android.bluetooth.a2dpsink.mbs.CUSTOM_ACTION_GET_PLAY_STATUS_NATIVE";
+            "com.android.bluetooth.avrcpcontroller.CUSTOM_ACTION_GET_PLAY_STATUS_NATIVE";
 
-    private static A2dpMediaBrowserService sA2dpMediaBrowserService;
+    private static BluetoothMediaBrowserService sBluetoothMediaBrowserService;
     private MediaSession mSession;
     private MediaMetadata mA2dpMetadata;
 
@@ -111,16 +109,16 @@ public class A2dpMediaBrowserService extends MediaBrowserService {
     private List<MediaItem> mNowPlayingList = null;
 
     private static final class AvrcpCommandQueueHandler extends Handler {
-        WeakReference<A2dpMediaBrowserService> mInst;
+        WeakReference<BluetoothMediaBrowserService> mInst;
 
-        AvrcpCommandQueueHandler(Looper looper, A2dpMediaBrowserService sink) {
+        AvrcpCommandQueueHandler(Looper looper, BluetoothMediaBrowserService sink) {
             super(looper);
-            mInst = new WeakReference<A2dpMediaBrowserService>(sink);
+            mInst = new WeakReference<BluetoothMediaBrowserService>(sink);
         }
 
         @Override
         public void handleMessage(Message msg) {
-            A2dpMediaBrowserService inst = mInst.get();
+            BluetoothMediaBrowserService inst = mInst.get();
             if (inst == null) {
                 Log.e(TAG, "Parent class has died; aborting.");
                 return;
@@ -184,14 +182,14 @@ public class A2dpMediaBrowserService extends MediaBrowserService {
         synchronized (this) {
             mParentIdToRequestMap.clear();
         }
-        setA2dpMediaBrowserService(this);
+        setBluetoothMediaBrowserService(this);
 
     }
 
     @Override
     public void onDestroy() {
         if (DBG) Log.d(TAG, "onDestroy");
-        setA2dpMediaBrowserService(null);
+        setBluetoothMediaBrowserService(null);
         mSession.release();
         unregisterReceiver(mBtReceiver);
         super.onDestroy();
@@ -199,21 +197,25 @@ public class A2dpMediaBrowserService extends MediaBrowserService {
 
 
     /**
-     *  getA2dpMediaBrowserService()
+     *  getBluetoothMediaBrowserService()
      *  Routine to get direct access to MediaBrowserService from within the same process.
      */
-    public static synchronized A2dpMediaBrowserService getA2dpMediaBrowserService() {
-        if (sA2dpMediaBrowserService == null) {
-            Log.w(TAG, "getA2dpMediaBrowserService(): service is NULL");
+    public static synchronized BluetoothMediaBrowserService getBluetoothMediaBrowserService() {
+        if (sBluetoothMediaBrowserService == null) {
+            Log.w(TAG, "getBluetoothMediaBrowserService(): service is NULL");
             return null;
         }
-        if (DBG) Log.d(TAG, "getA2dpMediaBrowserService(): returning " + sA2dpMediaBrowserService);
-        return sA2dpMediaBrowserService;
+        if (DBG) {
+            Log.d(TAG, "getBluetoothMediaBrowserService(): returning "
+                    + sBluetoothMediaBrowserService);
+        }
+        return sBluetoothMediaBrowserService;
     }
 
-    private static synchronized void setA2dpMediaBrowserService(A2dpMediaBrowserService instance) {
-        if (DBG) Log.d(TAG, "setA2dpMediaBrowserService(): set to: " + instance);
-        sA2dpMediaBrowserService = instance;
+    private static synchronized void setBluetoothMediaBrowserService(
+            BluetoothMediaBrowserService instance) {
+        if (DBG) Log.d(TAG, "setBluetoothMediaBrowserService(): set to: " + instance);
+        sBluetoothMediaBrowserService = instance;
     }
 
     @Override
@@ -314,7 +316,7 @@ public class A2dpMediaBrowserService extends MediaBrowserService {
 
         @Override
         public void onPlayFromMediaId(String mediaId, Bundle extras) {
-            synchronized (A2dpMediaBrowserService.this) {
+            synchronized (BluetoothMediaBrowserService.this) {
                 // Play the item if possible.
                 mAvrcpCtrlSrvc.fetchAttrAndPlayItem(mA2dpDevice, mediaId);
 
@@ -521,7 +523,7 @@ public class A2dpMediaBrowserService extends MediaBrowserService {
             mCurrentlyHeldKey = cmd;
         } else {
             mAvrcpCtrlSrvc.sendPassThroughCmd(mA2dpDevice, cmd,
-                AvrcpControllerService.KEY_STATE_RELEASED);
+                    AvrcpControllerService.KEY_STATE_RELEASED);
         }
     }
 
@@ -561,7 +563,7 @@ public class A2dpMediaBrowserService extends MediaBrowserService {
             Result<List<MediaItem>> results = mParentIdToRequestMap.remove(id);
             if (results == null) {
                 Log.w(TAG, "Request no longer exists, notifying that children changed.");
-                    notifyChildrenChanged(id);
+                notifyChildrenChanged(id);
             } else {
                 List<MediaItem> folderList = mAvrcpCtrlSrvc.getContents(mA2dpDevice, id);
                 results.sendResult(folderList);

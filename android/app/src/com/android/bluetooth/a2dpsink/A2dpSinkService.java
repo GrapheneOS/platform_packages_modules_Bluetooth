@@ -25,8 +25,8 @@ import android.provider.Settings;
 import android.util.Log;
 
 import com.android.bluetooth.Utils;
-import com.android.bluetooth.a2dpsink.mbs.A2dpMediaBrowserService;
 import com.android.bluetooth.avrcpcontroller.AvrcpControllerService;
+import com.android.bluetooth.avrcpcontroller.BluetoothMediaBrowserService;
 import com.android.bluetooth.btservice.ProfileService;
 
 import java.util.ArrayList;
@@ -54,7 +54,7 @@ public class A2dpSinkService extends ProfileService {
             Log.d(TAG, "start()");
         }
         // Start the media browser service.
-        Intent startIntent = new Intent(this, A2dpMediaBrowserService.class);
+        Intent startIntent = new Intent(this, BluetoothMediaBrowserService.class);
         startService(startIntent);
         mStateMachine = A2dpSinkStateMachine.make(this, this);
         setA2dpSinkService(this);
@@ -70,7 +70,7 @@ public class A2dpSinkService extends ProfileService {
         if (mStateMachine != null) {
             mStateMachine.doQuit();
         }
-        Intent stopIntent = new Intent(this, A2dpMediaBrowserService.class);
+        Intent stopIntent = new Intent(this, BluetoothMediaBrowserService.class);
         stopService(stopIntent);
         return true;
     }
