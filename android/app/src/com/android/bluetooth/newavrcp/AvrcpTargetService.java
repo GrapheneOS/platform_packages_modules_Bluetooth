@@ -140,16 +140,16 @@ public class AvrcpTargetService extends ProfileService {
         Log.i(TAG, "Starting the AVRCP Target Service");
         mCurrentData = new MediaData(null, null, null);
 
-        mReceiver = new AvrcpBroadcastReceiver();
-        IntentFilter filter = new IntentFilter();
-        filter.addAction(BluetoothA2dp.ACTION_ACTIVE_DEVICE_CHANGED);
-        registerReceiver(mReceiver, filter);
-
         if (!SystemProperties.getBoolean(AVRCP_ENABLE_PROPERTY, true)) {
             Log.w(TAG, "Skipping initialization of the new AVRCP Target Service");
             sInstance = null;
             return true;
         }
+
+        mReceiver = new AvrcpBroadcastReceiver();
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(BluetoothA2dp.ACTION_ACTIVE_DEVICE_CHANGED);
+        registerReceiver(mReceiver, filter);
 
         mAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
         sDeviceMaxVolume = mAudioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
