@@ -777,6 +777,9 @@ public class HeadsetClientStateMachine extends StateMachine {
 
     public void doQuit() {
         Log.d(TAG, "doQuit");
+        if (mCurrentDevice != null) {
+            NativeInterface.disconnectNative(getByteAddress(mCurrentDevice));
+        }
         routeHfpAudio(false);
         returnAudioFocusIfNecessary();
         quitNow();
