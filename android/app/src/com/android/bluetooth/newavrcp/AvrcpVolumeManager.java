@@ -16,6 +16,8 @@
 
 package com.android.bluetooth.avrcp;
 
+import android.annotation.NonNull;
+import android.annotation.Nullable;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.Context;
@@ -23,8 +25,6 @@ import android.content.SharedPreferences;
 import android.media.AudioDeviceCallback;
 import android.media.AudioDeviceInfo;
 import android.media.AudioManager;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.util.Log;
 
 import java.util.HashMap;

@@ -57,8 +57,6 @@ class Metadata implements Cloneable {
     @Override
     public String toString() {
         return "{ mediaId=\"" + mediaId + "\" title=\"" + title + "\" artist=\"" + artist
-                + "\" album=\"" + album + "\" duration=" + duration
-                + " trackPosition=" + trackNum + "/" + numTracks + " }";
-
+                + "\" album=\"" + album + "\" }";
     }
 }
