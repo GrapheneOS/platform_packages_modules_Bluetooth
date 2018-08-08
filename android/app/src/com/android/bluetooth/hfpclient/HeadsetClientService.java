@@ -929,7 +929,7 @@ public class HeadsetClientService extends ProfileService {
         mSmFactory = factory;
     }
 
-    AudioManager getAudioManager() {
+    protected AudioManager getAudioManager() {
         return mAudioManager;
     }
 }
