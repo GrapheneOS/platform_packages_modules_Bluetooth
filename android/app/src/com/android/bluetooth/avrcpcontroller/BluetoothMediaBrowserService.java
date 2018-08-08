@@ -319,9 +319,6 @@ public class BluetoothMediaBrowserService extends MediaBrowserService {
             synchronized (BluetoothMediaBrowserService.this) {
                 // Play the item if possible.
                 mAvrcpCtrlSrvc.fetchAttrAndPlayItem(mA2dpDevice, mediaId);
-
-                // Since we request explicit playback here we should start the updates to UI.
-                mAvrcpCtrlSrvc.startAvrcpUpdates();
             }
 
             // TRACK_EVENT should be fired eventually and the UI should be hence updated.
