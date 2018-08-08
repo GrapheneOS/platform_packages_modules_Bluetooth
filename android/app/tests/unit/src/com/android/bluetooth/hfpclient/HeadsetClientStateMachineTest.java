@@ -68,7 +68,7 @@ public class HeadsetClientStateMachineTest {
         when(mAudioManager.getStreamVolume(anyInt())).thenReturn(2);
         when(mAudioManager.getStreamMaxVolume(anyInt())).thenReturn(10);
         when(mAudioManager.getStreamMinVolume(anyInt())).thenReturn(1);
-        when(mHeadsetClientService.getSystemService(Context.AUDIO_SERVICE)).thenReturn(
+        when(mHeadsetClientService.getAudioManager()).thenReturn(
                 mAudioManager);
         when(mHeadsetClientService.getResources()).thenReturn(mMockHfpResources);
         when(mMockHfpResources.getBoolean(R.bool.hfp_clcc_poll_during_call)).thenReturn(true);
