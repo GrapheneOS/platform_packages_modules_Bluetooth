@@ -316,16 +316,6 @@ public class AvrcpControllerService extends ProfileService {
         mAvrcpCtSm.sendMessage(msg);
     }
 
-    public void startAvrcpUpdates() {
-        mAvrcpCtSm.obtainMessage(AvrcpControllerStateMachine.MESSAGE_START_METADATA_BROADCASTS)
-                .sendToTarget();
-    }
-
-    public void stopAvrcpUpdates() {
-        mAvrcpCtSm.obtainMessage(AvrcpControllerStateMachine.MESSAGE_STOP_METADATA_BROADCASTS)
-                .sendToTarget();
-    }
-
     public synchronized MediaMetadata getMetaData(BluetoothDevice device) {
         if (DBG) {
             Log.d(TAG, "getMetaData");

@@ -69,10 +69,6 @@ class AvrcpControllerStateMachine extends StateMachine {
     static final int MESSAGE_PROCESS_SET_ADDRESSED_PLAYER = 114;
     static final int MESSAGE_PROCESS_ADDRESSED_PLAYER_CHANGED = 115;
 
-    // commands from A2DP sink
-    static final int MESSAGE_STOP_METADATA_BROADCASTS = 201;
-    static final int MESSAGE_START_METADATA_BROADCASTS = 202;
-
     // commands for connection
     static final int MESSAGE_PROCESS_RC_FEATURES = 301;
     static final int MESSAGE_PROCESS_CONNECTION_CHANGE = 302;
@@ -381,7 +377,6 @@ class AvrcpControllerStateMachine extends StateMachine {
                     case MESSAGE_PROCESS_PLAY_STATUS_CHANGED:
                         int status = msg.arg1;
                         mAddressedPlayer.setPlayStatus(status);
-                        broadcastPlayBackStateChanged(getCurrentPlayBackState());
                         if (status == PlaybackState.STATE_PLAYING) {
                             a2dpSinkService.informTGStatePlaying(mRemoteDevice.mBTDevice, true);
                         } else if (status == PlaybackState.STATE_PAUSED
@@ -550,8 +545,6 @@ class AvrcpControllerStateMachine extends StateMachine {
                 case MESSAGE_PROCESS_PLAY_POS_CHANGED:
                 case MESSAGE_PROCESS_PLAY_STATUS_CHANGED:
                 case MESSAGE_PROCESS_VOLUME_CHANGED_NOTIFICATION:
-                case MESSAGE_STOP_METADATA_BROADCASTS:
-                case MESSAGE_START_METADATA_BROADCASTS:
                 case MESSAGE_PROCESS_CONNECTION_CHANGE:
                 case MESSAGE_PROCESS_BROWSE_CONNECTION_CHANGE:
                     // All of these messages should be handled by parent state immediately.
@@ -687,8 +680,6 @@ class AvrcpControllerStateMachine extends StateMachine {
                 case MESSAGE_PROCESS_PLAY_POS_CHANGED:
                 case MESSAGE_PROCESS_PLAY_STATUS_CHANGED:
                 case MESSAGE_PROCESS_VOLUME_CHANGED_NOTIFICATION:
-                case MESSAGE_STOP_METADATA_BROADCASTS:
-                case MESSAGE_START_METADATA_BROADCASTS:
                 case MESSAGE_PROCESS_CONNECTION_CHANGE:
                 case MESSAGE_PROCESS_BROWSE_CONNECTION_CHANGE:
                     // All of these messages should be handled by parent state immediately.
