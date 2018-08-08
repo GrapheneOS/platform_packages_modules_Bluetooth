@@ -121,15 +121,12 @@ public class A2dpSinkStreamHandler extends Handler {
                 // Audio stream has started, stop it if we don't have focus.
                 if (mAudioFocus == AudioManager.AUDIOFOCUS_NONE) {
                     sendAvrcpPause();
-                } else {
-                    startAvrcpUpdates();
                 }
                 break;
 
             case SRC_STR_STOP:
                 // Audio stream has stopped, maintain focus but stop avrcp updates.
                 mStreamAvailable = false;
-                stopAvrcpUpdates();
                 break;
 
             case SNK_PLAY:
@@ -137,12 +134,10 @@ public class A2dpSinkStreamHandler extends Handler {
                 if (mAudioFocus == AudioManager.AUDIOFOCUS_NONE) {
                     requestAudioFocus();
                 }
-                startAvrcpUpdates();
                 break;
 
             case SNK_PAUSE:
                 // Local pause command, maintain focus but stop avrcp updates.
-                stopAvrcpUpdates();
                 break;
 
             case SRC_PLAY:
@@ -152,20 +147,16 @@ public class A2dpSinkStreamHandler extends Handler {
                     if (mAudioFocus == AudioManager.AUDIOFOCUS_NONE) {
                         requestAudioFocus();
                     }
-                    startAvrcpUpdates();
                     break;
                 }
                 // Otherwise, pause if we don't have focus
                 if (mAudioFocus == AudioManager.AUDIOFOCUS_NONE) {
                     sendAvrcpPause();
-                } else {
-                    startAvrcpUpdates();
                 }
                 break;
 
             case SRC_PAUSE:
                 // Remote pause command, stop avrcp updates.
-                stopAvrcpUpdates();
                 break;
 
             case REQUEST_FOCUS:
@@ -176,7 +167,6 @@ public class A2dpSinkStreamHandler extends Handler {
 
             case DISCONNECT:
                 // Remote device has disconnected, restore everything to default state.
-                stopAvrcpUpdates();
                 mSentPause = false;
                 break;
 
@@ -185,7 +175,6 @@ public class A2dpSinkStreamHandler extends Handler {
                 switch ((int) message.obj) {
                     case AudioManager.AUDIOFOCUS_GAIN:
                         // Begin playing audio, if we paused the remote, send a play now.
-                        startAvrcpUpdates();
                         startFluorideStreaming();
                         if (mSentPause) {
                             sendMessageDelayed(obtainMessage(DELAYED_RESUME), SETTLE_TIMEOUT);
@@ -259,7 +248,6 @@ public class A2dpSinkStreamHandler extends Handler {
         int focusRequestStatus = mAudioManager.requestAudioFocus(focusRequest);
         // If the request is granted begin streaming immediately and schedule an upgrade.
         if (focusRequestStatus == AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
-            startAvrcpUpdates();
             startFluorideStreaming();
             mAudioFocus = AudioManager.AUDIOFOCUS_GAIN;
         }
@@ -284,34 +272,6 @@ public class A2dpSinkStreamHandler extends Handler {
 
     private void setFluorideAudioTrackGain(float gain) {
         mA2dpSinkSm.informAudioTrackGainNative(gain);
-    }
-
-    private void startAvrcpUpdates() {
-        // Since AVRCP gets started after A2DP we may need to request it later in cycle.
-        AvrcpControllerService avrcpService = AvrcpControllerService.getAvrcpControllerService();
-
-        if (DBG) {
-            Log.d(TAG, "startAvrcpUpdates");
-        }
-        if (avrcpService != null && avrcpService.getConnectedDevices().size() == 1) {
-            avrcpService.startAvrcpUpdates();
-        } else {
-            Log.e(TAG, "startAvrcpUpdates failed because of connection.");
-        }
-    }
-
-    private void stopAvrcpUpdates() {
-        // Since AVRCP gets started after A2DP we may need to request it later in cycle.
-        AvrcpControllerService avrcpService = AvrcpControllerService.getAvrcpControllerService();
-
-        if (DBG) {
-            Log.d(TAG, "stopAvrcpUpdates");
-        }
-        if (avrcpService != null && avrcpService.getConnectedDevices().size() == 1) {
-            avrcpService.stopAvrcpUpdates();
-        } else {
-            Log.e(TAG, "stopAvrcpUpdates failed because of connection.");
-        }
     }
 
     private void sendAvrcpPause() {
