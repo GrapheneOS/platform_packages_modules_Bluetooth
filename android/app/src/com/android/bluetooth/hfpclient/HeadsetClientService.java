@@ -116,6 +116,11 @@ public class HeadsetClientService extends ProfileService {
             Log.w(TAG, "stop() called without start()");
             return false;
         }
+
+        // Stop the HfpClientConnectionService.
+        Intent stopIntent = new Intent(this, HfpClientConnectionService.class);
+        sHeadsetClientService.stopService(stopIntent);
+
         setHeadsetClientService(null);
 
         unregisterReceiver(mBroadcastReceiver);
@@ -127,11 +132,6 @@ public class HeadsetClientService extends ProfileService {
             sm.doQuit();
             it.remove();
         }
-
-        // Stop the HfpClientConnectionService.
-        Intent stopIntent = new Intent(this, HfpClientConnectionService.class);
-        stopIntent.putExtra(HFP_CLIENT_STOP_TAG, true);
-        startService(stopIntent);
 
         // Stop the handler thread
         mSmThread.quit();
