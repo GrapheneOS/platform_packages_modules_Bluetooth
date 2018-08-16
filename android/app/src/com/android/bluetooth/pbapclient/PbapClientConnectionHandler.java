@@ -273,7 +273,7 @@ class PbapClientConnectionHandler extends Handler {
 
     /* Utilize SDP, if available, to create a socket connection over L2CAP, RFCOMM specified
      * channel, or RFCOMM default channel. */
-    private boolean connectSocket() {
+    private synchronized boolean connectSocket() {
         try {
             /* Use BluetoothSocket to connect */
             if (mPseRec == null) {
@@ -352,7 +352,7 @@ class PbapClientConnectionHandler extends Handler {
         this.getLooper().getThread().interrupt();
     }
 
-    private void closeSocket() {
+    private synchronized void closeSocket() {
         try {
             if (mSocket != null) {
                 if (DBG) {
