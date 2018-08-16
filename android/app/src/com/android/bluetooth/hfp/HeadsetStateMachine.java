@@ -1011,9 +1011,6 @@ public class HeadsetStateMachine extends StateMachine {
         @Override
         public void enter() {
             super.enter();
-            if (mConnectingTimestampMs == Long.MIN_VALUE) {
-                mConnectingTimestampMs = SystemClock.uptimeMillis();
-            }
             if (mPrevState == mConnecting) {
                 // Reset AG indicator subscriptions, HF can set this later using AT+BIA command
                 updateAgIndicatorEnableState(DEFAULT_AG_INDICATOR_ENABLE_STATE);
