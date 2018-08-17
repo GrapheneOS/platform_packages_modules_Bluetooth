@@ -127,9 +127,9 @@ public class HeadsetNativeInterface {
         sendMessageToService(event);
     }
 
-    private void onNoiceReductionEnable(boolean enable, byte[] address) {
+    private void onNoiseReductionEnable(boolean enable, byte[] address) {
         HeadsetStackEvent event =
-                new HeadsetStackEvent(HeadsetStackEvent.EVENT_TYPE_NOICE_REDUCTION, enable ? 1 : 0,
+                new HeadsetStackEvent(HeadsetStackEvent.EVENT_TYPE_NOISE_REDUCTION, enable ? 1 : 0,
                         getDevice(address));
         sendMessageToService(event);
     }
