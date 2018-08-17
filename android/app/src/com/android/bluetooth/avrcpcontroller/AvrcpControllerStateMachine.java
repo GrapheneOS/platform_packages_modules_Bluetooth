@@ -729,6 +729,7 @@ class AvrcpControllerStateMachine extends StateMachine {
     }
 
     void dump(StringBuilder sb) {
+        if (mRemoteDevice == null) return;
         BluetoothDevice device = mRemoteDevice.mBTDevice;
         if (device == null) return;
         ProfileService.println(sb, "mCurrentDevice: " + device.getAddress() + "("
