@@ -190,6 +190,10 @@ public class MasClient {
         NATIVE, UTF_8;
     }
 
+    SdpMasRecord getSdpMasRecord() {
+        return mSdpMasRecord;
+    }
+
     private static class MasClientHandler extends Handler {
         WeakReference<MasClient> mInst;
 

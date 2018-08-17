@@ -280,6 +280,15 @@ final class MceStateMachine extends StateMachine {
         return false;
     }
 
+    synchronized int getSupportedFeatures() {
+        if (this.getCurrentState() == mConnected && mMasClient != null) {
+            if (DBG) Log.d(TAG, "returning getSupportedFeatures from SDP record");
+            return mMasClient.getSdpMasRecord().getSupportedFeatures();
+        }
+        if (DBG) Log.d(TAG, "in getSupportedFeatures, returning 0");
+        return 0;
+    }
+
     private String getContactURIFromPhone(String number) {
         return PhoneAccount.SCHEME_TEL + ":" + number;
     }
@@ -349,9 +358,14 @@ final class MceStateMachine extends StateMachine {
                         Log.d(TAG, "SDP Complete");
                     }
                     if (mMasClient == null) {
-                        mMasClient = new MasClient(mDevice, MceStateMachine.this,
-                                (SdpMasRecord) message.obj);
-                        setDefaultMessageType((SdpMasRecord) message.obj);
+                        SdpMasRecord record = (SdpMasRecord) message.obj;
+                        if (record == null) {
+                            Log.e(TAG, "Unexpected: SDP record is null for device "
+                                    + mDevice.getName());
+                            return NOT_HANDLED;
+                        }
+                        mMasClient = new MasClient(mDevice, MceStateMachine.this, record);
+                        setDefaultMessageType(record);
                     }
                     break;
 
