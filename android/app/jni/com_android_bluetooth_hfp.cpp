@@ -38,7 +38,7 @@ static jmethodID method_onHangupCall;
 static jmethodID method_onVolumeChanged;
 static jmethodID method_onDialCall;
 static jmethodID method_onSendDtmf;
-static jmethodID method_onNoiceReductionEnable;
+static jmethodID method_onNoiseReductionEnable;
 static jmethodID method_onWBS;
 static jmethodID method_onAtChld;
 static jmethodID method_onAtCnum;
@@ -215,7 +215,7 @@ class JniHeadsetCallbacks : bluetooth::headset::Callbacks {
       ALOGE("Fail to new jbyteArray bd addr for audio state");
       return;
     }
-    sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onNoiceReductionEnable,
+    sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onNoiseReductionEnable,
                                  nrec == bluetooth::headset::BTHF_NREC_START,
                                  addr.get());
   }
@@ -396,8 +396,8 @@ static void classInitNative(JNIEnv* env, jclass clazz) {
   method_onDialCall =
       env->GetMethodID(clazz, "onDialCall", "(Ljava/lang/String;[B)V");
   method_onSendDtmf = env->GetMethodID(clazz, "onSendDtmf", "(I[B)V");
-  method_onNoiceReductionEnable =
-      env->GetMethodID(clazz, "onNoiceReductionEnable", "(Z[B)V");
+  method_onNoiseReductionEnable =
+      env->GetMethodID(clazz, "onNoiseReductionEnable", "(Z[B)V");
   method_onWBS = env->GetMethodID(clazz, "onWBS", "(I[B)V");
   method_onAtChld = env->GetMethodID(clazz, "onAtChld", "(I[B)V");
   method_onAtCnum = env->GetMethodID(clazz, "onAtCnum", "([B)V");

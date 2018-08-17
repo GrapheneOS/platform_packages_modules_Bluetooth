@@ -922,7 +922,7 @@ public class HeadsetStateMachine extends StateMachine {
                         case HeadsetStackEvent.EVENT_TYPE_SEND_DTMF:
                             mSystemInterface.sendDtmf(event.valueInt, event.device);
                             break;
-                        case HeadsetStackEvent.EVENT_TYPE_NOICE_REDUCTION:
+                        case HeadsetStackEvent.EVENT_TYPE_NOISE_REDUCTION:
                             processNoiseReductionEvent(event.valueInt == 1);
                             break;
                         case HeadsetStackEvent.EVENT_TYPE_WBS:
