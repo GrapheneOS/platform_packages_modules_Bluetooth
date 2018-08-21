@@ -1011,9 +1011,6 @@ public class HeadsetStateMachine extends StateMachine {
         @Override
         public void enter() {
             super.enter();
-            if (mConnectingTimestampMs == Long.MIN_VALUE) {
-                mConnectingTimestampMs = SystemClock.uptimeMillis();
-            }
             if (mPrevState == mConnecting) {
                 // Reset AG indicator subscriptions, HF can set this later using AT+BIA command
                 updateAgIndicatorEnableState(DEFAULT_AG_INDICATOR_ENABLE_STATE);
@@ -1880,19 +1877,15 @@ public class HeadsetStateMachine extends StateMachine {
     private void processAtBind(String atString, BluetoothDevice device) {
         log("processAtBind: " + atString);
 
-        // Parse the AT String to find the Indicator Ids that are supported
-        int indId = 0;
-        int iter = 0;
-        int iter1 = 0;
+        for (String id : atString.split(",")) {
 
-        while (iter < atString.length()) {
-            iter1 = findChar(',', atString, iter);
-            String id = atString.substring(iter, iter1);
+            int indId;
 
             try {
-                indId = Integer.valueOf(id);
+                indId = Integer.parseInt(id);
             } catch (NumberFormatException e) {
                 Log.e(TAG, Log.getStackTraceString(new Throwable()));
+                continue;
             }
 
             switch (indId) {
@@ -1908,8 +1901,6 @@ public class HeadsetStateMachine extends StateMachine {
                     log("Invalid HF Indicator Received");
                     break;
             }
-
-            iter = iter1 + 1; // move past comma
         }
     }
 
