@@ -941,6 +941,75 @@ public class HeadsetStateMachineTest {
     }
 
     /**
+     * A test to verfiy that we correctly handles AT+BIND event with driver safety case from HF
+     */
+    @Test
+    public void testAtBindWithDriverSafetyEventWhenConnecting() {
+        setUpConnectingState();
+
+        String atString = "1";
+        mHeadsetStateMachine.sendMessage(HeadsetStateMachine.STACK_EVENT,
+                new HeadsetStackEvent(HeadsetStackEvent.EVENT_TYPE_BIND, atString, mTestDevice));
+        ArgumentCaptor<Intent> intentArgument = ArgumentCaptor.forClass(Intent.class);
+        verify(mHeadsetService, timeout(ASYNC_CALL_TIMEOUT_MILLIS)).sendBroadcast(
+                intentArgument.capture(), eq(HeadsetService.BLUETOOTH_PERM));
+        verify(mHeadsetService, times(1)).sendBroadcast(any(), any());
+        Assert.assertEquals(mTestDevice, intentArgument.getValue().getExtra(
+                BluetoothDevice.EXTRA_DEVICE, null));
+        Assert.assertEquals(HeadsetHalConstants.HF_INDICATOR_ENHANCED_DRIVER_SAFETY,
+                intentArgument.getValue().getIntExtra(
+                        BluetoothHeadset.EXTRA_HF_INDICATORS_IND_ID, -1));
+        Assert.assertEquals(-1, intentArgument.getValue().getIntExtra(
+                BluetoothHeadset.EXTRA_HF_INDICATORS_IND_VALUE, -2));
+    }
+
+    /**
+     * A test to verfiy that we correctly handles AT+BIND event with battery level case from HF
+     */
+    @Test
+    public void testAtBindEventWithBatteryLevelEventWhenConnecting() {
+        setUpConnectingState();
+
+        String atString = "2";
+        mHeadsetStateMachine.sendMessage(HeadsetStateMachine.STACK_EVENT,
+                new HeadsetStackEvent(HeadsetStackEvent.EVENT_TYPE_BIND, atString, mTestDevice));
+        ArgumentCaptor<Intent> intentArgument = ArgumentCaptor.forClass(Intent.class);
+        verify(mHeadsetService, timeout(ASYNC_CALL_TIMEOUT_MILLIS)).sendBroadcast(
+                intentArgument.capture(), eq(HeadsetService.BLUETOOTH_PERM));
+        verify(mHeadsetService, times(1)).sendBroadcast(any(), any());
+        Assert.assertEquals(mTestDevice, intentArgument.getValue().getExtra(
+                BluetoothDevice.EXTRA_DEVICE, null));
+        Assert.assertEquals(HeadsetHalConstants.HF_INDICATOR_BATTERY_LEVEL_STATUS,
+                intentArgument.getValue().getIntExtra(
+                        BluetoothHeadset.EXTRA_HF_INDICATORS_IND_ID, -1));
+        Assert.assertEquals(-1, intentArgument.getValue().getIntExtra(
+                BluetoothHeadset.EXTRA_HF_INDICATORS_IND_VALUE, -2));
+    }
+
+    /**
+     * A test to verfiy that we correctly handles AT+BIND event with error case from HF
+     */
+    @Test
+    public void testAtBindEventWithErrorEventWhenConnecting() {
+        setUpConnectingState();
+
+        String atString = "err,A,123,,1";
+        mHeadsetStateMachine.sendMessage(HeadsetStateMachine.STACK_EVENT,
+                new HeadsetStackEvent(HeadsetStackEvent.EVENT_TYPE_BIND, atString, mTestDevice));
+        ArgumentCaptor<Intent> intentArgument = ArgumentCaptor.forClass(Intent.class);
+        verify(mHeadsetService, timeout(ASYNC_CALL_TIMEOUT_MILLIS)).sendBroadcast(
+                intentArgument.capture(), eq(HeadsetService.BLUETOOTH_PERM));
+        verify(mHeadsetService, times(1)).sendBroadcast(any(), any());
+        Assert.assertEquals(mTestDevice, intentArgument.getValue().getExtra(
+                BluetoothDevice.EXTRA_DEVICE, null));
+        Assert.assertEquals(HeadsetHalConstants.HF_INDICATOR_ENHANCED_DRIVER_SAFETY,
+                intentArgument.getValue().getIntExtra(
+                        BluetoothHeadset.EXTRA_HF_INDICATORS_IND_ID, -1));
+        Assert.assertEquals(-1, intentArgument.getValue().getIntExtra(
+                BluetoothHeadset.EXTRA_HF_INDICATORS_IND_VALUE, -2));
+    }
+
+    /**
      * Setup Connecting State
      * @return number of times mHeadsetService.sendBroadcastAsUser() has been invoked
      */
