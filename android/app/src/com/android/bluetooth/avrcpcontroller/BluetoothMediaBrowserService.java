@@ -508,7 +508,17 @@ public class BluetoothMediaBrowserService extends MediaBrowserService {
         if (mCurrentlyHeldKey != 0) {
             mAvrcpCtrlSrvc.sendPassThroughCmd(mA2dpDevice, mCurrentlyHeldKey,
                     AvrcpControllerService.KEY_STATE_RELEASED);
-            mCurrentlyHeldKey = 0;
+
+            if (mCurrentlyHeldKey == cmd) {
+                // Return to prevent starting FF/FR operation again
+                mCurrentlyHeldKey = 0;
+                return;
+            } else {
+                // FF/FR is in progress and other operation is desired
+                // so after stopping FF/FR, not returning so that command
+                // can be sent for the desired operation.
+                mCurrentlyHeldKey = 0;
+            }
         }
 
         // Send the pass through.
