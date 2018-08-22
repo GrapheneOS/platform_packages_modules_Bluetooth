@@ -916,6 +916,31 @@ public class HearingAidServiceTest {
                 mService.getConnectionState(mLeftDevice));
     }
 
+    /**
+     * Test that the service can update HiSyncId from native message
+     */
+    @Test
+    public void getHiSyncIdFromNative_addToMap() {
+        getHiSyncIdFromNative();
+        Assert.assertTrue("hiSyncIdMap should contain mLeftDevice",
+                mService.getHiSyncIdMap().containsKey(mLeftDevice));
+        Assert.assertTrue("hiSyncIdMap should contain mRightDevice",
+                mService.getHiSyncIdMap().containsKey(mRightDevice));
+        Assert.assertTrue("hiSyncIdMap should contain mSingleDevice",
+                mService.getHiSyncIdMap().containsKey(mSingleDevice));
+    }
+
+    /**
+     * Test that the service removes the device from HiSyncIdMap when it's unbonded
+     */
+    @Test
+    public void deviceUnbonded_removeHiSyncId() {
+        getHiSyncIdFromNative();
+        mService.bondStateChanged(mLeftDevice, BluetoothDevice.BOND_NONE);
+        Assert.assertFalse("hiSyncIdMap shouldn't contain mLeftDevice",
+                mService.getHiSyncIdMap().containsKey(mLeftDevice));
+    }
+
     private void connectDevice(BluetoothDevice device) {
         HearingAidStackEvent connCompletedEvent;
 
