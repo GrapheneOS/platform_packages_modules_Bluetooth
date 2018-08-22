@@ -405,6 +405,16 @@ public class HearingAidService extends ProfileService {
         }
     }
 
+    /**
+     * Get the HiSyncIdMap for testing
+     *
+     * @return mDeviceHiSyncIdMap
+     */
+    @VisibleForTesting
+    Map<BluetoothDevice, Long> getHiSyncIdMap() {
+        return mDeviceHiSyncIdMap;
+    }
+
     int getConnectionState(BluetoothDevice device) {
         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
         synchronized (mStateMachines) {
@@ -658,6 +668,7 @@ public class HearingAidService extends ProfileService {
         if (bondState != BluetoothDevice.BOND_NONE) {
             return;
         }
+        mDeviceHiSyncIdMap.remove(device);
         synchronized (mStateMachines) {
             HearingAidStateMachine sm = mStateMachines.get(device);
             if (sm == null) {
