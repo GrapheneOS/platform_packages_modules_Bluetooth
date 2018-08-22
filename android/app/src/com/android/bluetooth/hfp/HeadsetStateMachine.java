@@ -528,8 +528,9 @@ public class HeadsetStateMachine extends StateMachine {
     }
 
     // Per HFP 1.7.1 spec page 23/144, Pending state needs to handle
-    //      AT+BRSF, AT+CIND, AT+CMER, AT+BIND, +CHLD
+    //      AT+BRSF, AT+CIND, AT+CMER, AT+BIND, AT+CHLD
     // commands during SLC establishment
+    // AT+CHLD=? will be handled by statck directly
     class Connecting extends HeadsetStateBase {
         @Override
         int getConnectionStateInt() {
@@ -585,9 +586,6 @@ public class HeadsetStateMachine extends StateMachine {
                     switch (event.type) {
                         case HeadsetStackEvent.EVENT_TYPE_CONNECTION_STATE_CHANGED:
                             processConnectionEvent(message, event.valueInt);
-                            break;
-                        case HeadsetStackEvent.EVENT_TYPE_AT_CHLD:
-                            processAtChld(event.valueInt, event.device);
                             break;
                         case HeadsetStackEvent.EVENT_TYPE_AT_CIND:
                             processAtCind(event.device);
