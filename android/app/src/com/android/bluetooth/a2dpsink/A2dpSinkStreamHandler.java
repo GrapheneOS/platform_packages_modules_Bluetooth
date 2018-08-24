@@ -29,6 +29,7 @@ import android.util.Log;
 
 import com.android.bluetooth.R;
 import com.android.bluetooth.avrcpcontroller.AvrcpControllerService;
+import com.android.bluetooth.hfpclient.HeadsetClientService;
 
 import java.util.List;
 
@@ -56,7 +57,7 @@ public class A2dpSinkStreamHandler extends Handler {
 
     // Configuration Variables
     private static final int DEFAULT_DUCK_PERCENT = 25;
-    private static final int SETTLE_TIMEOUT = 1000;
+    private static final int SETTLE_TIMEOUT = 400;
 
     // Incoming events.
     public static final int SRC_STR_START = 0; // Audio stream from remote device started
@@ -68,7 +69,7 @@ public class A2dpSinkStreamHandler extends Handler {
     public static final int DISCONNECT = 6; // Remote device was disconnected
     public static final int AUDIO_FOCUS_CHANGE = 7; // Audio focus callback with associated change
     public static final int REQUEST_FOCUS = 8; // Request focus when the media service is active
-    public static final int DELAYED_RESUME = 9; // If a call just ended allow stack time to settle
+    public static final int DELAYED_PAUSE = 9; // If a call just started allow stack time to settle
 
     // Used to indicate focus lost
     private static final int STATE_FOCUS_LOST = 0;
@@ -175,10 +176,12 @@ public class A2dpSinkStreamHandler extends Handler {
                 // message.obj is the newly granted audio focus.
                 switch ((int) message.obj) {
                     case AudioManager.AUDIOFOCUS_GAIN:
+                        removeMessages(DELAYED_PAUSE);
                         // Begin playing audio, if we paused the remote, send a play now.
                         startFluorideStreaming();
                         if (mSentPause) {
-                            sendMessageDelayed(obtainMessage(DELAYED_RESUME), SETTLE_TIMEOUT);
+                            sendAvrcpPlay();
+                            mSentPause = false;
                         }
                         break;
 
@@ -200,12 +203,8 @@ public class A2dpSinkStreamHandler extends Handler {
                     case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT:
                         // Temporary loss of focus, if we are actively streaming pause the remote
                         // and make sure we resume playback when we regain focus.
-                        if (mStreamAvailable) {
-                            sendAvrcpPause();
-                            mSentPause = true;
-                            mStreamAvailable = false;
-                        }
-                        stopFluorideStreaming();
+                        sendMessageDelayed(obtainMessage(DELAYED_PAUSE), SETTLE_TIMEOUT);
+                        setFluorideAudioTrackGain(0);
                         break;
 
                     case AudioManager.AUDIOFOCUS_LOSS:
@@ -217,12 +216,13 @@ public class A2dpSinkStreamHandler extends Handler {
                 }
                 break;
 
-            case DELAYED_RESUME:
-                // Resume playback after source and sink states settle.
-                sendAvrcpPlay();
-                mSentPause = false;
+            case DELAYED_PAUSE:
+                if (mStreamAvailable && !inCallFromStreamingDevice()) {
+                    sendAvrcpPause();
+                    mSentPause = true;
+                    mStreamAvailable = false;
+                }
                 break;
-
 
             default:
                 Log.w(TAG, "Received unexpected event: " + message.what);
@@ -326,6 +326,22 @@ public class A2dpSinkStreamHandler extends Handler {
         } else {
             Log.e(TAG, "Passthrough not sent, connection un-available.");
         }
+    }
+
+    private boolean inCallFromStreamingDevice() {
+        AvrcpControllerService avrcpService = AvrcpControllerService.getAvrcpControllerService();
+        BluetoothDevice targetDevice = null;
+        if (avrcpService != null) {
+            List<BluetoothDevice> connectedDevices = avrcpService.getConnectedDevices();
+            if (!connectedDevices.isEmpty()) {
+                targetDevice = connectedDevices.get(0);
+            }
+        }
+        HeadsetClientService headsetClientService = HeadsetClientService.getHeadsetClientService();
+        if (targetDevice != null  && headsetClientService != null) {
+            return headsetClientService.getCurrentCalls(targetDevice).size() > 0;
+        }
+        return false;
     }
 
     synchronized int getAudioFocus() {
