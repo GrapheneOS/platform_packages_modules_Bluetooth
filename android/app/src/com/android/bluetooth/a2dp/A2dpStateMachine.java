@@ -748,7 +748,6 @@ final class A2dpStateMachine extends StateMachine {
                 ProfileService.println(sb, "  mCodecConfig: " + mCodecStatus.getCodecConfig());
             }
         }
-        ProfileService.println(sb, "  StateMachine: " + this);
         // Dump the state machine logs
         StringWriter stringWriter = new StringWriter();
         PrintWriter printWriter = new PrintWriter(stringWriter);
