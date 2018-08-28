@@ -41,6 +41,7 @@ import com.android.bluetooth.R;
 import com.android.bluetooth.a2dpsink.A2dpSinkService;
 
 import java.lang.ref.WeakReference;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -106,7 +107,7 @@ public class BluetoothMediaBrowserService extends MediaBrowserService {
     private int mCurrentlyHeldKey = 0;
 
     // Browsing related structures.
-    private List<MediaItem> mNowPlayingList = null;
+    private List<MediaSession.QueueItem> mMediaQueue = new ArrayList<>();
 
     private static final class AvrcpCommandQueueHandler extends Handler {
         WeakReference<BluetoothMediaBrowserService> mInst;
@@ -168,6 +169,8 @@ public class BluetoothMediaBrowserService extends MediaBrowserService {
         mSession.setFlags(MediaSession.FLAG_HANDLES_MEDIA_BUTTONS
                 | MediaSession.FLAG_HANDLES_TRANSPORT_CONTROLS);
         mSession.setActive(true);
+        mSession.setQueueTitle(getString(R.string.bluetooth_a2dp_sink_queue_name));
+        mSession.setQueue(mMediaQueue);
         mAvrcpCommandQueue = new AvrcpCommandQueueHandler(Looper.getMainLooper(), this);
 
         refreshInitialPlayingState();
@@ -281,6 +284,16 @@ public class BluetoothMediaBrowserService extends MediaBrowserService {
             mAvrcpCommandQueue.obtainMessage(MSG_AVRCP_PASSTHRU,
                     AvrcpControllerService.PASS_THRU_CMD_ID_BACKWARD).sendToTarget();
             // TRACK_EVENT should be fired eventually and the UI should be hence updated.
+        }
+
+        @Override
+        public void onSkipToQueueItem(long id) {
+            if (DBG) Log.d(TAG, "onSkipToQueueItem" + id);
+            MediaSession.QueueItem queueItem = mMediaQueue.get((int) id);
+            if (queueItem != null) {
+                String mediaId = queueItem.getDescription().getMediaId();
+                mAvrcpCtrlSrvc.fetchAttrAndPlayItem(mA2dpDevice, mediaId);
+            }
         }
 
         @Override
@@ -455,6 +468,8 @@ public class BluetoothMediaBrowserService extends MediaBrowserService {
         mA2dpDevice = null;
         mBrowseConnected = false;
         // update playerList.
+        mMediaQueue.clear();
+        mSession.setQueue(mMediaQueue);
         notifyChildrenChanged("__ROOT__");
     }
 
@@ -562,6 +577,7 @@ public class BluetoothMediaBrowserService extends MediaBrowserService {
     private void msgFolderList(Intent intent) {
         // Parse the folder list for children list and id.
         String id = intent.getStringExtra(AvrcpControllerService.EXTRA_FOLDER_ID);
+        updateNowPlayingQueue();
         if (VDBG) Log.d(TAG, "Parent: " + id);
         synchronized (this) {
             // If we have a result object then we should send the result back
@@ -576,6 +592,16 @@ public class BluetoothMediaBrowserService extends MediaBrowserService {
                 results.sendResult(folderList);
             }
         }
+    }
+
+    private void updateNowPlayingQueue() {
+        List<MediaItem> songList = mAvrcpCtrlSrvc.getContents(mA2dpDevice, "NOW_PLAYING");
+        Log.d(TAG, "NowPlaying" + songList.size());
+        mMediaQueue.clear();
+        for (MediaItem song : songList) {
+            mMediaQueue.add(new MediaSession.QueueItem(song.getDescription(), mMediaQueue.size()));
+        }
+        mSession.setQueue(mMediaQueue);
     }
 
     /**

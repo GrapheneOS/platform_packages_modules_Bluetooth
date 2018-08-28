@@ -904,6 +904,14 @@ public class AvrcpControllerService extends ProfileService {
         mAvrcpCtSm.sendMessage(msg);
     }
 
+    private void handleNowPlayingContentChanged() {
+        if (DBG) {
+            Log.d(TAG, "handleNowPlayingContentChanged");
+        }
+        mAvrcpCtSm.sendMessage(
+                AvrcpControllerStateMachine.MESSAGE_PROCESS_NOW_PLAYING_CONTENTS_CHANGED);
+    }
+
     @Override
     public void dump(StringBuilder sb) {
         super.dump(sb);
