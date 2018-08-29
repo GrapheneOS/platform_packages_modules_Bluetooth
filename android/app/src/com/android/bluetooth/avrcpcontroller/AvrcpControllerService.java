@@ -716,7 +716,7 @@ public class AvrcpControllerService extends ProfileService {
                 playbackState = PlaybackState.STATE_FAST_FORWARDING;
                 break;
             case JNI_PLAY_STATUS_REV_SEEK:
-                playbackState = PlaybackState.STATE_FAST_FORWARDING;
+                playbackState = PlaybackState.STATE_REWINDING;
                 break;
             default:
                 playbackState = PlaybackState.STATE_NONE;
