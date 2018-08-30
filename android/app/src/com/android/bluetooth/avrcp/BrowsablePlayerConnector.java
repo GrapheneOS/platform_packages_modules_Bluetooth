@@ -39,7 +39,7 @@ import java.util.Set;
  * when constructing BrowsedPlayerWrappers by hand.
  */
 public class BrowsablePlayerConnector {
-    private static final String TAG = "NewAvrcpBrowsablePlayerConnector";
+    private static final String TAG = "AvrcpBrowsablePlayerConnector";
     private static final boolean DEBUG = true;
     private static final long CONNECT_TIMEOUT_MS = 10000; // Time in ms to wait for a connection
 
