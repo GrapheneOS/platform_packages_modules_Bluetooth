@@ -38,7 +38,7 @@ import java.util.Objects;
  * with that.
  */
 class MediaPlayerWrapper {
-    private static final String TAG = "NewAvrcpMediaPlayerWrapper";
+    private static final String TAG = "AvrcpMediaPlayerWrapper";
     private static final boolean DEBUG = true;
     static boolean sTesting = false;
 

@@ -25,7 +25,7 @@ import android.util.Log;
  * methods to allow Google Play Music to match the default behaviour of MediaPlayerWrapper.
  */
 class GPMWrapper extends MediaPlayerWrapper {
-    private static final String TAG = "NewAvrcpGPMWrapper";
+    private static final String TAG = "AvrcpGPMWrapper";
     private static final boolean DEBUG = true;
 
     @Override
