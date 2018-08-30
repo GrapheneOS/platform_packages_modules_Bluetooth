@@ -33,7 +33,7 @@ import java.util.Map;
  * Right now this is ok because the BrowsablePlayerConnector will handle timeouts.
  */
 class BrowsedPlayerWrapper {
-    private static final String TAG = "NewAvrcpBrowsedPlayerWrapper";
+    private static final String TAG = "AvrcpBrowsedPlayerWrapper";
     private static final boolean DEBUG = true;
 
     enum ConnectionState {

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#define LOG_TAG "NewAvrcpTargetJni"
+#define LOG_TAG "AvrcpTargetJni"
 
 #include <base/bind.h>
 #include <map>

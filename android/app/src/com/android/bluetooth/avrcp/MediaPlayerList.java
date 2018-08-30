@@ -57,7 +57,7 @@ import java.util.regex.Pattern;
  * player would effectively cause player switch by sending a play command to that player.
  */
 public class MediaPlayerList {
-    private static final String TAG = "NewAvrcpMediaPlayerList";
+    private static final String TAG = "AvrcpMediaPlayerList";
     private static final boolean DEBUG = true;
     static boolean sTesting = false;
 
@@ -207,8 +207,10 @@ public class MediaPlayerList {
     }
 
     int getFreeMediaPlayerId() {
-        int id = 0;
-        while (mMediaPlayerIds.containsValue(++id)) {}
+        int id = 1;
+        while (mMediaPlayerIds.containsValue(id)) {
+            id++;
+        }
         return id;
     }
 
