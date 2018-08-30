@@ -32,7 +32,7 @@ import java.util.Map;
 import java.util.Objects;
 
 class AvrcpVolumeManager extends AudioDeviceCallback {
-    public static final String TAG = "NewAvrcpVolumeManager";
+    public static final String TAG = "AvrcpVolumeManager";
     public static final boolean DEBUG = true;
 
     // All volumes are stored at system volume values, not AVRCP values

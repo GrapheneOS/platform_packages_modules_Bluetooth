@@ -29,7 +29,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 class Util {
-    public static String TAG = "NewAvrcpUtil";
+    public static String TAG = "AvrcpUtil";
     public static boolean DEBUG = false;
 
     private static final String GPM_KEY = "com.google.android.music.mediasession.music_metadata";
