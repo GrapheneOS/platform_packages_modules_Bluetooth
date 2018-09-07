@@ -53,7 +53,6 @@ class MediaPlayerWrapper {
     private final Object mCallbackLock = new Object();
     private Callback mRegisteredCallback = null;
 
-
     protected MediaPlayerWrapper() {
         mCurrentData = new MediaData(null, null, null);
     }
@@ -122,16 +121,6 @@ class MediaPlayerWrapper {
     }
 
     Metadata getCurrentMetadata() {
-        // Try to use the now playing list if the information exists.
-        if (getActiveQueueID() != -1) {
-            for (Metadata data : getCurrentQueue()) {
-                if (data.mediaId.equals(Util.NOW_PLAYING_PREFIX + getActiveQueueID())) {
-                    d("getCurrentMetadata: Using playlist data: " + data.toString());
-                    return data.clone();
-                }
-            }
-        }
-
         return Util.toMetadata(getMetadata());
     }
 
