@@ -311,28 +311,6 @@ public class MediaPlayerWrapperTest {
         verify(mFailHandler, never()).onTerribleFailure(any(), any(), anyBoolean());
     }
 
-    /*
-     * This test checks whether getCurrentMetadata() returns the corresponding item from
-     * the now playing list instead of the current metadata if there is a match.
-     */
-    @Test
-    public void testCurrentSongFromQueue() {
-        // Create the wrapper object and register the looper with the timeout handler
-        TestLooperManager looperManager = new TestLooperManager(mThread.getLooper());
-
-        mTestState.setActiveQueueItemId(101);
-        doReturn(mTestState.build()).when(mMockController).getPlaybackState();
-
-        MediaPlayerWrapper wrapper =
-                MediaPlayerWrapper.wrap(mMockController, mThread.getLooper());
-        wrapper.registerCallback(mTestCbs);
-
-        // The current metadata doesn't contain track number info so check that
-        // field to see if the correct data was used.
-        Assert.assertEquals(wrapper.getCurrentMetadata().trackNum, "2");
-        Assert.assertEquals(wrapper.getCurrentMetadata().numTracks, "3");
-    }
-
     @Test
     public void testNullMetadata() {
         // Create the wrapper object and register the looper with the timeout handler
