@@ -63,6 +63,7 @@ public class BrowseTree {
         mRootNode = new BrowseNode(new MediaItem(new MediaDescription.Builder().setExtras(mdBundle)
               .setMediaId(ROOT).setTitle(ROOT).build(), MediaItem.FLAG_BROWSABLE));
         mRootNode.mBrowseScope = AvrcpControllerService.BROWSE_SCOPE_PLAYER_LIST;
+        mRootNode.setExpectedChildren(255);
 
         Bundle upnodeBundle = new Bundle();
         upnodeBundle.putString(AvrcpControllerService.MEDIA_ITEM_UID_KEY, UP);

@@ -564,21 +564,21 @@ class AvrcpControllerStateMachine extends StateMachine {
         }
 
         private void fetchContents(BrowseTree.BrowseNode target) {
+            int start = target.getChildrenCount();
+            int end = Math.min(target.getExpectedChildren(), target.getChildrenCount()
+                            + GET_FOLDER_ITEMS_PAGINATION_SIZE) - 1;
             switch (target.getScope()) {
                 case AvrcpControllerService.BROWSE_SCOPE_PLAYER_LIST:
                     AvrcpControllerService.getPlayerListNative(mRemoteDevice.getBluetoothAddress(),
-                            0, 255);
+                            start, end);
                     break;
                 case AvrcpControllerService.BROWSE_SCOPE_NOW_PLAYING:
                     AvrcpControllerService.getNowPlayingListNative(
-                            mRemoteDevice.getBluetoothAddress(), target.getChildrenCount(),
-                            Math.min(target.getExpectedChildren(), target.getChildrenCount()
-                            + GET_FOLDER_ITEMS_PAGINATION_SIZE - 1));
+                            mRemoteDevice.getBluetoothAddress(), start, end);
                     break;
                 case AvrcpControllerService.BROWSE_SCOPE_VFS:
                     AvrcpControllerService.getFolderListNative(mRemoteDevice.getBluetoothAddress(),
-                            target.getChildrenCount(), Math.min(target.getExpectedChildren(),
-                                target.getChildrenCount() + GET_FOLDER_ITEMS_PAGINATION_SIZE - 1));
+                            start, end);
                     break;
                 default:
                     Log.e(STATE_TAG, "Scope " + target.getScope() + " cannot be handled here.");
