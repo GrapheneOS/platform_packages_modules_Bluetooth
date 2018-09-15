@@ -78,7 +78,6 @@ public class BrowseTree {
         mNowPlayingNode.mBrowseScope = AvrcpControllerService.BROWSE_SCOPE_NOW_PLAYING;
         mNowPlayingNode.setExpectedChildren(255);
         mBrowseMap.put(ROOT, mRootNode);
-        mRootNode.mChildren.add(mNowPlayingNode);
         mBrowseMap.put(NOW_PLAYING_PREFIX, mNowPlayingNode);
 
         mCurrentBrowseNode = mRootNode;
@@ -208,11 +207,6 @@ public class BrowseTree {
                     mBrowseMap.remove(child.getID());
                 }
                 mChildren.clear();
-                if (this == mRootNode) {
-                    mNowPlayingNode.setCached(false);
-                    mRootNode.mChildren.add(mNowPlayingNode);
-                    mBrowseMap.put(NOW_PLAYING_PREFIX, mNowPlayingNode);
-                }
             }
         }
 
