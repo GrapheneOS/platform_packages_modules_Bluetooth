@@ -58,7 +58,7 @@ class TrackInfo {
     private final String mTrackTitle;
     private final String mAlbumTitle;
     private final String mGenre;
-    private final long mTrackNum; // number of audio file on original recording.
+    final long mTrackNum; // number of audio file on original recording.
     private final long mTotalTracks; // total number of tracks on original recording
     private final long mTrackLen; // full length of AudioFile.
 

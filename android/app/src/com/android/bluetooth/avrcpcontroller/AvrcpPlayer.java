@@ -118,7 +118,8 @@ class AvrcpPlayer {
                 break;
         }
         return new PlaybackState.Builder().setState(mPlayStatus, position, speed)
-            .setActions(mAvailableActions).build();
+            .setActions(mAvailableActions).setActiveQueueItemId(mCurrentTrack.mTrackNum - 1)
+            .build();
     }
 
     public synchronized boolean updateCurrentTrack(TrackInfo update) {
