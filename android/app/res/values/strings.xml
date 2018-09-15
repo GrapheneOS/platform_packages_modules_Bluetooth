@@ -237,6 +237,7 @@
     <string name="process" translate="false"><xliff:g id="x" /></string>
 
 
+    <string name="bluetooth_a2dp_sink_queue_name">Now Playing</string>
     <string name="bluetooth_map_settings_save">Save</string>
     <string name="bluetooth_map_settings_cancel">Cancel</string>
     <string name="bluetooth_map_settings_intro">Select the accounts you want to share through Bluetooth. You still have to accept any access to the accounts when connecting.</string>
