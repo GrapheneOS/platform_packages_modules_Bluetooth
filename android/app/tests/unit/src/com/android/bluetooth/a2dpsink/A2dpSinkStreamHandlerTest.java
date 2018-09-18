@@ -189,7 +189,8 @@ public class A2dpSinkStreamHandlerTest {
                 mStreamHandler.obtainMessage(A2dpSinkStreamHandler.AUDIO_FOCUS_CHANGE,
                         AudioManager.AUDIOFOCUS_LOSS_TRANSIENT));
         verify(mMockAudioManager, times(0)).abandonAudioFocus(any());
-        verify(mMockA2dpSink, times(1)).informAudioFocusStateNative(0);
+        verify(mMockA2dpSink, times(0)).informAudioFocusStateNative(0);
+        verify(mMockA2dpSink, times(1)).informAudioTrackGainNative(0);
     }
 
     @Test
