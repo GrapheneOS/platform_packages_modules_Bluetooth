@@ -289,6 +289,9 @@ public class BluetoothMediaBrowserService extends MediaBrowserService {
         @Override
         public void onSkipToQueueItem(long id) {
             if (DBG) Log.d(TAG, "onSkipToQueueItem" + id);
+            if (mA2dpSinkService != null) {
+                mA2dpSinkService.requestAudioFocus(mA2dpDevice, true);
+            }
             MediaSession.QueueItem queueItem = mMediaQueue.get((int) id);
             if (queueItem != null) {
                 String mediaId = queueItem.getDescription().getMediaId();
@@ -331,6 +334,9 @@ public class BluetoothMediaBrowserService extends MediaBrowserService {
         public void onPlayFromMediaId(String mediaId, Bundle extras) {
             synchronized (BluetoothMediaBrowserService.this) {
                 // Play the item if possible.
+                if (mA2dpSinkService != null) {
+                    mA2dpSinkService.requestAudioFocus(mA2dpDevice, true);
+                }
                 mAvrcpCtrlSrvc.fetchAttrAndPlayItem(mA2dpDevice, mediaId);
             }
 
