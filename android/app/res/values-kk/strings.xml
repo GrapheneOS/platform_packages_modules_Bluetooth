@@ -122,6 +122,7 @@
     <string name="transfer_menu_open" msgid="3368984869083107200">"Ашу"</string>
     <string name="transfer_menu_clear" msgid="5854038118831427492">"Тізімнен өшіру."</string>
     <string name="transfer_clear_dlg_title" msgid="2953444575556460386">"Өшіру"</string>
+    <string name="bluetooth_a2dp_sink_queue_name" msgid="6864149958708669766">"Қазір ойнауда"</string>
     <string name="bluetooth_map_settings_save" msgid="7635491847388074606">"Сақтау"</string>
     <string name="bluetooth_map_settings_cancel" msgid="9205350798049865699">"Бас тарту"</string>
     <string name="bluetooth_map_settings_intro" msgid="6482369468223987562">"Bluetooth арқылы бөлісетін есептік жазбаларды таңдаңыз. Әлі де қосылу кезінде есептік жазбаларға кез келген қатынасуды қабылдау керек."</string>

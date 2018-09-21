@@ -126,6 +126,7 @@
     <string name="transfer_menu_open" msgid="3368984869083107200">"Otvoriť"</string>
     <string name="transfer_menu_clear" msgid="5854038118831427492">"Vymazať zo zoznamu"</string>
     <string name="transfer_clear_dlg_title" msgid="2953444575556460386">"Vymazať"</string>
+    <string name="bluetooth_a2dp_sink_queue_name" msgid="6864149958708669766">"Čo to hrá"</string>
     <string name="bluetooth_map_settings_save" msgid="7635491847388074606">"Uložiť"</string>
     <string name="bluetooth_map_settings_cancel" msgid="9205350798049865699">"Zrušiť"</string>
     <string name="bluetooth_map_settings_intro" msgid="6482369468223987562">"Vyberte účty, ktoré chcete zdieľať prostredníctvom rozhrania Bluetooth. Počas pripájania budete musieť aj tak prijať akékoľvek prístupy k účtom."</string>

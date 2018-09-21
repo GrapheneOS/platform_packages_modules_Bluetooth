@@ -122,6 +122,7 @@
     <string name="transfer_menu_open" msgid="3368984869083107200">"Obre"</string>
     <string name="transfer_menu_clear" msgid="5854038118831427492">"Esborra de la llista"</string>
     <string name="transfer_clear_dlg_title" msgid="2953444575556460386">"Esborra"</string>
+    <string name="bluetooth_a2dp_sink_queue_name" msgid="6864149958708669766">"Reproducció actual"</string>
     <string name="bluetooth_map_settings_save" msgid="7635491847388074606">"Desa"</string>
     <string name="bluetooth_map_settings_cancel" msgid="9205350798049865699">"Cancel·la"</string>
     <string name="bluetooth_map_settings_intro" msgid="6482369468223987562">"Selecciona els comptes que vulguis compartir mitjançant el Bluetooth. Cal que acceptis l\'accés als comptes en connectar-t\'hi."</string>

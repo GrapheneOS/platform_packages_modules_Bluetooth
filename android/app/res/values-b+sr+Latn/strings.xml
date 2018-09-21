@@ -124,6 +124,7 @@
     <string name="transfer_menu_open" msgid="3368984869083107200">"Otvori"</string>
     <string name="transfer_menu_clear" msgid="5854038118831427492">"Obriši sa liste"</string>
     <string name="transfer_clear_dlg_title" msgid="2953444575556460386">"Brisanje"</string>
+    <string name="bluetooth_a2dp_sink_queue_name" msgid="6864149958708669766">"Trenutno svira"</string>
     <string name="bluetooth_map_settings_save" msgid="7635491847388074606">"Sačuvaj"</string>
     <string name="bluetooth_map_settings_cancel" msgid="9205350798049865699">"Otkaži"</string>
     <string name="bluetooth_map_settings_intro" msgid="6482369468223987562">"Izaberite naloge koje želite da delite preko Bluetooth-a. I dalje morate da prihvatite bilo kakav pristup nalozima pri povezivanju."</string>

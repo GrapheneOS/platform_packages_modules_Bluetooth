@@ -122,6 +122,7 @@
     <string name="transfer_menu_open" msgid="3368984869083107200">"ክፈት"</string>
     <string name="transfer_menu_clear" msgid="5854038118831427492">"ከዝርዝር አጽዳ"</string>
     <string name="transfer_clear_dlg_title" msgid="2953444575556460386">"አጽዳ"</string>
+    <string name="bluetooth_a2dp_sink_queue_name" msgid="6864149958708669766">"አሁን እየተጫወተ ያለ"</string>
     <string name="bluetooth_map_settings_save" msgid="7635491847388074606">"አስቀምጥ"</string>
     <string name="bluetooth_map_settings_cancel" msgid="9205350798049865699">"ይቅር"</string>
     <string name="bluetooth_map_settings_intro" msgid="6482369468223987562">"በብሉቱዝ በኩል ማጋራት የሚፈልጓቸውን መለያዎች ይምረጡ። አሁንም በሚገናኙበት ወቅት ማንኛቸውም የመለያዎቹ መዳረሻ መፍቀድ አለብዎት።"</string>
