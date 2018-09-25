@@ -346,6 +346,20 @@ public class MapClientService extends ProfileService {
         return mapStateMachine.getUnreadMessages();
     }
 
+    /**
+     * Returns the SDP record's MapSupportedFeatures field (see Bluetooth MAP 1.4 spec, page 114).
+     * @param device The Bluetooth device to get this value for.
+     * @return the SDP record's MapSupportedFeatures field.
+     */
+    public synchronized int getSupportedFeatures(BluetoothDevice device) {
+        MceStateMachine mapStateMachine = mMapInstanceMap.get(device);
+        if (mapStateMachine == null) {
+            if (DBG) Log.d(TAG, "in getSupportedFeatures, returning 0");
+            return 0;
+        }
+        return mapStateMachine.getSupportedFeatures();
+    }
+
     @Override
     public void dump(StringBuilder sb) {
         super.dump(sb);
@@ -502,6 +516,21 @@ public class MapClientService extends ProfileService {
             mService.enforceCallingOrSelfPermission(Manifest.permission.READ_SMS,
                     "Need READ_SMS permission");
             return service.getUnreadMessages(device);
+        }
+
+        @Override
+        public int getSupportedFeatures(BluetoothDevice device) {
+            MapClientService service = getService();
+            if (service == null) {
+                if (DBG) {
+                    Log.d(TAG,
+                            "in MapClientService getSupportedFeatures stub, returning 0");
+                }
+                return 0;
+            }
+            mService.enforceCallingOrSelfPermission(Manifest.permission.BLUETOOTH,
+                    "Need BLUETOOTH permission");
+            return service.getSupportedFeatures(device);
         }
     }
 
