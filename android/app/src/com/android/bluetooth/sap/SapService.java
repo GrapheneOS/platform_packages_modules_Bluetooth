@@ -539,7 +539,7 @@ public class SapService extends ProfileService {
     public boolean disconnect(BluetoothDevice device) {
         boolean result = false;
         synchronized (SapService.this) {
-            if (getRemoteDevice().equals(device)) {
+            if (mRemoteDevice != null && mRemoteDevice.equals(device)) {
                 switch (mState) {
                     case BluetoothSap.STATE_CONNECTED:
                         closeConnectionSocket();
