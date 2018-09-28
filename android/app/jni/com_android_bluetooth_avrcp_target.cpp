@@ -17,6 +17,7 @@
 #define LOG_TAG "AvrcpTargetJni"
 
 #include <base/bind.h>
+#include <base/callback.h>
 #include <map>
 #include <mutex>
 #include <shared_mutex>
