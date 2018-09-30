@@ -87,7 +87,7 @@
     <string name="bt_sm_2_1" product="nosdcard" msgid="352165168004521000">"Der USB-Speicher verfügt nicht über genügend Speicherplatz, um die Datei von \"<xliff:g id="SENDER">%1$s</xliff:g>\" zu speichern."</string>
     <string name="bt_sm_2_1" product="default" msgid="1989018443456803630">"Die SD-Karte verfügt über zu wenig Speicherplatz für die Datei von \"<xliff:g id="SENDER">%1$s</xliff:g>\"."</string>
     <string name="bt_sm_2_2" msgid="2965243265852680543">"Erforderlicher Speicherplatz: <xliff:g id="SIZE">%1$s</xliff:g>"</string>
-    <string name="ErrorTooManyRequests" msgid="8578277541472944529">"Es werden zurzeit zu viele Anfragen verarbeitet. Versuche es später erneut."</string>
+    <string name="ErrorTooManyRequests" msgid="8578277541472944529">"Es werden zurzeit zu viele Anfragen verarbeitet. Bitte versuche es später noch einmal."</string>
     <string name="status_pending" msgid="2503691772030877944">"Die Dateiübertragung wurde noch nicht gestartet."</string>
     <string name="status_running" msgid="6562808920311008696">"Dateiübertragung läuft."</string>
     <string name="status_success" msgid="239573225847565868">"Die Dateiübertragung wurde abgeschlossen."</string>
