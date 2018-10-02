@@ -69,13 +69,15 @@ final class HearingAidStateMachine extends StateMachine {
 
     static final int CONNECT = 1;
     static final int DISCONNECT = 2;
+    static final int CHECK_WHITELIST_CONNECTION = 3;
     @VisibleForTesting
     static final int STACK_EVENT = 101;
     private static final int CONNECT_TIMEOUT = 201;
 
-    // NOTE: the value is not "final" - it is modified in the unit tests
-    @VisibleForTesting
-    static int sConnectTimeoutMs = 30000;        // 30s
+    @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
+    static int sConnectTimeoutMs = 16000;
+    @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
+    static int sDisconnectTimeoutMs = 16000;
 
     private Disconnected mDisconnected;
     private Connecting mConnecting;
@@ -172,6 +174,12 @@ final class HearingAidStateMachine extends StateMachine {
                 case DISCONNECT:
                     Log.w(TAG, "Disconnected: DISCONNECT ignored: " + mDevice);
                     break;
+                case CHECK_WHITELIST_CONNECTION:
+                    if (mService.getConnectedDevices().isEmpty()) {
+                        log("No device connected, remove this device from white list");
+                        mNativeInterface.removeFromWhiteList(mDevice);
+                    }
+                    break;
                 case STACK_EVENT:
                     HearingAidStackEvent event = (HearingAidStackEvent) message.obj;
                     if (DBG) {
@@ -238,7 +246,9 @@ final class HearingAidStateMachine extends StateMachine {
         public void enter() {
             Log.i(TAG, "Enter Connecting(" + mDevice + "): "
                     + messageWhatToString(getCurrentMessage().what));
-            sendMessageDelayed(CONNECT_TIMEOUT, sConnectTimeoutMs);
+            int timeout = getCurrentMessage().arg1 != 0
+                    ? getCurrentMessage().arg1 : sConnectTimeoutMs;
+            sendMessageDelayed(CONNECT_TIMEOUT, timeout);
             mConnectionState = BluetoothProfile.STATE_CONNECTING;
             broadcastConnectionState(mConnectionState, mLastConnectionState);
         }
@@ -261,14 +271,13 @@ final class HearingAidStateMachine extends StateMachine {
                     deferMessage(message);
                     break;
                 case CONNECT_TIMEOUT:
-                    Log.w(TAG, "Connecting connection timeout: " + mDevice);
+                    Log.w(TAG, "Connecting connection timeout: " + mDevice + ". Try whitelist");
                     mNativeInterface.disconnectHearingAid(mDevice);
-                    HearingAidStackEvent disconnectEvent =
-                            new HearingAidStackEvent(
-                                    HearingAidStackEvent.EVENT_TYPE_CONNECTION_STATE_CHANGED);
-                    disconnectEvent.device = mDevice;
-                    disconnectEvent.valueInt1 = HearingAidStackEvent.CONNECTION_STATE_DISCONNECTED;
-                    sendMessage(STACK_EVENT, disconnectEvent);
+                    mNativeInterface.addToWhiteList(mDevice);
+                    transitionTo(mDisconnected);
+                    break;
+                case CHECK_WHITELIST_CONNECTION:
+                    deferMessage(message);
                     break;
                 case DISCONNECT:
                     log("Connecting: connection canceled to " + mDevice);
@@ -325,7 +334,7 @@ final class HearingAidStateMachine extends StateMachine {
         public void enter() {
             Log.i(TAG, "Enter Disconnecting(" + mDevice + "): "
                     + messageWhatToString(getCurrentMessage().what));
-            sendMessageDelayed(CONNECT_TIMEOUT, sConnectTimeoutMs);
+            sendMessageDelayed(CONNECT_TIMEOUT, sDisconnectTimeoutMs);
             mConnectionState = BluetoothProfile.STATE_DISCONNECTING;
             broadcastConnectionState(mConnectionState, mLastConnectionState);
         }
