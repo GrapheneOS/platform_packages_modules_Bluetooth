@@ -77,10 +77,7 @@ public class HearingAidStateMachineTest {
         mHearingAidStateMachine = new HearingAidStateMachine(mTestDevice, mHearingAidService,
                 mHearingAidNativeInterface, mHandlerThread.getLooper());
         // Override the timeout value to speed up the test
-        mHearingAidStateMachine.sConnectTimeoutMs = 1000;
-        mHearingAidStateMachine.sDisconnectTimeoutMs = 1000;
-        HearingAidService.sConnectTimeoutForEachSideMs = 1000;
-        HearingAidService.sCheckWhitelistTimeoutMs = 2000;
+        mHearingAidStateMachine.sConnectTimeoutMs = 1000;     // 1s
         mHearingAidStateMachine.start();
     }
 
@@ -212,7 +209,6 @@ public class HearingAidStateMachineTest {
         // Check that we are in Disconnected state
         Assert.assertThat(mHearingAidStateMachine.getCurrentState(),
                 IsInstanceOf.instanceOf(HearingAidStateMachine.Disconnected.class));
-        verify(mHearingAidNativeInterface).addToWhiteList(eq(mTestDevice));
     }
 
     /**
