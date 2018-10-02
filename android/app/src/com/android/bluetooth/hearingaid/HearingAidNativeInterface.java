@@ -105,6 +105,28 @@ public class HearingAidNativeInterface {
     }
 
     /**
+     * Add a hearing aid device to white list.
+     *
+     * @param device the remote device
+     * @return true on success, otherwise false.
+     */
+    @VisibleForTesting (otherwise = VisibleForTesting.PACKAGE_PRIVATE)
+    public boolean addToWhiteList(BluetoothDevice device) {
+        return addToWhiteListNative(getByteAddress(device));
+    }
+
+    /**
+     * Remove a hearing aid device from white list.
+     *
+     * @param device the remote device
+     * @return true on success, otherwise false.
+     */
+    @VisibleForTesting (otherwise = VisibleForTesting.PACKAGE_PRIVATE)
+    public boolean removeFromWhiteList(BluetoothDevice device) {
+        return removeFromWhiteListNative(getByteAddress(device));
+    }
+
+    /**
      * Sets the HearingAid volume
      * @param volume
      */
@@ -168,5 +190,7 @@ public class HearingAidNativeInterface {
     private native void cleanupNative();
     private native boolean connectHearingAidNative(byte[] address);
     private native boolean disconnectHearingAidNative(byte[] address);
+    private native boolean addToWhiteListNative(byte[] address);
+    private native boolean removeFromWhiteListNative(byte[] address);
     private native void setVolumeNative(int volume);
 }
