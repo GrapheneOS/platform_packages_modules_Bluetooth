@@ -2457,7 +2457,7 @@ public class GattService extends ProfileService {
         int latency;
 
         // Link supervision timeout is measured in N * 10ms
-        int timeout = 2000; // 20s
+        int timeout = 500; // 5s
 
         switch (connectionPriority) {
             case BluetoothGatt.CONNECTION_PRIORITY_HIGH:
