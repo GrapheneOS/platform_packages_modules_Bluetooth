@@ -627,19 +627,24 @@ public class HearingAidService extends ProfileService {
             if (DBG) {
                 Log.d(TAG, "Set Hearing Aid audio to disconnected");
             }
-            mAudioManager.setHearingAidDeviceConnectionState(mPreviousAudioDevice,
-                    BluetoothProfile.STATE_DISCONNECTED);
+            boolean suppressNoisyIntent =
+                    (getConnectionState(mPreviousAudioDevice) == BluetoothProfile.STATE_CONNECTED);
+            mAudioManager.setBluetoothHearingAidDeviceConnectionState(
+                    mPreviousAudioDevice, BluetoothProfile.STATE_DISCONNECTED,
+                    suppressNoisyIntent, 0);
             mPreviousAudioDevice = null;
         } else {
             if (DBG) {
                 Log.d(TAG, "Set Hearing Aid audio to connected");
             }
             if (mPreviousAudioDevice != null) {
-                mAudioManager.setHearingAidDeviceConnectionState(mPreviousAudioDevice,
-                        BluetoothProfile.STATE_DISCONNECTED);
+                mAudioManager.setBluetoothHearingAidDeviceConnectionState(
+                        mPreviousAudioDevice, BluetoothProfile.STATE_DISCONNECTED,
+                        true, 0);
             }
-            mAudioManager.setHearingAidDeviceConnectionState(device,
-                    BluetoothProfile.STATE_CONNECTED);
+            mAudioManager.setBluetoothHearingAidDeviceConnectionState(
+                    device, BluetoothProfile.STATE_CONNECTED,
+                    true, 0);
             mPreviousAudioDevice = device;
         }
     }
