@@ -498,8 +498,9 @@ public class HearingAidServiceTest {
         Assert.assertTrue(mService.getConnectedDevices().contains(mRightDevice));
 
         // Verify the audio is routed to Hearing Aid Profile
-        verify(mAudioManager).setHearingAidDeviceConnectionState(any(BluetoothDevice.class),
-                eq(BluetoothProfile.STATE_CONNECTED));
+        verify(mAudioManager).setBluetoothHearingAidDeviceConnectionState(
+                any(BluetoothDevice.class), eq(BluetoothProfile.STATE_CONNECTED),
+                eq(true), eq(0));
 
         // Send a disconnect request
         Assert.assertTrue("Disconnect failed", mService.disconnect(mLeftDevice));
@@ -546,8 +547,9 @@ public class HearingAidServiceTest {
         Assert.assertFalse(mService.getConnectedDevices().contains(mRightDevice));
 
         // Verify the audio is not routed to Hearing Aid Profile
-        verify(mAudioManager).setHearingAidDeviceConnectionState(any(BluetoothDevice.class),
-                eq(BluetoothProfile.STATE_DISCONNECTED));
+        verify(mAudioManager).setBluetoothHearingAidDeviceConnectionState(
+                any(BluetoothDevice.class), eq(BluetoothProfile.STATE_DISCONNECTED),
+                eq(false), eq(0));
     }
 
     /**
