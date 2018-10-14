@@ -100,7 +100,7 @@
     <string name="status_connection_error" msgid="947681831523219891">"Байланыс сәтсіз болды."</string>
     <string name="status_protocol_error" msgid="3245444473429269539">"Өтінішті дұрыс орындау мүмкін емес."</string>
     <string name="status_unknown_error" msgid="8156660554237824912">"Белгісіз қателік."</string>
-    <string name="btopp_live_folder" msgid="7967791481444474554">"Bluetooth қабылданды"</string>
+    <string name="btopp_live_folder" msgid="7967791481444474554">"Bluetooth арқылы алынғандар"</string>
     <string name="opp_notification_group" msgid="3486303082135789982">"Bluetooth бөлісу"</string>
     <string name="download_success" msgid="7036160438766730871">"<xliff:g id="FILE_SIZE">%1$s</xliff:g> Толығымен қабылданды."</string>
     <string name="upload_success" msgid="4014469387779648949">"<xliff:g id="FILE_SIZE">%1$s</xliff:g> Жіберіліп болды."</string>
@@ -122,6 +122,7 @@
     <string name="transfer_menu_open" msgid="3368984869083107200">"Ашу"</string>
     <string name="transfer_menu_clear" msgid="5854038118831427492">"Тізімнен өшіру."</string>
     <string name="transfer_clear_dlg_title" msgid="2953444575556460386">"Өшіру"</string>
+    <string name="bluetooth_a2dp_sink_queue_name" msgid="6864149958708669766">"Қазір ойнауда"</string>
     <string name="bluetooth_map_settings_save" msgid="7635491847388074606">"Сақтау"</string>
     <string name="bluetooth_map_settings_cancel" msgid="9205350798049865699">"Бас тарту"</string>
     <string name="bluetooth_map_settings_intro" msgid="6482369468223987562">"Bluetooth арқылы бөлісетін есептік жазбаларды таңдаңыз. Әлі де қосылу кезінде есептік жазбаларға кез келген қатынасуды қабылдау керек."</string>

@@ -100,7 +100,7 @@
     <string name="status_connection_error" msgid="947681831523219891">"Povezivanje nije uspjelo."</string>
     <string name="status_protocol_error" msgid="3245444473429269539">"Nije moguće pravilno obraditi zahtjev."</string>
     <string name="status_unknown_error" msgid="8156660554237824912">"Nepoznata greška."</string>
-    <string name="btopp_live_folder" msgid="7967791481444474554">"Primljeno preko Bluetootha"</string>
+    <string name="btopp_live_folder" msgid="7967791481444474554">"Primljeno putem Bluetootha"</string>
     <string name="opp_notification_group" msgid="3486303082135789982">"Dijeljenje putem Bluetootha"</string>
     <string name="download_success" msgid="7036160438766730871">"<xliff:g id="FILE_SIZE">%1$s</xliff:g> Primanje završeno."</string>
     <string name="upload_success" msgid="4014469387779648949">"<xliff:g id="FILE_SIZE">%1$s</xliff:g> Slanje dovršeno."</string>
@@ -124,6 +124,7 @@
     <string name="transfer_menu_open" msgid="3368984869083107200">"Otvori"</string>
     <string name="transfer_menu_clear" msgid="5854038118831427492">"Obriši sa spiska"</string>
     <string name="transfer_clear_dlg_title" msgid="2953444575556460386">"Obriši"</string>
+    <string name="bluetooth_a2dp_sink_queue_name" msgid="6864149958708669766">"Trenutno se reproducira"</string>
     <string name="bluetooth_map_settings_save" msgid="7635491847388074606">"Sačuvaj"</string>
     <string name="bluetooth_map_settings_cancel" msgid="9205350798049865699">"Otkaži"</string>
     <string name="bluetooth_map_settings_intro" msgid="6482369468223987562">"Odaberite račune koje želite dijeliti preko Bluetootha. I dalje morate prihvatiti bilo koji pristup računima prilikom povezivanja."</string>

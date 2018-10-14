@@ -100,7 +100,7 @@
     <string name="status_connection_error" msgid="947681831523219891">"Conexión incorrecta"</string>
     <string name="status_protocol_error" msgid="3245444473429269539">"No se puede procesar la solicitud correctamente."</string>
     <string name="status_unknown_error" msgid="8156660554237824912">"Error desconocido"</string>
-    <string name="btopp_live_folder" msgid="7967791481444474554">"Recibidos por Bluetooth"</string>
+    <string name="btopp_live_folder" msgid="7967791481444474554">"Recibido por Bluetooth"</string>
     <string name="opp_notification_group" msgid="3486303082135789982">"Compartir por Bluetooth"</string>
     <string name="download_success" msgid="7036160438766730871">"Se recibieron <xliff:g id="FILE_SIZE">%1$s</xliff:g> completos."</string>
     <string name="upload_success" msgid="4014469387779648949">"<xliff:g id="FILE_SIZE">%1$s</xliff:g> enviados por completo."</string>
@@ -122,6 +122,7 @@
     <string name="transfer_menu_open" msgid="3368984869083107200">"Abrir"</string>
     <string name="transfer_menu_clear" msgid="5854038118831427492">"Eliminar de la lista"</string>
     <string name="transfer_clear_dlg_title" msgid="2953444575556460386">"Eliminar"</string>
+    <string name="bluetooth_a2dp_sink_queue_name" msgid="6864149958708669766">"Está Sonando"</string>
     <string name="bluetooth_map_settings_save" msgid="7635491847388074606">"Guardar"</string>
     <string name="bluetooth_map_settings_cancel" msgid="9205350798049865699">"Cancelar"</string>
     <string name="bluetooth_map_settings_intro" msgid="6482369468223987562">"Selecciona las cuentas que deseas compartir mediante Bluetooth. Al conectarte, tendrás que aceptar cualquier acceso a las cuentas."</string>
