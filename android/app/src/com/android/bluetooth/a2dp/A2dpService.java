@@ -17,7 +17,6 @@
 package com.android.bluetooth.a2dp;
 
 import android.bluetooth.BluetoothA2dp;
-import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothCodecConfig;
 import android.bluetooth.BluetoothCodecStatus;
 import android.bluetooth.BluetoothDevice;
@@ -45,7 +44,6 @@ import com.android.bluetooth.btservice.ProfileService;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -59,7 +57,6 @@ public class A2dpService extends ProfileService {
 
     private static A2dpService sA2dpService;
 
-    private BluetoothAdapter mAdapter;
     private AdapterService mAdapterService;
     private HandlerThread mStateMachinesThread;
 
@@ -100,10 +97,8 @@ public class A2dpService extends ProfileService {
             throw new IllegalStateException("start() called twice");
         }
 
-        // Step 1: Get BluetoothAdapter, AdapterService, A2dpNativeInterface, AudioManager.
+        // Step 1: Get AdapterService, A2dpNativeInterface, AudioManager.
         // None of them can be null.
-        mAdapter = Objects.requireNonNull(BluetoothAdapter.getDefaultAdapter(),
-                "BluetoothAdapter cannot be null when A2dpService starts");
         mAdapterService = Objects.requireNonNull(AdapterService.getAdapterService(),
                 "AdapterService cannot be null when A2dpService starts");
         mA2dpNativeInterface = Objects.requireNonNull(A2dpNativeInterface.getInstance(),
@@ -199,11 +194,10 @@ public class A2dpService extends ProfileService {
         // Step 2: Reset maximum number of connected audio devices
         mMaxConnectedAudioDevices = 1;
 
-        // Step 1: Clear BluetoothAdapter, AdapterService, A2dpNativeInterface, AudioManager
+        // Step 1: Clear AdapterService, A2dpNativeInterface, AudioManager
         mAudioManager = null;
         mA2dpNativeInterface = null;
         mAdapterService = null;
-        mAdapter = null;
 
         return true;
     }
@@ -386,7 +380,13 @@ public class A2dpService extends ProfileService {
     List<BluetoothDevice> getDevicesMatchingConnectionStates(int[] states) {
         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
         List<BluetoothDevice> devices = new ArrayList<>();
-        Set<BluetoothDevice> bondedDevices = mAdapter.getBondedDevices();
+        if (states == null) {
+            return devices;
+        }
+        final BluetoothDevice[] bondedDevices = mAdapterService.getBondedDevices();
+        if (bondedDevices == null) {
+            return devices;
+        }
         synchronized (mStateMachines) {
             for (BluetoothDevice device : bondedDevices) {
                 if (!BluetoothUuid.isUuidPresent(mAdapterService.getRemoteUuids(device),
@@ -398,9 +398,10 @@ public class A2dpService extends ProfileService {
                 if (sm != null) {
                     connectionState = sm.getConnectionState();
                 }
-                for (int i = 0; i < states.length; i++) {
-                    if (connectionState == states[i]) {
+                for (int state : states) {
+                    if (connectionState == state) {
                         devices.add(device);
+                        break;
                     }
                 }
             }
