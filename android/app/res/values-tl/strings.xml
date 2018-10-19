@@ -122,6 +122,7 @@
     <string name="transfer_menu_open" msgid="3368984869083107200">"Buksan"</string>
     <string name="transfer_menu_clear" msgid="5854038118831427492">"I-clear mula sa listahan"</string>
     <string name="transfer_clear_dlg_title" msgid="2953444575556460386">"I-clear"</string>
+    <string name="bluetooth_a2dp_sink_queue_name" msgid="6864149958708669766">"Nagpi-play Ngayon"</string>
     <string name="bluetooth_map_settings_save" msgid="7635491847388074606">"I-save"</string>
     <string name="bluetooth_map_settings_cancel" msgid="9205350798049865699">"Kanselahin"</string>
     <string name="bluetooth_map_settings_intro" msgid="6482369468223987562">"Piliin ang mga account na gusto mong ibahagi sa pamamagitan ng Bluetooth. Kailangan mo pa ring tanggapin ang anumang pag-access sa mga account kapag kumokonekta."</string>

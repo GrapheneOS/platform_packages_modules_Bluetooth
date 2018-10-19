@@ -122,6 +122,7 @@
     <string name="transfer_menu_open" msgid="3368984869083107200">"Openen"</string>
     <string name="transfer_menu_clear" msgid="5854038118831427492">"Wissen uit lijst"</string>
     <string name="transfer_clear_dlg_title" msgid="2953444575556460386">"Wissen"</string>
+    <string name="bluetooth_a2dp_sink_queue_name" msgid="6864149958708669766">"Now Playing"</string>
     <string name="bluetooth_map_settings_save" msgid="7635491847388074606">"Opslaan"</string>
     <string name="bluetooth_map_settings_cancel" msgid="9205350798049865699">"Annuleren"</string>
     <string name="bluetooth_map_settings_intro" msgid="6482369468223987562">"Selecteer de accounts die je wilt delen via Bluetooth. Je moet nog steeds elke toegang tot de accounts accepteren wanneer er verbinding wordt gemaakt."</string>

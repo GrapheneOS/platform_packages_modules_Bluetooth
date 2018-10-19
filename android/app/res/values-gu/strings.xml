@@ -122,6 +122,7 @@
     <string name="transfer_menu_open" msgid="3368984869083107200">"ખોલો"</string>
     <string name="transfer_menu_clear" msgid="5854038118831427492">"સૂચિમાંથી સાફ કરો"</string>
     <string name="transfer_clear_dlg_title" msgid="2953444575556460386">"સાફ કરો"</string>
+    <string name="bluetooth_a2dp_sink_queue_name" msgid="6864149958708669766">"હમણાં વાગી રહ્યું છે"</string>
     <string name="bluetooth_map_settings_save" msgid="7635491847388074606">"સાચવો"</string>
     <string name="bluetooth_map_settings_cancel" msgid="9205350798049865699">"રદ કરો"</string>
     <string name="bluetooth_map_settings_intro" msgid="6482369468223987562">"તમે બ્લૂટૂથ મારફતે શેર કરવા માગતા હો તે એકાઉન્ટ્સ પસંદ કરો. તમારે હજી પણ કનેક્ટ કરતી વખતે એકાઉન્ટ્સ પરની કોઈપણ અ‍ૅક્સેસ સ્વીકારવી પડશે."</string>
