@@ -516,9 +516,9 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
             }
         }
 
+        setBluetoothPbapService(this);
         mSessionStatusHandler.sendMessage(mSessionStatusHandler.obtainMessage(LOAD_CONTACTS));
         mSessionStatusHandler.sendMessage(mSessionStatusHandler.obtainMessage(START_LISTENER));
-        setBluetoothPbapService(this);
         return true;
     }
 
