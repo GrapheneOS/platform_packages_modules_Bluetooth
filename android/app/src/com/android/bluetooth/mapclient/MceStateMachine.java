@@ -374,6 +374,9 @@ final class MceStateMachine extends StateMachine {
                     break;
 
                 case MSG_MAS_DISCONNECTED:
+                    if (mMasClient != null) {
+                        mMasClient.shutdown();
+                    }
                     transitionTo(mDisconnected);
                     break;
 
