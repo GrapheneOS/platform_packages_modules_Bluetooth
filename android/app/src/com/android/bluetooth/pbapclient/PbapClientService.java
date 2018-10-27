@@ -116,13 +116,14 @@ public class PbapClientService extends ProfileService {
         if (VDBG) Log.v(TAG, "Found " + accounts.length + " unclean accounts");
         for (Account acc : accounts) {
             Log.w(TAG, "Deleting " + acc);
+            try {
+                getContentResolver().delete(CallLog.Calls.CONTENT_URI,
+                        CallLog.Calls.PHONE_ACCOUNT_ID + "=?", new String[]{acc.name});
+            } catch (IllegalArgumentException e) {
+                Log.w(TAG, "Call Logs could not be deleted, they may not exist yet.");
+            }
             // The device ID is the name of the account.
             accountManager.removeAccountExplicitly(acc);
-        }
-        try {
-            getContentResolver().delete(CallLog.Calls.CONTENT_URI, null, null);
-        } catch (IllegalArgumentException e) {
-            Log.w(TAG, "Call Logs could not be deleted, they may not exist yet.");
         }
     }
 
