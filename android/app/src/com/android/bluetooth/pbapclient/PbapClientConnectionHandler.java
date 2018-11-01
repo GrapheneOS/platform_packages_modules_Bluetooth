@@ -411,8 +411,8 @@ class PbapClientConnectionHandler extends Handler {
                 }
                 return;
             }
-            String where = Calls.PHONE_ACCOUNT_ID + "=" + account.hashCode();
-            mContext.getContentResolver().delete(CallLog.Calls.CONTENT_URI, where, null);
+            mContext.getContentResolver().delete(CallLog.Calls.CONTENT_URI,
+                    Calls.PHONE_ACCOUNT_ID + "=?", new String[]{mAccount.name});
         } catch (IllegalArgumentException e) {
             Log.d(TAG, "Call Logs could not be deleted, they may not exist yet.");
         }

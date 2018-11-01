@@ -88,7 +88,7 @@ public class CallLogPullRequest extends PullRequest {
                 ContentValues values = new ContentValues();
 
                 values.put(CallLog.Calls.TYPE, type);
-                values.put(Calls.PHONE_ACCOUNT_ID, mAccount.hashCode());
+                values.put(Calls.PHONE_ACCOUNT_ID, mAccount.name);
                 List<PhoneData> phones = vcard.getPhoneList();
                 if (phones == null || phones.get(0).getNumber().equals(";")) {
                     values.put(CallLog.Calls.NUMBER, "");
