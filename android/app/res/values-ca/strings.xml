@@ -45,7 +45,7 @@
     <string name="notification_sent" msgid="9218710861333027778">"Bluetooth: <xliff:g id="FILE">%1$s</xliff:g> enviat"</string>
     <string name="notification_sent_complete" msgid="302943281067557969">"100% complet"</string>
     <string name="notification_sent_fail" msgid="6696082233774569445">"Bluetooth: <xliff:g id="FILE">%1$s</xliff:g> no enviat"</string>
-    <string name="download_title" msgid="3353228219772092586">"Transferència del fitxer"</string>
+    <string name="download_title" msgid="3353228219772092586">"Transferència de fitxers"</string>
     <string name="download_line1" msgid="4926604799202134144">"De: \"<xliff:g id="SENDER">%1$s</xliff:g>\""</string>
     <string name="download_line2" msgid="5876973543019417712">"Fitxer: <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="download_line3" msgid="4384821622908676061">"Mida del fitxer: <xliff:g id="SIZE">%1$s</xliff:g>"</string>
