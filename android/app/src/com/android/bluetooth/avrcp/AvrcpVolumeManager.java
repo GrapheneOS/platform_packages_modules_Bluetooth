@@ -195,7 +195,7 @@ class AvrcpVolumeManager extends AudioDeviceCallback {
         mCurrentDevice = device;
     }
 
-    void deviceDisconnected(@NonNull BluetoothDevice device) {
+    synchronized void deviceDisconnected(@NonNull BluetoothDevice device) {
         d("deviceDisconnected: device=" + device);
         mDeviceMap.remove(device);
     }
