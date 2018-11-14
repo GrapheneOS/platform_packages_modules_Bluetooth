@@ -119,10 +119,10 @@ public class Config {
         for (ProfileConfig config : PROFILE_SERVICES_AND_FLAGS) {
             boolean supported = resources.getBoolean(config.mSupported);
 
-            if (supported && (config.mClass == HearingAidService.class) && !FeatureFlagUtils
+            if (!supported && (config.mClass == HearingAidService.class) && FeatureFlagUtils
                                 .isEnabled(ctx, FeatureFlagUtils.HEARING_AID_SETTINGS)) {
-                Log.v(TAG, "Feature Flag disables support for HearingAidService");
-                supported = false;
+                Log.v(TAG, "Feature Flag enables support for HearingAidService");
+                supported = true;
             }
 
             if (supported && !isProfileDisabled(ctx, config.mMask)) {
