@@ -74,6 +74,7 @@ public class A2dpSinkStateMachine extends StateMachine {
 
     private static final int IS_INVALID_DEVICE = 0;
     private static final int IS_VALID_DEVICE = 1;
+    private static final int CONNECT_TIMEOUT_MS = 5000;
     public static final int AVRC_ID_PLAY = 0x44;
     public static final int AVRC_ID_PAUSE = 0x46;
     public static final int KEY_STATE_PRESSED = 0;
@@ -215,9 +216,6 @@ public class A2dpSinkStateMachine extends StateMachine {
                         mTargetDevice = device;
                         transitionTo(mPending);
                     }
-                    // TODO(BT) remove CONNECT_TIMEOUT when the stack
-                    //          sends back events consistently
-                    sendMessageDelayed(CONNECT_TIMEOUT, 30000);
                     break;
                 case DISCONNECT:
                     // ignore
@@ -298,6 +296,7 @@ public class A2dpSinkStateMachine extends StateMachine {
         @Override
         public void enter() {
             log("Enter Pending: " + getCurrentMessage().what);
+            sendMessageDelayed(CONNECT_TIMEOUT, CONNECT_TIMEOUT_MS);
         }
 
         @Override
@@ -330,7 +329,6 @@ public class A2dpSinkStateMachine extends StateMachine {
                     log("STACK_EVENT " + event.type);
                     switch (event.type) {
                         case EVENT_TYPE_CONNECTION_STATE_CHANGED:
-                            removeMessages(CONNECT_TIMEOUT);
                             processConnectionEvent(event.device, event.valueInt);
                             break;
                         case EVENT_TYPE_AUDIO_CONFIG_CHANGED:
@@ -345,6 +343,11 @@ public class A2dpSinkStateMachine extends StateMachine {
                     return NOT_HANDLED;
             }
             return retValue;
+        }
+
+        @Override
+        public void exit() {
+            removeMessages(CONNECT_TIMEOUT);
         }
 
         // in Pending state
@@ -671,7 +674,7 @@ public class A2dpSinkStateMachine extends StateMachine {
             }
 
             if (currentState == mConnected) {
-                if (mCurrentDevice.equals(device)) {
+                if (mCurrentDevice != null && mCurrentDevice.equals(device)) {
                     return BluetoothProfile.STATE_CONNECTED;
                 }
                 return BluetoothProfile.STATE_DISCONNECTED;
