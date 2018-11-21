@@ -655,7 +655,7 @@ public class HeadsetServiceTest {
         mCurrentDevice = TestUtils.getTestDevice(mAdapter, 0);
         HeadsetCallState headsetCallState =
                 new HeadsetCallState(1, 0, HeadsetHalConstants.CALL_STATE_ALERTING,
-                        TEST_PHONE_NUMBER, 128);
+                        TEST_PHONE_NUMBER, 128, "");
         Assert.assertTrue(mHeadsetService.connect(mCurrentDevice));
         verify(mObjectsFactory).makeStateMachine(mCurrentDevice,
                 mHeadsetService.getStateMachinesThreadLooper(), mHeadsetService, mAdapterService,
@@ -687,10 +687,10 @@ public class HeadsetServiceTest {
     public void testPhoneStateChange_noDeviceSaveState() throws RemoteException {
         HeadsetCallState headsetCallState =
                 new HeadsetCallState(1, 0, HeadsetHalConstants.CALL_STATE_ALERTING,
-                        TEST_PHONE_NUMBER, 128);
+                        TEST_PHONE_NUMBER, 128, "");
         mHeadsetServiceBinder.phoneStateChanged(headsetCallState.mNumActive,
                 headsetCallState.mNumHeld, headsetCallState.mCallState, headsetCallState.mNumber,
-                headsetCallState.mType);
+                headsetCallState.mType, headsetCallState.mName);
         HeadsetTestUtils.verifyPhoneStateChangeSetters(mPhoneState, headsetCallState,
                 ASYNC_CALL_TIMEOUT_MILLIS);
     }
@@ -705,7 +705,7 @@ public class HeadsetServiceTest {
     public void testPhoneStateChange_oneDeviceSaveState() throws RemoteException {
         HeadsetCallState headsetCallState =
                 new HeadsetCallState(1, 0, HeadsetHalConstants.CALL_STATE_ALERTING,
-                        TEST_PHONE_NUMBER, 128);
+                        TEST_PHONE_NUMBER, 128, "");
         mCurrentDevice = TestUtils.getTestDevice(mAdapter, 0);
         final ArrayList<BluetoothDevice> connectedDevices = new ArrayList<>();
         // Connect one device
@@ -741,7 +741,7 @@ public class HeadsetServiceTest {
         // Change phone state
         mHeadsetServiceBinder.phoneStateChanged(headsetCallState.mNumActive,
                 headsetCallState.mNumHeld, headsetCallState.mCallState, headsetCallState.mNumber,
-                headsetCallState.mType);
+                headsetCallState.mType, headsetCallState.mName);
         // Make sure we notify device about this change
         verify(mStateMachines.get(mCurrentDevice)).sendMessage(
                 HeadsetStateMachine.CALL_STATE_CHANGED, headsetCallState);
@@ -760,7 +760,7 @@ public class HeadsetServiceTest {
     public void testPhoneStateChange_multipleDevicesSaveState() throws RemoteException {
         HeadsetCallState headsetCallState =
                 new HeadsetCallState(1, 0, HeadsetHalConstants.CALL_STATE_ALERTING,
-                        TEST_PHONE_NUMBER, 128);
+                        TEST_PHONE_NUMBER, 128, "");
         final ArrayList<BluetoothDevice> connectedDevices = new ArrayList<>();
         for (int i = 0; i < MAX_HEADSET_CONNECTIONS; ++i) {
             mCurrentDevice = TestUtils.getTestDevice(mAdapter, i);
@@ -801,7 +801,7 @@ public class HeadsetServiceTest {
         // Change phone state
         mHeadsetServiceBinder.phoneStateChanged(headsetCallState.mNumActive,
                 headsetCallState.mNumHeld, headsetCallState.mCallState, headsetCallState.mNumber,
-                headsetCallState.mType);
+                headsetCallState.mType, headsetCallState.mName);
         // Make sure we notify devices about this change
         for (BluetoothDevice device : connectedDevices) {
             verify(mStateMachines.get(device)).sendMessage(HeadsetStateMachine.CALL_STATE_CHANGED,
