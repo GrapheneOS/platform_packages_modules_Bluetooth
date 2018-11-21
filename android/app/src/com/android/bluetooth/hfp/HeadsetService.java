@@ -61,7 +61,8 @@ import java.util.Objects;
  * Provides Bluetooth Headset and Handsfree profile, as a service in the Bluetooth application.
  *
  * Three modes for SCO audio:
- * Mode 1: Telecom call through {@link #phoneStateChanged(int, int, int, String, int, boolean)}
+ * Mode 1: Telecom call through {@link #phoneStateChanged(int, int, int, String, int, String,
+ *         boolean)}
  * Mode 2: Virtual call through {@link #startScoUsingVirtualVoiceCall()}
  * Mode 3: Voice recognition through {@link #startVoiceRecognition(BluetoothDevice)}
  *
@@ -600,12 +601,12 @@ public class HeadsetService extends ProfileService {
 
         @Override
         public void phoneStateChanged(int numActive, int numHeld, int callState, String number,
-                int type) {
+                int type, String name) {
             HeadsetService service = getService();
             if (service == null) {
                 return;
             }
-            service.phoneStateChanged(numActive, numHeld, callState, number, type, false);
+            service.phoneStateChanged(numActive, numHeld, callState, number, type, name, false);
         }
 
         @Override
@@ -1221,9 +1222,9 @@ public class HeadsetService extends ProfileService {
             }
             mVirtualCallStarted = true;
             // Send virtual phone state changed to initialize SCO
-            phoneStateChanged(0, 0, HeadsetHalConstants.CALL_STATE_DIALING, "", 0, true);
-            phoneStateChanged(0, 0, HeadsetHalConstants.CALL_STATE_ALERTING, "", 0, true);
-            phoneStateChanged(1, 0, HeadsetHalConstants.CALL_STATE_IDLE, "", 0, true);
+            phoneStateChanged(0, 0, HeadsetHalConstants.CALL_STATE_DIALING, "", 0, "", true);
+            phoneStateChanged(0, 0, HeadsetHalConstants.CALL_STATE_ALERTING, "", 0, "", true);
+            phoneStateChanged(1, 0, HeadsetHalConstants.CALL_STATE_IDLE, "", 0, "", true);
             return true;
         }
     }
@@ -1239,7 +1240,7 @@ public class HeadsetService extends ProfileService {
             }
             mVirtualCallStarted = false;
             // 2. Send virtual phone state changed to close SCO
-            phoneStateChanged(0, 0, HeadsetHalConstants.CALL_STATE_IDLE, "", 0, true);
+            phoneStateChanged(0, 0, HeadsetHalConstants.CALL_STATE_IDLE, "", 0, "", true);
         }
         return true;
     }
@@ -1452,7 +1453,7 @@ public class HeadsetService extends ProfileService {
     }
 
     private void phoneStateChanged(int numActive, int numHeld, int callState, String number,
-            int type, boolean isVirtualCall) {
+            int type, String name, boolean isVirtualCall) {
         enforceCallingOrSelfPermission(MODIFY_PHONE_STATE, "Need MODIFY_PHONE_STATE permission");
         synchronized (mStateMachines) {
             // Should stop all other audio mode in this case
@@ -1498,7 +1499,7 @@ public class HeadsetService extends ProfileService {
         });
         doForEachConnectedStateMachine(
                 stateMachine -> stateMachine.sendMessage(HeadsetStateMachine.CALL_STATE_CHANGED,
-                        new HeadsetCallState(numActive, numHeld, callState, number, type)));
+                        new HeadsetCallState(numActive, numHeld, callState, number, type, name)));
         mStateMachinesThread.getThreadHandler().post(() -> {
             if (callState == HeadsetHalConstants.CALL_STATE_IDLE
                     && mSystemInterface.isCallIdle() && !isAudioOn()) {
