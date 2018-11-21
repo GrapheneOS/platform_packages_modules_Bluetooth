@@ -419,7 +419,7 @@ public class HeadsetNativeInterface {
     @VisibleForTesting
     public boolean phoneStateChange(BluetoothDevice device, HeadsetCallState callState) {
         return phoneStateChangeNative(callState.mNumActive, callState.mNumHeld,
-                callState.mCallState, callState.mNumber, callState.mType,
+                callState.mCallState, callState.mNumber, callState.mType, callState.mName,
                 Utils.getByteAddress(device));
     }
 
@@ -493,7 +493,7 @@ public class HeadsetNativeInterface {
     private native boolean copsResponseNative(String operatorName, byte[] address);
 
     private native boolean phoneStateChangeNative(int numActive, int numHeld, int callState,
-            String number, int type, byte[] address);
+            String number, int type, String name, byte[] address);
 
     private native boolean setScoAllowedNative(boolean value);
 
