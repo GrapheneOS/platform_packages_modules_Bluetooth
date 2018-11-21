@@ -85,6 +85,7 @@ public class HeadsetServiceAndStateMachineTest {
     private static final int MAX_HEADSET_CONNECTIONS = 5;
     private static final ParcelUuid[] FAKE_HEADSET_UUID = {BluetoothUuid.Handsfree};
     private static final String TEST_PHONE_NUMBER = "1234567890";
+    private static final String TEST_CALLER_ID = "Test Name";
 
     @Rule public final ServiceTestRule mServiceRule = new ServiceTestRule();
 
@@ -473,12 +474,12 @@ public class HeadsetServiceAndStateMachineTest {
         verifyVirtualCallStartSequenceInvocations(connectedDevices);
         // Virtual call should be preempted by telecom call
         mHeadsetServiceBinder.phoneStateChanged(0, 0, HeadsetHalConstants.CALL_STATE_INCOMING,
-                TEST_PHONE_NUMBER, 128);
+                TEST_PHONE_NUMBER, 128, "");
         Assert.assertFalse(mHeadsetService.isVirtualCallStarted());
         verifyVirtualCallStopSequenceInvocations(connectedDevices);
         verifyCallStateToNativeInvocation(
                 new HeadsetCallState(0, 0, HeadsetHalConstants.CALL_STATE_INCOMING,
-                        TEST_PHONE_NUMBER, 128), connectedDevices);
+                        TEST_PHONE_NUMBER, 128, ""), connectedDevices);
     }
 
     /**
@@ -575,19 +576,19 @@ public class HeadsetServiceAndStateMachineTest {
                 IntentMatchers.hasData(dialOutUri)), Intents.times(1));
         // Verify that phone state update confirms the dial out event
         mHeadsetServiceBinder.phoneStateChanged(0, 0, HeadsetHalConstants.CALL_STATE_DIALING,
-                TEST_PHONE_NUMBER, 128);
+                TEST_PHONE_NUMBER, 128, "");
         HeadsetCallState dialingCallState =
                 new HeadsetCallState(0, 0, HeadsetHalConstants.CALL_STATE_DIALING,
-                        TEST_PHONE_NUMBER, 128);
+                        TEST_PHONE_NUMBER, 128, "");
         verifyCallStateToNativeInvocation(dialingCallState, connectedDevices);
         verify(mNativeInterface).atResponseCode(dialingOutDevice,
                 HeadsetHalConstants.AT_RESPONSE_OK, 0);
         // Verify that IDLE phone state clears the dialing out flag
         mHeadsetServiceBinder.phoneStateChanged(1, 0, HeadsetHalConstants.CALL_STATE_IDLE,
-                TEST_PHONE_NUMBER, 128);
+                TEST_PHONE_NUMBER, 128, "");
         HeadsetCallState activeCallState =
                 new HeadsetCallState(0, 0, HeadsetHalConstants.CALL_STATE_DIALING,
-                        TEST_PHONE_NUMBER, 128);
+                        TEST_PHONE_NUMBER, 128, "");
         verifyCallStateToNativeInvocation(activeCallState, connectedDevices);
         Assert.assertFalse(mHeadsetService.hasDeviceInitiatedDialingOut());
     }
@@ -1072,6 +1073,32 @@ public class HeadsetServiceAndStateMachineTest {
         verifyNoMoreInteractions(mNativeInterface);
     }
 
+    /**
+     * Test to verify the call state and caller information are correctly delivered
+     * {@link BluetoothHeadset#phoneStateChanged(int, int, int, String, int, String, boolean)}
+     */
+    @Test
+    public void testPhoneStateChangedWithIncomingCallState() throws RemoteException {
+        // Connect HF
+        for (int i = 0; i < MAX_HEADSET_CONNECTIONS; ++i) {
+            BluetoothDevice device = TestUtils.getTestDevice(mAdapter, i);
+            connectTestDevice(device);
+            Assert.assertThat(mHeadsetServiceBinder.getConnectedDevices(),
+                    Matchers.containsInAnyOrder(mBondedDevices.toArray()));
+            Assert.assertThat(mHeadsetServiceBinder.getDevicesMatchingConnectionStates(
+                    new int[]{BluetoothProfile.STATE_CONNECTED}),
+                    Matchers.containsInAnyOrder(mBondedDevices.toArray()));
+        }
+        List<BluetoothDevice> connectedDevices = mHeadsetServiceBinder.getConnectedDevices();
+        Assert.assertThat(connectedDevices, Matchers.containsInAnyOrder(mBondedDevices.toArray()));
+        // Incoming call update by telecom
+        mHeadsetServiceBinder.phoneStateChanged(0, 0, HeadsetHalConstants.CALL_STATE_INCOMING,
+                TEST_PHONE_NUMBER, 128, TEST_CALLER_ID);
+        HeadsetCallState incomingCallState = new HeadsetCallState(0, 0,
+                HeadsetHalConstants.CALL_STATE_INCOMING, TEST_PHONE_NUMBER, 128, TEST_CALLER_ID);
+        verifyCallStateToNativeInvocation(incomingCallState, connectedDevices);
+    }
+
     private void startVoiceRecognitionFromHf(BluetoothDevice device) {
         // Start voice recognition
         HeadsetStackEvent startVrEvent =
@@ -1178,19 +1205,19 @@ public class HeadsetServiceAndStateMachineTest {
     private void verifyVirtualCallStartSequenceInvocations(List<BluetoothDevice> connectedDevices) {
         // Do not verify HeadsetPhoneState changes as it is verified in HeadsetServiceTest
         verifyCallStateToNativeInvocation(
-                new HeadsetCallState(0, 0, HeadsetHalConstants.CALL_STATE_DIALING, "", 0),
+                new HeadsetCallState(0, 0, HeadsetHalConstants.CALL_STATE_DIALING, "", 0, ""),
                 connectedDevices);
         verifyCallStateToNativeInvocation(
-                new HeadsetCallState(0, 0, HeadsetHalConstants.CALL_STATE_ALERTING, "", 0),
+                new HeadsetCallState(0, 0, HeadsetHalConstants.CALL_STATE_ALERTING, "", 0, ""),
                 connectedDevices);
         verifyCallStateToNativeInvocation(
-                new HeadsetCallState(1, 0, HeadsetHalConstants.CALL_STATE_IDLE, "", 0),
+                new HeadsetCallState(1, 0, HeadsetHalConstants.CALL_STATE_IDLE, "", 0, ""),
                 connectedDevices);
     }
 
     private void verifyVirtualCallStopSequenceInvocations(List<BluetoothDevice> connectedDevices) {
         verifyCallStateToNativeInvocation(
-                new HeadsetCallState(0, 0, HeadsetHalConstants.CALL_STATE_IDLE, "", 0),
+                new HeadsetCallState(0, 0, HeadsetHalConstants.CALL_STATE_IDLE, "", 0, ""),
                 connectedDevices);
     }
 
