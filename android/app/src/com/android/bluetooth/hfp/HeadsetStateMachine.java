@@ -1201,7 +1201,8 @@ public class HeadsetStateMachine extends StateMachine {
             // Set active device to current active SCO device when the current active device
             // is different from mCurrentDevice. This is to accommodate active device state
             // mis-match between native and Java.
-            if (!mDevice.equals(mHeadsetService.getActiveDevice())) {
+            if (!mDevice.equals(mHeadsetService.getActiveDevice())
+                    && !hasDeferredMessages(DISCONNECT_AUDIO)) {
                 mHeadsetService.setActiveDevice(mDevice);
             }
             setAudioParameters();

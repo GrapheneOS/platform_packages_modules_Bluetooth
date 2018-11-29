@@ -1486,13 +1486,13 @@ public class HeadsetService extends ProfileService {
             }
         }
         mStateMachinesThread.getThreadHandler().post(() -> {
-            boolean shouldCallAudioBeActiveBefore = shouldCallAudioBeActive();
+            boolean isCallIdleBefore = mSystemInterface.isCallIdle();
             mSystemInterface.getHeadsetPhoneState().setNumActiveCall(numActive);
             mSystemInterface.getHeadsetPhoneState().setNumHeldCall(numHeld);
             mSystemInterface.getHeadsetPhoneState().setCallState(callState);
             // Suspend A2DP when call about is about to become active
             if (callState != HeadsetHalConstants.CALL_STATE_DISCONNECTED
-                    && shouldCallAudioBeActive() && !shouldCallAudioBeActiveBefore) {
+                    && !mSystemInterface.isCallIdle() && isCallIdleBefore) {
                 mSystemInterface.getAudioManager().setParameters("A2dpSuspended=true");
             }
         });
@@ -1501,7 +1501,7 @@ public class HeadsetService extends ProfileService {
                         new HeadsetCallState(numActive, numHeld, callState, number, type)));
         mStateMachinesThread.getThreadHandler().post(() -> {
             if (callState == HeadsetHalConstants.CALL_STATE_IDLE
-                    && !shouldCallAudioBeActive() && !isAudioOn()) {
+                    && mSystemInterface.isCallIdle() && !isAudioOn()) {
                 // Resume A2DP when call ended and SCO is not connected
                 mSystemInterface.getAudioManager().setParameters("A2dpSuspended=false");
             }

@@ -78,7 +78,7 @@
     <string name="not_exist_file_desc" msgid="4059531573790529229">"Plik nie istnieje. \n"</string>
     <string name="enabling_progress_title" msgid="436157952334723406">"Czekaj…"</string>
     <string name="enabling_progress_content" msgid="4601542238119927904">"Włączanie Bluetooth…"</string>
-    <string name="bt_toast_1" msgid="972182708034353383">"Plik zostanie odebrany. Sprawdzaj postęp na panelu powiadomień."</string>
+    <string name="bt_toast_1" msgid="972182708034353383">"Plik zostanie odebrany. Sprawdzaj postęp w panelu powiadomień."</string>
     <string name="bt_toast_2" msgid="8602553334099066582">"Nie można odebrać pliku."</string>
     <string name="bt_toast_3" msgid="6707884165086862518">"Zatrzymano odbiór pliku z urządzenia „<xliff:g id="SENDER">%1$s</xliff:g>”"</string>
     <string name="bt_toast_4" msgid="4678812947604395649">"Wysyłanie pliku do urządzenia „<xliff:g id="RECIPIENT">%1$s</xliff:g>”"</string>
