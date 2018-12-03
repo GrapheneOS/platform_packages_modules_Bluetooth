@@ -33,14 +33,13 @@ import android.os.ParcelUuid;
 import android.os.Parcelable;
 import android.util.Log;
 
-import androidx.annotation.VisibleForTesting;
-
 import com.android.bluetooth.a2dp.A2dpService;
 import com.android.bluetooth.hearingaid.HearingAidService;
 import com.android.bluetooth.hfp.HeadsetService;
 import com.android.bluetooth.hid.HidHostService;
 import com.android.bluetooth.pan.PanService;
 import com.android.internal.R;
+import com.android.internal.annotations.VisibleForTesting;
 
 import java.util.HashSet;
 import java.util.List;

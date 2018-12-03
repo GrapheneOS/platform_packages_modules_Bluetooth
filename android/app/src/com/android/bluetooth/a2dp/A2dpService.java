@@ -32,15 +32,14 @@ import android.os.HandlerThread;
 import android.provider.Settings;
 import android.util.Log;
 
-import androidx.annotation.GuardedBy;
-import androidx.annotation.VisibleForTesting;
-
 import com.android.bluetooth.BluetoothMetricsProto;
 import com.android.bluetooth.Utils;
 import com.android.bluetooth.avrcp.AvrcpTargetService;
 import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.MetricsLogger;
 import com.android.bluetooth.btservice.ProfileService;
+import com.android.internal.annotations.GuardedBy;
+import com.android.internal.annotations.VisibleForTesting;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -340,7 +339,7 @@ public class A2dpService extends ProfileService {
      * request, otherwise is for incoming connection request
      * @return true if connection is allowed, otherwise false
      */
-    @VisibleForTesting(otherwise = VisibleForTesting.PACKAGE_PRIVATE)
+    @VisibleForTesting(visibility = VisibleForTesting.Visibility.PACKAGE)
     public boolean okToConnect(BluetoothDevice device, boolean isOutgoingRequest) {
         Log.i(TAG, "okToConnect: device " + device + " isOutgoingRequest: " + isOutgoingRequest);
         // Check if this is an incoming connection in Quiet mode.
