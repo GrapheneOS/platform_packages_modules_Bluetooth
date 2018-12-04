@@ -20,9 +20,8 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.util.Log;
 
-import androidx.annotation.VisibleForTesting;
-
 import com.android.bluetooth.Utils;
+import com.android.internal.annotations.VisibleForTesting;
 
 /**
  * Defines native calls that are used by state machine/service to either send or receive

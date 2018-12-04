@@ -25,8 +25,8 @@ import android.os.Looper;
 import android.os.Message;
 import android.util.Log;
 
-import androidx.annotation.GuardedBy;
-import androidx.annotation.VisibleForTesting;
+import com.android.internal.annotations.GuardedBy;
+import com.android.internal.annotations.VisibleForTesting;
 
 import java.util.List;
 import java.util.Objects;

@@ -25,10 +25,9 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.util.Log;
 
-import androidx.annotation.VisibleForTesting;
-
 import com.android.bluetooth.Utils;
 import com.android.internal.annotations.GuardedBy;
+import com.android.internal.annotations.VisibleForTesting;
 
 /**
  * HearingAid Native Interface to/from JNI.
@@ -70,7 +69,7 @@ public class HearingAidNativeInterface {
      *
      * priorities to configure.
      */
-    @VisibleForTesting (otherwise = VisibleForTesting.PACKAGE_PRIVATE)
+    @VisibleForTesting(visibility = VisibleForTesting.Visibility.PACKAGE)
     public void init() {
         initNative();
     }
@@ -78,7 +77,7 @@ public class HearingAidNativeInterface {
     /**
      * Cleanup the native interface.
      */
-    @VisibleForTesting (otherwise = VisibleForTesting.PACKAGE_PRIVATE)
+    @VisibleForTesting(visibility = VisibleForTesting.Visibility.PACKAGE)
     public void cleanup() {
         cleanupNative();
     }
@@ -89,7 +88,7 @@ public class HearingAidNativeInterface {
      * @param device the remote device
      * @return true on success, otherwise false.
      */
-    @VisibleForTesting (otherwise = VisibleForTesting.PACKAGE_PRIVATE)
+    @VisibleForTesting(visibility = VisibleForTesting.Visibility.PACKAGE)
     public boolean connectHearingAid(BluetoothDevice device) {
         return connectHearingAidNative(getByteAddress(device));
     }
@@ -100,7 +99,7 @@ public class HearingAidNativeInterface {
      * @param device the remote device
      * @return true on success, otherwise false.
      */
-    @VisibleForTesting (otherwise = VisibleForTesting.PACKAGE_PRIVATE)
+    @VisibleForTesting(visibility = VisibleForTesting.Visibility.PACKAGE)
     public boolean disconnectHearingAid(BluetoothDevice device) {
         return disconnectHearingAidNative(getByteAddress(device));
     }
@@ -109,7 +108,7 @@ public class HearingAidNativeInterface {
      * Sets the HearingAid volume
      * @param volume
      */
-    @VisibleForTesting (otherwise = VisibleForTesting.PACKAGE_PRIVATE)
+    @VisibleForTesting(visibility = VisibleForTesting.Visibility.PACKAGE)
     public void setVolume(int volume) {
         setVolumeNative(volume);
     }
