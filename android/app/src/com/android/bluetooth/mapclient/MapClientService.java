@@ -31,11 +31,11 @@ import android.content.IntentFilter;
 import android.net.Uri;
 import android.os.ParcelUuid;
 import android.provider.Settings;
-import android.support.annotation.VisibleForTesting;
 import android.util.Log;
 
 import com.android.bluetooth.Utils;
 import com.android.bluetooth.btservice.ProfileService;
+import com.android.internal.annotations.VisibleForTesting;
 
 import java.util.ArrayList;
 import java.util.Arrays;
