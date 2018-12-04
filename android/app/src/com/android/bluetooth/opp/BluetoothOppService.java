@@ -52,7 +52,6 @@ import android.os.Binder;
 import android.os.Handler;
 import android.os.Message;
 import android.os.Process;
-import android.support.annotation.VisibleForTesting;
 import android.util.Log;
 
 import com.android.bluetooth.BluetoothObexTransport;
@@ -60,6 +59,7 @@ import com.android.bluetooth.IObexConnectionHandler;
 import com.android.bluetooth.ObexServerSockets;
 import com.android.bluetooth.btservice.ProfileService;
 import com.android.bluetooth.sdp.SdpManager;
+import com.android.internal.annotations.VisibleForTesting;
 
 import com.google.android.collect.Lists;
 

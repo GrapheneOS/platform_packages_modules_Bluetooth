@@ -31,7 +31,6 @@ import android.os.Looper;
 import android.os.Message;
 import android.os.ParcelUuid;
 import android.os.Parcelable;
-import android.support.annotation.VisibleForTesting;
 import android.util.Log;
 
 import com.android.bluetooth.a2dp.A2dpService;
@@ -40,6 +39,7 @@ import com.android.bluetooth.hfp.HeadsetService;
 import com.android.bluetooth.hid.HidHostService;
 import com.android.bluetooth.pan.PanService;
 import com.android.internal.R;
+import com.android.internal.annotations.VisibleForTesting;
 
 import java.util.HashSet;
 import java.util.List;
