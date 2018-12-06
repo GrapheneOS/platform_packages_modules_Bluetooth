@@ -439,11 +439,9 @@ public class A2dpService extends ProfileService {
     private void removeActiveDevice(boolean forceStopPlayingAudio) {
         BluetoothDevice previousActiveDevice = mActiveDevice;
         synchronized (mStateMachines) {
-            // Clear the active device
-            mActiveDevice = null;
             // This needs to happen before we inform the audio manager that the device
-            // disconnected. Please see comment in broadcastActiveDevice() for why.
-            broadcastActiveDevice(null);
+            // disconnected. Please see comment in updateAndBroadcastActiveDevice() for why.
+            updateAndBroadcastActiveDevice(null);
 
             if (previousActiveDevice == null) {
                 return;
@@ -483,10 +481,6 @@ public class A2dpService extends ProfileService {
                 Log.d(TAG, "setActiveDevice(" + device + "): previous is " + previousActiveDevice);
             }
 
-            if (previousActiveDevice != null && AvrcpTargetService.get() != null) {
-                AvrcpTargetService.get().storeVolumeForDevice(previousActiveDevice);
-            }
-
             if (device == null) {
                 // Remove active device and continue playing audio only if necessary.
                 removeActiveDevice(false);
@@ -512,10 +506,9 @@ public class A2dpService extends ProfileService {
             codecStatus = sm.getCodecStatus();
 
             boolean deviceChanged = !Objects.equals(device, mActiveDevice);
-            mActiveDevice = device;
             // This needs to happen before we inform the audio manager that the device
-            // disconnected. Please see comment in broadcastActiveDevice() for why.
-            broadcastActiveDevice(mActiveDevice);
+            // disconnected. Please see comment in updateAndBroadcastActiveDevice() for why.
+            updateAndBroadcastActiveDevice(device);
             if (deviceChanged) {
                 // Send an intent with the active device codec config
                 if (codecStatus != null) {
@@ -538,8 +531,6 @@ public class A2dpService extends ProfileService {
 
                 int rememberedVolume = -1;
                 if (AvrcpTargetService.get() != null) {
-                    AvrcpTargetService.get().volumeDeviceSwitched(mActiveDevice);
-
                     rememberedVolume = AvrcpTargetService.get()
                             .getRememberedVolumeForDevice(mActiveDevice);
                 }
@@ -839,9 +830,24 @@ public class A2dpService extends ProfileService {
         }
     }
 
-    private void broadcastActiveDevice(BluetoothDevice device) {
+    // This needs to run before any of the Audio Manager connection functions since
+    // AVRCP needs to be aware that the audio device is changed before the Audio Manager
+    // changes the volume of the output devices.
+    private void updateAndBroadcastActiveDevice(BluetoothDevice device) {
         if (DBG) {
-            Log.d(TAG, "broadcastActiveDevice(" + device + ")");
+            Log.d(TAG, "updateAndBroadcastActiveDevice(" + device + ")");
+        }
+
+        synchronized (mStateMachines) {
+            if (AvrcpTargetService.get() != null) {
+                if (mActiveDevice != null) {
+                    AvrcpTargetService.get().storeVolumeForDevice(mActiveDevice);
+                }
+
+                AvrcpTargetService.get().volumeDeviceSwitched(device);
+            }
+
+            mActiveDevice = device;
         }
 
         Intent intent = new Intent(BluetoothA2dp.ACTION_ACTIVE_DEVICE_CHANGED);
