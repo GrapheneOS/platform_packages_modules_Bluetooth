@@ -68,6 +68,17 @@ COVERAGE_TESTS = [
         "covered_files": [
             "packages/modules/Bluetooth/system/profile/sdp",
         ],
+    }, {
+        "test_name": "test-vendor_test_host",
+        "covered_files": [
+            "packages/modules/Bluetooth/system/vendor_libs/test_vendor_lib/include",
+            "packages/modules/Bluetooth/system/vendor_libs/test_vendor_lib/src",
+        ],
+    }, {
+        "test_name": "rootcanal-packets_test_host",
+        "covered_files": [
+            "packages/modules/Bluetooth/system/vendor_libs/test_vendor_lib/packets",
+        ],
     },
 ]
 
