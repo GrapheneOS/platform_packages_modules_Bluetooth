@@ -20,6 +20,7 @@ import android.os.IBinder;
 import android.os.IInterface;
 import android.os.RemoteException;
 import android.os.SystemClock;
+import android.os.UserHandle;
 import android.os.WorkSource;
 import android.util.Log;
 
@@ -88,8 +89,8 @@ import java.util.UUID;
         /** Whether the calling app has location permission */
         boolean hasLocationPermisson;
 
-        /** Whether the calling app has peers mac address permission */
-        boolean hasPeersMacAddressPermission;
+        /** The user handle of the app that started the scan */
+        UserHandle mUserHandle;
 
         /** Internal callback info queue, waiting to be send on congestion clear */
         private List<CallbackInfo> mCongestionQueue = new ArrayList<CallbackInfo>();
