@@ -71,6 +71,8 @@
 
     <!-- For A2DP sink ducking volume feature. -->
     <integer name="a2dp_sink_duck_percent">25</integer>
+    <!-- If true, device requests audio focus and start avrcp updates on source start or play -->
+    <bool name="a2dp_sink_automatically_request_audio_focus">false</bool>
 
     <!-- For enabling the hfp client connection service -->
     <bool name="hfp_client_connection_service_enabled">false</bool>
