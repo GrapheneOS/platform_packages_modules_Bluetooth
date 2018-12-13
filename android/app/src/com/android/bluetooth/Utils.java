@@ -24,6 +24,7 @@ import android.content.Context;
 import android.content.ContextWrapper;
 import android.content.pm.PackageManager;
 import android.content.pm.UserInfo;
+import android.location.LocationManager;
 import android.os.Binder;
 import android.os.Build;
 import android.os.ParcelUuid;
@@ -277,40 +278,33 @@ public final class Utils {
     }
 
     /**
-     * Checks that calling process has android.Manifest.permission.ACCESS_COARSE_LOCATION or
-     * android.Manifest.permission.ACCESS_FINE_LOCATION and a corresponding app op is allowed
+     * Checks whether location is off and must be on for us to perform some operation
+     */
+    public static boolean blockedByLocationOff(Context context, UserHandle userHandle) {
+        return !context.getSystemService(LocationManager.class)
+                .isLocationEnabledForUser(userHandle);
+    }
+
+    /**
+     * Checks that calling process has android.Manifest.permission.ACCESS_FINE_LOCATION and
+     * OP_FINE_LOCATION is allowed
      */
     public static boolean checkCallerHasLocationPermission(Context context, AppOpsManager appOps,
-            String callingPackage) {
+            String callingPackage, UserHandle userHandle) {
         if (context.checkCallingOrSelfPermission(android.Manifest.permission.ACCESS_FINE_LOCATION)
-                == PackageManager.PERMISSION_GRANTED && isAppOppAllowed(
+                != PackageManager.PERMISSION_GRANTED || !isAppOppAllowed(
                         appOps, AppOpsManager.OP_FINE_LOCATION, callingPackage)) {
-            return true;
+            Log.e(TAG, "Permission denial: Need ACCESS_FINE_LOCATION "
+                    + "permission to get scan results");
+            return false;
         }
 
-        if (context.checkCallingOrSelfPermission(android.Manifest.permission.ACCESS_COARSE_LOCATION)
-                == PackageManager.PERMISSION_GRANTED && isAppOppAllowed(
-                        appOps, AppOpsManager.OP_COARSE_LOCATION, callingPackage)) {
-            return true;
+        if (blockedByLocationOff(context, userHandle)) {
+            Log.e(TAG, "Permission denial: Location is off.");
+            return false;
         }
-        // Enforce location permission for apps targeting M and later versions
-        if (isMApp(context, callingPackage)) {
-            // PEERS_MAC_ADDRESS is another way to get scan results without
-            // requiring location permissions, so only throw an exception here
-            // if PEERS_MAC_ADDRESS permission is missing as well
-            if (!checkCallerHasPeersMacAddressPermission(context)) {
-                throw new SecurityException("Need ACCESS_COARSE_LOCATION or "
-                        + "ACCESS_FINE_LOCATION permission to get scan results");
-            }
-        } else {
-            // Pre-M apps running in the foreground should continue getting scan results
-            if (isForegroundApp(context, callingPackage)) {
-                return true;
-            }
-            Log.e(TAG, "Permission denial: Need ACCESS_COARSE_LOCATION or ACCESS_FINE_LOCATION "
-                    + "permission to get scan results");
-        }
-        return false;
+
+        return true;
     }
 
     /**

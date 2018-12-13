@@ -18,6 +18,7 @@ package com.android.bluetooth.btservice;
 
 import android.app.ActivityManager;
 import android.app.AlarmManager;
+import android.app.AppOpsManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.bluetooth.BluetoothActivityEnergyInfo;
@@ -183,6 +184,7 @@ public class AdapterService extends Service {
     private ProfileObserver mProfileObserver;
     private PhonePolicy mPhonePolicy;
     private ActiveDeviceManager mActiveDeviceManager;
+    private AppOpsManager mAppOps;
 
     /**
      * Register a {@link ProfileService} with AdapterService.
@@ -382,6 +384,7 @@ public class AdapterService extends Service {
         initNative();
         mNativeAvailable = true;
         mCallbacks = new RemoteCallbackList<IBluetoothCallback>();
+        mAppOps = getSystemService(AppOpsManager.class);
         //Load the name and address
         getAdapterPropertyNative(AbstractionLayer.BT_PROPERTY_BDADDR);
         getAdapterPropertyNative(AbstractionLayer.BT_PROPERTY_BDNAME);
@@ -1007,7 +1010,7 @@ public class AdapterService extends Service {
         }
 
         @Override
-        public boolean startDiscovery() {
+        public boolean startDiscovery(String callingPackage) {
             if (!Utils.checkCaller()) {
                 Log.w(TAG, "startDiscovery() - Not allowed for non-active user");
                 return false;
@@ -1017,7 +1020,7 @@ public class AdapterService extends Service {
             if (service == null) {
                 return false;
             }
-            return service.startDiscovery();
+            return service.startDiscovery(callingPackage);
         }
 
         @Override
@@ -1811,9 +1814,13 @@ public class AdapterService extends Service {
         return mAdapterProperties.setDiscoverableTimeout(timeout);
     }
 
-    boolean startDiscovery() {
+    boolean startDiscovery(String callingPackage) {
+        UserHandle callingUser = UserHandle.of(UserHandle.getCallingUserId());
         debugLog("startDiscovery");
         enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH ADMIN permission");
+        if (!Utils.checkCallerHasLocationPermission(this, mAppOps, callingPackage, callingUser)) {
+            return false;
+        }
 
         return startDiscoveryNative();
     }
