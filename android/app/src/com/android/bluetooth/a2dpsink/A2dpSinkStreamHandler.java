@@ -112,11 +112,8 @@ public class A2dpSinkStreamHandler extends Handler {
         }
         switch (message.what) {
             case SRC_STR_START:
-                // Always request audio focus if on TV.
-                if (isTvDevice()) {
-                    if (mAudioFocus == AudioManager.AUDIOFOCUS_NONE) {
-                        requestAudioFocus();
-                    }
+                if (isTvDevice() || shouldRequestFocus()) {
+                    requestAudioFocusIfNone();
                 }
                 // Audio stream has started, stop it if we don't have focus.
                 if (mAudioFocus == AudioManager.AUDIOFOCUS_NONE) {
@@ -130,9 +127,7 @@ public class A2dpSinkStreamHandler extends Handler {
 
             case SNK_PLAY:
                 // Local play command, gain focus and start avrcp updates.
-                if (mAudioFocus == AudioManager.AUDIOFOCUS_NONE) {
-                    requestAudioFocus();
-                }
+                requestAudioFocusIfNone();
                 break;
 
             case SNK_PAUSE:
@@ -143,11 +138,8 @@ public class A2dpSinkStreamHandler extends Handler {
             case SRC_PLAY:
                 mStreamAvailable = true;
                 // Remote play command.
-                // If is an iot device gain focus and start avrcp updates.
-                if (isIotDevice() || isTvDevice()) {
-                    if (mAudioFocus == AudioManager.AUDIOFOCUS_NONE) {
-                        requestAudioFocus();
-                    }
+                if (isIotDevice() || isTvDevice() || shouldRequestFocus()) {
+                    requestAudioFocusIfNone();
                     break;
                 }
                 // Otherwise, pause if we don't have focus
@@ -162,9 +154,7 @@ public class A2dpSinkStreamHandler extends Handler {
                 break;
 
             case REQUEST_FOCUS:
-                if (mAudioFocus == AudioManager.AUDIOFOCUS_NONE) {
-                    requestAudioFocus();
-                }
+                requestAudioFocusIfNone();
                 break;
 
             case DISCONNECT:
@@ -232,6 +222,12 @@ public class A2dpSinkStreamHandler extends Handler {
     /**
      * Utility functions.
      */
+    private void requestAudioFocusIfNone() {
+        if (mAudioFocus == AudioManager.AUDIOFOCUS_NONE) {
+            requestAudioFocus();
+        }
+    }
+
     private synchronized int requestAudioFocus() {
         // Bluetooth A2DP may carry Music, Audio Books, Navigation, or other sounds so mark content
         // type unknown.
@@ -354,6 +350,11 @@ public class A2dpSinkStreamHandler extends Handler {
 
     private boolean isTvDevice() {
         return mContext.getPackageManager().hasSystemFeature(PackageManager.FEATURE_LEANBACK);
+    }
+
+    private boolean shouldRequestFocus() {
+        return mContext.getResources()
+            .getBoolean(R.bool.a2dp_sink_automatically_request_audio_focus);
     }
 
 }
