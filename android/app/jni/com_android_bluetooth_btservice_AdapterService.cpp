@@ -40,8 +40,6 @@
 #include <hardware/bluetooth.h>
 #include <mutex>
 
-using base::StringPrintf;
-using bluetooth::Uuid;
 using android::bluetooth::BluetoothSocketManagerBinderServer;
 
 namespace android {
