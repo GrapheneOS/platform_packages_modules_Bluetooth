@@ -20,7 +20,6 @@
 #include <base/logging.h>
 #include <binder/IPCThreadState.h>
 
-using ::android::OK;
 using ::android::String8;
 using ::android::binder::Status;
 using ::android::os::ParcelFileDescriptor;
