@@ -105,6 +105,9 @@ public class GattService extends ProfileService {
             UUID.fromString("00002A4D-0000-1000-8000-00805F9B34FB")
     };
 
+    private static final UUID ANDROID_TV_REMOTE_SERVICE_UUID =
+            UUID.fromString("AB5E0001-5A21-4F05-BC7D-AF01F617B664");
+
     private static final UUID[] FIDO_UUIDS = {
             UUID.fromString("0000FFFD-0000-1000-8000-00805F9B34FB") // U2F
     };
@@ -2969,7 +2972,7 @@ public class GattService extends ProfileService {
     }
 
     private boolean isRestrictedSrvcUuid(final UUID srvcUuid) {
-        return isFidoUUID(srvcUuid);
+        return isFidoUUID(srvcUuid) || isAndroidTvRemoteSrvcUUID(srvcUuid);
     }
 
     private boolean isHidUuid(final UUID uuid) {
@@ -2979,6 +2982,10 @@ public class GattService extends ProfileService {
             }
         }
         return false;
+    }
+
+    private boolean isAndroidTvRemoteSrvcUUID(final UUID uuid) {
+        return ANDROID_TV_REMOTE_SERVICE_UUID.equals(uuid);
     }
 
     private boolean isFidoUUID(final UUID uuid) {
