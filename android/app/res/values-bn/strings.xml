@@ -84,10 +84,8 @@
     <string name="bt_toast_4" msgid="4678812947604395649">"\"<xliff:g id="RECIPIENT">%1$s</xliff:g>\" কে ফাইল পাঠানো হচ্ছে"</string>
     <string name="bt_toast_5" msgid="2846870992823019494">"\"<xliff:g id="RECIPIENT">%2$s</xliff:g>\" কে <xliff:g id="NUMBER">%1$s</xliff:g>টি ফাইল পাঠানো হচ্ছে"</string>
     <string name="bt_toast_6" msgid="1855266596936622458">"\"<xliff:g id="RECIPIENT">%1$s</xliff:g>\" কে ফাইল পাঠানো বন্ধ করা হয়েছে"</string>
-    <!-- no translation found for bt_sm_2_1_nosdcard (1791835163301501637) -->
-    <skip />
-    <!-- no translation found for bt_sm_2_1_default (9115512207909504071) -->
-    <skip />
+    <string name="bt_sm_2_1_nosdcard" msgid="1791835163301501637">"\"<xliff:g id="SENDER">%1$s</xliff:g>\"-এর পাঠানো ফাইল সেভ করার জন্য ইউএসবি স্টোরেজে পর্যাপ্ত জায়গা নেই"</string>
+    <string name="bt_sm_2_1_default" msgid="9115512207909504071">"\"<xliff:g id="SENDER">%1$s</xliff:g>\"-এর পাঠানো ফাইল সেভ করার জন্য এসডি কার্ডে পর্যাপ্ত জায়গা নেই"</string>
     <string name="bt_sm_2_2" msgid="2965243265852680543">"জায়গা প্রয়োজন: <xliff:g id="SIZE">%1$s</xliff:g>"</string>
     <string name="ErrorTooManyRequests" msgid="8578277541472944529">"অনেকগুলি অনুরোধ প্রক্রিয়া করা হচ্ছে৷ পরে আবার চেষ্টা করুন৷"</string>
     <string name="status_pending" msgid="2503691772030877944">"ফাইল ট্রান্সফার করা এখনও শুরু হয়নি।"</string>
@@ -97,10 +95,8 @@
     <string name="status_forbidden" msgid="613956401054050725">"টার্গেট ডিভাইস দ্বারা ট্রান্সফার নিষিদ্ধ করা হয়েছে।"</string>
     <string name="status_canceled" msgid="6664490318773098285">"ব্যবহারকারী দ্বারা ট্রান্সফার বাতিল করা হয়েছে।"</string>
     <string name="status_file_error" msgid="3671917770630165299">"স্টোরেজ সমস্যা।"</string>
-    <!-- no translation found for status_no_sd_card_nosdcard (573631036356922221) -->
-    <skip />
-    <!-- no translation found for status_no_sd_card_default (396564893716701954) -->
-    <skip />
+    <string name="status_no_sd_card_nosdcard" msgid="573631036356922221">"কোনও ইউএসবি স্টোরেজ নেই।"</string>
+    <string name="status_no_sd_card_default" msgid="396564893716701954">"কোনও এসডি কার্ড নেই। ট্রান্সফার করা ফাইলগুলি সেভ করতে এসডি কার্ড যোগ করুন।"</string>
     <string name="status_connection_error" msgid="947681831523219891">"সংযোগ অসফল।"</string>
     <string name="status_protocol_error" msgid="3245444473429269539">"অনুরোধ সঠিকভাবে পরিচালনা করা যাবে না।"</string>
     <string name="status_unknown_error" msgid="8156660554237824912">"অজানা ত্রুটি৷"</string>
