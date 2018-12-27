@@ -819,7 +819,10 @@ static jboolean phoneStateChangeNative(JNIEnv* env, jobject object,
     return JNI_FALSE;
   }
   const char* number = env->GetStringUTFChars(number_str, nullptr);
-  const char* name = env->GetStringUTFChars(name_str, nullptr);
+  const char* name = nullptr;
+  if (name_str != nullptr) {
+    name = env->GetStringUTFChars(name_str, nullptr);
+  }
   bt_status_t status = sBluetoothHfpInterface->PhoneStateChange(
       num_active, num_held, (bluetooth::headset::bthf_call_state_t)call_state,
       number, (bluetooth::headset::bthf_call_addrtype_t)type, name,
@@ -828,7 +831,9 @@ static jboolean phoneStateChangeNative(JNIEnv* env, jobject object,
     ALOGE("Failed report phone state change, status: %d", status);
   }
   env->ReleaseStringUTFChars(number_str, number);
-  env->ReleaseStringUTFChars(name_str, name);
+  if (name != nullptr) {
+    env->ReleaseStringUTFChars(name_str, name);
+  }
   env->ReleaseByteArrayElements(address, addr, 0);
   return (status == BT_STATUS_SUCCESS) ? JNI_TRUE : JNI_FALSE;
 }
