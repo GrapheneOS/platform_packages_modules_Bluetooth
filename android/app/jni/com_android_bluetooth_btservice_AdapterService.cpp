@@ -1347,12 +1347,6 @@ jint JNI_OnLoad(JavaVM* jvm, void* reserved) {
     return JNI_ERR;
   }
 
-  status = android::register_com_android_bluetooth_hdp(e);
-  if (status < 0) {
-    ALOGE("jni hdp registration failure: %d", status);
-    return JNI_ERR;
-  }
-
   status = android::register_com_android_bluetooth_pan(e);
   if (status < 0) {
     ALOGE("jni pan registration failure: %d", status);
