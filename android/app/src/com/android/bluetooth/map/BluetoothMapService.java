@@ -348,9 +348,7 @@ public class BluetoothMapService extends ProfileService {
                     updateMasInstancesHandler();
                     break;
                 case START_LISTENER:
-                    if (mAdapter.isEnabled()) {
-                        startSocketListeners(msg.arg1);
-                    }
+                    startSocketListeners(msg.arg1);
                     break;
                 case MSG_MAS_CONNECT:
                     onConnectHandler(msg.arg1);
@@ -606,7 +604,6 @@ public class BluetoothMapService extends ProfileService {
 
         IntentFilter filter = new IntentFilter();
         filter.addAction(BluetoothDevice.ACTION_CONNECTION_ACCESS_REPLY);
-        filter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
         filter.addAction(BluetoothDevice.ACTION_ACL_DISCONNECTED);
         filter.addAction(BluetoothDevice.ACTION_SDP_RECORD);
         filter.addAction(ACTION_SHOW_MAPS_SETTINGS);
@@ -988,30 +985,11 @@ public class BluetoothMapService extends ProfileService {
     private class MapBroadcastReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
-            if (DEBUG) {
-                Log.d(TAG, "onReceive");
-            }
             String action = intent.getAction();
             if (DEBUG) {
                 Log.d(TAG, "onReceive: " + action);
             }
-            if (action.equals(BluetoothAdapter.ACTION_STATE_CHANGED)) {
-                int state =
-                        intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.ERROR);
-                if (state == BluetoothAdapter.STATE_TURNING_OFF) {
-                    if (DEBUG) {
-                        Log.d(TAG, "STATE_TURNING_OFF");
-                    }
-                    sendShutdownMessage();
-                } else if (state == BluetoothAdapter.STATE_ON) {
-                    if (DEBUG) {
-                        Log.d(TAG, "STATE_ON");
-                    }
-                    // start ServerSocket listener threads
-                    sendStartListenerMessage(-1);
-                }
-
-            } else if (action.equals(USER_CONFIRM_TIMEOUT_ACTION)) {
+            if (action.equals(USER_CONFIRM_TIMEOUT_ACTION)) {
                 if (DEBUG) {
                     Log.d(TAG, "USER_CONFIRM_TIMEOUT ACTION Received.");
                 }
