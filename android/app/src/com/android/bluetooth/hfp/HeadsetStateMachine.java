@@ -16,10 +16,12 @@
 
 package com.android.bluetooth.hfp;
 
+import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothAssignedNumbers;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothHeadset;
 import android.bluetooth.BluetoothProfile;
+import android.bluetooth.hfp.BluetoothHfpProtoEnums;
 import android.content.Intent;
 import android.media.AudioManager;
 import android.os.Looper;
@@ -28,7 +30,9 @@ import android.os.SystemClock;
 import android.os.UserHandle;
 import android.telephony.PhoneNumberUtils;
 import android.telephony.PhoneStateListener;
+import android.text.TextUtils;
 import android.util.Log;
+import android.util.StatsLog;
 
 import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.ProfileService;
@@ -299,6 +303,12 @@ public class HeadsetStateMachine extends StateMachine {
         // Should not be called from enter() method
         void broadcastAudioState(BluetoothDevice device, int fromState, int toState) {
             stateLogD("broadcastAudioState: " + device + ": " + fromState + "->" + toState);
+            StatsLog.write(StatsLog.BLUETOOTH_SCO_CONNECTION_STATE_CHANGED,
+                    mAdapterService.obfuscateAddress(device),
+                    getConnectionStateFromAudioState(toState),
+                    TextUtils.equals(mAudioParams.get(HEADSET_WBS), HEADSET_AUDIO_FEATURE_ON)
+                            ? BluetoothHfpProtoEnums.SCO_CODEC_MSBC
+                            : BluetoothHfpProtoEnums.SCO_CODEC_CVSD);
             mHeadsetService.onAudioStateChangedFromStateMachine(device, fromState, toState);
             Intent intent = new Intent(BluetoothHeadset.ACTION_AUDIO_STATE_CHANGED);
             intent.putExtra(BluetoothProfile.EXTRA_PREVIOUS_STATE, fromState);
@@ -2011,6 +2021,18 @@ public class HeadsetStateMachine extends StateMachine {
         } else {
             log("handleAccessPermissionResult - RESULT_NONE");
         }
+    }
+
+    private static int getConnectionStateFromAudioState(int audioState) {
+        switch (audioState) {
+            case BluetoothHeadset.STATE_AUDIO_CONNECTED:
+                return BluetoothAdapter.STATE_CONNECTED;
+            case BluetoothHeadset.STATE_AUDIO_CONNECTING:
+                return BluetoothAdapter.STATE_CONNECTING;
+            case BluetoothHeadset.STATE_AUDIO_DISCONNECTED:
+                return BluetoothAdapter.STATE_DISCONNECTED;
+        }
+        return BluetoothAdapter.STATE_DISCONNECTED;
     }
 
     private static String getMessageName(int what) {

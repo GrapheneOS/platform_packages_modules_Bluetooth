@@ -40,7 +40,6 @@ import android.content.IntentFilter;
 import android.os.ParcelUuid;
 import android.os.SystemProperties;
 import android.os.UserHandle;
-import android.provider.Settings.Secure;
 import android.util.Log;
 import android.util.Pair;
 import android.util.StatsLog;
@@ -573,11 +572,9 @@ class AdapterProperties {
         Log.d(TAG,
                 "PROFILE_CONNECTION_STATE_CHANGE: profile=" + profile + ", device=" + device + ", "
                         + prevState + " -> " + state);
-        String ssaid = Secure.getString(mService.getContentResolver(), Secure.ANDROID_ID);
-        String combined = ssaid + device.getAddress();
-        int obfuscated_id = combined.hashCode() & 0xFFFF; // Last two bytes only
-        StatsLog.write(StatsLog.BLUETOOTH_CONNECTION_STATE_CHANGED,
-                state, obfuscated_id, profile);
+        StatsLog.write(StatsLog.BLUETOOTH_CONNECTION_STATE_CHANGED, state, 0 /* deprecated */,
+                profile, mService.obfuscateAddress(device));
+
         if (!isNormalStateTransition(prevState, state)) {
             Log.w(TAG,
                     "PROFILE_CONNECTION_STATE_CHANGE: unexpected transition for profile=" + profile
