@@ -89,8 +89,6 @@ int register_com_android_bluetooth_hid_host(JNIEnv* env);
 
 int register_com_android_bluetooth_hid_device(JNIEnv* env);
 
-int register_com_android_bluetooth_hdp(JNIEnv* env);
-
 int register_com_android_bluetooth_pan(JNIEnv* env);
 
 int register_com_android_bluetooth_gatt (JNIEnv* env);

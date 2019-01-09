@@ -13,7 +13,6 @@ cc_library_shared {
         "com_android_bluetooth_hid_host.cpp",
         "com_android_bluetooth_hid_device.cpp",
         "com_android_bluetooth_hearing_aid.cpp",
-        "com_android_bluetooth_hdp.cpp",
         "com_android_bluetooth_pan.cpp",
         "com_android_bluetooth_gatt.cpp",
         "com_android_bluetooth_sdp.cpp",
