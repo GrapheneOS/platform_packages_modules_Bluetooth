@@ -45,8 +45,6 @@ import com.android.bluetooth.R;
 import com.android.bluetooth.TestUtils;
 import com.android.bluetooth.Utils;
 
-import com.google.protobuf.ByteString;
-
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -506,11 +504,10 @@ public class AdapterServiceTest {
         byte[] metricsSalt = getMetricsSalt(mAdapterConfig);
         Assert.assertNotNull(metricsSalt);
         BluetoothDevice device = TestUtils.getTestDevice(BluetoothAdapter.getDefaultAdapter(), 0);
-        ByteString obfuscatedAddress = mAdapterService.obfuscateAddress(device);
-        Assert.assertFalse(obfuscatedAddress.isEmpty());
-        Assert.assertFalse(isByteArrayAllZero(obfuscatedAddress.toByteArray()));
-        Assert.assertArrayEquals(obfuscateInJava(metricsSalt, device),
-                obfuscatedAddress.toByteArray());
+        byte[] obfuscatedAddress = mAdapterService.obfuscateAddress(device);
+        Assert.assertTrue(obfuscatedAddress.length > 0);
+        Assert.assertFalse(isByteArrayAllZero(obfuscatedAddress));
+        Assert.assertArrayEquals(obfuscateInJava(metricsSalt, device), obfuscatedAddress);
     }
 
     /**
@@ -525,11 +522,10 @@ public class AdapterServiceTest {
         byte[] metricsSalt = getMetricsSalt(mAdapterConfig);
         Assert.assertNotNull(metricsSalt);
         BluetoothDevice device = TestUtils.getTestDevice(BluetoothAdapter.getDefaultAdapter(), 0);
-        ByteString obfuscatedAddress = mAdapterService.obfuscateAddress(device);
-        Assert.assertFalse(obfuscatedAddress.isEmpty());
-        Assert.assertFalse(isByteArrayAllZero(obfuscatedAddress.toByteArray()));
-        Assert.assertArrayEquals(obfuscateInJava(metricsSalt, device),
-                obfuscatedAddress.toByteArray());
+        byte[] obfuscatedAddress = mAdapterService.obfuscateAddress(device);
+        Assert.assertTrue(obfuscatedAddress.length > 0);
+        Assert.assertFalse(isByteArrayAllZero(obfuscatedAddress));
+        Assert.assertArrayEquals(obfuscateInJava(metricsSalt, device), obfuscatedAddress);
     }
 
     /**
@@ -541,27 +537,27 @@ public class AdapterServiceTest {
         byte[] metricsSalt = getMetricsSalt(mAdapterConfig);
         Assert.assertNotNull(metricsSalt);
         BluetoothDevice device = TestUtils.getTestDevice(BluetoothAdapter.getDefaultAdapter(), 0);
-        ByteString obfuscatedAddress1 = mAdapterService.obfuscateAddress(device);
-        Assert.assertFalse(obfuscatedAddress1.isEmpty());
-        Assert.assertFalse(isByteArrayAllZero(obfuscatedAddress1.toByteArray()));
+        byte[] obfuscatedAddress1 = mAdapterService.obfuscateAddress(device);
+        Assert.assertTrue(obfuscatedAddress1.length > 0);
+        Assert.assertFalse(isByteArrayAllZero(obfuscatedAddress1));
         Assert.assertArrayEquals(obfuscateInJava(metricsSalt, device),
-                obfuscatedAddress1.toByteArray());
+                obfuscatedAddress1);
         // Enable
         doEnable(0, false);
         Assert.assertTrue(mAdapterService.isEnabled());
-        ByteString obfuscatedAddress3 = mAdapterService.obfuscateAddress(device);
-        Assert.assertFalse(obfuscatedAddress3.isEmpty());
-        Assert.assertFalse(isByteArrayAllZero(obfuscatedAddress3.toByteArray()));
-        Assert.assertArrayEquals(obfuscatedAddress3.toByteArray(),
-                obfuscatedAddress1.toByteArray());
+        byte[] obfuscatedAddress3 = mAdapterService.obfuscateAddress(device);
+        Assert.assertTrue(obfuscatedAddress3.length > 0);
+        Assert.assertFalse(isByteArrayAllZero(obfuscatedAddress3));
+        Assert.assertArrayEquals(obfuscatedAddress3,
+                obfuscatedAddress1);
         // Disable
         doDisable(0, false);
         Assert.assertFalse(mAdapterService.isEnabled());
-        ByteString obfuscatedAddress4 = mAdapterService.obfuscateAddress(device);
-        Assert.assertFalse(obfuscatedAddress4.isEmpty());
-        Assert.assertFalse(isByteArrayAllZero(obfuscatedAddress4.toByteArray()));
-        Assert.assertArrayEquals(obfuscatedAddress4.toByteArray(),
-                obfuscatedAddress1.toByteArray());
+        byte[] obfuscatedAddress4 = mAdapterService.obfuscateAddress(device);
+        Assert.assertTrue(obfuscatedAddress4.length > 0);
+        Assert.assertFalse(isByteArrayAllZero(obfuscatedAddress4));
+        Assert.assertArrayEquals(obfuscatedAddress4,
+                obfuscatedAddress1);
     }
 
     /**
@@ -575,19 +571,19 @@ public class AdapterServiceTest {
         Assert.assertNotNull(metricsSalt);
         Assert.assertFalse(mAdapterService.isEnabled());
         BluetoothDevice device = TestUtils.getTestDevice(BluetoothAdapter.getDefaultAdapter(), 0);
-        ByteString obfuscatedAddress1 = mAdapterService.obfuscateAddress(device);
-        Assert.assertFalse(obfuscatedAddress1.isEmpty());
-        Assert.assertFalse(isByteArrayAllZero(obfuscatedAddress1.toByteArray()));
+        byte[] obfuscatedAddress1 = mAdapterService.obfuscateAddress(device);
+        Assert.assertTrue(obfuscatedAddress1.length > 0);
+        Assert.assertFalse(isByteArrayAllZero(obfuscatedAddress1));
         Assert.assertArrayEquals(obfuscateInJava(metricsSalt, device),
-                obfuscatedAddress1.toByteArray());
+                obfuscatedAddress1);
         tearDown();
         setUp();
         Assert.assertFalse(mAdapterService.isEnabled());
-        ByteString obfuscatedAddress2 = mAdapterService.obfuscateAddress(device);
-        Assert.assertFalse(obfuscatedAddress2.isEmpty());
-        Assert.assertFalse(isByteArrayAllZero(obfuscatedAddress2.toByteArray()));
-        Assert.assertArrayEquals(obfuscatedAddress2.toByteArray(),
-                obfuscatedAddress1.toByteArray());
+        byte[] obfuscatedAddress2 = mAdapterService.obfuscateAddress(device);
+        Assert.assertTrue(obfuscatedAddress2.length > 0);
+        Assert.assertFalse(isByteArrayAllZero(obfuscatedAddress2));
+        Assert.assertArrayEquals(obfuscatedAddress2,
+                obfuscatedAddress1);
     }
 
     /**
@@ -611,27 +607,27 @@ public class AdapterServiceTest {
     public void testObfuscateBluetoothAddress_FactoryReset() {
         Assert.assertFalse(mAdapterService.isEnabled());
         BluetoothDevice device = TestUtils.getTestDevice(BluetoothAdapter.getDefaultAdapter(), 0);
-        ByteString obfuscatedAddress1 = mAdapterService.obfuscateAddress(device);
-        Assert.assertFalse(obfuscatedAddress1.isEmpty());
-        Assert.assertFalse(isByteArrayAllZero(obfuscatedAddress1.toByteArray()));
+        byte[] obfuscatedAddress1 = mAdapterService.obfuscateAddress(device);
+        Assert.assertTrue(obfuscatedAddress1.length > 0);
+        Assert.assertFalse(isByteArrayAllZero(obfuscatedAddress1));
         mAdapterService.factoryReset();
-        ByteString obfuscatedAddress2 = mAdapterService.obfuscateAddress(device);
-        Assert.assertFalse(obfuscatedAddress2.isEmpty());
-        Assert.assertFalse(isByteArrayAllZero(obfuscatedAddress2.toByteArray()));
-        Assert.assertFalse(Arrays.equals(obfuscatedAddress2.toByteArray(),
-                obfuscatedAddress1.toByteArray()));
+        byte[] obfuscatedAddress2 = mAdapterService.obfuscateAddress(device);
+        Assert.assertTrue(obfuscatedAddress2.length > 0);
+        Assert.assertFalse(isByteArrayAllZero(obfuscatedAddress2));
+        Assert.assertFalse(Arrays.equals(obfuscatedAddress2,
+                obfuscatedAddress1));
         doEnable(0, false);
-        ByteString obfuscatedAddress3 = mAdapterService.obfuscateAddress(device);
-        Assert.assertFalse(obfuscatedAddress3.isEmpty());
-        Assert.assertFalse(isByteArrayAllZero(obfuscatedAddress3.toByteArray()));
-        Assert.assertArrayEquals(obfuscatedAddress3.toByteArray(),
-                obfuscatedAddress2.toByteArray());
+        byte[] obfuscatedAddress3 = mAdapterService.obfuscateAddress(device);
+        Assert.assertTrue(obfuscatedAddress3.length > 0);
+        Assert.assertFalse(isByteArrayAllZero(obfuscatedAddress3));
+        Assert.assertArrayEquals(obfuscatedAddress3,
+                obfuscatedAddress2);
         mAdapterService.factoryReset();
-        ByteString obfuscatedAddress4 = mAdapterService.obfuscateAddress(device);
-        Assert.assertFalse(obfuscatedAddress4.isEmpty());
-        Assert.assertFalse(isByteArrayAllZero(obfuscatedAddress4.toByteArray()));
-        Assert.assertFalse(Arrays.equals(obfuscatedAddress4.toByteArray(),
-                obfuscatedAddress3.toByteArray()));
+        byte[] obfuscatedAddress4 = mAdapterService.obfuscateAddress(device);
+        Assert.assertTrue(obfuscatedAddress4.length > 0);
+        Assert.assertFalse(isByteArrayAllZero(obfuscatedAddress4));
+        Assert.assertFalse(Arrays.equals(obfuscatedAddress4,
+                obfuscatedAddress3));
     }
 
     /**
@@ -645,20 +641,20 @@ public class AdapterServiceTest {
         Assert.assertNotNull(metricsSalt1);
         Assert.assertFalse(mAdapterService.isEnabled());
         BluetoothDevice device = TestUtils.getTestDevice(BluetoothAdapter.getDefaultAdapter(), 0);
-        ByteString obfuscatedAddress1 = mAdapterService.obfuscateAddress(device);
-        Assert.assertFalse(obfuscatedAddress1.isEmpty());
-        Assert.assertFalse(isByteArrayAllZero(obfuscatedAddress1.toByteArray()));
+        byte[] obfuscatedAddress1 = mAdapterService.obfuscateAddress(device);
+        Assert.assertTrue(obfuscatedAddress1.length > 0);
+        Assert.assertFalse(isByteArrayAllZero(obfuscatedAddress1));
         Assert.assertArrayEquals(obfuscateInJava(metricsSalt1, device),
-                obfuscatedAddress1.toByteArray());
+                obfuscatedAddress1);
         mAdapterService.factoryReset();
         tearDown();
         setUp();
         // Cannot verify metrics salt since it is not written to disk until native cleanup
-        ByteString obfuscatedAddress2 = mAdapterService.obfuscateAddress(device);
-        Assert.assertFalse(obfuscatedAddress2.isEmpty());
-        Assert.assertFalse(isByteArrayAllZero(obfuscatedAddress2.toByteArray()));
-        Assert.assertFalse(Arrays.equals(obfuscatedAddress2.toByteArray(),
-                obfuscatedAddress1.toByteArray()));
+        byte[] obfuscatedAddress2 = mAdapterService.obfuscateAddress(device);
+        Assert.assertTrue(obfuscatedAddress2.length > 0);
+        Assert.assertFalse(isByteArrayAllZero(obfuscatedAddress2));
+        Assert.assertFalse(Arrays.equals(obfuscatedAddress2,
+                obfuscatedAddress1));
     }
 
     private static byte[] getMetricsSalt(HashMap<String, HashMap<String, String>> adapterConfig) {
