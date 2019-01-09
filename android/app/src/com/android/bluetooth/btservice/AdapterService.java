@@ -73,7 +73,6 @@ import com.android.internal.R;
 import com.android.internal.annotations.VisibleForTesting;
 import com.android.internal.app.IBatteryStats;
 
-import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
 
 import java.io.FileDescriptor;
@@ -2620,10 +2619,10 @@ public class AdapterService extends Service {
      *  Obfuscate Bluetooth MAC address into a PII free ID string
      *
      *  @param device Bluetooth device whose MAC address will be obfuscated
-     *  @return a {@link ByteString} that is unique to this MAC address on this device
+     *  @return a byte array that is unique to this MAC address on this device
      */
-    public ByteString obfuscateAddress(BluetoothDevice device) {
-        return ByteString.copyFrom(obfuscateAddressNative(Utils.getByteAddress(device)));
+    public byte[] obfuscateAddress(BluetoothDevice device) {
+        return obfuscateAddressNative(Utils.getByteAddress(device));
     }
 
     static native void classInitNative();
