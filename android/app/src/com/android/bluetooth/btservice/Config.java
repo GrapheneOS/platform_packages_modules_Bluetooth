@@ -30,7 +30,6 @@ import com.android.bluetooth.a2dpsink.A2dpSinkService;
 import com.android.bluetooth.avrcp.AvrcpTargetService;
 import com.android.bluetooth.avrcpcontroller.AvrcpControllerService;
 import com.android.bluetooth.gatt.GattService;
-import com.android.bluetooth.hdp.HealthService;
 import com.android.bluetooth.hearingaid.HearingAidService;
 import com.android.bluetooth.hfp.HeadsetService;
 import com.android.bluetooth.hfpclient.HeadsetClientService;
@@ -73,8 +72,6 @@ public class Config {
                     (1 << BluetoothProfile.A2DP_SINK)),
             new ProfileConfig(HidHostService.class, R.bool.profile_supported_hid_host,
                     (1 << BluetoothProfile.HID_HOST)),
-            new ProfileConfig(HealthService.class, R.bool.profile_supported_hdp,
-                    (1 << BluetoothProfile.HEALTH)),
             new ProfileConfig(PanService.class, R.bool.profile_supported_pan,
                     (1 << BluetoothProfile.PAN)),
             new ProfileConfig(GattService.class, R.bool.profile_supported_gatt,
