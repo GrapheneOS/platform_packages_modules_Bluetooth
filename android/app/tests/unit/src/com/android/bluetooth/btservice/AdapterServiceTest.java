@@ -494,6 +494,17 @@ public class AdapterServiceTest {
         SystemProperties.set(AdapterService.BLUETOOTH_BTSNOOP_ENABLE_PROPERTY, snoopSetting);
     }
 
+
+    /**
+     * Test: Obfuscate a null Bluetooth
+     * Check if returned value from {@link AdapterService#obfuscateAddress(BluetoothDevice)} is
+     * an empty array when device address is null
+     */
+    @Test
+    public void testObfuscateBluetoothAddress_NullAddress() {
+        Assert.assertArrayEquals(mAdapterService.obfuscateAddress(null), new byte[0]);
+    }
+
     /**
      * Test: Obfuscate Bluetooth address when Bluetooth is disabled
      * Check whether the returned value meets expectation
