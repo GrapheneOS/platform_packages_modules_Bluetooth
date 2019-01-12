@@ -30,6 +30,7 @@ import android.content.IntentFilter;
 import android.media.AudioManager;
 import android.os.HandlerThread;
 import android.util.Log;
+import android.util.StatsLog;
 
 import com.android.bluetooth.BluetoothMetricsProto;
 import com.android.bluetooth.Utils;
@@ -810,6 +811,24 @@ public class A2dpService extends ProfileService {
      */
     void codecConfigUpdated(BluetoothDevice device, BluetoothCodecStatus codecStatus,
                             boolean sameAudioFeedingParameters) {
+        // Log codec config and capability metrics
+        BluetoothCodecConfig codecConfig = codecStatus.getCodecConfig();
+        StatsLog.write(StatsLog.BLUETOOTH_A2DP_CODEC_CONFIG_CHANGED,
+                mAdapterService.obfuscateAddress(device), codecConfig.getCodecType(),
+                codecConfig.getCodecPriority(), codecConfig.getSampleRate(),
+                codecConfig.getBitsPerSample(), codecConfig.getChannelMode(),
+                codecConfig.getCodecSpecific1(), codecConfig.getCodecSpecific2(),
+                codecConfig.getCodecSpecific3(), codecConfig.getCodecSpecific4());
+        BluetoothCodecConfig[] codecCapabilities = codecStatus.getCodecsSelectableCapabilities();
+        for (BluetoothCodecConfig codecCapability : codecCapabilities) {
+            StatsLog.write(StatsLog.BLUETOOTH_A2DP_CODEC_CAPABILITY_CHANGED,
+                    mAdapterService.obfuscateAddress(device), codecCapability.getCodecType(),
+                    codecCapability.getCodecPriority(), codecCapability.getSampleRate(),
+                    codecCapability.getBitsPerSample(), codecCapability.getChannelMode(),
+                    codecConfig.getCodecSpecific1(), codecConfig.getCodecSpecific2(),
+                    codecConfig.getCodecSpecific3(), codecConfig.getCodecSpecific4());
+        }
+
         broadcastCodecConfig(device, codecStatus);
 
         // Inform the Audio Service about the codec configuration change,
@@ -866,6 +885,8 @@ public class A2dpService extends ProfileService {
             mActiveDevice = device;
         }
 
+        StatsLog.write(StatsLog.BLUETOOTH_ACTIVE_DEVICE_CHANGED, BluetoothProfile.A2DP,
+                mAdapterService.obfuscateAddress(device));
         Intent intent = new Intent(BluetoothA2dp.ACTION_ACTIVE_DEVICE_CHANGED);
         intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
         intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY_BEFORE_BOOT
