@@ -68,10 +68,10 @@ public final class DatabaseManagerTest {
                 MetadataDatabase.class).build();
 
         mDatabaseManager = new DatabaseManager(mAdapterService);
-        //mDatabaseManager.doNotMigrateSettingGlobal();
 
         BluetoothDevice[] bondedDevices = {};
         doReturn(bondedDevices).when(mAdapterService).getBondedDevices();
+        doNothing().when(mAdapterService).metadataChanged(anyString(), anyInt(), anyString());
 
         mDatabaseManager.start(mDatabase);
         // Wait for handler thread finish its task.
@@ -182,11 +182,13 @@ public final class DatabaseManagerTest {
 
     @Test
     public void testRemoveUnusedMetadata() {
-        // Insert two devices to database and cache, only mTestDevice is
+        // Insert three devices to database and cache, only mTestDevice is
         // in the bonded list
         BluetoothDevice otherDevice = BluetoothAdapter.getDefaultAdapter()
                 .getRemoteDevice(OTHER_BT_ADDR);
         Metadata otherData = new Metadata(OTHER_BT_ADDR);
+        // Add metadata for otherDevice
+        otherData.setCustomizedMeta(0, "value");
         mDatabaseManager.mMetadataCache.put(OTHER_BT_ADDR, otherData);
         mDatabase.insert(otherData);
 
@@ -201,6 +203,9 @@ public final class DatabaseManagerTest {
         // Wait for database update
         TestUtils.waitForLooperToFinishScheduledTask(mDatabaseManager.getHandlerLooper());
 
+        // Check removed device report metadata changed to null
+        verify(mAdapterService).metadataChanged(OTHER_BT_ADDR, 0, null);
+
         List<Metadata> list = mDatabase.load();
 
         // Check number of metadata in the database
@@ -214,6 +219,85 @@ public final class DatabaseManagerTest {
         // Wait for clear database
         TestUtils.waitForLooperToFinishScheduledTask(mDatabaseManager.getHandlerLooper());
         mDatabaseManager.mMetadataCache.clear();
+    }
+
+    @Test
+    public void testSetGetCustomMeta() {
+        int badKey = 100;
+        String value = "input value";
+
+        // Device is not in database
+        testSetGetCustomMetaCase(false, BluetoothDevice.METADATA_MANUFACTURER_NAME,
+                value, true);
+        testSetGetCustomMetaCase(false, BluetoothDevice.METADATA_MODEL_NAME,
+                value, true);
+        testSetGetCustomMetaCase(false, BluetoothDevice.METADATA_SOFTWARE_VERSION,
+                value, true);
+        testSetGetCustomMetaCase(false, BluetoothDevice.METADATA_HARDWARE_VERSION,
+                value, true);
+        testSetGetCustomMetaCase(false, BluetoothDevice.METADATA_COMPANION_APP,
+                value, true);
+        testSetGetCustomMetaCase(false, BluetoothDevice.METADATA_MAIN_ICON,
+                value, true);
+        testSetGetCustomMetaCase(false, BluetoothDevice.METADATA_IS_UNTHETHERED_HEADSET,
+                value, true);
+        testSetGetCustomMetaCase(false, BluetoothDevice.METADATA_UNTHETHERED_LEFT_ICON,
+                value, true);
+        testSetGetCustomMetaCase(false, BluetoothDevice.METADATA_UNTHETHERED_RIGHT_ICON,
+                value, true);
+        testSetGetCustomMetaCase(false, BluetoothDevice.METADATA_UNTHETHERED_CASE_ICON,
+                value, true);
+        testSetGetCustomMetaCase(false, BluetoothDevice.METADATA_UNTHETHERED_LEFT_BATTERY,
+                value, true);
+        testSetGetCustomMetaCase(false, BluetoothDevice.METADATA_UNTHETHERED_RIGHT_BATTERY,
+                value, true);
+        testSetGetCustomMetaCase(false, BluetoothDevice.METADATA_UNTHETHERED_CASE_BATTERY,
+                value, true);
+        testSetGetCustomMetaCase(false, BluetoothDevice.METADATA_UNTHETHERED_LEFT_CHARGING,
+                value, true);
+        testSetGetCustomMetaCase(false, BluetoothDevice.METADATA_UNTHETHERED_RIGHT_CHARGING,
+                value, true);
+        testSetGetCustomMetaCase(false, BluetoothDevice.METADATA_UNTHETHERED_CASE_CHARGING,
+                value, true);
+        testSetGetCustomMetaCase(false, BluetoothDevice.METADATA_ENHANCED_SETTINGS_UI_URI,
+                value, true);
+        testSetGetCustomMetaCase(false, badKey, value, false);
+
+        // Device is in database
+        testSetGetCustomMetaCase(true, BluetoothDevice.METADATA_MANUFACTURER_NAME,
+                value, true);
+        testSetGetCustomMetaCase(true, BluetoothDevice.METADATA_MODEL_NAME,
+                value, true);
+        testSetGetCustomMetaCase(true, BluetoothDevice.METADATA_SOFTWARE_VERSION,
+                value, true);
+        testSetGetCustomMetaCase(true, BluetoothDevice.METADATA_HARDWARE_VERSION,
+                value, true);
+        testSetGetCustomMetaCase(true, BluetoothDevice.METADATA_COMPANION_APP,
+                value, true);
+        testSetGetCustomMetaCase(true, BluetoothDevice.METADATA_MAIN_ICON,
+                value, true);
+        testSetGetCustomMetaCase(true, BluetoothDevice.METADATA_IS_UNTHETHERED_HEADSET,
+                value, true);
+        testSetGetCustomMetaCase(true, BluetoothDevice.METADATA_UNTHETHERED_LEFT_ICON,
+                value, true);
+        testSetGetCustomMetaCase(true, BluetoothDevice.METADATA_UNTHETHERED_RIGHT_ICON,
+                value, true);
+        testSetGetCustomMetaCase(true, BluetoothDevice.METADATA_UNTHETHERED_CASE_ICON,
+                value, true);
+        testSetGetCustomMetaCase(true, BluetoothDevice.METADATA_UNTHETHERED_LEFT_BATTERY,
+                value, true);
+        testSetGetCustomMetaCase(true, BluetoothDevice.METADATA_UNTHETHERED_RIGHT_BATTERY,
+                value, true);
+        testSetGetCustomMetaCase(true, BluetoothDevice.METADATA_UNTHETHERED_CASE_BATTERY,
+                value, true);
+        testSetGetCustomMetaCase(true, BluetoothDevice.METADATA_UNTHETHERED_LEFT_CHARGING,
+                value, true);
+        testSetGetCustomMetaCase(true, BluetoothDevice.METADATA_UNTHETHERED_RIGHT_CHARGING,
+                value, true);
+        testSetGetCustomMetaCase(true, BluetoothDevice.METADATA_UNTHETHERED_CASE_CHARGING,
+                value, true);
+        testSetGetCustomMetaCase(true, BluetoothDevice.METADATA_ENHANCED_SETTINGS_UI_URI,
+                value, true);
     }
 
     void testSetGetProfilePriorityCase(boolean stored, int priority, int expectedPriority,
@@ -292,6 +376,44 @@ public final class DatabaseManagerTest {
         } else {
             Assert.assertEquals(expectedValue, data.a2dpOptionalCodecsEnabled);
         }
+
+        mDatabase.deleteAll();
+        // Wait for clear database
+        TestUtils.waitForLooperToFinishScheduledTask(mDatabaseManager.getHandlerLooper());
+        mDatabaseManager.mMetadataCache.clear();
+    }
+
+    void testSetGetCustomMetaCase(boolean stored, int key, String value, boolean expectedResult) {
+        String testValue = "test value";
+        int verifyTime = 1;
+        if (stored) {
+            Metadata data = new Metadata(TEST_BT_ADDR);
+            mDatabaseManager.mMetadataCache.put(TEST_BT_ADDR, data);
+            mDatabase.insert(data);
+            Assert.assertEquals(expectedResult,
+                    mDatabaseManager.setCustomMeta(mTestDevice, key, testValue));
+            verify(mAdapterService).metadataChanged(TEST_BT_ADDR, key, testValue);
+            verifyTime++;
+        }
+        Assert.assertEquals(expectedResult,
+                mDatabaseManager.setCustomMeta(mTestDevice, key, value));
+        if (expectedResult) {
+            // Check for callback and get value
+            verify(mAdapterService, times(verifyTime)).metadataChanged(TEST_BT_ADDR, key, value);
+            Assert.assertEquals(value,
+                    mDatabaseManager.getCustomMeta(mTestDevice, key));
+        } else {
+            Assert.assertNull(mDatabaseManager.getCustomMeta(mTestDevice, key));
+            return;
+        }
+        // Wait for database update
+        TestUtils.waitForLooperToFinishScheduledTask(mDatabaseManager.getHandlerLooper());
+
+        // Check whether the value is saved in database
+        List<Metadata> list = mDatabase.load();
+        Metadata data = list.get(0);
+        Assert.assertEquals(TEST_BT_ADDR, data.getAddress());
+        Assert.assertEquals(value, data.getCustomizedMeta(key));
 
         mDatabase.deleteAll();
         // Wait for clear database
