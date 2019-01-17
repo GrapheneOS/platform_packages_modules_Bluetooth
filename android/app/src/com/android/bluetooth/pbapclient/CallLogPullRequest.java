@@ -90,7 +90,8 @@ public class CallLogPullRequest extends PullRequest {
                 values.put(CallLog.Calls.TYPE, type);
                 values.put(Calls.PHONE_ACCOUNT_ID, mAccount.name);
                 List<PhoneData> phones = vcard.getPhoneList();
-                if (phones == null || phones.get(0).getNumber().equals(";")) {
+                if (phones == null || phones.get(0).getNumber().equals(";")
+                        || phones.get(0).getNumber().length() == 0) {
                     values.put(CallLog.Calls.NUMBER, "");
                 } else {
                     String phoneNumber = phones.get(0).getNumber();
