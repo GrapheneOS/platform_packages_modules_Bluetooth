@@ -30,10 +30,10 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.Uri;
 import android.os.ParcelUuid;
-import android.provider.Settings;
 import android.util.Log;
 
 import com.android.bluetooth.Utils;
+import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.ProfileService;
 import com.android.internal.annotations.VisibleForTesting;
 
@@ -214,19 +214,17 @@ public class MapClientService extends ProfileService {
     }
 
     public boolean setPriority(BluetoothDevice device, int priority) {
-        Settings.Global.putInt(getContentResolver(),
-                Settings.Global.getBluetoothMapClientPriorityKey(device.getAddress()), priority);
         if (VDBG) {
             Log.v(TAG, "Saved priority " + device + " = " + priority);
         }
+        AdapterService.getAdapterService().getDatabase()
+                .setProfilePriority(device, BluetoothProfile.MAP_CLIENT, priority);
         return true;
     }
 
     public int getPriority(BluetoothDevice device) {
-        int priority = Settings.Global.getInt(getContentResolver(),
-                Settings.Global.getBluetoothMapClientPriorityKey(device.getAddress()),
-                BluetoothProfile.PRIORITY_UNDEFINED);
-        return priority;
+        return AdapterService.getAdapterService().getDatabase()
+                .getProfilePriority(device, BluetoothProfile.MAP_CLIENT);
     }
 
     public synchronized boolean sendMessage(BluetoothDevice device, Uri[] contacts, String message,

@@ -300,7 +300,8 @@ public class TestUtils {
                     adapterConfig.put(section, new HashMap<>());
                 } else {
                     String[] keyValue = line.split("=");
-                    adapterConfig.get(section).put(keyValue[0].trim(), keyValue[1].trim());
+                    adapterConfig.get(section).put(keyValue[0].trim(),
+                            keyValue.length == 1 ? "" : keyValue[1].trim());
                 }
             }
         } catch (IOException e) {

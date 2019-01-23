@@ -25,7 +25,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.os.UserHandle;
-import android.provider.Settings;
 import android.util.Log;
 
 import com.android.bluetooth.BluetoothMetricsProto;
@@ -522,11 +521,11 @@ public class HidHostService extends ProfileService {
         if (DBG) {
             Log.d(TAG, "setPriority: " + device.getAddress());
         }
-        Settings.Global.putInt(getContentResolver(),
-                Settings.Global.getBluetoothHidHostPriorityKey(device.getAddress()), priority);
         if (DBG) {
             Log.d(TAG, "Saved priority " + device + " = " + priority);
         }
+        AdapterService.getAdapterService().getDatabase()
+                .setProfilePriority(device, BluetoothProfile.HID_HOST, priority);
         return true;
     }
 
@@ -535,10 +534,8 @@ public class HidHostService extends ProfileService {
         if (DBG) {
             Log.d(TAG, "getPriority: " + device.getAddress());
         }
-        int priority = Settings.Global.getInt(getContentResolver(),
-                Settings.Global.getBluetoothHidHostPriorityKey(device.getAddress()),
-                BluetoothProfile.PRIORITY_UNDEFINED);
-        return priority;
+        return AdapterService.getAdapterService().getDatabase()
+                .getProfilePriority(device, BluetoothProfile.HID_HOST);
     }
 
     /* The following APIs regarding test app for compliance */
