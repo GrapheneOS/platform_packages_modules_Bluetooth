@@ -39,7 +39,6 @@ import android.os.RemoteException;
 import android.os.ServiceManager;
 import android.os.SystemProperties;
 import android.os.UserHandle;
-import android.provider.Settings;
 import android.telecom.PhoneAccount;
 import android.util.Log;
 
@@ -811,18 +810,17 @@ public class HeadsetService extends ProfileService {
 
     public boolean setPriority(BluetoothDevice device, int priority) {
         enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH_ADMIN permission");
-        Settings.Global.putInt(getContentResolver(),
-                Settings.Global.getBluetoothHeadsetPriorityKey(device.getAddress()), priority);
         Log.i(TAG, "setPriority: device=" + device + ", priority=" + priority + ", "
                 + Utils.getUidPidString());
+        mAdapterService.getDatabase()
+                .setProfilePriority(device, BluetoothProfile.HEADSET, priority);
         return true;
     }
 
     public int getPriority(BluetoothDevice device) {
         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
-        return Settings.Global.getInt(getContentResolver(),
-                Settings.Global.getBluetoothHeadsetPriorityKey(device.getAddress()),
-                BluetoothProfile.PRIORITY_UNDEFINED);
+        return mAdapterService.getDatabase()
+                .getProfilePriority(device, BluetoothProfile.HEADSET);
     }
 
     boolean startVoiceRecognition(BluetoothDevice device) {

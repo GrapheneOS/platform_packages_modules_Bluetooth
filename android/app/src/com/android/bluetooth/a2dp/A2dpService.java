@@ -29,7 +29,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.media.AudioManager;
 import android.os.HandlerThread;
-import android.provider.Settings;
 import android.util.Log;
 
 import com.android.bluetooth.BluetoothMetricsProto;
@@ -572,20 +571,18 @@ public class A2dpService extends ProfileService {
 
     public boolean setPriority(BluetoothDevice device, int priority) {
         enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH_ADMIN permission");
-        Settings.Global.putInt(getContentResolver(),
-                Settings.Global.getBluetoothA2dpSinkPriorityKey(device.getAddress()), priority);
         if (DBG) {
             Log.d(TAG, "Saved priority " + device + " = " + priority);
         }
+        mAdapterService.getDatabase()
+                .setProfilePriority(device, BluetoothProfile.A2DP, priority);
         return true;
     }
 
     public int getPriority(BluetoothDevice device) {
         enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH_ADMIN permission");
-        int priority = Settings.Global.getInt(getContentResolver(),
-                Settings.Global.getBluetoothA2dpSinkPriorityKey(device.getAddress()),
-                BluetoothProfile.PRIORITY_UNDEFINED);
-        return priority;
+        return mAdapterService.getDatabase()
+                .getProfilePriority(device, BluetoothProfile.A2DP);
     }
 
     public boolean isAvrcpAbsoluteVolumeSupported() {
@@ -716,26 +713,19 @@ public class A2dpService extends ProfileService {
 
     public int getSupportsOptionalCodecs(BluetoothDevice device) {
         enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH_ADMIN permission");
-        int support = Settings.Global.getInt(getContentResolver(),
-                Settings.Global.getBluetoothA2dpSupportsOptionalCodecsKey(device.getAddress()),
-                BluetoothA2dp.OPTIONAL_CODECS_SUPPORT_UNKNOWN);
-        return support;
+        return mAdapterService.getDatabase().getA2dpSupportsOptionalCodecs(device);
     }
 
     public void setSupportsOptionalCodecs(BluetoothDevice device, boolean doesSupport) {
         enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH_ADMIN permission");
         int value = doesSupport ? BluetoothA2dp.OPTIONAL_CODECS_SUPPORTED
                 : BluetoothA2dp.OPTIONAL_CODECS_NOT_SUPPORTED;
-        Settings.Global.putInt(getContentResolver(),
-                Settings.Global.getBluetoothA2dpSupportsOptionalCodecsKey(device.getAddress()),
-                value);
+        mAdapterService.getDatabase().setA2dpSupportsOptionalCodecs(device, value);
     }
 
     public int getOptionalCodecsEnabled(BluetoothDevice device) {
         enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH_ADMIN permission");
-        return Settings.Global.getInt(getContentResolver(),
-                Settings.Global.getBluetoothA2dpOptionalCodecsEnabledKey(device.getAddress()),
-                BluetoothA2dp.OPTIONAL_CODECS_PREF_UNKNOWN);
+        return mAdapterService.getDatabase().getA2dpOptionalCodecsEnabled(device);
     }
 
     public void setOptionalCodecsEnabled(BluetoothDevice device, int value) {
@@ -746,9 +736,7 @@ public class A2dpService extends ProfileService {
             Log.w(TAG, "Unexpected value passed to setOptionalCodecsEnabled:" + value);
             return;
         }
-        Settings.Global.putInt(getContentResolver(),
-                Settings.Global.getBluetoothA2dpOptionalCodecsEnabledKey(device.getAddress()),
-                value);
+        mAdapterService.getDatabase().setA2dpOptionalCodecsEnabled(device, value);
     }
 
     // Handle messages from native (JNI) to Java

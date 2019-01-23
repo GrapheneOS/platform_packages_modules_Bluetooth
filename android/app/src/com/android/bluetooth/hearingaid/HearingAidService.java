@@ -28,7 +28,6 @@ import android.content.IntentFilter;
 import android.media.AudioManager;
 import android.os.HandlerThread;
 import android.os.ParcelUuid;
-import android.provider.Settings;
 import android.util.Log;
 
 import com.android.bluetooth.BluetoothMetricsProto;
@@ -435,20 +434,18 @@ public class HearingAidService extends ProfileService {
      */
     public boolean setPriority(BluetoothDevice device, int priority) {
         enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH_ADMIN permission");
-        Settings.Global.putInt(getContentResolver(),
-                Settings.Global.getBluetoothHearingAidPriorityKey(device.getAddress()), priority);
         if (DBG) {
             Log.d(TAG, "Saved priority " + device + " = " + priority);
         }
+        mAdapterService.getDatabase()
+                .setProfilePriority(device, BluetoothProfile.HEARING_AID, priority);
         return true;
     }
 
     public int getPriority(BluetoothDevice device) {
         enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH_ADMIN permission");
-        int priority = Settings.Global.getInt(getContentResolver(),
-                Settings.Global.getBluetoothHearingAidPriorityKey(device.getAddress()),
-                BluetoothProfile.PRIORITY_UNDEFINED);
-        return priority;
+        return mAdapterService.getDatabase()
+                .getProfilePriority(device, BluetoothProfile.HEARING_AID);
     }
 
     void setVolume(int volume) {
