@@ -64,6 +64,8 @@ import android.util.Slog;
 import android.util.SparseArray;
 import android.util.StatsLog;
 
+import androidx.room.Room;
+
 import com.android.bluetooth.BluetoothMetricsProto;
 import com.android.bluetooth.Utils;
 import com.android.bluetooth.btservice.RemoteDevices.DeviceProperties;
@@ -183,6 +185,7 @@ public class AdapterService extends Service {
     private ProfileObserver mProfileObserver;
     private PhonePolicy mPhonePolicy;
     private ActiveDeviceManager mActiveDeviceManager;
+    private DatabaseManager mDatabaseManager;
     private AppOpsManager mAppOps;
 
     /**
@@ -411,6 +414,12 @@ public class AdapterService extends Service {
 
         mActiveDeviceManager = new ActiveDeviceManager(this, new ServiceFactory());
         mActiveDeviceManager.start();
+
+        mDatabaseManager = new DatabaseManager(this);
+        MetadataDatabase database = Room.databaseBuilder(this,
+                MetadataDatabase.class, MetadataDatabase.DATABASE_NAME).build();
+        mDatabaseManager.start(database);
+
 
         setAdapterService(this);
 
@@ -651,6 +660,10 @@ public class AdapterService extends Service {
                 }
                 mWakeLock = null;
             }
+        }
+
+        if (mDatabaseManager != null) {
+            mDatabaseManager.cleanup();
         }
 
         if (mAdapterStateMachine != null) {
@@ -1853,6 +1866,16 @@ public class AdapterService extends Service {
         return mAdapterProperties.getBondedDevices();
     }
 
+    /**
+     * Get the database manager to access Bluetooth storage
+     *
+     * @return {@link DatabaseManager} or null on error
+     */
+    @VisibleForTesting
+    public DatabaseManager getDatabase() {
+        return mDatabaseManager;
+    }
+
     int getAdapterConnectionState() {
         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
         return mAdapterProperties.getConnectionState();
@@ -2206,6 +2229,9 @@ public class AdapterService extends Service {
 
     boolean factoryReset() {
         enforceCallingOrSelfPermission(BLUETOOTH_PRIVILEGED, "Need BLUETOOTH permission");
+        if (mDatabaseManager != null) {
+            mDatabaseManager.factoryReset();
+        }
         return factoryResetNative();
     }
 
