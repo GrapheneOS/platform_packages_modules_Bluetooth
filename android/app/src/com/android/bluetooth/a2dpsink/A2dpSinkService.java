@@ -21,12 +21,12 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.IBluetoothA2dpSink;
 import android.content.Intent;
-import android.provider.Settings;
 import android.util.Log;
 
 import com.android.bluetooth.Utils;
 import com.android.bluetooth.avrcpcontroller.AvrcpControllerService;
 import com.android.bluetooth.avrcpcontroller.BluetoothMediaBrowserService;
+import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.ProfileService;
 
 import java.util.ArrayList;
@@ -149,20 +149,18 @@ public class A2dpSinkService extends ProfileService {
 
     public boolean setPriority(BluetoothDevice device, int priority) {
         enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH_ADMIN permission");
-        Settings.Global.putInt(getContentResolver(),
-                Settings.Global.getBluetoothA2dpSrcPriorityKey(device.getAddress()), priority);
         if (DBG) {
             Log.d(TAG, "Saved priority " + device + " = " + priority);
         }
+        AdapterService.getAdapterService().getDatabase()
+                .setProfilePriority(device, BluetoothProfile.A2DP_SINK, priority);
         return true;
     }
 
     public int getPriority(BluetoothDevice device) {
         enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH_ADMIN permission");
-        int priority = Settings.Global.getInt(getContentResolver(),
-                Settings.Global.getBluetoothA2dpSrcPriorityKey(device.getAddress()),
-                BluetoothProfile.PRIORITY_UNDEFINED);
-        return priority;
+        return AdapterService.getAdapterService().getDatabase()
+                .getProfilePriority(device, BluetoothProfile.A2DP_SINK);
     }
 
     /**

@@ -36,7 +36,6 @@ import android.os.Message;
 import android.os.ParcelUuid;
 import android.os.PowerManager;
 import android.os.RemoteException;
-import android.provider.Settings;
 import android.text.TextUtils;
 import android.util.Log;
 import android.util.SparseArray;
@@ -44,6 +43,7 @@ import android.util.SparseArray;
 import com.android.bluetooth.BluetoothMetricsProto;
 import com.android.bluetooth.R;
 import com.android.bluetooth.Utils;
+import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.MetricsLogger;
 import com.android.bluetooth.btservice.ProfileService;
 import com.android.internal.annotations.VisibleForTesting;
@@ -577,14 +577,14 @@ public class BluetoothMapService extends ProfileService {
         if (VERBOSE) {
             Log.v(TAG, "Saved priority " + device + " = " + priority);
         }
-        return Settings.Global.putInt(getContentResolver(),
-                Settings.Global.getBluetoothMapPriorityKey(device.getAddress()), priority);
+        AdapterService.getAdapterService().getDatabase()
+                .setProfilePriority(device, BluetoothProfile.MAP, priority);
+        return true;
     }
 
     int getPriority(BluetoothDevice device) {
-        return Settings.Global.getInt(getContentResolver(),
-                Settings.Global.getBluetoothMapPriorityKey(device.getAddress()),
-                BluetoothProfile.PRIORITY_UNDEFINED);
+        return AdapterService.getAdapterService().getDatabase()
+                .getProfilePriority(device, BluetoothProfile.MAP);
     }
 
     @Override

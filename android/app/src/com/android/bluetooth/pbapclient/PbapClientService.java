@@ -26,10 +26,10 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.provider.CallLog;
-import android.provider.Settings;
 import android.util.Log;
 
 import com.android.bluetooth.R;
+import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.ProfileService;
 
 import java.util.ArrayList;
@@ -344,11 +344,11 @@ public class PbapClientService extends ProfileService {
             throw new IllegalArgumentException("Null device");
         }
         enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH_ADMIN permission");
-        Settings.Global.putInt(getContentResolver(),
-                Settings.Global.getBluetoothPbapClientPriorityKey(device.getAddress()), priority);
         if (DBG) {
             Log.d(TAG, "Saved priority " + device + " = " + priority);
         }
+        AdapterService.getAdapterService().getDatabase()
+            .setProfilePriority(device, BluetoothProfile.PBAP_CLIENT, priority);
         return true;
     }
 
@@ -357,10 +357,8 @@ public class PbapClientService extends ProfileService {
             throw new IllegalArgumentException("Null device");
         }
         enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH_ADMIN permission");
-        int priority = Settings.Global.getInt(getContentResolver(),
-                Settings.Global.getBluetoothPbapClientPriorityKey(device.getAddress()),
-                BluetoothProfile.PRIORITY_UNDEFINED);
-        return priority;
+        return AdapterService.getAdapterService().getDatabase()
+                .getProfilePriority(device, BluetoothProfile.PBAP_CLIENT);
     }
 
     @Override

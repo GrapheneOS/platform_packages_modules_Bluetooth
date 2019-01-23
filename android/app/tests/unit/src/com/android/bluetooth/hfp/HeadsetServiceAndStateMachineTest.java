@@ -51,6 +51,7 @@ import android.telecom.PhoneAccount;
 import com.android.bluetooth.R;
 import com.android.bluetooth.TestUtils;
 import com.android.bluetooth.btservice.AdapterService;
+import com.android.bluetooth.btservice.DatabaseManager;
 
 import org.hamcrest.Matchers;
 import org.junit.After;
@@ -146,6 +147,7 @@ public class HeadsetServiceAndStateMachineTest {
 
     @Spy private HeadsetObjectsFactory mObjectsFactory = HeadsetObjectsFactory.getInstance();
     @Mock private AdapterService mAdapterService;
+    @Mock private DatabaseManager mDatabaseManager;
     @Mock private HeadsetSystemInterface mSystemInterface;
     @Mock private AudioManager mAudioManager;
     @Mock private HeadsetPhoneState mPhoneState;
@@ -276,6 +278,9 @@ public class HeadsetServiceAndStateMachineTest {
     @Test
     public void testConnectFromApi() {
         BluetoothDevice device = TestUtils.getTestDevice(mAdapter, 0);
+        when(mAdapterService.getDatabase()).thenReturn(mDatabaseManager);
+        when(mDatabaseManager.getProfilePriority(device, BluetoothProfile.HEADSET))
+                .thenReturn(BluetoothProfile.PRIORITY_UNDEFINED);
         mBondedDevices.add(device);
         Assert.assertTrue(mHeadsetService.connect(device));
         verify(mObjectsFactory).makeStateMachine(device,
@@ -317,6 +322,9 @@ public class HeadsetServiceAndStateMachineTest {
     @Test
     public void testUnbondDevice_disconnectBeforeUnbond() {
         BluetoothDevice device = TestUtils.getTestDevice(mAdapter, 0);
+        when(mAdapterService.getDatabase()).thenReturn(mDatabaseManager);
+        when(mDatabaseManager.getProfilePriority(device, BluetoothProfile.HEADSET))
+                .thenReturn(BluetoothProfile.PRIORITY_UNDEFINED);
         mBondedDevices.add(device);
         Assert.assertTrue(mHeadsetService.connect(device));
         verify(mObjectsFactory).makeStateMachine(device,
@@ -358,6 +366,9 @@ public class HeadsetServiceAndStateMachineTest {
     @Test
     public void testUnbondDevice_disconnectAfterUnbond() {
         BluetoothDevice device = TestUtils.getTestDevice(mAdapter, 0);
+        when(mAdapterService.getDatabase()).thenReturn(mDatabaseManager);
+        when(mDatabaseManager.getProfilePriority(device, BluetoothProfile.HEADSET))
+                .thenReturn(BluetoothProfile.PRIORITY_UNDEFINED);
         mBondedDevices.add(device);
         Assert.assertTrue(mHeadsetService.connect(device));
         verify(mObjectsFactory).makeStateMachine(device,
@@ -1141,6 +1152,9 @@ public class HeadsetServiceAndStateMachineTest {
     }
 
     private void connectTestDevice(BluetoothDevice device) {
+        when(mAdapterService.getDatabase()).thenReturn(mDatabaseManager);
+        when(mDatabaseManager.getProfilePriority(device, BluetoothProfile.HEADSET))
+                .thenReturn(BluetoothProfile.PRIORITY_UNDEFINED);
         // Make device bonded
         mBondedDevices.add(device);
         // Use connecting event to indicate that device is connecting
