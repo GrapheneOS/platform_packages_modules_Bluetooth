@@ -159,6 +159,97 @@ public class DatabaseManager {
         }
     }
 
+    boolean isValidMetaKey(int key) {
+        switch (key) {
+            case BluetoothDevice.METADATA_MANUFACTURER_NAME:
+            case BluetoothDevice.METADATA_MODEL_NAME:
+            case BluetoothDevice.METADATA_SOFTWARE_VERSION:
+            case BluetoothDevice.METADATA_HARDWARE_VERSION:
+            case BluetoothDevice.METADATA_COMPANION_APP:
+            case BluetoothDevice.METADATA_MAIN_ICON:
+            case BluetoothDevice.METADATA_IS_UNTHETHERED_HEADSET:
+            case BluetoothDevice.METADATA_UNTHETHERED_LEFT_ICON:
+            case BluetoothDevice.METADATA_UNTHETHERED_RIGHT_ICON:
+            case BluetoothDevice.METADATA_UNTHETHERED_CASE_ICON:
+            case BluetoothDevice.METADATA_UNTHETHERED_LEFT_BATTERY:
+            case BluetoothDevice.METADATA_UNTHETHERED_RIGHT_BATTERY:
+            case BluetoothDevice.METADATA_UNTHETHERED_CASE_BATTERY:
+            case BluetoothDevice.METADATA_UNTHETHERED_LEFT_CHARGING:
+            case BluetoothDevice.METADATA_UNTHETHERED_RIGHT_CHARGING:
+            case BluetoothDevice.METADATA_UNTHETHERED_CASE_CHARGING:
+            case BluetoothDevice.METADATA_ENHANCED_SETTINGS_UI_URI:
+                return true;
+        }
+        Log.w(TAG, "Invalid metadata key " + key);
+        return false;
+    }
+
+    /**
+     * Set customized metadata to database with requested key
+     */
+    @VisibleForTesting
+    public boolean setCustomMeta(BluetoothDevice device, int key, String newValue) {
+        synchronized (mMetadataCache) {
+            if (device == null) {
+                Log.e(TAG, "setCustomMeta: device is null");
+                return false;
+            }
+            if (!isValidMetaKey(key)) {
+                Log.e(TAG, "setCustomMeta: meta key invalid " + key);
+                return false;
+            }
+
+            String address = device.getAddress();
+            if (VERBOSE) {
+                Log.d(TAG, "setCustomMeta: " + address + ", key=" + key);
+            }
+            if (!mMetadataCache.containsKey(address)) {
+                createMetadata(address);
+            }
+            Metadata data = mMetadataCache.get(address);
+            String oldValue = data.getCustomizedMeta(key);
+            if (oldValue != null && oldValue.equals(newValue)) {
+                if (VERBOSE) {
+                    Log.d(TAG, "setCustomMeta: metadata not changed.");
+                }
+                return true;
+            }
+            data.setCustomizedMeta(key, newValue);
+
+            updateDatabase(data);
+            mAdapterService.metadataChanged(address, key, newValue);
+            return true;
+        }
+    }
+
+    /**
+     * Get customized metadata from database with requested key
+     */
+    @VisibleForTesting
+    public String getCustomMeta(BluetoothDevice device, int key) {
+        synchronized (mMetadataCache) {
+            if (device == null) {
+                Log.e(TAG, "getCustomMeta: device is null");
+                return null;
+            }
+            if (!isValidMetaKey(key)) {
+                Log.e(TAG, "getCustomMeta: meta key invalid " + key);
+                return null;
+            }
+
+            String address = device.getAddress();
+
+            if (!mMetadataCache.containsKey(address)) {
+                Log.e(TAG, "getCustomMeta: device " + address + " is not in cache");
+                return null;
+            }
+
+            Metadata data = mMetadataCache.get(address);
+            String value = data.getCustomizedMeta(key);
+            return value;
+        }
+    }
+
     /**
      * Set the device profile prioirty
      *
@@ -476,8 +567,12 @@ public class DatabaseManager {
                 for (BluetoothDevice device : bondedDevices) {
                     if (!device.getAddress().equals(address)
                             && !address.equals(LOCAL_STORAGE)) {
+                        // Report metadata change to null
+                        List<Integer> list = metadata.getChangedCustomizedMeta();
+                        for (int key : list) {
+                            mAdapterService.metadataChanged(address, key, null);
+                        }
                         Log.i(TAG, "remove unpaired device from database " + address);
-                        //TODO Callback metadata change
                         deleteDatabase(mMetadataCache.get(address));
                     }
                 }
