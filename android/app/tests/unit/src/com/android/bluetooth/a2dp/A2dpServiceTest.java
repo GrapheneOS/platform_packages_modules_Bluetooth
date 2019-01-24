@@ -770,6 +770,43 @@ public class A2dpServiceTest {
         Assert.assertFalse(mA2dpService.getDevices().contains(mTestDevice));
     }
 
+    /**
+     * Test that whether active device been removed after enable silence mode
+     */
+    @Test
+    public void testSetSilenceMode() {
+        BluetoothDevice otherDevice = mAdapter.getRemoteDevice("05:04:03:02:01:00");
+        connectDevice(mTestDevice);
+        connectDevice(otherDevice);
+        doReturn(true).when(mA2dpNativeInterface).setActiveDevice(any(BluetoothDevice.class));
+        doReturn(true).when(mA2dpNativeInterface).setSilenceDevice(any(BluetoothDevice.class),
+                anyBoolean());
+
+        // Test whether active device been removed after enable silence mode.
+        Assert.assertTrue(mA2dpService.setActiveDevice(mTestDevice));
+        Assert.assertEquals(mTestDevice, mA2dpService.getActiveDevice());
+        Assert.assertTrue(mA2dpService.setSilenceMode(mTestDevice, true));
+        verify(mA2dpNativeInterface).setSilenceDevice(mTestDevice, true);
+        Assert.assertNull(mA2dpService.getActiveDevice());
+
+        // Test whether active device been resumeed after disable silence mode.
+        Assert.assertTrue(mA2dpService.setSilenceMode(mTestDevice, false));
+        verify(mA2dpNativeInterface).setSilenceDevice(mTestDevice, false);
+        Assert.assertEquals(mTestDevice, mA2dpService.getActiveDevice());
+
+        // Test that active device should not be changed when silence a non-active device
+        Assert.assertTrue(mA2dpService.setActiveDevice(mTestDevice));
+        Assert.assertEquals(mTestDevice, mA2dpService.getActiveDevice());
+        Assert.assertTrue(mA2dpService.setSilenceMode(otherDevice, true));
+        verify(mA2dpNativeInterface).setSilenceDevice(otherDevice, true);
+        Assert.assertEquals(mTestDevice, mA2dpService.getActiveDevice());
+
+        // Test that active device should not be changed when another device exits silence mode
+        Assert.assertTrue(mA2dpService.setSilenceMode(otherDevice, false));
+        verify(mA2dpNativeInterface).setSilenceDevice(otherDevice, false);
+        Assert.assertEquals(mTestDevice, mA2dpService.getActiveDevice());
+    }
+
     private void connectDevice(BluetoothDevice device) {
         A2dpStackEvent connCompletedEvent;
 

@@ -840,6 +840,47 @@ public class HeadsetServiceTest {
                 ASYNC_CALL_TIMEOUT_MILLIS);
     }
 
+    /**
+     * Test that whether active device been removed after enable silence mode
+     */
+    @Test
+    public void testSetSilenceMode() {
+        when(mDatabaseManager.getProfilePriority(any(BluetoothDevice.class),
+                eq(BluetoothProfile.HEADSET)))
+                .thenReturn(BluetoothProfile.PRIORITY_UNDEFINED);
+        for (int i = 0; i < 2; i++) {
+            mCurrentDevice = TestUtils.getTestDevice(mAdapter, i);
+            Assert.assertTrue(mHeadsetService.connect(mCurrentDevice));
+            when(mStateMachines.get(mCurrentDevice).getDevice()).thenReturn(mCurrentDevice);
+            when(mStateMachines.get(mCurrentDevice).getConnectionState()).thenReturn(
+                    BluetoothProfile.STATE_CONNECTED);
+            when(mStateMachines.get(mCurrentDevice).setSilenceDevice(
+                    anyBoolean())).thenReturn(true);
+        }
+        mCurrentDevice = TestUtils.getTestDevice(mAdapter, 0);
+        BluetoothDevice otherDevice = TestUtils.getTestDevice(mAdapter, 1);
+
+        // Test whether active device been removed after enable silence mode.
+        Assert.assertTrue(mHeadsetService.setActiveDevice(mCurrentDevice));
+        Assert.assertEquals(mCurrentDevice, mHeadsetService.getActiveDevice());
+        Assert.assertTrue(mHeadsetService.setSilenceMode(mCurrentDevice, true));
+        Assert.assertNull(mHeadsetService.getActiveDevice());
+
+        // Test whether active device been resumed after disable silence mode.
+        Assert.assertTrue(mHeadsetService.setSilenceMode(mCurrentDevice, false));
+        Assert.assertEquals(mCurrentDevice, mHeadsetService.getActiveDevice());
+
+        // Test that active device should not be changed when silence a non-active device
+        Assert.assertTrue(mHeadsetService.setActiveDevice(mCurrentDevice));
+        Assert.assertEquals(mCurrentDevice, mHeadsetService.getActiveDevice());
+        Assert.assertTrue(mHeadsetService.setSilenceMode(otherDevice, true));
+        Assert.assertEquals(mCurrentDevice, mHeadsetService.getActiveDevice());
+
+        // Test that active device should not be changed when another device exits silence mode
+        Assert.assertTrue(mHeadsetService.setSilenceMode(otherDevice, false));
+        Assert.assertEquals(mCurrentDevice, mHeadsetService.getActiveDevice());
+    }
+
     /*
      *  Helper function to test okToAcceptConnection() method
      *
