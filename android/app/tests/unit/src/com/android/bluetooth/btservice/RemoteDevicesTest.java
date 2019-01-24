@@ -274,6 +274,7 @@ public class RemoteDevicesTest {
         // Verify ACTION_ACL_DISCONNECTED and BATTERY_LEVEL_CHANGED intent are sent
         verify(mAdapterService, times(3)).sendBroadcast(mIntentArgument.capture(),
                 mStringArgument.capture());
+        verify(mAdapterService).obfuscateAddress(mDevice1);
         verifyBatteryLevelChangedIntent(mDevice1, BluetoothDevice.BATTERY_LEVEL_UNKNOWN,
                 mIntentArgument.getAllValues().get(mIntentArgument.getAllValues().size() - 2));
         Assert.assertEquals(AdapterService.BLUETOOTH_PERM,
