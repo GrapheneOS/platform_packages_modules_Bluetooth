@@ -39,6 +39,7 @@ import android.bluetooth.BluetoothHeadsetClient;
 import android.bluetooth.BluetoothHeadsetClientCall;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.BluetoothUuid;
+import android.bluetooth.hfp.BluetoothHfpProtoEnums;
 import android.content.Intent;
 import android.media.AudioAttributes;
 import android.media.AudioFocusRequest;
@@ -50,6 +51,7 @@ import android.os.ParcelUuid;
 import android.os.SystemClock;
 import android.util.Log;
 import android.util.Pair;
+import android.util.StatsLog;
 
 import com.android.bluetooth.BluetoothMetricsProto;
 import com.android.bluetooth.R;
@@ -1740,6 +1742,11 @@ public class HeadsetClientStateMachine extends StateMachine {
     }
 
     private void broadcastAudioState(BluetoothDevice device, int newState, int prevState) {
+        StatsLog.write(StatsLog.BLUETOOTH_SCO_CONNECTION_STATE_CHANGED,
+                AdapterService.getAdapterService().obfuscateAddress(device),
+                getConnectionStateFromAudioState(newState), mAudioWbs
+                        ? BluetoothHfpProtoEnums.SCO_CODEC_MSBC
+                        : BluetoothHfpProtoEnums.SCO_CODEC_CVSD);
         Intent intent = new Intent(BluetoothHeadsetClient.ACTION_AUDIO_STATE_CHANGED);
         intent.putExtra(BluetoothProfile.EXTRA_PREVIOUS_STATE, prevState);
         intent.putExtra(BluetoothProfile.EXTRA_STATE, newState);
@@ -1891,5 +1898,17 @@ public class HeadsetClientStateMachine extends StateMachine {
         b.putString(BluetoothHeadsetClient.EXTRA_OPERATOR_NAME, mOperatorName);
         b.putString(BluetoothHeadsetClient.EXTRA_SUBSCRIBER_INFO, mSubscriberInfo);
         return b;
+    }
+
+    private static int getConnectionStateFromAudioState(int audioState) {
+        switch (audioState) {
+            case BluetoothHeadsetClient.STATE_AUDIO_CONNECTED:
+                return BluetoothAdapter.STATE_CONNECTED;
+            case BluetoothHeadsetClient.STATE_AUDIO_CONNECTING:
+                return BluetoothAdapter.STATE_CONNECTING;
+            case BluetoothHeadsetClient.STATE_AUDIO_DISCONNECTED:
+                return BluetoothAdapter.STATE_DISCONNECTED;
+        }
+        return BluetoothAdapter.STATE_DISCONNECTED;
     }
 }
