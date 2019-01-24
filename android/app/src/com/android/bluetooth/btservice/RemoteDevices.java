@@ -31,6 +31,7 @@ import android.os.Looper;
 import android.os.Message;
 import android.os.ParcelUuid;
 import android.util.Log;
+import android.util.StatsLog;
 
 import com.android.bluetooth.R;
 import com.android.bluetooth.Utils;
@@ -629,6 +630,11 @@ final class RemoteDevices {
                     "aclStateChangeCallback: Adapter State: " + BluetoothAdapter.nameForState(state)
                             + " Disconnected: " + device);
         }
+
+        int connectionState = newState == AbstractionLayer.BT_ACL_STATE_CONNECTED
+                ? BluetoothAdapter.STATE_CONNECTED : BluetoothAdapter.STATE_DISCONNECTED;
+        StatsLog.write(StatsLog.BLUETOOTH_ACL_CONNECTION_STATE_CHANGED,
+                sAdapterService.obfuscateAddress(device), connectionState);
 
         if (intent != null) {
             intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
