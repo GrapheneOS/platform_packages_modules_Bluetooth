@@ -1008,6 +1008,36 @@ public class HeadsetService extends ProfileService {
     }
 
     /**
+     * Process a change in the silence mode for a {@link BluetoothDevice}.
+     *
+     * @param device the device to change silence mode
+     * @param silence true to enable silence mode, false to disable.
+     * @return true on success, false on error
+     */
+    @VisibleForTesting
+    public boolean setSilenceMode(BluetoothDevice device, boolean silence) {
+        Log.d(TAG, "setSilenceMode(" + device + "): " + silence);
+
+        if (silence && Objects.equals(mActiveDevice, device)) {
+            setActiveDevice(null);
+        } else if (!silence && mActiveDevice == null) {
+            // Set the device as the active device if currently no active device.
+            setActiveDevice(device);
+        }
+        synchronized (mStateMachines) {
+            final HeadsetStateMachine stateMachine = mStateMachines.get(device);
+            if (stateMachine == null) {
+                Log.w(TAG, "setSilenceMode: device " + device
+                        + " was never connected/connecting");
+                return false;
+            }
+            stateMachine.setSilenceDevice(silence);
+        }
+
+        return true;
+    }
+
+    /**
      * Set the active device.
      *
      * @param device the active device
