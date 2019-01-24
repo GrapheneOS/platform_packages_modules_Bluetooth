@@ -189,6 +189,7 @@ public class AdapterService extends Service {
     private PhonePolicy mPhonePolicy;
     private ActiveDeviceManager mActiveDeviceManager;
     private DatabaseManager mDatabaseManager;
+    private SilenceDeviceManager mSilenceDeviceManager;
     private AppOpsManager mAppOps;
 
     /**
@@ -423,6 +424,9 @@ public class AdapterService extends Service {
                 MetadataDatabase.class, MetadataDatabase.DATABASE_NAME).build();
         mDatabaseManager.start(database);
 
+        mSilenceDeviceManager = new SilenceDeviceManager(this, new ServiceFactory(),
+                Looper.getMainLooper());
+        mSilenceDeviceManager.start();
 
         setAdapterService(this);
 
@@ -702,6 +706,10 @@ public class AdapterService extends Service {
 
         if (mPhonePolicy != null) {
             mPhonePolicy.cleanup();
+        }
+
+        if (mSilenceDeviceManager != null) {
+            mSilenceDeviceManager.cleanup();
         }
 
         if (mActiveDeviceManager != null) {
@@ -1361,6 +1369,34 @@ public class AdapterService extends Service {
                 return BluetoothDevice.ACCESS_UNKNOWN;
             }
             return service.getPhonebookAccessPermission(device);
+        }
+
+        @Override
+        public boolean setSilenceMode(BluetoothDevice device, boolean silence) {
+            if (!Utils.checkCaller()) {
+                Log.w(TAG, "setSilenceMode() - Not allowed for non-active user");
+                return false;
+            }
+
+            AdapterService service = getService();
+            if (service == null) {
+                return false;
+            }
+            return service.setSilenceMode(device, silence);
+        }
+
+        @Override
+        public boolean getSilenceMode(BluetoothDevice device) {
+            if (!Utils.checkCaller()) {
+                Log.w(TAG, "getSilenceMode() - Not allowed for non-active user");
+                return false;
+            }
+
+            AdapterService service = getService();
+            if (service == null) {
+                return false;
+            }
+            return service.getSilenceMode(device);
         }
 
         @Override
@@ -2180,9 +2216,20 @@ public class AdapterService extends Service {
                 : BluetoothDevice.ACCESS_REJECTED;
     }
 
-    boolean setPhonebookAccessPermission(BluetoothDevice device, int value) {
+    boolean setSilenceMode(BluetoothDevice device, boolean silence) {
         enforceCallingOrSelfPermission(BLUETOOTH_PRIVILEGED,
                 "Need BLUETOOTH PRIVILEGED permission");
+        mSilenceDeviceManager.setSilenceMode(device, silence);
+        return true;
+    }
+
+    boolean getSilenceMode(BluetoothDevice device) {
+        enforceCallingOrSelfPermission(BLUETOOTH_PRIVILEGED,
+                "Need BLUETOOTH PRIVILEGED permission");
+        return mSilenceDeviceManager.getSilenceMode(device);
+    }
+
+    boolean setPhonebookAccessPermission(BluetoothDevice device, int value) {
         SharedPreferences pref = getSharedPreferences(PHONEBOOK_ACCESS_PERMISSION_PREFERENCE_FILE,
                 Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = pref.edit();
@@ -2672,6 +2719,7 @@ public class AdapterService extends Service {
         for (ProfileService profile : mRegisteredProfiles) {
             profile.dump(sb);
         }
+        mSilenceDeviceManager.dump(fd, writer, args);
 
         writer.write(sb.toString());
         writer.flush();

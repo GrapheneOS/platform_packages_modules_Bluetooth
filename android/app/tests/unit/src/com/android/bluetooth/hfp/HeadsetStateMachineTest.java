@@ -1010,6 +1010,18 @@ public class HeadsetStateMachineTest {
     }
 
     /**
+     * A test to verify that we correctly set AG indicator mask when enter/exit silence mode
+     */
+    @Test
+    public void testSetSilenceDevice() {
+        doNothing().when(mPhoneState).listenForPhoneState(any(BluetoothDevice.class), anyInt());
+        mHeadsetStateMachine.setSilenceDevice(true);
+        mHeadsetStateMachine.setSilenceDevice(false);
+        verify(mPhoneState, times(2)).listenForPhoneState(mTestDevice,
+                PhoneStateListener.LISTEN_NONE);
+    }
+
+    /**
      * Setup Connecting State
      * @return number of times mHeadsetService.sendBroadcastAsUser() has been invoked
      */
