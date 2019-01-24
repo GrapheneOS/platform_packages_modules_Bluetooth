@@ -132,6 +132,7 @@ public class HeadsetStateMachine extends StateMachine {
     // Runtime states
     private int mSpeakerVolume;
     private int mMicVolume;
+    private boolean mDeviceSilenced;
     private HeadsetAgIndicatorEnableState mAgIndicatorEnableState;
     // The timestamp when the device entered connecting/connected state
     private long mConnectingTimestampMs = Long.MIN_VALUE;
@@ -174,6 +175,7 @@ public class HeadsetStateMachine extends StateMachine {
         mSystemInterface =
                 Objects.requireNonNull(systemInterface, "systemInterface cannot be null");
         mAdapterService = Objects.requireNonNull(adapterService, "AdapterService cannot be null");
+        mDeviceSilenced = false;
         // Create phonebook helper
         mPhonebook = new AtPhonebook(mHeadsetService, mNativeInterface);
         // Initialize state machine
@@ -838,6 +840,8 @@ public class HeadsetStateMachine extends StateMachine {
                     break;
                 }
                 case CALL_STATE_CHANGED: {
+                    if (mDeviceSilenced) break;
+
                     HeadsetCallState callState = (HeadsetCallState) message.obj;
                     if (!mNativeInterface.phoneStateChange(mDevice, callState)) {
                         stateLogW("processCallState: failed to update call state " + callState);
@@ -1432,6 +1436,27 @@ public class HeadsetStateMachine extends StateMachine {
         return mConnectingTimestampMs;
     }
 
+    /**
+     * Set the silence mode status of this state machine
+     *
+     * @param silence true to enter silence mode, false on exit
+     * @return true on success, false on error
+     */
+    @VisibleForTesting
+    public boolean setSilenceDevice(boolean silence) {
+        if (silence == mDeviceSilenced) {
+            return false;
+        }
+        if (silence) {
+            mSystemInterface.getHeadsetPhoneState().listenForPhoneState(mDevice,
+                    PhoneStateListener.LISTEN_NONE);
+        } else {
+            updateAgIndicatorEnableState(mAgIndicatorEnableState);
+        }
+        mDeviceSilenced = silence;
+        return true;
+    }
+
     /*
      * Put the AT command, company ID, arguments, and device in an Intent and broadcast it.
      */
@@ -1946,7 +1971,8 @@ public class HeadsetStateMachine extends StateMachine {
 
     private void updateAgIndicatorEnableState(
             HeadsetAgIndicatorEnableState agIndicatorEnableState) {
-        if (Objects.equals(mAgIndicatorEnableState, agIndicatorEnableState)) {
+        if (!mDeviceSilenced
+                && Objects.equals(mAgIndicatorEnableState, agIndicatorEnableState)) {
             Log.i(TAG, "updateAgIndicatorEnableState, no change in indicator state "
                     + mAgIndicatorEnableState);
             return;

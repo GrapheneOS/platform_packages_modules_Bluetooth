@@ -467,6 +467,34 @@ public class A2dpService extends ProfileService {
     }
 
     /**
+     * Process a change in the silence mode for a {@link BluetoothDevice}.
+     *
+     * @param device the device to change silence mode
+     * @param silence true to enable silence mode, false to disable.
+     * @return true on success, false on error
+     */
+    @VisibleForTesting
+    public boolean setSilenceMode(BluetoothDevice device, boolean silence) {
+        if (DBG) {
+            Log.d(TAG, "setSilenceMode(" + device + "): " + silence);
+        }
+        if (silence && Objects.equals(mActiveDevice, device)) {
+            if (mActiveDevice != null && AvrcpTargetService.get() != null) {
+                AvrcpTargetService.get().storeVolumeForDevice(mActiveDevice);
+            }
+            removeActiveDevice(true);
+        } else if (!silence && mActiveDevice == null) {
+            // Set the device as the active device if currently no active device.
+            setActiveDevice(device);
+        }
+        if (!mA2dpNativeInterface.setSilenceDevice(device, silence)) {
+            Log.e(TAG, "Cannot set " + device + " silence mode " + silence + " in native layer");
+            return false;
+        }
+        return true;
+    }
+
+    /**
      * Set the active device.
      *
      * @param device the active device
