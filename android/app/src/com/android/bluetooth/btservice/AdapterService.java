@@ -26,6 +26,7 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothClass;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothProfile;
+import android.bluetooth.BluetoothProtoEnums;
 import android.bluetooth.IBluetooth;
 import android.bluetooth.IBluetoothCallback;
 import android.bluetooth.IBluetoothMetadataListener;
@@ -2203,6 +2204,11 @@ public class AdapterService extends Service {
             return false;
         }
 
+        StatsLog.write(StatsLog.BLUETOOTH_BOND_STATE_CHANGED,
+                obfuscateAddress(device), 0, device.getType(),
+                BluetoothDevice.BOND_BONDING,
+                BluetoothProtoEnums.BOND_SUB_STATE_LOCAL_PIN_REPLIED,
+                accept ? 0 : BluetoothDevice.UNBOND_REASON_AUTH_REJECTED);
         byte[] addr = Utils.getBytesFromAddress(device.getAddress());
         return pinReplyNative(addr, accept, len, pinCode);
     }
@@ -2214,6 +2220,11 @@ public class AdapterService extends Service {
             return false;
         }
 
+        StatsLog.write(StatsLog.BLUETOOTH_BOND_STATE_CHANGED,
+                obfuscateAddress(device), 0, device.getType(),
+                BluetoothDevice.BOND_BONDING,
+                BluetoothProtoEnums.BOND_SUB_STATE_LOCAL_SSP_REPLIED,
+                accept ? 0 : BluetoothDevice.UNBOND_REASON_AUTH_REJECTED);
         byte[] addr = Utils.getBytesFromAddress(device.getAddress());
         return sspReplyNative(addr, AbstractionLayer.BT_SSP_VARIANT_PASSKEY_ENTRY, accept,
                 Utils.byteArrayToInt(passkey));
@@ -2227,6 +2238,11 @@ public class AdapterService extends Service {
             return false;
         }
 
+        StatsLog.write(StatsLog.BLUETOOTH_BOND_STATE_CHANGED,
+                obfuscateAddress(device), 0, device.getType(),
+                BluetoothDevice.BOND_BONDING,
+                BluetoothProtoEnums.BOND_SUB_STATE_LOCAL_SSP_REPLIED,
+                accept ? 0 : BluetoothDevice.UNBOND_REASON_AUTH_REJECTED);
         byte[] addr = Utils.getBytesFromAddress(device.getAddress());
         return sspReplyNative(addr, AbstractionLayer.BT_SSP_VARIANT_PASSKEY_CONFIRMATION, accept,
                 0);
