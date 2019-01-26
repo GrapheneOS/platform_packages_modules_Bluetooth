@@ -151,9 +151,10 @@ public class DatabaseManager {
                 }
                 createMetadata(address);
             } else {
-                if (mMetadataCache.containsKey(address)) {
+                Metadata metadata = mMetadataCache.get(address);
+                if (metadata != null) {
                     mMetadataCache.remove(address);
-                    deleteDatabase(mMetadataCache.get(address));
+                    deleteDatabase(metadata);
                 }
             }
         }
@@ -707,9 +708,6 @@ public class DatabaseManager {
     }
 
     private void updateDatabase(Metadata data) {
-        if (data == null) {
-            Log.e(TAG, "updateDatabase: data is null");
-        }
         if (data.getAddress() == null) {
             Log.e(TAG, "updateDatabase: address is null");
             return;
@@ -723,9 +721,6 @@ public class DatabaseManager {
     }
 
     private void deleteDatabase(Metadata data) {
-        if (data == null) {
-            Log.e(TAG, "deleteDatabase: data is null");
-        }
         if (data.getAddress() == null) {
             Log.e(TAG, "deleteDatabase: address is null");
             return;
