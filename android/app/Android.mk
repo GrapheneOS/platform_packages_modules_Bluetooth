@@ -26,10 +26,10 @@ LOCAL_STATIC_JAVA_LIBRARIES := \
         services.net \
         libprotobuf-java-lite \
         bluetooth-protos-lite \
-        androidx.lifecycle_lifecycle-livedata \
 
 LOCAL_STATIC_ANDROID_LIBRARIES := \
         androidx.core_core \
+        androidx.lifecycle_lifecycle-livedata \
         androidx.room_room-runtime \
 
 LOCAL_ANNOTATION_PROCESSORS := \
@@ -46,6 +46,9 @@ LOCAL_ANNOTATION_PROCESSORS := \
         bt-jetbrain-nodeps \
         guava-21.0 \
         kotlin-stdlib
+
+LOCAL_ANNOTATION_PROCESSOR_CLASSES := \
+        androidx.room.RoomProcessor
 
 LOCAL_REQUIRED_MODULES := libbluetooth
 LOCAL_PROGUARD_ENABLED := disabled
