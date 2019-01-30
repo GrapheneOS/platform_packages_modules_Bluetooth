@@ -54,6 +54,7 @@ import android.content.Intent;
 import android.os.Looper;
 import android.os.Message;
 import android.util.Log;
+import android.util.StatsLog;
 
 import com.android.bluetooth.btservice.ProfileService;
 import com.android.internal.annotations.VisibleForTesting;
@@ -672,7 +673,7 @@ final class A2dpStateMachine extends StateMachine {
     private void broadcastAudioState(int newState, int prevState) {
         log("A2DP Playing state : device: " + mDevice + " State:" + audioStateToString(prevState)
                 + "->" + audioStateToString(newState));
-
+        StatsLog.write(StatsLog.BLUETOOTH_A2DP_PLAYBACK_STATE_CHANGED, newState);
         Intent intent = new Intent(BluetoothA2dp.ACTION_PLAYING_STATE_CHANGED);
         intent.putExtra(BluetoothDevice.EXTRA_DEVICE, mDevice);
         intent.putExtra(BluetoothProfile.EXTRA_PREVIOUS_STATE, prevState);
