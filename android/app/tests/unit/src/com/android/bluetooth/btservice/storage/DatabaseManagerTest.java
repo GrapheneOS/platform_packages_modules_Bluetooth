@@ -56,6 +56,7 @@ public final class DatabaseManagerTest {
     private static final String OTHER_BT_ADDR = "11:11:11:11:11:11";
     private static final int A2DP_SUPPORT_OP_CODEC_TEST = 0;
     private static final int A2DP_ENALBED_OP_CODEC_TEST = 1;
+    private static final int MAX_META_ID = 16;
 
     @Before
     public void setUp() throws Exception {
@@ -70,17 +71,11 @@ public final class DatabaseManagerTest {
 
         mDatabaseManager = new DatabaseManager(mAdapterService);
 
-        BluetoothDevice[] bondedDevices = {};
+        BluetoothDevice[] bondedDevices = {mTestDevice};
         doReturn(bondedDevices).when(mAdapterService).getBondedDevices();
         doNothing().when(mAdapterService).metadataChanged(anyString(), anyInt(), anyString());
 
-        mDatabaseManager.start(mDatabase);
-        // Wait for handler thread finish its task.
-        TestUtils.waitForLooperToFinishScheduledTask(mDatabaseManager.getHandlerLooper());
-
-        // Clear local storage
-        mDatabaseManager.mMetadataCache.clear();
-        mDatabase.delete(LOCAL_STORAGE);
+        restartDatabaseManagerHelper();
     }
 
     @After
@@ -88,6 +83,28 @@ public final class DatabaseManagerTest {
         TestUtils.clearAdapterService(mAdapterService);
         mDatabase.deleteAll();
         mDatabaseManager.cleanup();
+    }
+
+    @Test
+    public void testMetadataDefault() {
+        Metadata data = new Metadata(TEST_BT_ADDR);
+        mDatabase.insert(data);
+        restartDatabaseManagerHelper();
+
+        for (int id = 0; id < BluetoothProfile.MAX_PROFILE_ID; id++) {
+            Assert.assertEquals(BluetoothProfile.PRIORITY_UNDEFINED,
+                    mDatabaseManager.getProfilePriority(mTestDevice, id));
+        }
+
+        Assert.assertEquals(BluetoothA2dp.OPTIONAL_CODECS_NOT_SUPPORTED,
+                mDatabaseManager.getA2dpSupportsOptionalCodecs(mTestDevice));
+
+        Assert.assertEquals(BluetoothA2dp.OPTIONAL_CODECS_PREF_DISABLED,
+                    mDatabaseManager.getA2dpOptionalCodecsEnabled(mTestDevice));
+
+        for (int id = 0; id < MAX_META_ID; id++) {
+            Assert.assertNull(mDatabaseManager.getCustomMeta(mTestDevice, id));
+        }
     }
 
     @Test
@@ -197,9 +214,6 @@ public final class DatabaseManagerTest {
         mDatabaseManager.mMetadataCache.put(TEST_BT_ADDR, data);
         mDatabase.insert(data);
 
-        BluetoothDevice[] bondedDevices = {mTestDevice};
-        doReturn(bondedDevices).when(mAdapterService).getBondedDevices();
-
         mDatabaseManager.removeUnusedMetadata();
         // Wait for database update
         TestUtils.waitForLooperToFinishScheduledTask(mDatabaseManager.getHandlerLooper());
@@ -301,6 +315,21 @@ public final class DatabaseManagerTest {
                 value, true);
     }
 
+    void restartDatabaseManagerHelper() {
+        Metadata data = new Metadata(LOCAL_STORAGE);
+        data.migrated = true;
+        mDatabase.insert(data);
+
+        mDatabaseManager.cleanup();
+        mDatabaseManager.start(mDatabase);
+        // Wait for handler thread finish its task.
+        TestUtils.waitForLooperToFinishScheduledTask(mDatabaseManager.getHandlerLooper());
+
+        // Remove local storage
+        mDatabaseManager.mMetadataCache.remove(LOCAL_STORAGE);
+        mDatabase.delete(LOCAL_STORAGE);
+    }
+
     void testSetGetProfilePriorityCase(boolean stored, int priority, int expectedPriority,
             boolean expectedSetResult) {
         if (stored) {
@@ -331,9 +360,9 @@ public final class DatabaseManagerTest {
         Assert.assertEquals(1, list.size());
 
         // Check whether the device is in database
-        Metadata data = list.get(0);
-        Assert.assertEquals(TEST_BT_ADDR, data.getAddress());
-        Assert.assertEquals(expectedPriority, data.getProfilePriority(BluetoothProfile.HEADSET));
+        restartDatabaseManagerHelper();
+        Assert.assertEquals(expectedPriority,
+                mDatabaseManager.getProfilePriority(mTestDevice, BluetoothProfile.HEADSET));
 
         mDatabase.deleteAll();
         // Wait for clear database
@@ -370,12 +399,13 @@ public final class DatabaseManagerTest {
         Assert.assertEquals(1, list.size());
 
         // Check whether the device is in database
-        Metadata data = list.get(0);
-        Assert.assertEquals(TEST_BT_ADDR, data.getAddress());
+        restartDatabaseManagerHelper();
         if (test == A2DP_SUPPORT_OP_CODEC_TEST) {
-            Assert.assertEquals(expectedValue, data.a2dpSupportsOptionalCodecs);
+            Assert.assertEquals(expectedValue,
+                    mDatabaseManager.getA2dpSupportsOptionalCodecs(mTestDevice));
         } else {
-            Assert.assertEquals(expectedValue, data.a2dpOptionalCodecsEnabled);
+            Assert.assertEquals(expectedValue,
+                    mDatabaseManager.getA2dpOptionalCodecsEnabled(mTestDevice));
         }
 
         mDatabase.deleteAll();
@@ -411,10 +441,9 @@ public final class DatabaseManagerTest {
         TestUtils.waitForLooperToFinishScheduledTask(mDatabaseManager.getHandlerLooper());
 
         // Check whether the value is saved in database
-        List<Metadata> list = mDatabase.load();
-        Metadata data = list.get(0);
-        Assert.assertEquals(TEST_BT_ADDR, data.getAddress());
-        Assert.assertEquals(value, data.getCustomizedMeta(key));
+        restartDatabaseManagerHelper();
+        Assert.assertEquals(value,
+                mDatabaseManager.getCustomMeta(mTestDevice, key));
 
         mDatabase.deleteAll();
         // Wait for clear database

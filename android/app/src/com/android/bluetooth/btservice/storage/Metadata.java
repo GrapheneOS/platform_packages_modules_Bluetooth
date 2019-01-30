@@ -40,6 +40,7 @@ class Metadata {
     public ProfilePrioritiesEntity profilePriorites;
 
     @Embedded
+    @NonNull
     public CustomizedMetaEntity publicMeta;
 
     public int a2dpSupportsOptionalCodecs;
