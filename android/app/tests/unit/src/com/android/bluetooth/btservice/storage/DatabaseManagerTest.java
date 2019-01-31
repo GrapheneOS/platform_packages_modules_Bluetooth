@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.android.bluetooth.btservice;
+package com.android.bluetooth.btservice.storage;
 
 import static org.mockito.Mockito.*;
 
@@ -29,6 +29,7 @@ import android.support.test.runner.AndroidJUnit4;
 import androidx.room.Room;
 
 import com.android.bluetooth.TestUtils;
+import com.android.bluetooth.btservice.AdapterService;
 
 import org.junit.After;
 import org.junit.Assert;
