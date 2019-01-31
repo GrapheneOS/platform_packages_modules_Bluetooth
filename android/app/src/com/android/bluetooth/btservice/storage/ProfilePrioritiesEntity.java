@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.android.bluetooth.btservice;
+package com.android.bluetooth.btservice.storage;
 
 import android.bluetooth.BluetoothProfile;
 
