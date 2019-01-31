@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.android.bluetooth.btservice;
+package com.android.bluetooth.btservice.storage;
 
 import android.bluetooth.BluetoothA2dp;
 import android.bluetooth.BluetoothAdapter;
@@ -32,6 +32,7 @@ import android.os.Message;
 import android.provider.Settings;
 import android.util.Log;
 
+import com.android.bluetooth.btservice.AdapterService;
 import com.android.internal.annotations.VisibleForTesting;
 
 import java.util.HashMap;
@@ -67,7 +68,10 @@ public class DatabaseManager {
     private static final int MSG_CLEAR_DATABASE = 100;
     private static final String LOCAL_STORAGE = "LocalStorage";
 
-    DatabaseManager(AdapterService service) {
+    /**
+     * Constructor of the DatabaseManager
+     */
+    public DatabaseManager(AdapterService service) {
         mAdapterService = service;
     }
 
@@ -500,7 +504,12 @@ public class DatabaseManager {
         return mHandlerThread.getLooper();
     }
 
-    void start(MetadataDatabase database) {
+    /**
+     * Start and initialize the DatabaseManager
+     *
+     * @param database the Bluetooth storage {@link MetadataDatabase}
+     */
+    public void start(MetadataDatabase database) {
         if (DBG) {
             Log.d(TAG, "start()");
         }
@@ -535,13 +544,19 @@ public class DatabaseManager {
                 .getAbsolutePath();
     }
 
-    void factoryReset() {
+    /**
+     * Clear all persistence data in database
+     */
+    public void factoryReset() {
         Log.w(TAG, "factoryReset");
         Message message = mHandler.obtainMessage(MSG_CLEAR_DATABASE);
         mHandler.sendMessage(message);
     }
 
-    void cleanup() {
+    /**
+     * Close and de-init the DatabaseManager
+     */
+    public void cleanup() {
         removeUnusedMetadata();
         mAdapterService.unregisterReceiver(mReceiver);
         if (mHandlerThread != null) {
