@@ -19,7 +19,7 @@ package com.android.bluetooth.btservice.storage;
 import androidx.room.Entity;
 
 @Entity
-class CustomizedMetaEntity {
+class CustomizedMetadataEntity {
     public String manufacturer_name;
     public String model_name;
     public String software_version;
@@ -37,7 +37,4 @@ class CustomizedMetaEntity {
     public String unthethered_right_charging;
     public String unthethered_case_charging;
     public String enhanced_settings_ui_uri;
-
-    CustomizedMetaEntity() {
-    }
 }
