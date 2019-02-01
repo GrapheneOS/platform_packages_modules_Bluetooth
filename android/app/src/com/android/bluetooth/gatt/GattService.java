@@ -1090,6 +1090,9 @@ public class GattService extends ProfileService {
 
     /** Determines if the given scan client has the appropriate permissions to receive callbacks. */
     private boolean hasScanResultPermission(final ScanClient client) {
+        if (client.hasNetworkSettingsPermission || client.hasNetworkSetupWizardPermission) {
+            return true;
+        }
         return client.hasLocationPermission && !Utils.blockedByLocationOff(this, client.userHandle);
     }
 
@@ -1918,9 +1921,21 @@ public class GattService extends ProfileService {
         }
         final ScanClient scanClient = new ScanClient(scannerId, settings, filters, storages);
         scanClient.userHandle = UserHandle.of(UserHandle.getCallingUserId());
-        scanClient.hasLocationPermission =
-                Utils.checkCallerHasLocationPermission(
-                        this, mAppOps, callingPackage, scanClient.userHandle);
+        mAppOps.checkPackage(scanClient.userHandle.getIdentifier(), callingPackage);
+        scanClient.isQApp = Utils.isQApp(this, callingPackage);
+        if (scanClient.isQApp) {
+            scanClient.hasLocationPermission =
+                    Utils.checkCallerHasFineLocation(
+                            this, mAppOps, callingPackage, scanClient.userHandle);
+        } else {
+            scanClient.hasLocationPermission =
+                    Utils.checkCallerHasCoarseOrFineLocation(
+                            this, mAppOps, callingPackage, scanClient.userHandle);
+        }
+        scanClient.hasNetworkSettingsPermission =
+                Utils.checkCallerHasNetworkSettingsPermission(this);
+        scanClient.hasNetworkSetupWizardPermission =
+                Utils.checkCallerHasNetworkSetupWizardPermission(this);
 
         AppScanStats app = mScannerMap.getAppScanStatsById(scannerId);
         if (app != null) {
@@ -1953,14 +1968,24 @@ public class GattService extends ProfileService {
         piInfo.callingPackage = callingPackage;
         ScannerMap.App app = mScannerMap.add(uuid, null, null, piInfo, this);
         app.mUserHandle = UserHandle.of(UserHandle.getCallingUserId());
+        mAppOps.checkPackage(app.mUserHandle.getIdentifier(), callingPackage);
+        app.mIsQApp = Utils.isQApp(this, callingPackage);
         try {
-            app.hasLocationPermisson =
-                    Utils.checkCallerHasLocationPermission(
-                            this, mAppOps, callingPackage, app.mUserHandle);
+            if (app.mIsQApp) {
+                app.hasLocationPermission = Utils.checkCallerHasFineLocation(
+                      this, mAppOps, callingPackage, app.mUserHandle);
+            } else {
+                app.hasLocationPermission = Utils.checkCallerHasCoarseOrFineLocation(
+                      this, mAppOps, callingPackage, app.mUserHandle);
+            }
         } catch (SecurityException se) {
             // No need to throw here. Just mark as not granted.
-            app.hasLocationPermisson = false;
+            app.hasLocationPermission = false;
         }
+        app.mHasNetworkSettingsPermission =
+                Utils.checkCallerHasNetworkSettingsPermission(this);
+        app.mHasNetworkSetupWizardPermission =
+                Utils.checkCallerHasNetworkSetupWizardPermission(this);
         mScanManager.registerScanner(uuid);
     }
 
@@ -1968,8 +1993,11 @@ public class GattService extends ProfileService {
         final PendingIntentInfo piInfo = app.info;
         final ScanClient scanClient =
                 new ScanClient(scannerId, piInfo.settings, piInfo.filters, null);
-        scanClient.hasLocationPermission = app.hasLocationPermisson;
+        scanClient.hasLocationPermission = app.hasLocationPermission;
         scanClient.userHandle = app.mUserHandle;
+        scanClient.isQApp = app.mIsQApp;
+        scanClient.hasNetworkSettingsPermission = app.mHasNetworkSettingsPermission;
+        scanClient.hasNetworkSetupWizardPermission = app.mHasNetworkSetupWizardPermission;
 
         AppScanStats scanStats = mScannerMap.getAppScanStatsById(scannerId);
         if (scanStats != null) {

@@ -582,9 +582,15 @@ final class RemoteDevices {
         intent.putExtra(BluetoothDevice.EXTRA_RSSI, deviceProp.mRssi);
         intent.putExtra(BluetoothDevice.EXTRA_NAME, deviceProp.mName);
 
-        sAdapterService.sendBroadcastMultiplePermissions(intent, new String[]{
-                AdapterService.BLUETOOTH_PERM, android.Manifest.permission.ACCESS_COARSE_LOCATION
-        });
+        final ArrayList<DiscoveringPackage> packages = sAdapterService.getDiscoveringPackages();
+        synchronized (packages) {
+            for (DiscoveringPackage pkg : packages) {
+                intent.setPackage(pkg.getPackageName());
+                sAdapterService.sendBroadcastMultiplePermissions(intent, new String[]{
+                        AdapterService.BLUETOOTH_PERM, pkg.getPermission()
+                });
+            }
+        }
     }
 
     void aclStateChangeCallback(int status, byte[] address, int newState) {

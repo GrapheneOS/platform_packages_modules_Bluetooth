@@ -43,6 +43,9 @@ import java.util.UUID;
     public boolean appDied;
     public boolean hasLocationPermission;
     public UserHandle userHandle;
+    public boolean isQApp;
+    public boolean hasNetworkSettingsPermission;
+    public boolean hasNetworkSetupWizardPermission;
 
     public AppScanStats stats = null;
 
