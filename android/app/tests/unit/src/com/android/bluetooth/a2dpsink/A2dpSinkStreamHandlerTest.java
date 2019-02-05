@@ -48,7 +48,7 @@ public class A2dpSinkStreamHandlerTest {
 
     @Mock private Context mMockContext;
 
-    @Mock private A2dpSinkStateMachine mMockA2dpSink;
+    @Mock private A2dpSinkService mMockA2dpSink;
 
     @Mock private AudioManager mMockAudioManager;
 
