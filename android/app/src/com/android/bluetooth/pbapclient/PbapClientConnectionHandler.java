@@ -92,7 +92,6 @@ class PbapClientConnectionHandler extends Handler {
     private static final long PBAP_REQUESTED_FIELDS =
             PBAP_FILTER_VERSION | PBAP_FILTER_FN | PBAP_FILTER_N | PBAP_FILTER_PHOTO
                     | PBAP_FILTER_ADR | PBAP_FILTER_EMAIL | PBAP_FILTER_TEL | PBAP_FILTER_NICKNAME;
-    private static final int PBAP_V1_2 = 0x0102;
     private static final int L2CAP_INVALID_PSM = -1;
 
     public static final String PB_PATH = "telecom/pb.vcf";
@@ -100,6 +99,7 @@ class PbapClientConnectionHandler extends Handler {
     public static final String ICH_PATH = "telecom/ich.vcf";
     public static final String OCH_PATH = "telecom/och.vcf";
 
+    public static final int PBAP_V1_2 = 0x0102;
     public static final byte VCARD_TYPE_21 = 0;
     public static final byte VCARD_TYPE_30 = 1;
 
