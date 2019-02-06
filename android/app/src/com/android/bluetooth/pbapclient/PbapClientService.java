@@ -31,6 +31,7 @@ import android.util.Log;
 import com.android.bluetooth.R;
 import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.ProfileService;
+import com.android.bluetooth.sdp.SdpManager;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -47,12 +48,14 @@ public class PbapClientService extends ProfileService {
     private static final boolean VDBG = Utils.VDBG;
 
     private static final String TAG = "PbapClientService";
+    private static final String SERVICE_NAME = "Phonebook Access PCE";
     // MAXIMUM_DEVICES set to 10 to prevent an excessive number of simultaneous devices.
     private static final int MAXIMUM_DEVICES = 10;
     private Map<BluetoothDevice, PbapClientStateMachine> mPbapClientStateMachineMap =
             new ConcurrentHashMap<>();
     private static PbapClientService sPbapClientService;
     private PbapBroadcastReceiver mPbapBroadcastReceiver = new PbapBroadcastReceiver();
+    private int mSdpHandle = -1;
 
     @Override
     public IProfileServiceBinder initBinder() {
@@ -73,13 +76,17 @@ public class PbapClientService extends ProfileService {
         } catch (Exception e) {
             Log.w(TAG, "Unable to register pbapclient receiver", e);
         }
+
         removeUncleanAccounts();
+        registerSdpRecord();
         setPbapClientService(this);
         return true;
     }
 
     @Override
     protected boolean stop() {
+        setPbapClientService(null);
+        cleanUpSdpRecord();
         try {
             unregisterReceiver(mPbapBroadcastReceiver);
         } catch (Exception e) {
@@ -88,14 +95,8 @@ public class PbapClientService extends ProfileService {
         for (PbapClientStateMachine pbapClientStateMachine : mPbapClientStateMachineMap.values()) {
             pbapClientStateMachine.doQuit();
         }
-        return true;
-    }
-
-    @Override
-    protected void cleanup() {
         removeUncleanAccounts();
-        // TODO: Should move to stop()
-        setPbapClientService(null);
+        return true;
     }
 
     void cleanupDevice(BluetoothDevice device) {
@@ -126,6 +127,35 @@ public class PbapClientService extends ProfileService {
             accountManager.removeAccountExplicitly(acc);
         }
     }
+
+    private void registerSdpRecord() {
+        SdpManager sdpManager = SdpManager.getDefaultManager();
+        if (sdpManager == null) {
+            Log.e(TAG, "SdpManager is null");
+            return;
+        }
+        mSdpHandle = sdpManager.createPbapPceRecord(SERVICE_NAME,
+                PbapClientConnectionHandler.PBAP_V1_2);
+    }
+
+    private void cleanUpSdpRecord() {
+        if (mSdpHandle < 0) {
+            Log.e(TAG, "cleanUpSdpRecord, SDP record never created");
+            return;
+        }
+        int sdpHandle = mSdpHandle;
+        mSdpHandle = -1;
+        SdpManager sdpManager = SdpManager.getDefaultManager();
+        if (sdpManager == null) {
+            Log.e(TAG, "cleanUpSdpRecord failed, sdpManager is null, sdpHandle=" + sdpHandle);
+            return;
+        }
+        Log.i(TAG, "cleanUpSdpRecord, mSdpHandle=" + sdpHandle);
+        if (!sdpManager.removeSdpRecord(sdpHandle)) {
+            Log.e(TAG, "cleanUpSdpRecord, removeSdpRecord failed, sdpHandle=" + sdpHandle);
+        }
+    }
+
 
     private class PbapBroadcastReceiver extends BroadcastReceiver {
         @Override
