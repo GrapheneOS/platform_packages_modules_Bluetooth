@@ -286,33 +286,99 @@ public final class Utils {
     }
 
     /**
-     * Checks that calling process has android.Manifest.permission.ACCESS_FINE_LOCATION and
-     * OP_FINE_LOCATION is allowed
+     * Checks that calling process has android.Manifest.permission.ACCESS_COARSE_LOCATION and
+     * OP_COARSE_LOCATION is allowed
      */
-    public static boolean checkCallerHasLocationPermission(Context context, AppOpsManager appOps,
+    public static boolean checkCallerHasCoarseLocation(Context context, AppOpsManager appOps,
             String callingPackage, UserHandle userHandle) {
-        if (context.checkCallingOrSelfPermission(android.Manifest.permission.ACCESS_FINE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED || !isAppOppAllowed(
-                        appOps, AppOpsManager.OP_FINE_LOCATION, callingPackage)) {
-            Log.e(TAG, "Permission denial: Need ACCESS_FINE_LOCATION "
-                    + "permission to get scan results");
-            return false;
-        }
-
         if (blockedByLocationOff(context, userHandle)) {
             Log.e(TAG, "Permission denial: Location is off.");
             return false;
         }
 
-        return true;
+        // Check coarse, but note fine
+        if (context.checkCallingOrSelfPermission(
+                android.Manifest.permission.ACCESS_COARSE_LOCATION)
+                        == PackageManager.PERMISSION_GRANTED
+                && isAppOppAllowed(appOps, AppOpsManager.OP_FINE_LOCATION, callingPackage)) {
+            return true;
+        }
+
+        Log.e(TAG, "Permission denial: Need ACCESS_COARSE_LOCATION "
+                + "permission to get scan results");
+        return false;
     }
 
     /**
-     * Returns true if the caller holds PEERS_MAC_ADDRESS.
+     * Checks that calling process has android.Manifest.permission.ACCESS_COARSE_LOCATION and
+     * OP_COARSE_LOCATION is allowed or android.Manifest.permission.ACCESS_FINE_LOCATION and
+     * OP_FINE_LOCATION is allowed
      */
-    public static boolean checkCallerHasPeersMacAddressPermission(Context context) {
-        return context.checkCallingOrSelfPermission(android.Manifest.permission.PEERS_MAC_ADDRESS)
+    public static boolean checkCallerHasCoarseOrFineLocation(Context context, AppOpsManager appOps,
+            String callingPackage, UserHandle userHandle) {
+        if (blockedByLocationOff(context, userHandle)) {
+            Log.e(TAG, "Permission denial: Location is off.");
+            return false;
+        }
+
+        if (context.checkCallingOrSelfPermission(
+                android.Manifest.permission.ACCESS_FINE_LOCATION)
+                        == PackageManager.PERMISSION_GRANTED
+                && isAppOppAllowed(appOps, AppOpsManager.OP_FINE_LOCATION, callingPackage)) {
+            return true;
+        }
+
+        // Check coarse, but note fine
+        if (context.checkCallingOrSelfPermission(
+                android.Manifest.permission.ACCESS_COARSE_LOCATION)
+                        == PackageManager.PERMISSION_GRANTED
+                && isAppOppAllowed(appOps, AppOpsManager.OP_FINE_LOCATION, callingPackage)) {
+            return true;
+        }
+
+        Log.e(TAG, "Permission denial: Need ACCESS_COARSE_LOCATION or ACCESS_FINE_LOCATION"
+                + "permission to get scan results");
+        return false;
+    }
+
+    /**
+     * Checks that calling process has android.Manifest.permission.ACCESS_FINE_LOCATION and
+     * OP_FINE_LOCATION is allowed
+     */
+    public static boolean checkCallerHasFineLocation(Context context, AppOpsManager appOps,
+            String callingPackage, UserHandle userHandle) {
+        if (blockedByLocationOff(context, userHandle)) {
+            Log.e(TAG, "Permission denial: Location is off.");
+            return false;
+        }
+
+        if (context.checkCallingOrSelfPermission(
+                android.Manifest.permission.ACCESS_FINE_LOCATION)
+                        == PackageManager.PERMISSION_GRANTED
+                && isAppOppAllowed(appOps, AppOpsManager.OP_FINE_LOCATION, callingPackage)) {
+            return true;
+        }
+
+        Log.e(TAG, "Permission denial: Need ACCESS_FINE_LOCATION "
+                + "permission to get scan results");
+        return false;
+    }
+
+    /**
+     * Returns true if the caller holds NETWORK_SETTINGS
+     */
+    public static boolean checkCallerHasNetworkSettingsPermission(Context context) {
+        return context.checkCallingOrSelfPermission(android.Manifest.permission.NETWORK_SETTINGS)
                 == PackageManager.PERMISSION_GRANTED;
+    }
+
+    /**
+     * Returns true if the caller holds NETWORK_SETUP_WIZARD
+     */
+    public static boolean checkCallerHasNetworkSetupWizardPermission(Context context) {
+        return context.checkCallingOrSelfPermission(
+                android.Manifest.permission.NETWORK_SETUP_WIZARD)
+                        == PackageManager.PERMISSION_GRANTED;
     }
 
     public static boolean isLegacyForegroundApp(Context context, String pkgName) {
@@ -329,6 +395,15 @@ public final class Utils {
         return true;
     }
 
+    public static boolean isQApp(Context context, String pkgName) {
+        try {
+            return context.getPackageManager().getApplicationInfo(pkgName, 0).targetSdkVersion
+                    >= Build.VERSION_CODES.Q;
+        } catch (PackageManager.NameNotFoundException e) {
+            // In case of exception, assume Q app
+        }
+        return true;
+    }
     /**
      * Return true if the specified package name is a foreground app.
      *
