@@ -25,7 +25,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.os.UserHandle;
-import android.util.EventLog;
 import android.util.Log;
 
 import androidx.annotation.VisibleForTesting;
@@ -820,9 +819,6 @@ public class HidHostService extends ProfileService {
         // bonding would potentially lead to an unauthorized connection.
         if (bondState != BluetoothDevice.BOND_BONDED) {
             Log.w(TAG, "okToConnect: return false, bondState=" + bondState);
-            if (bondState == BluetoothDevice.BOND_BONDING) {
-                EventLog.writeEvent(0x534e4554, "79703832", -1, "");
-            }
             return false;
         } else if (priority != BluetoothProfile.PRIORITY_UNDEFINED
                 && priority != BluetoothProfile.PRIORITY_ON

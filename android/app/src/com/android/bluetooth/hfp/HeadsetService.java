@@ -40,7 +40,6 @@ import android.os.ServiceManager;
 import android.os.SystemProperties;
 import android.os.UserHandle;
 import android.telecom.PhoneAccount;
-import android.util.EventLog;
 import android.util.Log;
 import android.util.StatsLog;
 
@@ -1729,9 +1728,6 @@ public class HeadsetService extends ProfileService {
         // bonding would potentially lead to an unauthorized connection.
         if (bondState != BluetoothDevice.BOND_BONDED) {
             Log.w(TAG, "okToAcceptConnection: return false, bondState=" + bondState);
-            if (bondState == BluetoothDevice.BOND_BONDING) {
-                EventLog.writeEvent(0x534e4554, "79703832", -1, "");
-            }
             return false;
         } else if (priority != BluetoothProfile.PRIORITY_UNDEFINED
                 && priority != BluetoothProfile.PRIORITY_ON
