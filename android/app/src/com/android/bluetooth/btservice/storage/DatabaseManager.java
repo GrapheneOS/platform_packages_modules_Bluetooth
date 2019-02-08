@@ -20,17 +20,20 @@ import android.bluetooth.BluetoothA2dp;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothProfile;
+import android.bluetooth.BluetoothProtoEnums;
 import android.content.BroadcastReceiver;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.os.Binder;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
 import android.os.Message;
 import android.provider.Settings;
 import android.util.Log;
+import android.util.StatsLog;
 
 import com.android.bluetooth.btservice.AdapterService;
 import com.android.internal.annotations.VisibleForTesting;
@@ -219,6 +222,7 @@ public class DatabaseManager {
                 }
                 return true;
             }
+            logManufacturerInfo(device, key, newValue);
             data.setCustomizedMeta(key, newValue);
 
             updateDatabase(data);
@@ -744,5 +748,35 @@ public class DatabaseManager {
         Message message = mHandler.obtainMessage(MSG_DELETE_DATABASE);
         message.obj = data.getAddress();
         mHandler.sendMessage(message);
+    }
+
+    private void logManufacturerInfo(BluetoothDevice device, int key, String value) {
+        String callingApp = mAdapterService.getPackageManager().getNameForUid(
+                Binder.getCallingUid());
+        String manufacturerName = "";
+        String modelName = "";
+        String hardwareVersion = "";
+        String softwareVersion = "";
+        switch (key) {
+            case BluetoothDevice.METADATA_MANUFACTURER_NAME:
+                manufacturerName = value;
+                break;
+            case BluetoothDevice.METADATA_MODEL_NAME:
+                modelName = value;
+                break;
+            case BluetoothDevice.METADATA_HARDWARE_VERSION:
+                hardwareVersion = value;
+                break;
+            case BluetoothDevice.METADATA_SOFTWARE_VERSION:
+                softwareVersion = value;
+                break;
+            default:
+                // Do not log anything if metadata doesn't fall into above categories
+                return;
+        }
+        StatsLog.write(StatsLog.BLUETOOTH_DEVICE_INFO_REPORTED,
+                mAdapterService.obfuscateAddress(device),
+                BluetoothProtoEnums.DEVICE_INFO_EXTERNAL, callingApp, manufacturerName, modelName,
+                hardwareVersion, softwareVersion);
     }
 }
