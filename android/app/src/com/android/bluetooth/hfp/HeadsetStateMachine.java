@@ -21,6 +21,7 @@ import android.bluetooth.BluetoothAssignedNumbers;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothHeadset;
 import android.bluetooth.BluetoothProfile;
+import android.bluetooth.BluetoothProtoEnums;
 import android.bluetooth.hfp.BluetoothHfpProtoEnums;
 import android.content.Intent;
 import android.media.AudioManager;
@@ -1833,6 +1834,18 @@ public class HeadsetStateMachine extends StateMachine {
             Log.w(TAG, "processAtXapl() argument types not match");
             return;
         }
+        String[] deviceInfo = ((String) args[0]).split("-");
+        if (deviceInfo.length != 3) {
+            Log.w(TAG, "processAtXapl() deviceInfo length " + deviceInfo.length + " is wrong");
+            return;
+        }
+        String vendorId = deviceInfo[0];
+        String productId = deviceInfo[1];
+        String version = deviceInfo[2];
+        StatsLog.write(StatsLog.BLUETOOTH_DEVICE_INFO_REPORTED,
+                mAdapterService.obfuscateAddress(device), BluetoothProtoEnums.DEVICE_INFO_INTERNAL,
+                BluetoothHeadset.VENDOR_SPECIFIC_HEADSET_EVENT_XAPL, vendorId, productId, version,
+                null);
         // feature = 2 indicates that we support battery level reporting only
         mNativeInterface.atResponseString(device, "+XAPL=iPhone," + String.valueOf(2));
     }
