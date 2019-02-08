@@ -69,6 +69,8 @@ public final class DatabaseManagerTest {
         mDatabase = Room.inMemoryDatabaseBuilder(InstrumentationRegistry.getTargetContext(),
                 MetadataDatabase.class).build();
 
+        when(mAdapterService.getPackageManager()).thenReturn(
+                InstrumentationRegistry.getTargetContext().getPackageManager());
         mDatabaseManager = new DatabaseManager(mAdapterService);
 
         BluetoothDevice[] bondedDevices = {mTestDevice};
