@@ -36,11 +36,12 @@ class AvrcpVolumeManager extends AudioDeviceCallback {
     public static final boolean DEBUG = true;
 
     // All volumes are stored at system volume values, not AVRCP values
-    public static final String VOLUME_MAP = "bluetooth_volume_map";
-    public static final String VOLUME_BLACKLIST = "absolute_volume_blacklist";
-    public static final int AVRCP_MAX_VOL = 127;
-    public static int sDeviceMaxVolume = 0;
-    public static final int STREAM_MUSIC = AudioManager.STREAM_MUSIC;
+    private static final String VOLUME_MAP = "bluetooth_volume_map";
+    private static final String VOLUME_BLACKLIST = "absolute_volume_blacklist";
+    private static final int AVRCP_MAX_VOL = 127;
+    private static final int STREAM_MUSIC = AudioManager.STREAM_MUSIC;
+    private static int sDeviceMaxVolume = 0;
+    private static int sNewDeviceVolume = 0;
 
     Context mContext;
     AudioManager mAudioManager;
@@ -72,10 +73,9 @@ class AvrcpVolumeManager extends AudioDeviceCallback {
         mAudioManager.avrcpSupportsAbsoluteVolume(device.getAddress(), mDeviceMap.get(device));
 
         // Get the current system volume and try to get the preference volume
-        int currVolume = mAudioManager.getStreamVolume(STREAM_MUSIC);
-        int savedVolume = getVolume(device, currVolume);
+        int savedVolume = getVolume(device, sNewDeviceVolume);
 
-        d("switchVolumeDevice: currVolume=" + currVolume + " savedVolume=" + savedVolume);
+        d("switchVolumeDevice: savedVolume=" + savedVolume);
 
         // If absolute volume for the device is supported, set the volume for the device
         if (mDeviceMap.get(device)) {
@@ -91,6 +91,7 @@ class AvrcpVolumeManager extends AudioDeviceCallback {
         mAudioManager = audioManager;
         mNativeInterface = nativeInterface;
         sDeviceMaxVolume = mAudioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
+        sNewDeviceVolume = sDeviceMaxVolume / 2;
 
         mAudioManager.registerAudioDeviceCallback(this, null);
 
@@ -194,7 +195,7 @@ class AvrcpVolumeManager extends AudioDeviceCallback {
         mCurrentDevice = device;
     }
 
-    void deviceDisconnected(@NonNull BluetoothDevice device) {
+    synchronized void deviceDisconnected(@NonNull BluetoothDevice device) {
         d("deviceDisconnected: device=" + device);
         mDeviceMap.remove(device);
     }

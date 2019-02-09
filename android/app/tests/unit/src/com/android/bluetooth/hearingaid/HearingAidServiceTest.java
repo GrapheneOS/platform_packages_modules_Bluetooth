@@ -118,6 +118,8 @@ public class HearingAidServiceTest {
                 .getBondState(any(BluetoothDevice.class));
         doReturn(new ParcelUuid[]{BluetoothUuid.HearingAid}).when(mAdapterService)
                 .getRemoteUuids(any(BluetoothDevice.class));
+        HearingAidService.sConnectTimeoutForEachSideMs = 1000;
+        HearingAidService.sCheckWhitelistTimeoutMs = 2000;
     }
 
     @After
@@ -343,7 +345,8 @@ public class HearingAidServiceTest {
                 mService.getConnectionState(mLeftDevice));
 
         // Verify the connection state broadcast, and that we are in Disconnected state
-        verifyConnectionStateIntent(HearingAidStateMachine.sConnectTimeoutMs * 2, mLeftDevice,
+        verifyConnectionStateIntent(HearingAidService.sConnectTimeoutForEachSideMs * 3,
+                mLeftDevice,
                 BluetoothProfile.STATE_DISCONNECTED,
                 BluetoothProfile.STATE_CONNECTING);
         Assert.assertEquals(BluetoothProfile.STATE_DISCONNECTED,
@@ -498,8 +501,9 @@ public class HearingAidServiceTest {
         Assert.assertTrue(mService.getConnectedDevices().contains(mRightDevice));
 
         // Verify the audio is routed to Hearing Aid Profile
-        verify(mAudioManager).setHearingAidDeviceConnectionState(any(BluetoothDevice.class),
-                eq(BluetoothProfile.STATE_CONNECTED));
+        verify(mAudioManager).setBluetoothHearingAidDeviceConnectionState(
+                any(BluetoothDevice.class), eq(BluetoothProfile.STATE_CONNECTED),
+                eq(true), eq(0));
 
         // Send a disconnect request
         Assert.assertTrue("Disconnect failed", mService.disconnect(mLeftDevice));
@@ -546,8 +550,9 @@ public class HearingAidServiceTest {
         Assert.assertFalse(mService.getConnectedDevices().contains(mRightDevice));
 
         // Verify the audio is not routed to Hearing Aid Profile
-        verify(mAudioManager).setHearingAidDeviceConnectionState(any(BluetoothDevice.class),
-                eq(BluetoothProfile.STATE_DISCONNECTED));
+        verify(mAudioManager).setBluetoothHearingAidDeviceConnectionState(
+                any(BluetoothDevice.class), eq(BluetoothProfile.STATE_DISCONNECTED),
+                eq(false), eq(0));
     }
 
     /**
@@ -914,6 +919,31 @@ public class HearingAidServiceTest {
                 mService.getConnectionState(mRightDevice));
         Assert.assertEquals(BluetoothProfile.STATE_CONNECTED,
                 mService.getConnectionState(mLeftDevice));
+    }
+
+    /**
+     * Test that the service can update HiSyncId from native message
+     */
+    @Test
+    public void getHiSyncIdFromNative_addToMap() {
+        getHiSyncIdFromNative();
+        Assert.assertTrue("hiSyncIdMap should contain mLeftDevice",
+                mService.getHiSyncIdMap().containsKey(mLeftDevice));
+        Assert.assertTrue("hiSyncIdMap should contain mRightDevice",
+                mService.getHiSyncIdMap().containsKey(mRightDevice));
+        Assert.assertTrue("hiSyncIdMap should contain mSingleDevice",
+                mService.getHiSyncIdMap().containsKey(mSingleDevice));
+    }
+
+    /**
+     * Test that the service removes the device from HiSyncIdMap when it's unbonded
+     */
+    @Test
+    public void deviceUnbonded_removeHiSyncId() {
+        getHiSyncIdFromNative();
+        mService.bondStateChanged(mLeftDevice, BluetoothDevice.BOND_NONE);
+        Assert.assertFalse("hiSyncIdMap shouldn't contain mLeftDevice",
+                mService.getHiSyncIdMap().containsKey(mLeftDevice));
     }
 
     private void connectDevice(BluetoothDevice device) {

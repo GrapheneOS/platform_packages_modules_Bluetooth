@@ -96,7 +96,7 @@
     <string name="status_canceled" msgid="6664490318773098285">"အသုံးပြုသူမှ လွှဲပြောင်းခြင်းကို ဖယ်ဖျက်ရန်"</string>
     <string name="status_file_error" msgid="3671917770630165299">"သိုလှောင်မှု အချက်"</string>
     <string name="status_no_sd_card" product="nosdcard" msgid="1112125377088421469">"USBသိုလှောင်ရာမရှိပါ"</string>
-    <string name="status_no_sd_card" product="default" msgid="5760944071743325592">"SDကဒ်မရှိပါ၊ လွှဲပြောင်းထားသော ဖိုင်များကို သိမ်းဆည်းရန် SDကဒ်ထည့်ပါ"</string>
+    <string name="status_no_sd_card" product="default" msgid="5760944071743325592">"SDကဒ်မရှိပါ၊ လွှဲပြောင်းထားသော ဖိုင်များကို သိမ်းရန် SDကဒ်ထည့်ပါ"</string>
     <string name="status_connection_error" msgid="947681831523219891">"ချိတ်ဆက်ခြင်း မအောင်မြင်ပါ"</string>
     <string name="status_protocol_error" msgid="3245444473429269539">"တောင်းခံခြင်းကို မှန်ကန်စွာကိုင်တွယ်မရပါ"</string>
     <string name="status_unknown_error" msgid="8156660554237824912">"အမည်မသိသော မှားယွင်းမှု"</string>

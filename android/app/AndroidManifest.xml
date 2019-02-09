@@ -393,8 +393,7 @@
         </service>
         <service
             android:process="@string/process"
-            android:name = ".hearingaid.HearingAidService"
-            android:enabled="@bool/profile_supported_hearing_aid">
+            android:name = ".hearingaid.HearingAidService">
             <intent-filter>
                 <action android:name="android.bluetooth.IBluetoothHearingAid" />
             </intent-filter>
