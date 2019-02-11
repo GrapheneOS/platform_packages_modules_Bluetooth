@@ -1921,7 +1921,7 @@ public class GattService extends ProfileService {
         }
         final ScanClient scanClient = new ScanClient(scannerId, settings, filters, storages);
         scanClient.userHandle = UserHandle.of(UserHandle.getCallingUserId());
-        mAppOps.checkPackage(scanClient.userHandle.getIdentifier(), callingPackage);
+        mAppOps.checkPackage(Binder.getCallingUid(), callingPackage);
         scanClient.isQApp = Utils.isQApp(this, callingPackage);
         if (scanClient.isQApp) {
             scanClient.hasLocationPermission =
@@ -1968,7 +1968,7 @@ public class GattService extends ProfileService {
         piInfo.callingPackage = callingPackage;
         ScannerMap.App app = mScannerMap.add(uuid, null, null, piInfo, this);
         app.mUserHandle = UserHandle.of(UserHandle.getCallingUserId());
-        mAppOps.checkPackage(app.mUserHandle.getIdentifier(), callingPackage);
+        mAppOps.checkPackage(Binder.getCallingUid(), callingPackage);
         app.mIsQApp = Utils.isQApp(this, callingPackage);
         try {
             if (app.mIsQApp) {
