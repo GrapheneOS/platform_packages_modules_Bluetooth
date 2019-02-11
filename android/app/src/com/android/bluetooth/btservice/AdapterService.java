@@ -1937,7 +1937,7 @@ public class AdapterService extends Service {
         UserHandle callingUser = UserHandle.of(UserHandle.getCallingUserId());
         debugLog("startDiscovery");
         enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH ADMIN permission");
-        mAppOps.checkPackage(callingUser.getIdentifier(), callingPackage);
+        mAppOps.checkPackage(Binder.getCallingUid(), callingPackage);
         boolean isQApp = Utils.isQApp(this, callingPackage);
         String permission = null;
         if (Utils.checkCallerHasNetworkSettingsPermission(this)) {
