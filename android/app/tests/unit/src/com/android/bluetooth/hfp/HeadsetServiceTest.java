@@ -199,13 +199,13 @@ public class HeadsetServiceTest {
         testOkToAcceptConnectionCase(mCurrentDevice, BluetoothDevice.BOND_NONE, badPriorityValue,
                 false);
         testOkToAcceptConnectionCase(mCurrentDevice, BluetoothDevice.BOND_BONDING,
-                BluetoothProfile.PRIORITY_UNDEFINED, true);
+                BluetoothProfile.PRIORITY_UNDEFINED, false);
         testOkToAcceptConnectionCase(mCurrentDevice, BluetoothDevice.BOND_BONDING,
                 BluetoothProfile.PRIORITY_OFF, false);
         testOkToAcceptConnectionCase(mCurrentDevice, BluetoothDevice.BOND_BONDING,
-                BluetoothProfile.PRIORITY_ON, true);
+                BluetoothProfile.PRIORITY_ON, false);
         testOkToAcceptConnectionCase(mCurrentDevice, BluetoothDevice.BOND_BONDING,
-                BluetoothProfile.PRIORITY_AUTO_CONNECT, true);
+                BluetoothProfile.PRIORITY_AUTO_CONNECT, false);
         testOkToAcceptConnectionCase(mCurrentDevice, BluetoothDevice.BOND_BONDING, badPriorityValue,
                 false);
         testOkToAcceptConnectionCase(mCurrentDevice, BluetoothDevice.BOND_BONDED,
