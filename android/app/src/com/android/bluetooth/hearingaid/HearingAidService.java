@@ -33,9 +33,11 @@ import android.util.StatsLog;
 
 import com.android.bluetooth.BluetoothMetricsProto;
 import com.android.bluetooth.Utils;
+import com.android.bluetooth.a2dp.A2dpService;
 import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.MetricsLogger;
 import com.android.bluetooth.btservice.ProfileService;
+import com.android.bluetooth.btservice.ServiceFactory;
 import com.android.internal.annotations.VisibleForTesting;
 
 import java.util.ArrayList;
@@ -78,6 +80,8 @@ public class HearingAidService extends ProfileService {
 
     private BroadcastReceiver mBondStateChangedReceiver;
     private BroadcastReceiver mConnectionStateChangedReceiver;
+
+    private final ServiceFactory mFactory = new ServiceFactory();
 
     @Override
     protected IProfileServiceBinder initBinder() {
@@ -617,6 +621,19 @@ public class HearingAidService extends ProfileService {
 
         StatsLog.write(StatsLog.BLUETOOTH_ACTIVE_DEVICE_CHANGED, BluetoothProfile.HEARING_AID,
                 mAdapterService.obfuscateAddress(device));
+
+        if (device != null) {
+            // Give an early notification to A2DP that active device is being switched
+            // to Hearing Aids before the Audio Service.
+            final A2dpService a2dpService = mFactory.getA2dpService();
+            if (a2dpService != null) {
+                if (DBG) {
+                    Log.d(TAG, "earlyNotifyHearingAidActive for " + device);
+                }
+                a2dpService.earlyNotifyHearingAidActive();
+            }
+        }
+
         Intent intent = new Intent(BluetoothHearingAid.ACTION_ACTIVE_DEVICE_CHANGED);
         intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
         intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY_BEFORE_BOOT
