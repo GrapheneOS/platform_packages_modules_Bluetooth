@@ -496,6 +496,24 @@ public class A2dpService extends ProfileService {
     }
 
     /**
+     * Early notification that Hearing Aids will be the active device. This allows the A2DP to save
+     * its volume before the Audio Service starts changing its media stream.
+     */
+    public void earlyNotifyHearingAidActive() {
+        enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH ADMIN permission");
+
+        synchronized (mStateMachines) {
+            if ((mActiveDevice != null) && (AvrcpTargetService.get() != null)) {
+                // Switch active device from A2DP to Hearing Aids.
+                if (DBG) {
+                    Log.d(TAG, "earlyNotifyHearingAidActive: Save volume for " + mActiveDevice);
+                }
+                AvrcpTargetService.get().storeVolumeForDevice(mActiveDevice);
+            }
+        }
+    }
+
+    /**
      * Set the active device.
      *
      * @param device the active device
@@ -534,6 +552,14 @@ public class A2dpService extends ProfileService {
             codecStatus = sm.getCodecStatus();
 
             boolean deviceChanged = !Objects.equals(device, mActiveDevice);
+            if ((AvrcpTargetService.get() != null) && (mActiveDevice != null) && deviceChanged) {
+                // Switch from one A2DP to another A2DP device
+                if (DBG) {
+                    Log.d(TAG, "Switch A2DP devices to " + device + " from " + mActiveDevice);
+                }
+                AvrcpTargetService.get().storeVolumeForDevice(mActiveDevice);
+            }
+
             // This needs to happen before we inform the audio manager that the device
             // disconnected. Please see comment in updateAndBroadcastActiveDevice() for why.
             updateAndBroadcastActiveDevice(device);
@@ -875,10 +901,6 @@ public class A2dpService extends ProfileService {
 
         synchronized (mStateMachines) {
             if (AvrcpTargetService.get() != null) {
-                if (mActiveDevice != null) {
-                    AvrcpTargetService.get().storeVolumeForDevice(mActiveDevice);
-                }
-
                 AvrcpTargetService.get().volumeDeviceSwitched(device);
             }
 
