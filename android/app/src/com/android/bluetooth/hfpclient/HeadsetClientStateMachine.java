@@ -658,6 +658,10 @@ public class HeadsetClientStateMachine extends StateMachine {
                 == HeadsetClientHalConstants.PEER_FEAT_3WAY) {
             b.putBoolean(BluetoothHeadsetClient.EXTRA_AG_FEATURE_3WAY_CALLING, true);
         }
+        if ((mPeerFeatures & HeadsetClientHalConstants.PEER_FEAT_VREC)
+                == HeadsetClientHalConstants.PEER_FEAT_VREC) {
+            b.putBoolean(BluetoothHeadsetClient.EXTRA_AG_FEATURE_VOICE_RECOGNITION, true);
+        }
         if ((mPeerFeatures & HeadsetClientHalConstants.PEER_FEAT_REJECT)
                 == HeadsetClientHalConstants.PEER_FEAT_REJECT) {
             b.putBoolean(BluetoothHeadsetClient.EXTRA_AG_FEATURE_REJECT_CALL, true);
@@ -1781,6 +1785,10 @@ public class HeadsetClientStateMachine extends StateMachine {
             if ((mPeerFeatures & HeadsetClientHalConstants.PEER_FEAT_3WAY)
                     == HeadsetClientHalConstants.PEER_FEAT_3WAY) {
                 intent.putExtra(BluetoothHeadsetClient.EXTRA_AG_FEATURE_3WAY_CALLING, true);
+            }
+            if ((mPeerFeatures & HeadsetClientHalConstants.PEER_FEAT_VREC)
+                    == HeadsetClientHalConstants.PEER_FEAT_VREC) {
+                intent.putExtra(BluetoothHeadsetClient.EXTRA_AG_FEATURE_VOICE_RECOGNITION, true);
             }
             if ((mPeerFeatures & HeadsetClientHalConstants.PEER_FEAT_REJECT)
                     == HeadsetClientHalConstants.PEER_FEAT_REJECT) {
