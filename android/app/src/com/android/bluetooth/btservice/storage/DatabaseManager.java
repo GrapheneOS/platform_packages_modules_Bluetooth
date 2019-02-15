@@ -411,14 +411,14 @@ public class DatabaseManager {
         synchronized (mMetadataCache) {
             if (device == null) {
                 Log.e(TAG, "setA2dpOptionalCodec: device is null");
-                return BluetoothA2dp.OPTIONAL_CODECS_NOT_SUPPORTED;
+                return BluetoothA2dp.OPTIONAL_CODECS_SUPPORT_UNKNOWN;
             }
 
             String address = device.getAddress();
 
             if (!mMetadataCache.containsKey(address)) {
                 Log.e(TAG, "getA2dpOptionalCodec: device " + address + " is not in cache");
-                return BluetoothA2dp.OPTIONAL_CODECS_NOT_SUPPORTED;
+                return BluetoothA2dp.OPTIONAL_CODECS_SUPPORT_UNKNOWN;
             }
 
             Metadata data = mMetadataCache.get(address);
@@ -479,14 +479,14 @@ public class DatabaseManager {
         synchronized (mMetadataCache) {
             if (device == null) {
                 Log.e(TAG, "getA2dpOptionalCodecEnabled: device is null");
-                return BluetoothA2dp.OPTIONAL_CODECS_PREF_DISABLED;
+                return BluetoothA2dp.OPTIONAL_CODECS_PREF_UNKNOWN;
             }
 
             String address = device.getAddress();
 
             if (!mMetadataCache.containsKey(address)) {
                 Log.e(TAG, "getA2dpOptionalCodecEnabled: device " + address + " is not in cache");
-                return BluetoothA2dp.OPTIONAL_CODECS_PREF_DISABLED;
+                return BluetoothA2dp.OPTIONAL_CODECS_PREF_UNKNOWN;
             }
 
             Metadata data = mMetadataCache.get(address);
