@@ -122,7 +122,7 @@
     <string name="transfer_menu_open" msgid="3368984869083107200">"開啟"</string>
     <string name="transfer_menu_clear" msgid="5854038118831427492">"從清單清除"</string>
     <string name="transfer_clear_dlg_title" msgid="2953444575556460386">"清除"</string>
-    <string name="bluetooth_a2dp_sink_queue_name" msgid="6864149958708669766">"哪首歌"</string>
+    <string name="bluetooth_a2dp_sink_queue_name" msgid="6864149958708669766">"歌曲識別"</string>
     <string name="bluetooth_map_settings_save" msgid="7635491847388074606">"儲存"</string>
     <string name="bluetooth_map_settings_cancel" msgid="9205350798049865699">"取消"</string>
     <string name="bluetooth_map_settings_intro" msgid="6482369468223987562">"選取您要透過藍牙分享的帳戶。連線時，您仍然必須接受所有帳戶存取要求。"</string>
