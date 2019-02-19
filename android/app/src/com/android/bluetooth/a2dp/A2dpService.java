@@ -1007,10 +1007,17 @@ public class A2dpService extends ProfileService {
         }
         if (supportsOptional) {
             int enabled = getOptionalCodecsEnabled(device);
-            if (enabled == BluetoothA2dp.OPTIONAL_CODECS_PREF_ENABLED) {
-                enableOptionalCodecs(device);
-            } else if (enabled == BluetoothA2dp.OPTIONAL_CODECS_PREF_DISABLED) {
-                disableOptionalCodecs(device);
+            switch (enabled) {
+                case BluetoothA2dp.OPTIONAL_CODECS_PREF_UNKNOWN:
+                    // Enable optional codec by default.
+                    setOptionalCodecsEnabled(device, BluetoothA2dp.OPTIONAL_CODECS_PREF_ENABLED);
+                    // Fall through intended
+                case BluetoothA2dp.OPTIONAL_CODECS_PREF_ENABLED:
+                    enableOptionalCodecs(device);
+                    break;
+                case BluetoothA2dp.OPTIONAL_CODECS_PREF_DISABLED:
+                    disableOptionalCodecs(device);
+                    break;
             }
         }
     }

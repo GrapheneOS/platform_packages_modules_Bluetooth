@@ -51,8 +51,8 @@ class Metadata {
         migrated = false;
         profilePriorites = new ProfilePrioritiesEntity();
         publicMetadata = new CustomizedMetadataEntity();
-        a2dpSupportsOptionalCodecs = BluetoothA2dp.OPTIONAL_CODECS_NOT_SUPPORTED;
-        a2dpOptionalCodecsEnabled = BluetoothA2dp.OPTIONAL_CODECS_PREF_DISABLED;
+        a2dpSupportsOptionalCodecs = BluetoothA2dp.OPTIONAL_CODECS_SUPPORT_UNKNOWN;
+        a2dpOptionalCodecsEnabled = BluetoothA2dp.OPTIONAL_CODECS_PREF_UNKNOWN;
     }
 
     String getAddress() {
