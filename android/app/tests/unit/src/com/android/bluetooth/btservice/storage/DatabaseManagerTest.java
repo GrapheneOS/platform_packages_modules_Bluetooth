@@ -98,10 +98,10 @@ public final class DatabaseManagerTest {
                     mDatabaseManager.getProfilePriority(mTestDevice, id));
         }
 
-        Assert.assertEquals(BluetoothA2dp.OPTIONAL_CODECS_NOT_SUPPORTED,
+        Assert.assertEquals(BluetoothA2dp.OPTIONAL_CODECS_SUPPORT_UNKNOWN,
                 mDatabaseManager.getA2dpSupportsOptionalCodecs(mTestDevice));
 
-        Assert.assertEquals(BluetoothA2dp.OPTIONAL_CODECS_PREF_DISABLED,
+        Assert.assertEquals(BluetoothA2dp.OPTIONAL_CODECS_PREF_UNKNOWN,
                     mDatabaseManager.getA2dpOptionalCodecsEnabled(mTestDevice));
 
         for (int id = 0; id < MAX_META_ID; id++) {
@@ -145,15 +145,15 @@ public final class DatabaseManagerTest {
         // Cases of device not in database
         testSetGetA2dpOptionalCodecsCase(A2DP_SUPPORT_OP_CODEC_TEST, false,
                 BluetoothA2dp.OPTIONAL_CODECS_SUPPORT_UNKNOWN,
-                BluetoothA2dp.OPTIONAL_CODECS_NOT_SUPPORTED);
+                BluetoothA2dp.OPTIONAL_CODECS_SUPPORT_UNKNOWN);
         testSetGetA2dpOptionalCodecsCase(A2DP_SUPPORT_OP_CODEC_TEST, false,
                 BluetoothA2dp.OPTIONAL_CODECS_NOT_SUPPORTED,
-                BluetoothA2dp.OPTIONAL_CODECS_NOT_SUPPORTED);
+                BluetoothA2dp.OPTIONAL_CODECS_SUPPORT_UNKNOWN);
         testSetGetA2dpOptionalCodecsCase(A2DP_SUPPORT_OP_CODEC_TEST, false,
                 BluetoothA2dp.OPTIONAL_CODECS_SUPPORTED,
-                BluetoothA2dp.OPTIONAL_CODECS_NOT_SUPPORTED);
+                BluetoothA2dp.OPTIONAL_CODECS_SUPPORT_UNKNOWN);
         testSetGetA2dpOptionalCodecsCase(A2DP_SUPPORT_OP_CODEC_TEST, false,
-                badValue, BluetoothA2dp.OPTIONAL_CODECS_NOT_SUPPORTED);
+                badValue, BluetoothA2dp.OPTIONAL_CODECS_SUPPORT_UNKNOWN);
 
         // Cases of device already in database
         testSetGetA2dpOptionalCodecsCase(A2DP_SUPPORT_OP_CODEC_TEST, true,
@@ -166,7 +166,7 @@ public final class DatabaseManagerTest {
                 BluetoothA2dp.OPTIONAL_CODECS_SUPPORTED,
                 BluetoothA2dp.OPTIONAL_CODECS_SUPPORTED);
         testSetGetA2dpOptionalCodecsCase(A2DP_SUPPORT_OP_CODEC_TEST, true,
-                badValue, BluetoothA2dp.OPTIONAL_CODECS_NOT_SUPPORTED);
+                badValue, BluetoothA2dp.OPTIONAL_CODECS_SUPPORT_UNKNOWN);
     }
 
     @Test
@@ -176,15 +176,15 @@ public final class DatabaseManagerTest {
         // Cases of device not in database
         testSetGetA2dpOptionalCodecsCase(A2DP_ENALBED_OP_CODEC_TEST, false,
                 BluetoothA2dp.OPTIONAL_CODECS_PREF_UNKNOWN,
-                BluetoothA2dp.OPTIONAL_CODECS_PREF_DISABLED);
+                BluetoothA2dp.OPTIONAL_CODECS_PREF_UNKNOWN);
         testSetGetA2dpOptionalCodecsCase(A2DP_ENALBED_OP_CODEC_TEST, false,
                 BluetoothA2dp.OPTIONAL_CODECS_PREF_DISABLED,
-                BluetoothA2dp.OPTIONAL_CODECS_PREF_DISABLED);
+                BluetoothA2dp.OPTIONAL_CODECS_PREF_UNKNOWN);
         testSetGetA2dpOptionalCodecsCase(A2DP_ENALBED_OP_CODEC_TEST, false,
                 BluetoothA2dp.OPTIONAL_CODECS_PREF_ENABLED,
-                BluetoothA2dp.OPTIONAL_CODECS_PREF_DISABLED);
+                BluetoothA2dp.OPTIONAL_CODECS_PREF_UNKNOWN);
         testSetGetA2dpOptionalCodecsCase(A2DP_ENALBED_OP_CODEC_TEST, false,
-                badValue, BluetoothA2dp.OPTIONAL_CODECS_PREF_DISABLED);
+                badValue, BluetoothA2dp.OPTIONAL_CODECS_PREF_UNKNOWN);
 
         // Cases of device already in database
         testSetGetA2dpOptionalCodecsCase(A2DP_ENALBED_OP_CODEC_TEST, true,
@@ -197,7 +197,7 @@ public final class DatabaseManagerTest {
                 BluetoothA2dp.OPTIONAL_CODECS_PREF_ENABLED,
                 BluetoothA2dp.OPTIONAL_CODECS_PREF_ENABLED);
         testSetGetA2dpOptionalCodecsCase(A2DP_ENALBED_OP_CODEC_TEST, true,
-                badValue, BluetoothA2dp.OPTIONAL_CODECS_PREF_DISABLED);
+                badValue, BluetoothA2dp.OPTIONAL_CODECS_PREF_UNKNOWN);
     }
 
     @Test
