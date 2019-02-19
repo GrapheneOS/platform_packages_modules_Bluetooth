@@ -807,7 +807,98 @@ public class A2dpServiceTest {
         Assert.assertEquals(mTestDevice, mA2dpService.getActiveDevice());
     }
 
+    /**
+     * Test that whether updateOptionalCodecsSupport() method is working as intended
+     * when a Bluetooth device is connected with A2DP.
+     */
+    @Test
+    public void testUpdateOptionalCodecsSupport() {
+        int verifySupportTime = 0;
+        int verifyNotSupportTime = 0;
+        int verifyEnabledTime = 0;
+        // Test for device supports optional codec
+        testUpdateOptionalCodecsSupportCase(
+                BluetoothA2dp.OPTIONAL_CODECS_SUPPORT_UNKNOWN, true,
+                BluetoothA2dp.OPTIONAL_CODECS_PREF_UNKNOWN,
+                ++verifySupportTime, verifyNotSupportTime, ++verifyEnabledTime);
+        testUpdateOptionalCodecsSupportCase(
+                BluetoothA2dp.OPTIONAL_CODECS_SUPPORT_UNKNOWN, true,
+                BluetoothA2dp.OPTIONAL_CODECS_PREF_ENABLED,
+                ++verifySupportTime, verifyNotSupportTime, verifyEnabledTime);
+        testUpdateOptionalCodecsSupportCase(
+                BluetoothA2dp.OPTIONAL_CODECS_SUPPORT_UNKNOWN, true,
+                BluetoothA2dp.OPTIONAL_CODECS_PREF_DISABLED,
+                ++verifySupportTime, verifyNotSupportTime, verifyEnabledTime);
+        testUpdateOptionalCodecsSupportCase(
+                BluetoothA2dp.OPTIONAL_CODECS_SUPPORTED, true,
+                BluetoothA2dp.OPTIONAL_CODECS_PREF_UNKNOWN,
+                verifySupportTime, verifyNotSupportTime, ++verifyEnabledTime);
+        testUpdateOptionalCodecsSupportCase(
+                BluetoothA2dp.OPTIONAL_CODECS_SUPPORTED, true,
+                BluetoothA2dp.OPTIONAL_CODECS_PREF_ENABLED,
+                verifySupportTime, verifyNotSupportTime, verifyEnabledTime);
+        testUpdateOptionalCodecsSupportCase(
+                BluetoothA2dp.OPTIONAL_CODECS_SUPPORTED, true,
+                BluetoothA2dp.OPTIONAL_CODECS_PREF_DISABLED,
+                verifySupportTime, verifyNotSupportTime, verifyEnabledTime);
+        testUpdateOptionalCodecsSupportCase(
+                BluetoothA2dp.OPTIONAL_CODECS_NOT_SUPPORTED, true,
+                BluetoothA2dp.OPTIONAL_CODECS_PREF_UNKNOWN,
+                ++verifySupportTime, verifyNotSupportTime, ++verifyEnabledTime);
+        testUpdateOptionalCodecsSupportCase(
+                BluetoothA2dp.OPTIONAL_CODECS_NOT_SUPPORTED, true,
+                BluetoothA2dp.OPTIONAL_CODECS_PREF_ENABLED,
+                ++verifySupportTime, verifyNotSupportTime, verifyEnabledTime);
+        testUpdateOptionalCodecsSupportCase(
+                BluetoothA2dp.OPTIONAL_CODECS_NOT_SUPPORTED, true,
+                BluetoothA2dp.OPTIONAL_CODECS_PREF_DISABLED,
+                ++verifySupportTime, verifyNotSupportTime, verifyEnabledTime);
+
+        // Test for device not supports optional codec
+        testUpdateOptionalCodecsSupportCase(
+                BluetoothA2dp.OPTIONAL_CODECS_SUPPORT_UNKNOWN, false,
+                BluetoothA2dp.OPTIONAL_CODECS_PREF_UNKNOWN,
+                verifySupportTime, ++verifyNotSupportTime, verifyEnabledTime);
+        testUpdateOptionalCodecsSupportCase(
+                BluetoothA2dp.OPTIONAL_CODECS_SUPPORT_UNKNOWN, false,
+                BluetoothA2dp.OPTIONAL_CODECS_PREF_ENABLED,
+                verifySupportTime, ++verifyNotSupportTime, verifyEnabledTime);
+        testUpdateOptionalCodecsSupportCase(
+                BluetoothA2dp.OPTIONAL_CODECS_SUPPORT_UNKNOWN, false,
+                BluetoothA2dp.OPTIONAL_CODECS_PREF_DISABLED,
+                verifySupportTime, ++verifyNotSupportTime, verifyEnabledTime);
+        testUpdateOptionalCodecsSupportCase(
+                BluetoothA2dp.OPTIONAL_CODECS_SUPPORTED, false,
+                BluetoothA2dp.OPTIONAL_CODECS_PREF_UNKNOWN,
+                verifySupportTime, ++verifyNotSupportTime, verifyEnabledTime);
+        testUpdateOptionalCodecsSupportCase(
+                BluetoothA2dp.OPTIONAL_CODECS_SUPPORTED, false,
+                BluetoothA2dp.OPTIONAL_CODECS_PREF_ENABLED,
+                verifySupportTime, ++verifyNotSupportTime, verifyEnabledTime);
+        testUpdateOptionalCodecsSupportCase(
+                BluetoothA2dp.OPTIONAL_CODECS_SUPPORTED, false,
+                BluetoothA2dp.OPTIONAL_CODECS_PREF_DISABLED,
+                verifySupportTime, ++verifyNotSupportTime, verifyEnabledTime);
+        testUpdateOptionalCodecsSupportCase(
+                BluetoothA2dp.OPTIONAL_CODECS_NOT_SUPPORTED, false,
+                BluetoothA2dp.OPTIONAL_CODECS_PREF_UNKNOWN,
+                verifySupportTime, verifyNotSupportTime, verifyEnabledTime);
+        testUpdateOptionalCodecsSupportCase(
+                BluetoothA2dp.OPTIONAL_CODECS_NOT_SUPPORTED, false,
+                BluetoothA2dp.OPTIONAL_CODECS_PREF_ENABLED,
+                verifySupportTime, verifyNotSupportTime, verifyEnabledTime);
+        testUpdateOptionalCodecsSupportCase(
+                BluetoothA2dp.OPTIONAL_CODECS_NOT_SUPPORTED, false,
+                BluetoothA2dp.OPTIONAL_CODECS_PREF_DISABLED,
+                verifySupportTime, verifyNotSupportTime, verifyEnabledTime);
+    }
+
     private void connectDevice(BluetoothDevice device) {
+        connectDeviceWithCodecStatus(device, null);
+    }
+
+    private void connectDeviceWithCodecStatus(BluetoothDevice device,
+            BluetoothCodecStatus codecStatus) {
         A2dpStackEvent connCompletedEvent;
 
         List<BluetoothDevice> prevConnectedDevices = mA2dpService.getConnectedDevices();
@@ -818,6 +909,8 @@ public class A2dpServiceTest {
                 .thenReturn(BluetoothProfile.PRIORITY_ON);
         doReturn(true).when(mA2dpNativeInterface).connectA2dp(device);
         doReturn(true).when(mA2dpNativeInterface).disconnectA2dp(device);
+        doReturn(true).when(mA2dpNativeInterface).setCodecConfigPreference(
+                any(BluetoothDevice.class), any(BluetoothCodecConfig[].class));
 
         // Send a connect request
         Assert.assertTrue("Connect failed", mA2dpService.connect(device));
@@ -827,6 +920,10 @@ public class A2dpServiceTest {
                                     BluetoothProfile.STATE_DISCONNECTED);
         Assert.assertEquals(BluetoothProfile.STATE_CONNECTING,
                             mA2dpService.getConnectionState(device));
+
+        if (codecStatus != null) {
+            generateCodecMessageFromNative(device, codecStatus);
+        }
 
         // Send a message to trigger connection completed
         connCompletedEvent = new A2dpStackEvent(A2dpStackEvent.EVENT_TYPE_CONNECTION_STATE_CHANGED);
@@ -942,5 +1039,75 @@ public class A2dpServiceTest {
         doReturn(true).when(mAdapterService).isQuietModeEnabled();
         Assert.assertEquals(expected, mA2dpService.okToConnect(device, true));  // Outgoing
         Assert.assertEquals(false, mA2dpService.okToConnect(device, false)); // Incoming
+    }
+
+    /**
+     * Helper function to test updateOptionalCodecsSupport() method
+     *
+     * @param previousSupport previous optional codec support status
+     * @param support new optional codec support status
+     * @param previousEnabled previous optional codec enable status
+     * @param verifySupportTime verify times of optional codec set to support
+     * @param verifyNotSupportTime verify times of optional codec set to not support
+     * @param verifyEnabledTime verify times of optional codec set to enabled
+     */
+    private void testUpdateOptionalCodecsSupportCase(int previousSupport, boolean support,
+            int previousEnabled, int verifySupportTime, int verifyNotSupportTime,
+            int verifyEnabledTime) {
+        when(mAdapterService.getDatabase()).thenReturn(mDatabaseManager);
+        doReturn(true).when(mA2dpNativeInterface).setActiveDevice(any(BluetoothDevice.class));
+
+        BluetoothCodecConfig codecConfigSbc =
+                new BluetoothCodecConfig(
+                        BluetoothCodecConfig.SOURCE_CODEC_TYPE_SBC,
+                        BluetoothCodecConfig.CODEC_PRIORITY_DEFAULT,
+                        BluetoothCodecConfig.SAMPLE_RATE_44100,
+                        BluetoothCodecConfig.BITS_PER_SAMPLE_16,
+                        BluetoothCodecConfig.CHANNEL_MODE_STEREO,
+                        0, 0, 0, 0);       // Codec-specific fields
+        BluetoothCodecConfig codecConfigAac =
+                new BluetoothCodecConfig(
+                        BluetoothCodecConfig.SOURCE_CODEC_TYPE_AAC,
+                        BluetoothCodecConfig.CODEC_PRIORITY_DEFAULT,
+                        BluetoothCodecConfig.SAMPLE_RATE_44100,
+                        BluetoothCodecConfig.BITS_PER_SAMPLE_16,
+                        BluetoothCodecConfig.CHANNEL_MODE_STEREO,
+                        0, 0, 0, 0);       // Codec-specific fields
+        BluetoothCodecConfig codecConfig = codecConfigSbc;
+
+        BluetoothCodecConfig[] codecsLocalCapabilities;
+        BluetoothCodecConfig[] codecsSelectableCapabilities;
+        if (support) {
+            codecsLocalCapabilities = new BluetoothCodecConfig[2];
+            codecsSelectableCapabilities = new BluetoothCodecConfig[2];
+            codecsLocalCapabilities[0] = codecConfigSbc;
+            codecsLocalCapabilities[1] = codecConfigAac;
+            codecsSelectableCapabilities[0] = codecConfigSbc;
+            codecsSelectableCapabilities[1] = codecConfigAac;
+        } else {
+            codecsLocalCapabilities = new BluetoothCodecConfig[1];
+            codecsSelectableCapabilities = new BluetoothCodecConfig[1];
+            codecsLocalCapabilities[0] = codecConfigSbc;
+            codecsSelectableCapabilities[0] = codecConfigSbc;
+        }
+        BluetoothCodecStatus codecStatus = new BluetoothCodecStatus(codecConfig,
+                                                                    codecsLocalCapabilities,
+                                                                    codecsSelectableCapabilities);
+
+        when(mDatabaseManager.getA2dpSupportsOptionalCodecs(mTestDevice))
+                .thenReturn(previousSupport);
+        when(mDatabaseManager.getA2dpOptionalCodecsEnabled(mTestDevice))
+                .thenReturn(previousEnabled);
+        connectDeviceWithCodecStatus(mTestDevice, codecStatus);
+
+        verify(mDatabaseManager, times(verifyNotSupportTime)).setA2dpSupportsOptionalCodecs(
+                mTestDevice, BluetoothA2dp.OPTIONAL_CODECS_NOT_SUPPORTED);
+        verify(mDatabaseManager, times(verifySupportTime)).setA2dpSupportsOptionalCodecs(
+                mTestDevice, BluetoothA2dp.OPTIONAL_CODECS_SUPPORTED);
+        verify(mDatabaseManager, times(verifyEnabledTime)).setA2dpOptionalCodecsEnabled(
+                mTestDevice, BluetoothA2dp.OPTIONAL_CODECS_PREF_ENABLED);
+
+        generateConnectionMessageFromNative(mTestDevice, BluetoothProfile.STATE_DISCONNECTED,
+                                            BluetoothProfile.STATE_CONNECTED);
     }
 }
