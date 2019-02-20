@@ -118,6 +118,8 @@ public class HearingAidServiceTest {
                 .getBondState(any(BluetoothDevice.class));
         doReturn(new ParcelUuid[]{BluetoothUuid.HearingAid}).when(mAdapterService)
                 .getRemoteUuids(any(BluetoothDevice.class));
+        HearingAidService.sConnectTimeoutForEachSideMs = 1000;
+        HearingAidService.sCheckWhitelistTimeoutMs = 2000;
     }
 
     @After
@@ -360,7 +362,8 @@ public class HearingAidServiceTest {
                 mService.getConnectionState(mLeftDevice));
 
         // Verify the connection state broadcast, and that we are in Disconnected state
-        verifyConnectionStateIntent(HearingAidStateMachine.sConnectTimeoutMs * 2, mLeftDevice,
+        verifyConnectionStateIntent(HearingAidService.sConnectTimeoutForEachSideMs * 3,
+                mLeftDevice,
                 BluetoothProfile.STATE_DISCONNECTED,
                 BluetoothProfile.STATE_CONNECTING);
         Assert.assertEquals(BluetoothProfile.STATE_DISCONNECTED,
