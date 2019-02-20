@@ -72,6 +72,7 @@ public class HearingAidService extends ProfileService {
             new HashMap<>();
     private final Map<BluetoothDevice, Long> mDeviceHiSyncIdMap = new ConcurrentHashMap<>();
     private final Map<BluetoothDevice, Integer> mDeviceCapabilitiesMap = new HashMap<>();
+    private final Map<Long, Boolean> mHiSyncIdConnectedMap = new HashMap<>();
     private long mActiveDeviceHiSyncId = BluetoothHearingAid.HI_SYNC_ID_INVALID;
 
     private BroadcastReceiver mBondStateChangedReceiver;
@@ -115,9 +116,10 @@ public class HearingAidService extends ProfileService {
         mStateMachinesThread = new HandlerThread("HearingAidService.StateMachines");
         mStateMachinesThread.start();
 
-        // Clear HiSyncId map and capabilities map
+        // Clear HiSyncId map, capabilities map and HiSyncId Connected map
         mDeviceHiSyncIdMap.clear();
         mDeviceCapabilitiesMap.clear();
+        mHiSyncIdConnectedMap.clear();
 
         // Setup broadcast receivers
         IntentFilter filter = new IntentFilter();
@@ -170,9 +172,10 @@ public class HearingAidService extends ProfileService {
             mStateMachines.clear();
         }
 
-        // Clear HiSyncId map and capabilities map
+        // Clear HiSyncId map, capabilities map and HiSyncId Connected map
         mDeviceHiSyncIdMap.clear();
         mDeviceCapabilitiesMap.clear();
+        mHiSyncIdConnectedMap.clear();
 
         if (mStateMachinesThread != null) {
             mStateMachinesThread.quitSafely();
@@ -739,10 +742,15 @@ public class HearingAidService extends ProfileService {
                 MetricsLogger.logProfileConnectionEvent(
                         BluetoothMetricsProto.ProfileId.HEARING_AID);
             }
-            setActiveDevice(device);
+            if (!mHiSyncIdConnectedMap.getOrDefault(myHiSyncId, false)) {
+                setActiveDevice(device);
+                mHiSyncIdConnectedMap.put(myHiSyncId, true);
+            }
         }
         if (fromState == BluetoothProfile.STATE_CONNECTED && getConnectedDevices().isEmpty()) {
             setActiveDevice(null);
+            long myHiSyncId = getHiSyncId(device);
+            mHiSyncIdConnectedMap.put(myHiSyncId, false);
         }
         // Check if the device is disconnected - if unbond, remove the state machine
         if (toState == BluetoothProfile.STATE_DISCONNECTED) {
