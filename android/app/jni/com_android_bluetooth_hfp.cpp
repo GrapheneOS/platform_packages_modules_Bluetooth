@@ -182,6 +182,13 @@ class JniHeadsetCallbacks : bluetooth::headset::Callbacks {
       return;
     }
 
+    char null_str[] = "";
+    if (!sCallbackEnv.isValidUtf(number)) {
+      android_errorWriteLog(0x534e4554, "109838537");
+      ALOGE("%s: number is not a valid UTF string.", __func__);
+      number = null_str;
+    }
+
     ScopedLocalRef<jstring> js_number(sCallbackEnv.get(),
                                       sCallbackEnv->NewStringUTF(number));
     sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onDialCall,
@@ -319,6 +326,13 @@ class JniHeadsetCallbacks : bluetooth::headset::Callbacks {
       return;
     }
 
+    char null_str[] = "";
+    if (!sCallbackEnv.isValidUtf(at_string)) {
+      android_errorWriteLog(0x534e4554, "109838537");
+      ALOGE("%s: at_string is not a valid UTF string.", __func__);
+      at_string = null_str;
+    }
+
     ScopedLocalRef<jstring> js_at_string(sCallbackEnv.get(),
                                          sCallbackEnv->NewStringUTF(at_string));
     sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onUnknownAt,
@@ -347,6 +361,13 @@ class JniHeadsetCallbacks : bluetooth::headset::Callbacks {
 
     ScopedLocalRef<jbyteArray> addr(sCallbackEnv.get(), marshall_bda(bd_addr));
     if (addr.get() == nullptr) return;
+
+    char null_str[] = "";
+    if (!sCallbackEnv.isValidUtf(at_string)) {
+      android_errorWriteLog(0x534e4554, "109838537");
+      ALOGE("%s: at_string is not a valid UTF string.", __func__);
+      at_string = null_str;
+    }
 
     ScopedLocalRef<jstring> js_at_string(sCallbackEnv.get(),
                                          sCallbackEnv->NewStringUTF(at_string));
