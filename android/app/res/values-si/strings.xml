@@ -122,7 +122,6 @@
     <string name="transfer_menu_open" msgid="3368984869083107200">"විවෘත කරන්න"</string>
     <string name="transfer_menu_clear" msgid="5854038118831427492">"ලැයිස්තුව වෙතින් හිස් කරන්න"</string>
     <string name="transfer_clear_dlg_title" msgid="2953444575556460386">"හිස් කරන්න"</string>
-    <string name="bluetooth_a2dp_sink_queue_name" msgid="6864149958708669766">"දැන් වාදනය වේ"</string>
     <string name="bluetooth_map_settings_save" msgid="7635491847388074606">"සුරකින්න"</string>
     <string name="bluetooth_map_settings_cancel" msgid="9205350798049865699">"අවලංගු කරන්න"</string>
     <string name="bluetooth_map_settings_intro" msgid="6482369468223987562">"ඔබට බ්ලූටූත් හරහා බෙදා ගැනීමට අවශ්‍ය ගිණුම් තෝරන්න. සම්බන්ධ වන විට ඔබට තවම ගිණුම් වෙත ඕනෑම ප්‍රවේශයක් පිළිගැනීමට සිදු වේ."</string>

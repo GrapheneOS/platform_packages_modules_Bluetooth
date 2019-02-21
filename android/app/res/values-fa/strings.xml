@@ -122,7 +122,6 @@
     <string name="transfer_menu_open" msgid="3368984869083107200">"باز کردن"</string>
     <string name="transfer_menu_clear" msgid="5854038118831427492">"پاک کردن از فهرست"</string>
     <string name="transfer_clear_dlg_title" msgid="2953444575556460386">"پاک کردن"</string>
-    <string name="bluetooth_a2dp_sink_queue_name" msgid="6864149958708669766">"اکنون درحال پخش"</string>
     <string name="bluetooth_map_settings_save" msgid="7635491847388074606">"ذخیره‌"</string>
     <string name="bluetooth_map_settings_cancel" msgid="9205350798049865699">"لغو"</string>
     <string name="bluetooth_map_settings_intro" msgid="6482369468223987562">"حساب‌هایی را انتخاب کنید که می‌خواهید از طریق بلوتوث به اشتراک بگذارید. هنگام اتصال، همچنان باید با هر گونه دسترسی به حساب‌ها موافقت کنید."</string>

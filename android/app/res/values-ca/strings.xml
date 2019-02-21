@@ -45,7 +45,7 @@
     <string name="notification_sent" msgid="9218710861333027778">"Bluetooth: <xliff:g id="FILE">%1$s</xliff:g> enviat"</string>
     <string name="notification_sent_complete" msgid="302943281067557969">"100% complet"</string>
     <string name="notification_sent_fail" msgid="6696082233774569445">"Bluetooth: <xliff:g id="FILE">%1$s</xliff:g> no enviat"</string>
-    <string name="download_title" msgid="3353228219772092586">"Transferència de fitxers"</string>
+    <string name="download_title" msgid="3353228219772092586">"Transferència del fitxer"</string>
     <string name="download_line1" msgid="4926604799202134144">"De: \"<xliff:g id="SENDER">%1$s</xliff:g>\""</string>
     <string name="download_line2" msgid="5876973543019417712">"Fitxer: <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="download_line3" msgid="4384821622908676061">"Mida del fitxer: <xliff:g id="SIZE">%1$s</xliff:g>"</string>
@@ -122,7 +122,6 @@
     <string name="transfer_menu_open" msgid="3368984869083107200">"Obre"</string>
     <string name="transfer_menu_clear" msgid="5854038118831427492">"Esborra de la llista"</string>
     <string name="transfer_clear_dlg_title" msgid="2953444575556460386">"Esborra"</string>
-    <string name="bluetooth_a2dp_sink_queue_name" msgid="6864149958708669766">"Reproducció actual"</string>
     <string name="bluetooth_map_settings_save" msgid="7635491847388074606">"Desa"</string>
     <string name="bluetooth_map_settings_cancel" msgid="9205350798049865699">"Cancel·la"</string>
     <string name="bluetooth_map_settings_intro" msgid="6482369468223987562">"Selecciona els comptes que vulguis compartir mitjançant el Bluetooth. Cal que acceptis l\'accés als comptes en connectar-t\'hi."</string>

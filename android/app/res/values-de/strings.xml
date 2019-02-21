@@ -87,7 +87,7 @@
     <string name="bt_sm_2_1" product="nosdcard" msgid="352165168004521000">"Der USB-Speicher verfügt nicht über genügend Speicherplatz, um die Datei von \"<xliff:g id="SENDER">%1$s</xliff:g>\" zu speichern."</string>
     <string name="bt_sm_2_1" product="default" msgid="1989018443456803630">"Die SD-Karte verfügt über zu wenig Speicherplatz für die Datei von \"<xliff:g id="SENDER">%1$s</xliff:g>\"."</string>
     <string name="bt_sm_2_2" msgid="2965243265852680543">"Erforderlicher Speicherplatz: <xliff:g id="SIZE">%1$s</xliff:g>"</string>
-    <string name="ErrorTooManyRequests" msgid="8578277541472944529">"Es werden zurzeit zu viele Anfragen verarbeitet. Bitte versuche es später noch einmal."</string>
+    <string name="ErrorTooManyRequests" msgid="8578277541472944529">"Es werden zurzeit zu viele Anfragen verarbeitet. Versuche es später erneut."</string>
     <string name="status_pending" msgid="2503691772030877944">"Die Dateiübertragung wurde noch nicht gestartet."</string>
     <string name="status_running" msgid="6562808920311008696">"Dateiübertragung läuft."</string>
     <string name="status_success" msgid="239573225847565868">"Die Dateiübertragung wurde abgeschlossen."</string>
@@ -122,7 +122,6 @@
     <string name="transfer_menu_open" msgid="3368984869083107200">"Öffnen"</string>
     <string name="transfer_menu_clear" msgid="5854038118831427492">"Aus Liste löschen"</string>
     <string name="transfer_clear_dlg_title" msgid="2953444575556460386">"Löschen"</string>
-    <string name="bluetooth_a2dp_sink_queue_name" msgid="6864149958708669766">"Now Playing"</string>
     <string name="bluetooth_map_settings_save" msgid="7635491847388074606">"Speichern"</string>
     <string name="bluetooth_map_settings_cancel" msgid="9205350798049865699">"Abbrechen"</string>
     <string name="bluetooth_map_settings_intro" msgid="6482369468223987562">"Wähle die Konten aus, die du über Bluetooth freigeben möchtest. Du musst jedoch weiterhin jedem Zugriff auf die Konten zustimmen, wenn eine Verbindung hergestellt wird."</string>

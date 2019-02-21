@@ -26,7 +26,7 @@
     <string name="airplane_error_title" msgid="2683839635115739939">"وضع الطائرة"</string>
     <string name="airplane_error_msg" msgid="8698965595254137230">"لا يمكنك استخدام البلوتوث في وضع الطائرة."</string>
     <string name="bt_enable_title" msgid="8657832550503456572"></string>
-    <string name="bt_enable_line1" msgid="7203551583048149">"لإستخدام خدمات البلوتوث، يجب تشغيل البلوتوث أولاً."</string>
+    <string name="bt_enable_line1" msgid="7203551583048149">"إلى لاستخدم خدمات البلوتوث، يجب أولاً تشغيل البلوتوث."</string>
     <string name="bt_enable_line2" msgid="4341936569415937994">"هل تريد تشغيل البلوتوث الآن؟"</string>
     <string name="bt_enable_cancel" msgid="1988832367505151727">"إلغاء"</string>
     <string name="bt_enable_ok" msgid="3432462749994538265">"تشغيل"</string>
@@ -100,7 +100,7 @@
     <string name="status_connection_error" msgid="947681831523219891">"لم يتم الاتصال بنجاح."</string>
     <string name="status_protocol_error" msgid="3245444473429269539">"لا يمكن معالجة الطلب بشكل صحيح."</string>
     <string name="status_unknown_error" msgid="8156660554237824912">"خطأ غير معروف."</string>
-    <string name="btopp_live_folder" msgid="7967791481444474554">"تم الاستلام عبر بلوتوث"</string>
+    <string name="btopp_live_folder" msgid="7967791481444474554">"تم استلام بلوتوث"</string>
     <string name="opp_notification_group" msgid="3486303082135789982">"مشاركة البلوتوث"</string>
     <string name="download_success" msgid="7036160438766730871">"اكتمل استلام <xliff:g id="FILE_SIZE">%1$s</xliff:g>."</string>
     <string name="upload_success" msgid="4014469387779648949">"اكتمل إرسال <xliff:g id="FILE_SIZE">%1$s</xliff:g>."</string>
@@ -130,7 +130,6 @@
     <string name="transfer_menu_open" msgid="3368984869083107200">"فتح"</string>
     <string name="transfer_menu_clear" msgid="5854038118831427492">"محو من القائمة"</string>
     <string name="transfer_clear_dlg_title" msgid="2953444575556460386">"محو"</string>
-    <string name="bluetooth_a2dp_sink_queue_name" msgid="6864149958708669766">"اكتشاف الموسيقى"</string>
     <string name="bluetooth_map_settings_save" msgid="7635491847388074606">"حفظ"</string>
     <string name="bluetooth_map_settings_cancel" msgid="9205350798049865699">"إلغاء"</string>
     <string name="bluetooth_map_settings_intro" msgid="6482369468223987562">"حدد الحسابات التي تريد مشاركتها عبر البلوتوث. لا يزال يتعين عليك قبول أي دخول إلى الحسابات أثناء الاتصال."</string>
