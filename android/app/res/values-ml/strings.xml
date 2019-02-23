@@ -120,7 +120,6 @@
     <string name="transfer_menu_open" msgid="3368984869083107200">"തുറക്കുക"</string>
     <string name="transfer_menu_clear" msgid="5854038118831427492">"ലിസ്റ്റിൽ നിന്നും മായ്‌ക്കുക"</string>
     <string name="transfer_clear_dlg_title" msgid="2953444575556460386">"മായ്‌ക്കുക"</string>
-    <string name="bluetooth_a2dp_sink_queue_name" msgid="6864149958708669766">"ഇപ്പോൾ പ്ലേ ചെയ്യുന്നത്"</string>
     <string name="bluetooth_map_settings_save" msgid="7635491847388074606">"സംരക്ഷിക്കുക"</string>
     <string name="bluetooth_map_settings_cancel" msgid="9205350798049865699">"റദ്ദാക്കുക"</string>
     <string name="bluetooth_map_settings_intro" msgid="6482369468223987562">"നിങ്ങൾക്ക് Bluetooth വഴി പങ്കിടേണ്ട അക്കൗണ്ടുകൾ തിരഞ്ഞെടുക്കുക. കണക്‌റ്റുചെയ്യുമ്പോൾ അക്കൗണ്ടുകളിലേക്കുള്ള ഏത് ആക്‌സസും നിങ്ങൾ തുടർന്നും അംഗീകരിക്കേണ്ടതാണ്."</string>

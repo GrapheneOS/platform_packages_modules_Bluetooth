@@ -122,7 +122,6 @@
     <string name="transfer_menu_open" msgid="3368984869083107200">"Megnyitás"</string>
     <string name="transfer_menu_clear" msgid="5854038118831427492">"Törlés a listáról"</string>
     <string name="transfer_clear_dlg_title" msgid="2953444575556460386">"Törlés"</string>
-    <string name="bluetooth_a2dp_sink_queue_name" msgid="6864149958708669766">"Now Playing"</string>
     <string name="bluetooth_map_settings_save" msgid="7635491847388074606">"Mentés"</string>
     <string name="bluetooth_map_settings_cancel" msgid="9205350798049865699">"Mégse"</string>
     <string name="bluetooth_map_settings_intro" msgid="6482369468223987562">"Válassza ki a Bluetooth használatával megosztani kívánt fiókokat. Kapcsolódásnál el kell fogadnia a fiókokhoz való hozzáférést is."</string>
