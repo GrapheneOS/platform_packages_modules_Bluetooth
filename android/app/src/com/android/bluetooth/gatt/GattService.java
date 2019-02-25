@@ -300,6 +300,20 @@ public class GattService extends ProfileService {
                 == PERMISSION_GRANTED);
     }
 
+    private boolean permissionCheck(ClientMap.App app, int connId, int handle) {
+        Set<Integer> restrictedHandles = mRestrictedHandles.get(connId);
+        if (restrictedHandles == null || !restrictedHandles.contains(handle)) {
+            return true;
+        }
+
+        if (!app.hasBluetoothPrivilegedPermission
+                && checkCallingOrSelfPermission(BLUETOOTH_PRIVILEGED)== PERMISSION_GRANTED) {
+            app.hasBluetoothPrivilegedPermission = true;
+        }
+
+        return app.hasBluetoothPrivilegedPermission;
+    }
+
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         if (GattDebugUtils.handleDebugAction(this, intent)) {
@@ -1390,13 +1404,12 @@ public class GattService extends ProfileService {
                     + data.length);
         }
 
-        if (!permissionCheck(connId, handle)) {
-            Log.w(TAG, "onNotify() - permission check failed!");
-            return;
-        }
-
         ClientMap.App app = mClientMap.getByConnId(connId);
         if (app != null) {
+            if (!permissionCheck(app, connId, handle)) {
+                Log.w(TAG, "onNotify() - permission check failed!");
+                return;
+            }
             app.callback.onNotify(address, handle, data);
         }
     }
