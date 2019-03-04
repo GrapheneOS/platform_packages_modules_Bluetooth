@@ -152,11 +152,7 @@ public class BrowsablePlayerConnector {
 
                     case MSG_TIMEOUT: {
                         Log.v(TAG, "Timed out waiting for players");
-                        for (BrowsedPlayerWrapper wrapper : mPendingPlayers) {
-                            if (DEBUG) Log.d(TAG, "Disconnecting " + wrapper.getPackageName());
-                            wrapper.disconnect();
-                        }
-                        mPendingPlayers.clear();
+                        removePendingPlayers();
                     } break;
                 }
 
@@ -168,5 +164,22 @@ public class BrowsablePlayerConnector {
                 }
             }
         };
+    }
+
+    private void removePendingPlayers() {
+        for (BrowsedPlayerWrapper wrapper : mPendingPlayers) {
+            if (DEBUG) Log.d(TAG, "Disconnecting " + wrapper.getPackageName());
+            wrapper.disconnect();
+        }
+        mPendingPlayers.clear();
+    }
+
+    void cleanup() {
+        if (mPendingPlayers.size() != 0) {
+            Log.i(TAG, "Bluetooth turn off with " + mPendingPlayers.size() + " pending player(s)");
+            mHandler.removeMessages(MSG_TIMEOUT);
+            removePendingPlayers();
+            mHandler = null;
+        }
     }
 }
