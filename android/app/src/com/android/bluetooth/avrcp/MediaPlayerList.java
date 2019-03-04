@@ -89,6 +89,7 @@ public class MediaPlayerList {
     private int mActivePlayerId = NO_ACTIVE_PLAYER;
 
     private AvrcpTargetService.ListCallback mCallback;
+    private BrowsablePlayerConnector mBrowsablePlayerConnector;
 
     interface MediaUpdateCallback {
         void run(MediaData data);
@@ -140,8 +141,8 @@ public class MediaPlayerList {
                     .getPackageManager()
                     .queryIntentServices(intent, PackageManager.MATCH_ALL);
 
-        BrowsablePlayerConnector.connectToPlayers(mContext, mLooper, playerList,
-                (List<BrowsedPlayerWrapper> players) -> {
+        mBrowsablePlayerConnector = BrowsablePlayerConnector.connectToPlayers(mContext, mLooper,
+                playerList, (List<BrowsedPlayerWrapper> players) -> {
                 Log.i(TAG, "init: Browsable Player list size is " + players.size());
 
                 // Check to see if the list has been cleaned up before this completed
@@ -196,6 +197,9 @@ public class MediaPlayerList {
         }
         mMediaPlayers.clear();
 
+        if (mBrowsablePlayerConnector != null) {
+            mBrowsablePlayerConnector.cleanup();
+        }
         for (BrowsedPlayerWrapper player : mBrowsablePlayers.values()) {
             player.disconnect();
         }
