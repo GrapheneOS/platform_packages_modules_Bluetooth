@@ -2720,7 +2720,7 @@ public class AdapterService extends Service {
      */
     @VisibleForTesting
     public void metadataChanged(String address, int key, String value) {
-        BluetoothDevice device = mRemoteDevices.getDevice(address.getBytes());
+        BluetoothDevice device = mRemoteDevices.getDevice(Utils.getBytesFromAddress(address));
         if (mMetadataListeners.containsKey(device)) {
             ArrayList<IBluetoothMetadataListener> list = mMetadataListeners.get(device);
             for (IBluetoothMetadataListener listener : list) {
