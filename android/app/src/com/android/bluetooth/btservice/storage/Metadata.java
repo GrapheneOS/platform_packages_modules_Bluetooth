@@ -132,7 +132,7 @@ class Metadata {
         return BluetoothProfile.PRIORITY_UNDEFINED;
     }
 
-    void setCustomizedMeta(int key, String value) {
+    void setCustomizedMeta(int key, byte[] value) {
         switch (key) {
             case BluetoothDevice.METADATA_MANUFACTURER_NAME:
                 publicMetadata.manufacturer_name = value;
@@ -152,35 +152,35 @@ class Metadata {
             case BluetoothDevice.METADATA_MAIN_ICON:
                 publicMetadata.main_icon = value;
                 break;
-            case BluetoothDevice.METADATA_IS_UNTHETHERED_HEADSET:
-                publicMetadata.is_unthethered_headset = value;
+            case BluetoothDevice.METADATA_IS_UNTETHERED_HEADSET:
+                publicMetadata.is_untethered_headset = value;
                 break;
-            case BluetoothDevice.METADATA_UNTHETHERED_LEFT_ICON:
-                publicMetadata.unthethered_left_icon = value;
+            case BluetoothDevice.METADATA_UNTETHERED_LEFT_ICON:
+                publicMetadata.untethered_left_icon = value;
                 break;
-            case BluetoothDevice.METADATA_UNTHETHERED_RIGHT_ICON:
-                publicMetadata.unthethered_right_icon = value;
+            case BluetoothDevice.METADATA_UNTETHERED_RIGHT_ICON:
+                publicMetadata.untethered_right_icon = value;
                 break;
-            case BluetoothDevice.METADATA_UNTHETHERED_CASE_ICON:
-                publicMetadata.unthethered_case_icon = value;
+            case BluetoothDevice.METADATA_UNTETHERED_CASE_ICON:
+                publicMetadata.untethered_case_icon = value;
                 break;
-            case BluetoothDevice.METADATA_UNTHETHERED_LEFT_BATTERY:
-                publicMetadata.unthethered_left_battery = value;
+            case BluetoothDevice.METADATA_UNTETHERED_LEFT_BATTERY:
+                publicMetadata.untethered_left_battery = value;
                 break;
-            case BluetoothDevice.METADATA_UNTHETHERED_RIGHT_BATTERY:
-                publicMetadata.unthethered_right_battery = value;
+            case BluetoothDevice.METADATA_UNTETHERED_RIGHT_BATTERY:
+                publicMetadata.untethered_right_battery = value;
                 break;
-            case BluetoothDevice.METADATA_UNTHETHERED_CASE_BATTERY:
-                publicMetadata.unthethered_case_battery = value;
+            case BluetoothDevice.METADATA_UNTETHERED_CASE_BATTERY:
+                publicMetadata.untethered_case_battery = value;
                 break;
-            case BluetoothDevice.METADATA_UNTHETHERED_LEFT_CHARGING:
-                publicMetadata.unthethered_left_charging = value;
+            case BluetoothDevice.METADATA_UNTETHERED_LEFT_CHARGING:
+                publicMetadata.untethered_left_charging = value;
                 break;
-            case BluetoothDevice.METADATA_UNTHETHERED_RIGHT_CHARGING:
-                publicMetadata.unthethered_right_charging = value;
+            case BluetoothDevice.METADATA_UNTETHERED_RIGHT_CHARGING:
+                publicMetadata.untethered_right_charging = value;
                 break;
-            case BluetoothDevice.METADATA_UNTHETHERED_CASE_CHARGING:
-                publicMetadata.unthethered_case_charging = value;
+            case BluetoothDevice.METADATA_UNTETHERED_CASE_CHARGING:
+                publicMetadata.untethered_case_charging = value;
                 break;
             case BluetoothDevice.METADATA_ENHANCED_SETTINGS_UI_URI:
                 publicMetadata.enhanced_settings_ui_uri = value;
@@ -188,8 +188,8 @@ class Metadata {
         }
     }
 
-    String getCustomizedMeta(int key) {
-        String value = null;
+    byte[] getCustomizedMeta(int key) {
+        byte[] value = null;
         switch (key) {
             case BluetoothDevice.METADATA_MANUFACTURER_NAME:
                 value = publicMetadata.manufacturer_name;
@@ -209,35 +209,35 @@ class Metadata {
             case BluetoothDevice.METADATA_MAIN_ICON:
                 value = publicMetadata.main_icon;
                 break;
-            case BluetoothDevice.METADATA_IS_UNTHETHERED_HEADSET:
-                value = publicMetadata.is_unthethered_headset;
+            case BluetoothDevice.METADATA_IS_UNTETHERED_HEADSET:
+                value = publicMetadata.is_untethered_headset;
                 break;
-            case BluetoothDevice.METADATA_UNTHETHERED_LEFT_ICON:
-                value = publicMetadata.unthethered_left_icon;
+            case BluetoothDevice.METADATA_UNTETHERED_LEFT_ICON:
+                value = publicMetadata.untethered_left_icon;
                 break;
-            case BluetoothDevice.METADATA_UNTHETHERED_RIGHT_ICON:
-                value = publicMetadata.unthethered_right_icon;
+            case BluetoothDevice.METADATA_UNTETHERED_RIGHT_ICON:
+                value = publicMetadata.untethered_right_icon;
                 break;
-            case BluetoothDevice.METADATA_UNTHETHERED_CASE_ICON:
-                value = publicMetadata.unthethered_case_icon;
+            case BluetoothDevice.METADATA_UNTETHERED_CASE_ICON:
+                value = publicMetadata.untethered_case_icon;
                 break;
-            case BluetoothDevice.METADATA_UNTHETHERED_LEFT_BATTERY:
-                value = publicMetadata.unthethered_left_battery;
+            case BluetoothDevice.METADATA_UNTETHERED_LEFT_BATTERY:
+                value = publicMetadata.untethered_left_battery;
                 break;
-            case BluetoothDevice.METADATA_UNTHETHERED_RIGHT_BATTERY:
-                value = publicMetadata.unthethered_right_battery;
+            case BluetoothDevice.METADATA_UNTETHERED_RIGHT_BATTERY:
+                value = publicMetadata.untethered_right_battery;
                 break;
-            case BluetoothDevice.METADATA_UNTHETHERED_CASE_BATTERY:
-                value = publicMetadata.unthethered_case_battery;
+            case BluetoothDevice.METADATA_UNTETHERED_CASE_BATTERY:
+                value = publicMetadata.untethered_case_battery;
                 break;
-            case BluetoothDevice.METADATA_UNTHETHERED_LEFT_CHARGING:
-                value = publicMetadata.unthethered_left_charging;
+            case BluetoothDevice.METADATA_UNTETHERED_LEFT_CHARGING:
+                value = publicMetadata.untethered_left_charging;
                 break;
-            case BluetoothDevice.METADATA_UNTHETHERED_RIGHT_CHARGING:
-                value = publicMetadata.unthethered_right_charging;
+            case BluetoothDevice.METADATA_UNTETHERED_RIGHT_CHARGING:
+                value = publicMetadata.untethered_right_charging;
                 break;
-            case BluetoothDevice.METADATA_UNTHETHERED_CASE_CHARGING:
-                value = publicMetadata.unthethered_case_charging;
+            case BluetoothDevice.METADATA_UNTETHERED_CASE_CHARGING:
+                value = publicMetadata.untethered_case_charging;
                 break;
             case BluetoothDevice.METADATA_ENHANCED_SETTINGS_UI_URI:
                 value = publicMetadata.enhanced_settings_ui_uri;
@@ -266,35 +266,35 @@ class Metadata {
         if (publicMetadata.main_icon != null) {
             list.add(BluetoothDevice.METADATA_MAIN_ICON);
         }
-        if (publicMetadata.is_unthethered_headset != null) {
-            list.add(BluetoothDevice.METADATA_IS_UNTHETHERED_HEADSET);
+        if (publicMetadata.is_untethered_headset != null) {
+            list.add(BluetoothDevice.METADATA_IS_UNTETHERED_HEADSET);
         }
-        if (publicMetadata.unthethered_left_icon != null) {
-            list.add(BluetoothDevice.METADATA_UNTHETHERED_LEFT_ICON);
+        if (publicMetadata.untethered_left_icon != null) {
+            list.add(BluetoothDevice.METADATA_UNTETHERED_LEFT_ICON);
         }
-        if (publicMetadata.unthethered_right_icon != null) {
-            list.add(BluetoothDevice.METADATA_UNTHETHERED_RIGHT_ICON);
+        if (publicMetadata.untethered_right_icon != null) {
+            list.add(BluetoothDevice.METADATA_UNTETHERED_RIGHT_ICON);
         }
-        if (publicMetadata.unthethered_case_icon != null) {
-            list.add(BluetoothDevice.METADATA_UNTHETHERED_CASE_ICON);
+        if (publicMetadata.untethered_case_icon != null) {
+            list.add(BluetoothDevice.METADATA_UNTETHERED_CASE_ICON);
         }
-        if (publicMetadata.unthethered_left_battery != null) {
-            list.add(BluetoothDevice.METADATA_UNTHETHERED_LEFT_BATTERY);
+        if (publicMetadata.untethered_left_battery != null) {
+            list.add(BluetoothDevice.METADATA_UNTETHERED_LEFT_BATTERY);
         }
-        if (publicMetadata.unthethered_right_battery != null) {
-            list.add(BluetoothDevice.METADATA_UNTHETHERED_RIGHT_BATTERY);
+        if (publicMetadata.untethered_right_battery != null) {
+            list.add(BluetoothDevice.METADATA_UNTETHERED_RIGHT_BATTERY);
         }
-        if (publicMetadata.unthethered_case_battery != null) {
-            list.add(BluetoothDevice.METADATA_UNTHETHERED_CASE_BATTERY);
+        if (publicMetadata.untethered_case_battery != null) {
+            list.add(BluetoothDevice.METADATA_UNTETHERED_CASE_BATTERY);
         }
-        if (publicMetadata.unthethered_left_charging != null) {
-            list.add(BluetoothDevice.METADATA_UNTHETHERED_LEFT_CHARGING);
+        if (publicMetadata.untethered_left_charging != null) {
+            list.add(BluetoothDevice.METADATA_UNTETHERED_LEFT_CHARGING);
         }
-        if (publicMetadata.unthethered_right_charging != null) {
-            list.add(BluetoothDevice.METADATA_UNTHETHERED_RIGHT_CHARGING);
+        if (publicMetadata.untethered_right_charging != null) {
+            list.add(BluetoothDevice.METADATA_UNTETHERED_RIGHT_CHARGING);
         }
-        if (publicMetadata.unthethered_case_charging != null) {
-            list.add(BluetoothDevice.METADATA_UNTHETHERED_CASE_CHARGING);
+        if (publicMetadata.untethered_case_charging != null) {
+            list.add(BluetoothDevice.METADATA_UNTETHERED_CASE_CHARGING);
         }
         if (publicMetadata.enhanced_settings_ui_uri != null) {
             list.add(BluetoothDevice.METADATA_ENHANCED_SETTINGS_UI_URI);

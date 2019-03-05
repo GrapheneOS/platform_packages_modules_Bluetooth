@@ -35,6 +35,7 @@ import android.provider.Settings;
 import android.util.Log;
 import android.util.StatsLog;
 
+import com.android.bluetooth.Utils;
 import com.android.bluetooth.btservice.AdapterService;
 import com.android.internal.annotations.VisibleForTesting;
 
@@ -184,16 +185,16 @@ public class DatabaseManager {
             case BluetoothDevice.METADATA_HARDWARE_VERSION:
             case BluetoothDevice.METADATA_COMPANION_APP:
             case BluetoothDevice.METADATA_MAIN_ICON:
-            case BluetoothDevice.METADATA_IS_UNTHETHERED_HEADSET:
-            case BluetoothDevice.METADATA_UNTHETHERED_LEFT_ICON:
-            case BluetoothDevice.METADATA_UNTHETHERED_RIGHT_ICON:
-            case BluetoothDevice.METADATA_UNTHETHERED_CASE_ICON:
-            case BluetoothDevice.METADATA_UNTHETHERED_LEFT_BATTERY:
-            case BluetoothDevice.METADATA_UNTHETHERED_RIGHT_BATTERY:
-            case BluetoothDevice.METADATA_UNTHETHERED_CASE_BATTERY:
-            case BluetoothDevice.METADATA_UNTHETHERED_LEFT_CHARGING:
-            case BluetoothDevice.METADATA_UNTHETHERED_RIGHT_CHARGING:
-            case BluetoothDevice.METADATA_UNTHETHERED_CASE_CHARGING:
+            case BluetoothDevice.METADATA_IS_UNTETHERED_HEADSET:
+            case BluetoothDevice.METADATA_UNTETHERED_LEFT_ICON:
+            case BluetoothDevice.METADATA_UNTETHERED_RIGHT_ICON:
+            case BluetoothDevice.METADATA_UNTETHERED_CASE_ICON:
+            case BluetoothDevice.METADATA_UNTETHERED_LEFT_BATTERY:
+            case BluetoothDevice.METADATA_UNTETHERED_RIGHT_BATTERY:
+            case BluetoothDevice.METADATA_UNTETHERED_CASE_BATTERY:
+            case BluetoothDevice.METADATA_UNTETHERED_LEFT_CHARGING:
+            case BluetoothDevice.METADATA_UNTETHERED_RIGHT_CHARGING:
+            case BluetoothDevice.METADATA_UNTETHERED_CASE_CHARGING:
             case BluetoothDevice.METADATA_ENHANCED_SETTINGS_UI_URI:
                 return true;
         }
@@ -205,7 +206,7 @@ public class DatabaseManager {
      * Set customized metadata to database with requested key
      */
     @VisibleForTesting
-    public boolean setCustomMeta(BluetoothDevice device, int key, String newValue) {
+    public boolean setCustomMeta(BluetoothDevice device, int key, byte[] newValue) {
         synchronized (mMetadataCache) {
             if (device == null) {
                 Log.e(TAG, "setCustomMeta: device is null");
@@ -224,8 +225,8 @@ public class DatabaseManager {
                 createMetadata(address);
             }
             Metadata data = mMetadataCache.get(address);
-            String oldValue = data.getCustomizedMeta(key);
-            if (oldValue != null && oldValue.equals(newValue)) {
+            byte[] oldValue = data.getCustomizedMeta(key);
+            if (oldValue != null && Arrays.equals(oldValue, newValue)) {
                 if (VERBOSE) {
                     Log.d(TAG, "setCustomMeta: metadata not changed.");
                 }
@@ -244,7 +245,7 @@ public class DatabaseManager {
      * Get customized metadata from database with requested key
      */
     @VisibleForTesting
-    public String getCustomMeta(BluetoothDevice device, int key) {
+    public byte[] getCustomMeta(BluetoothDevice device, int key) {
         synchronized (mMetadataCache) {
             if (device == null) {
                 Log.e(TAG, "getCustomMeta: device is null");
@@ -263,8 +264,7 @@ public class DatabaseManager {
             }
 
             Metadata data = mMetadataCache.get(address);
-            String value = data.getCustomizedMeta(key);
-            return value;
+            return data.getCustomizedMeta(key);
         }
     }
 
@@ -763,13 +763,14 @@ public class DatabaseManager {
         mHandler.sendMessage(message);
     }
 
-    private void logManufacturerInfo(BluetoothDevice device, int key, String value) {
+    private void logManufacturerInfo(BluetoothDevice device, int key, byte[] bytesValue) {
         String callingApp = mAdapterService.getPackageManager().getNameForUid(
                 Binder.getCallingUid());
         String manufacturerName = "";
         String modelName = "";
         String hardwareVersion = "";
         String softwareVersion = "";
+        String value = Utils.byteArrayToUtf8String(bytesValue);
         switch (key) {
             case BluetoothDevice.METADATA_MANUFACTURER_NAME:
                 manufacturerName = value;
