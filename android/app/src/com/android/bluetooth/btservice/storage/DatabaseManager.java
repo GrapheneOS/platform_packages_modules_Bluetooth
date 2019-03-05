@@ -267,8 +267,9 @@ public class DatabaseManager {
      * {@link BluetoothProfile#HEADSET_CLIENT}, {@link BluetoothProfile#A2DP},
      * {@link BluetoothProfile#A2DP_SINK}, {@link BluetoothProfile#HID_HOST},
      * {@link BluetoothProfile#PAN}, {@link BluetoothProfile#PBAP},
-     * {@link BluetoothProfile#MAP}, {@link BluetoothProfile#MAP_CLIENT},
-     * {@link BluetoothProfile#SAP}, {@link BluetoothProfile#HEARING_AID}
+     * {@link BluetoothProfile#PBAP_CLIENT}, {@link BluetoothProfile#MAP},
+     * {@link BluetoothProfile#MAP_CLIENT}, {@link BluetoothProfile#SAP},
+     * {@link BluetoothProfile#HEARING_AID}
      * @param newPriority the priority to set; one of
      * {@link BluetoothProfile#PRIORITY_UNDEFINED},
      * {@link BluetoothProfile#PRIORITY_OFF},
@@ -325,8 +326,9 @@ public class DatabaseManager {
      * {@link BluetoothProfile#HEADSET_CLIENT}, {@link BluetoothProfile#A2DP},
      * {@link BluetoothProfile#A2DP_SINK}, {@link BluetoothProfile#HID_HOST},
      * {@link BluetoothProfile#PAN}, {@link BluetoothProfile#PBAP},
-     * {@link BluetoothProfile#MAP}, {@link BluetoothProfile#MAP_CLIENT},
-     * {@link BluetoothProfile#SAP}, {@link BluetoothProfile#HEARING_AID}
+     * {@link BluetoothProfile#PBAP_CLIENT}, {@link BluetoothProfile#MAP},
+     * {@link BluetoothProfile#MAP_CLIENT}, {@link BluetoothProfile#SAP},
+     * {@link BluetoothProfile#HEARING_AID}
      * @return the profile priority of the device; one of
      * {@link BluetoothProfile#PRIORITY_UNDEFINED},
      * {@link BluetoothProfile#PRIORITY_OFF},
@@ -672,6 +674,9 @@ public class DatabaseManager {
             int pbapPriority = Settings.Global.getInt(contentResolver,
                     Settings.Global.getBluetoothPbapClientPriorityKey(device.getAddress()),
                     BluetoothProfile.PRIORITY_UNDEFINED);
+            int pbapClientPriority = Settings.Global.getInt(contentResolver,
+                    Settings.Global.getBluetoothPbapClientPriorityKey(device.getAddress()),
+                    BluetoothProfile.PRIORITY_UNDEFINED);
             int sapPriority = Settings.Global.getInt(contentResolver,
                     Settings.Global.getBluetoothSapPriorityKey(device.getAddress()),
                     BluetoothProfile.PRIORITY_UNDEFINED);
@@ -691,6 +696,7 @@ public class DatabaseManager {
             data.setProfilePriority(BluetoothProfile.HID_HOST, hidHostPriority);
             data.setProfilePriority(BluetoothProfile.PAN, panPriority);
             data.setProfilePriority(BluetoothProfile.PBAP, pbapPriority);
+            data.setProfilePriority(BluetoothProfile.PBAP_CLIENT, pbapClientPriority);
             data.setProfilePriority(BluetoothProfile.MAP, mapPriority);
             data.setProfilePriority(BluetoothProfile.MAP_CLIENT, mapClientPriority);
             data.setProfilePriority(BluetoothProfile.SAP, sapPriority);

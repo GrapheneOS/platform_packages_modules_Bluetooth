@@ -30,6 +30,7 @@ class ProfilePrioritiesEntity {
     public int hid_host_priority;
     public int pan_priority;
     public int pbap_priority;
+    public int pbap_client_priority;
     public int map_priority;
     public int sap_priority;
     public int hearing_aid_priority;
@@ -43,6 +44,7 @@ class ProfilePrioritiesEntity {
         hid_host_priority = BluetoothProfile.PRIORITY_UNDEFINED;
         pan_priority = BluetoothProfile.PRIORITY_UNDEFINED;
         pbap_priority = BluetoothProfile.PRIORITY_UNDEFINED;
+        pbap_client_priority = BluetoothProfile.PRIORITY_UNDEFINED;
         map_priority = BluetoothProfile.PRIORITY_UNDEFINED;
         sap_priority = BluetoothProfile.PRIORITY_UNDEFINED;
         hearing_aid_priority = BluetoothProfile.PRIORITY_UNDEFINED;
