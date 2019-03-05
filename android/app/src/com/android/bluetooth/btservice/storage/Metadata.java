@@ -37,7 +37,7 @@ class Metadata {
     public boolean migrated;
 
     @Embedded
-    public ProfilePrioritiesEntity profilePriorites;
+    public ProfilePrioritiesEntity profilePriorities;
 
     @Embedded
     @NonNull
@@ -49,7 +49,7 @@ class Metadata {
     Metadata(String address) {
         this.address = address;
         migrated = false;
-        profilePriorites = new ProfilePrioritiesEntity();
+        profilePriorities = new ProfilePrioritiesEntity();
         publicMetadata = new CustomizedMetadataEntity();
         a2dpSupportsOptionalCodecs = BluetoothA2dp.OPTIONAL_CODECS_SUPPORT_UNKNOWN;
         a2dpOptionalCodecsEnabled = BluetoothA2dp.OPTIONAL_CODECS_PREF_UNKNOWN;
@@ -62,37 +62,40 @@ class Metadata {
     void setProfilePriority(int profile, int priority) {
         switch (profile) {
             case BluetoothProfile.A2DP:
-                profilePriorites.a2dp_priority = priority;
+                profilePriorities.a2dp_priority = priority;
                 break;
             case BluetoothProfile.A2DP_SINK:
-                profilePriorites.a2dp_sink_priority = priority;
+                profilePriorities.a2dp_sink_priority = priority;
                 break;
             case BluetoothProfile.HEADSET:
-                profilePriorites.hfp_priority = priority;
+                profilePriorities.hfp_priority = priority;
                 break;
             case BluetoothProfile.HEADSET_CLIENT:
-                profilePriorites.hfp_client_priority = priority;
+                profilePriorities.hfp_client_priority = priority;
                 break;
             case BluetoothProfile.HID_HOST:
-                profilePriorites.hid_host_priority = priority;
+                profilePriorities.hid_host_priority = priority;
                 break;
             case BluetoothProfile.PAN:
-                profilePriorites.pan_priority = priority;
+                profilePriorities.pan_priority = priority;
                 break;
             case BluetoothProfile.PBAP:
-                profilePriorites.pbap_priority = priority;
+                profilePriorities.pbap_priority = priority;
+                break;
+            case BluetoothProfile.PBAP_CLIENT:
+                profilePriorities.pbap_client_priority = priority;
                 break;
             case BluetoothProfile.MAP:
-                profilePriorites.map_priority = priority;
+                profilePriorities.map_priority = priority;
                 break;
             case BluetoothProfile.MAP_CLIENT:
-                profilePriorites.map_client_priority = priority;
+                profilePriorities.map_client_priority = priority;
                 break;
             case BluetoothProfile.SAP:
-                profilePriorites.sap_priority = priority;
+                profilePriorities.sap_priority = priority;
                 break;
             case BluetoothProfile.HEARING_AID:
-                profilePriorites.hearing_aid_priority = priority;
+                profilePriorities.hearing_aid_priority = priority;
                 break;
             default:
                 throw new IllegalArgumentException("invalid profile " + profile);
@@ -102,27 +105,29 @@ class Metadata {
     int getProfilePriority(int profile) {
         switch (profile) {
             case BluetoothProfile.A2DP:
-                return profilePriorites.a2dp_priority;
+                return profilePriorities.a2dp_priority;
             case BluetoothProfile.A2DP_SINK:
-                return profilePriorites.a2dp_sink_priority;
+                return profilePriorities.a2dp_sink_priority;
             case BluetoothProfile.HEADSET:
-                return profilePriorites.hfp_priority;
+                return profilePriorities.hfp_priority;
             case BluetoothProfile.HEADSET_CLIENT:
-                return profilePriorites.hfp_client_priority;
+                return profilePriorities.hfp_client_priority;
             case BluetoothProfile.HID_HOST:
-                return profilePriorites.hid_host_priority;
+                return profilePriorities.hid_host_priority;
             case BluetoothProfile.PAN:
-                return profilePriorites.pan_priority;
+                return profilePriorities.pan_priority;
             case BluetoothProfile.PBAP:
-                return profilePriorites.pbap_priority;
+                return profilePriorities.pbap_priority;
+            case BluetoothProfile.PBAP_CLIENT:
+                return profilePriorities.pbap_client_priority;
             case BluetoothProfile.MAP:
-                return profilePriorites.map_priority;
+                return profilePriorities.map_priority;
             case BluetoothProfile.MAP_CLIENT:
-                return profilePriorites.map_client_priority;
+                return profilePriorities.map_client_priority;
             case BluetoothProfile.SAP:
-                return profilePriorites.sap_priority;
+                return profilePriorities.sap_priority;
             case BluetoothProfile.HEARING_AID:
-                return profilePriorites.hearing_aid_priority;
+                return profilePriorities.hearing_aid_priority;
         }
         return BluetoothProfile.PRIORITY_UNDEFINED;
     }

@@ -66,8 +66,6 @@ import android.util.Slog;
 import android.util.SparseArray;
 import android.util.StatsLog;
 
-import androidx.room.Room;
-
 import com.android.bluetooth.BluetoothMetricsProto;
 import com.android.bluetooth.Utils;
 import com.android.bluetooth.btservice.RemoteDevices.DeviceProperties;
@@ -429,9 +427,7 @@ public class AdapterService extends Service {
         mActiveDeviceManager.start();
 
         mDatabaseManager = new DatabaseManager(this);
-        MetadataDatabase database = Room.databaseBuilder(this,
-                MetadataDatabase.class, MetadataDatabase.DATABASE_NAME).build();
-        mDatabaseManager.start(database);
+        mDatabaseManager.start(MetadataDatabase.createDatabase(this));
 
         mSilenceDeviceManager = new SilenceDeviceManager(this, new ServiceFactory(),
                 Looper.getMainLooper());
