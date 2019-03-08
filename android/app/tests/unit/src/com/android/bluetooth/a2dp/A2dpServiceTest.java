@@ -1073,7 +1073,6 @@ public class A2dpServiceTest {
                         BluetoothCodecConfig.BITS_PER_SAMPLE_16,
                         BluetoothCodecConfig.CHANNEL_MODE_STEREO,
                         0, 0, 0, 0);       // Codec-specific fields
-        BluetoothCodecConfig codecConfig = codecConfigSbc;
 
         BluetoothCodecConfig[] codecsLocalCapabilities;
         BluetoothCodecConfig[] codecsSelectableCapabilities;
@@ -1090,24 +1089,36 @@ public class A2dpServiceTest {
             codecsLocalCapabilities[0] = codecConfigSbc;
             codecsSelectableCapabilities[0] = codecConfigSbc;
         }
-        BluetoothCodecStatus codecStatus = new BluetoothCodecStatus(codecConfig,
-                                                                    codecsLocalCapabilities,
-                                                                    codecsSelectableCapabilities);
+        BluetoothCodecConfig[] badCodecsSelectableCapabilities;
+        badCodecsSelectableCapabilities = new BluetoothCodecConfig[1];
+        badCodecsSelectableCapabilities[0] = codecConfigAac;
+
+        BluetoothCodecStatus codecStatus = new BluetoothCodecStatus(codecConfigSbc,
+                codecsLocalCapabilities, codecsSelectableCapabilities);
+        BluetoothCodecStatus badCodecStatus = new BluetoothCodecStatus(codecConfigAac,
+                codecsLocalCapabilities, badCodecsSelectableCapabilities);
 
         when(mDatabaseManager.getA2dpSupportsOptionalCodecs(mTestDevice))
                 .thenReturn(previousSupport);
         when(mDatabaseManager.getA2dpOptionalCodecsEnabled(mTestDevice))
                 .thenReturn(previousEnabled);
-        connectDeviceWithCodecStatus(mTestDevice, codecStatus);
 
+        // Generate connection request from native with bad codec status
+        connectDeviceWithCodecStatus(mTestDevice, badCodecStatus);
+        generateConnectionMessageFromNative(mTestDevice, BluetoothProfile.STATE_DISCONNECTED,
+                BluetoothProfile.STATE_CONNECTED);
+
+        // Generate connection request from native with good codec status
+        connectDeviceWithCodecStatus(mTestDevice, codecStatus);
+        generateConnectionMessageFromNative(mTestDevice, BluetoothProfile.STATE_DISCONNECTED,
+                BluetoothProfile.STATE_CONNECTED);
+
+        // Check optional codec status is set properly
         verify(mDatabaseManager, times(verifyNotSupportTime)).setA2dpSupportsOptionalCodecs(
                 mTestDevice, BluetoothA2dp.OPTIONAL_CODECS_NOT_SUPPORTED);
         verify(mDatabaseManager, times(verifySupportTime)).setA2dpSupportsOptionalCodecs(
                 mTestDevice, BluetoothA2dp.OPTIONAL_CODECS_SUPPORTED);
         verify(mDatabaseManager, times(verifyEnabledTime)).setA2dpOptionalCodecsEnabled(
                 mTestDevice, BluetoothA2dp.OPTIONAL_CODECS_PREF_ENABLED);
-
-        generateConnectionMessageFromNative(mTestDevice, BluetoothProfile.STATE_DISCONNECTED,
-                                            BluetoothProfile.STATE_CONNECTED);
     }
 }
