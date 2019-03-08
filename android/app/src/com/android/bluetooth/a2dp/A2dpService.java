@@ -857,7 +857,8 @@ public class A2dpService extends ProfileService {
      * @param sameAudioFeedingParameters if true the audio feeding parameters
      * haven't been changed
      */
-    void codecConfigUpdated(BluetoothDevice device, BluetoothCodecStatus codecStatus,
+    @VisibleForTesting
+    public void codecConfigUpdated(BluetoothDevice device, BluetoothCodecStatus codecStatus,
                             boolean sameAudioFeedingParameters) {
         // Log codec config and capability metrics
         BluetoothCodecConfig codecConfig = codecStatus.getCodecConfig();
@@ -1009,9 +1010,17 @@ public class A2dpService extends ProfileService {
         }
     }
 
-    private void updateOptionalCodecsSupport(BluetoothDevice device) {
+
+    /**
+     * Update and initiate optional codec status change to native.
+     *
+     * @param device the device to change optional codec status
+     */
+    @VisibleForTesting
+    public void updateOptionalCodecsSupport(BluetoothDevice device) {
         int previousSupport = getSupportsOptionalCodecs(device);
         boolean supportsOptional = false;
+        boolean hasMandatoryCodec = false;
 
         synchronized (mStateMachines) {
             A2dpStateMachine sm = mStateMachines.get(device);
@@ -1021,13 +1030,22 @@ public class A2dpService extends ProfileService {
             BluetoothCodecStatus codecStatus = sm.getCodecStatus();
             if (codecStatus != null) {
                 for (BluetoothCodecConfig config : codecStatus.getCodecsSelectableCapabilities()) {
-                    if (!config.isMandatoryCodec()) {
+                    if (config.isMandatoryCodec()) {
+                        hasMandatoryCodec = true;
+                    } else {
                         supportsOptional = true;
-                        break;
                     }
                 }
             }
         }
+        if (!hasMandatoryCodec) {
+            // Mandatory codec(SBC) is not selectable. It could be caused by the remote device
+            // select codec before native finish get codec capabilities. Stop use this codec
+            // status as the reference to support/enable optional codecs.
+            Log.i(TAG, "updateOptionalCodecsSupport: Mandatory codec is not selectable.");
+            return;
+        }
+
         if (previousSupport == BluetoothA2dp.OPTIONAL_CODECS_SUPPORT_UNKNOWN
                 || supportsOptional != (previousSupport
                                     == BluetoothA2dp.OPTIONAL_CODECS_SUPPORTED)) {
@@ -1056,10 +1074,6 @@ public class A2dpService extends ProfileService {
         }
         synchronized (mStateMachines) {
             if (toState == BluetoothProfile.STATE_CONNECTED) {
-                // Each time a device connects, we want to re-check if it supports optional
-                // codecs (perhaps it's had a firmware update, etc.) and save that state if
-                // it differs from what we had saved before.
-                updateOptionalCodecsSupport(device);
                 MetricsLogger.logProfileConnectionEvent(BluetoothMetricsProto.ProfileId.A2DP);
             }
             // Set the active device if only one connected device is supported and it was connected
