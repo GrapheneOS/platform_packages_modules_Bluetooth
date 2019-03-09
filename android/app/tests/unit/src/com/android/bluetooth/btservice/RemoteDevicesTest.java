@@ -440,7 +440,8 @@ public class RemoteDevicesTest {
         Assert.assertEquals(device, intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE));
         Assert.assertEquals(batteryLevel,
                 intent.getIntExtra(BluetoothDevice.EXTRA_BATTERY_LEVEL, -15));
-        Assert.assertEquals(Intent.FLAG_RECEIVER_REGISTERED_ONLY_BEFORE_BOOT, intent.getFlags());
+        Assert.assertEquals(Intent.FLAG_RECEIVER_REGISTERED_ONLY_BEFORE_BOOT
+                        | Intent.FLAG_RECEIVER_INCLUDE_BACKGROUND, intent.getFlags());
     }
 
     private static Intent getHeadsetConnectionStateChangedIntent(BluetoothDevice device,
