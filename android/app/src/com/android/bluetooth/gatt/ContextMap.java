@@ -89,6 +89,9 @@ import java.util.UUID;
         /** Whether the calling app has location permission */
         boolean hasLocationPermission;
 
+        /** Whether the calling app has bluetooth privileged permission */
+        boolean hasBluetoothPrivilegedPermission;
+
         /** The user handle of the app that started the scan */
         UserHandle mUserHandle;
 
