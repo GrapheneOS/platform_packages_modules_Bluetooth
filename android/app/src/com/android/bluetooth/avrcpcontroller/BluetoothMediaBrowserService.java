@@ -23,7 +23,10 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.media.AudioAttributes;
+import android.media.AudioManager;
 import android.media.MediaMetadata;
+import android.media.MediaPlayer;
 import android.media.browse.MediaBrowser;
 import android.media.browse.MediaBrowser.MediaItem;
 import android.media.session.MediaController;
@@ -95,8 +98,16 @@ public class BluetoothMediaBrowserService extends MediaBrowserService {
             "com.android.bluetooth.avrcpcontroller.CUSTOM_ACTION_GET_PLAY_STATUS_NATIVE";
 
     private static BluetoothMediaBrowserService sBluetoothMediaBrowserService;
+
+    // In order to be considered as an audio source capable of receiving media key events (In the
+    // eyes of MediaSessionService), we need an active MediaPlayer in addition to a MediaSession.
+    // Because of this, the media player below plays an incredibly short, silent audio sample so
+    // that MediaSessionService and AudioPlaybackStateMonitor will believe that we're the current
+    // active player and send us media events. This is a restriction currently imposed by the media
+    // framework code and could be reconsidered in the future.
     private MediaSession mSession;
     private MediaMetadata mA2dpMetadata;
+    private MediaPlayer mMediaPlayer;
 
     private AvrcpControllerService mAvrcpCtrlSrvc;
     private boolean mBrowseConnected = false;
@@ -158,23 +169,37 @@ public class BluetoothMediaBrowserService extends MediaBrowserService {
         }
     }
 
+    /**
+     * Initialize this BluetoothMediaBrowserService, creating our MediaSession, MediaPlayer and
+     * MediaMetaData, and setting up mechanisms to talk with the AvrcpControllerService.
+     */
     @Override
     public void onCreate() {
         if (DBG) Log.d(TAG, "onCreate");
         super.onCreate();
 
+        // Create and configure the MediaSession
         mSession = new MediaSession(this, TAG);
-        setSessionToken(mSession.getSessionToken());
         mSession.setCallback(mSessionCallbacks);
         mSession.setFlags(MediaSession.FLAG_HANDLES_MEDIA_BUTTONS
                 | MediaSession.FLAG_HANDLES_TRANSPORT_CONTROLS);
-        mSession.setActive(true);
         mSession.setQueueTitle(getString(R.string.bluetooth_a2dp_sink_queue_name));
         mSession.setQueue(mMediaQueue);
+
+        // Create and setup the MediaPlayer
+        initMediaPlayer();
+
+        // Associate the held MediaSession with this browser and activate it
+        setSessionToken(mSession.getSessionToken());
+        mSession.setActive(true);
+
+        // Internal handler to process events and requests
         mAvrcpCommandQueue = new AvrcpCommandQueueHandler(Looper.getMainLooper(), this);
 
+        // Set the initial Media state (sets current playback state and media meta data)
         refreshInitialPlayingState();
 
+        // Set up communication with the controller service
         IntentFilter filter = new IntentFilter();
         filter.addAction(BluetoothAvrcpController.ACTION_CONNECTION_STATE_CHANGED);
         filter.addAction(AvrcpControllerService.ACTION_BROWSE_CONNECTION_STATE_CHANGED);
@@ -185,19 +210,82 @@ public class BluetoothMediaBrowserService extends MediaBrowserService {
         synchronized (this) {
             mParentIdToRequestMap.clear();
         }
-        setBluetoothMediaBrowserService(this);
 
+        setBluetoothMediaBrowserService(this);
     }
 
+    /**
+     * Clean up this instance in the reverse order that we created it.
+     */
     @Override
     public void onDestroy() {
         if (DBG) Log.d(TAG, "onDestroy");
         setBluetoothMediaBrowserService(null);
-        mSession.release();
         unregisterReceiver(mBtReceiver);
+        destroyMediaPlayer();
+        mSession.release();
         super.onDestroy();
     }
 
+    /**
+     * Initializes the silent MediaPlayer object which aids in receiving media key focus.
+     *
+     * The created MediaPlayer is already prepared and will release and stop itself on error. All
+     * you need to do is start() it.
+     */
+    private void initMediaPlayer() {
+        if (DBG) Log.d(TAG, "initMediaPlayer()");
+
+        // Parameters for create
+        AudioAttributes attrs = new AudioAttributes.Builder()
+                .setUsage(AudioAttributes.USAGE_MEDIA)
+                .build();
+        AudioManager am = getSystemService(AudioManager.class);
+
+        // Create our player object. Returns a prepared player on success, null on failure
+        mMediaPlayer = MediaPlayer.create(this, R.raw.silent, attrs, am.generateAudioSessionId());
+        if (mMediaPlayer == null) {
+            Log.e(TAG, "Failed to initialize media player. You may not get media key events");
+            return;
+        }
+
+        // Set other player attributes
+        mMediaPlayer.setLooping(false);
+        mMediaPlayer.setOnErrorListener((mp, what, extra) -> {
+            Log.e(TAG, "Silent media player error: " + what + ", " + extra);
+            destroyMediaPlayer();
+            return false;
+        });
+    }
+
+    /**
+     * Safely tears down our local MediaPlayer
+     */
+    private void destroyMediaPlayer() {
+        if (DBG) Log.d(TAG, "destroyMediaPlayer()");
+        if (mMediaPlayer == null) {
+            return;
+        }
+        mMediaPlayer.stop();
+        mMediaPlayer.release();
+        mMediaPlayer = null;
+    }
+
+    /**
+     * Uses the internal MediaPlayer to play a silent, short audio sample so that AudioService will
+     * treat us as the active MediaSession/MediaPlayer combo and properly route us media key events.
+     *
+     * If the MediaPlayer failed to initialize properly, this call will fail gracefully and log the
+     * failed attempt. Media keys will not be routed.
+     */
+    private void getMediaKeyFocus() {
+        if (DBG) Log.d(TAG, "getMediaKeyFocus()");
+        if (mMediaPlayer == null) {
+            Log.w(TAG, "Media player is null. Can't get media key focus. Media keys may not route");
+            return;
+        }
+        mMediaPlayer.start();
+    }
 
     /**
      *  getBluetoothMediaBrowserService()
@@ -311,6 +399,7 @@ public class BluetoothMediaBrowserService extends MediaBrowserService {
             if (DBG) Log.d(TAG, "onPrepare");
             if (mA2dpSinkService != null) {
                 mA2dpSinkService.requestAudioFocus(mA2dpDevice, true);
+                getMediaKeyFocus();
             }
         }
 
@@ -336,6 +425,7 @@ public class BluetoothMediaBrowserService extends MediaBrowserService {
                 // Play the item if possible.
                 if (mA2dpSinkService != null) {
                     mA2dpSinkService.requestAudioFocus(mA2dpDevice, true);
+                    getMediaKeyFocus();
                 }
                 mAvrcpCtrlSrvc.fetchAttrAndPlayItem(mA2dpDevice, mediaId);
             }
