@@ -50,10 +50,12 @@ public final class DatabaseManagerTest {
     private MetadataDatabase mDatabase;
     private DatabaseManager mDatabaseManager;
     private BluetoothDevice mTestDevice;
+    private BluetoothDevice mTestDevice2;
 
     private static final String LOCAL_STORAGE = "LocalStorage";
     private static final String TEST_BT_ADDR = "11:22:33:44:55:66";
-    private static final String OTHER_BT_ADDR = "11:11:11:11:11:11";
+    private static final String OTHER_BT_ADDR1 = "11:11:11:11:11:11";
+    private static final String OTHER_BT_ADDR2 = "22:22:22:22:22:22";
     private static final int A2DP_SUPPORT_OP_CODEC_TEST = 0;
     private static final int A2DP_ENALBED_OP_CODEC_TEST = 1;
     private static final int MAX_META_ID = 16;
@@ -201,15 +203,13 @@ public final class DatabaseManagerTest {
     }
 
     @Test
-    public void testRemoveUnusedMetadata() {
-        // Insert three devices to database and cache, only mTestDevice is
+    public void testRemoveUnusedMetadata_WithSingleBondedDevice() {
+        // Insert two devices to database and cache, only mTestDevice is
         // in the bonded list
-        BluetoothDevice otherDevice = BluetoothAdapter.getDefaultAdapter()
-                .getRemoteDevice(OTHER_BT_ADDR);
-        Metadata otherData = new Metadata(OTHER_BT_ADDR);
+        Metadata otherData = new Metadata(OTHER_BT_ADDR1);
         // Add metadata for otherDevice
         otherData.setCustomizedMeta(0, "value");
-        mDatabaseManager.mMetadataCache.put(OTHER_BT_ADDR, otherData);
+        mDatabaseManager.mMetadataCache.put(OTHER_BT_ADDR1, otherData);
         mDatabase.insert(otherData);
 
         Metadata data = new Metadata(TEST_BT_ADDR);
@@ -221,7 +221,7 @@ public final class DatabaseManagerTest {
         TestUtils.waitForLooperToFinishScheduledTask(mDatabaseManager.getHandlerLooper());
 
         // Check removed device report metadata changed to null
-        verify(mAdapterService).metadataChanged(OTHER_BT_ADDR, 0, null);
+        verify(mAdapterService).metadataChanged(OTHER_BT_ADDR1, 0, null);
 
         List<Metadata> list = mDatabase.load();
 
@@ -236,6 +236,61 @@ public final class DatabaseManagerTest {
         // Wait for clear database
         TestUtils.waitForLooperToFinishScheduledTask(mDatabaseManager.getHandlerLooper());
         mDatabaseManager.mMetadataCache.clear();
+    }
+
+    @Test
+    public void testRemoveUnusedMetadata_WithMultiBondedDevices() {
+        // Insert three devices to database and cache, otherDevice1 and otherDevice2
+        // are in the bonded list
+
+        // Add metadata for TEST_BT_ADDR
+        Metadata testData = new Metadata(TEST_BT_ADDR);
+        testData.setCustomizedMeta(0, "value");
+        mDatabaseManager.mMetadataCache.put(TEST_BT_ADDR, testData);
+        mDatabase.insert(testData);
+
+        // Add metadata for OTHER_BT_ADDR1
+        Metadata otherData1 = new Metadata(OTHER_BT_ADDR1);
+        otherData1.setCustomizedMeta(0, "value");
+        mDatabaseManager.mMetadataCache.put(OTHER_BT_ADDR1, otherData1);
+        mDatabase.insert(otherData1);
+
+        // Add metadata for OTHER_BT_ADDR2
+        Metadata otherData2 = new Metadata(OTHER_BT_ADDR2);
+        otherData2.setCustomizedMeta(0, "value");
+        mDatabaseManager.mMetadataCache.put(OTHER_BT_ADDR2, otherData2);
+        mDatabase.insert(otherData2);
+
+        // Add OTHER_BT_ADDR1 OTHER_BT_ADDR2 to bonded devices
+        BluetoothDevice otherDevice1 = BluetoothAdapter.getDefaultAdapter()
+                .getRemoteDevice(OTHER_BT_ADDR1);
+        BluetoothDevice otherDevice2 = BluetoothAdapter.getDefaultAdapter()
+                .getRemoteDevice(OTHER_BT_ADDR2);
+        BluetoothDevice[] bondedDevices = {otherDevice1, otherDevice2};
+        doReturn(bondedDevices).when(mAdapterService).getBondedDevices();
+
+        mDatabaseManager.removeUnusedMetadata();
+        TestUtils.waitForLooperToFinishScheduledTask(mDatabaseManager.getHandlerLooper());
+
+        // Check TEST_BT_ADDR report metadata changed to null
+        verify(mAdapterService).metadataChanged(TEST_BT_ADDR, 0, null);
+
+        // Check number of metadata in the database
+        List<Metadata> list = mDatabase.load();
+        // OTHER_BT_ADDR1 and OTHER_BT_ADDR2 should still in database
+        Assert.assertEquals(2, list.size());
+
+        // Check whether the devices are in the database
+        Metadata checkData1 = list.get(0);
+        Assert.assertEquals(OTHER_BT_ADDR1, checkData1.getAddress());
+        Metadata checkData2 = list.get(1);
+        Assert.assertEquals(OTHER_BT_ADDR2, checkData2.getAddress());
+
+        mDatabase.deleteAll();
+        // Wait for clear database
+        TestUtils.waitForLooperToFinishScheduledTask(mDatabaseManager.getHandlerLooper());
+        mDatabaseManager.mMetadataCache.clear();
+
     }
 
     @Test

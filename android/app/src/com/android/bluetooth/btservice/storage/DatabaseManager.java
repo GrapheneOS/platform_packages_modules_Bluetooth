@@ -38,6 +38,7 @@ import android.util.StatsLog;
 import com.android.bluetooth.btservice.AdapterService;
 import com.android.internal.annotations.VisibleForTesting;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -586,17 +587,15 @@ public class DatabaseManager {
         BluetoothDevice[] bondedDevices = mAdapterService.getBondedDevices();
         synchronized (mMetadataCache) {
             mMetadataCache.forEach((address, metadata) -> {
-                for (BluetoothDevice device : bondedDevices) {
-                    if (!device.getAddress().equals(address)
-                            && !address.equals(LOCAL_STORAGE)) {
-                        // Report metadata change to null
-                        List<Integer> list = metadata.getChangedCustomizedMeta();
-                        for (int key : list) {
-                            mAdapterService.metadataChanged(address, key, null);
-                        }
-                        Log.i(TAG, "remove unpaired device from database " + address);
-                        deleteDatabase(mMetadataCache.get(address));
+                if (!address.equals(LOCAL_STORAGE)
+                        && !Arrays.asList(bondedDevices).stream().anyMatch(device ->
+                        address.equals(device.getAddress()))) {
+                    List<Integer> list = metadata.getChangedCustomizedMeta();
+                    for (int key : list) {
+                        mAdapterService.metadataChanged(address, key, null);
                     }
+                    Log.i(TAG, "remove unpaired device from database " + address);
+                    deleteDatabase(mMetadataCache.get(address));
                 }
             });
         }
