@@ -371,9 +371,9 @@ final class BondStateMachine extends StateMachine {
 
         mAdapterProperties.onBondStateChanged(device, newState);
 
-        if ((devProp.getDeviceType() == BluetoothDevice.DEVICE_TYPE_CLASSIC
+        if (devProp != null && ((devProp.getDeviceType() == BluetoothDevice.DEVICE_TYPE_CLASSIC
                 || devProp.getDeviceType() == BluetoothDevice.DEVICE_TYPE_DUAL)
-                && newState == BluetoothDevice.BOND_BONDED && devProp.getUuids() == null) {
+                && newState == BluetoothDevice.BOND_BONDED && devProp.getUuids() == null)) {
             infoLog(device + " is bonded, wait for SDP complete to broadcast bonded intent");
             if (!mPendingBondedDevices.contains(device)) {
                 mPendingBondedDevices.add(device);
