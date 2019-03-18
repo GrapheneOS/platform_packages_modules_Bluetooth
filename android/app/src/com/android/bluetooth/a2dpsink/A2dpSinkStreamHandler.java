@@ -23,6 +23,7 @@ import android.media.AudioAttributes;
 import android.media.AudioFocusRequest;
 import android.media.AudioManager;
 import android.media.AudioManager.OnAudioFocusChangeListener;
+import android.media.MediaPlayer;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
@@ -85,6 +86,16 @@ public class A2dpSinkStreamHandler extends Handler {
     private boolean mSentPause = false;
     // Keep track of the relevant audio focus (None, Transient, Gain)
     private int mAudioFocus = AudioManager.AUDIOFOCUS_NONE;
+
+    // In order for Bluetooth to be considered as an audio source capable of receiving media key
+    // events (In the eyes of MediaSessionService), we need an active MediaPlayer in addition to a
+    // MediaSession. Because of this, the media player below plays an incredibly short, silent audio
+    // sample so that MediaSessionService and AudioPlaybackStateMonitor will believe that we're the
+    // current active player and send the Bluetooth process media events. This allows AVRCP
+    // controller to create a MediaSession and handle the events if it would like. The player and
+    // session requirement is a restriction currently imposed by the media framework code and could
+    // be reconsidered in the future.
+    private MediaPlayer mMediaPlayer = null;
 
     // Focus changes when we are currently holding focus.
     private OnAudioFocusChangeListener mAudioFocusListener = new OnAudioFocusChangeListener() {
@@ -223,12 +234,17 @@ public class A2dpSinkStreamHandler extends Handler {
      * Utility functions.
      */
     private void requestAudioFocusIfNone() {
+        if (DBG) Log.d(TAG, "requestAudioFocusIfNone()");
         if (mAudioFocus == AudioManager.AUDIOFOCUS_NONE) {
             requestAudioFocus();
         }
+        // On the off change mMediaPlayer errors out and dies, we want to make sure we retry this.
+        // This function immediately exits if we have a MediaPlayer object.
+        requestMediaKeyFocus();
     }
 
     private synchronized int requestAudioFocus() {
+        if (DBG) Log.d(TAG, "requestAudioFocus()");
         // Bluetooth A2DP may carry Music, Audio Books, Navigation, or other sounds so mark content
         // type unknown.
         AudioAttributes streamAttributes =
@@ -252,11 +268,59 @@ public class A2dpSinkStreamHandler extends Handler {
         return focusRequestStatus;
     }
 
+    /**
+     * Creates a MediaPlayer that plays a silent audio sample so that MediaSessionService will be
+     * aware of the fact that Bluetooth is playing audio.
+     *
+     * This allows the MediaSession in AVRCP Controller to be routed media key events, if we've
+     * chosen to use it.
+     */
+    private synchronized void requestMediaKeyFocus() {
+        if (DBG) Log.d(TAG, "requestMediaKeyFocus()");
+
+        if (mMediaPlayer != null) return;
+
+        AudioAttributes attrs = new AudioAttributes.Builder()
+                .setUsage(AudioAttributes.USAGE_MEDIA)
+                .build();
+
+        mMediaPlayer = MediaPlayer.create(mContext, R.raw.silent, attrs,
+                mAudioManager.generateAudioSessionId());
+        if (mMediaPlayer == null) {
+            Log.e(TAG, "Failed to initialize media player. You may not get media key events");
+            return;
+        }
+
+        mMediaPlayer.setLooping(false);
+        mMediaPlayer.setOnErrorListener((mp, what, extra) -> {
+            Log.e(TAG, "Silent media player error: " + what + ", " + extra);
+            releaseMediaKeyFocus();
+            return false;
+        });
+
+        mMediaPlayer.start();
+    }
 
     private synchronized void abandonAudioFocus() {
+        if (DBG) Log.d(TAG, "abandonAudioFocus()");
         stopFluorideStreaming();
+        releaseMediaKeyFocus();
         mAudioManager.abandonAudioFocus(mAudioFocusListener);
         mAudioFocus = AudioManager.AUDIOFOCUS_NONE;
+    }
+
+    /**
+     * Destroys the silent audio sample MediaPlayer, notifying MediaSessionService of the fact
+     * we're no longer playing audio.
+     */
+    private synchronized void releaseMediaKeyFocus() {
+        if (DBG) Log.d(TAG, "releaseMediaKeyFocus()");
+        if (mMediaPlayer == null) {
+            return;
+        }
+        mMediaPlayer.stop();
+        mMediaPlayer.release();
+        mMediaPlayer = null;
     }
 
     private void startFluorideStreaming() {
