@@ -195,17 +195,17 @@ class PbapClientConnectionHandler extends Handler {
                     }
                 } else {
                     Log.w(TAG, "Socket CONNECT Failure ");
-                    mPbapClientStateMachine.obtainMessage(
-                            PbapClientStateMachine.MSG_CONNECTION_FAILED).sendToTarget();
+                    mPbapClientStateMachine.sendMessage(
+                            PbapClientStateMachine.MSG_CONNECTION_FAILED);
                     return;
                 }
 
                 if (connectObexSession()) {
-                    mPbapClientStateMachine.obtainMessage(
-                            PbapClientStateMachine.MSG_CONNECTION_COMPLETE).sendToTarget();
+                    mPbapClientStateMachine.sendMessage(
+                            PbapClientStateMachine.MSG_CONNECTION_COMPLETE);
                 } else {
-                    mPbapClientStateMachine.obtainMessage(
-                            PbapClientStateMachine.MSG_CONNECTION_FAILED).sendToTarget();
+                    mPbapClientStateMachine.sendMessage(
+                            PbapClientStateMachine.MSG_CONNECTION_FAILED);
                 }
                 break;
 
@@ -235,8 +235,7 @@ class PbapClientConnectionHandler extends Handler {
                 removeAccount(mAccount);
                 removeCallLog(mAccount);
 
-                mPbapClientStateMachine.obtainMessage(PbapClientStateMachine.MSG_CONNECTION_CLOSED)
-                    .sendToTarget();
+                mPbapClientStateMachine.sendMessage(PbapClientStateMachine.MSG_CONNECTION_CLOSED);
                 break;
 
             case MSG_DOWNLOAD:
