@@ -53,7 +53,8 @@ class AvrcpPlayer {
         mId = INVALID_ID;
         //Set Default Actions in case Player data isn't available.
         mAvailableActions = PlaybackState.ACTION_PAUSE | PlaybackState.ACTION_PLAY
-            | PlaybackState.ACTION_SKIP_TO_NEXT | PlaybackState.ACTION_SKIP_TO_PREVIOUS;
+            | PlaybackState.ACTION_SKIP_TO_NEXT | PlaybackState.ACTION_SKIP_TO_PREVIOUS
+            | PlaybackState.ACTION_STOP;
     }
 
     AvrcpPlayer(int id, String name, byte[] playerFeatures, int playStatus, int playerType) {
