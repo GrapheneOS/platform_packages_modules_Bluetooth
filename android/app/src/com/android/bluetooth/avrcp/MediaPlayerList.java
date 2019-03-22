@@ -459,6 +459,7 @@ public class MediaPlayerList {
         if (playerId == mActivePlayerId && playerId != NO_ACTIVE_PLAYER) {
             getActivePlayer().unregisterCallback();
             mActivePlayerId = NO_ACTIVE_PLAYER;
+            sendMediaUpdate(new MediaData(Util.empty_data(), null, null));
         }
 
         final MediaPlayerWrapper wrapper = mMediaPlayers.get(playerId);
@@ -536,28 +537,35 @@ public class MediaPlayerList {
             new MediaSessionManager.OnActiveSessionsChangedListener() {
         @Override
         public void onActiveSessionsChanged(
-                List<android.media.session.MediaController> newControllers) {
+                List<android.media.session.MediaController> controllers) {
             synchronized (MediaPlayerList.this) {
                 Log.v(TAG, "onActiveSessionsChanged: number of controllers: "
-                        + newControllers.size());
-                if (newControllers.size() == 0) return;
+                        + controllers.size());
+                if (controllers.size() == 0) return;
 
                 // Apps are allowed to have multiple MediaControllers. If an app does have
-                // multiple controllers then newControllers contains them in highest
+                // multiple controllers then controllers contains them in highest
                 // priority order. Since we only want to keep the highest priority one,
                 // we keep track of which controllers we updated and skip over ones
                 // we've already looked at.
                 HashSet<String> addedPackages = new HashSet<String>();
 
-                for (int i = 0; i < newControllers.size(); i++) {
+                for (int i = 0; i < controllers.size(); i++) {
                     Log.d(TAG, "onActiveSessionsChanged: controller: "
-                            + newControllers.get(i).getPackageName());
-                    if (addedPackages.contains(newControllers.get(i).getPackageName())) {
+                            + controllers.get(i).getPackageName());
+                    if (addedPackages.contains(controllers.get(i).getPackageName())) {
                         continue;
                     }
 
-                    addedPackages.add(newControllers.get(i).getPackageName());
-                    addMediaPlayer(newControllers.get(i));
+                    addedPackages.add(controllers.get(i).getPackageName());
+                    addMediaPlayer(controllers.get(i));
+                }
+
+                // Remove all players that weren't added.
+                for (String packageName : mMediaPlayerIds.keySet()) {
+                    if (!addedPackages.contains(packageName)) {
+                        removeMediaPlayer(mMediaPlayerIds.get(packageName));
+                    }
                 }
             }
         }
