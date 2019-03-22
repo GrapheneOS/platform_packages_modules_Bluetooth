@@ -89,7 +89,15 @@ public class DatabaseManager {
             switch (msg.what) {
                 case MSG_LOAD_DATABASE: {
                     synchronized (mDatabase) {
-                        List<Metadata> list = mDatabase.load();
+                        List<Metadata> list;
+                        try {
+                            list = mDatabase.load();
+                        } catch (IllegalStateException e) {
+                            Log.e(TAG, "Unable to open database: " + e);
+                            mDatabase = MetadataDatabase
+                                    .createDatabaseWithoutMigration(mAdapterService);
+                            list = mDatabase.load();
+                        }
                         cacheMetadata(list);
                     }
                     break;
