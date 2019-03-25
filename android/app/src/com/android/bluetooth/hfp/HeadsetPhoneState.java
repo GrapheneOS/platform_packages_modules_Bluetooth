@@ -160,7 +160,7 @@ public class HeadsetPhoneState {
             return;
         }
         Log.i(TAG, "startListenForPhoneState(), subId=" + subId + ", enabled_events=" + events);
-        mPhoneStateListener = new HeadsetPhoneStateListener(subId,
+        mPhoneStateListener = new HeadsetPhoneStateListener(
                 mHeadsetService.getStateMachinesThreadLooper());
         mTelephonyManager.listen(mPhoneStateListener, events);
         if ((events & PhoneStateListener.LISTEN_SIGNAL_STRENGTHS) != 0) {
@@ -274,8 +274,8 @@ public class HeadsetPhoneState {
     }
 
     private class HeadsetPhoneStateListener extends PhoneStateListener {
-        HeadsetPhoneStateListener(Integer subId, Looper looper) {
-            super(subId, looper);
+        HeadsetPhoneStateListener(Looper looper) {
+            super(looper);
         }
 
         @Override
