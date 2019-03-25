@@ -34,10 +34,10 @@ import android.util.StatsLog;
 
 import com.android.bluetooth.BluetoothMetricsProto;
 import com.android.bluetooth.Utils;
-import com.android.bluetooth.avrcp.AvrcpTargetService;
 import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.MetricsLogger;
 import com.android.bluetooth.btservice.ProfileService;
+import com.android.bluetooth.btservice.ServiceFactory;
 import com.android.internal.annotations.GuardedBy;
 import com.android.internal.annotations.VisibleForTesting;
 
@@ -62,6 +62,8 @@ public class A2dpService extends ProfileService {
 
     @VisibleForTesting
     A2dpNativeInterface mA2dpNativeInterface;
+    @VisibleForTesting
+    ServiceFactory mFactory = new ServiceFactory();
     private AudioManager mAudioManager;
     private A2dpCodecConfig mA2dpCodecConfig;
 
@@ -154,11 +156,6 @@ public class A2dpService extends ProfileService {
         if (sA2dpService == null) {
             Log.w(TAG, "stop() called before start()");
             return true;
-        }
-
-        // Step 10: Store volume if there is an active device
-        if (mActiveDevice != null && AvrcpTargetService.get() != null) {
-            AvrcpTargetService.get().storeVolumeForDevice(mActiveDevice);
         }
 
         // Step 9: Clear active device and stop playing audio
@@ -436,9 +433,19 @@ public class A2dpService extends ProfileService {
         }
     }
 
+    private void storeActiveDeviceVolume() {
+        // Make sure volume has been stored before been removed from active.
+        if (mFactory.getAvrcpTargetService() != null && mActiveDevice != null) {
+            mFactory.getAvrcpTargetService().storeVolumeForDevice(mActiveDevice);
+        }
+    }
+
     private void removeActiveDevice(boolean forceStopPlayingAudio) {
         BluetoothDevice previousActiveDevice = mActiveDevice;
         synchronized (mStateMachines) {
+            // Make sure volume has been store before device been remove from active.
+            storeActiveDeviceVolume();
+
             // This needs to happen before we inform the audio manager that the device
             // disconnected. Please see comment in updateAndBroadcastActiveDevice() for why.
             updateAndBroadcastActiveDevice(null);
@@ -480,9 +487,6 @@ public class A2dpService extends ProfileService {
             Log.d(TAG, "setSilenceMode(" + device + "): " + silence);
         }
         if (silence && Objects.equals(mActiveDevice, device)) {
-            if (mActiveDevice != null && AvrcpTargetService.get() != null) {
-                AvrcpTargetService.get().storeVolumeForDevice(mActiveDevice);
-            }
             removeActiveDevice(true);
         } else if (!silence && mActiveDevice == null) {
             // Set the device as the active device if currently no active device.
@@ -503,13 +507,11 @@ public class A2dpService extends ProfileService {
         enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH ADMIN permission");
 
         synchronized (mStateMachines) {
-            if ((mActiveDevice != null) && (AvrcpTargetService.get() != null)) {
-                // Switch active device from A2DP to Hearing Aids.
-                if (DBG) {
-                    Log.d(TAG, "earlyNotifyHearingAidActive: Save volume for " + mActiveDevice);
-                }
-                AvrcpTargetService.get().storeVolumeForDevice(mActiveDevice);
+            // Switch active device from A2DP to Hearing Aids.
+            if (DBG) {
+                Log.d(TAG, "earlyNotifyHearingAidActive: Save volume for " + mActiveDevice);
             }
+            storeActiveDeviceVolume();
         }
     }
 
@@ -552,12 +554,12 @@ public class A2dpService extends ProfileService {
             codecStatus = sm.getCodecStatus();
 
             boolean deviceChanged = !Objects.equals(device, mActiveDevice);
-            if ((AvrcpTargetService.get() != null) && (mActiveDevice != null) && deviceChanged) {
+            if (deviceChanged) {
                 // Switch from one A2DP to another A2DP device
                 if (DBG) {
                     Log.d(TAG, "Switch A2DP devices to " + device + " from " + mActiveDevice);
                 }
-                AvrcpTargetService.get().storeVolumeForDevice(mActiveDevice);
+                storeActiveDeviceVolume();
             }
 
             // This needs to happen before we inform the audio manager that the device
@@ -584,8 +586,8 @@ public class A2dpService extends ProfileService {
                 }
 
                 int rememberedVolume = -1;
-                if (AvrcpTargetService.get() != null) {
-                    rememberedVolume = AvrcpTargetService.get()
+                if (mFactory.getAvrcpTargetService() != null) {
+                    rememberedVolume = mFactory.getAvrcpTargetService()
                             .getRememberedVolumeForDevice(mActiveDevice);
                 }
 
@@ -649,8 +651,8 @@ public class A2dpService extends ProfileService {
     public void setAvrcpAbsoluteVolume(int volume) {
         // TODO (apanicke): Instead of using A2DP as a middleman for volume changes, add a binder
         // service to the new AVRCP Profile and have the audio manager use that instead.
-        if (AvrcpTargetService.get() != null) {
-            AvrcpTargetService.get().sendVolumeChanged(volume);
+        if (mFactory.getAvrcpTargetService() != null) {
+            mFactory.getAvrcpTargetService().sendVolumeChanged(volume);
             return;
         }
     }
@@ -929,8 +931,8 @@ public class A2dpService extends ProfileService {
         }
 
         synchronized (mStateMachines) {
-            if (AvrcpTargetService.get() != null) {
-                AvrcpTargetService.get().volumeDeviceSwitched(device);
+            if (mFactory.getAvrcpTargetService() != null) {
+                mFactory.getAvrcpTargetService().volumeDeviceSwitched(device);
             }
 
             mActiveDevice = device;
