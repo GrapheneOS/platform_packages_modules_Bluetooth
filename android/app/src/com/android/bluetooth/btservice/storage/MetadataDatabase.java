@@ -39,7 +39,7 @@ public abstract class MetadataDatabase extends RoomDatabase {
     protected abstract MetadataDao mMetadataDao();
 
     /**
-     * Create a {@link MetadataDatabase} database
+     * Create a {@link MetadataDatabase} database with migrations
      *
      * @param context the Context to create database
      * @return the created {@link MetadataDatabase}
@@ -48,6 +48,20 @@ public abstract class MetadataDatabase extends RoomDatabase {
         return Room.databaseBuilder(context,
                 MetadataDatabase.class, DATABASE_NAME)
                 .addMigrations(MIGRATION_100_101)
+                .build();
+    }
+
+    /**
+     * Create a {@link MetadataDatabase} database without migration, database
+     * would be reset if any load failure happens
+     *
+     * @param context the Context to create database
+     * @return the created {@link MetadataDatabase}
+     */
+    public static MetadataDatabase createDatabaseWithoutMigration(Context context) {
+        return Room.databaseBuilder(context,
+                MetadataDatabase.class, DATABASE_NAME)
+                .fallbackToDestructiveMigration()
                 .build();
     }
 
