@@ -261,6 +261,10 @@ final class HearingAidStateMachine extends StateMachine {
                 case CONNECT_TIMEOUT:
                     Log.w(TAG, "Connecting connection timeout: " + mDevice);
                     mNativeInterface.disconnectHearingAid(mDevice);
+                    if (mService.isConnectedPeerDevices(mDevice)) {
+                        Log.w(TAG, "One side connection timeout: " + mDevice + ". Try whitelist");
+                        mNativeInterface.addToWhiteList(mDevice);
+                    }
                     HearingAidStackEvent disconnectEvent =
                             new HearingAidStackEvent(
                                     HearingAidStackEvent.EVENT_TYPE_CONNECTION_STATE_CHANGED);
