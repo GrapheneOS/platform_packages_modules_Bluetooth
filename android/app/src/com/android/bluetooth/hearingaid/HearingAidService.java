@@ -327,6 +327,21 @@ public class HearingAidService extends ProfileService {
     }
 
     /**
+     * Check any peer device is connected.
+     * The check considers any peer device is connected.
+     *
+     * @param device the peer device to connect to
+     * @return true if there are any peer device connected.
+     */
+    public boolean isConnectedPeerDevices(BluetoothDevice device) {
+        long hiSyncId = getHiSyncId(device);
+        if (getConnectedPeerDevices(hiSyncId).isEmpty()) {
+            return false;
+        }
+        return true;
+    }
+
+    /**
      * Check whether can connect to a peer device.
      * The check considers a number of factors during the evaluation.
      *
