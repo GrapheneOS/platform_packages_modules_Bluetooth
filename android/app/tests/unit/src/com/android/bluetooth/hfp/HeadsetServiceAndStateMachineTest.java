@@ -40,13 +40,14 @@ import android.net.Uri;
 import android.os.ParcelUuid;
 import android.os.PowerManager;
 import android.os.RemoteException;
-import android.support.test.InstrumentationRegistry;
-import android.support.test.espresso.intent.Intents;
-import android.support.test.espresso.intent.matcher.IntentMatchers;
-import android.support.test.filters.MediumTest;
-import android.support.test.rule.ServiceTestRule;
-import android.support.test.runner.AndroidJUnit4;
 import android.telecom.PhoneAccount;
+
+import androidx.test.InstrumentationRegistry;
+import androidx.test.espresso.intent.Intents;
+import androidx.test.espresso.intent.matcher.IntentMatchers;
+import androidx.test.filters.MediumTest;
+import androidx.test.rule.ServiceTestRule;
+import androidx.test.runner.AndroidJUnit4;
 
 import com.android.bluetooth.R;
 import com.android.bluetooth.TestUtils;

@@ -28,9 +28,10 @@ import android.content.Intent;
 import android.os.HandlerThread;
 import android.os.Looper;
 import android.os.UserHandle;
-import android.support.test.InstrumentationRegistry;
-import android.support.test.filters.MediumTest;
-import android.support.test.runner.AndroidJUnit4;
+
+import androidx.test.InstrumentationRegistry;
+import androidx.test.filters.MediumTest;
+import androidx.test.runner.AndroidJUnit4;
 
 import com.android.bluetooth.TestUtils;
 import com.android.bluetooth.a2dp.A2dpService;

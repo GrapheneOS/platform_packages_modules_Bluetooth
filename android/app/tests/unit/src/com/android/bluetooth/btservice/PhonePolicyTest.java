@@ -28,8 +28,9 @@ import android.content.BroadcastReceiver;
 import android.content.Intent;
 import android.os.HandlerThread;
 import android.os.ParcelUuid;
-import android.support.test.filters.MediumTest;
-import android.support.test.runner.AndroidJUnit4;
+
+import androidx.test.filters.MediumTest;
+import androidx.test.runner.AndroidJUnit4;
 
 import com.android.bluetooth.TestUtils;
 import com.android.bluetooth.a2dp.A2dpService;
