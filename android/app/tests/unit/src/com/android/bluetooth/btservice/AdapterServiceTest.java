@@ -34,12 +34,13 @@ import android.os.PowerManager;
 import android.os.Process;
 import android.os.SystemProperties;
 import android.os.UserManager;
-import android.support.test.InstrumentationRegistry;
-import android.support.test.filters.MediumTest;
-import android.support.test.runner.AndroidJUnit4;
 import android.test.mock.MockContentResolver;
 import android.util.ByteStringUtils;
 import android.util.Log;
+
+import androidx.test.InstrumentationRegistry;
+import androidx.test.filters.MediumTest;
+import androidx.test.runner.AndroidJUnit4;
 
 import com.android.bluetooth.R;
 import com.android.bluetooth.TestUtils;
@@ -85,6 +86,7 @@ public class AdapterServiceTest {
     private static final int CONTEXT_SWITCH_MS = 100;
     private static final int ONE_SECOND_MS = 1000;
     private static final int NATIVE_INIT_MS = 8000;
+    private static final int NATIVE_DISABLE_MS = 1000;
 
     private PowerManager mPowerManager;
     private PackageManager mMockPackageManager;
@@ -255,7 +257,7 @@ public class AdapterServiceTest {
         mAdapterService.onProfileServiceStateChanged(mMockGattService, BluetoothAdapter.STATE_OFF);
 
         verifyStateChange(BluetoothAdapter.STATE_BLE_TURNING_OFF, BluetoothAdapter.STATE_OFF,
-                invocationNumber + 1, CONTEXT_SWITCH_MS);
+                invocationNumber + 1, NATIVE_DISABLE_MS);
 
         Assert.assertFalse(mAdapterService.isEnabled());
     }
@@ -331,7 +333,7 @@ public class AdapterServiceTest {
                 .times(2)).startService(any());
 
         verifyStateChange(BluetoothAdapter.STATE_BLE_TURNING_OFF, BluetoothAdapter.STATE_OFF, 1,
-                CONTEXT_SWITCH_MS);
+                NATIVE_DISABLE_MS);
 
         Assert.assertFalse(mAdapterService.isEnabled());
     }
@@ -367,7 +369,7 @@ public class AdapterServiceTest {
         verify(mMockContext, timeout(ONE_SECOND_MS).times(6)).startService(any());
 
         verifyStateChange(BluetoothAdapter.STATE_BLE_TURNING_OFF, BluetoothAdapter.STATE_OFF, 1,
-                AdapterState.BLE_STOP_TIMEOUT_DELAY + CONTEXT_SWITCH_MS);
+                AdapterState.BLE_STOP_TIMEOUT_DELAY + NATIVE_DISABLE_MS);
 
         Assert.assertFalse(mAdapterService.isEnabled());
     }
@@ -443,7 +445,7 @@ public class AdapterServiceTest {
         mAdapterService.onProfileServiceStateChanged(mMockGattService, BluetoothAdapter.STATE_OFF);
 
         verifyStateChange(BluetoothAdapter.STATE_BLE_TURNING_OFF, BluetoothAdapter.STATE_OFF, 1,
-                AdapterState.BLE_STOP_TIMEOUT_DELAY + CONTEXT_SWITCH_MS);
+                AdapterState.BLE_STOP_TIMEOUT_DELAY + NATIVE_DISABLE_MS);
 
         Assert.assertFalse(mAdapterService.isEnabled());
     }
@@ -490,7 +492,7 @@ public class AdapterServiceTest {
         mAdapterService.onProfileServiceStateChanged(mMockGattService, BluetoothAdapter.STATE_OFF);
 
         verifyStateChange(BluetoothAdapter.STATE_BLE_TURNING_OFF, BluetoothAdapter.STATE_OFF, 1,
-                CONTEXT_SWITCH_MS);
+                NATIVE_DISABLE_MS);
 
         Assert.assertFalse(mAdapterService.isEnabled());
 

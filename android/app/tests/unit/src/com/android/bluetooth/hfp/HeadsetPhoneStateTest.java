@@ -24,11 +24,12 @@ import android.content.Context;
 import android.os.HandlerThread;
 import android.os.IBinder;
 import android.os.ServiceManager;
-import android.support.test.filters.MediumTest;
-import android.support.test.runner.AndroidJUnit4;
 import android.telephony.PhoneStateListener;
 import android.telephony.SubscriptionManager;
 import android.telephony.TelephonyManager;
+
+import androidx.test.filters.MediumTest;
+import androidx.test.runner.AndroidJUnit4;
 
 import com.android.bluetooth.TestUtils;
 import com.android.internal.telephony.ISub;
