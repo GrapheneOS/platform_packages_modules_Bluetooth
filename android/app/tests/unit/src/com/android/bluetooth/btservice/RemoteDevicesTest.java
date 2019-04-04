@@ -11,9 +11,10 @@ import android.content.Intent;
 import android.os.HandlerThread;
 import android.os.Message;
 import android.os.TestLooperManager;
-import android.support.test.InstrumentationRegistry;
-import android.support.test.filters.MediumTest;
-import android.support.test.runner.AndroidJUnit4;
+
+import androidx.test.InstrumentationRegistry;
+import androidx.test.filters.MediumTest;
+import androidx.test.runner.AndroidJUnit4;
 
 import com.android.bluetooth.Utils;
 import com.android.bluetooth.hfp.HeadsetHalConstants;
@@ -274,7 +275,7 @@ public class RemoteDevicesTest {
         // Verify ACTION_ACL_DISCONNECTED and BATTERY_LEVEL_CHANGED intent are sent
         verify(mAdapterService, times(3)).sendBroadcast(mIntentArgument.capture(),
                 mStringArgument.capture());
-        verify(mAdapterService).obfuscateAddress(mDevice1);
+        verify(mAdapterService, times(2)).obfuscateAddress(mDevice1);
         verifyBatteryLevelChangedIntent(mDevice1, BluetoothDevice.BATTERY_LEVEL_UNKNOWN,
                 mIntentArgument.getAllValues().get(mIntentArgument.getAllValues().size() - 2));
         Assert.assertEquals(AdapterService.BLUETOOTH_PERM,

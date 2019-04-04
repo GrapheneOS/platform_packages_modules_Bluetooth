@@ -28,9 +28,10 @@ import android.content.Intent;
 import android.os.HandlerThread;
 import android.os.Looper;
 import android.os.UserHandle;
-import android.support.test.InstrumentationRegistry;
-import android.support.test.filters.MediumTest;
-import android.support.test.runner.AndroidJUnit4;
+
+import androidx.test.InstrumentationRegistry;
+import androidx.test.filters.MediumTest;
+import androidx.test.runner.AndroidJUnit4;
 
 import com.android.bluetooth.TestUtils;
 import com.android.bluetooth.a2dp.A2dpService;
@@ -130,7 +131,7 @@ public class SilenceDeviceManagerTest {
             verify(mAdapterService, times(++mVerifyCount)).sendBroadcastAsUser(
                     intentArgument.capture(), eq(UserHandle.ALL),
                     eq(AdapterService.BLUETOOTH_PERM));
-            verifySilenceStateIntent(enableSilence, intentArgument.getValue());
+            verifySilenceStateIntent(intentArgument.getValue());
         }
 
         // Remove test devices
@@ -160,11 +161,9 @@ public class SilenceDeviceManagerTest {
                 eq(AdapterService.BLUETOOTH_PERM));
     }
 
-    void verifySilenceStateIntent(boolean expectedState, Intent intent) {
+    void verifySilenceStateIntent(Intent intent) {
         Assert.assertEquals(BluetoothDevice.ACTION_SILENCE_MODE_CHANGED, intent.getAction());
         Assert.assertEquals(mTestDevice, intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE));
-        Assert.assertEquals(expectedState,
-                intent.getBooleanExtra(BluetoothDevice.EXTRA_SILENCE_ENABLED, false));
     }
 
     /**
