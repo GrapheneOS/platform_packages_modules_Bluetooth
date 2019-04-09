@@ -16,7 +16,9 @@
 
 package com.android.bluetooth.avrcpcontroller;
 
+import android.media.MediaMetadata;
 import android.media.session.PlaybackState;
+import android.os.SystemClock;
 import android.util.Log;
 
 import java.util.Arrays;
@@ -26,8 +28,7 @@ import java.util.Arrays;
  */
 class AvrcpPlayer {
     private static final String TAG = "AvrcpPlayer";
-    private static final boolean DBG = false;
-    private static final boolean VDBG = false;
+    private static final boolean DBG = Log.isLoggable(TAG, Log.DEBUG);
 
     public static final int INVALID_ID = -1;
 
@@ -42,19 +43,25 @@ class AvrcpPlayer {
 
     private int mPlayStatus = PlaybackState.STATE_NONE;
     private long mPlayTime = PlaybackState.PLAYBACK_POSITION_UNKNOWN;
+    private long mPlayTimeUpdate = 0;
+    private float mPlaySpeed = 1;
     private int mId;
     private String mName = "";
     private int mPlayerType;
     private byte[] mPlayerFeatures;
     private long mAvailableActions;
-    private TrackInfo mCurrentTrack = new TrackInfo();
+    private MediaMetadata mCurrentTrack;
+    private PlaybackState mPlaybackState;
 
     AvrcpPlayer() {
         mId = INVALID_ID;
         //Set Default Actions in case Player data isn't available.
         mAvailableActions = PlaybackState.ACTION_PAUSE | PlaybackState.ACTION_PLAY
-            | PlaybackState.ACTION_SKIP_TO_NEXT | PlaybackState.ACTION_SKIP_TO_PREVIOUS
-            | PlaybackState.ACTION_STOP;
+                | PlaybackState.ACTION_SKIP_TO_NEXT | PlaybackState.ACTION_SKIP_TO_PREVIOUS
+                | PlaybackState.ACTION_STOP;
+        PlaybackState.Builder playbackStateBuilder = new PlaybackState.Builder()
+                .setActions(mAvailableActions);
+        mPlaybackState = playbackStateBuilder.build();
     }
 
     AvrcpPlayer(int id, String name, byte[] playerFeatures, int playStatus, int playerType) {
@@ -64,6 +71,9 @@ class AvrcpPlayer {
         mPlayerType = playerType;
         mPlayerFeatures = Arrays.copyOf(playerFeatures, playerFeatures.length);
         updateAvailableActions();
+        PlaybackState.Builder playbackStateBuilder = new PlaybackState.Builder()
+                .setActions(mAvailableActions);
+        mPlaybackState = playbackStateBuilder.build();
     }
 
     public int getId() {
@@ -76,6 +86,9 @@ class AvrcpPlayer {
 
     public void setPlayTime(int playTime) {
         mPlayTime = playTime;
+        mPlayTimeUpdate = SystemClock.elapsedRealtime();
+        mPlaybackState = new PlaybackState.Builder(mPlaybackState).setState(mPlayStatus, mPlayTime,
+                mPlaySpeed).build();
     }
 
     public long getPlayTime() {
@@ -83,7 +96,29 @@ class AvrcpPlayer {
     }
 
     public void setPlayStatus(int playStatus) {
+        mPlayTime += mPlaySpeed * (SystemClock.elapsedRealtime()
+                - mPlaybackState.getLastPositionUpdateTime());
         mPlayStatus = playStatus;
+        switch (mPlayStatus) {
+            case PlaybackState.STATE_STOPPED:
+                mPlaySpeed = 0;
+                break;
+            case PlaybackState.STATE_PLAYING:
+                mPlaySpeed = 1;
+                break;
+            case PlaybackState.STATE_PAUSED:
+                mPlaySpeed = 0;
+                break;
+            case PlaybackState.STATE_FAST_FORWARDING:
+                mPlaySpeed = 3;
+                break;
+            case PlaybackState.STATE_REWINDING:
+                mPlaySpeed = -3;
+                break;
+        }
+
+        mPlaybackState = new PlaybackState.Builder(mPlaybackState).setState(mPlayStatus, mPlayTime,
+                mPlaySpeed).build();
     }
 
     public int getPlayStatus() {
@@ -100,41 +135,19 @@ class AvrcpPlayer {
         if (DBG) {
             Log.d(TAG, "getPlayBackState state " + mPlayStatus + " time " + mPlayTime);
         }
-
-        long position = mPlayTime;
-        float speed = 1;
-        switch (mPlayStatus) {
-            case PlaybackState.STATE_STOPPED:
-                position = 0;
-                speed = 0;
-                break;
-            case PlaybackState.STATE_PAUSED:
-                speed = 0;
-                break;
-            case PlaybackState.STATE_FAST_FORWARDING:
-                speed = 3;
-                break;
-            case PlaybackState.STATE_REWINDING:
-                speed = -3;
-                break;
-        }
-        return new PlaybackState.Builder().setState(mPlayStatus, position, speed)
-            .setActions(mAvailableActions).setActiveQueueItemId(mCurrentTrack.mTrackNum - 1)
-            .build();
+        return mPlaybackState;
     }
 
-    public synchronized boolean updateCurrentTrack(TrackInfo update) {
-        if (update != null && mCurrentTrack != null
-                && update.toString().equals(mCurrentTrack.toString())) {
-            if (DBG) Log.d(TAG, "Update same as original");
-            return false;
+    public synchronized void updateCurrentTrack(MediaMetadata update) {
+        if (update != null) {
+            long trackNumber = update.getLong(MediaMetadata.METADATA_KEY_TRACK_NUMBER);
+            mPlaybackState = new PlaybackState.Builder(mPlaybackState).setActiveQueueItemId(
+                    trackNumber - 1).build();
         }
-        if (VDBG) Log.d(TAG, "Track Changed Was:" + mCurrentTrack + "now " + update);
         mCurrentTrack = update;
-        return true;
     }
 
-    public synchronized TrackInfo getCurrentTrack() {
+    public synchronized MediaMetadata getCurrentTrack() {
         return mCurrentTrack;
     }
 
