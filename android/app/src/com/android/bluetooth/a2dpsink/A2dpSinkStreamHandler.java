@@ -23,12 +23,13 @@ import android.media.AudioAttributes;
 import android.media.AudioFocusRequest;
 import android.media.AudioManager;
 import android.media.AudioManager.OnAudioFocusChangeListener;
+import android.media.MediaPlayer;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
 
 import com.android.bluetooth.R;
-import com.android.bluetooth.avrcpcontroller.AvrcpControllerService;
+import com.android.bluetooth.avrcpcontroller.BluetoothMediaBrowserService;
 import com.android.bluetooth.hfpclient.HeadsetClientService;
 
 import java.util.List;
@@ -52,8 +53,8 @@ import java.util.List;
  * restored.
  */
 public class A2dpSinkStreamHandler extends Handler {
-    private static final boolean DBG = false;
     private static final String TAG = "A2dpSinkStreamHandler";
+    private static final boolean DBG = Log.isLoggable(TAG, Log.DEBUG);
 
     // Configuration Variables
     private static final int DEFAULT_DUCK_PERCENT = 25;
@@ -77,7 +78,7 @@ public class A2dpSinkStreamHandler extends Handler {
     private static final int STATE_FOCUS_GRANTED = 1;
 
     // Private variables.
-    private A2dpSinkStateMachine mA2dpSinkSm;
+    private A2dpSinkService mA2dpSinkService;
     private Context mContext;
     private AudioManager mAudioManager;
     // Keep track if the remote device is providing audio
@@ -85,6 +86,16 @@ public class A2dpSinkStreamHandler extends Handler {
     private boolean mSentPause = false;
     // Keep track of the relevant audio focus (None, Transient, Gain)
     private int mAudioFocus = AudioManager.AUDIOFOCUS_NONE;
+
+    // In order for Bluetooth to be considered as an audio source capable of receiving media key
+    // events (In the eyes of MediaSessionService), we need an active MediaPlayer in addition to a
+    // MediaSession. Because of this, the media player below plays an incredibly short, silent audio
+    // sample so that MediaSessionService and AudioPlaybackStateMonitor will believe that we're the
+    // current active player and send the Bluetooth process media events. This allows AVRCP
+    // controller to create a MediaSession and handle the events if it would like. The player and
+    // session requirement is a restriction currently imposed by the media framework code and could
+    // be reconsidered in the future.
+    private MediaPlayer mMediaPlayer = null;
 
     // Focus changes when we are currently holding focus.
     private OnAudioFocusChangeListener mAudioFocusListener = new OnAudioFocusChangeListener() {
@@ -98,10 +109,24 @@ public class A2dpSinkStreamHandler extends Handler {
         }
     };
 
-    public A2dpSinkStreamHandler(A2dpSinkStateMachine a2dpSinkSm, Context context) {
-        mA2dpSinkSm = a2dpSinkSm;
+    public A2dpSinkStreamHandler(A2dpSinkService a2dpSinkService, Context context) {
+        mA2dpSinkService = a2dpSinkService;
         mContext = context;
         mAudioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
+    }
+
+    void requestAudioFocus(boolean request) {
+        obtainMessage(REQUEST_FOCUS, request).sendToTarget();
+    }
+
+    int getFocusState() {
+        return mAudioFocus;
+    }
+
+    boolean isPlaying() {
+        return (mStreamAvailable
+                && (mAudioFocus == AudioManager.AUDIOFOCUS_GAIN
+                || mAudioFocus == AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK));
     }
 
     @Override
@@ -112,12 +137,9 @@ public class A2dpSinkStreamHandler extends Handler {
         }
         switch (message.what) {
             case SRC_STR_START:
+                mStreamAvailable = true;
                 if (isTvDevice() || shouldRequestFocus()) {
                     requestAudioFocusIfNone();
-                }
-                // Audio stream has started, stop it if we don't have focus.
-                if (mAudioFocus == AudioManager.AUDIOFOCUS_NONE) {
-                    sendAvrcpPause();
                 }
                 break;
 
@@ -141,10 +163,6 @@ public class A2dpSinkStreamHandler extends Handler {
                 if (isIotDevice() || isTvDevice() || shouldRequestFocus()) {
                     requestAudioFocusIfNone();
                     break;
-                }
-                // Otherwise, pause if we don't have focus
-                if (mAudioFocus == AudioManager.AUDIOFOCUS_NONE) {
-                    sendAvrcpPause();
                 }
                 break;
 
@@ -223,12 +241,17 @@ public class A2dpSinkStreamHandler extends Handler {
      * Utility functions.
      */
     private void requestAudioFocusIfNone() {
+        if (DBG) Log.d(TAG, "requestAudioFocusIfNone()");
         if (mAudioFocus == AudioManager.AUDIOFOCUS_NONE) {
             requestAudioFocus();
         }
+        // On the off change mMediaPlayer errors out and dies, we want to make sure we retry this.
+        // This function immediately exits if we have a MediaPlayer object.
+        requestMediaKeyFocus();
     }
 
     private synchronized int requestAudioFocus() {
+        if (DBG) Log.d(TAG, "requestAudioFocus()");
         // Bluetooth A2DP may carry Music, Audio Books, Navigation, or other sounds so mark content
         // type unknown.
         AudioAttributes streamAttributes =
@@ -252,89 +275,92 @@ public class A2dpSinkStreamHandler extends Handler {
         return focusRequestStatus;
     }
 
+    /**
+     * Creates a MediaPlayer that plays a silent audio sample so that MediaSessionService will be
+     * aware of the fact that Bluetooth is playing audio.
+     *
+     * This allows the MediaSession in AVRCP Controller to be routed media key events, if we've
+     * chosen to use it.
+     */
+    private synchronized void requestMediaKeyFocus() {
+        if (DBG) Log.d(TAG, "requestMediaKeyFocus()");
+
+        if (mMediaPlayer != null) return;
+
+        AudioAttributes attrs = new AudioAttributes.Builder()
+                .setUsage(AudioAttributes.USAGE_MEDIA)
+                .build();
+
+        mMediaPlayer = MediaPlayer.create(mContext, R.raw.silent, attrs,
+                mAudioManager.generateAudioSessionId());
+        if (mMediaPlayer == null) {
+            Log.e(TAG, "Failed to initialize media player. You may not get media key events");
+            return;
+        }
+
+        mMediaPlayer.setLooping(false);
+        mMediaPlayer.setOnErrorListener((mp, what, extra) -> {
+            Log.e(TAG, "Silent media player error: " + what + ", " + extra);
+            releaseMediaKeyFocus();
+            return false;
+        });
+
+        mMediaPlayer.start();
+        BluetoothMediaBrowserService.setActive(true);
+    }
 
     private synchronized void abandonAudioFocus() {
+        if (DBG) Log.d(TAG, "abandonAudioFocus()");
         stopFluorideStreaming();
+        releaseMediaKeyFocus();
         mAudioManager.abandonAudioFocus(mAudioFocusListener);
         mAudioFocus = AudioManager.AUDIOFOCUS_NONE;
     }
 
+    /**
+     * Destroys the silent audio sample MediaPlayer, notifying MediaSessionService of the fact
+     * we're no longer playing audio.
+     */
+    private synchronized void releaseMediaKeyFocus() {
+        if (DBG) Log.d(TAG, "releaseMediaKeyFocus()");
+        if (mMediaPlayer == null) {
+            return;
+        }
+        BluetoothMediaBrowserService.setActive(false);
+        mMediaPlayer.stop();
+        mMediaPlayer.release();
+        mMediaPlayer = null;
+    }
+
     private void startFluorideStreaming() {
-        mA2dpSinkSm.informAudioFocusStateNative(STATE_FOCUS_GRANTED);
-        mA2dpSinkSm.informAudioTrackGainNative(1.0f);
+        mA2dpSinkService.informAudioFocusStateNative(STATE_FOCUS_GRANTED);
+        mA2dpSinkService.informAudioTrackGainNative(1.0f);
     }
 
     private void stopFluorideStreaming() {
-        mA2dpSinkSm.informAudioFocusStateNative(STATE_FOCUS_LOST);
+        mA2dpSinkService.informAudioFocusStateNative(STATE_FOCUS_LOST);
     }
 
     private void setFluorideAudioTrackGain(float gain) {
-        mA2dpSinkSm.informAudioTrackGainNative(gain);
+        mA2dpSinkService.informAudioTrackGainNative(gain);
     }
 
     private void sendAvrcpPause() {
-        // Since AVRCP gets started after A2DP we may need to request it later in cycle.
-        AvrcpControllerService avrcpService = AvrcpControllerService.getAvrcpControllerService();
-
-        if (DBG) {
-            Log.d(TAG, "sendAvrcpPause");
-        }
-        if (avrcpService != null) {
-            List<BluetoothDevice> connectedDevices = avrcpService.getConnectedDevices();
-            if (!connectedDevices.isEmpty()) {
-                BluetoothDevice targetDevice = connectedDevices.get(0);
-                if (DBG) {
-                    Log.d(TAG, "Pausing AVRCP.");
-                }
-                avrcpService.sendPassThroughCmd(targetDevice,
-                        AvrcpControllerService.PASS_THRU_CMD_ID_PAUSE,
-                        AvrcpControllerService.KEY_STATE_PRESSED);
-                avrcpService.sendPassThroughCmd(targetDevice,
-                        AvrcpControllerService.PASS_THRU_CMD_ID_PAUSE,
-                        AvrcpControllerService.KEY_STATE_RELEASED);
-            }
-        } else {
-            Log.e(TAG, "Passthrough not sent, connection un-available.");
-        }
+        BluetoothMediaBrowserService.pause();
     }
 
     private void sendAvrcpPlay() {
-        // Since AVRCP gets started after A2DP we may need to request it later in cycle.
-        AvrcpControllerService avrcpService = AvrcpControllerService.getAvrcpControllerService();
-
-        if (DBG) {
-            Log.d(TAG, "sendAvrcpPlay");
-        }
-        if (avrcpService != null) {
-            List<BluetoothDevice> connectedDevices = avrcpService.getConnectedDevices();
-            if (!connectedDevices.isEmpty()) {
-                BluetoothDevice targetDevice = connectedDevices.get(0);
-                if (DBG) {
-                    Log.d(TAG, "Playing AVRCP.");
-                }
-                avrcpService.sendPassThroughCmd(targetDevice,
-                        AvrcpControllerService.PASS_THRU_CMD_ID_PLAY,
-                        AvrcpControllerService.KEY_STATE_PRESSED);
-                avrcpService.sendPassThroughCmd(targetDevice,
-                        AvrcpControllerService.PASS_THRU_CMD_ID_PLAY,
-                        AvrcpControllerService.KEY_STATE_RELEASED);
-            }
-        } else {
-            Log.e(TAG, "Passthrough not sent, connection un-available.");
-        }
+        BluetoothMediaBrowserService.play();
     }
 
     private boolean inCallFromStreamingDevice() {
-        AvrcpControllerService avrcpService = AvrcpControllerService.getAvrcpControllerService();
         BluetoothDevice targetDevice = null;
-        if (avrcpService != null) {
-            List<BluetoothDevice> connectedDevices = avrcpService.getConnectedDevices();
-            if (!connectedDevices.isEmpty()) {
-                targetDevice = connectedDevices.get(0);
-            }
+        List<BluetoothDevice> connectedDevices = mA2dpSinkService.getConnectedDevices();
+        if (!connectedDevices.isEmpty()) {
+            targetDevice = connectedDevices.get(0);
         }
         HeadsetClientService headsetClientService = HeadsetClientService.getHeadsetClientService();
-        if (targetDevice != null  && headsetClientService != null) {
+        if (targetDevice != null && headsetClientService != null) {
             return headsetClientService.getCurrentCalls(targetDevice).size() > 0;
         }
         return false;
@@ -354,7 +380,7 @@ public class A2dpSinkStreamHandler extends Handler {
 
     private boolean shouldRequestFocus() {
         return mContext.getResources()
-            .getBoolean(R.bool.a2dp_sink_automatically_request_audio_focus);
+                .getBoolean(R.bool.a2dp_sink_automatically_request_audio_focus);
     }
 
 }
