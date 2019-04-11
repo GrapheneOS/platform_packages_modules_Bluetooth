@@ -40,7 +40,7 @@ import java.util.Objects;
  */
 class MediaPlayerWrapper {
     private static final String TAG = "AvrcpMediaPlayerWrapper";
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = false;
     static boolean sTesting = false;
 
     private MediaController mMediaController;
@@ -378,7 +378,10 @@ class MediaPlayerWrapper {
                 return;
             }
 
-            Log.v(TAG, "onMetadataChanged(): " + mPackageName + " : " + Util.toMetadata(metadata));
+            if (DEBUG) {
+                Log.v(TAG, "onMetadataChanged(): " + mPackageName + " : "
+                    + Util.toMetadata(metadata));
+            }
 
             if (!Objects.equals(metadata, getMetadata())) {
                 e("The callback metadata doesn't match controller metadata");
