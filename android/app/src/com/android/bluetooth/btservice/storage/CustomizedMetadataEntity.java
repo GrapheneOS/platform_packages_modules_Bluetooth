@@ -20,21 +20,21 @@ import androidx.room.Entity;
 
 @Entity
 class CustomizedMetadataEntity {
-    public String manufacturer_name;
-    public String model_name;
-    public String software_version;
-    public String hardware_version;
-    public String companion_app;
-    public String main_icon;
-    public String is_unthethered_headset;
-    public String unthethered_left_icon;
-    public String unthethered_right_icon;
-    public String unthethered_case_icon;
-    public String unthethered_left_battery;
-    public String unthethered_right_battery;
-    public String unthethered_case_battery;
-    public String unthethered_left_charging;
-    public String unthethered_right_charging;
-    public String unthethered_case_charging;
-    public String enhanced_settings_ui_uri;
+    public byte[] manufacturer_name;
+    public byte[] model_name;
+    public byte[] software_version;
+    public byte[] hardware_version;
+    public byte[] companion_app;
+    public byte[] main_icon;
+    public byte[] is_untethered_headset;
+    public byte[] untethered_left_icon;
+    public byte[] untethered_right_icon;
+    public byte[] untethered_case_icon;
+    public byte[] untethered_left_battery;
+    public byte[] untethered_right_battery;
+    public byte[] untethered_case_battery;
+    public byte[] untethered_left_charging;
+    public byte[] untethered_right_charging;
+    public byte[] untethered_case_charging;
+    public byte[] enhanced_settings_ui_uri;
 }
