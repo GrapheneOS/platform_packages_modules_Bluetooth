@@ -258,12 +258,10 @@ public class A2dpSinkStreamHandler extends Handler {
                 new AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_MEDIA)
                         .setContentType(AudioAttributes.CONTENT_TYPE_UNKNOWN)
                         .build();
-        // Bluetooth ducking is handled at the native layer so tell the Audio Manger to notify the
-        // focus change listener via .setWillPauseWhenDucked().
+        // Bluetooth ducking is handled at the native layer at the request of AudioManager.
         AudioFocusRequest focusRequest =
                 new AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN).setAudioAttributes(
                         streamAttributes)
-                        .setWillPauseWhenDucked(true)
                         .setOnAudioFocusChangeListener(mAudioFocusListener, this)
                         .build();
         int focusRequestStatus = mAudioManager.requestAudioFocus(focusRequest);
