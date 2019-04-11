@@ -29,6 +29,7 @@ import android.support.test.runner.AndroidJUnit4;
 import com.android.bluetooth.R;
 import com.android.bluetooth.TestUtils;
 import com.android.bluetooth.btservice.AdapterService;
+import com.android.bluetooth.btservice.storage.DatabaseManager;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -51,6 +52,7 @@ public class HidHostServiceTest {
     @Rule public final ServiceTestRule mServiceRule = new ServiceTestRule();
 
     @Mock private AdapterService mAdapterService;
+    @Mock private DatabaseManager mDatabaseManager;
 
     @Before
     public void setUp() throws Exception {
@@ -143,13 +145,15 @@ public class HidHostServiceTest {
      *
      * @param device test device
      * @param bondState bond state value, could be invalid
-     * @param priority value, could be invalid, coudl be invalid
+     * @param priority value, could be invalid, could be invalid
      * @param expected expected result from okToConnect()
      */
     private void testOkToConnectCase(BluetoothDevice device, int bondState, int priority,
             boolean expected) {
         doReturn(bondState).when(mAdapterService).getBondState(device);
-        Assert.assertTrue(mService.setPriority(device, priority));
+        when(mAdapterService.getDatabase()).thenReturn(mDatabaseManager);
+        when(mDatabaseManager.getProfilePriority(device, BluetoothProfile.HID_HOST))
+                .thenReturn(priority);
 
         // Test when the AdapterService is in non-quiet mode.
         doReturn(false).when(mAdapterService).isQuietModeEnabled();
