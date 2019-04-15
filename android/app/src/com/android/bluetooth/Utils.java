@@ -39,6 +39,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.nio.charset.Charset;
+import java.nio.charset.CharsetDecoder;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -108,6 +110,24 @@ public final class Utils {
             sb.append(String.format("%02x", valueBuf[idx]));
         }
         return sb.toString();
+    }
+
+    /**
+     * A parser to transfer a byte array to a UTF8 string
+     *
+     * @param valueBuf the byte array to transfer
+     * @return the transferred UTF8 string
+     */
+    public static String byteArrayToUtf8String(byte[] valueBuf) {
+        CharsetDecoder decoder = Charset.forName("UTF8").newDecoder();
+        ByteBuffer byteBuffer = ByteBuffer.wrap(valueBuf);
+        String valueStr = "";
+        try {
+            valueStr = decoder.decode(byteBuffer).toString();
+        } catch (Exception ex) {
+            Log.e(TAG, "Error when parsing byte array to UTF8 String. " + ex);
+        }
+        return valueStr;
     }
 
     public static byte[] intToByteArray(int value) {
