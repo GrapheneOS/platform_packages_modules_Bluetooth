@@ -34,12 +34,13 @@ import android.os.PowerManager;
 import android.os.Process;
 import android.os.SystemProperties;
 import android.os.UserManager;
-import android.support.test.InstrumentationRegistry;
-import android.support.test.filters.MediumTest;
-import android.support.test.runner.AndroidJUnit4;
 import android.test.mock.MockContentResolver;
 import android.util.ByteStringUtils;
 import android.util.Log;
+
+import androidx.test.InstrumentationRegistry;
+import androidx.test.filters.MediumTest;
+import androidx.test.runner.AndroidJUnit4;
 
 import com.android.bluetooth.R;
 import com.android.bluetooth.TestUtils;

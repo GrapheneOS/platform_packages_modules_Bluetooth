@@ -61,7 +61,7 @@
     the package of com.android.bluetooth.  To run the tests use the command:
     "adb shell am instrument -w com.android.bluetooth.tests/android.test.InstrumentationTestRunner"
     -->
-    <instrumentation android:name="android.support.test.runner.AndroidJUnitRunner"
+    <instrumentation android:name="androidx.test.runner.AndroidJUnitRunner"
                      android:targetPackage="com.android.bluetooth"
                      android:label="Tests for com.android.bluetooth"/>
 </manifest>
