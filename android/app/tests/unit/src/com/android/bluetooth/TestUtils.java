@@ -23,8 +23,9 @@ import android.bluetooth.BluetoothDevice;
 import android.content.Intent;
 import android.os.Handler;
 import android.os.Looper;
-import android.support.test.InstrumentationRegistry;
-import android.support.test.rule.ServiceTestRule;
+
+import androidx.test.InstrumentationRegistry;
+import androidx.test.rule.ServiceTestRule;
 
 import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.ProfileService;

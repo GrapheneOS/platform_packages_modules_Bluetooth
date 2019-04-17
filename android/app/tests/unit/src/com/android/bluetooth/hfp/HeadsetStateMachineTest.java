@@ -31,12 +31,13 @@ import android.net.Uri;
 import android.os.HandlerThread;
 import android.os.UserHandle;
 import android.provider.CallLog;
-import android.support.test.InstrumentationRegistry;
-import android.support.test.filters.MediumTest;
-import android.support.test.runner.AndroidJUnit4;
 import android.telephony.PhoneStateListener;
 import android.test.mock.MockContentProvider;
 import android.test.mock.MockContentResolver;
+
+import androidx.test.InstrumentationRegistry;
+import androidx.test.filters.MediumTest;
+import androidx.test.runner.AndroidJUnit4;
 
 import com.android.bluetooth.R;
 import com.android.bluetooth.TestUtils;
