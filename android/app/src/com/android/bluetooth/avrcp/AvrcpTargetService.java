@@ -231,13 +231,22 @@ public class AvrcpTargetService extends ProfileService {
     }
 
     /**
+     * Remove the stored volume for a device.
+     */
+    public void removeStoredVolumeForDevice(BluetoothDevice device) {
+        if (device == null) return;
+
+        mVolumeManager.removeStoredVolumeForDevice(device);
+    }
+
+    /**
      * Retrieve the remembered volume for a device. Returns -1 if there is no volume for the
      * device.
      */
     public int getRememberedVolumeForDevice(BluetoothDevice device) {
         if (device == null) return -1;
 
-        return mVolumeManager.getVolume(device, -1);
+        return mVolumeManager.getVolume(device, mVolumeManager.getNewDeviceVolume());
     }
 
     // TODO (apanicke): Add checks to blacklist Absolute Volume devices if they behave poorly.
