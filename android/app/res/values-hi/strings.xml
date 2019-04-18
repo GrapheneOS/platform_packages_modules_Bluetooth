@@ -69,7 +69,7 @@
     <string name="upload_succ_ok" msgid="7705428476405478828">"ठीक है"</string>
     <string name="upload_fail_line1" msgid="7899394672421491701">"फ़ाइल \"<xliff:g id="RECIPIENT">%1$s</xliff:g>\" को नहीं भेजी गई थी."</string>
     <string name="upload_fail_line1_2" msgid="2108129204050841798">"फ़ाइल: <xliff:g id="FILE">%1$s</xliff:g>"</string>
-    <string name="upload_fail_ok" msgid="5807702461606714296">"पुन: प्रयास करें"</string>
+    <string name="upload_fail_ok" msgid="5807702461606714296">"फिर से प्रयास करें"</string>
     <string name="upload_fail_cancel" msgid="9118496285835687125">"बंद करें"</string>
     <string name="bt_error_btn_ok" msgid="5965151173011534240">"ठीक है"</string>
     <string name="unknown_file" msgid="6092727753965095366">"अज्ञात फ़ाइल"</string>
@@ -87,7 +87,7 @@
     <string name="bt_sm_2_1_nosdcard" msgid="1791835163301501637">"\"<xliff:g id="SENDER">%1$s</xliff:g>\" की फ़ाइल सेव करने के लिए USB मेमोरी में ज़रुरत के मुताबिक जगह नहीं है"</string>
     <string name="bt_sm_2_1_default" msgid="9115512207909504071">"\"<xliff:g id="SENDER">%1$s</xliff:g>\" की फ़ाइल सेव करने के लिए SD कार्ड पर ज़रुरत के मुताबिक जगह नहीं है"</string>
     <string name="bt_sm_2_2" msgid="2965243265852680543">"जगह चाहिए: <xliff:g id="SIZE">%1$s</xliff:g>"</string>
-    <string name="ErrorTooManyRequests" msgid="8578277541472944529">"बहुत सारे अनुरोधों पर कार्रवाई चल रही है. बाद में पुन: प्रयास करें."</string>
+    <string name="ErrorTooManyRequests" msgid="8578277541472944529">"बहुत सारे अनुरोधों पर कार्रवाई चल रही है. बाद में फिर से प्रयास करें."</string>
     <string name="status_pending" msgid="2503691772030877944">"फ़ाइल स्थानांतरण अभी तक प्रारंभ नहीं हुआ."</string>
     <string name="status_running" msgid="6562808920311008696">"फ़ाइल स्थानांतरण जारी है."</string>
     <string name="status_success" msgid="239573225847565868">"फ़ाइल स्थानांतरण सफलतापूर्वक पूरा हुआ."</string>
@@ -125,7 +125,7 @@
     <string name="bluetooth_a2dp_sink_queue_name" msgid="6864149958708669766">"अभी चल रहा है"</string>
     <string name="bluetooth_map_settings_save" msgid="7635491847388074606">"सेव करें"</string>
     <string name="bluetooth_map_settings_cancel" msgid="9205350798049865699">"रद्द करें"</string>
-    <string name="bluetooth_map_settings_intro" msgid="6482369468223987562">"वे खाते चुनें जिन्हें आप ब्लूटूथ के ज़रिये शेयर करना चाहते हैं. आपको अभी भी कनेक्ट करते समय खातों के किसी भी एक्सेस को स्वीकार करना होगा."</string>
+    <string name="bluetooth_map_settings_intro" msgid="6482369468223987562">"वे खाते चुनें जिन्हें आप ब्लूटूथ के ज़रिये शेयर करना चाहते हैं. आपको अब भी कनेक्ट करते समय खातों के किसी भी एक्सेस को स्वीकार करना होगा."</string>
     <string name="bluetooth_map_settings_count" msgid="4557473074937024833">"शेष स्लॉट:"</string>
     <string name="bluetooth_map_settings_app_icon" msgid="7105805610929114707">"ऐप्लिकेशन आइकॉन"</string>
     <string name="bluetooth_map_settings_title" msgid="7420332483392851321">"ब्लूटूथ संदेश साझाकरण सेटिंग"</string>
