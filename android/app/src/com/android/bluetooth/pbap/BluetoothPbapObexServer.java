@@ -986,6 +986,8 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
 
                 nmnum = nmnum > 0 ? nmnum : 0;
                 misnum[0] = (byte) nmnum;
+                ap.addAPPHeader(ApplicationParameter.TRIPLET_TAGID.NEWMISSEDCALLS_TAGID,
+                        ApplicationParameter.TRIPLET_LENGTH.NEWMISSEDCALLS_LENGTH, misnum);
                 if (D) {
                     Log.d(TAG, "handleAppParaForResponse(): mNeedNewMissedCallsNum=true,  num= "
                             + nmnum);
