@@ -547,15 +547,15 @@ class AvrcpControllerStateMachine extends StateMachine {
                     + ITEM_PAGE_SIZE) - 1;
             switch (target.getScope()) {
                 case AvrcpControllerService.BROWSE_SCOPE_PLAYER_LIST:
-                    AvrcpControllerService.getPlayerListNative(mDeviceAddress,
+                    mService.getPlayerListNative(mDeviceAddress,
                             start, end);
                     break;
                 case AvrcpControllerService.BROWSE_SCOPE_NOW_PLAYING:
-                    AvrcpControllerService.getNowPlayingListNative(
+                    mService.getNowPlayingListNative(
                             mDeviceAddress, start, end);
                     break;
                 case AvrcpControllerService.BROWSE_SCOPE_VFS:
-                    AvrcpControllerService.getFolderListNative(mDeviceAddress,
+                    mService.getFolderListNative(mDeviceAddress,
                             start, end);
                     break;
                 default:
@@ -589,7 +589,7 @@ class AvrcpControllerStateMachine extends StateMachine {
             } else if (mNextStep.isPlayer()) {
                 logD("NAVIGATING Player " + mNextStep.toString());
                 if (mNextStep.isBrowsable()) {
-                    AvrcpControllerService.setBrowsedPlayerNative(
+                    mService.setBrowsedPlayerNative(
                             mDeviceAddress, (int) mNextStep.getBluetoothID());
                 } else {
                     logD("Player doesn't support browsing");
@@ -601,14 +601,14 @@ class AvrcpControllerStateMachine extends StateMachine {
                 mNextStep = mBrowseTree.getCurrentBrowsedFolder().getParent();
                 mBrowseTree.getCurrentBrowsedFolder().setCached(false);
 
-                AvrcpControllerService.changeFolderPathNative(
+                mService.changeFolderPathNative(
                         mDeviceAddress,
                         AvrcpControllerService.FOLDER_NAVIGATION_DIRECTION_UP,
                         0);
 
             } else {
                 logD("NAVIGATING DOWN " + mNextStep.toString());
-                AvrcpControllerService.changeFolderPathNative(
+                mService.changeFolderPathNative(
                         mDeviceAddress,
                         AvrcpControllerService.FOLDER_NAVIGATION_DIRECTION_DOWN,
                         mNextStep.getBluetoothID());
@@ -648,7 +648,7 @@ class AvrcpControllerStateMachine extends StateMachine {
             mAudioManager.setStreamVolume(AudioManager.STREAM_MUSIC, newIndex,
                     AudioManager.FLAG_SHOW_UI);
         }
-        AvrcpControllerService.sendAbsVolRspNative(mDeviceAddress, absVol, label);
+        mService.sendAbsVolRspNative(mDeviceAddress, absVol, label);
     }
 
     MediaSession.Callback mSessionCallbacks = new MediaSession.Callback() {
