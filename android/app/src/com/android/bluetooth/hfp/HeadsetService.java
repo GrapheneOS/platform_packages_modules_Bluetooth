@@ -336,8 +336,8 @@ public class HeadsetService extends ProfileService {
                                 + ", scale=" + scale);
                         return;
                     }
-                    batteryLevel = batteryLevel * 5 / scale;
-                    mSystemInterface.getHeadsetPhoneState().setCindBatteryCharge(batteryLevel);
+                    int cindBatteryLevel = Math.round(batteryLevel * 5 / ((float) scale));
+                    mSystemInterface.getHeadsetPhoneState().setCindBatteryCharge(cindBatteryLevel);
                     break;
                 }
                 case AudioManager.VOLUME_CHANGED_ACTION: {
