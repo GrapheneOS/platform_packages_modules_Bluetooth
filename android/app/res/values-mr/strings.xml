@@ -106,7 +106,7 @@
     <string name="upload_success" msgid="4014469387779648949">"<xliff:g id="FILE_SIZE">%1$s</xliff:g> पाठविणे पूर्ण."</string>
     <string name="inbound_history_title" msgid="6940914942271327563">"इनबाउंड स्‍थानांतरणे"</string>
     <string name="outbound_history_title" msgid="4279418703178140526">"आउटबाउंड स्‍थानांतरणे"</string>
-    <string name="no_transfers" msgid="3482965619151865672">"ट्रांसफर इतिहास रिक्त आहे."</string>
+    <string name="no_transfers" msgid="3482965619151865672">"ट्रान्सफर इतिहास रिक्त आहे."</string>
     <string name="transfer_clear_dlg_msg" msgid="1712376797268438075">"सूचीमधून सर्व आयटम साफ केले जातील."</string>
     <string name="outbound_noti_title" msgid="8051906709452260849">"ब्लूटूथ शेअर: पाठवलेल्या फायली"</string>
     <string name="inbound_noti_title" msgid="4143352641953027595">"ब्लूटूथ शेअर: मिळवलेल्‍या फायली"</string>
