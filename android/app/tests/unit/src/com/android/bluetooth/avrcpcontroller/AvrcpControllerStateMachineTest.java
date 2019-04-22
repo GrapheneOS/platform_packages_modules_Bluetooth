@@ -27,6 +27,7 @@ import android.os.Looper;
 
 import androidx.test.InstrumentationRegistry;
 import androidx.test.filters.MediumTest;
+import androidx.test.rule.ServiceTestRule;
 import androidx.test.runner.AndroidJUnit4;
 
 import com.android.bluetooth.R;
@@ -39,6 +40,7 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Assume;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
@@ -62,6 +64,8 @@ public class AvrcpControllerStateMachineTest {
     private ArgumentCaptor<Intent> mIntentArgument = ArgumentCaptor.forClass(Intent.class);
     private byte[] mTestAddress = new byte[]{00, 01, 02, 03, 04, 05};
 
+    @Rule public final ServiceTestRule mServiceRule = new ServiceTestRule();
+
     @Mock
     private AdapterService mAdapterService;
     @Mock
@@ -83,6 +87,7 @@ public class AvrcpControllerStateMachineTest {
         // Setup mocks and test assets
         MockitoAnnotations.initMocks(this);
         TestUtils.setAdapterService(mAdapterService);
+        TestUtils.startService(mServiceRule, AvrcpControllerService.class);
 
         // This line must be called to make sure relevant objects are initialized properly
         mAdapter = BluetoothAdapter.getDefaultAdapter();
@@ -102,7 +107,7 @@ public class AvrcpControllerStateMachineTest {
     }
 
     /**
-     * Test to confirm that the state machine is capable of cycling throught the 4
+     * Test to confirm that the state machine is capable of cycling through the 4
      * connection states, and that upon completion, it cleans up aftwards.
      */
     @Test
@@ -348,6 +353,34 @@ public class AvrcpControllerStateMachineTest {
         verify(mAvrcpControllerService,
                 timeout(ASYNC_CALL_TIMEOUT_MILLIS).times(1)).getNowPlayingListNative(
                 eq(mTestAddress), eq(0), eq(19));
+    }
+
+    /**
+     * Test that AVRCP events such as playback commands can execute while performing browsing.
+     */
+    @Test
+    public void testPlayWhileBrowsing() {
+        setUpConnectedState();
+        final String rootName = "__ROOT__";
+        final String playerName = "Player 1";
+
+        //Get the root of the device
+        BrowseTree.BrowseNode results = mAvrcpStateMachine.findNode(rootName);
+        Assert.assertEquals(rootName + mTestDevice.toString(), results.getID());
+
+        //Request fetch the list of players
+        BrowseTree.BrowseNode playerNodes = mAvrcpStateMachine.findNode(results.getID());
+        mAvrcpStateMachine.requestContents(results);
+
+        MediaController.TransportControls transportControls =
+                BluetoothMediaBrowserService.getTransportControls();
+        transportControls.play();
+        verify(mAvrcpControllerService,
+                timeout(ASYNC_CALL_TIMEOUT_MILLIS).times(1)).sendPassThroughCommandNative(
+                eq(mTestAddress), eq(AvrcpControllerService.PASS_THRU_CMD_ID_PLAY), eq(KEY_DOWN));
+        verify(mAvrcpControllerService,
+                timeout(ASYNC_CALL_TIMEOUT_MILLIS).times(1)).sendPassThroughCommandNative(
+                eq(mTestAddress), eq(AvrcpControllerService.PASS_THRU_CMD_ID_PLAY), eq(KEY_UP));
     }
 
     /**

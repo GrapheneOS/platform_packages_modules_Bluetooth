@@ -533,6 +533,18 @@ class AvrcpControllerStateMachine extends StateMachine {
                     }
                     break;
 
+                case CONNECT:
+                case DISCONNECT:
+                case MSG_AVRCP_PASSTHRU:
+                case MESSAGE_PROCESS_SET_ABS_VOL_CMD:
+                case MESSAGE_PROCESS_REGISTER_ABS_VOL_NOTIFICATION:
+                case MESSAGE_PROCESS_TRACK_CHANGED:
+                case MESSAGE_PROCESS_PLAY_POS_CHANGED:
+                case MESSAGE_PROCESS_PLAY_STATUS_CHANGED:
+                case MESSAGE_PROCESS_VOLUME_CHANGED_NOTIFICATION:
+                    // All of these messages should be handled by parent state immediately.
+                    return false;
+
                 default:
                     logD(STATE_TAG + " deferring message " + msg.what
                                 + " to connected!");
