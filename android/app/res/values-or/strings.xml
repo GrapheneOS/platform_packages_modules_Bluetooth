@@ -38,13 +38,13 @@
     <string name="incoming_file_confirm_timeout_content" msgid="172779756093975981">"\"<xliff:g id="SENDER">%1$s</xliff:g>\"ଙ୍କଠାରୁ ଆସୁଥିବା ଫାଇଲ୍‌ ସ୍ୱୀକାର କରୁଥିବାବେଳେ ସମୟ ସମାପ୍ତ ହୋଇଗଲା"</string>
     <string name="incoming_file_confirm_Notification_title" msgid="5573329005298936903">"ଆସୁଥିବା ଫାଇଲ୍‌"</string>
     <string name="incoming_file_confirm_Notification_content" msgid="3359694069319644738">"<xliff:g id="FILE">%2$s</xliff:g> ପଠାଇବା ପାଇଁ <xliff:g id="SENDER">%1$s</xliff:g> ପ୍ରସ୍ତୁତ"</string>
-    <string name="notification_receiving" msgid="4674648179652543984">"ବ୍ଲୁଟୂଥ୍‍‌ ଶେୟାର୍‌: <xliff:g id="FILE">%1$s</xliff:g> ପ୍ରାପ୍ତ କରୁଛି"</string>
-    <string name="notification_received" msgid="3324588019186687985">"ବ୍ଲୁଟୂଥ୍‍‌ ଶେୟାର୍‌: <xliff:g id="FILE">%1$s</xliff:g> ପ୍ରାପ୍ତ କରାଯାଇଛି"</string>
-    <string name="notification_received_fail" msgid="3619350997285714746">"ବ୍ଲୁଟୂଥ୍‍‌ ଶେୟାର୍‌: <xliff:g id="FILE">%1$s</xliff:g> ଫାଇଲ୍‌ ପ୍ରାପ୍ତ କରାଯାଇନାହିଁ"</string>
-    <string name="notification_sending" msgid="3035748958534983833">"ବ୍ଲୁଟୂଥ୍‍‌ ଶେୟାର୍‌: <xliff:g id="FILE">%1$s</xliff:g> ପଠାଉଛି"</string>
-    <string name="notification_sent" msgid="9218710861333027778">"ବ୍ଲୁଟୂଥ୍‍‌ ଶେୟାର୍‌: <xliff:g id="FILE">%1$s</xliff:g> ପଠାଗଲା"</string>
+    <string name="notification_receiving" msgid="4674648179652543984">"ବ୍ଲୁଟୂଥ୍‍‌ ସେୟାର୍‌: <xliff:g id="FILE">%1$s</xliff:g> ପ୍ରାପ୍ତ କରୁଛି"</string>
+    <string name="notification_received" msgid="3324588019186687985">"ବ୍ଲୁଟୂଥ୍‍‌ ସେୟାର୍‌: <xliff:g id="FILE">%1$s</xliff:g> ପ୍ରାପ୍ତ କରାଯାଇଛି"</string>
+    <string name="notification_received_fail" msgid="3619350997285714746">"ବ୍ଲୁଟୂଥ୍‍‌ ସେୟାର୍‌: <xliff:g id="FILE">%1$s</xliff:g> ଫାଇଲ୍‌ ପ୍ରାପ୍ତ କରାଯାଇନାହିଁ"</string>
+    <string name="notification_sending" msgid="3035748958534983833">"ବ୍ଲୁଟୂଥ୍‍‌ ସେୟାର୍‌: <xliff:g id="FILE">%1$s</xliff:g> ପଠାଉଛି"</string>
+    <string name="notification_sent" msgid="9218710861333027778">"ବ୍ଲୁଟୂଥ୍‍‌ ସେୟାର୍‌: <xliff:g id="FILE">%1$s</xliff:g> ପଠାଗଲା"</string>
     <string name="notification_sent_complete" msgid="302943281067557969">"100% ସମ୍ପୂର୍ଣ୍ଣ"</string>
-    <string name="notification_sent_fail" msgid="6696082233774569445">"ବ୍ଲୁଟୂଥ୍‍‌ ଶେୟାର୍‌: <xliff:g id="FILE">%1$s</xliff:g> ଫାଇଲ୍‌ ପଠାଯାଇନାହିଁ"</string>
+    <string name="notification_sent_fail" msgid="6696082233774569445">"ବ୍ଲୁଟୂଥ୍‍‌ ସେୟାର୍‌: <xliff:g id="FILE">%1$s</xliff:g> ଫାଇଲ୍‌ ପଠାଯାଇନାହିଁ"</string>
     <string name="download_title" msgid="3353228219772092586">"ଫାଇଲ୍‌ ଟ୍ରାନ୍ସଫର୍‌ କରନ୍ତୁ"</string>
     <string name="download_line1" msgid="4926604799202134144">"ପ୍ରେରକ: \"<xliff:g id="SENDER">%1$s</xliff:g>\""</string>
     <string name="download_line2" msgid="5876973543019417712">"ଫାଇଲ୍‌: <xliff:g id="FILE">%1$s</xliff:g>"</string>
@@ -101,15 +101,15 @@
     <string name="status_protocol_error" msgid="3245444473429269539">"ଅନୁରୋଧକୁ ଠିକ୍‌ ଭାବେ ସମ୍ଭାଳି ହେବନାହିଁ।"</string>
     <string name="status_unknown_error" msgid="8156660554237824912">"ଅଜଣା ତୃଟି।"</string>
     <string name="btopp_live_folder" msgid="7967791481444474554">"ବ୍ଲୁଟୂଥ୍‍‌ ପ୍ରାପ୍ତ ହେଲା"</string>
-    <string name="opp_notification_group" msgid="3486303082135789982">"ବ୍ଲୁଟୂଥ୍‍‌ ଶେୟାର୍‌"</string>
+    <string name="opp_notification_group" msgid="3486303082135789982">"ବ୍ଲୁଟୂଥ୍‍‌ ସେୟାର୍‌"</string>
     <string name="download_success" msgid="7036160438766730871">"<xliff:g id="FILE_SIZE">%1$s</xliff:g> ପ୍ରାପ୍ତ କରିବା ସମ୍ପୂର୍ଣ୍ଣ ହେଲା।"</string>
     <string name="upload_success" msgid="4014469387779648949">"<xliff:g id="FILE_SIZE">%1$s</xliff:g> ପଠାଇବା ସମ୍ପୂର୍ଣ୍ଣ ହେଲା।"</string>
     <string name="inbound_history_title" msgid="6940914942271327563">"ଇନ୍‌ବାଉଣ୍ଡ ଟ୍ରାନ୍ସଫର୍‌"</string>
     <string name="outbound_history_title" msgid="4279418703178140526">"ଆଉଟ୍‌ବାଉଣ୍ଡ ଟ୍ରାନ୍ସଫର୍‌"</string>
     <string name="no_transfers" msgid="3482965619151865672">"ଟ୍ରାନ୍ସଫର୍‌ ହିଷ୍ଟୋରୀ ଖାଲି ଅଛି।"</string>
     <string name="transfer_clear_dlg_msg" msgid="1712376797268438075">"ତାଲିକାରୁ ସମସ୍ତ ଆଇଟମ୍‌କୁ ଖାଲି କରିଦିଆଯିବ।"</string>
-    <string name="outbound_noti_title" msgid="8051906709452260849">"ବ୍ଲୁଟୂଥ୍‍‌ ଶେୟାର୍‌: ପଠାଯାଇଥିବା ଫାଇଲ୍‌"</string>
-    <string name="inbound_noti_title" msgid="4143352641953027595">"ବ୍ଲୁଟୂଥ୍‍‌ ଶେୟାର୍‌: ପ୍ରାପ୍ତ କରାଯାଇଥିବା ଫାଇଲ୍‌"</string>
+    <string name="outbound_noti_title" msgid="8051906709452260849">"ବ୍ଲୁଟୂଥ୍‍‌ ସେୟାର୍‌: ପଠାଯାଇଥିବା ଫାଇଲ୍‌"</string>
+    <string name="inbound_noti_title" msgid="4143352641953027595">"ବ୍ଲୁଟୂଥ୍‍‌ ସେୟାର୍‌: ପ୍ରାପ୍ତ କରାଯାଇଥିବା ଫାଇଲ୍‌"</string>
     <plurals name="noti_caption_unsuccessful" formatted="false" msgid="2020750076679526122">
       <item quantity="other"><xliff:g id="UNSUCCESSFUL_NUMBER_1">%1$d</xliff:g> ବିଫଳ.</item>
       <item quantity="one"><xliff:g id="UNSUCCESSFUL_NUMBER_0">%1$d</xliff:g> ବିଫଳ.</item>
@@ -125,7 +125,7 @@
     <string name="bluetooth_a2dp_sink_queue_name" msgid="6864149958708669766">"ବର୍ତ୍ତମାନ ଚାଲୁଛି"</string>
     <string name="bluetooth_map_settings_save" msgid="7635491847388074606">"ସେଭ୍‌ କରନ୍ତୁ"</string>
     <string name="bluetooth_map_settings_cancel" msgid="9205350798049865699">"କ୍ୟାନ୍ସଲ୍‍"</string>
-    <string name="bluetooth_map_settings_intro" msgid="6482369468223987562">"ବ୍ଲୁଟୂଥ୍‍‌ ମାଧ୍ୟମରେ ଶେୟାର୍‌ କରିବାକୁ ଚାହୁଁଥିବା ଆକାଉଣ୍ଟଗୁଡ଼ିକୁ ଚୟନ କରନ୍ତୁ। ଆପଣଙ୍କୁ ତଥାପି ସଂଯୋଗ କରୁଥିବା ସମୟରେ ଆକାଉଣ୍ଟଗୁଡ଼ିକ ପ୍ରତି ଯେକୌଣସି ଆକ୍ସେସ୍‌କୁ ସ୍ୱୀକାର କରିବାକୁ ପଡ଼ିବ।"</string>
+    <string name="bluetooth_map_settings_intro" msgid="6482369468223987562">"ବ୍ଲୁଟୂଥ୍‍‌ ମାଧ୍ୟମରେ ସେୟାର୍‌ କରିବାକୁ ଚାହୁଁଥିବା ଆକାଉଣ୍ଟଗୁଡ଼ିକୁ ଚୟନ କରନ୍ତୁ। ଆପଣଙ୍କୁ ତଥାପି ସଂଯୋଗ କରୁଥିବା ସମୟରେ ଆକାଉଣ୍ଟଗୁଡ଼ିକ ପ୍ରତି ଯେକୌଣସି ଆକ୍ସେସ୍‌କୁ ସ୍ୱୀକାର କରିବାକୁ ପଡ଼ିବ।"</string>
     <string name="bluetooth_map_settings_count" msgid="4557473074937024833">"ବଳକା ସ୍ଲଟ୍‌:"</string>
     <string name="bluetooth_map_settings_app_icon" msgid="7105805610929114707">"ଆପ୍ଲିକେଶନ୍‌ ଆଇକନ୍‌"</string>
     <string name="bluetooth_map_settings_title" msgid="7420332483392851321">"ବ୍ଲୁଟୂଥ୍‍‌ ମେସେଜ୍‌ ଶେୟାରିଙ୍ଗ ସେଟିଙ୍ଗ"</string>
