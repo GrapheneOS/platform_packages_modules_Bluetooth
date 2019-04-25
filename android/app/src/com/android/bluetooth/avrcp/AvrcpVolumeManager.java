@@ -115,14 +115,29 @@ class AvrcpVolumeManager extends AudioDeviceCallback {
         volumeMapEditor.apply();
     }
 
-    synchronized void storeVolumeForDevice(BluetoothDevice device) {
+    synchronized void storeVolumeForDevice(@NonNull BluetoothDevice device) {
+        if (device.getBondState() != BluetoothDevice.BOND_BONDED) {
+            return;
+        }
         SharedPreferences.Editor pref = getVolumeMap().edit();
         int storeVolume =  mAudioManager.getStreamVolume(STREAM_MUSIC);
         Log.i(TAG, "storeVolume: Storing stream volume level for device " + device
                 + " : " + storeVolume);
         mVolumeMap.put(device, storeVolume);
         pref.putInt(device.getAddress(), storeVolume);
+        // Always use apply() since it is asynchronous, otherwise the call can hang waiting for
+        // storage to be written.
+        pref.apply();
+    }
 
+    synchronized void removeStoredVolumeForDevice(@NonNull BluetoothDevice device) {
+        if (device.getBondState() != BluetoothDevice.BOND_NONE) {
+            return;
+        }
+        SharedPreferences.Editor pref = getVolumeMap().edit();
+        Log.i(TAG, "RemoveStoredVolume: Remove stored stream volume level for device " + device);
+        mVolumeMap.remove(device);
+        pref.remove(device.getAddress());
         // Always use apply() since it is asynchronous, otherwise the call can hang waiting for
         // storage to be written.
         pref.apply();
@@ -136,6 +151,10 @@ class AvrcpVolumeManager extends AudioDeviceCallback {
 
         d("getVolume: Returning volume " + mVolumeMap.get(device));
         return mVolumeMap.get(device);
+    }
+
+    public int getNewDeviceVolume() {
+        return sNewDeviceVolume;
     }
 
     @Override
