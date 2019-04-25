@@ -186,6 +186,7 @@ public class HearingAidStateMachineTest {
                 BluetoothDevice.class));
         doReturn(true).when(mHearingAidNativeInterface).disconnectHearingAid(any(
                 BluetoothDevice.class));
+        when(mHearingAidService.isConnectedPeerDevices(mTestDevice)).thenReturn(true);
 
         // Send a connect request
         mHearingAidStateMachine.sendMessage(HearingAidStateMachine.CONNECT, mTestDevice);
@@ -212,6 +213,7 @@ public class HearingAidStateMachineTest {
         // Check that we are in Disconnected state
         Assert.assertThat(mHearingAidStateMachine.getCurrentState(),
                 IsInstanceOf.instanceOf(HearingAidStateMachine.Disconnected.class));
+        verify(mHearingAidNativeInterface).addToWhiteList(eq(mTestDevice));
     }
 
     /**
@@ -224,6 +226,7 @@ public class HearingAidStateMachineTest {
                 BluetoothDevice.class));
         doReturn(true).when(mHearingAidNativeInterface).disconnectHearingAid(any(
                 BluetoothDevice.class));
+        when(mHearingAidService.isConnectedPeerDevices(mTestDevice)).thenReturn(true);
 
         // Inject an event for when incoming connection is requested
         HearingAidStackEvent connStCh =
@@ -254,5 +257,6 @@ public class HearingAidStateMachineTest {
         // Check that we are in Disconnected state
         Assert.assertThat(mHearingAidStateMachine.getCurrentState(),
                 IsInstanceOf.instanceOf(HearingAidStateMachine.Disconnected.class));
+        verify(mHearingAidNativeInterface).addToWhiteList(eq(mTestDevice));
     }
 }
