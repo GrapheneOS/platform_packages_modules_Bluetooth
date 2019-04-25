@@ -62,14 +62,18 @@ class MediaPlayerWrapper {
         void mediaUpdatedCallback(MediaData data);
     }
 
-    boolean isReady() {
+    boolean isPlaybackStateReady() {
         if (getPlaybackState() == null) {
-            d("isReady(): PlaybackState is null");
+            d("isPlaybackStateReady(): PlaybackState is null");
             return false;
         }
 
+        return true;
+    }
+
+    boolean isMetadataReady() {
         if (getMetadata() == null) {
-            d("isReady(): Metadata is null");
+            d("isMetadataReady(): Metadata is null");
             return false;
         }
 
@@ -372,7 +376,7 @@ class MediaPlayerWrapper {
 
         @Override
         public void onMetadataChanged(@Nullable MediaMetadata metadata) {
-            if (!isReady()) {
+            if (!isMetadataReady()) {
                 Log.v(TAG, "onMetadataChanged(): " + mPackageName
                         + " tried to update with no queue");
                 return;
@@ -406,7 +410,7 @@ class MediaPlayerWrapper {
 
         @Override
         public void onPlaybackStateChanged(@Nullable PlaybackState state) {
-            if (!isReady()) {
+            if (!isPlaybackStateReady()) {
                 Log.v(TAG, "onPlaybackStateChanged(): " + mPackageName
                         + " tried to update with no queue");
                 return;
@@ -435,7 +439,7 @@ class MediaPlayerWrapper {
 
         @Override
         public void onQueueChanged(@Nullable List<MediaSession.QueueItem> queue) {
-            if (!isReady()) {
+            if (!isPlaybackStateReady() || !isMetadataReady()) {
                 Log.v(TAG, "onQueueChanged(): " + mPackageName
                         + " tried to update with no queue");
                 return;
