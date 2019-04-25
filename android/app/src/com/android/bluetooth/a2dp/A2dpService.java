@@ -993,6 +993,10 @@ public class A2dpService extends ProfileService {
             if (sm.getConnectionState() != BluetoothProfile.STATE_DISCONNECTED) {
                 return;
             }
+            if (mFactory.getAvrcpTargetService() != null) {
+                mFactory.getAvrcpTargetService().removeStoredVolumeForDevice(device);
+            }
+
             removeStateMachine(device);
         }
     }
@@ -1090,6 +1094,10 @@ public class A2dpService extends ProfileService {
             if (toState == BluetoothProfile.STATE_DISCONNECTED) {
                 int bondState = mAdapterService.getBondState(device);
                 if (bondState == BluetoothDevice.BOND_NONE) {
+                    if (mFactory.getAvrcpTargetService() != null) {
+                        mFactory.getAvrcpTargetService().removeStoredVolumeForDevice(device);
+                    }
+
                     removeStateMachine(device);
                 }
             }
