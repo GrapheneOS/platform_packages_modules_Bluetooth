@@ -18,6 +18,7 @@ package com.android.bluetooth.avrcpcontroller;
 import static org.mockito.Mockito.*;
 
 import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothAvrcpController;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothProfile;
 import android.content.Context;
@@ -112,7 +113,7 @@ public class AvrcpControllerStateMachineTest {
      */
     @Test
     public void testDisconnect() {
-        int numBroadcastsSent = setUpConnectedState();
+        int numBroadcastsSent = setUpConnectedState(true, true);
         StackEvent event =
                 StackEvent.connectionStateChanged(false, false);
 
@@ -121,6 +122,64 @@ public class AvrcpControllerStateMachineTest {
         verify(mAvrcpControllerService,
                 timeout(ASYNC_CALL_TIMEOUT_MILLIS).times(numBroadcastsSent)).sendBroadcast(
                 mIntentArgument.capture(), eq(ProfileService.BLUETOOTH_PERM));
+        Assert.assertEquals(mTestDevice, mIntentArgument.getValue().getParcelableExtra(
+                BluetoothDevice.EXTRA_DEVICE));
+        Assert.assertEquals(BluetoothAvrcpController.ACTION_CONNECTION_STATE_CHANGED,
+                mIntentArgument.getValue().getAction());
+        Assert.assertEquals(BluetoothProfile.STATE_DISCONNECTED,
+                mIntentArgument.getValue().getIntExtra(BluetoothProfile.EXTRA_STATE, -1));
+        Assert.assertThat(mAvrcpStateMachine.getCurrentState(),
+                IsInstanceOf.instanceOf(AvrcpControllerStateMachine.Disconnected.class));
+        Assert.assertEquals(mAvrcpStateMachine.getState(), BluetoothProfile.STATE_DISCONNECTED);
+        verify(mAvrcpControllerService).removeStateMachine(eq(mAvrcpStateMachine));
+    }
+
+    /**
+     * Test to confirm that a control only device can be established (no browsing)
+     */
+    @Test
+    public void testControlOnly() {
+        int numBroadcastsSent = setUpConnectedState(true, false);
+        StackEvent event =
+                StackEvent.connectionStateChanged(false, false);
+        mAvrcpStateMachine.disconnect();
+        numBroadcastsSent += 2;
+        verify(mAvrcpControllerService,
+                timeout(ASYNC_CALL_TIMEOUT_MILLIS).times(numBroadcastsSent)).sendBroadcast(
+                mIntentArgument.capture(), eq(ProfileService.BLUETOOTH_PERM));
+        Assert.assertEquals(mTestDevice, mIntentArgument.getValue().getParcelableExtra(
+                BluetoothDevice.EXTRA_DEVICE));
+        Assert.assertEquals(BluetoothAvrcpController.ACTION_CONNECTION_STATE_CHANGED,
+                mIntentArgument.getValue().getAction());
+        Assert.assertEquals(BluetoothProfile.STATE_DISCONNECTED,
+                mIntentArgument.getValue().getIntExtra(BluetoothProfile.EXTRA_STATE, -1));
+        Assert.assertThat(mAvrcpStateMachine.getCurrentState(),
+                IsInstanceOf.instanceOf(AvrcpControllerStateMachine.Disconnected.class));
+        Assert.assertEquals(mAvrcpStateMachine.getState(), BluetoothProfile.STATE_DISCONNECTED);
+        verify(mAvrcpControllerService).removeStateMachine(eq(mAvrcpStateMachine));
+    }
+
+    /**
+     * Test to confirm that a browsing only device can be established (no control)
+     */
+    @Test
+    public void testBrowsingOnly() {
+        Assert.assertEquals(0, mAvrcpControllerService.sBrowseTree.mRootNode.getChildrenCount());
+        int numBroadcastsSent = setUpConnectedState(false, true);
+        Assert.assertEquals(1, mAvrcpControllerService.sBrowseTree.mRootNode.getChildrenCount());
+        StackEvent event =
+                StackEvent.connectionStateChanged(false, false);
+        mAvrcpStateMachine.disconnect();
+        numBroadcastsSent += 2;
+        verify(mAvrcpControllerService,
+                timeout(ASYNC_CALL_TIMEOUT_MILLIS).times(numBroadcastsSent)).sendBroadcast(
+                mIntentArgument.capture(), eq(ProfileService.BLUETOOTH_PERM));
+        Assert.assertEquals(mTestDevice, mIntentArgument.getValue().getParcelableExtra(
+                BluetoothDevice.EXTRA_DEVICE));
+        Assert.assertEquals(BluetoothAvrcpController.ACTION_CONNECTION_STATE_CHANGED,
+                mIntentArgument.getValue().getAction());
+        Assert.assertEquals(BluetoothProfile.STATE_DISCONNECTED,
+                mIntentArgument.getValue().getIntExtra(BluetoothProfile.EXTRA_STATE, -1));
         Assert.assertThat(mAvrcpStateMachine.getCurrentState(),
                 IsInstanceOf.instanceOf(AvrcpControllerStateMachine.Disconnected.class));
         Assert.assertEquals(mAvrcpStateMachine.getState(), BluetoothProfile.STATE_DISCONNECTED);
@@ -152,7 +211,7 @@ public class AvrcpControllerStateMachineTest {
      */
     @Test
     public void testPlay() throws Exception {
-        setUpConnectedState();
+        setUpConnectedState(true, true);
         MediaController.TransportControls transportControls =
                 BluetoothMediaBrowserService.getTransportControls();
 
@@ -171,7 +230,7 @@ public class AvrcpControllerStateMachineTest {
      */
     @Test
     public void testPause() throws Exception {
-        setUpConnectedState();
+        setUpConnectedState(true, true);
         MediaController.TransportControls transportControls =
                 BluetoothMediaBrowserService.getTransportControls();
 
@@ -190,7 +249,7 @@ public class AvrcpControllerStateMachineTest {
      */
     @Test
     public void testStop() throws Exception {
-        setUpConnectedState();
+        setUpConnectedState(true, true);
         MediaController.TransportControls transportControls =
                 BluetoothMediaBrowserService.getTransportControls();
 
@@ -209,7 +268,7 @@ public class AvrcpControllerStateMachineTest {
      */
     @Test
     public void testNext() throws Exception {
-        setUpConnectedState();
+        setUpConnectedState(true, true);
         MediaController.TransportControls transportControls =
                 BluetoothMediaBrowserService.getTransportControls();
 
@@ -229,7 +288,7 @@ public class AvrcpControllerStateMachineTest {
      */
     @Test
     public void testPrevious() throws Exception {
-        setUpConnectedState();
+        setUpConnectedState(true, true);
         MediaController.TransportControls transportControls =
                 BluetoothMediaBrowserService.getTransportControls();
 
@@ -249,7 +308,7 @@ public class AvrcpControllerStateMachineTest {
      */
     @Test
     public void testFastForward() throws Exception {
-        setUpConnectedState();
+        setUpConnectedState(true, true);
         MediaController.TransportControls transportControls =
                 BluetoothMediaBrowserService.getTransportControls();
 
@@ -270,7 +329,7 @@ public class AvrcpControllerStateMachineTest {
      */
     @Test
     public void testRewind() throws Exception {
-        setUpConnectedState();
+        setUpConnectedState(true, true);
         MediaController.TransportControls transportControls =
                 BluetoothMediaBrowserService.getTransportControls();
 
@@ -294,7 +353,7 @@ public class AvrcpControllerStateMachineTest {
      */
     @Test
     public void testBrowsingCommands() {
-        setUpConnectedState();
+        setUpConnectedState(true, true);
         final String rootName = "__ROOT__";
         final String playerName = "Player 1";
 
@@ -348,7 +407,7 @@ public class AvrcpControllerStateMachineTest {
      */
     @Test
     public void testNowPlaying() {
-        setUpConnectedState();
+        setUpConnectedState(true, true);
         mAvrcpStateMachine.nowPlayingContentChanged();
         verify(mAvrcpControllerService,
                 timeout(ASYNC_CALL_TIMEOUT_MILLIS).times(1)).getNowPlayingListNative(
@@ -360,7 +419,7 @@ public class AvrcpControllerStateMachineTest {
      */
     @Test
     public void testPlayWhileBrowsing() {
-        setUpConnectedState();
+        setUpConnectedState(true, true);
         final String rootName = "__ROOT__";
         final String playerName = "Player 1";
 
@@ -388,13 +447,13 @@ public class AvrcpControllerStateMachineTest {
      *
      * @return number of times mAvrcpControllerService.sendBroadcastAsUser() has been invoked
      */
-    private int setUpConnectedState() {
+    private int setUpConnectedState(boolean control, boolean browsing) {
         // Put test state machine into connected state
         mAvrcpStateMachine.start();
         Assert.assertThat(mAvrcpStateMachine.getCurrentState(),
                 IsInstanceOf.instanceOf(AvrcpControllerStateMachine.Disconnected.class));
 
-        mAvrcpStateMachine.connect(StackEvent.connectionStateChanged(true, true));
+        mAvrcpStateMachine.connect(StackEvent.connectionStateChanged(control, browsing));
         verify(mAvrcpControllerService, timeout(ASYNC_CALL_TIMEOUT_MILLIS).times(2)).sendBroadcast(
                 mIntentArgument.capture(), eq(ProfileService.BLUETOOTH_PERM));
         Assert.assertThat(mAvrcpStateMachine.getCurrentState(),
