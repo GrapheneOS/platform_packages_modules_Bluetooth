@@ -35,8 +35,6 @@ cc_library_shared {
         "packages/modules/Bluetooth/system/embdrv/sbc/encoder/include",
         "packages/modules/Bluetooth/system/embdrv/sbc/decoder/include",
         "packages/modules/Bluetooth/system/utils/include",
-        "system/security/keystore/include",
-        "hardware/interfaces/keymaster/4.0/support/include",
     ],
     logtags: ["../../EventLogTags.logtags"],
     shared_libs: [
