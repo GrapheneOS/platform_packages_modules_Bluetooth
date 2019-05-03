@@ -71,6 +71,11 @@ public class BluetoothMediaBrowserService extends MediaBrowserService {
                 | MediaSession.FLAG_HANDLES_TRANSPORT_CONTROLS);
         mSession.setQueueTitle(getString(R.string.bluetooth_a2dp_sink_queue_name));
         mSession.setQueue(mMediaQueue);
+        PlaybackState.Builder playbackStateBuilder = new PlaybackState.Builder();
+        playbackStateBuilder.setState(PlaybackState.STATE_ERROR,
+                PlaybackState.PLAYBACK_POSITION_UNKNOWN, 1.0f).setActions(0);
+        playbackStateBuilder.setErrorMessage(getString(R.string.bluetooth_disconnected));
+        mSession.setPlaybackState(playbackStateBuilder.build());
         sBluetoothMediaBrowserService = this;
     }
 
