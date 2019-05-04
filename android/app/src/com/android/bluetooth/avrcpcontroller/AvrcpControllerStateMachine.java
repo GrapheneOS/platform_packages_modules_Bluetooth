@@ -166,12 +166,11 @@ class AvrcpControllerStateMachine extends StateMachine {
      * send the connection event asynchronously
      */
     public boolean connect(StackEvent event) {
-        sendMessage(CONNECT);
-        if (!mBrowsingConnected && event.mBrowsingConnected) {
+        if (event.mBrowsingConnected) {
             onBrowsingConnected();
         }
         mRemoteControlConnected = event.mRemoteControlConnected;
-        mBrowsingConnected = event.mBrowsingConnected;
+        sendMessage(CONNECT);
         return true;
     }
 
@@ -203,15 +202,18 @@ class AvrcpControllerStateMachine extends StateMachine {
         }
     }
 
-    void onBrowsingConnected() {
+    synchronized void onBrowsingConnected() {
+        if (mBrowsingConnected) return;
         mBrowseTree = new BrowseTree(mDevice);
         mService.sBrowseTree.mRootNode.addChild(mBrowseTree.mRootNode);
         BluetoothMediaBrowserService.notifyChanged(mService
                 .sBrowseTree.mRootNode);
         BluetoothMediaBrowserService.notifyChanged(mAddressedPlayer.getPlaybackState());
+        mBrowsingConnected = true;
     }
 
-    void onBrowsingDisconnected() {
+    synchronized void onBrowsingDisconnected() {
+        if (!mBrowsingConnected) return;
         mAddressedPlayer.setPlayStatus(PlaybackState.STATE_ERROR);
         mAddressedPlayer.updateCurrentTrack(null);
         mBrowseTree.mNowPlayingNode.setCached(false);
@@ -225,7 +227,7 @@ class AvrcpControllerStateMachine extends StateMachine {
         BluetoothMediaBrowserService.notifyChanged(mService
                 .sBrowseTree.mRootNode);
         BluetoothMediaBrowserService.trackChanged(null);
-
+        mBrowsingConnected = false;
     }
 
     private void notifyChanged(BrowseTree.BrowseNode node) {
