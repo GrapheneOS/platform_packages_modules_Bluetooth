@@ -221,6 +221,7 @@ class AvrcpControllerStateMachine extends StateMachine {
         PlaybackState.Builder pbb = new PlaybackState.Builder();
         pbb.setState(PlaybackState.STATE_ERROR, PlaybackState.PLAYBACK_POSITION_UNKNOWN,
                 1.0f).setActions(0);
+        pbb.setErrorMessage(mService.getString(R.string.bluetooth_disconnected));
         BluetoothMediaBrowserService.notifyChanged(pbb.build());
         mService.sBrowseTree.mRootNode.removeChild(
                 mBrowseTree.mRootNode);
