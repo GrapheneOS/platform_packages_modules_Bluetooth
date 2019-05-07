@@ -73,7 +73,7 @@
     <string name="upload_fail_cancel" msgid="9118496285835687125">"बंद करा"</string>
     <string name="bt_error_btn_ok" msgid="5965151173011534240">"ठीक"</string>
     <string name="unknown_file" msgid="6092727753965095366">"अज्ञात फाइल"</string>
-    <string name="unknown_file_desc" msgid="480434281415453287">"या प्रकारची फाइल हाताळण्यासाठी कोणताही अॅप नाही. \n"</string>
+    <string name="unknown_file_desc" msgid="480434281415453287">"या प्रकारची फाइल हाताळण्यासाठी कोणताही अ‍ॅप नाही. \n"</string>
     <string name="not_exist_file" msgid="3489434189599716133">"फाइल नाही"</string>
     <string name="not_exist_file_desc" msgid="4059531573790529229">"फाइल अस्‍तित्वात नाही. \n"</string>
     <string name="enabling_progress_title" msgid="436157952334723406">"कृपया प्रतीक्षा करा..."</string>
