@@ -224,6 +224,10 @@ public class A2dpSinkService extends ProfileService {
             Log.d(TAG, " connect device: " + device
                     + ", InstanceMap start state: " + sb.toString());
         }
+        if (getPriority(device) == BluetoothProfile.PRIORITY_OFF) {
+            Log.w(TAG, "Connection not allowed: <" + device.getAddress() + "> is PRIORITY_OFF");
+            return false;
+        }
         A2dpSinkStateMachine stateMachine = getOrCreateStateMachine(device);
         if (stateMachine != null) {
             stateMachine.connect();
@@ -233,7 +237,6 @@ public class A2dpSinkService extends ProfileService {
             Log.e(TAG, "Maxed out on the number of allowed MAP connections. "
                     + "Connect request rejected on " + device);
             return false;
-
         }
     }
 
