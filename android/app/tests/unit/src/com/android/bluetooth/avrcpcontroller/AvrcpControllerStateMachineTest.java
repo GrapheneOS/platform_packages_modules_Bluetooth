@@ -89,6 +89,7 @@ public class AvrcpControllerStateMachineTest {
         MockitoAnnotations.initMocks(this);
         TestUtils.setAdapterService(mAdapterService);
         TestUtils.startService(mServiceRule, AvrcpControllerService.class);
+        doReturn(mTargetContext.getResources()).when(mAvrcpControllerService).getResources();
 
         // This line must be called to make sure relevant objects are initialized properly
         mAdapter = BluetoothAdapter.getDefaultAdapter();
