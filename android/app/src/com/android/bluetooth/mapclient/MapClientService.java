@@ -101,6 +101,10 @@ public class MapClientService extends ProfileService {
             Log.d(TAG, "MAP connect device: " + device
                     + ", InstanceMap start state: " + sb.toString());
         }
+        if (getPriority(device) == BluetoothProfile.PRIORITY_OFF) {
+            Log.w(TAG, "Connection not allowed: <" + device.getAddress() + "> is PRIORITY_OFF");
+            return false;
+        }
         MceStateMachine mapStateMachine = mMapInstanceMap.get(device);
         if (mapStateMachine == null) {
             // a map state machine instance doesn't exist yet, create a new one if we can.
