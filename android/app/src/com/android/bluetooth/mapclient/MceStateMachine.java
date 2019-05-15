@@ -340,7 +340,6 @@ final class MceStateMachine extends StateMachine {
             }
             onConnectionStateChanged(mPreviousState, BluetoothProfile.STATE_CONNECTING);
 
-            BluetoothAdapter.getDefaultAdapter().cancelDiscovery();
             // When commanded to connect begin SDP to find the MAS server.
             mDevice.sdpSearch(BluetoothUuid.MAS);
             sendMessageDelayed(MSG_CONNECTING_TIMEOUT, TIMEOUT);
