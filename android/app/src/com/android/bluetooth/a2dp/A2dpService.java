@@ -571,7 +571,7 @@ public class A2dpService extends ProfileService {
                 if (previousActiveDevice != null) {
                     if (!mAudioManager.isStreamMute(AudioManager.STREAM_MUSIC)) {
                         mAudioManager.adjustStreamVolume(AudioManager.STREAM_MUSIC,
-                                                         AudioManager.ADJUST_MUTE, 0);
+                                AudioManager.ADJUST_MUTE, AudioManager.FLAG_BLUETOOTH_ABS_VOLUME);
                         wasMuted = true;
                     }
                     mAudioManager.setBluetoothA2dpDeviceConnectionStateSuppressNoisyIntent(
@@ -595,7 +595,7 @@ public class A2dpService extends ProfileService {
                 mAudioManager.handleBluetoothA2dpDeviceConfigChange(mActiveDevice);
                 if (wasMuted) {
                     mAudioManager.adjustStreamVolume(AudioManager.STREAM_MUSIC,
-                                                     AudioManager.ADJUST_UNMUTE, 0);
+                                AudioManager.ADJUST_MUTE, AudioManager.FLAG_BLUETOOTH_ABS_VOLUME);
                 }
             }
         }
