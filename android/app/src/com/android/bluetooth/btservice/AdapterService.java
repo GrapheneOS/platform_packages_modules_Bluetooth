@@ -286,7 +286,7 @@ public class AdapterService extends Service {
                     }
                     mRunningProfiles.add(profile);
                     if (GattService.class.getSimpleName().equals(profile.getName())) {
-                        enableNativeWithGuestFlag();
+                        enableNative();
                     } else if (mRegisteredProfiles.size() == Config.getSupportedProfiles().length
                             && mRegisteredProfiles.size() == mRunningProfiles.size()) {
                         mAdapterProperties.onBluetoothReady();
@@ -393,7 +393,7 @@ public class AdapterService extends Service {
         mAdapterProperties = new AdapterProperties(this);
         mAdapterStateMachine = AdapterState.make(this);
         mJniCallbacks = new JniCallbacks(this, mAdapterProperties);
-        initNative();
+        initNative(isGuest(), isSingleUserMode());
         mNativeAvailable = true;
         mCallbacks = new RemoteCallbackList<IBluetoothCallback>();
         mAppOps = getSystemService(AppOpsManager.class);
@@ -2853,11 +2853,12 @@ public class AdapterService extends Service {
         }
     };
 
-    private void enableNativeWithGuestFlag() {
-        boolean isGuest = UserManager.get(this).isGuestUser();
-        if (!enableNative(isGuest)) {
-            Log.e(TAG, "enableNative() returned false");
-        }
+    private boolean isGuest() {
+        return UserManager.get(this).isGuestUser();
+    }
+
+    private boolean isSingleUserMode() {
+        return UserManager.get(this).hasUserRestriction(UserManager.DISALLOW_ADD_USER);
     }
 
     /**
@@ -2876,12 +2877,12 @@ public class AdapterService extends Service {
 
     static native void classInitNative();
 
-    native boolean initNative();
+    native boolean initNative(boolean startRestricted, boolean isSingleUserMode);
 
     native void cleanupNative();
 
     /*package*/
-    native boolean enableNative(boolean startRestricted);
+    native boolean enableNative();
 
     /*package*/
     native boolean disableNative();
