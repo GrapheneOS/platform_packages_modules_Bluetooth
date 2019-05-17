@@ -42,7 +42,6 @@ package com.android.bluetooth.mapclient;
 
 import android.app.Activity;
 import android.app.PendingIntent;
-import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothMapClient;
 import android.bluetooth.BluetoothProfile;
@@ -69,7 +68,6 @@ import com.android.vcard.VCardProperty;
 
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
@@ -625,9 +623,12 @@ final class MceStateMachine extends StateMachine {
             }
             ArrayList<com.android.bluetooth.mapclient.Message> messageListing = request.getList();
             if (messageListing != null) {
-                for (com.android.bluetooth.mapclient.Message msg : messageListing) {
+                // Message listings by spec arrive ordered newest first but we wish to broadcast as
+                // oldest first. Iterate in reverse order so we initiate requests oldest first.
+                for (int i = messageListing.size() - 1; i >= 0; i--) {
+                    com.android.bluetooth.mapclient.Message msg = messageListing.get(i);
                     if (DBG) {
-                        Log.d(TAG, "getting message ");
+                        Log.d(TAG, "getting message for handle " + msg.getHandle());
                     }
                     // A message listing coming from the server should always have up to date data
                     mMessages.put(msg.getHandle(), new MessageMetadata(msg.getHandle(),
