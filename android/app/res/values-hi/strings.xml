@@ -43,7 +43,7 @@
     <string name="notification_received_fail" msgid="3619350997285714746">"ब्लूटूथ शेयर: फ़ाइल <xliff:g id="FILE">%1$s</xliff:g> प्राप्त नहीं हुई"</string>
     <string name="notification_sending" msgid="3035748958534983833">"ब्लूटूथ शेयर: <xliff:g id="FILE">%1$s</xliff:g> भेज रहा है"</string>
     <string name="notification_sent" msgid="9218710861333027778">"ब्लूटूथ शेयर: <xliff:g id="FILE">%1$s</xliff:g> भेजा गया"</string>
-    <string name="notification_sent_complete" msgid="302943281067557969">"100% पूर्ण"</string>
+    <string name="notification_sent_complete" msgid="302943281067557969">"100% पूरा"</string>
     <string name="notification_sent_fail" msgid="6696082233774569445">"ब्लूटूथ शेयर: फ़ाइल <xliff:g id="FILE">%1$s</xliff:g> भेजी नहीं गई"</string>
     <string name="download_title" msgid="3353228219772092586">"फ़ाइल ट्रांसफ़र करें"</string>
     <string name="download_line1" msgid="4926604799202134144">"प्रेषक: \"<xliff:g id="SENDER">%1$s</xliff:g>\""</string>
@@ -102,8 +102,8 @@
     <string name="status_unknown_error" msgid="8156660554237824912">"अज्ञात गड़बड़ी‍."</string>
     <string name="btopp_live_folder" msgid="7967791481444474554">"ब्लूटूथ से मिली फ़ाइलें"</string>
     <string name="opp_notification_group" msgid="3486303082135789982">"ब्लूटूथ के ज़रिए शेयर"</string>
-    <string name="download_success" msgid="7036160438766730871">"<xliff:g id="FILE_SIZE">%1$s</xliff:g> प्राप्ति पूर्ण."</string>
-    <string name="upload_success" msgid="4014469387779648949">"<xliff:g id="FILE_SIZE">%1$s</xliff:g> भेजना पूर्ण."</string>
+    <string name="download_success" msgid="7036160438766730871">"<xliff:g id="FILE_SIZE">%1$s</xliff:g> मिलना पूरा हुआ."</string>
+    <string name="upload_success" msgid="4014469387779648949">"<xliff:g id="FILE_SIZE">%1$s</xliff:g> भेजना पूरा हुआ."</string>
     <string name="inbound_history_title" msgid="6940914942271327563">"इनबाउंड स्थानांतरण"</string>
     <string name="outbound_history_title" msgid="4279418703178140526">"आउटबाउंड स्थानांतरण"</string>
     <string name="no_transfers" msgid="3482965619151865672">"कुछ भी ट्रांसफ़र नहीं किया गया."</string>
