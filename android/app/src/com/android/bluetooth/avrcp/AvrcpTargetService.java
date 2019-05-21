@@ -35,6 +35,7 @@ import com.android.bluetooth.Utils;
 import com.android.bluetooth.a2dp.A2dpService;
 import com.android.bluetooth.btservice.MetricsLogger;
 import com.android.bluetooth.btservice.ProfileService;
+import com.android.bluetooth.btservice.ServiceFactory;
 
 import java.util.List;
 import java.util.Objects;
@@ -56,6 +57,7 @@ public class AvrcpTargetService extends ProfileService {
     private AvrcpBroadcastReceiver mReceiver;
     private AvrcpNativeInterface mNativeInterface;
     private AvrcpVolumeManager mVolumeManager;
+    private ServiceFactory mFactory = new ServiceFactory();
 
     // Only used to see if the metadata has changed from its previous value
     private MediaData mCurrentData;
@@ -242,6 +244,15 @@ public class AvrcpTargetService extends ProfileService {
     public void storeVolumeForDevice(BluetoothDevice device) {
         if (device == null) return;
 
+        List<BluetoothDevice> HAActiveDevices = null;
+        if (mFactory.getHearingAidService() != null) {
+            HAActiveDevices = mFactory.getHearingAidService().getActiveDevices();
+        }
+        if (HAActiveDevices != null
+                && (HAActiveDevices.get(0) != null || HAActiveDevices.get(1) != null)) {
+            Log.d(TAG, "Do not store volume when Hearing Aid devices is active");
+            return;
+        }
         mVolumeManager.storeVolumeForDevice(device);
     }
 
