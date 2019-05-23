@@ -404,10 +404,7 @@ class AvrcpControllerStateMachine extends StateMachine {
             return (cmd == AvrcpControllerService.PASS_THRU_CMD_ID_REWIND)
                     || (cmd == AvrcpControllerService.PASS_THRU_CMD_ID_FF);
         }
-
-
     }
-
 
     // Handle the get folder listing action
     // a) Fetch the listing of folders
@@ -545,6 +542,7 @@ class AvrcpControllerStateMachine extends StateMachine {
                 case MESSAGE_PROCESS_PLAY_POS_CHANGED:
                 case MESSAGE_PROCESS_PLAY_STATUS_CHANGED:
                 case MESSAGE_PROCESS_VOLUME_CHANGED_NOTIFICATION:
+                case MESSAGE_PLAY_ITEM:
                     // All of these messages should be handled by parent state immediately.
                     return false;
 
@@ -683,18 +681,21 @@ class AvrcpControllerStateMachine extends StateMachine {
         @Override
         public void onSkipToNext() {
             logD("onSkipToNext");
+            onPrepare();
             sendMessage(MSG_AVRCP_PASSTHRU, AvrcpControllerService.PASS_THRU_CMD_ID_FORWARD);
         }
 
         @Override
         public void onSkipToPrevious() {
             logD("onSkipToPrevious");
+            onPrepare();
             sendMessage(MSG_AVRCP_PASSTHRU, AvrcpControllerService.PASS_THRU_CMD_ID_BACKWARD);
         }
 
         @Override
         public void onSkipToQueueItem(long id) {
             logD("onSkipToQueueItem" + id);
+            onPrepare();
             BrowseTree.BrowseNode node = mBrowseTree.getTrackFromNowPlayingList((int) id);
             if (node != null) {
                 sendMessage(MESSAGE_PLAY_ITEM, node);
@@ -730,10 +731,10 @@ class AvrcpControllerStateMachine extends StateMachine {
 
         @Override
         public void onPlayFromMediaId(String mediaId, Bundle extras) {
+            logD("onPlayFromMediaId");
             // Play the item if possible.
             onPrepare();
             BrowseTree.BrowseNode node = mBrowseTree.findBrowseNodeByID(mediaId);
-            Log.w(TAG, "Play Node not found");
             sendMessage(MESSAGE_PLAY_ITEM, node);
         }
     };
