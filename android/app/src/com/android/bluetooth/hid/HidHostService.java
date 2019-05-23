@@ -26,6 +26,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.os.UserHandle;
 import android.provider.Settings;
+import android.support.annotation.VisibleForTesting;
 import android.util.Log;
 
 import com.android.bluetooth.BluetoothMetricsProto;
@@ -793,16 +794,41 @@ public class HidHostService extends ProfileService {
         }
     }
 
-    private boolean okToConnect(BluetoothDevice device) {
+    /**
+     * Check whether can connect to a peer device.
+     * The check considers a number of factors during the evaluation.
+     *
+     * @param device the peer device to connect to
+     * @return true if connection is allowed, otherwise false
+     */
+    @VisibleForTesting(otherwise = VisibleForTesting.PACKAGE_PRIVATE)
+    public boolean okToConnect(BluetoothDevice device) {
         AdapterService adapterService = AdapterService.getAdapterService();
-        //check if it is inbound connection in Quiet mode, priority and Bond status
-        //to decide if its ok to allow this connection
-        if ((adapterService == null) || ((adapterService.isQuietModeEnabled()) && (mTargetDevice
-                == null)) || (BluetoothProfile.PRIORITY_OFF == getPriority(device)) || (
-                device.getBondState() == BluetoothDevice.BOND_NONE)) {
+        // Check if adapter service is null.
+        if (adapterService == null) {
+            Log.w(TAG, "okToConnect: adapter service is null");
             return false;
         }
-
+        // Check if this is an incoming connection in Quiet mode.
+        if (adapterService.isQuietModeEnabled() && mTargetDevice == null) {
+            Log.w(TAG, "okToConnect: return false as quiet mode enabled");
+            return false;
+        }
+        // Check priority and accept or reject the connection.
+        int priority = getPriority(device);
+        int bondState = adapterService.getBondState(device);
+        // Allow this connection only if the device is bonded. Any attempt to connect while
+        // bonding would potentially lead to an unauthorized connection.
+        if (bondState != BluetoothDevice.BOND_BONDED) {
+            Log.w(TAG, "okToConnect: return false, bondState=" + bondState);
+            return false;
+        } else if (priority != BluetoothProfile.PRIORITY_UNDEFINED
+                && priority != BluetoothProfile.PRIORITY_ON
+                && priority != BluetoothProfile.PRIORITY_AUTO_CONNECT) {
+            // Otherwise, reject the connection if priority is not valid.
+            Log.w(TAG, "okToConnect: return false, priority=" + priority);
+            return false;
+        }
         return true;
     }
 
