@@ -64,8 +64,6 @@ public class SilenceDeviceManager {
     private final ServiceFactory mFactory;
     private Handler mHandler = null;
     private Looper mLooper = null;
-    private A2dpService mA2dpService = null;
-    private HeadsetService mHeadsetService = null;
 
     private final Map<BluetoothDevice, Boolean> mSilenceDevices = new HashMap<>();
     private final List<BluetoothDevice> mA2dpConnectedDevices = new ArrayList<>();
@@ -225,8 +223,6 @@ public class SilenceDeviceManager {
         filter.addAction(BluetoothHeadset.ACTION_CONNECTION_STATE_CHANGED);
         filter.addAction(BluetoothHeadset.ACTION_ACTIVE_DEVICE_CHANGED);
         mAdapterService.registerReceiver(mReceiver, filter);
-        mA2dpService = mFactory.getA2dpService();
-        mHeadsetService = mFactory.getHeadsetService();
     }
 
     void cleanup() {
@@ -234,8 +230,6 @@ public class SilenceDeviceManager {
             Log.v(TAG, "cleanup()");
         }
         mSilenceDevices.clear();
-        mA2dpService = null;
-        mHeadsetService = null;
         mAdapterService.unregisterReceiver(mReceiver);
     }
 
@@ -268,16 +262,14 @@ public class SilenceDeviceManager {
         }
         mSilenceDevices.replace(device, state);
 
-        if (mA2dpService == null) {
-            Log.d(TAG, "A2dpService is null!");
-            return;
+        A2dpService a2dpService = mFactory.getA2dpService();
+        if (a2dpService != null) {
+            a2dpService.setSilenceMode(device, state);
         }
-        if (mHeadsetService == null) {
-            Log.d(TAG, "HeadsetService is null!");
-            return;
+        HeadsetService headsetService = mFactory.getHeadsetService();
+        if (headsetService != null) {
+            headsetService.setSilenceMode(device, state);
         }
-        mA2dpService.setSilenceMode(device, state);
-        mHeadsetService.setSilenceMode(device, state);
         Log.i(TAG, "Silence mode change " + device.getAddress() + ": " + oldState + " -> "
                 + state);
         broadcastSilenceStateChange(device, state);
