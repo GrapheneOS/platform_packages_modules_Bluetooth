@@ -505,6 +505,15 @@ public class HearingAidService extends ProfileService {
             Long deviceHiSyncId = mDeviceHiSyncIdMap.getOrDefault(device,
                     BluetoothHearingAid.HI_SYNC_ID_INVALID);
             if (deviceHiSyncId != mActiveDeviceHiSyncId) {
+                // Give an early notification to A2DP that active device is being switched
+                // to Hearing Aids before the Audio Service.
+                final A2dpService a2dpService = mFactory.getA2dpService();
+                if (a2dpService != null) {
+                    if (DBG) {
+                        Log.d(TAG, "earlyNotifyHearingAidActive for " + device);
+                    }
+                    a2dpService.earlyNotifyHearingAidActive();
+                }
                 mActiveDeviceHiSyncId = deviceHiSyncId;
                 reportActiveDevice(device);
             }
@@ -519,7 +528,7 @@ public class HearingAidService extends ProfileService {
      * device; the second element is the right active device. If either or both side
      * is not active, it will be null on that position
      */
-    List<BluetoothDevice> getActiveDevices() {
+    public List<BluetoothDevice> getActiveDevices() {
         if (DBG) {
             Log.d(TAG, "getActiveDevices");
         }
@@ -624,18 +633,6 @@ public class HearingAidService extends ProfileService {
 
         StatsLog.write(StatsLog.BLUETOOTH_ACTIVE_DEVICE_CHANGED, BluetoothProfile.HEARING_AID,
                 mAdapterService.obfuscateAddress(device));
-
-        if (device != null) {
-            // Give an early notification to A2DP that active device is being switched
-            // to Hearing Aids before the Audio Service.
-            final A2dpService a2dpService = mFactory.getA2dpService();
-            if (a2dpService != null) {
-                if (DBG) {
-                    Log.d(TAG, "earlyNotifyHearingAidActive for " + device);
-                }
-                a2dpService.earlyNotifyHearingAidActive();
-            }
-        }
 
         Intent intent = new Intent(BluetoothHearingAid.ACTION_ACTIVE_DEVICE_CHANGED);
         intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
