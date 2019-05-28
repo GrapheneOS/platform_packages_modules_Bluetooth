@@ -3444,7 +3444,10 @@ final class HeadsetStateMachine extends StateMachine {
         else if((BluetoothProfile.PRIORITY_OFF < priority) ||
                 ((BluetoothProfile.PRIORITY_UNDEFINED == priority) &&
                 (device.getBondState() != BluetoothDevice.BOND_NONE))){
-            ret= true;
+            if (device.getBondState() == BluetoothDevice.BOND_BONDED) {
+                ret = true;
+            }
+ 
         }
         return ret;
     }
