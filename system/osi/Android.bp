@@ -6,7 +6,7 @@ cc_defaults {
         "packages/modules/Bluetooth/system/internal_include",
         "packages/modules/Bluetooth/system/utils/include",
         "packages/modules/Bluetooth/system/stack/include",
-    ]
+    ],
 }
 
 // Static libraries required by other modules
@@ -19,7 +19,7 @@ cc_test_library {
     ],
     host_supported: true,
     shared: {
-        enabled: false
+        enabled: false,
     },
 }
 
@@ -31,7 +31,7 @@ cc_test_library {
     ],
     host_supported: true,
     shared: {
-        enabled: false
+        enabled: false,
     },
 }
 
