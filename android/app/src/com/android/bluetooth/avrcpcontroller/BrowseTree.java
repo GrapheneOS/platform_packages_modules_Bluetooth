@@ -412,7 +412,8 @@ public class BrowseTree {
         if (target == null) {
             return null;
         } else if (target.equals(mCurrentBrowseNode)
-                || target.equals(mNowPlayingNode)) {
+                || target.equals(mNowPlayingNode)
+                || target.equals(mRootNode)) {
             return target;
         } else if (target.isPlayer()) {
             if (mDepth > 0) {
