@@ -595,7 +595,7 @@ public class A2dpService extends ProfileService {
                 mAudioManager.handleBluetoothA2dpDeviceConfigChange(mActiveDevice);
                 if (wasMuted) {
                     mAudioManager.adjustStreamVolume(AudioManager.STREAM_MUSIC,
-                                AudioManager.ADJUST_MUTE, AudioManager.FLAG_BLUETOOTH_ABS_VOLUME);
+                                AudioManager.ADJUST_UNMUTE, AudioManager.FLAG_BLUETOOTH_ABS_VOLUME);
                 }
             }
         }
