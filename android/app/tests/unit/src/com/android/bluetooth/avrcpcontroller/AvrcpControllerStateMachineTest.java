@@ -404,6 +404,49 @@ public class AvrcpControllerStateMachineTest {
     }
 
     /**
+     * Test addressed media player changed
+     * Verify when the addressed media player changes browsing data updates
+     * Verify that the contents of a player are fetched upon request
+     */
+    @Test
+    public void testPlayerChanged() {
+        setUpConnectedState(true, true);
+        final String rootName = "__ROOT__";
+        final String playerName = "Player 1";
+
+        //Get the root of the device
+        BrowseTree.BrowseNode results = mAvrcpStateMachine.findNode(rootName);
+        Assert.assertEquals(rootName + mTestDevice.toString(), results.getID());
+
+        //Request fetch the list of players
+        BrowseTree.BrowseNode playerNodes = mAvrcpStateMachine.findNode(results.getID());
+        mAvrcpStateMachine.requestContents(results);
+        verify(mAvrcpControllerService,
+                timeout(ASYNC_CALL_TIMEOUT_MILLIS).times(1)).getPlayerListNative(eq(mTestAddress),
+                eq(0), eq(19));
+
+        //Provide back a player object
+        byte[] playerFeatures =
+                new byte[]{0, 0, 0, 0, 0, (byte) 0xb7, 0x01, 0x0c, 0x0a, 0, 0, 0, 0, 0, 0, 0};
+        AvrcpPlayer playerOne = new AvrcpPlayer(1, playerName, playerFeatures, 1, 1);
+        List<AvrcpPlayer> testPlayers = new ArrayList<>();
+        testPlayers.add(playerOne);
+        mAvrcpStateMachine.sendMessage(AvrcpControllerStateMachine.MESSAGE_PROCESS_GET_PLAYER_ITEMS,
+                testPlayers);
+
+        //Change players and verify that BT attempts to update the results
+        mAvrcpStateMachine.sendMessage(
+                AvrcpControllerStateMachine.MESSAGE_PROCESS_ADDRESSED_PLAYER_CHANGED, 4);
+        results = mAvrcpStateMachine.findNode(rootName);
+
+        mAvrcpStateMachine.requestContents(results);
+
+        verify(mAvrcpControllerService,
+                timeout(ASYNC_CALL_TIMEOUT_MILLIS).times(2)).getPlayerListNative(eq(mTestAddress),
+                eq(0), eq(19));
+    }
+
+    /**
      * Test that the Now Playing playlist is updated when it changes.
      */
     @Test
