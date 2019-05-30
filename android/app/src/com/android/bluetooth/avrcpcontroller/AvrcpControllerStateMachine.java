@@ -105,6 +105,7 @@ class AvrcpControllerStateMachine extends StateMachine {
     boolean mBrowsingConnected = false;
     BrowseTree mBrowseTree = null;
     private AvrcpPlayer mAddressedPlayer = new AvrcpPlayer();
+    private int mAddressedPlayerId = -1;
     private SparseArray<AvrcpPlayer> mAvailablePlayerList = new SparseArray<AvrcpPlayer>();
     private int mVolumeChangedNotificationsToIgnore = 0;
 
@@ -347,6 +348,20 @@ class AvrcpControllerStateMachine extends StateMachine {
                     }
                     return true;
 
+                case MESSAGE_PROCESS_ADDRESSED_PLAYER_CHANGED:
+                    mAddressedPlayerId = msg.arg1;
+                    logD("AddressedPlayer = " + mAddressedPlayerId);
+                    AvrcpPlayer updatedPlayer = mAvailablePlayerList.get(mAddressedPlayerId);
+                    if (updatedPlayer != null) {
+                        mAddressedPlayer = updatedPlayer;
+                        logD("AddressedPlayer = " + mAddressedPlayer.getName());
+                    } else {
+                        mBrowseTree.mRootNode.setCached(false);
+                        mBrowseTree.mRootNode.setExpectedChildren(255);
+                        BluetoothMediaBrowserService.notifyChanged(mBrowseTree.mRootNode);
+                    }
+                    return true;
+
                 case DISCONNECT:
                     transitionTo(mDisconnecting);
                     return true;
@@ -404,10 +419,7 @@ class AvrcpControllerStateMachine extends StateMachine {
             return (cmd == AvrcpControllerService.PASS_THRU_CMD_ID_REWIND)
                     || (cmd == AvrcpControllerService.PASS_THRU_CMD_ID_FF);
         }
-
-
     }
-
 
     // Handle the get folder listing action
     // a) Fetch the listing of folders
@@ -525,8 +537,8 @@ class AvrcpControllerStateMachine extends StateMachine {
 
                 case MESSAGE_GET_FOLDER_ITEMS:
                     if (!mBrowseNode.equals(msg.obj)) {
-                        if (mBrowseNode.getScope()
-                                == ((BrowseTree.BrowseNode) msg.obj).getScope()) {
+                        if (shouldAbort(mBrowseNode.getScope(),
+                                 ((BrowseTree.BrowseNode) msg.obj).getScope())) {
                             mAbort = true;
                         }
                         deferMessage(msg);
@@ -545,6 +557,8 @@ class AvrcpControllerStateMachine extends StateMachine {
                 case MESSAGE_PROCESS_PLAY_POS_CHANGED:
                 case MESSAGE_PROCESS_PLAY_STATUS_CHANGED:
                 case MESSAGE_PROCESS_VOLUME_CHANGED_NOTIFICATION:
+                case MESSAGE_PLAY_ITEM:
+                case MESSAGE_PROCESS_ADDRESSED_PLAYER_CHANGED:
                     // All of these messages should be handled by parent state immediately.
                     return false;
 
@@ -554,6 +568,23 @@ class AvrcpControllerStateMachine extends StateMachine {
                     deferMessage(msg);
             }
             return true;
+        }
+
+        /**
+         * shouldAbort calculates the cases where fetching the current directory is no longer
+         * necessary.
+         *
+         * @return true:  a new folder in the same scope
+         *                a new player while fetching contents of a folder
+         *         false: other cases, specifically Now Playing while fetching a folder
+         */
+        private boolean shouldAbort(int currentScope, int fetchScope) {
+            if ((currentScope == fetchScope)
+                    || (currentScope == AvrcpControllerService.BROWSE_SCOPE_VFS
+                    && fetchScope == AvrcpControllerService.BROWSE_SCOPE_PLAYER_LIST)) {
+                return true;
+            }
+            return false;
         }
 
         private void fetchContents(BrowseTree.BrowseNode target) {
@@ -683,18 +714,21 @@ class AvrcpControllerStateMachine extends StateMachine {
         @Override
         public void onSkipToNext() {
             logD("onSkipToNext");
+            onPrepare();
             sendMessage(MSG_AVRCP_PASSTHRU, AvrcpControllerService.PASS_THRU_CMD_ID_FORWARD);
         }
 
         @Override
         public void onSkipToPrevious() {
             logD("onSkipToPrevious");
+            onPrepare();
             sendMessage(MSG_AVRCP_PASSTHRU, AvrcpControllerService.PASS_THRU_CMD_ID_BACKWARD);
         }
 
         @Override
         public void onSkipToQueueItem(long id) {
             logD("onSkipToQueueItem" + id);
+            onPrepare();
             BrowseTree.BrowseNode node = mBrowseTree.getTrackFromNowPlayingList((int) id);
             if (node != null) {
                 sendMessage(MESSAGE_PLAY_ITEM, node);
@@ -730,10 +764,10 @@ class AvrcpControllerStateMachine extends StateMachine {
 
         @Override
         public void onPlayFromMediaId(String mediaId, Bundle extras) {
+            logD("onPlayFromMediaId");
             // Play the item if possible.
             onPrepare();
             BrowseTree.BrowseNode node = mBrowseTree.findBrowseNodeByID(mediaId);
-            Log.w(TAG, "Play Node not found");
             sendMessage(MESSAGE_PLAY_ITEM, node);
         }
     };
