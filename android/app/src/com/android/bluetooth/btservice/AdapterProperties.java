@@ -24,6 +24,7 @@ import android.bluetooth.BluetoothClass;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothHeadset;
 import android.bluetooth.BluetoothHeadsetClient;
+import android.bluetooth.BluetoothHearingAid;
 import android.bluetooth.BluetoothHidDevice;
 import android.bluetooth.BluetoothHidHost;
 import android.bluetooth.BluetoothMap;
@@ -133,6 +134,9 @@ class AdapterProperties {
                 case BluetoothHeadsetClient.ACTION_CONNECTION_STATE_CHANGED:
                     sendConnectionStateChange(BluetoothProfile.HEADSET_CLIENT, intent);
                     break;
+                case BluetoothHearingAid.ACTION_CONNECTION_STATE_CHANGED:
+                    sendConnectionStateChange(BluetoothProfile.HEARING_AID, intent);
+                    break;
                 case BluetoothA2dpSink.ACTION_CONNECTION_STATE_CHANGED:
                     sendConnectionStateChange(BluetoothProfile.A2DP_SINK, intent);
                     break;
@@ -206,6 +210,7 @@ class AdapterProperties {
         IntentFilter filter = new IntentFilter();
         filter.addAction(BluetoothHeadset.ACTION_CONNECTION_STATE_CHANGED);
         filter.addAction(BluetoothHeadsetClient.ACTION_CONNECTION_STATE_CHANGED);
+        filter.addAction(BluetoothHearingAid.ACTION_CONNECTION_STATE_CHANGED);
         filter.addAction(BluetoothA2dp.ACTION_CONNECTION_STATE_CHANGED);
         filter.addAction(BluetoothA2dpSink.ACTION_CONNECTION_STATE_CHANGED);
         filter.addAction(BluetoothHidDevice.ACTION_CONNECTION_STATE_CHANGED);
