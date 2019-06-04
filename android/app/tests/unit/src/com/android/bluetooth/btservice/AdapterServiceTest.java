@@ -35,7 +35,6 @@ import android.os.Process;
 import android.os.SystemProperties;
 import android.os.UserManager;
 import android.test.mock.MockContentResolver;
-import android.util.ByteStringUtils;
 import android.util.Log;
 
 import androidx.test.InstrumentationRegistry;
@@ -45,6 +44,8 @@ import androidx.test.runner.AndroidJUnit4;
 import com.android.bluetooth.R;
 import com.android.bluetooth.TestUtils;
 import com.android.bluetooth.Utils;
+
+import libcore.util.HexEncoding;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -685,7 +686,7 @@ public class AdapterServiceTest {
             Log.e(TAG, "Salt256Bit is null: " + metricsSection.toString());
             return null;
         }
-        byte[] metricsSalt = ByteStringUtils.fromHexToByteArray(saltString);
+        byte[] metricsSalt = HexEncoding.decode(saltString, false /* allowSingleChar */);
         if (metricsSalt.length != 32) {
             Log.e(TAG, "Salt length is not 32 bit, but is " + metricsSalt.length);
             return null;
