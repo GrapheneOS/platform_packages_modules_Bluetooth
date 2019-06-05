@@ -655,6 +655,10 @@ public class HidService extends ProfileService {
            (device.getBondState() == BluetoothDevice.BOND_NONE))
             return false;
 
+        if (device.getBondState() != BluetoothDevice.BOND_BONDED) {
+            return false;
+        }
+
         return true;
     }
     private static int convertHalState(int halState) {
