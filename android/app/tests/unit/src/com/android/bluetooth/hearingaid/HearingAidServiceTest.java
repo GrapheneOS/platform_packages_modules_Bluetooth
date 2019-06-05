@@ -255,13 +255,13 @@ public class HearingAidServiceTest {
         testOkToConnectCase(mSingleDevice,
                 BluetoothDevice.BOND_NONE, badPriorityValue, false);
         testOkToConnectCase(mSingleDevice,
-                BluetoothDevice.BOND_BONDING, BluetoothProfile.PRIORITY_UNDEFINED, false);
+                BluetoothDevice.BOND_BONDING, BluetoothProfile.PRIORITY_UNDEFINED, true);
         testOkToConnectCase(mSingleDevice,
                 BluetoothDevice.BOND_BONDING, BluetoothProfile.PRIORITY_OFF, false);
         testOkToConnectCase(mSingleDevice,
-                BluetoothDevice.BOND_BONDING, BluetoothProfile.PRIORITY_ON, false);
+                BluetoothDevice.BOND_BONDING, BluetoothProfile.PRIORITY_ON, true);
         testOkToConnectCase(mSingleDevice,
-                BluetoothDevice.BOND_BONDING, BluetoothProfile.PRIORITY_AUTO_CONNECT, false);
+                BluetoothDevice.BOND_BONDING, BluetoothProfile.PRIORITY_AUTO_CONNECT, true);
         testOkToConnectCase(mSingleDevice,
                 BluetoothDevice.BOND_BONDING, badPriorityValue, false);
         testOkToConnectCase(mSingleDevice,

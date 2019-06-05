@@ -296,13 +296,13 @@ public class A2dpServiceTest {
         testOkToConnectCase(mTestDevice,
                 BluetoothDevice.BOND_NONE, badPriorityValue, false);
         testOkToConnectCase(mTestDevice,
-                BluetoothDevice.BOND_BONDING, BluetoothProfile.PRIORITY_UNDEFINED, false);
+                BluetoothDevice.BOND_BONDING, BluetoothProfile.PRIORITY_UNDEFINED, true);
         testOkToConnectCase(mTestDevice,
                 BluetoothDevice.BOND_BONDING, BluetoothProfile.PRIORITY_OFF, false);
         testOkToConnectCase(mTestDevice,
-                BluetoothDevice.BOND_BONDING, BluetoothProfile.PRIORITY_ON, false);
+                BluetoothDevice.BOND_BONDING, BluetoothProfile.PRIORITY_ON, true);
         testOkToConnectCase(mTestDevice,
-                BluetoothDevice.BOND_BONDING, BluetoothProfile.PRIORITY_AUTO_CONNECT, false);
+                BluetoothDevice.BOND_BONDING, BluetoothProfile.PRIORITY_AUTO_CONNECT, true);
         testOkToConnectCase(mTestDevice,
                 BluetoothDevice.BOND_BONDING, badPriorityValue, false);
         testOkToConnectCase(mTestDevice,
