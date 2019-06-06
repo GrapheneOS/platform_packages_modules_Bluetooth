@@ -782,8 +782,9 @@ public class SapService extends ProfileService {
 
             if (action.equals(BluetoothDevice.ACTION_CONNECTION_ACCESS_REPLY)) {
                 Log.v(TAG, " - Received BluetoothDevice.ACTION_CONNECTION_ACCESS_REPLY");
-                if (!mIsWaitingAuthorization) {
-                    // this reply is not for us
+
+                int requestType = intent.getIntExtra(BluetoothDevice.EXTRA_ACCESS_REQUEST_TYPE, -1);
+                if (requestType != BluetoothDevice.REQUEST_TYPE_SIM_ACCESS) {
                     return;
                 }
 
@@ -792,7 +793,7 @@ public class SapService extends ProfileService {
                 if (intent.getIntExtra(BluetoothDevice.EXTRA_CONNECTION_ACCESS_RESULT,
                         BluetoothDevice.CONNECTION_ACCESS_NO)
                         == BluetoothDevice.CONNECTION_ACCESS_YES) {
-                    //bluetooth connection accepted by user
+                    // bluetooth connection accepted by user
                     if (intent.getBooleanExtra(BluetoothDevice.EXTRA_ALWAYS_ALLOWED, false)) {
                         boolean result = mRemoteDevice.setSimAccessPermission(
                                 BluetoothDevice.ACCESS_ALLOWED);
@@ -800,6 +801,9 @@ public class SapService extends ProfileService {
                             Log.v(TAG, "setSimAccessPermission(ACCESS_ALLOWED) result=" + result);
                         }
                     }
+                    boolean result = setPriority(mRemoteDevice, BluetoothProfile.PRIORITY_ON);
+                    Log.d(TAG, "setPriority ON, result = " + result);
+
                     try {
                         if (mConnSocket != null) {
                             // start obex server and rfcomm connection
@@ -818,6 +822,8 @@ public class SapService extends ProfileService {
                             Log.v(TAG, "setSimAccessPermission(ACCESS_REJECTED) result=" + result);
                         }
                     }
+                    boolean result = setPriority(mRemoteDevice, BluetoothProfile.PRIORITY_OFF);
+                    Log.d(TAG, "setPriority OFF, result = " + result);
                     // Ensure proper cleanup, and prepare for new connect.
                     mSessionStatusHandler.sendEmptyMessage(MSG_SERVERSESSION_CLOSE);
                 }
