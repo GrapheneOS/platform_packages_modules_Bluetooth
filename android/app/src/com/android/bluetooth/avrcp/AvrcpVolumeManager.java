@@ -81,7 +81,7 @@ class AvrcpVolumeManager extends AudioDeviceCallback {
         if (mDeviceMap.get(device)) {
             int avrcpVolume = systemToAvrcpVolume(savedVolume);
             Log.i(TAG, "switchVolumeDevice: Updating device volume: avrcpVolume=" + avrcpVolume);
-            mNativeInterface.sendVolumeChanged(avrcpVolume);
+            mNativeInterface.sendVolumeChanged(device.getAddress(), avrcpVolume);
         }
     }
 
@@ -155,6 +155,32 @@ class AvrcpVolumeManager extends AudioDeviceCallback {
 
     public int getNewDeviceVolume() {
         return sNewDeviceVolume;
+    }
+
+    void setVolume(@NonNull BluetoothDevice device, int avrcpVolume) {
+        int deviceVolume =
+                (int) Math.floor((double) avrcpVolume * sDeviceMaxVolume / AVRCP_MAX_VOL);
+        if (DEBUG) {
+            Log.d(TAG, "setVolume: avrcpVolume=" + avrcpVolume
+                    + " deviceVolume=" + deviceVolume
+                    + " sDeviceMaxVolume=" + sDeviceMaxVolume);
+        }
+        mAudioManager.setStreamVolume(AudioManager.STREAM_MUSIC, deviceVolume,
+                AudioManager.FLAG_SHOW_UI | AudioManager.FLAG_BLUETOOTH_ABS_VOLUME);
+        storeVolumeForDevice(device);
+    }
+
+    void sendVolumeChanged(@NonNull BluetoothDevice device, int deviceVolume) {
+        int avrcpVolume =
+                (int) Math.floor((double) deviceVolume * AVRCP_MAX_VOL / sDeviceMaxVolume);
+        if (avrcpVolume > 127) avrcpVolume = 127;
+        if (DEBUG) {
+            Log.d(TAG, "sendVolumeChanged: avrcpVolume=" + avrcpVolume
+                    + " deviceVolume=" + deviceVolume
+                    + " sDeviceMaxVolume=" + sDeviceMaxVolume);
+        }
+        mNativeInterface.sendVolumeChanged(device.getAddress(), avrcpVolume);
+        storeVolumeForDevice(device);
     }
 
     @Override
