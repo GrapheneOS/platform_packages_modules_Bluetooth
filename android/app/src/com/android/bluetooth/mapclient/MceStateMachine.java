@@ -565,6 +565,10 @@ final class MceStateMachine extends StateMachine {
             switch (msg.what) {
                 case MSG_NOTIFICATION:
                     EventReport ev = (EventReport) msg.obj;
+                    if (ev == null) {
+                        Log.w(TAG, "MSG_NOTIFICATION event is null");
+                        return;
+                    }
                     if (DBG) {
                         Log.d(TAG, "Message Type = " + ev.getType()
                                 + ", Message handle = " + ev.getHandle());
