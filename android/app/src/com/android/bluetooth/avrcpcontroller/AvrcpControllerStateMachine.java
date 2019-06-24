@@ -233,11 +233,7 @@ class AvrcpControllerStateMachine extends StateMachine {
         mAddressedPlayer.updateCurrentTrack(null);
         mBrowseTree.mNowPlayingNode.setCached(false);
         BluetoothMediaBrowserService.notifyChanged(mBrowseTree.mNowPlayingNode);
-        PlaybackStateCompat.Builder pbb = new PlaybackStateCompat.Builder();
-        pbb.setState(PlaybackStateCompat.STATE_ERROR, PlaybackStateCompat.PLAYBACK_POSITION_UNKNOWN,
-                1.0f).setActions(0);
-        pbb.setErrorMessage(mService.getString(R.string.bluetooth_disconnected));
-        BluetoothMediaBrowserService.notifyChanged(pbb.build());
+        BluetoothMediaBrowserService.addressedPlayerChanged(null);
         mService.sBrowseTree.mRootNode.removeChild(
                 mBrowseTree.mRootNode);
         BluetoothMediaBrowserService.notifyChanged(mService

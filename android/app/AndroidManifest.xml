@@ -320,6 +320,16 @@
                 <action android:name="android.media.browse.MediaBrowserService" />
             </intent-filter>
         </service>
+
+        <activity
+            android:name=".BluetoothPrefs"
+            android:exported="@bool/profile_supported_a2dp_sink"
+            android:enabled="@bool/profile_supported_a2dp_sink">
+            <intent-filter>
+                <action android:name="android.intent.action.APPLICATION_PREFERENCES"/>
+            </intent-filter>
+        </activity>
+
         <service
             android:process="@string/process"
             android:name = ".avrcp.AvrcpTargetService"
