@@ -23,6 +23,7 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothProfile;
 import android.content.Context;
 import android.content.Intent;
+import android.media.AudioManager;
 import android.media.session.MediaController;
 import android.os.Looper;
 
@@ -70,6 +71,8 @@ public class AvrcpControllerStateMachineTest {
     @Mock
     private AdapterService mAdapterService;
     @Mock
+    private AudioManager mAudioManager;
+    @Mock
     private AvrcpControllerService mAvrcpControllerService;
 
     AvrcpControllerStateMachine mAvrcpStateMachine;
@@ -90,6 +93,11 @@ public class AvrcpControllerStateMachineTest {
         TestUtils.setAdapterService(mAdapterService);
         TestUtils.startService(mServiceRule, AvrcpControllerService.class);
         doReturn(mTargetContext.getResources()).when(mAvrcpControllerService).getResources();
+        doReturn(15).when(mAudioManager).getStreamMaxVolume(anyInt());
+        doReturn(8).when(mAudioManager).getStreamVolume(anyInt());
+        doReturn(true).when(mAudioManager).isVolumeFixed();
+        doReturn(mAudioManager).when(mAvrcpControllerService)
+                .getSystemService(Context.AUDIO_SERVICE);
 
         // This line must be called to make sure relevant objects are initialized properly
         mAdapter = BluetoothAdapter.getDefaultAdapter();
@@ -484,6 +492,18 @@ public class AvrcpControllerStateMachineTest {
         verify(mAvrcpControllerService,
                 timeout(ASYNC_CALL_TIMEOUT_MILLIS).times(1)).sendPassThroughCommandNative(
                 eq(mTestAddress), eq(AvrcpControllerService.PASS_THRU_CMD_ID_PLAY), eq(KEY_UP));
+    }
+
+    /**
+     * Test that Absolute Volume Registration is working
+     */
+    @Test
+    public void testRegisterAbsVolumeNotification() {
+        setUpConnectedState(true, true);
+        mAvrcpStateMachine.sendMessage(
+                AvrcpControllerStateMachine.MESSAGE_PROCESS_REGISTER_ABS_VOL_NOTIFICATION);
+        verify(mAvrcpControllerService, timeout(ASYNC_CALL_TIMEOUT_MILLIS).times(1))
+                .sendRegisterAbsVolRspNative(any(), anyByte(), eq(127), anyInt());
     }
 
     /**
