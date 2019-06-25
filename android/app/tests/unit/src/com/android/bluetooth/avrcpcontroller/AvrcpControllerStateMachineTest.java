@@ -26,6 +26,7 @@ import android.content.Intent;
 import android.media.AudioManager;
 import android.os.Looper;
 import android.support.v4.media.session.MediaControllerCompat;
+import android.support.v4.media.session.PlaybackStateCompat;
 
 import androidx.test.InstrumentationRegistry;
 import androidx.test.filters.MediumTest;
@@ -34,6 +35,7 @@ import androidx.test.runner.AndroidJUnit4;
 
 import com.android.bluetooth.R;
 import com.android.bluetooth.TestUtils;
+import com.android.bluetooth.a2dpsink.A2dpSinkService;
 import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.ProfileService;
 
@@ -66,10 +68,15 @@ public class AvrcpControllerStateMachineTest {
     private ArgumentCaptor<Intent> mIntentArgument = ArgumentCaptor.forClass(Intent.class);
     private byte[] mTestAddress = new byte[]{00, 01, 02, 03, 04, 05};
 
-    @Rule public final ServiceTestRule mServiceRule = new ServiceTestRule();
+    @Rule public final ServiceTestRule mAvrcpServiceRule = new ServiceTestRule();
+    @Rule public final ServiceTestRule mA2dpServiceRule = new ServiceTestRule();
 
     @Mock
-    private AdapterService mAdapterService;
+    private AdapterService mAvrcpAdapterService;
+
+    @Mock
+    private AdapterService mA2dpAdapterService;
+
     @Mock
     private AudioManager mAudioManager;
     @Mock
@@ -90,8 +97,11 @@ public class AvrcpControllerStateMachineTest {
 
         // Setup mocks and test assets
         MockitoAnnotations.initMocks(this);
-        TestUtils.setAdapterService(mAdapterService);
-        TestUtils.startService(mServiceRule, AvrcpControllerService.class);
+        TestUtils.setAdapterService(mAvrcpAdapterService);
+        TestUtils.startService(mAvrcpServiceRule, AvrcpControllerService.class);
+        TestUtils.clearAdapterService(mAvrcpAdapterService);
+        TestUtils.setAdapterService(mA2dpAdapterService);
+        TestUtils.startService(mA2dpServiceRule, A2dpSinkService.class);
         doReturn(mTargetContext.getResources()).when(mAvrcpControllerService).getResources();
         doReturn(15).when(mAudioManager).getStreamMaxVolume(anyInt());
         doReturn(8).when(mAudioManager).getStreamVolume(anyInt());
@@ -113,7 +123,7 @@ public class AvrcpControllerStateMachineTest {
         if (!mTargetContext.getResources().getBoolean(R.bool.profile_supported_avrcp_controller)) {
             return;
         }
-        TestUtils.clearAdapterService(mAdapterService);
+        TestUtils.clearAdapterService(mA2dpAdapterService);
     }
 
     /**
@@ -542,6 +552,45 @@ public class AvrcpControllerStateMachineTest {
                 AvrcpControllerStateMachine.MESSAGE_PROCESS_REGISTER_ABS_VOL_NOTIFICATION);
         verify(mAvrcpControllerService, timeout(ASYNC_CALL_TIMEOUT_MILLIS).times(1))
                 .sendRegisterAbsVolRspNative(any(), anyByte(), eq(127), anyInt());
+    }
+
+    /**
+     * Test playback does not request focus when another app is playing music.
+     */
+    @Test
+    public void testPlaybackWhileMusicPlaying() {
+        Assert.assertEquals(AudioManager.AUDIOFOCUS_NONE, A2dpSinkService.getFocusState());
+        doReturn(true).when(mAudioManager).isMusicActive();
+        setUpConnectedState(true, true);
+        mAvrcpStateMachine.sendMessage(
+                AvrcpControllerStateMachine.MESSAGE_PROCESS_PLAY_STATUS_CHANGED,
+                PlaybackStateCompat.STATE_PLAYING);
+        TestUtils.waitForLooperToFinishScheduledTask(mAvrcpStateMachine.getHandler().getLooper());
+        verify(mAudioManager, times(1)).isMusicActive();
+        verify(mAvrcpControllerService,
+                timeout(ASYNC_CALL_TIMEOUT_MILLIS).times(1)).sendPassThroughCommandNative(
+                eq(mTestAddress), eq(AvrcpControllerService.PASS_THRU_CMD_ID_PAUSE), eq(KEY_DOWN));
+        TestUtils.waitForLooperToFinishScheduledTask(
+                A2dpSinkService.getA2dpSinkService().getMainLooper());
+        Assert.assertEquals(AudioManager.AUDIOFOCUS_NONE, A2dpSinkService.getFocusState());
+    }
+
+    /**
+     * Test playback requests focus while nothing is playing music.
+     */
+    @Test
+    public void testPlaybackWhileIdle() {
+        Assert.assertEquals(AudioManager.AUDIOFOCUS_NONE, A2dpSinkService.getFocusState());
+        doReturn(false).when(mAudioManager).isMusicActive();
+        setUpConnectedState(true, true);
+        mAvrcpStateMachine.sendMessage(
+                AvrcpControllerStateMachine.MESSAGE_PROCESS_PLAY_STATUS_CHANGED,
+                PlaybackStateCompat.STATE_PLAYING);
+        TestUtils.waitForLooperToFinishScheduledTask(mAvrcpStateMachine.getHandler().getLooper());
+        verify(mAudioManager, times(1)).isMusicActive();
+        TestUtils.waitForLooperToFinishScheduledTask(
+                A2dpSinkService.getA2dpSinkService().getMainLooper());
+        Assert.assertEquals(AudioManager.AUDIOFOCUS_GAIN, A2dpSinkService.getFocusState());
     }
 
     /**
