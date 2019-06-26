@@ -295,7 +295,13 @@ public class MapClientService extends ProfileService {
         setMapClientService(null);
     }
 
-    void cleanupDevice(BluetoothDevice device) {
+    /**
+     * cleanupDevice removes the associated state machine from the instance map
+     *
+     * @param device BluetoothDevice address of remote device
+     */
+    @VisibleForTesting
+    public void cleanupDevice(BluetoothDevice device) {
         if (DBG) {
             StringBuilder sb = new StringBuilder();
             dump(sb);
