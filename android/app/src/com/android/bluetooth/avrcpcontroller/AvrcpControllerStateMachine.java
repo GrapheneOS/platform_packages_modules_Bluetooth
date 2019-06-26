@@ -103,7 +103,7 @@ class AvrcpControllerStateMachine extends StateMachine {
 
     boolean mRemoteControlConnected = false;
     boolean mBrowsingConnected = false;
-    BrowseTree mBrowseTree = null;
+    final BrowseTree mBrowseTree;
     private AvrcpPlayer mAddressedPlayer = new AvrcpPlayer();
     private int mAddressedPlayerId = -1;
     private SparseArray<AvrcpPlayer> mAvailablePlayerList = new SparseArray<AvrcpPlayer>();
@@ -123,6 +123,7 @@ class AvrcpControllerStateMachine extends StateMachine {
         mService = service;
         logD(device.toString());
 
+        mBrowseTree = new BrowseTree(mDevice);
         mDisconnected = new Disconnected();
         mConnecting = new Connecting();
         mConnected = new Connected();
@@ -205,7 +206,6 @@ class AvrcpControllerStateMachine extends StateMachine {
 
     synchronized void onBrowsingConnected() {
         if (mBrowsingConnected) return;
-        mBrowseTree = new BrowseTree(mDevice);
         mService.sBrowseTree.mRootNode.addChild(mBrowseTree.mRootNode);
         BluetoothMediaBrowserService.notifyChanged(mService
                 .sBrowseTree.mRootNode);
