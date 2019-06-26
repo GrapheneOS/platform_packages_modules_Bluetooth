@@ -26,6 +26,7 @@ LOCAL_STATIC_JAVA_LIBRARIES := \
         services.net \
         libprotobuf-java-lite \
         bluetooth-protos-lite \
+        guava \
 
 LOCAL_STATIC_ANDROID_LIBRARIES := \
         androidx.core_core \
