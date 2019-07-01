@@ -320,6 +320,7 @@ final class RemoteDevices {
                     without waiting for the ACTION_UUID intent.
                     This was resulting in multiple calls to connect().*/
                     mUuids = null;
+                    mAlias = null;
                 }
             }
         }
