@@ -179,6 +179,7 @@ final class RemoteDevices {
         return prop.getDevice();
     }
 
+    @VisibleForTesting
     DeviceProperties addDeviceProperties(byte[] address) {
         synchronized (mDevices) {
             DeviceProperties prop = new DeviceProperties();
@@ -209,13 +210,13 @@ final class RemoteDevices {
         private byte[] mAddress;
         private int mBluetoothClass = BluetoothClass.Device.Major.UNCATEGORIZED;
         private short mRssi;
-        private ParcelUuid[] mUuids;
-        private int mDeviceType;
         private String mAlias;
-        private int mBondState;
         private BluetoothDevice mDevice;
         private boolean mIsBondingInitiatedLocally;
         private int mBatteryLevel = BluetoothDevice.BATTERY_LEVEL_UNKNOWN;
+        @VisibleForTesting int mBondState;
+        @VisibleForTesting int mDeviceType;
+        @VisibleForTesting ParcelUuid[] mUuids;
 
         DeviceProperties() {
             mBondState = BluetoothDevice.BOND_NONE;
@@ -274,7 +275,6 @@ final class RemoteDevices {
                 return mRssi;
             }
         }
-
         /**
          * @return mDeviceType
          */
@@ -504,7 +504,7 @@ final class RemoteDevices {
                         case AbstractionLayer.BT_PROPERTY_BDNAME:
                             final String newName = new String(val);
                             if (newName.equals(device.mName)) {
-                                Log.w(TAG, "Skip name update for " + bdDevice);
+                                debugLog("Skip name update for " + bdDevice);
                                 break;
                             }
                             device.mName = newName;
@@ -526,7 +526,7 @@ final class RemoteDevices {
                         case AbstractionLayer.BT_PROPERTY_CLASS_OF_DEVICE:
                             final int newClass = Utils.byteArrayToInt(val);
                             if (newClass == device.mBluetoothClass) {
-                                Log.w(TAG, "Skip class update for " + bdDevice);
+                                debugLog("Skip class update for " + bdDevice);
                                 break;
                             }
                             device.mBluetoothClass = Utils.byteArrayToInt(val);
@@ -542,11 +542,12 @@ final class RemoteDevices {
                             int numUuids = val.length / AbstractionLayer.BT_UUID_SIZE;
                             final ParcelUuid[] newUuids = Utils.byteArrayToUuid(val);
                             if (areUuidsEqual(newUuids, device.mUuids)) {
-                                Log.w(TAG, "Skip uuids update for " + bdDevice.getAddress());
+                                debugLog( "Skip uuids update for " + bdDevice.getAddress());
                                 break;
                             }
                             device.mUuids = newUuids;
                             if (sAdapterService.getState() == BluetoothAdapter.STATE_ON) {
+                                sAdapterService.deviceUuidUpdated(bdDevice);
                                 sendUuidIntent(bdDevice, device);
                             }
                             break;
@@ -642,6 +643,10 @@ final class RemoteDevices {
                 ? BluetoothAdapter.STATE_CONNECTED : BluetoothAdapter.STATE_DISCONNECTED;
         StatsLog.write(StatsLog.BLUETOOTH_ACL_CONNECTION_STATE_CHANGED,
                 sAdapterService.obfuscateAddress(device), connectionState);
+        BluetoothClass deviceClass = device.getBluetoothClass();
+        int classOfDevice = deviceClass == null ? 0 : deviceClass.getClassOfDevice();
+        StatsLog.write(StatsLog.BLUETOOTH_CLASS_OF_DEVICE_REPORTED,
+                sAdapterService.obfuscateAddress(device), classOfDevice);
 
         if (intent != null) {
             intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);

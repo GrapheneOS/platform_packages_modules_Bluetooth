@@ -102,7 +102,7 @@ public class AdapterServiceTest {
         }
         Assert.assertNotNull(Looper.myLooper());
         AdapterService adapterService = new AdapterService();
-        adapterService.initNative();
+        adapterService.initNative(false /* is_restricted */, false /* is_single_user_mode */);
         adapterService.cleanupNative();
         HashMap<String, HashMap<String, String>> adapterConfig = TestUtils.readAdapterConfig();
         Assert.assertNotNull(adapterConfig);
@@ -458,17 +458,17 @@ public class AdapterServiceTest {
     @Test
     public void testSnoopLoggingChange() {
         String snoopSetting =
-                SystemProperties.get(AdapterService.BLUETOOTH_BTSNOOP_ENABLE_PROPERTY, "");
-        SystemProperties.set(AdapterService.BLUETOOTH_BTSNOOP_ENABLE_PROPERTY, "false");
+                SystemProperties.get(AdapterService.BLUETOOTH_BTSNOOP_LOG_MODE_PROPERTY, "");
+        SystemProperties.set(AdapterService.BLUETOOTH_BTSNOOP_LOG_MODE_PROPERTY, "false");
         doEnable(0, false);
 
         Assert.assertTrue(mAdapterService.isEnabled());
 
         Assert.assertFalse(
-                SystemProperties.getBoolean(AdapterService.BLUETOOTH_BTSNOOP_ENABLE_PROPERTY,
-                        true));
+                SystemProperties.get(AdapterService.BLUETOOTH_BTSNOOP_LOG_MODE_PROPERTY,
+                        "true").equals("true"));
 
-        SystemProperties.set(AdapterService.BLUETOOTH_BTSNOOP_ENABLE_PROPERTY, "true");
+        SystemProperties.set(AdapterService.BLUETOOTH_BTSNOOP_LOG_MODE_PROPERTY, "true");
 
         mAdapterService.disable();
 
@@ -498,7 +498,7 @@ public class AdapterServiceTest {
         Assert.assertFalse(mAdapterService.isEnabled());
 
         // Restore earlier setting
-        SystemProperties.set(AdapterService.BLUETOOTH_BTSNOOP_ENABLE_PROPERTY, snoopSetting);
+        SystemProperties.set(AdapterService.BLUETOOTH_BTSNOOP_LOG_MODE_PROPERTY, snoopSetting);
     }
 
 

@@ -36,12 +36,13 @@ import com.android.bluetooth.hfp.HeadsetService;
 import com.android.bluetooth.hfpclient.HeadsetClientService;
 import com.android.bluetooth.hid.HidHostService;
 import com.android.bluetooth.pbapclient.PbapClientService;
+import com.android.internal.annotations.VisibleForTesting;
 import com.android.internal.util.State;
 import com.android.internal.util.StateMachine;
 
 import java.util.ArrayList;
-import java.util.Objects;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -62,6 +63,7 @@ final class BondStateMachine extends StateMachine {
     static final int BONDING_STATE_CHANGE = 4;
     static final int SSP_REQUEST = 5;
     static final int PIN_REQUEST = 6;
+    static final int UUID_UPDATE = 10;
     static final int BOND_STATE_NONE = 0;
     static final int BOND_STATE_BONDING = 1;
     static final int BOND_STATE_BONDED = 2;
@@ -75,6 +77,8 @@ final class BondStateMachine extends StateMachine {
     private StableState mStableState = new StableState();
 
     public static final String OOBDATA = "oobdata";
+
+    @VisibleForTesting Set<BluetoothDevice> mPendingBondedDevices = new HashSet<>();
 
     private BondStateMachine(AdapterService service, AdapterProperties prop,
             RemoteDevices remoteDevices) {
@@ -149,7 +153,11 @@ final class BondStateMachine extends StateMachine {
                                 + state2str(newState));
                     }
                     break;
-
+                case UUID_UPDATE:
+                    if (mPendingBondedDevices.contains(dev)) {
+                        sendIntent(dev, BluetoothDevice.BOND_BONDED, 0);
+                    }
+                    break;
                 case CANCEL_BOND:
                 default:
                     Log.e(TAG, "Received unhandled state: " + msg.what);
@@ -350,11 +358,30 @@ final class BondStateMachine extends StateMachine {
         mAdapterService.sendOrderedBroadcast(intent, mAdapterService.BLUETOOTH_ADMIN_PERM);
     }
 
-    private void sendIntent(BluetoothDevice device, int newState, int reason) {
+    @VisibleForTesting
+    void sendIntent(BluetoothDevice device, int newState, int reason) {
         DeviceProperties devProp = mRemoteDevices.getDeviceProperties(device);
         int oldState = BluetoothDevice.BOND_NONE;
+        if (newState != BluetoothDevice.BOND_NONE
+                && newState != BluetoothDevice.BOND_BONDING
+                && newState != BluetoothDevice.BOND_BONDED) {
+            infoLog("Invalid bond state " + newState);
+            return;
+        }
         if (devProp != null) {
             oldState = devProp.getBondState();
+        }
+        if (mPendingBondedDevices.contains(device)) {
+            mPendingBondedDevices.remove(device);
+            if (oldState == BluetoothDevice.BOND_BONDED) {
+                if (newState == BluetoothDevice.BOND_BONDING) {
+                    mAdapterProperties.onBondStateChanged(device, newState);
+                }
+                oldState = BluetoothDevice.BOND_BONDING;
+            } else {
+                // Should not enter here.
+                throw new IllegalArgumentException("Invalid old state " + oldState);
+            }
         }
         if (oldState == newState) {
             return;
@@ -362,7 +389,26 @@ final class BondStateMachine extends StateMachine {
         StatsLog.write(StatsLog.BLUETOOTH_BOND_STATE_CHANGED,
                 mAdapterService.obfuscateAddress(device), 0, device.getType(),
                 newState, BluetoothProtoEnums.BOND_SUB_STATE_UNKNOWN, reason);
+        BluetoothClass deviceClass = device.getBluetoothClass();
+        int classOfDevice = deviceClass == null ? 0 : deviceClass.getClassOfDevice();
+        StatsLog.write(StatsLog.BLUETOOTH_CLASS_OF_DEVICE_REPORTED,
+                mAdapterService.obfuscateAddress(device), classOfDevice);
         mAdapterProperties.onBondStateChanged(device, newState);
+
+        if (devProp != null && ((devProp.getDeviceType() == BluetoothDevice.DEVICE_TYPE_CLASSIC
+                || devProp.getDeviceType() == BluetoothDevice.DEVICE_TYPE_DUAL)
+                && newState == BluetoothDevice.BOND_BONDED && devProp.getUuids() == null)) {
+            infoLog(device + " is bonded, wait for SDP complete to broadcast bonded intent");
+            if (!mPendingBondedDevices.contains(device)) {
+                mPendingBondedDevices.add(device);
+            }
+            if (oldState == BluetoothDevice.BOND_NONE) {
+                // Broadcast NONE->BONDING for NONE->BONDED case.
+                newState = BluetoothDevice.BOND_BONDING;
+            } else {
+                return;
+            }
+        }
 
         Intent intent = new Intent(BluetoothDevice.ACTION_BOND_STATE_CHANGED);
         intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);

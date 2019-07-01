@@ -84,8 +84,8 @@
     <string name="bt_toast_4" msgid="4678812947604395649">"\"<xliff:g id="RECIPIENT">%1$s</xliff:g>\" ਨੂੰ ਫਾਈਲ ਭੇਜ ਰਿਹਾ ਹੈ"</string>
     <string name="bt_toast_5" msgid="2846870992823019494">"\"<xliff:g id="RECIPIENT">%2$s</xliff:g>\" ਨੂੰ <xliff:g id="NUMBER">%1$s</xliff:g> ਫਾਈਲਾਂ ਭੇਜ ਰਿਹਾ ਹੈ"</string>
     <string name="bt_toast_6" msgid="1855266596936622458">"\"<xliff:g id="RECIPIENT">%1$s</xliff:g>\" ਨੂੰ ਫਾਈਲ ਭੇਜਣਾ ਰੋਕਿਆ ਗਿਆ"</string>
-    <string name="bt_sm_2_1" product="nosdcard" msgid="352165168004521000">"\"<xliff:g id="SENDER">%1$s</xliff:g>\" ਦੀ ਫ਼ਾਈਲ ਰੱਖਿਅਤ ਕਰਨ ਲਈ USB ਸਟੋਰੇਜ ਵਿੱਚ ਪੂਰੀ ਜਗ੍ਹਾ ਨਹੀਂ ਹੈ।"</string>
-    <string name="bt_sm_2_1" product="default" msgid="1989018443456803630">"\"<xliff:g id="SENDER">%1$s</xliff:g>\" ਦੀ ਫ਼ਾਈਲ ਰੱਖਿਅਤ ਕਰਨ ਲਈ SD ਕਾਰਡ ਵਿੱਚ ਪੂਰੀ ਜਗ੍ਹਾ ਨਹੀਂ ਹੈ।"</string>
+    <string name="bt_sm_2_1_nosdcard" msgid="1791835163301501637">"\"<xliff:g id="SENDER">%1$s</xliff:g>\" ਦੀ ਫ਼ਾਈਲ ਰੱਖਿਅਤ ਕਰਨ ਲਈ USB ਸਟੋਰੇਜ ਵਿੱਚ ਪੂਰੀ ਜਗ੍ਹਾ ਨਹੀਂ ਹੈ।"</string>
+    <string name="bt_sm_2_1_default" msgid="9115512207909504071">"\"<xliff:g id="SENDER">%1$s</xliff:g>\" ਦੀ ਫ਼ਾਈਲ ਰੱਖਿਅਤ ਕਰਨ ਲਈ SD ਕਾਰਡ ਵਿੱਚ ਪੂਰੀ ਜਗ੍ਹਾ ਨਹੀਂ ਹੈ।"</string>
     <string name="bt_sm_2_2" msgid="2965243265852680543">"ਲੁੜੀਂਦਾ ਸਪੇਸ: <xliff:g id="SIZE">%1$s</xliff:g>"</string>
     <string name="ErrorTooManyRequests" msgid="8578277541472944529">"ਬਹੁਤ ਜ਼ਿਆਦਾ ਬੇਨਤੀਆਂ ਦੀ ਪ੍ਰਕਿਰਿਆ ਕੀਤੀ ਜਾ ਰਹੀ ਹੈ। ਬਾਅਦ ਵਿੱਚ ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ।"</string>
     <string name="status_pending" msgid="2503691772030877944">"ਫਾਈਲ ਟ੍ਰਾਂਸਫਰ ਅਜੇ ਚਾਲੂ ਨਹੀਂ ਹੋਈ।"</string>
@@ -95,18 +95,18 @@
     <string name="status_forbidden" msgid="613956401054050725">"ਟੀਚਾ ਡੀਵਾਈਸ ਵੱਲੋਂ ਟ੍ਰਾਂਸਫਰ ਵਰਜਿਤ।"</string>
     <string name="status_canceled" msgid="6664490318773098285">"ਉਪਭੋਗਤਾ ਵੱਲੋਂ ਟ੍ਰਾਂਸਫਰ ਰੱਦ ਕੀਤਾ ਗਿਆ।"</string>
     <string name="status_file_error" msgid="3671917770630165299">"ਸਟੋਰੇਜ ਸਮੱਸਿਆ।"</string>
-    <string name="status_no_sd_card" product="nosdcard" msgid="1112125377088421469">"ਕੋਈ USB ਸਟੋਰੇਜ ਨਹੀਂ ਹੈ।"</string>
-    <string name="status_no_sd_card" product="default" msgid="5760944071743325592">"ਕੋਈ SD ਕਾਰਡ ਨਹੀਂ। ਟ੍ਰਾਂਸਫ਼ਰ ਕੀਤੀਆਂ ਫਾਈਲਾਂ ਨੂੰ ਰੱਖਿਅਤ ਕਰਨ ਲਈ ਇੱਕ SD ਕਾਰਡ ਪਾਓ।"</string>
+    <string name="status_no_sd_card_nosdcard" msgid="573631036356922221">"ਕੋਈ USB ਸਟੋਰੇਜ ਨਹੀਂ ਹੈ।"</string>
+    <string name="status_no_sd_card_default" msgid="396564893716701954">"ਕੋਈ SD ਕਾਰਡ ਨਹੀਂ। ਟ੍ਰਾਂਸਫ਼ਰ ਕੀਤੀਆਂ ਫ਼ਾਈਲਾਂ ਨੂੰ ਰੱਖਿਅਤ ਕਰਨ ਲਈ ਇੱਕ SD ਕਾਰਡ ਪਾਓ।"</string>
     <string name="status_connection_error" msgid="947681831523219891">"ਕਨੈਕਸ਼ਨ ਅਸਫਲ।"</string>
     <string name="status_protocol_error" msgid="3245444473429269539">"ਬੇਨਤੀ ਨੂੰ ਸਹੀ ਢੰਗ ਨਾਲ ਸੰਭਾਲਿਆ ਨਹੀਂ ਜਾ ਸਕਦਾ।"</string>
     <string name="status_unknown_error" msgid="8156660554237824912">"ਅਗਿਆਤ ਅਸ਼ੁੱਧੀ।"</string>
-    <string name="btopp_live_folder" msgid="7967791481444474554">"Bluetooth ਪ੍ਰਾਪਤ ਕੀਤੀ"</string>
+    <string name="btopp_live_folder" msgid="7967791481444474554">"ਬਲੂਟੁੱਥ ਰਾਹੀਂ ਪ੍ਰਾਪਤ"</string>
     <string name="opp_notification_group" msgid="3486303082135789982">"ਬਲੂਟੁੱਥ ਸਾਂਝਾਕਰਨ"</string>
     <string name="download_success" msgid="7036160438766730871">"<xliff:g id="FILE_SIZE">%1$s</xliff:g> ਪੂਰਾ ਪ੍ਰਾਪਤ ਕੀਤਾ।"</string>
     <string name="upload_success" msgid="4014469387779648949">"<xliff:g id="FILE_SIZE">%1$s</xliff:g> ਪੂਰਾ ਭੇਜਿਆ ਗਿਆ।"</string>
     <string name="inbound_history_title" msgid="6940914942271327563">"ਇਨਬਾਊਂਡ ਟ੍ਰਾਂਸਫਰ"</string>
     <string name="outbound_history_title" msgid="4279418703178140526">"ਆਊਟਬਾਊਂਡ ਟ੍ਰਾਂਸਫਰ"</string>
-    <string name="no_transfers" msgid="3482965619151865672">"ਟ੍ਰਾਂਸਫਰ ਇਤਿਹਾਸ ਖਾਲੀ ਹੈ।"</string>
+    <string name="no_transfers" msgid="3482965619151865672">"ਟ੍ਰਾਂਸਫ਼ਰ ਇਤਿਹਾਸ ਵਿੱਚ ਕੁਝ ਵੀ ਨਹੀਂ ਹੈ।"</string>
     <string name="transfer_clear_dlg_msg" msgid="1712376797268438075">"ਸਾਰੀਆਂ ਆਈਟਮਾਂ ਸੂਚੀ ਵਿੱਚੋਂ ਹਟਾਈਆਂ ਜਾਣਗੀਆਂ।"</string>
     <string name="outbound_noti_title" msgid="8051906709452260849">"Bluetooth ਸ਼ੇਅਰ: ਭੇਜੀਆਂ ਗਈਆਂ ਫਾਈਲਾਂ"</string>
     <string name="inbound_noti_title" msgid="4143352641953027595">"Bluetooth ਸ਼ੇਅਰ: ਪ੍ਰਾਪਤ ਕੀਤੀਆਂ ਫਾਈਲਾਂ"</string>
@@ -122,6 +122,7 @@
     <string name="transfer_menu_open" msgid="3368984869083107200">"ਖੋਲ੍ਹੋ"</string>
     <string name="transfer_menu_clear" msgid="5854038118831427492">"ਸੂਚੀ ਵਿੱਚੋਂ ਹਟਾਓ"</string>
     <string name="transfer_clear_dlg_title" msgid="2953444575556460386">"ਹਟਾਓ"</string>
+    <string name="bluetooth_a2dp_sink_queue_name" msgid="6864149958708669766">"ਹੁਣੇ ਚੱਲ ਰਿਹਾ ਹੈ"</string>
     <string name="bluetooth_map_settings_save" msgid="7635491847388074606">"ਰੱਖਿਅਤ ਕਰੋ"</string>
     <string name="bluetooth_map_settings_cancel" msgid="9205350798049865699">"ਰੱਦ ਕਰੋ"</string>
     <string name="bluetooth_map_settings_intro" msgid="6482369468223987562">"ਉਹਨਾਂ ਖਾਤਿਆਂ ਨੂੰ ਚੁਣੋ ਜਿਨ੍ਹਾਂ ਨੂੰ ਤੁਸੀਂ ਬਲੂਟੁੱਥ ਦੇ ਰਾਹੀਂ ਸਾਂਝਾ ਕਰਨਾ ਚਾਹੁੰਦੇ ਹੋ। ਤੁਹਾਨੂੰ ਹਾਲੇ ਵੀ ਕਨੈਕਟ ਕਰਨ ਦੌਰਾਨ ਖਾਤਿਆਂ \'ਤੇ ਕਿਸੇ ਵੀ ਪਹੁੰਚ ਨੂੰ ਸਵੀਕਾਰ ਕਰਨਾ ਹੋਵੇਗਾ।"</string>
