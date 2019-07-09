@@ -20,7 +20,7 @@
     <string name="permdesc_bluetoothShareManager" msgid="8930572979123190223">"Bluetooth bidezko partekatzeen kudeatzailea atzitzea eta fitxategiak transferitzeko erabiltzea baimentzen die aplikazioei."</string>
     <string name="permlab_bluetoothWhitelist" msgid="7091552898592306386">"Sartu sarbidedunen zerrendan Bluetooth gailua."</string>
     <string name="permdesc_bluetoothWhitelist" msgid="5494513855192170109">"Bluetooth gailu bat aldi baterako sarbidedunen zerrendan sartzea baimentzen die aplikazioei, gailu honetara fitxategiak bidaltzeko baimena izan dezan, baina gailu honen erabiltzaileari berrespena eskatu beharrik gabe."</string>
-    <string name="bt_share_picker_label" msgid="6268100924487046932">"Bluetooth"</string>
+    <string name="bt_share_picker_label" msgid="6268100924487046932">"Bluetooth-a"</string>
     <string name="unknown_device" msgid="9221903979877041009">"Gailu ezezaguna"</string>
     <string name="unknownNumber" msgid="4994750948072751566">"Ezezaguna"</string>
     <string name="airplane_error_title" msgid="2683839635115739939">"Hegaldi modua"</string>
