@@ -412,9 +412,10 @@ public class AvrcpControllerService extends ProfileService {
         if (stateMachine != null) {
             PlayerApplicationSettings supportedSettings =
                     PlayerApplicationSettings.makeSupportedSettings(playerAttribRsp);
+            stateMachine.sendMessage(
+                    AvrcpControllerStateMachine.MESSAGE_PROCESS_SUPPORTED_APPLICATION_SETTINGS,
+                    supportedSettings);
         }
-        /* Do nothing */
-
     }
 
     private synchronized void onPlayerAppSettingChanged(byte[] address, byte[] playerAttribRsp,
@@ -426,10 +427,12 @@ public class AvrcpControllerService extends ProfileService {
         AvrcpControllerStateMachine stateMachine = getStateMachine(device);
         if (stateMachine != null) {
 
-            PlayerApplicationSettings desiredSettings =
+            PlayerApplicationSettings currentSettings =
                     PlayerApplicationSettings.makeSettings(playerAttribRsp);
+            stateMachine.sendMessage(
+                    AvrcpControllerStateMachine.MESSAGE_PROCESS_CURRENT_APPLICATION_SETTINGS,
+                    currentSettings);
         }
-        /* Do nothing */
     }
 
     // Browsing related JNI callbacks.
@@ -711,7 +714,7 @@ public class AvrcpControllerService extends ProfileService {
     /**
      * Send button press commands to addressed device
      *
-     * @param keyCode key code as defined in AVRCP specification
+     * @param keyCode  key code as defined in AVRCP specification
      * @param keyState 0 = key pressed, 1 = key released
      * @return command was sent
      */
@@ -720,7 +723,7 @@ public class AvrcpControllerService extends ProfileService {
     /**
      * Send group navigation commands
      *
-     * @param keyCode next/previous
+     * @param keyCode  next/previous
      * @param keyState state
      * @return command was sent
      */
@@ -741,7 +744,7 @@ public class AvrcpControllerService extends ProfileService {
      * Send response to set absolute volume
      *
      * @param absVol new volume
-     * @param label label
+     * @param label  label
      */
     public native void sendAbsVolRspNative(byte[] address, int absVol, int label);
 
@@ -749,8 +752,8 @@ public class AvrcpControllerService extends ProfileService {
      * Register for any volume level changes
      *
      * @param rspType type of response
-     * @param absVol current volume
-     * @param label label
+     * @param absVol  current volume
+     * @param label   label
      */
     public native void sendRegisterAbsVolRspNative(byte[] address, byte rspType, int absVol,
             int label);
@@ -764,7 +767,7 @@ public class AvrcpControllerService extends ProfileService {
      * Fetch the current now playing list
      *
      * @param start first index to retrieve
-     * @param end last index to retrieve
+     * @param end   last index to retrieve
      */
     public native void getNowPlayingListNative(byte[] address, int start, int end);
 
@@ -772,7 +775,7 @@ public class AvrcpControllerService extends ProfileService {
      * Fetch the current folder's listing
      *
      * @param start first index to retrieve
-     * @param end last index to retrieve
+     * @param end   last index to retrieve
      */
     public native void getFolderListNative(byte[] address, int start, int end);
 
@@ -780,7 +783,7 @@ public class AvrcpControllerService extends ProfileService {
      * Fetch the listing of players
      *
      * @param start first index to retrieve
-     * @param end last index to retrieve
+     * @param end   last index to retrieve
      */
     public native void getPlayerListNative(byte[] address, int start, int end);
 
@@ -788,15 +791,15 @@ public class AvrcpControllerService extends ProfileService {
      * Change the current browsed folder
      *
      * @param direction up/down
-     * @param uid folder unique id
+     * @param uid       folder unique id
      */
     public native void changeFolderPathNative(byte[] address, byte direction, long uid);
 
     /**
      * Play item with provided uid
      *
-     * @param scope scope of item to played
-     * @param uid song unique id
+     * @param scope      scope of item to played
+     * @param uid        song unique id
      * @param uidCounter counter
      */
     public native void playItemNative(byte[] address, byte scope, long uid, int uidCounter);

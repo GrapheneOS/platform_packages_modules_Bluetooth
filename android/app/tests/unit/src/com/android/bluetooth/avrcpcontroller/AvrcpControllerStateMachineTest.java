@@ -23,8 +23,8 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothProfile;
 import android.content.Context;
 import android.content.Intent;
-import android.media.session.MediaController;
 import android.os.Looper;
+import android.support.v4.media.session.MediaControllerCompat;
 
 import androidx.test.InstrumentationRegistry;
 import androidx.test.filters.MediumTest;
@@ -213,7 +213,7 @@ public class AvrcpControllerStateMachineTest {
     @Test
     public void testPlay() throws Exception {
         setUpConnectedState(true, true);
-        MediaController.TransportControls transportControls =
+        MediaControllerCompat.TransportControls transportControls =
                 BluetoothMediaBrowserService.getTransportControls();
 
         //Play
@@ -232,7 +232,7 @@ public class AvrcpControllerStateMachineTest {
     @Test
     public void testPause() throws Exception {
         setUpConnectedState(true, true);
-        MediaController.TransportControls transportControls =
+        MediaControllerCompat.TransportControls transportControls =
                 BluetoothMediaBrowserService.getTransportControls();
 
         //Pause
@@ -251,7 +251,7 @@ public class AvrcpControllerStateMachineTest {
     @Test
     public void testStop() throws Exception {
         setUpConnectedState(true, true);
-        MediaController.TransportControls transportControls =
+        MediaControllerCompat.TransportControls transportControls =
                 BluetoothMediaBrowserService.getTransportControls();
 
         //Stop
@@ -270,7 +270,7 @@ public class AvrcpControllerStateMachineTest {
     @Test
     public void testNext() throws Exception {
         setUpConnectedState(true, true);
-        MediaController.TransportControls transportControls =
+        MediaControllerCompat.TransportControls transportControls =
                 BluetoothMediaBrowserService.getTransportControls();
 
         //Next
@@ -290,7 +290,7 @@ public class AvrcpControllerStateMachineTest {
     @Test
     public void testPrevious() throws Exception {
         setUpConnectedState(true, true);
-        MediaController.TransportControls transportControls =
+        MediaControllerCompat.TransportControls transportControls =
                 BluetoothMediaBrowserService.getTransportControls();
 
         //Previous
@@ -310,7 +310,7 @@ public class AvrcpControllerStateMachineTest {
     @Test
     public void testFastForward() throws Exception {
         setUpConnectedState(true, true);
-        MediaController.TransportControls transportControls =
+        MediaControllerCompat.TransportControls transportControls =
                 BluetoothMediaBrowserService.getTransportControls();
 
         //FastForward
@@ -331,7 +331,7 @@ public class AvrcpControllerStateMachineTest {
     @Test
     public void testRewind() throws Exception {
         setUpConnectedState(true, true);
-        MediaController.TransportControls transportControls =
+        MediaControllerCompat.TransportControls transportControls =
                 BluetoothMediaBrowserService.getTransportControls();
 
         //Rewind
@@ -344,6 +344,44 @@ public class AvrcpControllerStateMachineTest {
         verify(mAvrcpControllerService,
                 timeout(ASYNC_CALL_TIMEOUT_MILLIS).times(1)).sendPassThroughCommandNative(
                 eq(mTestAddress), eq(AvrcpControllerService.PASS_THRU_CMD_ID_REWIND), eq(KEY_UP));
+    }
+
+    /**
+     * Test media browser shuffle command
+     */
+    @Test
+    public void testShuffle() throws Exception {
+        byte[] shuffleSetting = new byte[]{3};
+        byte[] shuffleMode = new byte[]{2};
+
+        setUpConnectedState(true, true);
+        MediaControllerCompat.TransportControls transportControls =
+                BluetoothMediaBrowserService.getTransportControls();
+
+        //Shuffle
+        transportControls.setShuffleMode(1);
+        verify(mAvrcpControllerService, timeout(ASYNC_CALL_TIMEOUT_MILLIS).times(1))
+                .setPlayerApplicationSettingValuesNative(
+                eq(mTestAddress), eq((byte) 1), eq(shuffleSetting), eq(shuffleMode));
+    }
+
+    /**
+     * Test media browser repeat command
+     */
+    @Test
+    public void testRepeat() throws Exception {
+        byte[] repeatSetting = new byte[]{2};
+        byte[] repeatMode = new byte[]{3};
+
+        setUpConnectedState(true, true);
+        MediaControllerCompat.TransportControls transportControls =
+                BluetoothMediaBrowserService.getTransportControls();
+
+        //Shuffle
+        transportControls.setRepeatMode(2);
+        verify(mAvrcpControllerService, timeout(ASYNC_CALL_TIMEOUT_MILLIS).times(1))
+                .setPlayerApplicationSettingValuesNative(
+                eq(mTestAddress), eq((byte) 1), eq(repeatSetting), eq(repeatMode));
     }
 
     /**
@@ -475,7 +513,7 @@ public class AvrcpControllerStateMachineTest {
         BrowseTree.BrowseNode playerNodes = mAvrcpStateMachine.findNode(results.getID());
         mAvrcpStateMachine.requestContents(results);
 
-        MediaController.TransportControls transportControls =
+        MediaControllerCompat.TransportControls transportControls =
                 BluetoothMediaBrowserService.getTransportControls();
         transportControls.play();
         verify(mAvrcpControllerService,
