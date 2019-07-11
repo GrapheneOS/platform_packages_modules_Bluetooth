@@ -29,6 +29,7 @@ LOCAL_STATIC_JAVA_LIBRARIES := \
 
 LOCAL_STATIC_ANDROID_LIBRARIES := \
         androidx.core_core \
+        androidx.legacy_legacy-support-v4 \
         androidx.lifecycle_lifecycle-livedata \
         androidx.room_room-runtime \
 
