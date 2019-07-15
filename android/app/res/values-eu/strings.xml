@@ -84,7 +84,7 @@
     <string name="bt_toast_4" msgid="4678812947604395649">"\"<xliff:g id="RECIPIENT">%1$s</xliff:g>\" hartzaileari fitxategia bidaltzen"</string>
     <string name="bt_toast_5" msgid="2846870992823019494">"\"<xliff:g id="RECIPIENT">%2$s</xliff:g>\" hartzaileari <xliff:g id="NUMBER">%1$s</xliff:g> fitxategi bidaltzen"</string>
     <string name="bt_toast_6" msgid="1855266596936622458">"\"<xliff:g id="RECIPIENT">%1$s</xliff:g>\" hartzaileari fitxategia bidaltzeari utzi zaio."</string>
-    <string name="bt_sm_2_1_nosdcard" msgid="1791835163301501637">"Ez dago \"<xliff:g id="SENDER">%1$s</xliff:g>\" erabiltzailearen fitxategia gordetzeko behar adina toki USB memorian"</string>
+    <string name="bt_sm_2_1_nosdcard" msgid="1791835163301501637">"Ez dago \"<xliff:g id="SENDER">%1$s</xliff:g>\" erabiltzailearen fitxategia gordetzeko behar adina toki USB bidezko memorian"</string>
     <string name="bt_sm_2_1_default" msgid="9115512207909504071">"Ez dago \"<xliff:g id="SENDER">%1$s</xliff:g>\" erabiltzailearen fitxategia gordetzeko behar adina toki SD txartelean"</string>
     <string name="bt_sm_2_2" msgid="2965243265852680543">"Beharrezko memoria: <xliff:g id="SIZE">%1$s</xliff:g>"</string>
     <string name="ErrorTooManyRequests" msgid="8578277541472944529">"Eskaera gehiegi prozesatzen ari dira. Saiatu berriro geroago."</string>
@@ -95,7 +95,7 @@
     <string name="status_forbidden" msgid="613956401054050725">"Xede-gailuak transferentzia debekatu du."</string>
     <string name="status_canceled" msgid="6664490318773098285">"Erabiltzaileak bertan behera utzi du transferentzia."</string>
     <string name="status_file_error" msgid="3671917770630165299">"Memoria-arazoa."</string>
-    <string name="status_no_sd_card_nosdcard" msgid="573631036356922221">"Ez dago USB memoriarik."</string>
+    <string name="status_no_sd_card_nosdcard" msgid="573631036356922221">"Ez dago USB bidezko memoriarik."</string>
     <string name="status_no_sd_card_default" msgid="396564893716701954">"Ez dago SD txartelik. Transferitutako fitxategiak gordetzeko, sartu SD txartel bat."</string>
     <string name="status_connection_error" msgid="947681831523219891">"Ezin izan da konektatu."</string>
     <string name="status_protocol_error" msgid="3245444473429269539">"Ezin da eskaera behar bezala kudeatu."</string>
