@@ -626,6 +626,12 @@ public class MediaPlayerList {
                     android.media.session.MediaController controller =
                             new android.media.session.MediaController(mContext, token);
 
+                    if (mMediaSessionManager == null) {
+                        Log.w(TAG, "onAddressedPlayerChanged(Token): Unexpected callback "
+                                + "from the MediaSessionManager");
+                        return;
+                    }
+
                     if (!mMediaPlayerIds.containsKey(controller.getPackageName())) {
                         // Since we have a controller, we can try to to recover by adding the
                         // player and then setting it as active.
@@ -640,6 +646,12 @@ public class MediaPlayerList {
 
                 @Override
                 public void onAddressedPlayerChanged(ComponentName receiver) {
+                    if (mMediaSessionManager == null) {
+                        Log.w(TAG, "onAddressedPlayerChanged(Component): Unexpected callback "
+                                + "from the MediaSessionManager");
+                        return;
+                    }
+
                     if (receiver == null) {
                         return;
                     }
