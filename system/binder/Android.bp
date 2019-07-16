@@ -54,7 +54,6 @@ cc_library_shared {
         ],
     },
     include_dirs: [
-        "libnativehelper/include/nativehelper",
         "packages/modules/Bluetooth/system/types",
     ],
     shared_libs: [
