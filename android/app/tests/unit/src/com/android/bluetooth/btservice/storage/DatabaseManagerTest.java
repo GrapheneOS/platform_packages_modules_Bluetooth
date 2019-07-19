@@ -22,8 +22,14 @@ import android.bluetooth.BluetoothA2dp;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothProfile;
+import android.content.ContentValues;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 
 import androidx.room.Room;
+import androidx.room.testing.MigrationTestHelper;
+import androidx.sqlite.db.SupportSQLiteDatabase;
+import androidx.sqlite.db.framework.FrameworkSQLiteOpenHelperFactory;
 import androidx.test.InstrumentationRegistry;
 import androidx.test.filters.MediumTest;
 import androidx.test.runner.AndroidJUnit4;
@@ -31,14 +37,17 @@ import androidx.test.runner.AndroidJUnit4;
 import com.android.bluetooth.TestUtils;
 import com.android.bluetooth.btservice.AdapterService;
 
+import org.hamcrest.CoreMatchers;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import java.io.IOException;
 import java.util.List;
 
 @MediumTest
@@ -56,11 +65,17 @@ public final class DatabaseManagerTest {
     private static final String TEST_BT_ADDR = "11:22:33:44:55:66";
     private static final String OTHER_BT_ADDR1 = "11:11:11:11:11:11";
     private static final String OTHER_BT_ADDR2 = "22:22:22:22:22:22";
+    private static final String DB_NAME = "test_db";
     private static final int A2DP_SUPPORT_OP_CODEC_TEST = 0;
     private static final int A2DP_ENALBED_OP_CODEC_TEST = 1;
     private static final int MAX_META_ID = 16;
     private static final byte[] TEST_BYTE_ARRAY = "TEST_VALUE".getBytes();
 
+    @Rule
+    public MigrationTestHelper testHelper = new MigrationTestHelper(
+            InstrumentationRegistry.getInstrumentation(),
+            MetadataDatabase.class.getCanonicalName(),
+            new FrameworkSQLiteOpenHelperFactory());
     @Before
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
@@ -372,6 +387,177 @@ public final class DatabaseManagerTest {
                 value, true);
         testSetGetCustomMetaCase(true, BluetoothDevice.METADATA_ENHANCED_SETTINGS_UI_URI,
                 value, true);
+    }
+
+    @Test
+    public void testDatabaseMigration_100_101() throws IOException {
+        // Create a database with version 100
+        SupportSQLiteDatabase db = testHelper.createDatabase(DB_NAME, 100);
+        Cursor cursor = db.query("SELECT * FROM metadata");
+
+        // pbap_client_priority should not in version 100
+        assertHasColumn(cursor, "pbap_client_priority", false);
+
+        // Migrate database from 100 to 101
+        db.close();
+        db = testHelper.runMigrationsAndValidate(DB_NAME, 101, true,
+                MetadataDatabase.MIGRATION_100_101);
+        cursor = db.query("SELECT * FROM metadata");
+
+        // Check whether pbap_client_priority exists in version 101
+        assertHasColumn(cursor, "pbap_client_priority", true);
+    }
+
+    @Test
+    public void testDatabaseMigration_101_102() throws IOException {
+        String testString = "TEST STRING";
+
+        // Create a database with version 101
+        SupportSQLiteDatabase db = testHelper.createDatabase(DB_NAME, 101);
+        Cursor cursor = db.query("SELECT * FROM metadata");
+
+        // insert a device to the database
+        ContentValues device = new ContentValues();
+        device.put("address", TEST_BT_ADDR);
+        device.put("migrated", false);
+        device.put("a2dpSupportsOptionalCodecs", -1);
+        device.put("a2dpOptionalCodecsEnabled", -1);
+        device.put("a2dp_priority", -1);
+        device.put("a2dp_sink_priority", -1);
+        device.put("hfp_priority", -1);
+        device.put("hfp_client_priority", -1);
+        device.put("hid_host_priority", -1);
+        device.put("pan_priority", -1);
+        device.put("pbap_priority", -1);
+        device.put("pbap_client_priority", -1);
+        device.put("map_priority", -1);
+        device.put("sap_priority", -1);
+        device.put("hearing_aid_priority", -1);
+        device.put("map_client_priority", -1);
+        device.put("manufacturer_name", testString);
+        device.put("model_name", testString);
+        device.put("software_version", testString);
+        device.put("hardware_version", testString);
+        device.put("companion_app", testString);
+        device.put("main_icon", testString);
+        device.put("is_unthethered_headset", testString);
+        device.put("unthethered_left_icon", testString);
+        device.put("unthethered_right_icon", testString);
+        device.put("unthethered_case_icon", testString);
+        device.put("unthethered_left_battery", testString);
+        device.put("unthethered_right_battery", testString);
+        device.put("unthethered_case_battery", testString);
+        device.put("unthethered_left_charging", testString);
+        device.put("unthethered_right_charging", testString);
+        device.put("unthethered_case_charging", testString);
+        Assert.assertThat(db.insert("metadata", SQLiteDatabase.CONFLICT_IGNORE, device),
+                CoreMatchers.not(-1));
+
+        // Check the metadata names on version 101
+        assertHasColumn(cursor, "is_unthethered_headset", true);
+        assertHasColumn(cursor, "unthethered_left_icon", true);
+        assertHasColumn(cursor, "unthethered_right_icon", true);
+        assertHasColumn(cursor, "unthethered_case_icon", true);
+        assertHasColumn(cursor, "unthethered_left_battery", true);
+        assertHasColumn(cursor, "unthethered_right_battery", true);
+        assertHasColumn(cursor, "unthethered_case_battery", true);
+        assertHasColumn(cursor, "unthethered_left_charging", true);
+        assertHasColumn(cursor, "unthethered_right_charging", true);
+        assertHasColumn(cursor, "unthethered_case_charging", true);
+
+        // Migrate database from 101 to 102
+        db.close();
+        db = testHelper.runMigrationsAndValidate(DB_NAME, 102, true,
+                MetadataDatabase.MIGRATION_101_102);
+        cursor = db.query("SELECT * FROM metadata");
+
+        // metadata names should be changed on version 102
+        assertHasColumn(cursor, "is_unthethered_headset", false);
+        assertHasColumn(cursor, "unthethered_left_icon", false);
+        assertHasColumn(cursor, "unthethered_right_icon", false);
+        assertHasColumn(cursor, "unthethered_case_icon", false);
+        assertHasColumn(cursor, "unthethered_left_battery", false);
+        assertHasColumn(cursor, "unthethered_right_battery", false);
+        assertHasColumn(cursor, "unthethered_case_battery", false);
+        assertHasColumn(cursor, "unthethered_left_charging", false);
+        assertHasColumn(cursor, "unthethered_right_charging", false);
+        assertHasColumn(cursor, "unthethered_case_charging", false);
+
+        assertHasColumn(cursor, "is_untethered_headset", true);
+        assertHasColumn(cursor, "untethered_left_icon", true);
+        assertHasColumn(cursor, "untethered_right_icon", true);
+        assertHasColumn(cursor, "untethered_case_icon", true);
+        assertHasColumn(cursor, "untethered_left_battery", true);
+        assertHasColumn(cursor, "untethered_right_battery", true);
+        assertHasColumn(cursor, "untethered_case_battery", true);
+        assertHasColumn(cursor, "untethered_left_charging", true);
+        assertHasColumn(cursor, "untethered_right_charging", true);
+        assertHasColumn(cursor, "untethered_case_charging", true);
+
+        while (cursor.moveToNext()) {
+            // Check whether metadata data type are blob
+            assertColumnBlob(cursor, "manufacturer_name");
+            assertColumnBlob(cursor, "model_name");
+            assertColumnBlob(cursor, "software_version");
+            assertColumnBlob(cursor, "hardware_version");
+            assertColumnBlob(cursor, "companion_app");
+            assertColumnBlob(cursor, "main_icon");
+            assertColumnBlob(cursor, "is_untethered_headset");
+            assertColumnBlob(cursor, "untethered_left_icon");
+            assertColumnBlob(cursor, "untethered_right_icon");
+            assertColumnBlob(cursor, "untethered_case_icon");
+            assertColumnBlob(cursor, "untethered_left_battery");
+            assertColumnBlob(cursor, "untethered_right_battery");
+            assertColumnBlob(cursor, "untethered_case_battery");
+            assertColumnBlob(cursor, "untethered_left_charging");
+            assertColumnBlob(cursor, "untethered_right_charging");
+            assertColumnBlob(cursor, "untethered_case_charging");
+
+            // Check whether metadata values are migrated to version 102 successfully
+            assertColumnBlobData(cursor, "manufacturer_name", testString.getBytes());
+            assertColumnBlobData(cursor, "model_name", testString.getBytes());
+            assertColumnBlobData(cursor, "software_version", testString.getBytes());
+            assertColumnBlobData(cursor, "hardware_version", testString.getBytes());
+            assertColumnBlobData(cursor, "companion_app", testString.getBytes());
+            assertColumnBlobData(cursor, "main_icon", testString.getBytes());
+            assertColumnBlobData(cursor, "is_untethered_headset", testString.getBytes());
+            assertColumnBlobData(cursor, "untethered_left_icon", testString.getBytes());
+            assertColumnBlobData(cursor, "untethered_right_icon", testString.getBytes());
+            assertColumnBlobData(cursor, "untethered_case_icon", testString.getBytes());
+            assertColumnBlobData(cursor, "untethered_left_battery", testString.getBytes());
+            assertColumnBlobData(cursor, "untethered_right_battery", testString.getBytes());
+            assertColumnBlobData(cursor, "untethered_case_battery", testString.getBytes());
+            assertColumnBlobData(cursor, "untethered_left_charging", testString.getBytes());
+            assertColumnBlobData(cursor, "untethered_right_charging", testString.getBytes());
+            assertColumnBlobData(cursor, "untethered_case_charging", testString.getBytes());
+        }
+    }
+
+    /**
+     * Helper function to check whether the database has the expected column
+     */
+    void assertHasColumn(Cursor cursor, String columnName, boolean hasColumn) {
+        if (hasColumn) {
+            Assert.assertThat(cursor.getColumnIndex(columnName), CoreMatchers.not(-1));
+        } else {
+            Assert.assertThat(cursor.getColumnIndex(columnName), CoreMatchers.is(-1));
+        }
+    }
+
+    /**
+     * Helper function to check whether the column data type is BLOB
+     */
+    void assertColumnBlob(Cursor cursor, String columnName) {
+        Assert.assertThat(cursor.getType(cursor.getColumnIndex(columnName)),
+                CoreMatchers.is(Cursor.FIELD_TYPE_BLOB));
+    }
+
+    /**
+     * Helper function to check the BLOB data in a column is expected
+     */
+    void assertColumnBlobData(Cursor cursor, String columnName, byte[] data) {
+        Assert.assertThat(cursor.getBlob(cursor.getColumnIndex(columnName)),
+                CoreMatchers.is(data));
     }
 
     void restartDatabaseManagerHelper() {
