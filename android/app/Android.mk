@@ -31,6 +31,7 @@ LOCAL_STATIC_ANDROID_LIBRARIES := \
         androidx.core_core \
         androidx.lifecycle_lifecycle-livedata \
         androidx.room_room-runtime \
+        bt-androidx-room-runtime-nodeps \
 
 LOCAL_ANNOTATION_PROCESSORS := \
         bt-androidx-annotation-nodeps \
@@ -45,7 +46,11 @@ LOCAL_ANNOTATION_PROCESSORS := \
         bt-sqlite-jdbc-nodeps \
         bt-jetbrain-nodeps \
         guava-21.0 \
-        kotlin-stdlib
+        kotlin-stdlib \
+        gson-prebuilt-jar
+
+LOCAL_JAVACFLAGS := \
+        -Aroom.schemaLocation=$(LOCAL_PATH)/tests/unit/src/com/android/bluetooth/btservice/storage/schemas
 
 LOCAL_ANNOTATION_PROCESSOR_CLASSES := \
         androidx.room.RoomProcessor
@@ -66,6 +71,7 @@ LOCAL_PREBUILT_STATIC_JAVA_LIBRARIES := \
         bt-androidx-room-common-nodeps:$(ROOM_LIBS_PATH)/room-common-2.0.0-beta01.jar \
         bt-androidx-room-compiler-nodeps:$(ROOM_LIBS_PATH)/room-compiler-2.0.0-beta01.jar \
         bt-androidx-room-migration-nodeps:$(ROOM_LIBS_PATH)/room-migration-2.0.0-beta01.jar \
+        bt-androidx-room-runtime-nodeps:$(ROOM_LIBS_PATH)/room-runtime-2.0.0-alpha1.aar \
         bt-antlr4-nodeps:$(COMMON_LIBS_PATH)/org/antlr/antlr4/4.5.3/antlr4-4.5.3.jar \
         bt-apache-commons-codec-nodeps:$(COMMON_LIBS_PATH)/org/eclipse/tycho/tycho-bundles-external/0.18.1/eclipse/plugins/org.apache.commons.codec_1.4.0.v201209201156.jar \
         bt-auto-common-nodeps:$(COMMON_LIBS_PATH)/com/google/auto/auto-common/0.9/auto-common-0.9.jar \
