@@ -25,6 +25,7 @@ cc_library_shared {
     ],
     shared_libs: [
         "libandroid_runtime",
+        "libbase",
         "libbinder",
         "libbluetooth-binder",
         "libchrome",
