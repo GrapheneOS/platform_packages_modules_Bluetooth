@@ -53,6 +53,8 @@ public class HeadsetClientStateMachineTest {
     @Mock
     private AudioManager mAudioManager;
 
+    private NativeInterface mNativeInterface;
+
     private static final int STANDARD_WAIT_MILLIS = 1000;
     private static final int QUERY_CURRENT_CALLS_WAIT_MILLIS = 2000;
     private static final int QUERY_CURRENT_CALLS_TEST_WAIT_MILLIS = QUERY_CURRENT_CALLS_WAIT_MILLIS
@@ -73,6 +75,7 @@ public class HeadsetClientStateMachineTest {
                 mAudioManager);
         when(mHeadsetClientService.getResources()).thenReturn(mMockHfpResources);
         when(mMockHfpResources.getBoolean(R.bool.hfp_clcc_poll_during_call)).thenReturn(true);
+        mNativeInterface = spy(NativeInterface.getInstance());
 
         // This line must be called to make sure relevant objects are initialized properly
         mAdapter = BluetoothAdapter.getDefaultAdapter();
@@ -84,7 +87,8 @@ public class HeadsetClientStateMachineTest {
         mHandlerThread.start();
         // Manage looper execution in main test thread explicitly to guarantee timing consistency
         mHeadsetClientStateMachine =
-                new HeadsetClientStateMachine(mHeadsetClientService, mHandlerThread.getLooper());
+                new HeadsetClientStateMachine(mHeadsetClientService, mHandlerThread.getLooper(),
+                                              mNativeInterface);
         mHeadsetClientStateMachine.start();
     }
 

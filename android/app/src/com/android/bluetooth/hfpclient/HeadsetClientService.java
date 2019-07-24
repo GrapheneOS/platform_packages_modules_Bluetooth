@@ -80,8 +80,8 @@ public class HeadsetClientService extends ProfileService {
         }
 
         // Setup the JNI service
-        mNativeInterface = new NativeInterface();
-        mNativeInterface.initializeNative();
+        mNativeInterface = NativeInterface.getInstance();
+        mNativeInterface.initialize();
 
         mAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
         if (mAudioManager == null) {
@@ -137,7 +137,7 @@ public class HeadsetClientService extends ProfileService {
         mSmThread.quit();
         mSmThread = null;
 
-        mNativeInterface.cleanupNative();
+        mNativeInterface.cleanup();
         mNativeInterface = null;
 
         return true;
@@ -885,7 +885,7 @@ public class HeadsetClientService extends ProfileService {
 
         // Allocate a new SM
         Log.d(TAG, "Creating a new state machine");
-        sm = mSmFactory.make(this, mSmThread);
+        sm = mSmFactory.make(this, mSmThread, mNativeInterface);
         mStateMachineMap.put(device, sm);
         return sm;
     }
