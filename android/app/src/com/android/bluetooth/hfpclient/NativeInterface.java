@@ -650,4 +650,21 @@ public class NativeInterface {
                     "onRingIndication: Ignoring message because service not available: " + event);
         }
     }
+
+    private void onUnknownEvent(String eventString, byte[] address) {
+        StackEvent event = new StackEvent(StackEvent.EVENT_TYPE_UNKNOWN_EVENT);
+        event.device = getDevice(address);
+        event.valueString = eventString;
+        if (DBG) {
+            Log.d(TAG, "onUnknownEvent: address " + address + " event " + event);
+        }
+        HeadsetClientService service = HeadsetClientService.getHeadsetClientService();
+        if (service != null) {
+            service.messageFromNative(event);
+        } else {
+            Log.w(TAG,
+                    "onUnknowEvent: Ignoring message because service not available: " + event);
+        }
+    }
+
 }
