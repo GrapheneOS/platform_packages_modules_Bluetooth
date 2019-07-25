@@ -1095,7 +1095,9 @@ public class GattService extends ProfileService {
 
     /** Determines if the given scan client has the appropriate permissions to receive callbacks. */
     private boolean hasScanResultPermission(final ScanClient client) {
-        if (client.hasNetworkSettingsPermission || client.hasNetworkSetupWizardPermission) {
+        if (client.hasNetworkSettingsPermission
+                || client.hasNetworkSetupWizardPermission
+                || client.hasScanWithoutLocationPermission) {
             return true;
         }
         return client.hasLocationPermission && !Utils.blockedByLocationOff(this, client.userHandle);
@@ -1959,6 +1961,8 @@ public class GattService extends ProfileService {
                 Utils.checkCallerHasNetworkSettingsPermission(this);
         scanClient.hasNetworkSetupWizardPermission =
                 Utils.checkCallerHasNetworkSetupWizardPermission(this);
+        scanClient.hasScanWithoutLocationPermission =
+                Utils.checkCallerHasScanWithoutLocationPermission(this);
 
         AppScanStats app = mScannerMap.getAppScanStatsById(scannerId);
         ScannerMap.App cbApp = mScannerMap.getById(scannerId);
@@ -2021,6 +2025,8 @@ public class GattService extends ProfileService {
                 Utils.checkCallerHasNetworkSettingsPermission(this);
         app.mHasNetworkSetupWizardPermission =
                 Utils.checkCallerHasNetworkSetupWizardPermission(this);
+        app.mHasScanWithoutLocationPermission =
+                Utils.checkCallerHasScanWithoutLocationPermission(this);
         mScanManager.registerScanner(uuid);
     }
 
@@ -2033,6 +2039,7 @@ public class GattService extends ProfileService {
         scanClient.isQApp = app.mIsQApp;
         scanClient.hasNetworkSettingsPermission = app.mHasNetworkSettingsPermission;
         scanClient.hasNetworkSetupWizardPermission = app.mHasNetworkSetupWizardPermission;
+        scanClient.hasScanWithoutLocationPermission = app.mHasScanWithoutLocationPermission;
 
         AppScanStats scanStats = mScannerMap.getAppScanStatsById(scannerId);
         if (scanStats != null) {
