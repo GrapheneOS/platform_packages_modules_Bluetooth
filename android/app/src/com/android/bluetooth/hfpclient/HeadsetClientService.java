@@ -80,8 +80,8 @@ public class HeadsetClientService extends ProfileService {
         }
 
         // Setup the JNI service
-        mNativeInterface = new NativeInterface();
-        mNativeInterface.initializeNative();
+        mNativeInterface = NativeInterface.getInstance();
+        mNativeInterface.initialize();
 
         mAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
         if (mAudioManager == null) {
@@ -137,7 +137,7 @@ public class HeadsetClientService extends ProfileService {
         mSmThread.quit();
         mSmThread = null;
 
-        mNativeInterface.cleanupNative();
+        mNativeInterface.cleanup();
         mNativeInterface = null;
 
         return true;
@@ -428,6 +428,15 @@ public class HeadsetClientService extends ProfileService {
                 return null;
             }
             return service.getCurrentAgEvents(device);
+        }
+
+        @Override
+        public boolean sendVendorAtCommand(BluetoothDevice device, int vendorId, String atCommand) {
+            HeadsetClientService service = getService();
+            if (service == null) {
+                return false;
+            }
+            return service.sendVendorAtCommand(device, vendorId, atCommand);
         }
 
         @Override
@@ -820,6 +829,26 @@ public class HeadsetClientService extends ProfileService {
         return true;
     }
 
+    /** Send vendor AT command. */
+    public boolean sendVendorAtCommand(BluetoothDevice device, int vendorId, String atCommand) {
+        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+        HeadsetClientStateMachine sm = getStateMachine(device);
+        if (sm == null) {
+            Log.e(TAG, "Cannot allocate SM for device " + device);
+            return false;
+        }
+
+        int connectionState = sm.getConnectionState(device);
+        if (connectionState != BluetoothProfile.STATE_CONNECTED) {
+            return false;
+        }
+
+        Message msg = sm.obtainMessage(HeadsetClientStateMachine.SEND_VENDOR_AT_COMMAND,
+                                       vendorId, 0, atCommand);
+        sm.sendMessage(msg);
+        return true;
+    }
+
     public Bundle getCurrentAgEvents(BluetoothDevice device) {
         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
         HeadsetClientStateMachine sm = getStateMachine(device);
@@ -885,7 +914,7 @@ public class HeadsetClientService extends ProfileService {
 
         // Allocate a new SM
         Log.d(TAG, "Creating a new state machine");
-        sm = mSmFactory.make(this, mSmThread);
+        sm = mSmFactory.make(this, mSmThread, mNativeInterface);
         mStateMachineMap.put(device, sm);
         return sm;
     }
