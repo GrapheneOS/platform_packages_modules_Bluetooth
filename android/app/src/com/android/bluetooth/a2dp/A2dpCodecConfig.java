@@ -57,7 +57,7 @@ class A2dpCodecConfig {
 
     void setCodecConfigPreference(BluetoothDevice device,
                                   BluetoothCodecStatus codecStatus,
-                                  BluetoothCodecConfig codecConfig) {
+                                  BluetoothCodecConfig newCodecConfig) {
         Objects.requireNonNull(codecStatus);
 
         // Check whether the codecConfig is selectable for this Bluetooth device.
@@ -66,34 +66,36 @@ class A2dpCodecConfig {
                 codec.isMandatoryCodec())) {
             // Do not set codec preference to native if the selectableCodecs not contain mandatory
             // codec. The reason could be remote codec negotiation is not completed yet.
-            Log.w(TAG, "Cannot find mandatory codec in selectableCodecs.");
+            Log.w(TAG, "setCodecConfigPreference: must have mandatory codec before changing.");
             return;
         }
-        if (!isCodecConfigSelectable(codecConfig, selectableCodecs)) {
-            Log.w(TAG, "Codec is not selectable: " + codecConfig);
+        if (!codecStatus.isCodecConfigSelectable(newCodecConfig)) {
+            Log.w(TAG, "setCodecConfigPreference: invalid codec "
+                    + Objects.toString(newCodecConfig));
             return;
         }
 
         // Check whether the codecConfig would change current codec config.
-        int prioritizedCodecType = getPrioitizedCodecType(codecConfig, selectableCodecs);
+        int prioritizedCodecType = getPrioitizedCodecType(newCodecConfig, selectableCodecs);
         BluetoothCodecConfig currentCodecConfig = codecStatus.getCodecConfig();
         if (prioritizedCodecType == currentCodecConfig.getCodecType()
-                && (currentCodecConfig.getCodecType() != codecConfig.getCodecType()
-                || currentCodecConfig.sameAudioFeedingParameters(codecConfig))) {
+                && (prioritizedCodecType != newCodecConfig.getCodecType()
+                || (currentCodecConfig.similarCodecFeedingParameters(newCodecConfig)
+                && currentCodecConfig.sameCodecSpecificParameters(newCodecConfig)))) {
             // Same codec with same parameters, no need to send this request to native.
-            Log.i(TAG, "setCodecConfigPreference: codec not changed.");
+            Log.w(TAG, "setCodecConfigPreference: codec not changed.");
             return;
         }
 
         BluetoothCodecConfig[] codecConfigArray = new BluetoothCodecConfig[1];
-        codecConfigArray[0] = codecConfig;
+        codecConfigArray[0] = newCodecConfig;
         mA2dpNativeInterface.setCodecConfigPreference(device, codecConfigArray);
     }
 
     void enableOptionalCodecs(BluetoothDevice device, BluetoothCodecConfig currentCodecConfig) {
         if (currentCodecConfig != null && !currentCodecConfig.isMandatoryCodec()) {
-            Log.i(TAG, "enableOptionalCodecs: already using optional codec: "
-                    + currentCodecConfig.getCodecType());
+            Log.i(TAG, "enableOptionalCodecs: already using optional codec "
+                    + currentCodecConfig.getCodecName());
             return;
         }
 
@@ -115,7 +117,7 @@ class A2dpCodecConfig {
 
     void disableOptionalCodecs(BluetoothDevice device, BluetoothCodecConfig currentCodecConfig) {
         if (currentCodecConfig != null && currentCodecConfig.isMandatoryCodec()) {
-            Log.i(TAG, "disableOptionalCodecs: already using mandatory codec");
+            Log.i(TAG, "disableOptionalCodecs: already using mandatory codec.");
             return;
         }
 
@@ -148,20 +150,6 @@ class A2dpCodecConfig {
             }
         }
         return prioritizedCodecConfig.getCodecType();
-    }
-
-    // Check whether the codecConfig is selectable
-    private static boolean isCodecConfigSelectable(BluetoothCodecConfig codecConfig,
-            BluetoothCodecConfig[] selectableCodecs) {
-        for (BluetoothCodecConfig config : selectableCodecs) {
-            if (codecConfig.getCodecType() == config.getCodecType()
-                    && (codecConfig.getSampleRate() & config.getSampleRate()) != 0
-                    && (codecConfig.getBitsPerSample() & config.getBitsPerSample()) != 0
-                    && (codecConfig.getChannelMode() & config.getChannelMode()) != 0) {
-                return true;
-            }
-        }
-        return false;
     }
 
     // Assign the A2DP Source codec config priorities
