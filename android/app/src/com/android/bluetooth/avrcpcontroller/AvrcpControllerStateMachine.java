@@ -94,7 +94,14 @@ class AvrcpControllerStateMachine extends StateMachine {
      */
     private static final int ABS_VOL_BASE = 127;
 
+    /*
+     * Notification types for Avrcp protocol JNI.
+     */
+    private static final byte NOTIFICATION_RSP_TYPE_INTERIM = 0x00;
+    private static final byte NOTIFICATION_RSP_TYPE_CHANGED = 0x01;
+
     private final AudioManager mAudioManager;
+    private final boolean mIsVolumeFixed;
 
     protected final BluetoothDevice mDevice;
     protected final byte[] mDeviceAddress;
@@ -113,6 +120,7 @@ class AvrcpControllerStateMachine extends StateMachine {
     private int mAddressedPlayerId = -1;
     private SparseArray<AvrcpPlayer> mAvailablePlayerList = new SparseArray<AvrcpPlayer>();
     private int mVolumeChangedNotificationsToIgnore = 0;
+    private int mVolumeNotificationLabel = -1;
 
     GetFolderList mGetFolderList = null;
 
@@ -142,6 +150,7 @@ class AvrcpControllerStateMachine extends StateMachine {
         mGetFolderList = new GetFolderList();
         addState(mGetFolderList, mConnected);
         mAudioManager = (AudioManager) service.getSystemService(Context.AUDIO_SERVICE);
+        mIsVolumeFixed = mAudioManager.isVolumeFixed();
 
         setInitialState(mDisconnected);
     }
@@ -311,7 +320,14 @@ class AvrcpControllerStateMachine extends StateMachine {
                     removeMessages(MESSAGE_INTERNAL_ABS_VOL_TIMEOUT);
                     sendMessageDelayed(MESSAGE_INTERNAL_ABS_VOL_TIMEOUT,
                             ABS_VOL_TIMEOUT_MILLIS);
-                    setAbsVolume(msg.arg1, msg.arg2);
+                    handleAbsVolumeRequest(msg.arg1, msg.arg2);
+                    return true;
+
+                case MESSAGE_PROCESS_REGISTER_ABS_VOL_NOTIFICATION:
+                    mVolumeNotificationLabel = msg.arg1;
+                    mService.sendRegisterAbsVolRspNative(mDeviceAddress,
+                            NOTIFICATION_RSP_TYPE_INTERIM,
+                            getAbsVolume(), mVolumeNotificationLabel);
                     return true;
 
                 case MESSAGE_GET_FOLDER_ITEMS:
@@ -587,24 +603,9 @@ class AvrcpControllerStateMachine extends StateMachine {
                     }
                     break;
 
-                case CONNECT:
-                case DISCONNECT:
-                case MSG_AVRCP_PASSTHRU:
-                case MESSAGE_PROCESS_SET_ABS_VOL_CMD:
-                case MESSAGE_PROCESS_REGISTER_ABS_VOL_NOTIFICATION:
-                case MESSAGE_PROCESS_TRACK_CHANGED:
-                case MESSAGE_PROCESS_PLAY_POS_CHANGED:
-                case MESSAGE_PROCESS_PLAY_STATUS_CHANGED:
-                case MESSAGE_PROCESS_VOLUME_CHANGED_NOTIFICATION:
-                case MESSAGE_PLAY_ITEM:
-                case MESSAGE_PROCESS_ADDRESSED_PLAYER_CHANGED:
+                default:
                     // All of these messages should be handled by parent state immediately.
                     return false;
-
-                default:
-                    logD(STATE_TAG + " deferring message " + msg.what
-                            + " to connected!");
-                    deferMessage(msg);
             }
             return true;
         }
@@ -717,23 +718,60 @@ class AvrcpControllerStateMachine extends StateMachine {
         }
     }
 
+    /**
+     * Handle a request to align our local volume with the volume of a remote device. If
+     * we're assuming the source volume is fixed then a response of ABS_VOL_MAX will always be
+     * sent and no volume adjustment action will be taken on the sink side.
+     *
+     * @param absVol A volume level based on a domain of [0, ABS_VOL_MAX]
+     * @param label Volume notification label
+     */
+    private void handleAbsVolumeRequest(int absVol, int label) {
+        logD("handleAbsVolumeRequest: absVol = " + absVol + ", label = " + label);
+        if (mIsVolumeFixed) {
+            logD("Source volume is assumed to be fixed, responding with max volume");
+            absVol = ABS_VOL_BASE;
+        } else {
+            mVolumeChangedNotificationsToIgnore++;
+            removeMessages(MESSAGE_INTERNAL_ABS_VOL_TIMEOUT);
+            sendMessageDelayed(MESSAGE_INTERNAL_ABS_VOL_TIMEOUT,
+                    ABS_VOL_TIMEOUT_MILLIS);
+            setAbsVolume(absVol);
+        }
+        mService.sendAbsVolRspNative(mDeviceAddress, absVol, label);
+    }
 
-    private void setAbsVolume(int absVol, int label) {
-        int maxVolume = mAudioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
-        int currIndex = mAudioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
-        int newIndex = (maxVolume * absVol) / ABS_VOL_BASE;
-        logD(" setAbsVolume =" + absVol + " maxVol = " + maxVolume
-                + " cur = " + currIndex + " new = " + newIndex);
+    /**
+     * Align our volume with a requested absolute volume level
+     *
+     * @param absVol A volume level based on a domain of [0, ABS_VOL_MAX]
+     */
+    private void setAbsVolume(int absVol) {
+        int maxLocalVolume = mAudioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
+        int curLocalVolume = mAudioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
+        int reqLocalVolume = (maxLocalVolume * absVol) / ABS_VOL_BASE;
+        logD("setAbsVolme: absVol = " + absVol + ", reqLocal = " + reqLocalVolume
+                + ", curLocal = " + curLocalVolume + ", maxLocal = " + maxLocalVolume);
+
         /*
          * In some cases change in percentage is not sufficient enough to warrant
          * change in index values which are in range of 0-15. For such cases
          * no action is required
          */
-        if (newIndex != currIndex) {
-            mAudioManager.setStreamVolume(AudioManager.STREAM_MUSIC, newIndex,
+        if (reqLocalVolume != curLocalVolume) {
+            mAudioManager.setStreamVolume(AudioManager.STREAM_MUSIC, reqLocalVolume,
                     AudioManager.FLAG_SHOW_UI);
         }
-        mService.sendAbsVolRspNative(mDeviceAddress, absVol, label);
+    }
+
+    private int getAbsVolume() {
+        if (mIsVolumeFixed) {
+            return ABS_VOL_BASE;
+        }
+        int maxVolume = mAudioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
+        int currIndex = mAudioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
+        int newIndex = (currIndex * ABS_VOL_BASE) / maxVolume;
+        return newIndex;
     }
 
     MediaSessionCompat.Callback mSessionCallbacks = new MediaSessionCompat.Callback() {
