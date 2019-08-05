@@ -39,9 +39,7 @@ import androidx.test.runner.AndroidJUnit4;
 
 import com.android.bluetooth.R;
 import com.android.bluetooth.TestUtils;
-import com.android.bluetooth.avrcp.AvrcpTargetService;
 import com.android.bluetooth.btservice.AdapterService;
-import com.android.bluetooth.btservice.ServiceFactory;
 import com.android.bluetooth.btservice.storage.DatabaseManager;
 
 import org.junit.After;
@@ -78,8 +76,6 @@ public class A2dpServiceTest {
     @Mock private AdapterService mAdapterService;
     @Mock private A2dpNativeInterface mA2dpNativeInterface;
     @Mock private DatabaseManager mDatabaseManager;
-    @Mock private AvrcpTargetService mAvrcpTargetService;
-    @Mock private ServiceFactory mFactory;
 
     @Rule public final ServiceTestRule mServiceRule = new ServiceTestRule();
 
@@ -98,13 +94,11 @@ public class A2dpServiceTest {
         TestUtils.setAdapterService(mAdapterService);
         doReturn(MAX_CONNECTED_AUDIO_DEVICES).when(mAdapterService).getMaxConnectedAudioDevices();
         doReturn(false).when(mAdapterService).isQuietModeEnabled();
-        doReturn(mAvrcpTargetService).when(mFactory).getAvrcpTargetService();
 
         mAdapter = BluetoothAdapter.getDefaultAdapter();
 
         startService();
         mA2dpService.mA2dpNativeInterface = mA2dpNativeInterface;
-        mA2dpService.mFactory = mFactory;
 
         // Override the timeout value to speed up the test
         A2dpStateMachine.sConnectTimeoutMs = TIMEOUT_MS;    // 1s
@@ -252,8 +246,6 @@ public class A2dpServiceTest {
         });
         // Verify that setActiveDevice(null) was called during shutdown
         verify(mA2dpNativeInterface).setActiveDevice(null);
-        // Verify that storeVolumeForDevice(mTestDevice) was called during shutdown
-        verify(mAvrcpTargetService).storeVolumeForDevice(mTestDevice);
         // Try to restart the service. Note: must be done on the main thread.
         InstrumentationRegistry.getInstrumentation().runOnMainSync(new Runnable() {
             public void run() {
@@ -796,13 +788,11 @@ public class A2dpServiceTest {
         Assert.assertEquals(mTestDevice, mA2dpService.getActiveDevice());
         Assert.assertTrue(mA2dpService.setSilenceMode(mTestDevice, true));
         verify(mA2dpNativeInterface).setSilenceDevice(mTestDevice, true);
-        verify(mAvrcpTargetService).storeVolumeForDevice(mTestDevice);
         Assert.assertNull(mA2dpService.getActiveDevice());
 
         // Test whether active device been resumeed after disable silence mode.
         Assert.assertTrue(mA2dpService.setSilenceMode(mTestDevice, false));
         verify(mA2dpNativeInterface).setSilenceDevice(mTestDevice, false);
-        verify(mAvrcpTargetService).storeVolumeForDevice(mTestDevice);
         Assert.assertEquals(mTestDevice, mA2dpService.getActiveDevice());
 
         // Test that active device should not be changed when silence a non-active device
@@ -810,13 +800,11 @@ public class A2dpServiceTest {
         Assert.assertEquals(mTestDevice, mA2dpService.getActiveDevice());
         Assert.assertTrue(mA2dpService.setSilenceMode(otherDevice, true));
         verify(mA2dpNativeInterface).setSilenceDevice(otherDevice, true);
-        verify(mAvrcpTargetService).storeVolumeForDevice(mTestDevice);
         Assert.assertEquals(mTestDevice, mA2dpService.getActiveDevice());
 
         // Test that active device should not be changed when another device exits silence mode
         Assert.assertTrue(mA2dpService.setSilenceMode(otherDevice, false));
         verify(mA2dpNativeInterface).setSilenceDevice(otherDevice, false);
-        verify(mAvrcpTargetService).storeVolumeForDevice(mTestDevice);
         Assert.assertEquals(mTestDevice, mA2dpService.getActiveDevice());
     }
 
@@ -904,28 +892,6 @@ public class A2dpServiceTest {
                 BluetoothA2dp.OPTIONAL_CODECS_NOT_SUPPORTED, false,
                 BluetoothA2dp.OPTIONAL_CODECS_PREF_DISABLED,
                 verifySupportTime, verifyNotSupportTime, verifyEnabledTime);
-    }
-
-    /**
-     * Test that volume level of previous active device will be stored after set active device.
-     */
-    @Test
-    public void testStoreVolumeAfterSetActiveDevice() {
-        BluetoothDevice otherDevice = mAdapter.getRemoteDevice("05:04:03:02:01:00");
-        connectDevice(otherDevice);
-        connectDevice(mTestDevice);
-        doReturn(true).when(mA2dpNativeInterface).setActiveDevice(any(BluetoothDevice.class));
-        doReturn(true).when(mA2dpNativeInterface).setActiveDevice(null);
-        Assert.assertTrue(mA2dpService.setActiveDevice(mTestDevice));
-
-        // Test volume stored for previous active device an adjust for current active device
-        Assert.assertTrue(mA2dpService.setActiveDevice(otherDevice));
-        verify(mAvrcpTargetService).storeVolumeForDevice(mTestDevice);
-        verify(mAvrcpTargetService).getRememberedVolumeForDevice(otherDevice);
-
-        // Test volume store for previous active device when set active device to null
-        Assert.assertTrue(mA2dpService.setActiveDevice(null));
-        verify(mAvrcpTargetService).storeVolumeForDevice(otherDevice);
     }
 
     private void connectDevice(BluetoothDevice device) {

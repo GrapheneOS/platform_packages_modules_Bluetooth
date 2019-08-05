@@ -33,7 +33,6 @@ import android.util.StatsLog;
 
 import com.android.bluetooth.BluetoothMetricsProto;
 import com.android.bluetooth.Utils;
-import com.android.bluetooth.a2dp.A2dpService;
 import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.MetricsLogger;
 import com.android.bluetooth.btservice.ProfileService;
@@ -511,15 +510,6 @@ public class HearingAidService extends ProfileService {
             Long deviceHiSyncId = mDeviceHiSyncIdMap.getOrDefault(device,
                     BluetoothHearingAid.HI_SYNC_ID_INVALID);
             if (deviceHiSyncId != mActiveDeviceHiSyncId) {
-                // Give an early notification to A2DP that active device is being switched
-                // to Hearing Aids before the Audio Service.
-                final A2dpService a2dpService = mFactory.getA2dpService();
-                if (a2dpService != null) {
-                    if (DBG) {
-                        Log.d(TAG, "earlyNotifyHearingAidActive for " + device);
-                    }
-                    a2dpService.earlyNotifyHearingAidActive();
-                }
                 mActiveDeviceHiSyncId = deviceHiSyncId;
                 reportActiveDevice(device);
             }
