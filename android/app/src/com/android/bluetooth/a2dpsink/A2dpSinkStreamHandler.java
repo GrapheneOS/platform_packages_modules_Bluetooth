@@ -26,6 +26,7 @@ import android.media.AudioManager.OnAudioFocusChangeListener;
 import android.media.MediaPlayer;
 import android.os.Handler;
 import android.os.Message;
+import android.support.v4.media.session.PlaybackStateCompat;
 import android.util.Log;
 
 import com.android.bluetooth.R;
@@ -225,7 +226,8 @@ public class A2dpSinkStreamHandler extends Handler {
                 break;
 
             case DELAYED_PAUSE:
-                if (mStreamAvailable && !inCallFromStreamingDevice()) {
+                if (BluetoothMediaBrowserService.getPlaybackState()
+                            == PlaybackStateCompat.STATE_PLAYING && !inCallFromStreamingDevice()) {
                     sendAvrcpPause();
                     mSentPause = true;
                     mStreamAvailable = false;
