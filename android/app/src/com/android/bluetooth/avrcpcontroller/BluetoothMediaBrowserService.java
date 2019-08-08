@@ -185,6 +185,20 @@ public class BluetoothMediaBrowserService extends MediaBrowserServiceCompat {
     }
 
     /**
+     * Get playback state
+     */
+    public static synchronized int getPlaybackState() {
+        if (sBluetoothMediaBrowserService != null) {
+            PlaybackStateCompat currentPlaybackState =
+                    sBluetoothMediaBrowserService.mSession.getController().getPlaybackState();
+            if (currentPlaybackState != null) {
+                return currentPlaybackState.getState();
+            }
+        }
+        return PlaybackStateCompat.STATE_ERROR;
+    }
+
+    /**
      * Get object for controlling playback
      */
     public static synchronized MediaControllerCompat.TransportControls getTransportControls() {
