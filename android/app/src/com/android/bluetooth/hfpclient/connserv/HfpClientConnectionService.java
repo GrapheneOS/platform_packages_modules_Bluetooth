@@ -335,10 +335,6 @@ public class HfpClientConnectionService extends ConnectionService {
                 .hfp_client_connection_service_support_emergency_call)) {
             // Need to have an emergency call capability to place emergency call
             capabilities |= PhoneAccount.CAPABILITY_PLACE_EMERGENCY_CALLS;
-            // Emergency call is processed in user 0 context in multi-user setting
-            // even if caller is from another user. Declare multi user
-            // capability for the account to be chosen.
-            capabilities |= PhoneAccount.CAPABILITY_MULTI_USER;
         }
 
         PhoneAccount account =
