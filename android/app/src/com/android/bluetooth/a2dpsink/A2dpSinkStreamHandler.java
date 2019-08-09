@@ -17,6 +17,7 @@
 package com.android.bluetooth.a2dpsink;
 
 import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothHeadsetClientCall;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.media.AudioAttributes;
@@ -361,7 +362,10 @@ public class A2dpSinkStreamHandler extends Handler {
         }
         HeadsetClientService headsetClientService = HeadsetClientService.getHeadsetClientService();
         if (targetDevice != null && headsetClientService != null) {
-            return headsetClientService.getCurrentCalls(targetDevice).size() > 0;
+            List<BluetoothHeadsetClientCall> currentCalls =
+                    headsetClientService.getCurrentCalls(targetDevice);
+            if (currentCalls == null) return false;
+            return currentCalls.size() > 0;
         }
         return false;
     }
