@@ -365,6 +365,31 @@ public class AvrcpControllerStateMachineTest {
     }
 
     /**
+     * Test media browser skip to queue item
+     */
+    @Test
+    public void testSkipToQueueInvalid() throws Exception {
+        byte scope = 1;
+        int minSize = 0;
+        int maxSize = 255;
+        setUpConnectedState(true, true);
+        MediaControllerCompat.TransportControls transportControls =
+                BluetoothMediaBrowserService.getTransportControls();
+
+        //Play an invalid item below start
+        transportControls.skipToQueueItem(minSize - 1);
+        verify(mAvrcpControllerService,
+                timeout(ASYNC_CALL_TIMEOUT_MILLIS).times(0)).playItemNative(
+                eq(mTestAddress), eq(scope), anyLong(), anyInt());
+
+        //Play an invalid item beyond end
+        transportControls.skipToQueueItem(maxSize + 1);
+        verify(mAvrcpControllerService,
+                timeout(ASYNC_CALL_TIMEOUT_MILLIS).times(0)).playItemNative(
+                eq(mTestAddress), eq(scope), anyLong(), anyInt());
+    }
+
+    /**
      * Test media browser shuffle command
      */
     @Test
