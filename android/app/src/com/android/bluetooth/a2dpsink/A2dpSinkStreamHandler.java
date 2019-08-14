@@ -17,6 +17,7 @@
 package com.android.bluetooth.a2dpsink;
 
 import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothHeadsetClientCall;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.media.AudioAttributes;
@@ -26,6 +27,7 @@ import android.media.AudioManager.OnAudioFocusChangeListener;
 import android.media.MediaPlayer;
 import android.os.Handler;
 import android.os.Message;
+import android.support.v4.media.session.PlaybackStateCompat;
 import android.util.Log;
 
 import com.android.bluetooth.R;
@@ -225,7 +227,8 @@ public class A2dpSinkStreamHandler extends Handler {
                 break;
 
             case DELAYED_PAUSE:
-                if (mStreamAvailable && !inCallFromStreamingDevice()) {
+                if (BluetoothMediaBrowserService.getPlaybackState()
+                            == PlaybackStateCompat.STATE_PLAYING && !inCallFromStreamingDevice()) {
                     sendAvrcpPause();
                     mSentPause = true;
                     mStreamAvailable = false;
@@ -359,7 +362,10 @@ public class A2dpSinkStreamHandler extends Handler {
         }
         HeadsetClientService headsetClientService = HeadsetClientService.getHeadsetClientService();
         if (targetDevice != null && headsetClientService != null) {
-            return headsetClientService.getCurrentCalls(targetDevice).size() > 0;
+            List<BluetoothHeadsetClientCall> currentCalls =
+                    headsetClientService.getCurrentCalls(targetDevice);
+            if (currentCalls == null) return false;
+            return currentCalls.size() > 0;
         }
         return false;
     }
