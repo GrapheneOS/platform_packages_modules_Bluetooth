@@ -100,7 +100,7 @@ public class BrowseTree {
     }
 
     BrowseNode getTrackFromNowPlayingList(int trackNumber) {
-        return mNowPlayingNode.mChildren.get(trackNumber);
+        return mNowPlayingNode.getChild(trackNumber);
     }
 
     // Each node of the tree is represented by Folder ID, Folder Name and the children.
@@ -216,6 +216,13 @@ public class BrowseTree {
 
         synchronized List<BrowseNode> getChildren() {
             return mChildren;
+        }
+
+        synchronized BrowseNode getChild(int index) {
+            if (index < 0 || index >= mChildren.size()) {
+                return null;
+            }
+            return mChildren.get(index);
         }
 
         synchronized BrowseNode getParent() {

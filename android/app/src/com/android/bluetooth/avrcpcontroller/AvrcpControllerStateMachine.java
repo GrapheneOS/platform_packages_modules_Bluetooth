@@ -361,10 +361,13 @@ class AvrcpControllerStateMachine extends StateMachine {
                     BluetoothMediaBrowserService.notifyChanged(mAddressedPlayer.getPlaybackState());
                     if (mAddressedPlayer.getPlaybackState().getState()
                             == PlaybackStateCompat.STATE_PLAYING
-                            && A2dpSinkService.getFocusState() == AudioManager.AUDIOFOCUS_NONE
-                            && !shouldRequestFocus()) {
+                            && A2dpSinkService.getFocusState() == AudioManager.AUDIOFOCUS_NONE) {
+                        if (shouldRequestFocus()) {
+                            mSessionCallbacks.onPrepare();
+                        } else {
                         sendMessage(MSG_AVRCP_PASSTHRU,
                                 AvrcpControllerService.PASS_THRU_CMD_ID_PAUSE);
+                        }
                     }
                     return true;
 
@@ -882,6 +885,7 @@ class AvrcpControllerStateMachine extends StateMachine {
 
     private boolean shouldRequestFocus() {
         return mService.getResources()
-                .getBoolean(R.bool.a2dp_sink_automatically_request_audio_focus);
+                .getBoolean(R.bool.a2dp_sink_automatically_request_audio_focus)
+                || !mAudioManager.isMusicActive();
     }
 }
