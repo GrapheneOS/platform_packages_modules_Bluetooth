@@ -140,7 +140,8 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
     private ObexServerSockets mServerSockets = null;
 
     private static final int SDP_PBAP_SERVER_VERSION = 0x0102;
-    private static final int SDP_PBAP_SUPPORTED_REPOSITORIES = 0x0001;
+    // PBAP v1.2.3, Sec. 7.1.2: local phonebook and favorites
+    private static final int SDP_PBAP_SUPPORTED_REPOSITORIES = 0x0009;
     private static final int SDP_PBAP_SUPPORTED_FEATURES = 0x021F;
 
     /* PBAP will use Bluetooth notification ID from 1000000 (included) to 2000000 (excluded).
