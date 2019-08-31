@@ -89,7 +89,14 @@ class AvrcpControllerStateMachine extends StateMachine {
      */
     private static final int ABS_VOL_BASE = 127;
 
+    /*
+     * Notification types for Avrcp protocol JNI.
+     */
+    private static final byte NOTIFICATION_RSP_TYPE_INTERIM = 0x00;
+    private static final byte NOTIFICATION_RSP_TYPE_CHANGED = 0x01;
+
     private final AudioManager mAudioManager;
+    private final boolean mIsVolumeFixed;
 
     protected final BluetoothDevice mDevice;
     protected final byte[] mDeviceAddress;
@@ -108,6 +115,7 @@ class AvrcpControllerStateMachine extends StateMachine {
     private int mAddressedPlayerId = -1;
     private SparseArray<AvrcpPlayer> mAvailablePlayerList = new SparseArray<AvrcpPlayer>();
     private int mVolumeChangedNotificationsToIgnore = 0;
+    private int mVolumeNotificationLabel = -1;
 
     GetFolderList mGetFolderList = null;
 
@@ -137,6 +145,7 @@ class AvrcpControllerStateMachine extends StateMachine {
         mGetFolderList = new GetFolderList();
         addState(mGetFolderList, mConnected);
         mAudioManager = (AudioManager) service.getSystemService(Context.AUDIO_SERVICE);
+        mIsVolumeFixed = mAudioManager.isVolumeFixed();
 
         setInitialState(mDisconnected);
     }
@@ -307,6 +316,13 @@ class AvrcpControllerStateMachine extends StateMachine {
                     sendMessageDelayed(MESSAGE_INTERNAL_ABS_VOL_TIMEOUT,
                             ABS_VOL_TIMEOUT_MILLIS);
                     setAbsVolume(msg.arg1, msg.arg2);
+                    return true;
+
+                case MESSAGE_PROCESS_REGISTER_ABS_VOL_NOTIFICATION:
+                    mVolumeNotificationLabel = msg.arg1;
+                    mService.sendRegisterAbsVolRspNative(mDeviceAddress,
+                            NOTIFICATION_RSP_TYPE_INTERIM,
+                            getAbsVolumeResponse(), mVolumeNotificationLabel);
                     return true;
 
                 case MESSAGE_GET_FOLDER_ITEMS:
@@ -548,24 +564,9 @@ class AvrcpControllerStateMachine extends StateMachine {
                     }
                     break;
 
-                case CONNECT:
-                case DISCONNECT:
-                case MSG_AVRCP_PASSTHRU:
-                case MESSAGE_PROCESS_SET_ABS_VOL_CMD:
-                case MESSAGE_PROCESS_REGISTER_ABS_VOL_NOTIFICATION:
-                case MESSAGE_PROCESS_TRACK_CHANGED:
-                case MESSAGE_PROCESS_PLAY_POS_CHANGED:
-                case MESSAGE_PROCESS_PLAY_STATUS_CHANGED:
-                case MESSAGE_PROCESS_VOLUME_CHANGED_NOTIFICATION:
-                case MESSAGE_PLAY_ITEM:
-                case MESSAGE_PROCESS_ADDRESSED_PLAYER_CHANGED:
+                default:
                     // All of these messages should be handled by parent state immediately.
                     return false;
-
-                default:
-                    logD(STATE_TAG + " deferring message " + msg.what
-                                + " to connected!");
-                    deferMessage(msg);
             }
             return true;
         }
@@ -694,7 +695,17 @@ class AvrcpControllerStateMachine extends StateMachine {
             mAudioManager.setStreamVolume(AudioManager.STREAM_MUSIC, newIndex,
                     AudioManager.FLAG_SHOW_UI);
         }
-        mService.sendAbsVolRspNative(mDeviceAddress, absVol, label);
+        mService.sendAbsVolRspNative(mDeviceAddress, getAbsVolumeResponse(), label);
+    }
+
+    private int getAbsVolumeResponse() {
+        if (mIsVolumeFixed) {
+            return ABS_VOL_BASE;
+        }
+        int maxVolume = mAudioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
+        int currIndex = mAudioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
+        int newIndex = (currIndex * ABS_VOL_BASE) / maxVolume;
+        return newIndex;
     }
 
     MediaSession.Callback mSessionCallbacks = new MediaSession.Callback() {
