@@ -41,7 +41,6 @@ import android.content.IntentFilter;
 import android.os.ParcelUuid;
 import android.os.SystemProperties;
 import android.os.UserHandle;
-import android.provider.Settings.Secure;
 import android.util.Log;
 import android.util.Pair;
 import android.util.StatsLog;
