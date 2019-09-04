@@ -47,15 +47,8 @@ cc_library_static {
         "include",
         ".",
     ],
-    header_libs: [
-        "libbluetooth_headers",
-    ],
     include_dirs: [
         "packages/modules/Bluetooth/system",
-        "packages/modules/Bluetooth/system/utils/include",
-        "packages/modules/Bluetooth/system/hci/include",
-        "packages/modules/Bluetooth/system/internal_include",
-        "packages/modules/Bluetooth/system/stack/include",
     ],
     shared_libs: [
         "libbase",
@@ -90,9 +83,6 @@ cc_test_host {
     ],
     include_dirs: [
         "packages/modules/Bluetooth/system",
-        "packages/modules/Bluetooth/system/utils/include",
-        "packages/modules/Bluetooth/system/hci/include",
-        "packages/modules/Bluetooth/system/stack/include",
     ],
     shared_libs: [
         "liblog",
@@ -126,9 +116,6 @@ cc_test_host {
     ],
     include_dirs: [
         "packages/modules/Bluetooth/system",
-        "packages/modules/Bluetooth/system/utils/include",
-        "packages/modules/Bluetooth/system/hci/include",
-        "packages/modules/Bluetooth/system/stack/include",
     ],
     shared_libs: [
         "liblog",
