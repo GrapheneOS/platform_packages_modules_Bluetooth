@@ -16,7 +16,7 @@
 
 <resources xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-    <string name="permlab_bluetoothShareManager" msgid="311492132450338925">"ダウンロードマネージャーにアクセスします。"</string>
+    <string name="permlab_bluetoothShareManager" msgid="311492132450338925">"ダウンロード マネージャーにアクセスします。"</string>
     <string name="permdesc_bluetoothShareManager" msgid="8930572979123190223">"BluetoothShareマネージャーへのアクセスとそれを利用したファイル転送をアプリに許可します。"</string>
     <string name="permlab_bluetoothWhitelist" msgid="7091552898592306386">"Bluetoothデバイスによるアクセスを許可します。"</string>
     <string name="permdesc_bluetoothWhitelist" msgid="5494513855192170109">"Bluetoothデバイスによるアクセスを一時的に許可して、ユーザーの確認を受けずにそのデバイスからこのデバイスにファイルを送信することをアプリに許可します。"</string>
