@@ -18,6 +18,7 @@ package com.android.bluetooth.avrcp;
 
 import android.bluetooth.BluetoothA2dp;
 import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothProfile;
 import android.bluetooth.IBluetoothAvrcpTarget;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -96,6 +97,19 @@ public class AvrcpTargetService extends ProfileService {
 
                 // Update all the playback status info for each connected device
                 mNativeInterface.sendMediaUpdate(false, true, false);
+            } else if (action.equals(BluetoothA2dp.ACTION_CONNECTION_STATE_CHANGED)) {
+                if (mNativeInterface == null) return;
+
+                BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+                if (device == null) return;
+
+                int state = intent.getIntExtra(BluetoothProfile.EXTRA_STATE, -1);
+                if (state == BluetoothProfile.STATE_DISCONNECTED) {
+                    // If there is no connection, disconnectDevice() will do nothing
+                    if (mNativeInterface.disconnectDevice(device.getAddress())) {
+                        Log.d(TAG, "request to disconnect device " + device);
+                    }
+                }
             }
         }
     }
@@ -166,6 +180,7 @@ public class AvrcpTargetService extends ProfileService {
         mReceiver = new AvrcpBroadcastReceiver();
         IntentFilter filter = new IntentFilter();
         filter.addAction(BluetoothA2dp.ACTION_ACTIVE_DEVICE_CHANGED);
+        filter.addAction(BluetoothA2dp.ACTION_CONNECTION_STATE_CHANGED);
         registerReceiver(mReceiver, filter);
 
         // Only allow the service to be used once it is initialized
