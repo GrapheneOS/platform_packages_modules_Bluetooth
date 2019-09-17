@@ -21,7 +21,7 @@
     <string name="permlab_bluetoothWhitelist" msgid="7091552898592306386">"Jarri onartutakoen zerrendan Bluetooth bidezko gailua."</string>
     <string name="permdesc_bluetoothWhitelist" msgid="5494513855192170109">"Bluetooth bidezko gailu bat aldi baterako onartutakoen zerrendan jartzeko baimena ematen die aplikazioei, gailu honetara fitxategiak bidaltzeko baimena izan dezan, baina gailu honen erabiltzaileari berrespena eskatu beharrik gabe."</string>
     <string name="bt_share_picker_label" msgid="6268100924487046932">"Bluetooth-a"</string>
-    <string name="unknown_device" msgid="9221903979877041009">"Gailu ezezaguna"</string>
+    <string name="unknown_device" msgid="9221903979877041009">"Identifikatu ezin den gailua"</string>
     <string name="unknownNumber" msgid="4994750948072751566">"Ezezaguna"</string>
     <string name="airplane_error_title" msgid="2683839635115739939">"Hegaldi modua"</string>
     <string name="airplane_error_msg" msgid="8698965595254137230">"Ezin duzu erabili Bluetooth-a Hegaldi moduan."</string>
