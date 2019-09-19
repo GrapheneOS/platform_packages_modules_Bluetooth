@@ -134,8 +134,9 @@ class MediaPlayerWrapper {
     }
 
     long getActiveQueueID() {
-        if (mMediaController.getPlaybackState() == null) return -1;
-        return mMediaController.getPlaybackState().getActiveQueueItemId();
+        PlaybackState state = mMediaController.getPlaybackState();
+        if (state == null) return -1;
+        return state.getActiveQueueItemId();
     }
 
     List<Metadata> getCurrentQueue() {
