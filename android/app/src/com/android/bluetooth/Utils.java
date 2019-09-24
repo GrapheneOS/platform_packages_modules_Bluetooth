@@ -34,10 +34,6 @@ import android.os.UserHandle;
 import android.os.UserManager;
 import android.util.Log;
 
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -264,21 +260,6 @@ public final class Utils {
                 || (Process.SYSTEM_UID == callingUid);
     }
 
-   static Context mParentUserCacheContext = null;
-   // Cache location off for 10 users, cache is valid for 2 seconds.
-   static LoadingCache<Integer, Integer> mParentUserCache = CacheBuilder.newBuilder()
-       .maximumSize(10)
-       .expireAfterWrite(2, TimeUnit.SECONDS)
-       .build(
-           new CacheLoader<Integer, Integer>() {
-             public Integer load(Integer callingUser) {
-                UserManager um = (UserManager) mParentUserCacheContext.getSystemService(Context.USER_SERVICE);
-                UserInfo ui = um.getProfileParent(callingUser);
-                int parentUser = (ui != null) ? ui.id : UserHandle.USER_NULL;
-                return parentUser;
-             }
-           });
-
     public static boolean checkCallerAllowManagedProfiles(Context mContext) {
         if (mContext == null) {
             return checkCaller();
@@ -289,19 +270,9 @@ public final class Utils {
         // Use the Bluetooth process identity when making call to get parent user
         long ident = Binder.clearCallingIdentity();
         try {
-
-            if (mParentUserCacheContext == null)
-                mParentUserCacheContext = mContext;
-
-            int parentUser = 0;
-
-            try {
-                parentUser = mParentUserCache.get(callingUid);
-            } catch (java.util.concurrent.ExecutionException e) {
-                UserManager um = (UserManager) mContext.getSystemService(Context.USER_SERVICE);
-                UserInfo ui = um.getProfileParent(callingUser);
-                parentUser = (ui != null) ? ui.id : UserHandle.USER_NULL;
-            }
+            UserManager um = (UserManager) mContext.getSystemService(Context.USER_SERVICE);
+            UserInfo ui = um.getProfileParent(callingUser);
+            int parentUser = (ui != null) ? ui.id : UserHandle.USER_NULL;
 
             // Always allow SystemUI/System access.
             return (sForegroundUserId == callingUser) || (sForegroundUserId == parentUser)
@@ -330,30 +301,9 @@ public final class Utils {
      * Checks whether location is off and must be on for us to perform some operation
      */
     public static boolean blockedByLocationOff(Context context, UserHandle userHandle) {
-        if (mBlockedByLocationOffContext == null)
-            mBlockedByLocationOffContext = context;
-
-        try {
-            return mBlockedByLocationOffCache.get(userHandle);
-        } catch (java.util.concurrent.ExecutionException e) {
-            Log.e(TAG, "blockedByLocationOff: " + e);
-            return context.getSystemService(LocationManager.class)
+        return !context.getSystemService(LocationManager.class)
                 .isLocationEnabledForUser(userHandle);
-        }
     }
-
-   static Context mBlockedByLocationOffContext = null;
-   // Cache location off for 10 users, cache is valid for 2 seconds.
-   static LoadingCache<UserHandle, Boolean> mBlockedByLocationOffCache = CacheBuilder.newBuilder()
-       .maximumSize(10)
-       .expireAfterWrite(2, TimeUnit.SECONDS)
-       .build(
-           new CacheLoader<UserHandle, Boolean>() {
-             public Boolean load(UserHandle userHandle) {
-               return !mBlockedByLocationOffContext.getSystemService(LocationManager.class)
-                .isLocationEnabledForUser(userHandle);
-             }
-           });
 
     /**
      * Checks that calling process has android.Manifest.permission.ACCESS_COARSE_LOCATION and
