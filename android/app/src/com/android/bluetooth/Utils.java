@@ -34,6 +34,10 @@ import android.os.UserHandle;
 import android.os.UserManager;
 import android.util.Log;
 
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -301,9 +305,30 @@ public final class Utils {
      * Checks whether location is off and must be on for us to perform some operation
      */
     public static boolean blockedByLocationOff(Context context, UserHandle userHandle) {
-        return !context.getSystemService(LocationManager.class)
+        if (mBlockedByLocationOffContext == null)
+            mBlockedByLocationOffContext = context;
+
+        try {
+            return mBlockedByLocationOffCache.get(userHandle);
+        } catch (java.util.concurrent.ExecutionException e) {
+            Log.e(TAG, "blockedByLocationOff: " + e);
+            return context.getSystemService(LocationManager.class)
                 .isLocationEnabledForUser(userHandle);
+        }
     }
+
+   static Context mBlockedByLocationOffContext = null;
+   // Cache location off for 10 users, cache is valid for 2 seconds.
+   static LoadingCache<UserHandle, Boolean> mBlockedByLocationOffCache = CacheBuilder.newBuilder()
+       .maximumSize(10)
+       .expireAfterWrite(2, TimeUnit.SECONDS)
+       .build(
+           new CacheLoader<UserHandle, Boolean>() {
+             public Boolean load(UserHandle userHandle) {
+               return !mBlockedByLocationOffContext.getSystemService(LocationManager.class)
+                .isLocationEnabledForUser(userHandle);
+             }
+           });
 
     /**
      * Checks that calling process has android.Manifest.permission.ACCESS_COARSE_LOCATION and
