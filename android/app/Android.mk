@@ -22,6 +22,7 @@ LOCAL_JAVA_LIBRARIES := javax.obex telephony-common services.net
 LOCAL_STATIC_JAVA_LIBRARIES := \
         com.android.vcard \
         bluetooth.mapsapi \
+        guava \
         sap-api-java-static \
         services.net \
         libprotobuf-java-lite \
