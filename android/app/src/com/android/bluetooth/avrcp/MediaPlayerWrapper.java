@@ -60,6 +60,7 @@ class MediaPlayerWrapper {
 
     public interface Callback {
         void mediaUpdatedCallback(MediaData data);
+        void sessionUpdatedCallback(String packageName);
     }
 
     boolean isPlaybackStateReady() {
@@ -470,6 +471,7 @@ class MediaPlayerWrapper {
         @Override
         public void onSessionDestroyed() {
             Log.w(TAG, "The session was destroyed " + mPackageName);
+            mRegisteredCallback.sessionUpdatedCallback(mPackageName);
         }
 
         @VisibleForTesting
