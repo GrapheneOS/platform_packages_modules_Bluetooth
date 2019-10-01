@@ -375,24 +375,13 @@ public class BluetoothOppTransferActivity extends AlertActivity
                             mTransInfo.mID);
                 } else if (mWhichDialog == DIALOG_SEND_COMPLETE_FAIL) {
                     // "try again"
-
                     // make current transfer "hidden"
                     BluetoothOppUtility.updateVisibilityToHidden(this, mUri);
 
                     // clear correspondent notification item
                     ((NotificationManager) getSystemService(NOTIFICATION_SERVICE)).cancel(
                             mTransInfo.mID);
-
-                    // retry the failed transfer
-                    Uri uri = BluetoothOppUtility.originalUri(Uri.parse(mTransInfo.mFileUri));
-                    BluetoothOppSendFileInfo sendFileInfo =
-                            BluetoothOppSendFileInfo.generateFileInfo(BluetoothOppTransferActivity
-                            .this, uri, mTransInfo.mFileType, false);
-                    uri = BluetoothOppUtility.generateUri(uri, sendFileInfo);
-                    BluetoothOppUtility.putSendFileInfo(uri, sendFileInfo);
-                    mTransInfo.mFileUri = uri.toString();
-                    BluetoothOppUtility.retryTransfer(this, mTransInfo);
-
+                    retryFailedTrasfer();
                     BluetoothDevice remoteDevice = mAdapter.getRemoteDevice(mTransInfo.mDestAddr);
 
                     // Display toast message
@@ -501,5 +490,24 @@ public class BluetoothOppTransferActivity extends AlertActivity
             mAlert.getButton(DialogInterface.BUTTON_NEGATIVE)
                     .setText(getString(R.string.upload_fail_cancel));
         }
+    }
+
+   /*
+    * Retry the failed transfer in background thread
+    */
+   private void retryFailedTrasfer() {
+        new Thread() {
+            @Override
+            public void run() {
+                Uri uri = BluetoothOppUtility.originalUri(Uri.parse(mTransInfo.mFileUri));
+                BluetoothOppSendFileInfo sendFileInfo =
+                        BluetoothOppSendFileInfo.generateFileInfo(BluetoothOppTransferActivity
+                        .this, uri, mTransInfo.mFileType, false);
+                uri = BluetoothOppUtility.generateUri(uri, sendFileInfo);
+                BluetoothOppUtility.putSendFileInfo(uri, sendFileInfo);
+                mTransInfo.mFileUri = uri.toString();
+                BluetoothOppUtility.retryTransfer(BluetoothOppTransferActivity.this, mTransInfo);
+            }
+        }.start();
     }
 }
