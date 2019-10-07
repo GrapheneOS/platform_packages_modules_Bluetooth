@@ -74,6 +74,7 @@ public class BrowsablePlayerConnector {
         for (ResolveInfo info : players) {
             BrowsedPlayerWrapper player = BrowsedPlayerWrapper.wrap(
                             context,
+                            looper,
                             info.serviceInfo.packageName,
                             info.serviceInfo.name);
             newWrapper.mPendingPlayers.add(player);
