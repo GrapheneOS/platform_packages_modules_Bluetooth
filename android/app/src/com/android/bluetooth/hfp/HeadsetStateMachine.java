@@ -1198,6 +1198,21 @@ public class HeadsetStateMachine extends StateMachine {
         }
     }
 
+    class MyAudioServerStateCallback extends AudioManager.AudioServerStateCallback {
+        @Override
+        public void onAudioServerDown() {
+            logi("onAudioServerDown");
+        }
+
+        @Override
+        public void onAudioServerUp() {
+            logi("onAudioServerUp restoring audio parameters");
+            setAudioParameters();
+        }
+    }
+
+    MyAudioServerStateCallback mAudioServerStateCallback = new MyAudioServerStateCallback();
+
     class AudioOn extends ConnectedBase {
         @Override
         int getAudioStateInt() {
@@ -1216,7 +1231,18 @@ public class HeadsetStateMachine extends StateMachine {
                 mHeadsetService.setActiveDevice(mDevice);
             }
             setAudioParameters();
+
+            mSystemInterface.getAudioManager().setAudioServerStateCallback(
+                    mHeadsetService.getMainExecutor(), mAudioServerStateCallback);
+
             broadcastStateTransitions();
+        }
+
+        @Override
+        public void exit() {
+            super.exit();
+
+            mSystemInterface.getAudioManager().clearAudioServerStateCallback();
         }
 
         @Override
