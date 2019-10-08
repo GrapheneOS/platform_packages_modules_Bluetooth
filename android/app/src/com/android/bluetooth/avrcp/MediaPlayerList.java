@@ -459,6 +459,15 @@ public class MediaPlayerList {
         if (playerId == mActivePlayerId && playerId != NO_ACTIVE_PLAYER) {
             getActivePlayer().unregisterCallback();
             mActivePlayerId = NO_ACTIVE_PLAYER;
+            List<Metadata> queue = new ArrayList<Metadata>();
+            queue.add(Util.empty_data());
+            MediaData newData = new MediaData(
+                    Util.empty_data(),
+                    null,
+                    queue
+                );
+
+            sendMediaUpdate(newData);
         }
 
         final MediaPlayerWrapper wrapper = mMediaPlayers.get(playerId);
@@ -606,6 +615,14 @@ public class MediaPlayerList {
             }
 
             sendMediaUpdate(data);
+        }
+
+        @Override
+        public void sessionUpdatedCallback(String packageName) {
+            if (packageName != null && mMediaPlayerIds.containsKey(packageName)) {
+                Log.d(TAG, "sessionUpdatedCallback(): packageName: " + packageName);
+                removeMediaPlayer(mMediaPlayerIds.get(packageName));
+            }
         }
     };
 
