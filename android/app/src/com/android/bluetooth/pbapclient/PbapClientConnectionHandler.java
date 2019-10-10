@@ -337,7 +337,10 @@ class PbapClientConnectionHandler extends Handler {
             if (DBG) {
                 Log.d(TAG, "Success = " + Boolean.toString(connectionSuccessful));
             }
-        } catch (IOException e) {
+        } catch (IOException | NullPointerException e) {
+            // Will get NPE if a null mSocket is passed to BluetoothObexTransport.
+            // mSocket can be set to null if an abort() --> closeSocket() was called between
+            // the calls to connectSocket() and connectObexSession().
             Log.w(TAG, "CONNECT Failure " + e.toString());
             closeSocket();
         }
