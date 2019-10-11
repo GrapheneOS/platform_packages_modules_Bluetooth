@@ -50,7 +50,7 @@ class AvrcpPlayer {
     private String mName = "";
     private int mPlayerType;
     private byte[] mPlayerFeatures = new byte[16];
-    private long mAvailableActions;
+    private long mAvailableActions = PlaybackStateCompat.ACTION_PREPARE;
     private MediaMetadata mCurrentTrack;
     private PlaybackStateCompat mPlaybackStateCompat;
     private PlayerApplicationSettings mSupportedPlayerApplicationSettings =
@@ -63,7 +63,7 @@ class AvrcpPlayer {
         mAvailableActions = PlaybackStateCompat.ACTION_PAUSE | PlaybackStateCompat.ACTION_PLAY
                 | PlaybackStateCompat.ACTION_SKIP_TO_NEXT
                 | PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS
-                | PlaybackStateCompat.ACTION_STOP;
+                | PlaybackStateCompat.ACTION_STOP | PlaybackStateCompat.ACTION_PREPARE;
         PlaybackStateCompat.Builder playbackStateBuilder = new PlaybackStateCompat.Builder()
                 .setActions(mAvailableActions);
         mPlaybackStateCompat = playbackStateBuilder.build();
