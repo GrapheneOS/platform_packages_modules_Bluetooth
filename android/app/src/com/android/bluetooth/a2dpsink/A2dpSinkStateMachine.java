@@ -15,6 +15,8 @@
  */
 package com.android.bluetooth.a2dpsink;
 
+import static android.bluetooth.BluetoothProfile.PRIORITY_OFF;
+
 import android.bluetooth.BluetoothA2dpSink;
 import android.bluetooth.BluetoothAudioConfig;
 import android.bluetooth.BluetoothDevice;
@@ -168,6 +170,15 @@ public class A2dpSinkStateMachine extends StateMachine {
             switch (event.mType) {
                 case StackEvent.EVENT_TYPE_CONNECTION_STATE_CHANGED:
                     switch (event.mState) {
+                        case StackEvent.CONNECTION_STATE_CONNECTING:
+                            if (mService.getPriority(mDevice) == PRIORITY_OFF) {
+                                Log.w(TAG, "Ignore incoming connection, profile is"
+                                        + " turned off for " + mDevice);
+                                mService.disconnectA2dpNative(mDeviceAddress);
+                            } else {
+                                transitionTo(mConnecting);
+                            }
+                            break;
                         case StackEvent.CONNECTION_STATE_CONNECTED:
                             transitionTo(mConnected);
                             break;
