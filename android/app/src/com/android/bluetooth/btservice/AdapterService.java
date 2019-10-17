@@ -2870,7 +2870,8 @@ public class AdapterService extends Service {
     }
 
     private boolean isSingleUserMode() {
-        return UserManager.get(this).hasUserRestriction(UserManager.DISALLOW_ADD_USER);
+        // TODO(optedoblivion): Disable for now, re-enable with ADB command.
+        return false;
     }
 
     /**
