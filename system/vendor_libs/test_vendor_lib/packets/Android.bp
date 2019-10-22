@@ -38,6 +38,7 @@ cc_library_static {
         "packages/modules/Bluetooth/system/vendor_libs/test_vendor_lib/include",
         "packages/modules/Bluetooth/system/vendor_libs/test_vendor_lib/",
         "packages/modules/Bluetooth/system/",
+        "packages/modules/Bluetooth/system/gd",
     ],
     shared_libs: [
         "libbase",
@@ -69,6 +70,7 @@ cc_test_host {
     ],
     include_dirs: [
         "packages/modules/Bluetooth/system",
+        "packages/modules/Bluetooth/system/gd",
         "packages/modules/Bluetooth/system/hci/include",
         "packages/modules/Bluetooth/system/vendor_libs/test_vendor_lib",
         "packages/modules/Bluetooth/system/vendor_libs/test_vendor_lib/include",
