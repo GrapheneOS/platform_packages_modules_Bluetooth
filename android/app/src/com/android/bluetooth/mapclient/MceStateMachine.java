@@ -474,6 +474,11 @@ final class MceStateMachine extends StateMachine {
                     }
                     break;
 
+                case MSG_MAS_DISCONNECTED:
+                    deferMessage(message);
+                    transitionTo(mDisconnecting);
+                    break;
+
                 case MSG_OUTBOUND_MESSAGE:
                     mMasClient.makeRequest(
                             new RequestPushMessage(FOLDER_OUTBOX, (Bmessage) message.obj, null,
