@@ -17,6 +17,7 @@
 package com.android.bluetooth.mapclient;
 
 import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothProfile;
 import android.bluetooth.BluetoothServerSocket;
 import android.bluetooth.BluetoothSocket;
 import android.os.Handler;
@@ -128,6 +129,11 @@ public class MnsService {
             if (stateMachine == null) {
                 Log.e(TAG, "Error: NO statemachine for device: " + device.getAddress()
                         + " (name: " + device.getName());
+                return false;
+            } else if (stateMachine.getState() != BluetoothProfile.STATE_CONNECTED) {
+                Log.e(TAG, "Error: statemachine for device: " + device.getAddress()
+                        + " (name: " + device.getName() + ") is not currently CONNECTED : "
+                        + stateMachine.getCurrentState());
                 return false;
             }
             MnsObexServer srv = new MnsObexServer(stateMachine, sServerSockets);
