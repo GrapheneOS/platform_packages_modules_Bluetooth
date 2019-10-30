@@ -54,10 +54,6 @@ class MediaPlayerWrapper {
     private final Object mCallbackLock = new Object();
     private Callback mRegisteredCallback = null;
 
-    protected MediaPlayerWrapper() {
-        mCurrentData = new MediaData(null, null, null);
-    }
-
     public interface Callback {
         void mediaUpdatedCallback(MediaData data);
         void sessionUpdatedCallback(String packageName);
@@ -81,30 +77,15 @@ class MediaPlayerWrapper {
         return true;
     }
 
-    // TODO (apanicke): Implement a factory to make testing and creating interop wrappers easier
-    static MediaPlayerWrapper wrap(MediaController controller, Looper looper) {
-        if (controller == null || looper == null) {
-            e("MediaPlayerWrapper.wrap(): Null parameter - Controller: " + controller
-                    + " | Looper: " + looper);
-            return null;
-        }
+    MediaPlayerWrapper(MediaController controller, Looper looper) {
+        mMediaController = controller;
+        mPackageName = controller.getPackageName();
+        mLooper = looper;
 
-        MediaPlayerWrapper newWrapper;
-        if (controller.getPackageName().equals("com.google.android.music")) {
-            Log.v(TAG, "Creating compatibility wrapper for Google Play Music");
-            newWrapper = new GPMWrapper();
-        } else {
-            newWrapper = new MediaPlayerWrapper();
-        }
-
-        newWrapper.mMediaController = controller;
-        newWrapper.mPackageName = controller.getPackageName();
-        newWrapper.mLooper = looper;
-
-        newWrapper.mCurrentData.queue = Util.toMetadataList(newWrapper.getQueue());
-        newWrapper.mCurrentData.metadata = Util.toMetadata(newWrapper.getMetadata());
-        newWrapper.mCurrentData.state = newWrapper.getPlaybackState();
-        return newWrapper;
+        mCurrentData = new MediaData(null, null, null);
+        mCurrentData.queue = Util.toMetadataList(getQueue());
+        mCurrentData.metadata = Util.toMetadata(getMetadata());
+        mCurrentData.state = getPlaybackState();
     }
 
     void cleanup() {
