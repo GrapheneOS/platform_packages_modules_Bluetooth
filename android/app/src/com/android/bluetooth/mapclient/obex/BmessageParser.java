@@ -309,6 +309,12 @@ class BmessageParser {
         String remng = mParser.remaining();
         byte[] data = remng.getBytes();
 
+        if (offset < 0 || offset > data.length) {
+            /* Handle possible exception for incorrect LENGTH value
+             * from MSE while parsing end of props */
+            throw new ParseException("Invalid LENGTH value", mParser.pos());
+        }
+
         /* restart parsing from after 'message'<CRLF> */
         mParser = new BmsgTokenizer(new String(data, offset, data.length - offset), restartPos);
 
