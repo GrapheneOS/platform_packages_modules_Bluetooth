@@ -1,3 +1,53 @@
 subdirs = [
     "jni",
 ]
+
+
+// MAP API module
+
+java_library {
+    name: "bluetooth.mapsapi",
+
+    srcs: ["lib/mapapi/**/*.java"],
+}
+
+// Bluetooth APK
+
+android_app {
+    name: "Bluetooth",
+
+    srcs: ["src/**/*.java"],
+    platform_apis: true,
+    certificate: "platform",
+
+    jni_libs: ["libbluetooth_jni"],
+    libs: [
+        "javax.obex",
+        "telephony-common",
+        "services.net",
+    ],
+    static_libs: [
+        "com.android.vcard",
+        "bluetooth.mapsapi",
+        "sap-api-java-static",
+        "services.net",
+        "libprotobuf-java-lite",
+        "bluetooth-protos-lite",
+        "androidx.core_core",
+        "androidx.legacy_legacy-support-v4",
+        "androidx.lifecycle_lifecycle-livedata",
+        "androidx.room_room-runtime",
+        "guava",
+    ],
+
+    plugins: [
+        "androidx.room_room-compiler-plugin",
+    ],
+
+    javacflags: ["-Aroom.schemaLocation=tests/unit/src/com/android/bluetooth/btservice/storage/schemas"],
+
+    optimize: {
+        enabled: false,
+    },
+    required: ["libbluetooth"]
+}
