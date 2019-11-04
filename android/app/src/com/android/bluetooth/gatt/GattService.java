@@ -340,25 +340,25 @@ public class GattService extends ProfileService {
                 Log.d(TAG, "Binder is dead - unregistering scanner (" + mScannerId + ")!");
             }
 
-            if (isScanClient(mScannerId)) {
-                ScanClient client = new ScanClient(mScannerId);
+            ScanClient client = getScanClient(mScannerId);
+            if (client != null) {
                 client.appDied = true;
                 stopScan(client.scannerId);
             }
         }
 
-        private boolean isScanClient(int clientIf) {
+        private ScanClient getScanClient(int clientIf) {
             for (ScanClient client : mScanManager.getRegularScanQueue()) {
                 if (client.scannerId == clientIf) {
-                    return true;
+                    return client;
                 }
             }
             for (ScanClient client : mScanManager.getBatchScanQueue()) {
                 if (client.scannerId == clientIf) {
-                    return true;
+                    return client;
                 }
             }
-            return false;
+            return null;
         }
     }
 
