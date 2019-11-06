@@ -18,18 +18,17 @@
 #ifndef COM_ANDROID_BLUETOOTH_H
 #define COM_ANDROID_BLUETOOTH_H
 
-#include <nativehelper/JNIHelp.h>
-#include "android_runtime/AndroidRuntime.h"
-#include "android_runtime/Log.h"
 #include "hardware/bluetooth.h"
 #include "hardware/hardware.h"
 #include "jni.h"
+#include "jni_logging.h"
 #include "nativehelper/ScopedLocalRef.h"
 #include "utils/Log.h"
 
 namespace android {
 
 JNIEnv* getCallbackEnv();
+bool isCallbackThread();
 
 class CallbackEnv {
 public:
@@ -46,10 +45,9 @@ public:
     }
 
     bool valid() const {
-      JNIEnv *env = AndroidRuntime::getJNIEnv();
-      if (!mCallbackEnv || (mCallbackEnv != env)) {
-          ALOGE("%s: Callback env fail: env: %p, callback: %p", mName, env, mCallbackEnv);
-          return false;
+      if (!mCallbackEnv || !isCallbackThread()) {
+        ALOGE("%s: Callback env fail", mName);
+        return false;
       }
       return true;
     }
