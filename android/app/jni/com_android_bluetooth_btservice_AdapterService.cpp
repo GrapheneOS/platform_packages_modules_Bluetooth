@@ -15,10 +15,8 @@
  */
 
 #define LOG_TAG "BluetoothServiceJni"
-#include "bluetooth_socket_manager.h"
 #include "com_android_bluetooth.h"
 #include "hardware/bt_sock.h"
-#include "permission_helpers.h"
 #include "utils/Log.h"
 #include "utils/misc.h"
 
@@ -1127,14 +1125,6 @@ static jboolean getRemoteServicesNative(JNIEnv* env, jobject obj,
   return (ret == BT_STATUS_SUCCESS) ? JNI_TRUE : JNI_FALSE;
 }
 
-static void setSystemUiUidNative(JNIEnv* env, jobject obj, jint uid) {
-  android::bluetooth::systemUiUid = uid;
-}
-
-static void setForegroundUserIdNative(JNIEnv* env, jclass clazz, jint id) {
-  android::bluetooth::foregroundUserId = id;
-}
-
 static int readEnergyInfo() {
   ALOGV("%s", __func__);
 
@@ -1334,8 +1324,6 @@ static JNINativeMethod sMethods[] = {
     {"pinReplyNative", "([BZI[B)Z", (void*)pinReplyNative},
     {"sspReplyNative", "([BIZI)Z", (void*)sspReplyNative},
     {"getRemoteServicesNative", "([B)Z", (void*)getRemoteServicesNative},
-    {"setSystemUiUidNative", "(I)V", (void*)setSystemUiUidNative},
-    {"setForegroundUserIdNative", "(I)V", (void*)setForegroundUserIdNative},
     {"alarmFiredNative", "()V", (void*)alarmFiredNative},
     {"readEnergyInfo", "()I", (void*)readEnergyInfo},
     {"dumpNative", "(Ljava/io/FileDescriptor;[Ljava/lang/String;)V",
