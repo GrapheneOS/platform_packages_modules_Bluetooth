@@ -18,12 +18,10 @@
 #ifndef COM_ANDROID_BLUETOOTH_H
 #define COM_ANDROID_BLUETOOTH_H
 
-#include <nativehelper/JNIHelp.h>
-#include "android_runtime/AndroidRuntime.h"
-#include "android_runtime/Log.h"
 #include "hardware/bluetooth.h"
 #include "hardware/hardware.h"
 #include "jni.h"
+#include "jni_logging.h"
 #include "nativehelper/ScopedLocalRef.h"
 #include "utils/Log.h"
 
