@@ -23,7 +23,6 @@
 #include <shared_mutex>
 #include <vector>
 
-#include "android_runtime/AndroidRuntime.h"
 #include "avrcp.h"
 #include "com_android_bluetooth.h"
 #include "utils/Log.h"
