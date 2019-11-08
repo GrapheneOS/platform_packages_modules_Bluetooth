@@ -458,7 +458,6 @@ public class AdapterService extends Service {
                     "com.android.systemui", PackageManager.MATCH_SYSTEM_ONLY,
                     UserHandle.USER_SYSTEM);
             Utils.setSystemUiUid(systemUiUid);
-            setSystemUiUidNative(systemUiUid);
         } catch (PackageManager.NameNotFoundException e) {
             // Some platforms, such as wearables do not have a system ui.
             Log.w(TAG, "Unable to resolve SystemUI's UID.", e);
@@ -469,7 +468,6 @@ public class AdapterService extends Service {
                 filter, null, null);
         int fuid = ActivityManager.getCurrentUser();
         Utils.setForegroundUserId(fuid);
-        setForegroundUserIdNative(fuid);
     }
 
     @Override
@@ -502,7 +500,6 @@ public class AdapterService extends Service {
             if (Intent.ACTION_USER_SWITCHED.equals(intent.getAction())) {
                 int fuid = intent.getIntExtra(Intent.EXTRA_USER_HANDLE, 0);
                 Utils.setForegroundUserId(fuid);
-                setForegroundUserIdNative(fuid);
             }
         }
     };
@@ -2955,10 +2952,6 @@ public class AdapterService extends Service {
     native boolean getRemoteMasInstancesNative(byte[] address);
 
     private native int readEnergyInfo();
-
-    private native void setSystemUiUidNative(int systemUiUid);
-
-    private static native void setForegroundUserIdNative(int foregroundUserId);
 
     /*package*/
     native boolean factoryResetNative();
