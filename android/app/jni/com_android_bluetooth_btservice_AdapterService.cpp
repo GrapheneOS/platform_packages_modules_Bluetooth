@@ -20,8 +20,6 @@
 #include "utils/Log.h"
 #include "utils/misc.h"
 
-#include <base/logging.h>
-#include <base/strings/stringprintf.h>
 #include <cutils/properties.h>
 #include <dlfcn.h>
 #include <errno.h>
@@ -613,22 +611,20 @@ int hal_util_load_bt_library(const bt_interface_t** interface) {
   void* handle = dlopen(path, RTLD_NOW);
   if (!handle) {
     const char* err_str = dlerror();
-    LOG(ERROR) << __func__ << ": failed to load Bluetooth library, error="
-               << (err_str ? err_str : "error unknown");
+    ALOGE("%s: failed to load Bluetooth library, error=%s", __func__,
+          err_str ? err_str : "error unknown");
     goto error;
   }
 
   // Get the address of the bt_interface_t.
   itf = (bt_interface_t*)dlsym(handle, sym);
   if (!itf) {
-    LOG(ERROR) << __func__ << ": failed to load symbol from Bluetooth library "
-               << sym;
+    ALOGE("%s: failed to load symbol from Bluetooth library %s", __func__, sym);
     goto error;
   }
 
   // Success.
-  LOG(INFO) << __func__ << " loaded HAL: btinterface=" << itf
-            << ", handle=" << handle;
+  ALOGI("%s: loaded Bluetooth library successfully", __func__);
   *interface = itf;
   return 0;
 
