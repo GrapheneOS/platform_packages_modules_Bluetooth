@@ -29,7 +29,6 @@ cc_library_shared {
     ],
     static_libs: [
         "libbluetooth-types",
-        "libcutils",
     ],
     cflags: [
         "-Wall",
