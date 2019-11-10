@@ -1,14 +1,39 @@
-subdirs = [
-    "jni",
-]
-
-
 // MAP API module
 
 java_library {
     name: "bluetooth.mapsapi",
 
     srcs: ["lib/mapapi/**/*.java"],
+}
+
+// Bluetooth JNI
+
+cc_library_shared {
+    name: "libbluetooth_jni",
+    compile_multilib: "first",
+    srcs: ["jni/**/*.cpp"],
+    header_libs: ["libbluetooth_headers"],
+    include_dirs: [
+        "system/bt/types",
+    ],
+    shared_libs: [
+        "libbase",
+        "libchrome",
+        "libnativehelper",
+        "liblog",
+    ],
+    static_libs: [
+        "libbluetooth-types",
+    ],
+    cflags: [
+        "-Wall",
+        "-Werror",
+        "-Wextra",
+        "-Wno-unused-parameter",
+    ],
+    sanitize: {
+        scs: true,
+    },
 }
 
 // Bluetooth APK
