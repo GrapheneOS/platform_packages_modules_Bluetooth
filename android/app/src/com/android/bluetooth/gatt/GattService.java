@@ -1989,6 +1989,13 @@ public class GattService extends ProfileService {
         piInfo.settings = settings;
         piInfo.filters = filters;
         piInfo.callingPackage = callingPackage;
+
+        // Don't start scan if the Pi scan already in mScannerMap.
+        if (mScannerMap.getByContextInfo(piInfo) != null) {
+            Log.d(TAG, "Don't startScan(PI) since the same Pi scan already in mScannerMap.");
+            return;
+        }
+
         ScannerMap.App app = mScannerMap.add(uuid, null, null, piInfo, this);
         app.mUserHandle = UserHandle.of(UserHandle.getCallingUserId());
         mAppOps.checkPackage(Binder.getCallingUid(), callingPackage);
