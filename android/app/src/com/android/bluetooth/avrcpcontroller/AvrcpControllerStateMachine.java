@@ -22,10 +22,10 @@ import android.bluetooth.BluetoothProfile;
 import android.content.Context;
 import android.content.Intent;
 import android.media.AudioManager;
-import android.media.MediaMetadata;
-import android.media.browse.MediaBrowser.MediaItem;
 import android.os.Bundle;
 import android.os.Message;
+import android.support.v4.media.MediaBrowserCompat.MediaItem;
+import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.util.Log;
@@ -397,9 +397,9 @@ class AvrcpControllerStateMachine extends StateMachine {
                     return true;
 
                 case MESSAGE_PROCESS_TRACK_CHANGED:
-                    mAddressedPlayer.updateCurrentTrack((MediaMetadata) msg.obj);
+                    mAddressedPlayer.updateCurrentTrack((MediaMetadataCompat) msg.obj);
                     if (isActive()) {
-                        BluetoothMediaBrowserService.trackChanged((MediaMetadata) msg.obj);
+                        BluetoothMediaBrowserService.trackChanged((MediaMetadataCompat) msg.obj);
                     }
                     return true;
 

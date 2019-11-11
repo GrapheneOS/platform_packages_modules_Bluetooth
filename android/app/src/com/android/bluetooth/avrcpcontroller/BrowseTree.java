@@ -17,10 +17,9 @@
 package com.android.bluetooth.avrcpcontroller;
 
 import android.bluetooth.BluetoothDevice;
-import android.media.MediaDescription;
-import android.media.browse.MediaBrowser;
-import android.media.browse.MediaBrowser.MediaItem;
 import android.os.Bundle;
+import android.support.v4.media.MediaBrowserCompat.MediaItem;
+import android.support.v4.media.MediaDescriptionCompat;
 import android.util.Log;
 
 import java.util.ArrayList;
@@ -61,11 +60,11 @@ public class BrowseTree {
 
     BrowseTree(BluetoothDevice device) {
         if (device == null) {
-            mRootNode = new BrowseNode(new MediaItem(new MediaDescription.Builder()
+            mRootNode = new BrowseNode(new MediaItem(new MediaDescriptionCompat.Builder()
                     .setMediaId(ROOT).setTitle(ROOT).build(), MediaItem.FLAG_BROWSABLE));
             mRootNode.setCached(true);
         } else {
-            mRootNode = new BrowseNode(new MediaItem(new MediaDescription.Builder()
+            mRootNode = new BrowseNode(new MediaItem(new MediaDescriptionCompat.Builder()
                     .setMediaId(ROOT + device.getAddress().toString()).setTitle(
                             device.getName()).build(), MediaItem.FLAG_BROWSABLE));
             mRootNode.mDevice = device;
@@ -74,11 +73,11 @@ public class BrowseTree {
         mRootNode.mBrowseScope = AvrcpControllerService.BROWSE_SCOPE_PLAYER_LIST;
         mRootNode.setExpectedChildren(255);
 
-        mNavigateUpNode = new BrowseNode(new MediaItem(new MediaDescription.Builder()
+        mNavigateUpNode = new BrowseNode(new MediaItem(new MediaDescriptionCompat.Builder()
                 .setMediaId(UP).setTitle(UP).build(),
                 MediaItem.FLAG_BROWSABLE));
 
-        mNowPlayingNode = new BrowseNode(new MediaItem(new MediaDescription.Builder()
+        mNowPlayingNode = new BrowseNode(new MediaItem(new MediaDescriptionCompat.Builder()
                 .setMediaId(NOW_PLAYING_PREFIX)
                 .setTitle(NOW_PLAYING_PREFIX).build(), MediaItem.FLAG_BROWSABLE));
         mNowPlayingNode.mBrowseScope = AvrcpControllerService.BROWSE_SCOPE_NOW_PLAYING;
@@ -139,33 +138,33 @@ public class BrowseTree {
             mIsPlayer = true;
 
             // Transform the player into a item.
-            MediaDescription.Builder mdb = new MediaDescription.Builder();
+            MediaDescriptionCompat.Builder mdb = new MediaDescriptionCompat.Builder();
             String playerKey = PLAYER_PREFIX + player.getId();
             mBluetoothId = player.getId();
 
             mdb.setMediaId(UUID.randomUUID().toString());
             mdb.setTitle(player.getName());
             int mediaItemFlags = player.supportsFeature(AvrcpPlayer.FEATURE_BROWSING)
-                    ? MediaBrowser.MediaItem.FLAG_BROWSABLE : 0;
-            mItem = new MediaBrowser.MediaItem(mdb.build(), mediaItemFlags);
+                    ? MediaItem.FLAG_BROWSABLE : 0;
+            mItem = new MediaItem(mdb.build(), mediaItemFlags);
         }
 
         BrowseNode(BluetoothDevice device) {
             boolean mIsPlayer = true;
             mDevice = device;
-            MediaDescription.Builder mdb = new MediaDescription.Builder();
+            MediaDescriptionCompat.Builder mdb = new MediaDescriptionCompat.Builder();
             String playerKey = PLAYER_PREFIX + device.getAddress().toString();
             mdb.setMediaId(playerKey);
             mdb.setTitle(device.getName());
-            int mediaItemFlags = MediaBrowser.MediaItem.FLAG_BROWSABLE;
-            mItem = new MediaBrowser.MediaItem(mdb.build(), mediaItemFlags);
+            int mediaItemFlags = MediaItem.FLAG_BROWSABLE;
+            mItem = new MediaItem(mdb.build(), mediaItemFlags);
         }
 
         private BrowseNode(String name) {
-            MediaDescription.Builder mdb = new MediaDescription.Builder();
+            MediaDescriptionCompat.Builder mdb = new MediaDescriptionCompat.Builder();
             mdb.setMediaId(name);
             mdb.setTitle(name);
-            mItem = new MediaBrowser.MediaItem(mdb.build(), MediaBrowser.MediaItem.FLAG_BROWSABLE);
+            mItem = new MediaItem(mdb.build(), MediaItem.FLAG_BROWSABLE);
         }
 
         synchronized void setExpectedChildren(int count) {

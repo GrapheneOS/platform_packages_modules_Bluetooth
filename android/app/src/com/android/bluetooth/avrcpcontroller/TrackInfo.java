@@ -16,7 +16,7 @@
 
 package com.android.bluetooth.avrcpcontroller;
 
-import android.media.MediaMetadata;
+import android.support.v4.media.MediaMetadataCompat;
 
 final class TrackInfo {
     /*
@@ -30,23 +30,23 @@ final class TrackInfo {
     private static final int MEDIA_ATTRIBUTE_GENRE = 0x06;
     private static final int MEDIA_ATTRIBUTE_PLAYING_TIME = 0x07;
 
-    static MediaMetadata getMetadata(int[] attrIds, String[] attrMap) {
-        MediaMetadata.Builder metaDataBuilder = new MediaMetadata.Builder();
+    static MediaMetadataCompat getMetadata(int[] attrIds, String[] attrMap) {
+        MediaMetadataCompat.Builder metaDataBuilder = new MediaMetadataCompat.Builder();
         int attributeCount = Math.max(attrIds.length, attrMap.length);
         for (int i = 0; i < attributeCount; i++) {
             switch (attrIds[i]) {
                 case MEDIA_ATTRIBUTE_TITLE:
-                    metaDataBuilder.putString(MediaMetadata.METADATA_KEY_TITLE, attrMap[i]);
+                    metaDataBuilder.putString(MediaMetadataCompat.METADATA_KEY_TITLE, attrMap[i]);
                     break;
                 case MEDIA_ATTRIBUTE_ARTIST_NAME:
-                    metaDataBuilder.putString(MediaMetadata.METADATA_KEY_ARTIST, attrMap[i]);
+                    metaDataBuilder.putString(MediaMetadataCompat.METADATA_KEY_ARTIST, attrMap[i]);
                     break;
                 case MEDIA_ATTRIBUTE_ALBUM_NAME:
-                    metaDataBuilder.putString(MediaMetadata.METADATA_KEY_ALBUM, attrMap[i]);
+                    metaDataBuilder.putString(MediaMetadataCompat.METADATA_KEY_ALBUM, attrMap[i]);
                     break;
                 case MEDIA_ATTRIBUTE_TRACK_NUMBER:
                     try {
-                        metaDataBuilder.putLong(MediaMetadata.METADATA_KEY_TRACK_NUMBER,
+                        metaDataBuilder.putLong(MediaMetadataCompat.METADATA_KEY_TRACK_NUMBER,
                                 Long.valueOf(attrMap[i]));
                     } catch (java.lang.NumberFormatException e) {
                         // If Track Number doesn't parse, leave it unset
@@ -54,18 +54,18 @@ final class TrackInfo {
                     break;
                 case MEDIA_ATTRIBUTE_TOTAL_TRACK_NUMBER:
                     try {
-                        metaDataBuilder.putLong(MediaMetadata.METADATA_KEY_NUM_TRACKS,
+                        metaDataBuilder.putLong(MediaMetadataCompat.METADATA_KEY_NUM_TRACKS,
                                 Long.valueOf(attrMap[i]));
                     } catch (java.lang.NumberFormatException e) {
                         // If Total Track Number doesn't parse, leave it unset
                     }
                     break;
                 case MEDIA_ATTRIBUTE_GENRE:
-                    metaDataBuilder.putString(MediaMetadata.METADATA_KEY_GENRE, attrMap[i]);
+                    metaDataBuilder.putString(MediaMetadataCompat.METADATA_KEY_GENRE, attrMap[i]);
                     break;
                 case MEDIA_ATTRIBUTE_PLAYING_TIME:
                     try {
-                        metaDataBuilder.putLong(MediaMetadata.METADATA_KEY_DURATION,
+                        metaDataBuilder.putLong(MediaMetadataCompat.METADATA_KEY_DURATION,
                                 Long.valueOf(attrMap[i]));
                     } catch (java.lang.NumberFormatException e) {
                         // If Playing Time doesn't parse, leave it unset

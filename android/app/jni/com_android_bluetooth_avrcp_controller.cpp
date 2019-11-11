@@ -805,7 +805,7 @@ static void classInitNative(JNIEnv* env, jclass clazz) {
 
   method_handleGetFolderItemsRsp =
       env->GetMethodID(clazz, "handleGetFolderItemsRsp",
-                       "([BI[Landroid/media/browse/MediaBrowser$MediaItem;)V");
+                       "([BI[Landroid/support/v4/media/MediaBrowserCompat$MediaItem;)V");
   method_handleGetPlayerItemsRsp = env->GetMethodID(
       clazz, "handleGetPlayerItemsRsp",
       "([B[Lcom/android/bluetooth/avrcpcontroller/AvrcpPlayer;)V");
@@ -813,10 +813,10 @@ static void classInitNative(JNIEnv* env, jclass clazz) {
   method_createFromNativeMediaItem =
       env->GetMethodID(clazz, "createFromNativeMediaItem",
                        "(JILjava/lang/String;[I[Ljava/lang/String;)Landroid/"
-                       "media/browse/MediaBrowser$MediaItem;");
+                       "support/v4/media/MediaBrowserCompat$MediaItem;");
   method_createFromNativeFolderItem = env->GetMethodID(
       clazz, "createFromNativeFolderItem",
-      "(JILjava/lang/String;I)Landroid/media/browse/MediaBrowser$MediaItem;");
+      "(JILjava/lang/String;I)Landroid/support/v4/media/MediaBrowserCompat$MediaItem;");
   method_createFromNativePlayerItem =
       env->GetMethodID(clazz, "createFromNativePlayerItem",
                        "(ILjava/lang/String;[BII)Lcom/android/bluetooth/"
@@ -841,7 +841,7 @@ static void initNative(JNIEnv* env, jobject object) {
   std::unique_lock<std::shared_timed_mutex> lock(sCallbacks_mutex);
 
   jclass tmpMediaItem =
-      env->FindClass("android/media/browse/MediaBrowser$MediaItem");
+      env->FindClass("android/support/v4/media/MediaBrowserCompat$MediaItem");
   class_MediaBrowser_MediaItem = (jclass)env->NewGlobalRef(tmpMediaItem);
 
   jclass tmpBtPlayer =

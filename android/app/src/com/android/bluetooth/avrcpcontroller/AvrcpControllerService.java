@@ -22,10 +22,10 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.IBluetoothAvrcpController;
 import android.content.Intent;
-import android.media.MediaDescription;
-import android.media.browse.MediaBrowser.MediaItem;
-import android.media.session.PlaybackState;
 import android.os.Bundle;
+import android.support.v4.media.MediaBrowserCompat.MediaItem;
+import android.support.v4.media.MediaDescriptionCompat;
+import android.support.v4.media.session.PlaybackStateCompat;
 import android.util.Log;
 
 import com.android.bluetooth.Utils;
@@ -392,25 +392,25 @@ public class AvrcpControllerService extends ProfileService {
         if (DBG) {
             Log.d(TAG, "onPlayStatusChanged " + playStatus);
         }
-        int playbackState = PlaybackState.STATE_NONE;
+        int playbackState = PlaybackStateCompat.STATE_NONE;
         switch (playStatus) {
             case JNI_PLAY_STATUS_STOPPED:
-                playbackState = PlaybackState.STATE_STOPPED;
+                playbackState = PlaybackStateCompat.STATE_STOPPED;
                 break;
             case JNI_PLAY_STATUS_PLAYING:
-                playbackState = PlaybackState.STATE_PLAYING;
+                playbackState = PlaybackStateCompat.STATE_PLAYING;
                 break;
             case JNI_PLAY_STATUS_PAUSED:
-                playbackState = PlaybackState.STATE_PAUSED;
+                playbackState = PlaybackStateCompat.STATE_PAUSED;
                 break;
             case JNI_PLAY_STATUS_FWD_SEEK:
-                playbackState = PlaybackState.STATE_FAST_FORWARDING;
+                playbackState = PlaybackStateCompat.STATE_FAST_FORWARDING;
                 break;
             case JNI_PLAY_STATUS_REV_SEEK:
-                playbackState = PlaybackState.STATE_REWINDING;
+                playbackState = PlaybackStateCompat.STATE_REWINDING;
                 break;
             default:
-                playbackState = PlaybackState.STATE_NONE;
+                playbackState = PlaybackStateCompat.STATE_NONE;
         }
         BluetoothDevice device = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(address);
         AvrcpControllerStateMachine stateMachine = getStateMachine(device);
@@ -524,7 +524,7 @@ public class AvrcpControllerService extends ProfileService {
             Log.d(TAG, "createFromNativeMediaItem uid: " + uid + " type " + type + " name "
                     + name + " attrids " + attrIds + " attrVals " + attrVals);
         }
-        MediaDescription.Builder mdb = new MediaDescription.Builder();
+        MediaDescriptionCompat.Builder mdb = new MediaDescriptionCompat.Builder();
 
         Bundle mdExtra = new Bundle();
         mdExtra.putLong(MEDIA_ITEM_UID_KEY, uid);
@@ -548,7 +548,7 @@ public class AvrcpControllerService extends ProfileService {
             Log.d(TAG, "createFromNativeFolderItem uid: " + uid + " type " + type + " name "
                     + name + " playable " + playable);
         }
-        MediaDescription.Builder mdb = new MediaDescription.Builder();
+        MediaDescriptionCompat.Builder mdb = new MediaDescriptionCompat.Builder();
 
         Bundle mdExtra = new Bundle();
         mdExtra.putLong(MEDIA_ITEM_UID_KEY, uid);
