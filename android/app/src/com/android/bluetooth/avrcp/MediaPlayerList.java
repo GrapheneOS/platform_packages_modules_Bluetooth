@@ -197,6 +197,8 @@ public class MediaPlayerList {
     void cleanup() {
         mContext.unregisterReceiver(mPackageChangedBroadcastReceiver);
 
+        mActivePlayerId = NO_ACTIVE_PLAYER;
+
         mMediaSessionManager.removeOnActiveSessionsChangedListener(mActiveSessionsChangedListener);
         mMediaSessionManager.setCallback(null, null);
         mMediaSessionManager = null;
