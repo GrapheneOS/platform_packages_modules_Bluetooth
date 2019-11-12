@@ -21,6 +21,7 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.content.res.Resources;
 import android.provider.Settings;
+import android.util.ArrayMap;
 import android.util.FeatureFlagUtils;
 import android.util.Log;
 
@@ -42,6 +43,7 @@ import com.android.bluetooth.pan.PanService;
 import com.android.bluetooth.pbap.BluetoothPbapService;
 import com.android.bluetooth.pbapclient.PbapClientService;
 import com.android.bluetooth.sap.SapService;
+import com.android.server.SystemConfig;
 
 import java.util.ArrayList;
 
@@ -112,6 +114,11 @@ public class Config {
         if (resources == null) {
             return;
         }
+        SystemConfig systemConfig = SystemConfig.getInstance();
+        ArrayMap<String, Boolean> componentEnabledStates = null;
+        if (systemConfig != null) {
+            componentEnabledStates = systemConfig.getComponentsEnabledStates(ctx.getPackageName());
+        }
 
         ArrayList<Class> profiles = new ArrayList<>(PROFILE_SERVICES_AND_FLAGS.length);
         for (ProfileConfig config : PROFILE_SERVICES_AND_FLAGS) {
@@ -121,6 +128,13 @@ public class Config {
                                 .isEnabled(ctx, FeatureFlagUtils.HEARING_AID_SETTINGS)) {
                 Log.v(TAG, "Feature Flag enables support for HearingAidService");
                 supported = true;
+            }
+
+            if (componentEnabledStates != null
+                    && componentEnabledStates.containsKey(config.mClass.getName())) {
+                supported = componentEnabledStates.get(config.mClass.getName());
+                Log.v(TAG, config.mClass.getSimpleName() + " Feature Flag set to " + supported
+                        + " by components configuration");
             }
 
             if (supported && !isProfileDisabled(ctx, config.mMask)) {
