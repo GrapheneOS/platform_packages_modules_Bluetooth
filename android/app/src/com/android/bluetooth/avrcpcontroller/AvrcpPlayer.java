@@ -16,8 +16,8 @@
 
 package com.android.bluetooth.avrcpcontroller;
 
+import android.bluetooth.BluetoothDevice;
 import android.os.SystemClock;
-import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.util.Log;
@@ -42,6 +42,7 @@ class AvrcpPlayer {
     public static final int FEATURE_PREVIOUS = 48;
     public static final int FEATURE_BROWSING = 59;
 
+    private BluetoothDevice mDevice;
     private int mPlayStatus = PlaybackStateCompat.STATE_NONE;
     private long mPlayTime = PlaybackStateCompat.PLAYBACK_POSITION_UNKNOWN;
     private long mPlayTimeUpdate = 0;
@@ -51,13 +52,14 @@ class AvrcpPlayer {
     private int mPlayerType;
     private byte[] mPlayerFeatures = new byte[16];
     private long mAvailableActions = PlaybackStateCompat.ACTION_PREPARE;
-    private MediaMetadataCompat mCurrentTrack;
+    private AvrcpItem mCurrentTrack;
     private PlaybackStateCompat mPlaybackStateCompat;
     private PlayerApplicationSettings mSupportedPlayerApplicationSettings =
             new PlayerApplicationSettings();
     private PlayerApplicationSettings mCurrentPlayerApplicationSettings;
 
     AvrcpPlayer() {
+        mDevice = null;
         mId = INVALID_ID;
         //Set Default Actions in case Player data isn't available.
         mAvailableActions = PlaybackStateCompat.ACTION_PAUSE | PlaybackStateCompat.ACTION_PLAY
@@ -69,7 +71,9 @@ class AvrcpPlayer {
         mPlaybackStateCompat = playbackStateBuilder.build();
     }
 
-    AvrcpPlayer(int id, String name, byte[] playerFeatures, int playStatus, int playerType) {
+    AvrcpPlayer(BluetoothDevice device, int id, String name, byte[] playerFeatures, int playStatus,
+            int playerType) {
+        mDevice = device;
         mId = id;
         mName = name;
         mPlayStatus = playStatus;
@@ -79,6 +83,10 @@ class AvrcpPlayer {
                 .setActions(mAvailableActions);
         mPlaybackStateCompat = playbackStateBuilder.build();
         updateAvailableActions();
+    }
+
+    public BluetoothDevice getDevice() {
+        return mDevice;
     }
 
     public int getId() {
@@ -166,9 +174,9 @@ class AvrcpPlayer {
         return mPlaybackStateCompat;
     }
 
-    public synchronized void updateCurrentTrack(MediaMetadataCompat update) {
+    public synchronized void updateCurrentTrack(AvrcpItem update) {
         if (update != null) {
-            long trackNumber = update.getLong(MediaMetadataCompat.METADATA_KEY_TRACK_NUMBER);
+            long trackNumber = update.getTrackNumber();
             mPlaybackStateCompat = new PlaybackStateCompat.Builder(
                     mPlaybackStateCompat).setActiveQueueItemId(
                     trackNumber - 1).build();
@@ -176,7 +184,7 @@ class AvrcpPlayer {
         mCurrentTrack = update;
     }
 
-    public synchronized MediaMetadataCompat getCurrentTrack() {
+    public synchronized AvrcpItem getCurrentTrack() {
         return mCurrentTrack;
     }
 

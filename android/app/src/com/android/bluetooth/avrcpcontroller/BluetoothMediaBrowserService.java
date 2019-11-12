@@ -20,7 +20,6 @@ import android.app.PendingIntent;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.media.MediaBrowserCompat.MediaItem;
-import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaControllerCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
@@ -185,9 +184,15 @@ public class BluetoothMediaBrowserService extends MediaBrowserServiceCompat {
         }
     }
 
-    static synchronized void trackChanged(MediaMetadataCompat mediaMetadata) {
+    static synchronized void trackChanged(AvrcpItem track) {
+        if (DBG) Log.d(TAG, "trackChanged setMetadata=" + track);
         if (sBluetoothMediaBrowserService != null) {
-            sBluetoothMediaBrowserService.mSession.setMetadata(mediaMetadata);
+            if (track != null) {
+                sBluetoothMediaBrowserService.mSession.setMetadata(track.toMediaMetadata());
+            } else {
+                sBluetoothMediaBrowserService.mSession.setMetadata(null);
+            }
+
         } else {
             Log.w(TAG, "trackChanged Unavailable");
         }

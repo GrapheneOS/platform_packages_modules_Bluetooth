@@ -24,8 +24,6 @@ import android.content.Intent;
 import android.media.AudioManager;
 import android.os.Bundle;
 import android.os.Message;
-import android.support.v4.media.MediaBrowserCompat.MediaItem;
-import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.util.Log;
@@ -397,9 +395,10 @@ class AvrcpControllerStateMachine extends StateMachine {
                     return true;
 
                 case MESSAGE_PROCESS_TRACK_CHANGED:
-                    mAddressedPlayer.updateCurrentTrack((MediaMetadataCompat) msg.obj);
+                    AvrcpItem track = (AvrcpItem) msg.obj;
+                    mAddressedPlayer.updateCurrentTrack(track);
                     if (isActive()) {
-                        BluetoothMediaBrowserService.trackChanged((MediaMetadataCompat) msg.obj);
+                        BluetoothMediaBrowserService.trackChanged(track);
                     }
                     return true;
 
@@ -577,14 +576,15 @@ class AvrcpControllerStateMachine extends StateMachine {
             logD(STATE_TAG + " processMessage " + msg.what);
             switch (msg.what) {
                 case MESSAGE_PROCESS_GET_FOLDER_ITEMS:
-                    ArrayList<MediaItem> folderList = (ArrayList<MediaItem>) msg.obj;
+                    ArrayList<AvrcpItem> folderList = (ArrayList<AvrcpItem>) msg.obj;
                     int endIndicator = mBrowseNode.getExpectedChildren() - 1;
                     logD("GetFolderItems: End " + endIndicator
                             + " received " + folderList.size());
 
                     // Always update the node so that the user does not wait forever
                     // for the list to populate.
-                    mBrowseNode.addChildren(folderList);
+                    int newSize = mBrowseNode.addChildren(folderList);
+                    logD("Added " + newSize + " items to the browse tree");
                     notifyChanged(mBrowseNode);
 
                     if (mBrowseNode.getChildrenCount() >= endIndicator || folderList.size() == 0
@@ -695,6 +695,9 @@ class AvrcpControllerStateMachine extends StateMachine {
             int start = target.getChildrenCount();
             int end = Math.min(target.getExpectedChildren(), target.getChildrenCount()
                     + ITEM_PAGE_SIZE) - 1;
+            logD("fetchContents(title=" + target.getID() + ", scope=" + target.getScope()
+                    + ", start=" + start + ", end=" + end + ", expected="
+                    + target.getExpectedChildren() + ")");
             switch (target.getScope()) {
                 case AvrcpControllerService.BROWSE_SCOPE_PLAYER_LIST:
                     mService.getPlayerListNative(mDeviceAddress,
@@ -873,7 +876,7 @@ class AvrcpControllerStateMachine extends StateMachine {
 
         @Override
         public void onSkipToQueueItem(long id) {
-            logD("onSkipToQueueItem" + id);
+            logD("onSkipToQueueItem id=" + id);
             onPrepare();
             BrowseTree.BrowseNode node = mBrowseTree.getTrackFromNowPlayingList((int) id);
             if (node != null) {
