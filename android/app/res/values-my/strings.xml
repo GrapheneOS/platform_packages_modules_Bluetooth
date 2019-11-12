@@ -134,4 +134,5 @@
     <string name="bluetooth_disconnected" msgid="3318303728981478873">"ဘလူးတုသ်အသံ မချိတ်ဆက်ထားပါ"</string>
     <string name="a2dp_sink_mbs_label" msgid="7566075853395412558">"ဘလူးတုသ် အသံ"</string>
     <string name="bluetooth_opp_file_limit_exceeded" msgid="8894450394309084519">"4GB ထက်ပိုကြီးသည့် ဖိုင်များကို လွှဲပြောင်းမရနိုင်ပါ"</string>
+    <string name="bluetooth_connect_action" msgid="4009848433321657090">"ဘလူးတုသ်သို့ ချိတ်ဆက်ရန်"</string>
 </resources>

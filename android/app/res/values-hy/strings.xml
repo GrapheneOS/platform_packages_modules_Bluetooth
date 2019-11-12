@@ -134,4 +134,5 @@
     <string name="bluetooth_disconnected" msgid="3318303728981478873">"Bluetooth աուդիոն անջատված է"</string>
     <string name="a2dp_sink_mbs_label" msgid="7566075853395412558">"Bluetooth աուդիո"</string>
     <string name="bluetooth_opp_file_limit_exceeded" msgid="8894450394309084519">"4 ԳԲ-ից մեծ ֆայլերը հնարավոր չէ փոխանցել"</string>
+    <string name="bluetooth_connect_action" msgid="4009848433321657090">"Միանալ Bluetooth-ին"</string>
 </resources>
