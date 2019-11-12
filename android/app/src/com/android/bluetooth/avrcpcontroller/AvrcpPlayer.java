@@ -17,6 +17,7 @@
 package com.android.bluetooth.avrcpcontroller;
 
 import android.bluetooth.BluetoothDevice;
+import android.net.Uri;
 import android.os.SystemClock;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
@@ -182,6 +183,15 @@ class AvrcpPlayer {
                     trackNumber - 1).build();
         }
         mCurrentTrack = update;
+    }
+
+    public synchronized boolean notifyImageDownload(String handle, Uri imageUri) {
+        if (DBG) Log.d(TAG, "Got an image download -- handle=" + handle + ", uri=" + imageUri);
+        if (mCurrentTrack != null && mCurrentTrack.getCoverArtHandle() == handle) {
+            mCurrentTrack.setCoverArtLocation(imageUri);
+            return true;
+        }
+        return false;
     }
 
     public synchronized AvrcpItem getCurrentTrack() {

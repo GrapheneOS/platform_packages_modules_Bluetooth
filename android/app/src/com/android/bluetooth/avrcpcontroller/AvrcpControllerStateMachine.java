@@ -22,6 +22,7 @@ import android.bluetooth.BluetoothProfile;
 import android.content.Context;
 import android.content.Intent;
 import android.media.AudioManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Message;
 import android.support.v4.media.session.MediaSessionCompat;
@@ -57,6 +58,7 @@ class AvrcpControllerStateMachine extends StateMachine {
     //100->199 Internal Events
     protected static final int CLEANUP = 100;
     private static final int CONNECT_TIMEOUT = 101;
+    static final int MESSAGE_INTERNAL_ABS_VOL_TIMEOUT = 102;
 
     //200->299 Events from Native
     static final int STACK_EVENT = 200;
@@ -79,6 +81,7 @@ class AvrcpControllerStateMachine extends StateMachine {
     static final int MESSAGE_PROCESS_SUPPORTED_APPLICATION_SETTINGS = 217;
     static final int MESSAGE_PROCESS_CURRENT_APPLICATION_SETTINGS = 218;
     static final int MESSAGE_PROCESS_AVAILABLE_PLAYER_CHANGED = 219;
+    static final int MESSAGE_PROCESS_RECEIVED_COVER_ART_PSM = 220;
 
     //300->399 Events for Browsing
     static final int MESSAGE_GET_FOLDER_ITEMS = 300;
@@ -87,7 +90,8 @@ class AvrcpControllerStateMachine extends StateMachine {
     static final int MSG_AVRCP_SET_SHUFFLE = 303;
     static final int MSG_AVRCP_SET_REPEAT = 304;
 
-    static final int MESSAGE_INTERNAL_ABS_VOL_TIMEOUT = 404;
+    //400->499 Events for Cover Artwork
+    static final int MESSAGE_PROCESS_IMAGE_DOWNLOADED = 400;
 
     /*
      * Base value for absolute volume from JNI
@@ -107,6 +111,8 @@ class AvrcpControllerStateMachine extends StateMachine {
     protected final BluetoothDevice mDevice;
     protected final byte[] mDeviceAddress;
     protected final AvrcpControllerService mService;
+    protected int mCoverArtPsm;
+    protected final AvrcpCoverArtManager mCoverArtManager;
     protected final Disconnected mDisconnected;
     protected final Connecting mConnecting;
     protected final Connected mConnected;
@@ -135,6 +141,8 @@ class AvrcpControllerStateMachine extends StateMachine {
         mDevice = device;
         mDeviceAddress = Utils.getByteAddress(mDevice);
         mService = service;
+        mCoverArtPsm = 0;
+        mCoverArtManager = service.getCoverArtManager();
         logD(device.toString());
 
         mBrowseTree = new BrowseTree(mDevice);
@@ -278,6 +286,22 @@ class AvrcpControllerStateMachine extends StateMachine {
         mBrowsingConnected = false;
     }
 
+    synchronized void connectCoverArt() {
+        // Called from "connected" state, which assumes either control or browse is connected
+        if (mCoverArtManager != null && mCoverArtPsm != 0) {
+            logD("Attempting to connect to AVRCP BIP, psm: " + mCoverArtPsm);
+            mCoverArtManager.connect(mDevice, /* psm */ mCoverArtPsm);
+        }
+    }
+
+    synchronized void disconnectCoverArt() {
+        // Safe to call even if we're not connected
+        if (mCoverArtManager != null) {
+            logD("Disconnect BIP cover artwork");
+            mCoverArtManager.disconnect(mDevice);
+        }
+    }
+
     private void notifyChanged(BrowseTree.BrowseNode node) {
         BluetoothMediaBrowserService.notifyChanged(node);
     }
@@ -315,6 +339,9 @@ class AvrcpControllerStateMachine extends StateMachine {
         @Override
         public boolean processMessage(Message message) {
             switch (message.what) {
+                case MESSAGE_PROCESS_RECEIVED_COVER_ART_PSM:
+                    mCoverArtPsm = message.arg1;
+                    break;
                 case CONNECT:
                     logD("Connect");
                     transitionTo(mConnecting);
@@ -348,6 +375,7 @@ class AvrcpControllerStateMachine extends StateMachine {
                 BluetoothMediaBrowserService.addressedPlayerChanged(mSessionCallbacks);
                 BluetoothMediaBrowserService.notifyChanged(mAddressedPlayer.getPlaybackState());
                 broadcastConnectionStateChanged(BluetoothProfile.STATE_CONNECTED);
+                connectCoverArt(); // only works if we have a valid PSM
             } else {
                 logD("ReEnteringConnected");
             }
@@ -396,6 +424,7 @@ class AvrcpControllerStateMachine extends StateMachine {
 
                 case MESSAGE_PROCESS_TRACK_CHANGED:
                     AvrcpItem track = (AvrcpItem) msg.obj;
+                    downloadImageIfNeeded(track);
                     mAddressedPlayer.updateCurrentTrack(track);
                     if (isActive()) {
                         BluetoothMediaBrowserService.trackChanged(track);
@@ -456,6 +485,31 @@ class AvrcpControllerStateMachine extends StateMachine {
 
                 case MESSAGE_PROCESS_AVAILABLE_PLAYER_CHANGED:
                     processAvailablePlayerChanged();
+                    return true;
+
+                case MESSAGE_PROCESS_RECEIVED_COVER_ART_PSM:
+                    mCoverArtPsm = msg.arg1;
+                    connectCoverArt();
+                    return true;
+
+                case MESSAGE_PROCESS_IMAGE_DOWNLOADED:
+                    AvrcpCoverArtManager.DownloadEvent event =
+                            (AvrcpCoverArtManager.DownloadEvent) msg.obj;
+                    String handle = event.getHandle();
+                    Uri uri = event.getUri();
+                    logD("Received image for " + handle + " at " + uri.toString());
+
+                    // Let the addressed player know we got an image so it can see if the current
+                    // track now has cover artwork
+                    boolean addedArtwork = mAddressedPlayer.notifyImageDownload(handle, uri);
+                    if (addedArtwork) {
+                        BluetoothMediaBrowserService.trackChanged(
+                                mAddressedPlayer.getCurrentTrack());
+                    }
+
+                    // Let the browse tree know of the newly downloaded image so it can attach it to
+                    // all the items that need it
+                    mBrowseTree.notifyImageDownload(handle, uri);
                     return true;
 
                 case DISCONNECT:
@@ -580,6 +634,11 @@ class AvrcpControllerStateMachine extends StateMachine {
                     int endIndicator = mBrowseNode.getExpectedChildren() - 1;
                     logD("GetFolderItems: End " + endIndicator
                             + " received " + folderList.size());
+
+                    // Queue up image download if the item has an image and we don't have it yet
+                    for (AvrcpItem track : folderList) {
+                        downloadImageIfNeeded(track);
+                    }
 
                     // Always update the node so that the user does not wait forever
                     // for the list to populate.
@@ -779,6 +838,7 @@ class AvrcpControllerStateMachine extends StateMachine {
     protected class Disconnecting extends State {
         @Override
         public void enter() {
+            disconnectCoverArt();
             onBrowsingDisconnected();
             if (isActive()) {
                 sActiveDevice = null;
@@ -844,6 +904,20 @@ class AvrcpControllerStateMachine extends StateMachine {
         int currIndex = mAudioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
         int newIndex = (currIndex * ABS_VOL_BASE) / maxVolume;
         return newIndex;
+    }
+
+    private void downloadImageIfNeeded(AvrcpItem track) {
+        if (mCoverArtManager == null) return;
+        String handle = track.getCoverArtHandle();
+        Uri imageUri = null;
+        if (handle != null) {
+            imageUri = mCoverArtManager.getImageUri(mDevice, handle);
+            if (imageUri != null) {
+                track.setCoverArtLocation(imageUri);
+            } else {
+                mCoverArtManager.downloadImage(mDevice, handle);
+            }
+        }
     }
 
     MediaSessionCompat.Callback mSessionCallbacks = new MediaSessionCompat.Callback() {

@@ -26,6 +26,7 @@ import android.support.v4.media.MediaBrowserCompat.MediaItem;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.util.Log;
 
+import com.android.bluetooth.R;
 import com.android.bluetooth.Utils;
 import com.android.bluetooth.btservice.ProfileService;
 
@@ -94,6 +95,28 @@ public class AvrcpControllerService extends ProfileService {
     protected Map<BluetoothDevice, AvrcpControllerStateMachine> mDeviceStateMap =
             new ConcurrentHashMap<>(1);
 
+    private boolean mCoverArtEnabled;
+    protected AvrcpCoverArtManager mCoverArtManager;
+
+    private class ImageDownloadCallback implements AvrcpCoverArtManager.Callback {
+        @Override
+        public void onImageDownloadComplete(BluetoothDevice device,
+                AvrcpCoverArtManager.DownloadEvent event) {
+            if (DBG) {
+                Log.d(TAG, "Image downloaded [device: " + device + ", handle: " + event.getHandle()
+                        + ", uri: " + event.getUri());
+            }
+            AvrcpControllerStateMachine stateMachine = getStateMachine(device);
+            if (stateMachine == null) {
+                Log.e(TAG, "No state machine found for device " + device);
+                mCoverArtManager.removeImage(device, event.getHandle());
+                return;
+            }
+            stateMachine.sendMessage(AvrcpControllerStateMachine.MESSAGE_PROCESS_IMAGE_DOWNLOADED,
+                    event);
+        }
+    }
+
     static {
         classInitNative();
     }
@@ -106,6 +129,10 @@ public class AvrcpControllerService extends ProfileService {
     @Override
     protected boolean start() {
         initNative();
+        mCoverArtEnabled = getResources().getBoolean(R.bool.avrcp_controller_enable_cover_art);
+        if (mCoverArtEnabled) {
+            mCoverArtManager = new AvrcpCoverArtManager(this, new ImageDownloadCallback());
+        }
         sBrowseTree = new BrowseTree(null);
         sService = this;
 
@@ -125,6 +152,8 @@ public class AvrcpControllerService extends ProfileService {
 
         sService = null;
         sBrowseTree = null;
+        mCoverArtManager.cleanup();
+        mCoverArtManager = null;
         return true;
     }
 
@@ -324,6 +353,17 @@ public class AvrcpControllerService extends ProfileService {
         /* Do Nothing. */
     }
 
+    // Called by JNI to notify Avrcp of a remote device's Cover Art PSM
+    private void getRcPsm(byte[] address, int psm) {
+        BluetoothDevice device = mAdapter.getRemoteDevice(address);
+        if (DBG) Log.d(TAG, "getRcPsm(device=" + device + ", psm=" + psm + ")");
+        AvrcpControllerStateMachine stateMachine = getOrCreateStateMachine(device);
+        if (stateMachine != null) {
+            stateMachine.sendMessage(
+                    AvrcpControllerStateMachine.MESSAGE_PROCESS_RECEIVED_COVER_ART_PSM, psm);
+        }
+    }
+
     // Called by JNI
     private void setPlayerAppSettingRsp(byte[] address, byte accepted) {
         /* Do Nothing. */
@@ -371,7 +411,6 @@ public class AvrcpControllerService extends ProfileService {
             aib.setItemType(AvrcpItem.TYPE_MEDIA);
             aib.setUuid(UUID.randomUUID().toString());
             AvrcpItem item = aib.build();
-
             stateMachine.sendMessage(AvrcpControllerStateMachine.MESSAGE_PROCESS_TRACK_CHANGED,
                     item);
         }
@@ -492,7 +531,6 @@ public class AvrcpControllerService extends ProfileService {
         }
     }
 
-
     void handleGetPlayerItemsRsp(byte[] address, AvrcpPlayer[] items) {
         if (DBG) {
             Log.d(TAG, "handleGetFolderItemsRsp called with " + items.length + " items.");
@@ -529,7 +567,6 @@ public class AvrcpControllerService extends ProfileService {
         aib.setUuid(UUID.randomUUID().toString());
         aib.setPlayable(true);
         AvrcpItem item = aib.build();
-
         return item;
     }
 
@@ -689,6 +726,10 @@ public class AvrcpControllerService extends ProfileService {
         return stateMachine;
     }
 
+    protected AvrcpCoverArtManager getCoverArtManager() {
+        return mCoverArtManager;
+    }
+
     List<BluetoothDevice> getDevicesMatchingConnectionStates(int[] states) {
         if (DBG) Log.d(TAG, "getDevicesMatchingConnectionStates" + Arrays.toString(states));
         List<BluetoothDevice> deviceList = new ArrayList<>();
@@ -725,6 +766,11 @@ public class AvrcpControllerService extends ProfileService {
             stateMachine.dump(sb);
         }
         sb.append("\n  sBrowseTree: " + sBrowseTree.toString());
+
+        sb.append("\n  Cover Artwork Enabled: " + (mCoverArtEnabled ? "True" : "False"));
+        if (mCoverArtManager != null) {
+            sb.append("\n  " + mCoverArtManager.toString());
+        }
     }
 
     /*JNI*/

@@ -17,6 +17,7 @@
 package com.android.bluetooth.avrcpcontroller;
 
 import android.bluetooth.BluetoothDevice;
+import android.net.Uri;
 import android.support.v4.media.MediaBrowserCompat.MediaItem;
 import android.util.Log;
 
@@ -61,6 +62,10 @@ public class BrowseTree {
     final BrowseNode mNavigateUpNode;
     final BrowseNode mNowPlayingNode;
 
+    // In support of Cover Artwork, Cover Art URI <-> List of UUIDs using that artwork
+    private final HashMap<String, ArrayList<String>> mCoverArtMap =
+            new HashMap<String, ArrayList<String>>();
+
     BrowseTree(BluetoothDevice device) {
         if (device == null) {
             mRootNode = new BrowseNode(new AvrcpItem.Builder()
@@ -91,6 +96,7 @@ public class BrowseTree {
     public void clear() {
         // Clearing the map should garbage collect everything.
         mBrowseMap.clear();
+        mCoverArtMap.clear();
     }
 
     void onConnected(BluetoothDevice device) {
@@ -199,6 +205,7 @@ public class BrowseTree {
         synchronized void removeChild(BrowseNode node) {
             mChildren.remove(node);
             mBrowseMap.remove(node.getID());
+            indicateCoverArtUnused(node.getID(), node.getCoverArtHandle());
         }
 
         synchronized int getChildrenCount() {
@@ -222,6 +229,14 @@ public class BrowseTree {
 
         synchronized BluetoothDevice getDevice() {
             return mItem.getDevice();
+        }
+
+        synchronized String getCoverArtHandle() {
+            return mItem.getCoverArtHandle();
+        }
+
+        synchronized void setCoverArtUri(Uri uri) {
+            mItem.setCoverArtLocation(uri);
         }
 
         synchronized List<MediaItem> getContents() {
@@ -253,6 +268,7 @@ public class BrowseTree {
             if (!cached) {
                 for (BrowseNode child : mChildren) {
                     mBrowseMap.remove(child.getID());
+                    indicateCoverArtUnused(child.getID(), child.getCoverArtHandle());
                 }
                 mChildren.clear();
             }
@@ -396,11 +412,64 @@ public class BrowseTree {
         return mCurrentAddressedPlayer;
     }
 
+    /**
+     * Indicate that a node in the tree is using a specific piece of cover art, identified by the
+     * given image handle.
+     */
+    synchronized void indicateCoverArtUsed(String nodeId, String handle) {
+        mCoverArtMap.putIfAbsent(handle, new ArrayList<String>());
+        mCoverArtMap.get(handle).add(nodeId);
+    }
+
+    /**
+     * Indicate that a node in the tree no longer needs a specific piece of cover art.
+     */
+    synchronized void indicateCoverArtUnused(String nodeId, String handle) {
+        if (mCoverArtMap.containsKey(handle) && mCoverArtMap.get(handle).contains(nodeId)) {
+            mCoverArtMap.get(handle).remove(nodeId);
+            if (mCoverArtMap.get(handle).isEmpty()) {
+                mCoverArtMap.remove(handle);
+            }
+        }
+    }
+
+    /**
+     * Get a list of items using the piece of cover art identified by the given handle.
+     */
+    synchronized ArrayList<String> getNodesUsingCoverArt(String handle) {
+        if (!mCoverArtMap.containsKey(handle)) return new ArrayList<String>();
+        return (ArrayList<String>) mCoverArtMap.get(handle).clone();
+    }
+
+    /**
+     * Adds the Uri of a newly downloaded image to all tree nodes using that specific handle.
+     */
+    synchronized void notifyImageDownload(String handle, Uri uri) {
+        if (DBG) Log.d(TAG, "Received downloaded image handle to cascade to BrowseNodes using it");
+        ArrayList<String> nodes = getNodesUsingCoverArt(handle);
+        for (String nodeId : nodes) {
+            BrowseNode node = findBrowseNodeByID(nodeId);
+            if (node == null) {
+                Log.e(TAG, "Node was removed without clearing its cover art status");
+                indicateCoverArtUnused(nodeId, handle);
+                continue;
+            }
+            node.setCoverArtUri(uri);
+            indicateCoverArtUsed(nodeId, handle);
+            BluetoothMediaBrowserService.notifyChanged(node);
+        }
+    }
+
+
     @Override
     public String toString() {
         String serialized = "Size: " + mBrowseMap.size();
         if (VDBG) {
             serialized += mRootNode.toString();
+            serialized += "\n  Image handles in use (" + mCoverArtMap.size() + "):";
+            for (String handle : mCoverArtMap.keySet()) {
+                serialized += "    " + handle + "\n";
+            }
         }
         return serialized;
     }

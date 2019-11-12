@@ -39,7 +39,8 @@ public class AvrcpItem {
     public static final int TYPE_FOLDER = 0x2;
     public static final int TYPE_MEDIA = 0x3;
 
-    // AVRCP Specification defined folder item sub types
+    // AVRCP Specification defined folder item sub types. These match with the Media Framework's
+    // definition of the constants as well.
     public static final int FOLDER_MIXED = 0x00;
     public static final int FOLDER_TITLES = 0x01;
     public static final int FOLDER_ALBUMS = 0x02;
@@ -59,6 +60,8 @@ public class AvrcpItem {
     private int mItemType;
 
     // Sub type of item, dependant on whether it's a folder or media item
+    // Folder -> FOLDER_* constants
+    // Media -> MEDIA_* constants
     private int mType;
 
     // Bluetooth Device this piece of metadata came from
