@@ -491,7 +491,13 @@ public class HeadsetClientService extends ProfileService {
         return true;
     }
 
-    boolean disconnect(BluetoothDevice device) {
+    /**
+     * Disconnects hfp client for the remote bluetooth device
+     *
+     * @param device is the device with which we are attempting to disconnect the profile
+     * @return true if hfp client profile successfully disconnected, false otherwise
+     */
+    public boolean disconnect(BluetoothDevice device) {
         enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH ADMIN permission");
         HeadsetClientStateMachine sm = getStateMachine(device);
         if (sm == null) {
