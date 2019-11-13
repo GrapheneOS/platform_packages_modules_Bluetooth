@@ -49,7 +49,8 @@ import java.util.List;
     /* GattService is needed to add scan event protos to be dumped later */ GattService
             mGattService;
 
-    /* Battery stats is used to keep track of scans and result stats */ IBatteryStats mBatteryStats;
+    /* Battery stats is used to keep track of scans and result stats */ IBatteryStats
+            mBatteryStats;
 
     class LastScan {
         public long duration;
@@ -57,20 +58,21 @@ import java.util.List;
         public long suspendStartTime;
         public boolean isSuspended;
         public long timestamp;
-        public boolean opportunistic;
-        public boolean timeout;
-        public boolean background;
-        public boolean filtered;
+        public boolean isOpportunisticScan;
+        public boolean isTimeout;
+        public boolean isBackgroundScan;
+        public boolean isFilterScan;
         public int results;
         public int scannerId;
 
-        LastScan(long timestamp, long duration, boolean opportunistic, boolean background,
-                boolean filtered, int scannerId) {
+        LastScan(long timestamp, long duration, boolean isOpportunisticScan,
+                boolean isBackgroundScan, boolean isFilterScan, int scannerId) {
             this.duration = duration;
             this.timestamp = timestamp;
-            this.opportunistic = opportunistic;
-            this.background = background;
-            this.filtered = filtered;
+            this.isOpportunisticScan = isOpportunisticScan;
+            this.isTimeout = false;
+            this.isBackgroundScan = isBackgroundScan;
+            this.isFilterScan = isFilterScan;
             this.results = 0;
             this.scannerId = scannerId;
             this.suspendDuration = 0;
@@ -147,7 +149,7 @@ import java.util.List;
         return mOngoingScans.get(scannerId);
     }
 
-    synchronized void recordScanStart(ScanSettings settings, boolean filtered, int scannerId) {
+    synchronized void recordScanStart(ScanSettings settings, boolean isFilterScan, int scannerId) {
         LastScan existingScan = getScanFromScannerId(scannerId);
         if (existingScan != null) {
             return;
@@ -155,10 +157,11 @@ import java.util.List;
         this.mScansStarted++;
         startTime = SystemClock.elapsedRealtime();
 
-        LastScan scan = new LastScan(startTime, 0, false, false, filtered, scannerId);
+        LastScan scan = new LastScan(startTime, 0, false, false, isFilterScan, scannerId);
         if (settings != null) {
-            scan.opportunistic = settings.getScanMode() == ScanSettings.SCAN_MODE_OPPORTUNISTIC;
-            scan.background =
+            scan.isOpportunisticScan =
+                    settings.getScanMode() == ScanSettings.SCAN_MODE_OPPORTUNISTIC;
+            scan.isBackgroundScan =
                     (settings.getCallbackType() & ScanSettings.CALLBACK_TYPE_FIRST_MATCH) != 0;
         }
 
@@ -174,14 +177,15 @@ import java.util.List;
             mScanStartTime = startTime;
         }
         try {
-            boolean isUnoptimized = !(scan.filtered || scan.background || scan.opportunistic);
+            boolean isUnoptimized =
+                    !(scan.isFilterScan || scan.isBackgroundScan || scan.isOpportunisticScan);
             mBatteryStats.noteBleScanStarted(mWorkSource, isUnoptimized);
         } catch (RemoteException e) {
             /* ignore */
         }
         StatsLog.write(StatsLog.BLE_SCAN_STATE_CHANGED, mWorkSource,
                 StatsLog.BLE_SCAN_STATE_CHANGED__STATE__ON,
-                scan.filtered, scan.background, scan.opportunistic);
+                scan.isFilterScan, scan.isBackgroundScan, scan.isOpportunisticScan);
 
         mOngoingScans.put(scannerId, scan);
     }
@@ -225,7 +229,8 @@ import java.util.List;
 
         try {
             // Inform battery stats of any results it might be missing on scan stop
-            boolean isUnoptimized = !(scan.filtered || scan.background || scan.opportunistic);
+            boolean isUnoptimized =
+                    !(scan.isFilterScan || scan.isBackgroundScan || scan.isOpportunisticScan);
             mBatteryStats.noteBleScanResults(mWorkSource, scan.results % 100);
             mBatteryStats.noteBleScanStopped(mWorkSource, isUnoptimized);
         } catch (RemoteException e) {
@@ -234,7 +239,7 @@ import java.util.List;
         StatsLog.write(StatsLog.BLE_SCAN_RESULT_RECEIVED, mWorkSource, scan.results % 100);
         StatsLog.write(StatsLog.BLE_SCAN_STATE_CHANGED, mWorkSource,
                 StatsLog.BLE_SCAN_STATE_CHANGED__STATE__OFF,
-                scan.filtered, scan.background, scan.opportunistic);
+                scan.isFilterScan, scan.isBackgroundScan, scan.isOpportunisticScan);
     }
 
     synchronized void recordScanSuspend(int scannerId) {
@@ -266,7 +271,7 @@ import java.util.List;
 
         LastScan scan = getScanFromScannerId(scannerId);
         if (scan != null) {
-            scan.timeout = true;
+            scan.isTimeout = true;
         }
     }
 
@@ -337,16 +342,16 @@ import java.util.List;
 
         if (!mLastScans.isEmpty()) {
             LastScan lastScan = mLastScans.get(mLastScans.size() - 1);
-            if (lastScan.opportunistic) {
+            if (lastScan.isOpportunisticScan) {
                 sb.append(" (Opportunistic)");
             }
-            if (lastScan.background) {
+            if (lastScan.isBackgroundScan) {
                 sb.append(" (Background)");
             }
-            if (lastScan.timeout) {
+            if (lastScan.isTimeout) {
                 sb.append(" (Forced-Opportunistic)");
             }
-            if (lastScan.filtered) {
+            if (lastScan.isFilterScan) {
                 sb.append(" (Filtered)");
             }
         }
@@ -371,16 +376,16 @@ import java.util.List;
                 Date timestamp = new Date(currentTime - elapsedRt + scan.timestamp);
                 sb.append("    " + DATE_FORMAT.format(timestamp) + " - ");
                 sb.append(scan.duration + "ms ");
-                if (scan.opportunistic) {
+                if (scan.isOpportunisticScan) {
                     sb.append("Opp ");
                 }
-                if (scan.background) {
+                if (scan.isBackgroundScan) {
                     sb.append("Back ");
                 }
-                if (scan.timeout) {
+                if (scan.isTimeout) {
                     sb.append("Forced ");
                 }
-                if (scan.filtered) {
+                if (scan.isFilterScan) {
                     sb.append("Filter ");
                 }
                 sb.append(scan.results + " results");
@@ -399,16 +404,16 @@ import java.util.List;
                 Date timestamp = new Date(currentTime - elapsedRt + scan.timestamp);
                 sb.append("    " + DATE_FORMAT.format(timestamp) + " - ");
                 sb.append((elapsedRt - scan.timestamp) + "ms ");
-                if (scan.opportunistic) {
+                if (scan.isOpportunisticScan) {
                     sb.append("Opp ");
                 }
-                if (scan.background) {
+                if (scan.isBackgroundScan) {
                     sb.append("Back ");
                 }
-                if (scan.timeout) {
+                if (scan.isTimeout) {
                     sb.append("Forced ");
                 }
-                if (scan.filtered) {
+                if (scan.isFilterScan) {
                     sb.append("Filter ");
                 }
                 if (scan.isSuspended) {
