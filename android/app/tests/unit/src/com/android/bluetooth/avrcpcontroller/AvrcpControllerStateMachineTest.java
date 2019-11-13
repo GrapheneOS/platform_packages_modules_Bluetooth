@@ -151,6 +151,10 @@ public class AvrcpControllerStateMachineTest {
                 IsInstanceOf.instanceOf(AvrcpControllerStateMachine.Disconnected.class));
         Assert.assertEquals(mAvrcpStateMachine.getState(), BluetoothProfile.STATE_DISCONNECTED);
         verify(mAvrcpControllerService).removeStateMachine(eq(mAvrcpStateMachine));
+        MediaControllerCompat.TransportControls transportControls =
+                BluetoothMediaBrowserService.getTransportControls();
+        Assert.assertEquals(PlaybackStateCompat.STATE_ERROR,
+                BluetoothMediaBrowserService.getPlaybackState());
     }
 
     /**
@@ -159,6 +163,11 @@ public class AvrcpControllerStateMachineTest {
     @Test
     public void testControlOnly() {
         int numBroadcastsSent = setUpConnectedState(true, false);
+        MediaControllerCompat.TransportControls transportControls =
+                BluetoothMediaBrowserService.getTransportControls();
+        Assert.assertNotNull(transportControls);
+        Assert.assertEquals(PlaybackStateCompat.STATE_NONE,
+                BluetoothMediaBrowserService.getPlaybackState());
         StackEvent event =
                 StackEvent.connectionStateChanged(false, false);
         mAvrcpStateMachine.disconnect();
@@ -176,6 +185,8 @@ public class AvrcpControllerStateMachineTest {
                 IsInstanceOf.instanceOf(AvrcpControllerStateMachine.Disconnected.class));
         Assert.assertEquals(mAvrcpStateMachine.getState(), BluetoothProfile.STATE_DISCONNECTED);
         verify(mAvrcpControllerService).removeStateMachine(eq(mAvrcpStateMachine));
+        Assert.assertEquals(PlaybackStateCompat.STATE_ERROR,
+                BluetoothMediaBrowserService.getPlaybackState());
     }
 
     /**
@@ -186,6 +197,8 @@ public class AvrcpControllerStateMachineTest {
         Assert.assertEquals(0, mAvrcpControllerService.sBrowseTree.mRootNode.getChildrenCount());
         int numBroadcastsSent = setUpConnectedState(false, true);
         Assert.assertEquals(1, mAvrcpControllerService.sBrowseTree.mRootNode.getChildrenCount());
+        Assert.assertEquals(PlaybackStateCompat.STATE_NONE,
+                BluetoothMediaBrowserService.getPlaybackState());
         StackEvent event =
                 StackEvent.connectionStateChanged(false, false);
         mAvrcpStateMachine.disconnect();
@@ -203,6 +216,10 @@ public class AvrcpControllerStateMachineTest {
                 IsInstanceOf.instanceOf(AvrcpControllerStateMachine.Disconnected.class));
         Assert.assertEquals(mAvrcpStateMachine.getState(), BluetoothProfile.STATE_DISCONNECTED);
         verify(mAvrcpControllerService).removeStateMachine(eq(mAvrcpStateMachine));
+        MediaControllerCompat.TransportControls transportControls =
+                BluetoothMediaBrowserService.getTransportControls();
+        Assert.assertEquals(PlaybackStateCompat.STATE_ERROR,
+                BluetoothMediaBrowserService.getPlaybackState());
     }
 
     /**
