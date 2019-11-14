@@ -417,7 +417,15 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
         }
     }
 
-    int getConnectionState(BluetoothDevice device) {
+    /**
+     * Get the current connection state of PBAP with the passed in device
+     *
+     * @param device is the device whose connection state to PBAP we are trying to get
+     * @return current connection state, one of {@link BluetoothProfile#STATE_DISCONNECTED},
+     * {@link BluetoothProfile#STATE_CONNECTING}, {@link BluetoothProfile#STATE_CONNECTED}, or
+     * {@link BluetoothProfile#STATE_DISCONNECTING}
+     */
+    public int getConnectionState(BluetoothDevice device) {
         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
         if (mPbapStateMachineMap == null) {
             return BluetoothProfile.STATE_DISCONNECTED;

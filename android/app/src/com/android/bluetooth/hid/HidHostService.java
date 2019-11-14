@@ -468,7 +468,14 @@ public class HidHostService extends ProfileService {
     ;
 
     //APIs
-    boolean connect(BluetoothDevice device) {
+
+    /**
+     * Connects the hid host profile for the passed in device
+     *
+     * @param device is the device with which to connect the hid host profile
+     * @return true if connection is successful, false otherwise
+     */
+    public boolean connect(BluetoothDevice device) {
         if (DBG) Log.d(TAG, "connect: " + device.getAddress());
         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
         if (getConnectionState(device) != BluetoothHidHost.STATE_DISCONNECTED) {
@@ -485,7 +492,13 @@ public class HidHostService extends ProfileService {
         return true;
     }
 
-    boolean disconnect(BluetoothDevice device) {
+    /**
+     * Disconnects the hid host profile from the passed in device
+     *
+     * @param device is the device with which to disconnect the hid host profile
+     * @return true
+     */
+    public boolean disconnect(BluetoothDevice device) {
         if (DBG) Log.d(TAG, "disconnect: " + device.getAddress());
         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
         Message msg = mHandler.obtainMessage(MESSAGE_DISCONNECT, device);

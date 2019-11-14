@@ -592,7 +592,13 @@ public class HidDeviceService extends ProfileService {
                 && mHidDeviceNativeInterface.unplug();
     }
 
-    synchronized boolean connect(BluetoothDevice device) {
+    /**
+     * Connects the Hid device profile for the remote bluetooth device
+     *
+     * @param device is the device with which we would like to connect the hid device profile
+     * @return true if the connection is successful, false otherwise
+     */
+    public synchronized boolean connect(BluetoothDevice device) {
         enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH ADMIN permission");
         if (DBG) {
             Log.d(TAG, "connect(): device=" + device);
@@ -601,7 +607,13 @@ public class HidDeviceService extends ProfileService {
         return checkCallingUid() && mHidDeviceNativeInterface.connect(device);
     }
 
-    synchronized boolean disconnect(BluetoothDevice device) {
+    /**
+     * Disconnects the hid device profile for the remote bluetooth device
+     *
+     * @param device is the device with which we would like to disconnect the hid device profile
+     * @return true if the disconnection is successful, false otherwise
+     */
+    public synchronized boolean disconnect(BluetoothDevice device) {
         enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH ADMIN permission");
         if (DBG) {
             Log.d(TAG, "disconnect(): device=" + device);
@@ -701,7 +713,15 @@ public class HidDeviceService extends ProfileService {
         sHidDeviceService = instance;
     }
 
-    int getConnectionState(BluetoothDevice device) {
+    /**
+     * Gets the connections state for the hid device profile for the passed in device
+     *
+     * @param device is the device whose conenction state we want to verify
+     * @return current connection state, one of {@link BluetoothProfile#STATE_DISCONNECTED},
+     * {@link BluetoothProfile#STATE_CONNECTING}, {@link BluetoothProfile#STATE_CONNECTED}, or
+     * {@link BluetoothProfile#STATE_DISCONNECTING}
+     */
+    public int getConnectionState(BluetoothDevice device) {
         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
         if (mHidDevice != null && mHidDevice.equals(device)) {
             return mHidDeviceState;

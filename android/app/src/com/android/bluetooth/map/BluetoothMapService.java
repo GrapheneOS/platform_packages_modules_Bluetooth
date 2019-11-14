@@ -509,7 +509,12 @@ public class BluetoothMapService extends ProfileService {
         }
     }
 
-    void disconnect(BluetoothDevice device) {
+    /**
+     * Disconnects MAP from the supplied device
+     *
+     * @param device is the device on which we want to disconnect MAP
+     */
+    public void disconnect(BluetoothDevice device) {
         mSessionStatusHandler.sendMessage(
                 mSessionStatusHandler.obtainMessage(DISCONNECT_MAP, 0, 0, device));
     }
@@ -563,7 +568,14 @@ public class BluetoothMapService extends ProfileService {
         return deviceList;
     }
 
-    int getConnectionState(BluetoothDevice device) {
+    /**
+     * Gets the connection state of MAP with the passed in device.
+     *
+     * @param device is the device whose connection state we are querying
+     * @return {@link BluetoothProfile#STATE_CONNECTED} if MAP is connected to this device,
+     * {@link BluetoothProfile#STATE_DISCONNECTED} otherwise
+     */
+    public int getConnectionState(BluetoothDevice device) {
         synchronized (this) {
             if (getState() == BluetoothMap.STATE_CONNECTED && getRemoteDevice().equals(device)) {
                 return BluetoothProfile.STATE_CONNECTED;
@@ -1194,18 +1206,6 @@ public class BluetoothMapService extends ProfileService {
             BluetoothMapService service = getService();
             return service != null && service.getState() == BluetoothMap.STATE_CONNECTED
                     && BluetoothMapService.getRemoteDevice().equals(device);
-        }
-
-        @Override
-        public boolean connect(BluetoothDevice device) {
-            if (VERBOSE) {
-                Log.v(TAG, "connect()");
-            }
-            BluetoothMapService service = getService();
-            if (service == null) {
-                return false;
-            }
-            return false;
         }
 
         @Override
