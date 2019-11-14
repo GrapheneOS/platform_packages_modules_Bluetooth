@@ -221,7 +221,13 @@ public class HearingAidService extends ProfileService {
         sHearingAidService = instance;
     }
 
-    boolean connect(BluetoothDevice device) {
+    /**
+     * Connects the hearing aid profile to the passed in device
+     *
+     * @param device is the device with which we will connect the hearing aid profile
+     * @return true if hearing aid profile successfully connected, false otherwise
+     */
+    public boolean connect(BluetoothDevice device) {
         enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH ADMIN permission");
         if (DBG) {
             Log.d(TAG, "connect(): " + device);
@@ -281,7 +287,13 @@ public class HearingAidService extends ProfileService {
         return true;
     }
 
-    boolean disconnect(BluetoothDevice device) {
+    /**
+     * Disconnects hearing aid profile for the passed in device
+     *
+     * @param device is the device with which we want to disconnected the hearing aid profile
+     * @return true if hearing aid profile successfully disconnected, false otherwise
+     */
+    public boolean disconnect(BluetoothDevice device) {
         enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH ADMIN permission");
         if (DBG) {
             Log.d(TAG, "disconnect(): " + device);

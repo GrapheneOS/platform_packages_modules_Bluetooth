@@ -269,7 +269,13 @@ public class A2dpService extends ProfileService {
         }
     }
 
-    boolean disconnect(BluetoothDevice device) {
+    /**
+     * Disconnects A2dp for the remote bluetooth device
+     *
+     * @param device is the device with which we would like to disconnect a2dp
+     * @return true if profile disconnected, false if device not connected over a2dp
+     */
+    public boolean disconnect(BluetoothDevice device) {
         enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH ADMIN permission");
         if (DBG) {
             Log.d(TAG, "disconnect(): " + device);
