@@ -317,7 +317,13 @@ public class PbapClientService extends ProfileService {
         }
     }
 
-    boolean disconnect(BluetoothDevice device) {
+    /**
+     * Disconnects the pbap client profile from the passed in device
+     *
+     * @param device is the device with which we will disconnect the pbap client profile
+     * @return true if we disconnected the pbap client profile, false otherwise
+     */
+    public boolean disconnect(BluetoothDevice device) {
         if (device == null) {
             throw new IllegalArgumentException("Null device");
         }
