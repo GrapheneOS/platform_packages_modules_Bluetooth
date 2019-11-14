@@ -729,7 +729,13 @@ public class HeadsetService extends ProfileService {
         return true;
     }
 
-    boolean disconnect(BluetoothDevice device) {
+    /**
+     * Disconnects hfp from the passed in device
+     *
+     * @param device is the device with which we will disconnect hfp
+     * @return true if hfp is disconnected, false if the device is not connected
+     */
+    public boolean disconnect(BluetoothDevice device) {
         enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH_ADMIN permission");
         Log.i(TAG, "disconnect: device=" + device + ", " + Utils.getUidPidString());
         synchronized (mStateMachines) {
