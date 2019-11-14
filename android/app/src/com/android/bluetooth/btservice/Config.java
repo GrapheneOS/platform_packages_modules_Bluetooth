@@ -127,8 +127,8 @@ public class Config {
                 Log.v(TAG, "Adding " + config.mClass.getSimpleName());
                 profiles.add(config.mClass);
             }
-            sSupportedProfiles = profiles.toArray(new Class[profiles.size()]);
         }
+        sSupportedProfiles = profiles.toArray(new Class[profiles.size()]);
     }
 
     static Class[] getSupportedProfiles() {
