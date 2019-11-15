@@ -20,7 +20,6 @@
 #include "utils/Log.h"
 #include "utils/misc.h"
 
-#include <cutils/properties.h>
 #include <dlfcn.h>
 #include <errno.h>
 #include <pthread.h>
@@ -598,17 +597,12 @@ static bt_os_callouts_t sBluetoothOsCallouts = {
     acquire_wake_lock_callout, release_wake_lock_callout,
 };
 
-#define PROPERTY_BT_LIBRARY_NAME "ro.bluetooth.library_name"
-#define DEFAULT_BT_LIBRARY_NAME "libbluetooth.so"
-
 int hal_util_load_bt_library(const bt_interface_t** interface) {
   const char* sym = BLUETOOTH_INTERFACE_STRING;
   bt_interface_t* itf = nullptr;
 
   // The library name is not set by default, so the preset library name is used.
-  char path[PROPERTY_VALUE_MAX] = "";
-  property_get(PROPERTY_BT_LIBRARY_NAME, path, DEFAULT_BT_LIBRARY_NAME);
-  void* handle = dlopen(path, RTLD_NOW);
+  void* handle = dlopen("libbluetooth.so", RTLD_NOW);
   if (!handle) {
     const char* err_str = dlerror();
     ALOGE("%s: failed to load Bluetooth library, error=%s", __func__,
