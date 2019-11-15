@@ -243,24 +243,6 @@ public class AvrcpTargetService extends ProfileService {
     }
 
     /**
-     * Store the current system volume for a device in order to be retrieved later.
-     */
-    public void storeVolumeForDevice(BluetoothDevice device) {
-        if (device == null) return;
-
-        List<BluetoothDevice> HAActiveDevices = null;
-        if (mFactory.getHearingAidService() != null) {
-            HAActiveDevices = mFactory.getHearingAidService().getActiveDevices();
-        }
-        if (HAActiveDevices != null
-                && (HAActiveDevices.get(0) != null || HAActiveDevices.get(1) != null)) {
-            Log.d(TAG, "Do not store volume when Hearing Aid devices is active");
-            return;
-        }
-        mVolumeManager.storeVolumeForDevice(device);
-    }
-
-    /**
      * Remove the stored volume for a device.
      */
     public void removeStoredVolumeForDevice(BluetoothDevice device) {
