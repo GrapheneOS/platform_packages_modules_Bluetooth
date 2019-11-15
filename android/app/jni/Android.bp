@@ -25,11 +25,9 @@ cc_library_shared {
         "libchrome",
         "libnativehelper",
         "liblog",
-        "libutils",
     ],
     static_libs: [
         "libbluetooth-types",
-        "libcutils",
     ],
     cflags: [
         "-Wall",
