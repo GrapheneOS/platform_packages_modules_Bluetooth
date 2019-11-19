@@ -16,7 +16,6 @@
 
 package com.android.bluetooth;
 
-import android.app.ActivityManager;
 import android.app.AppOpsManager;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -41,7 +40,9 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
-import java.util.List;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -467,5 +468,15 @@ public final class Utils {
      */
     public static String getUidPidString() {
         return "uid/pid=" + Binder.getCallingUid() + "/" + Binder.getCallingPid();
+    }
+
+    /**
+     * Get system local time
+     *
+     * @return "MM-dd HH:mm:ss.SSS"
+     */
+    public static String getLocalTimeString() {
+        return DateTimeFormatter.ofPattern("MM-dd HH:mm:ss.SSS")
+                .withZone(ZoneId.systemDefault()).format(Instant.now());
     }
 }
