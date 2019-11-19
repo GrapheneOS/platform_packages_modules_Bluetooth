@@ -1255,7 +1255,9 @@ static jint createSocketChannelNative(JNIEnv* env, jobject obj, jint type,
     goto done;
   }
   uuidBytes = env->GetByteArrayElements(uuid, nullptr);
-  nativeServiceName = env->GetStringUTFChars(serviceName, nullptr);
+  if (serviceName != nullptr) {
+    nativeServiceName = env->GetStringUTFChars(serviceName, nullptr);
+  }
   if (uuidBytes == nullptr) {
     jniThrowIOException(env, EINVAL);
     goto done;
