@@ -17,6 +17,8 @@
 package com.android.bluetooth.btservice.storage;
 
 import android.bluetooth.BluetoothA2dp;
+import android.bluetooth.BluetoothA2dp.OptionalCodecsPreferenceStatus;
+import android.bluetooth.BluetoothA2dp.OptionalCodecsSupportStatus;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothProfile;
 
@@ -43,8 +45,8 @@ class Metadata {
     @NonNull
     public CustomizedMetadataEntity publicMetadata;
 
-    public int a2dpSupportsOptionalCodecs;
-    public int a2dpOptionalCodecsEnabled;
+    public @OptionalCodecsSupportStatus int a2dpSupportsOptionalCodecs;
+    public @OptionalCodecsPreferenceStatus int a2dpOptionalCodecsEnabled;
 
     Metadata(String address) {
         this.address = address;
