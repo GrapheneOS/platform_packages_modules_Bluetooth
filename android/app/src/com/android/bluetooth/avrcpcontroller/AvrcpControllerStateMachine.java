@@ -881,7 +881,6 @@ class AvrcpControllerStateMachine extends StateMachine {
 
     private boolean shouldRequestFocus() {
         return mService.getResources()
-                .getBoolean(R.bool.a2dp_sink_automatically_request_audio_focus)
-                || !mAudioManager.isMusicActive();
+                .getBoolean(R.bool.a2dp_sink_automatically_request_audio_focus);
     }
 }
