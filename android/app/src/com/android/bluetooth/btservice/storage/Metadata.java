@@ -301,4 +301,20 @@ class Metadata {
         }
         return list;
     }
+
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        builder.append(address)
+            .append(" {profile priority(")
+            .append(profilePriorities)
+            .append("), optional codec(support=")
+            .append(a2dpSupportsOptionalCodecs)
+            .append("|enabled=")
+            .append(a2dpOptionalCodecsEnabled)
+            .append("), custom metadata(")
+            .append(publicMetadata)
+            .append(")}");
+
+        return builder.toString();
+    }
 }

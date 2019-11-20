@@ -3282,6 +3282,7 @@ public class AdapterService extends Service {
             profile.dump(sb);
         }
         mSilenceDeviceManager.dump(fd, writer, args);
+        mDatabaseManager.dump(writer);
 
         writer.write(sb.toString());
         writer.flush();

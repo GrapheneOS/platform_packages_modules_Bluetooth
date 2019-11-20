@@ -50,4 +50,22 @@ class ProfilePrioritiesEntity {
         hearing_aid_priority = BluetoothProfile.PRIORITY_UNDEFINED;
         map_client_priority = BluetoothProfile.PRIORITY_UNDEFINED;
     }
+
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        builder.append("A2DP=").append(a2dp_priority)
+                .append("|A2DP_SINK=").append(a2dp_sink_priority)
+                .append("|HEADSET=").append(hfp_priority)
+                .append("|HEADSET_CLIENT=").append(hfp_client_priority)
+                .append("|HID_HOST=").append(hid_host_priority)
+                .append("|PAN=").append(pan_priority)
+                .append("|PBAP=").append(pbap_priority)
+                .append("|PBAP_CLIENT=").append(pbap_client_priority)
+                .append("|MAP=").append(map_priority)
+                .append("|MAP_CLIENT=").append(map_client_priority)
+                .append("|SAP=").append(sap_priority)
+                .append("|HEARING_AID=").append(hearing_aid_priority);
+
+        return builder.toString();
+    }
 }
