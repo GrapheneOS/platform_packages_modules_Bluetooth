@@ -183,8 +183,9 @@ public class A2dpSinkStreamHandler extends Handler {
                 break;
 
             case AUDIO_FOCUS_CHANGE:
+                mAudioFocus = (int) message.obj;
                 // message.obj is the newly granted audio focus.
-                switch ((int) message.obj) {
+                switch (mAudioFocus) {
                     case AudioManager.AUDIOFOCUS_GAIN:
                         removeMessages(DELAYED_PAUSE);
                         // Begin playing audio, if we paused the remote, send a play now.
@@ -245,7 +246,7 @@ public class A2dpSinkStreamHandler extends Handler {
      */
     private void requestAudioFocusIfNone() {
         if (DBG) Log.d(TAG, "requestAudioFocusIfNone()");
-        if (mAudioFocus == AudioManager.AUDIOFOCUS_NONE) {
+        if (mAudioFocus != AudioManager.AUDIOFOCUS_GAIN) {
             requestAudioFocus();
         }
         // On the off change mMediaPlayer errors out and dies, we want to make sure we retry this.
