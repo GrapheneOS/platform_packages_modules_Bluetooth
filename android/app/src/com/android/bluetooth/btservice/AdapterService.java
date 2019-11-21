@@ -27,6 +27,7 @@ import android.bluetooth.BluetoothClass;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.BluetoothProtoEnums;
+import android.bluetooth.BluetoothUuid;
 import android.bluetooth.IBluetooth;
 import android.bluetooth.IBluetoothCallback;
 import android.bluetooth.IBluetoothMetadataListener;
@@ -68,10 +69,23 @@ import android.util.StatsLog;
 
 import com.android.bluetooth.BluetoothMetricsProto;
 import com.android.bluetooth.Utils;
+import com.android.bluetooth.a2dp.A2dpService;
+import com.android.bluetooth.a2dpsink.A2dpSinkService;
 import com.android.bluetooth.btservice.RemoteDevices.DeviceProperties;
 import com.android.bluetooth.btservice.storage.DatabaseManager;
 import com.android.bluetooth.btservice.storage.MetadataDatabase;
 import com.android.bluetooth.gatt.GattService;
+import com.android.bluetooth.hearingaid.HearingAidService;
+import com.android.bluetooth.hfp.HeadsetService;
+import com.android.bluetooth.hfpclient.HeadsetClientService;
+import com.android.bluetooth.hid.HidDeviceService;
+import com.android.bluetooth.hid.HidHostService;
+import com.android.bluetooth.map.BluetoothMapService;
+import com.android.bluetooth.mapclient.MapClientService;
+import com.android.bluetooth.pan.PanService;
+import com.android.bluetooth.pbap.BluetoothPbapService;
+import com.android.bluetooth.pbapclient.PbapClientService;
+import com.android.bluetooth.sap.SapService;
 import com.android.bluetooth.sdp.SdpManager;
 import com.android.internal.R;
 import com.android.internal.annotations.VisibleForTesting;
@@ -200,6 +214,20 @@ public class AdapterService extends Service {
 
     private BluetoothSocketManagerBinder mBluetoothSocketManagerBinder;
 
+    private A2dpService mA2dpService;
+    private A2dpSinkService mA2dpSinkService;
+    private HeadsetService mHeadsetService;
+    private HeadsetClientService mHeadsetClientService;
+    private BluetoothMapService mMapService;
+    private MapClientService mMapClientService;
+    private HidDeviceService mHidDeviceService;
+    private HidHostService mHidHostService;
+    private PanService mPanService;
+    private BluetoothPbapService mPbapService;
+    private PbapClientService mPbapClientService;
+    private HearingAidService mHearingAidService;
+    private SapService mSapService;
+
     /**
      * Register a {@link ProfileService} with AdapterService.
      *
@@ -294,6 +322,7 @@ public class AdapterService extends Service {
                         mAdapterProperties.onBluetoothReady();
                         updateUuids();
                         setBluetoothClassFromConfig();
+                        initProfileServices();
                         getAdapterPropertyNative(AbstractionLayer.BT_PROPERTY_LOCAL_IO_CAPS);
                         getAdapterPropertyNative(AbstractionLayer.BT_PROPERTY_LOCAL_IO_CAPS_BLE);
                         mAdapterStateMachine.sendMessage(AdapterState.BREDR_STARTED);
@@ -769,6 +798,229 @@ public class AdapterService extends Service {
         }
     }
 
+    /**
+     * Verifies whether the profile is supported by the local bluetooth adapter by checking a
+     * bitmask of its supported profiles
+     *
+     * @param remoteDeviceUuids is an array of all supported profiles by the remote device
+     * @param localDeviceUuids  is an array of all supported profiles by the local device
+     * @param profile           is the profile we are checking for support
+     * @param device            is the remote device we wish to connect to
+     * @return true if the profile is supported by both the local and remote device, false otherwise
+     */
+    private boolean isSupported(ParcelUuid[] localDeviceUuids, ParcelUuid[] remoteDeviceUuids,
+            int profile, BluetoothDevice device) {
+        if (remoteDeviceUuids == null || remoteDeviceUuids.length == 0) {
+            Log.e(TAG, "isSupported: Remote Device Uuids Empty");
+        }
+
+        if (profile == BluetoothProfile.HEADSET) {
+            return (BluetoothUuid.isUuidPresent(localDeviceUuids, BluetoothUuid.HSP_AG)
+                    && BluetoothUuid.isUuidPresent(remoteDeviceUuids, BluetoothUuid.HSP))
+                    || (BluetoothUuid.isUuidPresent(localDeviceUuids, BluetoothUuid.Handsfree_AG)
+                    && BluetoothUuid.isUuidPresent(remoteDeviceUuids, BluetoothUuid.Handsfree));
+        }
+        if (profile == BluetoothProfile.HEADSET_CLIENT) {
+            return BluetoothUuid.isUuidPresent(remoteDeviceUuids, BluetoothUuid.Handsfree_AG)
+                    && BluetoothUuid.isUuidPresent(localDeviceUuids, BluetoothUuid.Handsfree);
+        }
+        if (profile == BluetoothProfile.A2DP) {
+            return BluetoothUuid.isUuidPresent(remoteDeviceUuids, BluetoothUuid.AdvAudioDist)
+                    || BluetoothUuid.isUuidPresent(remoteDeviceUuids, BluetoothUuid.AudioSink);
+        }
+        if (profile == BluetoothProfile.A2DP_SINK) {
+            return BluetoothUuid.isUuidPresent(remoteDeviceUuids, BluetoothUuid.AdvAudioDist)
+                    || BluetoothUuid.isUuidPresent(remoteDeviceUuids, BluetoothUuid.AudioSource);
+        }
+        if (profile == BluetoothProfile.OPP) {
+            return BluetoothUuid.isUuidPresent(remoteDeviceUuids, BluetoothUuid.ObexObjectPush);
+        }
+        if (profile == BluetoothProfile.HID_HOST) {
+            return BluetoothUuid.isUuidPresent(remoteDeviceUuids, BluetoothUuid.Hid)
+                    || BluetoothUuid.isUuidPresent(remoteDeviceUuids, BluetoothUuid.Hogp);
+        }
+        if (profile == BluetoothProfile.HID_DEVICE) {
+            return mHidDeviceService.getConnectionState(device)
+                    == BluetoothProfile.STATE_DISCONNECTED;
+        }
+        if (profile == BluetoothProfile.PAN) {
+            return BluetoothUuid.isUuidPresent(remoteDeviceUuids, BluetoothUuid.NAP);
+        }
+        if (profile == BluetoothProfile.MAP) {
+            return mMapService.getConnectionState(device) == BluetoothProfile.STATE_CONNECTED;
+        }
+        if (profile == BluetoothProfile.PBAP) {
+            return mPbapService.getConnectionState(device) == BluetoothProfile.STATE_CONNECTED;
+        }
+        if (profile == BluetoothProfile.MAP_CLIENT) {
+            return true;
+        }
+        if (profile == BluetoothProfile.PBAP_CLIENT) {
+            return BluetoothUuid.isUuidPresent(localDeviceUuids, BluetoothUuid.PBAP_PCE)
+                    && BluetoothUuid.isUuidPresent(remoteDeviceUuids, BluetoothUuid.PBAP_PSE);
+        }
+        if (profile == BluetoothProfile.HEARING_AID) {
+            return BluetoothUuid.isUuidPresent(remoteDeviceUuids, BluetoothUuid.HearingAid);
+        }
+        if (profile == BluetoothProfile.SAP) {
+            return BluetoothUuid.isUuidPresent(remoteDeviceUuids, BluetoothUuid.SAP);
+        }
+
+        Log.e(TAG, "isSupported: Unexpected profile passed in to function: " + profile);
+        return false;
+    }
+
+    /**
+     * Checks if any profile is enabled for the given device
+     *
+     * @param device is the device for which we are checking if any profiles are enabled
+     * @return true if any profile is enabled, false otherwise
+     */
+    private boolean isAnyProfileEnabled(BluetoothDevice device) {
+
+        if (mA2dpService != null
+                && mA2dpService.getPriority(device) > BluetoothProfile.PRIORITY_OFF) {
+            return true;
+        }
+        if (mA2dpSinkService != null
+                && mA2dpSinkService.getPriority(device) > BluetoothProfile.PRIORITY_OFF) {
+            return true;
+        }
+        if (mHeadsetService != null
+                && mHeadsetService.getPriority(device) > BluetoothProfile.PRIORITY_OFF) {
+            return true;
+        }
+        if (mHeadsetClientService != null
+                && mHeadsetClientService.getPriority(device) > BluetoothProfile.PRIORITY_OFF) {
+            return true;
+        }
+        if (mMapClientService != null
+                && mMapClientService.getPriority(device) > BluetoothProfile.PRIORITY_OFF) {
+            return true;
+        }
+        if (mHidHostService != null
+                && mHidHostService.getPriority(device) > BluetoothProfile.PRIORITY_OFF) {
+            return true;
+        }
+        if (mPanService != null
+                && mPanService.getPriority(device) > BluetoothProfile.PRIORITY_OFF) {
+            return true;
+        }
+        if (mPbapClientService != null
+                && mPbapClientService.getPriority(device) > BluetoothProfile.PRIORITY_OFF) {
+            return true;
+        }
+        if (mHearingAidService != null
+                && mHearingAidService.getPriority(device) > BluetoothProfile.PRIORITY_OFF) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Connects only available profiles (those with {@link BluetoothProfile#PRIORITY_ON})
+     *
+     * @param device is the device with which we are connecting the profiles
+     * @return true
+     */
+    private boolean connectEnabledProfiles(BluetoothDevice device) {
+        ParcelUuid[] remoteDeviceUuids = getRemoteUuids(device);
+        ParcelUuid[] localDeviceUuids = getUuids();
+
+        if (mA2dpService != null && isSupported(localDeviceUuids, remoteDeviceUuids,
+                BluetoothProfile.A2DP, device)
+                && mA2dpService.getPriority(device) > BluetoothProfile.PRIORITY_OFF) {
+            Log.i(TAG, "connectEnabledProfiles: Connecting A2dp");
+            mA2dpService.connect(device);
+        }
+        if (mA2dpSinkService != null && isSupported(localDeviceUuids, remoteDeviceUuids,
+                BluetoothProfile.A2DP_SINK, device)
+                && mA2dpSinkService.getPriority(device) > BluetoothProfile.PRIORITY_OFF) {
+            Log.i(TAG, "connectEnabledProfiles: Connecting A2dp Sink");
+            mA2dpSinkService.connect(device);
+        }
+        if (mHeadsetService != null && isSupported(localDeviceUuids, remoteDeviceUuids,
+                BluetoothProfile.HEADSET, device)
+                && mHeadsetService.getPriority(device) > BluetoothProfile.PRIORITY_OFF) {
+            Log.i(TAG, "connectEnabledProfiles: Connecting Headset Profile");
+            mHeadsetService.connect(device);
+        }
+        if (mHeadsetClientService != null && isSupported(localDeviceUuids, remoteDeviceUuids,
+                BluetoothProfile.HEADSET_CLIENT, device)
+                && mHeadsetClientService.getPriority(device) > BluetoothProfile.PRIORITY_OFF) {
+            Log.i(TAG, "connectEnabledProfiles: Connecting HFP");
+            mHeadsetClientService.connect(device);
+        }
+        if (mMapClientService != null && isSupported(localDeviceUuids, remoteDeviceUuids,
+                BluetoothProfile.MAP_CLIENT, device)
+                && mMapClientService.getPriority(device) > BluetoothProfile.PRIORITY_OFF) {
+            Log.i(TAG, "connectEnabledProfiles: Connecting MAP");
+            mMapClientService.connect(device);
+        }
+        if (mHidHostService != null && isSupported(localDeviceUuids, remoteDeviceUuids,
+                BluetoothProfile.HID_HOST, device)
+                && mHidHostService.getPriority(device) > BluetoothProfile.PRIORITY_OFF) {
+            Log.i(TAG, "connectEnabledProfiles: Connecting Hid Host Profile");
+            mHidHostService.connect(device);
+        }
+        if (mPanService != null && isSupported(localDeviceUuids, remoteDeviceUuids,
+                BluetoothProfile.PAN, device)
+                && mPanService.getPriority(device) > BluetoothProfile.PRIORITY_OFF) {
+            Log.i(TAG, "connectEnabledProfiles: Connecting Pan Profile");
+            mPanService.connect(device);
+        }
+        if (mPbapClientService != null && isSupported(localDeviceUuids, remoteDeviceUuids,
+                BluetoothProfile.PBAP_CLIENT, device)
+                && mPbapClientService.getPriority(device) > BluetoothProfile.PRIORITY_OFF) {
+            Log.i(TAG, "connectEnabledProfiles: Connecting Pbap");
+            mPbapClientService.connect(device);
+        }
+        if (mHearingAidService != null && isSupported(localDeviceUuids, remoteDeviceUuids,
+                BluetoothProfile.HEARING_AID, device)
+                && mHearingAidService.getPriority(device) > BluetoothProfile.PRIORITY_OFF) {
+            Log.i(TAG, "connectEnabledProfiles: Connecting Hearing Aid Profile");
+            mHearingAidService.connect(device);
+        }
+
+        return true;
+    }
+
+    /**
+     * Verifies that all bluetooth profile services are running
+     *
+     * @return true if all bluetooth profile services running, false otherwise
+     */
+    private boolean profileServicesRunning() {
+        if (mRegisteredProfiles.size() == Config.getSupportedProfiles().length
+                && mRegisteredProfiles.size() == mRunningProfiles.size()) {
+            return true;
+        }
+
+        Log.e(TAG, "profileServicesRunning: One or more supported services not running");
+        return false;
+    }
+
+    /**
+     * Initializes all the profile services fields
+     */
+    private void initProfileServices() {
+        Log.i(TAG, "initProfileServices: Initializing all bluetooth profile services");
+        mA2dpService = A2dpService.getA2dpService();
+        mA2dpSinkService = A2dpSinkService.getA2dpSinkService();
+        mHeadsetService = HeadsetService.getHeadsetService();
+        mHeadsetClientService = HeadsetClientService.getHeadsetClientService();
+        mMapService = BluetoothMapService.getBluetoothMapService();
+        mMapClientService = MapClientService.getMapClientService();
+        mHidDeviceService = HidDeviceService.getHidDeviceService();
+        mHidHostService = HidHostService.getHidHostService();
+        mPanService = PanService.getPanService();
+        mPbapService = BluetoothPbapService.getBluetoothPbapService();
+        mPbapClientService = PbapClientService.getPbapClientService();
+        mHearingAidService = HearingAidService.getHearingAidService();
+        mSapService = SapService.getSapService();
+    }
+
     private boolean isAvailable() {
         return !mCleaningUp;
     }
@@ -1237,6 +1489,34 @@ public class AdapterService extends Service {
                 return 0;
             }
             return service.getConnectionState(device);
+        }
+
+        @Override
+        public boolean connectAllEnabledProfiles(BluetoothDevice device) {
+            if (!Utils.checkCaller()) {
+                Log.w(TAG, "connectAllEnabledProfiles() - Not allowed for non-active user");
+                return false;
+            }
+
+            AdapterService service = getService();
+            if (service == null) {
+                return false;
+            }
+            return service.connectAllEnabledProfiles(device);
+        }
+
+        @Override
+        public boolean disconnectAllEnabledProfiles(BluetoothDevice device) {
+            if (!Utils.checkCaller()) {
+                Log.w(TAG, "disconnectAllEnabledProfiles() - Not allowed for non-active user");
+                return false;
+            }
+
+            AdapterService service = getService();
+            if (service == null) {
+                return false;
+            }
+            return service.disconnectAllEnabledProfiles(device);
         }
 
         @Override
@@ -2144,6 +2424,202 @@ public class AdapterService extends Service {
     }
 
     /**
+     * Connects all enabled and supported bluetooth profiles between the local and remote device
+     *
+     * @param device is the remote device with which to connect these profiles
+     * @return true if all profiles successfully connected, false if an error occurred
+     */
+    public boolean connectAllEnabledProfiles(BluetoothDevice device) {
+        enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH ADMIN permission");
+        if (!profileServicesRunning()) {
+            Log.e(TAG, "connectAllEnabledProfiles: Not all profile services running");
+            return false;
+        }
+
+        // Checks if any profiles are enabled and if so, only connect enabled profiles
+        if (isAnyProfileEnabled(device)) {
+            return connectEnabledProfiles(device);
+        }
+
+        int numProfilesConnected = 0;
+        ParcelUuid[] remoteDeviceUuids = getRemoteUuids(device);
+        ParcelUuid[] localDeviceUuids = getUuids();
+
+        // All profile toggles disabled, so connects all supported profiles
+        if (mA2dpService != null && isSupported(localDeviceUuids, remoteDeviceUuids,
+                BluetoothProfile.A2DP, device)) {
+            mA2dpService.setPriority(device, BluetoothProfile.PRIORITY_ON);
+            Log.i(TAG, "connectAllEnabledProfiles: Connecting A2dp");
+            mA2dpService.connect(device);
+            numProfilesConnected++;
+        }
+        if (mA2dpSinkService != null && isSupported(localDeviceUuids, remoteDeviceUuids,
+                BluetoothProfile.A2DP_SINK, device)) {
+            mA2dpSinkService.setPriority(device, BluetoothProfile.PRIORITY_ON);
+            Log.i(TAG, "connectAllEnabledProfiles: Connecting A2dp Sink");
+            mA2dpSinkService.connect(device);
+            numProfilesConnected++;
+        }
+        if (mHeadsetService != null && isSupported(localDeviceUuids, remoteDeviceUuids,
+                BluetoothProfile.HEADSET, device)) {
+            mHeadsetService.setPriority(device, BluetoothProfile.PRIORITY_ON);
+            Log.i(TAG, "connectAllEnabledProfiles: Connecting Headset Profile");
+            mHeadsetService.connect(device);
+            numProfilesConnected++;
+        }
+        if (mHeadsetClientService != null && isSupported(localDeviceUuids, remoteDeviceUuids,
+                BluetoothProfile.HEADSET_CLIENT, device)) {
+            mHeadsetClientService.setPriority(device, BluetoothProfile.PRIORITY_ON);
+            Log.i(TAG, "connectAllEnabledProfiles: Connecting HFP");
+            mHeadsetClientService.connect(device);
+            numProfilesConnected++;
+        }
+        if (mMapClientService != null && isSupported(localDeviceUuids, remoteDeviceUuids,
+                BluetoothProfile.MAP_CLIENT, device)) {
+            mMapClientService.setPriority(device, BluetoothProfile.PRIORITY_ON);
+            Log.i(TAG, "connectAllEnabledProfiles: Connecting MAP");
+            mMapClientService.connect(device);
+            numProfilesConnected++;
+        }
+        if (mHidHostService != null && isSupported(localDeviceUuids, remoteDeviceUuids,
+                BluetoothProfile.HID_HOST, device)) {
+            mHidHostService.setPriority(device, BluetoothProfile.PRIORITY_ON);
+            Log.i(TAG,
+                    "connectAllEnabledProfiles: Connecting Hid Host Profile");
+            mHidHostService.connect(device);
+            numProfilesConnected++;
+        }
+        if (mPanService != null && isSupported(localDeviceUuids, remoteDeviceUuids,
+                BluetoothProfile.PAN, device)) {
+            Log.i(TAG, "connectAllEnabledProfiles: Connecting Pan Profile");
+            mPanService.connect(device);
+            numProfilesConnected++;
+        }
+        if (mPbapClientService != null && isSupported(localDeviceUuids, remoteDeviceUuids,
+                BluetoothProfile.PBAP_CLIENT, device)) {
+            mPbapClientService.setPriority(device, BluetoothProfile.PRIORITY_ON);
+            Log.i(TAG, "connectAllEnabledProfiles: Connecting Pbap");
+            mPbapClientService.connect(device);
+            numProfilesConnected++;
+        }
+        if (mHearingAidService != null && isSupported(localDeviceUuids, remoteDeviceUuids,
+                BluetoothProfile.HEARING_AID, device)) {
+            Log.i(TAG,
+                    "connectAllEnabledProfiles: Connecting Hearing Aid Profile");
+            mHearingAidService.connect(device);
+            numProfilesConnected++;
+        }
+
+        Log.i(TAG, "connectAllEnabledProfiles: Number of Profiles Connected: "
+                + numProfilesConnected);
+
+        return true;
+    }
+
+    /**
+     * Disconnects all enabled and supported bluetooth profiles between the local and remote device
+     *
+     * @param device is the remote device with which to disconnect these profiles
+     * @return true if all profiles successfully disconnected, false if an error occurred
+     */
+    public boolean disconnectAllEnabledProfiles(BluetoothDevice device) {
+        enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH ADMIN permission");
+        if (!profileServicesRunning()) {
+            Log.e(TAG, "disconnectAllEnabledProfiles: Not all profile services bound");
+            return false;
+        }
+
+        ParcelUuid[] remoteDeviceUuids = getRemoteUuids(device);
+        ParcelUuid[] localDeviceUuids = getUuids();
+
+        if (mA2dpService != null && isSupported(localDeviceUuids, remoteDeviceUuids,
+                BluetoothProfile.A2DP, device)) {
+            if (mA2dpService.getPriority(device) > BluetoothProfile.PRIORITY_ON) {
+                mA2dpService.setPriority(device, BluetoothProfile.PRIORITY_ON);
+            }
+
+            Log.i(TAG, "disconnectAllEnabledProfiles: Disconnecting A2dp");
+            mA2dpService.disconnect(device);
+        }
+        if (mA2dpSinkService != null && isSupported(localDeviceUuids, remoteDeviceUuids,
+                BluetoothProfile.A2DP_SINK, device)) {
+            if (mA2dpSinkService.getPriority(device) > BluetoothProfile.PRIORITY_ON) {
+                mA2dpSinkService.setPriority(device, BluetoothProfile.PRIORITY_ON);
+            }
+
+            Log.i(TAG, "disconnectAllEnabledProfiles: Disconnecting A2dp Sink");
+            mA2dpSinkService.disconnect(device);
+        }
+        if (mHeadsetService != null && isSupported(localDeviceUuids, remoteDeviceUuids,
+                BluetoothProfile.HEADSET, device)) {
+            if (mHeadsetService.getPriority(device) > BluetoothProfile.PRIORITY_ON) {
+                mHeadsetService.setPriority(device, BluetoothProfile.PRIORITY_ON);
+            }
+
+            Log.i(TAG,
+                    "disconnectAllEnabledProfiles: Disconnecting Headset Profile");
+            mHeadsetService.disconnect(device);
+        }
+        if (mHeadsetClientService != null && isSupported(localDeviceUuids, remoteDeviceUuids,
+                BluetoothProfile.HEADSET_CLIENT, device)) {
+            if (mHeadsetClientService.getPriority(device) > BluetoothProfile.PRIORITY_ON) {
+                mHeadsetClientService.setPriority(device, BluetoothProfile.PRIORITY_ON);
+            }
+
+            Log.i(TAG, "disconnectAllEnabledProfiles: Disconnecting HFP");
+            mHeadsetClientService.disconnect(device);
+        }
+        if (mMapClientService != null && isSupported(localDeviceUuids, remoteDeviceUuids,
+                BluetoothProfile.MAP_CLIENT, device)) {
+            if (mMapClientService.getPriority(device) > BluetoothProfile.PRIORITY_ON) {
+                mMapClientService.setPriority(device, BluetoothProfile.PRIORITY_ON);
+            }
+
+            Log.i(TAG, "disconnectAllEnabledProfiles: Disconnecting MAP");
+            mMapClientService.disconnect(device);
+        }
+        if (mHidDeviceService != null && isSupported(localDeviceUuids, remoteDeviceUuids,
+                BluetoothProfile.HID_DEVICE, device)) {
+            Log.i(TAG,
+                    "disconnectAllEnabledProfiles: Disconnecting Hid Device "
+                            + "Profile");
+            mHidDeviceService.disconnect(device);
+        }
+        if (mHidHostService != null && isSupported(localDeviceUuids, remoteDeviceUuids,
+                BluetoothProfile.HID_HOST, device)) {
+            if (mHidHostService.getPriority(device) > BluetoothProfile.PRIORITY_ON) {
+                mHidHostService.setPriority(device, BluetoothProfile.PRIORITY_ON);
+            }
+
+            Log.i(TAG,
+                    "disconnectAllEnabledProfiles: Disconnecting Hid Host Profile");
+            mHidHostService.disconnect(device);
+        }
+        if (mPanService != null && isSupported(localDeviceUuids, remoteDeviceUuids,
+                BluetoothProfile.PAN, device)) {
+            Log.i(TAG, "disconnectAllEnabledProfiles: Disconnecting Pan Profile");
+            mPanService.disconnect(device);
+        }
+        if (mPbapClientService != null && isSupported(localDeviceUuids, remoteDeviceUuids,
+                BluetoothProfile.PBAP_CLIENT, device)) {
+            if (mPbapClientService.getPriority(device) > BluetoothProfile.PRIORITY_ON) {
+                mPbapClientService.setPriority(device, BluetoothProfile.PRIORITY_ON);
+            }
+
+            Log.i(TAG, "disconnectAllEnabledProfiles: Disconnecting Pbap");
+            mPbapClientService.disconnect(device);
+        }
+        if (mHearingAidService != null && isSupported(localDeviceUuids, remoteDeviceUuids,
+                BluetoothProfile.HEARING_AID, device)) {
+            Log.i(TAG,
+                    "disconnectAllEnabledProfiles: Disconnecting Hearing Aid Profile");
+            mHearingAidService.disconnect(device);
+        }
+
+        return true;
+    }
+
+    /**
      * Same as API method {@link BluetoothDevice#getName()}
      *
      * @param device remote device of interest
@@ -2806,6 +3282,7 @@ public class AdapterService extends Service {
             profile.dump(sb);
         }
         mSilenceDeviceManager.dump(fd, writer, args);
+        mDatabaseManager.dump(writer);
 
         writer.write(sb.toString());
         writer.flush();

@@ -39,6 +39,9 @@ import com.android.bluetooth.Utils;
 import com.android.bluetooth.btservice.AdapterService;
 import com.android.internal.annotations.VisibleForTesting;
 
+import com.google.common.collect.EvictingQueue;
+
+import java.io.PrintWriter;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -52,8 +55,6 @@ import java.util.concurrent.TimeUnit;
  * for Bluetooth persistent data.
  */
 public class DatabaseManager {
-    private static final boolean DBG = true;
-    private static final boolean VERBOSE = true;
     private static final String TAG = "BluetoothDatabase";
 
     private AdapterService mAdapterService = null;
@@ -65,6 +66,8 @@ public class DatabaseManager {
     @VisibleForTesting
     final Map<String, Metadata> mMetadataCache = new HashMap<>();
     private final Semaphore mSemaphore = new Semaphore(1);
+    private static final int METADATA_CHANGED_LOG_MAX_SIZE = 20;
+    private final EvictingQueue<String> mMetadataChangedLog;
 
     private static final int LOAD_DATABASE_TIMEOUT = 500; // milliseconds
     private static final int MSG_LOAD_DATABASE = 0;
@@ -78,6 +81,7 @@ public class DatabaseManager {
      */
     public DatabaseManager(AdapterService service) {
         mAdapterService = service;
+        mMetadataChangedLog = EvictingQueue.create(METADATA_CHANGED_LOG_MAX_SIZE);
     }
 
     class DatabaseHandler extends Handler {
@@ -218,21 +222,17 @@ public class DatabaseManager {
             }
 
             String address = device.getAddress();
-            if (VERBOSE) {
-                Log.d(TAG, "setCustomMeta: " + address + ", key=" + key);
-            }
             if (!mMetadataCache.containsKey(address)) {
                 createMetadata(address);
             }
             Metadata data = mMetadataCache.get(address);
             byte[] oldValue = data.getCustomizedMeta(key);
             if (oldValue != null && Arrays.equals(oldValue, newValue)) {
-                if (VERBOSE) {
-                    Log.d(TAG, "setCustomMeta: metadata not changed.");
-                }
+                Log.v(TAG, "setCustomMeta: metadata not changed.");
                 return true;
             }
             logManufacturerInfo(device, key, newValue);
+            logMetadataChange(address, "setCustomMeta key=" + key);
             data.setCustomizedMeta(key, newValue);
 
             updateDatabase(data);
@@ -259,7 +259,7 @@ public class DatabaseManager {
             String address = device.getAddress();
 
             if (!mMetadataCache.containsKey(address)) {
-                Log.e(TAG, "getCustomMeta: device " + address + " is not in cache");
+                Log.d(TAG, "getCustomMeta: device " + address + " is not in cache");
                 return null;
             }
 
@@ -302,10 +302,6 @@ public class DatabaseManager {
             }
 
             String address = device.getAddress();
-            if (VERBOSE) {
-                Log.v(TAG, "setProfilePriority: " + address + ", profile=" + profile
-                        + ", priority = " + newPriority);
-            }
             if (!mMetadataCache.containsKey(address)) {
                 if (newPriority == BluetoothProfile.PRIORITY_UNDEFINED) {
                     return true;
@@ -315,11 +311,12 @@ public class DatabaseManager {
             Metadata data = mMetadataCache.get(address);
             int oldPriority = data.getProfilePriority(profile);
             if (oldPriority == newPriority) {
-                if (VERBOSE) {
-                    Log.v(TAG, "setProfilePriority priority not changed.");
-                }
+                Log.v(TAG, "setProfilePriority priority not changed.");
                 return true;
             }
+            String profileStr = BluetoothProfile.getProfileName(profile);
+            logMetadataChange(address, profileStr + " priority changed: "
+                    + ": " + oldPriority + " -> " + newPriority);
 
             data.setProfilePriority(profile, newPriority);
             updateDatabase(data);
@@ -355,16 +352,14 @@ public class DatabaseManager {
             String address = device.getAddress();
 
             if (!mMetadataCache.containsKey(address)) {
-                Log.e(TAG, "getProfilePriority: device " + address + " is not in cache");
+                Log.d(TAG, "getProfilePriority: device " + address + " is not in cache");
                 return BluetoothProfile.PRIORITY_UNDEFINED;
             }
 
             Metadata data = mMetadataCache.get(address);
             int priority = data.getProfilePriority(profile);
-            if (VERBOSE) {
-                Log.v(TAG, "getProfilePriority: " + address + ", profile=" + profile
-                        + ", priority = " + priority);
-            }
+            Log.v(TAG, "getProfilePriority: " + address + ", profile=" + profile
+                    + ", priority = " + priority);
             return priority;
         }
     }
@@ -402,6 +397,8 @@ public class DatabaseManager {
             if (oldValue == newValue) {
                 return;
             }
+            logMetadataChange(address, "Supports optional codec changed: "
+                    + oldValue + " -> " + newValue);
 
             data.a2dpSupportsOptionalCodecs = newValue;
             updateDatabase(data);
@@ -428,7 +425,7 @@ public class DatabaseManager {
             String address = device.getAddress();
 
             if (!mMetadataCache.containsKey(address)) {
-                Log.e(TAG, "getA2dpOptionalCodec: device " + address + " is not in cache");
+                Log.d(TAG, "getA2dpOptionalCodec: device " + address + " is not in cache");
                 return BluetoothA2dp.OPTIONAL_CODECS_SUPPORT_UNKNOWN;
             }
 
@@ -470,6 +467,8 @@ public class DatabaseManager {
             if (oldValue == newValue) {
                 return;
             }
+            logMetadataChange(address, "Enable optional codec changed: "
+                    + oldValue + " -> " + newValue);
 
             data.a2dpOptionalCodecsEnabled = newValue;
             updateDatabase(data);
@@ -496,7 +495,7 @@ public class DatabaseManager {
             String address = device.getAddress();
 
             if (!mMetadataCache.containsKey(address)) {
-                Log.e(TAG, "getA2dpOptionalCodecEnabled: device " + address + " is not in cache");
+                Log.d(TAG, "getA2dpOptionalCodecEnabled: device " + address + " is not in cache");
                 return BluetoothA2dp.OPTIONAL_CODECS_PREF_UNKNOWN;
             }
 
@@ -525,10 +524,7 @@ public class DatabaseManager {
      * @param database the Bluetooth storage {@link MetadataDatabase}
      */
     public void start(MetadataDatabase database) {
-        if (DBG) {
-            Log.d(TAG, "start()");
-        }
-
+        Log.d(TAG, "start()");
         if (mAdapterService == null) {
             Log.e(TAG, "stat failed, mAdapterService is null.");
             return;
@@ -582,12 +578,10 @@ public class DatabaseManager {
     }
 
     void createMetadata(String address) {
-        if (VERBOSE) {
-            Log.v(TAG, "createMetadata " + address);
-        }
         Metadata data = new Metadata(address);
         mMetadataCache.put(address, data);
         updateDatabase(data);
+        logMetadataChange(address, "Metadata created");
     }
 
     @VisibleForTesting
@@ -623,14 +617,10 @@ public class DatabaseManager {
             mMigratedFromSettingsGlobal = true;
             for (Metadata data : list) {
                 String address = data.getAddress();
-                if (VERBOSE) {
-                    Log.v(TAG, "cacheMetadata: found device " + address);
-                }
+                Log.v(TAG, "cacheMetadata: found device " + address);
                 mMetadataCache.put(address, data);
             }
-            if (VERBOSE) {
-                Log.v(TAG, "cacheMetadata: Database is ready");
-            }
+            Log.i(TAG, "cacheMetadata: Database is ready");
         }
     }
 
@@ -726,9 +716,7 @@ public class DatabaseManager {
     }
 
     private void loadDatabase() {
-        if (DBG) {
-            Log.d(TAG, "Load Database");
-        }
+        Log.d(TAG, "Load Database");
         Message message = mHandler.obtainMessage(MSG_LOAD_DATABASE);
         mHandler.sendMessage(message);
         try {
@@ -744,20 +732,19 @@ public class DatabaseManager {
             Log.e(TAG, "updateDatabase: address is null");
             return;
         }
-        if (DBG) {
-            Log.d(TAG, "updateDatabase " + data.getAddress());
-        }
+        Log.d(TAG, "updateDatabase " + data.getAddress());
         Message message = mHandler.obtainMessage(MSG_UPDATE_DATABASE);
         message.obj = data;
         mHandler.sendMessage(message);
     }
 
     private void deleteDatabase(Metadata data) {
-        if (data.getAddress() == null) {
+        String address = data.getAddress();
+        if (address == null) {
             Log.e(TAG, "deleteDatabase: address is null");
             return;
         }
-        Log.d(TAG, "deleteDatabase: " + data.getAddress());
+        logMetadataChange(address, "Metadata deleted");
         Message message = mHandler.obtainMessage(MSG_DELETE_DATABASE);
         message.obj = data.getAddress();
         mHandler.sendMessage(message);
@@ -792,5 +779,32 @@ public class DatabaseManager {
                 mAdapterService.obfuscateAddress(device),
                 BluetoothProtoEnums.DEVICE_INFO_EXTERNAL, callingApp, manufacturerName, modelName,
                 hardwareVersion, softwareVersion);
+    }
+
+    private void logMetadataChange(String address, String log) {
+        String time = Utils.getLocalTimeString();
+        String uidPid = Utils.getUidPidString();
+        mMetadataChangedLog.add(time + " (" + uidPid + ") " + address + " " + log);
+    }
+
+    /**
+     * Dump database info to a PrintWriter
+     *
+     * @param writer the PrintWriter to write log
+     */
+    public void dump(PrintWriter writer) {
+        writer.println("\nBluetoothDatabase:");
+        writer.println("  Metadata Changes:");
+        for (String log : mMetadataChangedLog) {
+            writer.println("    " + log);
+        }
+        writer.println("\nMetadata:");
+        for (HashMap.Entry<String, Metadata> entry : mMetadataCache.entrySet()) {
+            if (entry.getKey().equals(LOCAL_STORAGE)) {
+                // No need to dump local storage
+                continue;
+            }
+            writer.println("    " + entry.getValue());
+        }
     }
 }
