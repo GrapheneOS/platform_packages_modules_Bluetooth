@@ -18,6 +18,8 @@ package com.android.bluetooth.pan;
 
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothPan;
+import android.bluetooth.BluetoothPan.LocalPanRole;
+import android.bluetooth.BluetoothPan.RemotePanRole;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.IBluetoothPan;
 import android.content.Context;
@@ -485,8 +487,8 @@ public class PanService extends ProfileService {
         }
     }
 
-    void handlePanDeviceStateChange(BluetoothDevice device, String iface, int state, int localRole,
-            int remoteRole) {
+    void handlePanDeviceStateChange(BluetoothDevice device, String iface, int state,
+            @LocalPanRole int localRole, @RemotePanRole int remoteRole) {
         if (DBG) {
             Log.d(TAG, "handlePanDeviceStateChange: device: " + device + ", iface: " + iface
                     + ", state: " + state + ", localRole:" + localRole + ", remoteRole:"
