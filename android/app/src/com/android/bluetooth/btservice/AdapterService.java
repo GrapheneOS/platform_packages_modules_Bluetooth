@@ -63,7 +63,6 @@ import android.provider.Settings;
 import android.text.TextUtils;
 import android.util.Base64;
 import android.util.Log;
-import android.util.Slog;
 import android.util.SparseArray;
 import android.util.StatsLog;
 
@@ -3118,7 +3117,7 @@ public class AdapterService extends Service {
                     energyUsed = (long) (Math.addExact(Math.addExact(txMah, rxMah), idleMah)
                             * getOperatingVolt());
                 } catch (ArithmeticException e) {
-                    Slog.wtf(TAG, "overflow in bluetooth energy callback", e);
+                    Log.wtf(TAG, "overflow in bluetooth energy callback", e);
                     // Energy is already 0 if the exception was thrown.
                 }
             }
@@ -3137,7 +3136,7 @@ public class AdapterService extends Service {
                 } catch (ArithmeticException e) {
                     // This could be because we accumulated a lot of time, or we got a very strange
                     // value from the controller (more likely). Discard this data.
-                    Slog.wtf(TAG, "overflow in bluetooth energy callback", e);
+                    Log.wtf(TAG, "overflow in bluetooth energy callback", e);
                     totalTxTimeMs = mTxTimeTotalMs;
                     totalRxTimeMs = mRxTimeTotalMs;
                     totalIdleTimeMs = mIdleTimeTotalMs;
