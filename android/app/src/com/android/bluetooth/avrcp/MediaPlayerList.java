@@ -821,7 +821,7 @@ public class MediaPlayerList {
 
     private static void e(String message) {
         if (sTesting) {
-            Log.wtfStack(TAG, message);
+            Log.wtf(TAG, message);
         } else {
             Log.e(TAG, message);
         }

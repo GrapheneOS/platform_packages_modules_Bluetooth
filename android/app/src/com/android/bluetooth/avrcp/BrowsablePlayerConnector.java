@@ -76,7 +76,7 @@ public class BrowsablePlayerConnector {
             return sInjectConnector;
         }
         if (cb == null) {
-            Log.wtfStack(TAG, "Null callback passed");
+            Log.wtf(TAG, "Null callback passed");
             return null;
         }
 
