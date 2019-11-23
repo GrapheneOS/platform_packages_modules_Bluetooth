@@ -312,7 +312,7 @@ class MediaPlayerWrapper {
 
             // TODO(apanicke): Add metric collection here.
 
-            if (sTesting) Log.wtfStack(TAG, "Crashing the stack");
+            if (sTesting) Log.wtf(TAG, "Crashing the stack");
         }
     }
 
@@ -486,7 +486,7 @@ class MediaPlayerWrapper {
 
     private static void e(String message) {
         if (sTesting) {
-            Log.wtfStack(TAG, message);
+            Log.wtf(TAG, message);
         } else {
             Log.e(TAG, message);
         }

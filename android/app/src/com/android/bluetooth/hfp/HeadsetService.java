@@ -359,7 +359,7 @@ public class HeadsetService extends ProfileService {
                         synchronized (mStateMachines) {
                             final HeadsetStateMachine stateMachine = mStateMachines.get(device);
                             if (stateMachine == null) {
-                                Log.wtfStack(TAG, "Cannot find state machine for " + device);
+                                Log.wtf(TAG, "Cannot find state machine for " + device);
                                 return;
                             }
                             stateMachine.sendMessage(
