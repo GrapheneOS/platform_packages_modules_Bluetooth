@@ -50,8 +50,6 @@ import android.util.Log;
 
 import com.android.bluetooth.R;
 
-import com.google.android.collect.Lists;
-
 import java.io.File;
 import java.io.IOException;
 import java.math.RoundingMode;
@@ -147,7 +145,7 @@ public class BluetoothOppUtility {
      */
     // This function is used when UI show batch transfer. Currently only show single transfer.
     public static ArrayList<String> queryTransfersInBatch(Context context, Long timeStamp) {
-        ArrayList<String> uris = Lists.newArrayList();
+        ArrayList<String> uris = new ArrayList();
         final String where = BluetoothShare.TIMESTAMP + " == " + timeStamp;
         Cursor metadataCursor =
                 context.getContentResolver().query(BluetoothShare.CONTENT_URI, new String[]{
