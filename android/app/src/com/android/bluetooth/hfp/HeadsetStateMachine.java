@@ -392,8 +392,8 @@ public class HeadsetStateMachine extends StateMachine {
             logi(getName() + ": currentDevice=" + mDevice + ", msg=" + msg);
         }
 
-        void stateLogWtfStack(String msg) {
-            Log.wtfStack(TAG, getName() + ": " + msg);
+        void stateLogWtf(String msg) {
+            Log.wtf(TAG, getName() + ": " + msg);
         }
 
         /**
