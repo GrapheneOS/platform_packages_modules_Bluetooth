@@ -1033,7 +1033,8 @@ public class AdapterService extends Service {
      * why an inner instance class should be avoided.
      *
      */
-    private static class AdapterServiceBinder extends IBluetooth.Stub {
+    @VisibleForTesting
+    public static class AdapterServiceBinder extends IBluetooth.Stub {
         private AdapterService mService;
 
         AdapterServiceBinder(AdapterService svc) {
@@ -1258,7 +1259,7 @@ public class AdapterService extends Service {
 
             enforceBluetoothPermission(service);
 
-            return service.getScanMode();
+            return service.mAdapterProperties.getScanMode();
         }
 
         @Override
@@ -1270,7 +1271,8 @@ public class AdapterService extends Service {
 
             enforceBluetoothPermission(service);
 
-            return service.setScanMode(mode, duration);
+            service.mAdapterProperties.setDiscoverableTimeout(duration);
+            return service.mAdapterProperties.setScanMode(convertScanModeToHal(mode));
         }
 
         @Override
@@ -1939,17 +1941,6 @@ public class AdapterService extends Service {
         }
 
         return true;
-    }
-
-    int getScanMode() {
-        return mAdapterProperties.getScanMode();
-    }
-
-    boolean setScanMode(int mode, int duration) {
-        setDiscoverableTimeout(duration);
-
-        int newMode = convertScanModeToHal(mode);
-        return mAdapterProperties.setScanMode(newMode);
     }
 
     int getDiscoverableTimeout() {
