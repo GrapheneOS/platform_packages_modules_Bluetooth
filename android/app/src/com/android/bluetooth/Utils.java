@@ -266,6 +266,12 @@ public final class Utils {
                 "Need BLUETOOTH ADMIN permission");
     }
 
+    public static void enforceBluetoothPrivilegedPermission(Context context) {
+        context.enforceCallingOrSelfPermission(
+                android.Manifest.permission.BLUETOOTH_PRIVILEGED,
+                "Need BLUETOOTH PRIVILEGED permission");
+    }
+
     public static boolean checkCaller() {
         int callingUser = UserHandle.getCallingUserId();
         int callingUid = Binder.getCallingUid();
