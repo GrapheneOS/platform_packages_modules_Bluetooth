@@ -210,7 +210,6 @@ public class AdapterService extends Service {
     private String mWakeLockName;
     private UserManager mUserManager;
 
-    private ProfileObserver mProfileObserver;
     private PhonePolicy mPhonePolicy;
     private ActiveDeviceManager mActiveDeviceManager;
     private DatabaseManager mDatabaseManager;
@@ -445,8 +444,6 @@ public class AdapterService extends Service {
 
         mSdpManager = SdpManager.init(this);
         registerReceiver(mAlarmBroadcastReceiver, new IntentFilter(ACTION_ALARM_WAKEUP));
-        mProfileObserver = new ProfileObserver(getApplicationContext(), this, new Handler());
-        mProfileObserver.start();
 
         // Phone policy is specific to phone implementations and hence if a device wants to exclude
         // it out then it can be disabled by using the flag below.
@@ -520,7 +517,6 @@ public class AdapterService extends Service {
     @Override
     public void onDestroy() {
         debugLog("onDestroy()");
-        mProfileObserver.stop();
         if (!isMock()) {
             // TODO(b/27859763)
             Log.i(TAG, "Force exit to cleanup internal state in Bluetooth stack");
