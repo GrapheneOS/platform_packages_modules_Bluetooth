@@ -321,7 +321,7 @@ public final class Utils {
         if (context.checkCallingOrSelfPermission(
                 android.Manifest.permission.ACCESS_COARSE_LOCATION)
                         == PackageManager.PERMISSION_GRANTED
-                && isAppOppAllowed(appOps, AppOpsManager.OP_FINE_LOCATION, callingPackage)) {
+                && isAppOppAllowed(appOps, AppOpsManager.OPSTR_FINE_LOCATION, callingPackage)) {
             return true;
         }
 
@@ -345,7 +345,7 @@ public final class Utils {
         if (context.checkCallingOrSelfPermission(
                 android.Manifest.permission.ACCESS_FINE_LOCATION)
                         == PackageManager.PERMISSION_GRANTED
-                && isAppOppAllowed(appOps, AppOpsManager.OP_FINE_LOCATION, callingPackage)) {
+                && isAppOppAllowed(appOps, AppOpsManager.OPSTR_FINE_LOCATION, callingPackage)) {
             return true;
         }
 
@@ -353,7 +353,7 @@ public final class Utils {
         if (context.checkCallingOrSelfPermission(
                 android.Manifest.permission.ACCESS_COARSE_LOCATION)
                         == PackageManager.PERMISSION_GRANTED
-                && isAppOppAllowed(appOps, AppOpsManager.OP_FINE_LOCATION, callingPackage)) {
+                && isAppOppAllowed(appOps, AppOpsManager.OPSTR_FINE_LOCATION, callingPackage)) {
             return true;
         }
 
@@ -376,7 +376,7 @@ public final class Utils {
         if (context.checkCallingOrSelfPermission(
                 android.Manifest.permission.ACCESS_FINE_LOCATION)
                         == PackageManager.PERMISSION_GRANTED
-                && isAppOppAllowed(appOps, AppOpsManager.OP_FINE_LOCATION, callingPackage)) {
+                && isAppOppAllowed(appOps, AppOpsManager.OPSTR_FINE_LOCATION, callingPackage)) {
             return true;
         }
 
@@ -412,7 +412,7 @@ public final class Utils {
         return true;
     }
 
-    private static boolean isAppOppAllowed(AppOpsManager appOps, int op, String callingPackage) {
+    private static boolean isAppOppAllowed(AppOpsManager appOps, String op, String callingPackage) {
         return appOps.noteOp(op, Binder.getCallingUid(), callingPackage)
                 == AppOpsManager.MODE_ALLOWED;
     }
