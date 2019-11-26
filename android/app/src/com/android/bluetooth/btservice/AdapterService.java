@@ -927,7 +927,7 @@ public class AdapterService extends Service {
      */
     private boolean connectEnabledProfiles(BluetoothDevice device) {
         ParcelUuid[] remoteDeviceUuids = getRemoteUuids(device);
-        ParcelUuid[] localDeviceUuids = getUuids();
+        ParcelUuid[] localDeviceUuids = mAdapterProperties.getUuids();
 
         if (mA2dpService != null && isSupported(localDeviceUuids, remoteDeviceUuids,
                 BluetoothProfile.A2DP, device)
@@ -1169,7 +1169,7 @@ public class AdapterService extends Service {
 
             enforceBluetoothPermission(service);
 
-            return service.getUuids();
+            return service.mAdapterProperties.getUuids();
         }
 
         @Override
@@ -2077,10 +2077,6 @@ public class AdapterService extends Service {
         return true;
     }
 
-    ParcelUuid[] getUuids() {
-        return mAdapterProperties.getUuids();
-    }
-
     public String getName() {
         enforceBluetoothPermission(this);
 
@@ -2424,7 +2420,7 @@ public class AdapterService extends Service {
 
         int numProfilesConnected = 0;
         ParcelUuid[] remoteDeviceUuids = getRemoteUuids(device);
-        ParcelUuid[] localDeviceUuids = getUuids();
+        ParcelUuid[] localDeviceUuids = mAdapterProperties.getUuids();
 
         // All profile toggles disabled, so connects all supported profiles
         if (mA2dpService != null && isSupported(localDeviceUuids, remoteDeviceUuids,
@@ -2511,7 +2507,7 @@ public class AdapterService extends Service {
         }
 
         ParcelUuid[] remoteDeviceUuids = getRemoteUuids(device);
-        ParcelUuid[] localDeviceUuids = getUuids();
+        ParcelUuid[] localDeviceUuids = mAdapterProperties.getUuids();
 
         if (mA2dpService != null && isSupported(localDeviceUuids, remoteDeviceUuids,
                 BluetoothProfile.A2DP, device)) {
