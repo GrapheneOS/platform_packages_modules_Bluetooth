@@ -1071,6 +1071,9 @@ public class AdapterService extends Service {
             if (service == null) {
                 return false;
             }
+
+            enforceBluetoothPermission(service);
+
             return service.isEnabled();
         }
 
@@ -1081,6 +1084,9 @@ public class AdapterService extends Service {
             if (service == null) {
                 return BluetoothAdapter.STATE_OFF;
             }
+
+            enforceBluetoothPermission(service);
+
             return service.getState();
         }
 
@@ -1094,6 +1100,9 @@ public class AdapterService extends Service {
             if (service == null) {
                 return false;
             }
+
+            enforceBluetoothAdminPermission(service);
+
             return service.enable();
         }
 
@@ -1108,6 +1117,9 @@ public class AdapterService extends Service {
             if (service == null) {
                 return false;
             }
+
+            enforceBluetoothAdminPermission(service);
+
             return service.enableNoAutoConnect();
         }
 
@@ -1122,6 +1134,9 @@ public class AdapterService extends Service {
             if (service == null) {
                 return false;
             }
+
+            enforceBluetoothAdminPermission(service);
+
             return service.disable();
         }
 
@@ -1137,6 +1152,10 @@ public class AdapterService extends Service {
             if (service == null) {
                 return null;
             }
+
+            enforceBluetoothPermission(service);
+            enforceLocalMacAddressPermission(service);
+
             return service.getAddress();
         }
 
@@ -1151,6 +1170,9 @@ public class AdapterService extends Service {
             if (service == null) {
                 return new ParcelUuid[0];
             }
+
+            enforceBluetoothPermission(service);
+
             return service.getUuids();
         }
 
@@ -2034,12 +2056,10 @@ public class AdapterService extends Service {
     // ----API Methods--------
 
     public boolean isEnabled() {
-        enforceBluetoothPermission(this);
         return mAdapterProperties.getState() == BluetoothAdapter.STATE_ON;
     }
 
     public int getState() {
-        enforceBluetoothPermission(this);
         if (mAdapterProperties != null) {
             return mAdapterProperties.getState();
         }
@@ -2055,8 +2075,6 @@ public class AdapterService extends Service {
     }
 
     public synchronized boolean enable(boolean quietMode) {
-        enforceBluetoothAdminPermission(this);
-
         // Enforce the user restriction for disallowing Bluetooth if it was set.
         if (mUserManager.hasUserRestriction(UserManager.DISALLOW_BLUETOOTH, UserHandle.SYSTEM)) {
             debugLog("enable() called when Bluetooth was disallowed");
@@ -2070,25 +2088,18 @@ public class AdapterService extends Service {
     }
 
     boolean disable() {
-        enforceBluetoothAdminPermission(this);
-
         debugLog("disable() called with mRunningProfiles.size() = " + mRunningProfiles.size());
         mAdapterStateMachine.sendMessage(AdapterState.USER_TURN_OFF);
         return true;
     }
 
     String getAddress() {
-        enforceBluetoothPermission(this);
-        enforceLocalMacAddressPermission(this);
-
         String addrString = null;
         byte[] address = mAdapterProperties.getAddress();
         return Utils.getAddressStringFromByte(address);
     }
 
     ParcelUuid[] getUuids() {
-        enforceBluetoothPermission(this);
-
         return mAdapterProperties.getUuids();
     }
 
