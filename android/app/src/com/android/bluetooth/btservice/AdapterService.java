@@ -1284,7 +1284,7 @@ public class AdapterService extends Service {
 
             enforceBluetoothPermission(service);
 
-            return service.getDiscoverableTimeout();
+            return service.mAdapterProperties.getDiscoverableTimeout();
         }
 
         @Override
@@ -1296,7 +1296,7 @@ public class AdapterService extends Service {
 
             enforceBluetoothPermission(service);
 
-            return service.setDiscoverableTimeout(timeout);
+            return service.mAdapterProperties.setDiscoverableTimeout(timeout);
         }
 
         @Override
@@ -1941,14 +1941,6 @@ public class AdapterService extends Service {
         }
 
         return true;
-    }
-
-    int getDiscoverableTimeout() {
-        return mAdapterProperties.getDiscoverableTimeout();
-    }
-
-    boolean setDiscoverableTimeout(int timeout) {
-        return mAdapterProperties.setDiscoverableTimeout(timeout);
     }
 
     ArrayList<DiscoveringPackage> getDiscoveringPackages() {
