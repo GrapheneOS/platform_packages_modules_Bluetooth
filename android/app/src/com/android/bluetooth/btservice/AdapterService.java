@@ -17,6 +17,7 @@
 package com.android.bluetooth.btservice;
 
 import static com.android.bluetooth.Utils.enforceBluetoothPermission;
+import static com.android.bluetooth.Utils.enforceBluetoothAdminPermission;
 
 import android.app.ActivityManager;
 import android.app.AlarmManager;
@@ -2051,7 +2052,7 @@ public class AdapterService extends Service {
     }
 
     public synchronized boolean enable(boolean quietMode) {
-        enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH ADMIN permission");
+        enforceBluetoothAdminPermission(this);
 
         // Enforce the user restriction for disallowing Bluetooth if it was set.
         if (mUserManager.hasUserRestriction(UserManager.DISALLOW_BLUETOOTH, UserHandle.SYSTEM)) {
@@ -2066,7 +2067,7 @@ public class AdapterService extends Service {
     }
 
     boolean disable() {
-        enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH ADMIN permission");
+        enforceBluetoothAdminPermission(this);
 
         debugLog("disable() called with mRunningProfiles.size() = " + mRunningProfiles.size());
         mAdapterStateMachine.sendMessage(AdapterState.USER_TURN_OFF);
@@ -2100,13 +2101,13 @@ public class AdapterService extends Service {
     }
 
     boolean setName(String name) {
-        enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH ADMIN permission");
+        enforceBluetoothAdminPermission(this);
 
         return mAdapterProperties.setName(name);
     }
 
     BluetoothClass getBluetoothClass() {
-        enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH ADMIN permission");
+        enforceBluetoothAdminPermission(this);
 
         return mAdapterProperties.getBluetoothClass();
     }
@@ -2138,7 +2139,7 @@ public class AdapterService extends Service {
     }
 
     int getIoCapability() {
-        enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH ADMIN permission");
+        enforceBluetoothAdminPermission(this);
 
         return mAdapterProperties.getIoCapability();
     }
@@ -2154,7 +2155,7 @@ public class AdapterService extends Service {
     }
 
     int getLeIoCapability() {
-        enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH ADMIN permission");
+        enforceBluetoothAdminPermission(this);
 
         return mAdapterProperties.getLeIoCapability();
     }
@@ -2209,7 +2210,7 @@ public class AdapterService extends Service {
     boolean startDiscovery(String callingPackage) {
         UserHandle callingUser = UserHandle.of(UserHandle.getCallingUserId());
         debugLog("startDiscovery");
-        enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH ADMIN permission");
+        enforceBluetoothAdminPermission(this);
         mAppOps.checkPackage(Binder.getCallingUid(), callingPackage);
         boolean isQApp = Utils.isQApp(this, callingPackage);
         String permission = null;
@@ -2237,7 +2238,7 @@ public class AdapterService extends Service {
 
     boolean cancelDiscovery() {
         debugLog("cancelDiscovery");
-        enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH ADMIN permission");
+        enforceBluetoothAdminPermission(this);
 
         return cancelDiscoveryNative();
     }
@@ -2296,7 +2297,7 @@ public class AdapterService extends Service {
     }
 
     boolean createBond(BluetoothDevice device, int transport, OobData oobData) {
-        enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH ADMIN permission");
+        enforceBluetoothAdminPermission(this);
         DeviceProperties deviceProp = mRemoteDevices.getDeviceProperties(device);
         if (deviceProp != null && deviceProp.getBondState() != BluetoothDevice.BOND_NONE) {
             return false;
@@ -2351,7 +2352,7 @@ public class AdapterService extends Service {
     }
 
     boolean cancelBondProcess(BluetoothDevice device) {
-        enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH ADMIN permission");
+        enforceBluetoothAdminPermission(this);
         byte[] addr = Utils.getBytesFromAddress(device.getAddress());
 
         DeviceProperties deviceProp = mRemoteDevices.getDeviceProperties(device);
@@ -2363,7 +2364,7 @@ public class AdapterService extends Service {
     }
 
     boolean removeBond(BluetoothDevice device) {
-        enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH ADMIN permission");
+        enforceBluetoothAdminPermission(this);
         DeviceProperties deviceProp = mRemoteDevices.getDeviceProperties(device);
         if (deviceProp == null || deviceProp.getBondState() != BluetoothDevice.BOND_BONDED) {
             return false;
@@ -2421,7 +2422,7 @@ public class AdapterService extends Service {
      * @return true if all profiles successfully connected, false if an error occurred
      */
     public boolean connectAllEnabledProfiles(BluetoothDevice device) {
-        enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH ADMIN permission");
+        enforceBluetoothAdminPermission(this);
         if (!profileServicesRunning()) {
             Log.e(TAG, "connectAllEnabledProfiles: Not all profile services running");
             return false;
@@ -2514,7 +2515,7 @@ public class AdapterService extends Service {
      * @return true if all profiles successfully disconnected, false if an error occurred
      */
     public boolean disconnectAllEnabledProfiles(BluetoothDevice device) {
-        enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH ADMIN permission");
+        enforceBluetoothAdminPermission(this);
         if (!profileServicesRunning()) {
             Log.e(TAG, "disconnectAllEnabledProfiles: Not all profile services bound");
             return false;
@@ -2698,7 +2699,7 @@ public class AdapterService extends Service {
     }
 
     boolean setPin(BluetoothDevice device, boolean accept, int len, byte[] pinCode) {
-        enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH ADMIN permission");
+        enforceBluetoothAdminPermission(this);
         DeviceProperties deviceProp = mRemoteDevices.getDeviceProperties(device);
         // Only allow setting a pin in bonding state, or bonded state in case of security upgrade.
         if (deviceProp == null || (deviceProp.getBondState() != BluetoothDevice.BOND_BONDING
