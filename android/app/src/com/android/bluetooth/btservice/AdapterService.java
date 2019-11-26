@@ -1183,6 +1183,9 @@ public class AdapterService extends Service {
             if (service == null) {
                 return null;
             }
+
+            enforceBluetoothPermission(service);
+
             return service.getName();
         }
 
@@ -1197,6 +1200,9 @@ public class AdapterService extends Service {
             if (service == null) {
                 return false;
             }
+
+            enforceBluetoothAdminPermission(service);
+
             return service.setName(name);
         }
 
@@ -1209,6 +1215,9 @@ public class AdapterService extends Service {
 
             AdapterService service = getService();
             if (service == null) return null;
+
+            enforceBluetoothAdminPermission(service);
+
             return service.getBluetoothClass();
         }
 
@@ -1223,6 +1232,9 @@ public class AdapterService extends Service {
             if (service == null) {
                 return false;
             }
+
+            enforceBluetoothPrivilegedPermission(service);
+
             return service.setBluetoothClass(bluetoothClass);
         }
 
@@ -1235,6 +1247,9 @@ public class AdapterService extends Service {
 
             AdapterService service = getService();
             if (service == null) return BluetoothAdapter.IO_CAPABILITY_UNKNOWN;
+
+            enforceBluetoothAdminPermission(service);
+
             return service.getIoCapability();
         }
 
@@ -1247,6 +1262,9 @@ public class AdapterService extends Service {
 
             AdapterService service = getService();
             if (service == null) return false;
+
+            enforceBluetoothPrivilegedPermission(service);
+
             return service.setIoCapability(capability);
         }
 
@@ -1259,6 +1277,9 @@ public class AdapterService extends Service {
 
             AdapterService service = getService();
             if (service == null) return BluetoothAdapter.IO_CAPABILITY_UNKNOWN;
+
+            enforceBluetoothAdminPermission(service);
+
             return service.getLeIoCapability();
         }
 
@@ -1271,6 +1292,9 @@ public class AdapterService extends Service {
 
             AdapterService service = getService();
             if (service == null) return false;
+
+            enforceBluetoothPrivilegedPermission(service);
+
             return service.setLeIoCapability(capability);
         }
 
@@ -2078,8 +2102,6 @@ public class AdapterService extends Service {
     }
 
     public String getName() {
-        enforceBluetoothPermission(this);
-
         try {
             return mAdapterProperties.getName();
         } catch (Throwable t) {
@@ -2089,14 +2111,10 @@ public class AdapterService extends Service {
     }
 
     boolean setName(String name) {
-        enforceBluetoothAdminPermission(this);
-
         return mAdapterProperties.setName(name);
     }
 
     BluetoothClass getBluetoothClass() {
-        enforceBluetoothAdminPermission(this);
-
         return mAdapterProperties.getBluetoothClass();
     }
 
@@ -2106,7 +2124,6 @@ public class AdapterService extends Service {
      * <p>Once set, this value persists across reboots.
      */
     boolean setBluetoothClass(BluetoothClass bluetoothClass) {
-        enforceBluetoothPrivilegedPermission(this);
         debugLog("setBluetoothClass() to " + bluetoothClass);
         boolean result = mAdapterProperties.setBluetoothClass(bluetoothClass);
         if (!result) {
@@ -2126,13 +2143,10 @@ public class AdapterService extends Service {
     }
 
     int getIoCapability() {
-        enforceBluetoothAdminPermission(this);
-
         return mAdapterProperties.getIoCapability();
     }
 
     boolean setIoCapability(int capability) {
-        enforceBluetoothPrivilegedPermission(this);
         if (!validateInputOutputCapability(capability)) {
             return false;
         }
@@ -2141,13 +2155,10 @@ public class AdapterService extends Service {
     }
 
     int getLeIoCapability() {
-        enforceBluetoothAdminPermission(this);
-
         return mAdapterProperties.getLeIoCapability();
     }
 
     boolean setLeIoCapability(int capability) {
-        enforceBluetoothPrivilegedPermission(this);
         if (!validateInputOutputCapability(capability)) {
             return false;
         }
