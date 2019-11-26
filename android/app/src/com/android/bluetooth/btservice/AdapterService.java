@@ -1646,7 +1646,18 @@ public class AdapterService extends Service {
 
             enforceBluetoothAdminPermission(service);
 
-            return service.setPin(device, accept, len, pinCode);
+            DeviceProperties deviceProp = service.mRemoteDevices.getDeviceProperties(device);
+            // Only allow setting a pin in bonding state, or bonded state in case of security upgrade.
+            if (deviceProp == null || !deviceProp.isBondingOrBonded()) {
+                return false;
+            }
+            if (pinCode.length != len) {
+                android.util.EventLog.writeEvent(0x534e4554, "139287605", -1,
+                        "PIN code length mismatch");
+                return false;
+            }
+            service.logUserBondResponse(device, accept, BluetoothProtoEnums.BOND_SUB_STATE_LOCAL_PIN_REPLIED);
+            return service.pinReplyNative(addressToBytes(device.getAddress()), accept, len, pinCode);
         }
 
         @Override
@@ -2545,25 +2556,6 @@ public class AdapterService extends Service {
                 BluetoothDevice.BOND_BONDING,
                 event,
                 accepted ? 0 : BluetoothDevice.UNBOND_REASON_AUTH_REJECTED);
-    }
-
-    boolean setPin(BluetoothDevice device, boolean accept, int len, byte[] pinCode) {
-        DeviceProperties deviceProp = mRemoteDevices.getDeviceProperties(device);
-        // Only allow setting a pin in bonding state, or bonded state in case of security upgrade.
-        if (deviceProp == null || !deviceProp.isBondingOrBonded()) {
-            return false;
-        }
-
-        if (pinCode.length != len) {
-            android.util.EventLog.writeEvent(0x534e4554, "139287605", -1,
-                    "PIN code length mismatch");
-            return false;
-        }
-
-        logUserBondResponse(device, accept, BluetoothProtoEnums.BOND_SUB_STATE_LOCAL_PIN_REPLIED);
-
-        byte[] addr = Utils.getBytesFromAddress(device.getAddress());
-        return pinReplyNative(addr, accept, len, pinCode);
     }
 
     boolean setPasskey(BluetoothDevice device, boolean accept, int len, byte[] passkey) {
