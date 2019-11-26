@@ -164,7 +164,6 @@ public class HeadsetServiceAndStateMachineTest {
         mVoiceRecognitionWakeLock =
                 powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "VoiceRecognitionTest");
         TestUtils.setAdapterService(mAdapterService);
-        doReturn(true).when(mAdapterService).isEnabled();
         doReturn(MAX_HEADSET_CONNECTIONS).when(mAdapterService).getMaxConnectedAudioDevices();
         doReturn(new ParcelUuid[]{BluetoothUuid.Handsfree}).when(mAdapterService)
                 .getRemoteUuids(any(BluetoothDevice.class));

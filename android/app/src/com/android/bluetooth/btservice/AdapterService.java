@@ -1070,7 +1070,7 @@ public class AdapterService extends Service {
 
             enforceBluetoothPermission(service);
 
-            return service.isEnabled();
+            return service.getState() == BluetoothAdapter.STATE_ON;
         }
 
         @Override
@@ -2050,10 +2050,6 @@ public class AdapterService extends Service {
     ;
 
     // ----API Methods--------
-
-    public boolean isEnabled() {
-        return mAdapterProperties.getState() == BluetoothAdapter.STATE_ON;
-    }
 
     public int getState() {
         if (mAdapterProperties != null) {
