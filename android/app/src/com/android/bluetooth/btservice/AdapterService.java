@@ -1152,7 +1152,7 @@ public class AdapterService extends Service {
             enforceBluetoothPermission(service);
             enforceLocalMacAddressPermission(service);
 
-            return service.getAddress();
+            return Utils.getAddressStringFromByte(service.mAdapterProperties.getAddress());
         }
 
         @Override
@@ -2075,12 +2075,6 @@ public class AdapterService extends Service {
         debugLog("disable() called with mRunningProfiles.size() = " + mRunningProfiles.size());
         mAdapterStateMachine.sendMessage(AdapterState.USER_TURN_OFF);
         return true;
-    }
-
-    String getAddress() {
-        String addrString = null;
-        byte[] address = mAdapterProperties.getAddress();
-        return Utils.getAddressStringFromByte(address);
     }
 
     ParcelUuid[] getUuids() {
