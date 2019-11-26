@@ -1203,7 +1203,7 @@ public class AdapterService extends Service {
 
             enforceBluetoothAdminPermission(service);
 
-            return service.setName(name);
+            return service.mAdapterProperties.setName(name);
         }
 
         @Override
@@ -2102,16 +2102,7 @@ public class AdapterService extends Service {
     }
 
     public String getName() {
-        try {
-            return mAdapterProperties.getName();
-        } catch (Throwable t) {
-            debugLog("getName() - Unexpected exception (" + t + ")");
-        }
-        return null;
-    }
-
-    boolean setName(String name) {
-        return mAdapterProperties.setName(name);
+        return mAdapterProperties.getName();
     }
 
     BluetoothClass getBluetoothClass() {
