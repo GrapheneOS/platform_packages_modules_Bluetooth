@@ -1564,7 +1564,8 @@ public class AdapterService extends Service {
 
             enforceBluetoothPermission(service);
 
-            return service.getRemoteType(device);
+            DeviceProperties deviceProp = service.mRemoteDevices.getDeviceProperties(device);
+            return deviceProp != null ? deviceProp.getDeviceType() : BluetoothDevice.DEVICE_TYPE_UNKNOWN;
         }
 
         @Override
@@ -1576,7 +1577,8 @@ public class AdapterService extends Service {
 
             enforceBluetoothPermission(service);
 
-            return service.getRemoteAlias(device);
+            DeviceProperties deviceProp = service.mRemoteDevices.getDeviceProperties(device);
+            return deviceProp != null ? deviceProp.getAlias() : null;
         }
 
         @Override
@@ -1588,7 +1590,12 @@ public class AdapterService extends Service {
 
             enforceBluetoothPermission(service);
 
-            return service.setRemoteAlias(device, name);
+            DeviceProperties deviceProp = service.mRemoteDevices.getDeviceProperties(device);
+            if (deviceProp == null) {
+                return false;
+            }
+            deviceProp.setAlias(device, name);
+            return true;
         }
 
         @Override
@@ -1600,7 +1607,8 @@ public class AdapterService extends Service {
 
             enforceBluetoothPermission(service);
 
-            return service.getRemoteClass(device);
+            DeviceProperties deviceProp = service.mRemoteDevices.getDeviceProperties(device);
+            return deviceProp != null ? deviceProp.getBluetoothClass() : 0;
         }
 
         @Override
@@ -2505,40 +2513,6 @@ public class AdapterService extends Service {
             return null;
         }
         return deviceProp.getName();
-    }
-
-    int getRemoteType(BluetoothDevice device) {
-        DeviceProperties deviceProp = mRemoteDevices.getDeviceProperties(device);
-        if (deviceProp == null) {
-            return BluetoothDevice.DEVICE_TYPE_UNKNOWN;
-        }
-        return deviceProp.getDeviceType();
-    }
-
-    String getRemoteAlias(BluetoothDevice device) {
-        DeviceProperties deviceProp = mRemoteDevices.getDeviceProperties(device);
-        if (deviceProp == null) {
-            return null;
-        }
-        return deviceProp.getAlias();
-    }
-
-    boolean setRemoteAlias(BluetoothDevice device, String name) {
-        DeviceProperties deviceProp = mRemoteDevices.getDeviceProperties(device);
-        if (deviceProp == null) {
-            return false;
-        }
-        deviceProp.setAlias(device, name);
-        return true;
-    }
-
-    int getRemoteClass(BluetoothDevice device) {
-        DeviceProperties deviceProp = mRemoteDevices.getDeviceProperties(device);
-        if (deviceProp == null) {
-            return 0;
-        }
-
-        return deviceProp.getBluetoothClass();
     }
 
     /**
