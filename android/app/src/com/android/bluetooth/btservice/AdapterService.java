@@ -20,6 +20,7 @@ import static com.android.bluetooth.Utils.enforceBluetoothPermission;
 import static com.android.bluetooth.Utils.enforceBluetoothAdminPermission;
 import static com.android.bluetooth.Utils.enforceBluetoothPrivilegedPermission;
 import static com.android.bluetooth.Utils.enforceLocalMacAddressPermission;
+import static com.android.bluetooth.Utils.enforceDumpPermission;
 
 import android.app.ActivityManager;
 import android.app.AlarmManager;
@@ -3218,7 +3219,7 @@ public class AdapterService extends Service {
 
     @Override
     protected void dump(FileDescriptor fd, PrintWriter writer, String[] args) {
-        enforceCallingOrSelfPermission(android.Manifest.permission.DUMP, TAG);
+        enforceDumpPermission(this);
 
         if (args.length == 0) {
             writer.println("Skipping dump in APP SERVICES, see bluetooth_manager section.");

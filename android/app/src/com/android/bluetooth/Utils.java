@@ -278,6 +278,12 @@ public final class Utils {
                 "Need LOCAL_MAC_ADDRESS permission");
     }
 
+    public static void enforceDumpPermission(Context context) {
+        context.enforceCallingOrSelfPermission(
+                android.Manifest.permission.DUMP,
+                "Need DUMP permission");
+    }
+
     public static boolean checkCaller() {
         int callingUser = UserHandle.getCallingUserId();
         int callingUid = Binder.getCallingUid();
