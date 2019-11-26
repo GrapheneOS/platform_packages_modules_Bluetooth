@@ -91,7 +91,7 @@ public class BluetoothMapConvoListing {
      */
     public byte[] encode() throws UnsupportedEncodingException {
         StringWriter sw = new StringWriter();
-        XmlSerializer xmlConvoElement = new FastXmlSerializer();
+        XmlSerializer xmlConvoElement = new FastXmlSerializer(0);
         try {
             xmlConvoElement.setOutput(sw);
             xmlConvoElement.startDocument("UTF-8", true);
