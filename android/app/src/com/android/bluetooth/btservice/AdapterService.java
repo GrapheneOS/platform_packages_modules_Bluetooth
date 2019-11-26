@@ -1374,7 +1374,7 @@ public class AdapterService extends Service {
 
             enforceBluetoothPermission(service);
 
-            return service.getAdapterConnectionState();
+            return service.mAdapterProperties.getConnectionState();
         }
 
         @Override
@@ -1386,7 +1386,7 @@ public class AdapterService extends Service {
 
             enforceBluetoothPermission(service);
 
-            return service.getProfileConnectionState(profile);
+            return service.mAdapterProperties.getProfileConnectionState(profile);
         }
 
         @Override
@@ -2002,14 +2002,6 @@ public class AdapterService extends Service {
     @VisibleForTesting
     public DatabaseManager getDatabase() {
         return mDatabaseManager;
-    }
-
-    int getAdapterConnectionState() {
-        return mAdapterProperties.getConnectionState();
-    }
-
-    int getProfileConnectionState(int profile) {
-        return mAdapterProperties.getProfileConnectionState(profile);
     }
 
     boolean sdpSearch(BluetoothDevice device, ParcelUuid uuid) {
