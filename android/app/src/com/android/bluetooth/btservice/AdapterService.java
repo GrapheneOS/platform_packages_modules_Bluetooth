@@ -618,7 +618,10 @@ public class AdapterService extends Service {
     }
 
     void stopProfileServices() {
-        mAdapterProperties.onBluetoothDisable();
+        // Make sure to stop classic background tasks now
+        cancelDiscoveryNative();
+        mAdapterProperties.setScanMode(AbstractionLayer.BT_SCAN_MODE_NONE);
+
         Class[] supportedProfileServices = Config.getSupportedProfiles();
         if (supportedProfileServices.length == 1 && (mRunningProfiles.size() == 1
                 && GattService.class.getSimpleName().equals(mRunningProfiles.get(0).getName()))) {
@@ -1320,7 +1323,8 @@ public class AdapterService extends Service {
 
             enforceBluetoothAdminPermission(service);
 
-            return service.cancelDiscovery();
+            service.debugLog("cancelDiscovery");
+            return service.cancelDiscoveryNative();
         }
 
         @Override
@@ -1332,7 +1336,7 @@ public class AdapterService extends Service {
 
             enforceBluetoothPermission(service);
 
-            return service.isDiscovering();
+            return service.mAdapterProperties.isDiscovering();
         }
 
         @Override
@@ -1344,7 +1348,7 @@ public class AdapterService extends Service {
 
             enforceBluetoothPermission(service);
 
-            return service.getDiscoveryEndMillis();
+            return service.mAdapterProperties.discoveryEndMillis();
         }
 
         @Override
@@ -1979,19 +1983,6 @@ public class AdapterService extends Service {
             mDiscoveringPackages.add(new DiscoveringPackage(callingPackage, permission));
         }
         return startDiscoveryNative();
-    }
-
-    boolean cancelDiscovery() {
-        debugLog("cancelDiscovery");
-        return cancelDiscoveryNative();
-    }
-
-    boolean isDiscovering() {
-        return mAdapterProperties.isDiscovering();
-    }
-
-    long getDiscoveryEndMillis() {
-        return mAdapterProperties.discoveryEndMillis();
     }
 
     /**
