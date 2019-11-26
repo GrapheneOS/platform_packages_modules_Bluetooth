@@ -1490,7 +1490,7 @@ public class AdapterService extends Service {
             if (service == null) {
                 return 0;
             }
-            return service.getSupportedProfiles();
+            return Config.getSupportedProfilesBitMask();
         }
 
         @Override
@@ -2225,13 +2225,8 @@ public class AdapterService extends Service {
         return deviceProp.getBondState();
     }
 
-    long getSupportedProfiles() {
-        return Config.getSupportedProfilesBitMask();
-    }
-
     int getConnectionState(BluetoothDevice device) {
-        byte[] addr = Utils.getBytesFromAddress(device.getAddress());
-        return getConnectionStateNative(addr);
+        return getConnectionStateNative(addressToBytes(device.getAddress()));
     }
 
     /**
