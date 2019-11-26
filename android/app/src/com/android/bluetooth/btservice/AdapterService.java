@@ -19,6 +19,7 @@ package com.android.bluetooth.btservice;
 import static com.android.bluetooth.Utils.enforceBluetoothPermission;
 import static com.android.bluetooth.Utils.enforceBluetoothAdminPermission;
 import static com.android.bluetooth.Utils.enforceBluetoothPrivilegedPermission;
+import static com.android.bluetooth.Utils.enforceLocalMacAddressPermission;
 
 import android.app.ActivityManager;
 import android.app.AlarmManager;
@@ -2077,7 +2078,7 @@ public class AdapterService extends Service {
 
     String getAddress() {
         enforceBluetoothPermission(this);
-        enforceCallingOrSelfPermission(LOCAL_MAC_ADDRESS_PERM, "Need LOCAL_MAC_ADDRESS permission");
+        enforceLocalMacAddressPermission(this);
 
         String addrString = null;
         byte[] address = mAdapterProperties.getAddress();
