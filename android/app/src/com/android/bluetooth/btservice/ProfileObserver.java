@@ -35,7 +35,7 @@ public class ProfileObserver extends ContentObserver {
     private void onBluetoothOff() {
         mContext.unregisterReceiver(mStateObserver);
         Config.init(mContext);
-        mService.enable();
+        mService.enable(false);
     }
 
     public void stop() {

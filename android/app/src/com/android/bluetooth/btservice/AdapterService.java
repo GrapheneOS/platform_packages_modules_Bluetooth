@@ -1103,7 +1103,7 @@ public class AdapterService extends Service {
 
             enforceBluetoothAdminPermission(service);
 
-            return service.enable();
+            return service.enable(false);
         }
 
         @Override
@@ -1120,7 +1120,7 @@ public class AdapterService extends Service {
 
             enforceBluetoothAdminPermission(service);
 
-            return service.enableNoAutoConnect();
+            return service.enable(true);
         }
 
         @Override
@@ -2064,14 +2064,6 @@ public class AdapterService extends Service {
             return mAdapterProperties.getState();
         }
         return BluetoothAdapter.STATE_OFF;
-    }
-
-    public boolean enable() {
-        return enable(false);
-    }
-
-    public boolean enableNoAutoConnect() {
-        return enable(true);
     }
 
     public synchronized boolean enable(boolean quietMode) {

@@ -186,7 +186,7 @@ public class AdapterServiceTest {
 
         final int startServiceCalls = 2 * (onlyGatt ? 1 : 3); // Start and stop GATT + 2
 
-        mAdapterService.enable();
+        mAdapterService.enable(false);
 
         verifyStateChange(BluetoothAdapter.STATE_OFF, BluetoothAdapter.STATE_BLE_TURNING_ON,
                 invocationNumber + 1, CONTEXT_SWITCH_MS);
@@ -316,7 +316,7 @@ public class AdapterServiceTest {
     public void testGattStartTimeout() {
         Assert.assertFalse(mAdapterService.isEnabled());
 
-        mAdapterService.enable();
+        mAdapterService.enable(false);
 
         verifyStateChange(BluetoothAdapter.STATE_OFF, BluetoothAdapter.STATE_BLE_TURNING_ON, 1,
                 CONTEXT_SWITCH_MS);
@@ -383,7 +383,7 @@ public class AdapterServiceTest {
     public void testProfileStartTimeout() {
         Assert.assertFalse(mAdapterService.isEnabled());
 
-        mAdapterService.enable();
+        mAdapterService.enable(false);
 
         verifyStateChange(BluetoothAdapter.STATE_OFF, BluetoothAdapter.STATE_BLE_TURNING_ON, 1,
                 CONTEXT_SWITCH_MS);
