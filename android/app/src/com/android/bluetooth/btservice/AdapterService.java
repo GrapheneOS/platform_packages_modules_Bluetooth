@@ -23,6 +23,7 @@ import static com.android.bluetooth.Utils.enforceLocalMacAddressPermission;
 import static com.android.bluetooth.Utils.enforceDumpPermission;
 import static com.android.bluetooth.Utils.callerIsSystemOrActiveUser;
 import static com.android.bluetooth.Utils.callerIsSystemOrActiveOrManagedUser;
+import static com.android.bluetooth.Utils.addressToBytes;
 
 import android.app.ActivityManager;
 import android.app.AlarmManager;
@@ -1422,7 +1423,12 @@ public class AdapterService extends Service {
 
             enforceBluetoothAdminPermission(service);
 
-            return service.cancelBondProcess(device);
+            DeviceProperties deviceProp = service.mRemoteDevices.getDeviceProperties(device);
+            if (deviceProp != null) {
+                deviceProp.setBondingInitiatedLocally(false);
+            }
+
+            return service.cancelBondNative(addressToBytes(device.getAddress()));
         }
 
         @Override
@@ -2066,17 +2072,6 @@ public class AdapterService extends Service {
         Message msg = mBondStateMachine.obtainMessage(BondStateMachine.UUID_UPDATE);
         msg.obj = device;
         mBondStateMachine.sendMessage(msg);
-    }
-
-    boolean cancelBondProcess(BluetoothDevice device) {
-        byte[] addr = Utils.getBytesFromAddress(device.getAddress());
-
-        DeviceProperties deviceProp = mRemoteDevices.getDeviceProperties(device);
-        if (deviceProp != null) {
-            deviceProp.setBondingInitiatedLocally(false);
-        }
-
-        return cancelBondNative(addr);
     }
 
     boolean removeBond(BluetoothDevice device) {
