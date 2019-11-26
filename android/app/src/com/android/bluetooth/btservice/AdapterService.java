@@ -1632,7 +1632,8 @@ public class AdapterService extends Service {
 
             enforceBluetoothPermission(service);
 
-            return service.fetchRemoteUuids(device);
+            service.mRemoteDevices.fetchUuids(device);
+            return true;
         }
 
 
@@ -2528,11 +2529,6 @@ public class AdapterService extends Service {
             return null;
         }
         return deviceProp.getUuids();
-    }
-
-    boolean fetchRemoteUuids(BluetoothDevice device) {
-        mRemoteDevices.fetchUuids(device);
-        return true;
     }
 
     int getBatteryLevel(BluetoothDevice device) {
