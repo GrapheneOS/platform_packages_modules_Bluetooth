@@ -1695,7 +1695,16 @@ public class AdapterService extends Service {
 
             enforceBluetoothPrivilegedPermission(service);
 
-            return service.setPairingConfirmation(device, accept);
+            DeviceProperties deviceProp = service.mRemoteDevices.getDeviceProperties(device);
+            if (deviceProp == null || !deviceProp.isBonding()) {
+                return false;
+            }
+            service.logUserBondResponse(device, accept, BluetoothProtoEnums.BOND_SUB_STATE_LOCAL_SSP_REPLIED);
+            return service.sspReplyNative(
+                    addressToBytes(device.getAddress()),
+                    AbstractionLayer.BT_SSP_VARIANT_PASSKEY_CONFIRMATION,
+                    accept,
+                    0);
         }
 
         @Override
@@ -2570,19 +2579,6 @@ public class AdapterService extends Service {
                 BluetoothDevice.BOND_BONDING,
                 event,
                 accepted ? 0 : BluetoothDevice.UNBOND_REASON_AUTH_REJECTED);
-    }
-
-    boolean setPairingConfirmation(BluetoothDevice device, boolean accept) {
-        DeviceProperties deviceProp = mRemoteDevices.getDeviceProperties(device);
-        if (deviceProp == null || !deviceProp.isBonding()) {
-            return false;
-        }
-
-        logUserBondResponse(device, accept, BluetoothProtoEnums.BOND_SUB_STATE_LOCAL_SSP_REPLIED);
-
-        byte[] addr = Utils.getBytesFromAddress(device.getAddress());
-        return sspReplyNative(addr, AbstractionLayer.BT_SSP_VARIANT_PASSKEY_CONFIRMATION, accept,
-                0);
     }
 
     int getPhonebookAccessPermission(BluetoothDevice device) {
