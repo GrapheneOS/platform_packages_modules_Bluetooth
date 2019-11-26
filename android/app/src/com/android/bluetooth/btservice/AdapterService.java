@@ -2550,8 +2550,7 @@ public class AdapterService extends Service {
     boolean setPin(BluetoothDevice device, boolean accept, int len, byte[] pinCode) {
         DeviceProperties deviceProp = mRemoteDevices.getDeviceProperties(device);
         // Only allow setting a pin in bonding state, or bonded state in case of security upgrade.
-        if (deviceProp == null || (deviceProp.getBondState() != BluetoothDevice.BOND_BONDING
-                && deviceProp.getBondState() != BluetoothDevice.BOND_BONDED)) {
+        if (deviceProp == null || !deviceProp.isBondingOrBonded()) {
             return false;
         }
 
@@ -2569,7 +2568,7 @@ public class AdapterService extends Service {
 
     boolean setPasskey(BluetoothDevice device, boolean accept, int len, byte[] passkey) {
         DeviceProperties deviceProp = mRemoteDevices.getDeviceProperties(device);
-        if (deviceProp == null || deviceProp.getBondState() != BluetoothDevice.BOND_BONDING) {
+        if (deviceProp == null || !deviceProp.isBonding()) {
             return false;
         }
 
@@ -2588,7 +2587,7 @@ public class AdapterService extends Service {
 
     boolean setPairingConfirmation(BluetoothDevice device, boolean accept) {
         DeviceProperties deviceProp = mRemoteDevices.getDeviceProperties(device);
-        if (deviceProp == null || deviceProp.getBondState() != BluetoothDevice.BOND_BONDING) {
+        if (deviceProp == null || !deviceProp.isBonding()) {
             return false;
         }
 
