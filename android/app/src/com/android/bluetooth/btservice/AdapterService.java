@@ -2539,6 +2539,14 @@ public class AdapterService extends Service {
         return deviceProp.getBatteryLevel();
     }
 
+    void logUserBondResponse(BluetoothDevice device, boolean accepted, int event) {
+        StatsLog.write(StatsLog.BLUETOOTH_BOND_STATE_CHANGED,
+                obfuscateAddress(device), 0, device.getType(),
+                BluetoothDevice.BOND_BONDING,
+                event,
+                accepted ? 0 : BluetoothDevice.UNBOND_REASON_AUTH_REJECTED);
+    }
+
     boolean setPin(BluetoothDevice device, boolean accept, int len, byte[] pinCode) {
         DeviceProperties deviceProp = mRemoteDevices.getDeviceProperties(device);
         // Only allow setting a pin in bonding state, or bonded state in case of security upgrade.
@@ -2553,11 +2561,8 @@ public class AdapterService extends Service {
             return false;
         }
 
-        StatsLog.write(StatsLog.BLUETOOTH_BOND_STATE_CHANGED,
-                obfuscateAddress(device), 0, device.getType(),
-                BluetoothDevice.BOND_BONDING,
-                BluetoothProtoEnums.BOND_SUB_STATE_LOCAL_PIN_REPLIED,
-                accept ? 0 : BluetoothDevice.UNBOND_REASON_AUTH_REJECTED);
+        logUserBondResponse(device, accept, BluetoothProtoEnums.BOND_SUB_STATE_LOCAL_PIN_REPLIED);
+
         byte[] addr = Utils.getBytesFromAddress(device.getAddress());
         return pinReplyNative(addr, accept, len, pinCode);
     }
@@ -2574,11 +2579,8 @@ public class AdapterService extends Service {
             return false;
         }
 
-        StatsLog.write(StatsLog.BLUETOOTH_BOND_STATE_CHANGED,
-                obfuscateAddress(device), 0, device.getType(),
-                BluetoothDevice.BOND_BONDING,
-                BluetoothProtoEnums.BOND_SUB_STATE_LOCAL_SSP_REPLIED,
-                accept ? 0 : BluetoothDevice.UNBOND_REASON_AUTH_REJECTED);
+        logUserBondResponse(device, accept, BluetoothProtoEnums.BOND_SUB_STATE_LOCAL_SSP_REPLIED);
+
         byte[] addr = Utils.getBytesFromAddress(device.getAddress());
         return sspReplyNative(addr, AbstractionLayer.BT_SSP_VARIANT_PASSKEY_ENTRY, accept,
                 Utils.byteArrayToInt(passkey));
@@ -2590,11 +2592,8 @@ public class AdapterService extends Service {
             return false;
         }
 
-        StatsLog.write(StatsLog.BLUETOOTH_BOND_STATE_CHANGED,
-                obfuscateAddress(device), 0, device.getType(),
-                BluetoothDevice.BOND_BONDING,
-                BluetoothProtoEnums.BOND_SUB_STATE_LOCAL_SSP_REPLIED,
-                accept ? 0 : BluetoothDevice.UNBOND_REASON_AUTH_REJECTED);
+        logUserBondResponse(device, accept, BluetoothProtoEnums.BOND_SUB_STATE_LOCAL_SSP_REPLIED);
+
         byte[] addr = Utils.getBytesFromAddress(device.getAddress());
         return sspReplyNative(addr, AbstractionLayer.BT_SSP_VARIANT_PASSKEY_CONFIRMATION, accept,
                 0);
