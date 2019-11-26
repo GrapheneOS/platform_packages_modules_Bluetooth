@@ -1202,7 +1202,7 @@ public class AdapterService extends Service {
 
             enforceBluetoothAdminPermission(service);
 
-            return service.getIoCapability();
+            return service.mAdapterProperties.getIoCapability();
         }
 
         @Override
@@ -1214,7 +1214,11 @@ public class AdapterService extends Service {
 
             enforceBluetoothPrivilegedPermission(service);
 
-            return service.setIoCapability(capability);
+            if (!isValidIoCapability(capability)) {
+              return false;
+            }
+
+            return service.mAdapterProperties.setIoCapability(capability);
         }
 
         @Override
@@ -1226,7 +1230,7 @@ public class AdapterService extends Service {
 
             enforceBluetoothAdminPermission(service);
 
-            return service.getLeIoCapability();
+            return service.mAdapterProperties.getLeIoCapability();
         }
 
         @Override
@@ -1238,7 +1242,11 @@ public class AdapterService extends Service {
 
             enforceBluetoothPrivilegedPermission(service);
 
-            return service.setLeIoCapability(capability);
+            if (!isValidIoCapability(capability)) {
+              return false;
+            }
+
+            return service.mAdapterProperties.setLeIoCapability(capability);
         }
 
         @Override
@@ -1873,37 +1881,13 @@ public class AdapterService extends Service {
         return mAdapterProperties.getName();
     }
 
-    private boolean validateInputOutputCapability(int capability) {
+    private static boolean isValidIoCapability(int capability) {
         if (capability < 0 || capability >= BluetoothAdapter.IO_CAPABILITY_MAX) {
             Log.e(TAG, "Invalid IO capability value - " + capability);
             return false;
         }
 
         return true;
-    }
-
-    int getIoCapability() {
-        return mAdapterProperties.getIoCapability();
-    }
-
-    boolean setIoCapability(int capability) {
-        if (!validateInputOutputCapability(capability)) {
-            return false;
-        }
-
-        return mAdapterProperties.setIoCapability(capability);
-    }
-
-    int getLeIoCapability() {
-        return mAdapterProperties.getLeIoCapability();
-    }
-
-    boolean setLeIoCapability(int capability) {
-        if (!validateInputOutputCapability(capability)) {
-            return false;
-        }
-
-        return mAdapterProperties.setLeIoCapability(capability);
     }
 
     int getScanMode() {
