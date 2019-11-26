@@ -1669,7 +1669,21 @@ public class AdapterService extends Service {
 
             enforceBluetoothPermission(service);
 
-            return service.setPasskey(device, accept, len, passkey);
+            DeviceProperties deviceProp = service.mRemoteDevices.getDeviceProperties(device);
+            if (deviceProp == null || !deviceProp.isBonding()) {
+                return false;
+            }
+            if (passkey.length != len) {
+                android.util.EventLog.writeEvent(0x534e4554, "139287605", -1,
+                        "Passkey length mismatch");
+                return false;
+            }
+            service.logUserBondResponse(device, accept, BluetoothProtoEnums.BOND_SUB_STATE_LOCAL_SSP_REPLIED);
+            return service.sspReplyNative(
+                    addressToBytes(device.getAddress()),
+                    AbstractionLayer.BT_SSP_VARIANT_PASSKEY_ENTRY,
+                    accept,
+                    Utils.byteArrayToInt(passkey));
         }
 
         @Override
@@ -2556,25 +2570,6 @@ public class AdapterService extends Service {
                 BluetoothDevice.BOND_BONDING,
                 event,
                 accepted ? 0 : BluetoothDevice.UNBOND_REASON_AUTH_REJECTED);
-    }
-
-    boolean setPasskey(BluetoothDevice device, boolean accept, int len, byte[] passkey) {
-        DeviceProperties deviceProp = mRemoteDevices.getDeviceProperties(device);
-        if (deviceProp == null || !deviceProp.isBonding()) {
-            return false;
-        }
-
-        if (passkey.length != len) {
-            android.util.EventLog.writeEvent(0x534e4554, "139287605", -1,
-                    "Passkey length mismatch");
-            return false;
-        }
-
-        logUserBondResponse(device, accept, BluetoothProtoEnums.BOND_SUB_STATE_LOCAL_SSP_REPLIED);
-
-        byte[] addr = Utils.getBytesFromAddress(device.getAddress());
-        return sspReplyNative(addr, AbstractionLayer.BT_SSP_VARIANT_PASSKEY_ENTRY, accept,
-                Utils.byteArrayToInt(passkey));
     }
 
     boolean setPairingConfirmation(BluetoothDevice device, boolean accept) {
