@@ -254,6 +254,12 @@ public final class Utils {
         Utils.sForegroundUserId = uid;
     }
 
+    public static void enforceBluetoothPermission(Context context) {
+        context.enforceCallingOrSelfPermission(
+                android.Manifest.permission.BLUETOOTH,
+                "Need BLUETOOTH permission");
+    }
+
     public static boolean checkCaller() {
         int callingUser = UserHandle.getCallingUserId();
         int callingUid = Binder.getCallingUid();
