@@ -2018,7 +2018,7 @@ public class AdapterService extends Service {
 
             enforceBluetoothPrivilegedPermission(service);
 
-            return service.isActivityAndEnergyReportingSupported();
+            return service.mAdapterProperties.isActivityAndEnergyReportingSupported();
         }
 
         @Override
@@ -2633,10 +2633,6 @@ public class AdapterService extends Service {
 
     public int getOffloadedScanResultStorage() {
         return mAdapterProperties.getOffloadedScanResultStorage();
-    }
-
-    private boolean isActivityAndEnergyReportingSupported() {
-        return mAdapterProperties.isActivityAndEnergyReportingSupported();
     }
 
     public boolean isLe2MPhySupported() {
