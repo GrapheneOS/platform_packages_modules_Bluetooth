@@ -301,6 +301,7 @@ if (defined(use.android) && use.android) {
       "//bt/device",
       "//bt/embdrv/g722",
       "//bt/embdrv/sbc",
+      "//bt/embdrv/lc3",
       "//bt/hci",
       "//bt/main:bluetooth",
       "//bt/osi",
