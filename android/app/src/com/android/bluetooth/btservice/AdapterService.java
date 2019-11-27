@@ -1841,7 +1841,11 @@ public class AdapterService extends Service {
 
             enforceBluetoothPermission(service);
 
-            return service.getBatteryLevel(device);
+            DeviceProperties deviceProp = service.mRemoteDevices.getDeviceProperties(device);
+            if (deviceProp == null) {
+                return BluetoothDevice.BATTERY_LEVEL_UNKNOWN;
+            }
+            return deviceProp.getBatteryLevel();
         }
 
         @Override
@@ -2565,14 +2569,6 @@ public class AdapterService extends Service {
             return null;
         }
         return deviceProp.getUuids();
-    }
-
-    int getBatteryLevel(BluetoothDevice device) {
-        DeviceProperties deviceProp = mRemoteDevices.getDeviceProperties(device);
-        if (deviceProp == null) {
-            return BluetoothDevice.BATTERY_LEVEL_UNKNOWN;
-        }
-        return deviceProp.getBatteryLevel();
     }
 
     void logUserBondResponse(BluetoothDevice device, boolean accepted, int event) {
