@@ -1891,21 +1891,23 @@ public class AdapterService extends Service {
         }
 
         @Override
-        public void registerCallback(IBluetoothCallback cb) {
+        public void registerCallback(IBluetoothCallback callback) {
             AdapterService service = getService();
             if (service == null) {
                 return;
             }
-            service.registerCallback(cb);
+
+            service.mCallbacks.register(callback);
         }
 
         @Override
-        public void unregisterCallback(IBluetoothCallback cb) {
+        public void unregisterCallback(IBluetoothCallback callback) {
             AdapterService service = getService();
             if (service == null) {
                 return;
             }
-            service.unregisterCallback(cb);
+
+            service.mCallbacks.unregister(callback);
         }
 
         @Override
@@ -2612,14 +2614,6 @@ public class AdapterService extends Service {
 
     void setSimAccessPermission(BluetoothDevice device, int value) {
         setDeviceAccessFromPrefs(device, value, SIM_ACCESS_PERMISSION_PREFERENCE_FILE);
-    }
-
-    void registerCallback(IBluetoothCallback cb) {
-        mCallbacks.register(cb);
-    }
-
-    void unregisterCallback(IBluetoothCallback cb) {
-        mCallbacks.unregister(cb);
     }
 
     public int getNumOfAdvertisementInstancesSupported() {

@@ -159,7 +159,7 @@ public class AdapterServiceTest {
         mAdapterService.attach(mMockContext, null, null, null, null, null);
 
         mAdapterService.onCreate();
-        mAdapterService.registerCallback(mIBluetoothCallback);
+        mServiceBinder.registerCallback(mIBluetoothCallback);
 
         Config.init(mMockContext);
 
@@ -169,7 +169,7 @@ public class AdapterServiceTest {
 
     @After
     public void tearDown() {
-        mAdapterService.unregisterCallback(mIBluetoothCallback);
+        mServiceBinder.unregisterCallback(mIBluetoothCallback);
         mAdapterService.cleanup();
         Config.init(InstrumentationRegistry.getTargetContext());
     }
