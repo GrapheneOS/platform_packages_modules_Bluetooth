@@ -601,17 +601,6 @@ public class AdapterService extends Service {
                 getContentResolver(), Settings.Global.BLUETOOTH_CLASS_OF_DEVICE, 0);
     }
 
-    private boolean storeBluetoothClassConfig(int bluetoothClass) {
-        boolean result = Settings.Global.putInt(
-                getContentResolver(), Settings.Global.BLUETOOTH_CLASS_OF_DEVICE, bluetoothClass);
-
-        if (!result) {
-            Log.e(TAG, "Error storing BluetoothClass config - " + bluetoothClass);
-        }
-
-        return result;
-    }
-
     void startProfileServices() {
         debugLog("startCoreServices()");
         Class[] supportedProfileServices = Config.getSupportedProfiles();
@@ -1218,7 +1207,7 @@ public class AdapterService extends Service {
 
             enforceBluetoothAdminPermission(service);
 
-            return service.getBluetoothClass();
+            return service.mAdapterProperties.getBluetoothClass();
         }
 
         @Override
@@ -1235,7 +1224,14 @@ public class AdapterService extends Service {
 
             enforceBluetoothPrivilegedPermission(service);
 
-            return service.setBluetoothClass(bluetoothClass);
+            if (!service.mAdapterProperties.setBluetoothClass(bluetoothClass)) {
+              return false;
+            }
+
+            return Settings.Global.putInt(
+                    service.getContentResolver(),
+                    Settings.Global.BLUETOOTH_CLASS_OF_DEVICE,
+                    bluetoothClass.getClassOfDevice());
         }
 
         @Override
@@ -2103,25 +2099,6 @@ public class AdapterService extends Service {
 
     public String getName() {
         return mAdapterProperties.getName();
-    }
-
-    BluetoothClass getBluetoothClass() {
-        return mAdapterProperties.getBluetoothClass();
-    }
-
-    /**
-     * Sets the Bluetooth CoD on the local adapter and also modifies the storage config for it.
-     *
-     * <p>Once set, this value persists across reboots.
-     */
-    boolean setBluetoothClass(BluetoothClass bluetoothClass) {
-        debugLog("setBluetoothClass() to " + bluetoothClass);
-        boolean result = mAdapterProperties.setBluetoothClass(bluetoothClass);
-        if (!result) {
-            Log.e(TAG, "setBluetoothClass() to " + bluetoothClass + " failed");
-        }
-
-        return result && storeBluetoothClassConfig(bluetoothClass.getClassOfDevice());
     }
 
     private boolean validateInputOutputCapability(int capability) {
