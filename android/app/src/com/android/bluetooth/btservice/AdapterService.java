@@ -1708,6 +1708,32 @@ public class AdapterService extends Service {
         }
 
         @Override
+        public boolean getSilenceMode(BluetoothDevice device) {
+            AdapterService service = getService();
+            if (service == null || !callerIsSystemOrActiveUser(TAG, "getSilenceMode")) {
+                return false;
+            }
+
+            enforceBluetoothPrivilegedPermission(service);
+
+            return service.mSilenceDeviceManager.getSilenceMode(device);
+        }
+
+
+        @Override
+        public boolean setSilenceMode(BluetoothDevice device, boolean silence) {
+            AdapterService service = getService();
+            if (service == null || !callerIsSystemOrActiveUser(TAG, "setSilenceMode")) {
+                return false;
+            }
+
+            enforceBluetoothPrivilegedPermission(service);
+
+            service.mSilenceDeviceManager.setSilenceMode(device, silence);
+            return true;
+        }
+
+        @Override
         public int getPhonebookAccessPermission(BluetoothDevice device) {
             AdapterService service = getService();
             if (service == null || !callerIsSystemOrActiveUser(TAG, "getPhonebookAccessPermission")) {
@@ -1725,31 +1751,6 @@ public class AdapterService extends Service {
             return prefs.getBoolean(device.getAddress(), false)
                     ? BluetoothDevice.ACCESS_ALLOWED
                     : BluetoothDevice.ACCESS_REJECTED;
-        }
-
-        @Override
-        public boolean setSilenceMode(BluetoothDevice device, boolean silence) {
-            AdapterService service = getService();
-            if (service == null || !callerIsSystemOrActiveUser(TAG, "setSilenceMode")) {
-                return false;
-            }
-
-            enforceBluetoothPrivilegedPermission(service);
-
-            service.mSilenceDeviceManager.setSilenceMode(device, silence);
-            return true;
-        }
-
-        @Override
-        public boolean getSilenceMode(BluetoothDevice device) {
-            AdapterService service = getService();
-            if (service == null || !callerIsSystemOrActiveUser(TAG, "getSilenceMode")) {
-                return false;
-            }
-
-            enforceBluetoothPrivilegedPermission(service);
-
-            return service.mSilenceDeviceManager.getSilenceMode(device);
         }
 
         @Override
