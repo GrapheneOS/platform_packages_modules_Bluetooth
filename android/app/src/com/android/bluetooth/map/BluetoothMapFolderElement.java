@@ -266,7 +266,7 @@ public class BluetoothMapFolderElement implements Comparable<BluetoothMapFolderE
 
     public byte[] encode(int offset, int count) throws UnsupportedEncodingException {
         StringWriter sw = new StringWriter();
-        XmlSerializer xmlMsgElement = new FastXmlSerializer();
+        XmlSerializer xmlMsgElement = new FastXmlSerializer(0);
         int i, stopIndex;
         // We need index based access to the subFolders
         BluetoothMapFolderElement[] folders =
