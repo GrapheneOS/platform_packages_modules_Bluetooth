@@ -1771,7 +1771,15 @@ public class AdapterService extends Service {
 
             enforceBluetoothPermission(service);
 
-            return service.getMessageAccessPermission(device);
+            SharedPreferences prefs = service.getSharedPreferences(
+                    MESSAGE_ACCESS_PERMISSION_PREFERENCE_FILE,
+                    Context.MODE_PRIVATE);
+            if (!prefs.contains(device.getAddress())) {
+                return BluetoothDevice.ACCESS_UNKNOWN;
+            }
+            return prefs.getBoolean(device.getAddress(), false)
+                    ? BluetoothDevice.ACCESS_ALLOWED
+                    : BluetoothDevice.ACCESS_REJECTED;
         }
 
         @Override
@@ -2602,16 +2610,6 @@ public class AdapterService extends Service {
         }
         editor.apply();
         return true;
-    }
-
-    int getMessageAccessPermission(BluetoothDevice device) {
-        SharedPreferences pref = getSharedPreferences(MESSAGE_ACCESS_PERMISSION_PREFERENCE_FILE,
-                Context.MODE_PRIVATE);
-        if (!pref.contains(device.getAddress())) {
-            return BluetoothDevice.ACCESS_UNKNOWN;
-        }
-        return pref.getBoolean(device.getAddress(), false) ? BluetoothDevice.ACCESS_ALLOWED
-                : BluetoothDevice.ACCESS_REJECTED;
     }
 
     boolean setMessageAccessPermission(BluetoothDevice device, int value) {
