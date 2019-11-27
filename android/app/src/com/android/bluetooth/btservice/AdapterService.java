@@ -1716,7 +1716,15 @@ public class AdapterService extends Service {
 
             enforceBluetoothPermission(service);
 
-            return service.getPhonebookAccessPermission(device);
+            SharedPreferences prefs = service.getSharedPreferences(
+                    PHONEBOOK_ACCESS_PERMISSION_PREFERENCE_FILE,
+                    Context.MODE_PRIVATE);
+            if (!prefs.contains(device.getAddress())) {
+                return BluetoothDevice.ACCESS_UNKNOWN;
+            }
+            return prefs.getBoolean(device.getAddress(), false)
+                    ? BluetoothDevice.ACCESS_ALLOWED
+                    : BluetoothDevice.ACCESS_REJECTED;
         }
 
         @Override
@@ -2579,16 +2587,6 @@ public class AdapterService extends Service {
                 BluetoothDevice.BOND_BONDING,
                 event,
                 accepted ? 0 : BluetoothDevice.UNBOND_REASON_AUTH_REJECTED);
-    }
-
-    int getPhonebookAccessPermission(BluetoothDevice device) {
-        SharedPreferences pref = getSharedPreferences(PHONEBOOK_ACCESS_PERMISSION_PREFERENCE_FILE,
-                Context.MODE_PRIVATE);
-        if (!pref.contains(device.getAddress())) {
-            return BluetoothDevice.ACCESS_UNKNOWN;
-        }
-        return pref.getBoolean(device.getAddress(), false) ? BluetoothDevice.ACCESS_ALLOWED
-                : BluetoothDevice.ACCESS_REJECTED;
     }
 
     boolean setSilenceMode(BluetoothDevice device, boolean silence) {
