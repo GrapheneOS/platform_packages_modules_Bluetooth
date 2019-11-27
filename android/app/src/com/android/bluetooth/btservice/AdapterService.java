@@ -21,6 +21,7 @@ import static com.android.bluetooth.Utils.enforceBluetoothAdminPermission;
 import static com.android.bluetooth.Utils.enforceBluetoothPrivilegedPermission;
 import static com.android.bluetooth.Utils.enforceLocalMacAddressPermission;
 import static com.android.bluetooth.Utils.enforceDumpPermission;
+import static com.android.bluetooth.Utils.callerIsSystemOrActiveUser;
 
 import android.app.ActivityManager;
 import android.app.AlarmManager;
@@ -1077,12 +1078,8 @@ public class AdapterService extends Service {
 
         @Override
         public boolean enable() {
-            if ((Binder.getCallingUid() != Process.SYSTEM_UID) && (!Utils.checkCaller())) {
-                Log.w(TAG, "enable() - Not allowed for non-active user and non system user");
-                return false;
-            }
             AdapterService service = getService();
-            if (service == null) {
+            if (service == null || !callerIsSystemOrActiveUser(TAG, "enable")) {
                 return false;
             }
 
@@ -1093,13 +1090,8 @@ public class AdapterService extends Service {
 
         @Override
         public boolean enableNoAutoConnect() {
-            if ((Binder.getCallingUid() != Process.SYSTEM_UID) && (!Utils.checkCaller())) {
-                Log.w(TAG, "enableNoAuto() - Not allowed for non-active user and non system user");
-                return false;
-            }
-
             AdapterService service = getService();
-            if (service == null) {
+            if (service == null || !callerIsSystemOrActiveUser(TAG, "enableNoAutoConnect")) {
                 return false;
             }
 
@@ -1110,13 +1102,8 @@ public class AdapterService extends Service {
 
         @Override
         public boolean disable() {
-            if ((Binder.getCallingUid() != Process.SYSTEM_UID) && (!Utils.checkCaller())) {
-                Log.w(TAG, "disable() - Not allowed for non-active user and non system user");
-                return false;
-            }
-
             AdapterService service = getService();
-            if (service == null) {
+            if (service == null || !callerIsSystemOrActiveUser(TAG, "disable")) {
                 return false;
             }
 
@@ -1146,13 +1133,8 @@ public class AdapterService extends Service {
 
         @Override
         public ParcelUuid[] getUuids() {
-            if (!Utils.checkCaller()) {
-                Log.w(TAG, "getUuids() - Not allowed for non-active user");
-                return new ParcelUuid[0];
-            }
-
             AdapterService service = getService();
-            if (service == null) {
+            if (service == null || !callerIsSystemOrActiveUser(TAG, "getUuids")) {
                 return new ParcelUuid[0];
             }
 
@@ -1163,13 +1145,8 @@ public class AdapterService extends Service {
 
         @Override
         public String getName() {
-            if ((Binder.getCallingUid() != Process.SYSTEM_UID) && (!Utils.checkCaller())) {
-                Log.w(TAG, "getName() - Not allowed for non-active user and non system user");
-                return null;
-            }
-
             AdapterService service = getService();
-            if (service == null) {
+            if (service == null || !callerIsSystemOrActiveUser(TAG, "getName")) {
                 return null;
             }
 
@@ -1180,13 +1157,8 @@ public class AdapterService extends Service {
 
         @Override
         public boolean setName(String name) {
-            if (!Utils.checkCaller()) {
-                Log.w(TAG, "setName() - Not allowed for non-active user");
-                return false;
-            }
-
             AdapterService service = getService();
-            if (service == null) {
+            if (service == null || !callerIsSystemOrActiveUser(TAG, "setName")) {
                 return false;
             }
 
@@ -1197,13 +1169,10 @@ public class AdapterService extends Service {
 
         @Override
         public BluetoothClass getBluetoothClass() {
-            if (!Utils.checkCaller()) {
-                Log.w(TAG, "getBluetoothClass() - Not allowed for non-active user");
+            AdapterService service = getService();
+            if (service == null || !callerIsSystemOrActiveUser(TAG, "getBluetoothClass")) {
                 return null;
             }
-
-            AdapterService service = getService();
-            if (service == null) return null;
 
             enforceBluetoothAdminPermission(service);
 
@@ -1212,13 +1181,8 @@ public class AdapterService extends Service {
 
         @Override
         public boolean setBluetoothClass(BluetoothClass bluetoothClass) {
-            if (!Utils.checkCaller()) {
-                Log.w(TAG, "setBluetoothClass() - Not allowed for non-active user");
-                return false;
-            }
-
             AdapterService service = getService();
-            if (service == null) {
+            if (service == null || !callerIsSystemOrActiveUser(TAG, "setBluetoothClass")) {
                 return false;
             }
 
@@ -1236,13 +1200,10 @@ public class AdapterService extends Service {
 
         @Override
         public int getIoCapability() {
-            if (!Utils.checkCaller()) {
-                Log.w(TAG, "setBluetoothClass() - Not allowed for non-active user");
+            AdapterService service = getService();
+            if (service == null || !callerIsSystemOrActiveUser(TAG, "getIoCapability")) {
                 return BluetoothAdapter.IO_CAPABILITY_UNKNOWN;
             }
-
-            AdapterService service = getService();
-            if (service == null) return BluetoothAdapter.IO_CAPABILITY_UNKNOWN;
 
             enforceBluetoothAdminPermission(service);
 
@@ -1251,13 +1212,10 @@ public class AdapterService extends Service {
 
         @Override
         public boolean setIoCapability(int capability) {
-            if (!Utils.checkCaller()) {
-                Log.w(TAG, "setBluetoothClass() - Not allowed for non-active user");
+            AdapterService service = getService();
+            if (service == null || !callerIsSystemOrActiveUser(TAG, "setIoCapability")) {
                 return false;
             }
-
-            AdapterService service = getService();
-            if (service == null) return false;
 
             enforceBluetoothPrivilegedPermission(service);
 
@@ -1266,13 +1224,10 @@ public class AdapterService extends Service {
 
         @Override
         public int getLeIoCapability() {
-            if (!Utils.checkCaller()) {
-                Log.w(TAG, "setBluetoothClass() - Not allowed for non-active user");
+            AdapterService service = getService();
+            if (service == null || !callerIsSystemOrActiveUser(TAG, "getLeIoCapability")) {
                 return BluetoothAdapter.IO_CAPABILITY_UNKNOWN;
             }
-
-            AdapterService service = getService();
-            if (service == null) return BluetoothAdapter.IO_CAPABILITY_UNKNOWN;
 
             enforceBluetoothAdminPermission(service);
 
@@ -1281,13 +1236,10 @@ public class AdapterService extends Service {
 
         @Override
         public boolean setLeIoCapability(int capability) {
-            if (!Utils.checkCaller()) {
-                Log.w(TAG, "setBluetoothClass() - Not allowed for non-active user");
+            AdapterService service = getService();
+            if (service == null || !callerIsSystemOrActiveUser(TAG, "setLeIoCapability")) {
                 return false;
             }
-
-            AdapterService service = getService();
-            if (service == null) return false;
 
             enforceBluetoothPrivilegedPermission(service);
 
@@ -1310,13 +1262,8 @@ public class AdapterService extends Service {
 
         @Override
         public boolean setScanMode(int mode, int duration) {
-            if (!Utils.checkCaller()) {
-                Log.w(TAG, "setScanMode() - Not allowed for non-active user");
-                return false;
-            }
-
             AdapterService service = getService();
-            if (service == null) {
+            if (service == null || !callerIsSystemOrActiveUser(TAG, "setScanMode")) {
                 return false;
             }
             return service.setScanMode(mode, duration);
@@ -1324,13 +1271,8 @@ public class AdapterService extends Service {
 
         @Override
         public int getDiscoverableTimeout() {
-            if (!Utils.checkCaller()) {
-                Log.w(TAG, "getDiscoverableTimeout() - Not allowed for non-active user");
-                return 0;
-            }
-
             AdapterService service = getService();
-            if (service == null) {
+            if (service == null || !callerIsSystemOrActiveUser(TAG, "getDiscoverableTimeout")) {
                 return 0;
             }
             return service.getDiscoverableTimeout();
@@ -1338,13 +1280,8 @@ public class AdapterService extends Service {
 
         @Override
         public boolean setDiscoverableTimeout(int timeout) {
-            if (!Utils.checkCaller()) {
-                Log.w(TAG, "setDiscoverableTimeout() - Not allowed for non-active user");
-                return false;
-            }
-
             AdapterService service = getService();
-            if (service == null) {
+            if (service == null || !callerIsSystemOrActiveUser(TAG, "setDiscoverableTimeout")) {
                 return false;
             }
             return service.setDiscoverableTimeout(timeout);
@@ -1352,13 +1289,8 @@ public class AdapterService extends Service {
 
         @Override
         public boolean startDiscovery(String callingPackage) {
-            if (!Utils.checkCaller()) {
-                Log.w(TAG, "startDiscovery() - Not allowed for non-active user");
-                return false;
-            }
-
             AdapterService service = getService();
-            if (service == null) {
+            if (service == null || !callerIsSystemOrActiveUser(TAG, "startDiscovery")) {
                 return false;
             }
             return service.startDiscovery(callingPackage);
@@ -1366,13 +1298,8 @@ public class AdapterService extends Service {
 
         @Override
         public boolean cancelDiscovery() {
-            if (!Utils.checkCaller()) {
-                Log.w(TAG, "cancelDiscovery() - Not allowed for non-active user");
-                return false;
-            }
-
             AdapterService service = getService();
-            if (service == null) {
+            if (service == null || !callerIsSystemOrActiveUser(TAG, "cancelDiscovery")) {
                 return false;
             }
             return service.cancelDiscovery();
@@ -1394,13 +1321,8 @@ public class AdapterService extends Service {
 
         @Override
         public long getDiscoveryEndMillis() {
-            if (!Utils.checkCaller()) {
-                Log.w(TAG, "getDiscoveryEndMillis() - Not allowed for non-active user");
-                return -1;
-            }
-
             AdapterService service = getService();
-            if (service == null) {
+            if (service == null || !callerIsSystemOrActiveUser(TAG, "getDiscoveryEndMillis")) {
                 return -1;
             }
             return service.getDiscoveryEndMillis();
@@ -1470,13 +1392,8 @@ public class AdapterService extends Service {
 
         @Override
         public boolean cancelBondProcess(BluetoothDevice device) {
-            if (!Utils.checkCaller()) {
-                Log.w(TAG, "cancelBondProcess() - Not allowed for non-active user");
-                return false;
-            }
-
             AdapterService service = getService();
-            if (service == null) {
+            if (service == null || !callerIsSystemOrActiveUser(TAG, "cancelBondProcess")) {
                 return false;
             }
             return service.cancelBondProcess(device);
@@ -1484,13 +1401,8 @@ public class AdapterService extends Service {
 
         @Override
         public boolean removeBond(BluetoothDevice device) {
-            if (!Utils.checkCaller()) {
-                Log.w(TAG, "removeBond() - Not allowed for non-active user");
-                return false;
-            }
-
             AdapterService service = getService();
-            if (service == null) {
+            if (service == null || !callerIsSystemOrActiveUser(TAG, "removeBond")) {
                 return false;
             }
             return service.removeBond(device);
@@ -1536,13 +1448,8 @@ public class AdapterService extends Service {
 
         @Override
         public boolean connectAllEnabledProfiles(BluetoothDevice device) {
-            if (!Utils.checkCaller()) {
-                Log.w(TAG, "connectAllEnabledProfiles() - Not allowed for non-active user");
-                return false;
-            }
-
             AdapterService service = getService();
-            if (service == null) {
+            if (service == null || !callerIsSystemOrActiveUser(TAG, "connectAllEnabledProfiles")) {
                 return false;
             }
             return service.connectAllEnabledProfiles(device);
@@ -1550,13 +1457,8 @@ public class AdapterService extends Service {
 
         @Override
         public boolean disconnectAllEnabledProfiles(BluetoothDevice device) {
-            if (!Utils.checkCaller()) {
-                Log.w(TAG, "disconnectAllEnabledProfiles() - Not allowed for non-active user");
-                return false;
-            }
-
             AdapterService service = getService();
-            if (service == null) {
+            if (service == null | !callerIsSystemOrActiveUser(TAG, "disconnectAllEnabledProfiles")) {
                 return false;
             }
             return service.disconnectAllEnabledProfiles(device);
@@ -1606,13 +1508,8 @@ public class AdapterService extends Service {
 
         @Override
         public boolean setRemoteAlias(BluetoothDevice device, String name) {
-            if (!Utils.checkCaller()) {
-                Log.w(TAG, "setRemoteAlias() - Not allowed for non-active user");
-                return false;
-            }
-
             AdapterService service = getService();
-            if (service == null) {
+            if (service == null || !callerIsSystemOrActiveUser(TAG, "setRemoteAlias")) {
                 return false;
             }
             return service.setRemoteAlias(device, name);
@@ -1663,13 +1560,8 @@ public class AdapterService extends Service {
 
         @Override
         public boolean setPin(BluetoothDevice device, boolean accept, int len, byte[] pinCode) {
-            if (!Utils.checkCaller()) {
-                Log.w(TAG, "setPin() - Not allowed for non-active user");
-                return false;
-            }
-
             AdapterService service = getService();
-            if (service == null) {
+            if (service == null || !callerIsSystemOrActiveUser(TAG, "setPin")) {
                 return false;
             }
             return service.setPin(device, accept, len, pinCode);
@@ -1677,13 +1569,8 @@ public class AdapterService extends Service {
 
         @Override
         public boolean setPasskey(BluetoothDevice device, boolean accept, int len, byte[] passkey) {
-            if (!Utils.checkCaller()) {
-                Log.w(TAG, "setPasskey() - Not allowed for non-active user");
-                return false;
-            }
-
             AdapterService service = getService();
-            if (service == null) {
+            if (service == null || !callerIsSystemOrActiveUser(TAG, "setPasskey")) {
                 return false;
             }
             return service.setPasskey(device, accept, len, passkey);
@@ -1691,13 +1578,8 @@ public class AdapterService extends Service {
 
         @Override
         public boolean setPairingConfirmation(BluetoothDevice device, boolean accept) {
-            if (!Utils.checkCaller()) {
-                Log.w(TAG, "setPairingConfirmation() - Not allowed for non-active user");
-                return false;
-            }
-
             AdapterService service = getService();
-            if (service == null) {
+            if (service == null || !callerIsSystemOrActiveUser(TAG, "setPairingConfirmation")) {
                 return false;
             }
             return service.setPairingConfirmation(device, accept);
@@ -1705,13 +1587,8 @@ public class AdapterService extends Service {
 
         @Override
         public int getPhonebookAccessPermission(BluetoothDevice device) {
-            if (!Utils.checkCaller()) {
-                Log.w(TAG, "getPhonebookAccessPermission() - Not allowed for non-active user");
-                return BluetoothDevice.ACCESS_UNKNOWN;
-            }
-
             AdapterService service = getService();
-            if (service == null) {
+            if (service == null || !callerIsSystemOrActiveUser(TAG, "getPhonebookAccessPermission")) {
                 return BluetoothDevice.ACCESS_UNKNOWN;
             }
             return service.getPhonebookAccessPermission(device);
@@ -1719,13 +1596,8 @@ public class AdapterService extends Service {
 
         @Override
         public boolean setSilenceMode(BluetoothDevice device, boolean silence) {
-            if (!Utils.checkCaller()) {
-                Log.w(TAG, "setSilenceMode() - Not allowed for non-active user");
-                return false;
-            }
-
             AdapterService service = getService();
-            if (service == null) {
+            if (service == null || !callerIsSystemOrActiveUser(TAG, "setSilenceMode")) {
                 return false;
             }
             return service.setSilenceMode(device, silence);
@@ -1733,13 +1605,8 @@ public class AdapterService extends Service {
 
         @Override
         public boolean getSilenceMode(BluetoothDevice device) {
-            if (!Utils.checkCaller()) {
-                Log.w(TAG, "getSilenceMode() - Not allowed for non-active user");
-                return false;
-            }
-
             AdapterService service = getService();
-            if (service == null) {
+            if (service == null || !callerIsSystemOrActiveUser(TAG, "getSilenceMode")) {
                 return false;
             }
             return service.getSilenceMode(device);
@@ -1747,13 +1614,8 @@ public class AdapterService extends Service {
 
         @Override
         public boolean setPhonebookAccessPermission(BluetoothDevice device, int value) {
-            if (!Utils.checkCaller()) {
-                Log.w(TAG, "setPhonebookAccessPermission() - Not allowed for non-active user");
-                return false;
-            }
-
             AdapterService service = getService();
-            if (service == null) {
+            if (service == null || !callerIsSystemOrActiveUser(TAG, "setPhonebookAccessPermission")) {
                 return false;
             }
             return service.setPhonebookAccessPermission(device, value);
@@ -1761,13 +1623,8 @@ public class AdapterService extends Service {
 
         @Override
         public int getMessageAccessPermission(BluetoothDevice device) {
-            if (!Utils.checkCaller()) {
-                Log.w(TAG, "getMessageAccessPermission() - Not allowed for non-active user");
-                return BluetoothDevice.ACCESS_UNKNOWN;
-            }
-
             AdapterService service = getService();
-            if (service == null) {
+            if (service == null || !callerIsSystemOrActiveUser(TAG, "getMessageAccessPermission")) {
                 return BluetoothDevice.ACCESS_UNKNOWN;
             }
             return service.getMessageAccessPermission(device);
@@ -1775,13 +1632,8 @@ public class AdapterService extends Service {
 
         @Override
         public boolean setMessageAccessPermission(BluetoothDevice device, int value) {
-            if (!Utils.checkCaller()) {
-                Log.w(TAG, "setMessageAccessPermission() - Not allowed for non-active user");
-                return false;
-            }
-
             AdapterService service = getService();
-            if (service == null) {
+            if (service == null || !callerIsSystemOrActiveUser(TAG, "setMessageAccessPermission")) {
                 return false;
             }
             return service.setMessageAccessPermission(device, value);
@@ -1789,13 +1641,8 @@ public class AdapterService extends Service {
 
         @Override
         public int getSimAccessPermission(BluetoothDevice device) {
-            if (!Utils.checkCaller()) {
-                Log.w(TAG, "getSimAccessPermission() - Not allowed for non-active user");
-                return BluetoothDevice.ACCESS_UNKNOWN;
-            }
-
             AdapterService service = getService();
-            if (service == null) {
+            if (service == null || !callerIsSystemOrActiveUser(TAG, "getSimAccessPermission")) {
                 return BluetoothDevice.ACCESS_UNKNOWN;
             }
             return service.getSimAccessPermission(device);
@@ -1803,13 +1650,8 @@ public class AdapterService extends Service {
 
         @Override
         public boolean setSimAccessPermission(BluetoothDevice device, int value) {
-            if (!Utils.checkCaller()) {
-                Log.w(TAG, "setSimAccessPermission() - Not allowed for non-active user");
-                return false;
-            }
-
             AdapterService service = getService();
-            if (service == null) {
+            if (service == null || !callerIsSystemOrActiveUser(TAG, "setSimAccessPermission")) {
                 return false;
             }
             return service.setSimAccessPermission(device, value);
@@ -1826,13 +1668,8 @@ public class AdapterService extends Service {
 
         @Override
         public boolean sdpSearch(BluetoothDevice device, ParcelUuid uuid) {
-            if (!Utils.checkCaller()) {
-                Log.w(TAG, "sdpSea(): not allowed for non-active user");
-                return false;
-            }
-
             AdapterService service = getService();
-            if (service == null) {
+            if (service == null || !callerIsSystemOrActiveUser(TAG, "sdpSearch")) {
                 return false;
             }
             return service.sdpSearch(device, uuid);
@@ -1840,13 +1677,8 @@ public class AdapterService extends Service {
 
         @Override
         public int getBatteryLevel(BluetoothDevice device) {
-            if (!Utils.checkCaller()) {
-                Log.w(TAG, "getBatteryLevel(): not allowed for non-active user");
-                return BluetoothDevice.BATTERY_LEVEL_UNKNOWN;
-            }
-
             AdapterService service = getService();
-            if (service == null) {
+            if (service == null || !callerIsSystemOrActiveUser(TAG, "getBatteryLevel")) {
                 return BluetoothDevice.BATTERY_LEVEL_UNKNOWN;
             }
             return service.getBatteryLevel(device);
