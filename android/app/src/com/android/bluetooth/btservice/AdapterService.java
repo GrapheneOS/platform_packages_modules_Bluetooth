@@ -1736,7 +1736,8 @@ public class AdapterService extends Service {
 
             enforceBluetoothPrivilegedPermission(service);
 
-            return service.setSilenceMode(device, silence);
+            service.mSilenceDeviceManager.setSilenceMode(device, silence);
+            return true;
         }
 
         @Override
@@ -1748,7 +1749,7 @@ public class AdapterService extends Service {
 
             enforceBluetoothPrivilegedPermission(service);
 
-            return service.getSilenceMode(device);
+            return service.mSilenceDeviceManager.getSilenceMode(device);
         }
 
         @Override
@@ -2587,15 +2588,6 @@ public class AdapterService extends Service {
                 BluetoothDevice.BOND_BONDING,
                 event,
                 accepted ? 0 : BluetoothDevice.UNBOND_REASON_AUTH_REJECTED);
-    }
-
-    boolean setSilenceMode(BluetoothDevice device, boolean silence) {
-        mSilenceDeviceManager.setSilenceMode(device, silence);
-        return true;
-    }
-
-    boolean getSilenceMode(BluetoothDevice device) {
-        return mSilenceDeviceManager.getSilenceMode(device);
     }
 
     boolean setPhonebookAccessPermission(BluetoothDevice device, int value) {
