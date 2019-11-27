@@ -1812,7 +1812,8 @@ public class AdapterService extends Service {
             if (service == null) {
                 return null;
             }
-            return service.getSocketManager();
+
+            return IBluetoothSocketManager.Stub.asInterface(service.mBluetoothSocketManagerBinder);
         }
 
         @Override
@@ -2618,10 +2619,6 @@ public class AdapterService extends Service {
 
     void setSimAccessPermission(BluetoothDevice device, int value) {
         setDeviceAccessFromPrefs(device, value, SIM_ACCESS_PERMISSION_PREFERENCE_FILE);
-    }
-
-    IBluetoothSocketManager getSocketManager() {
-        return IBluetoothSocketManager.Stub.asInterface(mBluetoothSocketManagerBinder);
     }
 
     boolean factoryReset() {
