@@ -1933,7 +1933,7 @@ public class AdapterService extends Service {
             enforceBluetoothPermission(service);
 
             int val = service.getNumOfOffloadedScanFilterSupported();
-            return (val >= MIN_OFFLOADED_FILTERS);
+            return val >= MIN_OFFLOADED_FILTERS;
         }
 
         @Override
@@ -1946,7 +1946,7 @@ public class AdapterService extends Service {
             enforceBluetoothPermission(service);
 
             int val = service.getOffloadedScanResultStorage();
-            return (val >= MIN_OFFLOADED_SCAN_STORAGE_BYTES);
+            return val >= MIN_OFFLOADED_SCAN_STORAGE_BYTES;
         }
 
         @Override
