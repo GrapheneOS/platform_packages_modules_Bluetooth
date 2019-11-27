@@ -2078,7 +2078,11 @@ public class AdapterService extends Service {
             if (service == null) {
                 return false;
             }
-            return service.setMetadata(device, key, value);
+
+            if (value.length > BluetoothDevice.METADATA_MAX_LENGTH) {
+                return false;
+            }
+            return service.mDatabaseManager.setCustomMeta(device, key, value);
         }
 
         @Override
@@ -2087,7 +2091,8 @@ public class AdapterService extends Service {
             if (service == null) {
                 return null;
             }
-            return service.getMetadata(device, key);
+
+            return service.mDatabaseManager.getCustomMeta(device, key);
         }
 
         @Override
@@ -2898,18 +2903,6 @@ public class AdapterService extends Service {
         verboseLog("energyInfoCallback() status = " + status + "txTime = " + txTime + "rxTime = "
                 + rxTime + "idleTime = " + idleTime + "energyUsed = " + energyUsed + "ctrlState = "
                 + ctrlState + "traffic = " + Arrays.toString(data));
-    }
-
-    boolean setMetadata(BluetoothDevice device, int key, byte[] value) {
-        if (value.length > BluetoothDevice.METADATA_MAX_LENGTH) {
-            Log.e(TAG, "setMetadata: value length too long " + value.length);
-            return false;
-        }
-        return mDatabaseManager.setCustomMeta(device, key, value);
-    }
-
-    byte[] getMetadata(BluetoothDevice device, int key) {
-        return mDatabaseManager.getCustomMeta(device, key);
     }
 
     /**
