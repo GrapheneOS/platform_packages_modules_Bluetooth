@@ -1825,7 +1825,11 @@ public class AdapterService extends Service {
 
             enforceBluetoothPermission(service);
 
-            return service.sdpSearch(device, uuid);
+            if (service.mSdpManager == null) {
+                return false;
+            }
+            service.mSdpManager.sdpSearch(device, uuid);
+            return true;
         }
 
         @Override
@@ -2192,15 +2196,6 @@ public class AdapterService extends Service {
     @VisibleForTesting
     public DatabaseManager getDatabase() {
         return mDatabaseManager;
-    }
-
-    boolean sdpSearch(BluetoothDevice device, ParcelUuid uuid) {
-        if (mSdpManager != null) {
-            mSdpManager.sdpSearch(device, uuid);
-            return true;
-        } else {
-            return false;
-        }
     }
 
     boolean createBond(BluetoothDevice device, int transport, OobData oobData) {
