@@ -136,7 +136,7 @@ class BrowsedPlayerWrapper {
      */
     boolean connect(ConnectionCallback cb) {
         if (cb == null) {
-            Log.wtfStack(TAG, "connect: Trying to connect to " + mPackageName
+            Log.wtf(TAG, "connect: Trying to connect to " + mPackageName
                     + "with null callback");
         }
         return setCallbackAndConnect((int status, BrowsedPlayerWrapper wrapper) -> {
@@ -245,7 +245,7 @@ class BrowsedPlayerWrapper {
         }
 
         if (cb == null) {
-            Log.wtfStack(TAG, "getFolderItems: Trying to connect to " + mPackageName
+            Log.wtf(TAG, "getFolderItems: Trying to connect to " + mPackageName
                     + "with null browse callback");
         }
 

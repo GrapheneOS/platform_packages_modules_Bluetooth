@@ -32,11 +32,8 @@ import android.media.AudioManager;
 import android.net.Uri;
 import android.os.BatteryManager;
 import android.os.HandlerThread;
-import android.os.IDeviceIdleController;
 import android.os.Looper;
 import android.os.ParcelUuid;
-import android.os.RemoteException;
-import android.os.ServiceManager;
 import android.os.SystemProperties;
 import android.os.UserHandle;
 import android.telecom.PhoneAccount;
@@ -359,7 +356,7 @@ public class HeadsetService extends ProfileService {
                         synchronized (mStateMachines) {
                             final HeadsetStateMachine stateMachine = mStateMachines.get(device);
                             if (stateMachine == null) {
-                                Log.wtfStack(TAG, "Cannot find state machine for " + device);
+                                Log.wtf(TAG, "Cannot find state machine for " + device);
                                 return;
                             }
                             stateMachine.sendMessage(
@@ -1422,21 +1419,6 @@ public class HeadsetService extends ProfileService {
             if (!setActiveDevice(fromDevice)) {
                 Log.w(TAG, "startVoiceRecognitionByHeadset: failed to set " + fromDevice
                         + " as active");
-                return false;
-            }
-            IDeviceIdleController deviceIdleController = IDeviceIdleController.Stub.asInterface(
-                    ServiceManager.getService(Context.DEVICE_IDLE_CONTROLLER));
-            if (deviceIdleController == null) {
-                Log.w(TAG, "startVoiceRecognitionByHeadset: deviceIdleController is null, device="
-                        + fromDevice);
-                return false;
-            }
-            try {
-                deviceIdleController.exitIdle("voice-command");
-            } catch (RemoteException e) {
-                Log.w(TAG,
-                        "startVoiceRecognitionByHeadset: failed to exit idle, device=" + fromDevice
-                                + ", error=" + e.getMessage());
                 return false;
             }
             if (!mSystemInterface.activateVoiceRecognition()) {
