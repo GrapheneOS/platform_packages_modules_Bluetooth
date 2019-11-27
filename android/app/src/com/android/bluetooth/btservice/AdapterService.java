@@ -2129,6 +2129,9 @@ public class AdapterService extends Service {
             if (service == null) {
                 return;
             }
+
+            enforceDumpPermission(service);
+
             service.dump(fd, writer, args);
             writer.close();
         }
@@ -2935,8 +2938,6 @@ public class AdapterService extends Service {
 
     @Override
     protected void dump(FileDescriptor fd, PrintWriter writer, String[] args) {
-        enforceDumpPermission(this);
-
         if (args.length == 0) {
             writer.println("Skipping dump in APP SERVICES, see bluetooth_manager section.");
             writer.println("Use --print argument for dumpsys direct from AdapterService.");
