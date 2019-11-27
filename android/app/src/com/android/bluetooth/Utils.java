@@ -254,6 +254,36 @@ public final class Utils {
         Utils.sForegroundUserId = uid;
     }
 
+    public static void enforceBluetoothPermission(Context context) {
+        context.enforceCallingOrSelfPermission(
+                android.Manifest.permission.BLUETOOTH,
+                "Need BLUETOOTH permission");
+    }
+
+    public static void enforceBluetoothAdminPermission(Context context) {
+        context.enforceCallingOrSelfPermission(
+                android.Manifest.permission.BLUETOOTH_ADMIN,
+                "Need BLUETOOTH ADMIN permission");
+    }
+
+    public static void enforceBluetoothPrivilegedPermission(Context context) {
+        context.enforceCallingOrSelfPermission(
+                android.Manifest.permission.BLUETOOTH_PRIVILEGED,
+                "Need BLUETOOTH PRIVILEGED permission");
+    }
+
+    public static void enforceLocalMacAddressPermission(Context context) {
+        context.enforceCallingOrSelfPermission(
+                android.Manifest.permission.LOCAL_MAC_ADDRESS,
+                "Need LOCAL_MAC_ADDRESS permission");
+    }
+
+    public static void enforceDumpPermission(Context context) {
+        context.enforceCallingOrSelfPermission(
+                android.Manifest.permission.DUMP,
+                "Need DUMP permission");
+    }
+
     public static boolean checkCaller() {
         int callingUser = UserHandle.getCallingUserId();
         int callingUid = Binder.getCallingUid();
