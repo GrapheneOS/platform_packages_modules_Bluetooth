@@ -1772,16 +1772,6 @@ public class AdapterService extends Service {
         }
 
         @Override
-        public void sendConnectionStateChange(BluetoothDevice device, int profile, int state,
-                int prevState) {
-            AdapterService service = getService();
-            if (service == null) {
-                return;
-            }
-            service.sendConnectionStateChange(device, profile, state, prevState);
-        }
-
-        @Override
         public IBluetoothSocketManager getSocketManager() {
             AdapterService service = getService();
             if (service == null) {
@@ -2857,17 +2847,6 @@ public class AdapterService extends Service {
         }
         editor.apply();
         return true;
-    }
-
-    void sendConnectionStateChange(BluetoothDevice device, int profile, int state, int prevState) {
-        // TODO(BT) permission check?
-        // Since this is a binder call check if Bluetooth is on still
-        if (getState() == BluetoothAdapter.STATE_OFF) {
-            return;
-        }
-
-        mAdapterProperties.sendConnectionStateChange(device, profile, state, prevState);
-
     }
 
     IBluetoothSocketManager getSocketManager() {
