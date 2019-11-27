@@ -100,7 +100,6 @@ public class HeadsetServiceTest {
                 HeadsetObjectsFactory.class);
         method.setAccessible(true);
         method.invoke(null, mObjectsFactory);
-        doReturn(true).when(mAdapterService).isEnabled();
         doReturn(MAX_HEADSET_CONNECTIONS).when(mAdapterService).getMaxConnectedAudioDevices();
         doReturn(new ParcelUuid[]{BluetoothUuid.Handsfree}).when(mAdapterService)
                 .getRemoteUuids(any(BluetoothDevice.class));
