@@ -1788,7 +1788,7 @@ public class AdapterService extends Service {
 
             enforceBluetoothPermission(service);
 
-            return service.getSimAccessPermission(device);
+            return service.getDeviceAccessFromPrefs(device, SIM_ACCESS_PERMISSION_PREFERENCE_FILE);
         }
 
         @Override
@@ -2613,10 +2613,6 @@ public class AdapterService extends Service {
     boolean setMessageAccessPermission(BluetoothDevice device, int value) {
         setDeviceAccessFromPrefs(device, value, MESSAGE_ACCESS_PERMISSION_PREFERENCE_FILE);
         return true;
-    }
-
-    int getSimAccessPermission(BluetoothDevice device) {
-        return getDeviceAccessFromPrefs(device, SIM_ACCESS_PERMISSION_PREFERENCE_FILE);
     }
 
     boolean setSimAccessPermission(BluetoothDevice device, int value) {
