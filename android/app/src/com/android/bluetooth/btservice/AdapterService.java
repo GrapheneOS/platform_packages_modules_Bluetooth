@@ -2040,7 +2040,20 @@ public class AdapterService extends Service {
             if (service == null) {
                 return false;
             }
-            return service.registerMetadataListener(listener, device);
+
+            if (service.mMetadataListeners == null) {
+                return false;
+            }
+            ArrayList<IBluetoothMetadataListener> list = service.mMetadataListeners.get(device);
+            if (list == null) {
+                list = new ArrayList<>();
+            } else if (list.contains(listener)) {
+                // The device is already registered with this listener
+                return true;
+            }
+            list.add(listener);
+            service.mMetadataListeners.put(device, list);
+            return true;
         }
 
         @Override
@@ -2049,7 +2062,14 @@ public class AdapterService extends Service {
             if (service == null) {
                 return false;
             }
-            return service.unregisterMetadataListener(device);
+
+            if (service.mMetadataListeners == null) {
+                return false;
+            }
+            if (service.mMetadataListeners.containsKey(device)) {
+                service.mMetadataListeners.remove(device);
+            }
+            return true;
         }
 
         @Override
@@ -2878,34 +2898,6 @@ public class AdapterService extends Service {
         verboseLog("energyInfoCallback() status = " + status + "txTime = " + txTime + "rxTime = "
                 + rxTime + "idleTime = " + idleTime + "energyUsed = " + energyUsed + "ctrlState = "
                 + ctrlState + "traffic = " + Arrays.toString(data));
-    }
-
-    boolean registerMetadataListener(IBluetoothMetadataListener listener,
-            BluetoothDevice device) {
-        if (mMetadataListeners == null) {
-            return false;
-        }
-
-        ArrayList<IBluetoothMetadataListener> list = mMetadataListeners.get(device);
-        if (list == null) {
-            list = new ArrayList<>();
-        } else if (list.contains(listener)) {
-            // The device is already registered with this listener
-            return true;
-        }
-        list.add(listener);
-        mMetadataListeners.put(device, list);
-        return true;
-    }
-
-    boolean unregisterMetadataListener(BluetoothDevice device) {
-        if (mMetadataListeners == null) {
-            return false;
-        }
-        if (mMetadataListeners.containsKey(device)) {
-            mMetadataListeners.remove(device);
-        }
-        return true;
     }
 
     boolean setMetadata(BluetoothDevice device, int key, byte[] value) {
