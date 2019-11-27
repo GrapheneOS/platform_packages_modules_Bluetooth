@@ -639,8 +639,6 @@ public class PanService extends ProfileService {
                 } else {
                     ifcg.setInterfaceDown();
                 }
-
-                ifcg.clearFlag("running");
                 service.setInterfaceConfig(iface, ifcg);
 
                 if (enable) {
