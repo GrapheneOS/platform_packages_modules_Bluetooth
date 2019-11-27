@@ -1884,8 +1884,10 @@ public class AdapterService extends Service {
             enforceBluetoothPrivilegedPermission(service);
 
             service.disable();
-            return service.factoryReset();
-
+            if (service.mDatabaseManager != null) {
+                service.mDatabaseManager.factoryReset();
+            }
+            return service.factoryResetNative();
         }
 
         @Override
@@ -2610,13 +2612,6 @@ public class AdapterService extends Service {
 
     void setSimAccessPermission(BluetoothDevice device, int value) {
         setDeviceAccessFromPrefs(device, value, SIM_ACCESS_PERMISSION_PREFERENCE_FILE);
-    }
-
-    boolean factoryReset() {
-        if (mDatabaseManager != null) {
-            mDatabaseManager.factoryReset();
-        }
-        return factoryResetNative();
     }
 
     void registerCallback(IBluetoothCallback cb) {

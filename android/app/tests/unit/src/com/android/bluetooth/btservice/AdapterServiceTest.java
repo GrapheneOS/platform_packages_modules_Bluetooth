@@ -630,7 +630,7 @@ public class AdapterServiceTest {
         byte[] obfuscatedAddress1 = mAdapterService.obfuscateAddress(device);
         Assert.assertTrue(obfuscatedAddress1.length > 0);
         Assert.assertFalse(isByteArrayAllZero(obfuscatedAddress1));
-        mAdapterService.factoryReset();
+        mServiceBinder.factoryReset();
         byte[] obfuscatedAddress2 = mAdapterService.obfuscateAddress(device);
         Assert.assertTrue(obfuscatedAddress2.length > 0);
         Assert.assertFalse(isByteArrayAllZero(obfuscatedAddress2));
@@ -642,7 +642,7 @@ public class AdapterServiceTest {
         Assert.assertFalse(isByteArrayAllZero(obfuscatedAddress3));
         Assert.assertArrayEquals(obfuscatedAddress3,
                 obfuscatedAddress2);
-        mAdapterService.factoryReset();
+        mServiceBinder.factoryReset();
         byte[] obfuscatedAddress4 = mAdapterService.obfuscateAddress(device);
         Assert.assertTrue(obfuscatedAddress4.length > 0);
         Assert.assertFalse(isByteArrayAllZero(obfuscatedAddress4));
@@ -666,7 +666,7 @@ public class AdapterServiceTest {
         Assert.assertFalse(isByteArrayAllZero(obfuscatedAddress1));
         Assert.assertArrayEquals(obfuscateInJava(metricsSalt1, device),
                 obfuscatedAddress1);
-        mAdapterService.factoryReset();
+        mServiceBinder.factoryReset();
         tearDown();
         setUp();
         // Cannot verify metrics salt since it is not written to disk until native cleanup
