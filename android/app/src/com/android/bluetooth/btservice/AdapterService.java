@@ -1919,7 +1919,8 @@ public class AdapterService extends Service {
 
             enforceBluetoothPermission(service);
 
-            return service.isMultiAdvertisementSupported();
+            int val = service.mAdapterProperties.getNumOfAdvertisementInstancesSupported();
+            return val >= MIN_ADVT_INSTANCES_FOR_MA;
         }
 
         @Override
@@ -2614,15 +2615,6 @@ public class AdapterService extends Service {
 
     void setSimAccessPermission(BluetoothDevice device, int value) {
         setDeviceAccessFromPrefs(device, value, SIM_ACCESS_PERMISSION_PREFERENCE_FILE);
-    }
-
-    public int getNumOfAdvertisementInstancesSupported() {
-        enforceBluetoothPermission(this);
-        return mAdapterProperties.getNumOfAdvertisementInstancesSupported();
-    }
-
-    public boolean isMultiAdvertisementSupported() {
-        return getNumOfAdvertisementInstancesSupported() >= MIN_ADVT_INSTANCES_FOR_MA;
     }
 
     public boolean isRpaOffloadSupported() {
