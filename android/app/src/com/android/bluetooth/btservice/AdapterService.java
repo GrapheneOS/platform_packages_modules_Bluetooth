@@ -2108,7 +2108,8 @@ public class AdapterService extends Service {
             if (service == null) {
                 return;
             }
-            service.onLeServiceUp();
+
+            service.mAdapterStateMachine.sendMessage(AdapterState.USER_TURN_ON);
         }
 
         @Override
@@ -2117,7 +2118,8 @@ public class AdapterService extends Service {
             if (service == null) {
                 return;
             }
-            service.onBrEdrDown();
+
+            service.mAdapterStateMachine.sendMessage(AdapterState.BLE_TURN_OFF);
         }
 
         @Override
@@ -2748,14 +2750,6 @@ public class AdapterService extends Service {
     public int getTotalNumOfTrackableAdvertisements() {
         enforceBluetoothPermission(this);
         return mAdapterProperties.getTotalNumOfTrackableAdvertisements();
-    }
-
-    void onLeServiceUp() {
-        mAdapterStateMachine.sendMessage(AdapterState.USER_TURN_ON);
-    }
-
-    void onBrEdrDown() {
-        mAdapterStateMachine.sendMessage(AdapterState.BLE_TURN_OFF);
     }
 
     private static int convertScanModeToHal(int mode) {
