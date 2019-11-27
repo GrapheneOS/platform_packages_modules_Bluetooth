@@ -1075,7 +1075,7 @@ public class AdapterService extends Service {
         }
 
         @Override
-        public boolean enable() {
+        public boolean enable(boolean quietMode) {
             AdapterService service = getService();
             if (service == null || !callerIsSystemOrActiveUser(TAG, "enable")) {
                 return false;
@@ -1083,19 +1083,7 @@ public class AdapterService extends Service {
 
             enforceBluetoothAdminPermission(service);
 
-            return service.enable(false);
-        }
-
-        @Override
-        public boolean enableNoAutoConnect() {
-            AdapterService service = getService();
-            if (service == null || !callerIsSystemOrActiveUser(TAG, "enableNoAutoConnect")) {
-                return false;
-            }
-
-            enforceBluetoothAdminPermission(service);
-
-            return service.enable(true);
+            return service.enable(quietMode);
         }
 
         @Override
