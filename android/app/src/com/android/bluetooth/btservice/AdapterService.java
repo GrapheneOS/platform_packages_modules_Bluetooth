@@ -1752,7 +1752,8 @@ public class AdapterService extends Service {
                 return false;
             }
 
-            return service.setPhonebookAccessPermission(device, value);
+            service.setPhonebookAccessPermission(device, value);
+            return true;
         }
 
         @Override
@@ -1776,7 +1777,8 @@ public class AdapterService extends Service {
 
             enforceBluetoothPrivilegedPermission(service);
 
-            return service.setMessageAccessPermission(device, value);
+            service.setMessageAccessPermission(device, value);
+            return true;
         }
 
         @Override
@@ -1800,7 +1802,8 @@ public class AdapterService extends Service {
 
             enforceBluetoothPrivilegedPermission(service);
 
-            return service.setSimAccessPermission(device, value);
+            service.setSimAccessPermission(device, value);
+            return true;
         }
 
         @Override
@@ -2605,19 +2608,16 @@ public class AdapterService extends Service {
         editor.apply();
     }
 
-    boolean setPhonebookAccessPermission(BluetoothDevice device, int value) {
+    void setPhonebookAccessPermission(BluetoothDevice device, int value) {
         setDeviceAccessFromPrefs(device, value, PHONEBOOK_ACCESS_PERMISSION_PREFERENCE_FILE);
-        return true;
     }
 
-    boolean setMessageAccessPermission(BluetoothDevice device, int value) {
+    void setMessageAccessPermission(BluetoothDevice device, int value) {
         setDeviceAccessFromPrefs(device, value, MESSAGE_ACCESS_PERMISSION_PREFERENCE_FILE);
-        return true;
     }
 
-    boolean setSimAccessPermission(BluetoothDevice device, int value) {
+    void setSimAccessPermission(BluetoothDevice device, int value) {
         setDeviceAccessFromPrefs(device, value, SIM_ACCESS_PERMISSION_PREFERENCE_FILE);
-        return true;
     }
 
     IBluetoothSocketManager getSocketManager() {
