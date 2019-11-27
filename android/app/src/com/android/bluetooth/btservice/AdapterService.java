@@ -1742,15 +1742,7 @@ public class AdapterService extends Service {
 
             enforceBluetoothPermission(service);
 
-            SharedPreferences prefs = service.getSharedPreferences(
-                    PHONEBOOK_ACCESS_PERMISSION_PREFERENCE_FILE,
-                    Context.MODE_PRIVATE);
-            if (!prefs.contains(device.getAddress())) {
-                return BluetoothDevice.ACCESS_UNKNOWN;
-            }
-            return prefs.getBoolean(device.getAddress(), false)
-                    ? BluetoothDevice.ACCESS_ALLOWED
-                    : BluetoothDevice.ACCESS_REJECTED;
+            return service.getDeviceAccessFromPrefs(device, PHONEBOOK_ACCESS_PERMISSION_PREFERENCE_FILE);
         }
 
         @Override
@@ -1759,6 +1751,7 @@ public class AdapterService extends Service {
             if (service == null || !callerIsSystemOrActiveUser(TAG, "setPhonebookAccessPermission")) {
                 return false;
             }
+
             return service.setPhonebookAccessPermission(device, value);
         }
 
@@ -1771,15 +1764,7 @@ public class AdapterService extends Service {
 
             enforceBluetoothPermission(service);
 
-            SharedPreferences prefs = service.getSharedPreferences(
-                    MESSAGE_ACCESS_PERMISSION_PREFERENCE_FILE,
-                    Context.MODE_PRIVATE);
-            if (!prefs.contains(device.getAddress())) {
-                return BluetoothDevice.ACCESS_UNKNOWN;
-            }
-            return prefs.getBoolean(device.getAddress(), false)
-                    ? BluetoothDevice.ACCESS_ALLOWED
-                    : BluetoothDevice.ACCESS_REJECTED;
+            return service.getDeviceAccessFromPrefs(device, MESSAGE_ACCESS_PERMISSION_PREFERENCE_FILE);
         }
 
         @Override
@@ -2599,9 +2584,18 @@ public class AdapterService extends Service {
                 accepted ? 0 : BluetoothDevice.UNBOND_REASON_AUTH_REJECTED);
     }
 
-    boolean setPhonebookAccessPermission(BluetoothDevice device, int value) {
-        SharedPreferences pref = getSharedPreferences(PHONEBOOK_ACCESS_PERMISSION_PREFERENCE_FILE,
-                Context.MODE_PRIVATE);
+    int getDeviceAccessFromPrefs(BluetoothDevice device, String prefFile) {
+        SharedPreferences prefs = getSharedPreferences(prefFile, Context.MODE_PRIVATE);
+        if (!prefs.contains(device.getAddress())) {
+            return BluetoothDevice.ACCESS_UNKNOWN;
+        }
+        return prefs.getBoolean(device.getAddress(), false)
+                ? BluetoothDevice.ACCESS_ALLOWED
+                : BluetoothDevice.ACCESS_REJECTED;
+    }
+
+    void setDeviceAccessFromPrefs(BluetoothDevice device, int value, String prefFile) {
+        SharedPreferences pref = getSharedPreferences(prefFile, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = pref.edit();
         if (value == BluetoothDevice.ACCESS_UNKNOWN) {
             editor.remove(device.getAddress());
@@ -2609,42 +2603,24 @@ public class AdapterService extends Service {
             editor.putBoolean(device.getAddress(), value == BluetoothDevice.ACCESS_ALLOWED);
         }
         editor.apply();
+    }
+
+    boolean setPhonebookAccessPermission(BluetoothDevice device, int value) {
+        setDeviceAccessFromPrefs(device, value, PHONEBOOK_ACCESS_PERMISSION_PREFERENCE_FILE);
         return true;
     }
 
     boolean setMessageAccessPermission(BluetoothDevice device, int value) {
-        SharedPreferences pref = getSharedPreferences(MESSAGE_ACCESS_PERMISSION_PREFERENCE_FILE,
-                Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = pref.edit();
-        if (value == BluetoothDevice.ACCESS_UNKNOWN) {
-            editor.remove(device.getAddress());
-        } else {
-            editor.putBoolean(device.getAddress(), value == BluetoothDevice.ACCESS_ALLOWED);
-        }
-        editor.apply();
+        setDeviceAccessFromPrefs(device, value, MESSAGE_ACCESS_PERMISSION_PREFERENCE_FILE);
         return true;
     }
 
     int getSimAccessPermission(BluetoothDevice device) {
-        SharedPreferences pref =
-                getSharedPreferences(SIM_ACCESS_PERMISSION_PREFERENCE_FILE, Context.MODE_PRIVATE);
-        if (!pref.contains(device.getAddress())) {
-            return BluetoothDevice.ACCESS_UNKNOWN;
-        }
-        return pref.getBoolean(device.getAddress(), false) ? BluetoothDevice.ACCESS_ALLOWED
-                : BluetoothDevice.ACCESS_REJECTED;
+        return getDeviceAccessFromPrefs(device, SIM_ACCESS_PERMISSION_PREFERENCE_FILE);
     }
 
     boolean setSimAccessPermission(BluetoothDevice device, int value) {
-        SharedPreferences pref =
-                getSharedPreferences(SIM_ACCESS_PERMISSION_PREFERENCE_FILE, Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = pref.edit();
-        if (value == BluetoothDevice.ACCESS_UNKNOWN) {
-            editor.remove(device.getAddress());
-        } else {
-            editor.putBoolean(device.getAddress(), value == BluetoothDevice.ACCESS_ALLOWED);
-        }
-        editor.apply();
+        setDeviceAccessFromPrefs(device, value, SIM_ACCESS_PERMISSION_PREFERENCE_FILE);
         return true;
     }
 
