@@ -284,6 +284,14 @@ public final class Utils {
                 "Need DUMP permission");
     }
 
+    public static boolean callerIsSystemOrActiveUser(String tag, String method) {
+        if (!checkCaller()) {
+          Log.w(TAG, method + "() - Not allowed for non-active user and non system user");
+          return false;
+        }
+        return true;
+    }
+
     public static boolean checkCaller() {
         int callingUser = UserHandle.getCallingUserId();
         int callingUid = Binder.getCallingUid();
