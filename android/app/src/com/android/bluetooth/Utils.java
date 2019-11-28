@@ -286,7 +286,15 @@ public final class Utils {
 
     public static boolean callerIsSystemOrActiveUser(String tag, String method) {
         if (!checkCaller()) {
-          Log.w(TAG, method + "() - Not allowed for non-active user and non system user");
+          Log.w(TAG, method + "() - Not allowed for non-active user and non-system user");
+          return false;
+        }
+        return true;
+    }
+
+    public static boolean callerIsSystemOrActiveOrManagedUser(Context context, String tag, String method) {
+        if (!checkCallerAllowManagedProfiles(context)) {
+          Log.w(TAG, method + "() - Not allowed for non-active user and non-system and non-managed user");
           return false;
         }
         return true;
