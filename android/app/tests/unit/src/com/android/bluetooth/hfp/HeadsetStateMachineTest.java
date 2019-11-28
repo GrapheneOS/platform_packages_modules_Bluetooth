@@ -112,8 +112,8 @@ public class HeadsetStateMachineTest {
                 InstrumentationRegistry.getTargetContext().getResources());
         when(mHeadsetService.getPackageManager()).thenReturn(
                 InstrumentationRegistry.getContext().getPackageManager());
-        when(mHeadsetService.getPriority(any(BluetoothDevice.class))).thenReturn(
-                BluetoothProfile.PRIORITY_ON);
+        when(mHeadsetService.getConnectionPolicy(any(BluetoothDevice.class))).thenReturn(
+                BluetoothProfile.CONNECTION_POLICY_ALLOWED);
         when(mHeadsetService.getForceScoAudio()).thenReturn(true);
         when(mHeadsetService.okToAcceptConnection(any(BluetoothDevice.class))).thenReturn(true);
         when(mHeadsetService.isScoAcceptable(any(BluetoothDevice.class))).thenReturn(true);

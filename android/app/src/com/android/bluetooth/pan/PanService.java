@@ -396,7 +396,7 @@ public class PanService extends ProfileService {
             Log.d(TAG, "Saved priority " + device + " = " + priority);
         }
         AdapterService.getAdapterService().getDatabase()
-                .setProfilePriority(device, BluetoothProfile.PAN, priority);
+                .setProfileConnectionPolicy(device, BluetoothProfile.PAN, priority);
         return true;
     }
 
@@ -406,7 +406,7 @@ public class PanService extends ProfileService {
         }
         enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH_ADMIN permission");
         return AdapterService.getAdapterService().getDatabase()
-                .getProfilePriority(device, BluetoothProfile.PAN);
+                .getProfileConnectionPolicy(device, BluetoothProfile.PAN);
     }
 
     public List<BluetoothDevice> getConnectedDevices() {
