@@ -45,6 +45,7 @@ import java.io.PrintWriter;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.Semaphore;
@@ -75,6 +76,33 @@ public class DatabaseManager {
     private static final int MSG_DELETE_DATABASE = 2;
     private static final int MSG_CLEAR_DATABASE = 100;
     private static final String LOCAL_STORAGE = "LocalStorage";
+
+    private static final String
+            LEGACY_BTSNOOP_DEFAULT_MODE = "bluetooth_btsnoop_default_mode";
+    private static final String
+            LEGACY_HEADSET_PRIORITY_PREFIX = "bluetooth_headset_priority_";
+    private static final String
+            LEGACY_A2DP_SINK_PRIORITY_PREFIX = "bluetooth_a2dp_sink_priority_";
+    private static final String
+            LEGACY_A2DP_SRC_PRIORITY_PREFIX = "bluetooth_a2dp_src_priority_";
+    private static final String LEGACY_A2DP_SUPPORTS_OPTIONAL_CODECS_PREFIX =
+            "bluetooth_a2dp_supports_optional_codecs_";
+    private static final String LEGACY_A2DP_OPTIONAL_CODECS_ENABLED_PREFIX =
+            "bluetooth_a2dp_optional_codecs_enabled_";
+    private static final String
+            LEGACY_INPUT_DEVICE_PRIORITY_PREFIX = "bluetooth_input_device_priority_";
+    private static final String
+            LEGACY_MAP_PRIORITY_PREFIX = "bluetooth_map_priority_";
+    private static final String
+            LEGACY_MAP_CLIENT_PRIORITY_PREFIX = "bluetooth_map_client_priority_";
+    private static final String
+            LEGACY_PBAP_CLIENT_PRIORITY_PREFIX = "bluetooth_pbap_client_priority_";
+    private static final String
+            LEGACY_SAP_PRIORITY_PREFIX = "bluetooth_sap_priority_";
+    private static final String
+            LEGACY_PAN_PRIORITY_PREFIX = "bluetooth_pan_priority_";
+    private static final String
+            LEGACY_HEARING_AID_PRIORITY_PREFIX = "bluetooth_hearing_aid_priority_";
 
     /**
      * Constructor of the DatabaseManager
@@ -642,46 +670,46 @@ public class DatabaseManager {
 
         for (BluetoothDevice device : bondedDevices) {
             int a2dpPriority = Settings.Global.getInt(contentResolver,
-                    Settings.Global.getBluetoothA2dpSinkPriorityKey(device.getAddress()),
+                    getLegacyA2dpSinkPriorityKey(device.getAddress()),
                     BluetoothProfile.PRIORITY_UNDEFINED);
             int a2dpSinkPriority = Settings.Global.getInt(contentResolver,
-                    Settings.Global.getBluetoothA2dpSrcPriorityKey(device.getAddress()),
+                    getLegacyA2dpSrcPriorityKey(device.getAddress()),
                     BluetoothProfile.PRIORITY_UNDEFINED);
             int hearingaidPriority = Settings.Global.getInt(contentResolver,
-                    Settings.Global.getBluetoothHearingAidPriorityKey(device.getAddress()),
+                    getLegacyHearingAidPriorityKey(device.getAddress()),
                     BluetoothProfile.PRIORITY_UNDEFINED);
             int headsetPriority = Settings.Global.getInt(contentResolver,
-                    Settings.Global.getBluetoothHeadsetPriorityKey(device.getAddress()),
+                    getLegacyHeadsetPriorityKey(device.getAddress()),
                     BluetoothProfile.PRIORITY_UNDEFINED);
             int headsetClientPriority = Settings.Global.getInt(contentResolver,
-                    Settings.Global.getBluetoothHeadsetPriorityKey(device.getAddress()),
+                    getLegacyHeadsetPriorityKey(device.getAddress()),
                     BluetoothProfile.PRIORITY_UNDEFINED);
             int hidHostPriority = Settings.Global.getInt(contentResolver,
-                    Settings.Global.getBluetoothHidHostPriorityKey(device.getAddress()),
+                    getLegacyHidHostPriorityKey(device.getAddress()),
                     BluetoothProfile.PRIORITY_UNDEFINED);
             int mapPriority = Settings.Global.getInt(contentResolver,
-                    Settings.Global.getBluetoothMapPriorityKey(device.getAddress()),
+                    getLegacyMapPriorityKey(device.getAddress()),
                     BluetoothProfile.PRIORITY_UNDEFINED);
             int mapClientPriority = Settings.Global.getInt(contentResolver,
-                    Settings.Global.getBluetoothMapClientPriorityKey(device.getAddress()),
+                    getLegacyMapClientPriorityKey(device.getAddress()),
                     BluetoothProfile.PRIORITY_UNDEFINED);
             int panPriority = Settings.Global.getInt(contentResolver,
-                    Settings.Global.getBluetoothPanPriorityKey(device.getAddress()),
+                    getLegacyPanPriorityKey(device.getAddress()),
                     BluetoothProfile.PRIORITY_UNDEFINED);
             int pbapPriority = Settings.Global.getInt(contentResolver,
-                    Settings.Global.getBluetoothPbapClientPriorityKey(device.getAddress()),
+                    getLegacyPbapClientPriorityKey(device.getAddress()),
                     BluetoothProfile.PRIORITY_UNDEFINED);
             int pbapClientPriority = Settings.Global.getInt(contentResolver,
-                    Settings.Global.getBluetoothPbapClientPriorityKey(device.getAddress()),
+                    getLegacyPbapClientPriorityKey(device.getAddress()),
                     BluetoothProfile.PRIORITY_UNDEFINED);
             int sapPriority = Settings.Global.getInt(contentResolver,
-                    Settings.Global.getBluetoothSapPriorityKey(device.getAddress()),
+                    getLegacySapPriorityKey(device.getAddress()),
                     BluetoothProfile.PRIORITY_UNDEFINED);
             int a2dpSupportsOptionalCodec = Settings.Global.getInt(contentResolver,
-                    Settings.Global.getBluetoothA2dpSupportsOptionalCodecsKey(device.getAddress()),
+                    getLegacyA2dpSupportsOptionalCodecsKey(device.getAddress()),
                     BluetoothA2dp.OPTIONAL_CODECS_SUPPORT_UNKNOWN);
             int a2dpOptionalCodecEnabled = Settings.Global.getInt(contentResolver,
-                    Settings.Global.getBluetoothA2dpOptionalCodecsEnabledKey(device.getAddress()),
+                    getLegacyA2dpOptionalCodecsEnabledKey(device.getAddress()),
                     BluetoothA2dp.OPTIONAL_CODECS_PREF_UNKNOWN);
 
             String address = device.getAddress();
@@ -713,6 +741,93 @@ public class DatabaseManager {
         // Reload database after migration is completed
         loadDatabase();
 
+    }
+
+    /**
+     * Get the key that retrieves a bluetooth headset's priority.
+     */
+    private static String getLegacyHeadsetPriorityKey(String address) {
+        return LEGACY_HEADSET_PRIORITY_PREFIX + address.toUpperCase(Locale.ROOT);
+    }
+
+    /**
+     * Get the key that retrieves a bluetooth a2dp sink's priority.
+     */
+    private static String getLegacyA2dpSinkPriorityKey(String address) {
+        return LEGACY_A2DP_SINK_PRIORITY_PREFIX + address.toUpperCase(Locale.ROOT);
+    }
+
+    /**
+     * Get the key that retrieves a bluetooth a2dp src's priority.
+     */
+    private static String getLegacyA2dpSrcPriorityKey(String address) {
+        return LEGACY_A2DP_SRC_PRIORITY_PREFIX + address.toUpperCase(Locale.ROOT);
+    }
+
+    /**
+     * Get the key that retrieves a bluetooth a2dp device's ability to support optional codecs.
+     */
+    private static String getLegacyA2dpSupportsOptionalCodecsKey(String address) {
+        return LEGACY_A2DP_SUPPORTS_OPTIONAL_CODECS_PREFIX
+                + address.toUpperCase(Locale.ROOT);
+    }
+
+    /**
+     * Get the key that retrieves whether a bluetooth a2dp device should have optional codecs
+     * enabled.
+     */
+    private static String getLegacyA2dpOptionalCodecsEnabledKey(String address) {
+        return LEGACY_A2DP_OPTIONAL_CODECS_ENABLED_PREFIX
+                + address.toUpperCase(Locale.ROOT);
+    }
+
+    /**
+     * Get the key that retrieves a bluetooth Input Device's priority.
+     */
+    private static String getLegacyHidHostPriorityKey(String address) {
+        return LEGACY_INPUT_DEVICE_PRIORITY_PREFIX + address.toUpperCase(Locale.ROOT);
+    }
+
+    /**
+     * Get the key that retrieves a bluetooth pan client priority.
+     */
+    private static String getLegacyPanPriorityKey(String address) {
+        return LEGACY_PAN_PRIORITY_PREFIX + address.toUpperCase(Locale.ROOT);
+    }
+
+    /**
+     * Get the key that retrieves a bluetooth hearing aid priority.
+     */
+    private static String getLegacyHearingAidPriorityKey(String address) {
+        return LEGACY_HEARING_AID_PRIORITY_PREFIX + address.toUpperCase(Locale.ROOT);
+    }
+
+    /**
+     * Get the key that retrieves a bluetooth map priority.
+     */
+    private static String getLegacyMapPriorityKey(String address) {
+        return LEGACY_MAP_PRIORITY_PREFIX + address.toUpperCase(Locale.ROOT);
+    }
+
+    /**
+     * Get the key that retrieves a bluetooth map client priority.
+     */
+    private static String getLegacyMapClientPriorityKey(String address) {
+        return LEGACY_MAP_CLIENT_PRIORITY_PREFIX + address.toUpperCase(Locale.ROOT);
+    }
+
+    /**
+     * Get the key that retrieves a bluetooth pbap client priority.
+     */
+    private static String getLegacyPbapClientPriorityKey(String address) {
+        return LEGACY_PBAP_CLIENT_PRIORITY_PREFIX + address.toUpperCase(Locale.ROOT);
+    }
+
+    /**
+     * Get the key that retrieves a bluetooth sap priority.
+     */
+    private static String getLegacySapPriorityKey(String address) {
+        return LEGACY_SAP_PRIORITY_PREFIX + address.toUpperCase(Locale.ROOT);
     }
 
     private void loadDatabase() {
