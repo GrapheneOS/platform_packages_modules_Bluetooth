@@ -916,15 +916,6 @@ class AdapterProperties {
         setScanMode(AbstractionLayer.BT_SCAN_MODE_NONE);
     }
 
-    void onBluetoothDisable() {
-        // From STATE_ON to BLE_ON
-        debugLog("onBluetoothDisable()");
-        // Turn off any Device Search/Inquiry
-        mService.cancelDiscovery();
-        // Set the scan_mode to NONE (no incoming connections).
-        setScanMode(AbstractionLayer.BT_SCAN_MODE_NONE);
-    }
-
     void discoveryStateChangeCallback(int state) {
         infoLog("Callback:discoveryStateChangeCallback with state:" + state);
         synchronized (mObject) {
