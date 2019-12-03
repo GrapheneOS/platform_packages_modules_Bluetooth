@@ -20,9 +20,10 @@ import android.bluetooth.BluetoothProfile;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.res.Resources;
+import android.os.SystemProperties;
 import android.provider.Settings;
+import android.text.TextUtils;
 import android.util.ArrayMap;
-import android.util.FeatureFlagUtils;
 import android.util.Log;
 
 import com.android.bluetooth.R;
@@ -124,8 +125,7 @@ public class Config {
         for (ProfileConfig config : PROFILE_SERVICES_AND_FLAGS) {
             boolean supported = resources.getBoolean(config.mSupported);
 
-            if (!supported && (config.mClass == HearingAidService.class) && FeatureFlagUtils
-                                .isEnabled(ctx, FeatureFlagUtils.HEARING_AID_SETTINGS)) {
+            if (!supported && (config.mClass == HearingAidService.class) && isHearingAidSettingsEnabled(ctx)) {
                 Log.v(TAG, "Feature Flag enables support for HearingAidService");
                 supported = true;
             }
@@ -173,5 +173,31 @@ public class Config {
                 Settings.Global.getLong(resolver, Settings.Global.BLUETOOTH_DISABLED_PROFILES, 0);
 
         return (disabledProfilesBitMask & profileMask) != 0;
+    }
+
+    private static boolean isHearingAidSettingsEnabled(Context context) {
+        final String flagOverridePrefix = "sys.fflag.override.";
+        final String hearingAidSettings = "settings_bluetooth_hearing_aid";
+
+        // Override precedence:
+        // Settings.Global -> sys.fflag.override.* -> static list
+
+        // Step 1: check if hearing aid flag is set in Settings.Global.
+        String value;
+        if (context != null) {
+            value = Settings.Global.getString(context.getContentResolver(), hearingAidSettings);
+            if (!TextUtils.isEmpty(value)) {
+                return Boolean.parseBoolean(value);
+            }
+        }
+
+        // Step 2: check if hearing aid flag has any override.
+        value = SystemProperties.get(flagOverridePrefix + hearingAidSettings);
+        if (!TextUtils.isEmpty(value)) {
+            return Boolean.parseBoolean(value);
+        }
+
+        // Step 3: return default value.
+        return false;
     }
 }
