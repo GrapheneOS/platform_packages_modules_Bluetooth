@@ -1440,7 +1440,16 @@ public class AdapterService extends Service {
 
             enforceBluetoothAdminPermission(service);
 
-            return service.removeBond(device);
+            DeviceProperties deviceProp = service.mRemoteDevices.getDeviceProperties(device);
+            if (deviceProp == null || deviceProp.getBondState() != BluetoothDevice.BOND_BONDED) {
+                return false;
+            }
+            deviceProp.setBondingInitiatedLocally(false);
+
+            Message msg = service.mBondStateMachine.obtainMessage(BondStateMachine.REMOVE_BOND);
+            msg.obj = device;
+            service.mBondStateMachine.sendMessage(msg);
+            return true;
         }
 
         @Override
@@ -2072,19 +2081,6 @@ public class AdapterService extends Service {
         Message msg = mBondStateMachine.obtainMessage(BondStateMachine.UUID_UPDATE);
         msg.obj = device;
         mBondStateMachine.sendMessage(msg);
-    }
-
-    boolean removeBond(BluetoothDevice device) {
-        DeviceProperties deviceProp = mRemoteDevices.getDeviceProperties(device);
-        if (deviceProp == null || deviceProp.getBondState() != BluetoothDevice.BOND_BONDED) {
-            return false;
-        }
-        deviceProp.setBondingInitiatedLocally(false);
-
-        Message msg = mBondStateMachine.obtainMessage(BondStateMachine.REMOVE_BOND);
-        msg.obj = device;
-        mBondStateMachine.sendMessage(msg);
-        return true;
     }
 
     /**
