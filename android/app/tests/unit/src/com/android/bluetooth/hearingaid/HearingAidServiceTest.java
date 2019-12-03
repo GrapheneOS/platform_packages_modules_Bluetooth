@@ -117,7 +117,7 @@ public class HearingAidServiceTest {
         mDeviceQueueMap.put(mSingleDevice, new LinkedBlockingQueue<>());
         doReturn(BluetoothDevice.BOND_BONDED).when(mAdapterService)
                 .getBondState(any(BluetoothDevice.class));
-        doReturn(new ParcelUuid[]{BluetoothUuid.HearingAid}).when(mAdapterService)
+        doReturn(new ParcelUuid[]{BluetoothUuid.HEARING_AID}).when(mAdapterService)
                 .getRemoteUuids(any(BluetoothDevice.class));
     }
 

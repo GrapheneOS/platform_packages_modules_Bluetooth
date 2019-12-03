@@ -40,6 +40,7 @@ import com.android.bluetooth.btservice.ProfileService;
 import com.android.bluetooth.btservice.ServiceFactory;
 import com.android.internal.annotations.GuardedBy;
 import com.android.internal.annotations.VisibleForTesting;
+import com.android.internal.util.ArrayUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -233,8 +234,8 @@ public class A2dpService extends ProfileService {
             Log.e(TAG, "Cannot connect to " + device + " : CONNECTION_POLICY_FORBIDDEN");
             return false;
         }
-        if (!BluetoothUuid.isUuidPresent(mAdapterService.getRemoteUuids(device),
-                                         BluetoothUuid.AudioSink)) {
+        if (!ArrayUtils.contains(mAdapterService.getRemoteUuids(device),
+                                         BluetoothUuid.A2DP_SINK)) {
             Log.e(TAG, "Cannot connect to " + device + " : Remote does not have A2DP Sink UUID");
             return false;
         }
@@ -385,8 +386,8 @@ public class A2dpService extends ProfileService {
         }
         synchronized (mStateMachines) {
             for (BluetoothDevice device : bondedDevices) {
-                if (!BluetoothUuid.isUuidPresent(mAdapterService.getRemoteUuids(device),
-                                                 BluetoothUuid.AudioSink)) {
+                if (!ArrayUtils.contains(mAdapterService.getRemoteUuids(device),
+                                                 BluetoothUuid.A2DP_SINK)) {
                     continue;
                 }
                 int connectionState = BluetoothProfile.STATE_DISCONNECTED;
