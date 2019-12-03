@@ -34,7 +34,7 @@
     <string name="incoming_file_confirm_content" msgid="2752605552743148036">"Eingehende Datei annehmen?"</string>
     <string name="incoming_file_confirm_cancel" msgid="2973321832477704805">"Ablehnen"</string>
     <string name="incoming_file_confirm_ok" msgid="281462442932231475">"Akzeptieren"</string>
-    <string name="incoming_file_confirm_timeout_ok" msgid="1414676773249857278">"Ok"</string>
+    <string name="incoming_file_confirm_timeout_ok" msgid="1414676773249857278">"OK"</string>
     <string name="incoming_file_confirm_timeout_content" msgid="172779756093975981">"Die Zeit zum Empfang der eingehenden Datei von \"<xliff:g id="SENDER">%1$s</xliff:g>\" ist abgelaufen."</string>
     <string name="incoming_file_confirm_Notification_title" msgid="5573329005298936903">"Eingehende Datei"</string>
     <string name="incoming_file_confirm_Notification_content" msgid="3359694069319644738">"<xliff:g id="SENDER">%1$s</xliff:g> kann jetzt <xliff:g id="FILE">%2$s</xliff:g> senden."</string>
@@ -59,19 +59,19 @@
     <string name="download_fail_line1" msgid="3846450148862894552">"Datei nicht empfangen"</string>
     <string name="download_fail_line2" msgid="8950394574689971071">"Datei: <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="download_fail_line3" msgid="3451040656154861722">"Grund: <xliff:g id="REASON">%1$s</xliff:g>"</string>
-    <string name="download_fail_ok" msgid="1521733664438320300">"Ok"</string>
+    <string name="download_fail_ok" msgid="1521733664438320300">"OK"</string>
     <string name="download_succ_line5" msgid="4509944688281573595">"Datei empfangen"</string>
     <string name="download_succ_ok" msgid="7053688246357050216">"Öffnen"</string>
     <string name="upload_line1" msgid="2055952074059709052">"An: \"<xliff:g id="RECIPIENT">%1$s</xliff:g>\""</string>
     <string name="upload_line3" msgid="4920689672457037437">"Dateityp: <xliff:g id="TYPE">%1$s</xliff:g> (<xliff:g id="SIZE">%2$s</xliff:g>)"</string>
     <string name="upload_line5" msgid="7759322537674229752">"Datei wird gesendet..."</string>
     <string name="upload_succ_line5" msgid="5687317197463383601">"Die Datei wurde gesendet."</string>
-    <string name="upload_succ_ok" msgid="7705428476405478828">"Ok"</string>
+    <string name="upload_succ_ok" msgid="7705428476405478828">"OK"</string>
     <string name="upload_fail_line1" msgid="7899394672421491701">"Die Datei wurde nicht an \"<xliff:g id="RECIPIENT">%1$s</xliff:g>\" gesendet."</string>
     <string name="upload_fail_line1_2" msgid="2108129204050841798">"Datei: <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="upload_fail_ok" msgid="5807702461606714296">"Wiederholen"</string>
     <string name="upload_fail_cancel" msgid="9118496285835687125">"Schließen"</string>
-    <string name="bt_error_btn_ok" msgid="5965151173011534240">"Ok"</string>
+    <string name="bt_error_btn_ok" msgid="5965151173011534240">"OK"</string>
     <string name="unknown_file" msgid="6092727753965095366">"Unbekannte Datei"</string>
     <string name="unknown_file_desc" msgid="480434281415453287">"Dieser Dateityp kann von keiner App verarbeitet werden. \n"</string>
     <string name="not_exist_file" msgid="3489434189599716133">"Keine Datei"</string>

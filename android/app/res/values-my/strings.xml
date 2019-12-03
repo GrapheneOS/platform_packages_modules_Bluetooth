@@ -22,7 +22,7 @@
     <string name="permdesc_bluetoothWhitelist" msgid="5494513855192170109">"အက်ပ်အား ဘလူးတုသ်စက်ကို ယာယီခွင့်ပြုစာရင်းထဲ ထည့်ရန်ခွင့်ပြုကာ အသုံးပြုသူ၏ အတည်ပြုချက်မရယူပဲ ဖိုင်များကို စက်ထဲသို့ ပို့ခွင့်ပြုမည်"</string>
     <string name="bt_share_picker_label" msgid="6268100924487046932">"ဘလူးတုသ်"</string>
     <string name="unknown_device" msgid="9221903979877041009">"မသိသော စက်"</string>
-    <string name="unknownNumber" msgid="4994750948072751566">"မသိ"</string>
+    <string name="unknownNumber" msgid="4994750948072751566">"မသိပါ"</string>
     <string name="airplane_error_title" msgid="2683839635115739939">"လေယာဉ်ပျံမုဒ်"</string>
     <string name="airplane_error_msg" msgid="8698965595254137230">"လေယာဥ်ပျံပေါ်သုံးစနစ်တွင် ဘလူးတုသ်အသုံးပြုမရပါ"</string>
     <string name="bt_enable_title" msgid="8657832550503456572"></string>
