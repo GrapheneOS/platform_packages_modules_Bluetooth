@@ -32,6 +32,7 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.bluetooth.BluetoothActivityEnergyInfo;
 import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothAdapter.ActiveDeviceUse;
 import android.bluetooth.BluetoothClass;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothProfile;
@@ -1497,6 +1498,20 @@ public class AdapterService extends Service {
         }
 
         @Override
+        public boolean setActiveDevice(BluetoothDevice device, @ActiveDeviceUse int profiles) {
+            if (!Utils.checkCaller()) {
+                Log.w(TAG, "setActiveDevice() - Not allowed for non-active user");
+                return false;
+            }
+
+            AdapterService service = getService();
+            if (service == null) {
+                return false;
+            }
+            return service.setActiveDevice(device, profiles);
+        }
+
+        @Override
         public boolean connectAllEnabledProfiles(BluetoothDevice device) {
             AdapterService service = getService();
             if (service == null || !callerIsSystemOrActiveUser(TAG, "connectAllEnabledProfiles")) {
@@ -2117,6 +2132,55 @@ public class AdapterService extends Service {
         enforceBluetoothPermission(this);
         byte[] addr = Utils.getBytesFromAddress(device.getAddress());
         return getConnectionStateNative(addr);
+    }
+
+    /**
+     * Sets device as the active devices for the profiles passed into the function
+     *
+     * @param device is the remote bluetooth device
+     * @param profiles is a constant that references for which profiles we'll be setting the remote
+     *                 device as our active device. One of the following:
+     *                 {@link BluetoothAdapter#ACTIVE_DEVICE_AUDIO},
+     *                 {@link BluetoothAdapter#ACTIVE_DEVICE_PHONE_CALL}
+     *                 {@link BluetoothAdapter#ACTIVE_DEVICE_ALL}
+     * @return false if profiles value is not one of the constants we accept, true otherwise
+     */
+    public boolean setActiveDevice(BluetoothDevice device, @ActiveDeviceUse int profiles) {
+        enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH ADMIN permission");
+
+        boolean setA2dp = false;
+        boolean setHeadset = false;
+
+        // Determine for which profiles we want to set device as our active device
+        switch(profiles) {
+            case BluetoothAdapter.ACTIVE_DEVICE_AUDIO:
+                setA2dp = true;
+                break;
+            case BluetoothAdapter.ACTIVE_DEVICE_PHONE_CALL:
+                setHeadset = true;
+                break;
+            case BluetoothAdapter.ACTIVE_DEVICE_ALL:
+                setA2dp = true;
+                setHeadset = true;
+                break;
+            default:
+                return false;
+        }
+
+        if (setA2dp && mA2dpService != null) {
+            mA2dpService.setActiveDevice(device);
+        }
+
+        // Always sets as active device for hearing aid profile
+        if (mHearingAidService != null) {
+            mHearingAidService.setActiveDevice(device);
+        }
+
+        if (setHeadset && mHeadsetService != null) {
+            mHeadsetService.setActiveDevice(device);
+        }
+
+        return true;
     }
 
     /**
