@@ -37,7 +37,7 @@ class Metadata {
     public boolean migrated;
 
     @Embedded
-    public ProfilePrioritiesEntity profilePriorities;
+    public ProfilePrioritiesEntity profileConnectionPolicies;
 
     @Embedded
     @NonNull
@@ -49,7 +49,7 @@ class Metadata {
     Metadata(String address) {
         this.address = address;
         migrated = false;
-        profilePriorities = new ProfilePrioritiesEntity();
+        profileConnectionPolicies = new ProfilePrioritiesEntity();
         publicMetadata = new CustomizedMetadataEntity();
         a2dpSupportsOptionalCodecs = BluetoothA2dp.OPTIONAL_CODECS_SUPPORT_UNKNOWN;
         a2dpOptionalCodecsEnabled = BluetoothA2dp.OPTIONAL_CODECS_PREF_UNKNOWN;
@@ -59,77 +59,83 @@ class Metadata {
         return address;
     }
 
-    void setProfilePriority(int profile, int priority) {
+    void setProfileConnectionPolicy(int profile, int connectionPolicy) {
+        // We no longer support BluetoothProfile.PRIORITY_AUTO_CONNECT and are merging it into
+        // BluetoothProfile.CONNECTION_POLICY_ALLOWED
+        if (connectionPolicy > BluetoothProfile.CONNECTION_POLICY_ALLOWED) {
+            connectionPolicy = BluetoothProfile.CONNECTION_POLICY_ALLOWED;
+        }
+
         switch (profile) {
             case BluetoothProfile.A2DP:
-                profilePriorities.a2dp_priority = priority;
+                profileConnectionPolicies.a2dp_connection_policy = connectionPolicy;
                 break;
             case BluetoothProfile.A2DP_SINK:
-                profilePriorities.a2dp_sink_priority = priority;
+                profileConnectionPolicies.a2dp_sink_connection_policy = connectionPolicy;
                 break;
             case BluetoothProfile.HEADSET:
-                profilePriorities.hfp_priority = priority;
+                profileConnectionPolicies.hfp_connection_policy = connectionPolicy;
                 break;
             case BluetoothProfile.HEADSET_CLIENT:
-                profilePriorities.hfp_client_priority = priority;
+                profileConnectionPolicies.hfp_client_connection_policy = connectionPolicy;
                 break;
             case BluetoothProfile.HID_HOST:
-                profilePriorities.hid_host_priority = priority;
+                profileConnectionPolicies.hid_host_connection_policy = connectionPolicy;
                 break;
             case BluetoothProfile.PAN:
-                profilePriorities.pan_priority = priority;
+                profileConnectionPolicies.pan_connection_policy = connectionPolicy;
                 break;
             case BluetoothProfile.PBAP:
-                profilePriorities.pbap_priority = priority;
+                profileConnectionPolicies.pbap_connection_policy = connectionPolicy;
                 break;
             case BluetoothProfile.PBAP_CLIENT:
-                profilePriorities.pbap_client_priority = priority;
+                profileConnectionPolicies.pbap_client_connection_policy = connectionPolicy;
                 break;
             case BluetoothProfile.MAP:
-                profilePriorities.map_priority = priority;
+                profileConnectionPolicies.map_connection_policy = connectionPolicy;
                 break;
             case BluetoothProfile.MAP_CLIENT:
-                profilePriorities.map_client_priority = priority;
+                profileConnectionPolicies.map_client_connection_policy = connectionPolicy;
                 break;
             case BluetoothProfile.SAP:
-                profilePriorities.sap_priority = priority;
+                profileConnectionPolicies.sap_connection_policy = connectionPolicy;
                 break;
             case BluetoothProfile.HEARING_AID:
-                profilePriorities.hearing_aid_priority = priority;
+                profileConnectionPolicies.hearing_aid_connection_policy = connectionPolicy;
                 break;
             default:
                 throw new IllegalArgumentException("invalid profile " + profile);
         }
     }
 
-    int getProfilePriority(int profile) {
+    int getProfileConnectionPolicy(int profile) {
         switch (profile) {
             case BluetoothProfile.A2DP:
-                return profilePriorities.a2dp_priority;
+                return profileConnectionPolicies.a2dp_connection_policy;
             case BluetoothProfile.A2DP_SINK:
-                return profilePriorities.a2dp_sink_priority;
+                return profileConnectionPolicies.a2dp_sink_connection_policy;
             case BluetoothProfile.HEADSET:
-                return profilePriorities.hfp_priority;
+                return profileConnectionPolicies.hfp_connection_policy;
             case BluetoothProfile.HEADSET_CLIENT:
-                return profilePriorities.hfp_client_priority;
+                return profileConnectionPolicies.hfp_client_connection_policy;
             case BluetoothProfile.HID_HOST:
-                return profilePriorities.hid_host_priority;
+                return profileConnectionPolicies.hid_host_connection_policy;
             case BluetoothProfile.PAN:
-                return profilePriorities.pan_priority;
+                return profileConnectionPolicies.pan_connection_policy;
             case BluetoothProfile.PBAP:
-                return profilePriorities.pbap_priority;
+                return profileConnectionPolicies.pbap_connection_policy;
             case BluetoothProfile.PBAP_CLIENT:
-                return profilePriorities.pbap_client_priority;
+                return profileConnectionPolicies.pbap_client_connection_policy;
             case BluetoothProfile.MAP:
-                return profilePriorities.map_priority;
+                return profileConnectionPolicies.map_connection_policy;
             case BluetoothProfile.MAP_CLIENT:
-                return profilePriorities.map_client_priority;
+                return profileConnectionPolicies.map_client_connection_policy;
             case BluetoothProfile.SAP:
-                return profilePriorities.sap_priority;
+                return profileConnectionPolicies.sap_connection_policy;
             case BluetoothProfile.HEARING_AID:
-                return profilePriorities.hearing_aid_priority;
+                return profileConnectionPolicies.hearing_aid_connection_policy;
         }
-        return BluetoothProfile.PRIORITY_UNDEFINED;
+        return BluetoothProfile.CONNECTION_POLICY_UNKNOWN;
     }
 
     void setCustomizedMeta(int key, byte[] value) {
@@ -305,8 +311,8 @@ class Metadata {
     public String toString() {
         StringBuilder builder = new StringBuilder();
         builder.append(address)
-            .append(" {profile priority(")
-            .append(profilePriorities)
+            .append(" {profile connection policy(")
+            .append(profileConnectionPolicies)
             .append("), optional codec(support=")
             .append(a2dpSupportsOptionalCodecs)
             .append("|enabled=")

@@ -121,8 +121,8 @@ public class HeadsetClientStateMachineTest {
     @Test
     public void testIncomingPriorityReject() {
         // Return false for priority.
-        when(mHeadsetClientService.getPriority(any(BluetoothDevice.class))).thenReturn(
-                BluetoothProfile.PRIORITY_OFF);
+        when(mHeadsetClientService.getConnectionPolicy(any(BluetoothDevice.class))).thenReturn(
+                BluetoothProfile.CONNECTION_POLICY_FORBIDDEN);
 
         // Inject an event for when incoming connection is requested
         StackEvent connStCh = new StackEvent(StackEvent.EVENT_TYPE_CONNECTION_STATE_CHANGED);
@@ -151,8 +151,8 @@ public class HeadsetClientStateMachineTest {
     @Test
     public void testIncomingPriorityAccept() {
         // Return true for priority.
-        when(mHeadsetClientService.getPriority(any(BluetoothDevice.class))).thenReturn(
-                BluetoothProfile.PRIORITY_ON);
+        when(mHeadsetClientService.getConnectionPolicy(any(BluetoothDevice.class))).thenReturn(
+                BluetoothProfile.CONNECTION_POLICY_ALLOWED);
 
         // Inject an event for when incoming connection is requested
         StackEvent connStCh = new StackEvent(StackEvent.EVENT_TYPE_CONNECTION_STATE_CHANGED);
@@ -197,8 +197,8 @@ public class HeadsetClientStateMachineTest {
     @Test
     public void testIncomingTimeout() {
         // Return true for priority.
-        when(mHeadsetClientService.getPriority(any(BluetoothDevice.class))).thenReturn(
-                BluetoothProfile.PRIORITY_ON);
+        when(mHeadsetClientService.getConnectionPolicy(any(BluetoothDevice.class))).thenReturn(
+                BluetoothProfile.CONNECTION_POLICY_ALLOWED);
 
         // Inject an event for when incoming connection is requested
         StackEvent connStCh = new StackEvent(StackEvent.EVENT_TYPE_CONNECTION_STATE_CHANGED);
@@ -238,8 +238,8 @@ public class HeadsetClientStateMachineTest {
     @Test
     public void testInBandRingtone() {
         // Return true for priority.
-        when(mHeadsetClientService.getPriority(any(BluetoothDevice.class))).thenReturn(
-                BluetoothProfile.PRIORITY_ON);
+        when(mHeadsetClientService.getConnectionPolicy(any(BluetoothDevice.class))).thenReturn(
+                BluetoothProfile.CONNECTION_POLICY_ALLOWED);
 
         Assert.assertEquals(false, mHeadsetClientStateMachine.getInBandRing());
 
@@ -374,8 +374,8 @@ public class HeadsetClientStateMachineTest {
     /* Utility function: supported AT command should lead to native call */
     private void runSupportedVendorAtCommand(String atCommand, int vendorId) {
         // Return true for priority.
-        when(mHeadsetClientService.getPriority(any(BluetoothDevice.class))).thenReturn(
-                BluetoothProfile.PRIORITY_ON);
+        when(mHeadsetClientService.getConnectionPolicy(any(BluetoothDevice.class))).thenReturn(
+                BluetoothProfile.CONNECTION_POLICY_ALLOWED);
 
         int expectedBroadcastIndex = 1;
 
@@ -417,8 +417,8 @@ public class HeadsetClientStateMachineTest {
     /* utility function: unsupported vendor specific command shall be filtered. */
     public void runUnsupportedVendorAtCommand(String atCommand, int vendorId) {
         // Return true for priority.
-        when(mHeadsetClientService.getPriority(any(BluetoothDevice.class))).thenReturn(
-                BluetoothProfile.PRIORITY_ON);
+        when(mHeadsetClientService.getConnectionPolicy(any(BluetoothDevice.class))).thenReturn(
+                BluetoothProfile.CONNECTION_POLICY_ALLOWED);
 
         int expectedBroadcastIndex = 1;
 
@@ -462,8 +462,8 @@ public class HeadsetClientStateMachineTest {
     private void runSupportedVendorEvent(int vendorId, String vendorEventCode,
             String vendorEventArgument) {
         // Setup connection state machine to be in connected state
-        when(mHeadsetClientService.getPriority(any(BluetoothDevice.class))).thenReturn(
-                BluetoothProfile.PRIORITY_ON);
+        when(mHeadsetClientService.getConnectionPolicy(any(BluetoothDevice.class))).thenReturn(
+                BluetoothProfile.CONNECTION_POLICY_ALLOWED);
         int expectedBroadcastIndex = 1;
         expectedBroadcastIndex = setUpHfpClientConnection(expectedBroadcastIndex);
         expectedBroadcastIndex = setUpServiceLevelConnection(expectedBroadcastIndex);
@@ -519,8 +519,8 @@ public class HeadsetClientStateMachineTest {
     public void runUnsupportedVendorEvent(int vendorId, String vendorEventCode,
             String vendorEventArgument) {
         // Setup connection state machine to be in connected state
-        when(mHeadsetClientService.getPriority(any(BluetoothDevice.class))).thenReturn(
-                BluetoothProfile.PRIORITY_ON);
+        when(mHeadsetClientService.getConnectionPolicy(any(BluetoothDevice.class))).thenReturn(
+                BluetoothProfile.CONNECTION_POLICY_ALLOWED);
         int expectedBroadcastIndex = 1;
         expectedBroadcastIndex = setUpHfpClientConnection(expectedBroadcastIndex);
         expectedBroadcastIndex = setUpServiceLevelConnection(expectedBroadcastIndex);
