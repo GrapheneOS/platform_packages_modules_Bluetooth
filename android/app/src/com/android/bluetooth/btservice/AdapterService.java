@@ -1476,7 +1476,8 @@ public class AdapterService extends Service {
 
             enforceBluetoothPermission(service);
 
-            return service.isBondingInitiatedLocally(device);
+            DeviceProperties deviceProp = service.mRemoteDevices.getDeviceProperties(device);
+            return deviceProp != null && deviceProp.isBondingInitiatedLocally();
         }
 
         @Override
@@ -2114,14 +2115,6 @@ public class AdapterService extends Service {
             return BluetoothDevice.BOND_NONE;
         }
         return deviceProp.getBondState();
-    }
-
-    boolean isBondingInitiatedLocally(BluetoothDevice device) {
-        DeviceProperties deviceProp = mRemoteDevices.getDeviceProperties(device);
-        if (deviceProp == null) {
-            return false;
-        }
-        return deviceProp.isBondingInitiatedLocally();
     }
 
     long getSupportedProfiles() {
