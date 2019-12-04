@@ -235,7 +235,7 @@ public class HearingAidService extends ProfileService {
             return false;
         }
 
-        if (getPriority(device) == BluetoothProfile.PRIORITY_OFF) {
+        if (getConnectionPolicy(device) == BluetoothProfile.CONNECTION_POLICY_FORBIDDEN) {
             return false;
         }
         ParcelUuid[] featureUuids = mAdapterService.getRemoteUuids(device);
@@ -366,19 +366,18 @@ public class HearingAidService extends ProfileService {
             Log.e(TAG, "okToConnect: cannot connect to " + device + " : quiet mode enabled");
             return false;
         }
-        // Check priority and accept or reject the connection.
-        int priority = getPriority(device);
+        // Check connection policy and accept or reject the connection.
+        int connectionPolicy = getConnectionPolicy(device);
         int bondState = mAdapterService.getBondState(device);
         // Allow this connection only if the device is bonded. Any attempt to connect while
         // bonding would potentially lead to an unauthorized connection.
         if (bondState != BluetoothDevice.BOND_BONDED) {
             Log.w(TAG, "okToConnect: return false, bondState=" + bondState);
             return false;
-        } else if (priority != BluetoothProfile.PRIORITY_UNDEFINED
-                && priority != BluetoothProfile.PRIORITY_ON
-                && priority != BluetoothProfile.PRIORITY_AUTO_CONNECT) {
-            // Otherwise, reject the connection if priority is not valid.
-            Log.w(TAG, "okToConnect: return false, priority=" + priority);
+        } else if (connectionPolicy != BluetoothProfile.CONNECTION_POLICY_UNKNOWN
+                && connectionPolicy != BluetoothProfile.CONNECTION_POLICY_ALLOWED) {
+            // Otherwise, reject the connection if connectionPolicy is not valid.
+            Log.w(TAG, "okToConnect: return false, connectionPolicy=" + connectionPolicy);
             return false;
         }
         return true;
@@ -454,26 +453,38 @@ public class HearingAidService extends ProfileService {
     }
 
     /**
-     * Set the priority of the Hearing Aid profile.
+     * Set the connectionPolicy of the Hearing Aid profile.
      *
      * @param device the remote device
-     * @param priority the priority of the profile
+     * @param connectionPolicy the connection policy of the profile
      * @return true on success, otherwise false
      */
-    public boolean setPriority(BluetoothDevice device, int priority) {
+    public boolean setConnectionPolicy(BluetoothDevice device, int connectionPolicy) {
         enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH_ADMIN permission");
         if (DBG) {
-            Log.d(TAG, "Saved priority " + device + " = " + priority);
+            Log.d(TAG, "Saved connectionPolicy " + device + " = " + connectionPolicy);
         }
         mAdapterService.getDatabase()
-                .setProfilePriority(device, BluetoothProfile.HEARING_AID, priority);
+                .setProfileConnectionPolicy(device, BluetoothProfile.HEARING_AID, connectionPolicy);
         return true;
     }
 
-    public int getPriority(BluetoothDevice device) {
+    /**
+     * Get the connection policy of the profile.
+     *
+     * <p> The connection policy can be any of:
+     * {@link BluetoothProfile#CONNECTION_POLICY_ALLOWED},
+     * {@link BluetoothProfile#CONNECTION_POLICY_FORBIDDEN},
+     * {@link BluetoothProfile#CONNECTION_POLICY_UNKNOWN}
+     *
+     * @param device Bluetooth device
+     * @return connection policy of the device
+     * @hide
+     */
+    public int getConnectionPolicy(BluetoothDevice device) {
         enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH_ADMIN permission");
         return mAdapterService.getDatabase()
-                .getProfilePriority(device, BluetoothProfile.HEARING_AID);
+                .getProfileConnectionPolicy(device, BluetoothProfile.HEARING_AID);
     }
 
     void setVolume(int volume) {
@@ -884,21 +895,21 @@ public class HearingAidService extends ProfileService {
         }
 
         @Override
-        public boolean setPriority(BluetoothDevice device, int priority) {
+        public boolean setConnectionPolicy(BluetoothDevice device, int connectionPolicy) {
             HearingAidService service = getService();
             if (service == null) {
                 return false;
             }
-            return service.setPriority(device, priority);
+            return service.setConnectionPolicy(device, connectionPolicy);
         }
 
         @Override
-        public int getPriority(BluetoothDevice device) {
+        public int getConnectionPolicy(BluetoothDevice device) {
             HearingAidService service = getService();
             if (service == null) {
-                return BluetoothProfile.PRIORITY_UNDEFINED;
+                return BluetoothProfile.CONNECTION_POLICY_UNKNOWN;
             }
-            return service.getPriority(device);
+            return service.getConnectionPolicy(device);
         }
 
         @Override

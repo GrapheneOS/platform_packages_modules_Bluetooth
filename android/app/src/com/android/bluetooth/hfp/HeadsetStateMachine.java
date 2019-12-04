@@ -518,8 +518,9 @@ public class HeadsetStateMachine extends StateMachine {
                         stateLogI("accept incoming connection");
                         transitionTo(mConnecting);
                     } else {
-                        stateLogI("rejected incoming HF, priority=" + mHeadsetService.getPriority(
-                                mDevice) + " bondState=" + mAdapterService.getBondState(mDevice));
+                        stateLogI("rejected incoming HF, connectionPolicy="
+                                + mHeadsetService.getConnectionPolicy(mDevice) + " bondState="
+                                + mAdapterService.getBondState(mDevice));
                         // Reject the connection and stay in Disconnected state itself
                         if (!mNativeInterface.disconnectHfp(mDevice)) {
                             stateLogE("failed to disconnect");
