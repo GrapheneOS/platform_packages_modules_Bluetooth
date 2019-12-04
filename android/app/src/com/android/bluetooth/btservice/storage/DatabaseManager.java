@@ -297,7 +297,7 @@ public class DatabaseManager {
     }
 
     /**
-     * Set the device profile prioirty
+     * Set the device profile connection policy
      *
      * @param device {@link BluetoothDevice} wish to set
      * @param profile The Bluetooth profile; one of {@link BluetoothProfile#HEADSET},
@@ -307,53 +307,53 @@ public class DatabaseManager {
      * {@link BluetoothProfile#PBAP_CLIENT}, {@link BluetoothProfile#MAP},
      * {@link BluetoothProfile#MAP_CLIENT}, {@link BluetoothProfile#SAP},
      * {@link BluetoothProfile#HEARING_AID}
-     * @param newPriority the priority to set; one of
-     * {@link BluetoothProfile#PRIORITY_UNDEFINED},
-     * {@link BluetoothProfile#PRIORITY_OFF},
-     * {@link BluetoothProfile#PRIORITY_ON},
-     * {@link BluetoothProfile#PRIORITY_AUTO_CONNECT}
+     * @param newConnectionPolicy the connectionPolicy to set; one of
+     * {@link BluetoothProfile.CONNECTION_POLICY_UNKNOWN},
+     * {@link BluetoothProfile.CONNECTION_POLICY_FORBIDDEN},
+     * {@link BluetoothProfile.CONNECTION_POLICY_ALLOWED}
      */
     @VisibleForTesting
-    public boolean setProfilePriority(BluetoothDevice device, int profile, int newPriority) {
+    public boolean setProfileConnectionPolicy(BluetoothDevice device, int profile,
+            int newConnectionPolicy) {
         synchronized (mMetadataCache) {
             if (device == null) {
-                Log.e(TAG, "setProfilePriority: device is null");
+                Log.e(TAG, "setProfileConnectionPolicy: device is null");
                 return false;
             }
 
-            if (newPriority != BluetoothProfile.PRIORITY_UNDEFINED
-                    && newPriority != BluetoothProfile.PRIORITY_OFF
-                    && newPriority != BluetoothProfile.PRIORITY_ON
-                    && newPriority != BluetoothProfile.PRIORITY_AUTO_CONNECT) {
-                Log.e(TAG, "setProfilePriority: invalid priority " + newPriority);
+            if (newConnectionPolicy != BluetoothProfile.CONNECTION_POLICY_UNKNOWN
+                    && newConnectionPolicy != BluetoothProfile.CONNECTION_POLICY_FORBIDDEN
+                    && newConnectionPolicy != BluetoothProfile.CONNECTION_POLICY_ALLOWED) {
+                Log.e(TAG, "setProfileConnectionPolicy: invalid connection policy "
+                        + newConnectionPolicy);
                 return false;
             }
 
             String address = device.getAddress();
             if (!mMetadataCache.containsKey(address)) {
-                if (newPriority == BluetoothProfile.PRIORITY_UNDEFINED) {
+                if (newConnectionPolicy == BluetoothProfile.CONNECTION_POLICY_UNKNOWN) {
                     return true;
                 }
                 createMetadata(address);
             }
             Metadata data = mMetadataCache.get(address);
-            int oldPriority = data.getProfilePriority(profile);
-            if (oldPriority == newPriority) {
-                Log.v(TAG, "setProfilePriority priority not changed.");
+            int oldConnectionPolicy = data.getProfileConnectionPolicy(profile);
+            if (oldConnectionPolicy == newConnectionPolicy) {
+                Log.v(TAG, "setProfileConnectionPolicy connection policy not changed.");
                 return true;
             }
             String profileStr = BluetoothProfile.getProfileName(profile);
-            logMetadataChange(address, profileStr + " priority changed: "
-                    + ": " + oldPriority + " -> " + newPriority);
+            logMetadataChange(address, profileStr + " connection policy changed: "
+                    + ": " + oldConnectionPolicy + " -> " + newConnectionPolicy);
 
-            data.setProfilePriority(profile, newPriority);
+            data.setProfileConnectionPolicy(profile, newConnectionPolicy);
             updateDatabase(data);
             return true;
         }
     }
 
     /**
-     * Get the device profile prioirty
+     * Get the device profile connection policy
      *
      * @param device {@link BluetoothDevice} wish to get
      * @param profile The Bluetooth profile; one of {@link BluetoothProfile#HEADSET},
@@ -363,32 +363,39 @@ public class DatabaseManager {
      * {@link BluetoothProfile#PBAP_CLIENT}, {@link BluetoothProfile#MAP},
      * {@link BluetoothProfile#MAP_CLIENT}, {@link BluetoothProfile#SAP},
      * {@link BluetoothProfile#HEARING_AID}
-     * @return the profile priority of the device; one of
-     * {@link BluetoothProfile#PRIORITY_UNDEFINED},
-     * {@link BluetoothProfile#PRIORITY_OFF},
-     * {@link BluetoothProfile#PRIORITY_ON},
-     * {@link BluetoothProfile#PRIORITY_AUTO_CONNECT}
+     * @return the profile connection policy of the device; one of
+     * {@link BluetoothProfile.CONNECTION_POLICY_UNKNOWN},
+     * {@link BluetoothProfile.CONNECTION_POLICY_FORBIDDEN},
+     * {@link BluetoothProfile.CONNECTION_POLICY_ALLOWED}
      */
     @VisibleForTesting
-    public int getProfilePriority(BluetoothDevice device, int profile) {
+    public int getProfileConnectionPolicy(BluetoothDevice device, int profile) {
         synchronized (mMetadataCache) {
             if (device == null) {
-                Log.e(TAG, "getProfilePriority: device is null");
-                return BluetoothProfile.PRIORITY_UNDEFINED;
+                Log.e(TAG, "getProfileConnectionPolicy: device is null");
+                return BluetoothProfile.CONNECTION_POLICY_UNKNOWN;
             }
 
             String address = device.getAddress();
 
             if (!mMetadataCache.containsKey(address)) {
-                Log.d(TAG, "getProfilePriority: device " + address + " is not in cache");
-                return BluetoothProfile.PRIORITY_UNDEFINED;
+                Log.d(TAG, "getProfileConnectionPolicy: device " + address + " is not in cache");
+                return BluetoothProfile.CONNECTION_POLICY_UNKNOWN;
             }
 
             Metadata data = mMetadataCache.get(address);
-            int priority = data.getProfilePriority(profile);
-            Log.v(TAG, "getProfilePriority: " + address + ", profile=" + profile
-                    + ", priority = " + priority);
-            return priority;
+            int connectionPolicy = data.getProfileConnectionPolicy(profile);
+
+            // If result is PRIORITY_AUTO_CONNECT, return as CONNECTION_POLICY_ALLOWED
+            if (connectionPolicy > BluetoothProfile.CONNECTION_POLICY_ALLOWED) {
+                setProfileConnectionPolicy(device, profile,
+                        BluetoothProfile.CONNECTION_POLICY_ALLOWED);
+                connectionPolicy = BluetoothProfile.CONNECTION_POLICY_ALLOWED;
+            }
+
+            Log.v(TAG, "getProfileConnectionPolicy: " + address + ", profile=" + profile
+                    + ", connectionPolicy = " + connectionPolicy);
+            return connectionPolicy;
         }
     }
 
@@ -669,42 +676,42 @@ public class DatabaseManager {
         ContentResolver contentResolver = mAdapterService.getContentResolver();
 
         for (BluetoothDevice device : bondedDevices) {
-            int a2dpPriority = Settings.Global.getInt(contentResolver,
+            int a2dpConnectionPolicy = Settings.Global.getInt(contentResolver,
                     getLegacyA2dpSinkPriorityKey(device.getAddress()),
-                    BluetoothProfile.PRIORITY_UNDEFINED);
-            int a2dpSinkPriority = Settings.Global.getInt(contentResolver,
+                    BluetoothProfile.CONNECTION_POLICY_UNKNOWN);
+            int a2dpSinkConnectionPolicy = Settings.Global.getInt(contentResolver,
                     getLegacyA2dpSrcPriorityKey(device.getAddress()),
-                    BluetoothProfile.PRIORITY_UNDEFINED);
-            int hearingaidPriority = Settings.Global.getInt(contentResolver,
+                    BluetoothProfile.CONNECTION_POLICY_UNKNOWN);
+            int hearingaidConnectionPolicy = Settings.Global.getInt(contentResolver,
                     getLegacyHearingAidPriorityKey(device.getAddress()),
-                    BluetoothProfile.PRIORITY_UNDEFINED);
-            int headsetPriority = Settings.Global.getInt(contentResolver,
+                    BluetoothProfile.CONNECTION_POLICY_UNKNOWN);
+            int headsetConnectionPolicy = Settings.Global.getInt(contentResolver,
                     getLegacyHeadsetPriorityKey(device.getAddress()),
-                    BluetoothProfile.PRIORITY_UNDEFINED);
-            int headsetClientPriority = Settings.Global.getInt(contentResolver,
+                    BluetoothProfile.CONNECTION_POLICY_UNKNOWN);
+            int headsetClientConnectionPolicy = Settings.Global.getInt(contentResolver,
                     getLegacyHeadsetPriorityKey(device.getAddress()),
-                    BluetoothProfile.PRIORITY_UNDEFINED);
-            int hidHostPriority = Settings.Global.getInt(contentResolver,
+                    BluetoothProfile.CONNECTION_POLICY_UNKNOWN);
+            int hidHostConnectionPolicy = Settings.Global.getInt(contentResolver,
                     getLegacyHidHostPriorityKey(device.getAddress()),
-                    BluetoothProfile.PRIORITY_UNDEFINED);
-            int mapPriority = Settings.Global.getInt(contentResolver,
+                    BluetoothProfile.CONNECTION_POLICY_UNKNOWN);
+            int mapConnectionPolicy = Settings.Global.getInt(contentResolver,
                     getLegacyMapPriorityKey(device.getAddress()),
-                    BluetoothProfile.PRIORITY_UNDEFINED);
-            int mapClientPriority = Settings.Global.getInt(contentResolver,
+                    BluetoothProfile.CONNECTION_POLICY_UNKNOWN);
+            int mapClientConnectionPolicy = Settings.Global.getInt(contentResolver,
                     getLegacyMapClientPriorityKey(device.getAddress()),
-                    BluetoothProfile.PRIORITY_UNDEFINED);
-            int panPriority = Settings.Global.getInt(contentResolver,
+                    BluetoothProfile.CONNECTION_POLICY_UNKNOWN);
+            int panConnectionPolicy = Settings.Global.getInt(contentResolver,
                     getLegacyPanPriorityKey(device.getAddress()),
-                    BluetoothProfile.PRIORITY_UNDEFINED);
-            int pbapPriority = Settings.Global.getInt(contentResolver,
+                    BluetoothProfile.CONNECTION_POLICY_UNKNOWN);
+            int pbapConnectionPolicy = Settings.Global.getInt(contentResolver,
                     getLegacyPbapClientPriorityKey(device.getAddress()),
-                    BluetoothProfile.PRIORITY_UNDEFINED);
-            int pbapClientPriority = Settings.Global.getInt(contentResolver,
+                    BluetoothProfile.CONNECTION_POLICY_UNKNOWN);
+            int pbapClientConnectionPolicy = Settings.Global.getInt(contentResolver,
                     getLegacyPbapClientPriorityKey(device.getAddress()),
-                    BluetoothProfile.PRIORITY_UNDEFINED);
-            int sapPriority = Settings.Global.getInt(contentResolver,
+                    BluetoothProfile.CONNECTION_POLICY_UNKNOWN);
+            int sapConnectionPolicy = Settings.Global.getInt(contentResolver,
                     getLegacySapPriorityKey(device.getAddress()),
-                    BluetoothProfile.PRIORITY_UNDEFINED);
+                    BluetoothProfile.CONNECTION_POLICY_UNKNOWN);
             int a2dpSupportsOptionalCodec = Settings.Global.getInt(contentResolver,
                     getLegacyA2dpSupportsOptionalCodecsKey(device.getAddress()),
                     BluetoothA2dp.OPTIONAL_CODECS_SUPPORT_UNKNOWN);
@@ -714,18 +721,21 @@ public class DatabaseManager {
 
             String address = device.getAddress();
             Metadata data = new Metadata(address);
-            data.setProfilePriority(BluetoothProfile.A2DP, a2dpPriority);
-            data.setProfilePriority(BluetoothProfile.A2DP_SINK, a2dpSinkPriority);
-            data.setProfilePriority(BluetoothProfile.HEADSET, headsetPriority);
-            data.setProfilePriority(BluetoothProfile.HEADSET_CLIENT, headsetClientPriority);
-            data.setProfilePriority(BluetoothProfile.HID_HOST, hidHostPriority);
-            data.setProfilePriority(BluetoothProfile.PAN, panPriority);
-            data.setProfilePriority(BluetoothProfile.PBAP, pbapPriority);
-            data.setProfilePriority(BluetoothProfile.PBAP_CLIENT, pbapClientPriority);
-            data.setProfilePriority(BluetoothProfile.MAP, mapPriority);
-            data.setProfilePriority(BluetoothProfile.MAP_CLIENT, mapClientPriority);
-            data.setProfilePriority(BluetoothProfile.SAP, sapPriority);
-            data.setProfilePriority(BluetoothProfile.HEARING_AID, hearingaidPriority);
+            data.setProfileConnectionPolicy(BluetoothProfile.A2DP, a2dpConnectionPolicy);
+            data.setProfileConnectionPolicy(BluetoothProfile.A2DP_SINK, a2dpSinkConnectionPolicy);
+            data.setProfileConnectionPolicy(BluetoothProfile.HEADSET, headsetConnectionPolicy);
+            data.setProfileConnectionPolicy(BluetoothProfile.HEADSET_CLIENT,
+                    headsetClientConnectionPolicy);
+            data.setProfileConnectionPolicy(BluetoothProfile.HID_HOST, hidHostConnectionPolicy);
+            data.setProfileConnectionPolicy(BluetoothProfile.PAN, panConnectionPolicy);
+            data.setProfileConnectionPolicy(BluetoothProfile.PBAP, pbapConnectionPolicy);
+            data.setProfileConnectionPolicy(BluetoothProfile.PBAP_CLIENT,
+                    pbapClientConnectionPolicy);
+            data.setProfileConnectionPolicy(BluetoothProfile.MAP, mapConnectionPolicy);
+            data.setProfileConnectionPolicy(BluetoothProfile.MAP_CLIENT, mapClientConnectionPolicy);
+            data.setProfileConnectionPolicy(BluetoothProfile.SAP, sapConnectionPolicy);
+            data.setProfileConnectionPolicy(BluetoothProfile.HEARING_AID,
+                    hearingaidConnectionPolicy);
             data.a2dpSupportsOptionalCodecs = a2dpSupportsOptionalCodec;
             data.a2dpOptionalCodecsEnabled = a2dpOptionalCodecEnabled;
             mMetadataCache.put(address, data);

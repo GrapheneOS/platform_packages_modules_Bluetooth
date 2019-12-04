@@ -113,8 +113,8 @@ public final class DatabaseManagerTest {
         restartDatabaseManagerHelper();
 
         for (int id = 0; id < BluetoothProfile.MAX_PROFILE_ID; id++) {
-            Assert.assertEquals(BluetoothProfile.PRIORITY_UNDEFINED,
-                    mDatabaseManager.getProfilePriority(mTestDevice, id));
+            Assert.assertEquals(BluetoothProfile.CONNECTION_POLICY_UNKNOWN,
+                    mDatabaseManager.getProfileConnectionPolicy(mTestDevice, id));
         }
 
         Assert.assertEquals(BluetoothA2dp.OPTIONAL_CODECS_SUPPORT_UNKNOWN,
@@ -133,28 +133,24 @@ public final class DatabaseManagerTest {
         int badPriority = -100;
 
         // Cases of device not in database
-        testSetGetProfilePriorityCase(false, BluetoothProfile.PRIORITY_UNDEFINED,
-                BluetoothProfile.PRIORITY_UNDEFINED, true);
-        testSetGetProfilePriorityCase(false, BluetoothProfile.PRIORITY_OFF,
-                BluetoothProfile.PRIORITY_OFF, true);
-        testSetGetProfilePriorityCase(false, BluetoothProfile.PRIORITY_ON,
-                BluetoothProfile.PRIORITY_ON, true);
-        testSetGetProfilePriorityCase(false, BluetoothProfile.PRIORITY_AUTO_CONNECT,
-                BluetoothProfile.PRIORITY_AUTO_CONNECT, true);
+        testSetGetProfilePriorityCase(false, BluetoothProfile.CONNECTION_POLICY_UNKNOWN,
+                BluetoothProfile.CONNECTION_POLICY_UNKNOWN, true);
+        testSetGetProfilePriorityCase(false, BluetoothProfile.CONNECTION_POLICY_FORBIDDEN,
+                BluetoothProfile.CONNECTION_POLICY_FORBIDDEN, true);
+        testSetGetProfilePriorityCase(false, BluetoothProfile.CONNECTION_POLICY_ALLOWED,
+                BluetoothProfile.CONNECTION_POLICY_ALLOWED, true);
         testSetGetProfilePriorityCase(false, badPriority,
-                BluetoothProfile.PRIORITY_UNDEFINED, false);
+                BluetoothProfile.CONNECTION_POLICY_UNKNOWN, false);
 
         // Cases of device already in database
-        testSetGetProfilePriorityCase(true, BluetoothProfile.PRIORITY_UNDEFINED,
-                BluetoothProfile.PRIORITY_UNDEFINED, true);
-        testSetGetProfilePriorityCase(true, BluetoothProfile.PRIORITY_OFF,
-                BluetoothProfile.PRIORITY_OFF, true);
-        testSetGetProfilePriorityCase(true, BluetoothProfile.PRIORITY_ON,
-                BluetoothProfile.PRIORITY_ON, true);
-        testSetGetProfilePriorityCase(true, BluetoothProfile.PRIORITY_AUTO_CONNECT,
-                BluetoothProfile.PRIORITY_AUTO_CONNECT, true);
+        testSetGetProfilePriorityCase(true, BluetoothProfile.CONNECTION_POLICY_UNKNOWN,
+                BluetoothProfile.CONNECTION_POLICY_UNKNOWN, true);
+        testSetGetProfilePriorityCase(true, BluetoothProfile.CONNECTION_POLICY_FORBIDDEN,
+                BluetoothProfile.CONNECTION_POLICY_FORBIDDEN, true);
+        testSetGetProfilePriorityCase(true, BluetoothProfile.CONNECTION_POLICY_ALLOWED,
+                BluetoothProfile.CONNECTION_POLICY_ALLOWED, true);
         testSetGetProfilePriorityCase(true, badPriority,
-                BluetoothProfile.PRIORITY_UNDEFINED, false);
+                BluetoothProfile.CONNECTION_POLICY_UNKNOWN, false);
     }
 
     @Test
@@ -583,10 +579,10 @@ public final class DatabaseManagerTest {
             mDatabase.insert(data);
         }
         Assert.assertEquals(expectedSetResult,
-                mDatabaseManager.setProfilePriority(mTestDevice,
+                mDatabaseManager.setProfileConnectionPolicy(mTestDevice,
                 BluetoothProfile.HEADSET, priority));
         Assert.assertEquals(expectedPriority,
-                mDatabaseManager.getProfilePriority(mTestDevice, BluetoothProfile.HEADSET));
+                mDatabaseManager.getProfileConnectionPolicy(mTestDevice, BluetoothProfile.HEADSET));
         // Wait for database update
         TestUtils.waitForLooperToFinishScheduledTask(mDatabaseManager.getHandlerLooper());
 
@@ -594,8 +590,8 @@ public final class DatabaseManagerTest {
 
         // Check number of metadata in the database
         if (!stored) {
-            if (priority != BluetoothProfile.PRIORITY_OFF
-                    && priority != BluetoothProfile.PRIORITY_ON
+            if (priority != BluetoothProfile.CONNECTION_POLICY_FORBIDDEN
+                    && priority != BluetoothProfile.CONNECTION_POLICY_ALLOWED
                     && priority != BluetoothProfile.PRIORITY_AUTO_CONNECT) {
                 // Database won't be updated
                 Assert.assertEquals(0, list.size());
@@ -607,7 +603,7 @@ public final class DatabaseManagerTest {
         // Check whether the device is in database
         restartDatabaseManagerHelper();
         Assert.assertEquals(expectedPriority,
-                mDatabaseManager.getProfilePriority(mTestDevice, BluetoothProfile.HEADSET));
+                mDatabaseManager.getProfileConnectionPolicy(mTestDevice, BluetoothProfile.HEADSET));
 
         mDatabase.deleteAll();
         // Wait for clear database
