@@ -538,22 +538,24 @@ final class BondStateMachine extends StateMachine {
         PbapClientService pbapClientService = PbapClientService.getPbapClientService();
 
         if (hidService != null) {
-            hidService.setPriority(device, BluetoothProfile.PRIORITY_UNDEFINED);
+            hidService.setConnectionPolicy(device, BluetoothProfile.CONNECTION_POLICY_UNKNOWN);
         }
         if (a2dpService != null) {
-            a2dpService.setPriority(device, BluetoothProfile.PRIORITY_UNDEFINED);
+            a2dpService.setConnectionPolicy(device, BluetoothProfile.CONNECTION_POLICY_UNKNOWN);
         }
         if (headsetService != null) {
-            headsetService.setPriority(device, BluetoothProfile.PRIORITY_UNDEFINED);
+            headsetService.setConnectionPolicy(device, BluetoothProfile.CONNECTION_POLICY_UNKNOWN);
         }
         if (headsetClientService != null) {
-            headsetClientService.setPriority(device, BluetoothProfile.PRIORITY_UNDEFINED);
+            headsetClientService.setConnectionPolicy(device,
+                    BluetoothProfile.CONNECTION_POLICY_UNKNOWN);
         }
         if (a2dpSinkService != null) {
-            a2dpSinkService.setPriority(device, BluetoothProfile.PRIORITY_UNDEFINED);
+            a2dpSinkService.setConnectionPolicy(device, BluetoothProfile.CONNECTION_POLICY_UNKNOWN);
         }
         if (pbapClientService != null) {
-            pbapClientService.setPriority(device, BluetoothProfile.PRIORITY_UNDEFINED);
+            pbapClientService.setConnectionPolicy(device,
+                    BluetoothProfile.CONNECTION_POLICY_UNKNOWN);
         }
     }
 
