@@ -17,8 +17,8 @@ package com.android.bluetooth.map;
 import android.util.Log;
 import android.util.Xml;
 
+import com.android.bluetooth.Utils;
 import com.android.internal.util.FastXmlSerializer;
-import com.android.internal.util.XmlUtils;
 
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
@@ -156,7 +156,7 @@ public class BluetoothMapConvoListing {
                     if (D) {
                         Log.i(TAG, "Unknown XML tag: " + name);
                     }
-                    XmlUtils.skipCurrentTag(parser);
+                    Utils.skipCurrentTag(parser);
                 }
                 readConversations(parser);
             }
@@ -191,7 +191,7 @@ public class BluetoothMapConvoListing {
                 if (D) {
                     Log.i(TAG, "Unknown XML tag: " + name);
                 }
-                XmlUtils.skipCurrentTag(parser);
+                Utils.skipCurrentTag(parser);
                 continue;
             }
             // Add a single conversation

@@ -105,7 +105,7 @@ public class MapClientTest {
      * @param priority - The priority value you want the device to have
      */
     private void mockDevicePriority(BluetoothDevice device, int priority) {
-        when(mDatabaseManager.getProfilePriority(device, BluetoothProfile.MAP_CLIENT))
+        when(mDatabaseManager.getProfileConnectionPolicy(device, BluetoothProfile.MAP_CLIENT))
                 .thenReturn(priority);
     }
 
@@ -124,7 +124,7 @@ public class MapClientTest {
         Assert.assertNull(mService.getInstanceMap().get(device));
 
         // connect a bluetooth device
-        mockDevicePriority(device, BluetoothProfile.PRIORITY_ON);
+        mockDevicePriority(device, BluetoothProfile.CONNECTION_POLICY_ALLOWED);
         Assert.assertTrue(mService.connect(device));
 
         // is the statemachine created
@@ -143,7 +143,7 @@ public class MapClientTest {
         Assert.assertNull(mService.getInstanceMap().get(device));
 
         // connect a bluetooth device
-        mockDevicePriority(device, BluetoothProfile.PRIORITY_OFF);
+        mockDevicePriority(device, BluetoothProfile.CONNECTION_POLICY_FORBIDDEN);
         Assert.assertFalse(mService.connect(device));
 
         // is the statemachine created
@@ -171,7 +171,7 @@ public class MapClientTest {
 
         // run the test - connect all devices, set their priorities to on
         for (BluetoothDevice d : list) {
-            mockDevicePriority(d, BluetoothProfile.PRIORITY_ON);
+            mockDevicePriority(d, BluetoothProfile.CONNECTION_POLICY_ALLOWED);
             Assert.assertTrue(mService.connect(d));
         }
 
