@@ -38,6 +38,7 @@ import com.android.bluetooth.btservice.MetricsLogger;
 import com.android.bluetooth.btservice.ProfileService;
 import com.android.bluetooth.btservice.ServiceFactory;
 import com.android.internal.annotations.VisibleForTesting;
+import com.android.internal.util.ArrayUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -239,7 +240,7 @@ public class HearingAidService extends ProfileService {
             return false;
         }
         ParcelUuid[] featureUuids = mAdapterService.getRemoteUuids(device);
-        if (!BluetoothUuid.isUuidPresent(featureUuids, BluetoothUuid.HearingAid)) {
+        if (!ArrayUtils.contains(featureUuids, BluetoothUuid.HEARING_AID)) {
             Log.e(TAG, "Cannot connect to " + device + " : Remote does not have Hearing Aid UUID");
             return false;
         }
@@ -396,7 +397,7 @@ public class HearingAidService extends ProfileService {
         synchronized (mStateMachines) {
             for (BluetoothDevice device : bondedDevices) {
                 final ParcelUuid[] featureUuids = device.getUuids();
-                if (!BluetoothUuid.isUuidPresent(featureUuids, BluetoothUuid.HearingAid)) {
+                if (!ArrayUtils.contains(featureUuids, BluetoothUuid.HEARING_AID)) {
                     continue;
                 }
                 int connectionState = BluetoothProfile.STATE_DISCONNECTED;
