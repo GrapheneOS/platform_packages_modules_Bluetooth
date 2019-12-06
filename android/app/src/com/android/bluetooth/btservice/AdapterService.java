@@ -1063,19 +1063,6 @@ public class AdapterService extends Service {
         }
 
         @Override
-        public boolean isEnabled() {
-            // don't check caller, may be called from system UI
-            AdapterService service = getService();
-            if (service == null) {
-                return false;
-            }
-
-            enforceBluetoothPermission(service);
-
-            return service.getState() == BluetoothAdapter.STATE_ON;
-        }
-
-        @Override
         public int getState() {
             // don't check caller, may be called from system UI
             AdapterService service = getService();
