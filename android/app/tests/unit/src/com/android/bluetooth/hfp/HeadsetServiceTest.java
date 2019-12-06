@@ -65,7 +65,7 @@ import java.util.Set;
 @RunWith(AndroidJUnit4.class)
 public class HeadsetServiceTest {
     private static final int MAX_HEADSET_CONNECTIONS = 5;
-    private static final ParcelUuid[] FAKE_HEADSET_UUID = {BluetoothUuid.Handsfree};
+    private static final ParcelUuid[] FAKE_HEADSET_UUID = {BluetoothUuid.HFP};
     private static final int ASYNC_CALL_TIMEOUT_MILLIS = 250;
     private static final String TEST_PHONE_NUMBER = "1234567890";
 
@@ -101,7 +101,7 @@ public class HeadsetServiceTest {
         method.setAccessible(true);
         method.invoke(null, mObjectsFactory);
         doReturn(MAX_HEADSET_CONNECTIONS).when(mAdapterService).getMaxConnectedAudioDevices();
-        doReturn(new ParcelUuid[]{BluetoothUuid.Handsfree}).when(mAdapterService)
+        doReturn(new ParcelUuid[]{BluetoothUuid.HFP}).when(mAdapterService)
                 .getRemoteUuids(any(BluetoothDevice.class));
         // This line must be called to make sure relevant objects are initialized properly
         mAdapter = BluetoothAdapter.getDefaultAdapter();
