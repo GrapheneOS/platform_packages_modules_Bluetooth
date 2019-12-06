@@ -1063,19 +1063,6 @@ public class AdapterService extends Service {
         }
 
         @Override
-        public boolean isEnabled() {
-            // don't check caller, may be called from system UI
-            AdapterService service = getService();
-            if (service == null) {
-                return false;
-            }
-
-            enforceBluetoothPermission(service);
-
-            return service.getState() == BluetoothAdapter.STATE_ON;
-        }
-
-        @Override
         public int getState() {
             // don't check caller, may be called from system UI
             AdapterService service = getService();
@@ -1089,7 +1076,7 @@ public class AdapterService extends Service {
         }
 
         @Override
-        public boolean enable() {
+        public boolean enable(boolean quietMode) {
             AdapterService service = getService();
             if (service == null || !callerIsSystemOrActiveUser(TAG, "enable")) {
                 return false;
@@ -1097,19 +1084,7 @@ public class AdapterService extends Service {
 
             enforceBluetoothAdminPermission(service);
 
-            return service.enable(false);
-        }
-
-        @Override
-        public boolean enableNoAutoConnect() {
-            AdapterService service = getService();
-            if (service == null || !callerIsSystemOrActiveUser(TAG, "enableNoAutoConnect")) {
-                return false;
-            }
-
-            enforceBluetoothAdminPermission(service);
-
-            return service.enable(true);
+            return service.enable(quietMode);
         }
 
         @Override
@@ -1397,21 +1372,9 @@ public class AdapterService extends Service {
         }
 
         @Override
-        public boolean createBond(BluetoothDevice device, int transport) {
+        public boolean createBond(BluetoothDevice device, int transport, OobData oobData) {
             AdapterService service = getService();
             if (service == null || !callerIsSystemOrActiveOrManagedUser(service, TAG, "createBond")) {
-                return false;
-            }
-
-            enforceBluetoothAdminPermission(service);
-
-            return service.createBond(device, transport, null);
-        }
-
-        @Override
-        public boolean createBondOutOfBand(BluetoothDevice device, int transport, OobData oobData) {
-            AdapterService service = getService();
-            if (service == null || !callerIsSystemOrActiveOrManagedUser(service, TAG, "createBondOutOfBand")) {
                 return false;
             }
 
