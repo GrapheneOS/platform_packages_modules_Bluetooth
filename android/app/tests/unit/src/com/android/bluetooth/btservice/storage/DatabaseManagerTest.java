@@ -16,7 +16,15 @@
 
 package com.android.bluetooth.btservice.storage;
 
-import static org.mockito.Mockito.*;
+import static org.junit.Assert.assertThat;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.anyInt;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import android.bluetooth.BluetoothA2dp;
 import android.bluetooth.BluetoothAdapter;
@@ -446,7 +454,7 @@ public final class DatabaseManagerTest {
         device.put("unthethered_left_charging", testString);
         device.put("unthethered_right_charging", testString);
         device.put("unthethered_case_charging", testString);
-        Assert.assertThat(db.insert("metadata", SQLiteDatabase.CONFLICT_IGNORE, device),
+        assertThat(db.insert("metadata", SQLiteDatabase.CONFLICT_IGNORE, device),
                 CoreMatchers.not(-1));
 
         // Check the metadata names on version 101
@@ -529,22 +537,174 @@ public final class DatabaseManagerTest {
         }
     }
 
+    @Test
+    public void testDatabaseMigration_102_103() throws IOException {
+        String testString = "TEST STRING";
+
+        // Create a database with version 102
+        SupportSQLiteDatabase db = testHelper.createDatabase(DB_NAME, 102);
+        Cursor cursor = db.query("SELECT * FROM metadata");
+
+        // insert a device to the database
+        ContentValues device = new ContentValues();
+        device.put("address", TEST_BT_ADDR);
+        device.put("migrated", false);
+        device.put("a2dpSupportsOptionalCodecs", -1);
+        device.put("a2dpOptionalCodecsEnabled", -1);
+        device.put("a2dp_priority", 1000);
+        device.put("a2dp_sink_priority", 1000);
+        device.put("hfp_priority", 1000);
+        device.put("hfp_client_priority", 1000);
+        device.put("hid_host_priority", 1000);
+        device.put("pan_priority", 1000);
+        device.put("pbap_priority", 1000);
+        device.put("pbap_client_priority", 1000);
+        device.put("map_priority", 1000);
+        device.put("sap_priority", 1000);
+        device.put("hearing_aid_priority", 1000);
+        device.put("map_client_priority", 1000);
+        device.put("manufacturer_name", testString);
+        device.put("model_name", testString);
+        device.put("software_version", testString);
+        device.put("hardware_version", testString);
+        device.put("companion_app", testString);
+        device.put("main_icon", testString);
+        device.put("is_untethered_headset", testString);
+        device.put("untethered_left_icon", testString);
+        device.put("untethered_right_icon", testString);
+        device.put("untethered_case_icon", testString);
+        device.put("untethered_left_battery", testString);
+        device.put("untethered_right_battery", testString);
+        device.put("untethered_case_battery", testString);
+        device.put("untethered_left_charging", testString);
+        device.put("untethered_right_charging", testString);
+        device.put("untethered_case_charging", testString);
+        assertThat(db.insert("metadata", SQLiteDatabase.CONFLICT_IGNORE, device),
+                CoreMatchers.not(-1));
+
+        // Check the metadata names on version 102
+        assertHasColumn(cursor, "a2dp_priority", true);
+        assertHasColumn(cursor, "a2dp_sink_priority", true);
+        assertHasColumn(cursor, "hfp_priority", true);
+        assertHasColumn(cursor, "hfp_client_priority", true);
+        assertHasColumn(cursor, "hid_host_priority", true);
+        assertHasColumn(cursor, "pan_priority", true);
+        assertHasColumn(cursor, "pbap_priority", true);
+        assertHasColumn(cursor, "pbap_client_priority", true);
+        assertHasColumn(cursor, "map_priority", true);
+        assertHasColumn(cursor, "sap_priority", true);
+        assertHasColumn(cursor, "hearing_aid_priority", true);
+        assertHasColumn(cursor, "map_client_priority", true);
+
+        // Migrate database from 102 to 103
+        db.close();
+        db = testHelper.runMigrationsAndValidate(DB_NAME, 103, true,
+                MetadataDatabase.MIGRATION_102_103);
+        cursor = db.query("SELECT * FROM metadata");
+
+        // metadata names should be changed on version 103
+        assertHasColumn(cursor, "a2dp_priority", false);
+        assertHasColumn(cursor, "a2dp_sink_priority", false);
+        assertHasColumn(cursor, "hfp_priority", false);
+        assertHasColumn(cursor, "hfp_client_priority", false);
+        assertHasColumn(cursor, "hid_host_priority", false);
+        assertHasColumn(cursor, "pan_priority", false);
+        assertHasColumn(cursor, "pbap_priority", false);
+        assertHasColumn(cursor, "pbap_client_priority", false);
+        assertHasColumn(cursor, "map_priority", false);
+        assertHasColumn(cursor, "sap_priority", false);
+        assertHasColumn(cursor, "hearing_aid_priority", false);
+        assertHasColumn(cursor, "map_client_priority", false);
+
+        assertHasColumn(cursor, "a2dp_connection_policy", true);
+        assertHasColumn(cursor, "a2dp_sink_connection_policy", true);
+        assertHasColumn(cursor, "hfp_connection_policy", true);
+        assertHasColumn(cursor, "hfp_client_connection_policy", true);
+        assertHasColumn(cursor, "hid_host_connection_policy", true);
+        assertHasColumn(cursor, "pan_connection_policy", true);
+        assertHasColumn(cursor, "pbap_connection_policy", true);
+        assertHasColumn(cursor, "pbap_client_connection_policy", true);
+        assertHasColumn(cursor, "map_connection_policy", true);
+        assertHasColumn(cursor, "sap_connection_policy", true);
+        assertHasColumn(cursor, "hearing_aid_connection_policy", true);
+        assertHasColumn(cursor, "map_client_connection_policy", true);
+
+        while (cursor.moveToNext()) {
+            // Check PRIORITY_AUTO_CONNECT (1000) was replaced with CONNECTION_POLICY_ALLOWED (100)
+            assertColumnIntData(cursor, "a2dp_connection_policy", 100);
+            assertColumnIntData(cursor, "a2dp_sink_connection_policy", 100);
+            assertColumnIntData(cursor, "hfp_connection_policy", 100);
+            assertColumnIntData(cursor, "hfp_client_connection_policy", 100);
+            assertColumnIntData(cursor, "hid_host_connection_policy", 100);
+            assertColumnIntData(cursor, "pan_connection_policy", 100);
+            assertColumnIntData(cursor, "pbap_connection_policy", 100);
+            assertColumnIntData(cursor, "pbap_client_connection_policy", 100);
+            assertColumnIntData(cursor, "map_connection_policy", 100);
+            assertColumnIntData(cursor, "sap_connection_policy", 100);
+            assertColumnIntData(cursor, "hearing_aid_connection_policy", 100);
+            assertColumnIntData(cursor, "map_client_connection_policy", 100);
+
+            // Check whether metadata data type are blob
+            assertColumnBlob(cursor, "manufacturer_name");
+            assertColumnBlob(cursor, "model_name");
+            assertColumnBlob(cursor, "software_version");
+            assertColumnBlob(cursor, "hardware_version");
+            assertColumnBlob(cursor, "companion_app");
+            assertColumnBlob(cursor, "main_icon");
+            assertColumnBlob(cursor, "is_untethered_headset");
+            assertColumnBlob(cursor, "untethered_left_icon");
+            assertColumnBlob(cursor, "untethered_right_icon");
+            assertColumnBlob(cursor, "untethered_case_icon");
+            assertColumnBlob(cursor, "untethered_left_battery");
+            assertColumnBlob(cursor, "untethered_right_battery");
+            assertColumnBlob(cursor, "untethered_case_battery");
+            assertColumnBlob(cursor, "untethered_left_charging");
+            assertColumnBlob(cursor, "untethered_right_charging");
+            assertColumnBlob(cursor, "untethered_case_charging");
+
+            // Check whether metadata values are migrated to version 103 successfully
+            assertColumnBlobData(cursor, "manufacturer_name", testString.getBytes());
+            assertColumnBlobData(cursor, "model_name", testString.getBytes());
+            assertColumnBlobData(cursor, "software_version", testString.getBytes());
+            assertColumnBlobData(cursor, "hardware_version", testString.getBytes());
+            assertColumnBlobData(cursor, "companion_app", testString.getBytes());
+            assertColumnBlobData(cursor, "main_icon", testString.getBytes());
+            assertColumnBlobData(cursor, "is_untethered_headset", testString.getBytes());
+            assertColumnBlobData(cursor, "untethered_left_icon", testString.getBytes());
+            assertColumnBlobData(cursor, "untethered_right_icon", testString.getBytes());
+            assertColumnBlobData(cursor, "untethered_case_icon", testString.getBytes());
+            assertColumnBlobData(cursor, "untethered_left_battery", testString.getBytes());
+            assertColumnBlobData(cursor, "untethered_right_battery", testString.getBytes());
+            assertColumnBlobData(cursor, "untethered_case_battery", testString.getBytes());
+            assertColumnBlobData(cursor, "untethered_left_charging", testString.getBytes());
+            assertColumnBlobData(cursor, "untethered_right_charging", testString.getBytes());
+            assertColumnBlobData(cursor, "untethered_case_charging", testString.getBytes());
+        }
+    }
+
     /**
      * Helper function to check whether the database has the expected column
      */
     void assertHasColumn(Cursor cursor, String columnName, boolean hasColumn) {
         if (hasColumn) {
-            Assert.assertThat(cursor.getColumnIndex(columnName), CoreMatchers.not(-1));
+            assertThat(cursor.getColumnIndex(columnName), CoreMatchers.not(-1));
         } else {
-            Assert.assertThat(cursor.getColumnIndex(columnName), CoreMatchers.is(-1));
+            assertThat(cursor.getColumnIndex(columnName), CoreMatchers.is(-1));
         }
+    }
+
+    /**
+     * Helper function to check whether the database has the expected value
+     */
+    void assertColumnIntData(Cursor cursor, String columnName, int value) {
+        assertThat(cursor.getInt(cursor.getColumnIndex(columnName)), CoreMatchers.is(value));
     }
 
     /**
      * Helper function to check whether the column data type is BLOB
      */
     void assertColumnBlob(Cursor cursor, String columnName) {
-        Assert.assertThat(cursor.getType(cursor.getColumnIndex(columnName)),
+        assertThat(cursor.getType(cursor.getColumnIndex(columnName)),
                 CoreMatchers.is(Cursor.FIELD_TYPE_BLOB));
     }
 
@@ -552,7 +712,7 @@ public final class DatabaseManagerTest {
      * Helper function to check the BLOB data in a column is expected
      */
     void assertColumnBlobData(Cursor cursor, String columnName, byte[] data) {
-        Assert.assertThat(cursor.getBlob(cursor.getColumnIndex(columnName)),
+        assertThat(cursor.getBlob(cursor.getColumnIndex(columnName)),
                 CoreMatchers.is(data));
     }
 
