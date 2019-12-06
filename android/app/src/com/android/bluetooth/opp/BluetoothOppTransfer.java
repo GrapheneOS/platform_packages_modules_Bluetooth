@@ -140,9 +140,9 @@ public class BluetoothOppTransfer implements BluetoothOppBatch.BluetoothOppBatch
                 ParcelUuid uuid = intent.getParcelableExtra(BluetoothDevice.EXTRA_UUID);
                 if (D) {
                     Log.d(TAG, "Received UUID: " + uuid.toString());
-                    Log.d(TAG, "expected UUID: " + BluetoothUuid.ObexObjectPush.toString());
+                    Log.d(TAG, "expected UUID: " + BluetoothUuid.OBEX_OBJECT_PUSH.toString());
                 }
-                if (uuid.equals(BluetoothUuid.ObexObjectPush)) {
+                if (uuid.equals(BluetoothUuid.OBEX_OBJECT_PUSH)) {
                     int status = intent.getIntExtra(BluetoothDevice.EXTRA_SDP_SEARCH_STATUS, -1);
                     Log.d(TAG, " -> status: " + status);
                     BluetoothDevice device =
@@ -637,7 +637,7 @@ public class BluetoothOppTransfer implements BluetoothOppBatch.BluetoothOppBatch
 
     private void startConnectSession() {
         mDevice = mBatch.mDestination;
-        if (!mBatch.mDestination.sdpSearch(BluetoothUuid.ObexObjectPush)) {
+        if (!mBatch.mDestination.sdpSearch(BluetoothUuid.OBEX_OBJECT_PUSH)) {
             if (D) {
                 Log.d(TAG, "SDP failed, start rfcomm connect directly");
             }
@@ -722,7 +722,7 @@ public class BluetoothOppTransfer implements BluetoothOppBatch.BluetoothOppBatch
                     return;
                 }
                 mBtSocket = mDevice.createInsecureRfcommSocketToServiceRecord(
-                        BluetoothUuid.ObexObjectPush.getUuid());
+                        BluetoothUuid.OBEX_OBJECT_PUSH.getUuid());
             } catch (IOException e1) {
                 Log.e(TAG, "Rfcomm socket create error", e1);
                 markConnectionFailed(mBtSocket);

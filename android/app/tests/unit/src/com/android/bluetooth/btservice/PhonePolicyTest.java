@@ -115,8 +115,8 @@ public class PhonePolicyTest {
         Intent intent = new Intent(BluetoothDevice.ACTION_UUID);
         intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
         ParcelUuid[] uuids = new ParcelUuid[2];
-        uuids[0] = BluetoothUuid.Handsfree;
-        uuids[1] = BluetoothUuid.AudioSink;
+        uuids[0] = BluetoothUuid.HFP;
+        uuids[1] = BluetoothUuid.A2DP_SINK;
         intent.putExtra(BluetoothDevice.EXTRA_UUID, uuids);
         mPhonePolicy.getBroadcastReceiver().onReceive(null /* context */, intent);
 

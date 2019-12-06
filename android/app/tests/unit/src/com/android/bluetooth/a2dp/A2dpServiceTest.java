@@ -115,7 +115,7 @@ public class A2dpServiceTest {
         mTestDevice = mAdapter.getRemoteDevice("00:01:02:03:04:05");
         doReturn(BluetoothDevice.BOND_BONDED).when(mAdapterService)
                 .getBondState(any(BluetoothDevice.class));
-        doReturn(new ParcelUuid[]{BluetoothUuid.AudioSink}).when(mAdapterService)
+        doReturn(new ParcelUuid[]{BluetoothUuid.A2DP_SINK}).when(mAdapterService)
                 .getRemoteUuids(any(BluetoothDevice.class));
     }
 
@@ -336,7 +336,7 @@ public class A2dpServiceTest {
         doReturn(true).when(mA2dpNativeInterface).disconnectA2dp(any(BluetoothDevice.class));
 
         // Return AudioSource UUID instead of AudioSink
-        doReturn(new ParcelUuid[]{BluetoothUuid.AudioSource}).when(mAdapterService)
+        doReturn(new ParcelUuid[]{BluetoothUuid.A2DP_SOURCE}).when(mAdapterService)
                 .getRemoteUuids(any(BluetoothDevice.class));
 
         // Send a connect request
