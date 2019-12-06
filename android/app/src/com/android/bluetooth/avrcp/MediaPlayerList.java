@@ -24,6 +24,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
+import android.media.AudioAttributes;
 import android.media.AudioManager;
 import android.media.AudioPlaybackConfiguration;
 import android.media.session.MediaSession;
@@ -691,7 +692,10 @@ public class MediaPlayerList {
             boolean isActive = false;
             Log.v(TAG, "onPlaybackConfigChanged(): Configs list size=" + configs.size());
             for (AudioPlaybackConfiguration config : configs) {
-                if (config.isActive()) {
+                if (config.isActive() && (config.getAudioAttributes().getUsage()
+                            == AudioAttributes.USAGE_ASSISTANCE_NAVIGATION_GUIDANCE)
+                        && (config.getAudioAttributes().getContentType()
+                            == AudioAttributes.CONTENT_TYPE_SPEECH)) {
                     if (DEBUG) {
                         Log.d(TAG, "onPlaybackConfigChanged(): config="
                                  + AudioPlaybackConfiguration.toLogFriendlyString(config));
