@@ -1372,21 +1372,9 @@ public class AdapterService extends Service {
         }
 
         @Override
-        public boolean createBond(BluetoothDevice device, int transport) {
+        public boolean createBond(BluetoothDevice device, int transport, OobData oobData) {
             AdapterService service = getService();
             if (service == null || !callerIsSystemOrActiveOrManagedUser(service, TAG, "createBond")) {
-                return false;
-            }
-
-            enforceBluetoothAdminPermission(service);
-
-            return service.createBond(device, transport, null);
-        }
-
-        @Override
-        public boolean createBondOutOfBand(BluetoothDevice device, int transport, OobData oobData) {
-            AdapterService service = getService();
-            if (service == null || !callerIsSystemOrActiveOrManagedUser(service, TAG, "createBondOutOfBand")) {
                 return false;
             }
 
