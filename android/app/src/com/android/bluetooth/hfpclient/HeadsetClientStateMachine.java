@@ -60,6 +60,7 @@ import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.MetricsLogger;
 import com.android.bluetooth.btservice.ProfileService;
 import com.android.internal.annotations.VisibleForTesting;
+import com.android.internal.util.ArrayUtils;
 import com.android.internal.util.IState;
 import com.android.internal.util.State;
 import com.android.internal.util.StateMachine;
@@ -1753,7 +1754,7 @@ public class HeadsetClientStateMachine extends StateMachine {
         synchronized (this) {
             for (BluetoothDevice device : bondedDevices) {
                 ParcelUuid[] featureUuids = device.getUuids();
-                if (!BluetoothUuid.isUuidPresent(featureUuids, BluetoothUuid.Handsfree_AG)) {
+                if (!ArrayUtils.contains(featureUuids, BluetoothUuid.HFP_AG)) {
                     continue;
                 }
                 connectionState = getConnectionState(device);
