@@ -336,6 +336,14 @@ final class RemoteDevices {
             }
         }
 
+        boolean isBonding() {
+            return getBondState() == BluetoothDevice.BOND_BONDING;
+        }
+
+        boolean isBondingOrBonded() {
+            return isBonding() || getBondState() == BluetoothDevice.BOND_BONDED;
+        }
+
         /**
          * @param isBondingInitiatedLocally wether bonding is initiated locally
          */
