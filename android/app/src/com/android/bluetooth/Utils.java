@@ -61,6 +61,25 @@ public final class Utils {
     static final int BD_ADDR_LEN = 6; // bytes
     static final int BD_UUID_LEN = 16; // bytes
 
+    /*
+     * Special characters
+     *
+     * (See "What is a phone number?" doc)
+     * 'p' --- GSM pause character, same as comma
+     * 'n' --- GSM wild character
+     * 'w' --- GSM wait character
+     */
+    public static final char PAUSE = ',';
+    public static final char WAIT = ';';
+
+    private static boolean isPause(char c) {
+        return c == 'p' || c == 'P';
+    }
+
+    private static boolean isToneWait(char c) {
+        return c == 'w' || c == 'W';
+    }
+
     public static String getAddressStringFromByte(byte[] address) {
         if (address == null || address.length != BD_ADDR_LEN) {
             return null;
@@ -541,5 +560,30 @@ public final class Utils {
                 && (type != XmlPullParser.END_TAG
                 || parser.getDepth() > outerDepth)) {
         }
+    }
+
+    /**
+     * Converts pause and tonewait pause characters
+     * to Android representation.
+     * RFC 3601 says pause is 'p' and tonewait is 'w'.
+     */
+    public static String convertPreDial(String phoneNumber) {
+        if (phoneNumber == null) {
+            return null;
+        }
+        int len = phoneNumber.length();
+        StringBuilder ret = new StringBuilder(len);
+
+        for (int i = 0; i < len; i++) {
+            char c = phoneNumber.charAt(i);
+
+            if (isPause(c)) {
+                c = PAUSE;
+            } else if (isToneWait(c)) {
+                c = WAIT;
+            }
+            ret.append(c);
+        }
+        return ret.toString();
     }
 }
