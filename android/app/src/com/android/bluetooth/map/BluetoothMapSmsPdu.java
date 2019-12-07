@@ -17,6 +17,7 @@ package com.android.bluetooth.map;
 import static android.telephony.TelephonyManager.PHONE_TYPE_CDMA;
 
 import android.telephony.PhoneNumberUtils;
+import android.telephony.SmsManager;
 import android.telephony.SmsMessage;
 import android.telephony.TelephonyManager;
 import android.util.Log;
@@ -524,7 +525,8 @@ public class BluetoothMapSmsPdu {
         int languageTable;
         int languageShiftTable;
         int refNumber = getNextConcatenatedRef() & 0x00FF;
-        ArrayList<String> smsFragments = SmsMessage.fragmentText(messageText);
+        SmsManager smsMng = SmsManager.getDefault();
+        ArrayList<String> smsFragments = smsMng.divideMessage(messageText);
         ArrayList<SmsPdu> pdus = new ArrayList<SmsPdu>(msgCount);
         byte[] data;
 
