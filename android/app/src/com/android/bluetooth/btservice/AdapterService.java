@@ -2347,16 +2347,21 @@ public class AdapterService extends Service {
                 return false;
         }
 
-        if (setA2dp && mA2dpService != null) {
+        if (setA2dp && mA2dpService != null && mA2dpService.getConnectionPolicy(device)
+                == BluetoothProfile.CONNECTION_POLICY_ALLOWED) {
+            Log.i(TAG, "setActiveDevice: Setting active A2dp device " + device.getAddress());
             mA2dpService.setActiveDevice(device);
         }
 
-        // Always sets as active device for hearing aid profile
-        if (mHearingAidService != null) {
+        if (mHearingAidService != null && mHearingAidService.getConnectionPolicy(device)
+                == BluetoothProfile.CONNECTION_POLICY_ALLOWED) {
+            Log.i(TAG, "setActiveDevice: Setting active Hearing Aid " + device.getAddress());
             mHearingAidService.setActiveDevice(device);
         }
 
-        if (setHeadset && mHeadsetService != null) {
+        if (setHeadset && mHeadsetService != null && mHeadsetService.getConnectionPolicy(device)
+                == BluetoothProfile.CONNECTION_POLICY_ALLOWED) {
+            Log.i(TAG, "setActiveDevice: Setting active Headset " + device.getAddress());
             mHeadsetService.setActiveDevice(device);
         }
 
