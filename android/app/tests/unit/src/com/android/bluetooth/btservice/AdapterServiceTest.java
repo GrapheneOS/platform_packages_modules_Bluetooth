@@ -159,7 +159,7 @@ public class AdapterServiceTest {
         mAdapterService.attach(mMockContext, null, null, null, null, null);
 
         mAdapterService.onCreate();
-        mAdapterService.registerCallback(mIBluetoothCallback);
+        mServiceBinder.registerCallback(mIBluetoothCallback);
 
         Config.init(mMockContext);
 
@@ -169,7 +169,7 @@ public class AdapterServiceTest {
 
     @After
     public void tearDown() {
-        mAdapterService.unregisterCallback(mIBluetoothCallback);
+        mServiceBinder.unregisterCallback(mIBluetoothCallback);
         mAdapterService.cleanup();
         Config.init(InstrumentationRegistry.getTargetContext());
     }
@@ -202,7 +202,7 @@ public class AdapterServiceTest {
         verifyStateChange(BluetoothAdapter.STATE_BLE_TURNING_ON, BluetoothAdapter.STATE_BLE_ON,
                 invocationNumber + 1, NATIVE_INIT_MS);
 
-        mAdapterService.onLeServiceUp();
+        mServiceBinder.onLeServiceUp();
 
         verifyStateChange(BluetoothAdapter.STATE_BLE_ON, BluetoothAdapter.STATE_TURNING_ON,
                 invocationNumber + 1, CONTEXT_SWITCH_MS);
@@ -249,7 +249,7 @@ public class AdapterServiceTest {
         verifyStateChange(BluetoothAdapter.STATE_TURNING_OFF, BluetoothAdapter.STATE_BLE_ON,
                 invocationNumber + 1, CONTEXT_SWITCH_MS);
 
-        mAdapterService.onBrEdrDown();
+        mServiceBinder.onBrEdrDown();
 
         verifyStateChange(BluetoothAdapter.STATE_BLE_ON, BluetoothAdapter.STATE_BLE_TURNING_OFF,
                 invocationNumber + 1, CONTEXT_SWITCH_MS);
@@ -363,7 +363,7 @@ public class AdapterServiceTest {
         verifyStateChange(BluetoothAdapter.STATE_TURNING_OFF, BluetoothAdapter.STATE_BLE_ON, 1,
                 CONTEXT_SWITCH_MS);
 
-        mAdapterService.onBrEdrDown();
+        mServiceBinder.onBrEdrDown();
 
         verifyStateChange(BluetoothAdapter.STATE_BLE_ON, BluetoothAdapter.STATE_BLE_TURNING_OFF, 1,
                 CONTEXT_SWITCH_MS);
@@ -398,7 +398,7 @@ public class AdapterServiceTest {
         verifyStateChange(BluetoothAdapter.STATE_BLE_TURNING_ON, BluetoothAdapter.STATE_BLE_ON, 1,
                 NATIVE_INIT_MS);
 
-        mAdapterService.onLeServiceUp();
+        mServiceBinder.onLeServiceUp();
 
         verifyStateChange(BluetoothAdapter.STATE_BLE_ON, BluetoothAdapter.STATE_TURNING_ON, 1,
                 CONTEXT_SWITCH_MS);
@@ -630,7 +630,7 @@ public class AdapterServiceTest {
         byte[] obfuscatedAddress1 = mAdapterService.obfuscateAddress(device);
         Assert.assertTrue(obfuscatedAddress1.length > 0);
         Assert.assertFalse(isByteArrayAllZero(obfuscatedAddress1));
-        mAdapterService.factoryReset();
+        mServiceBinder.factoryReset();
         byte[] obfuscatedAddress2 = mAdapterService.obfuscateAddress(device);
         Assert.assertTrue(obfuscatedAddress2.length > 0);
         Assert.assertFalse(isByteArrayAllZero(obfuscatedAddress2));
@@ -642,7 +642,7 @@ public class AdapterServiceTest {
         Assert.assertFalse(isByteArrayAllZero(obfuscatedAddress3));
         Assert.assertArrayEquals(obfuscatedAddress3,
                 obfuscatedAddress2);
-        mAdapterService.factoryReset();
+        mServiceBinder.factoryReset();
         byte[] obfuscatedAddress4 = mAdapterService.obfuscateAddress(device);
         Assert.assertTrue(obfuscatedAddress4.length > 0);
         Assert.assertFalse(isByteArrayAllZero(obfuscatedAddress4));
@@ -666,7 +666,7 @@ public class AdapterServiceTest {
         Assert.assertFalse(isByteArrayAllZero(obfuscatedAddress1));
         Assert.assertArrayEquals(obfuscateInJava(metricsSalt1, device),
                 obfuscatedAddress1);
-        mAdapterService.factoryReset();
+        mServiceBinder.factoryReset();
         tearDown();
         setUp();
         // Cannot verify metrics salt since it is not written to disk until native cleanup
