@@ -3709,9 +3709,10 @@ public class BluetoothMapContent {
                 if (charset == MAP_MESSAGE_CHARSET_NATIVE) {
                     if (type == 1) { //Inbox
                         message.setSmsBodyPdus(
-                                BluetoothMapSmsPdu.getDeliverPdus(msgBody, phone, time));
+                                BluetoothMapSmsPdu.getDeliverPdus(mContext, msgBody, phone, time));
                     } else {
-                        message.setSmsBodyPdus(BluetoothMapSmsPdu.getSubmitPdus(msgBody, phone));
+                        message.setSmsBodyPdus(
+                                BluetoothMapSmsPdu.getSubmitPdus(mContext, msgBody, phone));
                     }
                 } else /*if (charset == MAP_MESSAGE_CHARSET_UTF8)*/ {
                     message.setSmsBody(msgBody);

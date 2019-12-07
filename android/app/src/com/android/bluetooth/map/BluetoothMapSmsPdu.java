@@ -16,6 +16,7 @@ package com.android.bluetooth.map;
 
 import static android.telephony.TelephonyManager.PHONE_TYPE_CDMA;
 
+import android.content.Context;
 import android.telephony.PhoneNumberUtils;
 import android.telephony.SmsMessage;
 import android.telephony.TelephonyManager;
@@ -502,14 +503,14 @@ public class BluetoothMapSmsPdu {
         return sConcatenatedRef;
     }
 
-    public static ArrayList<SmsPdu> getSubmitPdus(String messageText, String address) {
+    public static ArrayList<SmsPdu> getSubmitPdus(Context context, String messageText,
+            String address) {
         /* Use the generic GSM/CDMA SMS Message functionality within Android to generate the
          * SMS PDU's as once generated to send the SMS message.
          */
 
-        int activePhone = TelephonyManager.getDefault()
-                .getCurrentPhoneType(); // TODO: Change to use: ((TelephonyManager)myContext
-        // .getSystemService(Context.TELEPHONY_SERVICE))
+        int activePhone = context.getSystemService(TelephonyManager.class)
+                .getCurrentPhoneType();
         int phoneType;
         GsmAlphabet.TextEncodingDetails ted = (PHONE_TYPE_CDMA == activePhone)
                 ? com.android.internal.telephony.cdma.SmsMessage.calculateLength(
@@ -607,8 +608,9 @@ public class BluetoothMapSmsPdu {
      * @param date The delivery time stamp.
      * @return
      */
-    public static ArrayList<SmsPdu> getDeliverPdus(String messageText, String address, long date) {
-        ArrayList<SmsPdu> deliverPdus = getSubmitPdus(messageText, address);
+    public static ArrayList<SmsPdu> getDeliverPdus(Context context, String messageText,
+            String address, long date) {
+        ArrayList<SmsPdu> deliverPdus = getSubmitPdus(context, messageText, address);
 
         /*
          * For CDMA the only difference between deliver and submit pdus are the messageType,
