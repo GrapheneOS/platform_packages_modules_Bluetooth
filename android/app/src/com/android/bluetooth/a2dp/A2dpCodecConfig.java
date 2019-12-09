@@ -17,6 +17,7 @@
 package com.android.bluetooth.a2dp;
 
 import android.bluetooth.BluetoothCodecConfig;
+import android.bluetooth.BluetoothCodecConfig.CodecPriority;
 import android.bluetooth.BluetoothCodecStatus;
 import android.bluetooth.BluetoothDevice;
 import android.content.Context;
@@ -39,11 +40,16 @@ class A2dpCodecConfig {
     private A2dpNativeInterface mA2dpNativeInterface;
 
     private BluetoothCodecConfig[] mCodecConfigPriorities;
-    private int mA2dpSourceCodecPrioritySbc = BluetoothCodecConfig.CODEC_PRIORITY_DEFAULT;
-    private int mA2dpSourceCodecPriorityAac = BluetoothCodecConfig.CODEC_PRIORITY_DEFAULT;
-    private int mA2dpSourceCodecPriorityAptx = BluetoothCodecConfig.CODEC_PRIORITY_DEFAULT;
-    private int mA2dpSourceCodecPriorityAptxHd = BluetoothCodecConfig.CODEC_PRIORITY_DEFAULT;
-    private int mA2dpSourceCodecPriorityLdac = BluetoothCodecConfig.CODEC_PRIORITY_DEFAULT;
+    private @CodecPriority int mA2dpSourceCodecPrioritySbc =
+            BluetoothCodecConfig.CODEC_PRIORITY_DEFAULT;
+    private @CodecPriority int mA2dpSourceCodecPriorityAac =
+            BluetoothCodecConfig.CODEC_PRIORITY_DEFAULT;
+    private @CodecPriority int mA2dpSourceCodecPriorityAptx =
+            BluetoothCodecConfig.CODEC_PRIORITY_DEFAULT;
+    private @CodecPriority int mA2dpSourceCodecPriorityAptxHd =
+            BluetoothCodecConfig.CODEC_PRIORITY_DEFAULT;
+    private @CodecPriority int mA2dpSourceCodecPriorityLdac =
+            BluetoothCodecConfig.CODEC_PRIORITY_DEFAULT;
 
     A2dpCodecConfig(Context context, A2dpNativeInterface a2dpNativeInterface) {
         mContext = context;
