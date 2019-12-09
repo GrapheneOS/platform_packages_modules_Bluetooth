@@ -53,6 +53,7 @@ import android.text.format.DateUtils;
 import android.util.Log;
 import android.util.Xml;
 
+import com.android.bluetooth.Utils;
 import com.android.bluetooth.map.BluetoothMapUtils.TYPE;
 import com.android.bluetooth.map.BluetoothMapbMessageMime.MimePart;
 import com.android.bluetooth.mapapi.BluetoothMapContract;
@@ -3272,7 +3273,7 @@ public class BluetoothMapContentObserver {
                     Log.d(TAG, "actionMessageSent: result OK");
                 }
                 if (msgInfo.transparent == 0) {
-                    if (!Sms.moveMessageToFolder(context, msgInfo.uri, Sms.MESSAGE_TYPE_SENT, 0)) {
+                    if (!Utils.moveMessageToFolder(context, msgInfo.uri, true)) {
                         Log.w(TAG, "Failed to move " + msgInfo.uri + " to SENT");
                     }
                 } else {
@@ -3294,8 +3295,7 @@ public class BluetoothMapContentObserver {
                     sendEvent(evt);
                 } else {
                     if (msgInfo.transparent == 0) {
-                        if (!Sms.moveMessageToFolder(context, msgInfo.uri, Sms.MESSAGE_TYPE_FAILED,
-                                0)) {
+                        if (!Utils.moveMessageToFolder(context, msgInfo.uri, false)) {
                             Log.w(TAG, "Failed to move " + msgInfo.uri + " to FAILED");
                         }
                     } else {
@@ -3509,7 +3509,7 @@ public class BluetoothMapContentObserver {
         if (result == Activity.RESULT_OK) {
             Log.d(TAG, "actionMessageSentDisconnected: result OK");
             if (transparent == 0) {
-                if (!Sms.moveMessageToFolder(context, uri, Sms.MESSAGE_TYPE_SENT, 0)) {
+                if (!Utils.moveMessageToFolder(context, uri, true)) {
                     Log.d(TAG, "Failed to move " + uri + " to SENT");
                 }
             } else {
@@ -3522,7 +3522,7 @@ public class BluetoothMapContentObserver {
             } else */
             {
                 if (transparent == 0) {
-                    if (!Sms.moveMessageToFolder(context, uri, Sms.MESSAGE_TYPE_FAILED, 0)) {
+                    if (!Utils.moveMessageToFolder(context, uri, false)) {
                         Log.d(TAG, "Failed to move " + uri + " to FAILED");
                     }
                 } else {
@@ -3597,7 +3597,7 @@ public class BluetoothMapContentObserver {
                     if (msgInfo == null || !msgInfo.resend) {
                         continue;
                     }
-                    Sms.moveMessageToFolder(mContext, msgInfo.uri, Sms.MESSAGE_TYPE_FAILED, 0);
+                    Utils.moveMessageToFolder(mContext, msgInfo.uri, false);
                 } while (c.moveToNext());
             }
         } finally {
