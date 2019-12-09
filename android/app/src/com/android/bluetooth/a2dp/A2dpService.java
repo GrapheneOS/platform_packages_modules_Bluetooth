@@ -17,6 +17,8 @@
 package com.android.bluetooth.a2dp;
 
 import android.bluetooth.BluetoothA2dp;
+import android.bluetooth.BluetoothA2dp.OptionalCodecsPreferenceStatus;
+import android.bluetooth.BluetoothA2dp.OptionalCodecsSupportStatus;
 import android.bluetooth.BluetoothCodecConfig;
 import android.bluetooth.BluetoothCodecStatus;
 import android.bluetooth.BluetoothDevice;
@@ -701,7 +703,8 @@ public class A2dpService extends ProfileService {
      */
     public void setCodecConfigPreference(BluetoothDevice device,
                                          BluetoothCodecConfig codecConfig) {
-        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+        enforceCallingOrSelfPermission(BLUETOOTH_PRIVILEGED,
+                "Need BLUETOOTH_PRIVILEGED permission");
         if (DBG) {
             Log.d(TAG, "setCodecConfigPreference(" + device + "): "
                     + Objects.toString(codecConfig));
@@ -733,7 +736,8 @@ public class A2dpService extends ProfileService {
      * @hide
      */
     public void enableOptionalCodecs(BluetoothDevice device) {
-        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+        enforceCallingOrSelfPermission(BLUETOOTH_PRIVILEGED,
+                "Need BLUETOOTH_PRIVILEGED permission");
         if (DBG) {
             Log.d(TAG, "enableOptionalCodecs(" + device + ")");
         }
@@ -764,7 +768,8 @@ public class A2dpService extends ProfileService {
      * @hide
      */
     public void disableOptionalCodecs(BluetoothDevice device) {
-        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+        enforceCallingOrSelfPermission(BLUETOOTH_PRIVILEGED,
+                "Need BLUETOOTH_PRIVILEGED permission");
         if (DBG) {
             Log.d(TAG, "disableOptionalCodecs(" + device + ")");
         }
@@ -787,25 +792,55 @@ public class A2dpService extends ProfileService {
         mA2dpCodecConfig.disableOptionalCodecs(device, codecStatus.getCodecConfig());
     }
 
-    public int getSupportsOptionalCodecs(BluetoothDevice device) {
+    /**
+     * Checks whether optional codecs are supported
+     *
+     * @param device is the remote bluetooth device.
+     * @return whether optional codecs are supported. Possible values are:
+     * {@link OptionalCodecsSupportStatus#OPTIONAL_CODECS_SUPPORTED},
+     * {@link OptionalCodecsSupportStatus#OPTIONAL_CODECS_NOT_SUPPORTED},
+     * {@link OptionalCodecsSupportStatus#OPTIONAL_CODECS_SUPPORT_UNKNOWN}.
+     */
+    public @OptionalCodecsSupportStatus int getSupportsOptionalCodecs(BluetoothDevice device) {
         enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH_ADMIN permission");
         return mAdapterService.getDatabase().getA2dpSupportsOptionalCodecs(device);
     }
 
     public void setSupportsOptionalCodecs(BluetoothDevice device, boolean doesSupport) {
-        enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH_ADMIN permission");
+        enforceCallingOrSelfPermission(BLUETOOTH_PRIVILEGED,
+                "Need BLUETOOTH_PRIVILEGED permission");
         int value = doesSupport ? BluetoothA2dp.OPTIONAL_CODECS_SUPPORTED
                 : BluetoothA2dp.OPTIONAL_CODECS_NOT_SUPPORTED;
         mAdapterService.getDatabase().setA2dpSupportsOptionalCodecs(device, value);
     }
 
-    public int getOptionalCodecsEnabled(BluetoothDevice device) {
+    /**
+     * Checks whether optional codecs are enabled
+     *
+     * @param device is the remote bluetooth device
+     * @return whether the optional codecs are enabled. Possible values are:
+     * {@link OptionalCodecsPreferenceStatus#OPTIONAL_CODECS_PREF_ENABLED},
+     * {@link OptionalCodecsPreferenceStatus#OPTIONAL_CODECS_PREF_DISABLED},
+     * {@link OptionalCodecsPreferenceStatus#OPTIONAL_CODECS_PREF_UNKNOWN}.
+     */
+    public @OptionalCodecsPreferenceStatus int getOptionalCodecsEnabled(BluetoothDevice device) {
         enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH_ADMIN permission");
         return mAdapterService.getDatabase().getA2dpOptionalCodecsEnabled(device);
     }
 
-    public void setOptionalCodecsEnabled(BluetoothDevice device, int value) {
-        enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH_ADMIN permission");
+    /**
+     * Sets the optional codecs to be set to the passed in value
+     *
+     * @param device is the remote bluetooth device
+     * @param value is the new status for the optional codecs. Possible values are:
+     * {@link OptionalCodecsPreferenceStatus#OPTIONAL_CODECS_PREF_ENABLED},
+     * {@link OptionalCodecsPreferenceStatus#OPTIONAL_CODECS_PREF_DISABLED},
+     * {@link OptionalCodecsPreferenceStatus#OPTIONAL_CODECS_PREF_UNKNOWN}.
+     */
+    public void setOptionalCodecsEnabled(BluetoothDevice device,
+            @OptionalCodecsPreferenceStatus int value) {
+        enforceCallingOrSelfPermission(BLUETOOTH_PRIVILEGED,
+                "Need BLUETOOTH_PRIVILEGED permission");
         if (value != BluetoothA2dp.OPTIONAL_CODECS_PREF_UNKNOWN
                 && value != BluetoothA2dp.OPTIONAL_CODECS_PREF_DISABLED
                 && value != BluetoothA2dp.OPTIONAL_CODECS_PREF_ENABLED) {

@@ -17,6 +17,8 @@
 package com.android.bluetooth.btservice.storage;
 
 import android.bluetooth.BluetoothA2dp;
+import android.bluetooth.BluetoothA2dp.OptionalCodecsPreferenceStatus;
+import android.bluetooth.BluetoothA2dp.OptionalCodecsSupportStatus;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothProfile;
@@ -450,6 +452,7 @@ public class DatabaseManager {
      * {@link BluetoothA2dp#OPTIONAL_CODECS_SUPPORTED},
      */
     @VisibleForTesting
+    @OptionalCodecsSupportStatus
     public int getA2dpSupportsOptionalCodecs(BluetoothDevice device) {
         synchronized (mMetadataCache) {
             if (device == null) {
@@ -520,6 +523,7 @@ public class DatabaseManager {
      * {@link BluetoothA2dp#OPTIONAL_CODECS_PREF_ENABLED}
      */
     @VisibleForTesting
+    @OptionalCodecsPreferenceStatus
     public int getA2dpOptionalCodecsEnabled(BluetoothDevice device) {
         synchronized (mMetadataCache) {
             if (device == null) {
