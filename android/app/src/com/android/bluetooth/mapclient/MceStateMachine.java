@@ -70,7 +70,9 @@ import com.android.vcard.VCardProperty;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /* The MceStateMachine is responsible for setting up and maintaining a connection to a single
@@ -720,6 +722,11 @@ final class MceStateMachine extends StateMachine {
                         mmsBmessage.parseMsgPart(message.getBodyContent());
                         intent.putExtra(android.content.Intent.EXTRA_TEXT,
                                 mmsBmessage.getMessageAsText());
+                        ArrayList<VCardEntry> recipients = message.getRecipients();
+                        if (recipients != null && !recipients.isEmpty()) {
+                            intent.putExtra(android.content.Intent.EXTRA_CC,
+                                    getRecipientsUri(recipients));
+                        }
                     }
                     // Only send to the current default SMS app if one exists
                     String defaultMessagingPackage = Telephony.Sms.getDefaultSmsPackage(mService);
@@ -733,6 +740,29 @@ final class MceStateMachine extends StateMachine {
                     Log.e(TAG, "Received unhandled type" + message.getType().toString());
                     break;
             }
+        }
+
+        /**
+         * Retrieves the URIs of all the participants of a group conversation, besides the sender
+         * of the message.
+         * @param recipients
+         * @return
+         */
+        private String[] getRecipientsUri(ArrayList<VCardEntry> recipients) {
+            Set<String> uris = new HashSet<>();
+
+            for (VCardEntry recipient : recipients) {
+                List<VCardEntry.PhoneData> phoneData = recipient.getPhoneList();
+                if (phoneData != null && phoneData.size() > 0) {
+                    String phoneNumber = phoneData.get(0).getNumber();
+                    if (DBG) {
+                        Log.d(TAG, "CC Recipient number: " + phoneNumber);
+                    }
+                    uris.add(getContactURIFromPhone(phoneNumber));
+                }
+            }
+            String[] stringUris = new String[uris.size()];
+            return uris.toArray(stringUris);
         }
 
         private void notifySentMessageStatus(String handle, EventReport.Type status) {
