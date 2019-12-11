@@ -19,11 +19,13 @@ package com.android.bluetooth;
 import android.app.AppOpsManager;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.ContextWrapper;
 import android.content.pm.PackageManager;
 import android.content.pm.UserInfo;
 import android.location.LocationManager;
+import android.net.Uri;
 import android.os.Binder;
 import android.os.Build;
 import android.os.ParcelUuid;
@@ -31,6 +33,7 @@ import android.os.Process;
 import android.os.SystemProperties;
 import android.os.UserHandle;
 import android.os.UserManager;
+import android.provider.Telephony;
 import android.util.Log;
 
 import org.xmlpull.v1.XmlPullParser;
@@ -585,5 +588,31 @@ public final class Utils {
             ret.append(c);
         }
         return ret.toString();
+    }
+
+    /**
+     * Move a message to the given folder.
+     *
+     * @param context the context to use
+     * @param uri the message to move
+     * @param messageSent if the message is SENT or FAILED
+     * @return true if the operation succeeded
+     */
+    public static boolean moveMessageToFolder(Context context, Uri uri, boolean messageSent) {
+        if (uri == null) {
+            return false;
+        }
+
+        ContentValues values = new ContentValues(3);
+        if (messageSent) {
+            values.put(Telephony.Sms.READ, 1);
+            values.put(Telephony.Sms.TYPE, Telephony.Sms.MESSAGE_TYPE_SENT);
+        } else {
+            values.put(Telephony.Sms.READ, 0);
+            values.put(Telephony.Sms.TYPE, Telephony.Sms.MESSAGE_TYPE_FAILED);
+        }
+        values.put(Telephony.Sms.ERROR_CODE, 0);
+
+        return 1 == context.getContentResolver().update(uri, values, null, null);
     }
 }
