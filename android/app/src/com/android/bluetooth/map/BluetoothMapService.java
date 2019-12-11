@@ -36,6 +36,7 @@ import android.os.Message;
 import android.os.ParcelUuid;
 import android.os.PowerManager;
 import android.os.RemoteException;
+import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 import android.util.Log;
 import android.util.SparseArray;
@@ -637,7 +638,8 @@ public class BluetoothMapService extends ProfileService {
         mAdapter = BluetoothAdapter.getDefaultAdapter();
         mAppObserver = new BluetoothMapAppObserver(this, this);
 
-        mSmsCapable = getResources().getBoolean(com.android.internal.R.bool.config_sms_capable);
+        TelephonyManager tm = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
+        mSmsCapable = tm.isSmsCapable();
 
         mEnabledAccounts = mAppObserver.getEnabledAccountItems();
         createMasInstances();  // Uses mEnabledAccounts
