@@ -68,7 +68,8 @@ android_app {
         "androidx.room_room-compiler-plugin",
     ],
 
-    javacflags: ["-Aroom.schemaLocation=tests/unit/src/com/android/bluetooth/btservice/storage/schemas"],
+    // Add in path to Bluetooth directory because local path does not exist
+    javacflags: ["-Aroom.schemaLocation=packages/apps/Bluetooth/tests/unit/src/com/android/bluetooth/btservice/storage/schemas"],
 
     optimize: {
         enabled: false,
