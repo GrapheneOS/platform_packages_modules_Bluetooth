@@ -1715,6 +1715,8 @@ public class AdapterService extends Service {
                 return false;
             }
 
+            enforceBluetoothPrivilegedPermission(service);
+
             service.setPhonebookAccessPermission(device, value);
             return true;
         }
