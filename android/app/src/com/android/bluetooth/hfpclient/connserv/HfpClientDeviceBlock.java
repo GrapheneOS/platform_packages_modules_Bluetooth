@@ -224,7 +224,7 @@ public class HfpClientDeviceBlock {
         if (DBG) {
             Log.d(mTAG, "prevConn " + prevConn.isClosing() + " new call " + newCall.getState());
         }
-        if (prevConn.isClosing()
+        if (prevConn.isClosing() && prevConn.getCall().getState() != newCall.getState()
                 && newCall.getState() != BluetoothHeadsetClientCall.CALL_STATE_TERMINATED) {
             return true;
         }
