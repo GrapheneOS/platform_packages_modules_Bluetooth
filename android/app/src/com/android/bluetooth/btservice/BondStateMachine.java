@@ -36,9 +36,9 @@ import com.android.bluetooth.hfp.HeadsetService;
 import com.android.bluetooth.hfpclient.HeadsetClientService;
 import com.android.bluetooth.hid.HidHostService;
 import com.android.bluetooth.pbapclient.PbapClientService;
+import com.android.bluetooth.statemachine.State;
+import com.android.bluetooth.statemachine.StateMachine;
 import com.android.internal.annotations.VisibleForTesting;
-import com.android.internal.util.State;
-import com.android.internal.util.StateMachine;
 
 import java.util.ArrayList;
 import java.util.HashSet;
