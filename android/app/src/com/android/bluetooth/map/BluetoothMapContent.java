@@ -2190,7 +2190,6 @@ public class BluetoothMapContent {
         if (tm != null) {
             fi.mPhoneType = tm.getPhoneType();
             fi.mPhoneNum = tm.getLine1Number();
-            fi.mPhoneAlphaTag = tm.getLine1AlphaTag();
         }
     }
 
