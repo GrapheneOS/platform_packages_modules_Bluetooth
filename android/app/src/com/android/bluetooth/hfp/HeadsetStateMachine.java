@@ -841,8 +841,6 @@ public class HeadsetStateMachine extends StateMachine {
                     break;
                 }
                 case CALL_STATE_CHANGED: {
-                    if (mDeviceSilenced) break;
-
                     HeadsetCallState callState = (HeadsetCallState) message.obj;
                     if (!mNativeInterface.phoneStateChange(mDevice, callState)) {
                         stateLogW("processCallState: failed to update call state " + callState);
