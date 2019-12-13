@@ -26,7 +26,7 @@ import android.os.Message;
 import android.util.Log;
 
 import com.android.bluetooth.BluetoothObexTransport;
-import com.android.internal.util.StateMachine;
+import com.android.bluetooth.statemachine.StateMachine;
 
 import java.io.IOException;
 import java.lang.ref.WeakReference;
