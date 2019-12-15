@@ -16,6 +16,8 @@
 
 package com.android.bluetooth;
 
+import android.annotation.NonNull;
+import android.annotation.Nullable;
 import android.app.AppOpsManager;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -386,7 +388,7 @@ public final class Utils {
      * OP_COARSE_LOCATION is allowed
      */
     public static boolean checkCallerHasCoarseLocation(Context context, AppOpsManager appOps,
-            String callingPackage, UserHandle userHandle) {
+            String callingPackage, @Nullable String callingFeatureId, UserHandle userHandle) {
         if (blockedByLocationOff(context, userHandle)) {
             Log.e(TAG, "Permission denial: Location is off.");
             return false;
@@ -396,7 +398,8 @@ public final class Utils {
         if (context.checkCallingOrSelfPermission(
                 android.Manifest.permission.ACCESS_COARSE_LOCATION)
                         == PackageManager.PERMISSION_GRANTED
-                && isAppOppAllowed(appOps, AppOpsManager.OPSTR_FINE_LOCATION, callingPackage)) {
+                && isAppOppAllowed(appOps, AppOpsManager.OPSTR_FINE_LOCATION, callingPackage,
+                callingFeatureId)) {
             return true;
         }
 
@@ -411,7 +414,7 @@ public final class Utils {
      * OP_FINE_LOCATION is allowed
      */
     public static boolean checkCallerHasCoarseOrFineLocation(Context context, AppOpsManager appOps,
-            String callingPackage, UserHandle userHandle) {
+            String callingPackage, @Nullable String callingFeatureId, UserHandle userHandle) {
         if (blockedByLocationOff(context, userHandle)) {
             Log.e(TAG, "Permission denial: Location is off.");
             return false;
@@ -420,7 +423,8 @@ public final class Utils {
         if (context.checkCallingOrSelfPermission(
                 android.Manifest.permission.ACCESS_FINE_LOCATION)
                         == PackageManager.PERMISSION_GRANTED
-                && isAppOppAllowed(appOps, AppOpsManager.OPSTR_FINE_LOCATION, callingPackage)) {
+                && isAppOppAllowed(appOps, AppOpsManager.OPSTR_FINE_LOCATION, callingPackage,
+                callingFeatureId)) {
             return true;
         }
 
@@ -428,7 +432,8 @@ public final class Utils {
         if (context.checkCallingOrSelfPermission(
                 android.Manifest.permission.ACCESS_COARSE_LOCATION)
                         == PackageManager.PERMISSION_GRANTED
-                && isAppOppAllowed(appOps, AppOpsManager.OPSTR_FINE_LOCATION, callingPackage)) {
+                && isAppOppAllowed(appOps, AppOpsManager.OPSTR_FINE_LOCATION, callingPackage,
+                callingFeatureId)) {
             return true;
         }
 
@@ -442,7 +447,7 @@ public final class Utils {
      * OP_FINE_LOCATION is allowed
      */
     public static boolean checkCallerHasFineLocation(Context context, AppOpsManager appOps,
-            String callingPackage, UserHandle userHandle) {
+            String callingPackage, @Nullable String callingFeatureId, UserHandle userHandle) {
         if (blockedByLocationOff(context, userHandle)) {
             Log.e(TAG, "Permission denial: Location is off.");
             return false;
@@ -451,7 +456,8 @@ public final class Utils {
         if (context.checkCallingOrSelfPermission(
                 android.Manifest.permission.ACCESS_FINE_LOCATION)
                         == PackageManager.PERMISSION_GRANTED
-                && isAppOppAllowed(appOps, AppOpsManager.OPSTR_FINE_LOCATION, callingPackage)) {
+                && isAppOppAllowed(appOps, AppOpsManager.OPSTR_FINE_LOCATION, callingPackage,
+                callingFeatureId)) {
             return true;
         }
 
@@ -487,7 +493,8 @@ public final class Utils {
         return true;
     }
 
-    private static boolean isAppOppAllowed(AppOpsManager appOps, String op, String callingPackage) {
+    private static boolean isAppOppAllowed(AppOpsManager appOps, String op, String callingPackage,
+            @NonNull String callingFeatureId) {
         return appOps.noteOp(op, Binder.getCallingUid(), callingPackage)
                 == AppOpsManager.MODE_ALLOWED;
     }
