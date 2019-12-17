@@ -923,17 +923,6 @@ public class HearingAidService extends ProfileService {
         }
 
         @Override
-        public void adjustVolume(int direction) {
-            // TODO: Remove me?
-        }
-
-        @Override
-        public int getVolume() {
-            // TODO: Remove me?
-            return 0;
-        }
-
-        @Override
         public long getHiSyncId(BluetoothDevice device) {
             HearingAidService service = getService();
             if (service == null) {
