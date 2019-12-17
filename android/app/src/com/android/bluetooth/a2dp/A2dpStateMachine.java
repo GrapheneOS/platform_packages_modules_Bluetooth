@@ -596,7 +596,7 @@ final class A2dpStateMachine extends StateMachine {
 
     boolean isConnected() {
         synchronized (this) {
-            return (getCurrentState() == mConnected);
+            return (getConnectionState() == BluetoothProfile.STATE_CONNECTED);
         }
     }
 
