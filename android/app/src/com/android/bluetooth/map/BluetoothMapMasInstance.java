@@ -51,10 +51,10 @@ public class BluetoothMapMasInstance implements IObexConnectionHandler {
     private static final int SDP_MAP_MSG_TYPE_MMS = 0x08;
     private static final int SDP_MAP_MSG_TYPE_IM = 0x10;
 
-    private static final int SDP_MAP_MAS_VERSION = 0x0102;
+    private static final int SDP_MAP_MAS_VERSION = 0x0104;
 
     /* TODO: Should these be adaptive for each MAS? - e.g. read from app? */
-    static final int SDP_MAP_MAS_FEATURES = 0x0000007F;
+    static final int SDP_MAP_MAS_FEATURES = 0x603ff;
 
     private ServerSession mServerSession = null;
     // The handle to the socket registration with SDP
@@ -80,7 +80,7 @@ public class BluetoothMapMasInstance implements IObexConnectionHandler {
     private int mMasInstanceId = -1;
     private boolean mEnableSmsMms = false;
     BluetoothMapContentObserver mObserver;
-
+    private BluetoothMapObexServer mMapServer;
     private AtomicLong mDbIndetifier = new AtomicLong();
     private AtomicLong mFolderVersionCounter = new AtomicLong(0);
     private AtomicLong mSmsMmsConvoListVersionCounter = new AtomicLong(0);
@@ -360,17 +360,16 @@ public class BluetoothMapMasInstance implements IObexConnectionHandler {
             }
 
             mMnsClient = mnsClient;
-            BluetoothMapObexServer mapServer;
             mObserver = new BluetoothMapContentObserver(mContext, mMnsClient, this, mAccount,
                     mEnableSmsMms);
             mObserver.init();
-            mapServer =
+            mMapServer =
                     new BluetoothMapObexServer(mServiceHandler, mContext, mObserver, this, mAccount,
                             mEnableSmsMms);
-
+            mMapServer.setRemoteFeatureMask(mRemoteFeatureMask);
             // setup transport
             BluetoothObexTransport transport = new BluetoothObexTransport(mConnSocket);
-            mServerSession = new ServerSession(transport, mapServer, null);
+            mServerSession = new ServerSession(transport, mMapServer, null);
             if (D) {
                 Log.d(mTag, "    ServerSession started.");
             }
@@ -457,8 +456,10 @@ public class BluetoothMapMasInstance implements IObexConnectionHandler {
             Log.v(mTag, "setRemoteFeatureMask : Curr: " + mRemoteFeatureMask);
         }
         mRemoteFeatureMask = supportedFeatures & SDP_MAP_MAS_FEATURES;
+        BluetoothMapUtils.savePeerSupportUtcTimeStamp(mRemoteFeatureMask);
         if (mObserver != null) {
             mObserver.setObserverRemoteFeatureMask(mRemoteFeatureMask);
+            mMapServer.setRemoteFeatureMask(mRemoteFeatureMask);
             if (V) {
                 Log.v(mTag, "setRemoteFeatureMask : set: " + mRemoteFeatureMask);
             }
