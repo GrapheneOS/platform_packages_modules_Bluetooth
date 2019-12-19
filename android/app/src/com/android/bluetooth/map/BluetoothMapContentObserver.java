@@ -115,7 +115,7 @@ public class BluetoothMapContentObserver {
     private static final long EVENT_FILTER_CONVERSATION_CHANGED = 1L << 10;
     private static final long EVENT_FILTER_PARTICIPANT_PRESENCE_CHANGED = 1L << 11;
     private static final long EVENT_FILTER_PARTICIPANT_CHATSTATE_CHANGED = 1L << 12;
-    private static final long EVENT_FILTER_MESSAGE_REMOVED = 1L << 13;
+    private static final long EVENT_FILTER_MESSAGE_REMOVED = 1L << 14;
 
     // TODO: If we are requesting a large message from the network, on a slow connection
     //       20 seconds might not be enough... But then again 20 seconds is long for other
@@ -1534,10 +1534,14 @@ public class BluetoothMapContentObserver {
                     c.close();
                 }
             }
-
+            String eventType = EVENT_TYPE_DELETE;
             for (Msg msg : getMsgListSms().values()) {
                 // "old_folder" used only for MessageShift event
-                Event evt = new Event(EVENT_TYPE_DELETE, msg.id, getSmsFolderName(msg.type), null,
+                if (mMapEventReportVersion >= BluetoothMapUtils.MAP_EVENT_REPORT_V12) {
+                    eventType = EVENT_TYPE_REMOVED;
+                    if (V) Log.v(TAG," sent EVENT_TYPE_REMOVED");
+                }
+                Event evt = new Event(eventType, msg.id, getSmsFolderName(msg.type), null,
                         mSmsType);
                 sendEvent(evt);
                 listChanged = true;
