@@ -244,7 +244,7 @@ public class HeadsetPhoneState {
         return (mNumActive >= 1);
     }
 
-    private void sendDeviceStateChanged() {
+    private synchronized void sendDeviceStateChanged() {
         int service =
                 mIsSimStateLoaded ? mCindService : HeadsetHalConstants.NETWORK_STATE_NOT_AVAILABLE;
         // When out of service, send signal strength as 0. Some devices don't
