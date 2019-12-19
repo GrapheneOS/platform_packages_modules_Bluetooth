@@ -513,15 +513,11 @@ public class BluetoothMapSmsPdu {
         int activePhone = context.getSystemService(TelephonyManager.class)
                 .getCurrentPhoneType();
         int phoneType;
-        GsmAlphabet.TextEncodingDetails ted = (PHONE_TYPE_CDMA == activePhone)
-                ? com.android.internal.telephony.cdma.SmsMessage.calculateLength(
-                (CharSequence) messageText, false, true)
-                : com.android.internal.telephony.gsm.SmsMessage.calculateLength(
-                        (CharSequence) messageText, false);
+        int[] ted = SmsMessage.calculateLength((CharSequence) messageText, false);
 
         SmsPdu newPdu;
         String destinationAddress;
-        int msgCount = ted.msgCount;
+        int msgCount = ted[0];
         int encoding;
         int languageTable;
         int languageShiftTable;
@@ -533,9 +529,9 @@ public class BluetoothMapSmsPdu {
 
         // Default to GSM, as this code should not be used, if we neither have CDMA not GSM.
         phoneType = (activePhone == PHONE_TYPE_CDMA) ? SMS_TYPE_CDMA : SMS_TYPE_GSM;
-        encoding = ted.codeUnitSize;
-        languageTable = ted.languageTable;
-        languageShiftTable = ted.languageShiftTable;
+        encoding = ted[3];
+        languageTable = ted[4];
+        languageShiftTable = ted[5];
         destinationAddress = PhoneNumberUtils.stripSeparators(address);
         if (destinationAddress == null || destinationAddress.length() < 2) {
             destinationAddress =
