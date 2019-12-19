@@ -36,6 +36,7 @@ cc_library_static {
         "packages/modules/Bluetooth/system/stack/include",
         "packages/modules/Bluetooth/system/utils/include",
         "packages/modules/Bluetooth/system/bta/include",
+        "packages/modules/Bluetooth/system/btif/include",
         "system/libhwbinder/include",
     ],
 }
