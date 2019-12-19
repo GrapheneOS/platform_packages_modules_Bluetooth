@@ -24,6 +24,7 @@ import android.bluetooth.BluetoothProfile;
 import android.content.Context;
 
 import androidx.test.InstrumentationRegistry;
+import androidx.test.filters.FlakyTest;
 import androidx.test.filters.MediumTest;
 import androidx.test.rule.ServiceTestRule;
 import androidx.test.runner.AndroidJUnit4;
@@ -137,6 +138,7 @@ public class MapClientTest {
      * Test that a PRIORITY_OFF device is not connected to
      */
     @Test
+    @FlakyTest
     public void testConnectPriorityOffDevice() {
         // make sure there is no statemachine already defined for this device
         BluetoothDevice device = makeBluetoothDevice("11:11:11:11:11:11");
