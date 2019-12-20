@@ -47,6 +47,13 @@ public class BluetoothMapSmsPdu {
     public static final int SMS_TYPE_GSM = 1;
     public static final int SMS_TYPE_CDMA = 2;
 
+    /**
+     * from SMS user data header information element identifiers.
+     * (see TS 23.040 9.2.3.24)
+     */
+    private static final int ELT_ID_NATIONAL_LANGUAGE_SINGLE_SHIFT     = 0x24;
+    private static final int ELT_ID_NATIONAL_LANGUAGE_LOCKING_SHIFT    = 0x25;
+
 
     /* We need to handle the SC-address mentioned in errata 4335.
      * Since the definition could be read in three different ways, I have asked
@@ -343,9 +350,9 @@ public class BluetoothMapSmsPdu {
                     } catch (IOException e) {
                         Log.w(TAG, "unable to read userDataHeader", e);
                     }
-                    SmsHeader userDataHeader = SmsHeader.fromByteArray(udh);
-                    mLanguageTable = userDataHeader.languageTable;
-                    mLanguageShiftTable = userDataHeader.languageShiftTable;
+                    int[] tableValue = getTableFromByteArray(udh);
+                    mLanguageTable = tableValue[0];
+                    mLanguageShiftTable = tableValue[1];
 
                     int headerBits = (userDataHeaderLength + 1) * 8;
                     int headerSeptets = headerBits / 7;
@@ -788,6 +795,28 @@ public class BluetoothMapSmsPdu {
         }
 
         return messageBody;
+    }
+
+    private static int[] getTableFromByteArray(byte[] data) {
+        ByteArrayInputStream inStream = new ByteArrayInputStream(data);
+        /** tableValue[0]: languageTable
+         *  tableValue[1]: languageShiftTable */
+        int[] tableValue = new int[2];
+        while (inStream.available() > 0) {
+            int id = inStream.read();
+            int length = inStream.read();
+            switch (id) {
+                case ELT_ID_NATIONAL_LANGUAGE_SINGLE_SHIFT:
+                    tableValue[1] = inStream.read();
+                    break;
+                case ELT_ID_NATIONAL_LANGUAGE_LOCKING_SHIFT:
+                    tableValue[0] = inStream.read();
+                    break;
+                default:
+                    inStream.skip(length);
+            }
+        }
+        return tableValue;
     }
 
 }
