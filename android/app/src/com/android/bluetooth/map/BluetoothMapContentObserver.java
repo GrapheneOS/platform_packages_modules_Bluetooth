@@ -1454,10 +1454,7 @@ public class BluetoothMapContentObserver {
                                                     Context.TELEPHONY_SERVICE);
                                     if (tm != null) {
                                         phone = tm.getLine1Number();
-                                        name = tm.getLine1AlphaTag();
-                                        if (name == null || name.isEmpty()) {
-                                            name = phone;
-                                        }
+                                        name = phone;
                                     }
                                 }
                                 String priority = "no"; // no priority for sms

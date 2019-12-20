@@ -50,7 +50,6 @@ import android.os.Message;
 import android.os.PowerManager;
 import android.os.UserManager;
 import android.telephony.TelephonyManager;
-import android.text.TextUtils;
 import android.util.Log;
 
 import com.android.bluetooth.IObexConnectionHandler;
@@ -785,10 +784,7 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
         TelephonyManager tm = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
         if (tm != null) {
             sLocalPhoneNum = tm.getLine1Number();
-            sLocalPhoneName = tm.getLine1AlphaTag();
-            if (TextUtils.isEmpty(sLocalPhoneName)) {
-                sLocalPhoneName = this.getString(R.string.localPhoneName);
-            }
+            sLocalPhoneName = this.getString(R.string.localPhoneName);
         }
         if (VERBOSE)
             Log.v(TAG, "Local Phone Details- Number:" + sLocalPhoneNum
