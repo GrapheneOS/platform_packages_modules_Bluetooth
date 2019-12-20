@@ -736,7 +736,7 @@ public class StateMachineTest {
         private int mExitCount;
     }
 
-    @MediumTest
+    @Test @MediumTest
     public void testStateMachine1() throws Exception {
         StateMachine1 sm1 = new StateMachine1("sm1");
         sm1.start();
@@ -843,7 +843,7 @@ public class StateMachineTest {
         private boolean mDidExit = false;
     }
 
-    @MediumTest
+    @Test @MediumTest
     public void testStateMachine2() throws Exception {
         StateMachine2 sm2 = new StateMachine2("sm2");
         sm2.start();
@@ -937,7 +937,7 @@ public class StateMachineTest {
         private ChildState mChildState = new ChildState();
     }
 
-    @MediumTest
+    @Test @MediumTest
     public void testStateMachine3() throws Exception {
         StateMachine3 sm3 = new StateMachine3("sm3");
         sm3.start();
@@ -1033,7 +1033,7 @@ public class StateMachineTest {
         private ChildState2 mChildState2 = new ChildState2();
     }
 
-    @MediumTest
+    @Test @MediumTest
     public void testStateMachine4() throws Exception {
         StateMachine4 sm4 = new StateMachine4("sm4");
         sm4.start();
@@ -1328,7 +1328,7 @@ public class StateMachineTest {
         private int mChildState5ExitCount = 0;
     }
 
-    @MediumTest
+    @Test @MediumTest
     public void testStateMachine5() throws Exception {
         StateMachine5 sm5 = new StateMachine5("sm5");
         sm5.start();
@@ -1453,7 +1453,7 @@ public class StateMachineTest {
         private long mArrivalTimeMsg2;
     }
 
-    @MediumTest
+    @Test @MediumTest
     public void testStateMachine6() throws Exception {
         final int DELAY_TIME = 250;
         final int DELAY_FUDGE = 20;
@@ -1560,7 +1560,7 @@ public class StateMachineTest {
         private long mArrivalTimeMsg3;
     }
 
-    @MediumTest
+    @Test @MediumTest
     public void testStateMachine7() throws Exception {
         final int SM7_DELAY_FUDGE = 20;
 
@@ -1712,7 +1712,7 @@ public class StateMachineTest {
     private static int sharedCounter = 0;
     private static Object waitObject = new Object();
 
-    @MediumTest
+    @Test @MediumTest
     public void testStateMachineSharedThread() throws Exception {
         if (DBG) tlog("testStateMachineSharedThread E");
 
@@ -1914,7 +1914,7 @@ public class StateMachineTest {
         P2 mP2 = new P2();
     }
 
-    @MediumTest
+    @Test @MediumTest
     public void testHsm1() throws Exception {
         if (DBG) tlog("testHsm1 E");
 
