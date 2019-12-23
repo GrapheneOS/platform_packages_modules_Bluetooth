@@ -694,13 +694,13 @@ public class MediaPlayerList {
             boolean isActive = false;
             Log.v(TAG, "onPlaybackConfigChanged(): Configs list size=" + configs.size());
             for (AudioPlaybackConfiguration config : configs) {
-                if (config.isActive() && (config.getAudioAttributes().getUsage()
+                if (config.getPlayerState() == AudioPlaybackConfiguration.PLAYER_STATE_STARTED
+                        && (config.getAudioAttributes().getUsage()
                             == AudioAttributes.USAGE_ASSISTANCE_NAVIGATION_GUIDANCE)
                         && (config.getAudioAttributes().getContentType()
                             == AudioAttributes.CONTENT_TYPE_SPEECH)) {
                     if (DEBUG) {
-                        Log.d(TAG, "onPlaybackConfigChanged(): config="
-                                 + AudioPlaybackConfiguration.toLogFriendlyString(config));
+                        Log.d(TAG, "onPlaybackConfigChanged(): config=" + config);
                     }
                     isActive = true;
                 }
