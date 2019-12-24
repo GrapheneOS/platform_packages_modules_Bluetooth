@@ -699,8 +699,7 @@ public class MediaPlayerList {
                         && (config.getAudioAttributes().getContentType()
                             == AudioAttributes.CONTENT_TYPE_SPEECH)) {
                     if (DEBUG) {
-                        Log.d(TAG, "onPlaybackConfigChanged(): config="
-                                 + AudioPlaybackConfiguration.toLogFriendlyString(config));
+                        Log.d(TAG, "onPlaybackConfigChanged(): config=" + config);
                     }
                     isActive = true;
                 }
