@@ -15,6 +15,7 @@
 package com.android.bluetooth.sdp;
 
 import android.bluetooth.BluetoothDevice;
+import android.bluetooth.SdpDipRecord;
 import android.bluetooth.SdpMasRecord;
 import android.bluetooth.SdpMnsRecord;
 import android.bluetooth.SdpOppOpsRecord;
@@ -354,6 +355,39 @@ public class SdpManager {
             inst.setStatus(status);
             if (status == AbstractionLayer.BT_STATUS_SUCCESS) {
                 sdpRecord = new SdpSapsRecord(rfcommCannelNumber, profileVersion, serviceName);
+            }
+            if (D) {
+                Log.d(TAG, "UUID: " + Arrays.toString(uuid));
+            }
+            if (D) {
+                Log.d(TAG, "UUID in parcel: " + ((Utils.byteArrayToUuid(uuid))[0]).toString());
+            }
+            sendSdpIntent(inst, sdpRecord, moreResults);
+        }
+    }
+
+    void sdpDipRecordFoundCallback(int status, byte[] address,
+            byte[] uuid,  int specificationId,
+            int vendorId, int vendorIdSource,
+            int productId, int version,
+            boolean primaryRecord,
+            boolean moreResults) {
+        synchronized(TRACKER_LOCK) {
+            SdpSearchInstance inst = sSdpSearchTracker.getSearchInstance(address, uuid);
+            SdpDipRecord sdpRecord = null;
+            if (inst == null) {
+              Log.e(TAG, "sdpDipRecordFoundCallback: Search instance is NULL");
+              return;
+            }
+            inst.setStatus(status);
+            if (D) {
+                Log.d(TAG, "sdpDipRecordFoundCallback: status " + status);
+            }
+            if (status == AbstractionLayer.BT_STATUS_SUCCESS) {
+                sdpRecord = new SdpDipRecord(specificationId,
+                        vendorId, vendorIdSource,
+                        productId, version,
+                        primaryRecord);
             }
             if (D) {
                 Log.d(TAG, "UUID: " + Arrays.toString(uuid));
