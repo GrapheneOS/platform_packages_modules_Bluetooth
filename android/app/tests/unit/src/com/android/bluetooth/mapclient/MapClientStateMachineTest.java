@@ -20,6 +20,7 @@ import static org.mockito.Mockito.*;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothMapClient;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.SdpMasRecord;
 import android.content.Context;
@@ -201,6 +202,25 @@ public class MapClientStateMachineTest {
         Message notification = Message.obtain(mHandler, MceStateMachine.MSG_NOTIFICATION);
         mMceStateMachine.getCurrentState().processMessage(msg);
         Assert.assertEquals(BluetoothProfile.STATE_CONNECTED, mMceStateMachine.getState());
+    }
+
+    /**
+     * Test set message status
+     */
+    @Test
+    public void testSetMessageStatus() {
+        setupSdpRecordReceipt();
+        Message msg = Message.obtain(mHandler, MceStateMachine.MSG_MAS_CONNECTED);
+        mMceStateMachine.sendMessage(msg);
+
+        // Wait until the message is processed and a broadcast request is sent to
+        // to MapClientService to change
+        // state from STATE_CONNECTING to STATE_CONNECTED
+        verify(mMockMapClientService,
+                timeout(ASYNC_CALL_TIMEOUT_MILLIS).times(2)).sendBroadcast(
+                mIntentArgument.capture(), eq(ProfileService.BLUETOOTH_PERM));
+        Assert.assertEquals(BluetoothProfile.STATE_CONNECTED, mMceStateMachine.getState());
+        Assert.assertTrue(mMceStateMachine.setMessageStatus("123456789AB", BluetoothMapClient.READ));
     }
 
     private void setupSdpRecordReceipt() {
