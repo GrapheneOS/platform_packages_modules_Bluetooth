@@ -129,7 +129,8 @@ public class A2dpService extends ProfileService {
 
         // Step 5: Initialize native interface
         mA2dpNativeInterface.init(mMaxConnectedAudioDevices,
-                                  mA2dpCodecConfig.codecConfigPriorities());
+                                  mA2dpCodecConfig.codecConfigPriorities(),
+                                  mA2dpCodecConfig.codecConfigOffloading());
 
         // Step 6: Check if A2DP is in offload mode
         mA2dpOffloadEnabled = mAdapterService.isA2dpOffloadEnabled();

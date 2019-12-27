@@ -23,6 +23,7 @@ import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.content.res.Resources;
 import android.content.res.Resources.NotFoundException;
+import android.media.AudioManager;
 import android.util.Log;
 
 import com.android.bluetooth.R;
@@ -51,14 +52,28 @@ class A2dpCodecConfig {
     private @CodecPriority int mA2dpSourceCodecPriorityLdac =
             BluetoothCodecConfig.CODEC_PRIORITY_DEFAULT;
 
+    private BluetoothCodecConfig[] mCodecConfigOffloading = new BluetoothCodecConfig[0];
+
     A2dpCodecConfig(Context context, A2dpNativeInterface a2dpNativeInterface) {
         mContext = context;
         mA2dpNativeInterface = a2dpNativeInterface;
         mCodecConfigPriorities = assignCodecConfigPriorities();
+
+        AudioManager audioManager = (AudioManager)mContext.getSystemService(Context.AUDIO_SERVICE);
+        if (audioManager == null) {
+          Log.w(TAG, "Can't obtain the codec offloading prefernece from null AudioManager");
+          return;
+        }
+        mCodecConfigOffloading = audioManager.getHwOffloadEncodingFormatsSupportedForA2DP()
+                                             .toArray(mCodecConfigOffloading);
     }
 
     BluetoothCodecConfig[] codecConfigPriorities() {
         return mCodecConfigPriorities;
+    }
+
+    BluetoothCodecConfig[] codecConfigOffloading() {
+        return mCodecConfigOffloading;
     }
 
     void setCodecConfigPreference(BluetoothDevice device,
