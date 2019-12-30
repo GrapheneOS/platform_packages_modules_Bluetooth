@@ -182,10 +182,12 @@ class AdapterProperties {
     AdapterProperties(AdapterService service) {
         mService = service;
         mAdapter = BluetoothAdapter.getDefaultAdapter();
+        invalidateIsOffloadedFilteringSupportedCache();
     }
 
     public void init(RemoteDevices remoteDevices) {
         mProfileConnectionState.clear();
+        invalidateGetProfileConnectionStateCache();
         mRemoteDevices = remoteDevices;
 
         // Get default max connected audio devices from config.xml in frameworks/base/core
@@ -228,12 +230,20 @@ class AdapterProperties {
     public void cleanup() {
         mRemoteDevices = null;
         mProfileConnectionState.clear();
+        invalidateGetProfileConnectionStateCache();
         if (mReceiverRegistered) {
             mService.unregisterReceiver(mReceiver);
             mReceiverRegistered = false;
         }
         mService = null;
         mBondedDevices.clear();
+    }
+
+    private static void invalidateGetProfileConnectionStateCache() {
+        BluetoothAdapter.invalidateGetProfileConnectionStateCache();
+    }
+    private static void invalidateIsOffloadedFilteringSupportedCache() {
+        BluetoothAdapter.invalidateIsOffloadedFilteringSupportedCache();
     }
 
     @Override
@@ -764,6 +774,7 @@ class AdapterProperties {
 
         if (update) {
             mProfileConnectionState.put(profile, new Pair<Integer, Integer>(newHashState, numDev));
+            invalidateGetProfileConnectionStateCache();
         }
     }
 
@@ -889,6 +900,7 @@ class AdapterProperties {
                 + " mIsLeExtendedAdvertisingSupported = " + mIsLeExtendedAdvertisingSupported
                 + " mIsLePeriodicAdvertisingSupported = " + mIsLePeriodicAdvertisingSupported
                 + " mLeMaximumAdvertisingDataLength = " + mLeMaximumAdvertisingDataLength);
+        invalidateIsOffloadedFilteringSupportedCache();
     }
 
     void onBluetoothReady() {
@@ -899,6 +911,7 @@ class AdapterProperties {
             // Reset adapter and profile connection states
             setConnectionState(BluetoothAdapter.STATE_DISCONNECTED);
             mProfileConnectionState.clear();
+            invalidateGetProfileConnectionStateCache();
             mProfilesConnected = 0;
             mProfilesConnecting = 0;
             mProfilesDisconnecting = 0;

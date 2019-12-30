@@ -697,6 +697,9 @@ public class AdapterService extends Service {
             return;
         }
 
+        BluetoothAdapter.invalidateGetProfileConnectionStateCache();
+        BluetoothAdapter.invalidateIsOffloadedFilteringSupportedCache();
+
         clearAdapterService(this);
 
         mCleaningUp = true;
@@ -1380,6 +1383,10 @@ public class AdapterService extends Service {
             return service.mAdapterProperties.getConnectionState();
         }
 
+        /**
+         * This method has an associated binder cache.  The invalidation
+         * methods must be changed if the logic behind this method changes.
+         */
         @Override
         public int getProfileConnectionState(int profile) {
             AdapterService service = getService();
@@ -1924,6 +1931,10 @@ public class AdapterService extends Service {
             return val >= MIN_ADVT_INSTANCES_FOR_MA;
         }
 
+        /**
+         * This method has an associated binder cache.  The invalidation
+         * methods must be changed if the logic behind this method changes.
+         */
         @Override
         public boolean isOffloadedFilteringSupported() {
             AdapterService service = getService();
