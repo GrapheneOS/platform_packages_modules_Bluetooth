@@ -258,10 +258,11 @@ class PhonePolicy {
         }
 
         if ((panService != null) && (ArrayUtils.contains(uuids, BluetoothUuid.PANU) && (
-                panService.getPriority(device) == BluetoothProfile.CONNECTION_POLICY_UNKNOWN)
+                panService.getConnectionPolicy(device)
+                        == BluetoothProfile.CONNECTION_POLICY_UNKNOWN)
                 && mAdapterService.getResources()
                 .getBoolean(R.bool.config_bluetooth_pan_enable_autoconnect))) {
-            panService.setPriority(device, BluetoothProfile.CONNECTION_POLICY_ALLOWED);
+            panService.setConnectionPolicy(device, BluetoothProfile.CONNECTION_POLICY_ALLOWED);
         }
 
         if ((hearingAidService != null) && ArrayUtils.contains(uuids,
@@ -490,7 +491,7 @@ class PhonePolicy {
             List<BluetoothDevice> panConnDevList = panService.getConnectedDevices();
             // TODO: the panConnDevList.isEmpty() check below should be removed once
             // Multi-PAN is supported.
-            if (panConnDevList.isEmpty() && (panService.getPriority(device)
+            if (panConnDevList.isEmpty() && (panService.getConnectionPolicy(device)
                     >= BluetoothProfile.CONNECTION_POLICY_ALLOWED)
                     && (panService.getConnectionState(device)
                     == BluetoothProfile.STATE_DISCONNECTED)) {
