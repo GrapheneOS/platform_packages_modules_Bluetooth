@@ -818,7 +818,9 @@ public class HeadsetService extends ProfileService {
     }
 
     /**
-     * Set connection policy of the profile
+     * Set connection policy of the profile and connects it if connectionPolicy is
+     * {@link BluetoothProfile#CONNECTION_POLICY_ALLOWED} or disconnects if connectionPolicy is
+     * {@link BluetoothProfile#CONNECTION_POLICY_FORBIDDEN}
      *
      * <p> The device should already be paired.
      * Connection policy can be one of:
@@ -829,7 +831,6 @@ public class HeadsetService extends ProfileService {
      * @param device Paired bluetooth device
      * @param connectionPolicy is the connection policy to set to for this profile
      * @return true if connectionPolicy is set, false on error
-     * @hide
      */
     public boolean setConnectionPolicy(BluetoothDevice device, int connectionPolicy) {
         enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH_ADMIN permission");
@@ -837,6 +838,11 @@ public class HeadsetService extends ProfileService {
                 + ", connectionPolicy=" + connectionPolicy + ", " + Utils.getUidPidString());
         mAdapterService.getDatabase()
                 .setProfileConnectionPolicy(device, BluetoothProfile.HEADSET, connectionPolicy);
+        if (connectionPolicy == BluetoothProfile.CONNECTION_POLICY_ALLOWED) {
+            connect(device);
+        } else if (connectionPolicy == BluetoothProfile.CONNECTION_POLICY_FORBIDDEN) {
+            disconnect(device);
+        }
         return true;
     }
 
