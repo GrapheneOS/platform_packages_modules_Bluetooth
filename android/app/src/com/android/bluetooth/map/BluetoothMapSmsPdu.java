@@ -23,7 +23,7 @@ import android.telephony.SmsMessage;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 
-import com.android.internal.telephony.GsmAlphabet;
+import com.android.bluetooth.util.GsmAlphabet;
 import com.android.internal.telephony.SmsConstants;
 import com.android.internal.telephony.SmsHeader;
 import com.android.internal.telephony.cdma.sms.BearerData;
