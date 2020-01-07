@@ -467,6 +467,32 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
         return devices;
     }
 
+    /**
+     * Disconnects Pbap if connectionPolicy is {@link BluetoothProfile#CONNECTION_POLICY_FORBIDDEN}.
+     *
+     * <p> The device should already be paired.
+     * Connection policy can be one of:
+     * {@link BluetoothProfile#CONNECTION_POLICY_ALLOWED},
+     * {@link BluetoothProfile#CONNECTION_POLICY_FORBIDDEN},
+     * {@link BluetoothProfile#CONNECTION_POLICY_UNKNOWN}
+     *
+     * @param device Paired bluetooth device
+     * @param connectionPolicy determines whether pbap should be disconnected
+     * @return true if pbap is disconnected, false otherwise
+     */
+    public boolean setConnectionPolicy(BluetoothDevice device, int connectionPolicy) {
+        enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH_ADMIN permission");
+        if (DEBUG) {
+            Log.d(TAG, "setConnectionPolicy: device " + device
+                    + " and connectionPolicy " + connectionPolicy);
+        }
+        if (connectionPolicy == BluetoothProfile.CONNECTION_POLICY_FORBIDDEN) {
+            disconnect(device);
+            return true;
+        }
+        return false;
+    }
+
     void disconnect(BluetoothDevice device) {
         enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH_ADMIN permission");
         synchronized (mPbapStateMachineMap) {
@@ -649,6 +675,19 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
                 return BluetoothAdapter.STATE_DISCONNECTED;
             }
             return service.getConnectionState(device);
+        }
+
+        @Override
+        public boolean setConnectionPolicy(BluetoothDevice device, int connectionPolicy) {
+            if (DEBUG) {
+                Log.d(TAG, "setConnectionPolicy for device: " + device + ", policy:"
+                        + connectionPolicy);
+            }
+            BluetoothPbapService service = getService();
+            if (service == null) {
+                return false;
+            }
+            return service.setConnectionPolicy(device, connectionPolicy);
         }
 
         @Override
