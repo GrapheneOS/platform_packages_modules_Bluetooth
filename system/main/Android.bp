@@ -12,15 +12,44 @@ filegroup {
     ]
 }
 
+cc_library_static {
+    name: "libbte",
+    defaults: ["fluoride_defaults"],
+    srcs: [
+        ":LibBluetoothSources",
+        ":LibBluetoothShimSources",
+    ],
+    include_dirs: [
+        "packages/modules/Bluetooth/system",
+        "packages/modules/Bluetooth/system/bta/include",
+        "packages/modules/Bluetooth/system/bta/sys",
+        "packages/modules/Bluetooth/system/bta/dm",
+        "packages/modules/Bluetooth/system/btcore/include",
+        "packages/modules/Bluetooth/system/internal_include",
+        "packages/modules/Bluetooth/system/stack/include",
+        "packages/modules/Bluetooth/system/stack/l2cap",
+        "packages/modules/Bluetooth/system/stack/a2dp",
+        "packages/modules/Bluetooth/system/stack/btm",
+        "packages/modules/Bluetooth/system/stack/avdt",
+        "packages/modules/Bluetooth/system/udrv/include",
+        "packages/modules/Bluetooth/system/btif/include",
+        "packages/modules/Bluetooth/system/btif/co",
+        "packages/modules/Bluetooth/system/hci/include",
+        "packages/modules/Bluetooth/system/vnd/include",
+        "packages/modules/Bluetooth/system/embdrv/sbc/encoder/include",
+        "packages/modules/Bluetooth/system/embdrv/sbc/decoder/include",
+        "packages/modules/Bluetooth/system/utils/include",
+        "system/security/keystore/include",
+        "hardware/interfaces/keymaster/4.0/support/include",
+    ],
+    host_supported: true,
+}
+
 cc_library_shared {
     name: "libbluetooth",
     defaults: ["fluoride_defaults"],
     header_libs: ["libbluetooth_headers"],
     export_header_lib_headers: ["libbluetooth_headers"],
-    srcs: [
-        ":LibBluetoothSources",
-        ":LibBluetoothShimSources",
-    ],
     include_dirs: [
         "packages/modules/Bluetooth/system",
         "packages/modules/Bluetooth/system/bta/include",
@@ -67,6 +96,7 @@ cc_library_shared {
         //"libkeystore_binder",
     ],
     static_libs: [
+        "libbte",
         "libbt-sbc-decoder",
         "libbt-sbc-encoder",
         "libFraunhoferAAC",
