@@ -21,6 +21,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.os.Handler;
 import android.os.Looper;
 import android.telephony.PhoneStateListener;
 import android.telephony.ServiceState;
@@ -52,6 +53,7 @@ public class HeadsetPhoneState {
     private final HeadsetService mHeadsetService;
     private final TelephonyManager mTelephonyManager;
     private final SubscriptionManager mSubscriptionManager;
+    private final Handler mHandler;
 
     private ServiceState mServiceState;
 
@@ -88,9 +90,10 @@ public class HeadsetPhoneState {
         mSubscriptionManager = SubscriptionManager.from(mHeadsetService);
         Objects.requireNonNull(mSubscriptionManager, "TELEPHONY_SUBSCRIPTION_SERVICE is null");
         // Initialize subscription on the handler thread
-        mOnSubscriptionsChangedListener = new HeadsetPhoneStateOnSubscriptionChangedListener(
-                headsetService.getStateMachinesThreadLooper());
-        mSubscriptionManager.addOnSubscriptionsChangedListener(mOnSubscriptionsChangedListener);
+        mHandler = new Handler(headsetService.getStateMachinesThreadLooper());
+        mOnSubscriptionsChangedListener = new HeadsetPhoneStateOnSubscriptionChangedListener();
+        mSubscriptionManager.addOnSubscriptionsChangedListener(command -> mHandler.post(command),
+                mOnSubscriptionsChangedListener);
     }
 
     /**
@@ -260,8 +263,8 @@ public class HeadsetPhoneState {
 
     private class HeadsetPhoneStateOnSubscriptionChangedListener
             extends OnSubscriptionsChangedListener {
-        HeadsetPhoneStateOnSubscriptionChangedListener(Looper looper) {
-            super(looper);
+        HeadsetPhoneStateOnSubscriptionChangedListener() {
+            super();
         }
 
         @Override
