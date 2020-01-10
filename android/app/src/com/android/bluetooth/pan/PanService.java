@@ -250,6 +250,15 @@ public class PanService extends ProfileService {
         }
 
         @Override
+        public boolean setConnectionPolicy(BluetoothDevice device, int connectionPolicy) {
+            PanService service = getService();
+            if (service == null) {
+                return false;
+            }
+            return service.setConnectionPolicy(device, connectionPolicy);
+        }
+
+        @Override
         public int getConnectionState(BluetoothDevice device) {
             PanService service = getService();
             if (service == null) {
