@@ -405,6 +405,21 @@ public class HidDeviceService extends ProfileService {
         }
 
         @Override
+        public boolean setConnectionPolicy(BluetoothDevice device, int connectionPolicy) {
+            if (DBG) {
+                Log.d(TAG, "setConnectionPolicy(): device=" + device + " connectionPolicy="
+                        + connectionPolicy);
+            }
+
+            HidDeviceService service = getService();
+            if (service == null) {
+                return false;
+            }
+
+            return service.setConnectionPolicy(device, connectionPolicy);
+        }
+
+        @Override
         public boolean reportError(BluetoothDevice device, byte error) {
             if (DBG) {
                 Log.d(TAG, "reportError(): device=" + device + " error=" + error);
@@ -625,6 +640,34 @@ public class HidDeviceService extends ProfileService {
             return false;
         }
         return checkDevice(device) && mHidDeviceNativeInterface.disconnect();
+    }
+
+    /**
+     * Connects Hid Device if connectionPolicy is {@link BluetoothProfile#CONNECTION_POLICY_ALLOWED}
+     * and disconnects Hid device if connectionPolicy is
+     * {@link BluetoothProfile#CONNECTION_POLICY_FORBIDDEN}.
+     *
+     * <p> The device should already be paired.
+     * Connection policy can be one of:
+     * {@link BluetoothProfile#CONNECTION_POLICY_ALLOWED},
+     * {@link BluetoothProfile#CONNECTION_POLICY_FORBIDDEN},
+     * {@link BluetoothProfile#CONNECTION_POLICY_UNKNOWN}
+     *
+     * @param device Paired bluetooth device
+     * @param connectionPolicy determines whether hid device should be connected or disconnected
+     * @return true if hid device is connected or disconnected, false otherwise
+     */
+    public boolean setConnectionPolicy(BluetoothDevice device, int connectionPolicy) {
+        enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH_ADMIN permission");
+        if (DBG) {
+            Log.d(TAG, "setConnectionPolicy: device " + device
+                    + " and connectionPolicy " + connectionPolicy);
+        }
+        if (connectionPolicy == BluetoothProfile.CONNECTION_POLICY_FORBIDDEN) {
+            disconnect(device);
+            return true;
+        }
+        return false;
     }
 
     synchronized boolean reportError(BluetoothDevice device, byte error) {
