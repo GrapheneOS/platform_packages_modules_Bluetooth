@@ -22,7 +22,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Handler;
-import android.os.Looper;
 import android.telephony.PhoneStateListener;
 import android.telephony.ServiceState;
 import android.telephony.SignalStrength;
@@ -37,6 +36,7 @@ import com.android.internal.telephony.TelephonyIntents;
 
 import java.util.HashMap;
 import java.util.Objects;
+import java.util.concurrent.Executor;
 
 
 /**
@@ -163,8 +163,7 @@ public class HeadsetPhoneState {
             return;
         }
         Log.i(TAG, "startListenForPhoneState(), subId=" + subId + ", enabled_events=" + events);
-        mPhoneStateListener = new HeadsetPhoneStateListener(
-                mHeadsetService.getStateMachinesThreadLooper());
+        mPhoneStateListener = new HeadsetPhoneStateListener(command -> mHandler.post(command));
         mTelephonyManager.listen(mPhoneStateListener, events);
         if ((events & PhoneStateListener.LISTEN_SIGNAL_STRENGTHS) != 0) {
             mTelephonyManager.setRadioIndicationUpdateMode(
@@ -277,8 +276,8 @@ public class HeadsetPhoneState {
     }
 
     private class HeadsetPhoneStateListener extends PhoneStateListener {
-        HeadsetPhoneStateListener(Looper looper) {
-            super(looper);
+        HeadsetPhoneStateListener(Executor executor) {
+            super(executor);
         }
 
         @Override
