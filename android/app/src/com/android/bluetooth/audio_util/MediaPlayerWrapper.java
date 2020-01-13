@@ -152,6 +152,36 @@ public class MediaPlayerWrapper {
         controller.skipToQueueItem(qid);
     }
 
+    public void playCurrent() {
+        MediaController.TransportControls controller = mMediaController.getTransportControls();
+        controller.play();
+    }
+
+    public void stopCurrent() {
+        MediaController.TransportControls controller = mMediaController.getTransportControls();
+        controller.stop();
+    }
+
+    public void pauseCurrent() {
+        MediaController.TransportControls controller = mMediaController.getTransportControls();
+        controller.pause();
+    }
+
+    public void seekTo(long position) {
+        MediaController.TransportControls controller = mMediaController.getTransportControls();
+        controller.seekTo(position);
+    }
+
+    public void skipToPrevious() {
+        MediaController.TransportControls controller = mMediaController.getTransportControls();
+        controller.skipToPrevious();
+    }
+
+    public void skipToNext() {
+        MediaController.TransportControls controller = mMediaController.getTransportControls();
+        controller.skipToNext();
+    }
+
     // TODO (apanicke): Implement shuffle and repeat support. Right now these use custom actions
     // and it may only be possible to do this with Google Play Music
     public boolean isShuffleSupported() {
@@ -159,6 +189,14 @@ public class MediaPlayerWrapper {
     }
 
     public boolean isRepeatSupported() {
+        return false;
+    }
+
+    public boolean isShuffleSet() {
+        return false;
+    }
+
+    public boolean isRepeatSet() {
         return false;
     }
 
