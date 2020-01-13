@@ -27,6 +27,8 @@ import android.media.AudioDeviceInfo;
 import android.media.AudioManager;
 import android.util.Log;
 
+import com.android.bluetooth.audio_util.BTAudioEventLogger;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -44,7 +46,7 @@ class AvrcpVolumeManager extends AudioDeviceCallback {
     private static final int VOLUME_CHANGE_LOGGER_SIZE = 30;
     private static int sDeviceMaxVolume = 0;
     private static int sNewDeviceVolume = 0;
-    private final AvrcpEventLogger mVolumeEventLogger = new AvrcpEventLogger(
+    private final BTAudioEventLogger mVolumeEventLogger = new BTAudioEventLogger(
             VOLUME_CHANGE_LOGGER_SIZE, VOLUME_CHANGE_LOG_TITLE);
 
     Context mContext;

@@ -172,10 +172,10 @@ static jmethodID method_setVolume;
 
 static void classInitNative(JNIEnv* env, jclass clazz) {
   method_getCurrentSongInfo = env->GetMethodID(
-      clazz, "getCurrentSongInfo", "()Lcom/android/bluetooth/avrcp/Metadata;");
+      clazz, "getCurrentSongInfo", "()Lcom/android/bluetooth/audio_util/Metadata;");
 
   method_getPlaybackStatus = env->GetMethodID(
-      clazz, "getPlayStatus", "()Lcom/android/bluetooth/avrcp/PlayStatus;");
+      clazz, "getPlayStatus", "()Lcom/android/bluetooth/audio_util/PlayStatus;");
 
   method_sendMediaKeyEvent =
       env->GetMethodID(clazz, "sendMediaKeyEvent", "(IZ)V");
@@ -676,9 +676,9 @@ static void getFolderItemsResponseNative(JNIEnv* env, jobject object,
       env->GetObjectClass(env->CallObjectMethod(list, method_get, 0));
   jfieldID field_isFolder = env->GetFieldID(class_listItem, "isFolder", "Z");
   jfieldID field_folder = env->GetFieldID(
-      class_listItem, "folder", "Lcom/android/bluetooth/avrcp/Folder;");
+      class_listItem, "folder", "Lcom/android/bluetooth/audio_util/Folder;");
   jfieldID field_song = env->GetFieldID(
-      class_listItem, "song", "Lcom/android/bluetooth/avrcp/Metadata;");
+      class_listItem, "song", "Lcom/android/bluetooth/audio_util/Metadata;");
 
   std::vector<ListItem> ret_list;
   for (jsize i = 0; i < list_size; i++) {
