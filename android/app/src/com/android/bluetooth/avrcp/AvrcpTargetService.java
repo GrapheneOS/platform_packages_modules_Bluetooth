@@ -68,8 +68,7 @@ public class AvrcpTargetService extends ProfileService {
 
     private static AvrcpTargetService sInstance = null;
 
-    class ListCallback implements MediaPlayerList.MediaUpdateCallback,
-            MediaPlayerList.FolderUpdateCallback {
+    class ListCallback implements MediaPlayerList.MediaUpdateCallback {
         @Override
         public void run(MediaData data) {
             if (mNativeInterface == null) return;

@@ -102,14 +102,14 @@ public class MediaPlayerList {
             Collections.synchronizedMap(new HashMap<Integer, BrowsedPlayerWrapper>());
     private int mActivePlayerId = NO_ACTIVE_PLAYER;
 
-    @VisibleForTesting
+    private MediaUpdateCallback mCallback;
     private boolean mAudioPlaybackIsActive = false;
 
-    private AvrcpTargetService.ListCallback mCallback;
     private BrowsablePlayerConnector mBrowsablePlayerConnector;
 
     interface MediaUpdateCallback {
         void run(MediaData data);
+        void run(boolean availablePlayers, boolean addressedPlayers, boolean uids);
     }
 
     interface GetPlayerRootCallback {
@@ -118,10 +118,6 @@ public class MediaPlayerList {
 
     interface GetFolderItemsCallback {
         void run(String parentId, List<ListItem> items);
-    }
-
-    interface FolderUpdateCallback {
-        void run(boolean availablePlayers, boolean addressedPlayers, boolean uids);
     }
 
     MediaPlayerList(Looper looper, Context context) {
@@ -150,7 +146,7 @@ public class MediaPlayerList {
                 mContext.getMainExecutor(), mMediaKeyEventSessionChangedListener);
     }
 
-    void init(AvrcpTargetService.ListCallback callback) {
+    void init(MediaUpdateCallback callback) {
         Log.v(TAG, "Initializing MediaPlayerList");
         mCallback = callback;
 
