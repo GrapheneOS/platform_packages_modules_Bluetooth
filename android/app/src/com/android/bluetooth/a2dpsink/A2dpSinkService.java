@@ -75,6 +75,17 @@ public class A2dpSinkService extends ProfileService {
         return sService;
     }
 
+    /**
+     * Testing API to inject a mockA2dpSinkService.
+     * @hide
+     */
+    @VisibleForTesting
+    public static void setA2dpSinkService(A2dpSinkService service) {
+        sService = service;
+        sService.mA2dpSinkStreamHandler = new A2dpSinkStreamHandler(sService, sService);
+    }
+
+
     public A2dpSinkService() {
         mAdapter = BluetoothAdapter.getDefaultAdapter();
     }
@@ -400,6 +411,17 @@ public class A2dpSinkService extends ProfileService {
     native boolean connectA2dpNative(byte[] address);
 
     native boolean disconnectA2dpNative(byte[] address);
+
+    /**
+     * set A2DP state machine as the active device
+     * the active device is the only one that will receive passthrough commands and the only one
+     * that will have its audio decoded
+     *
+     * @hide
+     * @param address
+     * @return active device request has been scheduled
+     */
+    public native boolean setActiveDeviceNative(byte[] address);
 
     /**
      * inform A2DP decoder of the current audio focus
