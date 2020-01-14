@@ -74,5 +74,9 @@ android_app {
     optimize: {
         enabled: false,
     },
-    required: ["libbluetooth"]
+    required: ["libbluetooth"],
+    apex_available: [
+        "//apex_available:platform",
+        "com.android.bluetooth.updatable",
+    ],
 }
