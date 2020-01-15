@@ -115,12 +115,11 @@ class AvrcpVolumeManager extends AudioDeviceCallback {
         volumeMapEditor.apply();
     }
 
-    synchronized void storeVolumeForDevice(@NonNull BluetoothDevice device) {
+    synchronized void storeVolumeForDevice(@NonNull BluetoothDevice device, int storeVolume) {
         if (device.getBondState() != BluetoothDevice.BOND_BONDED) {
             return;
         }
         SharedPreferences.Editor pref = getVolumeMap().edit();
-        int storeVolume =  mAudioManager.getStreamVolume(STREAM_MUSIC);
         Log.i(TAG, "storeVolume: Storing stream volume level for device " + device
                 + " : " + storeVolume);
         mVolumeMap.put(device, storeVolume);
@@ -128,6 +127,11 @@ class AvrcpVolumeManager extends AudioDeviceCallback {
         // Always use apply() since it is asynchronous, otherwise the call can hang waiting for
         // storage to be written.
         pref.apply();
+    }
+
+    synchronized void storeVolumeForDevice(@NonNull BluetoothDevice device) {
+        int storeVolume =  mAudioManager.getStreamVolume(STREAM_MUSIC);
+        storeVolumeForDevice(device, storeVolume);
     }
 
     synchronized void removeStoredVolumeForDevice(@NonNull BluetoothDevice device) {
@@ -181,6 +185,17 @@ class AvrcpVolumeManager extends AudioDeviceCallback {
         }
         mNativeInterface.sendVolumeChanged(device.getAddress(), avrcpVolume);
         storeVolumeForDevice(device);
+    }
+
+    /**
+     * True if remote device supported Absolute volume, false if remote device is not supported or
+     * not connected.
+     */
+    boolean getAbsoluteVolumeSupported(BluetoothDevice device) {
+        if (mDeviceMap.containsKey(device)) {
+            return mDeviceMap.get(device);
+        }
+        return false;
     }
 
     @Override
