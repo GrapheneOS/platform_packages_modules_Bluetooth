@@ -29,6 +29,7 @@ import android.support.v4.media.session.MediaControllerCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 
 import androidx.test.InstrumentationRegistry;
+import androidx.test.filters.FlakyTest;
 import androidx.test.filters.MediumTest;
 import androidx.test.rule.ServiceTestRule;
 import androidx.test.runner.AndroidJUnit4;
@@ -193,6 +194,7 @@ public class AvrcpControllerStateMachineTest {
      * Test to confirm that a browsing only device can be established (no control)
      */
     @Test
+    @FlakyTest
     public void testBrowsingOnly() {
         Assert.assertEquals(0, mAvrcpControllerService.sBrowseTree.mRootNode.getChildrenCount());
         int numBroadcastsSent = setUpConnectedState(false, true);
@@ -343,6 +345,7 @@ public class AvrcpControllerStateMachineTest {
      * Test media browser fast forward command
      */
     @Test
+    @FlakyTest
     public void testFastForward() throws Exception {
         setUpConnectedState(true, true);
         MediaControllerCompat.TransportControls transportControls =
@@ -451,6 +454,7 @@ public class AvrcpControllerStateMachineTest {
      * Verify that the contents of a player are fetched upon request
      */
     @Test
+    @FlakyTest
     public void testBrowsingCommands() {
         setUpConnectedState(true, true);
         final String rootName = "__ROOT__";
