@@ -19,6 +19,7 @@ import android.os.Message;
 
 import androidx.test.InstrumentationRegistry;
 import androidx.test.espresso.intent.matcher.IntentMatchers;
+import androidx.test.filters.FlakyTest;
 import androidx.test.filters.LargeTest;
 import androidx.test.filters.MediumTest;
 import androidx.test.filters.SmallTest;
@@ -236,6 +237,7 @@ public class HeadsetClientStateMachineTest {
      */
     @LargeTest
     @Test
+    @FlakyTest
     public void testInBandRingtone() {
         // Return true for priority.
         when(mHeadsetClientService.getConnectionPolicy(any(BluetoothDevice.class))).thenReturn(
