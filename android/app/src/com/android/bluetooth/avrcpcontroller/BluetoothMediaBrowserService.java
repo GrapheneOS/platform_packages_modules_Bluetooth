@@ -63,6 +63,16 @@ public class BluetoothMediaBrowserService extends MediaBrowserServiceCompat {
     // Browsing related structures.
     private List<MediaSessionCompat.QueueItem> mMediaQueue = new ArrayList<>();
 
+    // Media Framework Content Style constants
+    private static final String CONTENT_STYLE_SUPPORTED =
+            "android.media.browse.CONTENT_STYLE_SUPPORTED";
+    public static final String CONTENT_STYLE_PLAYABLE_HINT =
+            "android.media.browse.CONTENT_STYLE_PLAYABLE_HINT";
+    public static final String CONTENT_STYLE_BROWSABLE_HINT =
+            "android.media.browse.CONTENT_STYLE_BROWSABLE_HINT";
+    public static final int CONTENT_STYLE_LIST_ITEM_HINT_VALUE = 1;
+    public static final int CONTENT_STYLE_GRID_ITEM_HINT_VALUE = 2;
+
     // Error messaging extras
     public static final String ERROR_RESOLUTION_ACTION_INTENT =
             "android.media.extras.ERROR_RESOLUTION_ACTION_INTENT";
@@ -117,6 +127,14 @@ public class BluetoothMediaBrowserService extends MediaBrowserServiceCompat {
         mSession.setPlaybackState(errorState);
     }
 
+    private Bundle getDefaultStyle() {
+        Bundle style = new Bundle();
+        style.putBoolean(CONTENT_STYLE_SUPPORTED, true);
+        style.putInt(CONTENT_STYLE_BROWSABLE_HINT, CONTENT_STYLE_GRID_ITEM_HINT_VALUE);
+        style.putInt(CONTENT_STYLE_PLAYABLE_HINT, CONTENT_STYLE_LIST_ITEM_HINT_VALUE);
+        return style;
+    }
+
     @Override
     public synchronized void onLoadChildren(final String parentMediaId,
             final Result<List<MediaBrowserCompat.MediaItem>> result) {
@@ -133,7 +151,8 @@ public class BluetoothMediaBrowserService extends MediaBrowserServiceCompat {
     @Override
     public BrowserRoot onGetRoot(String clientPackageName, int clientUid, Bundle rootHints) {
         if (DBG) Log.d(TAG, "onGetRoot");
-        return new BrowserRoot(BrowseTree.ROOT, null);
+        Bundle style = getDefaultStyle();
+        return new BrowserRoot(BrowseTree.ROOT, style);
     }
 
     private void updateNowPlayingQueue(BrowseTree.BrowseNode node) {
