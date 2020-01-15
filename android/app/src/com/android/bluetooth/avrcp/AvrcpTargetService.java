@@ -114,6 +114,17 @@ public class AvrcpTargetService extends ProfileService {
                         Log.d(TAG, "request to disconnect device " + device);
                     }
                 }
+            } else if (action.equals(AudioManager.VOLUME_CHANGED_ACTION)) {
+                int streamType = intent.getIntExtra(AudioManager.EXTRA_VOLUME_STREAM_TYPE, -1);
+                if (streamType == AudioManager.STREAM_MUSIC) {
+                    int volume = intent.getIntExtra(AudioManager.EXTRA_VOLUME_STREAM_VALUE, 0);
+                    BluetoothDevice activeDevice = mFactory.getA2dpService().getActiveDevice();
+                    if (activeDevice != null
+                            && !mVolumeManager.getAbsoluteVolumeSupported(activeDevice)) {
+                        Log.d(TAG, "stream volume change to " + volume + " " + activeDevice);
+                        mVolumeManager.storeVolumeForDevice(activeDevice, volume);
+                    }
+                }
             }
         }
     }
@@ -185,6 +196,7 @@ public class AvrcpTargetService extends ProfileService {
         IntentFilter filter = new IntentFilter();
         filter.addAction(BluetoothA2dp.ACTION_ACTIVE_DEVICE_CHANGED);
         filter.addAction(BluetoothA2dp.ACTION_CONNECTION_STATE_CHANGED);
+        filter.addAction(AudioManager.VOLUME_CHANGED_ACTION);
         registerReceiver(mReceiver, filter);
 
         // Only allow the service to be used once it is initialized
