@@ -601,11 +601,13 @@ public class BluetoothMapSmsPdu {
      * The destination address must be extracted from the bmessage vCard(s).
      */
     public static String decodePdu(byte[] data, int type) {
-        String ret;
+        String ret = "";
         if (type == SMS_TYPE_CDMA) {
             /* This is able to handle both submit and deliver PDUs */
-            ret = com.android.internal.telephony.cdma.SmsMessage.createFromEfRecord(0, data)
-                    .getMessageBody();
+            SmsMessage smsMessage = SmsMessage.createFromNativeSmsSubmitPdu(data, true);
+            if (smsMessage != null) {
+                ret = smsMessage.getMessageBody();
+            }
         } else {
             /* For GSM, there is no submit pdu decoder, and most parser utils are private, and
             only minded for submit pdus */
