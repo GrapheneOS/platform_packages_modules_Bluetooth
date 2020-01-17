@@ -31,8 +31,6 @@ import android.telephony.TelephonyManager;
 import android.util.Log;
 
 import com.android.internal.annotations.VisibleForTesting;
-import com.android.internal.telephony.IccCardConstants;
-import com.android.internal.telephony.TelephonyIntents;
 
 import java.util.HashMap;
 import java.util.Objects;
@@ -310,15 +308,15 @@ public class HeadsetPhoneState {
                 return;
             }
             IntentFilter simStateChangedFilter =
-                    new IntentFilter(TelephonyIntents.ACTION_SIM_STATE_CHANGED);
+                    new IntentFilter(Intent.ACTION_SIM_STATE_CHANGED);
             mHeadsetService.registerReceiver(new BroadcastReceiver() {
                 @Override
                 public void onReceive(Context context, Intent intent) {
-                    if (TelephonyIntents.ACTION_SIM_STATE_CHANGED.equals(intent.getAction())) {
+                    if (Intent.ACTION_SIM_STATE_CHANGED.equals(intent.getAction())) {
                         // This is a sticky broadcast, so if it's already been loaded,
                         // this'll execute immediately.
-                        if (IccCardConstants.INTENT_VALUE_ICC_LOADED.equals(
-                                intent.getStringExtra(IccCardConstants.INTENT_KEY_ICC_STATE))) {
+                        if (Intent.SIM_STATE_LOADED.equals(
+                                intent.getStringExtra(Intent.EXTRA_SIM_STATE))) {
                             mIsSimStateLoaded = true;
                             sendDeviceStateChanged();
                             mHeadsetService.unregisterReceiver(this);
