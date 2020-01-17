@@ -1386,6 +1386,23 @@ public class A2dpService extends ProfileService {
     public void dump(StringBuilder sb) {
         super.dump(sb);
         ProfileService.println(sb, "mActiveDevice: " + mActiveDevice);
+        ProfileService.println(sb, "mMaxConnectedAudioDevices: " + mMaxConnectedAudioDevices);
+        if (mA2dpCodecConfig != null) {
+            ProfileService.println(sb, "codecConfigPriorities:");
+            for (BluetoothCodecConfig codecConfig : mA2dpCodecConfig.codecConfigPriorities()) {
+                ProfileService.println(sb, "  " + codecConfig.getCodecName() + ": "
+                        + codecConfig.getCodecPriority());
+            }
+            ProfileService.println(sb, "mA2dpOffloadEnabled: " + mA2dpOffloadEnabled);
+            if (mA2dpOffloadEnabled) {
+                ProfileService.println(sb, "codecConfigOffloading:");
+                for (BluetoothCodecConfig codecConfig : mA2dpCodecConfig.codecConfigOffloading()) {
+                    ProfileService.println(sb, "  " + codecConfig);
+                }
+            }
+        } else {
+            ProfileService.println(sb, "mA2dpCodecConfig: null");
+        }
         for (A2dpStateMachine sm : mStateMachines.values()) {
             sm.dump(sb);
         }
