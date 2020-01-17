@@ -2462,8 +2462,13 @@ public class AdapterService extends Service {
         }
         if (mMapClientService != null && isSupported(localDeviceUuids, remoteDeviceUuids,
                 BluetoothProfile.MAP_CLIENT, device)) {
-            Log.i(TAG, "disconnectAllEnabledProfiles: Disconnecting MAP");
+            Log.i(TAG, "disconnectAllEnabledProfiles: Disconnecting MAP Client");
             mMapClientService.disconnect(device);
+        }
+        if (mMapService != null && isSupported(localDeviceUuids, remoteDeviceUuids,
+                BluetoothProfile.MAP, device)) {
+            Log.i(TAG, "disconnectAllEnabledProfiles: Disconnecting MAP");
+            mMapService.disconnect(device);
         }
         if (mHidDeviceService != null && isSupported(localDeviceUuids, remoteDeviceUuids,
                 BluetoothProfile.HID_DEVICE, device)) {
@@ -2482,8 +2487,13 @@ public class AdapterService extends Service {
         }
         if (mPbapClientService != null && isSupported(localDeviceUuids, remoteDeviceUuids,
                 BluetoothProfile.PBAP_CLIENT, device)) {
-            Log.i(TAG, "disconnectAllEnabledProfiles: Disconnecting Pbap");
+            Log.i(TAG, "disconnectAllEnabledProfiles: Disconnecting Pbap Client");
             mPbapClientService.disconnect(device);
+        }
+        if (mPbapService != null && isSupported(localDeviceUuids, remoteDeviceUuids,
+                BluetoothProfile.PBAP, device)) {
+            Log.i(TAG, "disconnectAllEnabledProfiles: Disconnecting Pbap Server");
+            mPbapService.disconnect(device);
         }
         if (mHearingAidService != null && isSupported(localDeviceUuids, remoteDeviceUuids,
                 BluetoothProfile.HEARING_AID, device)) {

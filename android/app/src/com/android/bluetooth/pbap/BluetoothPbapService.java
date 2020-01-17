@@ -493,7 +493,11 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
         return false;
     }
 
-    void disconnect(BluetoothDevice device) {
+    /**
+     * Disconnects pbap server profile with device
+     * @param device is the remote bluetooth device
+     */
+    public void disconnect(BluetoothDevice device) {
         enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH_ADMIN permission");
         synchronized (mPbapStateMachineMap) {
             PbapStateMachine sm = mPbapStateMachineMap.get(device);
