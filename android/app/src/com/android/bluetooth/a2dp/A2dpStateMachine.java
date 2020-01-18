@@ -64,6 +64,7 @@ import com.android.internal.annotations.VisibleForTesting;
 import java.io.FileDescriptor;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.Objects;
 import java.util.Scanner;
 
 final class A2dpStateMachine extends StateMachine {
@@ -765,14 +766,27 @@ final class A2dpStateMachine extends StateMachine {
     }
 
     public void dump(StringBuilder sb) {
-        ProfileService.println(sb, "mDevice: " + mDevice);
-        ProfileService.println(sb, "  StateMachine: " + this.toString());
+        boolean isActive = Objects.equals(mDevice, mA2dpService.getActiveDevice());
+        ProfileService.println(sb,
+                "=== A2dpStateMachine for " + mDevice + (isActive ? " (Active) ===" : " ==="));
+        ProfileService.println(sb,
+                "  getConnectionPolicy: " + mA2dpService.getConnectionPolicy(mDevice));
+        ProfileService.println(sb, "  mConnectionState: " + profileStateToString(mConnectionState)
+                + ", mLastConnectionState: " + profileStateToString(mLastConnectionState));
         ProfileService.println(sb, "  mIsPlaying: " + mIsPlaying);
+        ProfileService.println(sb,
+                "  getSupportsOptionalCodecs: " + mA2dpService.getSupportsOptionalCodecs(mDevice)
+                + ", getOptionalCodecsEnabled: " + mA2dpService.getOptionalCodecsEnabled(mDevice));
         synchronized (this) {
             if (mCodecStatus != null) {
                 ProfileService.println(sb, "  mCodecConfig: " + mCodecStatus.getCodecConfig());
+                ProfileService.println(sb, "  mCodecsSelectableCapabilities:");
+                for (BluetoothCodecConfig config : mCodecStatus.getCodecsSelectableCapabilities()) {
+                    ProfileService.println(sb, "    " + config);
+                }
             }
         }
+        ProfileService.println(sb, "  StateMachine: " + this.toString());
         // Dump the state machine logs
         StringWriter stringWriter = new StringWriter();
         PrintWriter printWriter = new PrintWriter(stringWriter);
