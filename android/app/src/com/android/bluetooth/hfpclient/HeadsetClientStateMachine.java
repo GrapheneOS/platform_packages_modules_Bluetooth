@@ -212,6 +212,7 @@ public class HeadsetClientStateMachine extends StateMachine {
         ProfileService.println(sb, "  mIndicatorBatteryLevel: " + mIndicatorBatteryLevel);
         ProfileService.println(sb, "  mOperatorName: " + mOperatorName);
         ProfileService.println(sb, "  mSubscriberInfo: " + mSubscriberInfo);
+        ProfileService.println(sb, "  mAudioRouteAllowed: " + mAudioRouteAllowed);
 
         ProfileService.println(sb, "  mCalls:");
         if (mCalls != null) {
