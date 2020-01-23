@@ -48,6 +48,9 @@ class Metadata {
     public @OptionalCodecsSupportStatus int a2dpSupportsOptionalCodecs;
     public @OptionalCodecsPreferenceStatus int a2dpOptionalCodecsEnabled;
 
+    public long last_active_time;
+    public boolean is_active_a2dp_device;
+
     Metadata(String address) {
         this.address = address;
         migrated = false;
@@ -55,6 +58,8 @@ class Metadata {
         publicMetadata = new CustomizedMetadataEntity();
         a2dpSupportsOptionalCodecs = BluetoothA2dp.OPTIONAL_CODECS_SUPPORT_UNKNOWN;
         a2dpOptionalCodecsEnabled = BluetoothA2dp.OPTIONAL_CODECS_PREF_UNKNOWN;
+        last_active_time = MetadataDatabase.sCurrentConnectionNumber++;
+        is_active_a2dp_device = true;
     }
 
     String getAddress() {
