@@ -33,12 +33,14 @@ import java.util.List;
 /**
  * MetadataDatabase is a Room database stores Bluetooth persistence data
  */
-@Database(entities = {Metadata.class}, version = 103)
+@Database(entities = {Metadata.class}, version = 104)
 public abstract class MetadataDatabase extends RoomDatabase {
     /**
-     * The database file name
+     * The metadata database file name
      */
     public static final String DATABASE_NAME = "bluetooth_db";
+
+    static int sCurrentConnectionNumber = 0;
 
     protected abstract MetadataDao mMetadataDao();
 
@@ -54,6 +56,8 @@ public abstract class MetadataDatabase extends RoomDatabase {
                 .addMigrations(MIGRATION_100_101)
                 .addMigrations(MIGRATION_101_102)
                 .addMigrations(MIGRATION_102_103)
+                .addMigrations(MIGRATION_103_104)
+                .allowMainThreadQueries()
                 .build();
     }
 
@@ -68,11 +72,12 @@ public abstract class MetadataDatabase extends RoomDatabase {
         return Room.databaseBuilder(context,
                 MetadataDatabase.class, DATABASE_NAME)
                 .fallbackToDestructiveMigration()
+                .allowMainThreadQueries()
                 .build();
     }
 
     /**
-     * Insert a {@link Metadata} to database
+     * Insert a {@link Metadata} to metadata table
      *
      * @param metadata the data wish to put into storage
      */
@@ -81,7 +86,7 @@ public abstract class MetadataDatabase extends RoomDatabase {
     }
 
     /**
-     * Load all data from database as a {@link List} of {@link Metadata}
+     * Load all data from metadata table as a {@link List} of {@link Metadata}
      *
      * @return a {@link List} of {@link Metadata}
      */
@@ -90,7 +95,7 @@ public abstract class MetadataDatabase extends RoomDatabase {
     }
 
     /**
-     * Delete one of the {@link Metadata} contains in database
+     * Delete one of the {@link Metadata} contained in the metadata table
      *
      * @param address the address of Metadata to delete
      */
@@ -99,7 +104,7 @@ public abstract class MetadataDatabase extends RoomDatabase {
     }
 
     /**
-     * Clear database.
+     * Clear metadata table.
      */
     public void deleteAll() {
         mMetadataDao().deleteAll();
@@ -274,6 +279,25 @@ public abstract class MetadataDatabase extends RoomDatabase {
                 // Check if user has new schema, but is just missing the version update
                 Cursor cursor = database.query("SELECT * FROM metadata");
                 if (cursor == null || cursor.getColumnIndex("a2dp_connection_policy") == -1) {
+                    throw ex;
+                }
+            }
+        }
+    };
+
+    @VisibleForTesting
+    static final Migration MIGRATION_103_104 = new Migration(103, 104) {
+        @Override
+        public void migrate(SupportSQLiteDatabase database) {
+            try {
+                database.execSQL("ALTER TABLE metadata ADD COLUMN `last_active_time` "
+                        + "INTEGER NOT NULL DEFAULT -1");
+                database.execSQL("ALTER TABLE metadata ADD COLUMN `is_active_a2dp_device` "
+                        + "INTEGER NOT NULL DEFAULT 0");
+            } catch (SQLException ex) {
+                // Check if user has new schema, but is just missing the version update
+                Cursor cursor = database.query("SELECT * FROM metadata");
+                if (cursor == null || cursor.getColumnIndex("last_active_time") == -1) {
                     throw ex;
                 }
             }
