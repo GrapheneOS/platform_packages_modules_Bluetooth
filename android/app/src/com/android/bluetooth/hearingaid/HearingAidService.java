@@ -29,9 +29,9 @@ import android.media.AudioManager;
 import android.os.HandlerThread;
 import android.os.ParcelUuid;
 import android.util.Log;
-import android.util.StatsLog;
 
 import com.android.bluetooth.BluetoothMetricsProto;
+import com.android.bluetooth.BluetoothStatsLog;
 import com.android.bluetooth.Utils;
 import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.MetricsLogger;
@@ -658,8 +658,8 @@ public class HearingAidService extends ProfileService {
             Log.d(TAG, "reportActiveDevice(" + device + ")");
         }
 
-        StatsLog.write(StatsLog.BLUETOOTH_ACTIVE_DEVICE_CHANGED, BluetoothProfile.HEARING_AID,
-                mAdapterService.obfuscateAddress(device));
+        BluetoothStatsLog.write(BluetoothStatsLog.BLUETOOTH_ACTIVE_DEVICE_CHANGED,
+                BluetoothProfile.HEARING_AID, mAdapterService.obfuscateAddress(device));
 
         Intent intent = new Intent(BluetoothHearingAid.ACTION_ACTIVE_DEVICE_CHANGED);
         intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);

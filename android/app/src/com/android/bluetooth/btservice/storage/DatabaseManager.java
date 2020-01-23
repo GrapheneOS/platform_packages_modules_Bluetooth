@@ -35,8 +35,8 @@ import android.os.Looper;
 import android.os.Message;
 import android.provider.Settings;
 import android.util.Log;
-import android.util.StatsLog;
 
+import com.android.bluetooth.BluetoothStatsLog;
 import com.android.bluetooth.Utils;
 import com.android.bluetooth.btservice.AdapterService;
 import com.android.internal.annotations.VisibleForTesting;
@@ -1017,7 +1017,7 @@ public class DatabaseManager {
                 // Do not log anything if metadata doesn't fall into above categories
                 return;
         }
-        StatsLog.write(StatsLog.BLUETOOTH_DEVICE_INFO_REPORTED,
+        BluetoothStatsLog.write(BluetoothStatsLog.BLUETOOTH_DEVICE_INFO_REPORTED,
                 mAdapterService.obfuscateAddress(device),
                 BluetoothProtoEnums.DEVICE_INFO_EXTERNAL, callingApp, manufacturerName, modelName,
                 hardwareVersion, softwareVersion);
