@@ -225,9 +225,6 @@
             android:excludeFromRecents="true"
             android:theme="@android:style/Theme.Material.Light.Dialog.Alert"
             android:enabled="@bool/profile_supported_pbap">
-            <intent-filter>
-                <category android:name="android.intent.category.DEFAULT" />
-            </intent-filter>
         </activity>
         <service
             android:process="@string/process"
