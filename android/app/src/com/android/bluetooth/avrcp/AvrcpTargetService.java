@@ -118,7 +118,7 @@ public class AvrcpTargetService extends ProfileService {
                 int streamType = intent.getIntExtra(AudioManager.EXTRA_VOLUME_STREAM_TYPE, -1);
                 if (streamType == AudioManager.STREAM_MUSIC) {
                     int volume = intent.getIntExtra(AudioManager.EXTRA_VOLUME_STREAM_VALUE, 0);
-                    BluetoothDevice activeDevice = mFactory.getA2dpService().getActiveDevice();
+                    BluetoothDevice activeDevice = getA2dpActiveDevice();
                     if (activeDevice != null
                             && !mVolumeManager.getAbsoluteVolumeSupported(activeDevice)) {
                         Log.d(TAG, "stream volume change to " + volume + " " + activeDevice);
@@ -231,6 +231,23 @@ public class AvrcpTargetService extends ProfileService {
     private void init() {
     }
 
+    private BluetoothDevice getA2dpActiveDevice() {
+        A2dpService service = mFactory.getA2dpService();
+        if (service == null) {
+            return null;
+        }
+        return service.getActiveDevice();
+    }
+
+    private void setA2dpActiveDevice(BluetoothDevice device) {
+        A2dpService service = A2dpService.getA2dpService();
+        if (service == null) {
+            Log.d(TAG, "setA2dpActiveDevice: A2dp service not found");
+            return;
+        }
+        service.setActiveDevice(device);
+    }
+
     void deviceConnected(BluetoothDevice device, boolean absoluteVolume) {
         Log.i(TAG, "deviceConnected: device=" + device + " absoluteVolume=" + absoluteVolume);
         mVolumeManager.deviceConnected(device, absoluteVolume);
@@ -275,7 +292,7 @@ public class AvrcpTargetService extends ProfileService {
 
     // TODO (apanicke): Add checks to blacklist Absolute Volume devices if they behave poorly.
     void setVolume(int avrcpVolume) {
-        BluetoothDevice activeDevice = mFactory.getA2dpService().getActiveDevice();
+        BluetoothDevice activeDevice = getA2dpActiveDevice();
         if (activeDevice == null) {
             Log.d(TAG, "setVolume: no active device");
             return;
@@ -289,7 +306,7 @@ public class AvrcpTargetService extends ProfileService {
      * volume.
      */
     public void sendVolumeChanged(int deviceVolume) {
-        BluetoothDevice activeDevice = mFactory.getA2dpService().getActiveDevice();
+        BluetoothDevice activeDevice = getA2dpActiveDevice();
         if (activeDevice == null) {
             Log.d(TAG, "sendVolumeChanged: no active device");
             return;
@@ -357,7 +374,7 @@ public class AvrcpTargetService extends ProfileService {
         if (device == null) {
             Log.wtf(TAG, "setActiveDevice: could not find device " + device);
         }
-        A2dpService.getA2dpService().setActiveDevice(device);
+        setA2dpActiveDevice(device);
     }
 
     /**
