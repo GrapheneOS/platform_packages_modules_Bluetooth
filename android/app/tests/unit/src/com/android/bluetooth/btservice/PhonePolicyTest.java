@@ -202,10 +202,10 @@ public class PhonePolicyTest {
 
         // Only calls setConnection on device connectionOrder.get(0) with STATE_CONNECTED
         verify(mDatabaseManager, timeout(ASYNC_CALL_TIMEOUT_MILLIS)).setConnection(
-                connectionOrder.get(0));
-        verify(mDatabaseManager, never()).setConnection(eq(connectionOrder.get(1)));
-        verify(mDatabaseManager, never()).setConnection(eq(connectionOrder.get(2)));
-        verify(mDatabaseManager, never()).setConnection(eq(connectionOrder.get(3)));
+                connectionOrder.get(0), true);
+        verify(mDatabaseManager, never()).setConnection(eq(connectionOrder.get(1)), anyBoolean());
+        verify(mDatabaseManager, never()).setConnection(eq(connectionOrder.get(2)), anyBoolean());
+        verify(mDatabaseManager, never()).setConnection(eq(connectionOrder.get(3)), anyBoolean());
 
         // Make another device active
         when(mHeadsetService.getConnectionState(connectionOrder.get(1))).thenReturn(
@@ -217,11 +217,11 @@ public class PhonePolicyTest {
 
         // Only calls setConnection on device connectionOrder.get(1) with STATE_CONNECTED
         verify(mDatabaseManager, timeout(ASYNC_CALL_TIMEOUT_MILLIS).times(1)).setConnection(
-                connectionOrder.get(0));
+                connectionOrder.get(0), true);
         verify(mDatabaseManager, timeout(ASYNC_CALL_TIMEOUT_MILLIS).times(1)).setConnection(
-                connectionOrder.get(1));
-        verify(mDatabaseManager, never()).setConnection(eq(connectionOrder.get(2)));
-        verify(mDatabaseManager, never()).setConnection(eq(connectionOrder.get(3)));
+                connectionOrder.get(1), true);
+        verify(mDatabaseManager, never()).setConnection(eq(connectionOrder.get(2)), anyBoolean());
+        verify(mDatabaseManager, never()).setConnection(eq(connectionOrder.get(3)), anyBoolean());
 
         // Disconnect a2dp for the device
         when(mHeadsetService.getConnectionState(connectionOrder.get(1))).thenReturn(
@@ -233,10 +233,10 @@ public class PhonePolicyTest {
         intent.addFlags(Intent.FLAG_RECEIVER_INCLUDE_BACKGROUND);
         mPhonePolicy.getBroadcastReceiver().onReceive(null /* context */, intent);
 
-        // Verify that we do not call setConnection, but instead deleteConnection on disconnect
+        // Verify that we do not call setConnection, but instead setDisconnection on disconnect
         verify(mDatabaseManager, timeout(ASYNC_CALL_TIMEOUT_MILLIS).times(1)).setConnection(
-                connectionOrder.get(1));
-        verify(mDatabaseManager, timeout(ASYNC_CALL_TIMEOUT_MILLIS).times(1)).setConnection(
+                connectionOrder.get(1), true);
+        verify(mDatabaseManager, timeout(ASYNC_CALL_TIMEOUT_MILLIS).times(1)).setDisconnection(
                 connectionOrder.get(1));
 
         // Make the current active device fail to connect
@@ -250,7 +250,7 @@ public class PhonePolicyTest {
                 connectionOrder.get(1));
 
         // Verify we didn't have any unexpected calls to setConnection or deleteConnection
-        verify(mDatabaseManager, times(2)).setConnection(any(BluetoothDevice.class));
+        verify(mDatabaseManager, times(2)).setConnection(any(BluetoothDevice.class), anyBoolean());
         verify(mDatabaseManager, times(1)).setDisconnection(any(BluetoothDevice.class));
     }
 
