@@ -25,7 +25,6 @@ import android.util.Log;
 
 import com.android.bluetooth.util.GsmAlphabet;
 import com.android.internal.telephony.SmsConstants;
-import com.android.internal.telephony.cdma.sms.BearerData;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -52,6 +51,11 @@ public class BluetoothMapSmsPdu {
     private static final int ELT_ID_NATIONAL_LANGUAGE_SINGLE_SHIFT     = 0x24;
     private static final int ELT_ID_NATIONAL_LANGUAGE_LOCKING_SHIFT    = 0x25;
 
+    /**
+     * Supported message types for CDMA SMS messages
+     * (See 3GPP2 C.S0015-B, v2.0, table 4.5.1-1)
+     */
+    private static final int MESSAGE_TYPE_DELIVER = 0x01;
 
     /* We need to handle the SC-address mentioned in errata 4335.
      * Since the definition could be read in three different ways, I have asked
@@ -266,7 +270,7 @@ public class BluetoothMapSmsPdu {
                 // Mask out the type
                 tmp &= 0x0f;
                 // Set the new type
-                tmp |= ((BearerData.MESSAGE_TYPE_DELIVER << 4) & 0xf0);
+                tmp |= ((MESSAGE_TYPE_DELIVER << 4) & 0xf0);
                 // Store the result
                 mData[offset + 2] = (byte) tmp;
 
