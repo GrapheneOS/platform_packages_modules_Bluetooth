@@ -51,9 +51,9 @@ import android.os.ParcelUuid;
 import android.os.SystemClock;
 import android.util.Log;
 import android.util.Pair;
-import android.util.StatsLog;
 
 import com.android.bluetooth.BluetoothMetricsProto;
+import com.android.bluetooth.BluetoothStatsLog;
 import com.android.bluetooth.R;
 import com.android.bluetooth.Utils;
 import com.android.bluetooth.btservice.AdapterService;
@@ -1666,7 +1666,7 @@ public class HeadsetClientStateMachine extends StateMachine {
     }
 
     private void broadcastAudioState(BluetoothDevice device, int newState, int prevState) {
-        StatsLog.write(StatsLog.BLUETOOTH_SCO_CONNECTION_STATE_CHANGED,
+        BluetoothStatsLog.write(BluetoothStatsLog.BLUETOOTH_SCO_CONNECTION_STATE_CHANGED,
                 AdapterService.getAdapterService().obfuscateAddress(device),
                 getConnectionStateFromAudioState(newState), mAudioWbs
                         ? BluetoothHfpProtoEnums.SCO_CODEC_MSBC

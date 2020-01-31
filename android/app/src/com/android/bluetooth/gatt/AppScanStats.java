@@ -22,9 +22,9 @@ import android.os.RemoteException;
 import android.os.ServiceManager;
 import android.os.SystemClock;
 import android.os.WorkSource;
-import android.util.StatsLog;
 
 import com.android.bluetooth.BluetoothMetricsProto;
+import com.android.bluetooth.BluetoothStatsLog;
 import com.android.internal.app.IBatteryStats;
 
 import java.text.DateFormat;
@@ -111,7 +111,7 @@ import java.util.Objects;
     static final int SCAN_TIMEOUT_MS = 30 * 60 * 1000;
 
     public String appName;
-    public WorkSource mWorkSource; // Used for BatteryStats and StatsLog
+    public WorkSource mWorkSource; // Used for BatteryStats and BluetoothStatsLog
     private int mScansStarted = 0;
     private int mScansStopped = 0;
     public boolean isRegistered = false;
@@ -159,7 +159,8 @@ import java.util.Objects;
                 } catch (RemoteException e) {
                     /* ignore */
                 }
-                StatsLog.write(StatsLog.BLE_SCAN_RESULT_RECEIVED, mWorkSource, 100);
+                BluetoothStatsLog.write(
+                        BluetoothStatsLog.BLE_SCAN_RESULT_RECEIVED, mWorkSource, 100);
             }
         }
 
@@ -233,8 +234,8 @@ import java.util.Objects;
         } catch (RemoteException e) {
             /* ignore */
         }
-        StatsLog.write(StatsLog.BLE_SCAN_STATE_CHANGED, mWorkSource,
-                StatsLog.BLE_SCAN_STATE_CHANGED__STATE__ON,
+        BluetoothStatsLog.write(BluetoothStatsLog.BLE_SCAN_STATE_CHANGED, mWorkSource,
+                BluetoothStatsLog.BLE_SCAN_STATE_CHANGED__STATE__ON,
                 scan.isFilterScan, scan.isBackgroundScan, scan.isOpportunisticScan);
 
         mOngoingScans.put(scannerId, scan);
@@ -297,9 +298,10 @@ import java.util.Objects;
         } catch (RemoteException e) {
             /* ignore */
         }
-        StatsLog.write(StatsLog.BLE_SCAN_RESULT_RECEIVED, mWorkSource, scan.results % 100);
-        StatsLog.write(StatsLog.BLE_SCAN_STATE_CHANGED, mWorkSource,
-                StatsLog.BLE_SCAN_STATE_CHANGED__STATE__OFF,
+        BluetoothStatsLog.write(
+                BluetoothStatsLog.BLE_SCAN_RESULT_RECEIVED, mWorkSource, scan.results % 100);
+        BluetoothStatsLog.write(BluetoothStatsLog.BLE_SCAN_STATE_CHANGED, mWorkSource,
+                BluetoothStatsLog.BLE_SCAN_STATE_CHANGED__STATE__OFF,
                 scan.isFilterScan, scan.isBackgroundScan, scan.isOpportunisticScan);
     }
 
