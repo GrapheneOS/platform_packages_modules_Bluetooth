@@ -40,7 +40,10 @@ cc_library_shared {
 android_app {
     name: "Bluetooth",
 
-    srcs: ["src/**/*.java"],
+    srcs: [
+        "src/**/*.java",
+        ":statslog-bluetooth-java-gen",
+    ],
     platform_apis: true,
     certificate: "platform",
 
@@ -78,4 +81,12 @@ android_app {
         "//apex_available:platform",
         "com.android.bluetooth.updatable",
     ],
+}
+
+genrule {
+    name: "statslog-bluetooth-java-gen",
+    tools: ["stats-log-api-gen"],
+    cmd: "$(location stats-log-api-gen) --java $(out) --module bluetooth"
+        + " --javaPackage com.android.bluetooth --javaClass BluetoothStatsLog --worksource",
+    out: ["com/android/bluetooth/BluetoothStatsLog.java"],
 }
