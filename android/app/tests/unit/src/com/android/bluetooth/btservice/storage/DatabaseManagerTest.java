@@ -68,10 +68,12 @@ public final class DatabaseManagerTest {
     private DatabaseManager mDatabaseManager;
     private BluetoothDevice mTestDevice;
     private BluetoothDevice mTestDevice2;
+    private BluetoothDevice mTestDevice3;
 
     private static final String LOCAL_STORAGE = "LocalStorage";
     private static final String TEST_BT_ADDR = "11:22:33:44:55:66";
     private static final String TEST_BT_ADDR2 = "66:55:44:33:22:11";
+    private static final String TEST_BT_ADDR3 = "12:34:56:65:43:21";
     private static final String OTHER_BT_ADDR1 = "11:11:11:11:11:11";
     private static final String OTHER_BT_ADDR2 = "22:22:22:22:22:22";
     private static final String DB_NAME = "test_db";
@@ -92,6 +94,7 @@ public final class DatabaseManagerTest {
 
         mTestDevice = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(TEST_BT_ADDR);
         mTestDevice2 = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(TEST_BT_ADDR2);
+        mTestDevice3 = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(TEST_BT_ADDR3);
 
         // Create a memory database for DatabaseManager instead of use a real database.
         mDatabase = Room.inMemoryDatabaseBuilder(InstrumentationRegistry.getTargetContext(),
@@ -409,15 +412,19 @@ public final class DatabaseManagerTest {
         Assert.assertNull(mDatabaseManager.getMostRecentlyConnectedA2dpDevice());
 
         // Set the first device's connection
-        mDatabaseManager.setConnection(mTestDevice);
+        mDatabaseManager.setConnection(mTestDevice, true);
         // Wait for database update
         TestUtils.waitForLooperToFinishScheduledTask(mDatabaseManager.getHandlerLooper());
         Assert.assertTrue(mDatabaseManager
                 .mMetadataCache.get(mTestDevice.getAddress()).is_active_a2dp_device);
+        List<BluetoothDevice> mostRecentlyConnectedDevicesOrdered =
+                mDatabaseManager.getMostRecentlyConnectedDevices();
         Assert.assertEquals(mTestDevice, mDatabaseManager.getMostRecentlyConnectedA2dpDevice());
+        Assert.assertEquals(1, mostRecentlyConnectedDevicesOrdered.size());
+        Assert.assertEquals(mTestDevice, mostRecentlyConnectedDevicesOrdered.get(0));
 
         // Setting the second device's connection
-        mDatabaseManager.setConnection(mTestDevice2);
+        mDatabaseManager.setConnection(mTestDevice2, true);
         // Wait for database update
         TestUtils.waitForLooperToFinishScheduledTask(mDatabaseManager.getHandlerLooper());
         Assert.assertFalse(mDatabaseManager
@@ -425,9 +432,13 @@ public final class DatabaseManagerTest {
         Assert.assertTrue(mDatabaseManager
                 .mMetadataCache.get(mTestDevice2.getAddress()).is_active_a2dp_device);
         Assert.assertEquals(mTestDevice2, mDatabaseManager.getMostRecentlyConnectedA2dpDevice());
+        mostRecentlyConnectedDevicesOrdered = mDatabaseManager.getMostRecentlyConnectedDevices();
+        Assert.assertEquals(2, mostRecentlyConnectedDevicesOrdered.size());
+        Assert.assertEquals(mTestDevice2, mostRecentlyConnectedDevicesOrdered.get(0));
+        Assert.assertEquals(mTestDevice, mostRecentlyConnectedDevicesOrdered.get(1));
 
         // Connect first test device again
-        mDatabaseManager.setConnection(mTestDevice);
+        mDatabaseManager.setConnection(mTestDevice, true);
         // Wait for database update
         TestUtils.waitForLooperToFinishScheduledTask(mDatabaseManager.getHandlerLooper());
         Assert.assertTrue(mDatabaseManager
@@ -435,6 +446,10 @@ public final class DatabaseManagerTest {
         Assert.assertFalse(mDatabaseManager
                 .mMetadataCache.get(mTestDevice2.getAddress()).is_active_a2dp_device);
         Assert.assertEquals(mTestDevice, mDatabaseManager.getMostRecentlyConnectedA2dpDevice());
+        mostRecentlyConnectedDevicesOrdered = mDatabaseManager.getMostRecentlyConnectedDevices();
+        Assert.assertEquals(2, mostRecentlyConnectedDevicesOrdered.size());
+        Assert.assertEquals(mTestDevice, mostRecentlyConnectedDevicesOrdered.get(0));
+        Assert.assertEquals(mTestDevice2, mostRecentlyConnectedDevicesOrdered.get(1));
 
         // Disconnect first test device's connection
         mDatabaseManager.setDisconnection(mTestDevice);
@@ -445,16 +460,61 @@ public final class DatabaseManagerTest {
         Assert.assertFalse(mDatabaseManager
                 .mMetadataCache.get(mTestDevice2.getAddress()).is_active_a2dp_device);
         Assert.assertNull(mDatabaseManager.getMostRecentlyConnectedA2dpDevice());
+        mostRecentlyConnectedDevicesOrdered = mDatabaseManager.getMostRecentlyConnectedDevices();
+        Assert.assertEquals(2, mostRecentlyConnectedDevicesOrdered.size());
+        Assert.assertEquals(mTestDevice, mostRecentlyConnectedDevicesOrdered.get(0));
+        Assert.assertEquals(mTestDevice2, mostRecentlyConnectedDevicesOrdered.get(1));
+
+        // Connect third test device (non-a2dp device)
+        mDatabaseManager.setConnection(mTestDevice3, false);
+        // Wait for database update
+        TestUtils.waitForLooperToFinishScheduledTask(mDatabaseManager.getHandlerLooper());
+        Assert.assertFalse(mDatabaseManager
+                .mMetadataCache.get(mTestDevice.getAddress()).is_active_a2dp_device);
+        Assert.assertFalse(mDatabaseManager
+                .mMetadataCache.get(mTestDevice2.getAddress()).is_active_a2dp_device);
+        Assert.assertFalse(mDatabaseManager
+                .mMetadataCache.get(mTestDevice3.getAddress()).is_active_a2dp_device);
+        Assert.assertNull(mDatabaseManager.getMostRecentlyConnectedA2dpDevice());
+        mostRecentlyConnectedDevicesOrdered = mDatabaseManager.getMostRecentlyConnectedDevices();
+        Assert.assertEquals(3, mostRecentlyConnectedDevicesOrdered.size());
+        Assert.assertEquals(mTestDevice3, mostRecentlyConnectedDevicesOrdered.get(0));
+        Assert.assertEquals(mTestDevice, mostRecentlyConnectedDevicesOrdered.get(1));
+        Assert.assertEquals(mTestDevice2, mostRecentlyConnectedDevicesOrdered.get(2));
 
         // Connect first test device again
-        mDatabaseManager.setConnection(mTestDevice);
+        mDatabaseManager.setConnection(mTestDevice, true);
         // Wait for database update
         TestUtils.waitForLooperToFinishScheduledTask(mDatabaseManager.getHandlerLooper());
         Assert.assertTrue(mDatabaseManager
                 .mMetadataCache.get(mTestDevice.getAddress()).is_active_a2dp_device);
         Assert.assertFalse(mDatabaseManager
                 .mMetadataCache.get(mTestDevice2.getAddress()).is_active_a2dp_device);
+        Assert.assertFalse(mDatabaseManager
+                .mMetadataCache.get(mTestDevice3.getAddress()).is_active_a2dp_device);
         Assert.assertEquals(mTestDevice, mDatabaseManager.getMostRecentlyConnectedA2dpDevice());
+        mostRecentlyConnectedDevicesOrdered = mDatabaseManager.getMostRecentlyConnectedDevices();
+        Assert.assertEquals(3, mostRecentlyConnectedDevicesOrdered.size());
+        Assert.assertEquals(mTestDevice, mostRecentlyConnectedDevicesOrdered.get(0));
+        Assert.assertEquals(mTestDevice3, mostRecentlyConnectedDevicesOrdered.get(1));
+        Assert.assertEquals(mTestDevice2, mostRecentlyConnectedDevicesOrdered.get(2));
+
+        // Connect third test device again and ensure it doesn't reset active a2dp device
+        mDatabaseManager.setConnection(mTestDevice3, false);
+        // Wait for database update
+        TestUtils.waitForLooperToFinishScheduledTask(mDatabaseManager.getHandlerLooper());
+        Assert.assertTrue(mDatabaseManager
+                .mMetadataCache.get(mTestDevice.getAddress()).is_active_a2dp_device);
+        Assert.assertFalse(mDatabaseManager
+                .mMetadataCache.get(mTestDevice2.getAddress()).is_active_a2dp_device);
+        Assert.assertFalse(mDatabaseManager
+                .mMetadataCache.get(mTestDevice3.getAddress()).is_active_a2dp_device);
+        Assert.assertEquals(mTestDevice, mDatabaseManager.getMostRecentlyConnectedA2dpDevice());
+        mostRecentlyConnectedDevicesOrdered = mDatabaseManager.getMostRecentlyConnectedDevices();
+        Assert.assertEquals(3, mostRecentlyConnectedDevicesOrdered.size());
+        Assert.assertEquals(mTestDevice3, mostRecentlyConnectedDevicesOrdered.get(0));
+        Assert.assertEquals(mTestDevice, mostRecentlyConnectedDevicesOrdered.get(1));
+        Assert.assertEquals(mTestDevice2, mostRecentlyConnectedDevicesOrdered.get(2));
 
         // Disconnect second test device
         mDatabaseManager.setDisconnection(mTestDevice2);
@@ -464,7 +524,14 @@ public final class DatabaseManagerTest {
                 .mMetadataCache.get(mTestDevice.getAddress()).is_active_a2dp_device);
         Assert.assertFalse(mDatabaseManager
                 .mMetadataCache.get(mTestDevice2.getAddress()).is_active_a2dp_device);
+        Assert.assertFalse(mDatabaseManager
+                .mMetadataCache.get(mTestDevice3.getAddress()).is_active_a2dp_device);
         Assert.assertEquals(mTestDevice, mDatabaseManager.getMostRecentlyConnectedA2dpDevice());
+        mostRecentlyConnectedDevicesOrdered = mDatabaseManager.getMostRecentlyConnectedDevices();
+        Assert.assertEquals(3, mostRecentlyConnectedDevicesOrdered.size());
+        Assert.assertEquals(mTestDevice3, mostRecentlyConnectedDevicesOrdered.get(0));
+        Assert.assertEquals(mTestDevice, mostRecentlyConnectedDevicesOrdered.get(1));
+        Assert.assertEquals(mTestDevice2, mostRecentlyConnectedDevicesOrdered.get(2));
 
         // Disconnect first test device
         mDatabaseManager.setDisconnection(mTestDevice);
@@ -474,7 +541,31 @@ public final class DatabaseManagerTest {
                 .mMetadataCache.get(mTestDevice.getAddress()).is_active_a2dp_device);
         Assert.assertFalse(mDatabaseManager
                 .mMetadataCache.get(mTestDevice2.getAddress()).is_active_a2dp_device);
+        Assert.assertFalse(mDatabaseManager
+                .mMetadataCache.get(mTestDevice3.getAddress()).is_active_a2dp_device);
         Assert.assertNull(mDatabaseManager.getMostRecentlyConnectedA2dpDevice());
+        mostRecentlyConnectedDevicesOrdered = mDatabaseManager.getMostRecentlyConnectedDevices();
+        Assert.assertEquals(3, mostRecentlyConnectedDevicesOrdered.size());
+        Assert.assertEquals(mTestDevice3, mostRecentlyConnectedDevicesOrdered.get(0));
+        Assert.assertEquals(mTestDevice, mostRecentlyConnectedDevicesOrdered.get(1));
+        Assert.assertEquals(mTestDevice2, mostRecentlyConnectedDevicesOrdered.get(2));
+
+        // Disconnect third test device
+        mDatabaseManager.setDisconnection(mTestDevice3);
+        // Wait for database update
+        TestUtils.waitForLooperToFinishScheduledTask(mDatabaseManager.getHandlerLooper());
+        Assert.assertFalse(mDatabaseManager
+                .mMetadataCache.get(mTestDevice.getAddress()).is_active_a2dp_device);
+        Assert.assertFalse(mDatabaseManager
+                .mMetadataCache.get(mTestDevice2.getAddress()).is_active_a2dp_device);
+        Assert.assertFalse(mDatabaseManager
+                .mMetadataCache.get(mTestDevice3.getAddress()).is_active_a2dp_device);
+        Assert.assertNull(mDatabaseManager.getMostRecentlyConnectedA2dpDevice());
+        mostRecentlyConnectedDevicesOrdered = mDatabaseManager.getMostRecentlyConnectedDevices();
+        Assert.assertEquals(3, mostRecentlyConnectedDevicesOrdered.size());
+        Assert.assertEquals(mTestDevice3, mostRecentlyConnectedDevicesOrdered.get(0));
+        Assert.assertEquals(mTestDevice, mostRecentlyConnectedDevicesOrdered.get(1));
+        Assert.assertEquals(mTestDevice2, mostRecentlyConnectedDevicesOrdered.get(2));
 
         mDatabaseManager.factoryReset();
         mDatabaseManager.mMetadataCache.clear();
