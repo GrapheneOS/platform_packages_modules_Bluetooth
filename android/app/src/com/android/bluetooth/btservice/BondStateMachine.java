@@ -26,8 +26,8 @@ import android.content.Intent;
 import android.os.Message;
 import android.os.UserHandle;
 import android.util.Log;
-import android.util.StatsLog;
 
+import com.android.bluetooth.BluetoothStatsLog;
 import com.android.bluetooth.Utils;
 import com.android.bluetooth.a2dp.A2dpService;
 import com.android.bluetooth.a2dpsink.A2dpSinkService;
@@ -323,14 +323,14 @@ final class BondStateMachine extends StateMachine {
             } else {
                 result = mAdapterService.createBondNative(addr, transport);
             }
-            StatsLog.write(StatsLog.BLUETOOTH_BOND_STATE_CHANGED,
+            BluetoothStatsLog.write(BluetoothStatsLog.BLUETOOTH_BOND_STATE_CHANGED,
                     mAdapterService.obfuscateAddress(dev), transport, dev.getType(),
                     BluetoothDevice.BOND_BONDING,
                     oobData == null ? BluetoothProtoEnums.BOND_SUB_STATE_UNKNOWN
                             : BluetoothProtoEnums.BOND_SUB_STATE_LOCAL_OOB_DATA_PROVIDED,
                     BluetoothProtoEnums.UNBOND_REASON_UNKNOWN);
             if (!result) {
-                StatsLog.write(StatsLog.BLUETOOTH_BOND_STATE_CHANGED,
+                BluetoothStatsLog.write(BluetoothStatsLog.BLUETOOTH_BOND_STATE_CHANGED,
                         mAdapterService.obfuscateAddress(dev), transport, dev.getType(),
                         BluetoothDevice.BOND_NONE, BluetoothProtoEnums.BOND_SUB_STATE_UNKNOWN,
                         BluetoothDevice.UNBOND_REASON_REPEATED_ATTEMPTS);
@@ -386,12 +386,12 @@ final class BondStateMachine extends StateMachine {
         if (oldState == newState) {
             return;
         }
-        StatsLog.write(StatsLog.BLUETOOTH_BOND_STATE_CHANGED,
+        BluetoothStatsLog.write(BluetoothStatsLog.BLUETOOTH_BOND_STATE_CHANGED,
                 mAdapterService.obfuscateAddress(device), 0, device.getType(),
                 newState, BluetoothProtoEnums.BOND_SUB_STATE_UNKNOWN, reason);
         BluetoothClass deviceClass = device.getBluetoothClass();
         int classOfDevice = deviceClass == null ? 0 : deviceClass.getClassOfDevice();
-        StatsLog.write(StatsLog.BLUETOOTH_CLASS_OF_DEVICE_REPORTED,
+        BluetoothStatsLog.write(BluetoothStatsLog.BLUETOOTH_CLASS_OF_DEVICE_REPORTED,
                 mAdapterService.obfuscateAddress(device), classOfDevice);
         mAdapterProperties.onBondStateChanged(device, newState);
 
@@ -491,7 +491,7 @@ final class BondStateMachine extends StateMachine {
             device = Objects.requireNonNull(mRemoteDevices.getDevice(address));
         }
 
-        StatsLog.write(StatsLog.BLUETOOTH_BOND_STATE_CHANGED,
+        BluetoothStatsLog.write(BluetoothStatsLog.BLUETOOTH_BOND_STATE_CHANGED,
                 mAdapterService.obfuscateAddress(device), 0, device.getType(),
                 BluetoothDevice.BOND_BONDING,
                 BluetoothProtoEnums.BOND_SUB_STATE_LOCAL_SSP_REQUESTED, 0);
@@ -514,7 +514,7 @@ final class BondStateMachine extends StateMachine {
             bdDevice = Objects.requireNonNull(mRemoteDevices.getDevice(address));
         }
 
-        StatsLog.write(StatsLog.BLUETOOTH_BOND_STATE_CHANGED,
+        BluetoothStatsLog.write(BluetoothStatsLog.BLUETOOTH_BOND_STATE_CHANGED,
                 mAdapterService.obfuscateAddress(bdDevice), 0, bdDevice.getType(),
                 BluetoothDevice.BOND_BONDING,
                 BluetoothProtoEnums.BOND_SUB_STATE_LOCAL_PIN_REQUESTED, 0);
