@@ -658,7 +658,8 @@ public class HidDeviceService extends ProfileService {
      * @return true if hid device is connected or disconnected, false otherwise
      */
     public boolean setConnectionPolicy(BluetoothDevice device, int connectionPolicy) {
-        enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH_ADMIN permission");
+        enforceCallingOrSelfPermission(
+                BLUETOOTH_PRIVILEGED, "Need BLUETOOTH_PRIVILEGED permission");
         if (DBG) {
             Log.d(TAG, "setConnectionPolicy: device " + device
                     + " and connectionPolicy " + connectionPolicy);
