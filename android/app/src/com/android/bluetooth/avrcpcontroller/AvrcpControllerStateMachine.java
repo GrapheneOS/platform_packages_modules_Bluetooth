@@ -296,9 +296,9 @@ class AvrcpControllerStateMachine extends StateMachine {
         @Override
         public void enter() {
             if (mMostRecentState == BluetoothProfile.STATE_CONNECTING) {
+                BluetoothMediaBrowserService.addressedPlayerChanged(mSessionCallbacks);
                 BluetoothMediaBrowserService.notifyChanged(mAddressedPlayer.getPlaybackState());
                 broadcastConnectionStateChanged(BluetoothProfile.STATE_CONNECTED);
-                BluetoothMediaBrowserService.addressedPlayerChanged(mSessionCallbacks);
             } else {
                 logD("ReEnteringConnected");
             }
