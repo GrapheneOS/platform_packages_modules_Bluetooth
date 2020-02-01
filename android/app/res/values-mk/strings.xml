@@ -23,7 +23,7 @@
     <string name="bt_share_picker_label" msgid="6268100924487046932">"Bluetooth"</string>
     <string name="unknown_device" msgid="9221903979877041009">"Непознат уред"</string>
     <string name="unknownNumber" msgid="4994750948072751566">"Непознат"</string>
-    <string name="airplane_error_title" msgid="2683839635115739939">"Режим на работа во авион"</string>
+    <string name="airplane_error_title" msgid="2683839635115739939">"Авионски режим"</string>
     <string name="airplane_error_msg" msgid="8698965595254137230">"Не можете да користите Bluetooth во режим на авион."</string>
     <string name="bt_enable_title" msgid="8657832550503456572"></string>
     <string name="bt_enable_line1" msgid="7203551583048149">"За Bluetooth услуги, прво мора да вклучите Bluetooth."</string>
@@ -93,7 +93,7 @@
     <string name="status_success" msgid="239573225847565868">"Преносот на датотека е успешно завршен."</string>
     <string name="status_not_accept" msgid="1695082417193780738">"Содржината не е поддржана."</string>
     <string name="status_forbidden" msgid="613956401054050725">"Преносот е забранет од целниот уред."</string>
-    <string name="status_canceled" msgid="6664490318773098285">"Преносот е откажан од страна на корисникот."</string>
+    <string name="status_canceled" msgid="6664490318773098285">"Корисникот го откажа преносот."</string>
     <string name="status_file_error" msgid="3671917770630165299">"Проблем со меморија."</string>
     <string name="status_no_sd_card_nosdcard" msgid="573631036356922221">"Нема USB-меморија."</string>
     <string name="status_no_sd_card_default" msgid="396564893716701954">"Нема SD-картичка. Вметнете SD-картичка за да се зачуваат пренесените датотеки."</string>
@@ -134,4 +134,5 @@
     <string name="bluetooth_disconnected" msgid="3318303728981478873">"Аудиото преку Bluetooth е исклучено"</string>
     <string name="a2dp_sink_mbs_label" msgid="7566075853395412558">"Аудио преку Bluetooth"</string>
     <string name="bluetooth_opp_file_limit_exceeded" msgid="8894450394309084519">"Не може да се пренесуваат датотеки поголеми од 4 GB"</string>
+    <string name="bluetooth_connect_action" msgid="4009848433321657090">"Поврзи се со Bluetooth"</string>
 </resources>
