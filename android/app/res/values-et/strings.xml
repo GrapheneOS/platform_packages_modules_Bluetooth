@@ -23,7 +23,7 @@
     <string name="bt_share_picker_label" msgid="6268100924487046932">"Bluetooth"</string>
     <string name="unknown_device" msgid="9221903979877041009">"Tundmatu seade"</string>
     <string name="unknownNumber" msgid="4994750948072751566">"Tundmatu"</string>
-    <string name="airplane_error_title" msgid="2683839635115739939">"Lennurežiim"</string>
+    <string name="airplane_error_title" msgid="2683839635115739939">"Lennukirežiim"</string>
     <string name="airplane_error_msg" msgid="8698965595254137230">"Te ei saa Bluetoothi lennurežiimis kasutada."</string>
     <string name="bt_enable_title" msgid="8657832550503456572"></string>
     <string name="bt_enable_line1" msgid="7203551583048149">"Bluetoothi teenuste kasutamiseks peate esmalt Bluetoothi sisse lülitama."</string>
@@ -134,4 +134,5 @@
     <string name="bluetooth_disconnected" msgid="3318303728981478873">"Bluetoothi heli ühendus on katkestatud"</string>
     <string name="a2dp_sink_mbs_label" msgid="7566075853395412558">"Bluetoothi heli"</string>
     <string name="bluetooth_opp_file_limit_exceeded" msgid="8894450394309084519">"Faile, mis on üle 4 GB, ei saa üle kanda"</string>
+    <string name="bluetooth_connect_action" msgid="4009848433321657090">"Ühenda Bluetoothiga"</string>
 </resources>
