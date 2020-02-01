@@ -33,8 +33,8 @@ import android.telephony.PhoneNumberUtils;
 import android.telephony.PhoneStateListener;
 import android.text.TextUtils;
 import android.util.Log;
-import android.util.StatsLog;
 
+import com.android.bluetooth.BluetoothStatsLog;
 import com.android.bluetooth.Utils;
 import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.ProfileService;
@@ -307,7 +307,7 @@ public class HeadsetStateMachine extends StateMachine {
         // Should not be called from enter() method
         void broadcastAudioState(BluetoothDevice device, int fromState, int toState) {
             stateLogD("broadcastAudioState: " + device + ": " + fromState + "->" + toState);
-            StatsLog.write(StatsLog.BLUETOOTH_SCO_CONNECTION_STATE_CHANGED,
+            BluetoothStatsLog.write(BluetoothStatsLog.BLUETOOTH_SCO_CONNECTION_STATE_CHANGED,
                     mAdapterService.obfuscateAddress(device),
                     getConnectionStateFromAudioState(toState),
                     TextUtils.equals(mAudioParams.get(HEADSET_WBS), HEADSET_AUDIO_FEATURE_ON)
@@ -1868,7 +1868,7 @@ public class HeadsetStateMachine extends StateMachine {
         String vendorId = deviceInfo[0];
         String productId = deviceInfo[1];
         String version = deviceInfo[2];
-        StatsLog.write(StatsLog.BLUETOOTH_DEVICE_INFO_REPORTED,
+        BluetoothStatsLog.write(BluetoothStatsLog.BLUETOOTH_DEVICE_INFO_REPORTED,
                 mAdapterService.obfuscateAddress(device), BluetoothProtoEnums.DEVICE_INFO_INTERNAL,
                 BluetoothHeadset.VENDOR_SPECIFIC_HEADSET_EVENT_XAPL, vendorId, productId, version,
                 null);
@@ -2022,7 +2022,6 @@ public class HeadsetStateMachine extends StateMachine {
             events |= PhoneStateListener.LISTEN_SERVICE_STATE;
         }
         if (mAgIndicatorEnableState != null && mAgIndicatorEnableState.signal) {
-            events |= PhoneStateListener.LISTEN_SIGNAL_STRENGTHS;
             events |= PhoneStateListener.LISTEN_ALWAYS_REPORTED_SIGNAL_STRENGTH;
         }
         mSystemInterface.getHeadsetPhoneState().listenForPhoneState(mDevice, events);
