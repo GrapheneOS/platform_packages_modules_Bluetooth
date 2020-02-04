@@ -2988,7 +2988,7 @@ public class AdapterService extends Service {
     }
 
     private boolean isNiapMode() {
-        return Settings.Global.getInt(getContentResolver(), "niap_mode", 0) == 1;
+        return Settings.Global.getInt(getContentResolver(), "common_criteria_mode", 0) == 1;
     }
 
     /**
