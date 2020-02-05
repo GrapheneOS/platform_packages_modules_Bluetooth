@@ -1504,7 +1504,7 @@ public class AdapterService extends Service {
                 return false;
             }
 
-            enforceBluetoothAdminPermission(service);
+            enforceBluetoothPrivilegedPermission(service);
 
             return service.connectAllEnabledProfiles(device);
         }
@@ -1516,7 +1516,7 @@ public class AdapterService extends Service {
                 return false;
             }
 
-            enforceBluetoothAdminPermission(service);
+            enforceBluetoothPrivilegedPermission(service);
 
             return service.disconnectAllEnabledProfiles(device);
         }
