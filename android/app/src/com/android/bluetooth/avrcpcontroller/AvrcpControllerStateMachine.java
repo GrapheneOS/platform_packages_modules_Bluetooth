@@ -79,6 +79,7 @@ class AvrcpControllerStateMachine extends StateMachine {
     static final int MESSAGE_PROCESS_NOW_PLAYING_CONTENTS_CHANGED = 216;
     static final int MESSAGE_PROCESS_SUPPORTED_APPLICATION_SETTINGS = 217;
     static final int MESSAGE_PROCESS_CURRENT_APPLICATION_SETTINGS = 218;
+    static final int MESSAGE_PROCESS_AVAILABLE_PLAYER_CHANGED = 219;
 
     //300->399 Events for Browsing
     static final int MESSAGE_GET_FOLDER_ITEMS = 300;
@@ -400,6 +401,10 @@ class AvrcpControllerStateMachine extends StateMachine {
                     BluetoothMediaBrowserService.notifyChanged(mAddressedPlayer.getPlaybackState());
                     return true;
 
+                case MESSAGE_PROCESS_AVAILABLE_PLAYER_CHANGED:
+                    processAvailablePlayerChanged();
+                    return true;
+
                 case DISCONNECT:
                     transitionTo(mDisconnecting);
                     return true;
@@ -470,6 +475,13 @@ class AvrcpControllerStateMachine extends StateMachine {
                     new byte[]{PlayerApplicationSettings.SHUFFLE_STATUS}, new byte[]{
                             PlayerApplicationSettings.mapAvrcpPlayerSettingstoBTattribVal(
                                     PlayerApplicationSettings.SHUFFLE_STATUS, shuffleMode)});
+        }
+
+        private void processAvailablePlayerChanged() {
+            logD("processAvailablePlayerChanged");
+            mBrowseTree.mRootNode.setCached(false);
+            mBrowseTree.mRootNode.setExpectedChildren(255);
+            BluetoothMediaBrowserService.notifyChanged(mBrowseTree.mRootNode);
         }
     }
 
