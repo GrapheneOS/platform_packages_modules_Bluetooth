@@ -229,6 +229,7 @@
         </activity>
         <service
             android:process="@string/process"
+            android:permission="android.permission.BLUETOOTH_PRIVILEGED"
             android:name=".pbap.BluetoothPbapService"
             android:enabled="@bool/profile_supported_pbap" >
             <intent-filter>
