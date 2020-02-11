@@ -644,8 +644,13 @@ public class AdapterService extends Service {
         setProfileServiceState(GattService.class, BluetoothAdapter.STATE_OFF);
     }
 
+    private void invalidateBluetoothGetStateCache() {
+        BluetoothAdapter.invalidateBluetoothGetStateCache();
+    }
+
     void updateAdapterState(int prevState, int newState) {
         mAdapterProperties.setState(newState);
+        invalidateBluetoothGetStateCache();
         if (mCallbacks != null) {
             int n = mCallbacks.beginBroadcast();
             debugLog("updateAdapterState() - Broadcasting state " + BluetoothAdapter.nameForState(
@@ -691,6 +696,9 @@ public class AdapterService extends Service {
             errorLog("cleanup() - Service already starting to cleanup, ignoring request...");
             return;
         }
+
+        BluetoothAdapter.invalidateGetProfileConnectionStateCache();
+        BluetoothAdapter.invalidateIsOffloadedFilteringSupportedCache();
 
         clearAdapterService(this);
 
@@ -1050,6 +1058,8 @@ public class AdapterService extends Service {
 
         AdapterServiceBinder(AdapterService svc) {
             mService = svc;
+            mService.invalidateBluetoothGetStateCache();
+            BluetoothAdapter.getDefaultAdapter().disableBluetoothGetStateCache();
         }
 
         public void cleanup() {
@@ -1373,6 +1383,10 @@ public class AdapterService extends Service {
             return service.mAdapterProperties.getConnectionState();
         }
 
+        /**
+         * This method has an associated binder cache.  The invalidation
+         * methods must be changed if the logic behind this method changes.
+         */
         @Override
         public int getProfileConnectionState(int profile) {
             AdapterService service = getService();
@@ -1917,6 +1931,10 @@ public class AdapterService extends Service {
             return val >= MIN_ADVT_INSTANCES_FOR_MA;
         }
 
+        /**
+         * This method has an associated binder cache.  The invalidation
+         * methods must be changed if the logic behind this method changes.
+         */
         @Override
         public boolean isOffloadedFilteringSupported() {
             AdapterService service = getService();
@@ -2130,8 +2148,6 @@ public class AdapterService extends Service {
             writer.close();
         }
     }
-
-    ;
 
     // ----API Methods--------
 
