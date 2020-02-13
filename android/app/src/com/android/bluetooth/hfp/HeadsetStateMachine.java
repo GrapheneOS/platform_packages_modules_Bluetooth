@@ -31,6 +31,7 @@ import android.os.SystemClock;
 import android.os.UserHandle;
 import android.telephony.PhoneNumberUtils;
 import android.telephony.PhoneStateListener;
+import android.telephony.ServiceState;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -1703,7 +1704,16 @@ public class HeadsetStateMachine extends StateMachine {
     }
 
     private void processAtCops(BluetoothDevice device) {
-        String operatorName = mSystemInterface.getNetworkOperator();
+        // Get operator name suggested by Telephony
+        String operatorName = null;
+        ServiceState serviceState = mSystemInterface.getHeadsetPhoneState().getServiceState();
+        if (serviceState != null) {
+            operatorName = serviceState.getOperatorAlpha();
+        }
+        if (mSystemInterface.isInCall() || operatorName == null || operatorName.equals("")) {
+            // Get operator name suggested by Telecom
+            operatorName = mSystemInterface.getNetworkOperator();
+        }
         if (operatorName == null) {
             operatorName = "";
         }
