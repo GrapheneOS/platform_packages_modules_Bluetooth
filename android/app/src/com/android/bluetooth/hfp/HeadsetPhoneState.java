@@ -17,10 +17,7 @@
 package com.android.bluetooth.hfp;
 
 import android.bluetooth.BluetoothDevice;
-import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
 import android.os.Handler;
 import android.telephony.PhoneStateListener;
 import android.telephony.ServiceState;
@@ -57,9 +54,6 @@ public class HeadsetPhoneState {
 
     // HFP 1.6 CIND service value
     private int mCindService = HeadsetHalConstants.NETWORK_STATE_NOT_AVAILABLE;
-    // Check this before sending out service state to the device -- if the SIM isn't fully
-    // loaded, don't expose that the network is available.
-    private boolean mIsSimStateLoaded;
     // Number of active (foreground) calls
     private int mNumActive;
     // Current Call Setup State
@@ -207,6 +201,10 @@ public class HeadsetPhoneState {
         mNumHeld = numHeldCall;
     }
 
+    ServiceState getServiceState() {
+        return mServiceState;
+    }
+
     int getCindSignal() {
         return mCindSignal;
     }
@@ -237,17 +235,15 @@ public class HeadsetPhoneState {
     }
 
     private synchronized void sendDeviceStateChanged() {
-        int service =
-                mIsSimStateLoaded ? mCindService : HeadsetHalConstants.NETWORK_STATE_NOT_AVAILABLE;
         // When out of service, send signal strength as 0. Some devices don't
         // use the service indicator, but only the signal indicator
-        int signal = service == HeadsetHalConstants.NETWORK_STATE_AVAILABLE ? mCindSignal : 0;
+        int signal = mCindService == HeadsetHalConstants.NETWORK_STATE_AVAILABLE ? mCindSignal : 0;
 
-        Log.d(TAG, "sendDeviceStateChanged. mService=" + mCindService + " mIsSimStateLoaded="
-                + mIsSimStateLoaded + " mSignal=" + signal + " mRoam=" + mCindRoam
+        Log.d(TAG, "sendDeviceStateChanged. mService=" + mCindService
+                + " mSignal=" + mCindSignal + " mRoam=" + mCindRoam
                 + " mBatteryCharge=" + mCindBatteryCharge);
         mHeadsetService.onDeviceStateChanged(
-                new HeadsetDeviceState(service, mCindRoam, signal, mCindBatteryCharge));
+                new HeadsetDeviceState(mCindService, mCindRoam, signal, mCindBatteryCharge));
     }
 
     private class HeadsetPhoneStateOnSubscriptionChangedListener
@@ -261,6 +257,7 @@ public class HeadsetPhoneState {
             synchronized (mDeviceEventMap) {
                 int simState = mTelephonyManager.getSimState();
                 if (simState != TelephonyManager.SIM_STATE_READY) {
+                    mServiceState = null;
                     mCindSignal = 0;
                     mCindService = HeadsetHalConstants.NETWORK_STATE_NOT_AVAILABLE;
                     sendDeviceStateChanged();
@@ -291,32 +288,7 @@ public class HeadsetPhoneState {
             }
             mCindService = cindService;
             mCindRoam = newRoam;
-
-            // If this is due to a SIM insertion, we want to defer sending device state changed
-            // until all the SIM config is loaded.
-            if (cindService == HeadsetHalConstants.NETWORK_STATE_NOT_AVAILABLE) {
-                mIsSimStateLoaded = false;
-                sendDeviceStateChanged();
-                return;
-            }
-            IntentFilter simStateChangedFilter =
-                    new IntentFilter(Intent.ACTION_SIM_STATE_CHANGED);
-            mHeadsetService.registerReceiver(new BroadcastReceiver() {
-                @Override
-                public void onReceive(Context context, Intent intent) {
-                    if (Intent.ACTION_SIM_STATE_CHANGED.equals(intent.getAction())) {
-                        // This is a sticky broadcast, so if it's already been loaded,
-                        // this'll execute immediately.
-                        if (Intent.SIM_STATE_LOADED.equals(
-                                intent.getStringExtra(Intent.EXTRA_SIM_STATE))) {
-                            mIsSimStateLoaded = true;
-                            sendDeviceStateChanged();
-                            mHeadsetService.unregisterReceiver(this);
-                        }
-                    }
-                }
-            }, simStateChangedFilter);
-
+            sendDeviceStateChanged();
         }
 
         @Override
