@@ -107,18 +107,35 @@ public class AvrcpCoverArtManager {
     }
 
     /**
-     * Disconnect from a remote device's BIP Image Pull Server
+     * Refresh the OBEX session of a connected client
      *
-     * @param device The remote Bluetooth device you wish to connect to
-     * @return True if the connection is successfully queued, False otherwise.
+     * @param device The remote Bluetooth device you wish to refresh
+     * @return True if the refresh is successfully queued, False otherwise.
      */
-    public synchronized boolean disconnect(BluetoothDevice device) {
-        debug("Disconnect " + device.getAddress());
-        if (!mClients.containsKey(device)) {
+    public synchronized boolean refreshSession(BluetoothDevice device) {
+        debug("Refresh OBEX session for " + device.getAddress());
+        AvrcpBipClient client = getClient(device);
+        if (client == null) {
             warn("No client for " + device.getAddress());
             return false;
         }
+        client.refreshSession();
+        return true;
+    }
+
+    /**
+     * Disconnect from a remote device's BIP Image Pull Server
+     *
+     * @param device The remote Bluetooth device you wish to disconnect from
+     * @return True if the disconnection is successfully queued, False otherwise.
+     */
+    public synchronized boolean disconnect(BluetoothDevice device) {
+        debug("Disconnect " + device.getAddress());
         AvrcpBipClient client = getClient(device);
+        if (client == null) {
+            warn("No client for " + device.getAddress());
+            return false;
+        }
         client.shutdown();
         mClients.remove(device);
         mCoverArtStorage.removeImagesForDevice(device);
@@ -145,7 +162,7 @@ public class AvrcpCoverArtManager {
      * @return Connection status, based on BluetoothProfile.STATE_* constants
      */
     public int getState(BluetoothDevice device) {
-        AvrcpBipClient client = mClients.get(device);
+        AvrcpBipClient client = getClient(device);
         if (client == null) return BluetoothProfile.STATE_DISCONNECTED;
         return client.getState();
     }
@@ -262,11 +279,21 @@ public class AvrcpCoverArtManager {
         public void onConnectionStateChanged(int oldState, int newState) {
             debug(mDevice.getAddress() + ": " + oldState + " -> " + newState);
             if (newState == BluetoothProfile.STATE_CONNECTED) {
+                // The spec says handles are only good for the life an an OBEX connection. If we're
+                // refreshing it, then we need to clear out our storage since its handle mapped.
+                mCoverArtStorage.removeImagesForDevice(mDevice);
+
                 // Once we're connected fetch the current metadata again in case the target has an
                 // image handle they can now give us
                 mService.getCurrentMetadataNative(Utils.getByteAddress(mDevice));
             } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
+                AvrcpBipClient client = getClient(mDevice);
+                boolean shouldReconnect = (client != null);
                 disconnect(mDevice);
+                if (shouldReconnect) {
+                    debug("Disconnect was not expected by us. Attempt to reconnect.");
+                    connect(mDevice, client.getL2capPsm());
+                }
             }
         }
 

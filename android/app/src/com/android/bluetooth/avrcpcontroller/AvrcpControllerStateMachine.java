@@ -303,9 +303,18 @@ class AvrcpControllerStateMachine extends StateMachine {
 
     synchronized void connectCoverArt() {
         // Called from "connected" state, which assumes either control or browse is connected
-        if (mCoverArtManager != null && mCoverArtPsm != 0) {
+        if (mCoverArtManager != null && mCoverArtPsm != 0
+                && mCoverArtManager.getState(mDevice) != BluetoothProfile.STATE_CONNECTED) {
             logD("Attempting to connect to AVRCP BIP, psm: " + mCoverArtPsm);
             mCoverArtManager.connect(mDevice, /* psm */ mCoverArtPsm);
+        }
+    }
+
+    synchronized void refreshCoverArt() {
+        if (mCoverArtManager != null && mCoverArtPsm != 0
+                && mCoverArtManager.getState(mDevice) == BluetoothProfile.STATE_CONNECTED) {
+            logD("Attempting to refresh AVRCP BIP OBEX session, psm: " + mCoverArtPsm);
+            mCoverArtManager.refreshSession(mDevice);
         }
     }
 
@@ -723,6 +732,10 @@ class AvrcpControllerStateMachine extends StateMachine {
                 case MESSAGE_PROCESS_FOLDER_PATH:
                     mBrowseTree.setCurrentBrowsedFolder(mNextStep.getID());
                     mBrowseTree.getCurrentBrowsedFolder().setExpectedChildren(msg.arg1);
+
+                    // AVRCP Specification says, if we're not database aware, we must disconnect and
+                    // reconnect our BIP client each time we successfully change path
+                    refreshCoverArt();
 
                     if (mAbort) {
                         transitionTo(mConnected);
