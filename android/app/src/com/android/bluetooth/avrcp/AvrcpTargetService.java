@@ -50,7 +50,11 @@ public class AvrcpTargetService extends ProfileService {
     private static final String AVRCP_ENABLE_PROPERTY = "persist.bluetooth.enablenewavrcp";
 
     private static final int AVRCP_MAX_VOL = 127;
+    private static final int MEDIA_KEY_EVENT_LOGGER_SIZE = 20;
+    private static final String MEDIA_KEY_EVENT_LOGGER_TITLE = "Media Key Events";
     private static int sDeviceMaxVolume = 0;
+    private final AvrcpEventLogger mMediaKeyEventLogger = new AvrcpEventLogger(
+            MEDIA_KEY_EVENT_LOGGER_SIZE, MEDIA_KEY_EVENT_LOGGER_TITLE);
 
     private MediaPlayerList mMediaPlayerList;
     private AudioManager mAudioManager;
@@ -365,7 +369,11 @@ public class AvrcpTargetService extends ProfileService {
     // TODO (apanicke): Handle key events here in the service. Currently it was more convenient to
     // handle them there but logically they make more sense handled here.
     void sendMediaKeyEvent(int event, boolean pushed) {
-        if (DEBUG) Log.d(TAG, "getMediaKeyEvent: event=" + event + " pushed=" + pushed);
+        BluetoothDevice activeDevice = getA2dpActiveDevice();
+        MediaPlayerWrapper player = mMediaPlayerList.getActivePlayer();
+        mMediaKeyEventLogger.logd(DEBUG, TAG, "getMediaKeyEvent:" + " device=" + activeDevice
+                + " event=" + event + " pushed=" + pushed
+                + " to " + (player == null ? null : player.getPackageName()));
         mMediaPlayerList.sendMediaKeyEvent(event, pushed);
     }
 
@@ -394,6 +402,8 @@ public class AvrcpTargetService extends ProfileService {
             tempBuilder.append("\nMedia Player List is empty\n");
         }
 
+        mMediaKeyEventLogger.dump(tempBuilder);
+        tempBuilder.append("\n");
         mVolumeManager.dump(tempBuilder);
 
         // Tab everything over by two spaces
