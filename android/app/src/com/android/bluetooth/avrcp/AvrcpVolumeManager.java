@@ -38,10 +38,14 @@ class AvrcpVolumeManager extends AudioDeviceCallback {
     // All volumes are stored at system volume values, not AVRCP values
     private static final String VOLUME_MAP = "bluetooth_volume_map";
     private static final String VOLUME_BLACKLIST = "absolute_volume_blacklist";
+    private static final String VOLUME_CHANGE_LOG_TITLE = "Volume Events";
     private static final int AVRCP_MAX_VOL = 127;
     private static final int STREAM_MUSIC = AudioManager.STREAM_MUSIC;
+    private static final int VOLUME_CHANGE_LOGGER_SIZE = 30;
     private static int sDeviceMaxVolume = 0;
     private static int sNewDeviceVolume = 0;
+    private final AvrcpEventLogger mVolumeEventLogger = new AvrcpEventLogger(
+            VOLUME_CHANGE_LOGGER_SIZE, VOLUME_CHANGE_LOG_TITLE);
 
     Context mContext;
     AudioManager mAudioManager;
@@ -80,7 +84,8 @@ class AvrcpVolumeManager extends AudioDeviceCallback {
         // If absolute volume for the device is supported, set the volume for the device
         if (mDeviceMap.get(device)) {
             int avrcpVolume = systemToAvrcpVolume(savedVolume);
-            Log.i(TAG, "switchVolumeDevice: Updating device volume: avrcpVolume=" + avrcpVolume);
+            mVolumeEventLogger.logd(TAG,
+                    "switchVolumeDevice: Updating device volume: avrcpVolume=" + avrcpVolume);
             mNativeInterface.sendVolumeChanged(device.getAddress(), avrcpVolume);
         }
     }
@@ -120,8 +125,8 @@ class AvrcpVolumeManager extends AudioDeviceCallback {
             return;
         }
         SharedPreferences.Editor pref = getVolumeMap().edit();
-        Log.i(TAG, "storeVolume: Storing stream volume level for device " + device
-                + " : " + storeVolume);
+        mVolumeEventLogger.logd(TAG, "storeVolume: Storing stream volume level for device "
+                        + device + " : " + storeVolume);
         mVolumeMap.put(device, storeVolume);
         pref.putInt(device.getAddress(), storeVolume);
         // Always use apply() since it is asynchronous, otherwise the call can hang waiting for
@@ -139,7 +144,8 @@ class AvrcpVolumeManager extends AudioDeviceCallback {
             return;
         }
         SharedPreferences.Editor pref = getVolumeMap().edit();
-        Log.i(TAG, "RemoveStoredVolume: Remove stored stream volume level for device " + device);
+        mVolumeEventLogger.logd(TAG,
+                    "RemoveStoredVolume: Remove stored stream volume level for device " + device);
         mVolumeMap.remove(device);
         pref.remove(device.getAddress());
         // Always use apply() since it is asynchronous, otherwise the call can hang waiting for
@@ -164,11 +170,11 @@ class AvrcpVolumeManager extends AudioDeviceCallback {
     void setVolume(@NonNull BluetoothDevice device, int avrcpVolume) {
         int deviceVolume =
                 (int) Math.floor((double) avrcpVolume * sDeviceMaxVolume / AVRCP_MAX_VOL);
-        if (DEBUG) {
-            Log.d(TAG, "setVolume: avrcpVolume=" + avrcpVolume
-                    + " deviceVolume=" + deviceVolume
-                    + " sDeviceMaxVolume=" + sDeviceMaxVolume);
-        }
+        mVolumeEventLogger.logd(DEBUG, TAG, "setVolume:"
+                        + " device=" + device
+                        + " avrcpVolume=" + avrcpVolume
+                        + " deviceVolume=" + deviceVolume
+                        + " sDeviceMaxVolume=" + sDeviceMaxVolume);
         mAudioManager.setStreamVolume(AudioManager.STREAM_MUSIC, deviceVolume,
                 AudioManager.FLAG_SHOW_UI | AudioManager.FLAG_BLUETOOTH_ABS_VOLUME);
         storeVolumeForDevice(device);
@@ -178,11 +184,11 @@ class AvrcpVolumeManager extends AudioDeviceCallback {
         int avrcpVolume =
                 (int) Math.floor((double) deviceVolume * AVRCP_MAX_VOL / sDeviceMaxVolume);
         if (avrcpVolume > 127) avrcpVolume = 127;
-        if (DEBUG) {
-            Log.d(TAG, "sendVolumeChanged: avrcpVolume=" + avrcpVolume
-                    + " deviceVolume=" + deviceVolume
-                    + " sDeviceMaxVolume=" + sDeviceMaxVolume);
-        }
+        mVolumeEventLogger.logd(DEBUG, TAG, "sendVolumeChanged:"
+                        + " device=" + device
+                        + " avrcpVolume=" + avrcpVolume
+                        + " deviceVolume=" + deviceVolume
+                        + " sDeviceMaxVolume=" + sDeviceMaxVolume);
         mNativeInterface.sendVolumeChanged(device.getAddress(), avrcpVolume);
         storeVolumeForDevice(device);
     }
@@ -290,6 +296,12 @@ class AvrcpVolumeManager extends AudioDeviceCallback {
                         d.getAddress(), deviceName, (Integer) value, absoluteVolume));
             }
         }
+
+        StringBuilder tempBuilder = new StringBuilder();
+        mVolumeEventLogger.dump(tempBuilder);
+        // Tab volume event logs over by two spaces
+        sb.append(tempBuilder.toString().replaceAll("(?m)^", "  "));
+        tempBuilder.append("\n");
     }
 
     static void d(String msg) {

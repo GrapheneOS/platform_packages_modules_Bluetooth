@@ -69,6 +69,10 @@ public class MediaPlayerList {
     private static final int NO_ACTIVE_PLAYER = 0;
     private static final int BLUETOOTH_PLAYER_ID = 0;
     private static final String BLUETOOTH_PLAYER_NAME = "Bluetooth Player";
+    private static final int ACTIVE_PLAYER_LOGGER_SIZE = 5;
+    private static final String ACTIVE_PLAYER_LOGGER_TITLE = "Active Player Events";
+    private static final int AUDIO_PLAYBACK_STATE_LOGGER_SIZE = 15;
+    private static final String AUDIO_PLAYBACK_STATE_LOGGER_TITLE = "Audio Playback State Events";
 
     // mediaId's for the now playing list will be in the form of "NowPlayingId[XX]" where [XX]
     // is the Queue ID for the requested item.
@@ -85,6 +89,10 @@ public class MediaPlayerList {
     private MediaSessionManager mMediaSessionManager;
     private MediaData mCurrMediaData = null;
     private final AudioManager mAudioManager;
+    private final AvrcpEventLogger mActivePlayerLogger = new AvrcpEventLogger(
+            ACTIVE_PLAYER_LOGGER_SIZE, ACTIVE_PLAYER_LOGGER_TITLE);
+    private final AvrcpEventLogger mAudioPlaybackStateLogger = new AvrcpEventLogger(
+            AUDIO_PLAYBACK_STATE_LOGGER_SIZE, AUDIO_PLAYBACK_STATE_LOGGER_TITLE);
 
     private Map<Integer, MediaPlayerWrapper> mMediaPlayers =
             Collections.synchronizedMap(new HashMap<Integer, MediaPlayerWrapper>());
@@ -239,8 +247,6 @@ public class MediaPlayerList {
     MediaPlayerWrapper getActivePlayer() {
         return mMediaPlayers.get(mActivePlayerId);
     }
-
-
 
     // In this case the displayed player is the Bluetooth Player, the number of items is equal
     // to the number of players. The root ID will always be empty string in this case as well.
@@ -527,7 +533,8 @@ public class MediaPlayerList {
 
         mActivePlayerId = playerId;
         getActivePlayer().registerCallback(mMediaPlayerCallback);
-        Log.i(TAG, "setActivePlayer(): setting player to " + getActivePlayer().getPackageName());
+        mActivePlayerLogger.logd(TAG, "setActivePlayer(): setting player to "
+                + getActivePlayer().getPackageName());
 
         // Ensure that metadata is synced on the new player
         if (!getActivePlayer().isMetadataSynced()) {
@@ -674,7 +681,8 @@ public class MediaPlayerList {
                         1.0f);
             currMediaData.state = builder.build();
         }
-        Log.i(TAG, "updateMediaForAudioPlayback: update state=" + currMediaData.state);
+        mAudioPlaybackStateLogger.logd(TAG, "updateMediaForAudioPlayback: update state="
+                + currMediaData.state);
         sendMediaUpdate(currMediaData);
     }
 
@@ -692,21 +700,24 @@ public class MediaPlayerList {
                 return;
             }
             boolean isActive = false;
-            Log.v(TAG, "onPlaybackConfigChanged(): Configs list size=" + configs.size());
+            AudioPlaybackConfiguration activeConfig = null;
             for (AudioPlaybackConfiguration config : configs) {
                 if (config.isActive() && (config.getAudioAttributes().getUsage()
                             == AudioAttributes.USAGE_ASSISTANCE_NAVIGATION_GUIDANCE)
                         && (config.getAudioAttributes().getContentType()
                             == AudioAttributes.CONTENT_TYPE_SPEECH)) {
-                    if (DEBUG) {
-                        Log.d(TAG, "onPlaybackConfigChanged(): config=" + config);
-                    }
+                    activeConfig = config;
                     isActive = true;
                 }
             }
             if (isActive != mAudioPlaybackIsActive) {
-                Log.d(TAG, "onPlaybackConfigChanged isActive=" + isActive
-                        + ", mAudioPlaybackIsActive=" + mAudioPlaybackIsActive);
+                mAudioPlaybackStateLogger.logd(DEBUG, TAG, "onPlaybackConfigChanged: "
+                        + (mAudioPlaybackIsActive ? "Active" : "Non-active") + " -> "
+                        + (isActive ? "Active" : "Non-active"));
+                if (isActive) {
+                    mAudioPlaybackStateLogger.logd(DEBUG, TAG, "onPlaybackConfigChanged: "
+                            + "active config: " + activeConfig);
+                }
                 mAudioPlaybackIsActive = isActive;
                 updateMediaForAudioPlayback();
             }
@@ -803,9 +814,12 @@ public class MediaPlayerList {
             sb.append(player.toString().replaceAll("(?m)^", "  "));
             sb.append("\n");
         }
-        // TODO (apanicke): Add media key events
+
+        mActivePlayerLogger.dump(sb);
+        sb.append("\n");
+        mAudioPlaybackStateLogger.dump(sb);
+        sb.append("\n");
         // TODO (apanicke): Add last sent data
-        // TODO (apanicke): Add addressed player history
     }
 
     private static void e(String message) {
