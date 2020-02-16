@@ -42,10 +42,14 @@ class MediaPlayerWrapper {
     private static final String TAG = "AvrcpMediaPlayerWrapper";
     private static final boolean DEBUG = false;
     static boolean sTesting = false;
+    private static final int PLAYBACK_STATE_CHANGE_EVENT_LOGGER_SIZE = 5;
+    private static final String PLAYBACK_STATE_CHANGE_LOGGER_EVENT_TITLE =
+            "Playback State change Event";
 
     private MediaController mMediaController;
     private String mPackageName;
     private Looper mLooper;
+    private final AvrcpEventLogger mPlaybackStateChangeEventLogger;
 
     private MediaData mCurrentData;
 
@@ -81,6 +85,8 @@ class MediaPlayerWrapper {
         mMediaController = controller;
         mPackageName = controller.getPackageName();
         mLooper = looper;
+        mPlaybackStateChangeEventLogger = new AvrcpEventLogger(
+                PLAYBACK_STATE_CHANGE_EVENT_LOGGER_SIZE, PLAYBACK_STATE_CHANGE_LOGGER_EVENT_TITLE);
 
         mCurrentData = new MediaData(null, null, null);
         mCurrentData.queue = Util.toMetadataList(getQueue());
@@ -399,7 +405,8 @@ class MediaPlayerWrapper {
                 return;
             }
 
-            Log.v(TAG, "onPlaybackStateChanged(): " + mPackageName + " : " + state.toString());
+            mPlaybackStateChangeEventLogger.logv(TAG, "onPlaybackStateChanged(): "
+                    + mPackageName + " : " + state.toString());
 
             if (!playstateEquals(state, getPlaybackState())) {
                 e("The callback playback state doesn't match the current state");
@@ -513,6 +520,7 @@ class MediaPlayerWrapper {
         for (Metadata data : mCurrentData.queue) {
             sb.append("    " + data + "\n");
         }
+        mPlaybackStateChangeEventLogger.dump(sb);
         return sb.toString();
     }
 }
