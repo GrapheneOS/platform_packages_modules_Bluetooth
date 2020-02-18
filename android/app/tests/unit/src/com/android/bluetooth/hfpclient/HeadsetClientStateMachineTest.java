@@ -1,6 +1,8 @@
 package com.android.bluetooth.hfpclient;
 
 import static com.android.bluetooth.hfpclient.HeadsetClientStateMachine.AT_OK;
+import static com.android.bluetooth.hfpclient.HeadsetClientStateMachine.VOICE_RECOGNITION_START;
+import static com.android.bluetooth.hfpclient.HeadsetClientStateMachine.VOICE_RECOGNITION_STOP;
 
 import static org.mockito.Mockito.*;
 
@@ -561,5 +563,59 @@ public class HeadsetClientStateMachineTest {
         final String vendorResponseCode = "+AAPLSIRI:";
         final String vendorResponseArgument = "2";
         runUnsupportedVendorEvent(vendorId, vendorResponseCode, vendorResponseArgument);
+    }
+
+    /**
+     * Test voice recognition state change broadcast.
+     */
+    @MediumTest
+    @Test
+    public void testVoiceRecognitionStateChange() {
+        // Setup connection state machine to be in connected state
+        when(mHeadsetClientService.getConnectionPolicy(any(BluetoothDevice.class))).thenReturn(
+                BluetoothProfile.CONNECTION_POLICY_ALLOWED);
+        when(mNativeInterface.startVoiceRecognition(any(byte[].class))).thenReturn(true);
+        when(mNativeInterface.stopVoiceRecognition(any(byte[].class))).thenReturn(true);
+
+        int expectedBroadcastIndex = 1;
+        expectedBroadcastIndex = setUpHfpClientConnection(expectedBroadcastIndex);
+        expectedBroadcastIndex = setUpServiceLevelConnection(expectedBroadcastIndex);
+
+        // Simulate a voice recognition start
+        mHeadsetClientStateMachine.sendMessage(VOICE_RECOGNITION_START);
+
+        // Signal that the complete list of actions was received.
+        StackEvent event = new StackEvent(StackEvent.EVENT_TYPE_CMD_RESULT);
+        event.device = mTestDevice;
+        event.valueInt = AT_OK;
+        mHeadsetClientStateMachine.sendMessage(StackEvent.STACK_EVENT, event);
+
+        expectedBroadcastIndex = verifyVoiceRecognitionBroadcast(expectedBroadcastIndex,
+                HeadsetClientHalConstants.VR_STATE_STARTED);
+
+        // Simulate a voice recognition stop
+        mHeadsetClientStateMachine.sendMessage(VOICE_RECOGNITION_STOP);
+
+        // Signal that the complete list of actions was received.
+        event = new StackEvent(StackEvent.EVENT_TYPE_CMD_RESULT);
+        event.device = mTestDevice;
+        event.valueInt = AT_OK;
+        mHeadsetClientStateMachine.sendMessage(StackEvent.STACK_EVENT, event);
+
+        verifyVoiceRecognitionBroadcast(expectedBroadcastIndex,
+                HeadsetClientHalConstants.VR_STATE_STOPPED);
+    }
+
+    private int verifyVoiceRecognitionBroadcast(int expectedBroadcastIndex, int expectedState) {
+        // Validate broadcast intent
+        ArgumentCaptor<Intent> intentArgument = ArgumentCaptor.forClass(Intent.class);
+        verify(mHeadsetClientService, timeout(STANDARD_WAIT_MILLIS).times(expectedBroadcastIndex))
+                .sendBroadcast(intentArgument.capture(), anyString());
+        Assert.assertEquals(BluetoothHeadsetClient.ACTION_AG_EVENT,
+                intentArgument.getValue().getAction());
+        int state = intentArgument.getValue().getIntExtra(
+                BluetoothHeadsetClient.EXTRA_VOICE_RECOGNITION, -1);
+        Assert.assertEquals(expectedState, state);
+        return expectedBroadcastIndex + 1;
     }
 }
