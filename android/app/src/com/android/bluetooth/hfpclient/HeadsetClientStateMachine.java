@@ -1311,15 +1311,10 @@ public class HeadsetClientStateMachine extends StateMachine {
                             mService.sendBroadcast(intent, ProfileService.BLUETOOTH_PERM);
                             break;
                         case StackEvent.EVENT_TYPE_VR_STATE_CHANGED:
-                            if (mVoiceRecognitionActive != event.valueInt) {
-                                mVoiceRecognitionActive = event.valueInt;
-
-                                intent = new Intent(BluetoothHeadsetClient.ACTION_AG_EVENT);
-                                intent.putExtra(BluetoothHeadsetClient.EXTRA_VOICE_RECOGNITION,
-                                        mVoiceRecognitionActive);
-                                intent.putExtra(BluetoothDevice.EXTRA_DEVICE, event.device);
-                                mService.sendBroadcast(intent, ProfileService.BLUETOOTH_PERM);
-                            }
+                            int oldState = mVoiceRecognitionActive;
+                            mVoiceRecognitionActive = event.valueInt;
+                            broadcastVoiceRecognitionStateChanged(event.device, oldState,
+                                    mVoiceRecognitionActive);
                             break;
                         case StackEvent.EVENT_TYPE_CALL:
                         case StackEvent.EVENT_TYPE_CALLSETUP:
@@ -1365,14 +1360,20 @@ public class HeadsetClientStateMachine extends StateMachine {
                                     break;
                                 case VOICE_RECOGNITION_START:
                                     if (event.valueInt == AT_OK) {
+                                        oldState = mVoiceRecognitionActive;
                                         mVoiceRecognitionActive =
                                                 HeadsetClientHalConstants.VR_STATE_STARTED;
+                                        broadcastVoiceRecognitionStateChanged(event.device,
+                                                oldState, mVoiceRecognitionActive);
                                     }
                                     break;
                                 case VOICE_RECOGNITION_STOP:
                                     if (event.valueInt == AT_OK) {
+                                        oldState = mVoiceRecognitionActive;
                                         mVoiceRecognitionActive =
                                                 HeadsetClientHalConstants.VR_STATE_STOPPED;
+                                        broadcastVoiceRecognitionStateChanged(event.device,
+                                                oldState, mVoiceRecognitionActive);
                                     }
                                     break;
                                 default:
@@ -1419,6 +1420,17 @@ public class HeadsetClientStateMachine extends StateMachine {
                     return NOT_HANDLED;
             }
             return HANDLED;
+        }
+
+        private void broadcastVoiceRecognitionStateChanged(BluetoothDevice device, int oldState,
+                int newState) {
+            if (oldState == newState) {
+                return;
+            }
+            Intent intent = new Intent(BluetoothHeadsetClient.ACTION_AG_EVENT);
+            intent.putExtra(BluetoothHeadsetClient.EXTRA_VOICE_RECOGNITION, newState);
+            intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
+            mService.sendBroadcast(intent, ProfileService.BLUETOOTH_PERM);
         }
 
         // in Connected state
