@@ -63,6 +63,7 @@ public class HeadsetPhoneStateTest {
     @Before
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
+        TelephonyManager.disableServiceHandleCaching();
         // Mock SubscriptionManager.getDefaultSubscriptionId() to return a valid value
         when(mISub.getDefaultSubId()).thenReturn(SubscriptionManager.DEFAULT_SUBSCRIPTION_ID);
         when(mISubBinder.queryLocalInterface(anyString())).thenReturn(mISub);
@@ -91,7 +92,7 @@ public class HeadsetPhoneStateTest {
                     mServiceManagerOriginalServices);
             mServiceManagerOriginalServices = null;
         }
-
+        TelephonyManager.enableServiceHandleCaching();
     }
 
     /**
