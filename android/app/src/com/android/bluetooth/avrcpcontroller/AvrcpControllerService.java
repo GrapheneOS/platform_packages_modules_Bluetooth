@@ -149,6 +149,23 @@ public class AvrcpControllerService extends ProfileService {
         }
     }
 
+    void playItem(String parentMediaId) {
+        if (DBG) Log.d(TAG, "playItem(" + parentMediaId + ")");
+        // Check if the requestedNode is a player rather than a song
+        BrowseTree.BrowseNode requestedNode = sBrowseTree.findBrowseNodeByID(parentMediaId);
+        if (requestedNode == null) {
+            for (AvrcpControllerStateMachine stateMachine : mDeviceStateMap.values()) {
+                // Check each state machine for the song and then play it
+                requestedNode = stateMachine.findNode(parentMediaId);
+                if (requestedNode != null) {
+                    if (DBG) Log.d(TAG, "Found a node");
+                    stateMachine.playItem(requestedNode);
+                    break;
+                }
+            }
+        }
+    }
+
     /*Java API*/
 
     /**
