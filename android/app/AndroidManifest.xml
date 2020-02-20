@@ -345,6 +345,13 @@
                 <action android:name="android.bluetooth.IBluetoothAvrcpController" />
             </intent-filter>
         </service>
+        <provider android:process="@string/process"
+            android:name=".avrcpcontroller.AvrcpCoverArtProvider"
+            android:authorities="com.android.bluetooth.avrcpcontroller.AvrcpCoverArtProvider"
+            android:enabled="@bool/avrcp_controller_enable_cover_art"
+            android:grantUriPermissions="true"
+            android:exported="true">
+        </provider>
         <service
             android:process="@string/process"
             android:name = ".hid.HidHostService"
