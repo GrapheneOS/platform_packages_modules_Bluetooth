@@ -72,6 +72,9 @@
     <!-- If true, device requests audio focus and start avrcp updates on source start or play -->
     <bool name="a2dp_sink_automatically_request_audio_focus">false</bool>
 
+    <!-- For enabling the AVRCP Controller Cover Artwork feature -->
+    <bool name="avrcp_controller_enable_cover_art">false</bool>
+
     <!-- For enabling the hfp client connection service -->
     <bool name="hfp_client_connection_service_enabled">false</bool>
 
