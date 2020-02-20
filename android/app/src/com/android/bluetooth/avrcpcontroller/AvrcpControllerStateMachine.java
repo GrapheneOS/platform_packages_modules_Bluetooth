@@ -39,6 +39,7 @@ import com.android.bluetooth.btservice.MetricsLogger;
 import com.android.bluetooth.btservice.ProfileService;
 import com.android.bluetooth.statemachine.State;
 import com.android.bluetooth.statemachine.StateMachine;
+import com.android.internal.annotations.VisibleForTesting;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -101,6 +102,7 @@ class AvrcpControllerStateMachine extends StateMachine {
     private static final byte NOTIFICATION_RSP_TYPE_INTERIM = 0x00;
     private static final byte NOTIFICATION_RSP_TYPE_CHANGED = 0x01;
 
+    private static BluetoothDevice sActiveDevice;
     private final AudioManager mAudioManager;
     private final boolean mIsVolumeFixed;
 
@@ -206,6 +208,42 @@ class AvrcpControllerStateMachine extends StateMachine {
     public void dump(StringBuilder sb) {
         ProfileService.println(sb, "mDevice: " + mDevice.getAddress() + "("
                 + mDevice.getName() + ") " + this.toString());
+        ProfileService.println(sb, "isActive: " + isActive());
+    }
+
+    @VisibleForTesting
+    boolean isActive() {
+        return mDevice == sActiveDevice;
+    }
+
+    /*
+     * requestActive
+     *
+     * Set the current device active if nothing an already connected device isn't playing
+     */
+    private boolean requestActive() {
+        if (sActiveDevice == null
+                || BluetoothMediaBrowserService.getPlaybackState()
+                != PlaybackStateCompat.STATE_PLAYING) {
+            return setActive();
+        }
+        return false;
+    }
+
+    /*
+     * setActive
+     *
+     * Set this state machine as the active device and update media browse service
+     */
+    private boolean setActive() {
+        if (DBG) Log.d(TAG, "setActive" + mDevice);
+        if (A2dpSinkService.getA2dpSinkService().setActiveDeviceNative(mDeviceAddress)) {
+            sActiveDevice = mDevice;
+            BluetoothMediaBrowserService.addressedPlayerChanged(mSessionCallbacks);
+            BluetoothMediaBrowserService.notifyChanged(mAddressedPlayer.getPlaybackState());
+            BluetoothMediaBrowserService.notifyChanged(mBrowseTree.mNowPlayingNode);
+        }
+        return mDevice == sActiveDevice;
     }
 
     @Override
@@ -232,7 +270,9 @@ class AvrcpControllerStateMachine extends StateMachine {
         mAddressedPlayer.setPlayStatus(PlaybackStateCompat.STATE_ERROR);
         mAddressedPlayer.updateCurrentTrack(null);
         mBrowseTree.mNowPlayingNode.setCached(false);
-        BluetoothMediaBrowserService.notifyChanged(mBrowseTree.mNowPlayingNode);
+        if (isActive()) {
+            BluetoothMediaBrowserService.notifyChanged(mBrowseTree.mNowPlayingNode);
+        }
         mService.sBrowseTree.mRootNode.removeChild(
                 mBrowseTree.mRootNode);
         BluetoothMediaBrowserService.notifyChanged(mService
@@ -244,10 +284,19 @@ class AvrcpControllerStateMachine extends StateMachine {
         BluetoothMediaBrowserService.notifyChanged(node);
     }
 
+    private void notifyChanged(PlaybackStateCompat state) {
+        if (isActive()) {
+            BluetoothMediaBrowserService.notifyChanged(state);
+        }
+    }
+
     void requestContents(BrowseTree.BrowseNode node) {
         sendMessage(MESSAGE_GET_FOLDER_ITEMS, node);
-
         logD("Fetching " + node);
+    }
+
+    public void playItem(BrowseTree.BrowseNode node) {
+        sendMessage(MESSAGE_PLAY_ITEM, node);
     }
 
     void nowPlayingContentChanged() {
@@ -297,6 +346,7 @@ class AvrcpControllerStateMachine extends StateMachine {
         @Override
         public void enter() {
             if (mMostRecentState == BluetoothProfile.STATE_CONNECTING) {
+                requestActive();
                 BluetoothMediaBrowserService.addressedPlayerChanged(mSessionCallbacks);
                 BluetoothMediaBrowserService.notifyChanged(mAddressedPlayer.getPlaybackState());
                 broadcastConnectionStateChanged(BluetoothProfile.STATE_CONNECTED);
@@ -331,7 +381,7 @@ class AvrcpControllerStateMachine extends StateMachine {
 
                 case MESSAGE_PLAY_ITEM:
                     //Set Addressed Player
-                    playItem((BrowseTree.BrowseNode) msg.obj);
+                    processPlayItem((BrowseTree.BrowseNode) msg.obj);
                     return true;
 
                 case MSG_AVRCP_PASSTHRU:
@@ -348,20 +398,23 @@ class AvrcpControllerStateMachine extends StateMachine {
 
                 case MESSAGE_PROCESS_TRACK_CHANGED:
                     mAddressedPlayer.updateCurrentTrack((MediaMetadata) msg.obj);
-                    BluetoothMediaBrowserService.trackChanged((MediaMetadata) msg.obj);
+                    if (isActive()) {
+                        BluetoothMediaBrowserService.trackChanged((MediaMetadata) msg.obj);
+                    }
                     return true;
 
                 case MESSAGE_PROCESS_PLAY_STATUS_CHANGED:
                     mAddressedPlayer.setPlayStatus(msg.arg1);
-                    BluetoothMediaBrowserService.notifyChanged(mAddressedPlayer.getPlaybackState());
+                    BluetoothMediaBrowserService.notifyChanged(
+                            mAddressedPlayer.getPlaybackState());
                     if (mAddressedPlayer.getPlaybackState().getState()
                             == PlaybackStateCompat.STATE_PLAYING
                             && A2dpSinkService.getFocusState() == AudioManager.AUDIOFOCUS_NONE) {
                         if (shouldRequestFocus()) {
                             mSessionCallbacks.onPrepare();
                         } else {
-                        sendMessage(MSG_AVRCP_PASSTHRU,
-                                AvrcpControllerService.PASS_THRU_CMD_ID_PAUSE);
+                            sendMessage(MSG_AVRCP_PASSTHRU,
+                                    AvrcpControllerService.PASS_THRU_CMD_ID_PAUSE);
                         }
                     }
                     return true;
@@ -369,9 +422,10 @@ class AvrcpControllerStateMachine extends StateMachine {
                 case MESSAGE_PROCESS_PLAY_POS_CHANGED:
                     if (msg.arg2 != -1) {
                         mAddressedPlayer.setPlayTime(msg.arg2);
-
-                        BluetoothMediaBrowserService.notifyChanged(
-                                mAddressedPlayer.getPlaybackState());
+                        if (isActive()) {
+                            BluetoothMediaBrowserService.notifyChanged(
+                                    mAddressedPlayer.getPlaybackState());
+                        }
                     }
                     return true;
 
@@ -392,13 +446,13 @@ class AvrcpControllerStateMachine extends StateMachine {
                 case MESSAGE_PROCESS_SUPPORTED_APPLICATION_SETTINGS:
                     mAddressedPlayer.setSupportedPlayerApplicationSettings(
                             (PlayerApplicationSettings) msg.obj);
-                    BluetoothMediaBrowserService.notifyChanged(mAddressedPlayer.getPlaybackState());
+                    notifyChanged(mAddressedPlayer.getPlaybackState());
                     return true;
 
                 case MESSAGE_PROCESS_CURRENT_APPLICATION_SETTINGS:
                     mAddressedPlayer.setCurrentPlayerApplicationSettings(
                             (PlayerApplicationSettings) msg.obj);
-                    BluetoothMediaBrowserService.notifyChanged(mAddressedPlayer.getPlaybackState());
+                    notifyChanged(mAddressedPlayer.getPlaybackState());
                     return true;
 
                 case MESSAGE_PROCESS_AVAILABLE_PLAYER_CHANGED:
@@ -415,7 +469,8 @@ class AvrcpControllerStateMachine extends StateMachine {
 
         }
 
-        private void playItem(BrowseTree.BrowseNode node) {
+        private void processPlayItem(BrowseTree.BrowseNode node) {
+            setActive();
             if (node == null) {
                 Log.w(TAG, "Invalid item to play");
             } else {
@@ -722,8 +777,11 @@ class AvrcpControllerStateMachine extends StateMachine {
         @Override
         public void enter() {
             onBrowsingDisconnected();
-            BluetoothMediaBrowserService.trackChanged(null);
-            BluetoothMediaBrowserService.addressedPlayerChanged(null);
+            if (isActive()) {
+                sActiveDevice = null;
+                BluetoothMediaBrowserService.trackChanged(null);
+                BluetoothMediaBrowserService.addressedPlayerChanged(null);
+            }
             broadcastConnectionStateChanged(BluetoothProfile.STATE_DISCONNECTING);
             transitionTo(mDisconnected);
         }
@@ -856,7 +914,14 @@ class AvrcpControllerStateMachine extends StateMachine {
             // Play the item if possible.
             onPrepare();
             BrowseTree.BrowseNode node = mBrowseTree.findBrowseNodeByID(mediaId);
-            sendMessage(MESSAGE_PLAY_ITEM, node);
+            if (node != null) {
+                // node was found on this bluetooth device
+                sendMessage(MESSAGE_PLAY_ITEM, node);
+            } else {
+                // node was not found on this device, pause here, and play on another device
+                sendMessage(MSG_AVRCP_PASSTHRU, AvrcpControllerService.PASS_THRU_CMD_ID_PAUSE);
+                mService.playItem(mediaId);
+            }
         }
 
         @Override
