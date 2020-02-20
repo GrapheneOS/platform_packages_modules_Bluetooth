@@ -398,7 +398,16 @@ public class PbapClientService extends ProfileService {
         return deviceList;
     }
 
-    int getConnectionState(BluetoothDevice device) {
+    /**
+     * Get the current connection state of the profile
+     *
+     * @param device is the remote bluetooth device
+     * @return {@link BluetoothProfile#STATE_DISCONNECTED} if this profile is disconnected,
+     * {@link BluetoothProfile#STATE_CONNECTING} if this profile is being connected,
+     * {@link BluetoothProfile#STATE_CONNECTED} if this profile is connected, or
+     * {@link BluetoothProfile#STATE_DISCONNECTING} if this profile is being disconnected
+     */
+    public int getConnectionState(BluetoothDevice device) {
         if (device == null) {
             throw new IllegalArgumentException("Null device");
         }
