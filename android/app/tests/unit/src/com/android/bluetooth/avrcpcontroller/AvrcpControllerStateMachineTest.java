@@ -485,7 +485,7 @@ public class AvrcpControllerStateMachineTest {
         //Provide back a player object
         byte[] playerFeatures =
                 new byte[]{0, 0, 0, 0, 0, (byte) 0xb7, 0x01, 0x0c, 0x0a, 0, 0, 0, 0, 0, 0, 0};
-        AvrcpPlayer playerOne = new AvrcpPlayer(1, playerName, playerFeatures, 1, 1);
+        AvrcpPlayer playerOne = new AvrcpPlayer(mTestDevice, 1, playerName, playerFeatures, 1, 1);
         List<AvrcpPlayer> testPlayers = new ArrayList<>();
         testPlayers.add(playerOne);
         mAvrcpStateMachine.sendMessage(AvrcpControllerStateMachine.MESSAGE_PROCESS_GET_PLAYER_ITEMS,
@@ -541,7 +541,7 @@ public class AvrcpControllerStateMachineTest {
         //Provide back a player object
         byte[] playerFeatures =
                 new byte[]{0, 0, 0, 0, 0, (byte) 0xb7, 0x01, 0x0c, 0x0a, 0, 0, 0, 0, 0, 0, 0};
-        AvrcpPlayer playerOne = new AvrcpPlayer(1, playerName, playerFeatures, 1, 1);
+        AvrcpPlayer playerOne = new AvrcpPlayer(mTestDevice, 1, playerName, playerFeatures, 1, 1);
         List<AvrcpPlayer> testPlayers = new ArrayList<>();
         testPlayers.add(playerOne);
         mAvrcpStateMachine.sendMessage(AvrcpControllerStateMachine.MESSAGE_PROCESS_GET_PLAYER_ITEMS,

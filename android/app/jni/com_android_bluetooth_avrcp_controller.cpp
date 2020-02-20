@@ -49,8 +49,9 @@ static jmethodID method_handleSetAddressedPlayerRsp;
 static jmethodID method_handleAddressedPlayerChanged;
 static jmethodID method_handleNowPlayingContentChanged;
 static jmethodID method_onAvailablePlayerChanged;
+static jmethodID method_getRcPsm;
 
-static jclass class_MediaBrowser_MediaItem;
+static jclass class_AvrcpItem;
 static jclass class_AvrcpPlayer;
 
 static const btrc_ctrl_interface_t* sBluetoothAvrcpInterface = NULL;
@@ -458,7 +459,7 @@ static void btavrcp_get_folder_items_callback(
         sCallbackEnv->NewObjectArray((jint)count, class_AvrcpPlayer, 0));
   } else {
     itemArray.reset(sCallbackEnv->NewObjectArray(
-        (jint)count, class_MediaBrowser_MediaItem, 0));
+        (jint)count, class_AvrcpItem, 0));
   }
   if (!itemArray.get()) {
     ALOGE("%s itemArray allocation failed.", __func__);
@@ -511,11 +512,11 @@ static void btavrcp_get_folder_items_callback(
         ScopedLocalRef<jobject> mediaObj(
             sCallbackEnv.get(),
             (jobject)sCallbackEnv->CallObjectMethod(
-                sCallbacksObj, method_createFromNativeMediaItem, uid,
-                (jint)item->media.type, mediaName.get(), attrIdArray.get(),
-                attrValArray.get()));
+                sCallbacksObj, method_createFromNativeMediaItem, addr.get(),
+                uid, (jint)item->media.type, mediaName.get(),
+                attrIdArray.get(), attrValArray.get()));
         if (!mediaObj.get()) {
-          ALOGE("%s failed to creae MediaItem for type ITEM_MEDIA", __func__);
+          ALOGE("%s failed to create AvrcpItem for type ITEM_MEDIA", __func__);
           return;
         }
         sCallbackEnv->SetObjectArrayElement(itemArray.get(), i, mediaObj.get());
@@ -536,11 +537,11 @@ static void btavrcp_get_folder_items_callback(
         ScopedLocalRef<jobject> folderObj(
             sCallbackEnv.get(),
             (jobject)sCallbackEnv->CallObjectMethod(
-                sCallbacksObj, method_createFromNativeFolderItem, uid,
-                (jint)item->folder.type, folderName.get(),
+                sCallbacksObj, method_createFromNativeFolderItem, addr.get(),
+                uid, (jint)item->folder.type, folderName.get(),
                 (jint)item->folder.playable));
         if (!folderObj.get()) {
-          ALOGE("%s failed to create MediaItem for type ITEM_FOLDER", __func__);
+          ALOGE("%s failed to create AvrcpItem for type ITEM_FOLDER", __func__);
           return;
         }
         sCallbackEnv->SetObjectArrayElement(itemArray.get(), i,
@@ -576,8 +577,8 @@ static void btavrcp_get_folder_items_callback(
         ScopedLocalRef<jobject> playerObj(
             sCallbackEnv.get(),
             (jobject)sCallbackEnv->CallObjectMethod(
-                sCallbacksObj, method_createFromNativePlayerItem, id,
-                playerName.get(), featureBitArray.get(), playStatus,
+                sCallbacksObj, method_createFromNativePlayerItem, addr.get(),
+                id, playerName.get(), featureBitArray.get(), playStatus,
                 playerType));
         if (!playerObj.get()) {
           ALOGE("%s failed to create AvrcpPlayer from ITEM_PLAYER", __func__);
@@ -722,27 +723,50 @@ static void btavrcp_now_playing_content_changed_callback(
 
 static void btavrcp_available_player_changed_callback (
     const RawAddress& bd_addr) {
-    ALOGI("%s", __func__);
-
-    std::shared_lock<std::shared_timed_mutex> lock(sCallbacks_mutex);
-
-    CallbackEnv sCallbackEnv(__func__);
-    if (!sCallbacksObj) {
-        ALOGE("%s: sCallbacksObj is null", __func__);
-        return;
-    }
-    if (!sCallbackEnv.valid()) return;
-    ScopedLocalRef<jbyteArray> addr(
-        sCallbackEnv.get(), sCallbackEnv->NewByteArray(sizeof(RawAddress)));
-    if (!addr.get()) {
-      ALOGE("%s: Failed to allocate a new byte array", __func__);
+  ALOGI("%s", __func__);
+  std::shared_lock<std::shared_timed_mutex> lock(sCallbacks_mutex);
+  CallbackEnv sCallbackEnv(__func__);
+  if (!sCallbacksObj) {
+      ALOGE("%s: sCallbacksObj is null", __func__);
       return;
-    }
+  }
+  if (!sCallbackEnv.valid()) return;
 
-    sCallbackEnv->SetByteArrayRegion(addr.get(), 0, sizeof(RawAddress),
-                                     (jbyte*)&bd_addr);
-    sCallbackEnv->CallVoidMethod(
-        sCallbacksObj, method_onAvailablePlayerChanged, addr.get());
+  ScopedLocalRef<jbyteArray> addr(
+      sCallbackEnv.get(), sCallbackEnv->NewByteArray(sizeof(RawAddress)));
+  if (!addr.get()) {
+    ALOGE("%s: Failed to allocate a new byte array", __func__);
+    return;
+  }
+
+  sCallbackEnv->SetByteArrayRegion(addr.get(), 0, sizeof(RawAddress),
+                                    (jbyte*)&bd_addr);
+  sCallbackEnv->CallVoidMethod(
+      sCallbacksObj, method_onAvailablePlayerChanged, addr.get());
+}
+
+static void btavrcp_get_rcpsm_callback(const RawAddress& bd_addr,
+                                       uint16_t psm) {
+  ALOGE("%s -> psm received of %d", __func__, psm);
+  std::shared_lock<std::shared_timed_mutex> lock(sCallbacks_mutex);
+  CallbackEnv sCallbackEnv(__func__);
+  if (!sCallbacksObj) {
+    ALOGE("%s: sCallbacksObj is null", __func__);
+    return;
+  }
+  if (!sCallbackEnv.valid()) return;
+
+  ScopedLocalRef<jbyteArray> addr(
+      sCallbackEnv.get(), sCallbackEnv->NewByteArray(sizeof(RawAddress)));
+  if (!addr.get()) {
+    ALOGE("%s: Failed to allocate a new byte array", __func__);
+    return;
+  }
+
+  sCallbackEnv->SetByteArrayRegion(addr.get(), 0, sizeof(RawAddress),
+                                   (jbyte*)&bd_addr.address);
+  sCallbackEnv->CallVoidMethod(sCallbacksObj, method_getRcPsm, addr.get(),
+                               (jint)psm);
 }
 
 static btrc_ctrl_callbacks_t sBluetoothAvrcpCallbacks = {
@@ -765,7 +789,8 @@ static btrc_ctrl_callbacks_t sBluetoothAvrcpCallbacks = {
     btavrcp_set_addressed_player_callback,
     btavrcp_addressed_player_changed_callback,
     btavrcp_now_playing_content_changed_callback,
-    btavrcp_available_player_changed_callback};
+    btavrcp_available_player_changed_callback,
+    btavrcp_get_rcpsm_callback};
 
 static void classInitNative(JNIEnv* env, jclass clazz) {
   method_handlePassthroughRsp =
@@ -778,6 +803,8 @@ static void classInitNative(JNIEnv* env, jclass clazz) {
       env->GetMethodID(clazz, "onConnectionStateChanged", "(ZZ[B)V");
 
   method_getRcFeatures = env->GetMethodID(clazz, "getRcFeatures", "([BI)V");
+
+  method_getRcPsm = env->GetMethodID(clazz, "getRcPsm", "([BI)V");
 
   method_setplayerappsettingrsp =
       env->GetMethodID(clazz, "setPlayerAppSettingRsp", "([BB)V");
@@ -805,21 +832,23 @@ static void classInitNative(JNIEnv* env, jclass clazz) {
 
   method_handleGetFolderItemsRsp =
       env->GetMethodID(clazz, "handleGetFolderItemsRsp",
-                       "([BI[Landroid/media/browse/MediaBrowser$MediaItem;)V");
+                       "([BI[Lcom/android/bluetooth/avrcpcontroller/"
+                       "AvrcpItem;)V");
   method_handleGetPlayerItemsRsp = env->GetMethodID(
       clazz, "handleGetPlayerItemsRsp",
       "([B[Lcom/android/bluetooth/avrcpcontroller/AvrcpPlayer;)V");
 
   method_createFromNativeMediaItem =
       env->GetMethodID(clazz, "createFromNativeMediaItem",
-                       "(JILjava/lang/String;[I[Ljava/lang/String;)Landroid/"
-                       "media/browse/MediaBrowser$MediaItem;");
+                       "([BJILjava/lang/String;[I[Ljava/lang/String;)Lcom/"
+                       "android/bluetooth/avrcpcontroller/AvrcpItem;");
   method_createFromNativeFolderItem = env->GetMethodID(
       clazz, "createFromNativeFolderItem",
-      "(JILjava/lang/String;I)Landroid/media/browse/MediaBrowser$MediaItem;");
+      "([BJILjava/lang/String;I)Lcom/android/bluetooth/avrcpcontroller/"
+      "AvrcpItem;");
   method_createFromNativePlayerItem =
       env->GetMethodID(clazz, "createFromNativePlayerItem",
-                       "(ILjava/lang/String;[BII)Lcom/android/bluetooth/"
+                       "([BILjava/lang/String;[BII)Lcom/android/bluetooth/"
                        "avrcpcontroller/AvrcpPlayer;");
   method_handleChangeFolderRsp =
       env->GetMethodID(clazz, "handleChangeFolderRsp", "([BI)V");
@@ -840,9 +869,9 @@ static void classInitNative(JNIEnv* env, jclass clazz) {
 static void initNative(JNIEnv* env, jobject object) {
   std::unique_lock<std::shared_timed_mutex> lock(sCallbacks_mutex);
 
-  jclass tmpMediaItem =
-      env->FindClass("android/media/browse/MediaBrowser$MediaItem");
-  class_MediaBrowser_MediaItem = (jclass)env->NewGlobalRef(tmpMediaItem);
+  jclass tmpAvrcpItem =
+      env->FindClass("com/android/bluetooth/avrcpcontroller/AvrcpItem");
+  class_AvrcpItem = (jclass)env->NewGlobalRef(tmpAvrcpItem);
 
   jclass tmpBtPlayer =
       env->FindClass("com/android/bluetooth/avrcpcontroller/AvrcpPlayer");
