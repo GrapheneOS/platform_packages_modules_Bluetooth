@@ -543,7 +543,16 @@ public class HeadsetClientService extends ProfileService {
         return devices;
     }
 
-    private synchronized int getConnectionState(BluetoothDevice device) {
+    /**
+     * Get the current connection state of the profile
+     *
+     * @param device is the remote bluetooth device
+     * @return {@link BluetoothProfile#STATE_DISCONNECTED} if this profile is disconnected,
+     * {@link BluetoothProfile#STATE_CONNECTING} if this profile is being connected,
+     * {@link BluetoothProfile#STATE_CONNECTED} if this profile is connected, or
+     * {@link BluetoothProfile#STATE_DISCONNECTING} if this profile is being disconnected
+     */
+    public synchronized int getConnectionState(BluetoothDevice device) {
         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
         HeadsetClientStateMachine sm = mStateMachineMap.get(device);
         if (sm != null) {

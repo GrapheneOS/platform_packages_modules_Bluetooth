@@ -595,6 +595,18 @@ public class BluetoothMapService extends ProfileService {
         return true;
     }
 
+    /**
+     * Get the connection policy of the profile.
+     *
+     * <p> The connection policy can be any of:
+     * {@link BluetoothProfile#CONNECTION_POLICY_ALLOWED},
+     * {@link BluetoothProfile#CONNECTION_POLICY_FORBIDDEN},
+     * {@link BluetoothProfile#CONNECTION_POLICY_UNKNOWN}
+     *
+     * @param device Bluetooth device
+     * @return connection policy of the device
+     * @hide
+     */
     int getConnectionPolicy(BluetoothDevice device) {
         return AdapterService.getAdapterService().getDatabase()
                 .getProfileConnectionPolicy(device, BluetoothProfile.MAP);
