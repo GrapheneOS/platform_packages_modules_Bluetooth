@@ -16,6 +16,8 @@
 
 package com.android.bluetooth.hid;
 
+import static com.android.bluetooth.Utils.enforceBluetoothPrivilegedPermission;
+
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothHidHost;
 import android.bluetooth.BluetoothProfile;
@@ -355,11 +357,17 @@ public class HidHostService extends ProfileService {
             if (service == null) {
                 return BluetoothHidHost.STATE_DISCONNECTED;
             }
+            enforceBluetoothPrivilegedPermission(service);
             return service.getConnectionState(device);
         }
 
         @Override
         public List<BluetoothDevice> getConnectedDevices() {
+            HidHostService service = getService();
+            if (service == null) {
+                return new ArrayList<>();
+            }
+            enforceBluetoothPrivilegedPermission(service);
             return getDevicesMatchingConnectionStates(new int[]{BluetoothProfile.STATE_CONNECTED});
         }
 
