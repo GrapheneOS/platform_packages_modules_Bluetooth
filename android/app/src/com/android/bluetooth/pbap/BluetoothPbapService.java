@@ -769,6 +769,7 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
 
         if (permission == BluetoothDevice.ACCESS_ALLOWED) {
             setConnectionPolicy(device, BluetoothProfile.CONNECTION_POLICY_ALLOWED);
+            stateMachine.sendMessage(PbapStateMachine.AUTHORIZED);
         } else if (permission == BluetoothDevice.ACCESS_REJECTED) {
             stateMachine.sendMessage(PbapStateMachine.REJECTED);
         } else { // permission == BluetoothDevice.ACCESS_UNKNOWN
