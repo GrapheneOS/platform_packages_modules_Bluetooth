@@ -117,6 +117,10 @@ static list_t* commands_pending_response;
 static std::recursive_timed_mutex commands_pending_response_mutex;
 static OnceTimer abort_timer;
 
+// Root inflammation error codes
+static uint8_t root_inflamed_error_code = 0;
+static uint8_t root_inflamed_vendor_error_code = 0;
+
 // The hand-off point for data going to a higher layer, set by the higher layer
 static base::Callback<void(const base::Location&, BT_HDR*)> send_data_upwards;
 
@@ -124,6 +128,8 @@ static bool filter_incoming_event(BT_HDR* packet);
 static waiting_command_t* get_waiting_command(command_opcode_t opcode);
 static int get_num_waiting_commands();
 
+static void hci_root_inflamed_abort();
+static void hci_timeout_abort(void);
 static void event_finish_startup(void* context);
 static void startup_timer_expired(void* context);
 
@@ -139,6 +145,8 @@ static void transmit_fragment(BT_HDR* packet, bool send_transmit_finished);
 static void dispatch_reassembled(BT_HDR* packet);
 static void fragmenter_transmit_finished(BT_HDR* packet,
                                          bool all_fragments_sent);
+static bool filter_bqr_event(int16_t bqr_parameter_length,
+                             uint8_t* p_bqr_event);
 
 static const packet_fragmenter_callbacks_t packet_fragmenter_callbacks = {
     transmit_fragment, dispatch_reassembled, fragmenter_transmit_finished};
@@ -172,7 +180,11 @@ void iso_data_received(BT_HDR* packet) {
 
 void hal_service_died() {
   if (abort_timer.IsScheduled()) {
-    LOG(ERROR) << "abort_timer is scheduled, wait for timeout";
+    if (root_inflamed_vendor_error_code != 0 || root_inflamed_error_code != 0) {
+      hci_root_inflamed_abort();
+    } else {
+      hci_timeout_abort();
+    }
     return;
   }
   abort();
@@ -464,10 +476,11 @@ static void hci_timeout_abort(void) {
   abort();
 }
 
-static void hci_root_inflamed_abort(uint8_t error_code,
-                                    uint8_t vendor_error_code) {
-  LOG(FATAL) << __func__ << ": error_code = " << std::to_string(error_code)
-             << ", vendor_error_code = " << std::to_string(vendor_error_code);
+static void hci_root_inflamed_abort() {
+  LOG(FATAL) << __func__
+             << ": error_code = " << std::to_string(root_inflamed_error_code)
+             << ", vendor_error_code = "
+             << std::to_string(root_inflamed_vendor_error_code);
 }
 
 static void command_timed_out_log_info(void* original_wait_entry) {
@@ -579,8 +592,7 @@ bool hci_is_root_inflammation_event_received() {
   return abort_timer.IsScheduled();
 }
 
-void handle_root_inflammation_event(uint8_t error_code,
-                                    uint8_t vendor_error_code) {
+void handle_root_inflammation_event() {
   LOG(ERROR) << __func__
              << ": Root inflammation event! setting timer to restart.";
   // TODO(ugoyu) Report to bluetooth metrics here
@@ -596,8 +608,15 @@ void handle_root_inflammation_event(uint8_t error_code,
       if (alarm_is_scheduled(command_response_timer)) {
         alarm_cancel(command_response_timer);
       }
+      // Cleanup the hci/startup timers so they will not be scheduled again and
+      // expire before the abort_timer.
+      alarm_free(command_response_timer);
+      command_response_timer = NULL;
+      alarm_free(startup_timer);
+      startup_timer = NULL;
     } else {
       LOG(ERROR) << __func__ << ": Failed to obtain mutex";
+      hci_root_inflamed_abort();
     }
   }
 
@@ -605,10 +624,10 @@ void handle_root_inflammation_event(uint8_t error_code,
   if (!hci_thread.IsRunning() ||
       !abort_timer.Schedule(
           hci_thread.GetWeakPtr(), FROM_HERE,
-          base::Bind(hci_root_inflamed_abort, error_code, vendor_error_code),
+          base::Bind(hci_root_inflamed_abort),
           base::TimeDelta::FromMilliseconds(ROOT_INFLAMMED_RESTART_MS))) {
     LOG(ERROR) << "Failed to schedule abort_timer or hci has already closed!";
-    hci_root_inflamed_abort(error_code, vendor_error_code);
+    hci_root_inflamed_abort();
   }
 }
 
@@ -689,17 +708,12 @@ static bool filter_incoming_event(BT_HDR* packet) {
       buffer_allocator->free(packet);
       return true;
     } else if (sub_event_code == HCI_VSE_SUBCODE_BQR_SUB_EVT) {
-      uint8_t bqr_report_id;
-      STREAM_TO_UINT8(bqr_report_id, stream);
-
-      if (bqr_report_id ==
-              bluetooth::bqr::QUALITY_REPORT_ID_ROOT_INFLAMMATION &&
-          packet->len >= bluetooth::bqr::kRootInflammationPacketMinSize) {
-        uint8_t error_code;
-        uint8_t vendor_error_code;
-        STREAM_TO_UINT8(error_code, stream);
-        STREAM_TO_UINT8(vendor_error_code, stream);
-        handle_root_inflammation_event(error_code, vendor_error_code);
+      // Excluding the HCI Event packet header and 1 octet sub-event code
+      int16_t bqr_parameter_length = packet->len - HCIE_PREAMBLE_SIZE - 1;
+      // The stream currently points to the BQR sub-event parameters
+      if (filter_bqr_event(bqr_parameter_length, stream)) {
+        buffer_allocator->free(packet);
+        return true;
       }
     }
   }
@@ -772,6 +786,60 @@ static void update_command_response_timer(void) {
     alarm_set(command_response_timer, COMMAND_PENDING_TIMEOUT_MS,
               command_timed_out, list_front(commands_pending_response));
   }
+}
+
+// Returns true if the BQR event is handled and should not proceed to
+// higher layers.
+static bool filter_bqr_event(int16_t bqr_parameter_length,
+                             uint8_t* p_bqr_event) {
+  if (bqr_parameter_length <= 0) {
+    LOG(ERROR) << __func__ << ": Invalid parameter length : "
+               << std::to_string(bqr_parameter_length);
+    return true;
+  }
+
+  bool intercepted = false;
+  uint8_t quality_report_id = p_bqr_event[0];
+  switch (quality_report_id) {
+    case bluetooth::bqr::QUALITY_REPORT_ID_ROOT_INFLAMMATION:
+      if (bqr_parameter_length >=
+          bluetooth::bqr::kRootInflammationParamTotalLen) {
+        STREAM_TO_UINT8(quality_report_id, p_bqr_event);
+        STREAM_TO_UINT8(root_inflamed_error_code, p_bqr_event);
+        STREAM_TO_UINT8(root_inflamed_vendor_error_code, p_bqr_event);
+        handle_root_inflammation_event();
+      }
+      intercepted = true;
+      break;
+
+    case bluetooth::bqr::QUALITY_REPORT_ID_LMP_LL_MESSAGE_TRACE:
+      if (bqr_parameter_length >= bluetooth::bqr::kLogDumpParamTotalLen) {
+        bluetooth::bqr::DumpLmpLlMessage(bqr_parameter_length, p_bqr_event);
+      }
+      intercepted = true;
+      break;
+
+    case bluetooth::bqr::QUALITY_REPORT_ID_BT_SCHEDULING_TRACE:
+      if (bqr_parameter_length >= bluetooth::bqr::kLogDumpParamTotalLen) {
+        bluetooth::bqr::DumpBtScheduling(bqr_parameter_length, p_bqr_event);
+      }
+      intercepted = true;
+      break;
+
+    case bluetooth::bqr::QUALITY_REPORT_ID_CONTROLLER_DBG_INFO:
+      // TODO: Integrate with the HCI_VSE_SUBCODE_DEBUG_INFO_SUB_EVT
+      intercepted = true;
+      break;
+
+    case bluetooth::bqr::QUALITY_REPORT_ID_MONITOR_MODE:
+    case bluetooth::bqr::QUALITY_REPORT_ID_APPROACH_LSTO:
+    case bluetooth::bqr::QUALITY_REPORT_ID_A2DP_AUDIO_CHOPPY:
+    case bluetooth::bqr::QUALITY_REPORT_ID_SCO_VOICE_CHOPPY:
+    default:
+      break;
+  }
+
+  return intercepted;
 }
 
 static void init_layer_interface() {

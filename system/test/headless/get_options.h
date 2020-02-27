@@ -33,9 +33,20 @@ class GetOpt {
   virtual void Usage() const;
   virtual bool IsValid() const { return valid_; };
 
+  std::string GetNextSubTest() const {
+    std::string test = non_options_.front();
+    non_options_.pop_front();
+    return test;
+  }
+
   std::list<RawAddress> device_;
   std::list<bluetooth::Uuid> uuid_;
-  int loop_;
+  unsigned long loop_{1};
+  unsigned long msec_{0};
+
+  bool close_stderr_{true};
+
+  mutable std::list<std::string> non_options_;
 
  private:
   void ParseValue(char* optarg, std::list<std::string>& my_list);

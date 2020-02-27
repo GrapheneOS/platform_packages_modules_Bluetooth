@@ -33,24 +33,50 @@
 #include "osi/include/future.h"
 
 namespace bluetooth {
-namespace shim {
+namespace os {
+class Handler;
+}
+namespace neighbor {
+class ConnectabilityModule;
+class DiscoverabilityModule;
+class InquiryModule;
+class NameModule;
+class PageModule;
+}
+namespace hci {
+class Controller;
+class HciLayer;
+class LeAdvertisingManager;
+class LeScanningManager;
+}
 
+namespace security {
+class SecurityModule;
+}
+namespace storage {
+class LegacyModule;
+}
+
+namespace shim {
 future_t* StartGabeldorscheStack();
 future_t* StopGabeldorscheStack();
 
-bluetooth::shim::IAdvertising* GetAdvertising();
-bluetooth::shim::IController* GetController();
-bluetooth::shim::IDiscoverability* GetDiscoverability();
-bluetooth::shim::IConnectability* GetConnectability();
-bluetooth::shim::IDumpsys* GetDumpsys();
-bluetooth::shim::IInquiry* GetInquiry();
-bluetooth::shim::IHciLayer* GetHciLayer();
-bluetooth::shim::IL2cap* GetL2cap();
-bluetooth::shim::IName* GetName();
-bluetooth::shim::IPage* GetPage();
-bluetooth::shim::IScanning* GetScanning();
-bluetooth::shim::ISecurity* GetSecurity();
-bluetooth::shim::IStorage* GetStorage();
+/* This returns a handler that might be used in shim to receive callbacks from
+ * within the stack. */
+os::Handler* GetGdShimHandler();
+hci::LeAdvertisingManager* GetAdvertising();
+bluetooth::hci::Controller* GetController();
+neighbor::DiscoverabilityModule* GetDiscoverability();
+neighbor::ConnectabilityModule* GetConnectability();
+Dumpsys* GetDumpsys();
+neighbor::InquiryModule* GetInquiry();
+hci::HciLayer* GetHciLayer();
+L2cap* GetL2cap();
+neighbor::NameModule* GetName();
+neighbor::PageModule* GetPage();
+hci::LeScanningManager* GetScanning();
+bluetooth::security::SecurityModule* GetSecurityModule();
+storage::LegacyModule* GetStorage();
 
 }  // namespace shim
 }  // namespace bluetooth

@@ -27,16 +27,14 @@ ANDROID_BUILD_TOP = os.environ.get('ANDROID_BUILD_TOP')
 
 class GdFacadeOnlyBaseTestClass(BaseTestClass):
 
-    def __init__(self, configs):
-        BaseTestClass.__init__(self, configs)
+    def setup_class(self):
 
-        log_path_base = getattr(configs, "log_path", "/tmp/logs")
         gd_devices = self.controller_configs.get("GdDevice")
 
         self.rootcanal_running = False
         if 'rootcanal' in self.controller_configs:
             self.rootcanal_running = True
-            rootcanal_logpath = os.path.join(log_path_base,
+            rootcanal_logpath = os.path.join(self.log_path,
                                              'rootcanal_logs.txt')
             self.rootcanal_logs = open(rootcanal_logpath, 'w')
             rootcanal_config = self.controller_configs['rootcanal']
@@ -59,6 +57,9 @@ class GdFacadeOnlyBaseTestClass(BaseTestClass):
 
         self.register_controller(
             importlib.import_module('cert.gd_device'), builtin=True)
+
+        self.device_under_test = self.gd_devices[1]
+        self.cert_device = self.gd_devices[0]
 
     def teardown_class(self):
         if self.rootcanal_running:

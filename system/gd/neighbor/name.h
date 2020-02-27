@@ -27,8 +27,8 @@
 namespace bluetooth {
 namespace neighbor {
 
-using ReadRemoteNameCallback =
-    common::OnceCallback<void(hci::ErrorCode status, hci::Address address, std::array<uint8_t, 248> name)>;
+using RemoteName = std::array<uint8_t, 248>;
+using ReadRemoteNameCallback = common::OnceCallback<void(hci::ErrorCode status, hci::Address address, RemoteName name)>;
 using CancelRemoteNameCallback = common::OnceCallback<void(hci::ErrorCode status, hci::Address address)>;
 
 class NameModule : public bluetooth::Module {

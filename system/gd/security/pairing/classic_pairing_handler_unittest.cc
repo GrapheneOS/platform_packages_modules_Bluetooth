@@ -102,13 +102,6 @@ class SecurityManagerChannelCallback : public ISecurityManagerChannelListener {
 
 static void pairing_complete_callback(bluetooth::hci::Address address, PairingResultOrFailure status) {
   ASSERT(std::holds_alternative<PairingResult>(status));
-  // auto result = std::get<PairingResult>(status);
-  //  if (std::holds_alternative<PairingResult>(status)) {
-  //    auto result = status::get<PairingResult>(status);
-  //  }
-  //  if (std::holds_alternative<PairingFailure>(status)) {
-  //    auto failure = status::get<PairingFailure>(status);
-  //  }
 }
 
 class ClassicPairingHandlerTest : public ::testing::Test {
@@ -126,7 +119,8 @@ class ClassicPairingHandlerTest : public ::testing::Test {
     EXPECT_CALL(*sptr, RegisterService(::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_))
         .Times(::testing::AnyNumber());
     pairing_handler_ = new pairing::ClassicPairingHandler(sptr, channel_, security_record_, handler_,
-                                                          common::Bind(&pairing_complete_callback), client_listeners_);
+                                                          common::Bind(&pairing_complete_callback), user_interface_,
+                                                          user_interface_handler_, "Fake name");
     channel_callback_ = new SecurityManagerChannelCallback(pairing_handler_);
     channel_->SetChannelListener(channel_callback_);
   }
@@ -151,7 +145,8 @@ class ClassicPairingHandlerTest : public ::testing::Test {
   channel::SecurityManagerChannel* channel_ = nullptr;
   pairing::ClassicPairingHandler* pairing_handler_ = nullptr;
   std::shared_ptr<record::SecurityRecord> security_record_ = nullptr;
-  std::vector<std::pair<ISecurityManagerListener*, os::Handler*>> client_listeners_;
+  UI* user_interface_;
+  os::Handler* user_interface_handler_;
 };
 
 // Security Manager Boot Sequence (Required for SSP, these are already set at boot time)

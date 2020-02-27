@@ -1812,8 +1812,7 @@ void BTM_PINCodeReply(const RawAddress& bd_addr, uint8_t res, uint8_t pin_len,
  *
  ******************************************************************************/
 tBTM_STATUS BTM_SecBond(const RawAddress& bd_addr, tBLE_ADDR_TYPE addr_type,
-                        tBT_TRANSPORT transport, uint8_t pin_len,
-                        uint8_t* p_pin, uint32_t trusted_mask[]);
+                        tBT_TRANSPORT transport, int device_type);
 
 /*******************************************************************************
  *
@@ -2334,26 +2333,5 @@ tBTM_STATUS BTM_BleStackEnable(bool enable);
  ******************************************************************************/
 tBTM_STATUS BTM_BleGetEnergyInfo(tBTM_BLE_ENERGY_INFO_CBACK* p_ener_cback);
 
-/*******************************************************************************
- *
- * Function         BTM_SecBond
- *
- * Description      This function is called to perform bonding with peer device.
- *                  If the connection is already up, but not secure, pairing
- *                  is attempted.  If already paired BTM_SUCCESS is returned.
- *
- * Parameters:      bd_addr      - Address of the device to bond
- *                  addr_type    - address type for LE transport
- *                  transport    - doing SSP over BR/EDR or SMP over LE
- *                  pin_len      - length in bytes of the PIN Code
- *                  p_pin        - pointer to array with the PIN Code
- *                  trusted_mask - bitwise OR of trusted services
- *                                 (array of uint32_t)
- *
- *  Note: After 2.1 parameters are not used and preserved here not to change API
- ******************************************************************************/
-tBTM_STATUS BTM_SecBond(const RawAddress& bd_addr, tBLE_ADDR_TYPE addr_type,
-                        tBT_TRANSPORT transport, uint8_t pin_len,
-                        uint8_t* p_pin, uint32_t trusted_mask[]);
 }  // namespace shim
 }  // namespace bluetooth

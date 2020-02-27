@@ -33,9 +33,6 @@ from facade import common_pb2 as common
 class LeAdvertisingManagerTest(GdFacadeOnlyBaseTestClass):
 
     def setup_test(self):
-        self.cert_device = self.gd_devices[0]
-        self.device_under_test = self.gd_devices[1]
-
         self.device_under_test.rootservice.StartStack(
             facade_rootservice.StartStackRequest(
                 module_under_test=facade_rootservice.BluetoothModule.Value(
@@ -72,6 +69,8 @@ class LeAdvertisingManagerTest(GdFacadeOnlyBaseTestClass):
 
     def test_le_ad_scan_dut_advertises(self):
         self.register_for_le_event(hci_packets.SubeventCode.ADVERTISING_REPORT)
+        self.register_for_le_event(
+            hci_packets.SubeventCode.EXTENDED_ADVERTISING_REPORT)
         with EventCallbackStream(
                 self.cert_device.hci.FetchLeSubevents(
                     empty_proto.Empty())) as hci_le_event_stream:
@@ -82,16 +81,19 @@ class LeAdvertisingManagerTest(GdFacadeOnlyBaseTestClass):
             self.enqueue_hci_command(
                 hci_packets.LeSetRandomAddressBuilder('0C:05:04:03:02:01'),
                 True)
+            scan_parameters = hci_packets.PhyScanParameters()
+            scan_parameters.le_scan_type = hci_packets.LeScanType.ACTIVE
+            scan_parameters.le_scan_interval = 40
+            scan_parameters.le_scan_window = 20
             self.enqueue_hci_command(
-                hci_packets.LeSetScanParametersBuilder(
-                    hci_packets.LeScanType.ACTIVE, 40, 20,
+                hci_packets.LeSetExtendedScanParametersBuilder(
                     hci_packets.AddressType.RANDOM_DEVICE_ADDRESS,
-                    hci_packets.LeSetScanningFilterPolicy.ACCEPT_ALL), True)
+                    hci_packets.LeSetScanningFilterPolicy.ACCEPT_ALL, 1,
+                    [scan_parameters]), True)
             self.enqueue_hci_command(
-                hci_packets.LeSetScanEnableBuilder(
+                hci_packets.LeSetExtendedScanEnableBuilder(
                     hci_packets.Enable.ENABLED,
-                    hci_packets.Enable.DISABLED),  # duplicate filtering
-                True)
+                    hci_packets.FilterDuplicates.DISABLED, 0, 0), True)
 
             # DUT Advertises
             gap_name = hci_packets.GapData()
@@ -102,14 +104,14 @@ class LeAdvertisingManagerTest(GdFacadeOnlyBaseTestClass):
             config = le_advertising_facade.AdvertisingConfig(
                 advertisement=[gap_data],
                 random_address=common.BluetoothAddress(
-                    address=bytes(b'A6:A5:A4:A3:A2:A1')),
+                    address=bytes(b'0D:05:04:03:02:01')),
                 interval_min=512,
                 interval_max=768,
                 event_type=le_advertising_facade.AdvertisingEventType.ADV_IND,
                 address_type=common.RANDOM_DEVICE_ADDRESS,
                 peer_address_type=common.PUBLIC_DEVICE_OR_IDENTITY_ADDRESS,
                 peer_address=common.BluetoothAddress(
-                    address=bytes(b'0D:05:04:03:02:01')),
+                    address=bytes(b'A6:A5:A4:A3:A2:A1')),
                 channel_map=7,
                 filter_policy=le_advertising_facade.AdvertisingFilterPolicy.
                 ALL_DEVICES)

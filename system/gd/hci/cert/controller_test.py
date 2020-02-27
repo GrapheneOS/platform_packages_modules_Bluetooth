@@ -14,10 +14,9 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-import os
-import sys
+import time
 
-from acts import asserts
+from mobly import asserts
 from cert.gd_base_test_facade_only import GdFacadeOnlyBaseTestClass
 from google.protobuf import empty_pb2 as empty_proto
 from facade import rootservice_pb2 as facade_rootservice
@@ -27,9 +26,6 @@ from hci.facade import controller_facade_pb2 as controller_facade
 class ControllerTest(GdFacadeOnlyBaseTestClass):
 
     def setup_test(self):
-        self.cert_device = self.gd_devices[0]
-        self.device_under_test = self.gd_devices[1]
-
         self.device_under_test.rootservice.StartStack(
             facade_rootservice.StartStackRequest(
                 module_under_test=facade_rootservice.BluetoothModule.Value(
@@ -57,6 +53,7 @@ class ControllerTest(GdFacadeOnlyBaseTestClass):
             cert_address_response.address != dut_address_response.address,
             msg="Expected cert and dut address to be different %s" %
             cert_address_response.address)
+        time.sleep(1)  # This shouldn't be needed b/149120542
 
     def test_get_local_extended_features(self):
         request = controller_facade.PageNumberMsg()

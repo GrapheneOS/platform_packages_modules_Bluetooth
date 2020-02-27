@@ -468,7 +468,7 @@ TEST(HciPacketsTest, testLeSetExtendedAdvertisingData) {
       LeAdvertisingCommandView::Create(CommandPacketView::Create(packet_bytes_view)));
   ASSERT_TRUE(view.IsValid());
   ASSERT_EQ(0, view.GetAdvertisingHandle());
-  ASSERT_EQ(Operation::COMPLETE_ADVERTISMENT, view.GetOperation());
+  ASSERT_EQ(Operation::COMPLETE_ADVERTISEMENT, view.GetOperation());
   ASSERT_EQ(FragmentPreference::CONTROLLER_SHOULD_NOT, view.GetFragmentPreference());
   std::vector<uint8_t> advertising_data{
       0x02, 0x01, 0x02, 0x0a, 0x09, 0x50, 0x69, 0x78, 0x65, 0x6c, 0x20, 0x33, 0x20, 0x58,
@@ -484,8 +484,8 @@ std::vector<uint8_t> le_set_extended_advertising_data_complete{
 DEFINE_AND_INSTANTIATE_LeSetExtendedAdvertisingDataCompleteReflectionTest(le_set_extended_advertising_data_complete);
 
 std::vector<uint8_t> le_set_extended_advertising_parameters_set_0{
-    0x36, 0x20, 0x19, 0x00, 0x13, 0x00, 0x90, 0x01, 0x00, 0xc2, 0x01, 0x00,          0x07, 0x01,
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xf9, 0x01, 0x00, 0x00 /*0x01*/, 0x01, 0x00,
+    0x36, 0x20, 0x19, 0x00, 0x13, 0x00, 0x90, 0x01, 0x00, 0xc2, 0x01, 0x00, 0x07, 0x01,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xf9, 0x01, 0x00, 0x01, 0x01, 0x00,
 };
 TEST(HciPacketsTest, testLeSetExtendedAdvertisingParametersLegacySet0) {
   std::shared_ptr<std::vector<uint8_t>> packet_bytes =
@@ -502,14 +502,13 @@ TEST(HciPacketsTest, testLeSetExtendedAdvertisingParametersLegacySet0) {
   ASSERT_EQ(PeerAddressType::PUBLIC_DEVICE_OR_IDENTITY_ADDRESS, view.GetPeerAddressType());
   ASSERT_EQ(Address::kEmpty, view.GetPeerAddress());
   ASSERT_EQ(AdvertisingFilterPolicy::ALL_DEVICES, view.GetAdvertisingFilterPolicy());
-  ASSERT_EQ(PrimaryPhyType::LE_1M, view.GetPrimaryAdvertisingPhy());
   ASSERT_EQ(1, view.GetAdvertisingSid());
   ASSERT_EQ(Enable::DISABLED, view.GetScanRequestNotificationEnable());
 }
 
 std::vector<uint8_t> le_set_extended_advertising_parameters_set_1{
-    0x36, 0x20, 0x19, 0x01, 0x13, 0x00, 0x90, 0x01, 0x00, 0xc2, 0x01, 0x00,          0x07, 0x01,
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xf9, 0x01, 0x00, 0x00 /*0x01*/, 0x01, 0x00,
+    0x36, 0x20, 0x19, 0x01, 0x13, 0x00, 0x90, 0x01, 0x00, 0xc2, 0x01, 0x00, 0x07, 0x01,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xf9, 0x01, 0x00, 0x01, 0x01, 0x00,
 };
 TEST(HciPacketsTest, testLeSetExtendedAdvertisingParametersSet1) {
   std::shared_ptr<std::vector<uint8_t>> packet_bytes =
@@ -526,7 +525,6 @@ TEST(HciPacketsTest, testLeSetExtendedAdvertisingParametersSet1) {
   ASSERT_EQ(PeerAddressType::PUBLIC_DEVICE_OR_IDENTITY_ADDRESS, view.GetPeerAddressType());
   ASSERT_EQ(Address::kEmpty, view.GetPeerAddress());
   ASSERT_EQ(AdvertisingFilterPolicy::ALL_DEVICES, view.GetAdvertisingFilterPolicy());
-  ASSERT_EQ(PrimaryPhyType::LE_1M, view.GetPrimaryAdvertisingPhy());
   ASSERT_EQ(1, view.GetAdvertisingSid());
   ASSERT_EQ(Enable::DISABLED, view.GetScanRequestNotificationEnable());
 }
