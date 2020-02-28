@@ -178,8 +178,26 @@ final class RemoteDevices {
             sSdpTracker.clear();
         }
 
-        if (mDevices != null) {
-            mDevices.clear();
+        synchronized (mDevices) {
+            if (mDevices != null) {
+                debugLog("reset(): Broadcasting ACL_DISCONNECTED");
+
+                mDevices.forEach((address, deviceProperties) -> {
+                    BluetoothDevice bluetoothDevice = deviceProperties.getDevice();
+
+                    debugLog("reset(): address=" + address + ", connected="
+                            + bluetoothDevice.isConnected());
+
+                    if (bluetoothDevice.isConnected()) {
+                        Intent intent = new Intent(BluetoothDevice.ACTION_ACL_DISCONNECTED);
+                        intent.putExtra(BluetoothDevice.EXTRA_DEVICE, bluetoothDevice);
+                        intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY_BEFORE_BOOT
+                                | Intent.FLAG_RECEIVER_INCLUDE_BACKGROUND);
+                        sAdapterService.sendBroadcast(intent, AdapterService.BLUETOOTH_PERM);
+                    }
+                });
+                mDevices.clear();
+            }
         }
 
         if (mDualDevicesMap != null) {
