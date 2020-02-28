@@ -829,6 +829,25 @@ static void setVolume(int8_t volume) {
   sCallbackEnv->CallVoidMethod(mJavaInterface, method_setVolume, volume);
 }
 
+static void setBipClientStatusNative(JNIEnv* env, jobject object,
+                                    jstring address, jboolean connected) {
+  std::unique_lock<std::shared_timed_mutex> interface_lock(interface_mutex);
+  if (mServiceCallbacks == nullptr) {
+    ALOGW("%s: Service not loaded.", __func__);
+    return;
+  }
+
+  const char* tmp_addr = env->GetStringUTFChars(address, 0);
+  RawAddress bdaddr;
+  bool success = RawAddress::FromString(tmp_addr, bdaddr);
+  env->ReleaseStringUTFChars(address, tmp_addr);
+
+  if (!success) return;
+
+  bool status = (connected == JNI_TRUE);
+  sServiceInterface->SetBipClientStatus(bdaddr, status);
+}
+
 static JNINativeMethod sMethods[] = {
     {"classInitNative", "()V", (void*)classInitNative},
     {"initNative", "()V", (void*)initNative},
@@ -847,6 +866,8 @@ static JNINativeMethod sMethods[] = {
      (void*)disconnectDeviceNative},
     {"sendVolumeChangedNative", "(Ljava/lang/String;I)V",
      (void*)sendVolumeChangedNative},
+    {"setBipClientStatusNative", "(Ljava/lang/String;Z)V",
+     (void*)setBipClientStatusNative},
 };
 
 int register_com_android_bluetooth_avrcp_target(JNIEnv* env) {
