@@ -225,6 +225,27 @@ static void initNative(JNIEnv* env, jobject object) {
   sServiceInterface->Init(&mAvrcpInterface, &mVolumeInterface);
 }
 
+static void registerBipServerNative(JNIEnv* env, jobject object,
+                                    jint l2cap_psm) {
+  ALOGD("%s: l2cap_psm=%d", __func__, (int)l2cap_psm);
+  std::unique_lock<std::shared_timed_mutex> interface_lock(interface_mutex);
+  if (sServiceInterface == nullptr) {
+    ALOGW("%s: Service not loaded.", __func__);
+    return;
+  }
+  sServiceInterface->RegisterBipServer((int)l2cap_psm);
+}
+
+static void unregisterBipServerNative(JNIEnv* env, jobject object) {
+  ALOGD("%s", __func__);
+  std::unique_lock<std::shared_timed_mutex> interface_lock(interface_mutex);
+  if (sServiceInterface == nullptr) {
+    ALOGW("%s: Service not loaded.", __func__);
+    return;
+  }
+  sServiceInterface->UnregisterBipServer();
+}
+
 static void sendMediaUpdateNative(JNIEnv* env, jobject object,
                                   jboolean metadata, jboolean state,
                                   jboolean queue) {
@@ -811,6 +832,8 @@ static void setVolume(int8_t volume) {
 static JNINativeMethod sMethods[] = {
     {"classInitNative", "()V", (void*)classInitNative},
     {"initNative", "()V", (void*)initNative},
+    {"registerBipServerNative", "(I)V", (void*)registerBipServerNative},
+    {"unregisterBipServerNative", "()V", (void*)unregisterBipServerNative},
     {"sendMediaUpdateNative", "(ZZZ)V", (void*)sendMediaUpdateNative},
     {"sendFolderUpdateNative", "(ZZZ)V", (void*)sendFolderUpdateNative},
     {"setBrowsedPlayerResponseNative", "(IZLjava/lang/String;I)V",
