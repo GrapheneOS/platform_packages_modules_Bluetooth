@@ -459,14 +459,15 @@ genrule {
         "protoc-gen-grpc-python-plugin",
         "soong_zip",
     ],
-    cmd: "$(location aprotoc) -Ipackages/modules/Bluetooth/system/gd -Iexternal/protobuf/src --plugin=protoc-gen-grpc=$(location protoc-gen-grpc-python-plugin) $(in) --grpc_out=$(genDir) --python_out=$(genDir); " +
-        "touch $(genDir)/facade/__init__.py; " +
-        "touch $(genDir)/hal/__init__.py; " +
-        "touch $(genDir)/hci/__init__.py; " +
-        "touch $(genDir)/hci/facade/__init__.py; " +
-        "touch $(genDir)/l2cap/classic/__init__.py; " +
-        "touch $(genDir)/neighbor/facade/__init__.py; " +
-        "touch $(genDir)/security/__init__.py; " +
+    cmd: "mkdir -p $(genDir)/packages/modules/Bluetooth/system/gd && " +
+        "$(location aprotoc) -Ipackages/modules/Bluetooth/system/gd -Iexternal/protobuf/src --plugin=protoc-gen-grpc=$(location protoc-gen-grpc-python-plugin) $(in) --grpc_out=$(genDir)/packages/modules/Bluetooth/system/gd --python_out=$(genDir)/packages/modules/Bluetooth/system/gd && " +
+        "touch $(genDir)/packages/modules/Bluetooth/system/gd/facade/__init__.py && " +
+        "touch $(genDir)/packages/modules/Bluetooth/system/gd/hal/__init__.py && " +
+        "touch $(genDir)/packages/modules/Bluetooth/system/gd/hci/__init__.py && " +
+        "touch $(genDir)/packages/modules/Bluetooth/system/gd/hci/facade/__init__.py && " +
+        "touch $(genDir)/packages/modules/Bluetooth/system/gd/l2cap/classic/__init__.py && " +
+        "touch $(genDir)/packages/modules/Bluetooth/system/gd/neighbor/facade/__init__.py && " +
+        "touch $(genDir)/packages/modules/Bluetooth/system/gd/security/__init__.py && " +
         "$(location soong_zip) -C $(genDir) -D $(genDir) -o $(out)",
     srcs: [
         ":BluetoothFacadeProto",
