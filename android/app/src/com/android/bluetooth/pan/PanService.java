@@ -75,6 +75,7 @@ public class PanService extends ProfileService {
     private boolean mTetherOn = false;
 
     private BluetoothTetheringNetworkFactory mNetworkFactory;
+    private boolean mStarted = false;
 
 
     static {
@@ -118,9 +119,9 @@ public class PanService extends ProfileService {
         initializeNative();
         mNativeAvailable = true;
 
-        mNetworkFactory =
-                new BluetoothTetheringNetworkFactory(getBaseContext(), getMainLooper(), this);
+
         setPanService(this);
+        mStarted = true;
 
         return true;
     }
@@ -598,14 +599,18 @@ public class PanService extends ProfileService {
                     mNapIfaceAddr = null;
                 }
             }
-        } else if (mNetworkFactory != null) {
+        } else if (mStarted) {
             // PANU Role = reverse Tether
+
             Log.d(TAG, "handlePanDeviceStateChange LOCAL_PANU_ROLE:REMOTE_NAP_ROLE state = " + state
                     + ", prevState = " + prevState);
             if (state == BluetoothProfile.STATE_CONNECTED) {
+                mNetworkFactory = new BluetoothTetheringNetworkFactory(
+                        getBaseContext(), getMainLooper(), this);
                 mNetworkFactory.startReverseTether(iface);
             } else if (state == BluetoothProfile.STATE_DISCONNECTED) {
                 mNetworkFactory.stopReverseTether();
+                mNetworkFactory = null;
                 mPanDevices.remove(device);
             }
         }
