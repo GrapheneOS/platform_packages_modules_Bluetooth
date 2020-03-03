@@ -15,6 +15,8 @@
 
 package com.android.bluetooth.map;
 
+import static com.android.bluetooth.Utils.enforceBluetoothPrivilegedPermission;
+
 import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.bluetooth.BluetoothAdapter;
@@ -1244,6 +1246,7 @@ public class BluetoothMapService extends ProfileService {
             if (service == null) {
                 return new ArrayList<>(0);
             }
+            enforceBluetoothPrivilegedPermission(service);
             return service.getConnectedDevices();
         }
 
