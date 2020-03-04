@@ -161,7 +161,7 @@ pushd .
 cd $ANDROID_BUILD_TOP/packages/modules/Bluetooth/system/gd/gd_cert_venv/lib/python3.8/site-packages
 # Python generated code
 ln -sfT $ANDROID_BUILD_TOP/tools/test/connectivity/acts/framework/acts acts
-ln -sfT $ANDROID_BUILD_TOP/out/dist/bluetooth_cert_generated_py/packages/modules/Bluetooth/system/gd/cert cert
+ln -sfT $ANDROID_BUILD_TOP/out/dist/bluetooth_cert_test/packages/modules/Bluetooth/system/gd/cert cert
 ln -sfT $ANDROID_BUILD_TOP/out/dist/bluetooth_cert_generated_py/packages/modules/Bluetooth/system/gd/facade facade
 ln -sfT $ANDROID_BUILD_TOP/out/dist/bluetooth_cert_generated_py/packages/modules/Bluetooth/system/gd/hal hal
 ln -sfT $ANDROID_BUILD_TOP/out/dist/bluetooth_cert_generated_py/packages/modules/Bluetooth/system/gd/hci hci
