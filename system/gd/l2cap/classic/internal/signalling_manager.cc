@@ -316,12 +316,15 @@ void ClassicSignallingManager::OnConfigurationRequest(SignalId signal_id, Cid ci
         break;
       }
       default:
-        LOG_WARN("Received some unsupported configuration option: %d", static_cast<int>(option->type_));
-        auto response =
-            ConfigurationResponseBuilder::Create(signal_id.Value(), channel->GetRemoteCid(), is_continuation,
-                                                 ConfigurationResponseResult::UNKNOWN_OPTIONS, {});
-        enqueue_buffer_->Enqueue(std::move(response), handler_);
-        return;
+        if (option->is_hint_ != ConfigurationOptionIsHint::OPTION_IS_A_HINT) {
+          LOG_WARN("Received some unsupported configuration option: %d", static_cast<int>(option->type_));
+          auto response =
+              ConfigurationResponseBuilder::Create(signal_id.Value(), channel->GetRemoteCid(), is_continuation,
+                                                   ConfigurationResponseResult::UNKNOWN_OPTIONS, {});
+          enqueue_buffer_->Enqueue(std::move(response), handler_);
+          return;
+        }
+        break;
     }
   }
 
@@ -509,7 +512,8 @@ void ClassicSignallingManager::OnInformationRequest(SignalId signal_id, Informat
     case InformationRequestInfoType::EXTENDED_FEATURES_SUPPORTED: {
       // TODO: implement this response
       auto response = InformationResponseExtendedFeaturesBuilder::Create(
-          signal_id.Value(), InformationRequestResult::SUCCESS, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0);
+          signal_id.Value(), InformationRequestResult::SUCCESS, 0, 0, 0, 1 /* ERTM */, 0 /* Streaming mode */,
+          1 /* FCS */, 0, 1 /* Fixed Channels */, 0, 0);
       enqueue_buffer_->Enqueue(std::move(response), handler_);
       break;
     }
