@@ -3025,6 +3025,19 @@ public class AdapterService extends Service {
         return obfuscateAddressNative(Utils.getByteAddress(device));
     }
 
+    /**
+     *  Get an incremental id of Bluetooth metrics and log
+     *
+     *  @param device Bluetooth device
+     *  @return int of id for Bluetooth metrics and logging, 0 if the device is invalid
+     */
+    public int getMetricId(BluetoothDevice device) {
+        if (device == null) {
+            return 0;
+        }
+        return getMetricIdNative(Utils.getByteAddress(device));
+    }
+
     static native void classInitNative();
 
     native boolean initNative(boolean startRestricted, boolean isNiapMode);
@@ -3103,6 +3116,8 @@ public class AdapterService extends Service {
     private native void interopDatabaseAddNative(int feature, byte[] address, int length);
 
     private native byte[] obfuscateAddressNative(byte[] address);
+
+    private native int getMetricIdNative(byte[] address);
 
     /*package*/ native int connectSocketNative(
             byte[] address, int type, byte[] uuid, int port, int flag, int callingUid);
