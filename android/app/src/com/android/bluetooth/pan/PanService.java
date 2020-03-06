@@ -42,6 +42,7 @@ import com.android.bluetooth.Utils;
 import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.MetricsLogger;
 import com.android.bluetooth.btservice.ProfileService;
+import com.android.internal.annotations.VisibleForTesting;
 
 import java.net.InetAddress;
 import java.util.ArrayList;
@@ -68,6 +69,9 @@ public class PanService extends ProfileService {
     private String mPanIfName;
     private String mNapIfaceAddr;
     private boolean mNativeAvailable;
+
+    @VisibleForTesting
+    UserManager mUserManager;
 
     private static final int MESSAGE_CONNECT = 1;
     private static final int MESSAGE_DISCONNECT = 2;
@@ -118,6 +122,8 @@ public class PanService extends ProfileService {
         initializeNative();
         mNativeAvailable = true;
 
+        mUserManager = (UserManager) getSystemService(Context.USER_SERVICE);
+
         mNetworkFactory =
                 new BluetoothTetheringNetworkFactory(getBaseContext(), getMainLooper(), this);
         setPanService(this);
@@ -139,6 +145,9 @@ public class PanService extends ProfileService {
             cleanupNative();
             mNativeAvailable = false;
         }
+
+        mUserManager = null;
+
         if (mPanDevices != null) {
            int[] desiredStates = {BluetoothProfile.STATE_CONNECTING, BluetoothProfile.STATE_CONNECTED,
                                   BluetoothProfile.STATE_DISCONNECTING};
@@ -330,6 +339,10 @@ public class PanService extends ProfileService {
 
     public boolean connect(BluetoothDevice device) {
         enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+        if (mUserManager.isGuestUser()) {
+            Log.w(TAG, "Guest user does not have the permission to change the WiFi network");
+            return false;
+        }
         if (getConnectionState(device) != BluetoothProfile.STATE_DISCONNECTED) {
             Log.e(TAG, "Pan Device not disconnected: " + device);
             return false;
