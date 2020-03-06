@@ -1334,7 +1334,7 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
             }
         } else {
             return mVcardManager.composeAndSendSelectedCallLogVcards(appParamValue.needTag, op,
-                    startPoint + 1, endPoint + 1, vcard21, needSendBody, pbSize,
+                    startPoint, endPoint, vcard21, needSendBody, pbSize,
                     appParamValue.ignorefilter, appParamValue.propertySelector,
                     appParamValue.vCardSelector, appParamValue.vCardSelectorOperator,
                     mVcardSelector);
