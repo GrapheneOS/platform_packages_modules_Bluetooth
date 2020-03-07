@@ -54,7 +54,6 @@ import android.util.Log;
 
 import com.android.bluetooth.BluetoothObexTransport;
 
-import java.io.File;
 import java.io.IOException;
 
 import javax.obex.ObexTransport;
@@ -402,8 +401,8 @@ public class BluetoothOppTransfer implements BluetoothOppBatch.BluetoothOppBatch
                 failReason = mCurrentShare.mStatus;
             }
             if (mCurrentShare.mDirection == BluetoothShare.DIRECTION_INBOUND
-                    && mCurrentShare.mFilename != null) {
-                new File(mCurrentShare.mFilename).delete();
+                    && mCurrentShare.mUri != null) {
+                mContext.getContentResolver().delete(mCurrentShare.mUri, null, null);
             }
         }
 
@@ -429,8 +428,8 @@ public class BluetoothOppTransfer implements BluetoothOppBatch.BluetoothOppBatch
                         updateValues.put(BluetoothShare.MIMETYPE, fileInfo.mMimetype);
                     }
                 } else {
-                    if (info.mStatus < 200 && info.mFilename != null) {
-                        new File(info.mFilename).delete();
+                    if (info.mStatus < 200 && info.mUri != null) {
+                        mContext.getContentResolver().delete(info.mUri, null, null);
                     }
                 }
                 mContext.getContentResolver().update(contentUri, updateValues, null, null);
