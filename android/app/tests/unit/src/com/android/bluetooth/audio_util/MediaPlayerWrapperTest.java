@@ -18,6 +18,11 @@ package com.android.bluetooth.audio_util;
 
 import static org.mockito.Mockito.*;
 
+import android.content.Context;
+import android.content.pm.PackageManager;
+import android.content.res.Resources;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.media.MediaDescription;
 import android.media.MediaMetadata;
 import android.media.session.MediaSession;
@@ -39,6 +44,7 @@ import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -49,16 +55,20 @@ import java.util.List;
 public class MediaPlayerWrapperTest {
     private static final int MSG_TIMEOUT = 0;
 
+    private Context mTargetContext;
+    private Resources mTestResources;
     private HandlerThread mThread;
     private MediaMetadata.Builder mTestMetadata;
     private ArrayList<MediaDescription.Builder> mTestQueue;
     private PlaybackState.Builder mTestState;
+    private Bitmap mTestBitmap;
 
     @Captor ArgumentCaptor<MediaController.Callback> mControllerCbs;
     @Captor ArgumentCaptor<MediaData> mMediaUpdateData;
     @Mock Log.TerribleFailureHandler mFailHandler;
     @Mock MediaController mMockController;
     @Mock MediaPlayerWrapper.Callback mTestCbs;
+    @Mock Context mMockContext;
 
     List<MediaSession.QueueItem> getQueueFromDescriptions(
             List<MediaDescription.Builder> descriptions) {
@@ -77,6 +87,15 @@ public class MediaPlayerWrapperTest {
     public void setUp() {
         MockitoAnnotations.initMocks(this);
 
+        mTargetContext = InstrumentationRegistry.getTargetContext();
+        try {
+            mTestResources = mTargetContext.getPackageManager()
+                    .getResourcesForApplication("com.android.bluetooth.tests");
+        } catch (PackageManager.NameNotFoundException e) {
+            Assert.fail("Setup Failure Unable to get resources" + e.toString());
+        }
+        mTestBitmap = loadImage(com.android.bluetooth.tests.R.raw.image_200_200);
+
         // Set failure handler to capture Log.wtf messages
         Log.setWtfHandler(mFailHandler);
 
@@ -90,7 +109,8 @@ public class MediaPlayerWrapperTest {
                         .putString(MediaMetadata.METADATA_KEY_TITLE, "BT Test Song")
                         .putString(MediaMetadata.METADATA_KEY_ARTIST, "BT Test Artist")
                         .putString(MediaMetadata.METADATA_KEY_ALBUM, "BT Test Album")
-                        .putLong(MediaMetadata.METADATA_KEY_DURATION, 5000L);
+                        .putLong(MediaMetadata.METADATA_KEY_DURATION, 5000L)
+                        .putBitmap(MediaMetadata.METADATA_KEY_ART, mTestBitmap);
 
         mTestState =
                 new PlaybackState.Builder()
@@ -103,18 +123,21 @@ public class MediaPlayerWrapperTest {
                         .setTitle("BT Test Song")
                         .setSubtitle("BT Test Artist")
                         .setDescription("BT Test Album")
+                        .setIconBitmap(mTestBitmap)
                         .setMediaId("100"));
         mTestQueue.add(
                 new MediaDescription.Builder()
                         .setTitle("BT Test Song 2")
                         .setSubtitle("BT Test Artist 2")
                         .setDescription("BT Test Album 2")
+                        .setIconBitmap(mTestBitmap)
                         .setMediaId("101"));
         mTestQueue.add(
                 new MediaDescription.Builder()
                         .setTitle("BT Test Song 3")
                         .setSubtitle("BT Test Artist 3")
                         .setDescription("BT Test Album 3")
+                        .setIconBitmap(mTestBitmap)
                         .setMediaId("102"));
 
         when(mMockController.getPackageName()).thenReturn("mMockController");
@@ -132,16 +155,22 @@ public class MediaPlayerWrapperTest {
         MediaPlayerWrapper.sTesting = true;
     }
 
+    private Bitmap loadImage(int resId) {
+        InputStream imageInputStream = mTestResources.openRawResource(resId);
+        return BitmapFactory.decodeStream(imageInputStream);
+    }
+
     /*
      * Test to make sure that the wrapper fails to be built if passed invalid
      * data.
      */
     @Test
     public void testNullControllerLooper() {
-        MediaPlayerWrapper wrapper = MediaPlayerWrapperFactory.wrap(null, mThread.getLooper());
+        MediaPlayerWrapper wrapper =
+                MediaPlayerWrapperFactory.wrap(mMockContext, null, mThread.getLooper());
         Assert.assertNull(wrapper);
 
-        wrapper = MediaPlayerWrapperFactory.wrap(mMockController, null);
+        wrapper = MediaPlayerWrapperFactory.wrap(mMockContext, mMockController, null);
         Assert.assertNull(wrapper);
     }
 
@@ -152,7 +181,7 @@ public class MediaPlayerWrapperTest {
     @Test
     public void testIsReady() {
         MediaPlayerWrapper wrapper =
-                MediaPlayerWrapperFactory.wrap(mMockController, mThread.getLooper());
+                MediaPlayerWrapperFactory.wrap(mMockContext, mMockController, mThread.getLooper());
         Assert.assertTrue(wrapper.isPlaybackStateReady());
         Assert.assertTrue(wrapper.isMetadataReady());
 
@@ -181,7 +210,7 @@ public class MediaPlayerWrapperTest {
     public void testControllerUpdate() {
         // Create the wrapper object and register the looper with the timeout handler
         MediaPlayerWrapper wrapper =
-                MediaPlayerWrapperFactory.wrap(mMockController, mThread.getLooper());
+                MediaPlayerWrapperFactory.wrap(mMockContext, mMockController, mThread.getLooper());
         Assert.assertTrue(wrapper.isPlaybackStateReady());
         Assert.assertTrue(wrapper.isMetadataReady());
         wrapper.registerCallback(mTestCbs);
@@ -215,7 +244,7 @@ public class MediaPlayerWrapperTest {
         // Create the wrapper object and register the looper with the timeout handler
         TestLooperManager looperManager = new TestLooperManager(mThread.getLooper());
         MediaPlayerWrapper wrapper =
-                MediaPlayerWrapperFactory.wrap(mMockController, mThread.getLooper());
+                MediaPlayerWrapperFactory.wrap(mMockContext, mMockController, mThread.getLooper());
         wrapper.registerCallback(mTestCbs);
 
         // Return null when getting the queue
@@ -236,7 +265,7 @@ public class MediaPlayerWrapperTest {
         Assert.assertEquals(
                 "Returned Metadata isn't equal to given Metadata",
                 data.metadata,
-                Util.toMetadata(mTestMetadata.build()));
+                Util.toMetadata(mMockContext, mTestMetadata.build()));
         Assert.assertEquals(
                 "Returned PlaybackState isn't equal to original PlaybackState",
                 data.state.toString(),
@@ -258,7 +287,7 @@ public class MediaPlayerWrapperTest {
         Assert.assertEquals(
                 "Returned Metadata isn't equal to given Metadata",
                 data.metadata,
-                Util.toMetadata(mTestMetadata.build()));
+                Util.toMetadata(mMockContext, mTestMetadata.build()));
         Assert.assertEquals("Returned Queue isn't empty", data.queue.size(), 0);
 
         // Verify that there are no timeout messages pending and there were no timeouts
@@ -277,7 +306,7 @@ public class MediaPlayerWrapperTest {
         // Create the wrapper object and register the looper with the timeout handler
         TestLooperManager looperManager = new TestLooperManager(mThread.getLooper());
         MediaPlayerWrapper wrapper =
-                MediaPlayerWrapperFactory.wrap(mMockController, mThread.getLooper());
+                MediaPlayerWrapperFactory.wrap(mMockContext, mMockController, mThread.getLooper());
         wrapper.registerCallback(mTestCbs);
 
         // Return null when getting the queue
@@ -308,7 +337,7 @@ public class MediaPlayerWrapperTest {
         Assert.assertEquals(
                 "Returned Metadata isn't equal to given Metadata",
                 data.metadata,
-                Util.toMetadata(mTestMetadata.build()));
+                Util.toMetadata(mMockContext, mTestMetadata.build()));
         Assert.assertEquals("Returned Queue isn't empty", data.queue.size(), 0);
 
         // Verify that there are no timeout messages pending and there were no timeouts
@@ -321,7 +350,7 @@ public class MediaPlayerWrapperTest {
         // Create the wrapper object and register the looper with the timeout handler
         TestLooperManager looperManager = new TestLooperManager(mThread.getLooper());
         MediaPlayerWrapper wrapper =
-                MediaPlayerWrapperFactory.wrap(mMockController, mThread.getLooper());
+                MediaPlayerWrapperFactory.wrap(mMockContext, mMockController, mThread.getLooper());
         wrapper.registerCallback(mTestCbs);
 
         // Return null when getting the queue
@@ -342,7 +371,7 @@ public class MediaPlayerWrapperTest {
         verify(mTestCbs, times(1)).mediaUpdatedCallback(mMediaUpdateData.capture());
         MediaData data = mMediaUpdateData.getValue();
         Assert.assertEquals("Returned metadata is incorrect", data.metadata,
-                Util.toMetadata(mTestMetadata.build()));
+                Util.toMetadata(mMockContext, mTestMetadata.build()));
     }
 
     @Test
@@ -350,7 +379,7 @@ public class MediaPlayerWrapperTest {
         // Create the wrapper object and register the looper with the timeout handler
         TestLooperManager looperManager = new TestLooperManager(mThread.getLooper());
         MediaPlayerWrapper wrapper =
-                MediaPlayerWrapperFactory.wrap(mMockController, mThread.getLooper());
+                MediaPlayerWrapperFactory.wrap(mMockContext, mMockController, mThread.getLooper());
         wrapper.registerCallback(mTestCbs);
 
         // Return null when getting the queue
@@ -377,13 +406,13 @@ public class MediaPlayerWrapperTest {
         // Create the wrapper object and register the looper with the timeout handler
         TestLooperManager looperManager = new TestLooperManager(mThread.getLooper());
         MediaPlayerWrapper wrapper =
-                MediaPlayerWrapperFactory.wrap(mMockController, mThread.getLooper());
+                MediaPlayerWrapperFactory.wrap(mMockContext, mMockController, mThread.getLooper());
         wrapper.registerCallback(mTestCbs);
 
         // Call getCurrentQueue() multiple times.
         for (int i = 0; i < 3; i++) {
             Assert.assertEquals(wrapper.getCurrentQueue(),
-                    Util.toMetadataList(getQueueFromDescriptions(mTestQueue)));
+                    Util.toMetadataList(mMockContext, getQueueFromDescriptions(mTestQueue)));
         }
 
         // Verify that getQueue() was only called twice. Once on creation and once during
@@ -400,7 +429,7 @@ public class MediaPlayerWrapperTest {
         // Create the wrapper object and register the looper with the timeout handler
         TestLooperManager looperManager = new TestLooperManager(mThread.getLooper());
         MediaPlayerWrapper wrapper =
-                MediaPlayerWrapperFactory.wrap(mMockController, mThread.getLooper());
+                MediaPlayerWrapperFactory.wrap(mMockContext, mMockController, mThread.getLooper());
         wrapper.registerCallback(mTestCbs);
 
         // Return null when getting the queue
@@ -425,7 +454,7 @@ public class MediaPlayerWrapperTest {
         Assert.assertEquals(
                 "Returned Metadata isn't equal to given Metadata",
                 data.metadata,
-                Util.toMetadata(mTestMetadata.build()));
+                Util.toMetadata(mMockContext, mTestMetadata.build()));
         Assert.assertEquals("Returned Queue isn't empty", data.queue.size(), 0);
 
         // Update PlaybackState returned by controller (Shouldn't trigger update)
@@ -457,7 +486,7 @@ public class MediaPlayerWrapperTest {
         // Create the wrapper object and register the looper with the timeout handler
         TestLooperManager looperManager = new TestLooperManager(mThread.getLooper());
         MediaPlayerWrapper wrapper =
-                MediaPlayerWrapperFactory.wrap(mMockController, mThread.getLooper());
+                MediaPlayerWrapperFactory.wrap(mMockContext, mMockController, mThread.getLooper());
         wrapper.registerCallback(mTestCbs);
 
         // Cleanup the wrapper
@@ -477,7 +506,7 @@ public class MediaPlayerWrapperTest {
         // Create the wrapper object and register the looper with the timeout handler
         TestLooperManager looperManager = new TestLooperManager(mThread.getLooper());
         MediaPlayerWrapper wrapper =
-                MediaPlayerWrapperFactory.wrap(mMockController, mThread.getLooper());
+                MediaPlayerWrapperFactory.wrap(mMockContext, mMockController, mThread.getLooper());
         wrapper.registerCallback(mTestCbs);
 
         // Grab the callbacks the wrapper registered with the controller
@@ -507,7 +536,7 @@ public class MediaPlayerWrapperTest {
         // Create the wrapper object and register the looper with the timeout handler
         TestLooperManager looperManager = new TestLooperManager(mThread.getLooper());
         MediaPlayerWrapper wrapper =
-                MediaPlayerWrapperFactory.wrap(mMockController, mThread.getLooper());
+                MediaPlayerWrapperFactory.wrap(mMockContext, mMockController, mThread.getLooper());
         wrapper.registerCallback(mTestCbs);
 
         // Grab the callbacks the wrapper registered with the controller
@@ -530,6 +559,7 @@ public class MediaPlayerWrapperTest {
                         .setTitle("New Title")
                         .setSubtitle("BT Test Artist")
                         .setDescription("BT Test Album")
+                        .setIconBitmap(mTestBitmap)
                         .setMediaId("103"));
         doReturn(getQueueFromDescriptions(mTestQueue)).when(mMockController).getQueue();
         controllerCallbacks.onQueueChanged(getQueueFromDescriptions(mTestQueue));
@@ -541,7 +571,7 @@ public class MediaPlayerWrapperTest {
         Assert.assertEquals(
                 "Returned Metadata isn't equal to given Metadata",
                 data.metadata,
-                Util.toMetadata(mTestMetadata.build()));
+                Util.toMetadata(mMockContext, mTestMetadata.build()));
         Assert.assertEquals(
                 "Returned PlaybackState isn't equal to given PlaybackState",
                 data.state.toString(),
@@ -549,7 +579,7 @@ public class MediaPlayerWrapperTest {
         Assert.assertEquals(
                 "Returned Queue isn't equal to given Queue",
                 data.queue,
-                Util.toMetadataList(getQueueFromDescriptions(mTestQueue)));
+                Util.toMetadataList(mMockContext, getQueueFromDescriptions(mTestQueue)));
 
         // Verify that there are no timeout messages pending and there were no timeouts
         Assert.assertFalse(wrapper.getTimeoutHandler().hasMessages(MSG_TIMEOUT));
@@ -567,7 +597,7 @@ public class MediaPlayerWrapperTest {
                 InstrumentationRegistry.getInstrumentation()
                         .acquireLooperManager(mThread.getLooper());
         MediaPlayerWrapper wrapper =
-                MediaPlayerWrapperFactory.wrap(mMockController, mThread.getLooper());
+                MediaPlayerWrapperFactory.wrap(mMockContext, mMockController, mThread.getLooper());
         wrapper.registerCallback(mTestCbs);
 
         // Grab the callbacks the wrapper registered with the controller
@@ -591,7 +621,7 @@ public class MediaPlayerWrapperTest {
         Assert.assertEquals(
                 "Returned Metadata isn't equal to given Metadata",
                 data.metadata,
-                Util.toMetadata(mTestMetadata.build()));
+                Util.toMetadata(mMockContext, mTestMetadata.build()));
         Assert.assertEquals(
                 "Returned PlaybackState isn't equal to given PlaybackState",
                 data.state.toString(),
@@ -599,7 +629,7 @@ public class MediaPlayerWrapperTest {
         Assert.assertEquals(
                 "Returned Queue isn't equal to given Queue",
                 data.queue,
-                Util.toMetadataList(getQueueFromDescriptions(mTestQueue)));
+                Util.toMetadataList(mMockContext, getQueueFromDescriptions(mTestQueue)));
     }
 
     /*
@@ -617,7 +647,7 @@ public class MediaPlayerWrapperTest {
                 InstrumentationRegistry.getInstrumentation()
                         .acquireLooperManager(mThread.getLooper());
         MediaPlayerWrapper wrapper =
-                MediaPlayerWrapperFactory.wrap(mMockController, mThread.getLooper());
+                MediaPlayerWrapperFactory.wrap(mMockContext, mMockController, mThread.getLooper());
         wrapper.registerCallback(mTestCbs);
 
         // Grab the callbacks the wrapper registered with the controller
@@ -672,14 +702,14 @@ public class MediaPlayerWrapperTest {
             Assert.assertEquals(
                     "Returned Metadata isn't equal to given Metadata",
                     data.metadata,
-                    Util.toMetadata(m.build()));
+                    Util.toMetadata(mMockContext, m.build()));
             Assert.assertEquals(
                     "Returned PlaybackState isn't equal to given PlaybackState",
                     data.state.toString(),
                     s.build().toString());
             Assert.assertEquals("Returned Queue isn't equal to given Queue",
                     data.queue,
-                    Util.toMetadataList(q));
+                    Util.toMetadataList(mMockContext, q));
         }
 
         // Verify that there are no timeout messages pending and there were no timeouts
