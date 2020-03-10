@@ -347,6 +347,8 @@ public class PanService extends ProfileService {
     }
 
     public int getConnectionState(BluetoothDevice device) {
+        enforceCallingOrSelfPermission(
+                BLUETOOTH_PRIVILEGED, "Need BLUETOOTH_PRIVILEGED permission");
         BluetoothPanDevice panDevice = mPanDevices.get(device);
         if (panDevice == null) {
             return BluetoothPan.STATE_DISCONNECTED;
@@ -370,7 +372,8 @@ public class PanService extends ProfileService {
 
     public boolean isTetheringOn() {
         // TODO(BT) have a variable marking the on/off state
-        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+        enforceCallingOrSelfPermission(
+                BLUETOOTH_PRIVILEGED, "Need BLUETOOTH_PRIVILEGED permission");
         return mTetherOn;
     }
 
@@ -378,7 +381,8 @@ public class PanService extends ProfileService {
         if (DBG) {
             Log.d(TAG, "setBluetoothTethering: " + value + ", mTetherOn: " + mTetherOn);
         }
-        enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH_ADMIN permission");
+        enforceCallingOrSelfPermission(
+                BLUETOOTH_PRIVILEGED, "Need BLUETOOTH_PRIVILEGED permission");
         final Context context = getBaseContext();
 
         ConnectivityManager.enforceTetherChangePermission(context, pkgName);
@@ -413,7 +417,8 @@ public class PanService extends ProfileService {
      * @return true if connectionPolicy is set, false on error
      */
     public boolean setConnectionPolicy(BluetoothDevice device, int connectionPolicy) {
-        enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH_ADMIN permission");
+        enforceCallingOrSelfPermission(
+                BLUETOOTH_PRIVILEGED, "Need BLUETOOTH_PRIVILEGED permission");
         if (DBG) {
             Log.d(TAG, "Saved connectionPolicy " + device + " = " + connectionPolicy);
         }
@@ -448,7 +453,8 @@ public class PanService extends ProfileService {
     }
 
     public List<BluetoothDevice> getConnectedDevices() {
-        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+        enforceCallingOrSelfPermission(
+                BLUETOOTH_PRIVILEGED, "Need BLUETOOTH_PRIVILEGED permission");
         List<BluetoothDevice> devices =
                 getDevicesMatchingConnectionStates(new int[]{BluetoothProfile.STATE_CONNECTED});
         return devices;
