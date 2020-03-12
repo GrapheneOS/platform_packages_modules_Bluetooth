@@ -1293,6 +1293,19 @@ static void requestMaximumTxDataLengthNative(JNIEnv* env, jobject obj,
   env->ReleaseByteArrayElements(address, addr, 1);
 }
 
+static int getMetricIdNative(JNIEnv* env, jobject obj, jbyteArray address) {
+  ALOGV("%s", __func__);
+  if (!sBluetoothInterface) return 0;  // 0 is invalid id
+  jbyte* addr = env->GetByteArrayElements(address, nullptr);
+  if (addr == nullptr) {
+    jniThrowIOException(env, EINVAL);
+    return 0;
+  }
+  RawAddress addr_obj = {};
+  addr_obj.FromOctets((uint8_t*)addr);
+  return sBluetoothInterface->get_metric_id(addr_obj);
+}
+
 static JNINativeMethod sMethods[] = {
     /* name, signature, funcPtr */
     {"classInitNative", "()V", (void*)classInitNative},
@@ -1325,6 +1338,7 @@ static JNINativeMethod sMethods[] = {
     {"interopDatabaseClearNative", "()V", (void*)interopDatabaseClearNative},
     {"interopDatabaseAddNative", "(I[BI)V", (void*)interopDatabaseAddNative},
     {"obfuscateAddressNative", "([B)[B", (void*)obfuscateAddressNative},
+    {"getMetricIdNative", "([B)I", (void*)getMetricIdNative},
     {"connectSocketNative", "([BI[BIII)I", (void*)connectSocketNative},
     {"createSocketChannelNative", "(ILjava/lang/String;[BIII)I",
      (void*)createSocketChannelNative},
