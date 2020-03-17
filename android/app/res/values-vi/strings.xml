@@ -128,7 +128,7 @@
     <string name="bluetooth_map_settings_intro" msgid="6482369468223987562">"Chọn tài khoản mà bạn muốn chia sẻ qua Bluetooth. Bạn vẫn phải chấp nhận mọi quyền truy cập vào tài khoản khi kết nối."</string>
     <string name="bluetooth_map_settings_count" msgid="4557473074937024833">"Số khe cắm còn lại:"</string>
     <string name="bluetooth_map_settings_app_icon" msgid="7105805610929114707">"Biểu tượng ứng dụng"</string>
-    <string name="bluetooth_map_settings_title" msgid="7420332483392851321">"Cài đặt chia sẻ thư qua Bluetooth"</string>
+    <string name="bluetooth_map_settings_title" msgid="7420332483392851321">"Cài đặt cách chia sẻ thư qua Bluetooth"</string>
     <string name="bluetooth_map_settings_no_account_slots_left" msgid="1796029082612965251">"Không chọn được tài khoản. Còn lại 0 khe cắm"</string>
     <string name="bluetooth_connected" msgid="6718623220072656906">"Đã kết nối âm thanh Bluetooth"</string>
     <string name="bluetooth_disconnected" msgid="3318303728981478873">"Đã ngắt kết nối âm thanh Bluetooth"</string>
