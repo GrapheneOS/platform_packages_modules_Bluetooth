@@ -236,7 +236,7 @@ public class BluetoothTetheringNetworkFactory extends NetworkFactory {
         }
         onCancelRequest();
         setScoreFilter(-1);
-        unregister();
+        terminate();
     }
 
     private void initNetworkCapabilities() {
