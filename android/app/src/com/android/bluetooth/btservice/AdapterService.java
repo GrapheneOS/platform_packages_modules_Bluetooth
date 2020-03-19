@@ -31,6 +31,7 @@ import android.app.AlarmManager;
 import android.app.AppOpsManager;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.app.admin.DevicePolicyManager;
 import android.bluetooth.BluetoothActivityEnergyInfo;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothAdapter.ActiveDeviceUse;
@@ -3008,7 +3009,8 @@ public class AdapterService extends Service {
     }
 
     private boolean isNiapMode() {
-        return Settings.Global.getInt(getContentResolver(), "common_criteria_mode", 0) == 1;
+        return ((DevicePolicyManager) getSystemService(Context.DEVICE_POLICY_SERVICE))
+                .isCommonCriteriaModeEnabled(null);
     }
 
     /**
