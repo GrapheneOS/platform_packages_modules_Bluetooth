@@ -106,7 +106,7 @@
     <string name="upload_success" msgid="4014469387779648949">"已完成 <xliff:g id="FILE_SIZE">%1$s</xliff:g> 的傳送作業。"</string>
     <string name="inbound_history_title" msgid="6940914942271327563">"外來傳輸"</string>
     <string name="outbound_history_title" msgid="4279418703178140526">"向外傳輸"</string>
-    <string name="no_transfers" msgid="3482965619151865672">"傳輸記錄為空白。"</string>
+    <string name="no_transfers" msgid="3482965619151865672">"傳輸記錄是空的。"</string>
     <string name="transfer_clear_dlg_msg" msgid="1712376797268438075">"將會從清單清除所有項目。"</string>
     <string name="outbound_noti_title" msgid="8051906709452260849">"藍牙分享：傳送的檔案"</string>
     <string name="inbound_noti_title" msgid="4143352641953027595">"藍牙分享：接收的檔案"</string>
@@ -134,5 +134,4 @@
     <string name="bluetooth_disconnected" msgid="3318303728981478873">"已與藍牙音訊解除連接"</string>
     <string name="a2dp_sink_mbs_label" msgid="7566075853395412558">"藍牙音訊"</string>
     <string name="bluetooth_opp_file_limit_exceeded" msgid="8894450394309084519">"無法轉移 4 GB 以上的檔案"</string>
-    <string name="bluetooth_connect_action" msgid="4009848433321657090">"連接藍牙"</string>
 </resources>
