@@ -24,6 +24,7 @@
 #include "ble_advertiser.h"
 #include "ble_advertiser_hci_interface.h"
 #include "btm_int_types.h"
+#include "stack/btm/btm_ble_int.h"
 
 #include <string.h>
 #include <queue>
@@ -257,7 +258,7 @@ class BleAdvertisingManagerImpl
               p_inst->own_address = bda;
 
               alarm_set_on_mloop(p_inst->adv_raddr_timer,
-                                 BTM_BLE_PRIVATE_ADDR_INT_MS,
+                                 btm_get_next_private_addrress_interval_ms(),
                                  btm_ble_adv_raddr_timer_timeout, p_inst);
               cb.Run(p_inst->inst_id, BTM_BLE_MULTI_ADV_SUCCESS);
             },
@@ -429,7 +430,8 @@ class BleAdvertisingManagerImpl
             c->self->adv_inst[c->inst_id].tx_power = tx_power;
 
             if (c->self->adv_inst[c->inst_id].own_address_type == BLE_ADDR_PUBLIC) {
-              c->self->StartAdvertisingSetAfterAddressPart(std::move(c));
+              auto self = c->self;
+              self->StartAdvertisingSetAfterAddressPart(std::move(c));
               return;
             }
 
@@ -449,7 +451,8 @@ class BleAdvertisingManagerImpl
                   return;
                 }
 
-                c->self->StartAdvertisingSetAfterAddressPart(std::move(c));
+                auto self = c->self;
+                self->StartAdvertisingSetAfterAddressPart(std::move(c));
           }, base::Passed(&c)));
         }, base::Passed(&c)));
     }, base::Passed(&c)));
@@ -492,11 +495,11 @@ class BleAdvertisingManagerImpl
                           return;
                         }
 
+                        auto self = c->self;
                         if (c->periodic_params.enable) {
-                          c->self->StartAdvertisingSetPeriodicPart(
-                              std::move(c));
+                          self->StartAdvertisingSetPeriodicPart(std::move(c));
                         } else {
-                          c->self->StartAdvertisingSetFinish(std::move(c));
+                          self->StartAdvertisingSetFinish(std::move(c));
                         }
                       },
                       base::Passed(&c)));
@@ -550,7 +553,8 @@ class BleAdvertisingManagerImpl
                   return;
                 }
 
-                c->self->StartAdvertisingSetFinish(std::move(c));
+                auto self = c->self;
+                self->StartAdvertisingSetFinish(std::move(c));
 
               }, base::Passed(&c)));
         }, base::Passed(&c)));
@@ -788,8 +792,9 @@ class BleAdvertisingManagerImpl
     int length = moreThanOnePacket ? ADV_DATA_LEN_MAX : dataSize - offset;
     int newOffset = offset + length;
 
+    auto dataData = data.data();
     sender.Run(
-        inst_id, operation, length, data.data() + offset,
+        inst_id, operation, length, dataData + offset,
         Bind(&BleAdvertisingManagerImpl::DivideAndSendDataRecursively, false,
              inst_id, std::move(data), newOffset, std::move(done_cb), sender));
   }
