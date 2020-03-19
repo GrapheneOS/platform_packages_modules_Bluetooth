@@ -514,7 +514,10 @@ public class MediaPlayerList {
         final MediaPlayerWrapper wrapper = mMediaPlayers.get(playerId);
         d("Removing media player " + wrapper.getPackageName());
         mMediaPlayerIds.remove(wrapper.getPackageName());
-        mMediaPlayers.remove(playerId);
+        if (!mBrowsablePlayers.containsKey(playerId)) {
+            d(wrapper.getPackageName() + " doesn't have a browse service. Recycle player ID.");
+            mMediaPlayers.remove(playerId);
+        }
         wrapper.cleanup();
     }
 
