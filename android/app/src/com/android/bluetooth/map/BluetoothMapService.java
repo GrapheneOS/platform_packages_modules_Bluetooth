@@ -589,6 +589,8 @@ public class BluetoothMapService extends ProfileService {
     }
 
     boolean setConnectionPolicy(BluetoothDevice device, int connectionPolicy) {
+        enforceCallingOrSelfPermission(BLUETOOTH_PRIVILEGED,
+                "Need BLUETOOTH_PRIVILEGED permission");
         if (VERBOSE) {
             Log.v(TAG, "Saved connectionPolicy " + device + " = " + connectionPolicy);
         }
@@ -610,6 +612,8 @@ public class BluetoothMapService extends ProfileService {
      * @hide
      */
     int getConnectionPolicy(BluetoothDevice device) {
+        enforceCallingOrSelfPermission(BLUETOOTH_PRIVILEGED,
+                "Need BLUETOOTH_PRIVILEGED permission");
         return AdapterService.getAdapterService().getDatabase()
                 .getProfileConnectionPolicy(device, BluetoothProfile.MAP);
     }
