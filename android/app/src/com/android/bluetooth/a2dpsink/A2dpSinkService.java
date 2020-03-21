@@ -226,6 +226,8 @@ public class A2dpSinkService extends ProfileService {
      * @return true if connection is successful, false otherwise.
      */
     public synchronized boolean connect(BluetoothDevice device) {
+        enforceCallingOrSelfPermission(BLUETOOTH_PRIVILEGED,
+                "Need BLUETOOTH_PRIVILEGED permission");
         if (device == null) {
             throw new IllegalArgumentException("Null device");
         }
@@ -258,6 +260,7 @@ public class A2dpSinkService extends ProfileService {
      * @return true if disconnect is successful, false otherwise.
      */
     public synchronized boolean disconnect(BluetoothDevice device) {
+        enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH ADMIN permission");
         if (DBG) {
             StringBuilder sb = new StringBuilder();
             dump(sb);
