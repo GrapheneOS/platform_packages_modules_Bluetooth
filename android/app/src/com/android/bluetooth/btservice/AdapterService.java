@@ -494,8 +494,10 @@ public class AdapterService extends Service {
         }.execute();
 
         try {
-            int systemUiUid = getApplicationContext().getPackageManager().getPackageUid(
-                    "com.android.systemui", PackageManager.MATCH_SYSTEM_ONLY);
+            int systemUiUid = getApplicationContext()
+                    .createContextAsUser(UserHandle.SYSTEM, /* flags= */ 0)
+                    .getPackageManager()
+                    .getPackageUid("com.android.systemui", PackageManager.MATCH_SYSTEM_ONLY);
 
             Utils.setSystemUiUid(systemUiUid);
         } catch (PackageManager.NameNotFoundException e) {
