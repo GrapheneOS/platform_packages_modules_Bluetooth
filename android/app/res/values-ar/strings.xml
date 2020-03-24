@@ -29,7 +29,7 @@
     <string name="bt_enable_line1" msgid="7203551583048149">"لإستخدام خدمات البلوتوث، يجب تفعيل البلوتوث أولاً."</string>
     <string name="bt_enable_line2" msgid="4341936569415937994">"هل تريد تفعيل البلوتوث الآن؟"</string>
     <string name="bt_enable_cancel" msgid="1988832367505151727">"إلغاء"</string>
-    <string name="bt_enable_ok" msgid="3432462749994538265">"تشغيل"</string>
+    <string name="bt_enable_ok" msgid="3432462749994538265">"تفعيل"</string>
     <string name="incoming_file_confirm_title" msgid="8139874248612182627">"نقل الملف"</string>
     <string name="incoming_file_confirm_content" msgid="2752605552743148036">"هل تقبل الملف الوارد؟"</string>
     <string name="incoming_file_confirm_cancel" msgid="2973321832477704805">"رفض"</string>
