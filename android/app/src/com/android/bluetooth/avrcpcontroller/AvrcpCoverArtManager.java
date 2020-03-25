@@ -20,6 +20,7 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothProfile;
 import android.content.Context;
 import android.net.Uri;
+import android.os.SystemProperties;
 import android.util.Log;
 
 import java.util.Map;
@@ -38,10 +39,17 @@ public class AvrcpCoverArtManager {
     private static final String TAG = "AvrcpCoverArtManager";
     private static final boolean DBG = Log.isLoggable(TAG, Log.DEBUG);
 
+    // Image Download Schemes for cover art
+    public static final String AVRCP_CONTROLLER_COVER_ART_SCHEME =
+            "persist.bluetooth.avrcpcontroller.BIP_DOWNLOAD_SCHEME";
+    public static final String SCHEME_NATIVE = "native";
+    public static final String SCHEME_THUMBNAIL = "thumbnail";
+
     private final Context mContext;
     protected final Map<BluetoothDevice, AvrcpBipClient> mClients = new ConcurrentHashMap<>(1);
     private final AvrcpCoverArtStorage mCoverArtStorage;
     private final Callback mCallback;
+    private final String mDownloadScheme;
 
     /**
      * An object representing an image download event. Contains the information necessary to
@@ -77,6 +85,8 @@ public class AvrcpCoverArtManager {
         mContext = context;
         mCoverArtStorage = new AvrcpCoverArtStorage(mContext);
         mCallback = callback;
+        mDownloadScheme =
+                SystemProperties.get(AVRCP_CONTROLLER_COVER_ART_SCHEME, SCHEME_THUMBNAIL);
         mCoverArtStorage.clear();
     }
 
@@ -222,10 +232,18 @@ public class AvrcpCoverArtManager {
      * @return A descriptor containing the desirable download format
      */
     private BipImageDescriptor determineImageDescriptor(BipImageProperties properties) {
-        // AVRCP 1.6.2 defined "thumbnail" size is guaranteed so we'll do that for now
         BipImageDescriptor.Builder builder = new BipImageDescriptor.Builder();
-        builder.setEncoding(BipEncoding.JPEG);
-        builder.setFixedDimensions(200, 200);
+        switch (mDownloadScheme) {
+            // BIP Specification says a blank/null descriptor signals to pull the native format
+            case SCHEME_NATIVE:
+                return null;
+            // AVRCP 1.6.2 defined "thumbnail" size is guaranteed so we'll do that for now
+            case SCHEME_THUMBNAIL:
+            default:
+                builder.setEncoding(BipEncoding.JPEG);
+                builder.setFixedDimensions(200, 200);
+                break;
+        }
         return builder.build();
     }
 
@@ -289,6 +307,7 @@ public class AvrcpCoverArtManager {
     @Override
     public String toString() {
         String s = "CoverArtManager:\n";
+        s += "     Download Scheme: " + mDownloadScheme + "\n";
         for (BluetoothDevice device : mClients.keySet()) {
             AvrcpBipClient client = getClient(device);
             s += "    " + client.toString() + "\n";
