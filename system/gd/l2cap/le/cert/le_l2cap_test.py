@@ -17,7 +17,7 @@ import time
 from datetime import timedelta
 from mobly import asserts
 
-from cert.gd_base_test_facade_only import GdFacadeOnlyBaseTestClass
+from cert.gd_base_test import GdBaseTestClass
 from cert.event_stream import EventStream
 from cert.truth import assertThat
 from cert.closable import safeClose
@@ -40,7 +40,7 @@ from l2cap.le.cert.cert_le_l2cap import CertLeL2cap
 SAMPLE_PACKET = l2cap_packets.CommandRejectNotUnderstoodBuilder(1)
 
 
-class LeL2capTest(GdFacadeOnlyBaseTestClass):
+class LeL2capTest(GdBaseTestClass):
 
     def setup_class(self):
         super().setup_class(dut_module='L2CAP', cert_module='HCI_INTERFACES')
@@ -107,6 +107,17 @@ class LeL2capTest(GdFacadeOnlyBaseTestClass):
             psm)
         dut_channel = response_future.get_channel()
         return (dut_channel, cert_channel)
+
+    def test_reject_connection_parameter_update_request(self):
+        """
+        L2CAP/LE/CPU/BI-02-C
+        """
+        self._setup_link_from_cert()
+        self.cert_l2cap.get_control_channel().send(
+            l2cap_packets.ConnectionParameterUpdateRequestBuilder(
+                2, 100, 100, 512, 100))
+        assertThat(self.cert_l2cap.get_control_channel()).emits(
+            L2capMatchers.LeCommandReject())
 
     def test_segmentation(self):
         """
