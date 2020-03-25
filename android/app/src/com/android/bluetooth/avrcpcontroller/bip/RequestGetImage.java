@@ -42,12 +42,15 @@ public class RequestGetImage extends BipRequest {
         mImageHandle = imageHandle;
         mImageDescriptor = descriptor;
 
-        debug("GetImage - handle: " + mImageHandle + ", descriptor: "
-                + mImageDescriptor.toString());
+        debug("GetImage - handle: " + mImageHandle + ", descriptor: " + mImageDescriptor);
 
         mHeaderSet.setHeader(HeaderSet.TYPE, TYPE);
         mHeaderSet.setHeader(HEADER_ID_IMG_HANDLE, mImageHandle);
-        mHeaderSet.setHeader(HEADER_ID_IMG_DESCRIPTOR, mImageDescriptor.serialize());
+        if (mImageDescriptor != null) {
+            mHeaderSet.setHeader(HEADER_ID_IMG_DESCRIPTOR, mImageDescriptor.serialize());
+        } else {
+            mHeaderSet.setHeader(HEADER_ID_IMG_DESCRIPTOR, null);
+        }
     }
 
     @Override
