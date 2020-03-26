@@ -112,4 +112,13 @@ public abstract class AlertActivity extends Activity implements DialogInterface.
         if (mAlert == null) return;
         mAlert.getButton(identifier).setEnabled(enable);
     }
+
+    @Override
+    protected void onDestroy() {
+        if (mAlert != null) {
+            mAlert.dismiss();
+        }
+        super.onDestroy();
+    }
+
 }
