@@ -159,6 +159,13 @@ void SecurityManagerImpl::NotifyDeviceUnbonded(hci::AddressWithType device) {
   }
 }
 
+void SecurityManagerImpl::NotifyEncryptionStateChanged(hci::EncryptionChangeView encryption_change_view) {
+  for (auto& iter : listeners_) {
+    iter.second->Post(common::Bind(&ISecurityManagerListener::OnEncryptionStateChanged, common::Unretained(iter.first),
+                                   encryption_change_view));
+  }
+}
+
 template <class T>
 void SecurityManagerImpl::HandleEvent(T packet) {
   ASSERT(packet.IsValid());
@@ -167,11 +174,8 @@ void SecurityManagerImpl::HandleEvent(T packet) {
   if (entry == pairing_handler_map_.end()) {
     auto bd_addr = packet.GetBdAddr();
     auto event_code = packet.GetEventCode();
-    auto event = hci::EventPacketView::Create(std::move(packet));
-    ASSERT_LOG(event.IsValid(), "Received invalid packet");
 
-    const hci::EventCode code = event.GetEventCode();
-    if (code != hci::EventCode::LINK_KEY_REQUEST) {
+    if (event_code != hci::EventCode::LINK_KEY_REQUEST) {
       LOG_ERROR("No classic pairing handler for device '%s' ready for command %s ", bd_addr.ToString().c_str(),
                 hci::EventCodeText(event_code).c_str());
       return;
@@ -229,15 +233,16 @@ void SecurityManagerImpl::OnHciEventReceived(hci::EventPacketView packet) {
       break;
 
     case hci::EventCode::ENCRYPTION_CHANGE: {
-      EncryptionChangeView enc_chg_packet = EncryptionChangeView::Create(event);
-      if (!enc_chg_packet.IsValid()) {
+      EncryptionChangeView encryption_change_view = EncryptionChangeView::Create(event);
+      if (!encryption_change_view.IsValid()) {
         LOG_ERROR("Invalid EncryptionChange packet received");
         return;
       }
-      if (enc_chg_packet.GetConnectionHandle() == pending_le_pairing_.connection_handle_) {
+      if (encryption_change_view.GetConnectionHandle() == pending_le_pairing_.connection_handle_) {
         pending_le_pairing_.handler_->OnHciEvent(event);
         return;
       }
+      NotifyEncryptionStateChanged(encryption_change_view);
       break;
     }
 
@@ -349,9 +354,9 @@ void SecurityManagerImpl::OnConnectionOpenLe(std::unique_ptr<l2cap::le::FixedCha
       security_handler_, common::Bind(&SecurityManagerImpl::OnSmpCommandLe, common::Unretained(this)));
 
   // TODO: this doesn't have to be a unique ptr, if there is a way to properly std::move it into place where it's stored
-  pending_le_pairing_.connection_handle_ = pending_le_pairing_.channel_->GetAclConnection()->GetHandle();
+  pending_le_pairing_.connection_handle_ = pending_le_pairing_.channel_->GetLinkOptions()->GetHandle();
   InitialInformations initial_informations{
-      .my_role = pending_le_pairing_.channel_->GetAclConnection()->GetRole(),
+      .my_role = pending_le_pairing_.channel_->GetLinkOptions()->GetRole(),
       .my_connection_address = {hci::Address{{0x00, 0x11, 0xFF, 0xFF, 0x33, 0x22}} /*TODO: obtain my address*/,
                                 hci::AddressType::RANDOM_DEVICE_ADDRESS},
       /*TODO: properly obtain capabilities from device-specific storage*/
@@ -362,7 +367,7 @@ void SecurityManagerImpl::OnConnectionOpenLe(std::unique_ptr<l2cap::le::FixedCha
                                 .initiator_key_distribution = 0x07,
                                 .responder_key_distribution = 0x07},
       .remotely_initiated = false,
-      .connection_handle = pending_le_pairing_.channel_->GetAclConnection()->GetHandle(),
+      .connection_handle = pending_le_pairing_.channel_->GetLinkOptions()->GetHandle(),
       .remote_connection_address = pending_le_pairing_.channel_->GetDevice(),
       .remote_name = "TODO: grab proper device name in sec mgr",
       /* contains pairing request, if the pairing was remotely initiated */
