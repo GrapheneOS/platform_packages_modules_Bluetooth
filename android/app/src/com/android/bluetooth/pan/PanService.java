@@ -621,8 +621,10 @@ public class PanService extends ProfileService {
                         getBaseContext(), getMainLooper(), this);
                 mNetworkFactory.startReverseTether(iface);
             } else if (state == BluetoothProfile.STATE_DISCONNECTED) {
-                mNetworkFactory.stopReverseTether();
-                mNetworkFactory = null;
+                if (mNetworkFactory != null) {
+                    mNetworkFactory.stopReverseTether();
+                    mNetworkFactory = null;
+                }
                 mPanDevices.remove(device);
             }
         }
