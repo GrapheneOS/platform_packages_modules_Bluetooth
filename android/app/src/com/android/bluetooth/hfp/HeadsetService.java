@@ -1751,7 +1751,8 @@ public class HeadsetService extends ProfileService {
     private void broadcastActiveDevice(BluetoothDevice device) {
         logD("broadcastActiveDevice: " + device);
         BluetoothStatsLog.write(BluetoothStatsLog.BLUETOOTH_ACTIVE_DEVICE_CHANGED,
-                BluetoothProfile.HEADSET, mAdapterService.obfuscateAddress(device));
+                BluetoothProfile.HEADSET, mAdapterService.obfuscateAddress(device),
+                mAdapterService.getMetricId(device));
         Intent intent = new Intent(BluetoothHeadset.ACTION_ACTIVE_DEVICE_CHANGED);
         intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
         intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY_BEFORE_BOOT
