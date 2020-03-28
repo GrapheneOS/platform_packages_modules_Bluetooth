@@ -1682,7 +1682,8 @@ public class HeadsetClientStateMachine extends StateMachine {
                 AdapterService.getAdapterService().obfuscateAddress(device),
                 getConnectionStateFromAudioState(newState), mAudioWbs
                         ? BluetoothHfpProtoEnums.SCO_CODEC_MSBC
-                        : BluetoothHfpProtoEnums.SCO_CODEC_CVSD);
+                        : BluetoothHfpProtoEnums.SCO_CODEC_CVSD,
+                AdapterService.getAdapterService().getMetricId(device));
         Intent intent = new Intent(BluetoothHeadsetClient.ACTION_AUDIO_STATE_CHANGED);
         intent.putExtra(BluetoothProfile.EXTRA_PREVIOUS_STATE, prevState);
         intent.putExtra(BluetoothProfile.EXTRA_STATE, newState);
