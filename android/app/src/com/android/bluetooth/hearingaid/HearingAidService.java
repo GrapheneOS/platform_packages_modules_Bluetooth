@@ -675,7 +675,8 @@ public class HearingAidService extends ProfileService {
         }
 
         BluetoothStatsLog.write(BluetoothStatsLog.BLUETOOTH_ACTIVE_DEVICE_CHANGED,
-                BluetoothProfile.HEARING_AID, mAdapterService.obfuscateAddress(device));
+                BluetoothProfile.HEARING_AID, mAdapterService.obfuscateAddress(device),
+                mAdapterService.getMetricId(device));
 
         Intent intent = new Intent(BluetoothHearingAid.ACTION_ACTIVE_DEVICE_CHANGED);
         intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);

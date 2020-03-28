@@ -313,7 +313,8 @@ public class HeadsetStateMachine extends StateMachine {
                     getConnectionStateFromAudioState(toState),
                     TextUtils.equals(mAudioParams.get(HEADSET_WBS), HEADSET_AUDIO_FEATURE_ON)
                             ? BluetoothHfpProtoEnums.SCO_CODEC_MSBC
-                            : BluetoothHfpProtoEnums.SCO_CODEC_CVSD);
+                            : BluetoothHfpProtoEnums.SCO_CODEC_CVSD,
+                    mAdapterService.getMetricId(device));
             mHeadsetService.onAudioStateChangedFromStateMachine(device, fromState, toState);
             Intent intent = new Intent(BluetoothHeadset.ACTION_AUDIO_STATE_CHANGED);
             intent.putExtra(BluetoothProfile.EXTRA_PREVIOUS_STATE, fromState);
@@ -1881,7 +1882,7 @@ public class HeadsetStateMachine extends StateMachine {
         BluetoothStatsLog.write(BluetoothStatsLog.BLUETOOTH_DEVICE_INFO_REPORTED,
                 mAdapterService.obfuscateAddress(device), BluetoothProtoEnums.DEVICE_INFO_INTERNAL,
                 BluetoothHeadset.VENDOR_SPECIFIC_HEADSET_EVENT_XAPL, vendorId, productId, version,
-                null);
+                null, mAdapterService.getMetricId(device));
         // feature = 2 indicates that we support battery level reporting only
         mNativeInterface.atResponseString(device, "+XAPL=iPhone," + String.valueOf(2));
     }
