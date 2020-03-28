@@ -123,6 +123,7 @@ class LeL2capTest(GdBaseTestClass):
         cert_channel = self.cert_l2cap.verify_and_respond_open_channel_from_remote(
             psm)
         dut_channel = response_future.get_channel()
+        return (dut_channel, cert_channel)
 
     def _open_channel_from_cert(self,
                                 signal_id=1,
@@ -144,6 +145,26 @@ class LeL2capTest(GdBaseTestClass):
             psm)
         dut_channel = response_future.get_channel()
         return (dut_channel, cert_channel)
+
+    def _open_fixed_channel(self, cid=4):
+        dut_channel = self.dut_l2cap.get_fixed_channel(cid)
+        cert_channel = self.cert_l2cap.open_fixed_channel(cid)
+        return (dut_channel, cert_channel)
+
+    def test_fixed_channel_send(self):
+        self.dut_l2cap.enable_fixed_channel(4)
+        self._setup_link_from_cert()
+        (dut_channel, cert_channel) = self._open_fixed_channel(4)
+        dut_channel.send(b'hello' * 40)
+        assertThat(cert_channel).emits(L2capMatchers.Data(b'hello' * 40))
+
+    def test_fixed_channel_receive(self):
+        self.dut_l2cap.enable_fixed_channel(4)
+        self._setup_link_from_cert()
+        (dut_channel, cert_channel) = self._open_fixed_channel(4)
+        cert_channel.send(SAMPLE_PACKET)
+        assertThat(dut_channel).emits(
+            L2capMatchers.PacketPayloadRawData(b'\x01\x01\x02\x00\x00\x00'))
 
     def test_connect_from_dut_and_open_dynamic_channel(self):
         """
@@ -226,6 +247,15 @@ class LeL2capTest(GdBaseTestClass):
         assertThat(cert_channel).emits(
             L2capMatchers.FirstLeIFrame(b'hello' * 40, sdu_size=200))
 
+    def test_no_segmentation_dut_is_master(self):
+        """
+        L2CAP/COS/CFC/BV-02-C
+        """
+        (dut_channel, cert_channel) = self._set_link_from_dut_and_open_channel()
+        dut_channel.send(b'hello' * 40)
+        assertThat(cert_channel).emits(
+            L2capMatchers.FirstLeIFrame(b'hello' * 40, sdu_size=200))
+
     def test_reassembling(self):
         """
         L2CAP/COS/CFC/BV-03-C
@@ -245,6 +275,12 @@ class LeL2capTest(GdBaseTestClass):
         """
         self._setup_link_from_cert()
         (dut_channel, cert_channel) = self._open_channel_from_cert()
+        cert_channel.send_first_le_i_frame(6, SAMPLE_PACKET)
+        assertThat(dut_channel).emits(
+            L2capMatchers.PacketPayloadRawData(b'\x01\x01\x02\x00\x00\x00'))
+
+    def test_data_receiving_dut_is_master(self):
+        (dut_channel, cert_channel) = self._set_link_from_dut_and_open_channel()
         cert_channel.send_first_le_i_frame(6, SAMPLE_PACKET)
         assertThat(dut_channel).emits(
             L2capMatchers.PacketPayloadRawData(b'\x01\x01\x02\x00\x00\x00'))
@@ -289,39 +325,15 @@ class LeL2capTest(GdBaseTestClass):
         assertThat(self.cert_l2cap.get_control_channel()).emits(
             L2capMatchers.LeCommandReject())
 
-    def test_credit_based_connection_request_unsupported_le_psm(self):
+    def test_command_reject_reserved_pdu_codes(self):
         """
-        L2CAP/LE/CFC/BV-05-C
+        L2CAP/LE/REJ/BI-02-C
         """
         self._setup_link_from_cert()
         self.cert_l2cap.get_control_channel().send(
-            l2cap_packets.LeCreditBasedConnectionRequestBuilder(
-                1, 0x34, 0x0101, 2000, 1000, 1000))
+            l2cap_packets.MoveChannelRequestBuilder(2, 0, 0))
         assertThat(self.cert_l2cap.get_control_channel()).emits(
-            L2capMatchers.CreditBasedConnectionResponse(
-                0x0101,
-                result=LeCreditBasedConnectionResponseResult.
-                LE_PSM_NOT_SUPPORTED))
-
-    def test_credit_exchange_receiving_incremental_credits(self):
-        """
-        L2CAP/LE/CFC/BV-06-C
-        """
-        self._setup_link_from_cert()
-        (dut_channel,
-         cert_channel) = self._open_channel_from_cert(initial_credit=0)
-        for _ in range(4):
-            dut_channel.send(b'hello')
-        cert_channel.send_credits(1)
-        assertThat(cert_channel).emits(
-            L2capMatchers.FirstLeIFrame(b'hello', sdu_size=5))
-        cert_channel.send_credits(1)
-        assertThat(cert_channel).emits(
-            L2capMatchers.FirstLeIFrame(b'hello', sdu_size=5))
-        cert_channel.send_credits(2)
-        assertThat(cert_channel).emits(
-            L2capMatchers.FirstLeIFrame(b'hello', sdu_size=5),
-            L2capMatchers.FirstLeIFrame(b'hello', sdu_size=5))
+            L2capMatchers.LeCommandReject())
 
     def test_le_credit_based_connection_request_legacy_peer(self):
         """
@@ -365,6 +377,138 @@ class LeL2capTest(GdBaseTestClass):
         assertThat(response_future.get_status()).isEqualTo(
             LeCreditBasedConnectionResponseResult.LE_PSM_NOT_SUPPORTED)
 
+    def test_credit_based_connection_request_unsupported_le_psm(self):
+        """
+        L2CAP/LE/CFC/BV-05-C
+        """
+        self._setup_link_from_cert()
+        self.cert_l2cap.get_control_channel().send(
+            l2cap_packets.LeCreditBasedConnectionRequestBuilder(
+                1, 0x34, 0x0101, 2000, 1000, 1000))
+        assertThat(self.cert_l2cap.get_control_channel()).emits(
+            L2capMatchers.CreditBasedConnectionResponse(
+                result=LeCreditBasedConnectionResponseResult.
+                LE_PSM_NOT_SUPPORTED))
+
+    def test_credit_exchange_receiving_incremental_credits(self):
+        """
+        L2CAP/LE/CFC/BV-06-C
+        """
+        self._setup_link_from_cert()
+        (dut_channel,
+         cert_channel) = self._open_channel_from_cert(initial_credit=0)
+        for _ in range(4):
+            dut_channel.send(b'hello')
+        cert_channel.send_credits(1)
+        assertThat(cert_channel).emits(
+            L2capMatchers.FirstLeIFrame(b'hello', sdu_size=5))
+        cert_channel.send_credits(1)
+        assertThat(cert_channel).emits(
+            L2capMatchers.FirstLeIFrame(b'hello', sdu_size=5))
+        cert_channel.send_credits(2)
+        assertThat(cert_channel).emits(
+            L2capMatchers.FirstLeIFrame(b'hello', sdu_size=5),
+            L2capMatchers.FirstLeIFrame(b'hello', sdu_size=5))
+
+    def test_credit_exchange_sending_credits(self):
+        """
+        L2CAP/LE/CFC/BV-07-C
+        """
+        self._setup_link_from_cert()
+        (dut_channel, cert_channel) = self._open_channel_from_cert()
+        credits = cert_channel.credits_left()
+        # Note: DUT only needs to send credit when ALL credits are consumed.
+        # Here we enforce that DUT sends credit after receiving 3 packets, to
+        # test without sending too many packets (may take too long).
+        # This behavior is not expected for all Bluetooth stacks.
+        for _ in range(min(credits + 1, 3)):
+            cert_channel.send_first_le_i_frame(6, SAMPLE_PACKET)
+        self.cert_l2cap.verify_le_flow_control_credit(cert_channel)
+
+    def test_disconnection_request(self):
+        """
+        L2CAP/LE/CFC/BV-08-C
+        """
+        self._setup_link_from_cert()
+        (dut_channel, cert_channel) = self._open_channel_from_cert()
+        dut_channel.close_channel()
+        cert_channel.verify_disconnect_request()
+
+    def test_disconnection_response(self):
+        """
+        L2CAP/LE/CFC/BV-09-C
+        """
+        self._setup_link_from_cert()
+        (dut_channel, cert_channel) = self._open_channel_from_cert()
+        cert_channel.disconnect_and_verify()
+
+    def test_security_insufficient_authentication_initiator(self):
+        """
+        L2CAP/LE/CFC/BV-10-C
+        """
+        self._setup_link_from_cert()
+        response_future = self.dut_l2cap.connect_coc_to_cert(psm=0x33)
+        self.cert_l2cap.verify_and_respond_open_channel_from_remote(
+            psm=0x33,
+            result=LeCreditBasedConnectionResponseResult.
+            INSUFFICIENT_AUTHENTICATION)
+        assertThat(response_future.get_status()).isEqualTo(
+            LeCreditBasedConnectionResponseResult.INSUFFICIENT_AUTHENTICATION)
+
+    def test_security_insufficient_authorization_initiator(self):
+        """
+        L2CAP/LE/CFC/BV-12-C
+        """
+        self._setup_link_from_cert()
+        response_future = self.dut_l2cap.connect_coc_to_cert(psm=0x33)
+        self.cert_l2cap.verify_and_respond_open_channel_from_remote(
+            psm=0x33,
+            result=LeCreditBasedConnectionResponseResult.
+            INSUFFICIENT_AUTHORIZATION)
+        assertThat(response_future.get_status()).isEqualTo(
+            LeCreditBasedConnectionResponseResult.INSUFFICIENT_AUTHORIZATION)
+
+    def test_request_refused_due_to_invalid_source_cid_initiator(self):
+        """
+        L2CAP/LE/CFC/BV-18-C
+        """
+        self._setup_link_from_cert()
+        response_future = self.dut_l2cap.connect_coc_to_cert(psm=0x33)
+        self.cert_l2cap.verify_and_respond_open_channel_from_remote(
+            psm=0x33,
+            result=LeCreditBasedConnectionResponseResult.INVALID_SOURCE_CID)
+        assertThat(response_future.get_status()).isEqualTo(
+            LeCreditBasedConnectionResponseResult.INVALID_SOURCE_CID)
+
+    def test_request_refused_due_to_source_cid_already_allocated_initiator(
+            self):
+        """
+        L2CAP/LE/CFC/BV-19-C
+        """
+        self._setup_link_from_cert()
+        response_future = self.dut_l2cap.connect_coc_to_cert(psm=0x33)
+        self.cert_l2cap.verify_and_respond_open_channel_from_remote(
+            psm=0x33,
+            result=LeCreditBasedConnectionResponseResult.
+            SOURCE_CID_ALREADY_ALLOCATED)
+        assertThat(response_future.get_status()).isEqualTo(
+            LeCreditBasedConnectionResponseResult.SOURCE_CID_ALREADY_ALLOCATED)
+
+    def test_request_refused_due_to_source_cid_already_allocated_responder(
+            self):
+        """
+        L2CAP/LE/CFC/BV-20-C
+        """
+        self._setup_link_from_cert()
+        (dut_channel, cert_channel) = self._open_channel_from_cert(
+            psm=0x33, scid=0x0101)
+        self.dut_l2cap.register_coc(psm=0x35)
+        self.cert_l2cap.get_control_channel().send(
+            l2cap_packets.LeCreditBasedConnectionRequestBuilder(
+                2, 0x35, 0x0101, 1000, 1000, 1000))
+        assertThat(self.cert_l2cap.get_control_channel()).emits(
+            L2capMatchers.CreditBasedConnectionResponseUsedCid())
+
     def test_request_refused_due_to_unacceptable_parameters_initiator(self):
         """
         L2CAP/LE/CFC/BV-21-C
@@ -386,11 +530,3 @@ class LeL2capTest(GdBaseTestClass):
         (dut_channel, cert_channel) = self._open_channel_from_cert()
         cert_channel.send_credits(65535)
         cert_channel.verify_disconnect_request()
-
-    def test_disconnection_response(self):
-        """
-        L2CAP/LE/CFC/BV-09-C
-        """
-        self._setup_link_from_cert()
-        (dut_channel, cert_channel) = self._open_channel_from_cert()
-        cert_channel.disconnect_and_verify()

@@ -207,6 +207,20 @@ class L2capTest(GdBaseTestClass):
             L2capMatchers.ConfigurationRequest(),
             L2capMatchers.ConfigurationRequest()).inAnyOrder()
 
+    def test_non_blocking_config_response(self):
+        """
+        L2CAP/COS/CFD/BV-08-C
+        """
+        self._setup_link_from_cert()
+
+        self.cert_l2cap.ignore_config_request()
+
+        self._open_unvalidated_channel(scid=0x41, psm=0x33)
+
+        assertThat(self.cert_l2cap.get_control_channel()).emits(
+            L2capMatchers.ConfigurationResponse(),
+            L2capMatchers.ConfigurationRequest()).inAnyOrder()
+
     def test_config_unknown_options_with_hint(self):
         """
         L2CAP/COS/CFD/BV-12-C
@@ -247,9 +261,9 @@ class L2capTest(GdBaseTestClass):
 
         assertThat(self.cert_channel).emits(L2capMatchers.CommandReject())
 
-    def test_query_for_1_2_features(self):
+    def test_respond_with_1_2_features(self):
         """
-        L2CAP/COS/IEX/BV-01-C [Query for 1.2 Features]
+        L2CAP/COS/IEX/BV-02-C [Respond with 1.2 Features]
         """
         self._setup_link_from_cert()
         control_channel = self.cert_l2cap.get_control_channel()
