@@ -388,11 +388,13 @@ final class BondStateMachine extends StateMachine {
         }
         BluetoothStatsLog.write(BluetoothStatsLog.BLUETOOTH_BOND_STATE_CHANGED,
                 mAdapterService.obfuscateAddress(device), 0, device.getType(),
-                newState, BluetoothProtoEnums.BOND_SUB_STATE_UNKNOWN, reason);
+                newState, BluetoothProtoEnums.BOND_SUB_STATE_UNKNOWN, reason,
+                mAdapterService.getMetricId(device));
         BluetoothClass deviceClass = device.getBluetoothClass();
         int classOfDevice = deviceClass == null ? 0 : deviceClass.getClassOfDevice();
         BluetoothStatsLog.write(BluetoothStatsLog.BLUETOOTH_CLASS_OF_DEVICE_REPORTED,
-                mAdapterService.obfuscateAddress(device), classOfDevice);
+                mAdapterService.obfuscateAddress(device), classOfDevice,
+                mAdapterService.getMetricId(device));
         mAdapterProperties.onBondStateChanged(device, newState);
 
         if (devProp != null && ((devProp.getDeviceType() == BluetoothDevice.DEVICE_TYPE_CLASSIC
