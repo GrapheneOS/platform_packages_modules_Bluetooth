@@ -77,6 +77,7 @@ public class AvrcpCoverArtManager {
         mContext = context;
         mCoverArtStorage = new AvrcpCoverArtStorage(mContext);
         mCallback = callback;
+        mCoverArtStorage.clear();
     }
 
     /**
@@ -123,6 +124,7 @@ public class AvrcpCoverArtManager {
         for (BluetoothDevice device : mClients.keySet()) {
             disconnect(device);
         }
+        mCoverArtStorage.clear();
     }
 
     /**
