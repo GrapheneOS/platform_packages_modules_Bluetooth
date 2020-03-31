@@ -23,6 +23,7 @@ import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.os.HandlerThread;
 import android.os.IBinder;
+import android.os.Looper;
 import android.os.ServiceManager;
 import android.telephony.PhoneStateListener;
 import android.telephony.SubscriptionManager;
@@ -62,6 +63,9 @@ public class HeadsetPhoneStateTest {
 
     @Before
     public void setUp() throws Exception {
+        if (Looper.myLooper() == null) {
+            Looper.prepare();
+        }
         MockitoAnnotations.initMocks(this);
         TelephonyManager.disableServiceHandleCaching();
         // Mock SubscriptionManager.getDefaultSubscriptionId() to return a valid value
