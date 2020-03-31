@@ -308,4 +308,30 @@ public final class AvrcpCoverArtStorageTest {
         Assert.assertTrue(mAvrcpCoverArtStorage.doesImageExist(mDevice1, mHandle1));
         Assert.assertTrue(mAvrcpCoverArtStorage.doesImageExist(mDevice1, mHandle2));
     }
+
+    @Test
+    public void clearStorageOneDevice_allImagesRemoved() {
+        mAvrcpCoverArtStorage.addImage(mDevice1, mHandle1, mImage1);
+        mAvrcpCoverArtStorage.addImage(mDevice1, mHandle2, mImage1);
+
+        mAvrcpCoverArtStorage.clear();
+
+        Assert.assertFalse(mAvrcpCoverArtStorage.doesImageExist(mDevice1, mHandle1));
+        Assert.assertFalse(mAvrcpCoverArtStorage.doesImageExist(mDevice1, mHandle2));
+    }
+
+    @Test
+    public void clearStorageManyDevices_allImagesRemoved() {
+        mAvrcpCoverArtStorage.addImage(mDevice1, mHandle1, mImage1);
+        mAvrcpCoverArtStorage.addImage(mDevice1, mHandle2, mImage1);
+        mAvrcpCoverArtStorage.addImage(mDevice2, mHandle1, mImage1);
+        mAvrcpCoverArtStorage.addImage(mDevice2, mHandle2, mImage1);
+
+        mAvrcpCoverArtStorage.clear();
+
+        Assert.assertFalse(mAvrcpCoverArtStorage.doesImageExist(mDevice1, mHandle1));
+        Assert.assertFalse(mAvrcpCoverArtStorage.doesImageExist(mDevice1, mHandle2));
+        Assert.assertFalse(mAvrcpCoverArtStorage.doesImageExist(mDevice2, mHandle1));
+        Assert.assertFalse(mAvrcpCoverArtStorage.doesImageExist(mDevice2, mHandle2));
+    }
 }
