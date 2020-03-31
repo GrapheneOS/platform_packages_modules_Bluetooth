@@ -502,7 +502,7 @@ class AvrcpControllerStateMachine extends StateMachine {
                     // Let the addressed player know we got an image so it can see if the current
                     // track now has cover artwork
                     boolean addedArtwork = mAddressedPlayer.notifyImageDownload(handle, uri);
-                    if (addedArtwork) {
+                    if (addedArtwork && isActive()) {
                         BluetoothMediaBrowserService.trackChanged(
                                 mAddressedPlayer.getCurrentTrack());
                     }
