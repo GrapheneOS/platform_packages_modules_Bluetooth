@@ -88,12 +88,17 @@ public class AvrcpCoverArtStorage {
 
         String path = getImagePath(device, imageHandle);
         if (path == null) {
-            debug("Cannot store image. Cannot provide a valid path to storage");
+            error("Cannot store image. Cannot provide a valid path to storage");
             return null;
         }
 
         try {
-            File deviceDirectory = new File(getDevicePath(device));
+            String deviceDirectoryPath = getDevicePath(device);
+            if (deviceDirectoryPath == null) {
+                error("Cannot store image. Cannot get a valid path to per-device storage");
+                return null;
+            }
+            File deviceDirectory = new File(deviceDirectoryPath);
             if (!deviceDirectory.exists()) {
                 deviceDirectory.mkdirs();
             }
@@ -122,6 +127,10 @@ public class AvrcpCoverArtStorage {
         debug("Removing image '" + imageHandle + "' from device " + device);
         if (device == null || imageHandle == null || "".equals(imageHandle)) return;
         String path = getImagePath(device, imageHandle);
+        if (path == null) {
+            error("Cannot remove image. Cannot get a valid path to storage");
+            return;
+        }
         File file = new File(path);
         if (!file.exists()) return;
         file.delete();
@@ -136,17 +145,26 @@ public class AvrcpCoverArtStorage {
     public void removeImagesForDevice(BluetoothDevice device) {
         if (device == null) return;
         debug("Remove cover art for device " + device.getAddress());
-        File deviceDirectory = new File(getDevicePath(device));
-        File[] files = deviceDirectory.listFiles();
-        if (files == null) {
-            debug("No cover art files to delete");
+        String deviceDirectoryPath = getDevicePath(device);
+        if (deviceDirectoryPath == null) {
+            error("Cannot remove images for device. Cannot get a valid path to storage");
             return;
         }
-        for (int i = 0; i < files.length; i++) {
-            debug("Deleted " + files[i].getAbsolutePath());
-            files[i].delete();
+        File deviceDirectory = new File(deviceDirectoryPath);
+        deleteStorageDirectory(deviceDirectory);
+    }
+
+    /**
+     * Clear the entirety of storage
+     */
+    public void clear() {
+        String storageDirectoryPath = getStorageDirectory();
+        if (storageDirectoryPath == null) {
+            error("Cannot remove images, cannot get a valid path to storage. Is it mounted?");
+            return;
         }
-        deviceDirectory.delete();
+        File storageDirectory = new File(storageDirectoryPath);
+        deleteStorageDirectory(storageDirectory);
     }
 
     private String getStorageDirectory() {
@@ -169,6 +187,27 @@ public class AvrcpCoverArtStorage {
         String deviceDir = getDevicePath(device);
         if (deviceDir == null) return null;
         return deviceDir + "/" + imageHandle + ".png";
+    }
+
+    private void deleteStorageDirectory(File directory) {
+        if (directory == null) {
+            error("Cannot delete directory, file is null");
+            return;
+        }
+        if (!directory.exists()) return;
+        File[] files = directory.listFiles();
+        if (files == null) {
+            return;
+        }
+        for (int i = 0; i < files.length; i++) {
+            debug("Deleting " + files[i].getAbsolutePath());
+            if (files[i].isDirectory()) {
+                deleteStorageDirectory(files[i]);
+            } else {
+                files[i].delete();
+            }
+        }
+        directory.delete();
     }
 
     @Override
