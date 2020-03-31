@@ -23,6 +23,7 @@ import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.UUID;
 
@@ -197,6 +198,13 @@ public class BrowseTree {
                 }
                 mChildren.add(node);
                 mBrowseMap.put(node.getID(), node);
+
+                // Each time we add a node to the tree, check for an image handle so we can add
+                // the artwork URI once it has been downloaded
+                String imageHandle = node.getCoverArtHandle();
+                if (imageHandle != null) {
+                    indicateCoverArtUsed(node.getID(), imageHandle);
+                }
                 return true;
             }
             return false;
@@ -447,6 +455,7 @@ public class BrowseTree {
     synchronized void notifyImageDownload(String handle, Uri uri) {
         if (DBG) Log.d(TAG, "Received downloaded image handle to cascade to BrowseNodes using it");
         ArrayList<String> nodes = getNodesUsingCoverArt(handle);
+        HashSet<BrowseNode> parents = new HashSet<BrowseNode>();
         for (String nodeId : nodes) {
             BrowseNode node = findBrowseNodeByID(nodeId);
             if (node == null) {
@@ -455,7 +464,14 @@ public class BrowseTree {
                 continue;
             }
             node.setCoverArtUri(uri);
-            indicateCoverArtUsed(nodeId, handle);
+            if (node.mParent != null) {
+                parents.add(node.mParent);
+            }
+        }
+
+        // Update *parents* of changed nodes so applications will re-grab this node, now with art
+        for (BrowseNode node : parents) {
+            if (DBG) Log.d(TAG, "Notify node '" + node.getID() + "' that child has cover art now");
             BluetoothMediaBrowserService.notifyChanged(node);
         }
     }
@@ -468,7 +484,7 @@ public class BrowseTree {
             serialized += mRootNode.toString();
             serialized += "\n  Image handles in use (" + mCoverArtMap.size() + "):";
             for (String handle : mCoverArtMap.keySet()) {
-                serialized += "    " + handle + "\n";
+                serialized += "\n    " + handle + "\n";
             }
         }
         return serialized;
