@@ -187,8 +187,10 @@ class AvrcpPlayer {
 
     public synchronized boolean notifyImageDownload(String handle, Uri imageUri) {
         if (DBG) Log.d(TAG, "Got an image download -- handle=" + handle + ", uri=" + imageUri);
-        if (mCurrentTrack != null && mCurrentTrack.getCoverArtHandle() == handle) {
+        if (handle == null || imageUri == null || mCurrentTrack == null) return false;
+        if (handle.equals(mCurrentTrack.getCoverArtHandle())) {
             mCurrentTrack.setCoverArtLocation(imageUri);
+            if (DBG) Log.d(TAG, "Handle '" + handle + "' was added to current track.");
             return true;
         }
         return false;
