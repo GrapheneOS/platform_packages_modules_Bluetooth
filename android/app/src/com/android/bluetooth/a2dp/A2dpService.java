@@ -925,12 +925,13 @@ public class A2dpService extends ProfileService {
                             boolean sameAudioFeedingParameters) {
         // Log codec config and capability metrics
         BluetoothCodecConfig codecConfig = codecStatus.getCodecConfig();
+        int metricId = mAdapterService.getMetricId(device);
         BluetoothStatsLog.write(BluetoothStatsLog.BLUETOOTH_A2DP_CODEC_CONFIG_CHANGED,
                 mAdapterService.obfuscateAddress(device), codecConfig.getCodecType(),
                 codecConfig.getCodecPriority(), codecConfig.getSampleRate(),
                 codecConfig.getBitsPerSample(), codecConfig.getChannelMode(),
                 codecConfig.getCodecSpecific1(), codecConfig.getCodecSpecific2(),
-                codecConfig.getCodecSpecific3(), codecConfig.getCodecSpecific4());
+                codecConfig.getCodecSpecific3(), codecConfig.getCodecSpecific4(), metricId);
         BluetoothCodecConfig[] codecCapabilities = codecStatus.getCodecsSelectableCapabilities();
         for (BluetoothCodecConfig codecCapability : codecCapabilities) {
             BluetoothStatsLog.write(BluetoothStatsLog.BLUETOOTH_A2DP_CODEC_CAPABILITY_CHANGED,
@@ -938,7 +939,7 @@ public class A2dpService extends ProfileService {
                     codecCapability.getCodecPriority(), codecCapability.getSampleRate(),
                     codecCapability.getBitsPerSample(), codecCapability.getChannelMode(),
                     codecConfig.getCodecSpecific1(), codecConfig.getCodecSpecific2(),
-                    codecConfig.getCodecSpecific3(), codecConfig.getCodecSpecific4());
+                    codecConfig.getCodecSpecific3(), codecConfig.getCodecSpecific4(), metricId);
         }
 
         broadcastCodecConfig(device, codecStatus);
@@ -994,7 +995,8 @@ public class A2dpService extends ProfileService {
         }
 
         BluetoothStatsLog.write(BluetoothStatsLog.BLUETOOTH_ACTIVE_DEVICE_CHANGED,
-                BluetoothProfile.A2DP, mAdapterService.obfuscateAddress(device));
+                BluetoothProfile.A2DP, mAdapterService.obfuscateAddress(device),
+                mAdapterService.getMetricId(device));
         Intent intent = new Intent(BluetoothA2dp.ACTION_ACTIVE_DEVICE_CHANGED);
         intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
         intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY_BEFORE_BOOT
