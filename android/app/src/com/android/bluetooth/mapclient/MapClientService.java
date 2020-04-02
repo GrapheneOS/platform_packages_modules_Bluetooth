@@ -59,7 +59,7 @@ public class MapClientService extends ProfileService {
     private MnsService mMnsServer;
     private BluetoothAdapter mAdapter;
     private static MapClientService sMapClientService;
-    private MapBroadcastReceiver mMapReceiver = new MapBroadcastReceiver();
+    private MapBroadcastReceiver mMapReceiver;
 
     public static synchronized MapClientService getMapClientService() {
         if (sMapClientService == null) {
@@ -285,7 +285,7 @@ public class MapClientService extends ProfileService {
     }
 
     @Override
-    protected boolean start() {
+    protected synchronized boolean start() {
         Log.e(TAG, "start()");
 
         if (mMnsServer == null) {
@@ -299,6 +299,7 @@ public class MapClientService extends ProfileService {
 
         mAdapter = BluetoothAdapter.getDefaultAdapter();
 
+        mMapReceiver = new MapBroadcastReceiver();
         IntentFilter filter = new IntentFilter();
         filter.addAction(BluetoothDevice.ACTION_SDP_RECORD);
         filter.addAction(BluetoothDevice.ACTION_ACL_DISCONNECTED);
@@ -313,7 +314,11 @@ public class MapClientService extends ProfileService {
         if (DBG) {
             Log.d(TAG, "stop()");
         }
-        unregisterReceiver(mMapReceiver);
+
+        if (mMapReceiver != null) {
+            unregisterReceiver(mMapReceiver);
+            mMapReceiver = null;
+        }
         if (mMnsServer != null) {
             mMnsServer.stop();
         }
