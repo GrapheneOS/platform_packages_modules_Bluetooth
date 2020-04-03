@@ -175,6 +175,7 @@ public class A2dpSinkStateMachine extends StateMachine {
                                         + " turned off for " + mDevice);
                                 mService.disconnectA2dpNative(mDeviceAddress);
                             } else {
+                                mConnecting.mIncomingConnection = true;
                                 transitionTo(mConnecting);
                             }
                             break;
@@ -190,7 +191,7 @@ public class A2dpSinkStateMachine extends StateMachine {
     }
 
     class Connecting extends State {
-        boolean mIncommingConnection = false;
+        boolean mIncomingConnection = false;
 
         @Override
         public void enter() {
@@ -198,7 +199,7 @@ public class A2dpSinkStateMachine extends StateMachine {
             onConnectionStateChanged(BluetoothProfile.STATE_CONNECTING);
             sendMessageDelayed(CONNECT_TIMEOUT, CONNECT_TIMEOUT_MS);
 
-            if (!mIncommingConnection) {
+            if (!mIncomingConnection) {
                 mService.connectA2dpNative(mDeviceAddress);
             }
 
@@ -234,6 +235,7 @@ public class A2dpSinkStateMachine extends StateMachine {
         @Override
         public void exit() {
             removeMessages(CONNECT_TIMEOUT);
+            mIncomingConnection = false;
         }
 
     }
