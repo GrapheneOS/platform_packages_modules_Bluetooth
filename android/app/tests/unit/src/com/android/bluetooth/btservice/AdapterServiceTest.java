@@ -86,6 +86,7 @@ public class AdapterServiceTest {
     private @Mock IBluetoothCallback mIBluetoothCallback;
     private @Mock Binder mBinder;
     private @Mock AudioManager mAudioManager;
+    private @Mock android.app.Application mApplication;
 
     private static final int CONTEXT_SWITCH_MS = 100;
     private static final int ONE_SECOND_MS = 1000;
@@ -162,7 +163,7 @@ public class AdapterServiceTest {
         when(mMockService2.getName()).thenReturn("Service2");
 
         // Attach a context to the service for permission checks.
-        mAdapterService.attach(mMockContext, null, null, null, null, null);
+        mAdapterService.attach(mMockContext, null, null, null, mApplication, null);
 
         mAdapterService.onCreate();
         mServiceBinder.registerCallback(mIBluetoothCallback);
