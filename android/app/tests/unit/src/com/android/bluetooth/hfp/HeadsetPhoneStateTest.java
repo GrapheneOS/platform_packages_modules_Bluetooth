@@ -67,6 +67,7 @@ public class HeadsetPhoneStateTest {
             Looper.prepare();
         }
         MockitoAnnotations.initMocks(this);
+        SubscriptionManager.disableCaching();
         TelephonyManager.disableServiceHandleCaching();
         // Mock SubscriptionManager.getDefaultSubscriptionId() to return a valid value
         when(mISub.getDefaultSubId()).thenReturn(SubscriptionManager.DEFAULT_SUBSCRIPTION_ID);
