@@ -34,15 +34,27 @@ from cert.captures import L2capCaptures
 
 class CertL2capChannel(IEventStream):
 
-    def __init__(self, device, scid, dcid, acl_stream, acl, control_channel):
+    def __init__(self,
+                 device,
+                 scid,
+                 dcid,
+                 acl_stream,
+                 acl,
+                 control_channel,
+                 fcs_enabled=False):
         self._device = device
         self._scid = scid
         self._dcid = dcid
         self._acl_stream = acl_stream
         self._acl = acl
         self._control_channel = control_channel
-        self._our_acl_view = FilteringEventStream(
-            acl_stream, L2capMatchers.ExtractBasicFrame(scid))
+        self.fcs_enabled = fcs_enabled
+        if fcs_enabled:
+            self._our_acl_view = FilteringEventStream(
+                acl_stream, L2capMatchers.ExtractBasicFrameWithFcs(scid))
+        else:
+            self._our_acl_view = FilteringEventStream(
+                acl_stream, L2capMatchers.ExtractBasicFrame(scid))
 
     def get_event_queue(self):
         return self._our_acl_view.get_event_queue()
@@ -56,9 +68,14 @@ class CertL2capChannel(IEventStream):
                      req_seq,
                      f=Final.NOT_SET,
                      sar=SegmentationAndReassembly.UNSEGMENTED,
-                     payload=None):
-        frame = l2cap_packets.EnhancedInformationFrameBuilder(
-            self._dcid, tx_seq, f, req_seq, sar, payload)
+                     payload=None,
+                     fcs=False):
+        if fcs:
+            frame = l2cap_packets.EnhancedInformationFrameWithFcsBuilder(
+                self._dcid, tx_seq, f, req_seq, sar, payload)
+        else:
+            frame = l2cap_packets.EnhancedInformationFrameBuilder(
+                self._dcid, tx_seq, f, req_seq, sar, payload)
         self._acl.send(frame.Serialize())
 
     def send_s_frame(self,
@@ -129,6 +146,8 @@ class CertL2cap(Closable):
         self.basic_option = None
         self.ertm_option = None
         self.fcs_option = None
+        self.fcs_enabled = False
+        self.mtu_option = None
 
         self.config_response_result = l2cap_packets.ConfigurationResponseResult.SUCCESS
         self.config_response_options = []
@@ -158,7 +177,7 @@ class CertL2cap(Closable):
         return CertL2capChannel(self._device, scid,
                                 response.get().GetDestinationCid(),
                                 self._get_acl_stream(), self._acl,
-                                self.control_channel)
+                                self.control_channel, self.fcs_enabled)
 
     def verify_and_respond_open_channel_from_remote(self, psm=0x33):
         request = L2capCaptures.ConnectionRequest(psm)
@@ -189,7 +208,7 @@ class CertL2cap(Closable):
 
         channel = CertL2capChannel(self._device, cid, cid,
                                    self._get_acl_stream(), self._acl,
-                                   self.control_channel)
+                                   self.control_channel, self.fcs_enabled)
         return channel
 
     # prefer to use channel abstraction instead, if at all possible
@@ -210,7 +229,11 @@ class CertL2cap(Closable):
     def disable_fcs(self):
         self.support_fcs = False
 
-    def turn_on_ertm(self, tx_window_size=10, max_transmit=20):
+    def set_mtu(self, mtu=672):
+        self.mtu_option = l2cap_packets.MtuConfigurationOption()
+        self.mtu_option.mtu = mtu
+
+    def turn_on_ertm(self, tx_window_size=10, max_transmit=20, mps=1010):
         self.ertm_option = l2cap_packets.RetransmissionAndFlowControlConfigurationOption(
         )
         self.ertm_option.mode = l2cap_packets.RetransmissionAndFlowControlModeOption.ENHANCED_RETRANSMISSION
@@ -218,11 +241,12 @@ class CertL2cap(Closable):
         self.ertm_option.max_transmit = max_transmit
         self.ertm_option.retransmission_time_out = 2000
         self.ertm_option.monitor_time_out = 12000
-        self.ertm_option.maximum_pdu_size = 1010
+        self.ertm_option.maximum_pdu_size = mps
 
     def turn_on_fcs(self):
         self.fcs_option = l2cap_packets.FrameCheckSequenceOption()
         self.fcs_option.fcs_type = l2cap_packets.FcsType.DEFAULT
+        self.fcs_enabled = True
 
     # more of a hack for the moment
     def ignore_config_and_connections(self):
@@ -288,6 +312,8 @@ class CertL2cap(Closable):
             options.append(self.ertm_option)
         if self.fcs_option is not None:
             options.append(self.fcs_option)
+        if self.mtu_option is not None:
+            options.append(self.mtu_option)
 
         config_request = l2cap_packets.ConfigurationRequestBuilder(
             sid + 1, dcid, l2cap_packets.Continuation.END, options)
@@ -385,7 +411,7 @@ class CertL2cap(Closable):
             l2cap_packets.ConfigurationResponseResult.UNACCEPTABLE_PARAMETERS)
         self.set_config_response_options([basic_option])
 
-    def reply_with_max_transmit_one(self):
+    def reply_ertm_with_max_transmit_one(self):
         mtu_opt = l2cap_packets.MtuConfigurationOption()
         mtu_opt.mtu = 123
         fcs_opt = l2cap_packets.FrameCheckSequenceOption()
@@ -398,6 +424,22 @@ class CertL2cap(Closable):
         rfc_opt.retransmission_time_out = 10
         rfc_opt.monitor_time_out = 10
         rfc_opt.maximum_pdu_size = 1010
+
+        self.set_config_response_options([mtu_opt, fcs_opt, rfc_opt])
+
+    def reply_ertm_with_specified_mps(self, mps=1010):
+        mtu_opt = l2cap_packets.MtuConfigurationOption()
+        mtu_opt.mtu = 123
+        fcs_opt = l2cap_packets.FrameCheckSequenceOption()
+        fcs_opt.fcs_type = l2cap_packets.FcsType.NO_FCS
+        rfc_opt = l2cap_packets.RetransmissionAndFlowControlConfigurationOption(
+        )
+        rfc_opt.mode = l2cap_packets.RetransmissionAndFlowControlModeOption.ENHANCED_RETRANSMISSION
+        rfc_opt.tx_window_size = 10
+        rfc_opt.max_transmit = 3
+        rfc_opt.retransmission_time_out = 2000
+        rfc_opt.monitor_time_out = 2000
+        rfc_opt.maximum_pdu_size = mps
 
         self.set_config_response_options([mtu_opt, fcs_opt, rfc_opt])
 
