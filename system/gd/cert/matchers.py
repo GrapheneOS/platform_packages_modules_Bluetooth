@@ -15,11 +15,96 @@
 #   limitations under the License.
 
 import bluetooth_packets_python3 as bt_packets
+from bluetooth_packets_python3 import hci_packets
+from bluetooth_packets_python3.hci_packets import EventCode
 from bluetooth_packets_python3 import l2cap_packets
 from bluetooth_packets_python3.l2cap_packets import CommandCode, LeCommandCode
+from bluetooth_packets_python3.l2cap_packets import ConfigurationResponseResult
 from bluetooth_packets_python3.l2cap_packets import ConnectionResponseResult
 from bluetooth_packets_python3.l2cap_packets import InformationRequestInfoType
 from bluetooth_packets_python3.l2cap_packets import LeCreditBasedConnectionResponseResult
+
+
+class HciMatchers(object):
+
+    @staticmethod
+    def CommandComplete(opcode=None, num_complete=1):
+        return lambda msg: HciMatchers._is_matching_command_complete(msg.event, opcode, num_complete)
+
+    @staticmethod
+    def _is_matching_command_complete(packet_bytes, opcode=None,
+                                      num_complete=1):
+        hci_event = HciMatchers.extract_hci_event_with_code(
+            packet_bytes, EventCode.COMMAND_COMPLETE)
+        if hci_event is None:
+            return False
+        frame = hci_packets.CommandCompleteView(hci_event)
+        return (opcode is None or frame.GetCommandOpCode() == opcode) and\
+               frame.GetNumHciCommandPackets() == num_complete
+
+    @staticmethod
+    def EventWithCode(event_code):
+        return lambda msg: HciMatchers.extract_hci_event_with_code(msg.event, event_code)
+
+    @staticmethod
+    def extract_hci_event_with_code(packet_bytes, event_code=None):
+        hci_event = hci_packets.EventPacketView(
+            bt_packets.PacketViewLittleEndian(list(packet_bytes)))
+        if hci_event is None:
+            return None
+        if event_code is not None and hci_event.GetEventCode() != event_code:
+            return None
+        return hci_event
+
+
+class NeighborMatchers(object):
+
+    @staticmethod
+    def InquiryResult(address):
+        return lambda msg: NeighborMatchers._is_matching_inquiry_result(msg.packet, address)
+
+    @staticmethod
+    def _is_matching_inquiry_result(packet, address):
+        hci_event = HciMatchers.extract_hci_event_with_code(
+            packet, EventCode.INQUIRY_RESULT)
+        if hci_event is None:
+            return False
+        inquiry_view = hci_packets.InquiryResultView(hci_event)
+        if inquiry_view is None:
+            return False
+        results = inquiry_view.GetInquiryResults()
+        return any((address == result.bd_addr for result in results))
+
+    @staticmethod
+    def InquiryResultwithRssi(address):
+        return lambda msg: NeighborMatchers._is_matching_inquiry_result_with_rssi(msg.packet, address)
+
+    @staticmethod
+    def _is_matching_inquiry_result_with_rssi(packet, address):
+        hci_event = HciMatchers.extract_hci_event_with_code(
+            packet, EventCode.INQUIRY_RESULT_WITH_RSSI)
+        if hci_event is None:
+            return False
+        inquiry_view = hci_packets.InquiryResultWithRssiView(hci_event)
+        if inquiry_view is None:
+            return False
+        results = inquiry_view.GetInquiryResults()
+        return any((address == result.address for result in results))
+
+    @staticmethod
+    def ExtendedInquiryResult(address):
+        return lambda msg: NeighborMatchers._is_matching_extended_inquiry_result(msg.packet, address)
+
+    @staticmethod
+    def _is_matching_extended_inquiry_result(packet, address):
+        hci_event = HciMatchers.extract_hci_event_with_code(
+            packet, EventCode.EXTENDED_INQUIRY_RESULT)
+        if hci_event is None:
+            return False
+        extended_view = hci_packets.ExtendedInquiryResultView(hci_event)
+        if extended_view is None:
+            return False
+        return address == extended_view.GetAddress()
 
 
 class L2capMatchers(object):
@@ -33,12 +118,16 @@ class L2capMatchers(object):
         return lambda packet: L2capMatchers._is_matching_connection_response(packet, scid)
 
     @staticmethod
-    def ConfigurationResponse():
-        return lambda packet: L2capMatchers._is_control_frame_with_code(packet, CommandCode.CONFIGURATION_RESPONSE)
+    def ConfigurationResponse(result=ConfigurationResponseResult.SUCCESS):
+        return lambda packet: L2capMatchers._is_matching_configuration_response(packet, result)
 
     @staticmethod
     def ConfigurationRequest():
         return lambda packet: L2capMatchers._is_control_frame_with_code(packet, CommandCode.CONFIGURATION_REQUEST)
+
+    @staticmethod
+    def ConfigurationRequestWithErtm():
+        return lambda packet: L2capMatchers._is_matching_configuration_request_with_ertm(packet)
 
     @staticmethod
     def DisconnectionRequest(scid, dcid):
@@ -330,6 +419,27 @@ class L2capMatchers(object):
         return response.GetSourceCid() == scid and response.GetResult(
         ) == ConnectionResponseResult.SUCCESS and response.GetDestinationCid(
         ) != 0
+
+    @staticmethod
+    def _is_matching_configuration_request_with_ertm(packet):
+        frame = L2capMatchers.control_frame_with_code(
+            packet, CommandCode.CONFIGURATION_REQUEST)
+        if frame is None:
+            return False
+        request = l2cap_packets.ConfigurationRequestView(frame)
+        config_bytes = request.GetBytes()
+        # TODO(b/153189503): Use packet struct parser.
+        return b"\x04\x09\x03" in config_bytes
+
+    @staticmethod
+    def _is_matching_configuration_response(
+            packet, result=ConfigurationResponseResult.SUCCESS):
+        frame = L2capMatchers.control_frame_with_code(
+            packet, CommandCode.CONFIGURATION_RESPONSE)
+        if frame is None:
+            return False
+        response = l2cap_packets.ConfigurationResponseView(frame)
+        return response.GetResult() == result
 
     @staticmethod
     def _is_matching_disconnection_request(packet, scid, dcid):

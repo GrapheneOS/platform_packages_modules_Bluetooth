@@ -48,13 +48,12 @@ class L2capTest(GdBaseTestClass):
     def setup_test(self):
         super().setup_test()
 
-        self.dut.address = self.dut.hci_controller.GetMacAddressSimple()
-        self.cert.address = self.cert.controller_read_only_property.ReadLocalAddress(
-            empty_proto.Empty()).address
-        self.cert_address = common_pb2.BluetoothAddress(
-            address=self.cert.address)
+        self.dut_address = self.dut.hci_controller.GetMacAddressSimple()
+        cert_address = common_pb2.BluetoothAddress(
+            address=self.cert.controller_read_only_property.ReadLocalAddress(
+                empty_proto.Empty()).address)
 
-        self.dut_l2cap = PyL2cap(self.dut, self.cert_address)
+        self.dut_l2cap = PyL2cap(self.dut, cert_address)
         self.cert_l2cap = CertL2cap(self.cert)
 
     def teardown_test(self):
@@ -62,13 +61,10 @@ class L2capTest(GdBaseTestClass):
         self.dut_l2cap.close()
         super().teardown_test()
 
-    def cert_send_b_frame(self, b_frame):
-        self.cert_l2cap.send_acl(b_frame)
-
     def _setup_link_from_cert(self):
         self.dut.neighbor.EnablePageScan(
             neighbor_facade.EnableMsg(enabled=True))
-        self.cert_l2cap.connect_acl(self.dut.address)
+        self.cert_l2cap.connect_acl(self.dut_address)
 
     def _open_unvalidated_channel(self,
                                   signal_id=1,
@@ -571,7 +567,7 @@ class L2capTest(GdBaseTestClass):
     @metadata(
         pts_test_id="L2CAP/OFS/BV-06-C",
         pts_test_name="Receiving I-Frames with FCS for ERTM")
-    def test_aareceiving_i_frames_with_fcs_for_ertm(self):
+    def test_receiving_i_frames_with_fcs_for_ertm(self):
         """
         Verify the IUT can handle I-frames that do contain the FCS.
         """
@@ -1180,11 +1176,8 @@ class L2capTest(GdBaseTestClass):
         self._open_unvalidated_channel(
             scid=0x41, psm=0x33, mode=RetransmissionFlowControlMode.ERTM)
 
-        # TODO: Fix this test. It doesn't work so far with PDL struct
-
         assertThat(self.cert_l2cap.get_control_channel()).emits(
-            L2capMatchers.ConfigurationRequest())
-        asserts.skip("Struct not working")
+            L2capMatchers.ConfigurationRequestWithErtm())
 
     @metadata(
         pts_test_id="L2CAP/CMC/BV-02-C",
@@ -1195,22 +1188,14 @@ class L2capTest(GdBaseTestClass):
         Verify the IUT can accept a Configuration Request from the Lower Tester
         containing an F&EC option that specifies Enhanced Retransmission Mode
         """
-        asserts.skip("ConfigurationResponseView Not working")
+        asserts.skip(
+            "This doesn't work. Currently if DUT sends connection request before information response is received, DUT assumes remote doesn't support ERTM, and drops request"
+        )
         self._setup_link_from_cert()
-        psm = 1
-        scid = 0x0101
-        self.retransmission_mode = RetransmissionFlowControlMode.ERTM
-        self.dut.l2cap.SetDynamicChannel(
-            l2cap_facade_pb2.SetEnableDynamicChannelRequest(
-                psm=psm, retransmission_mode=self.retransmission_mode))
+        self.cert_l2cap.turn_on_ertm()
 
-        open_channel = l2cap_packets.ConnectionRequestBuilder(1, psm, scid)
-        open_channel_l2cap = l2cap_packets.BasicFrameBuilder(1, open_channel)
-        self.cert_send_b_frame(open_channel_l2cap)
-
-        # TODO: Verify that the type should be ERTM
-        assertThat(self.cert_l2cap.get_control_channel()).emits(
-            L2capMatchers.ConfigurationResponse())
+        self._open_channel_from_dut(
+            psm=0x33, mode=RetransmissionFlowControlMode.ERTM)
 
     @metadata(
         pts_test_id="L2CAP/CMC/BV-12-C",
