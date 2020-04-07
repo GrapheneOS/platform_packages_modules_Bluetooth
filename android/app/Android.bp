@@ -11,7 +11,10 @@ java_library {
 cc_library_shared {
     name: "libbluetooth_jni",
     srcs: ["jni/**/*.cpp"],
-    header_libs: ["libbluetooth_headers"],
+    header_libs: [
+        "jni_headers",
+        "libbluetooth_headers",
+    ],
     include_dirs: [
         "system/bt/types",
     ],
