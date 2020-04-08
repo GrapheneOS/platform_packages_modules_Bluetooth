@@ -441,8 +441,6 @@ class L2capTest(GdBaseTestClass):
         type of Extended Features that correctly identifies that the Fixed
         Channels option is locally supported
         """
-        asserts.skip("Fixed channel is not supported")
-
         self._setup_link_from_cert()
         control_channel = self.cert_l2cap.get_control_channel()
 
@@ -451,6 +449,20 @@ class L2capTest(GdBaseTestClass):
         assertThat(control_channel).emits(
             L2capMatchers.InformationResponseExtendedFeatures(
                 supports_fixed_channels=True))
+
+    @metadata(
+        pts_test_id="L2CAP/FIX/BV-01-C",
+        pts_test_name="Fixed Channels Supported Information Request")
+    def test_fixed_channels_supported_information_request(self):
+        """
+        Verify that the IUT can send an Information Request for the information
+        type of Fixed Channels Supported.
+        """
+        self._setup_link_from_cert()
+        assertThat(self.cert_l2cap.get_control_channel()).emits(
+            L2capMatchers.InformationRequestWithType(
+                l2cap_packets.InformationRequestInfoType.
+                FIXED_CHANNELS_SUPPORTED))
 
     @metadata(
         pts_test_id="L2CAP/FOC/BV-01-C",
@@ -919,6 +931,43 @@ class L2capTest(GdBaseTestClass):
             req_seq=3, s=SupervisoryFunction.RECEIVER_READY)
         assertThat(cert_channel).emits(
             L2capMatchers.IFrame(tx_seq=3, payload=b'abc', f=Final.NOT_SET))
+
+    @metadata(
+        pts_test_id="L2CAP/ERM/BV-16-C", pts_test_name="Send S-Frame [REJ]")
+    def test_send_s_frame_rej(self):
+        """
+        Verify the IUT can send an S-Frame [REJ] after receiving out of sequence
+        I-Frames
+        """
+        self._setup_link_from_cert()
+        tx_window_size = 4
+        self.cert_l2cap.turn_on_ertm(
+            tx_window_size=tx_window_size, max_transmit=2)
+
+        (dut_channel, cert_channel) = self._open_channel(
+            scid=0x41, psm=0x33, mode=RetransmissionFlowControlMode.ERTM)
+
+        cert_channel.send_i_frame(
+            tx_seq=0, req_seq=0, f=Final.NOT_SET, payload=SAMPLE_PACKET)
+        cert_channel.send_i_frame(
+            tx_seq=2, req_seq=0, f=Final.NOT_SET, payload=SAMPLE_PACKET)
+
+        assertThat(cert_channel).emits(
+            L2capMatchers.SFrame(
+                req_seq=1,
+                f=Final.NOT_SET,
+                s=SupervisoryFunction.REJECT,
+                p=Poll.NOT_SET))
+
+        for i in range(1, tx_window_size):
+            cert_channel.send_i_frame(
+                tx_seq=i, req_seq=0, f=Final.NOT_SET, payload=SAMPLE_PACKET)
+        assertThat(cert_channel).emits(
+            L2capMatchers.SFrame(
+                req_seq=tx_window_size,
+                f=Final.NOT_SET,
+                s=SupervisoryFunction.RECEIVER_READY,
+                p=Poll.NOT_SET))
 
     @metadata(
         pts_test_id="L2CAP/ERM/BV-18-C",
