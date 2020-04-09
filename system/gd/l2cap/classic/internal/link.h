@@ -98,6 +98,10 @@ class Link : public l2cap::internal::ILink, public hci::ConnectionManagementCall
   virtual void SendConnectionRequest(Psm psm, Cid local_cid,
                                      PendingDynamicChannelConnection pending_dynamic_channel_connection);
 
+  // When a Link is established, LinkManager notifies pending dynamic channels to connect
+  virtual void SetPendingDynamicChannels(std::list<Psm> psm_list,
+                                         std::list<Link::PendingDynamicChannelConnection> callback_list);
+
   // Invoked by signalling manager to indicate an outgoing connection request failed and link shall free resources
   virtual void OnOutgoingConnectionRequestFail(Cid local_cid);
 
@@ -124,10 +128,9 @@ class Link : public l2cap::internal::ILink, public hci::ConnectionManagementCall
   // Information received from signaling channel
   virtual void SetRemoteConnectionlessMtu(Mtu mtu);
   virtual Mtu GetRemoteConnectionlessMtu() const;
-  virtual void SetRemoteSupportsErtm(bool supported);
   virtual bool GetRemoteSupportsErtm() const;
-  virtual void SetRemoteSupportsFcs(bool supported);
   virtual bool GetRemoteSupportsFcs() const;
+  virtual void OnRemoteExtendedFeatureReceived(bool ertm_supported, bool fcs_supported);
 
   virtual std::string ToString() {
     return GetDevice().ToString();
@@ -162,6 +165,8 @@ class Link : public l2cap::internal::ILink, public hci::ConnectionManagementCall
   virtual void OnReadClockComplete(uint32_t clock, uint16_t accuracy) override;
 
  private:
+  void connect_to_pending_dynamic_channels();
+
   os::Handler* l2cap_handler_;
   l2cap::internal::FixedChannelAllocator<FixedChannelImpl, Link> fixed_channel_allocator_{this, l2cap_handler_};
   l2cap::internal::DynamicChannelAllocator dynamic_channel_allocator_{this, l2cap_handler_};
@@ -174,10 +179,13 @@ class Link : public l2cap::internal::ILink, public hci::ConnectionManagementCall
   os::Alarm link_idle_disconnect_alarm_{l2cap_handler_};
   ClassicSignallingManager signalling_manager_;
   Mtu remote_connectionless_mtu_ = kMinimumClassicMtu;
+  bool remote_extended_feature_received_ = false;
   bool remote_supports_ertm_ = false;
   bool remote_supports_fcs_ = false;
   hci::EncryptionEnabled encryption_enabled_ = hci::EncryptionEnabled::OFF;
   std::list<Link::PendingAuthenticateDynamicChannelConnection> pending_channel_list_;
+  std::list<Psm> pending_dynamic_psm_list_;
+  std::list<Link::PendingDynamicChannelConnection> pending_dynamic_channel_callback_list_;
   DISALLOW_COPY_AND_ASSIGN(Link);
 };
 

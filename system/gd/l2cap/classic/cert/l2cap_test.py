@@ -210,7 +210,8 @@ class L2capTest(GdBaseTestClass):
         channel if no response occurs
         """
         self._setup_link_from_cert()
-        self.cert_l2cap.ignore_config_and_connections()
+        self.cert_l2cap.ignore_config_request()
+        self.cert_l2cap.dont_send_configuration_req()
 
         self._open_unvalidated_channel(scid=0x41, psm=0x33)
 
@@ -309,6 +310,32 @@ class L2capTest(GdBaseTestClass):
         assertThat(cert_channel).emits(L2capMatchers.Data(b"a" * 44))
 
     @metadata(
+        pts_test_id="L2CAP/COS/CFD/BV-11-C",
+        pts_test_name="Negotiation of Unsupported Parameter")
+    def test_negotiation_of_unsupported_parameter(self):
+        """
+        Verify that the IUT can negotiate when the Lower Tester proposes an unsupported configuration
+        parameter value.
+        """
+        self._setup_link_from_cert()
+        self.cert_l2cap.ignore_config_request()
+        self.cert_l2cap.dont_send_configuration_req()
+
+        (dut_channel, cert_channel) = self._open_unvalidated_channel(
+            scid=0x41, psm=0x33)
+
+        mtu_opt = l2cap_packets.MtuConfigurationOption()
+        mtu_opt.mtu = 20  # Invalid because minimum is 48
+
+        self.cert_l2cap.get_control_channel().send_configure_request(
+            cert_channel, [mtu_opt])
+
+        assertThat(self.cert_l2cap.get_control_channel()).emits(
+            L2capMatchers.ConfigurationResponse(
+                result=l2cap_packets.ConfigurationResponseResult.
+                UNACCEPTABLE_PARAMETERS))
+
+    @metadata(
         pts_test_id="L2CAP/COS/CFD/BV-12-C",
         pts_test_name="Unknown Option Response")
     def test_config_unknown_options_with_hint(self):
@@ -323,6 +350,65 @@ class L2capTest(GdBaseTestClass):
 
         assertThat(self.cert_l2cap.get_control_channel()).emits(
             L2capMatchers.ConfigurationResponse())
+
+    @metadata(
+        pts_test_id="L2CAP/COS/CFD/BV-14-C",
+        pts_test_name="Unknown Mandatory Options Request")
+    def test_unknown_mandatory_options_request(self):
+        """
+        Verify that the IUT can give the appropriate error code when the Lower
+        Tester proposes any number of unknown options where at least one is
+        mandatory.
+        Note: GD stack doesn't support extended window size. For other stacks,
+              we may need to use some other config option
+        """
+        self._setup_link_from_cert()
+        self.cert_l2cap.dont_send_configuration_req()
+
+        (dut_channel, cert_channel) = self._open_unvalidated_channel(
+            scid=0x41, psm=0x33)
+
+        unknown_opt = l2cap_packets.ExtendedWindowSizeOption()
+        unknown_opt.max_window_size = 20
+
+        unknown_opt_hint = l2cap_packets.ExtendedWindowSizeOption()
+        unknown_opt_hint.max_window_size = 20
+        unknown_opt_hint.is_hint = l2cap_packets.ConfigurationOptionIsHint.OPTION_IS_A_HINT
+
+        configuration_option_attempts = [[unknown_opt], [
+            unknown_opt, unknown_opt_hint
+        ], [unknown_opt, unknown_opt, unknown_opt], [
+            unknown_opt, unknown_opt_hint, unknown_opt_hint, unknown_opt
+        ], [
+            unknown_opt_hint, unknown_opt_hint, unknown_opt_hint,
+            unknown_opt_hint, unknown_opt
+        ], [
+            unknown_opt, unknown_opt_hint, unknown_opt_hint, unknown_opt,
+            unknown_opt_hint, unknown_opt_hint
+        ], [
+            unknown_opt, unknown_opt, unknown_opt, unknown_opt, unknown_opt,
+            unknown_opt, unknown_opt
+        ], [
+            unknown_opt_hint, unknown_opt_hint, unknown_opt_hint,
+            unknown_opt_hint, unknown_opt_hint, unknown_opt_hint,
+            unknown_opt_hint, unknown_opt
+        ], [
+            unknown_opt_hint, unknown_opt_hint, unknown_opt_hint,
+            unknown_opt_hint, unknown_opt_hint, unknown_opt_hint,
+            unknown_opt_hint, unknown_opt, unknown_opt
+        ], [
+            unknown_opt_hint, unknown_opt_hint, unknown_opt_hint,
+            unknown_opt_hint, unknown_opt_hint, unknown_opt_hint,
+            unknown_opt_hint, unknown_opt_hint, unknown_opt_hint, unknown_opt
+        ]]
+
+        for option_list in configuration_option_attempts:
+            self.cert_l2cap.get_control_channel().send_configure_request(
+                cert_channel, option_list)
+        assertThat(self.cert_l2cap.get_control_channel()).emits(
+            L2capMatchers.ConfigurationResponse(
+                result=l2cap_packets.ConfigurationResponseResult.UNKNOWN_OPTIONS
+            ))
 
     @metadata(
         pts_test_id="L2CAP/COS/ECH/BV-01-C",
@@ -354,6 +440,20 @@ class L2capTest(GdBaseTestClass):
 
         assertThat(self.cert_l2cap.get_control_channel()).emits(
             L2capMatchers.CommandReject())
+
+    @metadata(
+        pts_test_id="L2CAP/COS/IEX/BV-01-C",
+        pts_test_name="Query for 1.2 Features")
+    def test_query_for_1_2_features(self):
+        """
+        Verify that the IUT transmits an information request command to solicit
+        if the remote device supports Specification 1.2 features.
+        """
+        self._setup_link_from_cert()
+        assertThat(self.cert_l2cap.get_control_channel()).emits(
+            L2capMatchers.InformationRequestWithType(
+                l2cap_packets.InformationRequestInfoType.
+                EXTENDED_FEATURES_SUPPORTED))
 
     @metadata(
         pts_test_id="L2CAP/COS/IEX/BV-02-C",
@@ -1237,9 +1337,6 @@ class L2capTest(GdBaseTestClass):
         Verify the IUT can accept a Configuration Request from the Lower Tester
         containing an F&EC option that specifies Enhanced Retransmission Mode
         """
-        asserts.skip(
-            "This doesn't work. Currently if DUT sends connection request before information response is received, DUT assumes remote doesn't support ERTM, and drops request"
-        )
         self._setup_link_from_cert()
         self.cert_l2cap.turn_on_ertm()
 
@@ -1258,6 +1355,7 @@ class L2capTest(GdBaseTestClass):
         Information Response [Extended Features]
         """
         self._setup_link_from_cert()
+        self.cert_l2cap.disable_ertm()
         dut_channel_future = self.dut_l2cap.connect_dynamic_channel_to_cert(
             psm=0x33, mode=RetransmissionFlowControlMode.ERTM)
         assertThat(self.cert_l2cap.get_control_channel()).emitsNone(
