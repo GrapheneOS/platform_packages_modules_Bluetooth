@@ -1879,7 +1879,6 @@ public class AdapterService extends Service {
 
             enforceBluetoothPrivilegedPermission(service);
 
-            service.disable();
             if (service.mDatabaseManager != null) {
                 service.mDatabaseManager.factoryReset();
             }
