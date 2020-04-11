@@ -668,11 +668,18 @@ public class AvrcpControllerStateMachineTest {
         secondAvrcpStateMachine.start();
         Assert.assertFalse(mAvrcpStateMachine.isActive());
 
-        // Connect device 1 and 2 and verify first one is set as active
+        // Connect device 1 and 2 and verify second one is set as active
         setUpConnectedState(true, true);
-        secondAvrcpStateMachine.connect(StackEvent.connectionStateChanged(true, true));
+        TestUtils.waitForLooperToFinishScheduledTask(mAvrcpStateMachine.getHandler().getLooper());
         Assert.assertTrue(mAvrcpStateMachine.isActive());
-        Assert.assertFalse(secondAvrcpStateMachine.isActive());
+
+        secondAvrcpStateMachine.connect(StackEvent.connectionStateChanged(true, true));
+        TestUtils.waitForLooperToFinishScheduledTask(mAvrcpStateMachine.getHandler().getLooper());
+        TestUtils.waitForLooperToFinishScheduledTask(secondAvrcpStateMachine.getHandler()
+                .getLooper());
+
+        Assert.assertFalse(mAvrcpStateMachine.isActive());
+        Assert.assertTrue(secondAvrcpStateMachine.isActive());
 
         // Request the second device to play an item and verify active device switched
         BrowseTree.BrowseNode results = mAvrcpStateMachine.findNode(rootName);
