@@ -100,13 +100,13 @@
     <string name="status_connection_error" msgid="947681831523219891">"जडान असफल।"</string>
     <string name="status_protocol_error" msgid="3245444473429269539">"अनुरोधलाई सही रूपमा सम्हाल्न सकिँदैन।"</string>
     <string name="status_unknown_error" msgid="8156660554237824912">"अज्ञात त्रुटि।"</string>
-    <string name="btopp_live_folder" msgid="7967791481444474554">"ब्लुटुथ प्राप्त भयो"</string>
+    <string name="btopp_live_folder" msgid="7967791481444474554">"ब्लुटुथबाट प्राप्त भएको"</string>
     <string name="opp_notification_group" msgid="3486303082135789982">"ब्लुटुथमार्फत गरिने आदान प्रदान"</string>
     <string name="download_success" msgid="7036160438766730871">"<xliff:g id="FILE_SIZE">%1$s</xliff:g> प्राप्त गर्ने कार्य सम्पन्न भयो।"</string>
     <string name="upload_success" msgid="4014469387779648949">"<xliff:g id="FILE_SIZE">%1$s</xliff:g> पठाउने कार्य पुरा भयो।"</string>
     <string name="inbound_history_title" msgid="6940914942271327563">"इनबाउन्ड स्थानान्तरण"</string>
     <string name="outbound_history_title" msgid="4279418703178140526">"आउटबाउन्ड स्थानान्तरण"</string>
-    <string name="no_transfers" msgid="3482965619151865672">"स्थानान्तरण इतिहास खाली छ।"</string>
+    <string name="no_transfers" msgid="3482965619151865672">"अहिलेसम्म कुनै वस्तु ट्रान्सफर गरिएको छैन।"</string>
     <string name="transfer_clear_dlg_msg" msgid="1712376797268438075">"सूचीबाट सम्पूर्ण वस्तुहरू मेटाइने छन्।"</string>
     <string name="outbound_noti_title" msgid="8051906709452260849">"ब्लुटुथ साझेदारी: पठाइएका फाइलहरू"</string>
     <string name="inbound_noti_title" msgid="4143352641953027595">"ब्लुटुथ साझेदारी: प्राप्त फाइलहरू"</string>

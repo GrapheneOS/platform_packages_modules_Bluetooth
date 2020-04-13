@@ -20,7 +20,7 @@
     <string name="permdesc_bluetoothShareManager" msgid="8930572979123190223">"BluetoothShare ମ୍ୟାନେଜର୍‌ ଆକ୍ସେସ୍‌ କରି ଫାଇଲ୍‌ଗୁଡ଼ିକ ଟ୍ରାନ୍ସଫର୍‌ କରିବାକୁ ବ୍ୟବହାର କରିବା ପାଇଁ ଆପ୍‌କୁ ଅନୁମତି ଦିଅନ୍ତୁ।"</string>
     <string name="permlab_bluetoothWhitelist" msgid="7091552898592306386">"ବ୍ଲୁଟୂଥ୍‍‌ ଡିଭାଇସ୍‌ ଆକ୍ସେସ୍‌କୁ ସ୍ୱୀକୃତି ଦିଅନ୍ତୁ।"</string>
     <string name="permdesc_bluetoothWhitelist" msgid="5494513855192170109">"ୟୁଜର୍‌ଙ୍କ ସୁନିଶ୍ଚିତତା ବିନା ଏହି ଡିଭାଇସ୍‌କୁ ଫାଇଲ୍‌ ପଠାଇବା ନିମନ୍ତେ ଗୋଟିଏ ବ୍ଲୁଟୂଥ୍‍‌ ଡିଭାଇସ୍‌କୁ ଅନୁମତି ଦେଇ କିଛି ସମୟ ପାଇଁ ଆପ୍‌କୁ ସ୍ୱୀକୃତି ଦେଇଥାଏ।"</string>
-    <string name="bt_share_picker_label" msgid="6268100924487046932">"ବ୍ଲୁଟୂଥ୍‍‌"</string>
+    <string name="bt_share_picker_label" msgid="6268100924487046932">"ବ୍ଲୁଟୁଥ"</string>
     <string name="unknown_device" msgid="9221903979877041009">"ଅଜଣା ଡିଭାଇସ୍"</string>
     <string name="unknownNumber" msgid="4994750948072751566">"ଅଜଣା"</string>
     <string name="airplane_error_title" msgid="2683839635115739939">"ଏରୋପ୍ଲେନ୍‍ ମୋଡ୍"</string>
@@ -100,7 +100,7 @@
     <string name="status_connection_error" msgid="947681831523219891">"ସଂଯୋଗ ବିଫଳ ହେଲା।"</string>
     <string name="status_protocol_error" msgid="3245444473429269539">"ଅନୁରୋଧକୁ ଠିକ୍‌ ଭାବେ ସମ୍ଭାଳି ହେବନାହିଁ।"</string>
     <string name="status_unknown_error" msgid="8156660554237824912">"ଅଜଣା ତୃଟି।"</string>
-    <string name="btopp_live_folder" msgid="7967791481444474554">"ବ୍ଲୁଟୂଥ୍‍‌ ପ୍ରାପ୍ତ ହେଲା"</string>
+    <string name="btopp_live_folder" msgid="7967791481444474554">"ବ୍ଲୁଟୁଥ ପ୍ରାପ୍ତ ହୋଇଛି"</string>
     <string name="opp_notification_group" msgid="3486303082135789982">"ବ୍ଲୁଟୂଥ୍‍‌ ସେୟାର୍‌"</string>
     <string name="download_success" msgid="7036160438766730871">"<xliff:g id="FILE_SIZE">%1$s</xliff:g> ପ୍ରାପ୍ତ କରିବା ସମ୍ପୂର୍ଣ୍ଣ ହେଲା।"</string>
     <string name="upload_success" msgid="4014469387779648949">"<xliff:g id="FILE_SIZE">%1$s</xliff:g> ପଠାଇବା ସମ୍ପୂର୍ଣ୍ଣ ହେଲା।"</string>
