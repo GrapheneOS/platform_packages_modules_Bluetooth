@@ -28,6 +28,7 @@ import androidx.test.filters.SmallTest;
 import androidx.test.runner.AndroidJUnit4;
 
 import com.android.bluetooth.R;
+import com.android.bluetooth.TestUtils;
 import com.android.bluetooth.Utils;
 
 import org.hamcrest.core.AllOf;
@@ -96,6 +97,7 @@ public class HeadsetClientStateMachineTest {
                 new HeadsetClientStateMachine(mHeadsetClientService, mHandlerThread.getLooper(),
                                               mNativeInterface);
         mHeadsetClientStateMachine.start();
+        TestUtils.waitForLooperToFinishScheduledTask(mHandlerThread.getLooper());
     }
 
     @After
@@ -103,6 +105,7 @@ public class HeadsetClientStateMachineTest {
         if (!mTargetContext.getResources().getBoolean(R.bool.profile_supported_hfpclient)) {
             return;
         }
+        TestUtils.waitForLooperToFinishScheduledTask(mHandlerThread.getLooper());
         mHeadsetClientStateMachine.doQuit();
         mHandlerThread.quit();
     }
@@ -292,10 +295,11 @@ public class HeadsetClientStateMachineTest {
                         -1));
         Assert.assertEquals(true, mHeadsetClientStateMachine.getInBandRing());
 
-
         // Simulate a new incoming phone call
         StackEvent eventCallStatusUpdated = new StackEvent(StackEvent.EVENT_TYPE_CLIP);
+        TestUtils.waitForLooperToFinishScheduledTask(mHandlerThread.getLooper());
         mHeadsetClientStateMachine.sendMessage(StackEvent.STACK_EVENT, eventCallStatusUpdated);
+        TestUtils.waitForLooperToFinishScheduledTask(mHandlerThread.getLooper());
         verify(mHeadsetClientService, timeout(STANDARD_WAIT_MILLIS).times(3)).sendBroadcast(
                 intentArgument.capture(),
                 anyString());
@@ -319,11 +323,11 @@ public class HeadsetClientStateMachineTest {
         StackEvent eventCommandStatus = new StackEvent(StackEvent.EVENT_TYPE_CMD_RESULT);
         eventCommandStatus.valueInt = AT_OK;
         mHeadsetClientStateMachine.sendMessage(StackEvent.STACK_EVENT, eventCommandStatus);
+        TestUtils.waitForLooperToFinishScheduledTask(mHandlerThread.getLooper());
         verify(mHeadsetClientService, timeout(QUERY_CURRENT_CALLS_TEST_WAIT_MILLIS).times(4))
                 .sendBroadcast(
                 intentArgument.capture(),
                 anyString());
-
         // Verify that the new call is being registered with the inBandRing flag set.
         Assert.assertEquals(true,
                 ((BluetoothHeadsetClientCall) intentArgument.getValue().getParcelableExtra(
