@@ -24,7 +24,6 @@ import android.bluetooth.BluetoothProfile;
 import android.content.Context;
 
 import androidx.test.InstrumentationRegistry;
-import androidx.test.filters.FlakyTest;
 import androidx.test.filters.MediumTest;
 import androidx.test.rule.ServiceTestRule;
 import androidx.test.runner.AndroidJUnit4;
@@ -73,7 +72,6 @@ public class MapClientTest {
         TestUtils.startService(mServiceRule, MapClientService.class);
         mService = MapClientService.getMapClientService();
         Assert.assertNotNull(mService);
-        cleanUpInstanceMap();
         mAdapter = BluetoothAdapter.getDefaultAdapter();
         when(mAdapterService.getDatabase()).thenReturn(mDatabaseManager);
     }
@@ -87,16 +85,6 @@ public class MapClientTest {
         mService = MapClientService.getMapClientService();
         Assert.assertNull(mService);
         TestUtils.clearAdapterService(mAdapterService);
-    }
-
-    private void cleanUpInstanceMap() {
-        if (!mService.getInstanceMap().isEmpty()) {
-            List<BluetoothDevice> deviceList = mService.getConnectedDevices();
-            for (BluetoothDevice d : deviceList) {
-                mService.disconnect(d);
-            }
-        }
-        Assert.assertTrue(mService.getInstanceMap().isEmpty());
     }
 
     /**
@@ -132,13 +120,17 @@ public class MapClientTest {
         Map<BluetoothDevice, MceStateMachine> map = mService.getInstanceMap();
         Assert.assertEquals(1, map.size());
         Assert.assertNotNull(map.get(device));
+        TestUtils.waitForLooperToFinishScheduledTask(mService.getMainLooper());
+
+        Assert.assertEquals(map.get(device).getState(), BluetoothProfile.STATE_CONNECTING);
+        mService.cleanupDevice(device);
+        Assert.assertNull(mService.getInstanceMap().get(device));
     }
 
     /**
      * Test that a PRIORITY_OFF device is not connected to
      */
     @Test
-    @FlakyTest
     public void testConnectPriorityOffDevice() {
         // make sure there is no statemachine already defined for this device
         BluetoothDevice device = makeBluetoothDevice("11:11:11:11:11:11");
