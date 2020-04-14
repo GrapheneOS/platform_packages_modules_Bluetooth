@@ -173,7 +173,7 @@ public class MediaPlayerList {
 
                 for (BrowsedPlayerWrapper wrapper : players) {
                     // Generate new id and add the browsable player
-                    if (!mMediaPlayerIds.containsKey(wrapper.getPackageName())) {
+                    if (!havePlayerId(wrapper.getPackageName())) {
                         mMediaPlayerIds.put(wrapper.getPackageName(), getFreeMediaPlayerId());
                     }
 
@@ -362,7 +362,7 @@ public class MediaPlayerList {
         int playerIndex = Integer.parseInt(mediaId.substring(0, 2));
         String itemId = mediaId.substring(2);
 
-        if (!mBrowsablePlayers.containsKey(playerIndex)) {
+        if (!haveMediaBrowser(playerIndex)) {
             e("playFolderItem: Do not have the a browsable player with ID " + playerIndex);
             return;
         }
@@ -409,7 +409,7 @@ public class MediaPlayerList {
 
         // TODO (apanicke): Add timeouts for looking up folder items since media browsers don't
         // have to respond.
-        if (mBrowsablePlayers.containsKey(playerIndex)) {
+        if (haveMediaBrowser(playerIndex)) {
             BrowsedPlayerWrapper wrapper = mBrowsablePlayers.get(playerIndex);
             if (itemId.equals("")) {
                 Log.i(TAG, "Empty media id, getting the root for "
@@ -445,7 +445,7 @@ public class MediaPlayerList {
         // there is no active player. If we already have a browsable player for the package, reuse
         // that key.
         String packageName = controller.getPackageName();
-        if (!mMediaPlayerIds.containsKey(packageName)) {
+        if (!havePlayerId(packageName)) {
             mMediaPlayerIds.put(packageName, getFreeMediaPlayerId());
         }
 
@@ -453,7 +453,7 @@ public class MediaPlayerList {
 
         // If we already have a controller for the package, then update it with this new controller
         // as the old controller has probably gone stale.
-        if (mMediaPlayers.containsKey(playerId)) {
+        if (haveMediaPlayer(playerId)) {
             d("Already have a controller for the player: " + packageName + ", updating instead");
             MediaPlayerWrapper player = mMediaPlayers.get(playerId);
             player.updateMediaController(controller);
@@ -489,8 +489,27 @@ public class MediaPlayerList {
         return addMediaPlayer(MediaControllerFactory.wrap(controller));
     }
 
+    boolean havePlayerId(String packageName) {
+        if (packageName == null) return false;
+        return mMediaPlayerIds.containsKey(packageName);
+    }
+
+    boolean haveMediaPlayer(String packageName) {
+        if (!havePlayerId(packageName)) return false;
+        int playerId = mMediaPlayerIds.get(packageName);
+        return mMediaPlayers.containsKey(playerId);
+    }
+
+    boolean haveMediaPlayer(int playerId) {
+        return mMediaPlayers.containsKey(playerId);
+    }
+
+    boolean haveMediaBrowser(int playerId) {
+        return mBrowsablePlayers.containsKey(playerId);
+    }
+
     void removeMediaPlayer(int playerId) {
-        if (!mMediaPlayers.containsKey(playerId)) {
+        if (!haveMediaPlayer(playerId)) {
             e("Trying to remove nonexistent media player: " + playerId);
             return;
         }
@@ -513,16 +532,16 @@ public class MediaPlayerList {
 
         final MediaPlayerWrapper wrapper = mMediaPlayers.get(playerId);
         d("Removing media player " + wrapper.getPackageName());
-        mMediaPlayerIds.remove(wrapper.getPackageName());
-        if (!mBrowsablePlayers.containsKey(playerId)) {
+        mMediaPlayers.remove(playerId);
+        if (!haveMediaBrowser(playerId)) {
             d(wrapper.getPackageName() + " doesn't have a browse service. Recycle player ID.");
-            mMediaPlayers.remove(playerId);
+            mMediaPlayerIds.remove(wrapper.getPackageName());
         }
         wrapper.cleanup();
     }
 
     void setActivePlayer(int playerId) {
-        if (!mMediaPlayers.containsKey(playerId)) {
+        if (!haveMediaPlayer(playerId)) {
             e("Player doesn't exist in list(): " + playerId);
             return;
         }
@@ -636,7 +655,7 @@ public class MediaPlayerList {
                 if (intent.getBooleanExtra(Intent.EXTRA_REPLACING, false)) return;
 
                 String packageName = intent.getData().getSchemeSpecificPart();
-                if (packageName != null && mMediaPlayerIds.containsKey(packageName)) {
+                if (haveMediaPlayer(packageName)) {
                     removeMediaPlayer(mMediaPlayerIds.get(packageName));
                 }
             } else if (action.equals(Intent.ACTION_PACKAGE_ADDED)
@@ -750,7 +769,7 @@ public class MediaPlayerList {
 
         @Override
         public void sessionUpdatedCallback(String packageName) {
-            if (packageName != null && mMediaPlayerIds.containsKey(packageName)) {
+            if (haveMediaPlayer(packageName)) {
                 Log.d(TAG, "sessionUpdatedCallback(): packageName: " + packageName);
                 removeMediaPlayer(mMediaPlayerIds.get(packageName));
             }
@@ -775,7 +794,7 @@ public class MediaPlayerList {
                     if (token != null) {
                         android.media.session.MediaController controller =
                                 new android.media.session.MediaController(mContext, token);
-                        if (!mMediaPlayerIds.containsKey(controller.getPackageName())) {
+                        if (!haveMediaPlayer(controller.getPackageName())) {
                             // Since we have a controller, we can try to to recover by adding the
                             // player and then setting it as active.
                             Log.w(TAG, "onMediaKeyEventSessionChanged(Token): Addressed Player "
@@ -787,7 +806,7 @@ public class MediaPlayerList {
                                 + controller.getPackageName());
                         setActivePlayer(mMediaPlayerIds.get(controller.getPackageName()));
                     } else {
-                        if (!mMediaPlayerIds.containsKey(packageName)) {
+                        if (!haveMediaPlayer(packageName)) {
                             e("onMediaKeyEventSessionChanged(PackageName): Media key event session "
                                     + "changed to a player we don't have a session for");
                             return;
