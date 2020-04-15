@@ -84,8 +84,8 @@
     <string name="bt_toast_4" msgid="4678812947604395649">"إرسال الملف إلى \"<xliff:g id="RECIPIENT">%1$s</xliff:g>\""</string>
     <string name="bt_toast_5" msgid="2846870992823019494">"إرسال <xliff:g id="NUMBER">%1$s</xliff:g> من الملفات إلى \"<xliff:g id="RECIPIENT">%2$s</xliff:g>\""</string>
     <string name="bt_toast_6" msgid="1855266596936622458">"تم إيقاف إرسال الملف إلى \"<xliff:g id="RECIPIENT">%1$s</xliff:g>\""</string>
-    <string name="bt_sm_2_1_nosdcard" msgid="1791835163301501637">"‏لا تتوفّر مساحة كافية على وحدة تخزين USB لحفظ الملف من \"<xliff:g id="SENDER">%1$s</xliff:g>\"."</string>
-    <string name="bt_sm_2_1_default" msgid="9115512207909504071">"‏لا تتوفّر مساحة كافية على بطاقة SD لحفظ الملف من \"<xliff:g id="SENDER">%1$s</xliff:g>\"."</string>
+    <string name="bt_sm_2_1_nosdcard" msgid="5354343190503952837">"‏ليس هناك مساحة كافية على وحدة تخزين USB لحفظ الملف."</string>
+    <string name="bt_sm_2_1_default" msgid="2497541206648973852">"‏ليس هناك مساحة كافية على بطاقة SD لحفظ الملف."</string>
     <string name="bt_sm_2_2" msgid="2965243265852680543">"المساحة اللازمة: <xliff:g id="SIZE">%1$s</xliff:g>"</string>
     <string name="ErrorTooManyRequests" msgid="8578277541472944529">"تتم حاليًا معالجة طلبات كثيرة جدًا. حاول مرة أخرى لاحقًا."</string>
     <string name="status_pending" msgid="2503691772030877944">"لم يبدأ نقل الملف بعد."</string>
@@ -106,7 +106,7 @@
     <string name="upload_success" msgid="4014469387779648949">"اكتمل إرسال <xliff:g id="FILE_SIZE">%1$s</xliff:g>."</string>
     <string name="inbound_history_title" msgid="6940914942271327563">"عمليات النقل الواردة"</string>
     <string name="outbound_history_title" msgid="4279418703178140526">"عمليات النقل الصادرة"</string>
-    <string name="no_transfers" msgid="3482965619151865672">"سجل النقل فارغ."</string>
+    <string name="no_transfers" msgid="3482965619151865672">"سجلّ النقل فارغ."</string>
     <string name="transfer_clear_dlg_msg" msgid="1712376797268438075">"سيتم محو جميع العناصر من القائمة."</string>
     <string name="outbound_noti_title" msgid="8051906709452260849">"مشاركة البلوتوث: الملفات المرسلة"</string>
     <string name="inbound_noti_title" msgid="4143352641953027595">"مشاركة البلوتوث: الملفات المستلمة"</string>
