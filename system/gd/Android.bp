@@ -34,6 +34,7 @@ cc_defaults {
     conlyflags: [
         "-std=c99",
     ],
+    header_libs: ["jni_headers"],
     sanitize: {
         misc_undefined: ["bounds"],
     },
@@ -165,6 +166,9 @@ cc_library {
     name: "libbluetooth_gd_fuzzing",
     defaults: [
         "libbluetooth_gd_defaults",
+    ],
+    srcs: [
+        ":BluetoothOsSources_fuzz",
     ],
     cflags: [
         "-DFUZZ_TARGET",

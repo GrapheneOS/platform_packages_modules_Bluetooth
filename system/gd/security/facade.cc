@@ -92,6 +92,28 @@ class SecurityModuleFacadeService : public SecurityModuleFacade::Service, public
     return bond_events_.RunLoop(context, writer);
   }
 
+  ::grpc::Status SetIoCapability(::grpc::ServerContext* context, const IoCapabilityMessage* request,
+                                 ::google::protobuf::Empty* response) override {
+    security_module_->GetFacadeConfigurationApi()->SetIoCapability(
+        static_cast<hci::IoCapability>(request->capability()));
+    return ::grpc::Status::OK;
+  }
+
+  ::grpc::Status SetAuthenticationRequirements(::grpc::ServerContext* context,
+                                               const AuthenticationRequirementsMessage* request,
+                                               ::google::protobuf::Empty* response) override {
+    security_module_->GetFacadeConfigurationApi()->SetAuthenticationRequirements(
+        static_cast<hci::AuthenticationRequirements>(request->requirement()));
+    return ::grpc::Status::OK;
+  }
+
+  ::grpc::Status SetOobDataPresent(::grpc::ServerContext* context, const OobDataMessage* request,
+                                   ::google::protobuf::Empty* response) override {
+    security_module_->GetFacadeConfigurationApi()->SetOobData(
+        static_cast<hci::OobDataPresent>(request->data_present()));
+    return ::grpc::Status::OK;
+  }
+
   void DisplayPairingPrompt(const bluetooth::hci::AddressWithType& peer, std::string name) {
     LOG_INFO("%s", peer.ToString().c_str());
     UiMsg display_yes_no;

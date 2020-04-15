@@ -69,7 +69,7 @@ void FuzzHciHal::injectHciEvent(std::vector<uint8_t> data) {
   callbacks_->hciEventReceived(data);
 }
 
-void FuzzHciHal::injectAcl(std::vector<uint8_t> data) {
+void FuzzHciHal::injectAclData(std::vector<uint8_t> data) {
   auto packet = packet::PacketView<packet::kLittleEndian>(std::make_shared<std::vector<uint8_t>>(data));
   hci::AclPacketView aclPacket = hci::AclPacketView::Create(packet);
   if (!aclPacket.IsValid()) {
@@ -79,8 +79,14 @@ void FuzzHciHal::injectAcl(std::vector<uint8_t> data) {
   callbacks_->aclDataReceived(data);
 }
 
-void FuzzHciHal::waitForHandler() {
-  sentinel_work_item_.WaitUntilFinishedOn(GetHandler());
+void FuzzHciHal::injectScoData(std::vector<uint8_t> data) {
+  auto packet = packet::PacketView<packet::kLittleEndian>(std::make_shared<std::vector<uint8_t>>(data));
+  hci::ScoPacketView scoPacket = hci::ScoPacketView::Create(packet);
+  if (!scoPacket.IsValid()) {
+    return;
+  }
+
+  callbacks_->scoDataReceived(data);
 }
 
 }  // namespace fuzz

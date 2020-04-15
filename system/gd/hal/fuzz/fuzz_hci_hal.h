@@ -33,9 +33,9 @@ class FuzzHciHal : public HciHal {
   void sendAclData(HciPacket packet) override {}
   void sendScoData(HciPacket packet) override {}
 
-  void injectAcl(std::vector<uint8_t> data);
+  void injectAclData(std::vector<uint8_t> data);
   void injectHciEvent(std::vector<uint8_t> data);
-  void waitForHandler();
+  void injectScoData(std::vector<uint8_t> data);
 
   std::string ToString() const override {
     return "HciHalFuzz";
@@ -48,7 +48,6 @@ class FuzzHciHal : public HciHal {
 
  private:
   HciHalCallbacks* callbacks_;
-  ::bluetooth::fuzz::SentinelWorkItem sentinel_work_item_;
   hci::OpCode waiting_opcode_;
   bool waiting_for_status_;
 };
