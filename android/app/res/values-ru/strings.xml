@@ -84,8 +84,8 @@
     <string name="bt_toast_4" msgid="4678812947604395649">"Отправка файла на \"<xliff:g id="RECIPIENT">%1$s</xliff:g>\""</string>
     <string name="bt_toast_5" msgid="2846870992823019494">"Отправка файлов (<xliff:g id="NUMBER">%1$s</xliff:g>) на \"<xliff:g id="RECIPIENT">%2$s</xliff:g>\""</string>
     <string name="bt_toast_6" msgid="1855266596936622458">"Отправка файла на \"<xliff:g id="RECIPIENT">%1$s</xliff:g>\" остановлена"</string>
-    <string name="bt_sm_2_1_nosdcard" msgid="1791835163301501637">"На USB-накопителе нет места, чтобы сохранить файл с устройства \"<xliff:g id="SENDER">%1$s</xliff:g>\"."</string>
-    <string name="bt_sm_2_1_default" msgid="9115512207909504071">"На SD-карте нет места, чтобы сохранить файл с устройства \"<xliff:g id="SENDER">%1$s</xliff:g>\"."</string>
+    <string name="bt_sm_2_1_nosdcard" msgid="5354343190503952837">"На USB-накопителе недостаточно места, чтобы сохранить файл."</string>
+    <string name="bt_sm_2_1_default" msgid="2497541206648973852">"На SD-карте недостаточно места, чтобы сохранить файл."</string>
     <string name="bt_sm_2_2" msgid="2965243265852680543">"Необходимое свободное место: <xliff:g id="SIZE">%1$s</xliff:g>"</string>
     <string name="ErrorTooManyRequests" msgid="8578277541472944529">"Обрабатывается слишком много запросов. Повторите попытку позднее."</string>
     <string name="status_pending" msgid="2503691772030877944">"Передача файла еще не началась."</string>
@@ -106,7 +106,7 @@
     <string name="upload_success" msgid="4014469387779648949">"Отправлено: <xliff:g id="FILE_SIZE">%1$s</xliff:g>."</string>
     <string name="inbound_history_title" msgid="6940914942271327563">"Входящие передачи"</string>
     <string name="outbound_history_title" msgid="4279418703178140526">"Исходящие передачи"</string>
-    <string name="no_transfers" msgid="3482965619151865672">"Нет данных"</string>
+    <string name="no_transfers" msgid="3482965619151865672">"Нет данных."</string>
     <string name="transfer_clear_dlg_msg" msgid="1712376797268438075">"Все элементы будут удалены из списка."</string>
     <string name="outbound_noti_title" msgid="8051906709452260849">"Передано по Bluetooth"</string>
     <string name="inbound_noti_title" msgid="4143352641953027595">"Получено по Bluetooth"</string>
