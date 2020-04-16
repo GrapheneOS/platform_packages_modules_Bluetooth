@@ -14,24 +14,36 @@
  * limitations under the License.
  */
 
-#pragma once
-
-#include "hci/command_interface.h"
-#include "hci/hci_packets.h"
+#include "hci/fuzz/status_vs_complete_commands.h"
+#include <map>
 
 namespace bluetooth {
 namespace hci {
+namespace fuzz {
 
-constexpr hci::SubeventCode LeScanningEvents[] = {
-    hci::SubeventCode::SCAN_TIMEOUT,
-    hci::SubeventCode::ADVERTISING_REPORT,
-    hci::SubeventCode::DIRECTED_ADVERTISING_REPORT,
-    hci::SubeventCode::EXTENDED_ADVERTISING_REPORT,
-    hci::SubeventCode::PERIODIC_ADVERTISING_REPORT,
-    hci::SubeventCode::PERIODIC_ADVERTISING_SYNC_ESTABLISHED,
-    hci::SubeventCode::PERIODIC_ADVERTISING_SYNC_LOST,
+using ::bluetooth::hci::OpCode;
+
+constexpr OpCode StatusOpCodes[] = {
+    OpCode::RESET,
 };
 
-typedef CommandInterface<LeScanningCommandBuilder> LeScanningInterface;
+static std::map<OpCode, bool> commands_that_use_status;
+
+static void maybe_populate_list() {
+  if (!commands_that_use_status.empty()) {
+    return;
+  }
+
+  for (OpCode code : StatusOpCodes) {
+    commands_that_use_status[code] = true;
+  }
+}
+
+bool uses_command_status(OpCode code) {
+  maybe_populate_list();
+  return commands_that_use_status.find(code) != commands_that_use_status.end();
+}
+
+}  // namespace fuzz
 }  // namespace hci
 }  // namespace bluetooth

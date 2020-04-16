@@ -16,22 +16,14 @@
 
 #pragma once
 
-#include "hci/command_interface.h"
 #include "hci/hci_packets.h"
 
 namespace bluetooth {
 namespace hci {
+namespace fuzz {
 
-constexpr hci::SubeventCode LeScanningEvents[] = {
-    hci::SubeventCode::SCAN_TIMEOUT,
-    hci::SubeventCode::ADVERTISING_REPORT,
-    hci::SubeventCode::DIRECTED_ADVERTISING_REPORT,
-    hci::SubeventCode::EXTENDED_ADVERTISING_REPORT,
-    hci::SubeventCode::PERIODIC_ADVERTISING_REPORT,
-    hci::SubeventCode::PERIODIC_ADVERTISING_SYNC_ESTABLISHED,
-    hci::SubeventCode::PERIODIC_ADVERTISING_SYNC_LOST,
-};
+bool uses_command_status(hci::OpCode code);
 
-typedef CommandInterface<LeScanningCommandBuilder> LeScanningInterface;
+}
 }  // namespace hci
 }  // namespace bluetooth

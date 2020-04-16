@@ -32,6 +32,10 @@ using bluetooth::hci::fuzz::DevNullHci;
 using bluetooth::os::fuzz::fake_timerfd_advance;
 using bluetooth::os::fuzz::fake_timerfd_reset;
 
+static std::vector<uint8_t> GetArbitraryBytes(FuzzedDataProvider* fdp) {
+  return fdp->ConsumeBytes<uint8_t>(fdp->ConsumeIntegral<size_t>());
+}
+
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
   FuzzedDataProvider dataProvider(data, size);
 
@@ -40,21 +44,46 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
 
   moduleRegistry.InjectTestModule(&HciHal::Factory, fuzzHal);
   moduleRegistry.Start<DevNullHci>(&moduleRegistry.GetTestThread());
+  DevNullHci* devNullHci = moduleRegistry.GetModuleUnderTest<DevNullHci>();
 
   while (dataProvider.remaining_bytes() > 0) {
-    const uint8_t action = dataProvider.ConsumeIntegralInRange(0, 4);
+    const uint8_t action = dataProvider.ConsumeIntegralInRange(0, 12);
     switch (action) {
       case 1:
         fake_timerfd_advance(dataProvider.ConsumeIntegral<uint64_t>());
         break;
       case 2:
-        fuzzHal->injectAclData(dataProvider.ConsumeBytes<uint8_t>(dataProvider.ConsumeIntegral<size_t>()));
+        fuzzHal->injectAclData(GetArbitraryBytes(&dataProvider));
         break;
       case 3:
-        fuzzHal->injectHciEvent(dataProvider.ConsumeBytes<uint8_t>(dataProvider.ConsumeIntegral<size_t>()));
+        fuzzHal->injectHciEvent(GetArbitraryBytes(&dataProvider));
         break;
       case 4:
-        fuzzHal->injectScoData(dataProvider.ConsumeBytes<uint8_t>(dataProvider.ConsumeIntegral<size_t>()));
+        fuzzHal->injectScoData(GetArbitraryBytes(&dataProvider));
+        break;
+      case 5:
+        devNullHci->injectAclData(GetArbitraryBytes(&dataProvider));
+        break;
+      case 6:
+        devNullHci->injectHciCommand(GetArbitraryBytes(&dataProvider));
+        break;
+      case 7:
+        // TODO: devNullHci->injectSecurityCommand(GetArbitraryBytes(&dataProvider));
+        break;
+      case 8:
+        devNullHci->injectLeSecurityCommand(GetArbitraryBytes(&dataProvider));
+        break;
+      case 9:
+        devNullHci->injectAclConnectionCommand(GetArbitraryBytes(&dataProvider));
+        break;
+      case 10:
+        devNullHci->injectLeAclConnectionCommand(GetArbitraryBytes(&dataProvider));
+        break;
+      case 11:
+        devNullHci->injectLeAdvertisingCommand(GetArbitraryBytes(&dataProvider));
+        break;
+      case 12:
+        devNullHci->injectLeScanningCommand(GetArbitraryBytes(&dataProvider));
         break;
     }
   }

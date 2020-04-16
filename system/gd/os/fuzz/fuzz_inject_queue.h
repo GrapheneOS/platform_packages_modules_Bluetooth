@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 The Android Open Source Project
+ * Copyright 2020 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,22 +16,31 @@
 
 #pragma once
 
-#include "hci/command_interface.h"
-#include "hci/hci_packets.h"
+#include "os/queue.h"
 
 namespace bluetooth {
-namespace hci {
+namespace os {
+namespace fuzz {
 
-constexpr hci::SubeventCode LeScanningEvents[] = {
-    hci::SubeventCode::SCAN_TIMEOUT,
-    hci::SubeventCode::ADVERTISING_REPORT,
-    hci::SubeventCode::DIRECTED_ADVERTISING_REPORT,
-    hci::SubeventCode::EXTENDED_ADVERTISING_REPORT,
-    hci::SubeventCode::PERIODIC_ADVERTISING_REPORT,
-    hci::SubeventCode::PERIODIC_ADVERTISING_SYNC_ESTABLISHED,
-    hci::SubeventCode::PERIODIC_ADVERTISING_SYNC_LOST,
+template <typename T>
+class FuzzInjectQueue {
+ public:
+  FuzzInjectQueue(IQueueEnqueue<T>* queue, Handler* handler) : handler_(handler) {
+    buffer_ = new EnqueueBuffer<T>(queue);
+  }
+  ~FuzzInjectQueue() {
+    delete buffer_;
+  }
+
+  void Inject(std::unique_ptr<T> data) {
+    buffer_->Enqueue(std::move(data), handler_);
+  }
+
+ private:
+  EnqueueBuffer<T>* buffer_;
+  Handler* handler_;
 };
 
-typedef CommandInterface<LeScanningCommandBuilder> LeScanningInterface;
-}  // namespace hci
+}  // namespace fuzz
+}  // namespace os
 }  // namespace bluetooth
