@@ -182,12 +182,11 @@ class AdapterProperties {
     AdapterProperties(AdapterService service) {
         mService = service;
         mAdapter = BluetoothAdapter.getDefaultAdapter();
-        invalidateIsOffloadedFilteringSupportedCache();
+        invalidateBluetoothCaches();
     }
 
     public void init(RemoteDevices remoteDevices) {
         mProfileConnectionState.clear();
-        invalidateGetProfileConnectionStateCache();
         mRemoteDevices = remoteDevices;
 
         // Get default max connected audio devices from config.xml in frameworks/base/core
@@ -225,18 +224,19 @@ class AdapterProperties {
         filter.addAction(BluetoothPbapClient.ACTION_CONNECTION_STATE_CHANGED);
         mService.registerReceiver(mReceiver, filter);
         mReceiverRegistered = true;
+        invalidateBluetoothCaches();
     }
 
     public void cleanup() {
         mRemoteDevices = null;
         mProfileConnectionState.clear();
-        invalidateGetProfileConnectionStateCache();
         if (mReceiverRegistered) {
             mService.unregisterReceiver(mReceiver);
             mReceiverRegistered = false;
         }
         mService = null;
         mBondedDevices.clear();
+        invalidateBluetoothCaches();
     }
 
     private static void invalidateGetProfileConnectionStateCache() {
@@ -244,6 +244,14 @@ class AdapterProperties {
     }
     private static void invalidateIsOffloadedFilteringSupportedCache() {
         BluetoothAdapter.invalidateIsOffloadedFilteringSupportedCache();
+    }
+    private static void invalidateGetBondStateCache() {
+        BluetoothDevice.invalidateBluetoothGetBondStateCache();
+    }
+    private static void invalidateBluetoothCaches() {
+        invalidateGetProfileConnectionStateCache();
+        invalidateIsOffloadedFilteringSupportedCache();
+        invalidateGetBondStateCache();
     }
 
     @Override
@@ -548,7 +556,7 @@ class AdapterProperties {
                     debugLog("Failed to remove device: " + device);
                 }
             }
-            BluetoothDevice.invalidateBluetoothGetBondStateCache();
+            invalidateGetBondStateCache();
         } catch (Exception ee) {
             Log.w(TAG, "onBondStateChanged: Exception ", ee);
         }
