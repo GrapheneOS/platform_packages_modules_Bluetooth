@@ -95,7 +95,7 @@ public class AvrcpControllerService extends ProfileService {
     protected Map<BluetoothDevice, AvrcpControllerStateMachine> mDeviceStateMap =
             new ConcurrentHashMap<>(1);
 
-    private boolean mCoverArtEnabled;
+    private boolean mCoverArtEnabled = false;
     protected AvrcpCoverArtManager mCoverArtManager;
 
     private class ImageDownloadCallback implements AvrcpCoverArtManager.Callback {
@@ -127,7 +127,7 @@ public class AvrcpControllerService extends ProfileService {
     }
 
     @Override
-    protected boolean start() {
+    protected synchronized boolean start() {
         initNative();
         mCoverArtEnabled = getResources().getBoolean(R.bool.avrcp_controller_enable_cover_art);
         if (mCoverArtEnabled) {
@@ -143,7 +143,7 @@ public class AvrcpControllerService extends ProfileService {
     }
 
     @Override
-    protected boolean stop() {
+    protected synchronized boolean stop() {
         Intent stopIntent = new Intent(this, BluetoothMediaBrowserService.class);
         stopService(stopIntent);
         for (AvrcpControllerStateMachine stateMachine : mDeviceStateMap.values()) {
@@ -152,8 +152,10 @@ public class AvrcpControllerService extends ProfileService {
 
         sService = null;
         sBrowseTree = null;
-        mCoverArtManager.cleanup();
-        mCoverArtManager = null;
+        if (mCoverArtManager != null) {
+            mCoverArtManager.cleanup();
+            mCoverArtManager = null;
+        }
         return true;
     }
 
