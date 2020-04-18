@@ -35,7 +35,6 @@ package com.android.bluetooth.opp;
 import android.app.NotificationManager;
 import android.bluetooth.AlertActivity;
 import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothDevice;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.ContentObserver;
@@ -226,7 +225,6 @@ public class BluetoothOppTransferActivity extends AlertActivity
             mAlertBuilder.setPositiveButton(R.string.upload_succ_ok, this);
         } else if (mWhichDialog == DIALOG_SEND_COMPLETE_FAIL) {
             mAlertBuilder.setIconAttribute(android.R.attr.alertDialogIcon);
-            mAlertBuilder.setPositiveButton(R.string.upload_fail_ok, this);
             mAlertBuilder.setNegativeButton(R.string.upload_fail_cancel, this);
         }
         mAlertBuilder.setView(createView());
@@ -360,22 +358,6 @@ public class BluetoothOppTransferActivity extends AlertActivity
                     // clear correspondent notification item
                     ((NotificationManager) getSystemService(NOTIFICATION_SERVICE)).cancel(
                             mTransInfo.mID);
-                } else if (mWhichDialog == DIALOG_SEND_COMPLETE_FAIL) {
-                    // "try again"
-                    // make current transfer "hidden"
-                    BluetoothOppUtility.updateVisibilityToHidden(this, mUri);
-
-                    // clear correspondent notification item
-                    ((NotificationManager) getSystemService(NOTIFICATION_SERVICE)).cancel(
-                            mTransInfo.mID);
-                    retryFailedTrasfer();
-                    BluetoothDevice remoteDevice = mAdapter.getRemoteDevice(mTransInfo.mDestAddr);
-
-                    // Display toast message
-                    Toast.makeText(this, this.getString(R.string.bt_toast_4,
-                            BluetoothOppManager.getInstance(this).getDeviceName(remoteDevice)),
-                            Toast.LENGTH_SHORT).show();
-
                 } else if (mWhichDialog == DIALOG_SEND_COMPLETE_SUCCESS) {
                     BluetoothOppUtility.updateVisibilityToHidden(this, mUri);
                     ((NotificationManager) getSystemService(NOTIFICATION_SERVICE)).cancel(
@@ -478,28 +460,6 @@ public class BluetoothOppTransferActivity extends AlertActivity
             changeButtonText(
                     DialogInterface.BUTTON_NEGATIVE,
                     getString(R.string.upload_fail_cancel));
-            changeButtonText(
-                    DialogInterface.BUTTON_POSITIVE,
-                    getString(R.string.upload_fail_ok));
         }
-    }
-
-   /*
-    * Retry the failed transfer in background thread
-    */
-   private void retryFailedTrasfer() {
-        new Thread() {
-            @Override
-            public void run() {
-                Uri uri = BluetoothOppUtility.originalUri(Uri.parse(mTransInfo.mFileUri));
-                BluetoothOppSendFileInfo sendFileInfo =
-                        BluetoothOppSendFileInfo.generateFileInfo(BluetoothOppTransferActivity
-                        .this, uri, mTransInfo.mFileType, false);
-                uri = BluetoothOppUtility.generateUri(uri, sendFileInfo);
-                BluetoothOppUtility.putSendFileInfo(uri, sendFileInfo);
-                mTransInfo.mFileUri = uri.toString();
-                BluetoothOppUtility.retryTransfer(BluetoothOppTransferActivity.this, mTransInfo);
-            }
-        }.start();
     }
 }
