@@ -153,8 +153,6 @@
     <!-- Bluetooth Failed Upload File Transfer Dialog -->
     <string name="upload_fail_line1">The file wasn\'t sent to \u0022<xliff:g id="recipient">%1$s</xliff:g>\u0022.</string>
     <string name="upload_fail_line1_2">File: <xliff:g id="file">%1$s</xliff:g></string>
-    <!-- Label for a try again button.-->
-    <string name="upload_fail_ok">Try again</string>
     <!-- Label for a cancel button.-->
     <string name="upload_fail_cancel">Close</string>
 
