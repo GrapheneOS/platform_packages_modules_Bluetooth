@@ -298,14 +298,14 @@ public class PanService extends ProfileService {
         }
 
         @Override
-        public void setBluetoothTethering(boolean value, String pkgName) {
+        public void setBluetoothTethering(boolean value, String pkgName, String attributionTag) {
             PanService service = getService();
             if (service == null) {
                 return;
             }
             Log.d(TAG, "setBluetoothTethering: " + value + ", pkgName: " + pkgName
                     + ", mTetherOn: " + service.mTetherOn);
-            service.setBluetoothTethering(value, pkgName);
+            service.setBluetoothTethering(value, pkgName, attributionTag);
         }
 
         @Override
@@ -378,7 +378,8 @@ public class PanService extends ProfileService {
         return mTetherOn;
     }
 
-    void setBluetoothTethering(boolean value, final String pkgName) {
+    void setBluetoothTethering(boolean value, final String pkgName,
+            final String callingAttributionTag) {
         if (DBG) {
             Log.d(TAG, "setBluetoothTethering: " + value + ", mTetherOn: " + mTetherOn);
         }
@@ -386,7 +387,7 @@ public class PanService extends ProfileService {
                 BLUETOOTH_PRIVILEGED, "Need BLUETOOTH_PRIVILEGED permission");
         final Context context = getBaseContext();
 
-        ConnectivityManager.enforceTetherChangePermission(context, pkgName);
+        ConnectivityManager.enforceTetherChangePermission(context, pkgName, callingAttributionTag);
 
         UserManager um = (UserManager) getSystemService(Context.USER_SERVICE);
         if (um.hasUserRestriction(UserManager.DISALLOW_CONFIG_TETHERING) && value) {
