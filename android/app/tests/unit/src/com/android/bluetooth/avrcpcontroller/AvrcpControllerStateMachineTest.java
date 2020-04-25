@@ -127,6 +127,7 @@ public class AvrcpControllerStateMachineTest {
         mAvrcpControllerService.start();
         mAvrcpControllerService.sBrowseTree = new BrowseTree(null);
         mAvrcpStateMachine = new AvrcpControllerStateMachine(mTestDevice, mAvrcpControllerService);
+        mAvrcpStateMachine.start();
     }
 
     @After
@@ -134,6 +135,11 @@ public class AvrcpControllerStateMachineTest {
         if (!mTargetContext.getResources().getBoolean(R.bool.profile_supported_avrcp_controller)) {
             return;
         }
+
+        mAvrcpStateMachine.disconnect();
+        TestUtils.waitForLooperToFinishScheduledTask(mAvrcpStateMachine.getHandler().getLooper());
+        Assert.assertFalse(mAvrcpStateMachine.isActive());
+
         TestUtils.clearAdapterService(mA2dpAdapterService);
     }
 
@@ -251,7 +257,7 @@ public class AvrcpControllerStateMachineTest {
         mAvrcpStateMachine.dump(sb);
         Assert.assertEquals(sb.toString(),
                 "  mDevice: " + mTestDevice.toString()
-                + "(null) name=AvrcpControllerStateMachine state=(null)\n"
+                + "(null) name=AvrcpControllerStateMachine state=Disconnected\n"
                 + "  isActive: false\n");
     }
 
@@ -618,7 +624,7 @@ public class AvrcpControllerStateMachineTest {
     public void testPlaybackWhileMusicPlaying() {
         when(mMockResources.getBoolean(R.bool.a2dp_sink_automatically_request_audio_focus))
                 .thenReturn(false);
-        Assert.assertEquals(AudioManager.AUDIOFOCUS_NONE, A2dpSinkService.getFocusState());
+        when(mA2dpSinkService.getFocusState()).thenReturn(AudioManager.AUDIOFOCUS_NONE);
         doReturn(true).when(mAudioManager).isMusicActive();
         setUpConnectedState(true, true);
         mAvrcpStateMachine.sendMessage(
@@ -628,9 +634,7 @@ public class AvrcpControllerStateMachineTest {
         verify(mAvrcpControllerService,
                 timeout(ASYNC_CALL_TIMEOUT_MILLIS).times(1)).sendPassThroughCommandNative(
                 eq(mTestAddress), eq(AvrcpControllerService.PASS_THRU_CMD_ID_PAUSE), eq(KEY_DOWN));
-        TestUtils.waitForLooperToFinishScheduledTask(
-                A2dpSinkService.getA2dpSinkService().getMainLooper());
-        Assert.assertEquals(AudioManager.AUDIOFOCUS_NONE, mA2dpSinkService.getFocusState());
+        verify(mA2dpSinkService, never()).requestAudioFocus(mTestDevice, true);
     }
 
     /**
@@ -638,16 +642,90 @@ public class AvrcpControllerStateMachineTest {
      */
     @Test
     public void testPlaybackWhileIdle() {
-        Assert.assertEquals(AudioManager.AUDIOFOCUS_NONE, A2dpSinkService.getFocusState());
+        when(mA2dpSinkService.getFocusState()).thenReturn(AudioManager.AUDIOFOCUS_NONE);
         doReturn(false).when(mAudioManager).isMusicActive();
         setUpConnectedState(true, true);
         mAvrcpStateMachine.sendMessage(
                 AvrcpControllerStateMachine.MESSAGE_PROCESS_PLAY_STATUS_CHANGED,
                 PlaybackStateCompat.STATE_PLAYING);
         TestUtils.waitForLooperToFinishScheduledTask(mAvrcpStateMachine.getHandler().getLooper());
-        TestUtils.waitForLooperToFinishScheduledTask(
-                mA2dpSinkService.getMainLooper());
         verify(mA2dpSinkService).requestAudioFocus(mTestDevice, true);
+    }
+
+    /**
+     * Test receiving a playback status of playing while we're in an error state
+     * as it relates to getting audio focus.
+     *
+     * Verify we send a pause command and never attempt to request audio focus
+     */
+    @Test
+    public void testPlaybackWhileErrorState() {
+        when(mA2dpSinkService.getFocusState()).thenReturn(AudioManager.ERROR);
+        setUpConnectedState(true, true);
+        mAvrcpStateMachine.sendMessage(
+                AvrcpControllerStateMachine.MESSAGE_PROCESS_PLAY_STATUS_CHANGED,
+                PlaybackStateCompat.STATE_PLAYING);
+        TestUtils.waitForLooperToFinishScheduledTask(mAvrcpStateMachine.getHandler().getLooper());
+        verify(mAvrcpControllerService,
+                timeout(ASYNC_CALL_TIMEOUT_MILLIS).times(1)).sendPassThroughCommandNative(
+                eq(mTestAddress), eq(AvrcpControllerService.PASS_THRU_CMD_ID_PAUSE), eq(KEY_DOWN));
+        verify(mA2dpSinkService, never()).requestAudioFocus(mTestDevice, true);
+    }
+
+    /**
+     * Test receiving a playback status of playing while we have focus
+     *
+     * Verify we do not send a pause command and never attempt to request audio focus
+     */
+    @Test
+    public void testPlaybackWhilePlayingState() {
+        when(mA2dpSinkService.getFocusState()).thenReturn(AudioManager.AUDIOFOCUS_GAIN);
+        setUpConnectedState(true, true);
+        Assert.assertTrue(mAvrcpStateMachine.isActive());
+        mAvrcpStateMachine.sendMessage(
+                AvrcpControllerStateMachine.MESSAGE_PROCESS_PLAY_STATUS_CHANGED,
+                PlaybackStateCompat.STATE_PLAYING);
+        TestUtils.waitForLooperToFinishScheduledTask(mAvrcpStateMachine.getHandler().getLooper());
+        verify(mAvrcpControllerService, never()).sendPassThroughCommandNative(
+                eq(mTestAddress), eq(AvrcpControllerService.PASS_THRU_CMD_ID_PAUSE), eq(KEY_DOWN));
+        verify(mA2dpSinkService, never()).requestAudioFocus(mTestDevice, true);
+    }
+
+    /**
+     * Test receiving a playback status of playing from a device that isn't active
+     *
+     * Verify we do not send a pause command and never attempt to request audio focus
+     */
+    @Test
+    public void testPlaybackWhileNotActiveDevice() {
+        byte[] secondTestAddress = new byte[]{00, 01, 02, 03, 04, 06};
+        BluetoothDevice secondTestDevice = mAdapter.getRemoteDevice(secondTestAddress);
+        AvrcpControllerStateMachine secondAvrcpStateMachine =
+                new AvrcpControllerStateMachine(secondTestDevice, mAvrcpControllerService);
+        secondAvrcpStateMachine.start();
+
+        setUpConnectedState(true, true);
+        secondAvrcpStateMachine.connect(StackEvent.connectionStateChanged(true, true));
+        TestUtils.waitForLooperToFinishScheduledTask(secondAvrcpStateMachine.getHandler()
+                .getLooper());
+
+        Assert.assertTrue(secondAvrcpStateMachine.isActive());
+        Assert.assertFalse(mAvrcpStateMachine.isActive());
+
+        mAvrcpStateMachine.sendMessage(
+                AvrcpControllerStateMachine.MESSAGE_PROCESS_PLAY_STATUS_CHANGED,
+                PlaybackStateCompat.STATE_PLAYING);
+        TestUtils.waitForLooperToFinishScheduledTask(mAvrcpStateMachine.getHandler().getLooper());
+        verify(mAvrcpControllerService,
+                timeout(ASYNC_CALL_TIMEOUT_MILLIS).times(1)).sendPassThroughCommandNative(
+                eq(mTestAddress), eq(AvrcpControllerService.PASS_THRU_CMD_ID_PAUSE), eq(KEY_DOWN));
+        verify(mA2dpSinkService, never()).requestAudioFocus(mTestDevice, true);
+
+        secondAvrcpStateMachine.disconnect();
+        TestUtils.waitForLooperToFinishScheduledTask(secondAvrcpStateMachine.getHandler()
+                .getLooper());
+        Assert.assertFalse(secondAvrcpStateMachine.isActive());
+        Assert.assertFalse(mAvrcpStateMachine.isActive());
     }
 
     /**
@@ -690,6 +768,12 @@ public class AvrcpControllerStateMachineTest {
                 .getLooper());
         Assert.assertFalse(mAvrcpStateMachine.isActive());
         Assert.assertTrue(secondAvrcpStateMachine.isActive());
+
+        secondAvrcpStateMachine.disconnect();
+        TestUtils.waitForLooperToFinishScheduledTask(secondAvrcpStateMachine.getHandler()
+                .getLooper());
+        Assert.assertFalse(secondAvrcpStateMachine.isActive());
+        Assert.assertFalse(mAvrcpStateMachine.isActive());
     }
 
     /**
@@ -699,11 +783,11 @@ public class AvrcpControllerStateMachineTest {
      */
     private int setUpConnectedState(boolean control, boolean browsing) {
         // Put test state machine into connected state
-        mAvrcpStateMachine.start();
         Assert.assertThat(mAvrcpStateMachine.getCurrentState(),
                 IsInstanceOf.instanceOf(AvrcpControllerStateMachine.Disconnected.class));
 
         mAvrcpStateMachine.connect(StackEvent.connectionStateChanged(control, browsing));
+        TestUtils.waitForLooperToFinishScheduledTask(mAvrcpStateMachine.getHandler().getLooper());
         verify(mAvrcpControllerService, timeout(ASYNC_CALL_TIMEOUT_MILLIS).times(2)).sendBroadcast(
                 mIntentArgument.capture(), eq(ProfileService.BLUETOOTH_PERM));
         Assert.assertThat(mAvrcpStateMachine.getCurrentState(),
