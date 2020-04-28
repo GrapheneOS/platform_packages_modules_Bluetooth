@@ -16,7 +16,7 @@
 
 <resources xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-    <string name="permlab_bluetoothShareManager" msgid="311492132450338925">"डाउनलोड प्रबन्धक पहुँच गर्नुहोस्।"</string>
+    <string name="permlab_bluetoothShareManager" msgid="311492132450338925">"डाउनलोड म्यानेजर पहुँच गर्नुहोस्।"</string>
     <string name="permdesc_bluetoothShareManager" msgid="8930572979123190223">"अनुप्रयोगलाई ब्लुटुथसाझेदारी प्रबन्धक पहुँचको अनुमति दिन्छ र यसलाई फाइलहरू स्थानान्तरण गर्न प्रयोग गर्दछ।"</string>
     <string name="permlab_bluetoothWhitelist" msgid="7091552898592306386">"स्वेतसूची ब्लुटुथ उपकरण पहुँच।"</string>
     <string name="permdesc_bluetoothWhitelist" msgid="5494513855192170109">"त्यस उपकरणलाई यस उपकरणमा फाइलहरू पठाउन बिना कुनै पुष्टि अनुमति दिँदै अनुप्रयोगलाई अस्थायी रूपमा ब्लुटुथ उपकरणलाई स्वेतसूचीमा राख्न अनुमति दिन्छ।"</string>
@@ -69,11 +69,10 @@
     <string name="upload_succ_ok" msgid="7705428476405478828">"ठिक छ"</string>
     <string name="upload_fail_line1" msgid="7899394672421491701">"फाइल\"<xliff:g id="RECIPIENT">%1$s</xliff:g>\" लाई पठाइएन।"</string>
     <string name="upload_fail_line1_2" msgid="2108129204050841798">"फाइल: <xliff:g id="FILE">%1$s</xliff:g>"</string>
-    <string name="upload_fail_ok" msgid="5807702461606714296">"फेरि प्रयास गर्नुहोस्"</string>
     <string name="upload_fail_cancel" msgid="9118496285835687125">"बन्द गर्नुहोस्"</string>
     <string name="bt_error_btn_ok" msgid="5965151173011534240">"ठिक छ"</string>
     <string name="unknown_file" msgid="6092727753965095366">"अज्ञात फाइल"</string>
-    <string name="unknown_file_desc" msgid="480434281415453287">"यस प्रकारको फाइल सम्हालन  कुनै अनुप्रयोग छैन।\n"</string>
+    <string name="unknown_file_desc" msgid="480434281415453287">"यस प्रकारको फाइल सम्हालन  कुनै एप छैन।\n"</string>
     <string name="not_exist_file" msgid="3489434189599716133">"फाइल छैन"</string>
     <string name="not_exist_file_desc" msgid="4059531573790529229">"फाइल अवस्थित छैन। \n"</string>
     <string name="enabling_progress_title" msgid="436157952334723406">"कृपया प्रतीक्षा गर्नुहोस्..."</string>
@@ -127,7 +126,7 @@
     <string name="bluetooth_map_settings_cancel" msgid="9205350798049865699">"रद्द गर्नुहोस्"</string>
     <string name="bluetooth_map_settings_intro" msgid="6482369468223987562">"तपाईंले ब्लुटुथ मार्फत साझेदारी गर्न चाहेका खाताहरू चयन गर्नुहोस्। तपाईंले अझै पनि खाताहरूमा जडान गर्दा कुनै पनि पहुँच स्वीकार गर्नुपर्छ।"</string>
     <string name="bluetooth_map_settings_count" msgid="4557473074937024833">"स्लटहरू बाँकी:"</string>
-    <string name="bluetooth_map_settings_app_icon" msgid="7105805610929114707">"अनुप्रयोग आइकन"</string>
+    <string name="bluetooth_map_settings_app_icon" msgid="7105805610929114707">"एप आइकन"</string>
     <string name="bluetooth_map_settings_title" msgid="7420332483392851321">"ब्लुटुथ सन्देश साझेदारी सेटिङहरू"</string>
     <string name="bluetooth_map_settings_no_account_slots_left" msgid="1796029082612965251">"खाता चयन गर्न सक्दैन। ० स्लटहरू बाँकी"</string>
     <string name="bluetooth_connected" msgid="6718623220072656906">"ब्लुटुथ सम्बन्धी अडियो यन्त्रलाई जडान गरियो"</string>
