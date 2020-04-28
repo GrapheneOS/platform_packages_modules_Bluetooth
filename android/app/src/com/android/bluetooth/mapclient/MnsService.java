@@ -42,8 +42,8 @@ public class MnsService {
     private static final String TAG = "MnsService";
     private static final Boolean DBG = MapClientService.DBG;
     private static final Boolean VDBG = MapClientService.VDBG;
-    /* MAP version 1.1 */
-    private static final int MNS_VERSION = 0x0101;
+    /* MAP version 1.4 */
+    private static final int MNS_VERSION = 0x0104;
     /* these are shared across instances */
     private static SocketAcceptor sAcceptThread = null;
     private static Handler sSessionHandler = null;
@@ -67,7 +67,7 @@ public class MnsService {
             return;
         }
         mSdpHandle = sdpManager.createMapMnsRecord("MAP Message Notification Service",
-                sServerSockets.getRfcommChannel(), -1, MNS_VERSION,
+                sServerSockets.getRfcommChannel(), sServerSockets.getL2capPsm(), MNS_VERSION,
                 MasClient.MAP_SUPPORTED_FEATURES);
     }
 
