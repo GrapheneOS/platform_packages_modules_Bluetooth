@@ -18,10 +18,11 @@ package com.android.bluetooth.avrcpcontroller;
 
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothProfile;
-import android.content.Context;
 import android.net.Uri;
 import android.os.SystemProperties;
 import android.util.Log;
+
+import com.android.bluetooth.Utils;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -45,7 +46,7 @@ public class AvrcpCoverArtManager {
     public static final String SCHEME_NATIVE = "native";
     public static final String SCHEME_THUMBNAIL = "thumbnail";
 
-    private final Context mContext;
+    private final AvrcpControllerService mService;
     protected final Map<BluetoothDevice, AvrcpBipClient> mClients = new ConcurrentHashMap<>(1);
     private final AvrcpCoverArtStorage mCoverArtStorage;
     private final Callback mCallback;
@@ -81,9 +82,9 @@ public class AvrcpCoverArtManager {
         void onImageDownloadComplete(BluetoothDevice device, DownloadEvent event);
     }
 
-    public AvrcpCoverArtManager(Context context, Callback callback) {
-        mContext = context;
-        mCoverArtStorage = new AvrcpCoverArtStorage(mContext);
+    public AvrcpCoverArtManager(AvrcpControllerService service, Callback callback) {
+        mService = service;
+        mCoverArtStorage = new AvrcpCoverArtStorage(mService);
         mCallback = callback;
         mDownloadScheme =
                 SystemProperties.get(AVRCP_CONTROLLER_COVER_ART_SCHEME, SCHEME_THUMBNAIL);
@@ -260,7 +261,11 @@ public class AvrcpCoverArtManager {
         @Override
         public void onConnectionStateChanged(int oldState, int newState) {
             debug(mDevice.getAddress() + ": " + oldState + " -> " + newState);
-            if (newState == BluetoothProfile.STATE_DISCONNECTED) {
+            if (newState == BluetoothProfile.STATE_CONNECTED) {
+                // Once we're connected fetch the current metadata again in case the target has an
+                // image handle they can now give us
+                mService.getCurrentMetadataNative(Utils.getByteAddress(mDevice));
+            } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
                 disconnect(mDevice);
             }
         }
