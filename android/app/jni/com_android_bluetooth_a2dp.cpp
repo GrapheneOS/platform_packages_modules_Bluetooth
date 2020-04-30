@@ -29,6 +29,7 @@ namespace android {
 static jmethodID method_onConnectionStateChanged;
 static jmethodID method_onAudioStateChanged;
 static jmethodID method_onCodecConfigChanged;
+static jmethodID method_isMandatoryCodecPreferred;
 
 static struct {
   jclass clazz;
@@ -162,9 +163,33 @@ static void bta2dp_audio_config_callback(
       local_capabilities_array, selectable_capabilities_array);
 }
 
+static bool bta2dp_mandatory_codec_preferred_callback(
+    const RawAddress& bd_addr) {
+  ALOGI("%s", __func__);
+
+  std::shared_lock<std::shared_timed_mutex> lock(callbacks_mutex);
+  CallbackEnv sCallbackEnv(__func__);
+  if (!sCallbackEnv.valid() || mCallbacksObj == nullptr) return false;
+
+  ScopedLocalRef<jbyteArray> addr(
+      sCallbackEnv.get(), sCallbackEnv->NewByteArray(RawAddress::kLength));
+  if (!addr.get()) {
+    ALOGE("%s: Fail to new jbyteArray bd addr", __func__);
+    return false;
+  }
+  sCallbackEnv->SetByteArrayRegion(
+      addr.get(), 0, RawAddress::kLength,
+      reinterpret_cast<const jbyte*>(bd_addr.address));
+  return sCallbackEnv->CallBooleanMethod(
+      mCallbacksObj, method_isMandatoryCodecPreferred, addr.get());
+}
+
 static btav_source_callbacks_t sBluetoothA2dpCallbacks = {
-    sizeof(sBluetoothA2dpCallbacks), bta2dp_connection_state_callback,
-    bta2dp_audio_state_callback, bta2dp_audio_config_callback,
+    sizeof(sBluetoothA2dpCallbacks),
+    bta2dp_connection_state_callback,
+    bta2dp_audio_state_callback,
+    bta2dp_audio_config_callback,
+    bta2dp_mandatory_codec_preferred_callback,
 };
 
 static void classInitNative(JNIEnv* env, jclass clazz) {
@@ -202,6 +227,9 @@ static void classInitNative(JNIEnv* env, jclass clazz) {
                        "([BLandroid/bluetooth/BluetoothCodecConfig;"
                        "[Landroid/bluetooth/BluetoothCodecConfig;"
                        "[Landroid/bluetooth/BluetoothCodecConfig;)V");
+
+  method_isMandatoryCodecPreferred =
+      env->GetMethodID(clazz, "isMandatoryCodecPreferred", "([B)Z");
 
   ALOGI("%s: succeeds", __func__);
 }
