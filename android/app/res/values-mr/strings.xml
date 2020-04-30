@@ -69,7 +69,6 @@
     <string name="upload_succ_ok" msgid="7705428476405478828">"ठीक"</string>
     <string name="upload_fail_line1" msgid="7899394672421491701">"\"<xliff:g id="RECIPIENT">%1$s</xliff:g>\" वर फाइल पाठविली नाही."</string>
     <string name="upload_fail_line1_2" msgid="2108129204050841798">"फाइल: <xliff:g id="FILE">%1$s</xliff:g>"</string>
-    <string name="upload_fail_ok" msgid="5807702461606714296">"पुन्हा प्रयत्न करा"</string>
     <string name="upload_fail_cancel" msgid="9118496285835687125">"बंद करा"</string>
     <string name="bt_error_btn_ok" msgid="5965151173011534240">"ठीक"</string>
     <string name="unknown_file" msgid="6092727753965095366">"अज्ञात फाइल"</string>
@@ -89,7 +88,7 @@
     <string name="bt_sm_2_2" msgid="2965243265852680543">"स्‍थान आवश्यक: <xliff:g id="SIZE">%1$s</xliff:g>"</string>
     <string name="ErrorTooManyRequests" msgid="8578277541472944529">"बर्‍याच विनंत्यांवर प्रक्रिया होत आहे. नंतर पुन्हा प्रयत्न करा."</string>
     <string name="status_pending" msgid="2503691772030877944">"फाइल स्थानांतरणाचा अद्याप प्रारंभ झाला नाही."</string>
-    <string name="status_running" msgid="6562808920311008696">"फाइल स्थानांतर चालू आहे."</string>
+    <string name="status_running" msgid="6562808920311008696">"फाइल स्थानांतर सुरू आहे."</string>
     <string name="status_success" msgid="239573225847565868">"फाइल स्थानांतरण यशस्वीरित्या पूर्ण झाले."</string>
     <string name="status_not_accept" msgid="1695082417193780738">"सामग्री समर्थित नाही."</string>
     <string name="status_forbidden" msgid="613956401054050725">"लक्ष्‍य डिव्‍हाइसद्वारे स्‍थानांतरण निषिद्ध केले."</string>
