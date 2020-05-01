@@ -56,6 +56,7 @@ import android.telephony.SmsManager;
 import android.util.Log;
 
 import com.android.bluetooth.BluetoothMetricsProto;
+import com.android.bluetooth.Utils;
 import com.android.bluetooth.btservice.MetricsLogger;
 import com.android.bluetooth.btservice.ProfileService;
 import com.android.bluetooth.map.BluetoothMapbMessageMime;
@@ -341,6 +342,9 @@ final class MceStateMachine extends StateMachine {
 
     Bmessage.Type getDefaultMessageType() {
         synchronized (mDefaultMessageType) {
+            if (Utils.isPtsTestMode()) {
+                return MapUtils.sendMessageType();
+            }
             return mDefaultMessageType;
         }
     }
@@ -458,6 +462,7 @@ final class MceStateMachine extends StateMachine {
                 Log.d(TAG, "Enter Connected: " + getCurrentMessage().what);
             }
             onConnectionStateChanged(mPreviousState, BluetoothProfile.STATE_CONNECTED);
+            if (Utils.isPtsTestMode()) return;
 
             mMasClient.makeRequest(new RequestSetPath(FOLDER_TELECOM));
             mMasClient.makeRequest(new RequestSetPath(FOLDER_MSG));
@@ -504,7 +509,7 @@ final class MceStateMachine extends StateMachine {
                 case MSG_GET_MESSAGE_LISTING:
                     // Get latest 50 Unread messages in the last week
                     MessagesFilter filter = new MessagesFilter();
-                    filter.setMessageType((byte) 0);
+                    filter.setMessageType(MapUtils.fetchMessageType());
                     filter.setReadStatus(MessagesFilter.READ_STATUS_UNREAD);
                     Calendar calendar = Calendar.getInstance();
                     calendar.add(Calendar.DATE, -7);
