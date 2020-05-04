@@ -42,6 +42,7 @@ class AvrcpPlayer {
     public static final int FEATURE_FORWARD = 47;
     public static final int FEATURE_PREVIOUS = 48;
     public static final int FEATURE_BROWSING = 59;
+    public static final int FEATURE_NOW_PLAYING = 65;
 
     private BluetoothDevice mDevice;
     private int mPlayStatus = PlaybackStateCompat.STATE_NONE;
