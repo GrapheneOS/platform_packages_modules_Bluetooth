@@ -55,6 +55,7 @@ import org.mockito.MockitoAnnotations;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @MediumTest
 @RunWith(AndroidJUnit4.class)
@@ -517,15 +518,71 @@ public class AvrcpControllerStateMachineTest {
     }
 
     /**
-     * Test addressed media player changed
+     * Make an AvrcpItem suitable for being included in the Now Playing list for the test device
+     */
+    private AvrcpItem makeNowPlayingItem(long uid, String name) {
+        AvrcpItem.Builder aib = new AvrcpItem.Builder();
+        aib.setDevice(mTestDevice);
+        aib.setItemType(AvrcpItem.TYPE_MEDIA);
+        aib.setType(AvrcpItem.MEDIA_AUDIO);
+        aib.setTitle(name);
+        aib.setUid(uid);
+        aib.setUuid(UUID.randomUUID().toString());
+        aib.setPlayable(true);
+        return aib.build();
+    }
+
+    /**
+     * Get the current Now Playing list for the test device
+     */
+    private List<AvrcpItem> getNowPlayingList() {
+        BrowseTree.BrowseNode nowPlaying = mAvrcpStateMachine.findNode("NOW_PLAYING");
+        List<AvrcpItem> nowPlayingList = new ArrayList<AvrcpItem>();
+        for (BrowseTree.BrowseNode child : nowPlaying.getChildren()) {
+            nowPlayingList.add(child.mItem);
+        }
+        return nowPlayingList;
+    }
+
+    /**
+     * Set the current Now Playing list for the test device
+     */
+    private void setNowPlayingList(List<AvrcpItem> nowPlayingList) {
+        BrowseTree.BrowseNode nowPlaying = mAvrcpStateMachine.findNode("NOW_PLAYING");
+        mAvrcpStateMachine.requestContents(nowPlaying);
+        mAvrcpStateMachine.sendMessage(
+                AvrcpControllerStateMachine.MESSAGE_PROCESS_GET_FOLDER_ITEMS, nowPlayingList);
+        mAvrcpStateMachine.sendMessage(
+                AvrcpControllerStateMachine.MESSAGE_PROCESS_GET_FOLDER_ITEMS_OUT_OF_RANGE);
+
+        // Wait for the now playing list to be propagated
+        TestUtils.waitForLooperToFinishScheduledTask(mAvrcpStateMachine.getHandler().getLooper());
+
+        // Make sure its set by re grabbing the node and checking its contents are cached
+        nowPlaying = mAvrcpStateMachine.findNode("NOW_PLAYING");
+        Assert.assertTrue(nowPlaying.isCached());
+        assertNowPlayingList(nowPlayingList);
+    }
+
+    /**
+     * Assert that the Now Playing list is a particular value
+     */
+    private void assertNowPlayingList(List<AvrcpItem> expected) {
+        List<AvrcpItem> current = getNowPlayingList();
+        Assert.assertEquals(expected.size(), current.size());
+        for (int i = 0; i < expected.size(); i++) {
+            Assert.assertEquals(expected.get(i), current.get(i));
+        }
+    }
+
+    /**
+     * Test addressed media player changing to a player we know about
      * Verify when the addressed media player changes browsing data updates
-     * Verify that the contents of a player are fetched upon request
      */
     @Test
     public void testPlayerChanged() {
         setUpConnectedState(true, true);
         final String rootName = "__ROOT__";
-        final String playerName = "Player 1";
 
         //Get the root of the device
         BrowseTree.BrowseNode results = mAvrcpStateMachine.findNode(rootName);
@@ -538,25 +595,85 @@ public class AvrcpControllerStateMachineTest {
                 timeout(ASYNC_CALL_TIMEOUT_MILLIS).times(1)).getPlayerListNative(eq(mTestAddress),
                 eq(0), eq(19));
 
-        //Provide back a player object
+        //Provide back two player objects, IDs 1 and 2
         byte[] playerFeatures =
                 new byte[]{0, 0, 0, 0, 0, (byte) 0xb7, 0x01, 0x0c, 0x0a, 0, 0, 0, 0, 0, 0, 0};
-        AvrcpPlayer playerOne = new AvrcpPlayer(mTestDevice, 1, playerName, playerFeatures, 1, 1);
+        AvrcpPlayer playerOne = new AvrcpPlayer(mTestDevice, 1, "Player 1", playerFeatures, 1, 1);
+        AvrcpPlayer playerTwo = new AvrcpPlayer(mTestDevice, 2, "Player 2", playerFeatures, 1, 1);
         List<AvrcpPlayer> testPlayers = new ArrayList<>();
         testPlayers.add(playerOne);
+        testPlayers.add(playerTwo);
         mAvrcpStateMachine.sendMessage(AvrcpControllerStateMachine.MESSAGE_PROCESS_GET_PLAYER_ITEMS,
                 testPlayers);
 
+        //Set something arbitrary for the current Now Playing list
+        List<AvrcpItem> nowPlayingList = new ArrayList<AvrcpItem>();
+        nowPlayingList.add(makeNowPlayingItem(1, "Song 1"));
+        nowPlayingList.add(makeNowPlayingItem(2, "Song 2"));
+        setNowPlayingList(nowPlayingList);
+
         //Change players and verify that BT attempts to update the results
         mAvrcpStateMachine.sendMessage(
-                AvrcpControllerStateMachine.MESSAGE_PROCESS_ADDRESSED_PLAYER_CHANGED, 4);
-        results = mAvrcpStateMachine.findNode(rootName);
+                AvrcpControllerStateMachine.MESSAGE_PROCESS_ADDRESSED_PLAYER_CHANGED, 2);
+        TestUtils.waitForLooperToFinishScheduledTask(mAvrcpStateMachine.getHandler().getLooper());
 
-        mAvrcpStateMachine.requestContents(results);
+        //Make sure the Now Playing list is now cleared
+        assertNowPlayingList(new ArrayList<AvrcpItem>());
 
+        //Verify that a player change to a player with Now Playing support causes a refresh. This
+        //should be called twice, once to give data and once to ensure we're out of elements
         verify(mAvrcpControllerService,
-                timeout(ASYNC_CALL_TIMEOUT_MILLIS).times(2)).getPlayerListNative(eq(mTestAddress),
+                timeout(ASYNC_CALL_TIMEOUT_MILLIS).times(2)).getNowPlayingListNative(
+                eq(mTestAddress), eq(0), eq(19));
+    }
+
+    /**
+     * Test addressed media player change to a player we don't know about
+     * Verify when the addressed media player changes browsing data updates
+     * Verify that the contents of a player are fetched upon request
+     */
+    @Test
+    public void testPlayerChangedToUnknownPlayer() {
+        setUpConnectedState(true, true);
+        final String rootName = "__ROOT__";
+
+        //Get the root of the device
+        BrowseTree.BrowseNode rootNode = mAvrcpStateMachine.findNode(rootName);
+        Assert.assertEquals(rootName + mTestDevice.toString(), rootNode.getID());
+
+        //Request fetch the list of players
+        BrowseTree.BrowseNode playerNodes = mAvrcpStateMachine.findNode(rootNode.getID());
+        mAvrcpStateMachine.requestContents(rootNode);
+        verify(mAvrcpControllerService,
+                timeout(ASYNC_CALL_TIMEOUT_MILLIS).times(1)).getPlayerListNative(eq(mTestAddress),
                 eq(0), eq(19));
+
+        //Provide back a player object
+        byte[] playerFeatures =
+                new byte[]{0, 0, 0, 0, 0, (byte) 0xb7, 0x01, 0x0c, 0x0a, 0, 0, 0, 0, 0, 0, 0};
+        AvrcpPlayer playerOne = new AvrcpPlayer(mTestDevice, 1, "Player 1", playerFeatures, 1, 1);
+        List<AvrcpPlayer> testPlayers = new ArrayList<>();
+        testPlayers.add(playerOne);
+        mAvrcpStateMachine.sendMessage(
+                AvrcpControllerStateMachine.MESSAGE_PROCESS_GET_PLAYER_ITEMS, testPlayers);
+
+        //Set something arbitrary for the current Now Playing list
+        List<AvrcpItem> nowPlayingList = new ArrayList<AvrcpItem>();
+        nowPlayingList.add(makeNowPlayingItem(1, "Song 1"));
+        nowPlayingList.add(makeNowPlayingItem(2, "Song 2"));
+        setNowPlayingList(nowPlayingList);
+
+        //Change players
+        mAvrcpStateMachine.sendMessage(
+                AvrcpControllerStateMachine.MESSAGE_PROCESS_ADDRESSED_PLAYER_CHANGED, 4);
+        TestUtils.waitForLooperToFinishScheduledTask(mAvrcpStateMachine.getHandler().getLooper());
+
+        //Make sure the Now Playing list is now cleared
+        assertNowPlayingList(new ArrayList<AvrcpItem>());
+
+        //Make sure the root node is no longer cached
+        rootNode = mAvrcpStateMachine.findNode(rootName);
+        Assert.assertFalse(rootNode.isCached());
     }
 
     /**
