@@ -24,6 +24,8 @@ import android.support.v4.media.MediaDescriptionCompat;
 import android.support.v4.media.MediaMetadataCompat;
 import android.util.Log;
 
+import java.util.Objects;
+
 /**
  * An object representing a single item returned from an AVRCP folder listing in the VFS scope.
  *
@@ -105,6 +107,14 @@ public class AvrcpItem {
         return mUuid;
     }
 
+    public int getItemType() {
+        return mItemType;
+    }
+
+    public int getType() {
+        return mType;
+    }
+
     public String getDisplayableName() {
         return mDisplayableName;
     }
@@ -127,6 +137,14 @@ public class AvrcpItem {
 
     public long getTotalNumberOfTracks() {
         return mTotalNumberOfTracks;
+    }
+
+    public String getGenre() {
+        return mGenre;
+    }
+
+    public long getPlayingTime() {
+        return mPlayingTime;
     }
 
     public boolean isPlayable() {
@@ -209,6 +227,36 @@ public class AvrcpItem {
                 + ", mType=" + mType + ", mDisplayableName=" + mDisplayableName
                 + ", mTitle=" + mTitle + ", mPlayable=" + mPlayable + ", mBrowsable="
                 + mBrowsable + ", mCoverArtHandle=" + getCoverArtHandle() + "}";
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+
+        if (!(o instanceof AvrcpItem)) {
+            return false;
+        }
+
+        AvrcpItem other = ((AvrcpItem) o);
+        return Objects.equals(mUuid, other.getUuid())
+                && Objects.equals(mDevice, other.getDevice())
+                && Objects.equals(mUid, other.getUid())
+                && Objects.equals(mItemType, other.getItemType())
+                && Objects.equals(mType, other.getType())
+                && Objects.equals(mTitle, other.getTitle())
+                && Objects.equals(mDisplayableName, other.getDisplayableName())
+                && Objects.equals(mArtistName, other.getArtistName())
+                && Objects.equals(mAlbumName, other.getAlbumName())
+                && Objects.equals(mTrackNumber, other.getTrackNumber())
+                && Objects.equals(mTotalNumberOfTracks, other.getTotalNumberOfTracks())
+                && Objects.equals(mGenre, other.getGenre())
+                && Objects.equals(mPlayingTime, other.getPlayingTime())
+                && Objects.equals(mCoverArtHandle, other.getCoverArtHandle())
+                && Objects.equals(mPlayable, other.isPlayable())
+                && Objects.equals(mBrowsable, other.isBrowsable())
+                && Objects.equals(mImageUri, other.getCoverArtLocation());
     }
 
     /**
