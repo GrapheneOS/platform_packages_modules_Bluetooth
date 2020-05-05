@@ -460,11 +460,25 @@ class AvrcpControllerStateMachine extends StateMachine {
                 case MESSAGE_PROCESS_ADDRESSED_PLAYER_CHANGED:
                     mAddressedPlayerId = msg.arg1;
                     logD("AddressedPlayer = " + mAddressedPlayerId);
+
+                    // The now playing list is tied to the addressed player by specification in
+                    // AVRCP 5.9.1. A new addressed player means our now playing content is now
+                    // invalid
+                    mBrowseTree.mNowPlayingNode.setCached(false);
+                    if (isActive()) {
+                        BluetoothMediaBrowserService.notifyChanged(mBrowseTree.mNowPlayingNode);
+                    }
+
                     AvrcpPlayer updatedPlayer = mAvailablePlayerList.get(mAddressedPlayerId);
                     if (updatedPlayer != null) {
                         mAddressedPlayer = updatedPlayer;
+                        // If the new player supports the now playing feature then fetch it
+                        if (mAddressedPlayer.supportsFeature(AvrcpPlayer.FEATURE_NOW_PLAYING)) {
+                            sendMessage(MESSAGE_GET_FOLDER_ITEMS, mBrowseTree.mNowPlayingNode);
+                        }
                         logD("AddressedPlayer = " + mAddressedPlayer.getName());
                     } else {
+                        logD("Addressed player changed to unknown ID=" + mAddressedPlayerId);
                         mBrowseTree.mRootNode.setCached(false);
                         mBrowseTree.mRootNode.setExpectedChildren(255);
                         BluetoothMediaBrowserService.notifyChanged(mBrowseTree.mRootNode);
