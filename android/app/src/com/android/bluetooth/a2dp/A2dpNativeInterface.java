@@ -21,6 +21,7 @@
  */
 package com.android.bluetooth.a2dp;
 
+import android.bluetooth.BluetoothA2dp;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothCodecConfig;
 import android.bluetooth.BluetoothCodecStatus;
@@ -201,6 +202,21 @@ public class A2dpNativeInterface {
             Log.d(TAG, "onCodecConfigChanged: " + event);
         }
         sendMessageToService(event);
+    }
+
+    private boolean isMandatoryCodecPreferred(byte[] address) {
+        A2dpService service = A2dpService.getA2dpService();
+        if (service != null) {
+            int enabled = service.getOptionalCodecsEnabled(getDevice(address));
+            if (DBG) {
+                Log.d(TAG, "isMandatoryCodecPreferred: optional preference " + enabled);
+            }
+            // Optional codecs are more preferred if possible
+            return enabled == BluetoothA2dp.OPTIONAL_CODECS_PREF_DISABLED;
+        } else {
+            Log.w(TAG, "isMandatoryCodecPreferred: service not available");
+            return false;
+        }
     }
 
     // Native methods that call into the JNI interface
