@@ -433,11 +433,29 @@ class AvrcpControllerStateMachine extends StateMachine {
 
                 case MESSAGE_PROCESS_PLAY_STATUS_CHANGED:
                     mAddressedPlayer.setPlayStatus(msg.arg1);
-                    BluetoothMediaBrowserService.notifyChanged(
-                            mAddressedPlayer.getPlaybackState());
-                    if (mAddressedPlayer.getPlaybackState().getState()
-                            == PlaybackStateCompat.STATE_PLAYING
-                            && A2dpSinkService.getFocusState() == AudioManager.AUDIOFOCUS_NONE) {
+                    if (!isActive()) {
+                        sendMessage(MSG_AVRCP_PASSTHRU,
+                                AvrcpControllerService.PASS_THRU_CMD_ID_PAUSE);
+                        return true;
+                    }
+
+                    PlaybackStateCompat playbackState = mAddressedPlayer.getPlaybackState();
+                    BluetoothMediaBrowserService.notifyChanged(playbackState);
+
+                    int focusState = AudioManager.ERROR;
+                    A2dpSinkService a2dpSinkService = A2dpSinkService.getA2dpSinkService();
+                    if (a2dpSinkService != null) {
+                        focusState = a2dpSinkService.getFocusState();
+                    }
+
+                    if (focusState == AudioManager.ERROR) {
+                        sendMessage(MSG_AVRCP_PASSTHRU,
+                                AvrcpControllerService.PASS_THRU_CMD_ID_PAUSE);
+                        return true;
+                    }
+
+                    if (playbackState.getState() == PlaybackStateCompat.STATE_PLAYING
+                            && focusState == AudioManager.AUDIOFOCUS_NONE) {
                         if (shouldRequestFocus()) {
                             mSessionCallbacks.onPrepare();
                         } else {

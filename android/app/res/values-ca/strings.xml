@@ -69,7 +69,6 @@
     <string name="upload_succ_ok" msgid="7705428476405478828">"D\'acord"</string>
     <string name="upload_fail_line1" msgid="7899394672421491701">"El fitxer no s\'ha enviat a \"<xliff:g id="RECIPIENT">%1$s</xliff:g>\"."</string>
     <string name="upload_fail_line1_2" msgid="2108129204050841798">"Fitxer: <xliff:g id="FILE">%1$s</xliff:g>"</string>
-    <string name="upload_fail_ok" msgid="5807702461606714296">"Torna-ho a provar"</string>
     <string name="upload_fail_cancel" msgid="9118496285835687125">"Tanca"</string>
     <string name="bt_error_btn_ok" msgid="5965151173011534240">"D\'acord"</string>
     <string name="unknown_file" msgid="6092727753965095366">"Fitxer desconegut"</string>

@@ -69,7 +69,6 @@
     <string name="upload_succ_ok" msgid="7705428476405478828">"OK"</string>
     <string name="upload_fail_line1" msgid="7899394672421491701">"Impossibile inviare il file a \"<xliff:g id="RECIPIENT">%1$s</xliff:g>\"."</string>
     <string name="upload_fail_line1_2" msgid="2108129204050841798">"File: <xliff:g id="FILE">%1$s</xliff:g>"</string>
-    <string name="upload_fail_ok" msgid="5807702461606714296">"Riprova"</string>
     <string name="upload_fail_cancel" msgid="9118496285835687125">"Chiudi"</string>
     <string name="bt_error_btn_ok" msgid="5965151173011534240">"OK"</string>
     <string name="unknown_file" msgid="6092727753965095366">"File sconosciuto"</string>
@@ -100,7 +99,7 @@
     <string name="status_connection_error" msgid="947681831523219891">"Connessione non riuscita."</string>
     <string name="status_protocol_error" msgid="3245444473429269539">"Impossibile gestire correttamente la richiesta."</string>
     <string name="status_unknown_error" msgid="8156660554237824912">"Errore sconosciuto."</string>
-    <string name="btopp_live_folder" msgid="7967791481444474554">"Ricezione Bluetooth avvenuta"</string>
+    <string name="btopp_live_folder" msgid="7967791481444474554">"Ricevuti tramite Bluetooth"</string>
     <string name="opp_notification_group" msgid="3486303082135789982">"Condivisione Bluetooth"</string>
     <string name="download_success" msgid="7036160438766730871">"Ricezione completata (<xliff:g id="FILE_SIZE">%1$s</xliff:g>)"</string>
     <string name="upload_success" msgid="4014469387779648949">"Invio completato (<xliff:g id="FILE_SIZE">%1$s</xliff:g>)"</string>

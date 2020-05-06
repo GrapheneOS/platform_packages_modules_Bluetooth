@@ -117,6 +117,14 @@ public class A2dpSinkStreamHandler extends Handler {
         mAudioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
     }
 
+    /**
+     * Safely clean up this stream handler object
+     */
+    public void cleanup() {
+        abandonAudioFocus();
+        removeCallbacksAndMessages(null);
+    }
+
     void requestAudioFocus(boolean request) {
         obtainMessage(REQUEST_FOCUS, request).sendToTarget();
     }
