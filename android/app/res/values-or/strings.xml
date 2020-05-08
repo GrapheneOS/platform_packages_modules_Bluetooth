@@ -29,7 +29,7 @@
     <string name="bt_enable_line1" msgid="7203551583048149">"ବ୍ଲୁଟୂଥ୍‍‌ ସେବା ବ୍ୟବହାର କରିବା ପାଇଁ, ଆପଣଙ୍କୁ ପ୍ରଥମେ ବ୍ଲୁଟୂଥ୍‍‌ ଅନ୍‌ କରିବାକୁ ପଡ଼ିବ।"</string>
     <string name="bt_enable_line2" msgid="4341936569415937994">"ବ୍ଲୁ-ଟୁଥ୍‌କୁ ଏବେ ଅନ୍‌ କରିବେ?"</string>
     <string name="bt_enable_cancel" msgid="1988832367505151727">"ବାତିଲ୍"</string>
-    <string name="bt_enable_ok" msgid="3432462749994538265">"ଅନ୍ କରନ୍ତୁ"</string>
+    <string name="bt_enable_ok" msgid="3432462749994538265">"ଚାଲୁ କରନ୍ତୁ"</string>
     <string name="incoming_file_confirm_title" msgid="8139874248612182627">"ଫାଇଲ୍‌ ଟ୍ରାନ୍ସଫର୍‌ କରନ୍ତୁ"</string>
     <string name="incoming_file_confirm_content" msgid="2752605552743148036">"ଆସୁଥିବା ଫାଇଲ୍‌କୁ ସ୍ୱୀକାର କରିବେ?"</string>
     <string name="incoming_file_confirm_cancel" msgid="2973321832477704805">"ଅସ୍ୱୀକାର"</string>
