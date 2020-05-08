@@ -830,6 +830,15 @@ public class AvrcpControllerService extends ProfileService {
             int label);
 
     /**
+     * Fetch the current track's metadata
+     *
+     * This method is specifically meant to allow us to fetch image handles that may not have been
+     * sent to us yet, prior to having a BIP client connection. See the AVRCP 1.6+ specification,
+     * section 4.1.7, for more details.
+     */
+    public native void getCurrentMetadataNative(byte[] address);
+
+    /**
      * Fetch the playback state
      */
     public native void getPlaybackStateNative(byte[] address);
