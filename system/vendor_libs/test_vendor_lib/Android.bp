@@ -146,10 +146,10 @@ cc_binary_host {
     ],
     shared_libs: [
         "liblog",
-        "libprotobuf-cpp-lite",
     ],
     static_libs: [
         "libbt-rootcanal-types",
+        "libprotobuf-cpp-lite",
         "libscriptedbeaconpayload-protos-lite",
         "libbt-rootcanal",
     ],
