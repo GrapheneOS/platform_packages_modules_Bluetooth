@@ -125,6 +125,7 @@ public class HeadsetStateMachine extends StateMachine {
     private final AudioConnecting mAudioConnecting = new AudioConnecting();
     private final AudioDisconnecting mAudioDisconnecting = new AudioDisconnecting();
     private HeadsetStateBase mPrevState;
+    private HeadsetStateBase mCurrentState;
 
     // Run time dependencies
     private final HeadsetService mHeadsetService;
@@ -222,7 +223,7 @@ public class HeadsetStateMachine extends StateMachine {
 
     public void dump(StringBuilder sb) {
         ProfileService.println(sb, "  mCurrentDevice: " + mDevice);
-        ProfileService.println(sb, "  mCurrentState: " + getCurrentState());
+        ProfileService.println(sb, "  mCurrentState: " + mCurrentState);
         ProfileService.println(sb, "  mPrevState: " + mPrevState);
         ProfileService.println(sb, "  mConnectionState: " + getConnectionState());
         ProfileService.println(sb, "  mAudioState: " + getAudioState());
@@ -253,6 +254,7 @@ public class HeadsetStateMachine extends StateMachine {
     private abstract class HeadsetStateBase extends State {
         @Override
         public void enter() {
+            mCurrentState = this;
             // Crash if mPrevState is null and state is not Disconnected
             if (!(this instanceof Disconnected) && mPrevState == null) {
                 throw new IllegalStateException("mPrevState is null on enter()");
@@ -1439,11 +1441,10 @@ public class HeadsetStateMachine extends StateMachine {
      */
     @VisibleForTesting
     public synchronized int getConnectionState() {
-        HeadsetStateBase state = (HeadsetStateBase) getCurrentState();
-        if (state == null) {
+        if (mCurrentState == null) {
             return BluetoothHeadset.STATE_DISCONNECTED;
         }
-        return state.getConnectionStateInt();
+        return mCurrentState.getConnectionStateInt();
     }
 
     /**
@@ -1454,11 +1455,10 @@ public class HeadsetStateMachine extends StateMachine {
      * {@link BluetoothHeadset#STATE_AUDIO_CONNECTED}
      */
     public synchronized int getAudioState() {
-        HeadsetStateBase state = (HeadsetStateBase) getCurrentState();
-        if (state == null) {
+        if (mCurrentState == null) {
             return BluetoothHeadset.STATE_AUDIO_DISCONNECTED;
         }
-        return state.getAudioStateInt();
+        return mCurrentState.getAudioStateInt();
     }
 
     public long getConnectingTimestampMs() {
@@ -1623,7 +1623,7 @@ public class HeadsetStateMachine extends StateMachine {
         }
         if (volumeType == HeadsetHalConstants.VOLUME_TYPE_SPK) {
             mSpeakerVolume = volume;
-            int flag = (getCurrentState() == mAudioOn) ? AudioManager.FLAG_SHOW_UI : 0;
+            int flag = (mCurrentState == mAudioOn) ? AudioManager.FLAG_SHOW_UI : 0;
             mSystemInterface.getAudioManager()
                     .setStreamVolume(AudioManager.STREAM_BLUETOOTH_SCO, volume, flag);
         } else if (volumeType == HeadsetHalConstants.VOLUME_TYPE_MIC) {
