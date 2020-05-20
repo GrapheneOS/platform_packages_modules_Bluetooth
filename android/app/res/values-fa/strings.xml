@@ -93,7 +93,7 @@
     <string name="status_not_accept" msgid="1695082417193780738">"محتوا پشتیبانی نمی‌شود."</string>
     <string name="status_forbidden" msgid="613956401054050725">"انتقال توسط دستگاه مقصد ممنوع شده است."</string>
     <string name="status_canceled" msgid="6664490318773098285">"انتقال توسط کاربر لغو شد."</string>
-    <string name="status_file_error" msgid="3671917770630165299">"مشکل ذخیره."</string>
+    <string name="status_file_error" msgid="3671917770630165299">"مشکل فضای ذخیره‌سازی."</string>
     <string name="status_no_sd_card_nosdcard" msgid="573631036356922221">"‏حافظهٔ USB وجود ندارد."</string>
     <string name="status_no_sd_card_default" msgid="396564893716701954">"‏هیچ کارت SD موجود نیست. برای ذخیره فایل‌های منتقل‌شده، کارت SD در گوشی قرار دهید."</string>
     <string name="status_connection_error" msgid="947681831523219891">"اتصال ناموفق بود."</string>
