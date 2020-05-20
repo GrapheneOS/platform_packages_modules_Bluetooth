@@ -16,7 +16,7 @@
 
 <resources xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-    <string name="permlab_bluetoothShareManager" msgid="311492132450338925">"Доступ да менеджэра спампоўванняў."</string>
+    <string name="permlab_bluetoothShareManager" msgid="311492132450338925">"Доступ да Менеджара спамповак."</string>
     <string name="permdesc_bluetoothShareManager" msgid="8930572979123190223">"Дазваляе прыкладанням атрымліваць доступ да менеджэра BluetoothShare і выкарыстоўваць яго для перадачы файлаў."</string>
     <string name="permlab_bluetoothWhitelist" msgid="7091552898592306386">"Даданне прылад Bluetooth у белы спiс."</string>
     <string name="permdesc_bluetoothWhitelist" msgid="5494513855192170109">"Дазваляе прыкладанням часова ўносiць у белы спіс прылады Bluetooth, дазваляючы iм адпраўляць файлы на гэту прыладу без пацверджання карыстальнiка."</string>
