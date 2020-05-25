@@ -214,14 +214,11 @@ final class BondStateMachine extends StateMachine {
                     }
                     sendIntent(dev, newState, reason);
                     if (newState != BluetoothDevice.BOND_BONDING) {
-                        /* this is either none/bonded, remove and transition */
-                        result = !mDevices.remove(dev);
+                        // This is either none/bonded, remove and transition, and also set
+                        // result=false to avoid adding the device to mDevices.
+                        mDevices.remove(dev);
+                        result = false;
                         if (mDevices.isEmpty()) {
-                            // Whenever mDevices is empty, then we need to
-                            // set result=false. Else, we will end up adding
-                            // the device to the list again. This prevents us
-                            // from pairing with a device that we just unpaired
-                            result = false;
                             transitionTo(mStableState);
                         }
                         if (newState == BluetoothDevice.BOND_NONE) {
@@ -297,7 +294,8 @@ final class BondStateMachine extends StateMachine {
     }
 
     private boolean removeBond(BluetoothDevice dev, boolean transition) {
-        if (dev.getBondState() == BluetoothDevice.BOND_BONDED) {
+        DeviceProperties devProp = mRemoteDevices.getDeviceProperties(dev);
+        if (devProp != null && devProp.getBondState() == BluetoothDevice.BOND_BONDED) {
             byte[] addr = Utils.getBytesFromAddress(dev.getAddress());
             if (!mAdapterService.removeBondNative(addr)) {
                 Log.e(TAG, "Unexpected error while removing bond:");
