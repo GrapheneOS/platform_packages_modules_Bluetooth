@@ -48,6 +48,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -103,6 +104,8 @@ public class BluetoothKeystoreService {
     private static final int CONFIG_BACKUP_COMPARE_PASS = 0b10;
     private int mCompareResult;
 
+    BluetoothKeystoreNativeInterface mBluetoothKeystoreNativeInterface;
+
     private ComputeDataThread mEncryptDataThread;
     private ComputeDataThread mDecryptDataThread;
     private Map<String, String> mNameEncryptKey = new HashMap<>();
@@ -143,6 +146,10 @@ public class BluetoothKeystoreService {
             reportKeystoreException(e, "cannot find the keystore");
             return;
         }
+
+        mBluetoothKeystoreNativeInterface = Objects.requireNonNull(
+                BluetoothKeystoreNativeInterface.getInstance(),
+                "BluetoothKeystoreNativeInterface cannot be null when BluetoothKeystore starts");
 
         // Mark service as started
         setBluetoothKeystoreService(this);
@@ -190,6 +197,10 @@ public class BluetoothKeystoreService {
 
         // Mark service as stopped
         setBluetoothKeystoreService(null);
+
+        // Cleanup native interface
+        mBluetoothKeystoreNativeInterface.cleanup();
+        mBluetoothKeystoreNativeInterface = null;
 
         if (mIsNiapMode) {
             cleanupForNiapModeEnable();
@@ -282,6 +293,15 @@ public class BluetoothKeystoreService {
 
     private boolean isFactoryReset() {
         return SystemProperties.getBoolean("persist.bluetooth.factoryreset", false);
+    }
+
+    /**
+     * Init JNI
+     */
+    public void initJni() {
+        debugLog("initJni()");
+        // Initialize native interface
+        mBluetoothKeystoreNativeInterface.init();
     }
 
     private boolean isAvailable() {
