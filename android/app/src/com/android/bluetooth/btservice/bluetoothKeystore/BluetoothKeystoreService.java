@@ -77,6 +77,7 @@ public class BluetoothKeystoreService {
     private static final int KEY_LENGTH = 256;
     private static final String KEYALIAS = "bluetooth-key-encrypted";
     private static final String KEY_STORE = "AndroidKeyStore";
+    private static final int TRY_MAX = 3;
 
     private static final String CONFIG_FILE_PREFIX = "bt_config-origin";
     private static final String CONFIG_BACKUP_PREFIX = "bt_config-backup";
@@ -137,13 +138,11 @@ public class BluetoothKeystoreService {
             return;
         }
 
-        try {
-            keyStore = AndroidKeyStoreProvider.getKeyStoreForUid(Process.BLUETOOTH_UID);
-        } catch (NoSuchProviderException e) {
-            reportKeystoreException(e, "cannot find crypto provider");
-            return;
-        } catch (KeyStoreException e) {
-            reportKeystoreException(e, "cannot find the keystore");
+        keyStore = getKeyStore();
+
+        // Confirm whether to enable NIAP for the first time.
+        if (keyStore == null) {
+            debugLog("cannot find the keystore.");
             return;
         }
 
@@ -547,7 +546,7 @@ public class BluetoothKeystoreService {
             return false;
         }
         String encryptedData = mNameEncryptKey.get(prefixString);
-        String decryptedData = decrypt(encryptedData);
+        String decryptedData = tryCompute(encryptedData, false);
         if (decryptedData == null) {
             errorLog("compareFileHash: decrypt encrypted hash data fail, prefix: " + prefixString);
             return false;
@@ -663,6 +662,26 @@ public class BluetoothKeystoreService {
         }
     }
 
+    // will retry TRY_MAX times.
+    private String tryCompute(String sourceData, boolean doEncrypt) {
+        int counter = 0;
+        String targetData = null;
+
+        if (sourceData == null) {
+            return null;
+        }
+
+        while (targetData == null && counter < TRY_MAX) {
+            if (doEncrypt) {
+                targetData = encrypt(sourceData);
+            } else {
+                targetData = decrypt(sourceData);
+            }
+            counter++;
+        }
+        return targetData;
+    }
+
     /**
      * Encrypt the provided data blob.
      *
@@ -761,10 +780,27 @@ public class BluetoothKeystoreService {
         return output;
     }
 
+    private KeyStore getKeyStore() {
+        KeyStore keyStore = null;
+        int counter = 0;
+
+        while ((counter <= TRY_MAX) && (keyStore == null)) {
+            try {
+                keyStore = AndroidKeyStoreProvider.getKeyStoreForUid(Process.BLUETOOTH_UID);
+            } catch (NoSuchProviderException e) {
+                reportKeystoreException(e, "cannot find crypto provider");
+            } catch (KeyStoreException e) {
+                reportKeystoreException(e, "cannot find the keystore");
+            }
+            counter++;
+        }
+        return keyStore;
+    }
+
     private SecretKey getOrCreateSecretKey() {
         SecretKey secretKey = null;
         try {
-            KeyStore keyStore = AndroidKeyStoreProvider.getKeyStoreForUid(Process.BLUETOOTH_UID);
+            KeyStore keyStore = getKeyStore();
             if (keyStore.containsAlias(KEYALIAS)) { // The key exists in key store. Get the key.
                 KeyStore.SecretKeyEntry secretKeyEntry = (KeyStore.SecretKeyEntry) keyStore
                         .getEntry(KEYALIAS, null);
@@ -867,11 +903,7 @@ public class BluetoothKeystoreService {
                     prefixString = mSourceQueue.take();
                     if (mSourceDataMap.containsKey(prefixString)) {
                         sourceData = mSourceDataMap.get(prefixString);
-                        if (mDoEncrypt) {
-                            targetData = encrypt(sourceData);
-                        } else {
-                            targetData = decrypt(sourceData);
-                        }
+                        targetData = tryCompute(sourceData, mDoEncrypt);
                         if (targetData != null) {
                             mTargetDataMap.put(prefixString, targetData);
                         } else {
