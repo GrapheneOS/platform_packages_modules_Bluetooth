@@ -551,14 +551,7 @@ public class A2dpService extends ProfileService {
             updateAndBroadcastActiveDevice(device);
             // Make sure the Audio Manager knows the previous Active device is disconnected,
             // and the new Active device is connected.
-            // Also, mute and unmute the output during the switch to avoid audio glitches.
-            boolean wasMuted = false;
             if (previousActiveDevice != null) {
-                if (!mAudioManager.isStreamMute(AudioManager.STREAM_MUSIC)) {
-                    mAudioManager.adjustStreamVolume(AudioManager.STREAM_MUSIC,
-                            AudioManager.ADJUST_MUTE, AudioManager.FLAG_BLUETOOTH_ABS_VOLUME);
-                    wasMuted = true;
-                }
                 mAudioManager.setBluetoothA2dpDeviceConnectionStateSuppressNoisyIntent(
                         previousActiveDevice, BluetoothProfile.STATE_DISCONNECTED,
                         BluetoothProfile.A2DP, true, -1);
@@ -594,10 +587,6 @@ public class A2dpService extends ProfileService {
             // change, so the Audio Service can reset accordingly the audio
             // feeding parameters in the Audio HAL to the Bluetooth stack.
             mAudioManager.handleBluetoothA2dpDeviceConfigChange(newActiveDevice);
-            if (wasMuted) {
-                mAudioManager.adjustStreamVolume(AudioManager.STREAM_MUSIC,
-                        AudioManager.ADJUST_UNMUTE, AudioManager.FLAG_BLUETOOTH_ABS_VOLUME);
-            }
         }
         return true;
     }
