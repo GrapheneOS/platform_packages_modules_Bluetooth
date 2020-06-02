@@ -704,8 +704,11 @@ class AvrcpControllerStateMachine extends StateMachine {
                             + " received " + folderList.size());
 
                     // Queue up image download if the item has an image and we don't have it yet
-                    for (AvrcpItem track : folderList) {
-                        downloadImageIfNeeded(track);
+                    // Only do this if the feature is enabled.
+                    if (shouldDownloadBrowsedImages()) {
+                        for (AvrcpItem track : folderList) {
+                            downloadImageIfNeeded(track);
+                        }
                     }
 
                     // Always update the node so that the user does not wait forever
@@ -972,6 +975,11 @@ class AvrcpControllerStateMachine extends StateMachine {
         int currIndex = mAudioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
         int newIndex = (currIndex * ABS_VOL_BASE) / maxVolume;
         return newIndex;
+    }
+
+    private boolean shouldDownloadBrowsedImages() {
+        return mService.getResources()
+                .getBoolean(R.bool.avrcp_controller_cover_art_browsed_images);
     }
 
     private void downloadImageIfNeeded(AvrcpItem track) {
