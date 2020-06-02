@@ -1457,7 +1457,7 @@ public class AdapterService extends Service {
                 return false;
             }
 
-            enforceBluetoothPrivilegedPermission(service);
+            enforceBluetoothAdminPermission(service);
 
             DeviceProperties deviceProp = service.mRemoteDevices.getDeviceProperties(device);
             if (deviceProp == null || deviceProp.getBondState() != BluetoothDevice.BOND_BONDED) {
