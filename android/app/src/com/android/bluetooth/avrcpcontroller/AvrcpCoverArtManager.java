@@ -22,8 +22,6 @@ import android.net.Uri;
 import android.os.SystemProperties;
 import android.util.Log;
 
-import com.android.bluetooth.Utils;
-
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -284,8 +282,8 @@ public class AvrcpCoverArtManager {
                 mCoverArtStorage.removeImagesForDevice(mDevice);
 
                 // Once we're connected fetch the current metadata again in case the target has an
-                // image handle they can now give us
-                mService.getCurrentMetadataNative(Utils.getByteAddress(mDevice));
+                // image handle they can now give us. Only do this if we don't already have one.
+                mService.getCurrentMetadataIfNoCoverArt(mDevice);
             } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
                 AvrcpBipClient client = getClient(mDevice);
                 boolean shouldReconnect = (client != null);
