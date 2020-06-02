@@ -208,6 +208,13 @@ class AvrcpControllerStateMachine extends StateMachine {
     }
 
     /**
+     * Get the current playing track
+     */
+    public AvrcpItem getCurrentTrack() {
+        return mAddressedPlayer.getCurrentTrack();
+    }
+
+    /**
      * Dump the current State Machine to the string builder.
      *
      * @param sb output string
