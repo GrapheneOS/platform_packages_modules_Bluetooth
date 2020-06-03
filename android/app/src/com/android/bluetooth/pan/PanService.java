@@ -16,6 +16,8 @@
 
 package com.android.bluetooth.pan;
 
+import static android.Manifest.permission.TETHER_PRIVILEGED;
+
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothPan;
 import android.bluetooth.BluetoothPan.LocalPanRole;
@@ -396,9 +398,8 @@ public class PanService extends ProfileService {
         }
         enforceCallingOrSelfPermission(
                 BLUETOOTH_PRIVILEGED, "Need BLUETOOTH_PRIVILEGED permission");
-        final Context context = getBaseContext();
-
-        ConnectivityManager.enforceTetherChangePermission(context, pkgName);
+        enforceCallingOrSelfPermission(
+                TETHER_PRIVILEGED, "Need TETHER_PRIVILEGED permission");
 
         UserManager um = (UserManager) getSystemService(Context.USER_SERVICE);
         if (um.hasUserRestriction(UserManager.DISALLOW_CONFIG_TETHERING) && value) {
