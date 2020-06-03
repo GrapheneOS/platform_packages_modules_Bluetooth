@@ -560,13 +560,13 @@ class AvrcpControllerStateMachine extends StateMachine {
                 case MESSAGE_PROCESS_IMAGE_DOWNLOADED:
                     AvrcpCoverArtManager.DownloadEvent event =
                             (AvrcpCoverArtManager.DownloadEvent) msg.obj;
-                    String handle = event.getHandle();
+                    String uuid = event.getUuid();
                     Uri uri = event.getUri();
-                    logD("Received image for " + handle + " at " + uri.toString());
+                    logD("Received image for " + uuid + " at " + uri.toString());
 
                     // Let the addressed player know we got an image so it can see if the current
                     // track now has cover artwork
-                    boolean addedArtwork = mAddressedPlayer.notifyImageDownload(handle, uri);
+                    boolean addedArtwork = mAddressedPlayer.notifyImageDownload(uuid, uri);
                     if (addedArtwork && isActive()) {
                         BluetoothMediaBrowserService.trackChanged(
                                 mAddressedPlayer.getCurrentTrack());
@@ -574,7 +574,7 @@ class AvrcpControllerStateMachine extends StateMachine {
 
                     // Let the browse tree know of the newly downloaded image so it can attach it to
                     // all the items that need it. Notify of changed nodes accordingly
-                    Set<BrowseTree.BrowseNode> nodes = mBrowseTree.notifyImageDownload(handle, uri);
+                    Set<BrowseTree.BrowseNode> nodes = mBrowseTree.notifyImageDownload(uuid, uri);
                     for (BrowseTree.BrowseNode node : nodes) {
                         notifyChanged(node);
                     }
@@ -705,9 +705,11 @@ class AvrcpControllerStateMachine extends StateMachine {
 
                     // Queue up image download if the item has an image and we don't have it yet
                     // Only do this if the feature is enabled.
-                    if (shouldDownloadBrowsedImages()) {
-                        for (AvrcpItem track : folderList) {
+                    for (AvrcpItem track : folderList) {
+                        if (shouldDownloadBrowsedImages()) {
                             downloadImageIfNeeded(track);
+                        } else {
+                            track.setCoverArtUuid(null);
                         }
                     }
 
@@ -984,14 +986,14 @@ class AvrcpControllerStateMachine extends StateMachine {
 
     private void downloadImageIfNeeded(AvrcpItem track) {
         if (mCoverArtManager == null) return;
-        String handle = track.getCoverArtHandle();
+        String uuid = track.getCoverArtUuid();
         Uri imageUri = null;
-        if (handle != null) {
-            imageUri = mCoverArtManager.getImageUri(mDevice, handle);
+        if (uuid != null) {
+            imageUri = mCoverArtManager.getImageUri(mDevice, uuid);
             if (imageUri != null) {
                 track.setCoverArtLocation(imageUri);
             } else {
-                mCoverArtManager.downloadImage(mDevice, handle);
+                mCoverArtManager.downloadImage(mDevice, uuid);
             }
         }
     }
