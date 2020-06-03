@@ -111,12 +111,12 @@
     <string name="outbound_noti_title" msgid="8051906709452260849">"Bluetooth: archivos enviados"</string>
     <string name="inbound_noti_title" msgid="4143352641953027595">"Bluetooth: archivos recibidos"</string>
     <plurals name="noti_caption_unsuccessful" formatted="false" msgid="2020750076679526122">
-      <item quantity="other"><xliff:g id="UNSUCCESSFUL_NUMBER_1">%1$d</xliff:g> incompletos</item>
-      <item quantity="one"><xliff:g id="UNSUCCESSFUL_NUMBER_0">%1$d</xliff:g> incompleto </item>
+      <item quantity="other"><xliff:g id="UNSUCCESSFUL_NUMBER_1">%1$d</xliff:g> con error</item>
+      <item quantity="one"><xliff:g id="UNSUCCESSFUL_NUMBER_0">%1$d</xliff:g> con error</item>
     </plurals>
     <plurals name="noti_caption_success" formatted="false" msgid="1572472450257645181">
-      <item quantity="other"><xliff:g id="SUCCESSFUL_NUMBER_1">%1$d</xliff:g> completos, %2$s</item>
-      <item quantity="one"><xliff:g id="SUCCESSFUL_NUMBER_0">%1$d</xliff:g> completo, %2$s</item>
+      <item quantity="other"><xliff:g id="SUCCESSFUL_NUMBER_1">%1$d</xliff:g> correctos, %2$s</item>
+      <item quantity="one"><xliff:g id="SUCCESSFUL_NUMBER_0">%1$d</xliff:g> correcto, %2$s</item>
     </plurals>
     <string name="transfer_menu_clear_all" msgid="790017462957873132">"Eliminar lista"</string>
     <string name="transfer_menu_open" msgid="3368984869083107200">"Abrir"</string>
@@ -134,5 +134,4 @@
     <string name="bluetooth_disconnected" msgid="3318303728981478873">"Audio Bluetooth desconectado"</string>
     <string name="a2dp_sink_mbs_label" msgid="7566075853395412558">"Audio Bluetooth"</string>
     <string name="bluetooth_opp_file_limit_exceeded" msgid="8894450394309084519">"No se pueden transferir los archivos de más de 4 GB"</string>
-    <string name="bluetooth_connect_action" msgid="4009848433321657090">"Conectarse a Bluetooth"</string>
 </resources>

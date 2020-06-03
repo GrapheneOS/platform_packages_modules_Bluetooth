@@ -17,9 +17,9 @@
 <resources xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="permlab_bluetoothShareManager" msgid="311492132450338925">"பதிவிறக்க நிர்வாகியை அணுகவும்."</string>
-    <string name="permdesc_bluetoothShareManager" msgid="8930572979123190223">"BluetoothShare நிர்வாகியை அணுகுவதற்குப் ஆப்ஸை அனுமதித்து,  கோப்புகளைப் பரிமாற்ற அதைப் பயன்படுத்துகிறது."</string>
+    <string name="permdesc_bluetoothShareManager" msgid="8930572979123190223">"BluetoothShare நிர்வாகியை அணுகுவதற்குப் பயன்பாட்டை அனுமதித்து,  கோப்புகளைப் பரிமாற்ற அதைப் பயன்படுத்துகிறது."</string>
     <string name="permlab_bluetoothWhitelist" msgid="7091552898592306386">"ஏற்புபட்டியல் புளூடூத் சாதன அணுகல்."</string>
-    <string name="permdesc_bluetoothWhitelist" msgid="5494513855192170109">"புளூடூத் சாதனத்தைத் தற்காலிகமாக ஏற்புபட்டியலில் சேர்க்க ஆப்ஸை அனுமதிக்கிறது, பயனரின் உறுதிபடுத்தலின்றி கோப்புகளை இந்தச் சாதனத்திற்கு அனுப்ப அதை அனுமதிக்கிறது."</string>
+    <string name="permdesc_bluetoothWhitelist" msgid="5494513855192170109">"புளூடூத் சாதனத்தைத் தற்காலிகமாக ஏற்புபட்டியலில் சேர்க்க பயன்பாட்டை அனுமதிக்கிறது, பயனரின் உறுதிபடுத்தலின்றி கோப்புகளை இந்தச் சாதனத்திற்கு அனுப்ப அதை அனுமதிக்கிறது."</string>
     <string name="bt_share_picker_label" msgid="6268100924487046932">"புளூடூத்"</string>
     <string name="unknown_device" msgid="9221903979877041009">"அறியப்படாத சாதனம்"</string>
     <string name="unknownNumber" msgid="4994750948072751566">"அறியப்படாதது"</string>
@@ -127,12 +127,11 @@
     <string name="bluetooth_map_settings_cancel" msgid="9205350798049865699">"ரத்துசெய்"</string>
     <string name="bluetooth_map_settings_intro" msgid="6482369468223987562">"புளூடூத் வழியாகப் பகிர விரும்பும் கணக்குகளைத் தேர்ந்தெடுக்கவும். இணைக்கும் போது கணக்குகளுக்கான அணுகலை மீண்டும் ஏற்க வேண்டும்."</string>
     <string name="bluetooth_map_settings_count" msgid="4557473074937024833">"மீதமுள்ள ஸ்லாட்கள்:"</string>
-    <string name="bluetooth_map_settings_app_icon" msgid="7105805610929114707">"ஆப்ஸ் ஐகான்"</string>
+    <string name="bluetooth_map_settings_app_icon" msgid="7105805610929114707">"பயன்பாட்டு ஐகான்"</string>
     <string name="bluetooth_map_settings_title" msgid="7420332483392851321">"புளூடூத் செய்தி பகிர்தல் அமைப்புகள்"</string>
     <string name="bluetooth_map_settings_no_account_slots_left" msgid="1796029082612965251">"கணக்கைத் தேர்வுசெய்ய முடியாது. ஸ்லாட்கள் எதுவுமில்லை"</string>
     <string name="bluetooth_connected" msgid="6718623220072656906">"புளூடூத் ஆடியோ இணைக்கப்பட்டது"</string>
     <string name="bluetooth_disconnected" msgid="3318303728981478873">"புளூடூத் ஆடியோ துண்டிக்கப்பட்டது"</string>
     <string name="a2dp_sink_mbs_label" msgid="7566075853395412558">"புளூடூத் ஆடியோ"</string>
     <string name="bluetooth_opp_file_limit_exceeded" msgid="8894450394309084519">"4ஜி.பை.க்கு மேலிருக்கும் ஃபைல்களை இடமாற்ற முடியாது"</string>
-    <string name="bluetooth_connect_action" msgid="4009848433321657090">"புளூடூத் உடன் இணை"</string>
 </resources>
