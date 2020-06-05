@@ -69,6 +69,7 @@ import android.os.SystemClock;
 import android.os.SystemProperties;
 import android.os.UserHandle;
 import android.os.UserManager;
+import android.provider.DeviceConfig;
 import android.provider.Settings;
 import android.text.TextUtils;
 import android.util.Base64;
@@ -439,7 +440,7 @@ public class AdapterService extends Service {
         mBluetoothKeystoreService = new BluetoothKeystoreService(isNiapMode());
         mBluetoothKeystoreService.start();
         int configCompareResult = mBluetoothKeystoreService.getCompareResult();
-        initNative(isGuest(), isNiapMode(), configCompareResult);
+        initNative(isGuest(), isNiapMode(), configCompareResult, getInitFlags());
         mNativeAvailable = true;
         mCallbacks = new RemoteCallbackList<IBluetoothCallback>();
         mAppOps = getSystemService(AppOpsManager.class);
@@ -3009,6 +3010,15 @@ public class AdapterService extends Service {
         return Settings.Global.getInt(getContentResolver(), "niap_mode", 0) == 1;
     }
 
+    private static final String GD_CORE_FLAG = "INIT_gd_core";
+    private String[] getInitFlags() {
+        ArrayList<String> initFlags = new ArrayList<>();
+        if (DeviceConfig.getBoolean(DeviceConfig.NAMESPACE_BLUETOOTH, GD_CORE_FLAG, false)) {
+            initFlags.add(GD_CORE_FLAG);
+        }
+        return initFlags.toArray(new String[0]);
+    }
+
     /**
      *  Obfuscate Bluetooth MAC address into a PII free ID string
      *
@@ -3038,8 +3048,8 @@ public class AdapterService extends Service {
 
     static native void classInitNative();
 
-    native boolean initNative(boolean startRestricted, boolean isNiapMode,
-            int configCompareResult);
+    native boolean initNative(boolean startRestricted, boolean isNiapMode, int configCompareResult,
+            String[] initFlags);
 
     native void cleanupNative();
 
