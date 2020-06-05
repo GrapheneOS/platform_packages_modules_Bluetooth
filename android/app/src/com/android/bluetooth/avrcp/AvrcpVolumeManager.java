@@ -135,7 +135,7 @@ class AvrcpVolumeManager extends AudioDeviceCallback {
     }
 
     synchronized void storeVolumeForDevice(@NonNull BluetoothDevice device) {
-        int storeVolume =  mAudioManager.getStreamVolume(STREAM_MUSIC);
+        int storeVolume =  mAudioManager.getLastAudibleStreamVolume(STREAM_MUSIC);
         storeVolumeForDevice(device, storeVolume);
     }
 
