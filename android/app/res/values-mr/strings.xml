@@ -16,9 +16,9 @@
 
 <resources xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-    <string name="permlab_bluetoothShareManager" msgid="311492132450338925">"डाउनलोड व्यवस्थापक अ‍ॅक्सेस करा."</string>
+    <string name="permlab_bluetoothShareManager" msgid="311492132450338925">"डाउनलोड व्यवस्थापक अॅक्सेस करा."</string>
     <string name="permdesc_bluetoothShareManager" msgid="8930572979123190223">"अ‍ॅपला BluetoothShare व्‍यवस्‍थापकामध्‍ये प्रवेश करण्‍याची आणि फायली स्‍थानांतरित करण्‍यासाठी त्याचा वापर करण्‍याची अनुमती देते."</string>
-    <string name="permlab_bluetoothWhitelist" msgid="7091552898592306386">"व्हाइटलिस्ट ब्लूटूथ डिव्हाइस अ‍ॅक्सेस."</string>
+    <string name="permlab_bluetoothWhitelist" msgid="7091552898592306386">"व्हाइटलिस्ट ब्लूटूथ डिव्हाइस अॅक्सेस."</string>
     <string name="permdesc_bluetoothWhitelist" msgid="5494513855192170109">"डीव्‍हाइसला वापरकर्ता पुष्‍टीशिवाय या डीव्हाइसवर फायली पाठविण्‍याची अनुमती देऊन ब्लूटूथ डीव्हाइसला तात्पुरते व्हाइटलिस्ट करण्‍याची अ‍ॅपला अनुमती देते."</string>
     <string name="bt_share_picker_label" msgid="6268100924487046932">"ब्लूटूथ"</string>
     <string name="unknown_device" msgid="9221903979877041009">"अज्ञात डिव्हाइस"</string>
@@ -106,17 +106,17 @@
     <string name="upload_success" msgid="4014469387779648949">"<xliff:g id="FILE_SIZE">%1$s</xliff:g> पाठविणे पूर्ण."</string>
     <string name="inbound_history_title" msgid="6940914942271327563">"इनबाउंड स्‍थानांतरणे"</string>
     <string name="outbound_history_title" msgid="4279418703178140526">"आउटबाउंड स्‍थानांतरणे"</string>
-    <string name="no_transfers" msgid="3482965619151865672">"ट्रान्सफर इतिहास रिक्त आहे."</string>
+    <string name="no_transfers" msgid="3482965619151865672">"ट्रांसफर इतिहास रिक्त आहे."</string>
     <string name="transfer_clear_dlg_msg" msgid="1712376797268438075">"सूचीमधून सर्व आयटम साफ केले जातील."</string>
     <string name="outbound_noti_title" msgid="8051906709452260849">"ब्लूटूथ शेअर: पाठवलेल्या फायली"</string>
     <string name="inbound_noti_title" msgid="4143352641953027595">"ब्लूटूथ शेअर: मिळवलेल्‍या फायली"</string>
     <plurals name="noti_caption_unsuccessful" formatted="false" msgid="2020750076679526122">
+      <item quantity="one"><xliff:g id="UNSUCCESSFUL_NUMBER_1">%1$d</xliff:g> अयशस्वी झाले.</item>
       <item quantity="other"><xliff:g id="UNSUCCESSFUL_NUMBER_1">%1$d</xliff:g> अयशस्वी झाले.</item>
-      <item quantity="one"><xliff:g id="UNSUCCESSFUL_NUMBER_0">%1$d</xliff:g> अयशस्वी झाले.</item>
     </plurals>
     <plurals name="noti_caption_success" formatted="false" msgid="1572472450257645181">
+      <item quantity="one"><xliff:g id="SUCCESSFUL_NUMBER_1">%1$d</xliff:g> यशस्वी झाले, %2$s</item>
       <item quantity="other"><xliff:g id="SUCCESSFUL_NUMBER_1">%1$d</xliff:g> यशस्वी झाले, %2$s</item>
-      <item quantity="one"><xliff:g id="SUCCESSFUL_NUMBER_0">%1$d</xliff:g> यशस्वी झाले, %2$s</item>
     </plurals>
     <string name="transfer_menu_clear_all" msgid="790017462957873132">"सूची साफ करा"</string>
     <string name="transfer_menu_open" msgid="3368984869083107200">"उघडा"</string>
@@ -125,14 +125,13 @@
     <string name="bluetooth_a2dp_sink_queue_name" msgid="6864149958708669766">"आता प्ले करत आहे"</string>
     <string name="bluetooth_map_settings_save" msgid="7635491847388074606">"सेव्ह करा"</string>
     <string name="bluetooth_map_settings_cancel" msgid="9205350798049865699">"रद्द करा"</string>
-    <string name="bluetooth_map_settings_intro" msgid="6482369468223987562">"तुम्ही ब्लूटूथद्वारे शेअर करू इच्छित असलेली खाती निवडा. कनेक्ट करताना अद्याप तुम्ही खात्यांमधील कोणताही अ‍ॅक्सेस स्वीकारण्याची आवश्यकता आहे."</string>
+    <string name="bluetooth_map_settings_intro" msgid="6482369468223987562">"तुम्ही ब्लूटूथद्वारे शेअर करू इच्छित असलेली खाती निवडा. कनेक्ट करताना अद्याप तुम्ही खात्यांमधील कोणताही अॅक्सेस स्वीकारण्याची आवश्यकता आहे."</string>
     <string name="bluetooth_map_settings_count" msgid="4557473074937024833">"स्लॉट शिल्लक:"</string>
-    <string name="bluetooth_map_settings_app_icon" msgid="7105805610929114707">"ॲप्लिकेशन आयकन"</string>
+    <string name="bluetooth_map_settings_app_icon" msgid="7105805610929114707">"अॅप्लिकेशन आयकन"</string>
     <string name="bluetooth_map_settings_title" msgid="7420332483392851321">"ब्लूटूथ मेसेज सामायिकरण सेटिंग्ज"</string>
     <string name="bluetooth_map_settings_no_account_slots_left" msgid="1796029082612965251">"खाते निवडू शकत नाही. 0 स्लॉट शिल्लक"</string>
     <string name="bluetooth_connected" msgid="6718623220072656906">"ब्लूटूथ ऑडिओ कनेक्ट केला"</string>
     <string name="bluetooth_disconnected" msgid="3318303728981478873">"ब्लूटूथ ऑडिओ डिस्कनेक्ट केला"</string>
     <string name="a2dp_sink_mbs_label" msgid="7566075853395412558">"ब्लूटूथ ऑडिओ"</string>
-    <string name="bluetooth_opp_file_limit_exceeded" msgid="8894450394309084519">"4 GB हून मोठ्या फायली ट्रान्सफर करता येणार नाहीत"</string>
-    <string name="bluetooth_connect_action" msgid="4009848433321657090">"ब्लूटूथशी कनेक्ट करा"</string>
+    <string name="bluetooth_opp_file_limit_exceeded" msgid="8894450394309084519">"4 GB हून मोठ्या फायली ट्रांसफर करता येणार नाहीत"</string>
 </resources>
