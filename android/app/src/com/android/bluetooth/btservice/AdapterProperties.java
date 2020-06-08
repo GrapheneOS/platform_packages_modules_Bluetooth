@@ -238,12 +238,14 @@ class AdapterProperties {
         mBondedDevices.clear();
         invalidateBluetoothCaches();
     }
-
     private static void invalidateGetProfileConnectionStateCache() {
         BluetoothAdapter.invalidateGetProfileConnectionStateCache();
     }
     private static void invalidateIsOffloadedFilteringSupportedCache() {
         BluetoothAdapter.invalidateIsOffloadedFilteringSupportedCache();
+    }
+    private static void invalidateGetConnectionStateCache() {
+        BluetoothAdapter.invalidateGetAdapterConnectionStateCache();
     }
     private static void invalidateGetBondStateCache() {
         BluetoothDevice.invalidateBluetoothGetBondStateCache();
@@ -251,6 +253,7 @@ class AdapterProperties {
     private static void invalidateBluetoothCaches() {
         invalidateGetProfileConnectionStateCache();
         invalidateIsOffloadedFilteringSupportedCache();
+        invalidateGetConnectionStateCache();
         invalidateGetBondStateCache();
     }
 
@@ -390,6 +393,7 @@ class AdapterProperties {
      */
     void setConnectionState(int connectionState) {
         mConnectionState = connectionState;
+        invalidateGetConnectionStateCache();
     }
 
     /**
