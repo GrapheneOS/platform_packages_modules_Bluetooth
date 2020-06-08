@@ -809,6 +809,7 @@ public class AdapterService extends Service {
         BluetoothAdapter.invalidateIsOffloadedFilteringSupportedCache();
         BluetoothDevice.invalidateBluetoothGetBondStateCache();
         BluetoothAdapter.invalidateBluetoothGetStateCache();
+        BluetoothAdapter.invalidateGetAdapterConnectionStateCache();
     }
 
     private void setProfileServiceState(Class service, int state) {
