@@ -334,8 +334,9 @@ public final class Utils {
     public static boolean checkCaller() {
         int callingUser = UserHandle.getCallingUserId();
         int callingUid = Binder.getCallingUid();
-        return (sForegroundUserId == callingUser) || (sSystemUiUid == callingUid)
-                || (Process.SYSTEM_UID == callingUid);
+        return (sForegroundUserId == callingUser)
+                || (UserHandle.getAppId(sSystemUiUid) == UserHandle.getAppId(callingUid))
+                || (UserHandle.getAppId(Process.SYSTEM_UID) == UserHandle.getAppId(callingUid));
     }
 
     public static boolean checkCallerAllowManagedProfiles(Context mContext) {
@@ -354,7 +355,8 @@ public final class Utils {
 
             // Always allow SystemUI/System access.
             return (sForegroundUserId == callingUser) || (sForegroundUserId == parentUser)
-                    || (sSystemUiUid == callingUid) || (Process.SYSTEM_UID == callingUid);
+                    || (UserHandle.getAppId(sSystemUiUid) == UserHandle.getAppId(callingUid))
+                    || (UserHandle.getAppId(Process.SYSTEM_UID) == UserHandle.getAppId(callingUid));
         } catch (Exception ex) {
             Log.e(TAG, "checkCallerAllowManagedProfiles: Exception ex=" + ex);
             return false;
