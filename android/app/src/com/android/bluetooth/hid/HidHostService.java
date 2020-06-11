@@ -38,12 +38,14 @@ import com.android.bluetooth.Utils;
 import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.MetricsLogger;
 import com.android.bluetooth.btservice.ProfileService;
+import com.android.bluetooth.btservice.storage.DatabaseManager;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * Provides Bluetooth Hid Host profile, as a service in
@@ -58,6 +60,8 @@ public class HidHostService extends ProfileService {
     private boolean mNativeAvailable;
     private static HidHostService sHidHostService;
     private BluetoothDevice mTargetDevice = null;
+
+    private DatabaseManager mDatabaseManager;
 
     private static final int MESSAGE_CONNECT = 1;
     private static final int MESSAGE_DISCONNECT = 2;
@@ -87,6 +91,9 @@ public class HidHostService extends ProfileService {
 
     @Override
     protected boolean start() {
+        mDatabaseManager = Objects.requireNonNull(AdapterService.getAdapterService().getDatabase(),
+                "DatabaseManager cannot be null when HidHostService starts");
+
         mInputDevices = Collections.synchronizedMap(new HashMap<BluetoothDevice, Integer>());
         initializeNative();
         mNativeAvailable = true;
@@ -579,8 +586,11 @@ public class HidHostService extends ProfileService {
         if (DBG) {
             Log.d(TAG, "setConnectionPolicy: " + device.getAddress());
         }
-        AdapterService.getAdapterService().getDatabase()
-                .setProfileConnectionPolicy(device, BluetoothProfile.HID_HOST, connectionPolicy);
+
+        if (!mDatabaseManager.setProfileConnectionPolicy(device, BluetoothProfile.HID_HOST,
+                  connectionPolicy)) {
+            return false;
+        }
         if (DBG) {
             Log.d(TAG, "Saved connectionPolicy " + device + " = " + connectionPolicy);
         }
@@ -608,7 +618,7 @@ public class HidHostService extends ProfileService {
         if (DBG) {
             Log.d(TAG, "getConnectionPolicy: " + device.getAddress());
         }
-        return AdapterService.getAdapterService().getDatabase()
+        return mDatabaseManager
                 .getProfileConnectionPolicy(device, BluetoothProfile.HID_HOST);
     }
 
