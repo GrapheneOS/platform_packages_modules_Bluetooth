@@ -91,7 +91,6 @@ void BTM_SecAddBleDevice(const RawAddress& bd_addr, tBT_DEVICE_TYPE dev_type,
   p_dev_rec->device_type |= dev_type;
   p_dev_rec->ble.ble_addr_type = addr_type;
 
-  p_dev_rec->ble.pseudo_addr = bd_addr;
   /* sync up with the Inq Data base*/
   tBTM_INQ_INFO* p_info = BTM_InqDbRead(bd_addr);
   if (p_info) {
