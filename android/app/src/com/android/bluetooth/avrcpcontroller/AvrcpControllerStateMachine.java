@@ -296,6 +296,8 @@ class AvrcpControllerStateMachine extends StateMachine {
     synchronized void onBrowsingDisconnected() {
         if (!mBrowsingConnected) return;
         mAddressedPlayer.setPlayStatus(PlaybackStateCompat.STATE_ERROR);
+        AvrcpItem previousTrack = mAddressedPlayer.getCurrentTrack();
+        String previousTrackUuid = previousTrack != null ? previousTrack.getCoverArtUuid() : null;
         mAddressedPlayer.updateCurrentTrack(null);
         mBrowseTree.mNowPlayingNode.setCached(false);
         if (isActive()) {
@@ -305,6 +307,8 @@ class AvrcpControllerStateMachine extends StateMachine {
                 mBrowseTree.mRootNode);
         BluetoothMediaBrowserService.notifyChanged(mService
                 .sBrowseTree.mRootNode);
+        removeUnusedArtwork(previousTrackUuid);
+        removeUnusedArtworkFromBrowseTree();
         mBrowsingConnected = false;
     }
 
@@ -330,6 +334,40 @@ class AvrcpControllerStateMachine extends StateMachine {
         if (mCoverArtManager != null) {
             logD("Disconnect BIP cover artwork");
             mCoverArtManager.disconnect(mDevice);
+        }
+    }
+
+    /**
+     * Remove an unused cover art image from storage if it's unused by the browse tree and the
+     * current track.
+     */
+    synchronized void removeUnusedArtwork(String previousTrackUuid) {
+        logD("removeUnusedArtwork(" + previousTrackUuid + ")");
+        if (mCoverArtManager == null) return;
+        AvrcpItem currentTrack = getCurrentTrack();
+        String currentTrackUuid = currentTrack != null ? currentTrack.getCoverArtUuid() : null;
+        if (previousTrackUuid != null) {
+            if (!previousTrackUuid.equals(currentTrackUuid)
+                    && mBrowseTree.getNodesUsingCoverArt(previousTrackUuid).isEmpty()) {
+                mCoverArtManager.removeImage(mDevice, previousTrackUuid);
+            }
+        }
+    }
+
+    /**
+     * Queries the browse tree for unused uuids and removes the associated images from storage
+     * if the uuid is not used by the current track.
+     */
+    synchronized void removeUnusedArtworkFromBrowseTree() {
+        logD("removeUnusedArtworkFromBrowseTree()");
+        if (mCoverArtManager == null) return;
+        AvrcpItem currentTrack = getCurrentTrack();
+        String currentTrackUuid = currentTrack != null ? currentTrack.getCoverArtUuid() : null;
+        ArrayList<String> unusedArtwork = mBrowseTree.getAndClearUnusedCoverArt();
+        for (String uuid : unusedArtwork) {
+            if (!uuid.equals(currentTrackUuid)) {
+                mCoverArtManager.removeImage(mDevice, uuid);
+            }
         }
     }
 
@@ -361,6 +399,7 @@ class AvrcpControllerStateMachine extends StateMachine {
 
     void nowPlayingContentChanged() {
         mBrowseTree.mNowPlayingNode.setCached(false);
+        removeUnusedArtworkFromBrowseTree();
         sendMessage(MESSAGE_GET_FOLDER_ITEMS, mBrowseTree.mNowPlayingNode);
     }
 
@@ -460,10 +499,15 @@ class AvrcpControllerStateMachine extends StateMachine {
 
                 case MESSAGE_PROCESS_TRACK_CHANGED:
                     AvrcpItem track = (AvrcpItem) msg.obj;
+                    AvrcpItem previousTrack = mAddressedPlayer.getCurrentTrack();
                     downloadImageIfNeeded(track);
                     mAddressedPlayer.updateCurrentTrack(track);
                     if (isActive()) {
                         BluetoothMediaBrowserService.trackChanged(track);
+                    }
+                    if (previousTrack != null) {
+                        removeUnusedArtwork(previousTrack.getCoverArtUuid());
+                        removeUnusedArtworkFromBrowseTree();
                     }
                     return true;
 
@@ -534,6 +578,7 @@ class AvrcpControllerStateMachine extends StateMachine {
                         mBrowseTree.mRootNode.setExpectedChildren(255);
                         BluetoothMediaBrowserService.notifyChanged(mBrowseTree.mRootNode);
                     }
+                    removeUnusedArtworkFromBrowseTree();
                     return true;
 
                 case MESSAGE_PROCESS_SUPPORTED_APPLICATION_SETTINGS:
@@ -578,6 +623,13 @@ class AvrcpControllerStateMachine extends StateMachine {
                     for (BrowseTree.BrowseNode node : nodes) {
                         notifyChanged(node);
                     }
+
+                    // Delete images that were downloaded and entirely unused
+                    if (!addedArtwork && nodes.isEmpty()) {
+                        removeUnusedArtwork(uuid);
+                        removeUnusedArtworkFromBrowseTree();
+                    }
+
                     return true;
 
                 case DISCONNECT:
@@ -658,6 +710,7 @@ class AvrcpControllerStateMachine extends StateMachine {
             mBrowseTree.mRootNode.setCached(false);
             mBrowseTree.mRootNode.setExpectedChildren(255);
             BluetoothMediaBrowserService.notifyChanged(mBrowseTree.mRootNode);
+            removeUnusedArtworkFromBrowseTree();
         }
     }
 
@@ -889,7 +942,7 @@ class AvrcpControllerStateMachine extends StateMachine {
                 logD("NAVIGATING UP " + mNextStep.toString());
                 mNextStep = mBrowseTree.getCurrentBrowsedFolder().getParent();
                 mBrowseTree.getCurrentBrowsedFolder().setCached(false);
-
+                removeUnusedArtworkFromBrowseTree();
                 mService.changeFolderPathNative(
                         mDeviceAddress,
                         AvrcpControllerService.FOLDER_NAVIGATION_DIRECTION_UP,
