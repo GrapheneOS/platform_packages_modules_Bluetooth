@@ -16,6 +16,8 @@
 
 package com.android.bluetooth.btservice.bluetoothkeystore;
 
+import android.os.Binder;
+import android.os.Process;
 import android.util.Log;
 
 import java.io.IOException;
@@ -142,6 +144,10 @@ public final class BluetoothKeystoreServiceTest {
         mBluetoothKeystoreService = null;
     }
 
+    private boolean isPrimaryUser() {
+        return Binder.getCallingUid() == Process.BLUETOOTH_UID;
+    }
+
     private void overwriteConfigFile(List<String> data) {
         try {
             Files.write(Paths.get(CONFIG_FILE_PATH), data);
@@ -210,6 +216,9 @@ public final class BluetoothKeystoreServiceTest {
 
     @Test
     public void testParserFile() {
+        if (!isPrimaryUser()) {
+            return;
+        }
         // over write config
         overwriteConfigFile(mConfigTestData);
         // load config file.
@@ -221,6 +230,9 @@ public final class BluetoothKeystoreServiceTest {
 
     @Test
     public void testEncrypt() {
+        if (!isPrimaryUser()) {
+            return;
+        }
         // load config file and put the unencrypted key in to queue.
         testParserFile();
         // Wait for encryption to complete
@@ -232,6 +244,9 @@ public final class BluetoothKeystoreServiceTest {
 
     @Test
     public void testDecrypt() {
+        if (!isPrimaryUser()) {
+            return;
+        }
         // create an encrypted key list and save it.
         testEncrypt();
         mBluetoothKeystoreService.saveEncryptedKey();
@@ -248,6 +263,9 @@ public final class BluetoothKeystoreServiceTest {
 
     @Test
     public void testCompareHashFile() {
+        if (!isPrimaryUser()) {
+            return;
+        }
         // save config checksum.
         Assert.assertTrue(setEncryptKeyOrRemoveKey(CONFIG_FILE_PREFIX, CONFIG_FILE_HASH));
         // clean up memory
@@ -260,6 +278,9 @@ public final class BluetoothKeystoreServiceTest {
 
     @Test
     public void testParserFileAfterDisableNiapMode() {
+        if (!isPrimaryUser()) {
+            return;
+        }
         // preconfiguration.
         // need to creat encrypted file.
         testParserFile();
@@ -289,6 +310,9 @@ public final class BluetoothKeystoreServiceTest {
 
     @Test
     public void testParserFileAfterDisableNiapModeWhenEnableNiapMode() {
+        if (!isPrimaryUser()) {
+            return;
+        }
         testParserFileAfterDisableNiapMode();
         mBluetoothKeystoreService.cleanupForNiapModeDisable();
 
