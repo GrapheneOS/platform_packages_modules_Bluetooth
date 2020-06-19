@@ -71,6 +71,7 @@ public class AvrcpBipClient {
     private static final int CONNECT = 0;
     private static final int DISCONNECT = 1;
     private static final int REQUEST = 2;
+    private static final int REFRESH_OBEX_SESSION = 3;
 
     private final Handler mHandler;
     private final HandlerThread mThread;
@@ -141,6 +142,24 @@ public class AvrcpBipClient {
     }
 
     /**
+     * Refreshes this client's OBEX session
+     */
+    public void refreshSession() {
+        debug("Refresh client session");
+        if (!isConnected()) {
+            error("Tried to do a reconnect operation on a client that is not connected");
+            return;
+        }
+        try {
+            mHandler.obtainMessage(REFRESH_OBEX_SESSION).sendToTarget();
+        } catch (IllegalStateException e) {
+            // Means we haven't been started or we're already stopped. Doing this makes this call
+            // always safe no matter the state.
+            return;
+        }
+    }
+
+    /**
      * Safely disconnects the client from the server
      */
     public void shutdown() {
@@ -171,6 +190,15 @@ public class AvrcpBipClient {
      */
     public boolean isConnected() {
         return getState() == BluetoothProfile.STATE_CONNECTED;
+    }
+
+    /**
+     * Return the L2CAP PSM used to connect to the server.
+     *
+     * @return The L2CAP PSM
+     */
+    public int getL2capPsm() {
+        return mPsm;
     }
 
     /**
@@ -239,14 +267,50 @@ public class AvrcpBipClient {
             int responseCode = headerSet.getResponseCode();
             if (responseCode == ResponseCodes.OBEX_HTTP_OK) {
                 setConnectionState(BluetoothProfile.STATE_CONNECTED);
+                debug("Connection established");
             } else {
                 error("Error connecting, code: " + responseCode);
                 disconnect();
             }
-            debug("Connection established");
-
         } catch (IOException e) {
             error("Exception while connecting to AVRCP BIP server", e);
+            disconnect();
+        }
+    }
+
+    /**
+     * Disconnect and reconnect the OBEX session.
+     */
+    private synchronized void refreshObexSession() {
+        if (mSession == null) return;
+
+        try {
+            setConnectionState(BluetoothProfile.STATE_DISCONNECTING);
+            mSession.disconnect(null);
+            debug("Disconnected from OBEX session");
+        } catch (IOException e) {
+            error("Exception while disconnecting from AVRCP BIP server", e);
+            disconnect();
+            return;
+        }
+
+        try {
+            setConnectionState(BluetoothProfile.STATE_CONNECTING);
+
+            HeaderSet headerSet = new HeaderSet();
+            headerSet.setHeader(HeaderSet.TARGET, BLUETOOTH_UUID_AVRCP_COVER_ART);
+
+            headerSet = mSession.connect(headerSet);
+            int responseCode = headerSet.getResponseCode();
+            if (responseCode == ResponseCodes.OBEX_HTTP_OK) {
+                setConnectionState(BluetoothProfile.STATE_CONNECTED);
+                debug("Reconnection established");
+            } else {
+                error("Error reconnecting, code: " + responseCode);
+                disconnect();
+            }
+        } catch (IOException e) {
+            error("Exception while reconnecting to AVRCP BIP server", e);
             disconnect();
         }
     }
@@ -262,17 +326,23 @@ public class AvrcpBipClient {
 
             try {
                 mSession.disconnect(null);
+                debug("Disconnected from OBEX session");
             } catch (IOException e) {
                 error("Exception while disconnecting from AVRCP BIP server: " + e.toString());
             }
 
             try {
                 mSession.close();
+                mTransport.close();
+                mSocket.close();
+                debug("Closed underlying session, transport and socket");
             } catch (IOException e) {
-                error("Exception while closing AVRCP BIP session: " + e.toString());
+                error("Exception while closing AVRCP BIP session: ", e);
             }
 
             mSession = null;
+            mTransport = null;
+            mSocket = null;
         }
         setConnectionState(BluetoothProfile.STATE_DISCONNECTED);
     }
@@ -312,7 +382,7 @@ public class AvrcpBipClient {
             case BipRequest.TYPE_GET_IMAGE:
                 imageHandle = ((RequestGetImage) request).getImageHandle();
                 BipImage image = ((RequestGetImage) request).getImage();
-                mCallback.onGetImageComplete(responseCode, imageHandle, image); // TODO: add handle
+                mCallback.onGetImageComplete(responseCode, imageHandle, image);
                 break;
         }
     }
@@ -341,6 +411,12 @@ public class AvrcpBipClient {
                 case DISCONNECT:
                     if (inst.isConnected()) {
                         inst.disconnect();
+                    }
+                    break;
+
+                case REFRESH_OBEX_SESSION:
+                    if (inst.isConnected()) {
+                        inst.refreshObexSession();
                     }
                     break;
 
