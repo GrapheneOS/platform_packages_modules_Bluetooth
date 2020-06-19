@@ -167,6 +167,16 @@ public class AvrcpControllerService extends ProfileService {
         return new AvrcpControllerStateMachine(device, this);
     }
 
+    protected void getCurrentMetadataIfNoCoverArt(BluetoothDevice device) {
+        if (device == null) return;
+        AvrcpControllerStateMachine stateMachine = getStateMachine(device);
+        if (stateMachine == null) return;
+        AvrcpItem track = stateMachine.getCurrentTrack();
+        if (track != null && track.getCoverArtLocation() == null) {
+            getCurrentMetadataNative(Utils.getByteAddress(device));
+        }
+    }
+
     private void refreshContents(BrowseTree.BrowseNode node) {
         BluetoothDevice device = node.getDevice();
         if (device == null) {
