@@ -436,9 +436,6 @@ public class BrowseTree {
     synchronized void indicateCoverArtUnused(String nodeId, String handle) {
         if (mCoverArtMap.containsKey(handle) && mCoverArtMap.get(handle).contains(nodeId)) {
             mCoverArtMap.get(handle).remove(nodeId);
-            if (mCoverArtMap.get(handle).isEmpty()) {
-                mCoverArtMap.remove(handle);
-            }
         }
     }
 
@@ -448,6 +445,22 @@ public class BrowseTree {
     synchronized ArrayList<String> getNodesUsingCoverArt(String handle) {
         if (!mCoverArtMap.containsKey(handle)) return new ArrayList<String>();
         return (ArrayList<String>) mCoverArtMap.get(handle).clone();
+    }
+
+    /**
+     * Get a list of Cover Art UUIDs that are no longer being used by the tree. Clear that list.
+     */
+    synchronized ArrayList<String> getAndClearUnusedCoverArt() {
+        ArrayList<String> unused = new ArrayList<String>();
+        for (String uuid : mCoverArtMap.keySet()) {
+            if (mCoverArtMap.get(uuid).isEmpty()) {
+                unused.add(uuid);
+            }
+        }
+        for (String uuid : unused) {
+            mCoverArtMap.remove(uuid);
+        }
+        return unused;
     }
 
     /**
