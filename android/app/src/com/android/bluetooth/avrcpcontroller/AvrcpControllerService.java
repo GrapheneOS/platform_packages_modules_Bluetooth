@@ -103,13 +103,13 @@ public class AvrcpControllerService extends ProfileService {
         public void onImageDownloadComplete(BluetoothDevice device,
                 AvrcpCoverArtManager.DownloadEvent event) {
             if (DBG) {
-                Log.d(TAG, "Image downloaded [device: " + device + ", handle: " + event.getHandle()
+                Log.d(TAG, "Image downloaded [device: " + device + ", uuid: " + event.getUuid()
                         + ", uri: " + event.getUri());
             }
             AvrcpControllerStateMachine stateMachine = getStateMachine(device);
             if (stateMachine == null) {
                 Log.e(TAG, "No state machine found for device " + device);
-                mCoverArtManager.removeImage(device, event.getHandle());
+                mCoverArtManager.removeImage(device, event.getUuid());
                 return;
             }
             stateMachine.sendMessage(AvrcpControllerStateMachine.MESSAGE_PROCESS_IMAGE_DOWNLOADED,
@@ -423,6 +423,12 @@ public class AvrcpControllerService extends ProfileService {
             aib.setItemType(AvrcpItem.TYPE_MEDIA);
             aib.setUuid(UUID.randomUUID().toString());
             AvrcpItem item = aib.build();
+            if (mCoverArtManager != null) {
+                String handle = item.getCoverArtHandle();
+                if (handle != null) {
+                    item.setCoverArtUuid(mCoverArtManager.getUuidForHandle(device, handle));
+                }
+            }
             stateMachine.sendMessage(AvrcpControllerStateMachine.MESSAGE_PROCESS_TRACK_CHANGED,
                     item);
         }
@@ -529,13 +535,19 @@ public class AvrcpControllerService extends ProfileService {
                     + items.length + " items.");
         }
 
+        BluetoothDevice device = mAdapter.getRemoteDevice(address);
         List<AvrcpItem> itemsList = new ArrayList<>();
         for (AvrcpItem item : items) {
             if (VDBG) Log.d(TAG, item.toString());
+            if (mCoverArtManager != null) {
+                String handle = item.getCoverArtHandle();
+                if (handle != null) {
+                    item.setCoverArtUuid(mCoverArtManager.getUuidForHandle(device, handle));
+                }
+            }
             itemsList.add(item);
         }
 
-        BluetoothDevice device = mAdapter.getRemoteDevice(address);
         AvrcpControllerStateMachine stateMachine = getStateMachine(device);
         if (stateMachine != null) {
             stateMachine.sendMessage(AvrcpControllerStateMachine.MESSAGE_PROCESS_GET_FOLDER_ITEMS,
