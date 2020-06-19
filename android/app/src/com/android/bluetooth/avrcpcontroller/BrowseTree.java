@@ -202,9 +202,9 @@ public class BrowseTree {
 
                 // Each time we add a node to the tree, check for an image handle so we can add
                 // the artwork URI once it has been downloaded
-                String imageHandle = node.getCoverArtHandle();
-                if (imageHandle != null) {
-                    indicateCoverArtUsed(node.getID(), imageHandle);
+                String imageUuid = node.getCoverArtUuid();
+                if (imageUuid != null) {
+                    indicateCoverArtUsed(node.getID(), imageUuid);
                 }
                 return true;
             }
@@ -214,7 +214,7 @@ public class BrowseTree {
         synchronized void removeChild(BrowseNode node) {
             mChildren.remove(node);
             mBrowseMap.remove(node.getID());
-            indicateCoverArtUnused(node.getID(), node.getCoverArtHandle());
+            indicateCoverArtUnused(node.getID(), node.getCoverArtUuid());
         }
 
         synchronized int getChildrenCount() {
@@ -240,8 +240,8 @@ public class BrowseTree {
             return mItem.getDevice();
         }
 
-        synchronized String getCoverArtHandle() {
-            return mItem.getCoverArtHandle();
+        synchronized String getCoverArtUuid() {
+            return mItem.getCoverArtUuid();
         }
 
         synchronized void setCoverArtUri(Uri uri) {
@@ -277,7 +277,7 @@ public class BrowseTree {
             if (!cached) {
                 for (BrowseNode child : mChildren) {
                     mBrowseMap.remove(child.getID());
-                    indicateCoverArtUnused(child.getID(), child.getCoverArtHandle());
+                    indicateCoverArtUnused(child.getID(), child.getCoverArtUuid());
                 }
                 mChildren.clear();
             }
@@ -436,9 +436,6 @@ public class BrowseTree {
     synchronized void indicateCoverArtUnused(String nodeId, String handle) {
         if (mCoverArtMap.containsKey(handle) && mCoverArtMap.get(handle).contains(nodeId)) {
             mCoverArtMap.get(handle).remove(nodeId);
-            if (mCoverArtMap.get(handle).isEmpty()) {
-                mCoverArtMap.remove(handle);
-            }
         }
     }
 
@@ -451,19 +448,35 @@ public class BrowseTree {
     }
 
     /**
+     * Get a list of Cover Art UUIDs that are no longer being used by the tree. Clear that list.
+     */
+    synchronized ArrayList<String> getAndClearUnusedCoverArt() {
+        ArrayList<String> unused = new ArrayList<String>();
+        for (String uuid : mCoverArtMap.keySet()) {
+            if (mCoverArtMap.get(uuid).isEmpty()) {
+                unused.add(uuid);
+            }
+        }
+        for (String uuid : unused) {
+            mCoverArtMap.remove(uuid);
+        }
+        return unused;
+    }
+
+    /**
      * Adds the Uri of a newly downloaded image to all tree nodes using that specific handle.
      * Returns the set of parent nodes that have children impacted by the new art so clients can
      * be notified of the change.
      */
-    synchronized Set<BrowseNode> notifyImageDownload(String handle, Uri uri) {
+    synchronized Set<BrowseNode> notifyImageDownload(String uuid, Uri uri) {
         if (DBG) Log.d(TAG, "Received downloaded image handle to cascade to BrowseNodes using it");
-        ArrayList<String> nodes = getNodesUsingCoverArt(handle);
+        ArrayList<String> nodes = getNodesUsingCoverArt(uuid);
         HashSet<BrowseNode> parents = new HashSet<BrowseNode>();
         for (String nodeId : nodes) {
             BrowseNode node = findBrowseNodeByID(nodeId);
             if (node == null) {
                 Log.e(TAG, "Node was removed without clearing its cover art status");
-                indicateCoverArtUnused(nodeId, handle);
+                indicateCoverArtUnused(nodeId, uuid);
                 continue;
             }
             node.setCoverArtUri(uri);

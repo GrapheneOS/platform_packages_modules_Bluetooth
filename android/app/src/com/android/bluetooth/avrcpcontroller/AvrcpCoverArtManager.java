@@ -22,9 +22,9 @@ import android.net.Uri;
 import android.os.SystemProperties;
 import android.util.Log;
 
-import com.android.bluetooth.Utils;
-
 import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.obex.ResponseCodes;
@@ -48,6 +48,7 @@ public class AvrcpCoverArtManager {
 
     private final AvrcpControllerService mService;
     protected final Map<BluetoothDevice, AvrcpBipClient> mClients = new ConcurrentHashMap<>(1);
+    private Map<BluetoothDevice, AvrcpBipSession> mBipSessions = new ConcurrentHashMap<>(1);
     private final AvrcpCoverArtStorage mCoverArtStorage;
     private final Callback mCallback;
     private final String mDownloadScheme;
@@ -57,14 +58,14 @@ public class AvrcpCoverArtManager {
      * retrieve the image from storage.
      */
     public class DownloadEvent {
-        final String mImageHandle;
+        final String mImageUuid;
         final Uri mUri;
-        public DownloadEvent(String handle, Uri uri) {
-            mImageHandle = handle;
+        public DownloadEvent(String uuid, Uri uri) {
+            mImageUuid = uuid;
             mUri = uri;
         }
-        public String getHandle() {
-            return mImageHandle;
+        public String getUuid() {
+            return mImageUuid;
         }
         public Uri getUri() {
             return mUri;
@@ -80,6 +81,44 @@ public class AvrcpCoverArtManager {
          * @param uri The Uri that the image is available at in storage
          */
         void onImageDownloadComplete(BluetoothDevice device, DownloadEvent event);
+    }
+
+    /**
+     * A thread-safe collection of BIP connection specific imformation meant to be cleared each
+     * time a client disconnects from the Target's BIP OBEX server.
+     *
+     * Currently contains the mapping of image handles seen to assigned UUIDs.
+     */
+    private class AvrcpBipSession {
+        private final BluetoothDevice mDevice;
+        private Map<String, String> mUuids = new ConcurrentHashMap<>(1); /* handle -> UUID */
+        private Map<String, String> mHandles = new ConcurrentHashMap<>(1); /* UUID -> handle */
+
+        AvrcpBipSession(BluetoothDevice device) {
+            mDevice = device;
+        }
+
+        public String getHandleUuid(String handle) {
+            if (handle == null) return null;
+            String newUuid = UUID.randomUUID().toString();
+            String existingUuid = mUuids.putIfAbsent(handle, newUuid);
+            if (existingUuid != null) return existingUuid;
+            mHandles.put(newUuid, handle);
+            return newUuid;
+        }
+
+        public String getUuidHandle(String uuid) {
+            return mHandles.get(uuid);
+        }
+
+        public void clearHandleUuids() {
+            mUuids.clear();
+            mHandles.clear();
+        }
+
+        public Set<String> getSessionHandles() {
+            return mUuids.keySet();
+        }
     }
 
     public AvrcpCoverArtManager(AvrcpControllerService service, Callback callback) {
@@ -103,24 +142,43 @@ public class AvrcpCoverArtManager {
         if (mClients.containsKey(device)) return false;
         AvrcpBipClient client = new AvrcpBipClient(device, psm, new BipClientCallback(device));
         mClients.put(device, client);
+        mBipSessions.put(device, new AvrcpBipSession(device));
+        return true;
+    }
+
+    /**
+     * Refresh the OBEX session of a connected client
+     *
+     * @param device The remote Bluetooth device you wish to refresh
+     * @return True if the refresh is successfully queued, False otherwise.
+     */
+    public synchronized boolean refreshSession(BluetoothDevice device) {
+        debug("Refresh OBEX session for " + device.getAddress());
+        AvrcpBipClient client = getClient(device);
+        if (client == null) {
+            warn("No client for " + device.getAddress());
+            return false;
+        }
+        client.refreshSession();
         return true;
     }
 
     /**
      * Disconnect from a remote device's BIP Image Pull Server
      *
-     * @param device The remote Bluetooth device you wish to connect to
-     * @return True if the connection is successfully queued, False otherwise.
+     * @param device The remote Bluetooth device you wish to disconnect from
+     * @return True if the disconnection is successfully queued, False otherwise.
      */
     public synchronized boolean disconnect(BluetoothDevice device) {
         debug("Disconnect " + device.getAddress());
-        if (!mClients.containsKey(device)) {
+        AvrcpBipClient client = getClient(device);
+        if (client == null) {
             warn("No client for " + device.getAddress());
             return false;
         }
-        AvrcpBipClient client = getClient(device);
         client.shutdown();
         mClients.remove(device);
+        mBipSessions.remove(device);
         mCoverArtStorage.removeImagesForDevice(device);
         return true;
     }
@@ -145,21 +203,64 @@ public class AvrcpCoverArtManager {
      * @return Connection status, based on BluetoothProfile.STATE_* constants
      */
     public int getState(BluetoothDevice device) {
-        AvrcpBipClient client = mClients.get(device);
+        AvrcpBipClient client = getClient(device);
         if (client == null) return BluetoothProfile.STATE_DISCONNECTED;
         return client.getState();
+    }
+
+     /**
+     * Get the UUID for an image handle coming from a particular device.
+     *
+     * This UUID is used to request and track downloads.
+     *
+     * Image handles are only good for the life of the BIP client. Since this connection is torn
+     * down frequently by specification, we have a layer of indirection to the images in the form
+     * of an UUID. This UUID will allow images to be identified outside the connection lifecycle.
+     * It also allows handles to be reused by the target in ways that won't impact image consumer's
+     * cache schemes.
+     *
+     * @param device The Bluetooth device you want a handle from
+     * @param handle The image handle you want a UUID for
+     * @return A string UUID by which the handle can be identified during the life of the BIP
+     *         connection.
+     */
+    public String getUuidForHandle(BluetoothDevice device, String handle) {
+        AvrcpBipSession session = getSession(device);
+        if (session == null || handle == null) return null;
+        return session.getHandleUuid(handle);
+    }
+
+    /**
+     * Get the handle thats associated with a particular UUID.
+     *
+     * The handle must have been seen during this connection.
+     *
+     * @param device The Bluetooth device you want a handle from
+     * @param uuid The UUID you want the associated handle for
+     * @return The image handle associated with this UUID if it exists, null otherwise.
+     */
+    public String getHandleForUuid(BluetoothDevice device, String uuid) {
+        AvrcpBipSession session = getSession(device);
+        if (session == null || uuid == null) return null;
+        return session.getUuidHandle(uuid);
+    }
+
+    private void clearHandleUuids(BluetoothDevice device) {
+        AvrcpBipSession session = getSession(device);
+        if (session == null) return;
+        session.clearHandleUuids();
     }
 
     /**
      * Get the Uri of an image if it has already been downloaded.
      *
      * @param device The remote Bluetooth device you wish to get an image for
-     * @param imageHandle The handle associated with the image you want
+     * @param imageUuid The UUID associated with the image you want
      * @return A Uri the image can be found at, null if it does not exist
      */
-    public Uri getImageUri(BluetoothDevice device, String imageHandle) {
-        if (mCoverArtStorage.doesImageExist(device, imageHandle)) {
-            return AvrcpCoverArtProvider.getImageUri(device, imageHandle);
+    public Uri getImageUri(BluetoothDevice device, String imageUuid) {
+        if (mCoverArtStorage.doesImageExist(device, imageUuid)) {
+            return AvrcpCoverArtProvider.getImageUri(device, imageUuid);
         }
         return null;
     }
@@ -175,11 +276,12 @@ public class AvrcpCoverArtManager {
      * Getting image properties and the image are both asynchronous in nature.
      *
      * @param device The remote Bluetooth device you wish to download from
-     * @param imageHandle The handle associated with the image you wish to download
+     * @param imageUuid The UUID associated with the image you wish to download. This will be
+     *                  translated into an image handle.
      * @return A Uri that will be assign to the image once the download is complete
      */
-    public Uri downloadImage(BluetoothDevice device, String imageHandle) {
-        debug("Download Image - device: " + device.getAddress() + ", Handle: " + imageHandle);
+    public Uri downloadImage(BluetoothDevice device, String imageUuid) {
+        debug("Download Image - device: " + device.getAddress() + ", Handle: " + imageUuid);
         AvrcpBipClient client = getClient(device);
         if (client == null) {
             error("Cannot download an image. No client is available.");
@@ -187,19 +289,24 @@ public class AvrcpCoverArtManager {
         }
 
         // Check to see if we have the image already. No need to download it if we do have it.
-        if (mCoverArtStorage.doesImageExist(device, imageHandle)) {
+        if (mCoverArtStorage.doesImageExist(device, imageUuid)) {
             debug("Image is already downloaded");
-            return AvrcpCoverArtProvider.getImageUri(device, imageHandle);
+            return AvrcpCoverArtProvider.getImageUri(device, imageUuid);
         }
 
         // Getting image properties will return via the callback created when connecting, which
         // invokes the download image function after we're returned the properties. If we already
         // have the image, GetImageProperties returns true but does not start a download.
+        String imageHandle = getHandleForUuid(device, imageUuid);
+        if (imageHandle == null) {
+            warn("No handle for UUID");
+            return null;
+        }
         boolean status = client.getImageProperties(imageHandle);
         if (!status) return null;
 
         // Return the Uri that the caller should use to retrieve the image
-        return AvrcpCoverArtProvider.getImageUri(device, imageHandle);
+        return AvrcpCoverArtProvider.getImageUri(device, imageUuid);
     }
 
     /**
@@ -208,8 +315,8 @@ public class AvrcpCoverArtManager {
      * @param device The remote Bluetooth device associated with the image
      * @param imageHandle The handle associated with the image you wish to remove
      */
-    public void removeImage(BluetoothDevice device, String imageHandle) {
-        mCoverArtStorage.removeImage(device, imageHandle);
+    public void removeImage(BluetoothDevice device, String imageUuid) {
+        mCoverArtStorage.removeImage(device, imageUuid);
     }
 
     /**
@@ -220,6 +327,16 @@ public class AvrcpCoverArtManager {
      */
     private AvrcpBipClient getClient(BluetoothDevice device) {
         return mClients.get(device);
+    }
+
+    /**
+     * Get a device's BIP session information, if it exists
+     *
+     * @param device The device you want the client for
+     * @return The AvrcpBipSession object associated with the device, or null if it doesn't exist
+     */
+    private AvrcpBipSession getSession(BluetoothDevice device) {
+        return mBipSessions.get(device);
     }
 
     /**
@@ -262,11 +379,20 @@ public class AvrcpCoverArtManager {
         public void onConnectionStateChanged(int oldState, int newState) {
             debug(mDevice.getAddress() + ": " + oldState + " -> " + newState);
             if (newState == BluetoothProfile.STATE_CONNECTED) {
+                // Ensure the handle map is cleared since old ones are invalid on a new connection
+                clearHandleUuids(mDevice);
+
                 // Once we're connected fetch the current metadata again in case the target has an
-                // image handle they can now give us
-                mService.getCurrentMetadataNative(Utils.getByteAddress(mDevice));
+                // image handle they can now give us. Only do this if we don't already have one.
+                mService.getCurrentMetadataIfNoCoverArt(mDevice);
             } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
+                AvrcpBipClient client = getClient(mDevice);
+                boolean shouldReconnect = (client != null);
                 disconnect(mDevice);
+                if (shouldReconnect) {
+                    debug("Disconnect was not expected by us. Attempt to reconnect.");
+                    connect(mDevice, client.getL2capPsm());
+                }
             }
         }
 
@@ -297,14 +423,15 @@ public class AvrcpCoverArtManager {
                         + ", Code: " + status);
                 return;
             }
+            String imageUuid = getUuidForHandle(mDevice, imageHandle);
             debug(mDevice.getAddress() + ": Received image data for handle: " + imageHandle
-                    + ", image: " + image);
-            Uri uri = mCoverArtStorage.addImage(mDevice, imageHandle, image.getImage());
+                    + ", uuid: " + imageUuid + ", image: " + image);
+            Uri uri = mCoverArtStorage.addImage(mDevice, imageUuid, image.getImage());
             if (uri == null) {
                 error("Could not store downloaded image");
                 return;
             }
-            DownloadEvent event = new DownloadEvent(imageHandle, uri);
+            DownloadEvent event = new DownloadEvent(imageUuid, uri);
             if (mCallback != null) mCallback.onImageDownloadComplete(mDevice, event);
         }
     }
@@ -312,10 +439,16 @@ public class AvrcpCoverArtManager {
     @Override
     public String toString() {
         String s = "CoverArtManager:\n";
-        s += "     Download Scheme: " + mDownloadScheme + "\n";
+        s += "    Download Scheme: " + mDownloadScheme + "\n";
         for (BluetoothDevice device : mClients.keySet()) {
             AvrcpBipClient client = getClient(device);
-            s += "    " + client.toString() + "\n";
+            AvrcpBipSession session = getSession(device);
+            s += "    " + device.getAddress() + ":" + "\n";
+            s += "      Client: " + client.toString() + "\n";
+            s += "      Handles: " + "\n";
+            for (String handle : session.getSessionHandles()) {
+                s += "        " + handle + " -> " + session.getHandleUuid(handle) + "\n";
+            }
         }
         s += "  " + mCoverArtStorage.toString();
         return s;
