@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -451,8 +452,10 @@ public class BrowseTree {
 
     /**
      * Adds the Uri of a newly downloaded image to all tree nodes using that specific handle.
+     * Returns the set of parent nodes that have children impacted by the new art so clients can
+     * be notified of the change.
      */
-    synchronized void notifyImageDownload(String handle, Uri uri) {
+    synchronized Set<BrowseNode> notifyImageDownload(String handle, Uri uri) {
         if (DBG) Log.d(TAG, "Received downloaded image handle to cascade to BrowseNodes using it");
         ArrayList<String> nodes = getNodesUsingCoverArt(handle);
         HashSet<BrowseNode> parents = new HashSet<BrowseNode>();
@@ -468,12 +471,7 @@ public class BrowseTree {
                 parents.add(node.mParent);
             }
         }
-
-        // Update *parents* of changed nodes so applications will re-grab this node, now with art
-        for (BrowseNode node : parents) {
-            if (DBG) Log.d(TAG, "Notify node '" + node.getID() + "' that child has cover art now");
-            BluetoothMediaBrowserService.notifyChanged(node);
-        }
+        return parents;
     }
 
 
