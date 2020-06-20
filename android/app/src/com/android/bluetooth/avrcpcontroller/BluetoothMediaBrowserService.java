@@ -163,6 +163,11 @@ public class BluetoothMediaBrowserService extends MediaBrowserServiceCompat {
         mSession.setQueue(mMediaQueue);
     }
 
+    private void clearNowPlayingQueue() {
+        mMediaQueue.clear();
+        mSession.setQueue(mMediaQueue);
+    }
+
     static synchronized void notifyChanged(BrowseTree.BrowseNode node) {
         if (sBluetoothMediaBrowserService != null) {
             if (node.getScope() == AvrcpControllerService.BROWSE_SCOPE_NOW_PLAYING) {
@@ -177,6 +182,7 @@ public class BluetoothMediaBrowserService extends MediaBrowserServiceCompat {
         if (sBluetoothMediaBrowserService != null) {
             if (callback == null) {
                 sBluetoothMediaBrowserService.setErrorPlaybackState();
+                sBluetoothMediaBrowserService.clearNowPlayingQueue();
             }
             sBluetoothMediaBrowserService.mSession.setCallback(callback);
         } else {
