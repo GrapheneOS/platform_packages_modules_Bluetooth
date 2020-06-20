@@ -89,7 +89,10 @@ public class AvrcpItem {
     // Our own book keeping value since database unaware players sometimes send repeat UIDs.
     private String mUuid;
 
-    // Our owned internal Uri value that points to downloaded cover art image
+    // A status to indicate if the image at the URI is downloaded and cached
+    private String mImageUuid = null;
+
+    // Our own internal Uri value that points to downloaded cover art image
     private Uri mImageUri;
 
     private AvrcpItem() {
@@ -159,6 +162,14 @@ public class AvrcpItem {
         return mCoverArtHandle;
     }
 
+    public String getCoverArtUuid() {
+        return mImageUuid;
+    }
+
+    public void setCoverArtUuid(String uuid) {
+        mImageUuid = uuid;
+    }
+
     public synchronized Uri getCoverArtLocation() {
         return mImageUri;
     }
@@ -226,7 +237,8 @@ public class AvrcpItem {
         return "AvrcpItem{mUuid=" + mUuid + ", mUid=" + mUid + ", mItemType=" + mItemType
                 + ", mType=" + mType + ", mDisplayableName=" + mDisplayableName
                 + ", mTitle=" + mTitle + ", mPlayable=" + mPlayable + ", mBrowsable="
-                + mBrowsable + ", mCoverArtHandle=" + getCoverArtHandle() + "}";
+                + mBrowsable + ", mCoverArtHandle=" + getCoverArtHandle()
+                + ", mImageUuid=" + mImageUuid + ", mImageUri" + mImageUri + "}";
     }
 
     @Override

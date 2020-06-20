@@ -16,6 +16,8 @@
 
 package com.android.bluetooth.btservice.bluetoothkeystore;
 
+import android.os.Binder;
+import android.os.Process;
 import android.util.Log;
 
 import java.io.IOException;
@@ -29,6 +31,7 @@ import java.util.Map;
 
 import org.junit.After;
 import org.junit.Assert;
+import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -116,6 +119,7 @@ public final class BluetoothKeystoreServiceTest {
 
     @Before
     public void setUp() {
+        Assume.assumeTrue("Ignore test when the user is not primary.", isPrimaryUser());
         mBluetoothKeystoreService = new BluetoothKeystoreService(true);
         Assert.assertNotNull(mBluetoothKeystoreService);
         // backup origin config data.
@@ -130,6 +134,9 @@ public final class BluetoothKeystoreServiceTest {
 
     @After
     public void tearDown() {
+        if (!isPrimaryUser()) {
+            return;
+        }
         try {
             if (!mConfigData.isEmpty()) {
                 Files.write(Paths.get(CONFIG_FILE_PATH), mConfigData);
@@ -140,6 +147,10 @@ public final class BluetoothKeystoreServiceTest {
         }
         mBluetoothKeystoreService.stopThread();
         mBluetoothKeystoreService = null;
+    }
+
+    private static boolean isPrimaryUser() {
+        return Binder.getCallingUid() == Process.BLUETOOTH_UID;
     }
 
     private void overwriteConfigFile(List<String> data) {
