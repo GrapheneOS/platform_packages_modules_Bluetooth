@@ -114,6 +114,8 @@ public class PhonePolicyTest {
         when(mA2dpService.getConnectionPolicy(device))
                 .thenReturn(BluetoothProfile.CONNECTION_POLICY_UNKNOWN);
 
+        when(mAdapterService.getDatabase()).thenReturn(mDatabaseManager);
+
         // Inject an event for UUIDs updated for a remote device with only HFP enabled
         Intent intent = new Intent(BluetoothDevice.ACTION_UUID);
         intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
@@ -124,10 +126,12 @@ public class PhonePolicyTest {
         mPhonePolicy.getBroadcastReceiver().onReceive(null /* context */, intent);
 
         // Check that the priorities of the devices for preferred profiles are set to ON
-        verify(mHeadsetService, timeout(ASYNC_CALL_TIMEOUT_MILLIS)).setConnectionPolicy(eq(device),
-                eq(BluetoothProfile.CONNECTION_POLICY_ALLOWED));
-        verify(mA2dpService, timeout(ASYNC_CALL_TIMEOUT_MILLIS)).setConnectionPolicy(eq(device),
-                eq(BluetoothProfile.CONNECTION_POLICY_ALLOWED));
+        verify(mDatabaseManager, timeout(ASYNC_CALL_TIMEOUT_MILLIS))
+                .setProfileConnectionPolicy(device, BluetoothProfile.HEADSET,
+                        BluetoothProfile.CONNECTION_POLICY_ALLOWED);
+        verify(mDatabaseManager, timeout(ASYNC_CALL_TIMEOUT_MILLIS))
+                .setProfileConnectionPolicy(device, BluetoothProfile.A2DP,
+                        BluetoothProfile.CONNECTION_POLICY_ALLOWED);
     }
 
     /**
