@@ -30,6 +30,7 @@
 #include <sys/stat.h>
 
 #include <hardware/bluetooth.h>
+#include <nativehelper/JNIPlatformHelp.h>
 #include <mutex>
 
 #include <pthread.h>
