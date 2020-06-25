@@ -142,3 +142,33 @@ cc_test {
         "libbt-common",
     ],
 }
+
+// bta hf client add record tests for target
+// ========================================================
+cc_test {
+    name: "net_test_hf_client_add_record",
+    defaults: ["fluoride_defaults"],
+    test_suites: ["device-tests"],
+    include_dirs: [
+        "packages/modules/Bluetooth/system",
+        "packages/modules/Bluetooth/system/bta/include",
+        "packages/modules/Bluetooth/system/bta/sys",
+        "packages/modules/Bluetooth/system/btif/include",
+        "packages/modules/Bluetooth/system/internal_include",
+        "packages/modules/Bluetooth/system/stack/include",
+        "packages/modules/Bluetooth/system/utils/include",
+    ],
+    srcs: [
+        "test/bta_hf_client_add_record_test.cc",
+    ],
+    header_libs: ["libbluetooth_headers"],
+    shared_libs: [
+        "libcutils",
+        "liblog",
+    ],
+    static_libs: [
+        "libbluetooth-types",
+        "libosi",
+    ],
+    cflags: ["-DBUILDCFG"],
+}
