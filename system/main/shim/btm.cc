@@ -702,8 +702,7 @@ class BtmScanningCallbacks : public bluetooth::hci::LeScanningManagerCallbacks {
               TransformToExtendedEventType(&extended_event_type,
                                            {.legacy = true});
               break;
-            case hci::AdvertisingEventType::
-                ADV_DIRECT_IND_LOW:  // SCAN_RESPONSE
+            case hci::AdvertisingEventType::SCAN_RESPONSE:
               TransformToExtendedEventType(&extended_event_type,
                                            {.connectable = true,
                                             .scannable = true,
@@ -817,4 +816,14 @@ bool bluetooth::shim::Btm::RemoveBond(const RawAddress& bd_addr) {
       bluetooth::shim::GetSecurityModule()->GetSecurityManager();
   security_manager->RemoveBond(ToAddressWithType(bd_addr, BLE_ADDR_PUBLIC));
   return true;
+}
+
+uint16_t bluetooth::shim::Btm::GetAclHandle(const RawAddress& remote_bda,
+                                            tBT_TRANSPORT transport) {
+  auto acl_manager = bluetooth::shim::GetAclManager();
+  if (transport == BT_TRANSPORT_BR_EDR) {
+    return acl_manager->HACK_GetHandle(ToGdAddress(remote_bda));
+  } else {
+    return acl_manager->HACK_GetLeHandle(ToGdAddress(remote_bda));
+  }
 }
