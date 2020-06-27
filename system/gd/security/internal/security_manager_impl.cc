@@ -33,29 +33,33 @@ namespace bluetooth {
 namespace security {
 namespace internal {
 
-void SecurityManagerImpl::DispatchPairingHandler(record::SecurityRecord& record, bool locally_initiated) {
+void SecurityManagerImpl::DispatchPairingHandler(
+    std::shared_ptr<record::SecurityRecord> record, bool locally_initiated) {
   common::OnceCallback<void(hci::Address, PairingResultOrFailure)> callback =
       common::BindOnce(&SecurityManagerImpl::OnPairingHandlerComplete, common::Unretained(this));
-  auto entry = pairing_handler_map_.find(record.GetPseudoAddress().GetAddress());
+  auto entry = pairing_handler_map_.find(record->GetPseudoAddress().GetAddress());
   if (entry != pairing_handler_map_.end()) {
     LOG_WARN("Device already has a pairing handler, and is in the middle of pairing!");
     return;
   }
   std::shared_ptr<pairing::PairingHandler> pairing_handler = nullptr;
-  switch (record.GetPseudoAddress().GetAddressType()) {
+  switch (record->GetPseudoAddress().GetAddressType()) {
     case hci::AddressType::PUBLIC_DEVICE_ADDRESS: {
-      std::shared_ptr<record::SecurityRecord> record_copy =
-          std::make_shared<record::SecurityRecord>(record.GetPseudoAddress());
       pairing_handler = std::make_shared<security::pairing::ClassicPairingHandler>(
-          security_manager_channel_, record_copy, security_handler_, std::move(callback), user_interface_,
-          user_interface_handler_, "TODO: grab device name properly");
+          security_manager_channel_,
+          record,
+          security_handler_,
+          std::move(callback),
+          user_interface_,
+          user_interface_handler_,
+          "TODO: grab device name properly");
       break;
     }
     default:
-      ASSERT_LOG(false, "Pairing type %hhu not implemented!", record.GetPseudoAddress().GetAddressType());
+      ASSERT_LOG(false, "Pairing type %hhu not implemented!", record->GetPseudoAddress().GetAddressType());
   }
   auto new_entry = std::pair<hci::Address, std::shared_ptr<pairing::PairingHandler>>(
-      record.GetPseudoAddress().GetAddress(), pairing_handler);
+      record->GetPseudoAddress().GetAddress(), pairing_handler);
   pairing_handler_map_.insert(std::move(new_entry));
   pairing_handler->Initiate(locally_initiated, this->local_io_capability_, this->local_oob_data_present_,
                             this->local_authentication_requirements_);
@@ -69,8 +73,8 @@ void SecurityManagerImpl::Init() {
 }
 
 void SecurityManagerImpl::CreateBond(hci::AddressWithType device) {
-  record::SecurityRecord& record = security_database_.FindOrCreate(device);
-  if (record.IsBonded()) {
+  auto record = security_database_.FindOrCreate(device);
+  if (record->IsBonded()) {
     NotifyDeviceBonded(device);
   } else {
     // Dispatch pairing handler, if we are calling create we are the initiator
@@ -79,8 +83,8 @@ void SecurityManagerImpl::CreateBond(hci::AddressWithType device) {
 }
 
 void SecurityManagerImpl::CreateBondLe(hci::AddressWithType address) {
-  record::SecurityRecord& record = security_database_.FindOrCreate(address);
-  if (record.IsBonded()) {
+  auto record = security_database_.FindOrCreate(address);
+  if (record->IsBonded()) {
     NotifyDeviceBondFailed(address, PairingFailure("Already bonded"));
     return;
   }
@@ -313,10 +317,16 @@ void SecurityManagerImpl::OnPairingHandlerComplete(hci::Address address, Pairing
     pairing_handler_map_.erase(entry);
     security_manager_channel_->Release(address);
   }
+  auto remote = hci::AddressWithType(address, hci::AddressType::PUBLIC_DEVICE_ADDRESS);
+  auto cb_entry = enforce_security_policy_callback_map_.find(remote);
+  if (cb_entry != enforce_security_policy_callback_map_.end()) {
+    this->InternalEnforceSecurityPolicy(remote, cb_entry->second.first, std::move(cb_entry->second.second), false);
+    enforce_security_policy_callback_map_.erase(cb_entry);
+  }
   if (!std::holds_alternative<PairingFailure>(status)) {
-    NotifyDeviceBonded(hci::AddressWithType(address, hci::AddressType::PUBLIC_DEVICE_ADDRESS));
+    NotifyDeviceBonded(remote);
   } else {
-    NotifyDeviceBondFailed(hci::AddressWithType(address, hci::AddressType::PUBLIC_DEVICE_ADDRESS), status);
+    NotifyDeviceBondFailed(remote, status);
   }
 }
 
@@ -565,27 +575,46 @@ void SecurityManagerImpl::SetOobDataPresent(hci::OobDataPresent data_present) {
   this->local_oob_data_present_ = data_present;
 }
 
-void SecurityManagerImpl::EnforceSecurityPolicy(
-    hci::AddressWithType remote, l2cap::classic::SecurityPolicy policy,
-    l2cap::classic::SecurityEnforcementInterface::ResultCallback result_callback) {
+void SecurityManagerImpl::InternalEnforceSecurityPolicy(
+    hci::AddressWithType remote,
+    l2cap::classic::SecurityPolicy policy,
+    l2cap::classic::SecurityEnforcementInterface::ResultCallback result_callback,
+    bool try_meet_requirements) {
   bool result = false;
   auto record = this->security_database_.FindOrCreate(remote);
   switch (policy) {
     case l2cap::classic::SecurityPolicy::BEST:
     case l2cap::classic::SecurityPolicy::AUTHENTICATED_ENCRYPTED_TRANSPORT:
-      result = record.IsAuthenticated() && record.RequiresMitmProtection() && record.IsEncryptionRequired();
+      result = record->IsAuthenticated() && record->RequiresMitmProtection() && record->IsEncryptionRequired();
       break;
     case l2cap::classic::SecurityPolicy::ENCRYPTED_TRANSPORT:
-      result = record.IsAuthenticated() && record.IsEncryptionRequired();
+      result = record->IsAuthenticated() && record->IsEncryptionRequired();
       break;
     case l2cap::classic::SecurityPolicy::_SDP_ONLY_NO_SECURITY_WHATSOEVER_PLAINTEXT_TRANSPORT_OK:
       result = true;
       break;
   }
-  if (!result) {
-    // TODO(optedoblivion): Start pairing process to meet requirements
+  if (!result && try_meet_requirements) {
+    auto entry = enforce_security_policy_callback_map_.find(remote);
+    if (entry != enforce_security_policy_callback_map_.end()) {
+      LOG_WARN("Callback already pending for remote: '%s' !", remote.ToString().c_str());
+    } else {
+      enforce_security_policy_callback_map_.emplace(
+          remote,
+          std::pair<l2cap::classic::SecurityPolicy, l2cap::classic::SecurityEnforcementInterface::ResultCallback>(
+              policy, std::move(result_callback)));
+      DispatchPairingHandler(record, true);
+    }
+    return;
   }
   result_callback.Invoke(result);
+}
+
+void SecurityManagerImpl::EnforceSecurityPolicy(
+    hci::AddressWithType remote,
+    l2cap::classic::SecurityPolicy policy,
+    l2cap::classic::SecurityEnforcementInterface::ResultCallback result_callback) {
+  this->InternalEnforceSecurityPolicy(remote, policy, std::move(result_callback), true);
 }
 
 void SecurityManagerImpl::EnforceLeSecurityPolicy(
