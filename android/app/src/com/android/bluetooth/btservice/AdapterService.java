@@ -2612,15 +2612,15 @@ public class AdapterService extends Service {
         editor.apply();
     }
 
-    void setPhonebookAccessPermission(BluetoothDevice device, int value) {
+    public void setPhonebookAccessPermission(BluetoothDevice device, int value) {
         setDeviceAccessFromPrefs(device, value, PHONEBOOK_ACCESS_PERMISSION_PREFERENCE_FILE);
     }
 
-    void setMessageAccessPermission(BluetoothDevice device, int value) {
+    public void setMessageAccessPermission(BluetoothDevice device, int value) {
         setDeviceAccessFromPrefs(device, value, MESSAGE_ACCESS_PERMISSION_PREFERENCE_FILE);
     }
 
-    void setSimAccessPermission(BluetoothDevice device, int value) {
+    public void setSimAccessPermission(BluetoothDevice device, int value) {
         setDeviceAccessFromPrefs(device, value, SIM_ACCESS_PERMISSION_PREFERENCE_FILE);
     }
 
@@ -3077,13 +3077,13 @@ public class AdapterService extends Service {
     native boolean getDevicePropertyNative(byte[] address, int type);
 
     /*package*/
-    native boolean createBondNative(byte[] address, int transport);
+    public native boolean createBondNative(byte[] address, int transport);
 
     /*package*/
     native boolean createBondOutOfBandNative(byte[] address, int transport, OobData oobData);
 
     /*package*/
-    native boolean removeBondNative(byte[] address);
+    public native boolean removeBondNative(byte[] address);
 
     /*package*/
     native boolean cancelBondNative(byte[] address);
