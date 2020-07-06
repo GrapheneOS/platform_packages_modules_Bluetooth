@@ -29,7 +29,7 @@
     <string name="bt_enable_line1" msgid="7203551583048149">"ବ୍ଲୁଟୂଥ୍‍‌ ସେବା ବ୍ୟବହାର କରିବା ପାଇଁ, ଆପଣଙ୍କୁ ପ୍ରଥମେ ବ୍ଲୁଟୂଥ୍‍‌ ଅନ୍‌ କରିବାକୁ ପଡ଼ିବ।"</string>
     <string name="bt_enable_line2" msgid="4341936569415937994">"ବ୍ଲୁ-ଟୁଥ୍‌କୁ ଏବେ ଅନ୍‌ କରିବେ?"</string>
     <string name="bt_enable_cancel" msgid="1988832367505151727">"ବାତିଲ୍"</string>
-    <string name="bt_enable_ok" msgid="3432462749994538265">"ଅନ୍ କରନ୍ତୁ"</string>
+    <string name="bt_enable_ok" msgid="3432462749994538265">"ଚାଲୁ କରନ୍ତୁ"</string>
     <string name="incoming_file_confirm_title" msgid="8139874248612182627">"ଫାଇଲ୍‌ ଟ୍ରାନ୍ସଫର୍‌ କରନ୍ତୁ"</string>
     <string name="incoming_file_confirm_content" msgid="2752605552743148036">"ଆସୁଥିବା ଫାଇଲ୍‌କୁ ସ୍ୱୀକାର କରିବେ?"</string>
     <string name="incoming_file_confirm_cancel" msgid="2973321832477704805">"ଅସ୍ୱୀକାର"</string>
@@ -128,7 +128,7 @@
     <string name="bluetooth_map_settings_intro" msgid="6482369468223987562">"ବ୍ଲୁଟୂଥ୍‍‌ ମାଧ୍ୟମରେ ସେୟାର୍‌ କରିବାକୁ ଚାହୁଁଥିବା ଆକାଉଣ୍ଟଗୁଡ଼ିକୁ ଚୟନ କରନ୍ତୁ। ଆପଣଙ୍କୁ ତଥାପି ସଂଯୋଗ କରୁଥିବା ସମୟରେ ଆକାଉଣ୍ଟଗୁଡ଼ିକ ପ୍ରତି ଯେକୌଣସି ଆକ୍ସେସ୍‌କୁ ସ୍ୱୀକାର କରିବାକୁ ପଡ଼ିବ।"</string>
     <string name="bluetooth_map_settings_count" msgid="4557473074937024833">"ବଳକା ସ୍ଲଟ୍‌:"</string>
     <string name="bluetooth_map_settings_app_icon" msgid="7105805610929114707">"ଆପ୍ଲିକେଶନ୍‌ ଆଇକନ୍‌"</string>
-    <string name="bluetooth_map_settings_title" msgid="7420332483392851321">"ବ୍ଲୁଟୂଥ୍‍‌ ମେସେଜ୍‌ ଶେୟାରିଙ୍ଗ ସେଟିଙ୍ଗ"</string>
+    <string name="bluetooth_map_settings_title" msgid="7420332483392851321">"ବ୍ଲୁଟୁଥ‌ ମେସେଜ୍‌ ସେୟାରିଂ ସେଟିଂସ୍"</string>
     <string name="bluetooth_map_settings_no_account_slots_left" msgid="1796029082612965251">"ଆକାଉଣ୍ଟ ଚୟନ କରାଯାଇପାରିବ ନାହିଁ। 0 ସ୍ଲଟ୍‌ ବଳକା ରହିଲା"</string>
     <string name="bluetooth_connected" msgid="6718623220072656906">"ବ୍ଲୁଟୂଥ୍‍‌ ଅଡିଓ ସଂଯୁକ୍ତ କରାଗଲା"</string>
     <string name="bluetooth_disconnected" msgid="3318303728981478873">"ବ୍ଲୁଟୂଥ୍‍‌ ଅଡିଓ ବିଚ୍ଛିନ୍ନ କରାଗଲା"</string>

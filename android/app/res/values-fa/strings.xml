@@ -35,7 +35,7 @@
     <string name="incoming_file_confirm_cancel" msgid="2973321832477704805">"نپذیرفتن"</string>
     <string name="incoming_file_confirm_ok" msgid="281462442932231475">"پذیرفتن"</string>
     <string name="incoming_file_confirm_timeout_ok" msgid="1414676773249857278">"تأیید"</string>
-    <string name="incoming_file_confirm_timeout_content" msgid="172779756093975981">"هنگام پذیرش یک فایل ورودی از \"<xliff:g id="SENDER">%1$s</xliff:g>\" وقفه زمانی پیش آمد"</string>
+    <string name="incoming_file_confirm_timeout_content" msgid="172779756093975981">"هنگام پذیرش یک فایل ورودی از \"<xliff:g id="SENDER">%1$s</xliff:g>\" درنگ پیش آمد"</string>
     <string name="incoming_file_confirm_Notification_title" msgid="5573329005298936903">"فایل ورودی"</string>
     <string name="incoming_file_confirm_Notification_content" msgid="3359694069319644738">"<xliff:g id="SENDER">%1$s</xliff:g> آماده ارسال <xliff:g id="FILE">%2$s</xliff:g> است"</string>
     <string name="notification_receiving" msgid="4674648179652543984">"اشتراک بلوتوث: در حال دریافت <xliff:g id="FILE">%1$s</xliff:g>"</string>
@@ -94,7 +94,7 @@
     <string name="status_not_accept" msgid="1695082417193780738">"محتوا پشتیبانی نمی‌شود."</string>
     <string name="status_forbidden" msgid="613956401054050725">"انتقال توسط دستگاه مقصد ممنوع شده است."</string>
     <string name="status_canceled" msgid="6664490318773098285">"انتقال توسط کاربر لغو شد."</string>
-    <string name="status_file_error" msgid="3671917770630165299">"مشکل ذخیره."</string>
+    <string name="status_file_error" msgid="3671917770630165299">"مشکل فضای ذخیره‌سازی."</string>
     <string name="status_no_sd_card_nosdcard" msgid="573631036356922221">"‏حافظهٔ USB وجود ندارد."</string>
     <string name="status_no_sd_card_default" msgid="396564893716701954">"‏هیچ کارت SD موجود نیست. برای ذخیره فایل‌های منتقل‌شده، کارت SD در گوشی قرار دهید."</string>
     <string name="status_connection_error" msgid="947681831523219891">"اتصال ناموفق بود."</string>
@@ -122,7 +122,7 @@
     <string name="transfer_menu_open" msgid="3368984869083107200">"باز کردن"</string>
     <string name="transfer_menu_clear" msgid="5854038118831427492">"پاک کردن از فهرست"</string>
     <string name="transfer_clear_dlg_title" msgid="2953444575556460386">"پاک کردن"</string>
-    <string name="bluetooth_a2dp_sink_queue_name" msgid="6864149958708669766">"اکنون درحال پخش"</string>
+    <string name="bluetooth_a2dp_sink_queue_name" msgid="6864149958708669766">"درحال پخش"</string>
     <string name="bluetooth_map_settings_save" msgid="7635491847388074606">"ذخیره‌"</string>
     <string name="bluetooth_map_settings_cancel" msgid="9205350798049865699">"لغو"</string>
     <string name="bluetooth_map_settings_intro" msgid="6482369468223987562">"حساب‌هایی را انتخاب کنید که می‌خواهید از طریق بلوتوث به اشتراک بگذارید. هنگام اتصال، همچنان باید با هر گونه دسترسی به حساب‌ها موافقت کنید."</string>
