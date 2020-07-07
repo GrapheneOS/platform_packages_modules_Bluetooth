@@ -387,8 +387,7 @@ public class PanService extends ProfileService {
 
     public boolean isTetheringOn() {
         // TODO(BT) have a variable marking the on/off state
-        enforceCallingOrSelfPermission(
-                BLUETOOTH_PRIVILEGED, "Need BLUETOOTH_PRIVILEGED permission");
+        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
         return mTetherOn;
     }
 
