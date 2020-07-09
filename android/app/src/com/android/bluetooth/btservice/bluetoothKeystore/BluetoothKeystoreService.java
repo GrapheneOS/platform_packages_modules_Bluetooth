@@ -797,7 +797,8 @@ public class BluetoothKeystoreService {
         return keyStore;
     }
 
-    private SecretKey getOrCreateSecretKey() {
+    // The getOrGenerate semantic on keystore is not thread safe, need to synchronized it.
+    private synchronized SecretKey getOrCreateSecretKey() {
         SecretKey secretKey = null;
         try {
             KeyStore keyStore = getKeyStore();
