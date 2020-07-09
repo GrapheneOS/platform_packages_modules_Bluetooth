@@ -176,7 +176,8 @@ class AvrcpVolumeManager extends AudioDeviceCallback {
                         + " deviceVolume=" + deviceVolume
                         + " sDeviceMaxVolume=" + sDeviceMaxVolume);
         mAudioManager.setStreamVolume(AudioManager.STREAM_MUSIC, deviceVolume,
-                AudioManager.FLAG_SHOW_UI | AudioManager.FLAG_BLUETOOTH_ABS_VOLUME);
+                (deviceVolume != getVolume(device, -1) ? AudioManager.FLAG_SHOW_UI : 0)
+                    | AudioManager.FLAG_BLUETOOTH_ABS_VOLUME);
         storeVolumeForDevice(device);
     }
 
