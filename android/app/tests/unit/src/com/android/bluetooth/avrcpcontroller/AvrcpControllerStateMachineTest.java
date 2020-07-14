@@ -40,6 +40,7 @@ import com.android.bluetooth.TestUtils;
 import com.android.bluetooth.a2dpsink.A2dpSinkService;
 import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.ProfileService;
+import com.android.bluetooth.btservice.storage.DatabaseManager;
 
 import org.hamcrest.core.IsInstanceOf;
 import org.junit.After;
@@ -86,6 +87,8 @@ public class AvrcpControllerStateMachineTest {
     private AvrcpControllerService mAvrcpControllerService;
     @Mock
     private A2dpSinkService mA2dpSinkService;
+    @Mock
+    private DatabaseManager mDatabaseManager;
 
     @Mock
     private Resources mMockResources;
@@ -108,6 +111,7 @@ public class AvrcpControllerStateMachineTest {
         TestUtils.startService(mAvrcpServiceRule, AvrcpControllerService.class);
         TestUtils.clearAdapterService(mAvrcpAdapterService);
         TestUtils.setAdapterService(mA2dpAdapterService);
+        doReturn(mDatabaseManager).when(mA2dpAdapterService).getDatabase();
         TestUtils.startService(mA2dpServiceRule, A2dpSinkService.class);
         when(mA2dpSinkService.setActiveDeviceNative(any())).thenReturn(true);
 

@@ -16,6 +16,8 @@
 
 package com.android.bluetooth.hfpclient;
 
+import static org.mockito.Mockito.doReturn;
+
 import android.bluetooth.BluetoothAdapter;
 import android.content.Context;
 
@@ -27,6 +29,7 @@ import androidx.test.runner.AndroidJUnit4;
 import com.android.bluetooth.R;
 import com.android.bluetooth.TestUtils;
 import com.android.bluetooth.btservice.AdapterService;
+import com.android.bluetooth.btservice.storage.DatabaseManager;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -49,6 +52,8 @@ public class HeadsetClientServiceTest {
 
     @Mock private AdapterService mAdapterService;
 
+    @Mock private DatabaseManager mDatabaseManager;
+
     @Before
     public void setUp() throws Exception {
         mTargetContext = InstrumentationRegistry.getTargetContext();
@@ -56,6 +61,7 @@ public class HeadsetClientServiceTest {
                 mTargetContext.getResources().getBoolean(R.bool.profile_supported_hfpclient));
         MockitoAnnotations.initMocks(this);
         TestUtils.setAdapterService(mAdapterService);
+        doReturn(mDatabaseManager).when(mAdapterService).getDatabase();
         TestUtils.startService(mServiceRule, HeadsetClientService.class);
         // At this point the service should have started so check NOT null
         mService = HeadsetClientService.getHeadsetClientService();
