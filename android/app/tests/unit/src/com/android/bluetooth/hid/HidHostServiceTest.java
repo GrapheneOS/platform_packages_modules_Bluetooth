@@ -62,6 +62,7 @@ public class HidHostServiceTest {
                 mTargetContext.getResources().getBoolean(R.bool.profile_supported_hid_host));
         MockitoAnnotations.initMocks(this);
         TestUtils.setAdapterService(mAdapterService);
+        when(mAdapterService.getDatabase()).thenReturn(mDatabaseManager);
         TestUtils.startService(mServiceRule, HidHostService.class);
         mService = HidHostService.getHidHostService();
         Assert.assertNotNull(mService);
@@ -128,9 +129,6 @@ public class HidHostServiceTest {
                 badBondState, BluetoothProfile.CONNECTION_POLICY_ALLOWED, false);
         testOkToConnectCase(mTestDevice,
                 badBondState, badPriorityValue, false);
-        // Restore prirority to undefined for this test device
-        Assert.assertTrue(mService.setConnectionPolicy(
-                mTestDevice, BluetoothProfile.CONNECTION_POLICY_UNKNOWN));
     }
 
     /**
@@ -144,7 +142,6 @@ public class HidHostServiceTest {
     private void testOkToConnectCase(BluetoothDevice device, int bondState, int priority,
             boolean expected) {
         doReturn(bondState).when(mAdapterService).getBondState(device);
-        when(mAdapterService.getDatabase()).thenReturn(mDatabaseManager);
         when(mDatabaseManager.getProfileConnectionPolicy(device, BluetoothProfile.HID_HOST))
                 .thenReturn(priority);
 

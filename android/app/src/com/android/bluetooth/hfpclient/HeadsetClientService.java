@@ -34,6 +34,7 @@ import android.util.Log;
 import com.android.bluetooth.Utils;
 import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.ProfileService;
+import com.android.bluetooth.btservice.storage.DatabaseManager;
 import com.android.bluetooth.hfpclient.connserv.HfpClientConnectionService;
 
 import java.util.ArrayList;
@@ -41,6 +42,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 
 /**
@@ -58,6 +60,7 @@ public class HeadsetClientService extends ProfileService {
     private NativeInterface mNativeInterface = null;
     private HandlerThread mSmThread = null;
     private HeadsetClientStateMachineFactory mSmFactory = null;
+    private DatabaseManager mDatabaseManager;
     private AudioManager mAudioManager = null;
     // Maxinum number of devices we can try connecting to in one session
     private static final int MAX_STATE_MACHINES_POSSIBLE = 100;
@@ -78,6 +81,9 @@ public class HeadsetClientService extends ProfileService {
             Log.w(TAG, "start(): start called without stop");
             return false;
         }
+
+        mDatabaseManager = Objects.requireNonNull(AdapterService.getAdapterService().getDatabase(),
+                "DatabaseManager cannot be null when HeadsetClientService starts");
 
         // Setup the JNI service
         mNativeInterface = NativeInterface.getInstance();
@@ -581,8 +587,11 @@ public class HeadsetClientService extends ProfileService {
         if (DBG) {
             Log.d(TAG, "Saved connectionPolicy " + device + " = " + connectionPolicy);
         }
-        AdapterService.getAdapterService().getDatabase().setProfileConnectionPolicy(
-                device, BluetoothProfile.HEADSET_CLIENT, connectionPolicy);
+
+        if (!mDatabaseManager.setProfileConnectionPolicy(device, BluetoothProfile.HEADSET_CLIENT,
+                  connectionPolicy)) {
+            return false;
+        }
         if (connectionPolicy == BluetoothProfile.CONNECTION_POLICY_ALLOWED) {
             connect(device);
         } else if (connectionPolicy == BluetoothProfile.CONNECTION_POLICY_FORBIDDEN) {
@@ -605,7 +614,7 @@ public class HeadsetClientService extends ProfileService {
      */
     public int getConnectionPolicy(BluetoothDevice device) {
         enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH_ADMIN permission");
-        return AdapterService.getAdapterService().getDatabase()
+        return mDatabaseManager
                 .getProfileConnectionPolicy(device, BluetoothProfile.HEADSET_CLIENT);
     }
 
