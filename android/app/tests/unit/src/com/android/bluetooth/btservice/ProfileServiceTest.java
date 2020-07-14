@@ -29,6 +29,7 @@ import androidx.test.rule.ServiceTestRule;
 import androidx.test.runner.AndroidJUnit4;
 
 import com.android.bluetooth.TestUtils;
+import com.android.bluetooth.btservice.storage.DatabaseManager;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -81,6 +82,7 @@ public class ProfileServiceTest {
     }
 
     private @Mock AdapterService mMockAdapterService;
+    @Mock private DatabaseManager mDatabaseManager;
 
     private Class[] mProfiles;
 
@@ -100,6 +102,7 @@ public class ProfileServiceTest {
                 0 /* config_compare_result */, new String[0]);
 
         TestUtils.setAdapterService(mMockAdapterService);
+        doReturn(mDatabaseManager).when(mMockAdapterService).getDatabase();
 
         Assert.assertNotNull(AdapterService.getAdapterService());
     }

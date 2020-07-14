@@ -61,13 +61,13 @@ public class A2dpSinkServiceTest {
                 mTargetContext.getResources().getBoolean(R.bool.profile_supported_a2dp_sink));
         MockitoAnnotations.initMocks(this);
         TestUtils.setAdapterService(mAdapterService);
+        doReturn(mDatabaseManager).when(mAdapterService).getDatabase();
         TestUtils.startService(mServiceRule, A2dpSinkService.class);
         mService = A2dpSinkService.getA2dpSinkService();
         Assert.assertNotNull(mService);
         // Try getting the Bluetooth adapter
         mAdapter = BluetoothAdapter.getDefaultAdapter();
         Assert.assertNotNull(mAdapter);
-        when(mAdapterService.getDatabase()).thenReturn(mDatabaseManager);
     }
 
     @After
