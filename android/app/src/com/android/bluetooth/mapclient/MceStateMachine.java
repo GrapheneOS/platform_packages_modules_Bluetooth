@@ -94,6 +94,8 @@ final class MceStateMachine extends StateMachine {
     static final int MSG_NOTIFICATION = 2003;
     static final int MSG_GET_LISTING = 2004;
     static final int MSG_GET_MESSAGE_LISTING = 2005;
+    // Set message status to read or deleted
+    static final int MSG_SET_MESSAGE_STATUS = 2006;
 
     private static final String TAG = "MceSM";
     private static final Boolean DBG = MapClientService.DBG;
@@ -336,6 +338,45 @@ final class MceStateMachine extends StateMachine {
         return 0;
     }
 
+    synchronized boolean setMessageStatus(String handle, int status) {
+        if (DBG) {
+            Log.d(TAG, "setMessageStatus(" + handle + ", " + status + ")");
+        }
+        if (this.getCurrentState() == mConnected) {
+            RequestSetMessageStatus.StatusIndicator statusIndicator;
+            byte value;
+            switch (status) {
+                case BluetoothMapClient.UNREAD:
+                    statusIndicator = RequestSetMessageStatus.StatusIndicator.READ;
+                    value = RequestSetMessageStatus.STATUS_NO;
+                    break;
+
+                case BluetoothMapClient.READ:
+                    statusIndicator = RequestSetMessageStatus.StatusIndicator.READ;
+                    value = RequestSetMessageStatus.STATUS_YES;
+                    break;
+
+                case BluetoothMapClient.UNDELETED:
+                    statusIndicator = RequestSetMessageStatus.StatusIndicator.DELETED;
+                    value = RequestSetMessageStatus.STATUS_NO;
+                    break;
+
+                case BluetoothMapClient.DELETED:
+                    statusIndicator = RequestSetMessageStatus.StatusIndicator.DELETED;
+                    value = RequestSetMessageStatus.STATUS_YES;
+                    break;
+
+                default:
+                    Log.e(TAG, "Invalid parameter for status" + status);
+                    return false;
+            }
+            sendMessage(MSG_SET_MESSAGE_STATUS, 0, 0, new RequestSetMessageStatus(
+                    handle, statusIndicator, value));
+            return true;
+        }
+        return false;
+    }
+
     private String getContactURIFromPhone(String number) {
         return PhoneAccount.SCHEME_TEL + ":" + number;
     }
@@ -518,6 +559,12 @@ final class MceStateMachine extends StateMachine {
                             (String) message.obj, 0, filter, 0, 50, 0));
                     break;
 
+                case MSG_SET_MESSAGE_STATUS:
+                    if (message.obj instanceof RequestSetMessageStatus) {
+                        mMasClient.makeRequest((RequestSetMessageStatus) message.obj);
+                    }
+                    break;
+
                 case MSG_MAS_REQUEST_COMPLETED:
                     if (DBG) {
                         Log.d(TAG, "Completed request");
@@ -538,6 +585,8 @@ final class MceStateMachine extends StateMachine {
                         }
                     } else if (message.obj instanceof RequestGetMessagesListing) {
                         processMessageListing((RequestGetMessagesListing) message.obj);
+                    } else if (message.obj instanceof RequestSetMessageStatus) {
+                        processSetMessageStatus((RequestSetMessageStatus) message.obj);
                     }
                     break;
 
@@ -614,15 +663,15 @@ final class MceStateMachine extends StateMachine {
             if (DBG) Log.d(TAG, "markMessageRead");
             MessageMetadata metadata = mMessages.get(request.getHandle());
             metadata.setRead(true);
-            mMasClient.makeRequest(new RequestSetMessageStatus(
-                    request.getHandle(), RequestSetMessageStatus.StatusIndicator.READ));
+            mMasClient.makeRequest(new RequestSetMessageStatus(request.getHandle(),
+                    RequestSetMessageStatus.StatusIndicator.READ, RequestSetMessageStatus.STATUS_YES));
         }
 
         // Sets the specified message status to "deleted"
         private void markMessageDeleted(RequestGetMessage request) {
             if (DBG) Log.d(TAG, "markMessageDeleted");
-            mMasClient.makeRequest(new RequestSetMessageStatus(
-                    request.getHandle(), RequestSetMessageStatus.StatusIndicator.DELETED));
+            mMasClient.makeRequest(new RequestSetMessageStatus(request.getHandle(),
+                    RequestSetMessageStatus.StatusIndicator.DELETED, RequestSetMessageStatus.STATUS_YES));
         }
 
         /**
@@ -651,6 +700,39 @@ final class MceStateMachine extends StateMachine {
                     getMessage(msg.getHandle());
                 }
             }
+        }
+
+        private void processSetMessageStatus(RequestSetMessageStatus request) {
+            if (DBG) {
+                Log.d(TAG, "processSetMessageStatus");
+            }
+            int result = BluetoothMapClient.RESULT_SUCCESS;
+            if (!request.isSuccess()) {
+                Log.e(TAG, "Set message status failed");
+                result = BluetoothMapClient.RESULT_FAILURE;
+            }
+            Intent intent;
+            RequestSetMessageStatus.StatusIndicator status = request.getStatusIndicator();
+            switch (status) {
+                case READ:
+                    intent = new Intent(BluetoothMapClient.ACTION_MESSAGE_READ_STATUS_CHANGED);
+                    intent.putExtra(BluetoothMapClient.EXTRA_MESSAGE_READ_STATUS,
+                            request.getValue() == RequestSetMessageStatus.STATUS_YES ? true : false);
+                    break;
+
+                case DELETED:
+                    intent = new Intent(BluetoothMapClient.ACTION_MESSAGE_DELETED_STATUS_CHANGED);
+                    intent.putExtra(BluetoothMapClient.EXTRA_MESSAGE_DELETED_STATUS,
+                            request.getValue() == RequestSetMessageStatus.STATUS_YES ? true : false);
+                    break;
+
+                default:
+                    Log.e(TAG, "Unknown status indicator " + status);
+                    return;
+            }
+            intent.putExtra(BluetoothMapClient.EXTRA_MESSAGE_HANDLE, request.getHandle());
+            intent.putExtra(BluetoothMapClient.EXTRA_RESULT_CODE, result);
+            mService.sendBroadcast(intent);
         }
 
         /**
