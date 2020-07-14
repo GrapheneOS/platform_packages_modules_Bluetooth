@@ -33,12 +33,14 @@ import android.util.Log;
 import com.android.bluetooth.R;
 import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.ProfileService;
+import com.android.bluetooth.btservice.storage.DatabaseManager;
 import com.android.bluetooth.hfpclient.connserv.HfpClientConnectionService;
 import com.android.bluetooth.sdp.SdpManager;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -60,6 +62,8 @@ public class PbapClientService extends ProfileService {
     private PbapBroadcastReceiver mPbapBroadcastReceiver = new PbapBroadcastReceiver();
     private int mSdpHandle = -1;
 
+    private DatabaseManager mDatabaseManager;
+
     @Override
     public IProfileServiceBinder initBinder() {
         return new BluetoothPbapClientBinder(this);
@@ -70,6 +74,10 @@ public class PbapClientService extends ProfileService {
         if (VDBG) {
             Log.v(TAG, "onStart");
         }
+
+        mDatabaseManager = Objects.requireNonNull(AdapterService.getAdapterService().getDatabase(),
+                "DatabaseManager cannot be null when PbapClientService starts");
+
         IntentFilter filter = new IntentFilter();
         filter.addAction(BluetoothDevice.ACTION_ACL_DISCONNECTED);
         // delay initial download until after the user is unlocked to add an account.
@@ -446,8 +454,11 @@ public class PbapClientService extends ProfileService {
         if (DBG) {
             Log.d(TAG, "Saved connectionPolicy " + device + " = " + connectionPolicy);
         }
-        AdapterService.getAdapterService().getDatabase()
-            .setProfileConnectionPolicy(device, BluetoothProfile.PBAP_CLIENT, connectionPolicy);
+
+        if (!mDatabaseManager.setProfileConnectionPolicy(device, BluetoothProfile.PBAP_CLIENT,
+                  connectionPolicy)) {
+            return false;
+        }
         if (connectionPolicy == BluetoothProfile.CONNECTION_POLICY_ALLOWED) {
             connect(device);
         } else if (connectionPolicy == BluetoothProfile.CONNECTION_POLICY_FORBIDDEN) {
@@ -474,7 +485,7 @@ public class PbapClientService extends ProfileService {
         }
         enforceCallingOrSelfPermission(BLUETOOTH_PRIVILEGED,
                 "Need BLUETOOTH_PRIVILEGED permission");
-        return AdapterService.getAdapterService().getDatabase()
+        return mDatabaseManager
                 .getProfileConnectionPolicy(device, BluetoothProfile.PBAP_CLIENT);
     }
 

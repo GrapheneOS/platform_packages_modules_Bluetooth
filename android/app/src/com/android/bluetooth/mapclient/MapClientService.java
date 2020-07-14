@@ -35,6 +35,7 @@ import android.util.Log;
 import com.android.bluetooth.Utils;
 import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.ProfileService;
+import com.android.bluetooth.btservice.storage.DatabaseManager;
 import com.android.internal.annotations.VisibleForTesting;
 
 import java.util.ArrayList;
@@ -42,6 +43,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -58,6 +60,7 @@ public class MapClientService extends ProfileService {
     private Map<BluetoothDevice, MceStateMachine> mMapInstanceMap = new ConcurrentHashMap<>(1);
     private MnsService mMnsServer;
     private BluetoothAdapter mAdapter;
+    private DatabaseManager mDatabaseManager;
     private static MapClientService sMapClientService;
     private MapBroadcastReceiver mMapReceiver;
 
@@ -243,8 +246,11 @@ public class MapClientService extends ProfileService {
         }
         enforceCallingOrSelfPermission(BLUETOOTH_PRIVILEGED,
                 "Need BLUETOOTH_PRIVILEGED permission");
-        AdapterService.getAdapterService().getDatabase()
-                .setProfileConnectionPolicy(device, BluetoothProfile.MAP_CLIENT, connectionPolicy);
+
+        if (!mDatabaseManager.setProfileConnectionPolicy(device, BluetoothProfile.MAP_CLIENT,
+                  connectionPolicy)) {
+            return false;
+        }
         if (connectionPolicy == BluetoothProfile.CONNECTION_POLICY_ALLOWED) {
             connect(device);
         } else if (connectionPolicy == BluetoothProfile.CONNECTION_POLICY_FORBIDDEN) {
@@ -268,7 +274,7 @@ public class MapClientService extends ProfileService {
     public int getConnectionPolicy(BluetoothDevice device) {
         enforceCallingOrSelfPermission(BLUETOOTH_PRIVILEGED,
                 "Need BLUETOOTH_PRIVILEGED permission");
-        return AdapterService.getAdapterService().getDatabase()
+        return mDatabaseManager
                 .getProfileConnectionPolicy(device, BluetoothProfile.MAP_CLIENT);
     }
 
@@ -287,6 +293,9 @@ public class MapClientService extends ProfileService {
     @Override
     protected synchronized boolean start() {
         Log.e(TAG, "start()");
+
+        mDatabaseManager = Objects.requireNonNull(AdapterService.getAdapterService().getDatabase(),
+                "DatabaseManager cannot be null when MapClientService starts");
 
         if (mMnsServer == null) {
             mMnsServer = MapUtils.newMnsServiceInstance(this);

@@ -39,6 +39,7 @@ import com.android.bluetooth.Utils;
 import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.MetricsLogger;
 import com.android.bluetooth.btservice.ProfileService;
+import com.android.bluetooth.btservice.storage.DatabaseManager;
 import com.android.internal.annotations.VisibleForTesting;
 
 import java.nio.ByteBuffer;
@@ -46,6 +47,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Objects;
 
 /** @hide */
 public class HidDeviceService extends ProfileService {
@@ -66,6 +68,7 @@ public class HidDeviceService extends ProfileService {
 
     private static HidDeviceService sHidDeviceService;
 
+    private DatabaseManager mDatabaseManager;
     private HidDeviceNativeInterface mHidDeviceNativeInterface;
 
     private boolean mNativeAvailable = false;
@@ -664,13 +667,15 @@ public class HidDeviceService extends ProfileService {
         if (DBG) {
             Log.d(TAG, "Saved connectionPolicy " + device + " = " + connectionPolicy);
         }
-        AdapterService.getAdapterService().getDatabase()
-                .setProfileConnectionPolicy(device, BluetoothProfile.HID_DEVICE, connectionPolicy);
+
+        if (!mDatabaseManager.setProfileConnectionPolicy(device, BluetoothProfile.HID_DEVICE,
+                  connectionPolicy)) {
+            return false;
+        }
         if (connectionPolicy == BluetoothProfile.CONNECTION_POLICY_FORBIDDEN) {
             disconnect(device);
-            return true;
         }
-        return false;
+        return true;
     }
 
     /**
@@ -691,7 +696,7 @@ public class HidDeviceService extends ProfileService {
         }
         enforceCallingOrSelfPermission(
                 BLUETOOTH_PRIVILEGED, "Need BLUETOOTH_PRIVILEGED permission");
-        return AdapterService.getAdapterService().getDatabase()
+        return mDatabaseManager
                 .getProfileConnectionPolicy(device, BluetoothProfile.HID_DEVICE);
     }
 
@@ -719,6 +724,9 @@ public class HidDeviceService extends ProfileService {
         if (DBG) {
             Log.d(TAG, "start()");
         }
+
+        mDatabaseManager = Objects.requireNonNull(AdapterService.getAdapterService().getDatabase(),
+                "DatabaseManager cannot be null when HidDeviceService starts");
 
         mHandler = new HidDeviceServiceHandler();
         mHidDeviceNativeInterface = HidDeviceNativeInterface.getInstance();

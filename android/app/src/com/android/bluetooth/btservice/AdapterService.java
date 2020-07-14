@@ -459,6 +459,9 @@ public class AdapterService extends Service {
         mSdpManager = SdpManager.init(this);
         registerReceiver(mAlarmBroadcastReceiver, new IntentFilter(ACTION_ALARM_WAKEUP));
 
+        mDatabaseManager = new DatabaseManager(this);
+        mDatabaseManager.start(MetadataDatabase.createDatabase(this));
+
         // Phone policy is specific to phone implementations and hence if a device wants to exclude
         // it out then it can be disabled by using the flag below.
         if (getResources().getBoolean(com.android.bluetooth.R.bool.enable_phone_policy)) {
@@ -471,9 +474,6 @@ public class AdapterService extends Service {
 
         mActiveDeviceManager = new ActiveDeviceManager(this, new ServiceFactory());
         mActiveDeviceManager.start();
-
-        mDatabaseManager = new DatabaseManager(this);
-        mDatabaseManager.start(MetadataDatabase.createDatabase(this));
 
         mSilenceDeviceManager = new SilenceDeviceManager(this, new ServiceFactory(),
                 Looper.getMainLooper());

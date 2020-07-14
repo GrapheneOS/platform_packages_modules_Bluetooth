@@ -110,6 +110,7 @@ public class HeadsetServiceTest {
                 .getRemoteUuids(any(BluetoothDevice.class));
         doReturn(BluetoothDevice.BOND_BONDED).when(mAdapterService)
                 .getBondState(any(BluetoothDevice.class));
+        doReturn(mDatabaseManager).when(mAdapterService).getDatabase();
         doAnswer(invocation -> {
             Set<BluetoothDevice> keys = mStateMachines.keySet();
             return keys.toArray(new BluetoothDevice[keys.size()]);
@@ -149,8 +150,6 @@ public class HeadsetServiceTest {
         mHeadsetServiceBinder = (IBluetoothHeadset.Stub) mHeadsetService.initBinder();
         Assert.assertNotNull(mHeadsetServiceBinder);
         mHeadsetServiceBinder.setForceScoAudio(true);
-        // Mock database for getConnectionPolicy()
-        when(mAdapterService.getDatabase()).thenReturn(mDatabaseManager);
     }
 
     @After
