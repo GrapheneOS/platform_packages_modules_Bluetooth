@@ -1181,7 +1181,7 @@ public class HeadsetClientStateMachine extends StateMachine {
                         sendMessage(QUERY_CURRENT_CALLS);
                     } else {
                         Log.e(TAG,
-                                "ERROR: Cannot dial with a given number:" + (String) message.obj);
+                                "ERROR: Cannot dial with a given number:" + c.toString(true));
                         // Set the call to terminated remove.
                         c.setState(BluetoothHeadsetClientCall.CALL_STATE_TERMINATED);
                         sendCallChangedIntent(c);
