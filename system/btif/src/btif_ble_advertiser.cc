@@ -74,6 +74,7 @@ void parseParams(tBTM_BLE_ADV_PARAMS* p_params,
   p_params->secondary_advertising_phy = params.secondary_advertising_phy;
   p_params->scan_request_notification_enable =
       params.scan_request_notification_enable;
+  p_params->own_address_type = params.own_address_type;
 }
 
 void parsePeriodicParams(tBLE_PERIODIC_ADV_PARAMS* p_periodic_params,
