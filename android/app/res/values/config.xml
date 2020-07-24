@@ -114,4 +114,7 @@
     <!-- Flag whether or not to keep polling AG with CLCC for call information every 2 seconds -->
     <bool name="hfp_clcc_poll_during_call">true</bool>
 
+    <!-- Package that is providing the exposure notification service -->
+    <string name="exposure_notification_package">com.google.android.gms</string>
+
 </resources>
