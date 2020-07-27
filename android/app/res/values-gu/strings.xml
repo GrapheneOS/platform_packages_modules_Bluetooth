@@ -69,7 +69,6 @@
     <string name="upload_succ_ok" msgid="7705428476405478828">"ઓકે"</string>
     <string name="upload_fail_line1" msgid="7899394672421491701">"ફાઇલ \"<xliff:g id="RECIPIENT">%1$s</xliff:g>\" ને મોકલાઈ નહોતી."</string>
     <string name="upload_fail_line1_2" msgid="2108129204050841798">"ફાઇલ: <xliff:g id="FILE">%1$s</xliff:g>"</string>
-    <string name="upload_fail_ok" msgid="5807702461606714296">"ફરી પ્રયાસ કરો"</string>
     <string name="upload_fail_cancel" msgid="9118496285835687125">"બંધ કરો"</string>
     <string name="bt_error_btn_ok" msgid="5965151173011534240">"ઓકે"</string>
     <string name="unknown_file" msgid="6092727753965095366">"અજાણી ફાઇલ"</string>
