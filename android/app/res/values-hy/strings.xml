@@ -69,7 +69,6 @@
     <string name="upload_succ_ok" msgid="7705428476405478828">"Հաստատել"</string>
     <string name="upload_fail_line1" msgid="7899394672421491701">"Ֆայլը չի ուղարկվել «<xliff:g id="RECIPIENT">%1$s</xliff:g>»-ին:"</string>
     <string name="upload_fail_line1_2" msgid="2108129204050841798">"Ֆայլ՝ <xliff:g id="FILE">%1$s</xliff:g>"</string>
-    <string name="upload_fail_ok" msgid="5807702461606714296">"Կրկին փորձել"</string>
     <string name="upload_fail_cancel" msgid="9118496285835687125">"Փակել"</string>
     <string name="bt_error_btn_ok" msgid="5965151173011534240">"Եղավ"</string>
     <string name="unknown_file" msgid="6092727753965095366">"Անհայտ ֆայլ"</string>
