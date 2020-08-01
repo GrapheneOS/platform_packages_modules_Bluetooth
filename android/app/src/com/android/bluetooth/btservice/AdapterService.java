@@ -376,7 +376,11 @@ public class AdapterService extends Service {
         mAdapterProperties = new AdapterProperties(this);
         mAdapterStateMachine = AdapterState.make(this);
         mJniCallbacks = new JniCallbacks(this, mAdapterProperties);
-        initNative();
+
+        // Android TV doesn't show consent dialogs for just works and encryption only le pairing
+        boolean isAtvDevice = getApplicationContext().getPackageManager().hasSystemFeature(
+                PackageManager.FEATURE_LEANBACK_ONLY);
+        initNative(isAtvDevice);
         mNativeAvailable = true;
         mCallbacks = new RemoteCallbackList<IBluetoothCallback>();
         //Load the name and address
@@ -2541,7 +2545,7 @@ public class AdapterService extends Service {
 
     static native void classInitNative();
 
-    native boolean initNative();
+    native boolean initNative(boolean isAtvDevice);
 
     native void cleanupNative();
 

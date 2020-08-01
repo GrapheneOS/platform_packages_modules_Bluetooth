@@ -95,7 +95,7 @@ public class ProfileServiceTest {
 
         mProfiles = Config.getSupportedProfiles();
 
-        mMockAdapterService.initNative();
+        mMockAdapterService.initNative(false);
 
         TestUtils.setAdapterService(mMockAdapterService);
 
