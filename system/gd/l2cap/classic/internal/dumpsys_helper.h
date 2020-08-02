@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 The Android Open Source Project
+ * Copyright 2020 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,24 +16,29 @@
 
 #pragma once
 
-#include "l2cap/internal/ilink.h"
+#include "l2cap/classic/internal/link_manager.h"
+#include "l2cap/internal/dynamic_channel_allocator.h"
+#include "l2cap_classic_module_generated.h"
 
-#include <gmock/gmock.h>
-
-// Unit test interfaces
 namespace bluetooth {
 namespace l2cap {
+namespace classic {
 namespace internal {
-namespace testing {
 
-class MockILink : public ILink {
+class DumpsysHelper {
  public:
-  MOCK_METHOD(hci::AddressWithType, GetDevice, (), (const, override));
-  MOCK_METHOD(void, SendDisconnectionRequest, (Cid, Cid), (override));
-  MOCK_METHOD(void, SendLeCredit, (Cid, uint16_t), (override));
+  DumpsysHelper(const LinkManager& link_manager);
+
+  std::vector<flatbuffers::Offset<ChannelData>> DumpActiveDynamicChannels(
+      flatbuffers::FlatBufferBuilder* fb_builder,
+      const l2cap::internal::DynamicChannelAllocator& channel_allocator) const;
+  std::vector<flatbuffers::Offset<LinkData>> DumpActiveLinks(flatbuffers::FlatBufferBuilder* fb_builder) const;
+
+ private:
+  const LinkManager& link_manager_;
 };
 
-}  // namespace testing
 }  // namespace internal
+}  // namespace classic
 }  // namespace l2cap
 }  // namespace bluetooth

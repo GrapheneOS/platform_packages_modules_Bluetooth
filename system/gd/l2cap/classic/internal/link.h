@@ -41,6 +41,7 @@ namespace classic {
 namespace internal {
 
 class LinkManager;
+class DumpsysHelper;
 
 class Link : public l2cap::internal::ILink, public hci::acl_manager::ConnectionManagementCallbacks {
  public:
@@ -49,7 +50,7 @@ class Link : public l2cap::internal::ILink, public hci::acl_manager::ConnectionM
        DynamicChannelServiceManagerImpl* dynamic_service_manager, FixedChannelServiceManagerImpl* fixed_service_manager,
        LinkManager* link_manager);
 
-  hci::AddressWithType GetDevice() override {
+  hci::AddressWithType GetDevice() const override {
     return {acl_connection_->GetAddress(), hci::AddressType::PUBLIC_DEVICE_ADDRESS};
   }
 
@@ -141,7 +142,7 @@ class Link : public l2cap::internal::ILink, public hci::acl_manager::ConnectionM
   virtual bool GetRemoteSupportsFcs() const;
   virtual void OnRemoteExtendedFeatureReceived(bool ertm_supported, bool fcs_supported);
 
-  virtual std::string ToString() {
+  virtual std::string ToString() const {
     return GetDevice().ToString();
   }
 
@@ -177,6 +178,7 @@ class Link : public l2cap::internal::ILink, public hci::acl_manager::ConnectionM
   void OnDisconnection(hci::ErrorCode reason) override;
 
  private:
+  friend class DumpsysHelper;
   void connect_to_pending_dynamic_channels();
   void send_pending_configuration_requests();
 
