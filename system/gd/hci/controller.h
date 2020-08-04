@@ -37,11 +37,9 @@ class Controller : public Module {
 
   virtual void UnregisterCompletedAclPacketsCallback();
 
-  virtual std::string GetControllerLocalName() const;
+  virtual std::string GetLocalName() const;
 
-  virtual LocalVersionInformation GetControllerLocalVersionInformation() const;
-
-  virtual std::array<uint8_t, 64> GetControllerLocalSupportedCommands() const;
+  virtual LocalVersionInformation GetLocalVersionInformation() const;
 
   virtual bool SupportsSimplePairing() const;
   virtual bool SupportsSecureConnections() const;
@@ -83,15 +81,15 @@ class Controller : public Module {
   virtual bool SupportsBlePeripheralInitiatedFeatureExchange() const;
   virtual bool SupportsBleConnectionParameterRequest() const;
 
-  virtual uint16_t GetControllerAclPacketLength() const;
+  virtual uint16_t GetAclPacketLength() const;
 
-  virtual uint16_t GetControllerNumAclPacketBuffers() const;
+  virtual uint16_t GetNumAclPacketBuffers() const;
 
-  virtual uint8_t GetControllerScoPacketLength() const;
+  virtual uint8_t GetScoPacketLength() const;
 
-  virtual uint16_t GetControllerNumScoPacketBuffers() const;
+  virtual uint16_t GetNumScoPacketBuffers() const;
 
-  virtual Address GetControllerMacAddress() const;
+  virtual Address GetMacAddress() const;
 
   virtual void SetEventMask(uint64_t event_mask);
 
@@ -123,21 +121,21 @@ class Controller : public Module {
   // LE controller commands
   virtual void LeSetEventMask(uint64_t le_event_mask);
 
-  virtual LeBufferSize GetControllerLeBufferSize() const;
+  virtual LeBufferSize GetLeBufferSize() const;
 
-  virtual uint64_t GetControllerLeSupportedStates() const;
+  virtual uint64_t GetLeSupportedStates() const;
 
-  virtual uint8_t GetControllerLeConnectListSize() const;
+  virtual uint8_t GetLeConnectListSize() const;
 
-  virtual uint8_t GetControllerLeResolvingListSize() const;
+  virtual uint8_t GetLeResolvingListSize() const;
 
-  virtual LeMaximumDataLength GetControllerLeMaximumDataLength() const;
+  virtual LeMaximumDataLength GetLeMaximumDataLength() const;
 
-  virtual uint16_t GetControllerLeMaximumAdvertisingDataLength() const;
+  virtual uint16_t GetLeMaximumAdvertisingDataLength() const;
 
-  virtual uint8_t GetControllerLeNumberOfSupportedAdverisingSets() const;
+  virtual uint8_t GetLeNumberOfSupportedAdverisingSets() const;
 
-  virtual VendorCapabilities GetControllerVendorCapabilities() const;
+  virtual VendorCapabilities GetVendorCapabilities() const;
 
   virtual bool IsSupported(OpCode op_code) const;
 
