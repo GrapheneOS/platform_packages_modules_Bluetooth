@@ -216,6 +216,7 @@ public class SapServer extends Thread implements Callback {
                 mContext.getString(R.string.bluetooth_sap_notif_title),
                 NotificationManager.IMPORTANCE_HIGH);
         notificationManager.createNotificationChannel(notificationChannel);
+        flags |= PendingIntent.FLAG_IMMUTABLE;
         if(VERBOSE) Log.i(TAG, "setNotification type: " + type);
         /* For PTS TC_SERVER_DCN_BV_03_I we need to expose the option to send immediate disconnect
          * without first sending a graceful disconnect.
