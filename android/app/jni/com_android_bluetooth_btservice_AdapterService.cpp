@@ -684,7 +684,7 @@ static void classInitNative(JNIEnv* env, jclass clazz) {
 }
 
 static bool initNative(JNIEnv* env, jobject obj, jboolean isGuest,
-                       jboolean isNiapMode) {
+                       jboolean isNiapMode, jboolean isAtvDevice) {
   ALOGV("%s", __func__);
 
   android_bluetooth_UidTraffic.clazz =
@@ -700,7 +700,8 @@ static bool initNative(JNIEnv* env, jobject obj, jboolean isGuest,
 
   int ret = sBluetoothInterface->init(&sBluetoothCallbacks,
                                       isGuest == JNI_TRUE ? 1 : 0,
-                                      isNiapMode == JNI_TRUE ? 1 : 0);
+                                      isNiapMode == JNI_TRUE ? 1 : 0,
+                                      isAtvDevice == JNI_TRUE ? 1 : 0);
   if (ret != BT_STATUS_SUCCESS) {
     ALOGE("Error while setting the callbacks: %d\n", ret);
     sBluetoothInterface = NULL;
@@ -1240,7 +1241,7 @@ static jbyteArray obfuscateAddressNative(JNIEnv* env, jobject obj,
 static JNINativeMethod sMethods[] = {
     /* name, signature, funcPtr */
     {"classInitNative", "()V", (void*)classInitNative},
-    {"initNative", "(ZZ)Z", (void*)initNative},
+    {"initNative", "(ZZZ)Z", (void*)initNative},
     {"cleanupNative", "()V", (void*)cleanupNative},
     {"enableNative", "()Z", (void*)enableNative},
     {"disableNative", "()Z", (void*)disableNative},
