@@ -225,6 +225,7 @@ public class SapServer extends Thread implements Callback {
                 mContext.getString(R.string.bluetooth_sap_notif_title),
                 NotificationManager.IMPORTANCE_HIGH);
         notificationManager.createNotificationChannel(notificationChannel);
+        flags |= PendingIntent.FLAG_IMMUTABLE;
         if (VERBOSE) {
             Log.i(TAG, "setNotification type: " + type);
         }
