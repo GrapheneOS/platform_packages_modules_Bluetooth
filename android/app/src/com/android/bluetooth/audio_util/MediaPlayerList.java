@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.android.bluetooth.avrcp;
+package com.android.bluetooth.audio_util;
 
 import android.annotation.NonNull;
 import android.content.BroadcastReceiver;
@@ -61,7 +61,7 @@ import java.util.regex.Pattern;
  * player would effectively cause player switch by sending a play command to that player.
  */
 public class MediaPlayerList {
-    private static final String TAG = "AvrcpMediaPlayerList";
+    private static final String TAG = "MediaPlayerList";
     private static final boolean DEBUG = true;
     static boolean sTesting = false;
 
@@ -89,10 +89,11 @@ public class MediaPlayerList {
     private MediaSessionManager mMediaSessionManager;
     private MediaData mCurrMediaData = null;
     private final AudioManager mAudioManager;
-    private final AvrcpEventLogger mActivePlayerLogger = new AvrcpEventLogger(
-            ACTIVE_PLAYER_LOGGER_SIZE, ACTIVE_PLAYER_LOGGER_TITLE);
-    private final AvrcpEventLogger mAudioPlaybackStateLogger = new AvrcpEventLogger(
-            AUDIO_PLAYBACK_STATE_LOGGER_SIZE, AUDIO_PLAYBACK_STATE_LOGGER_TITLE);
+
+    private final BTAudioEventLogger mActivePlayerLogger = new BTAudioEventLogger(
+        ACTIVE_PLAYER_LOGGER_SIZE, ACTIVE_PLAYER_LOGGER_TITLE);
+    private final BTAudioEventLogger mAudioPlaybackStateLogger = new BTAudioEventLogger(
+        AUDIO_PLAYBACK_STATE_LOGGER_SIZE, AUDIO_PLAYBACK_STATE_LOGGER_TITLE);
 
     private Map<Integer, MediaPlayerWrapper> mMediaPlayers =
             Collections.synchronizedMap(new HashMap<Integer, MediaPlayerWrapper>());
@@ -102,29 +103,25 @@ public class MediaPlayerList {
             Collections.synchronizedMap(new HashMap<Integer, BrowsedPlayerWrapper>());
     private int mActivePlayerId = NO_ACTIVE_PLAYER;
 
-    @VisibleForTesting
+    private MediaUpdateCallback mCallback;
     private boolean mAudioPlaybackIsActive = false;
 
-    private AvrcpTargetService.ListCallback mCallback;
     private BrowsablePlayerConnector mBrowsablePlayerConnector;
 
-    interface MediaUpdateCallback {
+    public interface MediaUpdateCallback {
         void run(MediaData data);
-    }
-
-    interface GetPlayerRootCallback {
-        void run(int playerId, boolean success, String rootId, int numItems);
-    }
-
-    interface GetFolderItemsCallback {
-        void run(String parentId, List<ListItem> items);
-    }
-
-    interface FolderUpdateCallback {
         void run(boolean availablePlayers, boolean addressedPlayers, boolean uids);
     }
 
-    MediaPlayerList(Looper looper, Context context) {
+    public interface GetPlayerRootCallback {
+        void run(int playerId, boolean success, String rootId, int numItems);
+    }
+
+    public interface GetFolderItemsCallback {
+        void run(String parentId, List<ListItem> items);
+    }
+
+    public MediaPlayerList(Looper looper, Context context) {
         Log.v(TAG, "Creating MediaPlayerList");
 
         mLooper = looper;
@@ -150,7 +147,7 @@ public class MediaPlayerList {
                 mContext.getMainExecutor(), mMediaKeyEventSessionChangedListener);
     }
 
-    void init(AvrcpTargetService.ListCallback callback) {
+    public void init(MediaUpdateCallback callback) {
         Log.v(TAG, "Initializing MediaPlayerList");
         mCallback = callback;
 
@@ -204,7 +201,7 @@ public class MediaPlayerList {
             });
     }
 
-    void cleanup() {
+    public void cleanup() {
         mContext.unregisterReceiver(mPackageChangedBroadcastReceiver);
 
         mActivePlayerId = NO_ACTIVE_PLAYER;
@@ -232,7 +229,7 @@ public class MediaPlayerList {
         mBrowsablePlayers.clear();
     }
 
-    int getCurrentPlayerId() {
+    public int getCurrentPlayerId() {
         return BLUETOOTH_PLAYER_ID;
     }
 
@@ -244,18 +241,18 @@ public class MediaPlayerList {
         return id;
     }
 
-    MediaPlayerWrapper getActivePlayer() {
+    public MediaPlayerWrapper getActivePlayer() {
         return mMediaPlayers.get(mActivePlayerId);
     }
 
     // In this case the displayed player is the Bluetooth Player, the number of items is equal
     // to the number of players. The root ID will always be empty string in this case as well.
-    void getPlayerRoot(int playerId, GetPlayerRootCallback cb) {
+    public void getPlayerRoot(int playerId, GetPlayerRootCallback cb) {
         cb.run(playerId, playerId == BLUETOOTH_PLAYER_ID, "", mBrowsablePlayers.size());
     }
 
     // Return the "Bluetooth Player" as the only player always
-    List<PlayerInfo> getMediaPlayerList() {
+    public List<PlayerInfo> getMediaPlayerList() {
         PlayerInfo info = new PlayerInfo();
         info.id = BLUETOOTH_PLAYER_ID;
         info.name = BLUETOOTH_PLAYER_NAME;
@@ -267,7 +264,7 @@ public class MediaPlayerList {
     }
 
     @NonNull
-    String getCurrentMediaId() {
+    public String getCurrentMediaId() {
         final MediaPlayerWrapper player = getActivePlayer();
         if (player == null) return "";
 
@@ -288,14 +285,14 @@ public class MediaPlayerList {
     }
 
     @NonNull
-    Metadata getCurrentSongInfo() {
+    public Metadata getCurrentSongInfo() {
         final MediaPlayerWrapper player = getActivePlayer();
         if (player == null) return Util.empty_data();
 
         return player.getCurrentMetadata();
     }
 
-    PlaybackState getCurrentPlayStatus() {
+    public PlaybackState getCurrentPlayStatus() {
         final MediaPlayerWrapper player = getActivePlayer();
         if (player == null) return null;
 
@@ -312,7 +309,7 @@ public class MediaPlayerList {
     }
 
     @NonNull
-    List<Metadata> getNowPlayingList() {
+    public List<Metadata> getNowPlayingList() {
         // Only send the current song for the now playing if there is no active song. See
         // |getCurrentMediaId()| for reasons why there might be no active song.
         if (getCurrentMediaId().equals("")) {
@@ -326,7 +323,7 @@ public class MediaPlayerList {
         return getActivePlayer().getCurrentQueue();
     }
 
-    void playItem(int playerId, boolean nowPlaying, String mediaId) {
+    public void playItem(int playerId, boolean nowPlaying, String mediaId) {
         if (nowPlaying) {
             playNowPlayingItem(mediaId);
         } else {
@@ -387,7 +384,7 @@ public class MediaPlayerList {
         return;
     }
 
-    void getFolderItems(int playerId, String mediaId, GetFolderItemsCallback cb) {
+    public void getFolderItems(int playerId, String mediaId, GetFolderItemsCallback cb) {
         // The playerId is unused since we always assume the remote device is using the
         // Bluetooth Player.
         d("getFolderItems(): playerId=" + playerId + ", mediaId=" + mediaId);
@@ -577,7 +574,7 @@ public class MediaPlayerList {
     }
 
     // TODO (apanicke): Add logging for media key events in dumpsys
-    void sendMediaKeyEvent(int key, boolean pushed) {
+    public void sendMediaKeyEvent(int key, boolean pushed) {
         d("sendMediaKeyEvent: key=" + key + " pushed=" + pushed);
         int action = pushed ? KeyEvent.ACTION_DOWN : KeyEvent.ACTION_UP;
         KeyEvent event = new KeyEvent(action, AvrcpPassthrough.toKeyCode(key));
@@ -819,7 +816,7 @@ public class MediaPlayerList {
             };
 
 
-    void dump(StringBuilder sb) {
+    public void dump(StringBuilder sb) {
         sb.append("List of MediaControllers: size=" + mMediaPlayers.size() + "\n");
         for (int id : mMediaPlayers.keySet()) {
             if (id == mActivePlayerId) {

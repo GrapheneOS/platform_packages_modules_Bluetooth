@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.android.bluetooth.avrcp;
+package com.android.bluetooth.audio_util;
 
 import android.media.session.PlaybackState;
 
@@ -24,12 +24,12 @@ import java.util.Objects;
 /*
  * Helper class to transport metadata around AVRCP
  */
-class MediaData {
+public class MediaData {
     public List<Metadata> queue;
     public PlaybackState state;
     public Metadata metadata;
 
-    MediaData(Metadata m, PlaybackState s, List<Metadata> q) {
+    public MediaData(Metadata m, PlaybackState s, List<Metadata> q) {
         metadata = m;
         state = s;
         queue = q;
