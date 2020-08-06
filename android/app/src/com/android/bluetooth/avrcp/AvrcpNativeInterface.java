@@ -20,6 +20,11 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.util.Log;
 
+import com.android.bluetooth.audio_util.ListItem;
+import com.android.bluetooth.audio_util.Metadata;
+import com.android.bluetooth.audio_util.PlayStatus;
+import com.android.bluetooth.audio_util.PlayerInfo;
+
 import java.util.List;
 
 /**

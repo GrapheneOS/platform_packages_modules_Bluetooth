@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.android.bluetooth.avrcp;
+package com.android.bluetooth.audio_util;
 
 import android.util.Log;
 
@@ -23,8 +23,8 @@ import com.android.bluetooth.Utils;
 import com.google.common.collect.EvictingQueue;
 
 
-// This class is to store logs for Avrcp for given size.
-public class AvrcpEventLogger {
+// This class is to store logs for Audio for given size.
+public class BTAudioEventLogger {
     private final String mTitle;
     private final EvictingQueue<Event> mEvents;
 
@@ -44,34 +44,34 @@ public class AvrcpEventLogger {
         }
     }
 
-    AvrcpEventLogger(int size, String title) {
+    public BTAudioEventLogger(int size, String title) {
         mEvents = EvictingQueue.create(size);
         mTitle = title;
     }
 
-    synchronized void add(String msg) {
+    public synchronized void add(String msg) {
         Event event = new Event(msg);
         mEvents.add(event);
     }
 
-    synchronized void logv(String tag, String msg) {
+    public synchronized void logv(String tag, String msg) {
         add(msg);
         Log.v(tag, msg);
     }
 
-    synchronized void logd(String tag, String msg) {
+    public synchronized void logd(String tag, String msg) {
         logd(true, tag, msg);
     }
 
-    synchronized void logd(boolean debug, String tag, String msg) {
+    public synchronized void logd(boolean debug, String tag, String msg) {
         add(msg);
         if (debug) {
             Log.d(tag, msg);
         }
     }
 
-    synchronized void dump(StringBuilder sb) {
-        sb.append("Avrcp ").append(mTitle).append(":\n");
+    public synchronized void dump(StringBuilder sb) {
+        sb.append("BTAudio ").append(mTitle).append(":\n");
         for (Event event : mEvents) {
             sb.append("  ").append(event.toString()).append("\n");
         }

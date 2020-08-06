@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.android.bluetooth.avrcp;
+package com.android.bluetooth.audio_util;
 
 import android.annotation.Nullable;
 import android.media.MediaMetadata;
@@ -38,8 +38,8 @@ import java.util.Objects;
  * TODO (apanicke): Once MediaPlayer2 is supported better, replace this class
  * with that.
  */
-class MediaPlayerWrapper {
-    private static final String TAG = "AvrcpMediaPlayerWrapper";
+public class MediaPlayerWrapper {
+    private static final String TAG = "AudioMediaPlayerWrapper";
     private static final boolean DEBUG = false;
     static boolean sTesting = false;
     private static final int PLAYBACK_STATE_CHANGE_EVENT_LOGGER_SIZE = 5;
@@ -49,7 +49,7 @@ class MediaPlayerWrapper {
     private MediaController mMediaController;
     private String mPackageName;
     private Looper mLooper;
-    private final AvrcpEventLogger mPlaybackStateChangeEventLogger;
+    private final BTAudioEventLogger mPlaybackStateChangeEventLogger;
 
     private MediaData mCurrentData;
 
@@ -85,7 +85,7 @@ class MediaPlayerWrapper {
         mMediaController = controller;
         mPackageName = controller.getPackageName();
         mLooper = looper;
-        mPlaybackStateChangeEventLogger = new AvrcpEventLogger(
+        mPlaybackStateChangeEventLogger = new BTAudioEventLogger(
                 PLAYBACK_STATE_CHANGE_EVENT_LOGGER_SIZE, PLAYBACK_STATE_CHANGE_LOGGER_EVENT_TITLE);
 
         mCurrentData = new MediaData(null, null, null);
@@ -101,7 +101,7 @@ class MediaPlayerWrapper {
         mLooper = null;
     }
 
-    String getPackageName() {
+    public String getPackageName() {
         return mPackageName;
     }
 
@@ -117,7 +117,7 @@ class MediaPlayerWrapper {
         return Util.toMetadata(getMetadata());
     }
 
-    PlaybackState getPlaybackState() {
+    public PlaybackState getPlaybackState() {
         return mMediaController.getPlaybackState();
     }
 
@@ -152,13 +152,51 @@ class MediaPlayerWrapper {
         controller.skipToQueueItem(qid);
     }
 
+    public void playCurrent() {
+        MediaController.TransportControls controller = mMediaController.getTransportControls();
+        controller.play();
+    }
+
+    public void stopCurrent() {
+        MediaController.TransportControls controller = mMediaController.getTransportControls();
+        controller.stop();
+    }
+
+    public void pauseCurrent() {
+        MediaController.TransportControls controller = mMediaController.getTransportControls();
+        controller.pause();
+    }
+
+    public void seekTo(long position) {
+        MediaController.TransportControls controller = mMediaController.getTransportControls();
+        controller.seekTo(position);
+    }
+
+    public void skipToPrevious() {
+        MediaController.TransportControls controller = mMediaController.getTransportControls();
+        controller.skipToPrevious();
+    }
+
+    public void skipToNext() {
+        MediaController.TransportControls controller = mMediaController.getTransportControls();
+        controller.skipToNext();
+    }
+
     // TODO (apanicke): Implement shuffle and repeat support. Right now these use custom actions
     // and it may only be possible to do this with Google Play Music
-    boolean isShuffleSupported() {
+    public boolean isShuffleSupported() {
         return false;
     }
 
-    boolean isRepeatSupported() {
+    public boolean isRepeatSupported() {
+        return false;
+    }
+
+    public boolean isShuffleSet() {
+        return false;
+    }
+
+    public boolean isRepeatSet() {
         return false;
     }
 
@@ -478,7 +516,7 @@ class MediaPlayerWrapper {
      * in milliseconds.
      */
     private static final long PLAYSTATE_BOUNCE_IGNORE_PERIOD = 500;
-    static boolean playstateEquals(PlaybackState a, PlaybackState b) {
+    public static boolean playstateEquals(PlaybackState a, PlaybackState b) {
         if (a == b) return true;
 
         if (a != null && b != null
