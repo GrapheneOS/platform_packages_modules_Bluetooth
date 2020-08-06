@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package com.android.bluetooth.avrcp;
+package com.android.bluetooth.audio_util;
 
 import java.util.Objects;
 
-class Metadata implements Cloneable {
+public class Metadata implements Cloneable {
     public String mediaId;
     public String title;
     public String artist;

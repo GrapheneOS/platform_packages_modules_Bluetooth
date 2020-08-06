@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.android.bluetooth.avrcp;
+package com.android.bluetooth.audio_util;
 
 import android.media.session.PlaybackState;
 
@@ -23,7 +23,7 @@ import android.media.session.PlaybackState;
  */
 // TODO(apanicke): Send the current active song ID along with this object so that all information
 // is carried by our custom types.
-class PlayStatus {
+public class PlayStatus {
     static final byte STOPPED = 0;
     static final byte PLAYING = 1;
     static final byte PAUSED = 2;
@@ -36,7 +36,7 @@ class PlayStatus {
     public byte state = STOPPED;
 
     // Duration info isn't contained in the PlaybackState so the service must supply it.
-    static PlayStatus fromPlaybackState(PlaybackState state, long duration) {
+    public static PlayStatus fromPlaybackState(PlaybackState state, long duration) {
         PlayStatus ret = new PlayStatus();
         if (state == null) return ret;
 
