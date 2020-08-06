@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.android.bluetooth.avrcp;
+package com.android.bluetooth.audio_util;
 
 import static org.mockito.Mockito.*;
 
@@ -53,7 +53,7 @@ public class MediaPlayerListTest {
     private @Captor ArgumentCaptor<MediaPlayerWrapper.Callback> mPlayerWrapperCb;
     private @Captor ArgumentCaptor<MediaData> mMediaUpdateData;
     private @Mock Context mMockContext;
-    private @Mock AvrcpTargetService.ListCallback mAvrcpCallback;
+    private @Mock MediaPlayerList.MediaUpdateCallback mMediaUpdateCallback;
     private @Mock MediaController mMockController;
     private @Mock MediaPlayerWrapper mMockPlayerWrapper;
 
@@ -97,7 +97,7 @@ public class MediaPlayerListTest {
         BrowsablePlayerConnector mockConnector = mock(BrowsablePlayerConnector.class);
         method.setAccessible(true);
         method.invoke(null, mockConnector);
-        mMediaPlayerList.init(mAvrcpCallback);
+        mMediaPlayerList.init(mMediaUpdateCallback);
 
         MediaControllerFactory.inject(mMockController);
         MediaPlayerWrapperFactory.inject(mMockPlayerWrapper);
@@ -144,7 +144,7 @@ public class MediaPlayerListTest {
         doReturn(prepareMediaData(PlaybackState.STATE_PAUSED))
             .when(mMockPlayerWrapper).getCurrentMediaData();
         mMediaPlayerList.injectAudioPlaybacActive(true);
-        verify(mAvrcpCallback).run(mMediaUpdateData.capture());
+        verify(mMediaUpdateCallback).run(mMediaUpdateData.capture());
         MediaData data = mMediaUpdateData.getValue();
         Assert.assertEquals(data.state.getState(), PlaybackState.STATE_PLAYING);
 
@@ -152,7 +152,7 @@ public class MediaPlayerListTest {
         MediaData currentMediaData = prepareMediaData(PlaybackState.STATE_PAUSED);
         doReturn(currentMediaData).when(mMockPlayerWrapper).getCurrentMediaData();
         mMediaPlayerList.injectAudioPlaybacActive(false);
-        verify(mAvrcpCallback, times(2)).run(mMediaUpdateData.capture());
+        verify(mMediaUpdateCallback, times(2)).run(mMediaUpdateData.capture());
         data = mMediaUpdateData.getValue();
         Assert.assertEquals(data.metadata, currentMediaData.metadata);
         Assert.assertEquals(data.state.toString(), currentMediaData.state.toString());
@@ -163,11 +163,11 @@ public class MediaPlayerListTest {
     public void testUpdateMediaDataForActivePlayerWhenAudioPlaybackIsNotActive() {
         MediaData currMediaData = prepareMediaData(PlaybackState.STATE_PLAYING);
         mActivePlayerCallback.mediaUpdatedCallback(currMediaData);
-        verify(mAvrcpCallback).run(currMediaData);
+        verify(mMediaUpdateCallback).run(currMediaData);
 
         currMediaData = prepareMediaData(PlaybackState.STATE_PAUSED);
         mActivePlayerCallback.mediaUpdatedCallback(currMediaData);
-        verify(mAvrcpCallback).run(currMediaData);
+        verify(mMediaUpdateCallback).run(currMediaData);
     }
 
     @Test
@@ -177,7 +177,7 @@ public class MediaPlayerListTest {
             .when(mMockPlayerWrapper).getCurrentMediaData();
         mMediaPlayerList.injectAudioPlaybacActive(true);
         mMediaPlayerList.injectAudioPlaybacActive(false);
-        verify(mAvrcpCallback, never()).run(any());
+        verify(mMediaUpdateCallback, never()).run(any());
     }
 
     @Test
@@ -185,11 +185,11 @@ public class MediaPlayerListTest {
         doReturn(prepareMediaData(PlaybackState.STATE_PLAYING))
             .when(mMockPlayerWrapper).getCurrentMediaData();
         mMediaPlayerList.injectAudioPlaybacActive(true);
-        verify(mAvrcpCallback, never()).run(any());
+        verify(mMediaUpdateCallback, never()).run(any());
 
         // Verify not update active player media data when audio playback is active
         mActivePlayerCallback.mediaUpdatedCallback(prepareMediaData(PlaybackState.STATE_PAUSED));
-        verify(mAvrcpCallback, never()).run(any());
+        verify(mMediaUpdateCallback, never()).run(any());
     }
 
 }

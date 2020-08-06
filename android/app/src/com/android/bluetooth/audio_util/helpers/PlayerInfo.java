@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 The Android Open Source Project
+ * Copyright 2018 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,21 +14,13 @@
  * limitations under the License.
  */
 
-package com.android.bluetooth.avrcp;
+package com.android.bluetooth.audio_util;
 
-class Folder implements Cloneable {
-    public String mediaId;
-    public boolean isPlayable;
-    public String title;
-
-    Folder(String i, boolean p, String t) {
-        mediaId = i;
-        isPlayable = p;
-        title = t;
-    }
-
-    @Override
-    public Folder clone() {
-        return new Folder(mediaId, isPlayable, title);
-    }
+/**
+ * Carries Media Player Information
+ */
+public class PlayerInfo {
+    public int id;
+    public String name;
+    public boolean browsable;
 }
