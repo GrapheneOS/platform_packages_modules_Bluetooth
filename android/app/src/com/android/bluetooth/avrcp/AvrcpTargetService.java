@@ -33,6 +33,13 @@ import android.util.Log;
 import com.android.bluetooth.BluetoothMetricsProto;
 import com.android.bluetooth.Utils;
 import com.android.bluetooth.a2dp.A2dpService;
+import com.android.bluetooth.audio_util.BTAudioEventLogger;
+import com.android.bluetooth.audio_util.MediaData;
+import com.android.bluetooth.audio_util.Metadata;
+import com.android.bluetooth.audio_util.MediaPlayerList;
+import com.android.bluetooth.audio_util.MediaPlayerWrapper;
+import com.android.bluetooth.audio_util.PlayStatus;
+import com.android.bluetooth.audio_util.PlayerInfo;
 import com.android.bluetooth.btservice.MetricsLogger;
 import com.android.bluetooth.btservice.ProfileService;
 import com.android.bluetooth.btservice.ServiceFactory;
@@ -53,7 +60,7 @@ public class AvrcpTargetService extends ProfileService {
     private static final int MEDIA_KEY_EVENT_LOGGER_SIZE = 20;
     private static final String MEDIA_KEY_EVENT_LOGGER_TITLE = "Media Key Events";
     private static int sDeviceMaxVolume = 0;
-    private final AvrcpEventLogger mMediaKeyEventLogger = new AvrcpEventLogger(
+    private final BTAudioEventLogger mMediaKeyEventLogger = new BTAudioEventLogger(
             MEDIA_KEY_EVENT_LOGGER_SIZE, MEDIA_KEY_EVENT_LOGGER_TITLE);
 
     private MediaPlayerList mMediaPlayerList;
@@ -68,8 +75,7 @@ public class AvrcpTargetService extends ProfileService {
 
     private static AvrcpTargetService sInstance = null;
 
-    class ListCallback implements MediaPlayerList.MediaUpdateCallback,
-            MediaPlayerList.FolderUpdateCallback {
+    class ListCallback implements MediaPlayerList.MediaUpdateCallback {
         @Override
         public void run(MediaData data) {
             if (mNativeInterface == null) return;

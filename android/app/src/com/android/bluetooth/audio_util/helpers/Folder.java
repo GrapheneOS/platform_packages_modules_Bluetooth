@@ -14,29 +14,21 @@
  * limitations under the License.
  */
 
-package com.android.bluetooth.avrcp;
+package com.android.bluetooth.audio_util;
 
-class ListItem implements Cloneable {
-    public boolean isFolder = false;
-    public Folder folder;
-    public Metadata song;
+class Folder implements Cloneable {
+    public String mediaId;
+    public boolean isPlayable;
+    public String title;
 
-    ListItem(Folder f) {
-        isFolder = true;
-        folder = f;
-    }
-
-    ListItem(Metadata s) {
-        isFolder = false;
-        song = s;
+    Folder(String i, boolean p, String t) {
+        mediaId = i;
+        isPlayable = p;
+        title = t;
     }
 
     @Override
-    public ListItem clone() {
-        if (isFolder) {
-            return new ListItem(folder.clone());
-        } else {
-            return new ListItem(song.clone());
-        }
+    public Folder clone() {
+        return new Folder(mediaId, isPlayable, title);
     }
 }
