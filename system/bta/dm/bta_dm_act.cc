@@ -426,8 +426,7 @@ static void bta_dm_sys_hw_cback(tBTA_SYS_HW_EVT status) {
     BTM_WritePageTimeout(p_bta_dm_cfg->page_timeout);
     bta_dm_cb.cur_policy = p_bta_dm_cfg->policy_settings;
     BTM_SetDefaultLinkPolicy(bta_dm_cb.cur_policy);
-    BTM_RegBusyLevelNotif(bta_dm_bl_change_cback, NULL,
-                          BTM_BL_UPDATE_MASK | BTM_BL_ROLE_CHG_MASK);
+    BTM_RegBusyLevelNotif(bta_dm_bl_change_cback);
 
 #if (BLE_VND_INCLUDED == TRUE)
     BTM_BleReadControllerFeatures(bta_dm_ctrl_features_rd_cmpl_cback);
@@ -2653,13 +2652,11 @@ static void bta_dm_local_name_cback(UNUSED_ATTR void* p_name) {
     bta_dm_cb.p_sec_cback(BTA_DM_ENABLE_EVT, &sec_event);
 }
 
-static void send_busy_level_update(uint8_t busy_level,
-                                   uint8_t busy_level_flags) {
+static void send_busy_level_update(uint8_t busy_level_flags) {
   if (!bta_dm_cb.p_sec_cback) return;
 
   tBTA_DM_SEC conn;
   memset(&conn, 0, sizeof(tBTA_DM_SEC));
-  conn.busy_level.level = busy_level;
   conn.busy_level.level_flags = busy_level_flags;
   bta_dm_cb.p_sec_cback(BTA_DM_BUSY_LEVEL_EVT, &conn);
 }
@@ -2860,7 +2857,6 @@ static void bta_dm_bl_change_cback(tBTM_BL_EVENT_DATA* p_data) {
     case BTM_BL_UPDATE_EVT: {
       /* busy level update */
       do_in_main_thread(FROM_HERE, base::Bind(send_busy_level_update,
-                                              p_data->update.busy_level,
                                               p_data->update.busy_level_flags));
       return;
     }

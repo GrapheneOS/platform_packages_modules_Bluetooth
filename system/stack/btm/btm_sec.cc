@@ -2500,8 +2500,6 @@ static tBTM_STATUS btm_sec_dd_create_conn(tBTM_SEC_DEV_REC* p_dev_rec) {
   /* set up the control block to indicated dedicated bonding */
   btm_cb.pairing_flags |= BTM_PAIR_FLAGS_DISC_WHEN_DONE;
 
-  btm_acl_update_busy_level(BTM_BLI_PAGE_EVT);
-
   VLOG(1) << "Security Manager: " << p_dev_rec->bd_addr;
 
   btm_sec_change_pairing_state(BTM_PAIR_STATE_WAIT_PIN_REQ);
@@ -4724,6 +4722,11 @@ void btm_sec_update_clock_offset(uint16_t handle, uint16_t clock_offset) {
   if (p_inq_info == NULL) return;
 
   p_inq_info->results.clock_offset = clock_offset | BTM_CLOCK_OFFSET_VALID;
+}
+
+uint16_t BTM_GetClockOffset(const RawAddress& remote_bda) {
+  tBTM_SEC_DEV_REC* p_dev_rec = btm_find_dev(remote_bda);
+  return (p_dev_rec) ? p_dev_rec->clock_offset : 0;
 }
 
 /******************************************************************

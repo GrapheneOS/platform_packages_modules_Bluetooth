@@ -136,10 +136,6 @@ enum {
   BTM_BL_COLLISION_EVT
 };
 typedef uint8_t tBTM_BL_EVENT;
-typedef uint16_t tBTM_BL_EVENT_MASK;
-
-#define BTM_BL_UPDATE_MASK 0x0004
-#define BTM_BL_ROLE_CHG_MASK 0x0008
 
 /* Device features mask definitions */
 #define BTM_FEATURE_BYTES_PER_PAGE HCI_FEATURE_BYTES_PER_PAGE
@@ -171,13 +167,9 @@ typedef struct {
 #define BTM_BL_INQUIRY_STARTED (BTM_BL_INQUIRY_PAGING_MASK | 0x1)
 #define BTM_BL_INQUIRY_CANCELLED (BTM_BL_INQUIRY_PAGING_MASK | 0x2)
 #define BTM_BL_INQUIRY_COMPLETE (BTM_BL_INQUIRY_PAGING_MASK | 0x3)
-#define BTM_BL_PAGING_STARTED (BTM_BL_INQUIRY_PAGING_MASK | 0x4)
-#define BTM_BL_PAGING_COMPLETE (BTM_BL_INQUIRY_PAGING_MASK | 0x5)
 /* the data type associated with BTM_BL_UPDATE_EVT */
 typedef struct {
   tBTM_BL_EVENT event;      /* The event reported. */
-  uint8_t busy_level;       /* when paging or inquiring, level is 10.
-                             * Otherwise, the number of ACL links. */
   uint8_t busy_level_flags; /* Notifies actual inquiry/page activities */
 } tBTM_BL_UPDATE_DATA;
 

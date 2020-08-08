@@ -189,16 +189,6 @@ void l2cu_release_lcb(tL2C_LCB* p_lcb) {
     l2c_link_adjust_allocation();
   }
 
-  /* Check for ping outstanding */
-  if (p_lcb->p_echo_rsp_cb) {
-    tL2CA_ECHO_RSP_CB* p_cb = p_lcb->p_echo_rsp_cb;
-
-    /* Zero out the callback in case app immediately calls us again */
-    p_lcb->p_echo_rsp_cb = NULL;
-
-    (*p_cb)(L2CAP_PING_RESULT_NO_LINK);
-  }
-
   /* Check and release all the LE COC connections waiting for security */
   if (p_lcb->le_sec_pending_q) {
     while (!fixed_queue_is_empty(p_lcb->le_sec_pending_q)) {
@@ -892,42 +882,6 @@ void l2cu_send_peer_disc_rsp(tL2C_LCB* p_lcb, uint8_t remote_id,
 
   UINT16_TO_STREAM(p, local_cid);
   UINT16_TO_STREAM(p, remote_cid);
-
-  l2c_link_check_send_pkts(p_lcb, NULL, p_buf);
-}
-
-/*******************************************************************************
- *
- * Function         l2cu_send_peer_echo_req
- *
- * Description      Build and send an L2CAP "echo request" message
- *                  to the peer. Note that we do not currently allow
- *                  data in the echo request.
- *
- * Returns          void
- *
- ******************************************************************************/
-void l2cu_send_peer_echo_req(tL2C_LCB* p_lcb, uint8_t* p_data,
-                             uint16_t data_len) {
-  BT_HDR* p_buf;
-  uint8_t* p;
-
-  p_lcb->id++;
-  l2cu_adj_id(p_lcb, L2CAP_ADJ_ZERO_ID); /* check for wrap to '0' */
-
-  p_buf = l2cu_build_header(p_lcb, (uint16_t)(L2CAP_ECHO_REQ_LEN + data_len),
-                            L2CAP_CMD_ECHO_REQ, p_lcb->id);
-  if (p_buf == NULL) {
-    L2CAP_TRACE_WARNING("L2CAP - no buffer for echo_req");
-    return;
-  }
-
-  p = (uint8_t*)(p_buf + 1) + L2CAP_SEND_CMD_OFFSET + HCI_DATA_PREAMBLE_SIZE +
-      L2CAP_PKT_OVERHEAD + L2CAP_CMD_OVERHEAD;
-
-  if (data_len) {
-    ARRAY_TO_STREAM(p, p_data, data_len);
-  }
 
   l2c_link_check_send_pkts(p_lcb, NULL, p_buf);
 }
@@ -2194,7 +2148,6 @@ void l2cu_create_conn_after_switch(tL2C_LCB* p_lcb) {
   uint8_t page_scan_mode;
   uint16_t clock_offset;
   uint16_t num_acl = BTM_GetNumAclLinks();
-  tBTM_SEC_DEV_REC* p_dev_rec = btm_find_dev(p_lcb->remote_bd_addr);
   uint8_t no_hi_prio_chs = l2cu_get_num_hi_priority();
   const controller_t* controller = controller_get_interface();
 
@@ -2224,8 +2177,7 @@ void l2cu_create_conn_after_switch(tL2C_LCB* p_lcb) {
     /* No info known. Use default settings */
     page_scan_rep_mode = HCI_PAGE_SCAN_REP_MODE_R1;
     page_scan_mode = HCI_MANDATARY_PAGE_SCAN_MODE;
-
-    clock_offset = (p_dev_rec) ? p_dev_rec->clock_offset : 0;
+    clock_offset = BTM_GetClockOffset(p_lcb->remote_bd_addr);
   }
 
   btsnd_hcic_create_conn(
@@ -2234,7 +2186,7 @@ void l2cu_create_conn_after_switch(tL2C_LCB* p_lcb) {
                               HCI_PKT_TYPES_MASK_DM5 | HCI_PKT_TYPES_MASK_DH5),
       page_scan_rep_mode, page_scan_mode, clock_offset, allow_switch);
 
-  btm_acl_update_busy_level(BTM_BLI_PAGE_EVT);
+  btm_acl_set_paging(true);
 
   alarm_set_on_mloop(p_lcb->l2c_lcb_timer, L2CAP_LINK_CONNECT_TIMEOUT_MS,
                      l2c_lcb_timer_timeout, p_lcb);
@@ -2454,7 +2406,7 @@ void l2cu_adjust_out_mps(tL2C_CCB* p_ccb) {
   uint16_t packet_size;
 
   /* on the tx side MTU is selected based on packet size of the controller */
-  packet_size = btm_get_max_packet_size(p_ccb->p_lcb->remote_bd_addr);
+  packet_size = BTM_GetMaxPacketSize(p_ccb->p_lcb->remote_bd_addr);
 
   if (packet_size <= (L2CAP_PKT_OVERHEAD + L2CAP_FCR_OVERHEAD +
                       L2CAP_SDU_LEN_OVERHEAD + L2CAP_FCS_LEN)) {
