@@ -24,12 +24,9 @@
 
 #include <base/logging.h>
 #include <base/strings/stringprintf.h>
-#include <string.h>
 #include "bt_target.h"
-#include "bt_utils.h"
 #include "bta_hearing_aid_api.h"
 #include "btm_int.h"
-#include "btu.h"
 #include "device/include/controller.h"
 #include "hcimsgs.h"
 #include "l2c_api.h"
@@ -1297,4 +1294,43 @@ void L2CA_AdjustConnectionIntervals(uint16_t* min_interval,
 void L2CA_SetLeFixedChannelTxDataLength(const RawAddress& remote_bda,
                                         uint16_t fix_cid, uint16_t tx_mtu) {
   l2cble_set_fixed_channel_tx_data_length(remote_bda, fix_cid, tx_mtu);
+}
+
+void l2cble_use_preferred_conn_params(const RawAddress& bda) {
+  tL2C_LCB* p_lcb = l2cu_find_lcb_by_bd_addr(bda, BT_TRANSPORT_LE);
+  tBTM_SEC_DEV_REC* p_dev_rec = btm_find_or_alloc_dev(bda);
+
+  /* If there are any preferred connection parameters, set them now */
+  if ((p_lcb != NULL) && (p_dev_rec != NULL) &&
+      (p_dev_rec->conn_params.min_conn_int >= BTM_BLE_CONN_INT_MIN) &&
+      (p_dev_rec->conn_params.min_conn_int <= BTM_BLE_CONN_INT_MAX) &&
+      (p_dev_rec->conn_params.max_conn_int >= BTM_BLE_CONN_INT_MIN) &&
+      (p_dev_rec->conn_params.max_conn_int <= BTM_BLE_CONN_INT_MAX) &&
+      (p_dev_rec->conn_params.slave_latency <= BTM_BLE_CONN_LATENCY_MAX) &&
+      (p_dev_rec->conn_params.supervision_tout >= BTM_BLE_CONN_SUP_TOUT_MIN) &&
+      (p_dev_rec->conn_params.supervision_tout <= BTM_BLE_CONN_SUP_TOUT_MAX) &&
+      ((p_lcb->min_interval < p_dev_rec->conn_params.min_conn_int &&
+        p_dev_rec->conn_params.min_conn_int != BTM_BLE_CONN_PARAM_UNDEF) ||
+       (p_lcb->min_interval > p_dev_rec->conn_params.max_conn_int) ||
+       (p_lcb->latency > p_dev_rec->conn_params.slave_latency) ||
+       (p_lcb->timeout > p_dev_rec->conn_params.supervision_tout))) {
+    BTM_TRACE_DEBUG(
+        "%s: HANDLE=%d min_conn_int=%d max_conn_int=%d slave_latency=%d "
+        "supervision_tout=%d",
+        __func__, p_lcb->handle, p_dev_rec->conn_params.min_conn_int,
+        p_dev_rec->conn_params.max_conn_int,
+        p_dev_rec->conn_params.slave_latency,
+        p_dev_rec->conn_params.supervision_tout);
+
+    p_lcb->min_interval = p_dev_rec->conn_params.min_conn_int;
+    p_lcb->max_interval = p_dev_rec->conn_params.max_conn_int;
+    p_lcb->timeout = p_dev_rec->conn_params.supervision_tout;
+    p_lcb->latency = p_dev_rec->conn_params.slave_latency;
+
+    btsnd_hcic_ble_upd_ll_conn_params(
+        p_lcb->handle, p_dev_rec->conn_params.min_conn_int,
+        p_dev_rec->conn_params.max_conn_int,
+        p_dev_rec->conn_params.slave_latency,
+        p_dev_rec->conn_params.supervision_tout, 0, 0);
+  }
 }

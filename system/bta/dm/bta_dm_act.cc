@@ -50,6 +50,7 @@
 #include "osi/include/osi.h"
 #include "sdp_api.h"
 #include "stack/gatt/connection_manager.h"
+#include "stack/include/acl_api.h"
 #include "stack/include/gatt_api.h"
 #include "utl.h"
 
@@ -2625,10 +2626,6 @@ static uint8_t bta_dm_sp_cback(tBTM_SP_EVT event, tBTM_SP_EVT_DATA* p_data) {
       bta_dm_cb.p_sec_cback(BTA_DM_SP_KEYPRESS_EVT, &sec_event);
       break;
 
-    case BTM_SP_UPGRADE_EVT:
-      bta_dm_co_lk_upgrade(p_data->upgrade.bd_addr, &p_data->upgrade.upgrade);
-      break;
-
     default:
       status = BTM_NOT_AUTHORIZED;
       break;
@@ -2686,7 +2683,7 @@ static void handle_role_change(const RawAddress& bd_addr, uint8_t new_role,
       /* more than one connections and the AV connection is role switched
        * to slave
        * switch it back to master and remove the switch policy */
-      BTM_SwitchRole(bd_addr, BTM_ROLE_MASTER, NULL);
+      BTM_SwitchRole(bd_addr, HCI_ROLE_MASTER, NULL);
       need_policy_change = true;
     } else if (p_bta_dm_cfg->avoid_scatter && (new_role == HCI_ROLE_MASTER)) {
       /* if the link updated to be master include AV activities, remove

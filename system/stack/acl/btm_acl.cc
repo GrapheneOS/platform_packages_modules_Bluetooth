@@ -47,11 +47,13 @@
 #include "device/include/interop.h"
 #include "hcidefs.h"
 #include "hcimsgs.h"
-#include "l2c_int.h"
 #include "main/shim/btm_api.h"
 #include "main/shim/shim.h"
 #include "osi/include/log.h"
 #include "osi/include/osi.h"
+#include "stack/include/acl_api.h"
+#include "stack/include/acl_api_types.h"  // From: stack/btm_api_types.h
+#include "stack/include/l2cap_hci_link_interface.h"
 
 static void btm_read_remote_features(uint16_t handle);
 static void btm_read_remote_ext_features(uint16_t handle, uint8_t page_number);
@@ -338,10 +340,9 @@ void btm_acl_report_role_change(uint8_t hci_status, const RawAddress* bda) {
  *
  ******************************************************************************/
 void btm_acl_removed(const RawAddress& bda, tBT_TRANSPORT transport) {
-  tACL_CONN* p;
   tBTM_SEC_DEV_REC* p_dev_rec = NULL;
   BTM_TRACE_DEBUG("btm_acl_removed");
-  p = btm_bda_to_acl(bda, transport);
+  tACL_CONN* p = btm_bda_to_acl(bda, transport);
   if (p != (tACL_CONN*)NULL) {
     p->in_use = false;
 
@@ -506,7 +507,7 @@ tBTM_STATUS BTM_GetRole(const RawAddress& remote_bd_addr, uint8_t* p_role) {
   BTM_TRACE_DEBUG("BTM_GetRole");
   p = btm_bda_to_acl(remote_bd_addr, BT_TRANSPORT_BR_EDR);
   if (p == NULL) {
-    *p_role = BTM_ROLE_UNDEFINED;
+    *p_role = HCI_ROLE_UNKNOWN;
     return (BTM_UNKNOWN_ADDR);
   }
 
@@ -567,7 +568,7 @@ tBTM_STATUS BTM_SwitchRole(const RawAddress& remote_bd_addr, uint8_t new_role,
     return BTM_DEV_BLACKLISTED;
 
   /* Check if there is any SCO Active on this BD Address */
-  is_sco_active = btm_is_sco_active_by_bdaddr(remote_bd_addr);
+  is_sco_active = BTM_IsScoActiveByBdaddr(remote_bd_addr);
 
   if (is_sco_active) return (BTM_NO_RESOURCES);
 
@@ -791,45 +792,6 @@ void BTM_SetDefaultLinkPolicy(uint16_t settings) {
   btsnd_hcic_write_def_policy_set(settings);
 }
 
-void btm_use_preferred_conn_params(const RawAddress& bda) {
-  tL2C_LCB* p_lcb = l2cu_find_lcb_by_bd_addr(bda, BT_TRANSPORT_LE);
-  tBTM_SEC_DEV_REC* p_dev_rec = btm_find_or_alloc_dev(bda);
-
-  /* If there are any preferred connection parameters, set them now */
-  if ((p_lcb != NULL) && (p_dev_rec != NULL) &&
-      (p_dev_rec->conn_params.min_conn_int >= BTM_BLE_CONN_INT_MIN) &&
-      (p_dev_rec->conn_params.min_conn_int <= BTM_BLE_CONN_INT_MAX) &&
-      (p_dev_rec->conn_params.max_conn_int >= BTM_BLE_CONN_INT_MIN) &&
-      (p_dev_rec->conn_params.max_conn_int <= BTM_BLE_CONN_INT_MAX) &&
-      (p_dev_rec->conn_params.slave_latency <= BTM_BLE_CONN_LATENCY_MAX) &&
-      (p_dev_rec->conn_params.supervision_tout >= BTM_BLE_CONN_SUP_TOUT_MIN) &&
-      (p_dev_rec->conn_params.supervision_tout <= BTM_BLE_CONN_SUP_TOUT_MAX) &&
-      ((p_lcb->min_interval < p_dev_rec->conn_params.min_conn_int &&
-        p_dev_rec->conn_params.min_conn_int != BTM_BLE_CONN_PARAM_UNDEF) ||
-       (p_lcb->min_interval > p_dev_rec->conn_params.max_conn_int) ||
-       (p_lcb->latency > p_dev_rec->conn_params.slave_latency) ||
-       (p_lcb->timeout > p_dev_rec->conn_params.supervision_tout))) {
-    BTM_TRACE_DEBUG(
-        "%s: HANDLE=%d min_conn_int=%d max_conn_int=%d slave_latency=%d "
-        "supervision_tout=%d",
-        __func__, p_lcb->handle, p_dev_rec->conn_params.min_conn_int,
-        p_dev_rec->conn_params.max_conn_int,
-        p_dev_rec->conn_params.slave_latency,
-        p_dev_rec->conn_params.supervision_tout);
-
-    p_lcb->min_interval = p_dev_rec->conn_params.min_conn_int;
-    p_lcb->max_interval = p_dev_rec->conn_params.max_conn_int;
-    p_lcb->timeout = p_dev_rec->conn_params.supervision_tout;
-    p_lcb->latency = p_dev_rec->conn_params.slave_latency;
-
-    btsnd_hcic_ble_upd_ll_conn_params(
-        p_lcb->handle, p_dev_rec->conn_params.min_conn_int,
-        p_dev_rec->conn_params.max_conn_int,
-        p_dev_rec->conn_params.slave_latency,
-        p_dev_rec->conn_params.supervision_tout, 0, 0);
-  }
-}
-
 /*******************************************************************************
  *
  * Function         btm_read_remote_version_complete
@@ -870,7 +832,7 @@ void btm_read_remote_version_complete(uint8_t* p) {
 
       if (p_acl_cb->transport == BT_TRANSPORT_LE) {
         l2cble_notify_le_connection(p_acl_cb->remote_addr);
-        btm_use_preferred_conn_params(p_acl_cb->remote_addr);
+        l2cble_use_preferred_conn_params(p_acl_cb->remote_addr);
       }
       break;
     }
@@ -1269,7 +1231,7 @@ tBTM_STATUS BTM_SetLinkSuperTout(const RawAddress& remote_bda,
     p->link_super_tout = timeout;
 
     /* Only send if current role is Master; 2.0 spec requires this */
-    if (p->link_role == BTM_ROLE_MASTER) {
+    if (p->link_role == HCI_ROLE_MASTER) {
       btsnd_hcic_write_link_super_tout(LOCAL_BR_EDR_CONTROLLER_ID,
                                        p->hci_handle, timeout);
       return (BTM_CMD_STARTED);
@@ -1483,7 +1445,7 @@ void btm_acl_role_changed(uint8_t hci_status, const RawAddress* bd_addr,
 
     /* Reload LSTO: link supervision timeout is reset in the LM after a role
      * switch */
-    if (new_role == BTM_ROLE_MASTER) {
+    if (new_role == HCI_ROLE_MASTER) {
       BTM_SetLinkSuperTout(p->remote_addr, p->link_super_tout);
     }
   } else {

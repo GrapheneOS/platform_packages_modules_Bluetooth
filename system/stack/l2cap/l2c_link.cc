@@ -25,16 +25,11 @@
  ******************************************************************************/
 
 #include <base/logging.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 
 #include "bt_common.h"
 #include "bt_types.h"
-#include "bt_utils.h"
 #include "btm_api.h"
 #include "btm_int.h"
-#include "btu.h"
 #include "device/include/controller.h"
 #include "hcimsgs.h"
 #include "l2c_api.h"
@@ -42,6 +37,7 @@
 #include "l2cdefs.h"
 #include "log/log.h"
 #include "osi/include/osi.h"
+#include "stack/include/acl_api.h"
 
 static bool l2c_link_send_to_lower(tL2C_LCB* p_lcb, BT_HDR* p_buf,
                                    tL2C_TX_COMPLETE_CB_INFO* p_cbi);
@@ -1343,4 +1339,9 @@ tBTM_STATUS l2cu_ConnectAclForSecurity(const RawAddress& bd_addr) {
 
   l2cu_create_conn_br_edr(p_lcb);
   return BTM_SUCCESS;
+}
+
+void l2cble_update_sec_act(const RawAddress& bd_addr, uint16_t sec_act) {
+  tL2C_LCB* lcb = l2cu_find_lcb_by_bd_addr(bd_addr, BT_TRANSPORT_LE);
+  lcb->sec_act = sec_act;
 }

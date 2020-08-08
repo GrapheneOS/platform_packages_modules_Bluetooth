@@ -23,15 +23,12 @@
  ******************************************************************************/
 
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 
 #include "bt_common.h"
 #include "bt_types.h"
-#include "bt_utils.h"
 #include "btm_api.h"
 #include "btm_int.h"
-#include "btu.h"
 #include "device/include/controller.h"
 #include "hci/include/btsnoop.h"
 #include "hcidefs.h"
@@ -39,6 +36,7 @@
 #include "l2c_int.h"
 #include "l2cdefs.h"
 #include "osi/include/allocator.h"
+#include "stack/include/acl_api.h"
 
 /*******************************************************************************
  *
@@ -138,7 +136,7 @@ void l2cu_release_lcb(tL2C_LCB* p_lcb) {
   osi_free_and_reset((void**)&p_lcb->p_hcit_rcv_acl);
 
   if (p_lcb->transport == BT_TRANSPORT_BR_EDR) /* Release all SCO links */
-    btm_remove_sco_links(p_lcb->remote_bd_addr);
+    BTM_RemoveSco(p_lcb->remote_bd_addr);
 
   if (p_lcb->sent_not_acked > 0) {
     if (p_lcb->transport == BT_TRANSPORT_LE) {
@@ -1551,7 +1549,7 @@ void l2cu_release_ccb(tL2C_CCB* p_ccb) {
       p_lcb->handle, p_ccb->local_cid, p_ccb->remote_cid);
 
   if (p_rcb && (p_rcb->psm != p_rcb->real_psm)) {
-    btm_sec_clr_service_by_psm(p_rcb->psm);
+    BTM_SecClrServiceByPsm(p_rcb->psm);
   }
 
   if (p_ccb->should_free_rcb) {
@@ -1560,7 +1558,7 @@ void l2cu_release_ccb(tL2C_CCB* p_ccb) {
     p_ccb->should_free_rcb = false;
   }
 
-  btm_sec_clr_temp_auth_service(p_lcb->remote_bd_addr);
+  BTM_SecClrTempAuthService(p_lcb->remote_bd_addr);
 
   /* Free the timer */
   alarm_free(p_ccb->l2c_ccb_timer);
@@ -2125,10 +2123,10 @@ void l2cu_create_conn_br_edr(tL2C_LCB* p_lcb) {
       logical transports on the same physical link are disabled." */
 
       /* Check if there is any SCO Active on this BD Address */
-      is_sco_active = btm_is_sco_active_by_bdaddr(p_lcb_cur->remote_bd_addr);
+      is_sco_active = BTM_IsScoActiveByBdaddr(p_lcb_cur->remote_bd_addr);
 
       L2CAP_TRACE_API(
-          "l2cu_create_conn - btm_is_sco_active_by_bdaddr() is_sco_active = %s",
+          "l2cu_create_conn - BTM_IsScoActiveByBdaddr() is_sco_active = %s",
           (is_sco_active) ? "true" : "false");
 
       if (is_sco_active)

@@ -849,31 +849,6 @@ void btm_sco_connected(uint8_t hci_status, const RawAddress* bda,
 
 /*******************************************************************************
  *
- * Function         btm_find_scb_by_handle
- *
- * Description      Look through all active SCO connection for a match based on
- *                  the HCI handle.
- *
- * Returns          index to matched SCO connection CB, or BTM_MAX_SCO_LINKS if
- *                  no match.
- *
- ******************************************************************************/
-uint16_t btm_find_scb_by_handle(uint16_t handle) {
-  int xx;
-  tSCO_CONN* p = &btm_cb.sco_cb.sco_db[0];
-
-  for (xx = 0; xx < BTM_MAX_SCO_LINKS; xx++, p++) {
-    if ((p->state == SCO_ST_CONNECTED) && (p->hci_handle == handle)) {
-      return (xx);
-    }
-  }
-
-  /* If here, no match found */
-  return (xx);
-}
-
-/*******************************************************************************
- *
  * Function         BTM_RemoveSco
  *
  * Description      This function is called to remove a specific SCO connection.
@@ -922,17 +897,7 @@ tBTM_STATUS BTM_RemoveSco(uint16_t sco_inx) {
 #endif
 }
 
-/*******************************************************************************
- *
- * Function         btm_remove_sco_links
- *
- * Description      This function is called to remove all sco links for an ACL
- *                  link.
- *
- * Returns          void
- *
- ******************************************************************************/
-void btm_remove_sco_links(const RawAddress& bda) {
+void BTM_RemoveSco(const RawAddress& bda) {
 #if (BTM_MAX_SCO_LINKS > 0)
   tSCO_CONN* p = &btm_cb.sco_cb.sco_db[0];
   uint16_t xx;
@@ -1247,22 +1212,6 @@ void BTM_EScoConnRsp(uint16_t sco_inx, uint8_t hci_status,
 
 /*******************************************************************************
  *
- * Function         btm_read_def_esco_mode
- *
- * Description      This function copies the current default esco settings into
- *                  the return buffer.
- *
- * Returns          tBTM_SCO_TYPE
- *
- ******************************************************************************/
-void btm_read_def_esco_mode(enh_esco_params_t* p_parms) {
-#if (BTM_MAX_SCO_LINKS > 0)
-  *p_parms = btm_cb.sco_cb.def_esco_parms;
-#endif
-}
-
-/*******************************************************************************
- *
  * Function         btm_esco_proc_conn_chg
  *
  * Description      This function is called by BTIF when an SCO connection
@@ -1359,7 +1308,7 @@ uint8_t BTM_GetNumScoLinks(void) {
 
 /*******************************************************************************
  *
- * Function         btm_is_sco_active_by_bdaddr
+ * Function         BTM_IsScoActiveByBdaddr
  *
  * Description      This function is called to see if a SCO connection is active
  *                  for a bd address.
@@ -1367,7 +1316,7 @@ uint8_t BTM_GetNumScoLinks(void) {
  * Returns          bool
  *
  ******************************************************************************/
-bool btm_is_sco_active_by_bdaddr(const RawAddress& remote_bda) {
+bool BTM_IsScoActiveByBdaddr(const RawAddress& remote_bda) {
 #if (BTM_MAX_SCO_LINKS > 0)
   uint8_t xx;
   tSCO_CONN* p = &btm_cb.sco_cb.sco_db[0];
