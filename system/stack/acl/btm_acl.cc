@@ -55,27 +55,30 @@ tBTM_SEC_DEV_REC* btm_find_dev(const RawAddress& bd_addr);
 tBTM_SEC_DEV_REC* btm_find_dev_by_handle(uint16_t handle);
 tBTM_SEC_DEV_REC* btm_find_or_alloc_dev(const RawAddress& bd_addr);
 tBTM_STATUS btm_sec_execute_procedure(tBTM_SEC_DEV_REC* p_dev_rec);
-tBTM_STATUS btm_set_packet_types(tACL_CONN* p, uint16_t pkt_types);
-void btm_acl_chk_peer_pkt_type_support(tACL_CONN* p, uint16_t* p_pkt_type);
-void btm_acl_update_busy_level(tBTM_BLI_EVENT event);
 void btm_ble_refresh_local_resolvable_private_addr(
     const RawAddress& pseudo_addr, const RawAddress& local_rpa);
 void btm_establish_continue(tACL_CONN* p_acl_cb);
-void btm_read_automatic_flush_timeout_timeout(void* data);
-void btm_read_failed_contact_counter_timeout(void* data);
-void btm_read_rssi_timeout(void* data);
-void btm_read_tx_power_timeout(void* data);
 void btm_sec_dev_rec_cback_event(tBTM_SEC_DEV_REC* p_dev_rec, uint8_t res,
                                  bool is_le_trasnport);
 void btm_sec_set_peer_sec_caps(tACL_CONN* p_acl_cb,
                                tBTM_SEC_DEV_REC* p_dev_rec);
 
+static void btm_acl_chk_peer_pkt_type_support(tACL_CONN* p,
+                                              uint16_t* p_pkt_type);
 static void btm_pm_sm_alloc(uint8_t ind);
+static void btm_read_automatic_flush_timeout_timeout(void* data);
+static void btm_read_failed_contact_counter_timeout(void* data);
 static void btm_read_remote_features(uint16_t handle);
 static void btm_read_remote_ext_features(uint16_t handle, uint8_t page_number);
+static void btm_read_rssi_timeout(void* data);
+static void btm_read_tx_power_timeout(void* data);
 static void btm_process_remote_ext_features(tACL_CONN* p_acl_cb,
                                             uint8_t num_read_pages);
+static tBTM_STATUS btm_set_packet_types(tACL_CONN* p, uint16_t pkt_types);
 
+void BTIF_dm_report_inquiry_status_change(uint8_t busy_level_flags);
+void BTA_dm_acl_up(const RawAddress bd_addr, tBT_TRANSPORT transport,
+                   uint16_t handle);
 /* 3 seconds timeout waiting for responses */
 #define BTM_DEV_REPLY_TIMEOUT_MS (3 * 1000)
 
@@ -439,43 +442,9 @@ void btm_acl_device_down(void) {
 
 void btm_acl_set_paging(bool value) { btm_cb.is_paging = value; }
 
-/*******************************************************************************
- *
- * Function         btm_acl_update_busy_level
- *
- * Description      This function is called to update the busy level of the
- *                  system.
- *
- * Returns          void
- *
- ******************************************************************************/
-void btm_acl_update_busy_level(tBTM_BLI_EVENT event) {
-  tBTM_BL_UPDATE_DATA evt;
-  evt.busy_level_flags = 0;
-  switch (event) {
-    case BTM_BLI_INQ_EVT:
-      BTM_TRACE_DEBUG("BTM_BLI_INQ_EVT");
-      btm_cb.is_inquiry = true;
-      evt.busy_level_flags = BTM_BL_INQUIRY_STARTED;
-      break;
-    case BTM_BLI_INQ_CANCEL_EVT:
-      BTM_TRACE_DEBUG("BTM_BLI_INQ_CANCEL_EVT");
-      btm_cb.is_inquiry = false;
-      evt.busy_level_flags = BTM_BL_INQUIRY_CANCELLED;
-      break;
-    case BTM_BLI_INQ_DONE_EVT:
-      BTM_TRACE_DEBUG("BTM_BLI_INQ_DONE_EVT");
-      btm_cb.is_inquiry = false;
-      evt.busy_level_flags = BTM_BL_INQUIRY_COMPLETE;
-      break;
-  }
-
-  evt.event = BTM_BL_UPDATE_EVT;
-  if (btm_cb.acl_cb_.p_bl_changed_cb) {
-    tBTM_BL_EVENT_DATA btm_bl_event_data;
-    btm_bl_event_data.update = evt;
-    (*btm_cb.acl_cb_.p_bl_changed_cb)(&btm_bl_event_data);
-  }
+void btm_acl_update_inquiry_status(uint8_t status) {
+  btm_cb.is_inquiry = status == BTM_INQUIRY_STARTED;
+  BTIF_dm_report_inquiry_status_change(status);
 }
 
 /*******************************************************************************
@@ -1126,7 +1095,6 @@ void btm_read_remote_ext_features_failed(uint8_t status, uint16_t handle) {
  *
  ******************************************************************************/
 void btm_establish_continue(tACL_CONN* p_acl_cb) {
-  tBTM_BL_EVENT_DATA evt_data;
   BTM_TRACE_DEBUG("btm_establish_continue");
 #if (BTM_BYPASS_EXTRA_ACL_SETUP == FALSE)
   if (p_acl_cb->transport == BT_TRANSPORT_BR_EDR) {
@@ -1146,18 +1114,8 @@ void btm_establish_continue(tACL_CONN* p_acl_cb) {
   }
   p_acl_cb->link_up_issued = true;
 
-  /* If anyone cares, tell them that the database changed */
-  if (btm_cb.acl_cb_.p_bl_changed_cb) {
-    evt_data.event = BTM_BL_CONN_EVT;
-    evt_data.conn.p_bda = &p_acl_cb->remote_addr;
-    evt_data.conn.p_bdn = p_acl_cb->remote_name;
-    evt_data.conn.p_dc = p_acl_cb->remote_dc;
-    evt_data.conn.p_features = p_acl_cb->peer_lmp_feature_pages[0];
-    evt_data.conn.handle = p_acl_cb->hci_handle;
-    evt_data.conn.transport = p_acl_cb->transport;
-
-    (*btm_cb.acl_cb_.p_bl_changed_cb)(&evt_data);
-  }
+  BTA_dm_acl_up(p_acl_cb->remote_addr, p_acl_cb->transport,
+                p_acl_cb->hci_handle);
 }
 
 /*******************************************************************************
@@ -1599,6 +1557,20 @@ tBTM_STATUS btm_set_packet_types(tACL_CONN* p, uint16_t pkt_types) {
   p->pkt_types_mask = temp_pkt_types;
 
   return (BTM_CMD_STARTED);
+}
+
+void btm_set_packet_types_from_address(const RawAddress& bd_addr,
+                                       tBT_TRANSPORT transport,
+                                       uint16_t pkt_types) {
+  tACL_CONN* p_acl_cb = btm_bda_to_acl(bd_addr, transport);
+  if (p_acl_cb == nullptr) {
+    BTM_TRACE_ERROR("%s Unable to find acl for address", __func__);
+    return;
+  }
+  tBTM_STATUS status = btm_set_packet_types(p_acl_cb, pkt_types);
+  if (status != BTM_CMD_STARTED) {
+    BTM_TRACE_ERROR("%s unable to set packet types from address", __func__);
+  }
 }
 
 /*******************************************************************************
@@ -2468,4 +2440,23 @@ void btm_pm_sm_alloc(uint8_t ind) {
 #if (BTM_PM_DEBUG == TRUE)
   BTM_TRACE_DEBUG("btm_pm_sm_alloc ind:%d st:%d", ind, p_db->state);
 #endif  // BTM_PM_DEBUG
+}
+
+bool lmp_version_below(const RawAddress& bda, uint8_t version) {
+  tACL_CONN* acl = btm_bda_to_acl(bda, BT_TRANSPORT_LE);
+  if (acl == NULL || acl->lmp_version == 0) {
+    BTM_TRACE_WARNING("%s cannot retrieve LMP version...", __func__);
+    return false;
+  }
+  BTM_TRACE_WARNING("%s LMP version %d < %d", __func__, acl->lmp_version,
+                    version);
+  return acl->lmp_version < version;
+}
+
+bool acl_is_role_master(const RawAddress& bda, tBT_TRANSPORT transport) {
+  tACL_CONN* p = btm_bda_to_acl(bda, transport);
+  if (p == nullptr) {
+    return false;
+  }
+  return (p->link_role == HCI_ROLE_MASTER);
 }
