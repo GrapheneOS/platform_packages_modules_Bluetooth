@@ -906,7 +906,7 @@ uint8_t BTM_BleMaxMultiAdvInstanceCount();
  * Returns          void
  *
  ******************************************************************************/
-void BTM_DeviceReset(tBTM_CMPL_CB* p_cb);
+void BTM_DeviceReset();
 
 /*******************************************************************************
  *
@@ -979,19 +979,6 @@ tBTM_STATUS BTM_ReadLocalDeviceNameFromController(
  *
  ******************************************************************************/
 uint8_t* BTM_ReadDeviceClass(void);
-
-/*******************************************************************************
- *
- * Function         BTM_RegisterForDeviceStatusNotif
- *
- * Description      This function is called to register for device status
- *                  change notifications.
- *
- * Returns          pointer to previous caller's callback function or NULL if
- *                  first registration.
- *
- ******************************************************************************/
-tBTM_DEV_STATUS_CB* BTM_RegisterForDeviceStatusNotif(tBTM_DEV_STATUS_CB* p_cb);
 
 /*******************************************************************************
  *
@@ -1309,16 +1296,6 @@ tBTM_STATUS BTM_ReadAutomaticFlushTimeout(const RawAddress& remote_bda,
  ******************************************************************************/
 tBTM_STATUS BTM_ReadTxPower(const RawAddress& remote_bda,
                             tBT_TRANSPORT transport, tBTM_CMPL_CB* p_cb);
-
-/*******************************************************************************
- *
- * Function         BTM_RegBusyLevelNotif
- *
- * Description      This function is called to register a callback to receive
- *                  busy level change events.
- *
- ******************************************************************************/
-void BTM_RegBusyLevelNotif(tBTM_BL_CHANGE_CB* p_cb);
 
 /*******************************************************************************
  *
@@ -1791,22 +1768,6 @@ void BTM_ConfirmReqReply(tBTM_STATUS res, const RawAddress& bd_addr);
  ******************************************************************************/
 void BTM_PasskeyReqReply(tBTM_STATUS res, const RawAddress& bd_addr,
                          uint32_t passkey);
-
-/*******************************************************************************
- *
- * Function         BTM_SendKeypressNotif
- *
- * Description      This function is used during the passkey entry model
- *                  by a device with KeyboardOnly IO capabilities
- *                  (very likely to be a HID Device).
- *                  It is called by a HID Device to inform the remote device
- *                  when a key has been entered or erased.
- *
- * Parameters:      bd_addr - Address of the peer device
- *                  type - notification type
- *
- ******************************************************************************/
-void BTM_SendKeypressNotif(const RawAddress& bd_addr, tBTM_SP_KEY_TYPE type);
 
 /*******************************************************************************
  *

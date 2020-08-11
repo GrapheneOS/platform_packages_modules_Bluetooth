@@ -18,22 +18,13 @@
 #include <cstdint>
 
 #include "stack/acl/acl.h"
+#include "stack/btm/btm_int_types.h"
 #include "stack/include/acl_api_types.h"
 #include "stack/include/bt_types.h"
 #include "stack/include/btm_status.h"
 #include "types/raw_address.h"
 
 // Note: From stack/include/btm_api.h
-
-/*******************************************************************************
- *
- * Function         BTM_RegBusyLevelNotif
- *
- * Description      This function is called to register a callback to receive
- *                  busy level change events.
- *
- ******************************************************************************/
-void BTM_RegBusyLevelNotif(tBTM_BL_CHANGE_CB* p_cb);
 
 /*****************************************************************************
  *  ACL CHANNEL MANAGEMENT FUNCTIONS
@@ -249,3 +240,13 @@ void btm_set_packet_types_from_address(const RawAddress& bda,
 bool lmp_version_below(const RawAddress& bda, uint8_t version);
 
 bool acl_is_role_master(const RawAddress& remote_bda, tBT_TRANSPORT transport);
+
+#define BLE_RESOLVE_ADDR_MASK 0xc0
+#define BLE_RESOLVE_ADDR_MSB 0x40
+
+bool BTM_BLE_IS_RESOLVE_BDA(const RawAddress& x);
+
+bool acl_refresh_remote_address(const tBTM_SEC_DEV_REC* p_dev_rec,
+                                const RawAddress& remote_bda,
+                                tBT_TRANSPORT transport, uint8_t rra_type,
+                                const RawAddress& rpa);

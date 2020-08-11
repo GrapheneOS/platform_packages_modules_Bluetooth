@@ -34,6 +34,7 @@
 #define LOG_TAG "btm_acl"
 
 #include <cstdint>
+#include "bta/sys/bta_sys.h"
 #include "common/metrics.h"
 #include "device/include/controller.h"
 #include "device/include/interop.h"
@@ -79,6 +80,9 @@ static tBTM_STATUS btm_set_packet_types(tACL_CONN* p, uint16_t pkt_types);
 void BTIF_dm_report_inquiry_status_change(uint8_t busy_level_flags);
 void BTA_dm_acl_up(const RawAddress bd_addr, tBT_TRANSPORT transport,
                    uint16_t handle);
+void BTA_dm_acl_down(const RawAddress bd_addr, tBT_TRANSPORT transport);
+void BTA_dm_report_role_change(const RawAddress bd_addr, uint8_t new_role,
+                               uint8_t hci_status);
 /* 3 seconds timeout waiting for responses */
 #define BTM_DEV_REPLY_TIMEOUT_MS (3 * 1000)
 
@@ -371,16 +375,7 @@ void btm_acl_removed(const RawAddress& bda, tBT_TRANSPORT transport) {
     /* Only notify if link up has had a chance to be issued */
     if (p->link_up_issued) {
       p->link_up_issued = false;
-
-      /* If anyone cares, indicate the database changed */
-      if (btm_cb.acl_cb_.p_bl_changed_cb) {
-        tBTM_BL_EVENT_DATA evt_data;
-        evt_data.event = BTM_BL_DISCN_EVT;
-        evt_data.discn.p_bda = &bda;
-        evt_data.discn.handle = p->hci_handle;
-        evt_data.discn.transport = p->transport;
-        (*btm_cb.acl_cb_.p_bl_changed_cb)(&evt_data);
-      }
+      BTA_dm_acl_down(bda, transport);
     }
 
     BTM_TRACE_DEBUG(
@@ -635,24 +630,15 @@ void btm_acl_encrypt_change(uint16_t handle, uint8_t status,
   else if (p->switch_role_state == BTM_ACL_SWKEY_STATE_ENCRYPTION_ON) {
     p->switch_role_state = BTM_ACL_SWKEY_STATE_IDLE;
     p->encrypt_state = BTM_ACL_ENCRYPT_STATE_IDLE;
-    btm_acl_report_role_change(btm_cb.devcb.switch_role_ref_data.hci_status,
-                               &p->remote_addr);
+    auto new_role = btm_cb.devcb.switch_role_ref_data.role;
+    auto hci_status = btm_cb.devcb.switch_role_ref_data.hci_status;
+    btm_acl_report_role_change(hci_status, &p->remote_addr);
+    BTA_dm_report_role_change(btm_cb.devcb.switch_role_ref_data.remote_bd_addr,
+                              new_role, hci_status);
 
-    /* if role change event is registered, report it now */
-    if (btm_cb.acl_cb_.p_bl_changed_cb) {
-      tBTM_BL_ROLE_CHG_DATA evt;
-      evt.event = BTM_BL_ROLE_CHG_EVT;
-      evt.new_role = btm_cb.devcb.switch_role_ref_data.role;
-      evt.p_bda = &btm_cb.devcb.switch_role_ref_data.remote_bd_addr;
-      evt.hci_status = btm_cb.devcb.switch_role_ref_data.hci_status;
-      tBTM_BL_EVENT_DATA btm_bl_event_data;
-      btm_bl_event_data.role_chg = evt;
-      (*btm_cb.acl_cb_.p_bl_changed_cb)(&btm_bl_event_data);
-
-      BTM_TRACE_DEBUG(
-          "%s: Role Switch Event: new_role 0x%02x, HCI Status 0x%02x, rs_st:%d",
-          __func__, evt.new_role, evt.hci_status, p->switch_role_state);
-    }
+    BTM_TRACE_DEBUG(
+        "%s: Role Switch Event: new_role 0x%02x, HCI Status 0x%02x, rs_st:%d",
+        __func__, new_role, hci_status, p->switch_role_state);
 
 #if (BTM_DISC_DURING_RS == TRUE)
     /* If a disconnect is pending, issue it now that role switch has completed
@@ -1392,7 +1378,6 @@ void btm_acl_role_changed(uint8_t hci_status, const RawAddress* bd_addr,
       BTM_SetLinkSuperTout(p->remote_addr, p->link_super_tout);
     }
   } else {
-    /* so the BTM_BL_ROLE_CHG_EVT uses the old role */
     new_role = p->link_role;
   }
 
@@ -1417,18 +1402,7 @@ void btm_acl_role_changed(uint8_t hci_status, const RawAddress* bd_addr,
 
   /* if role switch complete is needed, report it now */
   btm_acl_report_role_change(hci_status, bd_addr);
-
-  /* if role change event is registered, report it now */
-  if (btm_cb.acl_cb_.p_bl_changed_cb) {
-    tBTM_BL_ROLE_CHG_DATA evt;
-    evt.event = BTM_BL_ROLE_CHG_EVT;
-    evt.new_role = new_role;
-    evt.p_bda = p_bda;
-    evt.hci_status = hci_status;
-    tBTM_BL_EVENT_DATA btm_bl_event_data;
-    btm_bl_event_data.role_chg = evt;
-    (*btm_cb.acl_cb_.p_bl_changed_cb)(&btm_bl_event_data);
-  }
+  BTA_dm_report_role_change(*p_bda, new_role, hci_status);
 
   BTM_TRACE_DEBUG(
       "%s: peer %s Role Switch Event: new_role 0x%02x, HCI Status 0x%02x, "
@@ -1663,19 +1637,6 @@ uint8_t* BTM_ReadRemoteFeatures(const RawAddress& addr) {
   }
 
   return (p->peer_lmp_feature_pages[0]);
-}
-
-/*******************************************************************************
- *
- * Function         BTM_RegBusyLevelNotif
- *
- * Description      This function is called to register a callback to receive
- *                  busy level change events.
- *
- ******************************************************************************/
-void BTM_RegBusyLevelNotif(tBTM_BL_CHANGE_CB* p_cb) {
-  BTM_TRACE_DEBUG("BTM_RegBusyLevelNotif");
-  btm_cb.acl_cb_.p_bl_changed_cb = p_cb;
 }
 
 /*******************************************************************************
@@ -2357,25 +2318,10 @@ void btm_acl_paging(BT_HDR* p, const RawAddress& bda) {
  *
  * Description      Send connection collision event to upper layer if registered
  *
- * Returns          true if sent out to upper layer,
- *                  false if no one needs the notification.
  *
  ******************************************************************************/
-bool btm_acl_notif_conn_collision(const RawAddress& bda) {
-  /* Report possible collision to the upper layer. */
-  if (btm_cb.acl_cb_.p_bl_changed_cb) {
-    VLOG(1) << __func__ << " RemBdAddr: " << bda;
-
-    tBTM_BL_EVENT_DATA evt_data;
-    evt_data.event = BTM_BL_COLLISION_EVT;
-    evt_data.conn.p_bda = &bda;
-    evt_data.conn.transport = BT_TRANSPORT_BR_EDR;
-    evt_data.conn.handle = BTM_INVALID_HCI_HANDLE;
-    (*btm_cb.acl_cb_.p_bl_changed_cb)(&evt_data);
-    return true;
-  } else {
-    return false;
-  }
+void btm_acl_notif_conn_collision(const RawAddress& bda) {
+  do_in_main_thread(FROM_HERE, base::Bind(bta_sys_notify_collision, bda));
 }
 
 /*******************************************************************************
@@ -2459,4 +2405,35 @@ bool acl_is_role_master(const RawAddress& bda, tBT_TRANSPORT transport) {
     return false;
   }
   return (p->link_role == HCI_ROLE_MASTER);
+}
+
+bool BTM_BLE_IS_RESOLVE_BDA(const RawAddress& x) {
+  return ((x.address)[0] & BLE_RESOLVE_ADDR_MASK) == BLE_RESOLVE_ADDR_MSB;
+}
+
+bool acl_refresh_remote_address(const tBTM_SEC_DEV_REC* p_sec_rec,
+                                const RawAddress& bda, tBT_TRANSPORT transport,
+                                uint8_t rra_type, const RawAddress& rpa) {
+  tACL_CONN* p_acl = btm_bda_to_acl(bda, transport);
+  if (p_acl == nullptr) {
+    return false;
+  }
+
+  if (rra_type == BTM_BLE_ADDR_PSEUDO) {
+    /* use identity address, resolvable_private_addr is empty */
+    if (rpa.IsEmpty()) {
+      p_acl->active_remote_addr_type = p_sec_rec->ble.identity_addr_type;
+      p_acl->active_remote_addr = p_sec_rec->ble.identity_addr;
+    } else {
+      p_acl->active_remote_addr_type = BLE_ADDR_RANDOM;
+      p_acl->active_remote_addr = rpa;
+    }
+  } else {
+    p_acl->active_remote_addr_type = rra_type;
+    p_acl->active_remote_addr = rpa;
+  }
+
+  BTM_TRACE_DEBUG("%s active_remote_addr_type: %d ", __func__,
+                  p_acl->active_remote_addr_type);
+  return true;
 }

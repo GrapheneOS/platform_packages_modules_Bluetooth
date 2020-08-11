@@ -69,10 +69,7 @@ static void bta_dm_remname_cback(void* p);
 static void bta_dm_find_services(const RawAddress& bd_addr);
 static void bta_dm_discover_next_device(void);
 static void bta_dm_sdp_callback(uint16_t sdp_status);
-static uint8_t bta_dm_authorize_cback(const RawAddress& bd_addr,
-                                      DEV_CLASS dev_class, BD_NAME bd_name,
-                                      uint8_t* service_name, uint8_t service_id,
-                                      bool is_originator);
+static uint8_t bta_dm_authorize_cback(uint8_t service_id);
 static uint8_t bta_dm_pin_cback(const RawAddress& bd_addr, DEV_CLASS dev_class,
                                 BD_NAME bd_name, bool min_16_digit);
 static uint8_t bta_dm_new_link_key_cback(const RawAddress& bd_addr,
@@ -84,10 +81,9 @@ static uint8_t bta_dm_authentication_complete_cback(const RawAddress& bd_addr,
                                                     int result);
 static void bta_dm_local_name_cback(void* p_name);
 static bool bta_dm_check_av(uint16_t event);
-static void bta_dm_bl_change_cback(tBTM_BL_EVENT_DATA* p_data);
 
-static void bta_dm_policy_cback(tBTA_SYS_CONN_STATUS status, uint8_t id,
-                                uint8_t app_id, const RawAddress& peer_addr);
+void BTA_dm_update_policy(tBTA_SYS_CONN_STATUS status, uint8_t id,
+                          uint8_t app_id, const RawAddress& peer_addr);
 
 /* Extended Inquiry Response */
 static uint8_t bta_dm_sp_cback(tBTM_SP_EVT event, tBTM_SP_EVT_DATA* p_data);
@@ -110,7 +106,6 @@ static bool bta_dm_read_remote_device_name(const RawAddress& bd_addr,
                                            tBT_TRANSPORT transport);
 static void bta_dm_discover_device(const RawAddress& remote_bd_addr);
 
-static void bta_dm_sys_hw_cback(tBTA_SYS_HW_EVT status);
 static void bta_dm_disable_search_and_disc(void);
 
 static uint8_t bta_dm_ble_smp_cback(tBTM_LE_EVT event, const RawAddress& bda,
@@ -122,7 +117,6 @@ static void btm_dm_start_gatt_discovery(const RawAddress& bd_addr);
 static void bta_dm_cancel_gatt_discovery(const RawAddress& bd_addr);
 static void bta_dm_gattc_callback(tBTA_GATTC_EVT event, tBTA_GATTC* p_data);
 extern tBTA_DM_CONTRL_STATE bta_dm_pm_obtain_controller_state(void);
-
 #if (BLE_VND_INCLUDED == TRUE)
 static void bta_dm_ctrl_features_rd_cmpl_cback(tBTM_STATUS result);
 #endif
@@ -265,9 +259,6 @@ void bta_dm_enable(tBTA_DM_SEC_CBACK* p_sec_cback) {
     return;
   }
 
-  /* first, register our callback to SYS HW manager */
-  bta_sys_hw_register(BTA_SYS_HW_BLUETOOTH, bta_dm_sys_hw_cback);
-
   /* make sure security callback is saved - if no callback, do not erase the
   previous one,
   it could be an error recovery mechanism */
@@ -275,13 +266,7 @@ void bta_dm_enable(tBTA_DM_SEC_CBACK* p_sec_cback) {
   /* notify BTA DM is now active */
   bta_dm_cb.is_bta_dm_active = true;
 
-  /* send a message to BTA SYS */
-  tBTA_SYS_HW_MSG* sys_enable_event =
-      (tBTA_SYS_HW_MSG*)osi_malloc(sizeof(tBTA_SYS_HW_MSG));
-  sys_enable_event->hdr.event = BTA_SYS_API_ENABLE_EVT;
-  sys_enable_event->hw_module = BTA_SYS_HW_BLUETOOTH;
-
-  bta_sys_sendmsg(sys_enable_event);
+  send_bta_sys_hw_event(BTA_SYS_API_ENABLE_EVT);
 
   btm_local_io_caps = btif_storage_get_local_io_caps();
 }
@@ -332,134 +317,104 @@ void bta_dm_deinit_cb(void) {
   memset(&bta_dm_cb, 0, sizeof(bta_dm_cb));
 }
 
-/*******************************************************************************
- *
- * Function         bta_dm_sys_hw_cback
- *
- * Description     callback register to SYS to get HW status updates
- *
- *
- * Returns          void
- *
- ******************************************************************************/
-static void bta_dm_sys_hw_cback(tBTA_SYS_HW_EVT status) {
+void BTA_dm_on_hw_error() {
+  if (bta_dm_cb.p_sec_cback != NULL) {
+    bta_dm_cb.p_sec_cback(BTA_DM_HW_ERROR_EVT, NULL);
+  }
+}
+
+void BTA_dm_on_hw_off() {
+  if (bta_dm_cb.p_sec_cback != NULL)
+    bta_dm_cb.p_sec_cback(BTA_DM_DISABLE_EVT, NULL);
+
+  /* reinitialize the control block */
+  bta_dm_deinit_cb();
+
+  /* hw is ready, go on with BTA DM initialization */
+  alarm_free(bta_dm_search_cb.search_timer);
+  alarm_free(bta_dm_search_cb.gatt_close_timer);
+  memset(&bta_dm_search_cb, 0, sizeof(bta_dm_search_cb));
+
+  /* notify BTA DM is now unactive */
+  bta_dm_cb.is_bta_dm_active = false;
+}
+
+void BTA_dm_on_hw_on() {
   DEV_CLASS dev_class;
   tBTA_DM_SEC_CBACK* temp_cback;
   uint8_t key_mask = 0;
   tBTA_BLE_LOCAL_ID_KEYS id_key;
 
-  APPL_TRACE_DEBUG("%s with event: %i", __func__, status);
+  /* save security callback */
+  temp_cback = bta_dm_cb.p_sec_cback;
+  /* make sure the control block is properly initialized */
+  bta_dm_init_cb();
+  /* and retrieve the callback */
+  bta_dm_cb.p_sec_cback = temp_cback;
+  bta_dm_cb.is_bta_dm_active = true;
 
-  /* On H/W error evt, report to the registered DM application callback */
-  if (status == BTA_SYS_HW_ERROR_EVT) {
-    if (bta_dm_cb.p_sec_cback != NULL)
-      bta_dm_cb.p_sec_cback(BTA_DM_HW_ERROR_EVT, NULL);
-    return;
+  /* hw is ready, go on with BTA DM initialization */
+  alarm_free(bta_dm_search_cb.search_timer);
+  alarm_free(bta_dm_search_cb.gatt_close_timer);
+  memset(&bta_dm_search_cb, 0, sizeof(bta_dm_search_cb));
+  /*
+   * TODO: Should alarm_free() the bta_dm_search_cb timers during
+   * graceful shutdown.
+   */
+  bta_dm_search_cb.search_timer = alarm_new("bta_dm_search.search_timer");
+  bta_dm_search_cb.gatt_close_timer =
+      alarm_new("bta_dm_search.gatt_close_timer");
+
+  memset(&bta_dm_conn_srvcs, 0, sizeof(bta_dm_conn_srvcs));
+  memset(&bta_dm_di_cb, 0, sizeof(tBTA_DM_DI_CB));
+
+  memcpy(dev_class, p_bta_dm_cfg->dev_class, sizeof(dev_class));
+  BTM_SetDeviceClass(dev_class);
+
+  /* load BLE local information: ID keys, ER if available */
+  Octet16 er;
+  bta_dm_co_ble_load_local_keys(&key_mask, &er, &id_key);
+
+  if (key_mask & BTA_BLE_LOCAL_KEY_TYPE_ER) {
+    BTM_BleLoadLocalKeys(BTA_BLE_LOCAL_KEY_TYPE_ER, (tBTM_BLE_LOCAL_KEYS*)&er);
   }
+  if (key_mask & BTA_BLE_LOCAL_KEY_TYPE_ID) {
+    BTM_BleLoadLocalKeys(BTA_BLE_LOCAL_KEY_TYPE_ID,
+                         (tBTM_BLE_LOCAL_KEYS*)&id_key);
+  }
+  bta_dm_search_cb.conn_id = GATT_INVALID_CONN_ID;
 
-  if (status == BTA_SYS_HW_OFF_EVT) {
-    if (bta_dm_cb.p_sec_cback != NULL)
-      bta_dm_cb.p_sec_cback(BTA_DM_DISABLE_EVT, NULL);
-
-    /* reinitialize the control block */
-    bta_dm_deinit_cb();
-
-    /* hw is ready, go on with BTA DM initialization */
-    alarm_free(bta_dm_search_cb.search_timer);
-    alarm_free(bta_dm_search_cb.gatt_close_timer);
-    memset(&bta_dm_search_cb, 0, sizeof(bta_dm_search_cb));
-
-    /* unregister from SYS */
-    bta_sys_hw_unregister(BTA_SYS_HW_BLUETOOTH);
-    /* notify BTA DM is now unactive */
-    bta_dm_cb.is_bta_dm_active = false;
-  } else if (status == BTA_SYS_HW_ON_EVT) {
-    /* FIXME: We should not unregister as the SYS shall invoke this callback on
-     * a H/W error.
-     * We need to revisit when this platform has more than one BLuetooth H/W
-     * chip
-     */
-    // bta_sys_hw_unregister( BTA_SYS_HW_BLUETOOTH);
-
-    /* save security callback */
-    temp_cback = bta_dm_cb.p_sec_cback;
-    /* make sure the control block is properly initialized */
-    bta_dm_init_cb();
-    /* and retrieve the callback */
-    bta_dm_cb.p_sec_cback = temp_cback;
-    bta_dm_cb.is_bta_dm_active = true;
-
-    /* hw is ready, go on with BTA DM initialization */
-    alarm_free(bta_dm_search_cb.search_timer);
-    alarm_free(bta_dm_search_cb.gatt_close_timer);
-    memset(&bta_dm_search_cb, 0, sizeof(bta_dm_search_cb));
-    /*
-     * TODO: Should alarm_free() the bta_dm_search_cb timers during
-     * graceful shutdown.
-     */
-    bta_dm_search_cb.search_timer = alarm_new("bta_dm_search.search_timer");
-    bta_dm_search_cb.gatt_close_timer =
-        alarm_new("bta_dm_search.gatt_close_timer");
-
-    memset(&bta_dm_conn_srvcs, 0, sizeof(bta_dm_conn_srvcs));
-    memset(&bta_dm_di_cb, 0, sizeof(tBTA_DM_DI_CB));
-
-    memcpy(dev_class, p_bta_dm_cfg->dev_class, sizeof(dev_class));
-    BTM_SetDeviceClass(dev_class);
-
-    /* load BLE local information: ID keys, ER if available */
-    Octet16 er;
-    bta_dm_co_ble_load_local_keys(&key_mask, &er, &id_key);
-
-    if (key_mask & BTA_BLE_LOCAL_KEY_TYPE_ER) {
-      BTM_BleLoadLocalKeys(BTA_BLE_LOCAL_KEY_TYPE_ER,
-                           (tBTM_BLE_LOCAL_KEYS*)&er);
-    }
-    if (key_mask & BTA_BLE_LOCAL_KEY_TYPE_ID) {
-      BTM_BleLoadLocalKeys(BTA_BLE_LOCAL_KEY_TYPE_ID,
-                           (tBTM_BLE_LOCAL_KEYS*)&id_key);
-    }
-    bta_dm_search_cb.conn_id = GATT_INVALID_CONN_ID;
-
-    BTM_SecRegister(&bta_security);
-    BTM_SetDefaultLinkSuperTout(p_bta_dm_cfg->link_timeout);
-    BTM_WritePageTimeout(p_bta_dm_cfg->page_timeout);
-    bta_dm_cb.cur_policy = p_bta_dm_cfg->policy_settings;
-    BTM_SetDefaultLinkPolicy(bta_dm_cb.cur_policy);
-    BTM_RegBusyLevelNotif(bta_dm_bl_change_cback);
+  BTM_SecRegister(&bta_security);
+  BTM_SetDefaultLinkSuperTout(p_bta_dm_cfg->link_timeout);
+  BTM_WritePageTimeout(p_bta_dm_cfg->page_timeout);
 
 #if (BLE_VND_INCLUDED == TRUE)
-    BTM_BleReadControllerFeatures(bta_dm_ctrl_features_rd_cmpl_cback);
+  BTM_BleReadControllerFeatures(bta_dm_ctrl_features_rd_cmpl_cback);
 #else
-    /* If VSC multi adv commands are available, advertising will be initialized
-     * when capabilities are read. If they are not avaliable, initialize
-     * advertising here */
-    btm_ble_adv_init();
+  /* If VSC multi adv commands are available, advertising will be initialized
+   * when capabilities are read. If they are not available, initialize
+   * advertising here */
+  btm_ble_adv_init();
 #endif
 
-    /* Earlier, we used to invoke BTM_ReadLocalAddr which was just copying the
-       bd_addr
-       from the control block and invoking the callback which was sending the
-       DM_ENABLE_EVT.
-       But then we have a few HCI commands being invoked above which were still
-       in progress
-       when the ENABLE_EVT was sent. So modified this to fetch the local name
-       which forces
-       the DM_ENABLE_EVT to be sent only after all the init steps are complete
-       */
-    BTM_ReadLocalDeviceNameFromController(bta_dm_local_name_cback);
+  /* Earlier, we used to invoke BTM_ReadLocalAddr which was just copying the
+     bd_addr
+     from the control block and invoking the callback which was sending the
+     DM_ENABLE_EVT.
+     But then we have a few HCI commands being invoked above which were still
+     in progress
+     when the ENABLE_EVT was sent. So modified this to fetch the local name
+     which forces
+     the DM_ENABLE_EVT to be sent only after all the init steps are complete
+     */
+  BTM_ReadLocalDeviceNameFromController(bta_dm_local_name_cback);
 
-    bta_sys_rm_register(bta_dm_rm_cback);
+  bta_sys_rm_register(bta_dm_rm_cback);
 
-    /* initialize bluetooth low power manager */
-    bta_dm_init_pm();
+  /* initialize bluetooth low power manager */
+  bta_dm_init_pm();
 
-    bta_sys_policy_register(bta_dm_policy_cback);
-
-    bta_dm_gattc_register();
-
-  } else
-    APPL_TRACE_DEBUG(" --- ignored event");
+  bta_dm_gattc_register();
 }
 
 /** Disables the BT device manager */
@@ -470,7 +425,7 @@ void bta_dm_disable() {
   L2CA_SetIdleTimeoutByBdAddr(RawAddress::kAny, 0, BT_TRANSPORT_LE);
 
   /* disable all active subsystems */
-  bta_sys_disable(BTA_SYS_HW_BLUETOOTH);
+  bta_sys_disable();
 
   BTM_SetDiscoverability(BTM_NON_DISCOVERABLE, 0, 0);
   BTM_SetConnectability(BTM_NON_CONNECTABLE, 0, 0);
@@ -870,63 +825,32 @@ void bta_dm_pin_reply(std::unique_ptr<tBTA_DM_API_PIN_REPLY> msg) {
   }
 }
 
-/*******************************************************************************
- *
- * Function         bta_dm_policy_cback
- *
- * Description      process the link policy changes
- *
- * Returns          void
- *
- ******************************************************************************/
-static void bta_dm_policy_cback(tBTA_SYS_CONN_STATUS status, uint8_t id,
-                                uint8_t app_id, const RawAddress& peer_addr) {
-  tBTA_DM_PEER_DEVICE* p_dev = NULL;
-  uint16_t policy = app_id;
-  uint32_t mask = (uint32_t)(1 << id);
-
-  if (peer_addr != RawAddress::kEmpty) {
-    p_dev = bta_dm_find_peer_device(peer_addr);
+void BTA_dm_unblock_role_switch_for(const RawAddress& peer_addr) {
+  auto p_dev = bta_dm_find_peer_device(peer_addr);
+  if (!p_dev) {
+    return;
   }
+  p_dev->link_policy |= HCI_ENABLE_MASTER_SLAVE_SWITCH;
+  BTM_SetLinkPolicy(p_dev->peer_bdaddr, &(p_dev->link_policy));
+}
 
-  APPL_TRACE_DEBUG(" bta_dm_policy_cback cmd:%d, policy:0x%x", status, policy);
-  switch (status) {
-    case BTA_SYS_PLCY_SET:
-      if (!p_dev) return;
-      /* restore the default link policy */
-      p_dev->link_policy |= policy;
-      BTM_SetLinkPolicy(p_dev->peer_bdaddr, &(p_dev->link_policy));
-      break;
-
-    case BTA_SYS_PLCY_CLR:
-      if (!p_dev) return;
-      /* clear the policy from the default link policy */
-      p_dev->link_policy &= (~policy);
-      BTM_SetLinkPolicy(p_dev->peer_bdaddr, &(p_dev->link_policy));
-
-      if (policy & (HCI_ENABLE_SNIFF_MODE | HCI_ENABLE_PARK_MODE)) {
-        /* if clearing sniff/park, wake the link */
-        bta_dm_pm_active(p_dev->peer_bdaddr);
-      }
-      break;
-
-    case BTA_SYS_PLCY_DEF_SET:
-      /* want to restore/set the role switch policy */
-      bta_dm_cb.role_policy_mask &= ~mask;
-      if (0 == bta_dm_cb.role_policy_mask) {
-        /* if nobody wants to insist on the role */
-        bta_dm_cb.cur_policy |= HCI_ENABLE_MASTER_SLAVE_SWITCH;
-        BTM_SetDefaultLinkPolicy(bta_dm_cb.cur_policy);
-      }
-      break;
-
-    case BTA_SYS_PLCY_DEF_CLR:
-      /* want to remove the role switch policy */
-      bta_dm_cb.role_policy_mask |= mask;
-      bta_dm_cb.cur_policy &= ~HCI_ENABLE_MASTER_SLAVE_SWITCH;
-      BTM_SetDefaultLinkPolicy(bta_dm_cb.cur_policy);
-      break;
+void BTA_dm_block_role_switch_for(const RawAddress& peer_addr) {
+  auto p_dev = bta_dm_find_peer_device(peer_addr);
+  if (!p_dev) {
+    return;
   }
+  p_dev->link_policy &= (~HCI_ENABLE_MASTER_SLAVE_SWITCH);
+  BTM_SetLinkPolicy(p_dev->peer_bdaddr, &(p_dev->link_policy));
+}
+
+void BTA_dm_unblock_role_switch() {
+  BTM_SetDefaultLinkPolicy(btm_cb.acl_cb_.btm_def_link_policy |
+                           HCI_ENABLE_MASTER_SLAVE_SWITCH);
+}
+
+void BTA_dm_block_role_switch() {
+  BTM_SetDefaultLinkPolicy(btm_cb.acl_cb_.btm_def_link_policy &
+                           ~HCI_ENABLE_MASTER_SLAVE_SWITCH);
 }
 
 /** Send the user confirm request reply in response to a request from BTM */
@@ -935,8 +859,8 @@ void bta_dm_confirm(const RawAddress& bd_addr, bool accept) {
 }
 
 /** respond to the IO capabilities request from BTM */
-void bta_dm_ci_io_req_act(const RawAddress& bd_addr, tBTA_IO_CAP io_cap,
-                          tBTA_OOB_DATA oob_data, tBTA_AUTH_REQ auth_req) {
+void bta_dm_ci_io_req_act(const RawAddress& bd_addr, tBTM_IO_CAP io_cap,
+                          tBTM_OOB_DATA oob_data, tBTM_AUTH_REQ auth_req) {
   BTM_IoCapRsp(bd_addr, io_cap, oob_data,
                auth_req ? BTM_AUTH_AP_YES : BTM_AUTH_AP_NO);
 }
@@ -2218,26 +2142,11 @@ static void bta_dm_remname_cback(void* p) {
  * Returns          void
  *
  ******************************************************************************/
-static uint8_t bta_dm_authorize_cback(const RawAddress& bd_addr,
-                                      DEV_CLASS dev_class, BD_NAME bd_name,
-                                      UNUSED_ATTR uint8_t* service_name,
-                                      uint8_t service_id,
-                                      UNUSED_ATTR bool is_originator) {
-  tBTA_DM_SEC sec_event;
+static uint8_t bta_dm_authorize_cback(uint8_t service_id) {
   uint8_t index = 1;
-
-  sec_event.authorize.bd_addr = bd_addr;
-  memcpy(sec_event.authorize.dev_class, dev_class, DEV_CLASS_LEN);
-  strlcpy((char*)sec_event.authorize.bd_name, (char*)bd_name, BD_NAME_LEN);
-
-#if (BTA_JV_INCLUDED == TRUE)
-  sec_event.authorize.service = service_id;
-#endif
-
   while (index < BTA_MAX_SERVICE_ID) {
     /* get the BTA service id corresponding to BTM id */
     if (bta_service_id_to_btm_srv_id_lkup_tbl[index] == service_id) {
-      sec_event.authorize.service = index;
       break;
     }
     index++;
@@ -2251,7 +2160,6 @@ static uint8_t bta_dm_authorize_cback(const RawAddress& bd_addr,
                                     service_id <= BTA_LAST_JV_SERVICE_ID)
 #endif
                                     )) {
-    bta_dm_cb.p_sec_cback(BTA_DM_AUTHORIZE_EVT, &sec_event);
     return BTM_CMD_STARTED;
   } else {
     return BTM_NOT_AUTHORIZED;
@@ -2577,41 +2485,7 @@ static uint8_t bta_dm_sp_cback(tBTM_SP_EVT event, tBTM_SP_EVT_DATA* p_data) {
       break;
 
     case BTM_SP_RMT_OOB_EVT:
-      /* If the device name is not known, save bdaddr and devclass and initiate
-       * a name request */
-      if (p_data->rmt_oob.bd_name[0] == 0) {
-        bta_dm_cb.pin_evt = BTA_DM_SP_RMT_OOB_EVT;
-        bta_dm_cb.pin_bd_addr = p_data->rmt_oob.bd_addr;
-        BTA_COPY_DEVICE_CLASS(bta_dm_cb.pin_dev_class,
-                              p_data->rmt_oob.dev_class);
-        if ((BTM_ReadRemoteDeviceName(p_data->rmt_oob.bd_addr,
-                                      bta_dm_pinname_cback,
-                                      BT_TRANSPORT_BR_EDR)) == BTM_CMD_STARTED)
-          return BTM_CMD_STARTED;
-        APPL_TRACE_WARNING(
-            " bta_dm_sp_cback() -> Failed to start Remote Name Request  ");
-      }
-
-      sec_event.rmt_oob.bd_addr = p_data->rmt_oob.bd_addr;
-      BTA_COPY_DEVICE_CLASS(sec_event.rmt_oob.dev_class,
-                            p_data->rmt_oob.dev_class);
-      strlcpy((char*)sec_event.rmt_oob.bd_name, (char*)p_data->rmt_oob.bd_name,
-              BD_NAME_LEN);
-
-      bta_dm_cb.p_sec_cback(BTA_DM_SP_RMT_OOB_EVT, &sec_event);
-
       bta_dm_co_rmt_oob(p_data->rmt_oob.bd_addr);
-      break;
-
-    case BTM_SP_COMPLT_EVT:
-      /* do not report this event - handled by link_key_callback or
-       * auth_complete_callback */
-      break;
-
-    case BTM_SP_KEYPRESS_EVT:
-      memcpy(&sec_event.key_press, &p_data->key_press,
-             sizeof(tBTM_SP_KEYPRESS));
-      bta_dm_cb.p_sec_cback(BTA_DM_SP_KEYPRESS_EVT, &sec_event);
       break;
 
     default:
@@ -2643,9 +2517,6 @@ static void bta_dm_local_name_cback(UNUSED_ATTR void* p_name) {
 
 static void handle_role_change(const RawAddress& bd_addr, uint8_t new_role,
                                uint8_t hci_status) {
-  tBTA_DM_SEC conn;
-  memset(&conn, 0, sizeof(tBTA_DM_SEC));
-
   tBTA_DM_PEER_DEVICE* p_dev = bta_dm_find_peer_device(bd_addr);
   if (!p_dev) return;
   LOG_INFO("%s: peer %s info:0x%x new_role:0x%x dev count:%d hci_status=%d",
@@ -2669,8 +2540,7 @@ static void handle_role_change(const RawAddress& bd_addr, uint8_t new_role,
     }
 
     if (need_policy_change) {
-      bta_dm_policy_cback(BTA_SYS_PLCY_CLR, 0, HCI_ENABLE_MASTER_SLAVE_SWITCH,
-                          p_dev->peer_bdaddr);
+      BTA_dm_block_role_switch_for(p_dev->peer_bdaddr);
     }
   } else {
     /* there's AV no activity on this link and role switch happened
@@ -2679,9 +2549,12 @@ static void handle_role_change(const RawAddress& bd_addr, uint8_t new_role,
     bta_dm_check_av(0);
   }
   bta_sys_notify_role_chg(bd_addr, new_role, hci_status);
-  conn.role_chg.bd_addr = bd_addr;
-  conn.role_chg.new_role = (uint8_t)new_role;
-  if (bta_dm_cb.p_sec_cback) bta_dm_cb.p_sec_cback(BTA_DM_ROLE_CHG_EVT, &conn);
+}
+
+void BTA_dm_report_role_change(const RawAddress bd_addr, uint8_t new_role,
+                               uint8_t hci_status) {
+  do_in_main_thread(
+      FROM_HERE, base::Bind(handle_role_change, bd_addr, new_role, hci_status));
 }
 
 static tBTA_DM_PEER_DEVICE* allocate_device_for(const RawAddress& bd_addr,
@@ -2698,7 +2571,7 @@ static tBTA_DM_PEER_DEVICE* allocate_device_for(const RawAddress& bd_addr,
     auto device =
         &bta_dm_cb.device_list.peer_device[bta_dm_cb.device_list.count];
     device->peer_bdaddr = bd_addr;
-    device->link_policy = bta_dm_cb.cur_policy;
+    device->link_policy = btm_cb.acl_cb_.btm_def_link_policy;
     bta_dm_cb.device_list.count++;
     device->conn_handle = handle;
     if (transport == BT_TRANSPORT_LE) {
@@ -2831,29 +2704,8 @@ static void bta_dm_acl_down(const RawAddress& bd_addr,
   bta_dm_adjust_roles(true);
 }
 
-/** Callback from btm when acl connection goes up or down */
-static void bta_dm_bl_change_cback(tBTM_BL_EVENT_DATA* p_data) {
-  switch (p_data->event) {
-    case BTM_BL_DISCN_EVT:
-      /* connection down */
-      do_in_main_thread(FROM_HERE,
-                        base::Bind(bta_dm_acl_down, *p_data->discn.p_bda,
-                                   p_data->discn.transport));
-      break;
-
-    case BTM_BL_ROLE_CHG_EVT: {
-      const auto& tmp = p_data->role_chg;
-      do_in_main_thread(FROM_HERE, base::Bind(handle_role_change, *tmp.p_bda,
-                                              tmp.new_role, tmp.hci_status));
-      return;
-    }
-
-    case BTM_BL_COLLISION_EVT:
-      /* Collision report from Stack: Notify profiles */
-      do_in_main_thread(
-          FROM_HERE, base::Bind(bta_sys_notify_collision, *p_data->conn.p_bda));
-      return;
-  }
+void BTA_dm_acl_down(const RawAddress bd_addr, tBT_TRANSPORT transport) {
+  do_in_main_thread(FROM_HERE, base::Bind(bta_dm_acl_down, bd_addr, transport));
 }
 
 /*******************************************************************************
@@ -2917,8 +2769,7 @@ static bool bta_dm_check_av(uint16_t event) {
           switching = true;
         }
         /* else either already master or can not switch for some reasons */
-        bta_dm_policy_cback(BTA_SYS_PLCY_CLR, 0, HCI_ENABLE_MASTER_SLAVE_SWITCH,
-                            p_dev->peer_bdaddr);
+        BTA_dm_block_role_switch_for(p_dev->peer_bdaddr);
         break;
       }
     }
@@ -2937,19 +2788,11 @@ static bool bta_dm_check_av(uint16_t event) {
  *
  ******************************************************************************/
 static void bta_dm_disable_conn_down_timer_cback(UNUSED_ATTR void* data) {
-  tBTA_SYS_HW_MSG* sys_enable_event =
-      (tBTA_SYS_HW_MSG*)osi_malloc(sizeof(tBTA_SYS_HW_MSG));
-
   /* disable the power managment module */
   bta_dm_disable_pm();
 
   /* register our callback to SYS HW manager */
-  bta_sys_hw_register(BTA_SYS_HW_BLUETOOTH, bta_dm_sys_hw_cback);
-
-  /* send a message to BTA SYS */
-  sys_enable_event->hdr.event = BTA_SYS_API_DISABLE_EVT;
-  sys_enable_event->hw_module = BTA_SYS_HW_BLUETOOTH;
-  bta_sys_sendmsg(sys_enable_event);
+  send_bta_sys_hw_event(BTA_SYS_API_DISABLE_EVT);
 
   bta_dm_cb.disabling = false;
 }
@@ -3629,7 +3472,7 @@ void bta_dm_encrypt_cback(const RawAddress* bd_addr, tBT_TRANSPORT transport,
 /**This function to encrypt the link */
 void bta_dm_set_encryption(const RawAddress& bd_addr, tBTA_TRANSPORT transport,
                            tBTA_DM_ENCRYPT_CBACK* p_callback,
-                           tBTA_DM_BLE_SEC_ACT sec_act) {
+                           tBTM_BLE_SEC_ACT sec_act) {
   uint8_t i;
 
   APPL_TRACE_DEBUG("bta_dm_set_encryption");  // todo

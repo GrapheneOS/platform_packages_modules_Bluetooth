@@ -43,6 +43,7 @@
 #include "bt_common.h"
 #include "bt_types.h"
 #include "bt_utils.h"
+#include "bta/sys/bta_sys.h"
 #include "btif_config.h"
 #include "btm_api.h"
 #include "btm_int.h"
@@ -382,9 +383,6 @@ void btu_hcif_process_event(UNUSED_ATTR uint8_t controller_id, BT_HDR* p_msg) {
       break;
     case HCI_USER_PASSKEY_NOTIFY_EVT:
       btm_proc_sp_req_evt(BTM_SP_KEY_NOTIF_EVT, p);
-      break;
-    case HCI_KEYPRESS_NOTIFY_EVT:
-      btm_keypress_notif_evt(p);
       break;
 
     case HCI_BLE_EVENT: {
@@ -1538,11 +1536,10 @@ static void btu_hcif_hardware_error_evt(uint8_t* p) {
     return;
   }
 
-  /* If anyone wants device status notifications, give them one. */
-  btm_report_device_status(BTM_DEV_STATUS_DOWN);
+  send_bta_sys_hw_event(BTA_SYS_ERROR_EVT);
 
   /* Reset the controller */
-  if (BTM_IsDeviceUp()) BTM_DeviceReset(NULL);
+  if (BTM_IsDeviceUp()) BTM_DeviceReset();
 }
 
 /*******************************************************************************
