@@ -1239,6 +1239,16 @@ static jbyteArray obfuscateAddressNative(JNIEnv* env, jobject obj,
   return output_bytes;
 }
 
+static jboolean setBufferMillisNative(JNIEnv* env, jobject obj, jint codec,
+                                      jint size) {
+  ALOGV("%s", __func__);
+
+  if (!sBluetoothInterface) return JNI_FALSE;
+
+  int ret = sBluetoothInterface->set_dynamic_audio_buffer_size(codec, size);
+  return (ret == BT_STATUS_SUCCESS) ? JNI_TRUE : JNI_FALSE;
+}
+
 static jint connectSocketNative(JNIEnv* env, jobject obj, jbyteArray address,
                                 jint type, jbyteArray uuid, jint port,
                                 jint flag, jint callingUid) {
@@ -1365,6 +1375,7 @@ static JNINativeMethod sMethods[] = {
     {"interopDatabaseClearNative", "()V", (void*)interopDatabaseClearNative},
     {"interopDatabaseAddNative", "(I[BI)V", (void*)interopDatabaseAddNative},
     {"obfuscateAddressNative", "([B)[B", (void*)obfuscateAddressNative},
+    {"setBufferMillisNative", "(II)Z", (void*)setBufferMillisNative},
     {"getMetricIdNative", "([B)I", (void*)getMetricIdNative},
     {"connectSocketNative", "([BI[BIII)I", (void*)connectSocketNative},
     {"createSocketChannelNative", "(ILjava/lang/String;[BIII)I",
