@@ -47,8 +47,6 @@
 #include "main/shim/controller.h"
 #include "main/shim/shim.h"
 
-extern bluetooth::common::MessageLoopThread bt_startup_thread;
-
 /******************************************************************************/
 /*               L O C A L    D A T A    D E F I N I T I O N S                */
 /******************************************************************************/
@@ -95,11 +93,6 @@ void btm_dev_init() {
   btm_cb.devcb.read_inq_tx_power_timer =
       alarm_new("btm.read_inq_tx_power_timer");
   btm_cb.devcb.read_tx_power_timer = alarm_new("btm.read_tx_power_timer");
-
-  btm_cb.acl_cb_.btm_acl_pkt_types_supported =
-      BTM_ACL_PKT_TYPES_MASK_DH1 + BTM_ACL_PKT_TYPES_MASK_DM1 +
-      BTM_ACL_PKT_TYPES_MASK_DH3 + BTM_ACL_PKT_TYPES_MASK_DM3 +
-      BTM_ACL_PKT_TYPES_MASK_DH5 + BTM_ACL_PKT_TYPES_MASK_DM5;
 
   btm_cb.btm_sco_pkt_types_supported =
       ESCO_PKT_TYPES_MASK_HV1 + ESCO_PKT_TYPES_MASK_HV2 +
@@ -215,7 +208,6 @@ void BTM_reset_complete() {
                  btm_cb.cfg.pin_code_len);
 
   decode_controller_support();
-  send_bta_sys_hw_event(BTA_SYS_EVT_STACK_ENABLED_EVT);
 }
 
 /*******************************************************************************

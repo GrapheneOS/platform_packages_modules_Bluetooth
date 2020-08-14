@@ -364,7 +364,6 @@ typedef uint8_t tBTA_SIG_STRENGTH_MASK;
   23 /* Simple Pairing Remote OOB Extended Data request. */
 #define BTA_DM_BLE_AUTH_CMPL_EVT 24 /* BLE Auth complete */
 #define BTA_DM_DEV_UNPAIRED_EVT 25
-#define BTA_DM_HW_ERROR_EVT 26 /* BT Chip H/W error */
 #define BTA_DM_LE_FEATURES_READ                                             \
   27                             /* Cotroller specific LE features are read \
                                     */
@@ -372,9 +371,6 @@ typedef uint8_t tBTA_SIG_STRENGTH_MASK;
 #define BTA_DM_BLE_SC_OOB_REQ_EVT 29 /* SMP SC OOB request event */
 #define BTA_DM_BLE_CONSENT_REQ_EVT 30 /* SMP consent request event */
 typedef uint8_t tBTA_DM_SEC_EVT;
-
-/* Structure associated with BTA_DM_ENABLE_EVT */
-typedef struct { tBTA_STATUS status; } tBTA_DM_ENABLE;
 
 /* Structure associated with BTA_DM_PIN_REQ_EVT */
 typedef struct {
@@ -506,38 +502,10 @@ typedef struct {
   RawAddress bd_addr; /* BD address peer device. */
 } tBTA_DM_LINK_DOWN;
 
-#define BTA_IO_CAP_OUT BTM_IO_CAP_OUT       /* 0 DisplayOnly */
-#define BTA_IO_CAP_IO BTM_IO_CAP_IO         /* 1 DisplayYesNo */
-#define BTA_IO_CAP_IN BTM_IO_CAP_IN         /* 2 KeyboardOnly */
-#define BTA_IO_CAP_NONE BTM_IO_CAP_NONE     /* 3 NoInputNoOutput */
-#define BTA_IO_CAP_KBDISP BTM_IO_CAP_KBDISP /* 4 Keyboard display */
-
-#define BTA_AUTH_SP_NO                                      \
-  BTM_AUTH_SP_NO /* 0 MITM Protection Not Required - Single \
-                   Profile/non-bonding                      \
-                   Numeric comparison with automatic accept allowed */
 #define BTA_AUTH_SP_YES                                                       \
   BTM_AUTH_SP_YES /* 1 MITM Protection Required - Single Profile/non-bonding  \
                     Use IO Capabilities to determine authentication procedure \
                     */
-#define BTA_AUTH_AP_NO                                                      \
-  BTM_AUTH_AP_NO /* 2 MITM Protection Not Required - All Profiles/dedicated \
-                   bonding                                                  \
-                   Numeric comparison with automatic accept allowed */
-#define BTA_AUTH_AP_YES                                                       \
-  BTM_AUTH_AP_YES /* 3 MITM Protection Required - All Profiles/dedicated      \
-                    bonding                                                   \
-                    Use IO Capabilities to determine authentication procedure \
-                    */
-#define BTA_AUTH_SPGB_NO                                                       \
-  BTM_AUTH_SPGB_NO /* 4 MITM Protection Not Required - Single Profiles/general \
-                     bonding                                                   \
-                     Numeric comparison with automatic accept allowed */
-#define BTA_AUTH_SPGB_YES                                                   \
-  BTM_AUTH_SPGB_YES /* 5 MITM Protection Required - Single Profiles/general \
-                      bonding                                               \
-                      Use IO Capabilities to determine authentication       \
-                      procedure */
 
 #define BTA_AUTH_DD_BOND \
   BTM_AUTH_DD_BOND /* 2 this bit is set for dedicated bonding */
@@ -546,18 +514,7 @@ typedef struct {
 #define BTA_AUTH_BONDS \
   BTM_AUTH_BONDS /* 6 the general/dedicated bonding bits  */
 
-#define BTA_LE_AUTH_NO_BOND BTM_LE_AUTH_REQ_NO_BOND /* 0*/
-#define BTA_LE_AUTH_BOND BTM_LE_AUTH_REQ_BOND       /* 1 << 0 */
-#define BTA_LE_AUTH_REQ_MITM BTM_LE_AUTH_REQ_MITM   /* 1 << 2 */
-
-#define BTA_LE_AUTH_REQ_SC_ONLY BTM_LE_AUTH_REQ_SC_ONLY           /* 1 << 3 */
-#define BTA_LE_AUTH_REQ_SC_BOND BTM_LE_AUTH_REQ_SC_BOND           /* 1001 */
-#define BTA_LE_AUTH_REQ_SC_MITM BTM_LE_AUTH_REQ_SC_MITM           /* 1100 */
 #define BTA_LE_AUTH_REQ_SC_MITM_BOND BTM_LE_AUTH_REQ_SC_MITM_BOND /* 1101 */
-
-#define BTA_OOB_NONE BTM_OOB_NONE
-#define BTA_OOB_PRESENT BTM_OOB_PRESENT
-#define BTA_OOB_UNKNOWN BTM_OOB_UNKNOWN
 
 /* Structure associated with BTA_DM_SP_CFM_REQ_EVT */
 typedef struct {
@@ -611,7 +568,6 @@ typedef struct {
 
 /* Union of all security callback structures */
 typedef union {
-  tBTA_DM_ENABLE enable;          /* BTA enabled */
   tBTA_DM_PIN_REQ pin_req;        /* PIN request. */
   tBTA_DM_AUTH_CMPL auth_cmpl;    /* Authentication complete indication. */
   tBTA_DM_LINK_UP link_up;        /* ACL connection down event */
@@ -955,19 +911,6 @@ typedef uint8_t tBTA_DM_LINK_TYPE;
  ****************************************************************************/
 
 void BTA_dm_init();
-/*******************************************************************************
- *
- * Function         BTA_DisableBluetooth
- *
- * Description      This function disables BTA and the Bluetooth protocol
- *                  stack.  It is called when BTA is no longer being used
- *                  by any application in the system.
- *
- *
- * Returns          void
- *
- ******************************************************************************/
-extern tBTA_STATUS BTA_DisableBluetooth(void);
 
 /*******************************************************************************
  *
