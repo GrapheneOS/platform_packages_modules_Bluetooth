@@ -127,10 +127,7 @@ enum {
   /* add here */
 
   BTIF_DM_CB_START = BTIF_SIG_CB_START(BTIF_DM),
-  BTIF_DM_CB_DISCOVERY_STARTED, /* Discovery has started */
-  BTIF_DM_CB_CREATE_BOND,       /* Create bond */
   BTIF_DM_CB_REMOVE_BOND,       /*Remove bond */
-  BTIF_DM_CB_HID_REMOTE_NAME,   /* Remote name callback for HID device */
   BTIF_DM_CB_BOND_STATE_BONDING,
   BTIF_DM_CB_LE_TX_TEST,  /* BLE Tx Test command complete callback */
   BTIF_DM_CB_LE_RX_TEST,  /* BLE Rx Test command complete callback */
@@ -210,8 +207,7 @@ void btif_remote_properties_evt(bt_status_t status, RawAddress* remote_addr,
                                 uint32_t num_props, bt_property_t* p_props);
 
 void bte_load_did_conf(const char* p_path);
-void bte_main_boot_entry(void);
-void bte_main_cleanup(void);
+void bte_main_init(void);
 
 bt_status_t btif_transfer_context(tBTIF_CBACK* p_cback, uint16_t event,
                                   char* p_params, int param_len,
