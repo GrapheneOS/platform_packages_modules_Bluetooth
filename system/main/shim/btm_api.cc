@@ -165,7 +165,7 @@ void btm_api_process_inquiry_result_with_rssi(RawAddress raw_address,
 
   bool update = false;
   if (btm_inq_find_bdaddr(raw_address)) {
-    if (btm_cb.btm_inq_vars.inqparms.report_dup && p_i != nullptr &&
+    if (p_i != nullptr &&
         (rssi > p_i->inq_info.results.rssi || p_i->inq_info.results.rssi == 0 ||
          has_classic_device(p_i->inq_info.results.device_type))) {
       update = true;
@@ -291,9 +291,6 @@ tBTM_STATUS bluetooth::shim::BTM_StartInquiry(tBTM_INQ_RESULTS_CB* p_results_cb,
   inqparms.duration = BTIF_DM_DEFAULT_INQ_MAX_DURATION;
 
   inqparms.max_resps = BTIF_DM_DEFAULT_INQ_MAX_RESULTS;
-  inqparms.report_dup = true;
-
-  inqparms.filter_cond_type = BTM_CLR_INQUIRY_FILTER;
 
   std::lock_guard<std::mutex> lock(btm_cb_mutex_);
 
@@ -314,7 +311,7 @@ tBTM_STATUS bluetooth::shim::BTM_StartInquiry(tBTM_INQ_RESULTS_CB* p_results_cb,
 
   uint8_t classic_mode = inqparms.mode & 0x0f;
   if (!Stack::GetInstance()->GetBtm()->SetInquiryFilter(
-          classic_mode, inqparms.filter_cond_type, inqparms.filter_cond)) {
+          classic_mode, BTM_CLR_INQUIRY_FILTER, inqparms.filter_cond)) {
     LOG_WARN("%s Unable to set inquiry filter", __func__);
     return BTM_ERR_PROCESSING;
   }
