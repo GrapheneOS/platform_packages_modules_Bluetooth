@@ -425,21 +425,29 @@ public class AtPhonebook {
         }
 
         if (ancillaryPhonebook) {
-            pbr.cursor = mContentResolver.query(Calls.CONTENT_URI, CALLS_PROJECTION, where, null,
-                    Calls.DEFAULT_SORT_ORDER + " LIMIT " + MAX_PHONEBOOK_SIZE);
+            Bundle queryArgs = new Bundle();
+            queryArgs.putString(ContentResolver.QUERY_ARG_SQL_SELECTION, where);
+            queryArgs.putString(ContentResolver.QUERY_ARG_SQL_SORT_ORDER, Calls.DEFAULT_SORT_ORDER);
+            queryArgs.putInt(ContentResolver.QUERY_ARG_LIMIT, MAX_PHONEBOOK_SIZE);
+            pbr.cursor = mContentResolver.query(Calls.CONTENT_URI, CALLS_PROJECTION,
+                    queryArgs, null);
+
             if (pbr.cursor == null) {
                 return false;
             }
-
             pbr.numberColumn = pbr.cursor.getColumnIndexOrThrow(Calls.NUMBER);
             pbr.numberPresentationColumn =
                     pbr.cursor.getColumnIndexOrThrow(Calls.NUMBER_PRESENTATION);
             pbr.typeColumn = -1;
             pbr.nameColumn = -1;
         } else {
+            Bundle queryArgs = new Bundle();
+            queryArgs.putString(ContentResolver.QUERY_ARG_SQL_SELECTION, where);
+            queryArgs.putInt(ContentResolver.QUERY_ARG_LIMIT, MAX_PHONEBOOK_SIZE);
             final Uri phoneContentUri = DevicePolicyUtils.getEnterprisePhoneUri(mContext);
-            pbr.cursor = mContentResolver.query(phoneContentUri, PHONES_PROJECTION, where, null,
-                    Phone.NUMBER + " LIMIT " + MAX_PHONEBOOK_SIZE);
+            pbr.cursor = mContentResolver.query(phoneContentUri, PHONES_PROJECTION,
+                    queryArgs, null);
+
             if (pbr.cursor == null) {
                 return false;
             }
