@@ -20,6 +20,9 @@
 
 #include "stack/include/acl_api_types.h"
 #include "stack/include/bt_types.h"
+#include "stack/include/btm_api_types.h"
+#include "stack/include/hcidefs.h"
+#include "types/bt_transport.h"
 #include "types/raw_address.h"
 
 #define BTM_MAX_SCN_ 31  // PORT_MAX_RFC_PORTS packages/modules/Bluetooth/system/stack/include/rfcdefs.h
