@@ -786,8 +786,6 @@ public class PanService extends ProfileService {
 
     private native boolean disconnectPanNative(byte[] btAddress);
 
-    private native boolean enablePanNative(int localRole);
-
     private native int getPanLocalRoleNative();
 
 }
