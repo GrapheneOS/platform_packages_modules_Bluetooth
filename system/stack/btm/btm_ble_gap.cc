@@ -389,9 +389,8 @@ tBTM_STATUS BTM_BleObserve(bool start, uint8_t duration,
   uint32_t scan_window =
       !p_inq->scan_window ? BTM_BLE_GAP_DISC_SCAN_WIN : p_inq->scan_window;
 
-  BTM_TRACE_EVENT("%s : scan_type:%d, %d, %d", __func__,
-                  btm_cb.btm_inq_vars.scan_type, p_inq->scan_interval,
-                  p_inq->scan_window);
+  BTM_TRACE_EVENT("%s : scan_type:%d, %d, %d", __func__, p_inq->scan_type,
+                  p_inq->scan_interval, p_inq->scan_window);
 
   if (!controller_get_interface()->supports_ble()) return BTM_ILLEGAL_VALUE;
 
@@ -1387,12 +1386,6 @@ uint8_t btm_ble_is_discoverable(const RawAddress& bda,
         BTM_TRACE_DEBUG("Find Generable Discoverable device");
         rt |= BTM_BLE_INQ_RESULT;
       }
-
-      else if (btm_cb.btm_inq_vars.inq_active & BTM_BLE_LIMITED_INQUIRY &&
-               (flag & BTM_BLE_LIMIT_DISC_FLAG) != 0) {
-        BTM_TRACE_DEBUG("Find limited discoverable device");
-        rt |= BTM_BLE_INQ_RESULT;
-      }
     }
   }
   return rt;
@@ -1915,29 +1908,6 @@ void btm_ble_process_adv_pkt_cont(uint16_t evt_type, uint8_t addr_type,
   }
 
   if (!update) result &= ~BTM_BLE_INQ_RESULT;
-  /* If the number of responses found and limited, issue a cancel inquiry */
-  if (p_inq->inqparms.max_resps &&
-      p_inq->inq_cmpl_info.num_resp == p_inq->inqparms.max_resps) {
-    /* new device */
-    if (p_i == NULL ||
-        /* assume a DUMO device, BR/EDR inquiry is always active */
-        (p_i &&
-         (p_i->inq_info.results.device_type & BT_DEVICE_TYPE_BLE) ==
-             BT_DEVICE_TYPE_BLE &&
-         p_i->scan_rsp)) {
-      BTM_TRACE_WARNING(
-          "INQ RES: Extra Response Received...cancelling inquiry..");
-
-      /* if is non-periodic inquiry active, cancel now */
-      if ((p_inq->inq_active & BTM_BR_INQ_ACTIVE_MASK) != 0 &&
-          (p_inq->inq_active & BTM_PERIODIC_INQUIRY_ACTIVE) == 0)
-        btsnd_hcic_inq_cancel();
-
-      btm_ble_stop_inquiry();
-
-      btm_acl_update_inquiry_status(BTM_INQUIRY_COMPLETE);
-    }
-  }
 
   tBTM_INQ_RESULTS_CB* p_inq_results_cb = p_inq->p_inq_results_cb;
   if (p_inq_results_cb && (result & BTM_BLE_INQ_RESULT)) {

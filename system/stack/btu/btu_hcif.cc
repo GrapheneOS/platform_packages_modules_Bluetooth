@@ -58,6 +58,7 @@
 #include "stack/include/acl_api.h"
 #include "stack/include/acl_hci_link_interface.h"
 #include "stack/include/l2cap_hci_link_interface.h"
+#include "stack/include/sec_hci_link_interface.h"
 
 using base::Location;
 
@@ -1276,7 +1277,6 @@ static void btu_hcif_hdl_command_complete(uint16_t opcode, uint8_t* p,
       break;
 
     case HCI_READ_INQ_TX_POWER_LEVEL:
-      btm_read_inq_tx_power_complete(p);
       break;
 
     /* BLE Commands sComplete*/

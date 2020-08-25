@@ -364,7 +364,7 @@ void l2cu_send_peer_cmd_reject(tL2C_LCB* p_lcb, uint16_t reason, uint8_t rem_id,
 
   if (param_len >= 4) UINT16_TO_STREAM(p, p2);
 
-  l2c_link_check_send_pkts(p_lcb, NULL, p_buf);
+  l2c_link_check_send_pkts(p_lcb, 0, p_buf);
 }
 
 /*******************************************************************************
@@ -400,7 +400,7 @@ void l2cu_send_peer_connect_req(tL2C_CCB* p_ccb) {
   UINT16_TO_STREAM(p, p_ccb->p_rcb->real_psm);
   UINT16_TO_STREAM(p, p_ccb->local_cid);
 
-  l2c_link_check_send_pkts(p_ccb->p_lcb, NULL, p_buf);
+  l2c_link_check_send_pkts(p_ccb->p_lcb, 0, p_buf);
 }
 
 /*******************************************************************************
@@ -441,7 +441,7 @@ void l2cu_send_peer_connect_rsp(tL2C_CCB* p_ccb, uint16_t result,
   UINT16_TO_STREAM(p, result);
   UINT16_TO_STREAM(p, status);
 
-  l2c_link_check_send_pkts(p_ccb->p_lcb, NULL, p_buf);
+  l2c_link_check_send_pkts(p_ccb->p_lcb, 0, p_buf);
 }
 
 /*******************************************************************************
@@ -475,7 +475,7 @@ void l2cu_reject_connection(tL2C_LCB* p_lcb, uint16_t remote_cid,
   UINT16_TO_STREAM(p, result);
   UINT16_TO_STREAM(p, 0); /* Status of 0      */
 
-  l2c_link_check_send_pkts(p_lcb, NULL, p_buf);
+  l2c_link_check_send_pkts(p_lcb, 0, p_buf);
 }
 
 /*******************************************************************************
@@ -576,7 +576,7 @@ void l2cu_send_peer_config_req(tL2C_CCB* p_ccb, tL2CAP_CFG_INFO* p_cfg) {
     UINT32_TO_STREAM(p, p_cfg->ext_flow_spec.flush_timeout);
   }
 
-  l2c_link_check_send_pkts(p_ccb->p_lcb, NULL, p_buf);
+  l2c_link_check_send_pkts(p_ccb->p_lcb, 0, p_buf);
 }
 
 /*******************************************************************************
@@ -666,7 +666,7 @@ void l2cu_send_peer_config_rsp(tL2C_CCB* p_ccb, tL2CAP_CFG_INFO* p_cfg) {
     UINT32_TO_STREAM(p, p_cfg->ext_flow_spec.flush_timeout);
   }
 
-  l2c_link_check_send_pkts(p_ccb->p_lcb, NULL, p_buf);
+  l2c_link_check_send_pkts(p_ccb->p_lcb, 0, p_buf);
 }
 
 /*******************************************************************************
@@ -783,7 +783,7 @@ void l2cu_send_peer_config_rej(tL2C_CCB* p_ccb, uint8_t* p_data,
   L2CAP_TRACE_DEBUG("L2CAP - cfg_rej pkt hci_len=%d, l2cap_len=%d", len,
                     (L2CAP_CMD_OVERHEAD + L2CAP_CONFIG_RSP_LEN + rej_len));
 
-  l2c_link_check_send_pkts(p_ccb->p_lcb, NULL, p_buf);
+  l2c_link_check_send_pkts(p_ccb->p_lcb, 0, p_buf);
 }
 
 /*******************************************************************************
@@ -831,11 +831,11 @@ void l2cu_send_peer_disc_req(tL2C_CCB* p_ccb) {
     while ((p_buf2 = (BT_HDR*)fixed_queue_try_dequeue(p_ccb->xmit_hold_q)) !=
            NULL) {
       l2cu_set_acl_hci_header(p_buf2, p_ccb);
-      l2c_link_check_send_pkts(p_ccb->p_lcb, p_ccb, p_buf2);
+      l2c_link_check_send_pkts(p_ccb->p_lcb, p_ccb->local_cid, p_buf2);
     }
   }
 
-  l2c_link_check_send_pkts(p_ccb->p_lcb, NULL, p_buf);
+  l2c_link_check_send_pkts(p_ccb->p_lcb, 0, p_buf);
 }
 
 /*******************************************************************************
@@ -870,7 +870,7 @@ void l2cu_send_peer_disc_rsp(tL2C_LCB* p_lcb, uint8_t remote_id,
   UINT16_TO_STREAM(p, local_cid);
   UINT16_TO_STREAM(p, remote_cid);
 
-  l2c_link_check_send_pkts(p_lcb, NULL, p_buf);
+  l2c_link_check_send_pkts(p_lcb, 0, p_buf);
 }
 
 /*******************************************************************************
@@ -925,7 +925,7 @@ void l2cu_send_peer_echo_rsp(tL2C_LCB* p_lcb, uint8_t id, uint8_t* p_data,
     ARRAY_TO_STREAM(p, p_data, data_len);
   }
 
-  l2c_link_check_send_pkts(p_lcb, NULL, p_buf);
+  l2c_link_check_send_pkts(p_lcb, 0, p_buf);
 }
 
 /*******************************************************************************
@@ -962,7 +962,7 @@ void l2cu_send_peer_info_req(tL2C_LCB* p_lcb, uint16_t info_type) {
   alarm_set_on_mloop(p_lcb->info_resp_timer, L2CAP_WAIT_INFO_RSP_TIMEOUT_MS,
                      l2c_info_resp_timer_timeout, p_lcb);
 
-  l2c_link_check_send_pkts(p_lcb, NULL, p_buf);
+  l2c_link_check_send_pkts(p_lcb, 0, p_buf);
 }
 
 /*******************************************************************************
@@ -1075,7 +1075,7 @@ void l2cu_send_peer_info_rsp(tL2C_LCB* p_lcb, uint8_t remote_id,
         p, L2CAP_INFO_RESP_RESULT_NOT_SUPPORTED); /* 'not supported' */
   }
 
-  l2c_link_check_send_pkts(p_lcb, NULL, p_buf);
+  l2c_link_check_send_pkts(p_lcb, 0, p_buf);
 }
 
 /******************************************************************************
@@ -1498,8 +1498,6 @@ void l2cu_release_ccb(tL2C_CCB* p_ccb) {
     p_ccb->p_rcb = NULL;
     p_ccb->should_free_rcb = false;
   }
-
-  BTM_SecClrTempAuthService(p_lcb->remote_bd_addr);
 
   /* Free the timer */
   alarm_free(p_ccb->l2c_ccb_timer);
@@ -2121,61 +2119,17 @@ uint8_t l2cu_get_num_hi_priority(void) {
  *
  * Function         l2cu_create_conn_after_switch
  *
- * Description      This function initiates an acl connection via HCI
- *                  If switch required to create connection it is already done.
- *
- * Returns          true if successful, false if get buffer fails.
+ * Description      This continues a connection creation possibly after
+ *                  a role switch.
  *
  ******************************************************************************/
-
 void l2cu_create_conn_after_switch(tL2C_LCB* p_lcb) {
-  uint8_t allow_switch = HCI_CR_CONN_ALLOW_SWITCH;
-  tBTM_INQ_INFO* p_inq_info;
-  uint8_t page_scan_rep_mode;
-  uint8_t page_scan_mode;
-  uint16_t clock_offset;
-  uint16_t num_acl = BTM_GetNumAclLinks();
-  uint8_t no_hi_prio_chs = l2cu_get_num_hi_priority();
-  const controller_t* controller = controller_get_interface();
+  const bool there_are_high_priority_channels =
+      (l2cu_get_num_hi_priority() > 0);
 
-  bool disallow_switch = !acl_is_role_switch_allowed();
-
-  L2CAP_TRACE_DEBUG(
-      "l2cu_create_conn_after_switch :%d num_acl:%d no_hi: %d is_bonding:%d",
-      disallow_switch, num_acl, no_hi_prio_chs, p_lcb->is_bonding);
-  /* FW team says that we can participant in 4 piconets
-   * typically 3 piconet + 1 for scanning.
-   * We can enhance the code to count the number of piconets later. */
-  if (((!disallow_switch && (num_acl < 3)) ||
-       (p_lcb->is_bonding && (no_hi_prio_chs == 0))) &&
-      controller->supports_role_switch())
-    allow_switch = HCI_CR_CONN_ALLOW_SWITCH;
-  else
-    allow_switch = HCI_CR_CONN_NOT_ALLOW_SWITCH;
-
-  p_lcb->link_state = LST_CONNECTING;
-
-  /* Check with the BT manager if details about remote device are known */
-  p_inq_info = BTM_InqDbRead(p_lcb->remote_bd_addr);
-  if ((p_inq_info != NULL) &&
-      (p_inq_info->results.inq_result_type & BTM_INQ_RESULT_BR)) {
-    page_scan_rep_mode = p_inq_info->results.page_scan_rep_mode;
-    page_scan_mode = p_inq_info->results.page_scan_mode;
-    clock_offset = (uint16_t)(p_inq_info->results.clock_offset);
-  } else {
-    /* No info known. Use default settings */
-    page_scan_rep_mode = HCI_PAGE_SCAN_REP_MODE_R1;
-    page_scan_mode = HCI_MANDATARY_PAGE_SCAN_MODE;
-    clock_offset = BTM_GetClockOffset(p_lcb->remote_bd_addr);
-  }
-
-  btsnd_hcic_create_conn(
-      p_lcb->remote_bd_addr, (HCI_PKT_TYPES_MASK_DM1 | HCI_PKT_TYPES_MASK_DH1 |
-                              HCI_PKT_TYPES_MASK_DM3 | HCI_PKT_TYPES_MASK_DH3 |
-                              HCI_PKT_TYPES_MASK_DM5 | HCI_PKT_TYPES_MASK_DH5),
-      page_scan_rep_mode, page_scan_mode, clock_offset, allow_switch);
-
-  btm_acl_set_paging(true);
+  acl_create_classic_connection(p_lcb->remote_bd_addr,
+                                there_are_high_priority_channels,
+                                p_lcb->is_bonding);
 
   alarm_set_on_mloop(p_lcb->l2c_lcb_timer, L2CAP_LINK_CONNECT_TIMEOUT_MS,
                      l2c_lcb_timer_timeout, p_lcb);
@@ -2680,7 +2634,7 @@ void l2cu_send_peer_ble_par_req(tL2C_LCB* p_lcb, uint16_t min_int,
   UINT16_TO_STREAM(p, latency);
   UINT16_TO_STREAM(p, timeout);
 
-  l2c_link_check_send_pkts(p_lcb, NULL, p_buf);
+  l2c_link_check_send_pkts(p_lcb, 0, p_buf);
 }
 
 /*******************************************************************************
@@ -2710,7 +2664,7 @@ void l2cu_send_peer_ble_par_rsp(tL2C_LCB* p_lcb, uint16_t reason,
 
   UINT16_TO_STREAM(p, reason);
 
-  l2c_link_check_send_pkts(p_lcb, NULL, p_buf);
+  l2c_link_check_send_pkts(p_lcb, 0, p_buf);
 }
 
 /*******************************************************************************
@@ -2765,7 +2719,7 @@ void l2cu_send_peer_ble_credit_based_conn_req(tL2C_CCB* p_ccb) {
   UINT16_TO_STREAM(p, mps);
   UINT16_TO_STREAM(p, initial_credit);
 
-  l2c_link_check_send_pkts(p_lcb, NULL, p_buf);
+  l2c_link_check_send_pkts(p_lcb, 0, p_buf);
 }
 
 /*******************************************************************************
@@ -2800,7 +2754,7 @@ void l2cu_reject_ble_connection(tL2C_LCB* p_lcb, uint8_t rem_id,
   UINT16_TO_STREAM(p, 0); /* initial credit */
   UINT16_TO_STREAM(p, result);
 
-  l2c_link_check_send_pkts(p_lcb, NULL, p_buf);
+  l2c_link_check_send_pkts(p_lcb, 0, p_buf);
 }
 
 /*******************************************************************************
@@ -2837,7 +2791,7 @@ void l2cu_send_peer_ble_credit_based_conn_res(tL2C_CCB* p_ccb,
   UINT16_TO_STREAM(p, p_ccb->local_conn_cfg.credits); /* initial credit */
   UINT16_TO_STREAM(p, result);
 
-  l2c_link_check_send_pkts(p_ccb->p_lcb, NULL, p_buf);
+  l2c_link_check_send_pkts(p_ccb->p_lcb, 0, p_buf);
 }
 
 /*******************************************************************************
@@ -2878,7 +2832,7 @@ void l2cu_send_peer_ble_flow_control_credit(tL2C_CCB* p_ccb,
   UINT16_TO_STREAM(p, p_ccb->local_cid);
   UINT16_TO_STREAM(p, credit_value);
 
-  l2c_link_check_send_pkts(p_lcb, NULL, p_buf);
+  l2c_link_check_send_pkts(p_lcb, 0, p_buf);
 }
 
 /*******************************************************************************
@@ -2919,7 +2873,7 @@ void l2cu_send_peer_ble_credit_based_disconn_req(tL2C_CCB* p_ccb) {
   UINT16_TO_STREAM(p, p_ccb->remote_cid);
   UINT16_TO_STREAM(p, p_ccb->local_cid);
 
-  l2c_link_check_send_pkts(p_lcb, NULL, p_buf);
+  l2c_link_check_send_pkts(p_lcb, 0, p_buf);
 }
 
 /*******************************************************************************
