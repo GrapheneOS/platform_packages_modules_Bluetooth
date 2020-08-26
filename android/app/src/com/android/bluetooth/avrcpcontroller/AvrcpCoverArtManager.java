@@ -18,6 +18,7 @@ package com.android.bluetooth.avrcpcontroller;
 
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothProfile;
+import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.SystemProperties;
 import android.util.Log;
@@ -77,8 +78,7 @@ public class AvrcpCoverArtManager {
          * Notify of a get image download completing
          *
          * @param device The device the image handle belongs to
-         * @param imageHandle The handle of the requested image
-         * @param uri The Uri that the image is available at in storage
+         * @param event The download event, containing the downloaded image's information
          */
         void onImageDownloadComplete(BluetoothDevice device, DownloadEvent event);
     }
@@ -193,7 +193,6 @@ public class AvrcpCoverArtManager {
         for (BluetoothDevice device : mClients.keySet()) {
             disconnect(device);
         }
-        mCoverArtStorage.clear();
     }
 
     /**
@@ -310,10 +309,20 @@ public class AvrcpCoverArtManager {
     }
 
     /**
-     * Remote a specific downloaded image if it exists
+     * Get a specific downloaded image if it exists
      *
      * @param device The remote Bluetooth device associated with the image
-     * @param imageHandle The handle associated with the image you wish to remove
+     * @param imageUuid The UUID associated with the image you wish to retrieve
+     */
+    public Bitmap getImage(BluetoothDevice device, String imageUuid) {
+        return mCoverArtStorage.getImage(device, imageUuid);
+    }
+
+    /**
+     * Remove a specific downloaded image if it exists
+     *
+     * @param device The remote Bluetooth device associated with the image
+     * @param imageUuid The UUID associated with the image you wish to remove
      */
     public void removeImage(BluetoothDevice device, String imageUuid) {
         mCoverArtStorage.removeImage(device, imageUuid);
