@@ -85,8 +85,6 @@ static void btm_sec_bond_cancel_complete(void);
 static void btm_send_link_key_notif(tBTM_SEC_DEV_REC* p_dev_rec);
 static bool btm_sec_check_prefetch_pin(tBTM_SEC_DEV_REC* p_dev_rec);
 
-bool btm_sec_are_all_trusted(uint32_t p_mask[]);
-
 static tBTM_STATUS btm_sec_send_hci_disconnect(tBTM_SEC_DEV_REC* p_dev_rec,
                                                uint8_t reason,
                                                uint16_t conn_handle);
@@ -353,6 +351,12 @@ void BTM_SetPinType(uint8_t pin_type, PIN_CODE pin_code, uint8_t pin_code_len) {
 }
 
 #define BTM_NO_AVAIL_SEC_SERVICES ((uint16_t)0xffff)
+
+bool BTM_SimpleSetSecurityLevel(uint8_t service_id, uint16_t sec_level,
+                                uint16_t psm) {
+  return BTM_SetSecurityLevel(true, "", service_id, sec_level, psm, 0, 0) &&
+         BTM_SetSecurityLevel(false, "", service_id, sec_level, psm, 0, 0);
+}
 
 /*******************************************************************************
  *
@@ -1039,7 +1043,7 @@ tBTM_LINK_KEY_TYPE BTM_SecGetDeviceLinkKeyType(const RawAddress& bd_addr) {
  ******************************************************************************/
 tBTM_STATUS BTM_SetEncryption(const RawAddress& bd_addr,
                               tBT_TRANSPORT transport,
-                              tBTM_SEC_CBACK* p_callback, void* p_ref_data,
+                              tBTM_SEC_CALLBACK* p_callback, void* p_ref_data,
                               tBTM_BLE_SEC_ACT sec_act) {
   if (bluetooth::shim::is_gd_shim_enabled()) {
     return bluetooth::shim::BTM_SetEncryption(bd_addr, transport, p_callback,
@@ -2341,7 +2345,7 @@ void btm_sec_rmt_name_request_complete(const RawAddress* p_bd_addr,
     old_sec_state = p_dev_rec->sec_state;
     if (status == HCI_SUCCESS) {
       strlcpy((char*)p_dev_rec->sec_bd_name, (char*)p_bd_name,
-              BTM_MAX_REM_BD_NAME_LEN);
+              BTM_MAX_REM_BD_NAME_LEN + 1);
       p_dev_rec->sec_flags |= BTM_SEC_NAME_KNOWN;
       BTM_TRACE_EVENT("setting BTM_SEC_NAME_KNOWN sec_flags:0x%x",
                       p_dev_rec->sec_flags);
@@ -2491,17 +2495,6 @@ void btm_sec_rmt_name_request_complete(const RawAddress* p_bd_addr,
 
     p_dev_rec->link_key_not_sent = false;
     btm_send_link_key_notif(p_dev_rec);
-
-    /* If its not us who perform authentication, we should tell stackserver */
-    /* that some authentication has been completed                          */
-    /* This is required when different entities receive link notification and
-     * auth complete */
-    if (!(p_dev_rec->security_required & BTM_SEC_OUT_AUTHENTICATE)) {
-      if (btm_cb.api.p_auth_complete_callback)
-        (*btm_cb.api.p_auth_complete_callback)(
-            p_dev_rec->bd_addr, p_dev_rec->dev_class, p_dev_rec->sec_bd_name,
-            HCI_SUCCESS);
-    }
   }
 
   /* If this is a bonding procedure can disconnect the link now */
@@ -2850,7 +2843,7 @@ void btm_proc_sp_req_evt(tBTM_SP_EVT event, uint8_t* p) {
     memcpy(evt_data.cfm_req.dev_class, p_dev_rec->dev_class, DEV_CLASS_LEN);
 
     strlcpy((char*)evt_data.cfm_req.bd_name, (char*)p_dev_rec->sec_bd_name,
-            BTM_MAX_REM_BD_NAME_LEN);
+            BTM_MAX_REM_BD_NAME_LEN + 1);
 
     switch (event) {
       case BTM_SP_CFM_REQ_EVT:
@@ -3047,7 +3040,7 @@ void btm_rem_oob_req(uint8_t* p) {
     evt_data.bd_addr = p_dev_rec->bd_addr;
     memcpy(evt_data.dev_class, p_dev_rec->dev_class, DEV_CLASS_LEN);
     strlcpy((char*)evt_data.bd_name, (char*)p_dev_rec->sec_bd_name,
-            BTM_MAX_REM_BD_NAME_LEN);
+            BTM_MAX_REM_BD_NAME_LEN + 1);
 
     btm_sec_change_pairing_state(BTM_PAIR_STATE_WAIT_LOCAL_OOB_RSP);
     if ((*btm_cb.api.p_sp_callback)(BTM_SP_RMT_OOB_EVT,
@@ -3607,9 +3600,7 @@ void btm_sec_connected(const RawAddress& bda, uint16_t handle, uint8_t status,
               btm_sec_change_pairing_state(BTM_PAIR_STATE_IDLE);
             }
           }
-#if (BTM_DISC_DURING_RS == TRUE)
           p_dev_rec->rs_disc_pending = BTM_SEC_RS_NOT_PENDING; /* reset flag */
-#endif
           return;
         } else {
           l2cu_update_lcb_4_bonding(p_dev_rec->bd_addr, true);
@@ -3622,9 +3613,7 @@ void btm_sec_connected(const RawAddress& bda, uint16_t handle, uint8_t status,
 
   p_dev_rec->device_type |= BT_DEVICE_TYPE_BREDR;
 
-#if (BTM_DISC_DURING_RS == TRUE)
   p_dev_rec->rs_disc_pending = BTM_SEC_RS_NOT_PENDING; /* reset flag */
-#endif
 
   p_dev_rec->rs_disc_pending = BTM_SEC_RS_NOT_PENDING; /* reset flag */
 
@@ -3765,11 +3754,6 @@ void btm_sec_connected(const RawAddress& bda, uint16_t handle, uint8_t status,
     else
       res = false;
 
-    if (btm_cb.api.p_auth_complete_callback)
-      (*btm_cb.api.p_auth_complete_callback)(
-          p_dev_rec->bd_addr, p_dev_rec->dev_class, p_dev_rec->sec_bd_name,
-          HCI_SUCCESS);
-
     btm_sec_change_pairing_state(BTM_PAIR_STATE_IDLE);
 
     if (res) {
@@ -3794,8 +3778,7 @@ void btm_sec_connected(const RawAddress& bda, uint16_t handle, uint8_t status,
   btm_set_packet_types_from_address(bda, BT_TRANSPORT_BR_EDR,
                                     acl_get_supported_packet_types());
 
-  btm_acl_created(bda, p_dev_rec->dev_class, p_dev_rec->sec_bd_name, handle,
-                  HCI_ROLE_SLAVE, BT_TRANSPORT_BR_EDR);
+  btm_acl_created(bda, handle, HCI_ROLE_SLAVE, BT_TRANSPORT_BR_EDR);
 
   /* Initialize security flags.  We need to do that because some            */
   /* authorization complete could have come after the connection is dropped */
@@ -3889,11 +3872,9 @@ void btm_sec_disconnected(uint16_t handle, uint8_t reason) {
 
   p_dev_rec->rs_disc_pending = BTM_SEC_RS_NOT_PENDING; /* reset flag */
 
-#if (BTM_DISC_DURING_RS == TRUE)
   LOG_INFO("%s clearing pending flag handle:%d reason:%d", __func__, handle,
            reason);
   p_dev_rec->rs_disc_pending = BTM_SEC_RS_NOT_PENDING; /* reset flag */
-#endif
 
   /* clear unused flags */
   p_dev_rec->sm4 &= BTM_SM4_TRUE;
@@ -3971,6 +3952,7 @@ void btm_sec_disconnected(uint16_t handle, uint8_t reason) {
               << p_dev_rec->bd_addr;
 
     bta_dm_remove_device(p_dev_rec->bd_addr);
+    return;
   }
 
   BTM_TRACE_EVENT("%s after update sec_flags=0x%x", __func__,
@@ -4084,19 +4066,6 @@ void btm_sec_link_key_notification(const RawAddress& p_bda,
                     p_dev_rec->rmt_io_caps, p_dev_rec->sec_flags,
                     p_dev_rec->dev_class[1])
     return;
-  }
-
-  /* If its not us who perform authentication, we should tell stackserver */
-  /* that some authentication has been completed                          */
-  /* This is required when different entities receive link notification and auth
-   * complete */
-  if (!(p_dev_rec->security_required & BTM_SEC_OUT_AUTHENTICATE)
-      /* for derived key, always send authentication callback for BR channel */
-      || ltk_derived_lk) {
-    if (btm_cb.api.p_auth_complete_callback)
-      (*btm_cb.api.p_auth_complete_callback)(
-          p_dev_rec->bd_addr, p_dev_rec->dev_class, p_dev_rec->sec_bd_name,
-          HCI_SUCCESS);
   }
 
 /* We will save link key only if the user authorized it - BTE report link key in
@@ -4965,28 +4934,6 @@ static bool btm_sec_check_prefetch_pin(tBTM_SEC_DEV_REC* p_dev_rec) {
 
 /*******************************************************************************
  *
- * Function         btm_sec_auth_payload_tout
- *
- * Description      Processes the HCI Autheniticated Payload Timeout Event
- *                  indicating that a packet containing a valid MIC on the
- *                  connection handle was not received within the programmed
- *                  timeout value. (Spec Default is 30 secs, but can be
- *                  changed via the BTM_SecSetAuthPayloadTimeout() function.
- *
- ******************************************************************************/
-void btm_sec_auth_payload_tout(uint8_t* p, uint16_t hci_evt_len) {
-  uint16_t handle;
-
-  STREAM_TO_UINT16(handle, p);
-  handle = HCID_GET_HANDLE(handle);
-
-  /* Will be exposed to upper layers in the future if/when determined necessary
-   */
-  BTM_TRACE_ERROR("%s on handle 0x%02x", __func__, handle);
-}
-
-/*******************************************************************************
- *
  * Function         btm_sec_queue_encrypt_request
  *
  * Description      encqueue encryption request when device has active security
@@ -5084,9 +5031,7 @@ void btm_sec_clear_ble_keys(tBTM_SEC_DEV_REC* p_dev_rec) {
   p_dev_rec->ble.key_type = BTM_LE_KEY_NONE;
   memset(&p_dev_rec->ble.keys, 0, sizeof(tBTM_SEC_BLE_KEYS));
 
-#if (BLE_PRIVACY_SPT == TRUE)
   btm_ble_resolving_list_remove_dev(p_dev_rec);
-#endif
 }
 
 /*******************************************************************************

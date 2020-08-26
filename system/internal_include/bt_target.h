@@ -71,10 +71,6 @@
 #define BTA_HH_LE_INCLUDED TRUE
 #endif
 
-#ifndef BTA_AR_INCLUDED
-#define BTA_AR_INCLUDED TRUE
-#endif
-
 #ifndef BTA_AV_SINK_INCLUDED
 #define BTA_AV_SINK_INCLUDED FALSE
 #endif
@@ -387,11 +383,6 @@
 /* The maximum number of clients that can register with the power manager. */
 #ifndef BTM_MAX_PM_RECORDS
 #define BTM_MAX_PM_RECORDS 2
-#endif
-
-/* This is set to show debug trace messages for the power manager. */
-#ifndef BTM_PM_DEBUG
-#define BTM_PM_DEBUG FALSE
 #endif
 
 /* If the user does not respond to security process requests within this many

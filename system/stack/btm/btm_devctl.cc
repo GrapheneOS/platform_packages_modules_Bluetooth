@@ -186,7 +186,6 @@ void BTM_reset_complete() {
   // setup the random number generator
   std::srand(std::time(nullptr));
 
-#if (BLE_PRIVACY_SPT == TRUE)
   /* Set up the BLE privacy settings */
   if (controller->supports_ble() && controller->supports_ble_privacy() &&
       controller->get_ble_resolving_list_max_size() > 0) {
@@ -195,7 +194,6 @@ void BTM_reset_complete() {
     btsnd_hcic_ble_set_rand_priv_addr_timeout(
         btm_get_next_private_addrress_interval_ms() / 1000);
   }
-#endif
 
   if (controller->supports_ble()) {
     btm_ble_white_list_init(controller->get_ble_white_list_size());
@@ -317,7 +315,7 @@ tBTM_STATUS BTM_SetLocalDeviceName(char* p_name) {
   /* Save the device name if local storage is enabled */
   p = (uint8_t*)btm_cb.cfg.bd_name;
   if (p != (uint8_t*)p_name)
-    strlcpy(btm_cb.cfg.bd_name, p_name, BTM_MAX_LOC_BD_NAME_LEN);
+    strlcpy(btm_cb.cfg.bd_name, p_name, BTM_MAX_LOC_BD_NAME_LEN + 1);
 
   btsnd_hcic_change_name(p);
   return (BTM_CMD_STARTED);

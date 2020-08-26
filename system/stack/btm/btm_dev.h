@@ -14,23 +14,12 @@
  * limitations under the License.
  */
 
-#include <stddef.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
-#include "bt_common.h"
-#include "bt_types.h"
-#include "btm_api.h"
-#include "btm_int.h"
-#include "btu.h"
-#include "device/include/controller.h"
-#include "hcidefs.h"
-#include "hcimsgs.h"
-#include "l2c_api.h"
-#include "main/shim/btm_api.h"
-#include "main/shim/shim.h"
+#include "gd/os/log.h"
+#include "stack/btm/btm_ble_int.h"
+#include "stack/btm/security_device_record.h"
 #include "stack/include/acl_api.h"
+#include "stack/include/hcimsgs.h"
+#include "types/raw_address.h"
 
 /*******************************************************************************
  *
@@ -103,7 +92,7 @@ tBTM_SEC_DEV_REC* btm_sec_alloc_dev(const RawAddress& bd_addr);
 
 /*******************************************************************************
  *
- * Function         btm_dev_support_switch
+ * Function         btm_dev_support_role_switch
  *
  * Description      This function is called by the L2CAP to check if remote
  *                  device supports role switch
@@ -113,7 +102,7 @@ tBTM_SEC_DEV_REC* btm_sec_alloc_dev(const RawAddress& bd_addr);
  * Returns          true if device is known and role switch is supported
  *
  ******************************************************************************/
-bool btm_dev_support_switch(const RawAddress& bd_addr);
+bool btm_dev_support_role_switch(const RawAddress& bd_addr);
 
 /*******************************************************************************
  *
