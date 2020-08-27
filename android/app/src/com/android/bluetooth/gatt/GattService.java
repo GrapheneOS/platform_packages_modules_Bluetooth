@@ -45,11 +45,14 @@ import android.bluetooth.le.ScanFilter;
 import android.bluetooth.le.ScanRecord;
 import android.bluetooth.le.ScanResult;
 import android.bluetooth.le.ScanSettings;
+import android.companion.ICompanionDeviceManager;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Binder;
 import android.os.IBinder;
 import android.os.ParcelUuid;
 import android.os.RemoteException;
+import android.os.ServiceManager;
 import android.os.SystemClock;
 import android.os.UserHandle;
 import android.os.WorkSource;
@@ -181,6 +184,7 @@ public class GattService extends ProfileService {
     private PeriodicScanManager mPeriodicScanManager;
     private ScanManager mScanManager;
     private AppOpsManager mAppOps;
+    private ICompanionDeviceManager mCompanionManager;
 
     private static GattService sGattService;
 
@@ -205,6 +209,8 @@ public class GattService extends ProfileService {
         }
         initializeNative();
         mAdapter = BluetoothAdapter.getDefaultAdapter();
+        mCompanionManager = ICompanionDeviceManager.Stub.asInterface(
+                ServiceManager.getService(Context.COMPANION_DEVICE_SERVICE));
         mAppOps = getSystemService(AppOpsManager.class);
         mAdvertiseManager = new AdvertiseManager(this, AdapterService.getAdapterService());
         mAdvertiseManager.start();
@@ -1012,8 +1018,16 @@ public class GattService extends ProfileService {
                             txPower, rssi, periodicAdvInt,
                             ScanRecord.parseFromBytes(scanRecordData),
                             SystemClock.elapsedRealtimeNanos());
-            // Do not report if location mode is OFF or the client has no location permission
-            if (!hasScanResultPermission(client) || !matchesFilters(client, result)) {
+            boolean hasPermission = hasScanResultPermission(client);
+            if (!hasPermission) {
+                for (String associatedDevice : client.associatedDevices) {
+                    if (associatedDevice.equalsIgnoreCase(address)) {
+                        hasPermission = true;
+                        break;
+                    }
+                }
+            }
+            if (!hasPermission || !matchesFilters(client, result)) {
                 continue;
             }
 
@@ -1099,7 +1113,9 @@ public class GattService extends ProfileService {
 
     /** Determines if the given scan client has the appropriate permissions to receive callbacks. */
     private boolean hasScanResultPermission(final ScanClient client) {
-        if (client.hasNetworkSettingsPermission || client.hasNetworkSetupWizardPermission) {
+        if (client.hasNetworkSettingsPermission
+                || client.hasNetworkSetupWizardPermission
+                || client.hasScanWithoutLocationPermission) {
             return true;
         }
         return client.hasLocationPermission && !Utils.blockedByLocationOff(this, client.userHandle);
@@ -1936,6 +1952,26 @@ public class GattService extends ProfileService {
         mScanManager.unregisterScanner(scannerId);
     }
 
+    private List<String> getAssociatedDevices(String callingPackage, UserHandle userHandle) {
+        if (mCompanionManager == null) {
+            return new ArrayList<String>();
+        }
+        long identity = Binder.clearCallingIdentity();
+        try {
+            return mCompanionManager.getAssociations(
+                    callingPackage, userHandle.getIdentifier());
+        } catch (SecurityException se) {
+            // Not an app with associated devices
+        } catch (RemoteException re) {
+            Log.e(TAG, "Cannot reach companion device service", re);
+        } catch (Exception e) {
+            Log.e(TAG, "Cannot check device associations for " + callingPackage, e);
+        } finally {
+            Binder.restoreCallingIdentity(identity);
+        }
+        return new ArrayList<String>();
+    }
+
     void startScan(int scannerId, ScanSettings settings, List<ScanFilter> filters,
             List<List<ResultStorageDescriptor>> storages, String callingPackage,
             @Nullable String callingFeatureId) {
@@ -1962,6 +1998,9 @@ public class GattService extends ProfileService {
                 Utils.checkCallerHasNetworkSettingsPermission(this);
         scanClient.hasNetworkSetupWizardPermission =
                 Utils.checkCallerHasNetworkSetupWizardPermission(this);
+        scanClient.hasScanWithoutLocationPermission =
+                Utils.checkCallerHasScanWithoutLocationPermission(this);
+        scanClient.associatedDevices = getAssociatedDevices(callingPackage, scanClient.userHandle);
 
         AppScanStats app = mScannerMap.getAppScanStatsById(scannerId);
         ScannerMap.App cbApp = mScannerMap.getById(scannerId);
@@ -2024,6 +2063,9 @@ public class GattService extends ProfileService {
                 Utils.checkCallerHasNetworkSettingsPermission(this);
         app.mHasNetworkSetupWizardPermission =
                 Utils.checkCallerHasNetworkSetupWizardPermission(this);
+        app.mHasScanWithoutLocationPermission =
+                Utils.checkCallerHasScanWithoutLocationPermission(this);
+        app.mAssociatedDevices = getAssociatedDevices(callingPackage, app.mUserHandle);
         mScanManager.registerScanner(uuid);
     }
 
@@ -2036,6 +2078,8 @@ public class GattService extends ProfileService {
         scanClient.isQApp = app.mIsQApp;
         scanClient.hasNetworkSettingsPermission = app.mHasNetworkSettingsPermission;
         scanClient.hasNetworkSetupWizardPermission = app.mHasNetworkSetupWizardPermission;
+        scanClient.hasScanWithoutLocationPermission = app.mHasScanWithoutLocationPermission;
+        scanClient.associatedDevices = app.mAssociatedDevices;
 
         AppScanStats scanStats = mScannerMap.getAppScanStatsById(scannerId);
         if (scanStats != null) {

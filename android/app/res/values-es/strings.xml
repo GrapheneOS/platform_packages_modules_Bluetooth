@@ -122,7 +122,7 @@
     <string name="transfer_menu_open" msgid="3368984869083107200">"Abrir"</string>
     <string name="transfer_menu_clear" msgid="5854038118831427492">"Borrar de la lista"</string>
     <string name="transfer_clear_dlg_title" msgid="2953444575556460386">"Borrar"</string>
-    <string name="bluetooth_a2dp_sink_queue_name" msgid="6864149958708669766">"Está Sonando"</string>
+    <string name="bluetooth_a2dp_sink_queue_name" msgid="6864149958708669766">"Reproduciendo"</string>
     <string name="bluetooth_map_settings_save" msgid="7635491847388074606">"Guardar"</string>
     <string name="bluetooth_map_settings_cancel" msgid="9205350798049865699">"Cancelar"</string>
     <string name="bluetooth_map_settings_intro" msgid="6482369468223987562">"Selecciona las cuentas que quieras compartir por Bluetooth. Tendrás que aceptar cualquier acceso a las cuentas al establecer conexión."</string>
@@ -134,4 +134,5 @@
     <string name="bluetooth_disconnected" msgid="3318303728981478873">"Audio por Bluetooth desconectado"</string>
     <string name="a2dp_sink_mbs_label" msgid="7566075853395412558">"Audio por Bluetooth"</string>
     <string name="bluetooth_opp_file_limit_exceeded" msgid="8894450394309084519">"No se pueden transferir archivos de más de 4 GB"</string>
+    <string name="bluetooth_connect_action" msgid="4009848433321657090">"Conectarse a un dispositivo Bluetooth"</string>
 </resources>

@@ -20,6 +20,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 import android.app.AlarmManager;
+import android.app.admin.DevicePolicyManager;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.IBluetoothCallback;
@@ -79,6 +80,7 @@ public class AdapterServiceTest {
     private @Mock AlarmManager mMockAlarmManager;
     private @Mock Resources mMockResources;
     private @Mock UserManager mMockUserManager;
+    private @Mock DevicePolicyManager mMockDevicePolicyManager;
     private @Mock ProfileService mMockGattService;
     private @Mock ProfileService mMockService;
     private @Mock ProfileService mMockService2;
@@ -140,6 +142,8 @@ public class AdapterServiceTest {
         when(mMockContext.getUserId()).thenReturn(Process.BLUETOOTH_UID);
         when(mMockContext.getPackageManager()).thenReturn(mMockPackageManager);
         when(mMockContext.getSystemService(Context.USER_SERVICE)).thenReturn(mMockUserManager);
+        when(mMockContext.getSystemService(Context.DEVICE_POLICY_SERVICE)).thenReturn(
+                mMockDevicePolicyManager);
         when(mMockContext.getSystemService(Context.POWER_SERVICE)).thenReturn(mPowerManager);
         when(mMockContext.getSystemService(Context.ALARM_SERVICE)).thenReturn(mMockAlarmManager);
         when(mMockContext.getSystemService(Context.AUDIO_SERVICE)).thenReturn(mAudioManager);
@@ -151,6 +155,8 @@ public class AdapterServiceTest {
         when(mMockResources.getBoolean(R.bool.profile_supported_gatt)).thenReturn(true);
         when(mMockResources.getBoolean(R.bool.profile_supported_pbap)).thenReturn(true);
         when(mMockResources.getBoolean(R.bool.profile_supported_pan)).thenReturn(true);
+
+        when(mMockDevicePolicyManager.isCommonCriteriaModeEnabled(any())).thenReturn(false);
 
         when(mIBluetoothCallback.asBinder()).thenReturn(mBinder);
 

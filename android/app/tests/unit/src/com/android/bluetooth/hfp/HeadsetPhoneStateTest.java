@@ -18,6 +18,7 @@ package com.android.bluetooth.hfp;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+import android.app.PropertyInvalidatedCache;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.Context;
@@ -66,7 +67,9 @@ public class HeadsetPhoneStateTest {
         if (Looper.myLooper() == null) {
             Looper.prepare();
         }
+        PropertyInvalidatedCache.disableForTestMode();
         MockitoAnnotations.initMocks(this);
+        TelephonyManager.disableServiceHandleCaching();
         // Mock SubscriptionManager.getDefaultSubscriptionId() to return a valid value
         when(mISub.getDefaultSubId()).thenReturn(SubscriptionManager.DEFAULT_SUBSCRIPTION_ID);
         when(mISubBinder.queryLocalInterface(anyString())).thenReturn(mISub);
@@ -95,7 +98,7 @@ public class HeadsetPhoneStateTest {
                     mServiceManagerOriginalServices);
             mServiceManagerOriginalServices = null;
         }
-
+        TelephonyManager.enableServiceHandleCaching();
     }
 
     /**

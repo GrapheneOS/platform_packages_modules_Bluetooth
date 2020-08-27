@@ -485,6 +485,15 @@ public final class Utils {
                         == PackageManager.PERMISSION_GRANTED;
     }
 
+    /**
+     * Returns true if the caller holds RADIO_SCAN_WITHOUT_LOCATION
+     */
+    public static boolean checkCallerHasScanWithoutLocationPermission(Context context) {
+        return context.checkCallingOrSelfPermission(
+                android.Manifest.permission.RADIO_SCAN_WITHOUT_LOCATION)
+                == PackageManager.PERMISSION_GRANTED;
+    }
+
     public static boolean isQApp(Context context, String pkgName) {
         try {
             return context.getPackageManager().getApplicationInfo(pkgName, 0).targetSdkVersion
@@ -497,7 +506,7 @@ public final class Utils {
 
     private static boolean isAppOppAllowed(AppOpsManager appOps, String op, String callingPackage,
             @NonNull String callingFeatureId) {
-        return appOps.noteOp(op, Binder.getCallingUid(), callingPackage)
+        return appOps.noteOp(op, Binder.getCallingUid(), callingPackage, callingFeatureId, null)
                 == AppOpsManager.MODE_ALLOWED;
     }
 

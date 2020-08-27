@@ -16,11 +16,16 @@
 
 package com.android.bluetooth.btservice;
 
+import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothProfile;
+import android.bluetooth.IBluetoothManager;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.res.Resources;
 import android.os.SystemProperties;
+import android.os.IBinder;
+import android.os.RemoteException;
+import android.os.ServiceManager;
 import android.provider.Settings;
 import android.text.TextUtils;
 import android.util.Log;
@@ -45,6 +50,7 @@ import com.android.bluetooth.pbapclient.PbapClientService;
 import com.android.bluetooth.sap.SapService;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class Config {
     private static final String TAG = "AdapterServiceConfig";
@@ -113,6 +119,8 @@ public class Config {
         if (resources == null) {
             return;
         }
+        List<String> enabledProfiles =
+                getSystemConfigEnabledProfilesForPackage(ctx.getPackageName());
 
         ArrayList<Class> profiles = new ArrayList<>(PROFILE_SERVICES_AND_FLAGS.length);
         for (ProfileConfig config : PROFILE_SERVICES_AND_FLAGS) {
@@ -121,6 +129,12 @@ public class Config {
             if (!supported && (config.mClass == HearingAidService.class) && isHearingAidSettingsEnabled(ctx)) {
                 Log.v(TAG, "Feature Flag enables support for HearingAidService");
                 supported = true;
+            }
+
+            if (enabledProfiles != null && enabledProfiles.contains(config.mClass.getName())) {
+                supported = true;
+                Log.v(TAG, config.mClass.getSimpleName() + " Feature Flag set to " + supported
+                        + " by components configuration");
             }
 
             if (supported && !isProfileDisabled(ctx, config.mMask)) {
@@ -185,5 +199,20 @@ public class Config {
 
         // Step 3: return default value.
         return false;
+    }
+
+    private static List<String> getSystemConfigEnabledProfilesForPackage(String packageName) {
+        IBinder b = ServiceManager.getService(BluetoothAdapter.BLUETOOTH_MANAGER_SERVICE);
+        if (b == null) {
+            Log.e(TAG, "Bluetooth binder is null");
+        }
+
+        IBluetoothManager managerService = IBluetoothManager.Stub.asInterface(b);
+        try {
+            return managerService.getSystemConfigEnabledProfilesForPackage(packageName);
+        } catch (RemoteException e) {
+            return null;
+        }
+
     }
 }
