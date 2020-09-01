@@ -134,4 +134,5 @@
     <string name="bluetooth_disconnected" msgid="3318303728981478873">"ব্লুটুথ অডিঅ\'ৰ সৈতে সংযোগ বিচ্ছিন্ন কৰা হ’ল"</string>
     <string name="a2dp_sink_mbs_label" msgid="7566075853395412558">"ব্লুটুথ অডিঅ\'"</string>
     <string name="bluetooth_opp_file_limit_exceeded" msgid="8894450394309084519">"৪ জি. বি. তকৈ ডাঙৰ ফাইল স্থানান্তৰ কৰিব নোৱাৰি"</string>
+    <string name="bluetooth_connect_action" msgid="4009848433321657090">"ব্লুটুথৰ সৈতে সংযোগ কৰক"</string>
 </resources>
