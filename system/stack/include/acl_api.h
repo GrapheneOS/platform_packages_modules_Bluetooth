@@ -224,8 +224,7 @@ bool acl_ble_is_role_master(const RawAddress& bda);
 bool BTM_BLE_IS_RESOLVE_BDA(const RawAddress& x);
 
 bool acl_refresh_remote_address(const tBTM_SEC_DEV_REC* p_dev_rec,
-                                const RawAddress& remote_bda,
-                                tBT_TRANSPORT transport, uint8_t rra_type,
+                                const RawAddress& remote_bda, uint8_t rra_type,
                                 const RawAddress& rpa);
 
 void btm_establish_continue_from_address(const RawAddress& remote_bda,
@@ -281,6 +280,7 @@ void btm_ble_refresh_local_resolvable_private_addr(
 void btm_cont_rswitch_from_handle(uint16_t hci_handle);
 
 uint8_t acl_link_role(const RawAddress& remote_bda, tBT_TRANSPORT transport);
+uint8_t acl_link_role_from_handle(uint16_t handle);
 
 bool acl_is_transport_le_from_handle(uint16_t handle);
 

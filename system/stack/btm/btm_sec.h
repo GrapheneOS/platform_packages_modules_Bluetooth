@@ -113,8 +113,6 @@ bool BTM_IsAuthenticated(const RawAddress& bd_addr, tBT_TRANSPORT transport);
  ******************************************************************************/
 void BTM_SetPinType(uint8_t pin_type, PIN_CODE pin_code, uint8_t pin_code_len);
 
-#define BTM_NO_AVAIL_SEC_SERVICES ((uint16_t)0xffff)
-
 /*******************************************************************************
  *
  * Function         BTM_SetSecurityLevel
@@ -426,9 +424,8 @@ tBTM_STATUS btm_sec_l2cap_access_req(const RawAddress& bd_addr, uint16_t psm,
  * Returns          BTM_CMD_STARTED
  *
  ******************************************************************************/
-tBTM_STATUS btm_sec_mx_access_request(const RawAddress& bd_addr, uint16_t psm,
-                                      bool is_originator, uint32_t mx_proto_id,
-                                      uint32_t mx_chan_id,
+tBTM_STATUS btm_sec_mx_access_request(const RawAddress& bd_addr,
+                                      bool is_originator, uint32_t mx_chan_id,
                                       tBTM_SEC_CALLBACK* p_callback,
                                       void* p_ref_data);
 

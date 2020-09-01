@@ -273,6 +273,12 @@ bool btm_identity_addr_to_random_pseudo(RawAddress* bd_addr,
   return false;
 }
 
+bool btm_identity_addr_to_random_pseudo_from_address_with_type(
+    tBLE_BD_ADDR* address_with_type, bool refresh) {
+  return btm_identity_addr_to_random_pseudo(
+      &(address_with_type->bda), &(address_with_type->type), refresh);
+}
+
 /*******************************************************************************
  *
  * Function         btm_random_pseudo_to_identity_addr
@@ -309,7 +315,6 @@ bool btm_random_pseudo_to_identity_addr(RawAddress* random_pseudo,
 void btm_ble_refresh_peer_resolvable_private_addr(const RawAddress& pseudo_bda,
                                                   const RawAddress& rpa,
                                                   uint8_t rra_type) {
-  /* update security record here, in adv event or connection complete process */
   tBTM_SEC_DEV_REC* p_sec_rec = btm_find_dev(pseudo_bda);
   if (p_sec_rec != NULL) {
     p_sec_rec->ble.cur_rand_addr = rpa;
@@ -329,12 +334,12 @@ void btm_ble_refresh_peer_resolvable_private_addr(const RawAddress& pseudo_bda,
                   p_sec_rec->ble.active_addr_type);
 
   /* connection refresh remote address */
-  if (!acl_refresh_remote_address(p_sec_rec, p_sec_rec->bd_addr,
-                                  BT_TRANSPORT_LE, rra_type, rpa)) {
+  if (!acl_refresh_remote_address(p_sec_rec, p_sec_rec->bd_addr, rra_type,
+                                  rpa)) {
     // Try looking up the pseudo random address
     if (!acl_refresh_remote_address(p_sec_rec, p_sec_rec->ble.pseudo_addr,
-                                    BT_TRANSPORT_LE, rra_type, rpa)) {
-      BTM_TRACE_ERROR("%s Unknown device to refresh remote device", __func__);
+                                    rra_type, rpa)) {
+      LOG_ERROR("%s Unknown device to refresh remote device", __func__);
     }
   }
 }
