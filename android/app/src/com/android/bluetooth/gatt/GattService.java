@@ -56,6 +56,7 @@ import android.os.ServiceManager;
 import android.os.SystemClock;
 import android.os.UserHandle;
 import android.os.WorkSource;
+import android.provider.Settings;
 import android.util.Log;
 
 import com.android.bluetooth.BluetoothMetricsProto;
@@ -185,6 +186,7 @@ public class GattService extends ProfileService {
     private ScanManager mScanManager;
     private AppOpsManager mAppOps;
     private ICompanionDeviceManager mCompanionManager;
+    private String mExposureNotificationPackage;
 
     private static GattService sGattService;
 
@@ -207,6 +209,9 @@ public class GattService extends ProfileService {
         if (DBG) {
             Log.d(TAG, "start()");
         }
+        mExposureNotificationPackage = getString(R.string.exposure_notification_package);
+        Settings.Global.putInt(
+                getContentResolver(), "bluetooth_sanitized_exposure_notification_supported", 1);
         initializeNative();
         mAdapter = BluetoothAdapter.getDefaultAdapter();
         mCompanionManager = ICompanionDeviceManager.Stub.asInterface(
@@ -960,6 +965,56 @@ public class GattService extends ProfileService {
      * Callback functions - CLIENT
      *************************************************************************/
 
+    // EN format defined here:
+    // https://blog.google/documents/70/Exposure_Notification_-_Bluetooth_Specification_v1.2.2.pdf
+    private static final byte[] EXPOSURE_NOTIFICATION_FLAGS_PREAMBLE = new byte[] {
+        // size 2, flag field, flags byte (value is not important)
+        (byte) 0x02, (byte) 0x01
+    };
+    private static final int EXPOSURE_NOTIFICATION_FLAGS_LENGTH = 0x2 + 1;
+    private static final byte[] EXPOSURE_NOTIFICATION_PAYLOAD_PREAMBLE = new byte[] {
+        // size 3, complete 16 bit UUID, EN UUID
+        (byte) 0x03, (byte) 0x03, (byte) 0x6F, (byte) 0xFD,
+        // size 23, data for 16 bit UUID, EN UUID
+        (byte) 0x17, (byte) 0x16, (byte) 0x6F, (byte) 0xFD,
+        // ...payload
+    };
+    private static final int EXPOSURE_NOTIFICATION_PAYLOAD_LENGTH = 0x03 + 0x17 + 2;
+
+    private static boolean arrayStartsWith(byte[] array, byte[] prefix) {
+        if (array.length < prefix.length) {
+            return false;
+        }
+        for (int i = 0; i < prefix.length; i++) {
+            if (prefix[i] != array[i]) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    ScanResult getSanitizedExposureNotification(ScanResult result) {
+        ScanRecord record = result.getScanRecord();
+        // Remove the flags part of the payload, if present
+        if (record.getBytes().length > EXPOSURE_NOTIFICATION_FLAGS_LENGTH
+                && arrayStartsWith(record.getBytes(), EXPOSURE_NOTIFICATION_FLAGS_PREAMBLE)) {
+            record = ScanRecord.parseFromBytes(
+                    Arrays.copyOfRange(
+                            record.getBytes(),
+                            EXPOSURE_NOTIFICATION_FLAGS_LENGTH,
+                            record.getBytes().length));
+        }
+
+        if (record.getBytes().length != EXPOSURE_NOTIFICATION_PAYLOAD_LENGTH) {
+            return null;
+        }
+        if (!arrayStartsWith(record.getBytes(), EXPOSURE_NOTIFICATION_PAYLOAD_PREAMBLE)) {
+            return null;
+        }
+
+        return new ScanResult(null, 0, 0, 0, 0, 0, result.getRssi(), 0, record, 0);
+    }
+
     void onScanResult(int eventType, int addressType, String address, int primaryPhy,
             int secondaryPhy, int advertisingSid, int txPower, int rssi, int periodicAdvInt,
             byte[] advData) {
@@ -1025,6 +1080,13 @@ public class GattService extends ProfileService {
                         hasPermission = true;
                         break;
                     }
+                }
+            }
+            if (!hasPermission && client.eligibleForSanitizedExposureNotification) {
+                ScanResult sanitized = getSanitizedExposureNotification(result);
+                if (sanitized != null) {
+                    hasPermission = true;
+                    result = sanitized;
                 }
             }
             if (!hasPermission || !matchesFilters(client, result)) {
@@ -1986,6 +2048,8 @@ public class GattService extends ProfileService {
         final ScanClient scanClient = new ScanClient(scannerId, settings, filters, storages);
         scanClient.userHandle = UserHandle.of(UserHandle.getCallingUserId());
         mAppOps.checkPackage(Binder.getCallingUid(), callingPackage);
+        scanClient.eligibleForSanitizedExposureNotification =
+                callingPackage.equals(mExposureNotificationPackage);
         scanClient.isQApp = Utils.isQApp(this, callingPackage);
         if (scanClient.isQApp) {
             scanClient.hasLocationPermission = Utils.checkCallerHasFineLocation(this, mAppOps,
@@ -2046,6 +2110,8 @@ public class GattService extends ProfileService {
         ScannerMap.App app = mScannerMap.add(uuid, null, null, piInfo, this);
         app.mUserHandle = UserHandle.of(UserHandle.getCallingUserId());
         mAppOps.checkPackage(Binder.getCallingUid(), callingPackage);
+        app.mEligibleForSanitizedExposureNotification =
+                callingPackage.equals(mExposureNotificationPackage);
         app.mIsQApp = Utils.isQApp(this, callingPackage);
         try {
             if (app.mIsQApp) {
@@ -2076,6 +2142,8 @@ public class GattService extends ProfileService {
         scanClient.hasLocationPermission = app.hasLocationPermission;
         scanClient.userHandle = app.mUserHandle;
         scanClient.isQApp = app.mIsQApp;
+        scanClient.eligibleForSanitizedExposureNotification =
+                app.mEligibleForSanitizedExposureNotification;
         scanClient.hasNetworkSettingsPermission = app.mHasNetworkSettingsPermission;
         scanClient.hasNetworkSetupWizardPermission = app.mHasNetworkSetupWizardPermission;
         scanClient.hasScanWithoutLocationPermission = app.mHasScanWithoutLocationPermission;
