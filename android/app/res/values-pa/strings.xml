@@ -69,7 +69,6 @@
     <string name="upload_succ_ok" msgid="7705428476405478828">"ਠੀਕ"</string>
     <string name="upload_fail_line1" msgid="7899394672421491701">"ਫਾਈਲ \"<xliff:g id="RECIPIENT">%1$s</xliff:g>\" ਨੂੰ ਨਹੀਂ ਭੇਜੀ ਗਈ ਸੀ।"</string>
     <string name="upload_fail_line1_2" msgid="2108129204050841798">"ਫਾਈਲ: <xliff:g id="FILE">%1$s</xliff:g>"</string>
-    <string name="upload_fail_ok" msgid="5807702461606714296">"ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ"</string>
     <string name="upload_fail_cancel" msgid="9118496285835687125">"ਬੰਦ ਕਰੋ"</string>
     <string name="bt_error_btn_ok" msgid="5965151173011534240">"ਠੀਕ"</string>
     <string name="unknown_file" msgid="6092727753965095366">"ਅਗਿਆਤ ਫਾਈਲ"</string>
@@ -84,8 +83,8 @@
     <string name="bt_toast_4" msgid="4678812947604395649">"\"<xliff:g id="RECIPIENT">%1$s</xliff:g>\" ਨੂੰ ਫਾਈਲ ਭੇਜ ਰਿਹਾ ਹੈ"</string>
     <string name="bt_toast_5" msgid="2846870992823019494">"\"<xliff:g id="RECIPIENT">%2$s</xliff:g>\" ਨੂੰ <xliff:g id="NUMBER">%1$s</xliff:g> ਫਾਈਲਾਂ ਭੇਜ ਰਿਹਾ ਹੈ"</string>
     <string name="bt_toast_6" msgid="1855266596936622458">"\"<xliff:g id="RECIPIENT">%1$s</xliff:g>\" ਨੂੰ ਫਾਈਲ ਭੇਜਣਾ ਰੋਕਿਆ ਗਿਆ"</string>
-    <string name="bt_sm_2_1_nosdcard" msgid="1791835163301501637">"\"<xliff:g id="SENDER">%1$s</xliff:g>\" ਦੀ ਫ਼ਾਈਲ ਰੱਖਿਅਤ ਕਰਨ ਲਈ USB ਸਟੋਰੇਜ ਵਿੱਚ ਪੂਰੀ ਜਗ੍ਹਾ ਨਹੀਂ ਹੈ।"</string>
-    <string name="bt_sm_2_1_default" msgid="9115512207909504071">"\"<xliff:g id="SENDER">%1$s</xliff:g>\" ਦੀ ਫ਼ਾਈਲ ਰੱਖਿਅਤ ਕਰਨ ਲਈ SD ਕਾਰਡ ਵਿੱਚ ਪੂਰੀ ਜਗ੍ਹਾ ਨਹੀਂ ਹੈ।"</string>
+    <string name="bt_sm_2_1_nosdcard" msgid="5354343190503952837">"ਦੀ ਫ਼ਾਈਲ ਰੱਖਿਅਤ ਕਰਨ ਲਈ USB ਸਟੋਰੇਜ ਵਿੱਚ ਲੋੜੀਂਦੀ ਜਗ੍ਹਾ ਨਹੀਂ ਹੈ।"</string>
+    <string name="bt_sm_2_1_default" msgid="2497541206648973852">"ਫ਼ਾਈਲ ਰੱਖਿਅਤ ਕਰਨ ਲਈ SD ਕਾਰਡ ਵਿੱਚ ਲੋੜੀਂਦੀ ਜਗ੍ਹਾ ਨਹੀਂ ਹੈ।"</string>
     <string name="bt_sm_2_2" msgid="2965243265852680543">"ਲੁੜੀਂਦਾ ਸਪੇਸ: <xliff:g id="SIZE">%1$s</xliff:g>"</string>
     <string name="ErrorTooManyRequests" msgid="8578277541472944529">"ਬਹੁਤ ਜ਼ਿਆਦਾ ਬੇਨਤੀਆਂ ਦੀ ਪ੍ਰਕਿਰਿਆ ਕੀਤੀ ਜਾ ਰਹੀ ਹੈ। ਬਾਅਦ ਵਿੱਚ ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ।"</string>
     <string name="status_pending" msgid="2503691772030877944">"ਫਾਈਲ ਟ੍ਰਾਂਸਫਰ ਅਜੇ ਚਾਲੂ ਨਹੀਂ ਹੋਈ।"</string>
@@ -121,7 +120,7 @@
     <string name="transfer_menu_clear_all" msgid="790017462957873132">"ਸੂਚੀ ਹਟਾਓ"</string>
     <string name="transfer_menu_open" msgid="3368984869083107200">"ਖੋਲ੍ਹੋ"</string>
     <string name="transfer_menu_clear" msgid="5854038118831427492">"ਸੂਚੀ ਵਿੱਚੋਂ ਹਟਾਓ"</string>
-    <string name="transfer_clear_dlg_title" msgid="2953444575556460386">"ਹਟਾਓ"</string>
+    <string name="transfer_clear_dlg_title" msgid="2953444575556460386">"ਕਲੀਅਰ ਕਰੋ"</string>
     <string name="bluetooth_a2dp_sink_queue_name" msgid="6864149958708669766">"ਹੁਣੇ ਚੱਲ ਰਿਹਾ ਹੈ"</string>
     <string name="bluetooth_map_settings_save" msgid="7635491847388074606">"ਰੱਖਿਅਤ ਕਰੋ"</string>
     <string name="bluetooth_map_settings_cancel" msgid="9205350798049865699">"ਰੱਦ ਕਰੋ"</string>
