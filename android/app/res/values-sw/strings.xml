@@ -69,7 +69,6 @@
     <string name="upload_succ_ok" msgid="7705428476405478828">"Sawa"</string>
     <string name="upload_fail_line1" msgid="7899394672421491701">"Faili haikutumwa kwa \"<xliff:g id="RECIPIENT">%1$s</xliff:g>\"."</string>
     <string name="upload_fail_line1_2" msgid="2108129204050841798">"Faili: <xliff:g id="FILE">%1$s</xliff:g>"</string>
-    <string name="upload_fail_ok" msgid="5807702461606714296">"Jaribu tena"</string>
     <string name="upload_fail_cancel" msgid="9118496285835687125">"Funga"</string>
     <string name="bt_error_btn_ok" msgid="5965151173011534240">"Sawa"</string>
     <string name="unknown_file" msgid="6092727753965095366">"Faili isiyojulikana"</string>
@@ -84,8 +83,8 @@
     <string name="bt_toast_4" msgid="4678812947604395649">"Inatuma faili kwa \"<xliff:g id="RECIPIENT">%1$s</xliff:g>\""</string>
     <string name="bt_toast_5" msgid="2846870992823019494">"Inatuma faili <xliff:g id="NUMBER">%1$s</xliff:g> kwa \"<xliff:g id="RECIPIENT">%2$s</xliff:g>\""</string>
     <string name="bt_toast_6" msgid="1855266596936622458">"Ilikomesha utumaji faili kwa \"<xliff:g id="RECIPIENT">%1$s</xliff:g>\""</string>
-    <string name="bt_sm_2_1_nosdcard" msgid="1791835163301501637">"Hakuna nafasi ya kutosha katika hifadhi ya USB ya kuhifadhi faili kutoka kwa \"<xliff:g id="SENDER">%1$s</xliff:g>\""</string>
-    <string name="bt_sm_2_1_default" msgid="9115512207909504071">"Hakuna nafasi ya kutosha katika kadi ya SD ya kuhifadhi faili kutoka kwa \"<xliff:g id="SENDER">%1$s</xliff:g>\""</string>
+    <string name="bt_sm_2_1_nosdcard" msgid="5354343190503952837">"Nafasi haitoshi kuhifadhi faili kwenye hifadhi ya USB."</string>
+    <string name="bt_sm_2_1_default" msgid="2497541206648973852">"Nafasi haitoshi kuhifadhi faili kwenye kadi ya SD."</string>
     <string name="bt_sm_2_2" msgid="2965243265852680543">"Nafasi inayohitajika: <xliff:g id="SIZE">%1$s</xliff:g>"</string>
     <string name="ErrorTooManyRequests" msgid="8578277541472944529">"Maombi mengi sana yanashughulikiwa. Jaribu tena baadaye."</string>
     <string name="status_pending" msgid="2503691772030877944">"Uhamishaji wa faili bado haijaanzishwa."</string>
@@ -134,4 +133,5 @@
     <string name="bluetooth_disconnected" msgid="3318303728981478873">"Imeondoa sauti ya Bluetooth"</string>
     <string name="a2dp_sink_mbs_label" msgid="7566075853395412558">"Sauti ya Bluetooth"</string>
     <string name="bluetooth_opp_file_limit_exceeded" msgid="8894450394309084519">"Haiwezi kutuma faili zinazozidi GB 4"</string>
+    <string name="bluetooth_connect_action" msgid="4009848433321657090">"Unganisha kwenye Bluetooth"</string>
 </resources>

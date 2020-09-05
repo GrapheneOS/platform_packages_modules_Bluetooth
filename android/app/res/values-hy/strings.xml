@@ -69,7 +69,6 @@
     <string name="upload_succ_ok" msgid="7705428476405478828">"Հաստատել"</string>
     <string name="upload_fail_line1" msgid="7899394672421491701">"Ֆայլը չի ուղարկվել «<xliff:g id="RECIPIENT">%1$s</xliff:g>»-ին:"</string>
     <string name="upload_fail_line1_2" msgid="2108129204050841798">"Ֆայլ՝ <xliff:g id="FILE">%1$s</xliff:g>"</string>
-    <string name="upload_fail_ok" msgid="5807702461606714296">"Կրկին փորձել"</string>
     <string name="upload_fail_cancel" msgid="9118496285835687125">"Փակել"</string>
     <string name="bt_error_btn_ok" msgid="5965151173011534240">"Եղավ"</string>
     <string name="unknown_file" msgid="6092727753965095366">"Անհայտ ֆայլ"</string>
@@ -84,8 +83,8 @@
     <string name="bt_toast_4" msgid="4678812947604395649">"Ֆայլն ուղարկվում է «<xliff:g id="RECIPIENT">%1$s</xliff:g>»-ին"</string>
     <string name="bt_toast_5" msgid="2846870992823019494">"<xliff:g id="NUMBER">%1$s</xliff:g> ֆայլեր ուղարկվում են «<xliff:g id="RECIPIENT">%2$s</xliff:g>»-ին"</string>
     <string name="bt_toast_6" msgid="1855266596936622458">"Դադարեցվեց ֆայլի ուղարկումը «<xliff:g id="RECIPIENT">%1$s</xliff:g>»-ին"</string>
-    <string name="bt_sm_2_1_nosdcard" msgid="1791835163301501637">"USB կրիչի վրա բավարար տեղ չկա <xliff:g id="SENDER">%1$s</xliff:g>-ի ֆայլը պահելու համար"</string>
-    <string name="bt_sm_2_1_default" msgid="9115512207909504071">"SD քարտում բավարար տեղ չկա <xliff:g id="SENDER">%1$s</xliff:g>-ի ֆայլը պահելու համար"</string>
+    <string name="bt_sm_2_1_nosdcard" msgid="5354343190503952837">"USB կրիչում բավարար տարածք չկա ֆայլը պահելու համար"</string>
+    <string name="bt_sm_2_1_default" msgid="2497541206648973852">"SD քարտում բավարար տարածք չկա ֆայլը պահելու համար"</string>
     <string name="bt_sm_2_2" msgid="2965243265852680543">"Անհրաժեշտ տեղը՝ <xliff:g id="SIZE">%1$s</xliff:g>"</string>
     <string name="ErrorTooManyRequests" msgid="8578277541472944529">"Չափից շատ հարցումներ են մշակվում: Կրկին փորձեք ավելի ուշ:"</string>
     <string name="status_pending" msgid="2503691772030877944">"Ֆայլի փոխանցումը դեռ չի մեկնարկել:"</string>
@@ -100,7 +99,7 @@
     <string name="status_connection_error" msgid="947681831523219891">"Միացումը անհաջող էր:"</string>
     <string name="status_protocol_error" msgid="3245444473429269539">"Հարցումը հնարավոր չէ ճշգրտորեն մշակել:"</string>
     <string name="status_unknown_error" msgid="8156660554237824912">"Անհայտ սխալ:"</string>
-    <string name="btopp_live_folder" msgid="7967791481444474554">"Ստացված է Bluetooth-ով"</string>
+    <string name="btopp_live_folder" msgid="7967791481444474554">"Bluetooth-ով ստացված"</string>
     <string name="opp_notification_group" msgid="3486303082135789982">"Bluetooth համօգտագործում"</string>
     <string name="download_success" msgid="7036160438766730871">"<xliff:g id="FILE_SIZE">%1$s</xliff:g> ստացումն ավարտված է:"</string>
     <string name="upload_success" msgid="4014469387779648949">"<xliff:g id="FILE_SIZE">%1$s</xliff:g> ուղարկումն ավարտված է:"</string>
@@ -134,4 +133,5 @@
     <string name="bluetooth_disconnected" msgid="3318303728981478873">"Bluetooth աուդիոն անջատված է"</string>
     <string name="a2dp_sink_mbs_label" msgid="7566075853395412558">"Bluetooth աուդիո"</string>
     <string name="bluetooth_opp_file_limit_exceeded" msgid="8894450394309084519">"4 ԳԲ-ից մեծ ֆայլերը հնարավոր չէ փոխանցել"</string>
+    <string name="bluetooth_connect_action" msgid="4009848433321657090">"Միանալ Bluetooth-ին"</string>
 </resources>
