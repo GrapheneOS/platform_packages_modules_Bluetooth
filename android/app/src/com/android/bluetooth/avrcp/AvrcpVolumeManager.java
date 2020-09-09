@@ -184,6 +184,10 @@ class AvrcpVolumeManager extends AudioDeviceCallback {
     }
 
     void sendVolumeChanged(@NonNull BluetoothDevice device, int deviceVolume) {
+        if (deviceVolume == getVolume(device, -1)) {
+            d("sendVolumeChanged: Skipping update volume to same as current.");
+            return;
+        }
         int avrcpVolume =
                 (int) Math.floor((double) deviceVolume * AVRCP_MAX_VOL / sDeviceMaxVolume);
         if (avrcpVolume > 127) avrcpVolume = 127;
