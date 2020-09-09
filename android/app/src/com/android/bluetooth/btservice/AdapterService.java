@@ -3059,12 +3059,16 @@ public class AdapterService extends Service {
     }
 
     private static final String GD_CORE_FLAG = "INIT_gd_core";
+    private static final String GD_ADVERTISING_FLAG = "INIT_gd_advertising";
     private static final String GD_HCI_FLAG = "INIT_gd_hci";
     private static final String GD_CONTROLLER_FLAG = "INIT_gd_controller";
     private String[] getInitFlags() {
         ArrayList<String> initFlags = new ArrayList<>();
         if (DeviceConfig.getBoolean(DeviceConfig.NAMESPACE_BLUETOOTH, GD_CORE_FLAG, false)) {
             initFlags.add(GD_CORE_FLAG);
+        }
+        if (DeviceConfig.getBoolean(DeviceConfig.NAMESPACE_BLUETOOTH, GD_ADVERTISING_FLAG, false)) {
+            initFlags.add(GD_ADVERTISING_FLAG);
         }
         if (DeviceConfig.getBoolean(DeviceConfig.NAMESPACE_BLUETOOTH, GD_HCI_FLAG, false)) {
             initFlags.add(GD_HCI_FLAG);
