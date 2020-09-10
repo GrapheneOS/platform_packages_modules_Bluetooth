@@ -557,8 +557,8 @@ public class BluetoothMapSmsPdu {
              * hence the comments have been left untouched. */
             for (int i = 0; i < msgCount; i++) {
                 data = SmsMessage.getSubmitPduEncodedMessage(phoneType == SMS_TYPE_GSM,
-                    destinationAddress, smsFragments.get(i), encoding, languageTable,
-                    languageShiftTable, refNumber, i + 1, msgCount);
+                        destinationAddress, smsFragments.get(i), encoding, languageTable,
+                        languageShiftTable, refNumber, i + 1, msgCount);
                 newPdu = new SmsPdu(data, encoding, phoneType, languageTable);
                 pdus.add(newPdu);
             }
