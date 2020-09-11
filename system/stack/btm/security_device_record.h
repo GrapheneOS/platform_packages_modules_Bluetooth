@@ -27,27 +27,6 @@
 
 typedef char tBTM_LOC_BD_NAME[BTM_MAX_LOC_BD_NAME_LEN + 1];
 
-/* Definitions for Server Channel Number (SCN) management
- */
-#define BTM_MAX_SCN PORT_MAX_RFC_PORTS
-
-/* Define masks for supported and exception 2.0 ACL packet types
- */
-#define BTM_ACL_SUPPORTED_PKTS_MASK                                           \
-  (HCI_PKT_TYPES_MASK_DM1 | HCI_PKT_TYPES_MASK_DH1 | HCI_PKT_TYPES_MASK_DM3 | \
-   HCI_PKT_TYPES_MASK_DH3 | HCI_PKT_TYPES_MASK_DM5 | HCI_PKT_TYPES_MASK_DH5)
-
-#define BTM_ACL_EXCEPTION_PKTS_MASK                            \
-  (HCI_PKT_TYPES_MASK_NO_2_DH1 | HCI_PKT_TYPES_MASK_NO_3_DH1 | \
-   HCI_PKT_TYPES_MASK_NO_2_DH3 | HCI_PKT_TYPES_MASK_NO_3_DH3 | \
-   HCI_PKT_TYPES_MASK_NO_2_DH5 | HCI_PKT_TYPES_MASK_NO_3_DH5)
-
-#define BTM_EPR_AVAILABLE(p)                                        \
-  ((HCI_ATOMIC_ENCRYPT_SUPPORTED((p)->peer_lmp_feature_pages[0]) && \
-    controller_get_interface()->supports_encryption_pause())        \
-       ? true                                                       \
-       : false)
-
 #define BTM_IS_BRCM_CONTROLLER()                                 \
   (controller_get_interface()->get_bt_version()->manufacturer == \
    LMP_COMPID_BROADCOM)
@@ -148,71 +127,6 @@ typedef uint8_t tBTM_INQ_TYPE;
 /* The MSB of the clock offset field indicates whether the offset is valid. */
 #define BTM_CLOCK_OFFSET_VALID 0x8000
 
-/* Define the structures needed by security management
- */
-
-typedef void(tBTM_SCO_IND_CBACK)(uint16_t sco_inx);
-
-/* MACROs to convert from SCO packet types mask to ESCO and back */
-#define BTM_SCO_PKT_TYPE_MASK \
-  (HCI_PKT_TYPES_MASK_HV1 | HCI_PKT_TYPES_MASK_HV2 | HCI_PKT_TYPES_MASK_HV3)
-
-/* Mask defining only the SCO types of an esco packet type */
-#define BTM_ESCO_PKT_TYPE_MASK \
-  (ESCO_PKT_TYPES_MASK_HV1 | ESCO_PKT_TYPES_MASK_HV2 | ESCO_PKT_TYPES_MASK_HV3)
-
-#define BTM_ESCO_2_SCO(escotype) \
-  ((uint16_t)(((escotype)&BTM_ESCO_PKT_TYPE_MASK) << 5))
-
-/* Define masks for supported and exception 2.0 SCO packet types
- */
-#define BTM_SCO_SUPPORTED_PKTS_MASK                    \
-  (ESCO_PKT_TYPES_MASK_HV1 | ESCO_PKT_TYPES_MASK_HV2 | \
-   ESCO_PKT_TYPES_MASK_HV3 | ESCO_PKT_TYPES_MASK_EV3 | \
-   ESCO_PKT_TYPES_MASK_EV4 | ESCO_PKT_TYPES_MASK_EV5)
-
-#define BTM_SCO_EXCEPTION_PKTS_MASK                              \
-  (ESCO_PKT_TYPES_MASK_NO_2_EV3 | ESCO_PKT_TYPES_MASK_NO_3_EV3 | \
-   ESCO_PKT_TYPES_MASK_NO_2_EV5 | ESCO_PKT_TYPES_MASK_NO_3_EV5)
-
-/* Define the structure that contains (e)SCO data */
-typedef struct {
-  tBTM_ESCO_CBACK* p_esco_cback; /* Callback for eSCO events     */
-  enh_esco_params_t setup;
-  tBTM_ESCO_DATA data; /* Connection complete information */
-  uint8_t hci_status;
-} tBTM_ESCO_INFO;
-
-/* Define the structure used for SCO Management
- */
-typedef struct {
-  tBTM_ESCO_INFO esco;    /* Current settings             */
-  tBTM_SCO_CB* p_conn_cb; /* Callback for when connected  */
-  tBTM_SCO_CB* p_disc_cb; /* Callback for when disconnect */
-  uint16_t state;         /* The state of the SCO link    */
-  uint16_t hci_handle;    /* HCI Handle                   */
-  bool is_orig;           /* true if the originator       */
-  bool rem_bd_known;      /* true if remote BD addr known */
-
-} tSCO_CONN;
-
-/* SCO Management control block */
-typedef struct {
-  tBTM_SCO_IND_CBACK* app_sco_ind_cb;
-  tSCO_CONN sco_db[BTM_MAX_SCO_LINKS];
-  enh_esco_params_t def_esco_parms;
-  uint16_t sco_disc_reason;
-  bool esco_supported;        /* true if 1.2 cntlr AND supports eSCO links */
-  esco_data_path_t sco_route; /* HCI, PCM, or TEST */
-} tSCO_CB;
-
-extern void btm_set_sco_ind_cback(tBTM_SCO_IND_CBACK* sco_ind_cb);
-extern void btm_accept_sco_link(uint16_t sco_inx, enh_esco_params_t* p_setup,
-                                tBTM_SCO_CB* p_conn_cb, tBTM_SCO_CB* p_disc_cb);
-extern void btm_reject_sco_link(uint16_t sco_inx);
-extern void btm_sco_chk_pend_rolechange(uint16_t hci_handle);
-extern void btm_sco_disc_chk_pend_for_modechange(uint16_t hci_handle);
-
 /*
  * Define structure for Security Service Record.
  * A record exists for each service registered with the Security Manager
@@ -288,8 +202,11 @@ typedef struct {
 } tBTM_SEC_BLE;
 
 /* Peering bond type */
-enum { BOND_TYPE_UNKNOWN, BOND_TYPE_PERSISTENT, BOND_TYPE_TEMPORARY };
-typedef uint8_t tBTM_BOND_TYPE;
+typedef enum : uint8_t {
+  BOND_TYPE_UNKNOWN = 0,
+  BOND_TYPE_PERSISTENT = 1,
+  BOND_TYPE_TEMPORARY = 2
+} tBTM_BOND_TYPE;
 
 /*
  * Define structure for Security Device Record.
