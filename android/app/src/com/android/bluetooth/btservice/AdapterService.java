@@ -30,7 +30,6 @@ import android.app.ActivityManager;
 import android.app.AlarmManager;
 import android.app.AppOpsManager;
 import android.app.PendingIntent;
-import android.app.PropertyInvalidatedCache;
 import android.app.Service;
 import android.app.admin.DevicePolicyManager;
 import android.bluetooth.BluetoothActivityEnergyInfo;
@@ -3062,6 +3061,7 @@ public class AdapterService extends Service {
     private static final String GD_ADVERTISING_FLAG = "INIT_gd_advertising";
     private static final String GD_HCI_FLAG = "INIT_gd_hci";
     private static final String GD_CONTROLLER_FLAG = "INIT_gd_controller";
+    private static final String GD_ACL_FLAG = "INIT_gd_acl";
     private String[] getInitFlags() {
         ArrayList<String> initFlags = new ArrayList<>();
         if (DeviceConfig.getBoolean(DeviceConfig.NAMESPACE_BLUETOOTH, GD_CORE_FLAG, false)) {
@@ -3075,6 +3075,9 @@ public class AdapterService extends Service {
         }
         if (DeviceConfig.getBoolean(DeviceConfig.NAMESPACE_BLUETOOTH, GD_CONTROLLER_FLAG, false)) {
             initFlags.add(GD_CONTROLLER_FLAG);
+        }
+        if (DeviceConfig.getBoolean(DeviceConfig.NAMESPACE_BLUETOOTH, GD_ACL_FLAG, false)) {
+            initFlags.add(GD_ACL_FLAG);
         }
         return initFlags.toArray(new String[0]);
     }
