@@ -847,8 +847,10 @@ public class BluetoothOppService extends ProfileService implements IObexConnecti
 
         info.mId = cursor.getInt(cursor.getColumnIndexOrThrow(BluetoothShare._ID));
         if (info.mUri != null) {
-            info.mUri =
-                    Uri.parse(stringFromCursor(info.mUri.toString(), cursor, BluetoothShare.URI));
+            String uriString = stringFromCursor(info.mUri.toString(), cursor, BluetoothShare.URI);
+            if (uriString != null) {
+                info.mUri = Uri.parse(uriString);
+            }
         } else {
             Log.w(TAG, "updateShare() called for ID " + info.mId + " with null URI");
         }
