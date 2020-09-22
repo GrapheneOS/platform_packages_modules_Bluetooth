@@ -162,8 +162,8 @@ public class BluetoothOppService extends ProfileService implements IObexConnecti
                     + BluetoothShare.USER_CONFIRMATION_PENDING;
 
     private static final String WHERE_INVISIBLE_UNCONFIRMED =
-            "(" + BluetoothShare.STATUS + ">=" + BluetoothShare.STATUS_SUCCESS + " AND " + INVISIBLE
-                    + ") OR (" + WHERE_CONFIRM_PENDING_INBOUND + ")";
+            "(" + BluetoothShare.STATUS + " > " + BluetoothShare.STATUS_SUCCESS + " AND "
+                    + INVISIBLE + ") OR (" + WHERE_CONFIRM_PENDING_INBOUND + ")";
 
     private static BluetoothOppService sBluetoothOppService;
 
