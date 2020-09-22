@@ -61,6 +61,13 @@ public class PanService extends ProfileService {
     private static final boolean DBG = false;
     private static PanService sPanService;
 
+    private static final String ACTION_TETHERING_STATE_CHANGED =
+            "android.bluetooth.pan.profile.action.TETHERING_STATE_CHANGED";
+    private static final String EXTRA_TETHERING_STATE =
+            "android.bluetooth.pan.extra.TETHERING_STATE";
+    private static final int TETHERING_STATE_OFF = 1;
+    private static final int TETHERING_STATE_ON = 2;
+
     private static final String BLUETOOTH_IFACE_ADDR_START = "192.168.44.1";
     private static final int BLUETOOTH_MAX_PAN_CONNECTIONS = 5;
     private static final int BLUETOOTH_PREFIX_LENGTH = 24;
@@ -411,6 +418,10 @@ public class PanService extends ProfileService {
             for (BluetoothDevice dev : devList) {
                 disconnect(dev);
             }
+            Intent intent = new Intent(ACTION_TETHERING_STATE_CHANGED);
+            intent.putExtra(EXTRA_TETHERING_STATE,
+                    mTetherOn ? TETHERING_STATE_ON : TETHERING_STATE_OFF);
+            sendBroadcast(intent, BLUETOOTH_PERM);
         }
     }
 
