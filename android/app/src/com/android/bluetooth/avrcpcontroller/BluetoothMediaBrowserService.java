@@ -112,8 +112,9 @@ public class BluetoothMediaBrowserService extends MediaBrowserServiceCompat {
         Intent launchIntent = new Intent();
         launchIntent.setAction(BluetoothPrefs.BLUETOOTH_SETTING_ACTION);
         launchIntent.addCategory(BluetoothPrefs.BLUETOOTH_SETTING_CATEGORY);
+        int flags = PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE;
         PendingIntent pendingIntent = PendingIntent.getActivity(getApplicationContext(), 0,
-                launchIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+                launchIntent, flags);
         extras.putParcelable(ERROR_RESOLUTION_ACTION_INTENT, pendingIntent);
         PlaybackStateCompat errorState = new PlaybackStateCompat.Builder()
                 .setErrorMessage(getString(R.string.bluetooth_disconnected))
