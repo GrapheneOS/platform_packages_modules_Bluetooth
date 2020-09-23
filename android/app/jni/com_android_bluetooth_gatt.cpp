@@ -142,6 +142,7 @@ static jmethodID method_onGetGattDb;
 static jmethodID method_onClientPhyUpdate;
 static jmethodID method_onClientPhyRead;
 static jmethodID method_onClientConnUpdate;
+static jmethodID method_onServiceChanged;
 
 /**
  * Server callback methods
@@ -528,6 +529,13 @@ void btgattc_conn_updated_cb(int conn_id, uint16_t interval, uint16_t latency,
                                conn_id, interval, latency, timeout, status);
 }
 
+void btgattc_service_changed_cb(int conn_id) {
+  CallbackEnv sCallbackEnv(__func__);
+  if (!sCallbackEnv.valid()) return;
+
+  sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onServiceChanged, conn_id);
+}
+
 static const btgatt_scanner_callbacks_t sGattScannerCallbacks = {
     btgattc_scan_result_cb,
     btgattc_batchscan_reports_cb,
@@ -554,7 +562,9 @@ static const btgatt_client_callbacks_t sGattClientCallbacks = {
     NULL, /* services_removed_cb */
     NULL, /* services_added_cb */
     btgattc_phy_updated_cb,
-    btgattc_conn_updated_cb};
+    btgattc_conn_updated_cb,
+    btgattc_service_changed_cb,
+};
 
 /**
  * BTA server callbacks
@@ -835,6 +845,8 @@ static void classInitNative(JNIEnv* env, jclass clazz) {
       env->GetMethodID(clazz, "onClientPhyUpdate", "(IIII)V");
   method_onClientConnUpdate =
       env->GetMethodID(clazz, "onClientConnUpdate", "(IIIII)V");
+  method_onServiceChanged =
+      env->GetMethodID(clazz, "onServiceChanged", "(I)V");
 
   // Server callbacks
 
