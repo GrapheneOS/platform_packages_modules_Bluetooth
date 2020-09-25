@@ -1304,6 +1304,24 @@ public class GattService extends ProfileService {
         app.callback.onConnectionUpdated(address, interval, latency, timeout, status);
     }
 
+    void onServiceChanged(int connId) throws RemoteException {
+        if (DBG) {
+            Log.d(TAG, "onServiceChanged - connId=" + connId);
+        }
+
+        String address = mClientMap.addressByConnId(connId);
+        if (address == null) {
+            return;
+        }
+
+        ClientMap.App app = mClientMap.getByConnId(connId);
+        if (app == null) {
+            return;
+        }
+
+        app.callback.onServiceChanged(address);
+    }
+
     void onServerPhyUpdate(int connId, int txPhy, int rxPhy, int status) throws RemoteException {
         if (DBG) {
             Log.d(TAG, "onServerPhyUpdate() - connId=" + connId + ", status=" + status);
