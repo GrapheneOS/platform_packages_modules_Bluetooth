@@ -249,7 +249,6 @@ typedef struct {
   tL2CA_CONFIG_IND_CB* pL2CA_ConfigInd_Cb;
   tL2CA_CONFIG_CFM_CB* pL2CA_ConfigCfm_Cb;
   tL2CA_DISCONNECT_IND_CB* pL2CA_DisconnectInd_Cb;
-  tL2CA_DISCONNECT_CFM_CB* pL2CA_DisconnectCfm_Cb;
   tL2CA_DATA_IND_CB* pL2CA_DataInd_Cb;
   tL2CA_CONGESTION_STATUS_CB* pL2CA_CongestionStatus_Cb;
   tL2CA_TX_COMPLETE_CB* pL2CA_TxComplete_Cb;
@@ -260,7 +259,6 @@ typedef struct {
  */
 typedef struct {
   uint8_t preferred_mode;
-  uint8_t allowed_modes;
   uint16_t user_rx_buf_size;
   uint16_t user_tx_buf_size;
   uint16_t fcr_rx_buf_size;
@@ -520,18 +518,6 @@ extern bool L2CA_ConfigRsp(uint16_t cid, tL2CAP_CFG_INFO* p_cfg);
  *
  ******************************************************************************/
 extern bool L2CA_DisconnectReq(uint16_t cid);
-
-/*******************************************************************************
- *
- * Function         L2CA_DisconnectRsp
- *
- * Description      Higher layers call this function to acknowledge the
- *                  disconnection of a channel.
- *
- * Returns          void
- *
- ******************************************************************************/
-extern bool L2CA_DisconnectRsp(uint16_t cid);
 
 /*******************************************************************************
  *
