@@ -201,6 +201,8 @@ typedef struct {
   uint16_t real_psm; /* This may be a dummy RCB for an o/b connection but */
                      /* this is the real PSM that we need to connect to */
   tL2CAP_APPL_INFO api;
+  tL2CAP_ERTM_INFO ertm_info;
+  uint16_t required_mtu;
 } tL2C_RCB;
 
 #define L2CAP_CBB_DEFAULT_DATA_RATE_BUFF_QUOTA 100
@@ -618,11 +620,6 @@ extern bool l2cu_is_ccb_active(tL2C_CCB* p_ccb);
 /* Functions provided for Broadcom Aware
  ***************************************
 */
-extern bool l2cu_check_feature_req(tL2C_LCB* p_lcb, uint8_t id, uint8_t* p_data,
-                                   uint16_t data_len);
-extern void l2cu_check_feature_rsp(tL2C_LCB* p_lcb, uint8_t id, uint8_t* p_data,
-                                   uint16_t data_len);
-extern void l2cu_send_feature_req(tL2C_CCB* p_ccb);
 
 extern tL2C_RCB* l2cu_allocate_rcb(uint16_t psm);
 extern tL2C_RCB* l2cu_find_rcb_by_psm(uint16_t psm);
@@ -645,6 +642,7 @@ extern bool l2cu_create_conn_le(tL2C_LCB* p_lcb);
 extern bool l2cu_create_conn_le(tL2C_LCB* p_lcb, uint8_t initiating_phys);
 extern void l2cu_create_conn_after_switch(tL2C_LCB* p_lcb);
 extern void l2cu_adjust_out_mps(tL2C_CCB* p_ccb);
+extern bool L2CA_DisconnectRsp(uint16_t cid);
 
 /* Functions provided by l2c_link.cc
  ***********************************

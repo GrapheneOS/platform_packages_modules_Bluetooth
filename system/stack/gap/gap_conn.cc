@@ -114,7 +114,6 @@ void gap_conn_init(void) {
   conn.reg_info.pL2CA_ConfigInd_Cb = gap_config_ind;
   conn.reg_info.pL2CA_ConfigCfm_Cb = gap_config_cfm;
   conn.reg_info.pL2CA_DisconnectInd_Cb = gap_disconnect_ind;
-  conn.reg_info.pL2CA_DisconnectCfm_Cb = NULL;
   conn.reg_info.pL2CA_DataInd_Cb = gap_data_ind;
   conn.reg_info.pL2CA_CongestionStatus_Cb = gap_congestion_ind;
   conn.reg_info.pL2CA_TxComplete_Cb = gap_tx_complete_ind;
@@ -258,12 +257,6 @@ uint16_t GAP_ConnOpen(const char* p_serv_name, uint8_t service_id,
       gap_release_ccb(p_ccb);
       return (GAP_INVALID_HANDLE);
     }
-  }
-
-  /* optional FCR channel modes */
-  if (ertm_info != NULL) {
-    p_ccb->ertm_info.allowed_modes =
-        (chan_mode_mask) ? chan_mode_mask : (uint8_t)L2CAP_FCR_CHAN_OPT_BASIC;
   }
 
   if (is_server) {
@@ -850,8 +843,6 @@ static void gap_disconnect_ind(uint16_t l2cap_cid, bool ack_needed) {
   /* Find CCB based on CID */
   p_ccb = gap_find_ccb_by_cid(l2cap_cid);
   if (p_ccb == NULL) return;
-
-  if (ack_needed) L2CA_DisconnectRsp(l2cap_cid);
 
   p_ccb->p_callback(p_ccb->gap_handle, GAP_EVT_CONN_CLOSED, nullptr);
   gap_release_ccb(p_ccb);
