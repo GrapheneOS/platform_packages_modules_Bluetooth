@@ -1355,7 +1355,6 @@ tL2C_CCB* l2cu_allocate_ccb(tL2C_LCB* p_lcb, uint16_t cid) {
   p_ccb->our_cfg.qos.delay_variation = p_ccb->peer_cfg.qos.delay_variation =
       L2CAP_DEFAULT_DELAY;
 
-  memset(&p_ccb->ertm_info, 0, sizeof(tL2CAP_ERTM_INFO));
   p_ccb->peer_cfg_already_rejected = false;
   p_ccb->fcr_cfg_tries = L2CAP_MAX_FCR_CFG_TRIES;
 
@@ -1369,14 +1368,8 @@ tL2C_CCB* l2cu_allocate_ccb(tL2C_LCB* p_lcb, uint16_t cid) {
   alarm_free(p_ccb->fcrb.mon_retrans_timer);
   p_ccb->fcrb.mon_retrans_timer = alarm_new("l2c_fcrb.mon_retrans_timer");
 
-  p_ccb->ertm_info.preferred_mode =
-      L2CAP_FCR_BASIC_MODE; /* Default mode for channel is basic mode */
-  p_ccb->ertm_info.fcr_rx_buf_size = L2CAP_FCR_RX_BUF_SIZE;
-  p_ccb->ertm_info.fcr_tx_buf_size = L2CAP_FCR_TX_BUF_SIZE;
-  p_ccb->ertm_info.user_rx_buf_size = L2CAP_USER_RX_BUF_SIZE;
-  p_ccb->ertm_info.user_tx_buf_size = L2CAP_USER_TX_BUF_SIZE;
   p_ccb->max_rx_mtu = L2CAP_MTU_SIZE;
-  p_ccb->tx_mps = L2CAP_FCR_TX_BUF_SIZE - 32;
+  p_ccb->tx_mps = BT_DEFAULT_BUFFER_SIZE - 32;
 
   p_ccb->xmit_hold_q = fixed_queue_new(SIZE_MAX);
   p_ccb->fcrb.srej_rcv_hold_q = fixed_queue_new(SIZE_MAX);
