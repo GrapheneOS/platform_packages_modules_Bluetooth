@@ -135,7 +135,7 @@ void avct_l2c_br_connect_ind_cback(const RawAddress& bd_addr, uint16_t lcid,
       p_bcb->allocated = p_lcb->allocated; /* copy the index from lcb */
 
       result = L2CAP_CONN_OK;
-      cfg.mtu = avct_cb.mtu_br;
+      cfg.mtu = kAvrcBrMtu;
 
       cfg.fcr_present = true;
       cfg.fcr = avct_l2c_br_fcr_opts_def;
@@ -200,7 +200,7 @@ void avct_l2c_br_connect_cfm_cback(uint16_t lcid, uint16_t result) {
   memset(&cfg, 0, sizeof(tL2CAP_CFG_INFO));
 
   cfg.mtu_present = true;
-  cfg.mtu = avct_cb.mtu_br;
+  cfg.mtu = kAvrcBrMtu;
 
   cfg.fcr_present = true;
   cfg.fcr = avct_l2c_br_fcr_opts_def;
@@ -287,20 +287,10 @@ void avct_l2c_br_config_ind_cback(uint16_t lcid, tL2CAP_CFG_INFO* p_cfg) {
 
   AVCT_TRACE_DEBUG("%s peer_mtu:%d use:%d", __func__, p_lcb->peer_mtu, max_mtu);
 
-  if (p_lcb->peer_mtu >= AVCT_MIN_BROWSE_MTU)
-    p_cfg->result = L2CAP_CFG_OK;
-  else {
-    p_cfg->result = L2CAP_CFG_UNACCEPTABLE_PARAMS;
-    p_cfg->mtu_present = true;
-    p_cfg->mtu = AVCT_MIN_BROWSE_MTU;
-  }
+  p_cfg->result = L2CAP_CFG_OK;
 
   /* send L2CAP configure response */
   L2CA_ConfigRsp(lcid, p_cfg);
-
-  if (p_cfg->result != L2CAP_CFG_OK) {
-    return;
-  }
 
   /* if first config ind */
   if ((p_lcb->ch_flags & AVCT_L2C_CFG_IND_DONE) == 0) {

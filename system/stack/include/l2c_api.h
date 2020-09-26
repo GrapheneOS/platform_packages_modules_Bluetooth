@@ -159,15 +159,6 @@ struct tL2CAP_LE_CFG_INFO {
   uint16_t credits = L2CAP_LE_CREDIT_DEFAULT;
 };
 
-/* L2CAP channel configured field bitmap */
-#define L2CAP_CH_CFG_MASK_MTU 0x0001
-#define L2CAP_CH_CFG_MASK_QOS 0x0002
-#define L2CAP_CH_CFG_MASK_FLUSH_TO 0x0004
-#define L2CAP_CH_CFG_MASK_FCR 0x0008
-#define L2CAP_CH_CFG_MASK_FCS 0x0010
-
-typedef uint16_t tL2CAP_CH_CFG_BITS;
-
 /*********************************
  *  Callback Functions Prototypes
  *********************************/
@@ -278,7 +269,8 @@ void l2c_free();
 // Also does security for you
 uint16_t L2CA_Register2(uint16_t psm, const tL2CAP_APPL_INFO& p_cb_info,
                         bool enable_snoop, tL2CAP_ERTM_INFO* p_ertm_info,
-                        uint16_t required_mtu, uint16_t sec_level);
+                        uint16_t my_mtu, uint16_t required_remote_mtu,
+                        uint16_t sec_level);
 
 /*******************************************************************************
  *
@@ -296,7 +288,7 @@ uint16_t L2CA_Register2(uint16_t psm, const tL2CAP_APPL_INFO& p_cb_info,
  ******************************************************************************/
 extern uint16_t L2CA_Register(uint16_t psm, const tL2CAP_APPL_INFO& p_cb_info,
                               bool enable_snoop, tL2CAP_ERTM_INFO* p_ertm_info,
-                              uint16_t required_mtu);
+                              uint16_t my_mtu, uint16_t required_remote_mtu);
 
 /*******************************************************************************
  *

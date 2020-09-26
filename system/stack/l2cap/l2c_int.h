@@ -202,7 +202,8 @@ typedef struct {
                      /* this is the real PSM that we need to connect to */
   tL2CAP_APPL_INFO api;
   tL2CAP_ERTM_INFO ertm_info;
-  uint16_t required_mtu;
+  uint16_t my_mtu;
+  uint16_t required_remote_mtu;
 } tL2C_RCB;
 
 #define L2CAP_CBB_DEFAULT_DATA_RATE_BUFF_QUOTA 100
@@ -261,7 +262,6 @@ typedef struct t_l2c_ccb {
   uint8_t flags;
 
   tL2CAP_CFG_INFO our_cfg;          /* Our saved configuration options */
-  tL2CAP_CH_CFG_BITS peer_cfg_bits; /* Store what peer wants to configure */
   tL2CAP_CFG_INFO peer_cfg;         /* Peer's saved configuration options */
 
   fixed_queue_t* xmit_hold_q; /* Transmit data hold queue */
@@ -281,11 +281,6 @@ typedef struct t_l2c_ccb {
   bool peer_cfg_already_rejected; /* If mode rejected once, set to true */
   bool out_cfg_fcr_present; /* true if cfg response shoulkd include fcr options
                                */
-
-#define L2CAP_CFG_FCS_OUR 0x01  /* Our desired config FCS option */
-#define L2CAP_CFG_FCS_PEER 0x02 /* Peer's desired config FCS option */
-#define L2CAP_BYPASS_FCS (L2CAP_CFG_FCS_OUR | L2CAP_CFG_FCS_PEER)
-  uint8_t bypass_fcs;
 
   bool is_flushable; /* true if channel is flushable */
 

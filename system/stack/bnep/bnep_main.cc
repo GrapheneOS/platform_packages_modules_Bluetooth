@@ -81,8 +81,6 @@ tBNEP_RESULT bnep_register_with_l2cap(void) {
 
   bnep_cb.l2cap_my_cfg.mtu_present = true;
   bnep_cb.l2cap_my_cfg.mtu = BNEP_MTU_SIZE;
-  bnep_cb.l2cap_my_cfg.flush_to_present = true;
-  bnep_cb.l2cap_my_cfg.flush_to = BNEP_FLUSH_TO;
 
   bnep_cb.reg_info.pL2CA_ConnectInd_Cb = bnep_connect_ind;
   bnep_cb.reg_info.pL2CA_ConnectCfm_Cb = bnep_connect_cfm;
@@ -94,7 +92,7 @@ tBNEP_RESULT bnep_register_with_l2cap(void) {
 
   /* Now, register with L2CAP */
   if (!L2CA_Register2(BT_PSM_BNEP, bnep_cb.reg_info, false /* enable_snoop */,
-                      nullptr, bnep_cb.l2cap_my_cfg.mtu,
+                      nullptr, BNEP_MTU_SIZE, BNEP_MTU_SIZE,
                       BTA_SEC_AUTHENTICATE | BTA_SEC_ENCRYPT)) {
     BNEP_TRACE_ERROR("BNEP - Registration failed");
     return BNEP_SECURITY_FAIL;
@@ -207,7 +205,6 @@ static void bnep_connect_cfm(uint16_t l2cap_cid, uint16_t result) {
  ******************************************************************************/
 static void bnep_config_ind(uint16_t l2cap_cid, tL2CAP_CFG_INFO* p_cfg) {
   tBNEP_CONN* p_bcb;
-  uint16_t result, mtu = 0;
 
   /* Find CCB based on CID */
   p_bcb = bnepu_find_bcb_by_cid(l2cap_cid);
@@ -219,29 +216,12 @@ static void bnep_config_ind(uint16_t l2cap_cid, tL2CAP_CFG_INFO* p_cfg) {
 
   BNEP_TRACE_EVENT("BNEP - Rcvd cfg ind, CID: 0x%x", l2cap_cid);
 
-  /* Remember the remote MTU size */
-  if ((!p_cfg->mtu_present) || (p_cfg->mtu < BNEP_MTU_SIZE)) {
-    mtu = p_cfg->mtu;
-    p_cfg->flush_to_present = false;
-    p_cfg->mtu_present = true;
-    p_cfg->mtu = BNEP_MTU_SIZE;
-    p_cfg->result = result = L2CAP_CFG_UNACCEPTABLE_PARAMS;
-  } else {
-    p_bcb->rem_mtu_size = BNEP_MTU_SIZE;
-
-    /* For now, always accept configuration from the other side */
-    p_cfg->flush_to_present = false;
-    p_cfg->mtu_present = false;
-    p_cfg->result = result = L2CAP_CFG_OK;
-  }
+  /* For now, always accept configuration from the other side */
+  p_cfg->flush_to_present = false;
+  p_cfg->mtu_present = false;
+  p_cfg->result = L2CAP_CFG_OK;
 
   L2CA_ConfigRsp(l2cap_cid, p_cfg);
-
-  if (result != L2CAP_CFG_OK) {
-    BNEP_TRACE_EVENT("BNEP - Rcvd cfg ind with bad MTU %d, CID: 0x%x", mtu,
-                     l2cap_cid);
-    return;
-  }
 
   p_bcb->con_flags |= BNEP_FLAGS_HIS_CFG_DONE;
 
