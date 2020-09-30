@@ -260,6 +260,10 @@ public class MediaPlayerList {
         info.id = BLUETOOTH_PLAYER_ID;
         info.name = BLUETOOTH_PLAYER_NAME;
         info.browsable = true;
+        if (mBrowsablePlayers.size() == 0) {
+            // Set Bluetooth Player as non-browable if there is not browsable player exist.
+            info.browsable = false;
+        }
         List<PlayerInfo> ret = new ArrayList<PlayerInfo>();
         ret.add(info);
 
