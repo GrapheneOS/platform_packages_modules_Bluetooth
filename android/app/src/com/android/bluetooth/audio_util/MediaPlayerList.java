@@ -248,6 +248,22 @@ public class MediaPlayerList {
     // In this case the displayed player is the Bluetooth Player, the number of items is equal
     // to the number of players. The root ID will always be empty string in this case as well.
     public void getPlayerRoot(int playerId, GetPlayerRootCallback cb) {
+        /** M: Fix PTS AVRCP/TG/MCN/CB/BI-02-C fail @{ */
+        if (Utils.isPtsTestMode()) {
+            d("PTS test mode: getPlayerRoot");
+            BrowsedPlayerWrapper wrapper = mBrowsablePlayers.get(BLUETOOTH_PLAYER_ID + 1);
+            String itemId = wrapper.getRootId();
+
+            wrapper.getFolderItems(itemId, (status, id, results) -> {
+                if (status != BrowsedPlayerWrapper.STATUS_SUCCESS) {
+                    cb.run(playerId, playerId == BLUETOOTH_PLAYER_ID, "", 0);
+                    return;
+                }
+                cb.run(playerId, playerId == BLUETOOTH_PLAYER_ID, "", results.size());
+            });
+            return;
+        }
+        /** @} */
         cb.run(playerId, playerId == BLUETOOTH_PLAYER_ID, "", mBrowsablePlayers.size());
     }
 
@@ -392,6 +408,25 @@ public class MediaPlayerList {
         // The playerId is unused since we always assume the remote device is using the
         // Bluetooth Player.
         d("getFolderItems(): playerId=" + playerId + ", mediaId=" + mediaId);
+        /** M: Fix PTS AVRCP/TG/MCN/CB/BI-02-C fail @{ */
+        if (Utils.isPtsTestMode()) {
+            d("PTS test mode: getFolderItems");
+            BrowsedPlayerWrapper wrapper = mBrowsablePlayers.get(BLUETOOTH_PLAYER_ID + 1);
+            String itemId = mediaId;
+            if (mediaId.equals("")) {
+                itemId = wrapper.getRootId();
+            }
+
+            wrapper.getFolderItems(itemId, (status, id, results) -> {
+                if (status != BrowsedPlayerWrapper.STATUS_SUCCESS) {
+                    cb.run(mediaId, new ArrayList<ListItem>());
+                    return;
+                }
+                cb.run(mediaId, results);
+            });
+            return;
+        }
+        /** @} */
 
         // The device is requesting the content of the root folder. This folder contains a list of
         // Browsable Media Players displayed as folders with their contents contained within.
