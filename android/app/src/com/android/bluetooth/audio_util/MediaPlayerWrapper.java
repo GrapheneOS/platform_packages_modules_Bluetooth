@@ -212,11 +212,12 @@ public class MediaPlayerWrapper {
      * Return whether the queue, metadata, and queueID are all in sync.
      */
     boolean isMetadataSynced() {
-        if (getQueue() != null && getActiveQueueID() != -1) {
+        List<MediaSession.QueueItem> queue = getQueue();
+        if (queue != null && getActiveQueueID() != -1) {
             // Check if currentPlayingQueueId is in the current Queue
             MediaSession.QueueItem currItem = null;
 
-            for (MediaSession.QueueItem item : getQueue()) {
+            for (MediaSession.QueueItem item : queue) {
                 if (item.getQueueId()
                         == getActiveQueueID()) { // The item exists in the current queue
                     currItem = item;
