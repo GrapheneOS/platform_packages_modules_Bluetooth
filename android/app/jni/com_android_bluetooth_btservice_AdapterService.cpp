@@ -682,7 +682,7 @@ static void classInitNative(JNIEnv* env, jclass clazz) {
 
 static bool initNative(JNIEnv* env, jobject obj, jboolean isGuest,
                        jboolean isNiapMode, int configCompareResult,
-                       jobjectArray initFlags) {
+                       jobjectArray initFlags, jboolean isAtvDevice) {
   ALOGV("%s", __func__);
 
   android_bluetooth_UidTraffic.clazz =
@@ -711,7 +711,8 @@ static bool initNative(JNIEnv* env, jobject obj, jboolean isGuest,
 
   int ret = sBluetoothInterface->init(
       &sBluetoothCallbacks, isGuest == JNI_TRUE ? 1 : 0,
-      isNiapMode == JNI_TRUE ? 1 : 0, configCompareResult, flags);
+      isNiapMode == JNI_TRUE ? 1 : 0, configCompareResult, flags,
+      isAtvDevice == JNI_TRUE ? 1 : 0);
 
   for (int i = 0; i < flagCount; i++) {
     env->ReleaseStringUTFChars(flagObjs[i], flags[i]);
@@ -1335,7 +1336,7 @@ static int getMetricIdNative(JNIEnv* env, jobject obj, jbyteArray address) {
 static JNINativeMethod sMethods[] = {
     /* name, signature, funcPtr */
     {"classInitNative", "()V", (void*)classInitNative},
-    {"initNative", "(ZZI[Ljava/lang/String;)Z", (void*)initNative},
+    {"initNative", "(ZZI[Ljava/lang/String;Z)Z", (void*)initNative},
     {"cleanupNative", "()V", (void*)cleanupNative},
     {"enableNative", "()Z", (void*)enableNative},
     {"disableNative", "()Z", (void*)disableNative},
