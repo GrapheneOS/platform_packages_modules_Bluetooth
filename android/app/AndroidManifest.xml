@@ -12,10 +12,10 @@
          android:description="@string/permdesc_bluetoothShareManager"
          android:protectionLevel="signature"/>
 
-    <!--  Allows temporarily whitelisting Bluetooth addresses for sharing -->
-    <permission android:name="com.android.permission.WHITELIST_BLUETOOTH_DEVICE"
-         android:label="@string/permlab_bluetoothWhitelist"
-         android:description="@string/permdesc_bluetoothWhitelist"
+    <!--  Allows temporarily acceptlisting Bluetooth addresses for sharing -->
+    <permission android:name="com.android.permission.ALLOWLIST_BLUETOOTH_DEVICE"
+         android:label="@string/permlab_bluetoothAcceptlist"
+         android:description="@string/permdesc_bluetoothAcceptlist"
          android:protectionLevel="signature"/>
 
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
@@ -120,10 +120,10 @@
         </receiver>
          <receiver android:process="@string/process"
               android:name=".opp.BluetoothOppHandoverReceiver"
-              android:permission="com.android.permission.WHITELIST_BLUETOOTH_DEVICE"
+              android:permission="com.android.permission.ALLOWLIST_BLUETOOTH_DEVICE"
               android:exported="true">
             <intent-filter>
-                <action android:name="android.btopp.intent.action.WHITELIST_DEVICE"/>
+                <action android:name="android.btopp.intent.action.ACCEPTLIST_DEVICE"/>
                 <action android:name="android.btopp.intent.action.STOP_HANDOVER_TRANSFER"/>
             </intent-filter>
             <intent-filter>

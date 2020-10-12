@@ -18,8 +18,8 @@
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="permlab_bluetoothShareManager" msgid="311492132450338925">"ডাউনলোড ম্যানেজার অ্যাক্সেস করুন।"</string>
     <string name="permdesc_bluetoothShareManager" msgid="8930572979123190223">"অ্যাপ্লিকেশানটিকে BluetoothShare ম্যানেজার অ্যাক্সেস করতে ও ফাইলগুলি স্থানান্তর করতে এটি ব্যবহার করার অনুমতি দেয়।"</string>
-    <string name="permlab_bluetoothWhitelist" msgid="7091552898592306386">"শ্বেততালিকাভুক্ত ব্লুটুথ ডিভাইসের অ্যাক্সেস।"</string>
-    <string name="permdesc_bluetoothWhitelist" msgid="5494513855192170109">"অ্যাপ্লিকেশানটিকে অস্থায়ীভাবে কোনো ব্লুটুথ ডিভাইসকে শ্বেততালিকায় অন্তর্ভুক্ত করার অনুমতি দেয়, যা সেই ডিভাইসটিকে এই ডিভাইসে ব্যবহারকারীর নিশ্চিতকরণ ছাড়া ফাইল পাঠানোর অনুমতি দেয়।"</string>
+    <string name="permlab_bluetoothAcceptlist" msgid="7091552898592306386">"শ্বেততালিকাভুক্ত ব্লুটুথ ডিভাইসের অ্যাক্সেস।"</string>
+    <string name="permdesc_bluetoothAcceptlist" msgid="5494513855192170109">"অ্যাপ্লিকেশানটিকে অস্থায়ীভাবে কোনো ব্লুটুথ ডিভাইসকে শ্বেততালিকায় অন্তর্ভুক্ত করার অনুমতি দেয়, যা সেই ডিভাইসটিকে এই ডিভাইসে ব্যবহারকারীর নিশ্চিতকরণ ছাড়া ফাইল পাঠানোর অনুমতি দেয়।"</string>
     <string name="bt_share_picker_label" msgid="6268100924487046932">"ব্লুটুথ"</string>
     <string name="unknown_device" msgid="9221903979877041009">"অজানা ডিভাইস"</string>
     <string name="unknownNumber" msgid="4994750948072751566">"অজানা"</string>
