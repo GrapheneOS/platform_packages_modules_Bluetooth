@@ -198,8 +198,8 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler
         } else {
             destination = "FF:FF:FF:00:00:00";
         }
-        boolean isWhitelisted =
-                BluetoothOppManager.getInstance(mContext).isWhitelisted(destination);
+        boolean isAcceptlisted =
+                BluetoothOppManager.getInstance(mContext).isAcceptlisted(destination);
 
         HeaderSet request;
         String name, mimeType;
@@ -259,8 +259,8 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler
             mimeType = mimeType.toLowerCase();
         }
 
-        // Reject anything outside the "whitelist" plus unspecified MIME Types.
-        if (mimeType == null || (!isWhitelisted && !Constants.mimeTypeMatches(mimeType,
+        // Reject anything outside the "acceptlist" plus unspecified MIME Types.
+        if (mimeType == null || (!isAcceptlisted && !Constants.mimeTypeMatches(mimeType,
                 Constants.ACCEPTABLE_SHARE_INBOUND_TYPES))) {
             if (D) {
                 Log.w(TAG, "mimeType is null or in unacceptable list, reject the transfer");
@@ -283,7 +283,7 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler
                     BluetoothShare.USER_CONFIRMATION_AUTO_CONFIRMED);
         }
 
-        if (isWhitelisted) {
+        if (isAcceptlisted) {
             values.put(BluetoothShare.USER_CONFIRMATION,
                     BluetoothShare.USER_CONFIRMATION_HANDOVER_CONFIRMED);
         }
@@ -594,7 +594,7 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler
         } else {
             destination = "FF:FF:FF:00:00:00";
         }
-        boolean isHandover = BluetoothOppManager.getInstance(mContext).isWhitelisted(destination);
+        boolean isHandover = BluetoothOppManager.getInstance(mContext).isAcceptlisted(destination);
         if (isHandover) {
             // Notify the handover requester file transfer has started
             Intent intent = new Intent(Constants.ACTION_HANDOVER_STARTED);

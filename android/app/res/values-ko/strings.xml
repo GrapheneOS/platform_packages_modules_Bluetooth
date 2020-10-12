@@ -18,8 +18,8 @@
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="permlab_bluetoothShareManager" msgid="311492132450338925">"다운로드 관리자에 액세스합니다."</string>
     <string name="permdesc_bluetoothShareManager" msgid="8930572979123190223">"앱에서 BluetoothShare 관리자에 액세스하고 이를 사용하여 파일을 전송할 수 있도록 합니다."</string>
-    <string name="permlab_bluetoothWhitelist" msgid="7091552898592306386">"블루투스 기기에 액세스하도록 허용합니다."</string>
-    <string name="permdesc_bluetoothWhitelist" msgid="5494513855192170109">"일시적으로 앱에서 블루투스 기기를 허용하여 사용자 확인을 받지 않고 해당 기기로 파일을 보내도록 허용합니다."</string>
+    <string name="permlab_bluetoothAcceptlist" msgid="7091552898592306386">"블루투스 기기에 액세스하도록 허용합니다."</string>
+    <string name="permdesc_bluetoothAcceptlist" msgid="5494513855192170109">"일시적으로 앱에서 블루투스 기기를 허용하여 사용자 확인을 받지 않고 해당 기기로 파일을 보내도록 허용합니다."</string>
     <string name="bt_share_picker_label" msgid="6268100924487046932">"블루투스"</string>
     <string name="unknown_device" msgid="9221903979877041009">"알 수 없는 장치"</string>
     <string name="unknownNumber" msgid="4994750948072751566">"알 수 없음"</string>
