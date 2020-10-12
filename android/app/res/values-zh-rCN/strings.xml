@@ -18,8 +18,8 @@
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="permlab_bluetoothShareManager" msgid="311492132450338925">"使用下载管理器。"</string>
     <string name="permdesc_bluetoothShareManager" msgid="8930572979123190223">"允许应用访问蓝牙共享 (BluetoothShare) 管理器并将其用于传输文件。"</string>
-    <string name="permlab_bluetoothWhitelist" msgid="7091552898592306386">"将蓝牙设备列入访问权限白名单。"</string>
-    <string name="permdesc_bluetoothWhitelist" msgid="5494513855192170109">"允许该应用暂时将某个蓝牙设备列入白名单，从而允许该设备在不经过用户确认的情况下，将文件发送到本设备。"</string>
+    <string name="permlab_bluetoothAcceptlist" msgid="7091552898592306386">"将蓝牙设备列入访问权限白名单。"</string>
+    <string name="permdesc_bluetoothAcceptlist" msgid="5494513855192170109">"允许该应用暂时将某个蓝牙设备列入白名单，从而允许该设备在不经过用户确认的情况下，将文件发送到本设备。"</string>
     <string name="bt_share_picker_label" msgid="6268100924487046932">"蓝牙"</string>
     <string name="unknown_device" msgid="9221903979877041009">"未知设备"</string>
     <string name="unknownNumber" msgid="4994750948072751566">"未知号码"</string>
