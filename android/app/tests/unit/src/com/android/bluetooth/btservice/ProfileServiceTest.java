@@ -99,7 +99,7 @@ public class ProfileServiceTest {
         mProfiles = Config.getSupportedProfiles();
 
         mMockAdapterService.initNative(false /* is_restricted */, false /* is_niap_mode */,
-                0 /* config_compare_result */, new String[0]);
+                0 /* config_compare_result */, new String[0], false);
 
         TestUtils.setAdapterService(mMockAdapterService);
         doReturn(mDatabaseManager).when(mMockAdapterService).getDatabase();
