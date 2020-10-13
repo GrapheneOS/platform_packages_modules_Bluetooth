@@ -171,18 +171,6 @@ void btm_ble_conn_complete(uint8_t* p, UNUSED_ATTR uint16_t evt_len,
         android::bluetooth::hci::EVT_BLE_META, hci_ble_event, status,
         android::bluetooth::hci::STATUS_UNKNOWN);
 
-    if (role == HCI_ROLE_MASTER) {
-      btm_cb.ble_ctr_cb.set_connection_state_idle();
-      btm_ble_clear_topology_mask(BTM_BLE_STATE_INIT_BIT);
-    }
-
-    connection_manager::on_connection_complete(bda);
-    btm_ble_connected(bda, handle, HCI_ENCRYPT_MODE_DISABLED, role, bda_type,
-                      is_in_security_db);
-
-    l2cble_conn_comp(handle, role, bda, bda_type, conn_interval, conn_latency,
-                     conn_timeout);
-
     tBLE_BD_ADDR address_with_type{.bda = bda, .type = bda_type};
     if (enhanced) {
       acl_ble_enhanced_connection_complete(
