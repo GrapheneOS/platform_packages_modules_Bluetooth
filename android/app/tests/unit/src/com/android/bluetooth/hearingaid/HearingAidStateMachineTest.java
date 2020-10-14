@@ -213,7 +213,7 @@ public class HearingAidStateMachineTest {
         // Check that we are in Disconnected state
         Assert.assertThat(mHearingAidStateMachine.getCurrentState(),
                 IsInstanceOf.instanceOf(HearingAidStateMachine.Disconnected.class));
-        verify(mHearingAidNativeInterface).addToWhiteList(eq(mTestDevice));
+        verify(mHearingAidNativeInterface).addToAcceptlist(eq(mTestDevice));
     }
 
     /**
@@ -257,6 +257,6 @@ public class HearingAidStateMachineTest {
         // Check that we are in Disconnected state
         Assert.assertThat(mHearingAidStateMachine.getCurrentState(),
                 IsInstanceOf.instanceOf(HearingAidStateMachine.Disconnected.class));
-        verify(mHearingAidNativeInterface).addToWhiteList(eq(mTestDevice));
+        verify(mHearingAidNativeInterface).addToAcceptlist(eq(mTestDevice));
     }
 }
