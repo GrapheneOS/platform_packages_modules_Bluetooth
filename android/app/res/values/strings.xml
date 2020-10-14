@@ -32,9 +32,9 @@
     <string name="permdesc_bluetoothShareManager">Allows the app to access the
         BluetoothShare manager and use it to transfer files. </string>
 
-    <string name="permlab_bluetoothWhitelist">Whitelist bluetooth device access.</string>
+    <string name="permlab_bluetoothAcceptlist">Acceptlist bluetooth device access.</string>
 
-    <string name="permdesc_bluetoothWhitelist">Allows the app to temporarily whitelist
+    <string name="permdesc_bluetoothAcceptlist">Allows the app to temporarily acceptlist
         a Bluetooth device, allowing that device to send files to this device without user
         confirmation.</string>
 
