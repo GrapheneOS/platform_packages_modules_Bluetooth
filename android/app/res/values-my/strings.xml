@@ -18,8 +18,8 @@
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="permlab_bluetoothShareManager" msgid="311492132450338925">"ဒေါင်းလုပ်မန်နေဂျာကို အသုံးပြုနိုင်မည်"</string>
     <string name="permdesc_bluetoothShareManager" msgid="8930572979123190223">"အပလီကေးရှင်းအား ဘလူးတုသ်မျှဝေမှု မန်နေဂျာကို အသုံးပြုခွင့်ပေးပြီး ဖိုင်လွှဲရန် အသုံးပြုပါ"</string>
-    <string name="permlab_bluetoothWhitelist" msgid="7091552898592306386">"ဘလူးတုသ်ယာယီခွင့်ပြုစာရင်းကို အသုံးပြုခွင့်"</string>
-    <string name="permdesc_bluetoothWhitelist" msgid="5494513855192170109">"အက်ပ်အား ဘလူးတုသ်စက်ကို ယာယီခွင့်ပြုစာရင်းထဲ ထည့်ရန်ခွင့်ပြုကာ အသုံးပြုသူ၏ အတည်ပြုချက်မရယူပဲ ဖိုင်များကို စက်ထဲသို့ ပို့ခွင့်ပြုမည်"</string>
+    <string name="permlab_bluetoothAcceptlist" msgid="7091552898592306386">"ဘလူးတုသ်ယာယီခွင့်ပြုစာရင်းကို အသုံးပြုခွင့်"</string>
+    <string name="permdesc_bluetoothAcceptlist" msgid="5494513855192170109">"အက်ပ်အား ဘလူးတုသ်စက်ကို ယာယီခွင့်ပြုစာရင်းထဲ ထည့်ရန်ခွင့်ပြုကာ အသုံးပြုသူ၏ အတည်ပြုချက်မရယူပဲ ဖိုင်များကို စက်ထဲသို့ ပို့ခွင့်ပြုမည်"</string>
     <string name="bt_share_picker_label" msgid="6268100924487046932">"ဘလူးတုသ်"</string>
     <string name="unknown_device" msgid="9221903979877041009">"မသိသော စက်"</string>
     <string name="unknownNumber" msgid="4994750948072751566">"မသိ"</string>

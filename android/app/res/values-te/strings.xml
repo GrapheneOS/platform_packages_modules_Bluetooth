@@ -18,8 +18,8 @@
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="permlab_bluetoothShareManager" msgid="311492132450338925">"డౌన్‌లోడ్ మేనేజర్‌ను యాక్సెస్ చేయండి."</string>
     <string name="permdesc_bluetoothShareManager" msgid="8930572979123190223">"బ్లూటూత్ భాగస్వామ్య మేనేజర్‌ను యాక్సెస్ చేయడానికి యాప్‌ను అనుమతిస్తుంది మరియు ఫైల్‌లను బదిలీ చేయడానికి దీన్ని ఉపయోగిస్తుంది."</string>
-    <string name="permlab_bluetoothWhitelist" msgid="7091552898592306386">"అనుమతి జాబితాలో ఉంచిన బ్లూటూత్ పరికర యాక్సెస్."</string>
-    <string name="permdesc_bluetoothWhitelist" msgid="5494513855192170109">"బ్లూటూత్ పరికరాన్ని తాత్కాలికంగా అనుమతి జాబితాలో ఉంచడానికి యాప్‌ను అనుమతిస్తుంది, తద్వారా వినియోగదారు నిర్ధారణ లేకుండానే ఫైల్‌లను ఈ పరికరానికి పంపడానికి ఆ పరికరాన్ని అనుమతిస్తుంది."</string>
+    <string name="permlab_bluetoothAcceptlist" msgid="7091552898592306386">"అనుమతి జాబితాలో ఉంచిన బ్లూటూత్ పరికర యాక్సెస్."</string>
+    <string name="permdesc_bluetoothAcceptlist" msgid="5494513855192170109">"బ్లూటూత్ పరికరాన్ని తాత్కాలికంగా అనుమతి జాబితాలో ఉంచడానికి యాప్‌ను అనుమతిస్తుంది, తద్వారా వినియోగదారు నిర్ధారణ లేకుండానే ఫైల్‌లను ఈ పరికరానికి పంపడానికి ఆ పరికరాన్ని అనుమతిస్తుంది."</string>
     <string name="bt_share_picker_label" msgid="6268100924487046932">"బ్లూటూత్"</string>
     <string name="unknown_device" msgid="9221903979877041009">"తెలియని పరికరం"</string>
     <string name="unknownNumber" msgid="4994750948072751566">"తెలియదు"</string>

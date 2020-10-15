@@ -18,8 +18,8 @@
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="permlab_bluetoothShareManager" msgid="311492132450338925">"Yuklab olish menejeriga ruxsat."</string>
     <string name="permdesc_bluetoothShareManager" msgid="8930572979123190223">"Ilovaga BluetoothShare menejeriga kirishga va undan fayllar uzatishda foydalanishga ruxsat beradi."</string>
-    <string name="permlab_bluetoothWhitelist" msgid="7091552898592306386">"Ishonchli Bluetooth qurilmalari ro‘yxatiga kirish."</string>
-    <string name="permdesc_bluetoothWhitelist" msgid="5494513855192170109">"Ilovaga Bluetooth qurilmasini vaqtinchalik ishonchli qurilmalar ro‘yxatiga kiritishga va u qurilmaga foydalanuvchining tasdig‘isiz bu qurilmaga fayllar jo‘natish uchun ruxsat beradi."</string>
+    <string name="permlab_bluetoothAcceptlist" msgid="7091552898592306386">"Ishonchli Bluetooth qurilmalari ro‘yxatiga kirish."</string>
+    <string name="permdesc_bluetoothAcceptlist" msgid="5494513855192170109">"Ilovaga Bluetooth qurilmasini vaqtinchalik ishonchli qurilmalar ro‘yxatiga kiritishga va u qurilmaga foydalanuvchining tasdig‘isiz bu qurilmaga fayllar jo‘natish uchun ruxsat beradi."</string>
     <string name="bt_share_picker_label" msgid="6268100924487046932">"Bluetooth"</string>
     <string name="unknown_device" msgid="9221903979877041009">"Noma’lum qurilma"</string>
     <string name="unknownNumber" msgid="4994750948072751566">"Noma’lum"</string>
