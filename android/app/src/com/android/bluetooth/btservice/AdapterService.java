@@ -3077,6 +3077,7 @@ public class AdapterService extends Service {
             "INIT_logging_debug_enabled_for_tags";
     private static final String LOGGING_DEBUG_DISABLED_FOR_TAGS_FLAG =
             "INIT_logging_debug_disabled_for_tags";
+    private static final String BTAA_HCI_LOG_FLAG = "INIT_btaa_hci";
 
     private String[] getInitFlags() {
         ArrayList<String> initFlags = new ArrayList<>();
@@ -3110,6 +3111,9 @@ public class AdapterService extends Service {
         if (!debugLoggingDisabledTags.isEmpty()) {
             initFlags.add(String.format("%s=%s", LOGGING_DEBUG_DISABLED_FOR_TAGS_FLAG,
                     debugLoggingDisabledTags));
+        }
+        if (DeviceConfig.getBoolean(DeviceConfig.NAMESPACE_BLUETOOTH, BTAA_HCI_LOG_FLAG, false)) {
+            initFlags.add(BTAA_HCI_LOG_FLAG);
         }
         return initFlags.toArray(new String[0]);
     }
