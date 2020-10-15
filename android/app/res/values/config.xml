@@ -51,7 +51,7 @@
 
     <!-- Specifies latency parameters for high priority, balanced and low power
          GATT configurations. These values represents the number of packets a
-         slave device is allowed to skip. -->
+         peripheral device is allowed to skip. -->
     <integer name="gatt_high_priority_latency">0</integer>
     <integer name="gatt_balanced_priority_latency">0</integer>
     <integer name="gatt_low_power_latency">2</integer>
