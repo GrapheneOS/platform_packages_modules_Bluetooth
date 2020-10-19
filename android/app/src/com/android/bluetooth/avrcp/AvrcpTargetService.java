@@ -35,9 +35,9 @@ import com.android.bluetooth.Utils;
 import com.android.bluetooth.a2dp.A2dpService;
 import com.android.bluetooth.audio_util.BTAudioEventLogger;
 import com.android.bluetooth.audio_util.MediaData;
-import com.android.bluetooth.audio_util.Metadata;
 import com.android.bluetooth.audio_util.MediaPlayerList;
 import com.android.bluetooth.audio_util.MediaPlayerWrapper;
+import com.android.bluetooth.audio_util.Metadata;
 import com.android.bluetooth.audio_util.PlayStatus;
 import com.android.bluetooth.audio_util.PlayerInfo;
 import com.android.bluetooth.btservice.MetricsLogger;
@@ -300,7 +300,7 @@ public class AvrcpTargetService extends ProfileService {
         return mVolumeManager.getVolume(device, mVolumeManager.getNewDeviceVolume());
     }
 
-    // TODO (apanicke): Add checks to blacklist Absolute Volume devices if they behave poorly.
+    // TODO (apanicke): Add checks to rejectlist Absolute Volume devices if they behave poorly.
     void setVolume(int avrcpVolume) {
         BluetoothDevice activeDevice = getA2dpActiveDevice();
         if (activeDevice == null) {
