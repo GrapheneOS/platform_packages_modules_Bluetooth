@@ -129,7 +129,6 @@ bt_status_t btsock_rfc_init(int poll_thread_handle, uid_set_t* set) {
 
 void btsock_rfc_cleanup(void) {
   pth = -1;
-  uid_set = NULL;
 
   BTA_JvDisable();
 
@@ -139,6 +138,8 @@ void btsock_rfc_cleanup(void) {
     list_free(rfc_slots[i].incoming_queue);
     rfc_slots[i].incoming_queue = NULL;
   }
+
+  uid_set = NULL;
 }
 
 static rfc_slot_t* find_free_slot(void) {
