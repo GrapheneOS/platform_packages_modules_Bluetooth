@@ -97,7 +97,7 @@ public final class HeadsetClientHalConstants {
     static final int CMD_COMPLETE_ERROR_BUSY = 3;
     static final int CMD_COMPLETE_ERROR_NO_ANSWER = 4;
     static final int CMD_COMPLETE_ERROR_DELAYED = 5;
-    static final int CMD_COMPLETE_ERROR_BLACKLISTED = 6;
+    static final int CMD_COMPLETE_ERROR_REJECTLISTED = 6;
     static final int CMD_COMPLETE_ERROR_CME = 7;
 
     // match up with bthf_client_call_action_t enum of bt_hf_client.h

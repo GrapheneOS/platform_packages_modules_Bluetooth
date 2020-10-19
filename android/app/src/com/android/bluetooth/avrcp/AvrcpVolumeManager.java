@@ -39,7 +39,7 @@ class AvrcpVolumeManager extends AudioDeviceCallback {
 
     // All volumes are stored at system volume values, not AVRCP values
     private static final String VOLUME_MAP = "bluetooth_volume_map";
-    private static final String VOLUME_BLACKLIST = "absolute_volume_blacklist";
+    private static final String VOLUME_REJECTLIST = "absolute_volume_rejectlist";
     private static final String VOLUME_CHANGE_LOG_TITLE = "Volume Events";
     private static final int AVRCP_MAX_VOL = 127;
     private static final int STREAM_MUSIC = AudioManager.STREAM_MUSIC;
