@@ -18,8 +18,8 @@
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="permlab_bluetoothShareManager" msgid="311492132450338925">"Truy cập trình quản lý tải xuống."</string>
     <string name="permdesc_bluetoothShareManager" msgid="8930572979123190223">"Cho phép ứng dụng truy cập trình quản lý BluetoothShare và sử dụng trình quản lý đó để chuyển tệp."</string>
-    <string name="permlab_bluetoothAcceptlist" msgid="7091552898592306386">"Truy cập thiết bị bluetooth nằm trong danh sách trắng."</string>
-    <string name="permdesc_bluetoothAcceptlist" msgid="5494513855192170109">"Cho phép ứng dụng tạm thời đưa thiết bị Bluetooth vào danh sách trắng, cho phép thiết bị đó gửi các tệp tới thiết bị này mà không cần xác nhận của người dùng."</string>
+    <string name="permlab_bluetoothAcceptlist" msgid="2647575807648622053">"Quyền sử dụng thiết bị Bluetooth trong danh sách chấp nhận."</string>
+    <string name="permdesc_bluetoothAcceptlist" msgid="2406423665674766442">"Cho phép ứng dụng tạm thời đưa một thiết bị Bluetooth vào danh sách chấp nhận và để thiết bị đó gửi tệp tới thiết bị này mà không cần người dùng xác nhận."</string>
     <string name="bt_share_picker_label" msgid="6268100924487046932">"Bluetooth"</string>
     <string name="unknown_device" msgid="9221903979877041009">"Thiết bị không xác định"</string>
     <string name="unknownNumber" msgid="4994750948072751566">"Không xác định"</string>

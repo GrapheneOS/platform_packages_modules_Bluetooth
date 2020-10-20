@@ -18,8 +18,8 @@
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="permlab_bluetoothShareManager" msgid="311492132450338925">"ចូល​ដំណើរ​ការ​កម្មវិធី​គ្រប់គ្រង​ការ​ទាញ​យក​។"</string>
     <string name="permdesc_bluetoothShareManager" msgid="8930572979123190223">"អនុញ្ញាត​ឲ្យ​កម្មវិធី​ត្រូវ​​ចូល​ដំណើរការ​កម្មវិធី​គ្រប់គ្រង BluetoothShare ហើយ​​ប្រើ​វា​ដើម្បី​ផ្ទេរ​ឯកសារ។"</string>
-    <string name="permlab_bluetoothAcceptlist" msgid="7091552898592306386">"បញ្ជី​ស​ការ​ចូល​ដំណើរការ​ប៊្លូធូស។"</string>
-    <string name="permdesc_bluetoothAcceptlist" msgid="5494513855192170109">"​ឲ្យ​កម្មវិធី​ដាក់​ឧបករណ៍​ប៊្លូធូស​ក្នុង​បញ្ជី​បណ្ដោះអាសន្ន​ ដែល​អនុញ្ញាត​ឲ្យ​ឧបករណ៍​​នោះ ​ផ្ញើ​ឯកសារ​ទៅ​​កាន់​ឧបករណ៍​​​ដោយ​មិន​ចាំបាច់​ការ​បញ្ជាក់​​អ្នក​ប្រើ។"</string>
+    <string name="permlab_bluetoothAcceptlist" msgid="2647575807648622053">"សិទ្ធិ​ចូលប្រើ​ឧបករណ៍​ប៊្លូធូស​ក្នុងបញ្ជី​អនុញ្ញាត​។"</string>
+    <string name="permdesc_bluetoothAcceptlist" msgid="2406423665674766442">"អនុញ្ញាតឱ្យ​កម្មវិធី​ដាក់​ឧបករណ៍​ប៊្លូធូស​ក្នុង​បញ្ជីអនុញ្ញាតជា​បណ្ដោះអាសន្ន​ ដែល​អនុញ្ញាត​ឱ្យ​ឧបករណ៍​នោះ​ផ្ញើ​ឯកសារ​ទៅ​ឧបករណ៍​​នេះដោយ​មិន​ចាំបាច់​បញ្ជាក់​អ្នកប្រើប្រាស់​។"</string>
     <string name="bt_share_picker_label" msgid="6268100924487046932">"ប៊្លូធូស"</string>
     <string name="unknown_device" msgid="9221903979877041009">"មិន​ស្គាល់​ឧបករណ៍"</string>
     <string name="unknownNumber" msgid="4994750948072751566">"មិន​ស្គាល់"</string>

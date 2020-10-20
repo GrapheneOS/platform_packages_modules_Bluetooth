@@ -18,8 +18,8 @@
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="permlab_bluetoothShareManager" msgid="311492132450338925">"Endirmə menecerinə daxil olun."</string>
     <string name="permdesc_bluetoothShareManager" msgid="8930572979123190223">"Tətbiq BluetoothPaylaşım menecerinə daxil ola və faylları ötürmək üçün ondan istifadə edə bilər."</string>
-    <string name="permlab_bluetoothAcceptlist" msgid="7091552898592306386">"Bluetooth cihazına girişi ağ siyahıya salın."</string>
-    <string name="permdesc_bluetoothAcceptlist" msgid="5494513855192170109">"Tətbiq Bluetooth cihazını müvəqqəti olaraq ağ siyahıya daxil edə bilər, bununla həmin cihaz istifadəçi təsdiqi olmadan bu cihaza fayllar göndərə biləcək."</string>
+    <string name="permlab_bluetoothAcceptlist" msgid="2647575807648622053">"Bluetooth cihazı girişini qəbul siyahısına daxil edin."</string>
+    <string name="permdesc_bluetoothAcceptlist" msgid="2406423665674766442">"Tətbiqin Bluetooth cihazını müvəqqəti olaraq qəbul siyahısına daxil etməsinə imkan verir, bununla həmin cihaz istifadəçi təsdiqi olmadan bu cihaza fayllar göndərə biləcək."</string>
     <string name="bt_share_picker_label" msgid="6268100924487046932">"Bluetooth"</string>
     <string name="unknown_device" msgid="9221903979877041009">"Naməlum cihaz"</string>
     <string name="unknownNumber" msgid="4994750948072751566">"Naməlum"</string>

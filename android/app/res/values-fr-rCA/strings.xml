@@ -18,8 +18,8 @@
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="permlab_bluetoothShareManager" msgid="311492132450338925">"Accéder au gestionnaire de téléchargement."</string>
     <string name="permdesc_bluetoothShareManager" msgid="8930572979123190223">"Permet à l\'application d\'accéder au gestionnaire BluetoothShare et de l\'utiliser pour le transfert de fichiers."</string>
-    <string name="permlab_bluetoothAcceptlist" msgid="7091552898592306386">"Ajouter des appareils Bluetooth à la liste blanche."</string>
-    <string name="permdesc_bluetoothAcceptlist" msgid="5494513855192170109">"Permet à l\'application d\'ajouter temporairement un appareil Bluetooth à la liste blanche. Ainsi, celui-ci peut envoyer des fichiers à cet appareil sans que la confirmation de l\'utilisateur soit nécessaire."</string>
+    <string name="permlab_bluetoothAcceptlist" msgid="2647575807648622053">"Ajouter l\'accès d\'un appareil Bluetooth à la liste verte."</string>
+    <string name="permdesc_bluetoothAcceptlist" msgid="2406423665674766442">"Permet à l\'application d\'ajouter temporairement un appareil Bluetooth à la liste verte afin que celui-ci puisse envoyer des fichiers à cet appareil sans que la confirmation de l\'utilisateur soit nécessaire."</string>
     <string name="bt_share_picker_label" msgid="6268100924487046932">"Bluetooth"</string>
     <string name="unknown_device" msgid="9221903979877041009">"Périphérique inconnu"</string>
     <string name="unknownNumber" msgid="4994750948072751566">"Inconnu"</string>

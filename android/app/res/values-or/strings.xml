@@ -18,8 +18,8 @@
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="permlab_bluetoothShareManager" msgid="311492132450338925">"ଡାଉନଲୋଡ୍‌ ମ୍ୟାନେଜର୍‌କୁ ଆକ୍ସେସ୍‌ କରନ୍ତୁ।"</string>
     <string name="permdesc_bluetoothShareManager" msgid="8930572979123190223">"BluetoothShare ମ୍ୟାନେଜର୍‌ ଆକ୍ସେସ୍‌ କରି ଫାଇଲ୍‌ଗୁଡ଼ିକ ଟ୍ରାନ୍ସଫର୍‌ କରିବାକୁ ବ୍ୟବହାର କରିବା ପାଇଁ ଆପ୍‌କୁ ଅନୁମତି ଦିଅନ୍ତୁ।"</string>
-    <string name="permlab_bluetoothAcceptlist" msgid="7091552898592306386">"ବ୍ଲୁଟୂଥ୍‍‌ ଡିଭାଇସ୍‌ ଆକ୍ସେସ୍‌କୁ ସ୍ୱୀକୃତି ଦିଅନ୍ତୁ।"</string>
-    <string name="permdesc_bluetoothAcceptlist" msgid="5494513855192170109">"ୟୁଜର୍‌ଙ୍କ ସୁନିଶ୍ଚିତତା ବିନା ଏହି ଡିଭାଇସ୍‌କୁ ଫାଇଲ୍‌ ପଠାଇବା ନିମନ୍ତେ ଗୋଟିଏ ବ୍ଲୁଟୂଥ୍‍‌ ଡିଭାଇସ୍‌କୁ ଅନୁମତି ଦେଇ କିଛି ସମୟ ପାଇଁ ଆପ୍‌କୁ ସ୍ୱୀକୃତି ଦେଇଥାଏ।"</string>
+    <string name="permlab_bluetoothAcceptlist" msgid="2647575807648622053">"ବ୍ଲୁଟୁଥ୍ ଡିଭାଇସର ଆକ୍ସେସକୁ ଗ୍ରହଣ-ସୂଚୀରେ ରଖନ୍ତୁ।"</string>
+    <string name="permdesc_bluetoothAcceptlist" msgid="2406423665674766442">"ଏକ ବ୍ଲୁଟୁଥ୍ ଡିଭାଇସକୁ ଅସ୍ଥାୟୀ ଭାବେ ଗ୍ରହଣ-ସୂଚୀରେ ରଖିବାକୁ ଆପଟିକୁ ଅନୁମତି ଦେଇଥାଏ, ଯାହା ଦ୍ୱାରା ଉପଯୋଗକର୍ତ୍ତାଙ୍କ ସୁନିଶ୍ଚିତକରଣ ବିନା ଏହି ଡିଭାଇସକୁ ଫାଇଲ୍ ପଠାଇବା ପାଇଁ ସେହି ଡିଭାଇସକୁ ଅନୁମତି ମିଳିଥାଏ।"</string>
     <string name="bt_share_picker_label" msgid="6268100924487046932">"ବ୍ଲୁଟୁଥ"</string>
     <string name="unknown_device" msgid="9221903979877041009">"ଅଜଣା ଡିଭାଇସ୍"</string>
     <string name="unknownNumber" msgid="4994750948072751566">"ଅଜଣା"</string>

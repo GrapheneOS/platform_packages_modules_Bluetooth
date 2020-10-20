@@ -18,8 +18,8 @@
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="permlab_bluetoothShareManager" msgid="311492132450338925">"Доступ да Менеджара спамповак."</string>
     <string name="permdesc_bluetoothShareManager" msgid="8930572979123190223">"Дазваляе прыкладанням атрымліваць доступ да менеджэра BluetoothShare і выкарыстоўваць яго для перадачы файлаў."</string>
-    <string name="permlab_bluetoothAcceptlist" msgid="7091552898592306386">"Даданне прылад Bluetooth у белы спiс."</string>
-    <string name="permdesc_bluetoothAcceptlist" msgid="5494513855192170109">"Дазваляе прыкладанням часова ўносiць у белы спіс прылады Bluetooth, дазваляючы iм адпраўляць файлы на гэту прыладу без пацверджання карыстальнiка."</string>
+    <string name="permlab_bluetoothAcceptlist" msgid="2647575807648622053">"Уносьце ў белы спіс прылады з Bluetooth."</string>
+    <string name="permdesc_bluetoothAcceptlist" msgid="2406423665674766442">"Дазваляе праграме часова ўносіць у белы спіс прылады з Bluetooth, дазваляючы ім адпраўляць файлы на гэтую прыладу без пацвярджэння карыстальніка."</string>
     <string name="bt_share_picker_label" msgid="6268100924487046932">"Bluetooth"</string>
     <string name="unknown_device" msgid="9221903979877041009">"Невядомая прылада"</string>
     <string name="unknownNumber" msgid="4994750948072751566">"Невядомы"</string>

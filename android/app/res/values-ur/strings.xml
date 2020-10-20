@@ -18,8 +18,8 @@
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="permlab_bluetoothShareManager" msgid="311492132450338925">"ڈاؤن لوڈ مینیجر تک رسائی حاصل کریں۔"</string>
     <string name="permdesc_bluetoothShareManager" msgid="8930572979123190223">"‏ایپ کو فائلیں منتقل کرنے کیلئے BluetoothShare مینیجر تک رسائی اور اسے استعمال کرنے کی اجازت دیتا ہے۔"</string>
-    <string name="permlab_bluetoothAcceptlist" msgid="7091552898592306386">"بلوٹوتھ آلہ کی رسائی کو وہائٹ لسٹ کریں۔"</string>
-    <string name="permdesc_bluetoothAcceptlist" msgid="5494513855192170109">"آلہ کو عارضی طور پر کسی بلوٹوتھ آلہ کو وہائٹ لسٹ کرنے کی اجازت دیتا ہے، اور اس آلہ کو صارف کی توثیق کے بغیر اس آلہ پر فائلیں بھیجنے دیتا ہے۔"</string>
+    <string name="permlab_bluetoothAcceptlist" msgid="2647575807648622053">"بلوٹوتھ آلہ تک رسائی کو فہرست قبول کریں۔"</string>
+    <string name="permdesc_bluetoothAcceptlist" msgid="2406423665674766442">"آلے کو عارضی طور پر ایک بلوٹوتھ آلہ کو فہرست قبول کرنے کی اجازت دیتا ہے اور اس آلہ کو صارف کی توثیق کے بغیر اس آلہ پر فائلز بھیجنے دیتا ہے۔"</string>
     <string name="bt_share_picker_label" msgid="6268100924487046932">"بلوٹوتھ"</string>
     <string name="unknown_device" msgid="9221903979877041009">"نامعلوم آلہ"</string>
     <string name="unknownNumber" msgid="4994750948072751566">"نامعلوم"</string>

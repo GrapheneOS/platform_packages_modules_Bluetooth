@@ -18,8 +18,8 @@
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="permlab_bluetoothShareManager" msgid="311492132450338925">"डाउनलोड म्यानेजर पहुँच गर्नुहोस्।"</string>
     <string name="permdesc_bluetoothShareManager" msgid="8930572979123190223">"एपलाई ब्लुटुथसाझेदारी प्रबन्धक पहुँचको अनुमति दिन्छ र यसलाई फाइलहरू स्थानान्तरण गर्न प्रयोग गर्दछ।"</string>
-    <string name="permlab_bluetoothAcceptlist" msgid="7091552898592306386">"स्वेतसूची ब्लुटुथ उपकरण पहुँच।"</string>
-    <string name="permdesc_bluetoothAcceptlist" msgid="5494513855192170109">"त्यस उपकरणलाई यस उपकरणमा फाइलहरू पठाउन बिना कुनै पुष्टि अनुमति दिँदै एपलाई अस्थायी रूपमा ब्लुटुथ उपकरणलाई स्वेतसूचीमा राख्न अनुमति दिन्छ।"</string>
+    <string name="permlab_bluetoothAcceptlist" msgid="2647575807648622053">"ब्लुटूथ चल्ने यन्त्रको एक्सेस श्वेतसूचीमा राख्नुहोस्।"</string>
+    <string name="permdesc_bluetoothAcceptlist" msgid="2406423665674766442">"यो सेटिङले यस एपलाई केही समयका लागि ब्लुटुथ चल्ने कुनै यन्त्र श्वेतसूचीमा राख्ने अनुमति दिन्छ। यस प्रकार श्वेतसूचीमा राखिएको उक्त यन्त्रले प्रयोगकर्ताको अनुमति नलिइकन यो यन्त्रमा फाइलहरू पठाउन सक्छ।"</string>
     <string name="bt_share_picker_label" msgid="6268100924487046932">"ब्लुटुथ"</string>
     <string name="unknown_device" msgid="9221903979877041009">"अज्ञात उपकरण"</string>
     <string name="unknownNumber" msgid="4994750948072751566">"अज्ञात"</string>
