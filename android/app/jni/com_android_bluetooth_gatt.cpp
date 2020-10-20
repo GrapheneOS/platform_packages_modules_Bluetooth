@@ -774,6 +774,95 @@ static const btgatt_callbacks_t sGattCallbacks = {
     &sGattScannerCallbacks,
 };
 
+class JniAdvertisingCallbacks : AdvertisingCallbacks {
+ public:
+  static AdvertisingCallbacks* GetInstance() {
+    static AdvertisingCallbacks* instance = new JniAdvertisingCallbacks();
+    return instance;
+  }
+
+  void OnAdvertisingSetStarted(int reg_id, uint8_t advertiser_id,
+                               int8_t tx_power, uint8_t status) {
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
+    sCallbackEnv->CallVoidMethod(mAdvertiseCallbacksObj,
+                                 method_onAdvertisingSetStarted, reg_id,
+                                 advertiser_id, tx_power, status);
+  }
+
+  void OnAdvertisingEnabled(uint8_t advertiser_id, bool enable,
+                            uint8_t status) {
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
+    sCallbackEnv->CallVoidMethod(mAdvertiseCallbacksObj,
+                                 method_onAdvertisingEnabled, advertiser_id,
+                                 enable, status);
+  }
+
+  void OnAdvertisingDataSet(uint8_t advertiser_id, uint8_t status) {
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
+    sCallbackEnv->CallVoidMethod(mAdvertiseCallbacksObj,
+                                 method_onAdvertisingDataSet, advertiser_id,
+                                 status);
+  }
+
+  void OnScanResponseDataSet(uint8_t advertiser_id, uint8_t status) {
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
+    sCallbackEnv->CallVoidMethod(mAdvertiseCallbacksObj,
+                                 method_onScanResponseDataSet, advertiser_id,
+                                 status);
+  }
+
+  void OnAdvertisingParametersUpdated(uint8_t advertiser_id, int8_t tx_power,
+                                      uint8_t status) {
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
+    sCallbackEnv->CallVoidMethod(mAdvertiseCallbacksObj,
+                                 method_onAdvertisingParametersUpdated,
+                                 advertiser_id, tx_power, status);
+  }
+
+  void OnPeriodicAdvertisingParametersUpdated(uint8_t advertiser_id,
+                                              uint8_t status) {
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
+    sCallbackEnv->CallVoidMethod(mAdvertiseCallbacksObj,
+                                 method_onPeriodicAdvertisingParametersUpdated,
+                                 advertiser_id, status);
+  }
+
+  void OnPeriodicAdvertisingDataSet(uint8_t advertiser_id, uint8_t status) {
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
+    sCallbackEnv->CallVoidMethod(mAdvertiseCallbacksObj,
+                                 method_onPeriodicAdvertisingDataSet,
+                                 advertiser_id, status);
+  }
+
+  void OnPeriodicAdvertisingEnabled(uint8_t advertiser_id, bool enable,
+                                    uint8_t status) {
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
+    sCallbackEnv->CallVoidMethod(mAdvertiseCallbacksObj,
+                                 method_onPeriodicAdvertisingEnabled,
+                                 advertiser_id, enable, status);
+  }
+
+  void OnOwnAddressRead(uint8_t advertiser_id, uint8_t address_type,
+                        RawAddress address) {
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
+
+    ScopedLocalRef<jstring> addr(sCallbackEnv.get(),
+                                 bdaddr2newjstr(sCallbackEnv.get(), &address));
+    sCallbackEnv->CallVoidMethod(mAdvertiseCallbacksObj,
+                                 method_onOwnAddressRead, advertiser_id,
+                                 address_type, addr.get());
+  }
+};
+
 /**
  * Native function definitions
  */
@@ -923,6 +1012,9 @@ static void initializeNative(JNIEnv* env, jobject object) {
     sGattIf = NULL;
     return;
   }
+
+  sGattIf->advertiser->RegisterCallbacks(
+      JniAdvertisingCallbacks::GetInstance());
 
   mCallbacksObj = env->NewGlobalRef(object);
 }
@@ -1837,8 +1929,8 @@ static void startAdvertisingSetNative(JNIEnv* env, jobject object,
   env->ReleaseByteArrayElements(periodic_data, periodic_data_data, JNI_ABORT);
 
   sGattIf->advertiser->StartAdvertisingSet(
-      base::Bind(&ble_advertising_set_started_cb, reg_id), params, data_vec,
-      scan_resp_vec, periodicParams, periodic_data_vec, duration,
+      reg_id, base::Bind(&ble_advertising_set_started_cb, reg_id), params,
+      data_vec, scan_resp_vec, periodicParams, periodic_data_vec, duration,
       maxExtAdvEvents, base::Bind(ble_advertising_set_timeout_cb));
 }
 
