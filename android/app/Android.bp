@@ -42,6 +42,7 @@ cc_library_shared {
 
 android_app {
     name: "Bluetooth",
+    defaults: ["platform_app_defaults"],
 
     srcs: [
         "src/**/*.java",
