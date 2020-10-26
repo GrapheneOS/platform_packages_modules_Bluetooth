@@ -3063,6 +3063,7 @@ public class AdapterService extends Service {
     private static final String GD_HCI_FLAG = "INIT_gd_hci";
     private static final String GD_CONTROLLER_FLAG = "INIT_gd_controller";
     private static final String GD_ACL_FLAG = "INIT_gd_acl";
+    private static final String GD_L2CAP_FLAG = "INIT_gd_l2cap";
     /**
      * Logging flags logic (only applies to DEBUG and VERBOSE levels):
      * if LOG_TAG in LOGGING_DEBUG_DISABLED_FOR_TAGS_FLAG:
@@ -3100,6 +3101,9 @@ public class AdapterService extends Service {
         }
         if (DeviceConfig.getBoolean(DeviceConfig.NAMESPACE_BLUETOOTH, GD_ACL_FLAG, false)) {
             initFlags.add(String.format("%s=%s", GD_ACL_FLAG, "true"));
+        }
+        if (DeviceConfig.getBoolean(DeviceConfig.NAMESPACE_BLUETOOTH, GD_L2CAP_FLAG, false)) {
+            initFlags.add(String.format("%s=%s", GD_L2CAP_FLAG, "true"));
         }
         if (DeviceConfig.getBoolean(DeviceConfig.NAMESPACE_BLUETOOTH,
                 LOGGING_DEBUG_ENABLED_FOR_ALL_FLAG, false)) {
