@@ -21,6 +21,7 @@
 #include "osi/include/allocator.h"
 #include "stack/include/bt_types.h"
 #include "stack/include/hci_error_code.h"
+#include "types/ble_address_with_type.h"
 
 namespace bluetooth {
 
@@ -66,6 +67,12 @@ inline hci::AddressWithType ToAddressWithType(const RawAddress& legacy_address,
   }
 
   return hci::AddressWithType{address, type};
+}
+
+inline hci::AddressWithType ToAddressWithTypeFromLegacy(
+    const tBLE_BD_ADDR& legacy_address_with_type) {
+  return ToAddressWithType(legacy_address_with_type.bda,
+                           legacy_address_with_type.type);
 }
 
 inline tBLE_BD_ADDR ToLegacyAddressWithType(
