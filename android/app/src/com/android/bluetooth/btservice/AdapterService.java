@@ -42,6 +42,7 @@ import android.bluetooth.BluetoothProtoEnums;
 import android.bluetooth.BluetoothUuid;
 import android.bluetooth.IBluetooth;
 import android.bluetooth.IBluetoothCallback;
+import android.bluetooth.IBluetoothConnectionCallback;
 import android.bluetooth.IBluetoothMetadataListener;
 import android.bluetooth.IBluetoothSocketManager;
 import android.bluetooth.OobData;
@@ -113,7 +114,9 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class AdapterService extends Service {
     private static final String TAG = "BluetoothAdapterService";
@@ -206,6 +209,7 @@ public class AdapterService extends Service {
     private final HashMap<BluetoothDevice, ArrayList<IBluetoothMetadataListener>>
             mMetadataListeners = new HashMap<>();
     private final HashMap<String, Integer> mProfileServicesState = new HashMap<String, Integer>();
+    private Set<IBluetoothConnectionCallback> mBluetoothConnectionCallbacks = new HashSet<>();
     //Only BluetoothManagerService should be registered
     private RemoteCallbackList<IBluetoothCallback> mCallbacks;
     private int mCurrentRequestId;
@@ -1930,6 +1934,30 @@ public class AdapterService extends Service {
         }
 
         @Override
+        public boolean registerBluetoothConnectionCallback(IBluetoothConnectionCallback callback) {
+            AdapterService service = getService();
+            if (service == null || !callerIsSystemOrActiveUser(TAG,
+                    "registerBluetoothConnectionCallback")) {
+                return false;
+            }
+            enforceBluetoothPrivilegedPermission(service);
+            service.mBluetoothConnectionCallbacks.add(callback);
+            return true;
+        }
+
+        @Override
+        public boolean unregisterBluetoothConnectionCallback(
+                IBluetoothConnectionCallback callback) {
+            AdapterService service = getService();
+            if (service == null || !callerIsSystemOrActiveUser(TAG,
+                    "unregisterBluetoothConnectionCallback")) {
+                return false;
+            }
+            enforceBluetoothPrivilegedPermission(service);
+            return service.mBluetoothConnectionCallbacks.remove(callback);
+        }
+
+        @Override
         public void registerCallback(IBluetoothCallback callback) {
             AdapterService service = getService();
             if (service == null || !callerIsSystemOrActiveUser(TAG, "registerCallback")) {
@@ -2628,6 +2656,10 @@ public class AdapterService extends Service {
             return null;
         }
         return deviceProp.getUuids();
+    }
+
+    public Set<IBluetoothConnectionCallback> getBluetoothConnectionCallbacks() {
+        return mBluetoothConnectionCallbacks;
     }
 
     void logUserBondResponse(BluetoothDevice device, boolean accepted, int event) {
