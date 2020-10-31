@@ -59,7 +59,7 @@
     <string name="download_fail_line1" msgid="3846450148862894552">"Ֆայլը չհաջողվեց ստանալ"</string>
     <string name="download_fail_line2" msgid="8950394574689971071">"Ֆայլ՝ <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="download_fail_line3" msgid="3451040656154861722">"Պատճառը՝ <xliff:g id="REASON">%1$s</xliff:g>"</string>
-    <string name="download_fail_ok" msgid="1521733664438320300">"Հաստատել"</string>
+    <string name="download_fail_ok" msgid="1521733664438320300">"Եղավ"</string>
     <string name="download_succ_line5" msgid="4509944688281573595">"Ֆայլը ստացվել է"</string>
     <string name="download_succ_ok" msgid="7053688246357050216">"Բացել"</string>
     <string name="upload_line1" msgid="2055952074059709052">"Ում՝ «<xliff:g id="RECIPIENT">%1$s</xliff:g>»"</string>
