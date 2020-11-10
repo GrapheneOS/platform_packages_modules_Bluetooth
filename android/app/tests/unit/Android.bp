@@ -14,6 +14,7 @@ android_test {
     ],
 
     static_libs: [
+        "androidx.test.ext.truth",
         "androidx.test.rules",
         "mockito-target",
         "androidx.test.espresso.intents",
