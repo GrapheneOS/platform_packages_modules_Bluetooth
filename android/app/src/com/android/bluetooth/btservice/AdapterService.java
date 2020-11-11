@@ -84,6 +84,7 @@ import com.android.bluetooth.Utils;
 import com.android.bluetooth.a2dp.A2dpService;
 import com.android.bluetooth.a2dpsink.A2dpSinkService;
 import com.android.bluetooth.btservice.RemoteDevices.DeviceProperties;
+import com.android.bluetooth.btservice.activityattribution.ActivityAttributionService;
 import com.android.bluetooth.btservice.bluetoothkeystore.BluetoothKeystoreService;
 import com.android.bluetooth.btservice.storage.DatabaseManager;
 import com.android.bluetooth.btservice.storage.MetadataDatabase;
@@ -234,6 +235,7 @@ public class AdapterService extends Service {
     private BluetoothKeystoreService mBluetoothKeystoreService;
     private A2dpService mA2dpService;
     private A2dpSinkService mA2dpSinkService;
+    private ActivityAttributionService mActivityAttributionService;
     private HeadsetService mHeadsetService;
     private HeadsetClientService mHeadsetClientService;
     private BluetoothMapService mMapService;
@@ -444,6 +446,8 @@ public class AdapterService extends Service {
         mJniCallbacks = new JniCallbacks(this, mAdapterProperties);
         mBluetoothKeystoreService = new BluetoothKeystoreService(isNiapMode());
         mBluetoothKeystoreService.start();
+        mActivityAttributionService = new ActivityAttributionService();
+        mActivityAttributionService.start();
         int configCompareResult = mBluetoothKeystoreService.getCompareResult();
 
         // Android TV doesn't show consent dialogs for just works and encryption only le pairing
@@ -464,6 +468,7 @@ public class AdapterService extends Service {
                 ServiceManager.getService(BatteryStats.SERVICE_NAME));
 
         mBluetoothKeystoreService.initJni();
+        mActivityAttributionService.initJni();
 
         mSdpManager = SdpManager.init(this);
         registerReceiver(mAlarmBroadcastReceiver, new IntentFilter(ACTION_ALARM_WAKEUP));
@@ -764,6 +769,10 @@ public class AdapterService extends Service {
 
         if (mBluetoothKeystoreService != null) {
             mBluetoothKeystoreService.cleanup();
+        }
+
+        if (mActivityAttributionService != null) {
+            mActivityAttributionService.cleanup();
         }
 
         if (mNativeAvailable) {
