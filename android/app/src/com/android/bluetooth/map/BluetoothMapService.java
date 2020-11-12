@@ -950,7 +950,8 @@ public class BluetoothMapService extends ProfileService {
         }
         mRemoveTimeoutMsg = true;
         Intent timeoutIntent = new Intent(USER_CONFIRM_TIMEOUT_ACTION);
-        PendingIntent pIntent = PendingIntent.getBroadcast(this, 0, timeoutIntent, 0);
+        PendingIntent pIntent = PendingIntent.getBroadcast(this, 0, timeoutIntent,
+                PendingIntent.FLAG_IMMUTABLE);
         mAlarmManager.set(AlarmManager.RTC_WAKEUP,
                 System.currentTimeMillis() + USER_CONFIRM_TIMEOUT_VALUE, pIntent);
     }
@@ -960,7 +961,8 @@ public class BluetoothMapService extends ProfileService {
             Log.d(TAG, "cancelUserTimeOutAlarm()");
         }
         Intent timeoutIntent = new Intent(USER_CONFIRM_TIMEOUT_ACTION);
-        PendingIntent pIntent = PendingIntent.getBroadcast(this, 0, timeoutIntent, 0);
+        PendingIntent pIntent = PendingIntent.getBroadcast(this, 0, timeoutIntent,
+                PendingIntent.FLAG_IMMUTABLE);
         pIntent.cancel();
 
         AlarmManager alarmManager = (AlarmManager) this.getSystemService(Context.ALARM_SERVICE);
