@@ -539,10 +539,8 @@ public class ScanManager {
 
             mAlarmManager = (AlarmManager) mService.getSystemService(Context.ALARM_SERVICE);
             Intent batchIntent = new Intent(ACTION_REFRESH_BATCHED_SCAN, null);
-            // TODO(b/171825892) Please replace FLAG_MUTABLE_UNAUDITED below
-            // with either FLAG_IMMUTABLE (recommended) or FLAG_MUTABLE.
             mBatchScanIntervalIntent = PendingIntent.getBroadcast(mService, 0, batchIntent,
-                    PendingIntent.FLAG_MUTABLE_UNAUDITED);
+                    PendingIntent.FLAG_IMMUTABLE);
             IntentFilter filter = new IntentFilter();
             filter.addAction(ACTION_REFRESH_BATCHED_SCAN);
             mBatchAlarmReceiver = new BroadcastReceiver() {

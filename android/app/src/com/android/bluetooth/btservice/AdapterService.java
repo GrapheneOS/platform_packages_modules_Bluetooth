@@ -2861,11 +2861,9 @@ public class AdapterService extends Service {
                     : AlarmManager.ELAPSED_REALTIME;
 
             Intent intent = new Intent(ACTION_ALARM_WAKEUP);
-            // TODO(b/171825892) Please replace FLAG_MUTABLE_UNAUDITED below
-            // with either FLAG_IMMUTABLE (recommended) or FLAG_MUTABLE.
             mPendingAlarm =
                     PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_ONE_SHOT
-                            | PendingIntent.FLAG_MUTABLE_UNAUDITED);
+                            | PendingIntent.FLAG_IMMUTABLE);
             mAlarmManager.setExact(type, wakeupTime, mPendingAlarm);
             return true;
         }
