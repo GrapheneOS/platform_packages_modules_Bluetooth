@@ -393,10 +393,14 @@ class PbapStateMachine extends StateMachine {
                                             mService.getTheme()))
                             .setFlag(Notification.FLAG_AUTO_CANCEL, true)
                             .setFlag(Notification.FLAG_ONLY_ALERT_ONCE, true)
+                            // TODO(b/171825892) Please replace FLAG_MUTABLE_UNAUDITED below
+                            // with either FLAG_IMMUTABLE (recommended) or FLAG_MUTABLE.
                             .setContentIntent(
-                                    PendingIntent.getActivity(mService, 0, clickIntent, 0))
+                                    PendingIntent.getActivity(mService, 0, clickIntent,
+                                        PendingIntent.FLAG_MUTABLE_UNAUDITED))
                             .setDeleteIntent(
-                                    PendingIntent.getBroadcast(mService, 0, deleteIntent, 0))
+                                    PendingIntent.getBroadcast(mService, 0, deleteIntent,
+                                        PendingIntent.FLAG_MUTABLE_UNAUDITED))
                             .setLocalOnly(true)
                             .build();
             nm.notify(mNotificationId, notification);
