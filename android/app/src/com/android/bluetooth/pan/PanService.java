@@ -206,11 +206,16 @@ public class PanService extends ProfileService {
                 break;
                 case MESSAGE_CONNECT_STATE_CHANGED: {
                     ConnectState cs = (ConnectState) msg.obj;
-                    BluetoothDevice device = getDevice(cs.addr);
+                    final BluetoothDevice device = getDevice(cs.addr);
                     // TBD get iface from the msg
                     if (DBG) {
                         Log.d(TAG,
                                 "MESSAGE_CONNECT_STATE_CHANGED: " + device + " state: " + cs.state);
+                    }
+                    // It could be null if the connection up is coming when the Bluetooth is turning
+                    // off.
+                    if (device == null) {
+                        break;
                     }
                     handlePanDeviceStateChange(device, mPanIfName /* iface */,
                             convertHalState(cs.state), cs.local_role, cs.remote_role);
