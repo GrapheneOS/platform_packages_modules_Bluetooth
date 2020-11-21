@@ -41,7 +41,6 @@ namespace security {
 class ISecurityManagerListener;
 
 static constexpr hci::IoCapability kDefaultIoCapability = hci::IoCapability::DISPLAY_YES_NO;
-static constexpr hci::OobDataPresent kDefaultOobDataPresent = hci::OobDataPresent::NOT_PRESENT;
 static constexpr hci::AuthenticationRequirements kDefaultAuthenticationRequirements =
     hci::AuthenticationRequirements::GENERAL_BONDING;
 
@@ -188,16 +187,15 @@ class SecurityManagerImpl : public channel::ISecurityManagerChannelListener, pub
   void SetDisconnectCallback(FacadeDisconnectCallback callback);
   void SetIoCapability(hci::IoCapability io_capability);
   void SetAuthenticationRequirements(hci::AuthenticationRequirements authentication_requirements);
-  void SetOobDataPresent(hci::OobDataPresent data_present);
   void SetLeIoCapability(security::IoCapability io_capability);
   void SetLeAuthRequirements(uint8_t auth_req);
   void SetLeMaximumEncryptionKeySize(uint8_t maximum_encryption_key_size);
   void SetLeOobDataPresent(OobDataFlag data_present);
-  void GetOutOfBandData(std::array<uint8_t, 16>* le_sc_confirmation_value, std::array<uint8_t, 16>* le_sc_random_value);
+  void GetLeOutOfBandData(std::array<uint8_t, 16>* confirmation_value, std::array<uint8_t, 16>* random_value);
   void SetOutOfBandData(
       hci::AddressWithType remote_address,
-      std::array<uint8_t, 16> le_sc_confirmation_value,
-      std::array<uint8_t, 16> le_sc_random_value);
+      std::array<uint8_t, 16> confirmation_value,
+      std::array<uint8_t, 16> random_value);
 
   void EnforceSecurityPolicy(hci::AddressWithType remote, l2cap::classic::SecurityPolicy policy,
                              l2cap::classic::SecurityEnforcementInterface::ResultCallback result_callback);
@@ -221,8 +219,9 @@ class SecurityManagerImpl : public channel::ISecurityManagerChannelListener, pub
       std::shared_ptr<record::SecurityRecord> record,
       bool locally_initiated,
       hci::IoCapability io_capability,
-      hci::OobDataPresent oob_present,
-      hci::AuthenticationRequirements auth_requirements);
+      hci::AuthenticationRequirements auth_requirements,
+      pairing::OobData remote_p192_oob_data_,
+      pairing::OobData remote_p256_oob_data_);
   void OnL2capRegistrationCompleteLe(l2cap::le::FixedChannelManager::RegistrationResult result,
                                      std::unique_ptr<l2cap::le::FixedChannelService> le_smp_service);
   void OnSmpCommandLe(hci::AddressWithType device);
@@ -257,7 +256,6 @@ class SecurityManagerImpl : public channel::ISecurityManagerChannelListener, pub
   std::unordered_map<hci::Address, std::shared_ptr<pairing::PairingHandler>> pairing_handler_map_;
   hci::IoCapability local_io_capability_ = kDefaultIoCapability;
   hci::AuthenticationRequirements local_authentication_requirements_ = kDefaultAuthenticationRequirements;
-  hci::OobDataPresent local_oob_data_present_ = kDefaultOobDataPresent;
   security::IoCapability local_le_io_capability_ = security::IoCapability::KEYBOARD_DISPLAY;
   uint8_t local_le_auth_req_ = AuthReqMaskBondingFlag | AuthReqMaskMitm | AuthReqMaskSc;
   uint8_t local_maximum_encryption_key_size_ = 0x10;

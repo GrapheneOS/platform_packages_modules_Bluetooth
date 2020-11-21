@@ -31,7 +31,10 @@ from security.facade_pb2 import BondMsgType
 from security.facade_pb2 import SecurityPolicyMessage
 from security.facade_pb2 import IoCapabilities
 from security.facade_pb2 import IoCapabilityMessage
+from security.facade_pb2 import OobDataBondMessage
+from security.facade_pb2 import OobDataMessage
 from security.facade_pb2 import OobDataPresentMessage
+from security.facade_pb2 import UiMsgType
 from security.facade_pb2 import UiCallbackMsg
 from security.facade_pb2 import UiCallbackType
 
@@ -44,7 +47,7 @@ class PySecurity(Closable):
     _io_capabilities_name_lookup = {
         IoCapabilities.DISPLAY_ONLY: "DISPLAY_ONLY",
         IoCapabilities.DISPLAY_YES_NO_IO_CAP: "DISPLAY_YES_NO_IO_CAP",
-        #IoCapabilities.KEYBOARD_ONLY:"KEYBOARD_ONLY",
+        IoCapabilities.KEYBOARD_ONLY: "KEYBOARD_ONLY",
         IoCapabilities.NO_INPUT_NO_OUTPUT: "NO_INPUT_NO_OUTPUT",
     }
 
@@ -78,6 +81,27 @@ class PySecurity(Closable):
         self._device.security.CreateBond(
             common.BluetoothAddressWithType(address=common.BluetoothAddress(address=address), type=type))
 
+    def create_bond_out_of_band(self, address, type, p192_oob_data, p256_oob_data):
+        """
+            Triggers stack under test to create bond using Out of Band method
+        """
+
+        logging.debug("DUT: Creating OOB bond to '%s' from '%s'" % (str(address), str(self._device.address)))
+
+        self._device.security.CreateBondOutOfBand(
+            OobDataBondMessage(
+                address=common.BluetoothAddressWithType(address=common.BluetoothAddress(address=address), type=type),
+                p192_data=OobDataMessage(
+                    address=common.BluetoothAddressWithType(
+                        address=common.BluetoothAddress(address=address), type=type),
+                    confirmation_value=bytes(bytearray(p192_oob_data[0])),
+                    random_value=bytes(bytearray(p192_oob_data[1]))),
+                p256_data=OobDataMessage(
+                    address=common.BluetoothAddressWithType(
+                        address=common.BluetoothAddress(address=address), type=type),
+                    confirmation_value=bytes(bytearray(p256_oob_data[0])),
+                    random_value=bytes(bytearray(p256_oob_data[1])))))
+
     def remove_bond(self, address, type):
         """
             Removes bond from stack under test
@@ -100,13 +124,6 @@ class PySecurity(Closable):
         logging.debug("DUT: setting Authentication Requirements data to '%s'" % self._auth_reqs_name_lookup.get(
             auth_reqs, "ERROR"))
         self._device.security.SetAuthenticationRequirements(AuthenticationRequirementsMessage(requirement=auth_reqs))
-
-    def set_oob_data(self, data_present):
-        """
-            Set the Out-of-band data present flag for SSP pairing
-        """
-        logging.info("DUT: setting OOB data present to '%s'" % data_present)
-        self._device.security.SetOobDataPresent(OobDataPresentMessage(data_present=data_present))
 
     def send_ui_callback(self, address, callback_type, b, uid):
         """
@@ -140,6 +157,31 @@ class PySecurity(Closable):
             under test will handle the pairing flow.
         """
         pass
+
+    def accept_oob_pairing(self, cert_address, reply_boolean):
+        """
+            Here we pass, but in cert we perform pairing flow tasks.
+            This was added here in order to be more dynamic, but the stack
+            under test will handle the pairing flow.
+        """
+        pass
+
+    def wait_for_passkey(self, cert_address):
+        """
+            Respond to the UI event
+        """
+        passkey = -1
+
+        def get_unique_id(event):
+            if event.message_type == UiMsgType.DISPLAY_PASSKEY:
+                nonlocal passkey
+                passkey = event.numeric_value
+                return True
+            return False
+
+        logging.debug("DUT: Waiting for expected UI event")
+        assertThat(self._ui_event_stream).emits(get_unique_id)
+        return passkey
 
     def on_user_input(self, cert_address, reply_boolean, expected_ui_event):
         """
