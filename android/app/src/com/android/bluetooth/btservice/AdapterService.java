@@ -468,7 +468,6 @@ public class AdapterService extends Service {
                 ServiceManager.getService(BatteryStats.SERVICE_NAME));
 
         mBluetoothKeystoreService.initJni();
-        mActivityAttributionService.initJni();
 
         mSdpManager = SdpManager.init(this);
         registerReceiver(mAlarmBroadcastReceiver, new IntentFilter(ACTION_ALARM_WAKEUP));
