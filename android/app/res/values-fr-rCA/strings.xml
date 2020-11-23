@@ -111,10 +111,12 @@
     <string name="inbound_noti_title" msgid="4143352641953027595">"Partage Bluetooth : fichiers reçus"</string>
     <plurals name="noti_caption_unsuccessful" formatted="false" msgid="2020750076679526122">
       <item quantity="one">Échec de <xliff:g id="UNSUCCESSFUL_NUMBER_1">%1$d</xliff:g> élément.</item>
+      <item quantity="many"><xliff:g id="UNSUCCESSFUL_NUMBER_1">%1$d</xliff:g> unsuccessful.</item>
       <item quantity="other">Échec de <xliff:g id="UNSUCCESSFUL_NUMBER_1">%1$d</xliff:g> éléments.</item>
     </plurals>
     <plurals name="noti_caption_success" formatted="false" msgid="1572472450257645181">
       <item quantity="one">Réussite de <xliff:g id="SUCCESSFUL_NUMBER_1">%1$d</xliff:g> élément, %2$s</item>
+      <item quantity="many"><xliff:g id="SUCCESSFUL_NUMBER_1">%1$d</xliff:g> successful, %2$s</item>
       <item quantity="other">Réussite de <xliff:g id="SUCCESSFUL_NUMBER_1">%1$d</xliff:g> éléments, %2$s</item>
     </plurals>
     <string name="transfer_menu_clear_all" msgid="790017462957873132">"Effacer la liste"</string>
