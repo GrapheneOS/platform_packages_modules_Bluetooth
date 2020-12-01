@@ -24,7 +24,6 @@
 #include "com_android_bluetooth.h"
 #include "hardware/bt_activity_attribution.h"
 
-using bluetooth::activity_attribution::Activity;
 using bluetooth::activity_attribution::ActivityAttributionCallbacks;
 using bluetooth::activity_attribution::ActivityAttributionInterface;
 
@@ -41,7 +40,7 @@ class ActivityAttributionCallbacksImpl : public ActivityAttributionCallbacks {
  public:
   ~ActivityAttributionCallbacksImpl() = default;
 
-  void OnWakeup(Activity activity, const RawAddress& bd_addr) override {
+  void OnWakeup(const Activity activity, const RawAddress& bd_addr) override {
     LOG(INFO) << __func__;
 
     std::shared_lock<std::shared_timed_mutex> lock(callbacks_mutex);
@@ -107,7 +106,8 @@ static void initNative(JNIEnv* env, jobject object) {
     return;
   }
 
-  sActivityAttributionInterface->Init(&sActivityAttributionCallbacks);
+  sActivityAttributionInterface->RegisterCallbacks(
+      &sActivityAttributionCallbacks);
 }
 
 static void cleanupNative(JNIEnv* env, jobject object) {
