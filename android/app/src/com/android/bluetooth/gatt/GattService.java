@@ -1551,6 +1551,15 @@ public class GattService extends ProfileService {
         mScanManager.callbackDone(clientIf, status);
     }
 
+    ScanClient findBatchScanClientById(int scannerId) {
+        for (ScanClient client : mScanManager.getBatchScanQueue()) {
+            if (client.scannerId == scannerId) {
+                return client;
+            }
+        }
+        return null;
+    }
+
     void onBatchScanReports(int status, int scannerId, int reportType, int numRecords,
             byte[] recordData) throws RemoteException {
         if (DBG) {
@@ -1565,6 +1574,17 @@ public class GattService extends ProfileService {
             if (app == null) {
                 return;
             }
+
+            ScanClient client = findBatchScanClientById(scannerId);
+            if (client == null) {
+                return;
+            }
+
+            // Do not report if location mode is OFF or the client has no location permission
+            if (!hasScanResultPermission(client)) {
+                return;
+            }
+
             if (app.callback != null) {
                 app.callback.onBatchScanResults(new ArrayList<ScanResult>(results));
             } else {
@@ -1606,6 +1626,12 @@ public class GattService extends ProfileService {
         if (app == null) {
             return;
         }
+
+        // Do not report if location mode is OFF or the client has no location permission
+        if (!hasScanResultPermission(client)) {
+            return;
+        }
+
         if (client.filters == null || client.filters.isEmpty()) {
             sendBatchScanResults(app, client, new ArrayList<ScanResult>(allResults));
             // TODO: Question to reviewer: Shouldn't there be a return here?
