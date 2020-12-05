@@ -1633,6 +1633,15 @@ public class GattService extends ProfileService {
         mScanManager.callbackDone(clientIf, status);
     }
 
+    ScanClient findBatchScanClientById(int scannerId) {
+        for (ScanClient client : mScanManager.getBatchScanQueue()) {
+            if (client.scannerId == scannerId) {
+                return client;
+            }
+        }
+        return null;
+    }
+
     void onBatchScanReports(int status, int scannerId, int reportType, int numRecords,
             byte[] recordData) throws RemoteException {
         if (DBG) {
@@ -1647,12 +1656,36 @@ public class GattService extends ProfileService {
             if (app == null) {
                 return;
             }
+
+            ScanClient client = findBatchScanClientById(scannerId);
+            if (client == null) {
+                return;
+            }
+
+            ArrayList<ScanResult> permittedResults;
+            if (hasScanResultPermission(client)) {
+                permittedResults = new ArrayList<ScanResult>(results);
+            } else {
+                permittedResults = new ArrayList<ScanResult>();
+                for (ScanResult scanResult : results) {
+                    for (String associatedDevice : client.associatedDevices) {
+                        if (associatedDevice.equalsIgnoreCase(scanResult.getDevice()
+                                    .getAddress())) {
+                            permittedResults.add(scanResult);
+                        }
+                    }
+                }
+                if (permittedResults.isEmpty()) {
+                    return;
+                }
+            }
+
             if (app.callback != null) {
-                app.callback.onBatchScanResults(new ArrayList<ScanResult>(results));
+                app.callback.onBatchScanResults(permittedResults);
             } else {
                 // PendingIntent based
                 try {
-                    sendResultsByPendingIntent(app.info, new ArrayList<ScanResult>(results),
+                    sendResultsByPendingIntent(app.info, permittedResults,
                             ScanSettings.CALLBACK_TYPE_ALL_MATCHES);
                 } catch (PendingIntent.CanceledException e) {
                 }
@@ -1688,13 +1721,31 @@ public class GattService extends ProfileService {
         if (app == null) {
             return;
         }
+
+        ArrayList<ScanResult> permittedResults;
+        if (hasScanResultPermission(client)) {
+            permittedResults = new ArrayList<ScanResult>(allResults);
+        } else {
+            permittedResults = new ArrayList<ScanResult>();
+            for (ScanResult scanResult : allResults) {
+                for (String associatedDevice : client.associatedDevices) {
+                    if (associatedDevice.equalsIgnoreCase(scanResult.getDevice().getAddress())) {
+                        permittedResults.add(scanResult);
+                    }
+                }
+            }
+            if (permittedResults.isEmpty()) {
+                return;
+            }
+        }
+
         if (client.filters == null || client.filters.isEmpty()) {
-            sendBatchScanResults(app, client, new ArrayList<ScanResult>(allResults));
+            sendBatchScanResults(app, client, permittedResults);
             // TODO: Question to reviewer: Shouldn't there be a return here?
         }
         // Reconstruct the scan results.
         ArrayList<ScanResult> results = new ArrayList<ScanResult>();
-        for (ScanResult scanResult : allResults) {
+        for (ScanResult scanResult : permittedResults) {
             if (matchesFilters(client, scanResult)) {
                 results.add(scanResult);
             }
