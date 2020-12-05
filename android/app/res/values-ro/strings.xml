@@ -18,8 +18,8 @@
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="permlab_bluetoothShareManager" msgid="311492132450338925">"Accesați managerul de descărcare."</string>
     <string name="permdesc_bluetoothShareManager" msgid="8930572979123190223">"Permite aplicațiilor să acceseze managerul Distribuire prin Bluetooth și să-l utilizeze la transferul fișierelor."</string>
-    <string name="permlab_bluetoothAcceptlist" msgid="7091552898592306386">"Acces la dispozitivele Bluetooth din lista albă."</string>
-    <string name="permdesc_bluetoothAcceptlist" msgid="5494513855192170109">"Permite aplicației să treacă temporar pe lista albă un dispozitiv Bluetooth, permițându-i să trimită fișiere la acest dispozitiv fără confirmare din partea utilizatorului."</string>
+    <string name="permlab_bluetoothAcceptlist" msgid="2647575807648622053">"Acceptați accesul la dispozitivul Bluetooth."</string>
+    <string name="permdesc_bluetoothAcceptlist" msgid="2406423665674766442">"Permite aplicației să accepte temporar un dispozitiv Bluetooth, permițându-i să trimită fișiere pe acest dispozitiv fără confirmare din partea utilizatorului."</string>
     <string name="bt_share_picker_label" msgid="6268100924487046932">"Bluetooth"</string>
     <string name="unknown_device" msgid="9221903979877041009">"Dispozitiv necunoscut"</string>
     <string name="unknownNumber" msgid="4994750948072751566">"Necunoscut"</string>

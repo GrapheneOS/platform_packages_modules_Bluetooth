@@ -18,8 +18,8 @@
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="permlab_bluetoothShareManager" msgid="311492132450338925">"גישה למנהל ההורדות."</string>
     <string name="permdesc_bluetoothShareManager" msgid="8930572979123190223">"‏מאפשר לאפליקציה לגשת למנהל BluetoothShare ולהשתמש בו להעברת קבצים."</string>
-    <string name="permlab_bluetoothAcceptlist" msgid="7091552898592306386">"‏הכנס מכשיר Bluetooth לרשימה הלבנה."</string>
-    <string name="permdesc_bluetoothAcceptlist" msgid="5494513855192170109">"‏מאפשר לאפליקציה להכניס מכשיר Bluetooth באופן זמני לרשימה הלבנה, ובכך לאפשר למכשיר לשלוח קבצים למכשיר זה ללא אישור משתמש."</string>
+    <string name="permlab_bluetoothAcceptlist" msgid="2647575807648622053">"‏גישה לרשימת ההיתרים של מכשיר Bluetooth."</string>
+    <string name="permdesc_bluetoothAcceptlist" msgid="2406423665674766442">"‏התכונה הזו מאפשרת לאפליקציה להוסיף מכשיר Bluetooth לרשימת ההיתרים באופן זמני, ובכך לאפשר לאותו מכשיר לשלוח קבצים למכשיר זה ללא אישור משתמש."</string>
     <string name="bt_share_picker_label" msgid="6268100924487046932">"Bluetooth"</string>
     <string name="unknown_device" msgid="9221903979877041009">"מכשיר לא ידוע"</string>
     <string name="unknownNumber" msgid="4994750948072751566">"לא ידוע"</string>
