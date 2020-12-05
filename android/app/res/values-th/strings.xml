@@ -18,8 +18,8 @@
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="permlab_bluetoothShareManager" msgid="311492132450338925">"เข้าถึงตัวจัดการการดาวน์โหลด"</string>
     <string name="permdesc_bluetoothShareManager" msgid="8930572979123190223">"อนุญาตให้แอปพลิเคชันเข้าถึงและใช้ตัวจัดการ BluetoothShare เพื่อถ่ายโอนไฟล์"</string>
-    <string name="permlab_bluetoothAcceptlist" msgid="7091552898592306386">"รายการที่อนุญาตการเข้าถึงอุปกรณ์บลูทูธ"</string>
-    <string name="permdesc_bluetoothAcceptlist" msgid="5494513855192170109">"อนุญาตให้แอปบันทึกอุปกรณ์บลูทูธในรายการที่อนุญาตเป็นการชั่วคราว ซึ่งจะทำให้อุปกรณ์ดังกล่าวสามารถส่งไฟล์มายังอุปกรณ์นี้ได้โดยไม่ต้องยืนยันผู้ใช้"</string>
+    <string name="permlab_bluetoothAcceptlist" msgid="2647575807648622053">"รายการที่อนุญาตการเข้าถึงอุปกรณ์บลูทูธ"</string>
+    <string name="permdesc_bluetoothAcceptlist" msgid="2406423665674766442">"อนุญาตให้แอปบันทึกอุปกรณ์บลูทูธในรายการที่อนุญาตเป็นการชั่วคราว ซึ่งจะทำให้อุปกรณ์ดังกล่าวสามารถส่งไฟล์มายังอุปกรณ์นี้ได้โดยไม่ต้องยืนยันผู้ใช้"</string>
     <string name="bt_share_picker_label" msgid="6268100924487046932">"บลูทูธ"</string>
     <string name="unknown_device" msgid="9221903979877041009">"อุปกรณ์ที่ไม่รู้จัก"</string>
     <string name="unknownNumber" msgid="4994750948072751566">"ไม่รู้จัก"</string>
