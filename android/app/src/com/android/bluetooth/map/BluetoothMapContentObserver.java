@@ -2856,8 +2856,11 @@ public class BluetoothMapContentObserver {
                 sentIntent.putExtra(EXTRA_MESSAGE_SENT_TRANSPARENT, transparent);
                 sentIntent.putExtra(EXTRA_MESSAGE_SENT_RETRY, retry);
                 //sentIntent.setDataAndNormalize(btMmsUri);
+                // TODO(b/171825892) Please replace FLAG_MUTABLE_UNAUDITED below
+                // with either FLAG_IMMUTABLE (recommended) or FLAG_MUTABLE.
                 PendingIntent pendingSendIntent =
-                        PendingIntent.getBroadcast(mContext, 0, sentIntent, 0);
+                        PendingIntent.getBroadcast(mContext, 0, sentIntent,
+                                PendingIntent.FLAG_MUTABLE_UNAUDITED);
                 SmsManager.getDefault()
                         .sendMultimediaMessage(mContext, btMmsUri, null/*locationUrl*/,
                                 null/*configOverrides*/,
@@ -3204,9 +3207,12 @@ public class BluetoothMapContentObserver {
                         "message/" + Long.toString(msgInfo.id) + msgInfo.timestamp + i);
                 intentDelivery.putExtra(EXTRA_MESSAGE_SENT_HANDLE, msgInfo.id);
                 intentDelivery.putExtra(EXTRA_MESSAGE_SENT_TIMESTAMP, msgInfo.timestamp);
+                // TODO(b/171825892) Please replace FLAG_MUTABLE_UNAUDITED below
+                // with either FLAG_IMMUTABLE (recommended) or FLAG_MUTABLE.
                 PendingIntent pendingIntentDelivery =
                         PendingIntent.getBroadcast(mContext, 0, intentDelivery,
-                                PendingIntent.FLAG_UPDATE_CURRENT);
+                                PendingIntent.FLAG_UPDATE_CURRENT
+                                | PendingIntent.FLAG_MUTABLE_UNAUDITED);
 
                 intentSent = new Intent(ACTION_MESSAGE_SENT, null);
                 /* Add msgId and part number to ensure the intents are different, and we
@@ -3219,9 +3225,12 @@ public class BluetoothMapContentObserver {
                 intentSent.putExtra(EXTRA_MESSAGE_SENT_RETRY, msgInfo.retry);
                 intentSent.putExtra(EXTRA_MESSAGE_SENT_TRANSPARENT, msgInfo.transparent);
 
+                // TODO(b/171825892) Please replace FLAG_MUTABLE_UNAUDITED below
+                // with either FLAG_IMMUTABLE (recommended) or FLAG_MUTABLE.
                 PendingIntent pendingIntentSent =
                         PendingIntent.getBroadcast(mContext, 0, intentSent,
-                                PendingIntent.FLAG_UPDATE_CURRENT);
+                                PendingIntent.FLAG_UPDATE_CURRENT
+                                | PendingIntent.FLAG_MUTABLE_UNAUDITED);
 
                 // We use the same pending intent for all parts, but do not set the one shot flag.
                 deliveryIntents.add(pendingIntentDelivery);
