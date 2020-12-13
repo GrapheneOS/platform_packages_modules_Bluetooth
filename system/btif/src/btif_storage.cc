@@ -39,6 +39,7 @@
 #include <string.h>
 #include <time.h>
 
+#include "bta_groups.h"
 #include "bta_hd_api.h"
 #include "bta_hearing_aid_api.h"
 #include "bta_hh_api.h"
@@ -56,6 +57,7 @@
 
 using base::Bind;
 using bluetooth::Uuid;
+using bluetooth::groups::DeviceGroups;
 
 /*******************************************************************************
  *  Constants & Macros
@@ -83,6 +85,7 @@ using bluetooth::Uuid;
 #define BTIF_STORAGE_KEY_GATT_CLIENT_SUPPORTED "GattClientSupportedFeatures"
 #define BTIF_STORAGE_KEY_GATT_CLIENT_DB_HASH "GattClientDatabaseHash"
 #define BTIF_STORAGE_KEY_GATT_SERVER_SUPPORTED "GattServerSupportedFeatures"
+#define BTIF_STORAGE_DEVICE_GROUP_BIN "DeviceGroupBin"
 
 /* This is a local property to add a device found */
 #define BT_PROPERTY_REMOTE_DEVICE_TIMESTAMP 0xFF
@@ -1722,6 +1725,50 @@ uint8_t btif_storage_get_sr_supp_feat(const RawAddress& bd_addr) {
                    name.c_str(), value);
 
   return value;
+}
+
+/** Adds the bonded Le Audio device grouping info into the NVRAM */
+void btif_storage_add_groups(const RawAddress& addr) {
+  std::vector<uint8_t> group_info;
+  auto not_empty = DeviceGroups::GetForStorage(addr, group_info);
+
+  if (not_empty)
+    do_in_jni_thread(
+        FROM_HERE,
+        Bind(
+            [](const RawAddress& bd_addr, std::vector<uint8_t> group_info) {
+              auto bdstr = bd_addr.ToString();
+              btif_config_set_bin(bdstr, BTIF_STORAGE_DEVICE_GROUP_BIN,
+                                  group_info.data(), group_info.size());
+              btif_config_save();
+            },
+            addr, std::move(group_info)));
+}
+
+/** Deletes the bonded Le Audio device grouping info from the NVRAM */
+void btif_storage_remove_groups(const RawAddress& address) {
+  std::string addrstr = address.ToString();
+  btif_config_remove(addrstr, BTIF_STORAGE_DEVICE_GROUP_BIN);
+  btif_config_save();
+}
+
+/** Loads information about bonded group devices */
+void btif_storage_load_bonded_groups(void) {
+  for (const auto& bd_addr : btif_config_get_paired_devices()) {
+    auto name = bd_addr.ToString();
+    size_t buffer_size =
+        btif_config_get_bin_length(name, BTIF_STORAGE_DEVICE_GROUP_BIN);
+    if (buffer_size == 0) continue;
+
+    BTIF_TRACE_DEBUG("Grouped device:%s", name.c_str());
+
+    std::vector<uint8_t> in(buffer_size);
+    if (btif_config_get_bin(name, BTIF_STORAGE_DEVICE_GROUP_BIN, in.data(),
+                            &buffer_size)) {
+      do_in_main_thread(FROM_HERE, Bind(&DeviceGroups::AddFromStorage, bd_addr,
+                                        std::move(in)));
+    }
+  }
 }
 
 /*******************************************************************************

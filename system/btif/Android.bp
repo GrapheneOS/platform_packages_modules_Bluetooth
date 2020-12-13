@@ -353,6 +353,7 @@ cc_test {
           ":TestMockBtaAr",
           ":TestMockBtaAv",
           ":TestMockBtaGatt",
+          ":TestMockBtaGroups",
           ":TestMockBtaHd",
           ":TestMockBtaHearingAid",
           ":TestMockBtaHf",
