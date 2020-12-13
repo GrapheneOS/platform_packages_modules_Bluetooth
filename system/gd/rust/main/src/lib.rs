@@ -1,9 +1,8 @@
 //! Main BT lifecycle support
 
-use bt_hal::hal_module;
-use bt_hci::hci_module;
-use gddi::{module, Registry, RegistryBuilder};
+use gddi::{module, Registry, RegistryBuilder, Stoppable};
 use bt_hal::rootcanal_hal::RootcanalConfig;
+use bt_hal::snoop::{SnoopConfig, SnoopMode};
 use std::sync::Arc;
 use tokio::runtime::Runtime;
 use bt_common::GrpcFacade;
@@ -11,8 +10,8 @@ use bt_common::GrpcFacade;
 module! {
     stack_module,
     submodules {
-        hal_module,
-        hci_module,
+        bt_hal::hal_module,
+        bt_hci::hci_module,
     }
 }
 
@@ -39,13 +38,28 @@ impl Stack {
         }
     }
 
+    /// Configures snoop. If the path is provided, full logging is turned on
+    pub async fn configure_snoop(&self, path: Option<String>) {
+        let mut config = SnoopConfig::default();
+        if let Some(path) = path {
+            config.set_path(path);
+            config.set_mode(SnoopMode::Full);
+        }
+        self.registry.inject(config).await;
+    }
+
     /// Helper forwarding to underlying registry
-    pub async fn get<T: 'static + Clone + Send + Sync>(&self) -> T {
+    pub async fn get<T: 'static + Clone + Send + Sync + Stoppable>(&self) -> T {
         self.registry.get::<T>().await
     }
 
     /// Helper to get a grpc service
-    pub async fn get_grpc<T: 'static + Clone + Send + Sync + GrpcFacade>(&self) -> grpcio::Service {
+    pub async fn get_grpc<T: 'static + Clone + Send + Sync + GrpcFacade + Stoppable>(&self) -> grpcio::Service {
         self.get::<T>().await.into_grpc()
+    }
+
+    /// Stop the stack
+    pub async fn stop(&mut self) {
+        self.registry.stop_all().await;
     }
 }
