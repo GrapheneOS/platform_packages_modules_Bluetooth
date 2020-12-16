@@ -57,7 +57,7 @@ class ClassicPairingHandler : public PairingHandler {
         user_interface_handler_(user_interface_handler),
         device_name_(std::move(device_name)) {}
 
-  ~ClassicPairingHandler() override = default;
+  ~ClassicPairingHandler() = default;
 
   void Initiate(
       bool locally_initiated,
@@ -120,6 +120,7 @@ class ClassicPairingHandler : public PairingHandler {
   bool has_gotten_io_cap_response_ = false;
   bool has_gotten_name_response_ = false;
   std::optional<hci::UserConfirmationRequestView> user_confirmation_request_ = std::nullopt;
+  std::optional<hci::LinkKeyNotificationView> link_key_notification_ = std::nullopt;
 
   hci::ErrorCode last_status_ = hci::ErrorCode::UNKNOWN_HCI_COMMAND;
   bool locally_initiated_ = false;
