@@ -196,10 +196,7 @@ public class SapServer extends Thread implements Callback {
             /* Handle local disconnect procedures */
             if (discType == SapMessage.DISC_GRACEFULL) {
                 /* Update the notification to allow the user to initiate a force disconnect */
-                // TODO(b/171825892) Please replace FLAG_MUTABLE_UNAUDITED below
-                // with either FLAG_IMMUTABLE (recommended) or FLAG_MUTABLE.
-                setNotification(SapMessage.DISC_IMMEDIATE,
-                        PendingIntent.FLAG_CANCEL_CURRENT | PendingIntent.FLAG_MUTABLE_UNAUDITED);
+                setNotification(SapMessage.DISC_IMMEDIATE, PendingIntent.FLAG_CANCEL_CURRENT);
 
             } else if (discType == SapMessage.DISC_IMMEDIATE) {
                 /* Request an immediate disconnect, but start a timer to force disconnect if the
