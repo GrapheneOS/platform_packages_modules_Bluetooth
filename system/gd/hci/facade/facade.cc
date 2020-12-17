@@ -50,10 +50,9 @@ class HciLayerFacadeService : public HciLayerFacade::Service {
     }
   }
 
-  class TestCommandBuilder : public CommandPacketBuilder {
+  class TestCommandBuilder : public CommandBuilder {
    public:
-    explicit TestCommandBuilder(std::vector<uint8_t> bytes)
-        : CommandPacketBuilder(OpCode::NONE), bytes_(std::move(bytes)) {}
+    explicit TestCommandBuilder(std::vector<uint8_t> bytes) : CommandBuilder(OpCode::NONE), bytes_(std::move(bytes)) {}
     size_t size() const override {
       return bytes_.size();
     }
@@ -202,7 +201,7 @@ class HciLayerFacadeService : public HciLayerFacade::Service {
     pending_acl_events_.OnIncomingEvent(std::move(incoming));
   }
 
-  void on_event(hci::EventPacketView view) {
+  void on_event(hci::EventView view) {
     ASSERT(view.IsValid());
     LOG_INFO("Got an Event %s", EventCodeText(view.GetEventCode()).c_str());
     Event response;

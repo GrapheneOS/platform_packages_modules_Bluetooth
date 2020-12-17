@@ -32,10 +32,10 @@ void HciLayerFuzzClient::Start() {
   aclInject_ = new os::fuzz::FuzzInjectQueue<AclPacketBuilder>(hci_->GetAclQueueEnd(), GetHandler());
 
   // Can't do security right now, due to the Encryption Change conflict between ACL manager & security
-  // security_interface_ = hci_->GetSecurityInterface(common::Bind([](EventPacketView){}), GetHandler());
+  // security_interface_ = hci_->GetSecurityInterface(common::Bind([](EventView){}), GetHandler());
   le_security_interface_ = hci_->GetLeSecurityInterface(GetHandler()->Bind([](LeMetaEventView) {}));
   acl_connection_interface_ = hci_->GetAclConnectionInterface(
-      GetHandler()->Bind([](EventPacketView) {}),
+      GetHandler()->Bind([](EventView) {}),
       GetHandler()->Bind([](uint16_t, hci::ErrorCode) {}),
       GetHandler()->Bind([](uint16_t, uint8_t, uint16_t, uint16_t) {}));
   le_acl_connection_interface_ = hci_->GetLeAclConnectionInterface(
@@ -92,7 +92,7 @@ void HciLayerFuzzClient::injectAclData(std::vector<uint8_t> data) {
 }
 
 void HciLayerFuzzClient::injectHciCommand(std::vector<uint8_t> data) {
-  inject_command<CommandPacketView, CommandPacketBuilder>(data, hci_);
+  inject_command<CommandView, CommandBuilder>(data, hci_);
 }
 
 void HciLayerFuzzClient::injectSecurityCommand(std::vector<uint8_t> data) {

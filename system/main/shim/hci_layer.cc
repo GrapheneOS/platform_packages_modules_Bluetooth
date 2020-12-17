@@ -364,7 +364,7 @@ static BT_HDR* WrapPacketAndCopy(
   return packet;
 }
 
-static void event_callback(bluetooth::hci::EventPacketView event_packet_view) {
+static void event_callback(bluetooth::hci::EventView event_packet_view) {
   if (!send_data_upwards) {
     return;
   }
@@ -420,7 +420,7 @@ static void transmit_command(BT_HDR* command,
 
   auto payload = MakeUniquePacket(data, len);
   auto packet =
-      bluetooth::hci::CommandPacketBuilder::Create(op_code, std::move(payload));
+      bluetooth::hci::CommandBuilder::Create(op_code, std::move(payload));
 
   LOG_DEBUG("Sending command %s", bluetooth::hci::OpCodeText(op_code).c_str());
 
