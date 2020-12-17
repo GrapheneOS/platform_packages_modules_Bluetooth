@@ -185,7 +185,6 @@ public class HeadsetServiceAndStateMachineTest {
         doAnswer(invocation -> mBondedDevices.toArray(new BluetoothDevice[]{})).when(
                 mAdapterService).getBondedDevices();
         // Mock system interface
-        doNothing().when(mSystemInterface).init();
         doNothing().when(mSystemInterface).stop();
         when(mSystemInterface.getHeadsetPhoneState()).thenReturn(mPhoneState);
         when(mSystemInterface.getAudioManager()).thenReturn(mAudioManager);
