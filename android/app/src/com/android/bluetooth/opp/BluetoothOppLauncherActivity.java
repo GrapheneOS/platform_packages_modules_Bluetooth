@@ -32,6 +32,8 @@
 
 package com.android.bluetooth.opp;
 
+import static android.view.WindowManager.LayoutParams.SYSTEM_FLAG_HIDE_NON_SYSTEM_OVERLAY_WINDOWS;
+
 import android.app.Activity;
 import android.bluetooth.BluetoothDevicePicker;
 import android.content.ContentResolver;
@@ -73,6 +75,7 @@ public class BluetoothOppLauncherActivity extends Activity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        getWindow().addPrivateFlags(SYSTEM_FLAG_HIDE_NON_SYSTEM_OVERLAY_WINDOWS);
         Intent intent = getIntent();
         String action = intent.getAction();
         if (action == null) {
