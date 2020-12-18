@@ -32,6 +32,8 @@
 
 package com.android.bluetooth.pbap;
 
+import static android.view.WindowManager.LayoutParams.SYSTEM_FLAG_HIDE_NON_SYSTEM_OVERLAY_WINDOWS;
+
 import android.bluetooth.AlertActivity;
 import android.bluetooth.BluetoothDevice;
 import android.content.BroadcastReceiver;
@@ -102,6 +104,8 @@ public class BluetoothPbapActivity extends AlertActivity
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        getWindow().addPrivateFlags(SYSTEM_FLAG_HIDE_NON_SYSTEM_OVERLAY_WINDOWS);
         Intent i = getIntent();
         String action = i.getAction();
         mDevice = i.getParcelableExtra(BluetoothPbapService.EXTRA_DEVICE);

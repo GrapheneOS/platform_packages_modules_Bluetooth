@@ -16,6 +16,8 @@
 
 package android.bluetooth;
 
+import static android.view.WindowManager.LayoutParams.SYSTEM_FLAG_HIDE_NON_SYSTEM_OVERLAY_WINDOWS;
+
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -46,6 +48,8 @@ public abstract class AlertActivity extends Activity implements DialogInterface.
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        getWindow().addPrivateFlags(SYSTEM_FLAG_HIDE_NON_SYSTEM_OVERLAY_WINDOWS);
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         mAlertBuilder = new AlertDialog.Builder(this);
         mAlertBuilder.setOnDismissListener(this);
