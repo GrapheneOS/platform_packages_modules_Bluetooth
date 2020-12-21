@@ -82,7 +82,6 @@ import android.text.TextUtils;
 import android.util.Base64;
 import android.util.Log;
 import android.util.SparseArray;
-
 import com.android.bluetooth.BluetoothMetricsProto;
 import com.android.bluetooth.BluetoothStatsLog;
 import com.android.bluetooth.Utils;
@@ -93,6 +92,7 @@ import com.android.bluetooth.btservice.activityattribution.ActivityAttributionSe
 import com.android.bluetooth.btservice.bluetoothkeystore.BluetoothKeystoreService;
 import com.android.bluetooth.btservice.storage.DatabaseManager;
 import com.android.bluetooth.btservice.storage.MetadataDatabase;
+import com.android.bluetooth.csip.CsipSetCoordinatorService;
 import com.android.bluetooth.gatt.GattService;
 import com.android.bluetooth.hearingaid.HearingAidService;
 import com.android.bluetooth.hfp.HeadsetService;
@@ -274,6 +274,7 @@ public class AdapterService extends Service {
     private HearingAidService mHearingAidService;
     private SapService mSapService;
     private VolumeControlService mVolumeControlService;
+    private CsipSetCoordinatorService mCsipSetCoordinatorService;
 
     /**
      * Register a {@link ProfileService} with AdapterService.
@@ -918,6 +919,9 @@ public class AdapterService extends Service {
         if (profile == BluetoothProfile.VOLUME_CONTROL) {
             return Utils.arrayContains(remoteDeviceUuids, BluetoothUuid.VOLUME_CONTROL);
         }
+        if (profile == BluetoothProfile.CSIP_SET_COORDINATOR) {
+            return Utils.arrayContains(remoteDeviceUuids, BluetoothUuid.COORDINATED_SET);
+        }
 
         Log.e(TAG, "isSupported: Unexpected profile passed in to function: " + profile);
         return false;
@@ -971,7 +975,11 @@ public class AdapterService extends Service {
                 > BluetoothProfile.CONNECTION_POLICY_FORBIDDEN) {
             return true;
         }
-
+        if (mCsipSetCoordinatorService != null
+                && mCsipSetCoordinatorService.getConnectionPolicy(device)
+                        > BluetoothProfile.CONNECTION_POLICY_FORBIDDEN) {
+            return true;
+        }
         return false;
     }
 
@@ -1051,6 +1059,14 @@ public class AdapterService extends Service {
             Log.i(TAG, "connectEnabledProfiles: Connecting Volume Control Profile");
             mVolumeControlService.connect(device);
         }
+        if (mCsipSetCoordinatorService != null
+                && isSupported(localDeviceUuids, remoteDeviceUuids,
+                        BluetoothProfile.CSIP_SET_COORDINATOR, device)
+                && mCsipSetCoordinatorService.getConnectionPolicy(device)
+                        > BluetoothProfile.CONNECTION_POLICY_FORBIDDEN) {
+            Log.i(TAG, "connectEnabledProfiles: Connecting Coordinated Set Profile");
+            mCsipSetCoordinatorService.connect(device);
+        }
 
         return true;
     }
@@ -1089,6 +1105,7 @@ public class AdapterService extends Service {
         mHearingAidService = HearingAidService.getHearingAidService();
         mSapService = SapService.getSapService();
         mVolumeControlService = VolumeControlService.getVolumeControlService();
+        mCsipSetCoordinatorService = CsipSetCoordinatorService.getCsipSetCoordinatorService();
     }
 
     private boolean isAvailable() {
@@ -2660,6 +2677,14 @@ public class AdapterService extends Service {
                     BluetoothProfile.CONNECTION_POLICY_ALLOWED);
             numProfilesConnected++;
         }
+        if (mCsipSetCoordinatorService != null
+                && isSupported(localDeviceUuids, remoteDeviceUuids,
+                        BluetoothProfile.CSIP_SET_COORDINATOR, device)) {
+            Log.i(TAG, "connectAllEnabledProfiles: Connecting Coordinated Set Profile");
+            mCsipSetCoordinatorService.setConnectionPolicy(
+                    device, BluetoothProfile.CONNECTION_POLICY_ALLOWED);
+            numProfilesConnected++;
+        }
 
         Log.i(TAG, "connectAllEnabledProfiles: Number of Profiles Connected: "
                 + numProfilesConnected);
@@ -2749,6 +2774,12 @@ public class AdapterService extends Service {
                 == BluetoothProfile.STATE_CONNECTED) {
             Log.i(TAG, "disconnectAllEnabledProfiles: Disconnecting Sap Profile");
             mSapService.disconnect(device);
+        }
+        if (mCsipSetCoordinatorService != null
+                && mCsipSetCoordinatorService.getConnectionState(device)
+                        == BluetoothProfile.STATE_CONNECTED) {
+            Log.i(TAG, "disconnectAllEnabledProfiles: Disconnecting Coordinater Set Profile");
+            mCsipSetCoordinatorService.disconnect(device);
         }
 
         return true;
