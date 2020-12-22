@@ -10,6 +10,7 @@ cc_library_static {
         "packages/modules/Bluetooth/system/btcore/include",
         "packages/modules/Bluetooth/system/internal_include",
         "packages/modules/Bluetooth/system/stack/include",
+        "packages/modules/Bluetooth/system/gd/rust/shim",
     ],
     export_include_dirs: ["./"],
     srcs: [
