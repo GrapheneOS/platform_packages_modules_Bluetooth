@@ -368,6 +368,7 @@ public class HeadsetClientStateMachineTest {
         StackEvent slcEvent = new StackEvent(StackEvent.EVENT_TYPE_CONNECTION_STATE_CHANGED);
         slcEvent.valueInt = HeadsetClientHalConstants.CONNECTION_STATE_SLC_CONNECTED;
         slcEvent.valueInt2 = HeadsetClientHalConstants.PEER_FEAT_ECS;
+        slcEvent.valueInt2 |= HeadsetClientHalConstants.PEER_FEAT_HF_IND;
         slcEvent.device = mTestDevice;
         mHeadsetClientStateMachine.sendMessage(StackEvent.STACK_EVENT, slcEvent);
         ArgumentCaptor<Intent> intentArgument = ArgumentCaptor.forClass(Intent.class);
@@ -621,5 +622,55 @@ public class HeadsetClientStateMachineTest {
                 BluetoothHeadsetClient.EXTRA_VOICE_RECOGNITION, -1);
         Assert.assertEquals(expectedState, state);
         return expectedBroadcastIndex + 1;
+    }
+
+    /**
+     * Test send BIEV command
+     */
+    @MediumTest
+    @Test
+    public void testSendBIEVCommand() {
+        // Setup connection state machine to be in connected state
+        when(mHeadsetClientService.getConnectionPolicy(any(BluetoothDevice.class))).thenReturn(
+                BluetoothProfile.CONNECTION_POLICY_ALLOWED);
+        int expectedBroadcastIndex = 1;
+        expectedBroadcastIndex = setUpHfpClientConnection(expectedBroadcastIndex);
+        expectedBroadcastIndex = setUpServiceLevelConnection(expectedBroadcastIndex);
+
+        int indicator_id = 2;
+        int indicator_value = 50;
+
+        Message msg = mHeadsetClientStateMachine.obtainMessage(HeadsetClientStateMachine.SEND_BIEV);
+        msg.arg1 = indicator_id;
+        msg.arg2 = indicator_value;
+
+        mHeadsetClientStateMachine.sendMessage(msg);
+
+        verify(mNativeInterface, timeout(STANDARD_WAIT_MILLIS).times(1))
+                .sendATCmd(
+                        Utils.getBytesFromAddress(mTestDevice.getAddress()),
+                        HeadsetClientHalConstants.HANDSFREECLIENT_AT_CMD_BIEV,
+                        indicator_id,
+                        indicator_value,
+                        null);
+    }
+
+    /**
+     * Test state machine shall try to send AT+BIEV command to AG
+     * to update an init battery level.
+     */
+    @MediumTest
+    @Test
+    public void testSendBatteryUpdateIndicatorWhenConnect() {
+        // Setup connection state machine to be in connected state
+        when(mHeadsetClientService.getConnectionPolicy(any(BluetoothDevice.class))).thenReturn(
+                BluetoothProfile.CONNECTION_POLICY_ALLOWED);
+        int expectedBroadcastIndex = 1;
+
+        expectedBroadcastIndex = setUpHfpClientConnection(expectedBroadcastIndex);
+        expectedBroadcastIndex = setUpServiceLevelConnection(expectedBroadcastIndex);
+
+        verify(mHeadsetClientService, timeout(STANDARD_WAIT_MILLIS).times(1))
+                .updateBatteryLevel();
     }
 }
