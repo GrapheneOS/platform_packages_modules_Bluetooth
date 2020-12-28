@@ -472,7 +472,12 @@ public class BluetoothInCallService extends InCallService {
     @Override
     public void onCallRemoved(Call call) {
         super.onCallRemoved(call);
-        onCallRemoved(getBluetoothCallById(call.getDetails().getTelecomCallId()));
+        BluetoothCall bluetoothCall = getBluetoothCallById(call.getDetails().getTelecomCallId());
+        if (bluetoothCall == null) {
+            Log.w(TAG, "onCallRemoved, BluetoothCall is removed before registered");
+            return;
+        }
+        onCallRemoved(bluetoothCall);
     }
 
     @Override
