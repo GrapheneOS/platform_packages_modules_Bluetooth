@@ -3103,6 +3103,7 @@ public class AdapterService extends Service {
     // Boolean flags
     private static final String GD_CORE_FLAG = "INIT_gd_core";
     private static final String GD_ADVERTISING_FLAG = "INIT_gd_advertising";
+    private static final String GD_SCANNING_FLAG = "INIT_gd_scanning";
     private static final String GD_HCI_FLAG = "INIT_gd_hci";
     private static final String GD_CONTROLLER_FLAG = "INIT_gd_controller";
     private static final String GD_ACL_FLAG = "INIT_gd_acl";
@@ -3136,6 +3137,9 @@ public class AdapterService extends Service {
         }
         if (DeviceConfig.getBoolean(DeviceConfig.NAMESPACE_BLUETOOTH, GD_ADVERTISING_FLAG, false)) {
             initFlags.add(String.format("%s=%s", GD_ADVERTISING_FLAG, "true"));
+        }
+        if (DeviceConfig.getBoolean(DeviceConfig.NAMESPACE_BLUETOOTH, GD_SCANNING_FLAG, false)) {
+            initFlags.add(String.format("%s=%s", GD_SCANNING_FLAG, "true"));
         }
         if (DeviceConfig.getBoolean(DeviceConfig.NAMESPACE_BLUETOOTH, GD_HCI_FLAG, false)) {
             initFlags.add(String.format("%s=%s", GD_HCI_FLAG, "true"));
