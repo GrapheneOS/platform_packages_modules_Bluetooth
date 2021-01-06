@@ -863,6 +863,96 @@ class JniAdvertisingCallbacks : AdvertisingCallbacks {
   }
 };
 
+class JniScanningCallbacks : ScanningCallbacks {
+ public:
+  static ScanningCallbacks* GetInstance() {
+    static ScanningCallbacks* instance = new JniScanningCallbacks();
+    return instance;
+  }
+
+  void OnScannerRegistered(const Uuid app_uuid, uint8_t scannerId,
+                           uint8_t status) {
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
+    sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onScannerRegistered,
+                                 status, scannerId, UUID_PARAMS(app_uuid));
+  }
+
+  void OnScanResult(uint16_t event_type, uint8_t addr_type, RawAddress* bda,
+                    uint8_t primary_phy, uint8_t secondary_phy,
+                    uint8_t advertising_sid, int8_t tx_power, int8_t rssi,
+                    uint16_t periodic_adv_int, std::vector<uint8_t> adv_data) {
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
+
+    ScopedLocalRef<jstring> address(sCallbackEnv.get(),
+                                    bdaddr2newjstr(sCallbackEnv.get(), bda));
+    ScopedLocalRef<jbyteArray> jb(sCallbackEnv.get(),
+                                  sCallbackEnv->NewByteArray(adv_data.size()));
+    sCallbackEnv->SetByteArrayRegion(jb.get(), 0, adv_data.size(),
+                                     (jbyte*)adv_data.data());
+
+    sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onScanResult, event_type,
+                                 addr_type, address.get(), primary_phy,
+                                 secondary_phy, advertising_sid, tx_power, rssi,
+                                 periodic_adv_int, jb.get());
+  }
+
+  void OnTrackAdvFoundLost(btgatt_track_adv_info_t* p_adv_track_info) {
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
+
+    ScopedLocalRef<jstring> address(
+        sCallbackEnv.get(),
+        bdaddr2newjstr(sCallbackEnv.get(), &p_adv_track_info->bd_addr));
+
+    ScopedLocalRef<jbyteArray> jb_adv_pkt(
+        sCallbackEnv.get(),
+        sCallbackEnv->NewByteArray(p_adv_track_info->adv_pkt_len));
+    ScopedLocalRef<jbyteArray> jb_scan_rsp(
+        sCallbackEnv.get(),
+        sCallbackEnv->NewByteArray(p_adv_track_info->scan_rsp_len));
+
+    sCallbackEnv->SetByteArrayRegion(jb_adv_pkt.get(), 0,
+                                     p_adv_track_info->adv_pkt_len,
+                                     (jbyte*)p_adv_track_info->p_adv_pkt_data);
+
+    sCallbackEnv->SetByteArrayRegion(jb_scan_rsp.get(), 0,
+                                     p_adv_track_info->scan_rsp_len,
+                                     (jbyte*)p_adv_track_info->p_scan_rsp_data);
+
+    ScopedLocalRef<jobject> trackadv_obj(
+        sCallbackEnv.get(),
+        sCallbackEnv->CallObjectMethod(
+            mCallbacksObj, method_createOnTrackAdvFoundLostObject,
+            p_adv_track_info->client_if, p_adv_track_info->adv_pkt_len,
+            jb_adv_pkt.get(), p_adv_track_info->scan_rsp_len, jb_scan_rsp.get(),
+            p_adv_track_info->filt_index, p_adv_track_info->advertiser_state,
+            p_adv_track_info->advertiser_info_present, address.get(),
+            p_adv_track_info->addr_type, p_adv_track_info->tx_power,
+            p_adv_track_info->rssi_value, p_adv_track_info->time_stamp));
+
+    if (NULL != trackadv_obj.get()) {
+      sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onTrackAdvFoundLost,
+                                   trackadv_obj.get());
+    }
+  }
+
+  void OnBatchScanReports(int client_if, int status, int report_format,
+                          int num_records, std::vector<uint8_t> data) {
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
+    ScopedLocalRef<jbyteArray> jb(sCallbackEnv.get(),
+                                  sCallbackEnv->NewByteArray(data.size()));
+    sCallbackEnv->SetByteArrayRegion(jb.get(), 0, data.size(),
+                                     (jbyte*)data.data());
+
+    sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onBatchScanReports,
+                                 status, client_if, report_format, num_records,
+                                 jb.get());
+  }
+};
+
 /**
  * Native function definitions
  */
@@ -1015,6 +1105,7 @@ static void initializeNative(JNIEnv* env, jobject object) {
 
   sGattIf->advertiser->RegisterCallbacks(
       JniAdvertisingCallbacks::GetInstance());
+  sGattIf->scanner->RegisterCallbacks(JniScanningCallbacks::GetInstance());
 
   mCallbacksObj = env->NewGlobalRef(object);
 }
@@ -1072,7 +1163,7 @@ static void registerScannerNative(JNIEnv* env, jobject object,
 
   Uuid uuid = from_java_uuid(app_uuid_msb, app_uuid_lsb);
   sGattIf->scanner->RegisterScanner(
-      base::Bind(&btgattc_register_scanner_cb, uuid));
+      uuid, base::Bind(&btgattc_register_scanner_cb, uuid));
 }
 
 static void unregisterScannerNative(JNIEnv* env, jobject object,
