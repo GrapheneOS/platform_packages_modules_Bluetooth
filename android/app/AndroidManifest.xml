@@ -26,7 +26,6 @@
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN"/>
     <uses-permission android:name="android.permission.BLUETOOTH_PRIVILEGED"/>
     <uses-permission android:name="android.permission.BLUETOOTH_MAP"/>
-    <uses-permission android:name="android.permission.CONTROL_INCALL_EXPERIENCE" />
     <uses-permission android:name="android.permission.DUMP"/>
     <uses-permission android:name="android.permission.WAKE_LOCK"/>
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
@@ -425,17 +424,5 @@
             <meta-data android:name="android.accounts.AccountAuthenticator"
                  android:resource="@xml/authenticator"/>
         </service>
-        <service
-            android:name=".hfp.BluetoothInCallService"
-            android:permission="android.permission.BIND_INCALL_SERVICE"
-            android:process="@string/process"
-            android:enabled="@bool/profile_supported_hfp_incallservice"
-            android:exported="true">
-            <meta-data android:name="android.telecom.IN_CALL_SERVICE_RINGING"
-                       android:value="true" />
-            <intent-filter>
-              <action android:name="android.telecom.InCallService"/>
-            </intent-filter>
-         </service>
     </application>
 </manifest>
