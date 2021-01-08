@@ -89,6 +89,8 @@ public class GattService extends ProfileService {
     private static final boolean DBG = GattServiceConfig.DBG;
     private static final boolean VDBG = GattServiceConfig.VDBG;
     private static final String TAG = GattServiceConfig.TAG_PREFIX + "GattService";
+    private static final String UUID_SUFFIX = "-0000-1000-8000-00805f9b34fb";
+    private static final String UUID_ZERO_PAD = "00000000";
 
     static final int SCAN_FILTER_ENABLED = 1;
     static final int SCAN_FILTER_MODIFIED = 2;
@@ -3327,7 +3329,8 @@ public class GattService extends ProfileService {
         }
     }
 
-    private List<UUID> parseUuids(byte[] advData) {
+    @VisibleForTesting
+    List<UUID> parseUuids(byte[] advData) {
         List<UUID> uuids = new ArrayList<UUID>();
 
         int offset = 0;
@@ -3345,8 +3348,10 @@ public class GattService extends ProfileService {
                         int uuid16 = advData[offset++];
                         uuid16 += (advData[offset++] << 8);
                         len -= 2;
-                        uuids.add(UUID.fromString(
-                                String.format("%08x-0000-1000-8000-00805f9b34fb", uuid16)));
+                        String uuid_prefix = Integer.toHexString(uuid16);
+                        // Pad zeroes to make uuid_prefix length exactly 8.
+                        uuids.add(UUID.fromString(UUID_ZERO_PAD.substring(uuid_prefix.length())
+                                                  + uuid_prefix + UUID_SUFFIX));
                     }
                     break;
 
