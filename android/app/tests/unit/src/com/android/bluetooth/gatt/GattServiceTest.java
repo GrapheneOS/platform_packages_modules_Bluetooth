@@ -23,6 +23,9 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import java.util.List;
+import java.util.UUID;
+
 /**
  * Test cases for {@link GattService}.
  */
@@ -88,6 +91,25 @@ public class GattServiceTest {
                 -54, 7
         });
         Assert.assertEquals(99700000000L, timestampNanos);
+    }
+
+    @Test
+    public void testParseUuids() {
+        // Experimentally observed raw advertiser data.
+        // It contains a partial list of service class UUIDs.
+        String rawHexAdvData = "0201061BFF570102FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF03E060719405"
+                          + "D310094D6920536D6172742042616E6420350302E0FE";
+        String expected_uuid_str = "fffffde0-0000-1000-8000-00805f9b34fb";
+        // Convert to byte array and test.
+        int len = rawHexAdvData.length();
+        byte[] advData = new byte[len / 2];
+        for (int i = 0; i < len; i += 2) {
+            advData[i / 2] = (byte) ((Character.digit(rawHexAdvData.charAt(i), 16) << 4)
+                                + Character.digit(rawHexAdvData.charAt(i + 1), 16));
+        }
+        List<UUID> uuids = mService.parseUuids(advData);
+        Assert.assertEquals(1, uuids.size());
+        Assert.assertEquals(expected_uuid_str, uuids.get(0).toString());
     }
 
 }
