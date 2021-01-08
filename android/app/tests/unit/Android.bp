@@ -22,6 +22,7 @@ android_test {
         "androidx.room_room-migration",
         "androidx.room_room-runtime",
         "androidx.room_room-testing",
+        "truth-prebuilt",
     ],
 
     asset_dirs: ["src/com/android/bluetooth/btservice/storage/schemas"],
