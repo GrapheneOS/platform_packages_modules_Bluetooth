@@ -83,7 +83,7 @@
     <string name="bt_toast_4" msgid="4678812947604395649">"Slanje fajla kojeg prima \"<xliff:g id="RECIPIENT">%1$s</xliff:g>\""</string>
     <string name="bt_toast_5" msgid="2846870992823019494">"Slanje <xliff:g id="NUMBER">%1$s</xliff:g> fajl(ov)a, prima \"<xliff:g id="RECIPIENT">%2$s</xliff:g>\""</string>
     <string name="bt_toast_6" msgid="1855266596936622458">"Zaustavljeno slanje fajla kojeg prima \"<xliff:g id="RECIPIENT">%1$s</xliff:g>\""</string>
-    <string name="bt_sm_2_1_nosdcard" msgid="5354343190503952837">"Na USB memoriji nema dovoljno prostora da se sačuva ovaj fajl."</string>
+    <string name="bt_sm_2_1_nosdcard" msgid="5354343190503952837">"Na USB pohrani nema dovoljno prostora da se sačuva ovaj fajl."</string>
     <string name="bt_sm_2_1_default" msgid="2497541206648973852">"Na SD kartici nema dovoljno prostora da se sačuva ovaj fajl."</string>
     <string name="bt_sm_2_2" msgid="2965243265852680543">"Potrebni prostor: <xliff:g id="SIZE">%1$s</xliff:g>"</string>
     <string name="ErrorTooManyRequests" msgid="8578277541472944529">"Obrađuje se previše zahtjeva. Pokušajte ponovo kasnije."</string>
