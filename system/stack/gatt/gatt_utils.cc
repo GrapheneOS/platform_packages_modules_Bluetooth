@@ -29,7 +29,6 @@
 #include "bt_common.h"
 #include "stdio.h"
 
-#include "btm_int.h"
 #include "connection_manager.h"
 #include "gatt_api.h"
 #include "gatt_int.h"
@@ -39,6 +38,8 @@
 #include "stack/btm/btm_sec.h"
 #include "stack/eatt/eatt.h"
 #include "stack/gatt/connection_manager.h"
+
+uint8_t btm_ble_read_sec_key_size(const RawAddress& bd_addr);
 
 using base::StringPrintf;
 using bluetooth::Uuid;
@@ -446,6 +447,8 @@ tGATT_TCB* gatt_allocate_tcb_by_bdaddr(const RawAddress& bda,
     p_tcb->transport = transport;
     p_tcb->peer_bda = bda;
     p_tcb->eatt = 0;
+    gatt_sr_init_cl_status(*p_tcb);
+
     return p_tcb;
   }
 
