@@ -1096,9 +1096,11 @@ public class BluetoothInCallServiceTest {
         BluetoothCall ringingCall = createRingingCall();
         when(ringingCall.getHandle()).thenReturn(Uri.parse("tel:5550000"));
 
-        Intent intent = new Intent();
+        Intent intent = new Intent(BluetoothAdapter.ACTION_STATE_CHANGED);
         intent.putExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.STATE_ON);
         clearInvocations(mMockBluetoothHeadset);
+        mBluetoothInCallService.mBluetoothAdapterReceiver
+                = mBluetoothInCallService.new BluetoothAdapterReceiver();
         mBluetoothInCallService.mBluetoothAdapterReceiver
                 .onReceive(mBluetoothInCallService, intent);
 

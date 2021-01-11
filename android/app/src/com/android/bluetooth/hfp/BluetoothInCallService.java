@@ -138,16 +138,14 @@ public class BluetoothInCallService extends InCallService {
                 }
             };
 
-    /**
-     * Receives events for global state changes of the bluetooth adapter.
-     */
-    // TODO: The code is moved from Telecom stack. Since we're running in the BT process itself,
-    // we may be able to simplify this in a future patch.
-    @VisibleForTesting
-    public final BroadcastReceiver mBluetoothAdapterReceiver = new BroadcastReceiver() {
+    public class BluetoothAdapterReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
             synchronized (LOCK) {
+                if (intent.getAction() != BluetoothAdapter.ACTION_STATE_CHANGED) {
+                    Log.w(TAG, "BluetoothAdapterReceiver: Intent action " + intent.getAction());
+                    return;
+                }
                 int state = intent
                         .getIntExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.ERROR);
                 Log.d(TAG, "Bluetooth Adapter state: " + state);
@@ -157,6 +155,14 @@ public class BluetoothInCallService extends InCallService {
             }
         }
     };
+
+    /**
+     * Receives events for global state changes of the bluetooth adapter.
+     */
+    // TODO: The code is moved from Telecom stack. Since we're running in the BT process itself,
+    // we may be able to simplify this in a future patch.
+    @VisibleForTesting
+    public BluetoothAdapterReceiver mBluetoothAdapterReceiver;
 
     @VisibleForTesting
     public class CallStateCallback extends Call.Callback {
@@ -290,8 +296,6 @@ public class BluetoothInCallService extends InCallService {
             return null;
         }
         IBinder binder = super.onBind(intent);
-        IntentFilter intentFilter = new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED);
-        registerReceiver(mBluetoothAdapterReceiver, intentFilter);
         mTelephonyManager = getSystemService(TelephonyManager.class);
         mTelecomManager = getSystemService(TelecomManager.class);
         return binder;
@@ -300,12 +304,11 @@ public class BluetoothInCallService extends InCallService {
     @Override
     public boolean onUnbind(Intent intent) {
         Log.i(TAG, "onUnbind. Intent: " + intent);
-        unregisterReceiver(mBluetoothAdapterReceiver);
         return super.onUnbind(intent);
     }
 
     public BluetoothInCallService() {
-        Log.i(TAG, "onCreate");
+        Log.i(TAG, "BluetoothInCallService is created");
         BluetoothAdapter.getDefaultAdapter()
                 .getProfileProxy(this, mProfileListener, BluetoothProfile.HEADSET);
         sInstance = this;
@@ -490,11 +493,18 @@ public class BluetoothInCallService extends InCallService {
     public void onCreate() {
         Log.d(TAG, "onCreate");
         super.onCreate();
+        mBluetoothAdapterReceiver = new BluetoothAdapterReceiver();
+        IntentFilter intentFilter = new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED);
+        registerReceiver(mBluetoothAdapterReceiver, intentFilter);
     }
 
     @Override
     public void onDestroy() {
         Log.d(TAG, "onDestroy");
+        if (mBluetoothAdapterReceiver != null) {
+            unregisterReceiver(mBluetoothAdapterReceiver);
+            mBluetoothAdapterReceiver = null;
+        }
         super.onDestroy();
     }
 
