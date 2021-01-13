@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.android.bluetooth.hfp;
+package com.android.bluetooth.telephony;
 
 import android.net.Uri;
 import android.os.Bundle;
