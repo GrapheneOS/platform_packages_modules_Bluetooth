@@ -23,7 +23,7 @@ import android.os.Message;
 import android.util.Log;
 
 import com.android.bluetooth.R;
-import com.android.bluetooth.hfp.BluetoothInCallService;
+import com.android.bluetooth.telephony.BluetoothInCallService;
 import com.android.bluetooth.statemachine.State;
 import com.android.bluetooth.statemachine.StateMachine;
 
