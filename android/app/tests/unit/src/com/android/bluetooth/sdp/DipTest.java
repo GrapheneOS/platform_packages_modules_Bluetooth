@@ -96,7 +96,7 @@ public class DipTest {
         Intent intent = intentArgument.getValue();
 
         assertThat(intent).isNotEqualTo(null);
-        assertThat(BluetoothDevice.ACTION_SDP_RECORD).isEqualTo(intent.getAction());
+        assertThat(intent.getAction()).isEqualTo(BluetoothDevice.ACTION_SDP_RECORD);
         assertThat(device).isEqualTo(intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE));
         assertThat(Utils.byteArrayToUuid(uuid)[0]).isEqualTo(intent.getParcelableExtra(BluetoothDevice.EXTRA_UUID));
         assertThat(status).isEqualTo(intent.getIntExtra(BluetoothDevice.EXTRA_SDP_SEARCH_STATUS, -1));
