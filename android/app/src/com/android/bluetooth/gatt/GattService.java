@@ -1028,27 +1028,10 @@ public class GattService extends ProfileService {
                     + Integer.toHexString(advertisingSid) + ", txPower=" + txPower + ", rssi="
                     + rssi + ", periodicAdvInt=0x" + Integer.toHexString(periodicAdvInt));
         }
-        List<UUID> remoteUuids = parseUuids(advData);
 
         byte[] legacyAdvData = Arrays.copyOfRange(advData, 0, 62);
 
         for (ScanClient client : mScanManager.getRegularScanQueue()) {
-            if (client.uuids.length > 0) {
-                int matches = 0;
-                for (UUID search : client.uuids) {
-                    for (UUID remote : remoteUuids) {
-                        if (remote.equals(search)) {
-                            ++matches;
-                            break; // Only count 1st match in case of duplicates
-                        }
-                    }
-                }
-
-                if (matches < client.uuids.length) {
-                    continue;
-                }
-            }
-
             ScannerMap.App app = mScannerMap.getById(client.scannerId);
             if (app == null) {
                 continue;
@@ -3328,41 +3311,6 @@ public class GattService extends ProfileService {
         for (Integer handle : handleList) {
             gattServerDeleteServiceNative(serverIf, handle);
         }
-    }
-
-    @VisibleForTesting
-    List<UUID> parseUuids(byte[] advData) {
-        List<UUID> uuids = new ArrayList<UUID>();
-
-        int offset = 0;
-        while (offset < (advData.length - 2)) {
-            int len = Byte.toUnsignedInt(advData[offset++]);
-            if (len == 0) {
-                break;
-            }
-
-            int type = advData[offset++];
-            switch (type) {
-                case 0x02: // Partial list of 16-bit UUIDs
-                case 0x03: // Complete list of 16-bit UUIDs
-                    while (len > 1) {
-                        int uuid16 = advData[offset++];
-                        uuid16 += (advData[offset++] << 8);
-                        len -= 2;
-                        String uuid_prefix = Integer.toHexString(uuid16);
-                        // Pad zeroes to make uuid_prefix length exactly 8.
-                        uuids.add(UUID.fromString(UUID_ZERO_PAD.substring(uuid_prefix.length())
-                                                  + uuid_prefix + UUID_SUFFIX));
-                    }
-                    break;
-
-                default:
-                    offset += (len - 1);
-                    break;
-            }
-        }
-
-        return uuids;
     }
 
     void dumpRegisterId(StringBuilder sb) {
