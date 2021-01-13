@@ -46,7 +46,7 @@ import org.junit.runner.RunWith;
 public class BluetoothMapContentObserverTest {
     private Context mTargetContext;
 
-    class ExceptionTestProvider extends MockContentProvider {
+    static class ExceptionTestProvider extends MockContentProvider {
         public ExceptionTestProvider(Context context) {
             super(context);
         }
