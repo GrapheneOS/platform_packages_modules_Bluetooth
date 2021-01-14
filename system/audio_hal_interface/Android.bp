@@ -9,6 +9,7 @@ cc_library_static {
         "packages/modules/Bluetooth/system/bta/sys",
         "packages/modules/Bluetooth/system/btif/include",
         "packages/modules/Bluetooth/system/stack/include",
+        "packages/modules/Bluetooth/system/gd/rust/shim",
     ],
     srcs: [
         "a2dp_encoding.cc",
