@@ -37,6 +37,7 @@ cc_library_static {
         "packages/modules/Bluetooth/system/bta/include",
         "packages/modules/Bluetooth/system/btif/include",
         "system/libhwbinder/include",
+        "packages/modules/Bluetooth/system/gd/rust/shim",
     ],
     product_variables: {
         debuggable: {
@@ -64,6 +65,7 @@ cc_test {
         "packages/modules/Bluetooth/system/stack/include",
         "packages/modules/Bluetooth/system/utils/include",
         "system/libhwbinder/include",
+        "packages/modules/Bluetooth/system/gd/rust/shim",
     ],
     srcs: [
         "test/packet_fragmenter_test.cc",

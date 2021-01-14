@@ -8,6 +8,7 @@ cc_library_static {
     include_dirs: [
         "packages/modules/Bluetooth/system",
         "packages/modules/Bluetooth/system/stack/include",
+        "packages/modules/Bluetooth/system/gd/rust/shim",
     ],
     srcs: [
         "address_obfuscator.cc",
@@ -40,6 +41,7 @@ cc_test {
     include_dirs: [
         "packages/modules/Bluetooth/system",
         "packages/modules/Bluetooth/system/stack/include",
+        "packages/modules/Bluetooth/system/gd/rust/shim",
     ],
     srcs: [
         "address_obfuscator_unittest.cc",
