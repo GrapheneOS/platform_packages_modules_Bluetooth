@@ -72,6 +72,10 @@ public class AvrcpNativeInterface {
         unregisterBipServerNative();
     }
 
+    void setBipClientStatus(String bdaddr, boolean connected) {
+        setBipClientStatusNative(bdaddr, connected);
+    }
+
     Metadata getCurrentSongInfo() {
         d("getCurrentSongInfo");
         if (mAvrcpService == null) {
@@ -263,6 +267,7 @@ public class AvrcpNativeInterface {
     private native boolean connectDeviceNative(String bdaddr);
     private native boolean disconnectDeviceNative(String bdaddr);
     private native void sendVolumeChangedNative(String bdaddr, int volume);
+    private native void setBipClientStatusNative(String bdaddr, boolean connected);
 
     private static void d(String msg) {
         if (DEBUG) {
