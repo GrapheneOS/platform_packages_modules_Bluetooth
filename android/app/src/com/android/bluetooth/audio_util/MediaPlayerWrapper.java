@@ -17,6 +17,7 @@
 package com.android.bluetooth.audio_util;
 
 import android.annotation.Nullable;
+import android.content.Context;
 import android.media.MediaMetadata;
 import android.media.session.MediaSession;
 import android.media.session.PlaybackState;
@@ -46,6 +47,7 @@ public class MediaPlayerWrapper {
     private static final String PLAYBACK_STATE_CHANGE_LOGGER_EVENT_TITLE =
             "Playback State change Event";
 
+    final Context mContext;
     private MediaController mMediaController;
     private String mPackageName;
     private Looper mLooper;
@@ -81,7 +83,8 @@ public class MediaPlayerWrapper {
         return true;
     }
 
-    MediaPlayerWrapper(MediaController controller, Looper looper) {
+    MediaPlayerWrapper(Context context, MediaController controller, Looper looper) {
+        mContext = context;
         mMediaController = controller;
         mPackageName = controller.getPackageName();
         mLooper = looper;
@@ -89,8 +92,8 @@ public class MediaPlayerWrapper {
                 PLAYBACK_STATE_CHANGE_EVENT_LOGGER_SIZE, PLAYBACK_STATE_CHANGE_LOGGER_EVENT_TITLE);
 
         mCurrentData = new MediaData(null, null, null);
-        mCurrentData.queue = Util.toMetadataList(getQueue());
-        mCurrentData.metadata = Util.toMetadata(getMetadata());
+        mCurrentData.queue = Util.toMetadataList(mContext, getQueue());
+        mCurrentData.metadata = Util.toMetadata(mContext, getMetadata());
         mCurrentData.state = getPlaybackState();
     }
 
@@ -114,7 +117,7 @@ public class MediaPlayerWrapper {
     }
 
     Metadata getCurrentMetadata() {
-        return Util.toMetadata(getMetadata());
+        return Util.toMetadata(mContext, getMetadata());
     }
 
     public PlaybackState getPlaybackState() {
@@ -226,8 +229,8 @@ public class MediaPlayerWrapper {
             }
 
             // Check if current playing song in Queue matches current Metadata
-            Metadata qitem = Util.toMetadata(currItem);
-            Metadata mdata = Util.toMetadata(getMetadata());
+            Metadata qitem = Util.toMetadata(mContext, currItem);
+            Metadata mdata = Util.toMetadata(mContext, getMetadata());
             if (currItem == null || !qitem.equals(mdata)) {
                 if (DEBUG) {
                     Log.d(TAG, "Metadata currently out of sync for " + mPackageName);
@@ -258,9 +261,9 @@ public class MediaPlayerWrapper {
         // Update the current data since it could have changed while we weren't registered for
         // updates
         mCurrentData = new MediaData(
-                Util.toMetadata(getMetadata()),
+                Util.toMetadata(mContext, getMetadata()),
                 getPlaybackState(),
-                Util.toMetadataList(getQueue()));
+                Util.toMetadataList(mContext, getQueue()));
 
         mControllerCallbacks = new MediaControllerListener(mMediaController, mLooper);
     }
@@ -295,9 +298,9 @@ public class MediaPlayerWrapper {
 
         // Update the current data since it could be different on the new controller for the player
         mCurrentData = new MediaData(
-                Util.toMetadata(getMetadata()),
+                Util.toMetadata(mContext, getMetadata()),
                 getPlaybackState(),
-                Util.toMetadataList(getQueue()));
+                Util.toMetadataList(mContext, getQueue()));
 
         mControllerCallbacks = new MediaControllerListener(mMediaController, mLooper);
         d("Controller for " + mPackageName + " was updated.");
@@ -305,9 +308,9 @@ public class MediaPlayerWrapper {
 
     private void sendMediaUpdate() {
         MediaData newData = new MediaData(
-                Util.toMetadata(getMetadata()),
+                Util.toMetadata(mContext, getMetadata()),
                 getPlaybackState(),
-                Util.toMetadataList(getQueue()));
+                Util.toMetadataList(mContext, getQueue()));
 
         if (newData.equals(mCurrentData)) {
             // This may happen if the controller is fully synced by the time the
@@ -346,9 +349,9 @@ public class MediaPlayerWrapper {
             }
 
             Log.e(TAG, "Timeout while waiting for metadata to sync for " + mPackageName);
-            Log.e(TAG, "  └ Current Metadata: " +  Util.toMetadata(getMetadata()));
+            Log.e(TAG, "  └ Current Metadata: " +  Util.toMetadata(mContext, getMetadata()));
             Log.e(TAG, "  └ Current Playstate: " + getPlaybackState());
-            List<Metadata> current_queue = Util.toMetadataList(getQueue());
+            List<Metadata> current_queue = Util.toMetadataList(mContext, getQueue());
             for (int i = 0; i < current_queue.size(); i++) {
                 Log.e(TAG, "  └ QueueItem(" + i + "): " + current_queue.get(i));
             }
@@ -412,7 +415,7 @@ public class MediaPlayerWrapper {
 
             if (DEBUG) {
                 Log.v(TAG, "onMetadataChanged(): " + mPackageName + " : "
-                    + Util.toMetadata(metadata));
+                        + Util.toMetadata(mContext, metadata));
             }
 
             if (!Objects.equals(metadata, getMetadata())) {
@@ -480,7 +483,7 @@ public class MediaPlayerWrapper {
                 e("The callback queue isn't the current queue");
             }
 
-            List<Metadata> current_queue = Util.toMetadataList(queue);
+            List<Metadata> current_queue = Util.toMetadataList(mContext, queue);
             if (current_queue.equals(mCurrentData.queue)) {
                 Log.w(TAG, "onQueueChanged(): " + mPackageName
                         + " tried to update with no new data");

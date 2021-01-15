@@ -50,21 +50,22 @@ class Util {
         ret.trackNum = "1";
         ret.numTracks = "1";
         ret.duration = "0";
+        ret.image = null;
         return ret;
     }
 
     /**
      * Translate a bundle of MediaMetadata keys to audio_util's Metadata
      */
-    public static Metadata toMetadata(Bundle bundle) {
+    public static Metadata toMetadata(Context context, Bundle bundle) {
         Metadata.Builder builder = new Metadata.Builder();
-        return builder.useDefaults().fromBundle(bundle).build();
+        return builder.useContext(context).useDefaults().fromBundle(bundle).build();
     }
 
     /**
      * Translate a MediaDescription to audio_util's Metadata
      */
-    public static Metadata toMetadata(MediaDescription desc) {
+    public static Metadata toMetadata(Context context, MediaDescription desc) {
         // Find GPM_KEY data if it exists
         MediaMetadata data = null;
         Bundle extras = (desc != null ? desc.getExtras() : null);
@@ -73,21 +74,22 @@ class Util {
         }
 
         Metadata.Builder builder = new Metadata.Builder();
-        return builder.useDefaults().fromMediaDescription(desc).fromMediaMetadata(data).build();
+        return builder.useContext(context).useDefaults().fromMediaDescription(desc)
+                .fromMediaMetadata(data).build();
     }
 
     /**
      * Translate a MediaItem to audio_util's Metadata
      */
-    public static Metadata toMetadata(MediaItem item) {
+    public static Metadata toMetadata(Context context, MediaItem item) {
         Metadata.Builder builder = new Metadata.Builder();
-        return builder.useDefaults().fromMediaItem(item).build();
+        return builder.useContext(context).useDefaults().fromMediaItem(item).build();
     }
 
     /**
      * Translate a MediaSession.QueueItem to audio_util's Metadata
      */
-    public static Metadata toMetadata(MediaSession.QueueItem item) {
+    public static Metadata toMetadata(Context context, MediaSession.QueueItem item) {
         Metadata.Builder builder = new Metadata.Builder().useDefaults().fromQueueItem(item);
         // For Queue Items, the Media Id will always be just its Queue ID
         // We don't need to use its actual ID since we don't promise UIDS being valid
@@ -99,24 +101,26 @@ class Util {
     /**
      * Translate a MediaMetadata to audio_util's Metadata
      */
-    public static Metadata toMetadata(MediaMetadata data) {
+    public static Metadata toMetadata(Context context, MediaMetadata data) {
         Metadata.Builder builder = new Metadata.Builder();
         // This will always be currsong. The AVRCP service will overwrite the mediaId if it needs to
         // TODO (apanicke): Remove when the service is ready, right now it makes debugging much more
         // convenient
-        return builder.useDefaults().fromMediaMetadata(data).setMediaId("currsong").build();
+        return builder.useContext(context).useDefaults().fromMediaMetadata(data)
+                .setMediaId("currsong").build();
     }
 
     /**
      * Translate a list of MediaSession.QueueItem to a list of audio_util's Metadata
      */
-    public static List<Metadata> toMetadataList(List<MediaSession.QueueItem> items) {
+    public static List<Metadata> toMetadataList(Context context,
+            List<MediaSession.QueueItem> items) {
         ArrayList<Metadata> list = new ArrayList<Metadata>();
 
         if (items == null) return list;
 
         for (int i = 0; i < items.size(); i++) {
-            Metadata data = toMetadata(items.get(i));
+            Metadata data = toMetadata(context, items.get(i));
             data.trackNum = "" + (i + 1);
             data.numTracks = "" + items.size();
             list.add(data);
