@@ -166,7 +166,7 @@ public class HidDeviceTest {
             try {
                 mConnectionStateChangedQueue.put(intent);
             } catch (InterruptedException e) {
-                Assert.fail("Cannot add Intent to the queue");
+                throw new AssertionError("Cannot add Intent to the queue", e);
             }
         }
     }
@@ -177,9 +177,8 @@ public class HidDeviceTest {
             Assert.assertNotNull(intent);
             return intent;
         } catch (InterruptedException e) {
-            Assert.fail("Cannot obtain an Intent from the queue");
+            throw new AssertionError("Cannot obtain an Intent from the queue", e);
         }
-        return null;
     }
 
     private void verifyConnectionStateIntent(int timeoutMs, BluetoothDevice device, int newState,
@@ -200,7 +199,7 @@ public class HidDeviceTest {
             int lastCallbackType = lastCallback;
             Assert.assertEquals(callbackType, lastCallbackType);
         } catch (InterruptedException e) {
-            Assert.fail("Cannot obtain a callback from the queue");
+            throw new AssertionError("Cannot obtain a callback from the queue", e);
         }
     }
 
@@ -213,7 +212,7 @@ public class HidDeviceTest {
                     mCallbackQueue.put(CALLBACK_APP_UNREGISTERED);
                 }
             } catch (InterruptedException e) {
-                Assert.fail("Cannot add Intent to the queue");
+                throw new AssertionError("Cannot add Intent to the queue", e);
             }
         }
 
@@ -225,7 +224,7 @@ public class HidDeviceTest {
             try {
                 mCallbackQueue.put(CALLBACK_ON_GET_REPORT);
             } catch (InterruptedException e) {
-                Assert.fail("Cannot add Intent to the queue");
+                throw new AssertionError("Cannot add Intent to the queue", e);
             }
         }
 
@@ -233,7 +232,7 @@ public class HidDeviceTest {
             try {
                 mCallbackQueue.put(CALLBACK_ON_SET_REPORT);
             } catch (InterruptedException e) {
-                Assert.fail("Cannot add Intent to the queue");
+                throw new AssertionError("Cannot add Intent to the queue", e);
             }
         }
 
@@ -241,7 +240,7 @@ public class HidDeviceTest {
             try {
                 mCallbackQueue.put(CALLBACK_ON_SET_PROTOCOL);
             } catch (InterruptedException e) {
-                Assert.fail("Cannot add Intent to the queue");
+                throw new AssertionError("Cannot add Intent to the queue", e);
             }
         }
 
@@ -249,7 +248,8 @@ public class HidDeviceTest {
             try {
                 mCallbackQueue.put(CALLBACK_ON_INTR_DATA);
             } catch (InterruptedException e) {
-                Assert.fail("Cannot add Intent to the queue");
+                throw new AssertionError("Cannot add Intent to the queue", e);
+
             }
         }
 
@@ -257,7 +257,7 @@ public class HidDeviceTest {
             try {
                 mCallbackQueue.put(CALLBACK_ON_VIRTUAL_UNPLUG);
             } catch (InterruptedException e) {
-                Assert.fail("Cannot add Intent to the queue");
+                throw new AssertionError("Cannot add Intent to the queue", e);
             }
         }
     }

@@ -918,7 +918,7 @@ public class StateMachineTest {
             }
         }
 
-        class ChildState extends State {
+        static class ChildState extends State {
             @Override
             public boolean processMessage(Message message) {
                 return NOT_HANDLED;
@@ -1013,7 +1013,7 @@ public class StateMachineTest {
             }
         }
 
-        class ChildState2 extends State {
+        static class ChildState2 extends State {
             @Override
             public boolean processMessage(Message message) {
                 return NOT_HANDLED;
@@ -1586,7 +1586,7 @@ public class StateMachineTest {
          * without a delay the arrival time difference should always >= to SM7_DELAY_TIME.
          */
         long arrivalTimeDiff = sm7.mArrivalTimeMsg3 - sm7.mArrivalTimeMsg2;
-        long expectedDelay = sm7.SM7_DELAY_TIME - SM7_DELAY_FUDGE;
+        long expectedDelay = (long) sm7.SM7_DELAY_TIME - SM7_DELAY_FUDGE;
         if (sm7.isDbg()) tlog("testStateMachine7: expect " + arrivalTimeDiff
                 + " >= " + expectedDelay);
         Assert.assertTrue(arrivalTimeDiff >= expectedDelay);

@@ -371,7 +371,7 @@ public final class AvrcpItemTest {
         Assert.assertEquals(UUID, desc.getMediaId());
         Assert.assertEquals(null, desc.getMediaUri());
         Assert.assertEquals(title, desc.getTitle().toString());
-        Assert.assertEquals(null, desc.getSubtitle());
+        Assert.assertEquals(desc.getSubtitle(), null);
         Assert.assertEquals(uri, desc.getIconUri());
         Assert.assertEquals(null, desc.getIconBitmap());
     }
@@ -400,7 +400,7 @@ public final class AvrcpItemTest {
         Assert.assertEquals(UUID, desc.getMediaId());
         Assert.assertEquals(null, desc.getMediaUri());
         Assert.assertEquals(displayName, desc.getTitle().toString());
-        Assert.assertEquals(null, desc.getSubtitle());
+        Assert.assertEquals(desc.getSubtitle(), null);
         Assert.assertEquals(uri, desc.getIconUri());
         Assert.assertEquals(null, desc.getIconBitmap());
     }
@@ -427,7 +427,7 @@ public final class AvrcpItemTest {
         Assert.assertEquals(UUID, desc.getMediaId());
         Assert.assertEquals(null, desc.getMediaUri());
         Assert.assertEquals(title, desc.getTitle().toString());
-        Assert.assertEquals(null, desc.getSubtitle());
+        Assert.assertEquals(desc.getSubtitle(), null);
         Assert.assertEquals(uri, desc.getIconUri());
         Assert.assertEquals(null, desc.getIconBitmap());
     }
