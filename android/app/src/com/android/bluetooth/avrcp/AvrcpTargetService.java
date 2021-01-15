@@ -63,6 +63,7 @@ public class AvrcpTargetService extends ProfileService {
     private final BTAudioEventLogger mMediaKeyEventLogger = new BTAudioEventLogger(
             MEDIA_KEY_EVENT_LOGGER_SIZE, MEDIA_KEY_EVENT_LOGGER_TITLE);
 
+    private AvrcpVersion mAvrcpVersion;
     private MediaPlayerList mMediaPlayerList;
     private AudioManager mAudioManager;
     private AvrcpBroadcastReceiver mReceiver;
@@ -194,6 +195,8 @@ public class AvrcpTargetService extends ProfileService {
 
         mNativeInterface = AvrcpNativeInterface.getInterface();
         mNativeInterface.init(AvrcpTargetService.this);
+
+        mAvrcpVersion = AvrcpVersion.getCurrentSystemPropertiesValue();
 
         mVolumeManager = new AvrcpVolumeManager(this, mAudioManager, mNativeInterface);
 
@@ -402,6 +405,8 @@ public class AvrcpTargetService extends ProfileService {
         }
 
         StringBuilder tempBuilder = new StringBuilder();
+        tempBuilder.append("AVRCP version: " + mAvrcpVersion + "\n");
+
         if (mMediaPlayerList != null) {
             mMediaPlayerList.dump(tempBuilder);
         } else {
