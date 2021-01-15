@@ -44,6 +44,7 @@ import com.android.bluetooth.audio_util.PlayerInfo;
 import com.android.bluetooth.btservice.MetricsLogger;
 import com.android.bluetooth.btservice.ProfileService;
 import com.android.bluetooth.btservice.ServiceFactory;
+import com.android.internal.annotations.VisibleForTesting;
 
 import java.util.List;
 import java.util.Objects;
@@ -142,6 +143,14 @@ public class AvrcpTargetService extends ProfileService {
                 }
             }
         }
+    }
+
+    /**
+     * Set the AvrcpTargetService instance.
+     */
+    @VisibleForTesting
+    public static void set(AvrcpTargetService instance) {
+        sInstance = instance;
     }
 
     /**
