@@ -62,6 +62,16 @@ public class AvrcpNativeInterface {
         cleanupNative();
     }
 
+    void registerBipServer(int l2capPsm) {
+        d("Register our BIP server at psm=" + l2capPsm);
+        registerBipServerNative(l2capPsm);
+    }
+
+    void unregisterBipServer() {
+        d("Unregister any BIP server");
+        unregisterBipServerNative();
+    }
+
     Metadata getCurrentSongInfo() {
         d("getCurrentSongInfo");
         if (mAvrcpService == null) {
@@ -240,6 +250,8 @@ public class AvrcpNativeInterface {
 
     private static native void classInitNative();
     private native void initNative();
+    private native void registerBipServerNative(int l2capPsm);
+    private native void unregisterBipServerNative();
     private native void sendMediaUpdateNative(
             boolean trackChanged, boolean playState, boolean playPos);
     private native void sendFolderUpdateNative(
