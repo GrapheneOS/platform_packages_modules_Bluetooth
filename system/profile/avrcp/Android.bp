@@ -10,6 +10,7 @@ cc_library_static {
         "packages/modules/Bluetooth/system/btcore/include",
         "packages/modules/Bluetooth/system/internal_include",
         "packages/modules/Bluetooth/system/stack/include",
+        "packages/modules/Bluetooth/system/gd/rust/shim",
     ],
     export_include_dirs: ["./"],
     srcs: [
@@ -38,6 +39,9 @@ cc_test {
         "clang_coverage_bin",
     ],
     host_supported: true,
+    test_options: {
+        unit_test: true,
+    },
     include_dirs: [
         "packages/modules/Bluetooth/system",
         "packages/modules/Bluetooth/system/btcore/include",

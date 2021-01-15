@@ -21,6 +21,7 @@ cc_defaults {
         "packages/modules/Bluetooth/system/udrv/include",
         "packages/modules/Bluetooth/system/vnd/include",
         "packages/modules/Bluetooth/system/utils/include",
+        "packages/modules/Bluetooth/system/gd/rust/shim",
     ],
     shared_libs: [
         "libcutils",
