@@ -29,7 +29,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 class Util {
-    public static String TAG = "AvrcpUtil";
+    public static String TAG = "audio_util.Util";
     public static boolean DEBUG = false;
 
     private static final String GPM_KEY = "com.google.android.music.mediasession.music_metadata";
@@ -37,6 +37,9 @@ class Util {
     // TODO (apanicke): Remove this prefix later, for now it makes debugging easier.
     public static final String NOW_PLAYING_PREFIX = "NowPlayingId";
 
+    /**
+     * Get an empty set of Metadata
+     */
     public static final Metadata empty_data() {
         Metadata ret = new Metadata();
         ret.mediaId = "Not Provided";
@@ -47,170 +50,77 @@ class Util {
         ret.trackNum = "1";
         ret.numTracks = "1";
         ret.duration = "0";
+        ret.image = null;
         return ret;
     }
 
-    public static Metadata bundleToMetadata(Bundle bundle) {
-        if (bundle == null) return empty_data();
-
-        Metadata temp = new Metadata();
-        temp.title = bundle.getString(MediaMetadata.METADATA_KEY_TITLE, "Not Provided");
-        temp.artist = bundle.getString(MediaMetadata.METADATA_KEY_ARTIST, "");
-        temp.album = bundle.getString(MediaMetadata.METADATA_KEY_ALBUM, "");
-        temp.trackNum = "" + bundle.getLong(MediaMetadata.METADATA_KEY_TRACK_NUMBER, 1);
-        temp.numTracks = "" + bundle.getLong(MediaMetadata.METADATA_KEY_NUM_TRACKS, 1);
-        temp.genre = bundle.getString(MediaMetadata.METADATA_KEY_GENRE, "");
-        temp.duration = "" + bundle.getLong(MediaMetadata.METADATA_KEY_DURATION, 0);
-        return temp;
+    /**
+     * Translate a bundle of MediaMetadata keys to audio_util's Metadata
+     */
+    public static Metadata toMetadata(Context context, Bundle bundle) {
+        Metadata.Builder builder = new Metadata.Builder();
+        return builder.useContext(context).useDefaults().fromBundle(bundle).build();
     }
 
-    public static Bundle descriptionToBundle(MediaDescription desc) {
-        Bundle ret = new Bundle();
-        if (desc == null) return ret;
-
-        if (desc.getTitle() != null) {
-            ret.putString(MediaMetadata.METADATA_KEY_TITLE, desc.getTitle().toString());
+    /**
+     * Translate a MediaDescription to audio_util's Metadata
+     */
+    public static Metadata toMetadata(Context context, MediaDescription desc) {
+        // Find GPM_KEY data if it exists
+        MediaMetadata data = null;
+        Bundle extras = (desc != null ? desc.getExtras() : null);
+        if (extras != null && extras.containsKey(GPM_KEY)) {
+            data = (MediaMetadata) extras.get(GPM_KEY);
         }
 
-        if (desc.getSubtitle() != null) {
-            ret.putString(MediaMetadata.METADATA_KEY_ARTIST, desc.getSubtitle().toString());
-        }
-
-        if (desc.getDescription() != null) {
-            ret.putString(MediaMetadata.METADATA_KEY_ALBUM, desc.getDescription().toString());
-        }
-
-        // If the bundle has title or artist use those over the description title or subtitle.
-        if (desc.getExtras() != null) ret.putAll(desc.getExtras());
-
-        if (ret.containsKey(GPM_KEY)) {
-            if (DEBUG) Log.d(TAG, "MediaDescription contains GPM data");
-            ret.putAll(mediaMetadataToBundle((MediaMetadata) ret.get(GPM_KEY)));
-        }
-
-        return ret;
+        Metadata.Builder builder = new Metadata.Builder();
+        return builder.useContext(context).useDefaults().fromMediaDescription(desc)
+                .fromMediaMetadata(data).build();
     }
 
-    public static Bundle mediaMetadataToBundle(MediaMetadata data) {
-        Bundle bundle = new Bundle();
-        if (data == null) return bundle;
-
-        if (data.containsKey(MediaMetadata.METADATA_KEY_TITLE)) {
-            bundle.putString(MediaMetadata.METADATA_KEY_TITLE,
-                    data.getString(MediaMetadata.METADATA_KEY_TITLE));
-        }
-
-        if (data.containsKey(MediaMetadata.METADATA_KEY_ARTIST)) {
-            bundle.putString(MediaMetadata.METADATA_KEY_ARTIST,
-                    data.getString(MediaMetadata.METADATA_KEY_ARTIST));
-        }
-
-        if (data.containsKey(MediaMetadata.METADATA_KEY_ALBUM)) {
-            bundle.putString(MediaMetadata.METADATA_KEY_ALBUM,
-                    data.getString(MediaMetadata.METADATA_KEY_ALBUM));
-        }
-
-        if (data.containsKey(MediaMetadata.METADATA_KEY_TRACK_NUMBER)) {
-            bundle.putLong(MediaMetadata.METADATA_KEY_TRACK_NUMBER,
-                    data.getLong(MediaMetadata.METADATA_KEY_TRACK_NUMBER));
-        }
-
-        if (data.containsKey(MediaMetadata.METADATA_KEY_NUM_TRACKS)) {
-            bundle.putLong(MediaMetadata.METADATA_KEY_NUM_TRACKS,
-                    data.getLong(MediaMetadata.METADATA_KEY_NUM_TRACKS));
-        }
-
-        if (data.containsKey(MediaMetadata.METADATA_KEY_GENRE)) {
-            bundle.putString(MediaMetadata.METADATA_KEY_GENRE,
-                    data.getString(MediaMetadata.METADATA_KEY_GENRE));
-        }
-
-        if (data.containsKey(MediaMetadata.METADATA_KEY_DURATION)) {
-            bundle.putLong(MediaMetadata.METADATA_KEY_DURATION,
-                    data.getLong(MediaMetadata.METADATA_KEY_DURATION));
-        }
-
-        return bundle;
+    /**
+     * Translate a MediaItem to audio_util's Metadata
+     */
+    public static Metadata toMetadata(Context context, MediaItem item) {
+        Metadata.Builder builder = new Metadata.Builder();
+        return builder.useContext(context).useDefaults().fromMediaItem(item).build();
     }
 
-    public static Metadata toMetadata(MediaSession.QueueItem item) {
-        if (item == null) {
-            return empty_data();
-        }
-
-        Bundle bundle = descriptionToBundle(item.getDescription());
-
-        if (DEBUG) {
-            for (String key : bundle.keySet()) {
-                Log.d(TAG, "toMetadata: QueueItem: ContainsKey: " + key);
-            }
-        }
-
-        Metadata ret = bundleToMetadata(bundle);
-
+    /**
+     * Translate a MediaSession.QueueItem to audio_util's Metadata
+     */
+    public static Metadata toMetadata(Context context, MediaSession.QueueItem item) {
+        Metadata.Builder builder = new Metadata.Builder().useDefaults().fromQueueItem(item);
         // For Queue Items, the Media Id will always be just its Queue ID
         // We don't need to use its actual ID since we don't promise UIDS being valid
         // between a file system and it's now playing list.
-        ret.mediaId = NOW_PLAYING_PREFIX + item.getQueueId();
-
-        return ret;
+        if (item != null) builder.setMediaId(NOW_PLAYING_PREFIX + item.getQueueId());
+        return builder.build();
     }
 
-    public static Metadata toMetadata(MediaMetadata data) {
-        if (data == null) {
-            return empty_data();
-        }
-
-        MediaDescription desc = data.getDescription();
-
-        Bundle dataBundle = mediaMetadataToBundle(data);
-        Bundle bundle = descriptionToBundle(data.getDescription());
-
-        // Prioritize the media metadata over the media description
-        bundle.putAll(dataBundle);
-
-        if (DEBUG) {
-            for (String key : bundle.keySet()) {
-                Log.d(TAG, "toMetadata: MediaMetadata: ContainsKey: " + key);
-            }
-        }
-
-        Metadata ret = bundleToMetadata(bundle);
-
+    /**
+     * Translate a MediaMetadata to audio_util's Metadata
+     */
+    public static Metadata toMetadata(Context context, MediaMetadata data) {
+        Metadata.Builder builder = new Metadata.Builder();
         // This will always be currsong. The AVRCP service will overwrite the mediaId if it needs to
         // TODO (apanicke): Remove when the service is ready, right now it makes debugging much more
         // convenient
-        ret.mediaId = "currsong";
-
-        return ret;
+        return builder.useContext(context).useDefaults().fromMediaMetadata(data)
+                .setMediaId("currsong").build();
     }
 
-    public static Metadata toMetadata(MediaItem item) {
-        if (item == null) {
-            return empty_data();
-        }
-
-        Bundle bundle = descriptionToBundle(item.getDescription());
-
-        if (DEBUG) {
-            for (String key : bundle.keySet()) {
-                Log.d(TAG, "toMetadata: MediaItem: ContainsKey: " + key);
-            }
-        }
-
-        Metadata ret = bundleToMetadata(bundle);
-        ret.mediaId = item.getMediaId();
-
-        return ret;
-    }
-
-    public static List<Metadata> toMetadataList(List<MediaSession.QueueItem> items) {
+    /**
+     * Translate a list of MediaSession.QueueItem to a list of audio_util's Metadata
+     */
+    public static List<Metadata> toMetadataList(Context context,
+            List<MediaSession.QueueItem> items) {
         ArrayList<Metadata> list = new ArrayList<Metadata>();
 
         if (items == null) return list;
 
         for (int i = 0; i < items.size(); i++) {
-            Metadata data = toMetadata(items.get(i));
+            Metadata data = toMetadata(context, items.get(i));
             data.trackNum = "" + (i + 1);
             data.numTracks = "" + items.size();
             list.add(data);

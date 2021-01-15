@@ -429,7 +429,7 @@ class BrowsedPlayerWrapper {
                     Folder f = new Folder(item.getMediaId(), false, title);
                     return_list.add(new ListItem(f));
                 } else {
-                    return_list.add(new ListItem(Util.toMetadata(item)));
+                    return_list.add(new ListItem(Util.toMetadata(mContext, item)));
                 }
             }
 

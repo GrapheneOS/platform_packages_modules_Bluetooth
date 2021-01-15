@@ -225,6 +225,27 @@ static void initNative(JNIEnv* env, jobject object) {
   sServiceInterface->Init(&mAvrcpInterface, &mVolumeInterface);
 }
 
+static void registerBipServerNative(JNIEnv* env, jobject object,
+                                    jint l2cap_psm) {
+  ALOGD("%s: l2cap_psm=%d", __func__, (int)l2cap_psm);
+  std::unique_lock<std::shared_timed_mutex> interface_lock(interface_mutex);
+  if (sServiceInterface == nullptr) {
+    ALOGW("%s: Service not loaded.", __func__);
+    return;
+  }
+  sServiceInterface->RegisterBipServer((int)l2cap_psm);
+}
+
+static void unregisterBipServerNative(JNIEnv* env, jobject object) {
+  ALOGD("%s", __func__);
+  std::unique_lock<std::shared_timed_mutex> interface_lock(interface_mutex);
+  if (sServiceInterface == nullptr) {
+    ALOGW("%s: Service not loaded.", __func__);
+    return;
+  }
+  sServiceInterface->UnregisterBipServer();
+}
+
 static void sendMediaUpdateNative(JNIEnv* env, jobject object,
                                   jboolean metadata, jboolean state,
                                   jboolean queue) {
@@ -316,6 +337,26 @@ static void sendMediaKeyEvent(int key, KeyState state) {
       state == KeyState::PUSHED ? JNI_TRUE : JNI_FALSE);
 }
 
+static std::string getImageHandleFromJavaObj(JNIEnv* env, jobject image) {
+  std::string handle;
+
+  if (image == nullptr) return handle;
+
+  jclass class_image = env->GetObjectClass(image);
+  jmethodID method_getImageHandle =
+      env->GetMethodID(class_image, "getImageHandle", "()Ljava/lang/String;");
+  jstring imageHandle = (jstring) env->CallObjectMethod(
+      image, method_getImageHandle);
+  if (imageHandle == nullptr) {
+    return handle;
+  }
+
+  const char* value = env->GetStringUTFChars(imageHandle, nullptr);
+  handle = std::string(value);
+  env->ReleaseStringUTFChars(imageHandle, value);
+  return handle;
+}
+
 static SongInfo getSongInfoFromJavaObj(JNIEnv* env, jobject metadata) {
   SongInfo info;
 
@@ -338,6 +379,8 @@ static SongInfo getSongInfoFromJavaObj(JNIEnv* env, jobject metadata) {
       env->GetFieldID(class_metadata, "genre", "Ljava/lang/String;");
   jfieldID field_playingTime =
       env->GetFieldID(class_metadata, "duration", "Ljava/lang/String;");
+  jfieldID field_image =
+      env->GetFieldID(class_metadata, "image", "Lcom/android/bluetooth/audio_util/Image;");
 
   jstring jstr = (jstring)env->GetObjectField(metadata, field_mediaId);
   if (jstr != nullptr) {
@@ -408,6 +451,13 @@ static SongInfo getSongInfoFromJavaObj(JNIEnv* env, jobject metadata) {
         AttributeEntry(Attribute::PLAYING_TIME, std::string(value)));
     env->ReleaseStringUTFChars(jstr, value);
     env->DeleteLocalRef(jstr);
+  }
+
+  jobject object_image = env->GetObjectField(metadata, field_image);
+  std::string imageHandle = getImageHandleFromJavaObj(env, object_image);
+  if (!imageHandle.empty()) {
+    info.attributes.insert(
+        AttributeEntry(Attribute::DEFAULT_COVER_ART, imageHandle));
   }
 
   return info;
@@ -808,9 +858,30 @@ static void setVolume(int8_t volume) {
   sCallbackEnv->CallVoidMethod(mJavaInterface, method_setVolume, volume);
 }
 
+static void setBipClientStatusNative(JNIEnv* env, jobject object,
+                                    jstring address, jboolean connected) {
+  std::unique_lock<std::shared_timed_mutex> interface_lock(interface_mutex);
+  if (mServiceCallbacks == nullptr) {
+    ALOGW("%s: Service not loaded.", __func__);
+    return;
+  }
+
+  const char* tmp_addr = env->GetStringUTFChars(address, 0);
+  RawAddress bdaddr;
+  bool success = RawAddress::FromString(tmp_addr, bdaddr);
+  env->ReleaseStringUTFChars(address, tmp_addr);
+
+  if (!success) return;
+
+  bool status = (connected == JNI_TRUE);
+  sServiceInterface->SetBipClientStatus(bdaddr, status);
+}
+
 static JNINativeMethod sMethods[] = {
     {"classInitNative", "()V", (void*)classInitNative},
     {"initNative", "()V", (void*)initNative},
+    {"registerBipServerNative", "(I)V", (void*)registerBipServerNative},
+    {"unregisterBipServerNative", "()V", (void*)unregisterBipServerNative},
     {"sendMediaUpdateNative", "(ZZZ)V", (void*)sendMediaUpdateNative},
     {"sendFolderUpdateNative", "(ZZZ)V", (void*)sendFolderUpdateNative},
     {"setBrowsedPlayerResponseNative", "(IZLjava/lang/String;I)V",
@@ -824,6 +895,8 @@ static JNINativeMethod sMethods[] = {
      (void*)disconnectDeviceNative},
     {"sendVolumeChangedNative", "(Ljava/lang/String;I)V",
      (void*)sendVolumeChangedNative},
+    {"setBipClientStatusNative", "(Ljava/lang/String;Z)V",
+     (void*)setBipClientStatusNative},
 };
 
 int register_com_android_bluetooth_avrcp_target(JNIEnv* env) {
