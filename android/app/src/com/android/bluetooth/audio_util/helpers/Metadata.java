@@ -16,6 +16,7 @@
 
 package com.android.bluetooth.audio_util;
 
+import android.content.Context;
 import android.media.MediaDescription;
 import android.media.MediaMetadata;
 import android.media.browse.MediaBrowser.MediaItem;
@@ -33,6 +34,7 @@ public class Metadata implements Cloneable {
     public String numTracks;
     public String genre;
     public String duration;
+    public Image image;
 
     @Override
     public Metadata clone() {
@@ -45,6 +47,7 @@ public class Metadata implements Cloneable {
         data.numTracks = numTracks;
         data.genre = genre;
         data.duration = duration;
+        data.image = image;
         return data;
     }
 
@@ -59,6 +62,7 @@ public class Metadata implements Cloneable {
         if (!Objects.equals(album, m.album)) return false;
         if (!Objects.equals(trackNum, m.trackNum)) return false;
         if (!Objects.equals(numTracks, m.numTracks)) return false;
+        if (!Objects.equals(image, m.image)) return false;
         return true;
     }
 
@@ -66,7 +70,7 @@ public class Metadata implements Cloneable {
     public String toString() {
         return "{ mediaId=\"" + mediaId + "\" title=\"" + title + "\" artist=\"" + artist
                 + "\" album=\"" + album + "\" duration=" + duration
-                + " trackPosition=" + trackNum + "/" + numTracks + " }";
+                + " trackPosition=" + trackNum + "/" + numTracks + " image=" + image + " }";
     }
 
     /**
@@ -74,12 +78,21 @@ public class Metadata implements Cloneable {
      */
     public static class Builder {
         private Metadata mMetadata = new Metadata();
+        private Context mContext = null;
 
         /**
          * Set the Media ID fot the Metadata Object
          */
         public Builder setMediaId(String id) {
             mMetadata.mediaId = id;
+            return this;
+        }
+
+        /**
+         * Set the context this builder should use when resolving images
+         */
+        public Builder useContext(Context context) {
+            mContext = context;
             return this;
         }
 
@@ -117,6 +130,14 @@ public class Metadata implements Cloneable {
             if (data.containsKey(MediaMetadata.METADATA_KEY_DURATION)) {
                 mMetadata.duration = "" + data.getLong(MediaMetadata.METADATA_KEY_DURATION);
             }
+            if ((mContext != null && (data.containsKey(MediaMetadata.METADATA_KEY_ART_URI)
+                    || data.containsKey(MediaMetadata.METADATA_KEY_ALBUM_ART_URI)
+                    || data.containsKey(MediaMetadata.METADATA_KEY_DISPLAY_ICON_URI)))
+                    || data.containsKey(MediaMetadata.METADATA_KEY_ART)
+                    || data.containsKey(MediaMetadata.METADATA_KEY_ALBUM_ART)
+                    || data.containsKey(MediaMetadata.METADATA_KEY_DISPLAY_ICON)) {
+                mMetadata.image = new Image(mContext, data);
+            }
             return this;
         }
 
@@ -138,6 +159,13 @@ public class Metadata implements Cloneable {
             if (desc.getTitle() != null) mMetadata.title = desc.getTitle().toString();
             if (desc.getSubtitle() != null) mMetadata.artist = desc.getSubtitle().toString();
             if (desc.getDescription() != null) mMetadata.album = desc.getDescription().toString();
+
+            // Check for artwork
+            if (desc.getIconBitmap() != null) {
+                mMetadata.image = new Image(mContext, desc.getIconBitmap());
+            } else if (mContext != null && desc.getIconUri() != null) {
+                mMetadata.image = new Image(mContext, desc.getIconUri());
+            }
 
             // Then, check the extras in the description for even better data
             return fromBundle(desc.getExtras()).setMediaId(desc.getMediaId());
@@ -181,6 +209,14 @@ public class Metadata implements Cloneable {
             if (bundle.containsKey(MediaMetadata.METADATA_KEY_DURATION)) {
                 mMetadata.duration = "" + bundle.getLong(MediaMetadata.METADATA_KEY_DURATION);
             }
+            if ((mContext != null && (bundle.containsKey(MediaMetadata.METADATA_KEY_ART_URI)
+                    || bundle.containsKey(MediaMetadata.METADATA_KEY_ALBUM_ART_URI)
+                    || bundle.containsKey(MediaMetadata.METADATA_KEY_DISPLAY_ICON_URI)))
+                    || bundle.containsKey(MediaMetadata.METADATA_KEY_ART)
+                    || bundle.containsKey(MediaMetadata.METADATA_KEY_ALBUM_ART)
+                    || bundle.containsKey(MediaMetadata.METADATA_KEY_DISPLAY_ICON)) {
+                mMetadata.image = new Image(mContext, bundle);
+            }
             return this;
         }
 
@@ -196,6 +232,7 @@ public class Metadata implements Cloneable {
             if (mMetadata.numTracks == null) mMetadata.numTracks = "1";
             if (mMetadata.genre == null) mMetadata.genre = "";
             if (mMetadata.duration == null) mMetadata.duration = "0";
+            // The default value chosen for an image is null. Update here if we pick something else
             return this;
         }
 

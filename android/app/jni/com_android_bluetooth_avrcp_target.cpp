@@ -337,6 +337,26 @@ static void sendMediaKeyEvent(int key, KeyState state) {
       state == KeyState::PUSHED ? JNI_TRUE : JNI_FALSE);
 }
 
+static std::string getImageHandleFromJavaObj(JNIEnv* env, jobject image) {
+  std::string handle;
+
+  if (image == nullptr) return handle;
+
+  jclass class_image = env->GetObjectClass(image);
+  jmethodID method_getImageHandle =
+      env->GetMethodID(class_image, "getImageHandle", "()Ljava/lang/String;");
+  jstring imageHandle = (jstring) env->CallObjectMethod(
+      image, method_getImageHandle);
+  if (imageHandle == nullptr) {
+    return handle;
+  }
+
+  const char* value = env->GetStringUTFChars(imageHandle, nullptr);
+  handle = std::string(value);
+  env->ReleaseStringUTFChars(imageHandle, value);
+  return handle;
+}
+
 static SongInfo getSongInfoFromJavaObj(JNIEnv* env, jobject metadata) {
   SongInfo info;
 
@@ -359,6 +379,8 @@ static SongInfo getSongInfoFromJavaObj(JNIEnv* env, jobject metadata) {
       env->GetFieldID(class_metadata, "genre", "Ljava/lang/String;");
   jfieldID field_playingTime =
       env->GetFieldID(class_metadata, "duration", "Ljava/lang/String;");
+  jfieldID field_image =
+      env->GetFieldID(class_metadata, "image", "Lcom/android/bluetooth/audio_util/Image;");
 
   jstring jstr = (jstring)env->GetObjectField(metadata, field_mediaId);
   if (jstr != nullptr) {
@@ -429,6 +451,13 @@ static SongInfo getSongInfoFromJavaObj(JNIEnv* env, jobject metadata) {
         AttributeEntry(Attribute::PLAYING_TIME, std::string(value)));
     env->ReleaseStringUTFChars(jstr, value);
     env->DeleteLocalRef(jstr);
+  }
+
+  jobject object_image = env->GetObjectField(metadata, field_image);
+  std::string imageHandle = getImageHandleFromJavaObj(env, object_image);
+  if (!imageHandle.empty()) {
+    info.attributes.insert(
+        AttributeEntry(Attribute::DEFAULT_COVER_ART, imageHandle));
   }
 
   return info;

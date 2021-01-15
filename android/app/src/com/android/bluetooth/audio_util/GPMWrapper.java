@@ -16,6 +16,7 @@
 
 package com.android.bluetooth.audio_util;
 
+import android.content.Context;
 import android.media.session.MediaSession;
 import android.os.Looper;
 import android.util.Log;
@@ -29,8 +30,8 @@ class GPMWrapper extends MediaPlayerWrapper {
     private static final String TAG = "AvrcpGPMWrapper";
     private static final boolean DEBUG = true;
 
-    GPMWrapper(MediaController controller, Looper looper) {
-        super(controller, looper);
+    GPMWrapper(Context context, MediaController controller, Looper looper) {
+        super(context, controller, looper);
     }
 
     @Override
@@ -50,8 +51,8 @@ class GPMWrapper extends MediaPlayerWrapper {
         }
 
         // Check if current playing song in Queue matches current Metadata
-        Metadata qitem = Util.toMetadata(currItem);
-        Metadata mdata = Util.toMetadata(getMetadata());
+        Metadata qitem = Util.toMetadata(mContext, currItem);
+        Metadata mdata = Util.toMetadata(mContext, getMetadata());
         if (currItem == null || !qitem.equals(mdata)) {
             if (DEBUG) {
                 Log.d(TAG, "Metadata currently out of sync for Google Play Music");

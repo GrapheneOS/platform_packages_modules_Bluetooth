@@ -503,6 +503,7 @@ public class MediaPlayerList {
         }
 
         MediaPlayerWrapper newPlayer = MediaPlayerWrapperFactory.wrap(
+                mContext,
                 controller,
                 mLooper);
 
