@@ -25,7 +25,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -113,7 +113,7 @@ public final class BluetoothKeystoreServiceTest {
             "LE_KEY_LID ="
             );
 
-    private List<String> mConfigData = new LinkedList<>();
+    private List<String> mConfigData = new ArrayList<>();
 
     private Map<String, String> mNameDecryptKeyResult = new HashMap<>();
 

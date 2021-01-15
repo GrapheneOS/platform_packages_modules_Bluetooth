@@ -89,7 +89,6 @@ public class MediaPlayerListTest {
         when(mMockContext.registerReceiver(any(), any())).thenReturn(null);
         when(mMockContext.getApplicationContext()).thenReturn(mMockContext);
         when(mMockContext.getPackageManager()).thenReturn(mockPackageManager);
-        List<ResolveInfo> playerList = new ArrayList<ResolveInfo>();
         when(mockPackageManager.queryIntentServices(any(), anyInt())).thenReturn(null);
 
         Method method = BrowsablePlayerConnector.class.getDeclaredMethod("setInstanceForTesting",
