@@ -216,6 +216,7 @@ final class RemoteDevices {
         private BluetoothDevice mDevice;
         private boolean mIsBondingInitiatedLocally;
         private int mBatteryLevel = BluetoothDevice.BATTERY_LEVEL_UNKNOWN;
+        private boolean mIsCoordinatedSetMember;
         @VisibleForTesting int mBondState;
         @VisibleForTesting int mDeviceType;
         @VisibleForTesting ParcelUuid[] mUuids;
@@ -376,6 +377,15 @@ final class RemoteDevices {
         void setBatteryLevel(int batteryLevel) {
             synchronized (mObject) {
                 this.mBatteryLevel = batteryLevel;
+            }
+        }
+
+        /**
+         * @return the mIsCoordinatedSetMember
+        */
+        private boolean isCoordinatedSetMember() {
+            synchronized (mObject) {
+                return mIsCoordinatedSetMember;
             }
         }
     }
@@ -573,6 +583,9 @@ final class RemoteDevices {
                             // RSSI from hal is in one byte
                             device.mRssi = val[0];
                             break;
+                        case AbstractionLayer.BT_PROPERTY_REMOTE_IS_COORDINATED_SET_MEMBER:
+                            device.mIsCoordinatedSetMember = (boolean) (val[0] != 0);
+                            break;
                     }
                 }
             }
@@ -596,6 +609,8 @@ final class RemoteDevices {
                 new BluetoothClass(deviceProp.mBluetoothClass));
         intent.putExtra(BluetoothDevice.EXTRA_RSSI, deviceProp.mRssi);
         intent.putExtra(BluetoothDevice.EXTRA_NAME, deviceProp.mName);
+        intent.putExtra(BluetoothDevice.EXTRA_IS_COORDINATED_SET_MEMBER,
+                deviceProp.mIsCoordinatedSetMember);
 
         final ArrayList<DiscoveringPackage> packages = sAdapterService.getDiscoveringPackages();
         synchronized (packages) {
