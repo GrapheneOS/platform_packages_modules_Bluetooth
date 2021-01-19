@@ -295,6 +295,7 @@ typedef void(tBTM_RAND_ENC_CB)(tBTM_RAND_ENC* p1);
   HCI_EIR_COMPLETE_16BITS_UUID_TYPE /* 0x03 \
                                        */
 #define BTM_BLE_AD_TYPE_APPEARANCE 0x19
+#define BTM_BLE_AD_TYPE_RSI HCI_EIR_RSI_TYPE /* 0x2E */
 
 /*  Min/max Preferred  number of payload octets that the local Controller
     should include in a single Link Layer Data Channel PDU. */

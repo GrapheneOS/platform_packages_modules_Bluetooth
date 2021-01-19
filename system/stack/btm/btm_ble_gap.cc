@@ -1959,6 +1959,13 @@ void btm_ble_process_adv_pkt_cont(uint16_t evt_type, uint8_t addr_type,
     return;
   }
 
+  bool include_rsi = false;
+  uint8_t len;
+  if (AdvertiseDataParser::GetFieldByType(adv_data, BTM_BLE_AD_TYPE_RSI,
+                                          &len)) {
+    include_rsi = true;
+  }
+
   tINQ_DB_ENT* p_i = btm_inq_db_find(bda);
 
   /* Check if this address has already been processed for this inquiry */
@@ -1966,7 +1973,8 @@ void btm_ble_process_adv_pkt_cont(uint16_t evt_type, uint8_t addr_type,
     /* never been report as an LE device */
     if (p_i && (!(p_i->inq_info.results.device_type & BT_DEVICE_TYPE_BLE) ||
                 /* scan response to be updated */
-                (!p_i->scan_rsp))) {
+                (!p_i->scan_rsp) ||
+                (!p_i->inq_info.results.include_rsi && include_rsi))) {
       update = true;
     } else if (btm_cb.ble_ctr_cb.is_ble_observe_active()) {
       update = false;
@@ -1996,6 +2004,10 @@ void btm_ble_process_adv_pkt_cont(uint16_t evt_type, uint8_t addr_type,
   btm_ble_update_inq_result(p_i, addr_type, bda, evt_type, primary_phy,
                             secondary_phy, advertising_sid, tx_power, rssi,
                             periodic_adv_int, adv_data);
+
+  if (include_rsi) {
+    (&p_i->inq_info.results)->include_rsi = true;
+  }
 
   tBTM_INQ_RESULTS_CB* p_opportunistic_obs_results_cb =
       btm_cb.ble_ctr_cb.p_opportunistic_obs_results_cb;
@@ -2041,6 +2053,13 @@ void btm_ble_process_adv_pkt_cont_for_inquiry(
   tBTM_INQUIRY_VAR_ST* p_inq = &btm_cb.btm_inq_vars;
   bool update = true;
 
+  bool include_rsi = false;
+  uint8_t len;
+  if (AdvertiseDataParser::GetFieldByType(advertising_data, BTM_BLE_AD_TYPE_RSI,
+                                          &len)) {
+    include_rsi = true;
+  }
+
   tINQ_DB_ENT* p_i = btm_inq_db_find(bda);
 
   /* Check if this address has already been processed for this inquiry */
@@ -2048,7 +2067,8 @@ void btm_ble_process_adv_pkt_cont_for_inquiry(
     /* never been report as an LE device */
     if (p_i && (!(p_i->inq_info.results.device_type & BT_DEVICE_TYPE_BLE) ||
                 /* scan response to be updated */
-                (!p_i->scan_rsp))) {
+                (!p_i->scan_rsp) ||
+                (!p_i->inq_info.results.include_rsi && include_rsi))) {
       update = true;
     } else if (btm_cb.ble_ctr_cb.is_ble_observe_active()) {
       update = false;
@@ -2078,6 +2098,10 @@ void btm_ble_process_adv_pkt_cont_for_inquiry(
   btm_ble_update_inq_result(p_i, addr_type, bda, evt_type, primary_phy,
                             secondary_phy, advertising_sid, tx_power, rssi,
                             periodic_adv_int, advertising_data);
+
+  if (include_rsi) {
+    (&p_i->inq_info.results)->include_rsi = true;
+  }
 
   tBTM_INQ_RESULTS_CB* p_opportunistic_obs_results_cb =
       btm_cb.ble_ctr_cb.p_opportunistic_obs_results_cb;
