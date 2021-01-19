@@ -345,6 +345,22 @@ public class LeAudioService extends ProfileService {
     }
 
     /**
+     * Get the list of devices that have state machines.
+     *
+     * @return the list of devices that have state machines
+     */
+    @VisibleForTesting
+    List<BluetoothDevice> getDevices() {
+        List<BluetoothDevice> devices = new ArrayList<>();
+        synchronized (mStateMachines) {
+            for (LeAudioStateMachine sm : mStateMachines.values()) {
+                devices.add(sm.getDevice());
+            }
+            return devices;
+        }
+    }
+
+    /**
      * Get the current connection state of the profile
      *
      * @param device is the remote bluetooth device
