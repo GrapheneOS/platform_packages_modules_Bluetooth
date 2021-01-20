@@ -456,8 +456,8 @@ public class MapClientService extends ProfileService {
         }
 
         private MapClientService getService() {
-            if (!Utils.checkCaller()) {
-                Log.w(TAG, "MAP call not allowed for non-active user");
+            if (!Utils.checkCaller() && !MapUtils.isSystemUser()) {
+                Log.w(TAG, "MAP call not allowed for non-active and non-system user.");
                 return null;
             }
 

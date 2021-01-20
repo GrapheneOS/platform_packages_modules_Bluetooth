@@ -81,7 +81,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * a connection to the Message Access Server is created and a request to enable notification of new
  * messages is sent.
  */
-final class MceStateMachine extends StateMachine {
+class MceStateMachine extends StateMachine {
     // Messages for events handled by the StateMachine
     static final int MSG_MAS_CONNECTED = 1001;
     static final int MSG_MAS_DISCONNECTED = 1002;
@@ -110,6 +110,7 @@ final class MceStateMachine extends StateMachine {
     private static final String FOLDER_MSG = "msg";
     private static final String FOLDER_OUTBOX = "outbox";
     private static final String FOLDER_INBOX = "inbox";
+    private static final String FOLDER_SENT = "sent";
     private static final String INBOX_PATH = "telecom/msg/inbox";
 
 
@@ -123,6 +124,7 @@ final class MceStateMachine extends StateMachine {
     private final BluetoothDevice mDevice;
     private MapClientService mService;
     private MasClient mMasClient;
+    private final MapClientContent mDatabase;
     private HashMap<String, Bmessage> mSentMessageLog = new HashMap<>(MAX_MESSAGES);
     private HashMap<Bmessage, PendingIntent> mSentReceiptRequested = new HashMap<>(MAX_MESSAGES);
     private HashMap<Bmessage, PendingIntent> mDeliveryReceiptRequested =
@@ -188,6 +190,14 @@ final class MceStateMachine extends StateMachine {
         mConnecting = new Connecting();
         mDisconnecting = new Disconnecting();
         mConnected = new Connected();
+
+        MapClientContent.Callbacks callbacks = new MapClientContent.Callbacks(){
+            @Override
+            public void onMessageStatusChanged(String handle, int status) {
+                setMessageStatus(handle, status);
+            }
+        };
+        mDatabase = new MapClientContent(mService, callbacks, mDevice);
 
         addState(mDisconnected);
         addState(mConnecting);
@@ -272,16 +282,22 @@ final class MceStateMachine extends StateMachine {
 
             for (Uri contact : contacts) {
                 // Who to send the message to.
-                VCardEntry destEntry = new VCardEntry();
-                VCardProperty destEntryPhone = new VCardProperty();
                 if (DBG) {
                     Log.d(TAG, "Scheme " + contact.getScheme());
                 }
                 if (PhoneAccount.SCHEME_TEL.equals(contact.getScheme())) {
-                    destEntryPhone.setName(VCardConstants.PROPERTY_TEL);
-                    destEntryPhone.addValues(contact.getSchemeSpecificPart());
-                    if (DBG) {
-                        Log.d(TAG, "Sending to phone numbers " + destEntryPhone.getValueList());
+                    if (contact.getPath().contains(Telephony.Threads.CONTENT_URI.toString())) {
+                        mDatabase.addThreadContactsToEntries(bmsg, contact.getLastPathSegment());
+                    } else {
+                        VCardEntry destEntry = new VCardEntry();
+                        VCardProperty destEntryPhone = new VCardProperty();
+                        destEntryPhone.setName(VCardConstants.PROPERTY_TEL);
+                        destEntryPhone.addValues(contact.getSchemeSpecificPart());
+                        destEntry.addProperty(destEntryPhone);
+                        bmsg.addRecipient(destEntry);
+                        if (DBG) {
+                            Log.d(TAG, "Sending to phone numbers " + destEntryPhone.getValueList());
+                        }
                     }
                 } else {
                     if (DBG) {
@@ -289,8 +305,6 @@ final class MceStateMachine extends StateMachine {
                     }
                     return false;
                 }
-                destEntry.addProperty(destEntryPhone);
-                bmsg.addRecipient(destEntry);
             }
 
             // Message of the body.
@@ -511,6 +525,8 @@ final class MceStateMachine extends StateMachine {
             mMasClient.makeRequest(new RequestGetFolderListing(0, 0));
             mMasClient.makeRequest(new RequestSetPath(false));
             mMasClient.makeRequest(new RequestSetNotificationRegistration(true));
+            sendMessage(MSG_GET_MESSAGE_LISTING, FOLDER_SENT);
+            sendMessage(MSG_GET_MESSAGE_LISTING, FOLDER_INBOX);
         }
 
         @Override
@@ -551,7 +567,6 @@ final class MceStateMachine extends StateMachine {
                     // Get latest 50 Unread messages in the last week
                     MessagesFilter filter = new MessagesFilter();
                     filter.setMessageType(MapUtils.fetchMessageType());
-                    filter.setReadStatus(MessagesFilter.READ_STATUS_UNREAD);
                     Calendar calendar = Calendar.getInstance();
                     calendar.add(Calendar.DATE, -7);
                     filter.setPeriod(calendar.getTime(), null);
@@ -607,6 +622,7 @@ final class MceStateMachine extends StateMachine {
 
         @Override
         public void exit() {
+            mDatabase.clearMessages();
             mPreviousState = BluetoothProfile.STATE_CONNECTED;
         }
 
@@ -636,7 +652,6 @@ final class MceStateMachine extends StateMachine {
                                 + ", Message handle = " + ev.getHandle());
                     }
                     switch (ev.getType()) {
-
                         case NEW_MESSAGE:
                             // Infer the timestamp for this message as 'now' and read status false
                             // instead of getting the message listing data for it
@@ -649,10 +664,15 @@ final class MceStateMachine extends StateMachine {
                             mMasClient.makeRequest(new RequestGetMessage(ev.getHandle(),
                                     MasClient.CharsetType.UTF_8, false));
                             break;
-
                         case DELIVERY_SUCCESS:
                         case SENDING_SUCCESS:
                             notifySentMessageStatus(ev.getHandle(), ev.getType());
+                            break;
+                        case READ_STATUS_CHANGED:
+                            mDatabase.markRead(ev.getHandle());
+                            break;
+                        case MESSAGE_DELETED:
+                            mDatabase.deleteMessage(ev.getHandle());
                             break;
                     }
             }
@@ -660,7 +680,7 @@ final class MceStateMachine extends StateMachine {
 
         // Sets the specified message status to "read" (from "unread" status, mostly)
         private void markMessageRead(RequestGetMessage request) {
-            if (DBG) Log.d(TAG, "markMessageRead");
+            if (DBG) Log.d(TAG, "markMessageRead" + request.getHandle());
             MessageMetadata metadata = mMessages.get(request.getHandle());
             metadata.setRead(true);
             mMasClient.makeRequest(new RequestSetMessageStatus(request.getHandle(),
@@ -754,6 +774,8 @@ final class MceStateMachine extends StateMachine {
             if (message == null) {
                 return;
             }
+            mDatabase.storeMessage(message, request.getHandle(),
+                    mMessages.get(request.getHandle()).getTimestamp());
             if (!INBOX_PATH.equalsIgnoreCase(message.getFolder())) {
                 if (DBG) {
                     Log.d(TAG, "Ignoring message received in " + message.getFolder() + ".");

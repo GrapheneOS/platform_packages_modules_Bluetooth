@@ -25,22 +25,31 @@ import android.bluetooth.BluetoothProfile;
 import android.bluetooth.SdpMasRecord;
 import android.content.Context;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
+import android.telephony.SubscriptionManager;
+import android.test.mock.MockContentProvider;
+import android.test.mock.MockContentResolver;
 import android.util.Log;
 
 import androidx.test.InstrumentationRegistry;
 import androidx.test.filters.MediumTest;
+import androidx.test.rule.ServiceTestRule;
 import androidx.test.runner.AndroidJUnit4;
 
 import com.android.bluetooth.R;
+import com.android.bluetooth.TestUtils;
+import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.ProfileService;
+import com.android.bluetooth.btservice.storage.DatabaseManager;
 
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Assume;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
@@ -50,31 +59,56 @@ import org.mockito.MockitoAnnotations;
 @MediumTest
 @RunWith(AndroidJUnit4.class)
 public class MapClientStateMachineTest {
+
     private static final String TAG = "MapStateMachineTest";
 
     private static final int ASYNC_CALL_TIMEOUT_MILLIS = 100;
-
+    @Rule
+    public final ServiceTestRule mServiceRule = new ServiceTestRule();
     private BluetoothAdapter mAdapter;
     private MceStateMachine mMceStateMachine = null;
     private BluetoothDevice mTestDevice;
     private Context mTargetContext;
-
     private Handler mHandler;
-
     private ArgumentCaptor<Intent> mIntentArgument = ArgumentCaptor.forClass(Intent.class);
-
+    @Mock
+    private AdapterService mAdapterService;
+    @Mock
+    private DatabaseManager mDatabaseManager;
     @Mock
     private MapClientService mMockMapClientService;
-
+    private MockContentResolver mMockContentResolver;
+    private MockContentProvider mMockContentProvider;
     @Mock
     private MasClient mMockMasClient;
 
+    @Mock
+    private SubscriptionManager mMockSubscriptionManager;
+
     @Before
-    public void setUp() {
+    public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
         mTargetContext = InstrumentationRegistry.getTargetContext();
+        mMockContentProvider = new MockContentProvider(mTargetContext) {
+            @Override
+            public int delete(Uri uri, String selection, String[] selectionArgs) {
+                return 0;
+            }
+        };
+        mMockContentResolver = new MockContentResolver();
+
         Assume.assumeTrue("Ignore test when MapClientService is not enabled",
                 mTargetContext.getResources().getBoolean(R.bool.profile_supported_mapmce));
+        TestUtils.setAdapterService(mAdapterService);
+        when(mAdapterService.getDatabase()).thenReturn(mDatabaseManager);
+        TestUtils.startService(mServiceRule, MapClientService.class);
+        mMockContentResolver.addProvider("sms", mMockContentProvider);
+        mMockContentResolver.addProvider("mms", mMockContentProvider);
+        mMockContentResolver.addProvider("mms-sms", mMockContentProvider);
+
+        when(mMockMapClientService.getContentResolver()).thenReturn(mMockContentResolver);
+        when(mMockMapClientService.getSystemService(Context.TELEPHONY_SUBSCRIPTION_SERVICE))
+                .thenReturn(mMockSubscriptionManager);
 
         doReturn(mTargetContext.getResources()).when(mMockMapClientService).getResources();
 
@@ -93,13 +127,16 @@ public class MapClientStateMachineTest {
     }
 
     @After
-    public void tearDown() {
+    public void tearDown() throws Exception {
         if (!mTargetContext.getResources().getBoolean(R.bool.profile_supported_mapmce)) {
             return;
         }
+
         if (mMceStateMachine != null) {
             mMceStateMachine.doQuit();
         }
+        TestUtils.stopService(mServiceRule, MapClientService.class);
+        TestUtils.clearAdapterService(mAdapterService);
     }
 
     /**
@@ -112,8 +149,8 @@ public class MapClientStateMachineTest {
     }
 
     /**
-     * Test transition from
-     *      STATE_CONNECTING --> (receive MSG_MAS_DISCONNECTED) --> STATE_DISCONNECTED
+     * Test transition from STATE_CONNECTING --> (receive MSG_MAS_DISCONNECTED) -->
+     * STATE_DISCONNECTED
      */
     @Test
     public void testStateTransitionFromConnectingToDisconnected() {
@@ -151,9 +188,9 @@ public class MapClientStateMachineTest {
         Assert.assertEquals(BluetoothProfile.STATE_CONNECTED, mMceStateMachine.getState());
     }
 
-     /**
-     * Test transition from STATE_CONNECTING --> (receive MSG_MAS_CONNECTED) --> STATE_CONNECTED
-     * --> (receive MSG_MAS_DISCONNECTED) --> STATE_DISCONNECTED
+    /**
+     * Test transition from STATE_CONNECTING --> (receive MSG_MAS_CONNECTED) --> STATE_CONNECTED -->
+     * (receive MSG_MAS_DISCONNECTED) --> STATE_DISCONNECTED
      */
     @Test
     public void testStateTransitionFromConnectedWithMasDisconnected() {
@@ -220,7 +257,8 @@ public class MapClientStateMachineTest {
                 timeout(ASYNC_CALL_TIMEOUT_MILLIS).times(2)).sendBroadcast(
                 mIntentArgument.capture(), eq(ProfileService.BLUETOOTH_PERM));
         Assert.assertEquals(BluetoothProfile.STATE_CONNECTED, mMceStateMachine.getState());
-        Assert.assertTrue(mMceStateMachine.setMessageStatus("123456789AB", BluetoothMapClient.READ));
+        Assert.assertTrue(
+                mMceStateMachine.setMessageStatus("123456789AB", BluetoothMapClient.READ));
     }
 
     private void setupSdpRecordReceipt() {
