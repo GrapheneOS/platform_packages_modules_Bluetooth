@@ -878,7 +878,7 @@ class JniScanningCallbacks : ScanningCallbacks {
                                  status, scannerId, UUID_PARAMS(app_uuid));
   }
 
-  void OnScanResult(uint16_t event_type, uint8_t addr_type, RawAddress* bda,
+  void OnScanResult(uint16_t event_type, uint8_t addr_type, RawAddress bda,
                     uint8_t primary_phy, uint8_t secondary_phy,
                     uint8_t advertising_sid, int8_t tx_power, int8_t rssi,
                     uint16_t periodic_adv_int, std::vector<uint8_t> adv_data) {
@@ -886,7 +886,7 @@ class JniScanningCallbacks : ScanningCallbacks {
     if (!sCallbackEnv.valid()) return;
 
     ScopedLocalRef<jstring> address(sCallbackEnv.get(),
-                                    bdaddr2newjstr(sCallbackEnv.get(), bda));
+                                    bdaddr2newjstr(sCallbackEnv.get(), &bda));
     ScopedLocalRef<jbyteArray> jb(sCallbackEnv.get(),
                                   sCallbackEnv->NewByteArray(adv_data.size()));
     sCallbackEnv->SetByteArrayRegion(jb.get(), 0, adv_data.size(),
