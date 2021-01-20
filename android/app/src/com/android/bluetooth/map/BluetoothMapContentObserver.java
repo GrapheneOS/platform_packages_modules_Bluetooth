@@ -1412,7 +1412,8 @@ public class BluetoothMapContentObserver {
                     do {
                         int idIndex = c.getColumnIndexOrThrow(Sms._ID);
                         if (c.isNull(idIndex)) {
-                            throw new IllegalStateException("ID is null");
+                            Log.w(TAG, "handleMsgListChangesSms, ID is null");
+                            continue;
                         }
                         long id = c.getLong(idIndex);
                         int type = c.getInt(c.getColumnIndex(Sms.TYPE));
@@ -1572,7 +1573,8 @@ public class BluetoothMapContentObserver {
                     do {
                         int idIndex = c.getColumnIndexOrThrow(Mms._ID);
                         if (c.isNull(idIndex)) {
-                            throw new IllegalStateException("ID is null");
+                            Log.w(TAG, "handleMsgListChangesMms, ID is null");
+                            continue;
                         }
                         long id = c.getLong(idIndex);
                         int type = c.getInt(c.getColumnIndex(Mms.MESSAGE_BOX));
