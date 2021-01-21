@@ -32,6 +32,7 @@ import android.app.AppOpsManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.app.admin.DevicePolicyManager;
+import android.bluetooth.BluetoothA2dp;
 import android.bluetooth.BluetoothActivityEnergyInfo;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothAdapter.ActiveDeviceUse;
@@ -40,6 +41,7 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.BluetoothProtoEnums;
 import android.bluetooth.BluetoothUuid;
+import android.bluetooth.BufferConstraints;
 import android.bluetooth.IBluetooth;
 import android.bluetooth.IBluetoothCallback;
 import android.bluetooth.IBluetoothConnectionCallback;
@@ -3198,6 +3200,38 @@ public class AdapterService extends Service {
     }
 
     /**
+     * Get dynamic audio buffer size supported type
+     *
+     * @return support <p>Possible values are
+     * {@link BluetoothA2dp#DYNAMIC_BUFFER_SUPPORT_NONE},
+     * {@link BluetoothA2dp#DYNAMIC_BUFFER_SUPPORT_A2DP_OFFLOAD},
+     * {@link BluetoothA2dp#DYNAMIC_BUFFER_SUPPORT_A2DP_SOFTWARE_ENCODING}.
+     */
+    public int getDynamicBufferSupport() {
+        return mAdapterProperties.getDynamicBufferSupport();
+    }
+
+    /**
+     * Get dynamic audio buffer size
+     *
+     * @return BufferConstraints
+     */
+    public BufferConstraints getBufferConstraints() {
+        return mAdapterProperties.getBufferConstraints();
+    }
+
+    /**
+     * Set dynamic audio buffer size
+     *
+     * @param codec Audio codec
+     * @param value buffer millis
+     * @return true if the settings is successful, false otherwise
+     */
+    public boolean setBufferMillis(int codec, int value) {
+        return mAdapterProperties.setBufferMillis(codec, value);
+    }
+
+    /**
      *  Get an incremental id of Bluetooth metrics and log
      *
      *  @param device Bluetooth device
@@ -3289,6 +3323,8 @@ public class AdapterService extends Service {
     private native void interopDatabaseAddNative(int feature, byte[] address, int length);
 
     private native byte[] obfuscateAddressNative(byte[] address);
+
+    native boolean setBufferMillisNative(int codec, int value);
 
     private native int getMetricIdNative(byte[] address);
 

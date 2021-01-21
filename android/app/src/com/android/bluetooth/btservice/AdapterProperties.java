@@ -34,6 +34,8 @@ import android.bluetooth.BluetoothPbap;
 import android.bluetooth.BluetoothPbapClient;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.BluetoothSap;
+import android.bluetooth.BufferConstraint;
+import android.bluetooth.BufferConstraints;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -52,7 +54,9 @@ import com.android.bluetooth.btservice.RemoteDevices.DeviceProperties;
 
 import java.io.FileDescriptor;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 class AdapterProperties {
@@ -114,6 +118,11 @@ class AdapterProperties {
     private boolean mIsLeExtendedAdvertisingSupported;
     private boolean mIsLePeriodicAdvertisingSupported;
     private int mLeMaximumAdvertisingDataLength;
+
+    private int mIsDynamicAudioBufferSizeSupported;
+    private int mDynamicAudioBufferSizeSupportedCodecsGroup1;
+    private int mDynamicAudioBufferSizeSupportedCodecsGroup2;
+    private List<BufferConstraint> mBufferConstraintList;
 
     private boolean mReceiverRegistered;
     private BroadcastReceiver mReceiver = new BroadcastReceiver() {
@@ -517,6 +526,44 @@ class AdapterProperties {
     }
 
     /**
+     * @return Dynamic Audio Buffer support
+     */
+    int getDynamicBufferSupport() {
+        if (!mA2dpOffloadEnabled) {
+            // TODO: Enable Dynamic Audio Buffer for A2DP software encoding when ready.
+            mIsDynamicAudioBufferSizeSupported =
+                BluetoothA2dp.DYNAMIC_BUFFER_SUPPORT_NONE;
+        } else {
+            if ((mDynamicAudioBufferSizeSupportedCodecsGroup1 != 0)
+                    || (mDynamicAudioBufferSizeSupportedCodecsGroup2 != 0)) {
+                mIsDynamicAudioBufferSizeSupported =
+                    BluetoothA2dp.DYNAMIC_BUFFER_SUPPORT_A2DP_OFFLOAD;
+            } else {
+                mIsDynamicAudioBufferSizeSupported =
+                    BluetoothA2dp.DYNAMIC_BUFFER_SUPPORT_NONE;
+            }
+        }
+        return mIsDynamicAudioBufferSizeSupported;
+    }
+
+    /**
+     * @return Dynamic Audio Buffer Capability
+     */
+    BufferConstraints getBufferConstraints() {
+        return new BufferConstraints(mBufferConstraintList);
+    }
+
+    /**
+     * Set the dynamic audio buffer size
+     *
+     * @param codec the codecs to set
+     * @param size the size to set
+     */
+    boolean setBufferMillis(int codec, int value) {
+        return mService.setBufferMillisNative(codec, value);
+    }
+
+    /**
      * @return the mBondedDevices
      */
     BluetoothDevice[] getBondedDevices() {
@@ -864,6 +911,10 @@ class AdapterProperties {
                         updateFeatureSupport(val);
                         break;
 
+                    case AbstractionLayer.BT_PROPERTY_DYNAMIC_AUDIO_BUFFER:
+                        updateDynamicAudioBufferSupport(val);
+                        break;
+
                     case AbstractionLayer.BT_PROPERTY_LOCAL_IO_CAPS:
                         mLocalIOCapability = Utils.byteArrayToInt(val);
                         debugLog("mLocalIOCapability set to " + mLocalIOCapability);
@@ -898,6 +949,10 @@ class AdapterProperties {
         mIsLePeriodicAdvertisingSupported = ((0xFF & ((int) val[17])) != 0);
         mLeMaximumAdvertisingDataLength =
                 (0xFF & ((int) val[18])) + ((0xFF & ((int) val[19])) << 8);
+        mDynamicAudioBufferSizeSupportedCodecsGroup1 =
+                ((0xFF & ((int) val[21])) << 8) + (0xFF & ((int) val[20]));
+        mDynamicAudioBufferSizeSupportedCodecsGroup2 =
+                ((0xFF & ((int) val[23])) << 8) + (0xFF & ((int) val[22]));
 
         Log.d(TAG, "BT_PROPERTY_LOCAL_LE_FEATURES: update from BT controller"
                 + " mNumOfAdvertisementInstancesSupported = "
@@ -913,8 +968,34 @@ class AdapterProperties {
                 + mIsLe2MPhySupported + " mIsLeCodedPhySupported = " + mIsLeCodedPhySupported
                 + " mIsLeExtendedAdvertisingSupported = " + mIsLeExtendedAdvertisingSupported
                 + " mIsLePeriodicAdvertisingSupported = " + mIsLePeriodicAdvertisingSupported
-                + " mLeMaximumAdvertisingDataLength = " + mLeMaximumAdvertisingDataLength);
+                + " mLeMaximumAdvertisingDataLength = " + mLeMaximumAdvertisingDataLength
+                + " mDynamicAudioBufferSizeSupportedCodecsGroup1 = "
+                + mDynamicAudioBufferSizeSupportedCodecsGroup1
+                + " mDynamicAudioBufferSizeSupportedCodecsGroup2 = "
+                + mDynamicAudioBufferSizeSupportedCodecsGroup2);
         invalidateIsOffloadedFilteringSupportedCache();
+    }
+
+    private void updateDynamicAudioBufferSupport(byte[] val) {
+        // bufferConstraints is the table indicates the capability of all the codecs
+        // with buffer time. The raw is codec number, and the column is buffer type. There are 3
+        // buffer types - default/maximum/minimum.
+        // The maximum number of raw is BUFFER_CODEC_MAX_NUM(32).
+        // The maximum number of column is BUFFER_TYPE_MAX(3).
+        // The array element indicates the buffer time, the size is two octet.
+        mBufferConstraintList = new ArrayList<BufferConstraint>();
+
+        for (int i = 0; i < BufferConstraints.BUFFER_CODEC_MAX_NUM; i++) {
+            int defaultBufferTime = ((0xFF & ((int) val[i * 6 + 1])) << 8)
+                    + (0xFF & ((int) val[i * 6]));
+            int maximumBufferTime = ((0xFF & ((int) val[i * 6 + 3])) << 8)
+                    + (0xFF & ((int) val[i * 6 + 2]));
+            int minimumBufferTime = ((0xFF & ((int) val[i * 6 + 5])) << 8)
+                    + (0xFF & ((int) val[i * 6 + 4]));
+            BufferConstraint bufferConstraint = new BufferConstraint(defaultBufferTime,
+                    maximumBufferTime, minimumBufferTime);
+            mBufferConstraintList.add(bufferConstraint);
+        }
     }
 
     void onBluetoothReady() {
