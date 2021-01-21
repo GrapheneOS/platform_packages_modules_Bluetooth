@@ -27,6 +27,7 @@ import android.bluetooth.BluetoothCodecStatus;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.BluetoothUuid;
+import android.bluetooth.BufferConstraints;
 import android.bluetooth.IBluetoothA2dp;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -873,6 +874,44 @@ public class A2dpService extends ProfileService {
         mDatabaseManager.setA2dpOptionalCodecsEnabled(device, value);
     }
 
+    /**
+     * Get dynamic audio buffer size supported type
+     *
+     * @return support <p>Possible values are
+     * {@link BluetoothA2dp#DYNAMIC_BUFFER_SUPPORT_NONE},
+     * {@link BluetoothA2dp#DYNAMIC_BUFFER_SUPPORT_A2DP_OFFLOAD},
+     * {@link BluetoothA2dp#DYNAMIC_BUFFER_SUPPORT_A2DP_SOFTWARE_ENCODING}.
+     */
+    public int getDynamicBufferSupport() {
+        enforceCallingOrSelfPermission(BLUETOOTH_PRIVILEGED,
+                "Need BLUETOOTH_PRIVILEGED permission");
+        return mAdapterService.getDynamicBufferSupport();
+    }
+
+    /**
+     * Get dynamic audio buffer size
+     *
+     * @return BufferConstraints
+     */
+    public BufferConstraints getBufferConstraints() {
+        enforceCallingOrSelfPermission(BLUETOOTH_PRIVILEGED,
+                "Need BLUETOOTH_PRIVILEGED permission");
+        return mAdapterService.getBufferConstraints();
+    }
+
+    /**
+     * Set dynamic audio buffer size
+     *
+     * @param codec Audio codec
+     * @param value buffer millis
+     * @return true if the settings is successful, false otherwise
+     */
+    public boolean setBufferMillis(int codec, int value) {
+        enforceCallingOrSelfPermission(BLUETOOTH_PRIVILEGED,
+                "Need BLUETOOTH_PRIVILEGED permission");
+        return mAdapterService.setBufferMillis(codec, value);
+    }
+
     // Handle messages from native (JNI) to Java
     void messageFromNative(A2dpStackEvent stackEvent) {
         Objects.requireNonNull(stackEvent.device,
@@ -1384,6 +1423,30 @@ public class A2dpService extends ProfileService {
                 return;
             }
             service.setOptionalCodecsEnabled(device, value);
+        }
+
+        public int getDynamicBufferSupport() {
+            A2dpService service = getService();
+            if (service == null) {
+                return BluetoothA2dp.DYNAMIC_BUFFER_SUPPORT_NONE;
+            }
+            return service.getDynamicBufferSupport();
+        }
+
+        public BufferConstraints getBufferConstraints() {
+            A2dpService service = getService();
+            if (service == null) {
+                return null;
+            }
+            return service.getBufferConstraints();
+        }
+
+        public boolean setBufferMillis(int codec, int value) {
+            A2dpService service = getService();
+            if (service == null) {
+                return false;
+            }
+            return service.setBufferMillis(codec, value);
         }
     }
 
