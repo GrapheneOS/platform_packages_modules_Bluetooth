@@ -414,6 +414,15 @@
         </service>
         <service
             android:process="@string/process"
+            android:name=".vc.VolumeControlService"
+            android:exported="true"
+            android:enabled="@bool/profile_supported_vc">
+            <intent-filter>
+                <action android:name="android.bluetooth.IBluetoothVolumeControl" />
+            </intent-filter>
+        </service>
+        <service
+            android:process="@string/process"
             android:name = ".le_audio.LeAudioService"
             android:exported = "true">
             <intent-filter>
