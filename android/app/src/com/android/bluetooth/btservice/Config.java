@@ -48,6 +48,7 @@ import com.android.bluetooth.pan.PanService;
 import com.android.bluetooth.pbap.BluetoothPbapService;
 import com.android.bluetooth.pbapclient.PbapClientService;
 import com.android.bluetooth.sap.SapService;
+import com.android.bluetooth.vc.VolumeControlService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -104,6 +105,8 @@ public class Config {
                     (1 << BluetoothProfile.OPP)),
             new ProfileConfig(BluetoothPbapService.class, R.bool.profile_supported_pbap,
                     (1 << BluetoothProfile.PBAP)),
+            new ProfileConfig(VolumeControlService.class, R.bool.profile_supported_vc,
+                    (1 << BluetoothProfile.VOLUME_CONTROL)),
             new ProfileConfig(HearingAidService.class,
                     com.android.internal.R.bool.config_hearing_aid_profile_supported,
                     (1 << BluetoothProfile.HEARING_AID))
