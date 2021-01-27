@@ -2857,7 +2857,8 @@ public class BluetoothMapContentObserver {
                 sentIntent.putExtra(EXTRA_MESSAGE_SENT_RETRY, retry);
                 //sentIntent.setDataAndNormalize(btMmsUri);
                 PendingIntent pendingSendIntent =
-                        PendingIntent.getBroadcast(mContext, 0, sentIntent, 0);
+                        PendingIntent.getBroadcast(mContext, 0, sentIntent,
+                                PendingIntent.FLAG_IMMUTABLE);
                 SmsManager.getDefault()
                         .sendMultimediaMessage(mContext, btMmsUri, null/*locationUrl*/,
                                 null/*configOverrides*/,
@@ -3206,7 +3207,7 @@ public class BluetoothMapContentObserver {
                 intentDelivery.putExtra(EXTRA_MESSAGE_SENT_TIMESTAMP, msgInfo.timestamp);
                 PendingIntent pendingIntentDelivery =
                         PendingIntent.getBroadcast(mContext, 0, intentDelivery,
-                                PendingIntent.FLAG_UPDATE_CURRENT);
+                                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 
                 intentSent = new Intent(ACTION_MESSAGE_SENT, null);
                 /* Add msgId and part number to ensure the intents are different, and we
@@ -3221,7 +3222,7 @@ public class BluetoothMapContentObserver {
 
                 PendingIntent pendingIntentSent =
                         PendingIntent.getBroadcast(mContext, 0, intentSent,
-                                PendingIntent.FLAG_UPDATE_CURRENT);
+                                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 
                 // We use the same pending intent for all parts, but do not set the one shot flag.
                 deliveryIntents.add(pendingIntentDelivery);
