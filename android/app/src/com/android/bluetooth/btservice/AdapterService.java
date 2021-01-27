@@ -2861,7 +2861,8 @@ public class AdapterService extends Service {
 
             Intent intent = new Intent(ACTION_ALARM_WAKEUP);
             mPendingAlarm =
-                    PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_ONE_SHOT);
+                    PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_ONE_SHOT
+                            | PendingIntent.FLAG_IMMUTABLE);
             mAlarmManager.setExact(type, wakeupTime, mPendingAlarm);
             return true;
         }

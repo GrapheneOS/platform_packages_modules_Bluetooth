@@ -394,9 +394,11 @@ class PbapStateMachine extends StateMachine {
                             .setFlag(Notification.FLAG_AUTO_CANCEL, true)
                             .setFlag(Notification.FLAG_ONLY_ALERT_ONCE, true)
                             .setContentIntent(
-                                    PendingIntent.getActivity(mService, 0, clickIntent, 0))
+                                    PendingIntent.getActivity(mService, 0, clickIntent,
+                                        PendingIntent.FLAG_IMMUTABLE))
                             .setDeleteIntent(
-                                    PendingIntent.getBroadcast(mService, 0, deleteIntent, 0))
+                                    PendingIntent.getBroadcast(mService, 0, deleteIntent,
+                                        PendingIntent.FLAG_IMMUTABLE))
                             .setLocalOnly(true)
                             .build();
             nm.notify(mNotificationId, notification);
