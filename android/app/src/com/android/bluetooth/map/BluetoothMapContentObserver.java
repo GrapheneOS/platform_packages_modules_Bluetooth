@@ -2860,7 +2860,7 @@ public class BluetoothMapContentObserver {
                 // with either FLAG_IMMUTABLE (recommended) or FLAG_MUTABLE.
                 PendingIntent pendingSendIntent =
                         PendingIntent.getBroadcast(mContext, 0, sentIntent,
-                                PendingIntent.FLAG_MUTABLE_UNAUDITED);
+                                PendingIntent.FLAG_IMMUTABLE);
                 SmsManager.getDefault()
                         .sendMultimediaMessage(mContext, btMmsUri, null/*locationUrl*/,
                                 null/*configOverrides*/,
@@ -3211,9 +3211,7 @@ public class BluetoothMapContentObserver {
                 // with either FLAG_IMMUTABLE (recommended) or FLAG_MUTABLE.
                 PendingIntent pendingIntentDelivery =
                         PendingIntent.getBroadcast(mContext, 0, intentDelivery,
-                                PendingIntent.FLAG_UPDATE_CURRENT
-                                | PendingIntent.FLAG_MUTABLE_UNAUDITED);
-
+                                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
                 intentSent = new Intent(ACTION_MESSAGE_SENT, null);
                 /* Add msgId and part number to ensure the intents are different, and we
                  * thereby get an intent for each msg part.
@@ -3229,9 +3227,7 @@ public class BluetoothMapContentObserver {
                 // with either FLAG_IMMUTABLE (recommended) or FLAG_MUTABLE.
                 PendingIntent pendingIntentSent =
                         PendingIntent.getBroadcast(mContext, 0, intentSent,
-                                PendingIntent.FLAG_UPDATE_CURRENT
-                                | PendingIntent.FLAG_MUTABLE_UNAUDITED);
-
+                                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
                 // We use the same pending intent for all parts, but do not set the one shot flag.
                 deliveryIntents.add(pendingIntentDelivery);
                 sentIntents.add(pendingIntentSent);

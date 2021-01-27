@@ -2865,7 +2865,7 @@ public class AdapterService extends Service {
             // with either FLAG_IMMUTABLE (recommended) or FLAG_MUTABLE.
             mPendingAlarm =
                     PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_ONE_SHOT
-                            | PendingIntent.FLAG_MUTABLE_UNAUDITED);
+                            | PendingIntent.FLAG_IMMUTABLE);
             mAlarmManager.setExact(type, wakeupTime, mPendingAlarm);
             return true;
         }

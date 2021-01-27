@@ -397,10 +397,10 @@ class PbapStateMachine extends StateMachine {
                             // with either FLAG_IMMUTABLE (recommended) or FLAG_MUTABLE.
                             .setContentIntent(
                                     PendingIntent.getActivity(mService, 0, clickIntent,
-                                        PendingIntent.FLAG_MUTABLE_UNAUDITED))
+                                        PendingIntent.FLAG_IMMUTABLE))
                             .setDeleteIntent(
                                     PendingIntent.getBroadcast(mService, 0, deleteIntent,
-                                        PendingIntent.FLAG_MUTABLE_UNAUDITED))
+                                        PendingIntent.FLAG_IMMUTABLE))
                             .setLocalOnly(true)
                             .build();
             nm.notify(mNotificationId, notification);
