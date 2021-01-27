@@ -390,10 +390,8 @@ class BluetoothOppNotification {
             intent.setClassName(Constants.THIS_PACKAGE_NAME, BluetoothOppReceiver.class.getName());
             intent.setDataAndNormalize(Uri.parse(BluetoothShare.CONTENT_URI + "/" + item.id));
 
-            // TODO(b/171825892) Please replace FLAG_MUTABLE_UNAUDITED below
-            // with either FLAG_IMMUTABLE (recommended) or FLAG_MUTABLE.
             b.setContentIntent(PendingIntent.getBroadcast(mContext, 0, intent,
-                        PendingIntent.FLAG_MUTABLE_UNAUDITED));
+                        PendingIntent.FLAG_IMMUTABLE));
             mNotificationMgr.notify(NOTIFICATION_ID_PROGRESS, b.build());
         }
     }
@@ -464,10 +462,10 @@ class BluetoothOppNotification {
                             // with either FLAG_IMMUTABLE (recommended) or FLAG_MUTABLE.
                             .setContentIntent(
                                     PendingIntent.getBroadcast(mContext, 0, contentIntent,
-                                        PendingIntent.FLAG_MUTABLE_UNAUDITED))
+                                        PendingIntent.FLAG_IMMUTABLE))
                             .setDeleteIntent(
                                     PendingIntent.getBroadcast(mContext, 0, deleteIntent,
-                                        PendingIntent.FLAG_MUTABLE_UNAUDITED))
+                                        PendingIntent.FLAG_IMMUTABLE))
                             .setWhen(timeStamp)
                             .setLocalOnly(true)
                             .build();
@@ -531,14 +529,12 @@ class BluetoothOppNotification {
                                                     .system_notification_accent_color,
                                             mContext.getTheme()))
 
-                            // TODO(b/171825892) Please replace FLAG_MUTABLE_UNAUDITED below
-                            // with either FLAG_IMMUTABLE (recommended) or FLAG_MUTABLE.
                             .setContentIntent(
                                     PendingIntent.getBroadcast(mContext, 0, contentIntent,
-                                        PendingIntent.FLAG_MUTABLE_UNAUDITED))
+                                        PendingIntent.FLAG_IMMUTABLE))
                             .setDeleteIntent(
                                     PendingIntent.getBroadcast(mContext, 0, deleteIntent,
-                                        PendingIntent.FLAG_MUTABLE_UNAUDITED))
+                                        PendingIntent.FLAG_IMMUTABLE))
                             .setWhen(timeStamp)
                             .setLocalOnly(true)
                             .build();
@@ -577,7 +573,7 @@ class BluetoothOppNotification {
                             // with either FLAG_IMMUTABLE (recommended) or FLAG_MUTABLE.
                             PendingIntent.getBroadcast(mContext, 0,
                                     new Intent(baseIntent).setAction(Constants.ACTION_DECLINE),
-                                    PendingIntent.FLAG_MUTABLE_UNAUDITED)).build();
+                                    PendingIntent.FLAG_IMMUTABLE)).build();
             Notification.Action actionAccept = new Notification.Action.Builder(
                     Icon.createWithResource(mContext,R.drawable.ic_accept),
                     mContext.getText(R.string.incoming_file_confirm_ok),
@@ -585,7 +581,7 @@ class BluetoothOppNotification {
                     // with either FLAG_IMMUTABLE (recommended) or FLAG_MUTABLE.
                     PendingIntent.getBroadcast(mContext, 0,
                             new Intent(baseIntent).setAction(Constants.ACTION_ACCEPT),
-                            PendingIntent.FLAG_MUTABLE_UNAUDITED)).build();
+                            PendingIntent.FLAG_IMMUTABLE)).build();
             Notification public_n =
                     new Notification.Builder(mContext, OPP_NOTIFICATION_CHANNEL).setOnlyAlertOnce(
                             true)
@@ -598,10 +594,10 @@ class BluetoothOppNotification {
                             .setContentIntent(PendingIntent.getBroadcast(mContext, 0,
                                     new Intent(baseIntent).setAction(
                                             Constants.ACTION_INCOMING_FILE_CONFIRM),
-                                    PendingIntent.FLAG_MUTABLE_UNAUDITED))
+                                    PendingIntent.FLAG_IMMUTABLE))
                             .setDeleteIntent(PendingIntent.getBroadcast(mContext, 0,
                                     new Intent(baseIntent).setAction(Constants.ACTION_HIDE),
-                                    PendingIntent.FLAG_MUTABLE_UNAUDITED))
+                                    PendingIntent.FLAG_IMMUTABLE))
                             .setColor(mContext.getResources()
                                     .getColor(
                                             com.android.internal.R.color
@@ -627,10 +623,10 @@ class BluetoothOppNotification {
                             .setContentIntent(PendingIntent.getBroadcast(mContext, 0,
                                     new Intent(baseIntent).setAction(
                                             Constants.ACTION_INCOMING_FILE_CONFIRM),
-                                    PendingIntent.FLAG_MUTABLE_UNAUDITED))
+                                    PendingIntent.FLAG_IMMUTABLE))
                             .setDeleteIntent(PendingIntent.getBroadcast(mContext, 0,
                                     new Intent(baseIntent).setAction(Constants.ACTION_HIDE),
-                                    PendingIntent.FLAG_MUTABLE_UNAUDITED))
+                                    PendingIntent.FLAG_IMMUTABLE))
                             .setColor(mContext.getResources()
                                     .getColor(
                                             com.android.internal.R.color
