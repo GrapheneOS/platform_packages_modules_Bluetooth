@@ -133,5 +133,5 @@
     <string name="bluetooth_disconnected" msgid="3318303728981478873">"ब्लुटुथ सम्बन्धी अडियो यन्त्रलाई विच्छेद गरियो"</string>
     <string name="a2dp_sink_mbs_label" msgid="7566075853395412558">"ब्लुटुथको अडियो"</string>
     <string name="bluetooth_opp_file_limit_exceeded" msgid="8894450394309084519">"४ जि.बि. भन्दा ठूला फाइलहरूलाई स्थानान्तरण गर्न सकिँदैन"</string>
-    <string name="bluetooth_connect_action" msgid="4009848433321657090">"ब्लुटुथमा जोड्नुहोस्"</string>
+    <string name="bluetooth_connect_action" msgid="4009848433321657090">"ब्लुटुथमा कनेक्ट गर्नुहोस्"</string>
 </resources>
