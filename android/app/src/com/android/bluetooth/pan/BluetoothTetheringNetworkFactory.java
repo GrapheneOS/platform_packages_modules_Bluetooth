@@ -245,6 +245,7 @@ public class BluetoothTetheringNetworkFactory extends NetworkFactory {
         mNetworkCapabilities.addCapability(NetworkCapabilities.NET_CAPABILITY_NOT_RESTRICTED);
         mNetworkCapabilities.addCapability(NetworkCapabilities.NET_CAPABILITY_NOT_ROAMING);
         mNetworkCapabilities.addCapability(NetworkCapabilities.NET_CAPABILITY_NOT_SUSPENDED);
+        mNetworkCapabilities.addCapability(NetworkCapabilities.NET_CAPABILITY_NOT_VCN_MANAGED);
         // Bluetooth v3 and v4 go up to 24 Mbps.
         // TODO: Adjust this to actual connection bandwidth.
         mNetworkCapabilities.setLinkUpstreamBandwidthKbps(24 * 1000);
