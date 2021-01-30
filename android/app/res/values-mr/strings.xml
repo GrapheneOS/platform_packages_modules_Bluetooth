@@ -87,7 +87,7 @@
     <string name="bt_sm_2_1_default" msgid="9115512207909504071">"\"<xliff:g id="SENDER">%1$s</xliff:g>\" कडील फाइल सेव्ह करण्‍यासाठी SD कार्डवर पुरेशी जागा नाही"</string>
     <string name="bt_sm_2_2" msgid="2965243265852680543">"स्‍थान आवश्यक: <xliff:g id="SIZE">%1$s</xliff:g>"</string>
     <string name="ErrorTooManyRequests" msgid="8578277541472944529">"बर्‍याच विनंत्यांवर प्रक्रिया होत आहे. नंतर पुन्हा प्रयत्न करा."</string>
-    <string name="status_pending" msgid="2503691772030877944">"फाइल स्थानांतरणाचा अद्याप प्रारंभ झाला नाही."</string>
+    <string name="status_pending" msgid="2503691772030877944">"फाइल स्थानांतरणाचा अद्याप सुरू झाला नाही."</string>
     <string name="status_running" msgid="6562808920311008696">"फाइल स्थानांतर सुरू आहे."</string>
     <string name="status_success" msgid="239573225847565868">"फाइल स्थानांतरण यशस्वीरित्या पूर्ण झाले."</string>
     <string name="status_not_accept" msgid="1695082417193780738">"आशय समर्थित नाही."</string>
