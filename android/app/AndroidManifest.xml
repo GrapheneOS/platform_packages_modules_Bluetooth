@@ -431,8 +431,6 @@
             android:process="@string/process"
             android:enabled="@bool/profile_supported_hfp_incallservice"
             android:exported="true">
-            <meta-data android:name="android.telecom.IN_CALL_SERVICE_RINGING"
-                       android:value="true" />
             <meta-data android:name="android.telecom.INCLUDE_SELF_MANAGED_CALLS"
                        android:value="true" />
             <intent-filter>
