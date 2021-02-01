@@ -175,7 +175,7 @@ public class BluetoothTetheringNetworkFactory extends NetworkFactory {
                                     mNetworkCapabilities, linkProperties, NETWORK_SCORE,
                                     config, getProvider()) {
                                 @Override
-                                public void unwanted() {
+                                public void onNetworkUnwanted() {
                                     BluetoothTetheringNetworkFactory.this.onCancelRequest();
                                 }
                             };
