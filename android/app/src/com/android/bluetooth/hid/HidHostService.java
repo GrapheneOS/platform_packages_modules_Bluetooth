@@ -73,7 +73,6 @@ public class HidHostService extends ProfileService {
     private static final int MESSAGE_GET_REPORT = 8;
     private static final int MESSAGE_ON_GET_REPORT = 9;
     private static final int MESSAGE_SET_REPORT = 10;
-    private static final int MESSAGE_SEND_DATA = 11;
     private static final int MESSAGE_ON_VIRTUAL_UNPLUG = 12;
     private static final int MESSAGE_ON_HANDSHAKE = 13;
     private static final int MESSAGE_GET_IDLE_TIME = 14;
@@ -269,15 +268,6 @@ public class HidHostService extends ProfileService {
                     String report = data.getString(BluetoothHidHost.EXTRA_REPORT);
                     if (!setReportNative(Utils.getByteAddress(device), reportType, report)) {
                         Log.e(TAG, "Error: set report native returns false");
-                    }
-                }
-                break;
-                case MESSAGE_SEND_DATA: {
-                    BluetoothDevice device = (BluetoothDevice) msg.obj;
-                    Bundle data = msg.getData();
-                    String report = data.getString(BluetoothHidHost.EXTRA_REPORT);
-                    if (!sendDataNative(Utils.getByteAddress(device), report)) {
-                        Log.e(TAG, "Error: send data native returns false");
                     }
                 }
                 break;
