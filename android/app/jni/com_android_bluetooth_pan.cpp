@@ -171,14 +171,6 @@ static void cleanupNative(JNIEnv* env, jobject object) {
   btIf = NULL;
 }
 
-static jint getPanLocalRoleNative(JNIEnv* env, jobject object) {
-  debug("in");
-  int local_role = 0;
-  if (sPanIf) local_role = sPanIf->get_local_role();
-  debug("out");
-  return (jint)local_role;
-}
-
 static jboolean connectPanNative(JNIEnv* env, jobject object,
                                  jbyteArray address, jint src_role,
                                  jint dest_role) {
@@ -228,7 +220,6 @@ static JNINativeMethod sMethods[] = {
     {"initializeNative", "()V", (void*)initializeNative},
     {"cleanupNative", "()V", (void*)cleanupNative},
     {"connectPanNative", "([BII)Z", (void*)connectPanNative},
-    {"getPanLocalRoleNative", "()I", (void*)getPanLocalRoleNative},
     {"disconnectPanNative", "([B)Z", (void*)disconnectPanNative},
     // TBD cleanup
 };
