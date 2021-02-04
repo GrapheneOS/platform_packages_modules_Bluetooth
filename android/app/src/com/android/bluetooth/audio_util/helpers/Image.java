@@ -24,7 +24,6 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -189,7 +188,8 @@ public class Image {
             if (mContext == null) return null;
             input = mContext.getContentResolver().openInputStream(uri);
             art = BitmapFactory.decodeStream(input);
-        } catch (FileNotFoundException e) {
+        } catch (Exception e) {
+            Log.w("Failed to fetch image at uri=" + uri, e);
             art = null;
         }
         try {
