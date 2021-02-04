@@ -67,6 +67,11 @@ public class ImageTest {
             .build();
     private static final String IMAGE_STRING_1 = IMAGE_URI_1.toString();
 
+    private static final String IMAGE_HANDLE_SECURITY_ERROR = "sec_error";
+    private static final Uri IMAGE_URI_SECURITY_ERROR = TEST_CONTENT_URI.buildUpon()
+            .appendQueryParameter("handle", IMAGE_HANDLE_SECURITY_ERROR)
+            .build();
+
     private Bitmap mTestBitmap = null;
 
     @Before
@@ -91,6 +96,8 @@ public class ImageTest {
                 if (IMAGE_URI_1.equals(url)) {
                     return mTestResources.openRawResourceFd(
                             com.android.bluetooth.tests.R.raw.image_200_200);
+                } else if (IMAGE_URI_SECURITY_ERROR.equals(url)) {
+                    throw new SecurityException();
                 }
                 return null;
             }
@@ -441,6 +448,18 @@ public class ImageTest {
         Image artwork = new Image(mMockContext, mTestBitmap);
         artwork.setImageHandle(IMAGE_HANDLE_1);
         assertThat(artwork.getImageHandle()).isEqualTo(IMAGE_HANDLE_1);
+    }
+
+    /**
+     * Make sure image URI resolution with erroneous resources doesn't crash and results in a null
+     * image.
+     */
+    @Test
+    public void testLoadImageFromUriWithSecurityException() {
+        Image artwork = new Image(mMockContext, IMAGE_URI_SECURITY_ERROR);
+        assertThat(artwork.getImageHandle()).isNull();
+        assertThat(artwork.getSource()).isEqualTo(Image.SOURCE_NONE);
+        assertThat(artwork.getImage()).isNull();
     }
 
     /**
