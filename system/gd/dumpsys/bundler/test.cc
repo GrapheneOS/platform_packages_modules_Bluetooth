@@ -40,14 +40,14 @@ class BundlerTest : public ::testing::Test {
 TEST_F(BundlerTest, LoadBinarySchema) {
   std::string string_schema;
   ASSERT_FALSE(LoadBinarySchema(nullptr, &string_schema));
-  ASSERT_DEATH(LoadBinarySchema("packages/modules/Bluetooth/system/gd/dumpsys/bundler/test.bfbs", nullptr), "");
-  ASSERT_TRUE(LoadBinarySchema("packages/modules/Bluetooth/system/gd/dumpsys/bundler/test.bfbs", &string_schema));
-  ASSERT_FALSE(LoadBinarySchema("packages/modules/Bluetooth/system/gd/dumpsys/bundler/does_not_exist.bfbs", &string_schema));
+  ASSERT_DEATH(LoadBinarySchema("test.bfbs", nullptr), "");
+  ASSERT_TRUE(LoadBinarySchema("test.bfbs", &string_schema));
+  ASSERT_FALSE(LoadBinarySchema("does_not_exist.bfbs", &string_schema));
 }
 
 TEST_F(BundlerTest, VerifyBinarySchema) {
   std::string string_schema;
-  ASSERT_TRUE(LoadBinarySchema("packages/modules/Bluetooth/system/gd/dumpsys/bundler/test.bfbs", &string_schema));
+  ASSERT_TRUE(LoadBinarySchema("test.bfbs", &string_schema));
   std::vector<const uint8_t> raw_schema(string_schema.begin(), string_schema.end());
   ASSERT_TRUE(VerifyBinarySchema(raw_schema));
 
