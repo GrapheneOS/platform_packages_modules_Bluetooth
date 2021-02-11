@@ -3856,10 +3856,20 @@ public class BluetoothMapContent {
                     // according to spec, "charset" should not be set. However, if the attachment
                     // is replaced with a text string, the bMessage now contains text and should
                     // have charset set to UTF-8 according to spec.
-                    if (!message.getIncludeAttachments()) {
+                    if (!part.mContentType.toUpperCase().contains("TEXT")
+                            && !message.getIncludeAttachments()) {
                         StringBuilder sb = new StringBuilder();
                         try {
                             part.encodePlainText(sb);
+                            // Each time {@code encodePlainText} is called, it adds {@code "\r\n"}
+                            // to the string. {@code encodePlainText} is called here to replace
+                            // an image with a string, but later on, when we encode the entire
+                            // bMessage in {@link BluetoothMapbMessageMime#encode()},
+                            // {@code encodePlainText} will be called again on this {@code
+                            // MimePart} (as text this time), adding a second {@code "\r\n"}. So
+                            // we remove the extra newline from the end.
+                            int newlineIndex = sb.lastIndexOf("\r\n");
+                            if (newlineIndex != -1) sb.delete(newlineIndex, newlineIndex + 4);
                             text = sb.toString();
                             part.mContentType = "text";
                         } catch (UnsupportedEncodingException e) {
