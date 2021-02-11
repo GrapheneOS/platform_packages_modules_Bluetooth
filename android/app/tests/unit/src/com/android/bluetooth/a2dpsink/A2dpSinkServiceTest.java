@@ -62,6 +62,7 @@ public class A2dpSinkServiceTest {
         MockitoAnnotations.initMocks(this);
         TestUtils.setAdapterService(mAdapterService);
         doReturn(mDatabaseManager).when(mAdapterService).getDatabase();
+        setMaxConnectedAudioDevices(1);
         TestUtils.startService(mServiceRule, A2dpSinkService.class);
         mService = A2dpSinkService.getA2dpSinkService();
         Assert.assertNotNull(mService);
@@ -83,6 +84,13 @@ public class A2dpSinkServiceTest {
 
     private BluetoothDevice makeBluetoothDevice(String address) {
         return mAdapter.getRemoteDevice(address);
+    }
+
+    /**
+     * Set the upper connected device limit
+     */
+    private void setMaxConnectedAudioDevices(int maxConnectedAudioDevices) {
+        when(mAdapterService.getMaxConnectedAudioDevices()).thenReturn(maxConnectedAudioDevices);
     }
 
     /**
@@ -119,5 +127,31 @@ public class A2dpSinkServiceTest {
         BluetoothDevice device = makeBluetoothDevice("11:11:11:11:11:11");
         mockDevicePriority(device, BluetoothProfile.CONNECTION_POLICY_FORBIDDEN);
         Assert.assertFalse(mService.connect(device));
+    }
+
+    /**
+     * Test that we can connect multiple devices
+     */
+    @Test
+    public void testConnectMultipleDevices() {
+        setMaxConnectedAudioDevices(5);
+
+        BluetoothDevice device1 = makeBluetoothDevice("11:11:11:11:11:11");
+        BluetoothDevice device2 = makeBluetoothDevice("22:22:22:22:22:22");
+        BluetoothDevice device3 = makeBluetoothDevice("33:33:33:33:33:33");
+        BluetoothDevice device4 = makeBluetoothDevice("44:44:44:44:44:44");
+        BluetoothDevice device5 = makeBluetoothDevice("55:55:55:55:55:55");
+
+        mockDevicePriority(device1, BluetoothProfile.CONNECTION_POLICY_ALLOWED);
+        mockDevicePriority(device2, BluetoothProfile.CONNECTION_POLICY_ALLOWED);
+        mockDevicePriority(device3, BluetoothProfile.CONNECTION_POLICY_ALLOWED);
+        mockDevicePriority(device4, BluetoothProfile.CONNECTION_POLICY_ALLOWED);
+        mockDevicePriority(device5, BluetoothProfile.CONNECTION_POLICY_ALLOWED);
+
+        Assert.assertTrue(mService.connect(device1));
+        Assert.assertTrue(mService.connect(device2));
+        Assert.assertTrue(mService.connect(device3));
+        Assert.assertTrue(mService.connect(device4));
+        Assert.assertTrue(mService.connect(device5));
     }
 }
