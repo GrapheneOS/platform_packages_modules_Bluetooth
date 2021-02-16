@@ -28,6 +28,7 @@ import android.util.Log;
 
 import com.android.bluetooth.R;
 import com.android.bluetooth.Utils;
+import com.android.bluetooth.a2dpsink.A2dpSinkService;
 import com.android.bluetooth.btservice.ProfileService;
 
 import java.util.ArrayList;
@@ -88,12 +89,18 @@ public class AvrcpControllerService extends ProfileService {
     public static final int KEY_STATE_PRESSED = 0;
     public static final int KEY_STATE_RELEASED = 1;
 
+    /* Active Device State Variables */
+    public static final int DEVICE_STATE_INACTIVE = 0;
+    public static final int DEVICE_STATE_ACTIVE = 1;
+
     static BrowseTree sBrowseTree;
     private static AvrcpControllerService sService;
     private final BluetoothAdapter mAdapter;
 
     protected Map<BluetoothDevice, AvrcpControllerStateMachine> mDeviceStateMap =
             new ConcurrentHashMap<>(1);
+    private BluetoothDevice mActiveDevice = null;
+    private final Object mActiveDeviceLock = new Object();
 
     private boolean mCoverArtEnabled = false;
     protected AvrcpCoverArtManager mCoverArtManager;
@@ -139,11 +146,13 @@ public class AvrcpControllerService extends ProfileService {
         // Start the media browser service.
         Intent startIntent = new Intent(this, BluetoothMediaBrowserService.class);
         startService(startIntent);
+        setActiveDevice(null);
         return true;
     }
 
     @Override
     protected synchronized boolean stop() {
+        setActiveDevice(null);
         Intent stopIntent = new Intent(this, BluetoothMediaBrowserService.class);
         stopService(stopIntent);
         for (AvrcpControllerStateMachine stateMachine : mDeviceStateMap.values()) {
@@ -161,6 +170,56 @@ public class AvrcpControllerService extends ProfileService {
 
     public static AvrcpControllerService getAvrcpControllerService() {
         return sService;
+    }
+
+    /**
+     * Get the current active device
+     */
+    public BluetoothDevice getActiveDevice() {
+        synchronized (mActiveDeviceLock) {
+            return mActiveDevice;
+        }
+    }
+
+    /**
+     * Set the current active device, notify devices of activity status
+     */
+    private boolean setActiveDevice(BluetoothDevice device) {
+        A2dpSinkService a2dpSinkService = A2dpSinkService.getA2dpSinkService();
+        if (a2dpSinkService == null) {
+            return false;
+        }
+
+        BluetoothDevice currentActiveDevice = getActiveDevice();
+        if ((device == null && currentActiveDevice == null)
+                || (device != null && device.equals(currentActiveDevice))) {
+            return true;
+        }
+
+        // Try and update the active device
+        synchronized (mActiveDeviceLock) {
+            if (a2dpSinkService.setActiveDevice(device)) {
+                mActiveDevice = device;
+
+                // Pause the old active device
+                if (currentActiveDevice != null) {
+                    AvrcpControllerStateMachine oldStateMachine =
+                            getStateMachine(currentActiveDevice);
+                    if (oldStateMachine != null) {
+                        oldStateMachine.setDeviceState(DEVICE_STATE_INACTIVE);
+                    }
+                }
+
+                AvrcpControllerStateMachine stateMachine = getStateMachine(device);
+                if (stateMachine != null) {
+                    stateMachine.setDeviceState(DEVICE_STATE_ACTIVE);
+                } else {
+                    BluetoothMediaBrowserService.reset();
+                }
+                return true;
+            }
+        }
+        return false;
     }
 
     protected AvrcpControllerStateMachine newStateMachine(BluetoothDevice device) {
@@ -198,6 +257,10 @@ public class AvrcpControllerService extends ProfileService {
                 requestedNode = stateMachine.findNode(parentMediaId);
                 if (requestedNode != null) {
                     if (DBG) Log.d(TAG, "Found a node");
+                    BluetoothDevice device = stateMachine.getDevice();
+                    if (device != null) {
+                        setActiveDevice(device);
+                    }
                     stateMachine.playItem(requestedNode);
                     break;
                 }
@@ -234,6 +297,12 @@ public class AvrcpControllerService extends ProfileService {
             if (DBG) Log.d(TAG, "Didn't find a node");
             return new ArrayList(0);
         } else {
+            // If we found a node and it belongs to a device then go ahead and make it active
+            BluetoothDevice device = requestedNode.getDevice();
+            if (device != null) {
+                setActiveDevice(device);
+            }
+
             if (!requestedNode.isCached()) {
                 if (DBG) Log.d(TAG, "node is not cached");
                 refreshContents(requestedNode);
@@ -355,8 +424,15 @@ public class AvrcpControllerService extends ProfileService {
         AvrcpControllerStateMachine stateMachine = getOrCreateStateMachine(device);
         if (remoteControlConnected || browsingConnected) {
             stateMachine.connect(event);
+            // The first device to connect gets to be the active device
+            if (getActiveDevice() == null) {
+                setActiveDevice(device);
+            }
         } else {
             stateMachine.disconnect();
+            if (device.equals(getActiveDevice())) {
+                setActiveDevice(null);
+            }
         }
     }
 
@@ -729,6 +805,10 @@ public class AvrcpControllerService extends ProfileService {
      * Remove state machine from device map once it is no longer needed.
      */
     public void removeStateMachine(AvrcpControllerStateMachine stateMachine) {
+        BluetoothDevice device = stateMachine.getDevice();
+        if (device.equals(getActiveDevice())) {
+            setActiveDevice(null);
+        }
         mDeviceStateMap.remove(stateMachine.getDevice());
     }
 
@@ -737,6 +817,9 @@ public class AvrcpControllerService extends ProfileService {
     }
 
     protected AvrcpControllerStateMachine getStateMachine(BluetoothDevice device) {
+        if (device == null) {
+            return null;
+        }
         return mDeviceStateMap.get(device);
     }
 
@@ -783,6 +866,7 @@ public class AvrcpControllerService extends ProfileService {
     public void dump(StringBuilder sb) {
         super.dump(sb);
         ProfileService.println(sb, "Devices Tracked = " + mDeviceStateMap.size());
+        ProfileService.println(sb, "Active Device = " + mActiveDevice);
 
         for (AvrcpControllerStateMachine stateMachine : mDeviceStateMap.values()) {
             ProfileService.println(sb,
@@ -795,6 +879,8 @@ public class AvrcpControllerService extends ProfileService {
         if (mCoverArtManager != null) {
             sb.append("\n  " + mCoverArtManager.toString());
         }
+
+        sb.append("\n  " + BluetoothMediaBrowserService.dump() + "\n");
     }
 
     /*JNI*/
