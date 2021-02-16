@@ -49,6 +49,7 @@ import android.bluetooth.IBluetoothMetadataListener;
 import android.bluetooth.IBluetoothSocketManager;
 import android.bluetooth.OobData;
 import android.bluetooth.UidTraffic;
+import android.companion.ICompanionDeviceManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -217,6 +218,7 @@ public class AdapterService extends Service {
     private RemoteCallbackList<IBluetoothCallback> mCallbacks;
     private int mCurrentRequestId;
     private boolean mQuietmode = false;
+    private HashMap<String, CallerInfo> mBondAttemptCallerInfo = new HashMap<>();
 
     private AlarmManager mAlarmManager;
     private PendingIntent mPendingAlarm;
@@ -225,6 +227,7 @@ public class AdapterService extends Service {
     private PowerManager.WakeLock mWakeLock;
     private String mWakeLockName;
     private UserManager mUserManager;
+    private ICompanionDeviceManager mCompanionManager;
 
     private PhonePolicy mPhonePolicy;
     private ActiveDeviceManager mActiveDeviceManager;
@@ -469,6 +472,8 @@ public class AdapterService extends Service {
         mUserManager = (UserManager) getSystemService(Context.USER_SERVICE);
         mBatteryStats = IBatteryStats.Stub.asInterface(
                 ServiceManager.getService(BatteryStats.SERVICE_NAME));
+        mCompanionManager = ICompanionDeviceManager.Stub.asInterface(
+                ServiceManager.getService(Context.COMPANION_DEVICE_SERVICE));
 
         mBluetoothKeystoreService.initJni();
 
@@ -1442,7 +1447,8 @@ public class AdapterService extends Service {
         }
 
         @Override
-        public boolean createBond(BluetoothDevice device, int transport, OobData oobData) {
+        public boolean createBond(BluetoothDevice device, int transport, OobData oobData,
+                String callingPackage) {
             AdapterService service = getService();
             if (service == null || !callerIsSystemOrActiveOrManagedUser(service, TAG, "createBond")) {
                 return false;
@@ -1450,7 +1456,7 @@ public class AdapterService extends Service {
 
             enforceBluetoothAdminPermission(service);
 
-            return service.createBond(device, transport, oobData);
+            return service.createBond(device, transport, oobData, callingPackage);
         }
 
         @Override
@@ -1483,6 +1489,7 @@ public class AdapterService extends Service {
             if (deviceProp == null || deviceProp.getBondState() != BluetoothDevice.BOND_BONDED) {
                 return false;
             }
+            service.mBondAttemptCallerInfo.remove(device.getAddress());
             deviceProp.setBondingInitiatedLocally(false);
 
             Message msg = service.mBondStateMachine.obtainMessage(BondStateMachine.REMOVE_BOND);
@@ -1537,6 +1544,18 @@ public class AdapterService extends Service {
             enforceBluetoothPermission(service);
 
             return service.getConnectionState(device);
+        }
+
+        @Override
+        public boolean canBondWithoutDialog(BluetoothDevice device) {
+            AdapterService service = getService();
+            if (service == null) {
+                return false;
+            }
+
+            enforceBluetoothPrivilegedPermission(service);
+
+            return service.canBondWithoutDialog(device);
         }
 
         @Override
@@ -2337,11 +2356,33 @@ public class AdapterService extends Service {
         return mDatabaseManager;
     }
 
-    boolean createBond(BluetoothDevice device, int transport, OobData oobData) {
+    private class CallerInfo {
+        public String callerPackageName;
+        public int userId;
+    }
+
+    boolean createBond(BluetoothDevice device, int transport, OobData oobData,
+            String callingPackage) {
         DeviceProperties deviceProp = mRemoteDevices.getDeviceProperties(device);
         if (deviceProp != null && deviceProp.getBondState() != BluetoothDevice.BOND_NONE) {
             return false;
         }
+
+        // Verifies the integrity of the calling package name
+        try {
+            int packageUid = getPackageManager().getPackageUid(callingPackage, 0);
+            if (packageUid != Binder.getCallingUid()) {
+                return false;
+            }
+        } catch (PackageManager.NameNotFoundException e) {
+            Log.e(TAG, "createBond: App with package name " + callingPackage + " does not exist");
+            return false;
+        }
+
+        CallerInfo createBondCaller = new CallerInfo();
+        createBondCaller.callerPackageName = callingPackage;
+        createBondCaller.userId = UserHandle.getCallingUserId();
+        mBondAttemptCallerInfo.put(device.getAddress(), createBondCaller);
 
         mRemoteDevices.setBondingInitiatedLocally(Utils.getByteAddress(device));
 
@@ -2411,6 +2452,28 @@ public class AdapterService extends Service {
 
     int getConnectionState(BluetoothDevice device) {
         return getConnectionStateNative(addressToBytes(device.getAddress()));
+    }
+
+    /**
+     * Checks whether the device was recently associated with the comapnion app that called
+     * {@link BluetoothDevice#createBond}. This allows these devices to skip the pairing dialog if
+     * their pairing variant is {@link BluetoothDevice#PAIRING_VARIANT_CONSENT}.
+     *
+     * @param device the bluetooth device that is being bonded
+     * @return true if it was recently associated and we can bypass the dialog, false otherwise
+     */
+    public boolean canBondWithoutDialog(BluetoothDevice device) {
+        if (mBondAttemptCallerInfo.containsKey(device.getAddress())) {
+            CallerInfo bondCallerInfo = mBondAttemptCallerInfo.get(device.getAddress());
+            try {
+                return mCompanionManager.canPairWithoutPrompt(bondCallerInfo.callerPackageName,
+                        device.getAddress(), bondCallerInfo.userId);
+            } catch (RemoteException ex) {
+                Log.e(TAG, "RemoteException while calling canPairWithoutPrompt in "
+                        + "ICompanionDeviceManager");
+            }
+        }
+        return false;
     }
 
     /**
