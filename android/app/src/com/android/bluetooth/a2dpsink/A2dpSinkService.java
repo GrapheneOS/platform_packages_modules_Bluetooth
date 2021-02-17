@@ -34,7 +34,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -44,14 +43,17 @@ import java.util.concurrent.ConcurrentHashMap;
 public class A2dpSinkService extends ProfileService {
     private static final String TAG = "A2dpSinkService";
     private static final boolean DBG = Log.isLoggable(TAG, Log.DEBUG);
-    static final int MAXIMUM_CONNECTED_DEVICES = 1;
+    private int mMaxConnectedAudioDevices;
 
-    private final BluetoothAdapter mAdapter;
+    private AdapterService mAdapterService;
     private DatabaseManager mDatabaseManager;
     protected Map<BluetoothDevice, A2dpSinkStateMachine> mDeviceStateMap =
             new ConcurrentHashMap<>(1);
 
     private final Object mStreamHandlerLock = new Object();
+
+    private final Object mActiveDeviceLock = new Object();
+    private BluetoothDevice mActiveDevice = null;
 
     private A2dpSinkStreamHandler mA2dpSinkStreamHandler;
     private static A2dpSinkService sService;
@@ -62,13 +64,16 @@ public class A2dpSinkService extends ProfileService {
 
     @Override
     protected boolean start() {
+        mAdapterService = Objects.requireNonNull(AdapterService.getAdapterService(),
+                "AdapterService cannot be null when A2dpSinkService starts");
         mDatabaseManager = Objects.requireNonNull(AdapterService.getAdapterService().getDatabase(),
                 "DatabaseManager cannot be null when A2dpSinkService starts");
 
         synchronized (mStreamHandlerLock) {
             mA2dpSinkStreamHandler = new A2dpSinkStreamHandler(this, this);
         }
-        initNative();
+        mMaxConnectedAudioDevices = mAdapterService.getMaxConnectedAudioDevices();
+        initNative(mMaxConnectedAudioDevices);
         setA2dpSinkService(this);
         return true;
     }
@@ -104,8 +109,36 @@ public class A2dpSinkService extends ProfileService {
     }
 
 
-    public A2dpSinkService() {
-        mAdapter = BluetoothAdapter.getDefaultAdapter();
+    public A2dpSinkService() {}
+
+    /**
+     * Set the device that should be allowed to actively stream
+     */
+    public boolean setActiveDevice(BluetoothDevice device) {
+        // Translate to byte address for JNI. Use an all 0 MAC for no active device
+        byte[] address = null;
+        if (device != null) {
+            address = Utils.getByteAddress(device);
+        } else {
+            address = Utils.getBytesFromAddress("00:00:00:00:00:00");
+        }
+
+        synchronized (mActiveDeviceLock) {
+            if (setActiveDeviceNative(address)) {
+                mActiveDevice = device;
+                return true;
+            }
+            return false;
+        }
+    }
+
+    /**
+     * Get the device that is allowed to be actively streaming
+     */
+    public BluetoothDevice getActiveDevice() {
+        synchronized (mActiveDeviceLock) {
+            return mActiveDevice;
+        }
     }
 
     /**
@@ -343,7 +376,7 @@ public class A2dpSinkService extends ProfileService {
     List<BluetoothDevice> getDevicesMatchingConnectionStates(int[] states) {
         if (DBG) Log.d(TAG, "getDevicesMatchingConnectionStates" + Arrays.toString(states));
         List<BluetoothDevice> deviceList = new ArrayList<>();
-        Set<BluetoothDevice> bondedDevices = mAdapter.getBondedDevices();
+        BluetoothDevice[] bondedDevices = mAdapterService.getBondedDevices();
         int connectionState;
         for (BluetoothDevice device : bondedDevices) {
             connectionState = getConnectionState(device);
@@ -425,6 +458,8 @@ public class A2dpSinkService extends ProfileService {
     @Override
     public void dump(StringBuilder sb) {
         super.dump(sb);
+        ProfileService.println(sb, "Active Device = " + getActiveDevice());
+        ProfileService.println(sb, "Max Connected Devices = " + mMaxConnectedAudioDevices);
         ProfileService.println(sb, "Devices Tracked = " + mDeviceStateMap.size());
         for (A2dpSinkStateMachine stateMachine : mDeviceStateMap.values()) {
             ProfileService.println(sb,
@@ -446,7 +481,7 @@ public class A2dpSinkService extends ProfileService {
 
     private static native void classInitNative();
 
-    private native void initNative();
+    private native void initNative(int maxConnectedAudioDevices);
 
     private native void cleanupNative();
 

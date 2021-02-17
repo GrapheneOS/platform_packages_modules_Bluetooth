@@ -113,7 +113,7 @@ public class AvrcpControllerStateMachineTest {
         TestUtils.setAdapterService(mA2dpAdapterService);
         doReturn(mDatabaseManager).when(mA2dpAdapterService).getDatabase();
         TestUtils.startService(mA2dpServiceRule, A2dpSinkService.class);
-        when(mA2dpSinkService.setActiveDeviceNative(any())).thenReturn(true);
+        when(mA2dpSinkService.setActiveDevice(any())).thenReturn(true);
 
         when(mMockResources.getBoolean(R.bool.a2dp_sink_automatically_request_audio_focus))
                 .thenReturn(true);

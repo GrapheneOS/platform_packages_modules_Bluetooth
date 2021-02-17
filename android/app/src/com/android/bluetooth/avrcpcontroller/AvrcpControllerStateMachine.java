@@ -249,17 +249,16 @@ class AvrcpControllerStateMachine extends StateMachine {
      */
     boolean setActive(boolean becomeActive) {
         logD("setActive(" + becomeActive + ")");
+        A2dpSinkService a2dpSinkService = A2dpSinkService.getA2dpSinkService();
+        if (a2dpSinkService == null) {
+            return false;
+        }
         if (becomeActive) {
             if (isActive()) {
                 return true;
             }
 
-            A2dpSinkService a2dpSinkService = A2dpSinkService.getA2dpSinkService();
-            if (a2dpSinkService == null) {
-                return false;
-            }
-
-            if (a2dpSinkService.setActiveDeviceNative(mDeviceAddress)) {
+            if (a2dpSinkService.setActiveDevice(mDevice)) {
                 sActiveDevice = mDevice;
                 BluetoothMediaBrowserService.addressedPlayerChanged(mSessionCallbacks);
                 BluetoothMediaBrowserService.notifyChanged(mAddressedPlayer.getPlaybackState());
@@ -268,6 +267,7 @@ class AvrcpControllerStateMachine extends StateMachine {
             return mDevice == sActiveDevice;
         } else if (isActive()) {
             sActiveDevice = null;
+            a2dpSinkService.setActiveDevice(null);
             BluetoothMediaBrowserService.trackChanged(null);
             BluetoothMediaBrowserService.addressedPlayerChanged(null);
         }
