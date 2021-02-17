@@ -104,6 +104,7 @@ import com.android.bluetooth.pbap.BluetoothPbapService;
 import com.android.bluetooth.pbapclient.PbapClientService;
 import com.android.bluetooth.sap.SapService;
 import com.android.bluetooth.sdp.SdpManager;
+import com.android.bluetooth.telephony.BluetoothInCallService;
 import com.android.internal.R;
 import com.android.internal.annotations.VisibleForTesting;
 import com.android.internal.app.IBatteryStats;
@@ -171,6 +172,26 @@ public class AdapterService extends Service {
     private static final String SIM_ACCESS_PERMISSION_PREFERENCE_FILE = "sim_access_permission";
 
     private static final int CONTROLLER_ENERGY_UPDATE_TIMEOUT_MILLIS = 30;
+
+    // Report ID definition
+    public enum BqrQualityReportId {
+        QUALITY_REPORT_ID_MONITOR_MODE(0x01),
+        QUALITY_REPORT_ID_APPROACH_LSTO(0x02),
+        QUALITY_REPORT_ID_A2DP_AUDIO_CHOPPY(0x03),
+        QUALITY_REPORT_ID_SCO_VOICE_CHOPPY(0x04),
+        QUALITY_REPORT_ID_ROOT_INFLAMMATION(0x05),
+        QUALITY_REPORT_ID_LMP_LL_MESSAGE_TRACE(0x11),
+        QUALITY_REPORT_ID_BT_SCHEDULING_TRACE(0x12),
+        QUALITY_REPORT_ID_CONTROLLER_DBG_INFO(0x13);
+
+        private final int value;
+        private BqrQualityReportId(int value) {
+            this.value = value;
+        }
+        public int getValue() {
+            return value;
+        }
+    };
 
     private final ArrayList<DiscoveringPackage> mDiscoveringPackages = new ArrayList<>();
 
@@ -720,6 +741,32 @@ public class AdapterService extends Service {
                             snoopDefaultModeSetting)) {
                 mAdapterStateMachine.sendMessage(AdapterState.BLE_TURN_OFF);
             }
+        }
+    }
+
+    void linkQualityReportCallback(
+            long timestamp,
+            int reportId,
+            int rssi,
+            int snr,
+            int retransmissionCount,
+            int packetsNotReceiveCount,
+            int negativeAcknowledgementCount) {
+        BluetoothInCallService bluetoothInCallService = BluetoothInCallService.getInstance();
+
+        if (reportId == BqrQualityReportId.QUALITY_REPORT_ID_SCO_VOICE_CHOPPY.getValue()) {
+            if (bluetoothInCallService == null) {
+                Log.w(TAG, "No BluetoothInCallService while trying to send BQR."
+                        + " timestamp: " + timestamp + " reportId: " + reportId
+                        + " rssi: " + rssi + " snr: " + snr
+                        + " retransmissionCount: " + retransmissionCount
+                        + " packetsNotReceiveCount: " + packetsNotReceiveCount
+                        + " negativeAcknowledgementCount: " + negativeAcknowledgementCount);
+                return;
+            }
+            bluetoothInCallService.sendBluetoothCallQualityReport(
+                    timestamp, rssi, snr, retransmissionCount,
+                    packetsNotReceiveCount, negativeAcknowledgementCount);
         }
     }
 
