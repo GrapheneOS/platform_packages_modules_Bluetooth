@@ -81,4 +81,17 @@ final class JniCallbacks {
         mAdapterProperties.adapterPropertyChangedCallback(types, val);
     }
 
+    void linkQualityReportCallback(
+            long timestamp,
+            int report_id,
+            int rssi,
+            int snr,
+            int retransmission_count,
+            int packets_not_receive_count,
+            int negative_acknowledgement_count) {
+        mAdapterService.linkQualityReportCallback(
+                timestamp, report_id, rssi, snr, retransmission_count,
+                packets_not_receive_count, negative_acknowledgement_count);
+    }
+
 }
