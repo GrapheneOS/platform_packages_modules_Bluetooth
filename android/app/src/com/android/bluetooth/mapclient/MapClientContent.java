@@ -287,12 +287,21 @@ class MapClientContent {
             BluetoothMapbMessageMime mmsBmessage = new BluetoothMapbMessageMime();
             mmsBmessage.parseMsgPart(message.getBodyContent());
             int read = message.getStatus() == Bmessage.Status.READ ? 1 : 0;
+            Uri contentUri;
+            int messageBox;
+            if (INBOX_PATH.equalsIgnoreCase(message.getFolder())) {
+                contentUri = Mms.Inbox.CONTENT_URI;
+                messageBox = Mms.MESSAGE_BOX_INBOX;
+            } else {
+                contentUri = Mms.Sent.CONTENT_URI;
+                messageBox = Mms.MESSAGE_BOX_SENT;
+            }
             logD("Parsed");
             values.put(Mms.SUBSCRIPTION_ID, mSubscriptionId);
             values.put(Mms.THREAD_ID, threadId);
             values.put(Mms.DATE, timestamp / 1000L);
             values.put(Mms.TEXT_ONLY, true);
-            values.put(Mms.MESSAGE_BOX, Mms.MESSAGE_BOX_INBOX);
+            values.put(Mms.MESSAGE_BOX, messageBox);
             values.put(Mms.READ, read);
             values.put(Mms.SEEN, 0);
             values.put(Mms.MESSAGE_TYPE, PduHeaders.MESSAGE_TYPE_SEND_REQ);
@@ -306,7 +315,7 @@ class MapClientContent {
             values.put(Mms.MESSAGE_CLASS, PduHeaders.MESSAGE_CLASS_PERSONAL_STR);
             values.put(Mms.MESSAGE_SIZE, mmsBmessage.getSize());
 
-            Uri results = mResolver.insert(Mms.CONTENT_URI, values);
+            Uri results = mResolver.insert(contentUri, values);
 
             logD("Map InsertedThread" + results);
 
@@ -315,10 +324,6 @@ class MapClientContent {
             }
 
             storeAddressPart(message, results);
-
-            Uri contentUri =
-                    INBOX_PATH.equalsIgnoreCase(message.getFolder()) ? Mms.Inbox.CONTENT_URI
-                            : Mms.Sent.CONTENT_URI;
 
             String messageContent = mmsBmessage.getMessageAsText();
 
@@ -399,7 +404,7 @@ class MapClientContent {
         }
         getRecipientsFromMessage(message, messageContacts);
 
-        messageContacts.remove(mPhoneNumber);
+        messageContacts.removeIf(number -> (PhoneNumberUtils.compareLoosely(number, mPhoneNumber)));
         logV("Contacts = " + messageContacts.toString());
         return Telephony.Threads.getOrCreateThreadId(mContext, messageContacts);
     }
@@ -420,7 +425,7 @@ class MapClientContent {
         if (originator != null) {
             List<VCardEntry.PhoneData> phoneData = originator.getPhoneList();
             if (phoneData != null && phoneData.size() > 0) {
-                return phoneData.get(0).getNumber();
+                return PhoneNumberUtils.extractNetworkPortion(phoneData.get(0).getNumber());
             }
         }
         return null;
