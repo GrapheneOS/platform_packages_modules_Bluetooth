@@ -55,6 +55,7 @@ static jmethodID method_sspRequestCallback;
 static jmethodID method_bondStateChangeCallback;
 static jmethodID method_aclStateChangeCallback;
 static jmethodID method_discoveryStateChangeCallback;
+static jmethodID method_linkQualityReportCallback;
 static jmethodID method_setWakeAlarm;
 static jmethodID method_acquireWakeLock;
 static jmethodID method_releaseWakeLock;
@@ -387,6 +388,24 @@ static void ssp_request_callback(RawAddress* bd_addr, bt_bdname_t* bdname,
                                (jint)pairing_variant, pass_key);
 }
 
+static void link_quality_report_callback(
+    uint64_t timestamp, int report_id, int rssi, int snr,
+    int retransmission_count, int packets_not_receive_count,
+    int negative_acknowledgement_count) {
+  CallbackEnv sCallbackEnv(__func__);
+  if (!sCallbackEnv.valid()) return;
+
+  ALOGV("%s: LinkQualityReportCallback: %d %d %d %d %d %d", __func__,
+        report_id, rssi, snr, retransmission_count, packets_not_receive_count,
+        negative_acknowledgement_count);
+
+  sCallbackEnv->CallVoidMethod(
+      sJniCallbacksObj, method_linkQualityReportCallback,
+      (jlong)timestamp, (jint)report_id, (jint)rssi, (jint)snr,
+      (jint)retransmission_count, (jint)packets_not_receive_count,
+      (jint)negative_acknowledgement_count);
+}
+
 static void callback_thread_event(bt_cb_thread_evt event) {
   if (event == ASSOCIATE_JVM) {
     JavaVMAttachArgs args;
@@ -454,7 +473,8 @@ static bt_callbacks_t sBluetoothCallbacks = {
     pin_request_callback,        ssp_request_callback,
     bond_state_changed_callback, acl_state_changed_callback,
     callback_thread_event,       dut_mode_recv_callback,
-    le_test_mode_recv_callback,  energy_info_recv_callback};
+    le_test_mode_recv_callback,  energy_info_recv_callback,
+    link_quality_report_callback};
 
 // The callback to call when the wake alarm fires.
 static alarm_cb sAlarmCallback;
@@ -662,6 +682,9 @@ static void classInitNative(JNIEnv* env, jclass clazz) {
 
   method_aclStateChangeCallback =
       env->GetMethodID(jniCallbackClass, "aclStateChangeCallback", "(I[BI)V");
+
+  method_linkQualityReportCallback = env->GetMethodID(
+      jniCallbackClass, "linkQualityReportCallback", "(JIIIIII)V");
 
   method_setWakeAlarm = env->GetMethodID(clazz, "setWakeAlarm", "(JZ)Z");
   method_acquireWakeLock =

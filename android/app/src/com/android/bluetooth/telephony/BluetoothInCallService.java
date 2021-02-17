@@ -27,7 +27,9 @@ import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Binder;
+import android.os.Bundle;
 import android.os.IBinder;
+import android.telecom.BluetoothCallQualityReport;
 import android.telecom.Call;
 import android.telecom.CallAudioState;
 import android.telecom.Connection;
@@ -447,6 +449,34 @@ public class BluetoothInCallService extends InCallService {
             mBluetoothCallHashMap.put(call.getTelecomCallId(), call);
             updateHeadsetWithCallState(false /* force */);
         }
+    }
+
+    public void sendBluetoothCallQualityReport(
+            long timestamp,
+            int rssi,
+            int snr,
+            int retransmissionCount,
+            int packetsNotReceiveCount,
+            int negativeAcknowledgementCount) {
+        BluetoothCall call = mCallInfo.getForegroundCall();
+        if (mCallInfo.isNullCall(call)) {
+            Log.w(TAG, "No foreground call while trying to send BQR");
+            return;
+        }
+        Bundle b = new Bundle();
+        b.putParcelable(
+                BluetoothCallQualityReport.EXTRA_BLUETOOTH_CALL_QUALITY_REPORT,
+                new BluetoothCallQualityReport.Builder()
+                        .setSentTimestampMillis(timestamp)
+                        .setChoppyVoice(true)
+                        .setRssiDbm(rssi)
+                        .setSnrDb(snr)
+                        .setRetransmittedPacketsCount(retransmissionCount)
+                        .setPacketsNotReceivedCount(packetsNotReceiveCount)
+                        .setPacketsNotReceivedCount(negativeAcknowledgementCount)
+                        .build());
+        call.sendCallEvent(
+                BluetoothCallQualityReport.EVENT_BLUETOOTH_CALL_QUALITY_REPORT, b);
     }
 
     @Override
