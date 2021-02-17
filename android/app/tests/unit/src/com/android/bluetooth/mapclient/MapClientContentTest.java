@@ -30,6 +30,8 @@ import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Handler;
+import android.provider.Telephony.Mms;
+import android.provider.Telephony.Sms;
 import android.telephony.SubscriptionManager;
 import android.test.mock.MockContentProvider;
 import android.test.mock.MockContentResolver;
@@ -335,8 +337,7 @@ public class MapClientContentTest {
             Log.i(TAG, "Delete " + uri);
             Log.i(TAG, "Contents" + mContentValues.toString());
             mContentValues.remove(uri);
-            if (uri.toString().equals("content://sms") || uri.toString().equals("content://mms")) {
-
+            if (uri.equals(Sms.CONTENT_URI) || uri.equals(Mms.CONTENT_URI)) {
                 mContentValues.clear();
             }
             return 1;
@@ -345,10 +346,10 @@ public class MapClientContentTest {
         @Override
         public Uri insert(Uri uri, ContentValues values) {
             Log.i(TAG, "URI = " + uri);
+            if (uri.equals(Mms.Inbox.CONTENT_URI)) uri = Mms.CONTENT_URI;
             Uri returnUri = Uri.withAppendedPath(uri, String.valueOf(mContentValues.size() + 1));
             //only store top level message parts
-            if (uri.toString().equals("content://sms/inbox") || uri.toString()
-                    .equals("content://mms")) {
+            if (uri.equals(Sms.Inbox.CONTENT_URI) || uri.equals(Mms.CONTENT_URI)) {
                 Log.i(TAG, "adding content" + values);
                 mContentValues.put(returnUri, values);
                 Log.i(TAG, "ContentSize = " + mContentValues.size());
