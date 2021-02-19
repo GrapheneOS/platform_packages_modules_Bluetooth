@@ -1742,11 +1742,7 @@ public class HeadsetClientStateMachine extends StateMachine {
      * @hide
      */
     public synchronized int getConnectionState(BluetoothDevice device) {
-        if (mCurrentDevice == null) {
-            return BluetoothProfile.STATE_DISCONNECTED;
-        }
-
-        if (!mCurrentDevice.equals(device)) {
+        if (device == null || !device.equals(mCurrentDevice)) {
             return BluetoothProfile.STATE_DISCONNECTED;
         }
 
