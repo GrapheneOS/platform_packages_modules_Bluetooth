@@ -906,10 +906,10 @@ public class A2dpService extends ProfileService {
      * @param value buffer millis
      * @return true if the settings is successful, false otherwise
      */
-    public boolean setBufferMillis(int codec, int value) {
+    public boolean setBufferLengthMillis(int codec, int value) {
         enforceCallingOrSelfPermission(BLUETOOTH_PRIVILEGED,
                 "Need BLUETOOTH_PRIVILEGED permission");
-        return mAdapterService.setBufferMillis(codec, value);
+        return mAdapterService.setBufferLengthMillis(codec, value);
     }
 
     // Handle messages from native (JNI) to Java
@@ -1441,12 +1441,12 @@ public class A2dpService extends ProfileService {
             return service.getBufferConstraints();
         }
 
-        public boolean setBufferMillis(int codec, int value) {
+        public boolean setBufferLengthMillis(int codec, int value) {
             A2dpService service = getService();
             if (service == null) {
                 return false;
             }
-            return service.setBufferMillis(codec, value);
+            return service.setBufferLengthMillis(codec, value);
         }
     }
 
