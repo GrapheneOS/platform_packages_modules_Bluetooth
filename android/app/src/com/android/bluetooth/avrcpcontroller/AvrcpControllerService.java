@@ -234,6 +234,11 @@ public class AvrcpControllerService extends ProfileService {
             if (DBG) Log.d(TAG, "Didn't find a node");
             return new ArrayList(0);
         } else {
+            // If we found a node and it belongs to a device then go ahead and make it active
+            BluetoothDevice device = requestedNode.getDevice();
+            AvrcpControllerStateMachine stateMachine = getStateMachine(device);
+            if (stateMachine != null) stateMachine.setActive(true);
+
             if (!requestedNode.isCached()) {
                 if (DBG) Log.d(TAG, "node is not cached");
                 refreshContents(requestedNode);
@@ -737,6 +742,9 @@ public class AvrcpControllerService extends ProfileService {
     }
 
     protected AvrcpControllerStateMachine getStateMachine(BluetoothDevice device) {
+        if (device == null) {
+            return null;
+        }
         return mDeviceStateMap.get(device);
     }
 
