@@ -3434,8 +3434,8 @@ public class AdapterService extends Service {
      * @param value buffer millis
      * @return true if the settings is successful, false otherwise
      */
-    public boolean setBufferMillis(int codec, int value) {
-        return mAdapterProperties.setBufferMillis(codec, value);
+    public boolean setBufferLengthMillis(int codec, int value) {
+        return mAdapterProperties.setBufferLengthMillis(codec, value);
     }
 
     /**
@@ -3531,7 +3531,7 @@ public class AdapterService extends Service {
 
     private native byte[] obfuscateAddressNative(byte[] address);
 
-    native boolean setBufferMillisNative(int codec, int value);
+    native boolean setBufferLengthMillisNative(int codec, int value);
 
     private native int getMetricIdNative(byte[] address);
 

@@ -559,8 +559,8 @@ class AdapterProperties {
      * @param codec the codecs to set
      * @param size the size to set
      */
-    boolean setBufferMillis(int codec, int value) {
-        return mService.setBufferMillisNative(codec, value);
+    boolean setBufferLengthMillis(int codec, int value) {
+        return mService.setBufferLengthMillisNative(codec, value);
     }
 
     /**
