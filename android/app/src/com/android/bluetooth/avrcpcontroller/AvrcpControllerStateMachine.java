@@ -223,8 +223,6 @@ class AvrcpControllerStateMachine extends StateMachine {
         ProfileService.println(sb, "mDevice: " + mDevice.getAddress() + "("
                 + mDevice.getName() + ") " + this.toString());
         ProfileService.println(sb, "isActive: " + isActive());
-        ProfileService.println(sb, "Control: " + mRemoteControlConnected);
-        ProfileService.println(sb, "Browsing: " + mBrowsingConnected);
     }
 
     @VisibleForTesting
@@ -255,39 +253,24 @@ class AvrcpControllerStateMachine extends StateMachine {
         if (a2dpSinkService == null) {
             return false;
         }
-
         if (becomeActive) {
             if (isActive()) {
                 return true;
             }
 
-            BluetoothDevice previousDevice = sActiveDevice;
-            // If we changed devices then send a courtesy pause the previously active device
-            if (previousDevice != null) {
-                AvrcpControllerStateMachine stateMachine = mService.getStateMachine(previousDevice);
-                if (stateMachine != null) {
-                    stateMachine.sendMessage(MSG_AVRCP_PASSTHRU,
-                            AvrcpControllerService.PASS_THRU_CMD_ID_PAUSE);
-                }
-            }
-
             if (a2dpSinkService.setActiveDevice(mDevice)) {
                 sActiveDevice = mDevice;
                 BluetoothMediaBrowserService.addressedPlayerChanged(mSessionCallbacks);
-                BluetoothMediaBrowserService.trackChanged(mAddressedPlayer.getCurrentTrack());
                 BluetoothMediaBrowserService.notifyChanged(mAddressedPlayer.getPlaybackState());
                 BluetoothMediaBrowserService.notifyChanged(mBrowseTree.mNowPlayingNode);
             }
             return mDevice == sActiveDevice;
         } else if (isActive()) {
             sActiveDevice = null;
-            sendMessage(MSG_AVRCP_PASSTHRU, AvrcpControllerService.PASS_THRU_CMD_ID_PAUSE);
             a2dpSinkService.setActiveDevice(null);
             BluetoothMediaBrowserService.trackChanged(null);
-            BluetoothMediaBrowserService.notifyChanged(new PlaybackStateCompat.Builder().build());
             BluetoothMediaBrowserService.addressedPlayerChanged(null);
         }
-
         return true;
     }
 
@@ -303,6 +286,10 @@ class AvrcpControllerStateMachine extends StateMachine {
     }
 
     synchronized void onBrowsingConnected() {
+        if (mBrowsingConnected) return;
+        mService.sBrowseTree.mRootNode.addChild(mBrowseTree.mRootNode);
+        BluetoothMediaBrowserService.notifyChanged(mService
+                .sBrowseTree.mRootNode);
         mBrowsingConnected = true;
     }
 
@@ -316,6 +303,10 @@ class AvrcpControllerStateMachine extends StateMachine {
         if (isActive()) {
             BluetoothMediaBrowserService.notifyChanged(mBrowseTree.mNowPlayingNode);
         }
+        mService.sBrowseTree.mRootNode.removeChild(
+                mBrowseTree.mRootNode);
+        BluetoothMediaBrowserService.notifyChanged(mService
+                .sBrowseTree.mRootNode);
         removeUnusedArtwork(previousTrackUuid);
         removeUnusedArtworkFromBrowseTree();
         mBrowsingConnected = false;
@@ -459,8 +450,6 @@ class AvrcpControllerStateMachine extends StateMachine {
             if (mMostRecentState == BluetoothProfile.STATE_CONNECTING) {
                 requestActive();
                 broadcastConnectionStateChanged(BluetoothProfile.STATE_CONNECTED);
-                mService.sBrowseTree.mRootNode.addChild(mBrowseTree.mRootNode);
-                BluetoothMediaBrowserService.notifyChanged(mService.sBrowseTree.mRootNode);
                 connectCoverArt(); // only works if we have a valid PSM
             } else {
                 logD("ReEnteringConnected");
@@ -981,8 +970,6 @@ class AvrcpControllerStateMachine extends StateMachine {
         public void enter() {
             disconnectCoverArt();
             onBrowsingDisconnected();
-            mService.sBrowseTree.mRootNode.removeChild(mBrowseTree.mRootNode);
-            BluetoothMediaBrowserService.notifyChanged(mService.sBrowseTree.mRootNode);
             setActive(false);
             broadcastConnectionStateChanged(BluetoothProfile.STATE_DISCONNECTING);
             transitionTo(mDisconnected);
