@@ -105,6 +105,7 @@ public class HeadsetClientStateMachine extends StateMachine {
     public static final int EXPLICIT_CALL_TRANSFER = 18;
     public static final int DISABLE_NREC = 20;
     public static final int SEND_VENDOR_AT_COMMAND = 21;
+    public static final int SEND_BIEV = 22;
 
     // internal actions
     private static final int QUERY_CURRENT_CALLS = 50;
@@ -291,6 +292,8 @@ public class HeadsetClientStateMachine extends StateMachine {
                 return "DISABLE_NREC";
             case SEND_VENDOR_AT_COMMAND:
                 return "SEND_VENDOR_AT_COMMAND";
+            case SEND_BIEV:
+                return "SEND_BIEV";
             case QUERY_CURRENT_CALLS:
                 return "QUERY_CURRENT_CALLS";
             case QUERY_OPERATOR_NAME:
@@ -1151,6 +1154,7 @@ public class HeadsetClientStateMachine extends StateMachine {
             logD("Enter Connected: " + getCurrentMessage().what);
             mAudioWbs = false;
             mCommandedSpeakerVolume = -1;
+
             if (mPrevState == mConnecting) {
                 broadcastConnectionState(mCurrentDevice, BluetoothProfile.STATE_CONNECTED,
                         BluetoothProfile.STATE_CONNECTING);
@@ -1161,6 +1165,7 @@ public class HeadsetClientStateMachine extends StateMachine {
                 Log.e(TAG, "Connected: Illegal state transition from " + prevStateName
                         + " to Connecting, mCurrentDevice=" + mCurrentDevice);
             }
+            mService.updateBatteryLevel();
         }
 
         @Override
@@ -1236,6 +1241,20 @@ public class HeadsetClientStateMachine extends StateMachine {
                     int vendorId = message.arg1;
                     String atCommand = (String) (message.obj);
                     mVendorProcessor.sendCommand(vendorId, atCommand, mCurrentDevice);
+                    break;
+                }
+
+                case SEND_BIEV: {
+                    if ((mPeerFeatures & HeadsetClientHalConstants.PEER_FEAT_HF_IND)
+                            == HeadsetClientHalConstants.PEER_FEAT_HF_IND) {
+                        int indicatorID = message.arg1;
+                        int value = message.arg2;
+                        mNativeInterface.sendATCmd(getByteAddress(mCurrentDevice),
+                                HeadsetClientHalConstants.HANDSFREECLIENT_AT_CMD_BIEV,
+                                indicatorID,
+                                value,
+                                null);
+                    }
                     break;
                 }
 
