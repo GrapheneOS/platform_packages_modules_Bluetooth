@@ -26,6 +26,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.media.AudioManager;
+import android.os.BatteryManager;
 import android.os.Bundle;
 import android.os.HandlerThread;
 import android.os.Message;
@@ -62,6 +63,8 @@ public class HeadsetClientService extends ProfileService {
     private HeadsetClientStateMachineFactory mSmFactory = null;
     private DatabaseManager mDatabaseManager;
     private AudioManager mAudioManager = null;
+    private BatteryManager mBatteryManager = null;
+    private int mLastBatteryLevel = -1;
     // Maxinum number of devices we can try connecting to in one session
     private static final int MAX_STATE_MACHINES_POSSIBLE = 100;
 
@@ -89,6 +92,8 @@ public class HeadsetClientService extends ProfileService {
         mNativeInterface = NativeInterface.getInstance();
         mNativeInterface.initialize();
 
+        mBatteryManager = getSystemService(BatteryManager.class);
+
         mAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
         if (mAudioManager == null) {
             Log.e(TAG, "AudioManager service doesn't exist?");
@@ -101,6 +106,7 @@ public class HeadsetClientService extends ProfileService {
         mStateMachineMap.clear();
 
         IntentFilter filter = new IntentFilter(AudioManager.VOLUME_CHANGED_ACTION);
+        filter.addAction(Intent.ACTION_BATTERY_CHANGED);
         registerReceiver(mBroadcastReceiver, filter);
 
         // Start the HfpClientConnectionService to create connection with telecom when HFP
@@ -180,6 +186,29 @@ public class HeadsetClientService extends ProfileService {
                                 sm.sendMessage(HeadsetClientStateMachine.SET_SPEAKER_VOLUME,
                                         streamValue);
                             }
+                        }
+                    }
+                }
+            } else if (action.equals(Intent.ACTION_BATTERY_CHANGED)) {
+                int batteryIndicatorID = 2;
+                int batteryLevel = intent.getIntExtra(BatteryManager.EXTRA_LEVEL, 0);
+
+                if (batteryLevel == mLastBatteryLevel) {
+                    return;
+                }
+                mLastBatteryLevel = batteryLevel;
+
+                if (DBG) {
+                    Log.d(TAG,
+                            "Send battery level update BIEV(2," + batteryLevel + ") command");
+                }
+
+                synchronized (this) {
+                    for (HeadsetClientStateMachine sm : mStateMachineMap.values()) {
+                        if (sm != null) {
+                            sm.sendMessage(HeadsetClientStateMachine.SEND_BIEV,
+                                    batteryIndicatorID,
+                                    batteryLevel);
                         }
                     }
                 }
@@ -1015,5 +1044,20 @@ public class HeadsetClientService extends ProfileService {
 
     protected AudioManager getAudioManager() {
         return mAudioManager;
+    }
+
+    protected void updateBatteryLevel() {
+        int batteryLevel = mBatteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY);
+        int batteryIndicatorID = 2;
+
+        synchronized (this) {
+            for (HeadsetClientStateMachine sm : mStateMachineMap.values()) {
+                if (sm != null) {
+                    sm.sendMessage(HeadsetClientStateMachine.SEND_BIEV,
+                            batteryIndicatorID,
+                            batteryLevel);
+                }
+            }
+        }
     }
 }
