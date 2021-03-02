@@ -16,10 +16,17 @@
 
 package com.android.bluetooth.hfpclient;
 
+import static org.mockito.Mockito.anyInt;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.timeout;
+import static org.mockito.Mockito.verify;
 
 import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
 import android.content.Context;
+import android.content.Intent;
+import android.os.BatteryManager;
 
 import androidx.test.InstrumentationRegistry;
 import androidx.test.filters.MediumTest;
@@ -48,9 +55,12 @@ public class HeadsetClientServiceTest {
     private BluetoothAdapter mAdapter = null;
     private Context mTargetContext;
 
+    private static final int STANDARD_WAIT_MILLIS = 1000;
+
     @Rule public final ServiceTestRule mServiceRule = new ServiceTestRule();
 
     @Mock private AdapterService mAdapterService;
+    @Mock private HeadsetClientStateMachine mStateMachine;
 
     @Mock private DatabaseManager mDatabaseManager;
 
@@ -85,5 +95,42 @@ public class HeadsetClientServiceTest {
     @Test
     public void testInitialize() {
         Assert.assertNotNull(HeadsetClientService.getHeadsetClientService());
+    }
+
+    @Test
+    public void testSendBIEVtoStateMachineWhenBatteryChanged() {
+        // Put mock state machine
+        BluetoothDevice device =
+                BluetoothAdapter.getDefaultAdapter().getRemoteDevice("00:01:02:03:04:05");
+        mService.getStateMachineMap().put(device, mStateMachine);
+
+        // Send battery changed intent
+        Intent intent = new Intent(Intent.ACTION_BATTERY_CHANGED);
+        intent.putExtra(BatteryManager.EXTRA_LEVEL, 50);
+        mService.sendBroadcast(intent);
+
+        // Expect send BIEV to state machine
+        verify(mStateMachine, timeout(STANDARD_WAIT_MILLIS).times(1))
+                .sendMessage(
+                    eq(HeadsetClientStateMachine.SEND_BIEV),
+                    eq(2),
+                    anyInt());
+    }
+
+    @Test
+    public void testUpdateBatteryLevel() {
+        // Put mock state machine
+        BluetoothDevice device =
+                BluetoothAdapter.getDefaultAdapter().getRemoteDevice("00:01:02:03:04:05");
+        mService.getStateMachineMap().put(device, mStateMachine);
+
+        mService.updateBatteryLevel();
+
+        // Expect send BIEV to state machine
+        verify(mStateMachine, timeout(STANDARD_WAIT_MILLIS).times(1))
+                .sendMessage(
+                    eq(HeadsetClientStateMachine.SEND_BIEV),
+                    eq(2),
+                    anyInt());
     }
 }
