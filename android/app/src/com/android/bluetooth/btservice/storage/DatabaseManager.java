@@ -214,25 +214,8 @@ public class DatabaseManager {
     }
 
     boolean isValidMetaKey(int key) {
-        switch (key) {
-            case BluetoothDevice.METADATA_MANUFACTURER_NAME:
-            case BluetoothDevice.METADATA_MODEL_NAME:
-            case BluetoothDevice.METADATA_SOFTWARE_VERSION:
-            case BluetoothDevice.METADATA_HARDWARE_VERSION:
-            case BluetoothDevice.METADATA_COMPANION_APP:
-            case BluetoothDevice.METADATA_MAIN_ICON:
-            case BluetoothDevice.METADATA_IS_UNTETHERED_HEADSET:
-            case BluetoothDevice.METADATA_UNTETHERED_LEFT_ICON:
-            case BluetoothDevice.METADATA_UNTETHERED_RIGHT_ICON:
-            case BluetoothDevice.METADATA_UNTETHERED_CASE_ICON:
-            case BluetoothDevice.METADATA_UNTETHERED_LEFT_BATTERY:
-            case BluetoothDevice.METADATA_UNTETHERED_RIGHT_BATTERY:
-            case BluetoothDevice.METADATA_UNTETHERED_CASE_BATTERY:
-            case BluetoothDevice.METADATA_UNTETHERED_LEFT_CHARGING:
-            case BluetoothDevice.METADATA_UNTETHERED_RIGHT_CHARGING:
-            case BluetoothDevice.METADATA_UNTETHERED_CASE_CHARGING:
-            case BluetoothDevice.METADATA_ENHANCED_SETTINGS_UI_URI:
-                return true;
+        if (key >= 0 && key <= BluetoothDevice.getMaxMetadataKey()) {
+            return true;
         }
         Log.w(TAG, "Invalid metadata key " + key);
         return false;
