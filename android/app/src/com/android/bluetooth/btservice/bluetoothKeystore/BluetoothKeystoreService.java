@@ -19,7 +19,6 @@ package com.android.bluetooth.btservice.bluetoothkeystore;
 import android.annotation.Nullable;
 import android.os.Process;
 import android.os.SystemProperties;
-import android.security.keystore.AndroidKeyStoreProvider;
 import android.security.keystore.KeyGenParameterSpec;
 import android.security.keystore.KeyProperties;
 import android.util.Log;
@@ -43,6 +42,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.ProviderException;
 import java.security.UnrecoverableEntryException;
+import java.security.cert.CertificateException;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -786,11 +786,11 @@ public class BluetoothKeystoreService {
 
         while ((counter <= TRY_MAX) && (keyStore == null)) {
             try {
-                keyStore = AndroidKeyStoreProvider.getKeyStoreForUid(Process.BLUETOOTH_UID);
-            } catch (NoSuchProviderException e) {
-                reportKeystoreException(e, "cannot find crypto provider");
-            } catch (KeyStoreException e) {
-                reportKeystoreException(e, "cannot find the keystore");
+                keyStore = KeyStore.getInstance("AndroidKeyStore");
+                keyStore.load(null);
+            } catch (KeyStoreException | CertificateException | NoSuchAlgorithmException
+                    | IOException e) {
+                reportKeystoreException(e, "cannot open keystore");
             }
             counter++;
         }
