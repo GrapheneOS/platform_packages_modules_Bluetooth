@@ -298,6 +298,9 @@ public class BluetoothKeystoreService {
      */
     public void initJni() {
         debugLog("initJni()");
+        // Need to make sure all keys are decrypted.
+        stopThread();
+        startThread();
         // Initialize native interface
         mBluetoothKeystoreNativeInterface.init();
     }
