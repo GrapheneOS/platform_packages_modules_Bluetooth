@@ -214,7 +214,7 @@ public final class BluetoothKeystoreServiceTest {
     private boolean compareFileHash(String hashFilePathString) {
         try {
             return mBluetoothKeystoreService.compareFileHash(hashFilePathString);
-        } catch (IOException | NoSuchAlgorithmException e) {
+        } catch (InterruptedException | IOException | NoSuchAlgorithmException e) {
             return false;
         }
     }
