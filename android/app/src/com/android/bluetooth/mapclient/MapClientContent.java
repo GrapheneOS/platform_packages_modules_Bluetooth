@@ -96,7 +96,7 @@ class MapClientContent {
         mSubscriptionManager = (SubscriptionManager) mContext
                 .getSystemService(Context.TELEPHONY_SUBSCRIPTION_SERVICE);
         mSubscriptionManager
-                .addSubscriptionInfoRecord(device.getAddress(), /*device.getName()*/"TEST", 0,
+                .addSubscriptionInfoRecord(mDevice.getAddress(), mDevice.getName(), 0,
                         SubscriptionManager.SUBSCRIPTION_TYPE_REMOTE_SIM);
         SubscriptionInfo info = mSubscriptionManager
                 .getActiveSubscriptionInfoForIcc(mDevice.getAddress());
@@ -156,7 +156,7 @@ class MapClientContent {
             ArrayList<VCardEntry> recipients = message.getRecipients();
             if (recipients != null && !recipients.isEmpty()) {
                 mPhoneNumber = PhoneNumberUtils.extractNetworkPortion(
-                        recipients.get(0).getPhoneList().get(0).getNumber());
+                        getFirstRecipientNumber(message));
             }
         } else {
             mPhoneNumber = PhoneNumberUtils.extractNetworkPortion(getOriginatorNumber(message));
@@ -192,7 +192,11 @@ class MapClientContent {
         if (INBOX_PATH.equals(message.getFolder())) {
             recipients = getOriginatorNumber(message);
         } else {
-            recipients = message.getRecipients().get(0).getPhoneList().get(0).getNumber();
+            recipients = getFirstRecipientNumber(message);
+            if (recipients == null) {
+                logD("invalid recipients");
+                return;
+            }
         }
         logV("Received SMS from Number " + recipients);
         String messageContent;
@@ -380,10 +384,21 @@ class MapClientContent {
     }
 
     /**
-     * clearMessages
-     * clean up the content provider on startup and shutdown
+     * cleanUp
+     * clear the subscription info and content on shutdown
      */
-    void clearMessages() {
+    void cleanUp() {
+        clearMessages();
+        mSubscriptionManager.removeSubscriptionInfoRecord(mDevice.getAddress(),
+                    SubscriptionManager.SUBSCRIPTION_TYPE_REMOTE_SIM);
+    }
+
+
+    /**
+     * clearMessages
+     * clean up the content provider on startup
+     */
+    private void clearMessages() {
         mResolver.unregisterContentObserver(mContentObserver);
         mResolver.delete(Sms.CONTENT_URI, Sms.SUBSCRIPTION_ID + " =? ",
                 new String[]{Integer.toString(mSubscriptionId)});
@@ -403,8 +418,14 @@ class MapClientContent {
             messageContacts.add(originator);
         }
         getRecipientsFromMessage(message, messageContacts);
+        // If there is only one contact don't remove it.
+        if (messageContacts.isEmpty()) {
+            return Telephony.Threads.COMMON_THREAD;
+        } else if (messageContacts.size() > 1) {
+            messageContacts.removeIf(number -> (PhoneNumberUtils.compareLoosely(number,
+                    mPhoneNumber)));
+        }
 
-        messageContacts.removeIf(number -> (PhoneNumberUtils.compareLoosely(number, mPhoneNumber)));
         logV("Contacts = " + messageContacts.toString());
         return Telephony.Threads.getOrCreateThreadId(mContext, messageContacts);
     }
@@ -413,7 +434,7 @@ class MapClientContent {
         List<VCardEntry> recipients = message.getRecipients();
         for (VCardEntry recipient : recipients) {
             List<VCardEntry.PhoneData> phoneData = recipient.getPhoneList();
-            if (phoneData != null && phoneData.size() > 0) {
+            if (phoneData != null && !phoneData.isEmpty()) {
                 messageContacts
                         .add(PhoneNumberUtils.extractNetworkPortion(phoneData.get(0).getNumber()));
             }
@@ -422,13 +443,30 @@ class MapClientContent {
 
     private String getOriginatorNumber(Bmessage message) {
         VCardEntry originator = message.getOriginator();
-        if (originator != null) {
-            List<VCardEntry.PhoneData> phoneData = originator.getPhoneList();
-            if (phoneData != null && phoneData.size() > 0) {
-                return PhoneNumberUtils.extractNetworkPortion(phoneData.get(0).getNumber());
-            }
+        if (originator == null) {
+            return null;
         }
-        return null;
+
+        List<VCardEntry.PhoneData> phoneData = originator.getPhoneList();
+        if (phoneData == null || phoneData.isEmpty()) {
+            return null;
+        }
+
+        return PhoneNumberUtils.extractNetworkPortion(phoneData.get(0).getNumber());
+    }
+
+    private String getFirstRecipientNumber(Bmessage message) {
+        List<VCardEntry> recipients = message.getRecipients();
+        if (recipients == null || recipients.isEmpty()) {
+            return null;
+        }
+
+        List<VCardEntry.PhoneData> phoneData = recipients.get(0).getPhoneList();
+        if (phoneData == null || phoneData.isEmpty()) {
+            return null;
+        }
+
+        return phoneData.get(0).getNumber();
     }
 
     /**

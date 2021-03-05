@@ -286,7 +286,8 @@ class MceStateMachine extends StateMachine {
                     Log.d(TAG, "Scheme " + contact.getScheme());
                 }
                 if (PhoneAccount.SCHEME_TEL.equals(contact.getScheme())) {
-                    if (contact.getPath().contains(Telephony.Threads.CONTENT_URI.toString())) {
+                    String path = contact.getPath();
+                    if (path != null && path.contains(Telephony.Threads.CONTENT_URI.toString())) {
                         mDatabase.addThreadContactsToEntries(bmsg, contact.getLastPathSegment());
                     } else {
                         VCardEntry destEntry = new VCardEntry();
@@ -622,7 +623,7 @@ class MceStateMachine extends StateMachine {
 
         @Override
         public void exit() {
-            mDatabase.clearMessages();
+            mDatabase.cleanUp();
             mPreviousState = BluetoothProfile.STATE_CONNECTED;
         }
 
