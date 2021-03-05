@@ -63,6 +63,7 @@ public class MapClientStateMachineTest {
     private static final String TAG = "MapStateMachineTest";
 
     private static final int ASYNC_CALL_TIMEOUT_MILLIS = 100;
+    private static final int DISCONNECT_TIMEOUT = 3000;
     @Rule
     public final ServiceTestRule mServiceRule = new ServiceTestRule();
     private BluetoothAdapter mAdapter;
@@ -259,6 +260,64 @@ public class MapClientStateMachineTest {
         Assert.assertEquals(BluetoothProfile.STATE_CONNECTED, mMceStateMachine.getState());
         Assert.assertTrue(
                 mMceStateMachine.setMessageStatus("123456789AB", BluetoothMapClient.READ));
+    }
+
+
+    /**
+     * Test disconnect
+     */
+    @Test
+    public void testDisconnect() {
+        setupSdpRecordReceipt();
+        doAnswer(invocation -> {
+            mMceStateMachine.sendMessage(MceStateMachine.MSG_MAS_DISCONNECTED);
+            return null;
+        }).when(mMockMasClient).shutdown();
+        Message msg = Message.obtain(mHandler, MceStateMachine.MSG_MAS_CONNECTED);
+        mMceStateMachine.sendMessage(msg);
+
+        // Wait until the message is processed and a broadcast request is sent to
+        // to MapClientService to change
+        // state from STATE_CONNECTING to STATE_CONNECTED
+        verify(mMockMapClientService,
+                timeout(ASYNC_CALL_TIMEOUT_MILLIS).times(2)).sendBroadcast(
+                mIntentArgument.capture(), eq(ProfileService.BLUETOOTH_PERM));
+        Assert.assertEquals(BluetoothProfile.STATE_CONNECTED, mMceStateMachine.getState());
+
+        mMceStateMachine.disconnect();
+        verify(mMockMapClientService,
+                timeout(ASYNC_CALL_TIMEOUT_MILLIS).times(4)).sendBroadcast(
+                mIntentArgument.capture(), eq(ProfileService.BLUETOOTH_PERM));
+        Assert.assertEquals(BluetoothProfile.STATE_DISCONNECTED, mMceStateMachine.getState());
+    }
+
+    /**
+     * Test disconnect timeout
+     */
+    @Test
+    public void testDisconnectTimeout() {
+        setupSdpRecordReceipt();
+        Message msg = Message.obtain(mHandler, MceStateMachine.MSG_MAS_CONNECTED);
+        mMceStateMachine.sendMessage(msg);
+
+        // Wait until the message is processed and a broadcast request is sent to
+        // to MapClientService to change
+        // state from STATE_CONNECTING to STATE_CONNECTED
+        verify(mMockMapClientService,
+                timeout(ASYNC_CALL_TIMEOUT_MILLIS).times(2)).sendBroadcast(
+                mIntentArgument.capture(), eq(ProfileService.BLUETOOTH_PERM));
+        Assert.assertEquals(BluetoothProfile.STATE_CONNECTED, mMceStateMachine.getState());
+
+        mMceStateMachine.disconnect();
+        verify(mMockMapClientService,
+                after(DISCONNECT_TIMEOUT / 2).times(3)).sendBroadcast(
+                mIntentArgument.capture(), eq(ProfileService.BLUETOOTH_PERM));
+        Assert.assertEquals(BluetoothProfile.STATE_DISCONNECTING, mMceStateMachine.getState());
+
+        verify(mMockMapClientService,
+                timeout(DISCONNECT_TIMEOUT).times(4)).sendBroadcast(
+                mIntentArgument.capture(), eq(ProfileService.BLUETOOTH_PERM));
+        Assert.assertEquals(BluetoothProfile.STATE_DISCONNECTED, mMceStateMachine.getState());
     }
 
     private void setupSdpRecordReceipt() {
