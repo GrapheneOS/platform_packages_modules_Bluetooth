@@ -17,7 +17,6 @@
 package com.android.bluetooth.btservice.bluetoothkeystore;
 
 import android.annotation.Nullable;
-import android.os.Process;
 import android.os.SystemProperties;
 import android.security.keystore.KeyGenParameterSpec;
 import android.security.keystore.KeyProperties;
@@ -821,7 +820,6 @@ public class BluetoothKeystoreService {
                         .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
                         .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
                         .setKeySize(KEY_LENGTH)
-                        .setUid(Process.BLUETOOTH_UID)
                         .build();
 
                 keyGenerator.init(keyGenParameterSpec);
