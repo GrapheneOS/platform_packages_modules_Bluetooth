@@ -55,6 +55,7 @@ class AvrcpControllerStateMachine extends StateMachine {
     //0->99 Events from Outside
     public static final int CONNECT = 1;
     public static final int DISCONNECT = 2;
+    public static final int ACTIVE_DEVICE_CHANGE = 3;
 
     //100->199 Internal Events
     protected static final int CLEANUP = 100;
@@ -184,7 +185,7 @@ class AvrcpControllerStateMachine extends StateMachine {
      *
      * @return device in focus
      */
-    public synchronized BluetoothDevice getDevice() {
+    public BluetoothDevice getDevice() {
         return mDevice;
     }
 
@@ -223,55 +224,20 @@ class AvrcpControllerStateMachine extends StateMachine {
         ProfileService.println(sb, "mDevice: " + mDevice.getAddress() + "("
                 + mDevice.getName() + ") " + this.toString());
         ProfileService.println(sb, "isActive: " + isActive());
+        ProfileService.println(sb, "Control: " + mRemoteControlConnected);
+        ProfileService.println(sb, "Browsing: " + mBrowsingConnected);
     }
 
     @VisibleForTesting
     boolean isActive() {
-        return mDevice == sActiveDevice;
-    }
-
-    /*
-     * requestActive
-     *
-     * Set the current device active if nothing an already connected device isn't playing
-     */
-    private boolean requestActive() {
-        if (sActiveDevice == null
-                || BluetoothMediaBrowserService.getPlaybackState()
-                != PlaybackStateCompat.STATE_PLAYING) {
-            return setActive(true);
-        }
-        return false;
+        return mDevice.equals(mService.getActiveDevice());
     }
 
     /**
      * Attempt to set the active status for this device
      */
-    boolean setActive(boolean becomeActive) {
-        logD("setActive(" + becomeActive + ")");
-        A2dpSinkService a2dpSinkService = A2dpSinkService.getA2dpSinkService();
-        if (a2dpSinkService == null) {
-            return false;
-        }
-        if (becomeActive) {
-            if (isActive()) {
-                return true;
-            }
-
-            if (a2dpSinkService.setActiveDevice(mDevice)) {
-                sActiveDevice = mDevice;
-                BluetoothMediaBrowserService.addressedPlayerChanged(mSessionCallbacks);
-                BluetoothMediaBrowserService.notifyChanged(mAddressedPlayer.getPlaybackState());
-                BluetoothMediaBrowserService.notifyChanged(mBrowseTree.mNowPlayingNode);
-            }
-            return mDevice == sActiveDevice;
-        } else if (isActive()) {
-            sActiveDevice = null;
-            a2dpSinkService.setActiveDevice(null);
-            BluetoothMediaBrowserService.trackChanged(null);
-            BluetoothMediaBrowserService.addressedPlayerChanged(null);
-        }
-        return true;
+    public void setDeviceState(int state) {
+        sendMessage(ACTIVE_DEVICE_CHANGE, state);
     }
 
     @Override
@@ -286,10 +252,6 @@ class AvrcpControllerStateMachine extends StateMachine {
     }
 
     synchronized void onBrowsingConnected() {
-        if (mBrowsingConnected) return;
-        mService.sBrowseTree.mRootNode.addChild(mBrowseTree.mRootNode);
-        BluetoothMediaBrowserService.notifyChanged(mService
-                .sBrowseTree.mRootNode);
         mBrowsingConnected = true;
     }
 
@@ -303,10 +265,6 @@ class AvrcpControllerStateMachine extends StateMachine {
         if (isActive()) {
             BluetoothMediaBrowserService.notifyChanged(mBrowseTree.mNowPlayingNode);
         }
-        mService.sBrowseTree.mRootNode.removeChild(
-                mBrowseTree.mRootNode);
-        BluetoothMediaBrowserService.notifyChanged(mService
-                .sBrowseTree.mRootNode);
         removeUnusedArtwork(previousTrackUuid);
         removeUnusedArtworkFromBrowseTree();
         mBrowsingConnected = false;
@@ -426,6 +384,10 @@ class AvrcpControllerStateMachine extends StateMachine {
                 case CLEANUP:
                     mService.removeStateMachine(AvrcpControllerStateMachine.this);
                     break;
+                case ACTIVE_DEVICE_CHANGE:
+                    // Wait until we're connected to process this
+                    deferMessage(message);
+                    break;
             }
             return true;
         }
@@ -448,8 +410,9 @@ class AvrcpControllerStateMachine extends StateMachine {
         @Override
         public void enter() {
             if (mMostRecentState == BluetoothProfile.STATE_CONNECTING) {
-                requestActive();
                 broadcastConnectionStateChanged(BluetoothProfile.STATE_CONNECTED);
+                mService.sBrowseTree.mRootNode.addChild(mBrowseTree.mRootNode);
+                BluetoothMediaBrowserService.notifyChanged(mService.sBrowseTree.mRootNode);
                 connectCoverArt(); // only works if we have a valid PSM
             } else {
                 logD("ReEnteringConnected");
@@ -461,6 +424,21 @@ class AvrcpControllerStateMachine extends StateMachine {
         public boolean processMessage(Message msg) {
             logD(STATE_TAG + " processMessage " + msg.what);
             switch (msg.what) {
+                case ACTIVE_DEVICE_CHANGE:
+                    int state = msg.arg1;
+                    if (state == AvrcpControllerService.DEVICE_STATE_ACTIVE) {
+                        BluetoothMediaBrowserService.addressedPlayerChanged(mSessionCallbacks);
+                        BluetoothMediaBrowserService.trackChanged(
+                                mAddressedPlayer.getCurrentTrack());
+                        BluetoothMediaBrowserService.notifyChanged(
+                                mAddressedPlayer.getPlaybackState());
+                        BluetoothMediaBrowserService.notifyChanged(mBrowseTree.mNowPlayingNode);
+                    } else {
+                        sendMessage(MSG_AVRCP_PASSTHRU,
+                                AvrcpControllerService.PASS_THRU_CMD_ID_PAUSE);
+                    }
+                    return true;
+
                 case MESSAGE_PROCESS_SET_ABS_VOL_CMD:
                     mVolumeChangedNotificationsToIgnore++;
                     removeMessages(MESSAGE_INTERNAL_ABS_VOL_TIMEOUT);
@@ -643,7 +621,6 @@ class AvrcpControllerStateMachine extends StateMachine {
         }
 
         private void processPlayItem(BrowseTree.BrowseNode node) {
-            setActive(true);
             if (node == null) {
                 Log.w(TAG, "Invalid item to play");
             } else {
@@ -970,7 +947,8 @@ class AvrcpControllerStateMachine extends StateMachine {
         public void enter() {
             disconnectCoverArt();
             onBrowsingDisconnected();
-            setActive(false);
+            mService.sBrowseTree.mRootNode.removeChild(mBrowseTree.mRootNode);
+            BluetoothMediaBrowserService.notifyChanged(mService.sBrowseTree.mRootNode);
             broadcastConnectionStateChanged(BluetoothProfile.STATE_DISCONNECTING);
             transitionTo(mDisconnected);
         }
