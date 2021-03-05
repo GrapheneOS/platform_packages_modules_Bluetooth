@@ -20,6 +20,7 @@ import android.app.PendingIntent;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.media.MediaBrowserCompat.MediaItem;
+import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaControllerCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
@@ -154,19 +155,21 @@ public class BluetoothMediaBrowserService extends MediaBrowserServiceCompat {
     private void updateNowPlayingQueue(BrowseTree.BrowseNode node) {
         List<MediaItem> songList = node.getContents();
         mMediaQueue.clear();
-        if (songList != null) {
+        if (songList != null && songList.size() > 0) {
             for (MediaItem song : songList) {
                 mMediaQueue.add(new MediaSessionCompat.QueueItem(
                         song.getDescription(),
                         mMediaQueue.size()));
             }
+            mSession.setQueue(mMediaQueue);
+        } else {
+            mSession.setQueue(null);
         }
-        mSession.setQueue(mMediaQueue);
     }
 
     private void clearNowPlayingQueue() {
         mMediaQueue.clear();
-        mSession.setQueue(mMediaQueue);
+        mSession.setQueue(null);
     }
 
     static synchronized void notifyChanged(BrowseTree.BrowseNode node) {
@@ -283,5 +286,61 @@ public class BluetoothMediaBrowserService extends MediaBrowserServiceCompat {
             Log.w(TAG, "getSession Unavailable");
             return null;
         }
+    }
+
+    /**
+     * Reset the state of BluetoothMediaBrowserService to that before a device connected
+     */
+    public static synchronized void reset() {
+        if (sBluetoothMediaBrowserService != null) {
+            sBluetoothMediaBrowserService.clearNowPlayingQueue();
+            sBluetoothMediaBrowserService.mSession.setMetadata(null);
+            sBluetoothMediaBrowserService.setErrorPlaybackState();
+            sBluetoothMediaBrowserService.mSession.setCallback(null);
+            if (DBG) Log.d(TAG, "Service state has been reset");
+        } else {
+            Log.w(TAG, "reset unavailable");
+        }
+    }
+
+    /**
+     * Get the state of the BluetoothMediaBrowserService as a debug string
+     */
+    public static synchronized String dump() {
+        StringBuilder sb = new StringBuilder();
+        sb.append(TAG + ":");
+        if (sBluetoothMediaBrowserService != null) {
+            MediaSessionCompat session = sBluetoothMediaBrowserService.getSession();
+            MediaControllerCompat controller = session.getController();
+            MediaMetadataCompat metadata = controller == null ? null : controller.getMetadata();
+            PlaybackStateCompat playbackState =
+                    controller == null ? null : controller.getPlaybackState();
+            List<MediaSessionCompat.QueueItem> queue =
+                    controller == null ? null : controller.getQueue();
+            if (metadata != null) {
+                sb.append("\n    track={");
+                sb.append("title=" + metadata.getString(MediaMetadataCompat.METADATA_KEY_TITLE));
+                sb.append(", artist="
+                        + metadata.getString(MediaMetadataCompat.METADATA_KEY_ARTIST));
+                sb.append(", album=" + metadata.getString(MediaMetadataCompat.METADATA_KEY_ALBUM));
+                sb.append(", track_number="
+                        + metadata.getLong(MediaMetadataCompat.METADATA_KEY_TRACK_NUMBER));
+                sb.append(", total_tracks="
+                        + metadata.getLong(MediaMetadataCompat.METADATA_KEY_NUM_TRACKS));
+                sb.append(", genre=" + metadata.getString(MediaMetadataCompat.METADATA_KEY_GENRE));
+                sb.append(", album_art="
+                        + metadata.getString(MediaMetadataCompat.METADATA_KEY_ALBUM_ART_URI));
+                sb.append("}");
+            } else {
+                sb.append("\n    track=" + metadata);
+            }
+            sb.append("\n    playbackState=" + playbackState);
+            sb.append("\n    queue=" + queue);
+            sb.append("\n    internal_queue=" + sBluetoothMediaBrowserService.mMediaQueue);
+        } else {
+            Log.w(TAG, "dump Unavailable");
+            sb.append(" null");
+        }
+        return sb.toString();
     }
 }
