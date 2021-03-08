@@ -64,8 +64,7 @@ public class BluetoothTetheringNetworkFactory extends NetworkFactory {
         mContext = context;
         mPanService = panService;
 
-        mNetworkCapabilities = new NetworkCapabilities();
-        initNetworkCapabilities();
+        mNetworkCapabilities = initNetworkCapabilities();
         setCapabilityFilter(mNetworkCapabilities);
     }
 
@@ -239,16 +238,18 @@ public class BluetoothTetheringNetworkFactory extends NetworkFactory {
         terminate();
     }
 
-    private void initNetworkCapabilities() {
-        mNetworkCapabilities.addTransportType(NetworkCapabilities.TRANSPORT_BLUETOOTH);
-        mNetworkCapabilities.addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET);
-        mNetworkCapabilities.addCapability(NetworkCapabilities.NET_CAPABILITY_NOT_RESTRICTED);
-        mNetworkCapabilities.addCapability(NetworkCapabilities.NET_CAPABILITY_NOT_ROAMING);
-        mNetworkCapabilities.addCapability(NetworkCapabilities.NET_CAPABILITY_NOT_SUSPENDED);
-        mNetworkCapabilities.addCapability(NetworkCapabilities.NET_CAPABILITY_NOT_VCN_MANAGED);
-        // Bluetooth v3 and v4 go up to 24 Mbps.
-        // TODO: Adjust this to actual connection bandwidth.
-        mNetworkCapabilities.setLinkUpstreamBandwidthKbps(24 * 1000);
-        mNetworkCapabilities.setLinkDownstreamBandwidthKbps(24 * 1000);
+    private NetworkCapabilities initNetworkCapabilities() {
+        final NetworkCapabilities.Builder builder = new NetworkCapabilities.Builder()
+                .addTransportType(NetworkCapabilities.TRANSPORT_BLUETOOTH)
+                .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+                .addCapability(NetworkCapabilities.NET_CAPABILITY_NOT_RESTRICTED)
+                .addCapability(NetworkCapabilities.NET_CAPABILITY_NOT_ROAMING)
+                .addCapability(NetworkCapabilities.NET_CAPABILITY_NOT_SUSPENDED)
+                .addCapability(NetworkCapabilities.NET_CAPABILITY_NOT_VCN_MANAGED)
+                // Bluetooth v3 and v4 go up to 24 Mbps.
+                // TODO: Adjust this to actual connection bandwidth.
+                .setLinkUpstreamBandwidthKbps(24 * 1000)
+                .setLinkDownstreamBandwidthKbps(24 * 1000);
+        return builder.build();
     }
 }
