@@ -468,7 +468,7 @@ public class AdapterService extends Service {
         mAdapterProperties = new AdapterProperties(this);
         mAdapterStateMachine = AdapterState.make(this);
         mJniCallbacks = new JniCallbacks(this, mAdapterProperties);
-        mBluetoothKeystoreService = new BluetoothKeystoreService(isNiapMode());
+        mBluetoothKeystoreService = new BluetoothKeystoreService(isCommonCriteriaMode());
         mBluetoothKeystoreService.start();
         mActivityAttributionService = new ActivityAttributionService();
         mActivityAttributionService.start();
@@ -477,7 +477,8 @@ public class AdapterService extends Service {
         // Android TV doesn't show consent dialogs for just works and encryption only le pairing
         boolean isAtvDevice = getApplicationContext().getPackageManager().hasSystemFeature(
                 PackageManager.FEATURE_LEANBACK_ONLY);
-        initNative(isGuest(), isNiapMode(), configCompareResult, getInitFlags(), isAtvDevice);
+        initNative(isGuest(), isCommonCriteriaMode(), configCompareResult, getInitFlags(),
+                isAtvDevice);
         mNativeAvailable = true;
         mCallbacks = new RemoteCallbackList<IBluetoothCallback>();
         mAppOps = getSystemService(AppOpsManager.class);
@@ -3238,7 +3239,7 @@ public class AdapterService extends Service {
         return UserManager.get(this).isGuestUser();
     }
 
-    private boolean isNiapMode() {
+    private boolean isCommonCriteriaMode() {
         return ((DevicePolicyManager) getSystemService(Context.DEVICE_POLICY_SERVICE))
                 .isCommonCriteriaModeEnabled(null);
     }
@@ -3387,8 +3388,8 @@ public class AdapterService extends Service {
 
     static native void classInitNative();
 
-    native boolean initNative(boolean startRestricted, boolean isNiapMode, int configCompareResult,
-            String[] initFlags, boolean isAtvDevice);
+    native boolean initNative(boolean startRestricted, boolean isCommonCriteriaMode,
+            int configCompareResult, String[] initFlags, boolean isAtvDevice);
 
     native void cleanupNative();
 
