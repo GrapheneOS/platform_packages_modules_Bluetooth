@@ -69,7 +69,7 @@ public class BluetoothKeystoreService {
 
     private static BluetoothKeystoreService sBluetoothKeystoreService;
     private boolean mCleaningUp;
-    private boolean mIsNiapMode;
+    private boolean mIsCommonCriteriaMode;
 
     private static final String CIPHER_ALGORITHM = "AES/GCM/NoPadding";
     private static final int GCM_TAG_LENGTH = 128;
@@ -118,9 +118,9 @@ public class BluetoothKeystoreService {
     private Base64.Decoder mDecoder = Base64.getDecoder();
     private Base64.Encoder mEncoder = Base64.getEncoder();
 
-    public BluetoothKeystoreService(boolean isNiapMode) {
-        debugLog("new BluetoothKeystoreService isNiapMode: " + isNiapMode);
-        mIsNiapMode = isNiapMode;
+    public BluetoothKeystoreService(boolean isCommonCriteriaMode) {
+        debugLog("new BluetoothKeystoreService isCommonCriteriaMode: " + isCommonCriteriaMode);
+        mIsCommonCriteriaMode = isCommonCriteriaMode;
         mCompareResult = CONFIG_COMPARE_INIT;
         startThread();
     }
@@ -139,7 +139,7 @@ public class BluetoothKeystoreService {
 
         keyStore = getKeyStore();
 
-        // Confirm whether to enable NIAP for the first time.
+        // Confirm whether to enable Common Criteria mode for the first time.
         if (keyStore == null) {
             debugLog("cannot find the keystore.");
             return;
@@ -153,8 +153,8 @@ public class BluetoothKeystoreService {
         setBluetoothKeystoreService(this);
 
         try {
-            if (!keyStore.containsAlias(KEYALIAS) && mIsNiapMode) {
-                infoLog("Enable NIAP mode for the first time, pass hash check.");
+            if (!keyStore.containsAlias(KEYALIAS) && mIsCommonCriteriaMode) {
+                infoLog("Enable Common Criteria mode for the first time, pass hash check.");
                 mCompareResult = 0b11;
                 return;
             }
@@ -200,18 +200,18 @@ public class BluetoothKeystoreService {
         mBluetoothKeystoreNativeInterface.cleanup();
         mBluetoothKeystoreNativeInterface = null;
 
-        if (mIsNiapMode) {
-            cleanupForNiapModeEnable();
+        if (mIsCommonCriteriaMode) {
+            cleanupForCommonCriteriaModeEnable();
         } else {
-            cleanupForNiapModeDisable();
+            cleanupForCommonCriteriaModeDisable();
         }
     }
 
     /**
-     * Clean up if NIAP mode is enabled.
+     * Clean up if Common Criteria mode is enabled.
      */
     @VisibleForTesting
-    public void cleanupForNiapModeEnable() {
+    public void cleanupForCommonCriteriaModeEnable() {
         try {
             setEncryptKeyOrRemoveKey(CONFIG_FILE_PREFIX, CONFIG_FILE_HASH);
         } catch (InterruptedException e) {
@@ -226,10 +226,10 @@ public class BluetoothKeystoreService {
     }
 
     /**
-     * Clean up if NIAP mode is disabled.
+     * Clean up if Common Criteria mode is disabled.
      */
     @VisibleForTesting
-    public void cleanupForNiapModeDisable() {
+    public void cleanupForCommonCriteriaModeDisable() {
         mNameDecryptKey.clear();
         mNameEncryptKey.clear();
     }
@@ -267,16 +267,16 @@ public class BluetoothKeystoreService {
                     mNameEncryptKey.remove(CONFIG_FILE_PREFIX);
                     loadEncryptionFile(CONFIG_BACKUP_ENCRYPTION_PATH, true);
                 } else {
-                    // if the NIAP mode is disable, don't show the log.
-                    if (mIsNiapMode) {
+                    // if the Common Criteria mode is disable, don't show the log.
+                    if (mIsCommonCriteriaMode) {
                         debugLog("Config file conf and bak checksum check fail.");
                     }
                     cleanupAll();
                     return;
                 }
             }
-            // keep memory data for get decrypted key if NIAP mode disable.
-            if (!mIsNiapMode) {
+            // keep memory data for get decrypted key if Common Criteria mode disable.
+            if (!mIsCommonCriteriaMode) {
                 stopThread();
                 cleanupFile();
             }
