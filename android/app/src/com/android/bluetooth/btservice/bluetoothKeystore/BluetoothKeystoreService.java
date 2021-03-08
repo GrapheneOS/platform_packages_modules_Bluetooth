@@ -213,6 +213,7 @@ public class BluetoothKeystoreService {
     @VisibleForTesting
     public void cleanupForCommonCriteriaModeEnable() {
         try {
+            Thread.sleep(100);
             setEncryptKeyOrRemoveKey(CONFIG_FILE_PREFIX, CONFIG_FILE_HASH);
         } catch (InterruptedException e) {
             reportBluetoothKeystoreException(e, "Interrupted while operating.");
@@ -523,7 +524,7 @@ public class BluetoothKeystoreService {
      */
     @VisibleForTesting
     public boolean compareFileHash(String hashFilePathString)
-            throws IOException, NoSuchAlgorithmException {
+            throws InterruptedException, IOException, NoSuchAlgorithmException {
         if (!Files.exists(Paths.get(hashFilePathString))) {
             infoLog("compareFileHash: File does not exist, path: " + hashFilePathString);
             return false;
@@ -558,25 +559,37 @@ public class BluetoothKeystoreService {
     }
 
     private void readHashFile(String filePathString, String prefixString)
-            throws IOException, NoSuchAlgorithmException {
+            throws InterruptedException, NoSuchAlgorithmException {
         byte[] dataBuffer = new byte[BUFFER_SIZE];
         int bytesRead  = 0;
+        boolean successful = false;
+        int counter = 0;
+        while (!successful && counter < TRY_MAX) {
+            try {
+                MessageDigest messageDigest = MessageDigest.getInstance("SHA-256");
+                InputStream fileStream = Files.newInputStream(Paths.get(filePathString));
+                while ((bytesRead = fileStream.read(dataBuffer)) != -1) {
+                    messageDigest.update(dataBuffer, 0, bytesRead);
+                }
 
-        MessageDigest messageDigest = MessageDigest.getInstance("SHA-256");
-        InputStream fileStream = Files.newInputStream(Paths.get(filePathString));
+                byte[] messageDigestBytes = messageDigest.digest();
+                StringBuffer hashString = new StringBuffer();
+                for (int index = 0; index < messageDigestBytes.length; index++) {
+                    hashString.append(Integer.toString((
+                            messageDigestBytes[index] & 0xff) + 0x100, 16).substring(1));
+                }
 
-        while ((bytesRead = fileStream.read(dataBuffer)) != -1) {
-            messageDigest.update(dataBuffer, 0, bytesRead);
+                mNameDecryptKey.put(prefixString, hashString.toString());
+                successful = true;
+            } catch (IOException e) {
+                infoLog("Fail to open file, try again. counter: " + counter);
+                Thread.sleep(50);
+                counter++;
+            }
         }
-
-        byte[] messageDigestBytes = messageDigest.digest();
-        StringBuffer hashString = new StringBuffer();
-        for (int index = 0; index < messageDigestBytes.length; index++) {
-            hashString.append(Integer.toString((
-                    messageDigestBytes[index] & 0xff) + 0x100, 16).substring(1));
+        if (counter > 3) {
+            errorLog("Fail to open file");
         }
-
-        mNameDecryptKey.put(prefixString, hashString.toString());
     }
 
     private void readChecksumFile(String filePathString, String prefixString) throws IOException {
