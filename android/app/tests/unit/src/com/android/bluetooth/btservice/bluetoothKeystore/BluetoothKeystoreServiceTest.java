@@ -270,16 +270,16 @@ public final class BluetoothKeystoreServiceTest {
     }
 
     @Test
-    public void testParserFileAfterDisableNiapMode() {
+    public void testParserFileAfterDisableCommonCriteriaMode() {
         // preconfiguration.
         // need to creat encrypted file.
         testParserFile();
         // created encrypted file
         Assert.assertTrue(setEncryptKeyOrRemoveKey(CONFIG_FILE_PREFIX, CONFIG_FILE_HASH));
         // clean up memory and stop thread.
-        mBluetoothKeystoreService.cleanupForNiapModeEnable();
+        mBluetoothKeystoreService.cleanupForCommonCriteriaModeEnable();
 
-        // new mBluetoothKeystoreService and the Niap mode is false.
+        // new mBluetoothKeystoreService and the Common Criteria mode is false.
         mBluetoothKeystoreService = new BluetoothKeystoreService(false);
         Assert.assertNotNull(mBluetoothKeystoreService);
 
@@ -299,11 +299,11 @@ public final class BluetoothKeystoreServiceTest {
     }
 
     @Test
-    public void testParserFileAfterDisableNiapModeWhenEnableNiapMode() {
-        testParserFileAfterDisableNiapMode();
-        mBluetoothKeystoreService.cleanupForNiapModeDisable();
+    public void testParserFileAfterDisableCommonCriteriaModeWhenEnableCommonCriteriaMode() {
+        testParserFileAfterDisableCommonCriteriaMode();
+        mBluetoothKeystoreService.cleanupForCommonCriteriaModeDisable();
 
-        // new mBluetoothKeystoreService and the Niap mode is true.
+        // new mBluetoothKeystoreService and the Common Criteria mode is true.
         mBluetoothKeystoreService = new BluetoothKeystoreService(true);
         mBluetoothKeystoreService.loadConfigData();
 
