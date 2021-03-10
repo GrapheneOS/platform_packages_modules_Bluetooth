@@ -173,7 +173,7 @@ public class MapClientContentTest {
         Assert.assertEquals(2, mMockSmsContentProvider.mContentValues.size());
         Assert.assertEquals(0, mMockMmsContentProvider.mContentValues.size());
 
-        mMapClientContent.clearMessages();
+        mMapClientContent.cleanUp();
         Assert.assertEquals(0, mMockSmsContentProvider.mContentValues.size());
     }
 
@@ -191,7 +191,7 @@ public class MapClientContentTest {
         mMapClientContent.storeMessage(mTestMessage2, mTestMessage1Handle, mTestMessage1Timestamp);
         Assert.assertEquals(2, mMockMmsContentProvider.mContentValues.size());
 
-        mMapClientContent.clearMessages();
+        mMapClientContent.cleanUp();
         Assert.assertEquals(0, mMockMmsContentProvider.mContentValues.size());
     }
 
@@ -209,7 +209,7 @@ public class MapClientContentTest {
         mMapClientContent.storeMessage(mTestMessage2, mTestMessage2Handle, mTestMessage1Timestamp);
         Assert.assertEquals(2, mMockMmsContentProvider.mContentValues.size());
 
-        mMapClientContent.clearMessages();
+        mMapClientContent.cleanUp();
         Assert.assertEquals(0, mMockMmsContentProvider.mContentValues.size());
     }
 
@@ -229,7 +229,7 @@ public class MapClientContentTest {
 
         mMapClientContent.markRead(mTestMessage1Handle);
 
-        mMapClientContent.clearMessages();
+        mMapClientContent.cleanUp();
         Assert.assertEquals(0, mMockMmsContentProvider.mContentValues.size());
     }
 
@@ -303,6 +303,25 @@ public class MapClientContentTest {
         Assert.assertNull(mMapClientContent.mPhoneNumber);
         mMapClientContent.storeMessage(mTestMessage2, mTestMessage1Handle, mTestMessage1Timestamp);
         Assert.assertEquals("5551212", mMapClientContent.mPhoneNumber);
+    }
+
+    /**
+     * Test to validate that some poorly formatted messages don't crash.
+     */
+    @Test
+    public void testStoreBadMessage() {
+        mMapClientContent = new MapClientContent(mMockContext, mCallbacks, mTestDevice);
+        mTestMessage1 = new Bmessage();
+        mTestMessage1.setBodyContent("HelloWorld");
+        mTestMessage1.setType(Bmessage.Type.SMS_GSM);
+        mTestMessage1.setFolder("telecom/msg/sent");
+        mMapClientContent.storeMessage(mTestMessage1, mTestMessage1Handle, mTestMessage1Timestamp);
+
+        mTestMessage2 = new Bmessage();
+        mTestMessage2.setBodyContent("HelloWorld");
+        mTestMessage2.setType(Bmessage.Type.MMS);
+        mTestMessage2.setFolder("telecom/msg/inbox");
+        mMapClientContent.storeMessage(mTestMessage2, mTestMessage2Handle, mTestMessage1Timestamp);
     }
 
     void createTestMessages() {
