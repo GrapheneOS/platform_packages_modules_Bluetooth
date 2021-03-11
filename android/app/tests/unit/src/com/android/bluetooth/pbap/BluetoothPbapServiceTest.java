@@ -15,6 +15,7 @@
  */
 package com.android.bluetooth.pbap;
 
+import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.doReturn;
 
 import android.bluetooth.BluetoothAdapter;
@@ -60,6 +61,7 @@ public class BluetoothPbapServiceTest {
         MockitoAnnotations.initMocks(this);
         TestUtils.setAdapterService(mAdapterService);
         doReturn(mDatabaseManager).when(mAdapterService).getDatabase();
+        doReturn(true).when(mAdapterService).isStartedProfile(anyString());
         TestUtils.startService(mServiceRule, BluetoothPbapService.class);
         mService = BluetoothPbapService.getBluetoothPbapService();
         Assert.assertNotNull(mService);
@@ -73,6 +75,7 @@ public class BluetoothPbapServiceTest {
         if (!mTargetContext.getResources().getBoolean(R.bool.profile_supported_pbap)) {
             return;
         }
+        doReturn(false).when(mAdapterService).isStartedProfile(anyString());
         TestUtils.stopService(mServiceRule, BluetoothPbapService.class);
         mService = BluetoothPbapService.getBluetoothPbapService();
         Assert.assertNull(mService);

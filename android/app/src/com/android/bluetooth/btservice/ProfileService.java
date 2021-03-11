@@ -228,6 +228,10 @@ public abstract class ProfileService extends Service {
             Log.w(mName, "Could not add this profile because AdapterService is null.");
             return;
         }
+        if (!mAdapterService.isStartedProfile(mName)) {
+            Log.w(mName, "Unexpectedly do Start, don't start");
+            return;
+        }
         mAdapterService.addProfile(this);
 
         IntentFilter filter = new IntentFilter();
@@ -269,6 +273,10 @@ public abstract class ProfileService extends Service {
     }
 
     private void doStop() {
+        if (mAdapterService == null || mAdapterService.isStartedProfile(mName)) {
+            Log.w(mName, "Unexpectedly do Stop, don't stop.");
+            return;
+        }
         if (!mProfileStarted) {
             Log.w(mName, "doStop() called, but the profile is not running.");
         }

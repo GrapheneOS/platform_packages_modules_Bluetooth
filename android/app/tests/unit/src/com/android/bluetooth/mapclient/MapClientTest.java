@@ -69,6 +69,7 @@ public class MapClientTest {
         MockitoAnnotations.initMocks(this);
         TestUtils.setAdapterService(mAdapterService);
         when(mAdapterService.getDatabase()).thenReturn(mDatabaseManager);
+        doReturn(true).when(mAdapterService).isStartedProfile(anyString());
         MapUtils.setMnsService(mMockMnsService);
         TestUtils.startService(mServiceRule, MapClientService.class);
         mService = MapClientService.getMapClientService();
@@ -81,6 +82,7 @@ public class MapClientTest {
         if (!mTargetContext.getResources().getBoolean(R.bool.profile_supported_mapmce)) {
             return;
         }
+        doReturn(false).when(mAdapterService).isStartedProfile(anyString());
         TestUtils.stopService(mServiceRule, MapClientService.class);
         mService = MapClientService.getMapClientService();
         Assert.assertNull(mService);
