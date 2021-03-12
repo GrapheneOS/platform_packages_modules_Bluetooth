@@ -359,6 +359,9 @@ public class AvrcpCoverArtManager {
      * @return A descriptor containing the desirable download format
      */
     private BipImageDescriptor determineImageDescriptor(BipImageProperties properties) {
+        if (properties == null || !properties.isValid()) {
+            warn("Provided properties don't meet the spec. Requesting thumbnail format anyway.");
+        }
         BipImageDescriptor.Builder builder = new BipImageDescriptor.Builder();
         switch (mDownloadScheme) {
             // BIP Specification says a blank/null descriptor signals to pull the native format
