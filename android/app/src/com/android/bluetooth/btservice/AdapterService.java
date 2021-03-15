@@ -1495,16 +1495,25 @@ public class AdapterService extends Service {
         }
 
         @Override
-        public boolean createBond(BluetoothDevice device, int transport, OobData oobData,
-                String callingPackage) {
+        public boolean createBond(BluetoothDevice device, int transport, OobData remoteP192Data,
+                OobData remoteP256Data, String callingPackage) {
             AdapterService service = getService();
             if (service == null || !callerIsSystemOrActiveOrManagedUser(service, TAG, "createBond")) {
                 return false;
             }
 
-            enforceBluetoothAdminPermission(service);
+            // This conditional is required to satisfy permission dependencies
+            // since createBond calls createBondOutOfBand with null value passed as data.
+            // BluetoothDevice#createBond requires BLUETOOTH_ADMIN only.
+            if (remoteP192Data == null && remoteP256Data == null) {
+                enforceBluetoothAdminPermission(service);
+            } else {
+                // createBondOutOfBand() is a @SystemApi, this requires PRIVILEGED.
+                enforceBluetoothPrivilegedPermission(service);
+            }
 
-            return service.createBond(device, transport, oobData, callingPackage);
+            return service.createBond(device, transport, remoteP192Data, remoteP256Data,
+                    callingPackage);
         }
 
         @Override
@@ -2409,8 +2418,8 @@ public class AdapterService extends Service {
         public int userId;
     }
 
-    boolean createBond(BluetoothDevice device, int transport, OobData oobData,
-            String callingPackage) {
+    boolean createBond(BluetoothDevice device, int transport, OobData remoteP192Data,
+            OobData remoteP256Data, String callingPackage) {
         DeviceProperties deviceProp = mRemoteDevices.getDeviceProperties(device);
         if (deviceProp != null && deviceProp.getBondState() != BluetoothDevice.BOND_NONE) {
             return false;
@@ -2442,10 +2451,18 @@ public class AdapterService extends Service {
         msg.obj = device;
         msg.arg1 = transport;
 
-        if (oobData != null) {
-            Bundle oobDataBundle = new Bundle();
-            oobDataBundle.putParcelable(BondStateMachine.OOBDATA, oobData);
-            msg.setData(oobDataBundle);
+        Bundle remoteOobDatasBundle = new Bundle();
+        boolean setData = false;
+        if (remoteP192Data != null) {
+            remoteOobDatasBundle.putParcelable(BondStateMachine.OOBDATAP192, remoteP192Data);
+            setData = true;
+        }
+        if (remoteP256Data != null) {
+            remoteOobDatasBundle.putParcelable(BondStateMachine.OOBDATAP256, remoteP256Data);
+            setData = true;
+        }
+        if (setData) {
+            msg.setData(remoteOobDatasBundle);
         }
         mBondStateMachine.sendMessage(msg);
         return true;
@@ -3485,7 +3502,8 @@ public class AdapterService extends Service {
     public native boolean createBondNative(byte[] address, int transport);
 
     /*package*/
-    native boolean createBondOutOfBandNative(byte[] address, int transport, OobData oobData);
+    native boolean createBondOutOfBandNative(byte[] address, int transport,
+            OobData p192Data, OobData p256Data);
 
     /*package*/
     public native boolean removeBondNative(byte[] address);
