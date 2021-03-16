@@ -15,6 +15,9 @@
  */
 package com.android.bluetooth.opp;
 
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.doReturn;
+
 import android.bluetooth.BluetoothAdapter;
 import android.content.Context;
 
@@ -55,6 +58,7 @@ public class BluetoothOppServiceTest {
                 mTargetContext.getResources().getBoolean(R.bool.profile_supported_opp));
         MockitoAnnotations.initMocks(this);
         TestUtils.setAdapterService(mAdapterService);
+        doReturn(true).when(mAdapterService).isStartedProfile(anyString());
         TestUtils.startService(mServiceRule, BluetoothOppService.class);
         mService = BluetoothOppService.getBluetoothOppService();
         Assert.assertNotNull(mService);
@@ -68,6 +72,7 @@ public class BluetoothOppServiceTest {
         if (!mTargetContext.getResources().getBoolean(R.bool.profile_supported_opp)) {
             return;
         }
+        doReturn(false).when(mAdapterService).isStartedProfile(anyString());
         TestUtils.stopService(mServiceRule, BluetoothOppService.class);
         TestUtils.clearAdapterService(mAdapterService);
     }
