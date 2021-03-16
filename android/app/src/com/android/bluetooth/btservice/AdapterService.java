@@ -138,6 +138,7 @@ public class AdapterService extends Service {
     private long mEnergyUsedTotalVoltAmpSecMicro;
     private final SparseArray<UidTraffic> mUidTraffic = new SparseArray<>();
 
+    private final ArrayList<String> mStartedProfiles = new ArrayList<>();
     private final ArrayList<ProfileService> mRegisteredProfiles = new ArrayList<>();
     private final ArrayList<ProfileService> mRunningProfiles = new ArrayList<>();
 
@@ -303,6 +304,16 @@ public class AdapterService extends Service {
         m.obj = profile;
         m.arg1 = state;
         mHandler.sendMessage(m);
+    }
+
+    /**
+     * Confirm whether the ProfileService is started expectedly.
+     *
+     * @param string the service simple name.
+     * @return true if the service is started expectedly, false otherwise.
+     */
+    public boolean isStartedProfile(String serviceSampleName) {
+        return mStartedProfiles.contains(serviceSampleName);
     }
 
     private static final int MESSAGE_PROFILE_SERVICE_STATE_CHANGED = 1;
@@ -878,6 +889,11 @@ public class AdapterService extends Service {
     }
 
     private void setProfileServiceState(Class service, int state) {
+        if (state == BluetoothAdapter.STATE_ON) {
+            mStartedProfiles.add(service.getSimpleName());
+        } else if (state == BluetoothAdapter.STATE_OFF) {
+            mStartedProfiles.remove(service.getSimpleName());
+        }
         Intent intent = new Intent(this, service);
         intent.putExtra(EXTRA_ACTION, ACTION_SERVICE_STATE_CHANGED);
         intent.putExtra(BluetoothAdapter.EXTRA_STATE, state);

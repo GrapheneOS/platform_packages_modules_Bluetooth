@@ -101,12 +101,14 @@ public class AvrcpControllerStateMachineTest {
 
         // Start a real A2dpSinkService so we can replace the static instance with our mock
         doReturn(mDatabaseManager).when(mA2dpAdapterService).getDatabase();
+        doReturn(true).when(mA2dpAdapterService).isStartedProfile(anyString());
         TestUtils.setAdapterService(mA2dpAdapterService);
         TestUtils.startService(mA2dpServiceRule, A2dpSinkService.class);
         A2dpSinkService.setA2dpSinkService(mA2dpSinkService);
         TestUtils.clearAdapterService(mA2dpAdapterService);
 
         // Start an AvrcpControllerService to get a real BluetoothMediaBrowserService up
+        doReturn(true).when(mAvrcpAdapterService).isStartedProfile(anyString());
         TestUtils.setAdapterService(mAvrcpAdapterService);
         TestUtils.startService(mAvrcpServiceRule, AvrcpControllerService.class);
 

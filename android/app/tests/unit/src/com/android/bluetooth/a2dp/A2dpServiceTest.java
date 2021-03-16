@@ -93,6 +93,7 @@ public class A2dpServiceTest {
 
         TestUtils.setAdapterService(mAdapterService);
         doReturn(MAX_CONNECTED_AUDIO_DEVICES).when(mAdapterService).getMaxConnectedAudioDevices();
+        doReturn(true).when(mAdapterService).isStartedProfile(anyString());
         doReturn(false).when(mAdapterService).isQuietModeEnabled();
         doReturn(mDatabaseManager).when(mAdapterService).getDatabase();
 
@@ -125,6 +126,7 @@ public class A2dpServiceTest {
         if (!mTargetContext.getResources().getBoolean(R.bool.profile_supported_a2dp)) {
             return;
         }
+        doReturn(false).when(mAdapterService).isStartedProfile(anyString());
         stopService();
         mTargetContext.unregisterReceiver(mA2dpIntentReceiver);
         mConnectionStateChangedQueue.clear();

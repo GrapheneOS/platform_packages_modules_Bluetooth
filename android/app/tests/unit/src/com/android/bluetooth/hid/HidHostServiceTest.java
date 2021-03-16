@@ -63,6 +63,7 @@ public class HidHostServiceTest {
         MockitoAnnotations.initMocks(this);
         TestUtils.setAdapterService(mAdapterService);
         when(mAdapterService.getDatabase()).thenReturn(mDatabaseManager);
+        when(mAdapterService.isStartedProfile(anyString())).thenReturn(true);
         TestUtils.startService(mServiceRule, HidHostService.class);
         mService = HidHostService.getHidHostService();
         Assert.assertNotNull(mService);
@@ -79,6 +80,7 @@ public class HidHostServiceTest {
         if (!mTargetContext.getResources().getBoolean(R.bool.profile_supported_hid_host)) {
             return;
         }
+        when(mAdapterService.isStartedProfile(anyString())).thenReturn(false);
         TestUtils.stopService(mServiceRule, HidHostService.class);
         mService = HidHostService.getHidHostService();
         Assert.assertNull(mService);
