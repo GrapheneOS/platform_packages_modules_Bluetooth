@@ -168,6 +168,7 @@ public class HeadsetServiceAndStateMachineTest {
         doReturn(new ParcelUuid[]{BluetoothUuid.HFP}).when(mAdapterService)
                 .getRemoteUuids(any(BluetoothDevice.class));
         doReturn(mDatabaseManager).when(mAdapterService).getDatabase();
+        doReturn(true).when(mAdapterService).isStartedProfile(anyString());
         // We cannot mock HeadsetObjectsFactory.getInstance() with Mockito.
         // Hence we need to use reflection to call a private method to
         // initialize properly the HeadsetObjectsFactory.sInstance field.
@@ -240,6 +241,7 @@ public class HeadsetServiceAndStateMachineTest {
             return;
         }
         mTargetContext.unregisterReceiver(mHeadsetIntentReceiver);
+        doReturn(false).when(mAdapterService).isStartedProfile(anyString());
         TestUtils.stopService(mServiceRule, HeadsetService.class);
         HeadsetService.sStartVrTimeoutMs = mOriginalVrTimeoutMs;
         Intents.release();
