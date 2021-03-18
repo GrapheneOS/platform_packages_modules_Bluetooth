@@ -111,7 +111,7 @@ public class HeadsetServiceTest {
         doReturn(BluetoothDevice.BOND_BONDED).when(mAdapterService)
                 .getBondState(any(BluetoothDevice.class));
         doReturn(mDatabaseManager).when(mAdapterService).getDatabase();
-        doReturn(true).when(mAdapterService).isStartedProfile(anyString());
+        doReturn(true, false).when(mAdapterService).isStartedProfile(anyString());
         doAnswer(invocation -> {
             Set<BluetoothDevice> keys = mStateMachines.keySet();
             return keys.toArray(new BluetoothDevice[keys.size()]);
@@ -157,7 +157,6 @@ public class HeadsetServiceTest {
         if (!mTargetContext.getResources().getBoolean(R.bool.profile_supported_hs_hfp)) {
             return;
         }
-        doReturn(false).when(mAdapterService).isStartedProfile(anyString());
         TestUtils.stopService(mServiceRule, HeadsetService.class);
         mHeadsetService = HeadsetService.getHeadsetService();
         Assert.assertNull(mHeadsetService);

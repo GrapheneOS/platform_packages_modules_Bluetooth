@@ -65,7 +65,7 @@ public class PanServiceTest {
         MockitoAnnotations.initMocks(this);
         TestUtils.setAdapterService(mAdapterService);
         doReturn(mDatabaseManager).when(mAdapterService).getDatabase();
-        doReturn(true).when(mAdapterService).isStartedProfile(anyString());
+        doReturn(true, false).when(mAdapterService).isStartedProfile(anyString());
         TestUtils.startService(mServiceRule, PanService.class);
         mService = PanService.getPanService();
         Assert.assertNotNull(mService);
@@ -80,7 +80,6 @@ public class PanServiceTest {
         if (!mTargetContext.getResources().getBoolean(R.bool.profile_supported_pan)) {
             return;
         }
-        doReturn(false).when(mAdapterService).isStartedProfile(anyString());
         TestUtils.stopService(mServiceRule, PanService.class);
         mService = PanService.getPanService();
         Assert.assertNull(mService);
