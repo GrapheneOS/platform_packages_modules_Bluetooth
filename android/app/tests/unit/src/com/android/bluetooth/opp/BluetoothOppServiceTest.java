@@ -58,7 +58,7 @@ public class BluetoothOppServiceTest {
                 mTargetContext.getResources().getBoolean(R.bool.profile_supported_opp));
         MockitoAnnotations.initMocks(this);
         TestUtils.setAdapterService(mAdapterService);
-        doReturn(true).when(mAdapterService).isStartedProfile(anyString());
+        doReturn(true, false).when(mAdapterService).isStartedProfile(anyString());
         TestUtils.startService(mServiceRule, BluetoothOppService.class);
         mService = BluetoothOppService.getBluetoothOppService();
         Assert.assertNotNull(mService);
@@ -72,7 +72,6 @@ public class BluetoothOppServiceTest {
         if (!mTargetContext.getResources().getBoolean(R.bool.profile_supported_opp)) {
             return;
         }
-        doReturn(false).when(mAdapterService).isStartedProfile(anyString());
         TestUtils.stopService(mServiceRule, BluetoothOppService.class);
         TestUtils.clearAdapterService(mAdapterService);
     }
