@@ -48,7 +48,9 @@ import android.bluetooth.le.ScanSettings;
 import android.companion.ICompanionDeviceManager;
 import android.content.Context;
 import android.content.Intent;
+import android.net.MacAddress;
 import android.os.Binder;
+import android.os.BytesMatcher;
 import android.os.IBinder;
 import android.os.ParcelUuid;
 import android.os.RemoteException;
@@ -56,6 +58,7 @@ import android.os.ServiceManager;
 import android.os.SystemClock;
 import android.os.UserHandle;
 import android.os.WorkSource;
+import android.provider.DeviceConfig;
 import android.provider.Settings;
 import android.util.Log;
 
@@ -66,7 +69,9 @@ import com.android.bluetooth.btservice.AbstractionLayer;
 import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.ProfileService;
 import com.android.bluetooth.util.NumberUtils;
+import com.android.internal.annotations.GuardedBy;
 import com.android.internal.annotations.VisibleForTesting;
+import com.android.internal.os.BackgroundThread;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -190,6 +195,53 @@ public class GattService extends ProfileService {
     private ICompanionDeviceManager mCompanionManager;
     private String mExposureNotificationPackage;
 
+    private final Object mDeviceConfigLock = new Object();
+
+    /**
+     * Feature flag used to enable denylist that filters devices that are
+     * well-known to be used for physical location.
+     */
+    private static final boolean ENABLE_LOCATION_DENYLIST = false;
+
+    /**
+     * Matcher that can be applied to MAC addresses to determine if a
+     * {@link BluetoothDevice} is well-known to be used for physical location.
+     */
+    @GuardedBy("mDeviceConfigLock")
+    private BytesMatcher mLocationDenylistMac = new BytesMatcher();
+
+    /**
+     * Matcher that can be applied to Advertising Data payloads to determine if
+     * a {@link ScanRecord} is well-known to be used for physical location.
+     */
+    @GuardedBy("mDeviceConfigLock")
+    private BytesMatcher mLocationDenylistAdvertisingData = new BytesMatcher();
+
+    private final DeviceConfigListener mDeviceConfigListener = new DeviceConfigListener();
+
+    private class DeviceConfigListener implements DeviceConfig.OnPropertiesChangedListener {
+        private static final String LOCATION_DENYLIST_MAC =
+                "location_denylist_mac";
+        private static final String LOCATION_DENYLIST_ADVERTISING_DATA =
+                "location_denylist_advertising_data";
+
+        public void start() {
+            DeviceConfig.addOnPropertiesChangedListener(DeviceConfig.NAMESPACE_BLUETOOTH,
+                    BackgroundThread.getExecutor(), this);
+            onPropertiesChanged(DeviceConfig.getProperties(DeviceConfig.NAMESPACE_BLUETOOTH));
+        }
+
+        @Override
+        public void onPropertiesChanged(DeviceConfig.Properties properties) {
+            synchronized (mDeviceConfigLock) {
+                mLocationDenylistMac = BytesMatcher
+                        .decode(properties.getString(LOCATION_DENYLIST_MAC, null));
+                mLocationDenylistAdvertisingData = BytesMatcher
+                        .decode(properties.getString(LOCATION_DENYLIST_ADVERTISING_DATA, null));
+            }
+        }
+    }
+
     private static GattService sGattService;
 
     /**
@@ -214,6 +266,9 @@ public class GattService extends ProfileService {
         mExposureNotificationPackage = getString(R.string.exposure_notification_package);
         Settings.Global.putInt(
                 getContentResolver(), "bluetooth_sanitized_exposure_notification_supported", 1);
+
+        mDeviceConfigListener.start();
+
         initializeNative();
         mAdapter = BluetoothAdapter.getDefaultAdapter();
         mCompanionManager = ICompanionDeviceManager.Stub.asInterface(
@@ -1054,10 +1109,26 @@ public class GattService extends ProfileService {
                 scanRecordData = advData;
             }
 
+            ScanRecord scanRecord = ScanRecord.parseFromBytes(scanRecordData);
+
+            // TODO: only apply denylist filter based on destination capabilities
+            if (ENABLE_LOCATION_DENYLIST) {
+                synchronized (mDeviceConfigLock) {
+                    final MacAddress parsedAddress = MacAddress.fromString(address);
+                    if (mLocationDenylistMac.testMacAddress(parsedAddress)) {
+                        Log.v(TAG, "Skipping device matching denylist: " + parsedAddress);
+                        continue;
+                    }
+                    if (scanRecord.matchesAnyField(mLocationDenylistAdvertisingData)) {
+                        Log.v(TAG, "Skipping data matching denylist: " + scanRecord);
+                        continue;
+                    }
+                }
+            }
+
             ScanResult result =
                     new ScanResult(device, eventType, primaryPhy, secondaryPhy, advertisingSid,
-                            txPower, rssi, periodicAdvInt,
-                            ScanRecord.parseFromBytes(scanRecordData),
+                            txPower, rssi, periodicAdvInt, scanRecord,
                             SystemClock.elapsedRealtimeNanos());
             boolean hasPermission = hasScanResultPermission(client);
             if (!hasPermission) {
