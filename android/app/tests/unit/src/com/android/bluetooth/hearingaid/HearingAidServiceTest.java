@@ -92,7 +92,7 @@ public class HearingAidServiceTest {
 
         TestUtils.setAdapterService(mAdapterService);
         doReturn(mDatabaseManager).when(mAdapterService).getDatabase();
-        doReturn(true).when(mAdapterService).isStartedProfile(anyString());
+        doReturn(true, false).when(mAdapterService).isStartedProfile(anyString());
 
         mAdapter = BluetoothAdapter.getDefaultAdapter();
 
@@ -129,7 +129,6 @@ public class HearingAidServiceTest {
                             R.bool.config_hearing_aid_profile_supported)) {
             return;
         }
-        doReturn(false).when(mAdapterService).isStartedProfile(anyString());
         stopService();
         mTargetContext.unregisterReceiver(mHearingAidIntentReceiver);
         mDeviceQueueMap.clear();
