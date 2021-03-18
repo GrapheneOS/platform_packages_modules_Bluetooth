@@ -62,7 +62,7 @@ public class A2dpSinkServiceTest {
         MockitoAnnotations.initMocks(this);
         TestUtils.setAdapterService(mAdapterService);
         doReturn(mDatabaseManager).when(mAdapterService).getDatabase();
-        doReturn(true).when(mAdapterService).isStartedProfile(anyString());
+        doReturn(true, false).when(mAdapterService).isStartedProfile(anyString());
         setMaxConnectedAudioDevices(1);
         TestUtils.startService(mServiceRule, A2dpSinkService.class);
         mService = A2dpSinkService.getA2dpSinkService();
@@ -77,7 +77,6 @@ public class A2dpSinkServiceTest {
         if (!mTargetContext.getResources().getBoolean(R.bool.profile_supported_a2dp_sink)) {
             return;
         }
-        doReturn(false).when(mAdapterService).isStartedProfile(anyString());
         TestUtils.stopService(mServiceRule, A2dpSinkService.class);
         mService = A2dpSinkService.getA2dpSinkService();
         Assert.assertNull(mService);

@@ -62,7 +62,7 @@ public class PbapClientServiceTest {
         MockitoAnnotations.initMocks(this);
         TestUtils.setAdapterService(mAdapterService);
         doReturn(mDatabaseManager).when(mAdapterService).getDatabase();
-        doReturn(true).when(mAdapterService).isStartedProfile(anyString());
+        doReturn(true, false).when(mAdapterService).isStartedProfile(anyString());
         TestUtils.startService(mServiceRule, PbapClientService.class);
         mService = PbapClientService.getPbapClientService();
         Assert.assertNotNull(mService);
@@ -76,7 +76,6 @@ public class PbapClientServiceTest {
         if (!mTargetContext.getResources().getBoolean(R.bool.profile_supported_pbapclient)) {
             return;
         }
-        doReturn(false).when(mAdapterService).isStartedProfile(anyString());
         TestUtils.stopService(mServiceRule, PbapClientService.class);
         mService = PbapClientService.getPbapClientService();
         Assert.assertNull(mService);
