@@ -73,7 +73,7 @@ public class HeadsetClientServiceTest {
         MockitoAnnotations.initMocks(this);
         TestUtils.setAdapterService(mAdapterService);
         doReturn(mDatabaseManager).when(mAdapterService).getDatabase();
-        doReturn(true).when(mAdapterService).isStartedProfile(anyString());
+        doReturn(true, false).when(mAdapterService).isStartedProfile(anyString());
         TestUtils.startService(mServiceRule, HeadsetClientService.class);
         // At this point the service should have started so check NOT null
         mService = HeadsetClientService.getHeadsetClientService();
@@ -88,7 +88,6 @@ public class HeadsetClientServiceTest {
         if (!mTargetContext.getResources().getBoolean(R.bool.profile_supported_hfpclient)) {
             return;
         }
-        doReturn(false).when(mAdapterService).isStartedProfile(anyString());
         TestUtils.stopService(mServiceRule, HeadsetClientService.class);
         mService = HeadsetClientService.getHeadsetClientService();
         Assert.assertNull(mService);
