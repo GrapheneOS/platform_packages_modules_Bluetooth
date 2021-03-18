@@ -88,7 +88,7 @@ public class LeAudioServiceTest {
 
         TestUtils.setAdapterService(mAdapterService);
         doReturn(mDatabaseManager).when(mAdapterService).getDatabase();
-        doReturn(true).when(mAdapterService).isStartedProfile(anyString());
+        doReturn(true, false).when(mAdapterService).isStartedProfile(anyString());
 
         mAdapter = BluetoothAdapter.getDefaultAdapter();
 
@@ -120,7 +120,6 @@ public class LeAudioServiceTest {
 
     @After
     public void tearDown() throws Exception {
-        doReturn(false).when(mAdapterService).isStartedProfile(anyString());
         stopService();
         mTargetContext.unregisterReceiver(mLeAudioIntentReceiver);
         mDeviceQueueMap.clear();
