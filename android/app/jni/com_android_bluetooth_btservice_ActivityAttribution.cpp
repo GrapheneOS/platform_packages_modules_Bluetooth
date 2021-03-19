@@ -29,6 +29,7 @@ using bluetooth::activity_attribution::ActivityAttributionInterface;
 
 namespace android {
 static jmethodID method_onWakeup;
+static jmethodID method_onActivityLogsReady;
 
 static ActivityAttributionInterface* sActivityAttributionInterface = nullptr;
 static std::shared_timed_mutex interface_mutex;
@@ -60,12 +61,37 @@ class ActivityAttributionCallbacksImpl : public ActivityAttributionCallbacks {
     sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onWakeup, (jint)activity,
                                  addr.get());
   }
+
+  void OnActivityLogsReady(
+      const std::vector<BtaaAggregationEntry> logs) override {
+    LOG(INFO) << __func__;
+
+    std::shared_lock<std::shared_timed_mutex> lock(callbacks_mutex);
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid() || mCallbacksObj == nullptr) return;
+
+    jsize logs_size = logs.size() * sizeof(BtaaAggregationEntry);
+    ScopedLocalRef<jbyteArray> addr(sCallbackEnv.get(),
+                                    sCallbackEnv->NewByteArray(logs_size));
+    if (!addr.get()) {
+      LOG(ERROR) << "Failed to allocate jbyteArray for logs from activity "
+                    "logging callback";
+      return;
+    }
+
+    sCallbackEnv->SetByteArrayRegion(addr.get(), 0, logs_size,
+                                     (jbyte*)logs.data());
+    sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onActivityLogsReady,
+                                 addr.get());
+  }
 };
 
 static ActivityAttributionCallbacksImpl sActivityAttributionCallbacks;
 
 static void classInitNative(JNIEnv* env, jclass clazz) {
   method_onWakeup = env->GetMethodID(clazz, "onWakeup", "(I[B)V");
+  method_onActivityLogsReady =
+      env->GetMethodID(clazz, "onActivityLogsReady", "([B)V");
 
   LOG(INFO) << __func__ << ": succeeds";
 }
