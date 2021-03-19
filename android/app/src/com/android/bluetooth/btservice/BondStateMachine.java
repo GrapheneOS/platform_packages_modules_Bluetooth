@@ -76,7 +76,8 @@ final class BondStateMachine extends StateMachine {
     private PendingCommandState mPendingCommandState = new PendingCommandState();
     private StableState mStableState = new StableState();
 
-    public static final String OOBDATA = "oobdata";
+    public static final String OOBDATAP192 = "oobdatap192";
+    public static final String OOBDATAP256 = "oobdatap256";
 
     @VisibleForTesting Set<BluetoothDevice> mPendingBondedDevices = new HashSet<>();
 
@@ -129,12 +130,11 @@ final class BondStateMachine extends StateMachine {
             switch (msg.what) {
 
                 case CREATE_BOND:
-                    OobData oobData = null;
-                    if (msg.getData() != null) {
-                        oobData = msg.getData().getParcelable(OOBDATA);
-                    }
-
-                    createBond(dev, msg.arg1, oobData, true);
+                    OobData p192Data = (msg.getData() != null)
+                            ? msg.getData().getParcelable(OOBDATAP192) : null;
+                    OobData p256Data = (msg.getData() != null)
+                            ? msg.getData().getParcelable(OOBDATAP256) : null;
+                    createBond(dev, msg.arg1, p192Data, p256Data, true);
                     break;
                 case REMOVE_BOND:
                     removeBond(dev, true);
@@ -191,12 +191,11 @@ final class BondStateMachine extends StateMachine {
 
             switch (msg.what) {
                 case CREATE_BOND:
-                    OobData oobData = null;
-                    if (msg.getData() != null) {
-                        oobData = msg.getData().getParcelable(OOBDATA);
-                    }
-
-                    result = createBond(dev, msg.arg1, oobData, false);
+                    OobData p192Data = (msg.getData() != null)
+                            ? msg.getData().getParcelable(OOBDATAP192) : null;
+                    OobData p256Data = (msg.getData() != null)
+                            ? msg.getData().getParcelable(OOBDATAP256) : null;
+                    result = createBond(dev, msg.arg1, p192Data, p256Data, false);
                     break;
                 case REMOVE_BOND:
                     result = removeBond(dev, false);
@@ -310,23 +309,27 @@ final class BondStateMachine extends StateMachine {
         return false;
     }
 
-    private boolean createBond(BluetoothDevice dev, int transport, OobData oobData,
-            boolean transition) {
+    private boolean createBond(BluetoothDevice dev, int transport, OobData remoteP192Data,
+            OobData remoteP256Data, boolean transition) {
         if (dev.getBondState() == BluetoothDevice.BOND_NONE) {
             infoLog("Bond address is:" + dev);
             byte[] addr = Utils.getBytesFromAddress(dev.getAddress());
             boolean result;
-            if (oobData != null) {
-                result = mAdapterService.createBondOutOfBandNative(addr, transport, oobData);
+            // If we have some data
+            if (remoteP192Data != null || remoteP256Data != null) {
+                result = mAdapterService.createBondOutOfBandNative(addr, transport,
+                    remoteP192Data, remoteP256Data);
             } else {
                 result = mAdapterService.createBondNative(addr, transport);
             }
             BluetoothStatsLog.write(BluetoothStatsLog.BLUETOOTH_BOND_STATE_CHANGED,
                     mAdapterService.obfuscateAddress(dev), transport, dev.getType(),
                     BluetoothDevice.BOND_BONDING,
-                    oobData == null ? BluetoothProtoEnums.BOND_SUB_STATE_UNKNOWN
+                    remoteP192Data == null && remoteP256Data == null
+                            ? BluetoothProtoEnums.BOND_SUB_STATE_UNKNOWN
                             : BluetoothProtoEnums.BOND_SUB_STATE_LOCAL_OOB_DATA_PROVIDED,
                     BluetoothProtoEnums.UNBOND_REASON_UNKNOWN);
+
             if (!result) {
                 BluetoothStatsLog.write(BluetoothStatsLog.BLUETOOTH_BOND_STATE_CHANGED,
                         mAdapterService.obfuscateAddress(dev), transport, dev.getType(),
