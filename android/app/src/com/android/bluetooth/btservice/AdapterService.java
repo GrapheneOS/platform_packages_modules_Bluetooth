@@ -1415,7 +1415,10 @@ public class AdapterService extends Service {
                 return false;
             }
 
-            enforceBluetoothAdminPermission(service);
+            if (!Utils.checkScanPermissionForDataDelivery(
+                    service, callingPackage, callingFeatureId, "Starting discovery.")) {
+                return false;
+            }
 
             return service.startDiscovery(callingPackage, callingFeatureId);
         }
@@ -1427,7 +1430,7 @@ public class AdapterService extends Service {
                 return false;
             }
 
-            enforceBluetoothAdminPermission(service);
+            Utils.checkScanPermissionForPreflight(service);
 
             service.debugLog("cancelDiscovery");
             return service.cancelDiscoveryNative();
@@ -2392,23 +2395,29 @@ public class AdapterService extends Service {
         debugLog("startDiscovery");
         mAppOps.checkPackage(Binder.getCallingUid(), callingPackage);
         boolean isQApp = Utils.isQApp(this, callingPackage);
+        boolean hasDisavowedLocation =
+                Utils.hasDisavowedLocationForScan(this, callingPackage);
         String permission = null;
         if (Utils.checkCallerHasNetworkSettingsPermission(this)) {
             permission = android.Manifest.permission.NETWORK_SETTINGS;
         } else if (Utils.checkCallerHasNetworkSetupWizardPermission(this)) {
             permission = android.Manifest.permission.NETWORK_SETUP_WIZARD;
-        } else if (isQApp) {
-            if (!Utils.checkCallerHasFineLocation(this, mAppOps, callingPackage, callingFeatureId,
-                    callingUser)) {
-                return false;
+        } else if (!hasDisavowedLocation) {
+            if (isQApp) {
+                if (!Utils.checkCallerHasFineLocation(this, mAppOps, callingPackage,
+                        callingFeatureId,
+                        callingUser)) {
+                    return false;
+                }
+                permission = android.Manifest.permission.ACCESS_FINE_LOCATION;
+            } else {
+                if (!Utils.checkCallerHasCoarseLocation(this, mAppOps, callingPackage,
+                        callingFeatureId,
+                        callingUser)) {
+                    return false;
+                }
+                permission = android.Manifest.permission.ACCESS_COARSE_LOCATION;
             }
-            permission = android.Manifest.permission.ACCESS_FINE_LOCATION;
-        } else {
-            if (!Utils.checkCallerHasCoarseLocation(this, mAppOps, callingPackage, callingFeatureId,
-                    callingUser)) {
-                return false;
-            }
-            permission = android.Manifest.permission.ACCESS_COARSE_LOCATION;
         }
 
         synchronized (mDiscoveringPackages) {
