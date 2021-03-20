@@ -46,6 +46,7 @@ import java.util.Objects;
     public boolean hasNetworkSettingsPermission;
     public boolean hasNetworkSetupWizardPermission;
     public boolean hasScanWithoutLocationPermission;
+    public boolean hasDisavowedLocation;
     public List<String> associatedDevices;
 
     public AppScanStats stats = null;
