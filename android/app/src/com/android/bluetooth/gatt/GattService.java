@@ -3246,6 +3246,11 @@ public class GattService extends ProfileService {
             return false;
         }
 
+        // Ambient discovery mode, needs privileged permission.
+        if (settings.getScanMode() == ScanSettings.SCAN_MODE_AMBIENT_DISCOVERY) {
+            return true;
+        }
+
         // Regular scan, no special permission.
         if (settings.getReportDelayMillis() == 0) {
             return false;
