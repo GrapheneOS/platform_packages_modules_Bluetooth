@@ -16,6 +16,10 @@
 
 package com.android.bluetooth;
 
+import static android.Manifest.permission.BLUETOOTH_SCAN;
+import static android.content.PermissionChecker.PERMISSION_HARD_DENIED;
+import static android.content.pm.PackageManager.PERMISSION_GRANTED;
+
 import android.Manifest;
 import android.annotation.NonNull;
 import android.annotation.Nullable;
@@ -27,6 +31,7 @@ import android.companion.CompanionDeviceManager;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.ContextWrapper;
+import android.content.PermissionChecker;
 import android.content.pm.PackageManager;
 import android.content.pm.UserInfo;
 import android.location.LocationManager;
@@ -381,6 +386,38 @@ public final class Utils {
         context.enforceCallingOrSelfPermission(
                 android.Manifest.permission.DUMP,
                 "Need DUMP permission");
+    }
+
+    /**
+     * Returns true if the BLUETOOTH_SCAN permission is granted for the calling app. Returns false
+     * if the result is a soft denial. Throws SecurityException if the result is a hard denial.
+     *
+     * <p>Should be used in situations where the app op should not be noted.
+     */
+    public static boolean checkScanPermissionForPreflight(Context context) {
+        int permissionCheckResult = PermissionChecker.checkCallingOrSelfPermissionForPreflight(
+                context, BLUETOOTH_SCAN);
+        if (permissionCheckResult == PERMISSION_HARD_DENIED) {
+            throw new SecurityException("Need BLUETOOTH_SCAN permission");
+        }
+        return permissionCheckResult == PERMISSION_GRANTED;
+    }
+
+    /**
+     * Returns true if the BLUETOOTH_SCAN permission is granted for the calling app. Returns false
+     * if the result is a soft denial. Throws SecurityException if the result is a hard denial.
+     *
+     * <p>Should be used in situations where data will be delivered and hence the app op should
+     * be noted.
+     */
+    public static boolean checkScanPermissionForDataDelivery(
+            Context context, String callingPackage, String callingAttributionTag, String message) {
+        int permissionCheckResult = PermissionChecker.checkCallingOrSelfPermissionForDataDelivery(
+                context, BLUETOOTH_SCAN, callingPackage, callingAttributionTag, message);
+        if (permissionCheckResult == PERMISSION_HARD_DENIED) {
+            throw new SecurityException("Need BLUETOOTH_SCAN permission");
+        }
+        return permissionCheckResult == PERMISSION_GRANTED;
     }
 
     public static boolean callerIsSystemOrActiveUser(String tag, String method) {
