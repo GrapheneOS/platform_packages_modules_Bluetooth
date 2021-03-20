@@ -28,6 +28,7 @@ import static com.android.bluetooth.Utils.enforceLocalMacAddressPermission;
 import static com.android.bluetooth.Utils.hasBluetoothPrivilegedPermission;
 import static com.android.bluetooth.Utils.isPackageNameAccurate;
 
+import android.annotation.NonNull;
 import android.annotation.Nullable;
 import android.app.ActivityManager;
 import android.app.AlarmManager;
@@ -63,6 +64,7 @@ import android.os.AsyncTask;
 import android.os.BatteryStats;
 import android.os.Binder;
 import android.os.Bundle;
+import android.os.BytesMatcher;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
@@ -109,8 +111,10 @@ import com.android.bluetooth.sap.SapService;
 import com.android.bluetooth.sdp.SdpManager;
 import com.android.bluetooth.telephony.BluetoothInCallService;
 import com.android.internal.R;
+import com.android.internal.annotations.GuardedBy;
 import com.android.internal.annotations.VisibleForTesting;
 import com.android.internal.app.IBatteryStats;
+import com.android.internal.os.BackgroundThread;
 import com.android.internal.util.ArrayUtils;
 
 import com.google.protobuf.InvalidProtocolBufferException;
@@ -125,6 +129,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Predicate;
+import java.util.regex.Pattern;
 
 public class AdapterService extends Service {
     private static final String TAG = "BluetoothAdapterService";
@@ -478,6 +484,7 @@ public class AdapterService extends Service {
     public void onCreate() {
         super.onCreate();
         debugLog("onCreate()");
+        mDeviceConfigListener.start();
         mRemoteDevices = new RemoteDevices(this, Looper.getMainLooper());
         mRemoteDevices.init();
         clearDiscoveringPackages();
@@ -2421,7 +2428,8 @@ public class AdapterService extends Service {
         }
 
         synchronized (mDiscoveringPackages) {
-            mDiscoveringPackages.add(new DiscoveringPackage(callingPackage, permission));
+            mDiscoveringPackages.add(
+                    new DiscoveringPackage(callingPackage, permission, hasDisavowedLocation));
         }
         return startDiscoveryNative();
     }
@@ -3433,6 +3441,78 @@ public class AdapterService extends Service {
             initFlags.add(BTAA_HCI_LOG_FLAG);
         }
         return initFlags.toArray(new String[0]);
+    }
+
+    private final Object mDeviceConfigLock = new Object();
+
+    /**
+     * Predicate that can be applied to names to determine if a device is
+     * well-known to be used for physical location.
+     */
+    @GuardedBy("mDeviceConfigLock")
+    private Predicate<String> mLocationDenylistName = (v) -> false;
+
+    /**
+     * Predicate that can be applied to MAC addresses to determine if a device
+     * is well-known to be used for physical location.
+     */
+    @GuardedBy("mDeviceConfigLock")
+    private Predicate<byte[]> mLocationDenylistMac = (v) -> false;
+
+    /**
+     * Predicate that can be applied to Advertising Data payloads to determine
+     * if a device is well-known to be used for physical location.
+     */
+    @GuardedBy("mDeviceConfigLock")
+    private Predicate<byte[]> mLocationDenylistAdvertisingData = (v) -> false;
+
+    public @NonNull Predicate<String> getLocationDenylistName() {
+        synchronized (mDeviceConfigLock) {
+            return mLocationDenylistName;
+        }
+    }
+
+    public @NonNull Predicate<byte[]> getLocationDenylistMac() {
+        synchronized (mDeviceConfigLock) {
+            return mLocationDenylistMac;
+        }
+    }
+
+    public @NonNull Predicate<byte[]> getLocationDenylistAdvertisingData() {
+        synchronized (mDeviceConfigLock) {
+            return mLocationDenylistAdvertisingData;
+        }
+    }
+
+    private final DeviceConfigListener mDeviceConfigListener = new DeviceConfigListener();
+
+    private class DeviceConfigListener implements DeviceConfig.OnPropertiesChangedListener {
+        private static final String LOCATION_DENYLIST_NAME =
+                "location_denylist_name";
+        private static final String LOCATION_DENYLIST_MAC =
+                "location_denylist_mac";
+        private static final String LOCATION_DENYLIST_ADVERTISING_DATA =
+                "location_denylist_advertising_data";
+
+        public void start() {
+            DeviceConfig.addOnPropertiesChangedListener(DeviceConfig.NAMESPACE_BLUETOOTH,
+                    BackgroundThread.getExecutor(), this);
+            onPropertiesChanged(DeviceConfig.getProperties(DeviceConfig.NAMESPACE_BLUETOOTH));
+        }
+
+        @Override
+        public void onPropertiesChanged(DeviceConfig.Properties properties) {
+            synchronized (mDeviceConfigLock) {
+                final String name = properties.getString(LOCATION_DENYLIST_NAME, null);
+                mLocationDenylistName = !TextUtils.isEmpty(name)
+                        ? Pattern.compile(name).asPredicate()
+                        : (v) -> false;
+                mLocationDenylistMac = BytesMatcher
+                        .decode(properties.getString(LOCATION_DENYLIST_MAC, null));
+                mLocationDenylistAdvertisingData = BytesMatcher
+                        .decode(properties.getString(LOCATION_DENYLIST_ADVERTISING_DATA, null));
+            }
+        }
     }
 
     /**
