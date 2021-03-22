@@ -47,8 +47,10 @@ import java.util.Objects;
 
     static final DateFormat DATE_FORMAT = new SimpleDateFormat("MM-dd HH:mm:ss");
 
+    // Weight is the duty cycle of the scan mode
     static final int OPPORTUNISTIC_WEIGHT = 0;
     static final int LOW_POWER_WEIGHT = 10;
+    static final int AMBIENT_DISCOVERY_WEIGHT = 20;
     static final int BALANCED_WEIGHT = 25;
     static final int LOW_LATENCY_WEIGHT = 100;
 
@@ -123,10 +125,12 @@ import java.util.Objects;
     private long mLowPowerScanTime = 0;
     private long mBalancedScanTime = 0;
     private long mLowLantencyScanTime = 0;
+    private long mAmbientDiscoveryScanTime = 0;
     private int mOppScan = 0;
     private int mLowPowerScan = 0;
     private int mBalancedScan = 0;
     private int mLowLantencyScan = 0;
+    private int mAmbientDiscoveryScan = 0;
     private List<LastScan> mLastScans = new ArrayList<LastScan>(NUM_SCAN_DURATIONS_KEPT);
     private HashMap<Integer, LastScan> mOngoingScans = new HashMap<Integer, LastScan>();
     public long startTime = 0;
@@ -205,6 +209,9 @@ import java.util.Objects;
                     break;
                 case ScanSettings.SCAN_MODE_LOW_LATENCY:
                     mLowLantencyScan++;
+                    break;
+                case ScanSettings.SCAN_MODE_AMBIENT_DISCOVERY:
+                    mAmbientDiscoveryScan++;
                     break;
             }
         }
@@ -286,6 +293,9 @@ import java.util.Objects;
                 break;
             case ScanSettings.SCAN_MODE_LOW_LATENCY:
                 mLowLantencyScanTime += activeDuration;
+                break;
+            case ScanSettings.SCAN_MODE_AMBIENT_DISCOVERY:
+                mAmbientDiscoveryScanTime += activeDuration;
                 break;
         }
 
@@ -427,6 +437,8 @@ import java.util.Objects;
                 return "BALANCED";
             case ScanSettings.SCAN_MODE_LOW_POWER:
                 return "LOW_POWER";
+            case ScanSettings.SCAN_MODE_AMBIENT_DISCOVERY:
+                return "AMBIENT_DISCOVERY";
             default:
                 return "UNKNOWN(" + scanMode + ")";
         }
@@ -461,10 +473,12 @@ import java.util.Objects;
         long lowPowerScanTime = mLowPowerScanTime;
         long balancedScanTime = mBalancedScanTime;
         long lowLatencyScanTime = mLowLantencyScanTime;
+        long ambientDiscoveryScanTime = mAmbientDiscoveryScanTime;
         int oppScan = mOppScan;
         int lowPowerScan = mLowPowerScan;
         int balancedScan = mBalancedScan;
         int lowLatencyScan = mLowLantencyScan;
+        int ambientDiscoveryScan = mAmbientDiscoveryScan;
 
         if (!mOngoingScans.isEmpty()) {
             for (Integer key : mOngoingScans.keySet()) {
@@ -493,11 +507,15 @@ import java.util.Objects;
                     case ScanSettings.SCAN_MODE_LOW_LATENCY:
                         lowLatencyScanTime += activeDuration;
                         break;
+                    case ScanSettings.SCAN_MODE_AMBIENT_DISCOVERY:
+                        ambientDiscoveryScan += activeDuration;
+                        break;
                 }
             }
         }
         Score = (oppScanTime * OPPORTUNISTIC_WEIGHT + lowPowerScanTime * LOW_POWER_WEIGHT
-              + balancedScanTime * BALANCED_WEIGHT + lowLatencyScanTime * LOW_LATENCY_WEIGHT) / 100;
+              + balancedScanTime * BALANCED_WEIGHT + lowLatencyScanTime * LOW_LATENCY_WEIGHT
+              + ambientDiscoveryScanTime * AMBIENT_DISCOVERY_WEIGHT) / 100;
 
         sb.append("  " + appName);
         if (isRegistered) {
@@ -508,11 +526,13 @@ import java.util.Objects;
                 + mScansStarted + " / " + mScansStopped);
         sb.append("\n  Scan time in ms (active/suspend/total)                      : "
                 + totalActiveTime + " / " + totalSuspendTime + " / " + totalScanTime);
-        sb.append("\n  Scan time with mode in ms (Opp/LowPower/Balanced/LowLatency): "
+        sb.append("\n  Scan time with mode in ms "
+                + "(Opp/LowPower/Balanced/LowLatency/AmbientDiscovery):"
                 + oppScanTime + " / " + lowPowerScanTime + " / " + balancedScanTime + " / "
-                + lowLatencyScanTime);
-        sb.append("\n  Scan mode counter (Opp/LowPower/Balanced/LowLatency)        : " + oppScan
-                + " / " + lowPowerScan + " / " + balancedScan + " / " + lowLatencyScan);
+                + lowLatencyScanTime + " / " + ambientDiscoveryScanTime);
+        sb.append("\n  Scan mode counter (Opp/LowPower/Balanced/LowLatency/AmbientDiscovery):"
+                + oppScan + " / " + lowPowerScan + " / " + balancedScan + " / " + lowLatencyScan
+                + " / " + ambientDiscoveryScan);
         sb.append("\n  Score                                                       : " + Score);
         sb.append("\n  Total number of results                                     : " + results);
 
