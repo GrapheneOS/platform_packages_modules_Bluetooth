@@ -608,7 +608,7 @@ public class BluetoothMapSmsPdu {
         String ret = "";
         if (type == SMS_TYPE_CDMA) {
             /* This is able to handle both submit and deliver PDUs */
-            SmsMessage smsMessage = SmsMessage.createSmsSubmitPdu(data, true);
+            SmsMessage smsMessage = SmsMessage.createFromNativeSmsSubmitPdu(data, true);
             if (smsMessage != null) {
                 ret = smsMessage.getMessageBody();
             }
