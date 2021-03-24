@@ -20,6 +20,7 @@ import android.bluetooth.BluetoothHeadsetClient;
 import android.bluetooth.BluetoothHeadsetClientCall;
 import android.content.Context;
 import android.net.Uri;
+import android.os.Bundle;
 import android.telecom.Connection;
 import android.telecom.DisconnectCause;
 import android.telecom.PhoneAccount;
@@ -31,6 +32,11 @@ import java.util.UUID;
 public class HfpClientConnection extends Connection {
     private static final String TAG = "HfpClientConnection";
     private static final boolean DBG = false;
+
+    private static final String KEY_SCO_STATE = "com.android.bluetooth.hfpclient.SCO_STATE";
+    private static final String EVENT_SCO_CONNECT = "com.android.bluetooth.hfpclient.SCO_CONNECT";
+    private static final String EVENT_SCO_DISCONNECT =
+             "com.android.bluetooth.hfpclient.SCO_DISCONNECT";
 
     private final Context mContext;
     private final BluetoothDevice mDevice;
@@ -58,6 +64,7 @@ public class HfpClientConnection extends Connection {
         }
 
         mCurrentCall = call;
+        setScoState(BluetoothHeadsetClient.STATE_AUDIO_DISCONNECTED);
         handleCallChanged();
         finishInitializing();
     }
@@ -275,6 +282,34 @@ public class HfpClientConnection extends Connection {
         if (!mClosed) {
             mHeadsetProfile.rejectCall(mDevice);
         }
+    }
+
+    @Override
+    public void onCallEvent(String event, Bundle extras) {
+        if (DBG) {
+            Log.d(TAG, "onCallEvent(" + event + ", " + extras + ")");
+        }
+        switch (event) {
+            case EVENT_SCO_CONNECT:
+                mHeadsetProfile.connectAudio(mDevice);
+                break;
+            case EVENT_SCO_DISCONNECT:
+                mHeadsetProfile.disconnectAudio(mDevice);
+                break;
+        }
+    }
+
+    /**
+     * Notify this connection of changes in the SCO state so we can update our call details
+     */
+    public void onScoStateChanged(int newState, int oldState) {
+        setScoState(newState);
+    }
+
+    private void setScoState(int state) {
+        Bundle bundle = new Bundle();
+        bundle.putInt(KEY_SCO_STATE, state);
+        setExtras(bundle);
     }
 
     @Override
