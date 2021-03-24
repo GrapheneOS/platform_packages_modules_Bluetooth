@@ -22,8 +22,11 @@ import static com.android.bluetooth.Utils.callerIsSystemOrActiveUser;
 import static com.android.bluetooth.Utils.enforceBluetoothAdminPermission;
 import static com.android.bluetooth.Utils.enforceBluetoothPermission;
 import static com.android.bluetooth.Utils.enforceBluetoothPrivilegedPermission;
+import static com.android.bluetooth.Utils.enforceCdmAssociation;
 import static com.android.bluetooth.Utils.enforceDumpPermission;
 import static com.android.bluetooth.Utils.enforceLocalMacAddressPermission;
+import static com.android.bluetooth.Utils.hasBluetoothPrivilegedPermission;
+import static com.android.bluetooth.Utils.isPackageNameAccurate;
 
 import android.annotation.Nullable;
 import android.app.ActivityManager;
@@ -49,7 +52,7 @@ import android.bluetooth.IBluetoothMetadataListener;
 import android.bluetooth.IBluetoothSocketManager;
 import android.bluetooth.OobData;
 import android.bluetooth.UidTraffic;
-import android.companion.ICompanionDeviceManager;
+import android.companion.CompanionDeviceManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -249,7 +252,7 @@ public class AdapterService extends Service {
     private PowerManager.WakeLock mWakeLock;
     private String mWakeLockName;
     private UserManager mUserManager;
-    private ICompanionDeviceManager mCompanionManager;
+    private CompanionDeviceManager mCompanionDeviceManager;
 
     private PhonePolicy mPhonePolicy;
     private ActiveDeviceManager mActiveDeviceManager;
@@ -505,8 +508,7 @@ public class AdapterService extends Service {
         mUserManager = (UserManager) getSystemService(Context.USER_SERVICE);
         mBatteryStats = IBatteryStats.Stub.asInterface(
                 ServiceManager.getService(BatteryStats.SERVICE_NAME));
-        mCompanionManager = ICompanionDeviceManager.Stub.asInterface(
-                ServiceManager.getService(Context.COMPANION_DEVICE_SERVICE));
+        mCompanionDeviceManager = getSystemService(CompanionDeviceManager.class);
 
         mBluetoothKeystoreService.initJni();
 
@@ -1722,13 +1724,18 @@ public class AdapterService extends Service {
         }
 
         @Override
-        public boolean setRemoteAlias(BluetoothDevice device, String name) {
+        public boolean setRemoteAlias(BluetoothDevice device, String name, String callingPackage) {
             AdapterService service = getService();
-            if (service == null || !callerIsSystemOrActiveUser(TAG, "setRemoteAlias")) {
+            if (service == null || !callerIsSystemOrActiveUser(TAG, "setRemoteAlias")
+                    || name == null || name.isEmpty()) {
                 return false;
             }
 
-            enforceBluetoothPermission(service);
+            if (!hasBluetoothPrivilegedPermission(service)) {
+                enforceBluetoothPermission(service);
+                enforceCdmAssociation(service.mCompanionDeviceManager, service, callingPackage,
+                        Binder.getCallingUid(), device);
+            }
 
             DeviceProperties deviceProp = service.mRemoteDevices.getDeviceProperties(device);
             if (deviceProp == null) {
@@ -2441,14 +2448,7 @@ public class AdapterService extends Service {
             return false;
         }
 
-        // Verifies the integrity of the calling package name
-        try {
-            int packageUid = getPackageManager().getPackageUid(callingPackage, 0);
-            if (packageUid != Binder.getCallingUid()) {
-                return false;
-            }
-        } catch (PackageManager.NameNotFoundException e) {
-            Log.e(TAG, "createBond: App with package name " + callingPackage + " does not exist");
+        if (!isPackageNameAccurate(this, callingPackage, Binder.getCallingUid())) {
             return false;
         }
 
@@ -2546,13 +2546,8 @@ public class AdapterService extends Service {
     public boolean canBondWithoutDialog(BluetoothDevice device) {
         if (mBondAttemptCallerInfo.containsKey(device.getAddress())) {
             CallerInfo bondCallerInfo = mBondAttemptCallerInfo.get(device.getAddress());
-            try {
-                return mCompanionManager.canPairWithoutPrompt(bondCallerInfo.callerPackageName,
-                        device.getAddress(), bondCallerInfo.userId);
-            } catch (RemoteException ex) {
-                Log.e(TAG, "RemoteException while calling canPairWithoutPrompt in "
-                        + "ICompanionDeviceManager");
-            }
+            return mCompanionDeviceManager.canPairWithoutPrompt(bondCallerInfo.callerPackageName,
+                    device.getAddress(), bondCallerInfo.userId);
         }
         return false;
     }

@@ -16,11 +16,14 @@
 
 package com.android.bluetooth;
 
+import android.Manifest;
 import android.annotation.NonNull;
 import android.annotation.Nullable;
 import android.app.AppOpsManager;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.companion.Association;
+import android.companion.CompanionDeviceManager;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.ContextWrapper;
@@ -283,6 +286,71 @@ public final class Utils {
     static int sForegroundUserId = UserHandle.USER_NULL;
     public static void setForegroundUserId(int uid) {
         Utils.sForegroundUserId = uid;
+    }
+
+    /**
+     * Enforces that a Companion Device Manager (CDM) association exists between the calling
+     * application and the Bluetooth Device.
+     *
+     * @param cdm the CompanionDeviceManager object
+     * @param context the Bluetooth AdapterService context
+     * @param callingPackage the calling package
+     * @param callingUid the calling app uid
+     * @param device the remote BluetoothDevice
+     * @return {@code true} if there is a CDM association
+     * @throws SecurityException if the package name does not match the uid or the association
+     *                           doesn't exist
+     */
+    public static boolean enforceCdmAssociation(CompanionDeviceManager cdm, Context context,
+            String callingPackage, int callingUid, BluetoothDevice device) {
+        if (!isPackageNameAccurate(context, callingPackage, callingUid)) {
+            throw new SecurityException("hasCdmAssociation: Package name " + callingPackage
+                    + " is inaccurate for calling uid " + callingUid);
+        }
+
+        for (Association association : cdm.getAllAssociations()) {
+            if (association.getPackageName().equals(callingPackage)
+                    && association.getDeviceMacAddress().equals(device.getAddress())) {
+                return true;
+            }
+        }
+        throw new SecurityException("The application with package name " + callingPackage
+                + " does not have a CDM association with the Bluetooth Device");
+    }
+
+    /**
+     * Verifies whether the calling package name matches the calling app uid
+     * @param context the Bluetooth AdapterService context
+     * @param callingPackage the calling application package name
+     * @param callingUid the calling application uid
+     * @return {@code true} if the package name matches the calling app uid, {@code false} otherwise
+     */
+    public static boolean isPackageNameAccurate(Context context, String callingPackage,
+            int callingUid) {
+        // Verifies the integrity of the calling package name
+        try {
+            int packageUid = context.getPackageManager().getPackageUid(callingPackage, 0);
+            if (packageUid != callingUid) {
+                return false;
+            }
+        } catch (PackageManager.NameNotFoundException e) {
+            Log.e(TAG, "isPackageNameAccurate: App with package name " + callingPackage
+                    + " does not exist");
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Checks whether the caller has the BLUETOOTH_PRIVILEGED permission
+     *
+     * @param context the Bluetooth AdapterService context
+     * @return {@code true} if the caller has the BLUETOOTH_PRIVILEGED permission, {@code false}
+     *         otherwise
+     */
+    public static boolean hasBluetoothPrivilegedPermission(Context context) {
+        return context.checkCallingOrSelfPermission(Manifest.permission.BLUETOOTH_PRIVILEGED)
+                == PackageManager.PERMISSION_GRANTED;
     }
 
     public static void enforceBluetoothPermission(Context context) {
