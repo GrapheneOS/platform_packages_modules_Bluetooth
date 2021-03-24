@@ -330,10 +330,10 @@ public class PanService extends ProfileService {
         }
     }
 
-    ;
-
     public boolean connect(BluetoothDevice device) {
-        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+        if (!Utils.checkConnectPermissionForPreflight(this)) {
+            return false;
+        }
         if (mUserManager.isGuestUser()) {
             Log.w(TAG, "Guest user does not have the permission to change the WiFi network");
             return false;
@@ -348,7 +348,9 @@ public class PanService extends ProfileService {
     }
 
     public boolean disconnect(BluetoothDevice device) {
-        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+        if (!Utils.checkConnectPermissionForPreflight(this)) {
+            return false;
+        }
         Message msg = mHandler.obtainMessage(MESSAGE_DISCONNECT, device);
         mHandler.sendMessage(msg);
         return true;
@@ -366,7 +368,9 @@ public class PanService extends ProfileService {
 
     public boolean isTetheringOn() {
         // TODO(BT) have a variable marking the on/off state
-        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+        if (!Utils.checkConnectPermissionForPreflight(this)) {
+            return false;
+        }
         return mTetherOn;
     }
 
@@ -445,7 +449,9 @@ public class PanService extends ProfileService {
      * @hide
      */
     public int getConnectionPolicy(BluetoothDevice device) {
-        enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH_ADMIN permission");
+        if (!Utils.checkConnectPermissionForPreflight(this)) {
+            return BluetoothProfile.CONNECTION_POLICY_UNKNOWN;
+        }
         return mDatabaseManager
                 .getProfileConnectionPolicy(device, BluetoothProfile.PAN);
     }
@@ -459,7 +465,9 @@ public class PanService extends ProfileService {
     }
 
     List<BluetoothDevice> getDevicesMatchingConnectionStates(int[] states) {
-        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+        if (!Utils.checkConnectPermissionForPreflight(this)) {
+            return new ArrayList<>(0);
+        }
         List<BluetoothDevice> panDevices = new ArrayList<BluetoothDevice>();
 
         for (BluetoothDevice device : mPanDevices.keySet()) {

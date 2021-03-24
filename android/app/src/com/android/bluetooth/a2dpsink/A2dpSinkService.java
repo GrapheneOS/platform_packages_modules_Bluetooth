@@ -328,7 +328,9 @@ public class A2dpSinkService extends ProfileService {
      * @return true if disconnect is successful, false otherwise.
      */
     public boolean disconnect(BluetoothDevice device) {
-        enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH ADMIN permission");
+        if (!Utils.checkConnectPermissionForPreflight(this)) {
+            return false;
+        }
         if (DBG) {
             StringBuilder sb = new StringBuilder();
             dump(sb);

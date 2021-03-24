@@ -16,8 +16,6 @@
 
 package com.android.bluetooth.hid;
 
-import static com.android.bluetooth.Utils.enforceBluetoothAdminPermission;
-import static com.android.bluetooth.Utils.enforceBluetoothPermission;
 import static com.android.bluetooth.Utils.enforceBluetoothPrivilegedPermission;
 
 import android.bluetooth.BluetoothDevice;
@@ -355,30 +353,27 @@ public class HidHostService extends ProfileService {
         @Override
         public int getConnectionState(BluetoothDevice device) {
             HidHostService service = getService();
-            if (service == null) {
+            if (service == null || !Utils.checkConnectPermissionForPreflight(service)) {
                 return BluetoothHidHost.STATE_DISCONNECTED;
             }
-            enforceBluetoothPermission(service);
             return service.getConnectionState(device);
         }
 
         @Override
         public List<BluetoothDevice> getConnectedDevices() {
             HidHostService service = getService();
-            if (service == null) {
+            if (service == null || !Utils.checkConnectPermissionForPreflight(service)) {
                 return new ArrayList<>();
             }
-            enforceBluetoothPermission(service);
             return getDevicesMatchingConnectionStates(new int[]{BluetoothProfile.STATE_CONNECTED});
         }
 
         @Override
         public List<BluetoothDevice> getDevicesMatchingConnectionStates(int[] states) {
             HidHostService service = getService();
-            if (service == null) {
+            if (service == null || !Utils.checkConnectPermissionForPreflight(service)) {
                 return new ArrayList<BluetoothDevice>(0);
             }
-            enforceBluetoothPermission(service);
             return service.getDevicesMatchingConnectionStates(states);
         }
 
@@ -406,30 +401,27 @@ public class HidHostService extends ProfileService {
         @Override
         public boolean getProtocolMode(BluetoothDevice device) {
             HidHostService service = getService();
-            if (service == null) {
+            if (service == null || !Utils.checkConnectPermissionForPreflight(service)) {
                 return false;
             }
-            enforceBluetoothAdminPermission(service);
             return service.getProtocolMode(device);
         }
 
         @Override
         public boolean virtualUnplug(BluetoothDevice device) {
             HidHostService service = getService();
-            if (service == null) {
+            if (service == null || !Utils.checkConnectPermissionForPreflight(service)) {
                 return false;
             }
-            enforceBluetoothAdminPermission(service);
             return service.virtualUnplug(device);
         }
 
         @Override
         public boolean setProtocolMode(BluetoothDevice device, int protocolMode) {
             HidHostService service = getService();
-            if (service == null) {
+            if (service == null || !Utils.checkConnectPermissionForPreflight(service)) {
                 return false;
             }
-            enforceBluetoothAdminPermission(service);
             return service.setProtocolMode(device, protocolMode);
         }
 
@@ -437,50 +429,45 @@ public class HidHostService extends ProfileService {
         public boolean getReport(BluetoothDevice device, byte reportType, byte reportId,
                 int bufferSize) {
             HidHostService service = getService();
-            if (service == null) {
+            if (service == null || !Utils.checkConnectPermissionForPreflight(service)) {
                 return false;
             }
-            enforceBluetoothAdminPermission(service);
             return service.getReport(device, reportType, reportId, bufferSize);
         }
 
         @Override
         public boolean setReport(BluetoothDevice device, byte reportType, String report) {
             HidHostService service = getService();
-            if (service == null) {
+            if (service == null || !Utils.checkConnectPermissionForPreflight(service)) {
                 return false;
             }
-            enforceBluetoothAdminPermission(service);
             return service.setReport(device, reportType, report);
         }
 
         @Override
         public boolean sendData(BluetoothDevice device, String report) {
             HidHostService service = getService();
-            if (service == null) {
+            if (service == null || !Utils.checkConnectPermissionForPreflight(service)) {
                 return false;
             }
-            enforceBluetoothAdminPermission(service);
             return service.sendData(device, report);
         }
 
         @Override
         public boolean setIdleTime(BluetoothDevice device, byte idleTime) {
             HidHostService service = getService();
-            if (service == null) {
+            if (service == null || !Utils.checkConnectPermissionForPreflight(service)) {
                 return false;
             }
-            enforceBluetoothAdminPermission(service);
             return service.setIdleTime(device, idleTime);
         }
 
         @Override
         public boolean getIdleTime(BluetoothDevice device) {
             HidHostService service = getService();
-            if (service == null) {
+            if (service == null || !Utils.checkConnectPermissionForPreflight(service)) {
                 return false;
             }
-            enforceBluetoothAdminPermission(service);
             return service.getIdleTime(device);
         }
     }
