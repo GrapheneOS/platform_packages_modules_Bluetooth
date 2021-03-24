@@ -67,6 +67,10 @@ public class ActivityAttributionNativeInterface {
         Log.i(TAG, "onWakeup() BTAA: " + activity);
     }
 
+    private void onActivityLogsReady(byte[] logs) {
+        Log.i(TAG, "onActivityLogsReady() BTAA: " + logs);
+    }
+
     // Native methods that call into the JNI interface
     private static native void classInitNative();
 
