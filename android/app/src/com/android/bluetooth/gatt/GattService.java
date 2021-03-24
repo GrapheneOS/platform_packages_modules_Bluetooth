@@ -198,12 +198,6 @@ public class GattService extends ProfileService {
     private final Object mDeviceConfigLock = new Object();
 
     /**
-     * Feature flag used to enable denylist that filters devices that are
-     * well-known to be used for physical location.
-     */
-    private static final boolean ENABLE_LOCATION_DENYLIST = false;
-
-    /**
      * Matcher that can be applied to MAC addresses to determine if a
      * {@link BluetoothDevice} is well-known to be used for physical location.
      */
@@ -1111,8 +1105,7 @@ public class GattService extends ProfileService {
 
             ScanRecord scanRecord = ScanRecord.parseFromBytes(scanRecordData);
 
-            // TODO: only apply denylist filter based on destination capabilities
-            if (ENABLE_LOCATION_DENYLIST) {
+            if (client.hasDisavowedLocation) {
                 synchronized (mDeviceConfigLock) {
                     final MacAddress parsedAddress = MacAddress.fromString(address);
                     if (mLocationDenylistMac.testMacAddress(parsedAddress)) {
@@ -2184,7 +2177,8 @@ public class GattService extends ProfileService {
         scanClient.eligibleForSanitizedExposureNotification =
                 callingPackage.equals(mExposureNotificationPackage);
 
-        // TODO: set hasDisavowedLocation
+        scanClient.hasDisavowedLocation =
+                Utils.hasDisavowedLocationForScan(this, callingPackage);
 
         scanClient.isQApp = Utils.isQApp(this, callingPackage);
         if (!scanClient.hasDisavowedLocation) {
@@ -2256,7 +2250,8 @@ public class GattService extends ProfileService {
         app.mEligibleForSanitizedExposureNotification =
                 callingPackage.equals(mExposureNotificationPackage);
 
-        // TODO: set hasDisavowedLocation
+        app.mHasDisavowedLocation =
+                Utils.hasDisavowedLocationForScan(this, callingPackage);
 
         app.mIsQApp = Utils.isQApp(this, callingPackage);
         if (!app.mHasDisavowedLocation) {
