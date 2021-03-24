@@ -3269,6 +3269,14 @@ public class AdapterService extends Service {
             return;
         }
 
+        if ("set-test-mode".equals(args[0])) {
+            final boolean testModeEnabled = "enabled".equalsIgnoreCase(args[1]);
+            for (ProfileService profile : mRunningProfiles) {
+                profile.setTestModeEnabled(testModeEnabled);
+            }
+            return;
+        }
+
         verboseLog("dumpsys arguments, check for protobuf output: " + TextUtils.join(" ", args));
         if (args[0].equals("--proto-bin")) {
             dumpMetrics(fd);
@@ -3492,6 +3500,12 @@ public class AdapterService extends Service {
         private static final String LOCATION_DENYLIST_ADVERTISING_DATA =
                 "location_denylist_advertising_data";
 
+        /**
+         * Default denylist which matches Eddystone and iBeacon payloads.
+         */
+        private static final String DEFAULT_LOCATION_DENYLIST_ADVERTISING_DATA =
+                "⊆0016AAFE/00FFFFFF,⊆00FF4C0002/00FFFFFFFF";
+
         public void start() {
             DeviceConfig.addOnPropertiesChangedListener(DeviceConfig.NAMESPACE_BLUETOOTH,
                     BackgroundThread.getExecutor(), this);
@@ -3508,7 +3522,8 @@ public class AdapterService extends Service {
                 mLocationDenylistMac = BytesMatcher
                         .decode(properties.getString(LOCATION_DENYLIST_MAC, null));
                 mLocationDenylistAdvertisingData = BytesMatcher
-                        .decode(properties.getString(LOCATION_DENYLIST_ADVERTISING_DATA, null));
+                        .decode(properties.getString(LOCATION_DENYLIST_ADVERTISING_DATA,
+                                DEFAULT_LOCATION_DENYLIST_ADVERTISING_DATA));
             }
         }
     }
