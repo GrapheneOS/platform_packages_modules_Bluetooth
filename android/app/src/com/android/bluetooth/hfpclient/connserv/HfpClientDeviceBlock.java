@@ -106,6 +106,15 @@ public class HfpClientDeviceBlock {
         return connection;
     }
 
+    synchronized void onAudioStateChange(int newState, int oldState) {
+        if (DBG) {
+            Log.d(mTAG, "Call audio state changed " + oldState + " -> " + newState);
+        }
+        for (HfpClientConnection connection : mConnections.values()) {
+            connection.onScoStateChanged(newState, oldState);
+        }
+    }
+
     synchronized HfpClientConnection onCreateUnknownConnection(BluetoothHeadsetClientCall call) {
         Uri number = Uri.fromParts(PhoneAccount.SCHEME_TEL, call.getNumber(), null);
         HfpClientConnection connection = mConnections.get(call.getUUID());
