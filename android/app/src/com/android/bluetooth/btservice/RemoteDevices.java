@@ -29,6 +29,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.net.MacAddress;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
@@ -48,6 +49,7 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.Set;
+import java.util.function.Predicate;
 
 final class RemoteDevices {
     private static final boolean DBG = false;
@@ -111,6 +113,24 @@ final class RemoteDevices {
                     break;
             }
         }
+    };
+
+    /**
+     * Predicate that tests if the given {@link BluetoothDevice} is well-known
+     * to be used for physical location.
+     */
+    private final Predicate<BluetoothDevice> mLocationDenylistPredicate = (device) -> {
+        final MacAddress parsedAddress = MacAddress.fromString(device.getAddress());
+        if (sAdapterService.getLocationDenylistMac().test(parsedAddress.toByteArray())) {
+            Log.v(TAG, "Skipping device matching denylist: " + parsedAddress);
+            return true;
+        }
+        final String name = device.getName();
+        if (sAdapterService.getLocationDenylistName().test(name)) {
+            Log.v(TAG, "Skipping name matching denylist: " + name);
+            return true;
+        }
+        return false;
     };
 
     RemoteDevices(AdapterService service, Looper looper) {
@@ -602,6 +622,12 @@ final class RemoteDevices {
         final ArrayList<DiscoveringPackage> packages = sAdapterService.getDiscoveringPackages();
         synchronized (packages) {
             for (DiscoveringPackage pkg : packages) {
+                if (pkg.hasDisavowedLocation()) {
+                    if (mLocationDenylistPredicate.test(device)) {
+                        continue;
+                    }
+                }
+
                 intent.setPackage(pkg.getPackageName());
 
                 String[] perms;
