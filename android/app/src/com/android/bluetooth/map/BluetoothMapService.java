@@ -97,8 +97,6 @@ public class BluetoothMapService extends ProfileService {
     static final int MSG_MNS_SDP_SEARCH = 5007;
     static final int MSG_OBSERVER_REGISTRATION = 5008;
 
-    private static final String BLUETOOTH_ADMIN_PERM = android.Manifest.permission.BLUETOOTH_ADMIN;
-
     private static final int START_LISTENER = 1;
     private static final int USER_TIMEOUT = 2;
     private static final int DISCONNECT_MAP = 3;
@@ -925,7 +923,7 @@ public class BluetoothMapService extends ProfileService {
             intent.putExtra(BluetoothDevice.EXTRA_ACCESS_REQUEST_TYPE,
                     BluetoothDevice.REQUEST_TYPE_MESSAGE_ACCESS);
             intent.putExtra(BluetoothDevice.EXTRA_DEVICE, sRemoteDevice);
-            sendOrderedBroadcast(intent, BLUETOOTH_ADMIN_PERM);
+            sendOrderedBroadcast(intent, BLUETOOTH_CONNECT);
 
             if (VERBOSE) {
                 Log.v(TAG, "waiting for authorization for connection from: " + sRemoteDeviceName);

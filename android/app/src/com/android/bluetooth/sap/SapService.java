@@ -394,7 +394,7 @@ public class SapService extends ProfileService {
 
                         mIsWaitingAuthorization = true;
                         setUserTimeoutAlarm();
-                        sendBroadcast(intent, BLUETOOTH_ADMIN_PERM);
+                        sendBroadcast(intent, BLUETOOTH_CONNECT);
 
                         if (VERBOSE) {
                             Log.v(TAG, "waiting for authorization for connection from: "
