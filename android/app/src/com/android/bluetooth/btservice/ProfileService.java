@@ -60,6 +60,7 @@ public abstract class ProfileService extends Service {
     private AdapterService mAdapterService;
     private BroadcastReceiver mUserSwitchedReceiver;
     private boolean mProfileStarted = false;
+    private boolean mTestModeEnabled = false;
 
     public String getName() {
         return getClass().getSimpleName();
@@ -67,6 +68,10 @@ public abstract class ProfileService extends Service {
 
     protected boolean isAvailable() {
         return mProfileStarted;
+    }
+
+    protected boolean isTestModeEnabled() {
+        return mTestModeEnabled;
     }
 
     /**
@@ -109,6 +114,13 @@ public abstract class ProfileService extends Service {
      * @param userId is equivalent to the result of ActivityManager.getCurrentUser()
      */
     protected void setUserUnlocked(int userId) {}
+
+    /**
+     * @param testEnabled if the profile should enter or exit a testing mode
+     */
+    protected void setTestModeEnabled(boolean testModeEnabled) {
+        mTestModeEnabled = testModeEnabled;
+    }
 
     protected ProfileService() {
         mName = getName();
