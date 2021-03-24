@@ -1,5 +1,7 @@
 package com.android.bluetooth.sap;
 
+import static android.Manifest.permission.BLUETOOTH_CONNECT;
+
 import android.annotation.TargetApi;
 import android.app.AlarmManager;
 import android.app.PendingIntent;
@@ -520,7 +522,7 @@ public class SapService extends ProfileService {
             intent.putExtra(BluetoothProfile.EXTRA_PREVIOUS_STATE, prevState);
             intent.putExtra(BluetoothProfile.EXTRA_STATE, mState);
             intent.putExtra(BluetoothDevice.EXTRA_DEVICE, mRemoteDevice);
-            sendBroadcast(intent, BLUETOOTH_PERM);
+            sendBroadcast(intent, BLUETOOTH_CONNECT);
         }
     }
 
@@ -758,7 +760,7 @@ public class SapService extends ProfileService {
         intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
         intent.putExtra(BluetoothDevice.EXTRA_ACCESS_REQUEST_TYPE,
                 BluetoothDevice.REQUEST_TYPE_SIM_ACCESS);
-        sendBroadcast(intent, BLUETOOTH_PERM);
+        sendBroadcast(intent, BLUETOOTH_CONNECT);
     }
 
     private void sendShutdownMessage() {
@@ -766,7 +768,7 @@ public class SapService extends ProfileService {
         To speed up things, simply delete them. */
         if (mRemoveTimeoutMsg) {
             Intent timeoutIntent = new Intent(USER_CONFIRM_TIMEOUT_ACTION);
-            sendBroadcast(timeoutIntent, BLUETOOTH_PERM);
+            sendBroadcast(timeoutIntent, BLUETOOTH_CONNECT);
             mIsWaitingAuthorization = false;
             cancelUserTimeoutAlarm();
         }

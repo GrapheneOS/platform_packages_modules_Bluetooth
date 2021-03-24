@@ -16,6 +16,8 @@
 
 package com.android.bluetooth.pbap;
 
+import static android.Manifest.permission.BLUETOOTH_CONNECT;
+
 import android.annotation.NonNull;
 import android.app.Notification;
 import android.app.NotificationChannel;
@@ -155,7 +157,7 @@ class PbapStateMachine extends StateMachine {
             intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
             intent.addFlags(Intent.FLAG_RECEIVER_INCLUDE_BACKGROUND);
             mService.sendBroadcastAsUser(intent, UserHandle.ALL,
-                    BluetoothPbapService.BLUETOOTH_PERM);
+                    BLUETOOTH_CONNECT);
         }
 
         /**

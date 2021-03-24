@@ -119,7 +119,6 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
     static final int MSG_RELEASE_WAKE_LOCK = 5005;
     static final int MSG_STATE_MACHINE_DONE = 5006;
 
-    static final String BLUETOOTH_PERM = android.Manifest.permission.BLUETOOTH;
     private static final String BLUETOOTH_ADMIN_PERM = android.Manifest.permission.BLUETOOTH_ADMIN;
 
     static final int START_LISTENER = 1;

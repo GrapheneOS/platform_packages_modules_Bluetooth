@@ -55,8 +55,6 @@ public class MapClientService extends ProfileService {
 
     static final int MAXIMUM_CONNECTED_DEVICES = 4;
 
-    private static final String BLUETOOTH_PERM = android.Manifest.permission.BLUETOOTH;
-
     private Map<BluetoothDevice, MceStateMachine> mMapInstanceMap = new ConcurrentHashMap<>(1);
     private MnsService mMnsServer;
     private BluetoothAdapter mAdapter;
