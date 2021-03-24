@@ -16,8 +16,12 @@
 
 package com.android.bluetooth.btservice;
 
+import android.annotation.Nullable;
+
 final class DiscoveringPackage {
     private String mPackageName;
+
+    @Nullable
     private String mPermission;
 
     DiscoveringPackage(String packageName, String permission) {
@@ -29,6 +33,7 @@ final class DiscoveringPackage {
         return mPackageName;
     }
 
+    @Nullable
     public String getPermission() {
         return mPermission;
     }

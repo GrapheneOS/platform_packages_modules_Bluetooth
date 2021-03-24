@@ -16,6 +16,8 @@
 
 package com.android.bluetooth.btservice;
 
+import static android.Manifest.permission.BLUETOOTH_SCAN;
+
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothAssignedNumbers;
 import android.bluetooth.BluetoothClass;
@@ -601,9 +603,15 @@ final class RemoteDevices {
         synchronized (packages) {
             for (DiscoveringPackage pkg : packages) {
                 intent.setPackage(pkg.getPackageName());
-                sAdapterService.sendBroadcastMultiplePermissions(intent, new String[]{
-                        AdapterService.BLUETOOTH_PERM, pkg.getPermission()
-                });
+
+                String[] perms;
+                if (pkg.getPermission() == null) {
+                    perms = new String[] { BLUETOOTH_SCAN };
+                } else {
+                    perms = new String[] { BLUETOOTH_SCAN, pkg.getPermission() };
+                }
+
+                sAdapterService.sendBroadcastMultiplePermissions(intent, perms);
             }
         }
     }
