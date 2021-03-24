@@ -3430,7 +3430,7 @@ public class AdapterService extends Service {
                     debugLoggingDisabledTags));
         }
         if (DeviceConfig.getBoolean(DeviceConfig.NAMESPACE_BLUETOOTH, BTAA_HCI_LOG_FLAG, false)) {
-            initFlags.add(BTAA_HCI_LOG_FLAG);
+            initFlags.add(String.format("%s=%s", BTAA_HCI_LOG_FLAG, "true"));
         }
         return initFlags.toArray(new String[0]);
     }
