@@ -1199,9 +1199,8 @@ public class BluetoothMapService extends ProfileService {
                 return null;
             }
 
-            if (mService != null && mService.isAvailable()) {
-                mService.enforceCallingOrSelfPermission(BLUETOOTH_PERM,
-                        "Need BLUETOOTH permission");
+            if (mService != null && mService.isAvailable()
+                    && Utils.checkConnectPermissionForPreflight(mService)) {
                 return mService;
             }
             return null;

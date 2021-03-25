@@ -27,6 +27,7 @@ import android.bluetooth.IBluetoothCallback;
 import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
+import android.content.pm.PermissionInfo;
 import android.content.res.Resources;
 import android.media.AudioManager;
 import android.os.Binder;
@@ -128,6 +129,9 @@ public class AdapterServiceTest {
                 () -> mAdapterService = new AdapterService());
         mServiceBinder = new AdapterService.AdapterServiceBinder(mAdapterService);
         mMockPackageManager = mock(PackageManager.class);
+        when(mMockPackageManager.getPermissionInfo(any(), anyInt()))
+                .thenReturn(new PermissionInfo());
+
         mMockContentResolver = new MockContentResolver(mMockContext);
         MockitoAnnotations.initMocks(this);
         mPowerManager = (PowerManager) InstrumentationRegistry.getTargetContext()

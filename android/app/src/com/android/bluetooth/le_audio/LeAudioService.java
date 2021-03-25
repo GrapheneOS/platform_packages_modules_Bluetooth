@@ -197,7 +197,9 @@ public class LeAudioService extends ProfileService {
     }
 
     public boolean connect(BluetoothDevice device) {
-        enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH ADMIN permission");
+        if (!Utils.checkConnectPermissionForPreflight(this)) {
+            return false;
+        }
         if (DBG) {
             Log.d(TAG, "connect(): " + device);
         }
@@ -259,7 +261,9 @@ public class LeAudioService extends ProfileService {
      * @return true if profile disconnected, false if device not connected over LE Audio
      */
     public boolean disconnect(BluetoothDevice device) {
-        enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH ADMIN permission");
+        if (!Utils.checkConnectPermissionForPreflight(this)) {
+            return false;
+        }
         if (DBG) {
             Log.d(TAG, "disconnect(): " + device);
         }
@@ -300,7 +304,9 @@ public class LeAudioService extends ProfileService {
     }
 
     List<BluetoothDevice> getConnectedDevices() {
-        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+        if (!Utils.checkConnectPermissionForPreflight(this)) {
+            return new ArrayList<>(0);
+        }
         synchronized (mStateMachines) {
             List<BluetoothDevice> devices = new ArrayList<>();
             for (LeAudioStateMachine sm : mStateMachines.values()) {
@@ -313,7 +319,9 @@ public class LeAudioService extends ProfileService {
     }
 
     List<BluetoothDevice> getDevicesMatchingConnectionStates(int[] states) {
-        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+        if (!Utils.checkConnectPermissionForPreflight(this)) {
+            return new ArrayList<>(0);
+        }
         ArrayList<BluetoothDevice> devices = new ArrayList<>();
         if (states == null) {
             return devices;
@@ -370,7 +378,9 @@ public class LeAudioService extends ProfileService {
      * {@link BluetoothProfile#STATE_DISCONNECTING} if this profile is being disconnected
      */
     public int getConnectionState(BluetoothDevice device) {
-        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+        if (!Utils.checkConnectPermissionForPreflight(this)) {
+            return BluetoothProfile.STATE_DISCONNECTED;
+        }
         synchronized (mStateMachines) {
             LeAudioStateMachine sm = mStateMachines.get(device);
             if (sm == null) {
@@ -387,7 +397,9 @@ public class LeAudioService extends ProfileService {
      * @return true on success, otherwise false
      */
     public boolean setActiveDevice(BluetoothDevice device) {
-        enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH ADMIN permission");
+        if (!Utils.checkConnectPermissionForPreflight(this)) {
+            return false;
+        }
         if (DBG) {
             Log.d(TAG, "setActiveDevice:" + device);
         }
@@ -689,7 +701,9 @@ public class LeAudioService extends ProfileService {
      * @hide
      */
     public int getConnectionPolicy(BluetoothDevice device) {
-        enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH_ADMIN permission");
+        if (!Utils.checkConnectPermissionForPreflight(this)) {
+            return BluetoothProfile.CONNECTION_POLICY_UNKNOWN;
+        }
         return mDatabaseManager
                 .getProfileConnectionPolicy(device, BluetoothProfile.LE_AUDIO);
     }

@@ -510,7 +510,9 @@ public class HidDeviceService extends ProfileService {
     synchronized boolean registerApp(BluetoothHidDeviceAppSdpSettings sdp,
             BluetoothHidDeviceAppQosSettings inQos, BluetoothHidDeviceAppQosSettings outQos,
             IBluetoothHidDeviceCallback callback) {
-        enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH ADMIN permission");
+        if (!Utils.checkConnectPermissionForPreflight(this)) {
+            return false;
+        }
         if (mUserUid != 0) {
             Log.w(TAG, "registerApp(): failed because another app is registered");
             return false;
@@ -557,7 +559,9 @@ public class HidDeviceService extends ProfileService {
     }
 
     synchronized boolean unregisterApp() {
-        enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH ADMIN permission");
+        if (!Utils.checkConnectPermissionForPreflight(this)) {
+            return false;
+        }
         if (DBG) {
             Log.d(TAG, "unregisterApp()");
         }
@@ -582,7 +586,9 @@ public class HidDeviceService extends ProfileService {
     }
 
     synchronized boolean sendReport(BluetoothDevice device, int id, byte[] data) {
-        enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH ADMIN permission");
+        if (!Utils.checkConnectPermissionForPreflight(this)) {
+            return false;
+        }
         if (DBG) {
             Log.d(TAG, "sendReport(): device=" + device + " id=" + id);
         }
@@ -592,7 +598,9 @@ public class HidDeviceService extends ProfileService {
     }
 
     synchronized boolean replyReport(BluetoothDevice device, byte type, byte id, byte[] data) {
-        enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH ADMIN permission");
+        if (!Utils.checkConnectPermissionForPreflight(this)) {
+            return false;
+        }
         if (DBG) {
             Log.d(TAG, "replyReport(): device=" + device + " type=" + type + " id=" + id);
         }
@@ -602,7 +610,9 @@ public class HidDeviceService extends ProfileService {
     }
 
     synchronized boolean unplug(BluetoothDevice device) {
-        enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH ADMIN permission");
+        if (!Utils.checkConnectPermissionForPreflight(this)) {
+            return false;
+        }
         if (DBG) {
             Log.d(TAG, "unplug(): device=" + device);
         }
@@ -618,7 +628,9 @@ public class HidDeviceService extends ProfileService {
      * @return true if the connection is successful, false otherwise
      */
     public synchronized boolean connect(BluetoothDevice device) {
-        enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH ADMIN permission");
+        if (!Utils.checkConnectPermissionForPreflight(this)) {
+            return false;
+        }
         if (DBG) {
             Log.d(TAG, "connect(): device=" + device);
         }
@@ -633,7 +645,9 @@ public class HidDeviceService extends ProfileService {
      * @return true if the disconnection is successful, false otherwise
      */
     public synchronized boolean disconnect(BluetoothDevice device) {
-        enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH ADMIN permission");
+        if (!Utils.checkConnectPermissionForPreflight(this)) {
+            return false;
+        }
         if (DBG) {
             Log.d(TAG, "disconnect(): device=" + device);
         }
@@ -701,7 +715,9 @@ public class HidDeviceService extends ProfileService {
     }
 
     synchronized boolean reportError(BluetoothDevice device, byte error) {
-        enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH ADMIN permission");
+        if (!Utils.checkConnectPermissionForPreflight(this)) {
+            return false;
+        }
         if (DBG) {
             Log.d(TAG, "reportError(): device=" + device + " error=" + error);
         }
@@ -711,7 +727,9 @@ public class HidDeviceService extends ProfileService {
     }
 
     synchronized String getUserAppName() {
-        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+        if (!Utils.checkConnectPermissionForPreflight(this)) {
+            return null;
+        }
         if (mUserUid < Process.FIRST_APPLICATION_UID) {
             return "";
         }
@@ -798,7 +816,9 @@ public class HidDeviceService extends ProfileService {
      * {@link BluetoothProfile#STATE_DISCONNECTING}
      */
     public int getConnectionState(BluetoothDevice device) {
-        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+        if (!Utils.checkConnectPermissionForPreflight(this)) {
+            return BluetoothHidDevice.STATE_DISCONNECTED;
+        }
         if (mHidDevice != null && mHidDevice.equals(device)) {
             return mHidDeviceState;
         }
@@ -806,7 +826,9 @@ public class HidDeviceService extends ProfileService {
     }
 
     List<BluetoothDevice> getDevicesMatchingConnectionStates(int[] states) {
-        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+        if (!Utils.checkConnectPermissionForPreflight(this)) {
+            return new ArrayList<>(0);
+        }
         List<BluetoothDevice> inputDevices = new ArrayList<BluetoothDevice>();
 
         if (mHidDevice != null) {

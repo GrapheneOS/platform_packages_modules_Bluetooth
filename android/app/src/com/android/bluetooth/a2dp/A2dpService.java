@@ -16,7 +16,6 @@
 
 package com.android.bluetooth.a2dp;
 
-import static com.android.bluetooth.Utils.enforceBluetoothPermission;
 import static com.android.bluetooth.Utils.enforceBluetoothPrivilegedPermission;
 
 import android.bluetooth.BluetoothA2dp;
@@ -239,7 +238,9 @@ public class A2dpService extends ProfileService {
     }
 
     public boolean connect(BluetoothDevice device) {
-        enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH ADMIN permission");
+        if (!Utils.checkConnectPermissionForPreflight(this)) {
+            return false;
+        }
         if (DBG) {
             Log.d(TAG, "connect(): " + device);
         }
@@ -291,7 +292,9 @@ public class A2dpService extends ProfileService {
      * @return true if profile disconnected, false if device not connected over a2dp
      */
     public boolean disconnect(BluetoothDevice device) {
-        enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH ADMIN permission");
+        if (!Utils.checkConnectPermissionForPreflight(this)) {
+            return false;
+        }
         if (DBG) {
             Log.d(TAG, "disconnect(): " + device);
         }
@@ -308,7 +311,9 @@ public class A2dpService extends ProfileService {
     }
 
     public List<BluetoothDevice> getConnectedDevices() {
-        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+        if (!Utils.checkConnectPermissionForPreflight(this)) {
+            return new ArrayList<>(0);
+        }
         synchronized (mStateMachines) {
             List<BluetoothDevice> devices = new ArrayList<>();
             for (A2dpStateMachine sm : mStateMachines.values()) {
@@ -389,7 +394,9 @@ public class A2dpService extends ProfileService {
     }
 
     List<BluetoothDevice> getDevicesMatchingConnectionStates(int[] states) {
-        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+        if (!Utils.checkConnectPermissionForPreflight(this)) {
+            return new ArrayList<>(0);
+        }
         List<BluetoothDevice> devices = new ArrayList<>();
         if (states == null) {
             return devices;
@@ -437,7 +444,9 @@ public class A2dpService extends ProfileService {
     }
 
     public int getConnectionState(BluetoothDevice device) {
-        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+        if (!Utils.checkConnectPermissionForPreflight(this)) {
+            return BluetoothProfile.STATE_DISCONNECTED;
+        }
         synchronized (mStateMachines) {
             A2dpStateMachine sm = mStateMachines.get(device);
             if (sm == null) {
@@ -513,7 +522,9 @@ public class A2dpService extends ProfileService {
      * @return true on success, otherwise false
      */
     public boolean setActiveDevice(BluetoothDevice device) {
-        enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH ADMIN permission");
+        if (!Utils.checkConnectPermissionForPreflight(this)) {
+            return false;
+        }
         synchronized (mActiveSwitchingGuard) {
             if (device == null) {
                 // Remove active device and continue playing audio only if necessary.
@@ -602,7 +613,9 @@ public class A2dpService extends ProfileService {
      * @return the active device or null if no device is active
      */
     public BluetoothDevice getActiveDevice() {
-        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+        if (!Utils.checkConnectPermissionForPreflight(this)) {
+            return null;
+        }
         synchronized (mStateMachines) {
             return mActiveDevice;
         }
@@ -681,7 +694,9 @@ public class A2dpService extends ProfileService {
     }
 
     boolean isA2dpPlaying(BluetoothDevice device) {
-        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+        if (!Utils.checkConnectPermissionForPreflight(this)) {
+            return false;
+        }
         if (DBG) {
             Log.d(TAG, "isA2dpPlaying(" + device + ")");
         }
@@ -703,7 +718,9 @@ public class A2dpService extends ProfileService {
      * @hide
      */
     public BluetoothCodecStatus getCodecStatus(BluetoothDevice device) {
-        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+        if (!Utils.checkConnectPermissionForPreflight(this)) {
+            return null;
+        }
         if (DBG) {
             Log.d(TAG, "getCodecStatus(" + device + ")");
         }
@@ -732,7 +749,9 @@ public class A2dpService extends ProfileService {
      */
     public void setCodecConfigPreference(BluetoothDevice device,
                                          BluetoothCodecConfig codecConfig) {
-        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+        if (!Utils.checkConnectPermissionForPreflight(this)) {
+            return;
+        }
         if (DBG) {
             Log.d(TAG, "setCodecConfigPreference(" + device + "): "
                     + Objects.toString(codecConfig));
@@ -764,7 +783,9 @@ public class A2dpService extends ProfileService {
      * @hide
      */
     public void enableOptionalCodecs(BluetoothDevice device) {
-        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+        if (!Utils.checkConnectPermissionForPreflight(this)) {
+            return;
+        }
         if (DBG) {
             Log.d(TAG, "enableOptionalCodecs(" + device + ")");
         }
@@ -795,7 +816,9 @@ public class A2dpService extends ProfileService {
      * @hide
      */
     public void disableOptionalCodecs(BluetoothDevice device) {
-        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+        if (!Utils.checkConnectPermissionForPreflight(this)) {
+            return;
+        }
         if (DBG) {
             Log.d(TAG, "disableOptionalCodecs(" + device + ")");
         }
@@ -828,12 +851,16 @@ public class A2dpService extends ProfileService {
      * {@link OptionalCodecsSupportStatus#OPTIONAL_CODECS_SUPPORT_UNKNOWN}.
      */
     public @OptionalCodecsSupportStatus int getSupportsOptionalCodecs(BluetoothDevice device) {
-        enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH ADMIN permission");
+        if (!Utils.checkConnectPermissionForPreflight(this)) {
+            return BluetoothA2dp.OPTIONAL_CODECS_SUPPORT_UNKNOWN;
+        }
         return mDatabaseManager.getA2dpSupportsOptionalCodecs(device);
     }
 
     public void setSupportsOptionalCodecs(BluetoothDevice device, boolean doesSupport) {
-        enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH ADMIN permission");
+        if (!Utils.checkConnectPermissionForPreflight(this)) {
+            return;
+        }
         int value = doesSupport ? BluetoothA2dp.OPTIONAL_CODECS_SUPPORTED
                 : BluetoothA2dp.OPTIONAL_CODECS_NOT_SUPPORTED;
         mDatabaseManager.setA2dpSupportsOptionalCodecs(device, value);
@@ -849,7 +876,9 @@ public class A2dpService extends ProfileService {
      * {@link OptionalCodecsPreferenceStatus#OPTIONAL_CODECS_PREF_UNKNOWN}.
      */
     public @OptionalCodecsPreferenceStatus int getOptionalCodecsEnabled(BluetoothDevice device) {
-        enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH_ADMIN permission");
+        if (!Utils.checkConnectPermissionForPreflight(this)) {
+            return BluetoothA2dp.OPTIONAL_CODECS_PREF_UNKNOWN;
+        }
         return mDatabaseManager.getA2dpOptionalCodecsEnabled(device);
     }
 
@@ -864,7 +893,9 @@ public class A2dpService extends ProfileService {
      */
     public void setOptionalCodecsEnabled(BluetoothDevice device,
             @OptionalCodecsPreferenceStatus int value) {
-        enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH_ADMIN permission");
+        if (!Utils.checkConnectPermissionForPreflight(this)) {
+            return;
+        }
         if (value != BluetoothA2dp.OPTIONAL_CODECS_PREF_UNKNOWN
                 && value != BluetoothA2dp.OPTIONAL_CODECS_PREF_DISABLED
                 && value != BluetoothA2dp.OPTIONAL_CODECS_PREF_ENABLED) {
@@ -1320,10 +1351,9 @@ public class A2dpService extends ProfileService {
         @Override
         public int getPriority(BluetoothDevice device) {
             A2dpService service = getService();
-            if (service == null) {
+            if (service == null || !Utils.checkConnectPermissionForPreflight(service)) {
                 return BluetoothProfile.CONNECTION_POLICY_UNKNOWN;
             }
-            enforceBluetoothPermission(service);
             return service.getConnectionPolicy(device);
         }
 

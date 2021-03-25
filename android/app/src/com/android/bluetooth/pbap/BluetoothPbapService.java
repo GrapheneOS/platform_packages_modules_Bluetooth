@@ -446,7 +446,9 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
     }
 
     List<BluetoothDevice> getConnectedDevices() {
-        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+        if (!Utils.checkConnectPermissionForPreflight(this)) {
+            return new ArrayList<>(0);
+        }
         if (mPbapStateMachineMap == null) {
             return new ArrayList<>();
         }
@@ -456,7 +458,9 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
     }
 
     List<BluetoothDevice> getDevicesMatchingConnectionStates(int[] states) {
-        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+        if (!Utils.checkConnectPermissionForPreflight(this)) {
+            return new ArrayList<>(0);
+        }
         List<BluetoothDevice> devices = new ArrayList<>();
         if (mPbapStateMachineMap == null || states == null) {
             return devices;
@@ -520,7 +524,9 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
         if (device == null) {
             throw new IllegalArgumentException("Null device");
         }
-        enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH_ADMIN permission");
+        if (!Utils.checkConnectPermissionForPreflight(this)) {
+            return BluetoothProfile.CONNECTION_POLICY_UNKNOWN;
+        }
         return mDatabaseManager
                 .getProfileConnectionPolicy(device, BluetoothProfile.PBAP);
     }
@@ -530,7 +536,9 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
      * @param device is the remote bluetooth device
      */
     public void disconnect(BluetoothDevice device) {
-        enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH_ADMIN permission");
+        if (!Utils.checkConnectPermissionForPreflight(this)) {
+            return;
+        }
         synchronized (mPbapStateMachineMap) {
             PbapStateMachine sm = mPbapStateMachineMap.get(device);
             if (sm != null) {
