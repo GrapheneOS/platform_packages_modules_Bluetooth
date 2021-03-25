@@ -16,6 +16,8 @@
 
 package com.android.bluetooth.hfp;
 
+import static android.Manifest.permission.BLUETOOTH_CONNECT;
+
 import android.bluetooth.BluetoothDevice;
 import android.content.ContentResolver;
 import android.content.Context;
@@ -86,7 +88,6 @@ public class AtPhonebook {
 
     // package and class name to which we send intent to check phone book access permission
     private final String mPairingPackage;
-    private static final String BLUETOOTH_ADMIN_PERM = android.Manifest.permission.BLUETOOTH_ADMIN;
 
     private final HashMap<String, PhonebookResult> mPhonebooks =
             new HashMap<String, PhonebookResult>(4);
@@ -643,7 +644,7 @@ public class AtPhonebook {
             intent.putExtra(BluetoothDevice.EXTRA_DEVICE, remoteDevice);
             // Leave EXTRA_PACKAGE_NAME and EXTRA_CLASS_NAME field empty.
             // BluetoothHandsfree's broadcast receiver is anonymous, cannot be targeted.
-            mContext.sendOrderedBroadcast(intent, BLUETOOTH_ADMIN_PERM);
+            mContext.sendOrderedBroadcast(intent, BLUETOOTH_CONNECT);
         }
 
         return permission;

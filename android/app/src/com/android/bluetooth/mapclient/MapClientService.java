@@ -55,8 +55,6 @@ public class MapClientService extends ProfileService {
 
     static final int MAXIMUM_CONNECTED_DEVICES = 4;
 
-    private static final String BLUETOOTH_PERM = android.Manifest.permission.BLUETOOTH;
-
     private Map<BluetoothDevice, MceStateMachine> mMapInstanceMap = new ConcurrentHashMap<>(1);
     private MnsService mMnsServer;
     private BluetoothAdapter mAdapter;
@@ -461,9 +459,8 @@ public class MapClientService extends ProfileService {
                 return null;
             }
 
-            if (mService != null && mService.isAvailable()) {
-                mService.enforceCallingOrSelfPermission(BLUETOOTH_PERM,
-                        "Need BLUETOOTH permission");
+            if (mService != null && mService.isAvailable()
+                    && Utils.checkConnectPermissionForPreflight(mService)) {
                 return mService;
             }
             return null;
@@ -592,15 +589,13 @@ public class MapClientService extends ProfileService {
         @Override
         public int getSupportedFeatures(BluetoothDevice device) {
             MapClientService service = getService();
-            if (service == null) {
+            if (service == null || !Utils.checkConnectPermissionForPreflight(mService)) {
                 if (DBG) {
                     Log.d(TAG,
                             "in MapClientService getSupportedFeatures stub, returning 0");
                 }
                 return 0;
             }
-            mService.enforceCallingOrSelfPermission(Manifest.permission.BLUETOOTH,
-                    "Need BLUETOOTH permission");
             return service.getSupportedFeatures(device);
         }
 

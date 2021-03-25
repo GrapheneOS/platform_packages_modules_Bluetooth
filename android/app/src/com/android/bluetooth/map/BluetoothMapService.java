@@ -15,6 +15,8 @@
 
 package com.android.bluetooth.map;
 
+import static android.Manifest.permission.BLUETOOTH_CONNECT;
+
 import static com.android.bluetooth.Utils.enforceBluetoothPrivilegedPermission;
 
 import android.app.AlarmManager;
@@ -94,9 +96,6 @@ public class BluetoothMapService extends ProfileService {
     static final int MSG_RELEASE_WAKE_LOCK = 5006;
     static final int MSG_MNS_SDP_SEARCH = 5007;
     static final int MSG_OBSERVER_REGISTRATION = 5008;
-
-    private static final String BLUETOOTH_PERM = android.Manifest.permission.BLUETOOTH;
-    private static final String BLUETOOTH_ADMIN_PERM = android.Manifest.permission.BLUETOOTH_ADMIN;
 
     private static final int START_LISTENER = 1;
     private static final int USER_TIMEOUT = 2;
@@ -511,7 +510,7 @@ public class BluetoothMapService extends ProfileService {
             intent.putExtra(BluetoothProfile.EXTRA_PREVIOUS_STATE, prevState);
             intent.putExtra(BluetoothProfile.EXTRA_STATE, mState);
             intent.putExtra(BluetoothDevice.EXTRA_DEVICE, sRemoteDevice);
-            sendBroadcast(intent, BLUETOOTH_PERM);
+            sendBroadcast(intent, BLUETOOTH_CONNECT);
         }
     }
 
@@ -924,7 +923,7 @@ public class BluetoothMapService extends ProfileService {
             intent.putExtra(BluetoothDevice.EXTRA_ACCESS_REQUEST_TYPE,
                     BluetoothDevice.REQUEST_TYPE_MESSAGE_ACCESS);
             intent.putExtra(BluetoothDevice.EXTRA_DEVICE, sRemoteDevice);
-            sendOrderedBroadcast(intent, BLUETOOTH_ADMIN_PERM);
+            sendOrderedBroadcast(intent, BLUETOOTH_CONNECT);
 
             if (VERBOSE) {
                 Log.v(TAG, "waiting for authorization for connection from: " + sRemoteDeviceName);
@@ -1019,7 +1018,7 @@ public class BluetoothMapService extends ProfileService {
         // Pending messages are no longer valid. To speed up things, simply delete them.
         if (mRemoveTimeoutMsg) {
             Intent timeoutIntent = new Intent(USER_CONFIRM_TIMEOUT_ACTION);
-            sendBroadcast(timeoutIntent, BLUETOOTH_PERM);
+            sendBroadcast(timeoutIntent, BLUETOOTH_CONNECT);
             mIsWaitingAuthorization = false;
             cancelUserTimeoutAlarm();
         }
@@ -1199,9 +1198,8 @@ public class BluetoothMapService extends ProfileService {
                 return null;
             }
 
-            if (mService != null && mService.isAvailable()) {
-                mService.enforceCallingOrSelfPermission(BLUETOOTH_PERM,
-                        "Need BLUETOOTH permission");
+            if (mService != null && mService.isAvailable()
+                    && Utils.checkConnectPermissionForPreflight(mService)) {
                 return mService;
             }
             return null;

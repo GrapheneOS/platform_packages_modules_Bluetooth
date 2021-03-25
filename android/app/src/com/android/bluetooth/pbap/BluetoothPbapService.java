@@ -32,6 +32,8 @@
 
 package com.android.bluetooth.pbap;
 
+import static android.Manifest.permission.BLUETOOTH_CONNECT;
+
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothProfile;
@@ -118,9 +120,6 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
     static final int MSG_ACQUIRE_WAKE_LOCK = 5004;
     static final int MSG_RELEASE_WAKE_LOCK = 5005;
     static final int MSG_STATE_MACHINE_DONE = 5006;
-
-    static final String BLUETOOTH_PERM = android.Manifest.permission.BLUETOOTH;
-    private static final String BLUETOOTH_ADMIN_PERM = android.Manifest.permission.BLUETOOTH_ADMIN;
 
     static final int START_LISTENER = 1;
     static final int USER_TIMEOUT = 2;
@@ -367,7 +366,7 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
                     intent.putExtra(BluetoothDevice.EXTRA_DEVICE, stateMachine.getRemoteDevice());
                     intent.putExtra(BluetoothDevice.EXTRA_ACCESS_REQUEST_TYPE,
                             BluetoothDevice.REQUEST_TYPE_PHONEBOOK_ACCESS);
-                    sendBroadcast(intent, BLUETOOTH_ADMIN_PERM);
+                    sendBroadcast(intent, BLUETOOTH_CONNECT);
                     stateMachine.sendMessage(PbapStateMachine.REJECTED);
                     break;
                 case MSG_ACQUIRE_WAKE_LOCK:
@@ -446,7 +445,9 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
     }
 
     List<BluetoothDevice> getConnectedDevices() {
-        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+        if (!Utils.checkConnectPermissionForPreflight(this)) {
+            return new ArrayList<>(0);
+        }
         if (mPbapStateMachineMap == null) {
             return new ArrayList<>();
         }
@@ -456,7 +457,9 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
     }
 
     List<BluetoothDevice> getDevicesMatchingConnectionStates(int[] states) {
-        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
+        if (!Utils.checkConnectPermissionForPreflight(this)) {
+            return new ArrayList<>(0);
+        }
         List<BluetoothDevice> devices = new ArrayList<>();
         if (mPbapStateMachineMap == null || states == null) {
             return devices;
@@ -520,7 +523,9 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
         if (device == null) {
             throw new IllegalArgumentException("Null device");
         }
-        enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH_ADMIN permission");
+        if (!Utils.checkConnectPermissionForPreflight(this)) {
+            return BluetoothProfile.CONNECTION_POLICY_UNKNOWN;
+        }
         return mDatabaseManager
                 .getProfileConnectionPolicy(device, BluetoothProfile.PBAP);
     }
@@ -530,7 +535,9 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
      * @param device is the remote bluetooth device
      */
     public void disconnect(BluetoothDevice device) {
-        enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH_ADMIN permission");
+        if (!Utils.checkConnectPermissionForPreflight(this)) {
+            return;
+        }
         synchronized (mPbapStateMachineMap) {
             PbapStateMachine sm = mPbapStateMachineMap.get(device);
             if (sm != null) {
@@ -789,7 +796,7 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
                     BluetoothDevice.REQUEST_TYPE_PHONEBOOK_ACCESS);
             intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
             intent.putExtra(BluetoothDevice.EXTRA_PACKAGE_NAME, this.getPackageName());
-            this.sendOrderedBroadcast(intent, BluetoothPbapService.BLUETOOTH_ADMIN_PERM);
+            this.sendOrderedBroadcast(intent, BLUETOOTH_CONNECT);
             if (VERBOSE) {
                 Log.v(TAG, "waiting for authorization for connection from: " + device);
             }
