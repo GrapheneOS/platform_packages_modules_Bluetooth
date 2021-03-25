@@ -45,6 +45,8 @@
 
 package com.android.bluetooth.a2dp;
 
+import static android.Manifest.permission.BLUETOOTH_CONNECT;
+
 import android.bluetooth.BluetoothA2dp;
 import android.bluetooth.BluetoothCodecConfig;
 import android.bluetooth.BluetoothCodecStatus;
@@ -682,7 +684,7 @@ final class A2dpStateMachine extends StateMachine {
         intent.putExtra(BluetoothDevice.EXTRA_DEVICE, mDevice);
         intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY_BEFORE_BOOT
                         | Intent.FLAG_RECEIVER_INCLUDE_BACKGROUND);
-        mA2dpService.sendBroadcast(intent, ProfileService.BLUETOOTH_PERM);
+        mA2dpService.sendBroadcast(intent, BLUETOOTH_CONNECT);
     }
 
     private void broadcastAudioState(int newState, int prevState) {
@@ -694,7 +696,7 @@ final class A2dpStateMachine extends StateMachine {
         intent.putExtra(BluetoothProfile.EXTRA_PREVIOUS_STATE, prevState);
         intent.putExtra(BluetoothProfile.EXTRA_STATE, newState);
         intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY_BEFORE_BOOT);
-        mA2dpService.sendBroadcast(intent, A2dpService.BLUETOOTH_PERM);
+        mA2dpService.sendBroadcast(intent, BLUETOOTH_CONNECT);
     }
 
     @Override

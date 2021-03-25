@@ -16,6 +16,7 @@
 
 package com.android.bluetooth.hfp;
 
+import static android.Manifest.permission.BLUETOOTH_CONNECT;
 import static android.Manifest.permission.MODIFY_PHONE_STATE;
 
 import static com.android.bluetooth.Utils.enforceBluetoothPrivilegedPermission;
@@ -1833,7 +1834,7 @@ public class HeadsetService extends ProfileService {
         intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
         intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY_BEFORE_BOOT
                 | Intent.FLAG_RECEIVER_INCLUDE_BACKGROUND);
-        sendBroadcastAsUser(intent, UserHandle.ALL, HeadsetService.BLUETOOTH_PERM);
+        sendBroadcastAsUser(intent, UserHandle.ALL, BLUETOOTH_CONNECT);
     }
 
     /**

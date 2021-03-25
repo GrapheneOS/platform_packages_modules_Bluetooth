@@ -16,6 +16,8 @@
 
 package com.android.bluetooth.a2dp;
 
+import static android.Manifest.permission.BLUETOOTH_CONNECT;
+
 import static com.android.bluetooth.Utils.enforceBluetoothPrivilegedPermission;
 
 import android.bluetooth.BluetoothA2dp;
@@ -1065,7 +1067,7 @@ public class A2dpService extends ProfileService {
         intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
         intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY_BEFORE_BOOT
                         | Intent.FLAG_RECEIVER_INCLUDE_BACKGROUND);
-        sendBroadcast(intent, ProfileService.BLUETOOTH_PERM);
+        sendBroadcast(intent, BLUETOOTH_CONNECT);
     }
 
     private void broadcastCodecConfig(BluetoothDevice device, BluetoothCodecStatus codecStatus) {
@@ -1077,7 +1079,7 @@ public class A2dpService extends ProfileService {
         intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
         intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY_BEFORE_BOOT
                         | Intent.FLAG_RECEIVER_INCLUDE_BACKGROUND);
-        sendBroadcast(intent, A2dpService.BLUETOOTH_PERM);
+        sendBroadcast(intent, BLUETOOTH_CONNECT);
     }
 
     private class BondStateChangedReceiver extends BroadcastReceiver {

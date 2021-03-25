@@ -55,6 +55,7 @@ import android.os.ParcelUuid;
 import android.os.Process;
 import android.os.UserManager;
 import android.util.Log;
+import static android.Manifest.permission.BLUETOOTH_CONNECT;
 
 import com.android.bluetooth.BluetoothMetricsProto;
 import com.android.bluetooth.btservice.MetricsLogger;
@@ -343,7 +344,7 @@ final class PbapClientStateMachine extends StateMachine {
         intent.putExtra(BluetoothProfile.EXTRA_STATE, state);
         intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
         intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY_BEFORE_BOOT);
-        mService.sendBroadcast(intent, ProfileService.BLUETOOTH_PERM);
+        mService.sendBroadcast(intent, BLUETOOTH_CONNECT);
     }
 
     public void disconnect(BluetoothDevice device) {

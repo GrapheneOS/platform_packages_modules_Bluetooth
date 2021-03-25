@@ -53,6 +53,7 @@ import android.content.Intent;
 import android.os.Looper;
 import android.os.Message;
 import android.util.Log;
+import static android.Manifest.permission.BLUETOOTH_CONNECT;
 
 import com.android.bluetooth.btservice.ProfileService;
 import com.android.internal.annotations.VisibleForTesting;
@@ -523,7 +524,7 @@ final class LeAudioStateMachine extends StateMachine {
         intent.putExtra(BluetoothDevice.EXTRA_DEVICE, mDevice);
         intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY_BEFORE_BOOT
                         | Intent.FLAG_RECEIVER_INCLUDE_BACKGROUND);
-        mService.sendBroadcast(intent, ProfileService.BLUETOOTH_PERM);
+        mService.sendBroadcast(intent, BLUETOOTH_CONNECT);
     }
 
     private static String messageWhatToString(int what) {

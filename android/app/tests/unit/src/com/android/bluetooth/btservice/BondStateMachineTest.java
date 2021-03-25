@@ -15,6 +15,7 @@
  */
 package com.android.bluetooth.btservice;
 
+import static android.Manifest.permission.BLUETOOTH_CONNECT;
 import static org.mockito.Mockito.*;
 
 import android.bluetooth.BluetoothDevice;
@@ -283,7 +284,7 @@ public class BondStateMachineTest {
         if (shouldBroadcast) {
             verify(mAdapterService, times(++mVerifyCount)).sendBroadcastAsUser(
                     intentArgument.capture(), eq(UserHandle.ALL),
-                    eq(AdapterService.BLUETOOTH_PERM));
+                    eq(BLUETOOTH_CONNECT));
             verifyBondStateChangeIntent(broadcastOldState, broadcastNewState,
                     intentArgument.getValue());
         } else {

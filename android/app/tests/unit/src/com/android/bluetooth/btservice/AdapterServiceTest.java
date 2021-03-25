@@ -16,6 +16,7 @@
 
 package com.android.bluetooth.btservice;
 
+import static android.Manifest.permission.BLUETOOTH_CONNECT;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -237,7 +238,7 @@ public class AdapterServiceTest {
                 invocationNumber + 1, CONTEXT_SWITCH_MS);
 
         verify(mMockContext, timeout(CONTEXT_SWITCH_MS).times(2 * invocationNumber + 2))
-                .sendBroadcast(any(), eq(android.Manifest.permission.BLUETOOTH));
+                .sendBroadcast(any(), eq(BLUETOOTH_CONNECT));
         final int scanMode = mServiceBinder.getScanMode();
         Assert.assertTrue(scanMode == BluetoothAdapter.SCAN_MODE_CONNECTABLE
                 || scanMode == BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE);

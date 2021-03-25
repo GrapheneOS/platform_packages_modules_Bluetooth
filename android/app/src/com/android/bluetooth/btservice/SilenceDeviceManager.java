@@ -16,6 +16,8 @@
 
 package com.android.bluetooth.btservice;
 
+import static android.Manifest.permission.BLUETOOTH_CONNECT;
+
 import android.bluetooth.BluetoothA2dp;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothHeadset;
@@ -278,7 +280,7 @@ public class SilenceDeviceManager {
     void broadcastSilenceStateChange(BluetoothDevice device, boolean state) {
         Intent intent = new Intent(BluetoothDevice.ACTION_SILENCE_MODE_CHANGED);
         intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
-        mAdapterService.sendBroadcastAsUser(intent, UserHandle.ALL, AdapterService.BLUETOOTH_PERM);
+        mAdapterService.sendBroadcastAsUser(intent, UserHandle.ALL, BLUETOOTH_CONNECT);
 
     }
 

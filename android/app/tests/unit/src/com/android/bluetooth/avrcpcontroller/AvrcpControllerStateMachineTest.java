@@ -15,6 +15,7 @@
  */
 package com.android.bluetooth.avrcpcontroller;
 
+import static android.Manifest.permission.BLUETOOTH_CONNECT;
 import static org.mockito.Mockito.*;
 
 import android.bluetooth.BluetoothAdapter;
@@ -197,7 +198,7 @@ public class AvrcpControllerStateMachineTest {
 
         TestUtils.waitForLooperToFinishScheduledTask(mAvrcpStateMachine.getHandler().getLooper());
         verify(mAvrcpControllerService, timeout(ASYNC_CALL_TIMEOUT_MILLIS).times(2)).sendBroadcast(
-                mIntentArgument.capture(), eq(ProfileService.BLUETOOTH_PERM));
+                mIntentArgument.capture(), eq(BLUETOOTH_CONNECT));
         Assert.assertThat(mAvrcpStateMachine.getCurrentState(),
                 IsInstanceOf.instanceOf(AvrcpControllerStateMachine.Connected.class));
         Assert.assertEquals(mAvrcpStateMachine.getState(), BluetoothProfile.STATE_CONNECTED);
@@ -328,7 +329,7 @@ public class AvrcpControllerStateMachineTest {
         numBroadcastsSent += 2;
         verify(mAvrcpControllerService,
                 timeout(ASYNC_CALL_TIMEOUT_MILLIS).times(numBroadcastsSent)).sendBroadcast(
-                mIntentArgument.capture(), eq(ProfileService.BLUETOOTH_PERM));
+                mIntentArgument.capture(), eq(BLUETOOTH_CONNECT));
         Assert.assertEquals(mTestDevice, mIntentArgument.getValue().getParcelableExtra(
                 BluetoothDevice.EXTRA_DEVICE));
         Assert.assertEquals(BluetoothAvrcpController.ACTION_CONNECTION_STATE_CHANGED,
@@ -356,7 +357,7 @@ public class AvrcpControllerStateMachineTest {
         numBroadcastsSent += 2;
         verify(mAvrcpControllerService,
                 timeout(ASYNC_CALL_TIMEOUT_MILLIS).times(numBroadcastsSent)).sendBroadcast(
-                mIntentArgument.capture(), eq(ProfileService.BLUETOOTH_PERM));
+                mIntentArgument.capture(), eq(BLUETOOTH_CONNECT));
         Assert.assertEquals(mTestDevice, mIntentArgument.getValue().getParcelableExtra(
                 BluetoothDevice.EXTRA_DEVICE));
         Assert.assertEquals(BluetoothAvrcpController.ACTION_CONNECTION_STATE_CHANGED,
@@ -384,7 +385,7 @@ public class AvrcpControllerStateMachineTest {
         numBroadcastsSent += 2;
         verify(mAvrcpControllerService,
                 timeout(ASYNC_CALL_TIMEOUT_MILLIS).times(numBroadcastsSent)).sendBroadcast(
-                mIntentArgument.capture(), eq(ProfileService.BLUETOOTH_PERM));
+                mIntentArgument.capture(), eq(BLUETOOTH_CONNECT));
         Assert.assertEquals(mTestDevice, mIntentArgument.getValue().getParcelableExtra(
                 BluetoothDevice.EXTRA_DEVICE));
         Assert.assertEquals(BluetoothAvrcpController.ACTION_CONNECTION_STATE_CHANGED,
