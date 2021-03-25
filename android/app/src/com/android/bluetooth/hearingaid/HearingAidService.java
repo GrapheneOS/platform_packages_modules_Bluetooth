@@ -16,6 +16,8 @@
 
 package com.android.bluetooth.hearingaid;
 
+import static android.Manifest.permission.BLUETOOTH_CONNECT;
+
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothHearingAid;
 import android.bluetooth.BluetoothProfile;
@@ -697,7 +699,7 @@ public class HearingAidService extends ProfileService {
         intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
         intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY_BEFORE_BOOT
                 | Intent.FLAG_RECEIVER_INCLUDE_BACKGROUND);
-        sendBroadcast(intent, ProfileService.BLUETOOTH_PERM);
+        sendBroadcast(intent, BLUETOOTH_CONNECT);
 
         if (device == null) {
             if (DBG) {

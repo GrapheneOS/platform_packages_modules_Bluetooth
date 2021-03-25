@@ -28,7 +28,6 @@ class BluetoothSocketManagerBinder extends IBluetoothSocketManager.Stub {
     private static final String TAG = "BluetoothSocketManagerBinder";
 
     private static final int INVALID_FD = -1;
-    private static final String BLUETOOTH_PERM = android.Manifest.permission.BLUETOOTH;
 
     private AdapterService mService;
 

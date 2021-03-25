@@ -16,6 +16,7 @@
 
 package com.android.bluetooth.btservice;
 
+import static android.Manifest.permission.BLUETOOTH_CONNECT;
 import static org.mockito.Mockito.*;
 
 import android.bluetooth.BluetoothA2dp;
@@ -118,7 +119,7 @@ public class SilenceDeviceManagerTest {
             TestUtils.waitForLooperToFinishScheduledTask(mLooper);
             verify(mAdapterService, times(++mVerifyCount)).sendBroadcastAsUser(
                     intentArgument.capture(), eq(UserHandle.ALL),
-                    eq(AdapterService.BLUETOOTH_PERM));
+                    eq(BLUETOOTH_CONNECT));
         }
 
         // Set silence state and check whether state changed successfully
@@ -130,7 +131,7 @@ public class SilenceDeviceManagerTest {
         if (wasSilenced != enableSilence) {
             verify(mAdapterService, times(++mVerifyCount)).sendBroadcastAsUser(
                     intentArgument.capture(), eq(UserHandle.ALL),
-                    eq(AdapterService.BLUETOOTH_PERM));
+                    eq(BLUETOOTH_CONNECT));
             verifySilenceStateIntent(intentArgument.getValue());
         }
 
@@ -144,7 +145,7 @@ public class SilenceDeviceManagerTest {
             // after device is disconnected.
             verify(mAdapterService, times(++mVerifyCount)).sendBroadcastAsUser(
                     intentArgument.capture(), eq(UserHandle.ALL),
-                    eq(AdapterService.BLUETOOTH_PERM));
+                    eq(BLUETOOTH_CONNECT));
         }
     }
 
@@ -158,7 +159,7 @@ public class SilenceDeviceManagerTest {
         // Should be no intent been broadcasted
         verify(mAdapterService, times(mVerifyCount)).sendBroadcastAsUser(
                 intentArgument.capture(), eq(UserHandle.ALL),
-                eq(AdapterService.BLUETOOTH_PERM));
+                eq(BLUETOOTH_CONNECT));
     }
 
     void verifySilenceStateIntent(Intent intent) {
