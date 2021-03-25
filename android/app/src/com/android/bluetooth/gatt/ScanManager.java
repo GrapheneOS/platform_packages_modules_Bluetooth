@@ -307,7 +307,9 @@ public class ScanManager {
         }
 
         void handleStartScan(ScanClient client) {
-            Utils.enforceAdminPermission(mService);
+            if (!Utils.checkConnectPermissionForPreflight(mService)) {
+                return;
+            }
             if (DBG) {
                 Log.d(TAG, "handling starting scan");
             }
@@ -374,8 +376,7 @@ public class ScanManager {
         }
 
         void handleStopScan(ScanClient client) {
-            Utils.enforceAdminPermission(mService);
-            if (client == null) {
+            if (client == null || !Utils.checkConnectPermissionForPreflight(mService)) {
                 return;
             }
 
@@ -405,8 +406,8 @@ public class ScanManager {
         }
 
         void handleFlushBatchResults(ScanClient client) {
-            Utils.enforceAdminPermission(mService);
-            if (!mBatchClients.contains(client)) {
+            if (!mBatchClients.contains(client)
+                    || !Utils.checkConnectPermissionForPreflight(mService)) {
                 return;
             }
             mScanNative.flushBatchResults(client.scannerId);
