@@ -232,6 +232,10 @@ public class AvrcpItem {
         return new MediaItem(descriptionBuilder.build(), flags);
     }
 
+    private static String parseImageHandle(String handle) {
+        return AvrcpCoverArtManager.isValidImageHandle(handle) ? handle : null;
+    }
+
     @Override
     public String toString() {
         return "AvrcpItem{mUuid=" + mUuid + ", mUid=" + mUid + ", mItemType=" + mItemType
@@ -338,7 +342,7 @@ public class AvrcpItem {
                         }
                         break;
                     case MEDIA_ATTRIBUTE_COVER_ART_HANDLE:
-                        mAvrcpItem.mCoverArtHandle = attrMap[i];
+                        mAvrcpItem.mCoverArtHandle = parseImageHandle(attrMap[i]);
                         break;
                 }
             }
@@ -515,13 +519,13 @@ public class AvrcpItem {
         }
 
         /**
-         * Set the cover art handle for the AvrcpItem you are building
+         * Set the cover art handle for the AvrcpItem you are building.
          *
          * @param coverArtHandle The cover art image handle provided by a remote device
          * @return This object, so you can continue building
          */
         public Builder setCoverArtHandle(String coverArtHandle) {
-            mAvrcpItem.mCoverArtHandle = coverArtHandle;
+            mAvrcpItem.mCoverArtHandle = parseImageHandle(coverArtHandle);
             return this;
         }
 
