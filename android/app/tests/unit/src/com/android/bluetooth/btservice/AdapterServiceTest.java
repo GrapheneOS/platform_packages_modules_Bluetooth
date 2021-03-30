@@ -25,6 +25,7 @@ import android.app.admin.DevicePolicyManager;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.IBluetoothCallback;
+import android.content.AttributionSource;
 import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
@@ -97,6 +98,9 @@ public class AdapterServiceTest {
     private static final int NATIVE_INIT_MS = 8000;
     private static final int NATIVE_DISABLE_MS = 1000;
 
+    private final AttributionSource mAttributionSource = new AttributionSource.Builder(
+            Process.myUid()).build();
+
     private PowerManager mPowerManager;
     private PackageManager mMockPackageManager;
     private MockContentResolver mMockContentResolver;
@@ -152,6 +156,7 @@ public class AdapterServiceTest {
         when(mMockContext.getSystemService(Context.POWER_SERVICE)).thenReturn(mPowerManager);
         when(mMockContext.getSystemService(Context.ALARM_SERVICE)).thenReturn(mMockAlarmManager);
         when(mMockContext.getSystemService(Context.AUDIO_SERVICE)).thenReturn(mAudioManager);
+        when(mMockContext.getAttributionSource()).thenReturn(mAttributionSource);
         doAnswer(invocation -> {
             Object[] args = invocation.getArguments();
             return InstrumentationRegistry.getTargetContext().getDatabasePath((String) args[0]);
