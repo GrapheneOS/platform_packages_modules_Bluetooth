@@ -16,6 +16,8 @@
 
 package com.android.bluetooth.btservice;
 
+import android.bluetooth.OobData;
+
 final class JniCallbacks {
 
     private RemoteDevices mRemoteDevices;
@@ -79,6 +81,10 @@ final class JniCallbacks {
 
     void adapterPropertyChangedCallback(int[] types, byte[][] val) {
         mAdapterProperties.adapterPropertyChangedCallback(types, val);
+    }
+
+    void oobDataReceivedCallback(int transport, OobData oobData) {
+        mAdapterService.notifyOobDataCallback(transport, oobData);
     }
 
     void linkQualityReportCallback(

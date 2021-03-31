@@ -59,6 +59,7 @@ namespace android {
 
 const jint INVALID_FD = -1;
 
+static jmethodID method_oobDataReceivedCallback;
 static jmethodID method_stateChangeCallback;
 static jmethodID method_adapterPropertyChangedCallback;
 static jmethodID method_devicePropertyChangedCallback;
@@ -401,6 +402,73 @@ static void ssp_request_callback(RawAddress* bd_addr, bt_bdname_t* bdname,
                                (jint)pairing_variant, pass_key);
 }
 
+static jobject createClassicOobDataObject(JNIEnv* env, bt_oob_data_t oob_data) {
+  jclass oobDataClass = env->FindClass("android/bluetooth/OobData");
+  jmethodID staticCreatorMethod = env->GetStaticMethodID(
+      oobDataClass, "createClassicBuilder",
+      "([B[B[B)Landroid/bluetooth/OobData$ClassicBuilder;");
+
+  jbyteArray confirmationHash = env->NewByteArray(OOB_C_SIZE);
+  env->SetByteArrayRegion(confirmationHash, 0, OOB_C_SIZE,
+                          reinterpret_cast<jbyte*>(oob_data.c));
+
+  jbyteArray oobDataLength = env->NewByteArray(OOB_DATA_LEN_SIZE);
+  env->SetByteArrayRegion(confirmationHash, 0, OOB_DATA_LEN_SIZE,
+                          reinterpret_cast<jbyte*>(oob_data.oob_data_length));
+
+  jbyteArray address = env->NewByteArray(OOB_ADDRESS_SIZE);
+  env->SetByteArrayRegion(confirmationHash, 0, OOB_ADDRESS_SIZE,
+                          reinterpret_cast<jbyte*>(oob_data.address));
+
+  jobject oobDataClassicBuilder =
+      env->CallStaticObjectMethod(oobDataClass, staticCreatorMethod,
+                                  confirmationHash, oobDataLength, address);
+
+  jclass oobDataClassicBuilderClass =
+      env->FindClass("android/bluetooth/OobData$ClassicBuilder");
+
+  jmethodID setRMethod =
+      env->GetMethodID(oobDataClassicBuilderClass, "setRandomizerHash",
+                       "([B)Landroid/bluetooth/OobData$ClassicBuilder;");
+  jbyteArray randomizerHash = env->NewByteArray(OOB_R_SIZE);
+  env->SetByteArrayRegion(randomizerHash, 0, OOB_R_SIZE,
+                          reinterpret_cast<jbyte*>(oob_data.r));
+
+  oobDataClassicBuilder =
+      env->CallObjectMethod(oobDataClassicBuilder, setRMethod, randomizerHash);
+
+  jmethodID buildMethod = env->GetMethodID(oobDataClassicBuilderClass, "build",
+                                           "()Landroid/bluetooth/OobData;");
+
+  return env->CallObjectMethod(oobDataClassicBuilder, buildMethod);
+}
+
+static jobject createLeOobDataObject(JNIEnv* env, bt_oob_data_t oob_data) {
+  // TODO(184377951): Connect dots for LE generateLocalOobData()
+  ALOGE("%s: unimplemented", __func__);
+  return nullptr;
+}
+
+static void generate_local_oob_data_callback(tBT_TRANSPORT transport,
+                                             bt_oob_data_t oob_data) {
+  CallbackEnv sCallbackEnv(__func__);
+  if (!sCallbackEnv.valid()) return;
+
+  if (transport == TRANSPORT_BREDR) {
+    sCallbackEnv->CallVoidMethod(
+        sJniCallbacksObj, method_oobDataReceivedCallback, (jint)transport,
+        ((oob_data.is_valid)
+             ? createClassicOobDataObject(sCallbackEnv.get(), oob_data)
+             : nullptr));
+  } else {
+    sCallbackEnv->CallVoidMethod(
+        sJniCallbacksObj, method_oobDataReceivedCallback, (jint)transport,
+        ((oob_data.is_valid)
+             ? createLeOobDataObject(sCallbackEnv.get(), oob_data)
+             : nullptr));
+  }
+}
+
 static void link_quality_report_callback(
     uint64_t timestamp, int report_id, int rssi, int snr,
     int retransmission_count, int packets_not_receive_count,
@@ -480,14 +548,14 @@ static void energy_info_recv_callback(bt_activity_energy_info* p_energy_info,
 }
 
 static bt_callbacks_t sBluetoothCallbacks = {
-    sizeof(sBluetoothCallbacks), adapter_state_change_callback,
-    adapter_properties_callback, remote_device_properties_callback,
-    device_found_callback,       discovery_state_changed_callback,
-    pin_request_callback,        ssp_request_callback,
-    bond_state_changed_callback, acl_state_changed_callback,
-    callback_thread_event,       dut_mode_recv_callback,
-    le_test_mode_recv_callback,  energy_info_recv_callback,
-    link_quality_report_callback};
+    sizeof(sBluetoothCallbacks),  adapter_state_change_callback,
+    adapter_properties_callback,  remote_device_properties_callback,
+    device_found_callback,        discovery_state_changed_callback,
+    pin_request_callback,         ssp_request_callback,
+    bond_state_changed_callback,  acl_state_changed_callback,
+    callback_thread_event,        dut_mode_recv_callback,
+    le_test_mode_recv_callback,   energy_info_recv_callback,
+    link_quality_report_callback, generate_local_oob_data_callback};
 
 // The callback to call when the wake alarm fires.
 static alarm_cb sAlarmCallback;
@@ -672,6 +740,10 @@ static void classInitNative(JNIEnv* env, jclass clazz) {
       env->FindClass("com/android/bluetooth/btservice/JniCallbacks");
   sJniCallbacksField = env->GetFieldID(
       clazz, "mJniCallbacks", "Lcom/android/bluetooth/btservice/JniCallbacks;");
+
+  method_oobDataReceivedCallback =
+      env->GetMethodID(jniCallbackClass, "oobDataReceivedCallback",
+                       "(ILandroid/bluetooth/OobData;)V");
 
   method_stateChangeCallback =
       env->GetMethodID(jniCallbackClass, "stateChangeCallback", "(I)V");
@@ -1055,6 +1127,20 @@ static jboolean set_data(JNIEnv* env, bt_oob_data_t& oob_data, jobject oobData,
     oob_data.le_flags = leFlag;
   }
   return JNI_TRUE;
+}
+
+static void generateLocalOobDataNative(JNIEnv* env, jobject obj,
+                                       jint transport) {
+  // No BT interface? Can't do anything.
+  if (!sBluetoothInterface) return;
+
+  if (sBluetoothInterface->generate_local_oob_data(transport) !=
+      BT_STATUS_SUCCESS) {
+    ALOGE("%s: Call to generate_local_oob_data failed!", __func__);
+    bt_oob_data_t oob_data;
+    oob_data.is_valid = false;
+    generate_local_oob_data_callback(transport, oob_data);
+  }
 }
 
 static jboolean createBondOutOfBandNative(JNIEnv* env, jobject obj,
@@ -1536,6 +1622,7 @@ static JNINativeMethod sMethods[] = {
      (void*)createBondOutOfBandNative},
     {"removeBondNative", "([B)Z", (void*)removeBondNative},
     {"cancelBondNative", "([B)Z", (void*)cancelBondNative},
+    {"generateLocalOobDataNative", "(I)V", (void*)generateLocalOobDataNative},
     {"getConnectionStateNative", "([B)I", (void*)getConnectionStateNative},
     {"pinReplyNative", "([BZI[B)Z", (void*)pinReplyNative},
     {"sspReplyNative", "([BIZI)Z", (void*)sspReplyNative},
