@@ -17,7 +17,10 @@
 package com.android.bluetooth.avrcpcontroller;
 
 import android.app.PendingIntent;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.support.v4.media.MediaBrowserCompat.MediaItem;
 import android.support.v4.media.MediaMetadataCompat;
@@ -76,6 +79,26 @@ public class BluetoothMediaBrowserService extends MediaBrowserServiceCompat {
     public static final String ERROR_RESOLUTION_ACTION_LABEL =
             "android.media.extras.ERROR_RESOLUTION_ACTION_LABEL";
 
+    // Receiver for making sure our error message text matches the system locale
+    private class LocaleChangedReceiver extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+            if (action.equals(Intent.ACTION_LOCALE_CHANGED)) {
+                if (sBluetoothMediaBrowserService == null) return;
+                MediaSessionCompat session = sBluetoothMediaBrowserService.getSession();
+                MediaControllerCompat controller = session.getController();
+                PlaybackStateCompat playbackState =
+                        controller == null ? null : controller.getPlaybackState();
+                if (playbackState != null && playbackState.getErrorMessage() != null) {
+                    setErrorPlaybackState();
+                }
+            }
+        }
+    }
+
+    private LocaleChangedReceiver mReceiver;
+
     /**
      * Initialize this BluetoothMediaBrowserService, creating our MediaSessionCompat, MediaPlayer
      * and MediaMetaData, and setting up mechanisms to talk with the AvrcpControllerService.
@@ -94,6 +117,17 @@ public class BluetoothMediaBrowserService extends MediaBrowserServiceCompat {
         mSession.setQueue(mMediaQueue);
         setErrorPlaybackState();
         sBluetoothMediaBrowserService = this;
+
+        mReceiver = new LocaleChangedReceiver();
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(Intent.ACTION_LOCALE_CHANGED);
+        registerReceiver(mReceiver, filter);
+    }
+
+    @Override
+    public void onDestroy() {
+        unregisterReceiver(mReceiver);
+        mReceiver = null;
     }
 
     List<MediaItem> getContents(final String parentMediaId) {
