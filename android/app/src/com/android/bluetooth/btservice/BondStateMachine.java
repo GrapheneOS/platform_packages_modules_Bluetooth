@@ -23,6 +23,7 @@ import android.bluetooth.BluetoothProfile;
 import android.bluetooth.BluetoothProtoEnums;
 import android.bluetooth.OobData;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Message;
 import android.os.UserHandle;
 import android.util.Log;
@@ -459,7 +460,7 @@ final class BondStateMachine extends StateMachine {
             mRemoteDevices.addDeviceProperties(address);
         }
         infoLog("sspRequestCallback: " + address + " name: " + name + " cod: " + cod
-                + " pairingVariant " + pairingVariant + " passkey: " + passkey);
+                + " pairingVariant " + pairingVariant + " passkey: " + (Build.IS_DEBUGGABLE ? passkey : "******"));
         int variant;
         boolean displayPasskey = false;
         switch (pairingVariant) {
