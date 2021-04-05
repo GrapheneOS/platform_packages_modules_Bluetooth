@@ -99,7 +99,7 @@ public class AvrcpCoverArtManager {
         }
 
         public String getHandleUuid(String handle) {
-            if (isValidImageHandle(handle)) return null;
+            if (!isValidImageHandle(handle)) return null;
             String newUuid = UUID.randomUUID().toString();
             String existingUuid = mUuids.putIfAbsent(handle, newUuid);
             if (existingUuid != null) return existingUuid;
