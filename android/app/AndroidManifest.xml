@@ -86,7 +86,8 @@
          android:supportsRtl="true"
          android:usesCleartextTraffic="false"
          android:directBootAware="true"
-         android:defaultToDeviceProtectedStorage="true">
+         android:defaultToDeviceProtectedStorage="true"
+         android:memtagMode="async">
         <uses-library android:name="javax.obex"/>
         <provider android:name=".opp.BluetoothOppProvider"
              android:authorities="com.android.bluetooth.opp"
