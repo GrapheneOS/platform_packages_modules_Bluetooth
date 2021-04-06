@@ -2215,13 +2215,11 @@ public class GattService extends ProfileService {
         scanClient.isQApp = Utils.isQApp(this, callingPackage);
         if (!scanClient.hasDisavowedLocation) {
             if (scanClient.isQApp) {
-                scanClient.hasLocationPermission = Utils.checkCallerHasFineLocation(this, mAppOps,
-                        callingPackage, attributionSource.getAttributionTag(),
-                        scanClient.userHandle);
+                scanClient.hasLocationPermission = Utils.checkCallerHasFineLocation(
+                        this, attributionSource, scanClient.userHandle);
             } else {
-                scanClient.hasLocationPermission = Utils.checkCallerHasCoarseOrFineLocation(this,
-                        mAppOps, callingPackage, attributionSource.getAttributionTag(),
-                        scanClient.userHandle);
+                scanClient.hasLocationPermission = Utils.checkCallerHasCoarseOrFineLocation(
+                        this, attributionSource, scanClient.userHandle);
             }
         }
         scanClient.hasNetworkSettingsPermission =
@@ -2293,12 +2291,10 @@ public class GattService extends ProfileService {
             try {
                 if (app.mIsQApp) {
                     app.hasLocationPermission = Utils.checkCallerHasFineLocation(
-                            this, mAppOps, callingPackage, attributionSource.getAttributionTag(),
-                            app.mUserHandle);
+                            this, attributionSource, app.mUserHandle);
                 } else {
                     app.hasLocationPermission = Utils.checkCallerHasCoarseOrFineLocation(
-                            this, mAppOps, callingPackage, attributionSource.getAttributionTag(),
-                            app.mUserHandle);
+                            this, attributionSource, app.mUserHandle);
                 }
             } catch (SecurityException se) {
                 // No need to throw here. Just mark as not granted.
