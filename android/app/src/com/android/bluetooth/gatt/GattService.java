@@ -18,7 +18,6 @@ package com.android.bluetooth.gatt;
 
 import static android.content.pm.PackageManager.PERMISSION_GRANTED;
 
-import android.annotation.Nullable;
 import android.app.AppOpsManager;
 import android.app.PendingIntent;
 import android.app.Service;
@@ -46,6 +45,7 @@ import android.bluetooth.le.ScanRecord;
 import android.bluetooth.le.ScanResult;
 import android.bluetooth.le.ScanSettings;
 import android.companion.ICompanionDeviceManager;
+import android.content.AttributionSource;
 import android.content.Context;
 import android.content.Intent;
 import android.net.MacAddress;
@@ -543,35 +543,33 @@ public class GattService extends ProfileService {
 
         @Override
         public void startScan(int scannerId, ScanSettings settings, List<ScanFilter> filters,
-                List storages, String callingPackage, String callingFeatureId) {
+                List storages, AttributionSource attributionSource) {
             GattService service = getService();
             if (service == null) {
                 return;
             }
-            service.startScan(scannerId, settings, filters, storages, callingPackage,
-                    callingFeatureId);
+            service.startScan(scannerId, settings, filters, storages, attributionSource);
         }
 
         @Override
         public void startScanForIntent(PendingIntent intent, ScanSettings settings,
-                List<ScanFilter> filters, String callingPackage, String callingFeatureId)
+                List<ScanFilter> filters, AttributionSource attributionSource)
                 throws RemoteException {
             GattService service = getService();
             if (service == null) {
                 return;
             }
-            service.registerPiAndStartScan(intent, settings, filters, callingPackage,
-                    callingFeatureId);
+            service.registerPiAndStartScan(intent, settings, filters, attributionSource);
         }
 
         @Override
-        public void stopScanForIntent(PendingIntent intent, String callingPackage)
+        public void stopScanForIntent(PendingIntent intent)
                 throws RemoteException {
             GattService service = getService();
             if (service == null) {
                 return;
             }
-            service.stopScan(intent, callingPackage);
+            service.stopScan(intent);
         }
 
         @Override
@@ -2191,20 +2189,20 @@ public class GattService extends ProfileService {
     }
 
     void startScan(int scannerId, ScanSettings settings, List<ScanFilter> filters,
-            List<List<ResultStorageDescriptor>> storages, String callingPackage,
-            @Nullable String callingFeatureId) {
+            List<List<ResultStorageDescriptor>> storages, AttributionSource attributionSource) {
         if (DBG) {
             Log.d(TAG, "start scan with filters");
         }
 
         if (!Utils.checkScanPermissionForDataDelivery(
-                this, callingPackage, callingFeatureId, "Starting GATT scan.")) {
+                this, attributionSource, "Starting GATT scan.")) {
             return;
         }
 
         if (needsPrivilegedPermissionForScan(settings)) {
             enforcePrivilegedPermission();
         }
+        String callingPackage = attributionSource.getPackageName();
         final ScanClient scanClient = new ScanClient(scannerId, settings, filters, storages);
         scanClient.userHandle = UserHandle.of(UserHandle.getCallingUserId());
         mAppOps.checkPackage(Binder.getCallingUid(), callingPackage);
@@ -2212,16 +2210,18 @@ public class GattService extends ProfileService {
                 callingPackage.equals(mExposureNotificationPackage);
 
         scanClient.hasDisavowedLocation =
-                Utils.hasDisavowedLocationForScan(this, callingPackage);
+                Utils.hasDisavowedLocationForScan(this, callingPackage, attributionSource);
 
         scanClient.isQApp = Utils.isQApp(this, callingPackage);
         if (!scanClient.hasDisavowedLocation) {
             if (scanClient.isQApp) {
                 scanClient.hasLocationPermission = Utils.checkCallerHasFineLocation(this, mAppOps,
-                        callingPackage, callingFeatureId, scanClient.userHandle);
+                        callingPackage, attributionSource.getAttributionTag(),
+                        scanClient.userHandle);
             } else {
                 scanClient.hasLocationPermission = Utils.checkCallerHasCoarseOrFineLocation(this,
-                        mAppOps, callingPackage, callingFeatureId, scanClient.userHandle);
+                        mAppOps, callingPackage, attributionSource.getAttributionTag(),
+                        scanClient.userHandle);
             }
         }
         scanClient.hasNetworkSettingsPermission =
@@ -2248,13 +2248,13 @@ public class GattService extends ProfileService {
     }
 
     void registerPiAndStartScan(PendingIntent pendingIntent, ScanSettings settings,
-            List<ScanFilter> filters, String callingPackage, @Nullable String callingFeatureId) {
+            List<ScanFilter> filters, AttributionSource attributionSource) {
         if (DBG) {
             Log.d(TAG, "start scan with filters, for PendingIntent");
         }
 
         if (!Utils.checkScanPermissionForDataDelivery(
-                this, callingPackage, callingFeatureId, "Starting GATT scan.")) {
+                this, attributionSource, "Starting GATT scan.")) {
             return;
         }
 
@@ -2266,6 +2266,7 @@ public class GattService extends ProfileService {
         if (DBG) {
             Log.d(TAG, "startScan(PI) - UUID=" + uuid);
         }
+        String callingPackage = attributionSource.getPackageName();
         PendingIntentInfo piInfo = new PendingIntentInfo();
         piInfo.intent = pendingIntent;
         piInfo.settings = settings;
@@ -2285,17 +2286,19 @@ public class GattService extends ProfileService {
                 callingPackage.equals(mExposureNotificationPackage);
 
         app.mHasDisavowedLocation =
-                Utils.hasDisavowedLocationForScan(this, callingPackage);
+                Utils.hasDisavowedLocationForScan(this, callingPackage, attributionSource);
 
         app.mIsQApp = Utils.isQApp(this, callingPackage);
         if (!app.mHasDisavowedLocation) {
             try {
                 if (app.mIsQApp) {
                     app.hasLocationPermission = Utils.checkCallerHasFineLocation(
-                            this, mAppOps, callingPackage, callingFeatureId, app.mUserHandle);
+                            this, mAppOps, callingPackage, attributionSource.getAttributionTag(),
+                            app.mUserHandle);
                 } else {
                     app.hasLocationPermission = Utils.checkCallerHasCoarseOrFineLocation(
-                            this, mAppOps, callingPackage, callingFeatureId, app.mUserHandle);
+                            this, mAppOps, callingPackage, attributionSource.getAttributionTag(),
+                            app.mUserHandle);
                 }
             } catch (SecurityException se) {
                 // No need to throw here. Just mark as not granted.
@@ -2364,7 +2367,7 @@ public class GattService extends ProfileService {
         mScanManager.stopScan(scannerId);
     }
 
-    void stopScan(PendingIntent intent, String callingPackage) {
+    void stopScan(PendingIntent intent) {
         if (!Utils.checkScanPermissionForPreflight(this)) {
             return;
         }
