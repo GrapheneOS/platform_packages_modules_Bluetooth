@@ -16,9 +16,12 @@
 
 package com.android.bluetooth;
 
+import static android.Manifest.permission.ACCESS_FINE_LOCATION;
 import static android.Manifest.permission.BLUETOOTH_CONNECT;
 import static android.Manifest.permission.BLUETOOTH_SCAN;
+import static android.Manifest.permission.RENOUNCE_PERMISSIONS;
 import static android.content.PermissionChecker.PERMISSION_HARD_DENIED;
+import static android.content.PermissionChecker.PID_UNKNOWN;
 import static android.content.pm.PackageManager.GET_PERMISSIONS;
 import static android.content.pm.PackageManager.PERMISSION_GRANTED;
 
@@ -30,6 +33,7 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.companion.Association;
 import android.companion.CompanionDeviceManager;
+import android.content.AttributionSource;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.PermissionChecker;
@@ -435,9 +439,10 @@ public final class Utils {
      * be noted.
      */
     public static boolean checkScanPermissionForDataDelivery(
-            Context context, String callingPackage, String callingAttributionTag, String message) {
-        int permissionCheckResult = PermissionChecker.checkCallingOrSelfPermissionForDataDelivery(
-                context, BLUETOOTH_SCAN, callingPackage, callingAttributionTag, message);
+            Context context, AttributionSource attributionSource, String message) {
+        int permissionCheckResult = PermissionChecker.checkPermissionForDataDeliveryFromDataSource(
+                context, BLUETOOTH_SCAN, PID_UNKNOWN,
+                new AttributionSource(context.getAttributionSource(), attributionSource), message);
         if (permissionCheckResult == PERMISSION_HARD_DENIED) {
             throw new SecurityException("Need BLUETOOTH_SCAN permission");
         }
@@ -449,9 +454,15 @@ public final class Utils {
      * that is, if they have specified the {@code neverForLocation} flag on the BLUETOOTH_SCAN
      * permission.
      */
-    public static boolean hasDisavowedLocationForScan(Context context, String packageName) {
+    public static boolean hasDisavowedLocationForScan(
+            Context context, String packageName, AttributionSource attributionSource) {
 
-        // TODO(b/183203469): Check PermissionIdentity to include dynamic disavowal cases.
+        // TODO(b/183625242): Handle multi-step attribution chains here.
+        if (attributionSource.getRenouncedPermissions().contains(ACCESS_FINE_LOCATION)
+                && context.checkCallingPermission(RENOUNCE_PERMISSIONS)
+                == PackageManager.PERMISSION_GRANTED) {
+            return true;
+        }
 
         PackageManager pm = context.getPackageManager();
         try {
@@ -565,7 +576,7 @@ public final class Utils {
         }
 
         if (context.checkCallingOrSelfPermission(
-                android.Manifest.permission.ACCESS_FINE_LOCATION)
+                ACCESS_FINE_LOCATION)
                         == PackageManager.PERMISSION_GRANTED
                 && isAppOppAllowed(appOps, AppOpsManager.OPSTR_FINE_LOCATION, callingPackage,
                 callingFeatureId)) {
@@ -598,7 +609,7 @@ public final class Utils {
         }
 
         if (context.checkCallingOrSelfPermission(
-                android.Manifest.permission.ACCESS_FINE_LOCATION)
+                ACCESS_FINE_LOCATION)
                         == PackageManager.PERMISSION_GRANTED
                 && isAppOppAllowed(appOps, AppOpsManager.OPSTR_FINE_LOCATION, callingPackage,
                 callingFeatureId)) {
