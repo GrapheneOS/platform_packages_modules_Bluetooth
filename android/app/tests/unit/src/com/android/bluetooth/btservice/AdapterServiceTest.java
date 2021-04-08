@@ -90,6 +90,7 @@ public class AdapterServiceTest {
     private @Mock android.app.Application mApplication;
 
     private static final int CONTEXT_SWITCH_MS = 100;
+    private static final int PROFILE_SERVICE_TOGGLE_TIME_MS = 200;
     private static final int GATT_START_TIME_MS = 500;
     private static final int ONE_SECOND_MS = 1000;
     private static final int NATIVE_INIT_MS = 8000;
@@ -230,7 +231,7 @@ public class AdapterServiceTest {
         }
 
         verifyStateChange(BluetoothAdapter.STATE_TURNING_ON, BluetoothAdapter.STATE_ON,
-                invocationNumber + 1, CONTEXT_SWITCH_MS);
+                invocationNumber + 1, PROFILE_SERVICE_TOGGLE_TIME_MS);
 
         verify(mMockContext, timeout(CONTEXT_SWITCH_MS).times(2 * invocationNumber + 2))
                 .sendBroadcast(any(), eq(android.Manifest.permission.BLUETOOTH));
@@ -259,7 +260,7 @@ public class AdapterServiceTest {
         }
 
         verifyStateChange(BluetoothAdapter.STATE_TURNING_OFF, BluetoothAdapter.STATE_BLE_ON,
-                invocationNumber + 1, CONTEXT_SWITCH_MS);
+                invocationNumber + 1, PROFILE_SERVICE_TOGGLE_TIME_MS);
 
         mServiceBinder.onBrEdrDown();
 
