@@ -148,6 +148,24 @@ package android.bluetooth {
     field public static final int METADATA_UNTETHERED_RIGHT_LOW_BATTERY_THRESHOLD = 22; // 0x16
   }
 
+  public final class BluetoothHapPresetInfo implements android.os.Parcelable {
+    method public int getIndex();
+    method @NonNull public String getName();
+    method public boolean isAvailable();
+    method public boolean isWritable();
+    method public void writeToParcel(@NonNull android.os.Parcel, int);
+    field @NonNull public static final android.os.Parcelable.Creator<android.bluetooth.BluetoothHapPresetInfo> CREATOR;
+  }
+
+  public static final class BluetoothHapPresetInfo.Builder {
+    ctor public BluetoothHapPresetInfo.Builder();
+    method @NonNull public android.bluetooth.BluetoothHapPresetInfo build();
+    method @NonNull public android.bluetooth.BluetoothHapPresetInfo.Builder setAvailable(@NonNull boolean);
+    method @NonNull public android.bluetooth.BluetoothHapPresetInfo.Builder setIndex(int);
+    method @NonNull public android.bluetooth.BluetoothHapPresetInfo.Builder setName(@NonNull String);
+    method @NonNull public android.bluetooth.BluetoothHapPresetInfo.Builder setWritable(@NonNull boolean);
+  }
+
   public final class BluetoothHeadset implements android.bluetooth.BluetoothProfile {
     method @RequiresPermission(allOf={android.Manifest.permission.BLUETOOTH_CONNECT, android.Manifest.permission.MODIFY_PHONE_STATE}) public boolean connect(android.bluetooth.BluetoothDevice);
     method @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT) public boolean disconnect(android.bluetooth.BluetoothDevice);
