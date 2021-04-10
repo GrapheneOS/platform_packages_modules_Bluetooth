@@ -27,6 +27,8 @@ import static com.android.bluetooth.Utils.hasBluetoothPrivilegedPermission;
 import static com.android.bluetooth.Utils.isPackageNameAccurate;
 
 import android.annotation.NonNull;
+import android.annotation.RequiresPermission;
+import android.annotation.SuppressLint;
 import android.app.ActivityManager;
 import android.app.AlarmManager;
 import android.app.AppOpsManager;
@@ -78,6 +80,7 @@ import android.os.SystemClock;
 import android.os.SystemProperties;
 import android.os.UserHandle;
 import android.os.UserManager;
+import android.os.WorkSource;
 import android.provider.DeviceConfig;
 import android.provider.Settings;
 import android.text.TextUtils;
@@ -932,6 +935,10 @@ public class AdapterService extends Service {
      * @param device            is the remote device we wish to connect to
      * @return true if the profile is supported by both the local and remote device, false otherwise
      */
+    @RequiresPermission(allOf = {
+            android.Manifest.permission.BLUETOOTH_CONNECT,
+            android.Manifest.permission.BLUETOOTH_PRIVILEGED,
+    })
     private boolean isSupported(ParcelUuid[] localDeviceUuids, ParcelUuid[] remoteDeviceUuids,
             int profile, BluetoothDevice device) {
         if (remoteDeviceUuids == null || remoteDeviceUuids.length == 0) {
@@ -1000,6 +1007,10 @@ public class AdapterService extends Service {
      * @param device is the device for which we are checking if any profiles are enabled
      * @return true if any profile is enabled, false otherwise
      */
+    @RequiresPermission(allOf = {
+            android.Manifest.permission.BLUETOOTH_CONNECT,
+            android.Manifest.permission.BLUETOOTH_PRIVILEGED,
+    })
     private boolean isAnyProfileEnabled(BluetoothDevice device) {
 
         if (mA2dpService != null && mA2dpService.getConnectionPolicy(device)
@@ -1049,6 +1060,11 @@ public class AdapterService extends Service {
      * @param device is the device with which we are connecting the profiles
      * @return true
      */
+    @RequiresPermission(allOf = {
+            android.Manifest.permission.BLUETOOTH_CONNECT,
+            android.Manifest.permission.BLUETOOTH_PRIVILEGED,
+            android.Manifest.permission.MODIFY_PHONE_STATE,
+    })
     private boolean connectEnabledProfiles(BluetoothDevice device) {
         ParcelUuid[] remoteDeviceUuids = getRemoteUuids(device);
         ParcelUuid[] localDeviceUuids = mAdapterProperties.getUuids();
@@ -1195,7 +1211,7 @@ public class AdapterService extends Service {
         public int getState() {
             // don't check caller, may be called from system UI
             AdapterService service = getService();
-            if (service == null || !Utils.checkConnectPermissionForPreflight(service)) {
+            if (service == null) {
                 return BluetoothAdapter.STATE_OFF;
             }
 
@@ -1381,7 +1397,7 @@ public class AdapterService extends Service {
         public int getDiscoverableTimeout() {
             AdapterService service = getService();
             if (service == null || !callerIsSystemOrActiveUser(TAG, "getDiscoverableTimeout")
-                    || !Utils.checkConnectPermissionForPreflight(service)) {
+                    || !Utils.checkScanPermissionForPreflight(service)) {
                 return 0;
             }
 
@@ -1392,7 +1408,7 @@ public class AdapterService extends Service {
         public boolean setDiscoverableTimeout(int timeout) {
             AdapterService service = getService();
             if (service == null || !callerIsSystemOrActiveUser(TAG, "setDiscoverableTimeout")
-                    || !Utils.checkConnectPermissionForPreflight(service)) {
+                    || !Utils.checkScanPermissionForPreflight(service)) {
                 return false;
             }
 
@@ -1418,7 +1434,7 @@ public class AdapterService extends Service {
         public boolean cancelDiscovery() {
             AdapterService service = getService();
             if (service == null || !callerIsSystemOrActiveUser(TAG, "cancelDiscovery")
-                    || !Utils.checkConnectPermissionForPreflight(service)) {
+                    || !Utils.checkScanPermissionForPreflight(service)) {
                 return false;
             }
 
@@ -1431,7 +1447,7 @@ public class AdapterService extends Service {
             AdapterService service = getService();
             if (service == null
                     || !callerIsSystemOrActiveOrManagedUser(service, TAG, "isDiscovering")
-                    || !Utils.checkConnectPermissionForPreflight(service)) {
+                    || !Utils.checkScanPermissionForPreflight(service)) {
                 return false;
             }
 
@@ -1476,7 +1492,7 @@ public class AdapterService extends Service {
         public int getAdapterConnectionState() {
             // don't check caller, may be called from system UI
             AdapterService service = getService();
-            if (service == null || !Utils.checkConnectPermissionForPreflight(service)) {
+            if (service == null) {
                 return BluetoothAdapter.STATE_DISCONNECTED;
             }
 
@@ -1492,8 +1508,7 @@ public class AdapterService extends Service {
             AdapterService service = getService();
             if (service == null
                     || !callerIsSystemOrActiveOrManagedUser(
-                            service, TAG, "getProfileConnectionState")
-                    || !Utils.checkConnectPermissionForPreflight(service)) {
+                            service, TAG, "getProfileConnectionState")) {
                 return BluetoothProfile.STATE_DISCONNECTED;
             }
 
@@ -1504,21 +1519,15 @@ public class AdapterService extends Service {
         public boolean createBond(BluetoothDevice device, int transport, OobData remoteP192Data,
                 OobData remoteP256Data, String callingPackage) {
             AdapterService service = getService();
-            if (service == null || !callerIsSystemOrActiveOrManagedUser(service, TAG, "createBond")) {
+            if (service == null || !callerIsSystemOrActiveOrManagedUser(service, TAG, "createBond")
+                    || !Utils.checkConnectPermissionForPreflight(service)) {
                 return false;
             }
 
             // This conditional is required to satisfy permission dependencies
             // since createBond calls createBondOutOfBand with null value passed as data.
             // BluetoothDevice#createBond requires BLUETOOTH_ADMIN only.
-            if (remoteP192Data == null && remoteP256Data == null) {
-                if (!Utils.checkConnectPermissionForPreflight(service)) {
-                    return false;
-                }
-            } else {
-                // createBondOutOfBand() is a @SystemApi, this requires PRIVILEGED.
-                enforceBluetoothPrivilegedPermission(service);
-            }
+            service.enforceBluetoothPrivilegedPermissionIfNeeded(remoteP192Data, remoteP256Data);
 
             return service.createBond(device, transport, remoteP192Data, remoteP256Data,
                     callingPackage);
@@ -2007,6 +2016,7 @@ public class AdapterService extends Service {
         }
 
         //@Override
+        @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
         public boolean isA2dpOffloadEnabled() {
             // don't check caller, may be called from system UI
             AdapterService service = getService();
@@ -2089,7 +2099,7 @@ public class AdapterService extends Service {
         @Override
         public boolean isMultiAdvertisementSupported() {
             AdapterService service = getService();
-            if (service == null || !Utils.checkConnectPermissionForPreflight(service)) {
+            if (service == null) {
                 return false;
             }
 
@@ -2104,7 +2114,7 @@ public class AdapterService extends Service {
         @Override
         public boolean isOffloadedFilteringSupported() {
             AdapterService service = getService();
-            if (service == null || !Utils.checkConnectPermissionForPreflight(service)) {
+            if (service == null) {
                 return false;
             }
 
@@ -2115,7 +2125,7 @@ public class AdapterService extends Service {
         @Override
         public boolean isOffloadedScanBatchingSupported() {
             AdapterService service = getService();
-            if (service == null || !Utils.checkConnectPermissionForPreflight(service)) {
+            if (service == null) {
                 return false;
             }
 
@@ -2126,7 +2136,7 @@ public class AdapterService extends Service {
         @Override
         public boolean isLe2MPhySupported() {
             AdapterService service = getService();
-            if (service == null || !Utils.checkConnectPermissionForPreflight(service)) {
+            if (service == null) {
                 return false;
             }
 
@@ -2136,7 +2146,7 @@ public class AdapterService extends Service {
         @Override
         public boolean isLeCodedPhySupported() {
             AdapterService service = getService();
-            if (service == null || !Utils.checkConnectPermissionForPreflight(service)) {
+            if (service == null) {
                 return false;
             }
 
@@ -2146,7 +2156,7 @@ public class AdapterService extends Service {
         @Override
         public boolean isLeExtendedAdvertisingSupported() {
             AdapterService service = getService();
-            if (service == null || !Utils.checkConnectPermissionForPreflight(service)) {
+            if (service == null) {
                 return false;
             }
 
@@ -2156,7 +2166,7 @@ public class AdapterService extends Service {
         @Override
         public boolean isLePeriodicAdvertisingSupported() {
             AdapterService service = getService();
-            if (service == null || !Utils.checkConnectPermissionForPreflight(service)) {
+            if (service == null) {
                 return false;
             }
 
@@ -2166,7 +2176,7 @@ public class AdapterService extends Service {
         @Override
         public int getLeMaximumAdvertisingDataLength() {
             AdapterService service = getService();
-            if (service == null || !Utils.checkConnectPermissionForPreflight(service)) {
+            if (service == null) {
                 return 0;
             }
 
@@ -2179,8 +2189,6 @@ public class AdapterService extends Service {
             if (service == null) {
                 return false;
             }
-
-            enforceBluetoothPrivilegedPermission(service);
 
             return service.mAdapterProperties.isActivityAndEnergyReportingSupported();
         }
@@ -2595,6 +2603,11 @@ public class AdapterService extends Service {
      *                 {@link BluetoothAdapter#ACTIVE_DEVICE_ALL}
      * @return false if profiles value is not one of the constants we accept, true otherwise
      */
+    @RequiresPermission(allOf = {
+            android.Manifest.permission.BLUETOOTH_CONNECT,
+            android.Manifest.permission.BLUETOOTH_PRIVILEGED,
+            android.Manifest.permission.MODIFY_PHONE_STATE,
+    })
     public boolean setActiveDevice(BluetoothDevice device, @ActiveDeviceUse int profiles) {
         enforceCallingOrSelfPermission(
                 BLUETOOTH_PRIVILEGED, "Need BLUETOOTH_PRIVILEGED permission");
@@ -2648,6 +2661,11 @@ public class AdapterService extends Service {
      * @param device is the remote device with which to connect these profiles
      * @return true if all profiles successfully connected, false if an error occurred
      */
+    @RequiresPermission(allOf = {
+            android.Manifest.permission.BLUETOOTH_CONNECT,
+            android.Manifest.permission.BLUETOOTH_PRIVILEGED,
+            android.Manifest.permission.MODIFY_PHONE_STATE,
+    })
     public boolean connectAllEnabledProfiles(BluetoothDevice device) {
         if (!profileServicesRunning()) {
             Log.e(TAG, "connectAllEnabledProfiles: Not all profile services running");
@@ -2737,6 +2755,10 @@ public class AdapterService extends Service {
      * @param device is the remote device with which to disconnect these profiles
      * @return true if all profiles successfully disconnected, false if an error occurred
      */
+    @RequiresPermission(allOf = {
+            android.Manifest.permission.BLUETOOTH_CONNECT,
+            android.Manifest.permission.BLUETOOTH_PRIVILEGED,
+    })
     public boolean disconnectAllEnabledProfiles(BluetoothDevice device) {
         if (!profileServicesRunning()) {
             Log.e(TAG, "disconnectAllEnabledProfiles: Not all profile services bound");
@@ -2987,16 +3009,10 @@ public class AdapterService extends Service {
     }
 
     public boolean isRpaOffloadSupported() {
-        if (!Utils.checkConnectPermissionForPreflight(this)) {
-            return false;
-        }
         return mAdapterProperties.isRpaOffloadSupported();
     }
 
     public int getNumOfOffloadedIrkSupported() {
-        if (!Utils.checkConnectPermissionForPreflight(this)) {
-            return 0;
-        }
         return mAdapterProperties.getNumOfOffloadedIrkSupported();
     }
 
@@ -3094,9 +3110,6 @@ public class AdapterService extends Service {
     }
 
     public int getTotalNumOfTrackableAdvertisements() {
-        if (!Utils.checkConnectPermissionForPreflight(this)) {
-            return 0;
-        }
         return mAdapterProperties.getTotalNumOfTrackableAdvertisements();
     }
 
@@ -3387,6 +3400,14 @@ public class AdapterService extends Service {
     private boolean isCommonCriteriaMode() {
         return ((DevicePolicyManager) getSystemService(Context.DEVICE_POLICY_SERVICE))
                 .isCommonCriteriaModeEnabled(null);
+    }
+
+    @SuppressLint("AndroidFrameworkRequiresPermission")
+    private void enforceBluetoothPrivilegedPermissionIfNeeded(OobData remoteP192Data,
+            OobData remoteP256Data) {
+        if (remoteP192Data != null || remoteP256Data != null) {
+            enforceBluetoothPrivilegedPermission(this);
+        }
     }
 
     // Boolean flags

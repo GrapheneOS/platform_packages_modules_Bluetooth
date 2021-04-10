@@ -18,6 +18,7 @@ package com.android.bluetooth.pbapclient;
 
 import android.accounts.Account;
 import android.accounts.AccountManager;
+import android.annotation.RequiresPermission;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothHeadsetClient;
 import android.bluetooth.BluetoothProfile;
@@ -337,6 +338,7 @@ public class PbapClientService extends ProfileService {
         sPbapClientService = instance;
     }
 
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_PRIVILEGED)
     public boolean connect(BluetoothDevice device) {
         if (device == null) {
             throw new IllegalArgumentException("Null device");
@@ -368,6 +370,7 @@ public class PbapClientService extends ProfileService {
      * @param device is the device with which we will disconnect the pbap client profile
      * @return true if we disconnected the pbap client profile, false otherwise
      */
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_PRIVILEGED)
     public boolean disconnect(BluetoothDevice device) {
         if (device == null) {
             throw new IllegalArgumentException("Null device");
@@ -385,6 +388,7 @@ public class PbapClientService extends ProfileService {
         }
     }
 
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     public List<BluetoothDevice> getConnectedDevices() {
         if (!com.android.bluetooth.Utils.checkConnectPermissionForPreflight(this)) {
             return new ArrayList<>(0);
@@ -393,6 +397,7 @@ public class PbapClientService extends ProfileService {
         return getDevicesMatchingConnectionStates(desiredStates);
     }
 
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     private List<BluetoothDevice> getDevicesMatchingConnectionStates(int[] states) {
         if (!com.android.bluetooth.Utils.checkConnectPermissionForPreflight(this)) {
             return new ArrayList<>(0);
@@ -421,6 +426,7 @@ public class PbapClientService extends ProfileService {
      * {@link BluetoothProfile#STATE_CONNECTED} if this profile is connected, or
      * {@link BluetoothProfile#STATE_DISCONNECTING} if this profile is being disconnected
      */
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     public int getConnectionState(BluetoothDevice device) {
         if (device == null) {
             throw new IllegalArgumentException("Null device");
@@ -451,6 +457,7 @@ public class PbapClientService extends ProfileService {
      * @param connectionPolicy is the connection policy to set to for this profile
      * @return true if connectionPolicy is set, false on error
      */
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_PRIVILEGED)
     public boolean setConnectionPolicy(BluetoothDevice device, int connectionPolicy) {
         if (device == null) {
             throw new IllegalArgumentException("Null device");
@@ -485,6 +492,7 @@ public class PbapClientService extends ProfileService {
      * @return connection policy of the device
      * @hide
      */
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_PRIVILEGED)
     public int getConnectionPolicy(BluetoothDevice device) {
         if (device == null) {
             throw new IllegalArgumentException("Null device");

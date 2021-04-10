@@ -18,6 +18,7 @@ package com.android.bluetooth.hid;
 
 import static android.Manifest.permission.BLUETOOTH_CONNECT;
 
+import android.annotation.RequiresPermission;
 import android.app.ActivityManager;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothHidDevice;
@@ -509,6 +510,7 @@ public class HidDeviceService extends ProfileService {
         return true;
     }
 
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     synchronized boolean registerApp(BluetoothHidDeviceAppSdpSettings sdp,
             BluetoothHidDeviceAppQosSettings inQos, BluetoothHidDeviceAppQosSettings outQos,
             IBluetoothHidDeviceCallback callback) {
@@ -560,6 +562,7 @@ public class HidDeviceService extends ProfileService {
                         });
     }
 
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     synchronized boolean unregisterApp() {
         if (!Utils.checkConnectPermissionForPreflight(this)) {
             return false;
@@ -587,6 +590,7 @@ public class HidDeviceService extends ProfileService {
         return false;
     }
 
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     synchronized boolean sendReport(BluetoothDevice device, int id, byte[] data) {
         if (!Utils.checkConnectPermissionForPreflight(this)) {
             return false;
@@ -599,6 +603,7 @@ public class HidDeviceService extends ProfileService {
                 && mHidDeviceNativeInterface.sendReport(id, data);
     }
 
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     synchronized boolean replyReport(BluetoothDevice device, byte type, byte id, byte[] data) {
         if (!Utils.checkConnectPermissionForPreflight(this)) {
             return false;
@@ -611,6 +616,7 @@ public class HidDeviceService extends ProfileService {
                 && mHidDeviceNativeInterface.replyReport(type, id, data);
     }
 
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     synchronized boolean unplug(BluetoothDevice device) {
         if (!Utils.checkConnectPermissionForPreflight(this)) {
             return false;
@@ -629,6 +635,7 @@ public class HidDeviceService extends ProfileService {
      * @param device is the device with which we would like to connect the hid device profile
      * @return true if the connection is successful, false otherwise
      */
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     public synchronized boolean connect(BluetoothDevice device) {
         if (!Utils.checkConnectPermissionForPreflight(this)) {
             return false;
@@ -646,6 +653,7 @@ public class HidDeviceService extends ProfileService {
      * @param device is the device with which we would like to disconnect the hid device profile
      * @return true if the disconnection is successful, false otherwise
      */
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     public synchronized boolean disconnect(BluetoothDevice device) {
         if (!Utils.checkConnectPermissionForPreflight(this)) {
             return false;
@@ -677,6 +685,10 @@ public class HidDeviceService extends ProfileService {
      * @param connectionPolicy determines whether hid device should be connected or disconnected
      * @return true if hid device is connected or disconnected, false otherwise
      */
+    @RequiresPermission(allOf = {
+            android.Manifest.permission.BLUETOOTH_CONNECT,
+            android.Manifest.permission.BLUETOOTH_PRIVILEGED,
+    })
     public boolean setConnectionPolicy(BluetoothDevice device, int connectionPolicy) {
         enforceCallingOrSelfPermission(
                 BLUETOOTH_PRIVILEGED, "Need BLUETOOTH_PRIVILEGED permission");
@@ -706,6 +718,7 @@ public class HidDeviceService extends ProfileService {
      * @return connection policy of the device
      * @hide
      */
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_PRIVILEGED)
     public int getConnectionPolicy(BluetoothDevice device) {
         if (device == null) {
             throw new IllegalArgumentException("Null device");
@@ -716,6 +729,7 @@ public class HidDeviceService extends ProfileService {
                 .getProfileConnectionPolicy(device, BluetoothProfile.HID_DEVICE);
     }
 
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     synchronized boolean reportError(BluetoothDevice device, byte error) {
         if (!Utils.checkConnectPermissionForPreflight(this)) {
             return false;
@@ -728,6 +742,7 @@ public class HidDeviceService extends ProfileService {
                 && mHidDeviceNativeInterface.reportError(error);
     }
 
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     synchronized String getUserAppName() {
         if (!Utils.checkConnectPermissionForPreflight(this)) {
             return null;
@@ -817,6 +832,7 @@ public class HidDeviceService extends ProfileService {
      * {@link BluetoothProfile#STATE_CONNECTING}, {@link BluetoothProfile#STATE_CONNECTED}, or
      * {@link BluetoothProfile#STATE_DISCONNECTING}
      */
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     public int getConnectionState(BluetoothDevice device) {
         if (!Utils.checkConnectPermissionForPreflight(this)) {
             return BluetoothHidDevice.STATE_DISCONNECTED;
@@ -827,6 +843,7 @@ public class HidDeviceService extends ProfileService {
         return BluetoothHidDevice.STATE_DISCONNECTED;
     }
 
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     List<BluetoothDevice> getDevicesMatchingConnectionStates(int[] states) {
         if (!Utils.checkConnectPermissionForPreflight(this)) {
             return new ArrayList<>(0);

@@ -18,6 +18,7 @@ package com.android.bluetooth.btservice;
 
 import static android.Manifest.permission.BLUETOOTH_CONNECT;
 
+import android.annotation.SuppressLint;
 import android.app.ActivityManager;
 import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
@@ -84,6 +85,8 @@ public abstract class ProfileService extends Service {
     /**
      * Called in {@link #onCreate()} to init basic stuff in this service
      */
+    // Suppressed since this is called from framework
+    @SuppressLint("AndroidFrameworkRequiresPermission")
     protected void create() {}
 
     /**
@@ -91,6 +94,8 @@ public abstract class ProfileService extends Service {
      *
      * @return True in successful condition, False otherwise
      */
+    // Suppressed since this is called from framework
+    @SuppressLint("AndroidFrameworkRequiresPermission")
     protected abstract boolean start();
 
     /**
@@ -98,26 +103,36 @@ public abstract class ProfileService extends Service {
      *
      * @return True in successful condition, False otherwise
      */
+    // Suppressed since this is called from framework
+    @SuppressLint("AndroidFrameworkRequiresPermission")
     protected abstract boolean stop();
 
     /**
      * Called in {@link #onDestroy()} when this object is completely discarded
      */
+    // Suppressed since this is called from framework
+    @SuppressLint("AndroidFrameworkRequiresPermission")
     protected void cleanup() {}
 
     /**
      * @param userId is equivalent to the result of ActivityManager.getCurrentUser()
      */
+    // Suppressed since this is called from framework
+    @SuppressLint("AndroidFrameworkRequiresPermission")
     protected void setCurrentUser(int userId) {}
 
     /**
      * @param userId is equivalent to the result of ActivityManager.getCurrentUser()
      */
+    // Suppressed since this is called from framework
+    @SuppressLint("AndroidFrameworkRequiresPermission")
     protected void setUserUnlocked(int userId) {}
 
     /**
      * @param testEnabled if the profile should enter or exit a testing mode
      */
+    // Suppressed since this is called from framework
+    @SuppressLint("AndroidFrameworkRequiresPermission")
     protected void setTestModeEnabled(boolean testModeEnabled) {
         mTestModeEnabled = testModeEnabled;
     }
@@ -127,6 +142,8 @@ public abstract class ProfileService extends Service {
     }
 
     @Override
+    // Suppressed since this is called from framework
+    @SuppressLint("AndroidFrameworkRequiresPermission")
     public void onCreate() {
         if (DBG) {
             Log.d(mName, "onCreate");
@@ -138,6 +155,8 @@ public abstract class ProfileService extends Service {
     }
 
     @Override
+    // Suppressed since this is called from framework
+    @SuppressLint("AndroidFrameworkRequiresPermission")
     public int onStartCommand(Intent intent, int flags, int startId) {
         if (DBG) {
             Log.d(mName, "onStartCommand()");
@@ -167,6 +186,8 @@ public abstract class ProfileService extends Service {
     }
 
     @Override
+    // Suppressed since this is called from framework
+    @SuppressLint("AndroidFrameworkRequiresPermission")
     public IBinder onBind(Intent intent) {
         if (DBG) {
             Log.d(mName, "onBind");
@@ -179,6 +200,8 @@ public abstract class ProfileService extends Service {
     }
 
     @Override
+    // Suppressed since this is called from framework
+    @SuppressLint("AndroidFrameworkRequiresPermission")
     public boolean onUnbind(Intent intent) {
         if (DBG) {
             Log.d(mName, "onUnbind");
@@ -191,6 +214,8 @@ public abstract class ProfileService extends Service {
      *
      * @param sb StringBuilder from the profile.
      */
+    // Suppressed since this is called from framework
+    @SuppressLint("AndroidFrameworkRequiresPermission")
     public void dump(StringBuilder sb) {
         sb.append("\nProfile: ");
         sb.append(mName);
@@ -202,6 +227,8 @@ public abstract class ProfileService extends Service {
      *
      * @param builder metrics proto builder
      */
+    // Suppressed since this is called from framework
+    @SuppressLint("AndroidFrameworkRequiresPermission")
     public void dumpProto(BluetoothMetricsProto.BluetoothLog.Builder builder) {
         // Do nothing
     }
@@ -219,6 +246,8 @@ public abstract class ProfileService extends Service {
     }
 
     @Override
+    // Suppressed since this is called from framework
+    @SuppressLint("AndroidFrameworkRequiresPermission")
     public void onDestroy() {
         cleanup();
         if (mBinder != null) {
