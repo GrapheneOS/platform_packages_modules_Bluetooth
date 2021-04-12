@@ -389,10 +389,13 @@ class MapClientContent {
      */
     void cleanUp() {
         clearMessages();
-        mSubscriptionManager.removeSubscriptionInfoRecord(mDevice.getAddress(),
+        try {
+            mSubscriptionManager.removeSubscriptionInfoRecord(mDevice.getAddress(),
                     SubscriptionManager.SUBSCRIPTION_TYPE_REMOTE_SIM);
+        } catch (Exception e) {
+            Log.w(TAG, "cleanUp failed: " + e.toString());
+        }
     }
-
 
     /**
      * clearMessages
