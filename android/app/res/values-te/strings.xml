@@ -18,8 +18,8 @@
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="permlab_bluetoothShareManager" msgid="311492132450338925">"డౌన్‌లోడ్ మేనేజర్‌ను యాక్సెస్ చేయండి."</string>
     <string name="permdesc_bluetoothShareManager" msgid="8930572979123190223">"బ్లూటూత్ భాగస్వామ్య మేనేజర్‌ను యాక్సెస్ చేయడానికి యాప్‌ను అనుమతిస్తుంది మరియు ఫైల్‌లను బదిలీ చేయడానికి దీన్ని ఉపయోగిస్తుంది."</string>
-    <string name="permlab_bluetoothAcceptlist" msgid="7091552898592306386">"అనుమతి జాబితాలో ఉంచిన బ్లూటూత్ పరికర యాక్సెస్."</string>
-    <string name="permdesc_bluetoothAcceptlist" msgid="5494513855192170109">"బ్లూటూత్ పరికరాన్ని తాత్కాలికంగా అనుమతి జాబితాలో ఉంచడానికి యాప్‌ను అనుమతిస్తుంది, తద్వారా వినియోగదారు నిర్ధారణ లేకుండానే ఫైల్‌లను ఈ పరికరానికి పంపడానికి ఆ పరికరాన్ని అనుమతిస్తుంది."</string>
+    <string name="permlab_bluetoothAcceptlist" msgid="2647575807648622053">"అనుమతి జాబితాలో ఉంచిన బ్లూటూత్ పరికర యాక్సెస్."</string>
+    <string name="permdesc_bluetoothAcceptlist" msgid="2406423665674766442">"బ్లూటూత్ పరికరాన్ని తాత్కాలికంగా అనుమతి జాబితాలో ఉంచడానికి యాప్‌ను అనుమతిస్తుంది, తద్వారా యూజర్ నిర్ధారణ లేకుండానే ఫైల్‌లను ఈ పరికరానికి పంపడానికి ఆ పరికరాన్ని అనుమతిస్తుంది."</string>
     <string name="bt_share_picker_label" msgid="6268100924487046932">"బ్లూటూత్"</string>
     <string name="unknown_device" msgid="9221903979877041009">"తెలియని పరికరం"</string>
     <string name="unknownNumber" msgid="4994750948072751566">"తెలియదు"</string>
@@ -69,7 +69,6 @@
     <string name="upload_succ_ok" msgid="7705428476405478828">"సరే"</string>
     <string name="upload_fail_line1" msgid="7899394672421491701">"ఫైల్ \"<xliff:g id="RECIPIENT">%1$s</xliff:g>\"కి పంపబడలేదు."</string>
     <string name="upload_fail_line1_2" msgid="2108129204050841798">"ఫైల్: <xliff:g id="FILE">%1$s</xliff:g>"</string>
-    <string name="upload_fail_ok" msgid="5807702461606714296">"మళ్లీ ప్రయత్నించు"</string>
     <string name="upload_fail_cancel" msgid="9118496285835687125">"మూసివేయి"</string>
     <string name="bt_error_btn_ok" msgid="5965151173011534240">"సరే"</string>
     <string name="unknown_file" msgid="6092727753965095366">"తెలియని ఫైల్"</string>
@@ -84,8 +83,8 @@
     <string name="bt_toast_4" msgid="4678812947604395649">"ఫైల్‌ను \"<xliff:g id="RECIPIENT">%1$s</xliff:g>\"కి పంపుతోంది"</string>
     <string name="bt_toast_5" msgid="2846870992823019494">"<xliff:g id="NUMBER">%1$s</xliff:g> ఫైల్‌లను \"<xliff:g id="RECIPIENT">%2$s</xliff:g>\"కి పంపుతోంది"</string>
     <string name="bt_toast_6" msgid="1855266596936622458">"ఫైల్‌ను \"<xliff:g id="RECIPIENT">%1$s</xliff:g>\"కి పంపడం ఆపివేయబడింది"</string>
-    <string name="bt_sm_2_1_nosdcard" msgid="1791835163301501637">"\"<xliff:g id="SENDER">%1$s</xliff:g>\" పంపిన పైల్‌ను సేవ్ చేయడానికి USB నిల్వలో తగినంత స్థలం లేదు"</string>
-    <string name="bt_sm_2_1_default" msgid="9115512207909504071">"\"<xliff:g id="SENDER">%1$s</xliff:g>\" పంపిన పైల్‌ను సేవ్ చేయడానికి SD కార్డులో తగినంత స్థలం లేదు"</string>
+    <string name="bt_sm_2_1_nosdcard" msgid="5354343190503952837">"ఫైల్‌ను సేవ్ చేయడానికి USB స్టోరేజ్‌లో సరిపడేంత స్పేస్ లేదు."</string>
+    <string name="bt_sm_2_1_default" msgid="2497541206648973852">"ఫైల్‌ను సేవ్ చేయడానికి SD కార్డ్‌లో సరిపడేంత స్పేస్ లేదు."</string>
     <string name="bt_sm_2_2" msgid="2965243265852680543">"కావలసిన స్థలం: <xliff:g id="SIZE">%1$s</xliff:g>"</string>
     <string name="ErrorTooManyRequests" msgid="8578277541472944529">"చాలా ఎక్కువ అభ్యర్థనలు ప్రాసెస్ చేయబడుతున్నాయి. తర్వాత మళ్లీ ప్రయత్నించండి."</string>
     <string name="status_pending" msgid="2503691772030877944">"ఫైల్ బదిలీ ఇంకా ప్రారంభించబడలేదు."</string>
