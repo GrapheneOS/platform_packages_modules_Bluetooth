@@ -18,6 +18,7 @@ package com.android.bluetooth.mapclient;
 
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyInt;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -322,6 +323,18 @@ public class MapClientContentTest {
         mTestMessage2.setType(Bmessage.Type.MMS);
         mTestMessage2.setFolder("telecom/msg/inbox");
         mMapClientContent.storeMessage(mTestMessage2, mTestMessage2Handle, mTestMessage1Timestamp);
+    }
+
+    /**
+     * Test to validate that an exception in the Subscription manager won't crash Bluetooth during
+     * disconnect.
+     */
+    @Test
+    public void testCleanUpRemoteException() {
+        mMapClientContent = new MapClientContent(mMockContext, mCallbacks, mTestDevice);
+        doThrow(java.lang.NullPointerException.class).when(mMockSubscriptionManager)
+                .removeSubscriptionInfoRecord(any(), anyInt());
+        mMapClientContent.cleanUp();
     }
 
     void createTestMessages() {
