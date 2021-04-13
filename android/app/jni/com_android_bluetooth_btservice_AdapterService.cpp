@@ -1107,7 +1107,7 @@ static jboolean set_data(JNIEnv* env, bt_oob_data_t& oob_data, jobject oobData,
     if (leAppearance != NULL) {
       leAppearanceBytes = env->GetByteArrayElements(leAppearance, NULL);
       int len = env->GetArrayLength(leAppearance);
-      if (len != OOB_LE_ROLE_SIZE) {
+      if (len != OOB_LE_APPEARANCE_SIZE) {
         ALOGI("%s: wrong length of leAppearance, should be empty or %d bytes.",
               __func__, OOB_LE_APPEARANCE_SIZE);
         jniThrowIOException(env, EINVAL);
