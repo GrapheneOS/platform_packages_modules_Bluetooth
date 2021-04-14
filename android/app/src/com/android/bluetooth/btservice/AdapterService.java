@@ -3395,7 +3395,8 @@ public class AdapterService extends Service {
         if (DeviceConfig.getBoolean(DeviceConfig.NAMESPACE_BLUETOOTH, GD_ADVERTISING_FLAG, false)) {
             initFlags.add(String.format("%s=%s", GD_ADVERTISING_FLAG, "true"));
         }
-        if (DeviceConfig.getBoolean(DeviceConfig.NAMESPACE_BLUETOOTH, GD_SCANNING_FLAG, false)) {
+        if (DeviceConfig.getBoolean(DeviceConfig.NAMESPACE_BLUETOOTH, GD_SCANNING_FLAG,
+                Config.isGdEnabledUpToScanningLayer())) {
             initFlags.add(String.format("%s=%s", GD_SCANNING_FLAG, "true"));
         }
         if (DeviceConfig.getBoolean(DeviceConfig.NAMESPACE_BLUETOOTH, GD_HCI_FLAG, false)) {
