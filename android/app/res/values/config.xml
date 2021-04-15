@@ -121,4 +121,15 @@
     <!-- Package that is providing the exposure notification service -->
     <string name="exposure_notification_package">com.google.android.gms</string>
 
+    <!-- Enabling Gabeldorsche up to the scanning layer, including
+            - BLE scanning
+            - BLE advertising
+            - ACL connection management
+            - Controller information management
+            - HCI layer
+            - HAL interface layer
+            - Other required GD components like config storage
+     -->
+    <bool name="enable_gd_up_to_scanning_layer">false</bool>
+
 </resources>
