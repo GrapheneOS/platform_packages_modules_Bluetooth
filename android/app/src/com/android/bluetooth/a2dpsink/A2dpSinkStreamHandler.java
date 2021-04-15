@@ -16,6 +16,7 @@
 
 package com.android.bluetooth.a2dpsink;
 
+import android.annotation.RequiresPermission;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothHeadsetClientCall;
 import android.content.Context;
@@ -364,6 +365,7 @@ public class A2dpSinkStreamHandler extends Handler {
         BluetoothMediaBrowserService.play();
     }
 
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     private boolean inCallFromStreamingDevice() {
         BluetoothDevice targetDevice = null;
         List<BluetoothDevice> connectedDevices = mA2dpSinkService.getConnectedDevices();

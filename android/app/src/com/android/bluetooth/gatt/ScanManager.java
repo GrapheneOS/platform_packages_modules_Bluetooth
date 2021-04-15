@@ -16,6 +16,7 @@
 
 package com.android.bluetooth.gatt;
 
+import android.annotation.RequiresPermission;
 import android.app.ActivityManager;
 import android.app.AlarmManager;
 import android.app.PendingIntent;
@@ -307,9 +308,6 @@ public class ScanManager {
         }
 
         void handleStartScan(ScanClient client) {
-            if (!Utils.checkConnectPermissionForPreflight(mService)) {
-                return;
-            }
             if (DBG) {
                 Log.d(TAG, "handling starting scan");
             }
@@ -375,8 +373,9 @@ public class ScanManager {
             return !client.hasDisavowedLocation && !isFiltered;
         }
 
+        @RequiresPermission(android.Manifest.permission.BLUETOOTH_SCAN)
         void handleStopScan(ScanClient client) {
-            if (client == null || !Utils.checkConnectPermissionForPreflight(mService)) {
+            if (client == null) {
                 return;
             }
 
@@ -406,8 +405,7 @@ public class ScanManager {
         }
 
         void handleFlushBatchResults(ScanClient client) {
-            if (!mBatchClients.contains(client)
-                    || !Utils.checkConnectPermissionForPreflight(mService)) {
+            if (!mBatchClients.contains(client)) {
                 return;
             }
             mScanNative.flushBatchResults(client.scannerId);
@@ -434,6 +432,7 @@ public class ScanManager {
                     && settings.getReportDelayMillis() == 0;
         }
 
+        @RequiresPermission(android.Manifest.permission.BLUETOOTH_SCAN)
         void handleSuspendScans() {
             for (ScanClient client : mRegularScanClients) {
                 if ((requiresScreenOn(client) && !isScreenOn())

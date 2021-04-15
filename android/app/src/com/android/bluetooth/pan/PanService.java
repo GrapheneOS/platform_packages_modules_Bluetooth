@@ -19,6 +19,7 @@ package com.android.bluetooth.pan;
 import static android.Manifest.permission.BLUETOOTH_CONNECT;
 import static android.Manifest.permission.TETHER_PRIVILEGED;
 
+import android.annotation.RequiresPermission;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothPan;
 import android.bluetooth.BluetoothPan.LocalPanRole;
@@ -331,6 +332,10 @@ public class PanService extends ProfileService {
         }
     }
 
+    @RequiresPermission(allOf = {
+            android.Manifest.permission.BLUETOOTH_CONNECT,
+            android.Manifest.permission.BLUETOOTH_PRIVILEGED,
+    })
     public boolean connect(BluetoothDevice device) {
         if (!Utils.checkConnectPermissionForPreflight(this)) {
             return false;
@@ -348,6 +353,7 @@ public class PanService extends ProfileService {
         return true;
     }
 
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     public boolean disconnect(BluetoothDevice device) {
         if (!Utils.checkConnectPermissionForPreflight(this)) {
             return false;
@@ -357,6 +363,7 @@ public class PanService extends ProfileService {
         return true;
     }
 
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_PRIVILEGED)
     public int getConnectionState(BluetoothDevice device) {
         enforceCallingOrSelfPermission(
                 BLUETOOTH_PRIVILEGED, "Need BLUETOOTH_PRIVILEGED permission");
@@ -367,6 +374,7 @@ public class PanService extends ProfileService {
         return panDevice.mState;
     }
 
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     public boolean isTetheringOn() {
         // TODO(BT) have a variable marking the on/off state
         if (!Utils.checkConnectPermissionForPreflight(this)) {
@@ -375,6 +383,11 @@ public class PanService extends ProfileService {
         return mTetherOn;
     }
 
+    @RequiresPermission(allOf = {
+            android.Manifest.permission.BLUETOOTH_CONNECT,
+            android.Manifest.permission.BLUETOOTH_PRIVILEGED,
+            android.Manifest.permission.TETHER_PRIVILEGED,
+    })
     void setBluetoothTethering(boolean value, final String pkgName,
             final String callingAttributionTag) {
         if (DBG) {
@@ -418,6 +431,10 @@ public class PanService extends ProfileService {
      * @param connectionPolicy is the connection policy to set to for this profile
      * @return true if connectionPolicy is set, false on error
      */
+    @RequiresPermission(allOf = {
+            android.Manifest.permission.BLUETOOTH_CONNECT,
+            android.Manifest.permission.BLUETOOTH_PRIVILEGED,
+    })
     public boolean setConnectionPolicy(BluetoothDevice device, int connectionPolicy) {
         enforceCallingOrSelfPermission(
                 BLUETOOTH_PRIVILEGED, "Need BLUETOOTH_PRIVILEGED permission");
@@ -449,6 +466,7 @@ public class PanService extends ProfileService {
      * @return connection policy of the device
      * @hide
      */
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     public int getConnectionPolicy(BluetoothDevice device) {
         if (!Utils.checkConnectPermissionForPreflight(this)) {
             return BluetoothProfile.CONNECTION_POLICY_UNKNOWN;
@@ -457,6 +475,10 @@ public class PanService extends ProfileService {
                 .getProfileConnectionPolicy(device, BluetoothProfile.PAN);
     }
 
+    @RequiresPermission(allOf = {
+            android.Manifest.permission.BLUETOOTH_CONNECT,
+            android.Manifest.permission.BLUETOOTH_PRIVILEGED,
+    })
     public List<BluetoothDevice> getConnectedDevices() {
         enforceCallingOrSelfPermission(
                 BLUETOOTH_PRIVILEGED, "Need BLUETOOTH_PRIVILEGED permission");
@@ -465,6 +487,10 @@ public class PanService extends ProfileService {
         return devices;
     }
 
+    @RequiresPermission(allOf = {
+            android.Manifest.permission.BLUETOOTH_CONNECT,
+            android.Manifest.permission.BLUETOOTH_PRIVILEGED,
+    })
     List<BluetoothDevice> getDevicesMatchingConnectionStates(int[] states) {
         if (!Utils.checkConnectPermissionForPreflight(this)) {
             return new ArrayList<>(0);

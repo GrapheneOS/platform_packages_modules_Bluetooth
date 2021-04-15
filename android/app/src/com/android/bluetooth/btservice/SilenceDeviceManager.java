@@ -18,6 +18,7 @@ package com.android.bluetooth.btservice;
 
 import static android.Manifest.permission.BLUETOOTH_CONNECT;
 
+import android.annotation.RequiresPermission;
 import android.bluetooth.BluetoothA2dp;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothHeadset;
@@ -248,6 +249,10 @@ public class SilenceDeviceManager {
         return true;
     }
 
+    @RequiresPermission(allOf = {
+            android.Manifest.permission.BLUETOOTH_CONNECT,
+            android.Manifest.permission.MODIFY_PHONE_STATE,
+    })
     void handleSilenceDeviceStateChanged(BluetoothDevice device, boolean state) {
         boolean oldState = getSilenceMode(device);
         if (oldState == state) {
