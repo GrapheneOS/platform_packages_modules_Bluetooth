@@ -47,6 +47,7 @@ package com.android.bluetooth.a2dp;
 
 import static android.Manifest.permission.BLUETOOTH_CONNECT;
 
+import android.annotation.RequiresPermission;
 import android.bluetooth.BluetoothA2dp;
 import android.bluetooth.BluetoothCodecConfig;
 import android.bluetooth.BluetoothCodecStatus;
@@ -616,6 +617,7 @@ final class A2dpStateMachine extends StateMachine {
 
     // NOTE: This event is processed in any state
     @VisibleForTesting
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     void processCodecConfigEvent(BluetoothCodecStatus newCodecStatus) {
         BluetoothCodecConfig prevCodecConfig = null;
         BluetoothCodecStatus prevCodecStatus = mCodecStatus;
@@ -765,6 +767,7 @@ final class A2dpStateMachine extends StateMachine {
         return Integer.toString(state);
     }
 
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     public void dump(StringBuilder sb) {
         boolean isActive = Objects.equals(mDevice, mA2dpService.getActiveDevice());
         ProfileService.println(sb,

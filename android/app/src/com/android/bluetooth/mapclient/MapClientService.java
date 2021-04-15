@@ -17,6 +17,7 @@
 package com.android.bluetooth.mapclient;
 
 import android.Manifest;
+import android.annotation.RequiresPermission;
 import android.app.PendingIntent;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -92,6 +93,7 @@ public class MapClientService extends ProfileService {
      * @param device
      * @return true if connection is successful, false otherwise.
      */
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_PRIVILEGED)
     public synchronized boolean connect(BluetoothDevice device) {
         enforceCallingOrSelfPermission(BLUETOOTH_PRIVILEGED,
                 "Need BLUETOOTH_PRIVILEGED permission");
@@ -161,6 +163,7 @@ public class MapClientService extends ProfileService {
         mMapInstanceMap.put(device, mapStateMachine);
     }
 
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_PRIVILEGED)
     public synchronized boolean disconnect(BluetoothDevice device) {
         enforceCallingOrSelfPermission(BLUETOOTH_PRIVILEGED,
                 "Need BLUETOOTH_PRIVILEGED permission");
@@ -238,6 +241,7 @@ public class MapClientService extends ProfileService {
      * @param connectionPolicy is the connection policy to set to for this profile
      * @return true if connectionPolicy is set, false on error
      */
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_PRIVILEGED)
     public boolean setConnectionPolicy(BluetoothDevice device, int connectionPolicy) {
         if (VDBG) {
             Log.v(TAG, "Saved connectionPolicy " + device + " = " + connectionPolicy);
@@ -269,6 +273,7 @@ public class MapClientService extends ProfileService {
      * @return connection policy of the device
      * @hide
      */
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_PRIVILEGED)
     public int getConnectionPolicy(BluetoothDevice device) {
         enforceCallingOrSelfPermission(BLUETOOTH_PRIVILEGED,
                 "Need BLUETOOTH_PRIVILEGED permission");
@@ -453,6 +458,7 @@ public class MapClientService extends ProfileService {
             mService = service;
         }
 
+        @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
         private MapClientService getService() {
             if (!Utils.checkCaller() && !MapUtils.isSystemUser()) {
                 Log.w(TAG, "MAP call not allowed for non-active and non-system user.");

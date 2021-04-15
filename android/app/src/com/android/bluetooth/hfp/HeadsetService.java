@@ -22,6 +22,7 @@ import static android.Manifest.permission.MODIFY_PHONE_STATE;
 import static com.android.bluetooth.Utils.enforceBluetoothPrivilegedPermission;
 
 import android.annotation.Nullable;
+import android.annotation.RequiresPermission;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothHeadset;
 import android.bluetooth.BluetoothProfile;
@@ -277,6 +278,7 @@ public class HeadsetService extends ProfileService {
         return true;
     }
 
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     private void doForEachConnectedStateMachine(StateMachineTask task) {
         synchronized (mStateMachines) {
             for (BluetoothDevice device : getConnectedDevices()) {
@@ -285,6 +287,7 @@ public class HeadsetService extends ProfileService {
         }
     }
 
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     void onDeviceStateChanged(HeadsetDeviceState deviceState) {
         doForEachConnectedStateMachine(
                 stateMachine -> stateMachine.sendMessage(HeadsetStateMachine.DEVICE_STATE_CHANGED,
@@ -723,6 +726,10 @@ public class HeadsetService extends ProfileService {
         sHeadsetService = instance;
     }
 
+    @RequiresPermission(allOf = {
+            android.Manifest.permission.BLUETOOTH_CONNECT,
+            android.Manifest.permission.MODIFY_PHONE_STATE,
+    })
     public boolean connect(BluetoothDevice device) {
         if (!Utils.checkConnectPermissionForPreflight(this)) {
             return false;
@@ -783,6 +790,7 @@ public class HeadsetService extends ProfileService {
      * @param device is the device with which we will disconnect hfp
      * @return true if hfp is disconnected, false if the device is not connected
      */
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     public boolean disconnect(BluetoothDevice device) {
         if (!Utils.checkConnectPermissionForPreflight(this)) {
             return false;
@@ -806,6 +814,7 @@ public class HeadsetService extends ProfileService {
         return true;
     }
 
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     public List<BluetoothDevice> getConnectedDevices() {
         if (!Utils.checkConnectPermissionForPreflight(this)) {
             return new ArrayList<>(0);
@@ -828,6 +837,7 @@ public class HeadsetService extends ProfileService {
      * @return a list of devices matching the array of connection states
      */
     @VisibleForTesting
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     public List<BluetoothDevice> getDevicesMatchingConnectionStates(int[] states) {
         if (!Utils.checkConnectPermissionForPreflight(this)) {
             return new ArrayList<>(0);
@@ -858,6 +868,7 @@ public class HeadsetService extends ProfileService {
         return devices;
     }
 
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     public int getConnectionState(BluetoothDevice device) {
         if (!Utils.checkConnectPermissionForPreflight(this)) {
             return BluetoothProfile.STATE_DISCONNECTED;
@@ -886,6 +897,10 @@ public class HeadsetService extends ProfileService {
      * @param connectionPolicy is the connection policy to set to for this profile
      * @return true if connectionPolicy is set, false on error
      */
+    @RequiresPermission(allOf = {
+            android.Manifest.permission.BLUETOOTH_CONNECT,
+            android.Manifest.permission.MODIFY_PHONE_STATE,
+    })
     public boolean setConnectionPolicy(BluetoothDevice device, int connectionPolicy) {
         Log.i(TAG, "setConnectionPolicy: device=" + device
                 + ", connectionPolicy=" + connectionPolicy + ", " + Utils.getUidPidString());
@@ -927,6 +942,10 @@ public class HeadsetService extends ProfileService {
         return mNativeInterface.isVoiceRecognitionSupported(device);
     }
 
+    @RequiresPermission(allOf = {
+            android.Manifest.permission.BLUETOOTH_CONNECT,
+            android.Manifest.permission.MODIFY_PHONE_STATE,
+    })
     boolean startVoiceRecognition(BluetoothDevice device) {
         if (!Utils.checkConnectPermissionForPreflight(this)) {
             return false;
@@ -1004,6 +1023,7 @@ public class HeadsetService extends ProfileService {
         return true;
     }
 
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     boolean stopVoiceRecognition(BluetoothDevice device) {
         if (!Utils.checkConnectPermissionForPreflight(this)) {
             return false;
@@ -1037,6 +1057,7 @@ public class HeadsetService extends ProfileService {
         return true;
     }
 
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     boolean isAudioOn() {
         if (!Utils.checkConnectPermissionForPreflight(this)) {
             return false;
@@ -1044,6 +1065,7 @@ public class HeadsetService extends ProfileService {
         return getNonIdleAudioDevices().size() > 0;
     }
 
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     boolean isAudioConnected(BluetoothDevice device) {
         if (!Utils.checkConnectPermissionForPreflight(this)) {
             return false;
@@ -1057,6 +1079,7 @@ public class HeadsetService extends ProfileService {
         }
     }
 
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     int getAudioState(BluetoothDevice device) {
         if (!Utils.checkConnectPermissionForPreflight(this)) {
             return BluetoothHeadset.STATE_AUDIO_DISCONNECTED;
@@ -1070,6 +1093,7 @@ public class HeadsetService extends ProfileService {
         }
     }
 
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     public void setAudioRouteAllowed(boolean allowed) {
         if (!Utils.checkConnectPermissionForPreflight(this)) {
             return;
@@ -1079,6 +1103,7 @@ public class HeadsetService extends ProfileService {
         mNativeInterface.setScoAllowed(allowed);
     }
 
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     public boolean getAudioRouteAllowed() {
         if (!Utils.checkConnectPermissionForPreflight(this)) {
             return false;
@@ -1086,6 +1111,7 @@ public class HeadsetService extends ProfileService {
         return mAudioRouteAllowed;
     }
 
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     public void setForceScoAudio(boolean forced) {
         if (!Utils.checkConnectPermissionForPreflight(this)) {
             return;
@@ -1106,6 +1132,7 @@ public class HeadsetService extends ProfileService {
      */
     @VisibleForTesting
     @Nullable
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     public BluetoothDevice getFirstConnectedAudioDevice() {
         ArrayList<HeadsetStateMachine> stateMachines = new ArrayList<>();
         synchronized (mStateMachines) {
@@ -1134,6 +1161,10 @@ public class HeadsetService extends ProfileService {
      * @return true on success, false on error
      */
     @VisibleForTesting
+    @RequiresPermission(allOf = {
+            android.Manifest.permission.BLUETOOTH_CONNECT,
+            android.Manifest.permission.MODIFY_PHONE_STATE,
+    })
     public boolean setSilenceMode(BluetoothDevice device, boolean silence) {
         Log.d(TAG, "setSilenceMode(" + device + "): " + silence);
 
@@ -1162,6 +1193,10 @@ public class HeadsetService extends ProfileService {
      * @param device the active device
      * @return true on success, otherwise false
      */
+    @RequiresPermission(allOf = {
+            android.Manifest.permission.BLUETOOTH_CONNECT,
+            android.Manifest.permission.MODIFY_PHONE_STATE,
+    })
     public boolean setActiveDevice(BluetoothDevice device) {
         if (!Utils.checkConnectPermissionForPreflight(this)) {
             return false;
@@ -1235,6 +1270,7 @@ public class HeadsetService extends ProfileService {
      *
      * @return the active device or null if no device is active
      */
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     public BluetoothDevice getActiveDevice() {
         if (!Utils.checkConnectPermissionForPreflight(this)) {
             return null;
@@ -1244,6 +1280,7 @@ public class HeadsetService extends ProfileService {
         }
     }
 
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     boolean connectAudio() {
         if (!Utils.checkConnectPermissionForPreflight(this)) {
             return false;
@@ -1258,6 +1295,7 @@ public class HeadsetService extends ProfileService {
         }
     }
 
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     boolean connectAudio(BluetoothDevice device) {
         if (!Utils.checkConnectPermissionForPreflight(this)) {
             return false;
@@ -1303,6 +1341,7 @@ public class HeadsetService extends ProfileService {
         return devices;
     }
 
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     boolean disconnectAudio() {
         if (!Utils.checkConnectPermissionForPreflight(this)) {
             return false;
@@ -1323,6 +1362,7 @@ public class HeadsetService extends ProfileService {
         return result;
     }
 
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     boolean disconnectAudio(BluetoothDevice device) {
         if (!Utils.checkConnectPermissionForPreflight(this)) {
             return false;
@@ -1343,6 +1383,7 @@ public class HeadsetService extends ProfileService {
         return true;
     }
 
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     boolean isVirtualCallStarted() {
         if (!Utils.checkConnectPermissionForPreflight(this)) {
             return false;
@@ -1352,6 +1393,10 @@ public class HeadsetService extends ProfileService {
         }
     }
 
+    @RequiresPermission(allOf = {
+            android.Manifest.permission.BLUETOOTH_CONNECT,
+            android.Manifest.permission.MODIFY_PHONE_STATE,
+    })
     private boolean startScoUsingVirtualVoiceCall() {
         if (!Utils.checkConnectPermissionForPreflight(this)) {
             return false;
@@ -1394,6 +1439,10 @@ public class HeadsetService extends ProfileService {
         }
     }
 
+    @RequiresPermission(allOf = {
+            android.Manifest.permission.BLUETOOTH_CONNECT,
+            android.Manifest.permission.MODIFY_PHONE_STATE,
+    })
     boolean stopScoUsingVirtualVoiceCall() {
         if (!Utils.checkConnectPermissionForPreflight(this)) {
             return false;
@@ -1443,6 +1492,10 @@ public class HeadsetService extends ProfileService {
      * @return true on successful dial out
      */
     @VisibleForTesting(visibility = VisibleForTesting.Visibility.PACKAGE)
+    @RequiresPermission(allOf = {
+            android.Manifest.permission.BLUETOOTH_CONNECT,
+            android.Manifest.permission.MODIFY_PHONE_STATE,
+    })
     public boolean dialOutgoingCall(BluetoothDevice fromDevice, String dialNumber) {
         synchronized (mStateMachines) {
             Log.i(TAG, "dialOutgoingCall: from " + fromDevice);
@@ -1513,6 +1566,10 @@ public class HeadsetService extends ProfileService {
         }
     }
 
+    @RequiresPermission(allOf = {
+            android.Manifest.permission.BLUETOOTH_CONNECT,
+            android.Manifest.permission.MODIFY_PHONE_STATE,
+    })
     boolean startVoiceRecognitionByHeadset(BluetoothDevice fromDevice) {
         synchronized (mStateMachines) {
             Log.i(TAG, "startVoiceRecognitionByHeadset: from " + fromDevice);
@@ -1569,6 +1626,7 @@ public class HeadsetService extends ProfileService {
         }
     }
 
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     boolean stopVoiceRecognitionByHeadset(BluetoothDevice fromDevice) {
         synchronized (mStateMachines) {
             Log.i(TAG, "stopVoiceRecognitionByHeadset: from " + fromDevice);
@@ -1606,6 +1664,10 @@ public class HeadsetService extends ProfileService {
         }
     }
 
+    @RequiresPermission(allOf = {
+            android.Manifest.permission.BLUETOOTH_CONNECT,
+            android.Manifest.permission.MODIFY_PHONE_STATE,
+    })
     private void phoneStateChanged(int numActive, int numHeld, int callState, String number,
             int type, String name, boolean isVirtualCall) {
         enforceCallingOrSelfPermission(MODIFY_PHONE_STATE, "Need MODIFY_PHONE_STATE permission");
@@ -1664,6 +1726,10 @@ public class HeadsetService extends ProfileService {
 
     }
 
+    @RequiresPermission(allOf = {
+            android.Manifest.permission.BLUETOOTH_CONNECT,
+            android.Manifest.permission.MODIFY_PHONE_STATE,
+    })
     private void clccResponse(int index, int direction, int status, int mode, boolean mpty,
             String number, int type) {
         enforceCallingOrSelfPermission(MODIFY_PHONE_STATE, "Need MODIFY_PHONE_STATE permission");
@@ -1673,6 +1739,7 @@ public class HeadsetService extends ProfileService {
                                 type)));
     }
 
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     private boolean sendVendorSpecificResultCode(BluetoothDevice device, String command,
             String arg) {
         if (!Utils.checkConnectPermissionForPreflight(this)) {
@@ -1700,6 +1767,7 @@ public class HeadsetService extends ProfileService {
         return true;
     }
 
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     boolean isInbandRingingEnabled() {
         if (!Utils.checkConnectPermissionForPreflight(this)) {
             return false;
@@ -1717,6 +1785,10 @@ public class HeadsetService extends ProfileService {
      * @param toState to which connection state is the change
      */
     @VisibleForTesting
+    @RequiresPermission(allOf = {
+            android.Manifest.permission.BLUETOOTH_CONNECT,
+            android.Manifest.permission.MODIFY_PHONE_STATE,
+    })
     public void onConnectionStateChangedFromStateMachine(BluetoothDevice device, int fromState,
             int toState) {
         synchronized (mStateMachines) {
@@ -1764,6 +1836,7 @@ public class HeadsetService extends ProfileService {
         }
     }
 
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     private boolean shouldCallAudioBeActive() {
         return mSystemInterface.isInCall() || (mSystemInterface.isRinging()
                 && isInbandRingingEnabled());
@@ -1778,6 +1851,7 @@ public class HeadsetService extends ProfileService {
      *
      * @return true if call audio should be active and no virtual call is going on
      */
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     private boolean shouldPersistAudio() {
         return !mVirtualCallStarted && shouldCallAudioBeActive();
     }
@@ -1791,6 +1865,10 @@ public class HeadsetService extends ProfileService {
      * @param toState to which audio connection state is the change
      */
     @VisibleForTesting
+    @RequiresPermission(allOf = {
+            android.Manifest.permission.BLUETOOTH_CONNECT,
+            android.Manifest.permission.MODIFY_PHONE_STATE,
+    })
     public void onAudioStateChangedFromStateMachine(BluetoothDevice device, int fromState,
             int toState) {
         synchronized (mStateMachines) {
@@ -1843,6 +1921,7 @@ public class HeadsetService extends ProfileService {
      * @param device remote device that initiates the connection
      * @return true if the connection is acceptable
      */
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     public boolean okToAcceptConnection(BluetoothDevice device) {
         // Check if this is an incoming connection in Quiet mode.
         if (mAdapterService.isQuietModeEnabled()) {
@@ -1879,6 +1958,7 @@ public class HeadsetService extends ProfileService {
      * @param device device for SCO to be connected
      * @return true if SCO is allowed to be connected
      */
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     public boolean isScoAcceptable(BluetoothDevice device) {
         synchronized (mStateMachines) {
             if (device == null || !device.equals(mActiveDevice)) {

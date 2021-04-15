@@ -16,6 +16,7 @@
 
 package com.android.bluetooth.avrcp;
 
+import android.annotation.RequiresPermission;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.util.Log;
@@ -96,6 +97,7 @@ public class AvrcpNativeInterface {
         return mAvrcpService.getPlayState();
     }
 
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     void sendMediaKeyEvent(int keyEvent, boolean pushed) {
         d("sendMediaKeyEvent: keyEvent=" + keyEvent + " pushed=" + pushed);
         if (mAvrcpService == null) {
@@ -206,6 +208,7 @@ public class AvrcpNativeInterface {
         return disconnectDeviceNative(bdaddr);
     }
 
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     void setActiveDevice(String bdaddr) {
         BluetoothDevice device =
                 BluetoothAdapter.getDefaultAdapter().getRemoteDevice(bdaddr.toUpperCase());
@@ -242,6 +245,7 @@ public class AvrcpNativeInterface {
         sendVolumeChangedNative(bdaddr, volume);
     }
 
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     void setVolume(int volume) {
         d("setVolume: volume=" + volume);
         if (mAvrcpService == null) {
