@@ -20,6 +20,7 @@ import static android.Manifest.permission.BLUETOOTH_CONNECT;
 
 import static com.android.bluetooth.Utils.enforceBluetoothPrivilegedPermission;
 
+import android.annotation.RequiresPermission;
 import android.bluetooth.BluetoothA2dp;
 import android.bluetooth.BluetoothA2dp.OptionalCodecsPreferenceStatus;
 import android.bluetooth.BluetoothA2dp.OptionalCodecsSupportStatus;
@@ -239,6 +240,7 @@ public class A2dpService extends ProfileService {
         sA2dpService = instance;
     }
 
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     public boolean connect(BluetoothDevice device) {
         if (!Utils.checkConnectPermissionForPreflight(this)) {
             return false;
@@ -293,6 +295,7 @@ public class A2dpService extends ProfileService {
      * @param device is the device with which we would like to disconnect a2dp
      * @return true if profile disconnected, false if device not connected over a2dp
      */
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     public boolean disconnect(BluetoothDevice device) {
         if (!Utils.checkConnectPermissionForPreflight(this)) {
             return false;
@@ -312,6 +315,7 @@ public class A2dpService extends ProfileService {
         }
     }
 
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     public List<BluetoothDevice> getConnectedDevices() {
         if (!Utils.checkConnectPermissionForPreflight(this)) {
             return new ArrayList<>(0);
@@ -395,6 +399,7 @@ public class A2dpService extends ProfileService {
         return true;
     }
 
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     List<BluetoothDevice> getDevicesMatchingConnectionStates(int[] states) {
         if (!Utils.checkConnectPermissionForPreflight(this)) {
             return new ArrayList<>(0);
@@ -445,6 +450,7 @@ public class A2dpService extends ProfileService {
         }
     }
 
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     public int getConnectionState(BluetoothDevice device) {
         if (!Utils.checkConnectPermissionForPreflight(this)) {
             return BluetoothProfile.STATE_DISCONNECTED;
@@ -458,6 +464,7 @@ public class A2dpService extends ProfileService {
         }
     }
 
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     private void removeActiveDevice(boolean forceStopPlayingAudio) {
         synchronized (mActiveSwitchingGuard) {
             BluetoothDevice previousActiveDevice = null;
@@ -500,6 +507,7 @@ public class A2dpService extends ProfileService {
      * @return true on success, false on error
      */
     @VisibleForTesting
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     public boolean setSilenceMode(BluetoothDevice device, boolean silence) {
         if (DBG) {
             Log.d(TAG, "setSilenceMode(" + device + "): " + silence);
@@ -523,6 +531,7 @@ public class A2dpService extends ProfileService {
      * @param device the active device
      * @return true on success, otherwise false
      */
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     public boolean setActiveDevice(BluetoothDevice device) {
         if (!Utils.checkConnectPermissionForPreflight(this)) {
             return false;
@@ -614,6 +623,7 @@ public class A2dpService extends ProfileService {
      *
      * @return the active device or null if no device is active
      */
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     public BluetoothDevice getActiveDevice() {
         if (!Utils.checkConnectPermissionForPreflight(this)) {
             return null;
@@ -644,6 +654,10 @@ public class A2dpService extends ProfileService {
      * @param connectionPolicy is the connection policy to set to for this profile
      * @return true if connectionPolicy is set, false on error
      */
+    @RequiresPermission(allOf = {
+            android.Manifest.permission.BLUETOOTH_CONNECT,
+            android.Manifest.permission.BLUETOOTH_PRIVILEGED,
+    })
     public boolean setConnectionPolicy(BluetoothDevice device, int connectionPolicy) {
         enforceCallingOrSelfPermission(BLUETOOTH_PRIVILEGED,
                 "Need BLUETOOTH_PRIVILEGED permission");
@@ -686,6 +700,7 @@ public class A2dpService extends ProfileService {
     }
 
 
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     public void setAvrcpAbsoluteVolume(int volume) {
         // TODO (apanicke): Instead of using A2DP as a middleman for volume changes, add a binder
         // service to the new AVRCP Profile and have the audio manager use that instead.
@@ -695,6 +710,7 @@ public class A2dpService extends ProfileService {
         }
     }
 
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     boolean isA2dpPlaying(BluetoothDevice device) {
         if (!Utils.checkConnectPermissionForPreflight(this)) {
             return false;
@@ -719,6 +735,7 @@ public class A2dpService extends ProfileService {
      * @return the current codec status
      * @hide
      */
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     public BluetoothCodecStatus getCodecStatus(BluetoothDevice device) {
         if (!Utils.checkConnectPermissionForPreflight(this)) {
             return null;
@@ -749,6 +766,7 @@ public class A2dpService extends ProfileService {
      * @param codecConfig the codec configuration preference
      * @hide
      */
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     public void setCodecConfigPreference(BluetoothDevice device,
                                          BluetoothCodecConfig codecConfig) {
         if (!Utils.checkConnectPermissionForPreflight(this)) {
@@ -784,6 +802,7 @@ public class A2dpService extends ProfileService {
      * active A2DP Bluetooth device.
      * @hide
      */
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     public void enableOptionalCodecs(BluetoothDevice device) {
         if (!Utils.checkConnectPermissionForPreflight(this)) {
             return;
@@ -817,6 +836,7 @@ public class A2dpService extends ProfileService {
      * active A2DP Bluetooth device.
      * @hide
      */
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     public void disableOptionalCodecs(BluetoothDevice device) {
         if (!Utils.checkConnectPermissionForPreflight(this)) {
             return;
@@ -852,6 +872,7 @@ public class A2dpService extends ProfileService {
      * {@link OptionalCodecsSupportStatus#OPTIONAL_CODECS_NOT_SUPPORTED},
      * {@link OptionalCodecsSupportStatus#OPTIONAL_CODECS_SUPPORT_UNKNOWN}.
      */
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     public @OptionalCodecsSupportStatus int getSupportsOptionalCodecs(BluetoothDevice device) {
         if (!Utils.checkConnectPermissionForPreflight(this)) {
             return BluetoothA2dp.OPTIONAL_CODECS_SUPPORT_UNKNOWN;
@@ -859,6 +880,7 @@ public class A2dpService extends ProfileService {
         return mDatabaseManager.getA2dpSupportsOptionalCodecs(device);
     }
 
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     public void setSupportsOptionalCodecs(BluetoothDevice device, boolean doesSupport) {
         if (!Utils.checkConnectPermissionForPreflight(this)) {
             return;
@@ -877,6 +899,7 @@ public class A2dpService extends ProfileService {
      * {@link OptionalCodecsPreferenceStatus#OPTIONAL_CODECS_PREF_DISABLED},
      * {@link OptionalCodecsPreferenceStatus#OPTIONAL_CODECS_PREF_UNKNOWN}.
      */
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     public @OptionalCodecsPreferenceStatus int getOptionalCodecsEnabled(BluetoothDevice device) {
         if (!Utils.checkConnectPermissionForPreflight(this)) {
             return BluetoothA2dp.OPTIONAL_CODECS_PREF_UNKNOWN;
@@ -893,6 +916,7 @@ public class A2dpService extends ProfileService {
      * {@link OptionalCodecsPreferenceStatus#OPTIONAL_CODECS_PREF_DISABLED},
      * {@link OptionalCodecsPreferenceStatus#OPTIONAL_CODECS_PREF_UNKNOWN}.
      */
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     public void setOptionalCodecsEnabled(BluetoothDevice device,
             @OptionalCodecsPreferenceStatus int value) {
         if (!Utils.checkConnectPermissionForPreflight(this)) {
@@ -915,6 +939,7 @@ public class A2dpService extends ProfileService {
      * {@link BluetoothA2dp#DYNAMIC_BUFFER_SUPPORT_A2DP_OFFLOAD},
      * {@link BluetoothA2dp#DYNAMIC_BUFFER_SUPPORT_A2DP_SOFTWARE_ENCODING}.
      */
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_PRIVILEGED)
     public int getDynamicBufferSupport() {
         enforceCallingOrSelfPermission(BLUETOOTH_PRIVILEGED,
                 "Need BLUETOOTH_PRIVILEGED permission");
@@ -926,6 +951,7 @@ public class A2dpService extends ProfileService {
      *
      * @return BufferConstraints
      */
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_PRIVILEGED)
     public BufferConstraints getBufferConstraints() {
         enforceCallingOrSelfPermission(BLUETOOTH_PRIVILEGED,
                 "Need BLUETOOTH_PRIVILEGED permission");
@@ -939,6 +965,7 @@ public class A2dpService extends ProfileService {
      * @param value buffer millis
      * @return true if the settings is successful, false otherwise
      */
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_PRIVILEGED)
     public boolean setBufferLengthMillis(int codec, int value) {
         enforceCallingOrSelfPermission(BLUETOOTH_PRIVILEGED,
                 "Need BLUETOOTH_PRIVILEGED permission");
@@ -1151,6 +1178,7 @@ public class A2dpService extends ProfileService {
      * @param device the device to change optional codec status
      */
     @VisibleForTesting
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     public void updateOptionalCodecsSupport(BluetoothDevice device) {
         int previousSupport = getSupportsOptionalCodecs(device);
         boolean supportsOptional = false;
@@ -1202,6 +1230,7 @@ public class A2dpService extends ProfileService {
         }
     }
 
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     private void connectionStateChanged(BluetoothDevice device, int fromState, int toState) {
         if ((device == null) || (fromState == toState)) {
             return;

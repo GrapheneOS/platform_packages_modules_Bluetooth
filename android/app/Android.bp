@@ -75,6 +75,7 @@ android_app {
     srcs: [
         "src/**/*.java",
         ":statslog-bluetooth-java-gen",
+        ":libbluetooth-binder-aidl",
     ],
     platform_apis: true,
     certificate: "platform",
@@ -83,6 +84,7 @@ android_app {
     libs: [
         "javax.obex",
         "services.net",
+        "unsupportedappusage",
     ],
     static_libs: [
         "com.android.vcard",
@@ -113,6 +115,11 @@ android_app {
         "//apex_available:platform",
         "com.android.bluetooth.updatable",
     ],
+    errorprone: {
+        javacflags: [
+            "-Xep:AndroidFrameworkRequiresPermission:ERROR",
+        ],
+    },
 }
 
 genrule {
