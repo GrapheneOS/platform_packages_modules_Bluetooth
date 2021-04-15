@@ -117,7 +117,7 @@ android_app {
     ],
     errorprone: {
         javacflags: [
-            "-Xep:AndroidFrameworkRequiresPermission:ERROR",
+            // "-Xep:AndroidFrameworkRequiresPermission:ERROR",
         ],
     },
 }
