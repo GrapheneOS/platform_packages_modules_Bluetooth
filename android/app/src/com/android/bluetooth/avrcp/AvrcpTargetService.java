@@ -16,6 +16,7 @@
 
 package com.android.bluetooth.avrcp;
 
+import android.annotation.RequiresPermission;
 import android.bluetooth.BluetoothA2dp;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothProfile;
@@ -279,6 +280,7 @@ public class AvrcpTargetService extends ProfileService {
     private void init() {
     }
 
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     private BluetoothDevice getA2dpActiveDevice() {
         A2dpService service = mFactory.getA2dpService();
         if (service == null) {
@@ -287,6 +289,7 @@ public class AvrcpTargetService extends ProfileService {
         return service.getActiveDevice();
     }
 
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     private void setA2dpActiveDevice(BluetoothDevice device) {
         A2dpService service = A2dpService.getA2dpService();
         if (service == null) {
@@ -339,6 +342,7 @@ public class AvrcpTargetService extends ProfileService {
     }
 
     // TODO (apanicke): Add checks to rejectlist Absolute Volume devices if they behave poorly.
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     void setVolume(int avrcpVolume) {
         BluetoothDevice activeDevice = getA2dpActiveDevice();
         if (activeDevice == null) {
@@ -353,6 +357,7 @@ public class AvrcpTargetService extends ProfileService {
      * Set the volume on the remote device. Does nothing if the device doesn't support absolute
      * volume.
      */
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     public void sendVolumeChanged(int deviceVolume) {
         BluetoothDevice activeDevice = getA2dpActiveDevice();
         if (activeDevice == null) {
@@ -426,6 +431,7 @@ public class AvrcpTargetService extends ProfileService {
 
     // TODO (apanicke): Handle key events here in the service. Currently it was more convenient to
     // handle them there but logically they make more sense handled here.
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     void sendMediaKeyEvent(int event, boolean pushed) {
         BluetoothDevice activeDevice = getA2dpActiveDevice();
         MediaPlayerWrapper player = mMediaPlayerList.getActivePlayer();
@@ -435,6 +441,7 @@ public class AvrcpTargetService extends ProfileService {
         mMediaPlayerList.sendMediaKeyEvent(event, pushed);
     }
 
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     void setActiveDevice(BluetoothDevice device) {
         Log.i(TAG, "setActiveDevice: device=" + device);
         if (device == null) {

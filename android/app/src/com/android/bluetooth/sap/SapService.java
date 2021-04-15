@@ -2,6 +2,7 @@ package com.android.bluetooth.sap;
 
 import static android.Manifest.permission.BLUETOOTH_CONNECT;
 
+import android.annotation.RequiresPermission;
 import android.annotation.TargetApi;
 import android.app.AlarmManager;
 import android.app.PendingIntent;
@@ -611,6 +612,7 @@ public class SapService extends ProfileService {
      * @param connectionPolicy is the connection policy to set to for this profile
      * @return true if connectionPolicy is set, false on error
      */
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_PRIVILEGED)
     public boolean setConnectionPolicy(BluetoothDevice device, int connectionPolicy) {
         if (DEBUG) {
             Log.d(TAG, "Saved connectionPolicy " + device + " = " + connectionPolicy);
@@ -637,6 +639,7 @@ public class SapService extends ProfileService {
      * @return connection policy of the device
      * @hide
      */
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_PRIVILEGED)
     public int getConnectionPolicy(BluetoothDevice device) {
         enforceCallingOrSelfPermission(BLUETOOTH_PRIVILEGED,
                 "Need BLUETOOTH_PRIVILEGED permission");
@@ -915,6 +918,7 @@ public class SapService extends ProfileService {
     private static class SapBinder extends IBluetoothSap.Stub implements IProfileServiceBinder {
         private SapService mService;
 
+        @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
         private SapService getService() {
             if (!Utils.checkCaller()) {
                 Log.w(TAG, "call not allowed for non-active user");

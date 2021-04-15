@@ -18,6 +18,7 @@ package com.android.bluetooth;
 
 import static android.Manifest.permission.ACCESS_COARSE_LOCATION;
 import static android.Manifest.permission.ACCESS_FINE_LOCATION;
+import static android.Manifest.permission.BLUETOOTH_ADVERTISE;
 import static android.Manifest.permission.BLUETOOTH_CONNECT;
 import static android.Manifest.permission.BLUETOOTH_SCAN;
 import static android.Manifest.permission.RENOUNCE_PERMISSIONS;
@@ -28,6 +29,8 @@ import static android.content.pm.PackageManager.PERMISSION_GRANTED;
 
 import android.Manifest;
 import android.annotation.NonNull;
+import android.annotation.RequiresPermission;
+import android.annotation.SuppressLint;
 import android.app.AppOpsManager;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -359,23 +362,28 @@ public final class Utils {
      * @return {@code true} if the caller has the BLUETOOTH_PRIVILEGED permission, {@code false}
      *         otherwise
      */
+    // Suppressed since we're not actually enforcing here
+    @SuppressLint("AndroidFrameworkRequiresPermission")
     public static boolean hasBluetoothPrivilegedPermission(Context context) {
         return context.checkCallingOrSelfPermission(Manifest.permission.BLUETOOTH_PRIVILEGED)
                 == PackageManager.PERMISSION_GRANTED;
     }
 
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_PRIVILEGED)
     public static void enforceBluetoothPrivilegedPermission(Context context) {
         context.enforceCallingOrSelfPermission(
                 android.Manifest.permission.BLUETOOTH_PRIVILEGED,
                 "Need BLUETOOTH PRIVILEGED permission");
     }
 
+    @RequiresPermission(android.Manifest.permission.LOCAL_MAC_ADDRESS)
     public static void enforceLocalMacAddressPermission(Context context) {
         context.enforceCallingOrSelfPermission(
                 android.Manifest.permission.LOCAL_MAC_ADDRESS,
                 "Need LOCAL_MAC_ADDRESS permission");
     }
 
+    @RequiresPermission(android.Manifest.permission.DUMP)
     public static void enforceDumpPermission(Context context) {
         context.enforceCallingOrSelfPermission(
                 android.Manifest.permission.DUMP,
@@ -389,6 +397,7 @@ public final class Utils {
      *
      * <p>Should be used in situations where the app op should not be noted.
      */
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     public static boolean checkConnectPermissionForPreflight(Context context) {
         int permissionCheckResult = PermissionChecker.checkCallingOrSelfPermissionForPreflight(
                 context, BLUETOOTH_CONNECT);
@@ -406,6 +415,7 @@ public final class Utils {
      * <p>Should be used in situations where data will be delivered and hence the app op should
      * be noted.
      */
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     public static boolean checkConnectPermissionForDataDelivery(
             Context context, String callingPackage, String callingAttributionTag, String message) {
         int permissionCheckResult = PermissionChecker.checkCallingOrSelfPermissionForDataDelivery(
@@ -422,6 +432,7 @@ public final class Utils {
      *
      * <p>Should be used in situations where the app op should not be noted.
      */
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_SCAN)
     public static boolean checkScanPermissionForPreflight(Context context) {
         int permissionCheckResult = PermissionChecker.checkCallingOrSelfPermissionForPreflight(
                 context, BLUETOOTH_SCAN);
@@ -438,6 +449,7 @@ public final class Utils {
      * <p>Should be used in situations where data will be delivered and hence the app op should
      * be noted.
      */
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_SCAN)
     public static boolean checkScanPermissionForDataDelivery(
             Context context, AttributionSource attributionSource, String message) {
         int permissionCheckResult = PermissionChecker.checkPermissionForDataDeliveryFromDataSource(
@@ -450,10 +462,49 @@ public final class Utils {
     }
 
     /**
+     * Returns true if the BLUETOOTH_ADVERTISE permission is granted for the
+     * calling app. Returns false if the result is a soft denial. Throws
+     * SecurityException if the result is a hard denial.
+     * <p>
+     * Should be used in situations where the app op should not be noted.
+     */
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_ADVERTISE)
+    public static boolean checkAdvertisePermissionForPreflight(Context context) {
+        int permissionCheckResult = PermissionChecker.checkCallingOrSelfPermissionForPreflight(
+                context, BLUETOOTH_ADVERTISE);
+        if (permissionCheckResult == PERMISSION_HARD_DENIED) {
+            throw new SecurityException("Need BLUETOOTH_ADVERTISE permission");
+        }
+        return permissionCheckResult == PERMISSION_GRANTED;
+    }
+
+    /**
+     * Returns true if the BLUETOOTH_ADVERTISE permission is granted for the
+     * calling app. Returns false if the result is a soft denial. Throws
+     * SecurityException if the result is a hard denial.
+     * <p>
+     * Should be used in situations where data will be delivered and hence the
+     * app op should be noted.
+     */
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_ADVERTISE)
+    public static boolean checkAdvertisePermissionForDataDelivery(
+            Context context, AttributionSource attributionSource, String message) {
+        int permissionCheckResult = PermissionChecker.checkPermissionForDataDeliveryFromDataSource(
+                context, BLUETOOTH_ADVERTISE, PID_UNKNOWN,
+                new AttributionSource(context.getAttributionSource(), attributionSource), message);
+        if (permissionCheckResult == PERMISSION_HARD_DENIED) {
+            throw new SecurityException("Need BLUETOOTH_ADVERTISE permission");
+        }
+        return permissionCheckResult == PERMISSION_GRANTED;
+    }
+
+    /**
      * Returns true if the specified package has disavowed the use of bluetooth scans for location,
      * that is, if they have specified the {@code neverForLocation} flag on the BLUETOOTH_SCAN
      * permission.
      */
+    // Suppressed since we're not actually enforcing here
+    @SuppressLint("AndroidFrameworkRequiresPermission")
     public static boolean hasDisavowedLocationForScan(
             Context context, String packageName, AttributionSource attributionSource) {
 
@@ -542,6 +593,8 @@ public final class Utils {
      * Checks that calling process has android.Manifest.permission.ACCESS_COARSE_LOCATION and
      * OP_COARSE_LOCATION is allowed
      */
+    // Suppressed since we're not actually enforcing here
+    @SuppressLint("AndroidFrameworkRequiresPermission")
     public static boolean checkCallerHasCoarseLocation(
             Context context, AttributionSource attributionSource, UserHandle userHandle) {
         if (blockedByLocationOff(context, userHandle)) {
@@ -566,6 +619,8 @@ public final class Utils {
      * OP_COARSE_LOCATION is allowed or android.Manifest.permission.ACCESS_FINE_LOCATION and
      * OP_FINE_LOCATION is allowed
      */
+    // Suppressed since we're not actually enforcing here
+    @SuppressLint("AndroidFrameworkRequiresPermission")
     public static boolean checkCallerHasCoarseOrFineLocation(
             Context context, AttributionSource attributionSource, UserHandle userHandle) {
         if (blockedByLocationOff(context, userHandle)) {
@@ -596,6 +651,8 @@ public final class Utils {
      * Checks that calling process has android.Manifest.permission.ACCESS_FINE_LOCATION and
      * OP_FINE_LOCATION is allowed
      */
+    // Suppressed since we're not actually enforcing here
+    @SuppressLint("AndroidFrameworkRequiresPermission")
     public static boolean checkCallerHasFineLocation(
             Context context, AttributionSource attributionSource, UserHandle userHandle) {
         if (blockedByLocationOff(context, userHandle)) {
@@ -618,6 +675,8 @@ public final class Utils {
     /**
      * Returns true if the caller holds NETWORK_SETTINGS
      */
+    // Suppressed since we're not actually enforcing here
+    @SuppressLint("AndroidFrameworkRequiresPermission")
     public static boolean checkCallerHasNetworkSettingsPermission(Context context) {
         return context.checkCallingOrSelfPermission(android.Manifest.permission.NETWORK_SETTINGS)
                 == PackageManager.PERMISSION_GRANTED;
@@ -626,6 +685,8 @@ public final class Utils {
     /**
      * Returns true if the caller holds NETWORK_SETUP_WIZARD
      */
+    // Suppressed since we're not actually enforcing here
+    @SuppressLint("AndroidFrameworkRequiresPermission")
     public static boolean checkCallerHasNetworkSetupWizardPermission(Context context) {
         return context.checkCallingOrSelfPermission(
                 android.Manifest.permission.NETWORK_SETUP_WIZARD)
@@ -635,10 +696,27 @@ public final class Utils {
     /**
      * Returns true if the caller holds RADIO_SCAN_WITHOUT_LOCATION
      */
+    // Suppressed since we're not actually enforcing here
+    @SuppressLint("AndroidFrameworkRequiresPermission")
     public static boolean checkCallerHasScanWithoutLocationPermission(Context context) {
         return context.checkCallingOrSelfPermission(
                 android.Manifest.permission.RADIO_SCAN_WITHOUT_LOCATION)
                 == PackageManager.PERMISSION_GRANTED;
+    }
+
+    // Suppressed since we're not actually enforcing here
+    @SuppressLint("AndroidFrameworkRequiresPermission")
+    public static boolean checkCallerHasPrivilegedPermission(Context context) {
+        return context.checkCallingOrSelfPermission(
+                android.Manifest.permission.BLUETOOTH_PRIVILEGED)
+                == PackageManager.PERMISSION_GRANTED;
+    }
+
+    // Suppressed since we're not actually enforcing here
+    @SuppressLint("AndroidFrameworkRequiresPermission")
+    public static boolean checkCallerHasWriteSmsPermission(Context context) {
+        return context.checkCallingOrSelfPermission(
+                android.Manifest.permission.WRITE_SMS) == PackageManager.PERMISSION_GRANTED;
     }
 
     public static boolean isQApp(Context context, String pkgName) {

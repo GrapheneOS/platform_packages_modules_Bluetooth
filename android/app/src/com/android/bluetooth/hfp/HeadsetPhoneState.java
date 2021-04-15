@@ -16,6 +16,8 @@
 
 package com.android.bluetooth.hfp;
 
+import android.annotation.RequiresPermission;
+import android.annotation.SuppressLint;
 import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.os.Handler;
@@ -219,6 +221,7 @@ public class HeadsetPhoneState {
      * @param batteryLevel battery level value
      */
     @VisibleForTesting(visibility = VisibleForTesting.Visibility.PACKAGE)
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     public void setCindBatteryCharge(int batteryLevel) {
         if (mCindBatteryCharge != batteryLevel) {
             mCindBatteryCharge = batteryLevel;
@@ -234,6 +237,7 @@ public class HeadsetPhoneState {
         return (mNumActive >= 1);
     }
 
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     private synchronized void sendDeviceStateChanged() {
         // When out of service, send signal strength as 0. Some devices don't
         // use the service indicator, but only the signal indicator
@@ -246,6 +250,7 @@ public class HeadsetPhoneState {
                 new HeadsetDeviceState(mCindService, mCindRoam, signal, mCindBatteryCharge));
     }
 
+    @SuppressLint("AndroidFrameworkRequiresPermission")
     private class HeadsetPhoneStateOnSubscriptionChangedListener
             extends OnSubscriptionsChangedListener {
         HeadsetPhoneStateOnSubscriptionChangedListener() {
@@ -268,6 +273,7 @@ public class HeadsetPhoneState {
         }
     }
 
+    @SuppressLint("AndroidFrameworkRequiresPermission")
     private class HeadsetPhoneStateListener extends PhoneStateListener {
         HeadsetPhoneStateListener(Executor executor) {
             super(executor);
