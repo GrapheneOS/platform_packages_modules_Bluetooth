@@ -546,7 +546,11 @@ public class HearingAidService extends ProfileService {
                 .getProfileConnectionPolicy(device, BluetoothProfile.HEARING_AID);
     }
 
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     void setVolume(int volume) {
+        if (!Utils.checkConnectPermissionForPreflight(this)) {
+            return;
+        }
         mHearingAidNativeInterface.setVolume(volume);
     }
 
@@ -560,7 +564,11 @@ public class HearingAidService extends ProfileService {
         return mDeviceHiSyncIdMap.getOrDefault(device, BluetoothHearingAid.HI_SYNC_ID_INVALID);
     }
 
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     int getCapabilities(BluetoothDevice device) {
+        if (!Utils.checkConnectPermissionForPreflight(this)) {
+            return -1;
+        }
         return mDeviceCapabilitiesMap.getOrDefault(device, -1);
     }
 

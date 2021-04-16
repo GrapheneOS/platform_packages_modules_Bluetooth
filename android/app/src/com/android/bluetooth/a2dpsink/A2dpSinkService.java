@@ -32,6 +32,7 @@ import com.android.internal.annotations.VisibleForTesting;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -362,7 +363,11 @@ public class A2dpSinkService extends ProfileService {
         mDeviceStateMap.remove(stateMachine.getDevice());
     }
 
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     public List<BluetoothDevice> getConnectedDevices() {
+        if (!Utils.checkConnectPermissionForPreflight(this)) {
+            return Collections.emptyList();
+        }
         return getDevicesMatchingConnectionStates(new int[]{BluetoothAdapter.STATE_CONNECTED});
     }
 
@@ -379,8 +384,12 @@ public class A2dpSinkService extends ProfileService {
         return existingStateMachine;
     }
 
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     List<BluetoothDevice> getDevicesMatchingConnectionStates(int[] states) {
         if (DBG) Log.d(TAG, "getDevicesMatchingConnectionStates" + Arrays.toString(states));
+        if (!Utils.checkConnectPermissionForPreflight(this)) {
+            return Collections.emptyList();
+        }
         List<BluetoothDevice> deviceList = new ArrayList<>();
         BluetoothDevice[] bondedDevices = mAdapterService.getBondedDevices();
         int connectionState;
@@ -407,7 +416,11 @@ public class A2dpSinkService extends ProfileService {
      * {@link BluetoothProfile#STATE_CONNECTED} if this profile is connected, or
      * {@link BluetoothProfile#STATE_DISCONNECTING} if this profile is being disconnected
      */
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     public int getConnectionState(BluetoothDevice device) {
+        if (!Utils.checkConnectPermissionForPreflight(this)) {
+            return BluetoothProfile.STATE_DISCONNECTED;
+        }
         A2dpSinkStateMachine stateMachine = mDeviceStateMap.get(device);
         return (stateMachine == null) ? BluetoothProfile.STATE_DISCONNECTED
                 : stateMachine.getState();
@@ -479,7 +492,11 @@ public class A2dpSinkService extends ProfileService {
         }
     }
 
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     BluetoothAudioConfig getAudioConfig(BluetoothDevice device) {
+        if (!Utils.checkConnectPermissionForPreflight(this)) {
+            return null;
+        }
         A2dpSinkStateMachine stateMachine = mDeviceStateMap.get(device);
         // a state machine instance doesn't exist. maybe it is already gone?
         if (stateMachine == null) {
