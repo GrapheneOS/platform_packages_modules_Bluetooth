@@ -1276,6 +1276,17 @@ public class AdapterService extends Service {
         }
 
         @Override
+        public int getNameLengthForAdvertise() {
+            AdapterService service = getService();
+            if (service == null || !callerIsSystemOrActiveUser(TAG, "getNameLengthForAdvertise")
+                    || !Utils.checkAdvertisePermissionForPreflight(service)) {
+                return -1;
+            }
+
+            return service.getNameLengthForAdvertise();
+        }
+
+        @Override
         public boolean setName(String name) {
             AdapterService service = getService();
             if (service == null || !callerIsSystemOrActiveUser(TAG, "setName")
@@ -2352,6 +2363,10 @@ public class AdapterService extends Service {
 
     public String getName() {
         return mAdapterProperties.getName();
+    }
+
+    public int getNameLengthForAdvertise() {
+        return mAdapterProperties.getName().length();
     }
 
     private static boolean isValidIoCapability(int capability) {
