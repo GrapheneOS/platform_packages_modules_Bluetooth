@@ -16,6 +16,7 @@
 
 package com.android.bluetooth.avrcpcontroller;
 
+import android.annotation.RequiresPermission;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothAvrcpPlayerSettings;
 import android.bluetooth.BluetoothDevice;
@@ -33,6 +34,7 @@ import com.android.bluetooth.btservice.ProfileService;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -373,18 +375,27 @@ public class AvrcpControllerService extends ProfileService {
         @Override
         public void sendGroupNavigationCmd(BluetoothDevice device, int keyCode, int keyState) {
             Log.w(TAG, "sendGroupNavigationCmd not implemented");
+            if (!Utils.checkConnectPermissionForPreflight(getService())) {
+                return;
+            }
             return;
         }
 
         @Override
         public boolean setPlayerApplicationSetting(BluetoothAvrcpPlayerSettings settings) {
             Log.w(TAG, "setPlayerApplicationSetting not implemented");
+            if (!Utils.checkConnectPermissionForPreflight(getService())) {
+                return false;
+            }
             return false;
         }
 
         @Override
         public BluetoothAvrcpPlayerSettings getPlayerSettings(BluetoothDevice device) {
             Log.w(TAG, "getPlayerSettings not implemented");
+            if (!Utils.checkConnectPermissionForPreflight(getService())) {
+                return null;
+            }
             return null;
         }
     }
@@ -812,7 +823,11 @@ public class AvrcpControllerService extends ProfileService {
         mDeviceStateMap.remove(stateMachine.getDevice());
     }
 
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     public List<BluetoothDevice> getConnectedDevices() {
+        if (!Utils.checkConnectPermissionForPreflight(this)) {
+            return Collections.emptyList();
+        }
         return getDevicesMatchingConnectionStates(new int[]{BluetoothAdapter.STATE_CONNECTED});
     }
 
@@ -837,8 +852,12 @@ public class AvrcpControllerService extends ProfileService {
         return mCoverArtManager;
     }
 
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     List<BluetoothDevice> getDevicesMatchingConnectionStates(int[] states) {
         if (DBG) Log.d(TAG, "getDevicesMatchingConnectionStates" + Arrays.toString(states));
+        if (!Utils.checkConnectPermissionForPreflight(this)) {
+            return Collections.emptyList();
+        }
         List<BluetoothDevice> deviceList = new ArrayList<>();
         Set<BluetoothDevice> bondedDevices = mAdapter.getBondedDevices();
         int connectionState;
@@ -856,7 +875,11 @@ public class AvrcpControllerService extends ProfileService {
         return deviceList;
     }
 
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     synchronized int getConnectionState(BluetoothDevice device) {
+        if (!Utils.checkConnectPermissionForPreflight(this)) {
+            return BluetoothProfile.STATE_DISCONNECTED;
+        }
         AvrcpControllerStateMachine stateMachine = mDeviceStateMap.get(device);
         return (stateMachine == null) ? BluetoothProfile.STATE_DISCONNECTED
                 : stateMachine.getState();

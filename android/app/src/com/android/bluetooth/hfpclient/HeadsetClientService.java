@@ -340,11 +340,17 @@ public class HeadsetClientService extends ProfileService {
         @Override
         public void setAudioRouteAllowed(BluetoothDevice device, boolean allowed) {
             Log.e(TAG, "setAudioRouteAllowed API not supported");
+            if (!Utils.checkConnectPermissionForPreflight(getService())) {
+                return;
+            }
         }
 
         @Override
         public boolean getAudioRouteAllowed(BluetoothDevice device) {
             Log.e(TAG, "getAudioRouteAllowed API not supported");
+            if (!Utils.checkConnectPermissionForPreflight(getService())) {
+                return false;
+            }
             return false;
         }
 
@@ -705,7 +711,11 @@ public class HeadsetClientService extends ProfileService {
         return true;
     }
 
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     int getAudioState(BluetoothDevice device) {
+        if (!Utils.checkConnectPermissionForPreflight(this)) {
+            return -1;
+        }
         HeadsetClientStateMachine sm = getStateMachine(device);
         if (sm == null) {
             Log.e(TAG, "Cannot allocate SM for device " + device);
@@ -933,7 +943,11 @@ public class HeadsetClientService extends ProfileService {
         return true;
     }
 
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     public boolean getLastVoiceTagNumber(BluetoothDevice device) {
+        if (!Utils.checkConnectPermissionForPreflight(this)) {
+            return false;
+        }
         return false;
     }
 
