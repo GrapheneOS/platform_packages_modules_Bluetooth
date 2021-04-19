@@ -44,6 +44,7 @@ import com.android.internal.annotations.VisibleForTesting;
 import com.android.internal.util.ArrayUtils;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -421,7 +422,11 @@ public class LeAudioService extends ProfileService {
      *
      * @return the list of active devices.
      */
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     List<BluetoothDevice> getActiveDevices() {
+        if (!Utils.checkConnectPermissionForPreflight(this)) {
+            return Collections.emptyList();
+        }
         if (DBG) {
             Log.d(TAG, "getActiveDevices");
         }
@@ -733,7 +738,11 @@ public class LeAudioService extends ProfileService {
      * @param device LE Audio capable device
      * @return group id that this device currently belongs to
      */
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     public int getGroupId(BluetoothDevice device) {
+        if (!Utils.checkConnectPermissionForPreflight(this)) {
+            return LE_AUDIO_GROUP_ID_INVALID;
+        }
         if (device == null) {
             return LE_AUDIO_GROUP_ID_INVALID;
         }
