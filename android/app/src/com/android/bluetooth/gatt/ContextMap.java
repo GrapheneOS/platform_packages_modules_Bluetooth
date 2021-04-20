@@ -222,18 +222,22 @@ import java.util.UUID;
      * Remove the context for a given application ID.
      */
     void remove(int id) {
+        boolean find = false;
         synchronized (mApps) {
             Iterator<App> i = mApps.iterator();
             while (i.hasNext()) {
                 App entry = i.next();
                 if (entry.id == id) {
-                    removeConnectionsByAppId(id);
+                    find = true;
                     entry.unlinkToDeath();
                     entry.appScanStats.isRegistered = false;
                     i.remove();
                     break;
                 }
             }
+        }
+        if (find) {
+            removeConnectionsByAppId(id);
         }
     }
 
@@ -397,14 +401,19 @@ import java.util.UUID;
      * Get an application context by a connection ID.
      */
     App getByConnId(int connId) {
+        int appId = -1;
         synchronized (mConnections) {
             Iterator<Connection> ii = mConnections.iterator();
             while (ii.hasNext()) {
                 Connection connection = ii.next();
                 if (connection.connId == connId) {
-                    return getById(connection.appId);
+                    appId = connection.appId;
+                    break;
                 }
             }
+        }
+        if (appId >= 0) {
+            return getById(appId);
         }
         return null;
     }
