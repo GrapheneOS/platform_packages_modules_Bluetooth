@@ -631,14 +631,13 @@ final class RemoteDevices {
 
                 intent.setPackage(pkg.getPackageName());
 
-                String[] perms;
-                if (pkg.getPermission() == null) {
-                    perms = new String[] { BLUETOOTH_SCAN };
+                if (pkg.getPermission() != null) {
+                    sAdapterService.sendBroadcastMultiplePermissions(intent,
+                            new String[] { BLUETOOTH_SCAN, pkg.getPermission() });
                 } else {
-                    perms = new String[] { BLUETOOTH_SCAN, pkg.getPermission() };
+                    sAdapterService.sendBroadcastMultiplePermissions(intent,
+                            new String[] { BLUETOOTH_SCAN });
                 }
-
-                sAdapterService.sendBroadcastMultiplePermissions(intent, perms);
             }
         }
     }
