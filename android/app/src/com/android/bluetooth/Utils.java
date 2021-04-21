@@ -26,12 +26,14 @@ import static android.content.PermissionChecker.PERMISSION_HARD_DENIED;
 import static android.content.PermissionChecker.PID_UNKNOWN;
 import static android.content.pm.PackageManager.GET_PERMISSIONS;
 import static android.content.pm.PackageManager.PERMISSION_GRANTED;
+import static android.os.PowerExemptionManager.TEMPORARY_ALLOW_LIST_TYPE_FOREGROUND_SERVICE_ALLOWED;
 
 import android.Manifest;
 import android.annotation.NonNull;
 import android.annotation.RequiresPermission;
 import android.annotation.SuppressLint;
 import android.app.AppOpsManager;
+import android.app.BroadcastOptions;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.companion.Association;
@@ -47,7 +49,9 @@ import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Binder;
 import android.os.Build;
+import android.os.Bundle;
 import android.os.ParcelUuid;
+import android.os.PowerExemptionManager;
 import android.os.Process;
 import android.os.SystemProperties;
 import android.os.UserHandle;
@@ -82,6 +86,16 @@ public final class Utils {
 
     static final int BD_ADDR_LEN = 6; // bytes
     static final int BD_UUID_LEN = 16; // bytes
+
+    public static final Bundle sTempAllowlistBroadcastOptions;
+    static {
+        final long durationMs = 10_000;
+        final BroadcastOptions bOptions = BroadcastOptions.makeBasic();
+        bOptions.setTemporaryAppAllowlist(durationMs,
+                TEMPORARY_ALLOW_LIST_TYPE_FOREGROUND_SERVICE_ALLOWED,
+                PowerExemptionManager.REASON_BLUETOOTH_BROADCAST, "");
+        sTempAllowlistBroadcastOptions = bOptions.toBundle();
+    }
 
     /*
      * Special characters
@@ -858,5 +872,9 @@ public final class Utils {
         values.put(Telephony.Sms.ERROR_CODE, 0);
 
         return 1 == context.getContentResolver().update(uri, values, null, null);
+    }
+
+    public static @NonNull Bundle getTempAllowlistBroadcastOptions() {
+        return sTempAllowlistBroadcastOptions;
     }
 }
