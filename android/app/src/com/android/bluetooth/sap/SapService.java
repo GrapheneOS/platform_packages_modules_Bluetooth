@@ -771,7 +771,7 @@ public class SapService extends ProfileService {
         To speed up things, simply delete them. */
         if (mRemoveTimeoutMsg) {
             Intent timeoutIntent = new Intent(USER_CONFIRM_TIMEOUT_ACTION);
-            sendBroadcast(timeoutIntent, BLUETOOTH_CONNECT);
+            sendBroadcast(timeoutIntent);
             mIsWaitingAuthorization = false;
             cancelUserTimeoutAlarm();
         }
