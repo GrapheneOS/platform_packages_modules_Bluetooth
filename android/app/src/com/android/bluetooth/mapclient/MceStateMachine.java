@@ -41,6 +41,7 @@
 package com.android.bluetooth.mapclient;
 
 import static android.Manifest.permission.BLUETOOTH_CONNECT;
+import static android.Manifest.permission.RECEIVE_SMS;
 
 import android.app.Activity;
 import android.app.PendingIntent;
@@ -735,28 +736,32 @@ class MceStateMachine extends StateMachine {
                 Log.e(TAG, "Set message status failed");
                 result = BluetoothMapClient.RESULT_FAILURE;
             }
-            Intent intent;
             RequestSetMessageStatus.StatusIndicator status = request.getStatusIndicator();
             switch (status) {
-                case READ:
-                    intent = new Intent(BluetoothMapClient.ACTION_MESSAGE_READ_STATUS_CHANGED);
+                case READ: {
+                    Intent intent = new Intent(
+                            BluetoothMapClient.ACTION_MESSAGE_READ_STATUS_CHANGED);
                     intent.putExtra(BluetoothMapClient.EXTRA_MESSAGE_READ_STATUS,
                             request.getValue() == RequestSetMessageStatus.STATUS_YES ? true : false);
+                    intent.putExtra(BluetoothMapClient.EXTRA_MESSAGE_HANDLE, request.getHandle());
+                    intent.putExtra(BluetoothMapClient.EXTRA_RESULT_CODE, result);
+                    mService.sendBroadcast(intent, BLUETOOTH_CONNECT);
                     break;
-
-                case DELETED:
-                    intent = new Intent(BluetoothMapClient.ACTION_MESSAGE_DELETED_STATUS_CHANGED);
+                }
+                case DELETED: {
+                    Intent intent = new Intent(
+                            BluetoothMapClient.ACTION_MESSAGE_DELETED_STATUS_CHANGED);
                     intent.putExtra(BluetoothMapClient.EXTRA_MESSAGE_DELETED_STATUS,
                             request.getValue() == RequestSetMessageStatus.STATUS_YES ? true : false);
+                    intent.putExtra(BluetoothMapClient.EXTRA_MESSAGE_HANDLE, request.getHandle());
+                    intent.putExtra(BluetoothMapClient.EXTRA_RESULT_CODE, result);
+                    mService.sendBroadcast(intent, BLUETOOTH_CONNECT);
                     break;
-
+                }
                 default:
                     Log.e(TAG, "Unknown status indicator " + status);
                     return;
             }
-            intent.putExtra(BluetoothMapClient.EXTRA_MESSAGE_HANDLE, request.getHandle());
-            intent.putExtra(BluetoothMapClient.EXTRA_RESULT_CODE, result);
-            mService.sendBroadcast(intent);
         }
 
         /**
@@ -846,7 +851,7 @@ class MceStateMachine extends StateMachine {
                     if (defaultMessagingPackage != null) {
                         intent.setPackage(defaultMessagingPackage);
                     }
-                    mService.sendBroadcast(intent, android.Manifest.permission.RECEIVE_SMS);
+                    mService.sendBroadcast(intent, RECEIVE_SMS);
                     break;
                 case EMAIL:
                 default:
