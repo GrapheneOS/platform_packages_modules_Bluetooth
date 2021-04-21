@@ -61,6 +61,7 @@ import android.os.ServiceManager;
 import android.os.SystemClock;
 import android.os.UserHandle;
 import android.os.WorkSource;
+import android.provider.DeviceConfig;
 import android.provider.Settings;
 import android.text.format.DateUtils;
 import android.util.Log;
@@ -108,6 +109,11 @@ public class GattService extends ProfileService {
     // Batch scan related constants.
     private static final int TRUNCATED_RESULT_SIZE = 11;
     private static final int TIME_STAMP_LENGTH = 2;
+
+    /**
+     * The default floor value for LE batch scan report delays greater than 0
+     */
+    private static final long DEFAULT_REPORT_DELAY_FLOOR = 5000;
 
     // onFoundLost related constants
     private static final int ADVT_STATE_ONFOUND = 0;
@@ -2217,6 +2223,7 @@ public class GattService extends ProfileService {
 
         enforcePrivilegedPermissionIfNeeded(settings);
         String callingPackage = attributionSource.getPackageName();
+        settings = enforceReportDelayFloor(settings);
         final ScanClient scanClient = new ScanClient(scannerId, settings, filters, storages);
         scanClient.userHandle = UserHandle.of(UserHandle.getCallingUserId());
         mAppOps.checkPackage(Binder.getCallingUid(), callingPackage);
@@ -2270,8 +2277,8 @@ public class GattService extends ProfileService {
                 this, attributionSource, "Starting GATT scan.")) {
             return;
         }
-
         enforcePrivilegedPermissionIfNeeded(settings);
+        settings = enforceReportDelayFloor(settings);
 
         UUID uuid = UUID.randomUUID();
         if (DBG) {
@@ -3571,6 +3578,38 @@ public class GattService extends ProfileService {
     private void enforceImpersonatationPermissionIfNeeded(WorkSource workSource) {
         if (workSource != null) {
             enforceImpersonatationPermission();
+        }
+    }
+
+    /**
+     * Ensures the report delay is either 0 or at least the floor value (5000ms)
+     *
+     * @param  settings are the scan settings passed into a request to start le scanning
+     * @return the passed in ScanSettings object if the report delay is 0 or above the floor value;
+     *         a new ScanSettings object with the report delay being the floor value if the original
+     *         report delay was between 0 and the floor value (exclusive of both)
+     */
+    private ScanSettings enforceReportDelayFloor(ScanSettings settings) {
+        if (settings.getReportDelayMillis() == 0) {
+            return settings;
+        }
+
+        long floor = DeviceConfig.getLong(DeviceConfig.NAMESPACE_BLUETOOTH, "report_delay",
+                DEFAULT_REPORT_DELAY_FLOOR);
+
+        if (settings.getReportDelayMillis() > floor) {
+            return settings;
+        } else {
+            return new ScanSettings.Builder()
+                    .setCallbackType(settings.getCallbackType())
+                    .setLegacy(settings.getLegacy())
+                    .setMatchMode(settings.getMatchMode())
+                    .setNumOfMatches(settings.getNumOfMatches())
+                    .setPhy(settings.getPhy())
+                    .setReportDelay(floor)
+                    .setScanMode(settings.getScanMode())
+                    .setScanResultType(settings.getScanResultType())
+                    .build();
         }
     }
 
