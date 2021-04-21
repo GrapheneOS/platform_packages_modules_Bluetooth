@@ -417,9 +417,10 @@ public final class Utils {
      */
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     public static boolean checkConnectPermissionForDataDelivery(
-            Context context, String callingPackage, String callingAttributionTag, String message) {
-        int permissionCheckResult = PermissionChecker.checkCallingOrSelfPermissionForDataDelivery(
-                context, BLUETOOTH_CONNECT, callingPackage, callingAttributionTag, message);
+            Context context, AttributionSource attributionSource, String message) {
+        int permissionCheckResult = PermissionChecker.checkPermissionForDataDeliveryFromDataSource(
+                context, BLUETOOTH_CONNECT, PID_UNKNOWN,
+                new AttributionSource(context.getAttributionSource(), attributionSource), message);
         if (permissionCheckResult == PERMISSION_HARD_DENIED) {
             throw new SecurityException("Need BLUETOOTH_CONNECT permission");
         }
