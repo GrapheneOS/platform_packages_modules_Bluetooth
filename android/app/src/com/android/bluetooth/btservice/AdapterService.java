@@ -1515,7 +1515,7 @@ public class AdapterService extends Service {
                 return new ArrayList<>();
             }
 
-            return service.mDatabaseManager.getMostRecentlyConnectedDevices(attributionSource);
+            return service.mDatabaseManager.getMostRecentlyConnectedDevices();
         }
 
         @Override

@@ -613,16 +613,15 @@ public class DatabaseManager {
      * @return a {@link List} of {@link BluetoothDevice} representing connected bluetooth devices
      * in order of most recently connected
      */
-    public List<BluetoothDevice> getMostRecentlyConnectedDevices(
-            AttributionSource attributionSource) {
+    public List<BluetoothDevice> getMostRecentlyConnectedDevices() {
         List<BluetoothDevice> mostRecentlyConnectedDevices = new ArrayList<>();
         synchronized (mMetadataCache) {
             List<Metadata> sortedMetadata = new ArrayList<>(mMetadataCache.values());
             sortedMetadata.sort((o1, o2) -> Long.compare(o2.last_active_time, o1.last_active_time));
             for (Metadata metadata : sortedMetadata) {
                 try {
-                    mostRecentlyConnectedDevices.add(
-                            new BluetoothDevice(metadata.getAddress(), attributionSource));
+                    mostRecentlyConnectedDevices.add(BluetoothAdapter.getDefaultAdapter()
+                            .getRemoteDevice(metadata.getAddress()));
                 } catch (IllegalArgumentException ex) {
                     Log.d(TAG, "getBondedDevicesOrdered: Invalid address for "
                             + "device " + metadata.getAddress());
