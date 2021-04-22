@@ -18,8 +18,8 @@
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="permlab_bluetoothShareManager" msgid="311492132450338925">"Truy cập trình quản lý tải xuống."</string>
     <string name="permdesc_bluetoothShareManager" msgid="8930572979123190223">"Cho phép ứng dụng truy cập trình quản lý BluetoothShare và sử dụng trình quản lý đó để chuyển tệp."</string>
-    <string name="permlab_bluetoothAcceptlist" msgid="7091552898592306386">"Truy cập thiết bị bluetooth nằm trong danh sách trắng."</string>
-    <string name="permdesc_bluetoothAcceptlist" msgid="5494513855192170109">"Cho phép ứng dụng tạm thời đưa thiết bị Bluetooth vào danh sách trắng, cho phép thiết bị đó gửi các tệp tới thiết bị này mà không cần xác nhận của người dùng."</string>
+    <string name="permlab_bluetoothAcceptlist" msgid="2647575807648622053">"Quyền sử dụng thiết bị Bluetooth trong danh sách chấp nhận."</string>
+    <string name="permdesc_bluetoothAcceptlist" msgid="2406423665674766442">"Cho phép ứng dụng tạm thời đưa một thiết bị Bluetooth vào danh sách chấp nhận và để thiết bị đó gửi tệp tới thiết bị này mà không cần người dùng xác nhận."</string>
     <string name="bt_share_picker_label" msgid="6268100924487046932">"Bluetooth"</string>
     <string name="unknown_device" msgid="9221903979877041009">"Thiết bị không xác định"</string>
     <string name="unknownNumber" msgid="4994750948072751566">"Không xác định"</string>
@@ -69,7 +69,6 @@
     <string name="upload_succ_ok" msgid="7705428476405478828">"OK"</string>
     <string name="upload_fail_line1" msgid="7899394672421491701">"Tệp chưa được gửi tới \"<xliff:g id="RECIPIENT">%1$s</xliff:g>\"."</string>
     <string name="upload_fail_line1_2" msgid="2108129204050841798">"Tệp: <xliff:g id="FILE">%1$s</xliff:g>"</string>
-    <string name="upload_fail_ok" msgid="5807702461606714296">"Thử lại"</string>
     <string name="upload_fail_cancel" msgid="9118496285835687125">"Đóng"</string>
     <string name="bt_error_btn_ok" msgid="5965151173011534240">"OK"</string>
     <string name="unknown_file" msgid="6092727753965095366">"Tệp không xác định"</string>
@@ -84,8 +83,8 @@
     <string name="bt_toast_4" msgid="4678812947604395649">"Đang gửi tệp tới \"<xliff:g id="RECIPIENT">%1$s</xliff:g>\""</string>
     <string name="bt_toast_5" msgid="2846870992823019494">"Đang gửi <xliff:g id="NUMBER">%1$s</xliff:g> tệp tới \"<xliff:g id="RECIPIENT">%2$s</xliff:g>\""</string>
     <string name="bt_toast_6" msgid="1855266596936622458">"Đã dừng gửi tệp tới \"<xliff:g id="RECIPIENT">%1$s</xliff:g>\""</string>
-    <string name="bt_sm_2_1_nosdcard" msgid="1791835163301501637">"Không đủ dung lượng trong bộ nhớ USB để lưu tệp từ \"<xliff:g id="SENDER">%1$s</xliff:g>\""</string>
-    <string name="bt_sm_2_1_default" msgid="9115512207909504071">"Không đủ dung lượng trên thẻ SD để lưu tệp từ \"<xliff:g id="SENDER">%1$s</xliff:g>\""</string>
+    <string name="bt_sm_2_1_nosdcard" msgid="5354343190503952837">"Không đủ dung lượng trong bộ lưu trữ USB để lưu tệp."</string>
+    <string name="bt_sm_2_1_default" msgid="2497541206648973852">"Không đủ dung lượng trên thẻ SD để lưu tệp."</string>
     <string name="bt_sm_2_2" msgid="2965243265852680543">"Dung lượng cần: <xliff:g id="SIZE">%1$s</xliff:g>"</string>
     <string name="ErrorTooManyRequests" msgid="8578277541472944529">"Quá nhiều yêu cầu đang được xử lý. Hãy thử lại sau."</string>
     <string name="status_pending" msgid="2503691772030877944">"Chuyển tệp chưa bắt đầu."</string>
