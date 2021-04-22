@@ -35,6 +35,7 @@ import androidx.test.filters.MediumTest;
 import androidx.test.runner.AndroidJUnit4;
 
 import com.android.bluetooth.TestUtils;
+import com.android.bluetooth.Utils;
 import com.android.bluetooth.a2dp.A2dpService;
 import com.android.bluetooth.hfp.HeadsetService;
 
@@ -119,7 +120,7 @@ public class SilenceDeviceManagerTest {
             TestUtils.waitForLooperToFinishScheduledTask(mLooper);
             verify(mAdapterService, times(++mVerifyCount)).sendBroadcastAsUser(
                     intentArgument.capture(), eq(UserHandle.ALL),
-                    eq(BLUETOOTH_CONNECT));
+                    eq(BLUETOOTH_CONNECT), same(Utils.sTempAllowlistBroadcastOptions));
         }
 
         // Set silence state and check whether state changed successfully
@@ -131,7 +132,7 @@ public class SilenceDeviceManagerTest {
         if (wasSilenced != enableSilence) {
             verify(mAdapterService, times(++mVerifyCount)).sendBroadcastAsUser(
                     intentArgument.capture(), eq(UserHandle.ALL),
-                    eq(BLUETOOTH_CONNECT));
+                    eq(BLUETOOTH_CONNECT), same(Utils.sTempAllowlistBroadcastOptions));
             verifySilenceStateIntent(intentArgument.getValue());
         }
 
@@ -145,7 +146,7 @@ public class SilenceDeviceManagerTest {
             // after device is disconnected.
             verify(mAdapterService, times(++mVerifyCount)).sendBroadcastAsUser(
                     intentArgument.capture(), eq(UserHandle.ALL),
-                    eq(BLUETOOTH_CONNECT));
+                    eq(BLUETOOTH_CONNECT), same(Utils.sTempAllowlistBroadcastOptions));
         }
     }
 
@@ -159,7 +160,7 @@ public class SilenceDeviceManagerTest {
         // Should be no intent been broadcasted
         verify(mAdapterService, times(mVerifyCount)).sendBroadcastAsUser(
                 intentArgument.capture(), eq(UserHandle.ALL),
-                eq(BLUETOOTH_CONNECT));
+                eq(BLUETOOTH_CONNECT), same(Utils.sTempAllowlistBroadcastOptions));
     }
 
     void verifySilenceStateIntent(Intent intent) {
