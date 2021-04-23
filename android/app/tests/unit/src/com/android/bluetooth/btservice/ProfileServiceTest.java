@@ -55,9 +55,9 @@ public class ProfileServiceTest {
 
     private void setProfileState(Class profile, int state) throws TimeoutException {
         if (state == BluetoothAdapter.STATE_ON) {
-            when(mMockAdapterService.isStartedProfile(anyString())).thenReturn(true);
+            doReturn(true).when(mMockAdapterService).isStartedProfile(eq(profile.getSimpleName()));
         } else if (state == BluetoothAdapter.STATE_OFF) {
-            when(mMockAdapterService.isStartedProfile(anyString())).thenReturn(false);
+            doReturn(false).when(mMockAdapterService).isStartedProfile(eq(profile.getSimpleName()));
         }
         Intent startIntent = new Intent(InstrumentationRegistry.getTargetContext(), profile);
         startIntent.putExtra(AdapterService.EXTRA_ACTION,
