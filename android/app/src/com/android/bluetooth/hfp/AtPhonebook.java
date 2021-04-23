@@ -18,6 +18,7 @@ package com.android.bluetooth.hfp;
 
 import static android.Manifest.permission.BLUETOOTH_CONNECT;
 
+import android.app.Activity;
 import android.bluetooth.BluetoothDevice;
 import android.content.ContentResolver;
 import android.content.Context;
@@ -644,7 +645,9 @@ public class AtPhonebook {
             intent.putExtra(BluetoothDevice.EXTRA_DEVICE, remoteDevice);
             // Leave EXTRA_PACKAGE_NAME and EXTRA_CLASS_NAME field empty.
             // BluetoothHandsfree's broadcast receiver is anonymous, cannot be targeted.
-            mContext.sendOrderedBroadcast(intent, BLUETOOTH_CONNECT);
+            mContext.sendOrderedBroadcast(intent, BLUETOOTH_CONNECT,
+                    Utils.getTempAllowlistBroadcastOptions(), null, null,
+                    Activity.RESULT_OK, null, null);
         }
 
         return permission;

@@ -27,6 +27,7 @@ import android.bluetooth.SdpDipRecord;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.os.Bundle;
 import android.os.Looper;
 import android.os.ParcelUuid;
 
@@ -61,6 +62,7 @@ public class DipTest {
 
     private ArgumentCaptor<Intent> mIntentArgument = ArgumentCaptor.forClass(Intent.class);
     private ArgumentCaptor<String> mStringArgument = ArgumentCaptor.forClass(String.class);
+    private ArgumentCaptor<Bundle> mBundleArgument = ArgumentCaptor.forClass(Bundle.class);
 
     @Mock private AdapterService mAdapterService = null;
 
@@ -131,7 +133,8 @@ public class DipTest {
         mSdpManager.sdpDipRecordFoundCallback(AbstractionLayer.BT_STATUS_SUCCESS,
                 Utils.getByteAddress(mTestDevice), uuid, specificationId,
                 vendorId, vendorIdSource, productId, version, primaryRecord, moreResults);
-        verify(mAdapterService).sendBroadcast(mIntentArgument.capture(), mStringArgument.capture());
+        verify(mAdapterService).sendBroadcast(mIntentArgument.capture(), mStringArgument.capture(),
+                mBundleArgument.capture());
         verifyDipSdpRecordIntent(mIntentArgument, AbstractionLayer.BT_STATUS_SUCCESS, mTestDevice,
                 uuid, specificationId, vendorId, vendorIdSource, productId, version, primaryRecord);
     }

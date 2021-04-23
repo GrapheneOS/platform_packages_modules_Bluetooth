@@ -20,6 +20,7 @@ import static android.Manifest.permission.BLUETOOTH_CONNECT;
 import static com.android.bluetooth.Utils.enforceBluetoothPrivilegedPermission;
 
 import android.annotation.RequiresPermission;
+import android.app.Activity;
 import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.bluetooth.BluetoothAdapter;
@@ -511,7 +512,7 @@ public class BluetoothMapService extends ProfileService {
             intent.putExtra(BluetoothProfile.EXTRA_PREVIOUS_STATE, prevState);
             intent.putExtra(BluetoothProfile.EXTRA_STATE, mState);
             intent.putExtra(BluetoothDevice.EXTRA_DEVICE, sRemoteDevice);
-            sendBroadcast(intent, BLUETOOTH_CONNECT);
+            sendBroadcast(intent, BLUETOOTH_CONNECT, Utils.getTempAllowlistBroadcastOptions());
         }
     }
 
@@ -926,7 +927,9 @@ public class BluetoothMapService extends ProfileService {
             intent.putExtra(BluetoothDevice.EXTRA_ACCESS_REQUEST_TYPE,
                     BluetoothDevice.REQUEST_TYPE_MESSAGE_ACCESS);
             intent.putExtra(BluetoothDevice.EXTRA_DEVICE, sRemoteDevice);
-            sendOrderedBroadcast(intent, BLUETOOTH_CONNECT);
+            sendOrderedBroadcast(intent, BLUETOOTH_CONNECT,
+                    Utils.getTempAllowlistBroadcastOptions(), null, null,
+                    Activity.RESULT_OK, null, null);
 
             if (VERBOSE) {
                 Log.v(TAG, "waiting for authorization for connection from: " + sRemoteDeviceName);
@@ -1021,7 +1024,7 @@ public class BluetoothMapService extends ProfileService {
         // Pending messages are no longer valid. To speed up things, simply delete them.
         if (mRemoveTimeoutMsg) {
             Intent timeoutIntent = new Intent(USER_CONFIRM_TIMEOUT_ACTION);
-            sendBroadcast(timeoutIntent);
+            sendBroadcast(timeoutIntent, null, Utils.getTempAllowlistBroadcastOptions());
             mIsWaitingAuthorization = false;
             cancelUserTimeoutAlarm();
         }
