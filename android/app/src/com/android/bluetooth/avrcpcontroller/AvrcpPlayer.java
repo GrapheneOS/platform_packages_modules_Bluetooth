@@ -238,4 +238,10 @@ class AvrcpPlayer {
 
         if (DBG) Log.d(TAG, "Supported Actions = " + mAvailableActions);
     }
+
+    @Override
+    public String toString() {
+        return "<AvrcpPlayer id=" + mId + " name=" + mName + " track=" + mCurrentTrack
+                + " play_status=" + mPlayStatus + ">";
+    }
 }
