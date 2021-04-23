@@ -78,13 +78,13 @@ class AvrcpPlayer {
         mDevice = device;
         mId = id;
         mName = name;
-        mPlayStatus = playStatus;
         mPlayerType = playerType;
         mPlayerFeatures = Arrays.copyOf(playerFeatures, playerFeatures.length);
         PlaybackStateCompat.Builder playbackStateBuilder = new PlaybackStateCompat.Builder()
                 .setActions(mAvailableActions);
         mPlaybackStateCompat = playbackStateBuilder.build();
         updateAvailableActions();
+        setPlayStatus(playStatus);
     }
 
     public BluetoothDevice getDevice() {
@@ -112,8 +112,10 @@ class AvrcpPlayer {
     }
 
     public void setPlayStatus(int playStatus) {
-        mPlayTime += mPlaySpeed * (SystemClock.elapsedRealtime()
-                - mPlaybackStateCompat.getLastPositionUpdateTime());
+        if (mPlayTime != PlaybackStateCompat.PLAYBACK_POSITION_UNKNOWN) {
+            mPlayTime += mPlaySpeed * (SystemClock.elapsedRealtime()
+                    - mPlaybackStateCompat.getLastPositionUpdateTime());
+        }
         mPlayStatus = playStatus;
         switch (mPlayStatus) {
             case PlaybackStateCompat.STATE_STOPPED:
