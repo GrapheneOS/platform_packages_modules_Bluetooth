@@ -400,7 +400,7 @@ public class ScanManager {
                 if (DBG) {
                     Log.d(TAG, "app died, unregister scanner - " + client.scannerId);
                 }
-                mService.unregisterScanner(client.scannerId);
+                mService.unregisterScanner(client.scannerId, mService.getAttributionSource());
             }
         }
 
