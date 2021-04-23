@@ -35,6 +35,7 @@ package com.android.bluetooth.pbap;
 import static android.Manifest.permission.BLUETOOTH_CONNECT;
 
 import android.annotation.RequiresPermission;
+import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothProfile;
@@ -367,7 +368,8 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
                     intent.putExtra(BluetoothDevice.EXTRA_DEVICE, stateMachine.getRemoteDevice());
                     intent.putExtra(BluetoothDevice.EXTRA_ACCESS_REQUEST_TYPE,
                             BluetoothDevice.REQUEST_TYPE_PHONEBOOK_ACCESS);
-                    sendBroadcast(intent, BLUETOOTH_CONNECT);
+                    sendBroadcast(intent, BLUETOOTH_CONNECT,
+                            Utils.getTempAllowlistBroadcastOptions());
                     stateMachine.sendMessage(PbapStateMachine.REJECTED);
                     break;
                 case MSG_ACQUIRE_WAKE_LOCK:
@@ -810,7 +812,10 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
                     BluetoothDevice.REQUEST_TYPE_PHONEBOOK_ACCESS);
             intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
             intent.putExtra(BluetoothDevice.EXTRA_PACKAGE_NAME, this.getPackageName());
-            this.sendOrderedBroadcast(intent, BLUETOOTH_CONNECT);
+            this.sendOrderedBroadcast(intent, BLUETOOTH_CONNECT,
+                    Utils.getTempAllowlistBroadcastOptions(), null/* resultReceiver */,
+                    null/* scheduler */, Activity.RESULT_OK/* initialCode */, null/* initialData */,
+                    null/* initialExtras */);
             if (VERBOSE) {
                 Log.v(TAG, "waiting for authorization for connection from: " + device);
             }

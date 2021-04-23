@@ -58,6 +58,7 @@ import android.util.Log;
 import static android.Manifest.permission.BLUETOOTH_CONNECT;
 
 import com.android.bluetooth.BluetoothMetricsProto;
+import com.android.bluetooth.Utils;
 import com.android.bluetooth.btservice.MetricsLogger;
 import com.android.bluetooth.btservice.ProfileService;
 import com.android.bluetooth.statemachine.IState;
@@ -68,7 +69,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 final class PbapClientStateMachine extends StateMachine {
-    private static final boolean DBG = Utils.DBG;
+    private static final boolean DBG = false; //Utils.DBG;
     private static final String TAG = "PbapClientStateMachine";
 
     // Messages for handling connect/disconnect requests.
@@ -344,7 +345,7 @@ final class PbapClientStateMachine extends StateMachine {
         intent.putExtra(BluetoothProfile.EXTRA_STATE, state);
         intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
         intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY_BEFORE_BOOT);
-        mService.sendBroadcast(intent, BLUETOOTH_CONNECT);
+        mService.sendBroadcast(intent, BLUETOOTH_CONNECT, Utils.getTempAllowlistBroadcastOptions());
     }
 
     public void disconnect(BluetoothDevice device) {

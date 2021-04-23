@@ -21,6 +21,7 @@ import static org.mockito.Mockito.*;
 import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Bundle;
 import android.os.HandlerThread;
 import android.os.Message;
 import android.os.ParcelUuid;
@@ -31,6 +32,7 @@ import androidx.test.filters.MediumTest;
 import androidx.test.runner.AndroidJUnit4;
 
 import com.android.bluetooth.TestUtils;
+import com.android.bluetooth.Utils;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -284,12 +286,12 @@ public class BondStateMachineTest {
         if (shouldBroadcast) {
             verify(mAdapterService, times(++mVerifyCount)).sendBroadcastAsUser(
                     intentArgument.capture(), eq(UserHandle.ALL),
-                    eq(BLUETOOTH_CONNECT));
+                    eq(BLUETOOTH_CONNECT), same(Utils.sTempAllowlistBroadcastOptions));
             verifyBondStateChangeIntent(broadcastOldState, broadcastNewState,
                     intentArgument.getValue());
         } else {
             verify(mAdapterService, times(mVerifyCount)).sendBroadcastAsUser(any(Intent.class),
-                    any(UserHandle.class), anyString());
+                    any(UserHandle.class), anyString(), any(Bundle.class));
         }
     }
 

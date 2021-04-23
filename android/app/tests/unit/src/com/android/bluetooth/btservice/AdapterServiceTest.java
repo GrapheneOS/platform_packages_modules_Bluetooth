@@ -245,7 +245,8 @@ public class AdapterServiceTest {
                 invocationNumber + 1, PROFILE_SERVICE_TOGGLE_TIME_MS);
 
         verify(mMockContext, timeout(CONTEXT_SWITCH_MS).times(2 * invocationNumber + 2))
-                .sendBroadcast(any(), eq(BLUETOOTH_SCAN));
+                .sendBroadcast(any(), eq(BLUETOOTH_SCAN),
+                        same(Utils.sTempAllowlistBroadcastOptions));
         final int scanMode = mServiceBinder.getScanMode(mAttributionSource);
         Assert.assertTrue(scanMode == BluetoothAdapter.SCAN_MODE_CONNECTABLE
                 || scanMode == BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE);
