@@ -695,7 +695,8 @@ class AdapterProperties {
                     Log.w(TAG, "ADAPTER_CONNECTION_STATE_CHANGE: unexpected transition for profile="
                             + profile + ", device=" + device + ", " + prevState + " -> " + state);
                 }
-                mService.sendBroadcastAsUser(intent, UserHandle.ALL, BLUETOOTH_CONNECT);
+                mService.sendBroadcastAsUser(intent, UserHandle.ALL, BLUETOOTH_CONNECT,
+                        Utils.getTempAllowlistBroadcastOptions());
             }
         }
     }
@@ -858,7 +859,7 @@ class AdapterProperties {
                         intent.putExtra(BluetoothAdapter.EXTRA_LOCAL_NAME, mName);
                         intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY_BEFORE_BOOT);
                         mService.sendBroadcastAsUser(intent, UserHandle.ALL,
-                                BLUETOOTH_CONNECT);
+                                BLUETOOTH_CONNECT, Utils.getTempAllowlistBroadcastOptions());
                         debugLog("Name is: " + mName);
                         break;
                     case AbstractionLayer.BT_PROPERTY_BDADDR:
@@ -868,7 +869,7 @@ class AdapterProperties {
                         intent.putExtra(BluetoothAdapter.EXTRA_BLUETOOTH_ADDRESS, address);
                         intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY_BEFORE_BOOT);
                         mService.sendBroadcastAsUser(intent, UserHandle.ALL,
-                                BLUETOOTH_CONNECT);
+                                BLUETOOTH_CONNECT, Utils.getTempAllowlistBroadcastOptions());
                         break;
                     case AbstractionLayer.BT_PROPERTY_CLASS_OF_DEVICE:
                         if (val == null || val.length != 3) {
@@ -888,7 +889,8 @@ class AdapterProperties {
                         intent = new Intent(BluetoothAdapter.ACTION_SCAN_MODE_CHANGED);
                         intent.putExtra(BluetoothAdapter.EXTRA_SCAN_MODE, mScanMode);
                         intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY_BEFORE_BOOT);
-                        mService.sendBroadcast(intent, BLUETOOTH_SCAN);
+                        mService.sendBroadcast(intent, BLUETOOTH_SCAN,
+                                Utils.getTempAllowlistBroadcastOptions());
                         debugLog("Scan Mode:" + mScanMode);
                         break;
                     case AbstractionLayer.BT_PROPERTY_UUIDS:
@@ -1035,12 +1037,14 @@ class AdapterProperties {
                 mService.clearDiscoveringPackages();
                 mDiscoveryEndMs = System.currentTimeMillis();
                 intent = new Intent(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
-                mService.sendBroadcast(intent, BLUETOOTH_SCAN);
+                mService.sendBroadcast(intent, BLUETOOTH_SCAN,
+                        Utils.getTempAllowlistBroadcastOptions());
             } else if (state == AbstractionLayer.BT_DISCOVERY_STARTED) {
                 mDiscovering = true;
                 mDiscoveryEndMs = System.currentTimeMillis() + DEFAULT_DISCOVERY_TIMEOUT_MS;
                 intent = new Intent(BluetoothAdapter.ACTION_DISCOVERY_STARTED);
-                mService.sendBroadcast(intent, BLUETOOTH_SCAN);
+                mService.sendBroadcast(intent, BLUETOOTH_SCAN,
+                        Utils.getTempAllowlistBroadcastOptions());
             }
         }
     }
