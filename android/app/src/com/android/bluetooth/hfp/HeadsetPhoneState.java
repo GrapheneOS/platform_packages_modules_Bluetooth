@@ -221,7 +221,6 @@ public class HeadsetPhoneState {
      * @param batteryLevel battery level value
      */
     @VisibleForTesting(visibility = VisibleForTesting.Visibility.PACKAGE)
-    @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     public void setCindBatteryCharge(int batteryLevel) {
         if (mCindBatteryCharge != batteryLevel) {
             mCindBatteryCharge = batteryLevel;
@@ -237,7 +236,6 @@ public class HeadsetPhoneState {
         return (mNumActive >= 1);
     }
 
-    @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     private synchronized void sendDeviceStateChanged() {
         // When out of service, send signal strength as 0. Some devices don't
         // use the service indicator, but only the signal indicator

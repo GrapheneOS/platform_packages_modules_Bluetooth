@@ -250,10 +250,7 @@ public class SilenceDeviceManager {
         return true;
     }
 
-    @RequiresPermission(allOf = {
-            android.Manifest.permission.BLUETOOTH_CONNECT,
-            android.Manifest.permission.MODIFY_PHONE_STATE,
-    })
+    @RequiresPermission(android.Manifest.permission.MODIFY_PHONE_STATE)
     void handleSilenceDeviceStateChanged(BluetoothDevice device, boolean state) {
         boolean oldState = getSilenceMode(device);
         if (oldState == state) {
