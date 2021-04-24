@@ -25,6 +25,7 @@ import android.bluetooth.BluetoothProfile;
 import android.bluetooth.BluetoothUuid;
 import android.bluetooth.IBluetoothMapClient;
 import android.bluetooth.SdpMasRecord;
+import android.content.AttributionSource;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -459,17 +460,13 @@ public class MapClientService extends ProfileService {
         }
 
         @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
-        private MapClientService getService() {
-            if (!Utils.checkCaller() && !MapUtils.isSystemUser()) {
-                Log.w(TAG, "MAP call not allowed for non-active and non-system user.");
+        private MapClientService getService(AttributionSource source) {
+            if (!Utils.checkCallerIsSystemOrActiveUser(TAG)
+                    || !Utils.checkServiceAvailable(mService, TAG)
+                    || !Utils.checkConnectPermissionForDataDelivery(mService, source, TAG)) {
                 return null;
             }
-
-            if (mService != null && mService.isAvailable()
-                    && Utils.checkConnectPermissionForPreflight(mService)) {
-                return mService;
-            }
-            return null;
+            return mService;
         }
 
         @Override
@@ -478,11 +475,11 @@ public class MapClientService extends ProfileService {
         }
 
         @Override
-        public boolean isConnected(BluetoothDevice device) {
+        public boolean isConnected(BluetoothDevice device, AttributionSource source) {
             if (VDBG) {
                 Log.v(TAG, "isConnected()");
             }
-            MapClientService service = getService();
+            MapClientService service = getService(source);
             if (service == null) {
                 return false;
             }
@@ -490,11 +487,11 @@ public class MapClientService extends ProfileService {
         }
 
         @Override
-        public boolean connect(BluetoothDevice device) {
+        public boolean connect(BluetoothDevice device, AttributionSource source) {
             if (VDBG) {
                 Log.v(TAG, "connect()");
             }
-            MapClientService service = getService();
+            MapClientService service = getService(source);
             if (service == null) {
                 return false;
             }
@@ -502,11 +499,11 @@ public class MapClientService extends ProfileService {
         }
 
         @Override
-        public boolean disconnect(BluetoothDevice device) {
+        public boolean disconnect(BluetoothDevice device, AttributionSource source) {
             if (VDBG) {
                 Log.v(TAG, "disconnect()");
             }
-            MapClientService service = getService();
+            MapClientService service = getService(source);
             if (service == null) {
                 return false;
             }
@@ -514,11 +511,11 @@ public class MapClientService extends ProfileService {
         }
 
         @Override
-        public List<BluetoothDevice> getConnectedDevices() {
+        public List<BluetoothDevice> getConnectedDevices(AttributionSource source) {
             if (VDBG) {
                 Log.v(TAG, "getConnectedDevices()");
             }
-            MapClientService service = getService();
+            MapClientService service = getService(source);
             if (service == null) {
                 return new ArrayList<BluetoothDevice>(0);
             }
@@ -526,11 +523,12 @@ public class MapClientService extends ProfileService {
         }
 
         @Override
-        public List<BluetoothDevice> getDevicesMatchingConnectionStates(int[] states) {
+        public List<BluetoothDevice> getDevicesMatchingConnectionStates(int[] states,
+                AttributionSource source) {
             if (VDBG) {
                 Log.v(TAG, "getDevicesMatchingConnectionStates()");
             }
-            MapClientService service = getService();
+            MapClientService service = getService(source);
             if (service == null) {
                 return new ArrayList<BluetoothDevice>(0);
             }
@@ -538,11 +536,11 @@ public class MapClientService extends ProfileService {
         }
 
         @Override
-        public int getConnectionState(BluetoothDevice device) {
+        public int getConnectionState(BluetoothDevice device, AttributionSource source) {
             if (VDBG) {
                 Log.v(TAG, "getConnectionState()");
             }
-            MapClientService service = getService();
+            MapClientService service = getService(source);
             if (service == null) {
                 return BluetoothProfile.STATE_DISCONNECTED;
             }
@@ -550,8 +548,9 @@ public class MapClientService extends ProfileService {
         }
 
         @Override
-        public boolean setConnectionPolicy(BluetoothDevice device, int connectionPolicy) {
-            MapClientService service = getService();
+        public boolean setConnectionPolicy(BluetoothDevice device, int connectionPolicy,
+                AttributionSource source) {
+            MapClientService service = getService(source);
             if (service == null) {
                 return false;
             }
@@ -559,8 +558,8 @@ public class MapClientService extends ProfileService {
         }
 
         @Override
-        public int getConnectionPolicy(BluetoothDevice device) {
-            MapClientService service = getService();
+        public int getConnectionPolicy(BluetoothDevice device, AttributionSource source) {
+            MapClientService service = getService(source);
             if (service == null) {
                 return BluetoothProfile.CONNECTION_POLICY_UNKNOWN;
             }
@@ -569,8 +568,8 @@ public class MapClientService extends ProfileService {
 
         @Override
         public boolean sendMessage(BluetoothDevice device, Uri[] contacts, String message,
-                PendingIntent sentIntent, PendingIntent deliveredIntent) {
-            MapClientService service = getService();
+                PendingIntent sentIntent, PendingIntent deliveredIntent, AttributionSource source) {
+            MapClientService service = getService(source);
             if (service == null) {
                 return false;
             }
@@ -582,8 +581,8 @@ public class MapClientService extends ProfileService {
         }
 
         @Override
-        public boolean getUnreadMessages(BluetoothDevice device) {
-            MapClientService service = getService();
+        public boolean getUnreadMessages(BluetoothDevice device, AttributionSource source) {
+            MapClientService service = getService(source);
             if (service == null) {
                 return false;
             }
@@ -593,9 +592,9 @@ public class MapClientService extends ProfileService {
         }
 
         @Override
-        public int getSupportedFeatures(BluetoothDevice device) {
-            MapClientService service = getService();
-            if (service == null || !Utils.checkConnectPermissionForPreflight(mService)) {
+        public int getSupportedFeatures(BluetoothDevice device, AttributionSource source) {
+            MapClientService service = getService(source);
+            if (service == null) {
                 if (DBG) {
                     Log.d(TAG,
                             "in MapClientService getSupportedFeatures stub, returning 0");
@@ -606,8 +605,9 @@ public class MapClientService extends ProfileService {
         }
 
         @Override
-        public boolean setMessageStatus(BluetoothDevice device, String handle, int status) {
-            MapClientService service = getService();
+        public boolean setMessageStatus(BluetoothDevice device, String handle, int status,
+                AttributionSource source) {
+            MapClientService service = getService(source);
             if (service == null) {
                 return false;
             }

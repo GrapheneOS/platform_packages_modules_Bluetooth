@@ -1243,16 +1243,7 @@ public class AdapterService extends Service {
 
         @Override
         public String getAddress() {
-            AdapterService service = getService();
-            // TODO(b/183626112) Synthesis best-effort attribution source and note app op
-            if (service == null || !callerIsSystemOrActiveOrManagedUser(service, TAG, "getAddress")
-                    || !Utils.checkConnectPermissionForPreflight(service)) {
-                return null;
-            }
-
-            enforceLocalMacAddressPermission(service);
-
-            return Utils.getAddressStringFromByte(service.mAdapterProperties.getAddress());
+            return getAddressWithAttribution(Utils.getCallingAttributionSource());
         }
 
         @Override
@@ -1294,10 +1285,11 @@ public class AdapterService extends Service {
         }
 
         @Override
-        public int getNameLengthForAdvertise() {
+        public int getNameLengthForAdvertise(AttributionSource attributionSource) {
             AdapterService service = getService();
             if (service == null || !callerIsSystemOrActiveUser(TAG, "getNameLengthForAdvertise")
-                    || !Utils.checkAdvertisePermissionForPreflight(service)) {
+                    || !Utils.checkAdvertisePermissionForDataDelivery(
+                            service, attributionSource, TAG)) {
                 return -1;
             }
 
@@ -1673,13 +1665,7 @@ public class AdapterService extends Service {
 
         @Override
         public int getConnectionState(BluetoothDevice device) {
-            AdapterService service = getService();
-            // TODO(b/183626112) Synthesis best-effort attribution source and note app op
-            if (service == null || !Utils.checkConnectPermissionForPreflight(service)) {
-                return 0;
-            }
-
-            return service.getConnectionState(device);
+            return getConnectionStateWithAttribution(device, Utils.getCallingAttributionSource());
         }
 
         @Override
@@ -1707,9 +1693,9 @@ public class AdapterService extends Service {
         }
 
         @Override
-        public boolean removeActiveDevice(@ActiveDeviceUse int profiles) {
-            if (!Utils.checkCaller()) {
-                Log.w(TAG, "removeActiveDevice() - Not allowed for non-active user");
+        public boolean removeActiveDevice(@ActiveDeviceUse int profiles,
+                AttributionSource attributionSource) {
+            if (!Utils.callerIsSystemOrActiveUser(TAG, "removeActiveDevice")) {
                 return false;
             }
 
@@ -1721,9 +1707,9 @@ public class AdapterService extends Service {
         }
 
         @Override
-        public boolean setActiveDevice(BluetoothDevice device, @ActiveDeviceUse int profiles) {
-            if (!Utils.checkCaller()) {
-                Log.w(TAG, "setActiveDevice() - Not allowed for non-active user");
+        public boolean setActiveDevice(BluetoothDevice device, @ActiveDeviceUse int profiles,
+                AttributionSource attributionSource) {
+            if (!Utils.callerIsSystemOrActiveUser(TAG, "setActiveDevice")) {
                 return false;
             }
 
@@ -1735,7 +1721,8 @@ public class AdapterService extends Service {
         }
 
         @Override
-        public boolean connectAllEnabledProfiles(BluetoothDevice device) {
+        public boolean connectAllEnabledProfiles(BluetoothDevice device,
+                AttributionSource attributionSource) {
             AdapterService service = getService();
             if (service == null || !callerIsSystemOrActiveUser(TAG, "connectAllEnabledProfiles")) {
                 return false;
@@ -1747,7 +1734,8 @@ public class AdapterService extends Service {
         }
 
         @Override
-        public boolean disconnectAllEnabledProfiles(BluetoothDevice device) {
+        public boolean disconnectAllEnabledProfiles(BluetoothDevice device,
+                AttributionSource attributionSource) {
             AdapterService service = getService();
             if (service == null | !callerIsSystemOrActiveUser(TAG, "disconnectAllEnabledProfiles")) {
                 return false;
@@ -1787,16 +1775,7 @@ public class AdapterService extends Service {
 
         @Override
         public String getRemoteAlias(BluetoothDevice device) {
-            AdapterService service = getService();
-            // TODO(b/183626112) Synthesis best-effort attribution source and note app op
-            if (service == null
-                    || !callerIsSystemOrActiveOrManagedUser(service, TAG, "getRemoteAlias")
-                    || !Utils.checkConnectPermissionForPreflight(service)) {
-                return null;
-            }
-
-            DeviceProperties deviceProp = service.mRemoteDevices.getDeviceProperties(device);
-            return deviceProp != null ? deviceProp.getAlias() : null;
+            return getRemoteAliasWithAttribution(device, Utils.getCallingAttributionSource());
         }
 
         @Override
@@ -1815,7 +1794,7 @@ public class AdapterService extends Service {
         }
 
         @Override
-        public boolean setRemoteAlias(BluetoothDevice device, String name, String callingPackage,
+        public boolean setRemoteAlias(BluetoothDevice device, String name,
                 AttributionSource attributionSource) {
             AdapterService service = getService();
             if (service == null || !callerIsSystemOrActiveUser(TAG, "setRemoteAlias")
@@ -1828,8 +1807,8 @@ public class AdapterService extends Service {
                         service, attributionSource, "AdapterService setRemoteAlias")) {
                     return false;
                 }
-                enforceCdmAssociation(service.mCompanionDeviceManager, service, callingPackage,
-                        Binder.getCallingUid(), device);
+                enforceCdmAssociation(service.mCompanionDeviceManager, service,
+                        attributionSource.getPackageName(), Binder.getCallingUid(), device);
             }
 
             DeviceProperties deviceProp = service.mRemoteDevices.getDeviceProperties(device);
@@ -1870,16 +1849,7 @@ public class AdapterService extends Service {
 
         @Override
         public boolean fetchRemoteUuids(BluetoothDevice device) {
-            AdapterService service = getService();
-            // TODO(b/183626112) Synthesis best-effort attribution source and note app op
-            if (service == null
-                    || !callerIsSystemOrActiveOrManagedUser(service, TAG, "fetchRemoteUuids")
-                    || !Utils.checkConnectPermissionForPreflight(service)) {
-                return false;
-            }
-
-            service.mRemoteDevices.fetchUuids(device);
-            return true;
+            return fetchRemoteUuidsWithAttribution(device, Utils.getCallingAttributionSource());
         }
 
         @Override
@@ -2875,10 +2845,7 @@ public class AdapterService extends Service {
      * @param device is the remote device with which to disconnect these profiles
      * @return true if all profiles successfully disconnected, false if an error occurred
      */
-    @RequiresPermission(allOf = {
-            android.Manifest.permission.BLUETOOTH_CONNECT,
-            android.Manifest.permission.BLUETOOTH_PRIVILEGED,
-    })
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_PRIVILEGED)
     public boolean disconnectAllEnabledProfiles(BluetoothDevice device) {
         if (!profileServicesRunning()) {
             Log.e(TAG, "disconnectAllEnabledProfiles: Not all profile services bound");
@@ -3088,11 +3055,16 @@ public class AdapterService extends Service {
     }
 
     void logUserBondResponse(BluetoothDevice device, boolean accepted, int event) {
-        BluetoothStatsLog.write(BluetoothStatsLog.BLUETOOTH_BOND_STATE_CHANGED,
-                obfuscateAddress(device), 0, device.getType(),
-                BluetoothDevice.BOND_BONDING,
-                event,
-                accepted ? 0 : BluetoothDevice.UNBOND_REASON_AUTH_REJECTED);
+        final long token = Binder.clearCallingIdentity();
+        try {
+            BluetoothStatsLog.write(BluetoothStatsLog.BLUETOOTH_BOND_STATE_CHANGED,
+                    obfuscateAddress(device), 0, device.getType(),
+                    BluetoothDevice.BOND_BONDING,
+                    event,
+                    accepted ? 0 : BluetoothDevice.UNBOND_REASON_AUTH_REJECTED);
+        } finally {
+            Binder.restoreCallingIdentity(token);
+        }
     }
 
     int getDeviceAccessFromPrefs(BluetoothDevice device, String prefFile) {
