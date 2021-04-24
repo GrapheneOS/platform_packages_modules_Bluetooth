@@ -205,7 +205,6 @@ public class A2dpNativeInterface {
         sendMessageToService(event);
     }
 
-    @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     private boolean isMandatoryCodecPreferred(byte[] address) {
         A2dpService service = A2dpService.getA2dpService();
         if (service != null) {
