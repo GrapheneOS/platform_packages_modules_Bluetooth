@@ -365,7 +365,6 @@ public class A2dpSinkStreamHandler extends Handler {
         BluetoothMediaBrowserService.play();
     }
 
-    @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     private boolean inCallFromStreamingDevice() {
         BluetoothDevice targetDevice = null;
         List<BluetoothDevice> connectedDevices = mA2dpSinkService.getConnectedDevices();

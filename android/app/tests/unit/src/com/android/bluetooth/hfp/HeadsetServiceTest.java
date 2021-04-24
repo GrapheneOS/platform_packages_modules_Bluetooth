@@ -149,7 +149,7 @@ public class HeadsetServiceTest {
         verify(mObjectsFactory).getNativeInterface();
         mHeadsetServiceBinder = (IBluetoothHeadset.Stub) mHeadsetService.initBinder();
         Assert.assertNotNull(mHeadsetServiceBinder);
-        mHeadsetServiceBinder.setForceScoAudio(true);
+        mHeadsetServiceBinder.setForceScoAudio(true, mAdapter.getAttributionSource());
     }
 
     @After
@@ -703,7 +703,7 @@ public class HeadsetServiceTest {
                         TEST_PHONE_NUMBER, 128, "");
         mHeadsetServiceBinder.phoneStateChanged(headsetCallState.mNumActive,
                 headsetCallState.mNumHeld, headsetCallState.mCallState, headsetCallState.mNumber,
-                headsetCallState.mType, headsetCallState.mName);
+                headsetCallState.mType, headsetCallState.mName, mAdapter.getAttributionSource());
         HeadsetTestUtils.verifyPhoneStateChangeSetters(mPhoneState, headsetCallState,
                 ASYNC_CALL_TIMEOUT_MILLIS);
     }
@@ -757,7 +757,7 @@ public class HeadsetServiceTest {
         // Change phone state
         mHeadsetServiceBinder.phoneStateChanged(headsetCallState.mNumActive,
                 headsetCallState.mNumHeld, headsetCallState.mCallState, headsetCallState.mNumber,
-                headsetCallState.mType, headsetCallState.mName);
+                headsetCallState.mType, headsetCallState.mName, mAdapter.getAttributionSource());
         // Make sure we notify device about this change
         verify(mStateMachines.get(mCurrentDevice)).sendMessage(
                 HeadsetStateMachine.CALL_STATE_CHANGED, headsetCallState);
@@ -820,7 +820,7 @@ public class HeadsetServiceTest {
         // Change phone state
         mHeadsetServiceBinder.phoneStateChanged(headsetCallState.mNumActive,
                 headsetCallState.mNumHeld, headsetCallState.mCallState, headsetCallState.mNumber,
-                headsetCallState.mType, headsetCallState.mName);
+                headsetCallState.mType, headsetCallState.mName, mAdapter.getAttributionSource());
         // Make sure we notify devices about this change
         for (BluetoothDevice device : connectedDevices) {
             verify(mStateMachines.get(device)).sendMessage(HeadsetStateMachine.CALL_STATE_CHANGED,

@@ -31,6 +31,7 @@ import android.Manifest;
 import android.annotation.NonNull;
 import android.annotation.RequiresPermission;
 import android.annotation.SuppressLint;
+import android.app.AppGlobals;
 import android.app.AppOpsManager;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -49,11 +50,14 @@ import android.os.Binder;
 import android.os.Build;
 import android.os.ParcelUuid;
 import android.os.Process;
+import android.os.RemoteException;
 import android.os.SystemProperties;
 import android.os.UserHandle;
 import android.os.UserManager;
 import android.provider.Telephony;
 import android.util.Log;
+
+import com.android.bluetooth.btservice.ProfileService;
 
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
@@ -392,6 +396,20 @@ public final class Utils {
                 "Need DUMP permission");
     }
 
+    public static AttributionSource getCallingAttributionSource() {
+        int callingUid = Binder.getCallingUid();
+        if (callingUid == android.os.Process.ROOT_UID) {
+            callingUid = android.os.Process.SYSTEM_UID;
+        }
+        try {
+            return new AttributionSource(callingUid,
+                    AppGlobals.getPackageManager().getPackagesForUid(callingUid)[0], null);
+        } catch (RemoteException e) {
+            throw new IllegalStateException("Failed to resolve AttributionSource", e);
+        }
+    }
+
+    @SuppressLint("AndroidFrameworkRequiresPermission")
     private static boolean checkPermissionForPreflight(Context context, String permission) {
         final int result = PermissionChecker.checkCallingOrSelfPermissionForPreflight(
                 context, permission);
@@ -408,6 +426,7 @@ public final class Utils {
         }
     }
 
+    @SuppressLint("AndroidFrameworkRequiresPermission")
     private static boolean checkPermissionForDataDelivery(Context context, String permission,
             AttributionSource attributionSource, String message) {
         final int result = PermissionChecker.checkPermissionForDataDeliveryFromDataSource(
@@ -434,6 +453,7 @@ public final class Utils {
      *
      * <p>Should be used in situations where the app op should not be noted.
      */
+    @SuppressLint("AndroidFrameworkRequiresPermission")
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     public static boolean checkConnectPermissionForPreflight(Context context) {
         return checkPermissionForPreflight(context, BLUETOOTH_CONNECT);
@@ -447,6 +467,7 @@ public final class Utils {
      * <p>Should be used in situations where data will be delivered and hence the app op should
      * be noted.
      */
+    @SuppressLint("AndroidFrameworkRequiresPermission")
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     public static boolean checkConnectPermissionForDataDelivery(
             Context context, AttributionSource attributionSource, String message) {
@@ -460,6 +481,7 @@ public final class Utils {
      *
      * <p>Should be used in situations where the app op should not be noted.
      */
+    @SuppressLint("AndroidFrameworkRequiresPermission")
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_SCAN)
     public static boolean checkScanPermissionForPreflight(Context context) {
         return checkPermissionForPreflight(context, BLUETOOTH_SCAN);
@@ -472,6 +494,7 @@ public final class Utils {
      * <p>Should be used in situations where data will be delivered and hence the app op should
      * be noted.
      */
+    @SuppressLint("AndroidFrameworkRequiresPermission")
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_SCAN)
     public static boolean checkScanPermissionForDataDelivery(
             Context context, AttributionSource attributionSource, String message) {
@@ -486,6 +509,7 @@ public final class Utils {
      * <p>
      * Should be used in situations where the app op should not be noted.
      */
+    @SuppressLint("AndroidFrameworkRequiresPermission")
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_ADVERTISE)
     public static boolean checkAdvertisePermissionForPreflight(Context context) {
         return checkPermissionForPreflight(context, BLUETOOTH_ADVERTISE);
@@ -499,6 +523,7 @@ public final class Utils {
      * Should be used in situations where data will be delivered and hence the
      * app op should be noted.
      */
+    @SuppressLint("AndroidFrameworkRequiresPermission")
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_ADVERTISE)
     public static boolean checkAdvertisePermissionForDataDelivery(
             Context context, AttributionSource attributionSource, String message) {
@@ -539,23 +564,7 @@ public final class Utils {
         return false;
     }
 
-    public static boolean callerIsSystemOrActiveUser(String tag, String method) {
-        if (!checkCaller()) {
-          Log.w(TAG, method + "() - Not allowed for non-active user and non-system user");
-          return false;
-        }
-        return true;
-    }
-
-    public static boolean callerIsSystemOrActiveOrManagedUser(Context context, String tag, String method) {
-        if (!checkCallerAllowManagedProfiles(context)) {
-          Log.w(TAG, method + "() - Not allowed for non-active user and non-system and non-managed user");
-          return false;
-        }
-        return true;
-    }
-
-    public static boolean checkCaller() {
+    public static boolean checkCallerIsSystemOrActiveUser() {
         int callingUser = UserHandle.getCallingUserId();
         int callingUid = Binder.getCallingUid();
         return (sForegroundUserId == callingUser)
@@ -563,9 +572,21 @@ public final class Utils {
                 || (UserHandle.getAppId(Process.SYSTEM_UID) == UserHandle.getAppId(callingUid));
     }
 
-    public static boolean checkCallerAllowManagedProfiles(Context mContext) {
-        if (mContext == null) {
-            return checkCaller();
+    public static boolean checkCallerIsSystemOrActiveUser(String tag) {
+        final boolean res = checkCallerIsSystemOrActiveUser();
+        if (!res) {
+            Log.w(TAG, tag + " - Not allowed for non-active user and non-system user");
+        }
+        return res;
+    }
+
+    public static boolean callerIsSystemOrActiveUser(String tag, String method) {
+        return checkCallerIsSystemOrActiveUser(tag + "." + method + "()");
+    }
+
+    public static boolean checkCallerIsSystemOrActiveOrManagedUser(Context context) {
+        if (context == null) {
+            return checkCallerIsSystemOrActiveUser();
         }
         int callingUser = UserHandle.getCallingUserId();
         int callingUid = Binder.getCallingUid();
@@ -573,7 +594,7 @@ public final class Utils {
         // Use the Bluetooth process identity when making call to get parent user
         long ident = Binder.clearCallingIdentity();
         try {
-            UserManager um = (UserManager) mContext.getSystemService(Context.USER_SERVICE);
+            UserManager um = (UserManager) context.getSystemService(Context.USER_SERVICE);
             UserInfo ui = um.getProfileParent(callingUser);
             int parentUser = (ui != null) ? ui.id : UserHandle.USER_NULL;
 
@@ -587,6 +608,32 @@ public final class Utils {
         } finally {
             Binder.restoreCallingIdentity(ident);
         }
+    }
+
+    public static boolean checkCallerIsSystemOrActiveOrManagedUser(Context context, String tag) {
+        final boolean res = checkCallerIsSystemOrActiveOrManagedUser(context);
+        if (!res) {
+            Log.w(TAG, tag + " - Not allowed for"
+                    + " non-active user and non-system and non-managed user");
+        }
+        return res;
+    }
+
+    public static boolean callerIsSystemOrActiveOrManagedUser(Context context, String tag,
+            String method) {
+        return checkCallerIsSystemOrActiveOrManagedUser(context, tag + "." + method + "()");
+    }
+
+    public static boolean checkServiceAvailable(ProfileService service, String tag) {
+        if (service == null) {
+            Log.w(TAG, tag + " - Not present");
+            return false;
+        }
+        if (!service.isAvailable()) {
+            Log.w(TAG, tag + " - Not available");
+            return false;
+        }
+        return true;
     }
 
     /**

@@ -146,10 +146,7 @@ public class HeadsetSystemInterface {
      * @param device the Bluetooth device used for answering this call
      */
     @VisibleForTesting
-    @RequiresPermission(allOf = {
-            android.Manifest.permission.BLUETOOTH_CONNECT,
-            android.Manifest.permission.MODIFY_PHONE_STATE
-    })
+    @RequiresPermission(android.Manifest.permission.MODIFY_PHONE_STATE)
     public void answerCall(BluetoothDevice device) {
         if (device == null) {
             Log.w(TAG, "answerCall device is null");
@@ -170,10 +167,7 @@ public class HeadsetSystemInterface {
      * @param device the Bluetooth device used for hanging up this call
      */
     @VisibleForTesting
-    @RequiresPermission(allOf = {
-            android.Manifest.permission.BLUETOOTH_CONNECT,
-            android.Manifest.permission.MODIFY_PHONE_STATE
-    })
+    @RequiresPermission(android.Manifest.permission.MODIFY_PHONE_STATE)
     public void hangupCall(BluetoothDevice device) {
         if (device == null) {
             Log.w(TAG, "hangupCall device is null");

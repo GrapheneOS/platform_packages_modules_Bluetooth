@@ -960,7 +960,6 @@ public class HeadsetClientStateMachine extends StateMachine {
         }
 
         // in Disconnected state
-        @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
         private void processConnectionEvent(int state, BluetoothDevice device) {
             switch (state) {
                 case HeadsetClientHalConstants.CONNECTION_STATE_CONNECTED:
@@ -1886,7 +1885,6 @@ public class HeadsetClientStateMachine extends StateMachine {
         return deviceList;
     }
 
-    @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     boolean okToConnect(BluetoothDevice device) {
         int connectionPolicy = mService.getConnectionPolicy(device);
         boolean ret = false;
