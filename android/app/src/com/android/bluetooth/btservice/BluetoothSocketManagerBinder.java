@@ -90,7 +90,7 @@ class BluetoothSocketManagerBinder extends IBluetoothSocketManager.Stub {
     }
 
     private void enforceActiveUser() {
-        if (!Utils.checkCallerAllowManagedProfiles(mService)) {
+        if (!Utils.checkCallerIsSystemOrActiveOrManagedUser(mService, TAG)) {
             throw new SecurityException("Not allowed for non-active user");
         }
     }
