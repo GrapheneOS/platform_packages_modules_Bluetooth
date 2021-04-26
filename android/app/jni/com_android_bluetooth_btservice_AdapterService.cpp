@@ -491,6 +491,12 @@ static void generate_local_oob_data_callback(tBT_TRANSPORT transport,
         ((oob_data.is_valid)
              ? createClassicOobDataObject(sCallbackEnv.get(), oob_data)
              : nullptr));
+  } else if (transport == TRANSPORT_LE) {
+    sCallbackEnv->CallVoidMethod(
+        sJniCallbacksObj, method_oobDataReceivedCallback, (jint)transport,
+        ((oob_data.is_valid)
+             ? createLeOobDataObject(sCallbackEnv.get(), oob_data)
+             : nullptr));
   } else {
     // TRANSPORT_AUTO is a concept, however, the host stack doesn't fully
     // implement it So passing it from the java layer is currently useless until
