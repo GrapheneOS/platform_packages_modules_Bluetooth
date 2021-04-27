@@ -429,6 +429,13 @@ public class BluetoothOppUtility {
         return isSameOrSubDirectory(Environment.getExternalStorageDirectory(), file);
     }
 
+    static boolean isForbiddenContent(Uri uri) {
+        if ("com.android.bluetooth.map.MmsFileProvider".equals(uri.getHost())) {
+            return true;
+        }
+        return false;
+    }
+
     /**
      * Checks, whether the child directory is the same as, or a sub-directory of the base
      * directory. Neither base nor child should be null.
