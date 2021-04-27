@@ -58,6 +58,7 @@ import android.os.RemoteException;
 import android.os.SystemProperties;
 import android.os.UserHandle;
 import android.os.UserManager;
+import android.provider.DeviceConfig;
 import android.provider.Telephony;
 import android.util.Log;
 
@@ -87,22 +88,14 @@ public final class Utils {
     private static final String TAG = "BluetoothUtils";
     private static final int MICROS_PER_UNIT = 625;
     private static final String PTS_TEST_MODE_PROPERTY = "persist.bluetooth.pts";
+    private static final String KEY_TEMP_ALLOW_LIST_DURATION_MS = "temp_allow_list_duration_ms";
+    private static final long DEFAULT_TEMP_ALLOW_LIST_DURATION_MS = 10_000;
 
     static final int BD_ADDR_LEN = 6; // bytes
     static final int BD_UUID_LEN = 16; // bytes
 
-    public static final Bundle sTempAllowlistBroadcastOptions;
-    static {
-        final long durationMs = 10_000;
-        final BroadcastOptions bOptions = BroadcastOptions.makeBasic();
-        bOptions.setTemporaryAppAllowlist(durationMs,
-                TEMPORARY_ALLOW_LIST_TYPE_FOREGROUND_SERVICE_ALLOWED,
-                PowerExemptionManager.REASON_BLUETOOTH_BROADCAST, "");
-        sTempAllowlistBroadcastOptions = bOptions.toBundle();
-    }
-
     /*
-     * Special characters
+     * Special character
      *
      * (See "What is a phone number?" doc)
      * 'p' --- GSM pause character, same as comma
@@ -929,6 +922,12 @@ public final class Utils {
     }
 
     public static @NonNull Bundle getTempAllowlistBroadcastOptions() {
-        return sTempAllowlistBroadcastOptions;
+        final long durationMs = DeviceConfig.getLong(DeviceConfig.NAMESPACE_BLUETOOTH,
+                KEY_TEMP_ALLOW_LIST_DURATION_MS, DEFAULT_TEMP_ALLOW_LIST_DURATION_MS);
+        final BroadcastOptions bOptions = BroadcastOptions.makeBasic();
+        bOptions.setTemporaryAppAllowlist(durationMs,
+                TEMPORARY_ALLOW_LIST_TYPE_FOREGROUND_SERVICE_ALLOWED,
+                PowerExemptionManager.REASON_BLUETOOTH_BROADCAST, "");
+        return bOptions.toBundle();
     }
 }
