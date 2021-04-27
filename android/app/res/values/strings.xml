@@ -80,7 +80,7 @@
 
     <!-- Bluetooth File Transfer Acceptance Notification item -->
     <string name="incoming_file_confirm_Notification_title">Incoming file</string>
-    <string name="incoming_file_confirm_Notification_content"><xliff:g id="sender">%1$s</xliff:g> is ready to send <xliff:g id="file">%2$s</xliff:g></string>
+    <string name="incoming_file_confirm_Notification_content"><xliff:g id="sender">%1$s</xliff:g> is ready to send a file: <xliff:g id="file">%2$s</xliff:g></string>
 
     <!-- Inbound File Transfer Progress Notification item -->
     <!-- label for the notification item of receiving file -->
