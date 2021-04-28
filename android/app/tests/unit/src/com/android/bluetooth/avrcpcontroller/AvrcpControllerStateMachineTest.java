@@ -26,6 +26,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.media.AudioManager;
+import android.os.Bundle;
 import android.os.Looper;
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaControllerCompat;
@@ -40,10 +41,8 @@ import androidx.test.runner.AndroidJUnit4;
 
 import com.android.bluetooth.R;
 import com.android.bluetooth.TestUtils;
-import com.android.bluetooth.Utils;
 import com.android.bluetooth.a2dpsink.A2dpSinkService;
 import com.android.bluetooth.btservice.AdapterService;
-import com.android.bluetooth.btservice.ProfileService;
 import com.android.bluetooth.btservice.storage.DatabaseManager;
 
 import org.hamcrest.core.IsInstanceOf;
@@ -200,7 +199,7 @@ public class AvrcpControllerStateMachineTest {
         TestUtils.waitForLooperToFinishScheduledTask(mAvrcpStateMachine.getHandler().getLooper());
         verify(mAvrcpControllerService, timeout(ASYNC_CALL_TIMEOUT_MILLIS).times(2)).sendBroadcast(
                 mIntentArgument.capture(), eq(BLUETOOTH_CONNECT),
-                same(Utils.sTempAllowlistBroadcastOptions));
+                any(Bundle.class));
         Assert.assertThat(mAvrcpStateMachine.getCurrentState(),
                 IsInstanceOf.instanceOf(AvrcpControllerStateMachine.Connected.class));
         Assert.assertEquals(mAvrcpStateMachine.getState(), BluetoothProfile.STATE_CONNECTED);
@@ -332,7 +331,7 @@ public class AvrcpControllerStateMachineTest {
         verify(mAvrcpControllerService,
                 timeout(ASYNC_CALL_TIMEOUT_MILLIS).times(numBroadcastsSent)).sendBroadcast(
                 mIntentArgument.capture(), eq(BLUETOOTH_CONNECT),
-                same(Utils.sTempAllowlistBroadcastOptions));
+                any(Bundle.class));
         Assert.assertEquals(mTestDevice, mIntentArgument.getValue().getParcelableExtra(
                 BluetoothDevice.EXTRA_DEVICE));
         Assert.assertEquals(BluetoothAvrcpController.ACTION_CONNECTION_STATE_CHANGED,
@@ -361,7 +360,7 @@ public class AvrcpControllerStateMachineTest {
         verify(mAvrcpControllerService,
                 timeout(ASYNC_CALL_TIMEOUT_MILLIS).times(numBroadcastsSent)).sendBroadcast(
                 mIntentArgument.capture(), eq(BLUETOOTH_CONNECT),
-                same(Utils.sTempAllowlistBroadcastOptions));
+                any(Bundle.class));
         Assert.assertEquals(mTestDevice, mIntentArgument.getValue().getParcelableExtra(
                 BluetoothDevice.EXTRA_DEVICE));
         Assert.assertEquals(BluetoothAvrcpController.ACTION_CONNECTION_STATE_CHANGED,
@@ -390,7 +389,7 @@ public class AvrcpControllerStateMachineTest {
         verify(mAvrcpControllerService,
                 timeout(ASYNC_CALL_TIMEOUT_MILLIS).times(numBroadcastsSent)).sendBroadcast(
                 mIntentArgument.capture(), eq(BLUETOOTH_CONNECT),
-                same(Utils.sTempAllowlistBroadcastOptions));
+                any(Bundle.class));
         Assert.assertEquals(mTestDevice, mIntentArgument.getValue().getParcelableExtra(
                 BluetoothDevice.EXTRA_DEVICE));
         Assert.assertEquals(BluetoothAvrcpController.ACTION_CONNECTION_STATE_CHANGED,

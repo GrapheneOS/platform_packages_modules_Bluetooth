@@ -34,6 +34,7 @@ import android.content.pm.PermissionInfo;
 import android.content.res.Resources;
 import android.media.AudioManager;
 import android.os.Binder;
+import android.os.Bundle;
 import android.os.Looper;
 import android.os.PowerManager;
 import android.os.Process;
@@ -246,7 +247,7 @@ public class AdapterServiceTest {
 
         verify(mMockContext, timeout(CONTEXT_SWITCH_MS).times(2 * invocationNumber + 2))
                 .sendBroadcast(any(), eq(BLUETOOTH_SCAN),
-                        same(Utils.sTempAllowlistBroadcastOptions));
+                        any(Bundle.class));
         final int scanMode = mServiceBinder.getScanMode(mAttributionSource);
         Assert.assertTrue(scanMode == BluetoothAdapter.SCAN_MODE_CONNECTABLE
                 || scanMode == BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE);
