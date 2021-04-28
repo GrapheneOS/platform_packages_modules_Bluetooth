@@ -16,6 +16,9 @@
 
 package com.android.bluetooth.btservice;
 
+import static android.text.format.DateUtils.MINUTE_IN_MILLIS;
+import static android.text.format.DateUtils.SECOND_IN_MILLIS;
+
 import static com.android.bluetooth.Utils.addressToBytes;
 import static com.android.bluetooth.Utils.callerIsSystemOrActiveOrManagedUser;
 import static com.android.bluetooth.Utils.callerIsSystemOrActiveUser;
@@ -3607,6 +3610,13 @@ public class AdapterService extends Service {
     @GuardedBy("mDeviceConfigLock")
     private Predicate<byte[]> mLocationDenylistAdvertisingData = (v) -> false;
 
+    @GuardedBy("mDeviceConfigLock")
+    private int mScanQuotaCount = DeviceConfigListener.DEFAULT_SCAN_QUOTA_COUNT;
+    @GuardedBy("mDeviceConfigLock")
+    private long mScanQuotaWindowMillis = DeviceConfigListener.DEFAULT_SCAN_QUOTA_WINDOW_MILLIS;
+    @GuardedBy("mDeviceConfigLock")
+    private long mScanTimeoutMillis = DeviceConfigListener.DEFAULT_SCAN_TIMEOUT_MILLIS;
+
     public @NonNull Predicate<String> getLocationDenylistName() {
         synchronized (mDeviceConfigLock) {
             return mLocationDenylistName;
@@ -3625,6 +3635,24 @@ public class AdapterService extends Service {
         }
     }
 
+    public int getScanQuotaCount() {
+        synchronized (mDeviceConfigLock) {
+            return mScanQuotaCount;
+        }
+    }
+
+    public long getScanQuotaWindowMillis() {
+        synchronized (mDeviceConfigLock) {
+            return mScanQuotaWindowMillis;
+        }
+    }
+
+    public long getScanTimeoutMillis() {
+        synchronized (mDeviceConfigLock) {
+            return mScanTimeoutMillis;
+        }
+    }
+
     private final DeviceConfigListener mDeviceConfigListener = new DeviceConfigListener();
 
     private class DeviceConfigListener implements DeviceConfig.OnPropertiesChangedListener {
@@ -3634,12 +3662,22 @@ public class AdapterService extends Service {
                 "location_denylist_mac";
         private static final String LOCATION_DENYLIST_ADVERTISING_DATA =
                 "location_denylist_advertising_data";
+        private static final String SCAN_QUOTA_COUNT =
+                "scan_quota_count";
+        private static final String SCAN_QUOTA_WINDOW_MILLIS =
+                "scan_quota_window_millis";
+        private static final String SCAN_TIMEOUT_MILLIS =
+                "scan_timeout_millis";
 
         /**
          * Default denylist which matches Eddystone and iBeacon payloads.
          */
         private static final String DEFAULT_LOCATION_DENYLIST_ADVERTISING_DATA =
                 "⊆0016AAFE/00FFFFFF,⊆00FF4C0002/00FFFFFFFF";
+
+        private static final int DEFAULT_SCAN_QUOTA_COUNT = 5;
+        private static final long DEFAULT_SCAN_QUOTA_WINDOW_MILLIS = 30 * SECOND_IN_MILLIS;
+        private static final long DEFAULT_SCAN_TIMEOUT_MILLIS = 30 * MINUTE_IN_MILLIS;
 
         public void start() {
             DeviceConfig.addOnPropertiesChangedListener(DeviceConfig.NAMESPACE_BLUETOOTH,
@@ -3659,6 +3697,12 @@ public class AdapterService extends Service {
                 mLocationDenylistAdvertisingData = BytesMatcher
                         .decode(properties.getString(LOCATION_DENYLIST_ADVERTISING_DATA,
                                 DEFAULT_LOCATION_DENYLIST_ADVERTISING_DATA));
+                mScanQuotaCount = properties.getInt(SCAN_QUOTA_COUNT,
+                        DEFAULT_SCAN_QUOTA_COUNT);
+                mScanQuotaWindowMillis = properties.getLong(SCAN_QUOTA_WINDOW_MILLIS,
+                        DEFAULT_SCAN_QUOTA_WINDOW_MILLIS);
+                mScanTimeoutMillis = properties.getLong(SCAN_TIMEOUT_MILLIS,
+                        DEFAULT_SCAN_TIMEOUT_MILLIS);
             }
         }
     }
