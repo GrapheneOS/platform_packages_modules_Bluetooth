@@ -3297,8 +3297,11 @@ public class GattService extends ProfileService {
             return settings;
         }
 
+        // Need to clear identity to pass device config permission check
+        long callerToken = Binder.clearCallingIdentity();
         long floor = DeviceConfig.getLong(DeviceConfig.NAMESPACE_BLUETOOTH, "report_delay",
                 DEFAULT_REPORT_DELAY_FLOOR);
+        Binder.restoreCallingIdentity(callerToken);
 
         if (settings.getReportDelayMillis() > floor) {
             return settings;
