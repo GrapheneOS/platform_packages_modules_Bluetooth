@@ -314,8 +314,6 @@ public class BluetoothInCallService extends InCallService {
 
     public BluetoothInCallService() {
         Log.i(TAG, "BluetoothInCallService is created");
-        BluetoothAdapter.getDefaultAdapter()
-                .getProfileProxy(this, mProfileListener, BluetoothProfile.HEADSET);
         sInstance = this;
     }
 
@@ -535,6 +533,8 @@ public class BluetoothInCallService extends InCallService {
     public void onCreate() {
         Log.d(TAG, "onCreate");
         super.onCreate();
+        BluetoothAdapter.getDefaultAdapter()
+                .getProfileProxy(this, mProfileListener, BluetoothProfile.HEADSET);
         mBluetoothAdapterReceiver = new BluetoothAdapterReceiver();
         IntentFilter intentFilter = new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED);
         registerReceiver(mBluetoothAdapterReceiver, intentFilter);
