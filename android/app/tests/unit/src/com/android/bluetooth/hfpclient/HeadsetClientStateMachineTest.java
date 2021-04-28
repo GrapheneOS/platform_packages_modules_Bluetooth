@@ -16,6 +16,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.media.AudioManager;
+import android.os.Bundle;
 import android.os.HandlerThread;
 import android.os.Message;
 
@@ -144,7 +145,8 @@ public class HeadsetClientStateMachineTest {
                         IntentMatchers.hasExtra(BluetoothProfile.EXTRA_STATE,
                                 BluetoothProfile.STATE_DISCONNECTED),
                         IntentMatchers.hasExtra(BluetoothProfile.EXTRA_PREVIOUS_STATE,
-                                BluetoothProfile.STATE_DISCONNECTED))), anyString());
+                                BluetoothProfile.STATE_DISCONNECTED))), anyString(),
+                any(Bundle.class));
         // Check we are in disconnected state still.
         Assert.assertThat(mHeadsetClientStateMachine.getCurrentState(),
                 IsInstanceOf.instanceOf(HeadsetClientStateMachine.Disconnected.class));
@@ -170,7 +172,7 @@ public class HeadsetClientStateMachineTest {
         ArgumentCaptor<Intent> intentArgument1 = ArgumentCaptor.forClass(Intent.class);
         verify(mHeadsetClientService, timeout(STANDARD_WAIT_MILLIS)).sendBroadcast(intentArgument1
                 .capture(),
-                anyString());
+                anyString(), any(Bundle.class));
         Assert.assertEquals(BluetoothProfile.STATE_CONNECTING,
                 intentArgument1.getValue().getIntExtra(BluetoothProfile.EXTRA_STATE, -1));
 
@@ -188,7 +190,7 @@ public class HeadsetClientStateMachineTest {
         // Verify that one connection state broadcast is executed
         ArgumentCaptor<Intent> intentArgument2 = ArgumentCaptor.forClass(Intent.class);
         verify(mHeadsetClientService, timeout(STANDARD_WAIT_MILLIS).times(2)).sendBroadcast(
-                intentArgument2.capture(), anyString());
+                intentArgument2.capture(), anyString(), any(Bundle.class));
         Assert.assertEquals(BluetoothProfile.STATE_CONNECTED,
                 intentArgument2.getValue().getIntExtra(BluetoothProfile.EXTRA_STATE, -1));
         // Check we are in connecting state now.
@@ -216,7 +218,7 @@ public class HeadsetClientStateMachineTest {
         ArgumentCaptor<Intent> intentArgument1 = ArgumentCaptor.forClass(Intent.class);
         verify(mHeadsetClientService, timeout(STANDARD_WAIT_MILLIS)).sendBroadcast(intentArgument1
                 .capture(),
-                anyString());
+                anyString(), any(Bundle.class));
         Assert.assertEquals(BluetoothProfile.STATE_CONNECTING,
                 intentArgument1.getValue().getIntExtra(BluetoothProfile.EXTRA_STATE, -1));
 
@@ -228,7 +230,8 @@ public class HeadsetClientStateMachineTest {
         ArgumentCaptor<Intent> intentArgument2 = ArgumentCaptor.forClass(Intent.class);
         verify(mHeadsetClientService,
                 timeout(HeadsetClientStateMachine.CONNECTING_TIMEOUT_MS * 2).times(
-                        2)).sendBroadcast(intentArgument2.capture(), anyString());
+                        2)).sendBroadcast(intentArgument2.capture(), anyString(),
+                any(Bundle.class));
         Assert.assertEquals(BluetoothProfile.STATE_DISCONNECTED,
                 intentArgument2.getValue().getIntExtra(BluetoothProfile.EXTRA_STATE, -1));
 
@@ -260,7 +263,7 @@ public class HeadsetClientStateMachineTest {
         ArgumentCaptor<Intent> intentArgument = ArgumentCaptor.forClass(Intent.class);
         verify(mHeadsetClientService, timeout(STANDARD_WAIT_MILLIS)).sendBroadcast(intentArgument
                 .capture(),
-                anyString());
+                anyString(), any(Bundle.class));
         Assert.assertEquals(BluetoothProfile.STATE_CONNECTING,
                 intentArgument.getValue().getIntExtra(BluetoothProfile.EXTRA_STATE, -1));
 
@@ -273,7 +276,7 @@ public class HeadsetClientStateMachineTest {
 
         verify(mHeadsetClientService, timeout(STANDARD_WAIT_MILLIS).times(2)).sendBroadcast(
                 intentArgument.capture(),
-                anyString());
+                anyString(), any(Bundle.class));
 
         Assert.assertEquals(BluetoothProfile.STATE_CONNECTED,
                 intentArgument.getValue().getIntExtra(BluetoothProfile.EXTRA_STATE, -1));
@@ -289,7 +292,7 @@ public class HeadsetClientStateMachineTest {
         mHeadsetClientStateMachine.sendMessage(StackEvent.STACK_EVENT, eventInBandRing);
         verify(mHeadsetClientService, timeout(STANDARD_WAIT_MILLIS).times(3)).sendBroadcast(
                 intentArgument.capture(),
-                anyString());
+                anyString(), any(Bundle.class));
         Assert.assertEquals(1,
                 intentArgument.getValue().getIntExtra(BluetoothHeadsetClient.EXTRA_IN_BAND_RING,
                         -1));
@@ -302,7 +305,7 @@ public class HeadsetClientStateMachineTest {
         TestUtils.waitForLooperToFinishScheduledTask(mHandlerThread.getLooper());
         verify(mHeadsetClientService, timeout(STANDARD_WAIT_MILLIS).times(3)).sendBroadcast(
                 intentArgument.capture(),
-                anyString());
+                anyString(),any(Bundle.class));
 
         // Provide information about the new call
         StackEvent eventIncomingCall = new StackEvent(StackEvent.EVENT_TYPE_CURRENT_CALLS);
@@ -327,7 +330,7 @@ public class HeadsetClientStateMachineTest {
         verify(mHeadsetClientService, timeout(QUERY_CURRENT_CALLS_TEST_WAIT_MILLIS).times(4))
                 .sendBroadcast(
                 intentArgument.capture(),
-                anyString());
+                anyString(), any(Bundle.class));
         // Verify that the new call is being registered with the inBandRing flag set.
         Assert.assertEquals(true,
                 ((BluetoothHeadsetClientCall) intentArgument.getValue().getParcelableExtra(
@@ -338,7 +341,7 @@ public class HeadsetClientStateMachineTest {
         mHeadsetClientStateMachine.sendMessage(StackEvent.STACK_EVENT, eventInBandRing);
         verify(mHeadsetClientService, timeout(STANDARD_WAIT_MILLIS).times(5)).sendBroadcast(
                 intentArgument.capture(),
-                anyString());
+                anyString(), any(Bundle.class));
         Assert.assertEquals(0,
                 intentArgument.getValue().getIntExtra(BluetoothHeadsetClient.EXTRA_IN_BAND_RING,
                         -1));
@@ -355,7 +358,7 @@ public class HeadsetClientStateMachineTest {
         mHeadsetClientStateMachine.sendMessage(StackEvent.STACK_EVENT, connStCh);
         ArgumentCaptor<Intent> intentArgument = ArgumentCaptor.forClass(Intent.class);
         verify(mHeadsetClientService, timeout(STANDARD_WAIT_MILLIS).times(startBroadcastIndex))
-                .sendBroadcast(intentArgument.capture(), anyString());
+                .sendBroadcast(intentArgument.capture(), anyString(), any(Bundle.class));
         Assert.assertEquals(BluetoothProfile.STATE_CONNECTING,
                 intentArgument.getValue().getIntExtra(BluetoothProfile.EXTRA_STATE, -1));
         startBroadcastIndex++;
@@ -373,7 +376,7 @@ public class HeadsetClientStateMachineTest {
         mHeadsetClientStateMachine.sendMessage(StackEvent.STACK_EVENT, slcEvent);
         ArgumentCaptor<Intent> intentArgument = ArgumentCaptor.forClass(Intent.class);
         verify(mHeadsetClientService, timeout(STANDARD_WAIT_MILLIS).times(startBroadcastIndex))
-                .sendBroadcast(intentArgument.capture(), anyString());
+                .sendBroadcast(intentArgument.capture(), anyString(), any(Bundle.class));
         Assert.assertEquals(BluetoothProfile.STATE_CONNECTED,
                 intentArgument.getValue().getIntExtra(BluetoothProfile.EXTRA_STATE, -1));
         startBroadcastIndex++;
@@ -487,7 +490,7 @@ public class HeadsetClientStateMachineTest {
         // Validate broadcast intent
         ArgumentCaptor<Intent> intentArgument = ArgumentCaptor.forClass(Intent.class);
         verify(mHeadsetClientService, timeout(STANDARD_WAIT_MILLIS).times(expectedBroadcastIndex))
-                .sendBroadcast(intentArgument.capture(), anyString());
+                .sendBroadcast(intentArgument.capture(), anyString(), any(Bundle.class));
         Assert.assertEquals(BluetoothHeadsetClient.ACTION_VENDOR_SPECIFIC_HEADSETCLIENT_EVENT,
                 intentArgument.getValue().getAction());
         Assert.assertEquals(vendorId,
@@ -543,7 +546,7 @@ public class HeadsetClientStateMachineTest {
 
         // Validate no broadcast intent
         verify(mHeadsetClientService, atMost(expectedBroadcastIndex - 1))
-                .sendBroadcast(any(), anyString());
+                .sendBroadcast(any(), anyString(), any(Bundle.class));
     }
 
     /**
@@ -615,7 +618,7 @@ public class HeadsetClientStateMachineTest {
         // Validate broadcast intent
         ArgumentCaptor<Intent> intentArgument = ArgumentCaptor.forClass(Intent.class);
         verify(mHeadsetClientService, timeout(STANDARD_WAIT_MILLIS).times(expectedBroadcastIndex))
-                .sendBroadcast(intentArgument.capture(), anyString());
+                .sendBroadcast(intentArgument.capture(), anyString(), any(Bundle.class));
         Assert.assertEquals(BluetoothHeadsetClient.ACTION_AG_EVENT,
                 intentArgument.getValue().getAction());
         int state = intentArgument.getValue().getIntExtra(
