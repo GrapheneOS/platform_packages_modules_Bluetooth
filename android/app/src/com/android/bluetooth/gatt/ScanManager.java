@@ -357,7 +357,7 @@ public class ScanManager {
                         Message msg = obtainMessage(MSG_SCAN_TIMEOUT);
                         msg.obj = client;
                         // Only one timeout message should exist at any time
-                        sendMessageDelayed(msg, AppScanStats.SCAN_TIMEOUT_MS);
+                        sendMessageDelayed(msg, AppScanStats.getScanTimeoutMillis());
                     }
                 }
             }
