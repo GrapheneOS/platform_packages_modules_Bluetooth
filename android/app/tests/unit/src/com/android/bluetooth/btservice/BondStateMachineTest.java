@@ -32,7 +32,6 @@ import androidx.test.filters.MediumTest;
 import androidx.test.runner.AndroidJUnit4;
 
 import com.android.bluetooth.TestUtils;
-import com.android.bluetooth.Utils;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -286,7 +285,7 @@ public class BondStateMachineTest {
         if (shouldBroadcast) {
             verify(mAdapterService, times(++mVerifyCount)).sendBroadcastAsUser(
                     intentArgument.capture(), eq(UserHandle.ALL),
-                    eq(BLUETOOTH_CONNECT), same(Utils.sTempAllowlistBroadcastOptions));
+                    eq(BLUETOOTH_CONNECT), any(Bundle.class));
             verifyBondStateChangeIntent(broadcastOldState, broadcastNewState,
                     intentArgument.getValue());
         } else {
