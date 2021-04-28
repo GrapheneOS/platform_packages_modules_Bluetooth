@@ -26,6 +26,7 @@ import android.bluetooth.BluetoothHeadset;
 import android.bluetooth.BluetoothProfile;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Bundle;
 import android.os.HandlerThread;
 import android.os.Looper;
 import android.os.UserHandle;
@@ -35,7 +36,6 @@ import androidx.test.filters.MediumTest;
 import androidx.test.runner.AndroidJUnit4;
 
 import com.android.bluetooth.TestUtils;
-import com.android.bluetooth.Utils;
 import com.android.bluetooth.a2dp.A2dpService;
 import com.android.bluetooth.hfp.HeadsetService;
 
@@ -120,7 +120,7 @@ public class SilenceDeviceManagerTest {
             TestUtils.waitForLooperToFinishScheduledTask(mLooper);
             verify(mAdapterService, times(++mVerifyCount)).sendBroadcastAsUser(
                     intentArgument.capture(), eq(UserHandle.ALL),
-                    eq(BLUETOOTH_CONNECT), same(Utils.sTempAllowlistBroadcastOptions));
+                    eq(BLUETOOTH_CONNECT), any(Bundle.class));
         }
 
         // Set silence state and check whether state changed successfully
@@ -132,7 +132,7 @@ public class SilenceDeviceManagerTest {
         if (wasSilenced != enableSilence) {
             verify(mAdapterService, times(++mVerifyCount)).sendBroadcastAsUser(
                     intentArgument.capture(), eq(UserHandle.ALL),
-                    eq(BLUETOOTH_CONNECT), same(Utils.sTempAllowlistBroadcastOptions));
+                    eq(BLUETOOTH_CONNECT), any(Bundle.class));
             verifySilenceStateIntent(intentArgument.getValue());
         }
 
@@ -146,7 +146,7 @@ public class SilenceDeviceManagerTest {
             // after device is disconnected.
             verify(mAdapterService, times(++mVerifyCount)).sendBroadcastAsUser(
                     intentArgument.capture(), eq(UserHandle.ALL),
-                    eq(BLUETOOTH_CONNECT), same(Utils.sTempAllowlistBroadcastOptions));
+                    eq(BLUETOOTH_CONNECT), any(Bundle.class));
         }
     }
 
@@ -160,7 +160,7 @@ public class SilenceDeviceManagerTest {
         // Should be no intent been broadcasted
         verify(mAdapterService, times(mVerifyCount)).sendBroadcastAsUser(
                 intentArgument.capture(), eq(UserHandle.ALL),
-                eq(BLUETOOTH_CONNECT), same(Utils.sTempAllowlistBroadcastOptions));
+                eq(BLUETOOTH_CONNECT), any(Bundle.class));
     }
 
     void verifySilenceStateIntent(Intent intent) {
