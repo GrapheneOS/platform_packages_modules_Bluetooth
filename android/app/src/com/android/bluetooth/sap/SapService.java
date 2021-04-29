@@ -396,7 +396,8 @@ public class SapService extends ProfileService {
 
                         mIsWaitingAuthorization = true;
                         setUserTimeoutAlarm();
-                        sendBroadcast(intent, BLUETOOTH_CONNECT);
+                        sendBroadcast(intent, BLUETOOTH_CONNECT,
+                                Utils.getTempAllowlistBroadcastOptions());
 
                         if (VERBOSE) {
                             Log.v(TAG, "waiting for authorization for connection from: "
@@ -524,7 +525,7 @@ public class SapService extends ProfileService {
             intent.putExtra(BluetoothProfile.EXTRA_PREVIOUS_STATE, prevState);
             intent.putExtra(BluetoothProfile.EXTRA_STATE, mState);
             intent.putExtra(BluetoothDevice.EXTRA_DEVICE, mRemoteDevice);
-            sendBroadcast(intent, BLUETOOTH_CONNECT);
+            sendBroadcast(intent, BLUETOOTH_CONNECT, Utils.getTempAllowlistBroadcastOptions());
         }
     }
 
