@@ -20,7 +20,6 @@ import static android.content.pm.PackageManager.PERMISSION_GRANTED;
 
 import android.annotation.RequiresPermission;
 import android.annotation.SuppressLint;
-import android.app.ActivityThread;
 import android.app.AppOpsManager;
 import android.app.PendingIntent;
 import android.app.Service;
@@ -2270,7 +2269,8 @@ public class GattService extends ProfileService {
                 callingPackage.equals(mExposureNotificationPackage);
 
         scanClient.hasDisavowedLocation =
-                Utils.hasDisavowedLocationForScan(this, callingPackage, attributionSource);
+                Utils.hasDisavowedLocationForScan(this, callingPackage, attributionSource,
+                        isTestModeEnabled());
 
         scanClient.isQApp = Utils.isQApp(this, callingPackage);
         if (!scanClient.hasDisavowedLocation) {
@@ -2343,7 +2343,8 @@ public class GattService extends ProfileService {
                 callingPackage.equals(mExposureNotificationPackage);
 
         app.mHasDisavowedLocation =
-                Utils.hasDisavowedLocationForScan(this, callingPackage, attributionSource);
+                Utils.hasDisavowedLocationForScan(this, callingPackage, attributionSource,
+                        isTestModeEnabled());
 
         app.mIsQApp = Utils.isQApp(this, callingPackage);
         if (!app.mHasDisavowedLocation) {
