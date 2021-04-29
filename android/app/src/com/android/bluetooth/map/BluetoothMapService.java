@@ -375,7 +375,8 @@ public class BluetoothMapService extends ProfileService {
                         intent.putExtra(BluetoothDevice.EXTRA_DEVICE, sRemoteDevice);
                         intent.putExtra(BluetoothDevice.EXTRA_ACCESS_REQUEST_TYPE,
                                 BluetoothDevice.REQUEST_TYPE_MESSAGE_ACCESS);
-                        sendBroadcast(intent, BLUETOOTH_CONNECT);
+                        sendBroadcast(intent, BLUETOOTH_CONNECT,
+                                Utils.getTempAllowlistBroadcastOptions());
                         cancelUserTimeoutAlarm();
                         mIsWaitingAuthorization = false;
                         stopObexServerSessions(-1);
