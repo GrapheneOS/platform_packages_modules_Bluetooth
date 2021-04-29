@@ -46,6 +46,7 @@ import android.webkit.MimeTypeMap;
 
 import com.android.bluetooth.BluetoothMetricsProto;
 import com.android.bluetooth.BluetoothObexTransport;
+import com.android.bluetooth.Utils;
 import com.android.bluetooth.btservice.MetricsLogger;
 
 import java.io.FileNotFoundException;
@@ -605,7 +606,8 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler
                         Constants.COUNT_HEADER_UNAVAILABLE);
             }
             intent.putExtra(Constants.EXTRA_BT_OPP_ADDRESS, destination);
-            mContext.sendBroadcast(intent, Constants.HANDOVER_STATUS_PERMISSION);
+            mContext.sendBroadcast(intent, Constants.HANDOVER_STATUS_PERMISSION,
+                    Utils.getTempAllowlistBroadcastOptions());
         }
         mTimestamp = System.currentTimeMillis();
         mNumFilesAttemptedToReceive = 0;
