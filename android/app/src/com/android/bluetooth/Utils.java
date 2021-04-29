@@ -546,12 +546,13 @@ public final class Utils {
     // Suppressed since we're not actually enforcing here
     @SuppressLint("AndroidFrameworkRequiresPermission")
     public static boolean hasDisavowedLocationForScan(
-            Context context, String packageName, AttributionSource attributionSource) {
+            Context context, String packageName, AttributionSource attributionSource,
+            boolean inTestMode) {
 
         // TODO(b/183625242): Handle multi-step attribution chains here.
         if (attributionSource.getRenouncedPermissions().contains(ACCESS_FINE_LOCATION)
-                && context.checkCallingPermission(RENOUNCE_PERMISSIONS)
-                == PackageManager.PERMISSION_GRANTED) {
+                && (inTestMode || context.checkCallingPermission(RENOUNCE_PERMISSIONS)
+                        == PackageManager.PERMISSION_GRANTED)) {
             return true;
         }
 
