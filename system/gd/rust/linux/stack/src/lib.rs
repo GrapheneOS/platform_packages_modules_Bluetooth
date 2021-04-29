@@ -9,8 +9,8 @@ extern crate num_derive;
 pub mod bluetooth;
 pub mod bluetooth_gatt;
 
-use bt_topshim::btif::ffi;
 use bt_topshim::btif::BtState;
+use bt_topshim::btif::{BaseCallbacks, BaseCallbacksDispatcher};
 
 use std::convert::TryInto;
 use std::fmt::{Debug, Formatter, Result};
@@ -55,8 +55,7 @@ impl BDAddr {
 
 /// Message types that are sent to the stack main dispatch loop.
 pub enum Message {
-    BluetoothAdapterStateChanged(BtState),
-    BluetoothAdapterPropertiesChanged(i32, i32, Vec<ffi::BtProperty>),
+    Base(BaseCallbacks),
     BluetoothCallbackDisconnected(u32),
 }
 
@@ -80,17 +79,21 @@ impl Stack {
             }
 
             match m.unwrap() {
-                Message::BluetoothAdapterStateChanged(state) => {
-                    bluetooth.lock().unwrap().adapter_state_changed(state);
-                }
+                Message::Base(b) => match b {
+                    BaseCallbacks::AdapterState(state) => {
+                        bluetooth.lock().unwrap().adapter_state_changed(state);
+                    }
 
-                Message::BluetoothAdapterPropertiesChanged(status, num_properties, properties) => {
-                    bluetooth.lock().unwrap().adapter_properties_changed(
-                        status,
-                        num_properties,
-                        properties,
-                    );
-                }
+                    BaseCallbacks::AdapterProperties(status, num_properties, properties) => {
+                        bluetooth.lock().unwrap().adapter_properties_changed(
+                            status,
+                            num_properties,
+                            properties,
+                        );
+                    }
+
+                    _ => println!("Unhandled callback arm {:?}", b),
+                },
 
                 Message::BluetoothCallbackDisconnected(id) => {
                     bluetooth.lock().unwrap().callback_disconnected(id);

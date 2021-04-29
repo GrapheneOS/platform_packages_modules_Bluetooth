@@ -26,6 +26,7 @@ bt_hal = { path = "../hal" }
 bt_hci = { path = "../hci" }
 bt_main = { path = "../main" }
 bt_packets = { path = "../packets" }
+topshim_macros = { path = "macros" }
 
 cxx = "*"
 lazy_static = "*"
@@ -35,13 +36,10 @@ num-traits = "*"
 tokio = { version = "*", features = ['bytes', 'fs', 'io-util', 'libc', 'macros', 'memchr', 'mio', 'net', 'num_cpus', 'rt', 'rt-multi-thread', 'sync', 'time', 'tokio-macros'] }
 tokio-stream = "*"
 
-# TODO(abps) - Decide whether we want to use bindgen
-# [build-dependencies]
-# bindgen = "0.51"
-# pkg-config = "0.3"
+[build-dependencies]
+bindgen = "0.57"
+pkg-config = "0.3"
 
 [lib]
 path = "src/lib.rs"
-
-# Build is only necessary if using bindgen
-# build = "build.rs"
+build = "build.rs"
