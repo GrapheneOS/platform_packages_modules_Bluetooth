@@ -942,12 +942,12 @@ public class GattService extends ProfileService {
         }
 
         @Override
-        public void getOwnAddress(int advertiserId) {
+        public void getOwnAddress(int advertiserId, AttributionSource attributionSource) {
             GattService service = getService();
             if (service == null) {
                 return;
             }
-            service.getOwnAddress(advertiserId);
+            service.getOwnAddress(advertiserId, attributionSource);
         }
 
         @Override
@@ -2523,8 +2523,15 @@ public class GattService extends ProfileService {
         mAdvertiseManager.stopAdvertisingSet(callback);
     }
 
-    @RequiresPermission(android.Manifest.permission.BLUETOOTH_PRIVILEGED)
-    void getOwnAddress(int advertiserId) {
+    @RequiresPermission(allOf = {
+            android.Manifest.permission.BLUETOOTH_ADVERTISE,
+            android.Manifest.permission.BLUETOOTH_PRIVILEGED,
+    })
+    void getOwnAddress(int advertiserId, AttributionSource attributionSource) {
+        if (!Utils.checkAdvertisePermissionForDataDelivery(
+                this, attributionSource, "GattService getOwnAddress")) {
+            return;
+        }
         enforcePrivilegedPermission();
         mAdvertiseManager.getOwnAddress(advertiserId);
     }
