@@ -287,6 +287,8 @@ public class AdapterService extends Service {
     private HearingAidService mHearingAidService;
     private SapService mSapService;
 
+    private boolean mTestModeEnabled;
+
     /**
      * Register a {@link ProfileService} with AdapterService.
      *
@@ -2473,7 +2475,8 @@ public class AdapterService extends Service {
         mAppOps.checkPackage(Binder.getCallingUid(), callingPackage);
         boolean isQApp = Utils.isQApp(this, callingPackage);
         boolean hasDisavowedLocation =
-                Utils.hasDisavowedLocationForScan(this, callingPackage, attributionSource);
+                Utils.hasDisavowedLocationForScan(this, callingPackage, attributionSource,
+                        mTestModeEnabled);
         String permission = null;
         if (Utils.checkCallerHasNetworkSettingsPermission(this)) {
             permission = android.Manifest.permission.NETWORK_SETTINGS;
@@ -3403,6 +3406,7 @@ public class AdapterService extends Service {
             for (ProfileService profile : mRunningProfiles) {
                 profile.setTestModeEnabled(testModeEnabled);
             }
+            mTestModeEnabled = true;
             return;
         }
 
