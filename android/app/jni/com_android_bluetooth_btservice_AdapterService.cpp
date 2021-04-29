@@ -403,10 +403,9 @@ static void ssp_request_callback(RawAddress* bd_addr, bt_bdname_t* bdname,
 }
 
 static jobject createClassicOobDataObject(JNIEnv* env, bt_oob_data_t oob_data) {
-  jclass oobDataClass = env->FindClass("android/bluetooth/OobData");
-  jmethodID staticCreatorMethod = env->GetStaticMethodID(
-      oobDataClass, "createClassicBuilder",
-      "([B[B[B)Landroid/bluetooth/OobData$ClassicBuilder;");
+  ALOGV("%s", __func__);
+  jclass classicBuilderClass =
+      env->FindClass("android/bluetooth/OobData$ClassicBuilder");
 
   jbyteArray confirmationHash = env->NewByteArray(OOB_C_SIZE);
   env->SetByteArrayRegion(confirmationHash, 0, OOB_C_SIZE,
@@ -420,15 +419,15 @@ static jobject createClassicOobDataObject(JNIEnv* env, bt_oob_data_t oob_data) {
   env->SetByteArrayRegion(confirmationHash, 0, OOB_ADDRESS_SIZE,
                           reinterpret_cast<jbyte*>(oob_data.address));
 
-  jobject oobDataClassicBuilder =
-      env->CallStaticObjectMethod(oobDataClass, staticCreatorMethod,
-                                  confirmationHash, oobDataLength, address);
+  jmethodID classicBuilderConstructor =
+      env->GetMethodID(classicBuilderClass, "<init>", "([B[B[B)V");
 
-  jclass oobDataClassicBuilderClass =
-      env->FindClass("android/bluetooth/OobData$ClassicBuilder");
+  jobject oobDataClassicBuilder =
+      env->NewObject(classicBuilderClass, classicBuilderConstructor,
+                     confirmationHash, oobDataLength, address);
 
   jmethodID setRMethod =
-      env->GetMethodID(oobDataClassicBuilderClass, "setRandomizerHash",
+      env->GetMethodID(classicBuilderClass, "setRandomizerHash",
                        "([B)Landroid/bluetooth/OobData$ClassicBuilder;");
   jbyteArray randomizerHash = env->NewByteArray(OOB_R_SIZE);
   env->SetByteArrayRegion(randomizerHash, 0, OOB_R_SIZE,
@@ -437,20 +436,52 @@ static jobject createClassicOobDataObject(JNIEnv* env, bt_oob_data_t oob_data) {
   oobDataClassicBuilder =
       env->CallObjectMethod(oobDataClassicBuilder, setRMethod, randomizerHash);
 
-  jmethodID buildMethod = env->GetMethodID(oobDataClassicBuilderClass, "build",
+  jmethodID buildMethod = env->GetMethodID(classicBuilderClass, "build",
                                            "()Landroid/bluetooth/OobData;");
 
   return env->CallObjectMethod(oobDataClassicBuilder, buildMethod);
 }
 
 static jobject createLeOobDataObject(JNIEnv* env, bt_oob_data_t oob_data) {
-  // TODO(184377951): Connect dots for LE generateLocalOobData()
-  ALOGE("%s: unimplemented", __func__);
-  return nullptr;
+  ALOGV("%s", __func__);
+
+  jclass leBuilderClass = env->FindClass("android/bluetooth/OobData$LeBuilder");
+
+  jbyteArray confirmationHash = env->NewByteArray(OOB_C_SIZE);
+  env->SetByteArrayRegion(confirmationHash, 0, OOB_C_SIZE,
+                          reinterpret_cast<jbyte*>(oob_data.c));
+
+  jbyteArray address = env->NewByteArray(OOB_ADDRESS_SIZE);
+  env->SetByteArrayRegion(confirmationHash, 0, OOB_ADDRESS_SIZE,
+                          reinterpret_cast<jbyte*>(oob_data.address));
+
+  jint le_role = (jint)oob_data.le_device_role;
+
+  jmethodID leBuilderConstructor =
+      env->GetMethodID(leBuilderClass, "<init>", "([B[BI)V");
+
+  jobject oobDataLeBuilder = env->NewObject(
+      leBuilderClass, leBuilderConstructor, confirmationHash, address, le_role);
+
+  jmethodID setRMethod =
+      env->GetMethodID(leBuilderClass, "setRandomizerHash",
+                       "([B)Landroid/bluetooth/OobData$LeBuilder;");
+  jbyteArray randomizerHash = env->NewByteArray(OOB_R_SIZE);
+  env->SetByteArrayRegion(randomizerHash, 0, OOB_R_SIZE,
+                          reinterpret_cast<jbyte*>(oob_data.r));
+
+  oobDataLeBuilder =
+      env->CallObjectMethod(oobDataLeBuilder, setRMethod, randomizerHash);
+
+  jmethodID buildMethod = env->GetMethodID(leBuilderClass, "build",
+                                           "()Landroid/bluetooth/OobData;");
+
+  return env->CallObjectMethod(oobDataLeBuilder, buildMethod);
 }
 
 static void generate_local_oob_data_callback(tBT_TRANSPORT transport,
                                              bt_oob_data_t oob_data) {
+  ALOGV("%s", __func__);
   CallbackEnv sCallbackEnv(__func__);
   if (!sCallbackEnv.valid()) return;
 
@@ -460,12 +491,20 @@ static void generate_local_oob_data_callback(tBT_TRANSPORT transport,
         ((oob_data.is_valid)
              ? createClassicOobDataObject(sCallbackEnv.get(), oob_data)
              : nullptr));
-  } else {
+  } else if (transport == TRANSPORT_LE) {
     sCallbackEnv->CallVoidMethod(
         sJniCallbacksObj, method_oobDataReceivedCallback, (jint)transport,
         ((oob_data.is_valid)
              ? createLeOobDataObject(sCallbackEnv.get(), oob_data)
              : nullptr));
+  } else {
+    // TRANSPORT_AUTO is a concept, however, the host stack doesn't fully
+    // implement it So passing it from the java layer is currently useless until
+    // the implementation and concept of TRANSPORT_AUTO is fleshed out.
+    ALOGE("TRANSPORT: %d not implemented", transport);
+    sCallbackEnv->CallVoidMethod(sJniCallbacksObj,
+                                 method_oobDataReceivedCallback,
+                                 (jint)transport, nullptr);
   }
 }
 
