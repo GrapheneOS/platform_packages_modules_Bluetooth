@@ -484,7 +484,7 @@ public class HidHostService extends ProfileService {
      * Connects the hid host profile for the passed in device
      *
      * @param device is the device with which to connect the hid host profile
-     * @return true if connection is successful, false otherwise
+     * @return true if connection request is passed down to mHandler.
      */
     public boolean connect(BluetoothDevice device) {
         if (DBG) Log.d(TAG, "connect: " + device.getAddress());
@@ -615,8 +615,6 @@ public class HidHostService extends ProfileService {
         Message msg = mHandler.obtainMessage(MESSAGE_GET_PROTOCOL_MODE, device);
         mHandler.sendMessage(msg);
         return true;
-        /* String objectPath = getObjectPathFromAddress(device.getAddress());
-            return getProtocolModeInputDeviceNative(objectPath);*/
     }
 
     boolean virtualUnplug(BluetoothDevice device) {
