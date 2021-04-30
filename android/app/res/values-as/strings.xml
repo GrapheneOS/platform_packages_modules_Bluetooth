@@ -37,7 +37,7 @@
     <string name="incoming_file_confirm_timeout_ok" msgid="1414676773249857278">"ঠিক"</string>
     <string name="incoming_file_confirm_timeout_content" msgid="172779756093975981">"\"<xliff:g id="SENDER">%1$s</xliff:g>\"ৰ পৰা লাভ কৰা ফাইলটো গ্ৰহণ কৰোঁতে সময় ওকলিছে"</string>
     <string name="incoming_file_confirm_Notification_title" msgid="5573329005298936903">"অন্তৰ্গামী ফাইল"</string>
-    <string name="incoming_file_confirm_Notification_content" msgid="3359694069319644738">"<xliff:g id="SENDER">%1$s</xliff:g> <xliff:g id="FILE">%2$s</xliff:g> পঠাবলৈ সাজু"</string>
+    <string name="incoming_file_confirm_Notification_content" msgid="6237487486781004992">"<xliff:g id="SENDER">%1$s</xliff:g> এটা ফাইল পঠিয়াবলৈ সাজু: <xliff:g id="FILE">%2$s</xliff:g>"</string>
     <string name="notification_receiving" msgid="4674648179652543984">"ব্লুটুথ শ্বেয়াৰ: <xliff:g id="FILE">%1$s</xliff:g> লাভ কৰি থকা হৈছে"</string>
     <string name="notification_received" msgid="3324588019186687985">"ব্লুটুথ শ্বেয়াৰ: <xliff:g id="FILE">%1$s</xliff:g> লাভ কৰা হ’ল"</string>
     <string name="notification_received_fail" msgid="3619350997285714746">"ব্লুটুথ শ্বেয়াৰ: ফাইল <xliff:g id="FILE">%1$s</xliff:g> লাভ কৰা নহ\'ল"</string>
