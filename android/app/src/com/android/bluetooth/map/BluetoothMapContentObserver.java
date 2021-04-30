@@ -3113,14 +3113,15 @@ public class BluetoothMapContentObserver {
 
         values.clear();
         values.put(Mms.Addr.CONTACT_ID, "null");
-        values.put(Mms.Addr.ADDRESS, String.join(",", toAddress));
         values.put(Mms.Addr.TYPE, BluetoothMapContent.MMS_TO);
         values.put(Mms.Addr.CHARSET, 106);
-
-        uri = Uri.parse(Mms.CONTENT_URI + "/" + handle + "/addr");
-        uri = mResolver.insert(uri, values);
-        if (uri != null && V) {
-            Log.v(TAG, " NEW URI " + uri.toString());
+        for (String address : toAddress) {
+            values.put(Mms.Addr.ADDRESS, address);
+            uri = Uri.parse(Mms.CONTENT_URI + "/" + handle + "/addr");
+            uri = mResolver.insert(uri, values);
+            if (uri != null && V) {
+                Log.v(TAG, " NEW URI " + uri.toString());
+            }
         }
         return handle;
     }
