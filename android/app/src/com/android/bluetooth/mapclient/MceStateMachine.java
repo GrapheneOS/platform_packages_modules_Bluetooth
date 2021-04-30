@@ -97,7 +97,7 @@ class MceStateMachine extends StateMachine {
     // Set message status to read or deleted
     static final int MSG_SET_MESSAGE_STATUS = 2006;
 
-    private static final String TAG = "MceSM";
+    private static final String TAG = "MceStateMachine";
     private static final Boolean DBG = MapClientService.DBG;
     private static final int DISCONNECT_TIMEOUT = 3000;
     private static final int CONNECT_TIMEOUT = 10000;
