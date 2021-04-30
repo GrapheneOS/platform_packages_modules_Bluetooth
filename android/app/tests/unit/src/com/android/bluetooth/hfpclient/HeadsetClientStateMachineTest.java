@@ -319,7 +319,7 @@ public class HeadsetClientStateMachineTest {
         mHeadsetClientStateMachine.sendMessage(StackEvent.STACK_EVENT, eventIncomingCall);
         verify(mHeadsetClientService, timeout(STANDARD_WAIT_MILLIS).times(3)).sendBroadcast(
                 intentArgument.capture(),
-                anyString());
+                anyString(), any(Bundle.class));
 
 
         // Signal that the complete list of calls was received.
