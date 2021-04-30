@@ -37,7 +37,7 @@
     <string name="incoming_file_confirm_timeout_ok" msgid="1414676773249857278">"Жарайды"</string>
     <string name="incoming_file_confirm_timeout_content" msgid="172779756093975981">"\"<xliff:g id="SENDER">%1$s</xliff:g>\" жіберген файлды қабылдау барысында уақыт аяқталды."</string>
     <string name="incoming_file_confirm_Notification_title" msgid="5573329005298936903">"Кіріс файл"</string>
-    <string name="incoming_file_confirm_Notification_content" msgid="3359694069319644738">"<xliff:g id="SENDER">%1$s</xliff:g> <xliff:g id="FILE">%2$s</xliff:g> жіберуге дайын"</string>
+    <string name="incoming_file_confirm_Notification_content" msgid="6237487486781004992">"<xliff:g id="SENDER">%1$s</xliff:g> келесі файлды жіберуге дайын: <xliff:g id="FILE">%2$s</xliff:g>"</string>
     <string name="notification_receiving" msgid="4674648179652543984">"Bluetooth бөлісу: <xliff:g id="FILE">%1$s</xliff:g> файлын қабылдауда"</string>
     <string name="notification_received" msgid="3324588019186687985">"Bluetooth бөлісу: <xliff:g id="FILE">%1$s</xliff:g> файлы қабылданды"</string>
     <string name="notification_received_fail" msgid="3619350997285714746">"Bluetooth бөлісу: <xliff:g id="FILE">%1$s</xliff:g> файлы қабылданбады"</string>
