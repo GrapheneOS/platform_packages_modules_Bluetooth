@@ -128,8 +128,8 @@ class AvrcpControllerStateMachine extends StateMachine {
     boolean mRemoteControlConnected = false;
     boolean mBrowsingConnected = false;
     final BrowseTree mBrowseTree;
-    private AvrcpPlayer mAddressedPlayer = new AvrcpPlayer();
-    private int mAddressedPlayerId = -1;
+    private AvrcpPlayer mAddressedPlayer;
+    private int mAddressedPlayerId;
     private SparseArray<AvrcpPlayer> mAvailablePlayerList = new SparseArray<AvrcpPlayer>();
     private int mVolumeChangedNotificationsToIgnore = 0;
     private int mVolumeNotificationLabel = -1;
@@ -149,6 +149,18 @@ class AvrcpControllerStateMachine extends StateMachine {
         mCoverArtPsm = 0;
         mCoverArtManager = service.getCoverArtManager();
         logD(device.toString());
+
+        mAddressedPlayerId = AvrcpPlayer.DEFAULT_ID;
+
+        AvrcpPlayer.Builder apb = new AvrcpPlayer.Builder();
+        apb.setDevice(mDevice);
+        apb.setPlayerId(mAddressedPlayerId);
+        apb.setSupportedFeature(AvrcpPlayer.FEATURE_PLAY);
+        apb.setSupportedFeature(AvrcpPlayer.FEATURE_PAUSE);
+        apb.setSupportedFeature(AvrcpPlayer.FEATURE_STOP);
+        apb.setSupportedFeature(AvrcpPlayer.FEATURE_FORWARD);
+        apb.setSupportedFeature(AvrcpPlayer.FEATURE_PREVIOUS);
+        mAddressedPlayer = apb.build();
 
         mBrowseTree = new BrowseTree(mDevice);
         mDisconnected = new Disconnected();
