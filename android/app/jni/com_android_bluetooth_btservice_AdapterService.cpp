@@ -412,11 +412,11 @@ static jobject createClassicOobDataObject(JNIEnv* env, bt_oob_data_t oob_data) {
                           reinterpret_cast<jbyte*>(oob_data.c));
 
   jbyteArray oobDataLength = env->NewByteArray(OOB_DATA_LEN_SIZE);
-  env->SetByteArrayRegion(confirmationHash, 0, OOB_DATA_LEN_SIZE,
+  env->SetByteArrayRegion(oobDataLength, 0, OOB_DATA_LEN_SIZE,
                           reinterpret_cast<jbyte*>(oob_data.oob_data_length));
 
   jbyteArray address = env->NewByteArray(OOB_ADDRESS_SIZE);
-  env->SetByteArrayRegion(confirmationHash, 0, OOB_ADDRESS_SIZE,
+  env->SetByteArrayRegion(address, 0, OOB_ADDRESS_SIZE,
                           reinterpret_cast<jbyte*>(oob_data.address));
 
   jmethodID classicBuilderConstructor =
@@ -452,7 +452,7 @@ static jobject createLeOobDataObject(JNIEnv* env, bt_oob_data_t oob_data) {
                           reinterpret_cast<jbyte*>(oob_data.c));
 
   jbyteArray address = env->NewByteArray(OOB_ADDRESS_SIZE);
-  env->SetByteArrayRegion(confirmationHash, 0, OOB_ADDRESS_SIZE,
+  env->SetByteArrayRegion(address, 0, OOB_ADDRESS_SIZE,
                           reinterpret_cast<jbyte*>(oob_data.address));
 
   jint le_role = (jint)oob_data.le_device_role;
