@@ -37,8 +37,7 @@
     <string name="incoming_file_confirm_timeout_ok" msgid="1414676773249857278">"ठिक छ"</string>
     <string name="incoming_file_confirm_timeout_content" msgid="172779756093975981">"\"<xliff:g id="SENDER">%1$s</xliff:g>\" बाट आगमन फाइल स्वीकार्दा समय सकिएको थियो"</string>
     <string name="incoming_file_confirm_Notification_title" msgid="5573329005298936903">"आगमन फाइल"</string>
-    <!-- no translation found for incoming_file_confirm_Notification_content (6237487486781004992) -->
-    <skip />
+    <string name="incoming_file_confirm_Notification_content" msgid="6237487486781004992">"<xliff:g id="SENDER">%1$s</xliff:g> निम्न फाइल पठाउन तयार हुनुहुन्छ: <xliff:g id="FILE">%2$s</xliff:g>"</string>
     <string name="notification_receiving" msgid="4674648179652543984">"ब्लुटुथ साझेदारी:<xliff:g id="FILE">%1$s</xliff:g> प्राप्त गर्दै"</string>
     <string name="notification_received" msgid="3324588019186687985">"ब्लुटुथ साझेदारी: <xliff:g id="FILE">%1$s</xliff:g> प्राप्त भयो"</string>
     <string name="notification_received_fail" msgid="3619350997285714746">"ब्लुटुथ साझेदारी: फाइल: <xliff:g id="FILE">%1$s</xliff:g> प्राप्त भएन"</string>
