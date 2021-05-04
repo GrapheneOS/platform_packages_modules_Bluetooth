@@ -78,6 +78,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -2108,6 +2109,7 @@ public class GattService extends ProfileService {
             enforcePrivilegedPermission();
         }
         settings = enforceReportDelayFloor(settings);
+        enforcePrivilegedPermissionIfNeeded(filters);
         final ScanClient scanClient = new ScanClient(scannerId, settings, filters, storages);
         scanClient.userHandle = UserHandle.of(UserHandle.getCallingUserId());
         mAppOps.checkPackage(Binder.getCallingUid(), callingPackage);
@@ -2155,7 +2157,7 @@ public class GattService extends ProfileService {
         }
 
         settings = enforceReportDelayFloor(settings);
-
+        enforcePrivilegedPermissionIfNeeded(filters);
         UUID uuid = UUID.randomUUID();
         if (DBG) {
             Log.d(TAG, "startScan(PI) - UUID=" + uuid);
@@ -3268,6 +3270,25 @@ public class GattService extends ProfileService {
 
         // Batch scan, truncated mode needs permission.
         return settings.getScanResultType() == ScanSettings.SCAN_RESULT_TYPE_ABBREVIATED;
+    }
+
+    /*
+     * The {@link ScanFilter#setDeviceAddress} API overloads are @SystemApi access methods.  This
+     * requires that the permissions be BLUETOOTH_PRIVILEGED.
+     */
+    @SuppressLint("AndroidFrameworkRequiresPermission")
+    private void enforcePrivilegedPermissionIfNeeded(List<ScanFilter> filters) {
+        if (DBG) {
+            Log.d(TAG, "enforcePrivilegedPermissionIfNeeded(" + filters + ")");
+        }
+        Objects.requireNonNull(filters, "'filters' must not be null!");
+        for (ScanFilter filter : filters) {
+            if (filter.getDeviceAddress() != null && filter.getAddressType()
+                    == BluetoothDevice.ADDRESS_TYPE_PUBLIC && filter.getIrk() == null) {
+            } else {
+                enforcePrivilegedPermission();
+            }
+        }
     }
 
     // Enforce caller has BLUETOOTH_PRIVILEGED permission. A {@link SecurityException} will be
