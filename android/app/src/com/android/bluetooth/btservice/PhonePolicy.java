@@ -21,6 +21,7 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothHeadset;
 import android.bluetooth.BluetoothHearingAid;
+import android.bluetooth.BluetoothLeAudio;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.BluetoothUuid;
 import android.content.BroadcastReceiver;
@@ -116,6 +117,11 @@ class PhonePolicy {
                             BluetoothProfile.A2DP, -1, // No-op argument
                             intent).sendToTarget();
                     break;
+                case BluetoothLeAudio.ACTION_LE_AUDIO_CONNECTION_STATE_CHANGED:
+                    mHandler.obtainMessage(MESSAGE_PROFILE_CONNECTION_STATE_CHANGED,
+                            BluetoothProfile.LE_AUDIO, -1, // No-op argument
+                            intent).sendToTarget();
+                    break;
                 case BluetoothA2dp.ACTION_ACTIVE_DEVICE_CHANGED:
                     mHandler.obtainMessage(MESSAGE_PROFILE_ACTIVE_DEVICE_CHANGED,
                             BluetoothProfile.A2DP, -1, // No-op argument
@@ -129,6 +135,11 @@ class PhonePolicy {
                 case BluetoothHearingAid.ACTION_ACTIVE_DEVICE_CHANGED:
                     mHandler.obtainMessage(MESSAGE_PROFILE_ACTIVE_DEVICE_CHANGED,
                             BluetoothProfile.HEARING_AID, -1, // No-op argument
+                            intent).sendToTarget();
+                    break;
+                case BluetoothLeAudio.ACTION_LE_AUDIO_ACTIVE_DEVICE_CHANGED:
+                    mHandler.obtainMessage(MESSAGE_PROFILE_ACTIVE_DEVICE_CHANGED,
+                            BluetoothProfile.LE_AUDIO, -1, // No-op argument
                             intent).sendToTarget();
                     break;
                 case BluetoothAdapter.ACTION_STATE_CHANGED:
@@ -229,12 +240,14 @@ class PhonePolicy {
         IntentFilter filter = new IntentFilter();
         filter.addAction(BluetoothHeadset.ACTION_CONNECTION_STATE_CHANGED);
         filter.addAction(BluetoothA2dp.ACTION_CONNECTION_STATE_CHANGED);
+        filter.addAction(BluetoothLeAudio.ACTION_LE_AUDIO_CONNECTION_STATE_CHANGED);
         filter.addAction(BluetoothDevice.ACTION_ACL_CONNECTED);
         filter.addAction(BluetoothDevice.ACTION_UUID);
         filter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
         filter.addAction(BluetoothA2dp.ACTION_ACTIVE_DEVICE_CHANGED);
         filter.addAction(BluetoothHeadset.ACTION_ACTIVE_DEVICE_CHANGED);
         filter.addAction(BluetoothHearingAid.ACTION_ACTIVE_DEVICE_CHANGED);
+        filter.addAction(BluetoothLeAudio.ACTION_LE_AUDIO_ACTIVE_DEVICE_CHANGED);
         mAdapterService.registerReceiver(mReceiver, filter);
     }
 
@@ -309,7 +322,8 @@ class PhonePolicy {
             int prevState) {
         debugLog("processProfileStateChanged, device=" + device + ", profile=" + profileId + ", "
                 + prevState + " -> " + nextState);
-        if (((profileId == BluetoothProfile.A2DP) || (profileId == BluetoothProfile.HEADSET))) {
+        if (((profileId == BluetoothProfile.A2DP) || (profileId == BluetoothProfile.HEADSET)
+                || (profileId == BluetoothProfile.LE_AUDIO))) {
             if (nextState == BluetoothProfile.STATE_CONNECTED) {
                 switch (profileId) {
                     case BluetoothProfile.A2DP:
