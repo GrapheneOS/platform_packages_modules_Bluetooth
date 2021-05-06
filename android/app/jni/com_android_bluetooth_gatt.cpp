@@ -898,39 +898,39 @@ class JniScanningCallbacks : ScanningCallbacks {
                                  periodic_adv_int, jb.get());
   }
 
-  void OnTrackAdvFoundLost(btgatt_track_adv_info_t* p_adv_track_info) {
+  void OnTrackAdvFoundLost(AdvertisingTrackInfo track_info) {
     CallbackEnv sCallbackEnv(__func__);
     if (!sCallbackEnv.valid()) return;
 
     ScopedLocalRef<jstring> address(
         sCallbackEnv.get(),
-        bdaddr2newjstr(sCallbackEnv.get(), &p_adv_track_info->bd_addr));
+        bdaddr2newjstr(sCallbackEnv.get(), &track_info.advertiser_address));
 
     ScopedLocalRef<jbyteArray> jb_adv_pkt(
         sCallbackEnv.get(),
-        sCallbackEnv->NewByteArray(p_adv_track_info->adv_pkt_len));
+        sCallbackEnv->NewByteArray(track_info.adv_packet_len));
     ScopedLocalRef<jbyteArray> jb_scan_rsp(
         sCallbackEnv.get(),
-        sCallbackEnv->NewByteArray(p_adv_track_info->scan_rsp_len));
+        sCallbackEnv->NewByteArray(track_info.scan_response_len));
 
     sCallbackEnv->SetByteArrayRegion(jb_adv_pkt.get(), 0,
-                                     p_adv_track_info->adv_pkt_len,
-                                     (jbyte*)p_adv_track_info->p_adv_pkt_data);
+                                     track_info.adv_packet_len,
+                                     (jbyte*)track_info.adv_packet.data());
 
     sCallbackEnv->SetByteArrayRegion(jb_scan_rsp.get(), 0,
-                                     p_adv_track_info->scan_rsp_len,
-                                     (jbyte*)p_adv_track_info->p_scan_rsp_data);
+                                     track_info.scan_response_len,
+                                     (jbyte*)track_info.scan_response.data());
 
     ScopedLocalRef<jobject> trackadv_obj(
         sCallbackEnv.get(),
         sCallbackEnv->CallObjectMethod(
             mCallbacksObj, method_createOnTrackAdvFoundLostObject,
-            p_adv_track_info->client_if, p_adv_track_info->adv_pkt_len,
-            jb_adv_pkt.get(), p_adv_track_info->scan_rsp_len, jb_scan_rsp.get(),
-            p_adv_track_info->filt_index, p_adv_track_info->advertiser_state,
-            p_adv_track_info->advertiser_info_present, address.get(),
-            p_adv_track_info->addr_type, p_adv_track_info->tx_power,
-            p_adv_track_info->rssi_value, p_adv_track_info->time_stamp));
+            track_info.scanner_id, track_info.adv_packet_len, jb_adv_pkt.get(),
+            track_info.scan_response_len, jb_scan_rsp.get(),
+            track_info.filter_index, track_info.advertiser_state,
+            track_info.advertiser_info_present, address.get(),
+            track_info.advertiser_address_type, track_info.tx_power,
+            track_info.rssi, track_info.time_stamp));
 
     if (NULL != trackadv_obj.get()) {
       sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onTrackAdvFoundLost,
@@ -950,6 +950,13 @@ class JniScanningCallbacks : ScanningCallbacks {
     sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onBatchScanReports,
                                  status, client_if, report_format, num_records,
                                  jb.get());
+  }
+
+  void OnBatchScanThresholdCrossed(int client_if) {
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
+    sCallbackEnv->CallVoidMethod(mCallbacksObj,
+                                 method_onBatchScanThresholdCrossed, client_if);
   }
 };
 
