@@ -347,6 +347,13 @@ public class BluetoothInCallService extends InCallService {
             if (mCallInfo.isNullCall(call)) {
                 return false;
             }
+            // release the parent if there is a conference call
+            BluetoothCall conferenceCall = getBluetoothCallById(call.getParentId());
+            if (!mCallInfo.isNullCall(conferenceCall)
+                    && conferenceCall.getState() == Call.STATE_ACTIVE) {
+                Log.i(TAG, "BT - hanging up conference call");
+                call = conferenceCall;
+            }
             call.disconnect();
             return true;
         }
