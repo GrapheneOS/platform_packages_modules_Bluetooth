@@ -873,6 +873,8 @@ public class DatabaseManager {
             data.setProfileConnectionPolicy(BluetoothProfile.SAP, sapConnectionPolicy);
             data.setProfileConnectionPolicy(BluetoothProfile.HEARING_AID,
                     hearingaidConnectionPolicy);
+            data.setProfileConnectionPolicy(BluetoothProfile.LE_AUDIO,
+                    BluetoothProfile.CONNECTION_POLICY_UNKNOWN);
             data.a2dpSupportsOptionalCodecs = a2dpSupportsOptionalCodec;
             data.a2dpOptionalCodecsEnabled = a2dpOptionalCodecEnabled;
             mMetadataCache.put(address, data);
