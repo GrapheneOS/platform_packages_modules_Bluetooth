@@ -2820,7 +2820,7 @@ bool iterate_supported_event_list_for_timeout(void* data, void* cb_data) {
   btif_rc_device_cb_t* p_dev = btif_rc_get_device_by_bda(cntxt->rc_addr);
   btif_rc_supported_event_t* p_event = (btif_rc_supported_event_t*)data;
 
-  if (p_event->label == label) {
+  if (p_event->label == label && p_dev != NULL) {
     list_remove(p_dev->rc_supported_event_list, p_event);
     return false;
   }
