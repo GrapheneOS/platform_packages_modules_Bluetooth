@@ -89,7 +89,7 @@ public final class Utils {
     private static final int MICROS_PER_UNIT = 625;
     private static final String PTS_TEST_MODE_PROPERTY = "persist.bluetooth.pts";
     private static final String KEY_TEMP_ALLOW_LIST_DURATION_MS = "temp_allow_list_duration_ms";
-    private static final long DEFAULT_TEMP_ALLOW_LIST_DURATION_MS = 10_000;
+    private static final long DEFAULT_TEMP_ALLOW_LIST_DURATION_MS = 20_000;
 
     static final int BD_ADDR_LEN = 6; // bytes
     static final int BD_UUID_LEN = 16; // bytes
