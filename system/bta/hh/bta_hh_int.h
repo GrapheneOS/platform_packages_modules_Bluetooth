@@ -297,7 +297,7 @@ extern void bta_hh_cleanup_disable(tBTA_HH_STATUS status);
 extern uint8_t bta_hh_dev_handle_to_cb_idx(uint8_t dev_handle);
 
 /* action functions used outside state machine */
-extern void bta_hh_api_enable(tBTA_HH_DATA* p_data);
+extern void bta_hh_api_enable(const tBTA_HH_DATA* p_data);
 extern void bta_hh_api_disable(void);
 extern void bta_hh_disc_cmpl(void);
 
