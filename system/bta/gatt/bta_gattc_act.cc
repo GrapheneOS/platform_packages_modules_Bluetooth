@@ -1100,12 +1100,12 @@ static void bta_gattc_conn_cback(tGATT_IF gattc_if, const RawAddress& bdaddr,
     LOG_INFO("Connected att_id:%hhu transport:%s reason:%s", gattc_if,
              bt_transport_text(transport).c_str(),
              gatt_disconnection_reason_text(reason).c_str());
-    btif_debug_conn_state(bdaddr, BTIF_DEBUG_CONNECTED, GATT_CONN_UNKNOWN);
+    btif_debug_conn_state(bdaddr, BTIF_DEBUG_CONNECTED, GATT_CONN_OK);
   } else {
     LOG_INFO("Disconnected att_id:%hhu transport:%s reason:%s", gattc_if,
              bt_transport_text(transport).c_str(),
              gatt_disconnection_reason_text(reason).c_str());
-    btif_debug_conn_state(bdaddr, BTIF_DEBUG_DISCONNECTED, GATT_CONN_UNKNOWN);
+    btif_debug_conn_state(bdaddr, BTIF_DEBUG_DISCONNECTED, GATT_CONN_OK);
   }
 
   tBTA_GATTC_DATA* p_buf =
