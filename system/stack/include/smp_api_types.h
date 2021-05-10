@@ -182,19 +182,21 @@ typedef uint8_t tSMP_SEC_LEVEL;
 #define SMP_ENCR_KEY_SIZE_MAX 16
 
 /* SMP key types */
-#define SMP_SEC_KEY_TYPE_ENC (1 << 0)  /* encryption key */
-#define SMP_SEC_KEY_TYPE_ID (1 << 1)   /* identity key */
-#define SMP_SEC_KEY_TYPE_CSRK (1 << 2) /* peripheral CSRK */
-#define SMP_SEC_KEY_TYPE_LK (1 << 3)   /* BR/EDR link key */
+enum tSMP_KEYS_BITMASK : uint8_t {
+  SMP_SEC_KEY_TYPE_ENC = (1 << 0),  /* encryption key */
+  SMP_SEC_KEY_TYPE_ID = (1 << 1),   /* identity key */
+  SMP_SEC_KEY_TYPE_CSRK = (1 << 2), /* peripheral CSRK */
+  SMP_SEC_KEY_TYPE_LK = (1 << 3),   /* BR/EDR link key */
+};
 typedef uint8_t tSMP_KEYS;
 
-#define SMP_BR_SEC_DEFAULT_KEY \
-  (SMP_SEC_KEY_TYPE_ENC | SMP_SEC_KEY_TYPE_ID | SMP_SEC_KEY_TYPE_CSRK)
+constexpr tSMP_KEYS SMP_BR_SEC_DEFAULT_KEY =
+    (SMP_SEC_KEY_TYPE_ENC | SMP_SEC_KEY_TYPE_ID | SMP_SEC_KEY_TYPE_CSRK);
 
 /* default security key distribution value */
-#define SMP_SEC_DEFAULT_KEY                                             \
-  (SMP_SEC_KEY_TYPE_ENC | SMP_SEC_KEY_TYPE_ID | SMP_SEC_KEY_TYPE_CSRK | \
-   SMP_SEC_KEY_TYPE_LK)
+constexpr tSMP_KEYS SMP_SEC_DEFAULT_KEY =
+    (SMP_SEC_KEY_TYPE_ENC | SMP_SEC_KEY_TYPE_ID | SMP_SEC_KEY_TYPE_CSRK |
+     SMP_SEC_KEY_TYPE_LK);
 
 #define SMP_SC_KEY_OUT_OF_RANGE 5 /* out of range */
 typedef uint8_t tSMP_SC_KEY_TYPE;
