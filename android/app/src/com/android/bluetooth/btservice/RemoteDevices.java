@@ -696,13 +696,23 @@ final class RemoteDevices {
         if (sSdpTracker.contains(device)) {
             return;
         }
+
+        // If no UUIDs are cached and the device is bonding, wait for SDP after the device is bonded
+        boolean isBonding = getDeviceProperties(device).isBonding();
+        if (isBonding && getDeviceProperties(device).getUuids() == null) {
+            return;
+        }
+
         sSdpTracker.add(device);
 
         Message message = mHandler.obtainMessage(MESSAGE_UUID_INTENT);
         message.obj = device;
         mHandler.sendMessageDelayed(message, UUID_INTENT_DELAY);
 
-        sAdapterService.getRemoteServicesNative(Utils.getBytesFromAddress(device.getAddress()));
+        // Uses cached UUIDs if we are bonding. If not, we fetch the UUIDs with SDP.
+        if (!isBonding) {
+            sAdapterService.getRemoteServicesNative(Utils.getBytesFromAddress(device.getAddress()));
+        }
     }
 
     void updateUuids(BluetoothDevice device) {
