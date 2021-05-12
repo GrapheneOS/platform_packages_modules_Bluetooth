@@ -99,6 +99,10 @@ class MceStateMachine extends StateMachine {
 
     private static final String TAG = "MceStateMachine";
     private static final Boolean DBG = MapClientService.DBG;
+    // SAVE_OUTBOUND_MESSAGES defaults to true to place the responsibility of managing content on
+    // Bluetooth, to work with the default Car Messenger.  This may need to be set to false if the
+    // messaging app takes that responsibility.
+    private static final Boolean SAVE_OUTBOUND_MESSAGES = true;
     private static final int DISCONNECT_TIMEOUT = 3000;
     private static final int CONNECT_TIMEOUT = 10000;
     private static final int MAX_MESSAGES = 20;
@@ -589,7 +593,8 @@ class MceStateMachine extends StateMachine {
                     if (message.obj instanceof RequestGetMessage) {
                         processInboundMessage((RequestGetMessage) message.obj);
                     } else if (message.obj instanceof RequestPushMessage) {
-                        String messageHandle = ((RequestPushMessage) message.obj).getMsgHandle();
+                        RequestPushMessage requestPushMessage = (RequestPushMessage) message.obj;
+                        String messageHandle = requestPushMessage.getMsgHandle();
                         if (DBG) {
                             Log.d(TAG, "Message Sent......." + messageHandle);
                         }
@@ -597,8 +602,12 @@ class MceStateMachine extends StateMachine {
                         // some test devices don't populate messageHandle field.
                         // in such cases, no need to wait up for response for such messages.
                         if (messageHandle != null && messageHandle.length() > 2) {
+                            if (SAVE_OUTBOUND_MESSAGES) {
+                                mDatabase.storeMessage(requestPushMessage.getBMsg(), messageHandle,
+                                        System.currentTimeMillis());
+                            }
                             mSentMessageLog.put(messageHandle.substring(2),
-                                    ((RequestPushMessage) message.obj).getBMsg());
+                                    requestPushMessage.getBMsg());
                         }
                     } else if (message.obj instanceof RequestGetMessagesListing) {
                         processMessageListing((RequestGetMessagesListing) message.obj);
