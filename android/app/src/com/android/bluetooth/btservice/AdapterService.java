@@ -215,7 +215,6 @@ public class AdapterService extends Service {
     private static AdapterService sAdapterService;
 
     public static synchronized AdapterService getAdapterService() {
-        Log.d(TAG, "getAdapterService() - returning " + sAdapterService);
         return sAdapterService;
     }
 
