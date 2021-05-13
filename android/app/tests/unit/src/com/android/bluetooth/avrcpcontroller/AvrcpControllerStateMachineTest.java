@@ -318,12 +318,29 @@ public class AvrcpControllerStateMachineTest {
 
     /**
      * Test to confirm that the state machine is capable of cycling through the 4
-     * connection states, and that upon completion, it cleans up aftwards.
+     * connection states, and that upon completion, it cleans up afterwards.
      */
     @Test
     public void testDisconnect() {
         int numBroadcastsSent = setUpConnectedState(true, true);
+        testDisconnectInternal(numBroadcastsSent);
+    }
 
+    /**
+     * Test to confirm that the state machine is capable of cycling through the 4
+     * connection states with no crashes, even if the {@link AvrcpControllerService} is stopped and
+     * the {@code sBrowseTree} is null. This could happen if BT is disabled as the profile is being
+     * disconnected.
+     */
+    @Test
+    public void testDisconnectWithNullBrowseTree() {
+        int numBroadcastsSent = setUpConnectedState(true, true);
+        mAvrcpControllerService.stop();
+
+        testDisconnectInternal(numBroadcastsSent);
+    }
+
+    private void testDisconnectInternal(int numBroadcastsSent) {
         mAvrcpStateMachine.disconnect();
         numBroadcastsSent += 2;
         verify(mAvrcpControllerService,
