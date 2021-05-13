@@ -209,6 +209,7 @@ public class GattService extends ProfileService {
     private final Map<Integer, Set<Integer>> mRestrictedHandles = new HashMap<>();
 
     private BluetoothAdapter mAdapter;
+    private AdapterService mAdapterService;
     private AdvertiseManager mAdvertiseManager;
     private PeriodicScanManager mPeriodicScanManager;
     private ScanManager mScanManager;
@@ -220,15 +221,14 @@ public class GattService extends ProfileService {
     /**
      */
     private final Predicate<ScanResult> mLocationDenylistPredicate = (scanResult) -> {
-        final AdapterService adapterService = AdapterService.getAdapterService();
         final MacAddress parsedAddress = MacAddress
                 .fromString(scanResult.getDevice().getAddress());
-        if (adapterService.getLocationDenylistMac().test(parsedAddress.toByteArray())) {
+        if (mAdapterService.getLocationDenylistMac().test(parsedAddress.toByteArray())) {
             Log.v(TAG, "Skipping device matching denylist: " + parsedAddress);
             return true;
         }
         final ScanRecord scanRecord = scanResult.getScanRecord();
-        if (scanRecord.matchesAnyField(adapterService.getLocationDenylistAdvertisingData())) {
+        if (scanRecord.matchesAnyField(mAdapterService.getLocationDenylistAdvertisingData())) {
             Log.v(TAG, "Skipping data matching denylist: " + scanRecord);
             return true;
         }
@@ -262,16 +262,17 @@ public class GattService extends ProfileService {
 
         initializeNative();
         mAdapter = BluetoothAdapter.getDefaultAdapter();
+        mAdapterService = AdapterService.getAdapterService();
         mCompanionManager = ICompanionDeviceManager.Stub.asInterface(
                 ServiceManager.getService(Context.COMPANION_DEVICE_SERVICE));
         mAppOps = getSystemService(AppOpsManager.class);
-        mAdvertiseManager = new AdvertiseManager(this, AdapterService.getAdapterService());
+        mAdvertiseManager = new AdvertiseManager(this, mAdapterService);
         mAdvertiseManager.start();
 
         mScanManager = new ScanManager(this);
         mScanManager.start();
 
-        mPeriodicScanManager = new PeriodicScanManager(AdapterService.getAdapterService());
+        mPeriodicScanManager = new PeriodicScanManager(mAdapterService);
         mPeriodicScanManager.start();
 
         setGattService(this);
