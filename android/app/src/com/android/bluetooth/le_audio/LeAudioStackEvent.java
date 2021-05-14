@@ -28,6 +28,7 @@ public class LeAudioStackEvent {
     private static final int EVENT_TYPE_NONE = 0;
     public static final int EVENT_TYPE_CONNECTION_STATE_CHANGED = 1;
     public static final int EVENT_TYPE_GROUP_STATUS_CHANGED = 2;
+    public static final int EVENT_TYPE_GROUP_NODE_STATUS_CHANGED = 3;
     public static final int EVENT_TYPE_AUDIO_CONF_CHANGED = 4;
     public static final int EVENT_TYPE_SET_MEMBER_AVAILABLE = 5;
     // -------- DO NOT PUT ANY NEW UNICAST EVENTS BELOW THIS LINE-------------
@@ -41,10 +42,15 @@ public class LeAudioStackEvent {
     static final int CONNECTION_STATE_DISCONNECTING = 3;
 
     static final int GROUP_STATUS_IDLE = 0;
-    static final int GROUP_STATUS_STREAMING = 1;
-    static final int GROUP_STATUS_SUSPENDED = 2;
-    static final int GROUP_STATUS_RECONFIGURED = 3;
-    static final int GROUP_STATUS_DESTROYED = 4;
+    static final int GROUP_STATUS_ACTIVE = 1;
+    static final int GROUP_STATUS_INACTIVE = 2;
+    static final int GROUP_STATUS_STREAMING = 3;
+    static final int GROUP_STATUS_SUSPENDED = 4;
+    static final int GROUP_STATUS_RECONFIGURED = 5;
+    static final int GROUP_STATUS_DESTROYED = 6;
+
+    static final int GROUP_NODE_ADDED = 1;
+    static final int GROUP_NODE_REMOVED = 2;
 
     public int type = EVENT_TYPE_NONE;
     public BluetoothDevice device;
@@ -52,6 +58,7 @@ public class LeAudioStackEvent {
     public int valueInt2 = 0;
     public int valueInt3 = 0;
     public int valueInt4 = 0;
+    public int valueInt5 = 0;
 
     LeAudioStackEvent(int type) {
         this.type = type;
@@ -67,6 +74,7 @@ public class LeAudioStackEvent {
         result.append(", value2:" + eventTypeValue2ToString(type, valueInt2));
         result.append(", value3:" + eventTypeValue3ToString(type, valueInt3));
         result.append(", value4:" + eventTypeValue4ToString(type, valueInt4));
+        result.append(", value5:" + eventTypeValue5ToString(type, valueInt5));
         result.append("}");
         return result.toString();
     }
@@ -79,6 +87,8 @@ public class LeAudioStackEvent {
                 return "EVENT_TYPE_CONNECTION_STATE_CHANGED";
             case EVENT_TYPE_GROUP_STATUS_CHANGED:
                 return "EVENT_TYPE_GROUP_STATUS_CHANGED";
+            case EVENT_TYPE_GROUP_NODE_STATUS_CHANGED:
+                return "EVENT_TYPE_GROUP_NODE_STATUS_CHANGED";
             case EVENT_TYPE_AUDIO_CONF_CHANGED:
                 return "EVENT_TYPE_AUDIO_CONF_CHANGED";
             case EVENT_TYPE_SET_MEMBER_AVAILABLE:
@@ -103,6 +113,8 @@ public class LeAudioStackEvent {
                     default:
                         return "UNKNOWN";
                 }
+            case EVENT_TYPE_GROUP_NODE_STATUS_CHANGED:
+                // same as EVENT_TYPE_GROUP_STATUS_CHANGED
             case EVENT_TYPE_GROUP_STATUS_CHANGED:
                 // same as EVENT_TYPE_GROUP_STATUS_CHANGED
             case EVENT_TYPE_SET_MEMBER_AVAILABLE:
@@ -122,6 +134,10 @@ public class LeAudioStackEvent {
                 switch (value) {
                     case GROUP_STATUS_IDLE:
                         return "GROUP_STATUS_IDLE";
+                    case GROUP_STATUS_ACTIVE:
+                        return "GROUP_STATUS_ACTIVE";
+                    case GROUP_STATUS_INACTIVE:
+                        return "GROUP_STATUS_INACTIVE";
                     case GROUP_STATUS_STREAMING:
                         return "GROUP_STATUS_STREAMING";
                     case GROUP_STATUS_SUSPENDED:
@@ -134,6 +150,15 @@ public class LeAudioStackEvent {
                         break;
                 }
                 break;
+            case EVENT_TYPE_GROUP_NODE_STATUS_CHANGED:
+                switch (value) {
+                    case GROUP_NODE_ADDED:
+                        return "GROUP_NODE_ADDED";
+                    case GROUP_NODE_REMOVED:
+                        return "GROUP_NODE_REMOVED";
+                    default:
+                        return "UNKNOWN";
+                }
             case EVENT_TYPE_AUDIO_CONF_CHANGED:
                 return "{group_id:" + Integer.toString(value) + "}";
             default:
@@ -160,6 +185,16 @@ public class LeAudioStackEvent {
             case EVENT_TYPE_AUDIO_CONF_CHANGED:
                 // FIXME: It should have proper location names here
                 return "{src_audio_loc:" + value + "}";
+            default:
+                break;
+        }
+        return Integer.toString(value);
+    }
+
+    private static String eventTypeValue5ToString(int type, int value) {
+        switch (type) {
+            case EVENT_TYPE_AUDIO_CONF_CHANGED:
+                return "{available_contexts:" + Integer.toBinaryString(value) + "}";
             default:
                 break;
         }

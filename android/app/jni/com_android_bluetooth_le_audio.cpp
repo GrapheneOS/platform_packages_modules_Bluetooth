@@ -82,27 +82,19 @@ class LeAudioClientCallbacksImpl : public LeAudioClientCallbacks {
                                  (jint)group_flags);
   }
 
-  void OnAudioConf(const RawAddress& bd_addr, uint8_t direction,
-                   uint8_t group_id, uint32_t sink_audio_location,
-                   uint32_t source_audio_location) override {
+  void OnAudioConf(uint8_t direction, int group_id,
+                   uint32_t sink_audio_location, uint32_t source_audio_location,
+                   uint16_t avail_cont) override {
     LOG(INFO) << __func__;
 
     std::shared_lock<std::shared_timed_mutex> lock(callbacks_mutex);
     CallbackEnv sCallbackEnv(__func__);
     if (!sCallbackEnv.valid() || mCallbacksObj == nullptr) return;
 
-    ScopedLocalRef<jbyteArray> addr(
-        sCallbackEnv.get(), sCallbackEnv->NewByteArray(sizeof(RawAddress)));
-    if (!addr.get()) {
-      LOG(ERROR) << "Failed to new jbyteArray bd addr for group status";
-      return;
-    }
-
-    sCallbackEnv->SetByteArrayRegion(addr.get(), 0, sizeof(RawAddress),
-                                     (jbyte*)&bd_addr);
-    sCallbackEnv->CallVoidMethod(
-        mCallbacksObj, method_onAudioConf, (jint)direction, (jint)group_id,
-        (jint)sink_audio_location, (jint)source_audio_location, addr.get());
+    sCallbackEnv->CallVoidMethod(mCallbacksObj, method_onAudioConf,
+                                 (jint)direction, (jint)group_id,
+                                 (jint)sink_audio_location,
+                                 (jint)source_audio_location, (jint)avail_cont);
   }
 
   void OnSetMemberAvailable(const RawAddress& bd_addr,
@@ -131,7 +123,7 @@ static LeAudioClientCallbacksImpl sLeAudioClientCallbacks;
 
 static void classInitNative(JNIEnv* env, jclass clazz) {
   method_onGroupStatus = env->GetMethodID(clazz, "onGroupStatus", "(III)V");
-  method_onAudioConf = env->GetMethodID(clazz, "onAudioConf", "(IIII[B)V");
+  method_onAudioConf = env->GetMethodID(clazz, "onAudioConf", "(IIIII)V");
   method_onConnectionStateChanged =
       env->GetMethodID(clazz, "onConnectionStateChanged", "(I[B)V");
   method_onSetMemberAvailable =
