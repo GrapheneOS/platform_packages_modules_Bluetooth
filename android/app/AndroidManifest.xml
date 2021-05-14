@@ -189,30 +189,30 @@
         <activity android:name=".opp.BluetoothOppBtEnableActivity"
              android:process="@string/process"
              android:excludeFromRecents="true"
-             android:theme="@android:style/Theme.Material.Light.Dialog.Alert"
+             android:theme="@style/dialog"
              android:enabled="@bool/profile_supported_opp">
         </activity>
         <activity android:name=".opp.BluetoothOppBtErrorActivity"
              android:process="@string/process"
              android:excludeFromRecents="true"
-             android:theme="@android:style/Theme.Material.Light.Dialog.Alert">
+             android:theme="@style/dialog">
         </activity>
         <activity android:name=".opp.BluetoothOppBtEnablingActivity"
              android:process="@string/process"
              android:excludeFromRecents="true"
-             android:theme="@android:style/Theme.Material.Light.Dialog.Alert"
+             android:theme="@style/dialog"
              android:enabled="@bool/profile_supported_opp">
         </activity>
         <activity android:name=".opp.BluetoothOppIncomingFileConfirmActivity"
              android:process="@string/process"
              android:excludeFromRecents="true"
-             android:theme="@android:style/Theme.Material.Light.Dialog.Alert"
+             android:theme="@style/dialog"
              android:enabled="@bool/profile_supported_opp">
         </activity>
         <activity android:name=".opp.BluetoothOppTransferActivity"
              android:process="@string/process"
              android:excludeFromRecents="true"
-             android:theme="@android:style/Theme.Material.Light.Dialog.Alert"
+             android:theme="@style/dialog"
              android:enabled="@bool/profile_supported_opp">
         </activity>
         <activity android:name=".opp.BluetoothOppTransferHistory"
@@ -231,7 +231,7 @@
         <activity android:name=".pbap.BluetoothPbapActivity"
              android:process="@string/process"
              android:excludeFromRecents="true"
-             android:theme="@android:style/Theme.Material.Light.Dialog.Alert"
+             android:theme="@style/dialog"
              android:enabled="@bool/profile_supported_pbap">
         </activity>
         <service android:process="@string/process"
