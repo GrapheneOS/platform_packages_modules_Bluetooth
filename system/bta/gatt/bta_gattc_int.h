@@ -388,8 +388,6 @@ extern void bta_gattc_op_cmpl_during_discovery(tBTA_GATTC_CLCB* p_clcb,
                                                const tBTA_GATTC_DATA* p_data);
 extern void bta_gattc_restart_discover(tBTA_GATTC_CLCB* p_clcb,
                                        const tBTA_GATTC_DATA* p_msg);
-extern void bta_gattc_init_bk_conn(const tBTA_GATTC_API_OPEN* p_data,
-                                   tBTA_GATTC_RCB* p_clreg);
 extern void bta_gattc_cancel_bk_conn(const tBTA_GATTC_API_CANCEL_OPEN* p_data);
 extern void bta_gattc_send_open_cback(tBTA_GATTC_RCB* p_clreg,
                                       tGATT_STATUS status,
