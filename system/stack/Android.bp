@@ -702,6 +702,7 @@ cc_test {
         ":BluetoothBtaaSources_host",
         ":BluetoothHalSources_hci_host",
         ":BluetoothOsSources_host",
+        ":TestCommonMainHandler",
         ":TestMockBta",
         ":TestMockBtif",
         ":TestMockDevice",

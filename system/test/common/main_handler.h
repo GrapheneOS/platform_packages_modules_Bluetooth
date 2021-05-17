@@ -34,3 +34,6 @@ bt_status_t do_in_main_thread_delayed(const base::Location& from_here,
 void post_on_bt_main(BtMainClosure closure);
 void main_thread_start_up();
 void main_thread_shut_down();
+extern int sync_timeout_in_ms;
+void sync_main_handler();
+bluetooth::common::MessageLoopThread* get_main_thread();

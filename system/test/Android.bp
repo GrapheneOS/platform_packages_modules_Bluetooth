@@ -207,3 +207,17 @@ filegroup {
       "mock/mock_stack_crypto_toolbox*.cc",
   ],
 }
+
+filegroup {
+  name: "TestMockBtu",
+  srcs: [
+      "mock/mock_btu_*cc",
+  ],
+}
+
+filegroup {
+  name: "TestCommonMainHandler",
+  srcs: [
+      "common/main_handler.cc",
+  ],
+}
