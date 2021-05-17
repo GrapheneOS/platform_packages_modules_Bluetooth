@@ -340,8 +340,10 @@ cc_test {
         ],
       srcs: [
           ":LibBluetoothSources",
+          ":TestCommonMainHandler",
           ":TestMockAndroidHardware",
           ":TestMockBta",
+          ":TestMockBtu",
           ":TestMockBtcore",
           ":TestMockCommon",
           ":TestMockFrameworks",

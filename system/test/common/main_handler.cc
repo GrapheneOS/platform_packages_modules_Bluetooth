@@ -19,6 +19,7 @@
 #include <base/location.h>
 #include <base/time/time.h>
 #include <functional>
+#include <future>
 
 #include "common/message_loop_thread.h"
 #include "include/hardware/bluetooth.h"
@@ -29,7 +30,7 @@ using BtMainClosure = std::function<void()>;
 
 namespace {
 
-MessageLoopThread main_thread("bt_fake_main_thread", true);
+MessageLoopThread main_thread("bt_test_main_thread", true);
 void do_post_on_bt_main(BtMainClosure closure) { closure(); }
 
 }  // namespace
@@ -50,8 +51,9 @@ bt_status_t do_in_main_thread_delayed(const base::Location& from_here,
 }
 
 void post_on_bt_main(BtMainClosure closure) {
-  ASSERT(do_in_main_thread(FROM_HERE,
-                           base::Bind(do_post_on_bt_main, std::move(closure))));
+  ASSERT(do_in_main_thread(
+             FROM_HERE, base::Bind(do_post_on_bt_main, std::move(closure))) ==
+         BT_STATUS_SUCCESS);
 }
 
 void main_thread_start_up() {
@@ -61,3 +63,15 @@ void main_thread_start_up() {
 }
 
 void main_thread_shut_down() { main_thread.ShutDown(); }
+
+// osi_alarm
+bluetooth::common::MessageLoopThread* get_main_thread() { return &main_thread; }
+
+int sync_timeout_in_ms = 3000;
+
+void sync_main_handler() {
+  std::promise promise = std::promise<void>();
+  std::future future = promise.get_future();
+  post_on_bt_main([&promise]() { promise.set_value(); });
+  future.wait_for(std::chrono::milliseconds(sync_timeout_in_ms));
+};
