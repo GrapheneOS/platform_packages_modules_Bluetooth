@@ -593,9 +593,9 @@ static void bta_gatts_conn_cback(tGATT_IF gatt_if, const RawAddress& bdaddr,
           << ", conn_id=" << loghex(conn_id) << " connected=" << connected;
 
   if (connected)
-    btif_debug_conn_state(bdaddr, BTIF_DEBUG_CONNECTED, GATT_CONN_UNKNOWN);
+    btif_debug_conn_state(bdaddr, BTIF_DEBUG_CONNECTED, GATT_CONN_OK);
   else
-    btif_debug_conn_state(bdaddr, BTIF_DEBUG_DISCONNECTED, GATT_CONN_UNKNOWN);
+    btif_debug_conn_state(bdaddr, BTIF_DEBUG_DISCONNECTED, GATT_CONN_OK);
 
   p_reg = bta_gatts_find_app_rcb_by_app_if(gatt_if);
 

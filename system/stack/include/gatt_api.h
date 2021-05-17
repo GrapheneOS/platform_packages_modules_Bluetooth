@@ -196,7 +196,6 @@ inline std::string gatt_op_code_text(const tGATT_OP_CODE& op_code) {
 
 typedef enum : uint16_t {
   GATT_CONN_OK = 0,
-  GATT_CONN_UNKNOWN = 0,
   /* general L2cap failure  */
   GATT_CONN_L2C_FAILURE = 1,
   /* 0x08 connection timeout  */
