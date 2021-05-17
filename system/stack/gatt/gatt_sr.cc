@@ -849,9 +849,9 @@ static void gatts_process_mtu_req(tGATT_TCB& tcb, uint16_t cid, uint16_t len,
  * Returns          void
  *
  ******************************************************************************/
-void gatts_process_read_by_type_req(tGATT_TCB& tcb, uint16_t cid,
-                                    uint8_t op_code, uint16_t len,
-                                    uint8_t* p_data) {
+static void gatts_process_read_by_type_req(tGATT_TCB& tcb, uint16_t cid,
+                                           uint8_t op_code, uint16_t len,
+                                           uint8_t* p_data) {
   Uuid uuid = Uuid::kEmpty;
   uint16_t s_hdl = 0, e_hdl = 0, err_hdl = 0;
   tGATT_STATUS reason =
