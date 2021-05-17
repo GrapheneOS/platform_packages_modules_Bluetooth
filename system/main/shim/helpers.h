@@ -226,8 +226,7 @@ inline tHCI_STATUS ToLegacyHciErrorCode(const hci::ErrorCode& reason) {
     case hci::ErrorCode::CONTROLLER_BUSY:
       return static_cast<tHCI_STATUS>(hci::ErrorCode::CONTROLLER_BUSY);
     case hci::ErrorCode::CONNECTION_FAILED_ESTABLISHMENT:
-      return static_cast<tHCI_STATUS>(
-          hci::ErrorCode::CONNECTION_FAILED_ESTABLISHMENT);
+      return HCI_ERR_CONN_FAILED_ESTABLISHMENT;
     case hci::ErrorCode::STATUS_UNKNOWN:
       return HCI_ERR_UNDEFINED;
     default:

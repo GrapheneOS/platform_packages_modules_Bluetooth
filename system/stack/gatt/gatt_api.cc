@@ -1124,8 +1124,8 @@ void GATT_StartIf(tGATT_IF gatt_if) {
       p_tcb = gatt_find_tcb_by_addr(bda, transport);
       if (p_reg->app_cb.p_conn_cb && p_tcb) {
         conn_id = GATT_CREATE_CONN_ID(p_tcb->tcb_idx, gatt_if);
-        (*p_reg->app_cb.p_conn_cb)(gatt_if, bda, conn_id, true,
-                                   GATT_CONN_UNKNOWN, transport);
+        (*p_reg->app_cb.p_conn_cb)(gatt_if, bda, conn_id, true, GATT_CONN_OK,
+                                   transport);
       }
       start_idx = ++found_idx;
     }
