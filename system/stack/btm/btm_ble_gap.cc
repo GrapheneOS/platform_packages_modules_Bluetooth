@@ -1527,6 +1527,10 @@ static void btm_ble_appearance_to_cod(uint16_t appearance, uint8_t* dev_class) {
       dev_class[1] = BTM_COD_MAJOR_AUDIO;
       dev_class[2] = BTM_COD_MINOR_UNCLASSIFIED;
       break;
+    case BTM_BLE_APPEARANCE_WEARABLE_AUDIO_DEVICE_EARBUD:
+      dev_class[1] = BTM_COD_MAJOR_AUDIO;
+      dev_class[2] = BTM_COD_MINOR_WEARABLE_HEADSET;
+      break;
     case BTM_BLE_APPEARANCE_GENERIC_BARCODE_SCANNER:
     case BTM_BLE_APPEARANCE_HID_BARCODE_SCANNER:
     case BTM_BLE_APPEARANCE_GENERIC_HID:
