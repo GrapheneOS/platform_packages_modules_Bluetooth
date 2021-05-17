@@ -34,6 +34,7 @@
 #include "bta/sys/bta_sys.h"
 #include "osi/include/allocator.h"
 #include "osi/include/osi.h"  // UNUSED_ATTR
+#include "stack/include/btu.h"
 #include "types/raw_address.h"
 
 /*****************************************************************************
@@ -56,16 +57,22 @@ static const tBTA_SYS_REG bta_hh_reg = {bta_hh_hdl_event, BTA_HhDisable};
  *
  ******************************************************************************/
 void BTA_HhEnable(tBTA_HH_CBACK* p_cback) {
-  tBTA_HH_API_ENABLE* p_buf =
-      (tBTA_HH_API_ENABLE*)osi_calloc(sizeof(tBTA_HH_API_ENABLE));
-
   /* register with BTA system manager */
   bta_sys_register(BTA_ID_HH, &bta_hh_reg);
 
-  p_buf->hdr.event = BTA_HH_API_ENABLE_EVT;
-  p_buf->p_cback = p_cback;
-
-  bta_sys_sendmsg(p_buf);
+  post_on_bt_main([p_cback]() {
+    tBTA_HH_DATA data = {
+        .api_enable =
+            {
+                .hdr =
+                    {
+                        .event = BTA_HH_API_ENABLE_EVT,
+                    },
+                .p_cback = p_cback,
+            },
+    };
+    bta_hh_api_enable(&data);
+  });
 }
 
 /*******************************************************************************
@@ -79,12 +86,9 @@ void BTA_HhEnable(tBTA_HH_CBACK* p_cback) {
  *
  ******************************************************************************/
 void BTA_HhDisable(void) {
-  BT_HDR* p_buf = (BT_HDR*)osi_malloc(sizeof(BT_HDR));
-
   bta_sys_deregister(BTA_ID_HH);
-  p_buf->event = BTA_HH_API_DISABLE_EVT;
 
-  bta_sys_sendmsg(p_buf);
+  post_on_bt_main([]() { bta_hh_api_disable(); });
 }
 
 /*******************************************************************************
