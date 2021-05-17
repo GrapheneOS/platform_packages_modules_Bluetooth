@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #
-#   Copyright 2019 - The Android Open Source Project
+#   Copyright 2020 - The Android Open Source Project
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -14,21 +14,11 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-from cert.gd_base_test import GdBaseTestClass
-from hal.cert.simple_hal_test_lib import SimpleHalTestBase
-
-_GRPC_TIMEOUT = 10
+import os
+import sys
 
 
-class SimpleHalTest(GdBaseTestClass, SimpleHalTestBase):
+class StackTestBase():
 
-    def setup_class(self):
-        GdBaseTestClass.setup_class(self, dut_module='HAL', cert_module='HAL')
-
-    def setup_test(self):
-        GdBaseTestClass.setup_test(self)
-        SimpleHalTestBase.setup_test(self, self.dut, self.cert)
-
-    def teardown_test(self):
-        SimpleHalTestBase.teardown_test(self)
-        GdBaseTestClass.teardown_test(self)
+    def test_test(self):
+        return True

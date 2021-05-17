@@ -14,32 +14,17 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-import time
-
 from cert.gd_base_test import GdBaseTestClass
-from cert.truth import assertThat
-from google.protobuf import empty_pb2 as empty_proto
-from facade import rootservice_pb2 as facade_rootservice
-from hci.facade import controller_facade_pb2 as controller_facade
+from hci.cert.controller_test_lib import ControllerTestBase
 
 
-class ControllerTest(GdBaseTestClass):
+class ControllerTest(GdBaseTestClass, ControllerTestBase):
 
     def setup_class(self):
-        super().setup_class(dut_module='HCI_INTERFACES', cert_module='HCI_INTERFACES')
+        GdBaseTestClass.setup_class(self, dut_module='HCI_INTERFACES', cert_module='HCI_INTERFACES')
 
     def test_get_addresses(self):
-        cert_address = self.cert.hci_controller.GetMacAddressSimple()
-        dut_address = self.dut.hci_controller.GetMacAddressSimple()
-
-        assertThat(cert_address).isNotEqualTo(dut_address)
-        time.sleep(1)  # This shouldn't be needed b/149120542
+        ControllerTestBase.test_get_addresses(self, self.dut, self.cert)
 
     def test_write_local_name(self):
-        self.dut.hci_controller.WriteLocalName(controller_facade.NameMsg(name=b'ImTheDUT'))
-        self.cert.hci_controller.WriteLocalName(controller_facade.NameMsg(name=b'ImTheCert'))
-        cert_name = self.cert.hci_controller.GetLocalNameSimple()
-        dut_name = self.dut.hci_controller.GetLocalNameSimple()
-
-        assertThat(dut_name).isEqualTo(b'ImTheDUT')
-        assertThat(cert_name).isEqualTo(b'ImTheCert')
+        ControllerTestBase.test_write_local_name(self, self.dut, self.cert)

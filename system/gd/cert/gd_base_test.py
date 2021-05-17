@@ -64,6 +64,7 @@ class GdBaseTestClass(BaseTestClass):
         self.rootcanal_running = self.info['rootcanal_running']
         self.rootcanal_logpath = self.info['rootcanal_logpath']
         self.rootcanal_process = self.info['rootcanal_process']
+        self.rootcanal_logger = self.info['rootcanal_logger']
 
         if 'rootcanal' in self.controller_configs:
             asserts.assert_true(self.info['rootcanal_exist'],
@@ -77,7 +78,6 @@ class GdBaseTestClass(BaseTestClass):
                 msg="Cannot start root-canal at " + str(self.info['rootcanal']))
             asserts.assert_true(self.info['is_subprocess_alive'], msg="root-canal stopped immediately after running")
 
-            self.rootcanal_logger = self.info['rootcanal_logger']
             self.controller_configs = self.info['controller_configs']
 
         # Parse and construct GD device objects
