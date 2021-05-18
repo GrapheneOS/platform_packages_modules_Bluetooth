@@ -57,7 +57,7 @@ using tSDP_REASON = tSDP_STATUS;
   case code:                   \
     return #code
 
-static inline std::string sdp_status_text(const tSDP_STATUS& status) {
+inline std::string sdp_status_text(const tSDP_STATUS& status) {
   switch (status) {
     CASE_RETURN_TEXT(SDP_SUCCESS);
     CASE_RETURN_TEXT(SDP_INVALID_VERSION);
