@@ -180,6 +180,7 @@ class HostBuild():
         self.env['CARGO_TARGET_DIR'] = self.output_dir
         self.env['CARGO_HOME'] = os.path.join(self.output_dir, 'cargo_home')
         self.env['RUSTFLAGS'] = self._generate_rustflags()
+        self.env['CXX_ROOT_PATH'] = os.path.join(self.platform_dir, 'bt')
 
         # Configure some GN variables
         if self.use_board:

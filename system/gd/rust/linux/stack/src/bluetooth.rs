@@ -1,7 +1,8 @@
 //! Anything related to the adapter API (IBluetooth).
 
-use bt_topshim::btif::ffi;
-use bt_topshim::btif::{BluetoothCallbacks, BluetoothInterface, BtState};
+use bt_topshim::btif::{
+    BaseCallbacksDispatcher, BluetoothInterface, BtProperty, BtPropertyType, BtState, BtStatus,
+};
 use bt_topshim::topstack;
 
 use btif_macros::btif_callbacks_generator;
@@ -82,39 +83,26 @@ impl Bluetooth {
     }
 }
 
-#[btif_callbacks_generator(btif_bluetooth_callbacks, BluetoothCallbacks)]
 pub(crate) trait BtifBluetoothCallbacks {
-    #[stack_message(BluetoothAdapterStateChanged)]
     fn adapter_state_changed(&mut self, state: BtState);
 
-    #[stack_message(BluetoothAdapterPropertiesChanged)]
     fn adapter_properties_changed(
         &mut self,
-        status: i32,
+        status: BtStatus,
         num_properties: i32,
-        properties: Vec<ffi::BtProperty>,
+        properties: Vec<BtProperty>,
     );
 }
 
-#[derive(FromPrimitive, ToPrimitive, PartialEq, PartialOrd)]
-#[repr(i32)]
-#[derive(Debug)]
-enum PropertyType {
-    BDName = 0x01,
-    BDAddr,
-    Uuids,
-    ClassOfDevice,
-    TypeOfDevice,
-    ServiceRecord,
-    AdapterScanMode,
-    AdapterBondedDevices,
-    AdapterDiscoverableTimeout,
-    RemoteFriendlyName,
-    RemoteRssi,
-    RemoteVersionInfo,
-    RemoteLocalLeFeatures,
-    RemoteDynamicAudioBuffer = 0x10,
-    Unknown = 0x100,
+pub fn get_bt_dispatcher(tx: Sender<Message>) -> BaseCallbacksDispatcher {
+    BaseCallbacksDispatcher {
+        dispatch: Box::new(move |cb| {
+            let txl = tx.clone();
+            topstack::get_runtime().spawn(async move {
+                txl.send(Message::Base(cb)).await;
+            });
+        }),
+    }
 }
 
 impl BtifBluetoothCallbacks for Bluetooth {
@@ -131,23 +119,17 @@ impl BtifBluetoothCallbacks for Bluetooth {
     #[allow(unused_variables)]
     fn adapter_properties_changed(
         &mut self,
-        status: i32,
+        status: BtStatus,
         num_properties: i32,
-        properties: Vec<ffi::BtProperty>,
+        properties: Vec<BtProperty>,
     ) {
-        if status != 0 {
+        if status != BtStatus::Success {
             return;
         }
 
         for prop in properties {
-            let prop_type = PropertyType::from_i32(prop.prop_type);
-
-            if prop_type.is_none() {
-                continue;
-            }
-
-            match prop_type.unwrap() {
-                PropertyType::BDAddr => {
+            match prop.prop_type {
+                BtPropertyType::BdAddr => {
                     self.update_local_address(&prop.val);
                 }
                 _ => {}
