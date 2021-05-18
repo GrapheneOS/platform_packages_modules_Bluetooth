@@ -10,6 +10,8 @@ use std::sync::{Arc, Mutex};
 use std::vec::Vec;
 use topshim_macros::cb_variant;
 
+use crate::profiles::hid_host::HidHost;
+
 #[derive(Debug, FromPrimitive, ToPrimitive, PartialEq, PartialOrd)]
 #[repr(u32)]
 pub enum BtState {
@@ -232,6 +234,18 @@ impl From<bindings::bt_bdname_t> for String {
 pub type BtHciErrorCode = u8;
 
 pub type BtPinCode = bindings::bt_pin_code_t;
+
+pub enum SupportedProfiles {
+    HidHost,
+}
+
+impl From<SupportedProfiles> for Vec<u8> {
+    fn from(item: SupportedProfiles) -> Self {
+        match item {
+            HidHost => "hidhost".bytes().collect::<Vec<u8>>(),
+        }
+    }
+}
 
 #[cxx::bridge(namespace = bluetooth::topshim::rust)]
 mod ffi {
@@ -487,6 +501,14 @@ impl BluetoothInterface {
     ) -> i32 {
         let cvariant = bindings::bt_ssp_variant_t::from(variant);
         ccall!(self, ssp_reply, addr, cvariant, accept, passkey)
+    }
+
+    pub(crate) fn get_profile_interface(
+        &self,
+        profile: SupportedProfiles,
+    ) -> *const std::os::raw::c_void {
+        let cprofile = Vec::<u8>::from(profile);
+        ccall!(self, get_profile_interface, cprofile.as_slice().as_ptr() as *const i8)
     }
 }
 
