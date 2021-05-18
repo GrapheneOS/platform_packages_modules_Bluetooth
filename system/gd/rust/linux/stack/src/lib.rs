@@ -9,8 +9,7 @@ extern crate num_derive;
 pub mod bluetooth;
 pub mod bluetooth_gatt;
 
-use bt_topshim::btif::BtState;
-use bt_topshim::btif::{BaseCallbacks, BaseCallbacksDispatcher};
+use bt_topshim::btif::BaseCallbacks;
 
 use std::convert::TryInto;
 use std::fmt::{Debug, Formatter, Result};
