@@ -63,13 +63,13 @@ extern tBTM_CB btm_cb;
 bool BTM_SecAddDevice(const RawAddress& bd_addr, DEV_CLASS dev_class,
                       BD_NAME bd_name, uint8_t* features, LinkKey* p_link_key,
                       uint8_t key_type, uint8_t pin_length) {
-  BTM_TRACE_API("%s: link key type:%x", __func__, key_type);
-
   tBTM_SEC_DEV_REC* p_dev_rec = btm_find_dev(bd_addr);
   if (!p_dev_rec) {
     p_dev_rec = btm_sec_allocate_dev_rec();
-    BTM_TRACE_API("%s: allocated p_dev_rec=%p, bd_addr=%s", __func__, p_dev_rec,
-                  bd_addr.ToString().c_str());
+    LOG_DEBUG(
+        "Caching new record from config file device:%s link_key_type:%x "
+        "name:%s",
+        PRIVATE_ADDRESS(bd_addr), key_type, bd_name);
 
     p_dev_rec->bd_addr = bd_addr;
     p_dev_rec->hci_handle = BTM_GetHCIConnHandle(bd_addr, BT_TRANSPORT_BR_EDR);
@@ -78,6 +78,10 @@ bool BTM_SecAddDevice(const RawAddress& bd_addr, DEV_CLASS dev_class,
     /* update conn params, use default value for background connection params */
     memset(&p_dev_rec->conn_params, 0xff, sizeof(tBTM_LE_CONN_PRAMS));
   } else {
+    LOG_DEBUG(
+        "Caching existing record from config file device:%s link_key_type:%x",
+        PRIVATE_ADDRESS(bd_addr), key_type);
+
     /* "Bump" timestamp for existing record */
     p_dev_rec->timestamp = btm_cb.dev_rec_count++;
 
@@ -95,13 +99,15 @@ bool BTM_SecAddDevice(const RawAddress& bd_addr, DEV_CLASS dev_class,
   memset(p_dev_rec->sec_bd_name, 0, sizeof(tBTM_BD_NAME));
 
   if (bd_name && bd_name[0]) {
+    LOG_DEBUG("  Remote name known for device:%s name:%s",
+              PRIVATE_ADDRESS(bd_addr), bd_name);
     p_dev_rec->sec_flags |= BTM_SEC_NAME_KNOWN;
     strlcpy((char*)p_dev_rec->sec_bd_name, (char*)bd_name,
             BTM_MAX_REM_BD_NAME_LEN + 1);
   }
 
   if (p_link_key) {
-    VLOG(2) << __func__ << ": BDA: " << bd_addr;
+    LOG_DEBUG("  Link key known for device:%s", PRIVATE_ADDRESS(bd_addr));
     p_dev_rec->sec_flags |= BTM_SEC_LINK_KEY_KNOWN;
     p_dev_rec->link_key = *p_link_key;
     p_dev_rec->link_key_type = key_type;
