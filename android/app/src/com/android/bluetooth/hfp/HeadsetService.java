@@ -1607,7 +1607,7 @@ public class HeadsetService extends ProfileService {
             mSystemInterface.getHeadsetPhoneState().setNumHeldCall(numHeld);
             mSystemInterface.getHeadsetPhoneState().setCallState(callState);
             // Suspend A2DP when call about is about to become active
-            if (callState != HeadsetHalConstants.CALL_STATE_DISCONNECTED
+            if (mActiveDevice != null && callState != HeadsetHalConstants.CALL_STATE_DISCONNECTED
                     && !mSystemInterface.isCallIdle() && isCallIdleBefore) {
                 mSystemInterface.getAudioManager().setParameters("A2dpSuspended=true");
             }
