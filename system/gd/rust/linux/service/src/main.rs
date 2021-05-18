@@ -1,4 +1,4 @@
-use bt_topshim::btif::BluetoothInterface;
+use bt_topshim::btif::get_btinterface;
 use bt_topshim::topstack;
 
 use dbus::channel::MatchingReceiver;
@@ -12,7 +12,7 @@ use dbus_tokio::connection;
 
 use futures::future;
 
-use btstack::bluetooth::btif_bluetooth_callbacks;
+use btstack::bluetooth::get_bt_dispatcher;
 use btstack::bluetooth::Bluetooth;
 use btstack::bluetooth_gatt::BluetoothGatt;
 use btstack::Stack;
@@ -32,7 +32,7 @@ const OBJECT_BLUETOOTH_GATT: &str = "/org/chromium/bluetooth/gatt";
 fn main() -> Result<(), Box<dyn Error>> {
     let (tx, rx) = Stack::create_channel();
 
-    let intf = Arc::new(Mutex::new(BluetoothInterface::new()));
+    let intf = Arc::new(Mutex::new(get_btinterface().unwrap()));
     let bluetooth = Arc::new(Mutex::new(Bluetooth::new(tx.clone(), intf.clone())));
     let bluetooth_gatt = Arc::new(Mutex::new(BluetoothGatt::new(intf.clone())));
 
@@ -59,7 +59,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             }),
         )));
 
-        intf.lock().unwrap().initialize(Arc::new(btif_bluetooth_callbacks(tx)), vec![]);
+        intf.lock().unwrap().initialize(get_bt_dispatcher(tx), vec![]);
 
         // Run the stack main dispatch loop.
         topstack::get_runtime().spawn(Stack::dispatch(rx, bluetooth.clone()));

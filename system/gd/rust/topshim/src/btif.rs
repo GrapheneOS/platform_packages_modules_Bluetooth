@@ -3,22 +3,104 @@
 //! This is a shim interface for calling the C++ bluetooth interface via Rust.
 //!
 
-// TODO(abps): Remove this once callbacks are implemented
-#![allow(unused_variables)]
-
-use num_traits::FromPrimitive;
-use std::sync::Arc;
+use crate::bindings::root as bindings;
+use crate::topstack::get_dispatchers;
+use num_traits::cast::{FromPrimitive, ToPrimitive};
+use std::sync::{Arc, Mutex};
 use std::vec::Vec;
+use topshim_macros::cb_variant;
 
-#[derive(FromPrimitive, ToPrimitive, PartialEq, PartialOrd)]
-#[repr(i32)]
+#[derive(Debug, FromPrimitive, ToPrimitive, PartialEq, PartialOrd)]
+#[repr(u32)]
 pub enum BtState {
     Off = 0,
     On,
 }
 
-#[derive(FromPrimitive, ToPrimitive, PartialEq, PartialOrd, Debug)]
-#[repr(i32)]
+impl From<bindings::bt_state_t> for BtState {
+    fn from(item: bindings::bt_state_t) -> Self {
+        BtState::from_u32(item).unwrap_or_else(|| BtState::Off)
+    }
+}
+
+#[derive(Debug, FromPrimitive, ToPrimitive, PartialEq, PartialOrd)]
+#[repr(u32)]
+pub enum BtTransport {
+    Invalid = 0,
+    Bredr,
+    Le,
+}
+
+impl From<i32> for BtTransport {
+    fn from(item: i32) -> Self {
+        BtTransport::from_i32(item).unwrap_or_else(|| BtTransport::Invalid)
+    }
+}
+
+impl From<BtTransport> for i32 {
+    fn from(item: BtTransport) -> Self {
+        item.to_i32().unwrap_or_else(|| 0)
+    }
+}
+
+#[derive(Debug, FromPrimitive, ToPrimitive, PartialEq, PartialOrd)]
+#[repr(u32)]
+pub enum BtSspVariant {
+    PasskeyConfirmation = 0,
+    PasskeyEntry,
+    Consent,
+    PasskeyNotification,
+}
+
+impl From<bindings::bt_ssp_variant_t> for BtSspVariant {
+    fn from(item: bindings::bt_ssp_variant_t) -> Self {
+        BtSspVariant::from_u32(item).unwrap_or_else(|| BtSspVariant::PasskeyConfirmation)
+    }
+}
+
+impl From<BtSspVariant> for bindings::bt_ssp_variant_t {
+    fn from(item: BtSspVariant) -> Self {
+        item.to_u32().unwrap_or_else(|| 0)
+    }
+}
+
+#[derive(Debug, FromPrimitive, ToPrimitive, PartialEq, PartialOrd)]
+#[repr(u32)]
+pub enum BtBondState {
+    Unknown = 0,
+    Bonding,
+    Bonded,
+}
+
+impl From<bindings::bt_bond_state_t> for BtBondState {
+    fn from(item: bindings::bt_bond_state_t) -> Self {
+        BtBondState::from_u32(item).unwrap_or_else(|| BtBondState::Unknown)
+    }
+}
+
+#[derive(Debug, FromPrimitive, ToPrimitive, PartialEq, PartialOrd)]
+#[repr(u32)]
+pub enum BtAclState {
+    Connected = 0,
+    Disconnected,
+}
+
+impl From<bindings::bt_acl_state_t> for BtAclState {
+    fn from(item: bindings::bt_acl_state_t) -> Self {
+        BtAclState::from_u32(item).unwrap_or_else(|| BtAclState::Disconnected)
+    }
+}
+
+#[derive(Debug, FromPrimitive, ToPrimitive, PartialEq, PartialOrd)]
+#[repr(u32)]
+pub enum BtDeviceType {
+    Bredr,
+    Ble,
+    Dual,
+}
+
+#[derive(Clone, Debug, FromPrimitive, ToPrimitive, PartialEq, PartialOrd)]
+#[repr(u32)]
 pub enum BtPropertyType {
     BdName = 0x1,
     BdAddr,
@@ -41,15 +123,33 @@ pub enum BtPropertyType {
     RemoteDeviceTimestamp = 0xFF,
 }
 
-#[derive(FromPrimitive, ToPrimitive, PartialEq, PartialOrd)]
+impl From<u32> for BtPropertyType {
+    fn from(item: u32) -> Self {
+        BtPropertyType::from_u32(item).unwrap_or_else(|| BtPropertyType::Unknown)
+    }
+}
+
+impl From<BtPropertyType> for u32 {
+    fn from(item: BtPropertyType) -> Self {
+        item.to_u32().unwrap_or_else(|| 0)
+    }
+}
+
+#[derive(Debug, FromPrimitive, ToPrimitive, PartialEq, PartialOrd)]
 #[repr(i32)]
 pub enum BtDiscoveryState {
     Stopped = 0x0,
     Started,
 }
 
-#[derive(FromPrimitive, ToPrimitive, PartialEq, PartialOrd)]
-#[repr(i32)]
+impl From<u32> for BtDiscoveryState {
+    fn from(item: u32) -> Self {
+        BtDiscoveryState::from_u32(item).unwrap_or_else(|| BtDiscoveryState::Stopped)
+    }
+}
+
+#[derive(Debug, FromPrimitive, ToPrimitive, PartialEq, PartialOrd)]
+#[repr(u32)]
 pub enum BtStatus {
     Success = 0,
     Fail,
@@ -71,350 +171,338 @@ pub enum BtStatus {
     Unknown = 0xff,
 }
 
-// FFI is a public module because we want Rust and C++ to share enums listed
-// here. We redefine most of the Bluetooth structures we want to use because
-// of memory management issues (for example, some api calls will free the
-// memory passed into it). Bindgen was attempted but ultimately was not useful.
+impl From<bindings::bt_status_t> for BtStatus {
+    fn from(item: bindings::bt_status_t) -> Self {
+        match BtStatus::from_u32(item) {
+            Some(x) => x,
+            _ => BtStatus::Unknown,
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct BtProperty {
+    pub prop_type: BtPropertyType,
+    pub len: i32,
+    pub val: Vec<u8>,
+}
+
+fn convert_properties(count: i32, props: *const bindings::bt_property_t) -> Vec<BtProperty> {
+    let mut ret: Vec<BtProperty> = Vec::new();
+
+    for i in 0..isize::from_i32(count).unwrap() {
+        let prop: *const bindings::bt_property_t = unsafe { props.offset(i) };
+        let converted = BtProperty::from(unsafe { *prop });
+
+        ret.push(converted)
+    }
+
+    ret
+}
+
+impl From<bindings::bt_property_t> for BtProperty {
+    fn from(item: bindings::bt_property_t) -> Self {
+        let slice: &[u8] =
+            unsafe { std::slice::from_raw_parts(item.val as *mut u8, item.len as usize) };
+        let mut val = Vec::new();
+        val.extend_from_slice(slice);
+
+        BtProperty { prop_type: BtPropertyType::from(item.type_), len: item.len, val }
+    }
+}
+
+impl From<BtProperty> for bindings::bt_property_t {
+    fn from(item: BtProperty) -> Self {
+        // This is probably very unsafe
+        let mut foo = item.clone();
+        bindings::bt_property_t {
+            type_: item.prop_type.to_u32().unwrap(),
+            len: foo.val.len() as i32,
+            val: foo.val.as_mut_ptr() as *mut std::os::raw::c_void,
+        }
+    }
+}
+
+impl From<bindings::bt_bdname_t> for String {
+    fn from(item: bindings::bt_bdname_t) -> Self {
+        std::str::from_utf8(&item.name).unwrap().to_string()
+    }
+}
+
+pub type BtHciErrorCode = u8;
+
+pub type BtPinCode = bindings::bt_pin_code_t;
+
 #[cxx::bridge(namespace = bluetooth::topshim::rust)]
-pub mod ffi {
-
-    pub struct BtPinCode {
-        pin: [u8; 16],
-    }
-
-    pub struct BtProperty {
-        prop_type: i32,
-        len: i32,
-        val: Vec<u8>,
-    }
-
-    pub struct BtUuid {
-        uuid: [u8; 16],
-    }
-
-    pub struct RustRawAddress {
-        address: [u8; 6],
-    }
-
+mod ffi {
     unsafe extern "C++" {
         include!("btif/btif_shim.h");
 
-        // Opaque type meant to represent C object for the Bluetooth interface.
-        type BluetoothIntf;
+        // For converting init flags from Vec<String> to const char **
+        type InitFlags;
 
-        // Loads a unique pointer to the underlying interface
-        fn Load() -> UniquePtr<BluetoothIntf>;
-
-        fn Initialize(
-            self: Pin<&mut Self>,
-            callbacks: Box<RustCallbacks>,
-            init_flags: Vec<String>,
-        ) -> bool;
-
-        fn CleanUp(&self);
-        fn Enable(&self) -> i32;
-        fn Disable(&self) -> i32;
-
-        fn GetAdapterProperties(&self) -> i32;
-        fn GetAdapterProperty(&self, prop_type: i32) -> i32;
-        fn SetAdapterProperty(&self, prop: &BtProperty) -> i32;
-
-        fn GetRemoteDeviceProperties(&self, address: &RustRawAddress) -> i32;
-        fn GetRemoteDeviceProperty(&self, address: &RustRawAddress, prop_type: i32) -> i32;
-        fn SetRemoteDeviceProperty(&self, address: &RustRawAddress, prop: &BtProperty) -> i32;
-
-        fn GetRemoteServices(&self, address: &RustRawAddress) -> i32;
-
-        fn StartDiscovery(&self) -> i32;
-        fn CancelDiscovery(&self) -> i32;
-
-        fn CreateBond(&self, address: &RustRawAddress, transport: i32) -> i32;
-        // TODO(abps): Implement at P3
-        // fn CreateBondOutOfBand(address: &RustRawAddress, transport: i32,
-        //  oob_data: &BtOutOfBandData) -> i32;
-        fn RemoveBond(&self, address: &RustRawAddress) -> i32;
-        fn CancelBond(&self, address: &RustRawAddress) -> i32;
-
-        fn GetConnectionState(&self, address: &RustRawAddress) -> i32;
-
-        fn PinReply(
-            &self,
-            address: &RustRawAddress,
-            accept: u8,
-            pin_len: u8,
-            code: &BtPinCode,
-        ) -> i32;
-        fn SspReply(
-            &self,
-            address: &RustRawAddress,
-            ssp_variant: i32,
-            accept: u8,
-            passkey: u32,
-        ) -> i32;
-
-        // TODO(abps): Implement at P1
-        // fn GetProfileInterface(profile_id: &str) -> Option<BtProfileInterface>;
-
-        // TODO(abps): Implement at P2
-        // fn dut_mode_configure(enable: u8) -> i32;
-        // fn dut_mode_send(opcode: u16, buf: [u8], len: u8) -> i32;
-        // fn le_test_mode(opcode: u16, buf: [u8], len: u8) -> i32;
-
-        // TODO(abps): Implement at P1
-        // fn SetOsCallouts(callouts: Box<RustOsCallouts>) -> i32;
-
-        // TODO(abps): Implement at P3
-        // fn ReadEnergyInfo(&self) -> i32;
-        // fn Dump(fd: i32, args: &[str]);
-        // fn DumpMetrics() -> String;
-        // fn ConfigClear(&self) -> i32;
-        // fn InteropDatabaseClear(&self);
-        // fn InteropDatabaseAdd(&self, feature: u16, address: &RustRawAddress, match_len: u8);
-
-        // TODO(abps): Implement at P1
-        // fn GetAvrcpService() -> *mut AvrcpServiceInterface;
-
-        // TODO(abps): Implement at P3
-        // fn ObfuscateAddress(&self, address: &RustRawAddress) -> String;
-        // fn GetMetricId(&self, address: &RustRawAddress) -> i32;
-        // fn SetDynamicAudioBufferSize(&self, codec: i32, size: i32) -> i32;
+        // Convert flgas into an InitFlags object
+        fn ConvertFlags(flags: Vec<String>) -> UniquePtr<InitFlags>;
+        fn GetFlagsPtr(self: &InitFlags) -> *mut *const c_char;
     }
-
-    extern "Rust" {
-        type RustCallbacks;
-
-        // Callbacks from C++ to Rust. The rust callbacks are stored when the
-        // `BluetoothIntf` is initialized and consist of closures that take the
-        // same parameters (without the first callbacks param).
-
-        fn adapter_state_changed_callback(cb: &RustCallbacks, state: i32);
-        fn adapter_properties_callback(
-            cb: &RustCallbacks,
-            status: i32,
-            num_properties: i32,
-            properties: Vec<BtProperty>,
-        );
-        fn remote_device_properties_callback(
-            cb: &RustCallbacks,
-            status: i32,
-            address: RustRawAddress,
-            num_properties: i32,
-            properties: Vec<BtProperty>,
-        );
-        fn device_found_callback(
-            cb: &RustCallbacks,
-            num_properties: i32,
-            properties: Vec<BtProperty>,
-        );
-        fn discovery_state_changed_callback(cb: &RustCallbacks, state: i32);
-        fn pin_request_callback(
-            cb: &RustCallbacks,
-            remote_addr: RustRawAddress,
-            bd_name: String,
-            cod: u32,
-            min_16_digit: bool,
-        );
-        fn ssp_request_callback(
-            cb: &RustCallbacks,
-            remote_addr: RustRawAddress,
-            bd_name: String,
-            cod: u32,
-            variant: i32,
-            pass_key: u32,
-        );
-        fn bond_state_changed_callback(
-            cb: &RustCallbacks,
-            status: i32,
-            remote_addr: RustRawAddress,
-            state: i32,
-        );
-        fn acl_state_changed_callback(
-            cb: &RustCallbacks,
-            status: i32,
-            remote_addr: RustRawAddress,
-            state: i32,
-            hci_reason: i32,
-        );
-
-    }
-
-    unsafe impl Box<RustCallbacks> {}
 }
 
-/// Rust struct of closures for all callbacks from C++.
-///
-/// Note: Due to the need to interop with the C interface, we cannot pass
-///       additional state from C++ when calling these callbacks. Capture any
-///       state you need in the closure provided to this struct.
-pub struct BluetoothCallbacks {
-    pub adapter_state_changed: Box<dyn Fn(BtState) + Send>,
-    pub adapter_properties_changed: Box<dyn Fn(i32, i32, Vec<ffi::BtProperty>) + Send>,
-    pub remote_device_properties_changed:
-        Box<dyn Fn(i32, ffi::RustRawAddress, i32, Vec<ffi::BtProperty>) + Send>,
-    pub device_found: Box<dyn Fn(i32, Vec<ffi::BtProperty>) + Send>,
-    pub discovery_state_changed: Box<dyn Fn(BtDiscoveryState) + Send>,
-    pub pin_request: Box<dyn Fn(ffi::RustRawAddress, String, u32, bool) + Send>,
-    pub ssp_request: Box<dyn Fn(ffi::RustRawAddress, String, u32, i32, u32) + Send>,
-    pub bond_state_changed: Box<dyn Fn(i32, ffi::RustRawAddress, i32) + Send>,
-    pub acl_state_changed: Box<dyn Fn(i32, ffi::RustRawAddress, i32, i32) + Send>,
+// Export the raw address type directly from the bindings
+pub type RawAddress = bindings::RawAddress;
+
+#[derive(Debug)]
+pub enum BaseCallbacks {
+    AdapterState(BtState),
+    AdapterProperties(BtStatus, i32, Vec<BtProperty>),
+    RemoteDeviceProperties(BtStatus, RawAddress, i32, Vec<BtProperty>),
+    DeviceFound(i32, Vec<BtProperty>),
+    DiscoveryState(BtDiscoveryState),
+    PinRequest(RawAddress, String, u32, bool),
+    SspRequest(RawAddress, String, u32, BtSspVariant, u32),
+    BondState(BtStatus, RawAddress, BtBondState),
+    AclState(BtStatus, RawAddress, BtAclState, BtHciErrorCode),
+    // Unimplemented so far:
+    // thread_evt_cb
+    // dut_mode_recv_cb
+    // le_test_mode_cb
+    // energy_info_cb
+    // link_quality_report_cb
+    // generate_local_oob_data_cb
 }
 
-pub struct RustCallbacks {
-    inner: Arc<BluetoothCallbacks>,
+pub struct BaseCallbacksDispatcher {
+    pub dispatch: Box<dyn Fn(BaseCallbacks) + Send>,
 }
 
-/// Rust interface to native Bluetooth.
+type BaseCb = Arc<Mutex<BaseCallbacksDispatcher>>;
+
+cb_variant!(BaseCb, adapter_state_cb -> BaseCallbacks::AdapterState, u32 -> BtState);
+cb_variant!(BaseCb, adapter_properties_cb -> BaseCallbacks::AdapterProperties,
+u32 -> BtStatus, i32, *mut bindings::bt_property_t, {
+    let _2 = convert_properties(_1, _2);
+});
+cb_variant!(BaseCb, remote_device_properties_cb -> BaseCallbacks::RemoteDeviceProperties,
+u32 -> BtStatus, *mut RawAddress -> RawAddress, i32, *mut bindings::bt_property_t, {
+    let _1 = unsafe {*_1};
+    let _3 = convert_properties(_2, _3);
+});
+cb_variant!(BaseCb, device_found_cb -> BaseCallbacks::DeviceFound,
+i32, *mut bindings::bt_property_t, {
+    let _1 = convert_properties(_0, _1);
+});
+cb_variant!(BaseCb, discovery_state_cb -> BaseCallbacks::DiscoveryState,
+    bindings::bt_discovery_state_t -> BtDiscoveryState);
+cb_variant!(BaseCb, pin_request_cb -> BaseCallbacks::PinRequest,
+*mut RawAddress, *mut bindings::bt_bdname_t, u32, bool, {
+    let _0 = unsafe { *_0 };
+    let _1 = String::from(unsafe{*_1});
+});
+cb_variant!(BaseCb, ssp_request_cb -> BaseCallbacks::SspRequest,
+*mut RawAddress, *mut bindings::bt_bdname_t, u32, bindings::bt_ssp_variant_t -> BtSspVariant, u32, {
+    let _0 = unsafe {*_0};
+    let _1 = String::from(unsafe{*_1});
+});
+cb_variant!(BaseCb, bond_state_cb -> BaseCallbacks::BondState,
+u32 -> BtStatus, *mut RawAddress, bindings::bt_bond_state_t -> BtBondState, {
+    let _1 = unsafe {*_1};
+});
+cb_variant!(BaseCb, acl_state_cb -> BaseCallbacks::AclState,
+u32 -> BtStatus, *mut RawAddress, bindings::bt_acl_state_t -> BtAclState, bindings::bt_hci_error_code_t -> BtHciErrorCode, {
+    let _1 = unsafe { *_1 };
+});
+
+struct RawInterfaceWrapper {
+    pub raw: *const bindings::bt_interface_t,
+}
+
+unsafe impl Send for RawInterfaceWrapper {}
+
 pub struct BluetoothInterface {
-    internal: cxx::UniquePtr<ffi::BluetoothIntf>,
+    internal: RawInterfaceWrapper,
+    pub is_init: bool,
+    // Need to take ownership of callbacks so it doesn't get freed after init
+    callbacks: Option<Box<bindings::bt_callbacks_t>>,
+}
+
+#[macro_export]
+macro_rules! ccall {
+    ($self:ident,$fn_name:ident) => {
+        unsafe {
+            ((*$self.internal.raw).$fn_name.unwrap())()
+        }
+    };
+    ($self:ident,$fn_name:ident, $($args:expr),*) => {
+        unsafe {
+            ((*$self.internal.raw).$fn_name.unwrap())($($args),*)
+        }
+    }
 }
 
 impl BluetoothInterface {
-    pub fn new() -> BluetoothInterface {
-        BluetoothInterface { internal: ffi::Load() }
+    pub fn is_initialized(&self) -> bool {
+        self.is_init
     }
 
-    /// Initialize the BluetoothInterface shim (not strictly necessary as
-    /// Load also initializes the interface).
     pub fn initialize(
         &mut self,
-        callbacks: Arc<BluetoothCallbacks>,
+        callbacks: BaseCallbacksDispatcher,
         init_flags: Vec<String>,
     ) -> bool {
-        //ffi::Initialize(*self.internal)
-        self.internal
-            .pin_mut()
-            .Initialize(Box::new(RustCallbacks { inner: callbacks.clone() }), init_flags)
+        // Init flags need to be converted from string to null terminated bytes
+        let converted: cxx::UniquePtr<ffi::InitFlags> = ffi::ConvertFlags(init_flags);
+        let flags = (*converted).GetFlagsPtr();
+
+        if get_dispatchers().lock().unwrap().set::<BaseCb>(Arc::new(Mutex::new(callbacks))) {
+            panic!("Tried to set dispatcher for BaseCallbacks but it already existed");
+        }
+
+        // Fill up callbacks struct to pass to init function (will be copied so
+        // no need to worry about ownership)
+        let mut callbacks = Box::new(bindings::bt_callbacks_t {
+            size: 16 * 8,
+            adapter_state_changed_cb: Some(adapter_state_cb),
+            adapter_properties_cb: Some(adapter_properties_cb),
+            remote_device_properties_cb: Some(remote_device_properties_cb),
+            device_found_cb: Some(device_found_cb),
+            discovery_state_changed_cb: Some(discovery_state_cb),
+            pin_request_cb: Some(pin_request_cb),
+            ssp_request_cb: Some(ssp_request_cb),
+            bond_state_changed_cb: Some(bond_state_cb),
+            acl_state_changed_cb: Some(acl_state_cb),
+            thread_evt_cb: None,
+            dut_mode_recv_cb: None,
+            le_test_mode_cb: None,
+            energy_info_cb: None,
+            link_quality_report_cb: None,
+            generate_local_oob_data_cb: None,
+        });
+
+        let rawcb: *mut bindings::bt_callbacks_t = &mut *callbacks;
+
+        let (guest_mode, is_common_criteria_mode, config_compare_result, is_atv) =
+            (false, false, 0, false);
+
+        let init = ccall!(
+            self,
+            init,
+            rawcb,
+            guest_mode,
+            is_common_criteria_mode,
+            config_compare_result,
+            flags,
+            is_atv
+        );
+
+        self.is_init = init == 0;
+        self.callbacks = Some(callbacks);
+
+        return self.is_init;
     }
 
-    /// Enable the Bluetooth adapter. This triggers an adapter_state_changed callback.
-    pub fn enable(&mut self) -> i32 {
-        self.internal.Enable()
+    pub fn cleanup(&self) {
+        ccall!(self, cleanup)
     }
 
-    /// Disable the Bluetooth adapter. This triggers an adapter state changed callback.
-    pub fn disable(&mut self) -> i32 {
-        self.internal.Disable()
+    pub fn enable(&self) -> i32 {
+        ccall!(self, enable)
     }
 
-    pub fn cleanup(&mut self) {
-        self.internal.CleanUp()
+    pub fn disable(&self) -> i32 {
+        ccall!(self, disable)
     }
 
-    pub fn get_adapter_properties(&mut self) -> i32 {
-        self.internal.GetAdapterProperties()
+    pub fn get_adapter_properties(&self) -> i32 {
+        ccall!(self, get_adapter_properties)
     }
 
-    pub fn get_adapter_property(&mut self, prop_type: i32) -> i32 {
-        self.internal.GetAdapterProperty(prop_type)
+    pub fn get_adapter_property(&self, prop: BtPropertyType) -> i32 {
+        let converted_type = bindings::bt_property_type_t::from(prop);
+        ccall!(self, get_adapter_property, converted_type)
     }
 
-    pub fn set_adapter_property(&mut self, prop: &ffi::BtProperty) -> i32 {
-        self.internal.SetAdapterProperty(prop)
+    pub fn set_adapter_property(&self, prop: BtProperty) -> i32 {
+        let converted_prop = bindings::bt_property_t::from(prop);
+        ccall!(self, set_adapter_property, &converted_prop)
     }
 
-    //fn GetRemoteDeviceProperties(&self, address: &RustRawAddress) -> i32;
-    //fn GetRemoteDeviceProperty(&self, address: &RustRawAddress, prop_type: i32) -> i32;
-    //fn SetRemoteDeviceProperty(&self, address: &RustRawAddress, prop: &BtProperty) -> i32;
-    //fn GetRemoteServices(&self, address: &RustRawAddress) -> i32;
-
-    pub fn start_discovery(&mut self) -> i32 {
-        self.internal.StartDiscovery()
-    }
-    pub fn cancel_discovery(&mut self) -> i32 {
-        self.internal.CancelDiscovery()
+    pub fn get_remote_device_properties(&self, addr: &mut RawAddress) -> i32 {
+        ccall!(self, get_remote_device_properties, addr)
     }
 
-    pub fn create_bond(&mut self, address: &ffi::RustRawAddress, transport: i32) -> i32 {
-        self.internal.CreateBond(address, transport)
-    }
-    pub fn remove_bond(&mut self, address: &ffi::RustRawAddress) -> i32 {
-        self.internal.RemoveBond(address)
-    }
-    pub fn cancel_bond(&mut self, address: &ffi::RustRawAddress) -> i32 {
-        self.internal.CancelBond(address)
+    pub fn get_remote_device_property(
+        &self,
+        addr: &mut RawAddress,
+        prop_type: BtPropertyType,
+    ) -> i32 {
+        let converted_type = bindings::bt_property_type_t::from(prop_type);
+        ccall!(self, get_remote_device_property, addr, converted_type)
     }
 
-    pub fn get_connection_state(&mut self, address: &ffi::RustRawAddress) -> i32 {
-        self.internal.GetConnectionState(address)
+    pub fn set_remote_device_property(&self, addr: &mut RawAddress, prop: BtProperty) -> i32 {
+        let converted_prop = bindings::bt_property_t::from(prop);
+        ccall!(self, set_remote_device_property, addr, &converted_prop)
+    }
+
+    pub fn start_discovery(&self) -> i32 {
+        ccall!(self, start_discovery)
+    }
+
+    pub fn cancel_discovery(&self) -> i32 {
+        ccall!(self, cancel_discovery)
+    }
+
+    pub fn create_bond(&self, addr: &RawAddress, transport: BtTransport) -> i32 {
+        let ctransport: i32 = transport.into();
+        ccall!(self, create_bond, addr, ctransport)
+    }
+
+    pub fn remove_bond(&self, addr: &RawAddress) -> i32 {
+        ccall!(self, remove_bond, addr)
+    }
+
+    pub fn cancel_bond(&self, addr: &RawAddress) -> i32 {
+        ccall!(self, cancel_bond, addr)
+    }
+
+    pub fn get_connection_state(&self, addr: &RawAddress) -> i32 {
+        ccall!(self, get_connection_state, addr)
+    }
+
+    pub fn pin_reply(
+        &self,
+        addr: &RawAddress,
+        accept: u8,
+        pin_len: u8,
+        pin_code: &mut BtPinCode,
+    ) -> i32 {
+        ccall!(self, pin_reply, addr, accept, pin_len, pin_code)
+    }
+
+    pub fn ssp_reply(
+        &self,
+        addr: &RawAddress,
+        variant: BtSspVariant,
+        accept: u8,
+        passkey: u32,
+    ) -> i32 {
+        let cvariant = bindings::bt_ssp_variant_t::from(variant);
+        ccall!(self, ssp_reply, addr, cvariant, accept, passkey)
     }
 }
 
-unsafe impl Send for BluetoothInterface {}
+pub fn get_btinterface() -> Option<BluetoothInterface> {
+    let mut ret: Option<BluetoothInterface> = None;
+    let mut ifptr: *const bindings::bt_interface_t = std::ptr::null();
 
-fn adapter_state_changed_callback(cb: &RustCallbacks, state: i32) {
-    let new_state = match BtState::from_i32(state) {
-        Some(x) => x,
-        None => BtState::Off,
-    };
-    (cb.inner.adapter_state_changed)(new_state);
-}
+    unsafe {
+        if bindings::hal_util_load_bt_library(&mut ifptr) == 0 {
+            ret = Some(BluetoothInterface {
+                internal: RawInterfaceWrapper { raw: ifptr },
+                is_init: false,
+                callbacks: None,
+            });
+        }
+    }
 
-fn adapter_properties_callback(
-    cb: &RustCallbacks,
-    status: i32,
-    num_properties: i32,
-    properties: Vec<ffi::BtProperty>,
-) {
-    (cb.inner.adapter_properties_changed)(status, num_properties, properties);
-}
-
-fn remote_device_properties_callback(
-    cb: &RustCallbacks,
-    status: i32,
-    address: ffi::RustRawAddress,
-    num_properties: i32,
-    properties: Vec<ffi::BtProperty>,
-) {
-    (cb.inner.remote_device_properties_changed)(status, address, num_properties, properties);
-}
-
-fn device_found_callback(
-    cb: &RustCallbacks,
-    num_properties: i32,
-    properties: Vec<ffi::BtProperty>,
-) {
-    (cb.inner.device_found)(num_properties, properties);
-}
-fn discovery_state_changed_callback(cb: &RustCallbacks, state: i32) {
-    let new_state = match BtDiscoveryState::from_i32(state) {
-        Some(x) => x,
-        None => BtDiscoveryState::Stopped,
-    };
-    (cb.inner.discovery_state_changed)(new_state);
-}
-fn pin_request_callback(
-    cb: &RustCallbacks,
-    remote_addr: ffi::RustRawAddress,
-    bd_name: String,
-    cod: u32,
-    min_16_digit: bool,
-) {
-    (cb.inner.pin_request)(remote_addr, bd_name, cod, min_16_digit);
-}
-fn ssp_request_callback(
-    cb: &RustCallbacks,
-    remote_addr: ffi::RustRawAddress,
-    bd_name: String,
-    cod: u32,
-    variant: i32,
-    pass_key: u32,
-) {
-    (cb.inner.ssp_request)(remote_addr, bd_name, cod, variant, pass_key);
-}
-fn bond_state_changed_callback(
-    cb: &RustCallbacks,
-    status: i32,
-    remote_addr: ffi::RustRawAddress,
-    state: i32,
-) {
-    (cb.inner.bond_state_changed)(status, remote_addr, state);
-}
-fn acl_state_changed_callback(
-    cb: &RustCallbacks,
-    status: i32,
-    remote_addr: ffi::RustRawAddress,
-    state: i32,
-    hci_reason: i32,
-) {
-    (cb.inner.acl_state_changed)(status, remote_addr, state, hci_reason);
+    ret
 }
