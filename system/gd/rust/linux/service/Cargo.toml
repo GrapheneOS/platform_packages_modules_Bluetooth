@@ -1,5 +1,5 @@
 [package]
-name = "btserv"
+name = "btadapterd"
 version = "0.1.0"
 edition = "2018"
 
@@ -21,6 +21,6 @@ tokio = { version = "1", features = ['bytes', 'fs', 'io-util', 'libc', 'macros',
 pkg-config = "0.3.19"
 
 [[bin]]
-name = "btserv"
+name = "btadapterd"
 path = "src/main.rs"
 build = "build.rs"
