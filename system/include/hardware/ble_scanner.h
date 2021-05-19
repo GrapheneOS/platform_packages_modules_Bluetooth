@@ -78,6 +78,8 @@ class ScanningCallbacks {
   virtual ~ScanningCallbacks() = default;
   virtual void OnScannerRegistered(const bluetooth::Uuid app_uuid,
                                    uint8_t scannerId, uint8_t status) = 0;
+  virtual void OnSetScannerParameterComplete(uint8_t scannerId,
+                                             uint8_t status) = 0;
   virtual void OnScanResult(uint16_t event_type, uint8_t addr_type,
                             RawAddress bda, uint8_t primary_phy,
                             uint8_t secondary_phy, uint8_t advertising_sid,
@@ -139,8 +141,8 @@ class BleScannerInterface {
   virtual void ScanFilterEnable(bool enable, EnableCallback cb) = 0;
 
   /** Sets the LE scan interval and window in units of N*0.625 msec */
-  virtual void SetScanParameters(int scan_interval, int scan_window,
-                                 Callback cb) = 0;
+  virtual void SetScanParameters(int scanner_id, int scan_interval,
+                                 int scan_window, Callback cb) = 0;
 
   /* Configure the batchscan storage */
   virtual void BatchscanConfigStorage(int client_if, int batch_scan_full_max,
