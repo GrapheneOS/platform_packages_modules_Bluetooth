@@ -34,6 +34,7 @@
 #include "bta/hh/bta_hh_int.h"
 #include "btif/include/btif_debug_conn.h"
 #include "device/include/controller.h"
+#include "main/shim/dumpsys.h"
 #include "osi/include/log.h"
 #include "osi/include/osi.h"  // UNUSED_ATTR
 #include "stack/include/btm_ble_api_types.h"
@@ -401,18 +402,27 @@ static void bta_gattc_init_bk_conn(const tBTA_GATTC_API_OPEN* p_data,
   }
 
   uint16_t conn_id;
-  /* if is not a connected remote device */
   if (!GATT_GetConnIdIfConnected(p_data->client_if, p_data->remote_bda,
                                  &conn_id, p_data->transport)) {
+    LOG_WARN("Not a connected remote device");
     return;
   }
 
   tBTA_GATTC_CLCB* p_clcb = bta_gattc_find_alloc_clcb(
       p_data->client_if, p_data->remote_bda, BT_TRANSPORT_LE);
-  if (!p_clcb) return;
+  if (!p_clcb) {
+    LOG_WARN("Unable to find connection link for device:%s",
+             PRIVATE_ADDRESS(p_data->remote_bda));
+    return;
+  }
 
-  tBTA_GATTC_DATA gattc_data;
-  gattc_data.hdr.layer_specific = p_clcb->bta_conn_id = conn_id;
+  p_clcb->bta_conn_id = conn_id;
+  tBTA_GATTC_DATA gattc_data = {
+      .hdr =
+          {
+              .layer_specific = conn_id,
+          },
+  };
 
   /* open connection */
   bta_gattc_sm_execute(p_clcb, BTA_GATTC_INT_CONN_EVT,
