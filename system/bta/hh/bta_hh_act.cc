@@ -75,7 +75,7 @@ static const char* bta_hh_hid_event_name(uint16_t event);
  * Returns          void
  *
  ******************************************************************************/
-void bta_hh_api_enable(tBTA_HH_DATA* p_data) {
+void bta_hh_api_enable(const tBTA_HH_DATA* p_data) {
   tBTA_HH_STATUS status = BTA_HH_ERR;
   uint8_t xx;
 
