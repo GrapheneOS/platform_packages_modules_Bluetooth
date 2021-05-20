@@ -18,67 +18,27 @@
 
 #include <memory>
 
-#include "include/hardware/bluetooth.h"
 #include "rust/cxx.h"
 
 namespace bluetooth {
 namespace topshim {
 namespace rust {
 
-struct RustCallbacks;
-struct InitParams;
-struct RustRawAddress;
-struct BtProperty;
-struct BtPinCode;
-struct BtUuid;
-
-class BluetoothIntf {
+class InitFlags {
  public:
-  BluetoothIntf();
-  ~BluetoothIntf();
+  InitFlags();
+  ~InitFlags();
 
-  bool Initialize(::rust::Box<RustCallbacks> callbacks, ::rust::Vec<::rust::String> initFlags);
-  void CleanUp() const;
-
-  int Enable() const;
-  int Disable() const;
-
-  int GetAdapterProperties() const;
-  int GetAdapterProperty(int prop_type) const;
-  int SetAdapterProperty(const BtProperty& prop) const;
-
-  int GetRemoteDeviceProperties(const RustRawAddress& address) const;
-  int GetRemoteDeviceProperty(const RustRawAddress& address, int prop_type) const;
-  int SetRemoteDeviceProperty(const RustRawAddress& address, const BtProperty& prop) const;
-
-  int GetRemoteServices(const RustRawAddress& address) const;
-
-  int StartDiscovery() const;
-  int CancelDiscovery() const;
-
-  int CreateBond(const RustRawAddress& address, int transport) const;
-  int RemoveBond(const RustRawAddress& address) const;
-  int CancelBond(const RustRawAddress& address) const;
-
-  int GetConnectionState(const RustRawAddress& address) const;
-
-  int PinReply(const RustRawAddress& address, uint8_t accept, uint8_t pin_len, const BtPinCode& code) const;
-  int SspReply(const RustRawAddress& address, int ssp_variant, uint8_t accept, uint32_t passkey) const;
-
-  ::rust::Box<RustCallbacks>& GetCallbacks() {
-    return *callbacks_;
+  void Convert(::rust::Vec<::rust::String>& flags);
+  const char** GetFlagsPtr() const {
+    return flags_;
   }
 
  private:
-  void ConvertFlags(::rust::Vec<::rust::String>& flags);
-
-  std::unique_ptr<::rust::Box<RustCallbacks>> callbacks_;
-  bool init_;
   const char** flags_;
-  const bt_interface_t* intf_;
 };
 
-std::unique_ptr<BluetoothIntf> Load();
+std::unique_ptr<InitFlags> ConvertFlags(::rust::Vec<::rust::String> flags);
 
 }  // namespace rust
 }  // namespace topshim
