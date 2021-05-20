@@ -6,4 +6,5 @@ extern crate num_derive;
 
 pub mod bindings;
 pub mod btif;
+pub mod profiles;
 pub mod topstack;
