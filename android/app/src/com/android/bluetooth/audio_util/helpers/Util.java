@@ -25,6 +25,8 @@ import android.media.session.MediaSession;
 import android.os.Bundle;
 import android.util.Log;
 
+import com.android.bluetooth.R;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -52,6 +54,16 @@ class Util {
         ret.duration = "0";
         ret.image = null;
         return ret;
+    }
+
+    /**
+     * Get whether or not Bluetooth is configured to support URI images or not.
+     *
+     * Note that creating URI images will dramatically increase memory usage.
+     */
+    public static boolean areUriImagesSupported(Context context) {
+        if (context == null) return false;
+        return context.getResources().getBoolean(R.bool.avrcp_target_cover_art_uri_images);
     }
 
     /**
