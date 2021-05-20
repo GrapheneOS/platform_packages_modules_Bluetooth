@@ -74,6 +74,7 @@ typedef void(tBTM_VSC_CMPL_CB)(tBTM_VSC_CMPL* p1);
 
 /* 0x00 is used as unclassified for all minor device classes */
 #define BTM_COD_MINOR_UNCLASSIFIED 0x00
+#define BTM_COD_MINOR_WEARABLE_HEADSET 0x04
 #define BTM_COD_MINOR_CONFM_HANDSFREE 0x08
 #define BTM_COD_MINOR_CAR_AUDIO 0x20
 #define BTM_COD_MINOR_SET_TOP_BOX 0x24
