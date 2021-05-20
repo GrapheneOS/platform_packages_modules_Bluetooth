@@ -36,15 +36,18 @@ static void srvc_eng_c_cmpl_cback(uint16_t conn_id, tGATTC_OPTYPE op,
                                   tGATT_STATUS status,
                                   tGATT_CL_COMPLETE* p_data);
 
-static tGATT_CBACK srvc_gatt_cback = {srvc_eng_connect_cback,
-                                      srvc_eng_c_cmpl_cback,
-                                      NULL,
-                                      NULL,
-                                      srvc_eng_s_request_cback,
-                                      NULL,
-                                      NULL,
-                                      NULL,
-                                      NULL};
+static tGATT_CBACK srvc_gatt_cback = {
+    .p_conn_cb = srvc_eng_connect_cback,
+    .p_cmpl_cb = srvc_eng_c_cmpl_cback,
+    .p_disc_res_cb = nullptr,
+    .p_disc_cmpl_cb = nullptr,
+    .p_req_cb = srvc_eng_s_request_cback,
+    .p_enc_cmpl_cb = nullptr,
+    .p_congestion_cb = nullptr,
+    .p_phy_update_cb = nullptr,
+    .p_conn_update_cb = nullptr,
+};
+
 /* type for action functions */
 typedef void (*tSRVC_ENG_C_CMPL_ACTION)(tSRVC_CLCB* p_clcb, tGATTC_OPTYPE op,
                                         tGATT_STATUS status,
