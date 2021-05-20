@@ -69,6 +69,8 @@ static void bta_gattc_phy_update_cback(tGATT_IF gatt_if, uint16_t conn_id,
 static void bta_gattc_conn_update_cback(tGATT_IF gatt_if, uint16_t conn_id,
                                         uint16_t interval, uint16_t latency,
                                         uint16_t timeout, tGATT_STATUS status);
+static void bta_gattc_init_bk_conn(const tBTA_GATTC_API_OPEN* p_data,
+                                   tBTA_GATTC_RCB* p_clreg);
 
 static tGATT_CBACK bta_gattc_cl_cback = {
     .p_conn_cb = bta_gattc_conn_cback,
@@ -152,7 +154,7 @@ void bta_gattc_disable() {
 }
 
 /** start an application interface */
-void bta_gattc_start_if(uint8_t client_if) {
+static void bta_gattc_start_if(uint8_t client_if) {
   if (!bta_gattc_cl_get_regcb(client_if)) {
     LOG(ERROR) << "Unable to start app.: Unknown client_if=" << +client_if;
     return;
@@ -308,7 +310,8 @@ void bta_gattc_process_api_open_cancel(const tBTA_GATTC_DATA* p_msg) {
 }
 
 /** process encryption complete message */
-void bta_gattc_process_enc_cmpl(tGATT_IF client_if, const RawAddress& bda) {
+static void bta_gattc_process_enc_cmpl(tGATT_IF client_if,
+                                       const RawAddress& bda) {
   tBTA_GATTC_RCB* p_clreg = bta_gattc_cl_get_regcb(client_if);
 
   if (!p_clreg || !p_clreg->p_cback) return;
@@ -378,9 +381,10 @@ void bta_gattc_open(tBTA_GATTC_CLCB* p_clcb, const tBTA_GATTC_DATA* p_data) {
 }
 
 /** Process API Open for a background connection */
-void bta_gattc_init_bk_conn(const tBTA_GATTC_API_OPEN* p_data,
-                            tBTA_GATTC_RCB* p_clreg) {
+static void bta_gattc_init_bk_conn(const tBTA_GATTC_API_OPEN* p_data,
+                                   tBTA_GATTC_RCB* p_clreg) {
   if (!bta_gattc_mark_bg_conn(p_data->client_if, p_data->remote_bda, true)) {
+    LOG_WARN("Unable to find space for acceptlist connection mask");
     bta_gattc_send_open_cback(p_clreg, GATT_NO_RESOURCES, p_data->remote_bda,
                               GATT_INVALID_CONN_ID, BT_TRANSPORT_LE, 0);
     return;
@@ -617,7 +621,7 @@ void bta_gattc_disc_close(tBTA_GATTC_CLCB* p_clcb,
 }
 
 /** when a SRCB start discovery, tell all related clcb and set the state */
-void bta_gattc_set_discover_st(tBTA_GATTC_SERV* p_srcb) {
+static void bta_gattc_set_discover_st(tBTA_GATTC_SERV* p_srcb) {
   uint8_t i;
 
   for (i = 0; i < BTA_GATTC_CLCB_MAX; i++) {
@@ -1181,12 +1185,12 @@ void bta_gattc_process_api_refresh(const RawAddress& remote_bda) {
 }
 
 /** process service change indication */
-bool bta_gattc_process_srvc_chg_ind(uint16_t conn_id, tBTA_GATTC_RCB* p_clrcb,
-                                    tBTA_GATTC_SERV* p_srcb,
-                                    tBTA_GATTC_CLCB* p_clcb,
-                                    tBTA_GATTC_NOTIFY* p_notify,
-                                    tGATT_VALUE* att_value) {
-
+static bool bta_gattc_process_srvc_chg_ind(uint16_t conn_id,
+                                           tBTA_GATTC_RCB* p_clrcb,
+                                           tBTA_GATTC_SERV* p_srcb,
+                                           tBTA_GATTC_CLCB* p_clcb,
+                                           tBTA_GATTC_NOTIFY* p_notify,
+                                           tGATT_VALUE* att_value) {
   Uuid gattp_uuid = Uuid::From16Bit(UUID_SERVCLASS_GATT_SERVER);
   Uuid srvc_chg_uuid = Uuid::From16Bit(GATT_UUID_GATT_SRV_CHGD);
 
@@ -1259,9 +1263,9 @@ bool bta_gattc_process_srvc_chg_ind(uint16_t conn_id, tBTA_GATTC_RCB* p_clrcb,
 }
 
 /** process all non-service change indication/notification */
-void bta_gattc_proc_other_indication(tBTA_GATTC_CLCB* p_clcb, uint8_t op,
-                                     tGATT_CL_COMPLETE* p_data,
-                                     tBTA_GATTC_NOTIFY* p_notify) {
+static void bta_gattc_proc_other_indication(tBTA_GATTC_CLCB* p_clcb, uint8_t op,
+                                            tGATT_CL_COMPLETE* p_data,
+                                            tBTA_GATTC_NOTIFY* p_notify) {
   VLOG(1) << __func__
           << StringPrintf(
                  ": check p_data->att_value.handle=%d p_data->handle=%d",
@@ -1282,8 +1286,8 @@ void bta_gattc_proc_other_indication(tBTA_GATTC_CLCB* p_clcb, uint8_t op,
 }
 
 /** process indication/notification */
-void bta_gattc_process_indicate(uint16_t conn_id, tGATTC_OPTYPE op,
-                                tGATT_CL_COMPLETE* p_data) {
+static void bta_gattc_process_indicate(uint16_t conn_id, tGATTC_OPTYPE op,
+                                       tGATT_CL_COMPLETE* p_data) {
   uint16_t handle = p_data->att_value.handle;
   tBTA_GATTC_NOTIFY notify;
   RawAddress remote_bda;
