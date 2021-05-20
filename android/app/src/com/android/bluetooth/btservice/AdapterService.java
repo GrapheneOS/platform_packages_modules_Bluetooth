@@ -46,6 +46,7 @@ import android.bluetooth.BluetoothClass;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.BluetoothProtoEnums;
+import android.bluetooth.BluetoothStatusCodes;
 import android.bluetooth.BluetoothUuid;
 import android.bluetooth.BufferConstraints;
 import android.bluetooth.IBluetooth;
@@ -1793,18 +1794,23 @@ public class AdapterService extends Service {
         }
 
         @Override
-        public boolean setRemoteAlias(BluetoothDevice device, String name,
+        public int setRemoteAlias(BluetoothDevice device, String name,
                 AttributionSource attributionSource) {
             AdapterService service = getService();
-            if (service == null || !callerIsSystemOrActiveUser(TAG, "setRemoteAlias")
-                    || name == null || name.isEmpty()) {
-                return false;
+            if (service == null) {
+                return BluetoothStatusCodes.ERROR_BLUETOOTH_NOT_ENABLED;
+            }
+            if (!callerIsSystemOrActiveUser(TAG, "setRemoteAlias")) {
+                return BluetoothStatusCodes.ERROR_BLUETOOTH_NOT_ALLOWED;
+            }
+            if (name.isEmpty()) {
+                throw new IllegalArgumentException("alias cannot be the empty string");
             }
 
             if (!hasBluetoothPrivilegedPermission(service)) {
                 if (!Utils.checkConnectPermissionForDataDelivery(
                         service, attributionSource, "AdapterService setRemoteAlias")) {
-                    return false;
+                    return BluetoothStatusCodes.ERROR_MISSING_BLUETOOTH_CONNECT_PERMISSION;
                 }
                 enforceCdmAssociation(service.mCompanionDeviceManager, service,
                         attributionSource.getPackageName(), Binder.getCallingUid(), device);
@@ -1812,10 +1818,10 @@ public class AdapterService extends Service {
 
             DeviceProperties deviceProp = service.mRemoteDevices.getDeviceProperties(device);
             if (deviceProp == null) {
-                return false;
+                return BluetoothStatusCodes.ERROR_DEVICE_NOT_BONDED;
             }
             deviceProp.setAlias(device, name);
-            return true;
+            return BluetoothStatusCodes.SUCCESS;
         }
 
         @Override
@@ -2558,7 +2564,7 @@ public class AdapterService extends Service {
 
     private class CallerInfo {
         public String callerPackageName;
-        public int userId;
+        public UserHandle user;
     }
 
     boolean createBond(BluetoothDevice device, int transport, OobData remoteP192Data,
@@ -2574,7 +2580,7 @@ public class AdapterService extends Service {
 
         CallerInfo createBondCaller = new CallerInfo();
         createBondCaller.callerPackageName = callingPackage;
-        createBondCaller.userId = UserHandle.getCallingUserId();
+        createBondCaller.user = UserHandle.of(UserHandle.getCallingUserId());
         mBondAttemptCallerInfo.put(device.getAddress(), createBondCaller);
 
         mRemoteDevices.setBondingInitiatedLocally(Utils.getByteAddress(device));
@@ -2624,7 +2630,7 @@ public class AdapterService extends Service {
         }
         if (mOobDataCallbackQueue.peek() != null) {
             try {
-                callback.onError(BluetoothAdapter.OOB_ERROR_ANOTHER_ACTIVE_REQUEST);
+                callback.onError(BluetoothStatusCodes.ERROR_ANOTHER_ACTIVE_OOB_REQUEST);
                 return;
             } catch (RemoteException e) {
                 Log.e(TAG, "Failed to make callback", e);
@@ -2641,7 +2647,7 @@ public class AdapterService extends Service {
         }
         if (oobData == null) {
             try {
-                mOobDataCallbackQueue.poll().onError(BluetoothAdapter.OOB_ERROR_UNKNOWN);
+                mOobDataCallbackQueue.poll().onError(BluetoothStatusCodes.ERROR_UNKNOWN);
             } catch (RemoteException e) {
                 Log.e(TAG, "Failed to make callback", e);
             }
@@ -2716,8 +2722,9 @@ public class AdapterService extends Service {
     public boolean canBondWithoutDialog(BluetoothDevice device) {
         if (mBondAttemptCallerInfo.containsKey(device.getAddress())) {
             CallerInfo bondCallerInfo = mBondAttemptCallerInfo.get(device.getAddress());
+
             return mCompanionDeviceManager.canPairWithoutPrompt(bondCallerInfo.callerPackageName,
-                    device.getAddress(), bondCallerInfo.userId);
+                    device.getAddress(), bondCallerInfo.user);
         }
         return false;
     }
@@ -3011,84 +3018,58 @@ public class AdapterService extends Service {
             hciToAndroidDisconnectReason(int hciReason) {
         switch(hciReason) {
             case /*HCI_SUCCESS*/ 0x00:
-                return BluetoothAdapter.BluetoothConnectionCallback.REASON_UNKNOWN;
-            case /*HCI_ERR_ILLEGAL_COMMAND*/ 0x01:
-                return BluetoothAdapter.BluetoothConnectionCallback.REASON_LOCAL_ERROR;
-            case /*HCI_ERR_NO_CONNECTION*/ 0x02:
-                return BluetoothAdapter.BluetoothConnectionCallback.REASON_LOCAL_ERROR;
-            case /*HCI_ERR_HW_FAILURE*/ 0x03:
-                return BluetoothAdapter.BluetoothConnectionCallback.REASON_LOCAL_ERROR;
-            case /*HCI_ERR_PAGE_TIMEOUT*/ 0x04:
-                return BluetoothAdapter.BluetoothConnectionCallback.REASON_TIMEOUT;
-            case /*HCI_ERR_AUTH_FAILURE*/ 0x05:
-                return BluetoothAdapter.BluetoothConnectionCallback.REASON_SECURITY;
-            case /*HCI_ERR_KEY_MISSING*/ 0x06:
-                return BluetoothAdapter.BluetoothConnectionCallback.REASON_SECURITY;
-            case /*HCI_ERR_MEMORY_FULL*/ 0x07:
-                return BluetoothAdapter.BluetoothConnectionCallback.REASON_RESOURCE_LIMIT_REACHED;
-            case /*HCI_ERR_CONNECTION_TOUT*/ 0x08:
-                return BluetoothAdapter.BluetoothConnectionCallback.REASON_TIMEOUT;
-            case /*HCI_ERR_MAX_NUM_OF_CONNECTIONS*/ 0x09:
-                return BluetoothAdapter.BluetoothConnectionCallback.REASON_RESOURCE_LIMIT_REACHED;
-            case /*HCI_ERR_MAX_NUM_OF_SCOS*/ 0x0A:
-                return BluetoothAdapter.BluetoothConnectionCallback.REASON_RESOURCE_LIMIT_REACHED;
-            case /*HCI_ERR_CONNECTION_EXISTS*/ 0x0B:
-                return BluetoothAdapter.BluetoothConnectionCallback.REASON_CONNECTION_EXISTS;
-            case /*HCI_ERR_COMMAND_DISALLOWED*/ 0x0C:
-                return BluetoothAdapter.BluetoothConnectionCallback.REASON_RESOURCE_LIMIT_REACHED;
-            case /*HCI_ERR_HOST_REJECT_RESOURCES*/ 0x0D:
-                return BluetoothAdapter.BluetoothConnectionCallback.REASON_RESOURCE_LIMIT_REACHED;
-            case /*HCI_ERR_HOST_REJECT_SECURITY*/ 0x0E:
-                return BluetoothAdapter.BluetoothConnectionCallback.REASON_SECURITY;
-            case /*HCI_ERR_HOST_REJECT_DEVICE*/ 0x0F:
-                return BluetoothAdapter.BluetoothConnectionCallback.REASON_SYSTEM_POLICY;
-            case /*HCI_ERR_HOST_TIMEOUT*/ 0x10:
-                return BluetoothAdapter.BluetoothConnectionCallback.REASON_TIMEOUT;
-            case /*HCI_ERR_ILLEGAL_PARAMETER_FMT*/ 0x12:
-                return BluetoothAdapter.BluetoothConnectionCallback.REASON_BAD_PARAMETERS;
-            case /*HCI_ERR_PEER_USER*/ 0x13:
-                return BluetoothAdapter.BluetoothConnectionCallback.REASON_REMOTE_REQUEST;
-            case /*HCI_ERR_CONN_CAUSE_LOCAL_HOST*/ 0x16:
-                return BluetoothAdapter.BluetoothConnectionCallback.REASON_LOCAL_REQUEST;
-            case /*HCI_ERR_REPEATED_ATTEMPTS*/ 0x17:
-                return BluetoothAdapter.BluetoothConnectionCallback.REASON_SECURITY;
-            case /*HCI_ERR_PAIRING_NOT_ALLOWED*/ 0x18:
-                return BluetoothAdapter.BluetoothConnectionCallback.REASON_SECURITY;
-            case /*HCI_ERR_UNSUPPORTED_REM_FEATURE*/ 0x1A:
-                return BluetoothAdapter.BluetoothConnectionCallback.REASON_REMOTE_ERROR;
             case /*HCI_ERR_UNSPECIFIED*/ 0x1F:
-                return BluetoothAdapter.BluetoothConnectionCallback.REASON_UNKNOWN;
-            case /*HCI_ERR_LMP_RESPONSE_TIMEOUT*/ 0x22:
-                return BluetoothAdapter.BluetoothConnectionCallback.REASON_TIMEOUT;
-            case /*HCI_ERR_ENCRY_MODE_NOT_ACCEPTABLE*/ 0x25:
-                return BluetoothAdapter.BluetoothConnectionCallback.REASON_SECURITY;
-            case /*HCI_ERR_UNIT_KEY_USED*/ 0x26:
-                return BluetoothAdapter.BluetoothConnectionCallback.REASON_SECURITY;
-            case /*HCI_ERR_PAIRING_WITH_UNIT_KEY_NOT_SUPPORTED*/ 0x29:
-                return BluetoothAdapter.BluetoothConnectionCallback.REASON_SECURITY;
-            case /*HCI_ERR_DIFF_TRANSACTION_COLLISION*/ 0x2A:
-                return BluetoothAdapter.BluetoothConnectionCallback.REASON_LOCAL_ERROR;
-            case /*HCI_ERR_INSUFFCIENT_SECURITY*/ 0x2F:
-                return BluetoothAdapter.BluetoothConnectionCallback.REASON_SECURITY;
-            case /*HCI_ERR_ROLE_SWITCH_PENDING*/ 0x32:
-                return BluetoothAdapter.BluetoothConnectionCallback.REASON_LOCAL_ERROR;
-            case /*HCI_ERR_ROLE_SWITCH_FAILED*/ 0x35:
-                return BluetoothAdapter.BluetoothConnectionCallback.REASON_LOCAL_ERROR;
-            case /*HCI_ERR_HOST_BUSY_PAIRING*/ 0x38:
-                return BluetoothAdapter.BluetoothConnectionCallback.REASON_SECURITY;
-            case /*HCI_ERR_UNACCEPT_CONN_INTERVAL*/ 0x3B:
-                return BluetoothAdapter.BluetoothConnectionCallback.REASON_BAD_PARAMETERS;
-            case /*HCI_ERR_ADVERTISING_TIMEOUT*/ 0x3C:
-                return BluetoothAdapter.BluetoothConnectionCallback.REASON_TIMEOUT;
-            case /*HCI_ERR_CONN_FAILED_ESTABLISHMENT*/ 0x3E:
-                return BluetoothAdapter.BluetoothConnectionCallback.REASON_TIMEOUT;
-            case /*HCI_ERR_LIMIT_REACHED*/ 0x43:
-                return BluetoothAdapter.BluetoothConnectionCallback.REASON_RESOURCE_LIMIT_REACHED;
             case /*HCI_ERR_UNDEFINED*/ 0xff:
-                return BluetoothAdapter.BluetoothConnectionCallback.REASON_UNKNOWN;
+                return BluetoothStatusCodes.ERROR_UNKNOWN;
+            case /*HCI_ERR_ILLEGAL_COMMAND*/ 0x01:
+            case /*HCI_ERR_NO_CONNECTION*/ 0x02:
+            case /*HCI_ERR_HW_FAILURE*/ 0x03:
+            case /*HCI_ERR_DIFF_TRANSACTION_COLLISION*/ 0x2A:
+            case /*HCI_ERR_ROLE_SWITCH_PENDING*/ 0x32:
+            case /*HCI_ERR_ROLE_SWITCH_FAILED*/ 0x35:
+                return BluetoothStatusCodes.ERROR_DISCONNECT_REASON_LOCAL;
+            case /*HCI_ERR_PAGE_TIMEOUT*/ 0x04:
+            case /*HCI_ERR_CONNECTION_TOUT*/ 0x08:
+            case /*HCI_ERR_HOST_TIMEOUT*/ 0x10:
+            case /*HCI_ERR_LMP_RESPONSE_TIMEOUT*/ 0x22:
+            case /*HCI_ERR_ADVERTISING_TIMEOUT*/ 0x3C:
+            case /*HCI_ERR_CONN_FAILED_ESTABLISHMENT*/ 0x3E:
+                return BluetoothStatusCodes.ERROR_DISCONNECT_REASON_TIMEOUT;
+            case /*HCI_ERR_AUTH_FAILURE*/ 0x05:
+            case /*HCI_ERR_KEY_MISSING*/ 0x06:
+            case /*HCI_ERR_HOST_REJECT_SECURITY*/ 0x0E:
+            case /*HCI_ERR_REPEATED_ATTEMPTS*/ 0x17:
+            case /*HCI_ERR_PAIRING_NOT_ALLOWED*/ 0x18:
+            case /*HCI_ERR_ENCRY_MODE_NOT_ACCEPTABLE*/ 0x25:
+            case /*HCI_ERR_UNIT_KEY_USED*/ 0x26:
+            case /*HCI_ERR_PAIRING_WITH_UNIT_KEY_NOT_SUPPORTED*/ 0x29:
+            case /*HCI_ERR_INSUFFCIENT_SECURITY*/ 0x2F:
+            case /*HCI_ERR_HOST_BUSY_PAIRING*/ 0x38:
+                return BluetoothStatusCodes.ERROR_DISCONNECT_REASON_SECURITY;
+            case /*HCI_ERR_MEMORY_FULL*/ 0x07:
+            case /*HCI_ERR_MAX_NUM_OF_CONNECTIONS*/ 0x09:
+            case /*HCI_ERR_MAX_NUM_OF_SCOS*/ 0x0A:
+            case /*HCI_ERR_COMMAND_DISALLOWED*/ 0x0C:
+            case /*HCI_ERR_HOST_REJECT_RESOURCES*/ 0x0D:
+            case /*HCI_ERR_LIMIT_REACHED*/ 0x43:
+                return BluetoothStatusCodes.ERROR_DISCONNECT_REASON_RESOURCE_LIMIT_REACHED;
+            case /*HCI_ERR_CONNECTION_EXISTS*/ 0x0B:
+                return BluetoothStatusCodes.ERROR_DISCONNECT_REASON_CONNECTION_ALREADY_EXISTS;
+            case /*HCI_ERR_HOST_REJECT_DEVICE*/ 0x0F:
+                return BluetoothStatusCodes.ERROR_DISCONNECT_REASON_SYSTEM_POLICY;
+            case /*HCI_ERR_ILLEGAL_PARAMETER_FMT*/ 0x12:
+                return BluetoothStatusCodes.ERROR_DISCONNECT_REASON_BAD_PARAMETERS;
+            case /*HCI_ERR_PEER_USER*/ 0x13:
+                return BluetoothStatusCodes.ERROR_DISCONNECT_REASON_REMOTE_REQUEST;
+            case /*HCI_ERR_CONN_CAUSE_LOCAL_HOST*/ 0x16:
+                return BluetoothStatusCodes.ERROR_DISCONNECT_REASON_LOCAL_REQUEST;
+            case /*HCI_ERR_UNSUPPORTED_REM_FEATURE*/ 0x1A:
+                return BluetoothStatusCodes.ERROR_DISCONNECT_REASON_REMOTE;
+            case /*HCI_ERR_UNACCEPT_CONN_INTERVAL*/ 0x3B:
+                return BluetoothStatusCodes.ERROR_DISCONNECT_REASON_BAD_PARAMETERS;
             default:
                 Log.e(TAG, "Invalid HCI disconnect reason: " + hciReason);
-                return BluetoothAdapter.BluetoothConnectionCallback.REASON_UNKNOWN;
+                return BluetoothStatusCodes.ERROR_UNKNOWN;
         }
     }
 
