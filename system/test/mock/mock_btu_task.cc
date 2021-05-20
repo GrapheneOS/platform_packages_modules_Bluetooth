@@ -47,24 +47,4 @@ extern std::map<std::string, int> mock_function_count_map;
 #define UNUSED_ATTR
 #endif
 
-bluetooth::common::MessageLoopThread* get_main_thread() {
-  mock_function_count_map[__func__]++;
-  return nullptr;
-}
-bt_status_t do_in_main_thread(const base::Location& from_here,
-                              base::OnceClosure task) {
-  mock_function_count_map[__func__]++;
-  return BT_STATUS_SUCCESS;
-}
-bt_status_t do_in_main_thread_delayed(const base::Location& from_here,
-                                      base::OnceClosure task,
-                                      const base::TimeDelta& delay) {
-  mock_function_count_map[__func__]++;
-  return BT_STATUS_SUCCESS;
-}
 void btu_hci_msg_process(BT_HDR* p_msg) { mock_function_count_map[__func__]++; }
-void main_thread_shut_down() { mock_function_count_map[__func__]++; }
-void main_thread_start_up() { mock_function_count_map[__func__]++; }
-void post_on_bt_main(BtMainClosure closure) {
-  mock_function_count_map[__func__]++;
-}

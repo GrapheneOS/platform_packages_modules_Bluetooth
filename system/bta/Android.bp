@@ -168,6 +168,7 @@ cc_test {
         "BluetoothGeneratedPackets_h",
     ],
     srcs: [
+        ":TestCommonMainHandler",
         ":TestMockBtif",
         ":TestMockDevice",
         ":TestMockMainShim",
@@ -187,6 +188,7 @@ cc_test {
         "gatt/database.cc",
         "gatt/database_builder.cc",
         "hh/bta_hh_act.cc",
+        "hh/bta_hh_api.cc",
         "hh/bta_hh_cfg.cc",
         "hh/bta_hh_le.cc",
         "hh/bta_hh_main.cc",
