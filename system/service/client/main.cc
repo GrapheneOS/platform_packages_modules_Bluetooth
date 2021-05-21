@@ -44,6 +44,8 @@
 #include <bluetooth/scan_settings.h>
 #include <bluetooth/uuid.h>
 
+#include "notreached.h"
+
 using namespace std;
 
 using android::sp;
