@@ -288,7 +288,7 @@ class BleScannerInterfaceImpl : public BleScannerInterface {
                                  jni_thread_wrapper(FROM_HERE, std::move(cb))));
   }
 
-  void SetScanParameters(int scan_interval, int scan_window,
+  void SetScanParameters(int scanner_id, int scan_interval, int scan_window,
                          Callback cb) override {
     do_in_main_thread(
         FROM_HERE, base::Bind(&BTM_BleSetScanParams, scan_interval, scan_window,

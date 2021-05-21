@@ -61,6 +61,7 @@ class LeScanningManagerFacadeService : public LeScanningManagerFacade::Service, 
   }
 
   void OnScannerRegistered(const bluetooth::hci::Uuid app_uuid, ScannerId scanner_id, ScanningStatus status){};
+  void OnSetScannerParameterComplete(ScannerId scanner_id, ScanningStatus status){};
   void OnScanResult(
       uint16_t event_type,
       uint8_t address_type,
