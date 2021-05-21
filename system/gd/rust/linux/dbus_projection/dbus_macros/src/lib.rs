@@ -265,7 +265,7 @@ pub fn dbus_propmap(attr: TokenStream, item: TokenStream) -> TokenStream {
 
         let make_field = if !propmap_attr.is_none() {
             quote! {
-                let mut map: dbus::arg::PropMap = HashMap::new();
+                let mut map: dbus::arg::PropMap = std::collections::HashMap::new();
 
                 let mut iter = #field_ident.as_iter().unwrap();
                 let mut iter = iter.next().unwrap().as_iter().unwrap();
@@ -282,9 +282,9 @@ pub fn dbus_propmap(attr: TokenStream, item: TokenStream) -> TokenStream {
 
                 let #field_ident = #field_type_ident::from_dbus(
                     map,
-                    conn.clone(),
-                    remote.clone(),
-                    disconnect_watcher.clone(),
+                    conn__.clone(),
+                    remote__.clone(),
+                    disconnect_watcher__.clone(),
                 )?;
             }
         } else {
@@ -309,12 +309,12 @@ pub fn dbus_propmap(attr: TokenStream, item: TokenStream) -> TokenStream {
                         #field_ident.arg_type().as_str(),
                     )))));
                 }
-                let #field_ident = *any.downcast_ref::<<#field_type_ident as DBusArg>::DBusType>().unwrap();
+                let #field_ident = (*any.downcast_ref::<<#field_type_ident as DBusArg>::DBusType>().unwrap()).clone();
                 let #field_ident = #field_type_ident::from_dbus(
                     #field_ident,
-                    conn.clone(),
-                    remote.clone(),
-                    disconnect_watcher.clone(),
+                    conn__.clone(),
+                    remote__.clone(),
+                    disconnect_watcher__.clone(),
                 )?;
             }
         };
@@ -322,7 +322,7 @@ pub fn dbus_propmap(attr: TokenStream, item: TokenStream) -> TokenStream {
         make_fields = quote! {
             #make_fields
 
-            let #field_ident = match data.get(#field_str) {
+            let #field_ident = match data__.get(#field_str) {
                 Some(data) => data,
                 None => {
                     return Err(Box::new(DBusArgError::new(String::from(format!(
@@ -336,8 +336,8 @@ pub fn dbus_propmap(attr: TokenStream, item: TokenStream) -> TokenStream {
 
         insert_map_fields = quote! {
             #insert_map_fields
-            let field_data = DBusArg::to_dbus(data.#field_ident)?;
-            map.insert(String::from(#field_str), dbus::arg::Variant(Box::new(field_data)));
+            let field_data__ = DBusArg::to_dbus(data__.#field_ident)?;
+            map__.insert(String::from(#field_str), dbus::arg::Variant(Box::new(field_data__)));
         };
     }
 
@@ -349,10 +349,10 @@ pub fn dbus_propmap(attr: TokenStream, item: TokenStream) -> TokenStream {
             type DBusType = dbus::arg::PropMap;
 
             fn from_dbus(
-                data: dbus::arg::PropMap,
-                conn: Arc<SyncConnection>,
-                remote: BusName<'static>,
-                disconnect_watcher: Arc<Mutex<dbus_projection::DisconnectWatcher>>,
+                data__: dbus::arg::PropMap,
+                conn__: Arc<SyncConnection>,
+                remote__: BusName<'static>,
+                disconnect_watcher__: Arc<Mutex<dbus_projection::DisconnectWatcher>>,
             ) -> Result<#struct_ident, Box<dyn Error>> {
                 #make_fields
 
@@ -362,10 +362,10 @@ pub fn dbus_propmap(attr: TokenStream, item: TokenStream) -> TokenStream {
                 });
             }
 
-            fn to_dbus(data: #struct_ident) -> Result<dbus::arg::PropMap, Box<dyn Error>> {
-                let mut map: dbus::arg::PropMap = HashMap::new();
+            fn to_dbus(data__: #struct_ident) -> Result<dbus::arg::PropMap, Box<dyn Error>> {
+                let mut map__: dbus::arg::PropMap = std::collections::HashMap::new();
                 #insert_map_fields
-                return Ok(map);
+                return Ok(map__);
             }
         }
     };
@@ -443,15 +443,15 @@ pub fn dbus_proxy_obj(attr: TokenStream, item: TokenStream) -> TokenStream {
                 #method_impls
                 #[allow(unused_variables)]
                 #method_sig {
-                    let remote = self.remote.clone();
-                    let objpath = self.objpath.clone();
-                    let conn = self.conn.clone();
+                    let remote__ = self.remote.clone();
+                    let objpath__ = self.objpath.clone();
+                    let conn__ = self.conn.clone();
                     bt_topshim::topstack::get_runtime().spawn(async move {
                         let proxy = dbus::nonblock::Proxy::new(
-                            remote,
-                            objpath,
+                            remote__,
+                            objpath__,
                             std::time::Duration::from_secs(2),
-                            conn,
+                            conn__,
                         );
                         let future: dbus::nonblock::MethodReply<()> = proxy.method_call(
                             #dbus_iface_name,
@@ -493,12 +493,17 @@ pub fn dbus_proxy_obj(attr: TokenStream, item: TokenStream) -> TokenStream {
             type DBusType = Path<'static>;
 
             fn from_dbus(
-                objpath: Path<'static>,
-                conn: Arc<SyncConnection>,
-                remote: BusName<'static>,
-                disconnect_watcher: Arc<Mutex<DisconnectWatcher>>,
+                objpath__: Path<'static>,
+                conn__: Arc<SyncConnection>,
+                remote__: BusName<'static>,
+                disconnect_watcher__: Arc<Mutex<DisconnectWatcher>>,
             ) -> Result<Box<dyn #trait_ + Send>, Box<dyn Error>> {
-                Ok(Box::new(#struct_ident { conn, remote, objpath, disconnect_watcher }))
+                Ok(Box::new(#struct_ident {
+                    conn: conn__,
+                    remote: remote__,
+                    objpath: objpath__,
+                    disconnect_watcher: disconnect_watcher__,
+                }))
             }
 
             fn to_dbus(_data: Box<dyn #trait_ + Send>) -> Result<Path<'static>, Box<dyn Error>> {
@@ -568,6 +573,7 @@ pub fn generate_dbus_arg(_item: TokenStream) -> TokenStream {
 
         // Types that implement dbus::arg::Append do not need any conversion.
         pub(crate) trait DirectDBus {}
+        impl DirectDBus for bool {}
         impl DirectDBus for i32 {}
         impl DirectDBus for u32 {}
         impl DirectDBus for String {}
