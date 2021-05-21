@@ -56,20 +56,25 @@ pub async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 }
             },
         );
-        b.method_with_cr_async("Stop", ("hci_interface",), (), |mut ctx, cr, (hci_interface,) : (i32,)| {
-            let proxy =
-                cr.data_mut::<state_machine::StateMachineProxy>(ctx.path()).unwrap().clone();
-            println!("Incoming Stop call!");
-            async move {
-                let result = proxy.stop_bluetooth(hci_interface).await;
-                match result {
-                    Ok(()) => ctx.reply(Ok(())),
-                    Err(_) => {
-                        ctx.reply(Err(dbus_crossroads::MethodErr::failed("cannot stop Bluetooth")))
+        b.method_with_cr_async(
+            "Stop",
+            ("hci_interface",),
+            (),
+            |mut ctx, cr, (hci_interface,): (i32,)| {
+                let proxy =
+                    cr.data_mut::<state_machine::StateMachineProxy>(ctx.path()).unwrap().clone();
+                println!("Incoming Stop call!");
+                async move {
+                    let result = proxy.stop_bluetooth(hci_interface).await;
+                    match result {
+                        Ok(()) => ctx.reply(Ok(())),
+                        Err(_) => ctx.reply(Err(dbus_crossroads::MethodErr::failed(
+                            "cannot stop Bluetooth",
+                        ))),
                     }
                 }
-            }
-        });
+            },
+        );
         b.method_with_cr_async("GetState", (), ("result",), |mut ctx, cr, ()| {
             let proxy =
                 cr.data_mut::<state_machine::StateMachineProxy>(ctx.path()).unwrap().clone();
@@ -141,7 +146,7 @@ pub async fn main() -> Result<(), Box<dyn std::error::Error>> {
         state_machine::mainloop(context).await;
     });
 
-    loop {}
+    std::future::pending::<()>().await;
 
     // Run forever.
     unreachable!()
