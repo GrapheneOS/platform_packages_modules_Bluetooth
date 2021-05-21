@@ -159,13 +159,13 @@ class BleScannerInterfaceImpl : public BleScannerInterface,
   }
 
   /** Sets the LE scan interval and window in units of N*0.625 msec */
-  void SetScanParameters(int scan_interval, int scan_window, Callback cb) {
+  void SetScanParameters(int scanner_id, int scan_interval, int scan_window,
+                         Callback cb) {
     LOG(INFO) << __func__ << " in shim layer";
     // use active scan
     auto scan_type = static_cast<bluetooth::hci::LeScanType>(0x01);
-    bluetooth::shim::GetScanning()->SetScanParameters(scan_type, scan_interval,
-                                                      scan_window);
-    do_in_jni_thread(FROM_HERE, base::Bind(cb, 0));
+    bluetooth::shim::GetScanning()->SetScanParameters(
+        scanner_id, scan_type, scan_interval, scan_window);
   }
 
   /* Configure the batchscan storage */
@@ -235,6 +235,14 @@ class BleScannerInterfaceImpl : public BleScannerInterface,
                      base::Bind(&ScanningCallbacks::OnScannerRegistered,
                                 base::Unretained(scanning_callbacks_), uuid,
                                 scanner_id, status));
+  }
+
+  void OnSetScannerParameterComplete(bluetooth::hci::ScannerId scanner_id,
+                                     ScanningStatus status) {
+    do_in_jni_thread(
+        FROM_HERE,
+        base::Bind(&ScanningCallbacks::OnSetScannerParameterComplete,
+                   base::Unretained(scanning_callbacks_), scanner_id, status));
   }
 
   void OnScanResult(uint16_t event_type, uint8_t address_type,
