@@ -25,6 +25,7 @@
 #include <base/observer_list.h>
 
 #include "abstract_observer_list.h"
+#include "notreached.h"
 #include "service/a2dp_sink.h"
 #include "service/a2dp_source.h"
 #include "service/avrcp_control.h"
