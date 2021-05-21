@@ -878,6 +878,13 @@ class JniScanningCallbacks : ScanningCallbacks {
                                  status, scannerId, UUID_PARAMS(app_uuid));
   }
 
+  void OnSetScannerParameterComplete(uint8_t scannerId, uint8_t status) {
+    CallbackEnv sCallbackEnv(__func__);
+    if (!sCallbackEnv.valid()) return;
+    sCallbackEnv->CallVoidMethod(
+        mCallbacksObj, method_onScanParamSetupCompleted, status, scannerId);
+  }
+
   void OnScanResult(uint16_t event_type, uint8_t addr_type, RawAddress bda,
                     uint8_t primary_phy, uint8_t secondary_phy,
                     uint8_t advertising_sid, int8_t tx_power, int8_t rssi,
@@ -1371,7 +1378,7 @@ static void gattSetScanParametersNative(JNIEnv* env, jobject object,
                                         jint scan_window_unit) {
   if (!sGattIf) return;
   sGattIf->scanner->SetScanParameters(
-      scan_interval_unit, scan_window_unit,
+      client_if, scan_interval_unit, scan_window_unit,
       base::Bind(&set_scan_params_cmpl_cb, client_if));
 }
 
