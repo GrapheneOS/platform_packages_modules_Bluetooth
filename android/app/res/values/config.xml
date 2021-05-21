@@ -130,6 +130,6 @@
             - HAL interface layer
             - Other required GD components like config storage
      -->
-    <bool name="enable_gd_up_to_scanning_layer">false</bool>
+    <bool name="enable_gd_up_to_scanning_layer">true</bool>
 
 </resources>
