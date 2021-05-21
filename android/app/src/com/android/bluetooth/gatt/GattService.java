@@ -74,7 +74,6 @@ import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.ProfileService;
 import com.android.bluetooth.util.NumberUtils;
 import com.android.internal.annotations.VisibleForTesting;
-import com.android.internal.os.BackgroundThread;
 import com.android.internal.util.HexDump;
 
 import java.util.ArrayDeque;
@@ -217,6 +216,7 @@ public class GattService extends ProfileService {
     private ICompanionDeviceManager mCompanionManager;
     private String mExposureNotificationPackage;
     private Handler mTestModeHandler;
+    private final Object mTestModeLock = new Object();
 
     /**
      */
@@ -319,29 +319,36 @@ public class GattService extends ProfileService {
         }
     }
 
+    // While test mode is enabled, pretend as if the underlying stack
+    // discovered a specific set of well-known beacons every second
     @Override
-    protected void setTestModeEnabled(boolean testModeEnabled) {
-        super.setTestModeEnabled(testModeEnabled);
-
-        // While test mode is enabled, pretend as if the underlying stack
-        // discovered a specific set of well-known beacons every second
-        if (testModeEnabled) {
-            mTestModeHandler = new Handler(BackgroundThread.get().getLooper()) {
-                public void handleMessage(Message msg) {
-                    for (String test : TEST_MODE_BEACONS) {
-                        onScanResultInternal(0x1b, 0x1, "DD:34:02:05:5C:4D", 1, 0, 0xff, 127, -54,
-                                0x0, HexDump.hexStringToByteArray(test));
+    protected void setTestModeEnabled(boolean enableTestMode) {
+        synchronized (mTestModeLock) {
+            if (mTestModeHandler == null) {
+                mTestModeHandler = new Handler(getMainLooper()) {
+                    public void handleMessage(Message msg) {
+                        synchronized (mTestModeLock) {
+                            if (!GattService.this.isTestModeEnabled()) {
+                                return;
+                            }
+                            for (String test : TEST_MODE_BEACONS) {
+                                onScanResultInternal(0x1b, 0x1, "DD:34:02:05:5C:4D", 1, 0, 0xff,
+                                        127, -54, 0x0, HexDump.hexStringToByteArray(test));
+                            }
+                            sendEmptyMessageDelayed(0, DateUtils.SECOND_IN_MILLIS);
+                        }
                     }
-
-                    final Handler handler = mTestModeHandler;
-                    if (handler != null) {
-                        handler.sendEmptyMessageDelayed(0, DateUtils.SECOND_IN_MILLIS);
-                    }
-                }
-            };
-            mTestModeHandler.sendEmptyMessageDelayed(0, DateUtils.SECOND_IN_MILLIS);
-        } else {
-            mTestModeHandler = null;
+                };
+            }
+            if (enableTestMode && !isTestModeEnabled()) {
+                super.setTestModeEnabled(true);
+                mTestModeHandler.removeMessages(0);
+                mTestModeHandler.sendEmptyMessageDelayed(0, DateUtils.SECOND_IN_MILLIS);
+            } else if (!enableTestMode && isTestModeEnabled()) {
+                super.setTestModeEnabled(false);
+                mTestModeHandler.removeMessages(0);
+                mTestModeHandler.sendEmptyMessage(0);
+            }
         }
     }
 
