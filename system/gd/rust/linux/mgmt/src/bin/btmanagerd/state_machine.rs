@@ -1,11 +1,12 @@
 use bt_common::time::Alarm;
-use std::collections::VecDeque;
+use nix::sys::signal::{self, Signal};
+use nix::unistd::Pid;
 use std::process::{Child, Command, Stdio};
 use std::sync::Arc;
 use std::time::Duration;
 use tokio::io::unix::AsyncFd;
-use tokio::sync::{mpsc, Mutex};
 use tokio::sync::mpsc::error::SendError;
+use tokio::sync::{mpsc, Mutex};
 
 #[derive(Debug, PartialEq, Copy, Clone)]
 pub enum State {
@@ -19,7 +20,7 @@ pub enum State {
 pub enum StateMachineActions {
     StartBluetooth(i32),
     StopBluetooth(i32),
-    BluetoothStarted(i32, i32),  // PID and HCI
+    BluetoothStarted(i32, i32), // PID and HCI
     BluetoothStopped(),
 }
 
@@ -66,7 +67,10 @@ impl StateMachineProxy {
         self.tx.send(StateMachineActions::StartBluetooth(hci_interface)).await
     }
 
-    pub async fn stop_bluetooth(&self, hci_interface: i32,) -> Result<(), SendError<StateMachineActions>> {
+    pub async fn stop_bluetooth(
+        &self,
+        hci_interface: i32,
+    ) -> Result<(), SendError<StateMachineActions>> {
         self.tx.send(StateMachineActions::StopBluetooth(hci_interface)).await
     }
 
@@ -103,8 +107,6 @@ where
         .add_watch("/var/run", inotify::WatchMask::CREATE | inotify::WatchMask::DELETE)
         .expect("failed to add watch");
     let mut pid_async_fd = AsyncFd::new(pid_detector).expect("failed to add async fd");
-    // let mut async_fd = pid_async_fd.readable_mut();
-    // tokio::pin!(async_fd);
     let command_timeout_duration = Duration::from_secs(2);
     loop {
         tokio::select! {
@@ -155,9 +157,10 @@ where
                 match fd_ready.try_io(|inner| inner.get_mut().read_events(&mut buffer)) {
                     Ok(Ok(events)) => {
                         for event in events {
-                            match event.mask {
-                                inotify::EventMask::CREATE => {
-                                    if event.name == Some(std::ffi::OsStr::new("bluetooth.pid")) {
+                            match (event.mask, event.name) {
+                                (inotify::EventMask::CREATE, Some(oss)) => {
+                                    let file_name = oss.to_str().unwrap_or("invalid_file");
+                                    if file_name.contains("/var/run/bluetooth.pid") {
                                         let read_result = tokio::fs::read("/var/run/bluetooth.pid").await;
                                         match read_result {
                                             Ok(v) => {
@@ -171,15 +174,16 @@ where
                                                     Some(s) => s.parse::<i32>().unwrap(),
                                                     None => 0
                                                 };
-                                                context.tx.send(StateMachineActions::BluetoothStarted(pid, hci)).await;
+                                                let _ = context.tx.send(StateMachineActions::BluetoothStarted(pid, hci)).await;
                                             },
                                             Err(e) => println!("{}", e)
                                         }
                                     }
                                 },
-                                inotify::EventMask::DELETE => {
-                                    if event.name == Some(std::ffi::OsStr::new("bluetooth.pid")) {
-                                        context.tx.send(StateMachineActions::BluetoothStopped()).await;
+                                (inotify::EventMask::DELETE, Some(oss)) => {
+                                    let file_name = oss.to_str().unwrap_or("invalid_file");
+                                    if file_name.contains("bluetooth.pid") {
+                                        let _ = context.tx.send(StateMachineActions::BluetoothStopped()).await;
                                       }
                                   },
                                 _ => println!("Ignored event {:?}", event.mask)
@@ -202,29 +206,29 @@ pub trait ProcessManager {
 
 pub struct NativeSubprocess {
     process_container: Option<Child>,
+    bluetooth_pid: u32,
 }
 
 impl NativeSubprocess {
     pub fn new() -> NativeSubprocess {
-        NativeSubprocess { process_container: None }
+        NativeSubprocess { process_container: None, bluetooth_pid: 0 }
     }
 }
 
 impl ProcessManager for NativeSubprocess {
     fn start(&mut self, hci_interface: String) {
-        self.process_container = Some(
-            Command::new("/usr/bin/touch")
-                .arg("/var/run/bluetooth.pid")
-                .stdout(Stdio::piped())
-                .spawn()
-                .expect("cannot open"),
-        );
+        let new_process = Command::new("/usr/bin/bluetoothd")
+            .arg(format!("HCI={}", hci_interface))
+            .stdout(Stdio::piped())
+            .spawn()
+            .expect("cannot open");
+        self.bluetooth_pid = new_process.id();
+        self.process_container = Some(new_process);
     }
-    fn stop(&mut self, hci_interface: String) {
+    fn stop(&mut self, _hci_interface: String) {
         match self.process_container {
-            Some(ref mut p) => {
-                // TODO: Maybe just SIGINT first, not kill
-                p.kill();
+            Some(ref mut _p) => {
+                signal::kill(Pid::from_raw(self.bluetooth_pid as i32), Signal::SIGTERM).unwrap();
                 self.process_container = None;
             }
             None => {
@@ -234,9 +238,7 @@ impl ProcessManager for NativeSubprocess {
     }
 }
 
-pub struct UpstartInvoker {
-    // Upstart version not implemented
-}
+pub struct UpstartInvoker {}
 
 impl UpstartInvoker {
     pub fn new() -> UpstartInvoker {
@@ -282,7 +284,6 @@ impl ManagerStateMachine<NativeSubprocess> {
 enum StateMachineTimeoutActions {
     RetryStart,
     RetryStop,
-    Killed,
     Noop,
 }
 
@@ -302,7 +303,7 @@ where
 
     /// Returns true if we are starting bluetooth process.
     pub fn action_start_bluetooth(&mut self, hci_interface: i32) -> bool {
-        let mut state = self.state.try_lock().unwrap();  // TODO hsz: fix me
+        let mut state = self.state.try_lock().unwrap();
         match *state {
             State::Off => {
                 *state = State::TurningOn;
@@ -318,11 +319,14 @@ where
     /// Returns true if we are stopping bluetooth process.
     pub fn action_stop_bluetooth(&mut self, hci_interface: i32) -> bool {
         if self.hci_interface != hci_interface {
-            println!("We are running hci{} but attempting to stop hci{}", self.hci_interface, hci_interface);
-            return false
+            println!(
+                "We are running hci{} but attempting to stop hci{}",
+                self.hci_interface, hci_interface
+            );
+            return false;
         }
 
-        let mut state = self.state.try_lock().unwrap();  // TODO hsz: fix me
+        let mut state = self.state.try_lock().unwrap();
         match *state {
             State::On | State::TurningOn => {
                 *state = State::TurningOff;
@@ -336,9 +340,12 @@ where
 
     /// Returns true if the event is expected.
     pub fn action_on_bluetooth_started(&mut self, pid: i32, hci_interface: i32) -> bool {
-        let mut state = self.state.try_lock().unwrap();  // TODO hsz: fix me
+        let mut state = self.state.try_lock().unwrap();
         if self.hci_interface != hci_interface {
-            println!("We should start hci{} but hci{} is started; capturing that process", self.hci_interface, hci_interface);
+            println!(
+                "We should start hci{} but hci{} is started; capturing that process",
+                self.hci_interface, hci_interface
+            );
             self.hci_interface = hci_interface;
         }
         if *state != State::TurningOn {
@@ -354,7 +361,7 @@ where
     /// start the timer for restart timeout
     pub fn action_on_bluetooth_stopped(&mut self) -> bool {
         // Need to check if file exists
-        let mut state = self.state.try_lock().unwrap();  // TODO hsz: fix me
+        let mut state = self.state.try_lock().unwrap();
 
         match *state {
             State::TurningOff => {
@@ -377,7 +384,7 @@ where
     /// Triggered on Bluetooth start/stop timeout.  Return the actions that the
     /// state machine has taken, for the external context to reset the timer.
     pub fn action_on_command_timeout(&mut self) -> StateMachineTimeoutActions {
-        let mut state = self.state.try_lock().unwrap();  // TODO hsz: fix me
+        let mut state = self.state.try_lock().unwrap();
         match *state {
             State::TurningOn => {
                 println!("Restarting bluetooth");
@@ -390,8 +397,6 @@ where
 
                 *state = State::Off;
                 StateMachineTimeoutActions::RetryStop
-                // kill bluetooth
-                // tx.try_send(StateMachineActions::StopBluetooth());
             }
             _ => panic!("Unexpected timeout on {:?}", *state),
         }
@@ -401,6 +406,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::collections::VecDeque;
 
     #[derive(Debug, PartialEq)]
     enum ExecutedCommand {
@@ -427,12 +433,12 @@ mod tests {
     }
 
     impl ProcessManager for MockProcessManager {
-        fn start(&mut self, hci_interface: String) {
+        fn start(&mut self, _: String) {
             let start = self.last_command.pop_front().expect("Should expect start event");
             assert_eq!(start, ExecutedCommand::Start);
         }
 
-        fn stop(&mut self, hci_interface: String) {
+        fn stop(&mut self, _: String) {
             let stop = self.last_command.pop_front().expect("Should expect stop event");
             assert_eq!(stop, ExecutedCommand::Stop);
         }
