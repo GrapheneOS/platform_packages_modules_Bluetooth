@@ -16,6 +16,7 @@
 
 #pragma once
 
+#include <functional>
 #include <unordered_map>
 #include "types/raw_address.h"
 
