@@ -78,7 +78,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -3281,12 +3280,14 @@ public class GattService extends ProfileService {
         if (DBG) {
             Log.d(TAG, "enforcePrivilegedPermissionIfNeeded(" + filters + ")");
         }
-        Objects.requireNonNull(filters, "'filters' must not be null!");
-        for (ScanFilter filter : filters) {
-            if (filter.getDeviceAddress() != null && filter.getAddressType()
-                    == BluetoothDevice.ADDRESS_TYPE_PUBLIC && filter.getIrk() == null) {
-            } else {
-                enforcePrivilegedPermission();
+        // Some 3p API cases may have null filters, need to allow
+        if (filters != null) {
+            for (ScanFilter filter : filters) {
+                if (filter.getDeviceAddress() != null && filter.getAddressType()
+                        == BluetoothDevice.ADDRESS_TYPE_PUBLIC && filter.getIrk() == null) {
+                } else {
+                    enforcePrivilegedPermission();
+                }
             }
         }
     }
