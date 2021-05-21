@@ -49,11 +49,13 @@ class ScanningCallback {
     SUCCESS,
     NO_RESOURCES = 0x80,
     INTERNAL_ERROR = 0x85,
+    ILLEGAL_PARAMETER = 0x87,
   };
 
   virtual ~ScanningCallback() = default;
   virtual void OnScannerRegistered(
       const bluetooth::hci::Uuid app_uuid, ScannerId scanner_id, ScanningStatus status) = 0;
+  virtual void OnSetScannerParameterComplete(ScannerId scanner_id, ScanningStatus status) = 0;
   virtual void OnScanResult(
       uint16_t event_type,
       uint8_t address_type,
@@ -126,7 +128,7 @@ class LeScanningManager : public bluetooth::Module {
 
   void Scan(bool start);
 
-  void SetScanParameters(LeScanType scan_type, uint16_t scan_interval, uint16_t scan_window);
+  void SetScanParameters(ScannerId scanner_id, LeScanType scan_type, uint16_t scan_interval, uint16_t scan_window);
 
   /* Scan filter */
   void ScanFilterEnable(bool enable);

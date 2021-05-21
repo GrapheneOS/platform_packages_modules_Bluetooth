@@ -137,6 +137,9 @@ class NullScanningCallback : public ScanningCallback {
   void OnScannerRegistered(const bluetooth::hci::Uuid app_uuid, ScannerId scanner_id, ScanningStatus status) {
     LOG_INFO("OnScannerRegistered in NullScanningCallback");
   }
+  void OnSetScannerParameterComplete(ScannerId scanner_id, ScanningStatus status) {
+    LOG_INFO("OnSetScannerParameterComplete in NullScanningCallback");
+  }
   void OnScanResult(
       uint16_t event_type,
       uint8_t address_type,
@@ -486,22 +489,23 @@ struct LeScanningManager::impl : public bluetooth::hci::LeAddressManagerCallback
 
     switch (api_type_) {
       case ScanApiType::EXTENDED:
-        le_scanning_interface_->EnqueueCommand(hci::LeSetExtendedScanParametersBuilder::Create(
-                                                   own_address_type_, filter_policy_, phys_in_use, parameter_vector),
-                                               module_handler_->BindOnce(impl::check_status));
+        le_scanning_interface_->EnqueueCommand(
+            hci::LeSetExtendedScanParametersBuilder::Create(
+                own_address_type_, filter_policy_, phys_in_use, parameter_vector),
+            module_handler_->BindOnceOn(this, &impl::on_set_scan_parameter_complete));
         break;
       case ScanApiType::ANDROID_HCI:
         le_scanning_interface_->EnqueueCommand(
-            hci::LeExtendedScanParamsBuilder::Create(LeScanType::ACTIVE, interval_ms_, window_ms_, own_address_type_,
-                                                     filter_policy_),
-            module_handler_->BindOnce(impl::check_status));
+            hci::LeExtendedScanParamsBuilder::Create(
+                LeScanType::ACTIVE, interval_ms_, window_ms_, own_address_type_, filter_policy_),
+            module_handler_->BindOnceOn(this, &impl::on_set_scan_parameter_complete));
 
         break;
       case ScanApiType::LEGACY:
         le_scanning_interface_->EnqueueCommand(
-            hci::LeSetScanParametersBuilder::Create(LeScanType::ACTIVE, interval_ms_, window_ms_, own_address_type_,
-                                                    filter_policy_),
-            module_handler_->BindOnce(impl::check_status));
+            hci::LeSetScanParametersBuilder::Create(
+                LeScanType::ACTIVE, interval_ms_, window_ms_, own_address_type_, filter_policy_),
+            module_handler_->BindOnceOn(this, &impl::on_set_scan_parameter_complete));
         break;
     }
   }
@@ -603,7 +607,7 @@ struct LeScanningManager::impl : public bluetooth::hci::LeAddressManagerCallback
     }
   }
 
-  void set_scan_parameters(LeScanType scan_type, uint16_t scan_interval, uint16_t scan_window) {
+  void set_scan_parameters(ScannerId scanner_id, LeScanType scan_type, uint16_t scan_interval, uint16_t scan_window) {
     uint32_t max_scan_interval = kLeScanIntervalMax;
     uint32_t max_scan_window = kLeScanWindowMax;
     if (api_type_ == ScanApiType::EXTENDED) {
@@ -613,19 +617,26 @@ struct LeScanningManager::impl : public bluetooth::hci::LeAddressManagerCallback
 
     if (scan_type != LeScanType::ACTIVE && scan_type != LeScanType::PASSIVE) {
       LOG_ERROR("Invalid scan type");
+      scanning_callbacks_->OnSetScannerParameterComplete(
+          scanner_id, ScanningCallback::ScanningStatus::ILLEGAL_PARAMETER);
       return;
     }
     if (scan_interval > max_scan_interval || scan_interval < kLeScanIntervalMin) {
       LOG_ERROR("Invalid scan_interval %d", scan_interval);
+      scanning_callbacks_->OnSetScannerParameterComplete(
+          scanner_id, ScanningCallback::ScanningStatus::ILLEGAL_PARAMETER);
       return;
     }
     if (scan_window > max_scan_window || scan_window < kLeScanWindowMin) {
       LOG_ERROR("Invalid scan_window %d", scan_window);
+      scanning_callbacks_->OnSetScannerParameterComplete(
+          scanner_id, ScanningCallback::ScanningStatus::ILLEGAL_PARAMETER);
       return;
     }
     le_scan_type_ = scan_type;
     interval_ms_ = scan_interval;
     window_ms_ = scan_window;
+    scanning_callbacks_->OnSetScannerParameterComplete(scanner_id, ScanningCallback::SUCCESS);
   }
 
   void scan_filter_enable(bool enable) {
@@ -1005,6 +1016,39 @@ struct LeScanningManager::impl : public bluetooth::hci::LeAddressManagerCallback
     scanning_callbacks_ = scanning_callbacks;
   }
 
+  void on_set_scan_parameter_complete(CommandCompleteView view) {
+    switch (view.GetCommandOpCode()) {
+      case (OpCode::LE_SET_SCAN_PARAMETERS): {
+        auto status_view = LeSetScanParametersCompleteView::Create(view);
+        ASSERT(status_view.IsValid());
+        if (status_view.GetStatus() != ErrorCode::SUCCESS) {
+          LOG_INFO(
+              "Receive set scan parameter complete with error code %s", ErrorCodeText(status_view.GetStatus()).c_str());
+        }
+      } break;
+      case (OpCode::LE_EXTENDED_SCAN_PARAMS): {
+        auto status_view = LeExtendedScanParamsCompleteView::Create(view);
+        ASSERT(status_view.IsValid());
+        if (status_view.GetStatus() != ErrorCode::SUCCESS) {
+          LOG_INFO(
+              "Receive extended scan parameter complete with error code %s",
+              ErrorCodeText(status_view.GetStatus()).c_str());
+        }
+      } break;
+      case (OpCode::LE_SET_EXTENDED_SCAN_PARAMETERS): {
+        auto status_view = LeSetExtendedScanParametersCompleteView::Create(view);
+        ASSERT(status_view.IsValid());
+        if (status_view.GetStatus() != ErrorCode::SUCCESS) {
+          LOG_INFO(
+              "Receive set extended scan parameter complete with error code %s",
+              ErrorCodeText(status_view.GetStatus()).c_str());
+        }
+      } break;
+      default:
+        LOG_ALWAYS_FATAL("Unhandled event %s", OpCodeText(view.GetCommandOpCode()).c_str());
+    }
+  }
+
   void on_advertising_filter_complete(CommandCompleteView view) {
     ASSERT(view.IsValid());
     auto status_view = LeAdvFilterCompleteView::Create(view);
@@ -1243,27 +1287,18 @@ struct LeScanningManager::impl : public bluetooth::hci::LeAddressManagerCallback
       case (OpCode::LE_SET_SCAN_ENABLE): {
         auto status_view = LeSetScanEnableCompleteView::Create(view);
         ASSERT(status_view.IsValid());
-        ASSERT(status_view.GetStatus() == ErrorCode::SUCCESS);
+        ASSERT_LOG(
+            status_view.GetStatus() == ErrorCode::SUCCESS,
+            "Receive set scan enable with error code %s",
+            ErrorCodeText(status_view.GetStatus()).c_str());
       } break;
       case (OpCode::LE_SET_EXTENDED_SCAN_ENABLE): {
         auto status_view = LeSetExtendedScanEnableCompleteView::Create(view);
         ASSERT(status_view.IsValid());
-        ASSERT(status_view.GetStatus() == ErrorCode::SUCCESS);
-      } break;
-      case (OpCode::LE_SET_SCAN_PARAMETERS): {
-        auto status_view = LeSetScanParametersCompleteView::Create(view);
-        ASSERT(status_view.IsValid());
-        ASSERT(status_view.GetStatus() == ErrorCode::SUCCESS);
-      } break;
-      case (OpCode::LE_EXTENDED_SCAN_PARAMS): {
-        auto status_view = LeExtendedScanParamsCompleteView::Create(view);
-        ASSERT(status_view.IsValid());
-        ASSERT(status_view.GetStatus() == ErrorCode::SUCCESS);
-      } break;
-      case (OpCode::LE_SET_EXTENDED_SCAN_PARAMETERS): {
-        auto status_view = LeSetExtendedScanParametersCompleteView::Create(view);
-        ASSERT(status_view.IsValid());
-        ASSERT(status_view.GetStatus() == ErrorCode::SUCCESS);
+        ASSERT_LOG(
+            status_view.GetStatus() == ErrorCode::SUCCESS,
+            "Receive set extended scan enable with error code %s",
+            ErrorCodeText(status_view.GetStatus()).c_str());
       } break;
       default:
         LOG_ALWAYS_FATAL("Unhandled event %s", OpCodeText(view.GetCommandOpCode()).c_str());
@@ -1312,8 +1347,9 @@ void LeScanningManager::Scan(bool start) {
   CallOn(pimpl_.get(), &impl::scan, start);
 }
 
-void LeScanningManager::SetScanParameters(LeScanType scan_type, uint16_t scan_interval, uint16_t scan_window) {
-  CallOn(pimpl_.get(), &impl::set_scan_parameters, scan_type, scan_interval, scan_window);
+void LeScanningManager::SetScanParameters(
+    ScannerId scanner_id, LeScanType scan_type, uint16_t scan_interval, uint16_t scan_window) {
+  CallOn(pimpl_.get(), &impl::set_scan_parameters, scanner_id, scan_type, scan_interval, scan_window);
 }
 
 void LeScanningManager::ScanFilterEnable(bool enable) {

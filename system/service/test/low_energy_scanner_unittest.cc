@@ -52,8 +52,8 @@ class MockScannerHandler : public BleScannerInterface {
                     FilterParamSetupCallback cb));
   MOCK_METHOD2(ScanFilterClear, void(int filt_index, FilterConfigCallback cb));
   MOCK_METHOD2(ScanFilterEnable, void(bool enable, EnableCallback cb));
-  MOCK_METHOD3(SetScanParameters,
-               void(int scan_interval, int scan_window, Callback cb));
+  MOCK_METHOD4(SetScanParameters, void(int scanner_id, int scan_interval,
+                                       int scan_window, Callback cb));
 
   MOCK_METHOD5(BatchscanConfigStorage,
                void(int client_if, int batch_scan_full_max,
