@@ -86,6 +86,7 @@ flatbuffer("BluetoothGeneratedDumpsysDataSchema_h") {
     "dumpsys_data.fbs",
     "hci/hci_acl_manager.fbs",
     "l2cap/classic/l2cap_classic_module.fbs",
+    "os/wakelock_manager.fbs",
     "shim/dumpsys.fbs",
   ]
 }
@@ -97,6 +98,7 @@ bt_flatc_binary_schema("BluetoothGeneratedDumpsysBinarySchema_bfbs") {
     "dumpsys_data.fbs",
     "hci/hci_acl_manager.fbs",
     "l2cap/classic/l2cap_classic_module.fbs",
+    "os/wakelock_manager.fbs",
     "shim/dumpsys.fbs",
   ]
 
