@@ -107,7 +107,7 @@ pub enum HHCallbacks {
 }
 
 pub struct HHCallbacksDispatcher {
-    dispatch: Box<Fn(HHCallbacks) + Send>,
+    dispatch: Box<dyn Fn(HHCallbacks) + Send>,
 }
 
 type HHCb = Arc<Mutex<HHCallbacksDispatcher>>;
