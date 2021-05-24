@@ -10,8 +10,6 @@ use std::sync::{Arc, Mutex};
 use std::vec::Vec;
 use topshim_macros::cb_variant;
 
-use crate::profiles::hid_host::HidHost;
-
 #[derive(Debug, FromPrimitive, ToPrimitive, PartialEq, PartialOrd)]
 #[repr(u32)]
 pub enum BtState {
@@ -242,7 +240,7 @@ pub enum SupportedProfiles {
 impl From<SupportedProfiles> for Vec<u8> {
     fn from(item: SupportedProfiles) -> Self {
         match item {
-            HidHost => "hidhost".bytes().collect::<Vec<u8>>(),
+            SupportedProfiles::HidHost => "hidhost".bytes().collect::<Vec<u8>>(),
         }
     }
 }
