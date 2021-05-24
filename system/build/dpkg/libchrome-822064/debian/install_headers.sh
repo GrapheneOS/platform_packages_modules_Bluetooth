@@ -17,6 +17,7 @@ header_dirs=(
     base/numerics
     base/posix
     base/process
+    base/ranges
     base/strings
     base/synchronization
     base/system
@@ -39,6 +40,7 @@ header_dirs=(
     testing/gmock/include/gmock
     testing/gtest/include/gtest
     dbus
+    third_party/abseil-cpp/absl/types
   )
 
 # Install header files.
