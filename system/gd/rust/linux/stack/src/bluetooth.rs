@@ -5,13 +5,8 @@ use bt_topshim::btif::{
 };
 use bt_topshim::topstack;
 
-use btif_macros::btif_callbacks_generator;
-use btif_macros::stack_message;
-
 use num_traits::cast::ToPrimitive;
-use num_traits::FromPrimitive;
 
-use std::fmt::Debug;
 use std::sync::Arc;
 use std::sync::Mutex;
 
@@ -99,7 +94,7 @@ pub fn get_bt_dispatcher(tx: Sender<Message>) -> BaseCallbacksDispatcher {
         dispatch: Box::new(move |cb| {
             let txl = tx.clone();
             topstack::get_runtime().spawn(async move {
-                txl.send(Message::Base(cb)).await;
+                let _ = txl.send(Message::Base(cb)).await;
             });
         }),
     }
