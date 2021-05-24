@@ -161,6 +161,15 @@ int A2dpIntf::config_codec(RustRawAddress bt_addr, ::rust::Vec<A2dpCodecConfig> 
 void A2dpIntf::cleanup() {
   // TODO: Implement.
 }
+bool A2dpIntf::start_audio_request() {
+  return bluetooth::audio::a2dp::StartRequest();
+}
+bool A2dpIntf::stop_audio_request() {
+  return bluetooth::audio::a2dp::StopRequest();
+}
+bluetooth::audio::a2dp::PresentationPosition A2dpIntf::get_presentation_position() {
+  return bluetooth::audio::a2dp::GetPresentationPosition();
+}
 
 }  // namespace rust
 }  // namespace topshim
