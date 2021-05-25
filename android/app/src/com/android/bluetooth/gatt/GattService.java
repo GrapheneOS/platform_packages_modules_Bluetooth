@@ -19,6 +19,7 @@ package com.android.bluetooth.gatt;
 import static android.content.pm.PackageManager.PERMISSION_GRANTED;
 
 import android.annotation.Nullable;
+import android.annotation.SuppressLint;
 import android.app.AppOpsManager;
 import android.app.PendingIntent;
 import android.app.Service;
