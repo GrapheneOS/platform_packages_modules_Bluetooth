@@ -1,14 +1,33 @@
+mod config_util;
 mod state_machine;
 
 use dbus::channel::MatchingReceiver;
 use dbus::message::MatchRule;
 use dbus_crossroads::Crossroads;
 use dbus_tokio::connection;
+use std::process::Command;
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::Arc;
+
+const BLUEZ_INIT_TARGET: &str = "bluetoothd";
+
+#[derive(Clone)]
+struct ManagerContext {
+    proxy: state_machine::StateMachineProxy,
+    floss_enabled: Arc<AtomicBool>,
+}
 
 #[tokio::main]
 pub async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    // Initialize config util
+    config_util::fix_config_file_format();
+
     let context = state_machine::start_new_state_machine_context();
     let proxy = context.get_proxy();
+    let manager_context = ManagerContext {
+        proxy: proxy,
+        floss_enabled: Arc::new(AtomicBool::new(config_util::is_floss_enabled())),
+    };
 
     // Connect to the D-Bus system bus (this is blocking, unfortunately).
     let (resource, c) = connection::new_system_sync()?;
@@ -42,8 +61,10 @@ pub async fn main() -> Result<(), Box<dyn std::error::Error>> {
             ("hci_interface",),
             (),
             |mut ctx, cr, (hci_interface,): (i32,)| {
-                let proxy =
-                    cr.data_mut::<state_machine::StateMachineProxy>(ctx.path()).unwrap().clone();
+                if !config_util::modify_hci_n_enabled(hci_interface, true) {
+                    println!("Config is not successfully modified");
+                }
+                let proxy = cr.data_mut::<ManagerContext>(ctx.path()).unwrap().proxy.clone();
                 println!("Incoming Start call for hci {}!", hci_interface);
                 async move {
                     let result = proxy.start_bluetooth(hci_interface).await;
@@ -61,9 +82,10 @@ pub async fn main() -> Result<(), Box<dyn std::error::Error>> {
             ("hci_interface",),
             (),
             |mut ctx, cr, (hci_interface,): (i32,)| {
-                let proxy =
-                    cr.data_mut::<state_machine::StateMachineProxy>(ctx.path()).unwrap().clone();
-                println!("Incoming Stop call!");
+                let proxy = cr.data_mut::<ManagerContext>(ctx.path()).unwrap().proxy.clone();
+                if !config_util::modify_hci_n_enabled(hci_interface, false) {
+                    println!("Config is not successfully modified");
+                }
                 async move {
                     let result = proxy.stop_bluetooth(hci_interface).await;
                     match result {
@@ -76,8 +98,7 @@ pub async fn main() -> Result<(), Box<dyn std::error::Error>> {
             },
         );
         b.method_with_cr_async("GetState", (), ("result",), |mut ctx, cr, ()| {
-            let proxy =
-                cr.data_mut::<state_machine::StateMachineProxy>(ctx.path()).unwrap().clone();
+            let proxy = cr.data_mut::<ManagerContext>(ctx.path()).unwrap().proxy.clone();
             async move {
                 let state = proxy.get_state().await;
                 let result = match state {
@@ -94,8 +115,7 @@ pub async fn main() -> Result<(), Box<dyn std::error::Error>> {
             ("object_path",),
             (),
             |mut ctx, cr, (object_path,): (String,)| {
-                let proxy =
-                    cr.data_mut::<state_machine::StateMachineProxy>(ctx.path()).unwrap().clone();
+                let proxy = cr.data_mut::<ManagerContext>(ctx.path()).unwrap().proxy.clone();
                 async move {
                     let result = proxy.register_state_change_observer(object_path.clone()).await;
                     match result {
@@ -113,8 +133,7 @@ pub async fn main() -> Result<(), Box<dyn std::error::Error>> {
             ("object_path",),
             (),
             |mut ctx, cr, (object_path,): (String,)| {
-                let proxy =
-                    cr.data_mut::<state_machine::StateMachineProxy>(ctx.path()).unwrap().clone();
+                let proxy = cr.data_mut::<ManagerContext>(ctx.path()).unwrap().proxy.clone();
                 async move {
                     let result = proxy.unregister_state_change_observer(object_path.clone()).await;
                     match result {
@@ -127,11 +146,53 @@ pub async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 }
             },
         );
+        b.method_with_cr_async("GetFlossEnabled", (), ("result",), |mut ctx, cr, ()| {
+            let enabled = cr
+                .data_mut::<ManagerContext>(ctx.path())
+                .unwrap()
+                .clone()
+                .floss_enabled
+                .load(Ordering::Relaxed);
+
+            async move { ctx.reply(Ok((enabled,))) }
+        });
+        b.method_with_cr_async(
+            "SetFlossEnabled",
+            ("enabled",),
+            (),
+            |mut ctx, cr, (enabled,): (bool,)| {
+                let prev = cr
+                    .data_mut::<ManagerContext>(ctx.path())
+                    .unwrap()
+                    .clone()
+                    .floss_enabled
+                    .swap(enabled, Ordering::Relaxed);
+                config_util::write_floss_enabled(enabled);
+                let proxy = cr.data_mut::<ManagerContext>(ctx.path()).unwrap().proxy.clone();
+
+                async move {
+                    if prev != enabled && enabled {
+                        Command::new("initctl")
+                            .args(&["stop", BLUEZ_INIT_TARGET])
+                            .output()
+                            .expect("failed to stop bluetoothd");
+                        let _ = proxy.start_bluetooth(0).await;
+                    } else if prev != enabled {
+                        let _ = proxy.stop_bluetooth(0).await;
+                        Command::new("initctl")
+                            .args(&["start", BLUEZ_INIT_TARGET])
+                            .output()
+                            .expect("failed to start bluetoothd");
+                    }
+                    ctx.reply(Ok(()))
+                }
+            },
+        );
     });
 
     // Let's add the "/org/chromium/bluetooth/Manager" path, which implements the org.chromium.bluetooth.Manager interface,
     // to the crossroads instance.
-    cr.insert("/org/chromium/bluetooth/Manager", &[iface_token], proxy);
+    cr.insert("/org/chromium/bluetooth/Manager", &[iface_token], manager_context);
 
     // We add the Crossroads instance to the connection so that incoming method calls will be handled.
     c.start_receive(
