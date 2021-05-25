@@ -293,7 +293,7 @@ public class DatabaseManager {
      * {@link BluetoothProfile#PAN}, {@link BluetoothProfile#PBAP},
      * {@link BluetoothProfile#PBAP_CLIENT}, {@link BluetoothProfile#MAP},
      * {@link BluetoothProfile#MAP_CLIENT}, {@link BluetoothProfile#SAP},
-     * {@link BluetoothProfile#HEARING_AID}
+     * {@link BluetoothProfile#HEARING_AID}, {@link BluetoothProfile#LE_AUDIO}
      * @param newConnectionPolicy the connectionPolicy to set; one of
      * {@link BluetoothProfile.CONNECTION_POLICY_UNKNOWN},
      * {@link BluetoothProfile.CONNECTION_POLICY_FORBIDDEN},
@@ -349,7 +349,7 @@ public class DatabaseManager {
      * {@link BluetoothProfile#PAN}, {@link BluetoothProfile#PBAP},
      * {@link BluetoothProfile#PBAP_CLIENT}, {@link BluetoothProfile#MAP},
      * {@link BluetoothProfile#MAP_CLIENT}, {@link BluetoothProfile#SAP},
-     * {@link BluetoothProfile#HEARING_AID}
+     * {@link BluetoothProfile#HEARING_AID}, {@link BluetoothProfile#LE_AUDIO}
      * @return the profile connection policy of the device; one of
      * {@link BluetoothProfile.CONNECTION_POLICY_UNKNOWN},
      * {@link BluetoothProfile.CONNECTION_POLICY_FORBIDDEN},
