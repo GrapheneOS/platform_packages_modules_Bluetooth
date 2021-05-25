@@ -7,6 +7,8 @@ use bt_topshim::btif::{
 use bt_topshim::profiles::hid_host::{HHCallbacksDispatcher, HidHost};
 use bt_topshim::topstack;
 
+use btif_macros::{btif_callback, btif_callbacks_dispatcher};
+
 use num_traits::cast::ToPrimitive;
 
 use std::sync::Arc;
@@ -148,41 +150,14 @@ impl Bluetooth {
     pub(crate) fn callback_disconnected(&mut self, id: u32) {
         self.callbacks.retain(|x| x.0 != id);
     }
-
-    pub(crate) fn handle_base_callback(&mut self, cb: BaseCallbacks) {
-        match cb {
-            BaseCallbacks::AdapterState(state) => {
-                self.adapter_state_changed(state);
-            }
-
-            BaseCallbacks::AdapterProperties(status, num_properties, properties) => {
-                self.adapter_properties_changed(status, num_properties, properties);
-            }
-
-            BaseCallbacks::DeviceFound(_n, properties) => {
-                self.device_found(properties);
-            }
-
-            BaseCallbacks::DiscoveryState(state) => {
-                self.discovery_state(state);
-            }
-
-            BaseCallbacks::SspRequest(remote_addr, remote_name, cod, variant, passkey) => {
-                self.ssp_request(remote_addr, remote_name, cod, variant, passkey);
-            }
-
-            BaseCallbacks::BondState(status, addr, bond_state) => {
-                self.bond_state(status, addr, bond_state);
-            }
-
-            _ => println!("Unhandled callback arm {:?}", cb),
-        }
-    }
 }
 
+#[btif_callbacks_dispatcher(Bluetooth, dispatch_base_callbacks, BaseCallbacks)]
 pub(crate) trait BtifBluetoothCallbacks {
+    #[btif_callback(AdapterState)]
     fn adapter_state_changed(&mut self, state: BtState);
 
+    #[btif_callback(AdapterProperties)]
     fn adapter_properties_changed(
         &mut self,
         status: BtStatus,
@@ -190,10 +165,13 @@ pub(crate) trait BtifBluetoothCallbacks {
         properties: Vec<BtProperty>,
     );
 
-    fn device_found(&mut self, properties: Vec<BtProperty>);
+    #[btif_callback(DeviceFound)]
+    fn device_found(&mut self, n: i32, properties: Vec<BtProperty>);
 
+    #[btif_callback(DiscoveryState)]
     fn discovery_state(&mut self, state: BtDiscoveryState);
 
+    #[btif_callback(SspRequest)]
     fn ssp_request(
         &mut self,
         remote_addr: RawAddress,
@@ -203,6 +181,7 @@ pub(crate) trait BtifBluetoothCallbacks {
         passkey: u32,
     );
 
+    #[btif_callback(BondState)]
     fn bond_state(&mut self, status: BtStatus, addr: RawAddress, bond_state: BtBondState);
 }
 
@@ -248,7 +227,7 @@ impl BtifBluetoothCallbacks for Bluetooth {
         }
     }
 
-    fn device_found(&mut self, properties: Vec<BtProperty>) {
+    fn device_found(&mut self, _n: i32, properties: Vec<BtProperty>) {
         self.for_all_callbacks(|callback| {
             callback.on_device_found(BluetoothDevice::from_properties(&properties));
         });

@@ -108,7 +108,7 @@ impl Stack {
 
             match m.unwrap() {
                 Message::Base(b) => {
-                    bluetooth.lock().unwrap().handle_base_callback(b);
+                    bluetooth.lock().unwrap().dispatch_base_callbacks(b);
                 }
 
                 Message::BluetoothCallbackDisconnected(id) => {
