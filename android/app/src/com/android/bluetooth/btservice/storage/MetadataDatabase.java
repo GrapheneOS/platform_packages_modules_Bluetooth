@@ -33,7 +33,7 @@ import java.util.List;
 /**
  * MetadataDatabase is a Room database stores Bluetooth persistence data
  */
-@Database(entities = {Metadata.class}, version = 105)
+@Database(entities = {Metadata.class}, version = 106)
 public abstract class MetadataDatabase extends RoomDatabase {
     /**
      * The metadata database file name
@@ -58,6 +58,7 @@ public abstract class MetadataDatabase extends RoomDatabase {
                 .addMigrations(MIGRATION_102_103)
                 .addMigrations(MIGRATION_103_104)
                 .addMigrations(MIGRATION_104_105)
+                .addMigrations(MIGRATION_105_106)
                 .allowMainThreadQueries()
                 .build();
     }
@@ -325,6 +326,23 @@ public abstract class MetadataDatabase extends RoomDatabase {
                 // Check if user has new schema, but is just missing the version update
                 Cursor cursor = database.query("SELECT * FROM metadata");
                 if (cursor == null || cursor.getColumnIndex("device_type") == -1) {
+                    throw ex;
+                }
+            }
+        }
+    };
+
+    @VisibleForTesting
+    static final Migration MIGRATION_105_106 = new Migration(105, 106) {
+        @Override
+        public void migrate(SupportSQLiteDatabase database) {
+            try {
+                database.execSQL("ALTER TABLE metadata ADD COLUMN `le_audio_connection_policy` "
+                        + "INTEGER DEFAULT 100");
+            } catch (SQLException ex) {
+                // Check if user has new schema, but is just missing the version update
+                Cursor cursor = database.query("SELECT * FROM metadata");
+                if (cursor == null || cursor.getColumnIndex("le_audio_connection_policy") == -1) {
                     throw ex;
                 }
             }
