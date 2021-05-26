@@ -19,7 +19,7 @@ use std::error::Error;
 use std::sync::Arc;
 use std::sync::Mutex;
 
-use crate::dbus_arg::{DBusArg, DBusArgError};
+use crate::dbus_arg::{DBusArg, DBusArgError, RefArgToRust};
 
 #[dbus_propmap(BluetoothDevice)]
 pub struct BluetoothDeviceDBus {

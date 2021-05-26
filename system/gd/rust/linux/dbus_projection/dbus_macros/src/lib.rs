@@ -241,16 +241,6 @@ pub fn dbus_propmap(attr: TokenStream, item: TokenStream) -> TokenStream {
 
         let field_str = field_ident.as_ref().unwrap().clone().to_string();
 
-        let propmap_attr = field.attrs.clone().into_iter().find(|x| {
-            let ident = x.path.get_ident();
-
-            if ident.is_none() {
-                return false;
-            }
-
-            ident.unwrap().to_string().eq("dbus_propmap_field_propmap")
-        });
-
         let field_type_str = if let Type::Path(t) = field.ty {
             t.path.get_ident().unwrap().to_string()
         } else {
@@ -263,60 +253,26 @@ pub fn dbus_propmap(attr: TokenStream, item: TokenStream) -> TokenStream {
             #field_idents #field_ident,
         };
 
-        let make_field = if !propmap_attr.is_none() {
-            quote! {
-                let mut map: dbus::arg::PropMap = std::collections::HashMap::new();
-
-                let mut iter = #field_ident.as_iter().unwrap();
-                let mut iter = iter.next().unwrap().as_iter().unwrap();
-
-                let mut i1 = iter.next();
-                let mut i2 = iter.next();
-                while !i1.is_none() && !i2.is_none() {
-                    let k = i1.unwrap().as_str().unwrap().to_string();
-                    let v = dbus::arg::Variant(i2.unwrap().box_clone());
-                    map.insert(k, v);
-                    i1 = iter.next();
-                    i2 = iter.next();
-                }
-
-                let #field_ident = #field_type_ident::from_dbus(
-                    map,
-                    conn__.clone(),
-                    remote__.clone(),
-                    disconnect_watcher__.clone(),
-                )?;
-            }
-        } else {
-            quote! {
-                match #field_ident.arg_type() {
-                    dbus::arg::ArgType::Variant => {}
-                    _ => {
-                        return Err(Box::new(DBusArgError::new(String::from(format!(
-                            "{}.{} must be a variant",
-                            #struct_str, #field_str
-                        )))));
-                    }
-                };
-                let #field_ident = #field_ident.as_static_inner(0).unwrap();
-                let any = #field_ident.as_any();
-                if !any.is::<<#field_type_ident as DBusArg>::DBusType>() {
+        let make_field = quote! {
+            match #field_ident.arg_type() {
+                dbus::arg::ArgType::Variant => {}
+                _ => {
                     return Err(Box::new(DBusArgError::new(String::from(format!(
-                        "{}.{} type does not match: expected {}, found {}",
-                        #struct_str,
-                        #field_str,
-                        std::any::type_name::<<#field_type_ident as DBusArg>::DBusType>(),
-                        #field_ident.arg_type().as_str(),
+                        "{}.{} must be a variant",
+                        #struct_str, #field_str
                     )))));
                 }
-                let #field_ident = (*any.downcast_ref::<<#field_type_ident as DBusArg>::DBusType>().unwrap()).clone();
-                let #field_ident = #field_type_ident::from_dbus(
-                    #field_ident,
-                    conn__.clone(),
-                    remote__.clone(),
-                    disconnect_watcher__.clone(),
-                )?;
-            }
+            };
+            let #field_ident = <<#field_type_ident as DBusArg>::DBusType as RefArgToRust>::ref_arg_to_rust(
+                #field_ident,
+                format!("{}.{}", #struct_str, #field_str),
+            )?;
+            let #field_ident = #field_type_ident::from_dbus(
+                #field_ident,
+                conn__.clone(),
+                remote__.clone(),
+                disconnect_watcher__.clone(),
+            )?;
         };
 
         make_fields = quote! {
@@ -555,6 +511,57 @@ pub fn generate_dbus_arg(_item: TokenStream) -> TokenStream {
         }
 
         impl Error for DBusArgError {}
+
+        pub(crate) trait RefArgToRust {
+            type RustType;
+            fn ref_arg_to_rust<U: 'static + dbus::arg::RefArg + ?Sized>(
+                arg: &U,
+                name: String,
+            ) -> Result<Self::RustType, Box<dyn Error>>;
+        }
+
+        impl<T: 'static + Clone + DirectDBus> RefArgToRust for T {
+            type RustType = T;
+            fn ref_arg_to_rust<U: 'static + dbus::arg::RefArg + ?Sized>(
+                arg: &U,
+                name: String,
+            ) -> Result<Self::RustType, Box<dyn Error>> {
+                let arg = arg.as_static_inner(0).unwrap();
+                let any = arg.as_any();
+                if !any.is::<<Self as DBusArg>::DBusType>() {
+                    return Err(Box::new(DBusArgError::new(String::from(format!(
+                        "{} type does not match: expected {}, found {}",
+                        name,
+                        std::any::type_name::<<Self as DBusArg>::DBusType>(),
+                        arg.arg_type().as_str(),
+                    )))));
+                }
+                let arg = (*any.downcast_ref::<<Self as DBusArg>::DBusType>().unwrap()).clone();
+                return Ok(arg);
+            }
+        }
+
+        impl RefArgToRust for dbus::arg::PropMap {
+            type RustType = dbus::arg::PropMap;
+            fn ref_arg_to_rust<U: 'static + dbus::arg::RefArg + ?Sized>(
+                arg: &U,
+                _name: String,
+            ) -> Result<Self::RustType, Box<dyn Error>> {
+                let mut map: dbus::arg::PropMap = std::collections::HashMap::new();
+                let mut outer_iter = arg.as_iter().unwrap();
+                let mut iter = outer_iter.next().unwrap().as_iter().unwrap();
+                let mut key = iter.next();
+                let mut val = iter.next();
+                while !key.is_none() && !val.is_none() {
+                    let k = key.unwrap().as_str().unwrap().to_string();
+                    let v = dbus::arg::Variant(val.unwrap().box_clone());
+                    map.insert(k, v);
+                    key = iter.next();
+                    val = iter.next();
+                }
+                return Ok(map);
+            }
+        }
 
         pub(crate) trait DBusArg {
             type DBusType;

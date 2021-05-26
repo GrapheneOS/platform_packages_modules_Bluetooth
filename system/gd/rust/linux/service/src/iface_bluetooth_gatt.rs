@@ -18,7 +18,7 @@ use num_traits::cast::{FromPrimitive, ToPrimitive};
 use std::error::Error;
 use std::sync::{Arc, Mutex};
 
-use crate::dbus_arg::{DBusArg, DBusArgError};
+use crate::dbus_arg::{DBusArg, DBusArgError, RefArgToRust};
 
 #[allow(dead_code)]
 struct ScannerCallbackDBus {}
@@ -38,13 +38,8 @@ pub struct RSSISettingsDBus {
 #[dbus_propmap(ScanSettings)]
 struct ScanSettingsDBus {
     interval: i32,
-
     window: i32,
-
-    #[dbus_propmap_field_enum]
     scan_type: ScanType,
-
-    #[dbus_propmap_field_propmap]
     rssi_settings: RSSISettings,
 }
 
