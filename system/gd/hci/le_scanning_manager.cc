@@ -589,6 +589,10 @@ struct LeScanningManager::impl : public bluetooth::hci::LeAddressManagerCallback
   }
 
   void stop_scan() {
+    if (!is_scanning_) {
+      LOG_INFO("Scanning already stopped, return!");
+      return;
+    }
     is_scanning_ = false;
 
     switch (api_type_) {
