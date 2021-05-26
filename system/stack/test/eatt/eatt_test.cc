@@ -20,7 +20,7 @@
 
 #include <vector>
 
-#include "base/bind_helpers.h"
+#include "bind_helpers.h"
 #include "btm_api.h"
 #include "l2c_api.h"
 #include "mock_btif_storage.h"

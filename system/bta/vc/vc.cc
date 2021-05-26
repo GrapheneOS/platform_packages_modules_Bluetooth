@@ -16,7 +16,6 @@
  */
 
 #include <base/bind.h>
-#include <base/bind_helpers.h>
 #include <base/logging.h>
 #include <base/strings/string_number_conversions.h>
 #include <hardware/bt_vc.h>
@@ -24,6 +23,7 @@
 #include <string>
 #include <vector>
 
+#include "bind_helpers.h"
 #include "bta_gatt_api.h"
 #include "bta_gatt_queue.h"
 #include "bta_vc_api.h"
