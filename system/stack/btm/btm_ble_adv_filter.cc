@@ -37,7 +37,8 @@
 #include <vector>
 
 #include <base/bind.h>
-#include <base/bind_helpers.h>
+
+#include "bind_helpers.h"
 
 extern tBTM_CB btm_cb;
 

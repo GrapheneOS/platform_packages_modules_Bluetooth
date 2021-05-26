@@ -19,7 +19,7 @@
 #include <queue>
 
 #include "acl_api.h"
-#include "base/bind_helpers.h"
+#include "bind_helpers.h"
 #include "bt_types.h"
 #include "device/include/controller.h"
 #include "eatt.h"
