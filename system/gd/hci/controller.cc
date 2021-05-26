@@ -88,9 +88,14 @@ struct Controller::impl {
         LeReadConnectListSizeBuilder::Create(),
         handler->BindOnceOn(this, &Controller::impl::le_read_connect_list_size_handler));
 
-    hci_->EnqueueCommand(
-        LeReadResolvingListSizeBuilder::Create(),
-        handler->BindOnceOn(this, &Controller::impl::le_read_resolving_list_size_handler));
+    if (is_supported(OpCode::LE_READ_RESOLVING_LIST_SIZE)) {
+      hci_->EnqueueCommand(
+          LeReadResolvingListSizeBuilder::Create(),
+          handler->BindOnceOn(this, &Controller::impl::le_read_resolving_list_size_handler));
+    } else {
+      LOG_INFO("LE_READ_RESOLVING_LIST_SIZE not supported, defaulting to 0");
+      le_resolving_list_size_ = 0;
+    }
 
     if (is_supported(OpCode::LE_READ_MAXIMUM_DATA_LENGTH)) {
       hci_->EnqueueCommand(LeReadMaximumDataLengthBuilder::Create(),
