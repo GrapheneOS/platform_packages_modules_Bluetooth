@@ -3283,10 +3283,22 @@ public class GattService extends ProfileService {
         // Some 3p API cases may have null filters, need to allow
         if (filters != null) {
             for (ScanFilter filter : filters) {
-                if (filter.getDeviceAddress() != null && filter.getAddressType()
-                        == BluetoothDevice.ADDRESS_TYPE_PUBLIC && filter.getIrk() == null) {
-                } else {
-                    enforcePrivilegedPermission();
+                // The only case to enforce here is if there is an address
+                // If there is an address, enforce if the correct combination criteria is met.
+                if (filter.getDeviceAddress() != null) {
+                    // At this point we have an address, that means a caller used the
+                    // setDeviceAddress(address) public API for the ScanFilter
+                    // We don't want to enforce if the type is PUBLIC and the IRK is null
+                    // However, if we have a different type that means the caller used a new
+                    // @SystemApi such as setDeviceAddress(address, type) or
+                    // setDeviceAddress(address, type, irk) which are both @SystemApi and require
+                    // permissions to be enforced
+                    if (filter.getAddressType()
+                            == BluetoothDevice.ADDRESS_TYPE_PUBLIC && filter.getIrk() == null) {
+                        // Do not enforce
+                    } else {
+                        enforcePrivilegedPermission();
+                    }
                 }
             }
         }
