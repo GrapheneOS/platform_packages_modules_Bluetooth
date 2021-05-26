@@ -48,6 +48,10 @@ bool check_cod_hid(const RawAddress* remote_bdaddr) {
   mock_function_count_map[__func__]++;
   return false;
 }
+bool check_cod_hid(const RawAddress& remote_bdaddr) {
+  mock_function_count_map[__func__]++;
+  return false;
+}
 bool check_sdp_bl(const RawAddress* remote_bdaddr) {
   mock_function_count_map[__func__]++;
   return false;

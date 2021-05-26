@@ -105,4 +105,5 @@ void btif_dm_update_ble_remote_properties(const RawAddress& bd_addr,
                                           BD_NAME bd_name,
                                           tBT_DEVICE_TYPE dev_type);
 
+bool check_cod_hid(const RawAddress& bd_addr);
 #endif
