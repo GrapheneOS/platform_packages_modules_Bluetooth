@@ -15,11 +15,11 @@
  */
 
 #include <base/bind.h>
-#include <base/bind_helpers.h>
 #include <base/logging.h>
 #include <gtest/gtest.h>
 #include <future>
 
+#include "bind_helpers.h"
 #include "message_loop_thread.h"
 #include "once_timer.h"
 
