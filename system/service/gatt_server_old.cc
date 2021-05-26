@@ -23,7 +23,6 @@
 #include <unistd.h>
 
 #include <base/bind.h>
-#include <base/bind_helpers.h>
 #include <base/callback.h>
 #include <algorithm>
 #include <array>
@@ -39,6 +38,8 @@
 
 #include <hardware/bluetooth.h>
 #include <hardware/bt_gatt.h>
+
+#include "bind_helpers.h"
 
 #include "service/hal/bluetooth_interface.h"
 #include "service/logging_helpers.h"

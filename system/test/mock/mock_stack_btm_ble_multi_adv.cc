@@ -25,7 +25,6 @@
 extern std::map<std::string, int> mock_function_count_map;
 
 #include <base/bind.h>
-#include <base/bind_helpers.h>
 #include <base/location.h>
 #include <base/logging.h>
 #include <base/memory/weak_ptr.h>
@@ -34,6 +33,7 @@ extern std::map<std::string, int> mock_function_count_map;
 #include <string.h>
 #include <queue>
 #include <vector>
+#include "bind_helpers.h"
 #include "ble_advertiser.h"
 #include "bt_target.h"
 #include "device/include/controller.h"

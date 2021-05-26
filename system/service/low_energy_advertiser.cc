@@ -22,9 +22,10 @@
 #include "stack/include/hcidefs.h"
 
 #include <base/bind.h>
-#include <base/bind_helpers.h>
 #include <base/callback.h>
 #include <base/logging.h>
+
+#include "bind_helpers.h"
 
 using std::lock_guard;
 using std::mutex;

@@ -18,7 +18,7 @@
 
 #include <gmock/gmock.h>
 
-#include "base/bind_helpers.h"
+#include "bind_helpers.h"
 #include "stack/gatt/gatt_int.h"
 
 namespace bluetooth {
