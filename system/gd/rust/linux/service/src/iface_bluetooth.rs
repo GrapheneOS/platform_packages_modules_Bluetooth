@@ -51,11 +51,13 @@ impl IBluetooth for IBluetoothDBus {
     #[dbus_method("RegisterCallback")]
     fn register_callback(&mut self, callback: Box<dyn IBluetoothCallback + Send>) {}
 
-    #[dbus_method("Enable")]
+    // Not exposed over D-Bus. The stack is automatically enabled when the daemon starts.
     fn enable(&mut self) -> bool {
         false
     }
-    #[dbus_method("Disable")]
+
+    // Not exposed over D-Bus. The stack is automatically disabled when the daemon exits.
+    // TODO(b/189495858): Handle shutdown properly when SIGTERM is received.
     fn disable(&mut self) -> bool {
         false
     }
