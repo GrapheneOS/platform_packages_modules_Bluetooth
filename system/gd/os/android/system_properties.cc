@@ -19,7 +19,9 @@
 #include <cutils/properties.h>
 
 #include <array>
+#include <cctype>
 
+#include "common/strings.h"
 #include "os/log.h"
 
 namespace bluetooth {
@@ -45,6 +47,57 @@ bool SetSystemProperty(const std::string& property, const std::string& value) {
     return false;
   }
   return true;
+}
+
+bool IsRootCanalEnabled() {
+  auto value = GetSystemProperty("ro.vendor.build.fingerprint");
+  if (value.has_value()) {
+    LOG_INFO("ro.vendor.build.fingerprint='%s', length=%zu", value->c_str(), value->length());
+  } else {
+    LOG_INFO("ro.vendor.build.fingerprint is not found");
+  }
+  // aosp_cf_x86_64_phone is just one platform that currently runs root canal
+  // When other platforms appears, or there is a better signal, add them here
+  if (value->find("generic/aosp_cf_x86_64_phone") == std::string::npos) {
+    LOG_INFO("Not on generic/aosp_cf_x86_64_phone and hence not root canal");
+    return false;
+  }
+  return true;
+}
+
+int GetAndroidVendorReleaseVersion() {
+  auto value = GetSystemProperty("ro.vendor.build.version.release_or_codename");
+  if (!value) {
+    LOG_INFO("ro.vendor.build.version.release_or_codename does not exist");
+    return 0;
+  }
+  LOG_INFO("ro.vendor.build.version.release_or_codename='%s', length=%zu", value->c_str(), value->length());
+  auto int_value = common::Int64FromString(*value);
+  if (int_value) {
+    return static_cast<int>(*int_value);
+  }
+  LOG_INFO("value '%s' cannot be parsed to int", value->c_str());
+  if (value->empty()) {
+    LOG_INFO("value '%s' is empty", value->c_str());
+    return 0;
+  }
+  if (value->length() > 1) {
+    LOG_INFO("value '%s' length is %zu, which is > 1", value->c_str(), value->length());
+  }
+  char release_code = toupper(value->at(0));
+  switch (release_code) {
+    case 'S':
+      return 11;
+    case 'R':
+      return 10;
+    case 'P':
+      return 9;
+    case 'O':
+      return 8;
+    default:
+      // Treble not enabled before Android O
+      return 0;
+  }
 }
 
 }  // namespace os
