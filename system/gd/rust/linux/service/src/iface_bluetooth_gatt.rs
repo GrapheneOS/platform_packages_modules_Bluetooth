@@ -15,7 +15,6 @@ use dbus_projection::DisconnectWatcher;
 
 use num_traits::cast::{FromPrimitive, ToPrimitive};
 
-use std::collections::HashMap;
 use std::error::Error;
 use std::sync::{Arc, Mutex};
 
