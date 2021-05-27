@@ -36,7 +36,11 @@ fn main() -> Result<(), Box<dyn Error>> {
     let bluetooth = Arc::new(Mutex::new(Bluetooth::new(tx.clone(), intf.clone())));
     let bluetooth_gatt = Arc::new(Mutex::new(BluetoothGatt::new(intf.clone())));
 
-    intf.lock().unwrap().initialize(get_bt_dispatcher(tx), vec![]);
+    // Args don't include arg[0] which is the binary name
+    let all_args = std::env::args().collect::<Vec<String>>();
+    let args = all_args[1..].to_vec();
+    intf.lock().unwrap().initialize(get_bt_dispatcher(tx), args);
+
     bluetooth.lock().unwrap().init_profiles();
     bluetooth.lock().unwrap().enable();
 
