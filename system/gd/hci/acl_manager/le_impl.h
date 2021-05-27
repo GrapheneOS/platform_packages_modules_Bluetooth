@@ -32,11 +32,17 @@ namespace acl_manager {
 
 using common::BindOnce;
 
-constexpr uint16_t kScanIntervalFast = 0x0060;
-constexpr uint16_t kScanWindowFast = 0x0030;
-constexpr uint16_t kScanIntervalSlow = 0x0800;
-constexpr uint16_t kScanWindowSlow = 0x0030;
+constexpr uint16_t kScanIntervalFast = 0x0060;    /* 30 ~ 60 ms (use 60)  = 96 *0.625 */
+constexpr uint16_t kScanWindowFast = 0x0030;      /* 30 ms = 48 *0.625 */
+constexpr uint16_t kScanWindow2mFast = 0x0018;    /* 15 ms = 24 *0.625 */
+constexpr uint16_t kScanWindowCodedFast = 0x0018; /* 15 ms = 24 *0.625 */
+constexpr uint16_t kScanIntervalSlow = 0x0800;    /* 1.28 s = 2048 *0.625 */
+constexpr uint16_t kScanWindowSlow = 0x0030;      /* 30 ms = 48 *0.625 */
 constexpr std::chrono::milliseconds kCreateConnectionTimeoutMs = std::chrono::milliseconds(30 * 1000);
+constexpr uint8_t PHY_LE_NO_PACKET = 0x00;
+constexpr uint8_t PHY_LE_1M = 0x01;
+constexpr uint8_t PHY_LE_2M = 0x02;
+constexpr uint8_t PHY_LE_CODED = 0x04;
 
 struct le_acl_connection {
   le_acl_connection(AddressWithType remote_address, AclConnection::QueueDownEnd* queue_down_end, os::Handler* handler)
@@ -447,10 +453,14 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
 
     uint16_t le_scan_interval = kScanIntervalSlow;
     uint16_t le_scan_window = kScanWindowSlow;
+    uint16_t le_scan_window_2m = kScanWindowSlow;
+    uint16_t le_scan_window_coded = kScanWindowSlow;
     // If there is any direct connection in the connection list, use the fast parameter
     if (!direct_connections_.empty()) {
       le_scan_interval = kScanIntervalFast;
       le_scan_window = kScanWindowFast;
+      le_scan_window_2m = kScanWindow2mFast;
+      le_scan_window_coded = kScanWindowCodedFast;
     }
     InitiatorFilterPolicy initiator_filter_policy = InitiatorFilterPolicy::USE_CONNECT_LIST;
     OwnAddressType own_address_type =
@@ -468,20 +478,54 @@ struct le_impl : public bluetooth::hci::LeAddressManagerCallback {
     }
 
     if (controller_->IsSupported(OpCode::LE_EXTENDED_CREATE_CONNECTION)) {
-      LeCreateConnPhyScanParameters tmp;
-      tmp.scan_interval_ = le_scan_interval;
-      tmp.scan_window_ = le_scan_window;
-      tmp.conn_interval_min_ = conn_interval_min;
-      tmp.conn_interval_max_ = conn_interval_max;
-      tmp.conn_latency_ = conn_latency;
-      tmp.supervision_timeout_ = supervision_timeout;
-      tmp.min_ce_length_ = 0x00;
-      tmp.max_ce_length_ = 0x00;
+      uint8_t initiating_phys = PHY_LE_1M;
+      std::vector<LeCreateConnPhyScanParameters> parameters = {};
+      LeCreateConnPhyScanParameters scan_parameters;
+      scan_parameters.scan_interval_ = le_scan_interval;
+      scan_parameters.scan_window_ = le_scan_window;
+      scan_parameters.conn_interval_min_ = conn_interval_min;
+      scan_parameters.conn_interval_max_ = conn_interval_max;
+      scan_parameters.conn_latency_ = conn_latency;
+      scan_parameters.supervision_timeout_ = supervision_timeout;
+      scan_parameters.min_ce_length_ = 0x00;
+      scan_parameters.max_ce_length_ = 0x00;
+      parameters.push_back(scan_parameters);
+
+      if (controller_->SupportsBle2mPhy()) {
+        LeCreateConnPhyScanParameters scan_parameters_2m;
+        scan_parameters_2m.scan_interval_ = le_scan_interval;
+        scan_parameters_2m.scan_window_ = le_scan_window_2m;
+        scan_parameters_2m.conn_interval_min_ = conn_interval_min;
+        scan_parameters_2m.conn_interval_max_ = conn_interval_max;
+        scan_parameters_2m.conn_latency_ = conn_latency;
+        scan_parameters_2m.supervision_timeout_ = supervision_timeout;
+        scan_parameters_2m.min_ce_length_ = 0x00;
+        scan_parameters_2m.max_ce_length_ = 0x00;
+        parameters.push_back(scan_parameters_2m);
+        initiating_phys |= PHY_LE_2M;
+      }
+      if (controller_->SupportsBleCodedPhy()) {
+        LeCreateConnPhyScanParameters scan_parameters_coded;
+        scan_parameters_coded.scan_interval_ = le_scan_interval;
+        scan_parameters_coded.scan_window_ = le_scan_window_coded;
+        scan_parameters_coded.conn_interval_min_ = conn_interval_min;
+        scan_parameters_coded.conn_interval_max_ = conn_interval_max;
+        scan_parameters_coded.conn_latency_ = conn_latency;
+        scan_parameters_coded.supervision_timeout_ = supervision_timeout;
+        scan_parameters_coded.min_ce_length_ = 0x00;
+        scan_parameters_coded.max_ce_length_ = 0x00;
+        parameters.push_back(scan_parameters_coded);
+        initiating_phys |= PHY_LE_CODED;
+      }
 
       le_acl_connection_interface_->EnqueueCommand(
-          LeExtendedCreateConnectionBuilder::Create(initiator_filter_policy, own_address_type,
-                                                    address_with_type.GetAddressType(), address_with_type.GetAddress(),
-                                                    0x01 /* 1M PHY ONLY */, {tmp}),
+          LeExtendedCreateConnectionBuilder::Create(
+              initiator_filter_policy,
+              own_address_type,
+              address_with_type.GetAddressType(),
+              address_with_type.GetAddress(),
+              initiating_phys,
+              parameters),
           handler_->BindOnce([](CommandStatusView status) {
             ASSERT(status.IsValid());
             ASSERT(status.GetCommandOpCode() == OpCode::LE_EXTENDED_CREATE_CONNECTION);
