@@ -25,6 +25,7 @@
 #include "module.h"
 #include "os/handler.h"
 #include "os/log.h"
+#include "os/system_properties.h"
 
 namespace bluetooth {
 namespace hci {
@@ -116,9 +117,15 @@ struct LeAdvertisingManager::impl : public bluetooth::hci::LeAddressManagerCallb
       advertising_api_type_ = AdvertisingApiType::ANDROID_HCI;
     } else {
       advertising_api_type_ = AdvertisingApiType::LEGACY;
-      hci_layer_->EnqueueCommand(
-          LeReadAdvertisingPhysicalChannelTxPowerBuilder::Create(),
-          handler->BindOnceOn(this, &impl::on_read_advertising_physical_channel_tx_power));
+      int vendor_version = os::GetAndroidVendorReleaseVersion();
+      if (vendor_version != 0 && vendor_version <= 11 && os::IsRootCanalEnabled()) {
+        LOG_INFO("LeReadAdvertisingPhysicalChannelTxPower is not supported on Android R RootCanal, default to 0");
+        le_physical_channel_tx_power_ = 0;
+      } else {
+        hci_layer_->EnqueueCommand(
+            LeReadAdvertisingPhysicalChannelTxPowerBuilder::Create(),
+            handler->BindOnceOn(this, &impl::on_read_advertising_physical_channel_tx_power));
+      }
     }
   }
 
