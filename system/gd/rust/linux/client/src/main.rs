@@ -8,13 +8,18 @@ use btstack::bluetooth::{
 
 use btstack::{RPCProxy, Stack};
 
+use dbus::nonblock::SyncConnection;
+
 use std::sync::{Arc, Mutex};
 
 use crate::command_handler::CommandHandler;
+use crate::dbus_iface::BluetoothDBus;
 use crate::editor::AsyncEditor;
 
 mod command_handler;
 mod console;
+mod dbus_arg;
+mod dbus_iface;
 mod editor;
 
 struct BtCallback {
@@ -49,10 +54,8 @@ struct API {
     bluetooth: Arc<Mutex<dyn IBluetooth>>,
 }
 
+// This creates the API implementations directly embedded to this client.
 fn create_api_embedded() -> API {
-    // This creates the API implementations directly embedded to this client.
-    // TODO: Add API implementations as proxy over D-Bus.
-
     let (tx, rx) = Stack::create_channel();
 
     let intf = Arc::new(Mutex::new(get_btinterface().unwrap()));
@@ -67,47 +70,70 @@ fn create_api_embedded() -> API {
     API { bluetooth }
 }
 
+// This creates the API implementations over D-Bus.
+fn create_api_dbus(conn: Arc<SyncConnection>) -> API {
+    let bluetooth = Arc::new(Mutex::new(BluetoothDBus::new(conn.clone())));
+
+    API { bluetooth }
+}
+
 /// Runs a command line program that interacts with a Bluetooth stack.
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     // TODO: Process command line arguments.
 
-    let api = create_api_embedded();
-
-    let dc_callbacks = Arc::new(Mutex::new(vec![]));
-    api.bluetooth
-        .lock()
-        .unwrap()
-        .register_callback(Box::new(BtCallback { disconnect_callbacks: dc_callbacks.clone() }));
-
-    let handler = CommandHandler::new(api.bluetooth.clone());
-
-    let simulate_disconnect = move |_cmd| {
-        for callback in &*dc_callbacks.lock().unwrap() {
-            callback();
-        }
-    };
-
-    let handle_cmd = move |cmd: String| match cmd.split(' ').collect::<Vec<&str>>()[0] {
-        "enable" => handler.cmd_enable(cmd),
-        "disable" => handler.cmd_disable(cmd),
-        "get_address" => handler.cmd_get_address(cmd),
-        "start_discovery" => handler.cmd_start_discovery(cmd),
-        "cancel_discovery" => handler.cmd_cancel_discovery(cmd),
-        "create_bond" => handler.cmd_create_bond(cmd),
-
-        // Simulate client disconnection. Only useful in embedded mode. In D-Bus mode there is
-        // real D-Bus disconnection.
-        "simulate_disconnect" => simulate_disconnect(cmd),
-
-        // Ignore empty commands.
-        "" => {}
-
-        // TODO: Print help.
-        _ => print_info!("Command \"{}\" not recognized", cmd),
-    };
-
-    let editor = AsyncEditor::new();
     topstack::get_runtime().block_on(async move {
+        // Connect to D-Bus system bus.
+        let (resource, conn) = dbus_tokio::connection::new_system_sync()?;
+
+        // The `resource` is a task that should be spawned onto a tokio compatible
+        // reactor ASAP. If the resource ever finishes, we lost connection to D-Bus.
+        topstack::get_runtime().spawn(async {
+            let err = resource.await;
+            panic!("Lost connection to D-Bus: {}", err);
+        });
+
+        // TODO: Separate the embedded mode into its own binary.
+        let api = if std::env::var("EMBEDDED_STACK").is_ok() {
+            create_api_embedded()
+        } else {
+            create_api_dbus(conn)
+        };
+
+        let dc_callbacks = Arc::new(Mutex::new(vec![]));
+        api.bluetooth
+            .lock()
+            .unwrap()
+            .register_callback(Box::new(BtCallback { disconnect_callbacks: dc_callbacks.clone() }));
+
+        let handler = CommandHandler::new(api.bluetooth.clone());
+
+        let simulate_disconnect = move |_cmd| {
+            for callback in &*dc_callbacks.lock().unwrap() {
+                callback();
+            }
+        };
+
+        let handle_cmd = move |cmd: String| match cmd.split(' ').collect::<Vec<&str>>()[0] {
+            "enable" => handler.cmd_enable(cmd),
+            "disable" => handler.cmd_disable(cmd),
+            "get_address" => handler.cmd_get_address(cmd),
+            "start_discovery" => handler.cmd_start_discovery(cmd),
+            "cancel_discovery" => handler.cmd_cancel_discovery(cmd),
+            "create_bond" => handler.cmd_create_bond(cmd),
+
+            // Simulate client disconnection. Only useful in embedded mode. In D-Bus mode there is
+            // real D-Bus disconnection.
+            "simulate_disconnect" => simulate_disconnect(cmd),
+
+            // Ignore empty commands.
+            "" => {}
+
+            // TODO: Print help.
+            _ => print_info!("Command \"{}\" not recognized", cmd),
+        };
+
+        let editor = AsyncEditor::new();
+
         loop {
             let result = editor.readline().await;
             match result {
