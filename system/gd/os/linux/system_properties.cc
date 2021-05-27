@@ -48,5 +48,13 @@ void ClearSystemPropertiesForHost() {
   properties.clear();
 }
 
+bool IsRootCanalEnabled() {
+  return false;
+}
+
+int GetAndroidVendorReleaseVersion() {
+  return 0;
+}
+
 }  // namespace os
 }  // namespace bluetooth
