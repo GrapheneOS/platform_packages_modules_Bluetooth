@@ -1,6 +1,7 @@
 use crate::bindings::root as bindings;
-use crate::btif::RawAddress;
+use crate::btif::{BluetoothInterface, RawAddress, SupportedProfiles};
 use crate::ccall;
+use crate::profiles::hid_host::bindings::bthh_interface_t;
 use crate::topstack::get_dispatchers;
 
 use num_traits::cast::{FromPrimitive, ToPrimitive};
@@ -107,7 +108,7 @@ pub enum HHCallbacks {
 }
 
 pub struct HHCallbacksDispatcher {
-    dispatch: Box<dyn Fn(HHCallbacks) + Send>,
+    pub dispatch: Box<dyn Fn(HHCallbacks) + Send>,
 }
 
 type HHCb = Arc<Mutex<HHCallbacksDispatcher>>;
@@ -158,6 +159,15 @@ pub struct HidHost {
 }
 
 impl HidHost {
+    pub fn new(intf: &BluetoothInterface) -> HidHost {
+        let r = intf.get_profile_interface(SupportedProfiles::HidHost);
+        HidHost {
+            internal: RawHHWrapper { raw: r as *const bthh_interface_t },
+            is_init: false,
+            callbacks: None,
+        }
+    }
+
     pub fn is_initialized(&self) -> bool {
         self.is_init
     }
