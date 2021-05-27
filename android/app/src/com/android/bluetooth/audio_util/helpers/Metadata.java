@@ -130,7 +130,8 @@ public class Metadata implements Cloneable {
             if (data.containsKey(MediaMetadata.METADATA_KEY_DURATION)) {
                 mMetadata.duration = "" + data.getLong(MediaMetadata.METADATA_KEY_DURATION);
             }
-            if ((mContext != null && (data.containsKey(MediaMetadata.METADATA_KEY_ART_URI)
+            if ((mContext != null && Util.areUriImagesSupported(mContext)
+                    && (data.containsKey(MediaMetadata.METADATA_KEY_ART_URI)
                     || data.containsKey(MediaMetadata.METADATA_KEY_ALBUM_ART_URI)
                     || data.containsKey(MediaMetadata.METADATA_KEY_DISPLAY_ICON_URI)))
                     || data.containsKey(MediaMetadata.METADATA_KEY_ART)
@@ -163,7 +164,8 @@ public class Metadata implements Cloneable {
             // Check for artwork
             if (desc.getIconBitmap() != null) {
                 mMetadata.image = new Image(mContext, desc.getIconBitmap());
-            } else if (mContext != null && desc.getIconUri() != null) {
+            } else if (mContext != null && Util.areUriImagesSupported(mContext)
+                    && desc.getIconUri() != null) {
                 mMetadata.image = new Image(mContext, desc.getIconUri());
             }
 
@@ -209,7 +211,8 @@ public class Metadata implements Cloneable {
             if (bundle.containsKey(MediaMetadata.METADATA_KEY_DURATION)) {
                 mMetadata.duration = "" + bundle.getLong(MediaMetadata.METADATA_KEY_DURATION);
             }
-            if ((mContext != null && (bundle.containsKey(MediaMetadata.METADATA_KEY_ART_URI)
+            if ((mContext != null && Util.areUriImagesSupported(mContext)
+                    && (bundle.containsKey(MediaMetadata.METADATA_KEY_ART_URI)
                     || bundle.containsKey(MediaMetadata.METADATA_KEY_ALBUM_ART_URI)
                     || bundle.containsKey(MediaMetadata.METADATA_KEY_DISPLAY_ICON_URI)))
                     || bundle.containsKey(MediaMetadata.METADATA_KEY_ART)
