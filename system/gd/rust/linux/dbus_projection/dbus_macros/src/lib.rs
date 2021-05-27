@@ -178,10 +178,10 @@ pub fn generate_dbus_exporter(attr: TokenStream, item: TokenStream) -> TokenStre
             conn: std::sync::Arc<SyncConnection>,
             cr: &mut dbus_crossroads::Crossroads,
             obj: ObjType,
-            disconnect_watcher: Arc<Mutex<dbus_projection::DisconnectWatcher>>,
+            disconnect_watcher: std::sync::Arc<std::sync::Mutex<dbus_projection::DisconnectWatcher>>,
         ) {
             fn get_iface_token(
-                conn: Arc<SyncConnection>,
+                conn: std::sync::Arc<SyncConnection>,
                 cr: &mut dbus_crossroads::Crossroads,
                 disconnect_watcher: std::sync::Arc<std::sync::Mutex<dbus_projection::DisconnectWatcher>>,
             ) -> dbus_crossroads::IfaceToken<ObjType> {
@@ -306,10 +306,10 @@ pub fn dbus_propmap(attr: TokenStream, item: TokenStream) -> TokenStream {
 
             fn from_dbus(
                 data__: dbus::arg::PropMap,
-                conn__: Arc<SyncConnection>,
-                remote__: BusName<'static>,
-                disconnect_watcher__: Arc<Mutex<dbus_projection::DisconnectWatcher>>,
-            ) -> Result<#struct_ident, Box<dyn Error>> {
+                conn__: std::sync::Arc<SyncConnection>,
+                remote__: dbus::strings::BusName<'static>,
+                disconnect_watcher__: std::sync::Arc<std::sync::Mutex<dbus_projection::DisconnectWatcher>>,
+            ) -> Result<#struct_ident, Box<dyn std::error::Error>> {
                 #make_fields
 
                 return Ok(#struct_ident {
@@ -318,7 +318,7 @@ pub fn dbus_propmap(attr: TokenStream, item: TokenStream) -> TokenStream {
                 });
             }
 
-            fn to_dbus(data__: #struct_ident) -> Result<dbus::arg::PropMap, Box<dyn Error>> {
+            fn to_dbus(data__: #struct_ident) -> Result<dbus::arg::PropMap, Box<dyn std::error::Error>> {
                 let mut map__: dbus::arg::PropMap = std::collections::HashMap::new();
                 #insert_map_fields
                 return Ok(map__);
@@ -429,10 +429,10 @@ pub fn dbus_proxy_obj(attr: TokenStream, item: TokenStream) -> TokenStream {
         }
 
         struct #struct_ident {
-            conn: Arc<SyncConnection>,
-            remote: BusName<'static>,
+            conn: std::sync::Arc<SyncConnection>,
+            remote: dbus::strings::BusName<'static>,
             objpath: Path<'static>,
-            disconnect_watcher: Arc<Mutex<DisconnectWatcher>>,
+            disconnect_watcher: std::sync::Arc<std::sync::Mutex<DisconnectWatcher>>,
         }
 
         impl #trait_ for #struct_ident {
@@ -450,10 +450,10 @@ pub fn dbus_proxy_obj(attr: TokenStream, item: TokenStream) -> TokenStream {
 
             fn from_dbus(
                 objpath__: Path<'static>,
-                conn__: Arc<SyncConnection>,
-                remote__: BusName<'static>,
-                disconnect_watcher__: Arc<Mutex<DisconnectWatcher>>,
-            ) -> Result<Box<dyn #trait_ + Send>, Box<dyn Error>> {
+                conn__: std::sync::Arc<SyncConnection>,
+                remote__: dbus::strings::BusName<'static>,
+                disconnect_watcher__: std::sync::Arc<std::sync::Mutex<DisconnectWatcher>>,
+            ) -> Result<Box<dyn #trait_ + Send>, Box<dyn std::error::Error>> {
                 Ok(Box::new(#struct_ident {
                     conn: conn__,
                     remote: remote__,
@@ -462,7 +462,7 @@ pub fn dbus_proxy_obj(attr: TokenStream, item: TokenStream) -> TokenStream {
                 }))
             }
 
-            fn to_dbus(_data: Box<dyn #trait_ + Send>) -> Result<Path<'static>, Box<dyn Error>> {
+            fn to_dbus(_data: Box<dyn #trait_ + Send>) -> Result<Path<'static>, Box<dyn std::error::Error>> {
                 // This impl represents a remote DBus object, so `to_dbus` does not make sense.
                 panic!("not implemented");
             }
