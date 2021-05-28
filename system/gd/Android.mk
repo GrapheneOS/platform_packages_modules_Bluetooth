@@ -98,6 +98,7 @@ $(bluetooth_cert_tests_py_package_zip): $(SOONG_ZIP) $(LOCAL_acts_zip) \
 	$(hide) $(SOONG_ZIP) -d -o $@ -C $(dir $@)bluetooth_cert_tests -D $(dir $@)bluetooth_cert_tests \
 		-P acts_framework \
 		-C $(dir $@)acts/tools/test/connectivity/acts/framework -D $(dir $@)acts/tools/test/connectivity/acts/framework \
+		-P blueberry -C packages/modules/Bluetooth/system/blueberry -D packages/modules/Bluetooth/system/blueberry \
 		-P llvm_binutils -C $(LLVM_PREBUILTS_BASE)/linux-x86/$(LLVM_PREBUILTS_VERSION) \
 		-f $(LLVM_PREBUILTS_BASE)/linux-x86/$(LLVM_PREBUILTS_VERSION)/bin/llvm-cov \
 		-f $(LLVM_PREBUILTS_BASE)/linux-x86/$(LLVM_PREBUILTS_VERSION)/bin/llvm-profdata \
