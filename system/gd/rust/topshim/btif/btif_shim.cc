@@ -31,9 +31,8 @@ namespace rust {
 InitFlags::InitFlags() {}
 InitFlags::~InitFlags() {
   if (flags_) {
-    int i = 0;
-    for (const char* flag = flags_[i]; flags_[i] != nullptr; ++i) {
-      std::free(const_cast<void*>(static_cast<const void*>(flag)));
+    for (int i = 0; flags_[i] != nullptr; ++i) {
+      std::free(const_cast<void*>(static_cast<const void*>(flags_[i])));
     }
 
     std::free(const_cast<void*>(static_cast<const void*>(flags_)));
@@ -48,7 +47,7 @@ void InitFlags::Convert(::rust::Vec<::rust::String>& initFlags) {
 
   for (int i = 0; i < initFlags.size(); ++i) {
     flags_[i] = strndup(initFlags[i].data(), initFlags[i].size());
-    if (!flags_) {
+    if (!flags_[i]) {
       return;
     }
   }

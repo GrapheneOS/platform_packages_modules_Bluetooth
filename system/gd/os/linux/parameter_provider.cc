@@ -42,7 +42,7 @@ std::string ParameterProvider::ConfigFilePath() {
       return config_file_path;
     }
   }
-  return "/etc/bluetooth/bt_config.conf";
+  return "/var/lib/bluetooth/bt_config.conf";
 }
 
 void ParameterProvider::OverrideConfigFilePath(const std::string& path) {
@@ -58,7 +58,7 @@ std::string ParameterProvider::SnoopLogFilePath() {
     }
   }
 
-  return "/etc/bluetooth/btsnoop_hci.log";
+  return "/var/log/bluetooth/btsnoop_hci.log";
 }
 
 void ParameterProvider::OverrideSnoopLogFilePath(const std::string& path) {
@@ -73,7 +73,7 @@ std::string ParameterProvider::SnoozLogFilePath() {
       return snooz_log_file_path;
     }
   }
-  return "/etc/bluetooth/btsnooz_hci.log";
+  return "/var/log/bluetooth/btsnooz_hci.log";
 }
 
 }  // namespace os
