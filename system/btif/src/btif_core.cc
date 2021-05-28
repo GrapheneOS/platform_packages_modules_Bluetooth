@@ -69,7 +69,9 @@ static void bt_jni_msg_ready(void* context);
 
 #ifndef BTE_DID_CONF_FILE
 // TODO(armansito): Find a better way than searching by a hardcoded path.
-#if defined(OS_GENERIC) && !defined(TARGET_FLOSS)
+#if defined(TARGET_FLOSS)
+#define BTE_DID_CONF_FILE "/var/lib/bluetooth/bt_did.conf"
+#elif defined(OS_GENERIC)
 #define BTE_DID_CONF_FILE "bt_did.conf"
 #else  // !defined(OS_GENERIC)
 #define BTE_DID_CONF_FILE "/etc/bluetooth/bt_did.conf"
