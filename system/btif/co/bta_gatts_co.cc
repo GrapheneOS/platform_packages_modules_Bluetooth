@@ -126,21 +126,3 @@ bool bta_gatts_co_srv_chg(UNUSED_ATTR tGATTS_SRV_CHG_CMD cmd,
                           UNUSED_ATTR tGATTS_SRV_CHG_RSP* p_rsp) {
   return false;
 }
-
-/*******************************************************************************
- *
- * Function         bta_gatts_co_load_handle_range
- *
- * Description      This callout function is executed by GATTS when a GATT
- *                  server handle range is requested to be loaded from NV.
- *
- * Parameter
- *
- * Returns          void.
- *
- ******************************************************************************/
-bool bta_gatts_co_load_handle_range(
-    UNUSED_ATTR uint8_t index,
-    UNUSED_ATTR tBTA_GATTS_HNDL_RANGE* p_handle_range) {
-  return false;
-}

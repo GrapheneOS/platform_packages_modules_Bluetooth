@@ -116,23 +116,12 @@ static bool bta_gatts_nv_srv_chg_cback(tGATTS_SRV_CHG_CMD cmd,
  *
  ******************************************************************************/
 void bta_gatts_enable(tBTA_GATTS_CB* p_cb) {
-  uint8_t index = 0;
-  tBTA_GATTS_HNDL_RANGE handle_range;
-
   if (p_cb->enabled) {
     VLOG(1) << "GATTS already enabled.";
   } else {
     memset(p_cb, 0, sizeof(tBTA_GATTS_CB));
 
     p_cb->enabled = true;
-
-    while (bta_gatts_co_load_handle_range(index, &handle_range)) {
-      GATTS_AddHandleRange((tGATTS_HNDL_RANGE*)&handle_range);
-      memset(&handle_range, 0, sizeof(tGATTS_HNDL_RANGE));
-      index++;
-    }
-
-    VLOG(1) << __func__ << ": num of handle range added:" << +index;
 
     if (!GATTS_NVRegister(&bta_gatts_nv_cback)) {
       LOG(ERROR) << "BTA GATTS NV register failed.";
