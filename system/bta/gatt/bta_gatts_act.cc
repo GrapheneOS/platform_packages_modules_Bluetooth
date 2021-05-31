@@ -29,7 +29,6 @@
 
 #include "bta/gatt/bta_gatts_int.h"
 #include "bta/include/bta_api.h"
-#include "bta/include/bta_gatts_co.h"
 #include "btif/include/btif_debug_conn.h"
 #include "osi/include/osi.h"
 #include "stack/include/gatt_api.h"
