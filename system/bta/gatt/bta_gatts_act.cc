@@ -101,9 +101,7 @@ static void bta_gatts_nv_save_cback(bool is_add,
 static bool bta_gatts_nv_srv_chg_cback(tGATTS_SRV_CHG_CMD cmd,
                                        tGATTS_SRV_CHG_REQ* p_req,
                                        tGATTS_SRV_CHG_RSP* p_rsp) {
-  return bta_gatts_co_srv_chg((tGATTS_SRV_CHG_CMD)cmd,
-                              (tGATTS_SRV_CHG_REQ*)p_req,
-                              (tGATTS_SRV_CHG_RSP*)p_rsp);
+  return false;
 }
 
 /*******************************************************************************

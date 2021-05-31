@@ -42,26 +42,4 @@
  ******************************************************************************/
 extern void bta_gatts_co_update_handle_range(
     bool is_add, tBTA_GATTS_HNDL_RANGE* p_hndl_range);
-
-/*******************************************************************************
- *
- * Function         bta_gatts_co_srv_chg
- *
- * Description      This call-out is to read/write/remove service change related
- *                  informaiton. The request consists of the cmd and p_req and
- *                  the response is returned in p_rsp
- *
- * Parameter        cmd - request command
- *                  p_req - request paramters
- *                  p_rsp - response data for the request
- *
- * Returns          true - if the request is processed successfully and
- *                         the response is returned in p_rsp.
- *                  false - if the request can not be processed
- *
- ******************************************************************************/
-extern bool bta_gatts_co_srv_chg(tGATTS_SRV_CHG_CMD cmd,
-                                 tGATTS_SRV_CHG_REQ* p_req,
-                                 tGATTS_SRV_CHG_RSP* p_rsp);
-
 #endif /* BTA_GATTS_CO_H */
