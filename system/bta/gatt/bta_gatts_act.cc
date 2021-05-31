@@ -82,10 +82,7 @@ tGATT_APPL_INFO bta_gatts_nv_cback = {bta_gatts_nv_save_cback,
  *
  ******************************************************************************/
 static void bta_gatts_nv_save_cback(bool is_add,
-                                    tGATTS_HNDL_RANGE* p_hndl_range) {
-  bta_gatts_co_update_handle_range(is_add,
-                                   (tBTA_GATTS_HNDL_RANGE*)p_hndl_range);
-}
+                                    tGATTS_HNDL_RANGE* p_hndl_range) {}
 
 /*******************************************************************************
  *

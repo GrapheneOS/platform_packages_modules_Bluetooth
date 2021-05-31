@@ -26,20 +26,4 @@
 
 #include "bta/include/bta_gatt_api.h"
 
-/*******************************************************************************
- *
- * Function         bta_gatts_co_update_handle_range
- *
- * Description      This callout function is executed by GATTS when a GATT
- *                  server handle range ios to be added or removed.
- *
- * Parameter        is_add: true is to add a handle range; otherwise is to
- *                          delete.
- *                  p_hndl_range: handle range.
- *
- * Returns          void.
- *
- ******************************************************************************/
-extern void bta_gatts_co_update_handle_range(
-    bool is_add, tBTA_GATTS_HNDL_RANGE* p_hndl_range);
 #endif /* BTA_GATTS_CO_H */

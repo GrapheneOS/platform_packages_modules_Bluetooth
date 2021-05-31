@@ -82,24 +82,3 @@ void btif_gatts_add_bonded_dev_from_nv(const RawAddress& bda) {
     }
   }
 }
-
-/*****************************************************************************
- *  Call-out functions
- ****************************************************************************/
-
-/*******************************************************************************
- *
- * Function         bta_gatts_co_update_handle_range
- *
- * Description      This callout function is executed by GATTS when a GATT
- *                  server handle range ios to be added or removed.
- *
- * Parameter        is_add: true is to add a handle range; otherwise is to
- *                          delete.
- *                  p_hndl_range: handle range.
- *
- * Returns          void.
- *
- ******************************************************************************/
-void bta_gatts_co_update_handle_range(
-    UNUSED_ATTR bool is_add, UNUSED_ATTR tBTA_GATTS_HNDL_RANGE* p_hndl_range) {}
