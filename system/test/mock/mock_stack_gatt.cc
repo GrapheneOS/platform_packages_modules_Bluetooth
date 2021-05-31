@@ -145,9 +145,6 @@ tGATT_STATUS GATT_Disconnect(uint16_t conn_id) {
   mock_function_count_map[__func__]++;
   return GATT_SUCCESS;
 }
-void GATTS_AddHandleRange(tGATTS_HNDL_RANGE* p_hndl_range) {
-  mock_function_count_map[__func__]++;
-}
 void GATTS_StopService(uint16_t service_handle) {
   mock_function_count_map[__func__]++;
 }
