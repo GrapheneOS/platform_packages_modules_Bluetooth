@@ -122,6 +122,11 @@ void IsoManager::HandleNumComplDataPkts(uint8_t* p, uint8_t evt_len) {
     pimpl_->iso_impl_->handle_num_completed_pkts(p, evt_len);
 }
 
+void IsoManager::HandleGdNumComplDataPkts(uint16_t handle, uint16_t credits) {
+  if (pimpl_->IsRunning())
+    pimpl_->iso_impl_->handle_gd_num_completed_pkts(handle, credits);
+}
+
 void IsoManager::HandleHciEvent(uint8_t sub_code, uint8_t* params,
                                 uint16_t length) {
   if (pimpl_->IsRunning())
