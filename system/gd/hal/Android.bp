@@ -24,7 +24,7 @@ filegroup {
 filegroup {
     name: "BluetoothHalSources_hci_host",
     srcs: [
-        "hci_hal_host.cc",
+        "hci_hal_host_rootcanal.cc",
     ],
 }
 

@@ -114,7 +114,6 @@ config("target_defaults") {
     "OS_GENERIC",
     "OS_LINUX_GENERIC",
     "TARGET_FLOSS",
-    "USE_LINUX_HCI_SOCKET",
     "EXPORT_SYMBOL=__attribute__((visibility(\"default\")))",
     "FALLTHROUGH_INTENDED=[[clang::fallthrough]]",
   ]
