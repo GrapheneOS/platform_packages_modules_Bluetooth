@@ -50,153 +50,48 @@ constexpr uint8_t kHciEvtHeaderSize = 2;
 constexpr uint8_t kHciIsoHeaderSize = 4;
 constexpr int kBufSize = 1024 + 4 + 1;  // DeviceProperties::acl_data_packet_size_ + ACL header + H4 header
 
-constexpr uint8_t BTPROTO_HCI = 1;
-constexpr uint16_t HCI_CHANNEL_USER = 1;
-constexpr uint16_t HCI_CHANNEL_CONTROL = 3;
-constexpr uint16_t HCI_DEV_NONE = 0xffff;
-
-/* reference from <kernel>/include/net/bluetooth/mgmt.h */
-#define MGMT_OP_INDEX_LIST 0x0003
-#define MGMT_EV_INDEX_ADDED 0x0004
-#define MGMT_EV_COMMAND_COMP 0x0001
-#define MGMT_EV_SIZE_MAX 1024
-#define WRITE_NO_INTR(fn) \
-  do {                    \
-  } while ((fn) == -1 && errno == EINTR)
-
-struct sockaddr_hci {
-  sa_family_t hci_family;
-  unsigned short hci_dev;
-  unsigned short hci_channel;
-};
-
-struct mgmt_pkt {
-  uint16_t opcode;
-  uint16_t index;
-  uint16_t len;
-  uint8_t data[MGMT_EV_SIZE_MAX];
-} __attribute__((packed));
-
-struct mgmt_event_read_index {
-  uint16_t cc_opcode;
-  uint8_t status;
-  uint16_t num_intf;
-  uint16_t index[0];
-} __attribute__((packed));
-
-int waitHciDev(int hci_interface) {
-  struct sockaddr_hci addr;
-  struct pollfd fds[1];
-  struct mgmt_pkt ev;
-  int fd;
-  int ret = 0;
-
-  fd = socket(PF_BLUETOOTH, SOCK_RAW, BTPROTO_HCI);
-  if (fd < 0) {
-    LOG_ERROR("Bluetooth socket error: %s", strerror(errno));
-    return -1;
-  }
-  memset(&addr, 0, sizeof(addr));
-  addr.hci_family = AF_BLUETOOTH;
-  addr.hci_dev = HCI_DEV_NONE;
-  addr.hci_channel = HCI_CHANNEL_CONTROL;
-  if (bind(fd, (struct sockaddr*)&addr, sizeof(addr)) < 0) {
-    LOG_ERROR("HCI Channel Control: %s", strerror(errno));
-    close(fd);
-    return -1;
-  }
-
-  fds[0].fd = fd;
-  fds[0].events = POLLIN;
-
-  /* Read Controller Index List Command */
-  ev.opcode = MGMT_OP_INDEX_LIST;
-  ev.index = HCI_DEV_NONE;
-  ev.len = 0;
-
-  ssize_t wrote;
-  WRITE_NO_INTR(wrote = write(fd, &ev, 6));
-  if (wrote != 6) {
-    LOG_ERROR("Unable to write mgmt command: %s", strerror(errno));
-    close(fd);
-    return -1;
-  }
-  /* validate mentioned hci interface is present and registered with sock system */
-  while (1) {
-    int n;
-    WRITE_NO_INTR(n = poll(fds, 1, -1));
-    if (n == -1) {
-      LOG_ERROR("Poll error: %s", strerror(errno));
-      ret = -1;
-      break;
-    } else if (n == 0) {
-      LOG_ERROR("Timeout, no HCI device detected");
-      ret = -1;
-      break;
-    }
-
-    if (fds[0].revents & POLLIN) {
-      WRITE_NO_INTR(n = read(fd, &ev, sizeof(struct mgmt_pkt)));
-      if (n < 0) {
-        LOG_ERROR("Error reading control channel: %s", strerror(errno));
-        ret = -1;
-        break;
-      }
-
-      if (ev.opcode == MGMT_EV_INDEX_ADDED && ev.index == hci_interface) {
-        close(fd);
-        return -1;
-      } else if (ev.opcode == MGMT_EV_COMMAND_COMP) {
-        struct mgmt_event_read_index* cc;
-        int i;
-
-        cc = (struct mgmt_event_read_index*)ev.data;
-
-        if (cc->cc_opcode != MGMT_OP_INDEX_LIST || cc->status != 0) continue;
-
-        for (i = 0; i < cc->num_intf; i++) {
-          if (cc->index[i] == hci_interface) {
-            close(fd);
-            return 0;
-          }
-        }
-      }
-    }
-  }
-
-  close(fd);
-  return -1;
-}
-
-// Connect to Linux HCI socket
 int ConnectToSocket() {
-  int socket_fd = socket(AF_BLUETOOTH, SOCK_RAW, BTPROTO_HCI);
+  auto* config = bluetooth::hal::HciHalHostRootcanalConfig::Get();
+  const std::string& server = config->GetServerAddress();
+  int port = config->GetPort();
+
+  int socket_fd = socket(AF_INET, SOCK_STREAM, 0);
   if (socket_fd < 1) {
     LOG_ERROR("can't create socket: %s", strerror(errno));
     return INVALID_FD;
   }
 
-  int hci_interface = 0;  // Assume we only have HCI 0
-
-  if (waitHciDev(hci_interface) != 0) {
-    ::close(socket_fd);
+  struct hostent* host;
+  host = gethostbyname(server.c_str());
+  if (host == nullptr) {
+    LOG_ERROR("can't get server name");
     return INVALID_FD;
   }
 
-  struct sockaddr_hci addr;
-  memset(&addr, 0, sizeof(addr));
-  addr.hci_family = AF_BLUETOOTH;
-  addr.hci_dev = hci_interface;
-  addr.hci_channel = HCI_CHANNEL_USER;
-  if (bind(socket_fd, (struct sockaddr*)&addr, sizeof(addr)) < 0) {
-    LOG_ERROR("HCI Channel Control: %s", strerror(errno));
-    ::close(socket_fd);
+  struct sockaddr_in serv_addr;
+  memset((void*)&serv_addr, 0, sizeof(serv_addr));
+  serv_addr.sin_family = AF_INET;
+  serv_addr.sin_addr.s_addr = INADDR_ANY;
+  serv_addr.sin_port = htons(port);
+
+  int result = connect(socket_fd, (struct sockaddr*)&serv_addr, sizeof(serv_addr));
+  if (result < 0) {
+    LOG_ERROR("can't connect: %s", strerror(errno));
     return INVALID_FD;
   }
-  LOG_INFO("HCI device ready");
+
+  timeval socket_timeout{
+      .tv_sec = 3,
+      .tv_usec = 0,
+  };
+  int ret = setsockopt(socket_fd, SOL_SOCKET, SO_RCVTIMEO, &socket_timeout, sizeof(socket_timeout));
+  if (ret == -1) {
+    LOG_ERROR("can't control socket fd: %s", strerror(errno));
+    return INVALID_FD;
+  }
   return socket_fd;
 }
-}
+}  // namespace
 
 namespace bluetooth {
 namespace hal {
@@ -351,7 +246,7 @@ class HciHalHost : public HciHal {
     uint8_t buf[kBufSize] = {};
 
     ssize_t received_size;
-    RUN_NO_INTR(received_size = read(sock_fd_, buf, kBufSize));
+    RUN_NO_INTR(received_size = recv(sock_fd_, buf, kH4HeaderSize, 0));
     ASSERT_LOG(received_size != -1, "Can't receive from socket: %s", strerror(errno));
     if (received_size == 0) {
       LOG_WARN("Can't read H4 header. EOF received");
@@ -360,10 +255,15 @@ class HciHalHost : public HciHal {
     }
 
     if (buf[0] == kH4Event) {
-      ASSERT_LOG(
-          received_size >= kH4HeaderSize + kHciEvtHeaderSize, "Received bad HCI_EVT packet size: %zu", received_size);
+      RUN_NO_INTR(received_size = recv(sock_fd_, buf + kH4HeaderSize, kHciEvtHeaderSize, 0));
+      ASSERT_LOG(received_size != -1, "Can't receive from socket: %s", strerror(errno));
+      ASSERT_LOG(received_size == kHciEvtHeaderSize, "malformed HCI event header received");
+
       uint8_t hci_evt_parameter_total_length = buf[2];
-      ssize_t payload_size = received_size - (kH4HeaderSize + kHciEvtHeaderSize);
+      ssize_t payload_size;
+      RUN_NO_INTR(
+          payload_size = recv(sock_fd_, buf + kH4HeaderSize + kHciEvtHeaderSize, hci_evt_parameter_total_length, 0));
+      ASSERT_LOG(payload_size != -1, "Can't receive from socket: %s", strerror(errno));
       ASSERT_LOG(
           payload_size == hci_evt_parameter_total_length,
           "malformed HCI event total parameter size received: %zu != %d",
@@ -384,10 +284,14 @@ class HciHalHost : public HciHal {
     }
 
     if (buf[0] == kH4Acl) {
-      ASSERT_LOG(
-          received_size >= kH4HeaderSize + kHciAclHeaderSize, "Received bad HCI_ACL packet size: %zu", received_size);
-      int payload_size = received_size - (kH4HeaderSize + kHciAclHeaderSize);
+      RUN_NO_INTR(received_size = recv(sock_fd_, buf + kH4HeaderSize, kHciAclHeaderSize, 0));
+      ASSERT_LOG(received_size != -1, "Can't receive from socket: %s", strerror(errno));
+      ASSERT_LOG(received_size == kHciAclHeaderSize, "malformed ACL header received");
+
       uint16_t hci_acl_data_total_length = (buf[4] << 8) + buf[3];
+      int payload_size;
+      RUN_NO_INTR(payload_size = recv(sock_fd_, buf + kH4HeaderSize + kHciAclHeaderSize, hci_acl_data_total_length, 0));
+      ASSERT_LOG(payload_size != -1, "Can't receive from socket: %s", strerror(errno));
       ASSERT_LOG(
           payload_size == hci_acl_data_total_length,
           "malformed ACL length received: %d != %d",
@@ -409,15 +313,15 @@ class HciHalHost : public HciHal {
     }
 
     if (buf[0] == kH4Sco) {
-      ASSERT_LOG(
-          received_size >= kH4HeaderSize + kHciScoHeaderSize, "Received bad HCI_SCO packet size: %zu", received_size);
-      int payload_size = received_size - (kH4HeaderSize + kHciScoHeaderSize);
+      RUN_NO_INTR(received_size = recv(sock_fd_, buf + kH4HeaderSize, kHciScoHeaderSize, 0));
+      ASSERT_LOG(received_size != -1, "Can't receive from socket: %s", strerror(errno));
+      ASSERT_LOG(received_size == kHciScoHeaderSize, "malformed SCO header received");
+
       uint8_t hci_sco_data_total_length = buf[3];
-      ASSERT_LOG(
-          payload_size == hci_sco_data_total_length,
-          "malformed SCO length received: %d != %d",
-          payload_size,
-          hci_sco_data_total_length);
+      int payload_size;
+      RUN_NO_INTR(payload_size = recv(sock_fd_, buf + kH4HeaderSize + kHciScoHeaderSize, hci_sco_data_total_length, 0));
+      ASSERT_LOG(payload_size != -1, "Can't receive from socket: %s", strerror(errno));
+      ASSERT_LOG(payload_size == hci_sco_data_total_length, "malformed SCO packet received: size mismatch");
 
       HciPacket receivedHciPacket;
       receivedHciPacket.assign(buf + kH4HeaderSize, buf + kH4HeaderSize + kHciScoHeaderSize + payload_size);
@@ -433,15 +337,15 @@ class HciHalHost : public HciHal {
     }
 
     if (buf[0] == kH4Iso) {
-      ASSERT_LOG(
-          received_size >= kH4HeaderSize + kHciIsoHeaderSize, "Received bad HCI_ISO packet size: %zu", received_size);
-      int payload_size = received_size - (kH4HeaderSize + kHciIsoHeaderSize);
+      RUN_NO_INTR(received_size = recv(sock_fd_, buf + kH4HeaderSize, kHciIsoHeaderSize, 0));
+      ASSERT_LOG(received_size != -1, "Can't receive from socket: %s", strerror(errno));
+      ASSERT_LOG(received_size == kHciIsoHeaderSize, "malformed ISO header received");
+
       uint16_t hci_iso_data_total_length = ((buf[4] & 0x3f) << 8) + buf[3];
-      ASSERT_LOG(
-          payload_size == hci_iso_data_total_length,
-          "malformed ISO length received: %d != %d",
-          payload_size,
-          hci_iso_data_total_length);
+      int payload_size;
+      RUN_NO_INTR(payload_size = recv(sock_fd_, buf + kH4HeaderSize + kHciIsoHeaderSize, hci_iso_data_total_length, 0));
+      ASSERT_LOG(payload_size != -1, "Can't receive from socket: %s", strerror(errno));
+      ASSERT_LOG(payload_size == hci_iso_data_total_length, "malformed ISO packet received: size mismatch");
 
       HciPacket receivedHciPacket;
       receivedHciPacket.assign(buf + kH4HeaderSize, buf + kH4HeaderSize + kHciIsoHeaderSize + payload_size);
