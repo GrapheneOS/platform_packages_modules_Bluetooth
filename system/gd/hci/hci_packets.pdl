@@ -4269,8 +4269,12 @@ packet LeRemoveIsoDataPathComplete : CommandComplete (command_op_code = LE_REMOV
   _reserved_ : 4,
 }
 
+enum LeHostFeatureBits : 8 {
+  CONNECTED_ISO_STREAM_HOST_SUPPORT = 32,
+}
+
 packet LeSetHostFeature : Command (op_code = LE_SET_HOST_FEATURE) {
-  bit_number : 8,
+  bit_number : LeHostFeatureBits,
   bit_value:  Enable,
 }
 
