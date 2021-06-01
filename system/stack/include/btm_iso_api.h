@@ -206,6 +206,7 @@ class IsoManager {
    * @param evt_len event packet buffer length
    */
   virtual void HandleNumComplDataPkts(uint8_t* p, uint8_t evt_len);
+  virtual void HandleGdNumComplDataPkts(uint16_t handle, uint16_t credits);
 
   /**
    * Handle CIS and BIG related HCI events
