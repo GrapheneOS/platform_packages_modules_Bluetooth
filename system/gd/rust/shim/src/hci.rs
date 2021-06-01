@@ -3,7 +3,7 @@
 use crate::bridge::ffi;
 use bt_facade_helpers::U8SliceRunnable;
 use bt_hci::facade::HciFacadeService;
-use bt_packets::hci::{AclPacket, CommandPacket, Packet};
+use bt_packets::hci::{AclPacket, CommandPacket, IsoPacket, Packet};
 use std::sync::Arc;
 use tokio::runtime::Runtime;
 
@@ -62,6 +62,18 @@ pub fn hci_send_acl(hci: &mut Hci, data: &[u8]) {
     }
 }
 
+pub fn hci_send_iso(hci: &mut Hci, data: &[u8]) {
+    match IsoPacket::parse(data) {
+        Ok(packet) => {
+            let tx = hci.internal.iso_tx.clone();
+            hci.rt.spawn(async move {
+                tx.send(packet).await.unwrap();
+            });
+        }
+        Err(e) => panic!("could not parse iso: {:?} {:02x?}", e, data),
+    }
+}
+
 pub fn hci_register_event(hci: &mut Hci, event: u8) {
     let mut hci_facade = hci.internal.clone();
     hci.rt.spawn(async move {
@@ -78,6 +90,10 @@ pub fn hci_register_le_event(hci: &mut Hci, subevent: u8) {
 
 pub fn hci_set_acl_callback(hci: &mut Hci, cb: cxx::UniquePtr<ffi::u8SliceCallback>) {
     hci.internal.acl_rx.stream_runnable(&hci.rt, CallbackWrapper { cb });
+}
+
+pub fn hci_set_iso_callback(hci: &mut Hci, cb: cxx::UniquePtr<ffi::u8SliceCallback>) {
+    hci.internal.iso_rx.stream_runnable(&hci.rt, CallbackWrapper { cb });
 }
 
 pub fn hci_set_evt_callback(hci: &mut Hci, cb: cxx::UniquePtr<ffi::u8SliceCallback>) {
