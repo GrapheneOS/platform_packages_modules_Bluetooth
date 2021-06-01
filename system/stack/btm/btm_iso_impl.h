@@ -490,6 +490,14 @@ struct iso_impl {
     }
   }
 
+  void handle_gd_num_completed_pkts(uint16_t handle, uint16_t credits) {
+    if ((conn_hdl_to_cis_map_.find(handle) == conn_hdl_to_cis_map_.end()) &&
+        (conn_hdl_to_bis_map_.find(handle) == conn_hdl_to_bis_map_.end()))
+      return;
+
+    iso_credits_ += credits;
+  }
+
   void process_create_big_cmpl_pkt(uint8_t len, uint8_t* data) {
     struct big_create_cmpl_evt evt;
 
