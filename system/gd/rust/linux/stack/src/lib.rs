@@ -18,7 +18,7 @@ use std::sync::{Arc, Mutex};
 use tokio::sync::mpsc::channel;
 use tokio::sync::mpsc::{Receiver, Sender};
 
-use crate::bluetooth::{Bluetooth, BtifBluetoothCallbacks};
+use crate::bluetooth::Bluetooth;
 
 /// Represents a Bluetooth address.
 // TODO: Add support for LE random addresses.
@@ -36,6 +36,12 @@ impl Debug for BDAddr {
     }
 }
 
+impl Default for BDAddr {
+    fn default() -> Self {
+        Self { val: [0; 6] }
+    }
+}
+
 impl ToString for BDAddr {
     fn to_string(&self) -> String {
         String::from(format!(
@@ -47,8 +53,31 @@ impl ToString for BDAddr {
 
 impl BDAddr {
     /// Constructs a BDAddr from a vector of 6 bytes.
-    fn from_byte_vec(raw_addr: &Vec<u8>) -> BDAddr {
-        BDAddr { val: raw_addr.clone().try_into().unwrap() }
+    fn from_byte_vec(raw_addr: &Vec<u8>) -> Option<BDAddr> {
+        if let Ok(val) = raw_addr.clone().try_into() {
+            return Some(BDAddr { val });
+        }
+        None
+    }
+
+    fn from_string(addr_str: String) -> Option<BDAddr> {
+        let s = addr_str.split(':').collect::<Vec<&str>>();
+
+        if s.len() != 6 {
+            return None;
+        }
+
+        let mut raw: [u8; 6] = [0; 6];
+        for i in 0..s.len() {
+            raw[i] = match u8::from_str_radix(s[i], 16) {
+                Ok(res) => res,
+                Err(_) => {
+                    return None;
+                }
+            };
+        }
+
+        Some(BDAddr { val: raw })
     }
 }
 
@@ -78,21 +107,9 @@ impl Stack {
             }
 
             match m.unwrap() {
-                Message::Base(b) => match b {
-                    BaseCallbacks::AdapterState(state) => {
-                        bluetooth.lock().unwrap().adapter_state_changed(state);
-                    }
-
-                    BaseCallbacks::AdapterProperties(status, num_properties, properties) => {
-                        bluetooth.lock().unwrap().adapter_properties_changed(
-                            status,
-                            num_properties,
-                            properties,
-                        );
-                    }
-
-                    _ => println!("Unhandled callback arm {:?}", b),
-                },
+                Message::Base(b) => {
+                    bluetooth.lock().unwrap().dispatch_base_callbacks(b);
+                }
 
                 Message::BluetoothCallbackDisconnected(id) => {
                     bluetooth.lock().unwrap().callback_disconnected(id);
