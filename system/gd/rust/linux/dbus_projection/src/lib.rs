@@ -81,9 +81,9 @@ macro_rules! impl_dbus_arg_enum {
             fn from_dbus(
                 data: i32,
                 _conn: Arc<SyncConnection>,
-                _remote: BusName<'static>,
-                _disconnect_watcher: Arc<Mutex<dbus_projection::DisconnectWatcher>>,
-            ) -> Result<$enum_type, Box<dyn Error>> {
+                _remote: dbus::strings::BusName<'static>,
+                _disconnect_watcher: Arc<std::sync::Mutex<dbus_projection::DisconnectWatcher>>,
+            ) -> Result<$enum_type, Box<dyn std::error::Error>> {
                 match <$enum_type>::from_i32(data) {
                     Some(x) => Ok(x),
                     None => Err(Box::new(DBusArgError::new(String::from(format!(
@@ -94,7 +94,7 @@ macro_rules! impl_dbus_arg_enum {
                 }
             }
 
-            fn to_dbus(data: $enum_type) -> Result<i32, Box<dyn Error>> {
+            fn to_dbus(data: $enum_type) -> Result<i32, Box<dyn std::error::Error>> {
                 return Ok(data.to_i32().unwrap());
             }
         }

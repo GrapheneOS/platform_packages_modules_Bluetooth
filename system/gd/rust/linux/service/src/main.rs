@@ -13,7 +13,7 @@ use dbus_tokio::connection;
 use futures::future;
 
 use btstack::bluetooth::get_bt_dispatcher;
-use btstack::bluetooth::Bluetooth;
+use btstack::bluetooth::{Bluetooth, IBluetooth};
 use btstack::bluetooth_gatt::BluetoothGatt;
 use btstack::Stack;
 
@@ -35,6 +35,14 @@ fn main() -> Result<(), Box<dyn Error>> {
     let intf = Arc::new(Mutex::new(get_btinterface().unwrap()));
     let bluetooth = Arc::new(Mutex::new(Bluetooth::new(tx.clone(), intf.clone())));
     let bluetooth_gatt = Arc::new(Mutex::new(BluetoothGatt::new(intf.clone())));
+
+    // Args don't include arg[0] which is the binary name
+    let all_args = std::env::args().collect::<Vec<String>>();
+    let args = all_args[1..].to_vec();
+    intf.lock().unwrap().initialize(get_bt_dispatcher(tx), args);
+
+    bluetooth.lock().unwrap().init_profiles();
+    bluetooth.lock().unwrap().enable();
 
     topstack::get_runtime().block_on(async {
         // Connect to D-Bus system bus.
@@ -58,8 +66,6 @@ fn main() -> Result<(), Box<dyn Error>> {
                 topstack::get_runtime().spawn(x);
             }),
         )));
-
-        intf.lock().unwrap().initialize(get_bt_dispatcher(tx), vec![]);
 
         // Run the stack main dispatch loop.
         topstack::get_runtime().spawn(Stack::dispatch(rx, bluetooth.clone()));
