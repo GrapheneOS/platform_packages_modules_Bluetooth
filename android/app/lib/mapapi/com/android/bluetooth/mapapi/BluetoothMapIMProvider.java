@@ -214,7 +214,7 @@ public abstract class BluetoothMapIMProvider extends ContentProvider {
             throw new IllegalArgumentException("Account ID missing in update values!");
         }
 
-        long callingId = Binder.clearCallingIdentity();
+        final long callingId = Binder.clearCallingIdentity();
         try {
             if (table.equals(BluetoothMapContract.TABLE_MESSAGE)) {
                 return deleteMessage(accountId, messageId);
@@ -260,7 +260,7 @@ public abstract class BluetoothMapIMProvider extends ContentProvider {
         // TODO: validate values?
 
         String id; // the id of the entry inserted into the database
-        long callingId = Binder.clearCallingIdentity();
+        final long callingId = Binder.clearCallingIdentity();
         Log.d(TAG, "insert(): uri=" + uri.toString() + " - getLastPathSegment() = "
                 + uri.getLastPathSegment());
         try {
@@ -314,7 +314,7 @@ public abstract class BluetoothMapIMProvider extends ContentProvider {
     @Override
     public Cursor query(Uri uri, String[] projection, String selection, String[] selectionArgs,
             String sortOrder) {
-        long callingId = Binder.clearCallingIdentity();
+        final long callingId = Binder.clearCallingIdentity();
         try {
             String accountId = null;
             if (D) {
@@ -503,7 +503,7 @@ public abstract class BluetoothMapIMProvider extends ContentProvider {
                     "selection shall not be used, ContentValues " + "shall contain the data");
         }
 
-        long callingId = Binder.clearCallingIdentity();
+        final long callingId = Binder.clearCallingIdentity();
         if (D) {
             Log.w(TAG, "update(): uri=" + uri.toString() + " - getLastPathSegment() = "
                     + uri.getLastPathSegment());
@@ -614,7 +614,7 @@ public abstract class BluetoothMapIMProvider extends ContentProvider {
 
     @Override
     public Bundle call(String method, String arg, Bundle extras) {
-        long callingId = Binder.clearCallingIdentity();
+        final long callingId = Binder.clearCallingIdentity();
         if (D) {
             Log.w(TAG, "call(): method=" + method + " arg=" + arg + "ThreadId: "
                     + Thread.currentThread().getId());
