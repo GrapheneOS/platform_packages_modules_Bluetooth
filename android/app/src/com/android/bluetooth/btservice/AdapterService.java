@@ -287,7 +287,7 @@ public class AdapterService extends Service {
     private HearingAidService mHearingAidService;
     private SapService mSapService;
 
-    private boolean mTestModeEnabled;
+    private volatile boolean mTestModeEnabled = false;
 
     /**
      * Register a {@link ProfileService} with AdapterService.
@@ -3421,7 +3421,7 @@ public class AdapterService extends Service {
             for (ProfileService profile : mRunningProfiles) {
                 profile.setTestModeEnabled(testModeEnabled);
             }
-            mTestModeEnabled = true;
+            mTestModeEnabled = testModeEnabled;
             return;
         }
 
