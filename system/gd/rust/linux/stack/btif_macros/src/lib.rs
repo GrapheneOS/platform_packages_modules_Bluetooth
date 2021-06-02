@@ -19,40 +19,44 @@ fn debug_output_to_file(gen: &proc_macro2::TokenStream, filename: String) {
     file.write_all(gen.to_string().as_bytes()).unwrap();
 }
 
-/// Specifies the `Stack::Message` associated with a topshim callback.
+/// Associates a function with a btif callback message.
 #[proc_macro_attribute]
-pub fn stack_message(_attr: TokenStream, item: TokenStream) -> TokenStream {
+pub fn btif_callback(_attr: TokenStream, item: TokenStream) -> TokenStream {
     let ori_item: proc_macro2::TokenStream = item.clone().into();
     let gen = quote! {
-        #[allow(unused_variables)]
         #ori_item
     };
     gen.into()
 }
 
-/// Generates a topshim callback object that contains closures.
-///
-/// The closures are generated to be calls to the corresponding `Stack::Message`.
+/// Generates a dispatcher from a message to a function.
 #[proc_macro_attribute]
-pub fn btif_callbacks_generator(attr: TokenStream, item: TokenStream) -> TokenStream {
+pub fn btif_callbacks_dispatcher(attr: TokenStream, item: TokenStream) -> TokenStream {
     let args = Punctuated::<Expr, Comma>::parse_separated_nonempty.parse(attr.clone()).unwrap();
 
-    let fn_ident = if let Expr::Path(p) = &args[0] {
+    let struct_ident = if let Expr::Path(p) = &args[0] {
+        p.path.get_ident().unwrap()
+    } else {
+        panic!("struct name must be specified");
+    };
+
+    let fn_ident = if let Expr::Path(p) = &args[1] {
         p.path.get_ident().unwrap()
     } else {
         panic!("function name must be specified");
     };
 
-    let callbacks_struct_ident = if let Expr::Path(p) = &args[1] {
+    let callbacks_struct_ident = if let Expr::Path(p) = &args[2] {
         p.path.get_ident().unwrap()
     } else {
         panic!("callbacks struct ident must be specified");
     };
 
+    let mut dispatch_arms = quote! {};
+
     let ast: ItemTrait = syn::parse(item.clone()).unwrap();
 
     let mut fn_names = quote! {};
-    let mut closure_defs = quote! {};
     for attr in ast.items {
         if let TraitItem::Method(m) = attr {
             if m.attrs.len() != 1 {
@@ -60,18 +64,18 @@ pub fn btif_callbacks_generator(attr: TokenStream, item: TokenStream) -> TokenSt
             }
 
             let attr = &m.attrs[0];
-            if !attr.path.get_ident().unwrap().to_string().eq("stack_message") {
+            if !attr.path.get_ident().unwrap().to_string().eq("btif_callback") {
                 continue;
             }
 
             let attr_args = attr.parse_meta().unwrap();
-            let stack_message = if let Meta::List(meta_list) = attr_args {
+            let btif_callback = if let Meta::List(meta_list) = attr_args {
                 Some(meta_list.nested[0].clone())
             } else {
                 None
             };
 
-            if stack_message.is_none() {
+            if btif_callback.is_none() {
                 continue;
             }
 
@@ -91,18 +95,11 @@ pub fn btif_callbacks_generator(attr: TokenStream, item: TokenStream) -> TokenSt
                 #method_ident,
             };
 
-            closure_defs = quote! {
-                #closure_defs
-                let tx_clone = tx.clone();
-                let #method_ident = Box::new(move |#arg_names| {
-                    let tx = tx_clone.clone();
-                    topstack::get_runtime().spawn(async move {
-                        let result = tx.send(Message::#stack_message(#arg_names)).await;
-                        if let Err(e) = result {
-                            eprintln!("Error in sending message: {}", e);
-                        }
-                    });
-                });
+            dispatch_arms = quote! {
+                #dispatch_arms
+                #callbacks_struct_ident::#btif_callback(#arg_names) => {
+                    self.#method_ident(#arg_names);
+                }
             };
         }
     }
@@ -111,20 +108,13 @@ pub fn btif_callbacks_generator(attr: TokenStream, item: TokenStream) -> TokenSt
 
     let gen = quote! {
         #ori_item
+        impl #struct_ident {
+            pub(crate) fn #fn_ident(&mut self, cb: #callbacks_struct_ident) {
+                match cb {
+                    #dispatch_arms
 
-        /// Returns a callback object to be passed to topshim.
-        pub fn #fn_ident(tx: tokio::sync::mpsc::Sender<Message>) -> #callbacks_struct_ident {
-            #closure_defs
-            #callbacks_struct_ident {
-                #fn_names
-                // TODO: Handle these in main loop.
-                acl_state_changed: Box::new(|_, _, _, _| {}),
-                bond_state_changed: Box::new(|_, _, _| {}),
-                device_found: Box::new(|_, _| {}),
-                discovery_state_changed: Box::new(|_| {}),
-                pin_request: Box::new(|_, _, _, _| {}),
-                remote_device_properties_changed: Box::new(|_, _, _, _| {}),
-                ssp_request: Box::new(|_, _, _, _, _| {}),
+                    _ => println!("Unhandled callback arm {:?}", cb),
+                }
             }
         }
     };
