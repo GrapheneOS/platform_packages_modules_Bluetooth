@@ -6,7 +6,7 @@ use btstack::RPCProxy;
 use dbus::arg::RefArg;
 
 use dbus::nonblock::SyncConnection;
-use dbus::strings::{BusName, Path};
+use dbus::strings::Path;
 
 use dbus_macros::{dbus_method, dbus_propmap, dbus_proxy_obj, generate_dbus_exporter};
 
@@ -15,11 +15,9 @@ use dbus_projection::DisconnectWatcher;
 
 use num_traits::cast::{FromPrimitive, ToPrimitive};
 
-use std::error::Error;
 use std::sync::Arc;
-use std::sync::Mutex;
 
-use crate::dbus_arg::{DBusArg, DBusArgError};
+use crate::dbus_arg::{DBusArg, DBusArgError, RefArgToRust};
 
 #[dbus_propmap(BluetoothDevice)]
 pub struct BluetoothDeviceDBus {
@@ -51,11 +49,13 @@ impl IBluetooth for IBluetoothDBus {
     #[dbus_method("RegisterCallback")]
     fn register_callback(&mut self, callback: Box<dyn IBluetoothCallback + Send>) {}
 
-    #[dbus_method("Enable")]
+    // Not exposed over D-Bus. The stack is automatically enabled when the daemon starts.
     fn enable(&mut self) -> bool {
         false
     }
-    #[dbus_method("Disable")]
+
+    // Not exposed over D-Bus. The stack is automatically disabled when the daemon exits.
+    // TODO(b/189495858): Handle shutdown properly when SIGTERM is received.
     fn disable(&mut self) -> bool {
         false
     }
