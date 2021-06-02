@@ -485,7 +485,7 @@ static void iso_data_callback() {
   if (hci_iso_queue_end == nullptr) {
     return;
   }
-  auto packet = hci_queue_end->TryDequeue();
+  auto packet = hci_iso_queue_end->TryDequeue();
   ASSERT(packet != nullptr);
   if (!packet->IsValid()) {
     LOG_INFO("Dropping invalid packet of size %zu", packet->size());
