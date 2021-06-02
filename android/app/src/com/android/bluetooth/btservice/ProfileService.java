@@ -61,7 +61,7 @@ public abstract class ProfileService extends Service {
     private AdapterService mAdapterService;
     private BroadcastReceiver mUserSwitchedReceiver;
     private boolean mProfileStarted = false;
-    private boolean mTestModeEnabled = false;
+    private volatile boolean mTestModeEnabled = false;
 
     public String getName() {
         return getClass().getSimpleName();
