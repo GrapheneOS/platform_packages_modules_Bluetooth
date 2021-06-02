@@ -30,6 +30,7 @@ namespace test_vendor_lib {
 
 using ::bluetooth::hci::Address;
 using ::bluetooth::hci::ClassOfDevice;
+using ::bluetooth::hci::EventCode;
 
 class DeviceProperties {
  public:
@@ -228,6 +229,11 @@ class DeviceProperties {
   uint64_t GetEventMask() const { return event_mask_; }
 
   void SetEventMask(uint64_t mask) { event_mask_ = mask; }
+
+  bool IsUnmasked(EventCode event) const {
+    uint64_t bit = UINT64_C(1) << (static_cast<uint8_t>(event) - 1);
+    return (event_mask_ & bit) != 0;
+  }
 
   // Low-Energy functions
   const Address& GetLeAddress() const {
