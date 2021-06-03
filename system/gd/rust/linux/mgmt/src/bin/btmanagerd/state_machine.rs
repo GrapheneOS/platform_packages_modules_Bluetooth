@@ -97,17 +97,33 @@ impl StateMachineProxy {
     }
 }
 
+fn pid_inotify_async_fd() -> AsyncFd<inotify::Inotify> {
+    let mut pid_detector = inotify::Inotify::init().expect("cannot use inotify");
+    pid_detector
+        .add_watch("/var/run", inotify::WatchMask::CREATE | inotify::WatchMask::DELETE)
+        .expect("failed to add watch");
+    AsyncFd::new(pid_detector).expect("failed to add async fd")
+}
+
+fn hci_devices_inotify_async_fd() -> AsyncFd<inotify::Inotify> {
+    let mut detector = inotify::Inotify::init().expect("cannot use inotify");
+    detector
+        .add_watch(
+            crate::config_util::HCI_DEVICES_DIR,
+            inotify::WatchMask::CREATE | inotify::WatchMask::DELETE,
+        )
+        .expect("failed to add watch");
+    AsyncFd::new(detector).expect("failed to add async fd")
+}
+
 pub async fn mainloop<PM>(mut context: StateMachineContext<PM>)
 where
     PM: ProcessManager + Send,
 {
     let mut command_timeout = Alarm::new();
-    let mut pid_detector = inotify::Inotify::init().expect("cannot use inotify");
-    pid_detector
-        .add_watch("/var/run", inotify::WatchMask::CREATE | inotify::WatchMask::DELETE)
-        .expect("failed to add watch");
-    let mut pid_async_fd = AsyncFd::new(pid_detector).expect("failed to add async fd");
     let command_timeout_duration = Duration::from_secs(2);
+    let mut pid_async_fd = pid_inotify_async_fd();
+    let mut config_async_fd = hci_devices_inotify_async_fd();
     loop {
         tokio::select! {
             Some(action) = context.rx.recv() => {
@@ -191,6 +207,16 @@ where
                         }
                     }
                     Err(_) | Ok(Err(_)) => panic!("why can't we read while the asyncfd is ready?"),
+                }
+                fd_ready.clear_ready();
+                drop(fd_ready);
+            },
+            r = config_async_fd.readable_mut() => {
+                let mut fd_ready = r.unwrap();
+                let mut buffer: [u8; 1024] = [0; 1024];
+                match fd_ready.try_io(|inner| inner.get_mut().read_events(&mut buffer)) {
+                    // TODO: Placeholder
+                    _ => (),
                 }
                 fd_ready.clear_ready();
                 drop(fd_ready);
