@@ -15,86 +15,31 @@
 #   limitations under the License.
 
 from cert.gd_base_test import GdBaseTestClass
-from cert.truth import assertThat
-from neighbor.facade import facade_pb2 as neighbor_facade
-from bluetooth_packets_python3 import hci_packets
-from cert.py_hci import PyHci
-from cert.py_acl_manager import PyAclManager
+from hci.cert.acl_manager_test_lib import AclManagerTestBase
 
 
-class AclManagerTest(GdBaseTestClass):
+class AclManagerTest(GdBaseTestClass, AclManagerTestBase):
 
     def setup_class(self):
-        super().setup_class(dut_module='HCI_INTERFACES', cert_module='HCI')
+        GdBaseTestClass.setup_class(self, dut_module='HCI_INTERFACES', cert_module='HCI')
 
     # todo: move into GdBaseTestClass, based on modules inited
     def setup_test(self):
-        super().setup_test()
-        self.cert_hci = PyHci(self.cert, acl_streaming=True)
-        self.dut_acl_manager = PyAclManager(self.dut)
+        GdBaseTestClass.setup_test(self)
+        AclManagerTestBase.setup_test(self, self.dut, self.cert)
 
     def teardown_test(self):
-        self.cert_hci.close()
-        super().teardown_test()
+        AclManagerTestBase.teardown_test(self)
+        GdBaseTestClass.teardown_test(self)
 
     def test_dut_connects(self):
-        self.cert_hci.enable_inquiry_and_page_scan()
-        cert_address = self.cert_hci.read_own_address()
-
-        self.dut_acl_manager.initiate_connection(cert_address)
-        cert_acl = self.cert_hci.accept_connection()
-        with self.dut_acl_manager.complete_outgoing_connection() as dut_acl:
-            cert_acl.send_first(b'\x26\x00\x07\x00This is just SomeAclData from the Cert')
-            dut_acl.send(b'\x29\x00\x07\x00This is just SomeMoreAclData from the DUT')
-
-            assertThat(cert_acl).emits(lambda packet: b'SomeMoreAclData' in packet.payload)
-            assertThat(dut_acl).emits(lambda packet: b'SomeAclData' in packet.payload)
+        AclManagerTestBase.test_dut_connects(self)
 
     def test_cert_connects(self):
-        dut_address = self.dut.hci_controller.GetMacAddressSimple()
-        self.dut.neighbor.EnablePageScan(neighbor_facade.EnableMsg(enabled=True))
-
-        self.dut_acl_manager.listen_for_an_incoming_connection()
-        self.cert_hci.initiate_connection(dut_address)
-        with self.dut_acl_manager.complete_incoming_connection() as dut_acl:
-            cert_acl = self.cert_hci.complete_connection()
-
-            dut_acl.send(b'\x29\x00\x07\x00This is just SomeMoreAclData from the DUT')
-
-            cert_acl.send_first(b'\x26\x00\x07\x00This is just SomeAclData from the Cert')
-
-            assertThat(cert_acl).emits(lambda packet: b'SomeMoreAclData' in packet.payload)
-            assertThat(dut_acl).emits(lambda packet: b'SomeAclData' in packet.payload)
+        AclManagerTestBase.test_cert_connects(self)
 
     def test_cert_connects_disconnects(self):
-        dut_address = self.dut.hci_controller.GetMacAddressSimple()
-        self.dut.neighbor.EnablePageScan(neighbor_facade.EnableMsg(enabled=True))
-
-        self.dut_acl_manager.listen_for_an_incoming_connection()
-        self.cert_hci.initiate_connection(dut_address)
-        with self.dut_acl_manager.complete_incoming_connection() as dut_acl:
-            cert_acl = self.cert_hci.complete_connection()
-
-            dut_acl.send(b'\x29\x00\x07\x00This is just SomeMoreAclData from the DUT')
-
-            cert_acl.send_first(b'\x26\x00\x07\x00This is just SomeAclData from the Cert')
-
-            assertThat(cert_acl).emits(lambda packet: b'SomeMoreAclData' in packet.payload)
-            assertThat(dut_acl).emits(lambda packet: b'SomeAclData' in packet.payload)
-
-            dut_acl.disconnect(hci_packets.DisconnectReason.REMOTE_USER_TERMINATED_CONNECTION)
-            dut_acl.wait_for_disconnection_complete()
+        AclManagerTestBase.test_cert_connects_disconnects(self)
 
     def test_recombination_l2cap_packet(self):
-        self.cert_hci.enable_inquiry_and_page_scan()
-        cert_address = self.cert_hci.read_own_address()
-
-        self.dut_acl_manager.initiate_connection(cert_address)
-        cert_acl = self.cert_hci.accept_connection()
-        with self.dut_acl_manager.complete_outgoing_connection() as dut_acl:
-            cert_acl.send_first(b'\x06\x00\x07\x00Hello')
-            cert_acl.send_continuing(b'!')
-            cert_acl.send_first(b'\xe8\x03\x07\x00' + b'Hello' * 200)
-
-            assertThat(dut_acl).emits(lambda packet: b'Hello!' in packet.payload,
-                                      lambda packet: b'Hello' * 200 in packet.payload).inOrder()
+        AclManagerTestBase.test_recombination_l2cap_packet(self)
