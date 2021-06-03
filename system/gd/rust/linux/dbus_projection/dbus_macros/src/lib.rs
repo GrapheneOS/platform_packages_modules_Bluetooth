@@ -426,6 +426,9 @@ pub fn dbus_proxy_obj(attr: TokenStream, item: TokenStream) -> TokenStream {
 
         impl RPCProxy for #self_ty {
             fn register_disconnect(&mut self, _disconnect_callback: Box<dyn Fn() + Send>) {}
+            fn get_object_id(&self) -> String {
+                String::from("")
+            }
         }
 
         struct #struct_ident {
@@ -442,6 +445,10 @@ pub fn dbus_proxy_obj(attr: TokenStream, item: TokenStream) -> TokenStream {
         impl RPCProxy for #struct_ident {
             fn register_disconnect(&mut self, disconnect_callback: Box<dyn Fn() + Send>) {
                 self.disconnect_watcher.lock().unwrap().add(self.remote.clone(), disconnect_callback);
+            }
+
+            fn get_object_id(&self) -> String {
+                self.objpath.to_string().clone()
             }
         }
 

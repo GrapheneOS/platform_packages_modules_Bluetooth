@@ -8,6 +8,10 @@ use btstack::bluetooth::{
 
 use btstack::{RPCProxy, Stack};
 
+use dbus::channel::MatchingReceiver;
+
+use dbus::message::MatchRule;
+
 use dbus::nonblock::SyncConnection;
 
 use std::sync::{Arc, Mutex};
@@ -15,6 +19,8 @@ use std::sync::{Arc, Mutex};
 use crate::command_handler::CommandHandler;
 use crate::dbus_iface::BluetoothDBus;
 use crate::editor::AsyncEditor;
+
+use dbus_crossroads::Crossroads;
 
 mod command_handler;
 mod console;
@@ -24,6 +30,7 @@ mod editor;
 
 struct BtCallback {
     disconnect_callbacks: Arc<Mutex<Vec<Box<dyn Fn() + Send>>>>,
+    objpath: String,
 }
 
 impl IBluetoothCallback for BtCallback {
@@ -47,6 +54,10 @@ impl IBluetoothCallback for BtCallback {
 impl RPCProxy for BtCallback {
     fn register_disconnect(&mut self, f: Box<dyn Fn() + Send>) {
         self.disconnect_callbacks.lock().unwrap().push(f);
+    }
+
+    fn get_object_id(&self) -> String {
+        self.objpath.clone()
     }
 }
 
@@ -74,8 +85,8 @@ fn create_api_embedded() -> API<Bluetooth> {
 }
 
 // This creates the API implementations over D-Bus.
-fn create_api_dbus(conn: Arc<SyncConnection>) -> API<BluetoothDBus> {
-    let bluetooth = Arc::new(Mutex::new(Box::new(BluetoothDBus::new(conn.clone()))));
+fn create_api_dbus(conn: Arc<SyncConnection>, cr: Arc<Mutex<Crossroads>>) -> API<BluetoothDBus> {
+    let bluetooth = Arc::new(Mutex::new(Box::new(BluetoothDBus::new(conn.clone(), cr))));
 
     API { bluetooth }
 }
@@ -95,13 +106,30 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             panic!("Lost connection to D-Bus: {}", err);
         });
 
-        let api = create_api_dbus(conn);
+        // Sets up Crossroads for receiving callbacks.
+        let cr = Arc::new(Mutex::new(Crossroads::new()));
+        cr.lock().unwrap().set_async_support(Some((
+            conn.clone(),
+            Box::new(|x| {
+                topstack::get_runtime().spawn(x);
+            }),
+        )));
+        let cr_clone = cr.clone();
+        conn.start_receive(
+            MatchRule::new_method_call(),
+            Box::new(move |msg, conn| {
+                cr_clone.lock().unwrap().handle_message(msg, conn).unwrap();
+                true
+            }),
+        );
+
+        let api = create_api_dbus(conn, cr);
 
         let dc_callbacks = Arc::new(Mutex::new(vec![]));
-        api.bluetooth
-            .lock()
-            .unwrap()
-            .register_callback(Box::new(BtCallback { disconnect_callbacks: dc_callbacks.clone() }));
+        api.bluetooth.lock().unwrap().register_callback(Box::new(BtCallback {
+            disconnect_callbacks: dc_callbacks.clone(),
+            objpath: String::from("/org/chromium/bluetooth/client/bluetooth_callback"),
+        }));
 
         let handler = CommandHandler::<BluetoothDBus>::new(api.bluetooth.clone());
 
