@@ -27,6 +27,7 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.IBluetoothCallback;
 import android.content.AttributionSource;
+import android.content.AttributionSourceState;
 import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
@@ -41,6 +42,7 @@ import android.os.Process;
 import android.os.SystemProperties;
 import android.os.UserHandle;
 import android.os.UserManager;
+import android.permission.PermissionCheckerManager;
 import android.test.mock.MockContentResolver;
 import android.util.Log;
 
@@ -93,6 +95,7 @@ public class AdapterServiceTest {
     private @Mock Binder mBinder;
     private @Mock AudioManager mAudioManager;
     private @Mock android.app.Application mApplication;
+    private @Mock PermissionCheckerManager mMockPermissionCheckerManager;
 
     private static final int CONTEXT_SWITCH_MS = 100;
     private static final int PROFILE_SERVICE_TOGGLE_TIME_MS = 200;
@@ -184,6 +187,14 @@ public class AdapterServiceTest {
         mAdapterService.attach(mMockContext, null, null, null, mApplication, null);
 
         mAdapterService.onCreate();
+        doReturn(Context.PERMISSION_CHECKER_SERVICE).when(mMockContext)
+                .getSystemServiceName(PermissionCheckerManager.class);
+        when(mMockContext.getSystemService(Context.PERMISSION_CHECKER_SERVICE))
+                .thenReturn(mMockPermissionCheckerManager);
+        when(mMockPermissionCheckerManager.checkPermission(anyString(),
+                any(AttributionSourceState.class),
+                anyString(), anyBoolean(), anyBoolean(),
+                anyBoolean(), anyInt())).thenReturn(PackageManager.PERMISSION_GRANTED);
         mServiceBinder.registerCallback(mIBluetoothCallback, mAttributionSource);
 
         Config.init(mMockContext);
