@@ -50,16 +50,19 @@ impl RPCProxy for BtCallback {
     }
 }
 
-struct API {
-    bluetooth: Arc<Mutex<dyn IBluetooth>>,
+struct API<T: IBluetooth> {
+    bluetooth: Arc<Mutex<Box<T>>>,
 }
 
 // This creates the API implementations directly embedded to this client.
-fn create_api_embedded() -> API {
+// TODO: Remove when D-Bus client is completed since this is only useful while D-Bus client is
+// under development.
+#[allow(dead_code)]
+fn create_api_embedded() -> API<Bluetooth> {
     let (tx, rx) = Stack::create_channel();
 
     let intf = Arc::new(Mutex::new(get_btinterface().unwrap()));
-    let bluetooth = Arc::new(Mutex::new(Bluetooth::new(tx.clone(), intf.clone())));
+    let bluetooth = Arc::new(Mutex::new(Box::new(Bluetooth::new(tx.clone(), intf.clone()))));
 
     intf.lock().unwrap().initialize(get_bt_dispatcher(tx), vec![]);
 
@@ -71,8 +74,8 @@ fn create_api_embedded() -> API {
 }
 
 // This creates the API implementations over D-Bus.
-fn create_api_dbus(conn: Arc<SyncConnection>) -> API {
-    let bluetooth = Arc::new(Mutex::new(BluetoothDBus::new(conn.clone())));
+fn create_api_dbus(conn: Arc<SyncConnection>) -> API<BluetoothDBus> {
+    let bluetooth = Arc::new(Mutex::new(Box::new(BluetoothDBus::new(conn.clone()))));
 
     API { bluetooth }
 }
@@ -92,12 +95,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             panic!("Lost connection to D-Bus: {}", err);
         });
 
-        // TODO: Separate the embedded mode into its own binary.
-        let api = if std::env::var("EMBEDDED_STACK").is_ok() {
-            create_api_embedded()
-        } else {
-            create_api_dbus(conn)
-        };
+        let api = create_api_dbus(conn);
 
         let dc_callbacks = Arc::new(Mutex::new(vec![]));
         api.bluetooth
@@ -105,7 +103,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             .unwrap()
             .register_callback(Box::new(BtCallback { disconnect_callbacks: dc_callbacks.clone() }));
 
-        let handler = CommandHandler::new(api.bluetooth.clone());
+        let handler = CommandHandler::<BluetoothDBus>::new(api.bluetooth.clone());
 
         let simulate_disconnect = move |_cmd| {
             for callback in &*dc_callbacks.lock().unwrap() {

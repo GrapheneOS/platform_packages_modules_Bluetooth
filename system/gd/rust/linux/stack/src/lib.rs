@@ -97,7 +97,7 @@ impl Stack {
     }
 
     /// Runs the main dispatch loop.
-    pub async fn dispatch(mut rx: Receiver<Message>, bluetooth: Arc<Mutex<Bluetooth>>) {
+    pub async fn dispatch(mut rx: Receiver<Message>, bluetooth: Arc<Mutex<Box<Bluetooth>>>) {
         loop {
             let m = rx.recv().await;
 
