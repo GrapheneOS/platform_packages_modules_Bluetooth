@@ -105,6 +105,9 @@
     <!-- For enabling the AVRCP Target Cover Artowrk feature-->
     <bool name="avrcp_target_enable_cover_art">true</bool>
 
+    <!-- Enable support for URI based images. Off by default due to increased memory usage -->
+    <bool name="avrcp_target_cover_art_uri_images">false</bool>
+
     <!-- Package that is responsible for user interaction on pairing request,
          success or cancel.
          Receives:
