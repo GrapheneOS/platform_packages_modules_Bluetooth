@@ -28,6 +28,7 @@
 #include "bta/include/bta_hh_co.h"
 #include "device/include/interop.h"
 #include "main/shim/dumpsys.h"
+#include "main/shim/shim.h"
 #include "osi/include/log.h"
 #include "osi/include/osi.h"         // ARRAY_SIZE
 #include "stack/btm/btm_sec.h"       // BTM_
@@ -56,6 +57,13 @@ constexpr bool kBTA_HH_LE_RECONN = false;
 #define BTA_HH_LE_PROTO_REPORT_MODE 0x01
 
 #define BTA_LE_HID_RTP_UUID_MAX 5
+
+namespace {
+
+constexpr char kBtmLogTag[] = "HIDH";
+
+}
+
 static const uint16_t bta_hh_uuid_to_rtp_type[BTA_LE_HID_RTP_UUID_MAX][2] = {
     {GATT_UUID_HID_REPORT, BTA_HH_RPTT_INPUT},
     {GATT_UUID_HID_BT_KB_INPUT, BTA_HH_RPTT_INPUT},
@@ -1581,26 +1589,43 @@ static void bta_hh_le_input_rpt_notify(tBTA_GATTC_NOTIFY* p_data) {
  *
  ******************************************************************************/
 void bta_hh_le_open_fail(tBTA_HH_DEV_CB* p_cb, const tBTA_HH_DATA* p_data) {
-  tBTA_HH_CONN conn_dat;
+  const tBTA_HH_LE_CLOSE* le_close = &p_data->le_close;
+
+  BTM_LogHistory(kBtmLogTag, p_cb->addr, "Open failed",
+                 base::StringPrintf(
+                     "%s reason %s", (p_cb->is_le_device) ? "le" : "classic",
+                     gatt_disconnection_reason_text(le_close->reason).c_str()));
+  LOG_WARN("Open failed for device:%s", PRIVATE_ADDRESS(p_cb->addr));
 
   /* open failure in the middle of service discovery, clear all services */
   if (p_cb->disc_active & BTA_HH_LE_DISC_HIDS) {
     bta_hh_clear_service_cache(p_cb);
   }
 
-  p_cb->disc_active = BTA_HH_LE_DISC_NONE;
-  /* Failure in opening connection or GATT discovery failure */
-  conn_dat.handle = p_cb->hid_handle;
-  conn_dat.bda = p_cb->addr;
-  conn_dat.le_hid = true;
-  conn_dat.scps_supported = p_cb->scps_supported;
-  conn_dat.status = p_cb->status;
-  if (p_data->le_close.reason != GATT_CONN_OK) {
-    conn_dat.status = BTA_HH_ERR;
+  if (bluetooth::shim::is_gd_acl_enabled() && p_cb->is_le_device) {
+    LOG_DEBUG("gd_acl: Re-adding HID device to acceptlist");
+    // gd removes from bg list after failed connection
+    // Correct the cached state to allow re-add to acceptlist.
+    p_cb->in_bg_conn = false;
+    bta_hh_le_add_dev_bg_conn(p_cb, false);
   }
 
+  p_cb->disc_active = BTA_HH_LE_DISC_NONE;
+  /* Failure in opening connection or GATT discovery failure */
+  tBTA_HH data = {
+      .conn =
+          {
+              .handle = p_cb->hid_handle,
+              .bda = p_cb->addr,
+              .le_hid = true,
+              .scps_supported = p_cb->scps_supported,
+              .status = (le_close->reason != GATT_CONN_OK) ? BTA_HH_ERR
+                                                           : p_cb->status,
+          },
+  };
+
   /* Report OPEN fail event */
-  (*bta_hh_cb.p_cback)(BTA_HH_OPEN_EVT, (tBTA_HH*)&conn_dat);
+  (*bta_hh_cb.p_cback)(BTA_HH_OPEN_EVT, &data);
 }
 
 /*******************************************************************************
@@ -1614,6 +1639,12 @@ void bta_hh_le_open_fail(tBTA_HH_DEV_CB* p_cb, const tBTA_HH_DATA* p_data) {
  *
  ******************************************************************************/
 void bta_hh_gatt_close(tBTA_HH_DEV_CB* p_cb, const tBTA_HH_DATA* p_data) {
+  const tBTA_HH_LE_CLOSE* le_close = &p_data->le_close;
+
+  BTM_LogHistory(kBtmLogTag, p_cb->addr, "Closed",
+                 base::StringPrintf(
+                     "%s reason %s", (p_cb->is_le_device) ? "le" : "classic",
+                     gatt_disconnection_reason_text(le_close->reason).c_str()));
 
   /* deregister all notification */
   bta_hh_le_deregister_input_notif(p_cb);
@@ -1631,8 +1662,35 @@ void bta_hh_gatt_close(tBTA_HH_DEV_CB* p_cb, const tBTA_HH_DATA* p_data) {
   /* if no connection is active and HH disable is signaled, disable service */
   if (bta_hh_cb.cnt_num == 0 && bta_hh_cb.w4_disable) {
     bta_hh_disc_cmpl();
-  } else if (kBTA_HH_LE_RECONN &&
-             p_data->le_close.reason == GATT_CONN_TIMEOUT) {
+  } else if (bluetooth::shim::is_gd_acl_enabled()) {
+    switch (le_close->reason) {
+      case GATT_CONN_FAILED_ESTABLISHMENT:
+      case GATT_CONN_TERMINATE_PEER_USER:
+      case GATT_CONN_TIMEOUT:
+        LOG_DEBUG(
+            "gd_acl: add into acceptlist for reconnection device:%s reason:%s",
+            PRIVATE_ADDRESS(p_cb->addr),
+            gatt_disconnection_reason_text(le_close->reason).c_str());
+        // gd removes from bg list after successful connection
+        // Correct the cached state to allow re-add to acceptlist.
+        p_cb->in_bg_conn = false;
+        bta_hh_le_add_dev_bg_conn(p_cb, false);
+        break;
+
+      case BTA_GATT_CONN_NONE:
+      case GATT_CONN_L2C_FAILURE:
+      case GATT_CONN_LMP_TIMEOUT:
+      case GATT_CONN_OK:
+      case GATT_CONN_TERMINATE_LOCAL_HOST:
+      default:
+        LOG_DEBUG(
+            "gd_acl: SKIP add into acceptlist for reconnection device:%s "
+            "reason:%s",
+            PRIVATE_ADDRESS(p_cb->addr),
+            gatt_disconnection_reason_text(le_close->reason).c_str());
+        break;
+    }
+  } else if (kBTA_HH_LE_RECONN && le_close->reason == HCI_ERR_CONNECTION_TOUT) {
     bta_hh_le_add_dev_bg_conn(p_cb, false);
   }
 }
@@ -1941,8 +1999,15 @@ static void bta_hh_le_add_dev_bg_conn(tBTA_HH_DEV_CB* p_cb, bool check_bond) {
     /* add device into BG connection to accept remote initiated connection */
     BTA_GATTC_Open(bta_hh_cb.gatt_if, p_cb->addr, false, false);
     p_cb->in_bg_conn = true;
+  } else if (bluetooth::shim::is_gd_acl_enabled()) {
+    // Let the lower layers manage acceptlist and do not cache
+    // at the higher layer
+    p_cb->in_bg_conn = true;
+    BTA_GATTC_Open(bta_hh_cb.gatt_if, p_cb->addr, false, false);
+  } else {
+    LOG_WARN("Unable to add device into bg in_bg_conn:%u to_add:%u",
+             p_cb->in_bg_conn, to_add);
   }
-  return;
 }
 
 /*******************************************************************************
@@ -2013,7 +2078,8 @@ void bta_hh_le_remove_dev_bg_conn(tBTA_HH_DEV_CB* p_dev_cb) {
  ******************************************************************************/
 static void bta_hh_gattc_callback(tBTA_GATTC_EVT event, tBTA_GATTC* p_data) {
   tBTA_HH_DEV_CB* p_dev_cb;
-  APPL_TRACE_DEBUG("bta_hh_gattc_callback event = %d", event);
+  APPL_TRACE_DEBUG("bta_hh_gattc_callback event:%s",
+                   gatt_client_event_text(event).c_str());
   if (p_data == NULL) return;
 
   switch (event) {
