@@ -1,12 +1,7 @@
-extern crate bt_shim;
-
-use bt_topshim::btif::get_btinterface;
 use bt_topshim::topstack;
-use btstack::bluetooth::{
-    get_bt_dispatcher, Bluetooth, BluetoothDevice, IBluetooth, IBluetoothCallback,
-};
 
-use btstack::{RPCProxy, Stack};
+use btstack::bluetooth::{BluetoothDevice, IBluetooth, IBluetoothCallback};
+use btstack::RPCProxy;
 
 use dbus::channel::MatchingReceiver;
 
@@ -29,7 +24,6 @@ mod dbus_iface;
 mod editor;
 
 struct BtCallback {
-    disconnect_callbacks: Arc<Mutex<Vec<Box<dyn Fn() + Send>>>>,
     objpath: String,
 }
 
@@ -52,9 +46,7 @@ impl IBluetoothCallback for BtCallback {
 }
 
 impl RPCProxy for BtCallback {
-    fn register_disconnect(&mut self, f: Box<dyn Fn() + Send>) {
-        self.disconnect_callbacks.lock().unwrap().push(f);
-    }
+    fn register_disconnect(&mut self, _f: Box<dyn Fn() + Send>) {}
 
     fn get_object_id(&self) -> String {
         self.objpath.clone()
@@ -63,25 +55,6 @@ impl RPCProxy for BtCallback {
 
 struct API<T: IBluetooth> {
     bluetooth: Arc<Mutex<Box<T>>>,
-}
-
-// This creates the API implementations directly embedded to this client.
-// TODO: Remove when D-Bus client is completed since this is only useful while D-Bus client is
-// under development.
-#[allow(dead_code)]
-fn create_api_embedded() -> API<Bluetooth> {
-    let (tx, rx) = Stack::create_channel();
-
-    let intf = Arc::new(Mutex::new(get_btinterface().unwrap()));
-    let bluetooth = Arc::new(Mutex::new(Box::new(Bluetooth::new(tx.clone(), intf.clone()))));
-
-    intf.lock().unwrap().initialize(get_bt_dispatcher(tx), vec![]);
-
-    bluetooth.lock().unwrap().init_profiles();
-
-    topstack::get_runtime().spawn(Stack::dispatch(rx, bluetooth.clone()));
-
-    API { bluetooth }
 }
 
 // This creates the API implementations over D-Bus.
@@ -125,19 +98,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
         let api = create_api_dbus(conn, cr);
 
-        let dc_callbacks = Arc::new(Mutex::new(vec![]));
         api.bluetooth.lock().unwrap().register_callback(Box::new(BtCallback {
-            disconnect_callbacks: dc_callbacks.clone(),
             objpath: String::from("/org/chromium/bluetooth/client/bluetooth_callback"),
         }));
 
         let handler = CommandHandler::<BluetoothDBus>::new(api.bluetooth.clone());
-
-        let simulate_disconnect = move |_cmd| {
-            for callback in &*dc_callbacks.lock().unwrap() {
-                callback();
-            }
-        };
 
         let handle_cmd = move |cmd: String| match cmd.split(' ').collect::<Vec<&str>>()[0] {
             "enable" => handler.cmd_enable(cmd),
@@ -146,10 +111,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             "start_discovery" => handler.cmd_start_discovery(cmd),
             "cancel_discovery" => handler.cmd_cancel_discovery(cmd),
             "create_bond" => handler.cmd_create_bond(cmd),
-
-            // Simulate client disconnection. Only useful in embedded mode. In D-Bus mode there is
-            // real D-Bus disconnection.
-            "simulate_disconnect" => simulate_disconnect(cmd),
 
             // Ignore empty commands.
             "" => {}
