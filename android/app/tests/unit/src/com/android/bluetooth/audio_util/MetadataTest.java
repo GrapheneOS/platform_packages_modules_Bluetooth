@@ -40,6 +40,8 @@ import android.test.mock.MockContentResolver;
 import androidx.test.InstrumentationRegistry;
 import androidx.test.runner.AndroidJUnit4;
 
+import com.android.bluetooth.R;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -54,6 +56,7 @@ public class MetadataTest {
     private Context mTargetContext;
 
     private @Mock Context mMockContext;
+    private @Mock Resources mMockResources;
     private Resources mTestResources;
     private MockContentResolver mTestContentResolver;
 
@@ -121,6 +124,8 @@ public class MetadataTest {
         });
 
         when(mMockContext.getContentResolver()).thenReturn(mTestContentResolver);
+        when(mMockResources.getBoolean(R.bool.avrcp_target_cover_art_uri_images)).thenReturn(true);
+        when(mMockContext.getResources()).thenReturn(mMockResources);
 
         mSongImage = new Image(mMockContext, mTestBitmap);
     }
@@ -363,6 +368,24 @@ public class MetadataTest {
     }
 
     /**
+     * Make sure building with a MediaMetadata that contains URI art when URI art is disabled
+     * yields no cover art.
+     */
+    @Test
+    public void testBuildMetadataFromMediaMetadataWithUriAndUrisDisabled() {
+        when(mMockResources.getBoolean(
+                R.bool.avrcp_target_cover_art_uri_images)).thenReturn(false);
+        MediaMetadata m =
+                getMediaMetadataWithUri(MediaMetadata.METADATA_KEY_ART_URI, IMAGE_URI_1);
+        Metadata metadata = new Metadata.Builder()
+                .useContext(mMockContext)
+                .fromMediaMetadata(m)
+                .build();
+        assertMetadata(SONG_MEDIA_ID, SONG_TITLE, SONG_ARTIST, SONG_ALBUM, SONG_TRACK_NUM,
+                SONG_NUM_TRACKS, SONG_GENRE, SONG_DURATION, null, metadata);
+    }
+
+    /**
      * Make sure we're robust to building with a null MediaMetadata
      */
     @Test
@@ -535,6 +558,36 @@ public class MetadataTest {
     }
 
     /**
+     * Make sure we're robust to building with a Bundle that contains URI art and no context object
+     */
+    @Test
+    public void testBuildMetadataFromBundleWithUriNoContext() {
+        Bundle bundle = getBundleWithUri(MediaMetadata.METADATA_KEY_DISPLAY_ICON_URI, IMAGE_URI_1);
+        Metadata metadata = new Metadata.Builder()
+                .fromBundle(bundle)
+                .build();
+        assertMetadata(SONG_MEDIA_ID, SONG_TITLE, SONG_ARTIST, SONG_ALBUM, SONG_TRACK_NUM,
+                SONG_NUM_TRACKS, SONG_GENRE, SONG_DURATION, null, metadata);
+    }
+
+    /**
+     * Make sure building with a Bundle that contains URI art when URI art is disabled yields no
+     * cover art.
+     */
+    @Test
+    public void testBuildMetadataFromBundleWithUriAndUrisDisabled() {
+        when(mMockResources.getBoolean(
+                R.bool.avrcp_target_cover_art_uri_images)).thenReturn(false);
+        Bundle bundle = getBundleWithUri(MediaMetadata.METADATA_KEY_DISPLAY_ICON_URI, IMAGE_URI_1);
+        Metadata metadata = new Metadata.Builder()
+                .useContext(mMockContext)
+                .fromBundle(bundle)
+                .build();
+        assertMetadata(SONG_MEDIA_ID, SONG_TITLE, SONG_ARTIST, SONG_ALBUM, SONG_TRACK_NUM,
+                SONG_NUM_TRACKS, SONG_GENRE, SONG_DURATION, null, metadata);
+    }
+
+    /**
      * Make sure we're robust to empty Bundles
      */
     @Test
@@ -600,6 +653,24 @@ public class MetadataTest {
         MediaDescription description = getMediaDescription(null, IMAGE_URI_1, null);
         MediaItem item = getMediaItem(description);
         Metadata metadata = new Metadata.Builder().fromMediaItem(item).build();
+        assertMetadata(SONG_MEDIA_ID, SONG_TITLE, SONG_ARTIST, SONG_ALBUM, null, null, null, null,
+                null, metadata);
+    }
+
+    /**
+     * Make sure building with a MediaItem that contains URI art when URI art is disabled yields no
+     * cover art.
+     */
+    @Test
+    public void testBuildMetadataFromMediaItemWithIconUriAndUrisDisabled() {
+        when(mMockResources.getBoolean(
+                R.bool.avrcp_target_cover_art_uri_images)).thenReturn(false);
+        MediaDescription description = getMediaDescription(null, IMAGE_URI_1, null);
+        MediaItem item = getMediaItem(description);
+        Metadata metadata = new Metadata.Builder()
+                .useContext(mMockContext)
+                .fromMediaItem(item)
+                .build();
         assertMetadata(SONG_MEDIA_ID, SONG_TITLE, SONG_ARTIST, SONG_ALBUM, null, null, null, null,
                 null, metadata);
     }
@@ -673,6 +744,24 @@ public class MetadataTest {
         MediaDescription description = getMediaDescription(null, IMAGE_URI_1, null);
         QueueItem queueItem = getQueueItem(description);
         Metadata metadata = new Metadata.Builder().fromQueueItem(queueItem).build();
+        assertMetadata(SONG_MEDIA_ID, SONG_TITLE, SONG_ARTIST, SONG_ALBUM, null, null, null, null,
+                null, metadata);
+    }
+
+    /**
+     * Make sure building with a QueueItem that contains URI art when URI art is disabled yields
+     * no cover art.
+     */
+    @Test
+    public void testBuildMetadataFromQueueItemWithIconUriandUrisDisabled() {
+        when(mMockResources.getBoolean(
+                R.bool.avrcp_target_cover_art_uri_images)).thenReturn(false);
+        MediaDescription description = getMediaDescription(null, IMAGE_URI_1, null);
+        QueueItem queueItem = getQueueItem(description);
+        Metadata metadata = new Metadata.Builder()
+                .useContext(mMockContext)
+                .fromQueueItem(queueItem)
+                .build();
         assertMetadata(SONG_MEDIA_ID, SONG_TITLE, SONG_ARTIST, SONG_ALBUM, null, null, null, null,
                 null, metadata);
     }
