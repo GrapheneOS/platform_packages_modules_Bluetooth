@@ -207,6 +207,8 @@ typedef enum : uint16_t {
   /* 0x22 connection fail for LMP response tout */
   GATT_CONN_LMP_TIMEOUT = HCI_ERR_LMP_RESPONSE_TIMEOUT,
 
+  GATT_CONN_FAILED_ESTABLISHMENT = HCI_ERR_CONN_FAILED_ESTABLISHMENT,
+
   BTA_GATT_CONN_NONE = 0x0101, /* 0x0101 no connection to cancel  */
 
 } tGATT_DISCONN_REASON;
@@ -224,6 +226,7 @@ inline std::string gatt_disconnection_reason_text(
     CASE_RETURN_TEXT(GATT_CONN_TERMINATE_PEER_USER);
     CASE_RETURN_TEXT(GATT_CONN_TERMINATE_LOCAL_HOST);
     CASE_RETURN_TEXT(GATT_CONN_LMP_TIMEOUT);
+    CASE_RETURN_TEXT(GATT_CONN_FAILED_ESTABLISHMENT);
     CASE_RETURN_TEXT(BTA_GATT_CONN_NONE);
     default:
       return std::string("UNKNOWN[%hu]", reason);
