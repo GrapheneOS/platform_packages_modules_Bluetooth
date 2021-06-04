@@ -42,7 +42,7 @@ public class AvrcpCoverArtService {
     private static final String TAG = "AvrcpCoverArtService";
     private static final boolean DEBUG = Log.isLoggable(TAG, Log.DEBUG);
 
-    private static final int COVER_ART_STORAGE_MAX_ITEMS = 255;
+    private static final int COVER_ART_STORAGE_MAX_ITEMS = 32;
 
     private final Context mContext;
 
