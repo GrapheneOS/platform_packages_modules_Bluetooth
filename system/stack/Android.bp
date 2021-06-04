@@ -481,7 +481,6 @@ cc_test {
     ],
     srcs: [
         "gatt/gatt_utils.cc",
-        "test/common/mock_acl.cc",
         "test/common/mock_eatt.cc",
         "test/common/mock_gatt_layer.cc",
         "test/common/mock_main_shim.cc",
@@ -610,7 +609,6 @@ cc_test {
         "gatt/gatt_db.cc",
         "gatt/gatt_sr_hash.cc",
         "gatt/gatt_utils.cc",
-        "test/common/mock_acl.cc",
         "test/common/mock_eatt.cc",
         "test/common/mock_gatt_layer.cc",
         "test/common/mock_main_shim.cc",

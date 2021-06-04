@@ -533,12 +533,6 @@ bool BTM_AcceptlistAdd(const RawAddress& address) {
   }
 
   if (bluetooth::shim::is_gd_acl_enabled()) {
-    if (acl_check_and_clear_ignore_auto_connect_after_disconnect(address)) {
-      LOG_WARN(
-          "Unexpectedly found device address already in ignore auto connect "
-          "device:%s",
-          PRIVATE_ADDRESS(address));
-    }
     return bluetooth::shim::ACL_AcceptLeConnectionFrom(
         convert_to_address_with_type(address, btm_find_dev(address)),
         /* is_direct */ false);
@@ -588,7 +582,6 @@ void BTM_AcceptlistClear() {
   }
 
   if (bluetooth::shim::is_gd_acl_enabled()) {
-    acl_clear_all_ignore_auto_connect_after_disconnect();
     bluetooth::shim::ACL_IgnoreAllLeConnections();
     return;
   }
