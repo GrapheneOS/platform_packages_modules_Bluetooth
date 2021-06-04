@@ -35,6 +35,8 @@ import androidx.test.InstrumentationRegistry;
 import androidx.test.filters.SmallTest;
 import androidx.test.runner.AndroidJUnit4;
 
+import com.android.bluetooth.R;
+
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -69,6 +71,7 @@ public class MediaPlayerWrapperTest {
     @Mock MediaController mMockController;
     @Mock MediaPlayerWrapper.Callback mTestCbs;
     @Mock Context mMockContext;
+    @Mock Resources mMockResources;
 
     List<MediaSession.QueueItem> getQueueFromDescriptions(
             List<MediaDescription.Builder> descriptions) {
@@ -95,6 +98,9 @@ public class MediaPlayerWrapperTest {
             Assert.fail("Setup Failure Unable to get resources" + e.toString());
         }
         mTestBitmap = loadImage(com.android.bluetooth.tests.R.raw.image_200_200);
+
+        when(mMockResources.getBoolean(R.bool.avrcp_target_cover_art_uri_images)).thenReturn(true);
+        when(mMockContext.getResources()).thenReturn(mMockResources);
 
         // Set failure handler to capture Log.wtf messages
         Log.setWtfHandler(mFailHandler);

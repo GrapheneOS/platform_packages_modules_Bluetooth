@@ -174,7 +174,7 @@ final class AvrcpCoverArtStorage {
         sb.append("\n\timages (" + mImageHandles.size());
         if (mMaxImages > 0) sb.append(" / " + mMaxImages);
         sb.append("):");
-        sb.append("\n\t\tHandle  : Hash                             : CoverArt");
+        sb.append("\n\t\tHandle   : Hash                              : CoverArt");
         synchronized (mImagesLock) {
             // Be sure to use entry set below or each access well count to the ordering
             for (Map.Entry<String, CoverArt> entry : mImages.entrySet()) {
@@ -187,7 +187,7 @@ final class AvrcpCoverArtStorage {
                         hash = key;
                     }
                 }
-                sb.append(String.format("\n\t\t%-8s : %-32s : %s\n", imageHandle, hash, coverArt));
+                sb.append(String.format("\n\t\t%-8s : %-32s : %s", imageHandle, hash, coverArt));
                 bytes += coverArt.size();
             }
         }
