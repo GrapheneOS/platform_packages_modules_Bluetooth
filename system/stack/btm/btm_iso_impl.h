@@ -234,7 +234,12 @@ struct iso_impl {
     STREAM_TO_UINT16(conn_handle, stream);
 
     iso_base* iso = GetIsoIfKnown(conn_handle);
-    LOG_ASSERT(iso != nullptr) << "Invalid connection handle: " << +conn_handle;
+    if (iso == nullptr) {
+      /* That can happen when ACL has been disconnected while ISO patch was
+       * creating */
+      LOG(WARNING) << __func__ << "Invalid connection handle: " << +conn_handle;
+      return;
+    }
 
     if (status == HCI_SUCCESS) iso->state_flags |= kStateFlagHasDataPathSet;
     if (iso->state_flags & kStateFlagIsBroadcast) {
@@ -274,7 +279,12 @@ struct iso_impl {
     STREAM_TO_UINT16(conn_handle, stream);
 
     iso_base* iso = GetIsoIfKnown(conn_handle);
-    LOG_ASSERT(iso != nullptr) << "Invalid connection handle: " << +conn_handle;
+    if (iso == nullptr) {
+      /* That could happen when ACL has been disconnected while removing data
+       * path */
+      LOG(WARNING) << __func__ << "Invalid connection handle: " << +conn_handle;
+      return;
+    }
 
     if (status == HCI_SUCCESS) iso->state_flags &= ~kStateFlagHasDataPathSet;
 
@@ -321,7 +331,12 @@ struct iso_impl {
     STREAM_TO_UINT16(conn_handle, stream);
 
     iso_base* iso = GetIsoIfKnown(conn_handle);
-    LOG_ASSERT(iso != nullptr) << "Invalid connection handle: " << +conn_handle;
+    if (iso == nullptr) {
+      /* That could happen when ACL has been disconnected while waiting on the
+       * read respose */
+      LOG(WARNING) << __func__ << "Invalid connection handle: " << +conn_handle;
+      return;
+    }
 
     STREAM_TO_UINT32(txUnackedPackets, stream);
     STREAM_TO_UINT32(txFlushedPackets, stream);
