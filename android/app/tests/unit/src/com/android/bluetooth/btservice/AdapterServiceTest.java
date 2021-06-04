@@ -108,6 +108,7 @@ public class AdapterServiceTest {
             Process.myUid()).build();
 
     private PowerManager mPowerManager;
+    private PermissionCheckerManager mPermissionCheckerManager;
     private PackageManager mMockPackageManager;
     private MockContentResolver mMockContentResolver;
     private HashMap<String, HashMap<String, String>> mAdapterConfig;
@@ -147,6 +148,8 @@ public class AdapterServiceTest {
         MockitoAnnotations.initMocks(this);
         mPowerManager = (PowerManager) InstrumentationRegistry.getTargetContext()
                 .getSystemService(Context.POWER_SERVICE);
+        mPermissionCheckerManager = InstrumentationRegistry.getTargetContext()
+                .getSystemService(PermissionCheckerManager.class);
 
         when(mMockContext.getApplicationInfo()).thenReturn(mMockApplicationInfo);
         when(mMockContext.getContentResolver()).thenReturn(mMockContentResolver);
@@ -160,6 +163,10 @@ public class AdapterServiceTest {
         when(mMockContext.getSystemService(Context.DEVICE_POLICY_SERVICE)).thenReturn(
                 mMockDevicePolicyManager);
         when(mMockContext.getSystemService(Context.POWER_SERVICE)).thenReturn(mPowerManager);
+        when(mMockContext.getSystemServiceName(PermissionCheckerManager.class))
+                .thenReturn(Context.PERMISSION_CHECKER_SERVICE);
+        when(mMockContext.getSystemService(PermissionCheckerManager.class))
+                .thenReturn(mPermissionCheckerManager);
         when(mMockContext.getSystemService(Context.ALARM_SERVICE)).thenReturn(mMockAlarmManager);
         when(mMockContext.getSystemService(Context.AUDIO_SERVICE)).thenReturn(mAudioManager);
         when(mMockContext.getAttributionSource()).thenReturn(mAttributionSource);
