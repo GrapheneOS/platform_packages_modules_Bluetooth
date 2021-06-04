@@ -412,12 +412,4 @@ struct tACL_CB {
     }
     return cnt;
   }
-
- private:
-  std::unordered_set<RawAddress> ignore_auto_connect_after_disconnect_set_;
-
- public:
-  void AddToIgnoreAutoConnectAfterDisconnect(const RawAddress& bd_addr);
-  bool CheckAndClearIgnoreAutoConnectAfterDisconnect(const RawAddress& bd_addr);
-  void ClearAllIgnoreAutoConnectAfterDisconnect();
 };
