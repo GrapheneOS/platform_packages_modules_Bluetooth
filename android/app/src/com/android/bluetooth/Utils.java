@@ -347,7 +347,7 @@ public final class Utils {
         int callingUid = Binder.getCallingUid();
 
         // Use the Bluetooth process identity when making call to get parent user
-        long ident = Binder.clearCallingIdentity();
+        final long ident = Binder.clearCallingIdentity();
         try {
             UserManager um = (UserManager) mContext.getSystemService(Context.USER_SERVICE);
             UserInfo ui = um.getProfileParent(callingUser);

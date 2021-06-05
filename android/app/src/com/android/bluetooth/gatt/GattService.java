@@ -2080,7 +2080,7 @@ public class GattService extends ProfileService {
         if (mCompanionManager == null) {
             return new ArrayList<String>();
         }
-        long identity = Binder.clearCallingIdentity();
+        final long identity = Binder.clearCallingIdentity();
         try {
             return mCompanionManager.getAssociations(
                     callingPackage, userHandle.getIdentifier());
@@ -3333,24 +3333,27 @@ public class GattService extends ProfileService {
         }
 
         // Need to clear identity to pass device config permission check
-        long callerToken = Binder.clearCallingIdentity();
-        long floor = DeviceConfig.getLong(DeviceConfig.NAMESPACE_BLUETOOTH, "report_delay",
+        final long callerToken = Binder.clearCallingIdentity();
+        try {
+            long floor = DeviceConfig.getLong(DeviceConfig.NAMESPACE_BLUETOOTH, "report_delay",
                 DEFAULT_REPORT_DELAY_FLOOR);
-        Binder.restoreCallingIdentity(callerToken);
 
-        if (settings.getReportDelayMillis() > floor) {
-            return settings;
-        } else {
-            return new ScanSettings.Builder()
-                    .setCallbackType(settings.getCallbackType())
-                    .setLegacy(settings.getLegacy())
-                    .setMatchMode(settings.getMatchMode())
-                    .setNumOfMatches(settings.getNumOfMatches())
-                    .setPhy(settings.getPhy())
-                    .setReportDelay(floor)
-                    .setScanMode(settings.getScanMode())
-                    .setScanResultType(settings.getScanResultType())
-                    .build();
+            if (settings.getReportDelayMillis() > floor) {
+                return settings;
+            } else {
+                return new ScanSettings.Builder()
+                        .setCallbackType(settings.getCallbackType())
+                        .setLegacy(settings.getLegacy())
+                        .setMatchMode(settings.getMatchMode())
+                        .setNumOfMatches(settings.getNumOfMatches())
+                        .setPhy(settings.getPhy())
+                        .setReportDelay(floor)
+                        .setScanMode(settings.getScanMode())
+                        .setScanResultType(settings.getScanResultType())
+                        .build();
+            }
+        } finally {
+            Binder.restoreCallingIdentity(callerToken);
         }
     }
 

@@ -438,9 +438,13 @@ public class BluetoothInCallService extends InCallService {
     public boolean processChld(int chld) {
         synchronized (LOCK) {
             enforceModifyPermission();
-            long token = Binder.clearCallingIdentity();
-            Log.i(TAG, "processChld " + chld);
-            return _processChld(chld);
+            final long token = Binder.clearCallingIdentity();
+            try {
+                Log.i(TAG, "processChld " + chld);
+                return _processChld(chld);
+            } finally {
+                Binder.restoreCallingIdentity(token);
+            }
         }
     }
 
