@@ -59,7 +59,7 @@ std::variant<PairingFailure, KeyExchangeResult> PairingHandlerLe::ExchangePublic
   remote_public_key.y = ppkv.GetPublicKeyY();
   LOG_INFO("Received Public key from remote");
 
-  if (public_key.x == remote_public_key.x && public_key.y == remote_public_key.y) {
+  if (public_key.x == remote_public_key.x) {
     LOG_INFO("Remote and local public keys can't match");
     return PairingFailure("Remote and local public keys match");
   }
