@@ -1804,7 +1804,7 @@ public class AdapterService extends Service {
             if (!callerIsSystemOrActiveUser(TAG, "setRemoteAlias")) {
                 return BluetoothStatusCodes.ERROR_BLUETOOTH_NOT_ALLOWED;
             }
-            if (name.isEmpty()) {
+            if (name != null && name.isEmpty()) {
                 throw new IllegalArgumentException("alias cannot be the empty string");
             }
 
