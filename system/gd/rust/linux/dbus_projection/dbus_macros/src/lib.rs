@@ -54,6 +54,8 @@ pub fn generate_dbus_exporter(attr: TokenStream, item: TokenStream) -> TokenStre
 
     let mut register_methods = quote! {};
 
+    let obj_type = quote! { std::sync::Arc<std::sync::Mutex<Box<T>>> };
+
     for item in ast.items {
         if let ImplItem::Method(method) = item {
             if method.attrs.len() != 1 {
@@ -151,7 +153,7 @@ pub fn generate_dbus_exporter(attr: TokenStream, item: TokenStream) -> TokenStre
                 let conn_clone = conn.clone();
                 let dc_watcher_clone = disconnect_watcher.clone();
                 let handle_method = move |ctx: &mut dbus_crossroads::Context,
-                                          obj: &mut ObjType,
+                                          obj: &mut #obj_type,
                                           #dbus_input_args |
                       -> Result<(#output_type), dbus_crossroads::MethodErr> {
                     #make_args
@@ -171,20 +173,18 @@ pub fn generate_dbus_exporter(attr: TokenStream, item: TokenStream) -> TokenStre
     let gen = quote! {
         #ori_item
 
-        type ObjType = std::sync::Arc<std::sync::Mutex<dyn #api_iface_ident + Send>>;
-
-        pub fn #fn_ident(
-            path: &'static str,
+        pub fn #fn_ident<T: 'static + #api_iface_ident + Send + ?Sized>(
+            path: String,
             conn: std::sync::Arc<SyncConnection>,
             cr: &mut dbus_crossroads::Crossroads,
-            obj: ObjType,
+            obj: #obj_type,
             disconnect_watcher: std::sync::Arc<std::sync::Mutex<dbus_projection::DisconnectWatcher>>,
         ) {
-            fn get_iface_token(
+            fn get_iface_token<T: #api_iface_ident + Send + ?Sized>(
                 conn: std::sync::Arc<SyncConnection>,
                 cr: &mut dbus_crossroads::Crossroads,
                 disconnect_watcher: std::sync::Arc<std::sync::Mutex<dbus_projection::DisconnectWatcher>>,
-            ) -> dbus_crossroads::IfaceToken<ObjType> {
+            ) -> dbus_crossroads::IfaceToken<#obj_type> {
                 cr.register(#dbus_iface_name, |ibuilder| {
                     #register_methods
                 })
@@ -426,6 +426,9 @@ pub fn dbus_proxy_obj(attr: TokenStream, item: TokenStream) -> TokenStream {
 
         impl RPCProxy for #self_ty {
             fn register_disconnect(&mut self, _disconnect_callback: Box<dyn Fn() + Send>) {}
+            fn get_object_id(&self) -> String {
+                String::from("")
+            }
         }
 
         struct #struct_ident {
@@ -442,6 +445,10 @@ pub fn dbus_proxy_obj(attr: TokenStream, item: TokenStream) -> TokenStream {
         impl RPCProxy for #struct_ident {
             fn register_disconnect(&mut self, disconnect_callback: Box<dyn Fn() + Send>) {
                 self.disconnect_watcher.lock().unwrap().add(self.remote.clone(), disconnect_callback);
+            }
+
+            fn get_object_id(&self) -> String {
+                self.objpath.to_string().clone()
             }
         }
 

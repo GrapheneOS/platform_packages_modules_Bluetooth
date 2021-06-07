@@ -97,7 +97,7 @@ impl Stack {
     }
 
     /// Runs the main dispatch loop.
-    pub async fn dispatch(mut rx: Receiver<Message>, bluetooth: Arc<Mutex<Bluetooth>>) {
+    pub async fn dispatch(mut rx: Receiver<Message>, bluetooth: Arc<Mutex<Box<Bluetooth>>>) {
         loop {
             let m = rx.recv().await;
 
@@ -125,5 +125,9 @@ impl Stack {
 /// RPC object. Therefore the object may be disconnected and thus should implement
 /// `register_disconnect` to let others observe the disconnection event.
 pub trait RPCProxy {
+    /// Registers disconnect observer that will be notified when the remote object is disconnected.
     fn register_disconnect(&mut self, f: Box<dyn Fn() + Send>);
+
+    /// Returns the ID of the object. For example this would be an object path in D-Bus RPC.
+    fn get_object_id(&self) -> String;
 }
