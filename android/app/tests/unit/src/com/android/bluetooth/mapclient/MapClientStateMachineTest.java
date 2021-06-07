@@ -23,12 +23,15 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothMapClient;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.SdpMasRecord;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
+import android.provider.Telephony.Sms;
 import android.telephony.SubscriptionManager;
 import android.test.mock.MockContentProvider;
 import android.test.mock.MockContentResolver;
@@ -44,6 +47,9 @@ import com.android.bluetooth.TestUtils;
 import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.ProfileService;
 import com.android.bluetooth.btservice.storage.DatabaseManager;
+import com.android.vcard.VCardConstants;
+import com.android.vcard.VCardEntry;
+import com.android.vcard.VCardProperty;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -54,13 +60,18 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @MediumTest
 @RunWith(AndroidJUnit4.class)
 public class MapClientStateMachineTest {
 
     private static final String TAG = "MapStateMachineTest";
+    private static final String FOLDER_SENT = "sent";
 
     private static final int ASYNC_CALL_TIMEOUT_MILLIS = 100;
     private static final int DISCONNECT_TIMEOUT = 3000;
@@ -79,9 +90,12 @@ public class MapClientStateMachineTest {
     @Mock
     private MapClientService mMockMapClientService;
     private MockContentResolver mMockContentResolver;
-    private MockContentProvider mMockContentProvider;
+    private MockSmsContentProvider mMockContentProvider;
     @Mock
     private MasClient mMockMasClient;
+
+    @Mock
+    private RequestPushMessage mMockRequestPushMessage;
 
     @Mock
     private SubscriptionManager mMockSubscriptionManager;
@@ -90,12 +104,7 @@ public class MapClientStateMachineTest {
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
         mTargetContext = InstrumentationRegistry.getTargetContext();
-        mMockContentProvider = new MockContentProvider(mTargetContext) {
-            @Override
-            public int delete(Uri uri, String selection, String[] selectionArgs) {
-                return 0;
-            }
-        };
+        mMockContentProvider = new MockSmsContentProvider();
         mMockContentResolver = new MockContentResolver();
 
         Assume.assumeTrue("Ignore test when MapClientService is not enabled",
@@ -321,6 +330,59 @@ public class MapClientStateMachineTest {
         Assert.assertEquals(BluetoothProfile.STATE_DISCONNECTED, mMceStateMachine.getState());
     }
 
+    /**
+     * Test sending a message
+     */
+    @Test
+    public void testSendSMSMessage() {
+        setupSdpRecordReceipt();
+        Message msg = Message.obtain(mHandler, MceStateMachine.MSG_MAS_CONNECTED);
+        mMceStateMachine.sendMessage(msg);
+        TestUtils.waitForLooperToFinishScheduledTask(mMceStateMachine.getHandler().getLooper());
+        Assert.assertEquals(BluetoothProfile.STATE_CONNECTED, mMceStateMachine.getState());
+
+        String testMessage = "Hello World!";
+        Uri[] contacts = new Uri[] {Uri.parse("tel://5551212")};
+
+        verify(mMockMasClient, times(0)).makeRequest(any(RequestPushMessage.class));
+        mMceStateMachine.sendMapMessage(contacts, testMessage, null, null);
+        verify(mMockMasClient, timeout(ASYNC_CALL_TIMEOUT_MILLIS).times(1))
+                .makeRequest(any(RequestPushMessage.class));
+    }
+
+    /**
+     * Test message sent successfully
+     */
+    @Test
+    public void testSMSMessageSent() {
+        setupSdpRecordReceipt();
+        Message msg = Message.obtain(mHandler, MceStateMachine.MSG_MAS_CONNECTED);
+        mMceStateMachine.sendMessage(msg);
+        TestUtils.waitForLooperToFinishScheduledTask(mMceStateMachine.getHandler().getLooper());
+        Assert.assertEquals(BluetoothProfile.STATE_CONNECTED, mMceStateMachine.getState());
+
+        String testMessage = "Hello World!";
+        VCardEntry recipient = new VCardEntry();
+        VCardProperty property = new VCardProperty();
+        property.setName(VCardConstants.PROPERTY_TEL);
+        property.addValues("555-1212");
+        recipient.addProperty(property);
+        Bmessage testBmessage = new Bmessage();
+        testBmessage.setType(Bmessage.Type.SMS_GSM);
+        testBmessage.setBodyContent(testMessage);
+        testBmessage.addRecipient(recipient);
+        RequestPushMessage testRequest =
+                new RequestPushMessage(FOLDER_SENT, testBmessage, null, false, false);
+        when(mMockRequestPushMessage.getMsgHandle()).thenReturn("12345");
+        when(mMockRequestPushMessage.getBMsg()).thenReturn(testBmessage);
+        Message msgSent = Message.obtain(mHandler, MceStateMachine.MSG_MAS_REQUEST_COMPLETED,
+                mMockRequestPushMessage);
+
+        mMceStateMachine.sendMessage(msgSent);
+        TestUtils.waitForLooperToFinishScheduledTask(mMceStateMachine.getHandler().getLooper());
+        Assert.assertEquals(1, mMockContentProvider.mInsertOperationCount);
+    }
+
     private void setupSdpRecordReceipt() {
         // Perform first part of MAP connection logic.
         verify(mMockMapClientService,
@@ -332,6 +394,35 @@ public class MapClientStateMachineTest {
         SdpMasRecord record = new SdpMasRecord(1, 1, 1, 1, 1, 1, "MasRecord");
         Message msg = Message.obtain(mHandler, MceStateMachine.MSG_MAS_SDP_DONE, record);
         mMceStateMachine.sendMessage(msg);
+    }
+
+    private class MockSmsContentProvider extends MockContentProvider {
+        Map<Uri, ContentValues> mContentValues = new HashMap<>();
+        int mInsertOperationCount = 0;
+
+        @Override
+        public int delete(Uri uri, String selection, String[] selectionArgs) {
+            return 0;
+        }
+
+        @Override
+        public Uri insert(Uri uri, ContentValues values) {
+            mInsertOperationCount++;
+            return Uri.withAppendedPath(Sms.CONTENT_URI, String.valueOf(mInsertOperationCount));
+        }
+
+        @Override
+        public Cursor query(Uri uri, String[] projection, String selection, String[] selectionArgs,
+                String sortOrder) {
+            Cursor cursor = Mockito.mock(Cursor.class);
+
+            when(cursor.moveToFirst()).thenReturn(true);
+            when(cursor.moveToNext()).thenReturn(true).thenReturn(false);
+
+            when(cursor.getLong(anyInt())).thenReturn((long) mContentValues.size());
+            when(cursor.getString(anyInt())).thenReturn(String.valueOf(mContentValues.size()));
+            return cursor;
+        }
     }
 
 }
