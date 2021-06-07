@@ -40,9 +40,12 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeoutException;
 
 @MediumTest
@@ -52,12 +55,17 @@ public class ProfileServiceTest {
     private static final int NUM_REPEATS = 5;
 
     @Rule public final ServiceTestRule mServiceTestRule = new ServiceTestRule();
+    @Mock private AdapterService mMockAdapterService;
+    @Mock private DatabaseManager mDatabaseManager;
+
+    private Class[] mProfiles;
+    ConcurrentHashMap<String, Boolean> mStartedProfileMap = new ConcurrentHashMap();
 
     private void setProfileState(Class profile, int state) throws TimeoutException {
         if (state == BluetoothAdapter.STATE_ON) {
-            doReturn(true).when(mMockAdapterService).isStartedProfile(eq(profile.getSimpleName()));
+            mStartedProfileMap.put(profile.getSimpleName(), true);
         } else if (state == BluetoothAdapter.STATE_OFF) {
-            doReturn(false).when(mMockAdapterService).isStartedProfile(eq(profile.getSimpleName()));
+            mStartedProfileMap.put(profile.getSimpleName(), false);
         }
         Intent startIntent = new Intent(InstrumentationRegistry.getTargetContext(), profile);
         startIntent.putExtra(AdapterService.EXTRA_ACTION,
@@ -86,11 +94,6 @@ public class ProfileServiceTest {
         }
     }
 
-    private @Mock AdapterService mMockAdapterService;
-    @Mock private DatabaseManager mDatabaseManager;
-
-    private Class[] mProfiles;
-
     @Before
     public void setUp()
             throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
@@ -100,6 +103,13 @@ public class ProfileServiceTest {
         Assert.assertNotNull(Looper.myLooper());
 
         MockitoAnnotations.initMocks(this);
+        when(mMockAdapterService.isStartedProfile(anyString())).thenAnswer(new Answer<Boolean>() {
+            @Override
+            public Boolean answer(InvocationOnMock invocation) throws Throwable {
+                Object[] args = invocation.getArguments();
+                return mStartedProfileMap.get((String) args[0]);
+            }
+        });
 
         mProfiles = Config.getSupportedProfiles();
 
