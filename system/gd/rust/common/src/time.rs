@@ -36,7 +36,9 @@ impl Alarm {
         read_ready.clear_ready();
         drop(read_ready);
         // Will not block, since we have confirmed it is readable
-        self.fd.get_ref().wait().unwrap();
+        if self.fd.get_ref().get().unwrap().is_some() {
+            self.fd.get_ref().wait().unwrap();
+        }
     }
 }
 
@@ -66,7 +68,9 @@ impl Interval {
         read_ready.clear_ready();
         drop(read_ready);
         // Will not block, since we have confirmed it is readable
-        self.fd.get_ref().wait().unwrap();
+        if self.fd.get_ref().get().unwrap().is_some() {
+            self.fd.get_ref().wait().unwrap();
+        }
     }
 }
 
@@ -95,6 +99,28 @@ mod tests {
             alarm.expired().await;
 
             assert_near!(timer.elapsed().as_millis(), 10, 3);
+        });
+    }
+
+    #[test]
+    fn alarm_cancel_after_expired() {
+        let runtime = tokio::runtime::Runtime::new().unwrap();
+        runtime.block_on(async {
+            let mut alarm = Alarm::new();
+            alarm.reset(Duration::from_millis(10));
+            tokio::time::sleep(Duration::from_millis(30)).await;
+            alarm.cancel();
+
+            for _ in 0..10 {
+                let ready_in_10_ms = async {
+                    tokio::time::sleep(Duration::from_millis(10)).await;
+                };
+
+                tokio::select! {
+                    _ = alarm.expired() => (),
+                    _ = ready_in_10_ms => (),
+                }
+            }
         });
     }
 
