@@ -33,8 +33,8 @@ fn main() -> Result<(), Box<dyn Error>> {
     let (tx, rx) = Stack::create_channel();
 
     let intf = Arc::new(Mutex::new(get_btinterface().unwrap()));
-    let bluetooth = Arc::new(Mutex::new(Bluetooth::new(tx.clone(), intf.clone())));
-    let bluetooth_gatt = Arc::new(Mutex::new(BluetoothGatt::new(intf.clone())));
+    let bluetooth = Arc::new(Mutex::new(Box::new(Bluetooth::new(tx.clone(), intf.clone()))));
+    let bluetooth_gatt = Arc::new(Mutex::new(Box::new(BluetoothGatt::new(intf.clone()))));
 
     // Args don't include arg[0] which is the binary name
     let all_args = std::env::args().collect::<Vec<String>>();
@@ -76,7 +76,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
         // Register D-Bus method handlers of IBluetooth.
         iface_bluetooth::export_bluetooth_dbus_obj(
-            OBJECT_BLUETOOTH,
+            String::from(OBJECT_BLUETOOTH),
             conn.clone(),
             &mut cr,
             bluetooth,
@@ -84,7 +84,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         );
         // Register D-Bus method handlers of IBluetoothGatt.
         iface_bluetooth_gatt::export_bluetooth_gatt_dbus_obj(
-            OBJECT_BLUETOOTH_GATT,
+            String::from(OBJECT_BLUETOOTH_GATT),
             conn.clone(),
             &mut cr,
             bluetooth_gatt,

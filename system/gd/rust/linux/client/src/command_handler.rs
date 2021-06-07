@@ -8,12 +8,12 @@ use crate::console_yellow;
 use crate::print_info;
 
 /// Handles string command entered from command line.
-pub struct CommandHandler {
-    bluetooth: Arc<Mutex<dyn IBluetooth>>,
+pub struct CommandHandler<T: IBluetooth> {
+    bluetooth: Arc<Mutex<Box<T>>>,
 }
 
-impl CommandHandler {
-    pub fn new(bluetooth: Arc<Mutex<dyn IBluetooth>>) -> CommandHandler {
+impl<T: IBluetooth> CommandHandler<T> {
+    pub fn new(bluetooth: Arc<Mutex<Box<T>>>) -> CommandHandler<T> {
         CommandHandler { bluetooth }
     }
 
