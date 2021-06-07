@@ -23,7 +23,7 @@
     <string name="bt_share_picker_label" msgid="6268100924487046932">"Bluetooth"</string>
     <string name="unknown_device" msgid="9221903979877041009">"Dispositivo desconocido"</string>
     <string name="unknownNumber" msgid="4994750948072751566">"Desconocido"</string>
-    <string name="airplane_error_title" msgid="2683839635115739939">"Modo avión"</string>
+    <string name="airplane_error_title" msgid="2683839635115739939">"Modo de avión"</string>
     <string name="airplane_error_msg" msgid="8698965595254137230">"No puedes usar Bluetooth en Modo avión."</string>
     <string name="bt_enable_title" msgid="8657832550503456572"></string>
     <string name="bt_enable_line1" msgid="7203551583048149">"Para acceder a nuestros servicios de Bluetooth, primero debes activar el Bluetooth."</string>
@@ -37,7 +37,7 @@
     <string name="incoming_file_confirm_timeout_ok" msgid="1414676773249857278">"Aceptar"</string>
     <string name="incoming_file_confirm_timeout_content" msgid="172779756093975981">"Tiempo de espera agotado al aceptar un archivo entrante de \"<xliff:g id="SENDER">%1$s</xliff:g>\""</string>
     <string name="incoming_file_confirm_Notification_title" msgid="5573329005298936903">"Archivo entrante"</string>
-    <string name="incoming_file_confirm_Notification_content" msgid="3359694069319644738">"<xliff:g id="SENDER">%1$s</xliff:g> está listo para enviar <xliff:g id="FILE">%2$s</xliff:g>"</string>
+    <string name="incoming_file_confirm_Notification_content" msgid="6237487486781004992">"<xliff:g id="SENDER">%1$s</xliff:g> se preparó para enviar un archivo: <xliff:g id="FILE">%2$s</xliff:g>"</string>
     <string name="notification_receiving" msgid="4674648179652543984">"Bluetooth: recibiendo <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="notification_received" msgid="3324588019186687985">"Bluetooth: <xliff:g id="FILE">%1$s</xliff:g> recibido"</string>
     <string name="notification_received_fail" msgid="3619350997285714746">"Bluetooth: no se recibió el archivo <xliff:g id="FILE">%1$s</xliff:g>"</string>
