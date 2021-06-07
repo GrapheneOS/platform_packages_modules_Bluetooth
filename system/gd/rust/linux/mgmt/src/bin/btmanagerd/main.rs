@@ -82,7 +82,6 @@ pub async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     println!("Config is not successfully modified");
                 }
                 let proxy = cr.data_mut::<ManagerContext>(ctx.path()).unwrap().proxy.clone();
-                println!("Incoming Start call for hci {}!", hci_interface);
                 async move {
                     let result = proxy.start_bluetooth(hci_interface).await;
                     match result {
@@ -188,7 +187,9 @@ pub async fn main() -> Result<(), Box<dyn std::error::Error>> {
                             .expect("failed to stop bluetoothd");
                         // TODO: Implement multi-hci case
                         let default_device = config_util::list_hci_devices()[0];
-                        let _ = proxy.start_bluetooth(default_device).await;
+                        if config_util::is_hci_n_enabled(default_device) {
+                            let _ = proxy.start_bluetooth(default_device).await;
+                        }
                     } else if prev != enabled {
                         // TODO: Implement multi-hci case
                         let default_device = config_util::list_hci_devices()[0];
