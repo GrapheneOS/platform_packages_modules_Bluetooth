@@ -37,7 +37,7 @@
     <string name="incoming_file_confirm_timeout_ok" msgid="1414676773249857278">"OK"</string>
     <string name="incoming_file_confirm_timeout_content" msgid="172779756093975981">"\"<xliff:g id="SENDER">%1$s</xliff:g>\" adlı istifadəçidən gələn faylı qəbul edərkən gecikmə baş verdi"</string>
     <string name="incoming_file_confirm_Notification_title" msgid="5573329005298936903">"Gələn fayl"</string>
-    <string name="incoming_file_confirm_Notification_content" msgid="3359694069319644738">"<xliff:g id="SENDER">%1$s</xliff:g> <xliff:g id="FILE">%2$s</xliff:g> faylını göndərməyə hazırdır"</string>
+    <string name="incoming_file_confirm_Notification_content" msgid="6237487486781004992">"<xliff:g id="SENDER">%1$s</xliff:g> bu faylı göndərməyə hazırdır: <xliff:g id="FILE">%2$s</xliff:g>"</string>
     <string name="notification_receiving" msgid="4674648179652543984">"Bluetooth paylaşım: <xliff:g id="FILE">%1$s</xliff:g> qəbul edilir"</string>
     <string name="notification_received" msgid="3324588019186687985">"Bluetooth paylaşım: <xliff:g id="FILE">%1$s</xliff:g> qəbul edildi"</string>
     <string name="notification_received_fail" msgid="3619350997285714746">"Bluetooth paylaşım: <xliff:g id="FILE">%1$s</xliff:g> faylı qəbul edilmədi"</string>
@@ -121,7 +121,7 @@
     <string name="transfer_menu_open" msgid="3368984869083107200">"Açın"</string>
     <string name="transfer_menu_clear" msgid="5854038118831427492">"Siyahıdan silin"</string>
     <string name="transfer_clear_dlg_title" msgid="2953444575556460386">"Silin"</string>
-    <string name="bluetooth_a2dp_sink_queue_name" msgid="6864149958708669766">"İndi Efirdə"</string>
+    <string name="bluetooth_a2dp_sink_queue_name" msgid="6864149958708669766">"Hazırda oxudulan"</string>
     <string name="bluetooth_map_settings_save" msgid="7635491847388074606">"Yadda saxlayın"</string>
     <string name="bluetooth_map_settings_cancel" msgid="9205350798049865699">"Ləğv edin"</string>
     <string name="bluetooth_map_settings_intro" msgid="6482369468223987562">"Bluetooth vasitəsilə paylaşmaq istədiyiniz hesabları seçin. Qoşulma zamanı hesablara olan istənilən girişi qəbul etməlisiniz."</string>

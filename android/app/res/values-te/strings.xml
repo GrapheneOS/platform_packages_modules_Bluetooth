@@ -37,7 +37,7 @@
     <string name="incoming_file_confirm_timeout_ok" msgid="1414676773249857278">"సరే"</string>
     <string name="incoming_file_confirm_timeout_content" msgid="172779756093975981">"\"<xliff:g id="SENDER">%1$s</xliff:g>\" పంపిన ఇన్‌కమింగ్ ఫైల్‌ను అంగీకరిస్తున్నప్పుడు గడువు సమయం ముగిసింది"</string>
     <string name="incoming_file_confirm_Notification_title" msgid="5573329005298936903">"ఇన్‌క‌మింగ్‌ ఫైల్"</string>
-    <string name="incoming_file_confirm_Notification_content" msgid="3359694069319644738">"<xliff:g id="SENDER">%1$s</xliff:g> <xliff:g id="FILE">%2$s</xliff:g> ఫైల్ పంపడానికి సిద్ధంగా ఉన్నారు"</string>
+    <string name="incoming_file_confirm_Notification_content" msgid="6237487486781004992">"<xliff:g id="SENDER">%1$s</xliff:g> ఫైల్‌ను పంపడానికి సిద్ధంగా ఉన్నారు: <xliff:g id="FILE">%2$s</xliff:g>"</string>
     <string name="notification_receiving" msgid="4674648179652543984">"బ్లూటూత్ భాగస్వామ్యం: <xliff:g id="FILE">%1$s</xliff:g>ను స్వీకరిస్తోంది"</string>
     <string name="notification_received" msgid="3324588019186687985">"బ్లూటూత్ భాగస్వామ్యం: <xliff:g id="FILE">%1$s</xliff:g> స్వీకరించబడింది"</string>
     <string name="notification_received_fail" msgid="3619350997285714746">"బ్లూటూత్ భాగస్వామ్యం: <xliff:g id="FILE">%1$s</xliff:g> ఫైల్ స్వీకరించబడలేదు"</string>
@@ -105,7 +105,7 @@
     <string name="upload_success" msgid="4014469387779648949">"<xliff:g id="FILE_SIZE">%1$s</xliff:g> పంపడం పూర్తయింది."</string>
     <string name="inbound_history_title" msgid="6940914942271327563">"ఇన్‌బౌండ్ బదిలీలు"</string>
     <string name="outbound_history_title" msgid="4279418703178140526">"అవుట్‌బౌండ్ బదిలీలు"</string>
-    <string name="no_transfers" msgid="3482965619151865672">"బదిలీ చరిత్ర ఖాళీగా ఉంది."</string>
+    <string name="no_transfers" msgid="3482965619151865672">"ట్రాన్స్‌ఫర్ హిస్టరీ ఖాళీగా ఉంది."</string>
     <string name="transfer_clear_dlg_msg" msgid="1712376797268438075">"జాబితా నుండి అన్ని అంశాలు క్లియర్ చేయబడతాయి."</string>
     <string name="outbound_noti_title" msgid="8051906709452260849">"బ్లూటూత్ భాగస్వామ్యం: పంపిన ఫైల్‌లు"</string>
     <string name="inbound_noti_title" msgid="4143352641953027595">"బ్లూటూత్ భాగస్వామ్యం: స్వీకరించబడిన ఫైల్‌లు"</string>

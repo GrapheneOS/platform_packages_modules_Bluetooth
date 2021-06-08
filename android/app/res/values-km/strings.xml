@@ -37,7 +37,7 @@
     <string name="incoming_file_confirm_timeout_ok" msgid="1414676773249857278">"យល់​ព្រម​"</string>
     <string name="incoming_file_confirm_timeout_content" msgid="172779756093975981">"អស់​ពេល​ទទួល​​ឯកសារ​ចូល​ពី \"<xliff:g id="SENDER">%1$s</xliff:g>\""</string>
     <string name="incoming_file_confirm_Notification_title" msgid="5573329005298936903">"ឯកសារចូល"</string>
-    <string name="incoming_file_confirm_Notification_content" msgid="3359694069319644738">"<xliff:g id="SENDER">%1$s</xliff:g> ត្រៀមរួចរាល់ក្នុងការផ្ញើ <xliff:g id="FILE">%2$s</xliff:g>"</string>
+    <string name="incoming_file_confirm_Notification_content" msgid="6237487486781004992">"<xliff:g id="SENDER">%1$s</xliff:g> អាចផ្ញើឯកសារ​បានហើយ៖ <xliff:g id="FILE">%2$s</xliff:g>"</string>
     <string name="notification_receiving" msgid="4674648179652543984">"ការ​ចែក​រំលែក​ប៊្លូ​ធូ​ស៖ ទទួល <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="notification_received" msgid="3324588019186687985">"ការ​ចែក​រំលែក​ប៊្លូ​ធូ​ស៖ បាន​ទទួល​ <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="notification_received_fail" msgid="3619350997285714746">"ការ​ចែក​រំលែក​ប៊្លូ​ធូ​ស៖ មិន​បាន​ទទួល​ឯកសារ <xliff:g id="FILE">%1$s</xliff:g>"</string>
@@ -99,7 +99,7 @@
     <string name="status_connection_error" msgid="947681831523219891">"ការ​តភ្ជាប់​​មិន​ជោគជ័យ​។"</string>
     <string name="status_protocol_error" msgid="3245444473429269539">"មិន​អាច​ដោះស្រាយ​សំណើ​​​​ដោយ​ត្រឹមត្រូវ​ទេ។"</string>
     <string name="status_unknown_error" msgid="8156660554237824912">"មិន​ស្គាល់​កំហុស។"</string>
-    <string name="btopp_live_folder" msgid="7967791481444474554">"​បាន​ទទួល​​ប៊្លូ​ធូ​ស"</string>
+    <string name="btopp_live_folder" msgid="7967791481444474554">"​បាន​ទទួលតាម​​ប៊្លូ​ធូ​ស"</string>
     <string name="opp_notification_group" msgid="3486303082135789982">"ការ​ចែករំលែក​ប៊្លូ​ធូ​ស"</string>
     <string name="download_success" msgid="7036160438766730871">"បាន​ទទួល​ពេញ​លេញ <xliff:g id="FILE_SIZE">%1$s</xliff:g> ។"</string>
     <string name="upload_success" msgid="4014469387779648949">"បាន​ផ្ញើ​ពេញ​លេញ <xliff:g id="FILE_SIZE">%1$s</xliff:g> ។"</string>

@@ -37,7 +37,7 @@
     <string name="incoming_file_confirm_timeout_ok" msgid="1414676773249857278">"확인"</string>
     <string name="incoming_file_confirm_timeout_content" msgid="172779756093975981">"\'<xliff:g id="SENDER">%1$s</xliff:g>\'님이 보내는 파일을 수락하는 동안 제한 시간을 초과했습니다."</string>
     <string name="incoming_file_confirm_Notification_title" msgid="5573329005298936903">"수신 파일"</string>
-    <string name="incoming_file_confirm_Notification_content" msgid="3359694069319644738">"<xliff:g id="SENDER">%1$s</xliff:g>님이 <xliff:g id="FILE">%2$s</xliff:g>을(를) 보낼 준비가 되었습니다."</string>
+    <string name="incoming_file_confirm_Notification_content" msgid="6237487486781004992">"<xliff:g id="SENDER">%1$s</xliff:g>에서 <xliff:g id="FILE">%2$s</xliff:g> 파일을 전송할 준비가 되었습니다."</string>
     <string name="notification_receiving" msgid="4674648179652543984">"블루투스 공유: <xliff:g id="FILE">%1$s</xliff:g> 받는 중"</string>
     <string name="notification_received" msgid="3324588019186687985">"블루투스 공유: <xliff:g id="FILE">%1$s</xliff:g> 받음"</string>
     <string name="notification_received_fail" msgid="3619350997285714746">"블루투스 공유: <xliff:g id="FILE">%1$s</xliff:g> 파일이 수신되지 않았습니다."</string>

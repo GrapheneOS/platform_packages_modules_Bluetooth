@@ -37,7 +37,7 @@
     <string name="incoming_file_confirm_timeout_ok" msgid="1414676773249857278">"OK"</string>
     <string name="incoming_file_confirm_timeout_content" msgid="172779756093975981">"Có thời gian chờ trong khi chấp nhận tệp tới từ \"<xliff:g id="SENDER">%1$s</xliff:g>\""</string>
     <string name="incoming_file_confirm_Notification_title" msgid="5573329005298936903">"Tệp đến"</string>
-    <string name="incoming_file_confirm_Notification_content" msgid="3359694069319644738">"<xliff:g id="SENDER">%1$s</xliff:g> đã sẵn sàng gửi <xliff:g id="FILE">%2$s</xliff:g>"</string>
+    <string name="incoming_file_confirm_Notification_content" msgid="6237487486781004992">"<xliff:g id="SENDER">%1$s</xliff:g> đã sẵn sàng gửi một tệp: <xliff:g id="FILE">%2$s</xliff:g>"</string>
     <string name="notification_receiving" msgid="4674648179652543984">"Chia sẻ qua Bluetooth: Đang nhận <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="notification_received" msgid="3324588019186687985">"Chia sẻ qua Bluetooth: Đã nhận <xliff:g id="FILE">%1$s</xliff:g>"</string>
     <string name="notification_received_fail" msgid="3619350997285714746">"Chia sẻ qua Bluetooth: Chưa nhận được tệp <xliff:g id="FILE">%1$s</xliff:g>"</string>
@@ -105,7 +105,7 @@
     <string name="upload_success" msgid="4014469387779648949">"Hoàn tất gửi <xliff:g id="FILE_SIZE">%1$s</xliff:g>."</string>
     <string name="inbound_history_title" msgid="6940914942271327563">"Nội dung chuyển đến"</string>
     <string name="outbound_history_title" msgid="4279418703178140526">"Nội dung chuyển đi"</string>
-    <string name="no_transfers" msgid="3482965619151865672">"Không có nội dung trong lịch sử truyền."</string>
+    <string name="no_transfers" msgid="3482965619151865672">"Nhật ký truyền hiện đang trống."</string>
     <string name="transfer_clear_dlg_msg" msgid="1712376797268438075">"Tất cả các mục sẽ bị xóa khỏi danh sách."</string>
     <string name="outbound_noti_title" msgid="8051906709452260849">"Chia sẻ qua Bluetooth: Tệp đã gửi"</string>
     <string name="inbound_noti_title" msgid="4143352641953027595">"Chia sẻ qua Bluetooth: Tệp đã nhận"</string>
