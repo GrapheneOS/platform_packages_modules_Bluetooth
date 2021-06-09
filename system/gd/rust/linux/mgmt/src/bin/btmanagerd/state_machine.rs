@@ -1,4 +1,5 @@
 use bt_common::time::Alarm;
+use log::{debug, error, info, warn};
 use nix::sys::signal::{self, Signal};
 use nix::unistd::Pid;
 use regex::Regex;
@@ -165,7 +166,7 @@ pub async fn mainloop<PM>(
                       true => {
                           command_timeout.cancel();
                       }
-                      false => println!("unexpected BluetoothStarted pid{} hci{}", pid, hci),
+                      false => error!("unexpected BluetoothStarted pid{} hci{}", pid, hci),
                   }
                 },
                 StateMachineActions::BluetoothStopped() => {
@@ -181,7 +182,7 @@ pub async fn mainloop<PM>(
               }
             },
             expired = command_timeout.expired() => {
-                println!("expired {:?}", *context.state_machine.state.lock().await);
+                info!("expired {:?}", *context.state_machine.state.lock().await);
                 let timeout_action = context.state_machine.action_on_command_timeout().await;
                 match timeout_action {
                     StateMachineTimeoutActions::Noop => (),
@@ -194,7 +195,7 @@ pub async fn mainloop<PM>(
                 match fd_ready.try_io(|inner| inner.get_mut().read_events(&mut buffer)) {
                     Ok(Ok(events)) => {
                         for event in events {
-                            println!("got some events from pid {:?}", event.mask);
+                            debug!("got some events from pid {:?}", event.mask);
                             match (event.mask, event.name) {
                                 (inotify::EventMask::CREATE, Some(oss)) => {
                                     let path = std::path::Path::new(PID_DIR).join(oss);
@@ -204,7 +205,7 @@ pub async fn mainloop<PM>(
                                             let pid = String::from_utf8(s).expect("invalid pid file").parse::<i32>().unwrap_or(0);
                                             let _ = context.tx.send_timeout(StateMachineActions::BluetoothStarted(pid, hci), TX_SEND_TIMEOUT_DURATION).await.unwrap();
                                         },
-                                        (hci, s) => println!("invalid file hci={:?} pid_file={:?}", hci, s),
+                                        (hci, s) => warn!("invalid file hci={:?} pid_file={:?}", hci, s),
                                     }
                                 },
                                 (inotify::EventMask::DELETE, Some(oss)) => {
@@ -213,7 +214,7 @@ pub async fn mainloop<PM>(
                                         context.tx.send_timeout(StateMachineActions::BluetoothStopped(), TX_SEND_TIMEOUT_DURATION).await.unwrap();
                                     }
                                 },
-                                _ => println!("Ignored event {:?}", event.mask)
+                                _ => debug!("Ignored event {:?}", event.mask)
                             }
                         }
                     },
@@ -245,7 +246,7 @@ pub async fn mainloop<PM>(
                                         _ => (),
                                     }
                                 },
-                                _ => println!("Ignored event {:?}", event.mask)
+                                _ => debug!("Ignored event {:?}", event.mask)
                             }
                         }
                     },
@@ -291,7 +292,7 @@ impl ProcessManager for NativeSubprocess {
                 self.process_container = None;
             }
             None => {
-                println!("Process doesn't exist");
+                warn!("Process doesn't exist");
             }
         }
     }
@@ -378,7 +379,7 @@ where
     /// Returns true if we are stopping bluetooth process.
     pub async fn action_stop_bluetooth(&mut self, hci_interface: i32) -> bool {
         if self.hci_interface != hci_interface {
-            println!(
+            warn!(
                 "We are running hci{} but attempting to stop hci{}",
                 self.hci_interface, hci_interface
             );
@@ -406,14 +407,14 @@ where
     pub async fn action_on_bluetooth_started(&mut self, pid: i32, hci_interface: i32) -> bool {
         let mut state = self.state.lock().await;
         if self.hci_interface != hci_interface {
-            println!(
+            warn!(
                 "We should start hci{} but hci{} is started; capturing that process",
                 self.hci_interface, hci_interface
             );
             self.hci_interface = hci_interface;
         }
         if *state != State::TurningOn {
-            println!("Unexpected Bluetooth started");
+            warn!("Unexpected Bluetooth started");
         }
         *state = State::On;
         self.bluetooth_pid = pid;
@@ -432,7 +433,7 @@ where
                 true
             }
             State::On => {
-                println!("Bluetooth stopped unexpectedly, try restarting");
+                warn!("Bluetooth stopped unexpectedly, try restarting");
                 *state = State::TurningOn;
                 self.process_manager.start(format!("{}", self.hci_interface));
                 false
@@ -450,14 +451,14 @@ where
         let mut state = self.state.lock().await;
         match *state {
             State::TurningOn => {
-                println!("Restarting bluetooth");
+                info!("Restarting bluetooth");
                 *state = State::TurningOn;
                 self.process_manager.stop(format! {"{}", self.hci_interface});
                 self.process_manager.start(format! {"{}", self.hci_interface});
                 StateMachineTimeoutActions::RetryStart
             }
             State::TurningOff => {
-                println!("Killing bluetooth");
+                info!("Killing bluetooth");
                 self.process_manager.stop(format! {"{}", self.hci_interface});
                 StateMachineTimeoutActions::RetryStop
             }
