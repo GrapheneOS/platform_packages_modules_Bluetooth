@@ -43,13 +43,6 @@ struct Controller::impl {
     le_set_event_mask(kDefaultLeEventMask);
     set_event_mask(kDefaultEventMask);
     write_le_host_support(Enable::ENABLED);
-    // SSP is managed by security layer once enabled
-    if (!common::init_flags::gd_security_is_enabled()) {
-      write_simple_pairing_mode(Enable::ENABLED);
-      hci_->EnqueueCommand(
-          WriteSecureConnectionsHostSupportBuilder::Create(Enable::ENABLED),
-          handler->BindOnceOn(this, &Controller::impl::write_secure_connections_host_support_complete_handler));
-    }
     hci_->EnqueueCommand(ReadLocalNameBuilder::Create(),
                          handler->BindOnceOn(this, &Controller::impl::read_local_name_complete_handler));
     hci_->EnqueueCommand(ReadLocalVersionInformationBuilder::Create(),
@@ -110,6 +103,15 @@ struct Controller::impl {
       le_maximum_data_length_.supported_max_tx_time_ = 0;
     }
 
+    // SSP is managed by security layer once enabled
+    if (!common::init_flags::gd_security_is_enabled()) {
+      write_simple_pairing_mode(Enable::ENABLED);
+      if (module_.SupportsSecureConnections()) {
+        hci_->EnqueueCommand(
+            WriteSecureConnectionsHostSupportBuilder::Create(Enable::ENABLED),
+            handler->BindOnceOn(this, &Controller::impl::write_secure_connections_host_support_complete_handler));
+      }
+    }
     if (is_supported(OpCode::LE_READ_SUGGESTED_DEFAULT_DATA_LENGTH) && module_.SupportsBlePacketExtension()) {
       hci_->EnqueueCommand(
           LeReadSuggestedDefaultDataLengthBuilder::Create(),
