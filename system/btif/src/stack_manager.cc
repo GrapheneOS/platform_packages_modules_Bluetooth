@@ -18,7 +18,7 @@
 
 #define LOG_TAG "bt_stack_manager"
 
-#include "stack_manager.h"
+#include "btif/include/stack_manager.h"
 
 #include <hardware/bluetooth.h>
 #if defined(STATIC_LIBBLUETOOTH)
