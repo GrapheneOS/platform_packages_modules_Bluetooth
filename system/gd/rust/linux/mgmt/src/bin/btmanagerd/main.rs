@@ -45,7 +45,13 @@ struct ManagerContext {
 
 #[tokio::main]
 pub async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    log::set_logger(&LOGGER).map(|()| log::set_max_level(LevelFilter::Debug)).unwrap();
+    log::set_logger(&LOGGER)
+        .map(|()| {
+            log::set_max_level(
+                config_util::get_log_level().unwrap_or(Level::Info).to_level_filter(),
+            )
+        })
+        .unwrap();
 
     // Initialize config util
     config_util::fix_config_file_format();
