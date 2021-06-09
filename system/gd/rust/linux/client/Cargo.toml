@@ -6,7 +6,6 @@ edition = "2018"
 [dependencies]
 rustyline = "8.0"
 bt_topshim = { path = "../../topshim" }
-bt_shim = { path = "../../shim" }
 btstack = { path = "../stack" }
 
 dbus = "0.9.2"
@@ -26,4 +25,3 @@ pkg-config = "0.3.19"
 [[bin]]
 name = "btclient"
 path = "src/main.rs"
-build = "build.rs"
