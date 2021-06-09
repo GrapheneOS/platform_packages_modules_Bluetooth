@@ -2270,6 +2270,7 @@ public class GattService extends ProfileService {
         enforcePrivilegedPermissionIfNeeded(settings);
         String callingPackage = attributionSource.getPackageName();
         settings = enforceReportDelayFloor(settings);
+        enforcePrivilegedPermissionIfNeeded(filters);
         final ScanClient scanClient = new ScanClient(scannerId, settings, filters, storages);
         scanClient.userHandle = UserHandle.of(UserHandle.getCallingUserId());
         mAppOps.checkPackage(Binder.getCallingUid(), callingPackage);
@@ -2326,7 +2327,7 @@ public class GattService extends ProfileService {
         }
         enforcePrivilegedPermissionIfNeeded(settings);
         settings = enforceReportDelayFloor(settings);
-
+        enforcePrivilegedPermissionIfNeeded(filters);
         UUID uuid = UUID.randomUUID();
         if (DBG) {
             Log.d(TAG, "startScan(PI) - UUID=" + uuid);
@@ -3671,6 +3672,39 @@ public class GattService extends ProfileService {
 
         // Batch scan, truncated mode needs permission.
         return settings.getScanResultType() == ScanSettings.SCAN_RESULT_TYPE_ABBREVIATED;
+    }
+
+    /*
+     * The {@link ScanFilter#setDeviceAddress} API overloads are @SystemApi access methods.  This
+     * requires that the permissions be BLUETOOTH_PRIVILEGED.
+     */
+    @SuppressLint("AndroidFrameworkRequiresPermission")
+    private void enforcePrivilegedPermissionIfNeeded(List<ScanFilter> filters) {
+        if (DBG) {
+            Log.d(TAG, "enforcePrivilegedPermissionIfNeeded(" + filters + ")");
+        }
+        // Some 3p API cases may have null filters, need to allow
+        if (filters != null) {
+            for (ScanFilter filter : filters) {
+                // The only case to enforce here is if there is an address
+                // If there is an address, enforce if the correct combination criteria is met.
+                if (filter.getDeviceAddress() != null) {
+                    // At this point we have an address, that means a caller used the
+                    // setDeviceAddress(address) public API for the ScanFilter
+                    // We don't want to enforce if the type is PUBLIC and the IRK is null
+                    // However, if we have a different type that means the caller used a new
+                    // @SystemApi such as setDeviceAddress(address, type) or
+                    // setDeviceAddress(address, type, irk) which are both @SystemApi and require
+                    // permissions to be enforced
+                    if (filter.getAddressType()
+                            == BluetoothDevice.ADDRESS_TYPE_PUBLIC && filter.getIrk() == null) {
+                        // Do not enforce
+                    } else {
+                        enforcePrivilegedPermission();
+                    }
+                }
+            }
+        }
     }
 
     // Enforce caller has BLUETOOTH_PRIVILEGED permission. A {@link SecurityException} will be
