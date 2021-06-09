@@ -365,7 +365,6 @@ void AvrcpTarget::PassthroughCmdCallback(int id, int key_state,
 }
 
 // AvrcpTargetFactory implementation
-// ========================================================
 
 AvrcpTargetFactory::AvrcpTargetFactory() = default;
 AvrcpTargetFactory::~AvrcpTargetFactory() = default;

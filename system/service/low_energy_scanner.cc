@@ -64,7 +64,6 @@ size_t GetScanRecordLength(std::vector<uint8_t> bytes) {
 }  // namespace
 
 // LowEnergyScanner implementation
-// ========================================================
 
 LowEnergyScanner::LowEnergyScanner(Adapter& adapter, const Uuid& uuid,
                                    int scanner_id)
@@ -159,7 +158,6 @@ void LowEnergyScanner::ScanResultCallback(
 }
 
 // LowEnergyScannerFactory implementation
-// ========================================================
 
 LowEnergyScannerFactory::LowEnergyScannerFactory(Adapter& adapter)
     : adapter_(adapter) {

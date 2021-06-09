@@ -24,7 +24,6 @@ using std::mutex;
 namespace bluetooth {
 
 // GattClient implementation
-// ========================================================
 
 GattClient::GattClient(const Uuid& uuid, int client_id)
     : app_identifier_(uuid), client_id_(client_id) {}
@@ -43,7 +42,6 @@ const Uuid& GattClient::GetAppIdentifier() const { return app_identifier_; }
 int GattClient::GetInstanceId() const { return client_id_; }
 
 // GattClientFactory implementation
-// ========================================================
 
 GattClientFactory::GattClientFactory() {
   hal::BluetoothGattInterface::Get()->AddClientObserver(this);

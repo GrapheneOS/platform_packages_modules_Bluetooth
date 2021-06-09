@@ -1,5 +1,4 @@
 // Common variables
-// ========================================================
 package {
     // See: http://go/android-license-faq
     // A large-scale-change added 'default_applicable_licenses' to import
@@ -36,7 +35,6 @@ btifCommonIncludes = [
 ]
 
 // libbtif static library for target
-// ========================================================
 cc_library_static {
     name: "libbtif",
     defaults: ["fluoride_defaults"],
@@ -139,7 +137,6 @@ cc_library_static {
 }
 
 // btif unit tests for target
-// ========================================================
 cc_test {
     name: "net_test_btif",
     defaults: ["fluoride_defaults"],
@@ -195,7 +192,6 @@ cc_test {
 }
 
 // btif profile queue unit tests for target
-// ========================================================
 cc_test {
     name: "net_test_btif_profile_queue",
     defaults: ["fluoride_defaults"],
@@ -218,7 +214,6 @@ cc_test {
 }
 
 // btif rc unit tests for target
-// ========================================================
 cc_test {
     name: "net_test_btif_rc",
     defaults: ["fluoride_defaults"],
@@ -254,7 +249,6 @@ cc_test {
 }
 
 // btif config cache unit tests for target
-// ========================================================
 cc_test {
     name: "net_test_btif_config_cache",
     defaults: ["fluoride_defaults"],
@@ -283,7 +277,6 @@ cc_test {
 }
 
 // btif hf client service tests for target
-// ========================================================
 cc_test {
     name: "net_test_btif_hf_client_service",
     defaults: ["fluoride_defaults"],
@@ -305,7 +298,6 @@ cc_test {
 }
 
 // Cycle stack test
-// ========================================================
 cc_test {
     name: "net_test_btif_stack",
     host_supported: true,
