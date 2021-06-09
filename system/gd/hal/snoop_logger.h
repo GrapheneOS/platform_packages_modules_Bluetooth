@@ -38,6 +38,7 @@ class SnoopLogger : public ::bluetooth::Module {
   static const ModuleFactory Factory;
 
   static const std::string kBtSnoopLogModeDisabled;
+  static const std::string kBtSnoopLogModeTruncated;
   static const std::string kBtSnoopLogModeFiltered;
   static const std::string kBtSnoopLogModeFull;
   static const std::string kSoCManufacturerQualcomm;
@@ -124,6 +125,7 @@ class SnoopLogger : public ::bluetooth::Module {
   std::ofstream btsnoop_ostream_;
   bool is_enabled_ = false;
   bool is_filtered_ = false;
+  bool is_truncated_ = false;
   size_t max_packets_per_file_;
   common::CircularBuffer<std::string> btsnooz_buffer_;
   bool qualcomm_debug_log_enabled_ = false;
