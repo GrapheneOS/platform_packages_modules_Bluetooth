@@ -7,10 +7,30 @@ use dbus::message::MatchRule;
 use dbus::nonblock::SyncConnection;
 use dbus_crossroads::Crossroads;
 use dbus_tokio::connection;
+use log::{error, info, warn};
+use log::{Level, LevelFilter, Metadata, Record, SetLoggerError};
 use std::process::Command;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use tokio::sync::Mutex;
+
+struct SimpleLogger;
+
+impl log::Log for SimpleLogger {
+    fn enabled(&self, metadata: &Metadata) -> bool {
+        true || metadata.level() <= Level::Info
+    }
+
+    fn log(&self, record: &Record) {
+        if self.enabled(record.metadata()) {
+            println!("{} - {}", record.level(), record.args());
+        }
+    }
+
+    fn flush(&self) {}
+}
+
+static LOGGER: SimpleLogger = SimpleLogger;
 
 const BLUEZ_INIT_TARGET: &str = "bluetoothd";
 
@@ -25,6 +45,8 @@ struct ManagerContext {
 
 #[tokio::main]
 pub async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    log::set_logger(&LOGGER).map(|()| log::set_max_level(LevelFilter::Debug)).unwrap();
+
     // Initialize config util
     config_util::fix_config_file_format();
 
@@ -79,7 +101,7 @@ pub async fn main() -> Result<(), Box<dyn std::error::Error>> {
             (),
             |mut ctx, cr, (hci_interface,): (i32,)| {
                 if !config_util::modify_hci_n_enabled(hci_interface, true) {
-                    println!("Config is not successfully modified");
+                    error!("Config is not successfully modified");
                 }
                 let proxy = cr.data_mut::<ManagerContext>(ctx.path()).unwrap().proxy.clone();
                 async move {
@@ -100,7 +122,7 @@ pub async fn main() -> Result<(), Box<dyn std::error::Error>> {
             |mut ctx, cr, (hci_interface,): (i32,)| {
                 let proxy = cr.data_mut::<ManagerContext>(ctx.path()).unwrap().proxy.clone();
                 if !config_util::modify_hci_n_enabled(hci_interface, false) {
-                    println!("Config is not successfully modified");
+                    error!("Config is not successfully modified");
                 }
                 async move {
                     let result = proxy.stop_bluetooth(hci_interface).await;
