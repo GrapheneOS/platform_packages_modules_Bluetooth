@@ -20,6 +20,7 @@ btifCommonIncludes = [
     "packages/modules/Bluetooth/system/device/include",
     "packages/modules/Bluetooth/system/embdrv/sbc/decoder/include",
     "packages/modules/Bluetooth/system/embdrv/sbc/encoder/include",
+    "packages/modules/Bluetooth/system/gd",
     "packages/modules/Bluetooth/system/hci/include",
     "packages/modules/Bluetooth/system/include",
     "packages/modules/Bluetooth/system/internal_include",
@@ -100,12 +101,18 @@ cc_library_static {
         "src/btif_keystore.cc",
         "src/stack_manager.cc",
     ],
+    generated_headers: [
+        "BluetoothGeneratedBundlerSchema_h_bfbs",
+        "BluetoothGeneratedDumpsysDataSchema_h",
+        "BluetoothGeneratedPackets_h",
+    ],
     shared_libs: [
         "android.hardware.bluetooth.a2dp@1.0",
         "android.hardware.bluetooth.audio@2.0",
         "android.hardware.bluetooth.audio@2.1",
         "libcrypto",
         "libcutils",
+        "libflatbuffers-cpp",
         "libhidlbase",
         "liblog",
         "libtinyxml2",
@@ -202,9 +209,15 @@ cc_test {
         "test/btif_profile_queue_test.cc",
     ],
     header_libs: ["libbluetooth_headers"],
+    generated_headers: [
+        "BluetoothGeneratedBundlerSchema_h_bfbs",
+        "BluetoothGeneratedDumpsysDataSchema_h",
+        "BluetoothGeneratedPackets_h",
+    ],
     shared_libs: [
-        "liblog",
         "libcutils",
+        "libflatbuffers-cpp",
+        "liblog",
     ],
     static_libs: [
         "libbluetooth-types",

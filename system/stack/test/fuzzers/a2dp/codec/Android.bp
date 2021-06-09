@@ -13,6 +13,7 @@ cc_defaults {
     include_dirs: [
         "packages/modules/Bluetooth/system/bta/include/", // For tBT_A2DP_OFFLOAD
         "packages/modules/Bluetooth/system/bta/sys/", // For tBT_A2DP_OFFLOAD
+        "packages/modules/Bluetooth/system/gd",
     ],
 }
 
