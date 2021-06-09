@@ -14,16 +14,11 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-import os
-import sys
-
 from cert.gd_base_test import GdBaseTestClass
+from shim.cert.stack_test_lib import StackTestBase
 
 
-class StackTest(GdBaseTestClass):
+class StackTest(GdBaseTestClass, StackTestBase):
 
     def setup_class(self):
         super().setup_class(dut_module='SHIM', cert_module='SHIM')
-
-    def test_test(self):
-        return True
