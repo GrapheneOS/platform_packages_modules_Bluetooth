@@ -14,24 +14,14 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-import os
-import sys
-import logging
-
-from cert.event_stream import EventStream
 from cert.gd_base_test import GdBaseTestClass
-from cert.truth import assertThat
-from facade import common_pb2 as common
-from facade import rootservice_pb2 as facade_rootservice
-from google.protobuf import empty_pb2 as empty_proto
-from shim.facade import facade_pb2 as shim_facade
+from shim.cert.shim_test_lib import ShimTestBase
 
 
-class ShimTest(GdBaseTestClass):
+class ShimTest(GdBaseTestClass, ShimTestBase):
 
     def setup_class(self):
-        super().setup_class(dut_module='SHIM', cert_module='SHIM')
+        GdBaseTestClass.setup_class(self, dut_module='SHIM', cert_module='SHIM')
 
     def test_dumpsys(self):
-        result = self.cert.shim.Dump(empty_proto.Empty())
-        result = self.dut.shim.Dump(empty_proto.Empty())
+        ShimTestBase.test_dumpsys(self, self.dut, self.cert)
