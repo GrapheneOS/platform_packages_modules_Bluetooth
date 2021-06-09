@@ -34,8 +34,10 @@ import android.content.pm.PackageManager;
 import android.content.pm.PermissionInfo;
 import android.content.res.Resources;
 import android.media.AudioManager;
+import android.os.AsyncTask;
 import android.os.Binder;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.Looper;
 import android.os.PowerManager;
 import android.os.Process;
@@ -137,6 +139,12 @@ public class AdapterServiceTest {
         }
         Assert.assertNotNull(Looper.myLooper());
 
+        // Dispatch all async work through instrumentation so we can wait until
+        // it's drained below
+        AsyncTask.setDefaultExecutor((r) -> {
+            InstrumentationRegistry.getInstrumentation().runOnMainSync(r);
+        });
+
         InstrumentationRegistry.getInstrumentation().runOnMainSync(
                 () -> mAdapterService = new AdapterService());
         mServiceBinder = new AdapterService.AdapterServiceBinder(mAdapterService);
@@ -192,8 +200,11 @@ public class AdapterServiceTest {
 
         // Attach a context to the service for permission checks.
         mAdapterService.attach(mMockContext, null, null, null, mApplication, null);
-
         mAdapterService.onCreate();
+
+        // Wait for any async events to drain
+        InstrumentationRegistry.getInstrumentation().waitForIdleSync();
+
         doReturn(Context.PERMISSION_CHECKER_SERVICE).when(mMockContext)
                 .getSystemServiceName(PermissionCheckerManager.class);
         when(mMockContext.getSystemService(Context.PERMISSION_CHECKER_SERVICE))
