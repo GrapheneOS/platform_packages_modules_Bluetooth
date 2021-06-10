@@ -235,12 +235,14 @@ pub type BtPinCode = bindings::bt_pin_code_t;
 
 pub enum SupportedProfiles {
     HidHost,
+    A2dp,
 }
 
 impl From<SupportedProfiles> for Vec<u8> {
     fn from(item: SupportedProfiles) -> Self {
         match item {
             SupportedProfiles::HidHost => "hidhost".bytes().collect::<Vec<u8>>(),
+            SupportedProfiles::A2dp => "a2dp".bytes().collect::<Vec<u8>>(),
         }
     }
 }
@@ -507,6 +509,10 @@ impl BluetoothInterface {
     ) -> *const std::os::raw::c_void {
         let cprofile = Vec::<u8>::from(profile);
         ccall!(self, get_profile_interface, cprofile.as_slice().as_ptr() as *const i8)
+    }
+
+    pub(crate) fn as_raw_ptr(&self) -> *const u8 {
+        self.internal.raw as *const u8
     }
 }
 
