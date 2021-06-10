@@ -925,16 +925,16 @@ public final class Utils {
     public static @NonNull Bundle getTempAllowlistBroadcastOptions() {
         // Use the Bluetooth process identity to pass permission check when reading DeviceConfig
         final long ident = Binder.clearCallingIdentity();
+        final BroadcastOptions bOptions = BroadcastOptions.makeBasic();
         try {
             final long durationMs = DeviceConfig.getLong(DeviceConfig.NAMESPACE_BLUETOOTH,
                     KEY_TEMP_ALLOW_LIST_DURATION_MS, DEFAULT_TEMP_ALLOW_LIST_DURATION_MS);
-            final BroadcastOptions bOptions = BroadcastOptions.makeBasic();
             bOptions.setTemporaryAppAllowlist(durationMs,
                     TEMPORARY_ALLOW_LIST_TYPE_FOREGROUND_SERVICE_ALLOWED,
                     PowerExemptionManager.REASON_BLUETOOTH_BROADCAST, "");
-            return bOptions.toBundle();
         } finally {
             Binder.restoreCallingIdentity(ident);
         }
+        return bOptions.toBundle();
     }
 }
