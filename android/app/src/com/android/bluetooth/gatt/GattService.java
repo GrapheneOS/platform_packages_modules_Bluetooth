@@ -2110,7 +2110,7 @@ public class GattService extends ProfileService {
         if (DBG) {
             Log.d(TAG, "start scan with filters");
         }
-        UserHandle callingUser = UserHandle.of(UserHandle.getCallingUserId());
+
         enforceAdminPermission();
         if (needsPrivilegedPermissionForScan(settings)) {
             enforcePrivilegedPermission();
@@ -2118,7 +2118,7 @@ public class GattService extends ProfileService {
         settings = enforceReportDelayFloor(settings);
         enforcePrivilegedPermissionIfNeeded(filters);
         final ScanClient scanClient = new ScanClient(scannerId, settings, filters, storages);
-        scanClient.userHandle = UserHandle.of(UserHandle.getCallingUserId());
+        scanClient.userHandle = Binder.getCallingUserHandle();
         mAppOps.checkPackage(Binder.getCallingUid(), callingPackage);
         scanClient.eligibleForSanitizedExposureNotification =
                 callingPackage.equals(mExposureNotificationPackage);
@@ -2185,7 +2185,7 @@ public class GattService extends ProfileService {
 
         pendingIntent.registerCancelListener(mScanIntentCancelListener);
 
-        app.mUserHandle = UserHandle.of(UserHandle.getCallingUserId());
+        app.mUserHandle = UserHandle.getUserHandleForUid(Binder.getCallingUid());
         mAppOps.checkPackage(Binder.getCallingUid(), callingPackage);
         app.mEligibleForSanitizedExposureNotification =
                 callingPackage.equals(mExposureNotificationPackage);
