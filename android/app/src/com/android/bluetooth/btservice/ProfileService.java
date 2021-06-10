@@ -35,7 +35,6 @@ import android.os.UserManager;
 import android.util.Log;
 
 import com.android.bluetooth.BluetoothMetricsProto;
-import com.android.bluetooth.Utils;
 
 /**
  * Base class for a background service that runs a Bluetooth profile
@@ -303,7 +302,7 @@ public abstract class ProfileService extends Service {
         int currentUserId = ActivityManager.getCurrentUser();
         setCurrentUser(currentUserId);
         UserManager userManager = UserManager.get(getApplicationContext());
-        if (userManager.isUserUnlocked(currentUserId)) {
+        if (userManager.isUserUnlocked(UserHandle.of(currentUserId))) {
             setUserUnlocked(currentUserId);
         }
         mProfileStarted = start();
