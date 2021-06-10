@@ -35,6 +35,7 @@ num-derive = "*"
 num-traits = "*"
 tokio = { version = "*", features = ['bytes', 'fs', 'io-util', 'libc', 'macros', 'memchr', 'mio', 'net', 'num_cpus', 'rt', 'rt-multi-thread', 'sync', 'time', 'tokio-macros'] }
 tokio-stream = "*"
+bitflags ="*"
 
 [build-dependencies]
 bindgen = "0.57"
