@@ -16,6 +16,8 @@
 #ifndef GD_RUST_TOPSHIM_BTAV_BTAV_SHIM_H
 #define GD_RUST_TOPSHIM_BTAV_BTAV_SHIM_H
 
+#include <memory>
+
 #include "include/hardware/bt_av.h"
 
 #include "rust/cxx.h"
