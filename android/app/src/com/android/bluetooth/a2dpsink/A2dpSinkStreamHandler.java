@@ -114,7 +114,7 @@ public class A2dpSinkStreamHandler extends Handler {
     public A2dpSinkStreamHandler(A2dpSinkService a2dpSinkService, Context context) {
         mA2dpSinkService = a2dpSinkService;
         mContext = context;
-        mAudioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
+        mAudioManager = context.getSystemService(AudioManager.class);
     }
 
     /**

@@ -93,8 +93,7 @@ class MapClientContent {
         mCallbacks = callbacks;
         mResolver = mContext.getContentResolver();
 
-        mSubscriptionManager = (SubscriptionManager) mContext
-                .getSystemService(Context.TELEPHONY_SUBSCRIPTION_SERVICE);
+        mSubscriptionManager = mContext.getSystemService(SubscriptionManager.class);
         mSubscriptionManager
                 .addSubscriptionInfoRecord(mDevice.getAddress(), mDevice.getName(), 0,
                         SubscriptionManager.SUBSCRIPTION_TYPE_REMOTE_SIM);

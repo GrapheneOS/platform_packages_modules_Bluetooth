@@ -205,7 +205,7 @@ public class AvrcpTargetService extends ProfileService {
             return true;
         }
 
-        mAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+        mAudioManager = getSystemService(AudioManager.class);
         sDeviceMaxVolume = mAudioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
 
         mMediaPlayerList = new MediaPlayerList(Looper.myLooper(), this);
@@ -217,7 +217,7 @@ public class AvrcpTargetService extends ProfileService {
 
         mVolumeManager = new AvrcpVolumeManager(this, mAudioManager, mNativeInterface);
 
-        UserManager userManager = UserManager.get(getApplicationContext());
+        UserManager userManager = getApplicationContext().getSystemService(UserManager.class);
         if (userManager.isUserUnlocked()) {
             mMediaPlayerList.init(new ListCallback());
         }

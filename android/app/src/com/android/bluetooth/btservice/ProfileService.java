@@ -260,7 +260,7 @@ public abstract class ProfileService extends Service {
         getApplicationContext().registerReceiver(mUserSwitchedReceiver, filter);
         int currentUserId = ActivityManager.getCurrentUser();
         setCurrentUser(currentUserId);
-        UserManager userManager = UserManager.get(getApplicationContext());
+        UserManager userManager = getApplicationContext().getSystemService(UserManager.class);
         if (userManager.isUserUnlocked(UserHandle.of(currentUserId))) {
             setUserUnlocked(currentUserId);
         }

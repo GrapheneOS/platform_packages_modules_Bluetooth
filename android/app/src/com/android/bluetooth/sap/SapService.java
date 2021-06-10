@@ -265,7 +265,7 @@ public class SapService extends ProfileService {
 
         // acquire the wakeLock before start SAP transaction thread
         if (mWakeLock == null) {
-            PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
+            PowerManager pm = getSystemService(PowerManager.class);
             mWakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "StartingSapTransaction");
             mWakeLock.setReferenceCounted(false);
             mWakeLock.acquire();
@@ -458,7 +458,7 @@ public class SapService extends ProfileService {
                         Log.i(TAG, "Acquire Wake Lock request message");
                     }
                     if (mWakeLock == null) {
-                        PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
+                        PowerManager pm = getSystemService(PowerManager.class);
                         mWakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK,
                                 "StartingObexMapTransaction");
                         mWakeLock.setReferenceCounted(false);
@@ -741,7 +741,7 @@ public class SapService extends ProfileService {
             Log.d(TAG, "cancelUserTimeOutAlarm()");
         }
         if (mAlarmManager == null) {
-            mAlarmManager = (AlarmManager) this.getSystemService(Context.ALARM_SERVICE);
+            mAlarmManager = this.getSystemService(AlarmManager.class);
         }
         if (mRemoveTimeoutMsg) {
             Intent timeoutIntent = new Intent(USER_CONFIRM_TIMEOUT_ACTION);

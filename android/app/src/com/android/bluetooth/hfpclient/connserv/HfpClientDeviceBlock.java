@@ -61,7 +61,7 @@ public class HfpClientDeviceBlock {
         mDevice = device;
         mTAG = "HfpClientDeviceBlock." + mDevice.getAddress();
         mPhoneAccount = HfpClientConnectionService.createAccount(mContext, device);
-        mTelecomManager = (TelecomManager) mContext.getSystemService(Context.TELECOM_SERVICE);
+        mTelecomManager = mContext.getSystemService(TelecomManager.class);
 
         // Register the phone account since block is created only when devices are connected
         mTelecomManager.registerPhoneAccount(mPhoneAccount);

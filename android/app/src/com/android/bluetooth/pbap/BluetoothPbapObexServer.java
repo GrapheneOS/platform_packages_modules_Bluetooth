@@ -424,7 +424,7 @@ public class BluetoothPbapObexServer extends ServerRequestHandler {
             return ResponseCodes.OBEX_HTTP_NOT_ACCEPTABLE;
         }
 
-        if (!UserManager.get(mContext).isUserUnlocked()) {
+        if (!mContext.getSystemService(UserManager.class).isUserUnlocked()) {
             Log.e(TAG, "Storage locked, " + type + " failed");
             return ResponseCodes.OBEX_HTTP_UNAVAILABLE;
         }

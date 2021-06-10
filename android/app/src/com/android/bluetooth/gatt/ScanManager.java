@@ -127,9 +127,9 @@ public class ScanManager {
         mService = service;
         mScanNative = new ScanNative();
         mCurUsedTrackableAdvertisements = 0;
-        mDm = (DisplayManager) mService.getSystemService(Context.DISPLAY_SERVICE);
-        mActivityManager = (ActivityManager) mService.getSystemService(Context.ACTIVITY_SERVICE);
-        mLocationManager = (LocationManager) mService.getSystemService(Context.LOCATION_SERVICE);
+        mDm = mService.getSystemService(DisplayManager.class);
+        mActivityManager = mService.getSystemService(ActivityManager.class);
+        mLocationManager = mService.getSystemService(LocationManager.class);
 
         mPriorityMap.put(ScanSettings.SCAN_MODE_OPPORTUNISTIC, 0);
         mPriorityMap.put(ScanSettings.SCAN_MODE_LOW_POWER, 1);
@@ -548,7 +548,7 @@ public class ScanManager {
             mFilterIndexStack = new ArrayDeque<Integer>();
             mClientFilterIndexMap = new HashMap<Integer, Deque<Integer>>();
 
-            mAlarmManager = (AlarmManager) mService.getSystemService(Context.ALARM_SERVICE);
+            mAlarmManager = mService.getSystemService(AlarmManager.class);
             Intent batchIntent = new Intent(ACTION_REFRESH_BATCHED_SCAN, null);
             mBatchScanIntervalIntent = PendingIntent.getBroadcast(mService, 0, batchIntent,
                     PendingIntent.FLAG_IMMUTABLE);
