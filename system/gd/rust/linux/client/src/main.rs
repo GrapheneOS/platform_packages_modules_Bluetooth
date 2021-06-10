@@ -1,3 +1,4 @@
+use bt_topshim::btif::BtSspVariant;
 use bt_topshim::topstack;
 
 use btstack::bluetooth::{BluetoothDevice, IBluetooth, IBluetoothCallback};
@@ -42,6 +43,27 @@ impl IBluetoothCallback for BtCallback {
 
     fn on_discovering_changed(&self, discovering: bool) {
         print_info!("Discovering: {}", discovering);
+    }
+
+    fn on_ssp_request(
+        &self,
+        remote_device: BluetoothDevice,
+        _cod: u32,
+        variant: BtSspVariant,
+        passkey: u32,
+    ) {
+        if variant == BtSspVariant::PasskeyNotification {
+            print_info!(
+                "device {}{} would like to pair, enter passkey on remote device: {:06}",
+                remote_device.address.to_string(),
+                if remote_device.name.len() > 0 {
+                    format!(" ({})", remote_device.name)
+                } else {
+                    String::from("")
+                },
+                passkey
+            );
+        }
     }
 }
 
