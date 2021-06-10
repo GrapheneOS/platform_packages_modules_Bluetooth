@@ -43,7 +43,7 @@ impl From<BtTransport> for i32 {
     }
 }
 
-#[derive(Debug, FromPrimitive, ToPrimitive, PartialEq, PartialOrd)]
+#[derive(Clone, Debug, FromPrimitive, ToPrimitive, PartialEq, PartialOrd)]
 #[repr(u32)]
 pub enum BtSspVariant {
     PasskeyConfirmation = 0,
