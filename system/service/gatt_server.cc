@@ -27,7 +27,6 @@ using std::mutex;
 namespace bluetooth {
 
 // GattServer implementation
-// ========================================================
 
 GattServer::GattServer(const Uuid& uuid, int server_id)
     : app_identifier_(uuid), server_id_(server_id), delegate_(nullptr) {}
@@ -566,7 +565,6 @@ std::shared_ptr<GattServer::Connection> GattServer::GetConnection(
 }
 
 // GattServerFactory implementation
-// ========================================================
 
 GattServerFactory::GattServerFactory() {
   hal::BluetoothGattInterface::Get()->AddServerObserver(this);

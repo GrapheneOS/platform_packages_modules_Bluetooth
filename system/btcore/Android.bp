@@ -1,5 +1,4 @@
 // libbtcore static library for target and host
-// ========================================================
 package {
     // See: http://go/android-license-faq
     // A large-scale-change added 'default_applicable_licenses' to import
@@ -36,7 +35,6 @@ cc_library_static {
 // Note: It's good to get the tests compiled both for the host and the target so
 // we get to test with both Bionic libc and glibc
 // libbtcore unit tests for target and host
-// ========================================================
 cc_test {
     name: "net_test_btcore",
     test_suites: ["device-tests"],

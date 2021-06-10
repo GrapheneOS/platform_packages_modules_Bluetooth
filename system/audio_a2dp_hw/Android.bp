@@ -18,7 +18,6 @@ cc_defaults {
 }
 
 // Audio A2DP shared library for target
-// ========================================================
 cc_library {
     name: "audio.a2dp.default",
     defaults: ["audio_a2dp_hw_defaults"],
@@ -44,7 +43,6 @@ cc_library_static {
 }
 
 // Audio A2DP library unit tests for target and host
-// ========================================================
 cc_test {
     name: "net_test_audio_a2dp_hw",
     test_suites: ["device-tests"],

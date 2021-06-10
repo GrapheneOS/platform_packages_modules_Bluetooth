@@ -1,5 +1,4 @@
 // Bluetooth device static library for target
-// ========================================================
 package {
     // See: http://go/android-license-faq
     // A large-scale-change added 'default_applicable_licenses' to import
@@ -34,7 +33,6 @@ cc_library_static {
 }
 
 // Bluetooth device unit tests for target
-// ========================================================
 cc_test {
     name: "net_test_device",
     test_suites: ["device-tests"],

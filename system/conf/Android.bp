@@ -1,5 +1,4 @@
 // Bluetooth bt_stack.conf config file
-// ========================================================
 package {
     // See: http://go/android-license-faq
     // A large-scale-change added 'default_applicable_licenses' to import
@@ -16,7 +15,6 @@ prebuilt_etc {
 }
 
 // Bluetooth bt_did.conf config file
-// ========================================================
 prebuilt_etc {
     name: "bt_did.conf",
     src: "bt_did.conf",
