@@ -192,7 +192,7 @@ cb_variant!(A2dpCb, audio_config_callback -> A2dpCallbacks::AudioConfig, RawAddr
 
 pub struct A2dp {
     internal: cxx::UniquePtr<ffi::A2dpIntf>,
-    is_init: bool,
+    _is_init: bool,
 }
 
 // For *const u8 opaque btif
@@ -200,12 +200,12 @@ unsafe impl Send for A2dp {}
 
 impl A2dp {
     pub fn new(intf: &BluetoothInterface) -> A2dp {
-        let mut a2dpif: cxx::UniquePtr<ffi::A2dpIntf>;
+        let a2dpif: cxx::UniquePtr<ffi::A2dpIntf>;
         unsafe {
             a2dpif = ffi::GetA2dpProfile(intf.as_raw_ptr());
         }
 
-        A2dp { internal: a2dpif, is_init: false }
+        A2dp { internal: a2dpif, _is_init: false }
     }
 
     pub fn initialize(&mut self, callbacks: A2dpCallbacksDispatcher) -> bool {
@@ -216,7 +216,7 @@ impl A2dp {
         true
     }
 
-    pub fn connect(mut self) -> bool {
+    pub fn connect(&self) -> bool {
         // TODO(hychao)
         true
     }
