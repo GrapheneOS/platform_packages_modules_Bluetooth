@@ -43,7 +43,6 @@ cc_library_static {
     export_header_lib_headers: ["libbluetooth-types-header"],
 }
 
-// ========================================================
 cc_test {
     name: "net_test_types",
     test_suites: ["device-tests"],

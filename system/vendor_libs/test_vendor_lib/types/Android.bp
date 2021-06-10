@@ -31,7 +31,6 @@ cc_library_static {
     export_header_lib_headers: ["libbt-rootcanal-types-header"],
 }
 
-// ========================================================
 cc_test {
     name: "rootcanal-test_types",
     test_suites: ["device-tests"],

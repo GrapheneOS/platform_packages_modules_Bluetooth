@@ -1,5 +1,4 @@
 // Bluetooth test suite for target
-// ========================================================
 package {
     // See: http://go/android-license-faq
     // A large-scale-change added 'default_applicable_licenses' to import
@@ -37,7 +36,6 @@ cc_test {
 }
 
 // Bluetooth test suite for target
-// ========================================================
 cc_test {
     name: "net_test_rfcomm_suite",
     defaults: ["fluoride_defaults"],

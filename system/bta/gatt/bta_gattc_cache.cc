@@ -95,22 +95,22 @@ typedef struct {
 
 /* debug function to display the server cache */
 static void bta_gattc_display_cache_server(const Database& database) {
-  LOG(INFO) << "<================Start Server Cache =============>";
+  LOG(INFO) << "<=--------------=Start Server Cache =-----------=>";
   std::istringstream iss(database.ToString());
   for (std::string line; std::getline(iss, line);) {
     LOG(INFO) << line;
   }
-  LOG(INFO) << "<================End Server Cache =============>";
+  LOG(INFO) << "<=--------------=End Server Cache =-----------=>";
 }
 
 /** debug function to display the exploration list */
 static void bta_gattc_display_explore_record(const DatabaseBuilder& database) {
-  LOG(INFO) << "<================Start Explore Queue =============>";
+  LOG(INFO) << "<=--------------=Start Explore Queue =-----------=>";
   std::istringstream iss(database.ToString());
   for (std::string line; std::getline(iss, line);) {
     LOG(INFO) << line;
   }
-  LOG(INFO) << "<================ End Explore Queue =============>";
+  LOG(INFO) << "<=--------------= End Explore Queue =-----------=>";
 }
 #endif /* BTA_GATT_DEBUG == TRUE */
 
