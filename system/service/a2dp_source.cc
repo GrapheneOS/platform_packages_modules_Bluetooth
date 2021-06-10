@@ -207,7 +207,6 @@ bool A2dpSource::MandatoryCodecPreferredCallback(BluetoothAvInterface* iface,
 }
 
 // A2dpSourceFactory implementation
-// ========================================================
 A2dpSourceFactory::A2dpSourceFactory() = default;
 A2dpSourceFactory::~A2dpSourceFactory() = default;
 

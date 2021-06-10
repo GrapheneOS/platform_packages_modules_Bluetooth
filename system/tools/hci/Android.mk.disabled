@@ -17,7 +17,6 @@
 LOCAL_PATH := $(call my-dir)
 
 # Bluetooth HCI tools for target
-# ========================================================
 include $(CLEAR_VARS)
 
 LOCAL_MODULE_TAGS := optional

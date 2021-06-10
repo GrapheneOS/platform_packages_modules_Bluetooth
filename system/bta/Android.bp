@@ -40,7 +40,6 @@ cc_defaults {
 }
 
 // BTA static library for target
-// ========================================================
 cc_library_static {
     name: "libbt-bta",
     defaults: ["fluoride_bta_defaults"],
@@ -123,7 +122,6 @@ cc_library_static {
 }
 
 // bta unit tests for target
-// ========================================================
 cc_test {
     name: "net_test_bta",
     defaults: ["fluoride_bta_defaults"],
@@ -214,7 +212,6 @@ cc_test {
 }
 
 // bta hf client add record tests for target
-// ========================================================
 cc_test {
     name: "net_test_hf_client_add_record",
     defaults: ["fluoride_defaults"],
@@ -245,7 +242,6 @@ cc_test {
 
 
 // bta unit tests for host
-// ========================================================
 cc_test {
     name: "bluetooth_vc_test",
     test_suites: ["device-tests"],

@@ -1,5 +1,4 @@
 // simulation library for testing virtual devices
-// ========================================================
 package {
     // See: http://go/android-license-faq
     // A large-scale-change added 'default_applicable_licenses' to import
@@ -94,7 +93,6 @@ cc_library_static {
 }
 
 // test-vendor unit tests for host
-// ========================================================
 cc_test_host {
     name: "test-vendor_test_host",
     defaults: [
@@ -130,7 +128,6 @@ cc_test_host {
 }
 
 // Linux RootCanal Executable
-// ========================================================
 cc_binary_host {
     name: "root-canal",
     defaults: [
