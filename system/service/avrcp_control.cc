@@ -214,7 +214,6 @@ void AvrcpControl::CtrlTrackChangedCallback(const RawAddress& bd_addr,
 }
 
 // AvrcpControlFactory implementation
-// ========================================================
 
 AvrcpControlFactory::AvrcpControlFactory() = default;
 AvrcpControlFactory::~AvrcpControlFactory() = default;

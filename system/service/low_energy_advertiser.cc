@@ -119,7 +119,6 @@ void GetAdvertiseParams(const AdvertiseSettings& settings, bool has_scan_rsp,
 }  // namespace
 
 // LowEnergyAdvertiser implementation
-// ========================================================
 
 LowEnergyAdvertiser::LowEnergyAdvertiser(const Uuid& uuid, int advertiser_id)
     : app_identifier_(uuid),
@@ -287,7 +286,6 @@ void LowEnergyAdvertiser::InvokeAndClearStopCallback(BLEStatus status) {
 }
 
 // LowEnergyAdvertiserFactory implementation
-// ========================================================
 
 LowEnergyAdvertiserFactory::LowEnergyAdvertiserFactory() {}
 

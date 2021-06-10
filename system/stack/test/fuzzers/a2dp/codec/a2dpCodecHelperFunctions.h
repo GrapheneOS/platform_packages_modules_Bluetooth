@@ -20,7 +20,6 @@
 #include <fuzzer/FuzzedDataProvider.h>
 #include <vector>
 
-// =============================================================================
 static const std::vector<const btav_a2dp_codec_index_t> CODEC_INDEX_ENUM_VALS =
     {BTAV_A2DP_CODEC_INDEX_SOURCE_MIN,
      BTAV_A2DP_CODEC_INDEX_SOURCE_SBC,
@@ -107,7 +106,7 @@ btav_a2dp_codec_config_t getArbitraryBtavCodecConfig(FuzzedDataProvider* fdp) {
 
   return config;
 }
-// =============================================================================
+
 tA2DP_ENCODER_INIT_PEER_PARAMS getArbitraryA2dpEncoderInitPeerParams(
     FuzzedDataProvider* fdp) {
   tA2DP_ENCODER_INIT_PEER_PARAMS params;
@@ -118,7 +117,7 @@ tA2DP_ENCODER_INIT_PEER_PARAMS getArbitraryA2dpEncoderInitPeerParams(
 
   return params;
 }
-// =============================================================================
+
 #include "bt_types.h"
 #define MAX_BTHDR_SIZE 1024
 std::shared_ptr<BT_HDR> getArbitraryBtHdr(FuzzedDataProvider* fdp) {
@@ -143,7 +142,7 @@ std::shared_ptr<BT_HDR> getArbitraryBtHdr(FuzzedDataProvider* fdp) {
 
   return bt_hdr;
 }
-// =============================================================================
+
 #include "bta/av/bta_av_int.h"
 tBT_A2DP_OFFLOAD generateArbitrarytA2dpOffload(FuzzedDataProvider* fdp) {
   tBT_A2DP_OFFLOAD retval;
@@ -166,6 +165,5 @@ tBT_A2DP_OFFLOAD generateArbitrarytA2dpOffload(FuzzedDataProvider* fdp) {
 
   return retval;
 }
-// =============================================================================
 
 #endif  // A2DP_CODEC_HELPERFUNCTIONS_H_
