@@ -1,5 +1,7 @@
 //! D-Bus proxy implementations of the APIs.
 
+use bt_topshim::btif::BtSspVariant;
+
 use btstack::bluetooth::{BluetoothDevice, BluetoothTransport, IBluetooth, IBluetoothCallback};
 use btstack::RPCProxy;
 
@@ -19,6 +21,7 @@ use std::sync::{Arc, Mutex};
 use crate::dbus_arg::{DBusArg, DBusArgError, RefArgToRust};
 
 impl_dbus_arg_enum!(BluetoothTransport);
+impl_dbus_arg_enum!(BtSspVariant);
 
 #[dbus_propmap(BluetoothDevice)]
 pub struct BluetoothDeviceDBus {
@@ -98,6 +101,16 @@ impl IBluetoothCallback for IBluetoothCallbackDBus {
 
     #[dbus_method("OnDiscoveringChanged")]
     fn on_discovering_changed(&self, discovering: bool) {}
+
+    #[dbus_method("OnSspRequest")]
+    fn on_ssp_request(
+        &self,
+        remote_device: BluetoothDevice,
+        cod: u32,
+        variant: BtSspVariant,
+        passkey: u32,
+    ) {
+    }
 }
 
 // TODO: These are boilerplate codes, consider creating a macro to generate.
