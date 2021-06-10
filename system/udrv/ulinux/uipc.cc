@@ -618,8 +618,7 @@ bool UIPC_Send(tUIPC_STATE& uipc, tUIPC_CH_ID ch_id,
  **
  ******************************************************************************/
 
-uint32_t UIPC_Read(tUIPC_STATE& uipc, tUIPC_CH_ID ch_id,
-                   UNUSED_ATTR uint16_t* p_msg_evt, uint8_t* p_buf,
+uint32_t UIPC_Read(tUIPC_STATE& uipc, tUIPC_CH_ID ch_id, uint8_t* p_buf,
                    uint32_t len) {
   if (ch_id >= UIPC_CH_NUM) {
     BTIF_TRACE_ERROR("UIPC_Read : invalid ch id %d", ch_id);

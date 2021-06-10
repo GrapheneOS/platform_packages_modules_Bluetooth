@@ -67,7 +67,7 @@ static void btif_a2dp_recv_ctrl_data(void) {
   int n;
 
   uint8_t read_cmd = 0; /* The read command size is one octet */
-  n = UIPC_Read(*a2dp_uipc, UIPC_CH_ID_AV_CTRL, NULL, &read_cmd, 1);
+  n = UIPC_Read(*a2dp_uipc, UIPC_CH_ID_AV_CTRL, &read_cmd, 1);
   cmd = static_cast<tA2DP_CTRL_CMD>(read_cmd);
 
   /* detach on ctrl channel means audioflinger process was terminated */
@@ -246,7 +246,7 @@ static void btif_a2dp_recv_ctrl_data(void) {
 
       btif_a2dp_command_ack(A2DP_CTRL_ACK_SUCCESS);
       // Send the current codec config
-      if (UIPC_Read(*a2dp_uipc, UIPC_CH_ID_AV_CTRL, 0,
+      if (UIPC_Read(*a2dp_uipc, UIPC_CH_ID_AV_CTRL,
                     reinterpret_cast<uint8_t*>(&codec_config.sample_rate),
                     sizeof(btav_a2dp_codec_sample_rate_t)) !=
           sizeof(btav_a2dp_codec_sample_rate_t)) {
@@ -254,7 +254,7 @@ static void btif_a2dp_recv_ctrl_data(void) {
                          __func__);
         break;
       }
-      if (UIPC_Read(*a2dp_uipc, UIPC_CH_ID_AV_CTRL, 0,
+      if (UIPC_Read(*a2dp_uipc, UIPC_CH_ID_AV_CTRL,
                     reinterpret_cast<uint8_t*>(&codec_config.bits_per_sample),
                     sizeof(btav_a2dp_codec_bits_per_sample_t)) !=
           sizeof(btav_a2dp_codec_bits_per_sample_t)) {
@@ -262,7 +262,7 @@ static void btif_a2dp_recv_ctrl_data(void) {
                          __func__);
         break;
       }
-      if (UIPC_Read(*a2dp_uipc, UIPC_CH_ID_AV_CTRL, 0,
+      if (UIPC_Read(*a2dp_uipc, UIPC_CH_ID_AV_CTRL,
                     reinterpret_cast<uint8_t*>(&codec_config.channel_mode),
                     sizeof(btav_a2dp_codec_channel_mode_t)) !=
           sizeof(btav_a2dp_codec_channel_mode_t)) {

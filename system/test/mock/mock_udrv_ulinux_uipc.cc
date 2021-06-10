@@ -75,8 +75,7 @@ const char* dump_uipc_event(tUIPC_EVENT event) {
   mock_function_count_map[__func__]++;
   return nullptr;
 }
-uint32_t UIPC_Read(tUIPC_STATE& uipc, tUIPC_CH_ID ch_id,
-                   UNUSED_ATTR uint16_t* p_msg_evt, uint8_t* p_buf,
+uint32_t UIPC_Read(tUIPC_STATE& uipc, tUIPC_CH_ID ch_id, uint8_t* p_buf,
                    uint32_t len) {
   mock_function_count_map[__func__]++;
   return 0;
