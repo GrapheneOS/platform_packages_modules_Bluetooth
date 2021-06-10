@@ -45,6 +45,7 @@ import android.text.TextUtils;
 import android.util.Log;
 
 import com.android.bluetooth.hfp.BluetoothHeadsetProxy;
+import com.android.bluetooth.hfp.HeadsetService;
 
 import androidx.annotation.VisibleForTesting;
 
@@ -667,7 +668,14 @@ public class BluetoothInCallService extends InCallService {
                             + addressType);
         }
 
-        if (mBluetoothHeadset != null) {
+        if (mBluetoothHeadset == null) {
+            Log.w(TAG, "mBluetoothHeasdset is null when sending clcc for BluetoothCall "
+                    + index + ", "
+                    + direction + ", "
+                    + state + ", "
+                    + isPartOfConference + ", "
+                    + addressType);
+        } else {
             mBluetoothHeadset.clccResponse(
                     index, direction, state, 0, isPartOfConference, address, addressType);
         }
