@@ -96,6 +96,15 @@ pub trait IBluetoothCallback: RPCProxy {
 
     /// When the discovery state is changed.
     fn on_discovering_changed(&self, discovering: bool);
+
+    /// When there is a pairing/bonding process and requires agent to display the event to UI.
+    fn on_ssp_request(
+        &self,
+        remote_device: BluetoothDevice,
+        cod: u32,
+        variant: BtSspVariant,
+        passkey: u32,
+    );
 }
 
 /// Implementation of the adapter API.
@@ -242,14 +251,28 @@ impl BtifBluetoothCallbacks for Bluetooth {
     fn ssp_request(
         &mut self,
         remote_addr: RawAddress,
-        _remote_name: String,
-        _cod: u32,
+        remote_name: String,
+        cod: u32,
         variant: BtSspVariant,
         passkey: u32,
     ) {
+        // Currently this supports many agent because we accept many callbacks.
+        // TODO: We need a way to select the default agent.
+        self.for_all_callbacks(|callback| {
+            callback.on_ssp_request(
+                BluetoothDevice {
+                    address: BDAddr::from_byte_vec(&remote_addr.address.to_vec())
+                        .unwrap()
+                        .to_string(),
+                    name: remote_name.clone(),
+                },
+                cod,
+                variant.clone(),
+                passkey,
+            );
+        });
         // Immediately accept the pairing.
         // TODO: Delegate the pairing confirmation to agent.
-        // TODO: Implement other pairing confirmations (passkey, passcode, etc);
         self.intf.lock().unwrap().ssp_reply(&remote_addr, variant, 1, passkey);
     }
 

@@ -1,5 +1,7 @@
 extern crate bt_shim;
 
+use bt_topshim::btif::BtSspVariant;
+
 use btstack::bluetooth::{BluetoothDevice, BluetoothTransport, IBluetooth, IBluetoothCallback};
 use btstack::RPCProxy;
 
@@ -37,9 +39,19 @@ impl IBluetoothCallback for BluetoothCallbackDBus {
     fn on_device_found(&self, remote_device: BluetoothDevice) {}
     #[dbus_method("OnDiscoveringChanged")]
     fn on_discovering_changed(&self, discovering: bool) {}
+    #[dbus_method("OnSspRequest")]
+    fn on_ssp_request(
+        &self,
+        remote_device: BluetoothDevice,
+        cod: u32,
+        variant: BtSspVariant,
+        passkey: u32,
+    ) {
+    }
 }
 
 impl_dbus_arg_enum!(BluetoothTransport);
+impl_dbus_arg_enum!(BtSspVariant);
 
 #[allow(dead_code)]
 struct IBluetoothDBus {}
