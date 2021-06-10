@@ -132,6 +132,8 @@ public class MapClientContentTest {
         when(mMockContext.getContentResolver()).thenReturn(mMockContentResolver);
         when(mMockContext.getSystemService(Context.TELEPHONY_SUBSCRIPTION_SERVICE))
                 .thenReturn(mMockSubscriptionManager);
+        when(mMockContext.getSystemServiceName(SubscriptionManager.class))
+                .thenReturn(Context.TELEPHONY_SUBSCRIPTION_SERVICE);
 
         when(mMockSubscriptionManager.getActiveSubscriptionInfoList())
                 .thenReturn(Arrays.asList(mMockSubscription));

@@ -137,7 +137,7 @@ public class PanService extends ProfileService {
         initializeNative();
         mNativeAvailable = true;
 
-        mUserManager = (UserManager) getSystemService(Context.USER_SERVICE);
+        mUserManager = getSystemService(UserManager.class);
 
         setPanService(this);
         mStarted = true;
@@ -395,7 +395,7 @@ public class PanService extends ProfileService {
         enforceCallingOrSelfPermission(
                 TETHER_PRIVILEGED, "Need TETHER_PRIVILEGED permission");
 
-        UserManager um = (UserManager) getSystemService(Context.USER_SERVICE);
+        UserManager um = getSystemService(UserManager.class);
         if (um.hasUserRestriction(UserManager.DISALLOW_CONFIG_TETHERING) && value) {
             throw new SecurityException("DISALLOW_CONFIG_TETHERING is enabled for this user.");
         }

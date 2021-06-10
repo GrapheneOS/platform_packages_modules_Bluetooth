@@ -114,7 +114,7 @@ public class HearingAidService extends ProfileService {
                 "HearingAidNativeInterface cannot be null when HearingAidService starts");
         mDatabaseManager = Objects.requireNonNull(mAdapterService.getDatabase(),
                 "DatabaseManager cannot be null when HearingAidService starts");
-        mAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+        mAudioManager = getSystemService(AudioManager.class);
         Objects.requireNonNull(mAudioManager,
                 "AudioManager cannot be null when HearingAidService starts");
 

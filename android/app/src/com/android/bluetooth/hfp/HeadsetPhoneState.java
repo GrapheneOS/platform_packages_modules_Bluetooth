@@ -16,10 +16,8 @@
 
 package com.android.bluetooth.hfp;
 
-import android.annotation.RequiresPermission;
 import android.annotation.SuppressLint;
 import android.bluetooth.BluetoothDevice;
-import android.content.Context;
 import android.os.Handler;
 import android.telephony.PhoneStateListener;
 import android.telephony.ServiceState;
@@ -76,8 +74,7 @@ public class HeadsetPhoneState {
     HeadsetPhoneState(HeadsetService headsetService) {
         Objects.requireNonNull(headsetService, "headsetService is null");
         mHeadsetService = headsetService;
-        mTelephonyManager =
-                (TelephonyManager) mHeadsetService.getSystemService(Context.TELEPHONY_SERVICE);
+        mTelephonyManager = mHeadsetService.getSystemService(TelephonyManager.class);
         Objects.requireNonNull(mTelephonyManager, "TELEPHONY_SERVICE is null");
         // Register for SubscriptionInfo list changes which is guaranteed to invoke
         // onSubscriptionInfoChanged and which in turns calls loadInBackgroud.

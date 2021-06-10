@@ -71,6 +71,8 @@ public class A2dpSinkStreamHandlerTest {
         mHandlerThread.start();
 
         when(mMockContext.getSystemService(Context.AUDIO_SERVICE)).thenReturn(mMockAudioManager);
+        when(mMockContext.getSystemServiceName(AudioManager.class))
+                .thenReturn(Context.AUDIO_SERVICE);
         when(mMockContext.getResources()).thenReturn(mMockResources);
         when(mMockResources.getInteger(anyInt())).thenReturn(DUCK_PERCENT);
         when(mMockAudioManager.requestAudioFocus(any())).thenReturn(
