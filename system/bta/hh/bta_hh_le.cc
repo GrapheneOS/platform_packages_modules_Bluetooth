@@ -1690,7 +1690,7 @@ void bta_hh_gatt_close(tBTA_HH_DEV_CB* p_cb, const tBTA_HH_DATA* p_data) {
             gatt_disconnection_reason_text(le_close->reason).c_str());
         break;
     }
-  } else if (kBTA_HH_LE_RECONN && le_close->reason == HCI_ERR_CONNECTION_TOUT) {
+  } else if (kBTA_HH_LE_RECONN && le_close->reason == GATT_CONN_TIMEOUT) {
     bta_hh_le_add_dev_bg_conn(p_cb, false);
   }
 }
