@@ -17,6 +17,7 @@
 package com.android.bluetooth.mapclient;
 
 import static android.Manifest.permission.BLUETOOTH_CONNECT;
+
 import static org.mockito.Mockito.*;
 
 import android.bluetooth.BluetoothAdapter;
@@ -120,6 +121,8 @@ public class MapClientStateMachineTest {
         when(mMockMapClientService.getContentResolver()).thenReturn(mMockContentResolver);
         when(mMockMapClientService.getSystemService(Context.TELEPHONY_SUBSCRIPTION_SERVICE))
                 .thenReturn(mMockSubscriptionManager);
+        when(mMockMapClientService.getSystemServiceName(SubscriptionManager.class))
+                .thenReturn(Context.TELEPHONY_SUBSCRIPTION_SERVICE);
 
         doReturn(mTargetContext.getResources()).when(mMockMapClientService).getResources();
 

@@ -222,7 +222,7 @@ public class SapServer extends Thread implements Callback {
         String title, text, button, ticker;
         Notification notification;
         NotificationManager notificationManager =
-                (NotificationManager) mContext.getSystemService(Context.NOTIFICATION_SERVICE);
+                mContext.getSystemService(NotificationManager.class);
         NotificationChannel notificationChannel = new NotificationChannel(SAP_NOTIFICATION_CHANNEL,
                 mContext.getString(R.string.bluetooth_sap_notif_title),
                 NotificationManager.IMPORTANCE_HIGH);
@@ -312,7 +312,7 @@ public class SapServer extends Thread implements Callback {
 
     void clearNotification() {
         NotificationManager notificationManager =
-                (NotificationManager) mContext.getSystemService(Context.NOTIFICATION_SERVICE);
+                mContext.getSystemService(NotificationManager.class);
         notificationManager.cancel(SapServer.NOTIFICATION_ID);
     }
 
@@ -627,8 +627,7 @@ public class SapServer extends Thread implements Callback {
      * @return false if the phone is IDLE (can be used for SAP), true otherwise.
      */
     private boolean isCallOngoing() {
-        TelephonyManager tManager =
-                (TelephonyManager) mContext.getSystemService(Context.TELEPHONY_SERVICE);
+        TelephonyManager tManager = mContext.getSystemService(TelephonyManager.class);
         if (tManager.getCallState() == TelephonyManager.CALL_STATE_IDLE) {
             return false;
         }
@@ -753,10 +752,7 @@ public class SapServer extends Thread implements Callback {
         synchronized (this) {
             Intent sapDisconnectIntent = new Intent(SapServer.SAP_DISCONNECT_ACTION);
             sapDisconnectIntent.putExtra(SAP_DISCONNECT_TYPE_EXTRA, discType);
-            AlarmManager alarmManager =
-                    (AlarmManager) mContext.getSystemService(Context.ALARM_SERVICE);
-            // TODO(b/171825892) Please replace FLAG_MUTABLE_UNAUDITED below
-            // with either FLAG_IMMUTABLE (recommended) or FLAG_MUTABLE.
+            AlarmManager alarmManager = mContext.getSystemService(AlarmManager.class);
             mPendingDiscIntent = PendingIntent.getBroadcast(mContext, discType, sapDisconnectIntent,
                     PendingIntent.FLAG_CANCEL_CURRENT | PendingIntent.FLAG_IMMUTABLE);
             alarmManager.set(AlarmManager.ELAPSED_REALTIME_WAKEUP,
@@ -773,8 +769,7 @@ public class SapServer extends Thread implements Callback {
     private void stopDisconnectTimer() {
         synchronized (this) {
             if (mPendingDiscIntent != null) {
-                AlarmManager alarmManager =
-                        (AlarmManager) mContext.getSystemService(Context.ALARM_SERVICE);
+                AlarmManager alarmManager = mContext.getSystemService(AlarmManager.class);
                 alarmManager.cancel(mPendingDiscIntent);
                 mPendingDiscIntent.cancel();
                 if (VERBOSE) {
