@@ -142,6 +142,9 @@ Dumpsys::Dumpsys(const std::string& pre_bundled_schema)
     : reflection_schema_(dumpsys::ReflectionSchema(pre_bundled_schema)) {}
 
 void Dumpsys::Dump(int fd, const char** args) {
+  if (fd <= 0) {
+    return;
+  }
   std::promise<void> promise;
   auto future = promise.get_future();
   CallOn(pimpl_.get(), &Dumpsys::impl::DumpWithArgsSync, fd, args, std::move(promise));
@@ -149,6 +152,10 @@ void Dumpsys::Dump(int fd, const char** args) {
 }
 
 void Dumpsys::Dump(int fd, const char** args, std::promise<void> promise) {
+  if (fd <= 0) {
+    promise.set_value();
+    return;
+  }
   CallOn(pimpl_.get(), &Dumpsys::impl::DumpWithArgsSync, fd, args, std::move(promise));
 }
 
