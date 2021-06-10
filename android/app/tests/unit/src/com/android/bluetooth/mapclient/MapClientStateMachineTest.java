@@ -103,13 +103,12 @@ public class MapClientStateMachineTest {
 
     @Before
     public void setUp() throws Exception {
-        MockitoAnnotations.initMocks(this);
         mTargetContext = InstrumentationRegistry.getTargetContext();
-        mMockContentProvider = new MockSmsContentProvider();
-        mMockContentResolver = new MockContentResolver();
-
         Assume.assumeTrue("Ignore test when MapClientService is not enabled",
                 mTargetContext.getResources().getBoolean(R.bool.profile_supported_mapmce));
+        MockitoAnnotations.initMocks(this);
+        mMockContentProvider = new MockSmsContentProvider();
+        mMockContentResolver = new MockContentResolver();
         TestUtils.setAdapterService(mAdapterService);
         when(mAdapterService.getDatabase()).thenReturn(mDatabaseManager);
         doReturn(true, false).when(mAdapterService).isStartedProfile(anyString());
