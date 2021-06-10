@@ -1,3 +1,4 @@
+use log::Level;
 use serde_json::{Map, Value};
 
 // Directory for Bluetooth hci devices
@@ -35,6 +36,19 @@ pub fn write_floss_enabled(enabled: bool) -> bool {
 
 pub fn read_config() -> std::io::Result<String> {
     std::fs::read_to_string(BTMANAGERD_CONF)
+}
+
+pub fn get_log_level() -> Option<Level> {
+    get_log_level_internal(read_config().ok()?)
+}
+
+fn get_log_level_internal(config: String) -> Option<Level> {
+    serde_json::from_str::<Value>(config.as_str())
+        .ok()?
+        .get("log_level")?
+        .as_str()?
+        .parse::<Level>()
+        .ok()
 }
 
 /// Returns whether hci N is enabled in config; defaults to true.
@@ -122,6 +136,34 @@ mod tests {
 
     fn is_hci_n_enabled_internal_wrapper(config: String, n: i32) -> bool {
         is_hci_n_enabled_internal(config, n).or(Some(true)).unwrap()
+    }
+
+    #[test]
+    fn parse_log_level() {
+        assert_eq!(
+            get_log_level_internal("{\"log_level\": \"error\"}".to_string()).unwrap(),
+            Level::Error
+        );
+        assert_eq!(
+            get_log_level_internal("{\"log_level\": \"warn\"}".to_string()).unwrap(),
+            Level::Warn
+        );
+        assert_eq!(
+            get_log_level_internal("{\"log_level\": \"info\"}".to_string()).unwrap(),
+            Level::Info
+        );
+        assert_eq!(
+            get_log_level_internal("{\"log_level\": \"debug\"}".to_string()).unwrap(),
+            Level::Debug
+        );
+        assert_eq!(
+            get_log_level_internal("{\"log_level\": \"trace\"}".to_string()).unwrap(),
+            Level::Trace
+        );
+        assert_eq!(
+            get_log_level_internal("{\"log_level\": \"random\"}".to_string()).is_none(),
+            true
+        );
     }
 
     #[test]
