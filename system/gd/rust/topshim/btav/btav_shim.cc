@@ -88,8 +88,8 @@ static void audio_state_cb(const RawAddress& bd_addr, btav_audio_state_t state) 
 static void audio_config_cb(
     const RawAddress& bd_addr,
     btav_a2dp_codec_config_t codec_config,
-    const std::vector<btav_a2dp_codec_config_t>& codecs_local_capabilities,
-    const std::vector<btav_a2dp_codec_config_t>& codecs_selectable_capabilities) {
+    std::vector<btav_a2dp_codec_config_t> codecs_local_capabilities,
+    std::vector<btav_a2dp_codec_config_t> codecs_selectable_capabilities) {
   RustRawAddress addr = to_rust_address(bd_addr);
   A2dpCodecConfig cfg = to_rust_codec_config(codec_config);
   ::rust::Vec<A2dpCodecConfig> lcaps = to_rust_codec_config_vec(codecs_local_capabilities);
