@@ -41,7 +41,7 @@ public class VolumeControlNativeInterface {
     private VolumeControlNativeInterface() {
         mAdapter = BluetoothAdapter.getDefaultAdapter();
         if (mAdapter == null) {
-            Log.wtfStack(TAG, "No Bluetooth Adapter Available");
+            Log.wtf(TAG, "No Bluetooth Adapter Available");
         }
     }
 
