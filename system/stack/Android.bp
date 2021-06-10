@@ -25,7 +25,6 @@ cc_test_library {
 }
 
 // Bluetooth stack static library for target
-// ========================================================
 cc_library_static {
     name: "libbt-stack",
     defaults: ["fluoride_defaults"],
@@ -217,7 +216,6 @@ cc_library_static {
 }
 
 // Bluetooth stack unit tests for target
-// ========================================================
 cc_test {
     name: "net_test_stack",
     defaults: ["fluoride_defaults"],
@@ -335,7 +333,6 @@ cc_test {
 }
 
 // Bluetooth stack smp unit tests for target
-// ========================================================
 cc_test {
     name: "net_test_stack_smp",
     defaults: ["fluoride_defaults"],
@@ -376,7 +373,6 @@ cc_test {
 }
 
 // Bluetooth stack multi-advertising unit tests for target
-// ========================================================
 cc_test {
     name: "net_test_stack_multi_adv",
     defaults: ["fluoride_defaults"],
@@ -411,7 +407,6 @@ cc_test {
 }
 
 // Bluetooth stack advertise data parsing unit tests for target
-// =============================================================
 cc_test {
     name: "net_test_stack_ad_parser",
     defaults: ["fluoride_defaults"],
@@ -430,7 +425,6 @@ cc_test {
 }
 
 // Bluetooth stack connection multiplexing
-// ========================================================
 cc_test {
     name: "net_test_gatt_conn_multiplexing",
     defaults: ["fluoride_defaults"],

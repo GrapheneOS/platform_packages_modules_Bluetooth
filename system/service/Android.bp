@@ -21,7 +21,6 @@ cc_defaults {
 }
 
 // Source variables
-// ========================================================
 btserviceDaemonSrc = [
     "a2dp_sink.cc",
     "a2dp_source.cc",
@@ -66,7 +65,6 @@ btserviceBinderDaemonSrc = [
 ]
 
 // Main unit test sources. These get built for host and target.
-// ========================================================
 btserviceBaseTestSrc = [
     "hal/fake_bluetooth_av_interface.cc",
     "hal/fake_bluetooth_gatt_interface.cc",
@@ -85,7 +83,6 @@ btserviceBaseTestSrc = [
 ]
 
 // Native system service for target
-// ========================================================
 cc_binary {
     name: "bluetoothtbd",
     defaults: ["fluoride_service_defaults"],
@@ -112,7 +109,6 @@ cc_binary {
 
 // Native system service unit tests for target and host
 
-// ========================================================
 cc_test {
     name: "bluetoothtbd_test",
     test_suites: ["device-tests"],
@@ -175,7 +171,6 @@ cc_test {
 }
 
 // Native system service CLI for target
-// ========================================================
 cc_binary {
     name: "bluetooth-cli",
     defaults: ["fluoride_defaults"],
@@ -190,7 +185,6 @@ cc_binary {
 }
 
 // Heart Rate GATT service example for target
-// ========================================================
 cc_binary {
     name: "bt-example-hr-server",
     defaults: ["fluoride_defaults"],

@@ -109,7 +109,6 @@ class RemoteCallbackMap final {
 };
 
 // Template Implementation details below
-// ========================================================
 
 using android::IBinder;
 using android::IInterface;

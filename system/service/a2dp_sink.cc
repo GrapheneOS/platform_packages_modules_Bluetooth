@@ -138,7 +138,6 @@ void A2dpSink::AudioConfigCallback(BluetoothAvInterface* iface,
 }
 
 // A2dpSinkFactory implementation
-// ========================================================
 A2dpSinkFactory::A2dpSinkFactory() = default;
 A2dpSinkFactory::~A2dpSinkFactory() = default;
 

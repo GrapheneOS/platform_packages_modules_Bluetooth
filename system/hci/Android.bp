@@ -18,7 +18,6 @@ cc_defaults {
 }
 
 // HCI static library for target
-// ========================================================
 cc_library_static {
     name: "libbt-hci",
     defaults: ["libbt-hci_defaults"],
@@ -59,7 +58,6 @@ cc_library_static {
 }
 
 // HCI unit tests for target
-// ========================================================
 cc_test {
     name: "net_test_hci",
     test_suites: ["device-tests"],
@@ -98,7 +96,6 @@ cc_test {
 }
 
 // HCI native unit tests for target
-// ========================================================
 cc_test {
     name: "net_test_hci_native",
     test_suites: ["device-tests"],

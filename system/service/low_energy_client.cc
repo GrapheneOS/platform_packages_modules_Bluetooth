@@ -32,7 +32,6 @@ constexpr int kPhyLe1MbMask = 1;
 namespace bluetooth {
 
 // LowEnergyClient implementation
-// ========================================================
 
 LowEnergyClient::LowEnergyClient(Adapter& adapter, const Uuid& uuid,
                                  int client_id)
@@ -196,7 +195,6 @@ void LowEnergyClient::MtuChangedCallback(
 }
 
 // LowEnergyClientFactory implementation
-// ========================================================
 
 LowEnergyClientFactory::LowEnergyClientFactory(Adapter& adapter)
     : adapter_(adapter) {

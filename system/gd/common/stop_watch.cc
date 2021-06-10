@@ -41,7 +41,7 @@ void StopWatch::RecordLog(StopWatchLog log) {
 }
 
 void StopWatch::DumpStopWatchLog() {
-  LOG_INFO("=====================================");
+  LOG_INFO("=-----------------------------------=");
   LOG_INFO("bluetooth stopwatch log history:");
   for (int i = 0; i < LOG_BUFFER_LENGTH; i++) {
     if (current_buffer_index >= LOG_BUFFER_LENGTH) {
@@ -69,7 +69,7 @@ void StopWatch::DumpStopWatchLog() {
                                 .count()));
     current_buffer_index++;
   }
-  LOG_INFO("=====================================");
+  LOG_INFO("=-----------------------------------=");
 }
 
 StopWatch::StopWatch(std::string text)
