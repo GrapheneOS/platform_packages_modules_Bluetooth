@@ -44,7 +44,6 @@ typedef enum {
  */
 
 #define UIPC_REQ_RX_FLUSH 1
-#define UIPC_REG_CBACK 2
 #define UIPC_REG_REMOVE_ACTIVE_READSET 3
 #define UIPC_SET_READ_POLL_TMO 4
 
