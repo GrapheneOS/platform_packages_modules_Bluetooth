@@ -23,7 +23,7 @@
 #include <base/callback.h>
 #include <base/location.h>
 
-#include "stack_manager.h"
+#include "btif/include/stack_manager.h"
 #include "types/raw_address.h"
 
 typedef void(tBTIF_CBACK)(uint16_t event, char* p_param);

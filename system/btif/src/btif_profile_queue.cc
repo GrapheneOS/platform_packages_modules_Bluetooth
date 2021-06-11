@@ -36,9 +36,9 @@
 #include <list>
 
 #include "bt_common.h"
+#include "btif/include/stack_manager.h"
 #include "btif_common.h"
 #include "main/shim/dumpsys.h"
-#include "stack_manager.h"
 
 /*******************************************************************************
  *  Local type definitions
