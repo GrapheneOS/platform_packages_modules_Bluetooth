@@ -96,7 +96,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
         // The `resource` is a task that should be spawned onto a tokio compatible
         // reactor ASAP. If the resource ever finishes, we lost connection to D-Bus.
-        topstack::get_runtime().spawn(async {
+        tokio::spawn(async {
             let err = resource.await;
             panic!("Lost connection to D-Bus: {}", err);
         });
@@ -106,7 +106,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         cr.lock().unwrap().set_async_support(Some((
             conn.clone(),
             Box::new(|x| {
-                topstack::get_runtime().spawn(x);
+                tokio::spawn(x);
             }),
         )));
         let cr_clone = cr.clone();

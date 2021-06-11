@@ -402,7 +402,7 @@ pub fn dbus_proxy_obj(attr: TokenStream, item: TokenStream) -> TokenStream {
                     let remote__ = self.remote.clone();
                     let objpath__ = self.objpath.clone();
                     let conn__ = self.conn.clone();
-                    bt_topshim::topstack::get_runtime().spawn(async move {
+                    tokio::spawn(async move {
                         let proxy = dbus::nonblock::Proxy::new(
                             remote__,
                             objpath__,
