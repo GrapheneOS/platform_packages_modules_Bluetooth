@@ -420,8 +420,13 @@ class GdAndroidDevice(GdDeviceBase):
         # Push test binaries
         self.ensure_verity_disabled()
         self.push_or_die(os.path.join(get_gd_root(), "target", "bluetooth_stack_with_facade"), "system/bin")
+        self.push_or_die(
+            os.path.join(get_gd_root(), "target", "android.system.suspend.control-V1-ndk.so"), "system/lib64")
         self.push_or_die(os.path.join(get_gd_root(), "target", "libbluetooth_gd.so"), "system/lib64")
         self.push_or_die(os.path.join(get_gd_root(), "target", "libgrpc++_unsecure.so"), "system/lib64")
+        self.push_or_die(os.path.join(get_gd_root(), "target", "libgrpc++.so"), "system/lib64")
+        self.push_or_die(os.path.join(get_gd_root(), "target", "libgrpc_wrap.so"), "system/lib64")
+        self.push_or_die(os.path.join(get_gd_root(), "target", "libstatslog.so"), "system/lib64")
 
         try:
             self.adb.shell("rm /data/misc/bluetooth/logs/btsnoop_hci.log")
