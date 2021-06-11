@@ -50,6 +50,7 @@
 #include "bta/include/bta_hearing_aid_api.h"
 #include "bta/include/bta_hf_client_api.h"
 #include "btif/avrcp/avrcp_service.h"
+#include "btif/include/stack_manager.h"
 #include "btif_a2dp.h"
 #include "btif_activity_attribution.h"
 #include "btif_api.h"
@@ -81,7 +82,6 @@
 #include "stack/gatt/connection_manager.h"
 #include "stack/include/avdt_api.h"
 #include "stack/include/btu.h"
-#include "stack_manager.h"
 
 using bluetooth::hearing_aid::HearingAidInterface;
 using bluetooth::le_audio::LeAudioClientInterface;
