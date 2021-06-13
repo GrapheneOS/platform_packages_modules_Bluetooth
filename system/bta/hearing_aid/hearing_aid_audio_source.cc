@@ -87,15 +87,14 @@ void send_audio_data() {
   uint32_t bytes_per_tick =
       (num_channels * sample_rate * data_interval_ms * (bit_rate / 8)) / 1000;
 
-  uint16_t event;
   uint8_t p_buf[bytes_per_tick];
 
   uint32_t bytes_read;
   if (bluetooth::audio::hearing_aid::is_hal_2_0_enabled()) {
     bytes_read = bluetooth::audio::hearing_aid::read(p_buf, bytes_per_tick);
   } else {
-    bytes_read = UIPC_Read(*uipc_hearing_aid, UIPC_CH_ID_AV_AUDIO, &event,
-                           p_buf, bytes_per_tick);
+    bytes_read = UIPC_Read(*uipc_hearing_aid, UIPC_CH_ID_AV_AUDIO, p_buf,
+                           bytes_per_tick);
   }
 
   VLOG(2) << "bytes_read: " << bytes_read;
@@ -169,7 +168,7 @@ void hearing_aid_recv_ctrl_data() {
   int n;
 
   uint8_t read_cmd = 0; /* The read command size is one octet */
-  n = UIPC_Read(*uipc_hearing_aid, UIPC_CH_ID_AV_CTRL, NULL, &read_cmd, 1);
+  n = UIPC_Read(*uipc_hearing_aid, UIPC_CH_ID_AV_CTRL, &read_cmd, 1);
   cmd = static_cast<tHEARING_AID_CTRL_CMD>(read_cmd);
 
   /* detach on ctrl channel means audioflinger process was terminated */
@@ -270,14 +269,14 @@ void hearing_aid_recv_ctrl_data() {
 
       hearing_aid_send_ack(HEARING_AID_CTRL_ACK_SUCCESS);
       // Send the current codec config
-      if (UIPC_Read(*uipc_hearing_aid, UIPC_CH_ID_AV_CTRL, 0,
+      if (UIPC_Read(*uipc_hearing_aid, UIPC_CH_ID_AV_CTRL,
                     reinterpret_cast<uint8_t*>(&codec_config.sample_rate),
                     sizeof(btav_a2dp_codec_sample_rate_t)) !=
           sizeof(btav_a2dp_codec_sample_rate_t)) {
         LOG(ERROR) << __func__ << "Error reading sample rate from audio HAL";
         break;
       }
-      if (UIPC_Read(*uipc_hearing_aid, UIPC_CH_ID_AV_CTRL, 0,
+      if (UIPC_Read(*uipc_hearing_aid, UIPC_CH_ID_AV_CTRL,
                     reinterpret_cast<uint8_t*>(&codec_config.bits_per_sample),
                     sizeof(btav_a2dp_codec_bits_per_sample_t)) !=
           sizeof(btav_a2dp_codec_bits_per_sample_t)) {
@@ -286,7 +285,7 @@ void hearing_aid_recv_ctrl_data() {
 
         break;
       }
-      if (UIPC_Read(*uipc_hearing_aid, UIPC_CH_ID_AV_CTRL, 0,
+      if (UIPC_Read(*uipc_hearing_aid, UIPC_CH_ID_AV_CTRL,
                     reinterpret_cast<uint8_t*>(&codec_config.channel_mode),
                     sizeof(btav_a2dp_codec_channel_mode_t)) !=
           sizeof(btav_a2dp_codec_channel_mode_t)) {
