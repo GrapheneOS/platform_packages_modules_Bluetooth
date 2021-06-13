@@ -43,7 +43,6 @@ namespace mock {
 namespace main_bte {
 
 // Function state capture and return values, if needed
-struct post_to_main_message_loop post_to_main_message_loop;
 struct bte_main_init bte_main_init;
 struct bte_main_hci_send bte_main_hci_send;
 
@@ -52,10 +51,6 @@ struct bte_main_hci_send bte_main_hci_send;
 }  // namespace test
 
 // Mocked functions, if any
-void post_to_main_message_loop(const base::Location& from_here, BT_HDR* p_msg) {
-  mock_function_count_map[__func__]++;
-  test::mock::main_bte::post_to_main_message_loop(from_here, p_msg);
-}
 void bte_main_init(void) {
   mock_function_count_map[__func__]++;
   test::mock::main_bte::bte_main_init();
