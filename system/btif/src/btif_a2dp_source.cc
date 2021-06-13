@@ -828,15 +828,14 @@ static void btif_a2dp_source_audio_tx_stop_event(void) {
                                     &btif_a2dp_source_cb.accumulated_stats);
 
   uint8_t p_buf[AUDIO_STREAM_OUTPUT_BUFFER_SZ * 2];
-  uint16_t event;
 
   // Keep track of audio data still left in the pipe
   if (bluetooth::audio::a2dp::is_hal_2_0_enabled()) {
     btif_a2dp_control_log_bytes_read(
         bluetooth::audio::a2dp::read(p_buf, sizeof(p_buf)));
   } else if (a2dp_uipc != nullptr) {
-    btif_a2dp_control_log_bytes_read(UIPC_Read(*a2dp_uipc, UIPC_CH_ID_AV_AUDIO,
-                                               &event, p_buf, sizeof(p_buf)));
+    btif_a2dp_control_log_bytes_read(
+        UIPC_Read(*a2dp_uipc, UIPC_CH_ID_AV_AUDIO, p_buf, sizeof(p_buf)));
   }
 
   /* Stop the timer first */
@@ -901,13 +900,12 @@ static void btif_a2dp_source_audio_handle_timer(void) {
 }
 
 static uint32_t btif_a2dp_source_read_callback(uint8_t* p_buf, uint32_t len) {
-  uint16_t event;
   uint32_t bytes_read = 0;
 
   if (bluetooth::audio::a2dp::is_hal_2_0_enabled()) {
     bytes_read = bluetooth::audio::a2dp::read(p_buf, len);
   } else if (a2dp_uipc != nullptr) {
-    bytes_read = UIPC_Read(*a2dp_uipc, UIPC_CH_ID_AV_AUDIO, &event, p_buf, len);
+    bytes_read = UIPC_Read(*a2dp_uipc, UIPC_CH_ID_AV_AUDIO, p_buf, len);
   }
 
   if (bytes_read < len) {
