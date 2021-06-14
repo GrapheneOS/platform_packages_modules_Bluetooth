@@ -53,6 +53,7 @@
 
 extern bool bta_dm_check_if_only_hd_connected(const RawAddress& peer_addr);
 extern bool check_cod_hid(const RawAddress* remote_bdaddr);
+extern bool check_cod_hid(const RawAddress& bd_addr);
 extern void btif_hh_service_registration(bool enable);
 
 /* HD request events */
