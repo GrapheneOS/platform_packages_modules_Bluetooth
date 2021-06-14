@@ -12,7 +12,10 @@ cc_library_static {
     name: "libbtcore",
     defaults: ["fluoride_defaults"],
     local_include_dirs: ["include"],
-    include_dirs: ["packages/modules/Bluetooth/system"],
+    include_dirs: [
+        "packages/modules/Bluetooth/system",
+        "packages/modules/Bluetooth/system/gd",
+    ],
     srcs: [
         "src/device_class.cc",
         "src/hal_util.cc",

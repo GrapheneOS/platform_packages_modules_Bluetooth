@@ -23,6 +23,7 @@ cc_defaults {
         "packages/modules/Bluetooth/system/btcore/include",
         "packages/modules/Bluetooth/system/btif/avrcp",
         "packages/modules/Bluetooth/system/btif/include",
+        "packages/modules/Bluetooth/system/gd",
         "packages/modules/Bluetooth/system/hci/include",
         "packages/modules/Bluetooth/system/internal_include",
         "packages/modules/Bluetooth/system/stack/include",
@@ -218,6 +219,7 @@ cc_test {
     test_suites: ["device-tests"],
     include_dirs: [
         "packages/modules/Bluetooth/system",
+        "packages/modules/Bluetooth/system/gd",
         "packages/modules/Bluetooth/system/bta/include",
         "packages/modules/Bluetooth/system/bta/sys",
         "packages/modules/Bluetooth/system/btif/include",

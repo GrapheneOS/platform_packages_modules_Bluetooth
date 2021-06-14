@@ -73,6 +73,9 @@ cc_library_static {
         "libbt_message_loop_thread_bridge_header",
         "cxx-bridge-header",
     ],
+    include_dirs: [
+        "packages/modules/Bluetooth/system/gd",
+    ],
     header_libs: ["libbt_callbacks_cxx_headers"],
     export_header_lib_headers: ["libbt_callbacks_cxx_headers"],
     cflags: [
