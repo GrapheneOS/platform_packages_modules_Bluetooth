@@ -280,10 +280,6 @@ static void btif_a2dp_recv_ctrl_data(void) {
       break;
     }
 
-    case A2DP_CTRL_CMD_OFFLOAD_START:
-      btif_av_stream_start_offload();
-      break;
-
     case A2DP_CTRL_GET_PRESENTATION_POSITION: {
       btif_a2dp_command_ack(A2DP_CTRL_ACK_SUCCESS);
 
