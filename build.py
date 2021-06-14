@@ -66,14 +66,15 @@ VALID_TARGETS = [
     'all',  # All targets except test and clean
 ]
 
+# TODO(b/190750167) - Host tests are disabled until we are full bazel build
 HOST_TESTS = [
-    'bluetooth_test_common',
-    'bluetoothtbd_test',
-    'net_test_avrcp',
-    'net_test_btcore',
-    'net_test_types',
-    'net_test_btm_iso',
-    'net_test_btpackets',
+    # 'bluetooth_test_common',
+    # 'bluetoothtbd_test',
+    # 'net_test_avrcp',
+    # 'net_test_btcore',
+    # 'net_test_types',
+    # 'net_test_btm_iso',
+    # 'net_test_btpackets',
 ]
 
 
