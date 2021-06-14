@@ -100,6 +100,12 @@ pub async fn main() -> Result<(), Box<dyn std::error::Error>> {
         }),
     )));
 
+    // Object manager is necessary for clients (to inform them when Bluetooth is
+    // available). Create it at root (/) so subsequent additions generate
+    // InterfaceAdded and InterfaceRemoved signals.
+    cr.set_object_manager_support(Some(conn.clone()));
+    cr.insert("/", &[cr.object_manager()], {});
+
     let iface_token = cr.register("org.chromium.bluetooth.Manager", |b| {
         b.method_with_cr_async(
             "Start",
@@ -271,8 +277,8 @@ pub async fn main() -> Result<(), Box<dyn std::error::Error>> {
         );
     });
 
-    // Let's add the "/org/chromium/bluetooth/Manager" path, which implements the org.chromium.bluetooth.Manager interface,
-    // to the crossroads instance.
+    // Let's add the "/org/chromium/bluetooth/Manager" path, which implements
+    // the org.chromium.bluetooth.Manager interface, to the crossroads instance.
     cr.insert("/org/chromium/bluetooth/Manager", &[iface_token], manager_context);
 
     // We add the Crossroads instance to the connection so that incoming method calls will be handled.
