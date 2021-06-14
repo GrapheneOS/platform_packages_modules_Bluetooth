@@ -16,6 +16,7 @@ cc_library_static {
     host_supported: true,
     include_dirs: [
         "packages/modules/Bluetooth/system",
+        "packages/modules/Bluetooth/system/gd",
         "packages/modules/Bluetooth/system/stack/include",
         "packages/modules/Bluetooth/system/gd/rust/shim",
     ],
@@ -51,6 +52,7 @@ cc_test {
     },
     include_dirs: [
         "packages/modules/Bluetooth/system",
+        "packages/modules/Bluetooth/system/gd",
         "packages/modules/Bluetooth/system/stack/include",
         "packages/modules/Bluetooth/system/gd/rust/shim",
     ],
