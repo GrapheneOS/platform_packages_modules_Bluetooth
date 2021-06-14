@@ -489,11 +489,6 @@ uint8_t btif_a2dp_audio_process_request(uint8_t cmd) {
       status = A2DP_CTRL_ACK_SUCCESS;
       break;
 
-    case A2DP_CTRL_CMD_OFFLOAD_START:
-      btif_av_stream_start_offload();
-      status = A2DP_CTRL_ACK_PENDING;
-      break;
-
     default:
       APPL_TRACE_ERROR("UNSUPPORTED CMD (%d)", cmd);
       status = A2DP_CTRL_ACK_FAILURE;
