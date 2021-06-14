@@ -53,15 +53,16 @@ impl ToString for BDAddr {
 
 impl BDAddr {
     /// Constructs a BDAddr from a vector of 6 bytes.
-    fn from_byte_vec(raw_addr: &Vec<u8>) -> Option<BDAddr> {
+    pub fn from_byte_vec(raw_addr: &Vec<u8>) -> Option<BDAddr> {
         if let Ok(val) = raw_addr.clone().try_into() {
             return Some(BDAddr { val });
         }
         None
     }
 
-    fn from_string(addr_str: String) -> Option<BDAddr> {
-        let s = addr_str.split(':').collect::<Vec<&str>>();
+    pub fn from_string<S: Into<String>>(addr: S) -> Option<BDAddr> {
+        let addr: String = addr.into();
+        let s = addr.split(':').collect::<Vec<&str>>();
 
         if s.len() != 6 {
             return None;
@@ -78,6 +79,10 @@ impl BDAddr {
         }
 
         Some(BDAddr { val: raw })
+    }
+
+    pub fn to_byte_arr(&self) -> [u8; 6] {
+        self.val.clone()
     }
 }
 

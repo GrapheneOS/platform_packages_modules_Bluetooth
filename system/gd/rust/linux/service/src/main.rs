@@ -50,7 +50,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
         // The `resource` is a task that should be spawned onto a tokio compatible
         // reactor ASAP. If the resource ever finishes, we lost connection to D-Bus.
-        topstack::get_runtime().spawn(async {
+        tokio::spawn(async {
             let err = resource.await;
             panic!("Lost connection to D-Bus: {}", err);
         });
@@ -63,12 +63,12 @@ fn main() -> Result<(), Box<dyn Error>> {
         cr.set_async_support(Some((
             conn.clone(),
             Box::new(|x| {
-                topstack::get_runtime().spawn(x);
+                tokio::spawn(x);
             }),
         )));
 
         // Run the stack main dispatch loop.
-        topstack::get_runtime().spawn(Stack::dispatch(rx, bluetooth.clone()));
+        tokio::spawn(Stack::dispatch(rx, bluetooth.clone()));
 
         // Set up the disconnect watcher to monitor client disconnects.
         let disconnect_watcher = Arc::new(Mutex::new(DisconnectWatcher::new()));

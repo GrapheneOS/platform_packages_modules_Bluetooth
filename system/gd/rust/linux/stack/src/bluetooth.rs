@@ -296,7 +296,7 @@ impl IBluetooth for Bluetooth {
 
         callback.register_disconnect(Box::new(move || {
             let tx = tx.clone();
-            topstack::get_runtime().spawn(async move {
+            tokio::spawn(async move {
                 let _result = tx.send(Message::BluetoothCallbackDisconnected(id)).await;
             });
         }));
