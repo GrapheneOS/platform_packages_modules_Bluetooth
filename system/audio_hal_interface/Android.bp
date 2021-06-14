@@ -13,6 +13,7 @@ cc_library_static {
     defaults: ["fluoride_defaults"],
     include_dirs: [
         "packages/modules/Bluetooth/system",
+        "packages/modules/Bluetooth/system/gd",
         "packages/modules/Bluetooth/system/bta/include",
         "packages/modules/Bluetooth/system/bta/sys",
         "packages/modules/Bluetooth/system/btif/include",
@@ -60,6 +61,7 @@ cc_test {
     defaults: ["fluoride_defaults"],
     include_dirs: [
         "packages/modules/Bluetooth/system",
+        "packages/modules/Bluetooth/system/gd",
         "packages/modules/Bluetooth/system/stack/include",
     ],
     srcs: [
