@@ -229,7 +229,7 @@ inline std::string gatt_disconnection_reason_text(
     CASE_RETURN_TEXT(GATT_CONN_FAILED_ESTABLISHMENT);
     CASE_RETURN_TEXT(BTA_GATT_CONN_NONE);
     default:
-      return std::string("UNKNOWN[%hu]", reason);
+      return base::StringPrintf("UNKNOWN[%hu]", reason);
   }
 }
 #undef CASE_RETURN_TEXT
