@@ -211,6 +211,12 @@ function parse_options {
         VERBOSE_MODE=true
         shift # past argument
         ;;
+        --*) # unknown argument
+        echo "$0: unrecognized argument '$1'"
+        echo "Try '$0  --help' for more information"
+        exit 1
+        shift
+        ;;
         *)    # unknown option
         POSITIONAL+=("$1") # save it in an array for later
         shift # past argument
