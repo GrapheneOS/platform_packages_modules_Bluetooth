@@ -146,13 +146,13 @@ fi
 pushd .
 cd "${DIR}"
 # Reset in case user chooses different item in menu
-git checkout android_devices_config.json
+git checkout devices_config.json
 popd
-$DRY_RUN sed -i "s/\"DUT\"/\"${DUT_SERIAL}\"/g" ${DIR}/android_devices_config.json
-$DRY_RUN sed -i "s/\"CERT\"/\"${CERT_SERIAL}\"/g" ${DIR}/android_devices_config.json
+$DRY_RUN sed -i "s/\"DUT\"/\"${DUT_SERIAL}\"/g" ${DIR}/devices_config.json
+$DRY_RUN sed -i "s/\"CERT\"/\"${CERT_SERIAL}\"/g" ${DIR}/devices_config.json
 
 ## ACTS
 #$DRY_RUN source $(get-android-root)/packages/modules/Bluetooth/system/gd/cert/set_up_acts.sh
 
 ## Start test
-$DRY_RUN $(get-android-root)/packages/modules/Bluetooth/system/gd/cert/run
+$DRY_RUN $(get-android-root)/packages/modules/Bluetooth/system/gd/cert/run --device
