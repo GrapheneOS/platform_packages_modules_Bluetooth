@@ -394,6 +394,10 @@ bool check_cod_hid(const RawAddress* remote_bdaddr) {
   return (get_cod(remote_bdaddr) & COD_HID_MASK) == COD_HID_MAJOR;
 }
 
+bool check_cod_hid(const RawAddress& bd_addr) {
+  return (get_cod(&bd_addr) & COD_HID_MASK) == COD_HID_MAJOR;
+}
+
 /*****************************************************************************
  *
  * Function        check_sdp_bl
