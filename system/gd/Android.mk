@@ -39,9 +39,13 @@ LOCAL_target_executables := \
 	$(TARGET_OUT_EXECUTABLES)/bluetooth_stack_with_facade
 
 LOCAL_target_libraries := \
+	$(TARGET_OUT_SHARED_LIBRARIES)/android.system.suspend.control-V1-ndk.so \
 	$(TARGET_OUT_SHARED_LIBRARIES)/libcrypto.so \
 	$(TARGET_OUT_SHARED_LIBRARIES)/libbluetooth_gd.so \
-	$(TARGET_OUT_SHARED_LIBRARIES)/libgrpc++_unsecure.so
+	$(TARGET_OUT_SHARED_LIBRARIES)/libgrpc++_unsecure.so \
+	$(TARGET_OUT_SHARED_LIBRARIES)/libgrpc++.so \
+	$(TARGET_OUT_SHARED_LIBRARIES)/libgrpc_wrap.so \
+	$(TARGET_OUT_SHARED_LIBRARIES)/libstatslog.so
 #LINT.ThenChange(cert/run)
 
 bluetooth_cert_src_and_bin_zip := \
