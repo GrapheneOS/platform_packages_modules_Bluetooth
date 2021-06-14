@@ -707,12 +707,6 @@ extern bool UIPC_Ioctl(tUIPC_STATE& uipc, tUIPC_CH_ID ch_id, uint32_t request,
       uipc_flush_locked(uipc, ch_id);
       break;
 
-    case UIPC_REG_CBACK:
-      // BTIF_TRACE_EVENT("register callback ch %d srvfd %d, fd %d", ch_id,
-      // uipc.ch[ch_id].srvfd, uipc.ch[ch_id].fd);
-      uipc.ch[ch_id].cback = (tUIPC_RCV_CBACK*)param;
-      break;
-
     case UIPC_REG_REMOVE_ACTIVE_READSET:
       /* user will read data directly and not use select loop */
       if (uipc.ch[ch_id].fd != UIPC_DISCONNECTED) {
