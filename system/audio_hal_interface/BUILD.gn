@@ -23,6 +23,7 @@ static_library("audio_hal_interface") {
   include_dirs = [
     "//bt/bta/include",
     "//bt/btif/include",
+    "//bt/internal_include",
     "//bt/stack/include",
     "//bt/gd/rust/shim",
   ]
