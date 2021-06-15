@@ -31,6 +31,7 @@ class RawAddress final {
 
   RawAddress() = default;
   RawAddress(const uint8_t (&addr)[kLength]);
+  RawAddress(const std::array<uint8_t, kLength> array);
 
   bool operator<(const RawAddress& rhs) const {
     return (std::memcmp(address, rhs.address, sizeof(address)) < 0);
@@ -55,6 +56,8 @@ class RawAddress final {
   // Copies |from| raw Bluetooth address octets to the local object.
   // Returns the number of copied octets - should be always RawAddress::kLength
   size_t FromOctets(const uint8_t* from);
+
+  std::array<uint8_t, kLength> ToArray() const;
 
   static bool IsValidAddress(const std::string& address);
 

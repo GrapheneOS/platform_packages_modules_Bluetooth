@@ -187,3 +187,14 @@ TEST(RawAddressTest, BdAddrFromString) {
   const RawAddress result1 = {{0xab, 0x01, 0x4c, 0xd5, 0x21, 0x9f}};
   EXPECT_EQ(0, memcmp(&addr, &result1, sizeof(addr)));
 }
+
+TEST(RawAddressTest, BdAddrFromArray) {
+  std::array<uint8_t, 6> mac = {0x11, 0x22, 0x33, 0x44, 0x55, 0x66};
+  RawAddress bdaddr(mac);
+
+  std::string ret = bdaddr.ToString();
+  ASSERT_STREQ("11:22:33:44:55:66", ret.c_str());
+
+  std::array<uint8_t, 6> mac2 = bdaddr.ToArray();
+  ASSERT_EQ(mac, mac2);
+}
