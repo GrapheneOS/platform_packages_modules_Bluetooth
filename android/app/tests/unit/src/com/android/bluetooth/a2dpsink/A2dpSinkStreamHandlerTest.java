@@ -46,9 +46,9 @@ public class A2dpSinkStreamHandlerTest {
     private A2dpSinkStreamHandler mStreamHandler;
     private Context mTargetContext;
 
-    @Mock private Context mMockContext;
-
     @Mock private A2dpSinkService mMockA2dpSink;
+
+    @Mock private A2dpSinkNativeInterface mMockNativeInterface;
 
     @Mock private AudioManager mMockAudioManager;
 
@@ -70,20 +70,19 @@ public class A2dpSinkStreamHandlerTest {
         mHandlerThread = new HandlerThread("A2dpSinkStreamHandlerTest");
         mHandlerThread.start();
 
-        when(mMockContext.getSystemService(Context.AUDIO_SERVICE)).thenReturn(mMockAudioManager);
-        when(mMockContext.getSystemServiceName(AudioManager.class))
+        when(mMockA2dpSink.getSystemService(Context.AUDIO_SERVICE)).thenReturn(mMockAudioManager);
+        when(mMockA2dpSink.getSystemServiceName(AudioManager.class))
                 .thenReturn(Context.AUDIO_SERVICE);
-        when(mMockContext.getResources()).thenReturn(mMockResources);
+        when(mMockA2dpSink.getResources()).thenReturn(mMockResources);
         when(mMockResources.getInteger(anyInt())).thenReturn(DUCK_PERCENT);
         when(mMockAudioManager.requestAudioFocus(any())).thenReturn(
                 AudioManager.AUDIOFOCUS_REQUEST_GRANTED);
         when(mMockAudioManager.abandonAudioFocus(any())).thenReturn(AudioManager.AUDIOFOCUS_GAIN);
-        doNothing().when(mMockA2dpSink).informAudioTrackGainNative(anyFloat());
-        when(mMockContext.getMainLooper()).thenReturn(mHandlerThread.getLooper());
-        when(mMockContext.getPackageManager()).thenReturn(mMockPackageManager);
+        when(mMockA2dpSink.getMainLooper()).thenReturn(mHandlerThread.getLooper());
+        when(mMockA2dpSink.getPackageManager()).thenReturn(mMockPackageManager);
         when(mMockPackageManager.hasSystemFeature(any())).thenReturn(false);
 
-        mStreamHandler = spy(new A2dpSinkStreamHandler(mMockA2dpSink, mMockContext));
+        mStreamHandler = spy(new A2dpSinkStreamHandler(mMockA2dpSink, mMockNativeInterface));
     }
 
     @Test
@@ -92,8 +91,8 @@ public class A2dpSinkStreamHandlerTest {
         mStreamHandler.handleMessage(
                 mStreamHandler.obtainMessage(A2dpSinkStreamHandler.SRC_STR_START));
         verify(mMockAudioManager, times(0)).requestAudioFocus(any());
-        verify(mMockA2dpSink, times(0)).informAudioFocusStateNative(1);
-        verify(mMockA2dpSink, times(0)).informAudioTrackGainNative(1.0f);
+        verify(mMockNativeInterface, times(0)).informAudioFocusState(1);
+        verify(mMockNativeInterface, times(0)).informAudioTrackGain(1.0f);
     }
 
     @Test
@@ -102,8 +101,8 @@ public class A2dpSinkStreamHandlerTest {
         mStreamHandler.handleMessage(
                 mStreamHandler.obtainMessage(A2dpSinkStreamHandler.SRC_STR_STOP));
         verify(mMockAudioManager, times(0)).requestAudioFocus(any());
-        verify(mMockA2dpSink, times(0)).informAudioFocusStateNative(1);
-        verify(mMockA2dpSink, times(0)).informAudioTrackGainNative(1.0f);
+        verify(mMockNativeInterface, times(0)).informAudioFocusState(1);
+        verify(mMockNativeInterface, times(0)).informAudioTrackGain(1.0f);
     }
 
     @Test
@@ -111,8 +110,8 @@ public class A2dpSinkStreamHandlerTest {
         // Play was pressed locally, expect streaming to start.
         mStreamHandler.handleMessage(mStreamHandler.obtainMessage(A2dpSinkStreamHandler.SNK_PLAY));
         verify(mMockAudioManager, times(1)).requestAudioFocus(any());
-        verify(mMockA2dpSink, times(1)).informAudioFocusStateNative(1);
-        verify(mMockA2dpSink, times(1)).informAudioTrackGainNative(1.0f);
+        verify(mMockNativeInterface, times(1)).informAudioFocusState(1);
+        verify(mMockNativeInterface, times(1)).informAudioTrackGain(1.0f);
     }
 
     @Test
@@ -120,8 +119,8 @@ public class A2dpSinkStreamHandlerTest {
         // Pause was pressed locally, expect streaming to stop.
         mStreamHandler.handleMessage(mStreamHandler.obtainMessage(A2dpSinkStreamHandler.SNK_PAUSE));
         verify(mMockAudioManager, times(0)).requestAudioFocus(any());
-        verify(mMockA2dpSink, times(0)).informAudioFocusStateNative(1);
-        verify(mMockA2dpSink, times(0)).informAudioTrackGainNative(1.0f);
+        verify(mMockNativeInterface, times(0)).informAudioFocusState(1);
+        verify(mMockNativeInterface, times(0)).informAudioTrackGain(1.0f);
     }
 
     @Test
@@ -131,7 +130,7 @@ public class A2dpSinkStreamHandlerTest {
         mStreamHandler.handleMessage(
                 mStreamHandler.obtainMessage(A2dpSinkStreamHandler.DISCONNECT));
         verify(mMockAudioManager, times(0)).abandonAudioFocus(any());
-        verify(mMockA2dpSink, times(0)).informAudioFocusStateNative(0);
+        verify(mMockNativeInterface, times(0)).informAudioFocusState(0);
     }
 
     @Test
@@ -139,8 +138,8 @@ public class A2dpSinkStreamHandlerTest {
         // Play was pressed remotely, expect no streaming due to lack of audio focus.
         mStreamHandler.handleMessage(mStreamHandler.obtainMessage(A2dpSinkStreamHandler.SRC_PLAY));
         verify(mMockAudioManager, times(0)).requestAudioFocus(any());
-        verify(mMockA2dpSink, times(0)).informAudioFocusStateNative(1);
-        verify(mMockA2dpSink, times(0)).informAudioTrackGainNative(1.0f);
+        verify(mMockNativeInterface, times(0)).informAudioFocusState(1);
+        verify(mMockNativeInterface, times(0)).informAudioTrackGain(1.0f);
     }
 
     @Test
@@ -149,8 +148,8 @@ public class A2dpSinkStreamHandlerTest {
         when(mMockPackageManager.hasSystemFeature(any())).thenReturn(true);
         mStreamHandler.handleMessage(mStreamHandler.obtainMessage(A2dpSinkStreamHandler.SRC_PLAY));
         verify(mMockAudioManager, times(1)).requestAudioFocus(any());
-        verify(mMockA2dpSink, times(1)).informAudioFocusStateNative(1);
-        verify(mMockA2dpSink, times(1)).informAudioTrackGainNative(1.0f);
+        verify(mMockNativeInterface, times(1)).informAudioFocusState(1);
+        verify(mMockNativeInterface, times(1)).informAudioTrackGain(1.0f);
     }
 
     @Test
@@ -158,8 +157,8 @@ public class A2dpSinkStreamHandlerTest {
         // Play was pressed locally, expect streaming to start.
         mStreamHandler.handleMessage(mStreamHandler.obtainMessage(A2dpSinkStreamHandler.SRC_PLAY));
         verify(mMockAudioManager, times(0)).requestAudioFocus(any());
-        verify(mMockA2dpSink, times(0)).informAudioFocusStateNative(1);
-        verify(mMockA2dpSink, times(0)).informAudioTrackGainNative(1.0f);
+        verify(mMockNativeInterface, times(0)).informAudioFocusState(1);
+        verify(mMockNativeInterface, times(0)).informAudioTrackGain(1.0f);
     }
 
     @Test
@@ -170,8 +169,8 @@ public class A2dpSinkStreamHandlerTest {
                 mStreamHandler.obtainMessage(A2dpSinkStreamHandler.AUDIO_FOCUS_CHANGE,
                         AudioManager.AUDIOFOCUS_GAIN));
         verify(mMockAudioManager, times(1)).requestAudioFocus(any());
-        verify(mMockA2dpSink, times(2)).informAudioFocusStateNative(1);
-        verify(mMockA2dpSink, times(2)).informAudioTrackGainNative(1.0f);
+        verify(mMockNativeInterface, times(2)).informAudioFocusState(1);
+        verify(mMockNativeInterface, times(2)).informAudioTrackGain(1.0f);
     }
 
     @Test
@@ -181,7 +180,7 @@ public class A2dpSinkStreamHandlerTest {
         mStreamHandler.handleMessage(
                 mStreamHandler.obtainMessage(A2dpSinkStreamHandler.AUDIO_FOCUS_CHANGE,
                         AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK));
-        verify(mMockA2dpSink, times(1)).informAudioTrackGainNative(DUCK_PERCENT / 100.0f);
+        verify(mMockNativeInterface, times(1)).informAudioTrackGain(DUCK_PERCENT / 100.0f);
     }
 
     @Test
@@ -192,8 +191,8 @@ public class A2dpSinkStreamHandlerTest {
                 mStreamHandler.obtainMessage(A2dpSinkStreamHandler.AUDIO_FOCUS_CHANGE,
                         AudioManager.AUDIOFOCUS_LOSS_TRANSIENT));
         verify(mMockAudioManager, times(0)).abandonAudioFocus(any());
-        verify(mMockA2dpSink, times(0)).informAudioFocusStateNative(0);
-        verify(mMockA2dpSink, times(1)).informAudioTrackGainNative(0);
+        verify(mMockNativeInterface, times(0)).informAudioFocusState(0);
+        verify(mMockNativeInterface, times(1)).informAudioTrackGain(0);
     }
 
     @Test
@@ -204,8 +203,8 @@ public class A2dpSinkStreamHandlerTest {
                 mStreamHandler.obtainMessage(A2dpSinkStreamHandler.AUDIO_FOCUS_CHANGE,
                         AudioManager.AUDIOFOCUS_LOSS_TRANSIENT));
         verify(mMockAudioManager, times(0)).abandonAudioFocus(any());
-        verify(mMockA2dpSink, times(0)).informAudioFocusStateNative(0);
-        verify(mMockA2dpSink, times(1)).informAudioTrackGainNative(0);
+        verify(mMockNativeInterface, times(0)).informAudioFocusState(0);
+        verify(mMockNativeInterface, times(1)).informAudioTrackGain(0);
         mStreamHandler.handleMessage(
                 mStreamHandler.obtainMessage(A2dpSinkStreamHandler.REQUEST_FOCUS, true));
         verify(mMockAudioManager, times(2)).requestAudioFocus(any());
@@ -224,9 +223,9 @@ public class A2dpSinkStreamHandlerTest {
                 mStreamHandler.obtainMessage(A2dpSinkStreamHandler.AUDIO_FOCUS_CHANGE,
                         AudioManager.AUDIOFOCUS_GAIN));
         verify(mMockAudioManager, times(0)).abandonAudioFocus(any());
-        verify(mMockA2dpSink, times(0)).informAudioFocusStateNative(0);
-        verify(mMockA2dpSink, times(1)).informAudioTrackGainNative(0);
-        verify(mMockA2dpSink, times(2)).informAudioTrackGainNative(1.0f);
+        verify(mMockNativeInterface, times(0)).informAudioFocusState(0);
+        verify(mMockNativeInterface, times(1)).informAudioTrackGain(0);
+        verify(mMockNativeInterface, times(2)).informAudioTrackGain(1.0f);
     }
 
     @Test
@@ -237,6 +236,6 @@ public class A2dpSinkStreamHandlerTest {
                 mStreamHandler.obtainMessage(A2dpSinkStreamHandler.AUDIO_FOCUS_CHANGE,
                         AudioManager.AUDIOFOCUS_LOSS));
         verify(mMockAudioManager, times(1)).abandonAudioFocus(any());
-        verify(mMockA2dpSink, times(1)).informAudioFocusStateNative(0);
+        verify(mMockNativeInterface, times(1)).informAudioFocusState(0);
     }
 }

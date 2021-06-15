@@ -18,7 +18,6 @@ package com.android.bluetooth.a2dpsink;
 
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothHeadsetClientCall;
-import android.content.Context;
 import android.content.pm.PackageManager;
 import android.media.AudioAttributes;
 import android.media.AudioFocusRequest;
@@ -81,7 +80,7 @@ public class A2dpSinkStreamHandler extends Handler {
 
     // Private variables.
     private A2dpSinkService mA2dpSinkService;
-    private Context mContext;
+    private A2dpSinkNativeInterface mNativeInterface;
     private AudioManager mAudioManager;
     // Keep track if the remote device is providing audio
     private boolean mStreamAvailable = false;
@@ -111,10 +110,11 @@ public class A2dpSinkStreamHandler extends Handler {
         }
     };
 
-    public A2dpSinkStreamHandler(A2dpSinkService a2dpSinkService, Context context) {
+    public A2dpSinkStreamHandler(A2dpSinkService a2dpSinkService,
+            A2dpSinkNativeInterface nativeInterface) {
         mA2dpSinkService = a2dpSinkService;
-        mContext = context;
-        mAudioManager = context.getSystemService(AudioManager.class);
+        mNativeInterface = nativeInterface;
+        mAudioManager = mA2dpSinkService.getSystemService(AudioManager.class);
     }
 
     /**
@@ -206,7 +206,7 @@ public class A2dpSinkStreamHandler extends Handler {
 
                     case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK:
                         // Make the volume duck.
-                        int duckPercent = mContext.getResources()
+                        int duckPercent = mA2dpSinkService.getResources()
                                 .getInteger(R.integer.a2dp_sink_duck_percent);
                         if (duckPercent < 0 || duckPercent > 100) {
                             Log.e(TAG, "Invalid duck percent using default.");
@@ -300,7 +300,7 @@ public class A2dpSinkStreamHandler extends Handler {
                     .setUsage(AudioAttributes.USAGE_MEDIA)
                     .build();
 
-            mMediaPlayer = MediaPlayer.create(mContext, R.raw.silent, attrs,
+            mMediaPlayer = MediaPlayer.create(mA2dpSinkService, R.raw.silent, attrs,
                     mAudioManager.generateAudioSessionId());
             if (mMediaPlayer == null) {
                 Log.e(TAG, "Failed to initialize media player. You may not get media key events");
@@ -342,18 +342,18 @@ public class A2dpSinkStreamHandler extends Handler {
     }
 
     private void startFluorideStreaming() {
-        mA2dpSinkService.informAudioFocusStateNative(STATE_FOCUS_GRANTED);
-        mA2dpSinkService.informAudioTrackGainNative(1.0f);
+        mNativeInterface.informAudioFocusState(STATE_FOCUS_GRANTED);
+        mNativeInterface.informAudioTrackGain(1.0f);
         requestMediaKeyFocus();
     }
 
     private void stopFluorideStreaming() {
         releaseMediaKeyFocus();
-        mA2dpSinkService.informAudioFocusStateNative(STATE_FOCUS_LOST);
+        mNativeInterface.informAudioFocusState(STATE_FOCUS_LOST);
     }
 
     private void setFluorideAudioTrackGain(float gain) {
-        mA2dpSinkService.informAudioTrackGainNative(gain);
+        mNativeInterface.informAudioTrackGain(gain);
     }
 
     private void sendAvrcpPause() {
@@ -385,15 +385,17 @@ public class A2dpSinkStreamHandler extends Handler {
     }
 
     private boolean isIotDevice() {
-        return mContext.getPackageManager().hasSystemFeature(PackageManager.FEATURE_EMBEDDED);
+        return mA2dpSinkService.getPackageManager().hasSystemFeature(
+                PackageManager.FEATURE_EMBEDDED);
     }
 
     private boolean isTvDevice() {
-        return mContext.getPackageManager().hasSystemFeature(PackageManager.FEATURE_LEANBACK);
+        return mA2dpSinkService.getPackageManager().hasSystemFeature(
+                PackageManager.FEATURE_LEANBACK);
     }
 
     private boolean shouldRequestFocus() {
-        return mContext.getResources()
+        return mA2dpSinkService.getResources()
                 .getBoolean(R.bool.a2dp_sink_automatically_request_audio_focus);
     }
 

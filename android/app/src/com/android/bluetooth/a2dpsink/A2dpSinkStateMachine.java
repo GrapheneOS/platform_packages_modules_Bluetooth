@@ -55,6 +55,7 @@ public class A2dpSinkStateMachine extends StateMachine {
     protected final BluetoothDevice mDevice;
     protected final byte[] mDeviceAddress;
     protected final A2dpSinkService mService;
+    protected final A2dpSinkNativeInterface mNativeInterface;
     protected final Disconnected mDisconnected;
     protected final Connecting mConnecting;
     protected final Connected mConnected;
@@ -63,11 +64,13 @@ public class A2dpSinkStateMachine extends StateMachine {
     protected int mMostRecentState = BluetoothProfile.STATE_DISCONNECTED;
     protected BluetoothAudioConfig mAudioConfig = null;
 
-    A2dpSinkStateMachine(BluetoothDevice device, A2dpSinkService service) {
+    A2dpSinkStateMachine(BluetoothDevice device, A2dpSinkService service,
+            A2dpSinkNativeInterface nativeInterface) {
         super(TAG);
         mDevice = device;
         mDeviceAddress = Utils.getByteAddress(mDevice);
         mService = service;
+        mNativeInterface = nativeInterface;
         if (DBG) Log.d(TAG, device.toString());
 
         mDisconnected = new Disconnected();
@@ -177,7 +180,7 @@ public class A2dpSinkStateMachine extends StateMachine {
                                     == BluetoothProfile.CONNECTION_POLICY_FORBIDDEN) {
                                 Log.w(TAG, "Ignore incoming connection, profile is"
                                         + " turned off for " + mDevice);
-                                mService.disconnectA2dpNative(mDeviceAddress);
+                                mNativeInterface.disconnectA2dpSink(mDevice);
                             } else {
                                 mConnecting.mIncomingConnection = true;
                                 transitionTo(mConnecting);
@@ -204,7 +207,7 @@ public class A2dpSinkStateMachine extends StateMachine {
             sendMessageDelayed(CONNECT_TIMEOUT, CONNECT_TIMEOUT_MS);
 
             if (!mIncomingConnection) {
-                mService.connectA2dpNative(mDeviceAddress);
+                mNativeInterface.connectA2dpSink(mDevice);
             }
 
             super.enter();
@@ -256,7 +259,7 @@ public class A2dpSinkStateMachine extends StateMachine {
             switch (message.what) {
                 case DISCONNECT:
                     transitionTo(mDisconnecting);
-                    mService.disconnectA2dpNative(mDeviceAddress);
+                    mNativeInterface.disconnectA2dpSink(mDevice);
                     return true;
                 case STACK_EVENT:
                     processStackEvent((StackEvent) message.obj);
