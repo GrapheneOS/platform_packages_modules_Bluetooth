@@ -32,6 +32,7 @@ import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaControllerCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
+import android.util.SparseArray;
 
 import androidx.test.InstrumentationRegistry;
 import androidx.test.filters.FlakyTest;
@@ -82,6 +83,7 @@ public class AvrcpControllerStateMachineTest {
     @Mock private Resources mMockResources;
     private ArgumentCaptor<Intent> mIntentArgument = ArgumentCaptor.forClass(Intent.class);
     @Mock private AvrcpControllerService mAvrcpControllerService;
+    @Mock private AvrcpCoverArtManager mCoverArtManager;
 
     private byte[] mTestAddress = new byte[]{01, 01, 01, 01, 01, 01};
     private BluetoothDevice mTestDevice = null;
@@ -114,6 +116,7 @@ public class AvrcpControllerStateMachineTest {
         TestUtils.startService(mAvrcpServiceRule, AvrcpControllerService.class);
 
         // Mock an AvrcpControllerService to give to all state machines
+        doReturn(BluetoothProfile.STATE_DISCONNECTED).when(mCoverArtManager).getState(any());
         doReturn(15).when(mAudioManager).getStreamMaxVolume(anyInt());
         doReturn(8).when(mAudioManager).getStreamVolume(anyInt());
         doReturn(true).when(mAudioManager).isVolumeFixed();
@@ -122,6 +125,7 @@ public class AvrcpControllerStateMachineTest {
         doReturn(mMockResources).when(mAvrcpControllerService).getResources();
         doReturn(mAudioManager).when(mAvrcpControllerService)
                 .getSystemService(Context.AUDIO_SERVICE);
+        doReturn(mCoverArtManager).when(mAvrcpControllerService).getCoverArtManager();
         mAvrcpControllerService.sBrowseTree = new BrowseTree(null);
 
         // Ensure our MediaBrowserService starts with a blank state
@@ -229,6 +233,18 @@ public class AvrcpControllerStateMachineTest {
         }
 
         return builder.build();
+    }
+
+    private AvrcpPlayer makePlayer(BluetoothDevice device, int playerId, String playerName,
+            int playerType, byte[] playerFeatures, int playStatus) {
+        AvrcpPlayer.Builder apb = new AvrcpPlayer.Builder();
+        apb.setDevice(device);
+        apb.setPlayerId(playerId);
+        apb.setName(playerName);
+        apb.setPlayerType(playerType);
+        apb.setSupportedFeatures(playerFeatures);
+        apb.setPlayStatus(playStatus);
+        return apb.build();
     }
 
     /**
@@ -434,12 +450,7 @@ public class AvrcpControllerStateMachineTest {
     public void testDump() {
         StringBuilder sb = new StringBuilder();
         mAvrcpStateMachine.dump(sb);
-        Assert.assertEquals(sb.toString(),
-                "  mDevice: " + mTestDevice.toString()
-                + "(null) name=AvrcpControllerStateMachine state=Disconnected\n"
-                + "  isActive: true\n"
-                + "  Control: false\n"
-                + "  Browsing: false\n");
+        Assert.assertNotNull(sb.toString());
     }
 
     /**
@@ -672,7 +683,7 @@ public class AvrcpControllerStateMachineTest {
         //Provide back a player object
         byte[] playerFeatures =
                 new byte[]{0, 0, 0, 0, 0, (byte) 0xb7, 0x01, 0x0c, 0x0a, 0, 0, 0, 0, 0, 0, 0};
-        AvrcpPlayer playerOne = new AvrcpPlayer(mTestDevice, 1, playerName, playerFeatures, 1, 1);
+        AvrcpPlayer playerOne = makePlayer(mTestDevice, 1, playerName, 1, playerFeatures, 1);
         List<AvrcpPlayer> testPlayers = new ArrayList<>();
         testPlayers.add(playerOne);
         mAvrcpStateMachine.sendMessage(AvrcpControllerStateMachine.MESSAGE_PROCESS_GET_PLAYER_ITEMS,
@@ -704,11 +715,149 @@ public class AvrcpControllerStateMachineTest {
     }
 
     /**
+     * Test our reaction to an available players changed event
+     *
+     * Verify that we issue a command to fetch the new available players
+     */
+    @Test
+    public void testAvailablePlayersChanged() {
+        setUpConnectedState(true, true);
+        final String rootName = "__ROOT__";
+
+        // Send an available players have changed event
+        mAvrcpStateMachine.sendMessage(
+                AvrcpControllerStateMachine.MESSAGE_PROCESS_AVAILABLE_PLAYER_CHANGED);
+
+        // Verify we've uncached our browse root and made the call to fetch new players
+        Assert.assertFalse(mAvrcpStateMachine.findNode(rootName).isCached());
+        verify(mAvrcpControllerService,
+                timeout(ASYNC_CALL_TIMEOUT_MILLIS).times(1)).getPlayerListNative(eq(mTestAddress),
+                eq(0), eq(19));
+    }
+
+    /**
+     * Test how we handle receiving an available players list that contains the player we know to
+     * be the addressed player
+     */
+    @Test
+    public void testAvailablePlayersReceived_AddressedPlayerExists() {
+        setUpConnectedState(true, true);
+        final String rootName = "__ROOT__";
+
+        // Set an addressed player that will be in the available players set
+        mAvrcpStateMachine.sendMessage(
+                AvrcpControllerStateMachine.MESSAGE_PROCESS_ADDRESSED_PLAYER_CHANGED, 1);
+        TestUtils.waitForLooperToFinishScheduledTask(mAvrcpStateMachine.getHandler().getLooper());
+        clearInvocations(mAvrcpControllerService);
+
+        // Send an available players have changed event
+        mAvrcpStateMachine.sendMessage(
+                AvrcpControllerStateMachine.MESSAGE_PROCESS_AVAILABLE_PLAYER_CHANGED);
+
+        // Verify we've uncached our browse root and made the call to fetch new players
+        Assert.assertFalse(mAvrcpStateMachine.findNode(rootName).isCached());
+        verify(mAvrcpControllerService,
+                timeout(ASYNC_CALL_TIMEOUT_MILLIS).times(1)).getPlayerListNative(eq(mTestAddress),
+                eq(0), eq(19));
+
+        // Send available players set that contains our addressed player
+        byte[] playerFeatures =
+                new byte[]{0, 0, 0, 0, 0, (byte) 0xb7, 0x01, 0x0c, 0x0a, 0, 0, 0, 0, 0, 0, 0};
+        AvrcpPlayer playerOne = makePlayer(mTestDevice, 1, "Player 1", 1, playerFeatures, 1);
+        AvrcpPlayer playerTwo = makePlayer(mTestDevice, 2, "Player 2", 1, playerFeatures, 1);
+        List<AvrcpPlayer> testPlayers = new ArrayList<>();
+        testPlayers.add(playerOne);
+        testPlayers.add(playerTwo);
+        mAvrcpStateMachine.sendMessage(AvrcpControllerStateMachine.MESSAGE_PROCESS_GET_PLAYER_ITEMS,
+                testPlayers);
+
+        // Wait for them to be processed
+        TestUtils.waitForLooperToFinishScheduledTask(mAvrcpStateMachine.getHandler().getLooper());
+
+        // Verify we processed the first players properly. Note the addressed player should always
+        // be in the available player set.
+        Assert.assertTrue(mAvrcpStateMachine.findNode(rootName).isCached());
+        SparseArray<AvrcpPlayer> players = mAvrcpStateMachine.getAvailablePlayers();
+        Assert.assertTrue(players.contains(mAvrcpStateMachine.getAddressedPlayerId()));
+        Assert.assertEquals(testPlayers.size(), players.size());
+        for (AvrcpPlayer player : testPlayers) {
+            Assert.assertTrue(players.contains(player.getId()));
+        }
+
+        // Verify we request metadata, playback state and now playing list
+        assertNowPlayingList(new ArrayList<AvrcpItem>());
+        verify(mAvrcpControllerService,
+                timeout(ASYNC_CALL_TIMEOUT_MILLIS).times(1)).getNowPlayingListNative(
+                eq(mTestAddress), eq(0), eq(19));
+        verify(mAvrcpControllerService,
+                timeout(ASYNC_CALL_TIMEOUT_MILLIS).times(1)).getCurrentMetadataNative(
+                eq(mTestAddress));
+        verify(mAvrcpControllerService,
+                timeout(ASYNC_CALL_TIMEOUT_MILLIS).times(1)).getPlaybackStateNative(
+                eq(mTestAddress));
+    }
+
+    /**
+     * Test how we handle receiving an available players list that does not contain the player we
+     * know to be the addressed player
+     */
+    @Test
+    public void testAvailablePlayersReceived_AddressedPlayerDoesNotExist() {
+        setUpConnectedState(true, true);
+        final String rootName = "__ROOT__";
+
+        // Send an available players have changed event
+        mAvrcpStateMachine.sendMessage(
+                AvrcpControllerStateMachine.MESSAGE_PROCESS_AVAILABLE_PLAYER_CHANGED);
+
+        // Verify we've uncached our browse root and made the call to fetch new players
+        Assert.assertFalse(mAvrcpStateMachine.findNode(rootName).isCached());
+        verify(mAvrcpControllerService,
+                timeout(ASYNC_CALL_TIMEOUT_MILLIS).times(1)).getPlayerListNative(eq(mTestAddress),
+                eq(0), eq(19));
+
+        // Send available players set that does not contain the addressed player
+        byte[] playerFeatures =
+                new byte[]{0, 0, 0, 0, 0, (byte) 0xb7, 0x01, 0x0c, 0x0a, 0, 0, 0, 0, 0, 0, 0};
+        AvrcpPlayer playerOne = makePlayer(mTestDevice, 1, "Player 1", 1, playerFeatures, 1);
+        AvrcpPlayer playerTwo = makePlayer(mTestDevice, 2, "Player 2", 1, playerFeatures, 1);
+        List<AvrcpPlayer> testPlayers = new ArrayList<>();
+        testPlayers.add(playerOne);
+        testPlayers.add(playerTwo);
+        mAvrcpStateMachine.sendMessage(AvrcpControllerStateMachine.MESSAGE_PROCESS_GET_PLAYER_ITEMS,
+                testPlayers);
+
+        // Wait for them to be processed
+        TestUtils.waitForLooperToFinishScheduledTask(mAvrcpStateMachine.getHandler().getLooper());
+
+        // Verify we processed the players properly. Note the addressed player is currently the
+        // default player and is not in the available player set sent. This means we'll have an
+        // extra player at ID -1.
+        Assert.assertTrue(mAvrcpStateMachine.findNode(rootName).isCached());
+        SparseArray<AvrcpPlayer> players = mAvrcpStateMachine.getAvailablePlayers();
+        Assert.assertTrue(players.contains(mAvrcpStateMachine.getAddressedPlayerId()));
+        Assert.assertEquals(testPlayers.size() + 1, players.size());
+        for (AvrcpPlayer player : testPlayers) {
+            Assert.assertTrue(players.contains(player.getId()));
+        }
+
+        // Verify we do not request metadata, playback state and now playing list because we're
+        // sure the addressed player and metadata we have isn't impacted by the new players
+        verify(mAvrcpControllerService,
+                timeout(ASYNC_CALL_TIMEOUT_MILLIS).times(0)).getNowPlayingListNative(
+                any(), anyInt(), anyInt());
+        verify(mAvrcpControllerService,
+                timeout(ASYNC_CALL_TIMEOUT_MILLIS).times(0)).getCurrentMetadataNative(any());
+        verify(mAvrcpControllerService,
+                timeout(ASYNC_CALL_TIMEOUT_MILLIS).times(0)).getPlaybackStateNative(any());
+    }
+
+    /**
      * Test addressed media player changing to a player we know about
      * Verify when the addressed media player changes browsing data updates
      */
     @Test
-    public void testPlayerChanged() {
+    public void testAddressedPlayerChangedToNewKnownPlayer() {
         setUpConnectedState(true, true);
         final String rootName = "__ROOT__";
 
@@ -726,8 +875,8 @@ public class AvrcpControllerStateMachineTest {
         //Provide back two player objects, IDs 1 and 2
         byte[] playerFeatures =
                 new byte[]{0, 0, 0, 0, 0, (byte) 0xb7, 0x01, 0x0c, 0x0a, 0, 0, 0, 0, 0, 0, 0};
-        AvrcpPlayer playerOne = new AvrcpPlayer(mTestDevice, 1, "Player 1", playerFeatures, 1, 1);
-        AvrcpPlayer playerTwo = new AvrcpPlayer(mTestDevice, 2, "Player 2", playerFeatures, 1, 1);
+        AvrcpPlayer playerOne = makePlayer(mTestDevice, 1, "Player 1", 1, playerFeatures, 1);
+        AvrcpPlayer playerTwo = makePlayer(mTestDevice, 2, "Player 2", 1, playerFeatures, 1);
         List<AvrcpPlayer> testPlayers = new ArrayList<>();
         testPlayers.add(playerOne);
         testPlayers.add(playerTwo);
@@ -739,20 +888,33 @@ public class AvrcpControllerStateMachineTest {
         nowPlayingList.add(makeNowPlayingItem(1, "Song 1"));
         nowPlayingList.add(makeNowPlayingItem(2, "Song 2"));
         setNowPlayingList(nowPlayingList);
+        clearInvocations(mAvrcpControllerService);
 
         //Change players and verify that BT attempts to update the results
         mAvrcpStateMachine.sendMessage(
                 AvrcpControllerStateMachine.MESSAGE_PROCESS_ADDRESSED_PLAYER_CHANGED, 2);
         TestUtils.waitForLooperToFinishScheduledTask(mAvrcpStateMachine.getHandler().getLooper());
 
+        // The addressed player should always be in the available player set
+        Assert.assertEquals(2, mAvrcpStateMachine.getAddressedPlayerId());
+        SparseArray<AvrcpPlayer> players = mAvrcpStateMachine.getAvailablePlayers();
+        Assert.assertTrue(players.contains(mAvrcpStateMachine.getAddressedPlayerId()));
+
         //Make sure the Now Playing list is now cleared
         assertNowPlayingList(new ArrayList<AvrcpItem>());
 
-        //Verify that a player change to a player with Now Playing support causes a refresh. This
-        //should be called twice, once to give data and once to ensure we're out of elements
+        //Verify that a player change to a player with Now Playing support causes a refresh.
         verify(mAvrcpControllerService,
-                timeout(ASYNC_CALL_TIMEOUT_MILLIS).times(2)).getNowPlayingListNative(
+                timeout(ASYNC_CALL_TIMEOUT_MILLIS).times(1)).getNowPlayingListNative(
                 eq(mTestAddress), eq(0), eq(19));
+
+        //Verify we request metadata and playback state
+        verify(mAvrcpControllerService,
+                timeout(ASYNC_CALL_TIMEOUT_MILLIS).times(1)).getCurrentMetadataNative(
+                eq(mTestAddress));
+        verify(mAvrcpControllerService,
+                timeout(ASYNC_CALL_TIMEOUT_MILLIS).times(1)).getPlaybackStateNative(
+                eq(mTestAddress));
     }
 
     /**
@@ -761,7 +923,7 @@ public class AvrcpControllerStateMachineTest {
      * Verify that the contents of a player are fetched upon request
      */
     @Test
-    public void testPlayerChangedToUnknownPlayer() {
+    public void testAddressedPlayerChangedToUnknownPlayer() {
         setUpConnectedState(true, true);
         final String rootName = "__ROOT__";
 
@@ -772,14 +934,11 @@ public class AvrcpControllerStateMachineTest {
         //Request fetch the list of players
         BrowseTree.BrowseNode playerNodes = mAvrcpStateMachine.findNode(rootNode.getID());
         mAvrcpStateMachine.requestContents(rootNode);
-        verify(mAvrcpControllerService,
-                timeout(ASYNC_CALL_TIMEOUT_MILLIS).times(1)).getPlayerListNative(eq(mTestAddress),
-                eq(0), eq(19));
 
         //Provide back a player object
         byte[] playerFeatures =
                 new byte[]{0, 0, 0, 0, 0, (byte) 0xb7, 0x01, 0x0c, 0x0a, 0, 0, 0, 0, 0, 0, 0};
-        AvrcpPlayer playerOne = new AvrcpPlayer(mTestDevice, 1, "Player 1", playerFeatures, 1, 1);
+        AvrcpPlayer playerOne = makePlayer(mTestDevice, 1, "Player 1", 1, playerFeatures, 1);
         List<AvrcpPlayer> testPlayers = new ArrayList<>();
         testPlayers.add(playerOne);
         mAvrcpStateMachine.sendMessage(
@@ -796,12 +955,71 @@ public class AvrcpControllerStateMachineTest {
                 AvrcpControllerStateMachine.MESSAGE_PROCESS_ADDRESSED_PLAYER_CHANGED, 4);
         TestUtils.waitForLooperToFinishScheduledTask(mAvrcpStateMachine.getHandler().getLooper());
 
-        //Make sure the Now Playing list is now cleared
+        //Make sure the Now Playing list is now cleared and we requested metadata
         assertNowPlayingList(new ArrayList<AvrcpItem>());
+        verify(mAvrcpControllerService,
+                timeout(ASYNC_CALL_TIMEOUT_MILLIS).times(1)).getCurrentMetadataNative(
+                eq(mTestAddress));
+        verify(mAvrcpControllerService,
+                timeout(ASYNC_CALL_TIMEOUT_MILLIS).times(1)).getPlaybackStateNative(
+                eq(mTestAddress));
+    }
 
-        //Make sure the root node is no longer cached
-        rootNode = mAvrcpStateMachine.findNode(rootName);
-        Assert.assertFalse(rootNode.isCached());
+    /**
+     * Test what we do when we receive an addressed player change to a player with the same ID as
+     * the current addressed play.
+     *
+     * Verify we assume nothing and re-fetch the current metadata and playback status.
+     */
+    @Test
+    public void testAddressedPlayerChangedToSamePlayerId() {
+        setUpConnectedState(true, true);
+        final String rootName = "__ROOT__";
+
+        // Set the addressed player so we can change to the same one
+        mAvrcpStateMachine.sendMessage(
+                AvrcpControllerStateMachine.MESSAGE_PROCESS_ADDRESSED_PLAYER_CHANGED, 1);
+        TestUtils.waitForLooperToFinishScheduledTask(mAvrcpStateMachine.getHandler().getLooper());
+
+        //Get the root of the device
+        BrowseTree.BrowseNode rootNode = mAvrcpStateMachine.findNode(rootName);
+        Assert.assertEquals(rootName + mTestDevice.toString(), rootNode.getID());
+
+        //Request fetch the list of players
+        BrowseTree.BrowseNode playerNodes = mAvrcpStateMachine.findNode(rootNode.getID());
+        mAvrcpStateMachine.requestContents(rootNode);
+
+        // Send available players set that contains our addressed player
+        byte[] playerFeatures =
+                new byte[]{0, 0, 0, 0, 0, (byte) 0xb7, 0x01, 0x0c, 0x0a, 0, 0, 0, 0, 0, 0, 0};
+        AvrcpPlayer playerOne = makePlayer(mTestDevice, 1, "Player 1", 1, playerFeatures, 1);
+        AvrcpPlayer playerTwo = makePlayer(mTestDevice, 2, "Player 2", 1, playerFeatures, 1);
+        List<AvrcpPlayer> testPlayers = new ArrayList<>();
+        testPlayers.add(playerOne);
+        testPlayers.add(playerTwo);
+        mAvrcpStateMachine.sendMessage(AvrcpControllerStateMachine.MESSAGE_PROCESS_GET_PLAYER_ITEMS,
+                testPlayers);
+
+        // Wait for players to be processed
+        TestUtils.waitForLooperToFinishScheduledTask(mAvrcpStateMachine.getHandler().getLooper());
+        clearInvocations(mAvrcpControllerService);
+
+        // Send an addressed player changed to the same player ID
+        mAvrcpStateMachine.sendMessage(
+                AvrcpControllerStateMachine.MESSAGE_PROCESS_ADDRESSED_PLAYER_CHANGED, 1);
+        TestUtils.waitForLooperToFinishScheduledTask(mAvrcpStateMachine.getHandler().getLooper());
+
+        // Verify we make no assumptions about the player ID and still fetch metadata, play status
+        // and now playing list (since player 1 supports it)
+        verify(mAvrcpControllerService,
+                timeout(ASYNC_CALL_TIMEOUT_MILLIS).times(1)).getNowPlayingListNative(
+                eq(mTestAddress), eq(0), eq(19));
+        verify(mAvrcpControllerService,
+                timeout(ASYNC_CALL_TIMEOUT_MILLIS).times(1)).getCurrentMetadataNative(
+                eq(mTestAddress));
+        verify(mAvrcpControllerService,
+                timeout(ASYNC_CALL_TIMEOUT_MILLIS).times(1)).getPlaybackStateNative(
+                eq(mTestAddress));
     }
 
     /**
