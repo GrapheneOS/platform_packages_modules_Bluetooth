@@ -1,8 +1,4 @@
-use bt_topshim::btif::BtSspVariant;
 use bt_topshim::topstack;
-
-use btstack::bluetooth::{BluetoothDevice, IBluetooth, IBluetoothCallback};
-use btstack::RPCProxy;
 
 use dbus::channel::MatchingReceiver;
 
@@ -10,10 +6,12 @@ use dbus::message::MatchRule;
 
 use dbus::nonblock::SyncConnection;
 
+use manager_service::iface_bluetooth_manager::{IBluetoothManager, IBluetoothManagerCallback};
+
 use std::sync::{Arc, Mutex};
 
 use crate::command_handler::CommandHandler;
-use crate::dbus_iface::BluetoothDBus;
+use crate::dbus_iface::{BluetoothDBus, BluetoothManagerDBus};
 use crate::editor::AsyncEditor;
 
 use dbus_crossroads::Crossroads;
@@ -24,50 +22,17 @@ mod dbus_arg;
 mod dbus_iface;
 mod editor;
 
-struct BtCallback {
+struct BtManagerCallback {
     objpath: String,
 }
 
-impl IBluetoothCallback for BtCallback {
-    fn on_bluetooth_state_changed(&self, prev_state: u32, new_state: u32) {
-        print_info!("Adapter state changed from {} to {}", prev_state, new_state);
-    }
-
-    fn on_bluetooth_address_changed(&self, addr: String) {
-        print_info!("Address changed to {}", addr);
-    }
-
-    fn on_device_found(&self, remote_device: BluetoothDevice) {
-        print_info!("Found device: {:?}", remote_device);
-    }
-
-    fn on_discovering_changed(&self, discovering: bool) {
-        print_info!("Discovering: {}", discovering);
-    }
-
-    fn on_ssp_request(
-        &self,
-        remote_device: BluetoothDevice,
-        _cod: u32,
-        variant: BtSspVariant,
-        passkey: u32,
-    ) {
-        if variant == BtSspVariant::PasskeyNotification {
-            print_info!(
-                "device {}{} would like to pair, enter passkey on remote device: {:06}",
-                remote_device.address.to_string(),
-                if remote_device.name.len() > 0 {
-                    format!(" ({})", remote_device.name)
-                } else {
-                    String::from("")
-                },
-                passkey
-            );
-        }
+impl IBluetoothManagerCallback for BtManagerCallback {
+    fn on_hci_device_changed(&self, hci_interface: i32, present: bool) {
+        print_info!("hci{} present = {}", hci_interface, present);
     }
 }
 
-impl RPCProxy for BtCallback {
+impl manager_service::RPCProxy for BtManagerCallback {
     fn register_disconnect(&mut self, _f: Box<dyn Fn() + Send>) {}
 
     fn get_object_id(&self) -> String {
@@ -75,15 +40,18 @@ impl RPCProxy for BtCallback {
     }
 }
 
-struct API<T: IBluetooth> {
-    bluetooth: Arc<Mutex<Box<T>>>,
+struct API {
+    bluetooth_manager: Arc<Mutex<Box<BluetoothManagerDBus>>>,
+    bluetooth: Arc<Mutex<Box<BluetoothDBus>>>,
 }
 
 // This creates the API implementations over D-Bus.
-fn create_api_dbus(conn: Arc<SyncConnection>, cr: Arc<Mutex<Crossroads>>) -> API<BluetoothDBus> {
-    let bluetooth = Arc::new(Mutex::new(Box::new(BluetoothDBus::new(conn.clone(), cr))));
+fn create_api_dbus(conn: Arc<SyncConnection>, cr: Arc<Mutex<Crossroads>>) -> API {
+    let bluetooth = Arc::new(Mutex::new(Box::new(BluetoothDBus::new(conn.clone(), cr.clone()))));
+    let bluetooth_manager =
+        Arc::new(Mutex::new(Box::new(BluetoothManagerDBus::new(conn.clone(), cr.clone()))));
 
-    API { bluetooth }
+    API { bluetooth_manager, bluetooth }
 }
 
 /// Runs a command line program that interacts with a Bluetooth stack.
@@ -120,13 +88,15 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
         let api = create_api_dbus(conn, cr);
 
-        api.bluetooth.lock().unwrap().register_callback(Box::new(BtCallback {
-            objpath: String::from("/org/chromium/bluetooth/client/bluetooth_callback"),
+        // TODO: Registering the callback should be done when btmanagerd is ready (detect with
+        // ObjectManager).
+        api.bluetooth_manager.lock().unwrap().register_callback(Box::new(BtManagerCallback {
+            objpath: String::from("/org/chromium/bluetooth/client/bluetooth_manager_callback"),
         }));
 
-        let handler = CommandHandler::<BluetoothDBus>::new(api.bluetooth.clone());
+        let mut handler = CommandHandler::new(api.bluetooth_manager.clone(), api.bluetooth.clone());
 
-        let handle_cmd = move |cmd: String| match cmd.split(' ').collect::<Vec<&str>>()[0] {
+        let mut handle_cmd = move |cmd: String| match cmd.split(' ').collect::<Vec<&str>>()[0] {
             "enable" => handler.cmd_enable(cmd),
             "disable" => handler.cmd_disable(cmd),
             "get_address" => handler.cmd_get_address(cmd),
