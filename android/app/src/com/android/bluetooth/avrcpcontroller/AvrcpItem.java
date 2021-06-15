@@ -240,8 +240,9 @@ public class AvrcpItem {
     public String toString() {
         return "AvrcpItem{mUuid=" + mUuid + ", mUid=" + mUid + ", mItemType=" + mItemType
                 + ", mType=" + mType + ", mDisplayableName=" + mDisplayableName
-                + ", mTitle=" + mTitle + ", mPlayable=" + mPlayable + ", mBrowsable="
-                + mBrowsable + ", mCoverArtHandle=" + getCoverArtHandle()
+                + ", mTitle=" + mTitle + " mPlayingTime=" + mPlayingTime + " mTrack="
+                + mTrackNumber + "/" + mTotalNumberOfTracks + ", mPlayable=" + mPlayable
+                + ", mBrowsable=" + mBrowsable + ", mCoverArtHandle=" + getCoverArtHandle()
                 + ", mImageUuid=" + mImageUuid + ", mImageUri" + mImageUri + "}";
     }
 
