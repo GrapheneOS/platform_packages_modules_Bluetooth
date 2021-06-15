@@ -30,6 +30,8 @@ static_assert(LOG_TAG != nullptr, "LOG_TAG should never be NULL");
 
 #include <log/log.h>
 
+#include "common/init_flags.h"
+
 #ifdef FUZZ_TARGET
 #define LOG_VERBOSE(...)
 #define LOG_DEBUG(...)
