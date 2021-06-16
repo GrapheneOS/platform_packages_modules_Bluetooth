@@ -43,6 +43,3 @@ void bte_main_hci_send(BT_HDR* p_msg, uint16_t event) {
   mock_function_count_map[__func__]++;
 }
 void bte_main_init(void) { mock_function_count_map[__func__]++; }
-void post_to_main_message_loop(const base::Location& from_here, BT_HDR* p_msg) {
-  mock_function_count_map[__func__]++;
-}
