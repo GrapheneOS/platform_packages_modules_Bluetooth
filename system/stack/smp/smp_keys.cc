@@ -88,8 +88,9 @@ void smp_proc_passkey(tSMP_CB* p_cb, BT_OCTET8 rand) {
   UINT32_TO_STREAM(tt, passkey);
 
   if (p_cb->p_callback) {
-    tSMP_EVT_DATA smp_evt_data;
-    smp_evt_data.passkey = passkey;
+    tSMP_EVT_DATA smp_evt_data = {
+        .passkey = passkey,
+    };
     (*p_cb->p_callback)(SMP_PASSKEY_NOTIF_EVT, p_cb->pairing_bda,
                         &smp_evt_data);
   }
