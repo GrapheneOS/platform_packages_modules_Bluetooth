@@ -25,7 +25,7 @@
 #include <base/bind.h>
 #include <base/location.h>
 #include <hardware/bluetooth.h>
-
+#include <functional>
 #include "abstract_message_loop.h"
 #include "bt_types.h"
 #include "bta/include/bta_api.h"
@@ -155,6 +155,10 @@ extern bt_status_t do_in_jni_thread(const base::Location& from_here,
                                     base::OnceClosure task);
 extern bool is_on_jni_thread();
 extern btbase::AbstractMessageLoop* get_jni_message_loop();
+
+using BtJniClosure = std::function<void()>;
+void post_on_bt_jni(BtJniClosure closure);
+
 /**
  * This template wraps callback into callback that will be executed on jni
  * thread

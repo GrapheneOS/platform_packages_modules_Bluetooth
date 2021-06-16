@@ -357,6 +357,7 @@ cc_test {
           ":TestMockStack",
           ":TestMockSystemLibfmq",
           ":TestMockUdrv",
+          "test/btif_core_test.cc",
           "test/btif_stack_test.cc",
       ],
       generated_headers: [
@@ -387,4 +388,9 @@ cc_test {
           "libosi",
       ],
       cflags: ["-DBUILDCFG"],
+      sanitize: {
+        address: true,
+        cfi: true,
+        misc_undefined: ["bounds"],
+    },
 }
