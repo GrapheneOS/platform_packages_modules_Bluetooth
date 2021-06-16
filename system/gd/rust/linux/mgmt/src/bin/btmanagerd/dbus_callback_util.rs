@@ -1,7 +1,7 @@
 use dbus::nonblock::{Proxy, SyncConnection};
 use std::sync::Arc;
+use std::sync::Mutex;
 use std::time::Duration;
-use tokio::sync::Mutex;
 
 #[derive(Clone)]
 pub struct DbusCallbackUtil {
@@ -28,7 +28,8 @@ impl DbusCallbackUtil {
         hci_device: i32,
         present: bool,
     ) -> Result<(), Box<dyn std::error::Error>> {
-        for path in &*self.hci_device_change_observer.lock().await {
+        let paths = self.hci_device_change_observer.lock().unwrap().clone();
+        for path in paths.iter() {
             let proxy = Proxy::new(
                 "org.chromium.bluetooth.Manager",
                 path,
@@ -51,7 +52,7 @@ impl DbusCallbackUtil {
         hci_device: i32,
         state: i32,
     ) -> Result<(), Box<dyn std::error::Error>> {
-        for path in &*self.state_change_observers.lock().await {
+        for path in &*self.state_change_observers.lock().unwrap() {
             let proxy = Proxy::new(
                 "org.chromium.bluetooth.Manager",
                 path,
