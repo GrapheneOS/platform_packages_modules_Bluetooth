@@ -168,7 +168,7 @@ void btsnd_hcic_ble_receiver_test(uint8_t rx_freq) {
   mock_function_count_map[__func__]++;
 }
 void btsnd_hcic_ble_remove_from_acceptlist(
-    uint8_t addr_type, const RawAddress& bda,
+    tBLE_ADDR_TYPE addr_type, const RawAddress& bda,
     base::OnceCallback<void(uint8_t*, uint16_t)> cb) {
   mock_function_count_map[__func__]++;
 }
@@ -264,8 +264,9 @@ void btsnd_hcic_ble_upd_ll_conn_params(uint16_t handle, uint16_t conn_int_min,
   mock_function_count_map[__func__]++;
 }
 void btsnd_hcic_ble_write_adv_params(uint16_t adv_int_min, uint16_t adv_int_max,
-                                     uint8_t adv_type, uint8_t addr_type_own,
-                                     uint8_t addr_type_dir,
+                                     uint8_t adv_type,
+                                     tBLE_ADDR_TYPE addr_type_own,
+                                     tBLE_ADDR_TYPE addr_type_dir,
                                      const RawAddress& direct_bda,
                                      uint8_t channel_map,
                                      uint8_t adv_filter_policy) {
