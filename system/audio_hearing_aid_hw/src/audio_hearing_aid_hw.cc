@@ -163,6 +163,12 @@ struct ha_stream_in {
 /*****************************************************************************
  *  Static functions
  *****************************************************************************/
+static void hash_map_utils_dump_string_keys_string_values(
+    std::unordered_map<std::string, std::string>& map) {
+  for (const auto& ptr : map) {
+    LOG_INFO("key: '%s' value: '%s'\n", ptr.first.c_str(), ptr.second.c_str());
+  }
+}
 
 static size_t out_get_buffer_size(const struct audio_stream* stream);
 
