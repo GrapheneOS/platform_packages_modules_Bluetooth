@@ -8,8 +8,10 @@ extern crate num_derive;
 
 pub mod bluetooth;
 pub mod bluetooth_gatt;
+pub mod bluetooth_media;
 
 use bt_topshim::btif::BaseCallbacks;
+use bt_topshim::profiles::a2dp::A2dpCallbacks;
 
 use std::convert::TryInto;
 use std::fmt::{Debug, Formatter, Result};
@@ -88,6 +90,7 @@ impl BDAddr {
 
 /// Message types that are sent to the stack main dispatch loop.
 pub enum Message {
+    A2dp(A2dpCallbacks),
     Base(BaseCallbacks),
     BluetoothCallbackDisconnected(u32),
 }
@@ -112,6 +115,10 @@ impl Stack {
             }
 
             match m.unwrap() {
+                Message::A2dp(a) => {
+                    //
+                    println!("RX {:?}", a);
+                }
                 Message::Base(b) => {
                     bluetooth.lock().unwrap().dispatch_base_callbacks(b);
                 }
