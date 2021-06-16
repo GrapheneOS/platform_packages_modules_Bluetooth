@@ -380,10 +380,6 @@ public class A2dpSinkStreamHandler extends Handler {
         return false;
     }
 
-    synchronized int getAudioFocus() {
-        return mAudioFocus;
-    }
-
     private boolean isIotDevice() {
         return mA2dpSinkService.getPackageManager().hasSystemFeature(
                 PackageManager.FEATURE_EMBEDDED);
