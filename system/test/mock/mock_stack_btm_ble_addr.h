@@ -144,11 +144,13 @@ extern struct btm_identity_addr_to_random_pseudo_from_address_with_type
 // Params: RawAddress* random_pseudo, uint8_t* p_identity_addr_type
 // Returns: bool
 struct btm_random_pseudo_to_identity_addr {
-  std::function<bool(RawAddress* random_pseudo, uint8_t* p_identity_addr_type)>
-      body{[](RawAddress* random_pseudo, uint8_t* p_identity_addr_type) {
+  std::function<bool(RawAddress* random_pseudo,
+                     tBLE_ADDR_TYPE* p_identity_addr_type)>
+      body{[](RawAddress* random_pseudo, tBLE_ADDR_TYPE* p_identity_addr_type) {
         return false;
       }};
-  bool operator()(RawAddress* random_pseudo, uint8_t* p_identity_addr_type) {
+  bool operator()(RawAddress* random_pseudo,
+                  tBLE_ADDR_TYPE* p_identity_addr_type) {
     return body(random_pseudo, p_identity_addr_type);
   };
 };
