@@ -14,8 +14,11 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+from bluetooth_packets_python3 import hci_packets
 from cert.gd_base_test import GdBaseTestClass
+from cert.truth import assertThat
 from hci.cert.acl_manager_test_lib import AclManagerTestBase
+from neighbor.facade import facade_pb2 as neighbor_facade
 
 
 class AclManagerTest(GdBaseTestClass, AclManagerTestBase):
