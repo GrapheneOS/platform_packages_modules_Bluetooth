@@ -135,8 +135,9 @@ void btsnd_hcic_ble_set_random_addr(const RawAddress& random_bda) {
 }
 
 void btsnd_hcic_ble_write_adv_params(uint16_t adv_int_min, uint16_t adv_int_max,
-                                     uint8_t adv_type, uint8_t addr_type_own,
-                                     uint8_t addr_type_dir,
+                                     uint8_t adv_type,
+                                     tBLE_ADDR_TYPE addr_type_own,
+                                     tBLE_ADDR_TYPE addr_type_dir,
                                      const RawAddress& direct_bda,
                                      uint8_t channel_map,
                                      uint8_t adv_filter_policy) {
@@ -271,11 +272,14 @@ void btsnd_hcic_ble_set_scan_enable(uint8_t scan_enable, uint8_t duplicate) {
 }
 
 /* link layer connection management commands */
-void btsnd_hcic_ble_create_ll_conn(
-    uint16_t scan_int, uint16_t scan_win, uint8_t init_filter_policy,
-    uint8_t addr_type_peer, const RawAddress& bda_peer, uint8_t addr_type_own,
-    uint16_t conn_int_min, uint16_t conn_int_max, uint16_t conn_latency,
-    uint16_t conn_timeout, uint16_t min_ce_len, uint16_t max_ce_len) {
+void btsnd_hcic_ble_create_ll_conn(uint16_t scan_int, uint16_t scan_win,
+                                   uint8_t init_filter_policy,
+                                   tBLE_ADDR_TYPE addr_type_peer,
+                                   const RawAddress& bda_peer,
+                                   tBLE_ADDR_TYPE addr_type_own,
+                                   uint16_t conn_int_min, uint16_t conn_int_max,
+                                   uint16_t conn_latency, uint16_t conn_timeout,
+                                   uint16_t min_ce_len, uint16_t max_ce_len) {
   BT_HDR* p = (BT_HDR*)osi_malloc(HCI_CMD_BUF_SIZE);
   uint8_t* pp = (uint8_t*)(p + 1);
 
@@ -337,7 +341,7 @@ void btsnd_hcic_ble_add_acceptlist(
 }
 
 void btsnd_hcic_ble_remove_from_acceptlist(
-    uint8_t addr_type, const RawAddress& bda,
+    tBLE_ADDR_TYPE addr_type, const RawAddress& bda,
     base::OnceCallback<void(uint8_t*, uint16_t)> cb) {
   uint8_t param[HCIC_PARAM_SIZE_REMOVE_ACCEPTLIST];
   uint8_t* pp = param;
@@ -848,8 +852,8 @@ void btsnd_hcic_ble_set_extended_scan_enable(uint8_t enable,
 }
 
 void btsnd_hcic_ble_ext_create_conn(uint8_t init_filter_policy,
-                                    uint8_t addr_type_own,
-                                    uint8_t addr_type_peer,
+                                    tBLE_ADDR_TYPE addr_type_own,
+                                    tBLE_ADDR_TYPE addr_type_peer,
                                     const RawAddress& bda_peer,
                                     uint8_t initiating_phys,
                                     EXT_CONN_PHY_CFG* phy_cfg) {

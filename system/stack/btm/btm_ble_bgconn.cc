@@ -139,7 +139,7 @@ static bool btm_ble_stop_auto_conn() {
   return true;
 }
 
-static void background_connection_add(uint8_t addr_type,
+static void background_connection_add(tBLE_ADDR_TYPE addr_type,
                                       const RawAddress& address) {
   auto map_iter = background_connections.find(address);
   if (map_iter == background_connections.end()) {
@@ -335,8 +335,8 @@ static bool btm_ble_start_auto_conn() {
   const uint16_t scan_win = (p_cb->scan_win == BTM_BLE_SCAN_PARAM_UNDEF)
                                 ? BTM_BLE_SCAN_SLOW_WIN_1
                                 : p_cb->scan_win;
-  uint8_t own_addr_type = p_cb->addr_mgnt_cb.own_addr_type;
-  uint8_t peer_addr_type = BLE_ADDR_PUBLIC;
+  tBLE_ADDR_TYPE own_addr_type = p_cb->addr_mgnt_cb.own_addr_type;
+  tBLE_ADDR_TYPE peer_addr_type = BLE_ADDR_PUBLIC;
 
   uint8_t phy = PHY_LE_1M;
   if (controller_get_interface()->supports_ble_2m_phy()) phy |= PHY_LE_2M;

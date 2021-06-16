@@ -23,6 +23,7 @@
 #include "bt_types.h"
 #include "device/include/esco_parameters.h"
 #include "hcidefs.h"
+#include "types/ble_address_with_type.h"
 
 #include <base/callback_forward.h>
 
@@ -535,8 +536,9 @@ extern void btsnd_hcic_ble_set_random_addr(const RawAddress& random_addr);
 
 extern void btsnd_hcic_ble_write_adv_params(
     uint16_t adv_int_min, uint16_t adv_int_max, uint8_t adv_type,
-    uint8_t addr_type_own, uint8_t addr_type_dir, const RawAddress& direct_bda,
-    uint8_t channel_map, uint8_t adv_filter_policy);
+    tBLE_ADDR_TYPE addr_type_own, tBLE_ADDR_TYPE addr_type_dir,
+    const RawAddress& direct_bda, uint8_t channel_map,
+    uint8_t adv_filter_policy);
 
 extern void btsnd_hcic_ble_read_adv_chnl_tx_power(void);
 
@@ -556,9 +558,10 @@ extern void btsnd_hcic_ble_set_scan_enable(uint8_t scan_enable,
 
 extern void btsnd_hcic_ble_create_ll_conn(
     uint16_t scan_int, uint16_t scan_win, uint8_t init_filter_policy,
-    uint8_t addr_type_peer, const RawAddress& bda_peer, uint8_t addr_type_own,
-    uint16_t conn_int_min, uint16_t conn_int_max, uint16_t conn_latency,
-    uint16_t conn_timeout, uint16_t min_ce_len, uint16_t max_ce_len);
+    tBLE_ADDR_TYPE addr_type_peer, const RawAddress& bda_peer,
+    tBLE_ADDR_TYPE addr_type_own, uint16_t conn_int_min, uint16_t conn_int_max,
+    uint16_t conn_latency, uint16_t conn_timeout, uint16_t min_ce_len,
+    uint16_t max_ce_len);
 
 extern void btsnd_hcic_ble_create_conn_cancel(void);
 
@@ -568,11 +571,11 @@ extern void btsnd_hcic_ble_clear_acceptlist(
     base::OnceCallback<void(uint8_t*, uint16_t)> cb);
 
 extern void btsnd_hcic_ble_add_acceptlist(
-    uint8_t addr_type, const RawAddress& bda,
+    tBLE_ADDR_TYPE addr_type, const RawAddress& bda,
     base::OnceCallback<void(uint8_t*, uint16_t)> cb);
 
 extern void btsnd_hcic_ble_remove_from_acceptlist(
-    uint8_t addr_type, const RawAddress& bda,
+    tBLE_ADDR_TYPE addr_type, const RawAddress& bda,
     base::OnceCallback<void(uint8_t*, uint16_t)> cb);
 
 extern void btsnd_hcic_ble_upd_ll_conn_params(
@@ -665,10 +668,10 @@ extern void btsnd_hcic_ble_ext_create_conn(uint8_t init_filter_policy,
                                            uint8_t initiating_phys,
                                            EXT_CONN_PHY_CFG* phy_cfg);
 
-extern void btsnd_hcic_ble_rm_device_resolving_list(uint8_t addr_type_peer,
-                                                    const RawAddress& bda_peer);
+extern void btsnd_hcic_ble_rm_device_resolving_list(
+    tBLE_ADDR_TYPE addr_type_peer, const RawAddress& bda_peer);
 
-extern void btsnd_hcic_ble_set_privacy_mode(uint8_t addr_type_peer,
+extern void btsnd_hcic_ble_set_privacy_mode(tBLE_ADDR_TYPE addr_type_peer,
                                             const RawAddress& bda_peer,
                                             uint8_t privacy_type);
 
