@@ -60,17 +60,6 @@ namespace mock {
 namespace main_bte {
 
 // Shared state between mocked functions and tests
-// Name: post_to_main_message_loop
-// Params: const base::Location& from_here, BT_HDR* p_msg
-// Returns: void
-struct post_to_main_message_loop {
-  std::function<void(const base::Location& from_here, BT_HDR* p_msg)> body{
-      [](const base::Location& from_here, BT_HDR* p_msg) {}};
-  void operator()(const base::Location& from_here, BT_HDR* p_msg) {
-    body(from_here, p_msg);
-  };
-};
-extern struct post_to_main_message_loop post_to_main_message_loop;
 // Name: bte_main_init
 // Params: void
 // Returns: void
