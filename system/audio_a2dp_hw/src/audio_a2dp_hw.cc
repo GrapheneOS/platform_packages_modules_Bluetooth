@@ -172,6 +172,12 @@ static void a2dp_open_ctrl_path(struct a2dp_stream_common* common);
 /*****************************************************************************
  *   Miscellaneous helper functions
  *****************************************************************************/
+static void hash_map_utils_dump_string_keys_string_values(
+    std::unordered_map<std::string, std::string>& map) {
+  for (const auto& ptr : map) {
+    INFO("key: '%s' value: '%s'\n", ptr.first.c_str(), ptr.second.c_str());
+  }
+}
 
 /* logs timestamp with microsec precision
    pprev is optional in case a dedicated diff is required */
