@@ -7,12 +7,11 @@ use dbus::message::MatchRule;
 use dbus::nonblock::SyncConnection;
 use dbus_crossroads::Crossroads;
 use dbus_tokio::connection;
-use log::{error, info, warn};
-use log::{Level, LevelFilter, Metadata, Record, SetLoggerError};
+use log::error;
+use log::{Level, Metadata, Record};
 use std::process::Command;
 use std::sync::atomic::{AtomicBool, Ordering};
-use std::sync::Arc;
-use tokio::sync::Mutex;
+use std::sync::{Arc, Mutex};
 
 struct SimpleLogger;
 
@@ -106,114 +105,79 @@ pub async fn main() -> Result<(), Box<dyn std::error::Error>> {
     cr.set_object_manager_support(Some(conn.clone()));
     cr.insert("/", &[cr.object_manager()], {});
 
-    let iface_token = cr.register("org.chromium.bluetooth.Manager", |b| {
-        b.method_with_cr_async(
-            "Start",
-            ("hci_interface",),
-            (),
-            |mut ctx, cr, (hci_interface,): (i32,)| {
-                if !config_util::modify_hci_n_enabled(hci_interface, true) {
-                    error!("Config is not successfully modified");
-                }
-                let proxy = cr.data_mut::<ManagerContext>(ctx.path()).unwrap().proxy.clone();
-                async move {
-                    let result = proxy.start_bluetooth(hci_interface).await;
-                    match result {
-                        Ok(()) => ctx.reply(Ok(())),
-                        Err(_) => ctx.reply(Err(dbus_crossroads::MethodErr::failed(
-                            "cannot start Bluetooth",
-                        ))),
+    let iface_token = cr.register(
+        "org.chromium.bluetooth.Manager",
+        |b: &mut dbus_crossroads::IfaceBuilder<ManagerContext>| {
+            b.method(
+                "Start",
+                ("hci_interface",),
+                (),
+                |_ctx, manager_context, (hci_interface,): (i32,)| {
+                    if !config_util::modify_hci_n_enabled(hci_interface, true) {
+                        error!("Config is not successfully modified");
                     }
-                }
-            },
-        );
-        b.method_with_cr_async(
-            "Stop",
-            ("hci_interface",),
-            (),
-            |mut ctx, cr, (hci_interface,): (i32,)| {
-                let proxy = cr.data_mut::<ManagerContext>(ctx.path()).unwrap().proxy.clone();
-                if !config_util::modify_hci_n_enabled(hci_interface, false) {
-                    error!("Config is not successfully modified");
-                }
-                async move {
-                    let result = proxy.stop_bluetooth(hci_interface).await;
-                    match result {
-                        Ok(()) => ctx.reply(Ok(())),
-                        Err(_) => ctx.reply(Err(dbus_crossroads::MethodErr::failed(
-                            "cannot stop Bluetooth",
-                        ))),
+                    manager_context.proxy.start_bluetooth(hci_interface);
+                    Ok(())
+                },
+            );
+            b.method(
+                "Stop",
+                ("hci_interface",),
+                (),
+                |_ctx, manager_context, (hci_interface,): (i32,)| {
+                    if !config_util::modify_hci_n_enabled(hci_interface, false) {
+                        error!("Config is not successfully modified");
                     }
-                }
-            },
-        );
-        b.method_with_cr_async("GetState", (), ("result",), |mut ctx, cr, ()| {
-            let proxy = cr.data_mut::<ManagerContext>(ctx.path()).unwrap().proxy.clone();
-            async move {
-                let state = proxy.get_state().await;
+                    manager_context.proxy.stop_bluetooth(hci_interface);
+                    Ok(())
+                },
+            );
+            b.method("GetState", (), ("result",), |_ctx, manager_context, ()| {
+                let proxy = manager_context.proxy.clone();
+                let state = proxy.get_state();
                 let result = state_machine::state_to_i32(state);
-                ctx.reply(Ok((result,)))
-            }
-        });
-        // Register AdapterStateChangeCallback(int hci_device, int state) on specified object_path
-        b.method_with_cr_async(
-            "RegisterStateChangeObserver",
-            ("object_path",),
-            (),
-            |mut ctx, cr, (object_path,): (String,)| {
-                let manager_context = cr.data_mut::<ManagerContext>(ctx.path()).unwrap().clone();
-                async move {
-                    manager_context.state_change_observer.lock().await.push(object_path.clone());
-                    ctx.reply(Ok(()))
-                }
-            },
-        );
-        b.method_with_cr_async(
-            "UnregisterStateChangeObserver",
-            ("object_path",),
-            (),
-            |mut ctx, cr, (object_path,): (String,)| {
-                let manager_context = cr.data_mut::<ManagerContext>(ctx.path()).unwrap().clone();
-                async move {
-                    let mut observers = manager_context.state_change_observer.lock().await;
+                Ok((result,))
+            });
+            // Register AdapterStateChangeCallback(int hci_device, int state) on specified object_path
+            b.method(
+                "RegisterStateChangeObserver",
+                ("object_path",),
+                (),
+                |_ctx, manager_context, (object_path,): (String,)| {
+                    manager_context.state_change_observer.lock().unwrap().push(object_path.clone());
+                    Ok(())
+                },
+            );
+            b.method(
+                "UnregisterStateChangeObserver",
+                ("object_path",),
+                (),
+                |_ctx, manager_context, (object_path,): (String,)| {
+                    let mut observers = manager_context.state_change_observer.lock().unwrap();
                     match observers.iter().position(|x| *x == object_path) {
                         Some(index) => {
                             observers.remove(index);
-                            ctx.reply(Ok(()))
+                            Ok(())
                         }
-                        _ => ctx.reply(Err(dbus_crossroads::MethodErr::failed(&format!(
+                        _ => Err(dbus_crossroads::MethodErr::failed(&format!(
                             "cannot unregister {}",
                             object_path
-                        )))),
+                        ))),
                     }
-                }
-            },
-        );
-        b.method_with_cr_async("GetFlossEnabled", (), ("result",), |mut ctx, cr, ()| {
-            let enabled = cr
-                .data_mut::<ManagerContext>(ctx.path())
-                .unwrap()
-                .clone()
-                .floss_enabled
-                .load(Ordering::Relaxed);
+                },
+            );
+            b.method("GetFlossEnabled", (), ("result",), |_ctx, manager_context, ()| {
+                let enabled = manager_context.floss_enabled.load(Ordering::Relaxed);
 
-            async move { ctx.reply(Ok((enabled,))) }
-        });
-        b.method_with_cr_async(
-            "SetFlossEnabled",
-            ("enabled",),
-            (),
-            |mut ctx, cr, (enabled,): (bool,)| {
-                let prev = cr
-                    .data_mut::<ManagerContext>(ctx.path())
-                    .unwrap()
-                    .clone()
-                    .floss_enabled
-                    .swap(enabled, Ordering::Relaxed);
-                config_util::write_floss_enabled(enabled);
-                let proxy = cr.data_mut::<ManagerContext>(ctx.path()).unwrap().proxy.clone();
-
-                async move {
+                Ok((enabled,))
+            });
+            b.method(
+                "SetFlossEnabled",
+                ("enabled",),
+                (),
+                |_ctx, manager_context, (enabled,): (bool,)| {
+                    let prev = manager_context.floss_enabled.swap(enabled, Ordering::Relaxed);
+                    config_util::write_floss_enabled(enabled);
                     if prev != enabled && enabled {
                         Command::new("initctl")
                             .args(&["stop", BLUEZ_INIT_TARGET])
@@ -222,60 +186,54 @@ pub async fn main() -> Result<(), Box<dyn std::error::Error>> {
                         // TODO: Implement multi-hci case
                         let default_device = config_util::list_hci_devices()[0];
                         if config_util::is_hci_n_enabled(default_device) {
-                            let _ = proxy.start_bluetooth(default_device).await;
+                            let _ = manager_context.proxy.start_bluetooth(default_device);
                         }
                     } else if prev != enabled {
                         // TODO: Implement multi-hci case
                         let default_device = config_util::list_hci_devices()[0];
-                        let _ = proxy.stop_bluetooth(default_device).await;
+                        manager_context.proxy.stop_bluetooth(default_device);
                         Command::new("initctl")
                             .args(&["start", BLUEZ_INIT_TARGET])
                             .output()
                             .expect("failed to start bluetoothd");
                     }
-                    ctx.reply(Ok(()))
-                }
-            },
-        );
-        b.method_with_cr_async("ListHciDevices", (), ("devices",), |mut ctx, _cr, ()| {
-            let devices = config_util::list_hci_devices();
-            async move { ctx.reply(Ok((devices,))) }
-        });
-        // Register AdapterStateChangeCallback(int hci_device, int state) on specified object_path
-        b.method_with_cr_async(
-            "RegisterHciDeviceChangeObserver",
-            ("object_path",),
-            (),
-            |mut ctx, cr, (object_path,): (String,)| {
-                let manager_context = cr.data_mut::<ManagerContext>(ctx.path()).unwrap().clone();
-                async move {
-                    manager_context.hci_device_change_observer.lock().await.push(object_path);
-                    ctx.reply(Ok(()))
-                }
-            },
-        );
-        b.method_with_cr_async(
-            "UnregisterHciDeviceChangeObserver",
-            ("object_path",),
-            (),
-            |mut ctx, cr, (object_path,): (String,)| {
-                let manager_context = cr.data_mut::<ManagerContext>(ctx.path()).unwrap().clone();
-                async move {
-                    let mut observers = manager_context.hci_device_change_observer.lock().await;
+                    Ok(())
+                },
+            );
+            b.method("ListHciDevices", (), ("devices",), |_ctx, _manager_context, ()| {
+                let devices = config_util::list_hci_devices();
+                Ok((devices,))
+            });
+            // Register AdapterStateChangeCallback(int hci_device, int state) on specified object_path
+            b.method(
+                "RegisterHciDeviceChangeObserver",
+                ("object_path",),
+                (),
+                |_ctx, manager_context, (object_path,): (String,)| {
+                    manager_context.hci_device_change_observer.lock().unwrap().push(object_path);
+                    Ok(())
+                },
+            );
+            b.method(
+                "UnregisterHciDeviceChangeObserver",
+                ("object_path",),
+                (),
+                |_ctx, manager_context, (object_path,): (String,)| {
+                    let mut observers = manager_context.hci_device_change_observer.lock().unwrap();
                     match observers.iter().position(|x| *x == object_path) {
                         Some(index) => {
                             observers.remove(index);
-                            ctx.reply(Ok(()))
+                            Ok(())
                         }
-                        _ => ctx.reply(Err(dbus_crossroads::MethodErr::failed(&format!(
+                        _ => Err(dbus_crossroads::MethodErr::failed(&format!(
                             "cannot unregister {}",
                             object_path
-                        )))),
+                        ))),
                     }
-                }
-            },
-        );
-    });
+                },
+            );
+        },
+    );
 
     // Let's add the "/org/chromium/bluetooth/Manager" path, which implements
     // the org.chromium.bluetooth.Manager interface, to the crossroads instance.
