@@ -7,7 +7,6 @@ use std::process::{Child, Command, Stdio};
 use std::sync::Arc;
 use std::time::Duration;
 use tokio::io::unix::AsyncFd;
-use tokio::sync::mpsc::error::SendTimeoutError;
 use tokio::sync::{mpsc, Mutex};
 
 // Directory for Bluetooth pid file
@@ -74,32 +73,24 @@ const TX_SEND_TIMEOUT_DURATION: Duration = Duration::from_secs(3);
 const COMMAND_TIMEOUT_DURATION: Duration = Duration::from_secs(3);
 
 impl StateMachineProxy {
-    pub async fn start_bluetooth(
-        &self,
-        hci_interface: i32,
-    ) -> Result<(), SendTimeoutError<StateMachineActions>> {
-        self.tx
-            .send_timeout(
-                StateMachineActions::StartBluetooth(hci_interface),
-                TX_SEND_TIMEOUT_DURATION,
-            )
-            .await
+    pub fn start_bluetooth(&self, hci_interface: i32) {
+        let tx = self.tx.clone();
+        tokio::spawn(async move {
+            let _ = tx.send(StateMachineActions::StartBluetooth(hci_interface)).await;
+        });
     }
 
-    pub async fn stop_bluetooth(
-        &self,
-        hci_interface: i32,
-    ) -> Result<(), SendTimeoutError<StateMachineActions>> {
-        self.tx
-            .send_timeout(
-                StateMachineActions::StopBluetooth(hci_interface),
-                TX_SEND_TIMEOUT_DURATION,
-            )
-            .await
+    pub fn stop_bluetooth(&self, hci_interface: i32) {
+        let tx = self.tx.clone();
+        tokio::spawn(async move {
+            let _ = tx.send(StateMachineActions::StopBluetooth(hci_interface)).await;
+        });
     }
 
-    pub async fn get_state(&self) -> State {
-        *self.state.lock().await
+    pub fn get_state(&self) -> State {
+        // This assumes that self.state is never locked for a long period, i.e. never lock() and
+        // await for something else without unlocking. Otherwise this function will block.
+        return *futures::executor::block_on(self.state.lock());
     }
 }
 
@@ -181,7 +172,7 @@ pub async fn mainloop<PM>(
                 },
               }
             },
-            expired = command_timeout.expired() => {
+            _expired = command_timeout.expired() => {
                 info!("expired {:?}", *context.state_machine.state.lock().await);
                 let timeout_action = context.state_machine.action_on_command_timeout().await;
                 match timeout_action {
@@ -210,7 +201,7 @@ pub async fn mainloop<PM>(
                                 },
                                 (inotify::EventMask::DELETE, Some(oss)) => {
                                     let file_name = oss.to_str().unwrap_or("invalid file");
-                                    if let Some(hci) = get_hci_interface_from_pid_file_name(file_name) {
+                                    if let Some(_hci) = get_hci_interface_from_pid_file_name(file_name) {
                                         context.tx.send_timeout(StateMachineActions::BluetoothStopped(), TX_SEND_TIMEOUT_DURATION).await.unwrap();
                                     }
                                 },
@@ -233,7 +224,7 @@ pub async fn mainloop<PM>(
                                 (inotify::EventMask::CREATE, Some(oss)) => {
                                     match get_hci_interface_from_device(oss.to_str().unwrap_or("invalid hci device")) {
                                         Some(hci) => {
-                                            dbus_callback_util.send_hci_device_change_callback(hci, true).await;
+                                            let _ = dbus_callback_util.send_hci_device_change_callback(hci, true).await;
                                         },
                                         _ => (),
                                     }
@@ -241,7 +232,7 @@ pub async fn mainloop<PM>(
                                 (inotify::EventMask::DELETE, Some(oss)) => {
                                     match get_hci_interface_from_device(oss.to_str().unwrap_or("invalid hci device")) {
                                         Some(hci) => {
-                                            dbus_callback_util.send_hci_device_change_callback(hci, false).await;
+                                            let _ = dbus_callback_util.send_hci_device_change_callback(hci, false).await;
                                         },
                                         _ => (),
                                     }
