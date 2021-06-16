@@ -15,6 +15,7 @@ use futures::future;
 use btstack::bluetooth::get_bt_dispatcher;
 use btstack::bluetooth::{Bluetooth, IBluetooth};
 use btstack::bluetooth_gatt::BluetoothGatt;
+use btstack::bluetooth_media::BluetoothMedia;
 use btstack::Stack;
 
 use std::error::Error;
@@ -23,10 +24,12 @@ use std::sync::{Arc, Mutex};
 mod dbus_arg;
 mod iface_bluetooth;
 mod iface_bluetooth_gatt;
+mod iface_bluetooth_media;
 
 const DBUS_SERVICE_NAME: &str = "org.chromium.bluetooth";
 const OBJECT_BLUETOOTH: &str = "/org/chromium/bluetooth/adapter";
 const OBJECT_BLUETOOTH_GATT: &str = "/org/chromium/bluetooth/gatt";
+const OBJECT_BLUETOOTH_MEDIA: &str = "/org/chromium/bluetooth/media";
 
 /// Runs the Bluetooth daemon serving D-Bus IPC.
 fn main() -> Result<(), Box<dyn Error>> {
@@ -35,6 +38,8 @@ fn main() -> Result<(), Box<dyn Error>> {
     let intf = Arc::new(Mutex::new(get_btinterface().unwrap()));
     let bluetooth = Arc::new(Mutex::new(Box::new(Bluetooth::new(tx.clone(), intf.clone()))));
     let bluetooth_gatt = Arc::new(Mutex::new(Box::new(BluetoothGatt::new(intf.clone()))));
+    let bluetooth_media =
+        Arc::new(Mutex::new(Box::new(BluetoothMedia::new(tx.clone(), intf.clone()))));
 
     // Args don't include arg[0] which is the binary name
     let all_args = std::env::args().collect::<Vec<String>>();
@@ -88,6 +93,14 @@ fn main() -> Result<(), Box<dyn Error>> {
             conn.clone(),
             &mut cr,
             bluetooth_gatt,
+            disconnect_watcher.clone(),
+        );
+
+        iface_bluetooth_media::export_bluetooth_media_dbus_obj(
+            String::from(OBJECT_BLUETOOTH_MEDIA),
+            conn.clone(),
+            &mut cr,
+            bluetooth_media,
             disconnect_watcher.clone(),
         );
 
