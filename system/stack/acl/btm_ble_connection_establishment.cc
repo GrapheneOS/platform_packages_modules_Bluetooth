@@ -45,10 +45,10 @@ extern bool btm_ble_init_pseudo_addr(tBTM_SEC_DEV_REC* p_dev_rec,
                                      const RawAddress& new_pseudo_addr);
 void btm_send_hci_create_connection(
     uint16_t scan_int, uint16_t scan_win, uint8_t init_filter_policy,
-    uint8_t addr_type_peer, const RawAddress& bda_peer, uint8_t addr_type_own,
-    uint16_t conn_int_min, uint16_t conn_int_max, uint16_t conn_latency,
-    uint16_t conn_timeout, uint16_t min_ce_len, uint16_t max_ce_len,
-    uint8_t initiating_phys) {
+    tBLE_ADDR_TYPE addr_type_peer, const RawAddress& bda_peer,
+    tBLE_ADDR_TYPE addr_type_own, uint16_t conn_int_min, uint16_t conn_int_max,
+    uint16_t conn_latency, uint16_t conn_timeout, uint16_t min_ce_len,
+    uint16_t max_ce_len, uint8_t initiating_phys) {
   ASSERT_LOG(!bluetooth::shim::is_gd_acl_enabled(),
              "When gd_acl enabled this code path should not be exercised");
 

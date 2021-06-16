@@ -40,7 +40,7 @@ extern void btm_ble_process_periodic_adv_pkt(uint8_t len, uint8_t* p);
 extern void btm_ble_process_periodic_adv_sync_lost_evt(uint8_t len, uint8_t* p);
 extern void btm_send_hci_set_scan_params(uint8_t scan_type, uint16_t scan_int,
                                          uint16_t scan_win,
-                                         uint8_t addr_type_own,
+                                         tBLE_ADDR_TYPE addr_type_own,
                                          uint8_t scan_filter_policy);
 extern void btm_ble_stop_scan(void);
 extern void btm_clear_all_pending_le_entry(void);
