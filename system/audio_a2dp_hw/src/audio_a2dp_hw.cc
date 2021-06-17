@@ -29,6 +29,7 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <inttypes.h>
+#include <log/log.h>
 #include <stdint.h>
 #include <sys/errno.h>
 #include <sys/socket.h>
@@ -44,7 +45,6 @@
 #include <system/audio.h>
 
 #include "osi/include/hash_map_utils.h"
-#include "osi/include/log.h"
 #include "osi/include/osi.h"
 #include "osi/include/socket_utils/sockets.h"
 
@@ -70,11 +70,15 @@
 // sockets
 #define WRITE_POLL_MS 20
 
-#define FNLOG() LOG_VERBOSE("%s", __func__);
-#define DEBUG(fmt, ...) LOG_VERBOSE("%s: " fmt, __func__, ##__VA_ARGS__)
-#define INFO(fmt, ...) LOG_INFO("%s: " fmt, __func__, ##__VA_ARGS__)
-#define WARN(fmt, ...) LOG_WARN("%s: " fmt, __func__, ##__VA_ARGS__)
-#define ERROR(fmt, ...) LOG_ERROR("%s: " fmt, __func__, ##__VA_ARGS__)
+#define FNLOG() ALOGV("%s:%d %s: ", __FILE__, __LINE__, __func__)
+#define DEBUG(fmt, args...) \
+  ALOGD("%s:%d %s: " fmt, __FILE__, __LINE__, __func__, ##args)
+#define INFO(fmt, args...) \
+  ALOGI("%s:%d %s: " fmt, __FILE__, __LINE__, __func__, ##args)
+#define WARN(fmt, args...) \
+  ALOGW("%s:%d %s: " fmt, __FILE__, __LINE__, __func__, ##args)
+#define ERROR(fmt, args...) \
+  ALOGE("%s:%d %s: " fmt, __FILE__, __LINE__, __func__, ##args)
 
 #define ASSERTC(cond, msg, val)                                           \
   if (!(cond)) {                                                          \

@@ -9,12 +9,13 @@ package {
 
 cc_defaults {
     name: "audio_a2dp_hw_defaults",
-    defaults: ["fluoride_defaults"],
+    defaults: ["libchrome_support_defaults"],
     include_dirs: [
         "packages/modules/Bluetooth/system",
+        "packages/modules/Bluetooth/system/audio_a2dp_hw/include",
         "packages/modules/Bluetooth/system/gd",
         "packages/modules/Bluetooth/system/include",
-        "packages/modules/Bluetooth/system/audio_a2dp_hw/include",
+        "packages/modules/Bluetooth/system/types",
     ],
 }
 
