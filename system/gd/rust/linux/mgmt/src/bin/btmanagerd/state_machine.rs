@@ -1,3 +1,4 @@
+use crate::bluetooth_manager::BluetoothManager;
 use bt_common::time::Alarm;
 use log::{debug, error, info, warn};
 use nix::sys::signal::{self, Signal};
@@ -125,7 +126,7 @@ fn get_hci_interface_from_device(path: &str) -> Option<i32> {
 
 pub async fn mainloop<PM>(
     mut context: StateMachineContext<PM>,
-    dbus_callback_util: crate::dbus_callback_util::DbusCallbackUtil,
+    bluetooth_manager: Arc<std::sync::Mutex<Box<BluetoothManager>>>,
 ) where
     PM: ProcessManager + Send,
 {
@@ -224,7 +225,7 @@ pub async fn mainloop<PM>(
                                 (inotify::EventMask::CREATE, Some(oss)) => {
                                     match get_hci_interface_from_device(oss.to_str().unwrap_or("invalid hci device")) {
                                         Some(hci) => {
-                                            let _ = dbus_callback_util.send_hci_device_change_callback(hci, true).await;
+                                            bluetooth_manager.lock().unwrap().callback_hci_device_change(hci, true);
                                         },
                                         _ => (),
                                     }
@@ -232,7 +233,7 @@ pub async fn mainloop<PM>(
                                 (inotify::EventMask::DELETE, Some(oss)) => {
                                     match get_hci_interface_from_device(oss.to_str().unwrap_or("invalid hci device")) {
                                         Some(hci) => {
-                                            let _ = dbus_callback_util.send_hci_device_change_callback(hci, false).await;
+                                            bluetooth_manager.lock().unwrap().callback_hci_device_change(hci, false);
                                         },
                                         _ => (),
                                     }
