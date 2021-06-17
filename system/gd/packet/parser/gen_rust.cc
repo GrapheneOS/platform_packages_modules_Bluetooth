@@ -26,6 +26,7 @@ use bytes::{Bytes, BytesMut, BufMut};
 use num_derive::{FromPrimitive, ToPrimitive};
 use num_traits::{FromPrimitive, ToPrimitive};
 use std::convert::TryInto;
+use std::fmt;
 use thiserror::Error;
 use std::sync::Arc;
 
