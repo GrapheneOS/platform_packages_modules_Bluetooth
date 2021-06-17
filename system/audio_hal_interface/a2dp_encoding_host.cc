@@ -14,39 +14,222 @@
  * limitations under the License.
  */
 
-#include "audio_hal_interface/a2dp_encoding.h"
+#include <memory>
+
+#include "a2dp_encoding.h"
+#include "a2dp_encoding_host.h"
+
+#include "a2dp_sbc_constants.h"
+#include "btif_a2dp_source.h"
+#include "btif_av.h"
+#include "btif_av_co.h"
+#include "btif_hf.h"
+#include "osi/include/log.h"
+#include "osi/include/properties.h"
+#include "udrv/include/uipc.h"
+
+#define A2DP_DATA_READ_POLL_MS 10
+#define A2DP_HOST_DATA_PATH "/var/run/bluetooth/.a2dp_data"
+
+namespace {
+
+std::unique_ptr<tUIPC_STATE> a2dp_uipc = nullptr;
+
+static void btif_a2dp_data_cb([[maybe_unused]] tUIPC_CH_ID ch_id,
+                              tUIPC_EVENT event) {
+  APPL_TRACE_WARNING("%s: BTIF MEDIA (A2DP-DATA) EVENT %s", __func__,
+                     dump_uipc_event(event));
+
+  switch (event) {
+    case UIPC_OPEN_EVT:
+      /*
+       * Read directly from media task from here on (keep callback for
+       * connection events.
+       */
+      UIPC_Ioctl(*a2dp_uipc, UIPC_CH_ID_AV_AUDIO,
+                 UIPC_REG_REMOVE_ACTIVE_READSET, NULL);
+      UIPC_Ioctl(*a2dp_uipc, UIPC_CH_ID_AV_AUDIO, UIPC_SET_READ_POLL_TMO,
+                 reinterpret_cast<void*>(A2DP_DATA_READ_POLL_MS));
+
+      // Will start audio on btif_a2dp_on_started
+
+      /* ACK back when media task is fully started */
+      break;
+
+    case UIPC_CLOSE_EVT:
+      /*
+       * Send stop request only if we are actively streaming and haven't
+       * received a stop request. Potentially, the audioflinger detached
+       * abnormally.
+       */
+      if (btif_a2dp_source_is_streaming()) {
+        /* Post stop event and wait for audio path to stop */
+        btif_av_stream_stop(RawAddress::kEmpty);
+      }
+      break;
+
+    default:
+      APPL_TRACE_ERROR("%s: ### A2DP-DATA EVENT %d NOT HANDLED ###", __func__,
+                       event);
+      break;
+  }
+}
+
+tA2DP_CTRL_CMD a2dp_pending_cmd_ = A2DP_CTRL_CMD_NONE;
+uint64_t total_bytes_read_;
+timespec data_position_;
+uint16_t remote_delay_report_;
+
+}  // namespace
 
 namespace bluetooth {
 namespace audio {
 namespace a2dp {
 
+// Invoked by audio server to set audio config (PCM for now)
+bool SetAudioConfig(AudioConfig config) {
+  btav_a2dp_codec_config_t codec_config;
+  codec_config.sample_rate = config.sample_rate;
+  codec_config.bits_per_sample = config.bits_per_sample;
+  codec_config.channel_mode = config.channel_mode;
+  btif_a2dp_source_feeding_update_req(codec_config);
+  return true;
+}
+
+// Invoked by audio server when it has audio data to stream.
+bool StartRequest() {
+  // Check if a previous request is not finished
+  if (a2dp_pending_cmd_ == A2DP_CTRL_CMD_START) {
+    LOG(INFO) << __func__ << ": A2DP_CTRL_CMD_START in progress";
+    return false;
+  } else if (a2dp_pending_cmd_ != A2DP_CTRL_CMD_NONE) {
+    LOG(WARNING) << __func__ << ": busy in pending_cmd=" << a2dp_pending_cmd_;
+    return false;
+  }
+
+  // Don't send START request to stack while we are in a call
+  if (!bluetooth::headset::IsCallIdle()) {
+    LOG(ERROR) << __func__ << ": call state is busy";
+    return false;
+  }
+
+  if (btif_av_stream_started_ready()) {
+    // Already started, ACK back immediately.
+    UIPC_Open(*a2dp_uipc, UIPC_CH_ID_AV_AUDIO, btif_a2dp_data_cb,
+              A2DP_HOST_DATA_PATH);
+    return true;
+  }
+  if (btif_av_stream_ready()) {
+    UIPC_Open(*a2dp_uipc, UIPC_CH_ID_AV_AUDIO, btif_a2dp_data_cb,
+              A2DP_HOST_DATA_PATH);
+    /*
+     * Post start event and wait for audio path to open.
+     * If we are the source, the ACK will be sent after the start
+     * procedure is completed, othewise send it now.
+     */
+    a2dp_pending_cmd_ = A2DP_CTRL_CMD_START;
+    btif_av_stream_start();
+    if (btif_av_get_peer_sep() != AVDT_TSEP_SRC) {
+      LOG(INFO) << __func__ << ": accepted";
+      return false;  // TODO: should be pending
+    }
+    a2dp_pending_cmd_ = A2DP_CTRL_CMD_NONE;
+    return true;
+  }
+  LOG(ERROR) << __func__ << ": AV stream is not ready to start";
+  return false;
+}
+
+// Invoked by audio server when audio streaming is done.
+bool StopRequest() {
+  if (btif_av_get_peer_sep() == AVDT_TSEP_SNK &&
+      !btif_av_stream_started_ready()) {
+    btif_av_clear_remote_suspend_flag();
+    return true;
+  }
+  LOG(INFO) << __func__ << ": handling";
+  a2dp_pending_cmd_ = A2DP_CTRL_CMD_STOP;
+  btif_av_stream_stop(RawAddress::kEmpty);
+  return true;
+}
+
+// Invoked by audio server to check audio presentation position periodically.
+PresentationPosition GetPresentationPosition() {
+  PresentationPosition presentation_position{
+      .remote_delay_report_ns = remote_delay_report_ * 100000u,
+      .total_bytes_read = total_bytes_read_,
+      .data_position = data_position_,
+  };
+  return presentation_position;
+}
+
+// delay reports from AVDTP is based on 1/10 ms (100us)
+void set_remote_delay(uint16_t delay_report) {
+  remote_delay_report_ = delay_report;
+}
+
+// Inform audio server about offloading codec; not used for now
 bool update_codec_offloading_capabilities(
     const std::vector<btav_a2dp_codec_config_t>& framework_preference) {
   return false;
 }
 
-bool is_hal_2_0_enabled() { return false; }
+// Checking if new bluetooth_audio is enabled
+bool is_hal_2_0_enabled() { return true; }
 
+// Check if new bluetooth_audio is running with offloading encoders
 bool is_hal_2_0_offloading() { return false; }
 
-bool init(bluetooth::common::MessageLoopThread* message_loop) { return false; }
+// Initialize BluetoothAudio HAL: openProvider
+bool init(bluetooth::common::MessageLoopThread* message_loop) {
+  a2dp_uipc = UIPC_Init();
+  total_bytes_read_ = 0;
+  data_position_ = {};
+  remote_delay_report_ = 0;
 
-void cleanup() {}
+  return true;
+}
+
+// Clean up BluetoothAudio HAL
+void cleanup() {
+  end_session();
+
+  if (a2dp_uipc != nullptr) {
+    UIPC_Close(*a2dp_uipc, UIPC_CH_ID_ALL);
+  }
+}
 
 // Set up the codec into BluetoothAudio HAL
-bool setup_codec() { return false; }
+bool setup_codec() {
+  // TODO: setup codec
+  return true;
+}
 
-void start_session() {}
+void start_session() {
+  // TODO: Notify server; or do we handle it during connected?
+}
 
-void end_session() {}
+void end_session() {
+  // TODO: Notify server; or do we handle it during disconnected?
+}
 
-void ack_stream_started(const tA2DP_CTRL_ACK& ack) {}
+void ack_stream_started(const tA2DP_CTRL_ACK& ack) {
+  a2dp_pending_cmd_ = A2DP_CTRL_CMD_NONE;
+  // TODO: Notify server
+}
 
-void ack_stream_suspended(const tA2DP_CTRL_ACK& ack) {}
+void ack_stream_suspended(const tA2DP_CTRL_ACK& ack) {
+  a2dp_pending_cmd_ = A2DP_CTRL_CMD_NONE;
+  // TODO: Notify server
+}
 
-size_t read(uint8_t* p_buf, uint32_t len) { return 0; }
-
-void set_remote_delay(uint16_t delay_report) {}
+// Read from the FMQ of BluetoothAudio HAL
+size_t read(uint8_t* p_buf, uint32_t len) {
+  if (a2dp_uipc == nullptr) {
+    return 0;
+  }
+  return UIPC_Read(*a2dp_uipc, UIPC_CH_ID_AV_AUDIO, p_buf, len);
+}
 
 }  // namespace a2dp
 }  // namespace audio
