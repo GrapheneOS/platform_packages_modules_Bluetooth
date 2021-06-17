@@ -158,6 +158,10 @@ int A2dpIntf::config_codec(RustRawAddress bt_addr, ::rust::Vec<A2dpCodecConfig> 
   return intf_->config_codec(addr, prefs);
 }
 
+void A2dpIntf::cleanup() {
+  // TODO: Implement.
+}
+
 }  // namespace rust
 }  // namespace topshim
 }  // namespace bluetooth

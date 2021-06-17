@@ -173,8 +173,8 @@ pub fn generate_dbus_exporter(attr: TokenStream, item: TokenStream) -> TokenStre
     let gen = quote! {
         #ori_item
 
-        pub fn #fn_ident<T: 'static + #api_iface_ident + Send + ?Sized>(
-            path: String,
+        pub fn #fn_ident<T: 'static + #api_iface_ident + Send + ?Sized, P: Into<dbus::Path<'static>>>(
+            path: P,
             conn: std::sync::Arc<SyncConnection>,
             cr: &mut dbus_crossroads::Crossroads,
             obj: #obj_type,
