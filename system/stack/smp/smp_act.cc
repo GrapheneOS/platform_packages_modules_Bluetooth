@@ -355,7 +355,6 @@ void smp_send_keypress_notification(tSMP_CB* p_cb, tSMP_INT_DATA* p_data) {
  * Description  send encryption information command.
  ******************************************************************************/
 void smp_send_enc_info(tSMP_CB* p_cb, tSMP_INT_DATA* p_data) {
-  tBTM_LE_KEY_VALUE le_key;
 
   SMP_TRACE_DEBUG("%s: p_cb->loc_enc_size = %d", __func__, p_cb->loc_enc_size);
   smp_update_key_mask(p_cb, SMP_SEC_KEY_TYPE_ENC, false);
@@ -364,10 +363,15 @@ void smp_send_enc_info(tSMP_CB* p_cb, tSMP_INT_DATA* p_data) {
   smp_send_cmd(SMP_OPCODE_CENTRAL_ID, p_cb);
 
   /* save the DIV and key size information when acting as peripheral device */
-  le_key.lenc_key.ltk = p_cb->ltk;
-  le_key.lenc_key.div = p_cb->div;
-  le_key.lenc_key.key_size = p_cb->loc_enc_size;
-  le_key.lenc_key.sec_level = p_cb->sec_level;
+  tBTM_LE_KEY_VALUE le_key = {
+      .lenc_key =
+          {
+              .ltk = p_cb->ltk,
+              .div = p_cb->div,
+              .key_size = p_cb->loc_enc_size,
+              .sec_level = p_cb->sec_level,
+          },
+  };
 
   if ((p_cb->peer_auth_req & SMP_AUTH_BOND) &&
       (p_cb->loc_auth_req & SMP_AUTH_BOND))
@@ -383,7 +387,6 @@ void smp_send_enc_info(tSMP_CB* p_cb, tSMP_INT_DATA* p_data) {
  * Description  send ID information command.
  ******************************************************************************/
 void smp_send_id_info(tSMP_CB* p_cb, tSMP_INT_DATA* p_data) {
-  tBTM_LE_KEY_VALUE le_key;
   SMP_TRACE_DEBUG("%s", __func__);
   smp_update_key_mask(p_cb, SMP_SEC_KEY_TYPE_ID, false);
 
@@ -392,22 +395,26 @@ void smp_send_id_info(tSMP_CB* p_cb, tSMP_INT_DATA* p_data) {
 
   if ((p_cb->peer_auth_req & SMP_AUTH_BOND) &&
       (p_cb->loc_auth_req & SMP_AUTH_BOND))
-    btm_sec_save_le_key(p_cb->pairing_bda, BTM_LE_KEY_LID, &le_key, true);
+    btm_sec_save_le_key(p_cb->pairing_bda, BTM_LE_KEY_LID, nullptr, true);
 
   smp_key_distribution_by_transport(p_cb, NULL);
 }
 
 /**  send CSRK command. */
 void smp_send_csrk_info(tSMP_CB* p_cb, tSMP_INT_DATA* p_data) {
-  tBTM_LE_KEY_VALUE key;
   SMP_TRACE_DEBUG("%s", __func__);
   smp_update_key_mask(p_cb, SMP_SEC_KEY_TYPE_CSRK, false);
 
   if (smp_send_cmd(SMP_OPCODE_SIGN_INFO, p_cb)) {
-    key.lcsrk_key.div = p_cb->div;
-    key.lcsrk_key.sec_level = p_cb->sec_level;
-    key.lcsrk_key.counter = 0; /* initialize the local counter */
-    key.lcsrk_key.csrk = p_cb->csrk;
+    tBTM_LE_KEY_VALUE key = {
+        .lcsrk_key =
+            {
+                .div = p_cb->div,
+                .sec_level = p_cb->sec_level,
+                .counter = 0, /* initialize the local counter */
+                .csrk = p_cb->csrk,
+            },
+    };
     btm_sec_save_le_key(p_cb->pairing_bda, BTM_LE_KEY_LCSRK, &key, true);
   }
 
@@ -973,7 +980,6 @@ void smp_proc_enc_info(tSMP_CB* p_cb, tSMP_INT_DATA* p_data) {
 /** process central ID from peripheral device */
 void smp_proc_central_id(tSMP_CB* p_cb, tSMP_INT_DATA* p_data) {
   uint8_t* p = p_data->p_data;
-  tBTM_LE_KEY_VALUE le_key;
 
   SMP_TRACE_DEBUG("%s", __func__);
 
@@ -986,6 +992,9 @@ void smp_proc_central_id(tSMP_CB* p_cb, tSMP_INT_DATA* p_data) {
 
   smp_update_key_mask(p_cb, SMP_SEC_KEY_TYPE_ENC, true);
 
+  tBTM_LE_KEY_VALUE le_key = {
+      .penc_key = {},
+  };
   STREAM_TO_UINT16(le_key.penc_key.ediv, p);
   STREAM_TO_ARRAY(le_key.penc_key.rand, p, BT_OCTET8_LEN);
 
@@ -1022,7 +1031,6 @@ void smp_proc_id_info(tSMP_CB* p_cb, tSMP_INT_DATA* p_data) {
 /** process identity address from peer device */
 void smp_proc_id_addr(tSMP_CB* p_cb, tSMP_INT_DATA* p_data) {
   uint8_t* p = p_data->p_data;
-  tBTM_LE_KEY_VALUE pid_key;
 
   SMP_TRACE_DEBUG("%s", __func__);
 
@@ -1036,6 +1044,10 @@ void smp_proc_id_addr(tSMP_CB* p_cb, tSMP_INT_DATA* p_data) {
 
   smp_update_key_mask(p_cb, SMP_SEC_KEY_TYPE_ID, true);
 
+  tBTM_LE_KEY_VALUE pid_key = {
+      .pid_key = {},
+  };
+  ;
   STREAM_TO_UINT8(pid_key.pid_key.identity_addr_type, p);
   STREAM_TO_BDADDR(pid_key.pid_key.identity_addr, p);
   pid_key.pid_key.irk = p_cb->tk;
@@ -1054,7 +1066,6 @@ void smp_proc_id_addr(tSMP_CB* p_cb, tSMP_INT_DATA* p_data) {
 
 /* process security information from peer device */
 void smp_proc_srk_info(tSMP_CB* p_cb, tSMP_INT_DATA* p_data) {
-  tBTM_LE_KEY_VALUE le_key;
 
   SMP_TRACE_DEBUG("%s", __func__);
 
@@ -1069,7 +1080,12 @@ void smp_proc_srk_info(tSMP_CB* p_cb, tSMP_INT_DATA* p_data) {
   smp_update_key_mask(p_cb, SMP_SEC_KEY_TYPE_CSRK, true);
 
   /* save CSRK to security record */
-  le_key.pcsrk_key.sec_level = p_cb->sec_level;
+  tBTM_LE_KEY_VALUE le_key = {
+      .pcsrk_key =
+          {
+              .sec_level = p_cb->sec_level,
+          },
+  };
 
   /* get peer CSRK */
   maybe_non_aligned_memcpy(le_key.pcsrk_key.csrk.data(), p_data->p_data,
