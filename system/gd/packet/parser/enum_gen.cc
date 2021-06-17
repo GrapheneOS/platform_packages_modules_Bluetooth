@@ -68,6 +68,16 @@ void EnumGen::GenRustDef(std::ostream& stream) {
   }
   stream << "}";
 
+  stream << "impl fmt::Display for " << e_.name_ << " {";
+  stream << "fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {";
+  stream << "match self {";
+  for (const auto& pair : e_.constants_) {
+    stream << e_.name_ << "::" << util::ConstantCaseToCamelCase(pair.second) << " => "
+           << "write!(f, \"{:#0" << (util::RoundSizeUp(e_.size_) / 4) + 2 << "X} (" << pair.second << ")\", "
+           << "self.to_" << util::GetRustTypeForSize(e_.size_) << "().unwrap()),";
+  }
+  stream << "}}}\n";
+
   if (e_.try_from_enum_ != nullptr) {
     std::vector<std::string> other_items;
     for (const auto& pair : e_.try_from_enum_->constants_) {

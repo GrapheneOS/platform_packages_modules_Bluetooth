@@ -187,8 +187,8 @@ async fn dispatch(
                                     error!("failure dispatching command status {:?}", e);
                                 }
                             },
-                            Some(QueuedCommand{cmd, ..}) => panic!("Waiting for {:?}, got {:?}", cmd.get_op_code(), this_opcode),
-                            None => panic!("Unexpected status event with opcode {:?}", this_opcode),
+                            Some(QueuedCommand{cmd, ..}) => panic!("Waiting for {}, got {}", cmd.get_op_code(), this_opcode),
+                            None => panic!("Unexpected status event with opcode {}", this_opcode),
                         }
                     },
                     CommandComplete(evt) => {
@@ -200,8 +200,8 @@ async fn dispatch(
                                     error!("failure dispatching command complete {:?}", e);
                                 }
                             },
-                            Some(QueuedCommand{cmd, ..}) => panic!("Waiting for {:?}, got {:?}", cmd.get_op_code(), this_opcode),
-                            None => panic!("Unexpected complete event with opcode {:?}", this_opcode),
+                            Some(QueuedCommand{cmd, ..}) => panic!("Waiting for {}, got {}", cmd.get_op_code(), this_opcode),
+                            None => panic!("Unexpected complete event with opcode {}", this_opcode),
                         }
                     },
                     LeMetaEvent(evt) => {
@@ -239,7 +239,7 @@ async fn dispatch(
                 hci_timeout.reset(Duration::from_secs(2));
                 pending = Some(queued);
             },
-            _ = hci_timeout.expired() => panic!("Timed out waiting for {:?}", pending.unwrap().cmd.get_op_code()),
+            _ = hci_timeout.expired() => panic!("Timed out waiting for {}", pending.unwrap().cmd.get_op_code()),
             else => break,
         }
     }
