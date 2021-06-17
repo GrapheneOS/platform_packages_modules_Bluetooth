@@ -16,21 +16,11 @@
 
 package com.android.bluetooth.telephony;
 
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 import android.bluetooth.BluetoothAdapter;
 import android.content.ComponentName;
-import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.Uri;
@@ -47,11 +37,20 @@ import android.telephony.TelephonyManager;
 import android.util.Log;
 
 import androidx.test.core.app.ApplicationProvider;
-import androidx.test.rule.ServiceTestRule;
 import androidx.test.filters.MediumTest;
+import androidx.test.rule.ServiceTestRule;
 import androidx.test.runner.AndroidJUnit4;
 
 import com.android.bluetooth.hfp.BluetoothHeadsetProxy;
+
+import org.junit.After;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -308,15 +307,15 @@ public class BluetoothInCallServiceTest {
         addCallCapability(parentCall, Connection.CAPABILITY_MERGE_CONFERENCE);
         addCallCapability(parentCall, Connection.CAPABILITY_SWAP_CONFERENCE);
         removeCallCapability(parentCall, Connection.CAPABILITY_CONFERENCE_HAS_NO_CHILDREN);
-        String confCall1Id = confCall1.getTelecomCallId();
+        int confCall1Id = confCall1.getId();
         when(parentCall.getGenericConferenceActiveChildCallId())
                 .thenReturn(confCall1Id);
         when(parentCall.isConference()).thenReturn(true);
-        List<String> childrenIds = Arrays.asList(confCall1.getTelecomCallId(),
-                confCall2.getTelecomCallId());
+        List<Integer> childrenIds = Arrays.asList(confCall1.getId(),
+                confCall2.getId());
         when(parentCall.getChildrenIds()).thenReturn(childrenIds);
         //Add links from child calls to parent
-        String parentId = parentCall.getTelecomCallId();
+        int parentId = parentCall.getId();
         when(confCall1.getParentId()).thenReturn(parentId);
         when(confCall2.getParentId()).thenReturn(parentId);
 
@@ -370,14 +369,14 @@ public class BluetoothInCallServiceTest {
         addCallCapability(parentCall, Connection.CAPABILITY_SWAP_CONFERENCE);
         removeCallCapability(parentCall, Connection.CAPABILITY_CONFERENCE_HAS_NO_CHILDREN);
 
-        String foregroundCallId = foregroundCall.getTelecomCallId();
+        int foregroundCallId = foregroundCall.getId();
         when(parentCall.getGenericConferenceActiveChildCallId()).thenReturn(foregroundCallId);
         when(parentCall.isConference()).thenReturn(true);
-        List<String> childrenIds = Arrays.asList(foregroundCall.getTelecomCallId(),
-                heldCall.getTelecomCallId());
+        List<Integer> childrenIds = Arrays.asList(foregroundCall.getId(),
+                heldCall.getId());
         when(parentCall.getChildrenIds()).thenReturn(childrenIds);
         //Add links from child calls to parent
-        String parentId = parentCall.getTelecomCallId();
+        int parentId = parentCall.getId();
         when(foregroundCall.getParentId()).thenReturn(parentId);
         when(heldCall.getParentId()).thenReturn(parentId);
 
@@ -419,11 +418,11 @@ public class BluetoothInCallServiceTest {
         when(parentCall.wasConferencePreviouslyMerged()).thenReturn(true);
         //when(parentCall.getConferenceLevelActiveCall()).thenReturn(confCall1);
         when(parentCall.isConference()).thenReturn(true);
-        List<String> childrenIds = Arrays.asList(confCall1.getTelecomCallId(),
-            confCall2.getTelecomCallId());
+        List<Integer> childrenIds = Arrays.asList(confCall1.getId(),
+                confCall2.getId());
         when(parentCall.getChildrenIds()).thenReturn(childrenIds);
         //Add links from child calls to parent
-        String parentId = parentCall.getTelecomCallId();
+        int parentId = parentCall.getId();
         when(confCall1.getParentId()).thenReturn(parentId);
         when(confCall2.getParentId()).thenReturn(parentId);
 
@@ -635,7 +634,7 @@ public class BluetoothInCallServiceTest {
         mBluetoothInCallService.onCallAdded(childCall2);
 
         addCallCapability(parentCall, Connection.CAPABILITY_MANAGE_CONFERENCE);
-        String parentId = parentCall.getTelecomCallId();
+        int parentId = parentCall.getId();
         when(childCall1.getParentId()).thenReturn(parentId);
         when(childCall2.getParentId()).thenReturn(parentId);
 
@@ -681,8 +680,8 @@ public class BluetoothInCallServiceTest {
         removeCallCapability(parentConfCall, Connection.CAPABILITY_CONFERENCE_HAS_NO_CHILDREN);
         when(parentConfCall.wasConferencePreviouslyMerged()).thenReturn(true);
         when(parentConfCall.isConference()).thenReturn(true);
-        List<String> childrenIds = Arrays.asList(confCall1.getTelecomCallId(),
-                confCall2.getTelecomCallId());
+        List<Integer> childrenIds = Arrays.asList(confCall1.getId(),
+                confCall2.getId());
         when(parentConfCall.getChildrenIds()).thenReturn(childrenIds);
 
         clearInvocations(mMockBluetoothHeadset);
@@ -788,8 +787,8 @@ public class BluetoothInCallServiceTest {
         BluetoothCall activeCall = createActiveCall();
         removeCallCapability(activeCall, Connection.CAPABILITY_MERGE_CONFERENCE);
         BluetoothCall conferenceableCall = getMockCall();
-        ArrayList<String> conferenceableCalls = new ArrayList<>();
-        conferenceableCalls.add(conferenceableCall.getTelecomCallId());
+        ArrayList<Integer> conferenceableCalls = new ArrayList<>();
+        conferenceableCalls.add(conferenceableCall.getId());
         mBluetoothInCallService.onCallAdded(conferenceableCall);
 
         when(activeCall.getConferenceableCalls()).thenReturn(conferenceableCalls);
@@ -811,8 +810,8 @@ public class BluetoothInCallServiceTest {
         removeCallCapability(parentCall, Connection.CAPABILITY_CONFERENCE_HAS_NO_CHILDREN);
         when(parentCall.isConference()).thenReturn(true);
         when(parentCall.wasConferencePreviouslyMerged()).thenReturn(false);
-        List<String> childrenIds = Arrays.asList(foregroundCall.getTelecomCallId(),
-                heldCall.getTelecomCallId());
+        List<Integer> childrenIds = Arrays.asList(foregroundCall.getId(),
+                heldCall.getId());
         when(parentCall.getChildrenIds()).thenReturn(childrenIds);
 
         clearInvocations(mMockBluetoothHeadset);
@@ -858,8 +857,8 @@ public class BluetoothInCallServiceTest {
         addCallCapability(parentCall, Connection.CAPABILITY_MERGE_CONFERENCE);
         removeCallCapability(parentCall, Connection.CAPABILITY_CONFERENCE_HAS_NO_CHILDREN);
         when(parentCall.isConference()).thenReturn(true);
-        List<String> childrenIds = Arrays.asList(foregroundCall.getTelecomCallId(),
-                heldCall.getTelecomCallId());
+        List<Integer> childrenIds = Arrays.asList(foregroundCall.getId(),
+                heldCall.getId());
         when(parentCall.getChildrenIds()).thenReturn(childrenIds);
 
         mBluetoothInCallService.onCallAdded(parentCall);
@@ -960,9 +959,9 @@ public class BluetoothInCallServiceTest {
         BluetoothInCallService.CallStateCallback callback =
                 mBluetoothInCallService.new CallStateCallback(Call.STATE_CONNECTING);
         mBluetoothInCallService.mCallbacks.put(
-                activeCall.getTelecomCallId(), callback);
+                activeCall.getId(), callback);
 
-        mBluetoothInCallService.mCallbacks.get(activeCall.getTelecomCallId())
+        mBluetoothInCallService.mCallbacks.get(activeCall.getId())
                 .onStateChanged(activeCall, Call.STATE_DIALING);
 
         verify(mMockBluetoothHeadset, never()).phoneStateChanged(anyInt(), anyInt(), anyInt(),
@@ -1039,12 +1038,12 @@ public class BluetoothInCallServiceTest {
         mBluetoothInCallService.onCallAdded(parentCall);
         mBluetoothInCallService.onCallAdded(activeCall);
         mBluetoothInCallService.onCallAdded(heldCall);
-        String parentId = parentCall.getTelecomCallId();
+        int parentId = parentCall.getId();
         when(activeCall.getParentId()).thenReturn(parentId);
         when(heldCall.getParentId()).thenReturn(parentId);
 
-        ArrayList<String> calls = new ArrayList<>();
-        calls.add(activeCall.getTelecomCallId());
+        ArrayList<Integer> calls = new ArrayList<>();
+        calls.add(activeCall.getId());
 
         when(parentCall.getChildrenIds()).thenReturn(calls);
         when(parentCall.isConference()).thenReturn(true);
@@ -1071,7 +1070,7 @@ public class BluetoothInCallServiceTest {
         verify(mMockBluetoothHeadset, never()).phoneStateChanged(anyInt(), anyInt(), anyInt(),
                 anyString(), anyInt(), nullable(String.class));
 
-        calls.add(heldCall.getTelecomCallId());
+        calls.add(heldCall.getId());
         mBluetoothInCallService.onCallAdded(heldCall);
         mBluetoothInCallService.getCallback(parentCall)
                 .onChildrenChanged(
@@ -1169,8 +1168,8 @@ public class BluetoothInCallServiceTest {
 
     private BluetoothCall getMockCall() {
         BluetoothCall call = mock(com.android.bluetooth.telephony.BluetoothCall.class);
-        String uuid = UUID.randomUUID().toString();
-        when(call.getTelecomCallId()).thenReturn(uuid);
+        int uuid = UUID.randomUUID().hashCode();
+        when(call.getId()).thenReturn(uuid);
         return call;
     }
 }
