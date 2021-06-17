@@ -1976,8 +1976,6 @@ static void bta_dm_pinname_cback(void* p_data) {
  ******************************************************************************/
 static uint8_t bta_dm_pin_cback(const RawAddress& bd_addr, DEV_CLASS dev_class,
                                 BD_NAME bd_name, bool min_16_digit) {
-  tBTA_DM_SEC sec_event;
-
   if (!bta_dm_cb.p_sec_cback) return BTM_NOT_AUTHORIZED;
 
   /* If the device name is not known, save bdaddr and devclass and initiate a
@@ -1994,7 +1992,9 @@ static uint8_t bta_dm_pin_cback(const RawAddress& bd_addr, DEV_CLASS dev_class,
         " bta_dm_pin_cback() -> Failed to start Remote Name Request  ");
   }
 
-  sec_event.pin_req.bd_addr = bd_addr;
+  tBTA_DM_SEC sec_event = {.pin_req = {
+                               .bd_addr = bd_addr,
+                           }};
   BTA_COPY_DEVICE_CLASS(sec_event.pin_req.dev_class, dev_class);
   strlcpy((char*)sec_event.pin_req.bd_name, (char*)bd_name, BD_NAME_LEN + 1);
   sec_event.pin_req.min_16_digit = min_16_digit;
@@ -3524,17 +3524,18 @@ static uint8_t bta_dm_ble_smp_cback(tBTM_LE_EVT event, const RawAddress& bda,
  ******************************************************************************/
 static void bta_dm_ble_id_key_cback(uint8_t key_type,
                                     tBTM_BLE_LOCAL_KEYS* p_key) {
-  uint8_t evt;
-  tBTA_DM_SEC dm_key;
-
   switch (key_type) {
     case BTM_BLE_KEY_TYPE_ID:
     case BTM_BLE_KEY_TYPE_ER:
       if (bta_dm_cb.p_sec_cback) {
+        tBTA_DM_SEC dm_key = {
+            .ble_id_keys{},
+        };
         memcpy(&dm_key.ble_id_keys, p_key, sizeof(tBTM_BLE_LOCAL_KEYS));
 
-        evt = (key_type == BTM_BLE_KEY_TYPE_ID) ? BTA_DM_BLE_LOCAL_IR_EVT
-                                                : BTA_DM_BLE_LOCAL_ER_EVT;
+        uint8_t evt = (key_type == BTM_BLE_KEY_TYPE_ID)
+                          ? BTA_DM_BLE_LOCAL_IR_EVT
+                          : BTA_DM_BLE_LOCAL_ER_EVT;
         bta_dm_cb.p_sec_cback(evt, &dm_key);
       }
       break;
@@ -3650,10 +3651,14 @@ void bta_dm_ble_observe(bool start, uint8_t duration,
   tBTM_STATUS status = BTM_BleObserve(true, duration, bta_dm_observe_results_cb,
                                       bta_dm_observe_cmpl_cb);
   if (status != BTM_CMD_STARTED) {
-    tBTA_DM_SEARCH data;
     APPL_TRACE_WARNING(" %s BTM_BleObserve  failed. status %d", __func__,
                        status);
-    data.inq_cmpl.num_resps = 0;
+    tBTA_DM_SEARCH data = {
+        .inq_cmpl =
+            {
+                .num_resps = 0,
+            },
+    };
     if (bta_dm_search_cb.p_scan_cback) {
       bta_dm_search_cb.p_scan_cback(BTA_DM_INQ_CMPL_EVT, &data);
     }
