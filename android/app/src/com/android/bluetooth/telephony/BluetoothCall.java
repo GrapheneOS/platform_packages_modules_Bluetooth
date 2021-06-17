@@ -150,22 +150,6 @@ public class BluetoothCall {
         mCall.stopRtt();
     }
 
-    public void putExtras(Bundle extras) {
-        mCall.putExtras(extras);
-    }
-
-    public void putExtra(String key, boolean value) {
-        mCall.putExtra(key, value);
-    }
-
-    public void putExtra(String key, int value) {
-        mCall.putExtra(key, value);
-    }
-
-    public void putExtra(String key, String value) {
-        mCall.putExtra(key, value);
-    }
-
     public void removeExtras(List<String> keys) {
         mCall.removeExtras(keys);
     }
@@ -174,19 +158,22 @@ public class BluetoothCall {
         mCall.removeExtras(keys);
     }
 
-    public String getParentId() {
+    /**
+     * Returns the parent Call id.
+     */
+    public Integer getParentId() {
         Call parent = mCall.getParent();
         if (parent != null) {
-            return parent.getDetails().getTelecomCallId();
+            return System.identityHashCode(parent);
         }
         return null;
     }
 
-    public List<String> getChildrenIds() {
+    public List<Integer> getChildrenIds() {
         return getIds(mCall.getChildren());
     }
 
-    public List<String> getConferenceableCalls() {
+    public List<Integer> getConferenceableCalls() {
         return getIds(mCall.getConferenceableCalls());
     }
 
@@ -239,8 +226,8 @@ public class BluetoothCall {
         mCall.removeListener(listener);
     }
 
-    public String getGenericConferenceActiveChildCallId() {
-        return mCall.getGenericConferenceActiveChildCall().getDetails().getTelecomCallId();
+    public int getGenericConferenceActiveChildCallId() {
+        return System.identityHashCode(mCall.getGenericConferenceActiveChildCall());
     }
 
     public String getContactDisplayName() {
@@ -297,8 +284,8 @@ public class BluetoothCall {
         return getDetails().hasProperty(Call.Details.PROPERTY_IS_EXTERNAL_CALL);
     }
 
-    public String getTelecomCallId() {
-        return getDetails().getTelecomCallId();
+    public int getId() {
+        return System.identityHashCode(mCall);
     }
 
     public boolean wasConferencePreviouslyMerged() {
@@ -306,11 +293,14 @@ public class BluetoothCall {
                 !can(Call.Details.CAPABILITY_MERGE_CONFERENCE);
     }
 
-    public static List<String> getIds(List<Call> calls) {
-        List<String> result = new ArrayList<>();
+    /**
+     * Returns the list of ids of corresponding Call List.
+     */
+    public static List<Integer> getIds(List<Call> calls) {
+        List<Integer> result = new ArrayList<>();
         for (Call call : calls) {
             if (call != null) {
-                result.add(call.getDetails().getTelecomCallId());
+                result.add(System.identityHashCode(call));
             }
         }
         return result;
