@@ -1258,7 +1258,6 @@ void l2c_link_process_num_completed_pkts(uint8_t* p, uint8_t evt_len) {
 void l2c_packets_completed(uint16_t handle, uint16_t num_sent) {
   tL2C_LCB* p_lcb = l2cu_find_lcb_by_handle(handle);
   if (p_lcb == nullptr) {
-    LOG_WARN("Received l2c packets completed for unknown ACL");
     return;
   }
   p_lcb->update_outstanding_packets(num_sent);
