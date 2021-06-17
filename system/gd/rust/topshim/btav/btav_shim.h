@@ -18,6 +18,7 @@
 
 #include <memory>
 
+#include "audio_hal_interface/a2dp_encoding_host.h"
 #include "include/hardware/bt_av.h"
 
 #include "rust/cxx.h"
@@ -34,6 +35,7 @@ class A2dpIntf {
   A2dpIntf(const btav_source_interface_t* intf) : intf_(intf){};
   ~A2dpIntf();
 
+  // interface for Settings
   int init();
   int connect(RustRawAddress bt_addr);
   int disconnect(RustRawAddress bt_addr);
@@ -41,6 +43,11 @@ class A2dpIntf {
   int set_active_device(RustRawAddress bt_addr);
   int config_codec(RustRawAddress bt_addr, ::rust::Vec<A2dpCodecConfig> codec_preferences);
   void cleanup();
+
+  // interface for Audio server
+  bool start_audio_request();
+  bool stop_audio_request();
+  bluetooth::audio::a2dp::PresentationPosition get_presentation_position();
 
  private:
   const btav_source_interface_t* intf_;
