@@ -864,10 +864,12 @@ void bluetooth::shim::hci_on_reset_complete() {
   }
 
   // TODO handle BQR event in GD
-  auto handler = bluetooth::shim::GetGdShimHandler();
-  bluetooth::shim::GetVendorSpecificEventManager()->RegisterEventHandler(
-      bluetooth::hci::VseSubeventCode::BQR_EVENT,
-      handler->Bind(cpp::vendor_specific_event_callback));
+  if (!bluetooth::common::init_flags::gd_rust_is_enabled()) {
+    auto handler = bluetooth::shim::GetGdShimHandler();
+    bluetooth::shim::GetVendorSpecificEventManager()->RegisterEventHandler(
+        bluetooth::hci::VseSubeventCode::BQR_EVENT,
+        handler->Bind(cpp::vendor_specific_event_callback));
+  }
 
   if (bluetooth::common::init_flags::gd_rust_is_enabled()) {
     ::rust::register_for_iso();
