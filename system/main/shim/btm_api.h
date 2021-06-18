@@ -98,6 +98,26 @@ tBTM_STATUS BTM_BleObserve(bool start, uint8_t duration,
                            tBTM_INQ_RESULTS_CB* p_results_cb,
                            tBTM_CMPL_CB* p_cmpl_cb);
 
+/*******************************************************************************
+ *
+ * Function         BTM_BleOpportunisticObserve
+ *
+ * Description      Register/unregister opportunistic scan callback. This method
+ *                  does not trigger scan start/stop, but if scan is ever started,
+ *                  this callback would get called with scan results. Additionally,
+ *                  this callback is not reset on each scan start/stop. It's
+ *                  intended to be used by LE Audio related profiles, that would
+ *                  find yet unpaired members of CSIS set, or broadcasts.
+ *
+ * Parameters       enable: enable/disable observing.
+ *                  p_results_cb: callback for results.
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
+void BTM_BleOpportunisticObserve(bool enable,
+                                 tBTM_INQ_RESULTS_CB* p_results_cb);
+
 void BTM_EnableInterlacedInquiryScan();
 
 void BTM_EnableInterlacedPageScan();

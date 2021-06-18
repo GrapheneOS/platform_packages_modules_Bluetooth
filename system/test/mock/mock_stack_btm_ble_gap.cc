@@ -85,6 +85,10 @@ tBTM_STATUS BTM_BleObserve(bool start, uint8_t duration,
   mock_function_count_map[__func__]++;
   return BTM_SUCCESS;
 }
+void BTM_BleOpportunisticObserve(bool enable,
+                                 tBTM_INQ_RESULTS_CB* p_results_cb) {
+  mock_function_count_map[__func__]++;
+}
 tBTM_STATUS btm_ble_read_remote_name(const RawAddress& remote_bda,
                                      tBTM_CMPL_CB* p_cb) {
   mock_function_count_map[__func__]++;
