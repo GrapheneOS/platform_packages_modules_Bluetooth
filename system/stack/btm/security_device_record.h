@@ -434,6 +434,7 @@ struct tBTM_SEC_DEV_REC {
         PRIVATE_ADDRESS(bd_addr), DeviceTypeText(device_type).c_str(),
         class_of_device_text(dev_class).c_str(),
         remote_version_info.ToString().c_str(), sm4,
-        (remote_supports_secure_connections) ? 'T' : 'F', sec_bd_name);
+        (remote_supports_secure_connections) ? 'T' : 'F',
+        PRIVATE_NAME(sec_bd_name));
   }
 };
