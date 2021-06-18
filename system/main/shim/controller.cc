@@ -296,11 +296,15 @@ FORWARD_GETTER_IF_RUST(
     GetController()->GetControllerIsoBufferSize().total_num_le_packets_)
 FORWARD_GETTER_IF_RUST(uint8_t, get_le_connect_list_size,
                        GetController()->GetLeConnectListSize())
-FORWARD_GETTER_IF_RUST(uint8_t, get_le_resolving_list_size,
-                       GetController()->GetLeResolvingListSize())
+
+static uint8_t ble_resolving_list_max_size = 0;
 
 static void set_ble_resolving_list_max_size(int resolving_list_max_size) {
-  LOG_WARN("%s TODO Unimplemented", __func__);
+  ble_resolving_list_max_size = resolving_list_max_size;
+}
+
+static uint8_t get_le_resolving_list_size(void) {
+  return ble_resolving_list_max_size;
 }
 
 static uint8_t get_le_all_initiating_phys() { return data_.phy; }
