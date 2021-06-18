@@ -85,11 +85,8 @@ impl BluetoothDevice {
 
 /// The interface for adapter callbacks registered through `IBluetooth::register_callback`.
 pub trait IBluetoothCallback: RPCProxy {
-    /// When any of the adapter states is changed.
-    fn on_bluetooth_state_changed(&self, prev_state: u32, new_state: u32);
-
     /// When any of the adapter local address is changed.
-    fn on_bluetooth_address_changed(&self, addr: String);
+    fn on_address_changed(&self, addr: String);
 
     /// When a device is found via discovery.
     fn on_device_found(&self, remote_device: BluetoothDevice);
@@ -146,7 +143,7 @@ impl Bluetooth {
         self.local_address = BDAddr::from_byte_vec(raw);
 
         self.for_all_callbacks(|callback| {
-            callback.on_bluetooth_address_changed(self.local_address.unwrap().to_string());
+            callback.on_address_changed(self.local_address.unwrap().to_string());
         });
     }
 
@@ -207,11 +204,6 @@ pub fn get_bt_dispatcher(tx: Sender<Message>) -> BaseCallbacksDispatcher {
 
 impl BtifBluetoothCallbacks for Bluetooth {
     fn adapter_state_changed(&mut self, state: BtState) {
-        self.for_all_callbacks(|callback| {
-            callback
-                .on_bluetooth_state_changed(self.state.to_u32().unwrap(), state.to_u32().unwrap())
-        });
-
         self.state = state;
     }
 
