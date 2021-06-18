@@ -73,7 +73,4 @@ interface IBluetoothManager
     boolean isBleAppPresent();
     @JavaPassthrough(annotation="@android.annotation.RequiresNoPermission")
     boolean isHearingAidProfileSupported();
-
-    @JavaPassthrough(annotation="@android.annotation.RequiresNoPermission")
-    List<String> getSystemConfigEnabledProfilesForPackage(String packageName);
 }
