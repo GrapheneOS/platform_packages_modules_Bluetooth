@@ -1,7 +1,7 @@
 //! Anything related to audio and media API.
 
 use bt_topshim::btif::BluetoothInterface;
-use bt_topshim::profiles::a2dp::{A2dp, A2dpCallbacks, A2dpCallbacksDispatcher};
+use bt_topshim::profiles::a2dp::{A2dp, A2dpCallbacksDispatcher};
 use bt_topshim::topstack;
 
 use std::sync::Arc;

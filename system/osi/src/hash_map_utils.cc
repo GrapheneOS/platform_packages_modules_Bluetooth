@@ -18,6 +18,7 @@
 
 #include "osi/include/hash_map_utils.h"
 #include <base/logging.h>  // CHECK()
+#include <cstring>
 #include <map>
 #include <string>
 #include "osi/include/allocator.h"

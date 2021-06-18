@@ -24,6 +24,7 @@ use crate::dbus_arg::{DBusArg, DBusArgError, RefArgToRust};
 #[dbus_propmap(BluetoothDevice)]
 pub struct BluetoothDeviceDBus {
     address: String,
+    name: String,
 }
 
 #[allow(dead_code)]
