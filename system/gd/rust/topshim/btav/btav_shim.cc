@@ -15,16 +15,58 @@
  */
 
 #include "gd/rust/topshim/btav/btav_shim.h"
+#include "include/hardware/avrcp/avrcp.h"
 #include "include/hardware/bluetooth.h"
 
+#include "base/callback.h"
 #include "rust/cxx.h"
 #include "src/profiles/a2dp.rs.h"
+
+namespace bluetooth::avrcp {
+class AvrcpMediaInterfaceImpl : public MediaInterface {
+ public:
+  void SendKeyEvent(uint8_t key, KeyState state) {}
+
+  void GetSongInfo(SongInfoCallback cb) override {}
+
+  void GetPlayStatus(PlayStatusCallback cb) override {}
+
+  void GetNowPlayingList(NowPlayingCallback cb) override {}
+
+  void GetMediaPlayerList(MediaListCallback cb) override {}
+
+  void GetFolderItems(uint16_t player_id, std::string media_id, FolderItemsCallback folder_cb) override {}
+
+  void SetBrowsedPlayer(uint16_t player_id, SetBrowsedPlayerCallback browse_cb) override {}
+
+  void RegisterUpdateCallback(MediaCallbacks* callback) override {}
+
+  void UnregisterUpdateCallback(MediaCallbacks* callback) override {}
+
+  void PlayItem(uint16_t player_id, bool now_playing, std::string media_id) override {}
+
+  void SetActiveDevice(const RawAddress& address) override {}
+};
+
+class VolumeInterfaceImpl : public VolumeInterface {
+ public:
+  void DeviceConnected(const RawAddress& bdaddr) override {}
+
+  void DeviceConnected(const RawAddress& bdaddr, VolumeChangedCb cb) override {}
+
+  void DeviceDisconnected(const RawAddress& bdaddr) override {}
+
+  void SetVolume(int8_t volume) override {}
+};
+
+}  // namespace bluetooth::avrcp
 
 namespace bluetooth {
 namespace topshim {
 namespace rust {
 namespace internal {
 static A2dpIntf* g_a2dpif;
+static AvrcpIntf* g_avrcpif;
 
 namespace rusty = ::bluetooth::topshim::rust;
 
@@ -169,6 +211,38 @@ bool A2dpIntf::stop_audio_request() {
 }
 bluetooth::audio::a2dp::PresentationPosition A2dpIntf::get_presentation_position() {
   return bluetooth::audio::a2dp::GetPresentationPosition();
+}
+
+// AVRCP
+
+static bluetooth::avrcp::AvrcpMediaInterfaceImpl mAvrcpInterface;
+static bluetooth::avrcp::VolumeInterfaceImpl mVolumeInterface;
+
+std::unique_ptr<AvrcpIntf> GetAvrcpProfile(const unsigned char* btif) {
+  if (internal::g_avrcpif) std::abort();
+
+  const bt_interface_t* btif_ = reinterpret_cast<const bt_interface_t*>(btif);
+
+  auto avrcpif = std::make_unique<AvrcpIntf>(reinterpret_cast<avrcp::ServiceInterface*>(btif_->get_avrcp_service()));
+  internal::g_avrcpif = avrcpif.get();
+  return avrcpif;
+}
+
+void AvrcpIntf::init() {
+  intf_->Init(&mAvrcpInterface, &mVolumeInterface);
+}
+
+void AvrcpIntf::cleanup() {
+  intf_->Cleanup();
+}
+
+int AvrcpIntf::connect(RustRawAddress bt_addr) {
+  RawAddress addr = internal::from_rust_address(bt_addr);
+  return intf_->ConnectDevice(addr);
+}
+int AvrcpIntf::disconnect(RustRawAddress bt_addr) {
+  RawAddress addr = internal::from_rust_address(bt_addr);
+  return intf_->DisconnectDevice(addr);
 }
 
 }  // namespace rust
