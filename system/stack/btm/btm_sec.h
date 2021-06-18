@@ -194,8 +194,8 @@ uint8_t BTM_SecClrServiceByPsm(uint16_t psm);
  *                  p_pin        - pointer to array with the PIN Code
  *
  ******************************************************************************/
-void BTM_PINCodeReply(const RawAddress& bd_addr, uint8_t res, uint8_t pin_len,
-                      uint8_t* p_pin);
+void BTM_PINCodeReply(const RawAddress& bd_addr, tBTM_STATUS res,
+                      uint8_t pin_len, uint8_t* p_pin);
 
 /*******************************************************************************
  *

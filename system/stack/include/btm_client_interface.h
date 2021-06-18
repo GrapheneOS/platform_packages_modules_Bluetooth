@@ -142,7 +142,7 @@ struct btm_client_interface_s {
     uint8_t (*BTM_SecClrServiceByPsm)(uint16_t psm);
     void (*BTM_RemoteOobDataReply)(tBTM_STATUS res, const RawAddress& bd_addr,
                                    const Octet16& c, const Octet16& r);
-    void (*BTM_PINCodeReply)(const RawAddress& bd_addr, uint8_t res,
+    void (*BTM_PINCodeReply)(const RawAddress& bd_addr, tBTM_STATUS res,
                              uint8_t pin_len, uint8_t* p_pin);
     void (*BTM_ConfirmReqReply)(tBTM_STATUS res, const RawAddress& bd_addr);
     bool (*BTM_SecDeleteRmtNameNotifyCallback)(
