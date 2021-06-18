@@ -1,9 +1,6 @@
 //! HCI Hardware Abstraction Layer
 //! Supports sending HCI commands to the HAL and receving
 //! HCI events from the HAL
-#[cfg(target_os = "android")]
-#[macro_use]
-extern crate lazy_static;
 
 pub mod facade;
 pub mod rootcanal_hal;

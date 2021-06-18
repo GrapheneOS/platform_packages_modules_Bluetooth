@@ -632,7 +632,6 @@ rust_library {
         "libbytes",
         "libnum_traits",
         "libthiserror",
-        "libbt_hci_custom_types",
         "liblog_rust",
     ],
 }
@@ -648,7 +647,6 @@ rust_test_host {
         "libbytes",
         "libnum_traits",
         "libthiserror",
-        "libbt_hci_custom_types",
         "liblog_rust",
     ],
 }

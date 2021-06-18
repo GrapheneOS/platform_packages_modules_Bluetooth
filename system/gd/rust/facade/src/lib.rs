@@ -1,11 +1,11 @@
 //! Bluetooth testing root facade service
 
+use bluetooth_rs::hal::facade::HciHalFacadeService;
+use bluetooth_rs::hci::controller_facade::ControllerFacadeService;
+use bluetooth_rs::hci::facade::HciFacadeService;
+use bluetooth_rs::Stack;
 use bt_facade_proto::rootservice::*;
 use bt_facade_proto::rootservice_grpc::{create_root_facade, RootFacade};
-use bt_hal::facade::HciHalFacadeService;
-use bt_hci::controller_facade::ControllerFacadeService;
-use bt_hci::facade::HciFacadeService;
-use bt_main::Stack;
 use futures::executor::block_on;
 use grpcio::*;
 use std::sync::Arc;
