@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 The Android Open Source Project
+ * Copyright 2020 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,21 +16,21 @@
 
 /*
  * Generated mock file from original source file
+ *   Functions generated:5
  */
 
-#include "stack/include/btm_ble_api_types.h"
-#include "stack/include/btm_client_interface.h"
-#include "types/raw_address.h"
+#include <map>
+#include <string>
 
-tBTM_STATUS BTM_BleGetEnergyInfo(tBTM_BLE_ENERGY_INFO_CBACK* p_ener_cback) {
-  return BTM_SUCCESS;
-}
-void BTM_BleReadControllerFeatures(tBTM_BLE_CTRL_FEATURES_CBACK* p_vsc_cback) {}
-bool BTM_is_sniff_allowed_for(const RawAddress& peer_addr) { return false; }
-uint8_t BTM_GetAcceptlistSize() { return 0; }
+extern std::map<std::string, int> mock_function_count_map;
 
-struct btm_client_interface_s btm_client_interface = {};
+#include "main/shim/controller.h"
 
-struct btm_client_interface_s& get_btm_client_interface() {
-  return btm_client_interface;
+#ifndef UNUSED_ATTR
+#define UNUSED_ATTR
+#endif
+
+const controller_t* bluetooth::shim::controller_get_interface() {
+  mock_function_count_map[__func__]++;
+  return nullptr;
 }
