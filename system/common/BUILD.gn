@@ -23,6 +23,7 @@ static_library("common") {
     "once_timer.cc",
     "os_utils.cc",
     "repeating_timer.cc",
+    "stop_watch_legacy.cc",
     "time_util.cc",
   ]
 
