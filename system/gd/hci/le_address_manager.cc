@@ -54,10 +54,11 @@ void LeAddressManager::SetPrivacyPolicyForInitiatorAddress(
   ASSERT(address_policy != AddressPolicy::POLICY_NOT_SET);
   ASSERT_LOG(registered_clients_.empty(), "Policy must be set before clients are registered.");
   address_policy_ = address_policy;
+  LOG_INFO("SetPrivacyPolicyForInitiatorAddress with policy %d", address_policy);
 
   switch (address_policy_) {
     case AddressPolicy::USE_PUBLIC_ADDRESS:
-      le_address_ = fixed_address;
+      le_address_ = AddressWithType(public_address_, AddressType::PUBLIC_DEVICE_ADDRESS);
       handler_->BindOnceOn(this, &LeAddressManager::resume_registered_clients).Invoke();
       break;
     case AddressPolicy::USE_STATIC_ADDRESS: {
