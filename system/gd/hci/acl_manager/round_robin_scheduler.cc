@@ -215,7 +215,6 @@ std::unique_ptr<AclBuilder> RoundRobinScheduler::handle_enqueue_next_fragment() 
 void RoundRobinScheduler::incoming_acl_credits(uint16_t handle, uint16_t credits) {
   auto acl_queue_handler = acl_queue_handlers_.find(handle);
   if (acl_queue_handler == acl_queue_handlers_.end()) {
-    LOG_INFO("Dropping %hx received credits to unknown connection 0x%0hx", credits, handle);
     return;
   }
 
