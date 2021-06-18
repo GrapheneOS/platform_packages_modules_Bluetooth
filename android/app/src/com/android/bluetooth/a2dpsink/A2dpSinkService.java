@@ -49,7 +49,7 @@ public class A2dpSinkService extends ProfileService {
 
     private AdapterService mAdapterService;
     private DatabaseManager mDatabaseManager;
-    protected Map<BluetoothDevice, A2dpSinkStateMachine> mDeviceStateMap =
+    private Map<BluetoothDevice, A2dpSinkStateMachine> mDeviceStateMap =
             new ConcurrentHashMap<>(1);
 
     private final Object mStreamHandlerLock = new Object();
@@ -333,6 +333,10 @@ public class A2dpSinkService extends ProfileService {
                     + ", InstanceMap start state: " + sb.toString());
         }
 
+        if (device == null) {
+            throw new IllegalArgumentException("Null device");
+        }
+
         A2dpSinkStateMachine stateMachine = mDeviceStateMap.get(device);
         // a state machine instance doesn't exist. maybe it is already gone?
         if (stateMachine == null) {
@@ -371,6 +375,11 @@ public class A2dpSinkService extends ProfileService {
         return existingStateMachine;
     }
 
+    @VisibleForTesting
+    protected A2dpSinkStateMachine getStateMachineForDevice(BluetoothDevice device) {
+        return mDeviceStateMap.get(device);
+    }
+
     List<BluetoothDevice> getDevicesMatchingConnectionStates(int[] states) {
         if (DBG) Log.d(TAG, "getDevicesMatchingConnectionStates" + Arrays.toString(states));
         List<BluetoothDevice> deviceList = new ArrayList<>();
@@ -400,6 +409,7 @@ public class A2dpSinkService extends ProfileService {
      * {@link BluetoothProfile#STATE_DISCONNECTING} if this profile is being disconnected
      */
     public int getConnectionState(BluetoothDevice device) {
+        if (device == null) return BluetoothProfile.STATE_DISCONNECTED;
         A2dpSinkStateMachine stateMachine = mDeviceStateMap.get(device);
         return (stateMachine == null) ? BluetoothProfile.STATE_DISCONNECTED
                 : stateMachine.getState();
@@ -469,6 +479,7 @@ public class A2dpSinkService extends ProfileService {
     }
 
     BluetoothAudioConfig getAudioConfig(BluetoothDevice device) {
+        if (device == null) return null;
         A2dpSinkStateMachine stateMachine = mDeviceStateMap.get(device);
         // a state machine instance doesn't exist. maybe it is already gone?
         if (stateMachine == null) {
