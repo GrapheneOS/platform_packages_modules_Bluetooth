@@ -171,7 +171,7 @@ tBTM_STATUS bluetooth::shim::BTM_ReadRemoteDeviceName(
 tBTM_STATUS bluetooth::shim::BTM_SecBond(const RawAddress& bd_addr,
                                          tBLE_ADDR_TYPE addr_type,
                                          tBT_TRANSPORT transport,
-                                         int device_type) {
+                                         tBT_DEVICE_TYPE device_type) {
   mock_function_count_map[__func__]++;
   return BTM_SUCCESS;
 }
