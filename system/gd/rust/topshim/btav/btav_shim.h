@@ -55,6 +55,20 @@ class A2dpIntf {
 
 std::unique_ptr<A2dpIntf> GetA2dpProfile(const unsigned char* btif);
 
+class AvrcpIntf {
+ public:
+  AvrcpIntf(bluetooth::avrcp::ServiceInterface* intf) : intf_(intf) {}
+  void init();
+  void cleanup();
+  int connect(RustRawAddress bt_addr);
+  int disconnect(RustRawAddress bt_addr);
+
+ private:
+  bluetooth::avrcp::ServiceInterface* intf_;
+};
+
+std::unique_ptr<AvrcpIntf> GetAvrcpProfile(const unsigned char* btif);
+
 }  // namespace rust
 }  // namespace topshim
 }  // namespace bluetooth
