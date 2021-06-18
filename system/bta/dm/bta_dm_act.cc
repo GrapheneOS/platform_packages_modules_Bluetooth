@@ -3529,7 +3529,7 @@ static void bta_dm_ble_id_key_cback(uint8_t key_type,
     case BTM_BLE_KEY_TYPE_ER:
       if (bta_dm_cb.p_sec_cback) {
         tBTA_DM_SEC dm_key = {
-            .ble_id_keys{},
+            .ble_id_keys = {},
         };
         memcpy(&dm_key.ble_id_keys, p_key, sizeof(tBTM_BLE_LOCAL_KEYS));
 
