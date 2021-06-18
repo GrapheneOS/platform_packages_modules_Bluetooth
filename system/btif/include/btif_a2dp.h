@@ -22,7 +22,7 @@
 
 #include <stdbool.h>
 
-#include "bta/include/bta_av_api.h"
+#include "bta_av_api.h"
 
 // Process 'idle' request from the BTIF state machine during initialization.
 void btif_a2dp_on_idle(void);
