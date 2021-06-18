@@ -115,7 +115,6 @@ import com.android.bluetooth.pbapclient.PbapClientService;
 import com.android.bluetooth.sap.SapService;
 import com.android.bluetooth.sdp.SdpManager;
 import com.android.bluetooth.telephony.BluetoothInCallService;
-import com.android.bluetooth.vc.VolumeControlService;
 import com.android.internal.R;
 import com.android.internal.annotations.GuardedBy;
 import com.android.internal.annotations.VisibleForTesting;
@@ -287,7 +286,6 @@ public class AdapterService extends Service {
     private PbapClientService mPbapClientService;
     private HearingAidService mHearingAidService;
     private SapService mSapService;
-    private VolumeControlService mVolumeControlService;
 
     private volatile boolean mTestModeEnabled = false;
 
@@ -999,9 +997,6 @@ public class AdapterService extends Service {
         if (profile == BluetoothProfile.SAP) {
             return ArrayUtils.contains(remoteDeviceUuids, BluetoothUuid.SAP);
         }
-        if (profile == BluetoothProfile.VOLUME_CONTROL) {
-            return ArrayUtils.contains(remoteDeviceUuids, BluetoothUuid.VOLUME_CONTROL);
-        }
 
         Log.e(TAG, "isSupported: Unexpected profile passed in to function: " + profile);
         return false;
@@ -1049,10 +1044,6 @@ public class AdapterService extends Service {
             return true;
         }
         if (mHearingAidService != null && mHearingAidService.getConnectionPolicy(device)
-                > BluetoothProfile.CONNECTION_POLICY_FORBIDDEN) {
-            return true;
-        }
-        if (mVolumeControlService != null && mVolumeControlService.getConnectionPolicy(device)
                 > BluetoothProfile.CONNECTION_POLICY_FORBIDDEN) {
             return true;
         }
@@ -1133,13 +1124,6 @@ public class AdapterService extends Service {
             Log.i(TAG, "connectEnabledProfiles: Connecting Hearing Aid Profile");
             mHearingAidService.connect(device);
         }
-        if (mVolumeControlService != null && isSupported(localDeviceUuids, remoteDeviceUuids,
-                BluetoothProfile.VOLUME_CONTROL, device)
-                && mVolumeControlService.getConnectionPolicy(device)
-                > BluetoothProfile.CONNECTION_POLICY_FORBIDDEN) {
-            Log.i(TAG, "connectEnabledProfiles: Connecting Volume Control Profile");
-            mVolumeControlService.connect(device);
-        }
 
         return true;
     }
@@ -1177,7 +1161,6 @@ public class AdapterService extends Service {
         mPbapClientService = PbapClientService.getPbapClientService();
         mHearingAidService = HearingAidService.getHearingAidService();
         mSapService = SapService.getSapService();
-        mVolumeControlService = VolumeControlService.getVolumeControlService();
     }
 
     private boolean isAvailable() {
@@ -2894,13 +2877,6 @@ public class AdapterService extends Service {
                     BluetoothProfile.CONNECTION_POLICY_ALLOWED);
             numProfilesConnected++;
         }
-        if (mVolumeControlService != null && isSupported(localDeviceUuids, remoteDeviceUuids,
-                BluetoothProfile.VOLUME_CONTROL, device)) {
-            Log.i(TAG, "connectAllEnabledProfiles: Connecting Volume Control Profile");
-            mVolumeControlService.setConnectionPolicy(device,
-                    BluetoothProfile.CONNECTION_POLICY_ALLOWED);
-            numProfilesConnected++;
-        }
 
         Log.i(TAG, "connectAllEnabledProfiles: Number of Profiles Connected: "
                 + numProfilesConnected);
@@ -2981,11 +2957,6 @@ public class AdapterService extends Service {
                 == BluetoothProfile.STATE_CONNECTED) {
             Log.i(TAG, "disconnectAllEnabledProfiles: Disconnecting Hearing Aid Profile");
             mHearingAidService.disconnect(device);
-        }
-        if (mVolumeControlService != null && mVolumeControlService.getConnectionState(device)
-                == BluetoothProfile.STATE_CONNECTED) {
-            Log.i(TAG, "disconnectAllEnabledProfiles: Disconnecting Volume Control Profile");
-            mVolumeControlService.disconnect(device);
         }
         if (mSapService != null && mSapService.getConnectionState(device)
                 == BluetoothProfile.STATE_CONNECTED) {
