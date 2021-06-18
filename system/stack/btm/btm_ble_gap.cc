@@ -374,6 +374,20 @@ inline bool BTM_LE_STATES_SUPPORTED(const uint8_t* x, uint8_t bit_num) {
   return ((x)[offset] & mask);
 }
 
+void BTM_BleOpportunisticObserve(bool enable,
+                                 tBTM_INQ_RESULTS_CB* p_results_cb) {
+  if (bluetooth::shim::is_gd_shim_enabled()) {
+    bluetooth::shim::BTM_BleOpportunisticObserve(enable, p_results_cb);
+    return;
+  }
+
+  if (enable) {
+    btm_cb.ble_ctr_cb.p_opportunistic_obs_results_cb = p_results_cb;
+  } else {
+    btm_cb.ble_ctr_cb.p_opportunistic_obs_results_cb = NULL;
+  }
+}
+
 /*******************************************************************************
  *
  * Function         BTM_BleObserve
@@ -1988,6 +2002,14 @@ void btm_ble_process_adv_pkt_cont(uint16_t evt_type, uint8_t addr_type,
                        const_cast<uint8_t*>(adv_data.data()), adv_data.size());
   }
 
+  tBTM_INQ_RESULTS_CB* p_opportunistic_obs_results_cb =
+      btm_cb.ble_ctr_cb.p_opportunistic_obs_results_cb;
+  if (p_opportunistic_obs_results_cb) {
+    (p_opportunistic_obs_results_cb)((tBTM_INQ_RESULTS*)&p_i->inq_info.results,
+                                     const_cast<uint8_t*>(adv_data.data()),
+                                     adv_data.size());
+  }
+
   cache.Clear(addr_type, bda);
 }
 
@@ -2053,6 +2075,14 @@ void btm_ble_process_adv_pkt_cont_for_inquiry(
     (p_inq_results_cb)((tBTM_INQ_RESULTS*)&p_i->inq_info.results,
                        const_cast<uint8_t*>(advertising_data.data()),
                        advertising_data.size());
+  }
+
+  tBTM_INQ_RESULTS_CB* p_opportunistic_obs_results_cb =
+      btm_cb.ble_ctr_cb.p_opportunistic_obs_results_cb;
+  if (p_opportunistic_obs_results_cb) {
+    (p_opportunistic_obs_results_cb)(
+        (tBTM_INQ_RESULTS*)&p_i->inq_info.results,
+        const_cast<uint8_t*>(advertising_data.data()), advertising_data.size());
   }
 }
 
