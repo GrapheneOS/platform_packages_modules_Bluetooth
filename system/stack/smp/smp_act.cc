@@ -19,9 +19,9 @@
 #define LOG_TAG "smp_act"
 
 #include <string.h>
-#include "btif_api.h"
-#include "btif_common.h"
-#include "btif_storage.h"
+#include "btif/include/btif_api.h"
+#include "btif/include/btif_common.h"
+#include "btif/include/btif_storage.h"
 #include "device/include/interop.h"
 #include "internal_include/bt_target.h"
 #include "main/shim/shim.h"
