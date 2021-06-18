@@ -223,6 +223,9 @@ typedef struct {
   tBTM_CMPL_CB* p_obs_cmpl_cb;
   alarm_t* observer_timer;
 
+  /* opportunistic observer */
+  tBTM_INQ_RESULTS_CB* p_opportunistic_obs_results_cb;
+
   /* background connection procedure cb value */
   uint16_t scan_int;
   uint16_t scan_win;

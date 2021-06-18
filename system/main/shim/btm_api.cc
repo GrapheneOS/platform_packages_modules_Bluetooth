@@ -720,6 +720,15 @@ tBTM_STATUS bluetooth::shim::BTM_BleObserve(bool start, uint8_t duration_sec,
   return BTM_CMD_STARTED;
 }
 
+void bluetooth::shim::BTM_BleOpportunisticObserve(
+    bool enable, tBTM_INQ_RESULTS_CB* p_results_cb) {
+  if (enable) {
+    btm_cb.ble_ctr_cb.p_opportunistic_obs_results_cb = p_results_cb;
+  } else {
+    btm_cb.ble_ctr_cb.p_opportunistic_obs_results_cb = nullptr;
+  }
+}
+
 void bluetooth::shim::BTM_EnableInterlacedPageScan() {
   Stack::GetInstance()->GetBtm()->SetInterlacedPageScan();
 }
