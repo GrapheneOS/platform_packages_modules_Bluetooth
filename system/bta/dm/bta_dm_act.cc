@@ -3306,6 +3306,57 @@ static void bta_dm_observe_results_cb(tBTM_INQ_RESULTS* p_inq, uint8_t* p_eir,
 
 /*******************************************************************************
  *
+ * Function         bta_dm_opportunistic_observe_results_cb
+ *
+ * Description      Callback for BLE Observe result
+ *
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
+static void bta_dm_opportunistic_observe_results_cb(tBTM_INQ_RESULTS* p_inq,
+                                                    uint8_t* p_eir,
+                                                    uint16_t eir_len) {
+  tBTA_DM_SEARCH result;
+  tBTM_INQ_INFO* p_inq_info;
+
+  result.inq_res.bd_addr = p_inq->remote_bd_addr;
+  result.inq_res.rssi = p_inq->rssi;
+  result.inq_res.ble_addr_type = p_inq->ble_addr_type;
+  result.inq_res.inq_result_type = p_inq->inq_result_type;
+  result.inq_res.device_type = p_inq->device_type;
+  result.inq_res.flag = p_inq->flag;
+  result.inq_res.ble_evt_type = p_inq->ble_evt_type;
+  result.inq_res.ble_primary_phy = p_inq->ble_primary_phy;
+  result.inq_res.ble_secondary_phy = p_inq->ble_secondary_phy;
+  result.inq_res.ble_advertising_sid = p_inq->ble_advertising_sid;
+  result.inq_res.ble_tx_power = p_inq->ble_tx_power;
+  result.inq_res.ble_periodic_adv_int = p_inq->ble_periodic_adv_int;
+
+  /* application will parse EIR to find out remote device name */
+  result.inq_res.p_eir = p_eir;
+  result.inq_res.eir_len = eir_len;
+
+  p_inq_info = BTM_InqDbRead(p_inq->remote_bd_addr);
+  if (p_inq_info != NULL) {
+    /* initialize remt_name_not_required to false so that we get the name by
+     * default */
+    result.inq_res.remt_name_not_required = false;
+  }
+
+  if (bta_dm_search_cb.p_csis_scan_cback)
+    bta_dm_search_cb.p_csis_scan_cback(BTA_DM_INQ_RES_EVT, &result);
+
+  if (p_inq_info) {
+    /* application indicates if it knows the remote name, inside the callback
+     copy that to the inquiry data base*/
+    if (result.inq_res.remt_name_not_required)
+      p_inq_info->appl_knows_rem_name = true;
+  }
+}
+
+/*******************************************************************************
+ *
  * Function         bta_dm_observe_cmpl_cb
  *
  * Description      Callback for BLE Observe complete
@@ -3322,6 +3373,9 @@ static void bta_dm_observe_cmpl_cb(void* p_result) {
   data.inq_cmpl.num_resps = ((tBTM_INQUIRY_CMPL*)p_result)->num_resp;
   if (bta_dm_search_cb.p_scan_cback) {
     bta_dm_search_cb.p_scan_cback(BTA_DM_INQ_CMPL_EVT, &data);
+  }
+  if (bta_dm_search_cb.p_csis_scan_cback) {
+    bta_dm_search_cb.p_csis_scan_cback(BTA_DM_INQ_CMPL_EVT, &data);
   }
 }
 
@@ -3642,6 +3696,28 @@ void bta_dm_ble_config_local_privacy(bool privacy_enable) {
 }
 #endif
 
+static void bta_dm_start_scan(uint8_t duration_sec) {
+  tBTM_STATUS status = BTM_BleObserve(
+      true, duration_sec, bta_dm_observe_results_cb, bta_dm_observe_cmpl_cb);
+
+  if (status != BTM_CMD_STARTED) {
+    tBTA_DM_SEARCH data = {
+        .inq_cmpl =
+            {
+                .num_resps = 0,
+            },
+    };
+    APPL_TRACE_WARNING(" %s BTM_BleObserve  failed. status %d", __func__,
+                       status);
+    if (bta_dm_search_cb.p_scan_cback) {
+      bta_dm_search_cb.p_scan_cback(BTA_DM_INQ_CMPL_EVT, &data);
+    }
+    if (bta_dm_search_cb.p_csis_scan_cback) {
+      bta_dm_search_cb.p_csis_scan_cback(BTA_DM_INQ_CMPL_EVT, &data);
+    }
+  }
+}
+
 void bta_dm_ble_observe(bool start, uint8_t duration,
                         tBTA_DM_SEARCH_CBACK* p_cback) {
   if (!start) {
@@ -3652,21 +3728,31 @@ void bta_dm_ble_observe(bool start, uint8_t duration,
 
   /*Save the  callback to be called when a scan results are available */
   bta_dm_search_cb.p_scan_cback = p_cback;
-  tBTM_STATUS status = BTM_BleObserve(true, duration, bta_dm_observe_results_cb,
-                                      bta_dm_observe_cmpl_cb);
-  if (status != BTM_CMD_STARTED) {
-    APPL_TRACE_WARNING(" %s BTM_BleObserve  failed. status %d", __func__,
-                       status);
-    tBTA_DM_SEARCH data = {
-        .inq_cmpl =
-            {
-                .num_resps = 0,
-            },
-    };
-    if (bta_dm_search_cb.p_scan_cback) {
-      bta_dm_search_cb.p_scan_cback(BTA_DM_INQ_CMPL_EVT, &data);
-    }
+  bta_dm_start_scan(duration);
+}
+
+void bta_dm_ble_scan(bool start, uint8_t duration_sec) {
+  /* Start or stop only if there is no active main scanner */
+  if (bta_dm_search_cb.p_scan_cback != NULL) return;
+
+  if (!start) {
+    BTM_BleObserve(false, 0, NULL, NULL);
+    return;
   }
+
+  bta_dm_start_scan(duration_sec);
+}
+
+void bta_dm_ble_csis_observe(bool observe, tBTA_DM_SEARCH_CBACK* p_cback) {
+  if (!observe) {
+    bta_dm_search_cb.p_csis_scan_cback = NULL;
+    BTM_BleOpportunisticObserve(false, NULL);
+    return;
+  }
+
+  /* Save the callback to be called when a scan results are available */
+  bta_dm_search_cb.p_csis_scan_cback = p_cback;
+  BTM_BleOpportunisticObserve(true, bta_dm_opportunistic_observe_results_cb);
 }
 
 /** This function set the maximum transmission packet size */
