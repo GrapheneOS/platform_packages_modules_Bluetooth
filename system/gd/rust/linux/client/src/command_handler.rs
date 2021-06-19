@@ -17,11 +17,7 @@ struct BtCallback {
 }
 
 impl IBluetoothCallback for BtCallback {
-    fn on_bluetooth_state_changed(&self, prev_state: u32, new_state: u32) {
-        print_info!("Adapter state changed from {} to {}", prev_state, new_state);
-    }
-
-    fn on_bluetooth_address_changed(&self, addr: String) {
+    fn on_address_changed(&self, addr: String) {
         print_info!("Address changed to {}", addr);
     }
 
