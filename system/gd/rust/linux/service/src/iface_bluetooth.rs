@@ -32,10 +32,8 @@ struct BluetoothCallbackDBus {}
 
 #[dbus_proxy_obj(BluetoothCallback, "org.chromium.bluetooth.BluetoothCallback")]
 impl IBluetoothCallback for BluetoothCallbackDBus {
-    #[dbus_method("OnBluetoothStateChanged")]
-    fn on_bluetooth_state_changed(&self, prev_state: u32, new_state: u32) {}
-    #[dbus_method("OnBluetoothAddressChanged")]
-    fn on_bluetooth_address_changed(&self, addr: String) {}
+    #[dbus_method("OnAddressChanged")]
+    fn on_address_changed(&self, addr: String) {}
     #[dbus_method("OnDeviceFound")]
     fn on_device_found(&self, remote_device: BluetoothDevice) {}
     #[dbus_method("OnDiscoveringChanged")]
