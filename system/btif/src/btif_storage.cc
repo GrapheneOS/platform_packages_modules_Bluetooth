@@ -1298,6 +1298,20 @@ bt_status_t btif_storage_set_remote_addr_type(const RawAddress* remote_bd_addr,
   return ret ? BT_STATUS_SUCCESS : BT_STATUS_FAIL;
 }
 
+void btif_storage_set_remote_addr_type(const RawAddress& remote_bd_addr,
+                                       const tBLE_ADDR_TYPE& addr_type) {
+  if (!btif_config_set_int(remote_bd_addr.ToString(), "AddrType",
+                           static_cast<int>(addr_type)))
+    LOG_ERROR("Unable to set storage property");
+}
+
+void btif_storage_set_remote_device_type(const RawAddress& remote_bd_addr,
+                                         const tBT_DEVICE_TYPE& device_type) {
+  if (!btif_config_set_int(remote_bd_addr.ToString(), "DevType",
+                           static_cast<int>(device_type)))
+    LOG_ERROR("Unable to set storage property");
+}
+
 bool btif_has_ble_keys(const std::string& bdstr) {
   return btif_config_exist(bdstr, "LE_KEY_PENC");
 }
@@ -1319,6 +1333,25 @@ bt_status_t btif_storage_get_remote_addr_type(const RawAddress* remote_bd_addr,
   *addr_type = static_cast<tBLE_ADDR_TYPE>(val);
   return ret ? BT_STATUS_SUCCESS : BT_STATUS_FAIL;
 }
+
+bool btif_storage_get_remote_addr_type(const RawAddress& remote_bd_addr,
+                                       tBLE_ADDR_TYPE& addr_type) {
+  int val;
+  const int ret =
+      btif_config_get_int(remote_bd_addr.ToString(), "AddrType", &val);
+  addr_type = static_cast<tBLE_ADDR_TYPE>(val);
+  return ret;
+}
+
+bool btif_storage_get_remote_device_type(const RawAddress& remote_bd_addr,
+                                         tBT_DEVICE_TYPE& device_type) {
+  int val;
+  const bool ret =
+      btif_config_get_int(remote_bd_addr.ToString(), "DevType", &val);
+  device_type = static_cast<tBT_DEVICE_TYPE>(val);
+  return ret;
+}
+
 /*******************************************************************************
  *
  * Function         btif_storage_add_hid_device_info
