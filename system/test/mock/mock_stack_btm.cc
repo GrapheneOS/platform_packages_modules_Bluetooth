@@ -26,7 +26,6 @@ tBTM_STATUS BTM_BleGetEnergyInfo(tBTM_BLE_ENERGY_INFO_CBACK* p_ener_cback) {
   return BTM_SUCCESS;
 }
 void BTM_BleReadControllerFeatures(tBTM_BLE_CTRL_FEATURES_CBACK* p_vsc_cback) {}
-bool BTM_is_sniff_allowed_for(const RawAddress& peer_addr) { return false; }
 uint8_t BTM_GetAcceptlistSize() { return 0; }
 
 struct btm_client_interface_s btm_client_interface = {};
