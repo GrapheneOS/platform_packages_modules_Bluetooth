@@ -771,6 +771,11 @@ static void maybe_chain_more_commands_after_read_remote_version_complete(
           internal_.btm_read_remote_features(p_acl_cb->hci_handle);
         }
       }
+      break;
+    default:
+      LOG_ERROR("Unable to determine transport:%s device:%s",
+                bt_transport_text(p_acl_cb->transport).c_str(),
+                PRIVATE_ADDRESS(p_acl_cb->remote_addr));
   }
 }
 
