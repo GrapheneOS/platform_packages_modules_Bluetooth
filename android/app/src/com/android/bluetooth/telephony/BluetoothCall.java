@@ -226,7 +226,7 @@ public class BluetoothCall {
         mCall.removeListener(listener);
     }
 
-    public int getGenericConferenceActiveChildCallId() {
+    public Integer getGenericConferenceActiveChildCallId() {
         return System.identityHashCode(mCall.getGenericConferenceActiveChildCall());
     }
 
@@ -284,7 +284,7 @@ public class BluetoothCall {
         return getDetails().hasProperty(Call.Details.PROPERTY_IS_EXTERNAL_CALL);
     }
 
-    public int getId() {
+    public Integer getId() {
         return System.identityHashCode(mCall);
     }
 
