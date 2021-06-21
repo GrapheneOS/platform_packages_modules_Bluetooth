@@ -103,7 +103,7 @@ void TestCommandHandler::FromFile(const std::string& file_name) {
   }
 
   std::string commands_raw;
-  if (!base::ReadFileToString(base::FilePath(file_name), &commands_raw)) {
+  if (!base::ReadFileToString(base::FilePath::FromUTF8Unsafe(file_name), &commands_raw)) {
     LOG_ERROR("Error reading commands from file.");
     return;
   }
