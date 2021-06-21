@@ -160,6 +160,9 @@ extern void BTM_BleTrackAdvertiser(tBTM_BLE_TRACK_ADV_CBACK* p_track_cback,
  *                  events from a broadcast device.
  *
  * Parameters       start: start or stop observe.
+ *                  duration: how long the scan should last, in seconds. 0 means
+ *                  scan without timeout. Starting the scan second time without
+ *                  timeout will disable the timer.
  *
  * Returns          void
  *
