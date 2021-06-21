@@ -51,7 +51,7 @@ void bta_dm_add_device(std::unique_ptr<tBTA_DM_API_ADD_DEVICE> msg) {
   mock_function_count_map[__func__]++;
 }
 void bta_dm_bond(const RawAddress& bd_addr, tBLE_ADDR_TYPE addr_type,
-                 tBT_TRANSPORT transport, int device_type) {
+                 tBT_TRANSPORT transport, tBT_DEVICE_TYPE device_type) {
   mock_function_count_map[__func__]++;
 }
 void bta_dm_bond_cancel(const RawAddress& bd_addr) {

@@ -127,8 +127,9 @@ struct btm_client_interface_s {
     char* (*BTM_SecReadDevName)(const RawAddress& bd_addr);
     tBTM_STATUS (*BTM_SecBond)(const RawAddress& bd_addr,
                                tBLE_ADDR_TYPE addr_type,
-                               tBT_TRANSPORT transport, int device_type,
-                               uint8_t pin_len, uint8_t* p_pin);
+                               tBT_TRANSPORT transport,
+                               tBT_DEVICE_TYPE device_type, uint8_t pin_len,
+                               uint8_t* p_pin);
     tBTM_STATUS (*BTM_SecBondCancel)(const RawAddress& bd_addr);
     void (*BTM_SecAddBleKey)(const RawAddress& bd_addr,
                              tBTM_LE_KEY_VALUE* p_le_key,
