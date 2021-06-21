@@ -27,6 +27,7 @@ import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Message;
+import android.support.v4.media.MediaBrowserCompat.MediaItem;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.util.Log;
@@ -228,6 +229,22 @@ class AvrcpControllerStateMachine extends StateMachine {
         ProfileService.println(sb, "isActive: " + isActive());
         ProfileService.println(sb, "Control: " + mRemoteControlConnected);
         ProfileService.println(sb, "Browsing: " + mBrowsingConnected);
+
+        ProfileService.println(sb, "Addressed Player ID: " + mAddressedPlayerId);
+        ProfileService.println(sb, "Available Players (" + mAvailablePlayerList.size() + "): ");
+        for (int i = 0; i < mAvailablePlayerList.size(); i++) {
+            AvrcpPlayer player = mAvailablePlayerList.valueAt(i);
+            boolean isAddressed = (player.getId() == mAddressedPlayerId);
+            ProfileService.println(sb, "\t" + (isAddressed ? "(Addressed) " : "") + player);
+        }
+
+        List<MediaItem> queue = null;
+        if (mBrowseTree.mNowPlayingNode != null) {
+            queue = mBrowseTree.mNowPlayingNode.getContents();
+        }
+        ProfileService.println(sb, "Current Track: " + mAddressedPlayer.getCurrentTrack());
+        ProfileService.println(sb, "Playback State: " + mAddressedPlayer.getPlaybackState());
+        ProfileService.println(sb, "Queue (" + (queue == null ? 0 : queue.size()) + "): " + queue);
     }
 
     @VisibleForTesting
