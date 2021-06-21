@@ -42,6 +42,8 @@ constexpr char kPrivateAddressPrefix[] = "xx:xx:xx:xx";
                 (number.size() > 2) ? number.size() - 2 : 0, '*') \
        .c_str())
 
+#define PRIVATE_NAME(name) (name)
+
 inline double ticks_to_seconds(uint16_t ticks) {
   return (static_cast<double>(ticks) * 0.625 * 0.001);
 }
