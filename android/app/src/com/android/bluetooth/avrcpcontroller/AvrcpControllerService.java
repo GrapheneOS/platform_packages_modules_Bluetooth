@@ -225,6 +225,30 @@ public class AvrcpControllerService extends ProfileService {
         return false;
     }
 
+    private int toPlaybackStateFromJni(int fromJni) {
+        int playbackState = PlaybackStateCompat.STATE_NONE;
+        switch (fromJni) {
+            case JNI_PLAY_STATUS_STOPPED:
+                playbackState = PlaybackStateCompat.STATE_STOPPED;
+                break;
+            case JNI_PLAY_STATUS_PLAYING:
+                playbackState = PlaybackStateCompat.STATE_PLAYING;
+                break;
+            case JNI_PLAY_STATUS_PAUSED:
+                playbackState = PlaybackStateCompat.STATE_PAUSED;
+                break;
+            case JNI_PLAY_STATUS_FWD_SEEK:
+                playbackState = PlaybackStateCompat.STATE_FAST_FORWARDING;
+                break;
+            case JNI_PLAY_STATUS_REV_SEEK:
+                playbackState = PlaybackStateCompat.STATE_REWINDING;
+                break;
+            default:
+                playbackState = PlaybackStateCompat.STATE_NONE;
+        }
+        return playbackState;
+    }
+
     protected AvrcpControllerStateMachine newStateMachine(BluetoothDevice device) {
         return new AvrcpControllerStateMachine(device, this);
     }
@@ -546,31 +570,12 @@ public class AvrcpControllerService extends ProfileService {
         if (DBG) {
             Log.d(TAG, "onPlayStatusChanged " + playStatus);
         }
-        int playbackState = PlaybackStateCompat.STATE_NONE;
-        switch (playStatus) {
-            case JNI_PLAY_STATUS_STOPPED:
-                playbackState = PlaybackStateCompat.STATE_STOPPED;
-                break;
-            case JNI_PLAY_STATUS_PLAYING:
-                playbackState = PlaybackStateCompat.STATE_PLAYING;
-                break;
-            case JNI_PLAY_STATUS_PAUSED:
-                playbackState = PlaybackStateCompat.STATE_PAUSED;
-                break;
-            case JNI_PLAY_STATUS_FWD_SEEK:
-                playbackState = PlaybackStateCompat.STATE_FAST_FORWARDING;
-                break;
-            case JNI_PLAY_STATUS_REV_SEEK:
-                playbackState = PlaybackStateCompat.STATE_REWINDING;
-                break;
-            default:
-                playbackState = PlaybackStateCompat.STATE_NONE;
-        }
         BluetoothDevice device = mAdapter.getRemoteDevice(address);
         AvrcpControllerStateMachine stateMachine = getStateMachine(device);
         if (stateMachine != null) {
             stateMachine.sendMessage(
-                    AvrcpControllerStateMachine.MESSAGE_PROCESS_PLAY_STATUS_CHANGED, playbackState);
+                    AvrcpControllerStateMachine.MESSAGE_PROCESS_PLAY_STATUS_CHANGED,
+                    toPlaybackStateFromJni(playStatus));
         }
     }
 
@@ -714,10 +719,16 @@ public class AvrcpControllerService extends ProfileService {
                             + transportFlags + " play status " + playStatus + " player type "
                             + playerType);
         }
+
         BluetoothDevice device = mAdapter.getRemoteDevice(address);
-        AvrcpPlayer player = new AvrcpPlayer(device, id, name, transportFlags, playStatus,
-                playerType);
-        return player;
+        AvrcpPlayer.Builder apb = new AvrcpPlayer.Builder();
+        apb.setDevice(device);
+        apb.setPlayerId(id);
+        apb.setPlayerType(playerType);
+        apb.setSupportedFeatures(transportFlags);
+        apb.setName(name);
+        apb.setPlayStatus(toPlaybackStateFromJni(playStatus));
+        return apb.build();
     }
 
     private void handleChangeFolderRsp(byte[] address, int count) {
