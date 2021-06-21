@@ -704,6 +704,27 @@ public class AvrcpControllerStateMachineTest {
     }
 
     /**
+     * Test our reaction to an available players changed event
+     *
+     * Verify that we issue a command to fetch the new available players
+     */
+    @Test
+    public void testAvailablePlayersChanged() {
+        setUpConnectedState(true, true);
+        final String rootName = "__ROOT__";
+
+        // Send an available players have changed event
+        mAvrcpStateMachine.sendMessage(
+                AvrcpControllerStateMachine.MESSAGE_PROCESS_AVAILABLE_PLAYER_CHANGED);
+
+        // Verify we've uncached our browse root and made the call to fetch new players
+        Assert.assertFalse(mAvrcpStateMachine.findNode(rootName).isCached());
+        verify(mAvrcpControllerService,
+                timeout(ASYNC_CALL_TIMEOUT_MILLIS).times(1)).getPlayerListNative(eq(mTestAddress),
+                eq(0), eq(19));
+    }
+
+    /**
      * Test addressed media player changing to a player we know about
      * Verify when the addressed media player changes browsing data updates
      */

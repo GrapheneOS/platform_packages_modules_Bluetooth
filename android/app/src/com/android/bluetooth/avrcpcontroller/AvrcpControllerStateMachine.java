@@ -255,6 +255,7 @@ class AvrcpControllerStateMachine extends StateMachine {
 
     synchronized void onBrowsingConnected() {
         mBrowsingConnected = true;
+        requestContents(mBrowseTree.mRootNode);
     }
 
     synchronized void onBrowsingDisconnected() {
@@ -264,8 +265,10 @@ class AvrcpControllerStateMachine extends StateMachine {
         String previousTrackUuid = previousTrack != null ? previousTrack.getCoverArtUuid() : null;
         mAddressedPlayer.updateCurrentTrack(null);
         mBrowseTree.mNowPlayingNode.setCached(false);
+        mBrowseTree.mRootNode.setCached(false);
         if (isActive()) {
             BluetoothMediaBrowserService.notifyChanged(mBrowseTree.mNowPlayingNode);
+            BluetoothMediaBrowserService.notifyChanged(mBrowseTree.mRootNode);
         }
         removeUnusedArtwork(previousTrackUuid);
         removeUnusedArtworkFromBrowseTree();
@@ -690,6 +693,7 @@ class AvrcpControllerStateMachine extends StateMachine {
             mBrowseTree.mRootNode.setExpectedChildren(255);
             BluetoothMediaBrowserService.notifyChanged(mBrowseTree.mRootNode);
             removeUnusedArtworkFromBrowseTree();
+            requestContents(mBrowseTree.mRootNode);
         }
     }
 
