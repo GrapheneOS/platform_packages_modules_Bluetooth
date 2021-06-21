@@ -439,7 +439,14 @@ public class AvrcpControllerStateMachineTest {
                 + "(null) name=AvrcpControllerStateMachine state=Disconnected\n"
                 + "  isActive: true\n"
                 + "  Control: false\n"
-                + "  Browsing: false\n");
+                + "  Browsing: false\n"
+                + "  Addressed Player ID: -1\n"
+                + "  Available Players (0): \n"
+                + "  Current Track: null\n"
+                + "  Playback State: PlaybackState {state=0, position=0, buffered position=0, "
+                + "speed=0.0, updated=0, actions=16439, error code=0, error message=null, custom "
+                + "actions=[], active item id=-1}\n"
+                + "  Queue (0): null\n");
     }
 
     /**
