@@ -16,16 +16,49 @@
  *
  ******************************************************************************/
 #include <stdarg.h>
+#include <string>
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
 #include "bt_trace.h"
+#include "hci/include/packet_fragmenter.h"
 #include "hcidefs.h"
+#include "internal_include/stack_config.h"
+#include "stack/btm/btm_int_types.h"
 #include "stack/include/smp_api.h"
 #include "stack/smp/p_256_ecc_pp.h"
 #include "stack/smp/smp_int.h"
+#include "test/mock/mock_stack_acl.h"
 #include "types/hci_role.h"
+
+tBTM_CB btm_cb;
+std::map<std::string, int> mock_function_count_map;
+
+const std::string kSmpOptions("mock smp options");
+bool get_trace_config_enabled(void) { return false; }
+bool get_pts_avrcp_test(void) { return false; }
+bool get_pts_secure_only_mode(void) { return false; }
+bool get_pts_conn_updates_disabled(void) { return false; }
+bool get_pts_crosskey_sdp_disable(void) { return false; }
+const std::string* get_pts_smp_options(void) { return &kSmpOptions; }
+int get_pts_smp_failure_case(void) { return 123; }
+config_t* get_all(void) { return nullptr; }
+const packet_fragmenter_t* packet_fragmenter_get_interface() { return nullptr; }
+
+stack_config_t mock_stack_config{
+    .get_trace_config_enabled = get_trace_config_enabled,
+    .get_pts_avrcp_test = get_pts_avrcp_test,
+    .get_pts_secure_only_mode = get_pts_secure_only_mode,
+    .get_pts_conn_updates_disabled = get_pts_conn_updates_disabled,
+    .get_pts_crosskey_sdp_disable = get_pts_crosskey_sdp_disable,
+    .get_pts_smp_options = get_pts_smp_options,
+    .get_pts_smp_failure_case = get_pts_smp_failure_case,
+    .get_all = get_all,
+};
+const stack_config_t* stack_config_get_interface(void) {
+  return &mock_stack_config;
+}
 
 /*
  * This test verifies various key distribution methods in SMP works using the
@@ -55,23 +88,6 @@
  * they are mostly reversed to be Little Endian which have LSB on the left and
  * MSB on the right.
  */
-
-// Set remote bda to 0xB1B2B3B4B5B6
-bool BTM_ReadRemoteConnectionAddr(const RawAddress& pseudo_addr,
-                                  RawAddress& conn_addr,
-                                  tBLE_ADDR_TYPE* p_addr_type) {
-  conn_addr = RawAddress({0xB1, 0xB2, 0xB3, 0xB4, 0xB5, 0xB6});
-  *p_addr_type = 0x00;
-  return true;
-}
-
-// Set local_bda to 0xA1A2A3A4A5A6
-void BTM_ReadConnectionAddr(const RawAddress& remote_bda,
-                            RawAddress& local_conn_addr,
-                            tBLE_ADDR_TYPE* p_addr_type) {
-  local_conn_addr = RawAddress({0xA1, 0xA2, 0xA3, 0xA4, 0xA5, 0xA6});
-  *p_addr_type = 0x01;
-}
 
 // Require bte_logmsg.cc to run, here is just to fake it as we don't care about
 // trace in unit test
@@ -159,8 +175,25 @@ class SmpCalculateConfirmTest : public Test {
 
 // Test smp_gen_p2_4_confirm function implementation
 TEST_F(SmpCalculateConfirmTest, test_smp_gen_p2_4_confirm_as_central) {
+  // Set local_bda to 0xA1A2A3A4A5A6
+  test::mock::stack_acl::BTM_ReadConnectionAddr.body =
+      [](const RawAddress& remote_bda, RawAddress& local_conn_addr,
+         tBLE_ADDR_TYPE* p_addr_type) {
+        local_conn_addr = RawAddress({0xA1, 0xA2, 0xA3, 0xA4, 0xA5, 0xA6});
+        *p_addr_type = BLE_ADDR_RANDOM;
+      };
+
+  // Set remote bda to 0xB1B2B3B4B5B6
+  test::mock::stack_acl::BTM_ReadRemoteConnectionAddr.body =
+      [](const RawAddress& pseudo_addr, RawAddress& conn_addr,
+         tBLE_ADDR_TYPE* p_addr_type) {
+        conn_addr = RawAddress({0xB1, 0xB2, 0xB3, 0xB4, 0xB5, 0xB6});
+        *p_addr_type = BLE_ADDR_PUBLIC;
+        return true;
+      };
+
   RawAddress remote_bda;
-  tBLE_ADDR_TYPE remote_bd_addr_type = 0;
+  tBLE_ADDR_TYPE remote_bd_addr_type = BLE_ADDR_PUBLIC;
   BTM_ReadRemoteConnectionAddr(p_cb_.pairing_bda, remote_bda,
                                &remote_bd_addr_type);
   BTM_ReadConnectionAddr(p_cb_.pairing_bda, p_cb_.local_bda, &p_cb_.addr_type);
@@ -170,12 +203,32 @@ TEST_F(SmpCalculateConfirmTest, test_smp_gen_p2_4_confirm_as_central) {
   char p2_str[2 * OCTET16_LEN + 1];
   dump_uint128_reverse(p2, p2_str);
   ASSERT_THAT(p2_str, StrEq(expected_p2_str));
+
+  test::mock::stack_acl::BTM_ReadConnectionAddr = {};
+  test::mock::stack_acl::BTM_ReadRemoteConnectionAddr = {};
 }
 
 // Test smp_gen_p1_4_confirm and aes_128 function implementation
 TEST_F(SmpCalculateConfirmTest, test_aes_128_as_central) {
+  // Set local_bda to 0xA1A2A3A4A5A6
+  test::mock::stack_acl::BTM_ReadConnectionAddr.body =
+      [](const RawAddress& remote_bda, RawAddress& local_conn_addr,
+         tBLE_ADDR_TYPE* p_addr_type) {
+        local_conn_addr = RawAddress({0xA1, 0xA2, 0xA3, 0xA4, 0xA5, 0xA6});
+        *p_addr_type = BLE_ADDR_RANDOM;
+      };
+
+  // Set remote bda to 0xB1B2B3B4B5B6
+  test::mock::stack_acl::BTM_ReadRemoteConnectionAddr.body =
+      [](const RawAddress& pseudo_addr, RawAddress& conn_addr,
+         tBLE_ADDR_TYPE* p_addr_type) {
+        conn_addr = RawAddress({0xB1, 0xB2, 0xB3, 0xB4, 0xB5, 0xB6});
+        *p_addr_type = BLE_ADDR_PUBLIC;
+        return true;
+      };
+
   RawAddress remote_bda;
-  tBLE_ADDR_TYPE remote_bd_addr_type = 0;
+  tBLE_ADDR_TYPE remote_bd_addr_type = BLE_ADDR_PUBLIC;
   BTM_ReadRemoteConnectionAddr(p_cb_.pairing_bda, remote_bda,
                                &remote_bd_addr_type);
   BTM_ReadConnectionAddr(p_cb_.pairing_bda, p_cb_.local_bda, &p_cb_.addr_type);
@@ -196,10 +249,30 @@ TEST_F(SmpCalculateConfirmTest, test_aes_128_as_central) {
   char p1_prime_str[2 * OCTET16_LEN + 1];
   dump_uint128_reverse(output, p1_prime_str);
   ASSERT_THAT(p1_prime_str, StrEq(expected_p1_prime_str));
+
+  test::mock::stack_acl::BTM_ReadConnectionAddr = {};
+  test::mock::stack_acl::BTM_ReadRemoteConnectionAddr = {};
 }
 
 // Test smp_calculate_comfirm function implementation
 TEST_F(SmpCalculateConfirmTest, test_smp_calculate_comfirm_as_central) {
+  // Set local_bda to 0xA1A2A3A4A5A6
+  test::mock::stack_acl::BTM_ReadConnectionAddr.body =
+      [](const RawAddress& remote_bda, RawAddress& local_conn_addr,
+         tBLE_ADDR_TYPE* p_addr_type) {
+        local_conn_addr = RawAddress({0xA1, 0xA2, 0xA3, 0xA4, 0xA5, 0xA6});
+        *p_addr_type = BLE_ADDR_RANDOM;
+      };
+
+  // Set remote bda to 0xB1B2B3B4B5B6
+  test::mock::stack_acl::BTM_ReadRemoteConnectionAddr.body =
+      [](const RawAddress& pseudo_addr, RawAddress& conn_addr,
+         tBLE_ADDR_TYPE* p_addr_type) {
+        conn_addr = RawAddress({0xB1, 0xB2, 0xB3, 0xB4, 0xB5, 0xB6});
+        *p_addr_type = BLE_ADDR_PUBLIC;
+        return true;
+      };
+
   Octet16 output;
   tSMP_STATUS status = smp_calculate_comfirm(&p_cb_, rand_, &output);
   EXPECT_EQ(status, SMP_SUCCESS);
@@ -208,6 +281,9 @@ TEST_F(SmpCalculateConfirmTest, test_smp_calculate_comfirm_as_central) {
   char confirm_str[2 * OCTET16_LEN + 1];
   dump_uint128_reverse(output, confirm_str);
   ASSERT_THAT(confirm_str, StrEq(expected_confirm_str));
+
+  test::mock::stack_acl::BTM_ReadConnectionAddr = {};
+  test::mock::stack_acl::BTM_ReadRemoteConnectionAddr = {};
 }
 
 // Test ECC point validation
