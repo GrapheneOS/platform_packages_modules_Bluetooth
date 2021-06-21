@@ -230,7 +230,7 @@ extern bt_status_t btif_av_sink_execute_service(bool b_enable);
 extern bt_status_t btif_hh_execute_service(bool b_enable);
 extern bt_status_t btif_hf_client_execute_service(bool b_enable);
 extern bt_status_t btif_sdp_execute_service(bool b_enable);
-extern int btif_hh_connect(const RawAddress* bd_addr);
+extern bt_status_t btif_hh_connect(const RawAddress* bd_addr);
 extern bt_status_t btif_hd_execute_service(bool b_enable);
 extern bluetooth::hearing_aid::HearingAidInterface*
 btif_hearing_aid_get_interface();
@@ -636,8 +636,7 @@ static void btif_dm_cb_create_bond(const RawAddress bd_addr,
   }
 
   if (is_hid && (device_type & BT_DEVICE_TYPE_BLE) == 0) {
-    bt_status_t status;
-    status = (bt_status_t)btif_hh_connect(&bd_addr);
+    const bt_status_t status = btif_hh_connect(&bd_addr);
     if (status != BT_STATUS_SUCCESS)
       bond_state_changed(status, bd_addr, BT_BOND_STATE_NONE);
   } else {
