@@ -1197,7 +1197,7 @@ bool bluetooth::shim::BTM_BleLocalPrivacyEnabled(void) {
 tBTM_STATUS bluetooth::shim::BTM_SecBond(const RawAddress& bd_addr,
                                          tBLE_ADDR_TYPE addr_type,
                                          tBT_TRANSPORT transport,
-                                         int device_type) {
+                                         tBT_DEVICE_TYPE device_type) {
   return Stack::GetInstance()->GetBtm()->CreateBond(bd_addr, addr_type,
                                                     transport, device_type);
 }
