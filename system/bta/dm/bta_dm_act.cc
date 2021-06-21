@@ -706,7 +706,12 @@ void bta_dm_close_acl(const RawAddress& bd_addr, bool remove_dev,
 
 /** Bonds with peer device */
 void bta_dm_bond(const RawAddress& bd_addr, tBLE_ADDR_TYPE addr_type,
-                 tBT_TRANSPORT transport, int device_type) {
+                 tBT_TRANSPORT transport, tBT_DEVICE_TYPE device_type) {
+  LOG_DEBUG("Bonding with peer device:%s type:%s transport:%s type:%s",
+            PRIVATE_ADDRESS(bd_addr), AddressTypeText(addr_type).c_str(),
+            bt_transport_text(transport).c_str(),
+            DeviceTypeText(device_type).c_str());
+
   tBTA_DM_SEC sec_event;
   char* p_name;
 

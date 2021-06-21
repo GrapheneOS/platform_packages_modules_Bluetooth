@@ -94,7 +94,7 @@ void BTA_DmBleUpdateConnectionParams(const RawAddress& bd_addr,
   mock_function_count_map[__func__]++;
 }
 void BTA_DmBond(const RawAddress& bd_addr, tBLE_ADDR_TYPE addr_type,
-                tBT_TRANSPORT transport, int device_type) {
+                tBT_TRANSPORT transport, tBT_DEVICE_TYPE device_type) {
   mock_function_count_map[__func__]++;
 }
 void BTA_DmBondCancel(const RawAddress& bd_addr) {

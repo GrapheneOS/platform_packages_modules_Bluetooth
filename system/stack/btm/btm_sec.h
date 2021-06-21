@@ -229,7 +229,7 @@ tBTM_STATUS btm_sec_bond_by_transport(const RawAddress& bd_addr,
  *  Note: After 2.1 parameters are not used and preserved here not to change API
  ******************************************************************************/
 tBTM_STATUS BTM_SecBond(const RawAddress& bd_addr, tBLE_ADDR_TYPE addr_type,
-                        tBT_TRANSPORT transport, int device_type,
+                        tBT_TRANSPORT transport, tBT_DEVICE_TYPE device_type,
                         uint8_t pin_len, uint8_t* p_pin);
 
 /*******************************************************************************

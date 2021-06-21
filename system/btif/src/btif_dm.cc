@@ -631,7 +631,8 @@ static void btif_dm_cb_create_bond(const RawAddress bd_addr,
         BT_STATUS_SUCCESS) &&
        (device_type & BT_DEVICE_TYPE_BLE) == BT_DEVICE_TYPE_BLE) ||
       (transport == BT_TRANSPORT_LE)) {
-    BTA_DmAddBleDevice(bd_addr, addr_type, device_type);
+    BTA_DmAddBleDevice(bd_addr, addr_type,
+                       static_cast<tBT_DEVICE_TYPE>(device_type));
   }
 
   if (is_hid && (device_type & BT_DEVICE_TYPE_BLE) == 0) {
