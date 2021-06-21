@@ -842,7 +842,7 @@ public class BluetoothInCallService extends InCallService {
                 numHeldCalls = 1;  // Merge is available, so expose via numHeldCalls.
             }
 
-            for (int id : activeCall.getChildrenIds()) {
+            for (Integer id : activeCall.getChildrenIds()) {
                 // Held BluetoothCall has changed due to it being combined into a CDMA conference.
                 // Keep track of this and ignore any future update since it doesn't really count
                 // as a BluetoothCall change.
@@ -988,7 +988,7 @@ public class BluetoothInCallService extends InCallService {
     }
 
     @VisibleForTesting
-    public BluetoothCall getBluetoothCallById(int id) {
+    public BluetoothCall getBluetoothCallById(Integer id) {
         if (mBluetoothCallHashMap.containsKey(id)) {
             return mBluetoothCallHashMap.get(id);
         }
@@ -998,7 +998,7 @@ public class BluetoothInCallService extends InCallService {
     @VisibleForTesting
     public List<BluetoothCall> getBluetoothCallsByIds(List<Integer> ids) {
         List<BluetoothCall> calls = new ArrayList<>();
-        for (int id : ids) {
+        for (Integer id : ids) {
             BluetoothCall call = getBluetoothCallById(id);
             if (!mCallInfo.isNullCall(call)) {
                 calls.add(call);

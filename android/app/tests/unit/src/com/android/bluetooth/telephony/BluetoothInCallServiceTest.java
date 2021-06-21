@@ -307,7 +307,7 @@ public class BluetoothInCallServiceTest {
         addCallCapability(parentCall, Connection.CAPABILITY_MERGE_CONFERENCE);
         addCallCapability(parentCall, Connection.CAPABILITY_SWAP_CONFERENCE);
         removeCallCapability(parentCall, Connection.CAPABILITY_CONFERENCE_HAS_NO_CHILDREN);
-        int confCall1Id = confCall1.getId();
+        Integer confCall1Id = confCall1.getId();
         when(parentCall.getGenericConferenceActiveChildCallId())
                 .thenReturn(confCall1Id);
         when(parentCall.isConference()).thenReturn(true);
@@ -315,7 +315,7 @@ public class BluetoothInCallServiceTest {
                 confCall2.getId());
         when(parentCall.getChildrenIds()).thenReturn(childrenIds);
         //Add links from child calls to parent
-        int parentId = parentCall.getId();
+        Integer parentId = parentCall.getId();
         when(confCall1.getParentId()).thenReturn(parentId);
         when(confCall2.getParentId()).thenReturn(parentId);
 
@@ -369,14 +369,14 @@ public class BluetoothInCallServiceTest {
         addCallCapability(parentCall, Connection.CAPABILITY_SWAP_CONFERENCE);
         removeCallCapability(parentCall, Connection.CAPABILITY_CONFERENCE_HAS_NO_CHILDREN);
 
-        int foregroundCallId = foregroundCall.getId();
+        Integer foregroundCallId = foregroundCall.getId();
         when(parentCall.getGenericConferenceActiveChildCallId()).thenReturn(foregroundCallId);
         when(parentCall.isConference()).thenReturn(true);
         List<Integer> childrenIds = Arrays.asList(foregroundCall.getId(),
                 heldCall.getId());
         when(parentCall.getChildrenIds()).thenReturn(childrenIds);
         //Add links from child calls to parent
-        int parentId = parentCall.getId();
+        Integer parentId = parentCall.getId();
         when(foregroundCall.getParentId()).thenReturn(parentId);
         when(heldCall.getParentId()).thenReturn(parentId);
 
@@ -422,7 +422,7 @@ public class BluetoothInCallServiceTest {
                 confCall2.getId());
         when(parentCall.getChildrenIds()).thenReturn(childrenIds);
         //Add links from child calls to parent
-        int parentId = parentCall.getId();
+        Integer parentId = parentCall.getId();
         when(confCall1.getParentId()).thenReturn(parentId);
         when(confCall2.getParentId()).thenReturn(parentId);
 
@@ -634,7 +634,7 @@ public class BluetoothInCallServiceTest {
         mBluetoothInCallService.onCallAdded(childCall2);
 
         addCallCapability(parentCall, Connection.CAPABILITY_MANAGE_CONFERENCE);
-        int parentId = parentCall.getId();
+        Integer parentId = parentCall.getId();
         when(childCall1.getParentId()).thenReturn(parentId);
         when(childCall2.getParentId()).thenReturn(parentId);
 
@@ -1038,7 +1038,7 @@ public class BluetoothInCallServiceTest {
         mBluetoothInCallService.onCallAdded(parentCall);
         mBluetoothInCallService.onCallAdded(activeCall);
         mBluetoothInCallService.onCallAdded(heldCall);
-        int parentId = parentCall.getId();
+        Integer parentId = parentCall.getId();
         when(activeCall.getParentId()).thenReturn(parentId);
         when(heldCall.getParentId()).thenReturn(parentId);
 
@@ -1168,7 +1168,7 @@ public class BluetoothInCallServiceTest {
 
     private BluetoothCall getMockCall() {
         BluetoothCall call = mock(com.android.bluetooth.telephony.BluetoothCall.class);
-        int uuid = UUID.randomUUID().hashCode();
+        Integer uuid = UUID.randomUUID().hashCode();
         when(call.getId()).thenReturn(uuid);
         return call;
     }
