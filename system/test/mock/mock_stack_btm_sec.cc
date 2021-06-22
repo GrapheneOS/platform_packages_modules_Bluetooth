@@ -56,10 +56,6 @@ bool BTM_BothEndsSupportSecureConnections(const RawAddress& bd_addr) {
   mock_function_count_map[__func__]++;
   return false;
 }
-bool BTM_GetSecurityFlags(const RawAddress& bd_addr, uint8_t* p_sec_flags) {
-  mock_function_count_map[__func__]++;
-  return false;
-}
 bool BTM_GetSecurityFlagsByTransport(const RawAddress& bd_addr,
                                      uint8_t* p_sec_flags,
                                      tBT_TRANSPORT transport) {

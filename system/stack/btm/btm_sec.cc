@@ -289,27 +289,6 @@ bool BTM_SecDeleteRmtNameNotifyCallback(tBTM_RMT_NAME_CALLBACK* p_callback) {
   return (false);
 }
 
-/*******************************************************************************
- *
- * Function         BTM_GetSecurityFlags
- *
- * Description      Get security flags for the device
- *
- * Returns          bool    true or false is device found
- *
- ******************************************************************************/
-bool BTM_GetSecurityFlags(const RawAddress& bd_addr, uint8_t* p_sec_flags) {
-  tBTM_SEC_DEV_REC* p_dev_rec;
-
-  p_dev_rec = btm_find_dev(bd_addr);
-  if (p_dev_rec != NULL) {
-    *p_sec_flags = (uint8_t)p_dev_rec->sec_flags;
-    return (true);
-  }
-  BTM_TRACE_ERROR("BTM_GetSecurityFlags false");
-  return (false);
-}
-
 bool BTM_IsEncrypted(const RawAddress& bd_addr, tBT_TRANSPORT transport) {
   uint8_t flags = 0;
   BTM_GetSecurityFlagsByTransport(bd_addr, &flags, transport);
