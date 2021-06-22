@@ -52,7 +52,6 @@ rust_library {
     edition: "2018",
     rustlibs: [
         "libbt_facade_proto",
-        "libbt_packets",
         "libbytes",
         "libfutures",
         "libgrpcio",
