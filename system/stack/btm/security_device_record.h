@@ -224,7 +224,7 @@ struct tBTM_SEC_DEV_REC {
                                BD_NAME bd_name, uint8_t* features,
                                LinkKey* p_link_key, uint8_t key_type,
                                uint8_t pin_length);
-  friend void BTM_PINCodeReply(const RawAddress& bd_addr, uint8_t res,
+  friend void BTM_PINCodeReply(const RawAddress& bd_addr, tBTM_STATUS res,
                                uint8_t pin_len, uint8_t* p_pin);
   friend void btm_sec_auth_complete(uint16_t handle, tHCI_STATUS status);
   friend void btm_sec_connected(const RawAddress& bda, uint16_t handle,
