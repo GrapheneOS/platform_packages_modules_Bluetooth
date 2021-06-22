@@ -30,6 +30,10 @@ impl IBluetoothManagerCallback for BtManagerCallback {
     fn on_hci_device_changed(&self, hci_interface: i32, present: bool) {
         print_info!("hci{} present = {}", hci_interface, present);
     }
+
+    fn on_hci_enabled_changed(&self, hci_interface: i32, enabled: bool) {
+        print_info!("hci{} enabled = {}", hci_interface, enabled);
+    }
 }
 
 impl manager_service::RPCProxy for BtManagerCallback {

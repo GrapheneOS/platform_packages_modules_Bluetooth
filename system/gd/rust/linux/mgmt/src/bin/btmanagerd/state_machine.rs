@@ -37,7 +37,7 @@ pub enum StateMachineActions {
     StartBluetooth(i32),
     StopBluetooth(i32),
     BluetoothStarted(i32, i32), // PID and HCI
-    BluetoothStopped(),
+    BluetoothStopped(i32),
 }
 
 pub struct StateMachineContext<PM> {
@@ -136,8 +136,19 @@ pub async fn mainloop<PM>(
     loop {
         tokio::select! {
             Some(action) = context.rx.recv() => {
+              // Grab previous state from lock and release
+              let mut next_state;
+              let mut prev_state;
+              {
+                  prev_state = *context.state_machine.state.lock().await;
+              }
+              let mut hci = 0;
+
               match action {
                 StateMachineActions::StartBluetooth(i) => {
+                    next_state = State::TurningOn;
+                    hci = i;
+
                     match context.state_machine.action_start_bluetooth(i).await {
                         true => {
                             command_timeout.reset(COMMAND_TIMEOUT_DURATION);
@@ -146,14 +157,20 @@ pub async fn mainloop<PM>(
                     }
                 },
                 StateMachineActions::StopBluetooth(i) => {
-                  match context.state_machine.action_stop_bluetooth(i).await {
+                    next_state = State::TurningOff;
+                    hci = i;
+
+                    match context.state_machine.action_stop_bluetooth(i).await {
                       true => {
                           command_timeout.reset(COMMAND_TIMEOUT_DURATION);
                       },
                       false => command_timeout.cancel(),
                   }
                 },
-                StateMachineActions::BluetoothStarted(pid, hci) => {
+                StateMachineActions::BluetoothStarted(pid, i) => {
+                  next_state = State::On;
+                  hci = i;
+
                   match context.state_machine.action_on_bluetooth_started(pid, hci).await {
                       true => {
                           command_timeout.cancel();
@@ -161,7 +178,10 @@ pub async fn mainloop<PM>(
                       false => error!("unexpected BluetoothStarted pid{} hci{}", pid, hci),
                   }
                 },
-                StateMachineActions::BluetoothStopped() => {
+                StateMachineActions::BluetoothStopped(i) => {
+                  next_state = State::Off;
+                  hci = i;
+
                   match context.state_machine.action_on_bluetooth_stopped().await {
                       true => {
                           command_timeout.cancel();
@@ -171,7 +191,14 @@ pub async fn mainloop<PM>(
                       }
                   }
                 },
+              };
+
+              // Only emit enabled event for certain transitions
+              if next_state != prev_state &&
+                 (next_state == State::On || prev_state == State::On) {
+                  bluetooth_manager.lock().unwrap().callback_hci_enabled_change(hci, next_state == State::On);
               }
+
             },
             _expired = command_timeout.expired() => {
                 info!("expired {:?}", *context.state_machine.state.lock().await);
@@ -202,8 +229,8 @@ pub async fn mainloop<PM>(
                                 },
                                 (inotify::EventMask::DELETE, Some(oss)) => {
                                     let file_name = oss.to_str().unwrap_or("invalid file");
-                                    if let Some(_hci) = get_hci_interface_from_pid_file_name(file_name) {
-                                        context.tx.send_timeout(StateMachineActions::BluetoothStopped(), TX_SEND_TIMEOUT_DURATION).await.unwrap();
+                                    if let Some(hci) = get_hci_interface_from_pid_file_name(file_name) {
+                                        context.tx.send_timeout(StateMachineActions::BluetoothStopped(hci), TX_SEND_TIMEOUT_DURATION).await.unwrap();
                                     }
                                 },
                                 _ => debug!("Ignored event {:?}", event.mask)

@@ -257,4 +257,7 @@ impl manager_service::RPCProxy for IBluetoothManagerCallbackDBus {
 impl IBluetoothManagerCallback for IBluetoothManagerCallbackDBus {
     #[dbus_method("OnHciDeviceChanged")]
     fn on_hci_device_changed(&self, hci_interface: i32, present: bool) {}
+
+    #[dbus_method("OnHciEnabledChanged")]
+    fn on_hci_enabled_changed(&self, hci_interface: i32, enabled: bool) {}
 }

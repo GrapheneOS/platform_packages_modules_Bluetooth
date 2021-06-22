@@ -28,5 +28,5 @@ pub trait IBluetoothManager {
 /// Interface of Bluetooth Manager callbacks.
 pub trait IBluetoothManagerCallback: RPCProxy {
     fn on_hci_device_changed(&self, hci_interface: i32, present: bool);
-    // TODO: Add on_state_changed when this is implemented in state machine.
+    fn on_hci_enabled_changed(&self, hci_interface: i32, enabled: bool);
 }
