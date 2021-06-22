@@ -568,7 +568,7 @@ void bta_dm_remove_device(const RawAddress& bd_addr) {
       BTM_IsAclConnectionUp(bd_addr, BT_TRANSPORT_LE) ||
       BTM_IsAclConnectionUp(bd_addr, BT_TRANSPORT_BR_EDR);
 
-  uint8_t other_transport = BT_TRANSPORT_INVALID;
+  uint8_t other_transport = BT_TRANSPORT_AUTO;
   if (is_bd_addr_connected) {
     APPL_TRACE_DEBUG("%s: ACL Up count: %d", __func__,
                      bta_dm_cb.device_list.count);
