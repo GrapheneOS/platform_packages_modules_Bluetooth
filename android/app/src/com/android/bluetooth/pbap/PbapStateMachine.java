@@ -78,6 +78,12 @@ class PbapStateMachine extends StateMachine {
     static final int AUTH_KEY_INPUT = 7;
     static final int AUTH_CANCELLED = 8;
 
+    /**
+     * Used to limit PBAP OBEX maximum packet size in order to reduce
+     * transaction time.
+     */
+    private static final int PBAP_OBEX_MAXIMUM_PACKET_SIZE = 8192;
+
     private BluetoothPbapService mService;
     private IObexConnectionHandler mIObexConnectionHandler;
 
@@ -244,7 +250,8 @@ class PbapStateMachine extends StateMachine {
         private void rejectConnection() {
             mPbapServer =
                     new BluetoothPbapObexServer(mServiceHandler, mService, PbapStateMachine.this);
-            BluetoothObexTransport transport = new BluetoothObexTransport(mConnSocket);
+            BluetoothObexTransport transport = new BluetoothObexTransport(mConnSocket,
+                    PBAP_OBEX_MAXIMUM_PACKET_SIZE, BluetoothObexTransport.PACKET_SIZE_UNSPECIFIED);
             ObexRejectServer server =
                     new ObexRejectServer(ResponseCodes.OBEX_HTTP_UNAVAILABLE, mConnSocket);
             try {
@@ -345,7 +352,8 @@ class PbapStateMachine extends StateMachine {
                 mObexAuth.setChallenged(false);
                 mObexAuth.setCancelled(false);
             }
-            BluetoothObexTransport transport = new BluetoothObexTransport(mConnSocket);
+            BluetoothObexTransport transport = new BluetoothObexTransport(mConnSocket,
+                    PBAP_OBEX_MAXIMUM_PACKET_SIZE, BluetoothObexTransport.PACKET_SIZE_UNSPECIFIED);
             mServerSession = new ServerSession(transport, mPbapServer, mObexAuth);
             // It's ok to just use one wake lock
             // Message MSG_ACQUIRE_WAKE_LOCK is always surrounded by RELEASE. safe.
