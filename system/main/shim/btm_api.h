@@ -1536,8 +1536,8 @@ tBTM_LINK_KEY_TYPE BTM_SecGetDeviceLinkKeyType(const RawAddress& bd_addr);
  * Returns          void
  *
  ******************************************************************************/
-void BTM_PINCodeReply(const RawAddress& bd_addr, uint8_t res, uint8_t pin_len,
-                      uint8_t* p_pin);
+void BTM_PINCodeReply(const RawAddress& bd_addr, tBTM_STATUS res,
+                      uint8_t pin_len, uint8_t* p_pin);
 
 /*******************************************************************************
  *
