@@ -207,8 +207,8 @@ uint8_t BTM_SecClrServiceByPsm(uint16_t psm) {
 void BTM_ConfirmReqReply(tBTM_STATUS res, const RawAddress& bd_addr) {
   mock_function_count_map[__func__]++;
 }
-void BTM_PINCodeReply(const RawAddress& bd_addr, uint8_t res, uint8_t pin_len,
-                      uint8_t* p_pin) {
+void BTM_PINCodeReply(const RawAddress& bd_addr, tBTM_STATUS res,
+                      uint8_t pin_len, uint8_t* p_pin) {
   mock_function_count_map[__func__]++;
 }
 void BTM_PasskeyReqReply(tBTM_STATUS res, const RawAddress& bd_addr,

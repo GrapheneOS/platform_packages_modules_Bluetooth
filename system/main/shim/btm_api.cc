@@ -1351,8 +1351,9 @@ bool bluetooth::shim::BTM_SecDeleteRmtNameNotifyCallback(
   return true;
 }
 
-void bluetooth::shim::BTM_PINCodeReply(const RawAddress& bd_addr, uint8_t res,
-                                       uint8_t pin_len, uint8_t* p_pin) {
+void bluetooth::shim::BTM_PINCodeReply(const RawAddress& bd_addr,
+                                       tBTM_STATUS res, uint8_t pin_len,
+                                       uint8_t* p_pin) {
   ASSERT_LOG(!bluetooth::shim::is_gd_shim_enabled(), "Unreachable code path");
 }
 
