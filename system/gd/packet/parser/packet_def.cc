@@ -1079,6 +1079,22 @@ void PacketDef::GenRustAccessStructImpls(std::ostream& s) const {
   s << "fn to_vec(self) -> Vec<u8> { self.to_bytes().to_vec() }\n";
   s << "}";
 
+  s << "impl From<" << name_ << "Packet"
+    << "> for Bytes {\n";
+  s << "fn from(packet: " << name_ << "Packet"
+    << ") -> Self {\n";
+  s << "packet.to_bytes()\n";
+  s << "}\n";
+  s << "}\n";
+
+  s << "impl From<" << name_ << "Packet"
+    << "> for Vec<u8> {\n";
+  s << "fn from(packet: " << name_ << "Packet"
+    << ") -> Self {\n";
+  s << "packet.to_vec()\n";
+  s << "}\n";
+  s << "}\n";
+
   s << "impl " << name_ << "Packet {";
   if (parent_ == nullptr) {
     s << "pub fn parse(bytes: &[u8]) -> Result<Self> { ";

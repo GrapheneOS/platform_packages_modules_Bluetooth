@@ -1,7 +1,7 @@
 //! common facade & shim helpers
 
 use bt_facade_proto::common::Data;
-use bt_packets::hci::Packet;
+use bytes::Bytes;
 use futures::sink::SinkExt;
 use grpcio::*;
 use std::sync::Arc;
@@ -22,7 +22,7 @@ pub struct RxAdapter<T> {
     running: bool,
 }
 
-impl<T: 'static + Packet + Send> RxAdapter<T> {
+impl<T: 'static + Into<Vec<u8>> + Into<Bytes> + Send> RxAdapter<T> {
     /// New, from an unwrapped receiver
     pub fn new(rx: Receiver<T>) -> Self {
         Self::from_arc(Arc::new(Mutex::new(rx)))
@@ -42,7 +42,7 @@ impl<T: 'static + Packet + Send> RxAdapter<T> {
         ctx.spawn(async move {
             while let Some(payload) = clone_rx.lock().await.recv().await {
                 let mut data = Data::default();
-                data.set_payload(payload.to_vec());
+                data.set_payload(payload.into());
                 if let Err(e) = sink.send((data, WriteFlags::default())).await {
                     log::error!("failure sending data: {:?}", e);
                 }
@@ -62,7 +62,8 @@ impl<T: 'static + Packet + Send> RxAdapter<T> {
         let clone_rx = self.rx.clone();
         rt.spawn(async move {
             while let Some(payload) = clone_rx.lock().await.recv().await {
-                runnable.run(&payload.to_bytes());
+                let bytes: Bytes = payload.into();
+                runnable.run(&bytes);
             }
         });
     }

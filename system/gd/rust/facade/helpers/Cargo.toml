@@ -21,7 +21,6 @@ edition = "2018"
 [dependencies]
 # GD bluetooth deps
 bt_facade_proto = { path = "../../facade_proto" }
-bt_packets = { path = "../../packets" }
 
 # External deps
 bytes = "*"
