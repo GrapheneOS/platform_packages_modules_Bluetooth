@@ -25,6 +25,12 @@ impl BluetoothManager {
             callback.on_hci_device_changed(hci_device, present);
         }
     }
+
+    pub(crate) fn callback_hci_enabled_change(&self, hci_device: i32, enabled: bool) {
+        for callback in &self.callbacks {
+            callback.on_hci_enabled_changed(hci_device, enabled);
+        }
+    }
 }
 
 impl IBluetoothManager for BluetoothManager {
