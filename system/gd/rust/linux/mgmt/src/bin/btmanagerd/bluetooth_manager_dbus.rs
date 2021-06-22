@@ -50,4 +50,7 @@ struct BluetoothManagerCallbackDBus {}
 impl IBluetoothManagerCallback for BluetoothManagerCallbackDBus {
     #[dbus_method("OnHciDeviceChanged")]
     fn on_hci_device_changed(&self, hci_interface: i32, present: bool) {}
+
+    #[dbus_method("OnHciEnabledChanged")]
+    fn on_hci_enabled_changed(&self, hci_interface: i32, enabled: bool) {}
 }
