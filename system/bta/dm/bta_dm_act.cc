@@ -2688,16 +2688,15 @@ static void bta_dm_remove_sec_dev_entry(const RawAddress& remote_bd_addr) {
  ******************************************************************************/
 static void bta_dm_adjust_roles(bool delay_role_switch) {
   uint8_t i;
-  uint8_t br_count =
-      bta_dm_cb.device_list.count - bta_dm_cb.device_list.le_count;
-  if (br_count) {
+  uint8_t link_count = bta_dm_cb.device_list.count;
+  if (link_count) {
     for (i = 0; i < bta_dm_cb.device_list.count; i++) {
       if (bta_dm_cb.device_list.peer_device[i].conn_state == BTA_DM_CONNECTED &&
           bta_dm_cb.device_list.peer_device[i].transport ==
               BT_TRANSPORT_BR_EDR) {
         if ((bta_dm_cb.device_list.peer_device[i].pref_role ==
              BTA_CENTRAL_ROLE_ONLY) ||
-            (br_count > 1)) {
+            (link_count > 1)) {
           /* Initiating immediate role switch with certain remote devices
             has caused issues due to role  switch colliding with link encryption
             setup and
