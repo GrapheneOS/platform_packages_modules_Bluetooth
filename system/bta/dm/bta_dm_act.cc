@@ -1624,7 +1624,7 @@ static void bta_dm_discover_next_device(void) {
  ******************************************************************************/
 static void bta_dm_discover_device(const RawAddress& remote_bd_addr) {
   tBT_TRANSPORT transport = BT_TRANSPORT_BR_EDR;
-  if (bta_dm_search_cb.transport == BT_TRANSPORT_UNKNOWN) {
+  if (bta_dm_search_cb.transport == BT_TRANSPORT_AUTO) {
     tBT_DEVICE_TYPE dev_type;
     tBLE_ADDR_TYPE addr_type;
 
@@ -1667,7 +1667,7 @@ static void bta_dm_discover_device(const RawAddress& remote_bd_addr) {
                                        transport)) {
       if (bta_dm_search_cb.state != BTA_DM_DISCOVER_ACTIVE) {
         /* Reset transport state for next discovery */
-        bta_dm_search_cb.transport = BT_TRANSPORT_UNKNOWN;
+        bta_dm_search_cb.transport = BT_TRANSPORT_AUTO;
       }
       return;
     }
@@ -1677,7 +1677,7 @@ static void bta_dm_discover_device(const RawAddress& remote_bd_addr) {
   }
 
   /* Reset transport state for next discovery */
-  bta_dm_search_cb.transport = BT_TRANSPORT_UNKNOWN;
+  bta_dm_search_cb.transport = BT_TRANSPORT_AUTO;
 
   /* if application wants to discover service */
   if (bta_dm_search_cb.services) {

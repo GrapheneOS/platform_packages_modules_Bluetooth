@@ -19,8 +19,6 @@
 #include <string>
 
 #define BT_TRANSPORT_AUTO 0
-#define BT_TRANSPORT_UNKNOWN BT_TRANSPORT_AUTO
-
 #define BT_TRANSPORT_BR_EDR 1
 #define BT_TRANSPORT_LE 2
 typedef uint8_t tBT_TRANSPORT;
