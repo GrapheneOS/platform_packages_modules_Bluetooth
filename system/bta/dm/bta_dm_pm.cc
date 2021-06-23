@@ -51,7 +51,6 @@ static bool bta_dm_pm_park(const RawAddress& peer_addr);
 void bta_dm_pm_sniff(tBTA_DM_PEER_DEVICE* p_peer_dev, uint8_t index);
 static bool bta_dm_pm_is_sco_active();
 static int bta_dm_get_sco_index();
-static void bta_dm_pm_hid_check(bool bScoActive);
 static void bta_dm_pm_stop_timer_by_index(tBTA_PM_TIMER* p_timer,
                                           uint8_t timer_idx);
 
@@ -470,24 +469,6 @@ static void bta_dm_pm_cback(tBTA_SYS_CONN_STATUS status, uint8_t id,
   }
 
   bta_dm_pm_set_mode(peer_addr, BTA_DM_PM_NO_ACTION, pm_req);
-
-  /* perform the HID link workaround if needed
-  ** 1. If SCO up/down event is received OR
-  ** 2. If HID connection open is received and SCO is already active.
-  **     This will handle the case where HID connects when SCO already active
-  */
-  if (BTM_IsDeviceUp() &&
-      (((status == BTA_SYS_SCO_OPEN) || (status == BTA_SYS_SCO_CLOSE)) ||
-       ((status == BTA_SYS_CONN_OPEN) && (id == BTA_ID_HH) &&
-        bta_dm_pm_is_sco_active()))) {
-    bool bScoActive;
-    if (status == BTA_SYS_CONN_OPEN)
-      bScoActive = true;
-    else
-      bScoActive = (status == BTA_SYS_SCO_OPEN);
-
-    bta_dm_pm_hid_check(bScoActive);
-  }
 }
 
 /*******************************************************************************
@@ -1106,37 +1087,6 @@ static int bta_dm_get_sco_index() {
     }
   }
   return -1;
-}
-
-/*******************************************************************************
- *
- * Function         bta_dm_pm_hid_check
- *
- * Description      Disables/Enables sniff in link policy based on SCO Up/Down
- *
- * Returns          None
- *
- ******************************************************************************/
-static void bta_dm_pm_hid_check(bool bScoActive) {
-  int j;
-
-  /* if HID is active, disable the link policy */
-  for (j = 0; j < bta_dm_conn_srvcs.count; j++) {
-    /* check if an entry already present */
-    if (bta_dm_conn_srvcs.conn_srvc[j].id == BTA_ID_HH) {
-      APPL_TRACE_DEBUG(
-          "SCO status change(Active: %d), modify HID link policy. state: %d",
-          bScoActive, bta_dm_conn_srvcs.conn_srvc[j].state);
-      auto peer_addr = bta_dm_conn_srvcs.conn_srvc[j].peer_bdaddr;
-      if (bScoActive) {
-        BTM_block_sniff_mode_for(peer_addr);
-        bta_dm_pm_active(peer_addr);
-      } else {
-        BTM_unblock_sniff_mode_for(peer_addr);
-        bta_dm_pm_set_mode(peer_addr, BTA_DM_PM_NO_ACTION, BTA_DM_PM_RESTART);
-      }
-    }
-  }
 }
 
 /*******************************************************************************
