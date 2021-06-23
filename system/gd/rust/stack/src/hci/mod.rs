@@ -9,11 +9,11 @@ pub mod error;
 /// HCI layer facade service
 pub mod facade;
 
-pub use bt_hci_custom_types::*;
+pub use bt_packets::custom_types::Address;
 pub use controller::ControllerExports;
 
+use crate::hal::ControlHal;
 use bt_common::time::Alarm;
-use bt_hal::ControlHal;
 use bt_packets::hci::EventChild::{
     CommandComplete, CommandStatus, LeMetaEvent, MaxSlotsChange, PageScanRepetitionModeChange,
     VendorSpecificEvent,

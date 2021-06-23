@@ -1,5 +1,5 @@
 //! Implementation of the HAl that talks to BT controller over Android's HIDL
-use crate::internal::{InnerHal, RawHal};
+use crate::hal::internal::{InnerHal, RawHal};
 use bt_packets::hci::{AclPacket, CommandPacket, EventPacket, IsoPacket, Packet};
 use gddi::{module, provides};
 use std::sync::Arc;
@@ -38,7 +38,7 @@ async fn provide_hidl_hal(rt: Arc<Runtime>) -> RawHal {
 #[allow(dead_code)]
 mod ffi {
     unsafe extern "C++" {
-        include!("src/ffi/hidl.h");
+        include!("src/hal/ffi/hidl.h");
         fn start_hal();
         fn stop_hal();
         fn send_command(data: &[u8]);

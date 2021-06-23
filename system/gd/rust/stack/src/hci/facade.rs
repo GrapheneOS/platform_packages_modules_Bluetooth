@@ -1,14 +1,13 @@
 //! HCI layer facade
 
-use crate::{EventRegistry, RawCommandSender};
+use crate::hal::{AclHal, IsoHal};
+use crate::hci::{EventRegistry, RawCommandSender};
 use bt_common::GrpcFacade;
 use bt_facade_helpers::RxAdapter;
 use bt_facade_proto::common::Data;
 use bt_facade_proto::empty::Empty;
 use bt_facade_proto::hci_facade::EventRequest;
 use bt_facade_proto::hci_facade_grpc::{create_hci_facade, HciFacade};
-use bt_hal::AclHal;
-use bt_hal::IsoHal;
 use bt_packets::hci::{
     AclPacket, CommandPacket, EventCode, EventPacket, IsoPacket, LeMetaEventPacket, SubeventCode,
 };

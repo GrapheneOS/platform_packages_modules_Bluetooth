@@ -2,16 +2,16 @@
 
 use crate::controller::Controller;
 use crate::hci::Hci;
+use bluetooth_rs::hci::ControllerExports;
 use bt_common::init_flags;
-use bt_hci::ControllerExports;
 use std::ops::{Deref, DerefMut};
 use std::sync::Arc;
 use tokio::runtime::{Builder, Runtime};
 
-pub struct Stack(bt_main::Stack);
+pub struct Stack(bluetooth_rs::Stack);
 
 impl Deref for Stack {
-    type Target = bt_main::Stack;
+    type Target = bluetooth_rs::Stack;
     fn deref(&self) -> &Self::Target {
         &self.0
     }
@@ -39,7 +39,7 @@ pub fn stack_create() -> Box<Stack> {
 
     let local_rt = RUNTIME.clone();
     RUNTIME.block_on(async move {
-        let stack = bt_main::Stack::new(local_rt).await;
+        let stack = bluetooth_rs::Stack::new(local_rt).await;
         stack.use_default_snoop().await;
 
         Box::new(Stack(stack))
@@ -62,7 +62,7 @@ pub fn get_hci(stack: &mut Stack) -> Box<Hci> {
 
     Box::new(Hci::new(
         stack.get_runtime(),
-        stack.get_blocking::<bt_hci::facade::HciFacadeService>(),
+        stack.get_blocking::<bluetooth_rs::hci::facade::HciFacadeService>(),
     ))
 }
 
