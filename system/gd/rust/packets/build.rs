@@ -18,6 +18,10 @@ use std::path::PathBuf;
 use std::process::Command;
 
 fn main() {
+    generate_packets();
+}
+
+fn generate_packets() {
     let out_dir = PathBuf::from(env::var("OUT_DIR").unwrap());
 
     let gd_root = match env::var("PLATFORM_SUBDIR") {

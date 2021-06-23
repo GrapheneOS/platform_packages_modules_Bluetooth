@@ -22,9 +22,7 @@ edition = "2018"
 # BT dependencies
 bt_common = { path = "../common" }
 bt_facade_helpers = { path = "../facade/helpers" }
-bt_hal = { path = "../hal" }
-bt_hci = { path = "../hci" }
-bt_main = { path = "../main" }
+bluetooth_rs = { path = "../stack" }
 bt_packets = { path = "../packets" }
 
 # All external dependencies. Keep all versions at build/rust/Cargo.toml

@@ -1,5 +1,5 @@
 #pragma once
-#include "src/hidl_hal.rs.h"
+#include "src/hal/hidl_hal.rs.h"
 
 namespace bluetooth {
 namespace hal {
