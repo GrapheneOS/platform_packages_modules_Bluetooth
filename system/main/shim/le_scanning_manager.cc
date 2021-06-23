@@ -428,7 +428,7 @@ class BleScannerInterfaceImpl : public BleScannerInterface,
 
     uint8_t remote_name_len;
     const uint8_t* p_eir_remote_name = AdvertiseDataParser::GetFieldByType(
-        advertising_data, BTM_EIR_COMPLETE_LOCAL_NAME_TYPE, &remote_name_len);
+        advertising_data, HCI_EIR_COMPLETE_LOCAL_NAME_TYPE, &remote_name_len);
 
     if (p_eir_remote_name == NULL) {
       p_eir_remote_name = AdvertiseDataParser::GetFieldByType(
