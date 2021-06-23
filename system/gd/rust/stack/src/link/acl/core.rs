@@ -1,9 +1,9 @@
 //! ACL core dispatch shared between LE and classic
 
-use crate::acl::fragment::{fragmenting_stream, Reassembler};
+use crate::hal::AclHal;
+use crate::hci::{ControllerExports, EventRegistry};
+use crate::link::acl::fragment::{fragmenting_stream, Reassembler};
 use bt_common::Bluetooth::{self, Classic, Le};
-use bt_hal::AclHal;
-use bt_hci::{ControllerExports, EventRegistry};
 use bt_packets::hci::EventChild::{DisconnectionComplete, NumberOfCompletedPackets};
 use bt_packets::hci::{AclPacket, EventCode, EventPacket};
 use bytes::Bytes;

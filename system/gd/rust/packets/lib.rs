@@ -4,8 +4,10 @@
 #![allow(unused)]
 #![allow(missing_docs)]
 
+pub mod custom_types;
+
 pub mod hci {
-    use bt_hci_custom_types::*;
+    use crate::custom_types::*;
 
     include!(concat!(env!("OUT_DIR"), "/hci_packets.rs"));
 }

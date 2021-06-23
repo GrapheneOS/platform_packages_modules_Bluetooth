@@ -1,6 +1,6 @@
 //! BT snoop logger
 
-use crate::internal::RawHal;
+use crate::hal::internal::RawHal;
 use bt_common::sys_prop;
 use bt_packets::hci::{AclPacket, CommandPacket, EventPacket, IsoPacket, Packet};
 use bytes::{BufMut, Bytes, BytesMut};

@@ -20,7 +20,6 @@ edition = "2018"
 build = "build.rs"
 
 [dependencies]
-bt_hci_custom_types = { path = "../hci/custom_types" }
 futures = "*"
 grpcio = "*"
 protobuf = "*"

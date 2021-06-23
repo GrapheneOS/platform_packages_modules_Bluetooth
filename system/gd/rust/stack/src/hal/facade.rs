@@ -1,6 +1,6 @@
 //! BT HCI HAL facade
 
-use crate::{AclHal, ControlHal, IsoHal};
+use crate::hal::{AclHal, ControlHal, IsoHal};
 use bt_common::GrpcFacade;
 use bt_facade_helpers::RxAdapter;
 use bt_facade_proto::common::Data;
