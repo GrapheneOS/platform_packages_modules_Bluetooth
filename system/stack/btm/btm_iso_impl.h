@@ -355,7 +355,10 @@ struct iso_impl {
 
   void read_iso_link_quality(uint16_t iso_handle) {
     iso_base* iso = GetIsoIfKnown(iso_handle);
-    LOG_ASSERT(iso != nullptr) << "No such iso connection";
+    if (iso == nullptr) {
+      LOG(ERROR) <<__func__ << "No such iso connection: " << +iso_handle;
+      return;
+    }
 
     btsnd_hcic_read_iso_link_quality(
         iso_handle, base::BindOnce(&iso_impl::on_iso_link_quality_read,
