@@ -2849,7 +2849,7 @@ static void bta_dm_set_eir(char* local_name) {
   else
     local_name_len = 0;
 
-  data_type = BTM_EIR_COMPLETE_LOCAL_NAME_TYPE;
+  data_type = HCI_EIR_COMPLETE_LOCAL_NAME_TYPE;
   /* if local name is longer than minimum length of shortened name */
   /* check whether it needs to be shortened or not */
   if (local_name_len > p_bta_dm_eir_cfg->bta_dm_eir_min_name_len) {
@@ -2869,9 +2869,9 @@ static void bta_dm_set_eir(char* local_name) {
           local_name, p_bta_dm_eir_cfg->bta_dm_eir_min_name_len);
       APPL_TRACE_WARNING("%s local name is shortened (%d)", __func__,
                          local_name_len);
-      data_type = BTM_EIR_SHORTENED_LOCAL_NAME_TYPE;
+      data_type = HCI_EIR_SHORTENED_LOCAL_NAME_TYPE;
     } else {
-      data_type = BTM_EIR_COMPLETE_LOCAL_NAME_TYPE;
+      data_type = HCI_EIR_COMPLETE_LOCAL_NAME_TYPE;
     }
   }
 
@@ -2893,12 +2893,12 @@ static void bta_dm_set_eir(char* local_name) {
 
       if (free_eir_length >= p_bta_dm_eir_cfg->bta_dm_eir_uuid16_len) {
         num_uuid = p_bta_dm_eir_cfg->bta_dm_eir_uuid16_len / Uuid::kNumBytes16;
-        data_type = BTM_EIR_COMPLETE_16BITS_UUID_TYPE;
+        data_type = HCI_EIR_COMPLETE_16BITS_UUID_TYPE;
       } else /* not enough room for all UUIDs */
       {
         APPL_TRACE_WARNING("BTA EIR: UUID 16-bit list is truncated");
         num_uuid = free_eir_length / Uuid::kNumBytes16;
-        data_type = BTM_EIR_MORE_16BITS_UUID_TYPE;
+        data_type = HCI_EIR_MORE_16BITS_UUID_TYPE;
       }
       UINT8_TO_STREAM(p, num_uuid * Uuid::kNumBytes16 + 1);
       UINT8_TO_STREAM(p, data_type);
@@ -2919,7 +2919,7 @@ static void bta_dm_set_eir(char* local_name) {
     data_type = BTM_GetEirSupportedServices(bta_dm_cb.eir_uuid, &p,
                                             max_num_uuid, &num_uuid);
 
-    if (data_type == BTM_EIR_MORE_16BITS_UUID_TYPE) {
+    if (data_type == HCI_EIR_MORE_16BITS_UUID_TYPE) {
       APPL_TRACE_WARNING("BTA EIR: UUID 16-bit list is truncated");
     }
 #if (BTA_EIR_SERVER_NUM_CUSTOM_UUID > 0)
@@ -2933,7 +2933,7 @@ static void bta_dm_set_eir(char* local_name) {
             UINT16_TO_STREAM(p, curr.As16Bit());
             num_uuid++;
           } else {
-            data_type = BTM_EIR_MORE_16BITS_UUID_TYPE;
+            data_type = HCI_EIR_MORE_16BITS_UUID_TYPE;
             APPL_TRACE_WARNING("BTA EIR: UUID 16-bit list is truncated");
             break;
           }
@@ -2954,7 +2954,7 @@ static void bta_dm_set_eir(char* local_name) {
     p_length = p++;
     p_type = p++;
     num_uuid = 0;
-    data_type = BTM_EIR_COMPLETE_32BITS_UUID_TYPE;
+    data_type = HCI_EIR_COMPLETE_32BITS_UUID_TYPE;
 
     max_num_uuid = (free_eir_length - 2) / Uuid::kNumBytes32;
 
@@ -2966,7 +2966,7 @@ static void bta_dm_set_eir(char* local_name) {
           UINT32_TO_STREAM(p, curr.As32Bit());
           num_uuid++;
         } else {
-          data_type = BTM_EIR_MORE_32BITS_UUID_TYPE;
+          data_type = HCI_EIR_MORE_32BITS_UUID_TYPE;
           APPL_TRACE_WARNING("BTA EIR: UUID 32-bit list is truncated");
           break;
         }
@@ -2983,7 +2983,7 @@ static void bta_dm_set_eir(char* local_name) {
     p_length = p++;
     p_type = p++;
     num_uuid = 0;
-    data_type = BTM_EIR_COMPLETE_128BITS_UUID_TYPE;
+    data_type = HCI_EIR_COMPLETE_128BITS_UUID_TYPE;
 
     max_num_uuid = (free_eir_length - 2) / Uuid::kNumBytes128;
 
@@ -2995,7 +2995,7 @@ static void bta_dm_set_eir(char* local_name) {
           ARRAY16_TO_STREAM(p, curr.To128BitBE().data());
           num_uuid++;
         } else {
-          data_type = BTM_EIR_MORE_128BITS_UUID_TYPE;
+          data_type = HCI_EIR_MORE_128BITS_UUID_TYPE;
           APPL_TRACE_WARNING("BTA EIR: UUID 128-bit list is truncated");
           break;
         }
@@ -3014,7 +3014,7 @@ static void bta_dm_set_eir(char* local_name) {
       (p_bta_dm_eir_cfg->bta_dm_eir_flags) &&
       (free_eir_length >= p_bta_dm_eir_cfg->bta_dm_eir_flag_len + 2)) {
     UINT8_TO_STREAM(p, p_bta_dm_eir_cfg->bta_dm_eir_flag_len + 1);
-    UINT8_TO_STREAM(p, BTM_EIR_FLAGS_TYPE);
+    UINT8_TO_STREAM(p, HCI_EIR_FLAGS_TYPE);
     memcpy(p, p_bta_dm_eir_cfg->bta_dm_eir_flags,
            p_bta_dm_eir_cfg->bta_dm_eir_flag_len);
     p += p_bta_dm_eir_cfg->bta_dm_eir_flag_len;
@@ -3041,7 +3041,7 @@ static void bta_dm_set_eir(char* local_name) {
   /* if Inquiry Tx Resp Power compiled */
   if ((p_bta_dm_eir_cfg->bta_dm_eir_inq_tx_power) && (free_eir_length >= 3)) {
     UINT8_TO_STREAM(p, 2); /* Length field */
-    UINT8_TO_STREAM(p, BTM_EIR_TX_POWER_LEVEL_TYPE);
+    UINT8_TO_STREAM(p, HCI_EIR_TX_POWER_LEVEL_TYPE);
     UINT8_TO_STREAM(p, *(p_bta_dm_eir_cfg->bta_dm_eir_inq_tx_power));
     free_eir_length -= 3;
   }
