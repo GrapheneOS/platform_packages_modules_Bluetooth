@@ -315,11 +315,11 @@ static bool check_eir_remote_name(tBTA_DM_SEARCH* p_search_data,
   if (p_search_data->inq_res.p_eir) {
     p_eir_remote_name = AdvertiseDataParser::GetFieldByType(
         p_search_data->inq_res.p_eir, p_search_data->inq_res.eir_len,
-        BTM_EIR_COMPLETE_LOCAL_NAME_TYPE, &remote_name_len);
+        HCI_EIR_COMPLETE_LOCAL_NAME_TYPE, &remote_name_len);
     if (!p_eir_remote_name) {
       p_eir_remote_name = AdvertiseDataParser::GetFieldByType(
           p_search_data->inq_res.p_eir, p_search_data->inq_res.eir_len,
-          BTM_EIR_SHORTENED_LOCAL_NAME_TYPE, &remote_name_len);
+          HCI_EIR_SHORTENED_LOCAL_NAME_TYPE, &remote_name_len);
     }
 
     if (p_eir_remote_name) {

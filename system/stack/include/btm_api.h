@@ -908,8 +908,8 @@ void BTM_RemoveEirService(uint32_t* p_eir_uuid, uint16_t uuid16);
  *                  max_num_uuid16 - max number of UUID can be written in EIR
  *                  num_uuid16 - number of UUID have been written in EIR
  *
- * Returns          BTM_EIR_MORE_16BITS_UUID_TYPE, if it has more than max
- *                  BTM_EIR_COMPLETE_16BITS_UUID_TYPE, otherwise
+ * Returns          HCI_EIR_MORE_16BITS_UUID_TYPE, if it has more than max
+ *                  HCI_EIR_COMPLETE_16BITS_UUID_TYPE, otherwise
  *
  ******************************************************************************/
 uint8_t BTM_GetEirSupportedServices(uint32_t* p_eir_uuid, uint8_t** p,
@@ -931,12 +931,12 @@ uint8_t BTM_GetEirSupportedServices(uint32_t* p_eir_uuid, uint8_t** p,
  *                  max_num_uuid - maximum number of UUID to be returned
  *
  * Returns          0 - if not found
- *                  BTM_EIR_COMPLETE_16BITS_UUID_TYPE
- *                  BTM_EIR_MORE_16BITS_UUID_TYPE
- *                  BTM_EIR_COMPLETE_32BITS_UUID_TYPE
- *                  BTM_EIR_MORE_32BITS_UUID_TYPE
- *                  BTM_EIR_COMPLETE_128BITS_UUID_TYPE
- *                  BTM_EIR_MORE_128BITS_UUID_TYPE
+ *                  HCI_EIR_COMPLETE_16BITS_UUID_TYPE
+ *                  HCI_EIR_MORE_16BITS_UUID_TYPE
+ *                  HCI_EIR_COMPLETE_32BITS_UUID_TYPE
+ *                  HCI_EIR_MORE_32BITS_UUID_TYPE
+ *                  HCI_EIR_COMPLETE_128BITS_UUID_TYPE
+ *                  HCI_EIR_MORE_128BITS_UUID_TYPE
  *
  ******************************************************************************/
 uint8_t BTM_GetEirUuidList(uint8_t* p_eir, size_t eir_len, uint8_t uuid_size,
