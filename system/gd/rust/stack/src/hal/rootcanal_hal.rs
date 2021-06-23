@@ -2,8 +2,8 @@
 //! This connects to "rootcanal" which provides a simulated
 //! Bluetooth chip as well as a simulated environment.
 
-use crate::internal::{InnerHal, RawHal};
-use crate::{Result, H4_HEADER_SIZE};
+use crate::hal::internal::{InnerHal, RawHal};
+use crate::hal::{Result, H4_HEADER_SIZE};
 use bt_packets::hci::{AclPacket, CommandPacket, EventPacket, IsoPacket, Packet};
 use bytes::{BufMut, Bytes, BytesMut};
 use gddi::{module, provides, Stoppable};

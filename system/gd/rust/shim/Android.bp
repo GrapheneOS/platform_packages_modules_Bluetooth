@@ -32,12 +32,10 @@ rust_ffi_static {
     crate_name: "bt_shim",
     srcs: ["src/lib.rs"],
     rustlibs: [
-        "libbt_hal",
-        "libbt_hci",
+        "libbluetooth_rs",
         "libbt_common",
         "libcxx",
         "libtokio",
-        "libbt_main",
         "libbt_packets",
         "libfutures",
         "libnum_traits",

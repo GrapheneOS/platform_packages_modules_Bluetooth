@@ -1,6 +1,6 @@
 //! Loads info from the controller at startup
 
-use crate::{Address, CommandSender};
+use crate::hci::{Address, CommandSender};
 use bt_packets::hci::{
     Enable, ErrorCode, LeHostFeatureBits, LeMaximumDataLength, LeReadBufferSizeV1Builder,
     LeReadBufferSizeV2Builder, LeReadConnectListSizeBuilder, LeReadLocalSupportedFeaturesBuilder,

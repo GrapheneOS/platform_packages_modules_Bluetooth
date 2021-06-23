@@ -14,32 +14,34 @@
 #  limitations under the License.
 
 [package]
-name = "bt_link"
+name = "bluetooth_rs"
 version = "0.0.1"
 edition = "2018"
 
 [dependencies]
-# bt deps
+# BT dependencies
 bt_common = { path = "../common" }
-bt_hci = { path = "../hci" }
-bt_hci_custom_types = { path = "../hci/custom_types" }
-bt_hal = { path = "../hal" }
+bt_facade_helpers = { path = "../facade/helpers" }
 bt_facade_proto = { path = "../facade_proto" }
 bt_packets = { path = "../packets" }
 gddi = { path = "../gddi" }
 
-# external deps
+# External dependencies
 bytes = "*"
+cxx = "*"
 futures = "*"
 grpcio = "*"
+lazy_static = "*"
 log = "*"
+nix = "*"
 num-traits = "*"
 protobuf = "*"
 thiserror = "*"
-tokio = { version = "*", features = ['bytes', 'net'] }
+tokio = "*"
 tokio-stream = "*"
+walkdir = "*"
 
-# macro deps
+# Macro dependencies
 num-derive = "*"
 
 [lib]

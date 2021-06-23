@@ -8,9 +8,9 @@ package {
 }
 
 rust_library {
-    name: "libbt_hal",
+    name: "libbluetooth_rs",
     defaults: ["gd_rust_defaults"],
-    crate_name: "bt_hal",
+    crate_name: "bluetooth_rs",
     srcs: ["src/lib.rs"],
     edition: "2018",
     rustlibs: [
@@ -21,6 +21,7 @@ rust_library {
         "libthiserror",
         "libgrpcio",
         "libtokio",
+        "libtokio_stream",
         "libprotobuf",
         "libbt_packets",
         "libgddi",
@@ -47,27 +48,57 @@ rust_library {
     },
 }
 
+rust_test_host {
+    name: "libbluetooth_rs_test",
+    defaults: ["gd_rust_defaults"],
+    srcs: ["src/lib.rs"],
+    test_suites: ["general-tests"],
+    edition: "2018",
+    rustlibs: [
+        "libbt_facade_proto",
+        "libbt_packets",
+        "libbluetooth_rs",
+        "libbytes",
+        "libfutures",
+        "libthiserror",
+        "libgrpcio",
+        "libtokio",
+        "libtokio_stream",
+        "libprotobuf",
+        "libgddi",
+        "libcxx",
+        "liblazy_static",
+        "liblog_rust",
+        "libbt_common",
+        "libnum_traits",
+        "libbt_facade_helpers",
+    ],
+    proc_macros: [
+        "libnum_derive",
+    ],
+}
+
 genrule {
     name: "libbt_hidl_hal_bridge_header",
     tools: ["cxxbridge"],
     cmd: "$(location cxxbridge) $(in) --header > $(out)",
-    srcs: ["src/hidl_hal.rs"],
-    out: ["src/hidl_hal.rs.h"],
+    srcs: ["src/hal/hidl_hal.rs"],
+    out: ["src/hal/hidl_hal.rs.h"],
 }
 
 genrule {
     name: "libbt_hidl_hal_bridge_code",
     tools: ["cxxbridge"],
     cmd: "$(location cxxbridge) $(in) >> $(out)",
-    srcs: ["src/hidl_hal.rs"],
+    srcs: ["src/hal/hidl_hal.rs"],
     out: ["hidl_hal_generated.cc"],
 }
 
 cc_library_static {
     name: "libbt_hidl_hal_cxx",
     defaults: ["gd_ffi_defaults"],
-    srcs: ["src/ffi/hidl.cc"],
-    local_include_dirs: ["src/ffi"],
+    srcs: ["src/hal/ffi/hidl.cc"],
+    local_include_dirs: ["src/hal/ffi"],
     generated_headers: ["libbt_hidl_hal_bridge_header", "cxx-bridge-header"],
     generated_sources: ["libbt_hidl_hal_bridge_code"],
     shared_libs: [
@@ -77,3 +108,4 @@ cc_library_static {
         "libutils",
     ],
 }
+

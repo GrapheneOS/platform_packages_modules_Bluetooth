@@ -1,8 +1,8 @@
 //! Hci shim
 
 use crate::bridge::ffi;
+use bluetooth_rs::hci::facade::HciFacadeService;
 use bt_facade_helpers::U8SliceRunnable;
-use bt_hci::facade::HciFacadeService;
 use bt_packets::hci::{AclPacket, CommandPacket, IsoPacket, Packet};
 use std::sync::Arc;
 use tokio::runtime::Runtime;

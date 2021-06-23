@@ -1,7 +1,7 @@
 //! Controller facade
 
-use crate::controller::{null_terminated_to_string, ControllerExports};
-use crate::Hci;
+use crate::hci::controller::{null_terminated_to_string, ControllerExports};
+use crate::hci::Hci;
 use bt_common::GrpcFacade;
 use bt_facade_proto::controller_facade::{AddressMsg, NameMsg};
 use bt_facade_proto::controller_facade_grpc::{create_controller_facade, ControllerFacade};

@@ -1,8 +1,15 @@
 //! Main BT lifecycle support
+#[cfg(target_os = "android")]
+#[macro_use]
+extern crate lazy_static;
 
+pub mod hal;
+pub mod hci;
+pub mod link;
+
+use crate::hal::rootcanal_hal::RootcanalConfig;
+use crate::hal::snoop::{SnoopConfig, SnoopMode};
 use bt_common::GrpcFacade;
-use bt_hal::rootcanal_hal::RootcanalConfig;
-use bt_hal::snoop::{SnoopConfig, SnoopMode};
 use gddi::{module, Registry, RegistryBuilder, Stoppable};
 use std::sync::Arc;
 use tokio::runtime::Runtime;
@@ -10,8 +17,8 @@ use tokio::runtime::Runtime;
 module! {
     stack_module,
     submodules {
-        bt_hal::hal_module,
-        bt_hci::hci_module,
+        crate::hal::hal_module,
+        crate::hci::hci_module,
     }
 }
 

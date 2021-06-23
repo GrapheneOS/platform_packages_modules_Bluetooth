@@ -1,6 +1,6 @@
 //! Classic ACL facade
 
-use crate::acl::classic::AclManager;
+use crate::link::acl::classic::AclManager;
 
 module! {
     facade_module,

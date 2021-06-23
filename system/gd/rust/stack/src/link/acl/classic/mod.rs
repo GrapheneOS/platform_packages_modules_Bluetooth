@@ -1,8 +1,8 @@
 //! Classic ACL manager
 
-use crate::acl::core;
+use crate::hci::{Address, CommandSender, EventRegistry};
+use crate::link::acl::core;
 use bt_common::Bluetooth;
-use bt_hci::{Address, CommandSender, EventRegistry};
 use bt_packets::hci::EventChild::{
     AuthenticationComplete, ConnectionComplete, DisconnectionComplete,
 };
