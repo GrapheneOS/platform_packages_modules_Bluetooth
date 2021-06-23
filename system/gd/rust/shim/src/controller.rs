@@ -1,6 +1,6 @@
 //! Controller shim
 
-use bt_hci::ControllerExports;
+use bluetooth_rs::hci::ControllerExports;
 use bt_packets::hci::OpCode;
 use paste::paste;
 use std::ops::Deref;

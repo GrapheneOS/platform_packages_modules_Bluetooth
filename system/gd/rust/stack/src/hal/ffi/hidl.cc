@@ -4,7 +4,7 @@
 #include <stdlib.h>
 
 #include "../../os/log.h"
-#include "src/ffi/hidl.h"
+#include "src/hal/ffi/hidl.h"
 
 using ::android::hardware::hidl_vec;
 using ::android::hardware::Return;
