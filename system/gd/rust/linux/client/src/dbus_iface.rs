@@ -27,6 +27,7 @@ impl_dbus_arg_enum!(BtSspVariant);
 #[dbus_propmap(BluetoothDevice)]
 pub struct BluetoothDeviceDBus {
     address: String,
+    name: String,
 }
 
 struct ClientDBusProxy {
