@@ -17,6 +17,7 @@
 #include "dual_mode_controller.h"
 
 #include <memory>
+#include <random>
 
 #include <base/files/file_util.h>
 #include <base/json/json_reader.h>
@@ -2240,14 +2241,16 @@ void DualModeController::LeReadRemoteFeatures(CommandView command) {
   send_event_(std::move(packet));
 }
 
+
+static std::random_device rd{};
+static std::mt19937_64 s_mt{rd()};
+
 void DualModeController::LeRand(CommandView command) {
   auto command_view = gd_hci::LeRandView::Create(
       gd_hci::LeSecurityCommandView::Create(command));
   ASSERT(command_view.IsValid());
-  uint64_t random_val = 0;
-  for (size_t rand_bytes = 0; rand_bytes < sizeof(uint64_t); rand_bytes += sizeof(RAND_MAX)) {
-    random_val = (random_val << (8 * sizeof(RAND_MAX))) | random();
-  }
+
+  uint64_t random_val = s_mt();
 
   auto packet = bluetooth::hci::LeRandCompleteBuilder::Create(
       kNumCommandPackets, ErrorCode::SUCCESS, random_val);
