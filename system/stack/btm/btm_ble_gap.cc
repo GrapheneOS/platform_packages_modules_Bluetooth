@@ -396,7 +396,9 @@ void BTM_BleOpportunisticObserve(bool enable,
  *                  events from a broadcast device.
  *
  * Parameters       start: start or stop observe.
- *                  acceptlist: use acceptlist in observer mode or not.
+ *                  duration: how long the scan should last, in seconds. 0 means
+ *                  scan without timeout. Starting the scan second time without
+ *                  timeout will disable the timer.
  *
  * Returns          void
  *
@@ -425,6 +427,12 @@ tBTM_STATUS BTM_BleObserve(bool start, uint8_t duration,
   if (start) {
     /* shared inquiry database, do not allow observe if any inquiry is active */
     if (btm_cb.ble_ctr_cb.is_ble_observe_active()) {
+      if (duration == 0) {
+        if (alarm_is_scheduled(btm_cb.ble_ctr_cb.observer_timer)) {
+          alarm_cancel(btm_cb.ble_ctr_cb.observer_timer);
+          return BTM_CMD_STARTED;
+        }
+      }
       BTM_TRACE_ERROR("%s Observe Already Active", __func__);
       return status;
     }
