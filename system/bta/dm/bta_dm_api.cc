@@ -648,6 +648,45 @@ extern void BTA_DmBleObserve(bool start, uint8_t duration,
 
 /*******************************************************************************
  *
+ * Function         BTA_DmBleScan
+ *
+ * Description      Start or stop the scan procedure if it's not already started
+ *                  with BTA_DmBleObserve().
+ *
+ * Parameters       start: start or stop the scan procedure,
+ *                  duration_sec: Duration of the scan. Continuous scan if 0 is
+ *                                passed,
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
+extern void BTA_DmBleScan(bool start, uint8_t duration_sec) {
+  APPL_TRACE_API("%s:start = %d ", __func__, start);
+  do_in_main_thread(FROM_HERE,
+                    base::Bind(bta_dm_ble_scan, start, duration_sec));
+}
+
+/*******************************************************************************
+ *
+ * Function         BTA_DmBleCsisObserve
+ *
+ * Description      This procedure keeps the external observer listening for
+ *                  advertising events from a CSIS grouped device.
+ *
+ * Parameters       observe: enable or disable passive observe,
+ *                  p_results_cb: Callback to be called with scan results,
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
+void BTA_DmBleCsisObserve(bool observe, tBTA_DM_SEARCH_CBACK* p_results_cb) {
+  APPL_TRACE_API("%s:enable = %d ", __func__, observe);
+  do_in_main_thread(FROM_HERE,
+                    base::Bind(bta_dm_ble_csis_observe, observe, p_results_cb));
+}
+
+/*******************************************************************************
+ *
  * Function         BTA_VendorInit
  *
  * Description      This function initializes vendor specific

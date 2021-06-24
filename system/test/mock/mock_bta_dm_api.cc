@@ -142,4 +142,10 @@ void BTA_DmBleObserve(bool start, uint8_t duration,
                       tBTA_DM_SEARCH_CBACK* p_results_cb) {
   mock_function_count_map[__func__]++;
 }
+void BTA_DmBleScan(bool start, uint8_t duration) {
+  mock_function_count_map[__func__]++;
+}
+void BTA_DmBleCsisObserve(bool observe, tBTA_DM_SEARCH_CBACK* p_results_cb) {
+  mock_function_count_map[__func__]++;
+}
 void BTA_VendorInit(void) { mock_function_count_map[__func__]++; }
