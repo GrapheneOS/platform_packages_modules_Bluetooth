@@ -116,7 +116,7 @@ public class BluetoothMapService extends ProfileService {
 
     private static final int MAS_ID_SMS_MMS = 0;
 
-    private BluetoothAdapter mAdapter;
+    private AdapterService mAdapterService;
     private DatabaseManager mDatabaseManager;
 
     private BluetoothMnsObexClient mBluetoothMnsObexClient = null;
@@ -556,7 +556,7 @@ public class BluetoothMapService extends ProfileService {
 
     List<BluetoothDevice> getDevicesMatchingConnectionStates(int[] states) {
         List<BluetoothDevice> deviceList = new ArrayList<>();
-        Set<BluetoothDevice> bondedDevices = mAdapter.getBondedDevices();
+        BluetoothDevice[] bondedDevices = mAdapterService.getBondedDevices();
         if (bondedDevices == null) {
             return deviceList;
         }
@@ -685,7 +685,7 @@ public class BluetoothMapService extends ProfileService {
             registerReceiver(mMapReceiver, filterMessageSent);
             mRegisteredMapReceiver = true;
         }
-        mAdapter = BluetoothAdapter.getDefaultAdapter();
+        mAdapterService = AdapterService.getAdapterService();
         mAppObserver = new BluetoothMapAppObserver(this, this);
 
         TelephonyManager tm = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
@@ -794,7 +794,7 @@ public class BluetoothMapService extends ProfileService {
             mMasInstances.append(masId, newInst);
             mMasInstanceMap.put(account, newInst);
             // Start the new instance
-            if (mAdapter.isEnabled()) {
+            if (mAdapterService.isEnabled()) {
                 newInst.startSocketListeners();
             }
         }
