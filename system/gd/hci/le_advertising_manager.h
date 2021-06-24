@@ -91,6 +91,7 @@ class AdvertisingCallback {
   virtual void OnPeriodicAdvertisingParametersUpdated(uint8_t advertiser_id, uint8_t status) = 0;
   virtual void OnPeriodicAdvertisingDataSet(uint8_t advertiser_id, uint8_t status) = 0;
   virtual void OnPeriodicAdvertisingEnabled(uint8_t advertiser_id, bool enable, uint8_t status) = 0;
+  virtual void OnOwnAddressRead(uint8_t advertiser_id, uint8_t address_type, Address address) = 0;
 };
 
 class LeAdvertisingManager : public bluetooth::Module {
@@ -112,6 +113,8 @@ class LeAdvertisingManager : public bluetooth::Module {
       uint16_t duration,
       uint8_t max_extended_advertising_events,
       os::Handler* handler);
+
+  void GetOwnAddress(uint8_t advertiser_id);
 
   void SetParameters(AdvertiserId advertiser_id, ExtendedAdvertisingConfig config);
 
