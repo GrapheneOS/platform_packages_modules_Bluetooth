@@ -210,7 +210,7 @@ public class PanService extends ProfileService {
                 break;
                 case MESSAGE_CONNECT_STATE_CHANGED: {
                     ConnectState cs = (ConnectState) msg.obj;
-                    final BluetoothDevice device = getDevice(cs.addr);
+                    final BluetoothDevice device = getAnonymousDevice(cs.addr);
                     // TBD get iface from the msg
                     if (DBG) {
                         Log.d(TAG,
