@@ -1092,6 +1092,38 @@ extern void BTA_DmBleObserve(bool start, uint8_t duration,
 
 /*******************************************************************************
  *
+ * Function         BTA_DmBleScan
+ *
+ * Description      Start or stop the scan procedure if it's not already started
+ *                  with BTA_DmBleObserve().
+ *
+ * Parameters       start: start or stop the scan procedure,
+ *                  duration_sec: Duration of the scan. Continuous scan if 0 is
+ *                                passed,
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
+extern void BTA_DmBleScan(bool start, uint8_t duration);
+
+/*******************************************************************************
+ *
+ * Function         BTA_DmBleCsisObserve
+ *
+ * Description      This procedure keeps the external observer listening for
+ *                  advertising events from a CSIS grouped device.
+ *
+ * Parameters       observe: enable or disable passive observe,
+ *                  p_results_cb: Callback to be called with scan results,
+ *
+ * Returns          void
+ *
+ ******************************************************************************/
+extern void BTA_DmBleCsisObserve(bool observe,
+                                 tBTA_DM_SEARCH_CBACK* p_results_cb);
+
+/*******************************************************************************
+ *
  * Function         BTA_DmBleConfigLocalPrivacy
  *
  * Description      Enable/disable privacy on the local device
