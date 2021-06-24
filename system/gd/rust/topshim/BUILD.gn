@@ -25,7 +25,8 @@ config("rust_topshim_config") {
 cxxbridge_header("btif_bridge_header") {
   sources = [
     "src/btif.rs",
-    "src/profiles/a2dp.rs"
+    "src/profiles/a2dp.rs",
+    "src/profiles/avrcp.rs"
   ]
   all_dependent_configs = [ ":rust_topshim_config" ]
   deps = [":cxxlibheader"]
@@ -34,7 +35,8 @@ cxxbridge_header("btif_bridge_header") {
 cxxbridge_cc("btif_bridge_code") {
   sources = [
     "src/btif.rs",
-    "src/profiles/a2dp.rs"
+    "src/profiles/a2dp.rs",
+    "src/profiles/avrcp.rs"
   ]
   deps = [":btif_bridge_header"]
   configs = [ "//bt/gd:gd_defaults" ]
