@@ -2279,8 +2279,7 @@ public class GattService extends ProfileService {
                 callingPackage.equals(mExposureNotificationPackage);
 
         scanClient.hasDisavowedLocation =
-                Utils.hasDisavowedLocationForScan(this, callingPackage, attributionSource,
-                        isTestModeEnabled());
+                Utils.hasDisavowedLocationForScan(this, attributionSource, isTestModeEnabled());
 
         scanClient.isQApp = Utils.isQApp(this, callingPackage);
         if (!scanClient.hasDisavowedLocation) {
@@ -2353,8 +2352,7 @@ public class GattService extends ProfileService {
                 callingPackage.equals(mExposureNotificationPackage);
 
         app.mHasDisavowedLocation =
-                Utils.hasDisavowedLocationForScan(this, callingPackage, attributionSource,
-                        isTestModeEnabled());
+                Utils.hasDisavowedLocationForScan(this, attributionSource, isTestModeEnabled());
 
         app.mIsQApp = Utils.isQApp(this, callingPackage);
         if (!app.mHasDisavowedLocation) {
