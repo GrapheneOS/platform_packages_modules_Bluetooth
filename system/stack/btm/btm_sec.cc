@@ -876,9 +876,9 @@ tBTM_STATUS BTM_SecBond(const RawAddress& bd_addr, tBLE_ADDR_TYPE addr_type,
                                         device_type);
   }
 
-  if (transport == BT_TRANSPORT_INVALID)
+  if (transport == BT_TRANSPORT_AUTO) {
     transport = BTM_UseLeLink(bd_addr) ? BT_TRANSPORT_LE : BT_TRANSPORT_BR_EDR;
-
+  }
   tBT_DEVICE_TYPE dev_type;
 
   BTM_ReadDevInfo(bd_addr, &dev_type, &addr_type);
