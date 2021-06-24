@@ -823,7 +823,7 @@ void ErtmController::OnSdu(std::unique_ptr<packet::BasePacketBuilder> sdu) {
     return;
   }
   pimpl_->data_request(SegmentationAndReassembly::START, std::move(segments[0]), sdu_size);
-  for (auto i = 1; i < segments.size() - 1; i++) {
+  for (size_t i = 1; i < segments.size() - 1; i++) {
     pimpl_->data_request(SegmentationAndReassembly::CONTINUATION, std::move(segments[i]));
   }
   pimpl_->data_request(SegmentationAndReassembly::END, std::move(segments.back()));
