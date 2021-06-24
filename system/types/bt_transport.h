@@ -23,13 +23,18 @@
 #define BT_TRANSPORT_LE 2
 typedef uint8_t tBT_TRANSPORT;
 
-inline std::string bt_transport_text(tBT_TRANSPORT transport) {
+#define CASE_RETURN_TEXT(code) \
+  case code:                   \
+    return #code
+
+inline std::string bt_transport_text(const tBT_TRANSPORT& transport) {
   switch (transport) {
-    case BT_TRANSPORT_BR_EDR:
-      return std::string("br_edr");
-    case BT_TRANSPORT_LE:
-      return std::string("le");
+    CASE_RETURN_TEXT(BT_TRANSPORT_AUTO);
+    CASE_RETURN_TEXT(BT_TRANSPORT_BR_EDR);
+    CASE_RETURN_TEXT(BT_TRANSPORT_LE);
     default:
-      return std::string("unknown");
+      return std::string("UNKNOWN[") + std::to_string(transport) +
+             std::string("]");
   }
 }
+#undef CASE_RETURN_TEXT
