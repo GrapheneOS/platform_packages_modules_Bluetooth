@@ -80,7 +80,7 @@ public class SapService extends ProfileService {
     private static final int USER_CONFIRM_TIMEOUT_VALUE = 25000;
 
     private PowerManager.WakeLock mWakeLock = null;
-    private BluetoothAdapter mAdapter;
+    private AdapterService mAdapterService;
     private SocketAcceptThread mAcceptThread = null;
     private BluetoothServerSocket mServerSocket = null;
     private int mSdpHandle = -1;
@@ -122,7 +122,7 @@ public class SapService extends ProfileService {
     }
 
     private void removeSdpRecord() {
-        if (mAdapter != null && mSdpHandle >= 0 && SdpManager.getDefaultManager() != null) {
+        if (mAdapterService != null && mSdpHandle >= 0 && SdpManager.getDefaultManager() != null) {
             if (VERBOSE) {
                 Log.d(TAG, "Removing SDP record handle: " + mSdpHandle);
             }
@@ -159,7 +159,7 @@ public class SapService extends ProfileService {
                 // It is mandatory for MSE to support initiation of bonding and encryption.
                 // TODO: Consider reusing the mServerSocket - it is indented to be reused
                 //       for multiple connections.
-                mServerSocket = mAdapter.listenUsingRfcommOn(
+                mServerSocket = BluetoothAdapter.getDefaultAdapter().listenUsingRfcommOn(
                         BluetoothAdapter.SOCKET_CHANNEL_AUTO_STATIC_NO_SDP, true, true);
                 removeSdpRecord();
                 mSdpHandle = SdpManager.getDefaultManager()
@@ -172,10 +172,10 @@ public class SapService extends ProfileService {
 
             if (!initSocketOK) {
                 // Need to break out of this loop if BT is being turned off.
-                if (mAdapter == null) {
+                if (mAdapterService == null) {
                     break;
                 }
-                int state = mAdapter.getState();
+                int state = mAdapterService.getState();
                 if ((state != BluetoothAdapter.STATE_TURNING_ON) && (state
                         != BluetoothAdapter.STATE_ON)) {
                     Log.w(TAG, "initServerSocket failed as BT is (being) turned off");
@@ -314,7 +314,7 @@ public class SapService extends ProfileService {
 
         // Last SAP transaction is finished, we start to listen for incoming
         // rfcomm connection again
-        if (mAdapter.isEnabled()) {
+        if (mAdapterService.isEnabled()) {
             startRfcommSocketListener();
         }
     }
@@ -438,7 +438,7 @@ public class SapService extends ProfileService {
 
             switch (msg.what) {
                 case START_LISTENER:
-                    if (mAdapter.isEnabled()) {
+                    if (mAdapterService.isEnabled()) {
                         startRfcommSocketListener();
                     }
                     break;
@@ -571,7 +571,7 @@ public class SapService extends ProfileService {
 
     public List<BluetoothDevice> getDevicesMatchingConnectionStates(int[] states) {
         List<BluetoothDevice> deviceList = new ArrayList<BluetoothDevice>();
-        Set<BluetoothDevice> bondedDevices = mAdapter.getBondedDevices();
+        BluetoothDevice[] bondedDevices = mAdapterService.getBondedDevices();
         int connectionState;
         synchronized (this) {
             for (BluetoothDevice device : bondedDevices) {
@@ -670,7 +670,7 @@ public class SapService extends ProfileService {
             Log.w(TAG, "Unable to register sap receiver", e);
         }
         mInterrupted = false;
-        mAdapter = BluetoothAdapter.getDefaultAdapter();
+        mAdapterService = AdapterService.getAdapterService();
         // start RFCOMM listener
         mSessionStatusHandler.sendMessage(mSessionStatusHandler.obtainMessage(START_LISTENER));
         setSapService(this);
