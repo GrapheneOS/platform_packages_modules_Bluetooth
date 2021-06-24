@@ -2472,6 +2472,10 @@ public class AdapterService extends Service {
 
     // ----API Methods--------
 
+    public boolean isEnabled() {
+        return getState() == BluetoothAdapter.STATE_ON;
+    }
+
     public int getState() {
         if (mAdapterProperties != null) {
             return mAdapterProperties.getState();

@@ -208,7 +208,6 @@ public class GattService extends ProfileService {
      */
     private final Map<Integer, Set<Integer>> mRestrictedHandles = new HashMap<>();
 
-    private BluetoothAdapter mAdapter;
     private AdapterService mAdapterService;
     private AdvertiseManager mAdvertiseManager;
     private PeriodicScanManager mPeriodicScanManager;
@@ -262,7 +261,6 @@ public class GattService extends ProfileService {
                 getContentResolver(), "bluetooth_sanitized_exposure_notification_supported", 1);
 
         initializeNative();
-        mAdapter = BluetoothAdapter.getDefaultAdapter();
         mAdapterService = AdapterService.getAdapterService();
         mCompanionManager = ICompanionDeviceManager.Stub.asInterface(
                 ServiceManager.getService(Context.COMPANION_DEVICE_SERVICE));
@@ -1163,7 +1161,7 @@ public class GattService extends ProfileService {
                 continue;
             }
 
-            BluetoothDevice device = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(address);
+            BluetoothDevice device = getAnonymousDevice(address);
 
             ScanSettings settings = client.settings;
             byte[] scanRecordData;
@@ -1936,7 +1934,7 @@ public class GattService extends ProfileService {
                     extractBytes(batchRecord, i * TRUNCATED_RESULT_SIZE, TRUNCATED_RESULT_SIZE);
             byte[] address = extractBytes(record, 0, 6);
             reverse(address);
-            BluetoothDevice device = mAdapter.getRemoteDevice(address);
+            BluetoothDevice device = getAnonymousDevice(address);
             int rssi = record[8];
             long timestampNanos = now - parseTimestampNanos(extractBytes(record, 9, 2));
             results.add(new ScanResult(device, ScanRecord.parseFromBytes(new byte[0]), rssi,
@@ -1963,7 +1961,7 @@ public class GattService extends ProfileService {
             byte[] address = extractBytes(batchRecord, position, 6);
             // TODO: remove temp hack.
             reverse(address);
-            BluetoothDevice device = mAdapter.getRemoteDevice(address);
+            BluetoothDevice device = getAnonymousDevice(address);
             position += 6;
             // Skip address type.
             position++;
@@ -2041,8 +2039,7 @@ public class GattService extends ProfileService {
             return;
         }
 
-        BluetoothDevice device =
-                BluetoothAdapter.getDefaultAdapter().getRemoteDevice(trackingInfo.getAddress());
+        BluetoothDevice device = getAnonymousDevice(trackingInfo.getAddress());
         int advertiserState = trackingInfo.getAdvState();
         ScanResult result =
                 new ScanResult(device, ScanRecord.parseFromBytes(trackingInfo.getResult()),
@@ -2160,7 +2157,7 @@ public class GattService extends ProfileService {
 
         // Add paired LE devices
 
-        Set<BluetoothDevice> bondedDevices = mAdapter.getBondedDevices();
+        BluetoothDevice[] bondedDevices = mAdapterService.getBondedDevices();
         for (BluetoothDevice device : bondedDevices) {
             if (getDeviceType(device) != AbstractionLayer.BT_DEVICE_TYPE_BREDR) {
                 deviceStates.put(device, BluetoothProfile.STATE_DISCONNECTED);
@@ -2174,7 +2171,7 @@ public class GattService extends ProfileService {
         connectedDevices.addAll(mServerMap.getConnectedDevices());
 
         for (String address : connectedDevices) {
-            BluetoothDevice device = mAdapter.getRemoteDevice(address);
+            BluetoothDevice device = getAnonymousDevice(address);
             if (device != null) {
                 deviceStates.put(device, BluetoothProfile.STATE_CONNECTED);
             }
@@ -3648,9 +3645,8 @@ public class GattService extends ProfileService {
     }
 
     private boolean needsPrivilegedPermissionForScan(ScanSettings settings) {
-        BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
         // BLE scan only mode needs special permission.
-        if (adapter.getState() != BluetoothAdapter.STATE_ON) {
+        if (mAdapterService.getState() != BluetoothAdapter.STATE_ON) {
             return true;
         }
 
