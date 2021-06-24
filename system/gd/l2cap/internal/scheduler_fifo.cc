@@ -58,7 +58,7 @@ void Fifo::SetChannelTxPriority(Cid cid, bool high_priority) {
 }
 
 void Fifo::RemoveChannel(Cid cid) {
-  for (int i = 0; i < next_to_dequeue_and_num_packets.size(); i++) {
+  for (size_t i = 0; i < next_to_dequeue_and_num_packets.size(); i++) {
     auto& channel_id_and_number_packets = next_to_dequeue_and_num_packets.front();
     if (channel_id_and_number_packets.second != cid) {
       next_to_dequeue_and_num_packets.push(channel_id_and_number_packets);
