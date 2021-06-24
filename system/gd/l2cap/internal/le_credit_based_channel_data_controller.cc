@@ -48,7 +48,7 @@ void LeCreditBasedDataController::OnSdu(std::unique_ptr<packet::BasePacketBuilde
   std::unique_ptr<BasicFrameBuilder> builder;
   builder = FirstLeInformationFrameBuilder::Create(remote_cid_, sdu_size, std::move(segments[0]));
   pdu_queue_.emplace(std::move(builder));
-  for (auto i = 1; i < segments.size(); i++) {
+  for (size_t i = 1; i < segments.size(); i++) {
     builder = BasicFrameBuilder::Create(remote_cid_, std::move(segments[i]));
     pdu_queue_.emplace(std::move(builder));
   }
