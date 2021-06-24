@@ -652,6 +652,10 @@ tBTM_STATUS bluetooth::shim::BTM_BleObserve(bool start, uint8_t duration_sec,
     std::lock_guard<std::mutex> lock(btm_cb_mutex_);
 
     if (btm_cb.ble_ctr_cb.is_ble_observe_active()) {
+      if (duration_sec == 0) {
+        Stack::GetInstance()->GetBtm()->CancelObservingTimer();
+        return BTM_CMD_STARTED;
+      }
       LOG_WARN("%s Observing already active", __func__);
       return BTM_WRONG_MODE;
     }
