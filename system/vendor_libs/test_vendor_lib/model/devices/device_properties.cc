@@ -78,7 +78,7 @@ DeviceProperties::DeviceProperties(const std::string& file_name)
     return;
   }
   LOG_INFO("Reading controller properties from %s.", file_name.c_str());
-  if (!base::ReadFileToString(base::FilePath(file_name), &properties_raw)) {
+  if (!base::ReadFileToString(base::FilePath::FromUTF8Unsafe(file_name), &properties_raw)) {
     LOG_ERROR("Error reading controller properties from file.");
     return;
   }
