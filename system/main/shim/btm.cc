@@ -617,7 +617,7 @@ size_t Btm::GetNumberOfAdvertisingInstances() const {
 
 tBTM_STATUS Btm::CreateBond(const RawAddress& bd_addr, tBLE_ADDR_TYPE addr_type,
                             tBT_TRANSPORT transport, int device_type) {
-  if (transport == BT_TRANSPORT_UNKNOWN) {
+  if (transport == BT_TRANSPORT_AUTO) {
     if (device_type & BT_DEVICE_TYPE_BLE) {
       transport = BT_TRANSPORT_LE;
     } else if (device_type & BT_DEVICE_TYPE_BREDR) {

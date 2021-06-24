@@ -30,7 +30,7 @@ void tACL_CONN::Reset() {
   conn_addr = RawAddress::kEmpty;
   remote_addr = RawAddress::kEmpty;
   link_up_issued = false;
-  transport = BT_TRANSPORT_INVALID;
+  transport = BT_TRANSPORT_AUTO;
   flush_timeout_in_ticks = 0;
   hci_handle = 0;
   link_super_tout = 0;
