@@ -29,6 +29,7 @@
 #include "gd/packet/packet_view.h"
 #include "gd/storage/storage_module.h"
 #include "main/shim/entry.h"
+#include "main/shim/helpers.h"
 
 #include "btif/include/btif_common.h"
 #include "stack/include/ble_advertiser.h"
@@ -62,9 +63,9 @@ class BleAdvertiserInterfaceImpl : public BleAdvertiserInterface,
     bluetooth::shim::GetAdvertising()->RemoveAdvertiser(advertiser_id);
   }
 
-  // only for PTS test
   void GetOwnAddress(uint8_t advertiser_id, GetAddressCallback cb) override {
     LOG(INFO) << __func__ << " in shim layer";
+    bluetooth::shim::GetAdvertising()->GetOwnAddress(advertiser_id);
   }
 
   void SetParameters(uint8_t advertiser_id, AdvertiseParameters params,
@@ -317,11 +318,12 @@ class BleAdvertiserInterfaceImpl : public BleAdvertiserInterface,
   }
 
   void OnOwnAddressRead(uint8_t advertiser_id, uint8_t address_type,
-                        RawAddress address) {
+                        bluetooth::hci::Address address) {
+    RawAddress raw_address = bluetooth::ToRawAddress(address);
     do_in_jni_thread(FROM_HERE,
                      base::Bind(&AdvertisingCallbacks::OnOwnAddressRead,
                                 base::Unretained(advertising_callbacks_),
-                                advertiser_id, address_type, address));
+                                advertiser_id, address_type, raw_address));
   }
 
   AdvertisingCallbacks* advertising_callbacks_;
