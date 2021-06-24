@@ -523,7 +523,7 @@ public class A2dpSinkService extends ProfileService {
     public native void informAudioTrackGainNative(float gain);
 
     private void onConnectionStateChanged(byte[] address, int state) {
-        StackEvent event = StackEvent.connectionStateChanged(getDevice(address), state);
+        StackEvent event = StackEvent.connectionStateChanged(getAnonymousDevice(address), state);
         A2dpSinkStateMachine stateMachine = getOrCreateStateMachine(event.mDevice);
         stateMachine.sendMessage(A2dpSinkStateMachine.STACK_EVENT, event);
     }
@@ -545,7 +545,7 @@ public class A2dpSinkService extends ProfileService {
     }
 
     private void onAudioConfigChanged(byte[] address, int sampleRate, int channelCount) {
-        StackEvent event = StackEvent.audioConfigChanged(getDevice(address), sampleRate,
+        StackEvent event = StackEvent.audioConfigChanged(getAnonymousDevice(address), sampleRate,
                 channelCount);
         A2dpSinkStateMachine stateMachine = getOrCreateStateMachine(event.mDevice);
         stateMachine.sendMessage(A2dpSinkStateMachine.STACK_EVENT, event);
