@@ -52,7 +52,7 @@ struct assembler {
   AclConnection::QueueDownEnd* down_end_;
   os::Handler* handler_;
   PacketViewForRecombination recombination_stage_{PacketView<kLittleEndian>(std::make_shared<std::vector<uint8_t>>())};
-  int remaining_sdu_continuation_packet_size_ = 0;
+  size_t remaining_sdu_continuation_packet_size_ = 0;
   std::shared_ptr<std::atomic_bool> enqueue_registered_ = std::make_shared<std::atomic_bool>(false);
   std::queue<packet::PacketView<kLittleEndian>> incoming_queue_;
 
