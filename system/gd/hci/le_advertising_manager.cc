@@ -597,7 +597,7 @@ struct LeAdvertisingManager::impl : public bluetooth::hci::LeAddressManagerCallb
       case (AdvertisingApiType::EXTENDED): {
         uint16_t data_len = 0;
         // check data size
-        for (int i = 0; i < data.size(); i++) {
+        for (size_t i = 0; i < data.size(); i++) {
           if (data[i].size() > kLeMaximumFragmentLength) {
             LOG_WARN("AD data len shall not greater than %d", kLeMaximumFragmentLength);
             if (advertising_callbacks_ != nullptr) {
@@ -637,7 +637,7 @@ struct LeAdvertisingManager::impl : public bluetooth::hci::LeAddressManagerCallb
           uint16_t sub_data_len = 0;
           Operation operation = Operation::FIRST_FRAGMENT;
 
-          for (int i = 0; i < data.size(); i++) {
+          for (size_t i = 0; i < data.size(); i++) {
             if (sub_data_len + data[i].size() > kLeMaximumFragmentLength) {
               send_data_fragment(advertiser_id, set_scan_rsp, sub_data, operation);
               operation = Operation::INTERMEDIATE_FRAGMENT;
@@ -750,7 +750,7 @@ struct LeAdvertisingManager::impl : public bluetooth::hci::LeAddressManagerCallb
   void set_periodic_data(AdvertiserId advertiser_id, std::vector<GapData> data) {
     uint16_t data_len = 0;
     // check data size
-    for (int i = 0; i < data.size(); i++) {
+    for (size_t i = 0; i < data.size(); i++) {
       if (data[i].size() > kLeMaximumFragmentLength) {
         LOG_WARN("AD data len shall not greater than %d", kLeMaximumFragmentLength);
         if (advertising_callbacks_ != nullptr) {
@@ -779,7 +779,7 @@ struct LeAdvertisingManager::impl : public bluetooth::hci::LeAddressManagerCallb
       uint16_t sub_data_len = 0;
       Operation operation = Operation::FIRST_FRAGMENT;
 
-      for (int i = 0; i < data.size(); i++) {
+      for (size_t i = 0; i < data.size(); i++) {
         if (sub_data_len + data[i].size() > kLeMaximumFragmentLength) {
           send_periodic_data_fragment(advertiser_id, sub_data, operation);
           operation = Operation::INTERMEDIATE_FRAGMENT;
