@@ -1020,7 +1020,7 @@ static void btif_dm_auth_cmpl_evt(tBTA_DM_AUTH_CMPL* p_auth_cmpl) {
         }
         bond_state_changed(BT_STATUS_SUCCESS, bd_addr, BT_BOND_STATE_BONDED);
 
-        btif_dm_get_remote_services(bd_addr, BT_TRANSPORT_UNKNOWN);
+        btif_dm_get_remote_services(bd_addr, BT_TRANSPORT_AUTO);
       }
     }
     // Do not call bond_state_changed_cb yet. Wait until remote service
@@ -1036,7 +1036,7 @@ static void btif_dm_auth_cmpl_evt(tBTA_DM_AUTH_CMPL* p_auth_cmpl) {
           BTIF_TRACE_WARNING("%s() - Pairing timeout; retrying (%d) ...",
                              __func__, pairing_cb.timeout_retries);
           --pairing_cb.timeout_retries;
-          btif_dm_cb_create_bond(bd_addr, BT_TRANSPORT_UNKNOWN);
+          btif_dm_cb_create_bond(bd_addr, BT_TRANSPORT_AUTO);
           return;
         }
         FALLTHROUGH_INTENDED; /* FALLTHROUGH */
@@ -1075,7 +1075,7 @@ static void btif_dm_auth_cmpl_evt(tBTA_DM_AUTH_CMPL* p_auth_cmpl) {
           /* Create the Bond once again */
           BTIF_TRACE_WARNING("%s() auto pair failed. Reinitiate Bond",
                              __func__);
-          btif_dm_cb_create_bond(bd_addr, BT_TRANSPORT_UNKNOWN);
+          btif_dm_cb_create_bond(bd_addr, BT_TRANSPORT_AUTO);
           return;
         } else {
           /* if autopair attempts are more than 1, or not attempted */
@@ -1301,7 +1301,7 @@ static void btif_dm_search_services_evt(tBTA_DM_SEARCH_EVT event,
         if (pairing_cb.sdp_attempts) {
           LOG_WARN("SDP failed after bonding re-attempting");
           pairing_cb.sdp_attempts++;
-          btif_dm_get_remote_services(bd_addr, BT_TRANSPORT_UNKNOWN);
+          btif_dm_get_remote_services(bd_addr, BT_TRANSPORT_AUTO);
         } else {
           LOG_WARN("SDP triggered by someone failed when bonding");
         }
