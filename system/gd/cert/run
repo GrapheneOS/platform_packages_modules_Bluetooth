@@ -60,8 +60,8 @@ function check_environment {
     fi
     python3.9 -m virtualenv --version
     if [[ $? -ne 0 ]] ; then
-        echo "${RED}virtualenv not installed for python3.9${NOCOLOR}"
-        echo "${RED}Please run 'python3.9 -m pip install virtualenv' to install it${NOCOLOR}"
+        echo -e "${RED}virtualenv not installed for python3.9${NOCOLOR}"
+        echo -e "${RED}Please run 'python3.9 -m pip install virtualenv' to install it${NOCOLOR}"
         exit 1
     fi
 }
@@ -167,7 +167,7 @@ function parse_options {
 
         if [ "${CERT_SERIAL}" == "${DUT_SERIAL}" ]; then
             echo
-            echo "ERROR: CERT and DUT cannot be the same device, or you only have one device connected!"
+            echo -e "${RED}ERROR: CERT and DUT cannot be the same device, or you only have one device connected!${NOCOLOR}"
             echo
             exit 1
         fi
@@ -247,13 +247,13 @@ function soong_build {
     if [ "$CLEAN_VENV" == true ] ; then
         $ANDROID_BUILD_TOP/build/soong/soong_ui.bash --build-mode --"modules-in-a-dir" --dir="${ANDROID_BUILD_TOP}/packages/modules/Bluetooth/system/gd" dist $BUILD_TARGET -j20
         if [[ $? -ne 0 ]] ; then
-            echo "Failed to build ${BUILD_TARGET}"
+            echo -e "${RED}Failed to build ${BUILD_TARGET}${NOCOLOR}"
             exit 1
         fi
     else
         $ANDROID_BUILD_TOP/build/soong/soong_ui.bash --build-mode --"all-modules" --dir="${ANDROID_BUILD_TOP}/packages/modules/Bluetooth/system/gd" $BUILD_TARGET -j20
         if [[ $? -ne 0 ]] ; then
-            echo "Failed to build ${BUILD_TARGET}"
+            echo -e "${RED}Failed to build ${BUILD_TARGET}${NOCOLOR}"
             exit 1
         fi
     fi
@@ -291,13 +291,13 @@ function setup_venv {
     fi
     python3.9 -m virtualenv --python `which python3.9` "${CERT_TEST_VENV}"
     if [[ $? -ne 0 ]] ; then
-        echo "Error setting up virtualenv"
+        echo -e "${RED}Error setting up virtualenv${NOCOLOR}"
         exit 1
     fi
 
     unzip -o -q "${ANDROID_BUILD_TOP}/out/dist/bluetooth_cert_tests.zip" -d "${CERT_TEST_VENV}/acts"
     if [[ $? -ne 0 ]] ; then
-        echo "Error unzipping bluetooth_cert_tests.zip"
+        echo -e "${RED}Error unzipping bluetooth_cert_tests.zip${NOCOLOR}"
         exit 1
     fi
 
@@ -344,14 +344,14 @@ function incremental_venv {
 function venv_common {
     $(echo "${CERT_TEST_VENV}/bin/python" "${CERT_TEST_VENV}/acts/setup.py" --quiet build --force)
     if [[ $? -ne 0 ]] ; then
-        echo "Error building GD Python libraries"
+        echo -e "${RED}Error building GD Python libraries${NOCOLOR}"
         echo -e "${YELLOW}NOTE:${NOCOLOR} To build external libraries the first time, please add --clean option."
         exit 1
     fi
 
     $(echo "${CERT_TEST_VENV}/bin/python" "${CERT_TEST_VENV}/acts/setup.py" --quiet install --skip-build --force "${INSTALL_ARGS}")
     if [[ $? -ne 0 ]] ; then
-        echo "Error installing GD Python libraries"
+        echo -e "${RED}Error installing GD Python libraries${NOCOLOR}"
         exit 1
     fi
 
@@ -360,7 +360,7 @@ import bluetooth_packets_python3 as bp3
 bp3.BaseStruct
 "
 if [[ $? -ne 0 ]] ; then
-  echo "Setup failed as bluetooth_packets_python3 cannot be imported"
+  echo -e "${RED}Setup failed as bluetooth_packets_python3 cannot be imported${NOCOLOR}"
   exit 1
 fi
 
@@ -376,7 +376,7 @@ print(json.dumps(config))
   " > "${TEMP_CONFIG}"
   TEST_CONFIG="${TEMP_CONFIG}"
   if [[ $? -ne 0 ]] ; then
-    echo "Setup failed as verbose mode is chosen but cannot be enabled"
+    echo -e "${RED}Setup failed as verbose mode is chosen but cannot be enabled${NOCOLOR}"
     exit 1
   fi
 fi
@@ -435,7 +435,7 @@ function menu-adb() {
     LEN=${#SERIALS[@]}
     result=0
     if [ $LEN -lt 1 ]; then
-        echo "No devices connected!"
+        echo -e "${YELLOW}No devices connected!${NOCOLOR}"
         return 1
     fi
 
