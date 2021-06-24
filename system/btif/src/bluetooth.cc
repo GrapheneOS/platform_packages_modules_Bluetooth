@@ -284,9 +284,8 @@ int set_remote_device_property(RawAddress* remote_addr,
 int get_remote_services(RawAddress* remote_addr) {
   if (!interface_ready()) return BT_STATUS_NOT_READY;
 
-  do_in_main_thread(FROM_HERE,
-                    base::BindOnce(btif_dm_get_remote_services, *remote_addr,
-                                   BT_TRANSPORT_UNKNOWN));
+  do_in_main_thread(FROM_HERE, base::BindOnce(btif_dm_get_remote_services,
+                                              *remote_addr, BT_TRANSPORT_AUTO));
   return BT_STATUS_SUCCESS;
 }
 
