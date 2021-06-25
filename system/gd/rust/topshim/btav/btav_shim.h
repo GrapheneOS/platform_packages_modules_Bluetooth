@@ -58,6 +58,8 @@ std::unique_ptr<A2dpIntf> GetA2dpProfile(const unsigned char* btif);
 class AvrcpIntf {
  public:
   AvrcpIntf(bluetooth::avrcp::ServiceInterface* intf) : intf_(intf) {}
+  ~AvrcpIntf();
+
   void init();
   void cleanup();
   int connect(RustRawAddress bt_addr);
