@@ -73,7 +73,11 @@ fn main() -> Result<(), Box<dyn Error>> {
         )));
 
         // Run the stack main dispatch loop.
-        tokio::spawn(Stack::dispatch(rx, bluetooth.clone()));
+        topstack::get_runtime().spawn(Stack::dispatch(
+            rx,
+            bluetooth.clone(),
+            bluetooth_media.clone(),
+        ));
 
         // Set up the disconnect watcher to monitor client disconnects.
         let disconnect_watcher = Arc::new(Mutex::new(DisconnectWatcher::new()));

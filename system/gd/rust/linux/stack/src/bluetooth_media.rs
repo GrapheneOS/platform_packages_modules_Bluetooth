@@ -1,7 +1,9 @@
 //! Anything related to audio and media API.
 
 use bt_topshim::btif::BluetoothInterface;
-use bt_topshim::profiles::a2dp::{A2dp, A2dpCallbacksDispatcher};
+use bt_topshim::profiles::a2dp::{
+    A2dp, A2dpCallbacks, A2dpCallbacksDispatcher, BtavConnectionState, RawAddress,
+};
 use bt_topshim::topstack;
 
 use std::sync::Arc;
@@ -17,6 +19,11 @@ pub trait IBluetoothMedia {
 
     ///
     fn initialize(&mut self) -> bool;
+    fn connect(&mut self, device: String);
+    fn set_active_device(&mut self, device: String);
+    fn disconnect(&mut self, device: String);
+    fn start_session(&mut self);
+    fn stop_session(&mut self);
 }
 
 pub trait IBluetoothMediaCallback {
@@ -47,6 +54,30 @@ impl BluetoothMedia {
             a2dp: None,
         }
     }
+
+    pub fn dispatch_a2dp_callbacks(&mut self, cb: A2dpCallbacks) {
+        match cb {
+            A2dpCallbacks::ConnectionState(addr, state) => match BtavConnectionState::from(state) {
+                BtavConnectionState::Connected => {
+                    self.for_all_callbacks(|callback| {
+                        callback.on_bluetooth_audio_device_added(addr.to_string());
+                    });
+                }
+                BtavConnectionState::Connecting => {}
+                BtavConnectionState::Disconnected => {}
+                BtavConnectionState::Disconnecting => {}
+            },
+            A2dpCallbacks::AudioState(addr, state) => {}
+            A2dpCallbacks::AudioConfig(addr, config, local_caps, selectable_caps) => {}
+            A2dpCallbacks::MandatoryCodecPreferred(addr) => {}
+        }
+    }
+
+    fn for_all_callbacks<F: Fn(&Box<dyn IBluetoothMediaCallback + Send>)>(&self, f: F) {
+        for callback in &self.callbacks {
+            f(&callback.1);
+        }
+    }
 }
 
 fn get_a2dp_dispatcher(tx: Sender<Message>) -> A2dpCallbacksDispatcher {
@@ -75,5 +106,24 @@ impl IBluetoothMedia for BluetoothMedia {
         self.a2dp = Some(A2dp::new(&self.intf.lock().unwrap()));
         self.a2dp.as_mut().unwrap().initialize(a2dp_dispatcher);
         true
+    }
+
+    fn connect(&mut self, device: String) {
+        self.a2dp.as_mut().unwrap().connect(device);
+    }
+
+    fn set_active_device(&mut self, device: String) {
+        self.a2dp.as_mut().unwrap().set_active_device(device);
+    }
+
+    fn disconnect(&mut self, device: String) {
+        self.a2dp.as_mut().unwrap().disconnect(device);
+    }
+
+    fn start_session(&mut self) {
+        self.a2dp.as_mut().unwrap().start_session();
+    }
+    fn stop_session(&mut self) {
+        self.a2dp.as_mut().unwrap().stop_session();
     }
 }
