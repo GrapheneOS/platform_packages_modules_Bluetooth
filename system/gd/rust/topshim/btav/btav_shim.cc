@@ -228,6 +228,8 @@ std::unique_ptr<AvrcpIntf> GetAvrcpProfile(const unsigned char* btif) {
   return avrcpif;
 }
 
+AvrcpIntf::~AvrcpIntf() {}
+
 void AvrcpIntf::init() {
   intf_->Init(&mAvrcpInterface, &mVolumeInterface);
 }
