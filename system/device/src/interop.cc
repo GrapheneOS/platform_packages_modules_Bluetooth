@@ -22,6 +22,7 @@
 #include <string.h>  // For memcmp
 
 #include "btcore/include/module.h"
+#include "check.h"
 #include "device/include/interop.h"
 #include "device/include/interop_database.h"
 #include "osi/include/allocator.h"

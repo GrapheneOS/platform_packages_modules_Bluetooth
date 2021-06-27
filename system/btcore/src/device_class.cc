@@ -21,6 +21,7 @@
 #include <string.h>
 
 #include "btcore/include/device_class.h"
+#include "check.h"
 
 typedef struct _bt_device_class_t {
   uint32_t unused : 2;  // LSBs

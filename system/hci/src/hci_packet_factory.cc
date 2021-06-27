@@ -20,6 +20,7 @@
 
 #include "bt_types.h"
 #include "buffer_allocator.h"
+#include "check.h"
 #include "hci_internals.h"
 #include "hci_layer.h"
 #include "hci_packet_factory.h"

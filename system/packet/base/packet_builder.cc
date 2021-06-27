@@ -18,6 +18,7 @@
 
 #include <base/logging.h>
 
+#include "check.h"
 #include "packet.h"
 
 namespace bluetooth {

@@ -18,6 +18,7 @@
 
 #include <base/logging.h>
 
+#include "check.h"
 #include "gd/common/init_flags.h"
 #include "hci/include/btsnoop_mem.h"
 
