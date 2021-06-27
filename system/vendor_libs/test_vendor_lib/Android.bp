@@ -48,6 +48,9 @@ cc_library_static {
         "model/setup/test_channel_transport.cc",
         "model/setup/test_command_handler.cc",
         "model/setup/test_model.cc",
+        "net/posix/posix_async_socket.cc",
+        "net/posix/posix_async_socket_connector.cc",
+        "net/posix/posix_async_socket_server.cc",
         ":BluetoothPacketSources",
         ":BluetoothHciClassSources",
     ],
@@ -102,6 +105,7 @@ cc_test_host {
     srcs: [
         "test/async_manager_unittest.cc",
         "test/h4_parser_unittest.cc",
+        "test/posix_socket_unittest.cc",
         "test/security_manager_unittest.cc",
     ],
     header_libs: [
