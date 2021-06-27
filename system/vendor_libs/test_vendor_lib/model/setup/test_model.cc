@@ -16,28 +16,38 @@
 
 #include "test_model.h"
 
-// TODO: Remove when registration works
-#include "model/devices/beacon.h"
-#include "model/devices/beacon_swarm.h"
-#include "model/devices/car_kit.h"
-#include "model/devices/classic.h"
-#include "model/devices/keyboard.h"
-#include "model/devices/remote_loopback_device.h"
-#include "model/devices/scripted_beacon.h"
-#include "model/devices/sniffer.h"
+#include <stdlib.h>  // for size_t
 
-#include <memory>
+#include <iomanip>      // for operator<<, setfill
+#include <iostream>     // for basic_ostream
+#include <memory>       // for shared_ptr, make...
+#include <type_traits>  // for remove_extent_t
+#include <utility>      // for move
 
-#include <stdlib.h>
-#include <iomanip>
-#include <iostream>
-
-#include "os/log.h"
 #include "include/phy.h"
+#include "include/phy.h"  // for Phy, Phy::Type
 #include "model/devices/hci_socket_device.h"
 #include "model/devices/link_layer_socket_device.h"
+#include "os/log.h"
+// TODO: Remove when registration works
+#include "model/devices/beacon.h"                    // for Beacon
+#include "model/devices/beacon_swarm.h"              // for BeaconSwarm
+#include "model/devices/car_kit.h"                   // for CarKit
+#include "model/devices/classic.h"                   // for Classic
+#include "model/devices/hci_socket_device.h"         // for HciSocketDevice
+#include "model/devices/keyboard.h"                  // for Keyboard
+#include "model/devices/link_layer_socket_device.h"  // for LinkLayerSocketD...
+#include "model/devices/remote_loopback_device.h"    // for RemoteLoopbackDe...
+#include "model/devices/scripted_beacon.h"           // for ScriptedBeacon
+#include "model/devices/sniffer.h"                   // for Sniffer
+#include "model/setup/phy_layer_factory.h"           // for PhyLayerFactory
+#include "model/setup/test_channel_transport.h"      // for AsyncDataChannel
+#include "net/async_data_channel.h"                  // for AsyncDataChannel
+#include "os/log.h"                                  // for LOG_WARN, LOG_INFO
+#include "packets/link_layer_packets.h"              // for LinkLayerPacketView
 
 namespace test_vendor_lib {
+class Device;
 
 TestModel::TestModel(
     std::function<AsyncUserId()> get_user_id,
@@ -51,7 +61,8 @@ TestModel::TestModel(
 
     std::function<void(AsyncUserId)> cancel_tasks_from_user,
     std::function<void(AsyncTaskId)> cancel,
-    std::function<int(const std::string&, int)> connect_to_remote)
+    std::function<std::shared_ptr<AsyncDataChannel>(const std::string&, int)>
+        connect_to_remote)
     : get_user_id_(std::move(get_user_id)),
       schedule_task_(std::move(event_scheduler)),
       schedule_periodic_task_(std::move(periodic_event_scheduler)),
@@ -160,8 +171,9 @@ void TestModel::DelDeviceFromPhy(size_t dev_index, size_t phy_index) {
                  });
 }
 
-void TestModel::AddLinkLayerConnection(int socket_fd, Phy::Type phy_type) {
-  std::shared_ptr<Device> dev = LinkLayerSocketDevice::Create(socket_fd, phy_type);
+void TestModel::AddLinkLayerConnection(std::shared_ptr<AsyncDataChannel> socket,
+                                       Phy::Type phy_type) {
+  std::shared_ptr<Device> dev = LinkLayerSocketDevice::Create(socket, phy_type);
   int index = Add(dev);
   for (size_t i = 0; i < phys_.size(); i++) {
     if (phy_type == phys_[i].GetType()) {
@@ -170,21 +182,24 @@ void TestModel::AddLinkLayerConnection(int socket_fd, Phy::Type phy_type) {
   }
 }
 
-void TestModel::IncomingLinkLayerConnection(int socket_fd) {
+void TestModel::IncomingLinkLayerConnection(
+    std::shared_ptr<AsyncDataChannel> socket) {
   // TODO: Handle other phys
-  AddLinkLayerConnection(socket_fd, Phy::Type::BR_EDR);
+  AddLinkLayerConnection(socket, Phy::Type::BR_EDR);
 }
 
-void TestModel::AddRemote(const std::string& server, int port, Phy::Type phy_type) {
-  int socket_fd = connect_to_remote_(server, port);
-  if (socket_fd < 0) {
+void TestModel::AddRemote(const std::string& server, int port,
+                          Phy::Type phy_type) {
+  std::shared_ptr<AsyncDataChannel> socket = connect_to_remote_(server, port);
+  if (!socket->Connected()) {
     return;
   }
-  AddLinkLayerConnection(socket_fd, phy_type);
+  AddLinkLayerConnection(socket, phy_type);
 }
 
-void TestModel::IncomingHciConnection(int socket_fd) {
-  auto dev = HciSocketDevice::Create(socket_fd);
+void TestModel::IncomingHciConnection(
+    std::shared_ptr<AsyncDataChannel> socket) {
+  auto dev = HciSocketDevice::Create(socket);
   size_t index = Add(std::static_pointer_cast<Device>(dev));
   std::string addr = "da:4c:10:de:17:";  // Da HCI dev
   std::stringstream stream;
@@ -202,22 +217,21 @@ void TestModel::IncomingHciConnection(int socket_fd) {
     return schedule_task_(user_id, delay, std::move(task_callback));
   });
   dev->RegisterTaskCancel(cancel_task_);
-  dev->RegisterCloseCallback([this, socket_fd, index, user_id] {
+  dev->RegisterCloseCallback([this, socket, index, user_id] {
     schedule_task_(user_id, std::chrono::milliseconds(0),
-                   [this, socket_fd, index, user_id]() {
-                     OnHciConnectionClosed(socket_fd, index, user_id);
+                   [this, socket, index, user_id]() {
+                     OnHciConnectionClosed(socket, index, user_id);
                    });
   });
 }
 
-void TestModel::OnHciConnectionClosed(int socket_fd, size_t index,
-                                      AsyncUserId user_id) {
+void TestModel::OnHciConnectionClosed(std::shared_ptr<AsyncDataChannel> socket,
+                                      size_t index, AsyncUserId user_id) {
   if (index >= devices_.size() || devices_[index] == nullptr) {
     LOG_WARN("Unknown device %zu", index);
     return;
   }
-  int close_result = close(socket_fd);
-  ASSERT_LOG(close_result == 0, "can't close: %s", strerror(errno));
+  socket->Close();
 
   cancel_tasks_from_user_(user_id);
   devices_[index]->UnregisterPhyLayers();
