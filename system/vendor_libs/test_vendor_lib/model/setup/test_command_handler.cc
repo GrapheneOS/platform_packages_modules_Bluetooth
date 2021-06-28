@@ -18,14 +18,11 @@
 #include "device_boutique.h"
 #include "phy.h"
 
+#include <fstream>
 #include <memory>
+#include <regex>
 
 #include <stdlib.h>
-
-#include "base/files/file_util.h"
-#include "base/json/json_reader.h"
-#include "base/strings/string_split.h"
-#include "base/values.h"
 
 #include "os/log.h"
 #include "osi/include/osi.h"
@@ -102,18 +99,22 @@ void TestCommandHandler::FromFile(const std::string& file_name) {
     return;
   }
 
-  std::string commands_raw;
-  if (!base::ReadFileToString(base::FilePath::FromUTF8Unsafe(file_name), &commands_raw)) {
-    LOG_ERROR("Error reading commands from file.");
-    return;
+  std::ifstream file(file_name.c_str());
+
+  const std::regex re("\\s+");
+
+  std::string line;
+  while (std::getline(file, line)) {
+    auto begin = std::sregex_token_iterator(line.begin(), line.end(), re, -1);
+    auto end = std::sregex_token_iterator();
+    auto params = std::vector<std::string>(std::next(begin), end);
+
+    HandleCommand(*begin, params);
   }
 
-  base::StringPairs command_pairs;
-  base::SplitStringIntoKeyValuePairs(commands_raw, ' ', '\n', &command_pairs);
-  for (const std::pair<std::string, std::string>& p : command_pairs) {
-    auto params = base::SplitString(p.second, " ", base::TRIM_WHITESPACE,
-                                    base::SPLIT_WANT_NONEMPTY);
-    HandleCommand(p.first, params);
+  if (file.fail()) {
+    LOG_ERROR("Error reading commands from file.");
+    return;
   }
 }
 
