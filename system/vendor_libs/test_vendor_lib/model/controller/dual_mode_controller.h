@@ -214,6 +214,9 @@ class DualModeController : public Device {
   // 7.2.6
   void QosSetup(CommandView args);
 
+  // 7.2.7
+  void RoleDiscovery(CommandView args);
+
   // 7.2.10
   void WriteLinkPolicySettings(CommandView args);
 
