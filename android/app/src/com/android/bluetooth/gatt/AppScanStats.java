@@ -17,16 +17,14 @@ package com.android.bluetooth.gatt;
 
 import android.bluetooth.le.ScanFilter;
 import android.bluetooth.le.ScanSettings;
+import android.os.BatteryStatsManager;
 import android.os.Binder;
-import android.os.RemoteException;
-import android.os.ServiceManager;
 import android.os.SystemClock;
 import android.os.WorkSource;
 
 import com.android.bluetooth.BluetoothMetricsProto;
 import com.android.bluetooth.BluetoothStatsLog;
 import com.android.bluetooth.btservice.AdapterService;
-import com.android.internal.app.IBatteryStats;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -55,13 +53,14 @@ import java.util.Objects;
     static final int BALANCED_WEIGHT = 25;
     static final int LOW_LATENCY_WEIGHT = 100;
 
-    /* ContextMap here is needed to grab Apps and Connections */ ContextMap mContextMap;
+    // ContextMap here is needed to grab Apps and Connections
+    ContextMap mContextMap;
 
-    /* GattService is needed to add scan event protos to be dumped later */ GattService
-            mGattService;
+    // GattService is needed to add scan event protos to be dumped later
+    GattService mGattService;
 
-    /* Battery stats is used to keep track of scans and result stats */ IBatteryStats
-            mBatteryStats;
+    // Battery stats is used to keep track of scans and result stats
+    BatteryStatsManager mBatteryStatsManager;
 
     class LastScan {
         public long duration;
@@ -120,7 +119,7 @@ import java.util.Objects;
     }
 
     public String appName;
-    public WorkSource mWorkSource; // Used for BatteryStats and BluetoothStatsLog
+    public WorkSource mWorkSource; // Used for BatteryStatsManager and BluetoothStatsLog
     private int mScansStarted = 0;
     private int mScansStopped = 0;
     public boolean isRegistered = false;
@@ -148,7 +147,7 @@ import java.util.Objects;
         appName = name;
         mContextMap = map;
         mGattService = service;
-        mBatteryStats = IBatteryStats.Stub.asInterface(ServiceManager.getService("batterystats"));
+        mBatteryStatsManager = service.getSystemService(BatteryStatsManager.class);
 
         if (source == null) {
             // Bill the caller if the work source isn't passed through
@@ -165,11 +164,7 @@ import java.util.Objects;
             // Only update battery stats after receiving 100 new results in order
             // to lower the cost of the binder transaction
             if (scan.results % 100 == 0) {
-                try {
-                    mBatteryStats.noteBleScanResults(mWorkSource, 100);
-                } catch (RemoteException e) {
-                    /* ignore */
-                }
+                mBatteryStatsManager.reportBleScanResults(mWorkSource, 100);
                 BluetoothStatsLog.write(
                         BluetoothStatsLog.BLE_SCAN_RESULT_RECEIVED, mWorkSource, 100);
             }
@@ -241,13 +236,9 @@ import java.util.Objects;
         if (!isScanning()) {
             mScanStartTime = startTime;
         }
-        try {
-            boolean isUnoptimized =
-                    !(scan.isFilterScan || scan.isBackgroundScan || scan.isOpportunisticScan);
-            mBatteryStats.noteBleScanStarted(mWorkSource, isUnoptimized);
-        } catch (RemoteException e) {
-            /* ignore */
-        }
+        boolean isUnoptimized =
+                !(scan.isFilterScan || scan.isBackgroundScan || scan.isOpportunisticScan);
+        mBatteryStatsManager.reportBleScanStarted(mWorkSource, isUnoptimized);
         BluetoothStatsLog.write(BluetoothStatsLog.BLE_SCAN_STATE_CHANGED, mWorkSource,
                 BluetoothStatsLog.BLE_SCAN_STATE_CHANGED__STATE__ON,
                 scan.isFilterScan, scan.isBackgroundScan, scan.isOpportunisticScan);
@@ -306,15 +297,11 @@ import java.util.Objects;
                 break;
         }
 
-        try {
-            // Inform battery stats of any results it might be missing on scan stop
-            boolean isUnoptimized =
-                    !(scan.isFilterScan || scan.isBackgroundScan || scan.isOpportunisticScan);
-            mBatteryStats.noteBleScanResults(mWorkSource, scan.results % 100);
-            mBatteryStats.noteBleScanStopped(mWorkSource, isUnoptimized);
-        } catch (RemoteException e) {
-            /* ignore */
-        }
+        // Inform battery stats of any results it might be missing on scan stop
+        boolean isUnoptimized =
+                !(scan.isFilterScan || scan.isBackgroundScan || scan.isOpportunisticScan);
+        mBatteryStatsManager.reportBleScanResults(mWorkSource, scan.results % 100);
+        mBatteryStatsManager.reportBleScanStopped(mWorkSource, isUnoptimized);
         BluetoothStatsLog.write(
                 BluetoothStatsLog.BLE_SCAN_RESULT_RECEIVED, mWorkSource, scan.results % 100);
         BluetoothStatsLog.write(BluetoothStatsLog.BLE_SCAN_STATE_CHANGED, mWorkSource,
