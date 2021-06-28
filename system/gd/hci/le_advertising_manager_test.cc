@@ -251,6 +251,13 @@ class TestLeAddressManager : public LeAddressManager {
     auto random_address = AddressWithType(address, AddressType::RANDOM_DEVICE_ADDRESS);
     return random_address;
   }
+
+  AddressWithType GetCurrentAddress() override {
+    hci::Address address;
+    Address::FromString("05:04:03:02:01:00", address);
+    auto random_address = AddressWithType(address, AddressType::RANDOM_DEVICE_ADDRESS);
+    return random_address;
+  }
 };
 
 class TestAclManager : public AclManager {
