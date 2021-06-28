@@ -1,0 +1,159 @@
+#!/usr/bin/env python3
+#
+#   Copyright 2019 - The Android Open Source Project
+#
+#   Licensed under the Apache License, Version 2.0 (the "License");
+#   you may not use this file except in compliance with the License.
+#   You may obtain a copy of the License at
+#
+#       http://www.apache.org/licenses/LICENSE-2.0
+#
+#   Unless required by applicable law or agreed to in writing, software
+#   distributed under the License is distributed on an "AS IS" BASIS,
+#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#   See the License for the specific language governing permissions and
+#   limitations under the License.
+
+import importlib
+import logging
+import traceback
+
+from functools import wraps
+from grpc import RpcError
+
+from cert.gd_base_test_lib import setup_class_core
+from cert.gd_base_test_lib import teardown_class_core
+from cert.gd_base_test_lib import setup_test_core
+from cert.gd_base_test_lib import teardown_test_core
+from cert.gd_base_test_lib import dump_crashes_core
+
+from blueberry.tests.gd.cert.context import get_current_context
+from blueberry.tests.gd.cert.gd_device import MOBLY_CONTROLLER_CONFIG_NAME as CONTROLLER_CONFIG_NAME
+from blueberry.tests.gd.cert.tracelogger import TraceLogger
+
+from mobly import asserts, signals
+from mobly import base_test
+
+
+class GdBaseTestClass(base_test.BaseTestClass):
+
+    SUBPROCESS_WAIT_TIMEOUT_SECONDS = 10
+
+    def setup_class(self, dut_module, cert_module):
+        self.log = TraceLogger(logging.getLogger())
+        self.log_path_base = get_current_context().get_full_output_path()
+        self.verbose_mode = bool(self.user_params.get('verbose_mode', False))
+        for config in self.controller_configs[CONTROLLER_CONFIG_NAME]:
+            config['verbose_mode'] = self.verbose_mode
+
+        self.info = setup_class_core(
+            dut_module=dut_module,
+            cert_module=cert_module,
+            verbose_mode=self.verbose_mode,
+            log_path_base=self.log_path_base,
+            controller_configs=self.controller_configs)
+        self.dut_module = self.info['dut_module']
+        self.cert_module = self.info['cert_module']
+        self.rootcanal_running = self.info['rootcanal_running']
+        self.rootcanal_logpath = self.info['rootcanal_logpath']
+        self.rootcanal_process = self.info['rootcanal_process']
+        self.rootcanal_logger = self.info['rootcanal_logger']
+
+        if 'rootcanal' in self.controller_configs:
+            asserts.assert_true(self.info['rootcanal_exist'],
+                                "Root canal does not exist at %s" % self.info['rootcanal'])
+            asserts.assert_true(self.info['make_rootcanal_ports_available'],
+                                "Failed to make root canal ports available")
+
+            self.log.debug("Running %s" % " ".join(self.info['rootcanal_cmd']))
+            asserts.assert_true(
+                self.info['is_rootcanal_process_started'],
+                msg="Cannot start root-canal at " + str(self.info['rootcanal']))
+            asserts.assert_true(self.info['is_subprocess_alive'], msg="root-canal stopped immediately after running")
+
+            self.controller_configs = self.info['controller_configs']
+
+        # Parse and construct GD device objects
+        self.register_controller(importlib.import_module('blueberry.tests.gd.cert.gd_device'), builtin=True)
+        self.dut = self.gd_device[1]
+        self.cert = self.gd_device[0]
+
+    def teardown_class(self):
+        teardown_class_core(
+            rootcanal_running=self.rootcanal_running,
+            rootcanal_process=self.rootcanal_process,
+            rootcanal_logger=self.rootcanal_logger,
+            subprocess_wait_timeout_seconds=self.SUBPROCESS_WAIT_TIMEOUT_SECONDS)
+
+    def setup_test(self):
+        setup_test_core(dut=self.dut, cert=self.cert, dut_module=self.dut_module, cert_module=self.cert_module)
+
+    def teardown_test(self):
+        teardown_test_core(cert=self.cert, dut=self.dut)
+
+    @staticmethod
+    def get_module_reference_name(a_module):
+        """Returns the module's module's submodule name as reference name.
+
+        Args:
+            a_module: Any module. Ideally, a controller module.
+        Returns:
+            A string corresponding to the module's name.
+        """
+        return a_module.__name__.split('.')[-1]
+
+    def register_controller(self, controller_module, required=True, builtin=False):
+        """Registers an controller module for a test class. Invokes Mobly's
+        implementation of register_controller.
+        """
+        module_ref_name = self.get_module_reference_name(controller_module)
+        module_config_name = controller_module.MOBLY_CONTROLLER_CONFIG_NAME
+
+        # Get controller objects from Mobly's register_controller
+        controllers = self._controller_manager.register_controller(controller_module, required=required)
+        if not controllers:
+            return None
+
+        # Log controller information
+        # Implementation of "get_info" is optional for a controller module.
+        if hasattr(controller_module, "get_info"):
+            controller_info = controller_module.get_info(controllers)
+            self.log.info("Controller %s: %s", module_config_name, controller_info)
+
+        if builtin:
+            setattr(self, module_ref_name, controllers)
+        return controllers
+
+    def __getattribute__(self, name):
+        attr = super().__getattribute__(name)
+        if not callable(attr) or not GdBaseTestClass.__is_entry_function(name):
+            return attr
+
+        @wraps(attr)
+        def __wrapped(*args, **kwargs):
+            try:
+                return attr(*args, **kwargs)
+            except RpcError as e:
+                exception_info = "".join(traceback.format_exception(e.__class__, e, e.__traceback__))
+                raise signals.TestFailure(
+                    "RpcError during test\n\nRpcError:\n\n%s\n%s" % (exception_info, self.__dump_crashes()))
+
+        return __wrapped
+
+    __ENTRY_METHODS = {"setup_class", "teardown_class", "setup_test", "teardown_test"}
+
+    @staticmethod
+    def __is_entry_function(name):
+        return name.startswith("test_") or name in GdBaseTestClass.__ENTRY_METHODS
+
+    def __dump_crashes(self):
+        """
+        return: formatted stack traces if found, or last few lines of log
+        """
+        crash_detail = dump_crashes_core(
+            dut=self.dut,
+            cert=self.cert,
+            rootcanal_running=self.rootcanal_running,
+            rootcanal_process=self.rootcanal_process,
+            rootcanal_logpath=self.rootcanal_logpath)
+        return crash_detail

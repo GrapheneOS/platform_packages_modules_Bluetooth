@@ -14,12 +14,13 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+from blueberry.tests.gd.cert.metadata import metadata
+
 from mobly import asserts
 from mobly import signals
 from mobly import test_runner
 from mobly import base_test
 
-from cert.metadata import metadata
 from cert.cert_self_test_lib import *
 
 
