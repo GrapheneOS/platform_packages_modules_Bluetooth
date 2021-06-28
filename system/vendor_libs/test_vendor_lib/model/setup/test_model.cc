@@ -32,10 +32,6 @@
 #include <iomanip>
 #include <iostream>
 
-#include "base/files/file_util.h"
-#include "base/json/json_reader.h"
-#include "base/values.h"
-
 #include "os/log.h"
 #include "include/phy.h"
 #include "model/devices/hci_socket_device.h"
