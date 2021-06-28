@@ -36,4 +36,19 @@ impl IBluetoothMedia for IBluetoothMediaDBus {
     fn initialize(&mut self) -> bool {
         true
     }
+
+    #[dbus_method("Connect")]
+    fn connect(&mut self, device: String) {}
+
+    #[dbus_method("SetActiveDevice")]
+    fn set_active_device(&mut self, device: String) {}
+
+    #[dbus_method("Disconnect")]
+    fn disconnect(&mut self, device: String) {}
+
+    #[dbus_method("StartSession")]
+    fn start_session(&mut self) {}
+
+    #[dbus_method("StopSession")]
+    fn stop_session(&mut self) {}
 }
