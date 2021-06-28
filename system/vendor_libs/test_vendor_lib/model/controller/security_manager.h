@@ -72,10 +72,12 @@ class SecurityManager {
 
   const std::array<uint8_t, 16>& GetKey(const Address& addr) const;
 
-  void AuthenticationRequest(const Address& addr, uint16_t handle);
+  void AuthenticationRequest(const Address& addr, uint16_t handle,
+                             bool initiator);
   void AuthenticationRequestFinished();
 
   bool AuthenticationInProgress();
+  bool IsInitiator();
   uint16_t GetAuthenticationHandle();
   Address GetAuthenticationAddress();
 
@@ -120,6 +122,7 @@ class SecurityManager {
   bool authenticating_{false};
   uint16_t current_handle_{};
   Address peer_address_{};
+  bool initiator_{false};
 };
 
 }  // namespace test_vendor_lib

@@ -763,8 +763,8 @@ void LinkLayerController::IncomingIoCapabilityRequestPacket(
             incoming.GetDestinationAddress(), incoming.GetSourceAddress(),
             static_cast<uint8_t>(
                 ErrorCode::UNSUPPORTED_REMOTE_OR_LMP_FEATURE)));
-    security_manager_.AuthenticationRequest(incoming.GetSourceAddress(),
-                                            handle);
+    security_manager_.AuthenticationRequest(incoming.GetSourceAddress(), handle,
+                                            false);
     security_manager_.SetPinRequested(peer);
     send_event_(bluetooth::hci::PinCodeRequestBuilder::Create(
         incoming.GetSourceAddress()));
@@ -787,7 +787,7 @@ void LinkLayerController::IncomingIoCapabilityRequestPacket(
 
   bool pairing_started = security_manager_.AuthenticationInProgress();
   if (!pairing_started) {
-    security_manager_.AuthenticationRequest(peer, handle);
+    security_manager_.AuthenticationRequest(peer, handle, false);
     StartSimplePairing(peer);
   }
 
@@ -1496,7 +1496,7 @@ void LinkLayerController::IncomingPinRequestPacket(
     }
   } else {
     LOG_INFO("Incoming authentication request %s", peer.ToString().c_str());
-    security_manager_.AuthenticationRequest(peer, handle);
+    security_manager_.AuthenticationRequest(peer, handle, false);
   }
   auto current_peer = security_manager_.GetAuthenticationAddress();
   security_manager_.SetRemotePin(peer, request.GetPinCode());
@@ -1766,9 +1766,11 @@ void LinkLayerController::AuthenticateRemoteStage2(const Address& peer) {
   uint16_t handle = security_manager_.GetAuthenticationHandle();
   ASSERT(security_manager_.GetAuthenticationAddress() == peer);
   // Check key in security_manager_ ?
-  auto packet = bluetooth::hci::AuthenticationCompleteBuilder::Create(
-      ErrorCode::SUCCESS, handle);
-  send_event_(std::move(packet));
+  if (security_manager_.IsInitiator()) {
+    auto packet = bluetooth::hci::AuthenticationCompleteBuilder::Create(
+        ErrorCode::SUCCESS, handle);
+    send_event_(std::move(packet));
+  }
 }
 
 ErrorCode LinkLayerController::LinkKeyRequestReply(
@@ -1793,7 +1795,7 @@ ErrorCode LinkLayerController::LinkKeyRequestNegativeReply(
   }
 
   if (properties_.GetSecureSimplePairingSupported()) {
-    security_manager_.AuthenticationRequest(address, handle);
+    security_manager_.AuthenticationRequest(address, handle, false);
 
     ScheduleTask(milliseconds(5),
                  [this, address]() { StartSimplePairing(address); });
@@ -2054,9 +2056,9 @@ ErrorCode LinkLayerController::SendKeypressNotification(
 
 void LinkLayerController::HandleAuthenticationRequest(const Address& address,
                                                       uint16_t handle) {
-    security_manager_.AuthenticationRequest(address, handle);
-    auto packet = bluetooth::hci::LinkKeyRequestBuilder::Create(address);
-    send_event_(std::move(packet));
+  security_manager_.AuthenticationRequest(address, handle, true);
+  auto packet = bluetooth::hci::LinkKeyRequestBuilder::Create(address);
+  send_event_(std::move(packet));
 }
 
 ErrorCode LinkLayerController::AuthenticationRequested(uint16_t handle) {

@@ -59,10 +59,12 @@ const std::array<uint8_t, 16>& SecurityManager::GetKey(
   return key_store_.at(addr.ToString());
 }
 
-void SecurityManager::AuthenticationRequest(const Address& addr, uint16_t handle) {
+void SecurityManager::AuthenticationRequest(const Address& addr,
+                                            uint16_t handle, bool initiator) {
   authenticating_ = true;
   current_handle_ = handle;
   peer_address_ = addr;
+  initiator_ = initiator;
   peer_pin_requested_ = false;
   peer_pin_received_ = false;
   host_pin_received_ = false;
@@ -75,6 +77,8 @@ void SecurityManager::AuthenticationRequestFinished() {
 bool SecurityManager::AuthenticationInProgress() {
   return authenticating_;
 }
+
+bool SecurityManager::IsInitiator() { return initiator_; }
 
 uint16_t SecurityManager::GetAuthenticationHandle() {
   return current_handle_;
