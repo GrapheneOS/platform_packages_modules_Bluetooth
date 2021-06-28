@@ -21,6 +21,7 @@ use tokio::sync::mpsc::channel;
 use tokio::sync::mpsc::{Receiver, Sender};
 
 use crate::bluetooth::Bluetooth;
+use crate::bluetooth_media::BluetoothMedia;
 
 /// Represents a Bluetooth address.
 // TODO: Add support for LE random addresses.
@@ -105,7 +106,11 @@ impl Stack {
     }
 
     /// Runs the main dispatch loop.
-    pub async fn dispatch(mut rx: Receiver<Message>, bluetooth: Arc<Mutex<Box<Bluetooth>>>) {
+    pub async fn dispatch(
+        mut rx: Receiver<Message>,
+        bluetooth: Arc<Mutex<Box<Bluetooth>>>,
+        bluetooth_media: Arc<Mutex<Box<BluetoothMedia>>>,
+    ) {
         loop {
             let m = rx.recv().await;
 
@@ -116,8 +121,7 @@ impl Stack {
 
             match m.unwrap() {
                 Message::A2dp(a) => {
-                    //
-                    println!("RX {:?}", a);
+                    bluetooth_media.lock().unwrap().dispatch_a2dp_callbacks(a);
                 }
                 Message::Base(b) => {
                     bluetooth.lock().unwrap().dispatch_base_callbacks(b);

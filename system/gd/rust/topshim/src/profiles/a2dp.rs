@@ -149,6 +149,8 @@ pub mod ffi {
             bt_addr: RustRawAddress,
             codec_preferences: Vec<A2dpCodecConfig>,
         ) -> i32;
+        fn start_audio_request(self: Pin<&mut A2dpIntf>) -> bool;
+        fn stop_audio_request(self: Pin<&mut A2dpIntf>) -> bool;
         fn cleanup(self: Pin<&mut A2dpIntf>);
 
     }
@@ -167,6 +169,44 @@ pub mod ffi {
 
 pub type RawAddress = ffi::RustRawAddress;
 pub type A2dpCodecConfig = ffi::A2dpCodecConfig;
+
+// TODO(hychao): copied from BDAddr, need to move to a shared addr.
+impl ToString for RawAddress {
+    fn to_string(&self) -> String {
+        String::from(format!(
+            "{:02X}:{:02X}:{:02X}:{:02X}:{:02X}:{:02X}",
+            self.address[0],
+            self.address[1],
+            self.address[2],
+            self.address[3],
+            self.address[4],
+            self.address[5]
+        ))
+    }
+}
+
+impl RawAddress {
+    pub fn from_string<S: Into<String>>(addr: S) -> Option<RawAddress> {
+        let addr: String = addr.into();
+        let s = addr.split(':').collect::<Vec<&str>>();
+
+        if s.len() != 6 {
+            return None;
+        }
+
+        let mut raw: [u8; 6] = [0; 6];
+        for i in 0..s.len() {
+            raw[i] = match u8::from_str_radix(s[i], 16) {
+                Ok(res) => res,
+                Err(_) => {
+                    return None;
+                }
+            };
+        }
+
+        Some(RawAddress { address: raw })
+    }
+}
 
 #[derive(Debug)]
 pub enum A2dpCallbacks {
@@ -216,8 +256,38 @@ impl A2dp {
         true
     }
 
-    pub fn connect(&self) -> bool {
-        // TODO(hychao)
-        true
+    pub fn connect(&mut self, device: String) {
+        let addr = RawAddress::from_string(device.clone());
+        if addr.is_none() {
+            eprintln!("Invalid device string {}", device);
+            return;
+        }
+        self.internal.pin_mut().connect(addr.unwrap());
+    }
+
+    pub fn set_active_device(&mut self, device: String) {
+        let addr = RawAddress::from_string(device.clone());
+        if addr.is_none() {
+            eprintln!("Invalid device string {}", device);
+            return;
+        }
+        self.internal.pin_mut().set_active_device(addr.unwrap());
+    }
+
+    pub fn disconnect(&mut self, device: String) {
+        let addr = RawAddress::from_string(device.clone());
+        if addr.is_none() {
+            eprintln!("Invalid device string {}", device);
+            return;
+        }
+        self.internal.pin_mut().disconnect(addr.unwrap());
+    }
+
+    pub fn start_session(&mut self) {
+        self.internal.pin_mut().start_audio_request();
+    }
+
+    pub fn stop_session(&mut self) {
+        self.internal.pin_mut().stop_audio_request();
     }
 }
