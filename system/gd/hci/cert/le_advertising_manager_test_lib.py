@@ -24,6 +24,7 @@ from facade import rootservice_pb2 as facade_rootservice
 from hci.facade import hci_facade_pb2 as hci_facade
 from hci.facade import \
   le_advertising_manager_facade_pb2 as le_advertising_facade
+from hci.facade import le_initiator_address_facade_pb2 as le_initiator_address_facade
 from bluetooth_packets_python3 import hci_packets
 from facade import common_pb2 as common
 from cert.py_hci import PyHci
@@ -39,6 +40,16 @@ class LeAdvertisingManagerTestBase():
         self.cert_hci.close()
 
     def test_le_ad_scan_dut_advertises(self):
+        privacy_policy = le_initiator_address_facade.PrivacyPolicy(
+            address_policy=le_initiator_address_facade.AddressPolicy.USE_STATIC_ADDRESS,
+            address_with_type=common.BluetoothAddressWithType(
+                address=common.BluetoothAddress(address=bytes(b'D0:05:04:03:02:01')),
+                type=common.RANDOM_DEVICE_ADDRESS),
+            rotation_irk=b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00',
+            minimum_rotation_time=0,
+            maximum_rotation_time=0)
+        self.dut.hci_le_initiator_address.SetPrivacyPolicyForInitiatorAddress(privacy_policy)
+
         self.cert_hci.register_for_le_events(hci_packets.SubeventCode.ADVERTISING_REPORT,
                                              hci_packets.SubeventCode.EXTENDED_ADVERTISING_REPORT)
 
