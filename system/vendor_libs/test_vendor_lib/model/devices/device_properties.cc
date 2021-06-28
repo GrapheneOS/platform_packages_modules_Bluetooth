@@ -15,30 +15,29 @@
 
 #include "device_properties.h"
 
+#include <fstream>
 #include <memory>
 
-#include "base/files/file_util.h"
-#include "base/json/json_reader.h"
-#include "base/values.h"
+#include "json/json.h"
 
 #include "os/log.h"
 #include "osi/include/osi.h"
 
 using std::vector;
 
-namespace {
-// Functions used by JSONValueConverter to read stringified JSON.
-bool ParseUint8t(base::StringPiece value, uint8_t* field) {
-  *field = std::stoi(value.as_string());
-  return true;
+static void ParseUint8t(Json::Value value, uint8_t* field) {
+  if (value.isString())
+    *field = std::stoi(value.asString());
+  else if (value.isUInt())
+    *field = value.asUInt();
 }
 
-bool ParseUint16t(base::StringPiece value, uint16_t* field) {
-  *field = std::stoi(value.as_string());
-  return true;
+static void ParseUint16t(Json::Value value, uint16_t* field) {
+  if (value.isString())
+    *field = std::stoi(value.asString());
+  else if (value.isUInt())
+    *field = value.asUInt();
 }
-
-}  // namespace
 
 namespace test_vendor_lib {
 
@@ -77,48 +76,31 @@ DeviceProperties::DeviceProperties(const std::string& file_name)
   if (file_name.size() == 0) {
     return;
   }
+
   LOG_INFO("Reading controller properties from %s.", file_name.c_str());
-  if (!base::ReadFileToString(base::FilePath::FromUTF8Unsafe(file_name), &properties_raw)) {
-    LOG_ERROR("Error reading controller properties from file.");
+
+  std::ifstream file(file_name);
+
+  Json::Value root;
+  Json::CharReaderBuilder builder;
+
+  std::string errs;
+  if (!Json::parseFromStream(builder, file, &root, &errs)) {
+    LOG_ERROR("Error reading controller properties from file: %s",
+              errs.c_str());
     return;
   }
 
-  auto properties_value = base::JSONReader::Read(properties_raw);
-  if (!properties_value) {
-    LOG_ERROR(
-        "Error controller properties may consist of ill-formed JSON, no "
-        "properties read.");
-      return;
-  }
-
-  // Get the underlying base::Value object, which is of type
-  // base::Value::TYPE_DICTIONARY, and read it into member variables.
-  base::Value& properties_dictionary = *properties_value;
-  base::JSONValueConverter<DeviceProperties> converter;
-
-  if (!converter.Convert(properties_dictionary, this))
-    LOG_INFO("Error converting JSON properties into Properties object.");
-}
-
-// static
-void DeviceProperties::RegisterJSONConverter(base::JSONValueConverter<DeviceProperties>* converter) {
-// TODO(dennischeng): Use RegisterIntField() here?
-#define REGISTER_UINT8_T(field_name, field) \
-  converter->RegisterCustomField<uint8_t>(field_name, &DeviceProperties::field, &ParseUint8t);
-#define REGISTER_UINT16_T(field_name, field) \
-  converter->RegisterCustomField<uint16_t>(field_name, &DeviceProperties::field, &ParseUint16t);
-  REGISTER_UINT16_T("AclDataPacketSize", acl_data_packet_size_);
-  REGISTER_UINT8_T("ScoDataPacketSize", sco_data_packet_size_);
-  REGISTER_UINT8_T("EncryptionKeySize", encryption_key_size_);
-  REGISTER_UINT16_T("NumAclDataPackets", num_acl_data_packets_);
-  REGISTER_UINT16_T("NumScoDataPackets", num_sco_data_packets_);
-  REGISTER_UINT8_T("Version", version_);
-  REGISTER_UINT16_T("Revision", revision_);
-  REGISTER_UINT8_T("LmpPalVersion", lmp_pal_version_);
-  REGISTER_UINT16_T("ManufacturerName", manufacturer_name_);
-  REGISTER_UINT16_T("LmpPalSubversion", lmp_pal_subversion_);
-#undef REGISTER_UINT8_T
-#undef REGISTER_UINT16_T
+  ParseUint16t(root["AclDataPacketSize"], &acl_data_packet_size_);
+  ParseUint8t(root["ScoDataPacketSize"], &sco_data_packet_size_);
+  ParseUint8t(root["EncryptionKeySize"], &encryption_key_size_);
+  ParseUint16t(root["NumAclDataPackets"], &num_acl_data_packets_);
+  ParseUint16t(root["NumScoDataPackets"], &num_sco_data_packets_);
+  ParseUint8t(root["Version"], &version_);
+  ParseUint16t(root["Revision"], &revision_);
+  ParseUint8t(root["LmpPalVersion"], &lmp_pal_version_);
+  ParseUint16t(root["ManufacturerName"], &manufacturer_name_);
+  ParseUint16t(root["LmpPalSubversion"], &lmp_pal_subversion_);
 }
 
 }  // namespace test_vendor_lib

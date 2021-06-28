@@ -76,6 +76,7 @@ cc_library_static {
         "liblog",
     ],
     static_libs: [
+        "libjsoncpp",
         "libbt-rootcanal-types",
         "libscriptedbeaconpayload-protos-lite",
     ],
@@ -157,6 +158,7 @@ cc_binary_host {
         "libbacktrace",
     ],
     static_libs: [
+        "libjsoncpp",
         "libbt-rootcanal-types",
         "libprotobuf-cpp-lite",
         "libscriptedbeaconpayload-protos-lite",
