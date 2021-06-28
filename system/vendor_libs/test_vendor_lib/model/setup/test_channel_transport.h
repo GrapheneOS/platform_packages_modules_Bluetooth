@@ -21,8 +21,6 @@
 #include <string>
 #include <vector>
 
-//#include "base/files/scoped_file.h"
-
 namespace test_vendor_lib {
 
 // Manages communications between test channel and the controller. Mirrors the

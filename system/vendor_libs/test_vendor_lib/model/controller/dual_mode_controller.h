@@ -23,7 +23,6 @@
 #include <unordered_map>
 #include <vector>
 
-#include "base/time/time.h"
 #include "hci/address.h"
 #include "hci/hci_packets.h"
 #include "link_layer_controller.h"
