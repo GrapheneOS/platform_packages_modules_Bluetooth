@@ -71,7 +71,7 @@ class LeAddressManager {
   void AckResume(LeAddressManagerCallback* callback);
   virtual AddressPolicy Register(LeAddressManagerCallback* callback);
   virtual void Unregister(LeAddressManagerCallback* callback);
-  AddressWithType GetCurrentAddress();          // What was set in SetRandomAddress()
+  virtual AddressWithType GetCurrentAddress();  // What was set in SetRandomAddress()
   virtual AddressWithType GetAnotherAddress();  // A new random address without rotating.
 
   uint8_t GetConnectListSize();
