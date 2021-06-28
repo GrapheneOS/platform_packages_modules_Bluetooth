@@ -18,9 +18,9 @@
 
 #include "uuid.h"
 
-#include <base/rand_util.h>
 #include <base/strings/stringprintf.h>
 #include <algorithm>
+#include <random>
 
 namespace bluetooth {
 
@@ -146,7 +146,8 @@ const UUID128Bit& Uuid::To128BitBE() const {
 
 Uuid Uuid::GetRandom() {
   Uuid uuid;
-  base::RandBytes(uuid.uu.data(), uuid.uu.size());
+  std::independent_bits_engine<std::default_random_engine, 8, uint8_t> engine;
+  std::generate(std::begin(uuid.uu), std::end(uuid.uu), std::ref(engine));
   return uuid;
 }
 
