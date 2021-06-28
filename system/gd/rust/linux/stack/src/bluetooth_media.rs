@@ -2,7 +2,7 @@
 
 use bt_topshim::btif::BluetoothInterface;
 use bt_topshim::profiles::a2dp::{
-    A2dp, A2dpCallbacks, A2dpCallbacksDispatcher, BtavConnectionState, RawAddress,
+    A2dp, A2dpCallbacks, A2dpCallbacksDispatcher, BtavConnectionState,
 };
 use bt_topshim::topstack;
 

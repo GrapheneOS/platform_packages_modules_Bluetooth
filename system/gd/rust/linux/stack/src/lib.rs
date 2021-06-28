@@ -13,8 +13,6 @@ pub mod bluetooth_media;
 use bt_topshim::btif::BaseCallbacks;
 use bt_topshim::profiles::a2dp::A2dpCallbacks;
 
-use std::convert::TryInto;
-use std::fmt::{Debug, Formatter, Result};
 use std::sync::{Arc, Mutex};
 
 use tokio::sync::mpsc::channel;
@@ -25,69 +23,6 @@ use crate::bluetooth_media::BluetoothMedia;
 
 /// Represents a Bluetooth address.
 // TODO: Add support for LE random addresses.
-#[derive(Copy, Clone)]
-pub struct BDAddr {
-    val: [u8; 6],
-}
-
-impl Debug for BDAddr {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-        f.write_fmt(format_args!(
-            "{:02X}:{:02X}:{:02X}:{:02X}:{:02X}:{:02X}",
-            self.val[0], self.val[1], self.val[2], self.val[3], self.val[4], self.val[5]
-        ))
-    }
-}
-
-impl Default for BDAddr {
-    fn default() -> Self {
-        Self { val: [0; 6] }
-    }
-}
-
-impl ToString for BDAddr {
-    fn to_string(&self) -> String {
-        String::from(format!(
-            "{:02X}:{:02X}:{:02X}:{:02X}:{:02X}:{:02X}",
-            self.val[0], self.val[1], self.val[2], self.val[3], self.val[4], self.val[5]
-        ))
-    }
-}
-
-impl BDAddr {
-    /// Constructs a BDAddr from a vector of 6 bytes.
-    pub fn from_byte_vec(raw_addr: &Vec<u8>) -> Option<BDAddr> {
-        if let Ok(val) = raw_addr.clone().try_into() {
-            return Some(BDAddr { val });
-        }
-        None
-    }
-
-    pub fn from_string<S: Into<String>>(addr: S) -> Option<BDAddr> {
-        let addr: String = addr.into();
-        let s = addr.split(':').collect::<Vec<&str>>();
-
-        if s.len() != 6 {
-            return None;
-        }
-
-        let mut raw: [u8; 6] = [0; 6];
-        for i in 0..s.len() {
-            raw[i] = match u8::from_str_radix(s[i], 16) {
-                Ok(res) => res,
-                Err(_) => {
-                    return None;
-                }
-            };
-        }
-
-        Some(BDAddr { val: raw })
-    }
-
-    pub fn to_byte_arr(&self) -> [u8; 6] {
-        self.val.clone()
-    }
-}
 
 /// Message types that are sent to the stack main dispatch loop.
 pub enum Message {
