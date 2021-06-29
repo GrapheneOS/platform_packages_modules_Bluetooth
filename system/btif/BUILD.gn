@@ -36,9 +36,6 @@ static_library("btif") {
     # BTIF implementation
     "src/btif_a2dp.cc",
 
-    # "TODO(abps) - Move this abstraction elsewhere
-    # "src/btif_a2dp_audio_interface.cc",
-    "src/btif_a2dp_audio_interface_linux.cc",
     "src/btif_a2dp_control.cc",
     "src/btif_a2dp_sink.cc",
     "src/btif_a2dp_source.cc",
