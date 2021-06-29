@@ -19,6 +19,7 @@
 #include <base/logging.h>
 #include <algorithm>
 
+#include "check.h"
 #include "iterator.h"
 
 namespace bluetooth {

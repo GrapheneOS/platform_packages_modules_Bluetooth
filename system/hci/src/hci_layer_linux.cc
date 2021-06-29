@@ -34,6 +34,7 @@
 #include <sys/socket.h>
 
 #include "buffer_allocator.h"
+#include "check.h"
 #include "hci_internals.h"
 #include "hci_layer.h"
 #include "osi/include/compat.h"

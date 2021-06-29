@@ -34,6 +34,7 @@
 #include <string>
 
 #include "base/logging.h"
+#include "check.h"
 #include "common/metrics.h"
 #include "osi/include/alarm.h"
 #include "osi/include/allocator.h"

@@ -36,6 +36,7 @@
 #include <base/logging.h>
 
 #include "buffer_allocator.h"
+#include "check.h"
 #include "common/stop_watch_legacy.h"
 #include "osi/include/log.h"
 

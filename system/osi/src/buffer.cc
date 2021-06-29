@@ -23,6 +23,7 @@
 #include <base/logging.h>
 #include <stdint.h>
 
+#include "check.h"
 #include "osi/include/allocator.h"
 #include "osi/include/log.h"
 
