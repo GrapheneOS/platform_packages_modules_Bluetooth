@@ -26,7 +26,6 @@
 #include "bt_common.h"
 #include "bta_av_api.h"
 #include "btif_a2dp.h"
-#include "btif_a2dp_audio_interface.h"
 #include "btif_a2dp_control.h"
 #include "btif_a2dp_sink.h"
 #include "btif_a2dp_source.h"
@@ -59,10 +58,6 @@ bool btif_a2dp_on_started(const RawAddress& peer_addr, tBTA_AV_START* p_av_start
      * this is not for BTA_AV_START_EVT. */
     if (bluetooth::audio::a2dp::is_hal_2_0_enabled()) {
       bluetooth::audio::a2dp::ack_stream_started(status);
-    } else if (btif_av_is_a2dp_offload_enabled()) {
-      // TODO: BluetoothA2dp@1.0 is deprecated
-      btif_a2dp_audio_on_started(
-          (status == A2DP_CTRL_ACK_SUCCESS) ? BTA_AV_SUCCESS : BTA_AV_FAIL_SDP);
     } else {
       btif_a2dp_command_ack(status);
     }
@@ -99,9 +94,6 @@ bool btif_a2dp_on_started(const RawAddress& peer_addr, tBTA_AV_START* p_av_start
     LOG(ERROR) << __func__ << ": peer " << peer_addr << " A2DP start request failed: status = " << +p_av_start->status;
     if (bluetooth::audio::a2dp::is_hal_2_0_enabled()) {
       bluetooth::audio::a2dp::ack_stream_started(A2DP_CTRL_ACK_FAILURE);
-    } else if (btif_av_is_a2dp_offload_enabled()) {
-      // TODO: BluetoothA2dp@1.0 is deprecated
-      btif_a2dp_audio_on_started(p_av_start->status);
     } else {
       btif_a2dp_command_ack(A2DP_CTRL_ACK_FAILURE);
     }
@@ -120,9 +112,6 @@ void btif_a2dp_on_stopped(tBTA_AV_SUSPEND* p_av_suspend) {
   if (bluetooth::audio::a2dp::is_hal_2_0_enabled() ||
       !btif_av_is_a2dp_offload_running()) {
     btif_a2dp_source_on_stopped(p_av_suspend);
-  } else if (p_av_suspend != NULL) {
-    // TODO: BluetoothA2dp@1.0 is deprecated
-    btif_a2dp_audio_on_stopped(p_av_suspend->status);
   }
 }
 
@@ -136,9 +125,6 @@ void btif_a2dp_on_suspended(tBTA_AV_SUSPEND* p_av_suspend) {
   if (bluetooth::audio::a2dp::is_hal_2_0_enabled() ||
       !btif_av_is_a2dp_offload_running()) {
     btif_a2dp_source_on_suspended(p_av_suspend);
-  } else if (p_av_suspend != NULL) {
-    // TODO: BluetoothA2dp@1.0 is deprecated
-    btif_a2dp_audio_on_suspended(p_av_suspend->status);
   }
 }
 
@@ -177,8 +163,6 @@ void btif_a2dp_on_offload_started(const RawAddress& peer_addr,
     bluetooth::audio::a2dp::ack_stream_started(ack);
   } else {
     btif_a2dp_command_ack(ack);
-    // TODO: BluetoothA2dp@1.0 is deprecated
-    btif_a2dp_audio_on_started(status);
   }
 }
 
