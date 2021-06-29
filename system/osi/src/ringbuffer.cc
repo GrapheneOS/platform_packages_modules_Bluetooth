@@ -19,6 +19,7 @@
 #include <base/logging.h>
 #include <stdlib.h>
 
+#include "check.h"
 #include "osi/include/allocator.h"
 #include "osi/include/ringbuffer.h"
 

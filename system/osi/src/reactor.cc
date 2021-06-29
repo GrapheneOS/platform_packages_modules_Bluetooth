@@ -31,6 +31,7 @@
 
 #include <mutex>
 
+#include "check.h"
 #include "osi/include/allocator.h"
 #include "osi/include/list.h"
 #include "osi/include/log.h"

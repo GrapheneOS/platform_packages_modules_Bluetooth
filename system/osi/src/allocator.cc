@@ -19,6 +19,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "check.h"
 #include "osi/include/allocation_tracker.h"
 #include "osi/include/allocator.h"
 
