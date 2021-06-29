@@ -12,6 +12,7 @@ cc_library_static {
     defaults: ["libchrome_support_defaults"],
     export_include_dirs: ["./"],
     host_supported: true,
+    include_dirs: ["packages/modules/Bluetooth/system/include"],
     srcs: [
         "packet.cc",
         "iterator.cc",

@@ -20,6 +20,8 @@
 
 #include "device/include/esco_parameters.h"
 
+#include "check.h"
+
 static const enh_esco_params_t default_esco_parameters[ESCO_NUM_CODECS] = {
     // CVSD D1
     {

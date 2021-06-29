@@ -26,6 +26,7 @@
 
 #include "bt_target.h"
 #include "buffer_allocator.h"
+#include "check.h"
 #include "device/include/controller.h"
 #include "hci_internals.h"
 #include "osi/include/log.h"

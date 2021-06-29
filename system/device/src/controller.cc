@@ -26,6 +26,7 @@
 #include "btcore/include/event_mask.h"
 #include "btcore/include/module.h"
 #include "btcore/include/version.h"
+#include "check.h"
 #include "hcimsgs.h"
 #include "main/shim/controller.h"
 #include "main/shim/shim.h"

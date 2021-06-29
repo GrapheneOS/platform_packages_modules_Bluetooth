@@ -26,6 +26,7 @@
 #include <mutex>
 #include <unordered_map>
 
+#include "check.h"
 #include "osi/include/allocator.h"
 #include "osi/include/log.h"
 #include "osi/include/osi.h"

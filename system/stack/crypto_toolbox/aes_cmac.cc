@@ -28,6 +28,8 @@
 #include <base/logging.h>
 #include <base/strings/string_number_conversions.h>
 
+#include "check.h"
+
 namespace crypto_toolbox {
 
 namespace {

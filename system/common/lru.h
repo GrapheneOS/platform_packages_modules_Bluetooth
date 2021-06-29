@@ -28,6 +28,8 @@
 
 #include <base/logging.h>
 
+#include "check.h"
+
 namespace bluetooth {
 
 namespace common {
