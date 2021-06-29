@@ -34,7 +34,6 @@
 #include "bt_common.h"
 #include "bta_av_ci.h"
 #include "btif_a2dp.h"
-#include "btif_a2dp_audio_interface.h"
 #include "btif_a2dp_control.h"
 #include "btif_a2dp_source.h"
 #include "btif_av.h"
@@ -405,9 +404,6 @@ static void btif_a2dp_source_start_session_delayed(
     bluetooth::audio::a2dp::set_remote_delay(btif_av_get_audio_delay());
     BluetoothMetricsLogger::GetInstance()->LogBluetoothSessionStart(
         bluetooth::common::CONNECTION_TECHNOLOGY_TYPE_BREDR, 0);
-  } else if (btif_av_is_a2dp_offload_enabled()) {
-    // TODO: BluetoothA2dp@1.0 is deprecated
-    btif_a2dp_audio_interface_start_session();
   } else {
     BluetoothMetricsLogger::GetInstance()->LogBluetoothSessionStart(
         bluetooth::common::CONNECTION_TECHNOLOGY_TYPE_BREDR, 0);
@@ -472,9 +468,6 @@ static void btif_a2dp_source_end_session_delayed(
     bluetooth::audio::a2dp::end_session();
     BluetoothMetricsLogger::GetInstance()->LogBluetoothSessionEnd(
         bluetooth::common::DISCONNECT_REASON_UNKNOWN, 0);
-  } else if (btif_av_is_a2dp_offload_enabled()) {
-    // TODO: BluetoothA2dp@1.0 is deprecated
-    btif_a2dp_audio_interface_end_session();
   } else {
     BluetoothMetricsLogger::GetInstance()->LogBluetoothSessionEnd(
         bluetooth::common::DISCONNECT_REASON_UNKNOWN, 0);
@@ -505,9 +498,6 @@ static void btif_a2dp_source_shutdown_delayed(void) {
 
   if (bluetooth::audio::a2dp::is_hal_2_0_enabled()) {
     bluetooth::audio::a2dp::cleanup();
-  } else if (btif_av_is_a2dp_offload_enabled()) {
-    // TODO: BluetoothA2dp@1.0 is deprecated
-    btif_a2dp_audio_interface_end_session();
   } else {
     btif_a2dp_control_cleanup();
   }
