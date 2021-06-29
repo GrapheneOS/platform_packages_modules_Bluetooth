@@ -122,6 +122,8 @@ import com.android.internal.app.IBatteryStats;
 import com.android.internal.os.BackgroundThread;
 import com.android.internal.util.ArrayUtils;
 
+import libcore.util.SneakyThrow;
+
 import com.google.protobuf.InvalidProtocolBufferException;
 
 import java.io.FileDescriptor;
@@ -1728,7 +1730,13 @@ public class AdapterService extends Service {
 
             enforceBluetoothPrivilegedPermission(service);
 
-            return service.connectAllEnabledProfiles(device);
+            try {
+                return service.connectAllEnabledProfiles(device);
+            } catch (Exception e) {
+                Log.v(TAG, "connectAllEnabledProfiles() failed", e);
+                SneakyThrow.sneakyThrow(e);
+                throw new RuntimeException(e);
+            }
         }
 
         @Override
@@ -1743,7 +1751,13 @@ public class AdapterService extends Service {
 
             enforceBluetoothPrivilegedPermission(service);
 
-            return service.disconnectAllEnabledProfiles(device);
+            try {
+                return service.disconnectAllEnabledProfiles(device);
+            } catch (Exception e) {
+                Log.v(TAG, "disconnectAllEnabledProfiles() failed", e);
+                SneakyThrow.sneakyThrow(e);
+                throw new RuntimeException(e);
+            }
         }
 
         @Override
