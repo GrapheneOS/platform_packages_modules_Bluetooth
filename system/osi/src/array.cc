@@ -24,6 +24,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "check.h"
 #include "osi/include/allocator.h"
 #include "osi/include/log.h"
 

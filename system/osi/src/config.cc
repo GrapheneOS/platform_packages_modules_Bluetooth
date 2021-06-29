@@ -34,6 +34,8 @@
 #include <sstream>
 #include <type_traits>
 
+#include "check.h"
+
 void section_t::Set(std::string key, std::string value) {
   for (entry_t& entry : entries) {
     if (entry.key == key) {

@@ -23,6 +23,7 @@
 #include <base/logging.h>
 
 #include "buffer_allocator.h"
+#include "check.h"
 #include "hci_layer.h"
 #include "hcimsgs.h"
 #include "osi/include/log.h"
