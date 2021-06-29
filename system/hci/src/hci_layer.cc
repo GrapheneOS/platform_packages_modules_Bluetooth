@@ -39,6 +39,7 @@
 #include "btif/include/btif_bqr.h"
 #include "btsnoop.h"
 #include "buffer_allocator.h"
+#include "check.h"
 #include "common/message_loop_thread.h"
 #include "common/metrics.h"
 #include "common/once_timer.h"

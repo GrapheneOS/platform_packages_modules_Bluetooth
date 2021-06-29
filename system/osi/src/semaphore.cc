@@ -28,6 +28,7 @@
 #include <sys/eventfd.h>
 #include <unistd.h>
 
+#include "check.h"
 #include "osi/include/allocator.h"
 #include "osi/include/log.h"
 #include "osi/include/osi.h"

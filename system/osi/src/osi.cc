@@ -27,6 +27,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+#include "check.h"
 #include "osi/include/log.h"
 #include "osi/include/osi.h"
 
