@@ -136,7 +136,7 @@ class VolumeControlImpl : public VolumeControl {
     VolumeControlDevice* device =
         volume_control_devices_.FindByAddress(address);
     if (!device) {
-      LOG(ERROR) << __func__ << "Skipping unknown device" << address;
+      LOG(ERROR) << __func__ << "Skipping unknown device " << address;
       return;
     }
 
@@ -153,7 +153,7 @@ class VolumeControlImpl : public VolumeControl {
       return;
     }
 
-    LOG(INFO) << __func__ << " " << address << "status: " << success;
+    LOG(INFO) << __func__ << " " << address << " status: " << success;
 
     if (device->HasHandles()) {
       device->EnqueueInitialRequests(gatt_if_, chrc_read_callback_static,
@@ -170,7 +170,7 @@ class VolumeControlImpl : public VolumeControl {
     VolumeControlDevice* device =
         volume_control_devices_.FindByAddress(address);
     if (!device) {
-      LOG(ERROR) << __func__ << "Skipping unknown device" << address;
+      LOG(ERROR) << __func__ << "Skipping unknown device " << address;
       return;
     }
     LOG(INFO) << __func__ << ": address=" << address;
@@ -183,7 +183,7 @@ class VolumeControlImpl : public VolumeControl {
     VolumeControlDevice* device =
         volume_control_devices_.FindByAddress(address);
     if (!device) {
-      LOG(ERROR) << __func__ << "Skipping unknown device" << address;
+      LOG(ERROR) << __func__ << "Skipping unknown device " << address;
       return;
     }
 
@@ -274,9 +274,8 @@ class VolumeControlImpl : public VolumeControl {
     STREAM_TO_UINT8(device->mute, pp);
     STREAM_TO_UINT8(device->change_counter, pp);
 
-    LOG(INFO) << __func__ << " " << base::HexEncode(value, len);
-    LOG(INFO) << __func__ << "volume " << loghex(device->volume) << "mute"
-              << loghex(device->mute) << "change_counter"
+    LOG(INFO) << __func__ << " volume " << loghex(device->volume) << " mute "
+              << loghex(device->mute) << " change_counter "
               << loghex(device->change_counter);
 
     if (!device->device_ready) return;
@@ -289,8 +288,7 @@ class VolumeControlImpl : public VolumeControl {
                                    uint8_t* value) {
     device->flags = *value;
 
-    LOG(INFO) << __func__ << " " << base::HexEncode(value, len);
-    LOG(INFO) << __func__ << "flags " << loghex(device->flags);
+    LOG(INFO) << __func__ << " flags " << loghex(device->flags);
   }
 
   void OnGattWriteCcc(uint16_t connection_id, tGATT_STATUS status,
@@ -334,12 +332,11 @@ class VolumeControlImpl : public VolumeControl {
     VolumeControlDevice* device =
         volume_control_devices_.FindByAddress(address);
     if (!device) {
-      LOG(INFO) << "Device not connected to profile" << address;
+      LOG(INFO) << "Device not connected to profile " << address;
       return;
     }
 
-    LOG(INFO) << __func__ << ": " << address;
-    LOG(INFO) << "GAP_EVT_CONN_CLOSED: " << device->address;
+    LOG(INFO) << __func__ << " GAP_EVT_CONN_CLOSED: " << device->address;
     device_cleanup_helper(device, true);
   }
 
@@ -385,7 +382,7 @@ class VolumeControlImpl : public VolumeControl {
 
   void SetVolume(std::variant<RawAddress, int> addr_or_group_id,
                  uint8_t volume) override {
-    LOG(INFO) << __func__ << "vol: " << +volume;
+    LOG(INFO) << __func__ << " vol: " << +volume;
 
     if (std::holds_alternative<RawAddress>(addr_or_group_id)) {
       std::vector<RawAddress> devices = {
@@ -417,7 +414,7 @@ class VolumeControlImpl : public VolumeControl {
     // VerifyReady sets the device_ready flag if all remaining GATT operations
     // are completed
     if (device->VerifyReady(handle)) {
-      LOG(INFO) << __func__ << "Outstanding reads completed ";
+      LOG(INFO) << __func__ << " Outstanding reads completed.";
 
       callbacks_->OnConnectionState(ConnectionState::CONNECTED,
                                     device->address);
@@ -555,7 +552,7 @@ void VolumeControl::AddFromStorage(const RawAddress& address,
 
 void VolumeControl::CleanUp() {
   if (!instance) {
-    LOG(ERROR) << "not initialized!";
+    LOG(ERROR) << "Not initialized!";
     return;
   }
 
