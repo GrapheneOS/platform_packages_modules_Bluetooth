@@ -92,7 +92,7 @@ Return<void> BluetoothHci::initialize_impl(
 
   death_recipient_->setHasDied(false);
   auto link_ret = cb->linkToDeath(death_recipient_, 0);
-  CHECK(link_ret.isOk()) << "Error calling linkToDeath.";
+  ASSERT_LOG(link_ret.isOk(), "Error calling linkToDeath.");
 
   test_channel_transport_.RegisterCommandHandler(
       [this](const std::string& name, const std::vector<std::string>& args) {
@@ -219,16 +219,16 @@ Return<void> BluetoothHci::initialize_impl(
     else {
       auto ret = cb->unlinkToDeath(death_recipient);
       if (!ret.isOk()) {
-        CHECK(death_recipient_->getHasDied())
-            << "Error calling unlink, but no death notification.";
+        ASSERT_LOG(death_recipient_->getHasDied(),
+                   "Error calling unlink, but no death notification.");
       }
     }
   };
 
   auto init_ret = cb->initializationComplete(V1_0::Status::SUCCESS);
   if (!init_ret.isOk()) {
-    CHECK(death_recipient_->getHasDied())
-        << "Error sending init callback, but no death notification.";
+    ASSERT_LOG(death_recipient_->getHasDied(),
+               "Error sending init callback, but no death notification.");
   }
   return Void();
 }
@@ -304,7 +304,7 @@ void BluetoothHci::SetUpHciServer(int port, const std::function<void(int)>& conn
     int flags = fcntl(conn_fd, F_GETFL, NULL);
     int ret;
     ret = fcntl(conn_fd, F_SETFL, flags | O_NONBLOCK);
-    CHECK(ret != -1) << "Error setting O_NONBLOCK " << strerror(errno);
+    ASSERT_LOG(ret != -1, "Error setting O_NONBLOCK %s", strerror(errno));
 
     connection_callback(conn_fd);
   });
@@ -330,7 +330,7 @@ void BluetoothHci::SetUpLinkLayerServer(int port, const std::function<void(int)>
     }
     int flags = fcntl(conn_fd, F_GETFL, NULL);
     int ret = fcntl(conn_fd, F_SETFL, flags | O_NONBLOCK);
-    CHECK(ret != -1) << "Error setting O_NONBLOCK " << strerror(errno);
+    ASSERT_LOG(ret != -1, "Error setting O_NONBLOCK %s", strerror(errno));
 
     connection_callback(conn_fd);
   });
@@ -366,7 +366,7 @@ int BluetoothHci::ConnectToRemoteServer(const std::string& server, int port) {
 
   int flags = fcntl(socket_fd, F_GETFL, NULL);
   int ret = fcntl(socket_fd, F_SETFL, flags | O_NONBLOCK);
-  CHECK(ret != -1) << "Error setting O_NONBLOCK " << strerror(errno);
+  ASSERT_LOG(ret != -1, "Error setting O_NONBLOCK %s", strerror(errno));
 
   return socket_fd;
 }
