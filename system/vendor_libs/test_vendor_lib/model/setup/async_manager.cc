@@ -96,7 +96,7 @@ class AsyncManager::AsyncFdWatcher {
   int WatchFdForNonBlockingReads(int file_descriptor, const ReadCallback& on_read_fd_ready_callback) {
     // add file descriptor and callback
     {
-      std::unique_lock<std::mutex> guard(internal_mutex_);
+      std::unique_lock<std::recursive_mutex> guard(internal_mutex_);
       watched_shared_fds_[file_descriptor] = on_read_fd_ready_callback;
     }
 
@@ -114,7 +114,7 @@ class AsyncManager::AsyncFdWatcher {
   }
 
   void StopWatchingFileDescriptor(int file_descriptor) {
-    std::unique_lock<std::mutex> guard(internal_mutex_);
+    std::unique_lock<std::recursive_mutex> guard(internal_mutex_);
     watched_shared_fds_.erase(file_descriptor);
   }
 
@@ -138,7 +138,7 @@ class AsyncManager::AsyncFdWatcher {
     }
 
     {
-      std::unique_lock<std::mutex> guard(internal_mutex_);
+      std::unique_lock<std::recursive_mutex> guard(internal_mutex_);
       watched_shared_fds_.clear();
     }
 
@@ -188,7 +188,7 @@ class AsyncManager::AsyncFdWatcher {
 
     // add watched FDs to the set
     {
-      std::unique_lock<std::mutex> guard(internal_mutex_);
+      std::unique_lock<std::recursive_mutex> guard(internal_mutex_);
       for (auto& fdp : watched_shared_fds_) {
         FD_SET(fdp.first, &read_fds);
         nfds = std::max(fdp.first, nfds);
@@ -211,15 +211,11 @@ class AsyncManager::AsyncFdWatcher {
 
   // check all file descriptors and call callbacks if necesary
   void runAppropriateCallbacks(fd_set& read_fds) {
-    // not a good idea to call a callback while holding the FD lock,
-    // nor to release the lock while traversing the map
     std::vector<decltype(watched_shared_fds_)::value_type> fds;
-    {
-      std::unique_lock<std::mutex> guard(internal_mutex_);
-      for (auto& fdc : watched_shared_fds_) {
-        if (FD_ISSET(fdc.first, &read_fds)) {
-          fds.push_back(fdc);
-        }
+    std::unique_lock<std::recursive_mutex> guard(internal_mutex_);
+    for (auto& fdc : watched_shared_fds_) {
+      if (FD_ISSET(fdc.first, &read_fds)) {
+        fds.push_back(fdc);
       }
     }
     for (auto& p : fds) {
@@ -256,7 +252,7 @@ class AsyncManager::AsyncFdWatcher {
 
   std::atomic_bool running_{false};
   std::thread thread_;
-  std::mutex internal_mutex_;
+  std::recursive_mutex internal_mutex_;
 
   std::map<int, ReadCallback> watched_shared_fds_;
 
