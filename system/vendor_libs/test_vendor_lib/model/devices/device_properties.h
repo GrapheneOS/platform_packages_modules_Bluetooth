@@ -21,7 +21,6 @@
 #include <string>
 #include <vector>
 
-#include "base/json/json_value_converter.h"
 #include "hci/address.h"
 #include "hci/hci_packets.h"
 #include "os/log.h"
@@ -357,8 +356,6 @@ class DeviceProperties {
   const std::vector<uint8_t>& GetLeVendorCap() const {
     return le_vendor_cap_;
   }
-
-  static void RegisterJSONConverter(base::JSONValueConverter<DeviceProperties>* converter);
 
  private:
   // Classic
