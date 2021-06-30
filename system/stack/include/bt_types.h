@@ -176,11 +176,6 @@ enum {
   { *(p)++ = (uint8_t)(u8); }
 #define INT8_TO_STREAM(p, u8) \
   { *(p)++ = (int8_t)(u8); }
-#define ARRAY32_TO_STREAM(p, a)                                     \
-  {                                                                 \
-    int ijk;                                                        \
-    for (ijk = 0; ijk < 32; ijk++) *(p)++ = (uint8_t)(a)[31 - ijk]; \
-  }
 #define ARRAY16_TO_STREAM(p, a)                                     \
   {                                                                 \
     int ijk;                                                        \
@@ -208,12 +203,6 @@ enum {
     int ijk;                                                      \
     for (ijk = 0; ijk < (len); ijk++) *(p)++ = (uint8_t)(a)[ijk]; \
   }
-#define REVERSE_ARRAY_TO_STREAM(p, a, len)                                  \
-  {                                                                         \
-    int ijk;                                                                \
-    for (ijk = 0; ijk < (len); ijk++) *(p)++ = (uint8_t)(a)[(len)-1 - ijk]; \
-  }
-
 #define STREAM_TO_INT8(u8, p)   \
   {                             \
     (u8) = (*((int8_t*)(p)));   \
@@ -253,12 +242,6 @@ enum {
              ((((uint64_t)(*((p) + 7)))) << 56));                     \
     (p) += 8;                                                         \
   }
-#define STREAM_TO_ARRAY32(a, p)                     \
-  {                                                 \
-    int ijk;                                        \
-    uint8_t* _pa = (uint8_t*)(a) + 31;              \
-    for (ijk = 0; ijk < 32; ijk++) *_pa-- = *(p)++; \
-  }
 #define STREAM_TO_ARRAY16(a, p)                     \
   {                                                 \
     int ijk;                                        \
@@ -288,13 +271,6 @@ enum {
     int ijk;                                                         \
     for (ijk = 0; ijk < (len); ijk++) ((uint8_t*)(a))[ijk] = *(p)++; \
   }
-#define REVERSE_STREAM_TO_ARRAY(a, p, len)             \
-  {                                                    \
-    int ijk;                                           \
-    uint8_t* _pa = (uint8_t*)(a) + (len)-1;            \
-    for (ijk = 0; ijk < (len); ijk++) *_pa-- = *(p)++; \
-  }
-
 #define STREAM_SKIP_UINT8(p) \
   do {                       \
     (p) += 1;                \
@@ -307,31 +283,6 @@ enum {
   do {                        \
     (p) += 4;                 \
   } while (0)
-
-/*******************************************************************************
- * Macros to get and put bytes to and from a field (Little Endian format).
- * These are the same as to stream, except the pointer is not incremented.
- */
-#define UINT32_TO_FIELD(p, u32)                    \
-  {                                                \
-    *(uint8_t*)(p) = (uint8_t)(u32);               \
-    *((uint8_t*)(p) + 1) = (uint8_t)((u32) >> 8);  \
-    *((uint8_t*)(p) + 2) = (uint8_t)((u32) >> 16); \
-    *((uint8_t*)(p) + 3) = (uint8_t)((u32) >> 24); \
-  }
-#define UINT24_TO_FIELD(p, u24)                    \
-  {                                                \
-    *(uint8_t*)(p) = (uint8_t)(u24);               \
-    *((uint8_t*)(p) + 1) = (uint8_t)((u24) >> 8);  \
-    *((uint8_t*)(p) + 2) = (uint8_t)((u24) >> 16); \
-  }
-#define UINT16_TO_FIELD(p, u16)                   \
-  {                                               \
-    *(uint8_t*)(p) = (uint8_t)(u16);              \
-    *((uint8_t*)(p) + 1) = (uint8_t)((u16) >> 8); \
-  }
-#define UINT8_TO_FIELD(p, u8) \
-  { *(uint8_t*)(p) = (uint8_t)(u8); }
 
 /*******************************************************************************
  * Macros to get and put bytes to and from a stream (Big Endian format)
@@ -361,12 +312,6 @@ enum {
     int ijk;                                                      \
     for (ijk = 0; ijk < (len); ijk++) *(p)++ = (uint8_t)(a)[ijk]; \
   }
-#define ARRAY_TO_BE_STREAM_REVERSE(p, a, len)                               \
-  {                                                                         \
-    int ijk;                                                                \
-    for (ijk = 0; ijk < (len); ijk++) *(p)++ = (uint8_t)(a)[(len)-ijk - 1]; \
-  }
-
 #define BE_STREAM_TO_UINT8(u8, p) \
   {                               \
     (u8) = (uint8_t)(*(p));       \
@@ -414,19 +359,11 @@ enum {
     *((uint8_t*)(p) + 2) = (uint8_t)((u32) >> 8);  \
     *((uint8_t*)(p) + 3) = (uint8_t)(u32);         \
   }
-#define UINT24_TO_BE_FIELD(p, u24)                \
-  {                                               \
-    *(uint8_t*)(p) = (uint8_t)((u24) >> 16);      \
-    *((uint8_t*)(p) + 1) = (uint8_t)((u24) >> 8); \
-    *((uint8_t*)(p) + 2) = (uint8_t)(u24);        \
-  }
 #define UINT16_TO_BE_FIELD(p, u16)          \
   {                                         \
     *(uint8_t*)(p) = (uint8_t)((u16) >> 8); \
     *((uint8_t*)(p) + 1) = (uint8_t)(u16);  \
   }
-#define UINT8_TO_BE_FIELD(p, u8) \
-  { *(uint8_t*)(p) = (uint8_t)(u8); }
 
 /* Common Bluetooth field definitions */
 #define BD_ADDR_LEN 6 /* Device address length */
@@ -477,9 +414,6 @@ typedef uint8_t BT_OCTET32[BT_OCTET32_LEN]; /* octet array: size 32 */
 
 #define DEV_CLASS_LEN 3
 typedef uint8_t DEV_CLASS[DEV_CLASS_LEN]; /* Device class */
-
-#define EXT_INQ_RESP_LEN 3
-typedef uint8_t EXT_INQ_RESP[EXT_INQ_RESP_LEN]; /* Extended Inquiry Response */
 
 #define BD_NAME_LEN 248
 typedef uint8_t BD_NAME[BD_NAME_LEN + 1]; /* Device name */
