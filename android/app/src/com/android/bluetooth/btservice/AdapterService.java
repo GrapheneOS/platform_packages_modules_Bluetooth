@@ -120,6 +120,7 @@ import com.android.internal.annotations.GuardedBy;
 import com.android.internal.annotations.VisibleForTesting;
 import com.android.internal.app.IBatteryStats;
 import com.android.internal.os.BackgroundThread;
+import com.android.internal.os.BinderCallsStats;
 import com.android.internal.util.ArrayUtils;
 
 import libcore.util.SneakyThrow;
@@ -288,6 +289,8 @@ public class AdapterService extends Service {
     private PbapClientService mPbapClientService;
     private HearingAidService mHearingAidService;
     private SapService mSapService;
+
+    private BinderCallsStats.SettingsObserver mBinderCallsSettingsObserver;
 
     private volatile boolean mTestModeEnabled = false;
 
@@ -504,6 +507,13 @@ public class AdapterService extends Service {
         mActivityAttributionService = new ActivityAttributionService();
         mActivityAttributionService.start();
         int configCompareResult = mBluetoothKeystoreService.getCompareResult();
+
+        // Start tracking Binder latency for the bluetooth process.
+        mBinderCallsSettingsObserver = new BinderCallsStats.SettingsObserver(
+                getApplicationContext(),
+                new BinderCallsStats(
+                        new BinderCallsStats.Injector(),
+                        com.android.internal.os.BinderLatencyProto.Dims.BLUETOOTH));
 
         // Android TV doesn't show consent dialogs for just works and encryption only le pairing
         boolean isAtvDevice = getApplicationContext().getPackageManager().hasSystemFeature(
