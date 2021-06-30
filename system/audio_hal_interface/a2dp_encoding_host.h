@@ -34,8 +34,8 @@ struct AudioConfig {
       BTAV_A2DP_CODEC_CHANNEL_MODE_STEREO;
 };
 
-// Invoked by audio server to notify Bluetooth about audio config
-bool Init(AudioConfig);
+// Invoked by audio server to set audio config (PCM for now)
+bool SetAudioConfig(AudioConfig);
 
 // Invoked by audio server when it has audio data to stream.
 bool StartRequest();

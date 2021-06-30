@@ -45,6 +45,7 @@ class A2dpIntf {
   void cleanup();
 
   // interface for Audio server
+  bool set_audio_config(A2dpCodecConfig rconfig);
   bool start_audio_request();
   bool stop_audio_request();
   bluetooth::audio::a2dp::PresentationPosition get_presentation_position();
