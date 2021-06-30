@@ -18,6 +18,7 @@ package com.android.bluetooth.hfpclient.connserv;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothHeadsetClient;
 import android.bluetooth.BluetoothHeadsetClientCall;
+import android.bluetooth.hfpclient.connserv.BluetoothHeadsetClientProxy;
 import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
@@ -40,7 +41,7 @@ public class HfpClientConnection extends Connection {
 
     private final Context mContext;
     private final BluetoothDevice mDevice;
-    private BluetoothHeadsetClient mHeadsetProfile;
+    private BluetoothHeadsetClientProxy mHeadsetProfile;
     private HfpClientConnectionService mHfpClientConnectionService;
 
     private BluetoothHeadsetClientCall mCurrentCall;
@@ -54,7 +55,7 @@ public class HfpClientConnection extends Connection {
     // Constructor to be used when there's an existing call (such as that created on the AG or
     // when connection happens and we see calls for the first time).
     public HfpClientConnection(Context context, BluetoothDevice device,
-            BluetoothHeadsetClient client, BluetoothHeadsetClientCall call) {
+            BluetoothHeadsetClientProxy client, BluetoothHeadsetClientCall call) {
         mDevice = device;
         mContext = context;
         mHeadsetProfile = client;
@@ -72,7 +73,7 @@ public class HfpClientConnection extends Connection {
     // Constructor to be used when a call is intiated on the HF. The call handle is obtained by
     // using the dial() command.
     public HfpClientConnection(Context context, BluetoothDevice device,
-            BluetoothHeadsetClient client, Uri number) {
+            BluetoothHeadsetClientProxy client, Uri number) {
         mDevice = device;
         mContext = context;
         mHeadsetProfile = client;
