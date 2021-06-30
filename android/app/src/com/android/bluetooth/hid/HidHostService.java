@@ -25,6 +25,7 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothHidHost;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.IBluetoothHidHost;
+import android.content.Attributable;
 import android.content.AttributionSource;
 import android.content.Intent;
 import android.os.Bundle;
@@ -333,6 +334,7 @@ public class HidHostService extends ProfileService {
 
         @Override
         public boolean connect(BluetoothDevice device, AttributionSource source) {
+            Attributable.setAttributionSource(device, source);
             HidHostService service = getService(source);
             if (service == null) {
                 return false;
@@ -343,6 +345,7 @@ public class HidHostService extends ProfileService {
 
         @Override
         public boolean disconnect(BluetoothDevice device, AttributionSource source) {
+            Attributable.setAttributionSource(device, source);
             HidHostService service = getService(source);
             if (service == null) {
                 return false;
@@ -353,6 +356,7 @@ public class HidHostService extends ProfileService {
 
         @Override
         public int getConnectionState(BluetoothDevice device, AttributionSource source) {
+            Attributable.setAttributionSource(device, source);
             HidHostService service = getService(source);
             if (service == null) {
                 return BluetoothHidHost.STATE_DISCONNECTED;
@@ -380,6 +384,7 @@ public class HidHostService extends ProfileService {
         @Override
         public boolean setConnectionPolicy(BluetoothDevice device, int connectionPolicy,
                 AttributionSource source) {
+            Attributable.setAttributionSource(device, source);
             HidHostService service = getService(source);
             if (service == null) {
                 return false;
@@ -390,6 +395,7 @@ public class HidHostService extends ProfileService {
 
         @Override
         public int getConnectionPolicy(BluetoothDevice device, AttributionSource source) {
+            Attributable.setAttributionSource(device, source);
             HidHostService service = getService(source);
             if (service == null) {
                 return BluetoothProfile.CONNECTION_POLICY_UNKNOWN;
@@ -401,6 +407,7 @@ public class HidHostService extends ProfileService {
         /* The following APIs regarding test app for compliance */
         @Override
         public boolean getProtocolMode(BluetoothDevice device, AttributionSource source) {
+            Attributable.setAttributionSource(device, source);
             HidHostService service = getService(source);
             if (service == null) {
                 return false;
@@ -410,6 +417,7 @@ public class HidHostService extends ProfileService {
 
         @Override
         public boolean virtualUnplug(BluetoothDevice device, AttributionSource source) {
+            Attributable.setAttributionSource(device, source);
             HidHostService service = getService(source);
             if (service == null) {
                 return false;
@@ -420,6 +428,7 @@ public class HidHostService extends ProfileService {
         @Override
         public boolean setProtocolMode(BluetoothDevice device, int protocolMode,
                 AttributionSource source) {
+            Attributable.setAttributionSource(device, source);
             HidHostService service = getService(source);
             if (service == null) {
                 return false;
@@ -430,6 +439,7 @@ public class HidHostService extends ProfileService {
         @Override
         public boolean getReport(BluetoothDevice device, byte reportType, byte reportId,
                 int bufferSize, AttributionSource source) {
+            Attributable.setAttributionSource(device, source);
             HidHostService service = getService(source);
             if (service == null) {
                 return false;
@@ -440,6 +450,7 @@ public class HidHostService extends ProfileService {
         @Override
         public boolean setReport(BluetoothDevice device, byte reportType, String report,
                 AttributionSource source) {
+            Attributable.setAttributionSource(device, source);
             HidHostService service = getService(source);
             if (service == null) {
                 return false;
@@ -449,6 +460,7 @@ public class HidHostService extends ProfileService {
 
         @Override
         public boolean sendData(BluetoothDevice device, String report, AttributionSource source) {
+            Attributable.setAttributionSource(device, source);
             HidHostService service = getService(source);
             if (service == null) {
                 return false;
@@ -459,6 +471,7 @@ public class HidHostService extends ProfileService {
         @Override
         public boolean setIdleTime(BluetoothDevice device, byte idleTime,
                 AttributionSource source) {
+            Attributable.setAttributionSource(device, source);
             HidHostService service = getService(source);
             if (service == null) {
                 return false;
@@ -468,6 +481,7 @@ public class HidHostService extends ProfileService {
 
         @Override
         public boolean getIdleTime(BluetoothDevice device, AttributionSource source) {
+            Attributable.setAttributionSource(device, source);
             HidHostService service = getService(source);
             if (service == null) {
                 return false;

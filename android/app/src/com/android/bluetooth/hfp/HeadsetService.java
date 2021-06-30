@@ -28,6 +28,7 @@ import android.bluetooth.BluetoothHeadset;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.BluetoothUuid;
 import android.bluetooth.IBluetoothHeadset;
+import android.content.Attributable;
 import android.content.AttributionSource;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -439,6 +440,7 @@ public class HeadsetService extends ProfileService {
 
         @Override
         public boolean connectWithAttribution(BluetoothDevice device, AttributionSource source) {
+            Attributable.setAttributionSource(device, source);
             HeadsetService service = getService(source);
             if (service == null) {
                 return false;
@@ -453,6 +455,7 @@ public class HeadsetService extends ProfileService {
 
         @Override
         public boolean disconnectWithAttribution(BluetoothDevice device, AttributionSource source) {
+            Attributable.setAttributionSource(device, source);
             HeadsetService service = getService(source);
             if (service == null) {
                 return false;
@@ -492,6 +495,7 @@ public class HeadsetService extends ProfileService {
         @Override
         public int getConnectionStateWithAttribution(BluetoothDevice device,
                 AttributionSource source) {
+            Attributable.setAttributionSource(device, source);
             HeadsetService service = getService(source);
             if (service == null) {
                 return BluetoothProfile.STATE_DISCONNECTED;
@@ -502,6 +506,7 @@ public class HeadsetService extends ProfileService {
         @Override
         public boolean setPriority(BluetoothDevice device, int connectionPolicy,
                 AttributionSource source) {
+            Attributable.setAttributionSource(device, source);
             HeadsetService service = getService(source);
             if (service == null) {
                 return false;
@@ -512,6 +517,7 @@ public class HeadsetService extends ProfileService {
         @Override
         public boolean setConnectionPolicy(BluetoothDevice device, int connectionPolicy,
                 AttributionSource source) {
+            Attributable.setAttributionSource(device, source);
             HeadsetService service = getService(source);
             if (service == null) {
                 return false;
@@ -522,6 +528,7 @@ public class HeadsetService extends ProfileService {
 
         @Override
         public int getPriority(BluetoothDevice device, AttributionSource source) {
+            Attributable.setAttributionSource(device, source);
             HeadsetService service = getService(source);
             if (service == null) {
                 return BluetoothProfile.CONNECTION_POLICY_UNKNOWN;
@@ -531,6 +538,7 @@ public class HeadsetService extends ProfileService {
 
         @Override
         public int getConnectionPolicy(BluetoothDevice device, AttributionSource source) {
+            Attributable.setAttributionSource(device, source);
             HeadsetService service = getService(source);
             if (service == null) {
                 return BluetoothProfile.CONNECTION_POLICY_UNKNOWN;
@@ -541,6 +549,7 @@ public class HeadsetService extends ProfileService {
 
         @Override
         public boolean isNoiseReductionSupported(BluetoothDevice device, AttributionSource source) {
+            Attributable.setAttributionSource(device, source);
             HeadsetService service = getService(source);
             if (service == null) {
                 return false;
@@ -551,6 +560,7 @@ public class HeadsetService extends ProfileService {
         @Override
         public boolean isVoiceRecognitionSupported(BluetoothDevice device,
                 AttributionSource source) {
+            Attributable.setAttributionSource(device, source);
             HeadsetService service = getService(source);
             if (service == null) {
                 return false;
@@ -560,6 +570,7 @@ public class HeadsetService extends ProfileService {
 
         @Override
         public boolean startVoiceRecognition(BluetoothDevice device, AttributionSource source) {
+            Attributable.setAttributionSource(device, source);
             HeadsetService service = getService(source);
             if (service == null) {
                 return false;
@@ -569,6 +580,7 @@ public class HeadsetService extends ProfileService {
 
         @Override
         public boolean stopVoiceRecognition(BluetoothDevice device, AttributionSource source) {
+            Attributable.setAttributionSource(device, source);
             HeadsetService service = getService(source);
             if (service == null) {
                 return false;
@@ -587,6 +599,7 @@ public class HeadsetService extends ProfileService {
 
         @Override
         public boolean isAudioConnected(BluetoothDevice device, AttributionSource source) {
+            Attributable.setAttributionSource(device, source);
             HeadsetService service = getService(source);
             if (service == null) {
                 return false;
@@ -596,6 +609,7 @@ public class HeadsetService extends ProfileService {
 
         @Override
         public int getAudioState(BluetoothDevice device, AttributionSource source) {
+            Attributable.setAttributionSource(device, source);
             HeadsetService service = getService(source);
             if (service == null) {
                 return BluetoothHeadset.STATE_AUDIO_DISCONNECTED;
@@ -689,6 +703,7 @@ public class HeadsetService extends ProfileService {
         @Override
         public boolean sendVendorSpecificResultCode(BluetoothDevice device, String command,
                 String arg, AttributionSource source) {
+            Attributable.setAttributionSource(device, source);
             HeadsetService service = getService(source);
             if (service == null) {
                 return false;
@@ -698,6 +713,7 @@ public class HeadsetService extends ProfileService {
 
         @Override
         public boolean setActiveDevice(BluetoothDevice device, AttributionSource source) {
+            Attributable.setAttributionSource(device, source);
             HeadsetService service = getService(source);
             if (service == null) {
                 return false;

@@ -26,6 +26,7 @@ import android.bluetooth.BluetoothPan.LocalPanRole;
 import android.bluetooth.BluetoothPan.RemotePanRole;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.IBluetoothPan;
+import android.content.Attributable;
 import android.content.AttributionSource;
 import android.content.Context;
 import android.content.Intent;
@@ -257,6 +258,7 @@ public class PanService extends ProfileService {
 
         @Override
         public boolean connect(BluetoothDevice device, AttributionSource source) {
+            Attributable.setAttributionSource(device, source);
             PanService service = getService(source);
             if (service == null) {
                 return false;
@@ -266,6 +268,7 @@ public class PanService extends ProfileService {
 
         @Override
         public boolean disconnect(BluetoothDevice device, AttributionSource source) {
+            Attributable.setAttributionSource(device, source);
             PanService service = getService(source);
             if (service == null) {
                 return false;
@@ -276,6 +279,7 @@ public class PanService extends ProfileService {
         @Override
         public boolean setConnectionPolicy(BluetoothDevice device, int connectionPolicy,
                 AttributionSource source) {
+            Attributable.setAttributionSource(device, source);
             PanService service = getService(source);
             if (service == null) {
                 return false;
@@ -285,6 +289,7 @@ public class PanService extends ProfileService {
 
         @Override
         public int getConnectionState(BluetoothDevice device, AttributionSource source) {
+            Attributable.setAttributionSource(device, source);
             PanService service = getService(source);
             if (service == null) {
                 return BluetoothPan.STATE_DISCONNECTED;
