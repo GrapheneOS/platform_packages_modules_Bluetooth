@@ -16,7 +16,7 @@ use std::sync::Mutex;
 
 use tokio::sync::mpsc::Sender;
 
-use crate::{BDAddr, Message, RPCProxy};
+use crate::{Message, RPCProxy};
 
 /// Defines the adapter API.
 pub trait IBluetooth {
@@ -68,7 +68,7 @@ impl BluetoothDevice {
         for prop in properties {
             match prop.prop_type {
                 BtPropertyType::BdAddr => {
-                    if let Some(addr) = BDAddr::from_byte_vec(&prop.val) {
+                    if let Some(addr) = RawAddress::from_bytes(&prop.val) {
                         address = addr.to_string();
                     }
                 }
@@ -111,7 +111,7 @@ pub struct Bluetooth {
     callbacks: Vec<(u32, Box<dyn IBluetoothCallback + Send>)>,
     callbacks_last_id: u32,
     tx: Sender<Message>,
-    local_address: Option<BDAddr>,
+    local_address: Option<RawAddress>,
     hh: Option<HidHost>,
 }
 
@@ -140,7 +140,7 @@ impl Bluetooth {
     }
 
     fn update_local_address(&mut self, raw: &Vec<u8>) {
-        self.local_address = BDAddr::from_byte_vec(raw);
+        self.local_address = RawAddress::from_bytes(raw);
 
         self.for_all_callbacks(|callback| {
             callback.on_address_changed(self.local_address.unwrap().to_string());
@@ -252,12 +252,7 @@ impl BtifBluetoothCallbacks for Bluetooth {
         // TODO: We need a way to select the default agent.
         self.for_all_callbacks(|callback| {
             callback.on_ssp_request(
-                BluetoothDevice {
-                    address: BDAddr::from_byte_vec(&remote_addr.address.to_vec())
-                        .unwrap()
-                        .to_string(),
-                    name: remote_name.clone(),
-                },
+                BluetoothDevice { address: remote_addr.to_string(), name: remote_name.clone() },
                 cod,
                 variant.clone(),
                 passkey,
@@ -320,14 +315,14 @@ impl IBluetooth for Bluetooth {
     }
 
     fn create_bond(&self, device: BluetoothDevice, transport: BluetoothTransport) -> bool {
-        let addr = BDAddr::from_string(device.address.clone());
+        let addr = RawAddress::from_string(device.address.clone());
 
         if addr.is_none() {
             println!("address {} is not valid", device.address);
             return false;
         }
 
-        let address = unsafe { RawAddress::new(&addr.unwrap().val) };
+        let address = addr.unwrap();
         self.intf
             .lock()
             .unwrap()

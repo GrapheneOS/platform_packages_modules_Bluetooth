@@ -1,4 +1,4 @@
-use crate::btif::BluetoothInterface;
+use crate::btif::{BluetoothInterface, RawAddress};
 use crate::topstack::get_dispatchers;
 
 use num_traits::cast::FromPrimitive;
@@ -110,7 +110,7 @@ bitflags! {
 
 #[cxx::bridge(namespace = bluetooth::topshim::rust)]
 pub mod ffi {
-    #[derive(Debug)]
+    #[derive(Debug, Copy, Clone)]
     pub struct RustRawAddress {
         address: [u8; 6],
     }
@@ -167,44 +167,18 @@ pub mod ffi {
     }
 }
 
-pub type RawAddress = ffi::RustRawAddress;
+pub type FfiAddress = ffi::RustRawAddress;
 pub type A2dpCodecConfig = ffi::A2dpCodecConfig;
 
-// TODO(hychao): copied from BDAddr, need to move to a shared addr.
-impl ToString for RawAddress {
-    fn to_string(&self) -> String {
-        String::from(format!(
-            "{:02X}:{:02X}:{:02X}:{:02X}:{:02X}:{:02X}",
-            self.address[0],
-            self.address[1],
-            self.address[2],
-            self.address[3],
-            self.address[4],
-            self.address[5]
-        ))
+impl From<RawAddress> for FfiAddress {
+    fn from(addr: RawAddress) -> Self {
+        FfiAddress { address: addr.val }
     }
 }
 
-impl RawAddress {
-    pub fn from_string<S: Into<String>>(addr: S) -> Option<RawAddress> {
-        let addr: String = addr.into();
-        let s = addr.split(':').collect::<Vec<&str>>();
-
-        if s.len() != 6 {
-            return None;
-        }
-
-        let mut raw: [u8; 6] = [0; 6];
-        for i in 0..s.len() {
-            raw[i] = match u8::from_str_radix(s[i], 16) {
-                Ok(res) => res,
-                Err(_) => {
-                    return None;
-                }
-            };
-        }
-
-        Some(RawAddress { address: raw })
+impl Into<RawAddress> for FfiAddress {
+    fn into(self) -> RawAddress {
+        RawAddress { val: self.address }
     }
 }
 
@@ -222,13 +196,25 @@ pub struct A2dpCallbacksDispatcher {
 
 type A2dpCb = Arc<Mutex<A2dpCallbacksDispatcher>>;
 
-cb_variant!(A2dpCb, connection_state_callback -> A2dpCallbacks::ConnectionState, RawAddress, u32 -> BtavConnectionState);
+cb_variant!(A2dpCb, connection_state_callback -> A2dpCallbacks::ConnectionState,
+FfiAddress -> RawAddress, u32 -> BtavConnectionState, {
+    let _0 = _0.into();
+});
 
-cb_variant!(A2dpCb, audio_state_callback -> A2dpCallbacks::AudioState, RawAddress, u32 -> BtavAudioState);
+cb_variant!(A2dpCb, audio_state_callback -> A2dpCallbacks::AudioState,
+FfiAddress -> RawAddress, u32 -> BtavAudioState, {
+    let _0 = _0.into();
+});
 
-cb_variant!(A2dpCb, mandatory_codec_preferred_callback -> A2dpCallbacks::MandatoryCodecPreferred, RawAddress);
+cb_variant!(A2dpCb, mandatory_codec_preferred_callback -> A2dpCallbacks::MandatoryCodecPreferred,
+FfiAddress -> RawAddress, {
+    let _0 = _0.into();
+});
 
-cb_variant!(A2dpCb, audio_config_callback -> A2dpCallbacks::AudioConfig, RawAddress, A2dpCodecConfig, Vec<A2dpCodecConfig>, Vec<A2dpCodecConfig>);
+cb_variant!(A2dpCb, audio_config_callback -> A2dpCallbacks::AudioConfig,
+FfiAddress -> RawAddress, A2dpCodecConfig, Vec<A2dpCodecConfig>, Vec<A2dpCodecConfig>, {
+    let _0 = _0.into();
+});
 
 pub struct A2dp {
     internal: cxx::UniquePtr<ffi::A2dpIntf>,
@@ -262,7 +248,7 @@ impl A2dp {
             eprintln!("Invalid device string {}", device);
             return;
         }
-        self.internal.pin_mut().connect(addr.unwrap());
+        self.internal.pin_mut().connect(addr.unwrap().into());
     }
 
     pub fn set_active_device(&mut self, device: String) {
@@ -271,7 +257,7 @@ impl A2dp {
             eprintln!("Invalid device string {}", device);
             return;
         }
-        self.internal.pin_mut().set_active_device(addr.unwrap());
+        self.internal.pin_mut().set_active_device(addr.unwrap().into());
     }
 
     pub fn disconnect(&mut self, device: String) {
@@ -280,7 +266,7 @@ impl A2dp {
             eprintln!("Invalid device string {}", device);
             return;
         }
-        self.internal.pin_mut().disconnect(addr.unwrap());
+        self.internal.pin_mut().disconnect(addr.unwrap().into());
     }
 
     pub fn start_session(&mut self) {
