@@ -502,6 +502,7 @@ cc_test {
         "packages/modules/Bluetooth/system/utils/include",
     ],
     srcs: [
+        ":TestMockStackBtm",
         "gatt/gatt_utils.cc",
         "test/common/mock_eatt.cc",
         "test/common/mock_gatt_layer.cc",
