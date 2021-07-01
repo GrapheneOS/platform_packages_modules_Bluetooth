@@ -203,6 +203,14 @@ int A2dpIntf::config_codec(RustRawAddress bt_addr, ::rust::Vec<A2dpCodecConfig> 
 void A2dpIntf::cleanup() {
   // TODO: Implement.
 }
+bool A2dpIntf::set_audio_config(A2dpCodecConfig rconfig) {
+  bluetooth::audio::a2dp::AudioConfig config = {
+      .sample_rate = static_cast<btav_a2dp_codec_sample_rate_t>(rconfig.sample_rate),
+      .bits_per_sample = static_cast<btav_a2dp_codec_bits_per_sample_t>(rconfig.bits_per_sample),
+      .channel_mode = static_cast<btav_a2dp_codec_channel_mode_t>(rconfig.channel_mode),
+  };
+  return bluetooth::audio::a2dp::SetAudioConfig(config);
+}
 bool A2dpIntf::start_audio_request() {
   return bluetooth::audio::a2dp::StartRequest();
 }

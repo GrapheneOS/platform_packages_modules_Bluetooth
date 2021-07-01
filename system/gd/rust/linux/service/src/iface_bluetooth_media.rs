@@ -46,9 +46,19 @@ impl IBluetoothMedia for IBluetoothMediaDBus {
     #[dbus_method("Disconnect")]
     fn disconnect(&mut self, device: String) {}
 
-    #[dbus_method("StartSession")]
-    fn start_session(&mut self) {}
+    #[dbus_method("SetAudioConfig")]
+    fn set_audio_config(
+        &mut self,
+        sample_rate: i32,
+        bits_per_sample: i32,
+        channel_mode: i32,
+    ) -> bool {
+        true
+    }
 
-    #[dbus_method("StopSession")]
-    fn stop_session(&mut self) {}
+    #[dbus_method("StartAudioRequest")]
+    fn start_audio_request(&mut self) {}
+
+    #[dbus_method("StopAudioRequest")]
+    fn stop_audio_request(&mut self) {}
 }
