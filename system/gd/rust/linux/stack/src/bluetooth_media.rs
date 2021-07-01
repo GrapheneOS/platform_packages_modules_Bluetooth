@@ -2,10 +2,12 @@
 
 use bt_topshim::btif::BluetoothInterface;
 use bt_topshim::profiles::a2dp::{
-    A2dp, A2dpCallbacks, A2dpCallbacksDispatcher, BtavConnectionState,
+    A2dp, A2dpCallbacks, A2dpCallbacksDispatcher, A2dpCodecBitsPerSample, A2dpCodecChannelMode,
+    A2dpCodecSampleRate, BtavConnectionState,
 };
 use bt_topshim::topstack;
 
+use std::convert::TryFrom;
 use std::sync::Arc;
 use std::sync::Mutex;
 
@@ -22,8 +24,14 @@ pub trait IBluetoothMedia {
     fn connect(&mut self, device: String);
     fn set_active_device(&mut self, device: String);
     fn disconnect(&mut self, device: String);
-    fn start_session(&mut self);
-    fn stop_session(&mut self);
+    fn set_audio_config(
+        &mut self,
+        sample_rate: i32,
+        bits_per_sample: i32,
+        channel_mode: i32,
+    ) -> bool;
+    fn start_audio_request(&mut self);
+    fn stop_audio_request(&mut self);
 }
 
 pub trait IBluetoothMediaCallback {
@@ -120,10 +128,27 @@ impl IBluetoothMedia for BluetoothMedia {
         self.a2dp.as_mut().unwrap().disconnect(device);
     }
 
-    fn start_session(&mut self) {
-        self.a2dp.as_mut().unwrap().start_session();
+    fn set_audio_config(
+        &mut self,
+        sample_rate: i32,
+        bits_per_sample: i32,
+        channel_mode: i32,
+    ) -> bool {
+        if !A2dpCodecSampleRate::validate_bits(sample_rate)
+            || !A2dpCodecBitsPerSample::validate_bits(bits_per_sample)
+            || !A2dpCodecChannelMode::validate_bits(channel_mode)
+        {
+            return false;
+        }
+        self.a2dp.as_mut().unwrap().set_audio_config(sample_rate, bits_per_sample, channel_mode);
+        true
     }
-    fn stop_session(&mut self) {
-        self.a2dp.as_mut().unwrap().stop_session();
+
+    fn start_audio_request(&mut self) {
+        self.a2dp.as_mut().unwrap().start_audio_request();
+    }
+
+    fn stop_audio_request(&mut self) {
+        self.a2dp.as_mut().unwrap().stop_audio_request();
     }
 }
