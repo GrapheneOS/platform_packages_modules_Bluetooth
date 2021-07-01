@@ -17,14 +17,6 @@
 #include "stack/gatt/gatt_int.h"
 #include "utils/include/bt_utils.h"
 
-/** stack/btm/btm_ble.cc*/
-uint8_t btm_ble_read_sec_key_size(const RawAddress& bd_addr) { return 0; }
-bool BTM_GetSecurityFlagsByTransport(const RawAddress& bd_addr,
-                                     uint8_t* p_sec_flags,
-                                     tBT_TRANSPORT transport) {
-  return false;
-}
-
 /** stack/btu/btu_task.cc, indirect reference, gatt_utils.cc -> libosi */
 bluetooth::common::MessageLoopThread* get_main_thread() { return nullptr; }
 
