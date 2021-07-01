@@ -73,6 +73,7 @@ class SimpleHalTestBase():
                                                              )
 
     def test_le_ad_scan_cert_advertises(self):
+        self.dut_hal.unmask_event(hci_packets.EventCode.LE_META_EVENT)
         self.dut_hal.set_random_le_address('0D:05:04:03:02:01')
 
         self.dut_hal.set_scan_parameters()
@@ -96,10 +97,12 @@ class SimpleHalTestBase():
         self.dut_hal.stop_scanning()
 
     def test_le_connection_dut_advertises(self):
+        self.cert_hal.unmask_event(hci_packets.EventCode.LE_META_EVENT)
         self.cert_hal.set_random_le_address('0C:05:04:03:02:01')
         self.cert_hal.initiate_le_connection('0D:05:04:03:02:01')
 
         # DUT Advertises
+        self.dut_hal.unmask_event(hci_packets.EventCode.LE_META_EVENT)
         advertisement = self.dut_hal.create_advertisement(0, '0D:05:04:03:02:01')
         advertisement.set_data(b'Im_The_DUT')
         advertisement.set_scan_response(b'Im_The_D')
@@ -115,10 +118,12 @@ class SimpleHalTestBase():
         assertThat(self.dut_hal.get_acl_stream()).emits(lambda packet: b'SomeMoreAclData' in packet.payload)
 
     def test_le_connect_list_connection_cert_advertises(self):
+        self.dut_hal.unmask_event(hci_packets.EventCode.LE_META_EVENT)
         self.dut_hal.set_random_le_address('0D:05:04:03:02:01')
         self.dut_hal.add_to_connect_list('0C:05:04:03:02:01')
         self.dut_hal.initiate_le_connection_by_connect_list('BA:D5:A4:A3:A2:A1')
 
+        self.cert_hal.unmask_event(hci_packets.EventCode.LE_META_EVENT)
         advertisement = self.cert_hal.create_advertisement(
             1,
             '0C:05:04:03:02:01',

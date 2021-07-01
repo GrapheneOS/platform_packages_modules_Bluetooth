@@ -202,6 +202,7 @@ class DirectHciTestBase():
                                             SubeventCode.ENHANCED_CONNECTION_COMPLETE,
                                             SubeventCode.READ_REMOTE_FEATURES_COMPLETE)
         # Cert Connects
+        self.cert_hal.unmask_event(EventCode.LE_META_EVENT)
         self.cert_hal.send_hci_command(LeSetRandomAddressBuilder('0C:05:04:03:02:01'))
         phy_scan_params = DirectHciTestBase._create_phy_scan_params()
         self.cert_hal.send_hci_command(
@@ -242,6 +243,7 @@ class DirectHciTestBase():
                                               OwnAddressType.RANDOM_DEVICE_ADDRESS, AddressType.RANDOM_DEVICE_ADDRESS,
                                               'BA:D5:A4:A3:A2:A1', 1, [phy_scan_params]))
 
+        self.cert_hal.unmask_event(EventCode.LE_META_EVENT)
         advertisement = self.cert_hal.create_advertisement(
             1,
             '0C:05:04:03:02:01',
