@@ -126,6 +126,7 @@ typedef uint8_t tBTA_JV_CONN_STATE;
 #define BTA_JV_CONN_TYPE_RFCOMM 0
 #define BTA_JV_CONN_TYPE_L2CAP 1
 #define BTA_JV_CONN_TYPE_L2CAP_LE 2
+typedef int tBTA_JV_CONN_TYPE;
 
 /* Java I/F callback events */
 /* events received by tBTA_JV_DM_CBACK */
