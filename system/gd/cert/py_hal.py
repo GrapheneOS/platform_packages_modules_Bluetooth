@@ -119,6 +119,8 @@ class PyHal(Closable):
         self.hci_event_stream = EventStream(self.device.hal.StreamEvents(empty_proto.Empty()))
         self.acl_stream = EventStream(self.device.hal.StreamAcl(empty_proto.Empty()))
 
+        self.event_mask = 0x1FFF_FFFF_FFFF  # Default Event Mask (Core Vol 4 [E] 7.3.1)
+
         # We don't deal with SCO for now
 
     def close(self):
@@ -168,6 +170,11 @@ class PyHal(Closable):
                                                            hci_packets.LeScanningFilterPolicy.ACCEPT_ALL, 1,
                                                            [phy_scan_params]))
         self.wait_for_complete(OpCode.LE_SET_EXTENDED_SCAN_PARAMETERS)
+
+    def unmask_event(self, *event_codes):
+        for event_code in event_codes:
+            self.event_mask |= 1 << (int(event_code) - 1)
+        self.send_hci_command(hci_packets.SetEventMaskBuilder(self.event_mask))
 
     def start_scanning(self):
         self.send_hci_command(

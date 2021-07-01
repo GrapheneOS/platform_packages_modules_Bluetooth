@@ -331,8 +331,10 @@ void DualModeController::HandleAcl(std::shared_ptr<std::vector<uint8_t>> packet)
     cp.connection_handle_ = handle;
     cp.host_num_of_completed_packets_ = kNumCommandPackets;
     completed_packets.push_back(cp);
-    send_event_(bluetooth::hci::NumberOfCompletedPacketsBuilder::Create(
-        completed_packets));
+    if (properties_.IsUnmasked(EventCode::NUMBER_OF_COMPLETED_PACKETS)) {
+      send_event_(bluetooth::hci::NumberOfCompletedPacketsBuilder::Create(
+          completed_packets));
+    }
     return;
   }
 
@@ -352,8 +354,10 @@ void DualModeController::HandleSco(std::shared_ptr<std::vector<uint8_t>> packet)
     cp.connection_handle_ = handle;
     cp.host_num_of_completed_packets_ = kNumCommandPackets;
     completed_packets.push_back(cp);
-    send_event_(bluetooth::hci::NumberOfCompletedPacketsBuilder::Create(
-        completed_packets));
+    if (properties_.IsUnmasked(EventCode::NUMBER_OF_COMPLETED_PACKETS)) {
+      send_event_(bluetooth::hci::NumberOfCompletedPacketsBuilder::Create(
+          completed_packets));
+    }
     return;
   }
 }
