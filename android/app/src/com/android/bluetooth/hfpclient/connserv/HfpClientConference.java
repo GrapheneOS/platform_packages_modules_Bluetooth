@@ -17,6 +17,7 @@ package com.android.bluetooth.hfpclient.connserv;
 
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothHeadsetClient;
+import android.bluetooth.hfpclient.connserv.BluetoothHeadsetClientProxy;
 import android.telecom.Conference;
 import android.telecom.Connection;
 import android.telecom.PhoneAccountHandle;
@@ -26,10 +27,10 @@ public class HfpClientConference extends Conference {
     private static final String TAG = "HfpClientConference";
 
     private BluetoothDevice mDevice;
-    private BluetoothHeadsetClient mHeadsetProfile;
+    private BluetoothHeadsetClientProxy mHeadsetProfile;
 
     public HfpClientConference(PhoneAccountHandle handle, BluetoothDevice device,
-            BluetoothHeadsetClient client) {
+            BluetoothHeadsetClientProxy client) {
         super(handle);
         mDevice = device;
         mHeadsetProfile = client;

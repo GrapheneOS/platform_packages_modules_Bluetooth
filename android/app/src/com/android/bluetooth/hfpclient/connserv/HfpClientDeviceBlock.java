@@ -16,8 +16,8 @@
 package com.android.bluetooth.hfpclient.connserv;
 
 import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothHeadsetClient;
 import android.bluetooth.BluetoothHeadsetClientCall;
+import android.bluetooth.hfpclient.connserv.BluetoothHeadsetClientProxy;
 import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
@@ -48,10 +48,10 @@ public class HfpClientDeviceBlock {
     private final HfpClientConnectionService mConnServ;
     private HfpClientConference mConference;
 
-    private BluetoothHeadsetClient mHeadsetProfile;
+    private BluetoothHeadsetClientProxy mHeadsetProfile;
 
     HfpClientDeviceBlock(HfpClientConnectionService connServ, BluetoothDevice device,
-            BluetoothHeadsetClient headsetProfile) {
+            BluetoothHeadsetClientProxy headsetProfile) {
         mConnServ = connServ;
         mContext = connServ;
         mDevice = device;
