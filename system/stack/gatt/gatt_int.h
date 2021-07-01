@@ -84,10 +84,11 @@ inline std::string gatt_security_action_text(const tGATT_SEC_ACTION& action) {
 #define GATT_WAIT_FOR_DISC_RSP_TIMEOUT_MS (5 * 1000)
 #define GATT_REQ_RETRY_LIMIT 2
 
-#define GATT_SEC_FLAG_LKEY_UNAUTHED BTM_SEC_FLAG_LKEY_KNOWN
-#define GATT_SEC_FLAG_LKEY_AUTHED BTM_SEC_FLAG_LKEY_AUTHED
-#define GATT_SEC_FLAG_ENCRYPTED BTM_SEC_FLAG_ENCRYPTED
-typedef uint8_t tGATT_SEC_FLAG;
+typedef struct {
+  bool is_link_key_known;
+  bool is_link_key_authed;
+  bool is_encrypted;
+} tGATT_SEC_FLAG;
 
 /* Find Information Response Type
 */
@@ -492,7 +493,8 @@ extern uint8_t gatt_build_uuid_to_stream_len(const bluetooth::Uuid& uuid);
 extern uint8_t gatt_build_uuid_to_stream(uint8_t** p_dst,
                                          const bluetooth::Uuid& uuid);
 extern void gatt_sr_get_sec_info(const RawAddress& rem_bda,
-                                 tBT_TRANSPORT transport, uint8_t* p_sec_flag,
+                                 tBT_TRANSPORT transport,
+                                 tGATT_SEC_FLAG* p_sec_flag,
                                  uint8_t* p_key_size);
 extern void gatt_start_rsp_timer(tGATT_CLCB* p_clcb);
 extern void gatt_stop_rsp_timer(tGATT_CLCB* p_clcb);

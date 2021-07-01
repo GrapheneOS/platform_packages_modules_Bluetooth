@@ -98,27 +98,24 @@ static tGATT_STATUS gatts_check_attr_readability(const tGATT_ATTR& attr,
     return GATT_READ_NOT_PERMIT;
   }
 
-  if ((perm & GATT_READ_AUTH_REQUIRED) &&
-      !(sec_flag & GATT_SEC_FLAG_LKEY_UNAUTHED) &&
-      !(sec_flag & BTM_SEC_FLAG_ENCRYPTED)) {
+  if ((perm & GATT_READ_AUTH_REQUIRED) && !sec_flag.is_link_key_known &&
+      !sec_flag.is_encrypted) {
     LOG(ERROR) << __func__ << ": GATT_INSUF_AUTHENTICATION";
     return GATT_INSUF_AUTHENTICATION;
   }
 
-  if ((perm & GATT_READ_MITM_REQUIRED) &&
-      !(sec_flag & GATT_SEC_FLAG_LKEY_AUTHED)) {
+  if ((perm & GATT_READ_MITM_REQUIRED) && !sec_flag.is_link_key_authed) {
     LOG(ERROR) << __func__ << ": GATT_INSUF_AUTHENTICATION: MITM Required";
     return GATT_INSUF_AUTHENTICATION;
   }
 
-  if ((perm & GATT_READ_ENCRYPTED_REQUIRED) &&
-      !(sec_flag & GATT_SEC_FLAG_ENCRYPTED)) {
+  if ((perm & GATT_READ_ENCRYPTED_REQUIRED) && !sec_flag.is_encrypted) {
     LOG(ERROR) << __func__ << ": GATT_INSUF_ENCRYPTION";
     return GATT_INSUF_ENCRYPTION;
   }
 
-  if ((perm & GATT_READ_ENCRYPTED_REQUIRED) &&
-      (sec_flag & GATT_SEC_FLAG_ENCRYPTED) && (key_size < min_key_size)) {
+  if ((perm & GATT_READ_ENCRYPTED_REQUIRED) && sec_flag.is_encrypted &&
+      (key_size < min_key_size)) {
     LOG(ERROR) << __func__ << ": GATT_INSUF_KEY_SIZE";
     return GATT_INSUF_KEY_SIZE;
   }
@@ -169,8 +166,8 @@ static tGATT_STATUS read_attr_value(tGATT_ATTR& attr16, uint16_t offset,
   uint8_t* p = *p_data;
 
   VLOG(1) << __func__ << " uuid=" << attr16.uuid
-          << StringPrintf(" perm=0x%02x sec_flag=0x%x offset=%d read_long=%d",
-                          attr16.permission, sec_flag, offset, read_long);
+          << StringPrintf(" perm=0x%02x offset=%d read_long=%d",
+                          attr16.permission, offset, read_long);
 
   tGATT_STATUS status = gatts_check_attr_readability(attr16, offset, read_long,
                                                      sec_flag, key_size);
@@ -539,9 +536,9 @@ tGATT_STATUS gatts_write_attr_perm_check(tGATT_SVC_DB* p_db, uint8_t op_code,
                                          tGATT_SEC_FLAG sec_flag,
                                          uint8_t key_size) {
   VLOG(1) << StringPrintf(
-      "%s: op_code=0x%0x handle=0x%04x offset=%d len=%d sec_flag=0x%0x "
+      "%s: op_code=0x%0x handle=0x%04x offset=%d len=%d "
       "key_size=%d",
-      __func__, op_code, handle, offset, len, sec_flag, key_size);
+      __func__, op_code, handle, offset, len, key_size);
 
   tGATT_ATTR* p_attr = find_attr_by_handle(p_db, handle);
   if (!p_attr) return GATT_NOT_FOUND;
@@ -578,8 +575,7 @@ tGATT_STATUS gatts_write_attr_perm_check(tGATT_SVC_DB* p_db, uint8_t op_code,
     status = GATT_WRITE_NOT_PERMIT;
     VLOG(1) << __func__ << ": sign cmd write not allowed";
   }
-  if ((op_code == GATT_SIGN_CMD_WRITE) &&
-      (sec_flag & GATT_SEC_FLAG_ENCRYPTED)) {
+  if ((op_code == GATT_SIGN_CMD_WRITE) && sec_flag.is_encrypted) {
     status = GATT_INVALID_PDU;
     LOG(ERROR) << __func__
                << ": Error!! sign cmd write sent on a encypted link";
@@ -588,28 +584,24 @@ tGATT_STATUS gatts_write_attr_perm_check(tGATT_SVC_DB* p_db, uint8_t op_code,
     LOG(ERROR) << __func__ << ": GATT_WRITE_NOT_PERMIT";
   }
   /* require authentication, but not been authenticated */
-  else if ((perm & GATT_WRITE_AUTH_REQUIRED) &&
-           !(sec_flag & GATT_SEC_FLAG_LKEY_UNAUTHED)) {
+  else if ((perm & GATT_WRITE_AUTH_REQUIRED) && !sec_flag.is_link_key_known) {
     status = GATT_INSUF_AUTHENTICATION;
     LOG(ERROR) << __func__ << ": GATT_INSUF_AUTHENTICATION";
   } else if ((perm & GATT_WRITE_MITM_REQUIRED) &&
-             !(sec_flag & GATT_SEC_FLAG_LKEY_AUTHED)) {
+             !sec_flag.is_link_key_authed) {
     status = GATT_INSUF_AUTHENTICATION;
     LOG(ERROR) << __func__ << ": GATT_INSUF_AUTHENTICATION: MITM required";
-  } else if ((perm & GATT_WRITE_ENCRYPTED_PERM) &&
-             !(sec_flag & GATT_SEC_FLAG_ENCRYPTED)) {
+  } else if ((perm & GATT_WRITE_ENCRYPTED_PERM) && !sec_flag.is_encrypted) {
     status = GATT_INSUF_ENCRYPTION;
     LOG(ERROR) << __func__ << ": GATT_INSUF_ENCRYPTION";
-  } else if ((perm & GATT_WRITE_ENCRYPTED_PERM) &&
-             (sec_flag & GATT_SEC_FLAG_ENCRYPTED) &&
+  } else if ((perm & GATT_WRITE_ENCRYPTED_PERM) && sec_flag.is_encrypted &&
              (key_size < min_key_size)) {
     status = GATT_INSUF_KEY_SIZE;
     LOG(ERROR) << __func__ << ": GATT_INSUF_KEY_SIZE";
   }
   /* LE security mode 2 attribute  */
   else if (perm & GATT_WRITE_SIGNED_PERM && op_code != GATT_SIGN_CMD_WRITE &&
-           !(sec_flag & GATT_SEC_FLAG_ENCRYPTED) &&
-           (perm & GATT_WRITE_ALLOWED) == 0) {
+           !sec_flag.is_encrypted && (perm & GATT_WRITE_ALLOWED) == 0) {
     status = GATT_INSUF_AUTHENTICATION;
     LOG(ERROR) << __func__
                << ": GATT_INSUF_AUTHENTICATION: LE security mode 2 required";
