@@ -37,6 +37,11 @@ impl IBluetoothMedia for IBluetoothMediaDBus {
         true
     }
 
+    #[dbus_method("Cleanup")]
+    fn cleanup(&mut self) -> bool {
+        true
+    }
+
     #[dbus_method("Connect")]
     fn connect(&mut self, device: String) {}
 
