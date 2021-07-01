@@ -6,6 +6,7 @@
 use crate::bindings::root as bindings;
 use crate::topstack::get_dispatchers;
 use num_traits::cast::{FromPrimitive, ToPrimitive};
+use std::fmt::{Debug, Formatter, Result};
 use std::sync::{Arc, Mutex};
 use std::vec::Vec;
 use topshim_macros::cb_variant;
@@ -262,7 +263,98 @@ mod ffi {
 }
 
 // Export the raw address type directly from the bindings
-pub type RawAddress = bindings::RawAddress;
+type FfiAddress = bindings::RawAddress;
+
+/// A shared address structure that has the same representation as
+/// bindings::RawAddress. Macros `deref_ffi_address` and `cast_to_ffi_address`
+/// are used for transforming between bindings::RawAddress at ffi boundaries.
+#[derive(Copy, Clone)]
+#[repr(C)]
+pub struct RawAddress {
+    pub val: [u8; 6],
+}
+
+impl Debug for RawAddress {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+        f.write_fmt(format_args!(
+            "{:02X}:{:02X}:{:02X}:{:02X}:{:02X}:{:02X}",
+            self.val[0], self.val[1], self.val[2], self.val[3], self.val[4], self.val[5]
+        ))
+    }
+}
+
+impl Default for RawAddress {
+    fn default() -> Self {
+        Self { val: [0; 6] }
+    }
+}
+
+impl ToString for RawAddress {
+    fn to_string(&self) -> String {
+        String::from(format!(
+            "{:02X}:{:02X}:{:02X}:{:02X}:{:02X}:{:02X}",
+            self.val[0], self.val[1], self.val[2], self.val[3], self.val[4], self.val[5]
+        ))
+    }
+}
+
+impl RawAddress {
+    /// Constructs a RawAddress from a slice of 6 bytes.
+    pub fn from_bytes(raw_addr: &[u8]) -> Option<RawAddress> {
+        if raw_addr.len() != 6 {
+            return None;
+        }
+        let mut raw: [u8; 6] = [0; 6];
+        raw.copy_from_slice(raw_addr);
+        return Some(RawAddress { val: raw });
+    }
+
+    pub fn from_string<S: Into<String>>(addr: S) -> Option<RawAddress> {
+        let addr: String = addr.into();
+        let s = addr.split(':').collect::<Vec<&str>>();
+
+        if s.len() != 6 {
+            return None;
+        }
+
+        let mut raw: [u8; 6] = [0; 6];
+        for i in 0..s.len() {
+            raw[i] = match u8::from_str_radix(s[i], 16) {
+                Ok(res) => res,
+                Err(_) => {
+                    return None;
+                }
+            };
+        }
+
+        Some(RawAddress { val: raw })
+    }
+
+    pub fn to_byte_arr(&self) -> [u8; 6] {
+        self.val.clone()
+    }
+}
+
+#[macro_export]
+macro_rules! deref_ffi_address {
+    ($ffi_addr:ident) => {
+        *($ffi_addr as *mut RawAddress)
+    };
+}
+
+#[macro_export]
+macro_rules! cast_to_ffi_address {
+    ($raw_addr:expr) => {
+        $raw_addr as *mut FfiAddress
+    };
+}
+
+#[macro_export]
+macro_rules! cast_to_const_ffi_address {
+    ($raw_addr:expr) => {
+        $raw_addr as *const FfiAddress
+    };
+}
 
 #[derive(Debug)]
 pub enum BaseCallbacks {
@@ -296,8 +388,8 @@ u32 -> BtStatus, i32, *mut bindings::bt_property_t, {
     let _2 = convert_properties(_1, _2);
 });
 cb_variant!(BaseCb, remote_device_properties_cb -> BaseCallbacks::RemoteDeviceProperties,
-u32 -> BtStatus, *mut RawAddress -> RawAddress, i32, *mut bindings::bt_property_t, {
-    let _1 = unsafe {*_1};
+u32 -> BtStatus, *mut FfiAddress -> RawAddress, i32, *mut bindings::bt_property_t, {
+    let _1 = unsafe { *(_1 as *const RawAddress) };
     let _3 = convert_properties(_2, _3);
 });
 cb_variant!(BaseCb, device_found_cb -> BaseCallbacks::DeviceFound,
@@ -307,22 +399,22 @@ i32, *mut bindings::bt_property_t, {
 cb_variant!(BaseCb, discovery_state_cb -> BaseCallbacks::DiscoveryState,
     bindings::bt_discovery_state_t -> BtDiscoveryState);
 cb_variant!(BaseCb, pin_request_cb -> BaseCallbacks::PinRequest,
-*mut RawAddress, *mut bindings::bt_bdname_t, u32, bool, {
-    let _0 = unsafe { *_0 };
+*mut FfiAddress, *mut bindings::bt_bdname_t, u32, bool, {
+    let _0 = unsafe { *(_0 as *const RawAddress)};
     let _1 = String::from(unsafe{*_1});
 });
 cb_variant!(BaseCb, ssp_request_cb -> BaseCallbacks::SspRequest,
-*mut RawAddress, *mut bindings::bt_bdname_t, u32, bindings::bt_ssp_variant_t -> BtSspVariant, u32, {
-    let _0 = unsafe {*_0};
+*mut FfiAddress, *mut bindings::bt_bdname_t, u32, bindings::bt_ssp_variant_t -> BtSspVariant, u32, {
+    let _0 = unsafe { *(_0 as *const RawAddress) };
     let _1 = String::from(unsafe{*_1});
 });
 cb_variant!(BaseCb, bond_state_cb -> BaseCallbacks::BondState,
-u32 -> BtStatus, *mut RawAddress, bindings::bt_bond_state_t -> BtBondState, {
-    let _1 = unsafe {*_1};
+u32 -> BtStatus, *mut FfiAddress, bindings::bt_bond_state_t -> BtBondState, {
+    let _1 = unsafe { *(_1 as *const RawAddress) };
 });
 cb_variant!(BaseCb, acl_state_cb -> BaseCallbacks::AclState,
-u32 -> BtStatus, *mut RawAddress, bindings::bt_acl_state_t -> BtAclState, bindings::bt_hci_error_code_t -> BtHciErrorCode, {
-    let _1 = unsafe { *_1 };
+u32 -> BtStatus, *mut FfiAddress, bindings::bt_acl_state_t -> BtAclState, bindings::bt_hci_error_code_t -> BtHciErrorCode, {
+    let _1 = unsafe { *(_1 as *const RawAddress) };
 });
 
 struct RawInterfaceWrapper {
@@ -440,7 +532,8 @@ impl BluetoothInterface {
     }
 
     pub fn get_remote_device_properties(&self, addr: &mut RawAddress) -> i32 {
-        ccall!(self, get_remote_device_properties, addr)
+        let ffi_addr = cast_to_ffi_address!(addr as *mut RawAddress);
+        ccall!(self, get_remote_device_properties, ffi_addr)
     }
 
     pub fn get_remote_device_property(
@@ -449,12 +542,14 @@ impl BluetoothInterface {
         prop_type: BtPropertyType,
     ) -> i32 {
         let converted_type = bindings::bt_property_type_t::from(prop_type);
-        ccall!(self, get_remote_device_property, addr, converted_type)
+        let ffi_addr = cast_to_ffi_address!(addr as *mut RawAddress);
+        ccall!(self, get_remote_device_property, ffi_addr, converted_type)
     }
 
     pub fn set_remote_device_property(&self, addr: &mut RawAddress, prop: BtProperty) -> i32 {
         let converted_prop = bindings::bt_property_t::from(prop);
-        ccall!(self, set_remote_device_property, addr, &converted_prop)
+        let ffi_addr = cast_to_ffi_address!(addr as *const RawAddress);
+        ccall!(self, set_remote_device_property, ffi_addr, &converted_prop)
     }
 
     pub fn start_discovery(&self) -> i32 {
@@ -467,19 +562,23 @@ impl BluetoothInterface {
 
     pub fn create_bond(&self, addr: &RawAddress, transport: BtTransport) -> i32 {
         let ctransport: i32 = transport.into();
-        ccall!(self, create_bond, addr, ctransport)
+        let ffi_addr = cast_to_const_ffi_address!(addr as *const RawAddress);
+        ccall!(self, create_bond, ffi_addr, ctransport)
     }
 
     pub fn remove_bond(&self, addr: &RawAddress) -> i32 {
-        ccall!(self, remove_bond, addr)
+        let ffi_addr = cast_to_const_ffi_address!(addr as *const RawAddress);
+        ccall!(self, remove_bond, ffi_addr)
     }
 
     pub fn cancel_bond(&self, addr: &RawAddress) -> i32 {
-        ccall!(self, cancel_bond, addr)
+        let ffi_addr = cast_to_const_ffi_address!(addr as *const RawAddress);
+        ccall!(self, cancel_bond, ffi_addr)
     }
 
     pub fn get_connection_state(&self, addr: &RawAddress) -> i32 {
-        ccall!(self, get_connection_state, addr)
+        let ffi_addr = cast_to_const_ffi_address!(addr as *const RawAddress);
+        ccall!(self, get_connection_state, ffi_addr)
     }
 
     pub fn pin_reply(
@@ -489,7 +588,8 @@ impl BluetoothInterface {
         pin_len: u8,
         pin_code: &mut BtPinCode,
     ) -> i32 {
-        ccall!(self, pin_reply, addr, accept, pin_len, pin_code)
+        let ffi_addr = cast_to_const_ffi_address!(addr as *const RawAddress);
+        ccall!(self, pin_reply, ffi_addr, accept, pin_len, pin_code)
     }
 
     pub fn ssp_reply(
@@ -500,7 +600,8 @@ impl BluetoothInterface {
         passkey: u32,
     ) -> i32 {
         let cvariant = bindings::bt_ssp_variant_t::from(variant);
-        ccall!(self, ssp_reply, addr, cvariant, accept, passkey)
+        let ffi_addr = cast_to_const_ffi_address!(addr as *const RawAddress);
+        ccall!(self, ssp_reply, ffi_addr, cvariant, accept, passkey)
     }
 
     pub(crate) fn get_profile_interface(
@@ -531,4 +632,30 @@ pub fn get_btinterface() -> Option<BluetoothInterface> {
     }
 
     ret
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::mem;
+
+    #[test]
+    fn test_addr_size() {
+        assert_eq!(mem::size_of::<RawAddress>(), mem::size_of::<FfiAddress>());
+    }
+
+    #[test]
+    fn test_offset() {
+        let r = RawAddress { val: [1, 2, 3, 4, 5, 6] };
+        let f = FfiAddress { address: [1, 2, 3, 4, 5, 6] };
+        assert_eq!(
+            &f as *const _ as usize - &f.address as *const _ as usize,
+            &r as *const _ as usize - &r.val as *const _ as usize
+        );
+    }
+
+    #[test]
+    fn test_alignment() {
+        assert_eq!(std::mem::align_of::<RawAddress>(), std::mem::align_of::<FfiAddress>());
+    }
 }
