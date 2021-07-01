@@ -436,6 +436,25 @@ static jobject createClassicOobDataObject(JNIEnv* env, bt_oob_data_t oob_data) {
   oobDataClassicBuilder =
       env->CallObjectMethod(oobDataClassicBuilder, setRMethod, randomizerHash);
 
+  jmethodID setNameMethod =
+      env->GetMethodID(classicBuilderClass, "setDeviceName",
+                       "([B)Landroid/bluetooth/OobData$ClassicBuilder;");
+
+  int name_char_count = 0;
+  for (int i = 0; i < OOB_NAME_MAX_SIZE; i++) {
+    if (oob_data.device_name[i] == 0) {
+      name_char_count = i;
+      break;
+    }
+  }
+
+  jbyteArray deviceName = env->NewByteArray(name_char_count);
+  env->SetByteArrayRegion(deviceName, 0, name_char_count,
+                          reinterpret_cast<jbyte*>(oob_data.device_name));
+
+  oobDataClassicBuilder =
+      env->CallObjectMethod(oobDataClassicBuilder, setNameMethod, deviceName);
+
   jmethodID buildMethod = env->GetMethodID(classicBuilderClass, "build",
                                            "()Landroid/bluetooth/OobData;");
 
@@ -472,6 +491,25 @@ static jobject createLeOobDataObject(JNIEnv* env, bt_oob_data_t oob_data) {
 
   oobDataLeBuilder =
       env->CallObjectMethod(oobDataLeBuilder, setRMethod, randomizerHash);
+
+  jmethodID setNameMethod =
+      env->GetMethodID(leBuilderClass, "setDeviceName",
+                       "([B)Landroid/bluetooth/OobData$LeBuilder;");
+
+  int name_char_count = 0;
+  for (int i = 0; i < OOB_NAME_MAX_SIZE; i++) {
+    if (oob_data.device_name[i] == 0) {
+      name_char_count = i;
+      break;
+    }
+  }
+
+  jbyteArray deviceName = env->NewByteArray(name_char_count);
+  env->SetByteArrayRegion(deviceName, 0, name_char_count,
+                          reinterpret_cast<jbyte*>(oob_data.device_name));
+
+  oobDataLeBuilder =
+      env->CallObjectMethod(oobDataLeBuilder, setNameMethod, deviceName);
 
   jmethodID buildMethod = env->GetMethodID(leBuilderClass, "build",
                                            "()Landroid/bluetooth/OobData;");
