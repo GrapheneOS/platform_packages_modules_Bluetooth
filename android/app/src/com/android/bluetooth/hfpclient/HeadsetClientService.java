@@ -39,6 +39,7 @@ import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.ProfileService;
 import com.android.bluetooth.btservice.storage.DatabaseManager;
 import com.android.bluetooth.hfpclient.connserv.HfpClientConnectionService;
+import com.android.internal.annotations.VisibleForTesting;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -513,7 +514,9 @@ public class HeadsetClientService extends ProfileService {
         return sHeadsetClientService;
     }
 
-    private static synchronized void setHeadsetClientService(HeadsetClientService instance) {
+    /** Set a {@link HeadsetClientService} instance. */
+    @VisibleForTesting(visibility = VisibleForTesting.Visibility.PRIVATE)
+    public static synchronized void setHeadsetClientService(HeadsetClientService instance) {
         if (DBG) {
             Log.d(TAG, "setHeadsetClientService(): set to: " + instance);
         }
@@ -681,7 +684,13 @@ public class HeadsetClientService extends ProfileService {
         return true;
     }
 
-    int getAudioState(BluetoothDevice device) {
+    /**
+     * Gets audio state of the connection with {@code device}.
+     *
+     * <p>Can be one of {@link STATE_AUDIO_CONNECTED}, {@link STATE_AUDIO_CONNECTING}, or
+     * {@link STATE_AUDIO_DISCONNECTED}.
+     */
+    public int getAudioState(BluetoothDevice device) {
         HeadsetClientStateMachine sm = getStateMachine(device);
         if (sm == null) {
             Log.e(TAG, "Cannot allocate SM for device " + device);
