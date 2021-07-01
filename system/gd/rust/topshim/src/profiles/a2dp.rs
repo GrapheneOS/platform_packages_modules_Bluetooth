@@ -78,7 +78,7 @@ impl From<i32> for A2dpCodecPriority {
 }
 
 bitflags! {
-    struct A2dpCodecSampleRate: u32 {
+    pub struct A2dpCodecSampleRate: i32 {
         const RATE_NONE = 0x0;
         const RATE_44100 = 0x01;
         const RATE_48000 = 0x02;
@@ -91,8 +91,14 @@ bitflags! {
     }
 }
 
+impl A2dpCodecSampleRate {
+    pub fn validate_bits(val: i32) -> bool {
+        val <= A2dpCodecSampleRate::all().bits()
+    }
+}
+
 bitflags! {
-    struct A2dpCodecBitsPerSample: u8 {
+    pub struct A2dpCodecBitsPerSample: i32 {
         const SAMPLE_NONE = 0x0;
         const SAMPLE_16 = 0x01;
         const SAMPLE_24 = 0x02;
@@ -100,11 +106,23 @@ bitflags! {
     }
 }
 
+impl A2dpCodecBitsPerSample {
+    pub fn validate_bits(val: i32) -> bool {
+        val <= A2dpCodecBitsPerSample::all().bits()
+    }
+}
+
 bitflags! {
-    struct A2dpCodecChannelMode: u8 {
+    pub struct A2dpCodecChannelMode: i32 {
         const MODE_NONE = 0x0;
         const MODE_MONO = 0x01;
         const MODE_STEREO = 0x02;
+    }
+}
+
+impl A2dpCodecChannelMode {
+    pub fn validate_bits(val: i32) -> bool {
+        val <= A2dpCodecChannelMode::all().bits()
     }
 }
 
@@ -117,11 +135,11 @@ pub mod ffi {
 
     #[derive(Debug)]
     pub struct A2dpCodecConfig {
-        codec_type: u8,
+        codec_type: i32,
         codec_priority: i32,
-        sample_rate: u32,
-        bits_per_sample: u8,
-        channel_mode: u8,
+        sample_rate: i32,
+        bits_per_sample: i32,
+        channel_mode: i32,
         codec_specific_1: i64,
         codec_specific_2: i64,
         codec_specific_3: i64,
@@ -149,6 +167,7 @@ pub mod ffi {
             bt_addr: RustRawAddress,
             codec_preferences: Vec<A2dpCodecConfig>,
         ) -> i32;
+        fn set_audio_config(self: Pin<&mut A2dpIntf>, config: A2dpCodecConfig) -> bool;
         fn start_audio_request(self: Pin<&mut A2dpIntf>) -> bool;
         fn stop_audio_request(self: Pin<&mut A2dpIntf>) -> bool;
         fn cleanup(self: Pin<&mut A2dpIntf>);
@@ -179,6 +198,22 @@ impl From<RawAddress> for FfiAddress {
 impl Into<RawAddress> for FfiAddress {
     fn into(self) -> RawAddress {
         RawAddress { val: self.address }
+    }
+}
+
+impl Default for A2dpCodecConfig {
+    fn default() -> A2dpCodecConfig {
+        A2dpCodecConfig {
+            codec_type: 0,
+            codec_priority: 0,
+            sample_rate: 0,
+            bits_per_sample: 0,
+            channel_mode: 0,
+            codec_specific_1: 0,
+            codec_specific_2: 0,
+            codec_specific_3: 0,
+            codec_specific_4: 0,
+        }
     }
 }
 
@@ -269,11 +304,43 @@ impl A2dp {
         self.internal.pin_mut().disconnect(addr.unwrap().into());
     }
 
-    pub fn start_session(&mut self) {
+    pub fn set_audio_config(&mut self, sample_rate: i32, bits_per_sample: i32, channel_mode: i32) {
+        let config = A2dpCodecConfig {
+            sample_rate: sample_rate,
+            bits_per_sample: bits_per_sample,
+            channel_mode: channel_mode,
+            ..Default::default()
+        };
+        self.internal.pin_mut().set_audio_config(config);
+    }
+    pub fn start_audio_request(&mut self) {
         self.internal.pin_mut().start_audio_request();
     }
 
-    pub fn stop_session(&mut self) {
+    pub fn stop_audio_request(&mut self) {
         self.internal.pin_mut().stop_audio_request();
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn validate_sample_rate() {
+        assert!(!A2dpCodecSampleRate::validate_bits(256));
+        assert!(A2dpCodecSampleRate::validate_bits(2 + 32 + 128));
+    }
+
+    #[test]
+    fn validate_bits_per_sample() {
+        assert!(!A2dpCodecBitsPerSample::validate_bits(8));
+        assert!(A2dpCodecBitsPerSample::validate_bits(1 + 4));
+    }
+
+    #[test]
+    fn validate_channel_mode() {
+        assert!(!A2dpCodecChannelMode::validate_bits(4));
+        assert!(A2dpCodecChannelMode::validate_bits(1 + 2));
     }
 }
