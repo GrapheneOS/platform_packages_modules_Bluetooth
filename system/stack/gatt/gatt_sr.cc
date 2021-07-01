@@ -405,7 +405,8 @@ void gatt_process_read_multi_req(tGATT_TCB& tcb, uint16_t cid, uint8_t op_code,
   uint16_t handle = 0, ll = len;
   uint8_t* p = p_data;
   tGATT_STATUS err = GATT_SUCCESS;
-  uint8_t sec_flag, key_size;
+  tGATT_SEC_FLAG sec_flag;
+  uint8_t key_size;
 
   VLOG(1) << __func__;
 
@@ -888,7 +889,8 @@ static void gatts_process_read_by_type_req(tGATT_TCB& tcb, uint16_t cid,
   reason = GATT_NOT_FOUND;
   for (tGATT_SRV_LIST_ELEM& el : *gatt_cb.srv_list_info) {
     if (el.s_hdl <= e_hdl && el.e_hdl >= s_hdl) {
-      uint8_t sec_flag, key_size;
+      tGATT_SEC_FLAG sec_flag;
+      uint8_t key_size;
       gatt_sr_get_sec_info(tcb.peer_bda, tcb.transport, &sec_flag, &key_size);
 
       tGATT_STATUS ret = gatts_db_read_attr_value_by_type(
@@ -933,7 +935,8 @@ static void gatts_process_write_req(tGATT_TCB& tcb, uint16_t cid,
   tGATTS_DATA sr_data;
   uint32_t trans_id;
   tGATT_STATUS status;
-  uint8_t sec_flag, key_size, *p = p_data;
+  tGATT_SEC_FLAG sec_flag;
+  uint8_t key_size, *p = p_data;
   uint16_t conn_id;
 
   memset(&sr_data, 0, sizeof(tGATTS_DATA));
@@ -1042,7 +1045,8 @@ static void gatts_process_read_req(tGATT_TCB& tcb, uint16_t cid,
   p_msg->len = 1;
   buf_len = payload_size - 1;
 
-  uint8_t sec_flag, key_size;
+  tGATT_SEC_FLAG sec_flag;
+  uint8_t key_size;
   gatt_sr_get_sec_info(tcb.peer_bda, tcb.transport, &sec_flag, &key_size);
 
   uint16_t value_len = 0;
