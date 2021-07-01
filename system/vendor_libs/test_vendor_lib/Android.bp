@@ -71,8 +71,6 @@ cc_library_static {
         "packages/modules/Bluetooth/system/gd",
     ],
     shared_libs: [
-        "libbase",
-        "libchrome",
         "liblog",
     ],
     static_libs: [
@@ -97,7 +95,6 @@ cc_library_static {
 cc_test_host {
     name: "test-vendor_test_host",
     defaults: [
-        "libchrome_support_defaults",
         "clang_file_coverage",
         "clang_coverage_bin",
     ],
@@ -123,6 +120,9 @@ cc_test_host {
         "libbt-rootcanal",
     ],
     cflags: [
+        "-Wall",
+        "-Wextra",
+        "-Werror",
         "-fvisibility=hidden",
         "-DLOG_NDEBUG=1",
     ],
@@ -132,7 +132,6 @@ cc_test_host {
 cc_binary_host {
     name: "root-canal",
     defaults: [
-        "libchrome_support_defaults",
         "gd_clang_tidy",
     ],
     srcs: [
@@ -165,6 +164,11 @@ cc_binary_host {
         "libbt-rootcanal",
         "breakpad_client",
         "libgflags",
+    ],
+    cflags: [
+        "-Wall",
+        "-Wextra",
+        "-Werror",
     ],
     sanitize: {
         address: true,
