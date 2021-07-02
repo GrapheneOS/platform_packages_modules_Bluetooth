@@ -119,7 +119,7 @@ void bta_scan_results_cb_impl(RawAddress bd_addr, tBT_DEVICE_TYPE device_type,
 
   if (p_eir_remote_name == NULL) {
     p_eir_remote_name = AdvertiseDataParser::GetFieldByType(
-        value, BT_EIR_SHORTENED_LOCAL_NAME_TYPE, &remote_name_len);
+        value, HCI_EIR_SHORTENED_LOCAL_NAME_TYPE, &remote_name_len);
   }
 
   if ((addr_type != BLE_ADDR_RANDOM) || (p_eir_remote_name)) {
