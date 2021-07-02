@@ -171,6 +171,7 @@ DualModeController::DualModeController(const std::string& properties_filename, u
   SET_SUPPORTED(SNIFF_MODE, SniffMode);
   SET_SUPPORTED(EXIT_SNIFF_MODE, ExitSniffMode);
   SET_SUPPORTED(QOS_SETUP, QosSetup);
+  SET_SUPPORTED(ROLE_DISCOVERY, RoleDiscovery);
   SET_SUPPORTED(READ_DEFAULT_LINK_POLICY_SETTINGS,
                 ReadDefaultLinkPolicySettings);
   SET_SUPPORTED(WRITE_DEFAULT_LINK_POLICY_SETTINGS,
@@ -1179,6 +1180,20 @@ void DualModeController::QosSetup(CommandView command) {
 
   auto packet =
       bluetooth::hci::QosSetupStatusBuilder::Create(status, kNumCommandPackets);
+  send_event_(std::move(packet));
+}
+
+void DualModeController::RoleDiscovery(CommandView command) {
+  auto command_view = gd_hci::RoleDiscoveryView::Create(
+      gd_hci::ConnectionManagementCommandView::Create(
+          gd_hci::AclCommandView::Create(command)));
+  ASSERT(command_view.IsValid());
+  uint16_t handle = command_view.GetConnectionHandle();
+
+  auto status = link_layer_controller_.RoleDiscovery(handle);
+
+  auto packet = bluetooth::hci::RoleDiscoveryCompleteBuilder::Create(
+      kNumCommandPackets, status, handle, bluetooth::hci::Role::CENTRAL);
   send_event_(std::move(packet));
 }
 
