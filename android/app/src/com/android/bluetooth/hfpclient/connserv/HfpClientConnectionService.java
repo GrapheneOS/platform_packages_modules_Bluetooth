@@ -20,6 +20,7 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothHeadsetClient;
 import android.bluetooth.BluetoothHeadsetClientCall;
 import android.bluetooth.BluetoothProfile;
+import android.bluetooth.hfpclient.connserv.BluetoothHeadsetClientProxy;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
@@ -53,7 +54,7 @@ public class HfpClientConnectionService extends ConnectionService {
     private BluetoothAdapter mAdapter;
 
     // BluetoothHeadset proxy.
-    private BluetoothHeadsetClient mHeadsetProfile;
+    private BluetoothHeadsetClientProxy mHeadsetProfile;
     private TelecomManager mTelecomManager;
 
     private final Map<BluetoothDevice, HfpClientDeviceBlock> mDeviceBlocks = new HashMap<>();
@@ -145,7 +146,8 @@ public class HfpClientConnectionService extends ConnectionService {
         }
         // Close the profile.
         if (mHeadsetProfile != null) {
-            mAdapter.closeProfileProxy(BluetoothProfile.HEADSET_CLIENT, mHeadsetProfile);
+            mAdapter.closeProfileProxy(BluetoothProfile.HEADSET_CLIENT,
+                    mHeadsetProfile.getProxiedBluetoothHeadsetClient());
         }
 
         // Unregister the broadcast receiver.
@@ -286,7 +288,7 @@ public class HfpClientConnectionService extends ConnectionService {
             if (DBG) {
                 Log.d(TAG, "onServiceConnected");
             }
-            mHeadsetProfile = (BluetoothHeadsetClient) proxy;
+            mHeadsetProfile = new BluetoothHeadsetClientProxy((BluetoothHeadsetClient) proxy);
 
             List<BluetoothDevice> devices = mHeadsetProfile.getConnectedDevices();
             if (devices == null) {
@@ -366,7 +368,9 @@ public class HfpClientConnectionService extends ConnectionService {
         return account;
     }
 
-    public static boolean hasHfpClientEcc(BluetoothHeadsetClient client, BluetoothDevice device) {
+    /** Checks if device has Enhanced Call Control (ECC) feature. */
+    public static boolean hasHfpClientEcc(BluetoothHeadsetClientProxy client,
+            BluetoothDevice device) {
         Bundle features = client.getCurrentAgEvents(device);
         return features != null && features.getBoolean(BluetoothHeadsetClient.EXTRA_AG_FEATURE_ECC,
                 false);
