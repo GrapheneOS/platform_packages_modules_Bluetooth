@@ -1,3 +1,5 @@
+//! Macro for topshim
+
 extern crate proc_macro;
 
 use proc_macro::TokenStream;
@@ -54,11 +56,7 @@ impl Parse for CbVariant {
             }
         }
 
-        // If the parse stream isn't empty or a comma, we have an error
-        if !input.is_empty() || !input.peek(Token![,]) {
-            ()
-        }
-
+        // TODO: Validate there are no more tokens; currently they are ignored.
         Ok(CbVariant { dispatcher, fn_pair: (name, rpath), arg_pairs, stmts })
     }
 }
