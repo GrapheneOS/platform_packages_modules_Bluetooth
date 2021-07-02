@@ -31,7 +31,9 @@ cc_library_static {
         "model/devices/classic.cc",
         "model/devices/device.cc",
         "model/devices/device_properties.cc",
+        "model/devices/h4_data_channel_packetizer.cc",
         "model/devices/h4_packetizer.cc",
+        "model/devices/h4_parser.cc",
         "model/devices/hci_protocol.cc",
         "model/devices/hci_socket_device.cc",
         "model/devices/keyboard.cc",
@@ -47,6 +49,9 @@ cc_library_static {
         "model/setup/test_channel_transport.cc",
         "model/setup/test_command_handler.cc",
         "model/setup/test_model.cc",
+        "net/posix/posix_async_socket.cc",
+        "net/posix/posix_async_socket_connector.cc",
+        "net/posix/posix_async_socket_server.cc",
         ":BluetoothPacketSources",
         ":BluetoothHciClassSources",
     ],
@@ -100,6 +105,8 @@ cc_test_host {
     ],
     srcs: [
         "test/async_manager_unittest.cc",
+        "test/h4_parser_unittest.cc",
+        "test/posix_socket_unittest.cc",
         "test/security_manager_unittest.cc",
     ],
     header_libs: [
