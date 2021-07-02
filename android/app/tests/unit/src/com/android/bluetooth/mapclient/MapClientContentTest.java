@@ -20,6 +20,7 @@ import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyInt;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -30,9 +31,11 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.Bundle;
 import android.os.Handler;
 import android.provider.Telephony.Mms;
 import android.provider.Telephony.Sms;
+import android.telephony.SubscriptionInfo;
 import android.telephony.SubscriptionManager;
 import android.test.mock.MockContentProvider;
 import android.test.mock.MockContentResolver;
@@ -58,6 +61,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -104,6 +108,8 @@ public class MapClientContentTest {
 
     @Mock
     private SubscriptionManager mMockSubscriptionManager;
+    @Mock
+    private SubscriptionInfo mMockSubscription;
 
     @Before
     public void setUp() throws Exception {
@@ -126,6 +132,9 @@ public class MapClientContentTest {
         when(mMockContext.getContentResolver()).thenReturn(mMockContentResolver);
         when(mMockContext.getSystemService(Context.TELEPHONY_SUBSCRIPTION_SERVICE))
                 .thenReturn(mMockSubscriptionManager);
+
+        when(mMockSubscriptionManager.getActiveSubscriptionInfoList())
+                .thenReturn(Arrays.asList(mMockSubscription));
         createTestMessages();
 
     }
@@ -176,6 +185,7 @@ public class MapClientContentTest {
 
         mMapClientContent.cleanUp();
         Assert.assertEquals(0, mMockSmsContentProvider.mContentValues.size());
+        Assert.assertEquals(0, mMockThreadContentProvider.mContentValues.size());
     }
 
     /**
@@ -337,6 +347,21 @@ public class MapClientContentTest {
         mMapClientContent.cleanUp();
     }
 
+    /**
+     * Test to validate old subscriptions are removed at startup.
+     */
+    @Test
+    public void testCleanUpAtStartup() {
+        MapClientContent.clearAllContent(mMockContext);
+        verify(mMockSubscriptionManager, never()).removeSubscriptionInfoRecord(any(), anyInt());
+
+        when(mMockSubscription.getSubscriptionType())
+                .thenReturn(SubscriptionManager.SUBSCRIPTION_TYPE_REMOTE_SIM);
+        MapClientContent.clearAllContent(mMockContext);
+        verify(mMockSubscriptionManager).removeSubscriptionInfoRecord(any(),
+                eq(SubscriptionManager.SUBSCRIPTION_TYPE_REMOTE_SIM));
+    }
+
     void createTestMessages() {
         mOriginator = new VCardEntry();
         VCardProperty property = new VCardProperty();
@@ -402,7 +427,10 @@ public class MapClientContentTest {
             when(cursor.getInt(anyInt())).thenReturn(READ);
             return cursor;
         }
+
+        @Override
+        public int update(Uri uri, ContentValues values, Bundle extras) {
+            return 0;
+        }
     }
-
-
 }

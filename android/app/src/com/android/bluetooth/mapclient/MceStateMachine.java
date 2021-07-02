@@ -132,7 +132,7 @@ class MceStateMachine extends StateMachine {
     private final BluetoothDevice mDevice;
     private MapClientService mService;
     private MasClient mMasClient;
-    private final MapClientContent mDatabase;
+    private MapClientContent mDatabase;
     private HashMap<String, Bmessage> mSentMessageLog = new HashMap<>(MAX_MESSAGES);
     private HashMap<Bmessage, PendingIntent> mSentReceiptRequested = new HashMap<>(MAX_MESSAGES);
     private HashMap<Bmessage, PendingIntent> mDeliveryReceiptRequested =
@@ -199,13 +199,6 @@ class MceStateMachine extends StateMachine {
         mDisconnecting = new Disconnecting();
         mConnected = new Connected();
 
-        MapClientContent.Callbacks callbacks = new MapClientContent.Callbacks(){
-            @Override
-            public void onMessageStatusChanged(String handle, int status) {
-                setMessageStatus(handle, status);
-            }
-        };
-        mDatabase = new MapClientContent(mService, callbacks, mDevice);
 
         addState(mDisconnected);
         addState(mConnecting);
@@ -525,6 +518,14 @@ class MceStateMachine extends StateMachine {
             if (DBG) {
                 Log.d(TAG, "Enter Connected: " + getCurrentMessage().what);
             }
+
+            MapClientContent.Callbacks callbacks = new MapClientContent.Callbacks(){
+                @Override
+                public void onMessageStatusChanged(String handle, int status) {
+                    setMessageStatus(handle, status);
+                }
+            };
+            mDatabase = new MapClientContent(mService, callbacks, mDevice);
             onConnectionStateChanged(mPreviousState, BluetoothProfile.STATE_CONNECTED);
             if (Utils.isPtsTestMode()) return;
 
