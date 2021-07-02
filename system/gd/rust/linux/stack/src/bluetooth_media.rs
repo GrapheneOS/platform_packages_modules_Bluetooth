@@ -5,6 +5,7 @@ use bt_topshim::profiles::a2dp::{
     A2dp, A2dpCallbacks, A2dpCallbacksDispatcher, A2dpCodecBitsPerSample, A2dpCodecChannelMode,
     A2dpCodecSampleRate, BtavConnectionState,
 };
+use bt_topshim::profiles::avrcp::Avrcp;
 use bt_topshim::topstack;
 
 use std::convert::TryFrom;
@@ -19,8 +20,12 @@ pub trait IBluetoothMedia {
     ///
     fn register_callback(&mut self, callback: Box<dyn IBluetoothMediaCallback + Send>) -> bool;
 
-    ///
+    /// initializes media (both A2dp and AVRCP) stack
     fn initialize(&mut self) -> bool;
+
+    /// clean up media stack
+    fn cleanup(&mut self) -> bool;
+
     fn connect(&mut self, device: String);
     fn set_active_device(&mut self, device: String);
     fn disconnect(&mut self, device: String);
@@ -49,6 +54,7 @@ pub struct BluetoothMedia {
     callback_last_id: u32,
     tx: Sender<Message>,
     a2dp: Option<A2dp>,
+    avrcp: Option<Avrcp>,
 }
 
 impl BluetoothMedia {
@@ -60,6 +66,7 @@ impl BluetoothMedia {
             callback_last_id: 0,
             tx,
             a2dp: None,
+            avrcp: None,
         }
     }
 
@@ -113,11 +120,19 @@ impl IBluetoothMedia for BluetoothMedia {
         let a2dp_dispatcher = get_a2dp_dispatcher(self.tx.clone());
         self.a2dp = Some(A2dp::new(&self.intf.lock().unwrap()));
         self.a2dp.as_mut().unwrap().initialize(a2dp_dispatcher);
+
+        // AVRCP
+        self.avrcp = Some(Avrcp::new(&self.intf.lock().unwrap()));
+        self.avrcp.as_mut().unwrap().initialize();
         true
     }
 
     fn connect(&mut self, device: String) {
         self.a2dp.as_mut().unwrap().connect(device);
+    }
+
+    fn cleanup(&mut self) -> bool {
+        true
     }
 
     fn set_active_device(&mut self, device: String) {
