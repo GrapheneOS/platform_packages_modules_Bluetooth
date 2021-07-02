@@ -432,7 +432,8 @@ class BleScannerInterfaceImpl : public BleScannerInterface,
 
     if (p_eir_remote_name == NULL) {
       p_eir_remote_name = AdvertiseDataParser::GetFieldByType(
-          advertising_data, BT_EIR_SHORTENED_LOCAL_NAME_TYPE, &remote_name_len);
+          advertising_data, HCI_EIR_SHORTENED_LOCAL_NAME_TYPE,
+          &remote_name_len);
     }
 
     // update device name
