@@ -28,6 +28,7 @@ import android.provider.Telephony;
 import android.provider.Telephony.Mms;
 import android.provider.Telephony.MmsSms;
 import android.provider.Telephony.Sms;
+import android.provider.Telephony.Threads;
 import android.telephony.PhoneNumberUtils;
 import android.telephony.SubscriptionInfo;
 import android.telephony.SubscriptionManager;
@@ -124,10 +125,27 @@ class MapClientContent {
             }
         };
 
-        clearMessages();
+        clearMessages(mContext, mSubscriptionId);
         mResolver.registerContentObserver(Sms.CONTENT_URI, true, mContentObserver);
         mResolver.registerContentObserver(Mms.CONTENT_URI, true, mContentObserver);
         mResolver.registerContentObserver(MmsSms.CONTENT_URI, true, mContentObserver);
+    }
+
+    static void clearAllContent(Context context) {
+        SubscriptionManager subscriptionManager = (SubscriptionManager) context
+                .getSystemService(Context.TELEPHONY_SUBSCRIPTION_SERVICE);
+        List<SubscriptionInfo> subscriptions = subscriptionManager.getActiveSubscriptionInfoList();
+        for (SubscriptionInfo info : subscriptions) {
+            if (info.getSubscriptionType() == SubscriptionManager.SUBSCRIPTION_TYPE_REMOTE_SIM) {
+                clearMessages(context, info.getSubscriptionId());
+                try {
+                    subscriptionManager.removeSubscriptionInfoRecord(info.getIccId(),
+                            SubscriptionManager.SUBSCRIPTION_TYPE_REMOTE_SIM);
+                } catch (Exception e) {
+                    Log.w(TAG, "cleanUp failed: " + e.toString());
+                }
+            }
+        }
     }
 
     private static void logD(String message) {
@@ -161,6 +179,7 @@ class MapClientContent {
         } else {
             mPhoneNumber = PhoneNumberUtils.extractNetworkPortion(getOriginatorNumber(message));
         }
+
         logV("Found phone number: " + mPhoneNumber);
     }
 
@@ -320,6 +339,8 @@ class MapClientContent {
             values.put(Mms.MESSAGE_SIZE, mmsBmessage.getSize());
 
             Uri results = mResolver.insert(contentUri, values);
+            mHandleToUriMap.put(handle, results);
+            mUriToHandleMap.put(results, new MessageStatus(handle, read));
 
             logD("Map InsertedThread" + results);
 
@@ -333,7 +354,6 @@ class MapClientContent {
 
             values.put(Mms.Part.CONTENT_TYPE, "plain/text");
             values.put(Mms.SUBSCRIPTION_ID, mSubscriptionId);
-            mUriToHandleMap.put(results, new MessageStatus(handle, read));
         } catch (Exception e) {
             Log.e(TAG, e.toString());
             throw e;
@@ -388,7 +408,8 @@ class MapClientContent {
      * clear the subscription info and content on shutdown
      */
     void cleanUp() {
-        clearMessages();
+        mResolver.unregisterContentObserver(mContentObserver);
+        clearMessages(mContext, mSubscriptionId);
         try {
             mSubscriptionManager.removeSubscriptionInfoRecord(mDevice.getAddress(),
                     SubscriptionManager.SUBSCRIPTION_TYPE_REMOTE_SIM);
@@ -401,12 +422,24 @@ class MapClientContent {
      * clearMessages
      * clean up the content provider on startup
      */
-    private void clearMessages() {
-        mResolver.unregisterContentObserver(mContentObserver);
-        mResolver.delete(Sms.CONTENT_URI, Sms.SUBSCRIPTION_ID + " =? ",
-                new String[]{Integer.toString(mSubscriptionId)});
-        mResolver.delete(Mms.CONTENT_URI, Mms.SUBSCRIPTION_ID + " =? ",
-                new String[]{Integer.toString(mSubscriptionId)});
+    private static void clearMessages(Context context, int subscriptionId) {
+        ContentResolver resolver = context.getContentResolver();
+        String threads = new String();
+
+        Uri uri = Threads.CONTENT_URI.buildUpon().appendQueryParameter("simple", "true").build();
+        Cursor threadCursor = resolver.query(uri, null, null, null, null);
+        while (threadCursor.moveToNext()) {
+            threads += threadCursor.getInt(threadCursor.getColumnIndex(Threads._ID)) + ", ";
+        }
+
+        resolver.delete(Sms.CONTENT_URI, Sms.SUBSCRIPTION_ID + " =? ",
+                new String[]{Integer.toString(subscriptionId)});
+        resolver.delete(Mms.CONTENT_URI, Mms.SUBSCRIPTION_ID + " =? ",
+                new String[]{Integer.toString(subscriptionId)});
+        if (threads.length() > 2) {
+            threads = threads.substring(1, threads.length() - 2);
+            resolver.delete(Threads.CONTENT_URI, Threads._ID + " IN (" + threads + ")", null);
+        }
     }
 
     /**
@@ -480,6 +513,7 @@ class MapClientContent {
         String threadId = Uri.parse(thread).getLastPathSegment();
 
         logD("MATCHING THREAD" + threadId);
+        logD(MmsSms.CONTENT_CONVERSATIONS_URI + threadId + "/recipients");
 
         Cursor cursor = mResolver
                 .query(Uri.withAppendedPath(MmsSms.CONTENT_CONVERSATIONS_URI,
