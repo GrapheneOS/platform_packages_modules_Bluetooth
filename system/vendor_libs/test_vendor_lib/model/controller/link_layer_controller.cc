@@ -2456,6 +2456,15 @@ ErrorCode LinkLayerController::QosSetup(uint16_t handle, uint8_t service_type,
   return ErrorCode::COMMAND_DISALLOWED;
 }
 
+ErrorCode LinkLayerController::RoleDiscovery(uint16_t handle) {
+  if (!connections_.HasHandle(handle)) {
+    return ErrorCode::UNKNOWN_CONNECTION;
+  }
+
+  // TODO: Implement real logic
+  return ErrorCode::SUCCESS;
+}
+
 ErrorCode LinkLayerController::SwitchRole(Address /* bd_addr */,
                                           uint8_t /* role */) {
   // TODO: implement real logic
