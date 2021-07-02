@@ -83,7 +83,7 @@ bool PosixAsyncSocketServer::StartListening() {
   }
 
   server_socket_->WatchForNonBlockingRead(
-      [this](AsyncDataChannel* socket) { AcceptSocket(); });
+      [this](AsyncDataChannel* /* socket */) { AcceptSocket(); });
   return true;
 }
 

@@ -104,7 +104,7 @@ DeviceProperties::DeviceProperties(const std::string& file_name)
   Json::Value supported_commands = root["supported_commands"];
   if (supported_commands.size() > 0) {
     use_supported_commands_from_file_ = true;
-    for (int i = 0; i < supported_commands.size(); i++) {
+    for (unsigned i = 0; i < supported_commands.size(); i++) {
       std::string out = supported_commands[i].asString();
       uint8_t number = stoi(out, 0, 16);
       supported_commands_[i] = number;
