@@ -281,7 +281,7 @@ impl HidHost {
             set_report,
             ffi_addr,
             bindings::bthh_report_type_t::from(report_type),
-            report.as_mut_ptr() as *mut i8
+            report.as_mut_ptr() as *mut std::os::raw::c_char
         ))
     }
 

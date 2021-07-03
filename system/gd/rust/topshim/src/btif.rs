@@ -609,7 +609,11 @@ impl BluetoothInterface {
         profile: SupportedProfiles,
     ) -> *const std::os::raw::c_void {
         let cprofile = Vec::<u8>::from(profile);
-        ccall!(self, get_profile_interface, cprofile.as_slice().as_ptr() as *const i8)
+        ccall!(
+            self,
+            get_profile_interface,
+            cprofile.as_slice().as_ptr() as *const std::os::raw::c_char
+        )
     }
 
     pub(crate) fn as_raw_ptr(&self) -> *const u8 {
