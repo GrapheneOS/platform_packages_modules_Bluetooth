@@ -240,22 +240,26 @@ class GdAndroidDevice(GdDeviceBase):
         try:
             self.adb.shell("rm /data/misc/bluetooth/logs/btsnoop_hci.log")
         except AdbCommandError as error:
-            logging.error("Error during setup: " + str(error))
+            if "No such file or directory" not in str(error):
+                logging.error("Error during setup: " + str(error))
 
         try:
             self.adb.shell("rm /data/misc/bluetooth/logs/btsnooz_hci.log")
         except AdbCommandError as error:
-            logging.error("Error during setup: " + str(error))
+            if "No such file or directory" not in str(error):
+                logging.error("Error during setup: " + str(error))
 
         try:
             self.adb.shell("rm /data/misc/bluedroid/bt_config.conf")
         except AdbCommandError as error:
-            logging.error("Error during setup: " + str(error))
+            if "No such file or directory" not in str(error):
+                logging.error("Error during setup: " + str(error))
 
         try:
             self.adb.shell("rm /data/misc/bluedroid/bt_config.bak")
         except AdbCommandError as error:
-            logging.error("Error during setup: " + str(error))
+            if "No such file or directory" not in str(error):
+                logging.error("Error during setup: " + str(error))
 
         self.ensure_no_output(self.adb.shell("svc bluetooth disable"))
 
@@ -311,17 +315,29 @@ class GdAndroidDevice(GdDeviceBase):
         try:
             self.adb.remove_tcp_forward(self.grpc_port)
         except AdbError as error:
-            logging.error("Error during port forwarding cleanup: " + str(error))
+            msg = "During port forwarding cleanup: " + str(error)
+            if "not found" in msg:
+                logging.info(msg)
+            else:
+                logging.error(msg)
 
         try:
             self.adb.remove_tcp_forward(self.grpc_root_server_port)
         except AdbError as error:
-            logging.error("Error during port forwarding cleanup: " + str(error))
+            msg = "During port forwarding cleanup: " + str(error)
+            if "not found" in msg:
+                logging.info(msg)
+            else:
+                logging.error(msg)
 
         try:
             self.adb.reverse("--remove tcp:%d" % self.signal_port)
         except AdbError as error:
-            logging.error("Error during port forwarding cleanup: " + str(error))
+            msg = "During port forwarding cleanup: " + str(error)
+            if "not found" in msg:
+                logging.info(msg)
+            else:
+                logging.error(msg)
 
     @staticmethod
     def ensure_no_output(result):
