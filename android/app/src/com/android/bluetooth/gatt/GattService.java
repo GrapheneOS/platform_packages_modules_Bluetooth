@@ -165,6 +165,14 @@ public class GattService extends ProfileService {
         }
     }
 
+    private final PendingIntent.CancelListener mScanIntentCancelListener =
+            new PendingIntent.CancelListener(){
+                public void onCancelled(PendingIntent intent) {
+                    Log.d(TAG, "scanning PendingIntent cancelled");
+                    stopScan(intent, getAttributionSource());
+                }
+            };
+
     /**
      * List of our registered scanners.
      */
@@ -2342,6 +2350,9 @@ public class GattService extends ProfileService {
         }
 
         ScannerMap.App app = mScannerMap.add(uuid, null, null, piInfo, this);
+
+        pendingIntent.registerCancelListener(mScanIntentCancelListener);
+
         app.mUserHandle = UserHandle.of(UserHandle.getCallingUserId());
         mAppOps.checkPackage(Binder.getCallingUid(), callingPackage);
         app.mEligibleForSanitizedExposureNotification =
@@ -2447,6 +2458,7 @@ public class GattService extends ProfileService {
             Log.d(TAG, "stopScan(PendingIntent): app found = " + app);
         }
         if (app != null) {
+            intent.unregisterCancelListener(mScanIntentCancelListener);
             final int scannerId = app.id;
             stopScan(scannerId, attributionSource);
             // Also unregister the scanner
