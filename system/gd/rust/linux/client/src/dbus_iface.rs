@@ -116,13 +116,13 @@ pub(crate) struct BluetoothDBus {
 
 impl BluetoothDBus {
     pub(crate) fn new(conn: Arc<SyncConnection>, cr: Arc<Mutex<Crossroads>>) -> BluetoothDBus {
-        // TODO: Adapter path should have hci number, e.g. /org/chromium/bluetooth/adapter/hci0.
+        // TODO: Adapter client should dynamically accept hci # and be initialized
         BluetoothDBus {
             client_proxy: ClientDBusProxy {
                 conn: conn.clone(),
                 cr: cr,
                 bus_name: String::from("org.chromium.bluetooth"),
-                objpath: dbus::Path::new("/org/chromium/bluetooth/adapter").unwrap(),
+                objpath: dbus::Path::new("/org/chromium/bluetooth/adapter0").unwrap(),
                 interface: String::from("org.chromium.bluetooth.Bluetooth"),
             },
         }
