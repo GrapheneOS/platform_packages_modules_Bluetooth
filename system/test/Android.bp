@@ -13,9 +13,120 @@ subdirs = [
 ]
 
 filegroup {
+    name: "TestMockBtaAg",
+    srcs: [
+      "mock/mock_bta_ag_*.cc",
+    ],
+}
+
+filegroup {
+    name: "TestMockBtaAr",
+    srcs: [
+      "mock/mock_bta_ar.cc",
+    ],
+}
+
+filegroup {
+    name: "TestMockBtaAv",
+    srcs: [
+      "mock/mock_bta_av_*.cc",
+    ],
+}
+
+filegroup {
+    name: "TestMockBtaDm",
+    srcs: [
+      "mock/mock_bta_dm_*.cc",
+    ],
+}
+
+filegroup {
+    name: "TestMockBtaGatt",
+    srcs: [
+      "mock/mock_bta_gatt*.cc",
+    ],
+}
+
+filegroup {
+    name: "TestMockBtaHd",
+    srcs: [
+      "mock/mock_bta_hd*.cc",
+    ],
+}
+
+filegroup {
+    name: "TestMockBtaHearingAid",
+    srcs: [
+      "mock/mock_bta_hearing_aid.cc",
+    ],
+}
+
+filegroup {
+    name: "TestMockBtaHf",
+    srcs: [
+      "mock/mock_bta_hf*.cc",
+    ],
+}
+
+filegroup {
+    name: "TestMockBtaHh",
+    srcs: [
+      "mock/mock_bta_hh*.cc",
+    ],
+}
+
+filegroup {
+    name: "TestMockBtaJv",
+    srcs: [
+      "mock/mock_bta_jv_*.cc",
+    ],
+}
+
+filegroup {
+    name: "TestMockBtaPan",
+    srcs: [
+      "mock/mock_bta_pan_*.cc",
+    ],
+}
+
+filegroup {
+    name: "TestMockBtaSdp",
+    srcs: [
+      "mock/mock_bta_sdp_*.cc",
+    ],
+}
+
+filegroup {
+    name: "TestMockBtaSys",
+    srcs: [
+      "mock/mock_bta_sys_*.cc",
+    ],
+}
+
+filegroup {
+    name: "TestMockBtaVc",
+    srcs: [
+      "mock/mock_bta_vc*.cc",
+    ],
+}
+
+filegroup {
     name: "TestMockBta",
     srcs: [
-      "mock/mock_bta_*.cc",
+      ":TestMockBtaAg",
+      ":TestMockBtaAr",
+      ":TestMockBtaAv",
+      ":TestMockBtaDm",
+      ":TestMockBtaGatt",
+      ":TestMockBtaHd",
+      ":TestMockBtaHearingAid",
+      ":TestMockBtaHf",
+      ":TestMockBtaHh",
+      ":TestMockBtaJv",
+      ":TestMockBtaPan",
+      ":TestMockBtaSdp",
+      ":TestMockBtaSys",
+      ":TestMockBtaVc",
     ],
 }
 
