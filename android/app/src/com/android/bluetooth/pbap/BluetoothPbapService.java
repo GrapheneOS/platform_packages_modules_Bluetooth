@@ -41,6 +41,7 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.BluetoothSocket;
 import android.bluetooth.IBluetoothPbap;
+import android.content.Attributable;
 import android.content.AttributionSource;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -710,6 +711,7 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
             if (DEBUG) {
                 Log.d(TAG, "getConnectionState: " + device);
             }
+            Attributable.setAttributionSource(device, source);
             BluetoothPbapService service = getService(source);
             if (service == null) {
                 return BluetoothAdapter.STATE_DISCONNECTED;
@@ -724,6 +726,7 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
                 Log.d(TAG, "setConnectionPolicy for device: " + device + ", policy:"
                         + connectionPolicy);
             }
+            Attributable.setAttributionSource(device, source);
             BluetoothPbapService service = getService(source);
             if (service == null) {
                 return false;
@@ -736,6 +739,7 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
             if (DEBUG) {
                 Log.d(TAG, "disconnect");
             }
+            Attributable.setAttributionSource(device, source);
             BluetoothPbapService service = getService(source);
             if (service == null) {
                 return;
