@@ -133,6 +133,11 @@ cc_test_host {
         "-fvisibility=hidden",
         "-DLOG_NDEBUG=1",
     ],
+    target: {
+        darwin: {
+            enabled: false,
+        },
+    },
 }
 
 // Linux RootCanal Executable
@@ -189,6 +194,9 @@ cc_binary_host {
                 cfi: false,
                 all_undefined: false,
             },
+        },
+        darwin: {
+            enabled: false,
         },
     },
 }
