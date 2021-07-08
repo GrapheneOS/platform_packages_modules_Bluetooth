@@ -31,6 +31,7 @@ import android.bluetooth.BluetoothProfile;
 import android.bluetooth.BluetoothUuid;
 import android.bluetooth.BufferConstraints;
 import android.bluetooth.IBluetoothA2dp;
+import android.content.Attributable;
 import android.content.AttributionSource;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -1241,6 +1242,7 @@ public class A2dpService extends ProfileService {
 
         @Override
         public boolean connectWithAttribution(BluetoothDevice device, AttributionSource source) {
+            Attributable.setAttributionSource(device, source);
             A2dpService service = getService(source);
             if (service == null) {
                 return false;
@@ -1255,6 +1257,7 @@ public class A2dpService extends ProfileService {
 
         @Override
         public boolean disconnectWithAttribution(BluetoothDevice device, AttributionSource source) {
+            Attributable.setAttributionSource(device, source);
             A2dpService service = getService(source);
             if (service == null) {
                 return false;
@@ -1300,6 +1303,7 @@ public class A2dpService extends ProfileService {
         @Override
         public int getConnectionStateWithAttribution(BluetoothDevice device,
                 AttributionSource source) {
+            Attributable.setAttributionSource(device, source);
             A2dpService service = getService(source);
             if (service == null) {
                 return BluetoothProfile.STATE_DISCONNECTED;
@@ -1309,6 +1313,7 @@ public class A2dpService extends ProfileService {
 
         @Override
         public boolean setActiveDevice(BluetoothDevice device, AttributionSource source) {
+            Attributable.setAttributionSource(device, source);
             A2dpService service = getService(source);
             if (service == null) {
                 return false;
@@ -1328,6 +1333,7 @@ public class A2dpService extends ProfileService {
         @Override
         public boolean setConnectionPolicy(BluetoothDevice device, int connectionPolicy,
                 AttributionSource source) {
+            Attributable.setAttributionSource(device, source);
             A2dpService service = getService(source);
             if (service == null) {
                 return false;
@@ -1337,6 +1343,7 @@ public class A2dpService extends ProfileService {
 
         @Override
         public int getPriority(BluetoothDevice device, AttributionSource source) {
+            Attributable.setAttributionSource(device, source);
             A2dpService service = getService(source);
             if (service == null) {
                 return BluetoothProfile.CONNECTION_POLICY_UNKNOWN;
@@ -1346,6 +1353,7 @@ public class A2dpService extends ProfileService {
 
         @Override
         public int getConnectionPolicy(BluetoothDevice device, AttributionSource source) {
+            Attributable.setAttributionSource(device, source);
             A2dpService service = getService(source);
             if (service == null) {
                 return BluetoothProfile.CONNECTION_POLICY_UNKNOWN;
@@ -1371,6 +1379,7 @@ public class A2dpService extends ProfileService {
 
         @Override
         public boolean isA2dpPlaying(BluetoothDevice device, AttributionSource source) {
+            Attributable.setAttributionSource(device, source);
             A2dpService service = getService(source);
             if (service == null) {
                 return false;
@@ -1381,6 +1390,7 @@ public class A2dpService extends ProfileService {
         @Override
         public BluetoothCodecStatus getCodecStatus(BluetoothDevice device,
                 AttributionSource source) {
+            Attributable.setAttributionSource(device, source);
             A2dpService service = getService(source);
             if (service == null) {
                 return null;
@@ -1391,6 +1401,7 @@ public class A2dpService extends ProfileService {
         @Override
         public void setCodecConfigPreference(BluetoothDevice device,
                 BluetoothCodecConfig codecConfig, AttributionSource source) {
+            Attributable.setAttributionSource(device, source);
             A2dpService service = getService(source);
             if (service == null) {
                 return;
@@ -1400,6 +1411,7 @@ public class A2dpService extends ProfileService {
 
         @Override
         public void enableOptionalCodecs(BluetoothDevice device, AttributionSource source) {
+            Attributable.setAttributionSource(device, source);
             A2dpService service = getService(source);
             if (service == null) {
                 return;
@@ -1409,6 +1421,7 @@ public class A2dpService extends ProfileService {
 
         @Override
         public void disableOptionalCodecs(BluetoothDevice device, AttributionSource source) {
+            Attributable.setAttributionSource(device, source);
             A2dpService service = getService(source);
             if (service == null) {
                 return;
@@ -1418,6 +1431,7 @@ public class A2dpService extends ProfileService {
 
         @Override
         public int supportsOptionalCodecs(BluetoothDevice device, AttributionSource source) {
+            Attributable.setAttributionSource(device, source);
             A2dpService service = getService(source);
             if (service == null) {
                 return BluetoothA2dp.OPTIONAL_CODECS_SUPPORT_UNKNOWN;
@@ -1427,6 +1441,7 @@ public class A2dpService extends ProfileService {
 
         @Override
         public int getOptionalCodecsEnabled(BluetoothDevice device, AttributionSource source) {
+            Attributable.setAttributionSource(device, source);
             A2dpService service = getService(source);
             if (service == null) {
                 return BluetoothA2dp.OPTIONAL_CODECS_PREF_UNKNOWN;
@@ -1437,6 +1452,7 @@ public class A2dpService extends ProfileService {
         @Override
         public void setOptionalCodecsEnabled(BluetoothDevice device, int value,
                 AttributionSource source) {
+            Attributable.setAttributionSource(device, source);
             A2dpService service = getService(source);
             if (service == null) {
                 return;
