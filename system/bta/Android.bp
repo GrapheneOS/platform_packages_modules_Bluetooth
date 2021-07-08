@@ -40,11 +40,24 @@ cc_defaults {
     cflags: ["-DBUILDCFG"],
 }
 
+filegroup {
+  name: "BtaDmSources",
+  srcs: [
+    "dm/bta_dm_act.cc",
+    "dm/bta_dm_api.cc",
+    "dm/bta_dm_cfg.cc",
+    "dm/bta_dm_ci.cc",
+    "dm/bta_dm_main.cc",
+    "dm/bta_dm_pm.cc",
+  ],
+}
+
 // BTA static library for target
 cc_library_static {
     name: "libbt-bta",
     defaults: ["fluoride_bta_defaults"],
     srcs: [
+        ":BtaDmSources",
         "ag/bta_ag_act.cc",
         "ag/bta_ag_api.cc",
         "ag/bta_ag_at.cc",
@@ -62,12 +75,6 @@ cc_library_static {
         "av/bta_av_ci.cc",
         "av/bta_av_main.cc",
         "av/bta_av_ssm.cc",
-        "dm/bta_dm_act.cc",
-        "dm/bta_dm_api.cc",
-        "dm/bta_dm_cfg.cc",
-        "dm/bta_dm_ci.cc",
-        "dm/bta_dm_main.cc",
-        "dm/bta_dm_pm.cc",
         "gatt/bta_gattc_act.cc",
         "gatt/bta_gattc_api.cc",
         "gatt/bta_gattc_cache.cc",
