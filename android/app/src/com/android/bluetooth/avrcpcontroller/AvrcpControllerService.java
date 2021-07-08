@@ -22,6 +22,7 @@ import android.bluetooth.BluetoothAvrcpPlayerSettings;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.IBluetoothAvrcpController;
+import android.content.Attributable;
 import android.content.AttributionSource;
 import android.content.Intent;
 import android.support.v4.media.MediaBrowserCompat.MediaItem;
@@ -387,6 +388,7 @@ public class AvrcpControllerService extends ProfileService {
 
         @Override
         public int getConnectionState(BluetoothDevice device, AttributionSource source) {
+            Attributable.setAttributionSource(device, source);
             AvrcpControllerService service = getService(source);
             if (service == null) {
                 return BluetoothProfile.STATE_DISCONNECTED;
@@ -397,6 +399,7 @@ public class AvrcpControllerService extends ProfileService {
         @Override
         public void sendGroupNavigationCmd(BluetoothDevice device, int keyCode, int keyState,
                 AttributionSource source) {
+            Attributable.setAttributionSource(device, source);
             AvrcpControllerService service = getService(source);
             if (service == null) {
                 return;
@@ -418,6 +421,7 @@ public class AvrcpControllerService extends ProfileService {
         @Override
         public BluetoothAvrcpPlayerSettings getPlayerSettings(BluetoothDevice device,
                 AttributionSource source) {
+            Attributable.setAttributionSource(device, source);
             AvrcpControllerService service = getService(source);
             if (service == null) {
                 return null;
