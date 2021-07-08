@@ -2115,7 +2115,7 @@ tA2DP_STATUS bta_av_co_audio_getconfig(tBTA_AV_HNDL bta_av_handle,
   }
   APPL_TRACE_ERROR(
       "%s: peer %s : Invalid peer UUID: 0x%x for bta_av_handle 0x%x",
-      peer_address.ToString().c_str(), peer_uuid, bta_av_handle);
+      __func__, peer_address.ToString().c_str(), peer_uuid, bta_av_handle);
   return A2DP_FAIL;
 }
 
