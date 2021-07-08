@@ -26,6 +26,7 @@ import android.bluetooth.BluetoothLeAudio;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.BluetoothUuid;
 import android.bluetooth.IBluetoothLeAudio;
+import android.content.Attributable;
 import android.content.AttributionSource;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -736,6 +737,7 @@ public class LeAudioService extends ProfileService {
 
         @Override
         public boolean connect(BluetoothDevice device, AttributionSource source) {
+            Attributable.setAttributionSource(device, source);
             LeAudioService service = getService(source);
             if (service == null) {
                 return false;
@@ -745,6 +747,7 @@ public class LeAudioService extends ProfileService {
 
         @Override
         public boolean disconnect(BluetoothDevice device, AttributionSource source) {
+            Attributable.setAttributionSource(device, source);
             LeAudioService service = getService(source);
             if (service == null) {
                 return false;
@@ -773,6 +776,7 @@ public class LeAudioService extends ProfileService {
 
         @Override
         public int getConnectionState(BluetoothDevice device, AttributionSource source) {
+            Attributable.setAttributionSource(device, source);
             LeAudioService service = getService(source);
             if (service == null) {
                 return BluetoothProfile.STATE_DISCONNECTED;
@@ -782,6 +786,7 @@ public class LeAudioService extends ProfileService {
 
         @Override
         public boolean setActiveDevice(BluetoothDevice device, AttributionSource source) {
+            Attributable.setAttributionSource(device, source);
             LeAudioService service = getService(source);
             if (service == null) {
                 return false;
@@ -801,6 +806,7 @@ public class LeAudioService extends ProfileService {
         @Override
         public boolean setConnectionPolicy(BluetoothDevice device, int connectionPolicy,
                 AttributionSource source) {
+            Attributable.setAttributionSource(device, source);
             LeAudioService service = getService(source);
             if (service == null) {
                 return false;
@@ -810,6 +816,7 @@ public class LeAudioService extends ProfileService {
 
         @Override
         public int getConnectionPolicy(BluetoothDevice device, AttributionSource source) {
+            Attributable.setAttributionSource(device, source);
             LeAudioService service = getService(source);
             if (service == null) {
                 return BluetoothProfile.CONNECTION_POLICY_UNKNOWN;
@@ -819,6 +826,7 @@ public class LeAudioService extends ProfileService {
 
         @Override
         public int getGroupId(BluetoothDevice device, AttributionSource source) {
+            Attributable.setAttributionSource(device, source);
             LeAudioService service = getService(source);
             if (service == null) {
                 return LE_AUDIO_GROUP_ID_INVALID;
