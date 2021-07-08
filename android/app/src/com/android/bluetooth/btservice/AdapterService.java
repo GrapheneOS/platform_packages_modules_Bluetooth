@@ -124,9 +124,9 @@ import com.android.internal.os.BackgroundThread;
 import com.android.internal.os.BinderCallsStats;
 import com.android.internal.util.ArrayUtils;
 
-import libcore.util.SneakyThrow;
-
 import com.google.protobuf.InvalidProtocolBufferException;
+
+import libcore.util.SneakyThrow;
 
 import java.io.FileDescriptor;
 import java.io.FileOutputStream;
@@ -2554,7 +2554,7 @@ public class AdapterService extends Service {
     }
 
     boolean startDiscovery(AttributionSource attributionSource) {
-        UserHandle callingUser = UserHandle.of(UserHandle.getCallingUserId());
+        UserHandle callingUser = Binder.getCallingUserHandle();
         debugLog("startDiscovery");
         String callingPackage = attributionSource.getPackageName();
         mAppOps.checkPackage(Binder.getCallingUid(), callingPackage);
@@ -2624,7 +2624,7 @@ public class AdapterService extends Service {
 
         CallerInfo createBondCaller = new CallerInfo();
         createBondCaller.callerPackageName = callingPackage;
-        createBondCaller.user = UserHandle.of(UserHandle.getCallingUserId());
+        createBondCaller.user = Binder.getCallingUserHandle();
         mBondAttemptCallerInfo.put(device.getAddress(), createBondCaller);
 
         mRemoteDevices.setBondingInitiatedLocally(Utils.getByteAddress(device));

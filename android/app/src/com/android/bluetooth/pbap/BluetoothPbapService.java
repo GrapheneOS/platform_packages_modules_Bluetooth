@@ -53,6 +53,7 @@ import android.os.HandlerThread;
 import android.os.Looper;
 import android.os.Message;
 import android.os.PowerManager;
+import android.os.UserHandle;
 import android.os.UserManager;
 import android.telephony.TelephonyManager;
 import android.util.Log;
@@ -644,7 +645,7 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
     protected void setCurrentUser(int userId) {
         Log.i(TAG, "setCurrentUser(" + userId + ")");
         UserManager userManager = (UserManager) getSystemService(Context.USER_SERVICE);
-        if (userManager.isUserUnlocked(userId)) {
+        if (userManager.isUserUnlocked(UserHandle.of(userId))) {
             setUserUnlocked(userId);
         }
     }
