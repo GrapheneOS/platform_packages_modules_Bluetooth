@@ -15,8 +15,8 @@
  */
 package com.android.bluetooth.mapclient;
 
+import android.os.Binder;
 import android.os.SystemProperties;
-import android.os.UserHandle;
 
 import com.android.bluetooth.Utils;
 import com.android.internal.annotations.VisibleForTesting;
@@ -34,7 +34,7 @@ class MapUtils {
     }
 
     static boolean isSystemUser() {
-        return UserHandle.getCallingUserId() == UserHandle.USER_SYSTEM;
+        return Binder.getCallingUserHandle().isSystem();
     }
 
     static MnsService newMnsServiceInstance(MapClientService mapClientService) {
