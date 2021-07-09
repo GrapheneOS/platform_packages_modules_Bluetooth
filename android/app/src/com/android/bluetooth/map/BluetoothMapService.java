@@ -903,7 +903,7 @@ public class BluetoothMapService extends ProfileService {
         synchronized (this) {
             if (sRemoteDevice == null) {
                 sRemoteDevice = remoteDevice;
-                sRemoteDeviceName = sRemoteDevice.getName();
+                sRemoteDeviceName = Utils.getName(sRemoteDevice);
                 // In case getRemoteName failed and return null
                 if (TextUtils.isEmpty(sRemoteDeviceName)) {
                     sRemoteDeviceName = getString(R.string.defaultname);
@@ -922,7 +922,7 @@ public class BluetoothMapService extends ProfileService {
                 }
             } else if (!sRemoteDevice.equals(remoteDevice)) {
                 Log.w(TAG, "Unexpected connection from a second Remote Device received. name: " + (
-                        (remoteDevice == null) ? "unknown" : remoteDevice.getName()));
+                        (remoteDevice == null) ? "unknown" : Utils.getName(remoteDevice)));
                 return false;
             } // Else second connection to same device, just continue
         }

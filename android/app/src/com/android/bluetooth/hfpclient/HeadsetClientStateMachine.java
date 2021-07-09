@@ -205,7 +205,7 @@ public class HeadsetClientStateMachine extends StateMachine {
         ProfileService.println(sb,
                 "==== StateMachine for " + mCurrentDevice + " ====");
         ProfileService.println(sb, "  mCurrentDevice: " + mCurrentDevice.getAddress() + "("
-                + mCurrentDevice.getName() + ") " + this.toString());
+                + Utils.getName(mCurrentDevice) + ") " + this.toString());
         ProfileService.println(sb, "  mAudioState: " + mAudioState);
         ProfileService.println(sb, "  mAudioWbs: " + mAudioWbs);
         ProfileService.println(sb, "  mIndicatorNetworkState: " + mIndicatorNetworkState);
@@ -1198,7 +1198,7 @@ public class HeadsetClientStateMachine extends StateMachine {
                     break;
                 case DISCONNECT:
                     BluetoothDevice dev = (BluetoothDevice) message.obj;
-                    Attributable.setAttributionSource(device,
+                    Attributable.setAttributionSource(dev,
                             ActivityThread.currentAttributionSource());
                     if (!mCurrentDevice.equals(dev)) {
                         break;

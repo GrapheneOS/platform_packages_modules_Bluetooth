@@ -55,6 +55,7 @@ import android.os.Process;
 import android.util.Log;
 
 import com.android.bluetooth.BluetoothObexTransport;
+import com.android.bluetooth.Utils;
 
 import java.io.IOException;
 
@@ -743,7 +744,8 @@ public class BluetoothOppTransfer implements BluetoothOppBatch.BluetoothOppBatch
                 BluetoothObexTransport transport;
                 transport = new BluetoothObexTransport(mBtSocket);
 
-                BluetoothOppPreference.getInstance(mContext).setName(mDevice, mDevice.getName());
+                BluetoothOppPreference.getInstance(mContext).setName(mDevice,
+                        Utils.getName(mDevice));
 
                 if (V) {
                     Log.v(TAG, "Send transport message " + transport.toString());
@@ -809,7 +811,8 @@ public class BluetoothOppTransfer implements BluetoothOppBatch.BluetoothOppBatch
                 }
                 BluetoothObexTransport transport;
                 transport = new BluetoothObexTransport(mBtSocket);
-                BluetoothOppPreference.getInstance(mContext).setName(mDevice, mDevice.getName());
+                BluetoothOppPreference.getInstance(mContext).setName(mDevice,
+                        Utils.getName(mDevice));
                 if (V) {
                     Log.v(TAG, "Send transport message " + transport.toString());
                 }
