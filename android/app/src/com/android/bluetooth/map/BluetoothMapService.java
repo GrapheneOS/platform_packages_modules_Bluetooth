@@ -21,6 +21,7 @@ import static com.android.bluetooth.Utils.enforceBluetoothPrivilegedPermission;
 
 import android.annotation.RequiresPermission;
 import android.app.Activity;
+import android.app.ActivityThread;
 import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.bluetooth.BluetoothAdapter;
@@ -30,6 +31,7 @@ import android.bluetooth.BluetoothProfile;
 import android.bluetooth.BluetoothUuid;
 import android.bluetooth.IBluetoothMap;
 import android.bluetooth.SdpMnsRecord;
+import android.content.Attributable;
 import android.content.AttributionSource;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -391,7 +393,10 @@ public class BluetoothMapService extends ProfileService {
                     // handled elsewhere
                     break;
                 case DISCONNECT_MAP:
-                    disconnectMap((BluetoothDevice) msg.obj);
+                    BluetoothDevice device = (BluetoothDevice) msg.obj;
+                    Attributable.setAttributionSource(device,
+                            ActivityThread.currentAttributionSource());
+                    disconnectMap(device);
                     break;
                 case SHUTDOWN:
                     // Call close from this handler to avoid starting because of pending messages
