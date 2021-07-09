@@ -261,7 +261,7 @@ public abstract class ProfileService extends Service {
         int currentUserId = ActivityManager.getCurrentUser();
         setCurrentUser(currentUserId);
         UserManager userManager = UserManager.get(getApplicationContext());
-        if (userManager.isUserUnlocked(currentUserId)) {
+        if (userManager.isUserUnlocked(UserHandle.of(currentUserId))) {
             setUserUnlocked(currentUserId);
         }
         mProfileStarted = start();
