@@ -1066,7 +1066,7 @@ class AdapterProperties {
         for (BluetoothDevice device : mBondedDevices) {
             writer.println(
                     "    " + device.getAddress() + " [" + dumpDeviceType(device.getType()) + "] "
-                            + device.getName());
+                            + Utils.getName(device));
         }
     }
 

@@ -421,7 +421,7 @@ class MceStateMachine extends StateMachine {
 
     public void dump(StringBuilder sb) {
         ProfileService.println(sb, "mCurrentDevice: " + mDevice.getAddress() + "("
-                + mDevice.getName() + ") " + this.toString());
+                + Utils.getName(mDevice) + ") " + this.toString());
     }
 
     class Disconnected extends State {
@@ -469,7 +469,7 @@ class MceStateMachine extends StateMachine {
                         SdpMasRecord record = (SdpMasRecord) message.obj;
                         if (record == null) {
                             Log.e(TAG, "Unexpected: SDP record is null for device "
-                                    + mDevice.getName());
+                                    + Utils.getName(mDevice));
                             return NOT_HANDLED;
                         }
                         mMasClient = new MasClient(mDevice, MceStateMachine.this, record);
