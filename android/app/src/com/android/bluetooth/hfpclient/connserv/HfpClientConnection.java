@@ -34,7 +34,6 @@ public class HfpClientConnection extends Connection {
     private static final String TAG = "HfpClientConnection";
     private static final boolean DBG = false;
 
-    private static final String KEY_SCO_STATE = "com.android.bluetooth.hfpclient.SCO_STATE";
     private static final String EVENT_SCO_CONNECT = "com.android.bluetooth.hfpclient.SCO_CONNECT";
     private static final String EVENT_SCO_DISCONNECT =
              "com.android.bluetooth.hfpclient.SCO_DISCONNECT";
@@ -65,7 +64,6 @@ public class HfpClientConnection extends Connection {
         }
 
         mCurrentCall = call;
-        setScoState(BluetoothHeadsetClient.STATE_AUDIO_DISCONNECTED);
         handleCallChanged();
         finishInitializing();
     }
@@ -298,19 +296,6 @@ public class HfpClientConnection extends Connection {
                 mHeadsetProfile.disconnectAudio(mDevice);
                 break;
         }
-    }
-
-    /**
-     * Notify this connection of changes in the SCO state so we can update our call details
-     */
-    public void onScoStateChanged(int newState, int oldState) {
-        setScoState(newState);
-    }
-
-    private void setScoState(int state) {
-        Bundle bundle = new Bundle();
-        bundle.putInt(KEY_SCO_STATE, state);
-        setExtras(bundle);
     }
 
     @Override
