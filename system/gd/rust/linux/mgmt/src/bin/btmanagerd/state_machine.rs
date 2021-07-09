@@ -5,10 +5,10 @@ use nix::sys::signal::{self, Signal};
 use nix::unistd::Pid;
 use regex::Regex;
 use std::process::{Child, Command, Stdio};
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 use std::time::Duration;
 use tokio::io::unix::AsyncFd;
-use tokio::sync::{mpsc, Mutex};
+use tokio::sync::mpsc;
 
 // Directory for Bluetooth pid file
 pub const PID_DIR: &str = "/var/run/bluetooth";
@@ -32,17 +32,28 @@ pub fn state_to_i32(state: State) -> i32 {
     i32::from(state)
 }
 
+/// Adapter state actions
 #[derive(Debug)]
-pub enum StateMachineActions {
+pub enum AdapterStateActions {
     StartBluetooth(i32),
     StopBluetooth(i32),
     BluetoothStarted(i32, i32), // PID and HCI
     BluetoothStopped(i32),
 }
 
+/// Enum of all the messages that state machine handles.
+#[derive(Debug)]
+pub enum Message {
+    AdapterStateChange(AdapterStateActions),
+    PidChange(inotify::EventMask, Option<String>),
+    HciDeviceChange(inotify::EventMask, Option<String>),
+    CallbackDisconnected(u32),
+    CommandTimeout(),
+}
+
 pub struct StateMachineContext<PM> {
-    tx: mpsc::Sender<StateMachineActions>,
-    rx: mpsc::Receiver<StateMachineActions>,
+    tx: mpsc::Sender<Message>,
+    rx: mpsc::Receiver<Message>,
     state_machine: ManagerStateMachine<PM>,
 }
 
@@ -51,7 +62,7 @@ impl<PM> StateMachineContext<PM> {
     where
         PM: ProcessManager + Send,
     {
-        let (tx, rx) = mpsc::channel::<StateMachineActions>(10);
+        let (tx, rx) = mpsc::channel::<Message>(10);
         StateMachineContext { tx: tx, rx: rx, state_machine: state_machine }
     }
 
@@ -66,8 +77,8 @@ pub fn start_new_state_machine_context() -> StateMachineContext<UpstartInvoker> 
 
 #[derive(Clone)]
 pub struct StateMachineProxy {
-    tx: mpsc::Sender<StateMachineActions>,
-    state: Arc<Mutex<State>>,
+    tx: mpsc::Sender<Message>,
+    state: Arc<std::sync::Mutex<State>>,
 }
 
 const TX_SEND_TIMEOUT_DURATION: Duration = Duration::from_secs(3);
@@ -77,21 +88,33 @@ impl StateMachineProxy {
     pub fn start_bluetooth(&self, hci_interface: i32) {
         let tx = self.tx.clone();
         tokio::spawn(async move {
-            let _ = tx.send(StateMachineActions::StartBluetooth(hci_interface)).await;
+            let _ = tx
+                .send(Message::AdapterStateChange(AdapterStateActions::StartBluetooth(
+                    hci_interface,
+                )))
+                .await;
         });
     }
 
     pub fn stop_bluetooth(&self, hci_interface: i32) {
         let tx = self.tx.clone();
         tokio::spawn(async move {
-            let _ = tx.send(StateMachineActions::StopBluetooth(hci_interface)).await;
+            let _ = tx
+                .send(Message::AdapterStateChange(AdapterStateActions::StopBluetooth(
+                    hci_interface,
+                )))
+                .await;
         });
     }
 
     pub fn get_state(&self) -> State {
         // This assumes that self.state is never locked for a long period, i.e. never lock() and
         // await for something else without unlocking. Otherwise this function will block.
-        return *futures::executor::block_on(self.state.lock());
+        return *self.state.lock().unwrap();
+    }
+
+    pub fn get_tx(&self) -> mpsc::Sender<Message> {
+        self.tx.clone()
     }
 }
 
@@ -103,7 +126,8 @@ fn pid_inotify_async_fd() -> AsyncFd<inotify::Inotify> {
     AsyncFd::new(pid_detector).expect("failed to add async fd")
 }
 
-fn get_hci_interface_from_pid_file_name(path: &str) -> Option<i32> {
+/// Given an pid path, returns the adapter index for that pid path.
+fn get_hci_index_from_pid_path(path: &str) -> Option<i32> {
     let re = Regex::new(r"bluetooth([0-9]+).pid").unwrap();
     re.captures(path)?.get(1)?.as_str().parse().ok()
 }
@@ -119,9 +143,20 @@ fn hci_devices_inotify_async_fd() -> AsyncFd<inotify::Inotify> {
     AsyncFd::new(detector).expect("failed to add async fd")
 }
 
-fn get_hci_interface_from_device(path: &str) -> Option<i32> {
+/// Given an hci sysfs path, returns the index of the hci device at the path.
+fn get_hci_index_from_device(path: &str) -> Option<i32> {
     let re = Regex::new(r"hci([0-9]+)").unwrap();
     re.captures(path)?.get(1)?.as_str().parse().ok()
+}
+
+fn event_name_to_string(name: Option<&std::ffi::OsStr>) -> Option<String> {
+    if let Some(val) = &name {
+        if let Some(strval) = val.to_str() {
+            return Some(strval.to_string());
+        }
+    }
+
+    return None;
 }
 
 pub async fn mainloop<PM>(
@@ -130,150 +165,248 @@ pub async fn mainloop<PM>(
 ) where
     PM: ProcessManager + Send,
 {
-    let mut command_timeout = Alarm::new();
+    // Set up a command timeout listener to emit timeout messages
+    let command_timeout = Arc::new(Alarm::new());
+    let timeout_clone = command_timeout.clone();
+    let timeout_tx = context.tx.clone();
+
+    tokio::spawn(async move {
+        loop {
+            let _expired = timeout_clone.expired().await;
+            let _ = timeout_tx
+                .send_timeout(Message::CommandTimeout(), TX_SEND_TIMEOUT_DURATION)
+                .await
+                .unwrap();
+        }
+    });
+
+    // Set up a PID file listener to emit PID inotify messages
     let mut pid_async_fd = pid_inotify_async_fd();
-    let mut hci_devices_async_fd = hci_devices_inotify_async_fd();
-    loop {
-        tokio::select! {
-            Some(action) = context.rx.recv() => {
-              // Grab previous state from lock and release
-              let mut next_state;
-              let mut prev_state;
-              {
-                  prev_state = *context.state_machine.state.lock().await;
-              }
-              let mut hci = 0;
+    let pid_tx = context.tx.clone();
 
-              match action {
-                StateMachineActions::StartBluetooth(i) => {
-                    next_state = State::TurningOn;
-                    hci = i;
+    tokio::spawn(async move {
+        debug!("Spawned pid notify task");
 
-                    match context.state_machine.action_start_bluetooth(i).await {
-                        true => {
-                            command_timeout.reset(COMMAND_TIMEOUT_DURATION);
-                        },
-                        false => command_timeout.cancel(),
+        loop {
+            let r = pid_async_fd.readable_mut();
+            let mut fd_ready = r.await.unwrap();
+            let mut buffer: [u8; 1024] = [0; 1024];
+            debug!("Found new pid inotify entries. Reading them");
+            match fd_ready.try_io(|inner| inner.get_mut().read_events(&mut buffer)) {
+                Ok(Ok(events)) => {
+                    for event in events {
+                        debug!("got some events from pid {:?}", event.mask);
+                        let _ = pid_tx
+                            .send_timeout(
+                                Message::PidChange(event.mask, event_name_to_string(event.name)),
+                                TX_SEND_TIMEOUT_DURATION,
+                            )
+                            .await
+                            .unwrap();
                     }
-                },
-                StateMachineActions::StopBluetooth(i) => {
-                    next_state = State::TurningOff;
-                    hci = i;
+                }
+                Err(_) | Ok(Err(_)) => panic!("why can't we read while the asyncfd is ready?"),
+            }
+            fd_ready.clear_ready();
+            drop(fd_ready);
+        }
+    });
 
-                    match context.state_machine.action_stop_bluetooth(i).await {
-                      true => {
-                          command_timeout.reset(COMMAND_TIMEOUT_DURATION);
-                      },
-                      false => command_timeout.cancel(),
-                  }
-                },
-                StateMachineActions::BluetoothStarted(pid, i) => {
-                  next_state = State::On;
-                  hci = i;
+    // Set up an HCI device listener to emit HCI device inotify messages
+    let mut hci_devices_async_fd = hci_devices_inotify_async_fd();
+    let hci_tx = context.tx.clone();
 
-                  match context.state_machine.action_on_bluetooth_started(pid, hci).await {
-                      true => {
-                          command_timeout.cancel();
-                      }
-                      false => error!("unexpected BluetoothStarted pid{} hci{}", pid, hci),
-                  }
-                },
-                StateMachineActions::BluetoothStopped(i) => {
-                  next_state = State::Off;
-                  hci = i;
+    tokio::spawn(async move {
+        debug!("Spawned hci notify task");
+        loop {
+            let r = hci_devices_async_fd.readable_mut();
+            let mut fd_ready = r.await.unwrap();
+            let mut buffer: [u8; 1024] = [0; 1024];
+            debug!("Found new hci device entries. Reading them.");
+            match fd_ready.try_io(|inner| inner.get_mut().read_events(&mut buffer)) {
+                Ok(Ok(events)) => {
+                    for event in events {
+                        let _ = hci_tx
+                            .send_timeout(
+                                Message::HciDeviceChange(
+                                    event.mask,
+                                    event_name_to_string(event.name),
+                                ),
+                                TX_SEND_TIMEOUT_DURATION,
+                            )
+                            .await
+                            .unwrap();
+                    }
+                }
+                Err(_) | Ok(Err(_)) => panic!("why can't we read while the asyncfd is ready?"),
+            }
+            fd_ready.clear_ready();
+            drop(fd_ready);
+        }
+    });
 
-                  match context.state_machine.action_on_bluetooth_stopped().await {
-                      true => {
-                          command_timeout.cancel();
-                      }
-                      false => {
-                          command_timeout.reset(COMMAND_TIMEOUT_DURATION);
-                      }
-                  }
-                },
-              };
+    // Listen for all messages and act on them
+    loop {
+        let m = context.rx.recv().await;
 
-              // Only emit enabled event for certain transitions
-              if next_state != prev_state &&
-                 (next_state == State::On || prev_state == State::On) {
-                  bluetooth_manager.lock().unwrap().callback_hci_enabled_change(hci, next_state == State::On);
-              }
+        if m.is_none() {
+            info!("Exiting manager mainloop");
+            break;
+        }
 
+        println!("Message handler: {:?}", m);
+
+        match m.unwrap() {
+            // Adapter action has changed
+            Message::AdapterStateChange(action) => {
+                // Grab previous state from lock and release
+                let next_state;
+                let prev_state;
+                {
+                    prev_state = *context.state_machine.state.lock().unwrap();
+                }
+                let mut hci = 0;
+
+                match action {
+                    AdapterStateActions::StartBluetooth(i) => {
+                        next_state = State::TurningOn;
+                        hci = i;
+
+                        match context.state_machine.action_start_bluetooth(i) {
+                            true => {
+                                command_timeout.reset(COMMAND_TIMEOUT_DURATION);
+                            }
+                            false => command_timeout.cancel(),
+                        }
+                    }
+                    AdapterStateActions::StopBluetooth(i) => {
+                        next_state = State::TurningOff;
+                        hci = i;
+
+                        match context.state_machine.action_stop_bluetooth(i) {
+                            true => {
+                                command_timeout.reset(COMMAND_TIMEOUT_DURATION);
+                            }
+                            false => command_timeout.cancel(),
+                        }
+                    }
+                    AdapterStateActions::BluetoothStarted(pid, i) => {
+                        next_state = State::On;
+                        hci = i;
+
+                        match context.state_machine.action_on_bluetooth_started(pid, hci) {
+                            true => {
+                                command_timeout.cancel();
+                            }
+                            false => error!("unexpected BluetoothStarted pid{} hci{}", pid, hci),
+                        }
+                    }
+                    AdapterStateActions::BluetoothStopped(i) => {
+                        next_state = State::Off;
+                        hci = i;
+
+                        match context.state_machine.action_on_bluetooth_stopped() {
+                            true => {
+                                command_timeout.cancel();
+                            }
+                            false => {
+                                command_timeout.reset(COMMAND_TIMEOUT_DURATION);
+                            }
+                        }
+                    }
+                };
+
+                // Only emit enabled event for certain transitions
+                if next_state != prev_state && (next_state == State::On || prev_state == State::On)
+                {
+                    bluetooth_manager
+                        .lock()
+                        .unwrap()
+                        .callback_hci_enabled_change(hci, next_state == State::On);
+                }
+            }
+
+            // Monitored pid directory has a change
+            Message::PidChange(mask, filename) => match (mask, &filename) {
+                (inotify::EventMask::CREATE, Some(fname)) => {
+                    let path = std::path::Path::new(PID_DIR).join(&fname);
+                    match (get_hci_index_from_pid_path(&fname), tokio::fs::read(path).await.ok()) {
+                        (Some(hci), Some(s)) => {
+                            let pid = String::from_utf8(s)
+                                .expect("invalid pid file")
+                                .parse::<i32>()
+                                .unwrap_or(0);
+                            debug!("Sending bluetooth started action for pid={}, hci={}", pid, hci);
+                            let _ = context
+                                .tx
+                                .send_timeout(
+                                    Message::AdapterStateChange(
+                                        AdapterStateActions::BluetoothStarted(pid, hci),
+                                    ),
+                                    TX_SEND_TIMEOUT_DURATION,
+                                )
+                                .await
+                                .unwrap();
+                        }
+                        (hci, s) => {
+                            warn!("invalid file hci={:?} pid_file={:?}", hci, s)
+                        }
+                    }
+                }
+                (inotify::EventMask::DELETE, Some(fname)) => {
+                    if let Some(hci) = get_hci_index_from_pid_path(&fname) {
+                        debug!("Sending bluetooth stopped action for hci={}", hci);
+                        context
+                            .tx
+                            .send_timeout(
+                                Message::AdapterStateChange(AdapterStateActions::BluetoothStopped(
+                                    hci,
+                                )),
+                                TX_SEND_TIMEOUT_DURATION,
+                            )
+                            .await
+                            .unwrap();
+                    }
+                }
+                _ => debug!("Ignored event {:?} - {:?}", mask, &filename),
             },
-            _expired = command_timeout.expired() => {
-                info!("expired {:?}", *context.state_machine.state.lock().await);
-                let timeout_action = context.state_machine.action_on_command_timeout().await;
+
+            // Monitored hci directory has a change
+            Message::HciDeviceChange(mask, filename) => match (mask, &filename) {
+                (inotify::EventMask::CREATE, Some(fname)) => {
+                    match get_hci_index_from_device(&fname) {
+                        Some(hci) => {
+                            bluetooth_manager.lock().unwrap().callback_hci_device_change(hci, true);
+                        }
+                        _ => (),
+                    }
+                }
+                (inotify::EventMask::DELETE, Some(fname)) => {
+                    match get_hci_index_from_device(&fname) {
+                        Some(hci) => {
+                            bluetooth_manager
+                                .lock()
+                                .unwrap()
+                                .callback_hci_device_change(hci, false);
+                        }
+                        _ => (),
+                    }
+                }
+                _ => debug!("Ignored event {:?} - {:?}", mask, &filename),
+            },
+
+            // Handle command timeouts
+            Message::CommandTimeout() => {
+                // Hold state lock for short duration
+                {
+                    debug!("expired {:?}", *context.state_machine.state.lock().unwrap());
+                }
+                let timeout_action = context.state_machine.action_on_command_timeout();
                 match timeout_action {
                     StateMachineTimeoutActions::Noop => (),
                     _ => command_timeout.reset(COMMAND_TIMEOUT_DURATION),
                 }
-            },
-            r = pid_async_fd.readable_mut() => {
-                let mut fd_ready = r.unwrap();
-                let mut buffer: [u8; 1024] = [0; 1024];
-                match fd_ready.try_io(|inner| inner.get_mut().read_events(&mut buffer)) {
-                    Ok(Ok(events)) => {
-                        for event in events {
-                            debug!("got some events from pid {:?}", event.mask);
-                            match (event.mask, event.name) {
-                                (inotify::EventMask::CREATE, Some(oss)) => {
-                                    let path = std::path::Path::new(PID_DIR).join(oss);
-                                    let file_name = oss.to_str().unwrap_or("invalid file");
-                                    match (get_hci_interface_from_pid_file_name(file_name), tokio::fs::read(path).await.ok()) {
-                                        (Some(hci), Some(s)) => {
-                                            let pid = String::from_utf8(s).expect("invalid pid file").parse::<i32>().unwrap_or(0);
-                                            let _ = context.tx.send_timeout(StateMachineActions::BluetoothStarted(pid, hci), TX_SEND_TIMEOUT_DURATION).await.unwrap();
-                                        },
-                                        (hci, s) => warn!("invalid file hci={:?} pid_file={:?}", hci, s),
-                                    }
-                                },
-                                (inotify::EventMask::DELETE, Some(oss)) => {
-                                    let file_name = oss.to_str().unwrap_or("invalid file");
-                                    if let Some(hci) = get_hci_interface_from_pid_file_name(file_name) {
-                                        context.tx.send_timeout(StateMachineActions::BluetoothStopped(hci), TX_SEND_TIMEOUT_DURATION).await.unwrap();
-                                    }
-                                },
-                                _ => debug!("Ignored event {:?}", event.mask)
-                            }
-                        }
-                    },
-                    Err(_) | Ok(Err(_)) => panic!("why can't we read while the asyncfd is ready?"),
-                }
-                fd_ready.clear_ready();
-                drop(fd_ready);
-            },
-            r = hci_devices_async_fd.readable_mut() => {
-                let mut fd_ready = r.unwrap();
-                let mut buffer: [u8; 1024] = [0; 1024];
-                match fd_ready.try_io(|inner| inner.get_mut().read_events(&mut buffer)) {
-                    Ok(Ok(events)) => {
-                        for event in events {
-                            match (event.mask, event.name) {
-                                (inotify::EventMask::CREATE, Some(oss)) => {
-                                    match get_hci_interface_from_device(oss.to_str().unwrap_or("invalid hci device")) {
-                                        Some(hci) => {
-                                            bluetooth_manager.lock().unwrap().callback_hci_device_change(hci, true);
-                                        },
-                                        _ => (),
-                                    }
-                                },
-                                (inotify::EventMask::DELETE, Some(oss)) => {
-                                    match get_hci_interface_from_device(oss.to_str().unwrap_or("invalid hci device")) {
-                                        Some(hci) => {
-                                            bluetooth_manager.lock().unwrap().callback_hci_device_change(hci, false);
-                                        },
-                                        _ => (),
-                                    }
-                                },
-                                _ => debug!("Ignored event {:?}", event.mask)
-                            }
-                        }
-                    },
-                    Err(_) | Ok(Err(_)) => panic!("why can't we read while the asyncfd is ready?"),
-                }
-                fd_ready.clear_ready();
-                drop(fd_ready);
-            },
+            }
         }
     }
 }
@@ -342,7 +475,7 @@ impl ProcessManager for UpstartInvoker {
 }
 
 struct ManagerStateMachine<PM> {
-    state: Arc<Mutex<State>>,
+    state: Arc<std::sync::Mutex<State>>,
     process_manager: PM,
     hci_interface: i32,
     bluetooth_pid: i32,
@@ -373,7 +506,7 @@ where
 {
     pub fn new(process_manager: PM) -> ManagerStateMachine<PM> {
         ManagerStateMachine {
-            state: Arc::new(Mutex::new(State::Off)),
+            state: Arc::new(std::sync::Mutex::new(State::Off)),
             process_manager: process_manager,
             hci_interface: 0,
             bluetooth_pid: 0,
@@ -381,8 +514,8 @@ where
     }
 
     /// Returns true if we are starting bluetooth process.
-    pub async fn action_start_bluetooth(&mut self, hci_interface: i32) -> bool {
-        let mut state = self.state.lock().await;
+    pub fn action_start_bluetooth(&mut self, hci_interface: i32) -> bool {
+        let mut state = self.state.lock().unwrap();
         match *state {
             State::Off => {
                 *state = State::TurningOn;
@@ -396,7 +529,7 @@ where
     }
 
     /// Returns true if we are stopping bluetooth process.
-    pub async fn action_stop_bluetooth(&mut self, hci_interface: i32) -> bool {
+    pub fn action_stop_bluetooth(&mut self, hci_interface: i32) -> bool {
         if self.hci_interface != hci_interface {
             warn!(
                 "We are running hci{} but attempting to stop hci{}",
@@ -405,7 +538,7 @@ where
             return false;
         }
 
-        let mut state = self.state.lock().await;
+        let mut state = self.state.lock().unwrap();
         match *state {
             State::On => {
                 *state = State::TurningOff;
@@ -423,8 +556,8 @@ where
     }
 
     /// Returns true if the event is expected.
-    pub async fn action_on_bluetooth_started(&mut self, pid: i32, hci_interface: i32) -> bool {
-        let mut state = self.state.lock().await;
+    pub fn action_on_bluetooth_started(&mut self, pid: i32, hci_interface: i32) -> bool {
+        let mut state = self.state.lock().unwrap();
         if self.hci_interface != hci_interface {
             warn!(
                 "We should start hci{} but hci{} is started; capturing that process",
@@ -443,8 +576,8 @@ where
     /// Returns true if the event is expected.
     /// If unexpected, Bluetooth probably crashed;
     /// start the timer for restart timeout
-    pub async fn action_on_bluetooth_stopped(&mut self) -> bool {
-        let mut state = self.state.lock().await;
+    pub fn action_on_bluetooth_stopped(&mut self) -> bool {
+        let mut state = self.state.lock().unwrap();
 
         match *state {
             State::TurningOff => {
@@ -466,18 +599,18 @@ where
 
     /// Triggered on Bluetooth start/stop timeout.  Return the actions that the
     /// state machine has taken, for the external context to reset the timer.
-    pub async fn action_on_command_timeout(&mut self) -> StateMachineTimeoutActions {
-        let mut state = self.state.lock().await;
+    pub fn action_on_command_timeout(&mut self) -> StateMachineTimeoutActions {
+        let mut state = self.state.lock().unwrap();
         match *state {
             State::TurningOn => {
-                info!("Restarting bluetooth");
+                info!("Restarting bluetooth {}", self.hci_interface);
                 *state = State::TurningOn;
                 self.process_manager.stop(format! {"{}", self.hci_interface});
                 self.process_manager.start(format! {"{}", self.hci_interface});
                 StateMachineTimeoutActions::RetryStart
             }
             State::TurningOff => {
-                info!("Killing bluetooth");
+                info!("Killing bluetooth {}", self.hci_interface);
                 self.process_manager.stop(format! {"{}", self.hci_interface});
                 StateMachineTimeoutActions::RetryStop
             }
@@ -538,7 +671,7 @@ mod tests {
         tokio::runtime::Runtime::new().unwrap().block_on(async {
             let process_manager = MockProcessManager::new();
             let state_machine = ManagerStateMachine::new(process_manager);
-            assert_eq!(*state_machine.state.lock().await, State::Off);
+            assert_eq!(*state_machine.state.lock().unwrap(), State::Off);
         })
     }
 
@@ -547,8 +680,8 @@ mod tests {
         tokio::runtime::Runtime::new().unwrap().block_on(async {
             let process_manager = MockProcessManager::new();
             let mut state_machine = ManagerStateMachine::new(process_manager);
-            state_machine.action_stop_bluetooth(0).await;
-            assert_eq!(*state_machine.state.lock().await, State::Off);
+            state_machine.action_stop_bluetooth(0);
+            assert_eq!(*state_machine.state.lock().unwrap(), State::Off);
         })
     }
 
@@ -559,8 +692,8 @@ mod tests {
             // Expect to send start command
             process_manager.expect_start();
             let mut state_machine = ManagerStateMachine::new(process_manager);
-            state_machine.action_start_bluetooth(0).await;
-            assert_eq!(*state_machine.state.lock().await, State::TurningOn);
+            state_machine.action_start_bluetooth(0);
+            assert_eq!(*state_machine.state.lock().unwrap(), State::TurningOn);
         })
     }
 
@@ -571,8 +704,8 @@ mod tests {
             // Expect to send start command just once
             process_manager.expect_start();
             let mut state_machine = ManagerStateMachine::new(process_manager);
-            state_machine.action_start_bluetooth(0).await;
-            assert_eq!(state_machine.action_start_bluetooth(0).await, false);
+            state_machine.action_start_bluetooth(0);
+            assert_eq!(state_machine.action_start_bluetooth(0), false);
         })
     }
 
@@ -582,9 +715,9 @@ mod tests {
             let mut process_manager = MockProcessManager::new();
             process_manager.expect_start();
             let mut state_machine = ManagerStateMachine::new(process_manager);
-            state_machine.action_start_bluetooth(0).await;
-            state_machine.action_on_bluetooth_started(0, 0).await;
-            assert_eq!(*state_machine.state.lock().await, State::On);
+            state_machine.action_start_bluetooth(0);
+            state_machine.action_on_bluetooth_started(0, 0);
+            assert_eq!(*state_machine.state.lock().unwrap(), State::On);
         })
     }
 
@@ -596,12 +729,12 @@ mod tests {
             process_manager.expect_stop();
             process_manager.expect_start(); // start bluetooth again
             let mut state_machine = ManagerStateMachine::new(process_manager);
-            state_machine.action_start_bluetooth(0).await;
+            state_machine.action_start_bluetooth(0);
             assert_eq!(
-                state_machine.action_on_command_timeout().await,
+                state_machine.action_on_command_timeout(),
                 StateMachineTimeoutActions::RetryStart
             );
-            assert_eq!(*state_machine.state.lock().await, State::TurningOn);
+            assert_eq!(*state_machine.state.lock().unwrap(), State::TurningOn);
         })
     }
 
@@ -613,9 +746,9 @@ mod tests {
             // Expect to send stop command
             process_manager.expect_stop();
             let mut state_machine = ManagerStateMachine::new(process_manager);
-            state_machine.action_start_bluetooth(0).await;
-            state_machine.action_stop_bluetooth(0).await;
-            assert_eq!(*state_machine.state.lock().await, State::Off);
+            state_machine.action_start_bluetooth(0);
+            state_machine.action_stop_bluetooth(0);
+            assert_eq!(*state_machine.state.lock().unwrap(), State::Off);
         })
     }
 
@@ -627,10 +760,10 @@ mod tests {
             // Expect to send stop command
             process_manager.expect_stop();
             let mut state_machine = ManagerStateMachine::new(process_manager);
-            state_machine.action_start_bluetooth(0).await;
-            state_machine.action_on_bluetooth_started(0, 0).await;
-            state_machine.action_stop_bluetooth(0).await;
-            assert_eq!(*state_machine.state.lock().await, State::TurningOff);
+            state_machine.action_start_bluetooth(0);
+            state_machine.action_on_bluetooth_started(0, 0);
+            state_machine.action_stop_bluetooth(0);
+            assert_eq!(*state_machine.state.lock().unwrap(), State::TurningOff);
         })
     }
 
@@ -642,10 +775,10 @@ mod tests {
             // Expect to start again
             process_manager.expect_start();
             let mut state_machine = ManagerStateMachine::new(process_manager);
-            state_machine.action_start_bluetooth(0).await;
-            state_machine.action_on_bluetooth_started(0, 0).await;
-            assert_eq!(state_machine.action_on_bluetooth_stopped().await, false);
-            assert_eq!(*state_machine.state.lock().await, State::TurningOn);
+            state_machine.action_start_bluetooth(0);
+            state_machine.action_on_bluetooth_started(0, 0);
+            assert_eq!(state_machine.action_on_bluetooth_stopped(), false);
+            assert_eq!(*state_machine.state.lock().unwrap(), State::TurningOn);
         })
     }
 
@@ -656,11 +789,11 @@ mod tests {
             process_manager.expect_start();
             process_manager.expect_stop();
             let mut state_machine = ManagerStateMachine::new(process_manager);
-            state_machine.action_start_bluetooth(0).await;
-            state_machine.action_on_bluetooth_started(0, 0).await;
-            state_machine.action_stop_bluetooth(0).await;
-            state_machine.action_on_bluetooth_stopped().await;
-            assert_eq!(*state_machine.state.lock().await, State::Off);
+            state_machine.action_start_bluetooth(0);
+            state_machine.action_on_bluetooth_started(0, 0);
+            state_machine.action_stop_bluetooth(0);
+            state_machine.action_on_bluetooth_stopped();
+            assert_eq!(*state_machine.state.lock().unwrap(), State::Off);
         })
     }
 
@@ -672,35 +805,26 @@ mod tests {
             process_manager.expect_stop();
             process_manager.expect_start();
             let mut state_machine = ManagerStateMachine::new(process_manager);
-            state_machine.action_start_bluetooth(0).await;
-            state_machine.action_on_bluetooth_started(0, 0).await;
-            state_machine.action_stop_bluetooth(0).await;
-            state_machine.action_on_bluetooth_stopped().await;
-            state_machine.action_start_bluetooth(0).await;
-            state_machine.action_on_bluetooth_started(0, 0).await;
-            assert_eq!(*state_machine.state.lock().await, State::On);
+            state_machine.action_start_bluetooth(0);
+            state_machine.action_on_bluetooth_started(0, 0);
+            state_machine.action_stop_bluetooth(0);
+            state_machine.action_on_bluetooth_stopped();
+            state_machine.action_start_bluetooth(0);
+            state_machine.action_on_bluetooth_started(0, 0);
+            assert_eq!(*state_machine.state.lock().unwrap(), State::On);
         })
     }
 
     #[test]
     fn path_to_hci_interface() {
-        assert_eq!(
-            get_hci_interface_from_pid_file_name("/var/run/bluetooth/bluetooth0.pid"),
-            Some(0)
-        );
-        assert_eq!(
-            get_hci_interface_from_pid_file_name("/var/run/bluetooth/bluetooth1.pid"),
-            Some(1)
-        );
-        assert_eq!(
-            get_hci_interface_from_pid_file_name("/var/run/bluetooth/bluetooth10.pid"),
-            Some(10)
-        );
-        assert_eq!(get_hci_interface_from_pid_file_name("/var/run/bluetooth/garbage"), None);
+        assert_eq!(get_hci_index_from_pid_path("/var/run/bluetooth/bluetooth0.pid"), Some(0));
+        assert_eq!(get_hci_index_from_pid_path("/var/run/bluetooth/bluetooth1.pid"), Some(1));
+        assert_eq!(get_hci_index_from_pid_path("/var/run/bluetooth/bluetooth10.pid"), Some(10));
+        assert_eq!(get_hci_index_from_pid_path("/var/run/bluetooth/garbage"), None);
 
-        assert_eq!(get_hci_interface_from_device("/sys/class/bluetooth/hci0"), Some(0));
-        assert_eq!(get_hci_interface_from_device("/sys/class/bluetooth/hci1"), Some(1));
-        assert_eq!(get_hci_interface_from_device("/sys/class/bluetooth/hci10"), Some(10));
-        assert_eq!(get_hci_interface_from_device("/sys/class/bluetooth/eth0"), None);
+        assert_eq!(get_hci_index_from_device("/sys/class/bluetooth/hci0"), Some(0));
+        assert_eq!(get_hci_index_from_device("/sys/class/bluetooth/hci1"), Some(1));
+        assert_eq!(get_hci_index_from_device("/sys/class/bluetooth/hci10"), Some(10));
+        assert_eq!(get_hci_index_from_device("/sys/class/bluetooth/eth0"), None);
     }
 }
