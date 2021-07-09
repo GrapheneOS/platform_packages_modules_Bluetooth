@@ -20,6 +20,9 @@ cc_defaults {
             shared_libs: [
                 "liblog",
             ],
+            sanitize: {
+                misc_undefined: ["bounds"],
+            },
         },
         host: {
             cflags: [
@@ -43,9 +46,7 @@ cc_defaults {
         "-std=c99",
     ],
     header_libs: ["jni_headers"],
-    sanitize: {
-        misc_undefined: ["bounds"],
-    },
+
 }
 
 // Enables code coverage for a set of source files. Must be combined with
