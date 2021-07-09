@@ -76,6 +76,9 @@ fluoride_defaults {
     target: {
         android: {
             test_config_template: ":BluetoothTestConfigTemplate",
+            sanitize: {
+                misc_undefined: ["bounds"],
+            },
         },
     },
     defaults: ["fluoride_types_defaults_fuzzable"],
@@ -94,9 +97,6 @@ fluoride_defaults {
         "libcutils",
     ],
     cpp_std: "c++17",
-    sanitize: {
-        misc_undefined: ["bounds"],
-    },
 }
 
 fluoride_defaults {
@@ -111,9 +111,6 @@ fluoride_defaults {
         "libutils",
 
     ],
-    sanitize: {
-        misc_undefined: ["bounds"],
-    },
     static_libs: [
         "libbluetooth_gd",
         "libbluetooth_rust_interop",
@@ -132,6 +129,9 @@ fluoride_defaults {
             cflags: [
                 "-DOS_ANDROID",
             ],
+            sanitize: {
+                misc_undefined: ["bounds"],
+            },
         },
     },
 }
