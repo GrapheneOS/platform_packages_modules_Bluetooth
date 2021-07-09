@@ -119,7 +119,7 @@ interface IBluetoothGatt {
     void readUsingCharacteristicUuid(in int clientIf, in String address, in ParcelUuid uuid,
                            in int startHandle, in int endHandle, in int authReq, in AttributionSource attributionSource);
     @JavaPassthrough(annotation="@android.annotation.RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)")
-    void writeCharacteristic(in int clientIf, in String address, in int handle,
+    int writeCharacteristic(in int clientIf, in String address, in int handle,
                             in int writeType, in int authReq, in byte[] value, in AttributionSource attributionSource);
     @JavaPassthrough(annotation="@android.annotation.RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)")
     void readDescriptor(in int clientIf, in String address, in int handle, in int authReq, in AttributionSource attributionSource);
