@@ -20,6 +20,7 @@
 
 #include "common/bidi_queue.h"
 #include "common/bind.h"
+#include "grpc/grpc_event_queue.h"
 #include "hci/address.h"
 #include "hci/address_with_type.h"
 #include "hci/facade/le_advertising_manager_facade.grpc.pb.h"
@@ -96,6 +97,23 @@ bool AdvertisingConfigFromProto(const AdvertisingConfig& config_proto, hci::Adve
   return true;
 }
 
+bool PeriodicAdvertisingParametersFromProto(
+    const PeriodicAdvertisingParameters& config_proto, hci::PeriodicAdvertisingParameters* config) {
+  if (config_proto.min_interval() > UINT16_MAX || config_proto.min_interval() < 0) {
+    LOG_WARN("Bad interval_min: %d", config_proto.min_interval());
+    return false;
+  }
+  config->min_interval = static_cast<uint16_t>(config_proto.min_interval());
+  if (config_proto.max_interval() > UINT16_MAX || config_proto.max_interval() < 0) {
+    LOG_WARN("Bad interval_max: %d", config_proto.max_interval());
+    return false;
+  }
+  config->max_interval = static_cast<uint16_t>(config_proto.max_interval());
+  config->properties =
+      static_cast<hci::PeriodicAdvertisingParameters::AdvertisingProperty>(config_proto.advertising_property());
+  return true;
+}
+
 class LeAdvertiser {
  public:
   LeAdvertiser(hci::AdvertisingConfig config) : config_(std::move(config)) {}
@@ -117,7 +135,7 @@ class LeAdvertiser {
   hci::AdvertisingConfig config_;
 };
 
-class LeAdvertisingManagerFacadeService : public LeAdvertisingManagerFacade::Service {
+class LeAdvertisingManagerFacadeService : public LeAdvertisingManagerFacade::Service, AdvertisingCallback {
  public:
   LeAdvertisingManagerFacadeService(LeAdvertisingManager* le_advertising_manager, os::Handler* facade_handler)
       : le_advertising_manager_(le_advertising_manager), facade_handler_(facade_handler) {
@@ -135,7 +153,7 @@ class LeAdvertisingManagerFacadeService : public LeAdvertisingManagerFacade::Ser
     }
     LeAdvertiser le_advertiser(config);
     auto advertiser_id = le_advertising_manager_->ExtendedCreateAdvertiser(
-        -1,
+        0,
         config,
         common::Bind(&LeAdvertiser::ScanCallback, common::Unretained(&le_advertiser)),
         common::Bind(&LeAdvertiser::TerminatedCallback, common::Unretained(&le_advertiser)),
@@ -158,6 +176,79 @@ class LeAdvertisingManagerFacadeService : public LeAdvertisingManagerFacade::Ser
     LOG_WARN("ExtendedCreateAdvertiser is not implemented");
     response->set_advertiser_id(LeAdvertisingManager::kInvalidId);
     return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "ExtendedCreateAdvertiser is not implemented");
+  }
+
+  ::grpc::Status EnableAdvertiser(
+      ::grpc::ServerContext* context,
+      const EnableAdvertiserRequest* request,
+      ::google::protobuf::Empty* response) override {
+    le_advertising_manager_->EnableAdvertiser(request->advertiser_id(), request->enable(), 0, 0);
+    return ::grpc::Status::OK;
+  }
+
+  ::grpc::Status SetData(
+      ::grpc::ServerContext* context, const SetDataRequest* request, ::google::protobuf::Empty* response) override {
+    std::vector<GapData> advertising_data = {};
+    for (const auto& elem : request->data()) {
+      advertising_data.push_back(GapDataFromProto(elem));
+    }
+    le_advertising_manager_->SetData(request->advertiser_id(), request->set_scan_rsp(), advertising_data);
+    return ::grpc::Status::OK;
+  }
+
+  ::grpc::Status SetParameters(
+      ::grpc::ServerContext* context,
+      const SetParametersRequest* request,
+      ::google::protobuf::Empty* response) override {
+    hci::ExtendedAdvertisingConfig config = {};
+    if (!AdvertisingConfigFromProto(request->config(), &config)) {
+      LOG_WARN("Error parsing advertising config %s", request->SerializeAsString().c_str());
+      return ::grpc::Status(::grpc::StatusCode::INVALID_ARGUMENT, "Error while parsing advertising config");
+    }
+    le_advertising_manager_->SetParameters(request->advertiser_id(), config);
+    return ::grpc::Status::OK;
+  }
+
+  ::grpc::Status SetPeriodicParameters(
+      ::grpc::ServerContext* context,
+      const SetPeriodicParametersRequest* request,
+      ::google::protobuf::Empty* response) override {
+    hci::PeriodicAdvertisingParameters config = {};
+    if (!PeriodicAdvertisingParametersFromProto(request->config(), &config)) {
+      LOG_WARN("Error parsing periodic advertising parameters %s", request->SerializeAsString().c_str());
+      return ::grpc::Status(
+          ::grpc::StatusCode::INVALID_ARGUMENT, "Error while parsing periodic advertising parameters");
+    }
+    le_advertising_manager_->SetPeriodicParameters(request->advertiser_id(), config);
+    return ::grpc::Status::OK;
+  }
+
+  ::grpc::Status SetPeriodicData(
+      ::grpc::ServerContext* context,
+      const SetPeriodicDataRequest* request,
+      ::google::protobuf::Empty* response) override {
+    std::vector<GapData> advertising_data = {};
+    for (const auto& elem : request->data()) {
+      advertising_data.push_back(GapDataFromProto(elem));
+    }
+    le_advertising_manager_->SetPeriodicData(request->advertiser_id(), advertising_data);
+    return ::grpc::Status::OK;
+  }
+
+  ::grpc::Status EnablePeriodicAdvertising(
+      ::grpc::ServerContext* context,
+      const EnablePeriodicAdvertisingRequest* request,
+      ::google::protobuf::Empty* response) override {
+    le_advertising_manager_->EnablePeriodicAdvertising(request->advertiser_id(), request->enable());
+    return ::grpc::Status::OK;
+  }
+
+  ::grpc::Status GetOwnAddress(
+      ::grpc::ServerContext* context,
+      const GetOwnAddressRequest* request,
+      ::google::protobuf::Empty* response) override {
+    le_advertising_manager_->GetOwnAddress(request->advertiser_id());
+    return ::grpc::Status::OK;
   }
 
   ::grpc::Status GetNumberOfAdvertisingInstances(::grpc::ServerContext* context,
@@ -184,9 +275,104 @@ class LeAdvertisingManagerFacadeService : public LeAdvertisingManagerFacade::Ser
     return ::grpc::Status::OK;
   }
 
+  ::grpc::Status FetchCallbackEvents(
+      ::grpc::ServerContext* context,
+      const ::google::protobuf::Empty* request,
+      ::grpc::ServerWriter<CallbackMsg>* writer) override {
+    le_advertising_manager_->RegisterAdvertisingCallback(this);
+    return callback_events_.RunLoop(context, writer);
+  }
+
+  ::grpc::Status FetchAddressEvents(
+      ::grpc::ServerContext* context,
+      const ::google::protobuf::Empty* request,
+      ::grpc::ServerWriter<AddressMsg>* writer) override {
+    return address_events_.RunLoop(context, writer);
+  }
+
+  void OnAdvertisingSetStarted(int reg_id, uint8_t advertiser_id, int8_t tx_power, AdvertisingStatus status) {
+    CallbackMsg msg;
+    msg.set_message_type(CallbackMsgType::ADVERTISING_SET_STARTED);
+    msg.set_advertiser_id(advertiser_id);
+    msg.set_status(static_cast<facade::AdvertisingStatus>(status));
+    msg.set_data(reg_id);
+    callback_events_.OnIncomingEvent(msg);
+  };
+
+  void OnAdvertisingEnabled(uint8_t advertiser_id, bool enable, uint8_t status) {
+    CallbackMsg msg;
+    msg.set_message_type(CallbackMsgType::ADVERTISING_ENABLED);
+    msg.set_advertiser_id(advertiser_id);
+    msg.set_status(static_cast<facade::AdvertisingStatus>(status));
+    msg.set_data(enable ? 1 : 0);
+    callback_events_.OnIncomingEvent(msg);
+  };
+
+  void OnAdvertisingDataSet(uint8_t advertiser_id, uint8_t status) {
+    CallbackMsg msg;
+    msg.set_message_type(CallbackMsgType::ADVERTISING_DATA_SET);
+    msg.set_advertiser_id(advertiser_id);
+    msg.set_status(static_cast<facade::AdvertisingStatus>(status));
+    callback_events_.OnIncomingEvent(msg);
+  };
+
+  void OnScanResponseDataSet(uint8_t advertiser_id, uint8_t status) {
+    CallbackMsg msg;
+    msg.set_message_type(CallbackMsgType::SCAN_RESPONSE_DATA_SET);
+    msg.set_advertiser_id(advertiser_id);
+    msg.set_status(static_cast<facade::AdvertisingStatus>(status));
+    callback_events_.OnIncomingEvent(msg);
+  };
+
+  void OnAdvertisingParametersUpdated(uint8_t advertiser_id, int8_t tx_power, uint8_t status) {
+    CallbackMsg msg;
+    msg.set_message_type(CallbackMsgType::ADVERTISING_PARAMETERS_UPDATED);
+    msg.set_advertiser_id(advertiser_id);
+    msg.set_status(static_cast<facade::AdvertisingStatus>(status));
+    callback_events_.OnIncomingEvent(msg);
+  };
+
+  void OnPeriodicAdvertisingParametersUpdated(uint8_t advertiser_id, uint8_t status) {
+    CallbackMsg msg;
+    msg.set_message_type(CallbackMsgType::PERIODIC_ADVERTISING_PARAMETERS_UPDATED);
+    msg.set_advertiser_id(advertiser_id);
+    msg.set_status(static_cast<facade::AdvertisingStatus>(status));
+    callback_events_.OnIncomingEvent(msg);
+  };
+
+  void OnPeriodicAdvertisingDataSet(uint8_t advertiser_id, uint8_t status) {
+    CallbackMsg msg;
+    msg.set_message_type(CallbackMsgType::PERIODIC_ADVERTISING_DATA_SET);
+    msg.set_advertiser_id(advertiser_id);
+    msg.set_status(static_cast<facade::AdvertisingStatus>(status));
+    callback_events_.OnIncomingEvent(msg);
+  };
+
+  void OnPeriodicAdvertisingEnabled(uint8_t advertiser_id, bool enable, uint8_t status) {
+    CallbackMsg msg;
+    msg.set_message_type(CallbackMsgType::PERIODIC_ADVERTISING_ENABLED);
+    msg.set_advertiser_id(advertiser_id);
+    msg.set_status(static_cast<facade::AdvertisingStatus>(status));
+    callback_events_.OnIncomingEvent(msg);
+  };
+
+  void OnOwnAddressRead(uint8_t advertiser_id, uint8_t address_type, Address address) {
+    LOG_INFO("OnOwnAddressRead Address:%s, address_type:%d", address.ToString().c_str(), address_type);
+    AddressMsg msg;
+    msg.set_message_type(CallbackMsgType::OWN_ADDRESS_READ);
+    msg.set_advertiser_id(advertiser_id);
+    bluetooth::facade::BluetoothAddressWithType facade_address;
+    facade_address.mutable_address()->set_address(address.ToString());
+    facade_address.set_type(static_cast<facade::BluetoothAddressTypeEnum>(address_type));
+    *msg.mutable_address() = facade_address;
+    address_events_.OnIncomingEvent(msg);
+  };
+
   std::vector<LeAdvertiser> le_advertisers_;
   LeAdvertisingManager* le_advertising_manager_;
   os::Handler* facade_handler_;
+  ::bluetooth::grpc::GrpcEventQueue<CallbackMsg> callback_events_{"callback events"};
+  ::bluetooth::grpc::GrpcEventQueue<AddressMsg> address_events_{"address events"};
 };
 
 void LeAdvertisingManagerFacadeModule::ListDependencies(ModuleList* list) {
