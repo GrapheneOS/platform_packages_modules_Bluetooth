@@ -36,6 +36,7 @@ package com.android.bluetooth.hfpclient;
 import static android.Manifest.permission.BLUETOOTH_CONNECT;
 
 import android.annotation.RequiresPermission;
+import android.app.ActivityThread;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothHeadsetClient;
@@ -43,6 +44,7 @@ import android.bluetooth.BluetoothHeadsetClientCall;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.BluetoothUuid;
 import android.bluetooth.hfp.BluetoothHfpProtoEnums;
+import android.content.Attributable;
 import android.content.Intent;
 import android.media.AudioAttributes;
 import android.media.AudioFocusRequest;
@@ -203,7 +205,7 @@ public class HeadsetClientStateMachine extends StateMachine {
         ProfileService.println(sb,
                 "==== StateMachine for " + mCurrentDevice + " ====");
         ProfileService.println(sb, "  mCurrentDevice: " + mCurrentDevice.getAddress() + "("
-                + mCurrentDevice.getName() + ") " + this.toString());
+                + Utils.getName(mCurrentDevice) + ") " + this.toString());
         ProfileService.println(sb, "  mAudioState: " + mAudioState);
         ProfileService.println(sb, "  mAudioWbs: " + mAudioWbs);
         ProfileService.println(sb, "  mIndicatorNetworkState: " + mIndicatorNetworkState);
@@ -927,6 +929,8 @@ public class HeadsetClientStateMachine extends StateMachine {
             switch (message.what) {
                 case CONNECT:
                     BluetoothDevice device = (BluetoothDevice) message.obj;
+                    Attributable.setAttributionSource(device,
+                            ActivityThread.currentAttributionSource());
                     if (!mNativeInterface.connect(getByteAddress(device))) {
                         // No state transition is involved, fire broadcast immediately
                         broadcastConnectionState(device, BluetoothProfile.STATE_DISCONNECTED,
@@ -1184,6 +1188,8 @@ public class HeadsetClientStateMachine extends StateMachine {
             switch (message.what) {
                 case CONNECT:
                     BluetoothDevice device = (BluetoothDevice) message.obj;
+                    Attributable.setAttributionSource(device,
+                            ActivityThread.currentAttributionSource());
                     if (mCurrentDevice.equals(device)) {
                         // already connected to this device, do nothing
                         break;
@@ -1192,6 +1198,8 @@ public class HeadsetClientStateMachine extends StateMachine {
                     break;
                 case DISCONNECT:
                     BluetoothDevice dev = (BluetoothDevice) message.obj;
+                    Attributable.setAttributionSource(dev,
+                            ActivityThread.currentAttributionSource());
                     if (!mCurrentDevice.equals(dev)) {
                         break;
                     }
@@ -1667,6 +1675,8 @@ public class HeadsetClientStateMachine extends StateMachine {
             switch (message.what) {
                 case DISCONNECT:
                     BluetoothDevice device = (BluetoothDevice) message.obj;
+                    Attributable.setAttributionSource(device,
+                            ActivityThread.currentAttributionSource());
                     if (!mCurrentDevice.equals(device)) {
                         break;
                     }

@@ -21,6 +21,7 @@ import static android.Manifest.permission.BLUETOOTH_CONNECT;
 import static com.android.bluetooth.Utils.enforceBluetoothPrivilegedPermission;
 
 import android.annotation.RequiresPermission;
+import android.app.ActivityThread;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothHidHost;
 import android.bluetooth.BluetoothProfile;
@@ -160,6 +161,8 @@ public class HidHostService extends ProfileService {
             switch (msg.what) {
                 case MESSAGE_CONNECT: {
                     BluetoothDevice device = (BluetoothDevice) msg.obj;
+                    Attributable.setAttributionSource(device,
+                            ActivityThread.currentAttributionSource());
                     if (!connectHidNative(Utils.getByteAddress(device))) {
                         broadcastConnectionState(device, BluetoothProfile.STATE_DISCONNECTING);
                         broadcastConnectionState(device, BluetoothProfile.STATE_DISCONNECTED);
@@ -170,6 +173,8 @@ public class HidHostService extends ProfileService {
                 break;
                 case MESSAGE_DISCONNECT: {
                     BluetoothDevice device = (BluetoothDevice) msg.obj;
+                    Attributable.setAttributionSource(device,
+                            ActivityThread.currentAttributionSource());
                     if (!disconnectHidNative(Utils.getByteAddress(device))) {
                         broadcastConnectionState(device, BluetoothProfile.STATE_DISCONNECTING);
                         broadcastConnectionState(device, BluetoothProfile.STATE_DISCONNECTED);
@@ -179,6 +184,8 @@ public class HidHostService extends ProfileService {
                 break;
                 case MESSAGE_CONNECT_STATE_CHANGED: {
                     BluetoothDevice device = getAnonymousDevice((byte[]) msg.obj);
+                    Attributable.setAttributionSource(device,
+                            ActivityThread.currentAttributionSource());
                     int halState = msg.arg1;
                     Integer prevStateInteger = mInputDevices.get(device);
                     int prevState =
@@ -210,6 +217,8 @@ public class HidHostService extends ProfileService {
                 break;
                 case MESSAGE_GET_PROTOCOL_MODE: {
                     BluetoothDevice device = (BluetoothDevice) msg.obj;
+                    Attributable.setAttributionSource(device,
+                            ActivityThread.currentAttributionSource());
                     if (!getProtocolModeNative(Utils.getByteAddress(device))) {
                         Log.e(TAG, "Error: get protocol mode native returns false");
                     }
@@ -224,6 +233,8 @@ public class HidHostService extends ProfileService {
                 break;
                 case MESSAGE_VIRTUAL_UNPLUG: {
                     BluetoothDevice device = (BluetoothDevice) msg.obj;
+                    Attributable.setAttributionSource(device,
+                            ActivityThread.currentAttributionSource());
                     if (!virtualUnPlugNative(Utils.getByteAddress(device))) {
                         Log.e(TAG, "Error: virtual unplug native returns false");
                     }
@@ -231,6 +242,8 @@ public class HidHostService extends ProfileService {
                 break;
                 case MESSAGE_SET_PROTOCOL_MODE: {
                     BluetoothDevice device = (BluetoothDevice) msg.obj;
+                    Attributable.setAttributionSource(device,
+                            ActivityThread.currentAttributionSource());
                     byte protocolMode = (byte) msg.arg1;
                     Log.d(TAG, "sending set protocol mode(" + protocolMode + ")");
                     if (!setProtocolModeNative(Utils.getByteAddress(device), protocolMode)) {
@@ -240,6 +253,8 @@ public class HidHostService extends ProfileService {
                 break;
                 case MESSAGE_GET_REPORT: {
                     BluetoothDevice device = (BluetoothDevice) msg.obj;
+                    Attributable.setAttributionSource(device,
+                            ActivityThread.currentAttributionSource());
                     Bundle data = msg.getData();
                     byte reportType = data.getByte(BluetoothHidHost.EXTRA_REPORT_TYPE);
                     byte reportId = data.getByte(BluetoothHidHost.EXTRA_REPORT_ID);
@@ -266,6 +281,8 @@ public class HidHostService extends ProfileService {
                 break;
                 case MESSAGE_SET_REPORT: {
                     BluetoothDevice device = (BluetoothDevice) msg.obj;
+                    Attributable.setAttributionSource(device,
+                            ActivityThread.currentAttributionSource());
                     Bundle data = msg.getData();
                     byte reportType = data.getByte(BluetoothHidHost.EXTRA_REPORT_TYPE);
                     String report = data.getString(BluetoothHidHost.EXTRA_REPORT);
@@ -282,6 +299,8 @@ public class HidHostService extends ProfileService {
                 break;
                 case MESSAGE_GET_IDLE_TIME: {
                     BluetoothDevice device = (BluetoothDevice) msg.obj;
+                    Attributable.setAttributionSource(device,
+                            ActivityThread.currentAttributionSource());
                     if (!getIdleTimeNative(Utils.getByteAddress(device))) {
                         Log.e(TAG, "Error: get idle time native returns false");
                     }
@@ -295,6 +314,8 @@ public class HidHostService extends ProfileService {
                 break;
                 case MESSAGE_SET_IDLE_TIME: {
                     BluetoothDevice device = (BluetoothDevice) msg.obj;
+                    Attributable.setAttributionSource(device,
+                            ActivityThread.currentAttributionSource());
                     Bundle data = msg.getData();
                     byte idleTime = data.getByte(BluetoothHidHost.EXTRA_IDLE_TIME);
                     if (!setIdleTimeNative(Utils.getByteAddress(device), idleTime)) {
