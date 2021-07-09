@@ -16,15 +16,10 @@
 
 package com.android.bluetooth.btservice;
 
-import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothProfile;
-import android.bluetooth.IBluetoothManager;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.res.Resources;
-import android.os.IBinder;
-import android.os.RemoteException;
-import android.os.ServiceManager;
 import android.os.SystemProperties;
 import android.provider.Settings;
 import android.text.TextUtils;
@@ -51,9 +46,11 @@ import com.android.bluetooth.pbap.BluetoothPbapService;
 import com.android.bluetooth.pbapclient.PbapClientService;
 import com.android.bluetooth.sap.SapService;
 import com.android.bluetooth.vc.VolumeControlService;
+import com.android.server.SystemConfig;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class Config {
     private static final String TAG = "AdapterServiceConfig";
@@ -218,17 +215,24 @@ public class Config {
     }
 
     private static List<String> getSystemConfigEnabledProfilesForPackage(String packageName) {
-        IBinder b = ServiceManager.getService(BluetoothAdapter.BLUETOOTH_MANAGER_SERVICE);
-        if (b == null) {
-            Log.e(TAG, "Bluetooth binder is null");
-        }
-
-        IBluetoothManager managerService = IBluetoothManager.Stub.asInterface(b);
-        try {
-            return managerService.getSystemConfigEnabledProfilesForPackage(packageName);
-        } catch (RemoteException e) {
+        SystemConfig systemConfig = SystemConfig.getInstance();
+        if (systemConfig == null) {
             return null;
         }
 
+        android.util.ArrayMap<String, Boolean> componentEnabledStates =
+                systemConfig.getComponentsEnabledStates(packageName);
+        if (componentEnabledStates == null) {
+            return null;
+        }
+
+        ArrayList enabledProfiles = new ArrayList<String>();
+        for (Map.Entry<String, Boolean> entry : componentEnabledStates.entrySet()) {
+            if (entry.getValue()) {
+                enabledProfiles.add(entry.getKey());
+            }
+        }
+
+        return enabledProfiles;
     }
 }
