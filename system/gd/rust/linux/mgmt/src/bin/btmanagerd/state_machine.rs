@@ -395,6 +395,11 @@ pub async fn mainloop<PM>(
                 _ => debug!("Ignored event {:?} - {:?}", mask, &filename),
             },
 
+            // Callback client has disconnected
+            Message::CallbackDisconnected(id) => {
+                bluetooth_manager.lock().unwrap().callback_disconnected(id);
+            }
+
             // Handle command timeouts
             Message::CommandTimeout() => {
                 // Hold state lock for short duration
