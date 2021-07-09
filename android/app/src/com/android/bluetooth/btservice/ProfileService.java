@@ -65,7 +65,7 @@ public abstract class ProfileService extends Service {
         return getClass().getSimpleName();
     }
 
-    protected boolean isAvailable() {
+    public boolean isAvailable() {
         return mProfileStarted;
     }
 
