@@ -25,7 +25,6 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.content.ContextWrapper;
 import android.content.pm.PackageManager;
-import android.content.pm.UserInfo;
 import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Binder;
@@ -332,9 +331,10 @@ public final class Utils {
     }
 
     public static boolean checkCaller() {
-        int callingUser = UserHandle.getCallingUserId();
         int callingUid = Binder.getCallingUid();
-        return (sForegroundUserId == callingUser)
+        UserHandle callingUser = UserHandle.getUserHandleForUid(callingUid);
+
+        return (sForegroundUserId == callingUser.getIdentifier())
                 || (UserHandle.getAppId(sSystemUiUid) == UserHandle.getAppId(callingUid))
                 || (UserHandle.getAppId(Process.SYSTEM_UID) == UserHandle.getAppId(callingUid));
     }
@@ -343,18 +343,19 @@ public final class Utils {
         if (mContext == null) {
             return checkCaller();
         }
-        int callingUser = UserHandle.getCallingUserId();
         int callingUid = Binder.getCallingUid();
+        UserHandle callingUser = UserHandle.getUserHandleForUid(callingUid);
 
         // Use the Bluetooth process identity when making call to get parent user
         final long ident = Binder.clearCallingIdentity();
         try {
             UserManager um = (UserManager) mContext.getSystemService(Context.USER_SERVICE);
-            UserInfo ui = um.getProfileParent(callingUser);
-            int parentUser = (ui != null) ? ui.id : UserHandle.USER_NULL;
+            UserHandle uh = um.getProfileParent(callingUser);
+            int parentUser = (uh != null) ? uh.getIdentifier() : UserHandle.USER_NULL;
 
             // Always allow SystemUI/System access.
-            return (sForegroundUserId == callingUser) || (sForegroundUserId == parentUser)
+            return (sForegroundUserId == callingUser.getIdentifier())
+                    || (sForegroundUserId == parentUser)
                     || (UserHandle.getAppId(sSystemUiUid) == UserHandle.getAppId(callingUid))
                     || (UserHandle.getAppId(Process.SYSTEM_UID) == UserHandle.getAppId(callingUid));
         } catch (Exception ex) {

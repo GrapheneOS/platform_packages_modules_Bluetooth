@@ -2390,7 +2390,7 @@ public class AdapterService extends Service {
     }
 
     boolean startDiscovery(String callingPackage, @Nullable String callingFeatureId) {
-        UserHandle callingUser = UserHandle.of(UserHandle.getCallingUserId());
+        UserHandle callingUser = Binder.getCallingUserHandle();
         debugLog("startDiscovery");
         mAppOps.checkPackage(Binder.getCallingUid(), callingPackage);
         boolean isQApp = Utils.isQApp(this, callingPackage);
