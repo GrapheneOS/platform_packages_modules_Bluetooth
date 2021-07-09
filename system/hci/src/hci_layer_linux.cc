@@ -35,6 +35,7 @@
 
 #include "buffer_allocator.h"
 #include "check.h"
+#include "gd/common/init_flags.h"
 #include "hci_internals.h"
 #include "hci_layer.h"
 #include "osi/include/compat.h"
@@ -171,23 +172,31 @@ void hci_initialize() {
   LOG(INFO) << __func__;
 
   char prop_value[PROPERTY_VALUE_MAX];
-  osi_property_get("bluetooth.interface", prop_value, "0");
+  int read = osi_property_get("bluetooth.interface", prop_value, nullptr);
 
-  errno = 0;
-  if (memcmp(prop_value, "hci", 3))
-    hci_interface = strtol(prop_value, NULL, 10);
-  else
-    hci_interface = strtol(prop_value + 3, NULL, 10);
-  if (errno) hci_interface = 0;
+  // If bluetooth.interface was read from properties, use it. Otherwise, default
+  // to the value read from the init flags.
+  if (read) {
+    errno = 0;
+    if (memcmp(prop_value, "hci", 3))
+      hci_interface = strtol(prop_value, NULL, 10);
+    else
+      hci_interface = strtol(prop_value + 3, NULL, 10);
+    if (errno) hci_interface = 0;
+  } else {
+    hci_interface = bluetooth::common::InitFlags::GetAdapterIndex();
+  }
 
   LOG(INFO) << "Using interface hci" << +hci_interface;
 
+#if !defined(TARGET_FLOSS)
   osi_property_get("bluetooth.rfkill", prop_value, "1");
 
   rfkill_en = atoi(prop_value);
   if (rfkill_en) {
     rfkill(0);
   }
+#endif
 
   int fd = socket(AF_BLUETOOTH, SOCK_RAW, BTPROTO_HCI);
   CHECK(fd >= 0) << "socket create error" << strerror(errno);
@@ -242,7 +251,9 @@ void hci_close() {
     reader_thread = NULL;
   }
 
+#if !defined(TARGET_FLOSS)
   rfkill(1);
+#endif
 }
 
 void hci_transmit(BT_HDR* packet) {
