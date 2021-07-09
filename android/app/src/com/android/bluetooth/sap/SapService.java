@@ -365,7 +365,7 @@ public class SapService extends ProfileService {
                         break;
                     }
 
-                    sRemoteDeviceName = mRemoteDevice.getName();
+                    sRemoteDeviceName = Utils.getName(mRemoteDevice);
                     // In case getRemoteName failed and return null
                     if (TextUtils.isEmpty(sRemoteDeviceName)) {
                         sRemoteDeviceName = getString(R.string.defaultname);

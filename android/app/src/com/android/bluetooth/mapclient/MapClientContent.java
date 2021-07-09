@@ -35,6 +35,7 @@ import android.telephony.SubscriptionManager;
 import android.util.ArraySet;
 import android.util.Log;
 
+import com.android.bluetooth.Utils;
 import com.android.bluetooth.map.BluetoothMapbMessageMime;
 import com.android.bluetooth.map.BluetoothMapbMessageMime.MimePart;
 import com.android.vcard.VCardConstants;
@@ -97,7 +98,7 @@ class MapClientContent {
         mSubscriptionManager = (SubscriptionManager) mContext
                 .getSystemService(Context.TELEPHONY_SUBSCRIPTION_SERVICE);
         mSubscriptionManager
-                .addSubscriptionInfoRecord(mDevice.getAddress(), mDevice.getName(), 0,
+                .addSubscriptionInfoRecord(mDevice.getAddress(), Utils.getName(mDevice), 0,
                         SubscriptionManager.SUBSCRIPTION_TYPE_REMOTE_SIM);
         SubscriptionInfo info = mSubscriptionManager
                 .getActiveSubscriptionInfoForIcc(mDevice.getAddress());

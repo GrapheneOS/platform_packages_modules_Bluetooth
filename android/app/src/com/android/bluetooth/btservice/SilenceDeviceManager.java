@@ -19,10 +19,12 @@ package com.android.bluetooth.btservice;
 import static android.Manifest.permission.BLUETOOTH_CONNECT;
 
 import android.annotation.RequiresPermission;
+import android.app.ActivityThread;
 import android.bluetooth.BluetoothA2dp;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothHeadset;
 import android.bluetooth.BluetoothProfile;
+import android.content.Attributable;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -127,6 +129,8 @@ public class SilenceDeviceManager {
             switch (msg.what) {
                 case MSG_SILENCE_DEVICE_STATE_CHANGED: {
                     BluetoothDevice device = (BluetoothDevice) msg.obj;
+                    Attributable.setAttributionSource(device,
+                            ActivityThread.currentAttributionSource());
                     boolean state = (msg.arg1 == ENABLE_SILENCE);
                     handleSilenceDeviceStateChanged(device, state);
                 }

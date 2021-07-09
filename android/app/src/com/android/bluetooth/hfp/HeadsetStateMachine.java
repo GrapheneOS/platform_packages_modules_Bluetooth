@@ -19,6 +19,7 @@ package com.android.bluetooth.hfp;
 import static android.Manifest.permission.BLUETOOTH_CONNECT;
 
 import android.annotation.RequiresPermission;
+import android.app.ActivityThread;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothAssignedNumbers;
 import android.bluetooth.BluetoothDevice;
@@ -26,6 +27,7 @@ import android.bluetooth.BluetoothHeadset;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.BluetoothProtoEnums;
 import android.bluetooth.hfp.BluetoothHfpProtoEnums;
+import android.content.Attributable;
 import android.content.Intent;
 import android.media.AudioManager;
 import android.os.Looper;
@@ -464,6 +466,8 @@ public class HeadsetStateMachine extends StateMachine {
             switch (message.what) {
                 case CONNECT:
                     BluetoothDevice device = (BluetoothDevice) message.obj;
+                    Attributable.setAttributionSource(device,
+                            ActivityThread.currentAttributionSource());
                     stateLogD("Connecting to " + device);
                     if (!mDevice.equals(device)) {
                         stateLogE(
@@ -582,6 +586,8 @@ public class HeadsetStateMachine extends StateMachine {
                 case CONNECT_TIMEOUT: {
                     // We timed out trying to connect, transition to Disconnected state
                     BluetoothDevice device = (BluetoothDevice) message.obj;
+                    Attributable.setAttributionSource(device,
+                            ActivityThread.currentAttributionSource());
                     if (!mDevice.equals(device)) {
                         stateLogE("Unknown device timeout " + device);
                         break;
@@ -740,6 +746,8 @@ public class HeadsetStateMachine extends StateMachine {
                     break;
                 case CONNECT_TIMEOUT: {
                     BluetoothDevice device = (BluetoothDevice) message.obj;
+                    Attributable.setAttributionSource(device,
+                            ActivityThread.currentAttributionSource());
                     if (!mDevice.equals(device)) {
                         stateLogE("Unknown device timeout " + device);
                         break;
@@ -825,6 +833,8 @@ public class HeadsetStateMachine extends StateMachine {
                             "Illegal message in generic handler: " + message);
                 case VOICE_RECOGNITION_START: {
                     BluetoothDevice device = (BluetoothDevice) message.obj;
+                    Attributable.setAttributionSource(device,
+                            ActivityThread.currentAttributionSource());
                     if (!mDevice.equals(device)) {
                         stateLogW("VOICE_RECOGNITION_START failed " + device
                                 + " is not currentDevice");
@@ -838,6 +848,8 @@ public class HeadsetStateMachine extends StateMachine {
                 }
                 case VOICE_RECOGNITION_STOP: {
                     BluetoothDevice device = (BluetoothDevice) message.obj;
+                    Attributable.setAttributionSource(device,
+                            ActivityThread.currentAttributionSource());
                     if (!mDevice.equals(device)) {
                         stateLogW("VOICE_RECOGNITION_STOP failed " + device
                                 + " is not currentDevice");
@@ -865,6 +877,8 @@ public class HeadsetStateMachine extends StateMachine {
                     break;
                 case CLCC_RSP_TIMEOUT: {
                     BluetoothDevice device = (BluetoothDevice) message.obj;
+                    Attributable.setAttributionSource(device,
+                            ActivityThread.currentAttributionSource());
                     if (!mDevice.equals(device)) {
                         stateLogW("CLCC_RSP_TIMEOUT failed " + device + " is not currentDevice");
                         break;
@@ -881,6 +895,8 @@ public class HeadsetStateMachine extends StateMachine {
                     break;
                 case VOICE_RECOGNITION_RESULT: {
                     BluetoothDevice device = (BluetoothDevice) message.obj;
+                    Attributable.setAttributionSource(device,
+                            ActivityThread.currentAttributionSource());
                     if (!mDevice.equals(device)) {
                         stateLogW("VOICE_RECOGNITION_RESULT failed " + device
                                 + " is not currentDevice");
@@ -893,6 +909,8 @@ public class HeadsetStateMachine extends StateMachine {
                 }
                 case DIALING_OUT_RESULT: {
                     BluetoothDevice device = (BluetoothDevice) message.obj;
+                    Attributable.setAttributionSource(device,
+                            ActivityThread.currentAttributionSource());
                     if (!mDevice.equals(device)) {
                         stateLogW("DIALING_OUT_RESULT failed " + device + " is not currentDevice");
                         break;
@@ -1051,11 +1069,15 @@ public class HeadsetStateMachine extends StateMachine {
             switch (message.what) {
                 case CONNECT: {
                     BluetoothDevice device = (BluetoothDevice) message.obj;
+                    Attributable.setAttributionSource(device,
+                            ActivityThread.currentAttributionSource());
                     stateLogW("CONNECT, ignored, device=" + device + ", currentDevice" + mDevice);
                     break;
                 }
                 case DISCONNECT: {
                     BluetoothDevice device = (BluetoothDevice) message.obj;
+                    Attributable.setAttributionSource(device,
+                            ActivityThread.currentAttributionSource());
                     stateLogD("DISCONNECT from device=" + device);
                     if (!mDevice.equals(device)) {
                         stateLogW("DISCONNECT, device " + device + " not connected");
@@ -1161,6 +1183,8 @@ public class HeadsetStateMachine extends StateMachine {
                     break;
                 case CONNECT_TIMEOUT: {
                     BluetoothDevice device = (BluetoothDevice) message.obj;
+                    Attributable.setAttributionSource(device,
+                            ActivityThread.currentAttributionSource());
                     if (!mDevice.equals(device)) {
                         stateLogW("CONNECT_TIMEOUT for unknown device " + device);
                         break;
@@ -1257,11 +1281,15 @@ public class HeadsetStateMachine extends StateMachine {
             switch (message.what) {
                 case CONNECT: {
                     BluetoothDevice device = (BluetoothDevice) message.obj;
+                    Attributable.setAttributionSource(device,
+                            ActivityThread.currentAttributionSource());
                     stateLogW("CONNECT, ignored, device=" + device + ", currentDevice" + mDevice);
                     break;
                 }
                 case DISCONNECT: {
                     BluetoothDevice device = (BluetoothDevice) message.obj;
+                    Attributable.setAttributionSource(device,
+                            ActivityThread.currentAttributionSource());
                     stateLogD("DISCONNECT, device=" + device);
                     if (!mDevice.equals(device)) {
                         stateLogW("DISCONNECT, device " + device + " not connected");
@@ -1279,6 +1307,8 @@ public class HeadsetStateMachine extends StateMachine {
                 }
                 case CONNECT_AUDIO: {
                     BluetoothDevice device = (BluetoothDevice) message.obj;
+                    Attributable.setAttributionSource(device,
+                            ActivityThread.currentAttributionSource());
                     if (!mDevice.equals(device)) {
                         stateLogW("CONNECT_AUDIO device is not connected " + device);
                         break;
@@ -1288,6 +1318,8 @@ public class HeadsetStateMachine extends StateMachine {
                 }
                 case DISCONNECT_AUDIO: {
                     BluetoothDevice device = (BluetoothDevice) message.obj;
+                    Attributable.setAttributionSource(device,
+                            ActivityThread.currentAttributionSource());
                     if (!mDevice.equals(device)) {
                         stateLogW("DISCONNECT_AUDIO, failed, device=" + device + ", currentDevice="
                                 + mDevice);
@@ -1381,6 +1413,8 @@ public class HeadsetStateMachine extends StateMachine {
                     break;
                 case CONNECT_TIMEOUT: {
                     BluetoothDevice device = (BluetoothDevice) message.obj;
+                    Attributable.setAttributionSource(device,
+                            ActivityThread.currentAttributionSource());
                     if (!mDevice.equals(device)) {
                         stateLogW("CONNECT_TIMEOUT for unknown device " + device);
                         break;

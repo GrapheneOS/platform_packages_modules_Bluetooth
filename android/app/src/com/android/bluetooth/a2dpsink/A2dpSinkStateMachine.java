@@ -132,7 +132,7 @@ public class A2dpSinkStateMachine extends StateMachine {
      */
     public void dump(StringBuilder sb) {
         ProfileService.println(sb, "mDevice: " + mDevice.getAddress() + "("
-                + mDevice.getName() + ") " + this.toString());
+                + Utils.getName(mDevice) + ") " + this.toString());
     }
 
     @Override
