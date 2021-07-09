@@ -21,12 +21,14 @@ import static android.Manifest.permission.BLUETOOTH_CONNECT;
 import android.annotation.RequiresPermission;
 import android.annotation.Nullable;
 import android.app.Activity;
+import android.app.ActivityThread;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothClass;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.BluetoothProtoEnums;
 import android.bluetooth.OobData;
+import android.content.Attributable;
 import android.content.BroadcastReceiver;
 import android.content.Intent;
 import android.os.Build;
@@ -135,6 +137,8 @@ final class BondStateMachine extends StateMachine {
         public synchronized boolean processMessage(Message msg) {
 
             BluetoothDevice dev = (BluetoothDevice) msg.obj;
+            Attributable.setAttributionSource(dev,
+                    ActivityThread.currentAttributionSource());
 
             switch (msg.what) {
 
@@ -183,12 +187,14 @@ final class BondStateMachine extends StateMachine {
         @Override
         public void enter() {
             infoLog("Entering PendingCommandState State");
-            BluetoothDevice dev = (BluetoothDevice) getCurrentMessage().obj;
         }
 
         @Override
         public synchronized boolean processMessage(Message msg) {
             BluetoothDevice dev = (BluetoothDevice) msg.obj;
+            Attributable.setAttributionSource(dev,
+                    ActivityThread.currentAttributionSource());
+
             DeviceProperties devProp = mRemoteDevices.getDeviceProperties(dev);
             boolean result = false;
             if (mDevices.contains(dev) && msg.what != CANCEL_BOND
@@ -536,7 +542,7 @@ final class BondStateMachine extends StateMachine {
                 BluetoothProtoEnums.BOND_SUB_STATE_LOCAL_PIN_REQUESTED, 0);
 
         infoLog("pinRequestCallback: " + bdDevice.getAddress()
-                + " name:" + bdDevice.getName() + " cod:" + new BluetoothClass(cod));
+                + " name:" + Utils.getName(bdDevice) + " cod:" + new BluetoothClass(cod));
 
         Message msg = obtainMessage(PIN_REQUEST);
         msg.obj = bdDevice;
