@@ -508,7 +508,7 @@ static void bta_dm_wait_for_acl_to_drain_cback(void* data) {
 
 /** Sets local device name */
 void bta_dm_set_dev_name(const std::vector<uint8_t>& name) {
-  BTM_SetLocalDeviceName((char*)name.data());
+  BTM_SetLocalDeviceName((const char*)name.data());
   bta_dm_set_eir((char*)name.data());
 }
 
