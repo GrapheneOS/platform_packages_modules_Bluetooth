@@ -268,7 +268,7 @@ type FfiAddress = bindings::RawAddress;
 /// A shared address structure that has the same representation as
 /// bindings::RawAddress. Macros `deref_ffi_address` and `cast_to_ffi_address`
 /// are used for transforming between bindings::RawAddress at ffi boundaries.
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Hash, Eq, PartialEq)]
 #[repr(C)]
 pub struct RawAddress {
     pub val: [u8; 6],
