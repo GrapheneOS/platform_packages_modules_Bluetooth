@@ -447,7 +447,8 @@ public final class Utils {
     @SuppressLint("AndroidFrameworkRequiresPermission")
     private static boolean checkPermissionForDataDelivery(Context context, String permission,
             AttributionSource attributionSource, String message) {
-        attributionSource.enforceCallingUid();
+        // STOPSHIP(b/188391719): enable this security enforcement
+        // attributionSource.enforceCallingUid();
         final int result = PermissionChecker.checkPermissionForDataDeliveryFromDataSource(
                 context, permission, PID_UNKNOWN,
                 new AttributionSource(context.getAttributionSource(), attributionSource), message);
@@ -688,7 +689,8 @@ public final class Utils {
             return false;
         }
 
-        attributionSource.enforceCallingUid();
+        // STOPSHIP(b/188391719): enable this security enforcement
+        // attributionSource.enforceCallingUid();
         if (PermissionChecker.checkPermissionForDataDeliveryFromDataSource(
                 context, ACCESS_COARSE_LOCATION, PID_UNKNOWN,
                 new AttributionSource(context.getAttributionSource(), attributionSource),
@@ -715,7 +717,8 @@ public final class Utils {
             return false;
         }
 
-        attributionSource.enforceCallingUid();
+        // STOPSHIP(b/188391719): enable this security enforcement
+        // attributionSource.enforceCallingUid();
         if (PermissionChecker.checkPermissionForDataDeliveryFromDataSource(
                 context, ACCESS_FINE_LOCATION, PID_UNKNOWN,
                 new AttributionSource(context.getAttributionSource(), attributionSource),
@@ -748,7 +751,8 @@ public final class Utils {
             return false;
         }
 
-        attributionSource.enforceCallingUid();
+        // STOPSHIP(b/188391719): enable this security enforcement
+        // attributionSource.enforceCallingUid();
         if (PermissionChecker.checkPermissionForDataDeliveryFromDataSource(
                 context, ACCESS_FINE_LOCATION, PID_UNKNOWN,
                 new AttributionSource(context.getAttributionSource(), attributionSource),
