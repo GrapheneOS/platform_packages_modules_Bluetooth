@@ -51,7 +51,7 @@ hci::GapData GapDataFromProto(const GapDataMsg& gap_data_proto) {
   return gap_data;
 }
 
-bool AdvertisingConfigFromProto(const AdvertisingConfig& config_proto, hci::AdvertisingConfig* config) {
+bool AdvertisingConfigFromProto(const AdvertisingConfig& config_proto, hci::ExtendedAdvertisingConfig* config) {
   for (const auto& elem : config_proto.advertisement()) {
     config->advertisement.push_back(GapDataFromProto(elem));
   }
@@ -94,6 +94,30 @@ bool AdvertisingConfigFromProto(const AdvertisingConfig& config_proto, hci::Adve
   config->filter_policy = static_cast<hci::AdvertisingFilterPolicy>(config_proto.filter_policy());
 
   config->tx_power = static_cast<uint8_t>(config_proto.tx_power());
+
+  config->legacy_pdus = true;
+  return true;
+}
+
+bool ExtendedAdvertisingConfigFromProto(
+    const ExtendedAdvertisingConfig& config_proto, hci::ExtendedAdvertisingConfig* config) {
+  if (!AdvertisingConfigFromProto(config_proto.advertising_config(), config)) {
+    LOG_WARN("Error parsing advertising config");
+    return false;
+  }
+  config->connectable = config_proto.connectable();
+  config->scannable = config_proto.scannable();
+  config->directed = config_proto.directed();
+  config->high_duty_directed_connectable = config_proto.high_duty_directed_connectable();
+  config->legacy_pdus = config_proto.legacy_pdus();
+  config->anonymous = config_proto.anonymous();
+  config->include_tx_power = config_proto.include_tx_power();
+  config->use_le_coded_phy = config_proto.use_le_coded_phy();
+  config->secondary_max_skip = static_cast<uint8_t>(config_proto.secondary_max_skip());
+  config->secondary_advertising_phy = static_cast<hci::SecondaryPhyType>(config_proto.secondary_advertising_phy());
+  config->sid = static_cast<uint8_t>(config_proto.sid());
+  config->enable_scan_request_notifications =
+      static_cast<hci::Enable>(config_proto.enable_scan_request_notifications());
   return true;
 }
 
@@ -173,9 +197,29 @@ class LeAdvertisingManagerFacadeService : public LeAdvertisingManagerFacade::Ser
   ::grpc::Status ExtendedCreateAdvertiser(::grpc::ServerContext* context,
                                           const ExtendedCreateAdvertiserRequest* request,
                                           ExtendedCreateAdvertiserResponse* response) override {
-    LOG_WARN("ExtendedCreateAdvertiser is not implemented");
-    response->set_advertiser_id(LeAdvertisingManager::kInvalidId);
-    return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "ExtendedCreateAdvertiser is not implemented");
+    hci::ExtendedAdvertisingConfig config = {};
+    if (!ExtendedAdvertisingConfigFromProto(request->config(), &config)) {
+      LOG_WARN("Error parsing advertising config %s", request->SerializeAsString().c_str());
+      response->set_advertiser_id(LeAdvertisingManager::kInvalidId);
+      return ::grpc::Status(::grpc::StatusCode::INVALID_ARGUMENT, "Error while parsing advertising config");
+    }
+    LeAdvertiser le_advertiser(config);
+    auto advertiser_id = le_advertising_manager_->ExtendedCreateAdvertiser(
+        0,
+        config,
+        common::Bind(&LeAdvertiser::ScanCallback, common::Unretained(&le_advertiser)),
+        common::Bind(&LeAdvertiser::TerminatedCallback, common::Unretained(&le_advertiser)),
+        0,
+        0,
+        facade_handler_);
+    if (advertiser_id != LeAdvertisingManager::kInvalidId) {
+      le_advertiser.SetAdvertiserId(advertiser_id);
+      le_advertisers_.push_back(le_advertiser);
+    } else {
+      LOG_WARN("Failed to create advertiser");
+    }
+    response->set_advertiser_id(advertiser_id);
+    return ::grpc::Status::OK;
   }
 
   ::grpc::Status EnableAdvertiser(

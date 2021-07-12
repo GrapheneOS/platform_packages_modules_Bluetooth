@@ -80,10 +80,10 @@ message ExtendedAdvertisingConfig {
   bool anonymous = 7;
   bool include_tx_power = 8;
   bool use_le_coded_phy = 9;
-  int32 secondary_map_skip = 10;
+  int32 secondary_max_skip = 10;
   int32 secondary_advertising_phy = 11;
   int32 sid = 12;
-  bool enable_scan_request_notification = 13;
+  bool enable_scan_request_notifications = 13;
 }
 
 message PeriodicAdvertisingParameters {
@@ -106,6 +106,7 @@ message ExtendedCreateAdvertiserRequest {
 }
 
 message ExtendedCreateAdvertiserResponse {
+  // -1 on error
   int32 advertiser_id = 1;
 }
 
