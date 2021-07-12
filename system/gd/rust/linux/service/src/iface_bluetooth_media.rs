@@ -68,6 +68,9 @@ impl IBluetoothMedia for IBluetoothMediaDBus {
         true
     }
 
+    #[dbus_method("SetVolume")]
+    fn set_volume(&mut self, volume: i32) {}
+
     #[dbus_method("StartAudioRequest")]
     fn start_audio_request(&mut self) {}
 
