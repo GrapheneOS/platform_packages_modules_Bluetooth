@@ -11,6 +11,7 @@ pub mod ffi {
 
         fn init(self: Pin<&mut AvrcpIntf>);
         fn cleanup(self: Pin<&mut AvrcpIntf>);
+        fn set_volume(self: Pin<&mut AvrcpIntf>, volume: i8);
 
     }
     extern "Rust" {}
@@ -42,5 +43,9 @@ impl Avrcp {
     pub fn cleanup(&mut self) -> bool {
         self.internal.pin_mut().cleanup();
         true
+    }
+
+    pub fn set_volume(&mut self, volume: i8) {
+        self.internal.pin_mut().set_volume(volume);
     }
 }
