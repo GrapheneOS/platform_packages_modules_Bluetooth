@@ -24,7 +24,6 @@ import android.app.Activity;
 import android.app.ActivityThread;
 import android.app.AlarmManager;
 import android.app.PendingIntent;
-import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothMap;
 import android.bluetooth.BluetoothProfile;
@@ -64,7 +63,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 
 public class BluetoothMapService extends ProfileService {
     private static final String TAG = "BluetoothMapService";
@@ -238,7 +236,7 @@ public class BluetoothMapService extends ProfileService {
 
         // Acquire the wakeLock before starting Obex transaction thread
         if (mWakeLock == null) {
-            PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
+            PowerManager pm = getSystemService(PowerManager.class);
             mWakeLock =
                     pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "StartingObexMapTransaction");
             mWakeLock.setReferenceCounted(false);
@@ -407,7 +405,7 @@ public class BluetoothMapService extends ProfileService {
                         Log.v(TAG, "Acquire Wake Lock request message");
                     }
                     if (mWakeLock == null) {
-                        PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
+                        PowerManager pm = getSystemService(PowerManager.class);
                         mWakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK,
                                 "StartingObexMapTransaction");
                         mWakeLock.setReferenceCounted(false);
@@ -693,7 +691,7 @@ public class BluetoothMapService extends ProfileService {
         mAdapterService = AdapterService.getAdapterService();
         mAppObserver = new BluetoothMapAppObserver(this, this);
 
-        TelephonyManager tm = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
+        TelephonyManager tm = getSystemService(TelephonyManager.class);
         mSmsCapable = tm.isSmsCapable();
 
         mEnabledAccounts = mAppObserver.getEnabledAccountItems();
@@ -958,7 +956,7 @@ public class BluetoothMapService extends ProfileService {
             Log.d(TAG, "SetUserTimeOutAlarm()");
         }
         if (mAlarmManager == null) {
-            mAlarmManager = (AlarmManager) this.getSystemService(Context.ALARM_SERVICE);
+            mAlarmManager = this.getSystemService(AlarmManager.class);
         }
         mRemoveTimeoutMsg = true;
         Intent timeoutIntent = new Intent(USER_CONFIRM_TIMEOUT_ACTION);
@@ -977,7 +975,7 @@ public class BluetoothMapService extends ProfileService {
                 PendingIntent.FLAG_IMMUTABLE);
         pIntent.cancel();
 
-        AlarmManager alarmManager = (AlarmManager) this.getSystemService(Context.ALARM_SERVICE);
+        AlarmManager alarmManager = this.getSystemService(AlarmManager.class);
         alarmManager.cancel(pIntent);
         mRemoveTimeoutMsg = false;
     }

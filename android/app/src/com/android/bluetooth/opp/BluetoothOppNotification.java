@@ -149,8 +149,7 @@ class BluetoothOppNotification {
      */
     BluetoothOppNotification(Context ctx) {
         mContext = ctx;
-        mNotificationMgr =
-                (NotificationManager) mContext.getSystemService(Context.NOTIFICATION_SERVICE);
+        mNotificationMgr = mContext.getSystemService(NotificationManager.class);
         mNotificationChannel = new NotificationChannel(OPP_NOTIFICATION_CHANNEL,
                 mContext.getString(R.string.opp_notification_group),
                 NotificationManager.IMPORTANCE_HIGH);

@@ -168,7 +168,7 @@ public class BluetoothOppObexClientSession implements BluetoothOppObexSession {
             mWaitingForShare = true;
             mWaitingForRemote = false;
             mNumShares = initialNumShares;
-            PowerManager pm = (PowerManager) mContext1.getSystemService(Context.POWER_SERVICE);
+            PowerManager pm = mContext.getSystemService(PowerManager.class);
             mWakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, TAG);
         }
 

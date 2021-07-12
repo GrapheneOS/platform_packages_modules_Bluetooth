@@ -360,12 +360,10 @@ public class BluetoothOppTransferActivity extends AlertActivity
                     BluetoothOppUtility.updateVisibilityToHidden(this, mUri);
 
                     // clear correspondent notification item
-                    ((NotificationManager) getSystemService(NOTIFICATION_SERVICE)).cancel(
-                            mTransInfo.mID);
+                    getSystemService(NotificationManager.class).cancel(mTransInfo.mID);
                 } else if (mWhichDialog == DIALOG_SEND_COMPLETE_SUCCESS) {
                     BluetoothOppUtility.updateVisibilityToHidden(this, mUri);
-                    ((NotificationManager) getSystemService(NOTIFICATION_SERVICE)).cancel(
-                            mTransInfo.mID);
+                    getSystemService(NotificationManager.class).cancel(mTransInfo.mID);
                 }
                 break;
 
@@ -382,8 +380,7 @@ public class BluetoothOppTransferActivity extends AlertActivity
                     }
                     Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
 
-                    ((NotificationManager) getSystemService(NOTIFICATION_SERVICE)).cancel(
-                            mTransInfo.mID);
+                    getSystemService(NotificationManager.class).cancel(mTransInfo.mID);
                 } else if (mWhichDialog == DIALOG_SEND_COMPLETE_FAIL) {
 
                     BluetoothOppUtility.updateVisibilityToHidden(this, mUri);

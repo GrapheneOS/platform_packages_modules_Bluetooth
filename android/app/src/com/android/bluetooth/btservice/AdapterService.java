@@ -520,8 +520,9 @@ public class AdapterService extends Service {
         // Android TV doesn't show consent dialogs for just works and encryption only le pairing
         boolean isAtvDevice = getApplicationContext().getPackageManager().hasSystemFeature(
                 PackageManager.FEATURE_LEANBACK_ONLY);
-        initNative(isGuest(), isCommonCriteriaMode(), configCompareResult, getInitFlags(),
-                isAtvDevice);
+        mUserManager = getSystemService(UserManager.class);
+        initNative(mUserManager.isGuestUser(), isCommonCriteriaMode(), configCompareResult,
+                getInitFlags(), isAtvDevice);
         mNativeAvailable = true;
         mCallbacks = new RemoteCallbackList<IBluetoothCallback>();
         mAppOps = getSystemService(AppOpsManager.class);
@@ -529,9 +530,8 @@ public class AdapterService extends Service {
         getAdapterPropertyNative(AbstractionLayer.BT_PROPERTY_BDADDR);
         getAdapterPropertyNative(AbstractionLayer.BT_PROPERTY_BDNAME);
         getAdapterPropertyNative(AbstractionLayer.BT_PROPERTY_CLASS_OF_DEVICE);
-        mAlarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-        mPowerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
-        mUserManager = (UserManager) getSystemService(Context.USER_SERVICE);
+        mAlarmManager = getSystemService(AlarmManager.class);
+        mPowerManager = getSystemService(PowerManager.class);
         mBatteryStatsManager = getSystemService(BatteryStatsManager.class);
         mCompanionDeviceManager = getSystemService(CompanionDeviceManager.class);
 
@@ -3588,13 +3588,8 @@ public class AdapterService extends Service {
         }
     };
 
-    private boolean isGuest() {
-        return UserManager.get(this).isGuestUser();
-    }
-
     private boolean isCommonCriteriaMode() {
-        return ((DevicePolicyManager) getSystemService(Context.DEVICE_POLICY_SERVICE))
-                .isCommonCriteriaModeEnabled(null);
+        return getSystemService(DevicePolicyManager.class).isCommonCriteriaModeEnabled(null);
     }
 
     @SuppressLint("AndroidFrameworkRequiresPermission")

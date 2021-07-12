@@ -37,7 +37,6 @@ import android.os.AsyncTask;
 import android.os.BatteryStatsManager;
 import android.os.Binder;
 import android.os.Bundle;
-import android.os.Handler;
 import android.os.Looper;
 import android.os.PowerManager;
 import android.os.Process;
@@ -159,8 +158,8 @@ public class AdapterServiceTest {
 
         mMockContentResolver = new MockContentResolver(mMockContext);
         MockitoAnnotations.initMocks(this);
-        mPowerManager = (PowerManager) InstrumentationRegistry.getTargetContext()
-                .getSystemService(Context.POWER_SERVICE);
+        mPowerManager = InstrumentationRegistry.getTargetContext()
+                .getSystemService(PowerManager.class);
         mPermissionCheckerManager = InstrumentationRegistry.getTargetContext()
                 .getSystemService(PermissionCheckerManager.class);
 
@@ -173,15 +172,24 @@ public class AdapterServiceTest {
         when(mMockContext.getUserId()).thenReturn(Process.BLUETOOTH_UID);
         when(mMockContext.getPackageManager()).thenReturn(mMockPackageManager);
         when(mMockContext.getSystemService(Context.USER_SERVICE)).thenReturn(mMockUserManager);
+        when(mMockContext.getSystemServiceName(UserManager.class)).thenReturn(Context.USER_SERVICE);
         when(mMockContext.getSystemService(Context.DEVICE_POLICY_SERVICE)).thenReturn(
                 mMockDevicePolicyManager);
+        when(mMockContext.getSystemServiceName(DevicePolicyManager.class))
+                .thenReturn(Context.DEVICE_POLICY_SERVICE);
         when(mMockContext.getSystemService(Context.POWER_SERVICE)).thenReturn(mPowerManager);
+        when(mMockContext.getSystemServiceName(PowerManager.class))
+                .thenReturn(Context.POWER_SERVICE);
         when(mMockContext.getSystemServiceName(PermissionCheckerManager.class))
                 .thenReturn(Context.PERMISSION_CHECKER_SERVICE);
-        when(mMockContext.getSystemService(PermissionCheckerManager.class))
+        when(mMockContext.getSystemService(Context.PERMISSION_CHECKER_SERVICE))
                 .thenReturn(mPermissionCheckerManager);
         when(mMockContext.getSystemService(Context.ALARM_SERVICE)).thenReturn(mMockAlarmManager);
+        when(mMockContext.getSystemServiceName(AlarmManager.class))
+                .thenReturn(Context.ALARM_SERVICE);
         when(mMockContext.getSystemService(Context.AUDIO_SERVICE)).thenReturn(mAudioManager);
+        when(mMockContext.getSystemServiceName(AudioManager.class))
+                .thenReturn(Context.AUDIO_SERVICE);
         when(mMockContext.getSystemService(Context.BATTERY_STATS_SERVICE))
                 .thenReturn(mBatteryStatsManager);
         when(mMockContext.getSystemServiceName(BatteryStatsManager.class))
@@ -356,8 +364,14 @@ public class AdapterServiceTest {
         when(mockContext.getUserId()).thenReturn(Process.BLUETOOTH_UID);
         when(mockContext.getPackageManager()).thenReturn(mMockPackageManager);
         when(mockContext.getSystemService(Context.USER_SERVICE)).thenReturn(mMockUserManager);
+        when(mockContext.getSystemServiceName(UserManager.class))
+                .thenReturn(Context.USER_SERVICE);
         when(mockContext.getSystemService(Context.POWER_SERVICE)).thenReturn(mPowerManager);
+        when(mockContext.getSystemServiceName(PowerManager.class))
+                .thenReturn(Context.POWER_SERVICE);
         when(mockContext.getSystemService(Context.ALARM_SERVICE)).thenReturn(mMockAlarmManager);
+        when(mockContext.getSystemServiceName(AlarmManager.class))
+                .thenReturn(Context.ALARM_SERVICE);
 
         when(mockResources.getBoolean(R.bool.profile_supported_gatt)).thenReturn(true);
 

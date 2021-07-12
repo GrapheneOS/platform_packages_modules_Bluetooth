@@ -377,7 +377,7 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
                     break;
                 case MSG_ACQUIRE_WAKE_LOCK:
                     if (mWakeLock == null) {
-                        PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
+                        PowerManager pm = getSystemService(PowerManager.class);
                         mWakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK,
                                 "StartingObexPbapTransaction");
                         mWakeLock.setReferenceCounted(false);
@@ -645,7 +645,7 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
     @Override
     protected void setCurrentUser(int userId) {
         Log.i(TAG, "setCurrentUser(" + userId + ")");
-        UserManager userManager = (UserManager) getSystemService(Context.USER_SERVICE);
+        UserManager userManager = getSystemService(UserManager.class);
         if (userManager.isUserUnlocked(UserHandle.of(userId))) {
             setUserUnlocked(userId);
         }
@@ -871,7 +871,7 @@ public class BluetoothPbapService extends ProfileService implements IObexConnect
     }
 
     private void getLocalTelephonyDetails() {
-        TelephonyManager tm = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
+        TelephonyManager tm = getSystemService(TelephonyManager.class);
         if (tm != null) {
             sLocalPhoneNum = tm.getLine1Number();
             sLocalPhoneName = this.getString(R.string.localPhoneName);
