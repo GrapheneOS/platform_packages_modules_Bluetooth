@@ -57,9 +57,9 @@ impl A2dpCodecIndex {
     pub const MIN: A2dpCodecIndex = A2dpCodecIndex::SrcSbc;
 }
 
-impl From<u32> for A2dpCodecIndex {
-    fn from(item: u32) -> Self {
-        A2dpCodecIndex::from_u32(item).unwrap_or_else(|| A2dpCodecIndex::MIN)
+impl From<i32> for A2dpCodecIndex {
+    fn from(item: i32) -> Self {
+        A2dpCodecIndex::from_i32(item).unwrap_or_else(|| A2dpCodecIndex::MIN)
     }
 }
 
