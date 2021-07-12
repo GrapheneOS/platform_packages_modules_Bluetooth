@@ -1,14 +1,14 @@
 //! Anything related to audio and media API.
 
-use bt_topshim::btif::BluetoothInterface;
+use bt_topshim::btif::{BluetoothInterface, RawAddress};
 use bt_topshim::profiles::a2dp::{
     A2dp, A2dpCallbacks, A2dpCallbacksDispatcher, A2dpCodecBitsPerSample, A2dpCodecChannelMode,
-    A2dpCodecSampleRate, BtavConnectionState,
+    A2dpCodecConfig, A2dpCodecIndex, A2dpCodecSampleRate, BtavConnectionState,
 };
 use bt_topshim::profiles::avrcp::Avrcp;
 use bt_topshim::topstack;
 
-use std::convert::TryFrom;
+use std::collections::HashMap;
 use std::sync::Arc;
 use std::sync::Mutex;
 
@@ -41,7 +41,13 @@ pub trait IBluetoothMedia {
 
 pub trait IBluetoothMediaCallback {
     ///
-    fn on_bluetooth_audio_device_added(&self, addr: String);
+    fn on_bluetooth_audio_device_added(
+        &self,
+        addr: String,
+        sample_rate: i32,
+        bits_per_sample: i32,
+        channel_mode: i32,
+    );
 
     ///
     fn on_bluetooth_audio_device_removed(&self, addr: String);
@@ -55,6 +61,8 @@ pub struct BluetoothMedia {
     tx: Sender<Message>,
     a2dp: Option<A2dp>,
     avrcp: Option<Avrcp>,
+    a2dp_states: HashMap<RawAddress, BtavConnectionState>,
+    selectable_caps: HashMap<RawAddress, Vec<A2dpCodecConfig>>,
 }
 
 impl BluetoothMedia {
@@ -67,24 +75,55 @@ impl BluetoothMedia {
             tx,
             a2dp: None,
             avrcp: None,
+            a2dp_states: HashMap::new(),
+            selectable_caps: HashMap::new(),
         }
     }
 
     pub fn dispatch_a2dp_callbacks(&mut self, cb: A2dpCallbacks) {
         match cb {
-            A2dpCallbacks::ConnectionState(addr, state) => match BtavConnectionState::from(state) {
-                BtavConnectionState::Connected => {
-                    self.for_all_callbacks(|callback| {
-                        callback.on_bluetooth_audio_device_added(addr.to_string());
-                    });
+            A2dpCallbacks::ConnectionState(addr, state) => {
+                if !self.a2dp_states.get(&addr).is_none()
+                    && state == *self.a2dp_states.get(&addr).unwrap()
+                {
+                    return;
                 }
-                BtavConnectionState::Connecting => {}
-                BtavConnectionState::Disconnected => {}
-                BtavConnectionState::Disconnecting => {}
-            },
-            A2dpCallbacks::AudioState(addr, state) => {}
-            A2dpCallbacks::AudioConfig(addr, config, local_caps, selectable_caps) => {}
-            A2dpCallbacks::MandatoryCodecPreferred(addr) => {}
+                match state {
+                    BtavConnectionState::Connected => {
+                        if let Some(caps) = self.selectable_caps.get(&addr) {
+                            for cap in caps {
+                                // TODO: support codecs other than SBC.
+                                if A2dpCodecIndex::SrcSbc != A2dpCodecIndex::from(cap.codec_type) {
+                                    continue;
+                                }
+
+                                self.for_all_callbacks(|callback| {
+                                    callback.on_bluetooth_audio_device_added(
+                                        addr.to_string(),
+                                        cap.sample_rate,
+                                        cap.bits_per_sample,
+                                        cap.channel_mode,
+                                    );
+                                });
+                                return;
+                            }
+                        }
+                    }
+                    BtavConnectionState::Connecting => {}
+                    BtavConnectionState::Disconnected => {
+                        self.for_all_callbacks(|callback| {
+                            callback.on_bluetooth_audio_device_removed(addr.to_string());
+                        });
+                    }
+                    BtavConnectionState::Disconnecting => {}
+                };
+                self.a2dp_states.insert(addr, state);
+            }
+            A2dpCallbacks::AudioState(_addr, _state) => {}
+            A2dpCallbacks::AudioConfig(addr, _config, _local_caps, selectable_caps) => {
+                self.selectable_caps.insert(addr, selectable_caps);
+            }
+            A2dpCallbacks::MandatoryCodecPreferred(_addr) => {}
         }
     }
 

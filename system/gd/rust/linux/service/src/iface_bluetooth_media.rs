@@ -16,7 +16,14 @@ struct BluetoothMediaCallbackDBus {}
 #[dbus_proxy_obj(BluetoothMediaCallback, "org.chromium.bluetooth.BluetoothMediaCallback")]
 impl IBluetoothMediaCallback for BluetoothMediaCallbackDBus {
     #[dbus_method("OnBluetoothAudioDeviceAdded")]
-    fn on_bluetooth_audio_device_added(&self, addr: String) {}
+    fn on_bluetooth_audio_device_added(
+        &self,
+        addr: String,
+        sample_rate: i32,
+        bits_per_sample: i32,
+        channel_mode: i32,
+    ) {
+    }
 
     #[dbus_method("OnBluetoothAudioDeviceRemoved")]
     fn on_bluetooth_audio_device_removed(&self, addr: String) {}
