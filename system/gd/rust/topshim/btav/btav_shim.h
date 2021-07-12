@@ -66,6 +66,9 @@ class AvrcpIntf {
   int connect(RustRawAddress bt_addr);
   int disconnect(RustRawAddress bt_addr);
 
+  // interface for Audio server
+  void set_volume(int8_t volume);
+
  private:
   bluetooth::avrcp::ServiceInterface* intf_;
 };
