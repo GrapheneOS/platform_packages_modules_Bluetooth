@@ -178,7 +178,7 @@ final class LeAudioStateMachine extends StateMachine {
                         Log.d(TAG, "Disconnected: stack event: " + event);
                     }
                     if (!mDevice.equals(event.device)) {
-                        Log.wtfStack(TAG, "Device(" + mDevice + "): event mismatch: " + event);
+                        Log.wtf(TAG, "Device(" + mDevice + "): event mismatch: " + event);
                     }
                     switch (event.type) {
                         case LeAudioStackEvent.EVENT_TYPE_CONNECTION_STATE_CHANGED:
@@ -278,7 +278,7 @@ final class LeAudioStateMachine extends StateMachine {
                     LeAudioStackEvent event = (LeAudioStackEvent) message.obj;
                     log("Connecting: stack event: " + event);
                     if (!mDevice.equals(event.device)) {
-                        Log.wtfStack(TAG, "Device(" + mDevice + "): event mismatch: " + event);
+                        Log.wtf(TAG, "Device(" + mDevice + "): event mismatch: " + event);
                     }
                     switch (event.type) {
                         case LeAudioStackEvent.EVENT_TYPE_CONNECTION_STATE_CHANGED:
@@ -363,7 +363,7 @@ final class LeAudioStateMachine extends StateMachine {
                     LeAudioStackEvent event = (LeAudioStackEvent) message.obj;
                     log("Disconnecting: stack event: " + event);
                     if (!mDevice.equals(event.device)) {
-                        Log.wtfStack(TAG, "Device(" + mDevice + "): event mismatch: " + event);
+                        Log.wtf(TAG, "Device(" + mDevice + "): event mismatch: " + event);
                     }
                     switch (event.type) {
                         case LeAudioStackEvent.EVENT_TYPE_CONNECTION_STATE_CHANGED:
@@ -456,7 +456,7 @@ final class LeAudioStateMachine extends StateMachine {
                     LeAudioStackEvent event = (LeAudioStackEvent) message.obj;
                     log("Connected: stack event: " + event);
                     if (!mDevice.equals(event.device)) {
-                        Log.wtfStack(TAG, "Device(" + mDevice + "): event mismatch: " + event);
+                        Log.wtf(TAG, "Device(" + mDevice + "): event mismatch: " + event);
                     }
                     switch (event.type) {
                         case LeAudioStackEvent.EVENT_TYPE_CONNECTION_STATE_CHANGED:
