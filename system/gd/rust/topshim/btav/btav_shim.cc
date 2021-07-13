@@ -255,6 +255,9 @@ int AvrcpIntf::disconnect(RustRawAddress bt_addr) {
   return intf_->DisconnectDevice(addr);
 }
 
+void AvrcpIntf::set_volume(int8_t volume) {
+  return mVolumeInterface.SetVolume(volume);
+}
 }  // namespace rust
 }  // namespace topshim
 }  // namespace bluetooth
