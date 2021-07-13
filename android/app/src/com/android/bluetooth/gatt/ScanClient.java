@@ -16,7 +16,6 @@
 
 package com.android.bluetooth.gatt;
 
-import android.bluetooth.le.ResultStorageDescriptor;
 import android.bluetooth.le.ScanFilter;
 import android.bluetooth.le.ScanSettings;
 import android.os.Binder;
@@ -36,7 +35,6 @@ import java.util.Objects;
     public ScanSettings passiveSettings;
     public int appUid;
     public List<ScanFilter> filters;
-    public List<List<ResultStorageDescriptor>> storages;
     // App associated with the scan client died.
     public boolean appDied;
     public boolean hasLocationPermission;
@@ -54,20 +52,14 @@ import java.util.Objects;
             new ScanSettings.Builder().setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY).build();
 
     ScanClient(int scannerId) {
-        this(scannerId, DEFAULT_SCAN_SETTINGS, null, null);
+        this(scannerId, DEFAULT_SCAN_SETTINGS, null);
     }
 
     ScanClient(int scannerId, ScanSettings settings, List<ScanFilter> filters) {
-        this(scannerId, settings, filters, null);
-    }
-
-    ScanClient(int scannerId, ScanSettings settings, List<ScanFilter> filters,
-            List<List<ResultStorageDescriptor>> storages) {
         this.scannerId = scannerId;
         this.settings = settings;
         this.passiveSettings = null;
         this.filters = filters;
-        this.storages = storages;
         this.appUid = Binder.getCallingUid();
     }
 
