@@ -41,7 +41,6 @@ class StackManager {
   os::Thread* management_thread_ = nullptr;
   os::Handler* handler_ = nullptr;
   ModuleRegistry registry_;
-  int pid_fd_ = 0;
 
   void handle_start_up(ModuleList* modules, os::Thread* stack_thread, std::promise<void> promise);
   void handle_shut_down(std::promise<void> promise);
