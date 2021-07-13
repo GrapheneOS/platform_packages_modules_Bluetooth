@@ -40,7 +40,6 @@ import android.bluetooth.le.IAdvertisingSetCallback;
 import android.bluetooth.le.IPeriodicAdvertisingCallback;
 import android.bluetooth.le.IScannerCallback;
 import android.bluetooth.le.PeriodicAdvertisingParameters;
-import android.bluetooth.le.ResultStorageDescriptor;
 import android.bluetooth.le.ScanCallback;
 import android.bluetooth.le.ScanFilter;
 import android.bluetooth.le.ScanRecord;
@@ -580,12 +579,12 @@ public class GattService extends ProfileService {
 
         @Override
         public void startScan(int scannerId, ScanSettings settings, List<ScanFilter> filters,
-                List storages, AttributionSource attributionSource) {
+                AttributionSource attributionSource) {
             GattService service = getService();
             if (service == null) {
                 return;
             }
-            service.startScan(scannerId, settings, filters, storages, attributionSource);
+            service.startScan(scannerId, settings, filters, attributionSource);
         }
 
         @Override
@@ -2292,7 +2291,7 @@ public class GattService extends ProfileService {
 
     @RequiresPermission(android.Manifest.permission.BLUETOOTH_SCAN)
     void startScan(int scannerId, ScanSettings settings, List<ScanFilter> filters,
-            List<List<ResultStorageDescriptor>> storages, AttributionSource attributionSource) {
+            AttributionSource attributionSource) {
         if (DBG) {
             Log.d(TAG, "start scan with filters");
         }
@@ -2306,7 +2305,7 @@ public class GattService extends ProfileService {
         String callingPackage = attributionSource.getPackageName();
         settings = enforceReportDelayFloor(settings);
         enforcePrivilegedPermissionIfNeeded(filters);
-        final ScanClient scanClient = new ScanClient(scannerId, settings, filters, storages);
+        final ScanClient scanClient = new ScanClient(scannerId, settings, filters);
         scanClient.userHandle = Binder.getCallingUserHandle();
         mAppOps.checkPackage(Binder.getCallingUid(), callingPackage);
         scanClient.eligibleForSanitizedExposureNotification =
@@ -2419,7 +2418,7 @@ public class GattService extends ProfileService {
     void continuePiStartScan(int scannerId, ScannerMap.App app) {
         final PendingIntentInfo piInfo = app.info;
         final ScanClient scanClient =
-                new ScanClient(scannerId, piInfo.settings, piInfo.filters, null);
+                new ScanClient(scannerId, piInfo.settings, piInfo.filters);
         scanClient.hasLocationPermission = app.hasLocationPermission;
         scanClient.userHandle = app.mUserHandle;
         scanClient.isQApp = app.mIsQApp;
