@@ -70,7 +70,7 @@ public class BluetoothOppFileProvider extends FileProvider {
                 mContext.registerReceiver(mBroadcastReceiver, userFilter, null, null);
                 mRegisteredReceiver = true;
             }
-            UserManager userManager = (UserManager) mContext.getSystemService(Context.USER_SERVICE);
+            UserManager userManager = context.getSystemService(UserManager.class);
             if (userManager.isUserUnlocked()) {
                 if (!mInitialized) {
                     if (Constants.DEBUG) {
@@ -108,7 +108,7 @@ public class BluetoothOppFileProvider extends FileProvider {
      * the paths supported by the provider.
      */
     public static Uri getUriForFile(Context context, String authority, File file) {
-        UserManager userManager = (UserManager) context.getSystemService(Context.USER_SERVICE);
+        UserManager userManager = context.getSystemService(UserManager.class);
         if (!userManager.isUserUnlocked()) {
             return null;
         }

@@ -367,7 +367,7 @@ class ActiveDeviceManager {
     ActiveDeviceManager(AdapterService service, ServiceFactory factory) {
         mAdapterService = service;
         mFactory = factory;
-        mAudioManager = (AudioManager) service.getSystemService(Context.AUDIO_SERVICE);
+        mAudioManager = service.getSystemService(AudioManager.class);
         mAudioManagerAudioDeviceCallback = new AudioManagerAudioDeviceCallback();
     }
 

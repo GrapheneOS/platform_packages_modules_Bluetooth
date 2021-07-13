@@ -478,8 +478,7 @@ public class BluetoothOppUtility {
     }
 
     protected static void cancelNotification(Context ctx) {
-        NotificationManager nm = (NotificationManager) ctx
-                .getSystemService(Context.NOTIFICATION_SERVICE);
+        NotificationManager nm = ctx.getSystemService(NotificationManager.class);
         nm.cancel(BluetoothOppNotification.NOTIFICATION_ID_PROGRESS);
     }
 

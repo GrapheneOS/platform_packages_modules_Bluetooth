@@ -131,8 +131,8 @@ public class AdapterServiceTest {
         mMockPackageManager = mock(PackageManager.class);
         mMockContentResolver = new MockContentResolver(mMockContext);
         MockitoAnnotations.initMocks(this);
-        mPowerManager = (PowerManager) InstrumentationRegistry.getTargetContext()
-                .getSystemService(Context.POWER_SERVICE);
+        mPowerManager = InstrumentationRegistry.getTargetContext()
+                .getSystemService(PowerManager.class);
 
         when(mMockContext.getApplicationInfo()).thenReturn(mMockApplicationInfo);
         when(mMockContext.getContentResolver()).thenReturn(mMockContentResolver);
@@ -143,11 +143,20 @@ public class AdapterServiceTest {
         when(mMockContext.getUserId()).thenReturn(Process.BLUETOOTH_UID);
         when(mMockContext.getPackageManager()).thenReturn(mMockPackageManager);
         when(mMockContext.getSystemService(Context.USER_SERVICE)).thenReturn(mMockUserManager);
+        when(mMockContext.getSystemServiceName(UserManager.class)).thenReturn(Context.USER_SERVICE);
         when(mMockContext.getSystemService(Context.DEVICE_POLICY_SERVICE)).thenReturn(
                 mMockDevicePolicyManager);
+        when(mMockContext.getSystemServiceName(DevicePolicyManager.class))
+                .thenReturn(Context.DEVICE_POLICY_SERVICE);
         when(mMockContext.getSystemService(Context.POWER_SERVICE)).thenReturn(mPowerManager);
+        when(mMockContext.getSystemServiceName(PowerManager.class))
+                .thenReturn(Context.POWER_SERVICE);
         when(mMockContext.getSystemService(Context.ALARM_SERVICE)).thenReturn(mMockAlarmManager);
+        when(mMockContext.getSystemServiceName(AlarmManager.class))
+                .thenReturn(Context.ALARM_SERVICE);
         when(mMockContext.getSystemService(Context.AUDIO_SERVICE)).thenReturn(mAudioManager);
+        when(mMockContext.getSystemServiceName(AudioManager.class))
+                .thenReturn(Context.AUDIO_SERVICE);
         doAnswer(invocation -> {
             Object[] args = invocation.getArguments();
             return InstrumentationRegistry.getTargetContext().getDatabasePath((String) args[0]);
@@ -313,8 +322,14 @@ public class AdapterServiceTest {
         when(mockContext.getUserId()).thenReturn(Process.BLUETOOTH_UID);
         when(mockContext.getPackageManager()).thenReturn(mMockPackageManager);
         when(mockContext.getSystemService(Context.USER_SERVICE)).thenReturn(mMockUserManager);
+        when(mockContext.getSystemServiceName(UserManager.class))
+                .thenReturn(Context.USER_SERVICE);
         when(mockContext.getSystemService(Context.POWER_SERVICE)).thenReturn(mPowerManager);
+        when(mockContext.getSystemServiceName(PowerManager.class))
+                .thenReturn(Context.POWER_SERVICE);
         when(mockContext.getSystemService(Context.ALARM_SERVICE)).thenReturn(mMockAlarmManager);
+        when(mockContext.getSystemServiceName(AlarmManager.class))
+                .thenReturn(Context.ALARM_SERVICE);
 
         when(mockResources.getBoolean(R.bool.profile_supported_gatt)).thenReturn(true);
 

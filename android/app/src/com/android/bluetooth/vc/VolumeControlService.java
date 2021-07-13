@@ -98,7 +98,7 @@ public class VolumeControlService extends ProfileService {
         mVolumeControlNativeInterface = Objects.requireNonNull(
                 VolumeControlNativeInterface.getInstance(),
                 "VolumeControlNativeInterface cannot be null when VolumeControlService starts");
-        mAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+        mAudioManager =  getSystemService(AudioManager.class);
         Objects.requireNonNull(mAudioManager,
                 "AudioManager cannot be null when VolumeControlService starts");
 
