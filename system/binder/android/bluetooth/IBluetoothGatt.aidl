@@ -46,7 +46,7 @@ interface IBluetoothGatt {
     void registerScanner(in IScannerCallback callback, in WorkSource workSource);
     void unregisterScanner(in int scannerId);
     void startScan(in int scannerId, in ScanSettings settings, in List<ScanFilter> filters,
-                   in List scanStorages, in String callingPackage, String callingFeatureId);
+                   in String callingPackage, String callingFeatureId);
     void startScanForIntent(in PendingIntent intent, in ScanSettings settings, in List<ScanFilter> filters,
                             in String callingPackage, String callingFeatureId);
     void stopScanForIntent(in PendingIntent intent, in String callingPackage);
