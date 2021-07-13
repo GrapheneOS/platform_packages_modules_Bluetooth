@@ -363,8 +363,8 @@ public class BluetoothOppTransfer implements BluetoothOppBatch.BluetoothOppBatch
                          */
 
                         // Remove incoming file confirm notification
-                        NotificationManager nm = (NotificationManager) mContext.getSystemService(
-                                Context.NOTIFICATION_SERVICE);
+                        NotificationManager nm =
+                                mContext.getSystemService(NotificationManager.class);
                         nm.cancel(mCurrentShare.mId);
                         // Send intent to UI for timeout handling
                         Intent in = new Intent(BluetoothShare.USER_CONFIRMATION_TIMEOUT_ACTION);

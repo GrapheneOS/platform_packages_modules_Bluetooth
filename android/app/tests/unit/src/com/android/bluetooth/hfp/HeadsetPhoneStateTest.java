@@ -81,9 +81,13 @@ public class HeadsetPhoneStateTest {
         // Stub other methods
         when(mHeadsetService.getSystemService(Context.TELEPHONY_SERVICE)).thenReturn(
                 mTelephonyManager);
+        when(mHeadsetService.getSystemServiceName(TelephonyManager.class)).thenReturn(
+                Context.TELEPHONY_SERVICE);
         when(mTelephonyManager.createForSubscriptionId(anyInt())).thenReturn(mTelephonyManager);
         when(mHeadsetService.getSystemService(Context.TELEPHONY_SUBSCRIPTION_SERVICE)).thenReturn(
                 mSubscriptionManager);
+        when(mHeadsetService.getSystemServiceName(SubscriptionManager.class)).thenReturn(
+                Context.TELEPHONY_SUBSCRIPTION_SERVICE);
         mHandlerThread = new HandlerThread("HeadsetStateMachineTestHandlerThread");
         mHandlerThread.start();
         when(mHeadsetService.getStateMachinesThreadLooper()).thenReturn(mHandlerThread.getLooper());

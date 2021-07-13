@@ -21,10 +21,8 @@ import android.annotation.Nullable;
 import android.annotation.RequiresPermission;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothHeadset;
-import com.android.bluetooth.telephony.BluetoothInCallService;
 import android.content.ActivityNotFoundException;
 import android.content.ComponentName;
-import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
@@ -33,6 +31,7 @@ import android.media.AudioManager;
 import android.os.PowerManager;
 import android.util.Log;
 
+import com.android.bluetooth.telephony.BluetoothInCallService;
 import com.android.internal.annotations.VisibleForTesting;
 
 import java.util.List;
@@ -56,9 +55,8 @@ public class HeadsetSystemInterface {
             Log.wtf(TAG, "HeadsetService parameter is null");
         }
         mHeadsetService = headsetService;
-        mAudioManager = (AudioManager) mHeadsetService.getSystemService(Context.AUDIO_SERVICE);
-        PowerManager powerManager =
-                (PowerManager) mHeadsetService.getSystemService(Context.POWER_SERVICE);
+        mAudioManager = mHeadsetService.getSystemService(AudioManager.class);
+        PowerManager powerManager = mHeadsetService.getSystemService(PowerManager.class);
         mVoiceRecognitionWakeLock =
                 powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, TAG + ":VoiceRecognition");
         mVoiceRecognitionWakeLock.setReferenceCounted(false);

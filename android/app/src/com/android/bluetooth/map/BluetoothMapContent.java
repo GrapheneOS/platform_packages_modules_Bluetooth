@@ -2185,8 +2185,7 @@ public class BluetoothMapContent {
     }
 
     private void setFilterInfo(FilterInfo fi) {
-        TelephonyManager tm =
-                (TelephonyManager) mContext.getSystemService(Context.TELEPHONY_SERVICE);
+        TelephonyManager tm = mContext.getSystemService(TelephonyManager.class);
         if (tm != null) {
             fi.mPhoneType = tm.getPhoneType();
             fi.mPhoneNum = tm.getLine1Number();
@@ -3659,8 +3658,7 @@ public class BluetoothMapContent {
         long time = -1;
         String msgBody;
         BluetoothMapbMessageSms message = new BluetoothMapbMessageSms();
-        TelephonyManager tm =
-                (TelephonyManager) mContext.getSystemService(Context.TELEPHONY_SERVICE);
+        TelephonyManager tm = mContext.getSystemService(TelephonyManager.class);
 
         Cursor c = mResolver.query(Sms.CONTENT_URI, SMS_PROJECTION, "_ID = " + id, null, null);
         if (c == null || !c.moveToFirst()) {

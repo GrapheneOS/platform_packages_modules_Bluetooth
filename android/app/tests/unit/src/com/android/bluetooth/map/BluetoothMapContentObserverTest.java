@@ -107,7 +107,10 @@ public class BluetoothMapContentObserverTest {
         when(mockUserService.isUserUnlocked()).thenReturn(true);
         when(mockContext.getContentResolver()).thenReturn(mockResolver);
         when(mockContext.getSystemService(Context.TELEPHONY_SERVICE)).thenReturn(mockTelephony);
+        when(mockContext.getSystemServiceName(TelephonyManager.class))
+                .thenReturn(Context.TELEPHONY_SERVICE);
         when(mockContext.getSystemService(Context.USER_SERVICE)).thenReturn(mockUserService);
+        when(mockContext.getSystemServiceName(UserManager.class)).thenReturn(Context.USER_SERVICE);
 
         BluetoothMapContentObserver observer;
         try {
@@ -140,7 +143,10 @@ public class BluetoothMapContentObserverTest {
         when(mockUserService.isUserUnlocked()).thenReturn(true);
         when(mockContext.getContentResolver()).thenReturn(mockResolver);
         when(mockContext.getSystemService(Context.TELEPHONY_SERVICE)).thenReturn(mockTelephony);
+        when(mockContext.getSystemServiceName(TelephonyManager.class))
+                .thenReturn(Context.TELEPHONY_SERVICE);
         when(mockContext.getSystemService(Context.USER_SERVICE)).thenReturn(mockUserService);
+        when(mockContext.getSystemServiceName(UserManager.class)).thenReturn(Context.USER_SERVICE);
 
         BluetoothMapbMessageMime message = new BluetoothMapbMessageMime();
         message.setType(BluetoothMapUtils.TYPE.MMS);

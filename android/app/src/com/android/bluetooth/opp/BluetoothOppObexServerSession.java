@@ -110,7 +110,7 @@ public class BluetoothOppObexServerSession extends ServerRequestHandler
         mContext = context;
         mTransport = transport;
         mBluetoothOppService = service;
-        PowerManager pm = (PowerManager) mContext.getSystemService(Context.POWER_SERVICE);
+        PowerManager pm = mContext.getSystemService(PowerManager.class);
         mPartialWakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, TAG);
         mPartialWakeLock.setReferenceCounted(false);
     }

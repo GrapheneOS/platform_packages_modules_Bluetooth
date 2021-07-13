@@ -26,7 +26,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.IntentFilter.MalformedMimeTypeException;
-import android.content.pm.PackageManager;
 import android.database.ContentObserver;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteException;
@@ -447,8 +446,7 @@ public class BluetoothMapContentObserver {
 
     private TYPE getSmsType() {
         TYPE smsType = null;
-        TelephonyManager tm =
-                (TelephonyManager) mContext.getSystemService(Context.TELEPHONY_SERVICE);
+        TelephonyManager tm = mContext.getSystemService(TelephonyManager.class);
 
         if (tm.getPhoneType() == TelephonyManager.PHONE_TYPE_CDMA) {
             smsType = TYPE.SMS_CDMA;
@@ -1242,7 +1240,7 @@ public class BluetoothMapContentObserver {
         if (V) {
             Log.d(TAG, "initMsgList");
         }
-        UserManager manager = UserManager.get(mContext);
+        UserManager manager = mContext.getSystemService(UserManager.class);
         if (manager == null || !manager.isUserUnlocked()) {
             return;
         }
@@ -1454,9 +1452,8 @@ public class BluetoothMapContentObserver {
                                         name = phone;
                                     }
                                 } else {
-                                    TelephonyManager tm =
-                                            (TelephonyManager) mContext.getSystemService(
-                                                    Context.TELEPHONY_SERVICE);
+                                    TelephonyManager tm = mContext.getSystemService(
+                                            TelephonyManager.class);
                                     if (tm != null) {
                                         phone = tm.getLine1Number();
                                         name = phone;
@@ -3429,7 +3426,7 @@ public class BluetoothMapContentObserver {
 
     private class CeBroadcastReceiver extends BroadcastReceiver {
         public void register() {
-            UserManager manager = UserManager.get(mContext);
+            UserManager manager = mContext.getSystemService(UserManager.class);
             if (manager == null || manager.isUserUnlocked()) {
                 mStorageUnlocked = true;
                 return;
@@ -3603,21 +3600,19 @@ public class BluetoothMapContentObserver {
     }
 
     private void registerPhoneServiceStateListener() {
-        TelephonyManager tm =
-                (TelephonyManager) mContext.getSystemService(Context.TELEPHONY_SERVICE);
+        TelephonyManager tm = mContext.getSystemService(TelephonyManager.class);
         tm.listen(mPhoneListener, PhoneStateListener.LISTEN_SERVICE_STATE);
     }
 
     private void unRegisterPhoneServiceStateListener() {
-        TelephonyManager tm =
-                (TelephonyManager) mContext.getSystemService(Context.TELEPHONY_SERVICE);
+        TelephonyManager tm = mContext.getSystemService(TelephonyManager.class);
         tm.listen(mPhoneListener, PhoneStateListener.LISTEN_NONE);
     }
 
     private void resendPendingMessages() {
         /* Send pending messages in outbox */
         String where = "type = " + Sms.MESSAGE_TYPE_OUTBOX;
-        UserManager manager = UserManager.get(mContext);
+        UserManager manager = mContext.getSystemService(UserManager.class);
         if (manager == null || !manager.isUserUnlocked()) {
             return;
         }
@@ -3703,7 +3698,7 @@ public class BluetoothMapContentObserver {
             mSmsBroadcastReceiver.unregister();
         }
         unRegisterPhoneServiceStateListener();
-        if (UserManager.get(mContext).isUserUnlocked()) {
+        if (mContext.getSystemService(UserManager.class).isUserUnlocked()) {
             failPendingMessages();
             removeDeletedMessages();
         }
