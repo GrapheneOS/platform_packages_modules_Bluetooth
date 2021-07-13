@@ -173,7 +173,7 @@ async fn dispatch(
     mut cmd_rx: Receiver<QueuedCommand>,
 ) {
     let mut pending: Option<QueuedCommand> = None;
-    let mut hci_timeout = Alarm::new();
+    let hci_timeout = Alarm::new();
     loop {
         select! {
             Some(evt) = consume(&evt_rx) => {
