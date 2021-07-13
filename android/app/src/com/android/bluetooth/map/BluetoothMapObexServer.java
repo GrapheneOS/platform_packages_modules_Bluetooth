@@ -445,7 +445,7 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
     }
 
     private boolean isUserUnlocked() {
-        UserManager manager = UserManager.get(mContext);
+        UserManager manager = mContext.getSystemService(UserManager.class);
         return (manager == null || manager.isUserUnlocked());
     }
 
@@ -689,8 +689,7 @@ public class BluetoothMapObexServer extends ServerRequestHandler {
             }
             if (message.getType().equals(TYPE.SMS_GSM) || message.getType().equals(TYPE.SMS_CDMA)) {
                 // Convert messages to the default network type.
-                TelephonyManager tm =
-                        (TelephonyManager) mContext.getSystemService(Context.TELEPHONY_SERVICE);
+                TelephonyManager tm = mContext.getSystemService(TelephonyManager.class);
                 if (tm.getPhoneType() == TelephonyManager.PHONE_TYPE_GSM) {
                     message.setType(TYPE.SMS_GSM);
                 } else if (tm.getPhoneType() == TelephonyManager.PHONE_TYPE_CDMA) {

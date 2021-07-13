@@ -78,6 +78,8 @@ public class ActiveDeviceManagerTest {
         MockitoAnnotations.initMocks(this);
         TestUtils.setAdapterService(mAdapterService);
         when(mAdapterService.getSystemService(Context.AUDIO_SERVICE)).thenReturn(mAudioManager);
+        when(mAdapterService.getSystemServiceName(AudioManager.class))
+                .thenReturn(Context.AUDIO_SERVICE);
         when(mServiceFactory.getA2dpService()).thenReturn(mA2dpService);
         when(mServiceFactory.getHeadsetService()).thenReturn(mHeadsetService);
         when(mServiceFactory.getHearingAidService()).thenReturn(mHearingAidService);

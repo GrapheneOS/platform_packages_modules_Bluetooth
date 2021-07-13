@@ -136,11 +136,10 @@ public class MediaPlayerList {
         pkgFilter.addDataScheme(PACKAGE_SCHEME);
         context.registerReceiver(mPackageChangedBroadcastReceiver, pkgFilter);
 
-        mAudioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
+        mAudioManager = context.getSystemService(AudioManager.class);
         mAudioManager.registerAudioPlaybackCallback(mAudioPlaybackCallback, new Handler(mLooper));
 
-        mMediaSessionManager =
-                (MediaSessionManager) context.getSystemService(Context.MEDIA_SESSION_SERVICE);
+        mMediaSessionManager = context.getSystemService(MediaSessionManager.class);
         mMediaSessionManager.addOnActiveSessionsChangedListener(
                 mActiveSessionsChangedListener, null, new Handler(looper));
         mMediaSessionManager.addOnMediaKeyEventSessionChangedListener(

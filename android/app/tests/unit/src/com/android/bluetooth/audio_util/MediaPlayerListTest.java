@@ -20,7 +20,6 @@ import static org.mockito.Mockito.*;
 
 import android.content.Context;
 import android.content.pm.PackageManager;
-import android.content.pm.ResolveInfo;
 import android.media.AudioManager;
 import android.media.session.MediaSessionManager;
 import android.media.session.PlaybackState;
@@ -29,10 +28,6 @@ import android.os.Looper;
 import androidx.test.InstrumentationRegistry;
 import androidx.test.filters.SmallTest;
 import androidx.test.runner.AndroidJUnit4;
-
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.List;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -43,6 +38,9 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+
+import java.lang.reflect.Method;
+import java.util.ArrayList;
 
 @SmallTest
 @RunWith(AndroidJUnit4.class)
@@ -75,13 +73,16 @@ public class MediaPlayerListTest {
 
         AudioManager mockAudioManager = mock(AudioManager.class);
         when(mMockContext.getSystemService(Context.AUDIO_SERVICE)).thenReturn(mockAudioManager);
+        when(mMockContext.getSystemServiceName(AudioManager.class))
+            .thenReturn(Context.AUDIO_SERVICE);
 
-        MediaSessionManager mMediaSessionManager =
-                (MediaSessionManager) InstrumentationRegistry.getTargetContext()
-                .getSystemService(Context.MEDIA_SESSION_SERVICE);
+        MediaSessionManager mMediaSessionManager = InstrumentationRegistry.getTargetContext()
+                .getSystemService(MediaSessionManager.class);
         PackageManager mockPackageManager = mock(PackageManager.class);
         when(mMockContext.getSystemService(Context.MEDIA_SESSION_SERVICE))
             .thenReturn(mMediaSessionManager);
+        when(mMockContext.getSystemServiceName(MediaSessionManager.class))
+            .thenReturn(Context.MEDIA_SESSION_SERVICE);
 
         mMediaPlayerList =
             new MediaPlayerList(Looper.myLooper(), InstrumentationRegistry.getTargetContext());

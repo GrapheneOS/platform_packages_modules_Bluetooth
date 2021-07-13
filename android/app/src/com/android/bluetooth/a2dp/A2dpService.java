@@ -119,7 +119,7 @@ public class A2dpService extends ProfileService {
                 "A2dpNativeInterface cannot be null when A2dpService starts");
         mDatabaseManager = Objects.requireNonNull(mAdapterService.getDatabase(),
                 "DatabaseManager cannot be null when A2dpService starts");
-        mAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+        mAudioManager = getSystemService(AudioManager.class);
         Objects.requireNonNull(mAudioManager,
                                "AudioManager cannot be null when A2dpService starts");
 

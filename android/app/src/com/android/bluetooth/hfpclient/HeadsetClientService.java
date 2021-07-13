@@ -95,7 +95,7 @@ public class HeadsetClientService extends ProfileService {
 
         mBatteryManager = getSystemService(BatteryManager.class);
 
-        mAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+        mAudioManager = getSystemService(AudioManager.class);
         if (mAudioManager == null) {
             Log.e(TAG, "AudioManager service doesn't exist?");
         } else {

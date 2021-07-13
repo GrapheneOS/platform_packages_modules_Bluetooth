@@ -109,7 +109,7 @@ final class PbapClientStateMachine extends StateMachine {
         mService = svc;
         mCurrentDevice = device;
         mLock = new Object();
-        mUserManager = UserManager.get(mService);
+        mUserManager = mService.getSystemService(UserManager.class);
         mDisconnected = new Disconnected();
         mConnecting = new Connecting();
         mDisconnecting = new Disconnecting();

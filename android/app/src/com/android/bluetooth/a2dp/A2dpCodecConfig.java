@@ -59,7 +59,7 @@ class A2dpCodecConfig {
         mA2dpNativeInterface = a2dpNativeInterface;
         mCodecConfigPriorities = assignCodecConfigPriorities();
 
-        AudioManager audioManager = (AudioManager)mContext.getSystemService(Context.AUDIO_SERVICE);
+        AudioManager audioManager = mContext.getSystemService(AudioManager.class);
         if (audioManager == null) {
           Log.w(TAG, "Can't obtain the codec offloading prefernece from null AudioManager");
           return;

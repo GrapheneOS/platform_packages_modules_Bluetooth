@@ -24,7 +24,6 @@ import android.bluetooth.BluetoothHidDeviceAppSdpSettings;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.IBluetoothHidDevice;
 import android.bluetooth.IBluetoothHidDeviceCallback;
-import android.content.Context;
 import android.content.Intent;
 import android.os.Binder;
 import android.os.Handler;
@@ -732,7 +731,7 @@ public class HidDeviceService extends ProfileService {
         mHidDeviceNativeInterface = HidDeviceNativeInterface.getInstance();
         mHidDeviceNativeInterface.init();
         mNativeAvailable = true;
-        mActivityManager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
+        mActivityManager = getSystemService(ActivityManager.class);
         mActivityManager.addOnUidImportanceListener(mUidImportanceListener,
                 FOREGROUND_IMPORTANCE_CUTOFF);
         setHidDeviceService(this);
