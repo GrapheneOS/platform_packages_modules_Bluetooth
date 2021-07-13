@@ -35,6 +35,7 @@ pub trait IBluetoothMedia {
         bits_per_sample: i32,
         channel_mode: i32,
     ) -> bool;
+    fn set_volume(&mut self, volume: i32);
     fn start_audio_request(&mut self);
     fn stop_audio_request(&mut self);
 }
@@ -196,6 +197,13 @@ impl IBluetoothMedia for BluetoothMedia {
         }
         self.a2dp.as_mut().unwrap().set_audio_config(sample_rate, bits_per_sample, channel_mode);
         true
+    }
+
+    fn set_volume(&mut self, volume: i32) {
+        let i8v = i8::try_from(volume);
+        if i8v.is_ok() {
+            self.avrcp.as_mut().unwrap().set_volume(i8::try_from(volume).ok().unwrap());
+        }
     }
 
     fn start_audio_request(&mut self) {
