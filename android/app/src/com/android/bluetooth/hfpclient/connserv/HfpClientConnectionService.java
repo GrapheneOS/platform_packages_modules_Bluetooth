@@ -134,7 +134,7 @@ public class HfpClientConnectionService extends ConnectionService {
             Log.d(TAG, "onCreate");
         }
         mAdapter = BluetoothAdapter.getDefaultAdapter();
-        mTelecomManager = (TelecomManager) getSystemService(Context.TELECOM_SERVICE);
+        mTelecomManager = getSystemService(TelecomManager.class);
         if (mTelecomManager != null) mTelecomManager.clearPhoneAccounts();
         mAdapter.getProfileProxy(this, mServiceListener, BluetoothProfile.HEADSET_CLIENT);
     }

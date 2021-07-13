@@ -27,7 +27,6 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothPbap;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.BluetoothSocket;
-import android.content.Context;
 import android.content.Intent;
 import android.os.Handler;
 import android.os.Looper;
@@ -367,8 +366,7 @@ class PbapStateMachine extends StateMachine {
         }
 
         private void createPbapNotification() {
-            NotificationManager nm =
-                    (NotificationManager) mService.getSystemService(Context.NOTIFICATION_SERVICE);
+            NotificationManager nm = mService.getSystemService(NotificationManager.class);
             NotificationChannel notificationChannel =
                     new NotificationChannel(PBAP_OBEX_NOTIFICATION_CHANNEL,
                             mService.getString(R.string.pbap_notification_group),
@@ -418,8 +416,7 @@ class PbapStateMachine extends StateMachine {
         }
 
         private void removePbapNotification(int id) {
-            NotificationManager nm =
-                    (NotificationManager) mService.getSystemService(Context.NOTIFICATION_SERVICE);
+            NotificationManager nm = mService.getSystemService(NotificationManager.class);
             nm.cancel(id);
         }
 

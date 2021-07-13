@@ -41,6 +41,8 @@
  */
 package com.android.bluetooth.pbapclient;
 
+import static android.Manifest.permission.BLUETOOTH_CONNECT;
+
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothPbapClient;
 import android.bluetooth.BluetoothProfile;
@@ -55,7 +57,6 @@ import android.os.ParcelUuid;
 import android.os.Process;
 import android.os.UserManager;
 import android.util.Log;
-import static android.Manifest.permission.BLUETOOTH_CONNECT;
 
 import com.android.bluetooth.BluetoothMetricsProto;
 import com.android.bluetooth.Utils;
@@ -111,7 +112,7 @@ final class PbapClientStateMachine extends StateMachine {
         mService = svc;
         mCurrentDevice = device;
         mLock = new Object();
-        mUserManager = UserManager.get(mService);
+        mUserManager = mService.getSystemService(UserManager.class);
         mDisconnected = new Disconnected();
         mConnecting = new Connecting();
         mDisconnecting = new Disconnecting();

@@ -95,8 +95,7 @@ class MapClientContent {
         mCallbacks = callbacks;
         mResolver = mContext.getContentResolver();
 
-        mSubscriptionManager = (SubscriptionManager) mContext
-                .getSystemService(Context.TELEPHONY_SUBSCRIPTION_SERVICE);
+        mSubscriptionManager = mContext.getSystemService(SubscriptionManager.class);
         mSubscriptionManager
                 .addSubscriptionInfoRecord(mDevice.getAddress(), Utils.getName(mDevice), 0,
                         SubscriptionManager.SUBSCRIPTION_TYPE_REMOTE_SIM);
@@ -133,8 +132,8 @@ class MapClientContent {
     }
 
     static void clearAllContent(Context context) {
-        SubscriptionManager subscriptionManager = (SubscriptionManager) context
-                .getSystemService(Context.TELEPHONY_SUBSCRIPTION_SERVICE);
+        SubscriptionManager subscriptionManager =
+                context.getSystemService(SubscriptionManager.class);
         List<SubscriptionInfo> subscriptions = subscriptionManager.getActiveSubscriptionInfoList();
         for (SubscriptionInfo info : subscriptions) {
             if (info.getSubscriptionType() == SubscriptionManager.SUBSCRIPTION_TYPE_REMOTE_SIM) {
