@@ -49,7 +49,7 @@ public abstract class AlertActivity extends Activity implements DialogInterface.
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        getWindow().addPrivateFlags(SYSTEM_FLAG_HIDE_NON_SYSTEM_OVERLAY_WINDOWS);
+        getWindow().addSystemFlags(SYSTEM_FLAG_HIDE_NON_SYSTEM_OVERLAY_WINDOWS);
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         mAlertBuilder = new AlertDialog.Builder(this);
         mAlertBuilder.setOnDismissListener(this);
