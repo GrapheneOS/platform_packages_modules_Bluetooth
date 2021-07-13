@@ -2832,11 +2832,18 @@ public class BluetoothManagerService extends IBluetoothManager.Stub {
             sendBluetoothStateCallback(isUp);
             sendBleStateChanged(prevState, newState);
 
-        } else if (newState == BluetoothAdapter.STATE_BLE_TURNING_ON
-                || newState == BluetoothAdapter.STATE_BLE_TURNING_OFF) {
+        } else if (newState == BluetoothAdapter.STATE_BLE_TURNING_ON) {
             sendBleStateChanged(prevState, newState);
             isStandardBroadcast = false;
-
+        } else if (newState == BluetoothAdapter.STATE_BLE_TURNING_OFF) {
+            sendBleStateChanged(prevState, newState);
+            if (prevState != BluetoothAdapter.STATE_TURNING_OFF) {
+                isStandardBroadcast = false;
+            } else {
+                // Broadcast as STATE_OFF for app that do not receive BLE update
+                newState = BluetoothAdapter.STATE_OFF;
+                sendBrEdrDownCallback(mContext.getAttributionSource());
+            }
         } else if (newState == BluetoothAdapter.STATE_TURNING_ON
                 || newState == BluetoothAdapter.STATE_TURNING_OFF) {
             sendBleStateChanged(prevState, newState);
