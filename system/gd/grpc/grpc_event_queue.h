@@ -50,12 +50,10 @@ class GrpcEventQueue {
   ::grpc::Status RunLoop(::grpc::ServerContext* context, ::grpc::ServerWriter<T>* writer) {
     using namespace std::chrono_literals;
     LOG_INFO("%s: Entering Loop", log_name_.c_str());
-    pending_events_.clear();
-    running_ = true;
     while (!context->IsCancelled()) {
       // Wait for 500 ms so that cancellation can be caught in amortized 250 ms latency
       if (pending_events_.wait_to_take(500ms)) {
-        LOG_INFO("%s: Got event after queue", log_name_.c_str());
+        LOG_INFO("%s: Got event from queue", log_name_.c_str());
         writer->Write(pending_events_.take());
       }
     }
@@ -73,13 +71,13 @@ class GrpcEventQueue {
       LOG_INFO("%s: Discarding an event while not running the loop", log_name_.c_str());
       return;
     }
-    LOG_INFO("%s: Got event before queue", log_name_.c_str());
+    LOG_INFO("%s: Got event, enqueuing", log_name_.c_str());
     pending_events_.push(std::move(event));
   }
 
  private:
   std::string log_name_;
-  std::atomic<bool> running_ = false;
+  std::atomic<bool> running_{true};
   common::BlockingQueue<T> pending_events_;
 };
 
