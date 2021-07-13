@@ -94,7 +94,7 @@ public class BluetoothOppIncomingFileConfirmActivity extends AlertActivity {
         }
         super.onCreate(savedInstanceState);
 
-        getWindow().addPrivateFlags(SYSTEM_FLAG_HIDE_NON_SYSTEM_OVERLAY_WINDOWS);
+        getWindow().addSystemFlags(SYSTEM_FLAG_HIDE_NON_SYSTEM_OVERLAY_WINDOWS);
         Intent intent = getIntent();
         mUri = intent.getData();
         mTransInfo = new BluetoothOppTransferInfo();
