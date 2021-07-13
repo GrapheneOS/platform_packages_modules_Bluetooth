@@ -18,7 +18,7 @@ impl Alarm {
     }
 
     /// Reset the alarm to duration, starting from now
-    pub fn reset(&mut self, duration: Duration) {
+    pub fn reset(&self, duration: Duration) {
         self.fd
             .get_ref()
             .set(Expiration::OneShot(TimeSpec::from(duration)), TimerSetTimeFlags::empty())
@@ -26,12 +26,12 @@ impl Alarm {
     }
 
     /// Stop the alarm if it is currently started
-    pub fn cancel(&mut self) {
+    pub fn cancel(&self) {
         self.reset(Duration::from_millis(0));
     }
 
     /// Completes when the alarm has expired
-    pub async fn expired(&mut self) {
+    pub async fn expired(&self) {
         let mut read_ready = self.fd.readable().await.unwrap();
         read_ready.clear_ready();
         drop(read_ready);
@@ -94,7 +94,7 @@ mod tests {
         let runtime = tokio::runtime::Runtime::new().unwrap();
         runtime.block_on(async {
             let timer = Instant::now();
-            let mut alarm = Alarm::new();
+            let alarm = Alarm::new();
             alarm.reset(Duration::from_millis(10));
             alarm.expired().await;
 
@@ -106,7 +106,7 @@ mod tests {
     fn alarm_cancel_after_expired() {
         let runtime = tokio::runtime::Runtime::new().unwrap();
         runtime.block_on(async {
-            let mut alarm = Alarm::new();
+            let alarm = Alarm::new();
             alarm.reset(Duration::from_millis(10));
             tokio::time::sleep(Duration::from_millis(30)).await;
             alarm.cancel();
@@ -131,7 +131,7 @@ mod tests {
         let runtime = tokio::runtime::Runtime::new().unwrap();
         runtime.block_on(async {
             let timer = Instant::now();
-            let mut alarm = Alarm::new();
+            let alarm = Alarm::new();
             alarm.reset(Duration::from_millis(10));
             alarm.expired().await;
             let ready_in_10_ms = async {

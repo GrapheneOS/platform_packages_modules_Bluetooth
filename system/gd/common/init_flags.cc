@@ -18,6 +18,7 @@
 
 #include "init_flags.h"
 
+#include <cstdlib>
 #include <string>
 
 #include "common/strings.h"
@@ -27,6 +28,7 @@ namespace bluetooth {
 namespace common {
 
 bool InitFlags::logging_debug_enabled_for_all = false;
+int InitFlags::hci_adapter = 0;
 std::unordered_map<std::string, bool> InitFlags::logging_debug_explicit_tag_settings = {};
 
 bool ParseBoolFlag(const std::vector<std::string>& flag_pair, const std::string& flag, bool* variable) {
@@ -41,6 +43,19 @@ bool ParseBoolFlag(const std::vector<std::string>& flag_pair, const std::string&
   return true;
 }
 
+bool ParseIntFlag(const std::vector<std::string>& flag_pair, const std::string& flag, int* variable) {
+  if (flag != flag_pair[0]) {
+    return false;
+  }
+  auto value = Int64FromString(flag_pair[1]);
+  if (!value || *value > INT32_MAX) {
+    return false;
+  }
+
+  *variable = *value;
+  return true;
+}
+
 void InitFlags::Load(const char** flags) {
   const char** flags_copy = flags;
   SetAll(false);
@@ -51,6 +66,9 @@ void InitFlags::Load(const char** flags) {
       flags++;
       continue;
     }
+
+    // Parse adapter index (defaults to 0)
+    ParseIntFlag(flag_pair, "--hci", &hci_adapter);
 
     ParseBoolFlag(flag_pair, "INIT_logging_debug_enabled_for_all", &logging_debug_enabled_for_all);
     if ("INIT_logging_debug_enabled_for_tags" == flag_pair[0]) {
