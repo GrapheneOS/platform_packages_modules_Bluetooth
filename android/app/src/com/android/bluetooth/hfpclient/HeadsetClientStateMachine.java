@@ -63,7 +63,6 @@ import com.android.bluetooth.statemachine.IState;
 import com.android.bluetooth.statemachine.State;
 import com.android.bluetooth.statemachine.StateMachine;
 import com.android.internal.annotations.VisibleForTesting;
-import com.android.internal.util.ArrayUtils;
 
 import java.io.FileDescriptor;
 import java.io.PrintWriter;
@@ -1868,7 +1867,7 @@ public class HeadsetClientStateMachine extends StateMachine {
         synchronized (this) {
             for (BluetoothDevice device : bondedDevices) {
                 ParcelUuid[] featureUuids = device.getUuids();
-                if (!ArrayUtils.contains(featureUuids, BluetoothUuid.HFP_AG)) {
+                if (!Utils.arrayContains(featureUuids, BluetoothUuid.HFP_AG)) {
                     continue;
                 }
                 connectionState = getConnectionState(device);
