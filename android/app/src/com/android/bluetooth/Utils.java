@@ -78,6 +78,7 @@ import java.nio.charset.CharsetDecoder;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -967,5 +968,19 @@ public final class Utils {
             Binder.restoreCallingIdentity(ident);
         }
         return bOptions.toBundle();
+    }
+
+    /**
+     * Checks that value is present as at least one of the elements of the array.
+     * @param array the array to check in
+     * @param value the value to check for
+     * @return true if the value is present in the array
+     */
+    public static <T> boolean arrayContains(@Nullable T[] array, T value) {
+        if (array == null) return false;
+        for (T element : array) {
+            if (Objects.equals(element, value)) return true;
+        }
+        return false;
     }
 }
