@@ -9,6 +9,7 @@ use bt_topshim::profiles::avrcp::Avrcp;
 use bt_topshim::topstack;
 
 use std::collections::HashMap;
+use std::convert::TryFrom;
 use std::sync::Arc;
 use std::sync::Mutex;
 
@@ -200,10 +201,10 @@ impl IBluetoothMedia for BluetoothMedia {
     }
 
     fn set_volume(&mut self, volume: i32) {
-        let i8v = i8::try_from(volume);
-        if i8v.is_ok() {
-            self.avrcp.as_mut().unwrap().set_volume(i8::try_from(volume).ok().unwrap());
-        }
+        match i8::try_from(volume) {
+            Ok(val) => self.avrcp.as_mut().unwrap().set_volume(val),
+            _ => (),
+        };
     }
 
     fn start_audio_request(&mut self) {
