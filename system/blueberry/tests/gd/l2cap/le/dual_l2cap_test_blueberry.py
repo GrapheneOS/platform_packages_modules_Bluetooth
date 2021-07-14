@@ -1,6 +1,5 @@
-#!/usr/bin/env python3
 #
-#   Copyright 2019 - The Android Open Source Project
+#   Copyright 2020 - The Android Open Source Project
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -15,14 +14,22 @@
 #   limitations under the License.
 
 from blueberry.tests.gd.cert import gd_base_test
-from hci.cert.le_scanning_with_security_test_lib import LeScanningWithSecurityTestBase
+from l2cap.le.cert.dual_l2cap_test_lib import DualL2capTestBase
 from mobly import test_runner
 
 
-class LeScanningWithSecurityTest(gd_base_test.GdBaseTestClass, LeScanningWithSecurityTestBase):
+class DualL2capTestBb(gd_base_test.GdBaseTestClass, DualL2capTestBase):
 
     def setup_class(self):
-        gd_base_test.GdBaseTestClass.setup_class(self, dut_module='SECURITY', cert_module='HCI_INTERFACES')
+        gd_base_test.GdBaseTestClass.setup_class(self, dut_module='L2CAP', cert_module='HCI_INTERFACES')
+
+    def setup_test(self):
+        gd_base_test.GdBaseTestClass.setup_test(self)
+        DualL2capTestBase.setup_test(self, self.dut, self.cert)
+
+    def teardown_test(self):
+        DualL2capTestBase.teardown_test(self)
+        gd_base_test.GdBaseTestClass.teardown_test(self)
 
 
 if __name__ == '__main__':

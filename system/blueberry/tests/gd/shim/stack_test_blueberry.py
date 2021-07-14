@@ -1,5 +1,6 @@
+#!/usr/bin/env python3
 #
-#   Copyright 2021 - The Android Open Source Project
+#   Copyright 2020 - The Android Open Source Project
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -14,22 +15,14 @@
 #   limitations under the License.
 
 from blueberry.tests.gd.cert import gd_base_test
-from iso.cert.le_iso_test_lib import LeIsoTestBase
+from shim.cert.stack_test_lib import StackTestBase
 from mobly import test_runner
 
 
-class LeIsoTest(gd_base_test.GdBaseTestClass, LeIsoTestBase):
+class StackTestBb(gd_base_test.GdBaseTestClass, StackTestBase):
 
     def setup_class(self):
-        gd_base_test.GdBaseTestClass.setup_class(self, dut_module='L2CAP', cert_module='HCI_INTERFACES')
-
-    def setup_test(self):
-        gd_base_test.GdBaseTestClass.setup_test(self)
-        LeIsoTestBase.setup_test(self, self.dut, self.cert)
-
-    def teardown_test(self):
-        LeIsoTestBase.teardown_test(self)
-        gd_base_test.GdBaseTestClass.teardown_test(self)
+        super().setup_class(dut_module='SHIM', cert_module='SHIM')
 
 
 if __name__ == '__main__':
