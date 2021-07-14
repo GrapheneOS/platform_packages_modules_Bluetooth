@@ -45,6 +45,13 @@ cc_test_library {
     },
 }
 
+filegroup {
+  name: "OsiCompatSources",
+  srcs: [
+    "src/compat.cc",
+  ],
+}
+
 // libosi static library for target
 cc_library_static {
     name: "libosi",
@@ -52,12 +59,12 @@ cc_library_static {
     // TODO(mcchou): Remove socket_utils sources after platform specific
     // dependencies are abstracted.
     srcs: [
+        ":OsiCompatSources",
         "src/alarm.cc",
         "src/allocation_tracker.cc",
         "src/allocator.cc",
         "src/array.cc",
         "src/buffer.cc",
-        "src/compat.cc",
         "src/config.cc",
         "src/fixed_queue.cc",
         "src/future.cc",
