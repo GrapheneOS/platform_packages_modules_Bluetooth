@@ -51,7 +51,7 @@ interface IBluetoothGatt {
     void unregisterScanner(in int scannerId, in AttributionSource attributionSource);
     @JavaPassthrough(annotation="@android.annotation.RequiresPermission(android.Manifest.permission.BLUETOOTH_SCAN)")
     void startScan(in int scannerId, in ScanSettings settings, in List<ScanFilter> filters,
-                   in List scanStorages, in AttributionSource attributionSource);
+                   in AttributionSource attributionSource);
     @JavaPassthrough(annotation="@android.annotation.RequiresPermission(android.Manifest.permission.BLUETOOTH_SCAN)")
     void startScanForIntent(in PendingIntent intent, in ScanSettings settings, in List<ScanFilter> filters,
                             in AttributionSource attributionSource);
