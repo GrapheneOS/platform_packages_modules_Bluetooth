@@ -1,8 +1,14 @@
 //! D-Bus proxy implementations of the APIs.
 
 use bt_topshim::btif::BtSspVariant;
+use bt_topshim::profiles::gatt::GattStatus;
 
 use btstack::bluetooth::{BluetoothDevice, BluetoothTransport, IBluetooth, IBluetoothCallback};
+use btstack::bluetooth_gatt::{
+    BluetoothGattCharacteristic, BluetoothGattDescriptor, BluetoothGattService,
+    GattWriteRequestStatus, GattWriteType, IBluetoothGatt, IBluetoothGattCallback,
+    IScannerCallback, LePhy, ScanFilter, ScanSettings, Uuid128Bit,
+};
 
 use dbus::arg::{AppendAll, RefArg};
 use dbus::nonblock::SyncConnection;
@@ -19,6 +25,7 @@ use manager_service::iface_bluetooth_manager::{
 
 use num_traits::{FromPrimitive, ToPrimitive};
 
+use std::convert::TryInto;
 use std::sync::{Arc, Mutex};
 
 use crate::dbus_arg::{DBusArg, DBusArgError, RefArgToRust};
@@ -29,6 +36,54 @@ fn make_object_path(idx: i32, name: &str) -> dbus::Path {
 
 impl_dbus_arg_enum!(BluetoothTransport);
 impl_dbus_arg_enum!(BtSspVariant);
+impl_dbus_arg_enum!(GattStatus);
+impl_dbus_arg_enum!(GattWriteType);
+impl_dbus_arg_enum!(LePhy);
+
+// Represents Uuid128Bit as an array in D-Bus.
+impl DBusArg for Uuid128Bit {
+    type DBusType = Vec<u8>;
+
+    fn from_dbus(
+        data: Vec<u8>,
+        _conn: Option<Arc<SyncConnection>>,
+        _remote: Option<dbus::strings::BusName<'static>>,
+        _disconnect_watcher: Option<Arc<std::sync::Mutex<DisconnectWatcher>>>,
+    ) -> Result<[u8; 16], Box<dyn std::error::Error>> {
+        return Ok(data.try_into().unwrap());
+    }
+
+    fn to_dbus(data: [u8; 16]) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
+        return Ok(data.to_vec());
+    }
+}
+
+#[dbus_propmap(BluetoothGattDescriptor)]
+pub struct BluetoothGattDescriptorDBus {
+    uuid: Uuid128Bit,
+    instance_id: i32,
+    permissions: i32,
+}
+
+#[dbus_propmap(BluetoothGattCharacteristic)]
+pub struct BluetoothGattCharacteristicDBus {
+    uuid: Uuid128Bit,
+    instance_id: i32,
+    properties: i32,
+    permissions: i32,
+    key_size: i32,
+    write_type: GattWriteType,
+    descriptors: Vec<BluetoothGattDescriptor>,
+}
+
+#[dbus_propmap(BluetoothGattService)]
+pub struct BluetoothGattServiceDBus {
+    pub uuid: Uuid128Bit,
+    pub instance_id: i32,
+    pub service_type: i32,
+    pub characteristics: Vec<BluetoothGattCharacteristic>,
+    pub included_services: Vec<BluetoothGattService>,
+}
 
 #[dbus_propmap(BluetoothDevice)]
 pub struct BluetoothDeviceDBus {
@@ -277,4 +332,283 @@ impl IBluetoothManagerCallback for IBluetoothManagerCallbackDBus {
 
     #[dbus_method("OnHciEnabledChanged")]
     fn on_hci_enabled_changed(&self, hci_interface: i32, enabled: bool) {}
+}
+
+pub(crate) struct BluetoothGattDBus {
+    client_proxy: ClientDBusProxy,
+}
+
+impl BluetoothGattDBus {
+    pub(crate) fn new(
+        conn: Arc<SyncConnection>,
+        cr: Arc<Mutex<Crossroads>>,
+        index: i32,
+    ) -> BluetoothGattDBus {
+        BluetoothGattDBus {
+            client_proxy: ClientDBusProxy {
+                conn: conn.clone(),
+                cr: cr,
+                bus_name: String::from("org.chromium.bluetooth"),
+                objpath: make_object_path(index, "gatt"),
+                interface: String::from("org.chromium.bluetooth.BluetoothGatt"),
+            },
+        }
+    }
+}
+
+// TODO: These are boilerplate codes, consider creating a macro to generate.
+impl IBluetoothGatt for BluetoothGattDBus {
+    fn register_scanner(&self, _callback: Box<dyn IScannerCallback + Send>) {
+        // TODO(b/200066804): implement
+    }
+
+    fn unregister_scanner(&self, _scanner_id: i32) {
+        // TODO(b/200066804): implement
+    }
+
+    fn start_scan(&self, _scanner_id: i32, _settings: ScanSettings, _filters: Vec<ScanFilter>) {
+        // TODO(b/200066804): implement
+    }
+
+    fn stop_scan(&self, _scanner_id: i32) {
+        // TODO(b/200066804): implement
+    }
+
+    fn register_client(
+        &mut self,
+        app_uuid: String,
+        callback: Box<dyn IBluetoothGattCallback + Send>,
+        eatt_support: bool,
+    ) {
+        let path_string = callback.get_object_id();
+        let path = dbus::Path::new(path_string.clone()).unwrap();
+        export_bluetooth_gatt_callback_dbus_obj(
+            path_string,
+            self.client_proxy.conn.clone(),
+            &mut self.client_proxy.cr.lock().unwrap(),
+            Arc::new(Mutex::new(callback)),
+            Arc::new(Mutex::new(DisconnectWatcher::new())),
+        );
+
+        self.client_proxy.method_noreturn("RegisterClient", (app_uuid, path, eatt_support))
+    }
+
+    fn unregister_client(&mut self, client_id: i32) {
+        self.client_proxy.method_noreturn("UnregisterClient", (client_id,))
+    }
+
+    fn client_connect(
+        &self,
+        client_id: i32,
+        addr: String,
+        is_direct: bool,
+        transport: i32,
+        opportunistic: bool,
+        phy: i32,
+    ) {
+        self.client_proxy.method_noreturn(
+            "ClientConnect",
+            (client_id, addr, is_direct, transport, opportunistic, phy),
+        )
+    }
+
+    fn client_disconnect(&self, client_id: i32, addr: String) {
+        self.client_proxy.method_noreturn("ClientDisconnect", (client_id, addr))
+    }
+
+    fn client_set_preferred_phy(
+        &self,
+        client_id: i32,
+        addr: String,
+        tx_phy: LePhy,
+        rx_phy: LePhy,
+        phy_options: i32,
+    ) {
+        self.client_proxy.method_noreturn(
+            "ClientSetPreferredPhy",
+            (client_id, addr, tx_phy.to_i32().unwrap(), rx_phy.to_i32().unwrap(), phy_options),
+        )
+    }
+
+    fn client_read_phy(&mut self, client_id: i32, addr: String) {
+        self.client_proxy.method_noreturn("ClientReadPhy", (client_id, addr))
+    }
+
+    fn refresh_device(&self, client_id: i32, addr: String) {
+        self.client_proxy.method_noreturn("RefreshDevice", (client_id, addr))
+    }
+
+    fn discover_services(&self, client_id: i32, addr: String) {
+        self.client_proxy.method_noreturn("DiscoverServices", (client_id, addr))
+    }
+
+    fn discover_service_by_uuid(&self, client_id: i32, addr: String, uuid: String) {
+        self.client_proxy.method_noreturn("DiscoverServiceByUuid", (client_id, addr, uuid))
+    }
+
+    fn read_characteristic(&self, client_id: i32, addr: String, handle: i32, auth_req: i32) {
+        self.client_proxy.method_noreturn("ReadCharacteristic", (client_id, addr, handle, auth_req))
+    }
+
+    fn read_using_characteristic_uuid(
+        &self,
+        client_id: i32,
+        addr: String,
+        uuid: String,
+        start_handle: i32,
+        end_handle: i32,
+        auth_req: i32,
+    ) {
+        self.client_proxy.method_noreturn(
+            "ReadUsingCharacteristicUuid",
+            (client_id, addr, uuid, start_handle, end_handle, auth_req),
+        )
+    }
+
+    fn write_characteristic(
+        &self,
+        client_id: i32,
+        addr: String,
+        handle: i32,
+        write_type: GattWriteType,
+        auth_req: i32,
+        value: Vec<u8>,
+    ) -> GattWriteRequestStatus {
+        GattWriteRequestStatus::from_i32(self.client_proxy.method(
+            "WriteCharacteristic",
+            (client_id, addr, handle, write_type.to_i32().unwrap(), auth_req, value),
+        ))
+        .unwrap()
+    }
+
+    fn read_descriptor(&self, client_id: i32, addr: String, handle: i32, auth_req: i32) {
+        self.client_proxy.method_noreturn("ReadDescriptor", (client_id, addr, handle, auth_req))
+    }
+
+    fn write_descriptor(
+        &self,
+        client_id: i32,
+        addr: String,
+        handle: i32,
+        auth_req: i32,
+        value: Vec<u8>,
+    ) {
+        self.client_proxy
+            .method_noreturn("WriteDescriptor", (client_id, addr, handle, auth_req, value))
+    }
+
+    fn register_for_notification(&self, client_id: i32, addr: String, handle: i32, enable: bool) {
+        self.client_proxy
+            .method_noreturn("RegisterForNotification", (client_id, addr, handle, enable))
+    }
+
+    fn begin_reliable_write(&mut self, client_id: i32, addr: String) {
+        self.client_proxy.method_noreturn("BeginReliableWrite", (client_id, addr))
+    }
+
+    fn end_reliable_write(&mut self, client_id: i32, addr: String, execute: bool) {
+        self.client_proxy.method_noreturn("EndReliableWrite", (client_id, addr, execute))
+    }
+
+    fn read_remote_rssi(&self, client_id: i32, addr: String) {
+        self.client_proxy.method_noreturn("ReadRemoteRssi", (client_id, addr))
+    }
+
+    fn configure_mtu(&self, client_id: i32, addr: String, mtu: i32) {
+        self.client_proxy.method_noreturn("ConfigureMtu", (client_id, addr, mtu))
+    }
+
+    fn connection_parameter_update(
+        &self,
+        client_id: i32,
+        addr: String,
+        min_interval: i32,
+        max_interval: i32,
+        latency: i32,
+        timeout: i32,
+        min_ce_len: u16,
+        max_ce_len: u16,
+    ) {
+        self.client_proxy.method_noreturn(
+            "ConnectionParameterUpdate",
+            (client_id, addr, min_interval, max_interval, latency, timeout, min_ce_len, max_ce_len),
+        )
+    }
+}
+
+#[allow(dead_code)]
+struct IBluetoothGattCallbackDBus {}
+
+impl btstack::RPCProxy for IBluetoothGattCallbackDBus {
+    // Placeholder implementations just to satisfy impl RPCProxy requirements.
+    fn register_disconnect(&mut self, _f: Box<dyn Fn() + Send>) {}
+    fn get_object_id(&self) -> String {
+        String::from("")
+    }
+}
+
+#[generate_dbus_exporter(
+    export_bluetooth_gatt_callback_dbus_obj,
+    "org.chromium.bluetooth.BluetoothGattCallback"
+)]
+impl IBluetoothGattCallback for IBluetoothGattCallbackDBus {
+    #[dbus_method("OnClientRegistered")]
+    fn on_client_registered(&self, status: i32, client_id: i32) {}
+
+    #[dbus_method("OnClientConnectionState")]
+    fn on_client_connection_state(
+        &self,
+        status: i32,
+        client_id: i32,
+        connected: bool,
+        addr: String,
+    ) {
+    }
+
+    #[dbus_method("OnPhyUpdate")]
+    fn on_phy_update(&self, addr: String, tx_phy: LePhy, rx_phy: LePhy, status: GattStatus) {}
+
+    #[dbus_method("OnPhyRead")]
+    fn on_phy_read(&self, addr: String, tx_phy: LePhy, rx_phy: LePhy, status: GattStatus) {}
+
+    #[dbus_method("OnSearchComplete")]
+    fn on_search_complete(&self, addr: String, services: Vec<BluetoothGattService>, status: i32) {}
+
+    #[dbus_method("OnCharacteristicRead")]
+    fn on_characteristic_read(&self, addr: String, status: i32, handle: i32, value: Vec<u8>) {}
+
+    #[dbus_method("OnCharacteristicWrite")]
+    fn on_characteristic_write(&self, addr: String, status: i32, handle: i32) {}
+
+    #[dbus_method("OnExecuteWrite")]
+    fn on_execute_write(&self, addr: String, status: i32) {}
+
+    #[dbus_method("OnDescriptorRead")]
+    fn on_descriptor_read(&self, addr: String, status: i32, handle: i32, value: Vec<u8>) {}
+
+    #[dbus_method("OnDescriptorWrite")]
+    fn on_descriptor_write(&self, addr: String, status: i32, handle: i32) {}
+
+    #[dbus_method("OnNotify")]
+    fn on_notify(&self, addr: String, handle: i32, value: Vec<u8>) {}
+
+    #[dbus_method("OnReadRemoteRssi")]
+    fn on_read_remote_rssi(&self, addr: String, rssi: i32, status: i32) {}
+
+    #[dbus_method("OnConfigureMtu")]
+    fn on_configure_mtu(&self, addr: String, mtu: i32, status: i32) {}
+
+    #[dbus_method("OnConnectionUpdated")]
+    fn on_connection_updated(
+        &self,
+        addr: String,
+        interval: i32,
+        latency: i32,
+        timeout: i32,
+        status: i32,
+    ) {
+    }
+
+    #[dbus_method("OnServiceChanged")]
+    fn on_service_changed(&self, addr: String) {}
 }

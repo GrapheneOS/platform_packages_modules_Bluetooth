@@ -3,15 +3,18 @@ use std::sync::{Arc, Mutex};
 
 use num_traits::cast::FromPrimitive;
 
+use crate::callbacks::BtGattCallback;
 use crate::ClientContext;
 use crate::{console_red, console_yellow, print_error, print_info};
 use btstack::bluetooth::{BluetoothDevice, BluetoothTransport, IBluetooth};
+use btstack::bluetooth_gatt::IBluetoothGatt;
 use manager_service::iface_bluetooth_manager::IBluetoothManager;
 
 const INDENT_CHAR: &str = " ";
 const BAR1_CHAR: &str = "=";
 const BAR2_CHAR: &str = "-";
 const MAX_MENU_CHAR_WIDTH: usize = 72;
+const GATT_CLIENT_APP_UUID: &str = "12345678123456781234567812345678";
 
 type CommandFunction = fn(&mut CommandHandler, &Vec<String>);
 
@@ -85,6 +88,13 @@ fn build_commands() -> HashMap<String, CommandOption> {
         CommandOption {
             description: String::from("Start and stop device discovery. (e.g. discovery start)"),
             function_pointer: CommandHandler::cmd_discovery,
+        },
+    );
+    command_options.insert(
+        String::from("gatt"),
+        CommandOption {
+            description: String::from("GATT tools"),
+            function_pointer: CommandHandler::cmd_gatt,
         },
     );
     command_options.insert(
@@ -273,6 +283,93 @@ impl CommandHandler {
                 .as_ref()
                 .unwrap()
                 .create_bond(device, BluetoothTransport::from_i32(0).unwrap());
+        });
+    }
+
+    fn cmd_gatt(&mut self, args: &Vec<String>) {
+        if !self.context.lock().unwrap().adapter_ready {
+            self.adapter_not_ready();
+            return;
+        }
+
+        enforce_arg_len(args, 1, "gatt <commands>", || match &args[0][0..] {
+            "register-client" => {
+                self.context.lock().unwrap().gatt_dbus.as_mut().unwrap().register_client(
+                    String::from(GATT_CLIENT_APP_UUID),
+                    Box::new(BtGattCallback::new(
+                        String::from("/org/chromium/bluetooth/client/bluetooth_gatt_callback"),
+                        self.context.clone(),
+                    )),
+                    false,
+                );
+            }
+            "client-connect" => {
+                if args.len() < 2 {
+                    println!("usage: gatt client-connect <addr>");
+                    return;
+                }
+
+                let client_id = self.context.lock().unwrap().gatt_client_id;
+                if client_id.is_none() {
+                    println!("GATT client is not yet registered.");
+                    return;
+                }
+
+                let addr = String::from(&args[1]);
+                self.context.lock().unwrap().gatt_dbus.as_ref().unwrap().client_connect(
+                    client_id.unwrap(),
+                    addr,
+                    false,
+                    2,
+                    false,
+                    1,
+                );
+            }
+            "client-read-phy" => {
+                if args.len() < 2 {
+                    println!("usage: gatt client-read-phy <addr>");
+                    return;
+                }
+
+                let client_id = self.context.lock().unwrap().gatt_client_id;
+                if client_id.is_none() {
+                    println!("GATT client is not yet registered.");
+                    return;
+                }
+
+                let addr = String::from(&args[1]);
+                self.context
+                    .lock()
+                    .unwrap()
+                    .gatt_dbus
+                    .as_mut()
+                    .unwrap()
+                    .client_read_phy(client_id.unwrap(), addr);
+            }
+            "client-discover-services" => {
+                if args.len() < 2 {
+                    println!("usage: gatt client-discover-services <addr>");
+                    return;
+                }
+
+                let client_id = self.context.lock().unwrap().gatt_client_id;
+                if client_id.is_none() {
+                    println!("GATT client is not yet registered.");
+                    return;
+                }
+
+                let addr = String::from(&args[1]);
+                self.context
+                    .lock()
+                    .unwrap()
+                    .gatt_dbus
+                    .as_ref()
+                    .unwrap()
+                    .discover_services(client_id.unwrap(), addr);
+            }
+            _ => {
+                println!("Invalid argument '{}'", args[0]);
+            }
         });
     }
 

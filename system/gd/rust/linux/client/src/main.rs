@@ -9,7 +9,7 @@ use tokio::sync::mpsc;
 
 use crate::callbacks::{BtCallback, BtManagerCallback};
 use crate::command_handler::CommandHandler;
-use crate::dbus_iface::{BluetoothDBus, BluetoothManagerDBus};
+use crate::dbus_iface::{BluetoothDBus, BluetoothGattDBus, BluetoothManagerDBus};
 use crate::editor::AsyncEditor;
 use bt_topshim::topstack;
 use btstack::bluetooth::{BluetoothDevice, IBluetooth};
@@ -48,11 +48,17 @@ pub(crate) struct ClientContext {
     /// session starts so that previous results don't pollute current search.
     pub(crate) found_devices: HashMap<String, BluetoothDevice>,
 
+    /// If set, the registered GATT client id. None otherwise.
+    pub(crate) gatt_client_id: Option<i32>,
+
     /// Proxy for manager interface.
     pub(crate) manager_dbus: BluetoothManagerDBus,
 
     /// Proxy for adapter interface. Only exists when the default adapter is enabled.
     pub(crate) adapter_dbus: Option<BluetoothDBus>,
+
+    /// Proxy for GATT interface.
+    pub(crate) gatt_dbus: Option<BluetoothGattDBus>,
 
     /// Channel to send actions to take in the foreground
     fg: mpsc::Sender<ForegroundActions>,
@@ -83,8 +89,10 @@ impl ClientContext {
             adapter_address: None,
             discovering_state: false,
             found_devices: HashMap::new(),
+            gatt_client_id: None,
             manager_dbus,
             adapter_dbus: None,
+            gatt_dbus: None,
             fg: tx,
             dbus_connection,
             dbus_crossroads,
@@ -96,8 +104,11 @@ impl ClientContext {
         let conn = self.dbus_connection.clone();
         let cr = self.dbus_crossroads.clone();
 
-        let dbus = BluetoothDBus::new(conn, cr, idx);
+        let dbus = BluetoothDBus::new(conn.clone(), cr.clone(), idx);
         self.adapter_dbus = Some(dbus);
+
+        let gatt_dbus = BluetoothGattDBus::new(conn.clone(), cr.clone(), idx);
+        self.gatt_dbus = Some(gatt_dbus);
 
         // Trigger callback registration in the foreground
         let fg = self.fg.clone();

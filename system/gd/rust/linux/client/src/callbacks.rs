@@ -1,7 +1,9 @@
 use crate::ClientContext;
 use crate::{console_yellow, print_info};
 use bt_topshim::btif::BtSspVariant;
+use bt_topshim::profiles::gatt::GattStatus;
 use btstack::bluetooth::{BluetoothDevice, IBluetoothCallback};
+use btstack::bluetooth_gatt::{BluetoothGattService, IBluetoothGattCallback, LePhy};
 use btstack::RPCProxy;
 use manager_service::iface_bluetooth_manager::IBluetoothManagerCallback;
 use std::sync::{Arc, Mutex};
@@ -125,6 +127,153 @@ impl IBluetoothCallback for BtCallback {
 }
 
 impl RPCProxy for BtCallback {
+    fn register_disconnect(&mut self, _f: Box<dyn Fn() + Send>) {}
+
+    fn get_object_id(&self) -> String {
+        self.objpath.clone()
+    }
+}
+
+pub(crate) struct BtGattCallback {
+    objpath: String,
+    context: Arc<Mutex<ClientContext>>,
+}
+
+impl BtGattCallback {
+    pub(crate) fn new(objpath: String, context: Arc<Mutex<ClientContext>>) -> Self {
+        Self { objpath, context }
+    }
+}
+
+impl IBluetoothGattCallback for BtGattCallback {
+    fn on_client_registered(&self, status: i32, client_id: i32) {
+        print_info!("GATT Client registered status = {}, client_id = {}", status, client_id);
+        self.context.lock().unwrap().gatt_client_id = Some(client_id);
+    }
+
+    fn on_client_connection_state(
+        &self,
+        status: i32,
+        client_id: i32,
+        connected: bool,
+        addr: String,
+    ) {
+        print_info!(
+            "GATT Client connection state = {}, client_id = {}, connected = {}, addr = {}",
+            status,
+            client_id,
+            connected,
+            addr
+        );
+    }
+
+    fn on_phy_update(&self, addr: String, tx_phy: LePhy, rx_phy: LePhy, status: GattStatus) {
+        print_info!(
+            "Phy updated: addr = {}, tx_phy = {:?}, rx_phy = {:?}, status = {:?}",
+            addr,
+            tx_phy,
+            rx_phy,
+            status
+        );
+    }
+
+    fn on_phy_read(&self, addr: String, tx_phy: LePhy, rx_phy: LePhy, status: GattStatus) {
+        print_info!(
+            "Phy read: addr = {}, tx_phy = {:?}, rx_phy = {:?}, status = {:?}",
+            addr,
+            tx_phy,
+            rx_phy,
+            status
+        );
+    }
+
+    fn on_search_complete(&self, addr: String, services: Vec<BluetoothGattService>, status: i32) {
+        print_info!(
+            "GATT DB Search complete: addr = {}, services = {:?}, status = {}",
+            addr,
+            services,
+            status
+        );
+    }
+
+    fn on_characteristic_read(&self, addr: String, status: i32, handle: i32, value: Vec<u8>) {
+        print_info!(
+            "GATT Characteristic read: addr = {}, status = {}, handle = {}, value = {:?}",
+            addr,
+            status,
+            handle,
+            value
+        );
+    }
+
+    fn on_characteristic_write(&self, addr: String, status: i32, handle: i32) {
+        print_info!(
+            "GATT Characteristic write: addr = {}, status = {}, handle = {}",
+            addr,
+            status,
+            handle
+        );
+    }
+
+    fn on_execute_write(&self, addr: String, status: i32) {
+        print_info!("GATT execute write addr = {}, status = {}", addr, status);
+    }
+
+    fn on_descriptor_read(&self, addr: String, status: i32, handle: i32, value: Vec<u8>) {
+        print_info!(
+            "GATT Descriptor read: addr = {}, status = {}, handle = {}, value = {:?}",
+            addr,
+            status,
+            handle,
+            value
+        );
+    }
+
+    fn on_descriptor_write(&self, addr: String, status: i32, handle: i32) {
+        print_info!(
+            "GATT Descriptor write: addr = {}, status = {}, handle = {}",
+            addr,
+            status,
+            handle
+        );
+    }
+
+    fn on_notify(&self, addr: String, handle: i32, value: Vec<u8>) {
+        print_info!("GATT Notification: addr = {}, handle = {}, value = {:?}", addr, handle, value);
+    }
+
+    fn on_read_remote_rssi(&self, addr: String, rssi: i32, status: i32) {
+        print_info!("Remote RSSI read: addr = {}, rssi = {}, status = {}", addr, rssi, status);
+    }
+
+    fn on_configure_mtu(&self, addr: String, mtu: i32, status: i32) {
+        print_info!("MTU configured: addr = {}, mtu = {}, status = {}", addr, mtu, status);
+    }
+
+    fn on_connection_updated(
+        &self,
+        addr: String,
+        interval: i32,
+        latency: i32,
+        timeout: i32,
+        status: i32,
+    ) {
+        print_info!(
+            "Connection updated: addr = {}, interval = {}, latency = {}, timeout = {}, status = {}",
+            addr,
+            interval,
+            latency,
+            timeout,
+            status
+        );
+    }
+
+    fn on_service_changed(&self, addr: String) {
+        print_info!("Service changed for {}", addr,);
+    }
+}
+
+impl RPCProxy for BtGattCallback {
     fn register_disconnect(&mut self, _f: Box<dyn Fn() + Send>) {}
 
     fn get_object_id(&self) -> String {
