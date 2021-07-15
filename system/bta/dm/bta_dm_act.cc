@@ -269,7 +269,7 @@ void bta_dm_enable(tBTA_DM_SEC_CBACK* p_sec_cback) {
  *
  ******************************************************************************/
 void bta_dm_init_cb(void) {
-  memset(&bta_dm_cb, 0, sizeof(bta_dm_cb));
+  bta_dm_cb = {};
   bta_dm_cb.disable_timer = alarm_new("bta_dm.disable_timer");
   bta_dm_cb.switch_delay_timer = alarm_new("bta_dm.switch_delay_timer");
   for (size_t i = 0; i < BTA_DM_NUM_PM_TIMER; i++) {
@@ -301,7 +301,7 @@ void bta_dm_deinit_cb(void) {
       alarm_free(bta_dm_cb.pm_timer[i].timer[j]);
     }
   }
-  memset(&bta_dm_cb, 0, sizeof(bta_dm_cb));
+  bta_dm_cb = {};
 }
 
 void BTA_dm_on_hw_off() {
