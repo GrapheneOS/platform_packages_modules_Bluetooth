@@ -27,9 +27,6 @@ mod iface_bluetooth_gatt;
 mod iface_bluetooth_media;
 
 const DBUS_SERVICE_NAME: &str = "org.chromium.bluetooth";
-const OBJECT_BLUETOOTH: &str = "/org/chromium/bluetooth/adapter";
-const OBJECT_BLUETOOTH_GATT: &str = "/org/chromium/bluetooth/gatt";
-const OBJECT_BLUETOOTH_MEDIA: &str = "/org/chromium/bluetooth/media";
 
 /// Check command line arguments for target hci adapter (--hci=N). If no adapter
 /// is set, default to 0.
@@ -44,6 +41,10 @@ fn get_adapter_index(args: &Vec<String>) -> i32 {
     }
 
     0
+}
+
+fn make_object_name(idx: i32, name: &str) -> String {
+    String::from(format!("/org/chromium/bluetooth/hci{}/{}", idx, name))
 }
 
 /// Runs the Bluetooth daemon serving D-Bus IPC.
@@ -103,7 +104,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
         // Register D-Bus method handlers of IBluetooth.
         iface_bluetooth::export_bluetooth_dbus_obj(
-            String::from(format!("{}{}", OBJECT_BLUETOOTH, adapter_index)),
+            make_object_name(adapter_index, "adapter"),
             conn.clone(),
             &mut cr,
             bluetooth,
@@ -111,7 +112,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         );
         // Register D-Bus method handlers of IBluetoothGatt.
         iface_bluetooth_gatt::export_bluetooth_gatt_dbus_obj(
-            String::from(format!("{}{}", OBJECT_BLUETOOTH_GATT, adapter_index)),
+            make_object_name(adapter_index, "gatt"),
             conn.clone(),
             &mut cr,
             bluetooth_gatt,
@@ -119,7 +120,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         );
 
         iface_bluetooth_media::export_bluetooth_media_dbus_obj(
-            String::from(format!("{}{}", OBJECT_BLUETOOTH_MEDIA, adapter_index)),
+            make_object_name(adapter_index, "media"),
             conn.clone(),
             &mut cr,
             bluetooth_media,
