@@ -13,17 +13,21 @@ Instructions for a Debian based distribution:
 * Bison 3.x.x (tested with 3.0.x, 3.2.x and 3.7.x)
 
 You'll want to download some pre-requisite packages as well. If you're currently
-configured for AOSP development, you should have all required packages.
-Otherwise, you can use the following apt-get list:
+configured for AOSP development, you should have most required packages.
+Otherwise, you can use the following apt-get list or use the bootstrap script
+(see below) to get a list of packages missing on your system:
 
 ```sh
 sudo apt-get install repo git-core gnupg flex bison gperf build-essential \
   zip curl zlib1g-dev gcc-multilib g++-multilib \
-  x11proto-core-dev libx11-dev lib32z-dev libncurses5 \
+  x11proto-core-dev libx11-dev libncurses5 \
   libgl1-mesa-dev libxml2-utils xsltproc unzip liblz4-tool libssl-dev \
   libc++-dev libevent-dev \
-  flatbuffers-compiler libflatbuffers1 \
-  openssl openssl-dev
+  flatbuffers-compiler libflatbuffers1 openssl \
+  libflatbuffers-dev libtinyxml2-dev \
+  libglib2.0-dev libevent-dev libnss3-dev libdbus-1-dev \
+  libprotobuf-dev ninja-build generate-ninja protobuf-compiler \
+  libre2-9
 ```
 
 You will also need a recent-ish version of Rust and Cargo. Please follow the
@@ -37,13 +41,19 @@ cd ~/fluoride
 git clone https://android.googlesource.com/platform/packages/modules/Bluetooth/system
 ```
 
-Install dependencies (require sudo access). This adds some Ubuntu dependencies
-and also installs GN (which is the build tool we're using).
+### Use bootstrap.py
 
+`bootstrap.py` is a helper script provided to set up your build environment. It
+will set up your build staging directory and also make sure you have all
+required system packages to build (should work on Debian and Ubuntu). You will
+still need to build some unpackaged dependencies.
+
+To use it:
 ```sh
-cd ~/fluoride/bt
-build/install_deps.sh
+./bootstrap.py --base-dir=path/to/staging/dir --bt-dir=path/to/bt/dir
 ```
+
+### Build dependencies
 
 The following third-party dependencies are necessary but currently unavailable
 via a package manager. You may have to build these from source and install them
@@ -52,23 +62,58 @@ to your local environment.
 * libchrome
 * modp_b64
 
-We provide a script to produce debian packages for those components, please
-follow the instructions in build/dpkg/README.txt.
+We provide a script to produce debian packages for those components. Please
+see the instructions in build/dpkg/README.txt for more details.
+
+```sh
+cd build/dpkg
+mkdir -p outdir/{modp_b64,libchrome}
+
+# Build and install modp_b64
+pushd modp_b64
+./gen-src-pkg.sh $(readlink -f ../outdir/modp_b64)
+popd
+sudo dpkg -i outdir/modp_b64/*.dpkg
+
+# Build and install libchrome
+pushd libchrome
+./gen-src-pkg.sh $(readlink -f ../outdir/libchrome)
+popd
+sudo dpkg -i outdir/libchrome/*.dpkg
+```
 
 The googletest packages provided by Debian/Ubuntu (libgmock-dev and
 libgtest-dev) do not provide pkg-config files, so you can build your own
 googletest using the steps below:
 
+```sh
+git clone https://github.com/google/googletest.git -b release-1.10.0
+cd googletest        # Main directory of the cloned repository.
+mkdir build          # Create a directory to hold the build output.
+cd build
+cmake ..             # Generate native build scripts for GoogleTest.
+sudo make install -DCMAKE_INSTALL_PREFIX=/usr
+
+# Optional steps if pkgconfig isn't installed to desired location
+# Modify the source (/usr/lib/x86_64-linux-gnu) and target (/usr/lib) based on
+# your local installation.
+for f in $(ls /usr/lib/x86_64-linux-gnu/pkgconfig/{gtest,gmock}*); do \
+  ln -sf $f /usr/lib/pkgconfig/$(basename $f);
+done
 ```
-$ git clone https://github.com/google/googletest.git -b release-1.10.0
-$ cd googletest        # Main directory of the cloned repository.
-$ mkdir build          # Create a directory to hold the build output.
-$ cd build
-$ cmake ..             # Generate native build scripts for GoogleTest.
-$ sudo make install -DCMAKE_INSTALL_PREFIX=/usr
+
+### Rust dependencies
+
+**Note**: Handled by bootstrap script.
+
+Run the following to install Rust dependencies:
+```
+cargo install cxxbridge-cmd
 ```
 
 ### Stage your build environment
+
+**Note**: Handled by bootstrap script.
 
 For host build, we depend on a few other repositories:
 * [Platform2](https://chromium.googlesource.com/chromiumos/platform2/)
@@ -89,7 +134,10 @@ ln -s $(readlink -f ${PROTO_LOG_DIR}) ${STAGING_DIR}/external/proto_logging
 ### Build
 
 We provide a build script to automate building assuming you've staged your build
-environment already as above.
+environment already as above. At this point, make sure you have all the
+pre-requisites installed (i.e. bootstrap script and other dependencies above) or
+you will see failures. In addition, you may need to set a `--libdir=` if your
+libraries are not stored in `/usr/lib64` by default.
 
 
 ```sh
@@ -114,9 +162,9 @@ Currently, Rust builds are a separate stage that uses Cargo to build. See
 ### Run
 
 By default on Linux, we statically link libbluetooth so you can just run the
-binary directly:
+binary directly. By default, it will try to run on hci0 but you can pass it
+--hci=N, where N corresponds to /sys/class/bluetooth/hciN.
 
 ```sh
-cd ~/fluoride/bt/out/Default
-./bluetoothtbd -create-ipc-socket=fluoride
+$OUTPUT_DIR/debug/btadapterd --hci=$HCI INIT_gd_hci=true
 ```
