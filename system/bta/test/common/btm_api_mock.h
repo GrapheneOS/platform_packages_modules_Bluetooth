@@ -25,9 +25,8 @@ namespace manager {
 
 class BtmInterface {
  public:
-  virtual bool GetSecurityFlagsByTransport(const RawAddress& bd_addr,
-                                           uint8_t* p_sec_flags,
-                                           tBT_TRANSPORT transport) = 0;
+  virtual bool BTM_IsEncrypted(const RawAddress& bd_addr,
+                               tBT_TRANSPORT transport) = 0;
   virtual tBTM_STATUS SetEncryption(const RawAddress& bd_addr,
                                     tBT_TRANSPORT transport,
                                     tBTM_SEC_CALLBACK* p_callback,
@@ -38,10 +37,8 @@ class BtmInterface {
 
 class MockBtmInterface : public BtmInterface {
  public:
-  MOCK_METHOD((bool), GetSecurityFlagsByTransport,
-              (const RawAddress& bd_addr, uint8_t* p_sec_flags,
-               tBT_TRANSPORT transport),
-              (override));
+  MOCK_METHOD((bool), BTM_IsEncrypted,
+              (const RawAddress& bd_addr, tBT_TRANSPORT transport), (override));
   MOCK_METHOD((tBTM_STATUS), SetEncryption,
               (const RawAddress& bd_addr, tBT_TRANSPORT transport,
                tBTM_SEC_CALLBACK* p_callback, void* p_ref_data,
