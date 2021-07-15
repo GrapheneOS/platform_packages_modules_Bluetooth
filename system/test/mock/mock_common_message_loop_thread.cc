@@ -117,6 +117,7 @@ void MessageLoopThread::ShutDown() {
   {
     if (is_main_ && init_flags::gd_rust_is_enabled()) {
       delete rust_thread_;
+      rust_thread_ = nullptr;
       thread_id_ = -1;
       linux_tid_ = -1;
       return;
