@@ -228,3 +228,10 @@ filegroup {
       "common/main_handler.cc",
   ],
 }
+
+filegroup {
+  name: "TestCommonInitFlags",
+  srcs: [
+      "common/init_flags.cc",
+  ],
+}
