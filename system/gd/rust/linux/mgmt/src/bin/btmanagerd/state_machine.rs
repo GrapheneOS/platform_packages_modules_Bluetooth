@@ -5,7 +5,7 @@ use nix::sys::signal::{self, Signal};
 use nix::unistd::Pid;
 use regex::Regex;
 use std::process::{Child, Command, Stdio};
-use std::sync::{Arc, Mutex};
+use std::sync::Arc;
 use std::time::Duration;
 use tokio::io::unix::AsyncFd;
 use tokio::sync::mpsc;
@@ -265,7 +265,7 @@ pub async fn mainloop<PM>(
                 {
                     prev_state = *context.state_machine.state.lock().unwrap();
                 }
-                let mut hci = 0;
+                let hci;
 
                 match action {
                     AdapterStateActions::StartBluetooth(i) => {
@@ -487,6 +487,9 @@ struct ManagerStateMachine<PM> {
 }
 
 impl ManagerStateMachine<NativeSubprocess> {
+    // NativeSubprocess is not used but is still useful for testing in Linux without upstart.
+    // Don't remove just yet.
+    #[allow(dead_code)]
     pub fn new_native() -> ManagerStateMachine<NativeSubprocess> {
         ManagerStateMachine::new(NativeSubprocess::new())
     }
