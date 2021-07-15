@@ -314,6 +314,7 @@ public class MapClientService extends ProfileService {
         filter.addAction(BluetoothDevice.ACTION_ACL_DISCONNECTED);
         registerReceiver(mMapReceiver, filter);
         removeUncleanAccounts();
+        MapClientContent.clearAllContent(this);
         setMapClientService(this);
         return true;
     }
