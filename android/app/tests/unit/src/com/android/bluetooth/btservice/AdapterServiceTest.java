@@ -34,6 +34,7 @@ import android.content.pm.PermissionInfo;
 import android.content.res.Resources;
 import android.media.AudioManager;
 import android.os.AsyncTask;
+import android.os.BatteryStatsManager;
 import android.os.Binder;
 import android.os.Bundle;
 import android.os.Looper;
@@ -53,6 +54,7 @@ import androidx.test.runner.AndroidJUnit4;
 import com.android.bluetooth.R;
 import com.android.bluetooth.TestUtils;
 import com.android.bluetooth.Utils;
+import com.android.internal.app.IBatteryStats;
 
 import libcore.util.HexEncoding;
 
@@ -95,6 +97,11 @@ public class AdapterServiceTest {
     private @Mock Binder mBinder;
     private @Mock AudioManager mAudioManager;
     private @Mock android.app.Application mApplication;
+
+    // BatteryStatsManager is final and cannot be mocked with regular mockito, so just mock the
+    // underlying binder calls.
+    final BatteryStatsManager mBatteryStatsManager =
+            new BatteryStatsManager(mock(IBatteryStats.class));
 
     private static final int CONTEXT_SWITCH_MS = 100;
     private static final int PROFILE_SERVICE_TOGGLE_TIME_MS = 200;
@@ -183,6 +190,10 @@ public class AdapterServiceTest {
         when(mMockContext.getSystemService(Context.AUDIO_SERVICE)).thenReturn(mAudioManager);
         when(mMockContext.getSystemServiceName(AudioManager.class))
                 .thenReturn(Context.AUDIO_SERVICE);
+        when(mMockContext.getSystemService(Context.BATTERY_STATS_SERVICE))
+                .thenReturn(mBatteryStatsManager);
+        when(mMockContext.getSystemServiceName(BatteryStatsManager.class))
+                .thenReturn(Context.BATTERY_STATS_SERVICE);
         when(mMockContext.getAttributionSource()).thenReturn(mAttributionSource);
         doAnswer(invocation -> {
             Object[] args = invocation.getArguments();
