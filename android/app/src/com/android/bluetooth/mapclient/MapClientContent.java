@@ -438,7 +438,7 @@ class MapClientContent {
         resolver.delete(Mms.CONTENT_URI, Mms.SUBSCRIPTION_ID + " =? ",
                 new String[]{Integer.toString(subscriptionId)});
         if (threads.length() > 2) {
-            threads = threads.substring(1, threads.length() - 2);
+            threads = threads.substring(0, threads.length() - 2);
             resolver.delete(Threads.CONTENT_URI, Threads._ID + " IN (" + threads + ")", null);
         }
     }
