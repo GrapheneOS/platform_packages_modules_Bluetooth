@@ -65,16 +65,34 @@ pub struct CommandHandler<TBluetoothManager: IBluetoothManager, TBluetooth: IBlu
     bluetooth: Arc<Mutex<Box<TBluetooth>>>,
 
     is_bluetooth_callback_registered: bool,
+
+    commands: Vec<String>,
 }
 
 impl<TBluetoothManager: IBluetoothManager, TBluetooth: IBluetooth>
     CommandHandler<TBluetoothManager, TBluetooth>
 {
+    /// Creates a new CommandHandler.
+    ///
+    /// * `commands` - List of commands for `help`.
     pub fn new(
         bluetooth_manager: Arc<Mutex<Box<TBluetoothManager>>>,
         bluetooth: Arc<Mutex<Box<TBluetooth>>>,
+        commands: Vec<String>,
     ) -> CommandHandler<TBluetoothManager, TBluetooth> {
-        CommandHandler { bluetooth_manager, bluetooth, is_bluetooth_callback_registered: false }
+        CommandHandler {
+            bluetooth_manager,
+            bluetooth,
+            is_bluetooth_callback_registered: false,
+            commands,
+        }
+    }
+
+    pub fn cmd_help(&self) {
+        println!("Available commands:");
+        for cmd in &self.commands {
+            println!("{}", cmd);
+        }
     }
 
     pub fn cmd_enable(&self, _cmd: String) {
