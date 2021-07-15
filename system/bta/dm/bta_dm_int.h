@@ -218,7 +218,7 @@ inline std::string device_info_text(tBTA_DM_DEV_INFO info) {
 #define BTA_DM_PM_EXECUTE 3
 typedef uint8_t tBTA_DM_PM_REQ;
 
-struct sBTA_DM_PEER_DEVICE {
+struct tBTA_DM_PEER_DEVICE {
   RawAddress peer_bdaddr;
   tBTA_DM_CONN_STATE conn_state;
   tBTA_PREF_ROLES pref_role;
@@ -229,7 +229,7 @@ struct sBTA_DM_PEER_DEVICE {
   friend void bta_dm_pm_btm_status(const RawAddress& bd_addr,
                                    tBTM_PM_STATUS status, uint16_t value,
                                    tHCI_STATUS hci_status);
-  friend void bta_dm_pm_sniff(struct sBTA_DM_PEER_DEVICE* p_peer_dev,
+  friend void bta_dm_pm_sniff(struct tBTA_DM_PEER_DEVICE* p_peer_dev,
                               uint8_t index);
   friend void bta_dm_rm_cback(tBTA_SYS_CONN_STATUS status, uint8_t id,
                               uint8_t app_id, const RawAddress& peer_addr);
@@ -246,7 +246,6 @@ struct sBTA_DM_PEER_DEVICE {
   bool remove_dev_pending;
   tBT_TRANSPORT transport;
 };
-typedef struct sBTA_DM_PEER_DEVICE tBTA_DM_PEER_DEVICE;
 
 /* structure to store list of
   active connections */
