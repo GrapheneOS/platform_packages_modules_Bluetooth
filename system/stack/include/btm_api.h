@@ -71,7 +71,7 @@ bool BTM_IsDeviceUp(void);
  * Returns          BTM_CMD_STARTED if successful, otherwise an error
  *
  ******************************************************************************/
-tBTM_STATUS BTM_SetLocalDeviceName(char* p_name);
+tBTM_STATUS BTM_SetLocalDeviceName(const char* p_name);
 
 /*******************************************************************************
  *
