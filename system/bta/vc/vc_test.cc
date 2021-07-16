@@ -250,9 +250,8 @@ class VolumeControlTest : public ::testing::Test {
 
   void TestConnect(const RawAddress& address) {
     // by default indicate link as encrypted
-    ON_CALL(btm_interface, GetSecurityFlagsByTransport(address, NotNull(), _))
-        .WillByDefault(
-            DoAll(SetArgPointee<1>(BTM_SEC_FLAG_ENCRYPTED), Return(true)));
+    ON_CALL(btm_interface, BTM_IsEncrypted(address, _))
+        .WillByDefault(DoAll(Return(true)));
 
     EXPECT_CALL(gatt_interface, Open(gatt_if, address, true, _));
     VolumeControl::Get()->Connect(address);
@@ -269,9 +268,8 @@ class VolumeControlTest : public ::testing::Test {
 
   void TestAddFromStorage(const RawAddress& address, bool auto_connect) {
     // by default indicate link as encrypted
-    ON_CALL(btm_interface, GetSecurityFlagsByTransport(address, NotNull(), _))
-        .WillByDefault(
-            DoAll(SetArgPointee<1>(BTM_SEC_FLAG_ENCRYPTED), Return(true)));
+    ON_CALL(btm_interface, BTM_IsEncrypted(address, _))
+        .WillByDefault(DoAll(Return(true)));
 
     if (auto_connect) {
       EXPECT_CALL(gatt_interface, Open(gatt_if, address, false, _));
@@ -360,8 +358,8 @@ class VolumeControlTest : public ::testing::Test {
   }
 
   void SetEncryptionResult(const RawAddress& address, bool success) {
-    ON_CALL(btm_interface, GetSecurityFlagsByTransport(address, NotNull(), _))
-        .WillByDefault(DoAll(SetArgPointee<1>(0), Return(true)));
+    ON_CALL(btm_interface, BTM_IsEncrypted(address, _))
+        .WillByDefault(DoAll(Return(false)));
     EXPECT_CALL(btm_interface,
                 SetEncryption(address, _, NotNull(), _, BTM_BLE_SEC_ENCRYPT))
         .WillOnce(Invoke(

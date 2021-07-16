@@ -428,17 +428,12 @@ TEST_F(VolumeControlDeviceTest, test_enqueue_remaining_requests) {
 }
 
 TEST_F(VolumeControlDeviceTest, test_check_link_encrypted) {
-  ON_CALL(btm_interface, GetSecurityFlagsByTransport(_, _, _))
-      .WillByDefault(
-          DoAll(SetArgPointee<1>(BTM_SEC_FLAG_ENCRYPTED), Return(true)));
+  ON_CALL(btm_interface, BTM_IsEncrypted(_, _))
+      .WillByDefault(DoAll(Return(true)));
   ASSERT_EQ(true, device->IsEncryptionEnabled());
 
-  ON_CALL(btm_interface, GetSecurityFlagsByTransport(_, _, _))
-      .WillByDefault(DoAll(SetArgPointee<1>(0), Return(false)));
-  ASSERT_NE(true, device->IsEncryptionEnabled());
-
-  ON_CALL(btm_interface, GetSecurityFlagsByTransport(_, _, _))
-      .WillByDefault(DoAll(SetArgPointee<1>(0), Return(true)));
+  ON_CALL(btm_interface, BTM_IsEncrypted(_, _))
+      .WillByDefault(DoAll(Return(false)));
   ASSERT_NE(true, device->IsEncryptionEnabled());
 }
 
