@@ -160,6 +160,13 @@ filegroup {
 }
 
 filegroup {
+  name: "TestMockOsi",
+    srcs: [
+      "mock/mock_osi_*.cc",
+    ],
+}
+
+filegroup {
   name: "TestMockStackAcl",
   srcs: [
       "mock/mock_stack_acl*.cc",
