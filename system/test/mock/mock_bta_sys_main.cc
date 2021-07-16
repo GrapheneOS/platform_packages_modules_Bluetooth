@@ -17,48 +17,84 @@
 /*
  * Generated mock file from original source file
  *   Functions generated:10
+ *
+ *  mockcify.pl ver 0.3.0
  */
 
+#include <cstdint>
+#include <functional>
 #include <map>
 #include <string>
 
 extern std::map<std::string, int> mock_function_count_map;
 
-#include <base/bind.h>
-#include <cstring>
-#include "bt_target.h"
-#include "bta/sys/bta_sys.h"
-#include "bta/sys/bta_sys_int.h"
-#include "include/hardware/bluetooth.h"
-#include "osi/include/alarm.h"
-#include "osi/include/allocator.h"
-#include "osi/include/log.h"
-#include "stack/include/bt_types.h"
-#include "stack/include/btu.h"
+// Mock include file to share data between tests and mock
+#include "test/mock/mock_bta_sys_main.h"
 
-#ifndef UNUSED_ATTR
-#define UNUSED_ATTR
-#endif
+// Mocked internal structures, if any
 
-bool bta_sys_is_register(uint8_t id) {
+namespace test {
+namespace mock {
+namespace bta_sys_main {
+
+// Function state capture and return values, if needed
+struct BTA_sys_signal_hw_error BTA_sys_signal_hw_error;
+struct bta_set_forward_hw_failures bta_set_forward_hw_failures;
+struct bta_sys_deregister bta_sys_deregister;
+struct bta_sys_disable bta_sys_disable;
+struct bta_sys_init bta_sys_init;
+struct bta_sys_is_register bta_sys_is_register;
+struct bta_sys_register bta_sys_register;
+struct bta_sys_sendmsg bta_sys_sendmsg;
+struct bta_sys_sendmsg_delayed bta_sys_sendmsg_delayed;
+struct bta_sys_start_timer bta_sys_start_timer;
+
+}  // namespace bta_sys_main
+}  // namespace mock
+}  // namespace test
+
+// Mocked functions, if any
+void BTA_sys_signal_hw_error() {
   mock_function_count_map[__func__]++;
-  return false;
+  test::mock::bta_sys_main::BTA_sys_signal_hw_error();
 }
-void BTA_sys_signal_hw_error() { mock_function_count_map[__func__]++; }
 void bta_set_forward_hw_failures(bool value) {
   mock_function_count_map[__func__]++;
+  test::mock::bta_sys_main::bta_set_forward_hw_failures(value);
 }
-void bta_sys_deregister(uint8_t id) { mock_function_count_map[__func__]++; }
-void bta_sys_disable() { mock_function_count_map[__func__]++; }
-void bta_sys_init(void) { mock_function_count_map[__func__]++; }
+void bta_sys_deregister(uint8_t id) {
+  mock_function_count_map[__func__]++;
+  test::mock::bta_sys_main::bta_sys_deregister(id);
+}
+void bta_sys_disable() {
+  mock_function_count_map[__func__]++;
+  test::mock::bta_sys_main::bta_sys_disable();
+}
+void bta_sys_init(void) {
+  mock_function_count_map[__func__]++;
+  test::mock::bta_sys_main::bta_sys_init();
+}
+bool bta_sys_is_register(uint8_t id) {
+  mock_function_count_map[__func__]++;
+  return test::mock::bta_sys_main::bta_sys_is_register(id);
+}
 void bta_sys_register(uint8_t id, const tBTA_SYS_REG* p_reg) {
   mock_function_count_map[__func__]++;
+  test::mock::bta_sys_main::bta_sys_register(id, p_reg);
 }
-void bta_sys_sendmsg(void* p_msg) { mock_function_count_map[__func__]++; }
+void bta_sys_sendmsg(void* p_msg) {
+  mock_function_count_map[__func__]++;
+  test::mock::bta_sys_main::bta_sys_sendmsg(p_msg);
+}
 void bta_sys_sendmsg_delayed(void* p_msg, const base::TimeDelta& delay) {
   mock_function_count_map[__func__]++;
+  test::mock::bta_sys_main::bta_sys_sendmsg_delayed(p_msg, delay);
 }
 void bta_sys_start_timer(alarm_t* alarm, uint64_t interval_ms, uint16_t event,
                          uint16_t layer_specific) {
   mock_function_count_map[__func__]++;
+  test::mock::bta_sys_main::bta_sys_start_timer(alarm, interval_ms, event,
+                                                layer_specific);
 }
+// Mocked functions complete
+// END mockcify generation
