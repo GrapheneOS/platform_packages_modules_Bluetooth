@@ -21,6 +21,10 @@ use std::sync::{Arc, Mutex};
 
 use crate::dbus_arg::{DBusArg, DBusArgError, RefArgToRust};
 
+fn make_object_path(idx: i32, name: &str) -> dbus::Path {
+    dbus::Path::new(format!("/org/chromium/bluetooth/hci{}/{}", idx, name)).unwrap()
+}
+
 impl_dbus_arg_enum!(BluetoothTransport);
 impl_dbus_arg_enum!(BtSspVariant);
 
@@ -115,14 +119,17 @@ pub(crate) struct BluetoothDBus {
 }
 
 impl BluetoothDBus {
-    pub(crate) fn new(conn: Arc<SyncConnection>, cr: Arc<Mutex<Crossroads>>) -> BluetoothDBus {
-        // TODO: Adapter client should dynamically accept hci # and be initialized
+    pub(crate) fn new(
+        conn: Arc<SyncConnection>,
+        cr: Arc<Mutex<Crossroads>>,
+        index: i32,
+    ) -> BluetoothDBus {
         BluetoothDBus {
             client_proxy: ClientDBusProxy {
                 conn: conn.clone(),
                 cr: cr,
                 bus_name: String::from("org.chromium.bluetooth"),
-                objpath: dbus::Path::new("/org/chromium/bluetooth/adapter0").unwrap(),
+                objpath: make_object_path(index, "adapter"),
                 interface: String::from("org.chromium.bluetooth.Bluetooth"),
             },
         }
