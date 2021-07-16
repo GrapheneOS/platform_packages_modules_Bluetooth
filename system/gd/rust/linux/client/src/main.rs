@@ -50,10 +50,12 @@ struct API {
 }
 
 // This creates the API implementations over D-Bus.
-fn create_api_dbus(conn: Arc<SyncConnection>, cr: Arc<Mutex<Crossroads>>) -> API {
-    let bluetooth = Arc::new(Mutex::new(Box::new(BluetoothDBus::new(conn.clone(), cr.clone()))));
+fn create_api_dbus(conn: Arc<SyncConnection>, cr: Arc<Mutex<Crossroads>>, idx: i32) -> API {
     let bluetooth_manager =
         Arc::new(Mutex::new(Box::new(BluetoothManagerDBus::new(conn.clone(), cr.clone()))));
+
+    let bluetooth =
+        Arc::new(Mutex::new(Box::new(BluetoothDBus::new(conn.clone(), cr.clone(), idx))));
 
     API { bluetooth_manager, bluetooth }
 }
@@ -90,7 +92,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             }),
         );
 
-        let api = create_api_dbus(conn, cr);
+        // We only need hci index 0 for now.
+        // TODO: Have a mechanism (e.g. CLI argument or btclient command) to select the hci index.
+        let api = create_api_dbus(conn, cr, 0);
 
         // TODO: Registering the callback should be done when btmanagerd is ready (detect with
         // ObjectManager).
