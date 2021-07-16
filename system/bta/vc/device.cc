@@ -228,12 +228,7 @@ bool VolumeControlDevice::VerifyReady(uint16_t handle) {
 }
 
 bool VolumeControlDevice::IsEncryptionEnabled() {
-  uint8_t sec_flag = 0;
-  bool device_found =
-      BTM_GetSecurityFlagsByTransport(address, &sec_flag, BT_TRANSPORT_LE);
-  LOG(INFO) << __func__ << ": found=" << static_cast<int>(device_found)
-            << " sec_flag=" << loghex(sec_flag);
-  return device_found && (sec_flag & BTM_SEC_FLAG_ENCRYPTED);
+  return BTM_IsEncrypted(address, BT_TRANSPORT_LE);
 }
 
 bool VolumeControlDevice::EnableEncryption(tBTM_SEC_CALLBACK* callback) {
