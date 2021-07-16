@@ -86,7 +86,7 @@ tBTM_STATUS BTM_SetDeviceClass(DEV_CLASS dev_class) {
   mock_function_count_map[__func__]++;
   return BTM_SUCCESS;
 }
-tBTM_STATUS BTM_SetLocalDeviceName(char* p_name) {
+tBTM_STATUS BTM_SetLocalDeviceName(const char* p_name) {
   mock_function_count_map[__func__]++;
   return BTM_SUCCESS;
 }
