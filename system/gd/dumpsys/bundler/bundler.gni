@@ -58,7 +58,7 @@ template("bt_flatc_binary_schema") {
 
       # headers get generated ito subdirectories based on relative path
       if (gen_header) {
-        header_name = string_replace(s, ".fbs", ".h")
+        header_name = string_replace(s, ".fbs", "_generated.h")
         outputs += [ "${target_gen_dir}/${header_name}" ]
       }
     }
