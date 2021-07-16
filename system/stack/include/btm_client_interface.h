@@ -201,7 +201,7 @@ struct btm_client_interface_s {
   struct {
     tBTM_STATUS (*BTM_ReadLocalDeviceNameFromController)(
         tBTM_CMPL_CB* p_rln_cmpl_cback);
-    tBTM_STATUS (*BTM_SetLocalDeviceName)(char* p_name);
+    tBTM_STATUS (*BTM_SetLocalDeviceName)(const char* p_name);
     tBTM_STATUS (*BTM_SetDeviceClass)(DEV_CLASS dev_class);
     bool (*BTM_IsDeviceUp)();
     uint8_t* (*BTM_ReadDeviceClass)();

@@ -502,7 +502,7 @@ void GAP_BleAttrDBUpdate(uint16_t attr_uuid, tGAP_BLE_ATTR_VALUE* p_value) {
           break;
 
         case GATT_UUID_GAP_DEVICE_NAME:
-          BTM_SetLocalDeviceName((char*)p_value->p_dev_name);
+          BTM_SetLocalDeviceName((const char*)p_value->p_dev_name);
           break;
 
         case GATT_UUID_GAP_CENTRAL_ADDR_RESOL:

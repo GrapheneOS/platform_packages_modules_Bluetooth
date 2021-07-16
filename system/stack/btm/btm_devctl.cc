@@ -313,7 +313,7 @@ static void decode_controller_support() {
  * Returns          status of the operation
  *
  ******************************************************************************/
-tBTM_STATUS BTM_SetLocalDeviceName(char* p_name) {
+tBTM_STATUS BTM_SetLocalDeviceName(const char* p_name) {
   uint8_t* p;
 
   if (!p_name || !p_name[0] || (strlen((char*)p_name) > BD_NAME_LEN))
