@@ -1012,6 +1012,7 @@ cc_test {
         "BluetoothGeneratedPackets_h",
     ],
     srcs: [
+        ":OsiCompatSources",
         ":TestMockBta",
         ":TestMockBtif",
         ":TestMockHci",

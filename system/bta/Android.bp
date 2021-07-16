@@ -173,6 +173,8 @@ cc_test {
         ":TestMockMainShim",
         ":TestMockStack",
         ":TestStubOsi",
+        "ar/bta_ar.cc",
+        "dm/bta_dm_api.cc",
         "dm/bta_dm_act.cc",
         "dm/bta_dm_cfg.cc",
         "dm/bta_dm_ci.cc",
