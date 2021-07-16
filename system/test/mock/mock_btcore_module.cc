@@ -16,46 +16,68 @@
 
 /*
  * Generated mock file from original source file
- *   Functions generated:8
+ *   Functions generated:7
+ *
+ *  mockcify.pl ver 0.3.0
  */
 
+#include <cstdint>
+#include <functional>
 #include <map>
 #include <string>
 
 extern std::map<std::string, int> mock_function_count_map;
 
-#include <base/logging.h>
-#include <dlfcn.h>
-#include <string.h>
-#include <mutex>
-#include <unordered_map>
-#include "btcore/include/module.h"
-#include "common/message_loop_thread.h"
-#include "osi/include/allocator.h"
-#include "osi/include/log.h"
-#include "osi/include/osi.h"
+// Mock include file to share data between tests and mock
+#include "test/mock/mock_btcore_module.h"
 
-#ifndef UNUSED_ATTR
-#define UNUSED_ATTR
-#endif
+// Mocked internal structures, if any
 
+namespace test {
+namespace mock {
+namespace btcore_module {
+
+// Function state capture and return values, if needed
+struct get_module get_module;
+struct module_clean_up module_clean_up;
+struct module_init module_init;
+struct module_management_start module_management_start;
+struct module_management_stop module_management_stop;
+struct module_shut_down module_shut_down;
+struct module_start_up module_start_up;
+
+}  // namespace btcore_module
+}  // namespace mock
+}  // namespace test
+
+// Mocked functions, if any
+const module_t* get_module(const char* name) {
+  mock_function_count_map[__func__]++;
+  return test::mock::btcore_module::get_module(name);
+}
+void module_clean_up(const module_t* module) {
+  mock_function_count_map[__func__]++;
+  test::mock::btcore_module::module_clean_up(module);
+}
 bool module_init(const module_t* module) {
   mock_function_count_map[__func__]++;
-  return false;
+  return test::mock::btcore_module::module_init(module);
+}
+void module_management_start(void) {
+  mock_function_count_map[__func__]++;
+  test::mock::btcore_module::module_management_start();
+}
+void module_management_stop(void) {
+  mock_function_count_map[__func__]++;
+  test::mock::btcore_module::module_management_stop();
+}
+void module_shut_down(const module_t* module) {
+  mock_function_count_map[__func__]++;
+  test::mock::btcore_module::module_shut_down(module);
 }
 bool module_start_up(const module_t* module) {
   mock_function_count_map[__func__]++;
-  return false;
+  return test::mock::btcore_module::module_start_up(module);
 }
-const module_t* get_module(const char* name) {
-  mock_function_count_map[__func__]++;
-  return nullptr;
-}
-void module_management_start(void) { mock_function_count_map[__func__]++; }
-void module_clean_up(const module_t* module) {
-  mock_function_count_map[__func__]++;
-}
-void module_management_stop(void) { mock_function_count_map[__func__]++; }
-void module_shut_down(const module_t* module) {
-  mock_function_count_map[__func__]++;
-}
+// Mocked functions complete
+// END mockcify generation
