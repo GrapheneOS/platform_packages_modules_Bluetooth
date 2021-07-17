@@ -401,7 +401,8 @@ void BTA_dm_on_hw_on() {
      which forces
      the DM_ENABLE_EVT to be sent only after all the init steps are complete
      */
-  BTM_ReadLocalDeviceNameFromController(bta_dm_local_name_cback);
+  get_btm_client_interface().local.BTM_ReadLocalDeviceNameFromController(
+      bta_dm_local_name_cback);
 
   bta_sys_rm_register(bta_dm_rm_cback);
 
