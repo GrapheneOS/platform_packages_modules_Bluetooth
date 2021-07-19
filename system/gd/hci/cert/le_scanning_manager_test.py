@@ -22,3 +22,11 @@ class LeScanningManagerTest(GdBaseTestClass, LeScanningManagerTestBase):
 
     def setup_class(self):
         GdBaseTestClass.setup_class(self, dut_module='HCI_INTERFACES', cert_module='HCI_INTERFACES')
+
+    def setup_test(self):
+        GdBaseTestClass.setup_test(self)
+        LeScanningManagerTestBase.setup_test(self, self.cert)
+
+    def teardown_test(self):
+        LeScanningManagerTestBase.teardown_test(self)
+        GdBaseTestClass.teardown_test(self)

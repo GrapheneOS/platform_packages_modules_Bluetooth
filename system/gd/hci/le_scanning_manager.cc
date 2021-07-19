@@ -497,14 +497,14 @@ struct LeScanningManager::impl : public bluetooth::hci::LeAddressManagerCallback
       case ScanApiType::ANDROID_HCI:
         le_scanning_interface_->EnqueueCommand(
             hci::LeExtendedScanParamsBuilder::Create(
-                LeScanType::ACTIVE, interval_ms_, window_ms_, own_address_type_, filter_policy_),
+                le_scan_type_, interval_ms_, window_ms_, own_address_type_, filter_policy_),
             module_handler_->BindOnceOn(this, &impl::on_set_scan_parameter_complete));
 
         break;
       case ScanApiType::LEGACY:
         le_scanning_interface_->EnqueueCommand(
             hci::LeSetScanParametersBuilder::Create(
-                LeScanType::ACTIVE, interval_ms_, window_ms_, own_address_type_, filter_policy_),
+                le_scan_type_, interval_ms_, window_ms_, own_address_type_, filter_policy_),
             module_handler_->BindOnceOn(this, &impl::on_set_scan_parameter_complete));
         break;
     }

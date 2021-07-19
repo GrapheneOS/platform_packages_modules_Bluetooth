@@ -32,8 +32,8 @@ from hci.facade import hci_facade_pb2 as hci_facade
 from hci.facade import \
   le_advertising_manager_facade_pb2 as le_advertising_facade
 from hci.facade import le_initiator_address_facade_pb2 as le_initiator_address_facade
+from hci.facade.le_advertising_manager_facade_pb2 import AdvertisingCallbackMsgType
 from hci.facade.le_advertising_manager_facade_pb2 import AdvertisingStatus
-from hci.facade.le_advertising_manager_facade_pb2 import CallbackMsgType
 
 
 class LeAdvertisingManagerTestBase():
@@ -171,8 +171,9 @@ class LeAdvertisingManagerTestBase():
         self.set_address_policy_with_static_address()
         create_response = self.create_advertiser()
         assertThat(self.dut.callback_event_stream).emits(
-            AdvertisingMatchers.CallbackMsg(CallbackMsgType.ADVERTISING_SET_STARTED, create_response.advertiser_id,
-                                            AdvertisingStatus.SUCCESS, 0x00))
+            AdvertisingMatchers.AdvertisingCallbackMsg(AdvertisingCallbackMsgType.ADVERTISING_SET_STARTED,
+                                                       create_response.advertiser_id, AdvertisingStatus.ADV_SUCCESS,
+                                                       0x00))
 
     def test_enable_advertiser_callback(self):
         self.set_address_policy_with_static_address()
@@ -182,8 +183,9 @@ class LeAdvertisingManagerTestBase():
         self.dut.hci_le_advertising_manager.EnableAdvertiser(enable_advertiser_request)
 
         assertThat(self.dut.callback_event_stream).emits(
-            AdvertisingMatchers.CallbackMsg(CallbackMsgType.ADVERTISING_ENABLED, create_response.advertiser_id,
-                                            AdvertisingStatus.SUCCESS, 0x01))
+            AdvertisingMatchers.AdvertisingCallbackMsg(AdvertisingCallbackMsgType.ADVERTISING_ENABLED,
+                                                       create_response.advertiser_id, AdvertisingStatus.ADV_SUCCESS,
+                                                       0x01))
 
     def test_disable_advertiser_callback(self):
         self.set_address_policy_with_static_address()
@@ -193,8 +195,9 @@ class LeAdvertisingManagerTestBase():
         self.dut.hci_le_advertising_manager.EnableAdvertiser(disable_advertiser_request)
 
         assertThat(self.dut.callback_event_stream).emits(
-            AdvertisingMatchers.CallbackMsg(CallbackMsgType.ADVERTISING_ENABLED, create_response.advertiser_id,
-                                            AdvertisingStatus.SUCCESS, 0x00))
+            AdvertisingMatchers.AdvertisingCallbackMsg(AdvertisingCallbackMsgType.ADVERTISING_ENABLED,
+                                                       create_response.advertiser_id, AdvertisingStatus.ADV_SUCCESS,
+                                                       0x00))
 
     def test_set_advertising_data_callback(self):
         self.set_address_policy_with_static_address()
@@ -209,8 +212,8 @@ class LeAdvertisingManagerTestBase():
         self.dut.hci_le_advertising_manager.SetData(set_data_request)
 
         assertThat(self.dut.callback_event_stream).emits(
-            AdvertisingMatchers.CallbackMsg(CallbackMsgType.ADVERTISING_DATA_SET, create_response.advertiser_id,
-                                            AdvertisingStatus.SUCCESS))
+            AdvertisingMatchers.AdvertisingCallbackMsg(AdvertisingCallbackMsgType.ADVERTISING_DATA_SET,
+                                                       create_response.advertiser_id, AdvertisingStatus.ADV_SUCCESS))
 
     def test_set_scan_response_data_callback(self):
         self.set_address_policy_with_static_address()
@@ -225,8 +228,8 @@ class LeAdvertisingManagerTestBase():
         self.dut.hci_le_advertising_manager.SetData(set_data_request)
 
         assertThat(self.dut.callback_event_stream).emits(
-            AdvertisingMatchers.CallbackMsg(CallbackMsgType.SCAN_RESPONSE_DATA_SET, create_response.advertiser_id,
-                                            AdvertisingStatus.SUCCESS))
+            AdvertisingMatchers.AdvertisingCallbackMsg(AdvertisingCallbackMsgType.SCAN_RESPONSE_DATA_SET,
+                                                       create_response.advertiser_id, AdvertisingStatus.ADV_SUCCESS))
 
     def test_set_parameters_callback(self):
         self.set_address_policy_with_static_address()
@@ -250,8 +253,8 @@ class LeAdvertisingManagerTestBase():
         self.dut.hci_le_advertising_manager.SetParameters(set_parameters_request)
 
         assertThat(self.dut.callback_event_stream).emits(
-            AdvertisingMatchers.CallbackMsg(CallbackMsgType.ADVERTISING_PARAMETERS_UPDATED,
-                                            create_response.advertiser_id, AdvertisingStatus.SUCCESS))
+            AdvertisingMatchers.AdvertisingCallbackMsg(AdvertisingCallbackMsgType.ADVERTISING_PARAMETERS_UPDATED,
+                                                       create_response.advertiser_id, AdvertisingStatus.ADV_SUCCESS))
 
     def test_set_periodic_parameters_callback(self):
         self.set_address_policy_with_static_address()
@@ -267,8 +270,8 @@ class LeAdvertisingManagerTestBase():
         self.dut.hci_le_advertising_manager.SetPeriodicParameters(set_periodic_parameters_request)
 
         assertThat(self.dut.callback_event_stream).emits(
-            AdvertisingMatchers.CallbackMsg(CallbackMsgType.PERIODIC_ADVERTISING_PARAMETERS_UPDATED,
-                                            create_response.advertiser_id))
+            AdvertisingMatchers.AdvertisingCallbackMsg(
+                AdvertisingCallbackMsgType.PERIODIC_ADVERTISING_PARAMETERS_UPDATED, create_response.advertiser_id))
 
     def test_set_periodic_data_callback(self):
         self.set_address_policy_with_static_address()
@@ -283,8 +286,8 @@ class LeAdvertisingManagerTestBase():
         self.dut.hci_le_advertising_manager.SetPeriodicData(set_periodic_data_request)
 
         assertThat(self.dut.callback_event_stream).emits(
-            AdvertisingMatchers.CallbackMsg(CallbackMsgType.PERIODIC_ADVERTISING_DATA_SET,
-                                            create_response.advertiser_id))
+            AdvertisingMatchers.AdvertisingCallbackMsg(AdvertisingCallbackMsgType.PERIODIC_ADVERTISING_DATA_SET,
+                                                       create_response.advertiser_id))
 
     def test_enable_periodic_advertising_callback(self):
         self.set_address_policy_with_static_address()
@@ -294,8 +297,8 @@ class LeAdvertisingManagerTestBase():
         self.dut.hci_le_advertising_manager.EnablePeriodicAdvertising(enable_periodic_advertising_request)
 
         assertThat(self.dut.callback_event_stream).emits(
-            AdvertisingMatchers.CallbackMsg(CallbackMsgType.PERIODIC_ADVERTISING_ENABLED,
-                                            create_response.advertiser_id))
+            AdvertisingMatchers.AdvertisingCallbackMsg(AdvertisingCallbackMsgType.PERIODIC_ADVERTISING_ENABLED,
+                                                       create_response.advertiser_id))
 
     def test_get_own_address(self):
         self.set_address_policy_with_static_address()
@@ -306,5 +309,5 @@ class LeAdvertisingManagerTestBase():
         address_with_type = common.BluetoothAddressWithType(
             address=common.BluetoothAddress(address=bytes(b'd0:05:04:03:02:01')), type=common.RANDOM_DEVICE_ADDRESS)
         assertThat(self.dut.address_event_stream).emits(
-            AdvertisingMatchers.AddressMsg(CallbackMsgType.OWN_ADDRESS_READ, create_response.advertiser_id,
+            AdvertisingMatchers.AddressMsg(AdvertisingCallbackMsgType.OWN_ADDRESS_READ, create_response.advertiser_id,
                                            address_with_type))
