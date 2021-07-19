@@ -17,7 +17,7 @@ service LeAdvertisingManagerFacade {
   rpc GetOwnAddress(GetOwnAddressRequest) returns (google.protobuf.Empty) {}
   rpc GetNumberOfAdvertisingInstances(google.protobuf.Empty) returns (GetNumberOfAdvertisingInstancesResponse) {}
   rpc RemoveAdvertiser(RemoveAdvertiserRequest) returns (google.protobuf.Empty) {}
-  rpc FetchCallbackEvents(google.protobuf.Empty) returns (stream CallbackMsg) {}
+  rpc FetchCallbackEvents(google.protobuf.Empty) returns (stream AdvertisingCallbackMsg) {}
   rpc FetchAddressEvents(google.protobuf.Empty) returns (stream AddressMsg) {}
 }
 
@@ -46,12 +46,12 @@ enum AdvertisingProperty {
 };
 
 enum AdvertisingStatus {
-  SUCCESS = 0x00;
-  DATA_TOO_LARGE = 0x01;
-  TOO_MANY_ADVERTISERS = 0x02;
-  ALREADY_STARTED = 0x03;
-  INTERNAL_ERROR = 0x04;
-  FEATURE_UNSUPPORTED = 0x05;
+  ADV_SUCCESS = 0x00;
+  ADV_DATA_TOO_LARGE = 0x01;
+  ADV_TOO_MANY_ADVERTISERS = 0x02;
+  ADV_ALREADY_STARTED = 0x03;
+  ADV_INTERNAL_ERROR = 0x04;
+  ADV_FEATURE_UNSUPPORTED = 0x05;
 };
 
 message AdvertisingConfig {
@@ -153,7 +153,7 @@ message RemoveAdvertiserRequest {
   int32 advertiser_id = 1;
 }
 
-enum CallbackMsgType {
+enum AdvertisingCallbackMsgType {
   ADVERTISING_SET_STARTED = 0;
   ADVERTISING_ENABLED = 1;
   ADVERTISING_DATA_SET = 2;
@@ -165,15 +165,15 @@ enum CallbackMsgType {
   OWN_ADDRESS_READ = 8;
 }
 
-message CallbackMsg {
-  CallbackMsgType message_type = 1;
+message AdvertisingCallbackMsg {
+  AdvertisingCallbackMsgType message_type = 1;
   uint32 advertiser_id = 2;
   AdvertisingStatus status = 3;
   uint32 data = 4;
 }
 
 message AddressMsg {
-  CallbackMsgType message_type = 1;
+  AdvertisingCallbackMsgType message_type = 1;
   uint32 advertiser_id = 2;
   bluetooth.facade.BluetoothAddressWithType address = 3;
 }
