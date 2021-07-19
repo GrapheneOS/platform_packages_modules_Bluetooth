@@ -58,6 +58,7 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.AsyncTask;
 import android.os.BatteryStats;
+import android.os.BatteryStatsManager;
 import android.os.Binder;
 import android.os.Bundle;
 import android.os.Handler;
@@ -69,7 +70,6 @@ import android.os.PowerManager;
 import android.os.RemoteCallbackList;
 import android.os.RemoteException;
 import android.os.ResultReceiver;
-import android.os.ServiceManager;
 import android.os.SystemClock;
 import android.os.SystemProperties;
 import android.os.UserHandle;
@@ -108,7 +108,6 @@ import com.android.bluetooth.telephony.BluetoothInCallService;
 import com.android.bluetooth.vc.VolumeControlService;
 import com.android.internal.R;
 import com.android.internal.annotations.VisibleForTesting;
-import com.android.internal.app.IBatteryStats;
 
 import com.google.protobuf.InvalidProtocolBufferException;
 
@@ -243,7 +242,7 @@ public class AdapterService extends Service {
 
     private AlarmManager mAlarmManager;
     private PendingIntent mPendingAlarm;
-    private IBatteryStats mBatteryStats;
+    private BatteryStatsManager mBatteryStatsManager;
     private PowerManager mPowerManager;
     private PowerManager.WakeLock mWakeLock;
     private String mWakeLockName;
@@ -502,8 +501,7 @@ public class AdapterService extends Service {
         getAdapterPropertyNative(AbstractionLayer.BT_PROPERTY_CLASS_OF_DEVICE);
         mAlarmManager = getSystemService(AlarmManager.class);
         mPowerManager = getSystemService(PowerManager.class);
-        mBatteryStats = IBatteryStats.Stub.asInterface(
-                ServiceManager.getService(BatteryStats.SERVICE_NAME));
+        mBatteryStatsManager = getSystemService(BatteryStatsManager.class);
 
         mBluetoothKeystoreService.initJni();
 
@@ -627,11 +625,7 @@ public class AdapterService extends Service {
 
         mJniCallbacks.init(mBondStateMachine, mRemoteDevices);
 
-        try {
-            mBatteryStats.noteResetBleScan();
-        } catch (RemoteException e) {
-            Log.w(TAG, "RemoteException trying to send a reset to BatteryStats");
-        }
+        mBatteryStatsManager.reportBleScanReset();
         BluetoothStatsLog.write_non_chained(BluetoothStatsLog.BLE_SCAN_STATE_CHANGED, -1, null,
                 BluetoothStatsLog.BLE_SCAN_STATE_CHANGED__STATE__RESET, false, false, false);
 
