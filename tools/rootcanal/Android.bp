@@ -74,6 +74,7 @@ cc_library_static {
         "model/hci/h4_packetizer.cc",
         "model/hci/h4_parser.cc",
         "model/hci/hci_protocol.cc",
+        "model/hci/hci_sniffer.cc",
         "model/hci/hci_socket_transport.cc",
         "model/setup/async_manager.cc",
         "model/setup/device_boutique.cc",
@@ -174,6 +175,7 @@ cc_binary_host {
         "libbt-rootcanal",
     ],
     static_libs: [
+        "libc++fs",
         "libjsoncpp",
         "libprotobuf-cpp-lite",
         "libscriptedbeaconpayload-protos-lite",
