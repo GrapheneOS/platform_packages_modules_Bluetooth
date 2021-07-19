@@ -354,6 +354,7 @@ static std::string getImageHandleFromJavaObj(JNIEnv* env, jobject image) {
   const char* value = env->GetStringUTFChars(imageHandle, nullptr);
   handle = std::string(value);
   env->ReleaseStringUTFChars(imageHandle, value);
+  env->DeleteLocalRef(imageHandle);
   return handle;
 }
 
@@ -454,10 +455,13 @@ static SongInfo getSongInfoFromJavaObj(JNIEnv* env, jobject metadata) {
   }
 
   jobject object_image = env->GetObjectField(metadata, field_image);
-  std::string imageHandle = getImageHandleFromJavaObj(env, object_image);
-  if (!imageHandle.empty()) {
-    info.attributes.insert(
-        AttributeEntry(Attribute::DEFAULT_COVER_ART, imageHandle));
+  if (object_image != nullptr) {
+    std::string imageHandle = getImageHandleFromJavaObj(env, object_image);
+    if (!imageHandle.empty()) {
+      info.attributes.insert(
+          AttributeEntry(Attribute::DEFAULT_COVER_ART, imageHandle));
+    }
+    env->DeleteLocalRef(object_image);
   }
 
   return info;
@@ -478,6 +482,7 @@ static FolderInfo getFolderInfoFromJavaObj(JNIEnv* env, jobject folder) {
     const char* value = env->GetStringUTFChars(jstr, nullptr);
     info.media_id = std::string(value);
     env->ReleaseStringUTFChars(jstr, value);
+    env->DeleteLocalRef(jstr);
   }
 
   info.is_playable = env->GetBooleanField(folder, field_isPlayable) == JNI_TRUE;
@@ -487,6 +492,7 @@ static FolderInfo getFolderInfoFromJavaObj(JNIEnv* env, jobject folder) {
     const char* value = env->GetStringUTFChars(jstr, nullptr);
     info.name = std::string(value);
     env->ReleaseStringUTFChars(jstr, value);
+    env->DeleteLocalRef(jstr);
   }
 
   return info;
@@ -500,7 +506,9 @@ static SongInfo getSongInfo() {
 
   jobject metadata =
       sCallbackEnv->CallObjectMethod(mJavaInterface, method_getCurrentSongInfo);
-  return getSongInfoFromJavaObj(sCallbackEnv.get(), metadata);
+  SongInfo info = getSongInfoFromJavaObj(sCallbackEnv.get(), metadata);
+  sCallbackEnv->DeleteLocalRef(metadata);
+  return info;
 }
 
 static PlayStatus getCurrentPlayStatus() {
@@ -530,6 +538,8 @@ static PlayStatus getCurrentPlayStatus() {
   status.duration = sCallbackEnv->GetLongField(playStatus, field_duration);
   status.state = (PlayState)sCallbackEnv->GetByteField(playStatus, field_state);
 
+  sCallbackEnv->DeleteLocalRef(playStatus);
+
   return status;
 }
 
@@ -549,6 +559,7 @@ static std::string getCurrentMediaId() {
   const char* value = sCallbackEnv->GetStringUTFChars(media_id, nullptr);
   std::string ret(value);
   sCallbackEnv->ReleaseStringUTFChars(media_id, value);
+  sCallbackEnv->DeleteLocalRef(media_id);
   return ret;
 }
 
@@ -571,13 +582,18 @@ static std::vector<SongInfo> getNowPlayingList() {
   jmethodID method_size = sCallbackEnv->GetMethodID(class_list, "size", "()I");
 
   auto size = sCallbackEnv->CallIntMethod(song_list, method_size);
-  if (size == 0) return std::vector<SongInfo>();
+  if (size == 0) {
+    sCallbackEnv->DeleteLocalRef(song_list);
+    return std::vector<SongInfo>();
+  }
   std::vector<SongInfo> ret;
   for (int i = 0; i < size; i++) {
     jobject song = sCallbackEnv->CallObjectMethod(song_list, method_get, i);
     ret.push_back(getSongInfoFromJavaObj(sCallbackEnv.get(), song));
     sCallbackEnv->DeleteLocalRef(song);
   }
+
+  sCallbackEnv->DeleteLocalRef(song_list);
 
   return ret;
 }
@@ -616,11 +632,13 @@ static std::vector<MediaPlayerInfo> getMediaPlayerList() {
 
   jint list_size = sCallbackEnv->CallIntMethod(player_list, method_size);
   if (list_size == 0) {
+    sCallbackEnv->DeleteLocalRef(player_list);
     return std::vector<MediaPlayerInfo>();
   }
 
-  jclass class_playerInfo = sCallbackEnv->GetObjectClass(
-      sCallbackEnv->CallObjectMethod(player_list, method_get, 0));
+  jobject player_info =
+      sCallbackEnv->CallObjectMethod(player_list, method_get, 0);
+  jclass class_playerInfo = sCallbackEnv->GetObjectClass(player_info);
   jfieldID field_playerId =
       sCallbackEnv->GetFieldID(class_playerInfo, "id", "I");
   jfieldID field_name =
@@ -651,6 +669,9 @@ static std::vector<MediaPlayerInfo> getMediaPlayerList() {
     ret_list.push_back(std::move(temp));
     sCallbackEnv->DeleteLocalRef(player);
   }
+
+  sCallbackEnv->DeleteLocalRef(player_info);
+  sCallbackEnv->DeleteLocalRef(player_list);
 
   return ret_list;
 }
@@ -722,8 +743,8 @@ static void getFolderItemsResponseNative(JNIEnv* env, jobject object,
     return;
   }
 
-  jclass class_listItem =
-      env->GetObjectClass(env->CallObjectMethod(list, method_get, 0));
+  jobject list_item = env->CallObjectMethod(list, method_get, 0);
+  jclass class_listItem = env->GetObjectClass(list_item);
   jfieldID field_isFolder = env->GetFieldID(class_listItem, "isFolder", "Z");
   jfieldID field_folder = env->GetFieldID(
       class_listItem, "folder", "Lcom/android/bluetooth/audio_util/Folder;");
@@ -737,21 +758,23 @@ static void getFolderItemsResponseNative(JNIEnv* env, jobject object,
     bool is_folder = env->GetBooleanField(item, field_isFolder) == JNI_TRUE;
 
     if (is_folder) {
+      jobject folder = env->GetObjectField(item, field_folder);
       ListItem temp = {ListItem::FOLDER,
-                       getFolderInfoFromJavaObj(
-                           env, env->GetObjectField(item, field_folder)),
+                       getFolderInfoFromJavaObj(env, folder),
                        SongInfo()};
-
       ret_list.push_back(temp);
+      env->DeleteLocalRef(folder);
     } else {
-      ListItem temp = {
-          ListItem::SONG, FolderInfo(),
-          getSongInfoFromJavaObj(env, env->GetObjectField(item, field_song))};
-
+      jobject song = env->GetObjectField(item, field_song);
+      ListItem temp = {ListItem::SONG, FolderInfo(),
+                       getSongInfoFromJavaObj(env, song)};
       ret_list.push_back(temp);
+      env->DeleteLocalRef(song);
     }
     env->DeleteLocalRef(item);
   }
+
+  env->DeleteLocalRef(list_item);
 
   callback.Run(std::move(ret_list));
 }
