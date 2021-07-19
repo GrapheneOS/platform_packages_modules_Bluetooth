@@ -48,20 +48,68 @@ class LeScanningManagerFacadeService : public LeScanningManagerFacade::Service, 
     le_scanning_manager_->RegisterScanningCallback(this);
   }
 
-  ::grpc::Status StartScan(::grpc::ServerContext* context, const ::google::protobuf::Empty*,
-                           ::grpc::ServerWriter<LeReportMsg>* writer) override {
-    le_scanning_manager_->Scan(true);
-    return pending_events_.RunLoop(context, writer);
-  }
-
-  ::grpc::Status StopScan(::grpc::ServerContext* context, const ::google::protobuf::Empty*,
-                          ScanStoppedMsg* response) override {
-    le_scanning_manager_->Scan(false);
+  ::grpc::Status RegisterScanner(
+      ::grpc::ServerContext* context,
+      const RegisterScannerRequest* request,
+      ::google::protobuf::Empty* response) override {
+    uint32_t uuid_raw = request->uuid();
+    bluetooth::hci::Uuid uuid = bluetooth::hci::Uuid::From32Bit(uuid_raw);
+    le_scanning_manager_->RegisterScanner(uuid);
     return ::grpc::Status::OK;
   }
 
-  void OnScannerRegistered(const bluetooth::hci::Uuid app_uuid, ScannerId scanner_id, ScanningStatus status){};
-  void OnSetScannerParameterComplete(ScannerId scanner_id, ScanningStatus status){};
+  ::grpc::Status Unregister(
+      ::grpc::ServerContext* context, const UnregisterRequest* request, ::google::protobuf::Empty* response) override {
+    le_scanning_manager_->Unregister(request->scanner_id());
+    return ::grpc::Status::OK;
+  }
+
+  ::grpc::Status Scan(
+      ::grpc::ServerContext* context, const ScanRequest* request, ::google::protobuf::Empty* response) override {
+    le_scanning_manager_->Scan(request->start());
+    return ::grpc::Status::OK;
+  }
+
+  ::grpc::Status SetScanParameters(
+      ::grpc::ServerContext* context,
+      const SetScanParametersRequest* request,
+      ::google::protobuf::Empty* response) override {
+    auto scan_type = static_cast<hci::LeScanType>(request->scan_type());
+    le_scanning_manager_->SetScanParameters(
+        request->scanner_id(), scan_type, request->scan_interval(), request->scan_window());
+    return ::grpc::Status::OK;
+  }
+
+  ::grpc::Status FetchCallbackEvents(
+      ::grpc::ServerContext* context,
+      const ::google::protobuf::Empty* request,
+      ::grpc::ServerWriter<ScanningCallbackMsg>* writer) override {
+    return callback_events_.RunLoop(context, writer);
+  }
+
+  ::grpc::Status FetchAdvertisingReports(
+      ::grpc::ServerContext* context,
+      const ::google::protobuf::Empty* request,
+      ::grpc::ServerWriter<AdvertisingReportMsg>* writer) override {
+    return advertising_reports_.RunLoop(context, writer);
+  }
+
+  void OnScannerRegistered(const bluetooth::hci::Uuid app_uuid, ScannerId scanner_id, ScanningStatus status) {
+    ScanningCallbackMsg msg;
+    msg.set_message_type(ScanningCallbackMsgType::SCANNER_REGISTERED);
+    msg.set_status(static_cast<facade::ScanningStatus>(status));
+    msg.set_data(app_uuid.As32Bit());
+    callback_events_.OnIncomingEvent(msg);
+  };
+
+  void OnSetScannerParameterComplete(ScannerId scanner_id, ScanningStatus status) {
+    ScanningCallbackMsg msg;
+    msg.set_message_type(ScanningCallbackMsgType::SET_SCANNER_PARAMETER_COMPLETE);
+    msg.set_status(static_cast<facade::ScanningStatus>(status));
+    msg.set_data(static_cast<uint32_t>(scanner_id));
+    callback_events_.OnIncomingEvent(msg);
+  };
+
   void OnScanResult(
       uint16_t event_type,
       uint8_t address_type,
@@ -73,7 +121,7 @@ class LeScanningManagerFacadeService : public LeScanningManagerFacade::Service, 
       int8_t rssi,
       uint16_t periodic_advertising_interval,
       std::vector<uint8_t> advertising_data) {
-    LeReportMsg le_report_msg;
+    AdvertisingReportMsg advertising_report_msg;
     std::vector<LeExtendedAdvertisingReport> advertisements;
     LeExtendedAdvertisingReport le_extended_advertising_report;
     le_extended_advertising_report.address_type_ = (DirectAdvertisingAddressType)address_type;
@@ -86,8 +134,8 @@ class LeScanningManagerFacadeService : public LeScanningManagerFacade::Service, 
     std::vector<uint8_t> bytes;
     BitInserter bit_inserter(bytes);
     builder->Serialize(bit_inserter);
-    le_report_msg.set_event(std::string(bytes.begin(), bytes.end()));
-    pending_events_.OnIncomingEvent(std::move(le_report_msg));
+    advertising_report_msg.set_event(std::string(bytes.begin(), bytes.end()));
+    advertising_reports_.OnIncomingEvent(std::move(advertising_report_msg));
   };
   void OnTrackAdvFoundLost(AdvertisingFilterOnFoundOnLostInfo on_found_on_lost_info){};
   void OnBatchScanReports(int client_if, int status, int report_format, int num_records, std::vector<uint8_t> data){};
@@ -100,7 +148,8 @@ class LeScanningManagerFacadeService : public LeScanningManagerFacade::Service, 
 
   LeScanningManager* le_scanning_manager_;
   os::Handler* facade_handler_;
-  ::bluetooth::grpc::GrpcEventQueue<LeReportMsg> pending_events_{"LeReports"};
+  ::bluetooth::grpc::GrpcEventQueue<AdvertisingReportMsg> advertising_reports_{"advertising reports"};
+  ::bluetooth::grpc::GrpcEventQueue<ScanningCallbackMsg> callback_events_{"callback events"};
 };
 
 void LeScanningManagerFacadeModule::ListDependencies(ModuleList* list) {

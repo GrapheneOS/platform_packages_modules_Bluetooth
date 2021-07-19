@@ -211,7 +211,7 @@ class HciMatchers(object):
 class AdvertisingMatchers(object):
 
     @staticmethod
-    def CallbackMsg(type, advertiser_id=None, status=None, data=None):
+    def AdvertisingCallbackMsg(type, advertiser_id=None, status=None, data=None):
         return lambda event: True if event.message_type == type and (advertiser_id == None or advertiser_id == event.advertiser_id) \
             and (status == None or status == event.status) and (data == None or data == event.data) else False
 
@@ -219,6 +219,14 @@ class AdvertisingMatchers(object):
     def AddressMsg(type, advertiser_id=None, address=None):
         return lambda event: True if event.message_type == type and (advertiser_id == None or advertiser_id == event.advertiser_id) \
             and (address == None or address == event.address) else False
+
+
+class ScanningMatchers(object):
+
+    @staticmethod
+    def ScanningCallbackMsg(type, status=None, data=None):
+        return lambda event: True if event.message_type == type and (status == None or status == event.status) \
+            and (data == None or data == event.data) else False
 
 
 class NeighborMatchers(object):
