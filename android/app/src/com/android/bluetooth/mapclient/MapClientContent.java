@@ -32,6 +32,7 @@ import android.provider.Telephony.Threads;
 import android.telephony.PhoneNumberUtils;
 import android.telephony.SubscriptionInfo;
 import android.telephony.SubscriptionManager;
+import android.telephony.TelephonyManager;
 import android.util.ArraySet;
 import android.util.Log;
 
@@ -66,6 +67,7 @@ class MapClientContent {
     String mPhoneNumber = null;
     private int mSubscriptionId = SubscriptionManager.INVALID_SUBSCRIPTION_ID;
     private SubscriptionManager mSubscriptionManager;
+    private TelephonyManager mTelephonyManager;
     private HashMap<String, Uri> mHandleToUriMap = new HashMap<>();
     private HashMap<Uri, MessageStatus> mUriToHandleMap = new HashMap<>();
 
@@ -96,6 +98,7 @@ class MapClientContent {
         mResolver = mContext.getContentResolver();
 
         mSubscriptionManager = mContext.getSystemService(SubscriptionManager.class);
+        mTelephonyManager = mContext.getSystemService(TelephonyManager.class);
         mSubscriptionManager
                 .addSubscriptionInfoRecord(mDevice.getAddress(), Utils.getName(mDevice), 0,
                         SubscriptionManager.SUBSCRIPTION_TYPE_REMOTE_SIM);
@@ -458,8 +461,8 @@ class MapClientContent {
         if (messageContacts.isEmpty()) {
             return Telephony.Threads.COMMON_THREAD;
         } else if (messageContacts.size() > 1) {
-            messageContacts.removeIf(number -> (PhoneNumberUtils.compareLoosely(number,
-                    mPhoneNumber)));
+            messageContacts.removeIf(number -> (PhoneNumberUtils.areSamePhoneNumber(number,
+                    mPhoneNumber, mTelephonyManager.getNetworkCountryIso())));
         }
 
         logV("Contacts = " + messageContacts.toString());
