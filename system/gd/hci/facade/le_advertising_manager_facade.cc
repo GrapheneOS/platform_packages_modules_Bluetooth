@@ -322,7 +322,7 @@ class LeAdvertisingManagerFacadeService : public LeAdvertisingManagerFacade::Ser
   ::grpc::Status FetchCallbackEvents(
       ::grpc::ServerContext* context,
       const ::google::protobuf::Empty* request,
-      ::grpc::ServerWriter<CallbackMsg>* writer) override {
+      ::grpc::ServerWriter<AdvertisingCallbackMsg>* writer) override {
     le_advertising_manager_->RegisterAdvertisingCallback(this);
     return callback_events_.RunLoop(context, writer);
   }
@@ -335,8 +335,8 @@ class LeAdvertisingManagerFacadeService : public LeAdvertisingManagerFacade::Ser
   }
 
   void OnAdvertisingSetStarted(int reg_id, uint8_t advertiser_id, int8_t tx_power, AdvertisingStatus status) {
-    CallbackMsg msg;
-    msg.set_message_type(CallbackMsgType::ADVERTISING_SET_STARTED);
+    AdvertisingCallbackMsg msg;
+    msg.set_message_type(AdvertisingCallbackMsgType::ADVERTISING_SET_STARTED);
     msg.set_advertiser_id(advertiser_id);
     msg.set_status(static_cast<facade::AdvertisingStatus>(status));
     msg.set_data(reg_id);
@@ -344,8 +344,8 @@ class LeAdvertisingManagerFacadeService : public LeAdvertisingManagerFacade::Ser
   };
 
   void OnAdvertisingEnabled(uint8_t advertiser_id, bool enable, uint8_t status) {
-    CallbackMsg msg;
-    msg.set_message_type(CallbackMsgType::ADVERTISING_ENABLED);
+    AdvertisingCallbackMsg msg;
+    msg.set_message_type(AdvertisingCallbackMsgType::ADVERTISING_ENABLED);
     msg.set_advertiser_id(advertiser_id);
     msg.set_status(static_cast<facade::AdvertisingStatus>(status));
     msg.set_data(enable ? 1 : 0);
@@ -353,48 +353,48 @@ class LeAdvertisingManagerFacadeService : public LeAdvertisingManagerFacade::Ser
   };
 
   void OnAdvertisingDataSet(uint8_t advertiser_id, uint8_t status) {
-    CallbackMsg msg;
-    msg.set_message_type(CallbackMsgType::ADVERTISING_DATA_SET);
+    AdvertisingCallbackMsg msg;
+    msg.set_message_type(AdvertisingCallbackMsgType::ADVERTISING_DATA_SET);
     msg.set_advertiser_id(advertiser_id);
     msg.set_status(static_cast<facade::AdvertisingStatus>(status));
     callback_events_.OnIncomingEvent(msg);
   };
 
   void OnScanResponseDataSet(uint8_t advertiser_id, uint8_t status) {
-    CallbackMsg msg;
-    msg.set_message_type(CallbackMsgType::SCAN_RESPONSE_DATA_SET);
+    AdvertisingCallbackMsg msg;
+    msg.set_message_type(AdvertisingCallbackMsgType::SCAN_RESPONSE_DATA_SET);
     msg.set_advertiser_id(advertiser_id);
     msg.set_status(static_cast<facade::AdvertisingStatus>(status));
     callback_events_.OnIncomingEvent(msg);
   };
 
   void OnAdvertisingParametersUpdated(uint8_t advertiser_id, int8_t tx_power, uint8_t status) {
-    CallbackMsg msg;
-    msg.set_message_type(CallbackMsgType::ADVERTISING_PARAMETERS_UPDATED);
+    AdvertisingCallbackMsg msg;
+    msg.set_message_type(AdvertisingCallbackMsgType::ADVERTISING_PARAMETERS_UPDATED);
     msg.set_advertiser_id(advertiser_id);
     msg.set_status(static_cast<facade::AdvertisingStatus>(status));
     callback_events_.OnIncomingEvent(msg);
   };
 
   void OnPeriodicAdvertisingParametersUpdated(uint8_t advertiser_id, uint8_t status) {
-    CallbackMsg msg;
-    msg.set_message_type(CallbackMsgType::PERIODIC_ADVERTISING_PARAMETERS_UPDATED);
+    AdvertisingCallbackMsg msg;
+    msg.set_message_type(AdvertisingCallbackMsgType::PERIODIC_ADVERTISING_PARAMETERS_UPDATED);
     msg.set_advertiser_id(advertiser_id);
     msg.set_status(static_cast<facade::AdvertisingStatus>(status));
     callback_events_.OnIncomingEvent(msg);
   };
 
   void OnPeriodicAdvertisingDataSet(uint8_t advertiser_id, uint8_t status) {
-    CallbackMsg msg;
-    msg.set_message_type(CallbackMsgType::PERIODIC_ADVERTISING_DATA_SET);
+    AdvertisingCallbackMsg msg;
+    msg.set_message_type(AdvertisingCallbackMsgType::PERIODIC_ADVERTISING_DATA_SET);
     msg.set_advertiser_id(advertiser_id);
     msg.set_status(static_cast<facade::AdvertisingStatus>(status));
     callback_events_.OnIncomingEvent(msg);
   };
 
   void OnPeriodicAdvertisingEnabled(uint8_t advertiser_id, bool enable, uint8_t status) {
-    CallbackMsg msg;
-    msg.set_message_type(CallbackMsgType::PERIODIC_ADVERTISING_ENABLED);
+    AdvertisingCallbackMsg msg;
+    msg.set_message_type(AdvertisingCallbackMsgType::PERIODIC_ADVERTISING_ENABLED);
     msg.set_advertiser_id(advertiser_id);
     msg.set_status(static_cast<facade::AdvertisingStatus>(status));
     callback_events_.OnIncomingEvent(msg);
@@ -403,7 +403,7 @@ class LeAdvertisingManagerFacadeService : public LeAdvertisingManagerFacade::Ser
   void OnOwnAddressRead(uint8_t advertiser_id, uint8_t address_type, Address address) {
     LOG_INFO("OnOwnAddressRead Address:%s, address_type:%d", address.ToString().c_str(), address_type);
     AddressMsg msg;
-    msg.set_message_type(CallbackMsgType::OWN_ADDRESS_READ);
+    msg.set_message_type(AdvertisingCallbackMsgType::OWN_ADDRESS_READ);
     msg.set_advertiser_id(advertiser_id);
     bluetooth::facade::BluetoothAddressWithType facade_address;
     facade_address.mutable_address()->set_address(address.ToString());
@@ -415,7 +415,7 @@ class LeAdvertisingManagerFacadeService : public LeAdvertisingManagerFacade::Ser
   std::vector<LeAdvertiser> le_advertisers_;
   LeAdvertisingManager* le_advertising_manager_;
   os::Handler* facade_handler_;
-  ::bluetooth::grpc::GrpcEventQueue<CallbackMsg> callback_events_{"callback events"};
+  ::bluetooth::grpc::GrpcEventQueue<AdvertisingCallbackMsg> callback_events_{"callback events"};
   ::bluetooth::grpc::GrpcEventQueue<AddressMsg> address_events_{"address events"};
 };
 
