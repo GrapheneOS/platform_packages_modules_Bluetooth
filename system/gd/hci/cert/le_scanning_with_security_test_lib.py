@@ -20,6 +20,7 @@ from google.protobuf import empty_pb2 as empty_proto
 from hci.facade import hci_facade_pb2 as hci_facade
 from hci.facade import le_advertising_manager_facade_pb2 as le_advertising_facade
 from hci.facade import le_initiator_address_facade_pb2 as le_initiator_address_facade
+from hci.facade import le_scanning_manager_facade_pb2 as le_scanning_facade
 from bluetooth_packets_python3 import hci_packets
 from facade import common_pb2 as common
 
@@ -57,7 +58,8 @@ class LeScanningWithSecurityTestBase():
         self.cert.hci_le_initiator_address.SetPrivacyPolicyForInitiatorAddress(cert_privacy_policy)
         with EventStream(
                 # DUT Scans
-                self.dut.hci_le_scanning_manager.StartScan(empty_proto.Empty())) as advertising_event_stream:
+                self.dut.hci_le_scanning_manager.FetchAdvertisingReports(
+                    empty_proto.Empty())) as advertising_event_stream:
 
             # CERT Advertises
             gap_name = hci_packets.GapData()
@@ -75,6 +77,9 @@ class LeScanningWithSecurityTestBase():
             request = le_advertising_facade.CreateAdvertiserRequest(config=config)
 
             create_response = self.cert.hci_le_advertising_manager.CreateAdvertiser(request)
+
+            scan_request = le_scanning_facade.ScanRequest(start=True)
+            self.dut.hci_le_scanning_manager.Scan(scan_request)
 
             assertThat(advertising_event_stream).emits(lambda packet: b'Im_The_CERT' in packet.event)
 
