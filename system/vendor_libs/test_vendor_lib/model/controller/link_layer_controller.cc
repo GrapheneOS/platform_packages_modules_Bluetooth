@@ -794,8 +794,10 @@ void LinkLayerController::IncomingIoCapabilityRequestPacket(
             incoming.GetDestinationAddress(), incoming.GetSourceAddress(),
             static_cast<uint8_t>(
                 ErrorCode::UNSUPPORTED_REMOTE_OR_LMP_FEATURE)));
-    security_manager_.AuthenticationRequest(incoming.GetSourceAddress(), handle,
-                                            false);
+    if (!security_manager_.AuthenticationInProgress()) {
+      security_manager_.AuthenticationRequest(incoming.GetSourceAddress(),
+                                              handle, false);
+    }
     security_manager_.SetPinRequested(peer);
     if (properties_.IsUnmasked(EventCode::PIN_CODE_REQUEST)) {
       send_event_(bluetooth::hci::PinCodeRequestBuilder::Create(
@@ -1894,7 +1896,9 @@ ErrorCode LinkLayerController::LinkKeyRequestNegativeReply(
   }
 
   if (properties_.GetSecureSimplePairingSupported()) {
-    security_manager_.AuthenticationRequest(address, handle, false);
+    if (!security_manager_.AuthenticationInProgress()) {
+      security_manager_.AuthenticationRequest(address, handle, false);
+    }
 
     ScheduleTask(milliseconds(5),
                  [this, address]() { StartSimplePairing(address); });
