@@ -1313,11 +1313,11 @@ static void gattClientWriteCharacteristicNative(JNIEnv* env, jobject object,
   jbyte* p_value = env->GetByteArrayElements(value, NULL);
   if (p_value == NULL) return;
 
-  std::vector<uint8_t> vect_val(p_value, p_value + len);
-  env->ReleaseByteArrayElements(value, p_value, 0);
-
   sGattIf->client->write_characteristic(conn_id, handle, write_type, auth_req,
-                                        std::move(vect_val));
+                                        reinterpret_cast<uint8_t*>(p_value),
+                                        len);
+
+  env->ReleaseByteArrayElements(value, p_value, 0);
 }
 
 static void gattClientExecuteWriteNative(JNIEnv* env, jobject object,
@@ -1340,11 +1340,10 @@ static void gattClientWriteDescriptorNative(JNIEnv* env, jobject object,
   jbyte* p_value = env->GetByteArrayElements(value, NULL);
   if (p_value == NULL) return;
 
-  std::vector<uint8_t> vect_val(p_value, p_value + len);
-  env->ReleaseByteArrayElements(value, p_value, 0);
-
   sGattIf->client->write_descriptor(conn_id, handle, auth_req,
-                                    std::move(vect_val));
+                                    reinterpret_cast<uint8_t*>(p_value), len);
+
+  env->ReleaseByteArrayElements(value, p_value, 0);
 }
 
 static void gattClientRegisterForNotificationsNative(
