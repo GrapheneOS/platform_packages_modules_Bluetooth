@@ -1,5 +1,5 @@
 use crate::bindings::root as bindings;
-use crate::btif::{BluetoothInterface, RawAddress, SupportedProfiles};
+use crate::btif::{BluetoothInterface, BtStatus, RawAddress, SupportedProfiles};
 use crate::profiles::hid_host::bindings::bthh_interface_t;
 use crate::topstack::get_dispatchers;
 use crate::{cast_to_ffi_address, ccall, deref_ffi_address};
@@ -195,35 +195,35 @@ impl HidHost {
         let rawcb = &mut *callbacks;
 
         let init = ccall!(self, init, rawcb);
-        self.is_init = BthhStatus::from(init) == BthhStatus::Ok;
+        self.is_init = BtStatus::from(init) == BtStatus::Success;
         self.callbacks = Some(callbacks);
 
         return self.is_init;
     }
 
-    pub fn connect(&self, addr: &mut RawAddress) -> BthhStatus {
+    pub fn connect(&self, addr: &mut RawAddress) -> BtStatus {
         let ffi_addr = cast_to_ffi_address!(addr as *mut RawAddress);
-        BthhStatus::from(ccall!(self, connect, ffi_addr))
+        BtStatus::from(ccall!(self, connect, ffi_addr))
     }
 
-    pub fn disconnect(&self, addr: &mut RawAddress) -> BthhStatus {
+    pub fn disconnect(&self, addr: &mut RawAddress) -> BtStatus {
         let ffi_addr = cast_to_ffi_address!(addr as *mut RawAddress);
-        BthhStatus::from(ccall!(self, disconnect, ffi_addr))
+        BtStatus::from(ccall!(self, disconnect, ffi_addr))
     }
 
-    pub fn virtual_unplug(&self, addr: &mut RawAddress) -> BthhStatus {
+    pub fn virtual_unplug(&self, addr: &mut RawAddress) -> BtStatus {
         let ffi_addr = cast_to_ffi_address!(addr as *mut RawAddress);
-        BthhStatus::from(ccall!(self, virtual_unplug, ffi_addr))
+        BtStatus::from(ccall!(self, virtual_unplug, ffi_addr))
     }
 
-    pub fn set_info(&self, addr: &mut RawAddress, info: BthhHidInfo) -> BthhStatus {
+    pub fn set_info(&self, addr: &mut RawAddress, info: BthhHidInfo) -> BtStatus {
         let ffi_addr = cast_to_ffi_address!(addr as *mut RawAddress);
-        BthhStatus::from(ccall!(self, set_info, ffi_addr, info))
+        BtStatus::from(ccall!(self, set_info, ffi_addr, info))
     }
 
-    pub fn get_protocol(&self, addr: &mut RawAddress, mode: BthhProtocolMode) -> BthhStatus {
+    pub fn get_protocol(&self, addr: &mut RawAddress, mode: BthhProtocolMode) -> BtStatus {
         let ffi_addr = cast_to_ffi_address!(addr as *mut RawAddress);
-        BthhStatus::from(ccall!(
+        BtStatus::from(ccall!(
             self,
             get_protocol,
             ffi_addr,
@@ -231,9 +231,9 @@ impl HidHost {
         ))
     }
 
-    pub fn set_protocol(&self, addr: &mut RawAddress, mode: BthhProtocolMode) -> BthhStatus {
+    pub fn set_protocol(&self, addr: &mut RawAddress, mode: BthhProtocolMode) -> BtStatus {
         let ffi_addr = cast_to_ffi_address!(addr as *mut RawAddress);
-        BthhStatus::from(ccall!(
+        BtStatus::from(ccall!(
             self,
             set_protocol,
             ffi_addr,
@@ -241,14 +241,14 @@ impl HidHost {
         ))
     }
 
-    pub fn get_idle_time(&self, addr: &mut RawAddress) -> BthhStatus {
+    pub fn get_idle_time(&self, addr: &mut RawAddress) -> BtStatus {
         let ffi_addr = cast_to_ffi_address!(addr as *mut RawAddress);
-        BthhStatus::from(ccall!(self, get_idle_time, ffi_addr))
+        BtStatus::from(ccall!(self, get_idle_time, ffi_addr))
     }
 
-    pub fn set_idle_time(&self, addr: &mut RawAddress, idle_time: u8) -> BthhStatus {
+    pub fn set_idle_time(&self, addr: &mut RawAddress, idle_time: u8) -> BtStatus {
         let ffi_addr = cast_to_ffi_address!(addr as *mut RawAddress);
-        BthhStatus::from(ccall!(self, set_idle_time, ffi_addr, idle_time))
+        BtStatus::from(ccall!(self, set_idle_time, ffi_addr, idle_time))
     }
 
     pub fn get_report(
@@ -257,9 +257,9 @@ impl HidHost {
         report_type: BthhReportType,
         report_id: u8,
         buffer_size: i32,
-    ) -> BthhStatus {
+    ) -> BtStatus {
         let ffi_addr = cast_to_ffi_address!(addr as *mut RawAddress);
-        BthhStatus::from(ccall!(
+        BtStatus::from(ccall!(
             self,
             get_report,
             ffi_addr,
@@ -274,9 +274,9 @@ impl HidHost {
         addr: &mut RawAddress,
         report_type: BthhReportType,
         report: &mut [u8],
-    ) -> BthhStatus {
+    ) -> BtStatus {
         let ffi_addr = cast_to_ffi_address!(addr as *mut RawAddress);
-        BthhStatus::from(ccall!(
+        BtStatus::from(ccall!(
             self,
             set_report,
             ffi_addr,
