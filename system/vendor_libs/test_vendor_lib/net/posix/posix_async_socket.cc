@@ -38,7 +38,11 @@ namespace net {
 PosixAsyncSocket::PosixAsyncSocket(int fd, AsyncManager* am)
     : fd_(fd), am_(am), watching_(false) {
   int flags = fcntl(fd, F_GETFL);
-  fcntl(fd, F_SETFL, flags | O_NONBLOCK | FD_CLOEXEC);
+  fcntl(fd, F_SETFL, flags | O_NONBLOCK);
+
+  flags = fcntl(fd, F_GETFD);
+  fcntl(fd, F_SETFD, flags | O_CLOEXEC);
+
 #ifdef SO_NOSIGPIPE
   // Disable SIGPIPE generation on Darwin.
   // When writing to a broken pipe, send() will return -1 and
