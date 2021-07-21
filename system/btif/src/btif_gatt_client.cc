@@ -490,8 +490,10 @@ void write_char_cb(uint16_t conn_id, tGATT_STATUS status, uint16_t handle,
 
 static bt_status_t btif_gattc_write_char(int conn_id, uint16_t handle,
                                          int write_type, int auth_req,
-                                         vector<uint8_t> value) {
+                                         const uint8_t* val, size_t len) {
   CHECK_BTGATT_INIT();
+
+  std::vector<uint8_t> value(val, val + len);
 
   if (value.size() > BTGATT_MAX_ATTR_LEN) value.resize(BTGATT_MAX_ATTR_LEN);
 
@@ -506,9 +508,11 @@ void write_descr_cb(uint16_t conn_id, tGATT_STATUS status, uint16_t handle,
 }
 
 static bt_status_t btif_gattc_write_char_descr(int conn_id, uint16_t handle,
-                                               int auth_req,
-                                               vector<uint8_t> value) {
+                                               int auth_req, const uint8_t* val,
+                                               size_t len) {
   CHECK_BTGATT_INIT();
+
+  std::vector<uint8_t> value(val, val + len);
 
   if (value.size() > BTGATT_MAX_ATTR_LEN) value.resize(BTGATT_MAX_ATTR_LEN);
 
