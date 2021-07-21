@@ -14,14 +14,14 @@
 // limitations under the License.
 #include "net/posix/posix_async_socket_connector.h"
 
+#include <arpa/inet.h>   // for inet_addr, inet_ntoa
 #include <errno.h>       // for errno, EAGAIN, EINPROGRESS
-#include <fcntl.h>       // for fcntl, F_GETFL, F_SETFL
-#include <netdb.h>       // for gethostbyname
-#include <netinet/in.h>  // for sockaddr_in, INADDR_ANY
+#include <netdb.h>       // for gethostbyname, addrinfo
+#include <netinet/in.h>  // for sockaddr_in, in_addr
 #include <poll.h>        // for poll, POLLHUP, POLLIN, POL...
-#include <string.h>      // for strerror, memset, NULL
-#include <sys/socket.h>  // for connect, getsockopt, socket
-#include <unistd.h>      // for close
+#include <string.h>      // for strerror, NULL
+#include <sys/socket.h>  // for connect, getpeername, gets...
+#include <type_traits>   // for remove_extent_t
 
 #include "net/posix/posix_async_socket.h"  // for PosixAsyncSocket
 #include "os/log.h"                        // for LOG_INFO
@@ -57,9 +57,10 @@ PosixAsyncSocketConnector::ConnectToRemoteServer(
     return pas;
   }
 
+  struct in_addr** addr_list = (struct in_addr**)host->h_addr_list;
   struct sockaddr_in serv_addr {};
   serv_addr.sin_family = AF_INET;
-  serv_addr.sin_addr.s_addr = INADDR_ANY;
+  serv_addr.sin_addr.s_addr = inet_addr(inet_ntoa(*addr_list[0]));
   serv_addr.sin_port = htons(port);
 
   int result =
