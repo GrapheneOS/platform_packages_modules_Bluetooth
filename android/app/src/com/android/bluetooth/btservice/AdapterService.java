@@ -2537,7 +2537,8 @@ public class AdapterService extends Service {
 
     public synchronized boolean enable(boolean quietMode) {
         // Enforce the user restriction for disallowing Bluetooth if it was set.
-        if (mUserManager.hasUserRestriction(UserManager.DISALLOW_BLUETOOTH, UserHandle.SYSTEM)) {
+        if (mUserManager.hasUserRestrictionForUser(UserManager.DISALLOW_BLUETOOTH,
+                    UserHandle.SYSTEM)) {
             debugLog("enable() called when Bluetooth was disallowed");
             return false;
         }
