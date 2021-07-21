@@ -1718,11 +1718,12 @@ public class HeadsetStateMachine extends StateMachine {
         if (number != null) {
             mNativeInterface.atResponseString(device,
                     "+CNUM: ,\"" + number + "\"," + PhoneNumberUtils.toaFromString(number) + ",,4");
-            mNativeInterface.atResponseCode(device, HeadsetHalConstants.AT_RESPONSE_OK, 0);
         } else {
-            Log.e(TAG, "getSubscriberNumber returns null");
-            mNativeInterface.atResponseCode(device, HeadsetHalConstants.AT_RESPONSE_ERROR, 0);
+            Log.e(TAG, "getSubscriberNumber returns null, no subscriber number can reply");
         }
+
+        // Based on spec, if subscriber number is empty, we should still return OK response.
+        mNativeInterface.atResponseCode(device, HeadsetHalConstants.AT_RESPONSE_OK, 0);
     }
 
     private void processAtCind(BluetoothDevice device) {
