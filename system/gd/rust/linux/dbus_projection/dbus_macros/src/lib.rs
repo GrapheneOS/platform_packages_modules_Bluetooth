@@ -142,8 +142,8 @@ pub fn generate_dbus_exporter(attr: TokenStream, item: TokenStream) -> TokenStre
             let mut output_type = quote! {};
             let mut ret = quote! {Ok(())};
             if let ReturnType::Type(_, t) = method.sig.output {
-                output_type = quote! {#t,};
-                ret = quote! {Ok((ret,))};
+                output_type = quote! {<#t as DBusArg>::DBusType,};
+                ret = quote! {Ok((<#t as DBusArg>::to_dbus(ret).unwrap(),))};
                 output_names = quote! { "out", };
             }
 
