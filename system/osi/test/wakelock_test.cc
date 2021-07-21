@@ -65,9 +65,12 @@ class WakelockTest : public AllocationTestHarness {
     lock_path_ = tmp_dir_ + "/wake_lock";
     unlock_path_ = tmp_dir_ + "/wake_unlock";
 
-    creat(lock_path_.c_str(), S_IRWXU);
-    creat(unlock_path_.c_str(), S_IRWXU);
+    lock_path_fd = creat(lock_path_.c_str(), S_IRWXU);
+    unlock_path_fd = creat(unlock_path_.c_str(), S_IRWXU);
   }
+
+  int lock_path_fd{-1};
+  int unlock_path_fd{-1};
 
   void TearDown() override {
     is_wake_lock_acquired = false;
@@ -78,6 +81,9 @@ class WakelockTest : public AllocationTestHarness {
     unlink(lock_path_.c_str());
     unlink(unlock_path_.c_str());
     rmdir(tmp_dir_.c_str());
+
+    close(lock_path_fd);
+    close(unlock_path_fd);
 
     AllocationTestHarness::TearDown();
   }
