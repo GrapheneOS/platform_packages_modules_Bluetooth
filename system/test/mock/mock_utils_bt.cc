@@ -31,15 +31,6 @@ extern std::map<std::string, int> mock_function_count_map;
 // Mock include file to share data between tests and mock
 #include "test/mock/mock_utils_bt.h"
 
-// Legacy module structure
-#if 0
-EXPORT_SYMBOL extern const module_t module_s = {.name = BT_UTILS_MODULE,
-                                                .init = nullptr,
-                                                .start_up = nullptr,
-                                                .shut_down = nullptr,
-                                                .clean_up = nullptr,
-                                                .dependencies = {nullptr}};
-#endif
 // Mocked internal structures, if any
 
 namespace test {
