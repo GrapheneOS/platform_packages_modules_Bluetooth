@@ -341,6 +341,13 @@ filegroup {
 }
 
 filegroup {
+  name: "TestMockUtils",
+  srcs: [
+      "mock/mock_utils_*cc",
+  ],
+}
+
+filegroup {
   name: "TestCommonMainHandler",
   srcs: [
       "common/main_handler.cc",
