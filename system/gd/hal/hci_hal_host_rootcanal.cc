@@ -235,6 +235,20 @@ class HciHalHost : public HciHal {
     }
   }
 
+  bool socketRecvAll(void* buffer, int bufferLen) {
+    auto buf = static_cast<char*>(buffer);
+    while (bufferLen > 0) {
+      ssize_t ret;
+      RUN_NO_INTR(ret = recv(sock_fd_, buf, bufferLen, 0));
+      if (ret <= 0) {
+        return false;
+      }
+      buf += ret;
+      bufferLen -= ret;
+    }
+    return true;
+  }
+
   void incoming_packet_received() {
     {
       std::lock_guard<std::mutex> incoming_packet_callback_lock(incoming_packet_callback_mutex_);
@@ -255,23 +269,18 @@ class HciHalHost : public HciHal {
     }
 
     if (buf[0] == kH4Event) {
-      RUN_NO_INTR(received_size = recv(sock_fd_, buf + kH4HeaderSize, kHciEvtHeaderSize, 0));
-      ASSERT_LOG(received_size != -1, "Can't receive from socket: %s", strerror(errno));
-      ASSERT_LOG(received_size == kHciEvtHeaderSize, "malformed HCI event header received");
+      ASSERT_LOG(
+          socketRecvAll(buf + kH4HeaderSize, kHciEvtHeaderSize), "Can't receive from socket: %s", strerror(errno));
 
       uint8_t hci_evt_parameter_total_length = buf[2];
-      ssize_t payload_size;
-      RUN_NO_INTR(
-          payload_size = recv(sock_fd_, buf + kH4HeaderSize + kHciEvtHeaderSize, hci_evt_parameter_total_length, 0));
-      ASSERT_LOG(payload_size != -1, "Can't receive from socket: %s", strerror(errno));
       ASSERT_LOG(
-          payload_size == hci_evt_parameter_total_length,
-          "malformed HCI event total parameter size received: %zu != %d",
-          payload_size,
-          hci_evt_parameter_total_length);
+          socketRecvAll(buf + kH4HeaderSize + kHciEvtHeaderSize, hci_evt_parameter_total_length),
+          "Can't receive from socket: %s",
+          strerror(errno));
 
       HciPacket receivedHciPacket;
-      receivedHciPacket.assign(buf + kH4HeaderSize, buf + kH4HeaderSize + kHciEvtHeaderSize + payload_size);
+      receivedHciPacket.assign(
+          buf + kH4HeaderSize, buf + kH4HeaderSize + kHciEvtHeaderSize + hci_evt_parameter_total_length);
       btsnoop_logger_->Capture(receivedHciPacket, SnoopLogger::Direction::INCOMING, SnoopLogger::PacketType::EVT);
       {
         std::lock_guard<std::mutex> incoming_packet_callback_lock(incoming_packet_callback_mutex_);
@@ -284,23 +293,18 @@ class HciHalHost : public HciHal {
     }
 
     if (buf[0] == kH4Acl) {
-      RUN_NO_INTR(received_size = recv(sock_fd_, buf + kH4HeaderSize, kHciAclHeaderSize, 0));
-      ASSERT_LOG(received_size != -1, "Can't receive from socket: %s", strerror(errno));
-      ASSERT_LOG(received_size == kHciAclHeaderSize, "malformed ACL header received");
+      ASSERT_LOG(
+          socketRecvAll(buf + kH4HeaderSize, kHciAclHeaderSize), "Can't receive from socket: %s", strerror(errno));
 
       uint16_t hci_acl_data_total_length = (buf[4] << 8) + buf[3];
-      int payload_size;
-      RUN_NO_INTR(payload_size = recv(sock_fd_, buf + kH4HeaderSize + kHciAclHeaderSize, hci_acl_data_total_length, 0));
-      ASSERT_LOG(payload_size != -1, "Can't receive from socket: %s", strerror(errno));
       ASSERT_LOG(
-          payload_size == hci_acl_data_total_length,
-          "malformed ACL length received: %d != %d",
-          payload_size,
-          hci_acl_data_total_length);
-      ASSERT_LOG(hci_acl_data_total_length <= kBufSize - kH4HeaderSize - kHciAclHeaderSize, "packet too long");
+          socketRecvAll(buf + kH4HeaderSize + kHciAclHeaderSize, hci_acl_data_total_length),
+          "Can't receive from socket: %s",
+          strerror(errno));
 
       HciPacket receivedHciPacket;
-      receivedHciPacket.assign(buf + kH4HeaderSize, buf + kH4HeaderSize + kHciAclHeaderSize + payload_size);
+      receivedHciPacket.assign(
+          buf + kH4HeaderSize, buf + kH4HeaderSize + kHciAclHeaderSize + hci_acl_data_total_length);
       btsnoop_logger_->Capture(receivedHciPacket, SnoopLogger::Direction::INCOMING, SnoopLogger::PacketType::ACL);
       {
         std::lock_guard<std::mutex> incoming_packet_callback_lock(incoming_packet_callback_mutex_);
@@ -313,18 +317,18 @@ class HciHalHost : public HciHal {
     }
 
     if (buf[0] == kH4Sco) {
-      RUN_NO_INTR(received_size = recv(sock_fd_, buf + kH4HeaderSize, kHciScoHeaderSize, 0));
-      ASSERT_LOG(received_size != -1, "Can't receive from socket: %s", strerror(errno));
-      ASSERT_LOG(received_size == kHciScoHeaderSize, "malformed SCO header received");
+      ASSERT_LOG(
+          socketRecvAll(buf + kH4HeaderSize, kHciScoHeaderSize), "Can't receive from socket: %s", strerror(errno));
 
       uint8_t hci_sco_data_total_length = buf[3];
-      int payload_size;
-      RUN_NO_INTR(payload_size = recv(sock_fd_, buf + kH4HeaderSize + kHciScoHeaderSize, hci_sco_data_total_length, 0));
-      ASSERT_LOG(payload_size != -1, "Can't receive from socket: %s", strerror(errno));
-      ASSERT_LOG(payload_size == hci_sco_data_total_length, "malformed SCO packet received: size mismatch");
+      ASSERT_LOG(
+          socketRecvAll(buf + kH4HeaderSize + kHciScoHeaderSize, hci_sco_data_total_length),
+          "Can't receive from socket: %s",
+          strerror(errno));
 
       HciPacket receivedHciPacket;
-      receivedHciPacket.assign(buf + kH4HeaderSize, buf + kH4HeaderSize + kHciScoHeaderSize + payload_size);
+      receivedHciPacket.assign(
+          buf + kH4HeaderSize, buf + kH4HeaderSize + kHciScoHeaderSize + hci_sco_data_total_length);
       btsnoop_logger_->Capture(receivedHciPacket, SnoopLogger::Direction::INCOMING, SnoopLogger::PacketType::SCO);
       {
         std::lock_guard<std::mutex> incoming_packet_callback_lock(incoming_packet_callback_mutex_);
@@ -337,18 +341,18 @@ class HciHalHost : public HciHal {
     }
 
     if (buf[0] == kH4Iso) {
-      RUN_NO_INTR(received_size = recv(sock_fd_, buf + kH4HeaderSize, kHciIsoHeaderSize, 0));
-      ASSERT_LOG(received_size != -1, "Can't receive from socket: %s", strerror(errno));
-      ASSERT_LOG(received_size == kHciIsoHeaderSize, "malformed ISO header received");
+      ASSERT_LOG(
+          socketRecvAll(buf + kH4HeaderSize, kHciIsoHeaderSize), "Can't receive from socket: %s", strerror(errno));
 
       uint16_t hci_iso_data_total_length = ((buf[4] & 0x3f) << 8) + buf[3];
-      int payload_size;
-      RUN_NO_INTR(payload_size = recv(sock_fd_, buf + kH4HeaderSize + kHciIsoHeaderSize, hci_iso_data_total_length, 0));
-      ASSERT_LOG(payload_size != -1, "Can't receive from socket: %s", strerror(errno));
-      ASSERT_LOG(payload_size == hci_iso_data_total_length, "malformed ISO packet received: size mismatch");
+      ASSERT_LOG(
+          socketRecvAll(buf + kH4HeaderSize + kHciIsoHeaderSize, hci_iso_data_total_length),
+          "Can't receive from socket: %s",
+          strerror(errno));
 
       HciPacket receivedHciPacket;
-      receivedHciPacket.assign(buf + kH4HeaderSize, buf + kH4HeaderSize + kHciIsoHeaderSize + payload_size);
+      receivedHciPacket.assign(
+          buf + kH4HeaderSize, buf + kH4HeaderSize + kHciIsoHeaderSize + hci_iso_data_total_length);
       btsnoop_logger_->Capture(receivedHciPacket, SnoopLogger::Direction::INCOMING, SnoopLogger::PacketType::ISO);
       {
         std::lock_guard<std::mutex> incoming_packet_callback_lock(incoming_packet_callback_mutex_);
