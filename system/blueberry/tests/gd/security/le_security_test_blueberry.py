@@ -14,21 +14,21 @@
 #   limitations under the License.
 
 from blueberry.tests.gd.cert import gd_base_test
-from security.cert.security_test_lib import SecurityTestBase
+from security.cert.le_security_test_lib import LeSecurityTestBase
 from mobly import test_runner
 
 
-class SecurityTest(gd_base_test.GdBaseTestClass, SecurityTestBase):
+class LeSecurityTestBb(gd_base_test.GdBaseTestClass, LeSecurityTestBase):
 
     def setup_class(self):
-        gd_base_test.GdBaseTestClass.setup_class(self, dut_module='SECURITY', cert_module='L2CAP')
+        gd_base_test.GdBaseTestClass.setup_class(self, dut_module='SECURITY', cert_module='SECURITY')
 
     def setup_test(self):
         gd_base_test.GdBaseTestClass.setup_test(self)
-        SecurityTestBase.setup_test(self, self.dut, self.cert)
+        LeSecurityTestBase.setup_test(self, self.dut, self.cert)
 
     def teardown_test(self):
-        SecurityTestBase.teardown_test(self)
+        LeSecurityTestBase.teardown_test(self)
         gd_base_test.GdBaseTestClass.teardown_test(self)
 
 

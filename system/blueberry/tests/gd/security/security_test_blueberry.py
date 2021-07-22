@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 #
 #   Copyright 2019 - The Android Open Source Project
 #
@@ -15,14 +14,22 @@
 #   limitations under the License.
 
 from blueberry.tests.gd.cert import gd_base_test
-from hci.cert.le_scanning_manager_test_lib import LeScanningManagerTestBase
+from security.cert.security_test_lib import SecurityTestBase
 from mobly import test_runner
 
 
-class LeScanningManagerTest(gd_base_test.GdBaseTestClass, LeScanningManagerTestBase):
+class SecurityTestBb(gd_base_test.GdBaseTestClass, SecurityTestBase):
 
     def setup_class(self):
-        gd_base_test.GdBaseTestClass.setup_class(self, dut_module='HCI_INTERFACES', cert_module='HCI_INTERFACES')
+        gd_base_test.GdBaseTestClass.setup_class(self, dut_module='SECURITY', cert_module='L2CAP')
+
+    def setup_test(self):
+        gd_base_test.GdBaseTestClass.setup_test(self)
+        SecurityTestBase.setup_test(self, self.dut, self.cert)
+
+    def teardown_test(self):
+        SecurityTestBase.teardown_test(self)
+        gd_base_test.GdBaseTestClass.teardown_test(self)
 
 
 if __name__ == '__main__':

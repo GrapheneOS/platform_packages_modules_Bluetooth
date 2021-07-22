@@ -1,5 +1,6 @@
+#!/usr/bin/env python3
 #
-#   Copyright 2019 - The Android Open Source Project
+#   Copyright 2020 - The Android Open Source Project
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -14,22 +15,35 @@
 #   limitations under the License.
 
 from blueberry.tests.gd.cert import gd_base_test
-from security.cert.le_security_test_lib import LeSecurityTestBase
+from hci.cert.acl_manager_test_lib import AclManagerTestBase
 from mobly import test_runner
 
 
-class LeSecurityTest(gd_base_test.GdBaseTestClass, LeSecurityTestBase):
+class AclManagerTestBb(gd_base_test.GdBaseTestClass, AclManagerTestBase):
 
     def setup_class(self):
-        gd_base_test.GdBaseTestClass.setup_class(self, dut_module='SECURITY', cert_module='SECURITY')
+        gd_base_test.GdBaseTestClass.setup_class(self, dut_module='HCI_INTERFACES', cert_module='HCI')
 
+    # todo: move into GdBaseTestClass, based on modules inited
     def setup_test(self):
         gd_base_test.GdBaseTestClass.setup_test(self)
-        LeSecurityTestBase.setup_test(self, self.dut, self.cert)
+        AclManagerTestBase.setup_test(self, self.dut, self.cert)
 
     def teardown_test(self):
-        LeSecurityTestBase.teardown_test(self)
+        AclManagerTestBase.teardown_test(self)
         gd_base_test.GdBaseTestClass.teardown_test(self)
+
+    def test_dut_connects(self):
+        AclManagerTestBase.test_dut_connects(self)
+
+    def test_cert_connects(self):
+        AclManagerTestBase.test_cert_connects(self)
+
+    def test_cert_connects_disconnects(self):
+        AclManagerTestBase.test_cert_connects_disconnects(self)
+
+    def test_recombination_l2cap_packet(self):
+        AclManagerTestBase.test_recombination_l2cap_packet(self)
 
 
 if __name__ == '__main__':
