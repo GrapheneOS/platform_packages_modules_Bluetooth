@@ -53,19 +53,6 @@ bool check_cod_hid(const RawAddress& remote_bdaddr) {
   mock_function_count_map[__func__]++;
   return false;
 }
-bool check_sdp_bl(const RawAddress* remote_bdaddr) {
-  mock_function_count_map[__func__]++;
-  return false;
-}
-bt_status_t btif_dm_get_adapter_property(bt_property_t* prop) {
-  mock_function_count_map[__func__]++;
-  return BT_STATUS_SUCCESS;
-}
-bt_status_t btif_in_execute_service_request(tBTA_SERVICE_ID service_id,
-                                            bool b_enable) {
-  mock_function_count_map[__func__]++;
-  return BT_STATUS_SUCCESS;
-}
 uint16_t btif_dm_get_connection_state(const RawAddress* bd_addr) {
   mock_function_count_map[__func__]++;
   return 0;
@@ -138,9 +125,6 @@ void btif_dm_remove_ble_bonding_keys(void) {
   mock_function_count_map[__func__]++;
 }
 void btif_dm_remove_bond(const RawAddress bd_addr) {
-  mock_function_count_map[__func__]++;
-}
-void btif_dm_save_ble_bonding_keys(RawAddress& bd_addr) {
   mock_function_count_map[__func__]++;
 }
 void btif_dm_set_oob_for_io_req(tBTM_OOB_DATA* p_has_oob_data) {
