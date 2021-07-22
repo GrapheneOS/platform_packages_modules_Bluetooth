@@ -148,8 +148,10 @@ pub mod ffi {
 
     unsafe extern "C++" {
         include!("btav/btav_shim.h");
+        include!("btav_sink/btav_sink_shim.h");
 
         type A2dpIntf;
+        type A2dpSinkIntf;
 
         unsafe fn GetA2dpProfile(btif: *const u8) -> UniquePtr<A2dpIntf>;
 
@@ -172,6 +174,12 @@ pub mod ffi {
         fn stop_audio_request(self: Pin<&mut A2dpIntf>) -> bool;
         fn cleanup(self: Pin<&mut A2dpIntf>);
 
+        // A2dp sink functions
+
+        unsafe fn GetA2dpSinkProfile(btif: *const u8) -> UniquePtr<A2dpSinkIntf>;
+
+        fn init(self: Pin<&mut A2dpSinkIntf>) -> i32;
+        fn cleanup(self: Pin<&mut A2dpSinkIntf>);
     }
     extern "Rust" {
         fn connection_state_callback(addr: RustRawAddress, state: u32);
@@ -316,6 +324,32 @@ impl A2dp {
     pub fn stop_audio_request(&mut self) {
         self.internal.pin_mut().stop_audio_request();
     }
+}
+
+pub struct A2dpSink {
+    internal: cxx::UniquePtr<ffi::A2dpSinkIntf>,
+    _is_init: bool,
+}
+
+// For *const u8 opaque btif
+unsafe impl Send for A2dpSink {}
+
+impl A2dpSink {
+    pub fn new(intf: &BluetoothInterface) -> A2dpSink {
+        let a2dp_sink: cxx::UniquePtr<ffi::A2dpSinkIntf>;
+        unsafe {
+            a2dp_sink = ffi::GetA2dpSinkProfile(intf.as_raw_ptr());
+        }
+
+        A2dpSink { internal: a2dp_sink, _is_init: false }
+    }
+
+    pub fn initialize(&mut self) -> bool {
+        self.internal.pin_mut().init();
+        true
+    }
+
+    pub fn cleanup(&mut self) {}
 }
 
 #[cfg(test)]
