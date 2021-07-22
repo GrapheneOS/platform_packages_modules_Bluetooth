@@ -19,12 +19,9 @@
 #include <functional>
 #include <vector>
 
-#include "net/async_data_channel.h"
-
 namespace test_vendor_lib {
 
 using PacketReadCallback = std::function<void(const std::vector<uint8_t>&)>;
-using android::net::AsyncDataChannel;
 
 // Implementation of HCI protocol bits common to different transports
 class HciProtocol {
@@ -36,8 +33,7 @@ class HciProtocol {
   virtual size_t Send(uint8_t type, const uint8_t* data, size_t length) = 0;
 
  protected:
-  static size_t WriteSafely(AsyncDataChannel* socket, const uint8_t* data,
-                            size_t length);
+  static size_t WriteSafely(int fd, const uint8_t* data, size_t length);
 };
 
 }  // namespace test_vendor_lib
