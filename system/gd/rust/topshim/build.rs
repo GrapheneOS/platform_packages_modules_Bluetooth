@@ -18,7 +18,7 @@ fn main() {
         .collect::<Vec<String>>();
 
     let search_root = env::var("CXX_ROOT_PATH").unwrap();
-    let paths = vec!["/", "/include", "/include/hardware", "/types"];
+    let paths = vec!["/", "/btcore", "/include", "/include/hardware", "/types"];
 
     let bt_searches =
         paths.iter().map(|tail| format!("-I{}{}", search_root, tail)).collect::<Vec<String>>();
@@ -46,7 +46,7 @@ fn main() {
         .derive_partialeq(true)
         .derive_eq(true)
         .derive_default(true)
-        .header("bindings/wrapper.h")
+        .header("bindings/wrapper.hpp")
         .generate()
         .expect("Unable to generate bindings");
 
