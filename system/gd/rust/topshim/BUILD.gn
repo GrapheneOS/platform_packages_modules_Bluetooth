@@ -45,7 +45,8 @@ cxxbridge_cc("btif_bridge_code") {
 source_set("btif_cxx_bridge_code") {
   sources = [
     "btif/btif_shim.cc",
-    "btav/btav_shim.cc"
+    "btav/btav_shim.cc",
+    "btav_sink/btav_sink_shim.cc"
   ]
 
   deps = [":btif_bridge_header"]
