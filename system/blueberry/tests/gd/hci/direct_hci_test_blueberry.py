@@ -15,23 +15,21 @@
 #   limitations under the License.
 
 from blueberry.tests.gd.cert import gd_base_test
-from hal.cert.simple_hal_test_lib import SimpleHalTestBase
+from hci.cert.direct_hci_test_lib import DirectHciTestBase
 from mobly import test_runner
 
-_GRPC_TIMEOUT = 10
 
-
-class SimpleHalTest(gd_base_test.GdBaseTestClass, SimpleHalTestBase):
+class DirectHciTestBb(gd_base_test.GdBaseTestClass, DirectHciTestBase):
 
     def setup_class(self):
-        gd_base_test.GdBaseTestClass.setup_class(self, dut_module='HAL', cert_module='HAL')
+        gd_base_test.GdBaseTestClass.setup_class(self, dut_module='HCI', cert_module='HAL')
 
     def setup_test(self):
         gd_base_test.GdBaseTestClass.setup_test(self)
-        SimpleHalTestBase.setup_test(self, self.dut, self.cert)
+        DirectHciTestBase.setup_test(self, self.dut, self.cert)
 
     def teardown_test(self):
-        SimpleHalTestBase.teardown_test(self)
+        DirectHciTestBase.teardown_test(self)
         gd_base_test.GdBaseTestClass.teardown_test(self)
 
 

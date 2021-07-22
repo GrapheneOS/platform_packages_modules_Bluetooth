@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 #
 #   Copyright 2020 - The Android Open Source Project
 #
@@ -14,21 +15,21 @@
 #   limitations under the License.
 
 from blueberry.tests.gd.cert import gd_base_test
-from l2cap.le.cert.dual_l2cap_test_lib import DualL2capTestBase
+from hci.cert.le_acl_manager_test_lib import LeAclManagerTestBase
 from mobly import test_runner
 
 
-class DualL2capTest(gd_base_test.GdBaseTestClass, DualL2capTestBase):
+class LeAclManagerTestBb(gd_base_test.GdBaseTestClass, LeAclManagerTestBase):
 
     def setup_class(self):
-        gd_base_test.GdBaseTestClass.setup_class(self, dut_module='L2CAP', cert_module='HCI_INTERFACES')
+        gd_base_test.GdBaseTestClass.setup_class(self, dut_module='HCI_INTERFACES', cert_module='HCI')
 
     def setup_test(self):
         gd_base_test.GdBaseTestClass.setup_test(self)
-        DualL2capTestBase.setup_test(self, self.dut, self.cert)
+        LeAclManagerTestBase.setup_test(self, self.dut, self.cert)
 
     def teardown_test(self):
-        DualL2capTestBase.teardown_test(self)
+        LeAclManagerTestBase.teardown_test(self)
         gd_base_test.GdBaseTestClass.teardown_test(self)
 
 

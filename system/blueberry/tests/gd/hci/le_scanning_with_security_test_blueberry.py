@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #
-#   Copyright 2020 - The Android Open Source Project
+#   Copyright 2019 - The Android Open Source Project
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -15,20 +15,14 @@
 #   limitations under the License.
 
 from blueberry.tests.gd.cert import gd_base_test
-from hci.cert.controller_test_lib import ControllerTestBase
+from hci.cert.le_scanning_with_security_test_lib import LeScanningWithSecurityTestBase
 from mobly import test_runner
 
 
-class ControllerTest(gd_base_test.GdBaseTestClass, ControllerTestBase):
+class LeScanningWithSecurityTestBb(gd_base_test.GdBaseTestClass, LeScanningWithSecurityTestBase):
 
     def setup_class(self):
-        gd_base_test.GdBaseTestClass.setup_class(self, dut_module='HCI_INTERFACES', cert_module='HCI_INTERFACES')
-
-    def test_get_addresses(self):
-        ControllerTestBase.test_get_addresses(self, self.dut, self.cert)
-
-    def test_write_local_name(self):
-        ControllerTestBase.test_write_local_name(self, self.dut, self.cert)
+        gd_base_test.GdBaseTestClass.setup_class(self, dut_module='SECURITY', cert_module='HCI_INTERFACES')
 
 
 if __name__ == '__main__':

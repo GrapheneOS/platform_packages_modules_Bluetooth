@@ -1,5 +1,5 @@
 #
-#   Copyright 2020 - The Android Open Source Project
+#   Copyright 2019 - The Android Open Source Project
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -14,21 +14,21 @@
 #   limitations under the License.
 
 from blueberry.tests.gd.cert import gd_base_test
-from l2cap.le.cert.le_l2cap_test_lib import LeL2capTestBase
+from l2cap.classic.cert.l2cap_test_lib import L2capTestBase
 from mobly import test_runner
 
 
-class LeL2capTest(gd_base_test.GdBaseTestClass, LeL2capTestBase):
+class L2capTestBb(gd_base_test.GdBaseTestClass, L2capTestBase):
 
     def setup_class(self):
         gd_base_test.GdBaseTestClass.setup_class(self, dut_module='L2CAP', cert_module='HCI_INTERFACES')
 
     def setup_test(self):
         gd_base_test.GdBaseTestClass.setup_test(self)
-        LeL2capTestBase.setup_test(self, self.dut, self.cert)
+        L2capTestBase.setup_test(self, self.dut, self.cert)
 
     def teardown_test(self):
-        LeL2capTestBase.teardown_test(self)
+        L2capTestBase.teardown_test(self)
         gd_base_test.GdBaseTestClass.teardown_test(self)
 
 
