@@ -201,6 +201,10 @@ static size_t btif_events_end_index = 0;
 /******************************************************************************
  *  Static functions
  *****************************************************************************/
+static void btif_dm_ble_sec_req_evt(tBTA_DM_BLE_SEC_REQ* p_ble_req,
+                                    bool is_consent);
+static void btif_dm_remove_ble_bonding_keys(void);
+static void btif_dm_save_ble_bonding_keys(RawAddress& bd_addr);
 static btif_dm_pairing_cb_t pairing_cb;
 static btif_dm_oob_cb_t oob_cb;
 static void btif_dm_cb_create_bond(const RawAddress bd_addr,
@@ -411,7 +415,7 @@ bool check_cod_hid(const RawAddress& bd_addr) {
  * Returns         true if the device is present in rejectlist, else false
  *
  ******************************************************************************/
-bool check_sdp_bl(const RawAddress* remote_bdaddr) {
+static bool check_sdp_bl(const RawAddress* remote_bdaddr) {
   bt_property_t prop_name;
   bt_remote_version_t info;
 
@@ -2739,12 +2743,15 @@ void btif_dm_load_ble_local_keys(void) {
 void btif_dm_get_ble_local_keys(tBTA_DM_BLE_LOCAL_KEY_MASK* p_key_mask,
                                 Octet16* p_er,
                                 tBTA_BLE_LOCAL_ID_KEYS* p_id_keys) {
+  ASSERT(p_key_mask != nullptr);
   if (ble_local_key_cb.is_er_rcvd) {
+    ASSERT(p_er != nullptr);
     *p_er = ble_local_key_cb.er;
     *p_key_mask |= BTA_BLE_LOCAL_KEY_TYPE_ER;
   }
 
   if (ble_local_key_cb.is_id_keys_rcvd) {
+    ASSERT(p_id_keys != nullptr);
     p_id_keys->ir = ble_local_key_cb.id_keys.ir;
     p_id_keys->irk = ble_local_key_cb.id_keys.irk;
     p_id_keys->dhk = ble_local_key_cb.id_keys.dhk;
@@ -2753,7 +2760,7 @@ void btif_dm_get_ble_local_keys(tBTA_DM_BLE_LOCAL_KEY_MASK* p_key_mask,
   BTIF_TRACE_DEBUG("%s  *p_key_mask=0x%02x", __func__, *p_key_mask);
 }
 
-void btif_dm_save_ble_bonding_keys(RawAddress& bd_addr) {
+static void btif_dm_save_ble_bonding_keys(RawAddress& bd_addr) {
   BTIF_TRACE_DEBUG("%s", __func__);
 
   if (pairing_cb.ble.is_penc_key_rcvd) {
@@ -2792,7 +2799,7 @@ void btif_dm_save_ble_bonding_keys(RawAddress& bd_addr) {
   }
 }
 
-void btif_dm_remove_ble_bonding_keys(void) {
+static void btif_dm_remove_ble_bonding_keys(void) {
   BTIF_TRACE_DEBUG("%s", __func__);
 
   RawAddress bd_addr = pairing_cb.bd_addr;
@@ -2808,7 +2815,8 @@ void btif_dm_remove_ble_bonding_keys(void) {
  * Returns          void
  *
  ******************************************************************************/
-void btif_dm_ble_sec_req_evt(tBTA_DM_BLE_SEC_REQ* p_ble_req, bool is_consent) {
+static void btif_dm_ble_sec_req_evt(tBTA_DM_BLE_SEC_REQ* p_ble_req,
+                                    bool is_consent) {
   bt_bdname_t bd_name;
   uint32_t cod;
   int dev_type;
