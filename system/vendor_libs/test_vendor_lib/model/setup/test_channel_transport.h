@@ -16,12 +16,19 @@
 
 #pragma once
 
-#include <functional>
-#include <memory>
-#include <string>
-#include <vector>
+#include <functional>  // for function
+#include <memory>      // for shared_ptr
+#include <string>      // for string
+#include <vector>      // for vector
+
+#include "net/async_data_channel.h"  // for AsyncDataChannel
+#include "net/async_data_channel_server.h"  // for AsyncDataChannelServer (ptr only), Con...
 
 namespace test_vendor_lib {
+
+using android::net::AsyncDataChannel;
+using android::net::AsyncDataChannelServer;
+using android::net::ConnectCallback;
 
 // Manages communications between test channel and the controller. Mirrors the
 // HciTransport for the test channel.
@@ -31,30 +38,30 @@ class TestChannelTransport {
 
   ~TestChannelTransport() {}
 
-  // Opens a port and returns the file descriptor for the socket.
-  // Returns -1 on an error.
-  int SetUp(int port);
+  // Opens a port and returns and starts listening for incoming connections.
+  bool SetUp(std::shared_ptr<AsyncDataChannelServer> server,
+             ConnectCallback connection_callback);
 
   // Closes the port (if succesfully opened in SetUp).
   void CleanUp();
 
-  // Waits for a connection request from the test channel program and
-  // returns the file descriptor to watch for run-time parameters.
-  // Returns -1 on an error.
-  int Accept(int listen_fd);
-
   // Sets the callback that fires when data is read in WatchFd().
-  void RegisterCommandHandler(const std::function<void(const std::string&, const std::vector<std::string>&)>& callback);
+  void RegisterCommandHandler(
+      const std::function<void(const std::string&,
+                               const std::vector<std::string>&)>& callback);
 
   // Send data back to the test channel.
-  void SendResponse(int fd, const std::string&) const;
+  void SendResponse(std::shared_ptr<AsyncDataChannel> socket,
+                    const std::string&) const;
 
-  void OnCommandReady(int fd, std::function<void(void)> unwatch);
+  void OnCommandReady(AsyncDataChannel* socket,
+                      std::function<void(void)> unwatch);
 
  private:
-  std::function<void(const std::string&, const std::vector<std::string>&)> command_handler_;
-
-  int listen_fd_ = -1;
+  std::function<void(const std::string&, const std::vector<std::string>&)>
+      command_handler_;
+  std::function<void(std::shared_ptr<AsyncDataChannel>)> connection_callback_;
+  std::shared_ptr<AsyncDataChannelServer> socket_server_;
 
   TestChannelTransport(const TestChannelTransport& cmdPckt) = delete;
   TestChannelTransport& operator=(const TestChannelTransport& cmdPckt) = delete;

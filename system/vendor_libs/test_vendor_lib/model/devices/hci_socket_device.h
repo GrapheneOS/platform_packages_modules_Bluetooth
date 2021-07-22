@@ -16,21 +16,29 @@
 
 #pragma once
 
-#include <cstdint>
-#include <vector>
+#include <cstdint>     // for uint8_t
+#include <functional>  // for __base, function
+#include <memory>      // for shared_ptr, make_...
+#include <string>      // for string
+#include <vector>      // for vector
 
-#include "model/controller/dual_mode_controller.h"
-#include "model/devices/h4_packetizer.h"
+#include "model/controller/dual_mode_controller.h"     // for DualModeController
+#include "model/devices/h4_data_channel_packetizer.h"  // for ClientDisconnectC...
+#include "model/devices/hci_protocol.h"                // for PacketReadCallback
+#include "net/async_data_channel.h"                    // for AsyncDataChannel
 
 namespace test_vendor_lib {
 
+using android::net::AsyncDataChannel;
+
 class HciSocketDevice : public DualModeController {
  public:
-  HciSocketDevice(int socket_fd);
+  HciSocketDevice(std::shared_ptr<AsyncDataChannel> socket);
   ~HciSocketDevice() = default;
 
-  static std::shared_ptr<HciSocketDevice> Create(int socket_fd) {
-    return std::make_shared<HciSocketDevice>(socket_fd);
+  static std::shared_ptr<HciSocketDevice> Create(
+      std::shared_ptr<AsyncDataChannel> socket) {
+    return std::make_shared<HciSocketDevice>(socket);
   }
 
   virtual std::string GetTypeString() const override {
@@ -45,14 +53,14 @@ class HciSocketDevice : public DualModeController {
   void RegisterCloseCallback(std::function<void()>);
 
  private:
-  int socket_file_descriptor_{-1};
-  H4Packetizer h4_{socket_file_descriptor_,
-                   [](const std::vector<uint8_t>&) {},
-                   [](const std::vector<uint8_t>&) {},
-                   [](const std::vector<uint8_t>&) {},
-                   [](const std::vector<uint8_t>&) {},
-                   [](const std::vector<uint8_t>&) {},
-                   [] {}};
+  std::shared_ptr<AsyncDataChannel> socket_;
+  H4DataChannelPacketizer h4_{socket_,
+                              [](const std::vector<uint8_t>&) {},
+                              [](const std::vector<uint8_t>&) {},
+                              [](const std::vector<uint8_t>&) {},
+                              [](const std::vector<uint8_t>&) {},
+                              [](const std::vector<uint8_t>&) {},
+                              [] {}};
 
   std::function<void()> close_callback_;
 };
