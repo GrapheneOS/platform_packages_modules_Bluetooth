@@ -28,7 +28,7 @@ pub struct Hci {
 
 impl Hci {
     pub fn new(rt: Arc<Runtime>, internal: HciFacadeService) -> Self {
-        Self { rt, internal }
+        Self { internal, rt }
     }
 }
 
