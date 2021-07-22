@@ -19,6 +19,7 @@
 #include <memory>
 
 #include "audio_hal_interface/a2dp_encoding_host.h"
+#include "include/hardware/avrcp/avrcp.h"
 #include "include/hardware/bt_av.h"
 
 #include "rust/cxx.h"
