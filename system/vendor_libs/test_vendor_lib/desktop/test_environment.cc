@@ -16,12 +16,14 @@
 
 #include "test_environment.h"
 
-#include <type_traits>  // for remove_extent_t
-#include <utility>      // for move
-#include <vector>       // for vector
+#include <fcntl.h>
+#include <netdb.h>
+#include <netinet/in.h>
+#include <signal.h>
+#include <string.h>
+#include <unistd.h>
 
-#include "net/async_data_channel.h"  // for AsyncDataChannel
-#include "os/log.h"                  // for LOG_INFO, LOG_ERROR, LOG_WARN
+#include "os/log.h"
 
 namespace android {
 namespace bluetooth {
@@ -50,16 +52,13 @@ void TestEnvironment::initialize(std::promise<void> barrier) {
       });
 
   SetUpTestChannel();
-  SetUpHciServer([this](std::shared_ptr<AsyncDataChannel> socket,
-                        AsyncDataChannelServer* srv) {
-    test_model_.IncomingHciConnection(socket);
-    srv->StartListening();
-  });
-  SetUpLinkLayerServer([this](std::shared_ptr<AsyncDataChannel> socket,
-                              AsyncDataChannelServer* srv) {
-    test_model_.IncomingLinkLayerConnection(socket);
-    srv->StartListening();
-  });
+  SetUpHciServer([this](int fd) { test_model_.IncomingHciConnection(fd); });
+  SetUpLinkLayerServer([this](int fd) { test_model_.IncomingLinkLayerConnection(fd); });
+
+  // In case the client socket is closed, and rootcanal doesn't detect it due to
+  // TimerTick not fired, writing to the socket causes a SIGPIPE and we need to
+  // catch it to prevent rootcanal from crash
+  signal(SIGPIPE, SIG_IGN);
 
   LOG_INFO("%s: Finished", __func__);
 }
@@ -69,54 +68,92 @@ void TestEnvironment::close() {
   test_model_.Reset();
 }
 
-void TestEnvironment::SetUpHciServer(ConnectCallback connection_callback) {
-  test_channel_.RegisterSendResponse([](const std::string& response) {
-    LOG_INFO("No HCI Response channel: %s", response.c_str());
-  });
+void TestEnvironment::SetUpHciServer(const std::function<void(int)>& connection_callback) {
+  int socket_fd = remote_hci_transport_.SetUp(hci_server_port_);
 
-  if (!remote_hci_transport_.SetUp(hci_socket_server_, connection_callback)) {
-    LOG_ERROR("Remote HCI channel SetUp failed.");
+  test_channel_.RegisterSendResponse(
+      [](const std::string& response) { LOG_INFO("No HCI Response channel: %s", response.c_str()); });
+
+  if (socket_fd == -1) {
+    LOG_ERROR("Remote HCI channel SetUp(%d) failed.", hci_server_port_);
     return;
   }
-}
 
-void TestEnvironment::SetUpLinkLayerServer(
-    ConnectCallback connection_callback) {
-  remote_link_layer_transport_.SetUp(link_socket_server_, connection_callback);
+  async_manager_.WatchFdForNonBlockingReads(socket_fd, [this, connection_callback](int socket_fd) {
+    int conn_fd = remote_hci_transport_.Accept(socket_fd);
+    if (conn_fd < 0) {
+      LOG_ERROR("Error watching remote HCI channel fd.");
+      return;
+    }
+    int flags = fcntl(conn_fd, F_GETFL, NULL);
+    int ret;
+    ret = fcntl(conn_fd, F_SETFL, flags | O_NONBLOCK);
+    ASSERT_LOG(ret != -1, "Error setting O_NONBLOCK %s", strerror(errno));
 
-  test_channel_.RegisterSendResponse([](const std::string& response) {
-    LOG_INFO("No LinkLayer Response channel: %s", response.c_str());
+    connection_callback(conn_fd);
   });
 }
 
-std::shared_ptr<AsyncDataChannel> TestEnvironment::ConnectToRemoteServer(
-    const std::string& server, int port) {
-  return connector_->ConnectToRemoteServer(server, port);
+void TestEnvironment::SetUpLinkLayerServer(const std::function<void(int)>& connection_callback) {
+  int socket_fd = remote_link_layer_transport_.SetUp(link_server_port_);
+
+  test_channel_.RegisterSendResponse(
+      [](const std::string& response) { LOG_INFO("No LinkLayer Response channel: %s", response.c_str()); });
+
+  if (socket_fd == -1) {
+    LOG_ERROR("Remote LinkLayer channel SetUp(%d) failed.", link_server_port_);
+    return;
+  }
+
+  async_manager_.WatchFdForNonBlockingReads(socket_fd, [this, connection_callback](int socket_fd) {
+    int conn_fd = remote_link_layer_transport_.Accept(socket_fd);
+    if (conn_fd < 0) {
+      LOG_ERROR("Error watching remote LinkLayer channel fd.");
+      return;
+    }
+    int flags = fcntl(conn_fd, F_GETFL, NULL);
+    int ret = fcntl(conn_fd, F_SETFL, flags | O_NONBLOCK);
+    ASSERT_LOG(ret != -1, "Error setting O_NONBLOCK %s", strerror(errno));
+
+    connection_callback(conn_fd);
+  });
+}
+
+int TestEnvironment::ConnectToRemoteServer(const std::string& server, int port) {
+  int socket_fd = socket(AF_INET, SOCK_STREAM, 0);
+  if (socket_fd < 1) {
+    LOG_INFO("socket() call failed: %s", strerror(errno));
+    return -1;
+  }
+
+  struct hostent* host;
+  host = gethostbyname(server.c_str());
+  if (host == NULL) {
+    LOG_INFO("gethostbyname() failed for %s: %s", server.c_str(), strerror(errno));
+    return -1;
+  }
+
+  struct sockaddr_in serv_addr {};
+  memset((void*)&serv_addr, 0, sizeof(serv_addr));
+  serv_addr.sin_family = AF_INET;
+  serv_addr.sin_addr.s_addr = INADDR_ANY;
+  serv_addr.sin_port = htons(port);
+
+  int result = connect(socket_fd, (struct sockaddr*)&serv_addr, sizeof(serv_addr));
+  if (result < 0) {
+    LOG_INFO("connect() failed for %s@%d: %s", server.c_str(), port, strerror(errno));
+    return -1;
+  }
+
+  int flags = fcntl(socket_fd, F_GETFL, NULL);
+  int ret = fcntl(socket_fd, F_SETFL, flags | O_NONBLOCK);
+  ASSERT_LOG(ret != -1, "Error setting O_NONBLOCK %s", strerror(errno));
+
+  return socket_fd;
 }
 
 void TestEnvironment::SetUpTestChannel() {
-  bool transport_configured = test_channel_transport_.SetUp(
-      test_socket_server_, [this](std::shared_ptr<AsyncDataChannel> conn_fd,
-                                  AsyncDataChannelServer*) {
-        LOG_INFO("Test channel connection accepted.");
-        if (test_channel_open_) {
-          LOG_WARN("Only one connection at a time is supported");
-          test_channel_transport_.SendResponse(conn_fd,
-                                               "The connection is broken");
-          return false;
-        }
-        test_channel_open_ = true;
-        test_channel_.RegisterSendResponse(
-            [this, conn_fd](const std::string& response) {
-              test_channel_transport_.SendResponse(conn_fd, response);
-            });
-
-        conn_fd->WatchForNonBlockingRead([this](AsyncDataChannel* conn_fd) {
-          test_channel_transport_.OnCommandReady(
-              conn_fd, [this]() { test_channel_open_ = false; });
-        });
-        return false;
-      });
+  int socket_fd = test_channel_transport_.SetUp(test_port_);
   test_channel_.RegisterSendResponse([](const std::string& response) {
     LOG_INFO("No test channel: %s", response.c_str());
   });
@@ -127,12 +164,39 @@ void TestEnvironment::SetUpTestChannel() {
 
   test_channel_.FromFile(default_commands_file_);
 
-  if (!transport_configured) {
-    LOG_ERROR("Test channel SetUp failed.");
+  if (socket_fd == -1) {
+    LOG_ERROR("Test channel SetUp(%d) failed.", test_port_);
     return;
   }
 
   LOG_INFO("Test channel SetUp() successful");
+  async_manager_.WatchFdForNonBlockingReads(socket_fd, [this](int socket_fd) {
+    int conn_fd = test_channel_transport_.Accept(socket_fd);
+    if (conn_fd < 0) {
+      LOG_ERROR("Error watching test channel fd.");
+      barrier_.set_value();
+      return;
+    }
+    LOG_INFO("Test channel connection accepted.");
+    if (test_channel_open_) {
+      LOG_WARN("Only one connection at a time is supported");
+      async_manager_.StopWatchingFileDescriptor(conn_fd);
+      test_channel_transport_.SendResponse(conn_fd, "The connection is broken");
+      return;
+    }
+    test_channel_open_ = true;
+    test_channel_.RegisterSendResponse(
+        [this, conn_fd](const std::string& response) {
+          test_channel_transport_.SendResponse(conn_fd, response);
+        });
+
+    async_manager_.WatchFdForNonBlockingReads(conn_fd, [this](int conn_fd) {
+      test_channel_transport_.OnCommandReady(conn_fd, [this, conn_fd]() {
+        async_manager_.StopWatchingFileDescriptor(conn_fd);
+        test_channel_open_ = false;
+      });
+    });
+  });
 }
 
 }  // namespace root_canal

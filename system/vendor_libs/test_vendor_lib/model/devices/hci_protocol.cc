@@ -18,18 +18,16 @@
 
 #include <errno.h>
 #include <fcntl.h>
-#include <string.h>
 #include <unistd.h>
 
 #include "os/log.h"
 
 namespace test_vendor_lib {
 
-size_t HciProtocol::WriteSafely(AsyncDataChannel* socket, const uint8_t* data,
-                                size_t length) {
+size_t HciProtocol::WriteSafely(int fd, const uint8_t* data, size_t length) {
   size_t transmitted_length = 0;
   while (length > 0) {
-    ssize_t ret = socket->Send(data + transmitted_length, length);
+    ssize_t ret = TEMP_FAILURE_RETRY(write(fd, data + transmitted_length, length));
 
     if (ret == -1) {
       if (errno == EAGAIN) continue;
