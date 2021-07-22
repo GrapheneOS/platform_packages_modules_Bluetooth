@@ -13,24 +13,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-#include "test_environment.h"
 
-#include <backtrace/Backtrace.h>
-#include <backtrace/backtrace_constants.h>
-#include <client/linux/handler/exception_handler.h>
-#include <gflags/gflags.h>
+#include "test_environment.h"
 
 #include <future>
 
-#include "model/setup/async_manager.h"
-#include "net/posix/posix_async_socket_connector.h"
-#include "net/posix/posix_async_socket_server.h"
+#include <client/linux/handler/exception_handler.h>
+
+#include <backtrace/Backtrace.h>
+#include <backtrace/backtrace_constants.h>
+
+#include <gflags/gflags.h>
+
 #include "os/log.h"
 
 using ::android::bluetooth::root_canal::TestEnvironment;
-using ::android::net::PosixAsyncSocketConnector;
-using ::android::net::PosixAsyncSocketServer;
-using test_vendor_lib::AsyncManager;
 
 DEFINE_string(controller_properties_file, "",
               "controller_properties.json file path");
@@ -114,13 +111,10 @@ int main(int argc, char** argv) {
       }
     }
   }
-  AsyncManager am;
-  TestEnvironment root_canal(
-      std::make_shared<PosixAsyncSocketServer>(test_port, &am),
-      std::make_shared<PosixAsyncSocketServer>(hci_server_port, &am),
-      std::make_shared<PosixAsyncSocketServer>(link_server_port, &am),
-      std::make_shared<PosixAsyncSocketConnector>(&am),
-      FLAGS_controller_properties_file, FLAGS_default_commands_file);
+
+  TestEnvironment root_canal(test_port, hci_server_port, link_server_port,
+                             FLAGS_controller_properties_file,
+                             FLAGS_default_commands_file);
   std::promise<void> barrier;
   std::future<void> barrier_future = barrier.get_future();
   root_canal.initialize(std::move(barrier));

@@ -16,36 +16,25 @@
 
 #include "link_layer_socket_device.h"
 
-#include <type_traits>  // for remove_extent_t
+#include <unistd.h>
 
-#include "os/log.h"               // for ASSERT, LOG_INFO, LOG_ERROR, LOG_WARN
-#include "packet/bit_inserter.h"  // for BitInserter
-#include "packet/iterator.h"      // for Iterator
-#include "packet/packet_view.h"   // for PacketView, kLittleEndian
-#include "packet/raw_builder.h"   // for RawBuilder
-#include "packet/view.h"          // for View
-#include "phy.h"                  // for Phy, Phy::Type
+#include "packet/packet_view.h"
+#include "packet/raw_builder.h"
+#include "packet/view.h"
 
 using std::vector;
 
 namespace test_vendor_lib {
 
-LinkLayerSocketDevice::LinkLayerSocketDevice(
-    std::shared_ptr<AsyncDataChannel> socket_fd, Phy::Type phy_type)
+LinkLayerSocketDevice::LinkLayerSocketDevice(int socket_fd, Phy::Type phy_type)
     : socket_(socket_fd),
       phy_type_(phy_type),
       size_bytes_(std::make_shared<std::vector<uint8_t>>(kSizeBytes)) {}
 
 void LinkLayerSocketDevice::TimerTick() {
   if (receiving_size_) {
-    ssize_t bytes_received =
-        socket_->Recv(size_bytes_->data() + offset_, kSizeBytes);
-    if (bytes_received <= 0) {
-      LOG_INFO("Closing socket, received: %zd, %s", bytes_received,
-               strerror(errno));
-      socket_->Close();
-      return;
-    }
+    size_t bytes_received =
+        socket_.TryReceive(kSizeBytes, size_bytes_->data() + offset_);
     if (bytes_received < bytes_left_) {
       bytes_left_ -= bytes_received;
       offset_ += bytes_received;
@@ -58,14 +47,7 @@ void LinkLayerSocketDevice::TimerTick() {
     offset_ = 0;
     receiving_size_ = false;
   }
-  ssize_t bytes_received =
-      socket_->Recv(received_->data() + offset_, bytes_left_);
-  if (bytes_received <= 0) {
-    LOG_INFO("Closing socket, received: %zd, %s", bytes_received,
-             strerror(errno));
-    socket_->Close();
-    return;
-  }
+  size_t bytes_received = socket_.TryReceive(bytes_left_, received_->data() + offset_);
   if (bytes_received < bytes_left_) {
     bytes_left_ -= bytes_received;
     offset_ += bytes_received;
@@ -89,9 +71,9 @@ void LinkLayerSocketDevice::IncomingPacket(
   bluetooth::packet::BitInserter bit_inserter(size_bytes);
   size_packet.Serialize(bit_inserter);
 
-  if (socket_->Send(size_bytes.data(), size_bytes.size()) == kSizeBytes) {
+  if (socket_.TrySend(size_bytes) == kSizeBytes) {
     std::vector<uint8_t> payload_bytes{packet.begin(), packet.end()};
-    socket_->Send(payload_bytes.data(), payload_bytes.size());
+    socket_.TrySend(payload_bytes);
   }
 }
 
