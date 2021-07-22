@@ -14,6 +14,9 @@
  * limitations under the License.
  */
 
+#include <cstdio>
+#include <memory>
+
 #include "gd/rust/topshim/btav/btav_shim.h"
 #include "include/hardware/avrcp/avrcp.h"
 #include "include/hardware/bluetooth.h"
@@ -25,38 +28,45 @@
 namespace bluetooth::avrcp {
 class AvrcpMediaInterfaceImpl : public MediaInterface {
  public:
-  void SendKeyEvent(uint8_t key, KeyState state) {}
+  void SendKeyEvent([[maybe_unused]] uint8_t key, [[maybe_unused]] KeyState state) {}
 
-  void GetSongInfo(SongInfoCallback cb) override {}
+  void GetSongInfo([[maybe_unused]] SongInfoCallback cb) override {}
 
-  void GetPlayStatus(PlayStatusCallback cb) override {}
+  void GetPlayStatus([[maybe_unused]] PlayStatusCallback cb) override {}
 
-  void GetNowPlayingList(NowPlayingCallback cb) override {}
+  void GetNowPlayingList([[maybe_unused]] NowPlayingCallback cb) override {}
 
-  void GetMediaPlayerList(MediaListCallback cb) override {}
+  void GetMediaPlayerList([[maybe_unused]] MediaListCallback cb) override {}
 
-  void GetFolderItems(uint16_t player_id, std::string media_id, FolderItemsCallback folder_cb) override {}
+  void GetFolderItems(
+      [[maybe_unused]] uint16_t player_id,
+      [[maybe_unused]] std::string media_id,
+      [[maybe_unused]] FolderItemsCallback folder_cb) override {}
 
-  void SetBrowsedPlayer(uint16_t player_id, SetBrowsedPlayerCallback browse_cb) override {}
+  void SetBrowsedPlayer(
+      [[maybe_unused]] uint16_t player_id, [[maybe_unused]] SetBrowsedPlayerCallback browse_cb) override {}
 
-  void RegisterUpdateCallback(MediaCallbacks* callback) override {}
+  void RegisterUpdateCallback([[maybe_unused]] MediaCallbacks* callback) override {}
 
-  void UnregisterUpdateCallback(MediaCallbacks* callback) override {}
+  void UnregisterUpdateCallback([[maybe_unused]] MediaCallbacks* callback) override {}
 
-  void PlayItem(uint16_t player_id, bool now_playing, std::string media_id) override {}
+  void PlayItem(
+      [[maybe_unused]] uint16_t player_id,
+      [[maybe_unused]] bool now_playing,
+      [[maybe_unused]] std::string media_id) override {}
 
-  void SetActiveDevice(const RawAddress& address) override {}
+  void SetActiveDevice([[maybe_unused]] const RawAddress& address) override {}
 };
 
 class VolumeInterfaceImpl : public VolumeInterface {
  public:
-  void DeviceConnected(const RawAddress& bdaddr) override {}
+  void DeviceConnected([[maybe_unused]] const RawAddress& bdaddr) override {}
 
-  void DeviceConnected(const RawAddress& bdaddr, VolumeChangedCb cb) override {}
+  void DeviceConnected([[maybe_unused]] const RawAddress& bdaddr, [[maybe_unused]] VolumeChangedCb cb) override {}
 
-  void DeviceDisconnected(const RawAddress& bdaddr) override {}
+  void DeviceDisconnected([[maybe_unused]] const RawAddress& bdaddr) override {}
 
-  void SetVolume(int8_t volume) override {}
+  void SetVolume([[maybe_unused]] int8_t volume) override {}
 };
 
 }  // namespace bluetooth::avrcp
@@ -171,7 +181,6 @@ std::unique_ptr<A2dpIntf> GetA2dpProfile(const unsigned char* btif) {
 int A2dpIntf::init() {
   std::vector<btav_a2dp_codec_config_t> a;
   std::vector<btav_a2dp_codec_config_t> b;
-
   return intf_->init(&internal::g_callbacks, 1, a, b);
 }
 
