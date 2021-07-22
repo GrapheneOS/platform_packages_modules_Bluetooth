@@ -226,7 +226,12 @@ impl From<BtProperty> for bindings::bt_property_t {
 
 impl From<bindings::bt_bdname_t> for String {
     fn from(item: bindings::bt_bdname_t) -> Self {
-        std::str::from_utf8(&item.name).unwrap().to_string()
+        // We need to reslice item.name because from_utf8 tries to interpret the
+        // whole slice and not just what is before the null terminated portion
+        let ascii =
+            item.name.iter().take_while(|&c| *c != 0).map(|x| x.clone()).collect::<Vec<u8>>();
+
+        return std::str::from_utf8(ascii.as_slice()).unwrap_or("").to_string();
     }
 }
 
@@ -661,5 +666,33 @@ mod tests {
     #[test]
     fn test_alignment() {
         assert_eq!(std::mem::align_of::<RawAddress>(), std::mem::align_of::<FfiAddress>());
+    }
+
+    fn make_bdname_from_slice(slice: &[u8]) -> bindings::bt_bdname_t {
+        // Length of slice must be less than bd_name max
+        assert!(slice.len() <= 249);
+
+        let mut bdname = bindings::bt_bdname_t { name: [128; 249] };
+
+        for (i, v) in slice.iter().enumerate() {
+            bdname.name[i] = v.clone();
+        }
+
+        bdname
+    }
+
+    #[test]
+    fn test_bdname_conversions() {
+        let hello_bdname = make_bdname_from_slice(&[72, 69, 76, 76, 79, 0]);
+        assert_eq!("HELLO".to_string(), String::from(hello_bdname));
+
+        let empty_bdname = make_bdname_from_slice(&[0]);
+        assert_eq!("".to_string(), String::from(empty_bdname));
+
+        let no_nullterm_bdname = make_bdname_from_slice(&[72, 69, 76, 76, 79]);
+        assert_eq!("".to_string(), String::from(no_nullterm_bdname));
+
+        let invalid_bdname = make_bdname_from_slice(&[128; 249]);
+        assert_eq!("".to_string(), String::from(invalid_bdname));
     }
 }
