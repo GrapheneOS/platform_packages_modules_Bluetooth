@@ -16,31 +16,23 @@
 
 #pragma once
 
-#include <stddef.h>  // for size_t
+#include <cstdint>
+#include <vector>
 
-#include <cstdint>  // for uint8_t, uint32_t
-#include <memory>   // for shared_ptr, make_shared
-#include <string>   // for string
-#include <vector>   // for vector
-
-#include "device.h"                      // for Device
-#include "include/phy.h"                 // for Phy, Phy::Type
-#include "net/async_data_channel.h"      // for AsyncDataChannel
-#include "packets/link_layer_packets.h"  // for LinkLayerPacketView
+#include "device.h"
+#include "include/phy.h"
+#include "packets/link_layer_packets.h"
+#include "polled_socket.h"
 
 namespace test_vendor_lib {
 
-using android::net::AsyncDataChannel;
-
 class LinkLayerSocketDevice : public Device {
  public:
-  LinkLayerSocketDevice(std::shared_ptr<AsyncDataChannel> socket_fd,
-                        Phy::Type phy_type);
+  LinkLayerSocketDevice(int socket_fd, Phy::Type phy_type);
   LinkLayerSocketDevice(LinkLayerSocketDevice&& s) = default;
   virtual ~LinkLayerSocketDevice() = default;
 
-  static std::shared_ptr<Device> Create(
-      std::shared_ptr<AsyncDataChannel> socket_fd, Phy::Type phy_type) {
+  static std::shared_ptr<Device> Create(int socket_fd, Phy::Type phy_type) {
     return std::make_shared<LinkLayerSocketDevice>(socket_fd, phy_type);
   }
 
@@ -58,7 +50,7 @@ class LinkLayerSocketDevice : public Device {
   static constexpr size_t kSizeBytes = sizeof(uint32_t);
 
  private:
-  std::shared_ptr<AsyncDataChannel> socket_;
+  net::PolledSocket socket_;
   Phy::Type phy_type_;
   bool receiving_size_{true};
   size_t bytes_left_{kSizeBytes};
