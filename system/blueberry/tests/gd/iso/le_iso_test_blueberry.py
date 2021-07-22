@@ -1,6 +1,5 @@
-#!/usr/bin/env python3
 #
-#   Copyright 2019 - The Android Open Source Project
+#   Copyright 2021 - The Android Open Source Project
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -15,21 +14,21 @@
 #   limitations under the License.
 
 from blueberry.tests.gd.cert import gd_base_test
-from hci.cert.direct_hci_test_lib import DirectHciTestBase
+from iso.cert.le_iso_test_lib import LeIsoTestBase
 from mobly import test_runner
 
 
-class DirectHciTest(gd_base_test.GdBaseTestClass, DirectHciTestBase):
+class LeIsoTestBb(gd_base_test.GdBaseTestClass, LeIsoTestBase):
 
     def setup_class(self):
-        gd_base_test.GdBaseTestClass.setup_class(self, dut_module='HCI', cert_module='HAL')
+        gd_base_test.GdBaseTestClass.setup_class(self, dut_module='L2CAP', cert_module='HCI_INTERFACES')
 
     def setup_test(self):
         gd_base_test.GdBaseTestClass.setup_test(self)
-        DirectHciTestBase.setup_test(self, self.dut, self.cert)
+        LeIsoTestBase.setup_test(self, self.dut, self.cert)
 
     def teardown_test(self):
-        DirectHciTestBase.teardown_test(self)
+        LeIsoTestBase.teardown_test(self)
         gd_base_test.GdBaseTestClass.teardown_test(self)
 
 

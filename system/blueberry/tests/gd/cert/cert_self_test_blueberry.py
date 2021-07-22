@@ -24,7 +24,7 @@ from mobly import base_test
 from cert.cert_self_test_lib import *
 
 
-class CertSelfTest(base_test.BaseTestClass):
+class CertSelfTestBb(base_test.BaseTestClass):
 
     def setup_test(self):
         return True
