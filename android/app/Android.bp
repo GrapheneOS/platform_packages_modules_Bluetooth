@@ -96,6 +96,7 @@ android_app {
         "androidx.lifecycle_lifecycle-livedata",
         "androidx.room_room-runtime",
         "guava",
+        "android.hardware.radio-V1.0-java",
     ],
 
     plugins: [
