@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #
-#   Copyright 2019 - The Android Open Source Project
+#   Copyright 2020 - The Android Open Source Project
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -15,22 +15,20 @@
 #   limitations under the License.
 
 from blueberry.tests.gd.cert import gd_base_test
-from neighbor.cert.neighbor_test_lib import NeighborTestBase
+from hci.cert.controller_test_lib import ControllerTestBase
 from mobly import test_runner
 
 
-class NeighborTest(gd_base_test.GdBaseTestClass, NeighborTestBase):
+class ControllerTestBb(gd_base_test.GdBaseTestClass, ControllerTestBase):
 
     def setup_class(self):
-        gd_base_test.GdBaseTestClass.setup_class(self, dut_module='HCI_INTERFACES', cert_module='HCI')
+        gd_base_test.GdBaseTestClass.setup_class(self, dut_module='HCI_INTERFACES', cert_module='HCI_INTERFACES')
 
-    def setup_test(self):
-        gd_base_test.GdBaseTestClass.setup_test(self)
-        NeighborTestBase.setup_test(self, self.dut, self.cert)
+    def test_get_addresses(self):
+        ControllerTestBase.test_get_addresses(self, self.dut, self.cert)
 
-    def teardown_test(self):
-        NeighborTestBase.teardown_test(self)
-        gd_base_test.GdBaseTestClass.teardown_test(self)
+    def test_write_local_name(self):
+        ControllerTestBase.test_write_local_name(self, self.dut, self.cert)
 
 
 if __name__ == '__main__':

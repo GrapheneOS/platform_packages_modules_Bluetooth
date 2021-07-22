@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 #
 #   Copyright 2020 - The Android Open Source Project
 #
@@ -15,17 +14,22 @@
 #   limitations under the License.
 
 from blueberry.tests.gd.cert import gd_base_test
-from shim.cert.shim_test_lib import ShimTestBase
+from l2cap.classic.cert.l2cap_performance_test_lib import L2capPerformanceTestBase
 from mobly import test_runner
 
 
-class ShimTest(gd_base_test.GdBaseTestClass, ShimTestBase):
+class L2capPerformanceTestBb(gd_base_test.GdBaseTestClass, L2capPerformanceTestBase):
 
     def setup_class(self):
-        gd_base_test.GdBaseTestClass.setup_class(self, dut_module='SHIM', cert_module='SHIM')
+        gd_base_test.GdBaseTestClass.setup_class(self, dut_module='L2CAP', cert_module='HCI_INTERFACES')
 
-    def test_dumpsys(self):
-        ShimTestBase.test_dumpsys(self, self.dut, self.cert)
+    def setup_test(self):
+        gd_base_test.GdBaseTestClass.setup_test(self)
+        L2capPerformanceTestBase.setup_test(self, self.dut, self.cert)
+
+    def teardown_test(self):
+        L2capPerformanceTestBase.teardown_test(self)
+        gd_base_test.GdBaseTestClass.teardown_test(self)
 
 
 if __name__ == '__main__':
