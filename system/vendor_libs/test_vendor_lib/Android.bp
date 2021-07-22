@@ -39,7 +39,6 @@ cc_library_static {
         "model/devices/keyboard.cc",
         "model/devices/link_layer_socket_device.cc",
         "model/devices/loopback.cc",
-        "model/devices/polled_socket.cc",
         "model/devices/remote_loopback_device.cc",
         "model/devices/scripted_beacon.cc",
         "model/devices/sniffer.cc",
