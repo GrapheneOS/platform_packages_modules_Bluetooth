@@ -22,14 +22,12 @@ pub enum State {
     TurningOff = 3, // We are not notified that the Bluetooth is stopped
 }
 
-impl From<State> for i32 {
-    fn from(item: State) -> i32 {
-        item as i32
+/// Check whether adapter is enabled by checking internal state.
+pub fn state_to_enabled(state: State) -> bool {
+    match state {
+        State::On => true,
+        _ => false,
     }
-}
-
-pub fn state_to_i32(state: State) -> i32 {
-    i32::from(state)
 }
 
 /// Adapter state actions

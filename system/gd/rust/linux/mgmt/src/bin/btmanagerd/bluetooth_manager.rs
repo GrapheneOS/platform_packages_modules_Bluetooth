@@ -55,10 +55,12 @@ impl IBluetoothManager for BluetoothManager {
         self.manager_context.proxy.stop_bluetooth(hci_interface);
     }
 
-    fn get_state(&mut self) -> i32 {
+    fn get_adapter_enabled(&mut self, _hci_interface: i32) -> bool {
         let proxy = self.manager_context.proxy.clone();
+
+        // TODO(b/189501676) - State should depend on given adapter.
         let state = proxy.get_state();
-        let result = state_machine::state_to_i32(state);
+        let result = state_machine::state_to_enabled(state);
         result
     }
 
