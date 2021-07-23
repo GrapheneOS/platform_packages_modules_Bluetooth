@@ -1,29 +1,9 @@
 //! System properties on Android
 
-#[cfg(target_os = "android")]
-mod wrap {
-    #[cxx::bridge(namespace = bluetooth::common::sys_prop)]
-    pub mod ffi {
-        unsafe extern "C++" {
-            include!("src/ffi/sys_prop.h");
-            fn get(name: &str) -> String;
-        }
-    }
-}
-
-#[cfg(target_os = "android")]
-use wrap::ffi;
-
 /// Gets the value of a system property on Android
 #[cfg(target_os = "android")]
 pub fn get(name: &str) -> Option<String> {
-    let value = ffi::get(name);
-
-    if !value.is_empty() {
-        Some(value)
-    } else {
-        None
-    }
+    system_properties::read(name).ok()
 }
 
 /// Fake getter for non-Android, which will always return nothing.
