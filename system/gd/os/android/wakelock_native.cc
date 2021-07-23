@@ -20,48 +20,71 @@
 
 #include "os/internal/wakelock_native.h"
 
-#include <android/system/suspend/1.0/ISystemSuspend.h>
+#include <aidl/android/system/suspend/ISystemSuspend.h>
+#include <aidl/android/system/suspend/IWakeLock.h>
+#include <android/binder_ibinder.h>
+#include <android/binder_manager.h>
+
 #include <fcntl.h>
 #include <unistd.h>
 
 #include <cerrno>
 #include <string>
 
+// We want the os/log.h definitions
+#undef LOG_DEBUG
+#undef LOG_INFO
+
 #include "os/log.h"
+
+// Save the os/log.h definitions
+#pragma push_macro("LOG_DEBUG")
+#pragma push_macro("LOG_INFO")
+
+// Undef these to avoid conflicting with later imports
+#undef LOG_DEBUG
+#undef LOG_INFO
+
+using ::aidl::android::system::suspend::ISystemSuspend;
+using ::aidl::android::system::suspend::IWakeLock;
+using ::aidl::android::system::suspend::WakeLockType;
 
 namespace bluetooth {
 namespace os {
 namespace internal {
 
-using android::sp;
-using android::system::suspend::V1_0::ISystemSuspend;
-using android::system::suspend::V1_0::IWakeLock;
-using android::system::suspend::V1_0::WakeLockType;
+// Restore the os/log.h definitions after all imported headers
+#pragma pop_macro("LOG_DEBUG")
+#pragma pop_macro("LOG_INFO")
+
+static void onSuspendDeath(void* cookie) {
+  auto onDeath = static_cast<std::function<void(void)>*>(cookie);
+  (*onDeath)();
+}
 
 struct WakelockNative::Impl {
-  sp<ISystemSuspend> suspend_service = nullptr;
-  sp<IWakeLock> current_wakelock = nullptr;
+  Impl() : suspend_death_recipient(AIBinder_DeathRecipient_new(onSuspendDeath)) {}
 
-  class SystemSuspendDeathRecipient : public ::android::hardware::hidl_death_recipient {
-   public:
-    explicit SystemSuspendDeathRecipient(WakelockNative::Impl* impl) : impl_(impl) {}
-    void serviceDied(uint64_t /*cookie*/, const android::wp<::android::hidl::base::V1_0::IBase>& /*who*/) override {
-      LOG_ERROR("ISystemSuspend HAL service died!");
-      impl_->suspend_service = nullptr;
-    }
-
-   private:
-    WakelockNative::Impl* impl_ = nullptr;
+  std::function<void(void)> onDeath = [this] {
+    LOG_ERROR("ISystemSuspend HAL service died!");
+    this->suspend_service = nullptr;
   };
-  sp<SystemSuspendDeathRecipient> suspend_death_recipient;
+
+  std::shared_ptr<ISystemSuspend> suspend_service = nullptr;
+  std::shared_ptr<IWakeLock> current_wakelock = nullptr;
+  ::ndk::ScopedAIBinder_DeathRecipient suspend_death_recipient;
 };
 
 void WakelockNative::Initialize() {
   LOG_INFO("Initializing native wake locks");
-  pimpl_->suspend_service = ISystemSuspend::getService();
+  const std::string suspendInstance = std::string() + ISystemSuspend::descriptor + "/default";
+  pimpl_->suspend_service = ISystemSuspend::fromBinder(
+      ndk::SpAIBinder(AServiceManager_waitForService(suspendInstance.c_str())));
   ASSERT_LOG(pimpl_->suspend_service, "Cannot get ISystemSuspend service");
-  pimpl_->suspend_death_recipient = new Impl::SystemSuspendDeathRecipient(pimpl_.get());
-  pimpl_->suspend_service->linkToDeath(pimpl_->suspend_death_recipient, 0 /* cookie */);
+  AIBinder_linkToDeath(
+      pimpl_->suspend_service->asBinder().get(),
+      pimpl_->suspend_death_recipient.get(),
+      static_cast<void*>(&pimpl_->onDeath));
 }
 
 WakelockNative::StatusCode WakelockNative::Acquire(const std::string& lock_name) {
@@ -75,9 +98,10 @@ WakelockNative::StatusCode WakelockNative::Acquire(const std::string& lock_name)
     return StatusCode::SUCCESS;
   }
 
-  pimpl_->current_wakelock = pimpl_->suspend_service->acquireWakeLock(WakeLockType::PARTIAL, lock_name);
+  auto status = pimpl_->suspend_service->acquireWakeLock(
+      WakeLockType::PARTIAL, lock_name, &pimpl_->current_wakelock);
   if (!pimpl_->current_wakelock) {
-    LOG_ERROR("wake lock not acquired: %s", strerror(errno));
+    LOG_ERROR("wake lock not acquired: %s", status.getDescription().c_str());
     return StatusCode::NATIVE_API_ERROR;
   }
 
@@ -90,7 +114,7 @@ WakelockNative::StatusCode WakelockNative::Release(const std::string& lock_name)
     return StatusCode::SUCCESS;
   }
   pimpl_->current_wakelock->release();
-  pimpl_->current_wakelock.clear();
+  pimpl_->current_wakelock = nullptr;
   return StatusCode::SUCCESS;
 }
 
@@ -99,13 +123,15 @@ void WakelockNative::CleanUp() {
   if (pimpl_->current_wakelock) {
     LOG_INFO("releasing current wakelock during clean up");
     pimpl_->current_wakelock->release();
-    pimpl_->current_wakelock.clear();
+    pimpl_->current_wakelock = nullptr;
   }
   if (pimpl_->suspend_service) {
     LOG_INFO("Unlink death recipient");
-    pimpl_->suspend_service->unlinkToDeath(pimpl_->suspend_death_recipient);
-    pimpl_->suspend_death_recipient.clear();
-    pimpl_->suspend_service.clear();
+    AIBinder_unlinkToDeath(
+        pimpl_->suspend_service->asBinder().get(),
+        pimpl_->suspend_death_recipient.get(),
+        static_cast<void*>(&pimpl_->onDeath));
+    pimpl_->suspend_service = nullptr;
   }
 }
 
