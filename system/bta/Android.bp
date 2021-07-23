@@ -174,12 +174,13 @@ cc_test {
         "BluetoothGeneratedPackets_h",
     ],
     srcs: [
+        ":OsiCompatSources",
         ":TestCommonMainHandler",
         ":TestMockBtif",
         ":TestMockDevice",
         ":TestMockMainShim",
+        ":TestMockOsi",
         ":TestMockStack",
-        ":TestStubOsi",
         "ar/bta_ar.cc",
         "dm/bta_dm_api.cc",
         "dm/bta_dm_act.cc",
@@ -219,6 +220,11 @@ cc_test {
         "libbtcore",
         "libgmock",
     ],
+    sanitize: {
+        address: true,
+        cfi: true,
+        misc_undefined: ["bounds"],
+    },
 }
 
 // bta hf client add record tests for target
