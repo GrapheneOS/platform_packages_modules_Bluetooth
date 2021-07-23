@@ -733,11 +733,14 @@ public class BluetoothInCallService extends InCallService {
                 return false;
             }
             if (!mCallInfo.isNullCall(activeCall)) {
-                activeCall.disconnect();
-                if (!mCallInfo.isNullCall(ringingCall)) {
-                    ringingCall.answer(VideoProfile.STATE_AUDIO_ONLY);
+                BluetoothCall conferenceCall = getBluetoothCallById(activeCall.getParentId());
+                if (!mCallInfo.isNullCall(conferenceCall)
+                        && conferenceCall.getState() == Call.STATE_ACTIVE) {
+                    Log.i(TAG, "CHLD: disconnect conference call");
+                    conferenceCall.disconnect();
+                } else {
+                    activeCall.disconnect();
                 }
-                return true;
             }
             if (!mCallInfo.isNullCall(ringingCall)) {
                 ringingCall.answer(ringingCall.getVideoState());
