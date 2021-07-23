@@ -55,16 +55,6 @@ namespace test {
 namespace mock {
 namespace bta_dm_api {
 
-// Shared state between mocked functions and tests
-// Name: BTA_AddEirUuid
-// Params: uint16_t uuid16
-// Return: void
-struct BTA_AddEirUuid {
-  std::function<void(uint16_t uuid16)> body{[](uint16_t uuid16) {}};
-  void operator()(uint16_t uuid16) { body(uuid16); };
-};
-extern struct BTA_AddEirUuid BTA_AddEirUuid;
-
 // Name: BTA_DmAddBleDevice
 // Params: const RawAddress& bd_addr, tBLE_ADDR_TYPE addr_type, tBT_DEVICE_TYPE
 // dev_type Return: void
@@ -453,15 +443,6 @@ struct BTA_GetEirService {
   };
 };
 extern struct BTA_GetEirService BTA_GetEirService;
-
-// Name: BTA_RemoveEirUuid
-// Params: uint16_t uuid16
-// Return: void
-struct BTA_RemoveEirUuid {
-  std::function<void(uint16_t uuid16)> body{[](uint16_t uuid16) {}};
-  void operator()(uint16_t uuid16) { body(uuid16); };
-};
-extern struct BTA_RemoveEirUuid BTA_RemoveEirUuid;
 
 // Name: BTA_VendorInit
 // Params: void

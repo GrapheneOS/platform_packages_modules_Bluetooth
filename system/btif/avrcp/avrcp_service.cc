@@ -24,6 +24,7 @@
 #include <sstream>
 
 #include "abstract_message_loop.h"
+#include "bta/sys/bta_sys.h"
 #include "btif_av.h"
 #include "btif_common.h"
 #include "btif_dm.h"
@@ -295,7 +296,7 @@ void AvrcpService::Init(MediaInterface* media_interface,
                              "AV Remote Control Target", NULL,
                              supported_features, sdp_record_handle, true,
                              profile_version, 0);
-  btif_dm_add_uuid_to_eir(UUID_SERVCLASS_AV_REM_CTRL_TARGET);
+  bta_sys_add_uuid(UUID_SERVCLASS_AV_REM_CTRL_TARGET);
 
   media_interface_ = new MediaInterfaceWrapper(media_interface);
   media_interface->RegisterUpdateCallback(instance_);
@@ -331,7 +332,7 @@ void AvrcpService::Cleanup() {
   LOG(INFO) << "AVRCP Target Service stopped";
 
   avrcp_interface_.RemoveRecord(sdp_record_handle);
-  btif_dm_remove_uuid_from_eir(UUID_SERVCLASS_AV_REM_CTRL_TARGET);
+  bta_sys_remove_uuid(UUID_SERVCLASS_AV_REM_CTRL_TARGET);
   sdp_record_handle = -1;
 
   connection_handler_->CleanUp();

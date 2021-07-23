@@ -38,7 +38,6 @@ namespace mock {
 namespace bta_dm_api {
 
 // Function state capture and return values, if needed
-struct BTA_AddEirUuid BTA_AddEirUuid;
 struct BTA_DmAddBleDevice BTA_DmAddBleDevice;
 struct BTA_DmAddBleKey BTA_DmAddBleKey;
 struct BTA_DmAddDevice BTA_DmAddDevice;
@@ -69,7 +68,6 @@ struct BTA_DmSetEncryption BTA_DmSetEncryption;
 struct BTA_DmSetLocalDiRecord BTA_DmSetLocalDiRecord;
 struct BTA_EnableTestMode BTA_EnableTestMode;
 struct BTA_GetEirService BTA_GetEirService;
-struct BTA_RemoveEirUuid BTA_RemoveEirUuid;
 struct BTA_VendorInit BTA_VendorInit;
 struct BTA_dm_init BTA_dm_init;
 
@@ -78,10 +76,6 @@ struct BTA_dm_init BTA_dm_init;
 }  // namespace test
 
 // Mocked functions, if any
-void BTA_AddEirUuid(uint16_t uuid16) {
-  mock_function_count_map[__func__]++;
-  test::mock::bta_dm_api::BTA_AddEirUuid(uuid16);
-}
 void BTA_DmAddBleDevice(const RawAddress& bd_addr, tBLE_ADDR_TYPE addr_type,
                         tBT_DEVICE_TYPE dev_type) {
   mock_function_count_map[__func__]++;
@@ -230,10 +224,6 @@ void BTA_GetEirService(uint8_t* p_eir, size_t eir_len,
                        tBTA_SERVICE_MASK* p_services) {
   mock_function_count_map[__func__]++;
   test::mock::bta_dm_api::BTA_GetEirService(p_eir, eir_len, p_services);
-}
-void BTA_RemoveEirUuid(uint16_t uuid16) {
-  mock_function_count_map[__func__]++;
-  test::mock::bta_dm_api::BTA_RemoveEirUuid(uuid16);
 }
 void BTA_VendorInit(void) {
   mock_function_count_map[__func__]++;
