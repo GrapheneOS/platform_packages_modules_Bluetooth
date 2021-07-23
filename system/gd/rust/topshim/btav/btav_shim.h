@@ -29,6 +29,7 @@ namespace topshim {
 namespace rust {
 
 struct A2dpCodecConfig;
+struct RustPresentationPosition;
 struct RustRawAddress;
 
 class A2dpIntf {
@@ -37,19 +38,19 @@ class A2dpIntf {
   ~A2dpIntf();
 
   // interface for Settings
-  int init();
-  int connect(RustRawAddress bt_addr);
-  int disconnect(RustRawAddress bt_addr);
-  int set_silence_device(RustRawAddress bt_addr, bool silent);
-  int set_active_device(RustRawAddress bt_addr);
-  int config_codec(RustRawAddress bt_addr, ::rust::Vec<A2dpCodecConfig> codec_preferences);
-  void cleanup();
+  int init() const;
+  int connect(RustRawAddress bt_addr) const;
+  int disconnect(RustRawAddress bt_addr) const;
+  int set_silence_device(RustRawAddress bt_addr, bool silent) const;
+  int set_active_device(RustRawAddress bt_addr) const;
+  int config_codec(RustRawAddress bt_addr, ::rust::Vec<A2dpCodecConfig> codec_preferences) const;
+  void cleanup() const;
 
   // interface for Audio server
-  bool set_audio_config(A2dpCodecConfig rconfig);
-  bool start_audio_request();
-  bool stop_audio_request();
-  bluetooth::audio::a2dp::PresentationPosition get_presentation_position();
+  bool set_audio_config(A2dpCodecConfig rconfig) const;
+  bool start_audio_request() const;
+  bool stop_audio_request() const;
+  RustPresentationPosition get_presentation_position() const;
 
  private:
   const btav_source_interface_t* intf_;
