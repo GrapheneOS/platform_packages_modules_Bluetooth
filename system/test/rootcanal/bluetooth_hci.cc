@@ -18,13 +18,13 @@
 
 #include "bluetooth_hci.h"
 
-#include "log/log.h"
 #include <cutils/properties.h>
 #include <netdb.h>
 #include <netinet/in.h>
 #include <string.h>
 
 #include "hci_internals.h"
+#include "log/log.h"
 
 namespace android {
 namespace hardware {
@@ -58,18 +58,15 @@ class BluetoothDeathRecipient : public hidl_death_recipient {
     mHci->close();
   }
   sp<IBluetoothHci> mHci;
-  bool getHasDied() const {
-    return has_died_;
-  }
-  void setHasDied(bool has_died) {
-    has_died_ = has_died;
-  }
+  bool getHasDied() const { return has_died_; }
+  void setHasDied(bool has_died) { has_died_ = has_died; }
 
  private:
   bool has_died_;
 };
 
-BluetoothHci::BluetoothHci() : death_recipient_(new BluetoothDeathRecipient(this)) {}
+BluetoothHci::BluetoothHci()
+    : death_recipient_(new BluetoothDeathRecipient(this)) {}
 
 Return<void> BluetoothHci::initialize(
     const sp<V1_0::IBluetoothHciCallbacks>& cb) {
@@ -104,7 +101,8 @@ Return<void> BluetoothHci::initialize_impl(
   controller_ = std::make_shared<DualModeController>();
 
   char mac_property[PROPERTY_VALUE_MAX] = "";
-  property_get("vendor.bt.rootcanal_mac_address", mac_property, "3C:5A:B4:01:02:03");
+  property_get("vendor.bt.rootcanal_mac_address", mac_property,
+               "3C:5A:B4:01:02:03");
   controller_->Initialize({"dmc", std::string(mac_property)});
 
   controller_->RegisterEventChannel(
@@ -193,11 +191,25 @@ Return<void> BluetoothHci::initialize_impl(
   });
 
   if (BtTestConsoleEnabled()) {
-    SetUpTestChannel(6111);
-    SetUpHciServer(6211,
-                   [this](int fd) { test_model_.IncomingHciConnection(fd); });
-    SetUpLinkLayerServer(
-        6311, [this](int fd) { test_model_.IncomingLinkLayerConnection(fd); });
+    test_socket_server_ =
+        std::make_shared<net::PosixAsyncSocketServer>(6111, &async_manager_);
+    hci_socket_server_ =
+        std::make_shared<net::PosixAsyncSocketServer>(6211, &async_manager_);
+    link_socket_server_ =
+        std::make_shared<net::PosixAsyncSocketServer>(6311, &async_manager_);
+    connector_ =
+        std::make_shared<net::PosixAsyncSocketConnector>(&async_manager_);
+    SetUpTestChannel();
+    SetUpHciServer([this](std::shared_ptr<AsyncDataChannel> socket,
+                          AsyncDataChannelServer* srv) {
+      test_model_.IncomingHciConnection(socket);
+      srv->StartListening();
+    });
+    SetUpLinkLayerServer([this](std::shared_ptr<AsyncDataChannel> socket,
+                                AsyncDataChannelServer* srv) {
+      test_model_.IncomingLinkLayerConnection(socket);
+      srv->StartListening();
+    });
   } else {
     // This should be configurable in the future.
     LOG_INFO("Adding Beacons so the scan list is not empty.");
@@ -283,122 +295,55 @@ Return<void> BluetoothHci::sendIsoData(const hidl_vec<uint8_t>& packet) {
   return Void();
 }
 
-void BluetoothHci::SetUpHciServer(int port, const std::function<void(int)>& connection_callback) {
-  int socket_fd = remote_hci_transport_.SetUp(port);
-
+void BluetoothHci::SetUpHciServer(ConnectCallback connection_callback) {
   test_channel_.RegisterSendResponse([](const std::string& response) {
     LOG_INFO("No HCI Response channel: %s", response.c_str());
   });
 
-  if (socket_fd == -1) {
-    LOG_ERROR("Remote HCI channel SetUp(%d) failed.", port);
+  if (!remote_hci_transport_.SetUp(hci_socket_server_, connection_callback)) {
+    LOG_ERROR("Remote HCI channel SetUp failed.");
     return;
   }
-
-  async_manager_.WatchFdForNonBlockingReads(socket_fd, [this, connection_callback](int socket_fd) {
-    int conn_fd = remote_hci_transport_.Accept(socket_fd);
-    if (conn_fd < 0) {
-      LOG_ERROR("Error watching remote HCI channel fd.");
-      return;
-    }
-    int flags = fcntl(conn_fd, F_GETFL, NULL);
-    int ret;
-    ret = fcntl(conn_fd, F_SETFL, flags | O_NONBLOCK);
-    ASSERT_LOG(ret != -1, "Error setting O_NONBLOCK %s", strerror(errno));
-
-    connection_callback(conn_fd);
-  });
 }
 
-void BluetoothHci::SetUpLinkLayerServer(int port, const std::function<void(int)>& connection_callback) {
-  int socket_fd = remote_link_layer_transport_.SetUp(port);
+void BluetoothHci::SetUpLinkLayerServer(ConnectCallback connection_callback) {
+  remote_link_layer_transport_.SetUp(link_socket_server_, connection_callback);
 
   test_channel_.RegisterSendResponse([](const std::string& response) {
     LOG_INFO("No LinkLayer Response channel: %s", response.c_str());
   });
-
-  if (socket_fd == -1) {
-    LOG_ERROR("Remote LinkLayer channel SetUp(%d) failed.", port);
-    return;
-  }
-
-  async_manager_.WatchFdForNonBlockingReads(socket_fd, [this, connection_callback](int socket_fd) {
-    int conn_fd = remote_link_layer_transport_.Accept(socket_fd);
-    if (conn_fd < 0) {
-      LOG_ERROR("Error watching remote LinkLayer channel fd.");
-      return;
-    }
-    int flags = fcntl(conn_fd, F_GETFL, NULL);
-    int ret = fcntl(conn_fd, F_SETFL, flags | O_NONBLOCK);
-    ASSERT_LOG(ret != -1, "Error setting O_NONBLOCK %s", strerror(errno));
-
-    connection_callback(conn_fd);
-  });
 }
 
-int BluetoothHci::ConnectToRemoteServer(const std::string& server, int port) {
-  int socket_fd = socket(AF_INET, SOCK_STREAM, 0);
-  if (socket_fd < 1) {
-    LOG_INFO("socket() call failed: %s", strerror(errno));
-    return -1;
-  }
-
-  struct hostent* host;
-  host = gethostbyname(server.c_str());
-  if (host == NULL) {
-    LOG_INFO("gethostbyname() failed for %s: %s", server.c_str(),
-             strerror(errno));
-    return -1;
-  }
-
-  struct sockaddr_in serv_addr;
-  memset((void*)&serv_addr, 0, sizeof(serv_addr));
-  serv_addr.sin_family = AF_INET;
-  serv_addr.sin_addr.s_addr = INADDR_ANY;
-  serv_addr.sin_port = htons(port);
-
-  int result = connect(socket_fd, (struct sockaddr*)&serv_addr, sizeof(serv_addr));
-  if (result < 0) {
-    LOG_INFO("connect() failed for %s@%d: %s", server.c_str(), port,
-             strerror(errno));
-    return -1;
-  }
-
-  int flags = fcntl(socket_fd, F_GETFL, NULL);
-  int ret = fcntl(socket_fd, F_SETFL, flags | O_NONBLOCK);
-  ASSERT_LOG(ret != -1, "Error setting O_NONBLOCK %s", strerror(errno));
-
-  return socket_fd;
+std::shared_ptr<AsyncDataChannel> BluetoothHci::ConnectToRemoteServer(
+    const std::string& server, int port) {
+  return connector_->ConnectToRemoteServer(server, port);
 }
 
-void BluetoothHci::SetUpTestChannel(int port) {
-  int socket_fd = test_channel_transport_.SetUp(port);
+void BluetoothHci::SetUpTestChannel() {
+  bool transport_configured = test_channel_transport_.SetUp(
+      test_socket_server_, [this](std::shared_ptr<AsyncDataChannel> conn_fd,
+                                  AsyncDataChannelServer*) {
+        LOG_INFO("Test channel connection accepted.");
+        test_channel_.RegisterSendResponse(
+            [this, conn_fd](const std::string& response) {
+              test_channel_transport_.SendResponse(conn_fd, response);
+            });
 
+        conn_fd->WatchForNonBlockingRead([this](AsyncDataChannel* conn_fd) {
+          test_channel_transport_.OnCommandReady(conn_fd, []() {});
+        });
+        return false;
+      });
   test_channel_.RegisterSendResponse([](const std::string& response) {
     LOG_INFO("No test channel: %s", response.c_str());
   });
 
-  if (socket_fd == -1) {
-    LOG_ERROR("Test channel SetUp(%d) failed.", port);
+  if (!transport_configured) {
+    LOG_ERROR("Test channel SetUp failed.");
     return;
   }
 
   LOG_INFO("Test channel SetUp() successful");
-  async_manager_.WatchFdForNonBlockingReads(socket_fd, [this](int socket_fd) {
-    int conn_fd = test_channel_transport_.Accept(socket_fd);
-    if (conn_fd < 0) {
-      LOG_ERROR("Error watching test channel fd.");
-      return;
-    }
-    LOG_INFO("Test channel connection accepted.");
-    test_channel_.RegisterSendResponse(
-        [this, conn_fd](const std::string& response) { test_channel_transport_.SendResponse(conn_fd, response); });
-
-    async_manager_.WatchFdForNonBlockingReads(conn_fd, [this](int conn_fd) {
-      test_channel_transport_.OnCommandReady(conn_fd,
-                                             [this, conn_fd]() { async_manager_.StopWatchingFileDescriptor(conn_fd); });
-    });
-  });
 }
 
 /* Fallback to shared library if there is no service. */
