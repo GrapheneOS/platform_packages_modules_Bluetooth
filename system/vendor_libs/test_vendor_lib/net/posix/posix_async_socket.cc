@@ -66,6 +66,9 @@ ssize_t PosixAsyncSocket::Recv(uint8_t* buffer, uint64_t bufferSize) {
   errno = 0;
   ssize_t res = 0;
   OSI_NO_INTR(res = read(fd_, buffer, bufferSize));
+  if (res < 0) {
+    DD("Recv < 0: %s (%d)", strerror(errno), fd_);
+  }
   DD("%zd bytes (%d)", res, fd_);
   return res;
 };
@@ -92,13 +95,17 @@ bool PosixAsyncSocket::Connected() {
   if (fd_ == -1) {
     return false;
   }
+  char buf;
+  if (recv(fd_, &buf, 1, MSG_PEEK | MSG_DONTWAIT) != 1) {
+    DD("Recv not 1, could be connected: %s (%d)", strerror(errno), fd_);
+    if (errno == EAGAIN || errno == EWOULDBLOCK) {
+      return true;
+    }
+    return false;
+  }
 
-  int error_code = 0;
-  socklen_t error_code_size = sizeof(error_code);
-  auto opt = getsockopt(fd_, SOL_SOCKET, SO_ERROR,
-                        reinterpret_cast<void*>(&error_code), &error_code_size);
-  DD("Status: %d, %s (%d)", opt, strerror(error_code), fd_);
-  return !(opt < 0 || error_code);
+  // We saw a byte in the queue, we are likely connected.
+  return true;
 }
 
 void PosixAsyncSocket::Close() {

@@ -65,7 +65,6 @@ size_t H4DataChannelPacketizer::Send(uint8_t type, const uint8_t* data,
 
 void H4DataChannelPacketizer::OnDataReady(
     std::shared_ptr<AsyncDataChannel> socket) {
-  if (!socket->Connected()) return;
   ssize_t bytes_to_read = h4_parser_.BytesRequested();
   std::vector<uint8_t> buffer(bytes_to_read);
 
