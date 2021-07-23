@@ -16,18 +16,18 @@
 
 #include "hci_socket_device.h"
 
-#include <fcntl.h>
-#include <netinet/in.h>
-#include <sys/socket.h>
+#include <chrono>       // for milliseconds
+#include <type_traits>  // for remove_extent_t
 
-#include "model/setup/device_boutique.h"
-#include "os/log.h"
+#include "model/devices/device_properties.h"  // for DeviceProperties
+#include "os/log.h"                           // for LOG_INFO, LOG_ALWAYS_FATAL
 
 using std::vector;
 
 namespace test_vendor_lib {
 
-HciSocketDevice::HciSocketDevice(int file_descriptor) : socket_file_descriptor_(file_descriptor) {
+HciSocketDevice::HciSocketDevice(std::shared_ptr<AsyncDataChannel> socket)
+    : socket_(socket) {
   advertising_interval_ms_ = std::chrono::milliseconds(1000);
 
   page_scan_delay_ms_ = std::chrono::milliseconds(600);
@@ -71,21 +71,24 @@ HciSocketDevice::HciSocketDevice(int file_descriptor) : socket_file_descriptor_(
       't',
   });
 
-  h4_ = H4Packetizer(
-      socket_file_descriptor_,
+  h4_ = H4DataChannelPacketizer(
+      socket,
       [this](const std::vector<uint8_t>& raw_command) {
-        std::shared_ptr<std::vector<uint8_t>> packet_copy = std::make_shared<std::vector<uint8_t>>(raw_command);
+        std::shared_ptr<std::vector<uint8_t>> packet_copy =
+            std::make_shared<std::vector<uint8_t>>(raw_command);
         HandleCommand(packet_copy);
       },
       [](const std::vector<uint8_t>&) {
         LOG_ALWAYS_FATAL("Unexpected Event in HciSocketDevice!");
       },
       [this](const std::vector<uint8_t>& raw_acl) {
-        std::shared_ptr<std::vector<uint8_t>> packet_copy = std::make_shared<std::vector<uint8_t>>(raw_acl);
+        std::shared_ptr<std::vector<uint8_t>> packet_copy =
+            std::make_shared<std::vector<uint8_t>>(raw_acl);
         HandleAcl(packet_copy);
       },
       [this](const std::vector<uint8_t>& raw_sco) {
-        std::shared_ptr<std::vector<uint8_t>> packet_copy = std::make_shared<std::vector<uint8_t>>(raw_sco);
+        std::shared_ptr<std::vector<uint8_t>> packet_copy =
+            std::make_shared<std::vector<uint8_t>>(raw_sco);
         HandleSco(packet_copy);
       },
       [this](const std::vector<uint8_t>& raw_iso) {
@@ -95,7 +98,6 @@ HciSocketDevice::HciSocketDevice(int file_descriptor) : socket_file_descriptor_(
       },
       [this]() {
         LOG_INFO("HCI socket device disconnected");
-        socket_file_descriptor_ = -1;
         close_callback_();
       });
 
@@ -114,14 +116,14 @@ HciSocketDevice::HciSocketDevice(int file_descriptor) : socket_file_descriptor_(
 }
 
 void HciSocketDevice::TimerTick() {
-  h4_.OnDataReady(socket_file_descriptor_);
+  h4_.OnDataReady(socket_);
   DualModeController::TimerTick();
 }
 
 void HciSocketDevice::SendHci(
     PacketType packet_type,
     const std::shared_ptr<std::vector<uint8_t>> packet) {
-  if (socket_file_descriptor_ == -1) {
+  if (!socket_ || !socket_->Connected()) {
     LOG_INFO("Closed socket. Dropping packet of type %d",
              static_cast<int>(packet_type));
     return;
@@ -130,8 +132,9 @@ void HciSocketDevice::SendHci(
   h4_.Send(type, packet->data(), packet->size());
 }
 
-void HciSocketDevice::RegisterCloseCallback(std::function<void()> close_callback) {
-  if (socket_file_descriptor_ != -1) {
+void HciSocketDevice::RegisterCloseCallback(
+    std::function<void()> close_callback) {
+  if (socket_ && socket_->Connected()) {
     close_callback_ = close_callback;
   }
 }
