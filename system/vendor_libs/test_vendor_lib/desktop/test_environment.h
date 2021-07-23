@@ -16,27 +16,45 @@
 
 #pragma once
 
-#include <future>
+#include <chrono>      // for milliseconds
+#include <functional>  // for __base, function
+#include <future>      // for promise
+#include <memory>      // for shared_ptr, make_...
+#include <string>      // for string
 
-#include "model/controller/dual_mode_controller.h"
-#include "model/setup/async_manager.h"
-#include "model/setup/test_channel_transport.h"
-#include "model/setup/test_command_handler.h"
-#include "model/setup/test_model.h"
+#include "model/controller/dual_mode_controller.h"  // for DualModeController
+#include "model/setup/async_manager.h"              // for AsyncTaskId, Asyn...
+#include "model/setup/test_channel_transport.h"     // for TestChannelTransport
+#include "model/setup/test_command_handler.h"       // for TestCommandHandler
+#include "model/setup/test_model.h"                 // for TestModel
+#include "net/async_data_channel_server.h"          // for AsyncDataChannelS...
 
 namespace android {
+namespace net {
+class AsyncDataChannel;
+class AsyncDataChannelConnector;
+}  // namespace net
+
 namespace bluetooth {
 namespace root_canal {
 
+using android::net::AsyncDataChannel;
+using android::net::AsyncDataChannelConnector;
+using android::net::AsyncDataChannelServer;
+using android::net::ConnectCallback;
+
 class TestEnvironment {
  public:
-  TestEnvironment(uint16_t test_port, uint16_t hci_server_port,
-                  uint16_t link_server_port,
+  TestEnvironment(std::shared_ptr<AsyncDataChannelServer> test_port,
+                  std::shared_ptr<AsyncDataChannelServer> hci_server_port,
+                  std::shared_ptr<AsyncDataChannelServer> link_server_port,
+                  std::shared_ptr<AsyncDataChannelConnector> connector,
                   const std::string& controller_properties_file = "",
                   const std::string& default_commands_file = "")
-      : test_port_(test_port),
-        hci_server_port_(hci_server_port),
-        link_server_port_(link_server_port),
+      : test_socket_server_(test_port),
+        hci_socket_server_(hci_server_port),
+        link_socket_server_(link_server_port),
+        connector_(connector),
         default_commands_file_(default_commands_file),
         controller_(std::make_shared<test_vendor_lib::DualModeController>(
             controller_properties_file)) {}
@@ -46,9 +64,10 @@ class TestEnvironment {
   void close();
 
  private:
-  uint16_t test_port_;
-  uint16_t hci_server_port_;
-  uint16_t link_server_port_;
+  std::shared_ptr<AsyncDataChannelServer> test_socket_server_;
+  std::shared_ptr<AsyncDataChannelServer> hci_socket_server_;
+  std::shared_ptr<AsyncDataChannelServer> link_socket_server_;
+  std::shared_ptr<AsyncDataChannelConnector> connector_;
   std::string default_commands_file_;
   bool test_channel_open_{false};
   std::promise<void> barrier_;
@@ -56,9 +75,10 @@ class TestEnvironment {
   test_vendor_lib::AsyncManager async_manager_;
 
   void SetUpTestChannel();
-  void SetUpHciServer(const std::function<void(int)>& on_connect);
-  void SetUpLinkLayerServer(const std::function<void(int)>& on_connect);
-  int ConnectToRemoteServer(const std::string& server, int port);
+  void SetUpHciServer(ConnectCallback on_connect);
+  void SetUpLinkLayerServer(ConnectCallback on_connect);
+  std::shared_ptr<AsyncDataChannel> ConnectToRemoteServer(
+      const std::string& server, int port);
 
   std::shared_ptr<test_vendor_lib::DualModeController> controller_;
 
@@ -95,7 +115,6 @@ class TestEnvironment {
 
   test_vendor_lib::TestCommandHandler test_channel_{test_model_};
 };
-
 }  // namespace root_canal
 }  // namespace bluetooth
 }  // namespace android

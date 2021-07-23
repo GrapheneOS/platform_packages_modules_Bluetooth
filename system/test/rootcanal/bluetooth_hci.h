@@ -16,19 +16,18 @@
 
 #pragma once
 
-#include "os/log.h"
-
 #include <android/hardware/bluetooth/1.1/IBluetoothHci.h>
-
 #include <hidl/MQDescriptor.h>
 
 #include "hci_packetizer.h"
-
 #include "model/controller/dual_mode_controller.h"
 #include "model/setup/async_manager.h"
 #include "model/setup/test_channel_transport.h"
 #include "model/setup/test_command_handler.h"
 #include "model/setup/test_model.h"
+#include "net/posix/posix_async_socket_connector.h"
+#include "net/posix/posix_async_socket_server.h"
+#include "os/log.h"
 
 namespace android {
 namespace hardware {
@@ -37,6 +36,11 @@ namespace V1_1 {
 namespace sim {
 
 class BluetoothDeathRecipient;
+
+using android::net::AsyncDataChannel;
+using android::net::AsyncDataChannelConnector;
+using android::net::AsyncDataChannelServer;
+using android::net::ConnectCallback;
 
 class BluetoothHci : public IBluetoothHci {
  public:
@@ -47,11 +51,14 @@ class BluetoothHci : public IBluetoothHci {
   ::android::hardware::Return<void> initialize_1_1(
       const sp<V1_1::IBluetoothHciCallbacks>& cb) override;
 
-  ::android::hardware::Return<void> sendHciCommand(const ::android::hardware::hidl_vec<uint8_t>& packet) override;
+  ::android::hardware::Return<void> sendHciCommand(
+      const ::android::hardware::hidl_vec<uint8_t>& packet) override;
 
-  ::android::hardware::Return<void> sendAclData(const ::android::hardware::hidl_vec<uint8_t>& packet) override;
+  ::android::hardware::Return<void> sendAclData(
+      const ::android::hardware::hidl_vec<uint8_t>& packet) override;
 
-  ::android::hardware::Return<void> sendScoData(const ::android::hardware::hidl_vec<uint8_t>& packet) override;
+  ::android::hardware::Return<void> sendScoData(
+      const ::android::hardware::hidl_vec<uint8_t>& packet) override;
 
   ::android::hardware::Return<void> sendIsoData(
       const ::android::hardware::hidl_vec<uint8_t>& packet) override;
@@ -73,12 +80,17 @@ class BluetoothHci : public IBluetoothHci {
 
   void HandleIncomingPacket();
 
+  std::shared_ptr<AsyncDataChannelServer> test_socket_server_;
+  std::shared_ptr<AsyncDataChannelServer> hci_socket_server_;
+  std::shared_ptr<AsyncDataChannelServer> link_socket_server_;
+  std::shared_ptr<AsyncDataChannelConnector> connector_;
   test_vendor_lib::AsyncManager async_manager_;
 
-  void SetUpTestChannel(int port);
-  void SetUpHciServer(int port, const std::function<void(int)>& on_connect);
-  void SetUpLinkLayerServer(int port, const std::function<void(int)>& on_connect);
-  int ConnectToRemoteServer(const std::string& server, int port);
+  void SetUpTestChannel();
+  void SetUpHciServer(ConnectCallback on_connect);
+  void SetUpLinkLayerServer(ConnectCallback on_connect);
+  std::shared_ptr<AsyncDataChannel> ConnectToRemoteServer(
+      const std::string& server, int port);
 
   std::shared_ptr<test_vendor_lib::DualModeController> controller_;
 
@@ -102,8 +114,8 @@ class BluetoothHci : public IBluetoothHci {
                                                     task);
       },
 
-      [this](test_vendor_lib::AsyncUserId user_id) {
-        async_manager_.CancelAsyncTasksFromUser(user_id);
+      [this](test_vendor_lib::AsyncUserId user) {
+        async_manager_.CancelAsyncTasksFromUser(user);
       },
 
       [this](test_vendor_lib::AsyncTaskId task) {
@@ -113,7 +125,6 @@ class BluetoothHci : public IBluetoothHci {
       [this](const std::string& server, int port) {
         return ConnectToRemoteServer(server, port);
       }};
-
   test_vendor_lib::TestCommandHandler test_channel_{test_model_};
 };
 
