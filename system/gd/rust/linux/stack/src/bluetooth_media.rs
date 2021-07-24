@@ -4,7 +4,6 @@ use bt_topshim::btif::{BluetoothInterface, RawAddress};
 use bt_topshim::profiles::a2dp::{
     A2dp, A2dpCallbacks, A2dpCallbacksDispatcher, A2dpCodecBitsPerSample, A2dpCodecChannelMode,
     A2dpCodecConfig, A2dpCodecIndex, A2dpCodecSampleRate, BtavConnectionState,
-    PresentationPosition,
 };
 use bt_topshim::profiles::avrcp::Avrcp;
 use bt_topshim::topstack;
@@ -40,7 +39,6 @@ pub trait IBluetoothMedia {
     fn set_volume(&mut self, volume: i32);
     fn start_audio_request(&mut self);
     fn stop_audio_request(&mut self);
-    fn get_presentation_position(&mut self) -> PresentationPosition;
 }
 
 pub trait IBluetoothMediaCallback {
@@ -215,15 +213,5 @@ impl IBluetoothMedia for BluetoothMedia {
 
     fn stop_audio_request(&mut self) {
         self.a2dp.as_mut().unwrap().stop_audio_request();
-    }
-
-    fn get_presentation_position(&mut self) -> PresentationPosition {
-        let position = self.a2dp.as_mut().unwrap().get_presentation_position();
-        PresentationPosition {
-            remote_delay_report_ns: position.remote_delay_report_ns,
-            total_bytes_read: position.total_bytes_read,
-            data_position_sec: position.data_position_sec,
-            data_position_nsec: position.data_position_nsec,
-        }
     }
 }
