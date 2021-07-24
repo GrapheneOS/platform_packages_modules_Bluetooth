@@ -1,16 +1,14 @@
-use bt_topshim::profiles::a2dp::PresentationPosition;
 use btstack::bluetooth_media::{IBluetoothMedia, IBluetoothMediaCallback};
 use btstack::RPCProxy;
 
-use dbus::arg::RefArg;
 use dbus::nonblock::SyncConnection;
 use dbus::strings::Path;
 
-use dbus_macros::{dbus_method, dbus_propmap, dbus_proxy_obj, generate_dbus_exporter};
+use dbus_macros::{dbus_method, dbus_proxy_obj, generate_dbus_exporter};
 
 use dbus_projection::DisconnectWatcher;
 
-use crate::dbus_arg::{DBusArg, DBusArgError, RefArgToRust};
+use crate::dbus_arg::DBusArg;
 
 #[allow(dead_code)]
 struct BluetoothMediaCallbackDBus {}
@@ -33,14 +31,6 @@ impl IBluetoothMediaCallback for BluetoothMediaCallbackDBus {
 
 #[allow(dead_code)]
 struct IBluetoothMediaDBus {}
-
-#[dbus_propmap(PresentationPosition)]
-pub struct PresentationPositionDBus {
-    remote_delay_report_ns: u64,
-    total_bytes_read: u64,
-    data_position_sec: i64,
-    data_position_nsec: i32,
-}
 
 #[generate_dbus_exporter(export_bluetooth_media_dbus_obj, "org.chromium.bluetooth.BluetoothMedia")]
 impl IBluetoothMedia for IBluetoothMediaDBus {
@@ -86,14 +76,4 @@ impl IBluetoothMedia for IBluetoothMediaDBus {
 
     #[dbus_method("StopAudioRequest")]
     fn stop_audio_request(&mut self) {}
-
-    #[dbus_method("GetPresentationPosition")]
-    fn get_presentation_position(&mut self) -> PresentationPosition {
-        PresentationPosition {
-            remote_delay_report_ns: 0,
-            total_bytes_read: 0,
-            data_position_sec: 0,
-            data_position_nsec: 0,
-        }
-    }
 }
