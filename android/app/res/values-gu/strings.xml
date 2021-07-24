@@ -91,7 +91,7 @@
     <string name="status_running" msgid="6562808920311008696">"ફાઇલ સ્થાનાંતરણ ચાલુ છે."</string>
     <string name="status_success" msgid="239573225847565868">"ફાઇલ સ્થાનાંતરણ સફળતાપૂર્વક પૂર્ણ થયું."</string>
     <string name="status_not_accept" msgid="1695082417193780738">"સામગ્રી સમર્થિત નથી."</string>
-    <string name="status_forbidden" msgid="613956401054050725">"સ્થાનાંતરણ લક્ષિત ઉપકરણ દ્વારા પ્રતિબંધિત."</string>
+    <string name="status_forbidden" msgid="613956401054050725">"સ્થાનાંતરણ લક્ષિત ડિવાઇસ દ્વારા પ્રતિબંધિત."</string>
     <string name="status_canceled" msgid="6664490318773098285">"વપરાશકર્તા દ્વારા સ્થાનાંતરણ રદ."</string>
     <string name="status_file_error" msgid="3671917770630165299">"સંગ્રહ સમસ્યા."</string>
     <string name="status_no_sd_card_nosdcard" msgid="573631036356922221">"કોઈ USB સ્ટોરેજ નથી."</string>
@@ -127,7 +127,7 @@
     <string name="bluetooth_map_settings_intro" msgid="6482369468223987562">"તમે બ્લૂટૂથ મારફતે શેર કરવા માગતા હો તે એકાઉન્ટ્સ પસંદ કરો. તમારે હજી પણ કનેક્ટ કરતી વખતે એકાઉન્ટ્સ પરની કોઈપણ અ‍ૅક્સેસ સ્વીકારવી પડશે."</string>
     <string name="bluetooth_map_settings_count" msgid="4557473074937024833">"સ્લોટ્સ બાકી:"</string>
     <string name="bluetooth_map_settings_app_icon" msgid="7105805610929114707">"ઍપ્લિકેશન આયકન"</string>
-    <string name="bluetooth_map_settings_title" msgid="7420332483392851321">"બ્લૂટૂથ સંદેશ શેરિંગ સેટિંગ્સ"</string>
+    <string name="bluetooth_map_settings_title" msgid="7420332483392851321">"બ્લૂટૂથ સંદેશ શેરિંગ સેટિંગ"</string>
     <string name="bluetooth_map_settings_no_account_slots_left" msgid="1796029082612965251">"એકાઉન્ટ પસંદ કરી શકાતું નથી. 0 સ્લોટ્સ બાકી"</string>
     <string name="bluetooth_connected" msgid="6718623220072656906">"બ્લૂટૂથ ઑડિઓ કનેક્ટ થયું"</string>
     <string name="bluetooth_disconnected" msgid="3318303728981478873">"બ્લૂટૂથ ઑડિઓ ડિસ્કનેક્ટ થયું"</string>
