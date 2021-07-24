@@ -144,9 +144,10 @@ void RegisterServerCallback(int status, int server_if,
 }
 
 void ServiceAddedCallback(int status, int server_if,
-                          std::vector<btgatt_db_element_t> service) {
+                          const btgatt_db_element_t* service,
+                          size_t service_count) {
   LOG_INFO("%s: status:%d server_if:%d count:%zu svc_handle:%d", __func__,
-           status, server_if, service.size(), service[0].attribute_handle);
+           status, server_if, service_count, service[0].attribute_handle);
 
   std::lock_guard<std::mutex> lock(g_internal->lock);
   g_internal->server_if = server_if;
@@ -155,7 +156,7 @@ void ServiceAddedCallback(int status, int server_if,
 
   uint16_t prev_char_handle = 0;
   uint16_t prev_char_properties = 0;
-  for (size_t i = 1; i < service.size(); i++) {
+  for (size_t i = 1; i < service_count; i++) {
     const btgatt_db_element_t& el = service[i];
     if (el.type == BTGATT_DB_DESCRIPTOR) {
       LOG_INFO("%s: descr_handle:%d", __func__, el.attribute_handle);
@@ -252,23 +253,23 @@ void RequestReadCallback(int conn_id, int trans_id, const RawAddress& bda,
 
 void RequestWriteCallback(int conn_id, int trans_id, const RawAddress& bda,
                           int attr_handle, int attribute_offset, bool need_rsp,
-                          bool is_prep, std::vector<uint8_t> value) {
+                          bool is_prep, const uint8_t* value, size_t length) {
   std::string addr(BtAddrString(&bda));
   LOG_INFO(
       "%s: connection:%d (%s:trans:%d) write attr:%d attribute_offset:%d "
       "length:%zu "
       "need_resp:%u is_prep:%u",
       __func__, conn_id, addr.c_str(), trans_id, attr_handle, attribute_offset,
-      value.size(), need_rsp, is_prep);
+      length, need_rsp, is_prep);
 
   std::lock_guard<std::mutex> lock(g_internal->lock);
 
   bluetooth::gatt::Characteristic& ch =
       g_internal->characteristics[attr_handle];
 
-  ch.blob.resize(attribute_offset + value.size());
+  ch.blob.resize(attribute_offset + length);
 
-  std::copy(value.begin(), value.end(), ch.blob.begin() + attribute_offset);
+  std::copy(value, value + length, ch.blob.begin() + attribute_offset);
 
   auto target_blob = g_internal->controlled_blobs.find(attr_handle);
   // If this is a control attribute, adjust offset of the target blob.
@@ -298,11 +299,11 @@ void RequestWriteCallback(int conn_id, int trans_id, const RawAddress& bda,
   btgatt_response_t response;
   response.attr_value.handle = attr_handle;
   response.attr_value.offset = attribute_offset;
-  response.attr_value.len = value.size();
+  response.attr_value.len = length;
   response.attr_value.auth_req = 0;
   // Provide written data back to sender for the response.
   // Remote stacks use this to validate the success of the write.
-  std::copy(value.begin(), value.end(), response.attr_value.value);
+  std::copy(value, value + length, response.attr_value.value);
   g_internal->gatt->server->send_response(conn_id, trans_id, 0, response);
 }
 
@@ -663,7 +664,7 @@ bool Server::AddBlob(const Uuid& id, const Uuid& control_id, int properties,
 bool Server::Start() {
   std::unique_lock<std::mutex> lock(internal_->lock);
   bt_status_t btstat = internal_->gatt->server->add_service(
-      internal_->server_if, pending_svc_decl);
+      internal_->server_if, pending_svc_decl.data(), pending_svc_decl.size());
   if (btstat != BT_STATUS_SUCCESS) {
     LOG_ERROR("Failed to start service with handle: 0x%04x",
               internal_->service_handle);
@@ -712,9 +713,11 @@ bool Server::SetCharacteristicValue(const Uuid& id,
 
   if (!ch.notify) return true;
 
+  std::vector<uint8_t> ind_value = {0};
   for (auto connection : internal_->connections) {
     internal_->gatt->server->send_indication(internal_->server_if, attribute_id,
-                                             connection, true, {0});
+                                             connection, true, ind_value.data(),
+                                             ind_value.size());
   }
   return true;
 }

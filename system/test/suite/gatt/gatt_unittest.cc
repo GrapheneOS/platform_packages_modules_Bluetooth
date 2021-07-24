@@ -85,7 +85,8 @@ TEST_F(GattTest, GattServerBuild) {
           .permissions = 0x01,
       }};
 
-  gatt_server_interface()->add_service(server_if, service);
+  gatt_server_interface()->add_service(server_if, service.data(),
+                                       service.size());
   semaphore_wait(service_added_callback_sem_);
   EXPECT_TRUE(status() == BT_STATUS_SUCCESS) << "Error adding service.";
   EXPECT_TRUE(server_interface_id() == server_if) << "Wrong server_if added.";
