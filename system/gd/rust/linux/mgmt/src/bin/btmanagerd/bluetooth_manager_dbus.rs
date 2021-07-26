@@ -21,9 +21,9 @@ impl IBluetoothManager for BluetoothManagerDBus {
     #[dbus_method("Stop")]
     fn stop(&mut self, _hci_interface: i32) {}
 
-    #[dbus_method("GetState")]
-    fn get_state(&mut self) -> i32 {
-        0
+    #[dbus_method("GetAdapterEnabled")]
+    fn get_adapter_enabled(&mut self, _hci_interface: i32) -> bool {
+        false
     }
 
     #[dbus_method("RegisterCallback")]
