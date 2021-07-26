@@ -216,8 +216,8 @@ impl IBluetoothManager for BluetoothManagerDBus {
         self.client_proxy.method_noreturn("Stop", (hci_interface,))
     }
 
-    fn get_state(&mut self) -> i32 {
-        self.client_proxy.method("GetState", ())
+    fn get_adapter_enabled(&mut self, hci_interface: i32) -> bool {
+        self.client_proxy.method("GetAdapterEnabled", (hci_interface,))
     }
 
     fn register_callback(&mut self, callback: Box<dyn IBluetoothManagerCallback + Send>) {
