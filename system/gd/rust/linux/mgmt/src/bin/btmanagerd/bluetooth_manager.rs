@@ -2,6 +2,7 @@ use log::{error, info};
 
 use manager_service::iface_bluetooth_manager::{IBluetoothManager, IBluetoothManagerCallback};
 
+use std::collections::HashMap;
 use std::process::Command;
 use std::sync::atomic::Ordering;
 
@@ -14,20 +15,44 @@ pub struct BluetoothManager {
     manager_context: ManagerContext,
     callbacks: Vec<(u32, Box<dyn IBluetoothManagerCallback + Send>)>,
     callbacks_last_id: u32,
+    cached_devices: HashMap<i32, bool>,
 }
 
 impl BluetoothManager {
     pub(crate) fn new(manager_context: ManagerContext) -> BluetoothManager {
-        BluetoothManager { manager_context, callbacks: vec![], callbacks_last_id: 0 }
+        BluetoothManager {
+            manager_context,
+            callbacks: vec![],
+            callbacks_last_id: 0,
+            cached_devices: HashMap::new(),
+        }
     }
 
-    pub(crate) fn callback_hci_device_change(&self, hci_device: i32, present: bool) {
+    pub(crate) fn callback_hci_device_change(&mut self, hci_device: i32, present: bool) {
+        if present {
+            // Default device to false or whatever was already existing in cache
+            self.cached_devices.entry(hci_device).or_insert(false);
+        } else {
+            // Remove device and ignore if it's not there
+            self.cached_devices.remove(&hci_device);
+        }
+
         for (_, callback) in &self.callbacks {
             callback.on_hci_device_changed(hci_device, present);
         }
     }
 
-    pub(crate) fn callback_hci_enabled_change(&self, hci_device: i32, enabled: bool) {
+    pub(crate) fn callback_hci_enabled_change(&mut self, hci_device: i32, enabled: bool) {
+        // Update existing entry or insert new one
+        match self.cached_devices.get_mut(&hci_device) {
+            Some(dev) => {
+                *dev = enabled;
+            }
+            _ => {
+                self.cached_devices.insert(hci_device, enabled);
+            }
+        };
+
         for (_, callback) in &self.callbacks {
             callback.on_hci_enabled_changed(hci_device, enabled);
         }
@@ -55,10 +80,12 @@ impl IBluetoothManager for BluetoothManager {
         self.manager_context.proxy.stop_bluetooth(hci_interface);
     }
 
-    fn get_state(&mut self) -> i32 {
+    fn get_adapter_enabled(&mut self, _hci_interface: i32) -> bool {
         let proxy = self.manager_context.proxy.clone();
+
+        // TODO(b/189501676) - State should depend on given adapter.
         let state = proxy.get_state();
-        let result = state_machine::state_to_i32(state);
+        let result = state_machine::state_to_enabled(state);
         result
     }
 
