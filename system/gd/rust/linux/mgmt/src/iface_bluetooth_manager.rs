@@ -8,9 +8,8 @@ pub trait IBluetoothManager {
     /// Stops the Bluetooth stack.
     fn stop(&mut self, hci_interface: i32);
 
-    /// Returns the state of Bluetooth manager.
-    /// TODO: Should return an enum.
-    fn get_state(&mut self) -> i32;
+    /// Returns whether an adapter is enabled.
+    fn get_adapter_enabled(&mut self, hci_interface: i32) -> bool;
 
     /// Registers a callback to the Bluetooth manager state.
     fn register_callback(&mut self, callback: Box<dyn IBluetoothManagerCallback + Send>);
