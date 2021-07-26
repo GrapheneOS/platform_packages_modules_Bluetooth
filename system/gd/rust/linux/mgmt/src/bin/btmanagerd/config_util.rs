@@ -130,6 +130,15 @@ fn hci_devices_string_to_int(devices: Vec<String>) -> Vec<i32> {
         .collect()
 }
 
+pub fn list_pid_files(pid_dir: &str) -> Vec<String> {
+    match std::fs::read_dir(pid_dir) {
+        Ok(entries) => entries
+            .map(|e| e.unwrap().path().file_name().unwrap().to_str().unwrap().to_string())
+            .collect::<Vec<_>>(),
+        _ => Vec::new(),
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

@@ -22,14 +22,12 @@ pub enum State {
     TurningOff = 3, // We are not notified that the Bluetooth is stopped
 }
 
-impl From<State> for i32 {
-    fn from(item: State) -> i32 {
-        item as i32
+/// Check whether adapter is enabled by checking internal state.
+pub fn state_to_enabled(state: State) -> bool {
+    match state {
+        State::On => true,
+        _ => false,
     }
-}
-
-pub fn state_to_i32(state: State) -> i32 {
-    i32::from(state)
 }
 
 /// Adapter state actions
@@ -143,6 +141,14 @@ fn hci_devices_inotify_async_fd() -> AsyncFd<inotify::Inotify> {
     AsyncFd::new(detector).expect("failed to add async fd")
 }
 
+/// On startup, get and cache all hci devices by emitting the callback
+fn startup_hci_devices(manager: &Arc<std::sync::Mutex<Box<BluetoothManager>>>) {
+    let devices = crate::config_util::list_hci_devices();
+    for device in devices {
+        manager.lock().unwrap().callback_hci_device_change(device, true);
+    }
+}
+
 /// Given an hci sysfs path, returns the index of the hci device at the path.
 fn get_hci_index_from_device(path: &str) -> Option<i32> {
     let re = Regex::new(r"hci([0-9]+)").unwrap();
@@ -170,11 +176,29 @@ pub async fn mainloop<PM>(
     let timeout_clone = command_timeout.clone();
     let timeout_tx = context.tx.clone();
 
+    // First set up hci states
+    startup_hci_devices(&bluetooth_manager);
+
     tokio::spawn(async move {
         loop {
             let _expired = timeout_clone.expired().await;
             let _ = timeout_tx
                 .send_timeout(Message::CommandTimeout(), TX_SEND_TIMEOUT_DURATION)
+                .await
+                .unwrap();
+        }
+    });
+
+    // Get a list of active pid files to determine initial adapter status
+    let init_tx = context.tx.clone();
+    tokio::spawn(async move {
+        let files = crate::config_util::list_pid_files(PID_DIR);
+        for file in files {
+            let _ = init_tx
+                .send_timeout(
+                    Message::PidChange(inotify::EventMask::CREATE, Some(file)),
+                    TX_SEND_TIMEOUT_DURATION,
+                )
                 .await
                 .unwrap();
         }
