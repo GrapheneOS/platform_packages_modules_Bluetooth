@@ -6,7 +6,7 @@ use crate::profiles::gatt::bindings::{
     BleAdvertiserInterface, BleScannerInterface,
 };
 use crate::topstack::get_dispatchers;
-use crate::{cast_to_ffi_address, ccall};
+use crate::{cast_to_ffi_address, ccall, deref_ffi_address};
 
 use std::sync::{Arc, Mutex};
 
@@ -21,18 +21,290 @@ pub type BtGattTestParams = bindings::btgatt_test_params_t;
 #[derive(Debug)]
 pub enum GattClientCallbacks {
     RegisterClient(i32, i32, *const Uuid),
+    Connect(i32, i32, i32, RawAddress),
+    Disconnect(i32, i32, i32, RawAddress),
+    SearchComplete(i32, i32),
+    RegisterForNotification(i32, i32, i32, u16),
+    Notify(i32, *const BtGattNotifyParams),
+    ReadCharacteristic(i32, i32, *mut BtGattReadParams),
+    WriteCharacteristic(i32, i32, u16),
+    ReadDescriptor(i32, i32, *const BtGattReadParams),
+    WriteDescriptor(i32, i32, u16),
+    ExecuteWrite(i32, i32),
+    ReadRemoteRssi(i32, RawAddress, i32, i32),
+    ConfigureMtu(i32, i32, i32),
+    Congestion(i32, bool),
+    GetGattDb(i32, *const BtGattDbElement, i32),
+    ServicesRemoved(i32, u16, u16),
+    ServicesAdded(i32, *const BtGattDbElement, i32),
+    PhyUpdated(i32, u8, u8, u8),
+    ConnUpdated(i32, u16, u16, u16, u8),
+    ServiceChanged(i32),
+}
+
+#[derive(Debug)]
+pub enum GattServerCallbacks {
+    RegisterServer(i32, i32, *const Uuid),
+    Connection(i32, i32, i32, RawAddress),
+    ServiceAdded(i32, i32, *const BtGattDbElement, usize),
+    ServiceStopped(i32, i32, i32),
+    ServiceDeleted(i32, i32, i32),
+    RequestReadCharacteristic(i32, i32, RawAddress, i32, i32, bool),
+    RequestReadDescriptor(i32, i32, RawAddress, i32, i32, bool),
+    RequestWriteCharacteristic(i32, i32, RawAddress, i32, i32, bool, bool, *const u8, usize),
+    RequestWriteDescriptor(i32, i32, RawAddress, i32, i32, bool, bool, *const u8, usize),
+    RequestExecWrite(i32, i32, RawAddress, i32),
+    ResponseConfirmation(i32, i32),
+    IndicationSent(i32, i32),
+    Congestion(i32, bool),
+    MtuChanged(i32, i32),
+    PhyUpdated(i32, u8, u8, u8),
+    ConnUpdated(i32, u16, u16, u16, u8),
 }
 
 pub struct GattClientCallbacksDispatcher {
     pub dispatch: Box<dyn Fn(GattClientCallbacks) + Send>,
 }
 
+pub struct GattServerCallbacksDispatcher {
+    pub dispatch: Box<dyn Fn(GattServerCallbacks) + Send>,
+}
+
 type GattClientCb = Arc<Mutex<GattClientCallbacksDispatcher>>;
+type GattServerCb = Arc<Mutex<GattServerCallbacksDispatcher>>;
 
 cb_variant!(
     GattClientCb,
     gc_register_client_cb -> GattClientCallbacks::RegisterClient,
     i32, i32, *const Uuid, {}
+);
+
+cb_variant!(
+    GattClientCb,
+    gc_open_cb -> GattClientCallbacks::Connect,
+    i32, i32, i32, *const FfiAddress, {
+        let _3 = unsafe { deref_ffi_address!(_3) };
+    }
+);
+
+cb_variant!(
+    GattClientCb,
+    gc_close_cb -> GattClientCallbacks::Disconnect,
+    i32, i32, i32, *const FfiAddress, {
+        let _3 = unsafe { deref_ffi_address!(_3) };
+    }
+);
+
+cb_variant!(
+    GattClientCb,
+    gc_search_complete_cb -> GattClientCallbacks::SearchComplete,
+    i32, i32, {}
+);
+
+cb_variant!(
+    GattClientCb,
+    gc_register_for_notification_cb -> GattClientCallbacks::RegisterForNotification,
+    i32, i32, i32, u16, {}
+);
+
+cb_variant!(
+    GattClientCb,
+    gc_notify_cb -> GattClientCallbacks::Notify,
+    i32, *const BtGattNotifyParams, {}
+);
+
+cb_variant!(
+    GattClientCb,
+    gc_read_characteristic_cb -> GattClientCallbacks::ReadCharacteristic,
+    i32, i32, *mut BtGattReadParams, {}
+);
+
+cb_variant!(
+    GattClientCb,
+    gc_write_characteristic_cb -> GattClientCallbacks::WriteCharacteristic,
+    i32, i32, u16, {}
+);
+
+cb_variant!(
+    GattClientCb,
+    gc_read_descriptor_cb -> GattClientCallbacks::ReadDescriptor,
+    i32, i32, *const BtGattReadParams, {}
+);
+
+cb_variant!(
+    GattClientCb,
+    gc_write_descriptor_cb -> GattClientCallbacks::WriteDescriptor,
+    i32, i32, u16, {}
+);
+
+cb_variant!(
+    GattClientCb,
+    gc_execute_write_cb -> GattClientCallbacks::ExecuteWrite,
+    i32, i32, {}
+);
+
+cb_variant!(
+    GattClientCb,
+    gc_read_remote_rssi_cb -> GattClientCallbacks::ReadRemoteRssi,
+    i32, *const FfiAddress, i32, i32, {
+        let _1 = unsafe { deref_ffi_address!(_1) };
+    }
+);
+
+cb_variant!(
+    GattClientCb,
+    gc_configure_mtu_cb -> GattClientCallbacks::ConfigureMtu,
+    i32, i32, i32, {}
+);
+
+cb_variant!(
+    GattClientCb,
+    gc_congestion_cb -> GattClientCallbacks::Congestion,
+    i32, bool, {}
+);
+
+cb_variant!(
+    GattClientCb,
+    gc_get_gatt_db_cb -> GattClientCallbacks::GetGattDb,
+    i32, *const BtGattDbElement, i32, {}
+);
+
+cb_variant!(
+    GattClientCb,
+    gc_services_removed_cb -> GattClientCallbacks::ServicesRemoved,
+    i32, u16, u16, {}
+);
+
+cb_variant!(
+    GattClientCb,
+    gc_services_added_cb -> GattClientCallbacks::ServicesAdded,
+    i32, *const BtGattDbElement, i32, {}
+);
+
+cb_variant!(
+    GattClientCb,
+    gc_phy_updated_cb -> GattClientCallbacks::PhyUpdated,
+    i32, u8, u8, u8, {}
+);
+
+cb_variant!(
+    GattClientCb,
+    gc_conn_updated_cb -> GattClientCallbacks::ConnUpdated,
+    i32, u16, u16, u16, u8, {}
+);
+
+cb_variant!(
+    GattClientCb,
+    gc_service_changed_cb -> GattClientCallbacks::ServiceChanged,
+    i32, {}
+);
+
+cb_variant!(
+    GattServerCb,
+    gs_register_server_cb -> GattServerCallbacks::RegisterServer,
+    i32, i32, *const Uuid, {}
+);
+
+cb_variant!(
+    GattServerCb,
+    gs_connection_cb -> GattServerCallbacks::Connection,
+    i32, i32, i32, *const FfiAddress, {
+        let _3 = unsafe { deref_ffi_address!(_3) };
+    }
+);
+
+cb_variant!(
+    GattServerCb,
+    gs_service_added_cb -> GattServerCallbacks::ServiceAdded,
+    i32, i32, *const BtGattDbElement, usize, {}
+);
+
+cb_variant!(
+    GattServerCb,
+    gs_service_stopped_cb -> GattServerCallbacks::ServiceStopped,
+    i32, i32, i32, {}
+);
+
+cb_variant!(
+    GattServerCb,
+    gs_service_deleted_cb -> GattServerCallbacks::ServiceDeleted,
+    i32, i32, i32, {}
+);
+
+cb_variant!(
+    GattServerCb,
+    gs_request_read_characteristic_cb -> GattServerCallbacks::RequestReadCharacteristic,
+    i32, i32, *const FfiAddress, i32, i32, bool, {
+        let _2 = unsafe { deref_ffi_address!(_2) };
+    }
+);
+
+cb_variant!(
+    GattServerCb,
+    gs_request_read_descriptor_cb -> GattServerCallbacks::RequestReadDescriptor,
+    i32, i32, *const FfiAddress, i32, i32, bool, {
+        let _2 = unsafe { deref_ffi_address!(_2) };
+    }
+);
+
+cb_variant!(
+    GattServerCb,
+    gs_request_write_characteristic_cb -> GattServerCallbacks::RequestWriteCharacteristic,
+    i32, i32, *const FfiAddress, i32, i32, bool, bool, *const u8, usize, {
+        let _2 = unsafe { deref_ffi_address!(_2) };
+    }
+);
+
+cb_variant!(
+    GattServerCb,
+    gs_request_write_descriptor_cb -> GattServerCallbacks::RequestWriteDescriptor,
+    i32, i32, *const FfiAddress, i32, i32, bool, bool, *const u8, usize, {
+        let _2 = unsafe { deref_ffi_address!(_2) };
+    }
+);
+
+cb_variant!(
+    GattServerCb,
+    gs_request_exec_write_cb -> GattServerCallbacks::RequestExecWrite,
+    i32, i32, *const FfiAddress, i32, {
+        let _2 = unsafe { deref_ffi_address!(_2) };
+    }
+);
+
+cb_variant!(
+    GattServerCb,
+    gs_response_confirmation_cb -> GattServerCallbacks::ResponseConfirmation,
+    i32, i32, {}
+);
+
+cb_variant!(
+    GattServerCb,
+    gs_indication_sent_cb -> GattServerCallbacks::IndicationSent,
+    i32, i32, {}
+);
+
+cb_variant!(
+    GattServerCb,
+    gs_congestion_cb -> GattServerCallbacks::Congestion,
+    i32, bool, {}
+);
+
+cb_variant!(
+    GattServerCb,
+    gs_mtu_changed_cb -> GattServerCallbacks::MtuChanged,
+    i32, i32, {}
+);
+
+cb_variant!(
+    GattServerCb,
+    gs_phy_updated_cb -> GattServerCallbacks::PhyUpdated,
+    i32, u8, u8, u8, {}
+);
+
+cb_variant!(
+    GattServerCb,
+    gs_conn_updated_cb -> GattServerCallbacks::ConnUpdated,
+    i32, u16, u16, u16, u8, {}
 );
 
 struct RawGattWrapper {
@@ -431,6 +703,7 @@ impl Gatt {
     pub fn initialize(
         &mut self,
         gatt_client_callbacks_dispatcher: GattClientCallbacksDispatcher,
+        gatt_server_callbacks_dispatcher: GattServerCallbacksDispatcher,
     ) -> bool {
         // Register dispatcher
         if get_dispatchers()
@@ -441,47 +714,54 @@ impl Gatt {
             panic!("Tried to set dispatcher for GattClientCallbacks but it already existed");
         }
 
-        // TODO(b/193916778): Populate all the callbacks
+        if get_dispatchers()
+            .lock()
+            .unwrap()
+            .set::<GattServerCb>(Arc::new(Mutex::new(gatt_server_callbacks_dispatcher)))
+        {
+            panic!("Tried to set dispatcher for GattServerCallbacks but it already existed");
+        }
+
         let mut gatt_client_callbacks = Box::new(btgatt_client_callbacks_t {
             register_client_cb: Some(gc_register_client_cb),
-            open_cb: None,
-            close_cb: None,
-            search_complete_cb: None,
-            register_for_notification_cb: None,
-            notify_cb: None,
-            read_characteristic_cb: None,
-            write_characteristic_cb: None,
-            read_descriptor_cb: None,
-            write_descriptor_cb: None,
-            execute_write_cb: None,
-            read_remote_rssi_cb: None,
-            configure_mtu_cb: None,
-            congestion_cb: None,
-            get_gatt_db_cb: None,
-            services_removed_cb: None,
-            services_added_cb: None,
-            phy_updated_cb: None,
-            conn_updated_cb: None,
-            service_changed_cb: None,
+            open_cb: Some(gc_open_cb),
+            close_cb: Some(gc_close_cb),
+            search_complete_cb: Some(gc_search_complete_cb),
+            register_for_notification_cb: Some(gc_register_for_notification_cb),
+            notify_cb: Some(gc_notify_cb),
+            read_characteristic_cb: Some(gc_read_characteristic_cb),
+            write_characteristic_cb: Some(gc_write_characteristic_cb),
+            read_descriptor_cb: Some(gc_read_descriptor_cb),
+            write_descriptor_cb: Some(gc_write_descriptor_cb),
+            execute_write_cb: Some(gc_execute_write_cb),
+            read_remote_rssi_cb: Some(gc_read_remote_rssi_cb),
+            configure_mtu_cb: Some(gc_configure_mtu_cb),
+            congestion_cb: Some(gc_congestion_cb),
+            get_gatt_db_cb: Some(gc_get_gatt_db_cb),
+            services_removed_cb: Some(gc_services_removed_cb),
+            services_added_cb: Some(gc_services_added_cb),
+            phy_updated_cb: Some(gc_phy_updated_cb),
+            conn_updated_cb: Some(gc_conn_updated_cb),
+            service_changed_cb: Some(gc_service_changed_cb),
         });
 
         let mut gatt_server_callbacks = Box::new(btgatt_server_callbacks_t {
-            register_server_cb: None,
-            connection_cb: None,
-            service_added_cb: None,
-            service_stopped_cb: None,
-            service_deleted_cb: None,
-            request_read_characteristic_cb: None,
-            request_read_descriptor_cb: None,
-            request_write_characteristic_cb: None,
-            request_write_descriptor_cb: None,
-            request_exec_write_cb: None,
-            response_confirmation_cb: None,
-            indication_sent_cb: None,
-            congestion_cb: None,
-            mtu_changed_cb: None,
-            phy_updated_cb: None,
-            conn_updated_cb: None,
+            register_server_cb: Some(gs_register_server_cb),
+            connection_cb: Some(gs_connection_cb),
+            service_added_cb: Some(gs_service_added_cb),
+            service_stopped_cb: Some(gs_service_stopped_cb),
+            service_deleted_cb: Some(gs_service_deleted_cb),
+            request_read_characteristic_cb: Some(gs_request_read_characteristic_cb),
+            request_read_descriptor_cb: Some(gs_request_read_descriptor_cb),
+            request_write_characteristic_cb: Some(gs_request_write_characteristic_cb),
+            request_write_descriptor_cb: Some(gs_request_write_descriptor_cb),
+            request_exec_write_cb: Some(gs_request_exec_write_cb),
+            response_confirmation_cb: Some(gs_response_confirmation_cb),
+            indication_sent_cb: Some(gs_indication_sent_cb),
+            congestion_cb: Some(gs_congestion_cb),
+            mtu_changed_cb: Some(gs_mtu_changed_cb),
+            phy_updated_cb: Some(gs_phy_updated_cb),
+            conn_updated_cb: Some(gs_conn_updated_cb),
         });
 
         let mut gatt_scanner_callbacks = Box::new(btgatt_scanner_callbacks_t {
