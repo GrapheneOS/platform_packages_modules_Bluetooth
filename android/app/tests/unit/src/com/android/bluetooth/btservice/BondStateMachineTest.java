@@ -16,6 +16,7 @@
 package com.android.bluetooth.btservice;
 
 import static android.Manifest.permission.BLUETOOTH_CONNECT;
+
 import static org.mockito.Mockito.*;
 
 import android.bluetooth.BluetoothDevice;
@@ -120,10 +121,10 @@ public class BondStateMachineTest {
         verify(mAdapterService, times(1)).removeBondNative(eq(TEST_BT_ADDR_BYTES_2));
 
         mBondStateMachine.bondStateChangeCallback(AbstractionLayer.BT_STATUS_SUCCESS,
-                TEST_BT_ADDR_BYTES, BOND_NONE);
+                TEST_BT_ADDR_BYTES, BOND_NONE, 0);
         TestUtils.waitForLooperToFinishScheduledTask(mBondStateMachine.getHandler().getLooper());
         mBondStateMachine.bondStateChangeCallback(AbstractionLayer.BT_STATUS_SUCCESS,
-                TEST_BT_ADDR_BYTES_2, BOND_NONE);
+                TEST_BT_ADDR_BYTES_2, BOND_NONE, 0);
         TestUtils.waitForLooperToFinishScheduledTask(mBondStateMachine.getHandler().getLooper());
 
         // Try to pair these two devices again, createBondNative() should be invoked.
