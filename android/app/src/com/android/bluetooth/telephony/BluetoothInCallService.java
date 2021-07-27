@@ -357,7 +357,11 @@ public class BluetoothInCallService extends InCallService {
                 Log.i(TAG, "BT - hanging up conference call");
                 call = conferenceCall;
             }
-            call.disconnect();
+            if (call.getState() == Call.STATE_RINGING) {
+                call.reject(false, "");
+            } else {
+                call.disconnect();
+            }
             return true;
         }
     }
