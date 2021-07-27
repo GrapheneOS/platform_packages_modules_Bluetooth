@@ -11,7 +11,7 @@ use std::sync::{Arc, Mutex};
 use std::vec::Vec;
 use topshim_macros::cb_variant;
 
-#[derive(Debug, FromPrimitive, ToPrimitive, PartialEq, PartialOrd)]
+#[derive(Clone, Debug, FromPrimitive, ToPrimitive, PartialEq, PartialOrd)]
 #[repr(u32)]
 pub enum BtState {
     Off = 0,
@@ -24,7 +24,7 @@ impl From<bindings::bt_state_t> for BtState {
     }
 }
 
-#[derive(Debug, FromPrimitive, ToPrimitive, PartialEq, PartialOrd)]
+#[derive(Clone, Debug, FromPrimitive, ToPrimitive, PartialEq, PartialOrd)]
 #[repr(u32)]
 pub enum BtTransport {
     Invalid = 0,
@@ -65,7 +65,7 @@ impl From<BtSspVariant> for bindings::bt_ssp_variant_t {
     }
 }
 
-#[derive(Debug, FromPrimitive, ToPrimitive, PartialEq, PartialOrd)]
+#[derive(Clone, Debug, FromPrimitive, ToPrimitive, PartialEq, PartialOrd)]
 #[repr(u32)]
 pub enum BtBondState {
     Unknown = 0,
@@ -79,7 +79,7 @@ impl From<bindings::bt_bond_state_t> for BtBondState {
     }
 }
 
-#[derive(Debug, FromPrimitive, ToPrimitive, PartialEq, PartialOrd)]
+#[derive(Clone, Debug, FromPrimitive, ToPrimitive, PartialEq, PartialOrd)]
 #[repr(u32)]
 pub enum BtAclState {
     Connected = 0,
@@ -92,7 +92,7 @@ impl From<bindings::bt_acl_state_t> for BtAclState {
     }
 }
 
-#[derive(Debug, FromPrimitive, ToPrimitive, PartialEq, PartialOrd)]
+#[derive(Clone, Debug, FromPrimitive, ToPrimitive, PartialEq, PartialOrd)]
 #[repr(u32)]
 pub enum BtDeviceType {
     Bredr,
@@ -136,7 +136,7 @@ impl From<BtPropertyType> for u32 {
     }
 }
 
-#[derive(Debug, FromPrimitive, ToPrimitive, PartialEq, PartialOrd)]
+#[derive(Clone, Debug, FromPrimitive, ToPrimitive, PartialEq, PartialOrd)]
 #[repr(i32)]
 pub enum BtDiscoveryState {
     Stopped = 0x0,
@@ -149,7 +149,7 @@ impl From<u32> for BtDiscoveryState {
     }
 }
 
-#[derive(Debug, FromPrimitive, ToPrimitive, PartialEq, PartialOrd)]
+#[derive(Clone, Debug, FromPrimitive, ToPrimitive, PartialEq, PartialOrd)]
 #[repr(u32)]
 pub enum BtStatus {
     Success = 0,
@@ -361,7 +361,7 @@ macro_rules! cast_to_const_ffi_address {
     };
 }
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub enum BaseCallbacks {
     AdapterState(BtState),
     AdapterProperties(BtStatus, i32, Vec<BtProperty>),
