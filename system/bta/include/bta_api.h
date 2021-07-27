@@ -303,11 +303,13 @@ typedef struct {
 /* Structure associated with BTA_DM_LINK_UP_EVT */
 typedef struct {
   RawAddress bd_addr; /* BD address peer device. */
+  tBT_TRANSPORT transport_link_type;
 } tBTA_DM_LINK_UP;
 
 /* Structure associated with BTA_DM_LINK_DOWN_EVT */
 typedef struct {
   RawAddress bd_addr; /* BD address peer device. */
+  tBT_TRANSPORT transport_link_type;
 } tBTA_DM_LINK_DOWN;
 
 #define BTA_AUTH_SP_YES                                                       \

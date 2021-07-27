@@ -784,28 +784,29 @@ void invoke_oob_data_request_cb(tBT_TRANSPORT t, bool valid, Octet16 c,
 }
 
 void invoke_bond_state_changed_cb(bt_status_t status, RawAddress bd_addr,
-                                  bt_bond_state_t state) {
-  do_in_jni_thread(
-      FROM_HERE,
-      base::BindOnce(
-          [](bt_status_t status, RawAddress bd_addr, bt_bond_state_t state) {
-            HAL_CBACK(bt_hal_cbacks, bond_state_changed_cb, status, &bd_addr,
-                      state);
-          },
-          status, bd_addr, state));
+                                  bt_bond_state_t state, int fail_reason) {
+  do_in_jni_thread(FROM_HERE, base::BindOnce(
+                                  [](bt_status_t status, RawAddress bd_addr,
+                                     bt_bond_state_t state, int fail_reason) {
+                                    HAL_CBACK(bt_hal_cbacks,
+                                              bond_state_changed_cb, status,
+                                              &bd_addr, state, fail_reason);
+                                  },
+                                  status, bd_addr, state, fail_reason));
 }
 
 void invoke_acl_state_changed_cb(bt_status_t status, RawAddress bd_addr,
-                                 bt_acl_state_t state, bt_hci_error_code_t hci_reason) {
+                                 bt_acl_state_t state, int transport_link_type,
+                                 bt_hci_error_code_t hci_reason) {
   do_in_jni_thread(
       FROM_HERE,
       base::BindOnce(
           [](bt_status_t status, RawAddress bd_addr, bt_acl_state_t state,
-             bt_hci_error_code_t hci_reason) {
+             int transport_link_type, bt_hci_error_code_t hci_reason) {
             HAL_CBACK(bt_hal_cbacks, acl_state_changed_cb, status, &bd_addr,
-                      state, hci_reason);
+                      state, transport_link_type, hci_reason);
           },
-          status, bd_addr, state, hci_reason));
+          status, bd_addr, state, transport_link_type, hci_reason));
 }
 
 void invoke_thread_evt_cb(bt_cb_thread_evt event) {

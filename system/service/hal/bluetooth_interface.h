@@ -69,10 +69,12 @@ class BluetoothInterface {
                                     uint32_t pass_key);
     virtual void BondStateChangedCallback(bt_status_t status,
                                           RawAddress* remote_bd_addr,
-                                          bt_bond_state_t state);
+                                          bt_bond_state_t state,
+                                          int fail_reason);
     virtual void AclStateChangedCallback(bt_status_t status,
                                          const RawAddress& remote_bdaddr,
                                          bt_acl_state_t state,
+                                         int transport_link_type,
                                          bt_hci_error_code_t hci_reason);
     virtual void LinkQualityReportCallback(
         uint64_t timestamp, int report_id, int rssi, int snr,
