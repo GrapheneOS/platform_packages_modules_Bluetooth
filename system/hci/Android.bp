@@ -28,11 +28,18 @@ cc_library_static {
         "src/buffer_allocator.cc",
         "src/hci_inject.cc",
         "src/hci_layer.cc",
-        "src/hci_layer_android.cc",
         "src/hci_packet_factory.cc",
         "src/hci_packet_parser.cc",
         "src/packet_fragmenter.cc",
     ],
+    target: {
+        android: {
+            srcs: ["src/hci_layer_android.cc"],
+        },
+        host: {
+            srcs: ["src/hci_layer_linux.cc"],
+        },
+    },
     local_include_dirs: [
         "include",
     ],

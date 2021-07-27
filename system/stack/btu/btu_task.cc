@@ -121,7 +121,11 @@ void main_thread_start_up() {
     LOG(FATAL) << __func__ << ": unable to start btu message loop thread.";
   }
   if (!main_thread.EnableRealTimeScheduling()) {
+#if defined(OS_ANDROID)
     LOG(FATAL) << __func__ << ": unable to enable real time scheduling";
+#else
+    LOG(ERROR) << __func__ << ": unable to enable real time scheduling";
+#endif
   }
 }
 

@@ -29,8 +29,8 @@ namespace common {
 void A2dpSessionMetrics::Update(const A2dpSessionMetrics& metrics) {}
 
 bool A2dpSessionMetrics::operator==(const A2dpSessionMetrics& rhs) const {
-  LOG(FATAL) << "UNIMPLEMENTED";
-  return 0;
+  LOG(INFO) << "UNIMPLEMENTED";
+  return true;
 }
 
 struct BluetoothMetricsLogger::impl {
