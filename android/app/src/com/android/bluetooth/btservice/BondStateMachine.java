@@ -426,7 +426,7 @@ final class BondStateMachine extends StateMachine {
                 + state2str(newState));
     }
 
-    void bondStateChangeCallback(int status, byte[] address, int newState) {
+    void bondStateChangeCallback(int status, byte[] address, int newState, int hciReason) {
         BluetoothDevice device = mRemoteDevices.getDevice(address);
 
         if (device == null) {
@@ -437,7 +437,7 @@ final class BondStateMachine extends StateMachine {
         }
 
         infoLog("bondStateChangeCallback: Status: " + status + " Address: " + device + " newState: "
-                + newState);
+                + newState + " hciReason: " + hciReason);
 
         Message msg = obtainMessage(BONDING_STATE_CHANGE);
         msg.obj = device;

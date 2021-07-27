@@ -63,12 +63,14 @@ final class JniCallbacks {
         mBondStateMachine.pinRequestCallback(address, name, cod, min16Digits);
     }
 
-    void bondStateChangeCallback(int status, byte[] address, int newState) {
-        mBondStateMachine.bondStateChangeCallback(status, address, newState);
+    void bondStateChangeCallback(int status, byte[] address, int newState, int hciReason) {
+        mBondStateMachine.bondStateChangeCallback(status, address, newState, hciReason);
     }
 
-    void aclStateChangeCallback(int status, byte[] address, int newState, int hciReason) {
-        mRemoteDevices.aclStateChangeCallback(status, address, newState, hciReason);
+    void aclStateChangeCallback(int status, byte[] address, int newState,
+            int transportLinkType, int hciReason) {
+        mRemoteDevices.aclStateChangeCallback(status, address, newState,
+                transportLinkType, hciReason);
     }
 
     void stateChangeCallback(int status) {
