@@ -675,7 +675,8 @@ class AdapterImpl : public Adapter, public hal::BluetoothInterface::Observer {
   }
 
   void BondStateChangedCallback(bt_status_t status, RawAddress* remote_bdaddr,
-                                bt_bond_state_t state) override {
+                                bt_bond_state_t state,
+                                int fail_reason) override {
     std::string device_address = BtAddrString(remote_bdaddr);
 
     lock_guard<mutex> lock(observers_lock_);
@@ -686,7 +687,7 @@ class AdapterImpl : public Adapter, public hal::BluetoothInterface::Observer {
 
   void AclStateChangedCallback(bt_status_t status,
                                const RawAddress& remote_bdaddr,
-                               bt_acl_state_t state,
+                               bt_acl_state_t state, int transport_link_type,
                                bt_hci_error_code_t hci_reason) override {
     std::string device_address = BtAddrString(&remote_bdaddr);
     bool connected = (state == BT_ACL_STATE_CONNECTED);
