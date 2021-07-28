@@ -26,6 +26,7 @@
 
 #include <base/bind.h>
 #include <base/strings/string_number_conversions.h>
+
 #include <cstdint>
 #include <list>
 #include <memory>
@@ -98,7 +99,7 @@ class AdvertisingCache {
   bool Exist(uint8_t addr_type, const RawAddress& addr) {
     auto it = Find(addr_type, addr);
     if (it != items.end()) {
-        return true;
+      return true;
     }
     return false;
   }
@@ -128,9 +129,7 @@ class AdvertisingCache {
     }
   }
 
-  void ClearAll() {
-    items.clear();
-  }
+  void ClearAll() { items.clear(); }
 
  private:
   struct Item {
@@ -544,7 +543,6 @@ static void btm_get_dynamic_audio_buffer_vsc_cmpl_cback(
  ******************************************************************************/
 static void btm_ble_vendor_capability_vsc_cmpl_cback(
     tBTM_VSC_CMPL* p_vcs_cplt_params) {
-
   BTM_TRACE_DEBUG("%s", __func__);
 
   /* Check status of command complete event */
@@ -578,7 +576,8 @@ static void btm_ble_vendor_capability_vsc_cmpl_cback(
 
   if (btm_cb.cmn_ble_vsc_cb.version_supported >=
       BTM_VSC_CHIP_CAPABILITY_M_VERSION) {
-    CHECK(p_vcs_cplt_params->param_len >= BTM_VSC_CHIP_CAPABILITY_RSP_LEN_M_RELEASE);
+    CHECK(p_vcs_cplt_params->param_len >=
+          BTM_VSC_CHIP_CAPABILITY_RSP_LEN_M_RELEASE);
     STREAM_TO_UINT16(btm_cb.cmn_ble_vsc_cb.total_trackable_advertisers, p);
     STREAM_TO_UINT8(btm_cb.cmn_ble_vsc_cb.extended_scan_support, p);
     STREAM_TO_UINT8(btm_cb.cmn_ble_vsc_cb.debug_logging_supported, p);
@@ -836,7 +835,7 @@ static uint8_t btm_set_conn_mode_adv_init_addr(
     }
   }
 
-/* undirect adv mode or non-connectable mode*/
+  /* undirect adv mode or non-connectable mode*/
   /* when privacy 1.2 privacy only mode is used, or mixed mode */
   if ((btm_cb.ble_ctr_cb.privacy_mode == BTM_PRIVACY_1_2 &&
        p_cb->afp != AP_SCAN_CONN_ALL) ||
@@ -1858,20 +1857,20 @@ void btm_ble_process_adv_pkt(uint8_t data_len, uint8_t* data) {
     uint16_t event_type;
     event_type = 1 << BLE_EVT_LEGACY_BIT;
     if (legacy_evt_type == BTM_BLE_ADV_IND_EVT) {
-      event_type |= (1 << BLE_EVT_CONNECTABLE_BIT)|
-                    (1 << BLE_EVT_SCANNABLE_BIT);
+      event_type |=
+          (1 << BLE_EVT_CONNECTABLE_BIT) | (1 << BLE_EVT_SCANNABLE_BIT);
     } else if (legacy_evt_type == BTM_BLE_ADV_DIRECT_IND_EVT) {
-      event_type |= (1 << BLE_EVT_CONNECTABLE_BIT)|
-                    (1 << BLE_EVT_DIRECTED_BIT);
+      event_type |=
+          (1 << BLE_EVT_CONNECTABLE_BIT) | (1 << BLE_EVT_DIRECTED_BIT);
     } else if (legacy_evt_type == BTM_BLE_ADV_SCAN_IND_EVT) {
       event_type |= (1 << BLE_EVT_SCANNABLE_BIT);
     } else if (legacy_evt_type == BTM_BLE_ADV_NONCONN_IND_EVT) {
-      event_type = (1 << BLE_EVT_LEGACY_BIT);//0x0010;
+      event_type = (1 << BLE_EVT_LEGACY_BIT);              // 0x0010;
     } else if (legacy_evt_type == BTM_BLE_SCAN_RSP_EVT) {  // SCAN_RSP;
       // We can't distinguish between "SCAN_RSP to an ADV_IND", and "SCAN_RSP to
       // an ADV_SCAN_IND", so always return "SCAN_RSP to an ADV_IND"
-      event_type |= (1 << BLE_EVT_CONNECTABLE_BIT)|
-                    (1 << BLE_EVT_SCANNABLE_BIT)|
+      event_type |= (1 << BLE_EVT_CONNECTABLE_BIT) |
+                    (1 << BLE_EVT_SCANNABLE_BIT) |
                     (1 << BLE_EVT_SCAN_RESPONSE_BIT);
     } else {
       BTM_TRACE_ERROR(
@@ -1913,13 +1912,11 @@ void btm_ble_process_adv_pkt_cont(uint16_t evt_type, uint8_t addr_type,
   // has no ad flag, the device will be set to DUMO mode. The createbond
   // procedure will use the wrong device mode.
   // In such case no necessary to report scan response
-  if(is_legacy && is_scan_resp && !cache.Exist(addr_type, bda))
-    return;
+  if (is_legacy && is_scan_resp && !cache.Exist(addr_type, bda)) return;
 
   bool is_start = is_legacy && is_scannable && !is_scan_resp;
 
-  if (is_legacy)
-    AdvertiseDataParser::RemoveTrailingZeros(tmp);
+  if (is_legacy) AdvertiseDataParser::RemoveTrailingZeros(tmp);
 
   // We might have send scan request to this device before, but didn't get the
   // response. In such case make sure data is put at start, not appended to
