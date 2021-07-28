@@ -235,7 +235,9 @@ static future_t* hci_module_start_up(void) {
   }
   if (!hci_thread.EnableRealTimeScheduling()) {
     LOG_ERROR("%s unable to make thread RT.", __func__);
+#if defined(OS_ANDROID)
     goto error;
+#endif
   }
 
   commands_pending_response = list_new(NULL);
