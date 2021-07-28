@@ -24,13 +24,20 @@ cc_library_static {
         "address_obfuscator.cc",
         "message_loop_thread.cc",
         "metric_id_allocator.cc",
-        "metrics.cc",
         "once_timer.cc",
         "os_utils.cc",
         "repeating_timer.cc",
         "time_util.cc",
         "stop_watch_legacy.cc",
     ],
+    target: {
+        android: {
+            srcs: ["metrics.cc"],
+        },
+        host: {
+            srcs: ["metrics_linux.cc"],
+        },
+    },
     shared_libs: [
         "libcrypto",
     ],
@@ -61,7 +68,6 @@ cc_test {
         "leaky_bonded_queue_unittest.cc",
         "lru_unittest.cc",
         "message_loop_thread_unittest.cc",
-        "metrics_unittest.cc",
         "metric_id_allocator_unittest.cc",
         "once_timer_unittest.cc",
         "repeating_timer_unittest.cc",
@@ -69,6 +75,11 @@ cc_test {
         "time_util_unittest.cc",
         "id_generator_unittest.cc",
     ],
+    target: {
+        android: {
+            srcs: ["metrics_unittest.cc"],
+        },
+    },
     shared_libs: [
         "libprotobuf-cpp-lite",
         "libcrypto",

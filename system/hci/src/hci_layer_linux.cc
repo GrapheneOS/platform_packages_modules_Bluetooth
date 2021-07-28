@@ -280,7 +280,7 @@ void hci_transmit(BT_HDR* packet) {
   uint8_t* addr = packet->data + packet->offset - 1;
   uint8_t store = *addr;
   *addr = type;
-  size_t ret = write(bt_vendor_fd, addr, packet->len + 1);
+  ssize_t ret = write(bt_vendor_fd, addr, packet->len + 1);
 
   *(addr) = store;
 

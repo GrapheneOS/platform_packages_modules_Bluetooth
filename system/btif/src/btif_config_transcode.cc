@@ -18,9 +18,16 @@
 
 #define LOG_TAG "bt_btif_config_transcode"
 
+#include "osi/include/config.h"
+
+#ifndef OS_ANDROID
+std::unique_ptr<config_t> btif_config_transcode(const char* xml_filename) {
+  // Legacy XML config never exists for non-Android
+  return nullptr;
+}
+#else
 #include <tinyxml2.h>
 
-#include "osi/include/config.h"
 #include "osi/include/log.h"
 
 using namespace tinyxml2;
@@ -59,3 +66,4 @@ std::unique_ptr<config_t> btif_config_transcode(const char* xml_filename) {
 
   return config;
 }
+#endif
