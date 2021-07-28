@@ -246,17 +246,18 @@ void ConnectionCallback(int conn_id, int server_if, int connected,
       ConnectionCallback(g_interface, conn_id, server_if, connected, bda));
 }
 
-void ServiceAddedCallback(
-    int status, int server_if,
-    std::vector<btgatt_db_element_t> service) {  // NOLINT(pass-by-value)
+void ServiceAddedCallback(int status, int server_if,
+                          const btgatt_db_element_t* service,
+                          size_t service_count) {
   shared_lock<shared_mutex_impl> lock(g_instance_lock);
   VLOG(2) << __func__ << " - status: " << status << " server_if: " << server_if
-          << " count: " << service.size();
+          << " count: " << service_count;
   VERIFY_INTERFACE_OR_RETURN();
-  CHECK(service.size());
+  CHECK(service_count);
 
-  FOR_EACH_SERVER_OBSERVER(
-      ServiceAddedCallback(g_interface, status, server_if, service));
+  FOR_EACH_SERVER_OBSERVER(ServiceAddedCallback(
+      g_interface, status, server_if,
+      std::vector<btgatt_db_element_t>(service, service + service_count)));
 }
 
 void ServiceStoppedCallback(int status, int server_if, int srvc_handle) {
@@ -308,33 +309,33 @@ void RequestReadDescriptorCallback(int conn_id, int trans_id,
 void RequestWriteCharacteristicCallback(int conn_id, int trans_id,
                                         const RawAddress& bda, int attr_handle,
                                         int offset, bool need_rsp, bool is_prep,
-                                        std::vector<uint8_t> value) {
+                                        const uint8_t* value, size_t length) {
   shared_lock<shared_mutex_impl> lock(g_instance_lock);
   VLOG(2) << __func__ << " - conn_id: " << conn_id << " trans_id: " << trans_id
           << " attr_handle: " << attr_handle << " offset: " << offset
-          << " length: " << value.size() << " need_rsp: " << need_rsp
+          << " length: " << length << " need_rsp: " << need_rsp
           << " is_prep: " << is_prep;
   VERIFY_INTERFACE_OR_RETURN();
 
   FOR_EACH_SERVER_OBSERVER(RequestWriteCharacteristicCallback(
       g_interface, conn_id, trans_id, bda, attr_handle, offset, need_rsp,
-      is_prep, value));
+      is_prep, std::vector(value, value + length)));
 }
 
-void RequestWriteDescriptorCallback(
-    int conn_id, int trans_id, const RawAddress& bda, int attr_handle,
-    int offset, bool need_rsp, bool is_prep,
-    std::vector<uint8_t> value) {  // NOLINT(pass-by-value)
+void RequestWriteDescriptorCallback(int conn_id, int trans_id,
+                                    const RawAddress& bda, int attr_handle,
+                                    int offset, bool need_rsp, bool is_prep,
+                                    const uint8_t* value, size_t length) {
   shared_lock<shared_mutex_impl> lock(g_instance_lock);
   VLOG(2) << __func__ << " - conn_id: " << conn_id << " trans_id: " << trans_id
           << " attr_handle: " << attr_handle << " offset: " << offset
-          << " length: " << value.size() << " need_rsp: " << need_rsp
+          << " length: " << length << " need_rsp: " << need_rsp
           << " is_prep: " << is_prep;
   VERIFY_INTERFACE_OR_RETURN();
 
   FOR_EACH_SERVER_OBSERVER(RequestWriteDescriptorCallback(
       g_interface, conn_id, trans_id, bda, attr_handle, offset, need_rsp,
-      is_prep, value));
+      is_prep, std::vector(value, value + length)));
 }
 
 void RequestExecWriteCallback(int conn_id, int trans_id, const RawAddress& bda,

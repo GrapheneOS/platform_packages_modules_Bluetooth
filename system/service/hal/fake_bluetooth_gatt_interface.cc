@@ -73,10 +73,11 @@ bt_status_t FakeUnregisterServer(int server_if) {
   return BT_STATUS_FAIL;
 }
 
-bt_status_t FakeAddService(int server_if,
-                           std::vector<btgatt_db_element_t> service) {
+bt_status_t FakeAddService(int server_if, const btgatt_db_element_t* service,
+                           size_t service_count) {
   if (g_server_handler)
-    return g_server_handler->AddService(server_if, std::move(service));
+    return g_server_handler->AddService(
+        server_if, std::vector(service, service + service_count));
 
   return BT_STATUS_FAIL;
 }
@@ -89,10 +90,12 @@ bt_status_t FakeDeleteService(int server_if, int srvc_handle) {
 }
 
 bt_status_t FakeSendIndication(int server_if, int attribute_handle, int conn_id,
-                               int confirm, std::vector<uint8_t> value) {
+                               int confirm, const uint8_t* value,
+                               size_t length) {
   if (g_server_handler)
     return g_server_handler->SendIndication(server_if, attribute_handle,
-                                            conn_id, confirm, std::move(value));
+                                            conn_id, confirm,
+                                            std::vector(value, value + length));
 
   return BT_STATUS_FAIL;
 }
