@@ -188,21 +188,19 @@ static void btapp_gatts_handle_cback(uint16_t event, char* p_param) {
 
     case BTA_GATTS_WRITE_CHARACTERISTIC_EVT: {
       const auto& req = p_data->req_data.p_data->write_req;
-      vector<uint8_t> value(req.value, req.value + req.len);
       HAL_CBACK(bt_gatt_callbacks, server->request_write_characteristic_cb,
                 p_data->req_data.conn_id, p_data->req_data.trans_id,
                 p_data->req_data.remote_bda, req.handle, req.offset,
-                req.need_rsp, req.is_prep, value);
+                req.need_rsp, req.is_prep, req.value, req.len);
       break;
     }
 
     case BTA_GATTS_WRITE_DESCRIPTOR_EVT: {
       const auto& req = p_data->req_data.p_data->write_req;
-      vector<uint8_t> value(req.value, req.value + req.len);
       HAL_CBACK(bt_gatt_callbacks, server->request_write_descriptor_cb,
                 p_data->req_data.conn_id, p_data->req_data.trans_id,
                 p_data->req_data.remote_bda, req.handle, req.offset,
-                req.need_rsp, req.is_prep, value);
+                req.need_rsp, req.is_prep, req.value, req.len);
       break;
     }
 
@@ -348,7 +346,7 @@ static bt_status_t btif_gatts_close(int server_if, const RawAddress& bd_addr,
 static void on_service_added_cb(tGATT_STATUS status, int server_if,
                                 vector<btgatt_db_element_t> service) {
   HAL_CBACK(bt_gatt_callbacks, server->service_added_cb, status, server_if,
-            std::move(service));
+            service.data(), service.size());
 }
 
 static void add_service_impl(int server_if,
@@ -360,7 +358,7 @@ static void add_service_impl(int server_if,
       service[0].uuid == Uuid::From16Bit(UUID_SERVCLASS_GAP_SERVER)) {
     LOG_ERROR("%s: Attept to register restricted service", __func__);
     HAL_CBACK(bt_gatt_callbacks, server->service_added_cb, BT_STATUS_FAIL,
-              server_if, std::move(service));
+              server_if, service.data(), service.size());
     return;
   }
 
@@ -370,10 +368,12 @@ static void add_service_impl(int server_if,
 }
 
 static bt_status_t btif_gatts_add_service(int server_if,
-                                          vector<btgatt_db_element_t> service) {
+                                          const btgatt_db_element_t* service,
+                                          size_t service_count) {
   CHECK_BTGATT_INIT();
-  return do_in_jni_thread(
-      FROM_HERE, Bind(&add_service_impl, server_if, std::move(service)));
+  return do_in_jni_thread(FROM_HERE,
+                          Bind(&add_service_impl, server_if,
+                               std::vector(service, service + service_count)));
 }
 
 static bt_status_t btif_gatts_stop_service(int server_if, int service_handle) {
@@ -389,14 +389,15 @@ static bt_status_t btif_gatts_delete_service(int server_if,
 
 static bt_status_t btif_gatts_send_indication(int server_if,
                                               int attribute_handle, int conn_id,
-                                              int confirm,
-                                              vector<uint8_t> value) {
+                                              int confirm, const uint8_t* value,
+                                              size_t length) {
   CHECK_BTGATT_INIT();
 
-  if (value.size() > BTGATT_MAX_ATTR_LEN) value.resize(BTGATT_MAX_ATTR_LEN);
+  if (length > BTGATT_MAX_ATTR_LEN) length = BTGATT_MAX_ATTR_LEN;
 
   return do_in_jni_thread(Bind(&BTA_GATTS_HandleValueIndication, conn_id,
-                               attribute_handle, std::move(value), confirm));
+                               attribute_handle,
+                               std::vector(value, value + length), confirm));
   // TODO: Might need to send an ACK if handle value indication is
   //       invoked without need for confirmation.
 }
