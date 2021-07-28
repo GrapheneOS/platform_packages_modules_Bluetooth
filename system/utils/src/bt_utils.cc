@@ -38,7 +38,7 @@
 #include <mutex>
 
 #define A2DP_RT_PRIORITY 1
-#ifndef OS_GENERIC
+#ifdef OS_ANDROID
 #include <processgroup/sched_policy.h>
 #endif
 
@@ -81,6 +81,7 @@ EXPORT_SYMBOL extern const module_t bt_utils_module = {.name = BT_UTILS_MODULE,
                                                        .clean_up = clean_up,
                                                        .dependencies = {NULL}};
 
+#ifdef OS_ANDROID
 /*****************************************************************************
  *
  * Function        check_do_scheduling_group
@@ -100,6 +101,7 @@ static void check_do_scheduling_group(void) {
     }
   }
 }
+#endif
 
 /*****************************************************************************
  *
@@ -120,16 +122,16 @@ void raise_priority_a2dp(tHIGH_PRIORITY_TASK high_task) {
 
 // TODO(armansito): Remove this conditional check once we find a solution
 // for system/core on non-Android platforms.
-#if defined(OS_GENERIC)
+#ifndef OS_ANDROID
     rc = -1;
-#else   // !defined(OS_GENERIC)
+#else   // defined(OS_ANDROID)
     pthread_once(&g_DoSchedulingGroupOnce[g_TaskIdx],
                  check_do_scheduling_group);
     if (g_DoSchedulingGroup[g_TaskIdx]) {
       // set_sched_policy does not support tid == 0
       rc = set_sched_policy(tid, SP_AUDIO_SYS);
     }
-#endif  // defined(OS_GENERIC)
+#endif  // ifndef(OS_ANDROID)
 
     g_TaskIDs[high_task] = tid;
   }
