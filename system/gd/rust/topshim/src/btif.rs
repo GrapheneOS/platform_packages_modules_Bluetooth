@@ -239,17 +239,24 @@ pub type BtHciErrorCode = u8;
 
 pub type BtPinCode = bindings::bt_pin_code_t;
 
+pub type Uuid = bindings::bluetooth::Uuid;
+
 pub enum SupportedProfiles {
     HidHost,
     A2dp,
+    Gatt,
 }
 
 impl From<SupportedProfiles> for Vec<u8> {
     fn from(item: SupportedProfiles) -> Self {
         match item {
-            SupportedProfiles::HidHost => "hidhost".bytes().collect::<Vec<u8>>(),
-            SupportedProfiles::A2dp => "a2dp".bytes().collect::<Vec<u8>>(),
+            SupportedProfiles::HidHost => "hidhost",
+            SupportedProfiles::A2dp => "a2dp",
+            SupportedProfiles::Gatt => "gatt",
         }
+        .bytes()
+        .chain("\0".bytes())
+        .collect::<Vec<u8>>()
     }
 }
 
@@ -268,7 +275,7 @@ mod ffi {
 }
 
 // Export the raw address type directly from the bindings
-type FfiAddress = bindings::RawAddress;
+pub type FfiAddress = bindings::RawAddress;
 
 /// A shared address structure that has the same representation as
 /// bindings::RawAddress. Macros `deref_ffi_address` and `cast_to_ffi_address`
