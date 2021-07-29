@@ -34,8 +34,9 @@ fn main() {
         .clang_args(libchrome_paths)
         .clang_args(clang_args)
         .enable_cxx_namespaces()
-        .whitelist_type("(bt_|bthh_).*")
-        .whitelist_function("(bt_|bthh_).*")
+        .size_t_is_usize(true)
+        .whitelist_type("(bt_|bthh_|btgatt_).*")
+        .whitelist_function("(bt_|bthh_|btgatt_).*")
         .whitelist_function("hal_util_.*")
         // We must opaque out std:: in order to prevent bindgen from choking
         .opaque_type("std::.*")
