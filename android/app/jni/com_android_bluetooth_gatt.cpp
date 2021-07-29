@@ -1500,7 +1500,7 @@ static void gattClientScanFilterAddNative(JNIEnv* env, jobject object,
   jfieldID dataMaskFid = env->GetFieldID(entryClazz, "data_mask", "[B");
 
   for (int i = 0; i < numFilters; ++i) {
-    ApcfCommand curr;
+    ApcfCommand curr{};
 
     ScopedLocalRef<jobject> current(env,
                                     env->GetObjectArrayElement(filters, i));
@@ -1515,12 +1515,6 @@ static void gattClientScanFilterAddNative(JNIEnv* env, jobject object,
 
     curr.addr_type = env->GetByteField(current.get(), addrTypeFid);
 
-    // Zero out Apcf IRK, maybe set later if one was passed
-    int j;
-    for (j = 0; j < 16; j++) {
-      curr.irk[j] = 0;
-    }
-
     ScopedLocalRef<jbyteArray> irkByteArray(
         env, (jbyteArray)env->GetObjectField(current.get(), irkTypeFid));
 
@@ -1532,10 +1526,11 @@ static void gattClientScanFilterAddNative(JNIEnv* env, jobject object,
         jniThrowIOException(env, EINVAL);
       }
       jbyte* irkBytes = env->GetByteArrayElements(irkByteArray.get(), NULL);
-      if (irkBytes != NULL) {
-        for (int j = 0; j < len; j++) {
-          curr.irk[i] = irkBytes[i];
-        }
+      if (irkBytes == NULL) {
+        jniThrowIOException(env, EINVAL);
+      }
+      for (int j = 0; j < len; j++) {
+        curr.irk[j] = irkBytes[j];
       }
     }
 
