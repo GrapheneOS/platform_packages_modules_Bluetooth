@@ -34,6 +34,7 @@ namespace hardware {
 namespace details {
 
 void logError(const std::string& message) {}
+void check(bool exp, const char* message) {}
 
 }  // namespace details
 }  // namespace hardware
