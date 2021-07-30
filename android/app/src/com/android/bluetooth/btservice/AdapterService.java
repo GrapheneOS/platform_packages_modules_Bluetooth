@@ -3732,21 +3732,33 @@ public class AdapterService extends Service {
         }
     }
 
-    public int getScanQuotaCount() {
-        synchronized (mDeviceConfigLock) {
-            return mScanQuotaCount;
+    public static int getScanQuotaCount() {
+        if (sAdapterService == null) {
+            return DeviceConfigListener.DEFAULT_SCAN_QUOTA_COUNT;
+        }
+
+        synchronized (sAdapterService.mDeviceConfigLock) {
+            return sAdapterService.mScanQuotaCount;
         }
     }
 
-    public long getScanQuotaWindowMillis() {
-        synchronized (mDeviceConfigLock) {
-            return mScanQuotaWindowMillis;
+    public static long getScanQuotaWindowMillis() {
+        if (sAdapterService == null) {
+            return DeviceConfigListener.DEFAULT_SCAN_QUOTA_WINDOW_MILLIS;
+        }
+
+        synchronized (sAdapterService.mDeviceConfigLock) {
+            return sAdapterService.mScanQuotaWindowMillis;
         }
     }
 
-    public long getScanTimeoutMillis() {
-        synchronized (mDeviceConfigLock) {
-            return mScanTimeoutMillis;
+    public static long getScanTimeoutMillis() {
+        if (sAdapterService == null) {
+            return DeviceConfigListener.DEFAULT_SCAN_TIMEOUT_MILLIS;
+        }
+
+        synchronized (sAdapterService.mDeviceConfigLock) {
+            return sAdapterService.mScanTimeoutMillis;
         }
     }
 

@@ -102,7 +102,7 @@ import java.util.Objects;
     }
 
     static int getNumScanDurationsKept() {
-        return AdapterService.getAdapterService().getScanQuotaCount();
+        return AdapterService.getScanQuotaCount();
     }
 
     // This constant defines the time window an app can scan multiple times.
@@ -110,12 +110,12 @@ import java.util.Objects;
     // this window. Once they reach this limit, they must wait until their
     // earliest recorded scan exits this window.
     static long getExcessiveScanningPeriodMillis() {
-        return AdapterService.getAdapterService().getScanQuotaWindowMillis();
+        return AdapterService.getScanQuotaWindowMillis();
     }
 
     // Maximum msec before scan gets downgraded to opportunistic
     static long getScanTimeoutMillis() {
-        return AdapterService.getAdapterService().getScanTimeoutMillis();
+        return AdapterService.getScanTimeoutMillis();
     }
 
     public String appName;
