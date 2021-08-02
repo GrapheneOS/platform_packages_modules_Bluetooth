@@ -440,10 +440,20 @@ void LeAddressManager::OnCommandComplete(bluetooth::hci::CommandCompleteView vie
     }
   }
 
+  handler_->BindOnceOn(this, &LeAddressManager::check_cached_commands).Invoke();
+}
+
+void LeAddressManager::check_cached_commands() {
+  for (auto client : registered_clients_) {
+    if (client.second != ClientState::PAUSED) {
+      return;
+    }
+  }
+
   if (cached_commands_.empty()) {
-    handler_->BindOnceOn(this, &LeAddressManager::resume_registered_clients).Invoke();
+    resume_registered_clients();
   } else {
-    handler_->BindOnceOn(this, &LeAddressManager::handle_next_command).Invoke();
+    handle_next_command();
   }
 }
 

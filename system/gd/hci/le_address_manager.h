@@ -126,6 +126,7 @@ class LeAddressManager {
   hci::Address generate_rpa();
   hci::Address generate_nrpa();
   void handle_next_command();
+  void check_cached_commands();
 
   common::Callback<void(std::unique_ptr<CommandBuilder>)> enqueue_command_;
   os::Handler* handler_;
