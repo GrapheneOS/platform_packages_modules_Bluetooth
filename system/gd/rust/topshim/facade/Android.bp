@@ -1,0 +1,73 @@
+rust_binary_host {
+    name: "bt_topshim_facade",
+    defaults: ["gd_rust_defaults"],
+    crate_name: "bt_topshim_facade",
+    srcs: ["src/main.rs"],
+    rustlibs: [
+        "libbluetooth_rs",
+        "libbt_common",
+        "libtokio",
+        "libbt_packets",
+        "libfutures",
+        "libgrpcio",
+        "libnum_traits",
+        "libnix",
+        "liblog_rust",
+        "libbt_facade_helpers",
+        "libbt_topshim",
+        "libbt_topshim_facade_protobuf",
+    ],
+    static_libs: [
+        "libbt_topshim_cxx",
+        "libbt-bta",
+        "libbt-common",
+        "libbtdevice",
+        "libbtif",
+        "libbt-hci",
+        "libbt-stack",
+        "libbt-utils",
+        "libbtcore",
+        "libosi",
+        "libbt-protos-lite",
+        "libbte",
+        "libbt-sbc-decoder",
+        "libbt-sbc-encoder",
+        "libFraunhoferAAC",
+        "libg722codec",
+        "libudrv-uipc",
+        "libbluetooth_gd", // Gabeldorsche
+        "libbluetooth_rust_interop",
+    ],
+    shared_libs: [
+        "libcrypto",
+        "libflatbuffers-cpp",
+        "libbluetooth",
+        "libchrome",
+    ],
+    sanitize: {
+        never: true,
+    },
+    proc_macros: [
+        "libpaste",
+    ],
+}
+
+rust_protobuf {
+    name: "libbt_topshim_facade_protobuf",
+    crate_name: "bt_topshim_facade_protobuf",
+    source_stem: "topshim_facade",
+    host_supported: true,
+    grpc_protos: ["facade.proto"],
+}
+
+genrule {
+    name: "libbt_topshim_facade_py_proto",
+    tools: [
+        "aprotoc",
+        "protoc-gen-grpc-python-plugin",
+        "soong_zip",
+    ],
+    cmd: "$(location aprotoc) --plugin=protoc-gen-grpc=$(location protoc-gen-grpc-python-plugin) -Ipackages/modules/Bluetooth/system/gd/rust/topshim/facade $(in) --grpc_out=$(genDir) --python_out=$(genDir)",
+    srcs: ["facade.proto"],
+    out: ["facade_pb2.py", "facade_pb2_grpc.py"],
+}
