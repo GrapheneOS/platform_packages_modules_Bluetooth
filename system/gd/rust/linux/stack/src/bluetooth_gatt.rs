@@ -6,8 +6,11 @@ use bt_topshim::bindings::root::bluetooth::Uuid;
 use bt_topshim::btif::{BluetoothInterface, RawAddress};
 use bt_topshim::profiles::gatt::{
     Gatt, GattClientCallbacks, GattClientCallbacksDispatcher, GattServerCallbacksDispatcher,
+    GattStatus,
 };
 use bt_topshim::topstack;
+
+use num_traits::cast::FromPrimitive;
 
 use std::sync::{Arc, Mutex};
 
@@ -21,19 +24,30 @@ struct Client {
     callback: Box<dyn IBluetoothGattCallback + Send>,
 }
 
+struct Connection {
+    conn_id: i32,
+    address: String,
+    client_id: i32,
+}
+
 struct ContextMap {
     // TODO(b/196635530): Consider using `multimap` for a more efficient implementation of get by
     // multiple keys.
     clients: Vec<Client>,
+    connections: Vec<Connection>,
 }
 
 impl ContextMap {
     fn new() -> ContextMap {
-        ContextMap { clients: vec![] }
+        ContextMap { clients: vec![], connections: vec![] }
     }
 
     fn get_by_uuid(&self, uuid: &Uuid128Bit) -> Option<&Client> {
         self.clients.iter().find(|client| client.uuid == *uuid)
+    }
+
+    fn get_by_client_id(&self, client_id: i32) -> Option<&Client> {
+        self.clients.iter().find(|client| client.id.is_some() && client.id.unwrap() == client_id)
     }
 
     fn add(&mut self, uuid: &Uuid128Bit, callback: Box<dyn IBluetoothGattCallback + Send>) {
@@ -55,6 +69,25 @@ impl ContextMap {
         }
 
         client.unwrap().id = Some(id);
+    }
+
+    fn add_connection(&mut self, client_id: i32, conn_id: i32, address: &String) {
+        if self.get_conn_id_from_address(client_id, address).is_some() {
+            return;
+        }
+
+        self.connections.push(Connection { conn_id, address: address.clone(), client_id });
+    }
+
+    fn get_conn_id_from_address(&self, client_id: i32, address: &String) -> Option<i32> {
+        match self
+            .connections
+            .iter()
+            .find(|conn| conn.client_id == client_id && conn.address == *address)
+        {
+            None => None,
+            Some(conn) => Some(conn.conn_id),
+        }
     }
 }
 
@@ -88,12 +121,24 @@ pub trait IBluetoothGatt {
         opportunistic: bool,
         phy: i32,
     );
+
+    /// Disconnects a GATT connection.
+    fn client_disconnect(&self, client_id: i32, addr: String);
 }
 
 /// Callback for GATT Client API.
 pub trait IBluetoothGattCallback: RPCProxy {
     /// When the `register_client` request is done.
     fn on_client_registered(&self, status: i32, client_id: i32);
+
+    /// When there is a change in the state of a GATT client connection.
+    fn on_client_connection_state(
+        &self,
+        status: i32,
+        client_id: i32,
+        connected: bool,
+        addr: String,
+    );
 }
 
 /// Interface for scanner callbacks to clients, passed to `IBluetoothGatt::register_scanner`.
@@ -252,6 +297,19 @@ impl IBluetoothGatt for BluetoothGatt {
             phy,
         );
     }
+
+    fn client_disconnect(&self, client_id: i32, address: String) {
+        let conn_id = self.context_map.get_conn_id_from_address(client_id, &address);
+        if conn_id.is_none() {
+            return;
+        }
+
+        self.gatt.as_ref().unwrap().client.disconnect(
+            client_id,
+            &RawAddress::from_string(address).unwrap(),
+            conn_id.unwrap(),
+        );
+    }
 }
 
 #[btif_callbacks_dispatcher(BluetoothGatt, dispatch_gatt_client_callbacks, GattClientCallbacks)]
@@ -279,8 +337,25 @@ impl BtifGattClientCallbacks for BluetoothGatt {
         callback.on_client_registered(status, client_id);
     }
 
-    fn connect_cb(&mut self, _conn_id: i32, _status: i32, _client_id: i32, _addr: RawAddress) {
-        // TODO(b/193685325): handle;
+    fn connect_cb(&mut self, conn_id: i32, status: i32, client_id: i32, addr: RawAddress) {
+        if status == 0 {
+            self.context_map.add_connection(client_id, conn_id, &addr.to_string());
+        }
+
+        let client = self.context_map.get_by_client_id(client_id);
+        if client.is_none() {
+            return;
+        }
+
+        client.unwrap().callback.on_client_connection_state(
+            status,
+            client_id,
+            match GattStatus::from_i32(status) {
+                None => false,
+                Some(gatt_status) => gatt_status == GattStatus::Success,
+            },
+            addr.to_string(),
+        );
     }
 }
 
@@ -298,6 +373,14 @@ mod tests {
 
     impl IBluetoothGattCallback for TestBluetoothGattCallback {
         fn on_client_registered(&self, _status: i32, _client_id: i32) {}
+        fn on_client_connection_state(
+            &self,
+            _status: i32,
+            _client_id: i32,
+            _connected: bool,
+            _addr: String,
+        ) {
+        }
     }
 
     impl RPCProxy for TestBluetoothGattCallback {
@@ -325,7 +408,7 @@ mod tests {
     }
 
     #[test]
-    fn test_context_map() {
+    fn test_context_map_clients() {
         let mut map = ContextMap::new();
 
         // Add client 1.
@@ -344,10 +427,31 @@ mod tests {
         assert!(found.is_some());
         assert_eq!("Callback 2", found.unwrap().callback.get_object_id());
 
-        // Remove client 1.
+        // Set client ID and get by client ID.
         map.set_client_id(&uuid1, 3);
+        let found = map.get_by_client_id(3);
+        assert!(found.is_some());
+
+        // Remove client 1.
         map.remove(3);
         let found = map.get_by_uuid(&uuid1);
         assert!(found.is_none());
+    }
+
+    #[test]
+    fn test_context_map_connections() {
+        let mut map = ContextMap::new();
+        let client_id = 1;
+
+        map.add_connection(client_id, 3, &String::from("aa:bb:cc:dd:ee:ff"));
+        map.add_connection(client_id, 4, &String::from("11:22:33:44:55:66"));
+
+        let found = map.get_conn_id_from_address(client_id, &String::from("aa:bb:cc:dd:ee:ff"));
+        assert!(found.is_some());
+        assert_eq!(3, found.unwrap());
+
+        let found = map.get_conn_id_from_address(client_id, &String::from("11:22:33:44:55:66"));
+        assert!(found.is_some());
+        assert_eq!(4, found.unwrap());
     }
 }
