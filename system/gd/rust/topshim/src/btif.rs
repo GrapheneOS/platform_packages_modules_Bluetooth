@@ -188,19 +188,6 @@ pub struct BtProperty {
     pub val: Vec<u8>,
 }
 
-fn convert_properties(count: i32, props: *const bindings::bt_property_t) -> Vec<BtProperty> {
-    let mut ret: Vec<BtProperty> = Vec::new();
-
-    for i in 0..isize::from_i32(count).unwrap() {
-        let prop: *const bindings::bt_property_t = unsafe { props.offset(i) };
-        let converted = BtProperty::from(unsafe { *prop });
-
-        ret.push(converted)
-    }
-
-    ret
-}
-
 impl From<bindings::bt_property_t> for BtProperty {
     fn from(item: bindings::bt_property_t) -> Self {
         let slice: &[u8] =
@@ -397,16 +384,16 @@ type BaseCb = Arc<Mutex<BaseCallbacksDispatcher>>;
 cb_variant!(BaseCb, adapter_state_cb -> BaseCallbacks::AdapterState, u32 -> BtState);
 cb_variant!(BaseCb, adapter_properties_cb -> BaseCallbacks::AdapterProperties,
 u32 -> BtStatus, i32, *mut bindings::bt_property_t, {
-    let _2 = convert_properties(_1, _2);
+    let _2 = ptr_to_vec(_2, _1 as usize);
 });
 cb_variant!(BaseCb, remote_device_properties_cb -> BaseCallbacks::RemoteDeviceProperties,
 u32 -> BtStatus, *mut FfiAddress -> RawAddress, i32, *mut bindings::bt_property_t, {
     let _1 = unsafe { *(_1 as *const RawAddress) };
-    let _3 = convert_properties(_2, _3);
+    let _3 = ptr_to_vec(_3, _2 as usize);
 });
 cb_variant!(BaseCb, device_found_cb -> BaseCallbacks::DeviceFound,
 i32, *mut bindings::bt_property_t, {
-    let _1 = convert_properties(_0, _1);
+    let _1 = ptr_to_vec(_1, _0 as usize);
 });
 cb_variant!(BaseCb, discovery_state_cb -> BaseCallbacks::DiscoveryState,
     bindings::bt_discovery_state_t -> BtDiscoveryState);
@@ -650,6 +637,11 @@ pub fn get_btinterface() -> Option<BluetoothInterface> {
     ret
 }
 
+// Turns C-array T[] to Vec<U>.
+pub(crate) fn ptr_to_vec<T: Copy, U: From<T>>(start: *const T, length: usize) -> Vec<U> {
+    unsafe { (0..length).map(|i| U::from(*start.offset(i as isize))).collect::<Vec<U>>() }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -701,5 +693,13 @@ mod tests {
 
         let invalid_bdname = make_bdname_from_slice(&[128; 249]);
         assert_eq!("".to_string(), String::from(invalid_bdname));
+    }
+
+    #[test]
+    fn test_ptr_to_vec() {
+        let arr: [i32; 3] = [1, 2, 3];
+        let vec: Vec<i32> = ptr_to_vec(arr.as_ptr(), arr.len());
+        let expected: Vec<i32> = vec![1, 2, 3];
+        assert_eq!(expected, vec);
     }
 }
