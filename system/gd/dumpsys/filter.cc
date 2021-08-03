@@ -97,7 +97,7 @@ bool UserPrivacyFilter::FilterField(const reflection::Field* field, flatbuffers:
   ASSERT(table != nullptr);
   internal::PrivacyLevel privacy_level = internal::FindFieldPrivacyLevel(*field);
 
-  switch (field->type()->base_type()) {
+  switch (static_cast<flatbuffers::BaseType>(field->type()->base_type())) {
     case flatbuffers::BASE_TYPE_INT:
       return internal::FilterTypeInteger(*field, table, privacy_level);
       break;
