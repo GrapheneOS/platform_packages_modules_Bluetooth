@@ -25,7 +25,7 @@ rust_library {
         android: {
             rustlibs: [
                 "libandroid_logger",
-                "libsystem_properties-rust",
+                "librustutils",
             ],
             shared_libs: [
                 "libcutils",
