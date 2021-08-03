@@ -1,5 +1,7 @@
 use crate::bindings::root as bindings;
-use crate::btif::{BluetoothInterface, BtStatus, FfiAddress, RawAddress, SupportedProfiles, Uuid};
+use crate::btif::{
+    ptr_to_vec, BluetoothInterface, BtStatus, FfiAddress, RawAddress, SupportedProfiles, Uuid,
+};
 use crate::profiles::gatt::bindings::{
     btgatt_callbacks_t, btgatt_client_callbacks_t, btgatt_client_interface_t, btgatt_interface_t,
     btgatt_scanner_callbacks_t, btgatt_server_callbacks_t, btgatt_server_interface_t,
@@ -18,25 +20,39 @@ pub type BtGattDbElement = bindings::btgatt_db_element_t;
 pub type BtGattResponse = bindings::btgatt_response_t;
 pub type BtGattTestParams = bindings::btgatt_test_params_t;
 
+// TODO: Implement printing internal values.
+impl std::fmt::Debug for BtGattReadParams {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_fmt(format_args!("BtGattReadParams"))
+    }
+}
+
+// TODO: Implement printing internal values.
+impl std::fmt::Debug for BtGattNotifyParams {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_fmt(format_args!("BtGattNotifyParams"))
+    }
+}
+
 #[derive(Debug)]
 pub enum GattClientCallbacks {
-    RegisterClient(i32, i32, *const Uuid),
+    RegisterClient(i32, i32, Uuid),
     Connect(i32, i32, i32, RawAddress),
     Disconnect(i32, i32, i32, RawAddress),
     SearchComplete(i32, i32),
     RegisterForNotification(i32, i32, i32, u16),
-    Notify(i32, *const BtGattNotifyParams),
-    ReadCharacteristic(i32, i32, *mut BtGattReadParams),
+    Notify(i32, BtGattNotifyParams),
+    ReadCharacteristic(i32, i32, BtGattReadParams),
     WriteCharacteristic(i32, i32, u16),
-    ReadDescriptor(i32, i32, *const BtGattReadParams),
+    ReadDescriptor(i32, i32, BtGattReadParams),
     WriteDescriptor(i32, i32, u16),
     ExecuteWrite(i32, i32),
     ReadRemoteRssi(i32, RawAddress, i32, i32),
     ConfigureMtu(i32, i32, i32),
     Congestion(i32, bool),
-    GetGattDb(i32, *const BtGattDbElement, i32),
+    GetGattDb(i32, Vec<BtGattDbElement>, i32),
     ServicesRemoved(i32, u16, u16),
-    ServicesAdded(i32, *const BtGattDbElement, i32),
+    ServicesAdded(i32, Vec<BtGattDbElement>, i32),
     PhyUpdated(i32, u8, u8, u8),
     ConnUpdated(i32, u16, u16, u16, u8),
     ServiceChanged(i32),
@@ -44,15 +60,15 @@ pub enum GattClientCallbacks {
 
 #[derive(Debug)]
 pub enum GattServerCallbacks {
-    RegisterServer(i32, i32, *const Uuid),
+    RegisterServer(i32, i32, Uuid),
     Connection(i32, i32, i32, RawAddress),
-    ServiceAdded(i32, i32, *const BtGattDbElement, usize),
+    ServiceAdded(i32, i32, Vec<BtGattDbElement>, usize),
     ServiceStopped(i32, i32, i32),
     ServiceDeleted(i32, i32, i32),
     RequestReadCharacteristic(i32, i32, RawAddress, i32, i32, bool),
     RequestReadDescriptor(i32, i32, RawAddress, i32, i32, bool),
-    RequestWriteCharacteristic(i32, i32, RawAddress, i32, i32, bool, bool, *const u8, usize),
-    RequestWriteDescriptor(i32, i32, RawAddress, i32, i32, bool, bool, *const u8, usize),
+    RequestWriteCharacteristic(i32, i32, RawAddress, i32, i32, bool, bool, Vec<u8>, usize),
+    RequestWriteDescriptor(i32, i32, RawAddress, i32, i32, bool, bool, Vec<u8>, usize),
     RequestExecWrite(i32, i32, RawAddress, i32),
     ResponseConfirmation(i32, i32),
     IndicationSent(i32, i32),
@@ -76,7 +92,9 @@ type GattServerCb = Arc<Mutex<GattServerCallbacksDispatcher>>;
 cb_variant!(
     GattClientCb,
     gc_register_client_cb -> GattClientCallbacks::RegisterClient,
-    i32, i32, *const Uuid, {}
+    i32, i32, *const Uuid, {
+        let _2 = unsafe { *_2.clone() };
+    }
 );
 
 cb_variant!(
@@ -110,13 +128,17 @@ cb_variant!(
 cb_variant!(
     GattClientCb,
     gc_notify_cb -> GattClientCallbacks::Notify,
-    i32, *const BtGattNotifyParams, {}
+    i32, *const BtGattNotifyParams, {
+        let _1 = unsafe { *_1.clone() };
+    }
 );
 
 cb_variant!(
     GattClientCb,
     gc_read_characteristic_cb -> GattClientCallbacks::ReadCharacteristic,
-    i32, i32, *mut BtGattReadParams, {}
+    i32, i32, *mut BtGattReadParams, {
+        let _2 = unsafe { *_2.clone() };
+    }
 );
 
 cb_variant!(
@@ -128,7 +150,9 @@ cb_variant!(
 cb_variant!(
     GattClientCb,
     gc_read_descriptor_cb -> GattClientCallbacks::ReadDescriptor,
-    i32, i32, *const BtGattReadParams, {}
+    i32, i32, *const BtGattReadParams, {
+        let _2 = unsafe { *_2.clone() };
+    }
 );
 
 cb_variant!(
@@ -166,7 +190,9 @@ cb_variant!(
 cb_variant!(
     GattClientCb,
     gc_get_gatt_db_cb -> GattClientCallbacks::GetGattDb,
-    i32, *const BtGattDbElement, i32, {}
+    i32, *const BtGattDbElement, i32, {
+        let _1 = ptr_to_vec(_1, _2 as usize);
+    }
 );
 
 cb_variant!(
@@ -178,7 +204,9 @@ cb_variant!(
 cb_variant!(
     GattClientCb,
     gc_services_added_cb -> GattClientCallbacks::ServicesAdded,
-    i32, *const BtGattDbElement, i32, {}
+    i32, *const BtGattDbElement, i32, {
+        let _1 = ptr_to_vec(_1, _2 as usize);
+    }
 );
 
 cb_variant!(
@@ -202,7 +230,9 @@ cb_variant!(
 cb_variant!(
     GattServerCb,
     gs_register_server_cb -> GattServerCallbacks::RegisterServer,
-    i32, i32, *const Uuid, {}
+    i32, i32, *const Uuid, {
+        let _2 = unsafe { *_2.clone() };
+    }
 );
 
 cb_variant!(
@@ -216,7 +246,9 @@ cb_variant!(
 cb_variant!(
     GattServerCb,
     gs_service_added_cb -> GattServerCallbacks::ServiceAdded,
-    i32, i32, *const BtGattDbElement, usize, {}
+    i32, i32, *const BtGattDbElement, usize, {
+        let _2 = ptr_to_vec(_2, _3);
+    }
 );
 
 cb_variant!(
@@ -252,6 +284,7 @@ cb_variant!(
     gs_request_write_characteristic_cb -> GattServerCallbacks::RequestWriteCharacteristic,
     i32, i32, *const FfiAddress, i32, i32, bool, bool, *const u8, usize, {
         let _2 = unsafe { deref_ffi_address!(_2) };
+        let _7 = ptr_to_vec(_7, _8);
     }
 );
 
@@ -260,6 +293,7 @@ cb_variant!(
     gs_request_write_descriptor_cb -> GattServerCallbacks::RequestWriteDescriptor,
     i32, i32, *const FfiAddress, i32, i32, bool, bool, *const u8, usize, {
         let _2 = unsafe { deref_ffi_address!(_2) };
+        let _7 = ptr_to_vec(_7, _8);
     }
 );
 
