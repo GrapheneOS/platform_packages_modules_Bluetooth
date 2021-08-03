@@ -136,12 +136,12 @@ class LeAclManagerTestBase():
                 handle = cc_view.GetConnectionHandle()
                 address = cc_view.GetPeerAddress()
                 return True
-            if b'\x3e\x13\x0A\x00' in packet_bytes:
+            if b'\x3e\x1f\x0A\x00' in packet_bytes:
                 cc_view = hci_packets.LeEnhancedConnectionCompleteView(
                     hci_packets.LeMetaEventView(
                         hci_packets.EventView(bt_packets.PacketViewLittleEndian(list(packet_bytes)))))
                 handle = cc_view.GetConnectionHandle()
-                address = cc_view.GetPeerResolvablePrivateAddress()
+                address = cc_view.GetPeerAddress()
                 return True
             return False
 
@@ -202,6 +202,7 @@ class LeAclManagerTestBase():
     def test_cert_connects(self):
         self.set_privacy_policy_static()
         self.register_for_le_event(hci_packets.SubeventCode.CONNECTION_COMPLETE)
+        self.register_for_le_event(hci_packets.SubeventCode.ENHANCED_CONNECTION_COMPLETE)
 
         self.dut_le_acl_manager.listen_for_incoming_connections()
 
@@ -253,7 +254,7 @@ class LeAclManagerTestBase():
                         hci_packets.EventView(bt_packets.PacketViewLittleEndian(list(packet_bytes)))))
                 handle = cc_view.GetConnectionHandle()
                 return True
-            if b'\x3e\x13\x0A\x00' in packet_bytes:
+            if b'\x3e\x1f\x0A\x00' in packet_bytes:
                 cc_view = hci_packets.LeEnhancedConnectionCompleteView(
                     hci_packets.LeMetaEventView(
                         hci_packets.EventView(bt_packets.PacketViewLittleEndian(list(packet_bytes)))))
