@@ -63,7 +63,7 @@ class AvrcpVolumeManager extends AudioDeviceCallback {
     }
 
     static int systemToAvrcpVolume(int deviceVolume) {
-        int avrcpVolume = (int) Math.floor((double) deviceVolume
+        int avrcpVolume = (int) Math.ceil((double) deviceVolume
                 * AVRCP_MAX_VOL / sDeviceMaxVolume);
         if (avrcpVolume > 127) avrcpVolume = 127;
         return avrcpVolume;
