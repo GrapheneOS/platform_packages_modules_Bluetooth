@@ -18,6 +18,7 @@
 
 #pragma once
 
+#include <hardware/bluetooth.h>
 #include <hardware/bluetooth_headset_interface.h>
 
 namespace bluetooth {
