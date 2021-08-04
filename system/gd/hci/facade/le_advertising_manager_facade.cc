@@ -96,6 +96,30 @@ bool AdvertisingConfigFromProto(const AdvertisingConfig& config_proto, hci::Exte
   config->tx_power = static_cast<uint8_t>(config_proto.tx_power());
 
   config->legacy_pdus = true;
+
+  auto advertising_type = static_cast<::bluetooth::hci::AdvertisingType>(config_proto.advertising_type());
+
+  switch (advertising_type) {
+    case AdvertisingType::ADV_IND: {
+      config->connectable = true;
+      config->scannable = true;
+    } break;
+    case AdvertisingType::ADV_DIRECT_IND: {
+      config->connectable = true;
+      config->directed = true;
+      config->high_duty_directed_connectable = true;
+    } break;
+    case AdvertisingType::ADV_SCAN_IND: {
+      config->scannable = true;
+    } break;
+    case AdvertisingType::ADV_NONCONN_IND: {
+    } break;
+    case AdvertisingType::ADV_DIRECT_IND_LOW: {
+      config->directed = true;
+      config->connectable = true;
+    } break;
+  }
+
   return true;
 }
 
