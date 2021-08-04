@@ -6,7 +6,7 @@ use std::path::PathBuf;
 
 fn main() {
     // Re-run build if any of these change
-    println!("cargo:rerun-if-changed=bindings/wrapper.h");
+    println!("cargo:rerun-if-changed=bindings/wrapper.hpp");
     println!("cargo:rerun-if-changed=build.rs");
 
     // We need to configure libchrome and libmodp_b64 settings as well
