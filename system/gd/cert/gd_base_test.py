@@ -36,8 +36,8 @@ from cert.os_utils import make_ports_available
 from cert.os_utils import TerminalColor
 from cert.gd_device import MOBLY_CONTROLLER_CONFIG_NAME as CONTROLLER_CONFIG_NAME
 from facade import rootservice_pb2 as facade_rootservice
-from cert.gd_base_test_lib import setup_class_core
-from cert.gd_base_test_lib import teardown_class_core
+from cert.gd_base_test_lib import setup_rootcanal
+from cert.gd_base_test_lib import teardown_rootcanal
 from cert.gd_base_test_lib import setup_test_core
 from cert.gd_base_test_lib import teardown_test_core
 from cert.gd_base_test_lib import dump_crashes_core
@@ -48,19 +48,24 @@ class GdBaseTestClass(BaseTestClass):
     SUBPROCESS_WAIT_TIMEOUT_SECONDS = 10
 
     def setup_class(self, dut_module, cert_module):
+        self.dut_module = dut_module
+        self.cert_module = cert_module
+
+    def teardown_class(self):
+        pass
+
+    def setup_test(self):
         self.log_path_base = get_current_context().get_full_output_path()
         self.verbose_mode = bool(self.user_params.get('verbose_mode', False))
         for config in self.controller_configs[CONTROLLER_CONFIG_NAME]:
             config['verbose_mode'] = self.verbose_mode
 
-        self.info = setup_class_core(
-            dut_module=dut_module,
-            cert_module=cert_module,
+        self.info = setup_rootcanal(
+            dut_module=self.dut_module,
+            cert_module=self.cert_module,
             verbose_mode=self.verbose_mode,
             log_path_base=self.log_path_base,
             controller_configs=self.controller_configs)
-        self.dut_module = self.info['dut_module']
-        self.cert_module = self.info['cert_module']
         self.rootcanal_running = self.info['rootcanal_running']
         self.rootcanal_logpath = self.info['rootcanal_logpath']
         self.rootcanal_process = self.info['rootcanal_process']
@@ -85,18 +90,17 @@ class GdBaseTestClass(BaseTestClass):
         self.dut = self.gd_devices[1]
         self.cert = self.gd_devices[0]
 
-    def teardown_class(self):
-        teardown_class_core(
-            rootcanal_running=self.rootcanal_running,
-            rootcanal_process=self.rootcanal_process,
-            rootcanal_logger=self.rootcanal_logger,
-            subprocess_wait_timeout_seconds=self.SUBPROCESS_WAIT_TIMEOUT_SECONDS)
-
-    def setup_test(self):
         setup_test_core(dut=self.dut, cert=self.cert, dut_module=self.dut_module, cert_module=self.cert_module)
 
     def teardown_test(self):
         teardown_test_core(cert=self.cert, dut=self.dut)
+        # Destroy GD device objects
+        self._controller_manager.unregister_controllers()
+        teardown_rootcanal(
+            rootcanal_running=self.rootcanal_running,
+            rootcanal_process=self.rootcanal_process,
+            rootcanal_logger=self.rootcanal_logger,
+            subprocess_wait_timeout_seconds=self.SUBPROCESS_WAIT_TIMEOUT_SECONDS)
 
     def __getattribute__(self, name):
         attr = super().__getattribute__(name)
