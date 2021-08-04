@@ -1624,8 +1624,12 @@ public class HeadsetStateMachine extends StateMachine {
         if (volumeType == HeadsetHalConstants.VOLUME_TYPE_SPK) {
             mSpeakerVolume = volume;
             int flag = (mCurrentState == mAudioOn) ? AudioManager.FLAG_SHOW_UI : 0;
-            mSystemInterface.getAudioManager()
-                    .setStreamVolume(AudioManager.STREAM_BLUETOOTH_SCO, volume, flag);
+            int currentVol = mSystemInterface.getAudioManager().getStreamVolume(
+                    AudioManager.STREAM_BLUETOOTH_SCO);
+            if (volume != currentVol) {
+                mSystemInterface.getAudioManager()
+                        .setStreamVolume(AudioManager.STREAM_BLUETOOTH_SCO, volume, flag);
+            }
         } else if (volumeType == HeadsetHalConstants.VOLUME_TYPE_MIC) {
             // Not used currently
             mMicVolume = volume;
