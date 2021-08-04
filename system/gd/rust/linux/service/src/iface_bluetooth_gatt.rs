@@ -1,5 +1,6 @@
 use btstack::bluetooth_gatt::{
-    IBluetoothGatt, IScannerCallback, RSSISettings, ScanFilter, ScanSettings, ScanType,
+    IBluetoothGatt, IBluetoothGattCallback, IScannerCallback, RSSISettings, ScanFilter,
+    ScanSettings, ScanType,
 };
 use btstack::RPCProxy;
 
@@ -18,6 +19,15 @@ use num_traits::cast::{FromPrimitive, ToPrimitive};
 use std::sync::Arc;
 
 use crate::dbus_arg::{DBusArg, DBusArgError, RefArgToRust};
+
+#[allow(dead_code)]
+struct BluetoothGattCallbackDBus {}
+
+#[dbus_proxy_obj(BluetoothGattCallback, "org.chromium.bluetooth.BluetoothGattCallback")]
+impl IBluetoothGattCallback for BluetoothGattCallbackDBus {
+    #[dbus_method("OnClientRegistered")]
+    fn on_client_registered(&self, _status: i32, _scanner_id: i32) {}
+}
 
 #[allow(dead_code)]
 struct ScannerCallbackDBus {}
@@ -63,4 +73,16 @@ impl IBluetoothGatt for IBluetoothGattDBus {
 
     #[dbus_method("StopScan")]
     fn stop_scan(&self, scanner_id: i32) {}
+
+    #[dbus_method("RegisterClient")]
+    fn register_client(
+        &mut self,
+        app_uuid: String,
+        callback: Box<dyn IBluetoothGattCallback + Send>,
+        eatt_support: bool,
+    ) {
+    }
+
+    #[dbus_method("UnregisterClient")]
+    fn unregister_client(&self, client_if: i32) {}
 }

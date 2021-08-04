@@ -12,6 +12,8 @@ pub mod bluetooth_media;
 
 use bt_topshim::btif::BaseCallbacks;
 use bt_topshim::profiles::a2dp::A2dpCallbacks;
+use bt_topshim::profiles::gatt::GattClientCallbacks;
+use bt_topshim::profiles::gatt::GattServerCallbacks;
 
 use std::sync::{Arc, Mutex};
 
@@ -19,6 +21,7 @@ use tokio::sync::mpsc::channel;
 use tokio::sync::mpsc::{Receiver, Sender};
 
 use crate::bluetooth::Bluetooth;
+use crate::bluetooth_gatt::BluetoothGatt;
 use crate::bluetooth_media::BluetoothMedia;
 
 /// Represents a Bluetooth address.
@@ -28,6 +31,8 @@ use crate::bluetooth_media::BluetoothMedia;
 pub enum Message {
     A2dp(A2dpCallbacks),
     Base(BaseCallbacks),
+    GattClient(GattClientCallbacks),
+    GattServer(GattServerCallbacks),
     BluetoothCallbackDisconnected(u32),
 }
 
@@ -44,6 +49,7 @@ impl Stack {
     pub async fn dispatch(
         mut rx: Receiver<Message>,
         bluetooth: Arc<Mutex<Box<Bluetooth>>>,
+        bluetooth_gatt: Arc<Mutex<Box<BluetoothGatt>>>,
         bluetooth_media: Arc<Mutex<Box<BluetoothMedia>>>,
     ) {
         loop {
@@ -58,8 +64,18 @@ impl Stack {
                 Message::A2dp(a) => {
                     bluetooth_media.lock().unwrap().dispatch_a2dp_callbacks(a);
                 }
+
                 Message::Base(b) => {
                     bluetooth.lock().unwrap().dispatch_base_callbacks(b);
+                }
+
+                Message::GattClient(m) => {
+                    bluetooth_gatt.lock().unwrap().dispatch_gatt_client_callbacks(m);
+                }
+
+                Message::GattServer(m) => {
+                    // TODO(b/193685149): dispatch GATT server callbacks.
+                    println!("Unhandled Message::GattServer: {:?}", m);
                 }
 
                 Message::BluetoothCallbackDisconnected(id) => {

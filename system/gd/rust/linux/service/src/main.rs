@@ -63,10 +63,16 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     let adapter_index = get_adapter_index(&args);
 
-    intf.lock().unwrap().initialize(get_bt_dispatcher(tx), args);
+    // Hold locks and initialize all interfaces.
+    {
+        intf.lock().unwrap().initialize(get_bt_dispatcher(tx.clone()), args);
 
-    bluetooth.lock().unwrap().init_profiles();
-    bluetooth.lock().unwrap().enable();
+        let mut bluetooth = bluetooth.lock().unwrap();
+        bluetooth.init_profiles();
+        bluetooth.enable();
+
+        bluetooth_gatt.lock().unwrap().init_profiles(tx.clone());
+    }
 
     topstack::get_runtime().block_on(async {
         // Connect to D-Bus system bus.
@@ -95,6 +101,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         topstack::get_runtime().spawn(Stack::dispatch(
             rx,
             bluetooth.clone(),
+            bluetooth_gatt.clone(),
             bluetooth_media.clone(),
         ));
 
