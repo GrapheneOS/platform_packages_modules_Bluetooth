@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+#include <sys/stat.h>
 #include <memory>
 
 #include "a2dp_encoding.h"
@@ -117,11 +118,13 @@ bool StartRequest() {
     // Already started, ACK back immediately.
     UIPC_Open(*a2dp_uipc, UIPC_CH_ID_AV_AUDIO, btif_a2dp_data_cb,
               A2DP_HOST_DATA_PATH);
+    chmod(A2DP_HOST_DATA_PATH, 0770);
     return true;
   }
   if (btif_av_stream_ready()) {
     UIPC_Open(*a2dp_uipc, UIPC_CH_ID_AV_AUDIO, btif_a2dp_data_cb,
               A2DP_HOST_DATA_PATH);
+    chmod(A2DP_HOST_DATA_PATH, 0770);
     /*
      * Post start event and wait for audio path to open.
      * If we are the source, the ACK will be sent after the start
