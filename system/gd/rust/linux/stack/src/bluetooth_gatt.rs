@@ -259,6 +259,15 @@ pub trait IBluetoothGattCallback: RPCProxy {
     /// The completion of IBluetoothGatt::write_characteristic.
     fn on_characteristic_write(&self, addr: String, status: i32, handle: i32);
 
+    /// When a reliable write is completed.
+    fn on_execute_write(&self, addr: String, status: i32);
+
+    /// The completion of IBluetoothGatt::read_descriptor.
+    fn on_descriptor_read(&self, addr: String, status: i32, handle: i32, value: Vec<u8>);
+
+    /// The completion of IBluetoothGatt::write_descriptor.
+    fn on_descriptor_write(&self, addr: String, status: i32, handle: i32);
+
     /// When notification or indication is received.
     fn on_notify(&self, addr: String, handle: i32, value: Vec<u8>);
 
@@ -775,6 +784,15 @@ pub(crate) trait BtifGattClientCallbacks {
     #[btif_callback(WriteCharacteristic)]
     fn write_characteristic_cb(&mut self, conn_id: i32, status: i32, handle: u16);
 
+    #[btif_callback(ReadDescriptor)]
+    fn read_descriptor_cb(&mut self, conn_id: i32, status: i32, data: BtGattReadParams);
+
+    #[btif_callback(WriteDescriptor)]
+    fn write_descriptor_cb(&mut self, conn_id: i32, status: i32, handle: u16);
+
+    #[btif_callback(ExecuteWrite)]
+    fn execute_write_cb(&mut self, conn_id: i32, status: i32);
+
     #[btif_callback(ReadRemoteRssi)]
     fn read_remote_rssi_cb(&mut self, client_id: i32, addr: RawAddress, rssi: i32, status: i32);
 
@@ -919,6 +937,57 @@ impl BtifGattClientCallbacks for BluetoothGatt {
             status,
             handle as i32,
         );
+    }
+
+    fn read_descriptor_cb(&mut self, conn_id: i32, status: i32, data: BtGattReadParams) {
+        let address = self.context_map.get_address_by_conn_id(conn_id);
+        if address.is_none() {
+            return;
+        }
+
+        let client = self.context_map.get_client_by_conn_id(conn_id);
+        if client.is_none() {
+            return;
+        }
+
+        client.unwrap().callback.on_descriptor_read(
+            address.unwrap().to_string(),
+            status,
+            data.handle as i32,
+            data.value.value[0..data.value.len as usize].to_vec(),
+        );
+    }
+
+    fn write_descriptor_cb(&mut self, conn_id: i32, status: i32, handle: u16) {
+        let address = self.context_map.get_address_by_conn_id(conn_id);
+        if address.is_none() {
+            return;
+        }
+
+        let client = self.context_map.get_client_by_conn_id(conn_id);
+        if client.is_none() {
+            return;
+        }
+
+        client.unwrap().callback.on_descriptor_write(
+            address.unwrap().to_string(),
+            status,
+            handle as i32,
+        );
+    }
+
+    fn execute_write_cb(&mut self, conn_id: i32, status: i32) {
+        let address = self.context_map.get_address_by_conn_id(conn_id);
+        if address.is_none() {
+            return;
+        }
+
+        let client = self.context_map.get_client_by_conn_id(conn_id);
+        if client.is_none() {
+            return;
+        }
+
+        client.unwrap().callback.on_execute_write(address.unwrap().to_string(), status);
     }
 
     fn read_remote_rssi_cb(&mut self, client_id: i32, addr: RawAddress, rssi: i32, status: i32) {
