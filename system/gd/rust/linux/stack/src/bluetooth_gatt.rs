@@ -10,7 +10,7 @@ use bt_topshim::profiles::gatt::{
 };
 use bt_topshim::topstack;
 
-use num_traits::cast::FromPrimitive;
+use num_traits::cast::{FromPrimitive, ToPrimitive};
 
 use std::sync::{Arc, Mutex};
 
@@ -48,6 +48,20 @@ impl ContextMap {
 
     fn get_by_client_id(&self, client_id: i32) -> Option<&Client> {
         self.clients.iter().find(|client| client.id.is_some() && client.id.unwrap() == client_id)
+    }
+
+    fn get_address_by_conn_id(&self, conn_id: i32) -> Option<String> {
+        match self.connections.iter().find(|conn| conn.conn_id == conn_id) {
+            None => None,
+            Some(conn) => Some(conn.address.clone()),
+        }
+    }
+
+    fn get_client_by_conn_id(&self, conn_id: i32) -> Option<&Client> {
+        match self.connections.iter().find(|conn| conn.conn_id == conn_id) {
+            None => None,
+            Some(conn) => self.get_by_client_id(conn.client_id),
+        }
     }
 
     fn add(&mut self, uuid: &Uuid128Bit, callback: Box<dyn IBluetoothGattCallback + Send>) {
@@ -125,6 +139,16 @@ pub trait IBluetoothGatt {
     /// Disconnects a GATT connection.
     fn client_disconnect(&self, client_id: i32, addr: String);
 
+    /// Sets preferred PHY.
+    fn client_set_preferred_phy(
+        &self,
+        client_id: i32,
+        addr: String,
+        tx_phy: LePhy,
+        rx_phy: LePhy,
+        phy_options: i32,
+    );
+
     /// Reads the PHY used by a peer.
     fn client_read_phy(&mut self, client_id: i32, addr: String);
 }
@@ -142,6 +166,9 @@ pub trait IBluetoothGattCallback: RPCProxy {
         connected: bool,
         addr: String,
     );
+
+    /// When there is a change of PHY.
+    fn on_phy_update(&self, addr: String, tx_phy: LePhy, rx_phy: LePhy, status: GattStatus);
 
     /// The completion of IBluetoothGatt::read_phy.
     fn on_phy_read(&self, addr: String, tx_phy: LePhy, rx_phy: LePhy, status: GattStatus);
@@ -327,6 +354,27 @@ impl IBluetoothGatt for BluetoothGatt {
         );
     }
 
+    fn client_set_preferred_phy(
+        &self,
+        client_id: i32,
+        address: String,
+        tx_phy: LePhy,
+        rx_phy: LePhy,
+        phy_options: i32,
+    ) {
+        let conn_id = self.context_map.get_conn_id_from_address(client_id, &address);
+        if conn_id.is_none() {
+            return;
+        }
+
+        self.gatt.as_ref().unwrap().client.set_preferred_phy(
+            &RawAddress::from_string(address).unwrap(),
+            tx_phy.to_u8().unwrap(),
+            rx_phy.to_u8().unwrap(),
+            phy_options as u16,
+        );
+    }
+
     fn client_read_phy(&mut self, client_id: i32, addr: String) {
         let address = match RawAddress::from_string(addr.clone()) {
             None => return,
@@ -344,6 +392,9 @@ pub(crate) trait BtifGattClientCallbacks {
 
     #[btif_callback(Connect)]
     fn connect_cb(&mut self, conn_id: i32, status: i32, client_id: i32, addr: RawAddress);
+
+    #[btif_callback(PhyUpdated)]
+    fn phy_updated_cb(&mut self, conn_id: i32, tx_phy: u8, rx_phy: u8, status: u8);
 
     #[btif_callback(ReadPhy)]
     fn read_phy_cb(&mut self, client_id: i32, addr: RawAddress, tx_phy: u8, rx_phy: u8, status: u8);
@@ -383,6 +434,25 @@ impl BtifGattClientCallbacks for BluetoothGatt {
                 Some(gatt_status) => gatt_status == GattStatus::Success,
             },
             addr.to_string(),
+        );
+    }
+
+    fn phy_updated_cb(&mut self, conn_id: i32, tx_phy: u8, rx_phy: u8, status: u8) {
+        let client = self.context_map.get_client_by_conn_id(conn_id);
+        if client.is_none() {
+            return;
+        }
+
+        let address = self.context_map.get_address_by_conn_id(conn_id);
+        if address.is_none() {
+            return;
+        }
+
+        client.unwrap().callback.on_phy_update(
+            address.unwrap(),
+            LePhy::from_u8(tx_phy).unwrap(),
+            LePhy::from_u8(rx_phy).unwrap(),
+            GattStatus::from_u8(status).unwrap(),
         );
     }
 

@@ -40,6 +40,9 @@ impl IBluetoothGattCallback for BluetoothGattCallbackDBus {
     ) {
     }
 
+    #[dbus_method("OnPhyUpdate")]
+    fn on_phy_update(&self, addr: String, tx_phy: LePhy, rx_phy: LePhy, status: GattStatus) {}
+
     #[dbus_method("OnPhyRead")]
     fn on_phy_read(&self, addr: String, tx_phy: LePhy, rx_phy: LePhy, status: GattStatus) {}
 }
@@ -117,6 +120,17 @@ impl IBluetoothGatt for IBluetoothGattDBus {
 
     #[dbus_method("ClientDisconnect")]
     fn client_disconnect(&self, client_id: i32, addr: String) {}
+
+    #[dbus_method("ClientSetPreferredPhy")]
+    fn client_set_preferred_phy(
+        &self,
+        client_id: i32,
+        addr: String,
+        tx_phy: LePhy,
+        rx_phy: LePhy,
+        phy_options: i32,
+    ) {
+    }
 
     #[dbus_method("ClientReadPhy")]
     fn client_read_phy(&mut self, client_id: i32, addr: String) {}
