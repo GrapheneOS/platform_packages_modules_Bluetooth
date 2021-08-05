@@ -12,6 +12,7 @@ use bt_topshim::topstack;
 
 use num_traits::cast::{FromPrimitive, ToPrimitive};
 
+use std::collections::HashSet;
 use std::sync::{Arc, Mutex};
 
 use tokio::sync::mpsc::Sender;
@@ -181,7 +182,7 @@ pub trait IBluetoothGatt {
         client_id: i32,
         addr: String,
         handle: i32,
-        write_type: i32,
+        write_type: GattWriteType,
         auth_req: i32,
         value: Vec<u8>,
     ) -> GattWriteRequestStatus;
@@ -201,6 +202,12 @@ pub trait IBluetoothGatt {
 
     /// Registers to receive notifications or indications for a given characteristic.
     fn register_for_notification(&self, client_id: i32, addr: String, handle: i32, enable: bool);
+
+    /// Begins reliable write.
+    fn begin_reliable_write(&mut self, client_id: i32, addr: String);
+
+    /// Ends reliable write.
+    fn end_reliable_write(&mut self, client_id: i32, addr: String, execute: bool);
 
     /// Requests RSSI for a given remote device.
     fn read_remote_rssi(&self, client_id: i32, addr: String);
@@ -267,6 +274,16 @@ pub trait IScannerCallback {
 
 #[derive(Debug, FromPrimitive, ToPrimitive)]
 #[repr(u8)]
+/// GATT write type.
+pub enum GattWriteType {
+    Invalid = 0,
+    WriteNoRsp = 1,
+    Write = 2,
+    WritePrepare = 3,
+}
+
+#[derive(Debug, FromPrimitive, ToPrimitive)]
+#[repr(u8)]
 /// Represents LE PHY.
 pub enum LePhy {
     Invalid = 0,
@@ -318,12 +335,18 @@ pub struct BluetoothGatt {
     gatt: Option<Gatt>,
 
     context_map: ContextMap,
+    reliable_queue: HashSet<String>,
 }
 
 impl BluetoothGatt {
     /// Constructs a new IBluetoothGatt implementation.
     pub fn new(intf: Arc<Mutex<BluetoothInterface>>) -> BluetoothGatt {
-        BluetoothGatt { intf: intf, gatt: None, context_map: ContextMap::new() }
+        BluetoothGatt {
+            intf: intf,
+            gatt: None,
+            context_map: ContextMap::new(),
+            reliable_queue: HashSet::new(),
+        }
     }
 
     pub fn init_profiles(&mut self, tx: Sender<Message>) {
@@ -559,7 +582,7 @@ impl IBluetoothGatt for BluetoothGatt {
         client_id: i32,
         addr: String,
         handle: i32,
-        write_type: i32,
+        mut write_type: GattWriteType,
         auth_req: i32,
         value: Vec<u8>,
     ) -> GattWriteRequestStatus {
@@ -568,7 +591,9 @@ impl IBluetoothGatt for BluetoothGatt {
             return GattWriteRequestStatus::Fail;
         }
 
-        // TODO(b/193685325): Check for reliable write type.
+        if self.reliable_queue.contains(&addr) {
+            write_type = GattWriteType::WritePrepare;
+        }
 
         // TODO(b/193685325): Perform check on restricted handles.
 
@@ -577,7 +602,7 @@ impl IBluetoothGatt for BluetoothGatt {
         self.gatt.as_ref().unwrap().client.write_characteristic(
             conn_id.unwrap(),
             handle as u16,
-            write_type,
+            write_type.to_i32().unwrap(),
             auth_req,
             &value,
         );
@@ -644,6 +669,25 @@ impl IBluetoothGatt for BluetoothGatt {
                 handle as u16,
             );
         }
+    }
+
+    fn begin_reliable_write(&mut self, _client_id: i32, addr: String) {
+        self.reliable_queue.insert(addr);
+    }
+
+    fn end_reliable_write(&mut self, client_id: i32, addr: String, execute: bool) {
+        self.reliable_queue.remove(&addr);
+
+        let conn_id = self.context_map.get_conn_id_from_address(client_id, &addr);
+        if conn_id.is_none() {
+            return;
+        }
+
+        self.gatt
+            .as_ref()
+            .unwrap()
+            .client
+            .execute_write(conn_id.unwrap(), if execute { 1 } else { 0 });
     }
 
     fn read_remote_rssi(&self, client_id: i32, addr: String) {

@@ -1,8 +1,8 @@
 use bt_topshim::profiles::gatt::GattStatus;
 
 use btstack::bluetooth_gatt::{
-    GattWriteRequestStatus, IBluetoothGatt, IBluetoothGattCallback, IScannerCallback, LePhy,
-    RSSISettings, ScanFilter, ScanSettings, ScanType,
+    GattWriteRequestStatus, GattWriteType, IBluetoothGatt, IBluetoothGattCallback,
+    IScannerCallback, LePhy, RSSISettings, ScanFilter, ScanSettings, ScanType,
 };
 use btstack::RPCProxy;
 
@@ -89,6 +89,7 @@ struct ScanSettingsDBus {
 
 impl_dbus_arg_enum!(GattStatus);
 impl_dbus_arg_enum!(GattWriteRequestStatus);
+impl_dbus_arg_enum!(GattWriteType);
 impl_dbus_arg_enum!(LePhy);
 impl_dbus_arg_enum!(ScanType);
 
@@ -183,7 +184,7 @@ impl IBluetoothGatt for IBluetoothGattDBus {
         client_id: i32,
         addr: String,
         handle: i32,
-        write_type: i32,
+        write_type: GattWriteType,
         auth_req: i32,
         value: Vec<u8>,
     ) -> GattWriteRequestStatus {
@@ -206,6 +207,12 @@ impl IBluetoothGatt for IBluetoothGattDBus {
 
     #[dbus_method("RegisterForNotification")]
     fn register_for_notification(&self, client_id: i32, addr: String, handle: i32, enable: bool) {}
+
+    #[dbus_method("BeginReliableWrite")]
+    fn begin_reliable_write(&mut self, client_id: i32, addr: String) {}
+
+    #[dbus_method("EndReliableWrite")]
+    fn end_reliable_write(&mut self, client_id: i32, addr: String, execute: bool) {}
 
     #[dbus_method("ReadRemoteRssi")]
     fn read_remote_rssi(&self, client_id: i32, addr: String) {}
