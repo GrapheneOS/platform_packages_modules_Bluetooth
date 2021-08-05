@@ -51,6 +51,17 @@ impl IBluetoothGattCallback for BluetoothGattCallbackDBus {
 
     #[dbus_method("OnConfigureMtu")]
     fn on_configure_mtu(&self, addr: String, mtu: i32, status: i32) {}
+
+    #[dbus_method("OnConnectionUpdated")]
+    fn on_connection_updated(
+        &self,
+        addr: String,
+        interval: i32,
+        latency: i32,
+        timeout: i32,
+        status: i32,
+    ) {
+    }
 }
 
 #[allow(dead_code)]
@@ -201,4 +212,18 @@ impl IBluetoothGatt for IBluetoothGattDBus {
 
     #[dbus_method("ConfigureMtu")]
     fn configure_mtu(&self, client_id: i32, addr: String, mtu: i32) {}
+
+    #[dbus_method("ConnectionParameterUpdate")]
+    fn connection_parameter_update(
+        &self,
+        client_id: i32,
+        addr: String,
+        min_interval: i32,
+        max_interval: i32,
+        latency: i32,
+        timeout: i32,
+        min_ce_len: u16,
+        max_ce_len: u16,
+    ) {
+    }
 }

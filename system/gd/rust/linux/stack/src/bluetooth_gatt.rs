@@ -207,6 +207,19 @@ pub trait IBluetoothGatt {
 
     /// Configures the MTU of a given connection.
     fn configure_mtu(&self, client_id: i32, addr: String, mtu: i32);
+
+    /// Requests a connection parameter update.
+    fn connection_parameter_update(
+        &self,
+        client_id: i32,
+        addr: String,
+        min_interval: i32,
+        max_interval: i32,
+        latency: i32,
+        timeout: i32,
+        min_ce_len: u16,
+        max_ce_len: u16,
+    );
 }
 
 /// Callback for GATT Client API.
@@ -234,6 +247,16 @@ pub trait IBluetoothGattCallback: RPCProxy {
 
     /// The completion of IBluetoothGatt::configure_mtu.
     fn on_configure_mtu(&self, addr: String, mtu: i32, status: i32);
+
+    /// When a connection parameter changes.
+    fn on_connection_updated(
+        &self,
+        addr: String,
+        interval: i32,
+        latency: i32,
+        timeout: i32,
+        status: i32,
+    );
 }
 
 /// Interface for scanner callbacks to clients, passed to `IBluetoothGatt::register_scanner`.
@@ -639,6 +662,28 @@ impl IBluetoothGatt for BluetoothGatt {
 
         self.gatt.as_ref().unwrap().client.configure_mtu(conn_id.unwrap(), mtu);
     }
+
+    fn connection_parameter_update(
+        &self,
+        _client_id: i32,
+        addr: String,
+        min_interval: i32,
+        max_interval: i32,
+        latency: i32,
+        timeout: i32,
+        min_ce_len: u16,
+        max_ce_len: u16,
+    ) {
+        self.gatt.as_ref().unwrap().client.conn_parameter_update(
+            &RawAddress::from_string(addr).unwrap(),
+            min_interval,
+            max_interval,
+            latency,
+            timeout,
+            min_ce_len,
+            max_ce_len,
+        );
+    }
 }
 
 #[btif_callbacks_dispatcher(BluetoothGatt, dispatch_gatt_client_callbacks, GattClientCallbacks)]
@@ -657,6 +702,16 @@ pub(crate) trait BtifGattClientCallbacks {
 
     #[btif_callback(PhyUpdated)]
     fn phy_updated_cb(&mut self, conn_id: i32, tx_phy: u8, rx_phy: u8, status: u8);
+
+    #[btif_callback(ConnUpdated)]
+    fn conn_updated_cb(
+        &mut self,
+        conn_id: i32,
+        interval: u16,
+        latency: u16,
+        timeout: u16,
+        status: u8,
+    );
 
     #[btif_callback(ReadPhy)]
     fn read_phy_cb(&mut self, client_id: i32, addr: RawAddress, tx_phy: u8, rx_phy: u8, status: u8);
@@ -759,6 +814,33 @@ impl BtifGattClientCallbacks for BluetoothGatt {
             LePhy::from_u8(tx_phy).unwrap(),
             LePhy::from_u8(rx_phy).unwrap(),
             GattStatus::from_u8(status).unwrap(),
+        );
+    }
+
+    fn conn_updated_cb(
+        &mut self,
+        conn_id: i32,
+        interval: u16,
+        latency: u16,
+        timeout: u16,
+        status: u8,
+    ) {
+        let client = self.context_map.get_client_by_conn_id(conn_id);
+        if client.is_none() {
+            return;
+        }
+
+        let address = self.context_map.get_address_by_conn_id(conn_id);
+        if address.is_none() {
+            return;
+        }
+
+        client.unwrap().callback.on_connection_updated(
+            address.unwrap(),
+            interval as i32,
+            latency as i32,
+            timeout as i32,
+            status as i32,
         );
     }
 }
