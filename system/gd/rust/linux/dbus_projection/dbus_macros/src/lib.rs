@@ -592,6 +592,7 @@ pub fn generate_dbus_arg(_item: TokenStream) -> TokenStream {
         impl DirectDBus for u32 {}
         impl DirectDBus for i64 {}
         impl DirectDBus for u64 {}
+        impl DirectDBus for u8 {}
         impl DirectDBus for String {}
         impl<T: DirectDBus> DBusArg for T {
             type DBusType = T;

@@ -1,8 +1,8 @@
 use bt_topshim::profiles::gatt::GattStatus;
 
 use btstack::bluetooth_gatt::{
-    IBluetoothGatt, IBluetoothGattCallback, IScannerCallback, LePhy, RSSISettings, ScanFilter,
-    ScanSettings, ScanType,
+    GattWriteRequestStatus, IBluetoothGatt, IBluetoothGattCallback, IScannerCallback, LePhy,
+    RSSISettings, ScanFilter, ScanSettings, ScanType,
 };
 use btstack::RPCProxy;
 
@@ -71,6 +71,7 @@ struct ScanSettingsDBus {
 }
 
 impl_dbus_arg_enum!(GattStatus);
+impl_dbus_arg_enum!(GattWriteRequestStatus);
 impl_dbus_arg_enum!(LePhy);
 impl_dbus_arg_enum!(ScanType);
 
@@ -143,4 +144,32 @@ impl IBluetoothGatt for IBluetoothGattDBus {
 
     #[dbus_method("DiscoverServiceByUuid")]
     fn discover_service_by_uuid(&self, client_id: i32, addr: String, uuid: String) {}
+
+    #[dbus_method("ReadCharacteristic")]
+    fn read_characteristic(&self, client_id: i32, addr: String, handle: i32, auth_req: i32) {}
+
+    #[dbus_method("ReadUsingCharacteristicUuid")]
+    fn read_using_characteristic_uuid(
+        &self,
+        client_id: i32,
+        addr: String,
+        uuid: String,
+        start_handle: i32,
+        end_handle: i32,
+        auth_req: i32,
+    ) {
+    }
+
+    #[dbus_method("WriteCharacteristic")]
+    fn write_characteristic(
+        &self,
+        client_id: i32,
+        addr: String,
+        handle: i32,
+        write_type: i32,
+        auth_req: i32,
+        value: Vec<u8>,
+    ) -> GattWriteRequestStatus {
+        GattWriteRequestStatus::Success
+    }
 }

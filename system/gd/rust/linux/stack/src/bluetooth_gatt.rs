@@ -160,6 +160,31 @@ pub trait IBluetoothGatt {
 
     /// Search a GATT service on a connected device based on a UUID.
     fn discover_service_by_uuid(&self, client_id: i32, addr: String, uuid: String);
+
+    /// Reads a characteristic on a remote device.
+    fn read_characteristic(&self, client_id: i32, addr: String, handle: i32, auth_req: i32);
+
+    /// Reads a characteristic on a remote device.
+    fn read_using_characteristic_uuid(
+        &self,
+        client_id: i32,
+        addr: String,
+        uuid: String,
+        start_handle: i32,
+        end_handle: i32,
+        auth_req: i32,
+    );
+
+    /// Writes a remote characteristic.
+    fn write_characteristic(
+        &self,
+        client_id: i32,
+        addr: String,
+        handle: i32,
+        write_type: i32,
+        auth_req: i32,
+        value: Vec<u8>,
+    ) -> GattWriteRequestStatus;
 }
 
 /// Callback for GATT Client API.
@@ -293,6 +318,15 @@ fn parse_uuid_string<T: Into<String>>(uuid: T) -> Option<Uuid> {
     Some(Uuid { uu: raw })
 }
 
+#[derive(Debug, FromPrimitive, ToPrimitive)]
+#[repr(u8)]
+/// Status of WriteCharacteristic methods.
+pub enum GattWriteRequestStatus {
+    Success = 0,
+    Fail = 1,
+    Busy = 2,
+}
+
 impl IBluetoothGatt for BluetoothGatt {
     fn register_scanner(&self, _callback: Box<dyn IScannerCallback + Send>) {
         // TODO: implement
@@ -422,6 +456,82 @@ impl IBluetoothGatt for BluetoothGatt {
         }
 
         self.gatt.as_ref().unwrap().client.search_service(conn_id.unwrap(), uuid);
+    }
+
+    fn read_characteristic(&self, client_id: i32, addr: String, handle: i32, auth_req: i32) {
+        let conn_id = self.context_map.get_conn_id_from_address(client_id, &addr);
+        if conn_id.is_none() {
+            return;
+        }
+
+        // TODO(b/193685325): Perform check on restricted handles.
+
+        self.gatt.as_ref().unwrap().client.read_characteristic(
+            conn_id.unwrap(),
+            handle as u16,
+            auth_req,
+        );
+    }
+
+    fn read_using_characteristic_uuid(
+        &self,
+        client_id: i32,
+        addr: String,
+        uuid: String,
+        start_handle: i32,
+        end_handle: i32,
+        auth_req: i32,
+    ) {
+        let conn_id = self.context_map.get_conn_id_from_address(client_id, &addr);
+        if conn_id.is_none() {
+            return;
+        }
+
+        let uuid = parse_uuid_string(uuid);
+        if uuid.is_none() {
+            return;
+        }
+
+        // TODO(b/193685325): Perform check on restricted handles.
+
+        self.gatt.as_ref().unwrap().client.read_using_characteristic_uuid(
+            conn_id.unwrap(),
+            &uuid.unwrap(),
+            start_handle as u16,
+            end_handle as u16,
+            auth_req,
+        );
+    }
+
+    fn write_characteristic(
+        &self,
+        client_id: i32,
+        addr: String,
+        handle: i32,
+        write_type: i32,
+        auth_req: i32,
+        value: Vec<u8>,
+    ) -> GattWriteRequestStatus {
+        let conn_id = self.context_map.get_conn_id_from_address(client_id, &addr);
+        if conn_id.is_none() {
+            return GattWriteRequestStatus::Fail;
+        }
+
+        // TODO(b/193685325): Check for reliable write type.
+
+        // TODO(b/193685325): Perform check on restricted handles.
+
+        // TODO(b/193685325): Lock the thread until onCharacteristicWrite callback comes back?
+
+        self.gatt.as_ref().unwrap().client.write_characteristic(
+            conn_id.unwrap(),
+            handle as u16,
+            write_type,
+            auth_req,
+            &value,
+        );
+
+        return GattWriteRequestStatus::Success;
     }
 }
 
