@@ -5,7 +5,7 @@ use btif_macros::{btif_callback, btif_callbacks_dispatcher};
 use bt_topshim::bindings::root::bluetooth::Uuid;
 use bt_topshim::btif::{BluetoothInterface, RawAddress};
 use bt_topshim::profiles::gatt::{
-    BtGattNotifyParams, Gatt, GattClientCallbacks, GattClientCallbacksDispatcher,
+    BtGattNotifyParams, BtGattReadParams, Gatt, GattClientCallbacks, GattClientCallbacksDispatcher,
     GattServerCallbacksDispatcher, GattStatus,
 };
 use bt_topshim::topstack;
@@ -252,6 +252,12 @@ pub trait IBluetoothGattCallback: RPCProxy {
 
     /// The completion of IBluetoothGatt::read_phy.
     fn on_phy_read(&self, addr: String, tx_phy: LePhy, rx_phy: LePhy, status: GattStatus);
+
+    /// The completion of IBluetoothGatt::read_characteristic.
+    fn on_characteristic_read(&self, addr: String, status: i32, handle: i32, value: Vec<u8>);
+
+    /// The completion of IBluetoothGatt::write_characteristic.
+    fn on_characteristic_write(&self, addr: String, status: i32, handle: i32);
 
     /// When notification or indication is received.
     fn on_notify(&self, addr: String, handle: i32, value: Vec<u8>);
@@ -763,6 +769,12 @@ pub(crate) trait BtifGattClientCallbacks {
     #[btif_callback(Notify)]
     fn notify_cb(&mut self, conn_id: i32, data: BtGattNotifyParams);
 
+    #[btif_callback(ReadCharacteristic)]
+    fn read_characteristic_cb(&mut self, conn_id: i32, status: i32, data: BtGattReadParams);
+
+    #[btif_callback(WriteCharacteristic)]
+    fn write_characteristic_cb(&mut self, conn_id: i32, status: i32, handle: u16);
+
     #[btif_callback(ReadRemoteRssi)]
     fn read_remote_rssi_cb(&mut self, client_id: i32, addr: RawAddress, rssi: i32, status: i32);
 
@@ -866,6 +878,46 @@ impl BtifGattClientCallbacks for BluetoothGatt {
             RawAddress { val: data.bda.address }.to_string(),
             data.handle as i32,
             data.value[0..data.len as usize].to_vec(),
+        );
+    }
+
+    fn read_characteristic_cb(&mut self, conn_id: i32, status: i32, data: BtGattReadParams) {
+        let address = self.context_map.get_address_by_conn_id(conn_id);
+        if address.is_none() {
+            return;
+        }
+
+        let client = self.context_map.get_client_by_conn_id(conn_id);
+        if client.is_none() {
+            return;
+        }
+
+        client.unwrap().callback.on_characteristic_read(
+            address.unwrap().to_string(),
+            status,
+            data.handle as i32,
+            data.value.value[0..data.value.len as usize].to_vec(),
+        );
+    }
+
+    fn write_characteristic_cb(&mut self, conn_id: i32, status: i32, handle: u16) {
+        let address = self.context_map.get_address_by_conn_id(conn_id);
+        if address.is_none() {
+            return;
+        }
+
+        // TODO(b/193685325): Handle increasing permit.
+
+        let client = self.context_map.get_client_by_conn_id(conn_id);
+        if client.is_none() {
+            return;
+        }
+
+        // TODO(b/193685325): Handle congestion.
+        client.unwrap().callback.on_characteristic_write(
+            address.unwrap().to_string(),
+            status,
+            handle as i32,
         );
     }
 
