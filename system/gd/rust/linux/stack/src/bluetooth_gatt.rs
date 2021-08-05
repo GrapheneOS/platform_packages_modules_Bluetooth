@@ -185,6 +185,22 @@ pub trait IBluetoothGatt {
         auth_req: i32,
         value: Vec<u8>,
     ) -> GattWriteRequestStatus;
+
+    /// Reads the descriptor for a given characteristic.
+    fn read_descriptor(&self, client_id: i32, addr: String, handle: i32, auth_req: i32);
+
+    /// Writes a remote descriptor for a given characteristic.
+    fn write_descriptor(
+        &self,
+        client_id: i32,
+        addr: String,
+        handle: i32,
+        auth_req: i32,
+        value: Vec<u8>,
+    );
+
+    /// Registers to receive notifications or indications for a given characteristic.
+    fn register_for_notification(&self, client_id: i32, addr: String, handle: i32, enable: bool);
 }
 
 /// Callback for GATT Client API.
@@ -532,6 +548,67 @@ impl IBluetoothGatt for BluetoothGatt {
         );
 
         return GattWriteRequestStatus::Success;
+    }
+
+    fn read_descriptor(&self, client_id: i32, addr: String, handle: i32, auth_req: i32) {
+        let conn_id = self.context_map.get_conn_id_from_address(client_id, &addr);
+        if conn_id.is_none() {
+            return;
+        }
+
+        // TODO(b/193685325): Perform check on restricted handles.
+
+        self.gatt.as_ref().unwrap().client.read_descriptor(
+            conn_id.unwrap(),
+            handle as u16,
+            auth_req,
+        );
+    }
+
+    fn write_descriptor(
+        &self,
+        client_id: i32,
+        addr: String,
+        handle: i32,
+        auth_req: i32,
+        value: Vec<u8>,
+    ) {
+        let conn_id = self.context_map.get_conn_id_from_address(client_id, &addr);
+        if conn_id.is_none() {
+            return;
+        }
+
+        // TODO(b/193685325): Perform check on restricted handles.
+
+        self.gatt.as_ref().unwrap().client.write_descriptor(
+            conn_id.unwrap(),
+            handle as u16,
+            auth_req,
+            &value,
+        );
+    }
+
+    fn register_for_notification(&self, client_id: i32, addr: String, handle: i32, enable: bool) {
+        let conn_id = self.context_map.get_conn_id_from_address(client_id, &addr);
+        if conn_id.is_none() {
+            return;
+        }
+
+        // TODO(b/193685325): Perform check on restricted handles.
+
+        if enable {
+            self.gatt.as_ref().unwrap().client.register_for_notification(
+                client_id,
+                &RawAddress::from_string(addr).unwrap(),
+                handle as u16,
+            );
+        } else {
+            self.gatt.as_ref().unwrap().client.deregister_for_notification(
+                client_id,
+                &RawAddress::from_string(addr).unwrap(),
+                handle as u16,
+            );
+        }
     }
 }
 

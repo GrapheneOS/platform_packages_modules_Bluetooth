@@ -172,4 +172,21 @@ impl IBluetoothGatt for IBluetoothGattDBus {
     ) -> GattWriteRequestStatus {
         GattWriteRequestStatus::Success
     }
+
+    #[dbus_method("ReadDescriptor")]
+    fn read_descriptor(&self, client_id: i32, addr: String, handle: i32, auth_req: i32) {}
+
+    #[dbus_method("WriteDescriptor")]
+    fn write_descriptor(
+        &self,
+        client_id: i32,
+        addr: String,
+        handle: i32,
+        auth_req: i32,
+        value: Vec<u8>,
+    ) {
+    }
+
+    #[dbus_method("RegisterForNotification")]
+    fn register_for_notification(&self, client_id: i32, addr: String, handle: i32, enable: bool) {}
 }
