@@ -5,8 +5,8 @@ use btif_macros::{btif_callback, btif_callbacks_dispatcher};
 use bt_topshim::bindings::root::bluetooth::Uuid;
 use bt_topshim::btif::{BluetoothInterface, RawAddress};
 use bt_topshim::profiles::gatt::{
-    Gatt, GattClientCallbacks, GattClientCallbacksDispatcher, GattServerCallbacksDispatcher,
-    GattStatus,
+    BtGattNotifyParams, Gatt, GattClientCallbacks, GattClientCallbacksDispatcher,
+    GattServerCallbacksDispatcher, GattStatus,
 };
 use bt_topshim::topstack;
 
@@ -92,6 +92,10 @@ impl ContextMap {
         }
 
         self.connections.push(Connection { conn_id, address: address.clone(), client_id });
+    }
+
+    fn remove_connection(&mut self, _client_id: i32, conn_id: i32) {
+        self.connections.retain(|conn| conn.conn_id != conn_id);
     }
 
     fn get_conn_id_from_address(&self, client_id: i32, address: &String) -> Option<i32> {
@@ -248,6 +252,9 @@ pub trait IBluetoothGattCallback: RPCProxy {
 
     /// The completion of IBluetoothGatt::read_phy.
     fn on_phy_read(&self, addr: String, tx_phy: LePhy, rx_phy: LePhy, status: GattStatus);
+
+    /// When notification or indication is received.
+    fn on_notify(&self, addr: String, handle: i32, value: Vec<u8>);
 
     /// The completion of IBluetoothGatt::read_remote_rssi.
     fn on_read_remote_rssi(&self, addr: String, rssi: i32, status: i32);
@@ -738,6 +745,24 @@ pub(crate) trait BtifGattClientCallbacks {
     #[btif_callback(Connect)]
     fn connect_cb(&mut self, conn_id: i32, status: i32, client_id: i32, addr: RawAddress);
 
+    #[btif_callback(Disconnect)]
+    fn disconnect_cb(&mut self, conn_id: i32, status: i32, client_id: i32, addr: RawAddress);
+
+    #[btif_callback(SearchComplete)]
+    fn search_complete_cb(&mut self, conn_id: i32, status: i32);
+
+    #[btif_callback(RegisterForNotification)]
+    fn register_for_notification_cb(
+        &mut self,
+        conn_id: i32,
+        registered: i32,
+        status: i32,
+        handle: u16,
+    );
+
+    #[btif_callback(Notify)]
+    fn notify_cb(&mut self, conn_id: i32, data: BtGattNotifyParams);
+
     #[btif_callback(ReadRemoteRssi)]
     fn read_remote_rssi_cb(&mut self, client_id: i32, addr: RawAddress, rssi: i32, status: i32);
 
@@ -795,6 +820,52 @@ impl BtifGattClientCallbacks for BluetoothGatt {
                 Some(gatt_status) => gatt_status == GattStatus::Success,
             },
             addr.to_string(),
+        );
+    }
+
+    fn disconnect_cb(&mut self, conn_id: i32, status: i32, client_id: i32, addr: RawAddress) {
+        self.context_map.remove_connection(client_id, conn_id);
+        let client = self.context_map.get_by_client_id(client_id);
+        if client.is_none() {
+            return;
+        }
+
+        client.unwrap().callback.on_client_connection_state(
+            status,
+            client_id,
+            match GattStatus::from_i32(status) {
+                None => false,
+                Some(gatt_status) => gatt_status == GattStatus::Success,
+            },
+            addr.to_string(),
+        );
+    }
+
+    fn search_complete_cb(&mut self, conn_id: i32, _status: i32) {
+        // Gatt DB is ready!
+        self.gatt.as_ref().unwrap().client.get_gatt_db(conn_id);
+    }
+
+    fn register_for_notification_cb(
+        &mut self,
+        _conn_id: i32,
+        _registered: i32,
+        _status: i32,
+        _handle: u16,
+    ) {
+        // No-op.
+    }
+
+    fn notify_cb(&mut self, conn_id: i32, data: BtGattNotifyParams) {
+        let client = self.context_map.get_client_by_conn_id(conn_id);
+        if client.is_none() {
+            return;
+        }
+
+        client.unwrap().callback.on_notify(
+            RawAddress { val: data.bda.address }.to_string(),
+            data.handle as i32,
+            data.value[0..data.len as usize].to_vec(),
         );
     }
 

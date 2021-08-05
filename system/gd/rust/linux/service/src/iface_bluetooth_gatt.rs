@@ -46,6 +46,9 @@ impl IBluetoothGattCallback for BluetoothGattCallbackDBus {
     #[dbus_method("OnPhyRead")]
     fn on_phy_read(&self, addr: String, tx_phy: LePhy, rx_phy: LePhy, status: GattStatus) {}
 
+    #[dbus_method("OnNotify")]
+    fn on_notify(&self, addr: String, handle: i32, value: Vec<u8>) {}
+
     #[dbus_method("OnReadRemoteRssi")]
     fn on_read_remote_rssi(&self, addr: String, rssi: i32, status: i32) {}
 
