@@ -151,6 +151,15 @@ pub trait IBluetoothGatt {
 
     /// Reads the PHY used by a peer.
     fn client_read_phy(&mut self, client_id: i32, addr: String);
+
+    /// Clears the attribute cache of a device.
+    fn refresh_device(&self, client_id: i32, addr: String);
+
+    /// Enumerates all GATT services on a connected device.
+    fn discover_services(&self, client_id: i32, addr: String);
+
+    /// Search a GATT service on a connected device based on a UUID.
+    fn discover_service_by_uuid(&self, client_id: i32, addr: String, uuid: String);
 }
 
 /// Callback for GATT Client API.
@@ -382,6 +391,37 @@ impl IBluetoothGatt for BluetoothGatt {
         };
 
         self.gatt.as_mut().unwrap().client.read_phy(client_id, &address);
+    }
+
+    fn refresh_device(&self, client_id: i32, addr: String) {
+        self.gatt
+            .as_ref()
+            .unwrap()
+            .client
+            .refresh(client_id, &RawAddress::from_string(addr).unwrap());
+    }
+
+    fn discover_services(&self, client_id: i32, addr: String) {
+        let conn_id = self.context_map.get_conn_id_from_address(client_id, &addr);
+        if conn_id.is_none() {
+            return;
+        }
+
+        self.gatt.as_ref().unwrap().client.search_service(conn_id.unwrap(), None);
+    }
+
+    fn discover_service_by_uuid(&self, client_id: i32, addr: String, uuid: String) {
+        let conn_id = self.context_map.get_conn_id_from_address(client_id, &addr);
+        if conn_id.is_none() {
+            return;
+        }
+
+        let uuid = parse_uuid_string(uuid);
+        if uuid.is_none() {
+            return;
+        }
+
+        self.gatt.as_ref().unwrap().client.search_service(conn_id.unwrap(), uuid);
     }
 }
 

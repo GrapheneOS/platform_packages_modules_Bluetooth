@@ -134,4 +134,13 @@ impl IBluetoothGatt for IBluetoothGattDBus {
 
     #[dbus_method("ClientReadPhy")]
     fn client_read_phy(&mut self, client_id: i32, addr: String) {}
+
+    #[dbus_method("RefreshDevice")]
+    fn refresh_device(&self, client_id: i32, addr: String) {}
+
+    #[dbus_method("DiscoverServices")]
+    fn discover_services(&self, client_id: i32, addr: String) {}
+
+    #[dbus_method("DiscoverServiceByUuid")]
+    fn discover_service_by_uuid(&self, client_id: i32, addr: String, uuid: String) {}
 }

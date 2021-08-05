@@ -510,8 +510,13 @@ impl GattClient {
         BtStatus::from(ccall!(self, refresh, client_if, ffi_addr))
     }
 
-    pub fn search_service(&self, conn_id: i32, filter_uuid: &Uuid) -> BtStatus {
-        BtStatus::from(ccall!(self, search_service, conn_id, filter_uuid))
+    pub fn search_service(&self, conn_id: i32, filter_uuid: Option<Uuid>) -> BtStatus {
+        let filter_uuid_ptr = match filter_uuid {
+            None => std::ptr::null(),
+            Some(uuid) => &uuid,
+        };
+
+        BtStatus::from(ccall!(self, search_service, conn_id, filter_uuid_ptr))
     }
 
     pub fn btif_gattc_discover_service_by_uuid(&self, conn_id: i32, uuid: &Uuid) {
