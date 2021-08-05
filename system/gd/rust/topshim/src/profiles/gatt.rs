@@ -385,13 +385,13 @@ impl GattClient {
     pub fn connect(
         &self,
         client_if: i32,
-        addr: &mut RawAddress,
+        addr: &RawAddress,
         is_direct: bool,
         transport: i32,
         opportunistic: bool,
         initiating_phys: i32,
     ) -> BtStatus {
-        let ffi_addr = cast_to_ffi_address!(addr as *mut RawAddress);
+        let ffi_addr = cast_to_ffi_address!(addr as *const RawAddress);
         BtStatus::from(ccall!(
             self,
             connect,
@@ -404,13 +404,13 @@ impl GattClient {
         ))
     }
 
-    pub fn disconnect(&self, client_if: i32, addr: &mut RawAddress, conn_id: i32) -> BtStatus {
-        let ffi_addr = cast_to_ffi_address!(addr as *mut RawAddress);
+    pub fn disconnect(&self, client_if: i32, addr: &RawAddress, conn_id: i32) -> BtStatus {
+        let ffi_addr = cast_to_ffi_address!(addr as *const RawAddress);
         BtStatus::from(ccall!(self, disconnect, client_if, ffi_addr, conn_id))
     }
 
-    pub fn refresh(&self, client_if: i32, addr: &mut RawAddress) -> BtStatus {
-        let ffi_addr = cast_to_ffi_address!(addr as *mut RawAddress);
+    pub fn refresh(&self, client_if: i32, addr: &RawAddress) -> BtStatus {
+        let ffi_addr = cast_to_ffi_address!(addr as *const RawAddress);
         BtStatus::from(ccall!(self, refresh, client_if, ffi_addr))
     }
 
@@ -494,30 +494,30 @@ impl GattClient {
     pub fn register_for_notification(
         &self,
         client_if: i32,
-        addr: &mut RawAddress,
+        addr: &RawAddress,
         handle: u16,
     ) -> BtStatus {
-        let ffi_addr = cast_to_ffi_address!(addr as *mut RawAddress);
+        let ffi_addr = cast_to_ffi_address!(addr as *const RawAddress);
         BtStatus::from(ccall!(self, register_for_notification, client_if, ffi_addr, handle))
     }
 
     pub fn deregister_for_notification(
         &self,
         client_if: i32,
-        addr: &mut RawAddress,
+        addr: &RawAddress,
         handle: u16,
     ) -> BtStatus {
-        let ffi_addr = cast_to_ffi_address!(addr as *mut RawAddress);
+        let ffi_addr = cast_to_ffi_address!(addr as *const RawAddress);
         BtStatus::from(ccall!(self, deregister_for_notification, client_if, ffi_addr, handle))
     }
 
-    pub fn read_remote_rssi(&self, client_if: i32, addr: &mut RawAddress) -> BtStatus {
-        let ffi_addr = cast_to_ffi_address!(addr as *mut RawAddress);
+    pub fn read_remote_rssi(&self, client_if: i32, addr: &RawAddress) -> BtStatus {
+        let ffi_addr = cast_to_ffi_address!(addr as *const RawAddress);
         BtStatus::from(ccall!(self, read_remote_rssi, client_if, ffi_addr))
     }
 
-    pub fn get_device_type(&self, addr: &mut RawAddress) -> i32 {
-        let ffi_addr = cast_to_ffi_address!(addr as *mut RawAddress);
+    pub fn get_device_type(&self, addr: &RawAddress) -> i32 {
+        let ffi_addr = cast_to_ffi_address!(addr as *const RawAddress);
         ccall!(self, get_device_type, ffi_addr)
     }
 
@@ -527,7 +527,7 @@ impl GattClient {
 
     pub fn conn_parameter_update(
         &self,
-        addr: &mut RawAddress,
+        addr: &RawAddress,
         min_interval: i32,
         max_interval: i32,
         latency: i32,
@@ -535,7 +535,7 @@ impl GattClient {
         min_ce_len: u16,
         max_ce_len: u16,
     ) -> BtStatus {
-        let ffi_addr = cast_to_ffi_address!(addr as *mut RawAddress);
+        let ffi_addr = cast_to_ffi_address!(addr as *const RawAddress);
         BtStatus::from(ccall!(
             self,
             conn_parameter_update,
@@ -551,12 +551,12 @@ impl GattClient {
 
     pub fn set_preferred_phy(
         &self,
-        addr: &mut RawAddress,
+        addr: &RawAddress,
         tx_phy: u8,
         rx_phy: u8,
         phy_options: u16,
     ) -> BtStatus {
-        let ffi_addr = cast_to_ffi_address!(addr as *mut RawAddress);
+        let ffi_addr = cast_to_ffi_address!(addr as *const RawAddress);
         BtStatus::from(ccall!(self, set_preferred_phy, ffi_addr, tx_phy, rx_phy, phy_options))
     }
 
@@ -587,16 +587,16 @@ impl GattServer {
     pub fn connect(
         &self,
         server_if: i32,
-        addr: &mut RawAddress,
+        addr: &RawAddress,
         is_direct: bool,
         transport: i32,
     ) -> BtStatus {
-        let ffi_addr = cast_to_ffi_address!(addr as *mut RawAddress);
+        let ffi_addr = cast_to_ffi_address!(addr as *const RawAddress);
         BtStatus::from(ccall!(self, connect, server_if, ffi_addr, is_direct, transport))
     }
 
-    pub fn disconnect(&self, server_if: i32, addr: &mut RawAddress, conn_id: i32) -> BtStatus {
-        let ffi_addr = cast_to_ffi_address!(addr as *mut RawAddress);
+    pub fn disconnect(&self, server_if: i32, addr: &RawAddress, conn_id: i32) -> BtStatus {
+        let ffi_addr = cast_to_ffi_address!(addr as *const RawAddress);
         BtStatus::from(ccall!(self, disconnect, server_if, ffi_addr, conn_id))
     }
 
@@ -644,12 +644,12 @@ impl GattServer {
 
     pub fn set_preferred_phy(
         &self,
-        addr: &mut RawAddress,
+        addr: &RawAddress,
         tx_phy: u8,
         rx_phy: u8,
         phy_options: u16,
     ) -> BtStatus {
-        let ffi_addr = cast_to_ffi_address!(addr as *mut RawAddress);
+        let ffi_addr = cast_to_ffi_address!(addr as *const RawAddress);
         BtStatus::from(ccall!(self, set_preferred_phy, ffi_addr, tx_phy, rx_phy, phy_options))
     }
 
