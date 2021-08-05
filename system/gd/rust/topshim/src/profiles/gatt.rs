@@ -66,7 +66,7 @@ pub mod ffi {
     }
 }
 
-#[derive(Debug, FromPrimitive, PartialEq, PartialOrd)]
+#[derive(Debug, FromPrimitive, ToPrimitive, PartialEq, PartialOrd)]
 #[repr(u32)]
 pub enum GattStatus {
     Success = 0x00,

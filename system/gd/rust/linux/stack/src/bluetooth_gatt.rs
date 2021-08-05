@@ -124,6 +124,9 @@ pub trait IBluetoothGatt {
 
     /// Disconnects a GATT connection.
     fn client_disconnect(&self, client_id: i32, addr: String);
+
+    /// Reads the PHY used by a peer.
+    fn client_read_phy(&mut self, client_id: i32, addr: String);
 }
 
 /// Callback for GATT Client API.
@@ -139,12 +142,25 @@ pub trait IBluetoothGattCallback: RPCProxy {
         connected: bool,
         addr: String,
     );
+
+    /// The completion of IBluetoothGatt::read_phy.
+    fn on_phy_read(&self, addr: String, tx_phy: LePhy, rx_phy: LePhy, status: GattStatus);
 }
 
 /// Interface for scanner callbacks to clients, passed to `IBluetoothGatt::register_scanner`.
 pub trait IScannerCallback {
     /// When the `register_scanner` request is done.
     fn on_scanner_registered(&self, status: i32, scanner_id: i32);
+}
+
+#[derive(Debug, FromPrimitive, ToPrimitive)]
+#[repr(u8)]
+/// Represents LE PHY.
+pub enum LePhy {
+    Invalid = 0,
+    Phy1m = 1,
+    Phy2m = 2,
+    PhyCoded = 3,
 }
 
 #[derive(Debug, FromPrimitive, ToPrimitive)]
@@ -310,6 +326,15 @@ impl IBluetoothGatt for BluetoothGatt {
             conn_id.unwrap(),
         );
     }
+
+    fn client_read_phy(&mut self, client_id: i32, addr: String) {
+        let address = match RawAddress::from_string(addr.clone()) {
+            None => return,
+            Some(addr) => addr,
+        };
+
+        self.gatt.as_mut().unwrap().client.read_phy(client_id, &address);
+    }
 }
 
 #[btif_callbacks_dispatcher(BluetoothGatt, dispatch_gatt_client_callbacks, GattClientCallbacks)]
@@ -319,6 +344,9 @@ pub(crate) trait BtifGattClientCallbacks {
 
     #[btif_callback(Connect)]
     fn connect_cb(&mut self, conn_id: i32, status: i32, client_id: i32, addr: RawAddress);
+
+    #[btif_callback(ReadPhy)]
+    fn read_phy_cb(&mut self, client_id: i32, addr: RawAddress, tx_phy: u8, rx_phy: u8, status: u8);
 
     // TODO(b/193685325): Define all callbacks.
 }
@@ -355,6 +383,27 @@ impl BtifGattClientCallbacks for BluetoothGatt {
                 Some(gatt_status) => gatt_status == GattStatus::Success,
             },
             addr.to_string(),
+        );
+    }
+
+    fn read_phy_cb(
+        &mut self,
+        client_id: i32,
+        addr: RawAddress,
+        tx_phy: u8,
+        rx_phy: u8,
+        status: u8,
+    ) {
+        let client = self.context_map.get_by_client_id(client_id);
+        if client.is_none() {
+            return;
+        }
+
+        client.unwrap().callback.on_phy_read(
+            addr.to_string(),
+            LePhy::from_u8(tx_phy).unwrap(),
+            LePhy::from_u8(rx_phy).unwrap(),
+            GattStatus::from_u8(status).unwrap(),
         );
     }
 }
