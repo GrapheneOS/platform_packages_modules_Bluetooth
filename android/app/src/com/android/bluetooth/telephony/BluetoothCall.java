@@ -315,4 +315,8 @@ public class BluetoothCall {
         }
         return result;
     }
+
+    public boolean hasProperty(int property) {
+        return getDetails().hasProperty(property);
+    }
 }
