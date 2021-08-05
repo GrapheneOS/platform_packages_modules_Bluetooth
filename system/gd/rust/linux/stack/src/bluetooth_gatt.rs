@@ -23,6 +23,10 @@ struct Client {
     id: Option<i32>,
     uuid: Uuid128Bit,
     callback: Box<dyn IBluetoothGattCallback + Send>,
+    is_congested: bool,
+
+    // Queued on_characteristic_write callback.
+    congestion_queue: Vec<(String, i32, i32)>,
 }
 
 struct Connection {
@@ -51,6 +55,12 @@ impl ContextMap {
         self.clients.iter().find(|client| client.id.is_some() && client.id.unwrap() == client_id)
     }
 
+    fn get_by_client_id_mut(&mut self, client_id: i32) -> Option<&mut Client> {
+        self.clients
+            .iter_mut()
+            .find(|client| client.id.is_some() && client.id.unwrap() == client_id)
+    }
+
     fn get_address_by_conn_id(&self, conn_id: i32) -> Option<String> {
         match self.connections.iter().find(|conn| conn.conn_id == conn_id) {
             None => None,
@@ -65,12 +75,27 @@ impl ContextMap {
         }
     }
 
+    fn get_client_by_conn_id_mut(&mut self, conn_id: i32) -> Option<&mut Client> {
+        let client_id = match self.connections.iter().find(|conn| conn.conn_id == conn_id) {
+            None => return None,
+            Some(conn) => conn.client_id,
+        };
+
+        self.get_by_client_id_mut(client_id)
+    }
+
     fn add(&mut self, uuid: &Uuid128Bit, callback: Box<dyn IBluetoothGattCallback + Send>) {
         if self.get_by_uuid(uuid).is_some() {
             return;
         }
 
-        self.clients.push(Client { id: None, uuid: uuid.clone(), callback });
+        self.clients.push(Client {
+            id: None,
+            uuid: uuid.clone(),
+            callback,
+            is_congested: false,
+            congestion_queue: vec![],
+        });
     }
 
     fn remove(&mut self, id: i32) {
@@ -799,6 +824,9 @@ pub(crate) trait BtifGattClientCallbacks {
     #[btif_callback(ConfigureMtu)]
     fn configure_mtu_cb(&mut self, conn_id: i32, status: i32, mtu: i32);
 
+    #[btif_callback(Congestion)]
+    fn congestion_cb(&mut self, conn_id: i32, congested: bool);
+
     #[btif_callback(PhyUpdated)]
     fn phy_updated_cb(&mut self, conn_id: i32, tx_phy: u8, rx_phy: u8, status: u8);
 
@@ -918,7 +946,7 @@ impl BtifGattClientCallbacks for BluetoothGatt {
         );
     }
 
-    fn write_characteristic_cb(&mut self, conn_id: i32, status: i32, handle: u16) {
+    fn write_characteristic_cb(&mut self, conn_id: i32, mut status: i32, handle: u16) {
         let address = self.context_map.get_address_by_conn_id(conn_id);
         if address.is_none() {
             return;
@@ -926,13 +954,23 @@ impl BtifGattClientCallbacks for BluetoothGatt {
 
         // TODO(b/193685325): Handle increasing permit.
 
-        let client = self.context_map.get_client_by_conn_id(conn_id);
+        let client = self.context_map.get_client_by_conn_id_mut(conn_id);
         if client.is_none() {
             return;
         }
 
-        // TODO(b/193685325): Handle congestion.
-        client.unwrap().callback.on_characteristic_write(
+        let client = client.unwrap();
+
+        if client.is_congested {
+            if status == GattStatus::Congested.to_i32().unwrap() {
+                status = GattStatus::Success.to_i32().unwrap();
+            }
+
+            client.congestion_queue.push((address.unwrap().to_string(), status, handle as i32));
+            return;
+        }
+
+        client.callback.on_characteristic_write(
             address.unwrap().to_string(),
             status,
             handle as i32,
@@ -1011,6 +1049,23 @@ impl BtifGattClientCallbacks for BluetoothGatt {
         }
 
         client.unwrap().callback.on_configure_mtu(addr.unwrap(), mtu, status);
+    }
+
+    fn congestion_cb(&mut self, conn_id: i32, congested: bool) {
+        let client = self.context_map.get_client_by_conn_id_mut(conn_id);
+        if client.is_none() {
+            return;
+        }
+
+        let client = client.unwrap();
+
+        client.is_congested = congested;
+        if !client.is_congested {
+            for callback in client.congestion_queue.iter() {
+                client.callback.on_characteristic_write(callback.0.clone(), callback.1, callback.2);
+            }
+            client.congestion_queue.clear();
+        }
     }
 
     fn phy_updated_cb(&mut self, conn_id: i32, tx_phy: u8, rx_phy: u8, status: u8) {
