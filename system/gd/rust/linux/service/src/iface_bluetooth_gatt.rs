@@ -45,6 +45,12 @@ impl IBluetoothGattCallback for BluetoothGattCallbackDBus {
 
     #[dbus_method("OnPhyRead")]
     fn on_phy_read(&self, addr: String, tx_phy: LePhy, rx_phy: LePhy, status: GattStatus) {}
+
+    #[dbus_method("OnReadRemoteRssi")]
+    fn on_read_remote_rssi(&self, addr: String, rssi: i32, status: i32) {}
+
+    #[dbus_method("OnConfigureMtu")]
+    fn on_configure_mtu(&self, addr: String, mtu: i32, status: i32) {}
 }
 
 #[allow(dead_code)]
@@ -189,4 +195,10 @@ impl IBluetoothGatt for IBluetoothGattDBus {
 
     #[dbus_method("RegisterForNotification")]
     fn register_for_notification(&self, client_id: i32, addr: String, handle: i32, enable: bool) {}
+
+    #[dbus_method("ReadRemoteRssi")]
+    fn read_remote_rssi(&self, client_id: i32, addr: String) {}
+
+    #[dbus_method("ConfigureMtu")]
+    fn configure_mtu(&self, client_id: i32, addr: String, mtu: i32) {}
 }

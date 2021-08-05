@@ -201,6 +201,12 @@ pub trait IBluetoothGatt {
 
     /// Registers to receive notifications or indications for a given characteristic.
     fn register_for_notification(&self, client_id: i32, addr: String, handle: i32, enable: bool);
+
+    /// Requests RSSI for a given remote device.
+    fn read_remote_rssi(&self, client_id: i32, addr: String);
+
+    /// Configures the MTU of a given connection.
+    fn configure_mtu(&self, client_id: i32, addr: String, mtu: i32);
 }
 
 /// Callback for GATT Client API.
@@ -222,6 +228,12 @@ pub trait IBluetoothGattCallback: RPCProxy {
 
     /// The completion of IBluetoothGatt::read_phy.
     fn on_phy_read(&self, addr: String, tx_phy: LePhy, rx_phy: LePhy, status: GattStatus);
+
+    /// The completion of IBluetoothGatt::read_remote_rssi.
+    fn on_read_remote_rssi(&self, addr: String, rssi: i32, status: i32);
+
+    /// The completion of IBluetoothGatt::configure_mtu.
+    fn on_configure_mtu(&self, addr: String, mtu: i32, status: i32);
 }
 
 /// Interface for scanner callbacks to clients, passed to `IBluetoothGatt::register_scanner`.
@@ -610,6 +622,23 @@ impl IBluetoothGatt for BluetoothGatt {
             );
         }
     }
+
+    fn read_remote_rssi(&self, client_id: i32, addr: String) {
+        self.gatt
+            .as_ref()
+            .unwrap()
+            .client
+            .read_remote_rssi(client_id, &RawAddress::from_string(addr).unwrap());
+    }
+
+    fn configure_mtu(&self, client_id: i32, addr: String, mtu: i32) {
+        let conn_id = self.context_map.get_conn_id_from_address(client_id, &addr);
+        if conn_id.is_none() {
+            return;
+        }
+
+        self.gatt.as_ref().unwrap().client.configure_mtu(conn_id.unwrap(), mtu);
+    }
 }
 
 #[btif_callbacks_dispatcher(BluetoothGatt, dispatch_gatt_client_callbacks, GattClientCallbacks)]
@@ -619,6 +648,12 @@ pub(crate) trait BtifGattClientCallbacks {
 
     #[btif_callback(Connect)]
     fn connect_cb(&mut self, conn_id: i32, status: i32, client_id: i32, addr: RawAddress);
+
+    #[btif_callback(ReadRemoteRssi)]
+    fn read_remote_rssi_cb(&mut self, client_id: i32, addr: RawAddress, rssi: i32, status: i32);
+
+    #[btif_callback(ConfigureMtu)]
+    fn configure_mtu_cb(&mut self, conn_id: i32, status: i32, mtu: i32);
 
     #[btif_callback(PhyUpdated)]
     fn phy_updated_cb(&mut self, conn_id: i32, tx_phy: u8, rx_phy: u8, status: u8);
@@ -662,6 +697,29 @@ impl BtifGattClientCallbacks for BluetoothGatt {
             },
             addr.to_string(),
         );
+    }
+
+    fn read_remote_rssi_cb(&mut self, client_id: i32, addr: RawAddress, rssi: i32, status: i32) {
+        let client = self.context_map.get_by_client_id(client_id);
+        if client.is_none() {
+            return;
+        }
+
+        client.unwrap().callback.on_read_remote_rssi(addr.to_string(), rssi, status);
+    }
+
+    fn configure_mtu_cb(&mut self, conn_id: i32, status: i32, mtu: i32) {
+        let client = self.context_map.get_client_by_conn_id(conn_id);
+        if client.is_none() {
+            return;
+        }
+
+        let addr = self.context_map.get_address_by_conn_id(conn_id);
+        if addr.is_none() {
+            return;
+        }
+
+        client.unwrap().callback.on_configure_mtu(addr.unwrap(), mtu, status);
     }
 
     fn phy_updated_cb(&mut self, conn_id: i32, tx_phy: u8, rx_phy: u8, status: u8) {
