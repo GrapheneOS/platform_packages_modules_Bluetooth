@@ -241,18 +241,17 @@ pub fn dbus_propmap(attr: TokenStream, item: TokenStream) -> TokenStream {
 
         let field_str = field_ident.as_ref().unwrap().clone().to_string();
 
-        let field_type_str = if let Type::Path(t) = field.ty {
-            t.path.get_ident().unwrap().to_string()
+        let field_type = if let Type::Path(t) = field.ty {
+            t
         } else {
-            String::from("")
+            continue;
         };
-
-        let field_type_ident = format_ident!("{}", field_type_str);
 
         field_idents = quote! {
             #field_idents #field_ident,
         };
 
+        let field_type_name = format_ident! {"{}_type_", field_str};
         let make_field = quote! {
             match #field_ident.arg_type() {
                 dbus::arg::ArgType::Variant => {}
@@ -263,11 +262,12 @@ pub fn dbus_propmap(attr: TokenStream, item: TokenStream) -> TokenStream {
                     )))));
                 }
             };
-            let #field_ident = <<#field_type_ident as DBusArg>::DBusType as RefArgToRust>::ref_arg_to_rust(
-                #field_ident,
+            let #field_ident = <<#field_type as DBusArg>::DBusType as RefArgToRust>::ref_arg_to_rust(
+                #field_ident.as_static_inner(0).unwrap(),
                 format!("{}.{}", #struct_str, #field_str),
             )?;
-            let #field_ident = #field_type_ident::from_dbus(
+            type #field_type_name = #field_type;
+            let #field_ident = #field_type_name::from_dbus(
                 #field_ident,
                 conn__.clone(),
                 remote__.clone(),
@@ -521,19 +521,18 @@ pub fn generate_dbus_arg(_item: TokenStream) -> TokenStream {
 
         pub(crate) trait RefArgToRust {
             type RustType;
-            fn ref_arg_to_rust<U: 'static + dbus::arg::RefArg + ?Sized>(
-                arg: &U,
+            fn ref_arg_to_rust(
+                arg: &(dyn dbus::arg::RefArg + 'static),
                 name: String,
             ) -> Result<Self::RustType, Box<dyn Error>>;
         }
 
         impl<T: 'static + Clone + DirectDBus> RefArgToRust for T {
             type RustType = T;
-            fn ref_arg_to_rust<U: 'static + dbus::arg::RefArg + ?Sized>(
-                arg: &U,
+            fn ref_arg_to_rust(
+                arg: &(dyn dbus::arg::RefArg + 'static),
                 name: String,
             ) -> Result<Self::RustType, Box<dyn Error>> {
-                let arg = arg.as_static_inner(0).unwrap();
                 let any = arg.as_any();
                 if !any.is::<<Self as DBusArg>::DBusType>() {
                     return Err(Box::new(DBusArgError::new(String::from(format!(
@@ -550,13 +549,12 @@ pub fn generate_dbus_arg(_item: TokenStream) -> TokenStream {
 
         impl RefArgToRust for dbus::arg::PropMap {
             type RustType = dbus::arg::PropMap;
-            fn ref_arg_to_rust<U: 'static + dbus::arg::RefArg + ?Sized>(
-                arg: &U,
+            fn ref_arg_to_rust(
+                arg: &(dyn dbus::arg::RefArg + 'static),
                 _name: String,
             ) -> Result<Self::RustType, Box<dyn Error>> {
                 let mut map: dbus::arg::PropMap = std::collections::HashMap::new();
-                let mut outer_iter = arg.as_iter().unwrap();
-                let mut iter = outer_iter.next().unwrap().as_iter().unwrap();
+                let mut iter = arg.as_iter().unwrap();
                 let mut key = iter.next();
                 let mut val = iter.next();
                 while !key.is_none() && !val.is_none() {
@@ -567,6 +565,27 @@ pub fn generate_dbus_arg(_item: TokenStream) -> TokenStream {
                     val = iter.next();
                 }
                 return Ok(map);
+            }
+        }
+
+        // A vector is convertible from DBus' dynamic type RefArg to Rust's Vec, if the elements
+        // of the vector are also convertible themselves recursively.
+        impl<T: 'static + RefArgToRust<RustType = T>> RefArgToRust for Vec<T> {
+            type RustType = Vec<T>;
+            fn ref_arg_to_rust(
+                arg: &(dyn dbus::arg::RefArg + 'static),
+                _name: String,
+            ) -> Result<Self::RustType, Box<dyn Error>> {
+                let mut vec: Vec<T> = vec![];
+                let mut iter = arg.as_iter().unwrap();
+                let mut val = iter.next();
+                while !val.is_none() {
+                    let arg = val.unwrap().box_clone();
+                    let arg = <T as RefArgToRust>::ref_arg_to_rust(&arg, _name.clone() + " element")?;
+                    vec.push(arg);
+                    val = iter.next();
+                }
+                return Ok(vec);
             }
         }
 
