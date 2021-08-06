@@ -35,6 +35,7 @@ void on_acl_br_edr_connected(const RawAddress& bda, uint16_t handle,
 void on_acl_br_edr_failed(const RawAddress& bda, tHCI_STATUS status);
 void btm_acl_disconnected(tHCI_STATUS status, uint16_t handle,
                           tHCI_STATUS reason);
+void btm_acl_iso_disconnected(uint16_t handle, tHCI_STATUS reason);
 void btm_acl_encrypt_change(uint16_t handle, uint8_t status,
                             uint8_t encr_enable);
 void btm_acl_paging(BT_HDR* p, const RawAddress& dest);
