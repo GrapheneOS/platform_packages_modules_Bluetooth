@@ -271,8 +271,8 @@ uint16_t AclManager::HACK_GetLeHandle(Address address) {
   return pimpl_->le_impl_->HACK_get_handle(address);
 }
 
-void AclManager::HACK_SetScoDisconnectCallback(std::function<void(uint16_t, uint8_t)> callback) {
-  pimpl_->classic_impl_->HACK_SetScoDisconnectCallback(callback);
+void AclManager::HACK_SetNonAclDisconnectCallback(std::function<void(uint16_t, uint8_t)> callback) {
+  pimpl_->classic_impl_->HACK_SetNonAclDisconnectCallback(callback);
 }
 
 void AclManager::HACK_SetAclTxPriority(uint8_t handle, bool high_priority) {

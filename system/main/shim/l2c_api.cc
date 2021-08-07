@@ -699,7 +699,7 @@ void L2CA_UseLegacySecurityModule() {
   GetL2capLeModule()->InjectSecurityEnforcementInterface(
       &le_security_enforcement_shim_);
 
-  GetAclManager()->HACK_SetScoDisconnectCallback(on_sco_disconnect);
+  GetAclManager()->HACK_SetNonAclDisconnectCallback(on_sco_disconnect);
 }
 
 /**
