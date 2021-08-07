@@ -136,8 +136,8 @@ struct classic_impl : public security::ISecurityManagerListener {
       acl_connections_.erase(handle);
     } else {
       // This handle is probably for SCO, so we use the callback workaround.
-      if (sco_disconnect_callback_ != nullptr) {
-        sco_disconnect_callback_(handle, static_cast<uint8_t>(reason));
+      if (non_acl_disconnect_callback_ != nullptr) {
+        non_acl_disconnect_callback_(handle, static_cast<uint8_t>(reason));
       }
     }
   }
@@ -674,8 +674,8 @@ struct classic_impl : public security::ISecurityManagerListener {
     return 0xFFFF;
   }
 
-  void HACK_SetScoDisconnectCallback(std::function<void(uint16_t, uint8_t)> callback) {
-    sco_disconnect_callback_ = callback;
+  void HACK_SetNonAclDisconnectCallback(std::function<void(uint16_t, uint8_t)> callback) {
+    non_acl_disconnect_callback_ = callback;
   }
 
   HciLayer* hci_layer_ = nullptr;
@@ -695,7 +695,7 @@ struct classic_impl : public security::ISecurityManagerListener {
   std::unique_ptr<security::SecurityManager> security_manager_;
   bool crash_on_unknown_handle_ = false;
 
-  std::function<void(uint16_t, uint8_t)> sco_disconnect_callback_;
+  std::function<void(uint16_t, uint8_t)> non_acl_disconnect_callback_;
 };
 
 }  // namespace acl_manager
