@@ -678,11 +678,6 @@ hci::AddressWithType Btm::GetAddressAndType(const RawAddress& bd_addr) {
   return ToAddressWithType(bd_addr, BLE_ADDR_PUBLIC);
 }
 
-void Btm::Register_HACK_SetScoDisconnectCallback(
-    HACK_ScoDisconnectCallback callback) {
-  GetAclManager()->HACK_SetScoDisconnectCallback(callback);
-}
-
 }  // namespace shim
 
 }  // namespace bluetooth

@@ -300,7 +300,7 @@ class MainShimTest : public testing::Test {
     EXPECT_CALL(*test::mock_controller_,
                 RegisterCompletedMonitorAclPacketsCallback(_))
         .Times(1);
-    EXPECT_CALL(*test::mock_acl_manager_, HACK_SetScoDisconnectCallback(_))
+    EXPECT_CALL(*test::mock_acl_manager_, HACK_SetNonAclDisconnectCallback(_))
         .Times(1);
     EXPECT_CALL(*test::mock_controller_,
                 UnregisterCompletedMonitorAclPacketsCallback)

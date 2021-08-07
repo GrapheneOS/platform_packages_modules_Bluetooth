@@ -47,6 +47,7 @@ typedef struct {
                     bool enhanced, tHCI_STATUS status);
   void (*on_disconnected)(tHCI_STATUS status, uint16_t handle,
                           tHCI_STATUS reason);
+  void (*on_iso_disconnected)(uint16_t handle, tHCI_STATUS reason);
 } acl_le_connection_interface_t;
 
 typedef struct {
