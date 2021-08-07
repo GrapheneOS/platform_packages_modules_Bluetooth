@@ -84,7 +84,8 @@ class MockAclManager : public AclManager {
       (override));
 
   // PRIVATE TO SHIM
-  MOCK_METHOD(void, HACK_SetScoDisconnectCallback, (std::function<void(uint16_t /* handle */, uint8_t /* reason */)>));
+  MOCK_METHOD(
+      void, HACK_SetNonAclDisconnectCallback, (std::function<void(uint16_t /* handle */, uint8_t /* reason */)>));
 };
 
 }  // namespace testing

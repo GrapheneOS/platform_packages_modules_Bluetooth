@@ -77,7 +77,7 @@ using DiscoverabilityState = struct {
 };
 using ConnectabilityState = DiscoverabilityState;
 
-using HACK_ScoDisconnectCallback = std::function<void(uint16_t, uint8_t)>;
+using HACK_NonAclDisconnectCallback = std::function<void(uint16_t, uint8_t)>;
 
 using BtmStatus = tBTM_STATUS;
 
@@ -182,9 +182,6 @@ class Btm {
   bool RemoveBond(const RawAddress& bd_addr);
 
   uint16_t GetAclHandle(const RawAddress& remote_bda, tBT_TRANSPORT transport);
-
-  void Register_HACK_SetScoDisconnectCallback(
-      HACK_ScoDisconnectCallback callback);
 
   static hci::AddressWithType GetAddressAndType(const RawAddress& bd_addr);
 

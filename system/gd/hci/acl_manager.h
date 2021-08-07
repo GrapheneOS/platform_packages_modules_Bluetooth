@@ -138,8 +138,8 @@ private:
  virtual uint16_t HACK_GetHandle(const Address address);
  virtual uint16_t HACK_GetLeHandle(const Address address);
 
- // Hack for the shim to get SCO disconnect callback.  Shim needs to post to their handler!
- virtual void HACK_SetScoDisconnectCallback(std::function<void(uint16_t /* handle */, uint8_t /* reason */)>);
+ // Hack for the shim to get non-acl disconnect callback. Shim needs to post to their handler!
+ virtual void HACK_SetNonAclDisconnectCallback(std::function<void(uint16_t /* handle */, uint8_t /* reason */)>);
 
  virtual void HACK_SetAclTxPriority(uint8_t handle, bool high_priority);
 
