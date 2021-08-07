@@ -1,8 +1,9 @@
 use bt_topshim::profiles::gatt::GattStatus;
 
 use btstack::bluetooth_gatt::{
+    BluetoothGattCharacteristic, BluetoothGattDescriptor, BluetoothGattService,
     GattWriteRequestStatus, GattWriteType, IBluetoothGatt, IBluetoothGattCallback,
-    IScannerCallback, LePhy, RSSISettings, ScanFilter, ScanSettings, ScanType,
+    IScannerCallback, LePhy, RSSISettings, ScanFilter, ScanSettings, ScanType, Uuid128Bit,
 };
 use btstack::RPCProxy;
 
@@ -18,6 +19,7 @@ use dbus_projection::DisconnectWatcher;
 
 use num_traits::cast::{FromPrimitive, ToPrimitive};
 
+use std::convert::TryInto;
 use std::sync::Arc;
 
 use crate::dbus_arg::{DBusArg, DBusArgError, RefArgToRust};
@@ -45,6 +47,9 @@ impl IBluetoothGattCallback for BluetoothGattCallbackDBus {
 
     #[dbus_method("OnPhyRead")]
     fn on_phy_read(&self, addr: String, tx_phy: LePhy, rx_phy: LePhy, status: GattStatus) {}
+
+    #[dbus_method("OnSearchComplete")]
+    fn on_search_complete(&self, addr: String, services: Vec<BluetoothGattService>, status: i32) {}
 
     #[dbus_method("OnCharacteristicRead")]
     fn on_characteristic_read(&self, addr: String, status: i32, handle: i32, value: Vec<u8>) {}
@@ -82,6 +87,24 @@ impl IBluetoothGattCallback for BluetoothGattCallbackDBus {
     }
 }
 
+// Represents Uuid128Bit as an array in D-Bus.
+impl DBusArg for Uuid128Bit {
+    type DBusType = Vec<u8>;
+
+    fn from_dbus(
+        data: Vec<u8>,
+        _conn: Option<Arc<SyncConnection>>,
+        _remote: Option<dbus::strings::BusName<'static>>,
+        _disconnect_watcher: Option<Arc<std::sync::Mutex<DisconnectWatcher>>>,
+    ) -> Result<[u8; 16], Box<dyn std::error::Error>> {
+        return Ok(data.try_into().unwrap());
+    }
+
+    fn to_dbus(data: [u8; 16]) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
+        return Ok(data.to_vec());
+    }
+}
+
 #[allow(dead_code)]
 struct ScannerCallbackDBus {}
 
@@ -89,6 +112,33 @@ struct ScannerCallbackDBus {}
 impl IScannerCallback for ScannerCallbackDBus {
     #[dbus_method("OnScannerRegistered")]
     fn on_scanner_registered(&self, _status: i32, _scanner_id: i32) {}
+}
+
+#[dbus_propmap(BluetoothGattDescriptor)]
+pub struct BluetoothGattDescriptorDBus {
+    uuid: Uuid128Bit,
+    instance_id: i32,
+    permissions: i32,
+}
+
+#[dbus_propmap(BluetoothGattCharacteristic)]
+pub struct BluetoothGattCharacteristicDBus {
+    uuid: Uuid128Bit,
+    instance_id: i32,
+    properties: i32,
+    permissions: i32,
+    key_size: i32,
+    write_type: GattWriteType,
+    descriptors: Vec<BluetoothGattDescriptor>,
+}
+
+#[dbus_propmap(BluetoothGattService)]
+pub struct BluetoothGattServiceDBus {
+    uuid: Uuid128Bit,
+    instance_id: i32,
+    service_type: i32,
+    characteristics: Vec<BluetoothGattCharacteristic>,
+    included_services: Vec<BluetoothGattService>,
 }
 
 #[dbus_propmap(RSSISettings)]
