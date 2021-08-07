@@ -2605,6 +2605,12 @@ void btm_acl_connected(const RawAddress& bda, uint16_t handle,
   }
 }
 
+void btm_acl_iso_disconnected(uint16_t handle, tHCI_REASON reason) {
+  LOG_INFO("ISO disconnection from GD, handle: 0x%02x, reason: 0x%02x", handle,
+           reason);
+  bluetooth::hci::IsoManager::GetInstance()->HandleDisconnect(handle, reason);
+}
+
 void btm_acl_disconnected(tHCI_STATUS status, uint16_t handle,
                           tHCI_REASON reason) {
   if (status != HCI_SUCCESS) {
