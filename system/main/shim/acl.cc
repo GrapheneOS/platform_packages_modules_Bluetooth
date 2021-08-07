@@ -1054,9 +1054,14 @@ shim::legacy::Acl::Acl(os::Handler* handler,
   shim::RegisterDumpsysFunction(static_cast<void*>(this),
                                 [this](int fd) { Dump(fd); });
 
-  GetAclManager()->HACK_SetScoDisconnectCallback(
+  GetAclManager()->HACK_SetNonAclDisconnectCallback(
       [this](uint16_t handle, uint8_t reason) {
         TRY_POSTING_ON_MAIN(acl_interface_.connection.sco.on_disconnected,
+                            handle, static_cast<tHCI_REASON>(reason));
+
+        // HACKCEPTION! LE ISO connections, just like SCO are not registered in
+        // GD, so ISO can use same hack to get notified about disconnections
+        TRY_POSTING_ON_MAIN(acl_interface_.connection.le.on_iso_disconnected,
                             handle, static_cast<tHCI_REASON>(reason));
       });
 }
@@ -1414,12 +1419,6 @@ bool shim::legacy::Acl::SniffSubrating(uint16_t hci_handle,
                    maximum_latency, minimum_remote_timeout,
                    minimum_local_timeout);
   return false;
-}
-
-void shim::legacy::Acl::HACK_OnScoDisconnected(uint16_t handle,
-                                               uint8_t reason) {
-  TRY_POSTING_ON_MAIN(acl_interface_.connection.sco.on_disconnected, handle,
-                      static_cast<tHCI_REASON>(reason));
 }
 
 void shim::legacy::Acl::DumpConnectionHistory(int fd) const {

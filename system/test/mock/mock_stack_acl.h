@@ -861,6 +861,17 @@ struct btm_acl_disconnected {
   };
 };
 extern struct btm_acl_disconnected btm_acl_disconnected;
+// Name: btm_acl_iso_disconnected
+// Params: uint16_t handle, tHCI_REASON reason
+// Returns: void
+struct btm_acl_iso_disconnected {
+  std::function<void(uint16_t handle, tHCI_REASON reason)> body{
+      [](uint16_t handle, tHCI_REASON reason) { ; }};
+  void operator()(uint16_t handle, tHCI_REASON reason) {
+    body(handle, reason);
+  };
+};
+extern struct btm_acl_iso_disconnected btm_acl_iso_disconnected;
 // Name: btm_acl_encrypt_change
 // Params: uint16_t handle, uint8_t status, uint8_t encr_enable
 // Returns: void
