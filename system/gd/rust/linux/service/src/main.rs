@@ -15,7 +15,7 @@ use futures::future;
 use btstack::bluetooth::get_bt_dispatcher;
 use btstack::bluetooth::{Bluetooth, IBluetooth};
 use btstack::bluetooth_gatt::BluetoothGatt;
-use btstack::bluetooth_media::BluetoothMedia;
+use btstack::bluetooth_media::{BluetoothMedia, IBluetoothMedia};
 use btstack::Stack;
 
 use std::error::Error;
@@ -72,6 +72,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         bluetooth.enable();
 
         bluetooth_gatt.lock().unwrap().init_profiles(tx.clone());
+        bluetooth_media.lock().unwrap().initialize();
     }
 
     topstack::get_runtime().block_on(async {
