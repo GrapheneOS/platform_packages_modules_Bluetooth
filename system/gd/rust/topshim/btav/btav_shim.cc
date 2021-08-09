@@ -178,29 +178,29 @@ std::unique_ptr<A2dpIntf> GetA2dpProfile(const unsigned char* btif) {
   return a2dpif;
 }
 
-int A2dpIntf::init() {
+int A2dpIntf::init() const {
   std::vector<btav_a2dp_codec_config_t> a;
   std::vector<btav_a2dp_codec_config_t> b;
   return intf_->init(&internal::g_callbacks, 1, a, b);
 }
 
-int A2dpIntf::connect(RustRawAddress bt_addr) {
+int A2dpIntf::connect(RustRawAddress bt_addr) const {
   RawAddress addr = internal::from_rust_address(bt_addr);
   return intf_->connect(addr);
 }
-int A2dpIntf::disconnect(RustRawAddress bt_addr) {
+int A2dpIntf::disconnect(RustRawAddress bt_addr) const {
   RawAddress addr = internal::from_rust_address(bt_addr);
   return intf_->disconnect(addr);
 }
-int A2dpIntf::set_silence_device(RustRawAddress bt_addr, bool silent) {
+int A2dpIntf::set_silence_device(RustRawAddress bt_addr, bool silent) const {
   RawAddress addr = internal::from_rust_address(bt_addr);
   return intf_->set_silence_device(addr, silent);
 }
-int A2dpIntf::set_active_device(RustRawAddress bt_addr) {
+int A2dpIntf::set_active_device(RustRawAddress bt_addr) const {
   RawAddress addr = internal::from_rust_address(bt_addr);
   return intf_->set_active_device(addr);
 }
-int A2dpIntf::config_codec(RustRawAddress bt_addr, ::rust::Vec<A2dpCodecConfig> codec_preferences) {
+int A2dpIntf::config_codec(RustRawAddress bt_addr, ::rust::Vec<A2dpCodecConfig> codec_preferences) const {
   RawAddress addr = internal::from_rust_address(bt_addr);
   std::vector<btav_a2dp_codec_config_t> prefs;
   for (int i = 0; i < codec_preferences.size(); ++i) {
@@ -209,10 +209,10 @@ int A2dpIntf::config_codec(RustRawAddress bt_addr, ::rust::Vec<A2dpCodecConfig> 
   return intf_->config_codec(addr, prefs);
 }
 
-void A2dpIntf::cleanup() {
+void A2dpIntf::cleanup() const {
   // TODO: Implement.
 }
-bool A2dpIntf::set_audio_config(A2dpCodecConfig rconfig) {
+bool A2dpIntf::set_audio_config(A2dpCodecConfig rconfig) const {
   bluetooth::audio::a2dp::AudioConfig config = {
       .sample_rate = static_cast<btav_a2dp_codec_sample_rate_t>(rconfig.sample_rate),
       .bits_per_sample = static_cast<btav_a2dp_codec_bits_per_sample_t>(rconfig.bits_per_sample),
@@ -220,14 +220,21 @@ bool A2dpIntf::set_audio_config(A2dpCodecConfig rconfig) {
   };
   return bluetooth::audio::a2dp::SetAudioConfig(config);
 }
-bool A2dpIntf::start_audio_request() {
+bool A2dpIntf::start_audio_request() const {
   return bluetooth::audio::a2dp::StartRequest();
 }
-bool A2dpIntf::stop_audio_request() {
+bool A2dpIntf::stop_audio_request() const {
   return bluetooth::audio::a2dp::StopRequest();
 }
-bluetooth::audio::a2dp::PresentationPosition A2dpIntf::get_presentation_position() {
-  return bluetooth::audio::a2dp::GetPresentationPosition();
+RustPresentationPosition A2dpIntf::get_presentation_position() const {
+  bluetooth::audio::a2dp::PresentationPosition p = bluetooth::audio::a2dp::GetPresentationPosition();
+  RustPresentationPosition rposition = {
+      .remote_delay_report_ns = p.remote_delay_report_ns,
+      .total_bytes_read = p.total_bytes_read,
+      .data_position_sec = p.data_position.tv_sec,
+      .data_position_nsec = static_cast<int32_t>(p.data_position.tv_nsec),
+  };
+  return rposition;
 }
 
 // AVRCP

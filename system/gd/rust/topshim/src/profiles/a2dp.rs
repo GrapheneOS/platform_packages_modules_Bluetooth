@@ -146,6 +146,14 @@ pub mod ffi {
         codec_specific_4: i64,
     }
 
+    #[derive(Debug, Default)]
+    pub struct RustPresentationPosition {
+        remote_delay_report_ns: u64,
+        total_bytes_read: u64,
+        data_position_sec: i64,
+        data_position_nsec: i32,
+    }
+
     unsafe extern "C++" {
         include!("btav/btav_shim.h");
         include!("btav_sink/btav_sink_shim.h");
@@ -155,25 +163,21 @@ pub mod ffi {
 
         unsafe fn GetA2dpProfile(btif: *const u8) -> UniquePtr<A2dpIntf>;
 
-        fn init(self: Pin<&mut A2dpIntf>) -> i32;
-        fn connect(self: Pin<&mut A2dpIntf>, bt_addr: RustRawAddress) -> i32;
-        fn disconnect(self: Pin<&mut A2dpIntf>, bt_addr: RustRawAddress) -> i32;
-        fn set_silence_device(
-            self: Pin<&mut A2dpIntf>,
-            bt_addr: RustRawAddress,
-            silent: bool,
-        ) -> i32;
-        fn set_active_device(self: Pin<&mut A2dpIntf>, bt_addr: RustRawAddress) -> i32;
+        fn init(self: &A2dpIntf) -> i32;
+        fn connect(self: &A2dpIntf, bt_addr: RustRawAddress) -> i32;
+        fn disconnect(self: &A2dpIntf, bt_addr: RustRawAddress) -> i32;
+        fn set_silence_device(self: &A2dpIntf, bt_addr: RustRawAddress, silent: bool) -> i32;
+        fn set_active_device(self: &A2dpIntf, bt_addr: RustRawAddress) -> i32;
         fn config_codec(
-            self: Pin<&mut A2dpIntf>,
+            self: &A2dpIntf,
             bt_addr: RustRawAddress,
             codec_preferences: Vec<A2dpCodecConfig>,
         ) -> i32;
-        fn set_audio_config(self: Pin<&mut A2dpIntf>, config: A2dpCodecConfig) -> bool;
-        fn start_audio_request(self: Pin<&mut A2dpIntf>) -> bool;
-        fn stop_audio_request(self: Pin<&mut A2dpIntf>) -> bool;
-        fn cleanup(self: Pin<&mut A2dpIntf>);
-
+        fn set_audio_config(self: &A2dpIntf, config: A2dpCodecConfig) -> bool;
+        fn start_audio_request(self: &A2dpIntf) -> bool;
+        fn stop_audio_request(self: &A2dpIntf) -> bool;
+        fn cleanup(self: &A2dpIntf);
+        fn get_presentation_position(self: &A2dpIntf) -> RustPresentationPosition;
         // A2dp sink functions
 
         unsafe fn GetA2dpSinkProfile(btif: *const u8) -> UniquePtr<A2dpSinkIntf>;
@@ -196,6 +200,7 @@ pub mod ffi {
 
 pub type FfiAddress = ffi::RustRawAddress;
 pub type A2dpCodecConfig = ffi::A2dpCodecConfig;
+pub type PresentationPosition = ffi::RustPresentationPosition;
 
 impl From<RawAddress> for FfiAddress {
     fn from(addr: RawAddress) -> Self {
@@ -281,7 +286,7 @@ impl A2dp {
         if get_dispatchers().lock().unwrap().set::<A2dpCb>(Arc::new(Mutex::new(callbacks))) {
             panic!("Tried to set dispatcher for A2dp callbacks while it already exists");
         }
-        self.internal.pin_mut().init();
+        self.internal.init();
         true
     }
 
@@ -291,7 +296,7 @@ impl A2dp {
             eprintln!("Invalid device string {}", device);
             return;
         }
-        self.internal.pin_mut().connect(addr.unwrap().into());
+        self.internal.connect(addr.unwrap().into());
     }
 
     pub fn set_active_device(&mut self, device: String) {
@@ -300,7 +305,7 @@ impl A2dp {
             eprintln!("Invalid device string {}", device);
             return;
         }
-        self.internal.pin_mut().set_active_device(addr.unwrap().into());
+        self.internal.set_active_device(addr.unwrap().into());
     }
 
     pub fn disconnect(&mut self, device: String) {
@@ -309,20 +314,24 @@ impl A2dp {
             eprintln!("Invalid device string {}", device);
             return;
         }
-        self.internal.pin_mut().disconnect(addr.unwrap().into());
+        self.internal.disconnect(addr.unwrap().into());
     }
 
-    pub fn set_audio_config(&mut self, sample_rate: i32, bits_per_sample: i32, channel_mode: i32) {
+    pub fn set_audio_config(&self, sample_rate: i32, bits_per_sample: i32, channel_mode: i32) {
         let config =
             A2dpCodecConfig { sample_rate, bits_per_sample, channel_mode, ..Default::default() };
-        self.internal.pin_mut().set_audio_config(config);
+        self.internal.set_audio_config(config);
     }
-    pub fn start_audio_request(&mut self) {
-        self.internal.pin_mut().start_audio_request();
+    pub fn start_audio_request(&self) {
+        self.internal.start_audio_request();
     }
 
-    pub fn stop_audio_request(&mut self) {
-        self.internal.pin_mut().stop_audio_request();
+    pub fn stop_audio_request(&self) {
+        self.internal.stop_audio_request();
+    }
+
+    pub fn get_presentation_position(&self) -> PresentationPosition {
+        self.internal.get_presentation_position()
     }
 }
 
