@@ -745,8 +745,9 @@ final class RemoteDevices {
         }
 
         // If no UUIDs are cached and the device is bonding, wait for SDP after the device is bonded
-        boolean isBonding = getDeviceProperties(device).isBonding();
-        if (isBonding && getDeviceProperties(device).getUuids() == null) {
+        DeviceProperties deviceProperties = getDeviceProperties(device);
+        if (deviceProperties != null && deviceProperties.isBonding()
+                && getDeviceProperties(device).getUuids() == null) {
             return;
         }
 
@@ -757,7 +758,7 @@ final class RemoteDevices {
         mHandler.sendMessageDelayed(message, UUID_INTENT_DELAY);
 
         // Uses cached UUIDs if we are bonding. If not, we fetch the UUIDs with SDP.
-        if (!isBonding) {
+        if (deviceProperties == null || !deviceProperties.isBonding()) {
             sAdapterService.getRemoteServicesNative(Utils.getBytesFromAddress(device.getAddress()));
         }
     }
