@@ -34,13 +34,17 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.media.AudioManager;
 import android.os.HandlerThread;
+import android.os.Looper;
 import android.os.ParcelUuid;
 import android.util.Log;
 
 import com.android.bluetooth.Utils;
 import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.ProfileService;
+import com.android.bluetooth.btservice.ServiceFactory;
 import com.android.bluetooth.btservice.storage.DatabaseManager;
+import com.android.bluetooth.audio_util.MediaPlayerList;
+import com.android.bluetooth.mcp.McpServiceManager;
 import com.android.internal.annotations.VisibleForTesting;
 
 import java.util.ArrayList;
@@ -48,7 +52,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.SortedSet;
+import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 /**
  * Provides Bluetooth LeAudio profile, as a service in the Bluetooth application.
@@ -60,12 +68,17 @@ public class LeAudioService extends ProfileService {
 
     // Upper limit of all LeAudio devices: Bonded or Connected
     private static final int MAX_LE_AUDIO_STATE_MACHINES = 10;
+    public static final int CCID_INVALID = 0;
+    public static final int CCID_MIN = 0x01;
+    public static final int CCID_MAX = 0xFF;
     private static LeAudioService sLeAudioService;
+    private static SortedSet<Integer> mAssignedCcidList = new TreeSet();
 
     private AdapterService mAdapterService;
     private DatabaseManager mDatabaseManager;
     private HandlerThread mStateMachinesThread;
     private BluetoothDevice mPreviousAudioDevice;
+    ServiceFactory mServiceFactory = new ServiceFactory();
 
     LeAudioNativeInterface mLeAudioNativeInterface;
     AudioManager mAudioManager;
@@ -78,6 +91,7 @@ public class LeAudioService extends ProfileService {
 
     private BroadcastReceiver mBondStateChangedReceiver;
     private BroadcastReceiver mConnectionStateChangedReceiver;
+    static private MediaControlProfile mGmcs;
 
     @Override
     protected IProfileServiceBinder initBinder() {
@@ -124,6 +138,14 @@ public class LeAudioService extends ProfileService {
         mConnectionStateChangedReceiver = new ConnectionStateChangedReceiver();
         registerReceiver(mConnectionStateChangedReceiver, filter);
 
+        // Initialize the Media Control Service Server
+        if ((mGmcs == null) && (mServiceFactory.getMcpServiceManager() != null)) {
+            mGmcs = new MediaControlProfile(this, new MediaPlayerList(Looper.myLooper(),
+                    this), mServiceFactory.getMcpServiceManager());
+        }
+
+        // Requires this service to be already started thus we have to make it an async call
+        this.getMainThreadHandler().post(() -> mGmcs.init());
         // Mark service as started
         setLeAudioService(this);
 
@@ -143,6 +165,9 @@ public class LeAudioService extends ProfileService {
         // Cleanup native interfaces
         mLeAudioNativeInterface.cleanup();
         mLeAudioNativeInterface = null;
+        // Teardown the Media Control Service Server
+        mGmcs.cleanup();
+        mGmcs = null;
 
         // Set the service and BLE devices as inactive
         setLeAudioService(null);
@@ -175,6 +200,11 @@ public class LeAudioService extends ProfileService {
         return true;
     }
 
+    @VisibleForTesting
+    static void setGmcsForTesting(MediaControlProfile gmcs) {
+        mGmcs = gmcs;
+    }
+
     @Override
     protected void cleanup() {
         Log.i(TAG, "cleanup()");
@@ -190,6 +220,39 @@ public class LeAudioService extends ProfileService {
             return null;
         }
         return sLeAudioService;
+    }
+
+    public static synchronized int acquireCcid() {
+        Integer ccid = CCID_INVALID;
+
+        if (mAssignedCcidList.size() == 0) {
+            ccid = new Integer(CCID_MIN);
+        } else if (mAssignedCcidList.last() < CCID_MAX) {
+            ccid = new Integer(mAssignedCcidList.last() + 1);
+        } else if(mAssignedCcidList.first() > CCID_MIN) {
+            ccid = mAssignedCcidList.first() - 1;
+        } else {
+            Integer first_ccid_avail = mAssignedCcidList.first() + 1;
+            while (first_ccid_avail < CCID_MAX - 1) {
+                if (!mAssignedCcidList.contains(first_ccid_avail)) {
+                    ccid = first_ccid_avail;
+                    break;
+                }
+                first_ccid_avail++;
+            }
+        }
+
+        if (ccid != CCID_INVALID)
+            mAssignedCcidList.add(ccid);
+        return ccid;
+    }
+
+    public static synchronized void releaseCcid(int value) {
+        mAssignedCcidList.remove(value);
+    }
+
+    private synchronized void resetCcidList() {
+        mAssignedCcidList.clear();
     }
 
     private static synchronized void setLeAudioService(LeAudioService instance) {
@@ -580,6 +643,9 @@ public class LeAudioService extends ProfileService {
             if (!mGroupIdConnectedMap.getOrDefault(myGroupId, false)) {
                 mGroupIdConnectedMap.put(myGroupId, true);
             }
+
+            if (mGmcs != null)
+                mGmcs.onLeAudioDeviceConnected(device);
         }
         if (fromState == BluetoothProfile.STATE_CONNECTED && getConnectedDevices().isEmpty()) {
             setActiveDevice(null);
@@ -595,6 +661,9 @@ public class LeAudioService extends ProfileService {
                 }
                 removeStateMachine(device);
             }
+
+            if (mGmcs != null)
+                mGmcs.onLeAudioDeviceDisconnected(device);
         }
     }
 
