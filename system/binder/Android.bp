@@ -28,6 +28,7 @@ filegroup {
         "android/bluetooth/IBluetoothManagerCallback.aidl",
         "android/bluetooth/IBluetoothMap.aidl",
         "android/bluetooth/IBluetoothMapClient.aidl",
+        "android/bluetooth/IBluetoothMcpServiceManager.aidl",
         "android/bluetooth/IBluetoothPbap.aidl",
         "android/bluetooth/IBluetoothPbapClient.aidl",
         "android/bluetooth/IBluetoothSap.aidl",
