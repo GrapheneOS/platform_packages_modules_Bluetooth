@@ -77,7 +77,6 @@ public class LeAudioServiceTest {
     @Mock private DatabaseManager mDatabaseManager;
     @Mock private LeAudioNativeInterface mNativeInterface;
     @Mock private AudioManager mAudioManager;
-    @Mock private MediaControlProfile mMediaControlProfile;
 
     @Rule public final ServiceTestRule mServiceRule = new ServiceTestRule();
 
@@ -128,8 +127,6 @@ public class LeAudioServiceTest {
     }
 
     private void startService() throws TimeoutException {
-        LeAudioService.setGmcsForTesting(mMediaControlProfile);
-
         TestUtils.startService(mServiceRule, LeAudioService.class);
         mService = LeAudioService.getLeAudioService();
         assertThat(mService).isNotNull();
@@ -195,7 +192,6 @@ public class LeAudioServiceTest {
             }
         });
         // Try to restart the service. Note: must be done on the main thread
-        LeAudioService.setGmcsForTesting(mMediaControlProfile);
         InstrumentationRegistry.getInstrumentation().runOnMainSync(new Runnable() {
             public void run() {
                 assertThat(mService.start()).isTrue();
