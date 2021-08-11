@@ -372,14 +372,6 @@
             </intent-filter>
         </service>
         <service android:process="@string/process"
-             android:name = ".mcp.McpServiceManager"
-             android:exported = "true">
-            <intent-filter>
-                <action android:name="android.bluetooth.IBluetoothMcpServiceManager" />
-            </intent-filter>
-        </service>
-        <service
-             android:process="@string/process"
              android:name=".pan.PanService"
              android:enabled="@bool/profile_supported_pan"
              android:exported="true">

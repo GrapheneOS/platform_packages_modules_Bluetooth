@@ -22,7 +22,6 @@ import com.android.bluetooth.hearingaid.HearingAidService;
 import com.android.bluetooth.hfp.HeadsetService;
 import com.android.bluetooth.hid.HidDeviceService;
 import com.android.bluetooth.hid.HidHostService;
-import com.android.bluetooth.mcp.McpServiceManager;
 import com.android.bluetooth.pan.PanService;
 
 // Factory class to create instances of static services. Useful in mocking the service objects.
@@ -53,9 +52,5 @@ public class ServiceFactory {
 
     public AvrcpTargetService getAvrcpTargetService() {
         return AvrcpTargetService.get();
-    }
-
-    public McpServiceManager getMcpServiceManager() {
-        return McpServiceManager.getMcpServiceManager();
     }
 }
