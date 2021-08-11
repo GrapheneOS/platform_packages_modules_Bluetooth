@@ -388,6 +388,7 @@ void Device::HandleVolumeChanged(
   // Handle the first volume update.
   if (volume_ == VOL_NOT_SUPPORTED) {
     volume_ = pkt->GetVolume();
+    volume_ &= ~0x80;  // remove RFA bit
     volume_interface_->DeviceConnected(
         GetAddress(),
         base::Bind(&Device::SetVolume, weak_ptr_factory_.GetWeakPtr()));
@@ -404,6 +405,7 @@ void Device::HandleVolumeChanged(
   }
 
   volume_ = pkt->GetVolume();
+  volume_ &= ~0x80;  // remove RFA bit
   DEVICE_VLOG(1) << __func__ << ": Volume has changed to " << (uint32_t)volume_;
   volume_interface_->SetVolume(volume_);
 }
