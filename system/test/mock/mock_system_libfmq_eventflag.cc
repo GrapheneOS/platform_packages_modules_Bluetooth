@@ -55,17 +55,10 @@ void check(bool exp, const char* message) {}
 #define UNUSED_ATTR
 #endif
 
-EventFlag::EventFlag(int fd, off_t offset, status_t* status) {
-  mock_function_count_map[__func__]++;
-}
 EventFlag::EventFlag(std::atomic<uint32_t>* fwAddr, status_t* status) {
   mock_function_count_map[__func__]++;
 }
 EventFlag::~EventFlag() { mock_function_count_map[__func__]++; }
-status_t EventFlag::createEventFlag(int fd, off_t offset, EventFlag** flag) {
-  mock_function_count_map[__func__]++;
-  return 0;
-}
 status_t EventFlag::createEventFlag(std::atomic<uint32_t>* fwAddr,
                                     EventFlag** flag) {
   mock_function_count_map[__func__]++;
