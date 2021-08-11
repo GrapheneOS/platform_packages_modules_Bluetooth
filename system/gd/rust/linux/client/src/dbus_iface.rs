@@ -13,7 +13,9 @@ use dbus_projection::{impl_dbus_arg_enum, DisconnectWatcher};
 
 use dbus_macros::{dbus_method, dbus_propmap, generate_dbus_exporter};
 
-use manager_service::iface_bluetooth_manager::{IBluetoothManager, IBluetoothManagerCallback};
+use manager_service::iface_bluetooth_manager::{
+    AdapterWithEnabled, IBluetoothManager, IBluetoothManagerCallback,
+};
 
 use num_traits::{FromPrimitive, ToPrimitive};
 
@@ -185,6 +187,12 @@ impl IBluetooth for BluetoothDBus {
     }
 }
 
+#[dbus_propmap(AdapterWithEnabled)]
+pub struct AdapterWithEnabledDbus {
+    hci_interface: i32,
+    enabled: bool,
+}
+
 pub(crate) struct BluetoothManagerDBus {
     client_proxy: ClientDBusProxy,
 }
@@ -242,8 +250,15 @@ impl IBluetoothManager for BluetoothManagerDBus {
         self.client_proxy.method_noreturn("SetFlossEnabled", (enabled,))
     }
 
-    fn list_hci_devices(&mut self) -> Vec<i32> {
-        self.client_proxy.method("ListHciDevices", ())
+    fn get_available_adapters(&mut self) -> Vec<AdapterWithEnabled> {
+        let props: Vec<dbus::arg::PropMap> = self.client_proxy.method("GetAvailableAdapters", ());
+        <Vec<AdapterWithEnabled> as DBusArg>::from_dbus(
+            props,
+            self.client_proxy.conn.clone(),
+            dbus::strings::BusName::new(":1.0").unwrap(), // unused
+            Arc::new(Mutex::new(DisconnectWatcher::new())),
+        )
+        .unwrap()
     }
 }
 
