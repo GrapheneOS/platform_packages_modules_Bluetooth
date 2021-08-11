@@ -1,14 +1,21 @@
+use dbus::arg::RefArg;
 use dbus::nonblock::SyncConnection;
 use dbus::strings::Path;
-
-use dbus_macros::{dbus_method, dbus_proxy_obj, generate_dbus_exporter};
-
+use dbus_macros::{dbus_method, dbus_propmap, dbus_proxy_obj, generate_dbus_exporter};
 use dbus_projection::DisconnectWatcher;
 
-use manager_service::iface_bluetooth_manager::{IBluetoothManager, IBluetoothManagerCallback};
+use manager_service::iface_bluetooth_manager::{
+    AdapterWithEnabled, IBluetoothManager, IBluetoothManagerCallback,
+};
 use manager_service::RPCProxy;
 
-use crate::dbus_arg::DBusArg;
+use crate::dbus_arg::{DBusArg, DBusArgError, RefArgToRust};
+
+#[dbus_propmap(AdapterWithEnabled)]
+pub struct AdapterWithEnabledDbus {
+    hci_interface: i32,
+    enabled: bool,
+}
 
 /// D-Bus projection of IBluetoothManager.
 struct BluetoothManagerDBus {}
@@ -37,8 +44,8 @@ impl IBluetoothManager for BluetoothManagerDBus {
     #[dbus_method("SetFlossEnabled")]
     fn set_floss_enabled(&mut self, _enabled: bool) {}
 
-    #[dbus_method("ListHciDevices")]
-    fn list_hci_devices(&mut self) -> Vec<i32> {
+    #[dbus_method("GetAvailableAdapters")]
+    fn get_available_adapters(&mut self) -> Vec<AdapterWithEnabled> {
         vec![]
     }
 }
