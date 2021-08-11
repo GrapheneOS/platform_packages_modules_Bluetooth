@@ -1,6 +1,8 @@
 use log::{error, info};
 
-use manager_service::iface_bluetooth_manager::{IBluetoothManager, IBluetoothManagerCallback};
+use manager_service::iface_bluetooth_manager::{
+    AdapterWithEnabled, IBluetoothManager, IBluetoothManagerCallback,
+};
 
 use std::collections::HashMap;
 use std::process::Command;
@@ -134,8 +136,15 @@ impl IBluetoothManager for BluetoothManager {
         }
     }
 
-    fn list_hci_devices(&mut self) -> Vec<i32> {
-        let devices = config_util::list_hci_devices();
-        devices
+    fn get_available_adapters(&mut self) -> Vec<AdapterWithEnabled> {
+        let adapters = config_util::list_hci_devices()
+            .iter()
+            .map(|hci_interface| {
+                let enabled: bool = *self.cached_devices.get(&hci_interface).unwrap_or(&false);
+                AdapterWithEnabled { hci_interface: *hci_interface, enabled }
+            })
+            .collect::<Vec<AdapterWithEnabled>>();
+
+        adapters
     }
 }

@@ -1,5 +1,11 @@
 use crate::RPCProxy;
 
+#[derive(Debug, Default)]
+pub struct AdapterWithEnabled {
+    pub hci_interface: i32,
+    pub enabled: bool,
+}
+
 /// Bluetooth stack management API.
 pub trait IBluetoothManager {
     /// Starts the Bluetooth stack.
@@ -20,8 +26,8 @@ pub trait IBluetoothManager {
     /// Enables/disables Floss.
     fn set_floss_enabled(&mut self, enabled: bool);
 
-    /// Returns the list of available HCI devices.
-    fn list_hci_devices(&mut self) -> Vec<i32>;
+    /// Returns a list of available HCI devices and if they are enabled.
+    fn get_available_adapters(&mut self) -> Vec<AdapterWithEnabled>;
 }
 
 /// Interface of Bluetooth Manager callbacks.
