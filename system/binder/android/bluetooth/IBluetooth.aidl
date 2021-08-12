@@ -86,7 +86,7 @@ interface IBluetooth
     int getRemoteClass(in BluetoothDevice device);
     ParcelUuid[] getRemoteUuids(in BluetoothDevice device);
     @UnsupportedAppUsage
-    boolean fetchRemoteUuids(in BluetoothDevice device);
+    boolean fetchRemoteUuids(in BluetoothDevice device, in int transport);
     boolean sdpSearch(in BluetoothDevice device, in ParcelUuid uuid);
     int getBatteryLevel(in BluetoothDevice device);
     int getMaxConnectedAudioDevices();
