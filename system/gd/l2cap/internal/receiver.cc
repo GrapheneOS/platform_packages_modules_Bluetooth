@@ -25,9 +25,12 @@
 namespace bluetooth {
 namespace l2cap {
 namespace internal {
-Receiver::Receiver(LowerQueueUpEnd* link_queue_up_end, os::Handler* handler,
-                   DataPipelineManager* data_pipeline_manager_)
-    : link_queue_up_end_(link_queue_up_end), handler_(handler), data_pipeline_manager_(data_pipeline_manager_) {
+Receiver::Receiver(
+    LowerQueueUpEnd* link_queue_up_end, os::Handler* handler, DataPipelineManager* data_pipeline_manager_)
+    : link_queue_up_end_(link_queue_up_end),
+      handler_(handler),
+      buffer_timer_(handler),
+      data_pipeline_manager_(data_pipeline_manager_) {
   ASSERT(link_queue_up_end_ != nullptr && handler_ != nullptr);
   link_queue_up_end_->RegisterDequeue(handler_,
                                       common::Bind(&Receiver::link_queue_dequeue_callback, common::Unretained(this)));
@@ -50,10 +53,34 @@ void Receiver::link_queue_dequeue_callback() {
   auto* data_controller = data_pipeline_manager_->GetDataController(cid);
   if (data_controller == nullptr) {
     // TODO(b/150170271): Buffer a few packets before data controller is attached
-    LOG_WARN("Received a packet with invalid cid: %d", cid);
+    LOG_WARN("Received a packet without data controller. cid: %d", cid);
+    buffered_packets_.emplace(*packet);
+    LOG_WARN("Enqueued the unexpected packet. Current queue size: %zu", buffered_packets_.size());
+    buffer_timer_.Schedule(
+        common::BindOnce(&Receiver::check_buffered_packets, common::Unretained(this)), std::chrono::milliseconds(500));
+
     return;
   }
   data_controller->OnPdu(*packet);
+}
+
+void Receiver::check_buffered_packets() {
+  while (!buffered_packets_.empty()) {
+    auto packet = buffered_packets_.front();
+    buffered_packets_.pop();
+    auto basic_frame_view = BasicFrameView::Create(packet);
+    if (!basic_frame_view.IsValid()) {
+      LOG_WARN("Received an invalid basic frame");
+      return;
+    }
+    Cid cid = static_cast<Cid>(basic_frame_view.GetChannelId());
+    auto* data_controller = data_pipeline_manager_->GetDataController(cid);
+    if (data_controller == nullptr) {
+      LOG_ERROR("Dropping a packet with invalid cid: %d", cid);
+    } else {
+      data_controller->OnPdu(packet);
+    }
+  }
 }
 
 }  // namespace internal

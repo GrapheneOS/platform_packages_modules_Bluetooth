@@ -17,6 +17,7 @@
 #pragma once
 
 #include <memory>
+#include <queue>
 #include <unordered_map>
 #include <utility>
 
@@ -26,6 +27,7 @@
 #include "l2cap/internal/scheduler.h"
 #include "l2cap/l2cap_packets.h"
 #include "l2cap/mtu.h"
+#include "os/alarm.h"
 #include "os/queue.h"
 #include "packet/base_packet_builder.h"
 #include "packet/packet_view.h"
@@ -59,9 +61,12 @@ class Receiver {
  private:
   LowerQueueUpEnd* link_queue_up_end_;
   os::Handler* handler_;
+  os::Alarm buffer_timer_;
+  std::queue<LowerDequeue> buffered_packets_;
   DataPipelineManager* data_pipeline_manager_;
 
   void link_queue_dequeue_callback();
+  void check_buffered_packets();
 };
 
 }  // namespace internal
