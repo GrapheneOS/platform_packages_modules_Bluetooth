@@ -16,6 +16,7 @@
 
 package com.android.bluetooth.btservice;
 
+import static android.bluetooth.BluetoothDevice.TRANSPORT_AUTO;
 import static android.text.format.DateUtils.MINUTE_IN_MILLIS;
 import static android.text.format.DateUtils.SECOND_IN_MILLIS;
 
@@ -1905,12 +1906,13 @@ public class AdapterService extends Service {
 
         @Override
         public boolean fetchRemoteUuids(BluetoothDevice device) {
-            return fetchRemoteUuidsWithAttribution(device, Utils.getCallingAttributionSource());
+            return fetchRemoteUuidsWithAttribution(device, TRANSPORT_AUTO,
+                    Utils.getCallingAttributionSource());
         }
 
         @Override
         public boolean fetchRemoteUuidsWithAttribution(
-                BluetoothDevice device, AttributionSource attributionSource) {
+                BluetoothDevice device, int transport, AttributionSource attributionSource) {
             Attributable.setAttributionSource(device, attributionSource);
             AdapterService service = getService();
             if (service == null
@@ -1919,8 +1921,11 @@ public class AdapterService extends Service {
                             service, attributionSource, "AdapterService fetchRemoteUuids")) {
                 return false;
             }
+            if (transport != TRANSPORT_AUTO) {
+                enforceBluetoothPrivilegedPermission(service);
+            }
 
-            service.mRemoteDevices.fetchUuids(device);
+            service.mRemoteDevices.fetchUuids(device, transport);
             return true;
         }
 
@@ -3927,7 +3932,7 @@ public class AdapterService extends Service {
     private native boolean sspReplyNative(byte[] address, int type, boolean accept, int passkey);
 
     /*package*/
-    native boolean getRemoteServicesNative(byte[] address);
+    native boolean getRemoteServicesNative(byte[] address, int transport);
 
     /*package*/
     native boolean getRemoteMasInstancesNative(byte[] address);
