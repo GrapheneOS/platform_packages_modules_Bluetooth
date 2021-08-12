@@ -16,6 +16,8 @@
 
 package com.android.bluetooth.btservice;
 
+import static android.bluetooth.BluetoothDevice.TRANSPORT_AUTO;
+
 import static com.android.bluetooth.Utils.addressToBytes;
 import static com.android.bluetooth.Utils.callerIsSystemOrActiveOrManagedUser;
 import static com.android.bluetooth.Utils.callerIsSystemOrActiveUser;
@@ -1766,15 +1768,18 @@ public class AdapterService extends Service {
         }
 
         @Override
-        public boolean fetchRemoteUuids(BluetoothDevice device) {
+        public boolean fetchRemoteUuids(BluetoothDevice device, int transport) {
             AdapterService service = getService();
             if (service == null || !callerIsSystemOrActiveOrManagedUser(service, TAG, "fetchRemoteUuids")) {
                 return false;
             }
+            if (transport != TRANSPORT_AUTO) {
+                enforceBluetoothPrivilegedPermission(service);
+            } else {
+                enforceBluetoothPermission(service);
+            }
 
-            enforceBluetoothPermission(service);
-
-            service.mRemoteDevices.fetchUuids(device);
+            service.mRemoteDevices.fetchUuids(device, transport);
             return true;
         }
 
@@ -3568,7 +3573,7 @@ public class AdapterService extends Service {
     private native boolean sspReplyNative(byte[] address, int type, boolean accept, int passkey);
 
     /*package*/
-    native boolean getRemoteServicesNative(byte[] address);
+    native boolean getRemoteServicesNative(byte[] address, int transport);
 
     /*package*/
     native boolean getRemoteMasInstancesNative(byte[] address);
