@@ -43,7 +43,6 @@ import com.android.bluetooth.hid.HidDeviceService;
 import com.android.bluetooth.hid.HidHostService;
 import com.android.bluetooth.map.BluetoothMapService;
 import com.android.bluetooth.mapclient.MapClientService;
-import com.android.bluetooth.mcp.McpServiceManager;
 import com.android.bluetooth.opp.BluetoothOppService;
 import com.android.bluetooth.pan.PanService;
 import com.android.bluetooth.pbap.BluetoothPbapService;
@@ -108,8 +107,6 @@ public class Config {
                     (1 << BluetoothProfile.PBAP)),
             new ProfileConfig(VolumeControlService.class, R.bool.profile_supported_vc,
                     (1 << BluetoothProfile.VOLUME_CONTROL)),
-            new ProfileConfig(McpServiceManager.class, R.bool.profile_supported_mcp_server,
-                    (1 << BluetoothProfile.MCP_SERVER)),
             new ProfileConfig(HearingAidService.class,
                     com.android.internal.R.bool.config_hearing_aid_profile_supported,
                     (1 << BluetoothProfile.HEARING_AID))
