@@ -739,7 +739,7 @@ final class RemoteDevices {
     }
 
 
-    void fetchUuids(BluetoothDevice device) {
+    void fetchUuids(BluetoothDevice device, int transport) {
         if (sSdpTracker.contains(device)) {
             return;
         }
@@ -759,7 +759,8 @@ final class RemoteDevices {
 
         // Uses cached UUIDs if we are bonding. If not, we fetch the UUIDs with SDP.
         if (deviceProperties == null || !deviceProperties.isBonding()) {
-            sAdapterService.getRemoteServicesNative(Utils.getBytesFromAddress(device.getAddress()));
+            sAdapterService.getRemoteServicesNative(Utils.getBytesFromAddress(device.getAddress()),
+                    transport);
         }
     }
 
