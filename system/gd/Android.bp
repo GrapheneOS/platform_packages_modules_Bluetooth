@@ -891,7 +891,7 @@ genrule {
         "touch $(genDir)/files/blueberry/tests/gd/cert/__init__.py && " +
         // Bundle topshim proto here for now
         "mkdir -p $(genDir)/files/rust/topshim/facade && " +
-        "$(location aprotoc) -Ipackages/modules/Bluetooth/system/gd/rust/topshim/facade --plugin=protoc-gen-grpc=$(location protoc-gen-grpc-python-plugin) packages/modules/Bluetooth/system/gd/rust/topshim/facade/facade.proto --grpc_out=$(genDir)/files/rust/topshim/facade --python_out=$(genDir)/files/rust/topshim/facade && " +
+        "$(location aprotoc) -Ipackages/modules/Bluetooth/system/gd --plugin=protoc-gen-grpc=$(location protoc-gen-grpc-python-plugin) packages/modules/Bluetooth/system/gd/rust/topshim/facade/facade.proto --grpc_out=$(genDir)/files --python_out=$(genDir)/files && " +
         "touch $(genDir)/files/rust/__init__.py && " +
         "touch $(genDir)/files/rust/topshim/__init__.py && " +
         "touch $(genDir)/files/rust/topshim/facade/__init__.py && " +
