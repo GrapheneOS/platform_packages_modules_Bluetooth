@@ -175,6 +175,16 @@ public class MediaPlayerWrapper {
         controller.seekTo(position);
     }
 
+    public void fastForward() {
+        MediaController.TransportControls controller = mMediaController.getTransportControls();
+        controller.fastForward();
+    }
+
+    public void rewind() {
+        MediaController.TransportControls controller = mMediaController.getTransportControls();
+        controller.rewind();
+    }
+
     public void skipToPrevious() {
         MediaController.TransportControls controller = mMediaController.getTransportControls();
         controller.skipToPrevious();
@@ -183,6 +193,11 @@ public class MediaPlayerWrapper {
     public void skipToNext() {
         MediaController.TransportControls controller = mMediaController.getTransportControls();
         controller.skipToNext();
+    }
+
+    public void setPlaybackSpeed(float speed) {
+        MediaController.TransportControls controller = mMediaController.getTransportControls();
+        controller.setPlaybackSpeed(speed);
     }
 
     // TODO (apanicke): Implement shuffle and repeat support. Right now these use custom actions
