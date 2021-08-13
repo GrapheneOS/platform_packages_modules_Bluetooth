@@ -31,11 +31,11 @@
     <string name="bt_enable_cancel" msgid="1988832367505151727">"ரத்துசெய்"</string>
     <string name="bt_enable_ok" msgid="3432462749994538265">"இயக்கு"</string>
     <string name="incoming_file_confirm_title" msgid="8139874248612182627">"கோப்பு பரிமாற்றம்"</string>
-    <string name="incoming_file_confirm_content" msgid="2752605552743148036">"உள்வரும் கோப்பை ஏற்கவா?"</string>
+    <string name="incoming_file_confirm_content" msgid="2752605552743148036">"உள்வரும் ஃபைலை ஏற்கவா?"</string>
     <string name="incoming_file_confirm_cancel" msgid="2973321832477704805">"நிராகரி"</string>
     <string name="incoming_file_confirm_ok" msgid="281462442932231475">"ஏற்கிறேன்"</string>
     <string name="incoming_file_confirm_timeout_ok" msgid="1414676773249857278">"சரி"</string>
-    <string name="incoming_file_confirm_timeout_content" msgid="172779756093975981">"\"<xliff:g id="SENDER">%1$s</xliff:g>\" இடமிருந்து வரும் கோப்பை ஏற்கும்போது நேரம் முடிந்தது"</string>
+    <string name="incoming_file_confirm_timeout_content" msgid="172779756093975981">"\"<xliff:g id="SENDER">%1$s</xliff:g>\" இடமிருந்து வரும் ஃபைலை ஏற்கும்போது நேரம் முடிந்தது"</string>
     <string name="incoming_file_confirm_Notification_title" msgid="5573329005298936903">"உள்வரும் கோப்பு"</string>
     <string name="incoming_file_confirm_Notification_content" msgid="6237487486781004992">"<xliff:g id="FILE">%2$s</xliff:g> ஃபைலை அனுப்ப <xliff:g id="SENDER">%1$s</xliff:g> தயாராக உள்ளார்"</string>
     <string name="notification_receiving" msgid="4674648179652543984">"புளூடூத் பகிர்வு: <xliff:g id="FILE">%1$s</xliff:g> ஐப் பெறுகிறது"</string>
@@ -64,7 +64,7 @@
     <string name="download_succ_ok" msgid="7053688246357050216">"திற"</string>
     <string name="upload_line1" msgid="2055952074059709052">"பெறுநர்: \"<xliff:g id="RECIPIENT">%1$s</xliff:g>\""</string>
     <string name="upload_line3" msgid="4920689672457037437">"கோப்பு வகை: <xliff:g id="TYPE">%1$s</xliff:g> (<xliff:g id="SIZE">%2$s</xliff:g>)"</string>
-    <string name="upload_line5" msgid="7759322537674229752">"கோப்பை அனுப்புகிறது…"</string>
+    <string name="upload_line5" msgid="7759322537674229752">"ஃபைலை அனுப்புகிறது…"</string>
     <string name="upload_succ_line5" msgid="5687317197463383601">"கோப்பு அனுப்பப்பட்டது"</string>
     <string name="upload_succ_ok" msgid="7705428476405478828">"சரி"</string>
     <string name="upload_fail_line1" msgid="7899394672421491701">"\"<xliff:g id="RECIPIENT">%1$s</xliff:g>\" க்கு கோப்பு அனுப்பப்படவில்லை."</string>
