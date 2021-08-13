@@ -73,7 +73,8 @@ import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.ProfileService;
 import com.android.bluetooth.util.NumberUtils;
 import com.android.internal.annotations.VisibleForTesting;
-import com.android.internal.util.HexDump;
+
+import libcore.util.HexEncoding;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -86,8 +87,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Predicate;
 
 /**
@@ -346,7 +347,7 @@ public class GattService extends ProfileService {
                             }
                             for (String test : TEST_MODE_BEACONS) {
                                 onScanResultInternal(0x1b, 0x1, "DD:34:02:05:5C:4D", 1, 0, 0xff,
-                                        127, -54, 0x0, HexDump.hexStringToByteArray(test));
+                                        127, -54, 0x0, HexEncoding.decode(test));
                             }
                             sendEmptyMessageDelayed(0, DateUtils.SECOND_IN_MILLIS);
                         }
