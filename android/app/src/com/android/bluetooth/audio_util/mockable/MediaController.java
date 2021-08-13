@@ -380,6 +380,13 @@ public class MediaController {
         }
 
         /**
+         * Wrapper for MediaController.TransportControls.setPlaybackSpeed(float speed)
+         */
+        public void setPlaybackSpeed(float speed) {
+            mTransportDelegate.setPlaybackSpeed(speed);
+        }
+
+        /**
          * Wrapper for MediaController.TransportControls.sendCustomAction()
          */
         public void sendCustomAction(@NonNull PlaybackState.CustomAction customAction,
