@@ -85,6 +85,7 @@ public class DipTest {
 
     @After
     public void tearDown() throws Exception {
+        TestUtils.clearAdapterService(mAdapterService);
     }
 
     private void verifyDipSdpRecordIntent(ArgumentCaptor<Intent> intentArgument,
