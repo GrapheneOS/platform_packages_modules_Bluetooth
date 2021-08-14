@@ -21,17 +21,19 @@ fn get_a2dp_dispatcher() -> A2dpCallbacksDispatcher {
 #[derive(Clone)]
 pub struct MediaServiceImpl {
     rt: Arc<Runtime>,
-    btif_a2dp: Arc<Mutex<A2dp>>,
+    pub btif_a2dp: Arc<Mutex<A2dp>>,
     btif_a2dp_sink: Arc<Mutex<A2dpSink>>,
-    btif_avrcp: Arc<Mutex<Avrcp>>,
+    pub btif_avrcp: Arc<Mutex<Avrcp>>,
 }
 
 impl MediaServiceImpl {
     /// Create a new instance of the root facade service
     pub fn create(rt: Arc<Runtime>, btif_intf: Arc<Mutex<BluetoothInterface>>) -> grpcio::Service {
-        let btif_a2dp = A2dp::new(&btif_intf.lock().unwrap());
+        let mut btif_a2dp = A2dp::new(&btif_intf.lock().unwrap());
         let btif_a2dp_sink = A2dpSink::new(&btif_intf.lock().unwrap());
-        let btif_avrcp = Avrcp::new(&btif_intf.lock().unwrap());
+        let mut btif_avrcp = Avrcp::new(&btif_intf.lock().unwrap());
+        btif_a2dp.initialize(get_a2dp_dispatcher());
+        btif_avrcp.initialize();
 
         create_media_service(Self {
             rt,
@@ -50,9 +52,6 @@ impl MediaService for MediaServiceImpl {
         sink: UnarySink<StartA2dpResponse>,
     ) {
         if req.start_a2dp_source {
-            self.btif_a2dp.lock().unwrap().initialize(get_a2dp_dispatcher());
-            self.btif_avrcp.lock().unwrap().initialize();
-
             ctx.spawn(async move {
                 sink.success(StartA2dpResponse::default()).await.unwrap();
             })
