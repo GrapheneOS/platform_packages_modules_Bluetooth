@@ -16,6 +16,8 @@
 
 package com.android.bluetooth.avrcpcontroller;
 
+import static android.Manifest.permission.BLUETOOTH_CONNECT;
+
 import android.bluetooth.BluetoothAvrcpController;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothProfile;
@@ -248,7 +250,7 @@ class AvrcpControllerStateMachine extends StateMachine {
      */
     public void dump(StringBuilder sb) {
         ProfileService.println(sb, "mDevice: " + mDevice.getAddress() + "("
-                + mDevice.getName() + ") " + this.toString());
+                + Utils.getName(mDevice) + ") " + this.toString());
         ProfileService.println(sb, "isActive: " + isActive());
         ProfileService.println(sb, "Control: " + mRemoteControlConnected);
         ProfileService.println(sb, "Browsing: " + mBrowsingConnected);
@@ -1249,7 +1251,7 @@ class AvrcpControllerStateMachine extends StateMachine {
         intent.putExtra(BluetoothDevice.EXTRA_DEVICE, mDevice);
         intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY_BEFORE_BOOT);
         mMostRecentState = currentState;
-        mService.sendBroadcast(intent, ProfileService.BLUETOOTH_PERM);
+        mService.sendBroadcast(intent, BLUETOOTH_CONNECT, Utils.getTempAllowlistBroadcastOptions());
     }
 
     private boolean shouldRequestFocus() {

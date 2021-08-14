@@ -17,7 +17,7 @@
 <resources xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="permlab_bluetoothShareManager" msgid="311492132450338925">"பதிவிறக்க நிர்வாகியை அணுகவும்."</string>
-    <string name="permdesc_bluetoothShareManager" msgid="8930572979123190223">"BluetoothShare நிர்வாகியை அணுகுவதற்குப் ஆப்ஸை அனுமதித்து,  ஃபைல்களைப் பரிமாற்ற அதைப் பயன்படுத்துகிறது."</string>
+    <string name="permdesc_bluetoothShareManager" msgid="8930572979123190223">"BluetoothShare நிர்வாகியை அணுகுவதற்குப் ஆப்ஸை அனுமதித்து,  கோப்புகளைப் பரிமாற்ற அதைப் பயன்படுத்துகிறது."</string>
     <string name="permlab_bluetoothAcceptlist" msgid="2647575807648622053">"புளூடூத் சாதன அணுகல் ஏற்புப்பட்டியல்."</string>
     <string name="permdesc_bluetoothAcceptlist" msgid="2406423665674766442">"புளூடூத் சாதனத்தைத் தற்காலிகமாக ஏற்புப் பட்டியலில் சேர்க்க ஆப்ஸை அனுமதிக்கிறது, பயனரின் உறுதிப்படுத்தலின்றி கோப்புகளை இந்தச் சாதனத்திற்கு அனுப்பலாம்."</string>
     <string name="bt_share_picker_label" msgid="6268100924487046932">"புளூடூத்"</string>
@@ -48,7 +48,7 @@
     <string name="download_title" msgid="3353228219772092586">"கோப்பு பரிமாற்றம்"</string>
     <string name="download_line1" msgid="4926604799202134144">"அனுப்புநர்: \"<xliff:g id="SENDER">%1$s</xliff:g>\""</string>
     <string name="download_line2" msgid="5876973543019417712">"கோப்பு: <xliff:g id="FILE">%1$s</xliff:g>"</string>
-    <string name="download_line3" msgid="4384821622908676061">"ஃபைலின் அளவு: <xliff:g id="SIZE">%1$s</xliff:g>"</string>
+    <string name="download_line3" msgid="4384821622908676061">"கோப்பின் அளவு: <xliff:g id="SIZE">%1$s</xliff:g>"</string>
     <string name="download_line4" msgid="8535996869722666525"></string>
     <string name="download_line5" msgid="3069560415845295386">"கோப்பைப் பெறுகிறது…"</string>
     <string name="download_cancel" msgid="9177305996747500768">"நிறுத்து"</string>

@@ -16,6 +16,8 @@
 
 package com.android.bluetooth.pbap;
 
+import static android.Manifest.permission.BLUETOOTH_CONNECT;
+
 import android.annotation.NonNull;
 import android.app.Notification;
 import android.app.NotificationChannel;
@@ -37,6 +39,7 @@ import com.android.bluetooth.BluetoothObexTransport;
 import com.android.bluetooth.IObexConnectionHandler;
 import com.android.bluetooth.ObexRejectServer;
 import com.android.bluetooth.R;
+import com.android.bluetooth.Utils;
 import com.android.bluetooth.btservice.MetricsLogger;
 import com.android.internal.util.State;
 import com.android.internal.util.StateMachine;
@@ -160,7 +163,7 @@ class PbapStateMachine extends StateMachine {
             intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
             intent.addFlags(Intent.FLAG_RECEIVER_INCLUDE_BACKGROUND);
             mService.sendBroadcastAsUser(intent, UserHandle.ALL,
-                    BluetoothPbapService.BLUETOOTH_PERM);
+                    BLUETOOTH_CONNECT, Utils.getTempAllowlistBroadcastOptions());
         }
 
         /**
@@ -383,7 +386,7 @@ class PbapStateMachine extends StateMachine {
             deleteIntent.setClass(mService, BluetoothPbapService.class);
             deleteIntent.setAction(BluetoothPbapService.AUTH_CANCELLED_ACTION);
 
-            String name = mRemoteDevice.getName();
+            String name = Utils.getName(mRemoteDevice);
 
             Notification notification =
                     new Notification.Builder(mService, PBAP_OBEX_NOTIFICATION_CHANNEL).setWhen(
@@ -399,6 +402,8 @@ class PbapStateMachine extends StateMachine {
                                             mService.getTheme()))
                             .setFlag(Notification.FLAG_AUTO_CANCEL, true)
                             .setFlag(Notification.FLAG_ONLY_ALERT_ONCE, true)
+                            // TODO(b/171825892) Please replace FLAG_MUTABLE_UNAUDITED below
+                            // with either FLAG_IMMUTABLE (recommended) or FLAG_MUTABLE.
                             .setContentIntent(
                                     PendingIntent.getActivity(mService, 0, clickIntent,
                                         PendingIntent.FLAG_IMMUTABLE))

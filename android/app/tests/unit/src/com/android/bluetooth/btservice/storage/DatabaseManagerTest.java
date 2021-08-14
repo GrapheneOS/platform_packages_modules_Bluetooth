@@ -17,9 +17,9 @@
 package com.android.bluetooth.btservice.storage;
 
 import static org.junit.Assert.assertThat;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.anyInt;
-import static org.mockito.Mockito.anyString;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.times;
@@ -466,7 +466,8 @@ public final class DatabaseManagerTest {
         Assert.assertTrue(mDatabaseManager
                 .mMetadataCache.get(mTestDevice2.getAddress()).is_active_a2dp_device);
         Assert.assertEquals(mTestDevice2, mDatabaseManager.getMostRecentlyConnectedA2dpDevice());
-        mostRecentlyConnectedDevicesOrdered = mDatabaseManager.getMostRecentlyConnectedDevices();
+        mostRecentlyConnectedDevicesOrdered =
+                mDatabaseManager.getMostRecentlyConnectedDevices();
         Assert.assertEquals(2, mostRecentlyConnectedDevicesOrdered.size());
         Assert.assertEquals(mTestDevice2, mostRecentlyConnectedDevicesOrdered.get(0));
         Assert.assertEquals(mTestDevice, mostRecentlyConnectedDevicesOrdered.get(1));
@@ -480,7 +481,8 @@ public final class DatabaseManagerTest {
         Assert.assertFalse(mDatabaseManager
                 .mMetadataCache.get(mTestDevice2.getAddress()).is_active_a2dp_device);
         Assert.assertEquals(mTestDevice, mDatabaseManager.getMostRecentlyConnectedA2dpDevice());
-        mostRecentlyConnectedDevicesOrdered = mDatabaseManager.getMostRecentlyConnectedDevices();
+        mostRecentlyConnectedDevicesOrdered =
+                mDatabaseManager.getMostRecentlyConnectedDevices();
         Assert.assertEquals(2, mostRecentlyConnectedDevicesOrdered.size());
         Assert.assertEquals(mTestDevice, mostRecentlyConnectedDevicesOrdered.get(0));
         Assert.assertEquals(mTestDevice2, mostRecentlyConnectedDevicesOrdered.get(1));
@@ -494,7 +496,8 @@ public final class DatabaseManagerTest {
         Assert.assertFalse(mDatabaseManager
                 .mMetadataCache.get(mTestDevice2.getAddress()).is_active_a2dp_device);
         Assert.assertNull(mDatabaseManager.getMostRecentlyConnectedA2dpDevice());
-        mostRecentlyConnectedDevicesOrdered = mDatabaseManager.getMostRecentlyConnectedDevices();
+        mostRecentlyConnectedDevicesOrdered =
+                mDatabaseManager.getMostRecentlyConnectedDevices();
         Assert.assertEquals(2, mostRecentlyConnectedDevicesOrdered.size());
         Assert.assertEquals(mTestDevice, mostRecentlyConnectedDevicesOrdered.get(0));
         Assert.assertEquals(mTestDevice2, mostRecentlyConnectedDevicesOrdered.get(1));
@@ -510,7 +513,8 @@ public final class DatabaseManagerTest {
         Assert.assertFalse(mDatabaseManager
                 .mMetadataCache.get(mTestDevice3.getAddress()).is_active_a2dp_device);
         Assert.assertNull(mDatabaseManager.getMostRecentlyConnectedA2dpDevice());
-        mostRecentlyConnectedDevicesOrdered = mDatabaseManager.getMostRecentlyConnectedDevices();
+        mostRecentlyConnectedDevicesOrdered =
+                mDatabaseManager.getMostRecentlyConnectedDevices();
         Assert.assertEquals(3, mostRecentlyConnectedDevicesOrdered.size());
         Assert.assertEquals(mTestDevice3, mostRecentlyConnectedDevicesOrdered.get(0));
         Assert.assertEquals(mTestDevice, mostRecentlyConnectedDevicesOrdered.get(1));
@@ -527,7 +531,8 @@ public final class DatabaseManagerTest {
         Assert.assertFalse(mDatabaseManager
                 .mMetadataCache.get(mTestDevice3.getAddress()).is_active_a2dp_device);
         Assert.assertEquals(mTestDevice, mDatabaseManager.getMostRecentlyConnectedA2dpDevice());
-        mostRecentlyConnectedDevicesOrdered = mDatabaseManager.getMostRecentlyConnectedDevices();
+        mostRecentlyConnectedDevicesOrdered =
+                mDatabaseManager.getMostRecentlyConnectedDevices();
         Assert.assertEquals(3, mostRecentlyConnectedDevicesOrdered.size());
         Assert.assertEquals(mTestDevice, mostRecentlyConnectedDevicesOrdered.get(0));
         Assert.assertEquals(mTestDevice3, mostRecentlyConnectedDevicesOrdered.get(1));
@@ -544,7 +549,8 @@ public final class DatabaseManagerTest {
         Assert.assertFalse(mDatabaseManager
                 .mMetadataCache.get(mTestDevice3.getAddress()).is_active_a2dp_device);
         Assert.assertEquals(mTestDevice, mDatabaseManager.getMostRecentlyConnectedA2dpDevice());
-        mostRecentlyConnectedDevicesOrdered = mDatabaseManager.getMostRecentlyConnectedDevices();
+        mostRecentlyConnectedDevicesOrdered =
+                mDatabaseManager.getMostRecentlyConnectedDevices();
         Assert.assertEquals(3, mostRecentlyConnectedDevicesOrdered.size());
         Assert.assertEquals(mTestDevice3, mostRecentlyConnectedDevicesOrdered.get(0));
         Assert.assertEquals(mTestDevice, mostRecentlyConnectedDevicesOrdered.get(1));
@@ -561,7 +567,8 @@ public final class DatabaseManagerTest {
         Assert.assertFalse(mDatabaseManager
                 .mMetadataCache.get(mTestDevice3.getAddress()).is_active_a2dp_device);
         Assert.assertEquals(mTestDevice, mDatabaseManager.getMostRecentlyConnectedA2dpDevice());
-        mostRecentlyConnectedDevicesOrdered = mDatabaseManager.getMostRecentlyConnectedDevices();
+        mostRecentlyConnectedDevicesOrdered =
+                mDatabaseManager.getMostRecentlyConnectedDevices();
         Assert.assertEquals(3, mostRecentlyConnectedDevicesOrdered.size());
         Assert.assertEquals(mTestDevice3, mostRecentlyConnectedDevicesOrdered.get(0));
         Assert.assertEquals(mTestDevice, mostRecentlyConnectedDevicesOrdered.get(1));
@@ -578,7 +585,8 @@ public final class DatabaseManagerTest {
         Assert.assertFalse(mDatabaseManager
                 .mMetadataCache.get(mTestDevice3.getAddress()).is_active_a2dp_device);
         Assert.assertNull(mDatabaseManager.getMostRecentlyConnectedA2dpDevice());
-        mostRecentlyConnectedDevicesOrdered = mDatabaseManager.getMostRecentlyConnectedDevices();
+        mostRecentlyConnectedDevicesOrdered =
+                mDatabaseManager.getMostRecentlyConnectedDevices();
         Assert.assertEquals(3, mostRecentlyConnectedDevicesOrdered.size());
         Assert.assertEquals(mTestDevice3, mostRecentlyConnectedDevicesOrdered.get(0));
         Assert.assertEquals(mTestDevice, mostRecentlyConnectedDevicesOrdered.get(1));
@@ -595,7 +603,8 @@ public final class DatabaseManagerTest {
         Assert.assertFalse(mDatabaseManager
                 .mMetadataCache.get(mTestDevice3.getAddress()).is_active_a2dp_device);
         Assert.assertNull(mDatabaseManager.getMostRecentlyConnectedA2dpDevice());
-        mostRecentlyConnectedDevicesOrdered = mDatabaseManager.getMostRecentlyConnectedDevices();
+        mostRecentlyConnectedDevicesOrdered =
+                mDatabaseManager.getMostRecentlyConnectedDevices();
         Assert.assertEquals(3, mostRecentlyConnectedDevicesOrdered.size());
         Assert.assertEquals(mTestDevice3, mostRecentlyConnectedDevicesOrdered.get(0));
         Assert.assertEquals(mTestDevice, mostRecentlyConnectedDevicesOrdered.get(1));

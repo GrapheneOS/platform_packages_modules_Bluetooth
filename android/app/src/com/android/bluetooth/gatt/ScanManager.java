@@ -16,6 +16,7 @@
 
 package com.android.bluetooth.gatt;
 
+import android.annotation.RequiresPermission;
 import android.app.ActivityManager;
 import android.app.AlarmManager;
 import android.app.PendingIntent;
@@ -307,8 +308,6 @@ public class ScanManager {
         }
 
         void handleStartScan(ScanClient client) {
-            Utils.enforceAdminPermission(mService);
-            boolean isFiltered = (client.filters != null) && !client.filters.isEmpty();
             if (DBG) {
                 Log.d(TAG, "handling starting scan");
             }
@@ -323,7 +322,7 @@ public class ScanManager {
                 return;
             }
 
-            if (!mScanNative.isOpportunisticScanClient(client) && !isScreenOn() && !isFiltered) {
+            if (requiresScreenOn(client) && !isScreenOn()) {
                 Log.w(TAG, "Cannot start unfiltered scan in screen-off. This scan will be resumed "
                         + "later: " + client.scannerId);
                 mSuspendedScanClients.add(client);
@@ -334,7 +333,7 @@ public class ScanManager {
             }
 
             final boolean locationEnabled = mLocationManager.isLocationEnabled();
-            if (!locationEnabled && !isFiltered) {
+            if (requiresLocationOn(client) && !locationEnabled) {
                 Log.i(TAG, "Cannot start unfiltered scan in location-off. This scan will be"
                         + " resumed when location is on: " + client.scannerId);
                 mSuspendedScanClients.add(client);
@@ -358,14 +357,24 @@ public class ScanManager {
                         Message msg = obtainMessage(MSG_SCAN_TIMEOUT);
                         msg.obj = client;
                         // Only one timeout message should exist at any time
-                        sendMessageDelayed(msg, AppScanStats.SCAN_TIMEOUT_MS);
+                        sendMessageDelayed(msg, AppScanStats.getScanTimeoutMillis());
                     }
                 }
             }
         }
 
+        private boolean requiresScreenOn(ScanClient client) {
+            boolean isFiltered = (client.filters != null) && !client.filters.isEmpty();
+            return !mScanNative.isOpportunisticScanClient(client) && !isFiltered;
+        }
+
+        private boolean requiresLocationOn(ScanClient client) {
+            boolean isFiltered = (client.filters != null) && !client.filters.isEmpty();
+            return !client.hasDisavowedLocation && !isFiltered;
+        }
+
+        @RequiresPermission(android.Manifest.permission.BLUETOOTH_SCAN)
         void handleStopScan(ScanClient client) {
-            Utils.enforceAdminPermission(mService);
             if (client == null) {
                 return;
             }
@@ -391,12 +400,11 @@ public class ScanManager {
                 if (DBG) {
                     Log.d(TAG, "app died, unregister scanner - " + client.scannerId);
                 }
-                mService.unregisterScanner(client.scannerId);
+                mService.unregisterScanner(client.scannerId, mService.getAttributionSource());
             }
         }
 
         void handleFlushBatchResults(ScanClient client) {
-            Utils.enforceAdminPermission(mService);
             if (!mBatchClients.contains(client)) {
                 return;
             }
@@ -424,10 +432,11 @@ public class ScanManager {
                     && settings.getReportDelayMillis() == 0;
         }
 
+        @RequiresPermission(android.Manifest.permission.BLUETOOTH_SCAN)
         void handleSuspendScans() {
             for (ScanClient client : mRegularScanClients) {
-                if (!mScanNative.isOpportunisticScanClient(client) && (client.filters == null
-                        || client.filters.isEmpty())) {
+                if ((requiresScreenOn(client) && !isScreenOn())
+                        || (requiresLocationOn(client) && !mLocationManager.isLocationEnabled())) {
                     /*Suspend unfiltered scans*/
                     if (client.stats != null) {
                         client.stats.recordScanSuspend(client.scannerId);
@@ -440,10 +449,13 @@ public class ScanManager {
 
         void handleResumeScans() {
             for (ScanClient client : mSuspendedScanClients) {
-                if (client.stats != null) {
-                    client.stats.recordScanResume(client.scannerId);
+                if ((!requiresScreenOn(client) || isScreenOn())
+                        && (!requiresLocationOn(client) || mLocationManager.isLocationEnabled())) {
+                    if (client.stats != null) {
+                        client.stats.recordScanResume(client.scannerId);
+                    }
+                    handleStartScan(client);
                 }
-                handleStartScan(client);
             }
             mSuspendedScanClients.clear();
         }
@@ -1346,7 +1358,7 @@ public class ScanManager {
 
                 @Override
                 public void onDisplayChanged(int displayId) {
-                    if (isScreenOn() && mLocationManager.isLocationEnabled()) {
+                    if (isScreenOn()) {
                         sendMessage(MSG_RESUME_SCANS, null);
                     } else {
                         sendMessage(MSG_SUSPEND_SCANS, null);
@@ -1374,7 +1386,7 @@ public class ScanManager {
                     String action = intent.getAction();
                     if (LocationManager.MODE_CHANGED_ACTION.equals(action)) {
                         final boolean locationEnabled = mLocationManager.isLocationEnabled();
-                        if (locationEnabled && isScreenOn()) {
+                        if (locationEnabled) {
                             sendMessage(MSG_RESUME_SCANS, null);
                         } else {
                             sendMessage(MSG_SUSPEND_SCANS, null);

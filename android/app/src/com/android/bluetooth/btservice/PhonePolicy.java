@@ -16,6 +16,8 @@
 
 package com.android.bluetooth.btservice;
 
+import android.annotation.RequiresPermission;
+import android.app.ActivityThread;
 import android.bluetooth.BluetoothA2dp;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -24,6 +26,7 @@ import android.bluetooth.BluetoothHearingAid;
 import android.bluetooth.BluetoothLeAudio;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.BluetoothUuid;
+import android.content.Attributable;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -215,6 +218,8 @@ class PhonePolicy {
                     // Called when we try connect some profiles in processConnectOtherProfiles but
                     // we send a delayed message to try connecting the remaining profiles
                     BluetoothDevice device = (BluetoothDevice) msg.obj;
+                    Attributable.setAttributionSource(device,
+                            ActivityThread.currentAttributionSource());
                     processConnectOtherProfiles(device);
                     mConnectOtherProfilesDeviceSet.remove(device);
                     break;
@@ -265,6 +270,7 @@ class PhonePolicy {
     }
 
     // Policy implementation, all functions MUST be private
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_PRIVILEGED)
     private void processInitProfilePriorities(BluetoothDevice device, ParcelUuid[] uuids) {
         debugLog("processInitProfilePriorities() - device " + device);
         HidHostService hidService = mFactory.getHidHostService();
@@ -318,6 +324,7 @@ class PhonePolicy {
         }
     }
 
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_PRIVILEGED)
     private void processProfileStateChanged(BluetoothDevice device, int profileId, int nextState,
             int prevState) {
         debugLog("processProfileStateChanged, device=" + device + ", profile=" + profileId + ", "
@@ -363,6 +370,7 @@ class PhonePolicy {
         mDatabaseManager.setConnection(device, false);
     }
 
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_PRIVILEGED)
     private boolean handleAllProfilesDisconnected(BluetoothDevice device) {
         boolean atLeastOneProfileConnectedForDevice = false;
         boolean allProfilesEmpty = true;
@@ -407,6 +415,7 @@ class PhonePolicy {
         mA2dpRetrySet.clear();
     }
 
+    @RequiresPermission(android.Manifest.permission.MODIFY_PHONE_STATE)
     private void autoConnect() {
         if (mAdapterService.getState() != BluetoothAdapter.STATE_ON) {
             errorLog("autoConnect: BT is not ON. Exiting autoConnect");
@@ -446,6 +455,7 @@ class PhonePolicy {
         }
     }
 
+    @RequiresPermission(android.Manifest.permission.MODIFY_PHONE_STATE)
     private void autoConnectHeadset(BluetoothDevice device) {
         final HeadsetService hsService = mFactory.getHeadsetService();
         if (hsService == null) {
@@ -481,6 +491,10 @@ class PhonePolicy {
     // profiles which are not already connected or in the process of connecting to attempt to
     // connect to the device that initiated the connection.  In the event that this function is
     // invoked and there are no current bluetooth connections no new profiles will be connected.
+    @RequiresPermission(allOf = {
+            android.Manifest.permission.BLUETOOTH_PRIVILEGED,
+            android.Manifest.permission.MODIFY_PHONE_STATE,
+    })
     private void processConnectOtherProfiles(BluetoothDevice device) {
         debugLog("processConnectOtherProfiles, device=" + device);
         if (mAdapterService.getState() != BluetoothAdapter.STATE_ON) {
