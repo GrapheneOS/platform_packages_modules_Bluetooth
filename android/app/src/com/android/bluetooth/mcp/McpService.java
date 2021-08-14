@@ -107,6 +107,16 @@ public class McpService extends ProfileService {
         }
     }
 
+    public void onDeviceUnauthorized(BluetoothDevice device) {
+        // TODO: For now just reject authorization for other than LeAudio device already authorized.
+        //       Consider intent based authorization mechanism for non-LeAudio devices.
+        setDeviceAuthorized(device, false);
+    }
+
+    public int getDeviceAuthorization(BluetoothDevice device) {
+        return BluetoothDevice.ACCESS_ALLOWED;
+    }
+
     void setDeviceAuthorized(BluetoothDevice device, boolean isAuthorized) {
 
     }
