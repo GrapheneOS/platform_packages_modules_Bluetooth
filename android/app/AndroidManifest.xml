@@ -428,6 +428,7 @@
         <service
             android:process="@string/process"
             android:name = ".le_audio.LeAudioService"
+            android:enabled="@bool/profile_supported_le_audio"
             android:exported = "true">
             <intent-filter>
                 <action android:name="android.bluetooth.IBluetoothLeAudio" />
