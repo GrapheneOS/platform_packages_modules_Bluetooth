@@ -18,6 +18,7 @@
 package android.bluetooth;
 
 import android.bluetooth.BluetoothDevice;
+import android.content.AttributionSource;
 
 /**
  * Media Control Profile service manager
@@ -25,5 +26,6 @@ import android.bluetooth.BluetoothDevice;
  */
 interface IBluetoothMcpServiceManager
 {
-    void setDeviceAuthorized(in BluetoothDevice device, boolean isAuthorized);
+    @JavaPassthrough(annotation="@android.annotation.RequiresPermission(android.Manifest.permission.BLUETOOTH_PRIVILEGED)")
+    void setDeviceAuthorized(in BluetoothDevice device, boolean isAuthorized, in AttributionSource source);
 }
