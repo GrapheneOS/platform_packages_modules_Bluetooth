@@ -32,7 +32,8 @@
     <bool name="profile_supported_pbapclient">false</bool>
     <bool name="profile_supported_mapmce">false</bool>
     <bool name="profile_supported_hid_device">true</bool>
-    <bool name="profile_supported_vc">false</bool>
+    <bool name="profile_supported_le_audio">true</bool>
+    <bool name="profile_supported_vc">true</bool>
     <bool name="profile_supported_mcp_server">true</bool>
 
     <!-- If true, we will require location to be enabled on the device to
