@@ -15,6 +15,7 @@ use futures::stream::StreamExt;
 use grpcio::*;
 use log::debug;
 use nix::sys::signal;
+use std::net::{IpAddr, Ipv4Addr, SocketAddr, TcpStream};
 use std::sync::{Arc, Mutex};
 use tokio::runtime::Runtime;
 
@@ -32,28 +33,63 @@ async fn async_main(rt: Arc<Runtime>, mut sigint: mpsc::UnboundedReceiver<()>) {
     let matches = App::new("bluetooth_topshim_facade")
         .about("The bluetooth topshim stack, with testing facades enabled and exposed via gRPC.")
         .arg(Arg::with_name("grpc-port").long("grpc-port").default_value("8899").takes_value(true))
+        .arg(
+            Arg::with_name("root-server-port")
+                .long("root-server-port")
+                .default_value("8897")
+                .takes_value(true),
+        )
+        .arg(
+            Arg::with_name("signal-port")
+                .long("signal-port")
+                .default_value("8895")
+                .takes_value(true),
+        )
         .arg(Arg::with_name("rootcanal-port").long("rootcanal-port").takes_value(true))
         .arg(Arg::with_name("btsnoop").long("btsnoop").takes_value(true))
         .arg(Arg::with_name("btsnooz").long("btsnooz").takes_value(true))
         .arg(Arg::with_name("btconfig").long("btconfig").takes_value(true))
+        .arg(
+            Arg::with_name("start-stack-now")
+                .long("start-stack-now")
+                .default_value("true")
+                .takes_value(true),
+        )
         .get_matches();
 
     let grpc_port = value_t!(matches, "grpc-port", u16).unwrap();
     let _rootcanal_port = value_t!(matches, "rootcanal-port", u16).ok();
+    let signal_port = value_t!(matches, "signal-port", u16).ok();
     let env = Arc::new(Environment::new(2));
 
     let btif_intf = Arc::new(Mutex::new(btif::get_btinterface().unwrap()));
 
+    // AdapterServiceImpl::create initializes the stack; not the best practice because the side effect is hidden
+    let adapter_service_impl =
+        adapter_service::AdapterServiceImpl::create(rt.clone(), btif_intf.clone());
+
+    let media_service_impl = media_service::MediaServiceImpl::create(rt.clone(), btif_intf.clone());
+
+    let start_stack_now = value_t!(matches, "start-stack-now", bool).unwrap();
+
+    if start_stack_now {
+        btif_intf.clone().lock().unwrap().enable();
+    }
+
     let mut server = ServerBuilder::new(env)
-        .register_service(adapter_service::AdapterServiceImpl::create(
-            rt.clone(),
-            btif_intf.clone(),
-        ))
-        .register_service(media_service::MediaServiceImpl::create(rt.clone(), btif_intf.clone()))
+        .register_service(adapter_service_impl)
+        .register_service(media_service_impl)
         .bind("0.0.0.0", grpc_port)
         .build()
         .unwrap();
     server.start();
+    match TcpStream::connect_timeout(
+        &SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), signal_port.unwrap()),
+        std::time::Duration::from_secs(2),
+    ) {
+        Ok(_) => (),
+        Err(e) => panic!("Error with connect: {}", e),
+    }
 
     sigint.next().await;
     block_on(server.shutdown()).unwrap();
