@@ -905,15 +905,3 @@ const hci_t* hci_layer_get_interface_legacy() {
 const hci_t* hci_layer_get_interface() {
   return bluetooth::shim::hci_layer_get_interface();
 }
-
-const hci_t* hci_layer_get_test_interface(
-    const allocator_t* buffer_allocator_interface,
-    const btsnoop_t* btsnoop_interface,
-    const packet_fragmenter_t* packet_fragmenter_interface) {
-  buffer_allocator = buffer_allocator_interface;
-  btsnoop = btsnoop_interface;
-  packet_fragmenter = packet_fragmenter_interface;
-
-  init_layer_interface();
-  return &interface;
-}
