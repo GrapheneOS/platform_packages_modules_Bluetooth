@@ -903,11 +903,7 @@ const hci_t* hci_layer_get_interface_legacy() {
 }
 
 const hci_t* hci_layer_get_interface() {
-  if (bluetooth::shim::is_gd_hci_enabled()) {
-    return bluetooth::shim::hci_layer_get_interface();
-  } else {
-    return hci_layer_get_interface_legacy();
-  }
+  return bluetooth::shim::hci_layer_get_interface();
 }
 
 const hci_t* hci_layer_get_test_interface(
