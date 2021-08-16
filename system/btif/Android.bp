@@ -123,6 +123,7 @@ cc_library_static {
             shared_libs: [
                 "libaaudio",
                 "libfmq",
+                "libstatslog",
             ],
             srcs: ["src/btif_avrcp_audio_track.cc"],
         },
