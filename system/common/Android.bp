@@ -33,6 +33,7 @@ cc_library_static {
     target: {
         android: {
             srcs: ["metrics.cc"],
+            shared_libs: ["libstatslog"],
         },
         host: {
             srcs: ["metrics_linux.cc"],

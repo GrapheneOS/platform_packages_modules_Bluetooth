@@ -46,10 +46,10 @@ rust_binary_host {
         "libudrv-uipc",
         "libbluetooth_gd", // Gabeldorsche
         "libbluetooth_rust_interop",
+        "libflatbuffers-cpp",
     ],
     shared_libs: [
         "libcrypto",
-        "libflatbuffers-cpp",
         "libbluetooth",
         "libchrome",
     ],
