@@ -20,7 +20,6 @@
 
 #include "check.h"
 #include "hci/include/buffer_allocator.h"
-#include "hci_internals.h"
 #include "hci_layer.h"
 #include "hci_packet_factory.h"
 #include "hcidefs.h"

@@ -20,7 +20,6 @@
 
 #include "common/message_loop_thread.h"
 #include "hci/src/hci_layer.cc"
-#include "hci_internals.h"
 #include "osi/include/allocator.h"
 #include "osi/include/osi.h"
 #include "osi/test/AllocationTestHarness.h"
