@@ -96,10 +96,6 @@ cc_library_shared {
         "libcrypto",
         "libflatbuffers-cpp",
         "liblog",
-        "libprocessgroup",
-        "libprotobuf-cpp-lite",
-        "libtinyxml2",
-        "libutils",
     ],
     static_libs: [
         "libbte",
@@ -108,6 +104,7 @@ cc_library_shared {
         "libFraunhoferAAC",
         "libg722codec",
         "libudrv-uipc",
+        "libprotobuf-cpp-lite",
         "libbluetooth_gd", // Gabeldorsche
         "libbluetooth_rust_interop",
     ],
@@ -138,6 +135,9 @@ cc_library_shared {
                 "libcutils",
                 "libhidlbase",
                 "libfmq",
+                "libprocessgroup",
+                "libtinyxml2",
+                "libutils",
                 "libz",
             ],
             required: [
