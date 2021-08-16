@@ -1647,10 +1647,14 @@ void btm_ble_update_inq_result(tINQ_DB_ENT* p_i, uint8_t addr_type,
 
   p_i->inq_count = p_inq->inq_counter; /* Mark entry for current inquiry */
 
+  bool has_advertising_flags = false;
   if (!data.empty()) {
     const uint8_t* p_flag =
         AdvertiseDataParser::GetFieldByType(data, BTM_BLE_AD_TYPE_FLAG, &len);
-    if (p_flag != NULL && len != 0) p_cur->flag = *p_flag;
+    if (p_flag != NULL && len != 0) {
+      has_advertising_flags = true;
+      p_cur->flag = *p_flag;
+    }
   }
 
   if (!data.empty()) {
@@ -1685,7 +1689,13 @@ void btm_ble_update_inq_result(tINQ_DB_ENT* p_i, uint8_t addr_type,
     }
   }
 
-  if ((p_cur->flag & BTM_BLE_BREDR_NOT_SPT) == 0 &&
+  // Non-connectable packets may omit flags entirely, in which case nothing
+  // should be assumed about their values (CSSv10, 1.3.1). Thus, do not
+  // interpret the device type unless this packet has the flags set or is
+  // connectable.
+  bool should_process_flags =
+      has_advertising_flags || ble_evt_type_is_connectable(evt_type);
+  if (should_process_flags && (p_cur->flag & BTM_BLE_BREDR_NOT_SPT) == 0 &&
       !ble_evt_type_is_directed(evt_type)) {
     if (p_cur->ble_addr_type != BLE_ADDR_RANDOM) {
       LOG_VERBOSE("NOT_BR_EDR support bit not set, treat device as DUMO");
