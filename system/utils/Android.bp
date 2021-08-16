@@ -21,8 +21,12 @@ cc_library_static {
         "packages/modules/Bluetooth/system/stack/include",
     ],
     srcs: ["src/bt_utils.cc"],
-    shared_libs: [
-        "libprocessgroup",
-    ],
+    target: {
+        android: {
+            shared_libs: [
+                "libprocessgroup",
+            ],
+        },
+    },
     host_supported: true,
 }
