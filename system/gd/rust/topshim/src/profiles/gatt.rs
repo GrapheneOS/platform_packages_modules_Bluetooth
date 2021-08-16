@@ -34,6 +34,59 @@ impl std::fmt::Debug for BtGattNotifyParams {
     }
 }
 
+#[derive(Debug, FromPrimitive, PartialEq, PartialOrd)]
+#[repr(u32)]
+pub enum GattStatus {
+    Success = 0x00,
+    InvalidHandle = 0x01,
+    ReadNotPermit = 0x02,
+    WriteNotPermit = 0x03,
+    InvalidPdu = 0x04,
+    InsufAuthentication = 0x05,
+    ReqNotSupported = 0x06,
+    InvalidOffset = 0x07,
+    InsufAuthorization = 0x08,
+    PrepareQFull = 0x09,
+    NotFound = 0x0a,
+    NotLong = 0x0b,
+    InsufKeySize = 0x0c,
+    InvalidAttrLen = 0x0d,
+    ErrUnlikely = 0x0e,
+    InsufEncryption = 0x0f,
+    UnsupportGrpType = 0x10,
+    InsufResource = 0x11,
+    DatabaseOutOfSync = 0x12,
+    ValueNotAllowed = 0x13,
+    IllegalParameter = 0x87,
+    TooShort = 0x7f,
+    NoResources = 0x80,
+    InternalError = 0x81,
+    WrongState = 0x82,
+    DbFull = 0x83,
+    Busy = 0x84,
+    Error = 0x85,
+    CmdStarted = 0x86,
+    Pending = 0x88,
+    AuthFail = 0x89,
+    More = 0x8a,
+    InvalidCfg = 0x8b,
+    ServiceStarted = 0x8c,
+    EncryptedNoMitm = 0x8d,
+    NotEncrypted = 0x8e,
+    Congested = 0x8f,
+    DupReg = 0x90,      /* 0x90 */
+    AlreadyOpen = 0x91, /* 0x91 */
+    Cancel = 0x92,      /* 0x92 */
+    /* = 0xE0 ~ 0xFC reserved for future use */
+
+    /* Client Characteristic Configuration Descriptor Improperly Configured */
+    CccCfgErr = 0xFD,
+    /* Procedure Already in progress */
+    PrcInProgress = 0xFE,
+    /* Attribute value out of range */
+    OutOfRange = 0xFF,
+}
+
 #[derive(Debug)]
 pub enum GattClientCallbacks {
     RegisterClient(i32, i32, Uuid),

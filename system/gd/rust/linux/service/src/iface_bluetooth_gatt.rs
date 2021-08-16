@@ -27,6 +27,16 @@ struct BluetoothGattCallbackDBus {}
 impl IBluetoothGattCallback for BluetoothGattCallbackDBus {
     #[dbus_method("OnClientRegistered")]
     fn on_client_registered(&self, _status: i32, _scanner_id: i32) {}
+
+    #[dbus_method("OnClientConnectionState")]
+    fn on_client_connection_state(
+        &self,
+        status: i32,
+        client_id: i32,
+        connected: bool,
+        addr: String,
+    ) {
+    }
 }
 
 #[allow(dead_code)]
@@ -84,5 +94,20 @@ impl IBluetoothGatt for IBluetoothGattDBus {
     }
 
     #[dbus_method("UnregisterClient")]
-    fn unregister_client(&self, client_if: i32) {}
+    fn unregister_client(&mut self, client_id: i32) {}
+
+    #[dbus_method("ClientConnect")]
+    fn client_connect(
+        &self,
+        client_id: i32,
+        addr: String,
+        is_direct: bool,
+        transport: i32,
+        opportunistic: bool,
+        phy: i32,
+    ) {
+    }
+
+    #[dbus_method("ClientDisconnect")]
+    fn client_disconnect(&self, client_id: i32, addr: String) {}
 }
