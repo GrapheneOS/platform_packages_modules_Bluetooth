@@ -19,6 +19,7 @@
 #pragma once
 
 #include "bt_types.h"
+#include "device/include/controller.h"
 #include "hci_layer.h"
 #include "osi/include/allocator.h"
 
