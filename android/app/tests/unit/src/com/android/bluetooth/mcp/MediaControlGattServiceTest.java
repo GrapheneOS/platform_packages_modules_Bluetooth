@@ -25,17 +25,21 @@ import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattDescriptor;
 import android.bluetooth.BluetoothGattService;
+import android.content.Context;
 import android.os.Looper;
 import android.util.MathUtils;
 
+import androidx.test.InstrumentationRegistry;
 import androidx.test.filters.MediumTest;
 import androidx.test.runner.AndroidJUnit4;
 
+import com.android.bluetooth.R;
 import com.android.bluetooth.TestUtils;
 import com.android.bluetooth.btservice.AdapterService;
 
 import org.junit.After;
 import org.junit.Assert;
+import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -57,6 +61,7 @@ import java.util.UUID;
 public class MediaControlGattServiceTest {
     private BluetoothAdapter mAdapter;
     private BluetoothDevice mCurrentDevice;
+    private Context mTargetContext;
 
     private static final UUID UUID_GMCS = UUID.fromString("00001849-0000-1000-8000-00805f9b34fb");
     private static final UUID UUID_CCCD = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb");
@@ -73,6 +78,10 @@ public class MediaControlGattServiceTest {
 
     @Before
     public void setUp() throws Exception {
+        mTargetContext = InstrumentationRegistry.getTargetContext();
+        Assume.assumeTrue("Ignore test when MCP Server is not enabled",
+                mTargetContext.getResources().getBoolean(
+                        R.bool.profile_supported_mcp_server));
         if (Looper.myLooper() == null) {
             Looper.prepare();
         }
@@ -94,6 +103,9 @@ public class MediaControlGattServiceTest {
 
     @After
     public void tearDown() throws Exception {
+        if (!mTargetContext.getResources().getBoolean(R.bool.profile_supported_mcp_server)) {
+            return;
+        }
         mMcpService = null;
         reset(mMockGattServer);
         reset(mMockMcpService);
