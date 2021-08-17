@@ -183,13 +183,13 @@ pub fn generate_dbus_exporter(attr: TokenStream, item: TokenStream) -> TokenStre
 
         pub fn #fn_ident<T: 'static + #api_iface_ident + Send + ?Sized, P: Into<dbus::Path<'static>>>(
             path: P,
-            conn: std::sync::Arc<SyncConnection>,
+            conn: std::sync::Arc<dbus::nonblock::SyncConnection>,
             cr: &mut dbus_crossroads::Crossroads,
             obj: #obj_type,
             disconnect_watcher: std::sync::Arc<std::sync::Mutex<dbus_projection::DisconnectWatcher>>,
         ) {
             fn get_iface_token<T: #api_iface_ident + Send + ?Sized>(
-                conn: std::sync::Arc<SyncConnection>,
+                conn: std::sync::Arc<dbus::nonblock::SyncConnection>,
                 cr: &mut dbus_crossroads::Crossroads,
                 disconnect_watcher: std::sync::Arc<std::sync::Mutex<dbus_projection::DisconnectWatcher>>,
             ) -> dbus_crossroads::IfaceToken<#obj_type> {
@@ -314,7 +314,7 @@ pub fn dbus_propmap(attr: TokenStream, item: TokenStream) -> TokenStream {
 
             fn from_dbus(
                 data__: dbus::arg::PropMap,
-                conn__: Option<std::sync::Arc<SyncConnection>>,
+                conn__: Option<std::sync::Arc<dbus::nonblock::SyncConnection>>,
                 remote__: Option<dbus::strings::BusName<'static>>,
                 disconnect_watcher__: Option<std::sync::Arc<std::sync::Mutex<dbus_projection::DisconnectWatcher>>>,
             ) -> Result<#struct_ident, Box<dyn std::error::Error>> {
@@ -440,7 +440,7 @@ pub fn dbus_proxy_obj(attr: TokenStream, item: TokenStream) -> TokenStream {
         }
 
         struct #struct_ident {
-            conn: std::sync::Arc<SyncConnection>,
+            conn: std::sync::Arc<dbus::nonblock::SyncConnection>,
             remote: dbus::strings::BusName<'static>,
             objpath: Path<'static>,
             disconnect_watcher: std::sync::Arc<std::sync::Mutex<DisconnectWatcher>>,
@@ -465,7 +465,7 @@ pub fn dbus_proxy_obj(attr: TokenStream, item: TokenStream) -> TokenStream {
 
             fn from_dbus(
                 objpath__: Path<'static>,
-                conn__: Option<std::sync::Arc<SyncConnection>>,
+                conn__: Option<std::sync::Arc<dbus::nonblock::SyncConnection>>,
                 remote__: Option<dbus::strings::BusName<'static>>,
                 disconnect_watcher__: Option<std::sync::Arc<std::sync::Mutex<DisconnectWatcher>>>,
             ) -> Result<Box<dyn #trait_ + Send>, Box<dyn std::error::Error>> {
@@ -559,10 +559,18 @@ pub fn generate_dbus_arg(_item: TokenStream) -> TokenStream {
             type RustType = dbus::arg::PropMap;
             fn ref_arg_to_rust(
                 arg: &(dyn dbus::arg::RefArg + 'static),
-                _name: String,
+                name: String,
             ) -> Result<Self::RustType, Box<dyn Error>> {
                 let mut map: dbus::arg::PropMap = std::collections::HashMap::new();
-                let mut iter = arg.as_iter().unwrap();
+                let mut iter = match arg.as_iter() {
+                    None => {
+                        return Err(Box::new(DBusArgError::new(String::from(format!(
+                            "{} is not iterable",
+                            name,
+                        )))))
+                    }
+                    Some(item) => item,
+                };
                 let mut key = iter.next();
                 let mut val = iter.next();
                 while !key.is_none() && !val.is_none() {
@@ -602,7 +610,7 @@ pub fn generate_dbus_arg(_item: TokenStream) -> TokenStream {
 
             fn from_dbus(
                 x: Self::DBusType,
-                conn: Option<Arc<SyncConnection>>,
+                conn: Option<Arc<dbus::nonblock::SyncConnection>>,
                 remote: Option<BusName<'static>>,
                 disconnect_watcher: Option<Arc<Mutex<DisconnectWatcher>>>,
             ) -> Result<Self, Box<dyn Error>>
@@ -627,7 +635,7 @@ pub fn generate_dbus_arg(_item: TokenStream) -> TokenStream {
 
             fn from_dbus(
                 data: T,
-                _conn: Option<Arc<SyncConnection>>,
+                _conn: Option<Arc<dbus::nonblock::SyncConnection>>,
                 _remote: Option<BusName<'static>>,
                 _disconnect_watcher: Option<Arc<Mutex<DisconnectWatcher>>>,
             ) -> Result<T, Box<dyn Error>> {
@@ -644,7 +652,7 @@ pub fn generate_dbus_arg(_item: TokenStream) -> TokenStream {
 
             fn from_dbus(
                 data: Vec<T::DBusType>,
-                conn: Option<Arc<SyncConnection>>,
+                conn: Option<Arc<dbus::nonblock::SyncConnection>>,
                 remote: Option<BusName<'static>>,
                 disconnect_watcher: Option<Arc<Mutex<DisconnectWatcher>>>,
             ) -> Result<Vec<T>, Box<dyn Error>> {
