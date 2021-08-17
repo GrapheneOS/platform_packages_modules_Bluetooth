@@ -6,7 +6,9 @@
 use crate::bindings::root as bindings;
 use crate::topstack::get_dispatchers;
 use num_traits::cast::{FromPrimitive, ToPrimitive};
+use std::cmp;
 use std::fmt::{Debug, Formatter, Result};
+use std::mem;
 use std::sync::{Arc, Mutex};
 use std::vec::Vec;
 use topshim_macros::cb_variant;
@@ -185,6 +187,12 @@ fn ascii_to_string(data: &[u8], length: usize) -> String {
     return String::from_utf8(ascii).unwrap_or_default();
 }
 
+fn u32_from_bytes(item: &[u8]) -> u32 {
+    let mut u: [u8; 4] = [0; 4];
+    u.copy_from_slice(&item[0..4]);
+    u32::from_ne_bytes(u)
+}
+
 impl From<bindings::bt_status_t> for BtStatus {
     fn from(item: bindings::bt_status_t) -> Self {
         match BtStatus::from_u32(item) {
@@ -230,11 +238,314 @@ impl From<bindings::bt_bdname_t> for String {
     }
 }
 
+#[derive(Debug, Clone)]
+pub struct BtServiceRecord {
+    pub uuid: bindings::bluetooth::Uuid,
+    pub channel: u16,
+    pub name: String,
+}
+
+impl From<bindings::bt_service_record_t> for BtServiceRecord {
+    fn from(item: bindings::bt_service_record_t) -> Self {
+        let name = item.name.iter().map(|&x| x.clone() as u8).collect::<Vec<u8>>();
+
+        BtServiceRecord {
+            uuid: item.uuid,
+            channel: item.channel,
+            name: ascii_to_string(name.as_slice(), name.len()),
+        }
+    }
+}
+
+#[derive(Clone, Debug, FromPrimitive, ToPrimitive, PartialEq, PartialOrd)]
+#[repr(u32)]
+pub enum BtScanMode {
+    None_,
+    Connectable,
+    ConnectableDiscoverable,
+}
+
+impl From<bindings::bt_scan_mode_t> for BtScanMode {
+    fn from(item: bindings::bt_scan_mode_t) -> Self {
+        BtScanMode::from_u32(item).unwrap_or(BtScanMode::None_)
+    }
+}
+
+#[derive(Clone, Debug, FromPrimitive, ToPrimitive, PartialEq, PartialOrd)]
+#[repr(u32)]
+pub enum BtIoCap {
+    Out,
+    InOut,
+    In,
+    None_,
+    KbDisp,
+    Max,
+    Unknown = 0xff,
+}
+
+impl From<bindings::bt_io_cap_t> for BtIoCap {
+    fn from(item: bindings::bt_io_cap_t) -> Self {
+        BtIoCap::from_u32(item).unwrap_or(BtIoCap::Unknown)
+    }
+}
+
 pub type BtHciErrorCode = u8;
-
+pub type BtLocalLeFeatures = bindings::bt_local_le_features_t;
 pub type BtPinCode = bindings::bt_pin_code_t;
-
+pub type BtRemoteVersion = bindings::bt_remote_version_t;
 pub type Uuid = bindings::bluetooth::Uuid;
+
+/// All supported Bluetooth properties after conversion.
+pub enum BluetoothProperty {
+    BdName(String),
+    BdAddr(RawAddress),
+    Uuids(Vec<Uuid>),
+    ClassOfDevice(u32),
+    TypeOfDevice(BtDeviceType),
+    ServiceRecord(BtServiceRecord),
+    AdapterScanMode(BtScanMode),
+    AdapterBondedDevices(Vec<RawAddress>),
+    AdapterDiscoveryTimeout(u32),
+    RemoteFriendlyName(String),
+    RemoteRssi(i8),
+    RemoteVersionInfo(BtRemoteVersion),
+    LocalLeFeatures(BtLocalLeFeatures),
+    LocalIoCaps(BtIoCap),
+    LocalIoCapsBle(BtIoCap),
+    DynamicAudioBuffer(),
+    RemoteDeviceTimestamp(),
+
+    Unknown(),
+}
+
+/// Wherever names are sent in bindings::bt_property_t, the size of the character
+/// arrays are 256. Keep one extra byte for null termination.
+const PROPERTY_NAME_MAX: usize = 255;
+
+impl BluetoothProperty {
+    pub fn get_type(&self) -> BtPropertyType {
+        match &*self {
+            BluetoothProperty::BdName(_) => BtPropertyType::BdName,
+            BluetoothProperty::BdAddr(_) => BtPropertyType::BdAddr,
+            BluetoothProperty::Uuids(_) => BtPropertyType::Uuids,
+            BluetoothProperty::ClassOfDevice(_) => BtPropertyType::ClassOfDevice,
+            BluetoothProperty::TypeOfDevice(_) => BtPropertyType::TypeOfDevice,
+            BluetoothProperty::ServiceRecord(_) => BtPropertyType::ServiceRecord,
+            BluetoothProperty::AdapterScanMode(_) => BtPropertyType::AdapterScanMode,
+            BluetoothProperty::AdapterBondedDevices(_) => BtPropertyType::AdapterBondedDevices,
+            BluetoothProperty::AdapterDiscoveryTimeout(_) => {
+                BtPropertyType::AdapterDiscoveryTimeout
+            }
+            BluetoothProperty::RemoteFriendlyName(_) => BtPropertyType::RemoteFriendlyName,
+            BluetoothProperty::RemoteRssi(_) => BtPropertyType::RemoteRssi,
+            BluetoothProperty::RemoteVersionInfo(_) => BtPropertyType::RemoteVersionInfo,
+            BluetoothProperty::LocalLeFeatures(_) => BtPropertyType::LocalLeFeatures,
+            BluetoothProperty::LocalIoCaps(_) => BtPropertyType::LocalIoCaps,
+            BluetoothProperty::LocalIoCapsBle(_) => BtPropertyType::LocalIoCapsBle,
+            BluetoothProperty::DynamicAudioBuffer() => BtPropertyType::DynamicAudioBuffer,
+            BluetoothProperty::RemoteDeviceTimestamp() => BtPropertyType::RemoteDeviceTimestamp,
+            BluetoothProperty::Unknown() => BtPropertyType::Unknown,
+        }
+    }
+
+    fn get_len(&self) -> usize {
+        match &*self {
+            BluetoothProperty::BdName(name) => cmp::min(PROPERTY_NAME_MAX, name.len() + 1),
+            BluetoothProperty::BdAddr(addr) => addr.val.len(),
+            BluetoothProperty::Uuids(uulist) => uulist.len() * mem::size_of::<Uuid>(),
+            BluetoothProperty::ClassOfDevice(_) => mem::size_of::<u32>(),
+            BluetoothProperty::TypeOfDevice(_) => mem::size_of::<BtDeviceType>(),
+            BluetoothProperty::ServiceRecord(rec) => {
+                mem::size_of::<BtServiceRecord>() + cmp::min(PROPERTY_NAME_MAX, rec.name.len() + 1)
+            }
+            BluetoothProperty::AdapterScanMode(_) => mem::size_of::<BtScanMode>(),
+            BluetoothProperty::AdapterBondedDevices(devlist) => {
+                devlist.len() * mem::size_of::<RawAddress>()
+            }
+            BluetoothProperty::AdapterDiscoveryTimeout(_) => mem::size_of::<u32>(),
+            BluetoothProperty::RemoteFriendlyName(name) => {
+                cmp::min(PROPERTY_NAME_MAX, name.len() + 1)
+            }
+            BluetoothProperty::RemoteRssi(_) => mem::size_of::<i8>(),
+            BluetoothProperty::RemoteVersionInfo(_) => mem::size_of::<BtRemoteVersion>(),
+            BluetoothProperty::LocalLeFeatures(_) => mem::size_of::<BtLocalLeFeatures>(),
+            BluetoothProperty::LocalIoCaps(_) => mem::size_of::<BtIoCap>(),
+            BluetoothProperty::LocalIoCapsBle(_) => mem::size_of::<BtIoCap>(),
+
+            // TODO(abps) - Figure out sizes for these
+            BluetoothProperty::DynamicAudioBuffer() => 0,
+            BluetoothProperty::RemoteDeviceTimestamp() => 0,
+            BluetoothProperty::Unknown() => 0,
+        }
+    }
+
+    // Given a mutable array, this will copy the data to that array and return a
+    // pointer to it.
+    //
+    // The lifetime of the returned pointer is tied to that of the slice given.
+    fn get_data_ptr<'a>(&'a self, data: &'a mut [u8]) -> *mut u8 {
+        let len = self.get_len();
+        match &*self {
+            BluetoothProperty::BdName(name) => {
+                data.copy_from_slice(&name.as_bytes()[0..len]);
+            }
+            BluetoothProperty::BdAddr(addr) => {
+                data.copy_from_slice(&addr.val);
+            }
+            BluetoothProperty::Uuids(uulist) => {
+                for (idx, &uuid) in uulist.iter().enumerate() {
+                    let start = idx * mem::size_of::<Uuid>();
+                    let end = start + mem::size_of::<Uuid>();
+                    data[start..end].copy_from_slice(&uuid.uu);
+                }
+            }
+            BluetoothProperty::ClassOfDevice(cod) => {
+                data.copy_from_slice(&cod.to_ne_bytes());
+            }
+            BluetoothProperty::TypeOfDevice(tod) => {
+                data.copy_from_slice(&BtDeviceType::to_u32(tod).unwrap_or_default().to_ne_bytes());
+            }
+            BluetoothProperty::ServiceRecord(sr) => {
+                // Do an unsafe cast to binding:: type and assign the values
+                // The underlying memory location is provided by |data| which will
+                // have enough space because it uses get_len()
+                let mut record =
+                    unsafe { &mut *(data.as_mut_ptr() as *mut bindings::bt_service_record_t) };
+                record.uuid = sr.uuid;
+                record.channel = sr.channel;
+                let name_len = len - mem::size_of::<BtServiceRecord>();
+                record.name.copy_from_slice(
+                    &(sr.name.as_bytes().iter().map(|x| *x as i8).collect::<Vec<i8>>())
+                        [0..name_len],
+                );
+            }
+            BluetoothProperty::AdapterScanMode(sm) => {
+                data.copy_from_slice(&BtScanMode::to_u32(sm).unwrap_or_default().to_ne_bytes());
+            }
+            BluetoothProperty::AdapterBondedDevices(devlist) => {
+                for (idx, &dev) in devlist.iter().enumerate() {
+                    let start = idx * mem::size_of::<RawAddress>();
+                    let end = idx + mem::size_of::<RawAddress>();
+                    data[start..end].copy_from_slice(&dev.val);
+                }
+            }
+            BluetoothProperty::AdapterDiscoveryTimeout(timeout) => {
+                data.copy_from_slice(&timeout.to_ne_bytes());
+            }
+            BluetoothProperty::RemoteFriendlyName(name) => {
+                data.copy_from_slice(&name.as_bytes()[0..len]);
+            }
+            BluetoothProperty::RemoteRssi(rssi) => {
+                data[0] = *rssi as u8;
+            }
+            BluetoothProperty::RemoteVersionInfo(rvi) => {
+                let ptr: *const BtRemoteVersion = rvi;
+                let slice = unsafe {
+                    std::slice::from_raw_parts(ptr as *mut u8, mem::size_of::<BtRemoteVersion>())
+                };
+                data.copy_from_slice(&slice);
+            }
+            BluetoothProperty::LocalLeFeatures(llf) => {
+                let ptr: *const BtLocalLeFeatures = llf;
+                let slice = unsafe {
+                    std::slice::from_raw_parts(ptr as *mut u8, mem::size_of::<BtLocalLeFeatures>())
+                };
+                data.copy_from_slice(&slice);
+            }
+            BluetoothProperty::LocalIoCaps(iocap) => {
+                data.copy_from_slice(&BtIoCap::to_u32(iocap).unwrap_or_default().to_ne_bytes());
+            }
+            BluetoothProperty::LocalIoCapsBle(iocap) => {
+                data.copy_from_slice(&BtIoCap::to_u32(iocap).unwrap_or_default().to_ne_bytes());
+            }
+            BluetoothProperty::DynamicAudioBuffer() => (),
+            BluetoothProperty::RemoteDeviceTimestamp() => (),
+            BluetoothProperty::Unknown() => (),
+        };
+
+        data.as_mut_ptr()
+    }
+}
+
+// TODO(abps) - Check that sizes are correct when given a BtProperty
+impl From<bindings::bt_property_t> for BluetoothProperty {
+    fn from(prop: bindings::bt_property_t) -> Self {
+        let slice: &[u8] =
+            unsafe { std::slice::from_raw_parts(prop.val as *mut u8, prop.len as usize) };
+        let len = prop.len as usize;
+
+        match BtPropertyType::from(prop.type_) {
+            BtPropertyType::BdName => BluetoothProperty::BdName(ascii_to_string(slice, len)),
+            BtPropertyType::BdAddr => {
+                BluetoothProperty::BdAddr(RawAddress::from_bytes(slice).unwrap_or_default())
+            }
+            BtPropertyType::Uuids => {
+                let count = len / mem::size_of::<Uuid>();
+                BluetoothProperty::Uuids(ptr_to_vec(prop.val as *mut Uuid, count))
+            }
+            BtPropertyType::ClassOfDevice => {
+                BluetoothProperty::ClassOfDevice(u32_from_bytes(slice))
+            }
+            BtPropertyType::TypeOfDevice => BluetoothProperty::TypeOfDevice(
+                BtDeviceType::from_u32(u32_from_bytes(slice)).unwrap_or(BtDeviceType::Bredr),
+            ),
+            BtPropertyType::ServiceRecord => {
+                let v = unsafe { *(prop.val as *const bindings::bt_service_record_t) };
+                BluetoothProperty::ServiceRecord(BtServiceRecord::from(v))
+            }
+            BtPropertyType::AdapterScanMode => BluetoothProperty::AdapterScanMode(
+                BtScanMode::from_u32(u32_from_bytes(slice)).unwrap_or(BtScanMode::None_),
+            ),
+            BtPropertyType::AdapterBondedDevices => {
+                let count = len / mem::size_of::<RawAddress>();
+                BluetoothProperty::AdapterBondedDevices(ptr_to_vec(
+                    prop.val as *mut RawAddress,
+                    count,
+                ))
+            }
+            BtPropertyType::AdapterDiscoveryTimeout => {
+                BluetoothProperty::AdapterDiscoveryTimeout(u32_from_bytes(slice))
+            }
+            BtPropertyType::RemoteFriendlyName => {
+                BluetoothProperty::RemoteFriendlyName(ascii_to_string(slice, len))
+            }
+            BtPropertyType::RemoteRssi => BluetoothProperty::RemoteRssi(slice[0] as i8),
+            BtPropertyType::RemoteVersionInfo => {
+                let v = unsafe { *(prop.val as *const BtRemoteVersion) };
+                BluetoothProperty::RemoteVersionInfo(v.clone())
+            }
+            BtPropertyType::LocalLeFeatures => {
+                let v = unsafe { *(prop.val as *const BtLocalLeFeatures) };
+                BluetoothProperty::LocalLeFeatures(v.clone())
+            }
+            BtPropertyType::LocalIoCaps => BluetoothProperty::LocalIoCaps(
+                BtIoCap::from_u32(u32_from_bytes(slice)).unwrap_or(BtIoCap::Unknown),
+            ),
+            BtPropertyType::LocalIoCapsBle => BluetoothProperty::LocalIoCapsBle(
+                BtIoCap::from_u32(u32_from_bytes(slice)).unwrap_or(BtIoCap::Unknown),
+            ),
+
+            // TODO(abps) - Figure out if these values should actually have contents
+            BtPropertyType::DynamicAudioBuffer => BluetoothProperty::DynamicAudioBuffer(),
+            BtPropertyType::RemoteDeviceTimestamp => BluetoothProperty::RemoteDeviceTimestamp(),
+            _ => BluetoothProperty::Unknown(),
+        }
+    }
+}
+
+impl From<BluetoothProperty> for (Box<[u8]>, bindings::bt_property_t) {
+    fn from(prop: BluetoothProperty) -> Self {
+        let dvec: Vec<u8> = vec![0; prop.get_len()];
+        let mut data: Box<[u8]> = dvec.into_boxed_slice();
+        let prop = bindings::bt_property_t {
+            type_: prop.get_type().into(),
+            len: prop.get_len() as i32,
+            val: prop.get_data_ptr(&mut data) as *mut std::os::raw::c_void,
+        };
+
+        (data, prop)
+    }
+}
 
 pub enum SupportedProfiles {
     HidHost,
@@ -533,9 +844,9 @@ impl BluetoothInterface {
         ccall!(self, get_adapter_property, converted_type)
     }
 
-    pub fn set_adapter_property(&self, prop: BtProperty) -> i32 {
-        let converted_prop = bindings::bt_property_t::from(prop);
-        ccall!(self, set_adapter_property, &converted_prop)
+    pub fn set_adapter_property(&self, prop: BluetoothProperty) -> i32 {
+        let prop_pair: (Box<[u8]>, bindings::bt_property_t) = prop.into();
+        ccall!(self, set_adapter_property, &prop_pair.1)
     }
 
     pub fn get_remote_device_properties(&self, addr: &mut RawAddress) -> i32 {
@@ -553,10 +864,14 @@ impl BluetoothInterface {
         ccall!(self, get_remote_device_property, ffi_addr, converted_type)
     }
 
-    pub fn set_remote_device_property(&self, addr: &mut RawAddress, prop: BtProperty) -> i32 {
-        let converted_prop = bindings::bt_property_t::from(prop);
+    pub fn set_remote_device_property(
+        &self,
+        addr: &mut RawAddress,
+        prop: BluetoothProperty,
+    ) -> i32 {
+        let prop_pair: (Box<[u8]>, bindings::bt_property_t) = prop.into();
         let ffi_addr = cast_to_ffi_address!(addr as *const RawAddress);
-        ccall!(self, set_remote_device_property, ffi_addr, &converted_prop)
+        ccall!(self, set_remote_device_property, ffi_addr, &prop_pair.1)
     }
 
     pub fn start_discovery(&self) -> i32 {
