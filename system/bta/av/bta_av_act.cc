@@ -1908,7 +1908,6 @@ void bta_av_rc_disc_done(UNUSED_ATTR tBTA_AV_DATA* p_data) {
   }
 
   APPL_TRACE_DEBUG("%s: rc_handle %d", __func__, rc_handle);
-#if (BTA_AV_SINK_INCLUDED == TRUE)
   if (p_cb->sdp_a2dp_snk_handle) {
     /* This is Sink + CT + TG(Abs Vol) */
     peer_features =
@@ -1924,9 +1923,7 @@ void bta_av_rc_disc_done(UNUSED_ATTR tBTA_AV_DATA* p_data) {
 
     APPL_TRACE_DEBUG("%s: populating rem ctrl target bip psm 0x%x", __func__,
                      cover_art_psm);
-  } else
-#endif
-      if (p_cb->sdp_a2dp_handle) {
+  } else if (p_cb->sdp_a2dp_handle) {
     /* check peer version and whether support CT and TG role */
     peer_features =
         bta_av_check_peer_features(UUID_SERVCLASS_AV_REMOTE_CONTROL);
@@ -2292,13 +2289,11 @@ void bta_av_dereg_comp(tBTA_AV_DATA* p_data) {
         bta_sys_remove_uuid(UUID_SERVCLASS_AUDIO_SOURCE);
       }
 
-#if (BTA_AV_SINK_INCLUDED == TRUE)
       if (p_cb->sdp_a2dp_snk_handle) {
         bta_av_del_sdp_rec(&p_cb->sdp_a2dp_snk_handle);
         p_cb->sdp_a2dp_snk_handle = 0;
         bta_sys_remove_uuid(UUID_SERVCLASS_AUDIO_SINK);
       }
-#endif
     }
 
     bta_av_free_scb(p_scb);

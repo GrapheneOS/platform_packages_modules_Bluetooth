@@ -137,12 +137,10 @@ static void bta_av_api_enable(tBTA_AV_DATA* p_data) {
       SDP_DeleteRecord(bta_av_cb.sdp_a2dp_handle);
       bta_sys_remove_uuid(UUID_SERVCLASS_AUDIO_SOURCE);
     }
-#if (BTA_AV_SINK_INCLUDED == TRUE)
     if (bta_av_cb.sdp_a2dp_snk_handle) {
       SDP_DeleteRecord(bta_av_cb.sdp_a2dp_snk_handle);
       bta_sys_remove_uuid(UUID_SERVCLASS_AUDIO_SINK);
     }
-#endif
     // deregister from AVDT
     bta_ar_dereg_avdt();
 
@@ -599,12 +597,10 @@ static void bta_av_api_register(tBTA_AV_DATA* p_data) {
                        A2DP_SUPF_PLAYER, bta_av_cb.sdp_a2dp_handle);
         bta_sys_add_uuid(UUID_SERVCLASS_AUDIO_SOURCE);
       } else if (profile_initialized == UUID_SERVCLASS_AUDIO_SINK) {
-#if (BTA_AV_SINK_INCLUDED == TRUE)
         bta_av_cb.sdp_a2dp_snk_handle = SDP_CreateRecord();
         A2DP_AddRecord(UUID_SERVCLASS_AUDIO_SINK, p_service_name, NULL,
                        A2DP_SUPF_PLAYER, bta_av_cb.sdp_a2dp_snk_handle);
         bta_sys_add_uuid(UUID_SERVCLASS_AUDIO_SINK);
-#endif
       }
       /* start listening when A2DP is registered */
       if (bta_av_cb.features & BTA_AV_FEAT_RCTG)
