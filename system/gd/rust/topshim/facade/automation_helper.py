@@ -17,17 +17,17 @@
 import asyncio
 import grpc
 
-import facade_pb2
-import facade_pb2_grpc
+from rust.topshim.facade import facade_pb2
+from rust.topshim.facade import facade_pb2_grpc
 
 
 class AdapterAutomationHelper():
     # Timeout for async wait
-    DEFAULT_TIMEOUT = 3
+    DEFAULT_TIMEOUT = 6
     """Invoke gRPC on topshim for Adapter testing"""
 
-    def __init__(self, url="localhost:8899"):
-        self.channel = grpc.aio.insecure_channel(url)
+    def __init__(self, port=8999):
+        self.channel = grpc.aio.insecure_channel("localhost:%d" % port)
         self.adapter_stub = facade_pb2_grpc.AdapterServiceStub(self.channel)
 
         self.pending_future = None
@@ -35,8 +35,7 @@ class AdapterAutomationHelper():
     """Start fetching events"""
 
     def fetch_events(self, async_event_loop):
-        self.adapter_event_stream = self.adapter_stub.FetchEvents(
-            facade_pb2.FetchEventsRequest(), timeout=AdapterAutomationHelper.DEFAULT_TIMEOUT)
+        self.adapter_event_stream = self.adapter_stub.FetchEvents(facade_pb2.FetchEventsRequest())
         self.event_handler = async_event_loop.create_task(self.get_next_event())
 
     """Enable/disable the stack"""
@@ -65,8 +64,8 @@ class AdapterAutomationHelper():
 class A2dpAutomationHelper():
     """Invoke gRPC on topshim for A2DP testing"""
 
-    def __init__(self, url="localhost:8899"):
-        self.channel = grpc.insecure_channel(url)
+    def __init__(self, port=8999):
+        self.channel = grpc.insecure_channel("localhost:%d" % port)
         self.media_stub = facade_pb2_grpc.MediaServiceStub(self.channel)
 
     """Start A2dp source profile service"""
@@ -83,15 +82,3 @@ class A2dpAutomationHelper():
 
     def source_connect_to_remote(self, address="11:22:33:44:55:66"):
         self.media_stub.A2dpSourceConnect(facade_pb2.A2dpSourceConnectRequest(address=address))
-
-
-async def init_adapter():
-    adapter = AdapterAutomationHelper()
-    await adapter.toggle_stack()
-
-
-if __name__ == "__main__":
-    import asyncio
-    asyncio.run(init_adapter())
-    a2dp = A2dpAutomationHelper()
-    a2dp.start_source()

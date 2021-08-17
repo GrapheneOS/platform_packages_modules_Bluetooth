@@ -15,20 +15,15 @@
 #   limitations under the License.
 
 import asyncio
-import unittest
+from mobly import test_runner
+from rust.topshim.facade import topshim_base_test
+from rust.topshim.facade.automation_helper import AdapterAutomationHelper
 
-from topshim_base_test import TopshimBaseTest
 
+class AdapterTest(topshim_base_test.TopshimBaseTest):
 
-class AdapterTest(TopshimBaseTest):
-
-    async def asyncSetUp(self):
-        await super().asyncSetUp()
-        from automation_helper import AdapterAutomationHelper
-
-        self.dut_adapter = AdapterAutomationHelper()
-
-    async def test_verify_adapter_started(self):
+    async def _test_verify_adapter_started(self):
+        self.dut_adapter = AdapterAutomationHelper(port=self.dut_port)
         event_loop = asyncio.get_running_loop()
         self.dut_adapter.fetch_events(event_loop)
         self.dut_adapter.pending_future = event_loop.create_future()
@@ -36,6 +31,9 @@ class AdapterTest(TopshimBaseTest):
         await self.dut_adapter.verify_adapter_started()
         self.dut_adapter.event_handler.cancel()
 
+    def test_verify_adapter_started(self):
+        asyncio.run(self._test_verify_adapter_started())
+
 
 if __name__ == "__main__":
-    unittest.main()
+    test_runner.main()
