@@ -102,51 +102,25 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             objpath: String::from("/org/chromium/bluetooth/client/bluetooth_manager_callback"),
         }));
 
-        // TODO(b/193719802): Refactor this into a dedicated "Help" data structure.
-        let commands = vec![
-            String::from("help"),
-            String::from("enable"),
-            String::from("disable"),
-            String::from("get_address"),
-            String::from("start_discovery"),
-            String::from("cancel_discovery"),
-            String::from("create_bond"),
-        ];
+        let mut handler = CommandHandler::new(api.bluetooth_manager.clone(), api.bluetooth.clone());
 
-        let mut handler = CommandHandler::new(
-            api.bluetooth_manager.clone(),
-            api.bluetooth.clone(),
-            commands.clone(),
-        );
-
-        let mut handle_cmd = move |cmd: String| match cmd.split(' ').collect::<Vec<&str>>()[0] {
-            "help" => handler.cmd_help(),
-
-            "enable" => handler.cmd_enable(cmd),
-            "disable" => handler.cmd_disable(cmd),
-            "get_address" => handler.cmd_get_address(cmd),
-            "start_discovery" => handler.cmd_start_discovery(cmd),
-            "cancel_discovery" => handler.cmd_cancel_discovery(cmd),
-            "create_bond" => handler.cmd_create_bond(cmd),
-
-            // Ignore empty commands.
-            "" => {}
-
-            // TODO: Print help.
-            _ => print_info!("Command \"{}\" not recognized", cmd),
-        };
-
-        let editor = AsyncEditor::new(commands.clone());
+        let editor = AsyncEditor::new(handler.get_command_list().clone());
 
         loop {
             let result = editor.readline().await;
             match result {
                 Err(_err) => break,
                 Ok(line) => {
-                    if line.eq("quit") {
+                    let command_vec =
+                        line.split(" ").map(|s| String::from(s)).collect::<Vec<String>>();
+                    let cmd = &command_vec[0];
+                    if cmd.eq("quit") {
                         break;
                     }
-                    handle_cmd(line.clone());
+                    handler.process_cmd_line(
+                        &String::from(cmd),
+                        &command_vec[1..command_vec.len()].to_vec(),
+                    );
                 }
             }
         }
