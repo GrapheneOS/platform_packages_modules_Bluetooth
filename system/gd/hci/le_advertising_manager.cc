@@ -259,12 +259,6 @@ struct LeAdvertisingManager::impl : public bluetooth::hci::LeAddressManagerCallb
         }
       } break;
       case (AdvertisingApiType::ANDROID_HCI): {
-        set_parameters(id, config);
-        if (config.advertising_type == AdvertisingType::ADV_IND ||
-            config.advertising_type == AdvertisingType::ADV_NONCONN_IND) {
-          set_data(id, true, config.scan_response);
-        }
-        set_data(id, false, config.advertisement);
         auto address_policy = le_address_manager_->GetAddressPolicy();
         if (address_policy == LeAddressManager::AddressPolicy::USE_NON_RESOLVABLE_ADDRESS ||
             address_policy == LeAddressManager::AddressPolicy::USE_RESOLVABLE_ADDRESS) {
@@ -272,6 +266,12 @@ struct LeAdvertisingManager::impl : public bluetooth::hci::LeAddressManagerCallb
         } else {
           advertising_sets_[id].current_address = le_address_manager_->GetCurrentAddress();
         }
+        set_parameters(id, config);
+        if (config.advertising_type == AdvertisingType::ADV_IND ||
+            config.advertising_type == AdvertisingType::ADV_NONCONN_IND) {
+          set_data(id, true, config.scan_response);
+        }
+        set_data(id, false, config.advertisement);
         le_advertising_interface_->EnqueueCommand(
             hci::LeMultiAdvtSetRandomAddrBuilder::Create(advertising_sets_[id].current_address.GetAddress(), id),
             module_handler_->BindOnce(impl::check_status<LeMultiAdvtCompleteView>));
@@ -483,6 +483,7 @@ struct LeAdvertisingManager::impl : public bluetooth::hci::LeAddressManagerCallb
                 config.interval_max,
                 config.advertising_type,
                 config.own_address_type,
+                advertising_sets_[advertiser_id].current_address.GetAddress(),
                 config.peer_address_type,
                 config.peer_address,
                 config.channel_map,
