@@ -4455,6 +4455,7 @@ packet LeMultiAdvtParam : LeMultiAdvt (sub_cmd = SET_PARAM) {
   interval_max : 16,
   advt_type : AdvertisingType,
   own_address_type : OwnAddressType,
+  own_address : Address,
   peer_address_type : PeerAddressType,
   peer_address : Address,
   channel_map : 8,
