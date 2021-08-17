@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package com.android.le_audio;
+package com.android.bluetooth.le_audio;
 
 import java.util.SortedSet;
 import java.util.TreeSet;
