@@ -172,6 +172,19 @@ pub enum BtStatus {
     Unknown = 0xff,
 }
 
+fn ascii_to_string(data: &[u8], length: usize) -> String {
+    // We need to reslice data because from_utf8 tries to interpret the
+    // whole slice and not just what is before the null terminated portion
+    let ascii = data
+        .iter()
+        .enumerate()
+        .take_while(|&(pos, &c)| c != 0 && pos < length)
+        .map(|(_pos, &x)| x.clone())
+        .collect::<Vec<u8>>();
+
+    return String::from_utf8(ascii).unwrap_or_default();
+}
+
 impl From<bindings::bt_status_t> for BtStatus {
     fn from(item: bindings::bt_status_t) -> Self {
         match BtStatus::from_u32(item) {
@@ -213,12 +226,7 @@ impl From<BtProperty> for bindings::bt_property_t {
 
 impl From<bindings::bt_bdname_t> for String {
     fn from(item: bindings::bt_bdname_t) -> Self {
-        // We need to reslice item.name because from_utf8 tries to interpret the
-        // whole slice and not just what is before the null terminated portion
-        let ascii =
-            item.name.iter().take_while(|&c| *c != 0).map(|x| x.clone()).collect::<Vec<u8>>();
-
-        return std::str::from_utf8(ascii.as_slice()).unwrap_or("").to_string();
+        ascii_to_string(&item.name, item.name.len())
     }
 }
 
