@@ -36,7 +36,9 @@ import android.util.Log;
 import com.android.bluetooth.Utils;
 import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.ProfileService;
+import com.android.bluetooth.btservice.ServiceFactory;
 import com.android.bluetooth.btservice.storage.DatabaseManager;
+import com.android.bluetooth.mcp.McpService;
 import com.android.internal.annotations.VisibleForTesting;
 
 import java.util.ArrayList;
@@ -62,6 +64,7 @@ public class LeAudioService extends ProfileService {
     private DatabaseManager mDatabaseManager;
     private HandlerThread mStateMachinesThread;
     private BluetoothDevice mPreviousAudioDevice;
+    ServiceFactory mServiceFactory = new ServiceFactory();
 
     LeAudioNativeInterface mLeAudioNativeInterface;
     AudioManager mAudioManager;
@@ -580,6 +583,11 @@ public class LeAudioService extends ProfileService {
             if (!mGroupIdConnectedMap.getOrDefault(myGroupId, false)) {
                 mGroupIdConnectedMap.put(myGroupId, true);
             }
+
+            McpService mcpService = mServiceFactory.getMcpService();
+            if (mcpService != null) {
+                mcpService.setDeviceAuthorized(device, true);
+            }
         }
         if (fromState == BluetoothProfile.STATE_CONNECTED && getConnectedDevices().isEmpty()) {
             setActiveDevice(null);
@@ -594,6 +602,11 @@ public class LeAudioService extends ProfileService {
                     Log.d(TAG, device + " is unbond. Remove state machine");
                 }
                 removeStateMachine(device);
+            }
+
+            McpService mcpService = mServiceFactory.getMcpService();
+            if (mcpService != null) {
+                mcpService.setDeviceAuthorized(device, false);
             }
         }
     }

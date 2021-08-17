@@ -371,7 +371,7 @@
              android:exported="true"
              android:enabled="@bool/profile_supported_mcp_server">
             <intent-filter>
-                <action android:name="android.bluetooth.IBluetoothMcpService" />
+                <action android:name="android.bluetooth.IBluetoothMcpServiceManager" />
             </intent-filter>
         </service>
         <service
