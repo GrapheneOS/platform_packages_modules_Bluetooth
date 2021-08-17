@@ -24,6 +24,7 @@ import android.os.WorkSource;
 
 import com.android.bluetooth.BluetoothMetricsProto;
 import com.android.bluetooth.BluetoothStatsLog;
+import com.android.bluetooth.btservice.AdapterService;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -100,16 +101,22 @@ import java.util.Objects;
         }
     }
 
-    static final int NUM_SCAN_DURATIONS_KEPT = 5;
+    static int getNumScanDurationsKept() {
+        return AdapterService.getAdapterService().getScanQuotaCount();
+    }
 
     // This constant defines the time window an app can scan multiple times.
     // Any single app can scan up to |NUM_SCAN_DURATIONS_KEPT| times during
     // this window. Once they reach this limit, they must wait until their
     // earliest recorded scan exits this window.
-    static final long EXCESSIVE_SCANNING_PERIOD_MS = 30 * 1000;
+    static long getExcessiveScanningPeriodMillis() {
+        return AdapterService.getAdapterService().getScanQuotaWindowMillis();
+    }
 
     // Maximum msec before scan gets downgraded to opportunistic
-    static final int SCAN_TIMEOUT_MS = 30 * 60 * 1000;
+    static long getScanTimeoutMillis() {
+        return AdapterService.getAdapterService().getScanTimeoutMillis();
+    }
 
     public String appName;
     public WorkSource mWorkSource; // Used for BatteryStatsManager and BluetoothStatsLog
@@ -130,7 +137,7 @@ import java.util.Objects;
     private int mBalancedScan = 0;
     private int mLowLantencyScan = 0;
     private int mAmbientDiscoveryScan = 0;
-    private List<LastScan> mLastScans = new ArrayList<LastScan>(NUM_SCAN_DURATIONS_KEPT);
+    private List<LastScan> mLastScans = new ArrayList<LastScan>();
     private HashMap<Integer, LastScan> mOngoingScans = new HashMap<Integer, LastScan>();
     public long startTime = 0;
     public long stopTime = 0;
@@ -254,7 +261,7 @@ import java.util.Objects;
             mTotalSuspendTime += suspendDuration;
         }
         mOngoingScans.remove(scannerId);
-        if (mLastScans.size() >= NUM_SCAN_DURATIONS_KEPT) {
+        if (mLastScans.size() >= getNumScanDurationsKept()) {
             mLastScans.remove(0);
         }
         mLastScans.add(scan);
@@ -336,19 +343,19 @@ import java.util.Objects;
     }
 
     synchronized boolean isScanningTooFrequently() {
-        if (mLastScans.size() < NUM_SCAN_DURATIONS_KEPT) {
+        if (mLastScans.size() < getNumScanDurationsKept()) {
             return false;
         }
 
         return (SystemClock.elapsedRealtime() - mLastScans.get(0).timestamp)
-                < EXCESSIVE_SCANNING_PERIOD_MS;
+                < getExcessiveScanningPeriodMillis();
     }
 
     synchronized boolean isScanningTooLong() {
         if (!isScanning()) {
             return false;
         }
-        return (SystemClock.elapsedRealtime() - mScanStartTime) > SCAN_TIMEOUT_MS;
+        return (SystemClock.elapsedRealtime() - mScanStartTime) > getScanTimeoutMillis();
     }
 
     // This function truncates the app name for privacy reasons. Apps with

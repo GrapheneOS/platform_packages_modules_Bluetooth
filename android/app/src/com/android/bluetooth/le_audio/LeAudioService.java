@@ -19,11 +19,15 @@ package com.android.bluetooth.le_audio;
 
 import static android.bluetooth.IBluetoothLeAudio.LE_AUDIO_GROUP_ID_INVALID;
 
+import android.annotation.RequiresPermission;
+import android.annotation.SuppressLint;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothLeAudio;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.BluetoothUuid;
 import android.bluetooth.IBluetoothLeAudio;
+import android.content.Attributable;
+import android.content.AttributionSource;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -199,7 +203,6 @@ public class LeAudioService extends ProfileService {
     }
 
     public boolean connect(BluetoothDevice device) {
-        enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH ADMIN permission");
         if (DBG) {
             Log.d(TAG, "connect(): " + device);
         }
@@ -261,7 +264,6 @@ public class LeAudioService extends ProfileService {
      * @return true if profile disconnected, false if device not connected over LE Audio
      */
     public boolean disconnect(BluetoothDevice device) {
-        enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH ADMIN permission");
         if (DBG) {
             Log.d(TAG, "disconnect(): " + device);
         }
@@ -302,7 +304,6 @@ public class LeAudioService extends ProfileService {
     }
 
     List<BluetoothDevice> getConnectedDevices() {
-        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
         synchronized (mStateMachines) {
             List<BluetoothDevice> devices = new ArrayList<>();
             for (LeAudioStateMachine sm : mStateMachines.values()) {
@@ -315,7 +316,6 @@ public class LeAudioService extends ProfileService {
     }
 
     List<BluetoothDevice> getDevicesMatchingConnectionStates(int[] states) {
-        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
         ArrayList<BluetoothDevice> devices = new ArrayList<>();
         if (states == null) {
             return devices;
@@ -372,7 +372,6 @@ public class LeAudioService extends ProfileService {
      * {@link BluetoothProfile#STATE_DISCONNECTING} if this profile is being disconnected
      */
     public int getConnectionState(BluetoothDevice device) {
-        enforceCallingOrSelfPermission(BLUETOOTH_PERM, "Need BLUETOOTH permission");
         synchronized (mStateMachines) {
             LeAudioStateMachine sm = mStateMachines.get(device);
             if (sm == null) {
@@ -389,7 +388,6 @@ public class LeAudioService extends ProfileService {
      * @return true on success, otherwise false
      */
     public boolean setActiveDevice(BluetoothDevice device) {
-        enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH ADMIN permission");
         if (DBG) {
             Log.d(TAG, "setActiveDevice:" + device);
         }
@@ -410,6 +408,8 @@ public class LeAudioService extends ProfileService {
         return activeDevices;
     }
 
+    // Suppressed since this is part of a local process
+    @SuppressLint("AndroidFrameworkRequiresPermission")
     void messageFromNative(LeAudioStackEvent stackEvent) {
         Log.d(TAG, "Message from native: " + stackEvent);
         BluetoothDevice device = stackEvent.device;
@@ -669,6 +669,7 @@ public class LeAudioService extends ProfileService {
      * @param connectionPolicy is the connection policy to set to for this profile
      * @return true on success, otherwise false
      */
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_PRIVILEGED)
     public boolean setConnectionPolicy(BluetoothDevice device, int connectionPolicy) {
         enforceCallingOrSelfPermission(BLUETOOTH_PRIVILEGED,
                 "Need BLUETOOTH_PRIVILEGED permission");
@@ -701,7 +702,6 @@ public class LeAudioService extends ProfileService {
      * @hide
      */
     public int getConnectionPolicy(BluetoothDevice device) {
-        enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM, "Need BLUETOOTH_ADMIN permission");
         return mDatabaseManager
                 .getProfileConnectionPolicy(device, BluetoothProfile.LE_AUDIO);
     }
@@ -728,16 +728,14 @@ public class LeAudioService extends ProfileService {
             implements IProfileServiceBinder {
         private LeAudioService mService;
 
-        private LeAudioService getService() {
-            if (!Utils.checkCaller()) {
-                Log.w(TAG, "LeAudio call not allowed for non-active user");
+        @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
+        private LeAudioService getService(AttributionSource source) {
+            if (!Utils.checkCallerIsSystemOrActiveUser(TAG)
+                    || !Utils.checkServiceAvailable(mService, TAG)
+                    || !Utils.checkConnectPermissionForDataDelivery(mService, source, TAG)) {
                 return null;
             }
-
-            if (mService != null && mService.isAvailable()) {
-                return mService;
-            }
-            return null;
+            return mService;
         }
 
         BluetoothLeAudioBinder(LeAudioService svc) {
@@ -750,8 +748,9 @@ public class LeAudioService extends ProfileService {
         }
 
         @Override
-        public boolean connect(BluetoothDevice device) {
-            LeAudioService service = getService();
+        public boolean connect(BluetoothDevice device, AttributionSource source) {
+            Attributable.setAttributionSource(device, source);
+            LeAudioService service = getService(source);
             if (service == null) {
                 return false;
             }
@@ -759,8 +758,9 @@ public class LeAudioService extends ProfileService {
         }
 
         @Override
-        public boolean disconnect(BluetoothDevice device) {
-            LeAudioService service = getService();
+        public boolean disconnect(BluetoothDevice device, AttributionSource source) {
+            Attributable.setAttributionSource(device, source);
+            LeAudioService service = getService(source);
             if (service == null) {
                 return false;
             }
@@ -768,8 +768,8 @@ public class LeAudioService extends ProfileService {
         }
 
         @Override
-        public List<BluetoothDevice> getConnectedDevices() {
-            LeAudioService service = getService();
+        public List<BluetoothDevice> getConnectedDevices(AttributionSource source) {
+            LeAudioService service = getService(source);
             if (service == null) {
                 return new ArrayList<>(0);
             }
@@ -777,8 +777,9 @@ public class LeAudioService extends ProfileService {
         }
 
         @Override
-        public List<BluetoothDevice> getDevicesMatchingConnectionStates(int[] states) {
-            LeAudioService service = getService();
+        public List<BluetoothDevice> getDevicesMatchingConnectionStates(int[] states,
+                AttributionSource source) {
+            LeAudioService service = getService(source);
             if (service == null) {
                 return new ArrayList<>(0);
             }
@@ -786,8 +787,9 @@ public class LeAudioService extends ProfileService {
         }
 
         @Override
-        public int getConnectionState(BluetoothDevice device) {
-            LeAudioService service = getService();
+        public int getConnectionState(BluetoothDevice device, AttributionSource source) {
+            Attributable.setAttributionSource(device, source);
+            LeAudioService service = getService(source);
             if (service == null) {
                 return BluetoothProfile.STATE_DISCONNECTED;
             }
@@ -795,8 +797,9 @@ public class LeAudioService extends ProfileService {
         }
 
         @Override
-        public boolean setActiveDevice(BluetoothDevice device) {
-            LeAudioService service = getService();
+        public boolean setActiveDevice(BluetoothDevice device, AttributionSource source) {
+            Attributable.setAttributionSource(device, source);
+            LeAudioService service = getService(source);
             if (service == null) {
                 return false;
             }
@@ -804,8 +807,8 @@ public class LeAudioService extends ProfileService {
         }
 
         @Override
-        public List<BluetoothDevice> getActiveDevices() {
-            LeAudioService service = getService();
+        public List<BluetoothDevice> getActiveDevices(AttributionSource source) {
+            LeAudioService service = getService(source);
             if (service == null) {
                 return new ArrayList<>();
             }
@@ -813,8 +816,10 @@ public class LeAudioService extends ProfileService {
         }
 
         @Override
-        public boolean setConnectionPolicy(BluetoothDevice device, int connectionPolicy) {
-            LeAudioService service = getService();
+        public boolean setConnectionPolicy(BluetoothDevice device, int connectionPolicy,
+                AttributionSource source) {
+            Attributable.setAttributionSource(device, source);
+            LeAudioService service = getService(source);
             if (service == null) {
                 return false;
             }
@@ -822,8 +827,9 @@ public class LeAudioService extends ProfileService {
         }
 
         @Override
-        public int getConnectionPolicy(BluetoothDevice device) {
-            LeAudioService service = getService();
+        public int getConnectionPolicy(BluetoothDevice device, AttributionSource source) {
+            Attributable.setAttributionSource(device, source);
+            LeAudioService service = getService(source);
             if (service == null) {
                 return BluetoothProfile.CONNECTION_POLICY_UNKNOWN;
             }
@@ -831,8 +837,9 @@ public class LeAudioService extends ProfileService {
         }
 
         @Override
-        public int getGroupId(BluetoothDevice device) {
-            LeAudioService service = getService();
+        public int getGroupId(BluetoothDevice device, AttributionSource source) {
+            Attributable.setAttributionSource(device, source);
+            LeAudioService service = getService(source);
             if (service == null) {
                 return LE_AUDIO_GROUP_ID_INVALID;
             }
