@@ -49,6 +49,7 @@ cc_library_static {
         "btav/btav_shim.cc",
         "btav_sink/btav_sink_shim.cc",
         "btif/btif_shim.cc",
+        "gatt/gatt_shim.cc",
     ],
     generated_headers: ["libbt_topshim_bridge_header", "cxx-bridge-header"],
     generated_sources: ["libbt_topshim_bridge_code"],
@@ -71,7 +72,8 @@ gensrcs {
     srcs: [
         "src/btif.rs",
         "src/profiles/a2dp.rs",
-        "src/profiles/avrcp.rs"
+        "src/profiles/avrcp.rs",
+        "src/profiles/gatt.rs",
     ],
     output_extension: "rs.h",
     export_include_dirs: ["."],
@@ -84,7 +86,8 @@ gensrcs {
     srcs: [
         "src/btif.rs",
         "src/profiles/a2dp.rs",
-        "src/profiles/avrcp.rs"
+        "src/profiles/avrcp.rs",
+        "src/profiles/gatt.rs",
     ],
     output_extension: "cc",
     export_include_dirs: ["."],
