@@ -97,6 +97,7 @@ public class AdapterServiceTest {
     private @Mock Binder mBinder;
     private @Mock AudioManager mAudioManager;
     private @Mock android.app.Application mApplication;
+    private @Mock MetricsLogger mMockMetricsLogger;
 
     // BatteryStatsManager is final and cannot be mocked with regular mockito, so just mock the
     // underlying binder calls.
@@ -214,6 +215,10 @@ public class AdapterServiceTest {
         when(mMockGattService.getName()).thenReturn("GattService");
         when(mMockService.getName()).thenReturn("Service1");
         when(mMockService2.getName()).thenReturn("Service2");
+
+        when(mMockMetricsLogger.init(any())).thenReturn(true);
+        when(mMockMetricsLogger.close()).thenReturn(true);
+        mAdapterService.setMetricsLogger(mMockMetricsLogger);
 
         // Attach a context to the service for permission checks.
         mAdapterService.attach(mMockContext, null, null, null, mApplication, null);
