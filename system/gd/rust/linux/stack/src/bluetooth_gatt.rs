@@ -10,7 +10,7 @@ use bt_topshim::profiles::gatt::{
 };
 use bt_topshim::topstack;
 
-use num_traits::cast::FromPrimitive;
+use num_traits::cast::{FromPrimitive, ToPrimitive};
 
 use std::sync::{Arc, Mutex};
 
@@ -48,6 +48,20 @@ impl ContextMap {
 
     fn get_by_client_id(&self, client_id: i32) -> Option<&Client> {
         self.clients.iter().find(|client| client.id.is_some() && client.id.unwrap() == client_id)
+    }
+
+    fn get_address_by_conn_id(&self, conn_id: i32) -> Option<String> {
+        match self.connections.iter().find(|conn| conn.conn_id == conn_id) {
+            None => None,
+            Some(conn) => Some(conn.address.clone()),
+        }
+    }
+
+    fn get_client_by_conn_id(&self, conn_id: i32) -> Option<&Client> {
+        match self.connections.iter().find(|conn| conn.conn_id == conn_id) {
+            None => None,
+            Some(conn) => self.get_by_client_id(conn.client_id),
+        }
     }
 
     fn add(&mut self, uuid: &Uuid128Bit, callback: Box<dyn IBluetoothGattCallback + Send>) {
@@ -124,6 +138,53 @@ pub trait IBluetoothGatt {
 
     /// Disconnects a GATT connection.
     fn client_disconnect(&self, client_id: i32, addr: String);
+
+    /// Sets preferred PHY.
+    fn client_set_preferred_phy(
+        &self,
+        client_id: i32,
+        addr: String,
+        tx_phy: LePhy,
+        rx_phy: LePhy,
+        phy_options: i32,
+    );
+
+    /// Reads the PHY used by a peer.
+    fn client_read_phy(&mut self, client_id: i32, addr: String);
+
+    /// Clears the attribute cache of a device.
+    fn refresh_device(&self, client_id: i32, addr: String);
+
+    /// Enumerates all GATT services on a connected device.
+    fn discover_services(&self, client_id: i32, addr: String);
+
+    /// Search a GATT service on a connected device based on a UUID.
+    fn discover_service_by_uuid(&self, client_id: i32, addr: String, uuid: String);
+
+    /// Reads a characteristic on a remote device.
+    fn read_characteristic(&self, client_id: i32, addr: String, handle: i32, auth_req: i32);
+
+    /// Reads a characteristic on a remote device.
+    fn read_using_characteristic_uuid(
+        &self,
+        client_id: i32,
+        addr: String,
+        uuid: String,
+        start_handle: i32,
+        end_handle: i32,
+        auth_req: i32,
+    );
+
+    /// Writes a remote characteristic.
+    fn write_characteristic(
+        &self,
+        client_id: i32,
+        addr: String,
+        handle: i32,
+        write_type: i32,
+        auth_req: i32,
+        value: Vec<u8>,
+    ) -> GattWriteRequestStatus;
 }
 
 /// Callback for GATT Client API.
@@ -139,12 +200,28 @@ pub trait IBluetoothGattCallback: RPCProxy {
         connected: bool,
         addr: String,
     );
+
+    /// When there is a change of PHY.
+    fn on_phy_update(&self, addr: String, tx_phy: LePhy, rx_phy: LePhy, status: GattStatus);
+
+    /// The completion of IBluetoothGatt::read_phy.
+    fn on_phy_read(&self, addr: String, tx_phy: LePhy, rx_phy: LePhy, status: GattStatus);
 }
 
 /// Interface for scanner callbacks to clients, passed to `IBluetoothGatt::register_scanner`.
 pub trait IScannerCallback {
     /// When the `register_scanner` request is done.
     fn on_scanner_registered(&self, status: i32, scanner_id: i32);
+}
+
+#[derive(Debug, FromPrimitive, ToPrimitive)]
+#[repr(u8)]
+/// Represents LE PHY.
+pub enum LePhy {
+    Invalid = 0,
+    Phy1m = 1,
+    Phy2m = 2,
+    PhyCoded = 3,
 }
 
 #[derive(Debug, FromPrimitive, ToPrimitive)]
@@ -241,6 +318,15 @@ fn parse_uuid_string<T: Into<String>>(uuid: T) -> Option<Uuid> {
     Some(Uuid { uu: raw })
 }
 
+#[derive(Debug, FromPrimitive, ToPrimitive)]
+#[repr(u8)]
+/// Status of WriteCharacteristic methods.
+pub enum GattWriteRequestStatus {
+    Success = 0,
+    Fail = 1,
+    Busy = 2,
+}
+
 impl IBluetoothGatt for BluetoothGatt {
     fn register_scanner(&self, _callback: Box<dyn IScannerCallback + Send>) {
         // TODO: implement
@@ -310,6 +396,143 @@ impl IBluetoothGatt for BluetoothGatt {
             conn_id.unwrap(),
         );
     }
+
+    fn client_set_preferred_phy(
+        &self,
+        client_id: i32,
+        address: String,
+        tx_phy: LePhy,
+        rx_phy: LePhy,
+        phy_options: i32,
+    ) {
+        let conn_id = self.context_map.get_conn_id_from_address(client_id, &address);
+        if conn_id.is_none() {
+            return;
+        }
+
+        self.gatt.as_ref().unwrap().client.set_preferred_phy(
+            &RawAddress::from_string(address).unwrap(),
+            tx_phy.to_u8().unwrap(),
+            rx_phy.to_u8().unwrap(),
+            phy_options as u16,
+        );
+    }
+
+    fn client_read_phy(&mut self, client_id: i32, addr: String) {
+        let address = match RawAddress::from_string(addr.clone()) {
+            None => return,
+            Some(addr) => addr,
+        };
+
+        self.gatt.as_mut().unwrap().client.read_phy(client_id, &address);
+    }
+
+    fn refresh_device(&self, client_id: i32, addr: String) {
+        self.gatt
+            .as_ref()
+            .unwrap()
+            .client
+            .refresh(client_id, &RawAddress::from_string(addr).unwrap());
+    }
+
+    fn discover_services(&self, client_id: i32, addr: String) {
+        let conn_id = self.context_map.get_conn_id_from_address(client_id, &addr);
+        if conn_id.is_none() {
+            return;
+        }
+
+        self.gatt.as_ref().unwrap().client.search_service(conn_id.unwrap(), None);
+    }
+
+    fn discover_service_by_uuid(&self, client_id: i32, addr: String, uuid: String) {
+        let conn_id = self.context_map.get_conn_id_from_address(client_id, &addr);
+        if conn_id.is_none() {
+            return;
+        }
+
+        let uuid = parse_uuid_string(uuid);
+        if uuid.is_none() {
+            return;
+        }
+
+        self.gatt.as_ref().unwrap().client.search_service(conn_id.unwrap(), uuid);
+    }
+
+    fn read_characteristic(&self, client_id: i32, addr: String, handle: i32, auth_req: i32) {
+        let conn_id = self.context_map.get_conn_id_from_address(client_id, &addr);
+        if conn_id.is_none() {
+            return;
+        }
+
+        // TODO(b/193685325): Perform check on restricted handles.
+
+        self.gatt.as_ref().unwrap().client.read_characteristic(
+            conn_id.unwrap(),
+            handle as u16,
+            auth_req,
+        );
+    }
+
+    fn read_using_characteristic_uuid(
+        &self,
+        client_id: i32,
+        addr: String,
+        uuid: String,
+        start_handle: i32,
+        end_handle: i32,
+        auth_req: i32,
+    ) {
+        let conn_id = self.context_map.get_conn_id_from_address(client_id, &addr);
+        if conn_id.is_none() {
+            return;
+        }
+
+        let uuid = parse_uuid_string(uuid);
+        if uuid.is_none() {
+            return;
+        }
+
+        // TODO(b/193685325): Perform check on restricted handles.
+
+        self.gatt.as_ref().unwrap().client.read_using_characteristic_uuid(
+            conn_id.unwrap(),
+            &uuid.unwrap(),
+            start_handle as u16,
+            end_handle as u16,
+            auth_req,
+        );
+    }
+
+    fn write_characteristic(
+        &self,
+        client_id: i32,
+        addr: String,
+        handle: i32,
+        write_type: i32,
+        auth_req: i32,
+        value: Vec<u8>,
+    ) -> GattWriteRequestStatus {
+        let conn_id = self.context_map.get_conn_id_from_address(client_id, &addr);
+        if conn_id.is_none() {
+            return GattWriteRequestStatus::Fail;
+        }
+
+        // TODO(b/193685325): Check for reliable write type.
+
+        // TODO(b/193685325): Perform check on restricted handles.
+
+        // TODO(b/193685325): Lock the thread until onCharacteristicWrite callback comes back?
+
+        self.gatt.as_ref().unwrap().client.write_characteristic(
+            conn_id.unwrap(),
+            handle as u16,
+            write_type,
+            auth_req,
+            &value,
+        );
+
+        return GattWriteRequestStatus::Success;
+    }
 }
 
 #[btif_callbacks_dispatcher(BluetoothGatt, dispatch_gatt_client_callbacks, GattClientCallbacks)]
@@ -319,6 +542,12 @@ pub(crate) trait BtifGattClientCallbacks {
 
     #[btif_callback(Connect)]
     fn connect_cb(&mut self, conn_id: i32, status: i32, client_id: i32, addr: RawAddress);
+
+    #[btif_callback(PhyUpdated)]
+    fn phy_updated_cb(&mut self, conn_id: i32, tx_phy: u8, rx_phy: u8, status: u8);
+
+    #[btif_callback(ReadPhy)]
+    fn read_phy_cb(&mut self, client_id: i32, addr: RawAddress, tx_phy: u8, rx_phy: u8, status: u8);
 
     // TODO(b/193685325): Define all callbacks.
 }
@@ -355,6 +584,46 @@ impl BtifGattClientCallbacks for BluetoothGatt {
                 Some(gatt_status) => gatt_status == GattStatus::Success,
             },
             addr.to_string(),
+        );
+    }
+
+    fn phy_updated_cb(&mut self, conn_id: i32, tx_phy: u8, rx_phy: u8, status: u8) {
+        let client = self.context_map.get_client_by_conn_id(conn_id);
+        if client.is_none() {
+            return;
+        }
+
+        let address = self.context_map.get_address_by_conn_id(conn_id);
+        if address.is_none() {
+            return;
+        }
+
+        client.unwrap().callback.on_phy_update(
+            address.unwrap(),
+            LePhy::from_u8(tx_phy).unwrap(),
+            LePhy::from_u8(rx_phy).unwrap(),
+            GattStatus::from_u8(status).unwrap(),
+        );
+    }
+
+    fn read_phy_cb(
+        &mut self,
+        client_id: i32,
+        addr: RawAddress,
+        tx_phy: u8,
+        rx_phy: u8,
+        status: u8,
+    ) {
+        let client = self.context_map.get_by_client_id(client_id);
+        if client.is_none() {
+            return;
+        }
+
+        client.unwrap().callback.on_phy_read(
+            addr.to_string(),
+            LePhy::from_u8(tx_phy).unwrap(),
+            LePhy::from_u8(rx_phy).unwrap(),
+            GattStatus::from_u8(status).unwrap(),
         );
     }
 }
