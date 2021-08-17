@@ -903,8 +903,15 @@ public class MediaControlGattService implements MediaControlGattServiceInterface
 
         if (mBluetoothGattServer == null) {
             BluetoothManager manager = mContext.getSystemService(BluetoothManager.class);
-            mBluetoothGattServer = new BluetoothGattServerProxy(
-                    manager.openGattServer(mContext, mServerCallback), manager);
+            BluetoothGattServer server = manager.openGattServer(mContext, mServerCallback);
+            if (server == null) {
+                Log.e(TAG, "Failed to start BluetoothGattServer for MCP");
+                //TODO: This now effectively makes MCP unusable, but fixes tests
+                // Handle this error more gracefully, verify BluetoothInstrumentationTests
+                // are passing after fix is applied
+                return false;
+            }
+            mBluetoothGattServer = new BluetoothGattServerProxy(server, manager);
         }
 
         mGattService =
@@ -1237,7 +1244,8 @@ public class MediaControlGattService implements MediaControlGattServiceInterface
         if (DBG) {
             Log.d(TAG, "Destroy");
         }
-        if (mBluetoothGattServer.removeService(mGattService)) {
+        if (mBluetoothGattServer != null
+                && mBluetoothGattServer.removeService(mGattService)) {
             if (mCallbacks != null) {
                 mCallbacks.onServiceInstanceUnregistered(ServiceStatus.OK);
             }
