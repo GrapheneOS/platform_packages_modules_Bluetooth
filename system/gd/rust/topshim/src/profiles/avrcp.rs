@@ -1,4 +1,8 @@
 use crate::btif::BluetoothInterface;
+use crate::topstack::get_dispatchers;
+
+use std::sync::{Arc, Mutex};
+use topshim_macros::cb_variant;
 
 #[cxx::bridge(namespace = bluetooth::topshim::rust)]
 pub mod ffi {
@@ -14,8 +18,35 @@ pub mod ffi {
         fn set_volume(self: Pin<&mut AvrcpIntf>, volume: i8);
 
     }
-    extern "Rust" {}
+    extern "Rust" {
+        fn avrcp_absolute_volume_enabled(enabled: bool);
+        fn avrcp_absolute_volume_update(volume: i8);
+    }
 }
+
+#[derive(Debug)]
+pub enum AvrcpCallbacks {
+    AvrcpAbsoluteVolumeEnabled(bool),
+    AvrcpAbsoluteVolumeUpdate(i8),
+}
+
+pub struct AvrcpCallbacksDispatcher {
+    pub dispatch: Box<dyn Fn(AvrcpCallbacks) + Send>,
+}
+
+type AvrcpCb = Arc<Mutex<AvrcpCallbacksDispatcher>>;
+
+cb_variant!(
+    AvrcpCb,
+    avrcp_absolute_volume_enabled -> AvrcpCallbacks::AvrcpAbsoluteVolumeEnabled,
+    bool, {}
+);
+
+cb_variant!(
+    AvrcpCb,
+    avrcp_absolute_volume_update -> AvrcpCallbacks::AvrcpAbsoluteVolumeUpdate,
+    i8, {}
+);
 
 pub struct Avrcp {
     internal: cxx::UniquePtr<ffi::AvrcpIntf>,
@@ -35,7 +66,10 @@ impl Avrcp {
         Avrcp { internal: avrcpif, _is_init: false }
     }
 
-    pub fn initialize(&mut self) -> bool {
+    pub fn initialize(&mut self, callbacks: AvrcpCallbacksDispatcher) -> bool {
+        if get_dispatchers().lock().unwrap().set::<AvrcpCb>(Arc::new(Mutex::new(callbacks))) {
+            panic!("Tried to set dispatcher for Avrcp callbacks while it already exists");
+        }
         self.internal.pin_mut().init();
         true
     }
