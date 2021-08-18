@@ -18,6 +18,7 @@
 #pragma once
 
 #include "bt_common.h"
+#include "osi/include/osi.h"  // UNUSED_ATTR
 
 // This header contains functions for HCI-ble to invoke
 void btm_ble_conn_complete(uint8_t* p, UNUSED_ATTR uint16_t evt_len,
