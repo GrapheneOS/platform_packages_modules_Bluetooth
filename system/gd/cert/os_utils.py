@@ -72,6 +72,7 @@ def make_ports_available(ports: Container[int], timeout_seconds=10):
         lambda conn: (conn and conn.status == psutil.CONN_LISTEN and conn.laddr and conn.laddr.port in ports),
         psutil.net_connections())
     success = True
+    killed_pids = set()
     for conn in listening_conns_for_port:
         logging.warning("Freeing port %d used by %s" % (conn.laddr.port, str(conn)))
         if not conn.pid:
@@ -79,13 +80,22 @@ def make_ports_available(ports: Container[int], timeout_seconds=10):
             success = False
             continue
         logging.warning("Killing pid %d that is using port port %d" % (conn.pid, conn.laddr.port))
-        process = psutil.Process(conn.pid)
-        process.kill()
+        if conn.pid in killed_pids:
+            logging.warning("Pid %d is already killed in previous iteration" % (conn.pid))
+            continue
         try:
+            process = psutil.Process(conn.pid)
+            process.kill()
             process.wait(timeout=timeout_seconds)
+            killed_pids.add(conn.pid)
+        except psutil.NoSuchProcess:
+            logging.warning("Pid %d is already dead before trying to kill it" % (conn.pid))
+            killed_pids.add(conn.pid)
+            continue
         except psutil.TimeoutExpired:
             logging.error("SIGKILL timeout after %d seconds for pid %d" % (timeout_seconds, conn.pid))
-            continue
+            success = False
+            break
     return success
 
 
