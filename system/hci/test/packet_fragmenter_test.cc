@@ -29,6 +29,14 @@
 #include "packet_fragmenter.h"
 #include "test_stubs.h"
 
+#ifndef HCI_ACL_PREAMBLE_SIZE
+#define HCI_ACL_PREAMBLE_SIZE 4
+#endif
+
+#ifndef HCI_ISO_PREAMBLE_SIZE
+#define HCI_ISO_PREAMBLE_SIZE 4
+#endif
+
 DECLARE_TEST_MODES(init, set_data_sizes, no_fragmentation, fragmentation,
                    ble_no_fragmentation, ble_fragmentation,
                    non_acl_passthrough_fragmentation, no_reassembly, reassembly,
