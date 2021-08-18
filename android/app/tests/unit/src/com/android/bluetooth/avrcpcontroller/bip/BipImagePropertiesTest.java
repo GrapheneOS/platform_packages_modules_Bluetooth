@@ -35,68 +35,68 @@ public class BipImagePropertiesTest {
     private static final String FRIENDLY_NAME = "current-track.jpeg";
     private static final String VERSION = "1.0";
     private static final String XML_DOC_DECL =
-            "<?xml version='1.0' encoding='utf-8' standalone='yes' ?>\n";
+            "<?xml version='1.0' encoding='UTF-8' standalone='yes' ?>\r\n";
 
     // An image-properties tag with all available attributes
     private static final String IMAGE_PROPERTIES =
             "<image-properties version=\"" + VERSION + "\" handle=\"" + IMAGE_HANDLE
-            + "\" friendly-name=\"" + FRIENDLY_NAME + "\">\n";
+            + "\" friendly-name=\"" + FRIENDLY_NAME + "\">\r\n";
 
     // An image-properties tag without an xml version - OUT OF SPEC / INVALID
     private static final String IMAGE_PROPERTIES_NO_VERSION =
             "<image-properties handle=\"" + IMAGE_HANDLE + "\" friendly-name=\""
-            + FRIENDLY_NAME + "\">\n";
+            + FRIENDLY_NAME + "\">\r\n";
 
     // An image-properties tag without an image handle - OUT OF SPEC / INVALID
     private static final String IMAGE_PROPERTIES_NO_HANDLE =
             "<image-properties version=\"" + VERSION + "\" friendly-name=\"" + FRIENDLY_NAME
-            + "\">\n";
+            + "\">\r\n";
 
     // An image-properties tag without an xml version - IN SPEC / VALID
     private static final String IMAGE_PROPERTIES_NO_FRIENDLY_NAME =
-            "<image-properties version=\"" + VERSION + "\" handle=\"" + IMAGE_HANDLE + "\">\n";
+            "<image-properties version=\"" + VERSION + "\" handle=\"" + IMAGE_HANDLE + "\">\r\n";
 
     // A native format representing the unaltered image available. Has a basic pixel and size
     private static final String NATIVE_FORMAT =
-            "    <native encoding=\"JPEG\" pixel=\"1280*1024\" size=\"1048576\" />\n";
+            "  <native encoding=\"JPEG\" pixel=\"1280*1024\" size=\"1048576\" />\r\n";
 
     // A native format representation of the imaging thumbnail format
     private static final String NATIVE_THUMBNAIL_FORMAT =
-            "    <native encoding=\"JPEG\" pixel=\"200*200\" />\n";
+            "  <native encoding=\"JPEG\" pixel=\"200*200\" />\r\n";
 
     // A variant format representing a static altered image type. Has a basic pixel and no size
     private static final String VARIANT_FIXED_FORMAT =
-            "    <variant encoding=\"JPEG\" pixel=\"640*480\" />\n";
+            "  <variant encoding=\"JPEG\" pixel=\"640*480\" />\r\n";
 
     // A variant format representing an range of sizes available. Has transformations and no size
     private static final String VARIANT_RANGE_FORMAT =
-            "    <variant encoding=\"GIF\" pixel=\"80*60-640*175\" "
-            + "transformation=\"stretch fill crop\" />\n";
+            "  <variant encoding=\"GIF\" pixel=\"80*60-640*175\" "
+            + "transformation=\"stretch fill crop\" />\r\n";
 
     // A variant format representing a range of sizes within a fixed aspect ratio.
     private static final String VARIANT_FIXED_RANGE_FORMAT =
-            "    <variant encoding=\"JPEG\" pixel=\"150**-600*120\" />\n";
+            "  <variant encoding=\"JPEG\" pixel=\"150**-600*120\" />\r\n";
 
     // A fixed variant format representation of the imaging thumbnail format
     private static final String VARIANT_FIXED_THUMBNAIL_FORMAT =
-            "    <variant encoding=\"JPEG\" pixel=\"200*200\" />\n";
+            "  <variant encoding=\"JPEG\" pixel=\"200*200\" />\r\n";
 
     // A resizable modifiable aspect ratio variant format containing the imaging thumbnail format
     private static final String VARIANT_RANGE_THUMBNAIL_FORMAT =
-            "    <variant encoding=\"JPEG\" pixel=\"80*60-640*480\" />\n";
+            "  <variant encoding=\"JPEG\" pixel=\"80*60-640*480\" />\r\n";
 
     // A resizable fixed variant format containing the imaging thumbnail format
     private static final String VARIANT_FIXED_RANGE_THUMBNAIL_FORMAT =
-            "    <variant encoding=\"JPEG\" pixel=\"150**-600*600\" />\n";
+            "  <variant encoding=\"JPEG\" pixel=\"150**-600*600\" />\r\n";
 
     // Though not in the specification, we should be robust to attachments of various formats
     private static final String ATTACHMENT_1 =
-            "    <attachment content-type=\"text/plain\" name=\"ABCD1234.txt\" size=\"5120\" />\n";
+            "  <attachment content-type=\"text/plain\" name=\"ABCD1234.txt\" size=\"5120\" />\r\n";
     private static final String ATTACHMENT_2 =
-            "    <attachment content-type=\"audio/basic\" name=\"ABCD1234.wav\" size=\"102400\" "
-            + "/>\n";
+            "  <attachment content-type=\"audio/basic\" name=\"ABCD1234.wav\" size=\"102400\" "
+            + "/>\r\n";
 
-    private static final String IMAGE_PROPERTIES_END = "</image-properties>\n";
+    private static final String IMAGE_PROPERTIES_END = "</image-properties>";
 
     private InputStream toUtf8Stream(String s) {
         try {
