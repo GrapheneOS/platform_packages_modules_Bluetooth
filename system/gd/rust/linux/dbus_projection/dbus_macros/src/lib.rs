@@ -117,9 +117,9 @@ pub fn generate_dbus_exporter(attr: TokenStream, item: TokenStream) -> TokenStre
                             #make_args
                             let #ident = <#arg_type as DBusArg>::from_dbus(
                                 #dbus_input_arg,
-                                conn_clone.clone(),
-                                ctx.message().sender().unwrap().into_static(),
-                                dc_watcher_clone.clone(),
+                                Some(conn_clone.clone()),
+                                Some(ctx.message().sender().unwrap().into_static()),
+                                Some(dc_watcher_clone.clone()),
                             );
 
                             if let Result::Err(e) = #ident {
@@ -306,9 +306,9 @@ pub fn dbus_propmap(attr: TokenStream, item: TokenStream) -> TokenStream {
 
             fn from_dbus(
                 data__: dbus::arg::PropMap,
-                conn__: std::sync::Arc<SyncConnection>,
-                remote__: dbus::strings::BusName<'static>,
-                disconnect_watcher__: std::sync::Arc<std::sync::Mutex<dbus_projection::DisconnectWatcher>>,
+                conn__: Option<std::sync::Arc<SyncConnection>>,
+                remote__: Option<dbus::strings::BusName<'static>>,
+                disconnect_watcher__: Option<std::sync::Arc<std::sync::Mutex<dbus_projection::DisconnectWatcher>>>,
             ) -> Result<#struct_ident, Box<dyn std::error::Error>> {
                 #make_fields
 
@@ -457,15 +457,15 @@ pub fn dbus_proxy_obj(attr: TokenStream, item: TokenStream) -> TokenStream {
 
             fn from_dbus(
                 objpath__: Path<'static>,
-                conn__: std::sync::Arc<SyncConnection>,
-                remote__: dbus::strings::BusName<'static>,
-                disconnect_watcher__: std::sync::Arc<std::sync::Mutex<DisconnectWatcher>>,
+                conn__: Option<std::sync::Arc<SyncConnection>>,
+                remote__: Option<dbus::strings::BusName<'static>>,
+                disconnect_watcher__: Option<std::sync::Arc<std::sync::Mutex<DisconnectWatcher>>>,
             ) -> Result<Box<dyn #trait_ + Send>, Box<dyn std::error::Error>> {
                 Ok(Box::new(#struct_ident {
-                    conn: conn__,
-                    remote: remote__,
+                    conn: conn__.unwrap(),
+                    remote: remote__.unwrap(),
                     objpath: objpath__,
-                    disconnect_watcher: disconnect_watcher__,
+                    disconnect_watcher: disconnect_watcher__.unwrap(),
                 }))
             }
 
@@ -594,9 +594,9 @@ pub fn generate_dbus_arg(_item: TokenStream) -> TokenStream {
 
             fn from_dbus(
                 x: Self::DBusType,
-                conn: Arc<SyncConnection>,
-                remote: BusName<'static>,
-                disconnect_watcher: Arc<Mutex<DisconnectWatcher>>,
+                conn: Option<Arc<SyncConnection>>,
+                remote: Option<BusName<'static>>,
+                disconnect_watcher: Option<Arc<Mutex<DisconnectWatcher>>>,
             ) -> Result<Self, Box<dyn Error>>
             where
                 Self: Sized;
@@ -619,9 +619,9 @@ pub fn generate_dbus_arg(_item: TokenStream) -> TokenStream {
 
             fn from_dbus(
                 data: T,
-                _conn: Arc<SyncConnection>,
-                _remote: BusName<'static>,
-                _disconnect_watcher: Arc<Mutex<DisconnectWatcher>>,
+                _conn: Option<Arc<SyncConnection>>,
+                _remote: Option<BusName<'static>>,
+                _disconnect_watcher: Option<Arc<Mutex<DisconnectWatcher>>>,
             ) -> Result<T, Box<dyn Error>> {
                 return Ok(data);
             }
@@ -636,9 +636,9 @@ pub fn generate_dbus_arg(_item: TokenStream) -> TokenStream {
 
             fn from_dbus(
                 data: Vec<T::DBusType>,
-                conn: Arc<SyncConnection>,
-                remote: BusName<'static>,
-                disconnect_watcher: Arc<Mutex<DisconnectWatcher>>,
+                conn: Option<Arc<SyncConnection>>,
+                remote: Option<BusName<'static>>,
+                disconnect_watcher: Option<Arc<Mutex<DisconnectWatcher>>>,
             ) -> Result<Vec<T>, Box<dyn Error>> {
                 let mut list: Vec<T> = vec![];
                 for prop in data {
