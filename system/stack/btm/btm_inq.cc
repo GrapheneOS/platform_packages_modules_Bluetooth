@@ -649,12 +649,8 @@ tBTM_STATUS BTM_CancelRemoteDeviceName(void) {
  *
  ******************************************************************************/
 tBTM_INQ_INFO* BTM_InqDbRead(const RawAddress& p_bda) {
-  VLOG(1) << __func__ << ": bd addr " << p_bda;
-
   tINQ_DB_ENT* p_ent = btm_inq_db_find(p_bda);
-  if (!p_ent) return NULL;
-
-  return &p_ent->inq_info;
+  return (p_ent == nullptr) ? nullptr : &p_ent->inq_info;
 }
 
 /*******************************************************************************
