@@ -202,36 +202,6 @@ impl From<bindings::bt_status_t> for BtStatus {
     }
 }
 
-#[derive(Debug, Clone)]
-pub struct BtProperty {
-    pub prop_type: BtPropertyType,
-    pub len: i32,
-    pub val: Vec<u8>,
-}
-
-impl From<bindings::bt_property_t> for BtProperty {
-    fn from(item: bindings::bt_property_t) -> Self {
-        let slice: &[u8] =
-            unsafe { std::slice::from_raw_parts(item.val as *mut u8, item.len as usize) };
-        let mut val = Vec::new();
-        val.extend_from_slice(slice);
-
-        BtProperty { prop_type: BtPropertyType::from(item.type_), len: item.len, val }
-    }
-}
-
-impl From<BtProperty> for bindings::bt_property_t {
-    fn from(item: BtProperty) -> Self {
-        // This is probably very unsafe
-        let mut foo = item.clone();
-        bindings::bt_property_t {
-            type_: item.prop_type.to_u32().unwrap(),
-            len: foo.val.len() as i32,
-            val: foo.val.as_mut_ptr() as *mut std::os::raw::c_void,
-        }
-    }
-}
-
 impl From<bindings::bt_bdname_t> for String {
     fn from(item: bindings::bt_bdname_t) -> Self {
         ascii_to_string(&item.name, item.name.len())
@@ -296,6 +266,7 @@ pub type BtRemoteVersion = bindings::bt_remote_version_t;
 pub type Uuid = bindings::bluetooth::Uuid;
 
 /// All supported Bluetooth properties after conversion.
+#[derive(Debug, Clone)]
 pub enum BluetoothProperty {
     BdName(String),
     BdAddr(RawAddress),
@@ -677,9 +648,9 @@ macro_rules! cast_to_const_ffi_address {
 #[derive(Clone, Debug)]
 pub enum BaseCallbacks {
     AdapterState(BtState),
-    AdapterProperties(BtStatus, i32, Vec<BtProperty>),
-    RemoteDeviceProperties(BtStatus, RawAddress, i32, Vec<BtProperty>),
-    DeviceFound(i32, Vec<BtProperty>),
+    AdapterProperties(BtStatus, i32, Vec<BluetoothProperty>),
+    RemoteDeviceProperties(BtStatus, RawAddress, i32, Vec<BluetoothProperty>),
+    DeviceFound(i32, Vec<BluetoothProperty>),
     DiscoveryState(BtDiscoveryState),
     PinRequest(RawAddress, String, u32, bool),
     SspRequest(RawAddress, String, u32, BtSspVariant, u32),

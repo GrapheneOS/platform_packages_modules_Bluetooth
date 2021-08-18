@@ -1,8 +1,8 @@
 //! Anything related to the adapter API (IBluetooth).
 
 use bt_topshim::btif::{
-    BaseCallbacks, BaseCallbacksDispatcher, BluetoothInterface, BtBondState, BtDiscoveryState,
-    BtProperty, BtPropertyType, BtSspVariant, BtState, BtStatus, BtTransport, RawAddress,
+    BaseCallbacks, BaseCallbacksDispatcher, BluetoothInterface, BluetoothProperty, BtBondState,
+    BtDiscoveryState, BtSspVariant, BtState, BtStatus, BtTransport, RawAddress,
 };
 use bt_topshim::profiles::hid_host::{HHCallbacksDispatcher, HidHost};
 use bt_topshim::topstack;
@@ -62,19 +62,17 @@ pub struct BluetoothDevice {
 }
 
 impl BluetoothDevice {
-    pub(crate) fn from_properties(properties: &Vec<BtProperty>) -> BluetoothDevice {
+    pub(crate) fn from_properties(properties: &Vec<BluetoothProperty>) -> BluetoothDevice {
         let mut address = String::from("");
         let mut name = String::from("");
 
         for prop in properties {
-            match prop.prop_type {
-                BtPropertyType::BdAddr => {
-                    if let Some(addr) = RawAddress::from_bytes(&prop.val) {
-                        address = addr.to_string();
-                    }
+            match prop {
+                BluetoothProperty::BdAddr(bdaddr) => {
+                    address = bdaddr.to_string();
                 }
-                BtPropertyType::BdName => {
-                    name = String::from_utf8(prop.val.clone()).unwrap();
+                BluetoothProperty::BdName(bdname) => {
+                    name = bdname.clone();
                 }
                 _ => {}
             }
@@ -146,8 +144,8 @@ impl Bluetooth {
         });
     }
 
-    fn update_local_address(&mut self, raw: &Vec<u8>) {
-        self.local_address = RawAddress::from_bytes(raw);
+    fn update_local_address(&mut self, addr: &RawAddress) {
+        self.local_address = Some(*addr);
 
         self.for_all_callbacks(|callback| {
             callback.on_address_changed(self.local_address.unwrap().to_string());
@@ -175,11 +173,11 @@ pub(crate) trait BtifBluetoothCallbacks {
         &mut self,
         status: BtStatus,
         num_properties: i32,
-        properties: Vec<BtProperty>,
+        properties: Vec<BluetoothProperty>,
     );
 
     #[btif_callback(DeviceFound)]
-    fn device_found(&mut self, n: i32, properties: Vec<BtProperty>);
+    fn device_found(&mut self, n: i32, properties: Vec<BluetoothProperty>);
 
     #[btif_callback(DiscoveryState)]
     fn discovery_state(&mut self, state: BtDiscoveryState);
@@ -229,23 +227,23 @@ impl BtifBluetoothCallbacks for Bluetooth {
         &mut self,
         status: BtStatus,
         num_properties: i32,
-        properties: Vec<BtProperty>,
+        properties: Vec<BluetoothProperty>,
     ) {
         if status != BtStatus::Success {
             return;
         }
 
         for prop in properties {
-            match prop.prop_type {
-                BtPropertyType::BdAddr => {
-                    self.update_local_address(&prop.val);
+            match prop {
+                BluetoothProperty::BdAddr(bdaddr) => {
+                    self.update_local_address(&bdaddr);
                 }
                 _ => {}
             }
         }
     }
 
-    fn device_found(&mut self, _n: i32, properties: Vec<BtProperty>) {
+    fn device_found(&mut self, _n: i32, properties: Vec<BluetoothProperty>) {
         self.for_all_callbacks(|callback| {
             callback.on_device_found(BluetoothDevice::from_properties(&properties));
         });
