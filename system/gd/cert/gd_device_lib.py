@@ -292,6 +292,7 @@ class GdHostOnlyDeviceCore():
         if profdata_path.is_file():
             profdata_cmd.append(str(profdata_path))
         profdata_cmd += ["-o", str(profdata_path_tmp)]
+        logging.debug("Running llvm_profdata: %s" % " ".join(profdata_cmd))
         result = subprocess.run(profdata_cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         if result.returncode != 0:
             logging.warning("[%s] Failed to index profdata, cmd result: %r" % (self.label, result))
@@ -301,8 +302,15 @@ class GdHostOnlyDeviceCore():
         coverage_result_path = pathlib.Path(self.test_runner_base_path).joinpath(
             "%s_%s_backing_process_coverage.json" % (self.type_identifier, self.label))
         with coverage_result_path.open("w") as coverage_result_file:
+            llvm_cov_export_cmd = [
+                str(llvm_cov), "export", "--format=text", "--ignore-filename-regex", "(external|out).*",
+                "--instr-profile",
+                str(profdata_path),
+                str(self.cmd[0])
+            ]
+            logging.debug("Running llvm_cov export: %s" % " ".join(llvm_cov_export_cmd))
             result = subprocess.run(
-                [str(llvm_cov), "export", "--format=text", "--instr-profile", profdata_path, self.cmd[0]],
+                llvm_cov_export_cmd,
                 stderr=subprocess.PIPE,
                 stdout=coverage_result_file,
                 cwd=os.path.join(get_gd_root()))
@@ -313,8 +321,14 @@ class GdHostOnlyDeviceCore():
         coverage_summary_path = pathlib.Path(self.test_runner_base_path).joinpath(
             "%s_%s_backing_process_coverage_summary.txt" % (self.type_identifier, self.label))
         with coverage_summary_path.open("w") as coverage_summary_file:
+            llvm_cov_report_cmd = [
+                str(llvm_cov), "report", "--ignore-filename-regex", "(external|out).*", "--instr-profile",
+                str(profdata_path),
+                str(self.cmd[0])
+            ]
+            logging.debug("Running llvm_cov report: %s" % " ".join(llvm_cov_report_cmd))
             result = subprocess.run(
-                [llvm_cov, "report", "--instr-profile", profdata_path, self.cmd[0]],
+                llvm_cov_report_cmd,
                 stderr=subprocess.PIPE,
                 stdout=coverage_summary_file,
                 cwd=os.path.join(get_gd_root()))
