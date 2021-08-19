@@ -29,13 +29,13 @@ import org.junit.runner.RunWith;
 public class BipImageDescriptorTest {
 
     private static final String sXmlDocDecl =
-            "<?xml version='1.0' encoding='utf-8' standalone='yes' ?>\n";
+            "<?xml version='1.0' encoding='UTF-8' standalone='yes' ?>\r\n";
 
     @Test
     public void testBuildImageDescriptor_encodingConstants() {
-        String expected = sXmlDocDecl + "<image-descriptor version=\"1.0\">\n"
-                + "    <image encoding=\"JPEG\" pixel=\"1280*960\" size=\"500000\" />\n"
-                + "</image-descriptor>\n";
+        String expected = sXmlDocDecl + "<image-descriptor version=\"1.0\">\r\n"
+                + "  <image encoding=\"JPEG\" pixel=\"1280*960\" size=\"500000\" />\r\n"
+                + "</image-descriptor>";
 
         BipImageDescriptor.Builder builder = new BipImageDescriptor.Builder();
         builder.setEncoding(BipEncoding.JPEG);
@@ -48,9 +48,9 @@ public class BipImageDescriptorTest {
 
     @Test
     public void testBuildImageDescriptor_encodingObject() {
-        String expected = sXmlDocDecl + "<image-descriptor version=\"1.0\">\n"
-                + "    <image encoding=\"JPEG\" pixel=\"1280*960\" size=\"500000\" />\n"
-                + "</image-descriptor>\n";
+        String expected = sXmlDocDecl + "<image-descriptor version=\"1.0\">\r\n"
+                + "  <image encoding=\"JPEG\" pixel=\"1280*960\" size=\"500000\" />\r\n"
+                + "</image-descriptor>";
 
         BipEncoding encoding = new BipEncoding(BipEncoding.JPEG, null);
         BipImageDescriptor.Builder builder = new BipImageDescriptor.Builder();
@@ -64,9 +64,9 @@ public class BipImageDescriptorTest {
 
     @Test
     public void testBuildImageDescriptor_proprietaryEncoding() {
-        String expected = sXmlDocDecl + "<image-descriptor version=\"1.0\">\n"
-                + "    <image encoding=\"USR-NOKIA-1\" pixel=\"1280*960\" size=\"500000\" />\n"
-                + "</image-descriptor>\n";
+        String expected = sXmlDocDecl + "<image-descriptor version=\"1.0\">\r\n"
+                + "  <image encoding=\"USR-NOKIA-1\" pixel=\"1280*960\" size=\"500000\" />\r\n"
+                + "</image-descriptor>";
 
         BipImageDescriptor.Builder builder = new BipImageDescriptor.Builder();
         builder.setPropietaryEncoding("NOKIA-1");
@@ -79,10 +79,10 @@ public class BipImageDescriptorTest {
 
     @Test
     public void testBuildImageDescriptor_transformationConstantStretch() {
-        String expected = sXmlDocDecl + "<image-descriptor version=\"1.0\">\n"
-                + "    <image encoding=\"USR-NOKIA-1\" pixel=\"1280*960\" "
-                + "transformation=\"stretch\" />\n"
-                + "</image-descriptor>\n";
+        String expected = sXmlDocDecl + "<image-descriptor version=\"1.0\">\r\n"
+                + "  <image encoding=\"USR-NOKIA-1\" pixel=\"1280*960\" "
+                + "transformation=\"stretch\" />\r\n"
+                + "</image-descriptor>";
 
         BipImageDescriptor.Builder builder = new BipImageDescriptor.Builder();
         builder.setPropietaryEncoding("NOKIA-1");
@@ -95,10 +95,10 @@ public class BipImageDescriptorTest {
 
     @Test
     public void testBuildImageDescriptor_transformationConstantCrop() {
-        String expected = sXmlDocDecl + "<image-descriptor version=\"1.0\">\n"
-                + "    <image encoding=\"USR-NOKIA-1\" pixel=\"1280*960\" "
-                + "transformation=\"crop\" />\n"
-                + "</image-descriptor>\n";
+        String expected = sXmlDocDecl + "<image-descriptor version=\"1.0\">\r\n"
+                + "  <image encoding=\"USR-NOKIA-1\" pixel=\"1280*960\" "
+                + "transformation=\"crop\" />\r\n"
+                + "</image-descriptor>";
 
         BipImageDescriptor.Builder builder = new BipImageDescriptor.Builder();
         builder.setPropietaryEncoding("NOKIA-1");
@@ -111,10 +111,10 @@ public class BipImageDescriptorTest {
 
     @Test
     public void testBuildImageDescriptor_transformationConstantFill() {
-        String expected = sXmlDocDecl + "<image-descriptor version=\"1.0\">\n"
-                + "    <image encoding=\"USR-NOKIA-1\" pixel=\"1280*960\" "
-                + "transformation=\"fill\" />\n"
-                + "</image-descriptor>\n";
+        String expected = sXmlDocDecl + "<image-descriptor version=\"1.0\">\r\n"
+                + "  <image encoding=\"USR-NOKIA-1\" pixel=\"1280*960\" "
+                + "transformation=\"fill\" />\r\n"
+                + "</image-descriptor>";
 
         BipImageDescriptor.Builder builder = new BipImageDescriptor.Builder();
         builder.setPropietaryEncoding("NOKIA-1");
@@ -127,10 +127,10 @@ public class BipImageDescriptorTest {
 
     @Test
     public void testBuildImageDescriptor_transformationConstantCropThenFill() {
-        String expected = sXmlDocDecl + "<image-descriptor version=\"1.0\">\n"
-                + "    <image encoding=\"USR-NOKIA-1\" pixel=\"1280*960\" "
-                + "transformation=\"fill\" />\n"
-                + "</image-descriptor>\n";
+        String expected = sXmlDocDecl + "<image-descriptor version=\"1.0\">\r\n"
+                + "  <image encoding=\"USR-NOKIA-1\" pixel=\"1280*960\" "
+                + "transformation=\"fill\" />\r\n"
+                + "</image-descriptor>";
 
         BipImageDescriptor.Builder builder = new BipImageDescriptor.Builder();
         builder.setPropietaryEncoding("NOKIA-1");
@@ -144,9 +144,9 @@ public class BipImageDescriptorTest {
 
     @Test
     public void testBuildImageDescriptor_noSize() {
-        String expected = sXmlDocDecl + "<image-descriptor version=\"1.0\">\n"
-                + "    <image encoding=\"JPEG\" pixel=\"1280*960\" />\n"
-                + "</image-descriptor>\n";
+        String expected = sXmlDocDecl + "<image-descriptor version=\"1.0\">\r\n"
+                + "  <image encoding=\"JPEG\" pixel=\"1280*960\" />\r\n"
+                + "</image-descriptor>";
 
         BipImageDescriptor.Builder builder = new BipImageDescriptor.Builder();
         builder.setEncoding(BipEncoding.JPEG);
@@ -158,9 +158,9 @@ public class BipImageDescriptorTest {
 
     @Test
     public void testBuildImageDescriptor_useMaxSize() {
-        String expected = sXmlDocDecl + "<image-descriptor version=\"1.0\">\n"
-                + "    <image encoding=\"JPEG\" pixel=\"1280*960\" maxsize=\"500000\" />\n"
-                + "</image-descriptor>\n";
+        String expected = sXmlDocDecl + "<image-descriptor version=\"1.0\">\r\n"
+                + "  <image encoding=\"JPEG\" pixel=\"1280*960\" maxsize=\"500000\" />\r\n"
+                + "</image-descriptor>";
 
         BipImageDescriptor.Builder builder = new BipImageDescriptor.Builder();
         builder.setEncoding(BipEncoding.JPEG);
@@ -173,10 +173,10 @@ public class BipImageDescriptorTest {
 
     @Test
     public void testBuildImageDescriptor_allButSize() {
-        String expected = sXmlDocDecl + "<image-descriptor version=\"1.0\">\n"
-                + "    <image encoding=\"JPEG\" pixel=\"1280*960\" maxsize=\"500000\" "
-                + "transformation=\"fill\" />\n"
-                + "</image-descriptor>\n";
+        String expected = sXmlDocDecl + "<image-descriptor version=\"1.0\">\r\n"
+                + "  <image encoding=\"JPEG\" pixel=\"1280*960\" maxsize=\"500000\" "
+                + "transformation=\"fill\" />\r\n"
+                + "</image-descriptor>";
 
         BipImageDescriptor.Builder builder = new BipImageDescriptor.Builder();
         builder.setEncoding(BipEncoding.JPEG);
