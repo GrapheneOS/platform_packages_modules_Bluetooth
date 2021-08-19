@@ -42,7 +42,8 @@ from cert.gd_device_lib import destroy_core
 from cert.gd_device_lib import get_info
 from cert.gd_device_lib import replace_vars
 from cert.gd_device_lib import GdDeviceBaseCore
-from cert.gd_device_lib import GdHostOnlyDeviceCore
+from cert.gd_device_lib import get_coverage_profdata_path_for_host
+from cert.gd_device_lib import merge_coverage_profdata_for_host
 from cert.gd_device_lib import MOBLY_CONTROLLER_CONFIG_NAME
 from cert.gd_device_lib import ACTS_CONTROLLER_REFERENCE_NAME
 from cert.logging_client_interceptor import LoggingClientInterceptor
@@ -170,6 +171,7 @@ class GdHostOnlyDevice(GdDeviceBase):
                  type_identifier: str, name: str, verbose_mode: bool):
         super().__init__(grpc_port, grpc_root_server_port, signal_port, cmd, label, MOBLY_CONTROLLER_CONFIG_NAME, name,
                          verbose_mode)
+        self.host_only_device = True
         # Enable LLVM code coverage output for host only tests
         self.backing_process_profraw_path = pathlib.Path(self.log_path_base).joinpath(
             "%s_%s_backing_coverage.profraw" % (self.type_identifier, self.label))
@@ -180,14 +182,25 @@ class GdHostOnlyDevice(GdDeviceBase):
             self.environment["ASAN_SYMBOLIZER_PATH"] = llvm_symbolizer
         else:
             logging.warning("[%s] Cannot find LLVM symbolizer at %s" % (self.label, str(llvm_symbolizer)))
+        self.profdata_path = get_coverage_profdata_path_for_host(self.test_runner_base_path, self.type_identifier,
+                                                                 self.label)
 
     def teardown(self):
         super().teardown()
-        self.generate_coverage_report()
+        merge_coverage_profdata_for_host(self.backing_process_profraw_path, self.profdata_path, self.label)
 
-    def generate_coverage_report(self):
-        GdHostOnlyDeviceCore.generate_coverage_report(self, self.backing_process_profraw_path, self.label,
-                                                      self.test_runner_base_path, self.type_identifier, self.cmd)
+    def get_coverage_info(self):
+        """
+        Get information needed for coverage reporting
+        :return: a dictionary with all information needed for coverage reporting
+        """
+        return {
+            "profdata_path": self.profdata_path,
+            "label": self.label,
+            "test_runner_base_path": self.test_runner_base_path,
+            "type_identifier": self.type_identifier,
+            "stack_bin": self.cmd[0]
+        }
 
     def setup(self):
         # Ensure ports are available

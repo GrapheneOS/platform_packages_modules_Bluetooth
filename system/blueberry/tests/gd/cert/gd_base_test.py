@@ -26,6 +26,7 @@ from cert.gd_base_test_lib import teardown_rootcanal
 from cert.gd_base_test_lib import setup_test_core
 from cert.gd_base_test_lib import teardown_test_core
 from cert.gd_base_test_lib import dump_crashes_core
+from cert.gd_device_lib import generate_coverage_report_for_host
 
 from blueberry.tests.gd.cert.context import get_current_context
 from blueberry.tests.gd.cert.gd_device import MOBLY_CONTROLLER_CONFIG_NAME as CONTROLLER_CONFIG_NAME
@@ -43,9 +44,18 @@ class GdBaseTestClass(base_test.BaseTestClass):
         self.dut_module = dut_module
         self.cert_module = cert_module
         self.log = TraceLogger(logging.getLogger())
+        self.dut_coverage_info = None
+        self.cert_coverage_info = None
 
     def teardown_class(self):
-        pass
+        # assume each test runs the same binary for dut and cert
+        # generate coverage report after running all tests in a class
+        if self.dut_coverage_info:
+            generate_coverage_report_for_host(self.dut_coverage_info)
+            self.dut_coverage_info = None
+        if self.cert_coverage_info:
+            generate_coverage_report_for_host(self.cert_coverage_info)
+            self.cert_coverage_info = None
 
     def setup_test(self):
         self.log_path_base = get_current_context().get_full_output_path()
@@ -82,6 +92,22 @@ class GdBaseTestClass(base_test.BaseTestClass):
         self.register_controller(importlib.import_module('blueberry.tests.gd.cert.gd_device'), builtin=True)
         self.dut = self.gd_device[1]
         self.cert = self.gd_device[0]
+        if self.dut.host_only_device:
+            new_dut_coverage_info = self.dut.get_coverage_info()
+            if self.dut_coverage_info:
+                asserts.assert_true(
+                    self.dut_coverage_info == new_dut_coverage_info,
+                    msg="DUT coverage info must be the same for each test run, old: {}, new: {}".format(
+                        self.dut_coverage_info, new_dut_coverage_info))
+            self.dut_coverage_info = new_dut_coverage_info
+        if self.cert.host_only_device:
+            new_cert_coverage_info = self.cert.get_coverage_info()
+            if self.cert_coverage_info:
+                asserts.assert_true(
+                    self.cert_coverage_info == new_cert_coverage_info,
+                    msg="CERT coverage info must be the same for each test run, old: {}, new: {}".format(
+                        self.cert_coverage_info, new_cert_coverage_info))
+            self.cert_coverage_info = new_cert_coverage_info
 
         setup_test_core(dut=self.dut, cert=self.cert, dut_module=self.dut_module, cert_module=self.cert_module)
 
