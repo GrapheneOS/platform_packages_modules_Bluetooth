@@ -57,7 +57,7 @@ Module* Module::GetDependency(const ModuleFactory* module) const {
 
 Module* ModuleRegistry::Get(const ModuleFactory* module) const {
   auto instance = started_modules_.find(module);
-  ASSERT(instance != started_modules_.end());
+  ASSERT_LOG(instance != started_modules_.end(), "Request for module not started up, maybe not in Start(ModuleList)?");
   return instance->second;
 }
 
