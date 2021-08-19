@@ -34,6 +34,7 @@
 #include "btif/include/btif_config.h"
 #include "common/metrics.h"
 #include "device/include/controller.h"
+#include "main/shim/hci_layer.h"
 #include "osi/include/log.h"
 #include "stack/include/acl_hci_link_interface.h"
 #include "stack/include/ble_acl_interface.h"
@@ -734,7 +735,7 @@ void btu_hcif_send_cmd(UNUSED_ATTR uint8_t controller_id, BT_HDR* p_buf) {
   btu_hcif_log_command_metrics(opcode, stream,
                                android::bluetooth::hci::STATUS_UNKNOWN, false);
 
-  hci_layer_get_interface()->transmit_command(
+  bluetooth::shim::hci_layer_get_interface()->transmit_command(
       p_buf, btu_hcif_command_complete_evt, btu_hcif_command_status_evt,
       vsc_callback);
 }
@@ -915,7 +916,7 @@ void btu_hcif_send_cmd_with_cb(const base::Location& posted_from,
   cb_wrapper->cb = std::move(cb);
   cb_wrapper->posted_from = posted_from;
 
-  hci_layer_get_interface()->transmit_command(
+  bluetooth::shim::hci_layer_get_interface()->transmit_command(
       p, btu_hcif_command_complete_evt_with_cb,
       btu_hcif_command_status_evt_with_cb, (void*)cb_wrapper);
 }
