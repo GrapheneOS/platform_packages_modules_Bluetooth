@@ -1469,7 +1469,7 @@ static jboolean setDevicePropertyNative(JNIEnv* env, jobject obj,
 }
 
 static jboolean getRemoteServicesNative(JNIEnv* env, jobject obj,
-                                        jbyteArray address) {
+                                        jbyteArray address, jint transport) {
   ALOGV("%s", __func__);
 
   if (!sBluetoothInterface) return JNI_FALSE;
@@ -1480,7 +1480,8 @@ static jboolean getRemoteServicesNative(JNIEnv* env, jobject obj,
     return JNI_FALSE;
   }
 
-  int ret = sBluetoothInterface->get_remote_services((RawAddress*)addr);
+  int ret =
+      sBluetoothInterface->get_remote_services((RawAddress*)addr, transport);
   env->ReleaseByteArrayElements(address, addr, 0);
   return (ret == BT_STATUS_SUCCESS) ? JNI_TRUE : JNI_FALSE;
 }
@@ -1713,7 +1714,7 @@ static JNINativeMethod sMethods[] = {
     {"getConnectionStateNative", "([B)I", (void*)getConnectionStateNative},
     {"pinReplyNative", "([BZI[B)Z", (void*)pinReplyNative},
     {"sspReplyNative", "([BIZI)Z", (void*)sspReplyNative},
-    {"getRemoteServicesNative", "([B)Z", (void*)getRemoteServicesNative},
+    {"getRemoteServicesNative", "([BI)Z", (void*)getRemoteServicesNative},
     {"alarmFiredNative", "()V", (void*)alarmFiredNative},
     {"readEnergyInfo", "()I", (void*)readEnergyInfo},
     {"dumpNative", "(Ljava/io/FileDescriptor;[Ljava/lang/String;)V",
