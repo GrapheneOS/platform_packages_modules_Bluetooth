@@ -89,9 +89,7 @@ typedef struct {
   a2dp_source_enqueue_callback_t enqueue_callback;
 
   bool use_SCMS_T;
-  bool is_peer_edr;          // True if the peer device supports EDR
-  bool peer_supports_3mbps;  // True if the peer device supports 3Mbps EDR
-  uint16_t peer_mtu;         // MTU of the A2DP peer
+  tA2DP_ENCODER_INIT_PEER_PARAMS peer_params;
   uint32_t timestamp;        // Timestamp for the A2DP frames
 
   tA2DP_FEEDING_PARAMS feeding_params;
@@ -102,8 +100,7 @@ typedef struct {
 
 static tA2DP_APTX_ENCODER_CB a2dp_aptx_encoder_cb;
 
-static void a2dp_vendor_aptx_encoder_update(uint16_t peer_mtu,
-                                            A2dpCodecConfig* a2dp_codec_config,
+static void a2dp_vendor_aptx_encoder_update(A2dpCodecConfig* a2dp_codec_config,
                                             bool* p_restart_input,
                                             bool* p_restart_output,
                                             bool* p_config_updated);
@@ -177,9 +174,7 @@ void a2dp_vendor_aptx_encoder_init(
 
   a2dp_aptx_encoder_cb.read_callback = read_callback;
   a2dp_aptx_encoder_cb.enqueue_callback = enqueue_callback;
-  a2dp_aptx_encoder_cb.is_peer_edr = p_peer_params->is_peer_edr;
-  a2dp_aptx_encoder_cb.peer_supports_3mbps = p_peer_params->peer_supports_3mbps;
-  a2dp_aptx_encoder_cb.peer_mtu = p_peer_params->peer_mtu;
+  a2dp_aptx_encoder_cb.peer_params = *p_peer_params;
   a2dp_aptx_encoder_cb.timestamp = 0;
 
   /* aptX encoder config */
@@ -198,42 +193,17 @@ void a2dp_vendor_aptx_encoder_init(
   }
 
   // NOTE: Ignore the restart_input / restart_output flags - this initization
-  // happens when the connection is (re)started.
+  // happens when the audio session is (re)started.
   bool restart_input = false;
   bool restart_output = false;
   bool config_updated = false;
-  a2dp_vendor_aptx_encoder_update(a2dp_aptx_encoder_cb.peer_mtu,
-                                  a2dp_codec_config, &restart_input,
+  a2dp_vendor_aptx_encoder_update(a2dp_codec_config, &restart_input,
                                   &restart_output, &config_updated);
 }
 
-bool A2dpCodecConfigAptx::updateEncoderUserConfig(
-    const tA2DP_ENCODER_INIT_PEER_PARAMS* p_peer_params, bool* p_restart_input,
-    bool* p_restart_output, bool* p_config_updated) {
-  a2dp_aptx_encoder_cb.is_peer_edr = p_peer_params->is_peer_edr;
-  a2dp_aptx_encoder_cb.peer_supports_3mbps = p_peer_params->peer_supports_3mbps;
-  a2dp_aptx_encoder_cb.peer_mtu = p_peer_params->peer_mtu;
-  a2dp_aptx_encoder_cb.timestamp = 0;
-
-  if (a2dp_aptx_encoder_cb.peer_mtu == 0) {
-    LOG_ERROR(
-        "%s: Cannot update the codec encoder for %s: "
-        "invalid peer MTU",
-        __func__, name().c_str());
-    return false;
-  }
-
-  a2dp_vendor_aptx_encoder_update(a2dp_aptx_encoder_cb.peer_mtu, this,
-                                  p_restart_input, p_restart_output,
-                                  p_config_updated);
-  return true;
-}
-
 // Update the A2DP aptX encoder.
-// |peer_mtu| is the peer MTU.
 // |a2dp_codec_config| is the A2DP codec to use for the update.
-static void a2dp_vendor_aptx_encoder_update(uint16_t peer_mtu,
-                                            A2dpCodecConfig* a2dp_codec_config,
+static void a2dp_vendor_aptx_encoder_update(A2dpCodecConfig* a2dp_codec_config,
                                             bool* p_restart_input,
                                             bool* p_restart_output,
                                             bool* p_config_updated) {
@@ -372,7 +342,7 @@ uint64_t a2dp_vendor_aptx_get_encoder_interval_ms(void) {
 }
 
 int a2dp_vendor_aptx_get_effective_frame_size() {
-  return a2dp_aptx_encoder_cb.peer_mtu;
+  return a2dp_aptx_encoder_cb.peer_params.peer_mtu;
 }
 
 void a2dp_vendor_aptx_send_frames(uint64_t timestamp_us) {

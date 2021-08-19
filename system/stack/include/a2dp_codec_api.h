@@ -175,20 +175,6 @@ class A2dpCodecConfig {
       uint8_t* p_result_codec_config, bool* p_restart_input,
       bool* p_restart_output, bool* p_config_updated);
 
-  // Updates the encoder with the user prefered codec configuration.
-  // |p_peer_params| contains the A2DP peer information.
-  // If there is a change in the encoder configuration that requires restarting
-  // the audio input stream, flag |p_restart_input| is set to true.
-  // If there is a change in the encoder configuration that requires restarting
-  // of the A2DP connection, flag |p_restart_output| is set to true.
-  // If there is any change in the codec configuration, flag |p_config_updated|
-  // is set to true.
-  // Returns true on success, otherwise false.
-  virtual bool updateEncoderUserConfig(
-      const tA2DP_ENCODER_INIT_PEER_PARAMS* p_peer_params,
-      bool* p_restart_input, bool* p_restart_output,
-      bool* p_config_updated) = 0;
-
   // Sets the codec capabilities for a peer.
   // |p_peer_codec_capabiltities| is the peer codec capabilities to set.
   // Returns true on success, otherwise false.

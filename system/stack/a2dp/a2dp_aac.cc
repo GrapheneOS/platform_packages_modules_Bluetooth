@@ -1520,11 +1520,3 @@ bool A2dpCodecConfigAacSink::useRtpHeaderMarkerBit() const {
   // TODO: This method applies only to Source codecs
   return false;
 }
-
-bool A2dpCodecConfigAacSink::updateEncoderUserConfig(
-    UNUSED_ATTR const tA2DP_ENCODER_INIT_PEER_PARAMS* p_peer_params,
-    UNUSED_ATTR bool* p_restart_input, UNUSED_ATTR bool* p_restart_output,
-    UNUSED_ATTR bool* p_config_updated) {
-  // TODO: This method applies only to Source codecs
-  return false;
-}

@@ -389,19 +389,6 @@ bool A2dpCodecConfig::setCodecUserConfig(
     *p_restart_output = true;
   }
 
-  bool encoder_restart_input = *p_restart_input;
-  bool encoder_restart_output = *p_restart_output;
-  bool encoder_config_updated = *p_config_updated;
-
-  if (!a2dp_offload_status) {
-    if (updateEncoderUserConfig(p_peer_params, &encoder_restart_input,
-                                &encoder_restart_output,
-                                &encoder_config_updated)) {
-      if (encoder_restart_input) *p_restart_input = true;
-      if (encoder_restart_output) *p_restart_output = true;
-      if (encoder_config_updated) *p_config_updated = true;
-    }
-  }
   if (*p_restart_input || *p_restart_output) *p_config_updated = true;
 
   return true;
