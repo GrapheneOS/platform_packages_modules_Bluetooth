@@ -22,20 +22,6 @@ pub type BtGattDbElement = bindings::btgatt_db_element_t;
 pub type BtGattResponse = bindings::btgatt_response_t;
 pub type BtGattTestParams = bindings::btgatt_test_params_t;
 
-// TODO: Implement printing internal values.
-impl std::fmt::Debug for BtGattReadParams {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_fmt(format_args!("BtGattReadParams"))
-    }
-}
-
-// TODO: Implement printing internal values.
-impl std::fmt::Debug for BtGattNotifyParams {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_fmt(format_args!("BtGattNotifyParams"))
-    }
-}
-
 #[cxx::bridge(namespace = bluetooth::topshim::rust)]
 pub mod ffi {
     #[derive(Debug, Copy, Clone)]
