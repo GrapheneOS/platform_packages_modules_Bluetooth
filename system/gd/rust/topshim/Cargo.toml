@@ -35,7 +35,7 @@ tokio-stream = "*"
 bitflags ="*"
 
 [build-dependencies]
-bindgen = "0.57"
+bindgen = "0.59"
 pkg-config = "0.3"
 
 [lib]
