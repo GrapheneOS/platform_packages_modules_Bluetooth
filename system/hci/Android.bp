@@ -27,7 +27,6 @@ cc_library_static {
         "src/btsnoop_net.cc",
         "src/buffer_allocator.cc",
         "src/hci_inject.cc",
-        "src/hci_layer.cc",
         "src/hci_packet_factory.cc",
         "src/hci_packet_parser.cc",
         "src/packet_fragmenter.cc",
