@@ -600,8 +600,8 @@ typedef struct {
   int (*get_remote_service_record)(const RawAddress& remote_addr,
                                    const bluetooth::Uuid& uuid);
 
-  /** Start SDP to get remote services */
-  int (*get_remote_services)(RawAddress* remote_addr);
+  /** Start service discovery with tranport to get remote services */
+  int (*get_remote_services)(RawAddress* remote_addr, int transport);
 
   /** Start Discovery */
   int (*start_discovery)(void);
