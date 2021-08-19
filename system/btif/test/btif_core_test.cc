@@ -18,10 +18,17 @@
 #include <future>
 #include <map>
 
+#include "bta/include/bta_ag_api.h"
 #include "btif/include/btif_api.h"
 #include "btif/include/btif_common.h"
 
 void set_hal_cbacks(bt_callbacks_t* callbacks);
+
+uint8_t appl_trace_level = BT_TRACE_LEVEL_DEBUG;
+uint8_t btif_trace_level = BT_TRACE_LEVEL_DEBUG;
+uint8_t btu_trace_level = BT_TRACE_LEVEL_DEBUG;
+
+const tBTA_AG_RES_DATA tBTA_AG_RES_DATA::kEmpty = {};
 
 namespace {
 
