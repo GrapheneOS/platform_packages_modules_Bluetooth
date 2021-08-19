@@ -18,7 +18,6 @@ import android.util.Log;
 import android.util.Xml;
 
 import com.android.bluetooth.Utils;
-import com.android.internal.util.FastXmlSerializer;
 
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
@@ -266,7 +265,7 @@ public class BluetoothMapFolderElement implements Comparable<BluetoothMapFolderE
 
     public byte[] encode(int offset, int count) throws UnsupportedEncodingException {
         StringWriter sw = new StringWriter();
-        XmlSerializer xmlMsgElement = new FastXmlSerializer(0);
+        XmlSerializer xmlMsgElement = Xml.newSerializer();
         int i, stopIndex;
         // We need index based access to the subFolders
         BluetoothMapFolderElement[] folders =

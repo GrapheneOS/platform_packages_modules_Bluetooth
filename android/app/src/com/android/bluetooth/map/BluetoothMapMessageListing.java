@@ -18,7 +18,6 @@ import android.util.Log;
 import android.util.Xml;
 
 import com.android.bluetooth.DeviceWorkArounds;
-import com.android.internal.util.FastXmlSerializer;
 
 import org.xmlpull.v1.XmlSerializer;
 
@@ -91,20 +90,17 @@ public class BluetoothMapMessageListing {
     public byte[] encode(boolean includeThreadId, String version)
             throws UnsupportedEncodingException {
         StringWriter sw = new StringWriter();
-        XmlSerializer xmlMsgElement = null;
         boolean isBenzCarkit = DeviceWorkArounds.addressStartsWith(
                 BluetoothMapService.getRemoteDevice().getAddress(),
                 DeviceWorkArounds.MERCEDES_BENZ_CARKIT);
         try {
+            XmlSerializer xmlMsgElement = Xml.newSerializer();
+            xmlMsgElement.setOutput(sw);
             if (isBenzCarkit) {
                 Log.d(TAG, "java_interop: Remote is Mercedes Benz, "
                         + "using Xml Workaround.");
-                xmlMsgElement = Xml.newSerializer();
-                xmlMsgElement.setOutput(sw);
                 xmlMsgElement.text("\n");
             } else {
-                xmlMsgElement = new FastXmlSerializer(0);
-                xmlMsgElement.setOutput(sw);
                 xmlMsgElement.startDocument("UTF-8", true);
                 xmlMsgElement.setFeature(
                         "http://xmlpull.org/v1/doc/features.html#indent-output", true);

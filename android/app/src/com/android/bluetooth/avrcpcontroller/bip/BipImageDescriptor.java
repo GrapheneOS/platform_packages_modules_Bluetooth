@@ -17,8 +17,7 @@
 package com.android.bluetooth.avrcpcontroller;
 
 import android.util.Log;
-
-import com.android.internal.util.FastXmlSerializer;
+import android.util.Xml;
 
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
@@ -290,7 +289,7 @@ public class BipImageDescriptor {
             return null;
         }
         StringWriter writer = new StringWriter();
-        XmlSerializer xmlMsgElement = new FastXmlSerializer();
+        XmlSerializer xmlMsgElement = Xml.newSerializer();
         try {
             xmlMsgElement.setOutput(writer);
             xmlMsgElement.startDocument("UTF-8", true);
