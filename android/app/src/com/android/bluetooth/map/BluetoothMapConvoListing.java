@@ -18,7 +18,6 @@ import android.util.Log;
 import android.util.Xml;
 
 import com.android.bluetooth.Utils;
-import com.android.internal.util.FastXmlSerializer;
 
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
@@ -91,7 +90,7 @@ public class BluetoothMapConvoListing {
      */
     public byte[] encode() throws UnsupportedEncodingException {
         StringWriter sw = new StringWriter();
-        XmlSerializer xmlConvoElement = new FastXmlSerializer(0);
+        XmlSerializer xmlConvoElement = Xml.newSerializer();
         try {
             xmlConvoElement.setOutput(sw);
             xmlConvoElement.startDocument("UTF-8", true);
