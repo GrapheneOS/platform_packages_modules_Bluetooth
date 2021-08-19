@@ -34,7 +34,7 @@ from cert.gd_device import MOBLY_CONTROLLER_CONFIG_NAME as CONTROLLER_CONFIG_NAM
 from facade import rootservice_pb2 as facade_rootservice
 
 
-def setup_class_core(dut_module, cert_module, verbose_mode, log_path_base, controller_configs):
+def setup_rootcanal(dut_module, cert_module, verbose_mode, log_path_base, controller_configs):
     info = {}
     info['dut_module'] = dut_module
     info['cert_module'] = cert_module
@@ -104,7 +104,7 @@ def setup_class_core(dut_module, cert_module, verbose_mode, log_path_base, contr
     return info
 
 
-def teardown_class_core(rootcanal_running, rootcanal_process, rootcanal_logger, subprocess_wait_timeout_seconds):
+def teardown_rootcanal(rootcanal_running, rootcanal_process, rootcanal_logger, subprocess_wait_timeout_seconds):
     if rootcanal_running:
         stop_signal = signal.SIGINT
         rootcanal_process.send_signal(stop_signal)

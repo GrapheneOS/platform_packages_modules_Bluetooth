@@ -116,6 +116,7 @@ class GdDeviceBaseCore(ABC):
         :param test_runner_base_path: path to test run logs
         """
         self.verbose_mode = verbose_mode
+        self.host_only_device = False
         self.grpc_root_server_port = int(grpc_root_server_port)
         self.grpc_port = int(grpc_port)
         self.signal_port = int(signal_port)
@@ -246,78 +247,85 @@ class GdDeviceBaseCore(ABC):
             raise
 
 
-class GdHostOnlyDeviceCore():
-    """
-    Provide core methods of GdHostOnlyDevice class unbound of ACTS dependency
-    """
+def get_coverage_profdata_path_for_host(test_runner_base_path, type_identifier, label) -> pathlib.Path:
+    return pathlib.Path(test_runner_base_path).joinpath(
+        "%s_%s_backing_process_coverage.profdata" % (type_identifier, label))
 
-    def generate_coverage_report(self, backing_process_profraw_path, label, test_runner_base_path, type_identifier,
-                                 cmd):
-        self.backing_process_profraw_path = backing_process_profraw_path
-        self.label = label
-        self.test_runner_base_path = test_runner_base_path
-        self.type_identifier = type_identifier
-        self.cmd = cmd
 
-        if not self.backing_process_profraw_path.is_file():
-            logging.info("[%s] Skip coverage report as there is no profraw file at %s" %
-                         (self.label, str(self.backing_process_profraw_path)))
-            return
-        try:
-            if self.backing_process_profraw_path.stat().st_size <= 0:
-                logging.info("[%s] Skip coverage report as profraw file is empty at %s" %
-                             (self.label, str(self.backing_process_profraw_path)))
-                return
-        except OSError:
-            logging.info("[%s] Skip coverage report as profraw file is inaccessible at %s" %
-                         (self.label, str(self.backing_process_profraw_path)))
-            return
-        llvm_binutils = pathlib.Path(get_gd_root()).joinpath("llvm_binutils").joinpath("bin")
-        llvm_profdata = llvm_binutils.joinpath("llvm-profdata")
-        if not llvm_profdata.is_file():
+def merge_coverage_profdata_for_host(backing_process_profraw_path, profdata_path: pathlib.Path, label):
+    if not backing_process_profraw_path.is_file():
+        logging.info(
+            "[%s] Skip coverage report as there is no profraw file at %s" % (label, str(backing_process_profraw_path)))
+        return
+    try:
+        if backing_process_profraw_path.stat().st_size <= 0:
             logging.info(
-                "[%s] Skip coverage report as llvm-profdata is not found at %s" % (self.label, str(llvm_profdata)))
+                "[%s] Skip coverage report as profraw file is empty at %s" % (label, str(backing_process_profraw_path)))
             return
-        llvm_cov = llvm_binutils.joinpath("llvm-cov")
-        if not llvm_cov.is_file():
-            logging.info("[%s] Skip coverage report as llvm-cov is not found at %s" % (self.label, str(llvm_cov)))
-            return
-        logging.info("[%s] Generating coverage report" % self.label)
-        profdata_path = pathlib.Path(self.test_runner_base_path).joinpath(
-            "%s_%s_backing_process_coverage.profdata" % (self.type_identifier, self.label))
-        profdata_path_tmp = pathlib.Path(self.test_runner_base_path).joinpath(
-            "%s_%s_backing_process_coverage_tmp.profdata" % (self.type_identifier, self.label))
-        # Merge with existing profdata if possible
-        profdata_cmd = [str(llvm_profdata), "merge", "-sparse", str(self.backing_process_profraw_path)]
-        if profdata_path.is_file():
-            profdata_cmd.append(str(profdata_path))
-        profdata_cmd += ["-o", str(profdata_path_tmp)]
-        result = subprocess.run(profdata_cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-        if result.returncode != 0:
-            logging.warning("[%s] Failed to index profdata, cmd result: %r" % (self.label, result))
-            profdata_path.unlink(missing_ok=True)
-            return
-        shutil.move(profdata_path_tmp, profdata_path)
-        coverage_result_path = pathlib.Path(self.test_runner_base_path).joinpath(
-            "%s_%s_backing_process_coverage.json" % (self.type_identifier, self.label))
-        with coverage_result_path.open("w") as coverage_result_file:
-            result = subprocess.run(
-                [str(llvm_cov), "export", "--format=text", "--instr-profile", profdata_path, self.cmd[0]],
-                stderr=subprocess.PIPE,
-                stdout=coverage_result_file,
-                cwd=os.path.join(get_gd_root()))
-        if result.returncode != 0:
-            logging.warning("[%s] Failed to generated coverage report, cmd result: %r" % (self.label, result))
-            coverage_result_path.unlink(missing_ok=True)
-            return
-        coverage_summary_path = pathlib.Path(self.test_runner_base_path).joinpath(
-            "%s_%s_backing_process_coverage_summary.txt" % (self.type_identifier, self.label))
-        with coverage_summary_path.open("w") as coverage_summary_file:
-            result = subprocess.run(
-                [llvm_cov, "report", "--instr-profile", profdata_path, self.cmd[0]],
-                stderr=subprocess.PIPE,
-                stdout=coverage_summary_file,
-                cwd=os.path.join(get_gd_root()))
-        if result.returncode != 0:
-            logging.warning("[%s] Failed to generated coverage summary, cmd result: %r" % (self.label, result))
-            coverage_summary_path.unlink(missing_ok=True)
+    except OSError:
+        logging.info("[%s] Skip coverage report as profraw file is inaccessible at %s" %
+                     (label, str(backing_process_profraw_path)))
+        return
+    llvm_binutils = pathlib.Path(get_gd_root()).joinpath("llvm_binutils").joinpath("bin")
+    llvm_profdata = llvm_binutils.joinpath("llvm-profdata")
+    if not llvm_profdata.is_file():
+        logging.info("[%s] Skip coverage report as llvm-profdata is not found at %s" % (label, str(llvm_profdata)))
+        return
+    logging.info("[%s] Merging coverage profdata" % label)
+    profdata_path_tmp = profdata_path.parent / (profdata_path.stem + "_tmp." + profdata_path.suffix)
+    # Merge with existing profdata if possible
+    profdata_cmd = [str(llvm_profdata), "merge", "-sparse", str(backing_process_profraw_path)]
+    if profdata_path.is_file():
+        profdata_cmd.append(str(profdata_path))
+    profdata_cmd += ["-o", str(profdata_path_tmp)]
+    logging.debug("Running llvm_profdata: %s" % " ".join(profdata_cmd))
+    result = subprocess.run(profdata_cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    if result.returncode != 0:
+        logging.warning("[%s] Failed to index profdata, cmd result: %r" % (label, result))
+        profdata_path.unlink(missing_ok=True)
+        return
+    shutil.move(profdata_path_tmp, profdata_path)
+
+
+def generate_coverage_report_for_host(coverage_info):
+    label = coverage_info["label"]
+    test_runner_base_path = coverage_info["test_runner_base_path"]
+    type_identifier = coverage_info["type_identifier"]
+    profdata_path = coverage_info["profdata_path"]
+    stack_bin = coverage_info["stack_bin"]
+    llvm_binutils = pathlib.Path(get_gd_root()).joinpath("llvm_binutils").joinpath("bin")
+    llvm_cov = llvm_binutils.joinpath("llvm-cov")
+    if not llvm_cov.is_file():
+        logging.info("[%s] Skip coverage report as llvm-cov is not found at %s" % (label, str(llvm_cov)))
+        return
+    logging.info("[%s] Generating coverage report in JSON" % label)
+    coverage_result_path = pathlib.Path(test_runner_base_path).joinpath(
+        "%s_%s_backing_process_coverage.json" % (type_identifier, label))
+    with coverage_result_path.open("w") as coverage_result_file:
+        llvm_cov_export_cmd = [
+            str(llvm_cov), "export", "--format=text", "--ignore-filename-regex", "(external|out).*", "--instr-profile",
+            str(profdata_path),
+            str(stack_bin)
+        ]
+        logging.debug("Running llvm_cov export: %s" % " ".join(llvm_cov_export_cmd))
+        result = subprocess.run(
+            llvm_cov_export_cmd, stderr=subprocess.PIPE, stdout=coverage_result_file, cwd=os.path.join(get_gd_root()))
+    if result.returncode != 0:
+        logging.warning("[%s] Failed to generated coverage report, cmd result: %r" % (label, result))
+        coverage_result_path.unlink(missing_ok=True)
+        return
+    logging.info("[%s] Generating coverage summary in text" % label)
+    coverage_summary_path = pathlib.Path(test_runner_base_path).joinpath(
+        "%s_%s_backing_process_coverage_summary.txt" % (type_identifier, label))
+    with coverage_summary_path.open("w") as coverage_summary_file:
+        llvm_cov_report_cmd = [
+            str(llvm_cov), "report", "--ignore-filename-regex", "(external|out).*", "--instr-profile",
+            str(profdata_path),
+            str(stack_bin)
+        ]
+        logging.debug("Running llvm_cov report: %s" % " ".join(llvm_cov_report_cmd))
+        result = subprocess.run(
+            llvm_cov_report_cmd, stderr=subprocess.PIPE, stdout=coverage_summary_file, cwd=os.path.join(get_gd_root()))
+    if result.returncode != 0:
+        logging.warning("[%s] Failed to generated coverage summary, cmd result: %r" % (label, result))
+        coverage_summary_path.unlink(missing_ok=True)
