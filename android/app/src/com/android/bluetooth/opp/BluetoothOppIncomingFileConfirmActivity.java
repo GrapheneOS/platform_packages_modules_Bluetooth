@@ -134,7 +134,14 @@ public class BluetoothOppIncomingFileConfirmActivity extends AlertActivity {
         View view = getLayoutInflater().inflate(R.layout.incoming_dialog, null);
 
         ((TextView) view.findViewById(R.id.from_content)).setText(mTransInfo.mDeviceName);
-        ((TextView) view.findViewById(R.id.filename_content)).setText(mTransInfo.mFileName);
+        String fileName = mTransInfo.mFileName;
+        if (fileName != null) {
+            fileName = fileName
+                    .replace('\t', ' ')
+                    .replace('\n', ' ')
+                    .replace('\r', ' ');
+        }
+        ((TextView) view.findViewById(R.id.filename_content)).setText(fileName);
         ((TextView) view.findViewById(R.id.size_content)).setText(
                 Formatter.formatFileSize(this, mTransInfo.mTotalBytes));
 
