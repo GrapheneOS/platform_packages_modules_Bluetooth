@@ -1361,27 +1361,6 @@ void shim::legacy::Acl::OnLeConnectFail(hci::AddressWithType address_with_type,
       base::StringPrintf("le reason:%s", hci::ErrorCodeText(reason).c_str()));
 }
 
-void shim::legacy::Acl::ConfigureLePrivacy(bool is_le_privacy_enabled) {
-  LOG_INFO("Configuring Le privacy:%s",
-           (is_le_privacy_enabled) ? "true" : "false");
-  ASSERT_LOG(is_le_privacy_enabled,
-             "Gd shim does not support unsecure le privacy");
-
-  // TODO(b/161543441): read the privacy policy from device-specific
-  // configuration, and IRK from config file.
-  hci::LeAddressManager::AddressPolicy address_policy =
-      hci::LeAddressManager::AddressPolicy::USE_RESOLVABLE_ADDRESS;
-  hci::AddressWithType empty_address_with_type(
-      hci::Address{}, hci::AddressType::RANDOM_DEVICE_ADDRESS);
-  /* 7 minutes minimum, 15 minutes maximum for random address refreshing */
-  auto minimum_rotation_time = std::chrono::minutes(7);
-  auto maximum_rotation_time = std::chrono::minutes(15);
-
-  GetAclManager()->SetPrivacyPolicyForInitiatorAddress(
-      address_policy, empty_address_with_type, minimum_rotation_time,
-      maximum_rotation_time);
-}
-
 void shim::legacy::Acl::DisconnectClassic(uint16_t handle, tHCI_STATUS reason) {
   handler_->CallOn(pimpl_.get(), &Acl::impl::disconnect_classic, handle,
                    reason);
