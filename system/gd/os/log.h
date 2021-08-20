@@ -60,8 +60,24 @@ static_assert(LOG_TAG != nullptr, "LOG_TAG is null after header inclusion");
 #endif /* FUZZ_TARGET */
 #define LOG_ERROR(fmt, args...) ALOGE("%s:%d %s: " fmt, __FILE__, __LINE__, __func__, ##args)
 
-#else
+#elif defined (ANDROID_EMULATOR)
+// Log using android emulator logging mechanism
+#include "android/utils/debug.h"
 
+#define LOGWRAPPER(fmt, args...) VERBOSE_INFO(bluetooth, "bluetooth: %s:%d - %s: " fmt, \
+                                              __FILE__, __LINE__, __func__, ##args)
+
+#define LOG_VEBOSE(...) LOGWRAPPER(__VA_ARGS__)
+#define LOG_DEBUG(...)  LOGWRAPPER(__VA_ARGS__)
+#define LOG_INFO(...)   LOGWRAPPER(__VA_ARGS__)
+#define LOG_WARN(...)   LOGWRAPPER(__VA_ARGS__)
+#define LOG_ERROR(...)  LOGWRAPPER(__VA_ARGS__)
+#define LOG_ALWAYS_FATAL(fmt, args...)                                              \
+  do {                                                                              \
+    fprintf(stderr, "%s:%d - %s: " fmt "\n", __FILE__, __LINE__, __func__, ##args); \
+    abort();                                                                        \
+  } while (false)
+#else
 /* syslog didn't work well here since we would be redefining LOG_DEBUG. */
 #include <chrono>
 #include <cstdio>
