@@ -168,7 +168,6 @@ hci_t mock_hci = {
     .transmit_downward = transmit_downward,
 };
 
-bool is_bluetooth_uid() { return false; }
 const tBTA_AG_RES_DATA tBTA_AG_RES_DATA::kEmpty = {};
 
 namespace bluetooth {
