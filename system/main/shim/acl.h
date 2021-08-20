@@ -88,8 +88,6 @@ class Acl : public hci::acl_manager::ConnectionCallbacks,
   void WriteData(uint16_t hci_handle,
                  std::unique_ptr<packet::RawBuilder> packet);
 
-  void ConfigureLePrivacy(bool is_le_privacy_enabled);
-
   void Dump(int fd) const;
   void DumpConnectionHistory(int fd) const;
 
