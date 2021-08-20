@@ -74,6 +74,18 @@
 #include "internal_include/stack_config.h"
 #include "main/shim/controller.h"
 
+// Validate or respond to various conditional compilation flags
+
+#if BLE_PRIVACY_SPT != TRUE
+// Once BLE_PRIVACY_SPT is no longer exposed via bt_target.h
+// this check and error statement may be removed.
+#warning \
+    "#define BLE_PRIVACY_SPT FALSE preprocessor compilation flag is unsupported"
+#warning \
+    "  To disable LE privacy for a device use: #define BLE_LOCAL_PRIVACY_ENABLED FALSE"
+#error "*** Conditional Compilation Directive error"
+#endif
+
 void main_thread_shut_down();
 void main_thread_start_up();
 void BTA_dm_on_hw_on();
