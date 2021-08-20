@@ -2,6 +2,11 @@ use log::{error, info};
 use paste::paste;
 use std::sync::Mutex;
 
+/// Deprecated immutable flag
+pub fn gd_hci_is_enabled() -> bool {
+    true
+}
+
 macro_rules! init_flags {
     (flags: { $($flag:ident),* }, dependencies: { $($parent:ident => $child:ident),* }) => {
         #[derive(Default)]
@@ -51,7 +56,6 @@ macro_rules! init_flags {
                 // TODO: acl should not be off if l2cap is on, but need to reconcile legacy code
                 if self.gd_l2cap {
                     self.gd_acl = false;
-                    self.gd_hci = true;
                 }
 
                 self
@@ -81,7 +85,6 @@ init_flags!(
         gd_security,
         gd_acl,
         gd_l2cap,
-        gd_hci,
         gd_controller,
         gatt_robust_caching,
         btaa_hci,
@@ -95,7 +98,6 @@ init_flags!(
         gd_scanning => gd_advertising,
         gd_advertising => gd_acl,
         gd_acl => gd_controller,
-        gd_controller => gd_hci,
         gd_link_policy => gd_acl
     }
 );
