@@ -3736,12 +3736,10 @@ void bta_dm_ble_update_conn_params(const RawAddress& bd_addr, uint16_t min_int,
   }
 }
 
-#if (BLE_PRIVACY_SPT == TRUE)
 /** This function set the local device LE privacy settings. */
 void bta_dm_ble_config_local_privacy(bool privacy_enable) {
   BTM_BleConfigPrivacy(privacy_enable);
 }
-#endif
 
 static void bta_dm_start_scan(uint8_t duration_sec) {
   tBTM_STATUS status = BTM_BleObserve(
