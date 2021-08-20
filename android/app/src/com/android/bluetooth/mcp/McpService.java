@@ -129,10 +129,11 @@ public class McpService extends ProfileService {
     }
 
     public void onDeviceUnauthorized(BluetoothDevice device) {
-        setDeviceAuthorized(device, false);
+        Log.w(TAG, "onDeviceUnauthorized - authorization notification not implemented yet ");
     }
 
     public void setDeviceAuthorized(BluetoothDevice device, boolean isAuthorized) {
+        Log.i(TAG, "setDeviceAuthorized(): device: " + device + ", isAuthorized: " + isAuthorized);
         int authorization = isAuthorized ? BluetoothDevice.ACCESS_ALLOWED
                 : BluetoothDevice.ACCESS_REJECTED;
         mDeviceAuthorizations.put(device, authorization);
