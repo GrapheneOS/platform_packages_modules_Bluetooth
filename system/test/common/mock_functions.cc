@@ -19,11 +19,6 @@
 #include "osi/include/log.h"
 #include "test/common/mock_functions.h"
 
-// tLEGACY_TRACE_LEVEL
-// uint8_t btu_trace_level = 6;
-uint8_t appl_trace_level = 6;
-uint8_t btif_trace_level = 6;
-
 std::map<std::string, int> mock_function_count_map;
 
 void dump_mock_function_count_map() {
