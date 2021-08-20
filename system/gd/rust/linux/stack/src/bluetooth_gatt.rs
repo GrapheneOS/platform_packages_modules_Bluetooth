@@ -12,6 +12,7 @@ use bt_topshim::topstack;
 
 use num_traits::cast::{FromPrimitive, ToPrimitive};
 
+use std::collections::HashSet;
 use std::sync::{Arc, Mutex};
 
 use tokio::sync::mpsc::Sender;
@@ -181,10 +182,51 @@ pub trait IBluetoothGatt {
         client_id: i32,
         addr: String,
         handle: i32,
-        write_type: i32,
+        write_type: GattWriteType,
         auth_req: i32,
         value: Vec<u8>,
     ) -> GattWriteRequestStatus;
+
+    /// Reads the descriptor for a given characteristic.
+    fn read_descriptor(&self, client_id: i32, addr: String, handle: i32, auth_req: i32);
+
+    /// Writes a remote descriptor for a given characteristic.
+    fn write_descriptor(
+        &self,
+        client_id: i32,
+        addr: String,
+        handle: i32,
+        auth_req: i32,
+        value: Vec<u8>,
+    );
+
+    /// Registers to receive notifications or indications for a given characteristic.
+    fn register_for_notification(&self, client_id: i32, addr: String, handle: i32, enable: bool);
+
+    /// Begins reliable write.
+    fn begin_reliable_write(&mut self, client_id: i32, addr: String);
+
+    /// Ends reliable write.
+    fn end_reliable_write(&mut self, client_id: i32, addr: String, execute: bool);
+
+    /// Requests RSSI for a given remote device.
+    fn read_remote_rssi(&self, client_id: i32, addr: String);
+
+    /// Configures the MTU of a given connection.
+    fn configure_mtu(&self, client_id: i32, addr: String, mtu: i32);
+
+    /// Requests a connection parameter update.
+    fn connection_parameter_update(
+        &self,
+        client_id: i32,
+        addr: String,
+        min_interval: i32,
+        max_interval: i32,
+        latency: i32,
+        timeout: i32,
+        min_ce_len: u16,
+        max_ce_len: u16,
+    );
 }
 
 /// Callback for GATT Client API.
@@ -206,12 +248,38 @@ pub trait IBluetoothGattCallback: RPCProxy {
 
     /// The completion of IBluetoothGatt::read_phy.
     fn on_phy_read(&self, addr: String, tx_phy: LePhy, rx_phy: LePhy, status: GattStatus);
+
+    /// The completion of IBluetoothGatt::read_remote_rssi.
+    fn on_read_remote_rssi(&self, addr: String, rssi: i32, status: i32);
+
+    /// The completion of IBluetoothGatt::configure_mtu.
+    fn on_configure_mtu(&self, addr: String, mtu: i32, status: i32);
+
+    /// When a connection parameter changes.
+    fn on_connection_updated(
+        &self,
+        addr: String,
+        interval: i32,
+        latency: i32,
+        timeout: i32,
+        status: i32,
+    );
 }
 
 /// Interface for scanner callbacks to clients, passed to `IBluetoothGatt::register_scanner`.
 pub trait IScannerCallback {
     /// When the `register_scanner` request is done.
     fn on_scanner_registered(&self, status: i32, scanner_id: i32);
+}
+
+#[derive(Debug, FromPrimitive, ToPrimitive)]
+#[repr(u8)]
+/// GATT write type.
+pub enum GattWriteType {
+    Invalid = 0,
+    WriteNoRsp = 1,
+    Write = 2,
+    WritePrepare = 3,
 }
 
 #[derive(Debug, FromPrimitive, ToPrimitive)]
@@ -267,12 +335,18 @@ pub struct BluetoothGatt {
     gatt: Option<Gatt>,
 
     context_map: ContextMap,
+    reliable_queue: HashSet<String>,
 }
 
 impl BluetoothGatt {
     /// Constructs a new IBluetoothGatt implementation.
     pub fn new(intf: Arc<Mutex<BluetoothInterface>>) -> BluetoothGatt {
-        BluetoothGatt { intf: intf, gatt: None, context_map: ContextMap::new() }
+        BluetoothGatt {
+            intf: intf,
+            gatt: None,
+            context_map: ContextMap::new(),
+            reliable_queue: HashSet::new(),
+        }
     }
 
     pub fn init_profiles(&mut self, tx: Sender<Message>) {
@@ -508,7 +582,7 @@ impl IBluetoothGatt for BluetoothGatt {
         client_id: i32,
         addr: String,
         handle: i32,
-        write_type: i32,
+        mut write_type: GattWriteType,
         auth_req: i32,
         value: Vec<u8>,
     ) -> GattWriteRequestStatus {
@@ -517,7 +591,9 @@ impl IBluetoothGatt for BluetoothGatt {
             return GattWriteRequestStatus::Fail;
         }
 
-        // TODO(b/193685325): Check for reliable write type.
+        if self.reliable_queue.contains(&addr) {
+            write_type = GattWriteType::WritePrepare;
+        }
 
         // TODO(b/193685325): Perform check on restricted handles.
 
@@ -526,12 +602,131 @@ impl IBluetoothGatt for BluetoothGatt {
         self.gatt.as_ref().unwrap().client.write_characteristic(
             conn_id.unwrap(),
             handle as u16,
-            write_type,
+            write_type.to_i32().unwrap(),
             auth_req,
             &value,
         );
 
         return GattWriteRequestStatus::Success;
+    }
+
+    fn read_descriptor(&self, client_id: i32, addr: String, handle: i32, auth_req: i32) {
+        let conn_id = self.context_map.get_conn_id_from_address(client_id, &addr);
+        if conn_id.is_none() {
+            return;
+        }
+
+        // TODO(b/193685325): Perform check on restricted handles.
+
+        self.gatt.as_ref().unwrap().client.read_descriptor(
+            conn_id.unwrap(),
+            handle as u16,
+            auth_req,
+        );
+    }
+
+    fn write_descriptor(
+        &self,
+        client_id: i32,
+        addr: String,
+        handle: i32,
+        auth_req: i32,
+        value: Vec<u8>,
+    ) {
+        let conn_id = self.context_map.get_conn_id_from_address(client_id, &addr);
+        if conn_id.is_none() {
+            return;
+        }
+
+        // TODO(b/193685325): Perform check on restricted handles.
+
+        self.gatt.as_ref().unwrap().client.write_descriptor(
+            conn_id.unwrap(),
+            handle as u16,
+            auth_req,
+            &value,
+        );
+    }
+
+    fn register_for_notification(&self, client_id: i32, addr: String, handle: i32, enable: bool) {
+        let conn_id = self.context_map.get_conn_id_from_address(client_id, &addr);
+        if conn_id.is_none() {
+            return;
+        }
+
+        // TODO(b/193685325): Perform check on restricted handles.
+
+        if enable {
+            self.gatt.as_ref().unwrap().client.register_for_notification(
+                client_id,
+                &RawAddress::from_string(addr).unwrap(),
+                handle as u16,
+            );
+        } else {
+            self.gatt.as_ref().unwrap().client.deregister_for_notification(
+                client_id,
+                &RawAddress::from_string(addr).unwrap(),
+                handle as u16,
+            );
+        }
+    }
+
+    fn begin_reliable_write(&mut self, _client_id: i32, addr: String) {
+        self.reliable_queue.insert(addr);
+    }
+
+    fn end_reliable_write(&mut self, client_id: i32, addr: String, execute: bool) {
+        self.reliable_queue.remove(&addr);
+
+        let conn_id = self.context_map.get_conn_id_from_address(client_id, &addr);
+        if conn_id.is_none() {
+            return;
+        }
+
+        self.gatt
+            .as_ref()
+            .unwrap()
+            .client
+            .execute_write(conn_id.unwrap(), if execute { 1 } else { 0 });
+    }
+
+    fn read_remote_rssi(&self, client_id: i32, addr: String) {
+        self.gatt
+            .as_ref()
+            .unwrap()
+            .client
+            .read_remote_rssi(client_id, &RawAddress::from_string(addr).unwrap());
+    }
+
+    fn configure_mtu(&self, client_id: i32, addr: String, mtu: i32) {
+        let conn_id = self.context_map.get_conn_id_from_address(client_id, &addr);
+        if conn_id.is_none() {
+            return;
+        }
+
+        self.gatt.as_ref().unwrap().client.configure_mtu(conn_id.unwrap(), mtu);
+    }
+
+    fn connection_parameter_update(
+        &self,
+        _client_id: i32,
+        addr: String,
+        min_interval: i32,
+        max_interval: i32,
+        latency: i32,
+        timeout: i32,
+        min_ce_len: u16,
+        max_ce_len: u16,
+    ) {
+        self.gatt.as_ref().unwrap().client.conn_parameter_update(
+            &RawAddress::from_string(addr).unwrap(),
+            min_interval,
+            max_interval,
+            latency,
+            timeout,
+            min_ce_len,
+            max_ce_len,
+        );
     }
 }
 
@@ -543,8 +738,24 @@ pub(crate) trait BtifGattClientCallbacks {
     #[btif_callback(Connect)]
     fn connect_cb(&mut self, conn_id: i32, status: i32, client_id: i32, addr: RawAddress);
 
+    #[btif_callback(ReadRemoteRssi)]
+    fn read_remote_rssi_cb(&mut self, client_id: i32, addr: RawAddress, rssi: i32, status: i32);
+
+    #[btif_callback(ConfigureMtu)]
+    fn configure_mtu_cb(&mut self, conn_id: i32, status: i32, mtu: i32);
+
     #[btif_callback(PhyUpdated)]
     fn phy_updated_cb(&mut self, conn_id: i32, tx_phy: u8, rx_phy: u8, status: u8);
+
+    #[btif_callback(ConnUpdated)]
+    fn conn_updated_cb(
+        &mut self,
+        conn_id: i32,
+        interval: u16,
+        latency: u16,
+        timeout: u16,
+        status: u8,
+    );
 
     #[btif_callback(ReadPhy)]
     fn read_phy_cb(&mut self, client_id: i32, addr: RawAddress, tx_phy: u8, rx_phy: u8, status: u8);
@@ -587,6 +798,29 @@ impl BtifGattClientCallbacks for BluetoothGatt {
         );
     }
 
+    fn read_remote_rssi_cb(&mut self, client_id: i32, addr: RawAddress, rssi: i32, status: i32) {
+        let client = self.context_map.get_by_client_id(client_id);
+        if client.is_none() {
+            return;
+        }
+
+        client.unwrap().callback.on_read_remote_rssi(addr.to_string(), rssi, status);
+    }
+
+    fn configure_mtu_cb(&mut self, conn_id: i32, status: i32, mtu: i32) {
+        let client = self.context_map.get_client_by_conn_id(conn_id);
+        if client.is_none() {
+            return;
+        }
+
+        let addr = self.context_map.get_address_by_conn_id(conn_id);
+        if addr.is_none() {
+            return;
+        }
+
+        client.unwrap().callback.on_configure_mtu(addr.unwrap(), mtu, status);
+    }
+
     fn phy_updated_cb(&mut self, conn_id: i32, tx_phy: u8, rx_phy: u8, status: u8) {
         let client = self.context_map.get_client_by_conn_id(conn_id);
         if client.is_none() {
@@ -624,6 +858,33 @@ impl BtifGattClientCallbacks for BluetoothGatt {
             LePhy::from_u8(tx_phy).unwrap(),
             LePhy::from_u8(rx_phy).unwrap(),
             GattStatus::from_u8(status).unwrap(),
+        );
+    }
+
+    fn conn_updated_cb(
+        &mut self,
+        conn_id: i32,
+        interval: u16,
+        latency: u16,
+        timeout: u16,
+        status: u8,
+    ) {
+        let client = self.context_map.get_client_by_conn_id(conn_id);
+        if client.is_none() {
+            return;
+        }
+
+        let address = self.context_map.get_address_by_conn_id(conn_id);
+        if address.is_none() {
+            return;
+        }
+
+        client.unwrap().callback.on_connection_updated(
+            address.unwrap(),
+            interval as i32,
+            latency as i32,
+            timeout as i32,
+            status as i32,
         );
     }
 }
