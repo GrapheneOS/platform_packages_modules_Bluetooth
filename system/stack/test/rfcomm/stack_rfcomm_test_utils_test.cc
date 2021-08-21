@@ -21,7 +21,7 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-#include "rfcdefs.h"
+#include "stack/include/rfcdefs.h"
 #include "stack_rfcomm_test_utils.h"
 #include "stack_test_packet_utils.h"
 

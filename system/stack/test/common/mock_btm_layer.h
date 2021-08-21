@@ -19,7 +19,6 @@
 
 #include <gmock/gmock.h>
 
-#include "btm_int.h"
 #include "stack/include/btm_api_types.h"
 #include "stack/include/btm_status.h"
 #include "types/raw_address.h"

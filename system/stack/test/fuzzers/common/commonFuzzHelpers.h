@@ -20,8 +20,8 @@
 #include <fuzzer/FuzzedDataProvider.h>
 #include <cstring>  // For memcpy
 #include <vector>
-#include "raw_address.h"
-#include "sdp_api.h"
+#include "stack/include/sdp_api.h"
+#include "types/raw_address.h"
 
 // Calls a function from the ops_vector
 void callArbitraryFunction(
