@@ -22,7 +22,7 @@
 
 #include "btm_api.h"
 #include "l2c_api.h"
-#include "osi/include/osi.h"
+#include "osi/include/allocator.h"
 #include "port_api.h"
 
 #include "rfc_int.h"

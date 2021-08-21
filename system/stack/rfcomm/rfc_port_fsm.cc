@@ -22,20 +22,19 @@
  *  RFCOMM unit
  *
  ******************************************************************************/
-#include <string.h>
-#include "bt_common.h"
-#include "bt_target.h"
-#include "bt_utils.h"
-#include "btm_api.h"
-#include "osi/include/osi.h"
-#include "port_api.h"
-#include "port_int.h"
-#include "rfc_int.h"
-#include "rfcdefs.h"
 
+#include <cstdint>
+#include <cstring>
 #include <set>
+
+#include "bt_target.h"
 #include "hci/include/btsnoop.h"
+#include "osi/include/allocator.h"
+#include "osi/include/osi.h"  // UNUSED_ATTR
 #include "stack/btm/btm_sec.h"
+#include "stack/include/sdpdefs.h"
+#include "stack/rfcomm/port_int.h"
+#include "stack/rfcomm/rfc_int.h"
 
 static const std::set<uint16_t> uuid_logging_acceptlist = {
     UUID_SERVCLASS_HEADSET_AUDIO_GATEWAY,
