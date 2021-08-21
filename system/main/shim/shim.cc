@@ -74,10 +74,6 @@ bool bluetooth::shim::is_gd_link_policy_enabled() {
   return bluetooth::common::init_flags::gd_link_policy_is_enabled();
 }
 
-bool bluetooth::shim::is_gd_hci_enabled() {
-  return bluetooth::common::init_flags::gd_hci_is_enabled();
-}
-
 bool bluetooth::shim::is_gd_controller_enabled() {
   return bluetooth::common::init_flags::gd_controller_is_enabled();
 }
