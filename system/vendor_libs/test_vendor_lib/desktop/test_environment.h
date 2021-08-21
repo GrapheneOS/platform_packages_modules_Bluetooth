@@ -64,6 +64,7 @@ class TestEnvironment {
   void close();
 
  private:
+  test_vendor_lib::AsyncManager async_manager_;
   std::shared_ptr<AsyncDataChannelServer> test_socket_server_;
   std::shared_ptr<AsyncDataChannelServer> hci_socket_server_;
   std::shared_ptr<AsyncDataChannelServer> link_socket_server_;
@@ -72,7 +73,6 @@ class TestEnvironment {
   bool test_channel_open_{false};
   std::promise<void> barrier_;
 
-  test_vendor_lib::AsyncManager async_manager_;
 
   void SetUpTestChannel();
   void SetUpHciServer(ConnectCallback on_connect);
