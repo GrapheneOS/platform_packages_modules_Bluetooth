@@ -24,20 +24,16 @@
 
 #define LOG_TAG "sdp_discovery"
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdint>
 
-#include "bt_common.h"
 #include "bt_target.h"
-#include "btm_api.h"
-#include "btu.h"
-#include "hcidefs.h"
-#include "hcimsgs.h"
-#include "l2cdefs.h"
+#include "osi/include/allocator.h"
 #include "osi/include/log.h"
-#include "sdp_api.h"
-#include "sdpint.h"
+#include "stack/include/bt_types.h"
+#include "stack/include/sdp_api.h"
+#include "stack/include/sdpdefs.h"
+#include "stack/sdp/sdpint.h"
+#include "types/bluetooth/uuid.h"
 
 using bluetooth::Uuid;
 
