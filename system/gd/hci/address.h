@@ -22,6 +22,7 @@
 #include <cstring>
 #include <initializer_list>
 #include <optional>
+#include <ostream>
 #include <string>
 
 #include "packet/custom_field_fixed_size_interface.h"
