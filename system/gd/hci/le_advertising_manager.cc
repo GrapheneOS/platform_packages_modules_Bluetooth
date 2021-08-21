@@ -957,6 +957,13 @@ struct LeAdvertisingManager::impl : public bluetooth::hci::LeAddressManagerCallb
 
   void on_read_advertising_physical_channel_tx_power(CommandCompleteView view) {
     auto complete_view = LeReadAdvertisingPhysicalChannelTxPowerCompleteView::Create(view);
+    if (!complete_view.IsValid()) {
+      auto payload = view.GetPayload();
+      if (payload.size() == 1 && payload[0] == static_cast<uint8_t>(ErrorCode::UNKNOWN_HCI_COMMAND)) {
+        LOG_INFO("Unknown command, not setting tx power");
+        return;
+      }
+    }
     ASSERT(complete_view.IsValid());
     if (complete_view.GetStatus() != ErrorCode::SUCCESS) {
       LOG_INFO("Got a command complete with status %s", ErrorCodeText(complete_view.GetStatus()).c_str());
