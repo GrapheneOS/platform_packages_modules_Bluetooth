@@ -62,7 +62,6 @@ struct hci_is_root_inflammation_event_received
 struct handle_root_inflammation_event handle_root_inflammation_event;
 struct hci_layer_cleanup_interface hci_layer_cleanup_interface;
 struct hci_layer_get_interface hci_layer_get_interface;
-struct hci_layer_get_test_interface hci_layer_get_test_interface;
 
 }  // namespace hci_layer
 }  // namespace mock
@@ -113,14 +112,4 @@ const hci_t* hci_layer_get_interface() {
   mock_function_count_map[__func__]++;
   return test::mock::hci_layer::hci_layer_get_interface();
 }
-const hci_t* hci_layer_get_test_interface(
-    const allocator_t* buffer_allocator_interface,
-    const btsnoop_t* btsnoop_interface,
-    const packet_fragmenter_t* packet_fragmenter_interface) {
-  mock_function_count_map[__func__]++;
-  return test::mock::hci_layer::hci_layer_get_test_interface(
-      buffer_allocator_interface, btsnoop_interface,
-      packet_fragmenter_interface);
-}
-
 // END mockcify generation
