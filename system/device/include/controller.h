@@ -121,8 +121,3 @@ typedef struct controller_t {
 } controller_t;
 
 const controller_t* controller_get_interface();
-
-const controller_t* controller_get_test_interface(
-    const hci_t* hci_interface,
-    const hci_packet_factory_t* packet_factory_interface,
-    const hci_packet_parser_t* packet_parser_interface);

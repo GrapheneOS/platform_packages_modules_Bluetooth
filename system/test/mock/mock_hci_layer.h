@@ -138,30 +138,6 @@ struct hci_layer_get_interface {
   const hci_t* operator()() { return body(); };
 };
 extern struct hci_layer_get_interface hci_layer_get_interface;
-// Name: hci_layer_get_test_interface
-// Params:  const allocator_t* buffer_allocator_interface, const btsnoop_t*
-// btsnoop_interface, const packet_fragmenter_t* packet_fragmenter_interface
-// Returns: const hci_t*
-struct hci_layer_get_test_interface {
-  std::function<const hci_t*(
-      const allocator_t* buffer_allocator_interface,
-      const btsnoop_t* btsnoop_interface,
-      const packet_fragmenter_t* packet_fragmenter_interface)>
-      body{[](const allocator_t* buffer_allocator_interface,
-              const btsnoop_t* btsnoop_interface,
-              const packet_fragmenter_t* packet_fragmenter_interface) {
-        return nullptr;
-      }};
-  const hci_t* operator()(
-      const allocator_t* buffer_allocator_interface,
-      const btsnoop_t* btsnoop_interface,
-      const packet_fragmenter_t* packet_fragmenter_interface) {
-    return body(buffer_allocator_interface, btsnoop_interface,
-                packet_fragmenter_interface);
-  };
-};
-extern struct hci_layer_get_test_interface hci_layer_get_test_interface;
-
 }  // namespace hci_layer
 }  // namespace mock
 }  // namespace test
