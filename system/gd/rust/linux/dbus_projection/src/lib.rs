@@ -80,9 +80,11 @@ macro_rules! impl_dbus_arg_enum {
             type DBusType = i32;
             fn from_dbus(
                 data: i32,
-                _conn: Arc<SyncConnection>,
-                _remote: dbus::strings::BusName<'static>,
-                _disconnect_watcher: Arc<std::sync::Mutex<dbus_projection::DisconnectWatcher>>,
+                _conn: Option<Arc<SyncConnection>>,
+                _remote: Option<dbus::strings::BusName<'static>>,
+                _disconnect_watcher: Option<
+                    Arc<std::sync::Mutex<dbus_projection::DisconnectWatcher>>,
+                >,
             ) -> Result<$enum_type, Box<dyn std::error::Error>> {
                 match <$enum_type>::from_i32(data) {
                     Some(x) => Ok(x),
