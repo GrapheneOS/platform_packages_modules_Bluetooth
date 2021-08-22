@@ -26,7 +26,6 @@
 #include <string.h>
 #include "bnep_api.h"
 #include "bt_common.h"
-#include "bt_types.h"
 #include "bt_utils.h"
 #include "hcidefs.h"
 #include "l2c_api.h"

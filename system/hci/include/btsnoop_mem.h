@@ -20,7 +20,7 @@
 
 #include <stdint.h>
 
-#include "bt_types.h"
+#include "stack/include/bt_hdr.h"
 
 // Callback invoked for each HCI packet.
 // Highlander mode - there can be only one...

@@ -29,7 +29,6 @@
 #include "avdtc_api.h"
 #include "bt_common.h"
 #include "bt_target.h"
-#include "bt_types.h"
 #include "bt_utils.h"
 #include "btm_api.h"
 #include "btu.h"

@@ -44,7 +44,6 @@ extern std::map<std::string, int> mock_function_count_map;
 
 #include <mutex>
 
-#include "bt_types.h"
 #include "bt_utils.h"
 #include "btcore/include/module.h"
 #include "osi/include/compat.h"

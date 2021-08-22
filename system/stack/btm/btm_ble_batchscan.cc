@@ -22,7 +22,6 @@
 #include <vector>
 #include "bt_target.h"
 
-#include "bt_types.h"
 #include "btm_ble_api.h"
 #include "btm_int.h"
 #include "btu.h"

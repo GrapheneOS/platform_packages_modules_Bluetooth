@@ -27,7 +27,6 @@
 #include <hardware/bluetooth.h>
 #include <functional>
 #include "abstract_message_loop.h"
-#include "bt_types.h"
 #include "bta/include/bta_api.h"
 #include "osi/include/log.h"
 #include "osi/include/osi.h"

@@ -27,7 +27,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "bt_types.h"
 #include "btm_api.h"
 #include "btu.h"
 #include "hidd_api.h"
