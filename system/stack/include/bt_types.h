@@ -25,6 +25,7 @@
 #include <string>
 #endif  // __cplusplus
 
+#include "stack/include/bt_dev_class.h"
 #include "stack/include/bt_device_type.h"
 #include "stack/include/bt_hdr.h"
 
@@ -160,12 +161,6 @@ enum {
     for (ijk = 0; ijk < LAP_LEN; ijk++)         \
       *(p)++ = (uint8_t)(a)[LAP_LEN - 1 - ijk]; \
   }
-#define DEVCLASS_TO_STREAM(p, a)                      \
-  {                                                   \
-    int ijk;                                          \
-    for (ijk = 0; ijk < DEV_CLASS_LEN; ijk++)         \
-      *(p)++ = (uint8_t)(a)[DEV_CLASS_LEN - 1 - ijk]; \
-  }
 #define ARRAY_TO_STREAM(p, a, len)                                \
   {                                                               \
     int ijk;                                                      \
@@ -221,12 +216,6 @@ enum {
     int ijk;                                       \
     uint8_t* _pa = (uint8_t*)(a) + 7;              \
     for (ijk = 0; ijk < 8; ijk++) *_pa-- = *(p)++; \
-  }
-#define STREAM_TO_DEVCLASS(a, p)                               \
-  {                                                            \
-    int ijk;                                                   \
-    uint8_t* _pa = (uint8_t*)(a) + DEV_CLASS_LEN - 1;          \
-    for (ijk = 0; ijk < DEV_CLASS_LEN; ijk++) *_pa-- = *(p)++; \
   }
 #define STREAM_TO_LAP(a, p)                               \
   {                                                       \
@@ -379,9 +368,6 @@ typedef uint8_t PIN_CODE[PIN_CODE_LEN]; /* Pin Code (upto 128 bits) MSB is 0 */
 
 #define BT_OCTET32_LEN 32
 typedef uint8_t BT_OCTET32[BT_OCTET32_LEN]; /* octet array: size 32 */
-
-#define DEV_CLASS_LEN 3
-typedef uint8_t DEV_CLASS[DEV_CLASS_LEN]; /* Device class */
 
 #define BD_NAME_LEN 248
 typedef uint8_t BD_NAME[BD_NAME_LEN + 1]; /* Device name */
