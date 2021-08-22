@@ -22,7 +22,7 @@
  ******************************************************************************/
 #pragma once
 
-#include "bt_types.h"
+#include <cstdint>
 
 #define DWORD_BITS 32
 #define DWORD_BYTES 4
