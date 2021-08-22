@@ -26,6 +26,7 @@
 #endif  // __cplusplus
 
 #include "stack/include/bt_device_type.h"
+#include "stack/include/bt_hdr.h"
 
 /* READ WELL !!
  *
@@ -82,39 +83,6 @@
 /* ISO Layer specific */
 #define BT_ISO_HDR_CONTAINS_TS (0x0001)
 #define BT_ISO_HDR_OFFSET_POINTS_DATA (0x0002)
-
-/* Define the header of each buffer used in the Bluetooth stack.
- */
-typedef struct {
-  uint16_t event;
-  uint16_t len;
-  uint16_t offset;
-  uint16_t layer_specific;
-  uint8_t data[];
-} BT_HDR;
-
-typedef struct {
-  uint16_t event;
-  uint16_t len;
-  uint16_t offset;
-  uint16_t layer_specific;
-  // Note: Removal of flexible array member with no specified size.
-  // This struct may be embedded in any position within other structs
-  // and will not trigger various flexible member compilation issues.
-} BT_HDR_RIGID;
-
-#ifdef __cplusplus
-template <typename T>
-T* ToPacketData(BT_HDR* bt_hdr, size_t offset = 0) {
-  return reinterpret_cast<T*>(bt_hdr->data + bt_hdr->offset + offset);
-}
-template <typename T>
-const T* ToPacketData(const BT_HDR* bt_hdr, size_t offset = 0) {
-  return reinterpret_cast<const T*>(bt_hdr->data + bt_hdr->offset + offset);
-}
-#endif  // __cplusplus
-
-#define BT_HDR_SIZE (sizeof(BT_HDR))
 
 enum {
   BT_PSM_SDP = 0x0001,
