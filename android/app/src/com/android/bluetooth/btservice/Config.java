@@ -30,6 +30,7 @@ import com.android.bluetooth.a2dp.A2dpService;
 import com.android.bluetooth.a2dpsink.A2dpSinkService;
 import com.android.bluetooth.avrcp.AvrcpTargetService;
 import com.android.bluetooth.avrcpcontroller.AvrcpControllerService;
+import com.android.bluetooth.csip.CsipSetCoordinatorService;
 import com.android.bluetooth.gatt.GattService;
 import com.android.bluetooth.hearingaid.HearingAidService;
 import com.android.bluetooth.hfp.HeadsetService;
@@ -112,7 +113,10 @@ public class Config {
                     (1 << BluetoothProfile.MCP_SERVER)),
             new ProfileConfig(HearingAidService.class,
                     com.android.internal.R.bool.config_hearing_aid_profile_supported,
-                    (1 << BluetoothProfile.HEARING_AID))
+                    (1 << BluetoothProfile.HEARING_AID)),
+            new ProfileConfig(CsipSetCoordinatorService.class,
+                    R.bool.profile_supported_csip_set_coordinator,
+                    (1 << BluetoothProfile.CSIP_SET_COORDINATOR)),
     };
 
     private static Class[] sSupportedProfiles = new Class[0];
