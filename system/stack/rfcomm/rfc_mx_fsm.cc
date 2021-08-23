@@ -67,7 +67,7 @@ static void rfc_mx_conf_cnf(tRFC_MCB* p_mcb, uint16_t result);
  * Returns          void
  *
  ******************************************************************************/
-void rfc_mx_sm_execute(tRFC_MCB* p_mcb, uint16_t event, void* p_data) {
+void rfc_mx_sm_execute(tRFC_MCB* p_mcb, tRFC_MX_EVENT event, void* p_data) {
   CHECK(p_mcb != nullptr) << __func__ << ": NULL mcb for event " << event;
 
   LOG_INFO(
