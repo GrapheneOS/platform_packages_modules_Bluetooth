@@ -24,6 +24,11 @@
 #include "model/setup/device_boutique.h"
 #include "os/log.h"
 
+#ifdef _WIN32
+#define F_OK 00
+#define R_OK 04
+#endif
+
 using std::vector;
 using std::chrono::steady_clock;
 using std::chrono::system_clock;

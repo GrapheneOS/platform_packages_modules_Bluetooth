@@ -20,6 +20,7 @@
 
 #include <stdint.h>
 #include <array>
+#include <ostream>
 #include <string>
 
 namespace bluetooth {
