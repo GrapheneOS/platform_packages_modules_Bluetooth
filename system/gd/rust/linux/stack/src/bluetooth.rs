@@ -2,7 +2,7 @@
 
 use bt_topshim::btif::{
     BaseCallbacks, BaseCallbacksDispatcher, BluetoothInterface, BluetoothProperty, BtBondState,
-    BtDiscoveryState, BtSspVariant, BtState, BtStatus, BtTransport, RawAddress,
+    BtDiscoveryState, BtPropertyType, BtSspVariant, BtState, BtStatus, BtTransport, RawAddress,
 };
 use bt_topshim::profiles::hid_host::{HHCallbacksDispatcher, HidHost};
 use bt_topshim::topstack;
@@ -11,6 +11,7 @@ use btif_macros::{btif_callback, btif_callbacks_dispatcher};
 
 use num_traits::cast::ToPrimitive;
 
+use std::collections::HashMap;
 use std::sync::Arc;
 use std::sync::Mutex;
 
@@ -106,13 +107,15 @@ pub trait IBluetoothCallback: RPCProxy {
 /// Implementation of the adapter API.
 pub struct Bluetooth {
     intf: Arc<Mutex<BluetoothInterface>>,
-    state: BtState,
+
+    bluetooth_media: Arc<Mutex<Box<BluetoothMedia>>>,
     callbacks: Vec<(u32, Box<dyn IBluetoothCallback + Send>)>,
     callbacks_last_id: u32,
-    tx: Sender<Message>,
-    local_address: Option<RawAddress>,
     hh: Option<HidHost>,
-    bluetooth_media: Arc<Mutex<Box<BluetoothMedia>>>,
+    local_address: Option<RawAddress>,
+    properties: HashMap<BtPropertyType, BluetoothProperty>,
+    state: BtState,
+    tx: Sender<Message>,
 }
 
 impl Bluetooth {
@@ -123,14 +126,15 @@ impl Bluetooth {
         bluetooth_media: Arc<Mutex<Box<BluetoothMedia>>>,
     ) -> Bluetooth {
         Bluetooth {
-            tx,
-            intf,
-            state: BtState::Off,
             callbacks: vec![],
             callbacks_last_id: 0,
-            local_address: None,
             hh: None,
             bluetooth_media,
+            intf,
+            local_address: None,
+            properties: HashMap::new(),
+            state: BtState::Off,
+            tx,
         }
     }
 
@@ -215,10 +219,23 @@ pub fn get_bt_dispatcher(tx: Sender<Message>) -> BaseCallbacksDispatcher {
 
 impl BtifBluetoothCallbacks for Bluetooth {
     fn adapter_state_changed(&mut self, state: BtState) {
+        let prev_state = self.state.clone();
         self.state = state;
+
+        // If it's the same state as before, no further action
+        if self.state == prev_state {
+            return;
+        }
 
         if self.state == BtState::On {
             self.bluetooth_media.lock().unwrap().initialize();
+        }
+
+        if self.state == BtState::Off {
+            self.properties.clear();
+        } else {
+            // Trigger properties update
+            self.intf.lock().unwrap().get_adapter_properties();
         }
     }
 
@@ -233,13 +250,16 @@ impl BtifBluetoothCallbacks for Bluetooth {
             return;
         }
 
+        // Update local property cache
         for prop in properties {
-            match prop {
+            match &prop {
                 BluetoothProperty::BdAddr(bdaddr) => {
                     self.update_local_address(&bdaddr);
                 }
                 _ => {}
             }
+
+            self.properties.insert(prop.get_type(), prop);
         }
     }
 

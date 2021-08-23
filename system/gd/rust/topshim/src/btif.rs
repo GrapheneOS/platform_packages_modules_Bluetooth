@@ -102,7 +102,7 @@ pub enum BtDeviceType {
     Dual,
 }
 
-#[derive(Clone, Debug, FromPrimitive, ToPrimitive, PartialEq, PartialOrd)]
+#[derive(Clone, Debug, Eq, Hash, FromPrimitive, ToPrimitive, PartialEq, PartialOrd)]
 #[repr(u32)]
 pub enum BtPropertyType {
     BdName = 0x1,
