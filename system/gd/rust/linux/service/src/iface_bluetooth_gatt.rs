@@ -46,6 +46,24 @@ impl IBluetoothGattCallback for BluetoothGattCallbackDBus {
     #[dbus_method("OnPhyRead")]
     fn on_phy_read(&self, addr: String, tx_phy: LePhy, rx_phy: LePhy, status: GattStatus) {}
 
+    #[dbus_method("OnCharacteristicRead")]
+    fn on_characteristic_read(&self, addr: String, status: i32, handle: i32, value: Vec<u8>) {}
+
+    #[dbus_method("OnCharacteristicWrite")]
+    fn on_characteristic_write(&self, addr: String, status: i32, handle: i32) {}
+
+    #[dbus_method("OnExecuteWrite")]
+    fn on_execute_write(&self, addr: String, status: i32) {}
+
+    #[dbus_method("OnDescriptorRead")]
+    fn on_descriptor_read(&self, addr: String, status: i32, handle: i32, value: Vec<u8>) {}
+
+    #[dbus_method("OnDescriptorWrite")]
+    fn on_descriptor_write(&self, addr: String, status: i32, handle: i32) {}
+
+    #[dbus_method("OnNotify")]
+    fn on_notify(&self, addr: String, handle: i32, value: Vec<u8>) {}
+
     #[dbus_method("OnReadRemoteRssi")]
     fn on_read_remote_rssi(&self, addr: String, rssi: i32, status: i32) {}
 

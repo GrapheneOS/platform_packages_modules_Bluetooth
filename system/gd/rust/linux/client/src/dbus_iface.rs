@@ -252,13 +252,7 @@ impl IBluetoothManager for BluetoothManagerDBus {
 
     fn get_available_adapters(&mut self) -> Vec<AdapterWithEnabled> {
         let props: Vec<dbus::arg::PropMap> = self.client_proxy.method("GetAvailableAdapters", ());
-        <Vec<AdapterWithEnabled> as DBusArg>::from_dbus(
-            props,
-            self.client_proxy.conn.clone(),
-            dbus::strings::BusName::new(":1.0").unwrap(), // unused
-            Arc::new(Mutex::new(DisconnectWatcher::new())),
-        )
-        .unwrap()
+        <Vec<AdapterWithEnabled> as DBusArg>::from_dbus(props, None, None, None).unwrap()
     }
 }
 
