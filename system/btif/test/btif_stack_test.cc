@@ -21,31 +21,17 @@
 #include <base/bind.h>
 #include <base/callback.h>
 #include <base/location.h>
-#include "stack_manager.h"
-#include "types/raw_address.h"
 
-#include "bta/include/bta_ag_api.h"  // tBTA_AG_RES_DATA::kEmpty
 #include "hci/include/hci_layer.h"   // hci_t
+#include "osi/include/log.h"
+#include "stack_manager.h"
+#include "test/common/mock_functions.h"
 #include "test/mock/mock_hci_layer.h"
-
-std::map<std::string, int> mock_function_count_map;
+#include "types/raw_address.h"
 
 void set_hal_cbacks(bt_callbacks_t* callbacks);  // btif/src/bluetooth.cc
 
-// tLEGACY_TRACE_LEVEL
-uint8_t btu_trace_level = 6;
-uint8_t appl_trace_level = 6;
-uint8_t btif_trace_level = 6;
-
 namespace {
-
-void dump_mock_function_count_map() {
-  LOG_INFO("Mock function count map size:%zu", mock_function_count_map.size());
-
-  for (auto it : mock_function_count_map) {
-    LOG_INFO("function:%s: call_count:%d", it.first.c_str(), it.second);
-  }
-}
 
 namespace _adapter_state_changed {
 bt_state_t state{BT_STATE_OFF};
@@ -167,8 +153,6 @@ hci_t mock_hci = {
     .transmit_command_futured = transmit_command_futured,
     .transmit_downward = transmit_downward,
 };
-
-const tBTA_AG_RES_DATA tBTA_AG_RES_DATA::kEmpty = {};
 
 namespace bluetooth {
 namespace common {
