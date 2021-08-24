@@ -249,6 +249,8 @@ static void btif_a2dp_source_audio_tx_flush_event(void);
 static void btif_a2dp_source_setup_codec(const RawAddress& peer_addr);
 static void btif_a2dp_source_setup_codec_delayed(
     const RawAddress& peer_address);
+static void btif_a2dp_source_cleanup_codec();
+static void btif_a2dp_source_cleanup_codec_delayed();
 static void btif_a2dp_source_encoder_user_config_update_event(
     const RawAddress& peer_address,
     const std::vector<btav_a2dp_codec_config_t>& codec_user_preferences,
@@ -452,6 +454,7 @@ bool btif_a2dp_source_end_session(const RawAddress& peer_address) {
   btif_a2dp_source_thread.DoInThread(
       FROM_HERE,
       base::Bind(&btif_a2dp_source_end_session_delayed, peer_address));
+  btif_a2dp_source_cleanup_codec();
   return true;
 }
 
@@ -590,6 +593,24 @@ static void btif_a2dp_source_setup_codec_delayed(
 
   if (bluetooth::audio::a2dp::is_hal_2_0_enabled()) {
     bluetooth::audio::a2dp::setup_codec();
+  }
+}
+
+static void btif_a2dp_source_cleanup_codec() {
+  LOG_INFO("%s: state=%s", __func__, btif_a2dp_source_cb.StateStr().c_str());
+  if (btif_a2dp_source_is_streaming()) {
+    // Must stop media task first before cleaning up the encoder
+    btif_a2dp_source_stop_audio_req();
+  }
+  btif_a2dp_source_thread.DoInThread(
+      FROM_HERE, base::Bind(&btif_a2dp_source_cleanup_codec_delayed));
+}
+
+static void btif_a2dp_source_cleanup_codec_delayed() {
+  LOG_INFO("%s: state=%s", __func__, btif_a2dp_source_cb.StateStr().c_str());
+  if (btif_a2dp_source_cb.encoder_interface != nullptr) {
+    btif_a2dp_source_cb.encoder_interface->encoder_cleanup();
+    btif_a2dp_source_cb.encoder_interface = nullptr;
   }
 }
 
