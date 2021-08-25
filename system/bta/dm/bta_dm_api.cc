@@ -520,12 +520,8 @@ void BTA_DmBleUpdateConnectionParams(const RawAddress& bd_addr,
  *
  ******************************************************************************/
 void BTA_DmBleConfigLocalPrivacy(bool privacy_enable) {
-#if (BLE_PRIVACY_SPT == TRUE)
   do_in_main_thread(
       FROM_HERE, base::Bind(bta_dm_ble_config_local_privacy, privacy_enable));
-#else
-  UNUSED(privacy_enable);
-#endif
 }
 
 /*******************************************************************************
