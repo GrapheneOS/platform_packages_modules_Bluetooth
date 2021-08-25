@@ -25,7 +25,9 @@
 #include <string>
 #endif  // __cplusplus
 
+#include "stack/include/bt_dev_class.h"
 #include "stack/include/bt_device_type.h"
+#include "stack/include/bt_hdr.h"
 
 /* READ WELL !!
  *
@@ -82,39 +84,6 @@
 /* ISO Layer specific */
 #define BT_ISO_HDR_CONTAINS_TS (0x0001)
 #define BT_ISO_HDR_OFFSET_POINTS_DATA (0x0002)
-
-/* Define the header of each buffer used in the Bluetooth stack.
- */
-typedef struct {
-  uint16_t event;
-  uint16_t len;
-  uint16_t offset;
-  uint16_t layer_specific;
-  uint8_t data[];
-} BT_HDR;
-
-typedef struct {
-  uint16_t event;
-  uint16_t len;
-  uint16_t offset;
-  uint16_t layer_specific;
-  // Note: Removal of flexible array member with no specified size.
-  // This struct may be embedded in any position within other structs
-  // and will not trigger various flexible member compilation issues.
-} BT_HDR_RIGID;
-
-#ifdef __cplusplus
-template <typename T>
-T* ToPacketData(BT_HDR* bt_hdr, size_t offset = 0) {
-  return reinterpret_cast<T*>(bt_hdr->data + bt_hdr->offset + offset);
-}
-template <typename T>
-const T* ToPacketData(const BT_HDR* bt_hdr, size_t offset = 0) {
-  return reinterpret_cast<const T*>(bt_hdr->data + bt_hdr->offset + offset);
-}
-#endif  // __cplusplus
-
-#define BT_HDR_SIZE (sizeof(BT_HDR))
 
 enum {
   BT_PSM_SDP = 0x0001,
@@ -192,12 +161,6 @@ enum {
     for (ijk = 0; ijk < LAP_LEN; ijk++)         \
       *(p)++ = (uint8_t)(a)[LAP_LEN - 1 - ijk]; \
   }
-#define DEVCLASS_TO_STREAM(p, a)                      \
-  {                                                   \
-    int ijk;                                          \
-    for (ijk = 0; ijk < DEV_CLASS_LEN; ijk++)         \
-      *(p)++ = (uint8_t)(a)[DEV_CLASS_LEN - 1 - ijk]; \
-  }
 #define ARRAY_TO_STREAM(p, a, len)                                \
   {                                                               \
     int ijk;                                                      \
@@ -253,12 +216,6 @@ enum {
     int ijk;                                       \
     uint8_t* _pa = (uint8_t*)(a) + 7;              \
     for (ijk = 0; ijk < 8; ijk++) *_pa-- = *(p)++; \
-  }
-#define STREAM_TO_DEVCLASS(a, p)                               \
-  {                                                            \
-    int ijk;                                                   \
-    uint8_t* _pa = (uint8_t*)(a) + DEV_CLASS_LEN - 1;          \
-    for (ijk = 0; ijk < DEV_CLASS_LEN; ijk++) *_pa-- = *(p)++; \
   }
 #define STREAM_TO_LAP(a, p)                               \
   {                                                       \
@@ -411,9 +368,6 @@ typedef uint8_t PIN_CODE[PIN_CODE_LEN]; /* Pin Code (upto 128 bits) MSB is 0 */
 
 #define BT_OCTET32_LEN 32
 typedef uint8_t BT_OCTET32[BT_OCTET32_LEN]; /* octet array: size 32 */
-
-#define DEV_CLASS_LEN 3
-typedef uint8_t DEV_CLASS[DEV_CLASS_LEN]; /* Device class */
 
 #define BD_NAME_LEN 248
 typedef uint8_t BD_NAME[BD_NAME_LEN + 1]; /* Device name */
