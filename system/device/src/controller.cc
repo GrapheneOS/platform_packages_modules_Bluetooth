@@ -29,6 +29,7 @@
 #include "check.h"
 #include "hcimsgs.h"
 #include "main/shim/controller.h"
+#include "main/shim/hci_layer.h"
 #include "main/shim/shim.h"
 #include "osi/include/future.h"
 #include "osi/include/properties.h"
@@ -820,7 +821,7 @@ static const controller_t* controller_get_interface_legacy() {
   if (!loaded) {
     loaded = true;
 
-    local_hci = hci_layer_get_interface();
+    local_hci = bluetooth::shim::hci_layer_get_interface();
     packet_factory = hci_packet_factory_get_interface();
     packet_parser = hci_packet_parser_get_interface();
   }

@@ -41,6 +41,7 @@
 #include "hcimsgs.h"
 #include "main/shim/btm_api.h"
 #include "main/shim/controller.h"
+#include "main/shim/hci_layer.h"
 #include "main/shim/shim.h"
 #include "osi/include/osi.h"
 #include "stack/btm/btm_ble_int.h"
@@ -662,7 +663,7 @@ tBTM_STATUS BTM_EnableTestMode(void) {
   }
 
   /* mask off all of event from controller */
-  hci_layer_get_interface()->transmit_command(
+  bluetooth::shim::hci_layer_get_interface()->transmit_command(
       hci_packet_factory_get_interface()->make_set_event_mask(
           (const bt_event_mask_t*)("\x00\x00\x00\x00\x00\x00\x00\x00")),
       NULL, NULL, NULL);
