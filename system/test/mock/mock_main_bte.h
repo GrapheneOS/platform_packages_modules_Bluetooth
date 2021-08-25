@@ -42,7 +42,6 @@ extern std::map<std::string, int> mock_function_count_map;
 #include "btif/include/btif_config.h"
 #include "btu.h"
 #include "device/include/interop.h"
-#include "hci/include/btsnoop.h"
 #include "hci/include/hci_layer.h"
 #include "main/shim/hci_layer.h"
 #include "main/shim/shim.h"
