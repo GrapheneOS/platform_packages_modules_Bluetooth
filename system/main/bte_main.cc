@@ -37,6 +37,7 @@
 #include "btu.h"
 #include "device/include/interop.h"
 #include "hci_layer.h"
+#include "main/shim/hci_layer.h"
 #include "osi/include/log.h"
 #include "osi/include/osi.h"
 #include "shim/hci_layer.h"
@@ -76,7 +77,7 @@ static void post_to_main_message_loop(const base::Location& from_here,
 }
 
 void bte_main_init(void) {
-  hci = hci_layer_get_interface();
+  hci = bluetooth::shim::hci_layer_get_interface();
   if (!hci) {
     LOG_ERROR("%s could not get hci layer interface.", __func__);
     return;
