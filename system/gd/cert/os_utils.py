@@ -119,22 +119,26 @@ def read_crash_snippet_and_log_tail(logpath):
     asan = False
     asan_lines = []
 
-    with open(logpath) as f:
-        for _, line in enumerate(f):
-            last_20_lines.append(line)
-            asan_match = ASAN_OUTPUT_START_REGEX.match(line)
-            if asan or asan_match:
-                asan_lines.append(line)
-                asan = True
-                continue
+    try:
+        with open(logpath) as f:
+            for _, line in enumerate(f):
+                last_20_lines.append(line)
+                asan_match = ASAN_OUTPUT_START_REGEX.match(line)
+                if asan or asan_match:
+                    asan_lines.append(line)
+                    asan = True
+                    continue
 
-            host_crash_match = HOST_CRASH_LINE_REGEX.match(line)
-            if host_crash_match:
-                crash_line = host_crash_match.group("line").replace(gd_root_prefix, "")
-                if HOST_ABORT_HEADER in crash_line \
-                        and len(last_20_lines) > 1:
-                    abort_line = last_20_lines[-2]
-                crash_log_lines.append(crash_line)
+                host_crash_match = HOST_CRASH_LINE_REGEX.match(line)
+                if host_crash_match:
+                    crash_line = host_crash_match.group("line").replace(gd_root_prefix, "")
+                    if HOST_ABORT_HEADER in crash_line \
+                            and len(last_20_lines) > 1:
+                        abort_line = last_20_lines[-2]
+                    crash_log_lines.append(crash_line)
+    except EnvironmentError:
+        logging.error("Cannot open backing log file at {}".format(logpath))
+        return None, None
 
     log_tail_20 = "".join(last_20_lines)
     crash_snippet = ""
