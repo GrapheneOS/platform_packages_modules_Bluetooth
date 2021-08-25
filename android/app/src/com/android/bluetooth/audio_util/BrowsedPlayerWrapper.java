@@ -429,7 +429,12 @@ class BrowsedPlayerWrapper {
                     Folder f = new Folder(item.getMediaId(), false, title);
                     return_list.add(new ListItem(f));
                 } else {
-                    return_list.add(new ListItem(Util.toMetadata(mContext, item)));
+                    Metadata data = Util.toMetadata(mContext, item);
+                    if (Util.isEmptyData(data)) {
+                        Log.e(TAG, "Received empty Metadata, ignoring browsed item");
+                        continue;
+                    }
+                    return_list.add(new ListItem(data));
                 }
             }
 
