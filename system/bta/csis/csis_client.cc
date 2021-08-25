@@ -400,6 +400,21 @@ class CsisClientImpl : public CsisClient {
     if (cb) std::move(cb).Run(group_id, lock, status);
   }
 
+  std::vector<RawAddress> GetDeviceList(int group_id) override {
+    std::vector<RawAddress> result;
+    auto csis_group = FindCsisGroup(group_id);
+
+    if (!csis_group || csis_group->IsEmpty()) return result;
+
+    auto csis_device = csis_group->GetFirstDevice();
+    while (csis_device) {
+      result.push_back(csis_device->addr);
+      csis_device = csis_group->GetNextDevice(csis_device);
+    }
+
+    return result;
+  }
+
   void LockGroup(int group_id, bool lock, CsisLockCb cb) override {
     if (lock)
       DLOG(INFO) << __func__ << " Locking group: " << int(group_id);
