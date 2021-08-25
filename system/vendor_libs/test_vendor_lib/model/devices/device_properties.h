@@ -46,7 +46,9 @@ class DeviceProperties {
   }
 
   void SetSupportedCommands(const std::array<uint8_t, 64>& commands) {
-    supported_commands_ = commands;
+    if (!use_supported_commands_from_file_) {
+      supported_commands_ = commands;
+    }
   }
 
   // Specification Version 4.2, Volume 2, Part E, Section 7.4.3
@@ -390,6 +392,7 @@ class DeviceProperties {
   uint8_t encryption_key_size_{10};
   uint16_t voice_setting_{0x0060};
   uint16_t connection_accept_timeout_{0x7d00};
+  bool use_supported_commands_from_file_ = false;
 
   // Low Energy
   uint16_t le_data_packet_length_;
