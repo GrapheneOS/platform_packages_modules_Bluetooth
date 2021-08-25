@@ -183,7 +183,5 @@ TEST_F(StackCycleTest, stack_init) {
 
   LOG_INFO("Initialized stack");
 
-  ASSERT_EQ(1, mock_function_count_map["set_data_cb"]);
-
   dump_mock_function_count_map();
 }
