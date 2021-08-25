@@ -31,8 +31,6 @@ class A2dpCodecConfigAptxHd : public A2dpCodecConfig {
   virtual ~A2dpCodecConfigAptxHd();
 
   bool init() override;
-  uint64_t encoderIntervalMs() const override;
-  int getEffectiveMtu() const override;
   bool setCodecConfig(const uint8_t* p_peer_codec_info, bool is_capability,
                       uint8_t* p_result_codec_config) override;
   bool setPeerCodecCapabilities(

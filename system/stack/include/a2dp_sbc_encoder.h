@@ -55,6 +55,9 @@ void a2dp_sbc_feeding_flush(void);
 // Get the A2DP SBC encoder interval (in milliseconds).
 uint64_t a2dp_sbc_get_encoder_interval_ms(void);
 
+// Get the A2DP SBC encoded maximum frame size
+int a2dp_sbc_get_effective_frame_size();
+
 // Prepare and send A2DP SBC encoded frames.
 // |timestamp_us| is the current timestamp (in microseconds).
 void a2dp_sbc_send_frames(uint64_t timestamp_us);

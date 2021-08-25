@@ -396,6 +396,10 @@ uint64_t a2dp_sbc_get_encoder_interval_ms(void) {
   return A2DP_SBC_ENCODER_INTERVAL_MS;
 }
 
+int a2dp_sbc_get_effective_frame_size() {
+  return a2dp_sbc_encoder_cb.TxAaMtuSize;
+}
+
 void a2dp_sbc_send_frames(uint64_t timestamp_us) {
   uint8_t nb_frame = 0;
   uint8_t nb_iterations = 0;
@@ -890,14 +894,6 @@ uint32_t a2dp_sbc_get_bitrate() {
   return p_encoder_params->u16BitRate * 1000;
 }
 
-uint64_t A2dpCodecConfigSbcSource::encoderIntervalMs() const {
-  return a2dp_sbc_get_encoder_interval_ms();
-}
-
-int A2dpCodecConfigSbcSource::getEffectiveMtu() const {
-  return a2dp_sbc_encoder_cb.TxAaMtuSize;
-}
-
 void A2dpCodecConfigSbcSource::debug_codec_dump(int fd) {
   a2dp_sbc_encoder_stats_t* stats = &a2dp_sbc_encoder_cb.stats;
 
@@ -906,20 +902,23 @@ void A2dpCodecConfigSbcSource::debug_codec_dump(int fd) {
   uint8_t codec_info[AVDT_CODEC_SIZE];
   if (copyOutOtaCodecConfig(codec_info)) {
     dprintf(fd,
-            "  Block length                                            : %d\n",
+            "  SBC Block length                                        : %d\n",
             A2DP_GetNumberOfBlocksSbc(codec_info));
     dprintf(fd,
-            "  Number of subbands                                      : %d\n",
+            "  SBC Number of subbands                                  : %d\n",
             A2DP_GetNumberOfSubbandsSbc(codec_info));
     dprintf(fd,
-            "  Allocation method                                       : %d\n",
+            "  SBC Allocation method                                   : %d\n",
             A2DP_GetAllocationMethodCodeSbc(codec_info));
     dprintf(
         fd,
-        "  Bitpool (min/max)                                       : %d / %d\n",
+        "  SBC Bitpool (min/max)                                   : %d / %d\n",
         A2DP_GetMinBitpoolSbc(codec_info), A2DP_GetMaxBitpoolSbc(codec_info));
   }
 
+  dprintf(fd, "  Encoder interval (ms): %" PRIu64 "\n",
+          a2dp_sbc_get_encoder_interval_ms());
+  dprintf(fd, "  Effective MTU: %d\n", a2dp_sbc_get_effective_frame_size());
   dprintf(fd,
           "  Packet counts (expected/dropped)                        : %zu / "
           "%zu\n",

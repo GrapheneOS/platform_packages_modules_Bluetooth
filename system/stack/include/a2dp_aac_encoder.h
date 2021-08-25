@@ -73,6 +73,9 @@ void a2dp_aac_feeding_flush(void);
 // Get the A2DP AAC encoder interval (in milliseconds).
 uint64_t a2dp_aac_get_encoder_interval_ms(void);
 
+// Get the A2DP AAC encoded maximum frame size
+int a2dp_aac_get_effective_frame_size();
+
 // Prepare and send A2DP AAC encoded frames.
 // |timestamp_us| is the current timestamp (in microseconds).
 void a2dp_aac_send_frames(uint64_t timestamp_us);

@@ -523,6 +523,10 @@ uint64_t a2dp_aac_get_encoder_interval_ms(void) {
   return a2dp_aac_encoder_interval_ms;
 }
 
+int a2dp_aac_get_effective_frame_size() {
+  return a2dp_aac_encoder_cb.TxAaMtuSize;
+}
+
 void a2dp_aac_send_frames(uint64_t timestamp_us) {
   uint8_t nb_frame = 0;
   uint8_t nb_iterations = 0;
@@ -728,14 +732,6 @@ static bool a2dp_aac_read_feeding(uint8_t* read_buffer, uint32_t* bytes_read) {
   return true;
 }
 
-uint64_t A2dpCodecConfigAacSource::encoderIntervalMs() const {
-  return a2dp_aac_get_encoder_interval_ms();
-}
-
-int A2dpCodecConfigAacSource::getEffectiveMtu() const {
-  return a2dp_aac_encoder_cb.TxAaMtuSize;
-}
-
 void A2dpCodecConfigAacSource::debug_codec_dump(int fd) {
   a2dp_aac_encoder_stats_t* stats = &a2dp_aac_encoder_cb.stats;
 
@@ -749,6 +745,9 @@ void A2dpCodecConfigAacSource::debug_codec_dump(int fd) {
       ((codec_specific_1 & ~A2DP_AAC_VARIABLE_BIT_RATE_MASK) == 0 ? "Constant"
                                                                   : "Variable"),
       codec_specific_1);
+  dprintf(fd, "  Encoder interval (ms): %" PRIu64 "\n",
+          a2dp_aac_get_encoder_interval_ms());
+  dprintf(fd, "  Effective MTU: %d\n", a2dp_aac_get_effective_frame_size());
   dprintf(fd,
           "  Packet counts (expected/dropped)                        : %zu / "
           "%zu\n",

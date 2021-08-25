@@ -48,8 +48,6 @@ class A2dpCodecConfigAacSource : public A2dpCodecConfigAacBase {
   virtual ~A2dpCodecConfigAacSource();
 
   bool init() override;
-  uint64_t encoderIntervalMs() const override;
-  int getEffectiveMtu() const override;
 
  private:
   bool useRtpHeaderMarkerBit() const override;
@@ -66,8 +64,6 @@ class A2dpCodecConfigAacSink : public A2dpCodecConfigAacBase {
   virtual ~A2dpCodecConfigAacSink();
 
   bool init() override;
-  uint64_t encoderIntervalMs() const override;
-  int getEffectiveMtu() const override;
 
  private:
   bool useRtpHeaderMarkerBit() const override;

@@ -97,6 +97,10 @@ bool A2DP_InitCodecConfig(btav_a2dp_codec_index_t codec_index,
   mock_function_count_map[__func__]++;
   return false;
 }
+int A2DP_GetEecoderEffectiveFrameSize(const uint8_t* p_codec_info) {
+  mock_function_count_map[__func__]++;
+  return 0;
+}
 bool A2DP_IsPeerSinkCodecValid(const uint8_t* p_codec_info) {
   mock_function_count_map[__func__]++;
   return false;

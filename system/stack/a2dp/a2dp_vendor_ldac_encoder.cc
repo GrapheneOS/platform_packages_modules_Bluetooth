@@ -535,6 +535,10 @@ uint64_t a2dp_vendor_ldac_get_encoder_interval_ms(void) {
   return A2DP_LDAC_ENCODER_INTERVAL_MS;
 }
 
+int a2dp_vendor_ldac_get_effective_frame_size() {
+  return a2dp_ldac_encoder_cb.TxAaMtuSize;
+}
+
 void a2dp_vendor_ldac_send_frames(uint64_t timestamp_us) {
   uint8_t nb_frame = 0;
   uint8_t nb_iterations = 0;
@@ -756,38 +760,12 @@ void a2dp_vendor_ldac_set_transmit_queue_length(size_t transmit_queue_length) {
   a2dp_ldac_encoder_cb.TxQueueLength = transmit_queue_length;
 }
 
-uint64_t A2dpCodecConfigLdacSource::encoderIntervalMs() const {
-  return a2dp_vendor_ldac_get_encoder_interval_ms();
-}
-
-int A2dpCodecConfigLdacSource::getEffectiveMtu() const {
-  return a2dp_ldac_encoder_cb.TxAaMtuSize;
-}
-
 void A2dpCodecConfigLdacSource::debug_codec_dump(int fd) {
   a2dp_ldac_encoder_stats_t* stats = &a2dp_ldac_encoder_cb.stats;
   tA2DP_LDAC_ENCODER_PARAMS* p_encoder_params =
       &a2dp_ldac_encoder_cb.ldac_encoder_params;
 
   A2dpCodecConfig::debug_codec_dump(fd);
-
-  dprintf(fd,
-          "  Packet counts (expected/dropped)                        : %zu / "
-          "%zu\n",
-          stats->media_read_total_expected_packets,
-          stats->media_read_total_dropped_packets);
-
-  dprintf(fd,
-          "  PCM read counts (expected/actual)                       : %zu / "
-          "%zu\n",
-          stats->media_read_total_expected_reads_count,
-          stats->media_read_total_actual_reads_count);
-
-  dprintf(fd,
-          "  PCM read bytes (expected/actual)                        : %zu / "
-          "%zu\n",
-          stats->media_read_total_expected_read_bytes,
-          stats->media_read_total_actual_read_bytes);
 
   dprintf(
       fd, "  LDAC quality mode                                       : %s\n",
@@ -808,4 +786,25 @@ void A2dpCodecConfigLdacSource::debug_codec_dump(int fd) {
             "  LDAC adaptive bit rate adjustments                      : %zu\n",
             a2dp_ldac_encoder_cb.ldac_abr_adjustments);
   }
+  dprintf(fd, "  Encoder interval (ms): %" PRIu64 "\n",
+          a2dp_vendor_ldac_get_encoder_interval_ms());
+  dprintf(fd, "  Effective MTU: %d\n",
+          a2dp_vendor_ldac_get_effective_frame_size());
+  dprintf(fd,
+          "  Packet counts (expected/dropped)                        : %zu / "
+          "%zu\n",
+          stats->media_read_total_expected_packets,
+          stats->media_read_total_dropped_packets);
+
+  dprintf(fd,
+          "  PCM read counts (expected/actual)                       : %zu / "
+          "%zu\n",
+          stats->media_read_total_expected_reads_count,
+          stats->media_read_total_actual_reads_count);
+
+  dprintf(fd,
+          "  PCM read bytes (expected/actual)                        : %zu / "
+          "%zu\n",
+          stats->media_read_total_expected_read_bytes,
+          stats->media_read_total_actual_read_bytes);
 }

@@ -355,6 +355,10 @@ uint64_t a2dp_vendor_aptx_hd_get_encoder_interval_ms(void) {
   return a2dp_aptx_hd_encoder_cb.framing_params.sleep_time_ns / (1000 * 1000);
 }
 
+int a2dp_vendor_aptx_hd_get_effective_frame_size() {
+  return a2dp_aptx_hd_encoder_cb.peer_mtu;
+}
+
 void a2dp_vendor_aptx_hd_send_frames(uint64_t timestamp_us) {
   tAPTX_HD_FRAMING_PARAMS* framing_params =
       &a2dp_aptx_hd_encoder_cb.framing_params;
@@ -473,19 +477,15 @@ static size_t aptx_hd_encode_24bit(tAPTX_HD_FRAMING_PARAMS* framing_params,
   return pcm_bytes_encoded;
 }
 
-uint64_t A2dpCodecConfigAptxHd::encoderIntervalMs() const {
-  return a2dp_vendor_aptx_hd_get_encoder_interval_ms();
-}
-
-int A2dpCodecConfigAptxHd::getEffectiveMtu() const {
-  return a2dp_aptx_hd_encoder_cb.peer_mtu;
-}
-
 void A2dpCodecConfigAptxHd::debug_codec_dump(int fd) {
   a2dp_aptx_hd_encoder_stats_t* stats = &a2dp_aptx_hd_encoder_cb.stats;
 
   A2dpCodecConfig::debug_codec_dump(fd);
 
+  dprintf(fd, "  Encoder interval (ms): %" PRIu64 "\n",
+          a2dp_vendor_aptx_hd_get_encoder_interval_ms());
+  dprintf(fd, "  Effective MTU: %d\n",
+          a2dp_vendor_aptx_hd_get_effective_frame_size());
   dprintf(fd,
           "  Packet counts (expected/dropped)                        : %zu / "
           "%zu\n",

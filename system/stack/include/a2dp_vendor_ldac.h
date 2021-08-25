@@ -48,8 +48,6 @@ class A2dpCodecConfigLdacSource : public A2dpCodecConfigLdacBase {
   virtual ~A2dpCodecConfigLdacSource();
 
   bool init() override;
-  uint64_t encoderIntervalMs() const override;
-  int getEffectiveMtu() const override;
 
  private:
   bool useRtpHeaderMarkerBit() const override;
@@ -66,8 +64,6 @@ class A2dpCodecConfigLdacSink : public A2dpCodecConfigLdacBase {
   virtual ~A2dpCodecConfigLdacSink();
 
   bool init() override;
-  uint64_t encoderIntervalMs() const override;
-  int getEffectiveMtu() const override;
 
  private:
   bool useRtpHeaderMarkerBit() const override;
