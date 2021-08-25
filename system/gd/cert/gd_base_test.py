@@ -15,10 +15,6 @@
 #   limitations under the License.
 
 import importlib
-import logging
-import os
-import signal
-import subprocess
 import traceback
 
 from functools import wraps
@@ -28,20 +24,13 @@ from acts import asserts, signals
 from acts.context import get_current_context
 from acts.base_test import BaseTestClass
 
-from cert.async_subprocess_logger import AsyncSubprocessLogger
-from cert.os_utils import get_gd_root
-from cert.os_utils import read_crash_snippet_and_log_tail
-from cert.os_utils import is_subprocess_alive
-from cert.os_utils import make_ports_available
-from cert.os_utils import TerminalColor
 from cert.gd_device import MOBLY_CONTROLLER_CONFIG_NAME as CONTROLLER_CONFIG_NAME
-from facade import rootservice_pb2 as facade_rootservice
 from cert.gd_base_test_lib import setup_rootcanal
 from cert.gd_base_test_lib import teardown_rootcanal
-from cert.gd_base_test_lib import setup_test_core
-from cert.gd_base_test_lib import teardown_test_core
 from cert.gd_base_test_lib import dump_crashes_core
 from cert.gd_device_lib import generate_coverage_report_for_host
+
+from facade import rootservice_pb2 as facade_rootservice
 
 
 class GdBaseTestClass(BaseTestClass):
@@ -116,10 +105,30 @@ class GdBaseTestClass(BaseTestClass):
                         self.cert_coverage_info, new_cert_coverage_info))
             self.cert_coverage_info = new_cert_coverage_info
 
-        setup_test_core(dut=self.dut, cert=self.cert, dut_module=self.dut_module, cert_module=self.cert_module)
+        try:
+            self.dut.rootservice.StartStack(
+                facade_rootservice.StartStackRequest(
+                    module_under_test=facade_rootservice.BluetoothModule.Value(self.dut_module)))
+        except RpcError as rpc_error:
+            asserts.fail("Failed to start DUT stack, RpcError={!r}".format(rpc_error))
+        try:
+            self.cert.rootservice.StartStack(
+                facade_rootservice.StartStackRequest(
+                    module_under_test=facade_rootservice.BluetoothModule.Value(self.cert_module)))
+        except RpcError as rpc_error:
+            asserts.fail("Failed to start CERT stack, RpcError={!r}".format(rpc_error))
+        self.dut.wait_channel_ready()
+        self.cert.wait_channel_ready()
 
     def teardown_test(self):
-        teardown_test_core(cert=self.cert, dut=self.dut)
+        try:
+            self.cert.rootservice.StopStack(facade_rootservice.StopStackRequest())
+        except RpcError as rpc_error:
+            asserts.fail("Failed to stop CERT stack, RpcError={!r}".format(rpc_error))
+        try:
+            self.dut.rootservice.StopStack(facade_rootservice.StopStackRequest())
+        except RpcError as rpc_error:
+            asserts.fail("Failed to stop DUT stack, RpcError={!r}".format(rpc_error))
         # Destroy GD device objects
         self._controller_manager.unregister_controllers()
         teardown_rootcanal(
