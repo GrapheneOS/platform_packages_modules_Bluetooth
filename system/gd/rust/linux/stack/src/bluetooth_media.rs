@@ -6,7 +6,7 @@ use bt_topshim::profiles::a2dp::{
     A2dpCodecConfig, A2dpCodecIndex, A2dpCodecSampleRate, BtavConnectionState,
     PresentationPosition,
 };
-use bt_topshim::profiles::avrcp::Avrcp;
+use bt_topshim::profiles::avrcp::{Avrcp, AvrcpCallbacks, AvrcpCallbacksDispatcher};
 use bt_topshim::topstack;
 
 use std::collections::HashMap;
@@ -55,6 +55,12 @@ pub trait IBluetoothMediaCallback {
 
     ///
     fn on_bluetooth_audio_device_removed(&self, addr: String);
+
+    ///
+    fn on_absolute_volume_supported_changed(&self, supported: bool);
+
+    ///
+    fn on_absolute_volume_changed(&self, volume: i32);
 }
 
 pub struct BluetoothMedia {
@@ -131,6 +137,21 @@ impl BluetoothMedia {
         }
     }
 
+    pub fn dispatch_avrcp_callbacks(&mut self, cb: AvrcpCallbacks) {
+        match cb {
+            AvrcpCallbacks::AvrcpAbsoluteVolumeEnabled(supported) => {
+                self.for_all_callbacks(|callback| {
+                    callback.on_absolute_volume_supported_changed(supported);
+                });
+            }
+            AvrcpCallbacks::AvrcpAbsoluteVolumeUpdate(volume) => {
+                self.for_all_callbacks(|callback| {
+                    callback.on_absolute_volume_changed(i32::from(volume));
+                });
+            }
+        }
+    }
+
     fn for_all_callbacks<F: Fn(&Box<dyn IBluetoothMediaCallback + Send>)>(&self, f: F) {
         for callback in &self.callbacks {
             f(&callback.1);
@@ -144,6 +165,17 @@ fn get_a2dp_dispatcher(tx: Sender<Message>) -> A2dpCallbacksDispatcher {
             let txl = tx.clone();
             topstack::get_runtime().spawn(async move {
                 let _ = txl.send(Message::A2dp(cb)).await;
+            });
+        }),
+    }
+}
+
+fn get_avrcp_dispatcher(tx: Sender<Message>) -> AvrcpCallbacksDispatcher {
+    AvrcpCallbacksDispatcher {
+        dispatch: Box::new(move |cb| {
+            let txl = tx.clone();
+            topstack::get_runtime().spawn(async move {
+                let _ = txl.send(Message::Avrcp(cb)).await;
             });
         }),
     }
@@ -165,8 +197,9 @@ impl IBluetoothMedia for BluetoothMedia {
         self.a2dp.as_mut().unwrap().initialize(a2dp_dispatcher);
 
         // AVRCP
+        let avrcp_dispatcher = get_avrcp_dispatcher(self.tx.clone());
         self.avrcp = Some(Avrcp::new(&self.intf.lock().unwrap()));
-        self.avrcp.as_mut().unwrap().initialize();
+        self.avrcp.as_mut().unwrap().initialize(avrcp_dispatcher);
         true
     }
 
