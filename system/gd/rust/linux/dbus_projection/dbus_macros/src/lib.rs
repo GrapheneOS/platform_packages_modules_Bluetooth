@@ -31,6 +31,14 @@ pub fn dbus_method(_attr: TokenStream, item: TokenStream) -> TokenStream {
 }
 
 /// Generates a function to export a Rust object to D-Bus.
+///
+/// Example:
+/// ```
+/// #[generate_dbus_exporter(export_foo_dbus_obj, "org.example.FooInterface")]
+/// ```
+///
+/// This generates a method called `export_foo_dbus_obj` that will export a Rust object into a
+/// D-Bus object having interface `org.example.FooInterface`.
 #[proc_macro_attribute]
 pub fn generate_dbus_exporter(attr: TokenStream, item: TokenStream) -> TokenStream {
     let ori_item: proc_macro2::TokenStream = item.clone().into();
