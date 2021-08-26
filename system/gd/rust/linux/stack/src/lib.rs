@@ -12,6 +12,7 @@ pub mod bluetooth_media;
 
 use bt_topshim::btif::BaseCallbacks;
 use bt_topshim::profiles::a2dp::A2dpCallbacks;
+use bt_topshim::profiles::avrcp::AvrcpCallbacks;
 use bt_topshim::profiles::gatt::GattClientCallbacks;
 use bt_topshim::profiles::gatt::GattServerCallbacks;
 
@@ -30,6 +31,7 @@ use crate::bluetooth_media::BluetoothMedia;
 /// Message types that are sent to the stack main dispatch loop.
 pub enum Message {
     A2dp(A2dpCallbacks),
+    Avrcp(AvrcpCallbacks),
     Base(BaseCallbacks),
     GattClient(GattClientCallbacks),
     GattServer(GattServerCallbacks),
@@ -63,6 +65,10 @@ impl Stack {
             match m.unwrap() {
                 Message::A2dp(a) => {
                     bluetooth_media.lock().unwrap().dispatch_a2dp_callbacks(a);
+                }
+
+                Message::Avrcp(av) => {
+                    bluetooth_media.lock().unwrap().dispatch_avrcp_callbacks(av);
                 }
 
                 Message::Base(b) => {
