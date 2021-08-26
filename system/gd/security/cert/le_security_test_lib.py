@@ -91,8 +91,6 @@ class LeSecurityTestBase():
             address_with_type=self.cert_address)
         self.cert.security.SetLeInitiatorAddressPolicy(cert_privacy_policy)
 
-        asserts.skip("Unhandled race condition - Flaky test")
-
     def teardown_test(self):
         self.dut_hci.close()
         self.dut_security.close()
