@@ -272,7 +272,7 @@ def merge_coverage_profdata_for_host(backing_process_profraw_path, profdata_path
         logging.info("[%s] Skip coverage report as llvm-profdata is not found at %s" % (label, str(llvm_profdata)))
         return
     logging.info("[%s] Merging coverage profdata" % label)
-    profdata_path_tmp = profdata_path.parent / (profdata_path.stem + "_tmp." + profdata_path.suffix)
+    profdata_path_tmp = profdata_path.parent / (profdata_path.stem + "_tmp" + profdata_path.suffix)
     # Merge with existing profdata if possible
     profdata_cmd = [str(llvm_profdata), "merge", "-sparse", str(backing_process_profraw_path)]
     if profdata_path.is_file():
