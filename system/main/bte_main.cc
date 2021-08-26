@@ -33,7 +33,6 @@
 #include "btcore/include/module.h"
 #include "bte.h"
 #include "btif/include/btif_config.h"
-#include "btsnoop.h"
 #include "btu.h"
 #include "device/include/interop.h"
 #include "hci_layer.h"
