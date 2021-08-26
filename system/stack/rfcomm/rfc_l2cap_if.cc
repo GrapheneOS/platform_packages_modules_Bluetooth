@@ -30,7 +30,6 @@
 #include "osi/include/osi.h"
 
 #include "bt_utils.h"
-#include "hci/include/btsnoop.h"
 #include "l2c_api.h"
 #include "l2cdefs.h"
 #include "port_api.h"

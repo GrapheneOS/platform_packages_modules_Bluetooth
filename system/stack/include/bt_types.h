@@ -28,6 +28,7 @@
 #include "stack/include/bt_dev_class.h"
 #include "stack/include/bt_device_type.h"
 #include "stack/include/bt_hdr.h"
+#include "stack/include/bt_octets.h"
 
 /* READ WELL !!
  *
@@ -341,33 +342,8 @@ inline void STREAM_TO_BDADDR(RawAddress& a, uint8_t*& p) {
 
 #endif
 
-#define BT_OCTET8_LEN 8
-typedef uint8_t BT_OCTET8[BT_OCTET8_LEN]; /* octet array: size 16 */
-
-/* Some C files include this header file */
-#ifdef __cplusplus
-
-#include <array>
-
-constexpr int OCTET16_LEN = 16;
-typedef std::array<uint8_t, OCTET16_LEN> Octet16;
-
-constexpr int LINK_KEY_LEN = OCTET16_LEN;
-typedef Octet16 LinkKey; /* Link Key */
-
-/* Sample LTK from BT Spec 5.1 | Vol 6, Part C 1
- * 0x4C68384139F574D836BCF34E9DFB01BF */
-constexpr Octet16 SAMPLE_LTK = {0xbf, 0x01, 0xfb, 0x9d, 0x4e, 0xf3, 0xbc, 0x36,
-                                0xd8, 0x74, 0xf5, 0x39, 0x41, 0x38, 0x68, 0x4c};
-inline bool is_sample_ltk(const Octet16& ltk) { return ltk == SAMPLE_LTK; }
-
-#endif
-
 #define PIN_CODE_LEN 16
 typedef uint8_t PIN_CODE[PIN_CODE_LEN]; /* Pin Code (upto 128 bits) MSB is 0 */
-
-#define BT_OCTET32_LEN 32
-typedef uint8_t BT_OCTET32[BT_OCTET32_LEN]; /* octet array: size 32 */
 
 #define BD_NAME_LEN 248
 typedef uint8_t BD_NAME[BD_NAME_LEN + 1]; /* Device name */
