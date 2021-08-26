@@ -19,8 +19,8 @@
 #include <base/logging.h>
 
 #include "bt_common.h"
-#include "buffer_allocator.h"
 #include "check.h"
+#include "hci/include/buffer_allocator.h"
 
 static void* buffer_alloc(size_t size) {
   CHECK(size <= BT_DEFAULT_BUFFER_SIZE);
