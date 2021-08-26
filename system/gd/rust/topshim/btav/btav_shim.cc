@@ -24,6 +24,9 @@
 #include "base/callback.h"
 #include "rust/cxx.h"
 #include "src/profiles/a2dp.rs.h"
+#include "src/profiles/avrcp.rs.h"
+
+namespace rusty = ::bluetooth::topshim::rust;
 
 namespace bluetooth::avrcp {
 class AvrcpMediaInterfaceImpl : public MediaInterface {
@@ -60,13 +63,34 @@ class AvrcpMediaInterfaceImpl : public MediaInterface {
 
 class VolumeInterfaceImpl : public VolumeInterface {
  public:
-  void DeviceConnected([[maybe_unused]] const RawAddress& bdaddr) override {}
+  void DeviceConnected([[maybe_unused]] const RawAddress& bdaddr) override {
+    rusty::avrcp_absolute_volume_enabled(false);
+  }
 
-  void DeviceConnected([[maybe_unused]] const RawAddress& bdaddr, [[maybe_unused]] VolumeChangedCb cb) override {}
+  void DeviceConnected([[maybe_unused]] const RawAddress& bdaddr, VolumeChangedCb cb) override {
+    volumeCb = std::move(cb);
+    rusty::avrcp_absolute_volume_enabled(true);
+  }
 
-  void DeviceDisconnected([[maybe_unused]] const RawAddress& bdaddr) override {}
+  void DeviceDisconnected([[maybe_unused]] const RawAddress& bdaddr) override {
+    volumeCb.Reset();
+    rusty::avrcp_absolute_volume_enabled(false);
+  }
 
-  void SetVolume([[maybe_unused]] int8_t volume) override {}
+  // Set TG's (Android, ChromeOS) volume.
+  void SetVolume(int8_t volume) override {
+    rusty::avrcp_absolute_volume_update(volume);
+  }
+
+  // Set CT's (headsets, speakers) volume.
+  void SetDeviceVolume(int8_t volume) {
+    if (!volumeCb || volume < 0) return;
+
+    volumeCb.Run(volume);
+  }
+
+ private:
+  VolumeInterface::VolumeChangedCb volumeCb;
 };
 
 }  // namespace bluetooth::avrcp
@@ -77,8 +101,6 @@ namespace rust {
 namespace internal {
 static A2dpIntf* g_a2dpif;
 static AvrcpIntf* g_avrcpif;
-
-namespace rusty = ::bluetooth::topshim::rust;
 
 static RustRawAddress to_rust_address(const RawAddress& address) {
   RustRawAddress raddr;
@@ -272,7 +294,7 @@ int AvrcpIntf::disconnect(RustRawAddress bt_addr) {
 }
 
 void AvrcpIntf::set_volume(int8_t volume) {
-  return mVolumeInterface.SetVolume(volume);
+  return mVolumeInterface.SetDeviceVolume(volume);
 }
 }  // namespace rust
 }  // namespace topshim
