@@ -2,7 +2,7 @@
 
 use bt_topshim::btif::BluetoothInterface;
 use bt_topshim::profiles::a2dp::{A2dp, A2dpCallbacksDispatcher, A2dpSink};
-use bt_topshim::profiles::avrcp::Avrcp;
+use bt_topshim::profiles::avrcp::{Avrcp, AvrcpCallbacksDispatcher};
 use bt_topshim_facade_protobuf::facade::{
     A2dpSourceConnectRequest, A2dpSourceConnectResponse, StartA2dpRequest, StartA2dpResponse,
 };
@@ -15,6 +15,10 @@ use tokio::runtime::Runtime;
 
 fn get_a2dp_dispatcher() -> A2dpCallbacksDispatcher {
     A2dpCallbacksDispatcher { dispatch: Box::new(move |_cb| {}) }
+}
+
+fn get_avrcp_dispatcher() -> AvrcpCallbacksDispatcher {
+    AvrcpCallbacksDispatcher { dispatch: Box::new(move |_cb| {}) }
 }
 
 /// Main object for Media facade service
@@ -33,7 +37,7 @@ impl MediaServiceImpl {
         let btif_a2dp_sink = A2dpSink::new(&btif_intf.lock().unwrap());
         let mut btif_avrcp = Avrcp::new(&btif_intf.lock().unwrap());
         btif_a2dp.initialize(get_a2dp_dispatcher());
-        btif_avrcp.initialize();
+        btif_avrcp.initialize(get_avrcp_dispatcher());
 
         create_media_service(Self {
             rt,
