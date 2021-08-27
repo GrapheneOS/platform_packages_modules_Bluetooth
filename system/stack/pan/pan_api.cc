@@ -28,7 +28,6 @@
 #include <string.h>
 #include "bnep_api.h"
 #include "bt_common.h"
-#include "bt_types.h"
 #include "bta_sys.h"
 #include "btm_api.h"
 #include "hcidefs.h"

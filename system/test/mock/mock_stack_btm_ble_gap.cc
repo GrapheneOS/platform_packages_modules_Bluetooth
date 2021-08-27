@@ -43,7 +43,6 @@ extern std::map<std::string, int> mock_function_count_map;
 #include "stack/gatt/gatt_int.h"
 #include "stack/include/acl_api.h"
 #include "stack/include/advertise_data_parser.h"
-#include "stack/include/bt_types.h"
 #include "stack/include/btm_api_types.h"
 #include "stack/include/gap_api.h"
 #include "stack/include/hci_error_code.h"

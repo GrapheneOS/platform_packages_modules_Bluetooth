@@ -20,7 +20,6 @@
 #include <fuzzer/FuzzedDataProvider.h>
 #include <vector>
 #include "a2dp_codec_api.h"
-#include "bt_types.h"
 #include "fuzzers/a2dp/codec/a2dpCodecHelperFunctions.h"
 #include "fuzzers/common/commonFuzzHelpers.h"
 

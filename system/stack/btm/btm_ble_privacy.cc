@@ -25,7 +25,6 @@
 #include "bt_target.h"
 
 #include "ble_advertiser.h"
-#include "bt_types.h"
 #include "btm_int.h"
 #include "btu.h"
 #include "device/include/controller.h"

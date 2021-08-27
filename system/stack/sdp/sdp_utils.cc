@@ -28,7 +28,6 @@
 #include <vector>
 
 #include "bt_common.h"
-#include "bt_types.h"
 #include "btif_config.h"
 
 #include "avrc_defs.h"
