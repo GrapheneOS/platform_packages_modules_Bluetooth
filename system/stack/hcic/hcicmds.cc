@@ -35,7 +35,6 @@
 #include "stack/include/acl_hci_link_interface.h"
 
 #include "bt_target.h"
-#include "bt_types.h"
 #include "device/include/esco_parameters.h"
 #include "hcidefs.h"
 

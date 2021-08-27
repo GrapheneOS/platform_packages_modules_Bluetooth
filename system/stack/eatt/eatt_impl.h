@@ -20,7 +20,6 @@
 
 #include "acl_api.h"
 #include "bind_helpers.h"
-#include "bt_types.h"
 #include "device/include/controller.h"
 #include "eatt.h"
 #include "l2c_api.h"

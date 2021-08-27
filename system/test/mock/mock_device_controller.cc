@@ -32,7 +32,6 @@ extern std::map<std::string, int> mock_function_count_map;
 //       still applies, but crafting proper inclusion is out of scope
 //       for this effort.  This compilation unit may compile as-is, or
 //       may need attention to prune the inclusion set.
-#include "bt_types.h"
 #include "main/shim/controller.h"
 
 // Mock include file to share data between tests and mock

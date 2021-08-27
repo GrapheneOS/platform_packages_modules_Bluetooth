@@ -21,8 +21,6 @@
 
 #include <gmock/gmock.h>
 
-#include "bt_types.h"
-
 namespace bluetooth {
 namespace rfcomm {
 

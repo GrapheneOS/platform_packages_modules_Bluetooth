@@ -20,7 +20,6 @@
 #define HCIMSGS_H
 
 #include "bt_target.h"
-#include "bt_types.h"
 #include "device/include/esco_parameters.h"
 #include "hcidefs.h"
 #include "types/ble_address_with_type.h"

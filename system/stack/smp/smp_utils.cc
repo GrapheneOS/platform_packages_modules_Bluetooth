@@ -25,7 +25,6 @@
 
 #include <ctype.h>
 #include <string.h>
-#include "bt_types.h"
 #include "bt_utils.h"
 #include "btm_ble_api.h"
 #include "device/include/controller.h"

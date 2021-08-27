@@ -47,7 +47,6 @@ extern std::map<std::string, int> mock_function_count_map;
 #include "osi/include/alarm.h"
 #include "osi/include/allocator.h"
 #include "osi/include/log.h"
-#include "stack/include/bt_types.h"
 #include "stack/include/btu.h"
 
 // Mocked compile conditionals, if any

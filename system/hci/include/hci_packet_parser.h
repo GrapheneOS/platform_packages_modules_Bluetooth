@@ -20,11 +20,11 @@
 
 #include <stdint.h>
 
-#include "bt_types.h"
 #include "btcore/include/device_features.h"
 #include "btcore/include/version.h"
 #include "features.h"
 #include "osi/include/allocator.h"
+#include "stack/include/bt_hdr.h"
 #include "types/raw_address.h"
 
 typedef struct {

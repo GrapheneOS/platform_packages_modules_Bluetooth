@@ -28,7 +28,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "bt_types.h"
 #include "bta/dm/bta_dm_int.h"
 #include "bta/sys/bta_sys.h"
 #include "btcore/include/module.h"

@@ -27,7 +27,6 @@
 #ifndef BTIF_PAN_INTERNAL_H
 #define BTIF_PAN_INTERNAL_H
 
-#include "bt_types.h"
 #include "btif_pan.h"
 
 /*******************************************************************************

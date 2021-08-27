@@ -27,7 +27,6 @@
 #include <string.h>
 
 #include "bt_common.h"
-#include "bt_types.h"
 #include "btm_api.h"
 #include "device/include/controller.h"
 #include "hci/include/btsnoop.h"

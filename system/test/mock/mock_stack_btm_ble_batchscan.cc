@@ -30,7 +30,6 @@ extern std::map<std::string, int> mock_function_count_map;
 #include <string.h>
 #include <vector>
 #include "bt_target.h"
-#include "bt_types.h"
 #include "btm_ble_api.h"
 #include "btu.h"
 #include "device/include/controller.h"
