@@ -39,7 +39,6 @@
 
 #include "advertise_data_parser.h"
 #include "bt_common.h"
-#include "bt_types.h"
 #include "hcidefs.h"
 #include "main/shim/btm_api.h"
 #include "main/shim/shim.h"

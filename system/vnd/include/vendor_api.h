@@ -11,7 +11,6 @@
 #ifndef VENDOR_API_H
 #define VENDOR_API_H
 
-#include "bt_types.h"
 #include "btm_api.h"
 
 /****************************************************************************

@@ -43,7 +43,6 @@
 
 #include "audio_a2dp_hw/include/audio_a2dp_hw.h"
 #include "bt_common.h"
-#include "bt_types.h"
 #include "bt_utils.h"
 #include "osi/include/osi.h"
 #include "osi/include/socket_utils/sockets.h"

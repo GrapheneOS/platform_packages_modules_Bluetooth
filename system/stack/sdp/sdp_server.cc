@@ -26,7 +26,6 @@
 #include <string.h>
 
 #include "bt_common.h"
-#include "bt_types.h"
 
 #include "avrc_defs.h"
 #include "device/include/interop.h"

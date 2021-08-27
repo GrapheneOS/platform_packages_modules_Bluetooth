@@ -29,7 +29,6 @@
 #include "avct_int.h"
 #include "bt_common.h"
 #include "bt_target.h"
-#include "bt_types.h"
 #include "bt_utils.h"
 #include "osi/include/osi.h"
 
