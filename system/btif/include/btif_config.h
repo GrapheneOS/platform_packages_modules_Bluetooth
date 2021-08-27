@@ -21,10 +21,9 @@
 #include <stdbool.h>
 #include <stddef.h>
 
-#include "bt_types.h"
-
 #include <list>
 #include <string>
+#include <vector>
 #include "osi/include/config.h"
 #include "types/ble_address_with_type.h"
 

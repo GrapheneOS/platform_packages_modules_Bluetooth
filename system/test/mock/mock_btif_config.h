@@ -34,6 +34,7 @@ extern std::map<std::string, int> mock_function_count_map;
 //       may need attention to prune the inclusion set.
 
 #include "btif/include/btif_config.h"
+#include "types/raw_address.h"
 
 // Mocked compile conditionals, if any
 #ifndef UNUSED_ATTR
