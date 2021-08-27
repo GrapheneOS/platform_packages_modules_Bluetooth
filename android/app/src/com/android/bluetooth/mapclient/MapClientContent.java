@@ -106,7 +106,6 @@ class MapClientContent {
                 .getActiveSubscriptionInfoForIcc(mDevice.getAddress());
         if (info != null) {
             mSubscriptionId = info.getSubscriptionId();
-            mSubscriptionManager.setDisplayNumber(mPhoneNumber, mSubscriptionId);
         }
 
         mContentObserver = new ContentObserver(null) {
