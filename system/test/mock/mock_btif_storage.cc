@@ -26,7 +26,7 @@
 extern std::map<std::string, int> mock_function_count_map;
 
 #include "bta/include/bta_hearing_aid_api.h"
-#include "stack/include/bt_types.h"
+#include "stack/include/bt_octets.h"
 #include "types/ble_address_with_type.h"
 #include "types/raw_address.h"
 
