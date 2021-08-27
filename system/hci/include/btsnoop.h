@@ -19,6 +19,7 @@
 #pragma once
 
 #include <stdbool.h>
+#include <cstdint>
 
 #include "bt_types.h"
 
