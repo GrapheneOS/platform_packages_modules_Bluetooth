@@ -21,6 +21,7 @@
 #include "check.h"
 #include "gd/common/init_flags.h"
 #include "hci/include/btsnoop_mem.h"
+#include "stack/include/bt_types.h"
 
 static btsnoop_data_cb data_callback = NULL;
 static activity_attribution_cb attribution_callback = NULL;

@@ -25,6 +25,7 @@
 #include "btcore/include/version.h"
 #include "features.h"
 #include "osi/include/allocator.h"
+#include "types/raw_address.h"
 
 typedef struct {
   void (*parse_generic_command_complete)(BT_HDR* response);
