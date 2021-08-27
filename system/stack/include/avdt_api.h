@@ -30,7 +30,6 @@
 #include <string>
 
 #include "bt_target.h"
-#include "bt_types.h"
 #include "osi/include/log.h"
 
 /*****************************************************************************

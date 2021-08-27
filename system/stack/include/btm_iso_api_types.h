@@ -17,7 +17,6 @@
 
 #pragma once
 
-#include "bt_types.h"
 #include "hcimsgs.h"
 
 namespace bluetooth {

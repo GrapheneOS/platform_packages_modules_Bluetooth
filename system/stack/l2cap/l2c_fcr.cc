@@ -29,7 +29,6 @@
 #include <string.h>
 
 #include "bt_common.h"
-#include "bt_types.h"
 #include "btu.h"
 #include "common/time_util.h"
 #include "hcimsgs.h"

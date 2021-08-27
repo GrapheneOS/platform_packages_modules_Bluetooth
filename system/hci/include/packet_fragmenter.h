@@ -18,10 +18,10 @@
 
 #pragma once
 
-#include "bt_types.h"
 #include "device/include/controller.h"
 #include "hci_layer.h"
 #include "osi/include/allocator.h"
+#include "stack/include/bt_hdr.h"
 
 typedef void (*transmit_finished_cb)(BT_HDR* packet, bool all_fragments_sent);
 typedef void (*packet_reassembled_cb)(BT_HDR* packet);
