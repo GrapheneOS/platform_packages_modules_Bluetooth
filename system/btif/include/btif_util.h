@@ -24,7 +24,7 @@
 #include <stdbool.h>
 #include <sys/time.h>
 
-#include "bt_types.h"
+#include "stack/include/bt_dev_class.h"
 #include "utils/include/bt_utils.h"
 
 /*******************************************************************************
