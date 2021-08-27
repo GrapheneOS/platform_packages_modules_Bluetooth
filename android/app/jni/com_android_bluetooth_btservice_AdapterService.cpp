@@ -1546,27 +1546,6 @@ static jboolean factoryResetNative(JNIEnv* env, jobject obj) {
   return (ret == BT_STATUS_SUCCESS) ? JNI_TRUE : JNI_FALSE;
 }
 
-static void interopDatabaseClearNative(JNIEnv* env, jobject obj) {
-  ALOGV("%s", __func__);
-  if (!sBluetoothInterface) return;
-  sBluetoothInterface->interop_database_clear();
-}
-
-static void interopDatabaseAddNative(JNIEnv* env, jobject obj, int feature,
-                                     jbyteArray address, int length) {
-  ALOGV("%s", __func__);
-  if (!sBluetoothInterface) return;
-
-  jbyte* addr = env->GetByteArrayElements(address, NULL);
-  if (addr == NULL) {
-    jniThrowIOException(env, EINVAL);
-    return;
-  }
-
-  sBluetoothInterface->interop_database_add(feature, (RawAddress*)addr, length);
-  env->ReleaseByteArrayElements(address, addr, 0);
-}
-
 static jbyteArray obfuscateAddressNative(JNIEnv* env, jobject obj,
                                          jbyteArray address) {
   ALOGV("%s", __func__);
@@ -1721,8 +1700,6 @@ static JNINativeMethod sMethods[] = {
      (void*)dumpNative},
     {"dumpMetricsNative", "()[B", (void*)dumpMetricsNative},
     {"factoryResetNative", "()Z", (void*)factoryResetNative},
-    {"interopDatabaseClearNative", "()V", (void*)interopDatabaseClearNative},
-    {"interopDatabaseAddNative", "(I[BI)V", (void*)interopDatabaseAddNative},
     {"obfuscateAddressNative", "([B)[B", (void*)obfuscateAddressNative},
     {"setBufferLengthMillisNative", "(II)Z",
      (void*)setBufferLengthMillisNative},
