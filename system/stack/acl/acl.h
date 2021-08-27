@@ -21,6 +21,7 @@
 #include <unordered_set>
 #include <vector>
 
+#include "stack/acl/peer_packet_types.h"
 #include "stack/include/acl_api_types.h"
 #include "stack/include/bt_types.h"
 #include "stack/include/btm_api_types.h"
