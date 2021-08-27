@@ -39,6 +39,12 @@ static void ParseUint16t(Json::Value value, uint16_t* field) {
     *field = value.asUInt();
 }
 
+static void ParseBool(Json::Value value, bool* field) {
+  if (value.isBool()) {
+    *field = value.asBool();
+  }
+}
+
 namespace test_vendor_lib {
 
 DeviceProperties::DeviceProperties(const std::string& file_name)
@@ -101,6 +107,8 @@ DeviceProperties::DeviceProperties(const std::string& file_name)
   ParseUint8t(root["LmpPalVersion"], &lmp_pal_version_);
   ParseUint16t(root["ManufacturerName"], &manufacturer_name_);
   ParseUint16t(root["LmpPalSubversion"], &lmp_pal_subversion_);
+  ParseBool(root["use_supported_commands_from_file"],
+            &use_supported_commands_from_file_);
 }
 
 }  // namespace test_vendor_lib
