@@ -19,6 +19,22 @@
 #include "stack/include/bt_types.h"
 #include "stack/include/hcidefs.h"
 
+#define BD_FEATURES_LEN 8
+typedef uint8_t
+    BD_FEATURES[BD_FEATURES_LEN]; /* LMP features supported by device */
+
+// Bit order [0]:0-7 [1]:8-15 ... [7]:56-63
+inline std::string bd_features_text(const BD_FEATURES& features) {
+  uint8_t len = BD_FEATURES_LEN;
+  char buf[255];
+  char* pbuf = buf;
+  const uint8_t* b = features;
+  while (len--) {
+    pbuf += sprintf(pbuf, "0x%02x ", *b++);
+  }
+  return std::string(buf);
+}
+
 /**
  * Create a bitmask of packet types from the remote feature
  */
