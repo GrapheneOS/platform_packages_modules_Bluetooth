@@ -18,8 +18,8 @@
 
 #pragma once
 
-#include "bt_types.h"
 #include "btcore/include/event_mask.h"
+#include "stack/include/bt_hdr.h"
 
 typedef struct {
   BT_HDR* (*make_reset)(void);

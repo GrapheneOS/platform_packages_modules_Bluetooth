@@ -28,7 +28,6 @@
 #include "bt_target.h"
 
 #include "bt_common.h"
-#include "bt_types.h"
 
 #include "l2c_api.h"
 #include "l2cdefs.h"

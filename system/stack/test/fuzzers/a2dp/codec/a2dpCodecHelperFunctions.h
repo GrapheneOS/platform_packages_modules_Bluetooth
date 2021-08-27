@@ -118,7 +118,6 @@ tA2DP_ENCODER_INIT_PEER_PARAMS getArbitraryA2dpEncoderInitPeerParams(
   return params;
 }
 
-#include "bt_types.h"
 #define MAX_BTHDR_SIZE 1024
 std::shared_ptr<BT_HDR> getArbitraryBtHdr(FuzzedDataProvider* fdp) {
   // Build a data buffer

@@ -42,7 +42,6 @@
 #include <processgroup/sched_policy.h>
 #endif
 
-#include "bt_types.h"
 #include "btcore/include/module.h"
 #include "osi/include/compat.h"
 #include "osi/include/log.h"

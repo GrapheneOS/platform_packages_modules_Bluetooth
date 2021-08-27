@@ -20,7 +20,6 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-#include "bt_types.h"
 #include "btm_api.h"
 #include "l2c_api.h"
 #include "osi/include/osi.h"

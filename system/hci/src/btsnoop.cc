@@ -39,19 +39,19 @@
 #include <unordered_map>
 #include <unordered_set>
 
-#include "bt_types.h"
 #include "common/time_util.h"
 #include "hci/include/btsnoop.h"
 #include "hci/include/btsnoop_mem.h"
 #include "hci_layer.h"
 #include "internal_include/bt_trace.h"
+#include "main/shim/shim.h"
 #include "osi/include/log.h"
 #include "osi/include/properties.h"
+#include "stack/include/bt_hdr.h"
 #include "stack/include/hcimsgs.h"
 #include "stack/include/rfcdefs.h"
 #include "stack/l2cap/l2c_int.h"
 #include "stack_config.h"
-#include "main/shim/shim.h"
 
 // The number of of packets per btsnoop file before we rotate to the next
 // file. As of right now there are two snoop files that are rotated through.
