@@ -46,6 +46,7 @@
 #include "btif_util.h"
 #include "btu.h"
 #include "device/include/interop.h"
+#include "osi/include/allocator.h"
 #include "osi/include/list.h"
 #include "osi/include/log.h"
 #include "osi/include/osi.h"

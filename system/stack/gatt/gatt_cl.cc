@@ -31,6 +31,7 @@
 #include "bt_utils.h"
 #include "gatt_int.h"
 #include "l2c_api.h"
+#include "osi/include/allocator.h"
 #include "osi/include/log.h"
 #include "osi/include/osi.h"
 #include "stack/eatt/eatt.h"

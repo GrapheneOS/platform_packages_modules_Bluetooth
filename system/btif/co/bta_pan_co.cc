@@ -36,6 +36,7 @@
 #include "btif_pan_internal.h"
 #include "btif_sock_thread.h"
 #include "btif_util.h"
+#include "osi/include/allocator.h"
 #include "osi/include/osi.h"
 #include "pan_api.h"
 

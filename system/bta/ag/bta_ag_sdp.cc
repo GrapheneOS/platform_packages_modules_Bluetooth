@@ -31,6 +31,7 @@
 
 #include "bta/ag/bta_ag_int.h"
 #include "btif/include/btif_config.h"
+#include "osi/include/allocator.h"
 #include "stack/include/btm_api.h"
 #include "stack/include/btu.h"  // do_in_main_thread
 #include "stack/include/port_api.h"
