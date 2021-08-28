@@ -46,6 +46,7 @@
 #include "btif/include/btif_sock_thread.h"
 #include "device/include/controller.h"
 #include "include/hardware/bt_pan.h"
+#include "osi/include/compat.h"
 #include "osi/include/log.h"
 #include "osi/include/osi.h"
 #include "stack/include/btu.h"  // do_in_main_thread
