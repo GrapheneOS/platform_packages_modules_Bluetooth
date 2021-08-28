@@ -27,6 +27,7 @@
 #include "hci_layer.h"
 #include "hcimsgs.h"
 #include "osi/include/log.h"
+#include "stack/include/hcidefs.h"
 
 static const command_opcode_t NO_OPCODE_CHECKING = 0;
 

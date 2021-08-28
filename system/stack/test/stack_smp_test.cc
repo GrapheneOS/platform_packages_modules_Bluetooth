@@ -22,8 +22,6 @@
 #include <gtest/gtest.h>
 
 #include "bt_trace.h"
-#include "hci/include/packet_fragmenter.h"
-#include "hcidefs.h"
 #include "internal_include/stack_config.h"
 #include "stack/btm/btm_int_types.h"
 #include "stack/include/acl_api.h"
