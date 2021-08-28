@@ -25,7 +25,6 @@
 extern std::map<std::string, int> mock_function_count_map;
 
 #include <cstdint>
-#include "bt_trace.h"
 #include "bta/hf_client/bta_hf_client_int.h"
 #include "bta/include/bta_hf_client_api.h"
 #include "bta/sys/bta_sys.h"
