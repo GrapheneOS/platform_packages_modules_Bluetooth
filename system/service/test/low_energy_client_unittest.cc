@@ -22,7 +22,6 @@
 #include "service/hal/fake_bluetooth_gatt_interface.h"
 #include "service/low_energy_client.h"
 #include "stack/include/bt_types.h"
-#include "stack/include/hcidefs.h"
 #include "test/mock_adapter.h"
 #include "types/bt_transport.h"
 

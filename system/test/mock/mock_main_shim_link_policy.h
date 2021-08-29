@@ -52,7 +52,6 @@ extern std::map<std::string, int> mock_function_count_map;
 #include "stack/include/btm_api_types.h"
 #include "stack/include/btm_ble_api_types.h"
 #include "stack/include/hci_error_code.h"
-#include "stack/include/hcidefs.h"
 
 // Mocked compile conditionals, if any
 #ifndef UNUSED_ATTR

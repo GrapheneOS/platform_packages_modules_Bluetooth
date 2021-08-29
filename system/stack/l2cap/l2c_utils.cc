@@ -30,7 +30,6 @@
 #include "btm_api.h"
 #include "device/include/controller.h"
 #include "hci/include/btsnoop.h"
-#include "hcidefs.h"
 #include "l2c_int.h"
 #include "l2cdefs.h"
 #include "main/shim/l2c_api.h"

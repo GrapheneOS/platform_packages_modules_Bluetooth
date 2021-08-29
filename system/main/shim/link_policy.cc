@@ -33,7 +33,6 @@
 #include "stack/include/btm_api_types.h"
 #include "stack/include/btm_ble_api_types.h"
 #include "stack/include/hci_error_code.h"
-#include "stack/include/hcidefs.h"
 
 bt_status_t do_in_main_thread(const base::Location& from_here,
                               base::OnceClosure task);

@@ -26,7 +26,6 @@
 using std::vector;
 
 #include "hci/include/hci_hal.h"
-#include "stack/include/hcidefs.h"
 
 #include <sys/socket.h>
 
