@@ -31,7 +31,6 @@
 #include "bt_common.h"
 #include "btu.h"
 #include "common/time_util.h"
-#include "hcimsgs.h"
 #include "l2c_api.h"
 #include "l2c_int.h"
 #include "l2cdefs.h"

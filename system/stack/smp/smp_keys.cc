@@ -29,7 +29,6 @@
 #include "btm_ble_api.h"
 #include "btm_ble_int.h"
 #include "device/include/controller.h"
-#include "hcimsgs.h"
 #include "osi/include/osi.h"
 #include "p_256_ecc_pp.h"
 #include "smp_int.h"
