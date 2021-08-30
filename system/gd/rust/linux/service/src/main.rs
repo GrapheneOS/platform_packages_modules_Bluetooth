@@ -15,7 +15,7 @@ use futures::future;
 use btstack::bluetooth::get_bt_dispatcher;
 use btstack::bluetooth::{Bluetooth, IBluetooth};
 use btstack::bluetooth_gatt::BluetoothGatt;
-use btstack::bluetooth_media::{BluetoothMedia, IBluetoothMedia};
+use btstack::bluetooth_media::BluetoothMedia;
 use btstack::Stack;
 
 use std::error::Error;
@@ -52,10 +52,14 @@ fn main() -> Result<(), Box<dyn Error>> {
     let (tx, rx) = Stack::create_channel();
 
     let intf = Arc::new(Mutex::new(get_btinterface().unwrap()));
-    let bluetooth = Arc::new(Mutex::new(Box::new(Bluetooth::new(tx.clone(), intf.clone()))));
     let bluetooth_gatt = Arc::new(Mutex::new(Box::new(BluetoothGatt::new(intf.clone()))));
     let bluetooth_media =
         Arc::new(Mutex::new(Box::new(BluetoothMedia::new(tx.clone(), intf.clone()))));
+    let bluetooth = Arc::new(Mutex::new(Box::new(Bluetooth::new(
+        tx.clone(),
+        intf.clone(),
+        bluetooth_media.clone(),
+    ))));
 
     // Args don't include arg[0] which is the binary name
     let all_args = std::env::args().collect::<Vec<String>>();
@@ -72,7 +76,6 @@ fn main() -> Result<(), Box<dyn Error>> {
         bluetooth.enable();
 
         bluetooth_gatt.lock().unwrap().init_profiles(tx.clone());
-        bluetooth_media.lock().unwrap().initialize();
     }
 
     topstack::get_runtime().block_on(async {
@@ -115,7 +118,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             make_object_name(adapter_index, "adapter"),
             conn.clone(),
             &mut cr,
-            bluetooth,
+            bluetooth.clone(),
             disconnect_watcher.clone(),
         );
         // Register D-Bus method handlers of IBluetoothGatt.
