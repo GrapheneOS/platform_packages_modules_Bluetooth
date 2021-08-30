@@ -49,6 +49,7 @@ void GrpcModule::StartServer(const std::string& address, int port) {
   completion_queue_ = builder.AddCompletionQueue();
   server_ = builder.BuildAndStart();
   ASSERT(server_ != nullptr);
+  LOG_INFO("gRPC server started on %s", listening_port.c_str());
 
   for (const auto& facade : facades_) {
     facade->OnServerStarted();
