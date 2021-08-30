@@ -16,6 +16,7 @@ use std::sync::Mutex;
 
 use tokio::sync::mpsc::Sender;
 
+use crate::bluetooth_media::{BluetoothMedia, IBluetoothMedia};
 use crate::{Message, RPCProxy};
 
 /// Defines the adapter API.
@@ -113,11 +114,16 @@ pub struct Bluetooth {
     tx: Sender<Message>,
     local_address: Option<RawAddress>,
     hh: Option<HidHost>,
+    bluetooth_media: Arc<Mutex<Box<BluetoothMedia>>>,
 }
 
 impl Bluetooth {
     /// Constructs the IBluetooth implementation.
-    pub fn new(tx: Sender<Message>, intf: Arc<Mutex<BluetoothInterface>>) -> Bluetooth {
+    pub fn new(
+        tx: Sender<Message>,
+        intf: Arc<Mutex<BluetoothInterface>>,
+        bluetooth_media: Arc<Mutex<Box<BluetoothMedia>>>,
+    ) -> Bluetooth {
         Bluetooth {
             tx,
             intf,
@@ -126,6 +132,7 @@ impl Bluetooth {
             callbacks_last_id: 0,
             local_address: None,
             hh: None,
+            bluetooth_media,
         }
     }
 
@@ -205,6 +212,10 @@ pub fn get_bt_dispatcher(tx: Sender<Message>) -> BaseCallbacksDispatcher {
 impl BtifBluetoothCallbacks for Bluetooth {
     fn adapter_state_changed(&mut self, state: BtState) {
         self.state = state;
+
+        if self.state == BtState::On {
+            self.bluetooth_media.lock().unwrap().initialize();
+        }
     }
 
     #[allow(unused_variables)]
