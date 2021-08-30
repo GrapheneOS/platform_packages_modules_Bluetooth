@@ -20,6 +20,8 @@ package com.android.bluetooth.mcp;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.IBluetoothMcpServiceManager;
 import android.content.AttributionSource;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 
 import com.android.bluetooth.Utils;
@@ -41,6 +43,7 @@ public class McpService extends ProfileService {
 
     private static MediaControlProfile mGmcs;
     private Map<BluetoothDevice, Integer> mDeviceAuthorizations = new HashMap<>();
+    private Handler mHandler = new Handler(Looper.getMainLooper());
 
     private static synchronized void setMcpService(McpService instance) {
         if (VDBG) {
@@ -95,7 +98,7 @@ public class McpService extends ProfileService {
             // Initialize the Media Control Service Server
             mGmcs = new MediaControlProfile(this);
             // Requires this service to be already started thus we have to make it an async call
-            this.getMainThreadHandler().post(() -> mGmcs.init());
+            mHandler.post(() -> mGmcs.init());
         }
 
         return true;
