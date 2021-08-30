@@ -189,6 +189,9 @@ impl IBluetoothMedia for BluetoothMedia {
     }
 
     fn initialize(&mut self) -> bool {
+        if self.initialized {
+            return false;
+        }
         self.initialized = true;
 
         // TEST A2dp
