@@ -59,6 +59,9 @@ def setup_rootcanal(dut_module, cert_module, verbose_mode, log_path_base, contro
         info['make_rootcanal_ports_available'] = make_ports_available((rootcanal_test_port, rootcanal_hci_port,
                                                                        rootcanal_link_layer_port))
         if not make_ports_available((rootcanal_test_port, rootcanal_hci_port, rootcanal_link_layer_port)):
+            logging.error(
+                "Failed to free ports rootcanal_test_port={}, rootcanal_hci_port={}, rootcanal_link_layer_port={}".
+                format(rootcanal_test_port, rootcanal_hci_port, rootcanal_link_layer_port))
             return info
 
         # Start root canal process
@@ -78,10 +81,12 @@ def setup_rootcanal(dut_module, cert_module, verbose_mode, log_path_base, contro
             info['is_rootcanal_process_started'] = True
         else:
             info['is_rootcanal_process_started'] = False
+            logging.error("rootcanal process failed to start")
             return info
         info['is_subprocess_alive'] = is_subprocess_alive(rootcanal_process)
         if not is_subprocess_alive(rootcanal_process):
             info['is_subprocess_alive'] = False
+            logging.error("rootcanal died after running")
             return info
 
         info['rootcanal_logger'] = AsyncSubprocessLogger(
