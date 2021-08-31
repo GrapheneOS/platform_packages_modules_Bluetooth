@@ -90,11 +90,9 @@ public class MediaControlProfile implements MediaControlServiceCallbacks {
 
             mCurrentData = data;
 
-            mContext.getMainThreadHandler().post(() -> {
-                onCurrentPlayerStateUpdated(state, metadata);
-                if (queue) onCurrentPlayerQueueUpdated();
-                processPendingPlayerStateRequest();
-            });
+            onCurrentPlayerStateUpdated(state, metadata);
+            if (queue) onCurrentPlayerQueueUpdated();
+            processPendingPlayerStateRequest();
         }
 
         @Override
