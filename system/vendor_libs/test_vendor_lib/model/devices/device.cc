@@ -74,6 +74,16 @@ void Device::SendLinkLayerPacket(model::packets::LinkLayerPacketView to_send,
   }
 }
 
+void Device::Close()  {
+  if (close_callback_) {
+    close_callback_();
+  }
+}
+
+void Device::RegisterCloseCallback(std::function<void()> close_callback) {
+   close_callback_ = close_callback;
+}
+
 void Device::SetAddress(Address) {
   LOG_INFO("%s does not implement %s", GetTypeString().c_str(), __func__);
 }

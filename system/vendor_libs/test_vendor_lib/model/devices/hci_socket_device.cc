@@ -98,7 +98,7 @@ HciSocketDevice::HciSocketDevice(std::shared_ptr<AsyncDataChannel> socket)
       },
       [this]() {
         LOG_INFO("HCI socket device disconnected");
-        close_callback_();
+        Close();
       });
 
   RegisterEventChannel([this](std::shared_ptr<std::vector<uint8_t>> packet) {
@@ -132,11 +132,12 @@ void HciSocketDevice::SendHci(
   h4_.Send(type, packet->data(), packet->size());
 }
 
-void HciSocketDevice::RegisterCloseCallback(
-    std::function<void()> close_callback) {
-  if (socket_ && socket_->Connected()) {
-    close_callback_ = close_callback;
+void HciSocketDevice::Close()  {
+  if (socket_) {
+    socket_->Close();
   }
+  Device::Close();
 }
+
 
 }  // namespace test_vendor_lib

@@ -41,16 +41,16 @@ class HciSocketDevice : public DualModeController {
     return std::make_shared<HciSocketDevice>(socket);
   }
 
-  virtual std::string GetTypeString() const override {
+  std::string GetTypeString() const override {
     return "hci_socket_device";
   }
 
-  virtual void TimerTick() override;
+  void TimerTick() override;
 
   void SendHci(PacketType packet_type,
                const std::shared_ptr<std::vector<uint8_t>> packet);
 
-  void RegisterCloseCallback(std::function<void()>);
+  void Close() override;
 
  private:
   std::shared_ptr<AsyncDataChannel> socket_;
@@ -61,8 +61,6 @@ class HciSocketDevice : public DualModeController {
                               [](const std::vector<uint8_t>&) {},
                               [](const std::vector<uint8_t>&) {},
                               [] {}};
-
-  std::function<void()> close_callback_;
 };
 
 }  // namespace test_vendor_lib

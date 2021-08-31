@@ -57,6 +57,10 @@ class LinkLayerSocketDevice : public Device {
 
   static constexpr size_t kSizeBytes = sizeof(uint32_t);
 
+  void RegisterCloseCallback(std::function<void()>);
+
+  void Close() override;
+
  private:
   std::shared_ptr<AsyncDataChannel> socket_;
   Phy::Type phy_type_;
