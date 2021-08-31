@@ -39,18 +39,19 @@
 /******************************************************************************/
 /*            L O C A L    F U N C T I O N     P R O T O T Y P E S            */
 /******************************************************************************/
-static void rfc_mx_sm_state_idle(tRFC_MCB* p_mcb, uint16_t event, void* p_data);
-static void rfc_mx_sm_state_wait_conn_cnf(tRFC_MCB* p_mcb, uint16_t event,
+static void rfc_mx_sm_state_idle(tRFC_MCB* p_mcb, tRFC_MX_EVENT event,
+                                 void* p_data);
+static void rfc_mx_sm_state_wait_conn_cnf(tRFC_MCB* p_mcb, tRFC_MX_EVENT event,
                                           void* p_data);
-static void rfc_mx_sm_state_configure(tRFC_MCB* p_mcb, uint16_t event,
+static void rfc_mx_sm_state_configure(tRFC_MCB* p_mcb, tRFC_MX_EVENT event,
                                       void* p_data);
-static void rfc_mx_sm_sabme_wait_ua(tRFC_MCB* p_mcb, uint16_t event,
+static void rfc_mx_sm_sabme_wait_ua(tRFC_MCB* p_mcb, tRFC_MX_EVENT event,
                                     void* p_data);
-static void rfc_mx_sm_state_wait_sabme(tRFC_MCB* p_mcb, uint16_t event,
+static void rfc_mx_sm_state_wait_sabme(tRFC_MCB* p_mcb, tRFC_MX_EVENT event,
                                        void* p_data);
-static void rfc_mx_sm_state_connected(tRFC_MCB* p_mcb, uint16_t event,
+static void rfc_mx_sm_state_connected(tRFC_MCB* p_mcb, tRFC_MX_EVENT event,
                                       UNUSED_ATTR void* p_data);
-static void rfc_mx_sm_state_disc_wait_ua(tRFC_MCB* p_mcb, uint16_t event,
+static void rfc_mx_sm_state_disc_wait_ua(tRFC_MCB* p_mcb, tRFC_MX_EVENT event,
                                          void* p_data);
 
 static void rfc_mx_send_config_req(tRFC_MCB* p_mcb);
@@ -121,8 +122,7 @@ void rfc_mx_sm_execute(tRFC_MCB* p_mcb, tRFC_MX_EVENT event, void* p_data) {
  * Returns          void
  *
  ******************************************************************************/
-void rfc_mx_sm_state_idle(tRFC_MCB* p_mcb, uint16_t event, void* p_data) {
-  RFCOMM_TRACE_EVENT("%s: evt %d", __func__, event);
+void rfc_mx_sm_state_idle(tRFC_MCB* p_mcb, tRFC_MX_EVENT event, void* p_data) {
   switch (event) {
     case RFC_MX_EVENT_START_REQ: {
       /* Initialize L2CAP MTU */
@@ -187,7 +187,7 @@ void rfc_mx_sm_state_idle(tRFC_MCB* p_mcb, uint16_t event, void* p_data) {
  * Returns          void
  *
  ******************************************************************************/
-void rfc_mx_sm_state_wait_conn_cnf(tRFC_MCB* p_mcb, uint16_t event,
+void rfc_mx_sm_state_wait_conn_cnf(tRFC_MCB* p_mcb, tRFC_MX_EVENT event,
                                    void* p_data) {
   RFCOMM_TRACE_EVENT("%s: evt %d", __func__, event);
   switch (event) {
@@ -273,7 +273,8 @@ void rfc_mx_sm_state_wait_conn_cnf(tRFC_MCB* p_mcb, uint16_t event,
  * Returns          void
  *
  ******************************************************************************/
-void rfc_mx_sm_state_configure(tRFC_MCB* p_mcb, uint16_t event, void* p_data) {
+void rfc_mx_sm_state_configure(tRFC_MCB* p_mcb, tRFC_MX_EVENT event,
+                               void* p_data) {
   RFCOMM_TRACE_EVENT("%s: event %d", __func__, event);
   switch (event) {
     case RFC_MX_EVENT_START_REQ:
@@ -321,7 +322,7 @@ void rfc_mx_sm_state_configure(tRFC_MCB* p_mcb, uint16_t event, void* p_data) {
  * Returns          void
  *
  ******************************************************************************/
-void rfc_mx_sm_sabme_wait_ua(tRFC_MCB* p_mcb, uint16_t event,
+void rfc_mx_sm_sabme_wait_ua(tRFC_MCB* p_mcb, tRFC_MX_EVENT event,
                              UNUSED_ATTR void* p_data) {
   RFCOMM_TRACE_EVENT("%s: event %d", __func__, event);
   switch (event) {
@@ -385,7 +386,8 @@ void rfc_mx_sm_sabme_wait_ua(tRFC_MCB* p_mcb, uint16_t event,
  * Returns          void
  *
  ******************************************************************************/
-void rfc_mx_sm_state_wait_sabme(tRFC_MCB* p_mcb, uint16_t event, void* p_data) {
+void rfc_mx_sm_state_wait_sabme(tRFC_MCB* p_mcb, tRFC_MX_EVENT event,
+                                void* p_data) {
   RFCOMM_TRACE_EVENT("%s: event %d", __func__, event);
   switch (event) {
     case RFC_MX_EVENT_DISC_IND:
@@ -450,7 +452,7 @@ void rfc_mx_sm_state_wait_sabme(tRFC_MCB* p_mcb, uint16_t event, void* p_data) {
  * Returns          void
  *
  ******************************************************************************/
-void rfc_mx_sm_state_connected(tRFC_MCB* p_mcb, uint16_t event,
+void rfc_mx_sm_state_connected(tRFC_MCB* p_mcb, tRFC_MX_EVENT event,
                                UNUSED_ATTR void* p_data) {
   RFCOMM_TRACE_EVENT("%s: event %d", __func__, event);
 
@@ -495,7 +497,7 @@ void rfc_mx_sm_state_connected(tRFC_MCB* p_mcb, uint16_t event,
  * Returns          void
  *
  ******************************************************************************/
-void rfc_mx_sm_state_disc_wait_ua(tRFC_MCB* p_mcb, uint16_t event,
+void rfc_mx_sm_state_disc_wait_ua(tRFC_MCB* p_mcb, tRFC_MX_EVENT event,
                                   void* p_data) {
   BT_HDR* p_buf;
 
