@@ -126,7 +126,10 @@ public class MediaControlProfile implements MediaControlServiceCallbacks {
         Map<PlayerStateField, Object> state_map = new HashMap<>();
 
         if (mMediaPlayerList.getActivePlayer() != mLastActivePlayer) {
-            state_map.put(PlayerStateField.PLAYER_NAME, getCurrentPlayerName());
+            String playerName = getCurrentPlayerName();
+            if (playerName != null) {
+                state_map.put(PlayerStateField.PLAYER_NAME, playerName);
+            }
         }
 
         if (stateChanged) {
@@ -159,9 +162,14 @@ public class MediaControlProfile implements MediaControlServiceCallbacks {
                             + mCurrentData.metadata.duration);
                 }
 
-                state_map.put(PlayerStateField.TRACK_DURATION,
-                        Long.valueOf(mCurrentData.metadata.duration));
-                state_map.put(PlayerStateField.TRACK_TITLE, mCurrentData.metadata.title);
+                if (mCurrentData.metadata.duration != null) {
+                    state_map.put(PlayerStateField.TRACK_DURATION,
+                            Long.valueOf(mCurrentData.metadata.duration));
+                }
+
+                if (mCurrentData.metadata.title != null) {
+                    state_map.put(PlayerStateField.TRACK_TITLE, mCurrentData.metadata.title);
+                }
 
                 // Update the position if track has changed
                 if (mCurrentData.state != null) {
