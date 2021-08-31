@@ -52,10 +52,11 @@ class LeAudioClientCallbacks {
   virtual void OnGroupStatus(uint8_t group_id, GroupStatus group_status,
                              uint8_t group_flags) = 0;
 
-  /* Callback for newly recognized or reconfigured existing le audio device */
-  virtual void OnAudioConf(const RawAddress& addr, uint8_t direction,
-                           uint8_t group_id, uint32_t snk_audio_location,
-                           uint32_t src_audio_location) = 0;
+  /* Callback for newly recognized or reconfigured existing le audio group */
+  virtual void OnAudioConf(uint8_t direction, int group_id,
+                           uint32_t snk_audio_location,
+                           uint32_t src_audio_location,
+                           uint16_t avail_cont) = 0;
 
   /* Callback for available set member  */
   virtual void OnSetMemberAvailable(const RawAddress& address,
