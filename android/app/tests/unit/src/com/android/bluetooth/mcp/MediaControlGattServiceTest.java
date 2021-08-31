@@ -27,7 +27,6 @@ import android.bluetooth.BluetoothGattDescriptor;
 import android.bluetooth.BluetoothGattService;
 import android.content.Context;
 import android.os.Looper;
-import android.util.MathUtils;
 
 import androidx.test.InstrumentationRegistry;
 import androidx.test.filters.MediumTest;
@@ -548,7 +547,7 @@ public class MediaControlGattServiceTest {
                 mCurrentDevice, 1, characteristic, false, true, 0, bb.array());
 
         verify(mMockMcsCallbacks)
-                .onPlaybackSpeedSetRequest(eq(MathUtils.pow(2, playback_speed / 64)));
+                .onPlaybackSpeedSetRequest(eq((float) Math.pow(2, playback_speed / 64)));
 
         verify(mMockGattServer)
                 .sendResponse(eq(mCurrentDevice), eq(1), eq(BluetoothGatt.GATT_SUCCESS), eq(0),
@@ -955,7 +954,7 @@ public class MediaControlGattServiceTest {
                 mCurrentDevice, 1, characteristic, false, true, 0, bb.array());
 
         verify(mMockMcsCallbacks)
-                .onPlaybackSpeedSetRequest(eq(MathUtils.pow(2, playback_speed / 64)));
+                .onPlaybackSpeedSetRequest(eq((float) Math.pow(2, playback_speed / 64)));
 
         // Fake characteristic write - this is done by player status update
         characteristic.setValue(playback_speed, BluetoothGattCharacteristic.FORMAT_SINT8, 0);
