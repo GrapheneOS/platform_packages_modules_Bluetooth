@@ -15,17 +15,14 @@
 #   limitations under the License.
 
 from abc import ABC
-from datetime import datetime
-import inspect
 import logging
 import os
 import pathlib
+import selectors
 import shutil
 import signal
 import socket
 import subprocess
-import time
-from typing import List
 
 import grpc
 
@@ -152,11 +149,14 @@ class GdDeviceBaseCore(ABC):
             # Setup signaling socket
             signal_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             signal_socket.bind(("localhost", self.signal_port))
+            # Allow only one incoming connection
             signal_socket.listen(1)
-            signal_socket.settimeout(300)  # 5 minute timeout for blocking socket operations
+            # Set socket to non-blocking mode and use select() to block for timeout
+            signal_socket.settimeout(0)
+            signal_socket.setblocking(False)
 
             # Start backing process
-            logging.debug("Running %s" % " ".join(self.cmd))
+            logging.debug("[%s] Running %s %s" % (self.type_identifier, self.label, " ".join(self.cmd)))
             self.backing_process = subprocess.Popen(
                 self.cmd,
                 cwd=get_gd_root(),
@@ -165,14 +165,48 @@ class GdDeviceBaseCore(ABC):
                 stderr=subprocess.STDOUT,
                 universal_newlines=True)
             if not self.backing_process:
+                logging.error("[%s] failed to open backing process for %s" % (self.type_identifier, self.label))
                 return
             self.is_backing_process_alive = is_subprocess_alive(self.backing_process)
             if not self.is_backing_process_alive:
                 return
 
             # Wait for process to be ready
-            logging.debug("Waiting for backing_process accept.")
-            signal_socket.accept()
+            logging.debug("[%s] Waiting for %s backing_process accept at port %d" % (self.type_identifier, self.label,
+                                                                                     self.signal_port))
+            selector = selectors.DefaultSelector()
+            selector.register(signal_socket, selectors.EVENT_READ)
+            # 60 second timeout for backing process to connect to us
+            timeout = 60
+            ret = selector.select(timeout=timeout)
+            selector.unregister(signal_socket)
+            if not ret:
+                logging.error("[{}] Failed to accept {} backing process connection in {} seconds".format(
+                    self.type_identifier, self.label, timeout))
+                signal_socket.shutdown(socket.SHUT_RDWR)
+                return
+            conn, addr = signal_socket.accept()
+            conn.setblocking(False)
+            with conn:
+                logging.debug("[{}] Connected {} by {}".format(self.type_identifier, self.label, addr))
+                selector.register(conn, selectors.EVENT_READ)
+                # Give 10 seconds for remote to disconnect from us
+                timeout = 10
+                ret = selector.select(timeout=timeout)
+                selector.unregister(conn)
+                if not ret:
+                    logging.warning("[{}] Failed to disconnect {} backing process in {} seconds".format(
+                        self.type_identifier, self.label, timeout))
+                else:
+                    data = conn.recv(1024)
+                    if data:
+                        logging.warning("[{}] Received {} data {!r}, but not wanted".format(
+                            self.type_identifier, self.label, data))
+                    else:
+                        logging.debug("[{}] Received EOF to disconnect from {}".format(
+                            self.type_identifier, self.label))
+                conn.shutdown(socket.SHUT_RDWR)
+            signal_socket.shutdown(socket.SHUT_RDWR)
 
         self.backing_process_logger = AsyncSubprocessLogger(
             self.backing_process, [self.backing_process_log_path],
