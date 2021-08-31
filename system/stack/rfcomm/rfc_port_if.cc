@@ -86,7 +86,7 @@ void RFCOMM_DlcEstablishReq(tRFC_MCB* p_mcb, uint8_t dlci,
     return;
   }
 
-  rfc_port_sm_execute(p_port, RFC_EVENT_OPEN, nullptr);
+  rfc_port_sm_execute(p_port, RFC_PORT_EVENT_OPEN, nullptr);
 }
 
 /*******************************************************************************
@@ -109,7 +109,7 @@ void RFCOMM_DlcEstablishRsp(tRFC_MCB* p_mcb, uint8_t dlci,
     RFCOMM_TRACE_WARNING("%s Unable to find DLCI port dlci:%d", __func__, dlci);
     return;
   }
-  rfc_port_sm_execute(p_port, RFC_EVENT_ESTABLISH_RSP, &result);
+  rfc_port_sm_execute(p_port, RFC_PORT_EVENT_ESTABLISH_RSP, &result);
 }
 
 /*******************************************************************************
@@ -318,8 +318,8 @@ void RFCOMM_LineStatusReq(tRFC_MCB* p_mcb, uint8_t dlci, uint8_t status) {
  *
  ******************************************************************************/
 void RFCOMM_DlcReleaseReq(tRFC_MCB* p_mcb, uint8_t dlci) {
-  rfc_port_sm_execute(port_find_mcb_dlci_port(p_mcb, dlci), RFC_EVENT_CLOSE,
-                      nullptr);
+  rfc_port_sm_execute(port_find_mcb_dlci_port(p_mcb, dlci),
+                      RFC_PORT_EVENT_CLOSE, nullptr);
 }
 
 /*******************************************************************************
@@ -330,6 +330,6 @@ void RFCOMM_DlcReleaseReq(tRFC_MCB* p_mcb, uint8_t dlci) {
  *
  ******************************************************************************/
 void RFCOMM_DataReq(tRFC_MCB* p_mcb, uint8_t dlci, BT_HDR* p_buf) {
-  rfc_port_sm_execute(port_find_mcb_dlci_port(p_mcb, dlci), RFC_EVENT_DATA,
+  rfc_port_sm_execute(port_find_mcb_dlci_port(p_mcb, dlci), RFC_PORT_EVENT_DATA,
                       p_buf);
 }

@@ -324,7 +324,7 @@ void rfc_sec_check_complete(UNUSED_ATTR const RawAddress* bd_addr,
        (p_port->rfc.state != RFC_STATE_TERM_WAIT_SEC_CHECK)))
     return;
 
-  rfc_port_sm_execute((tPORT*)p_ref_data, RFC_EVENT_SEC_COMPLETE, &res);
+  rfc_port_sm_execute((tPORT*)p_ref_data, RFC_PORT_EVENT_SEC_COMPLETE, &res);
 }
 
 /*******************************************************************************
