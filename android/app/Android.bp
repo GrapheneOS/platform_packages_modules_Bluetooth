@@ -100,6 +100,7 @@ android_app {
         "androidx.core_core",
         "androidx.legacy_legacy-support-v4",
         "androidx.lifecycle_lifecycle-livedata",
+        "modules-utils-statemachine",
         "androidx.room_room-runtime",
         "guava",
         "android.hardware.radio-V1.0-java",

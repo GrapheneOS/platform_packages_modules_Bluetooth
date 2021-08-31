@@ -39,9 +39,9 @@ import com.android.bluetooth.BluetoothStatsLog;
 import com.android.bluetooth.Utils;
 import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.ProfileService;
-import com.android.bluetooth.statemachine.State;
-import com.android.bluetooth.statemachine.StateMachine;
 import com.android.internal.annotations.VisibleForTesting;
+import com.android.internal.util.State;
+import com.android.internal.util.StateMachine;
 
 import java.io.FileDescriptor;
 import java.io.PrintWriter;
