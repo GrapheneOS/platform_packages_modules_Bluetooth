@@ -494,8 +494,8 @@ TEST_F(IsoManagerTest, RegisterCallbacks) {
   auto* iso_mgr = IsoManager::GetInstance();
   ASSERT_EQ(manager_instance_, iso_mgr);
 
-  iso_mgr->RegisterBigCallbacks(new MockBigCallbacks());
-  iso_mgr->RegisterCigCallbacks(new MockCigCallbacks());
+  iso_mgr->RegisterBigCallbacks(big_callbacks_.get());
+  iso_mgr->RegisterCigCallbacks(cig_callbacks_.get());
 }
 
 TEST_F(IsoManagerDeathTestNoInit, RegisterNullBigCallbacks) {
