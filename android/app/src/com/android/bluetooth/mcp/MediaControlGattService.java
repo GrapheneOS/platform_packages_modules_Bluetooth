@@ -38,6 +38,8 @@ import android.bluetooth.BluetoothGattService;
 import android.bluetooth.BluetoothManager;
 import android.bluetooth.BluetoothProfile;
 import android.content.Context;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 
 import com.android.internal.annotations.VisibleForTesting;
@@ -126,6 +128,7 @@ public class MediaControlGattService implements MediaControlGattServiceInterface
     private MediaControlServiceCallbacks mCallbacks;
     private BluetoothGattServerProxy mBluetoothGattServer;
     private BluetoothGattService mGattService = null;
+    private Handler mHandler = new Handler(Looper.getMainLooper());
     private Map<Integer, BluetoothGattCharacteristic> mCharacteristics = new HashMap<>();
     private MediaState mCurrentMediaState = MediaState.INACTIVE;
     private Map<BluetoothDevice, List<GattOpContext>> mPendingGattOperations = new HashMap<>();
@@ -843,7 +846,7 @@ public class MediaControlGattService implements MediaControlGattServiceInterface
         // Test for RFU bits and currently supported opcodes
         if (!isOpcodeSupported(opcode)) {
             Log.e(TAG, "handleMediaControlPointRequest: opcode or feature not supported");
-            mContext.getMainThreadHandler().post(() -> {
+            mHandler.post(() -> {
                 setMediaControlRequestResult(new Request(opcode, 0),
                         Request.Results.OPCODE_NOT_SUPPORTED);
             });
