@@ -27,7 +27,12 @@ from cert.os_utils import make_ports_available
 from cert.os_utils import TerminalColor
 
 
-def setup_rootcanal(dut_module, cert_module, verbose_mode, log_path_base, controller_configs):
+def setup_rootcanal(dut_module,
+                    cert_module,
+                    verbose_mode,
+                    log_path_base,
+                    controller_configs,
+                    controller_properties_file=''):
     info = {}
     info['dut_module'] = dut_module
     info['cert_module'] = cert_module
@@ -65,7 +70,12 @@ def setup_rootcanal(dut_module, cert_module, verbose_mode, log_path_base, contro
             return info
 
         # Start root canal process
-        rootcanal_cmd = [rootcanal, str(rootcanal_test_port), str(rootcanal_hci_port), str(rootcanal_link_layer_port)]
+        rootcanal_cmd = [
+            rootcanal,
+            str(rootcanal_test_port),
+            str(rootcanal_hci_port),
+            str(rootcanal_link_layer_port), '-controller_properties_file=' + controller_properties_file
+        ]
         info['rootcanal_cmd'] = rootcanal_cmd
 
         rootcanal_process = subprocess.Popen(
