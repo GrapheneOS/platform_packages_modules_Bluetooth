@@ -698,29 +698,6 @@ typedef enum : uint16_t {
 #define HCI_CR_CONN_NOT_ALLOW_SWITCH 0x00
 #define HCI_CR_CONN_ALLOW_SWITCH 0x01
 
-/* HCI mode defenitions */
-typedef enum : uint8_t {
-  HCI_MODE_ACTIVE = 0x00,
-  HCI_MODE_HOLD = 0x01,
-  HCI_MODE_SNIFF = 0x02,
-  HCI_MODE_PARK = 0x03,
-} tHCI_MODE;
-
-inline std::string hci_mode_text(const tHCI_MODE& mode) {
-  switch (mode) {
-    case HCI_MODE_ACTIVE:
-      return std::string("active");
-    case HCI_MODE_HOLD:
-      return std::string("hold");
-    case HCI_MODE_SNIFF:
-      return std::string("sniff");
-    case HCI_MODE_PARK:
-      return std::string("park");
-    default:
-      return std::string("UNKNOWN");
-  }
-}
-
 /* Page scan period modes */
 #define HCI_PAGE_SCAN_REP_MODE_R1 0x01
 
