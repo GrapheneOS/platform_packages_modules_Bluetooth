@@ -53,6 +53,7 @@ import android.bluetooth.IBluetoothSocketManager;
 import android.bluetooth.OobData;
 import android.bluetooth.UidTraffic;
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -175,6 +176,10 @@ public class AdapterService extends Service {
     private static final String SIM_ACCESS_PERMISSION_PREFERENCE_FILE = "sim_access_permission";
 
     private static final int CONTROLLER_ENERGY_UPDATE_TIMEOUT_MILLIS = 30;
+
+    private static final ComponentName BLUETOOTH_INCALLSERVICE_COMPONENT =
+            new ComponentName("com.android.bluetooth",
+                    BluetoothInCallService.class.getCanonicalName());
 
     // Report ID definition
     public enum BqrQualityReportId {
@@ -715,6 +720,20 @@ public class AdapterService extends Service {
                     timestamp, rssi, snr, retransmissionCount,
                     packetsNotReceiveCount, negativeAcknowledgementCount);
         }
+    }
+
+    /**
+     * Enable/disable BluetoothInCallService
+     *
+     * @param enable to enable/disable BluetoothInCallService.
+     */
+    public void enableBluetoothInCallService(boolean enable) {
+        debugLog("enableBluetoothInCallService() - Enable = " + enable);
+        getPackageManager().setComponentEnabledSetting(
+                BLUETOOTH_INCALLSERVICE_COMPONENT,
+                enable ? PackageManager.COMPONENT_ENABLED_STATE_ENABLED
+                        : PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
+                PackageManager.DONT_KILL_APP);
     }
 
     void cleanup() {
