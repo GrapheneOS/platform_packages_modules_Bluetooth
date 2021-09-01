@@ -27,7 +27,7 @@
 #include "bt_trace.h"
 
 // Override LogMsg method so that we can output log via VLOG(1)
-void LogMsg(uint32_t trace_set_mask, const char* fmt_str, ...) {
+extern "C" void LogMsg(uint32_t trace_set_mask, const char* fmt_str, ...) {
   char buffer[256];
   va_list args;
   va_start(args, fmt_str);
