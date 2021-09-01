@@ -59,12 +59,18 @@ class GdBaseTestClass(BaseTestClass):
         for config in self.controller_configs[CONTROLLER_CONFIG_NAME]:
             config['verbose_mode'] = self.verbose_mode
 
+        try:
+            controller_properties_file = self.controller_properties_file
+        except AttributeError:
+            controller_properties_file = ''
+
         self.info = setup_rootcanal(
             dut_module=self.dut_module,
             cert_module=self.cert_module,
             verbose_mode=self.verbose_mode,
             log_path_base=self.log_path_base,
-            controller_configs=self.controller_configs)
+            controller_configs=self.controller_configs,
+            controller_properties_file=controller_properties_file)
         self.rootcanal_running = self.info['rootcanal_running']
         self.rootcanal_logpath = self.info['rootcanal_logpath']
         self.rootcanal_process = self.info['rootcanal_process']
