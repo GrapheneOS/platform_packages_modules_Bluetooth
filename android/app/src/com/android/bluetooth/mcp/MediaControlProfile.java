@@ -160,24 +160,27 @@ public class MediaControlProfile implements MediaControlServiceCallbacks {
                             + mCurrentData.metadata.duration);
                 }
 
-                if (mCurrentData.metadata.duration != null) {
-                    state_map.put(PlayerStateField.TRACK_DURATION,
-                            Long.valueOf(mCurrentData.metadata.duration));
-                }
+                state_map.put(PlayerStateField.TRACK_DURATION,
+                        mCurrentData.metadata.duration != null
+                                ? Long.valueOf(mCurrentData.metadata.duration)
+                                : Long.valueOf(MediaControlGattServiceInterface
+                                                       .TRACK_DURATION_UNAVAILABLE));
 
-                if (mCurrentData.metadata.title != null) {
-                    state_map.put(PlayerStateField.TRACK_TITLE, mCurrentData.metadata.title);
-                }
+                state_map.put(PlayerStateField.TRACK_TITLE,
+                        mCurrentData.metadata.title != null ? mCurrentData.metadata.title : "");
 
                 // Update the position if track has changed
-                if (mCurrentData.state != null) {
-                    state_map.put(PlayerStateField.TRACK_POSITION,
-                            getDriftCorrectedTrackPosition(mCurrentData.state));
-                }
+                state_map.put(PlayerStateField.TRACK_POSITION,
+                        mCurrentData.state != null
+                                ? getDriftCorrectedTrackPosition(mCurrentData.state)
+                                : Long.valueOf(MediaControlGattServiceInterface
+                                                       .TRACK_POSITION_UNAVAILABLE));
             } else {
                 state_map.put(PlayerStateField.TRACK_DURATION,
                         Long.valueOf(MediaControlGattServiceInterface.TRACK_DURATION_UNAVAILABLE));
                 state_map.put(PlayerStateField.TRACK_TITLE, "");
+                state_map.put(PlayerStateField.TRACK_POSITION,
+                        Long.valueOf(MediaControlGattServiceInterface.TRACK_POSITION_UNAVAILABLE));
             }
         }
 
