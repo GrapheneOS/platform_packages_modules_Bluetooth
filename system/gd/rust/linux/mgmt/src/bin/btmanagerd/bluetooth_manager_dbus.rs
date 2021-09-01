@@ -1,5 +1,4 @@
 use dbus::arg::RefArg;
-use dbus::nonblock::SyncConnection;
 use dbus::strings::Path;
 use dbus_macros::{dbus_method, dbus_propmap, dbus_proxy_obj, generate_dbus_exporter};
 use dbus_projection::DisconnectWatcher;
