@@ -19,6 +19,7 @@
 #include <cstdint>
 #include "stack/include/bt_types.h"
 #include "stack/include/hci_error_code.h"
+#include "stack/include/hci_mode.h"
 #include "stack/include/hcidefs.h"
 #include "types/ble_address_with_type.h"
 #include "types/class_of_device.h"
