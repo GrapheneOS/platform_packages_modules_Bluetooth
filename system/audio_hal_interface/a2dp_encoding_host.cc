@@ -14,12 +14,15 @@
  * limitations under the License.
  */
 
+#include "a2dp_encoding_host.h"
+
+#include <errno.h>
+#include <grp.h>
 #include <sys/stat.h>
+
 #include <memory>
 
 #include "a2dp_encoding.h"
-#include "a2dp_encoding_host.h"
-
 #include "a2dp_sbc_constants.h"
 #include "btif_a2dp_source.h"
 #include "btif_av.h"
@@ -30,7 +33,9 @@
 #include "udrv/include/uipc.h"
 
 #define A2DP_DATA_READ_POLL_MS 10
-#define A2DP_HOST_DATA_PATH "/var/run/bluetooth/.a2dp_data"
+#define A2DP_HOST_DATA_PATH "/var/run/bluetooth/audio/.a2dp_data"
+// TODO(b/198260375): Make A2DP data owner group configurable.
+#define A2DP_HOST_DATA_GROUP "bluetooth-audio"
 
 namespace {
 
@@ -76,6 +81,23 @@ static void btif_a2dp_data_cb([[maybe_unused]] tUIPC_CH_ID ch_id,
   }
 }
 
+// If A2DP_HOST_DATA_GROUP exists we expect audio server and BT both are
+// in this group therefore have access to A2DP socket. Otherwise audio
+// server should be in the same group that BT stack runs with to access
+// A2DP socket.
+static void a2dp_data_path_open() {
+  UIPC_Open(*a2dp_uipc, UIPC_CH_ID_AV_AUDIO, btif_a2dp_data_cb,
+            A2DP_HOST_DATA_PATH);
+  struct group* grp = getgrnam(A2DP_HOST_DATA_GROUP);
+  chmod(A2DP_HOST_DATA_PATH, 0770);
+  if (grp) {
+    int res = chown(A2DP_HOST_DATA_PATH, -1, grp->gr_gid);
+    if (res == -1) {
+      LOG(ERROR) << __func__ << " failed: " << strerror(errno);
+    }
+  }
+}
+
 tA2DP_CTRL_CMD a2dp_pending_cmd_ = A2DP_CTRL_CMD_NONE;
 uint64_t total_bytes_read_;
 timespec data_position_;
@@ -116,15 +138,11 @@ bool StartRequest() {
 
   if (btif_av_stream_started_ready()) {
     // Already started, ACK back immediately.
-    UIPC_Open(*a2dp_uipc, UIPC_CH_ID_AV_AUDIO, btif_a2dp_data_cb,
-              A2DP_HOST_DATA_PATH);
-    chmod(A2DP_HOST_DATA_PATH, 0770);
+    a2dp_data_path_open();
     return true;
   }
   if (btif_av_stream_ready()) {
-    UIPC_Open(*a2dp_uipc, UIPC_CH_ID_AV_AUDIO, btif_a2dp_data_cb,
-              A2DP_HOST_DATA_PATH);
-    chmod(A2DP_HOST_DATA_PATH, 0770);
+    a2dp_data_path_open();
     /*
      * Post start event and wait for audio path to open.
      * If we are the source, the ACK will be sent after the start
