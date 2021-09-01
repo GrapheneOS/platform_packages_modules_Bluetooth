@@ -97,8 +97,9 @@ std::shared_ptr<AsyncDataChannel> TestEnvironment::ConnectToRemoteServer(
 void TestEnvironment::SetUpTestChannel() {
   bool transport_configured = test_channel_transport_.SetUp(
       test_socket_server_, [this](std::shared_ptr<AsyncDataChannel> conn_fd,
-                                  AsyncDataChannelServer*) {
+                                  AsyncDataChannelServer* server) {
         LOG_INFO("Test channel connection accepted.");
+        server->StartListening();
         if (test_channel_open_) {
           LOG_WARN("Only one connection at a time is supported");
           test_channel_transport_.SendResponse(conn_fd,
