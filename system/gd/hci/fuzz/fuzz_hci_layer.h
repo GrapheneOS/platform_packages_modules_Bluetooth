@@ -75,6 +75,10 @@ class FuzzHciLayer : public HciLayer {
     return iso_queue_.GetUpEnd();
   }
 
+  common::BidiQueueEnd<hci::ScoBuilder, hci::ScoView>* GetScoQueueEnd() override {
+    return sco_queue_.GetUpEnd();
+  }
+
   void RegisterEventHandler(hci::EventCode event, common::ContextualCallback<void(hci::EventView)> handler) override {
     event_handlers_[event] = handler;
   }
@@ -161,6 +165,7 @@ class FuzzHciLayer : public HciLayer {
   FuzzedDataProvider* auto_reply_fdp;
 
   common::BidiQueue<hci::AclView, hci::AclBuilder> acl_queue_{3};
+  common::BidiQueue<hci::ScoView, hci::ScoBuilder> sco_queue_{3};
   common::BidiQueue<hci::IsoView, hci::IsoBuilder> iso_queue_{3};
   os::fuzz::DevNullQueue<AclBuilder>* acl_dev_null_;
   os::fuzz::FuzzInjectQueue<AclView>* acl_inject_;
