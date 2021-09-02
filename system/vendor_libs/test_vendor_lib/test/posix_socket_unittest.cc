@@ -302,10 +302,6 @@ TEST_F(PosixSocketTest, noConnectWhenNotCallingStart) {
 
     // Should timeout, as we never invoke the callback that accepts the socket.
     ASSERT_FALSE(cv.wait_for(lk, 250ms, [&] { return connected; }));
-
-    // Close the server socket, which will reject the socket.
-    pass_.Close();
-    ASSERT_FALSE(socket->Connected());
   }
 
   ASSERT_EQ(1, (int)connections.size());
