@@ -19,8 +19,8 @@
 #ifndef HIDD_API_H
 #define HIDD_API_H
 
-#include "hiddefs.h"
-#include "sdp_api.h"
+#include "stack/include/hiddefs.h"
+#include "stack/include/sdp_api.h"
 
 /*****************************************************************************
  *  Type Definitions
