@@ -21,21 +21,18 @@
  *  Port Emulation entity utilities
  *
  ******************************************************************************/
+
 #include <base/logging.h>
-#include <string.h>
+#include <cstdint>
+#include <cstring>
 
-#include "osi/include/mutex.h"
-
-#include "bt_common.h"
 #include "bt_target.h"
-#include "btm_int.h"
-#include "btu.h"
-#include "l2cdefs.h"
-#include "port_api.h"
-#include "port_int.h"
-#include "rfc_int.h"
-#include "rfcdefs.h"
+#include "osi/include/allocator.h"
+#include "osi/include/mutex.h"
 #include "stack/include/btm_client_interface.h"
+#include "stack/rfcomm/port_int.h"
+#include "stack/rfcomm/rfc_int.h"
+#include "types/raw_address.h"
 
 static const tPORT_STATE default_port_pars = {
     PORT_BAUD_RATE_9600,

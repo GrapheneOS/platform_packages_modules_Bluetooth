@@ -22,20 +22,17 @@
  *
  ******************************************************************************/
 
-#include <stddef.h>
+#include <cstddef>
+#include <cstdint>
+
 #include "bt_target.h"
-
-#include "bt_common.h"
 #include "common/time_util.h"
-#include "osi/include/osi.h"
-
-#include "bt_utils.h"
-#include "l2c_api.h"
-#include "l2cdefs.h"
-#include "port_api.h"
-#include "port_int.h"
-#include "rfc_int.h"
-#include "rfcdefs.h"
+#include "osi/include/allocator.h"
+#include "osi/include/osi.h"  // UNUSED_ATTR
+#include "stack/include/l2c_api.h"
+#include "stack/rfcomm/port_int.h"
+#include "stack/rfcomm/rfc_int.h"
+#include "types/raw_address.h"
 
 /*
  * Define Callback functions to be called by L2CAP
