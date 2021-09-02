@@ -52,7 +52,7 @@ void TestEnvironment::initialize(std::promise<void> barrier) {
   SetUpTestChannel();
   SetUpHciServer([this](std::shared_ptr<AsyncDataChannel> socket,
                         AsyncDataChannelServer* srv) {
-    test_model_.IncomingHciConnection(socket);
+    test_model_.IncomingHciConnection(socket, controller_properties_file_);
     srv->StartListening();
   });
   SetUpLinkLayerServer([this](std::shared_ptr<AsyncDataChannel> socket,
