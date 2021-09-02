@@ -22,20 +22,13 @@
  *
  *****************************************************************************/
 
-#include "bt_common.h"
+#include <cstdint>
+
 #include "bt_target.h"
-
-#include "bt_utils.h"
-#include "btm_api.h"
-#include "btu.h"
-#include "osi/include/osi.h"
-#include "port_api.h"
-#include "port_ext.h"
-#include "port_int.h"
-#include "rfc_int.h"
-#include "rfcdefs.h"
-
-#include <string.h>
+#include "osi/include/allocator.h"
+#include "osi/include/osi.h"  // UNUSED_ATTR
+#include "stack/include/port_ext.h"
+#include "stack/rfcomm/rfc_int.h"
 
 /*******************************************************************************
  *

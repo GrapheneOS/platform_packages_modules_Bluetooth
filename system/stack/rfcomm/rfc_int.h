@@ -25,11 +25,13 @@
 #ifndef RFC_INT_H
 #define RFC_INT_H
 
-#include "l2c_api.h"
-#include "port_int.h"
-#include "stack/include/btm_status.h"
-
+#include <cstdint>
+#include <cstring>
 #include <unordered_map>
+
+#include "stack/include/btm_status.h"
+#include "stack/include/l2c_api.h"
+#include "stack/rfcomm/port_int.h"
 
 /*
  * Define RFCOMM result codes

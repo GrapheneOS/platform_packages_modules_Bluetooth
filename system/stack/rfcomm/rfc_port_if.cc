@@ -23,16 +23,13 @@
  *
  *****************************************************************************/
 
-#include <cstring>
-#include "bt_common.h"
+#include <cstdint>
+#include <unordered_map>
+
 #include "bt_target.h"
-#include "bt_utils.h"
-#include "l2c_api.h"
-#include "osi/include/osi.h"
-#include "port_api.h"
-#include "port_int.h"
-#include "rfc_int.h"
-#include "rfcdefs.h"
+#include "osi/include/osi.h"  // UNUSED_ATTR
+#include "stack/rfcomm/port_int.h"
+#include "stack/rfcomm/rfc_int.h"
 
 tRFC_CB rfc_cb;
 std::unordered_map<uint32_t, uint16_t> rfcomm_security_records;
