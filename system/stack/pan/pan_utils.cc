@@ -24,18 +24,11 @@
  *****************************************************************************/
 
 #include <base/logging.h>
-#include <stdio.h>
-#include <string.h>
-#include "bnep_api.h"
-#include "bt_common.h"
-#include "btm_api.h"
-#include "hcidefs.h"
-#include "l2c_api.h"
-#include "pan_api.h"
-#include "pan_int.h"
-#include "sdp_api.h"
-#include "sdpdefs.h"
-#include "stack/btm/btm_sec.h"
+#include <cstdint>
+
+#include "stack/include/sdp_api.h"
+#include "stack/pan/pan_int.h"
+#include "types/raw_address.h"
 
 static const uint8_t pan_proto_elem_data[] = {
     0x35, 0x18,       /* data element sequence of length 0x18 bytes */
