@@ -23,17 +23,15 @@
  *
  ******************************************************************************/
 
-#include <string.h>
-#include "bnep_api.h"
-#include "bt_common.h"
-#include "bt_utils.h"
-#include "hcidefs.h"
-#include "l2c_api.h"
-#include "osi/include/osi.h"
-#include "pan_api.h"
-#include "pan_int.h"
-#include "sdp_api.h"
-#include "sdpdefs.h"
+#include <string.h>  // memset
+
+#include <cstdint>
+
+#include "osi/include/allocator.h"
+#include "osi/include/osi.h"  // UNUSED_ATTR
+#include "stack/include/bnep_api.h"
+#include "stack/include/sdpdefs.h"
+#include "stack/pan/pan_int.h"
 
 using bluetooth::Uuid;
 
