@@ -23,19 +23,16 @@
  *
  *****************************************************************************/
 
-#include "pan_api.h"
 #include <base/logging.h>
-#include <string.h>
-#include "bnep_api.h"
-#include "bt_common.h"
-#include "bta_sys.h"
-#include "btm_api.h"
-#include "hcidefs.h"
-#include "l2c_api.h"
-#include "pan_int.h"
-#include "sdp_api.h"
-#include "sdpdefs.h"
-#include "stack/btm/btm_sec.h"
+#include <cstdint>
+
+#include "bta/sys/bta_sys.h"
+#include "osi/include/allocator.h"
+#include "stack/include/bnep_api.h"
+#include "stack/include/pan_api.h"
+#include "stack/include/sdp_api.h"
+#include "stack/include/sdpdefs.h"
+#include "stack/pan/pan_int.h"
 
 using bluetooth::Uuid;
 
