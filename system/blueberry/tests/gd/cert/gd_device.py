@@ -226,6 +226,7 @@ class GdAndroidDevice(GdDeviceBase):
     def setup(self):
         logging.info("Setting up device %s %s" % (self.label, self.serial_number))
         asserts.assert_true(self.adb.ensure_root(), "device %s cannot run as root", self.serial_number)
+        self.ensure_verity_disabled()
 
         # Try freeing ports and ignore results
         self.cleanup_port_forwarding()
@@ -237,7 +238,6 @@ class GdAndroidDevice(GdDeviceBase):
         self.tcp_reverse_or_die(self.signal_port, self.signal_port)
 
         # Push test binaries
-        self.ensure_verity_disabled()
         self.push_or_die(os.path.join(get_gd_root(), "target", "bluetooth_stack_with_facade"), "system/bin")
         self.push_or_die(
             os.path.join(get_gd_root(), "target", "android.system.suspend.control-V1-ndk.so"), "system/lib64")
