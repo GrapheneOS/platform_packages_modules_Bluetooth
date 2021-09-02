@@ -22,20 +22,19 @@
  *  communications
  *
  ******************************************************************************/
+
 #include <base/logging.h>
-#include <string.h>
+#include <cstdint>
+#include <string>
 
-#include "osi/include/mutex.h"
-#include "osi/include/osi.h"
-
-#include "bt_common.h"
 #include "bt_target.h"
-#include "bt_utils.h"
-#include "btm_api.h"
-#include "port_api.h"
-#include "port_int.h"
-#include "rfc_int.h"
-#include "rfcdefs.h"
+#include "bt_trace.h"
+#include "osi/include/allocator.h"
+#include "osi/include/mutex.h"
+#include "osi/include/osi.h"  // UNUSED_ATTR
+#include "stack/include/sdpdefs.h"
+#include "stack/rfcomm/port_int.h"
+#include "stack/rfcomm/rfc_int.h"
 
 /*
  * Local function definitions
