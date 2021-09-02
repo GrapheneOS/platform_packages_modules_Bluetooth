@@ -25,7 +25,11 @@
 #ifndef PAN_INT_H
 #define PAN_INT_H
 
-#include "pan_api.h"
+#include <cstdint>
+
+#include "stack/include/pan_api.h"
+#include "types/bluetooth/uuid.h"
+#include "types/raw_address.h"
 
 /*
  * This role is used to shutdown the profile. Used internally
