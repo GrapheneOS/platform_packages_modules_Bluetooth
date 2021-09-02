@@ -25,9 +25,9 @@
 #ifndef HIDDEFS_H
 #define HIDDEFS_H
 
-#include <string>
+#include <cstring>
 
-#include "sdp_api.h"
+#include "stack/include/sdp_api.h"
 /*
  * tHID_STATUS: HID result codes, returned by HID and device and host functions.
 */
