@@ -25,20 +25,15 @@
 #define LOG_TAG "bt_port_api"
 
 #include <base/logging.h>
-#include <string.h>
+#include <cstdint>
 
+#include "osi/include/allocator.h"
 #include "osi/include/log.h"
 #include "osi/include/mutex.h"
-
-#include "bt_common.h"
-#include "l2c_api.h"
-#include "port_api.h"
-#include "port_int.h"
-#include "rfc_int.h"
-#include "rfcdefs.h"
-#include "sdp_api.h"
-
-#include "stack/include/btm_api_types.h"
+#include "stack/include/port_api.h"
+#include "stack/include/sdpdefs.h"
+#include "stack/rfcomm/rfc_int.h"
+#include "types/raw_address.h"
 
 #define error(fmt, ...) \
   LOG_ERROR("## ERROR : %s: " fmt "##", __func__, ##__VA_ARGS__)
