@@ -188,6 +188,7 @@ inline std::string rfcomm_mx_state_text(tRFC_MX_STATE state) {
 /*
  * Events that can be received by multiplexer as well as port state machines
 */
+typedef uint8_t tRFC_EVENT;
 #define RFC_EVENT_SABME 0
 #define RFC_EVENT_UA 1
 #define RFC_EVENT_DM 2
@@ -198,6 +199,7 @@ inline std::string rfcomm_mx_state_text(tRFC_MX_STATE state) {
 /*
  * Multiplexer events
 */
+typedef uint8_t tRFC_MX_EVENT;
 #define RFC_MX_EVENT_START_REQ 6
 #define RFC_MX_EVENT_START_RSP 7
 #define RFC_MX_EVENT_CLOSE_REQ 8
@@ -211,6 +213,7 @@ inline std::string rfcomm_mx_state_text(tRFC_MX_STATE state) {
 /*
  * Port events
 */
+typedef uint8_t tRFC_PORT_EVENT;
 #define RFC_EVENT_OPEN 9
 #define RFC_EVENT_ESTABLISH_RSP 11
 #define RFC_EVENT_CLOSE 12
