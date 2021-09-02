@@ -22,16 +22,16 @@
  *
  ******************************************************************************/
 
-#include <stddef.h>
-#include "bt_common.h"
-#include "bt_target.h"
-#include "l2c_api.h"
-#include "port_api.h"
-#include "port_int.h"
-#include "rfc_int.h"
-#include "rfcdefs.h"
+#include <log/log.h>
+#include <cstdint>
+#include <cstring>
 
-#include "osi/include/log.h"
+#include "bt_target.h"
+#include "osi/include/allocator.h"
+#include "stack/include/l2c_api.h"
+#include "stack/include/rfcdefs.h"
+#include "stack/rfcomm/port_int.h"
+#include "stack/rfcomm/rfc_int.h"
 
 /*******************************************************************************
  *

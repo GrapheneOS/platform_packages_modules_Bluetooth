@@ -25,13 +25,14 @@
 #ifndef PORT_INT_H
 #define PORT_INT_H
 
-#include "bt_common.h"
-#include "bt_target.h"
-#include "l2c_api.h"
+#include <cstdint>
+
 #include "osi/include/alarm.h"
 #include "osi/include/fixed_queue.h"
-#include "port_api.h"
-#include "rfcdefs.h"
+#include "stack/include/l2c_api.h"
+#include "stack/include/port_api.h"
+#include "stack/include/rfcdefs.h"
+#include "types/raw_address.h"
 
 /*
  * Flow control configuration values for the mux
