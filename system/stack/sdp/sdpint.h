@@ -25,11 +25,13 @@
 #ifndef SDP_INT_H
 #define SDP_INT_H
 
-#include "bluetooth/uuid.h"
+#include <cstdint>
+
 #include "bt_target.h"
-#include "l2c_api.h"
 #include "osi/include/alarm.h"
-#include "sdp_api.h"
+#include "stack/include/l2c_api.h"
+#include "types/bluetooth/uuid.h"
+#include "types/raw_address.h"
 
 /* Continuation length - we use a 2-byte offset */
 #define SDP_CONTINUATION_LEN 2

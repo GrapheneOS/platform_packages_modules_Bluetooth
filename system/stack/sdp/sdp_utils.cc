@@ -22,19 +22,22 @@
  *
  ******************************************************************************/
 
-#include <stdio.h>
-#include <string.h>
+#include <array>
+#include <cstdint>
+#include <cstring>
+#include <type_traits>
 #include <utility>
 #include <vector>
 
-#include "bt_common.h"
-#include "btif_config.h"
-
-#include "avrc_defs.h"
-#include "sdp_api.h"
-#include "sdpint.h"
-
+#include "btif/include/btif_config.h"
+#include "osi/include/allocator.h"
+#include "stack/include/avrc_defs.h"
+#include "stack/include/sdp_api.h"
+#include "stack/include/sdpdefs.h"
 #include "stack/include/stack_metrics_logging.h"
+#include "stack/sdp/sdpint.h"
+#include "types/bluetooth/uuid.h"
+#include "types/raw_address.h"
 
 using bluetooth::Uuid;
 static const uint8_t sdp_base_uuid[] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00,

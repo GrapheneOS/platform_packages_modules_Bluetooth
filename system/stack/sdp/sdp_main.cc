@@ -22,19 +22,15 @@
  *
  ******************************************************************************/
 
-#include <string.h>
+#include <string.h>  // memset
 
-#include "bt_common.h"
-#include "bt_target.h"
-#include "hcidefs.h"
-
-#include "l2c_api.h"
-#include "l2cdefs.h"
-#include "osi/include/osi.h"
-
-#include "sdp_api.h"
-#include "sdpint.h"
-#include "stack/btm/btm_sec.h"
+#include "osi/include/allocator.h"
+#include "osi/include/osi.h"  // UNUSED_ATTR
+#include "stack/include/btm_api_types.h"
+#include "stack/include/l2c_api.h"
+#include "stack/include/sdp_api.h"
+#include "stack/sdp/sdpint.h"
+#include "types/raw_address.h"
 
 /******************************************************************************/
 /*                     G L O B A L      S D P       D A T A                   */
