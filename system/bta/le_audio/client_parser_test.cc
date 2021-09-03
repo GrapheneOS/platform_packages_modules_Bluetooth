@@ -913,6 +913,10 @@ TEST(LeAudioClientParserTest, testParseAseStatusTransientStateParams) {
       0x01,
       // ASE State
       0x03,  // 'Enabling' state
+      // CIG_ID
+      0x03,
+      // CIS_ID
+      0x04,
       // Metadata length
       0x03,
       // Metadata

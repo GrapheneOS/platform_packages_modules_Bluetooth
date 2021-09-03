@@ -152,6 +152,7 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
         }
 
         /* All ASEs should aim to achieve target state */
+        group->SetContextType(context_type);
         SetTargetState(group, AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING);
         PrepareAndSendCodecConfigure(group, group->GetFirstActiveDevice());
         break;
@@ -169,12 +170,21 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
         break;
       }
 
-      case AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING:
-        if (group->GetContextType() != context_type) {
-          /* TODO: Switch context of group */
-          group->SetContextType(context_type);
+      case AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING: {
+        /* This case just updates the metadata for the stream, in case
+         * stream configuration is satisfied
+         */
+        if (!group->IsMetadataChanged(context_type)) return true;
+
+        LeAudioDevice* leAudioDevice = group->GetFirstActiveDevice();
+        if (!leAudioDevice) {
+          LOG(ERROR) << __func__ << ", group has no active devices";
+          return false;
         }
-        return true;
+
+        PrepareAndSendUpdateMetadata(group, leAudioDevice, context_type);
+        break;
+      }
 
       default:
         LOG(ERROR) << "Unable to transit from " << group->GetState();
@@ -240,7 +250,10 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
         AseStateMachineProcessEnabling(arh, ase, group, leAudioDevice);
         break;
       case AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING:
-        AseStateMachineProcessStreaming(arh, ase, group, leAudioDevice);
+        AseStateMachineProcessStreaming(
+            arh, ase, value + le_audio::client_parser::ascs::kAseRspHdrMinLen,
+            len - le_audio::client_parser::ascs::kAseRspHdrMinLen, group,
+            leAudioDevice);
         break;
       case AseState::BTA_LE_AUDIO_ASE_STATE_DISABLING:
         AseStateMachineProcessDisabling(arh, ase, group, leAudioDevice);
@@ -1486,6 +1499,40 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
                                       GATT_WRITE_NO_RSP, NULL, NULL);
   }
 
+  void PrepareAndSendUpdateMetadata(
+      LeAudioDeviceGroup* group, LeAudioDevice* leAudioDevice,
+      le_audio::types::LeAudioContextType context_type) {
+    std::vector<struct le_audio::client_parser::ascs::ctp_update_metadata>
+        confs;
+
+    for (; leAudioDevice;
+         leAudioDevice = group->GetNextActiveDevice(leAudioDevice)) {
+      if (!leAudioDevice->IsMetadataChanged(context_type)) continue;
+
+      auto new_metadata = leAudioDevice->GetMetadata(context_type);
+
+      /* Request server to update ASEs with new metadata */
+      for (struct ase* ase = leAudioDevice->GetFirstActiveAse(); ase != nullptr;
+           ase = leAudioDevice->GetNextActiveAse(ase)) {
+        struct le_audio::client_parser::ascs::ctp_update_metadata conf;
+
+        conf.ase_id = ase->id;
+        conf.metadata = new_metadata;
+
+        confs.push_back(conf);
+      }
+
+      std::vector<uint8_t> value;
+      le_audio::client_parser::ascs::PrepareAseCtpUpdateMetadata(confs, value);
+
+      BtaGattQueue::WriteCharacteristic(leAudioDevice->conn_id_,
+                                        leAudioDevice->ctp_hdls_.val_hdl, value,
+                                        GATT_WRITE_NO_RSP, NULL, NULL);
+
+      return;
+    }
+  }
+
   void AseStateMachineProcessEnabling(
       struct le_audio::client_parser::ascs::ase_rsp_hdr& arh, struct ase* ase,
       LeAudioDeviceGroup* group, LeAudioDevice* leAudioDevice) {
@@ -1524,7 +1571,8 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
 
   void AseStateMachineProcessStreaming(
       struct le_audio::client_parser::ascs::ase_rsp_hdr& arh, struct ase* ase,
-      LeAudioDeviceGroup* group, LeAudioDevice* leAudioDevice) {
+      uint8_t* data, uint16_t len, LeAudioDeviceGroup* group,
+      LeAudioDevice* leAudioDevice) {
     if (!group) {
       LOG(ERROR) << __func__ << ", leAudioDevice doesn't belong to any group";
 
@@ -1616,9 +1664,26 @@ class LeAudioGroupStateMachineImpl : public LeAudioGroupStateMachine {
 
         break;
       }
-      case AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING:
-        /* TODO: Update metadata/Enable */
+      case AseState::BTA_LE_AUDIO_ASE_STATE_STREAMING: {
+        struct le_audio::client_parser::ascs::ase_transient_state_params rsp;
+
+        if (!ParseAseStatusTransientStateParams(rsp, len, data)) {
+          StopStream(group);
+          return;
+        }
+
+        /* Cache current set up metadata values for for further possible
+         * reconfiguration
+         */
+        for (struct ase* ase = leAudioDevice->GetFirstActiveAse();
+             ase != nullptr; ase = leAudioDevice->GetNextActiveAse(ase)) {
+          ase->metadata = rsp.metadata;
+        }
+
+        PrepareAndSendUpdateMetadata(group, leAudioDevice,
+                                     group->GetContextType());
         break;
+      }
       default:
         LOG(ERROR) << __func__ << ", invalid state transition, from: "
                    << static_cast<int>(ase->state) << ", to: "
