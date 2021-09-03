@@ -50,6 +50,7 @@ cc_library_static {
         "btav_sink/btav_sink_shim.cc",
         "btif/btif_shim.cc",
         "gatt/gatt_shim.cc",
+        "hfp/hfp_shim.cc",
     ],
     generated_headers: ["libbt_topshim_bridge_header", "cxx-bridge-header"],
     generated_sources: ["libbt_topshim_bridge_code"],
