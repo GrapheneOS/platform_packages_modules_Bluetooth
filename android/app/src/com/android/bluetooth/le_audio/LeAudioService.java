@@ -17,6 +17,8 @@
 
 package com.android.bluetooth.le_audio;
 
+import static android.Manifest.permission.BLUETOOTH_CONNECT;
+
 import static android.bluetooth.IBluetoothLeAudio.LE_AUDIO_GROUP_ID_INVALID;
 
 import android.annotation.RequiresPermission;
@@ -64,20 +66,52 @@ public class LeAudioService extends ProfileService {
     private static final int MAX_LE_AUDIO_STATE_MACHINES = 10;
     private static LeAudioService sLeAudioService;
 
+    /**
+     * Indicates group audio support for input direction
+     */
+    private static final int AUDIO_DIRECTION_INPUT_BIT = 0x01;
+
+    /**
+     * Indicates group audio support for output direction
+     */
+    private static final int AUDIO_DIRECTION_OUTPUT_BIT = 0x02;
+
+    /*
+     * Indicates no active contexts
+     */
+    private static final int ACTIVE_CONTEXTS_NONE = 0;
+
     private AdapterService mAdapterService;
     private DatabaseManager mDatabaseManager;
     private HandlerThread mStateMachinesThread;
-    private BluetoothDevice mPreviousAudioDevice;
+    private BluetoothDevice mPreviousAudioOutDevice;
+    private BluetoothDevice mPreviousAudioInDevice;
     ServiceFactory mServiceFactory = new ServiceFactory();
 
     LeAudioNativeInterface mLeAudioNativeInterface;
     AudioManager mAudioManager;
 
+    private class LeAudioGroupDescriptor {
+        LeAudioGroupDescriptor() {
+            mIsConnected = false;
+            mIsActive = false;
+            mActiveContexts = ACTIVE_CONTEXTS_NONE;
+        }
+
+        public Boolean mIsConnected;
+        public Boolean mIsActive;
+        public Integer mActiveContexts;
+    }
+
+    private final Map<Integer, LeAudioGroupDescriptor> mGroupDescriptors = new HashMap<>();
     private final Map<BluetoothDevice, LeAudioStateMachine> mStateMachines = new HashMap<>();
 
     private final Map<BluetoothDevice, Integer> mDeviceGroupIdMap = new ConcurrentHashMap<>();
-    private final Map<Integer, Boolean> mGroupIdConnectedMap = new HashMap<>();
     private int mActiveDeviceGroupId = LE_AUDIO_GROUP_ID_INVALID;
+    private final int mContextSupportingInputAudio =
+            BluetoothLeAudio.CONTEXT_TYPE_COMMUNICATION;
+    private final int mContextSupportingOutputAudio = BluetoothLeAudio.CONTEXT_TYPE_COMMUNICATION |
+            BluetoothLeAudio.CONTEXT_TYPE_MEDIA;
 
     private BroadcastReceiver mBondStateChangedReceiver;
     private BroadcastReceiver mConnectionStateChangedReceiver;
@@ -115,7 +149,7 @@ public class LeAudioService extends ProfileService {
         mStateMachinesThread.start();
 
         mDeviceGroupIdMap.clear();
-        mGroupIdConnectedMap.clear();
+        mGroupDescriptors.clear();
 
         // Setup broadcast receivers
         IntentFilter filter = new IntentFilter();
@@ -166,7 +200,7 @@ public class LeAudioService extends ProfileService {
         }
 
         mDeviceGroupIdMap.clear();
-        mGroupIdConnectedMap.clear();
+        mGroupDescriptors.clear();
 
         if (mStateMachinesThread != null) {
             mStateMachinesThread.quitSafely();
@@ -300,6 +334,9 @@ public class LeAudioService extends ProfileService {
                 }
             }
         }
+
+        mGroupDescriptors.remove(groupId);
+
         return true;
     }
 
@@ -382,17 +419,174 @@ public class LeAudioService extends ProfileService {
     }
 
     /**
-     * Set the active device.
+     * Get supported group audio direction from available context.
+     *
+     * @param activeContext bitset of active context to be matched with possible audio direction
+     * support.
+     * @return matched possible audio direction support masked bitset
+     * {@link AUDIO_DIRECTION_INPUT_BIT} if input audio is supported
+     * {@link AUDIO_DIRECTION_OUTPUT_BIT} if output audio is supported
+     */
+    private Integer getAudioDirectionsFromActiveContextsMap(Integer activeContexts) {
+        Integer supportedAudioDirections = 0;
+
+        if ((activeContexts & mContextSupportingInputAudio) != 0) {
+          supportedAudioDirections |= AUDIO_DIRECTION_INPUT_BIT;
+        }
+        if ((activeContexts & mContextSupportingOutputAudio) != 0) {
+          supportedAudioDirections |= AUDIO_DIRECTION_OUTPUT_BIT;
+        }
+
+        return supportedAudioDirections;
+    }
+
+    private BluetoothDevice getFirstConnectedDeviceFromGroup(Integer groupId) {
+        if (groupId != LE_AUDIO_GROUP_ID_INVALID) {
+            for(Map.Entry<BluetoothDevice, Integer> entry : mDeviceGroupIdMap.entrySet()) {
+                if ((entry.getValue() == groupId) && (entry.getKey().isConnected())) {
+                    return entry.getKey();
+                }
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Report the active devices change to the active device manager and the media framework.
+     * @param groupId id of group which devices should be updated
+     * @param newActiveContexts new active contexts for group of devices
+     */
+    private void updateActiveDevices(Integer groupId, Integer oldActiveContexts,
+            Integer newActiveContexts) {
+        LeAudioGroupDescriptor descriptor = mGroupDescriptors.get(groupId);
+        if (descriptor == null) {
+            Log.w(TAG, "Invalid group id: " + String.valueOf(groupId));
+            return;
+        }
+
+        BluetoothDevice device = getFirstConnectedDeviceFromGroup(groupId);
+
+        Integer oldSupportedAudioDirections =
+                getAudioDirectionsFromActiveContextsMap(oldActiveContexts);
+        boolean oldSupportedByDeviceOutput = (oldSupportedAudioDirections
+                & AUDIO_DIRECTION_OUTPUT_BIT) != 0;
+        boolean oldSupportedByDeviceInput = (oldSupportedAudioDirections
+                & AUDIO_DIRECTION_INPUT_BIT) != 0;
+
+        Integer newSupportedAudioDirections =
+                getAudioDirectionsFromActiveContextsMap(newActiveContexts);
+        boolean newSupportedByDeviceOutput = (newSupportedAudioDirections
+                & AUDIO_DIRECTION_OUTPUT_BIT) != 0;
+        boolean newSupportedByDeviceInput = (newSupportedAudioDirections
+                & AUDIO_DIRECTION_INPUT_BIT) != 0;
+
+        /* Disconnect output:
+         * - If active output device changed (to none or any)
+         * - If device stops supporting output
+         */
+        boolean outActiveDeviceReplace = (mPreviousAudioOutDevice != null) &&
+                !(device == mPreviousAudioOutDevice);
+        if (outActiveDeviceReplace || (oldSupportedByDeviceOutput && !newSupportedByDeviceOutput)) {
+            boolean suppressNoisyIntent =
+                    (getConnectionState(mPreviousAudioOutDevice) ==
+                    BluetoothProfile.STATE_CONNECTED);
+            mAudioManager.setBluetoothLeAudioOutDeviceConnectionState(
+                    mPreviousAudioOutDevice, BluetoothProfile.STATE_DISCONNECTED,
+                    suppressNoisyIntent);
+            mPreviousAudioOutDevice = null;
+        }
+
+        /* Connect output:
+         * - If active output device changed
+         * - If device starts support output
+         */
+        if ((outActiveDeviceReplace && (device != null)) ||
+                (!oldSupportedByDeviceOutput && newSupportedByDeviceOutput)) {
+            mAudioManager.setBluetoothLeAudioOutDeviceConnectionState(
+                    device, BluetoothProfile.STATE_CONNECTED, true);
+            mPreviousAudioOutDevice = device;
+        }
+
+        /* Disconnect input:
+         * - If active input device changed (to none or any)
+         * - If device stops supporting input
+         */
+        boolean inActiveDeviceReplace = (mPreviousAudioInDevice != null) &&
+                !(device == mPreviousAudioInDevice);
+        if (inActiveDeviceReplace || (oldSupportedByDeviceInput && !newSupportedByDeviceInput)) {
+            mAudioManager.setBluetoothLeAudioInDeviceConnectionState(
+                    mPreviousAudioInDevice, BluetoothProfile.STATE_DISCONNECTED);
+            mPreviousAudioInDevice = null;
+        }
+
+        /* Connect input:
+         * - If active input device changed
+         * - If device starts support input
+         */
+        if ((inActiveDeviceReplace && (device != null)) ||
+                (!oldSupportedByDeviceInput && newSupportedByDeviceInput)) {
+            mAudioManager.setBluetoothLeAudioInDeviceConnectionState(
+                   device, BluetoothProfile.STATE_CONNECTED);
+            mPreviousAudioInDevice = device;
+        }
+
+        Intent intent = new Intent(BluetoothLeAudio.ACTION_LE_AUDIO_ACTIVE_DEVICE_CHANGED);
+        if ((mPreviousAudioInDevice == null) && (mPreviousAudioOutDevice == null)) {
+            /* Device has to be unabigous, represented by empty BluetoothDevice */
+            intent.putExtra(BluetoothDevice.EXTRA_DEVICE, mPreviousAudioOutDevice);
+        } else {
+            intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
+        }
+        intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY_BEFORE_BOOT
+                | Intent.FLAG_RECEIVER_INCLUDE_BACKGROUND);
+        sendBroadcast(intent, BLUETOOTH_CONNECT);
+    }
+
+    /**
+     * Set the active device group.
+     * @param groupId group Id to set active
+     */
+    private void setActiveDeviceGroup(BluetoothDevice device) {
+        int groupId = LE_AUDIO_GROUP_ID_INVALID;
+
+        if (device != null) {
+            groupId = mDeviceGroupIdMap.getOrDefault(device, LE_AUDIO_GROUP_ID_INVALID);
+        }
+
+        if (DBG) {
+            Log.d(TAG, "setActiveDeviceGroup = " + groupId + ", device: " + device);
+        }
+
+        if (groupId == mActiveDeviceGroupId) {
+            Log.w(TAG, "group is already active");
+            return;
+        }
+
+        mActiveDeviceGroupId = groupId;
+    }
+
+    /**
+     * Set the active group represented by device.
      *
      * @param device the new active device
      * @return true on success, otherwise false
      */
     public boolean setActiveDevice(BluetoothDevice device) {
-        if (DBG) {
-            Log.d(TAG, "setActiveDevice:" + device);
+        synchronized (mStateMachines) {
+            /* Clear active group */
+            if (device == null) {
+                setActiveDeviceGroup(device);
+                return true;
+            }
+            if (getConnectionState(device) != BluetoothProfile.STATE_CONNECTED) {
+                Log.e(TAG, "setActiveDevice(" + device + "): failed because group device is not " +
+                        "connected");
+                return false;
+            }
+            setActiveDeviceGroup(device);
+            return true;
         }
-
-        return false;
     }
 
     /**
@@ -405,6 +599,19 @@ public class LeAudioService extends ProfileService {
             Log.d(TAG, "getActiveDevices");
         }
         ArrayList<BluetoothDevice> activeDevices = new ArrayList<>();
+        synchronized (mStateMachines) {
+            if (mActiveDeviceGroupId == LE_AUDIO_GROUP_ID_INVALID) {
+                return activeDevices;
+            }
+            for (BluetoothDevice device : mDeviceGroupIdMap.keySet()) {
+                if (getConnectionState(device) != BluetoothProfile.STATE_CONNECTED) {
+                    continue;
+                }
+                if (mDeviceGroupIdMap.get(device) == Integer.valueOf(mActiveDeviceGroupId)) {
+                    activeDevices.add(device);
+                }
+            }
+        }
         return activeDevices;
     }
 
@@ -413,6 +620,7 @@ public class LeAudioService extends ProfileService {
     void messageFromNative(LeAudioStackEvent stackEvent) {
         Log.d(TAG, "Message from native: " + stackEvent);
         BluetoothDevice device = stackEvent.device;
+        Intent intent = null;
 
         if (stackEvent.type == LeAudioStackEvent.EVENT_TYPE_CONNECTION_STATE_CHANGED) {
         // Some events require device state machine
@@ -437,32 +645,98 @@ public class LeAudioService extends ProfileService {
                 sm.sendMessage(LeAudioStateMachine.STACK_EVENT, stackEvent);
                 return;
             }
-        }
-
-        // Some events do not require device state machine
-        if (stackEvent.type == LeAudioStackEvent.EVENT_TYPE_GROUP_STATUS_CHANGED) {
+        } else if (stackEvent.type == LeAudioStackEvent.EVENT_TYPE_GROUP_NODE_STATUS_CHANGED) {
             int group_id = stackEvent.valueInt1;
-            int group_status = stackEvent.valueInt2;
-            int group_flags = stackEvent.valueInt3;
+            int node_status = stackEvent.valueInt2;
 
-            // TODO: Handle Stream events
-            switch (group_status) {
-                case LeAudioStackEvent.GROUP_STATUS_IDLE:
-                case LeAudioStackEvent.GROUP_STATUS_RECONFIGURED:
-                case LeAudioStackEvent.GROUP_STATUS_DESTROYED:
-                case LeAudioStackEvent.GROUP_STATUS_SUSPENDED:
-                    setActiveDevice(null);
-                    // TODO: Get all devices with a group and Unassign? or they are already unasigned
-                    // This event may come after removing all the nodes from a certain group but only that.
+            Objects.requireNonNull(stackEvent.device,
+                    "Device should never be null, event: " + stackEvent);
+
+            switch (node_status) {
+                case LeAudioStackEvent.GROUP_NODE_ADDED:
+                    mDeviceGroupIdMap.put(device, group_id);
+                    mGroupDescriptors.put(group_id, new LeAudioGroupDescriptor());
                     break;
-                case LeAudioStackEvent.GROUP_STATUS_STREAMING:
-                    BluetoothDevice streaming_device = getConnectedPeerDevices(group_id).get(0);
-                    setActiveDevice(streaming_device);
+                case LeAudioStackEvent.GROUP_NODE_REMOVED:
+                    mDeviceGroupIdMap.remove(device);
+                    mGroupDescriptors.remove(group_id);
                     break;
                 default:
                     break;
             }
 
+            intent = new Intent(BluetoothLeAudio.ACTION_LE_AUDIO_GROUP_NODE_STATUS_CHANGED);
+            intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
+            intent.putExtra(BluetoothLeAudio.EXTRA_LE_AUDIO_GROUP_ID, group_id);
+            intent.putExtra(BluetoothLeAudio.EXTRA_LE_AUDIO_GROUP_NODE_STATUS, node_status);
+        } else if (stackEvent.type == LeAudioStackEvent.EVENT_TYPE_AUDIO_CONF_CHANGED) {
+            int direction = stackEvent.valueInt1;
+            int group_id = stackEvent.valueInt2;
+            int snk_audio_location = stackEvent.valueInt3;
+            int src_audio_location = stackEvent.valueInt4;
+            int available_contexts = stackEvent.valueInt5;
+
+            LeAudioGroupDescriptor descriptor = mGroupDescriptors.get(group_id);
+            if (descriptor != null) {
+                if (descriptor.mIsActive) {
+                    updateActiveDevices(group_id, descriptor.mActiveContexts, available_contexts);
+                }
+                descriptor.mActiveContexts = available_contexts;
+            } else {
+                Log.e(TAG, "no descriptors for group: " + group_id);
+            }
+
+            intent = new Intent(BluetoothLeAudio.ACTION_LE_AUDIO_CONF_CHANGED);
+            intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
+            intent.putExtra(BluetoothLeAudio.EXTRA_LE_AUDIO_GROUP_ID, group_id);
+            intent.putExtra(BluetoothLeAudio.EXTRA_LE_AUDIO_DIRECTION, direction);
+            intent.putExtra(BluetoothLeAudio.EXTRA_LE_AUDIO_SINK_LOCATION, snk_audio_location);
+            intent.putExtra(BluetoothLeAudio.EXTRA_LE_AUDIO_SOURCE_LOCATION, src_audio_location);
+            intent.putExtra(BluetoothLeAudio.EXTRA_LE_AUDIO_AVAILABLE_CONTEXTS, available_contexts);
+        } else if (stackEvent.type == LeAudioStackEvent.EVENT_TYPE_GROUP_STATUS_CHANGED) {
+            int group_id = stackEvent.valueInt1;
+            int group_status = stackEvent.valueInt2;
+
+            switch (group_status) {
+                case LeAudioStackEvent.GROUP_STATUS_IDLE:
+                case LeAudioStackEvent.GROUP_STATUS_RECONFIGURED:
+                case LeAudioStackEvent.GROUP_STATUS_DESTROYED:
+                case LeAudioStackEvent.GROUP_STATUS_SUSPENDED:
+                case LeAudioStackEvent.GROUP_STATUS_STREAMING:
+                    break;
+                case LeAudioStackEvent.GROUP_STATUS_ACTIVE: {
+                    LeAudioGroupDescriptor descriptor = mGroupDescriptors.get(group_id);
+                    if (descriptor != null) {
+                        if (!descriptor.mIsActive) {
+                            updateActiveDevices(group_id, ACTIVE_CONTEXTS_NONE,
+                                    descriptor.mActiveContexts);
+                            descriptor.mIsActive = true;
+                        }
+                    } else {
+                        Log.e(TAG, "no descriptors for group: " + group_id);
+                    }
+                    break;
+                }
+                case LeAudioStackEvent.GROUP_STATUS_INACTIVE: {
+                    LeAudioGroupDescriptor descriptor = mGroupDescriptors.get(group_id);
+                    if (descriptor != null) {
+                        if (descriptor.mIsActive) {
+                            updateActiveDevices(group_id, descriptor.mActiveContexts,
+                                    ACTIVE_CONTEXTS_NONE);
+                            descriptor.mIsActive = false;
+                        }
+                    } else {
+                        Log.e(TAG, "no descriptors for group: " + group_id);
+                    }
+                    break;
+                }
+                default:
+                    break;
+            }
+
+            intent = new Intent(BluetoothLeAudio.ACTION_LE_AUDIO_GROUP_STATUS_CHANGED);
+            intent.putExtra(BluetoothLeAudio.EXTRA_LE_AUDIO_GROUP_ID, group_id);
+            intent.putExtra(BluetoothLeAudio.EXTRA_LE_AUDIO_GROUP_STATUS, group_status);
         }
     }
 
@@ -580,8 +854,16 @@ public class LeAudioService extends ProfileService {
                 // MetricsLogger.logProfileConnectionEvent(
                 //         BluetoothMetricsProto.ProfileId.LE_AUDIO);
             }
-            if (!mGroupIdConnectedMap.getOrDefault(myGroupId, false)) {
-                mGroupIdConnectedMap.put(myGroupId, true);
+
+            LeAudioGroupDescriptor descriptor = mGroupDescriptors.get(myGroupId);
+            if (descriptor != null) {
+                descriptor.mIsConnected = true;
+                /* HearingAid activates device after connection
+                 * A2dp makes active device via activedevicemanager - connection intent
+                 */
+                setActiveDevice(device);
+            } else {
+                Log.e(TAG, "no descriptors for group: " + myGroupId);
             }
 
             McpService mcpService = mServiceFactory.getMcpService();
@@ -592,7 +874,13 @@ public class LeAudioService extends ProfileService {
         if (fromState == BluetoothProfile.STATE_CONNECTED && getConnectedDevices().isEmpty()) {
             setActiveDevice(null);
             int myGroupId = getGroupId(device);
-            mGroupIdConnectedMap.put(myGroupId, false);
+
+            LeAudioGroupDescriptor descriptor = mGroupDescriptors.get(myGroupId);
+            if (descriptor != null) {
+                descriptor.mIsConnected = true;
+            } else {
+                Log.e(TAG, "no descriptors for group: " + myGroupId);
+            }
         }
         // Check if the device is disconnected - if unbond, remove the state machine
         if (toState == BluetoothProfile.STATE_DISCONNECTED) {
