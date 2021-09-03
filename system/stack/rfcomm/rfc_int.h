@@ -287,7 +287,8 @@ extern uint8_t rfc_calc_fcs(uint16_t len, uint8_t* p);
 
 #endif
 
-extern void rfc_mx_sm_execute(tRFC_MCB* p_mcb, uint16_t event, void* p_data);
+extern void rfc_mx_sm_execute(tRFC_MCB* p_mcb, tRFC_MX_EVENT event,
+                              void* p_data);
 
 /*
  * Functions provided by the rfc_port_fsm.cc
@@ -354,8 +355,8 @@ extern void rfc_send_fcoff(tRFC_MCB* p_mcb, bool is_command);
 extern void rfc_send_buf_uih(tRFC_MCB* p_rfc_mcb, uint8_t dlci, BT_HDR* p_buf);
 extern void rfc_send_credit(tRFC_MCB* p_mcb, uint8_t dlci, uint8_t credit);
 extern void rfc_process_mx_message(tRFC_MCB* p_rfc_mcb, BT_HDR* p_buf);
-extern uint8_t rfc_parse_data(tRFC_MCB* p_rfc_mcb, MX_FRAME* p_frame,
-                              BT_HDR* p_buf);
+extern tRFC_EVENT rfc_parse_data(tRFC_MCB* p_rfc_mcb, MX_FRAME* p_frame,
+                                 BT_HDR* p_buf);
 
 /* Call back functions from RFCOMM */
 extern void rfcomm_l2cap_if_init(void);
