@@ -24,12 +24,14 @@
 
 #include <string.h>
 
+#include <cstdint>
+
 #include "bt_target.h"
-
-#include "sdp_api.h"
-#include "sdpint.h"
-
-#include "osi/include/osi.h"
+#include "osi/include/osi.h"  // PTR_TO_UINT
+#include "stack/include/sdp_api.h"
+#include "stack/sdp/sdpint.h"
+#include "types/bluetooth/uuid.h"
+#include "types/raw_address.h"
 
 using bluetooth::Uuid;
 

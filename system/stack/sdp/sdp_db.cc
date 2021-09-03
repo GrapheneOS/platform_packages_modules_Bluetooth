@@ -22,15 +22,15 @@
  *
  ******************************************************************************/
 
-#include <stdio.h>
 #include <string.h>
 
+#include <cstdint>
+
 #include "bt_target.h"
-
-#include "bt_common.h"
-
-#include "sdp_api.h"
-#include "sdpint.h"
+#include "osi/include/allocator.h"
+#include "stack/include/sdp_api.h"
+#include "stack/include/sdpdefs.h"
+#include "stack/sdp/sdpint.h"
 
 /******************************************************************************/
 /*            L O C A L    F U N C T I O N     P R O T O T Y P E S            */
