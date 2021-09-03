@@ -506,7 +506,7 @@ void rfc_send_credit(tRFC_MCB* p_mcb, uint8_t dlci, uint8_t credit) {
  * Description      This function processes data packet received from L2CAP
  *
  ******************************************************************************/
-uint8_t rfc_parse_data(tRFC_MCB* p_mcb, MX_FRAME* p_frame, BT_HDR* p_buf) {
+tRFC_EVENT rfc_parse_data(tRFC_MCB* p_mcb, MX_FRAME* p_frame, BT_HDR* p_buf) {
   uint8_t ead, eal, fcs;
   uint8_t* p_data = (uint8_t*)(p_buf + 1) + p_buf->offset;
   uint8_t* p_start = p_data;
