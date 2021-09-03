@@ -37,6 +37,7 @@
 #include "stack/include/btm_api.h"
 #include "stack/include/btm_api_types.h"
 #include "stack/include/hci_error_code.h"
+#include "stack/include/hcidefs.h"
 #include "stack/include/hcimsgs.h"
 #include "types/class_of_device.h"
 #include "types/raw_address.h"
@@ -84,6 +85,8 @@ const bluetooth::legacy::hci::Interface& GetLegacyHciInterface() {
 /******************************************************************************/
 /*            L O C A L    F U N C T I O N     P R O T O T Y P E S            */
 /******************************************************************************/
+static tBTM_STATUS BTM_ChangeEScoLinkParms(uint16_t sco_inx,
+                                           tBTM_CHG_ESCO_PARAMS* p_parms);
 
 static uint16_t btm_sco_voice_settings_to_legacy(enh_esco_params_t* p_parms);
 
@@ -1070,12 +1073,8 @@ tBTM_STATUS BTM_RegForEScoEvts(uint16_t sco_inx,
  *                                 sco_inx.
  *
  ******************************************************************************/
-tBTM_STATUS BTM_ChangeEScoLinkParms(uint16_t sco_inx,
-                                    tBTM_CHG_ESCO_PARAMS* p_parms) {
-  if (BTM_MAX_SCO_LINKS == 0) {
-    return BTM_WRONG_MODE;
-  }
-
+static tBTM_STATUS BTM_ChangeEScoLinkParms(uint16_t sco_inx,
+                                           tBTM_CHG_ESCO_PARAMS* p_parms) {
   /* Make sure sco handle is valid and on an active link */
   if (sco_inx >= BTM_MAX_SCO_LINKS ||
       btm_cb.sco_cb.sco_db[sco_inx].state != SCO_ST_CONNECTED)
