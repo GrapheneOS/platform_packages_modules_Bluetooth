@@ -127,15 +127,28 @@ public class LeAudioNativeInterface {
         sendMessageToService(event);
     }
 
+    private void onGroupNodeStatus(byte[] address, int groupId, int nodeStatus) {
+        LeAudioStackEvent event =
+                new LeAudioStackEvent(LeAudioStackEvent.EVENT_TYPE_GROUP_NODE_STATUS_CHANGED);
+        event.valueInt1 = groupId;
+        event.valueInt2 = nodeStatus;
+        event.device = getDevice(address);
+
+        if (DBG) {
+            Log.d(TAG, "onGroupNodeStatus: " + event);
+        }
+        sendMessageToService(event);
+    }
+
     private void onAudioConf(int direction, int groupId, int sinkAudioLocation,
-                             int sourceAudioLocation, byte[] address) {
+                             int sourceAudioLocation, int availableContexts) {
         LeAudioStackEvent event =
                 new LeAudioStackEvent(LeAudioStackEvent.EVENT_TYPE_AUDIO_CONF_CHANGED);
         event.valueInt1 = direction;
         event.valueInt2 = groupId;
         event.valueInt3 = sinkAudioLocation;
         event.valueInt4 = sourceAudioLocation;
-        event.device = getDevice(address);
+        event.valueInt5 = availableContexts;
 
         if (DBG) {
             Log.d(TAG, "onAudioConf: " + event);
