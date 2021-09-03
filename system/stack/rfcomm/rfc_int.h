@@ -216,12 +216,12 @@ typedef uint8_t tRFC_MX_EVENT;
  * Port events
 */
 typedef uint8_t tRFC_PORT_EVENT;
-#define RFC_EVENT_OPEN 9
-#define RFC_EVENT_ESTABLISH_RSP 11
-#define RFC_EVENT_CLOSE 12
-#define RFC_EVENT_CLEAR 13
-#define RFC_EVENT_DATA 14
-#define RFC_EVENT_SEC_COMPLETE 15
+#define RFC_PORT_EVENT_OPEN 9
+#define RFC_PORT_EVENT_ESTABLISH_RSP 11
+#define RFC_PORT_EVENT_CLOSE 12
+#define RFC_PORT_EVENT_CLEAR 13
+#define RFC_PORT_EVENT_DATA 14
+#define RFC_PORT_EVENT_SEC_COMPLETE 15
 
 /* seconds to wait for reply with Poll bit */
 #define RFC_T1_TIMEOUT 20
