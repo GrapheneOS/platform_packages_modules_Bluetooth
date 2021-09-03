@@ -98,6 +98,7 @@ struct HciLayer::impl {
 
   ~impl() {
     incoming_acl_buffer_.Clear();
+    incoming_sco_buffer_.Clear();
     incoming_iso_buffer_.Clear();
     if (hci_timeout_alarm_ != nullptr) {
       delete hci_timeout_alarm_;
@@ -118,6 +119,14 @@ struct HciLayer::impl {
     BitInserter bi(bytes);
     packet->Serialize(bi);
     hal_->sendAclData(bytes);
+  }
+
+  void on_outbound_sco_ready() {
+    auto packet = sco_queue_.GetDownEnd()->TryDequeue();
+    std::vector<uint8_t> bytes;
+    BitInserter bi(bytes);
+    packet->Serialize(bi);
+    hal_->sendScoData(bytes);
   }
 
   void on_outbound_iso_ready() {
@@ -349,6 +358,10 @@ struct HciLayer::impl {
   BidiQueue<AclView, AclBuilder> acl_queue_{3 /* TODO: Set queue depth */};
   os::EnqueueBuffer<AclView> incoming_acl_buffer_{acl_queue_.GetDownEnd()};
 
+  // SCO packets
+  BidiQueue<ScoView, ScoBuilder> sco_queue_{3 /* TODO: Set queue depth */};
+  os::EnqueueBuffer<ScoView> incoming_sco_buffer_{sco_queue_.GetDownEnd()};
+
   // ISO packets
   BidiQueue<IsoView, IsoBuilder> iso_queue_{3 /* TODO: Set queue depth */};
   os::EnqueueBuffer<IsoView> incoming_iso_buffer_{iso_queue_.GetDownEnd()};
@@ -371,7 +384,9 @@ struct HciLayer::hal_callbacks : public hal::HciHalCallbacks {
   }
 
   void scoDataReceived(hal::HciPacket data_bytes) override {
-    // Not implemented yet
+    auto packet = packet::PacketView<packet::kLittleEndian>(std::make_shared<std::vector<uint8_t>>(move(data_bytes)));
+    auto sco = std::make_unique<ScoView>(ScoView::Create(packet));
+    module_.impl_->incoming_sco_buffer_.Enqueue(move(sco), module_.GetHandler());
   }
 
   void isoDataReceived(hal::HciPacket data_bytes) override {
@@ -390,6 +405,10 @@ HciLayer::~HciLayer() {
 
 common::BidiQueueEnd<AclBuilder, AclView>* HciLayer::GetAclQueueEnd() {
   return impl_->acl_queue_.GetUpEnd();
+}
+
+common::BidiQueueEnd<ScoBuilder, ScoView>* HciLayer::GetScoQueueEnd() {
+  return impl_->sco_queue_.GetUpEnd();
 }
 
 common::BidiQueueEnd<IsoBuilder, IsoView>* HciLayer::GetIsoQueueEnd() {
@@ -539,6 +558,7 @@ void HciLayer::Start() {
 
   Handler* handler = GetHandler();
   impl_->acl_queue_.GetDownEnd()->RegisterDequeue(handler, BindOn(impl_, &impl::on_outbound_acl_ready));
+  impl_->sco_queue_.GetDownEnd()->RegisterDequeue(handler, BindOn(impl_, &impl::on_outbound_sco_ready));
   impl_->iso_queue_.GetDownEnd()->RegisterDequeue(handler, BindOn(impl_, &impl::on_outbound_iso_ready));
   RegisterEventHandler(EventCode::COMMAND_COMPLETE, handler->BindOn(impl_, &impl::on_command_complete));
   RegisterEventHandler(EventCode::COMMAND_STATUS, handler->BindOn(impl_, &impl::on_command_status));
@@ -564,6 +584,7 @@ void HciLayer::Stop() {
   delete hal_callbacks_;
 
   impl_->acl_queue_.GetDownEnd()->UnregisterDequeue();
+  impl_->sco_queue_.GetDownEnd()->UnregisterDequeue();
   impl_->iso_queue_.GetDownEnd()->UnregisterDequeue();
   delete impl_;
 }
