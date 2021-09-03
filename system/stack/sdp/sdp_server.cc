@@ -23,16 +23,16 @@
  *
  ******************************************************************************/
 
-#include <string.h>
+#include <string.h>  // memcpy
 
-#include "bt_common.h"
+#include <log/log.h>
+#include <cstdint>
 
-#include "avrc_defs.h"
 #include "device/include/interop.h"
-#include "osi/include/log.h"
-#include "osi/include/osi.h"
-#include "sdp_api.h"
-#include "sdpint.h"
+#include "osi/include/allocator.h"
+#include "stack/include/avrc_defs.h"
+#include "stack/include/sdp_api.h"
+#include "stack/sdp/sdpint.h"
 
 /* Maximum number of bytes to reserve out of SDP MTU for response data */
 #define SDP_MAX_SERVICE_RSPHDR_LEN 12
