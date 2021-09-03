@@ -85,6 +85,11 @@ class Device {
   virtual void SendLinkLayerPacket(model::packets::LinkLayerPacketView packet,
                                    Phy::Type phy_type);
 
+
+  virtual void Close();
+
+  void RegisterCloseCallback(std::function<void()>);
+
  protected:
   std::vector<std::shared_ptr<PhyLayer>> phy_layers_;
 
@@ -98,6 +103,9 @@ class Device {
   std::chrono::milliseconds advertising_interval_ms_{};
 
   DeviceProperties properties_;
+
+  // Callback to be invoked when this device is closed.
+  std::function<void()> close_callback_;
 };
 
 }  // namespace test_vendor_lib
