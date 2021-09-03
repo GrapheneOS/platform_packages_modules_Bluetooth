@@ -253,7 +253,7 @@ void RFCOMM_BufDataInd(uint16_t lcid, BT_HDR* p_buf) {
     return;
   }
 
-  uint8_t event = rfc_parse_data(p_mcb, &rfc_cb.rfc.rx_frame, p_buf);
+  tRFC_EVENT event = rfc_parse_data(p_mcb, &rfc_cb.rfc.rx_frame, p_buf);
 
   /* If the frame did not pass validation just ignore it */
   if (event == RFC_EVENT_BAD_FRAME) {
@@ -273,7 +273,7 @@ void RFCOMM_BufDataInd(uint16_t lcid, BT_HDR* p_buf) {
     }
 
     /* Other multiplexer events go to state machine */
-    rfc_mx_sm_execute(p_mcb, event, nullptr);
+    rfc_mx_sm_execute(p_mcb, static_cast<tRFC_MX_EVENT>(event), nullptr);
     osi_free(p_buf);
     return;
   }
