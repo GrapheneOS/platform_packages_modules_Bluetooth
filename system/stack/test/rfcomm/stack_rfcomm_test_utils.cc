@@ -20,10 +20,9 @@
 #include <string>
 #include <vector>
 
-#include "rfc_int.h"
-#include "stack_test_packet_utils.h"
-
+#include "stack/rfcomm/rfc_int.h"
 #include "stack_rfcomm_test_utils.h"
+#include "stack_test_packet_utils.h"
 
 namespace bluetooth {
 namespace rfcomm {
