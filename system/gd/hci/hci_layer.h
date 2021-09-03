@@ -56,6 +56,8 @@ class HciLayer : public Module, public CommandInterface<CommandBuilder> {
 
   virtual common::BidiQueueEnd<AclBuilder, AclView>* GetAclQueueEnd();
 
+  virtual common::BidiQueueEnd<ScoBuilder, ScoView>* GetScoQueueEnd();
+
   virtual common::BidiQueueEnd<IsoBuilder, IsoView>* GetIsoQueueEnd();
 
   virtual void RegisterEventHandler(EventCode event_code, common::ContextualCallback<void(EventView)> event_handler);
