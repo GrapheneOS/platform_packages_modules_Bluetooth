@@ -32,6 +32,7 @@
 #include "stack/include/btm_status.h"
 #include "stack/include/l2c_api.h"
 #include "stack/rfcomm/port_int.h"
+#include "stack/rfcomm/rfc_event.h"
 
 /*
  * Define RFCOMM result codes
@@ -186,42 +187,6 @@ inline std::string rfcomm_mx_state_text(tRFC_MX_STATE state) {
 #define RFC_STATE_TERM_WAIT_SEC_CHECK 3
 #define RFC_STATE_OPENED 4
 #define RFC_STATE_DISC_WAIT_UA 5
-
-/*
- * Events that can be received by multiplexer as well as port state machines
-*/
-typedef uint8_t tRFC_EVENT;
-#define RFC_EVENT_SABME 0
-#define RFC_EVENT_UA 1
-#define RFC_EVENT_DM 2
-#define RFC_EVENT_DISC 3
-#define RFC_EVENT_UIH 4
-#define RFC_EVENT_TIMEOUT 5
-#define RFC_EVENT_BAD_FRAME 50
-/*
- * Multiplexer events
-*/
-typedef uint8_t tRFC_MX_EVENT;
-#define RFC_MX_EVENT_START_REQ 6
-#define RFC_MX_EVENT_START_RSP 7
-#define RFC_MX_EVENT_CLOSE_REQ 8
-#define RFC_MX_EVENT_CONN_CNF 9
-#define RFC_MX_EVENT_CONN_IND 10
-#define RFC_MX_EVENT_CONF_CNF 11
-#define RFC_MX_EVENT_CONF_IND 12
-#define RFC_MX_EVENT_QOS_VIOLATION_IND 13
-#define RFC_MX_EVENT_DISC_IND 14
-
-/*
- * Port events
-*/
-typedef uint8_t tRFC_PORT_EVENT;
-#define RFC_PORT_EVENT_OPEN 9
-#define RFC_PORT_EVENT_ESTABLISH_RSP 11
-#define RFC_PORT_EVENT_CLOSE 12
-#define RFC_PORT_EVENT_CLEAR 13
-#define RFC_PORT_EVENT_DATA 14
-#define RFC_PORT_EVENT_SEC_COMPLETE 15
 
 /* seconds to wait for reply with Poll bit */
 #define RFC_T1_TIMEOUT 20
