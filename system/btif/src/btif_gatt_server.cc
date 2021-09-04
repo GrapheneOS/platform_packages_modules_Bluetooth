@@ -46,6 +46,7 @@
 #include "btif_gatt.h"
 #include "btif_gatt_util.h"
 #include "btif_storage.h"
+#include "osi/include/allocator.h"
 #include "osi/include/log.h"
 #include "stack/include/btu.h"
 #include "types/bt_transport.h"

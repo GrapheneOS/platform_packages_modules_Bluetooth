@@ -36,6 +36,7 @@
 #include "bta/include/bta_hh_co.h"
 #include "bta/sys/bta_sys.h"
 #include "main/shim/dumpsys.h"
+#include "osi/include/allocator.h"
 #include "osi/include/log.h"
 #include "osi/include/osi.h"  // UNUSED_ATTR
 #include "stack/include/hiddefs.h"

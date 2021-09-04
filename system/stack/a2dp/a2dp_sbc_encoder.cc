@@ -30,6 +30,7 @@
 #include "bt_common.h"
 #include "common/time_util.h"
 #include "embdrv/sbc/encoder/include/sbc_encoder.h"
+#include "osi/include/allocator.h"
 #include "osi/include/log.h"
 #include "osi/include/osi.h"
 

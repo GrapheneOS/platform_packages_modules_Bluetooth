@@ -34,6 +34,7 @@
 
 #include "bta/gatt/bta_gattc_int.h"
 #include "bta/gatt/database.h"
+#include "osi/include/allocator.h"
 #include "osi/include/log.h"
 #include "stack/btm/btm_sec.h"
 #include "stack/include/gatt_api.h"
