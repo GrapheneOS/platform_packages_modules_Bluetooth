@@ -388,6 +388,7 @@ class GdAndroidDevice(GdDeviceBase):
                           "syncing them by setting timezone to %s" % (device_tz, host_tz, target_timezone))
             self.adb.shell("setprop persist.sys.timezone %s" % target_timezone)
             self.reboot()
+            self.adb.remount()
             device_tz = self.adb.shell("date +%z")
             asserts.assert_equal(
                 host_tz, device_tz, "Device timezone %s still does not match host "
@@ -441,6 +442,7 @@ class GdAndroidDevice(GdDeviceBase):
                     "[%s] Failed to TCP forward host port %d to "
                     "device port %d, num_retries left is %d" % (self.label, host_port, device_port, num_retry))
                 self.reboot()
+                self.adb.remount()
                 return self.tcp_forward_or_die(host_port, device_port, num_retry=num_retry)
             asserts.fail(
                 'Unable to forward host port %d to device port %d, error %s' % (host_port, device_port, error_or_port))
@@ -468,6 +470,7 @@ class GdAndroidDevice(GdDeviceBase):
                     "[%s] Failed to TCP reverse device port %d to "
                     "host port %d, num_retries left is %d" % (self.label, device_port, host_port, num_retry))
                 self.reboot()
+                self.adb.remount()
                 return self.tcp_reverse_or_die(device_port, host_port, num_retry=num_retry)
             asserts.fail(
                 'Unable to reverse device port %d to host port %d, error %s' % (device_port, host_port, error_or_port))
