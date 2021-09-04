@@ -31,7 +31,6 @@ extern std::map<std::string, int> mock_function_count_map;
 #include <map>
 #include <memory>
 #include <set>
-#include "internal_include/bt_trace.h"
 #include "main/shim/shim.h"
 #include "osi/include/alarm.h"
 #include "osi/include/log.h"
