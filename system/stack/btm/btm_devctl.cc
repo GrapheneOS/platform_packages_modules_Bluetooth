@@ -42,6 +42,7 @@
 #include "main/shim/controller.h"
 #include "main/shim/hci_layer.h"
 #include "main/shim/shim.h"
+#include "osi/include/compat.h"
 #include "osi/include/osi.h"
 #include "stack/btm/btm_ble_int.h"
 #include "stack/gatt/connection_manager.h"

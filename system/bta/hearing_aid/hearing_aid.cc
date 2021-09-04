@@ -31,6 +31,7 @@
 #include "bta/include/bta_hearing_aid_api.h"
 #include "device/include/controller.h"
 #include "embdrv/g722/g722_enc_dec.h"
+#include "osi/include/compat.h"
 #include "osi/include/log.h"
 #include "osi/include/properties.h"
 #include "stack/btm/btm_sec.h"
