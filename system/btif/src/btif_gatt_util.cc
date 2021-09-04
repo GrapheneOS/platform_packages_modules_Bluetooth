@@ -38,6 +38,7 @@
 #include "btif_gatt.h"
 #include "btif_storage.h"
 #include "btif_util.h"
+#include "osi/include/allocator.h"
 #include "osi/include/osi.h"
 #include "stack/btm/btm_sec.h"
 #include "types/bt_transport.h"

@@ -34,6 +34,7 @@
 #include "l2c_int.h"
 #include "l2cdefs.h"
 #include "main/shim/shim.h"
+#include "osi/include/allocator.h"
 #include "osi/include/log.h"
 #include "osi/include/osi.h"
 

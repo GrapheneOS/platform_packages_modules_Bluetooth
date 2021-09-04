@@ -32,6 +32,7 @@
 #include "bt_target.h"  // Must be first to define build configuration
 
 #include "bta/jv/bta_jv_int.h"
+#include "osi/include/allocator.h"
 #include "stack/include/btu.h"  // do_in_main_thread
 #include "stack/include/gap_api.h"
 #include "types/bluetooth/uuid.h"

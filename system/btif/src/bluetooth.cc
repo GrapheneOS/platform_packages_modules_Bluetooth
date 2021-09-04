@@ -75,6 +75,7 @@
 #include "main/shim/shim.h"
 #include "osi/include/alarm.h"
 #include "osi/include/allocation_tracker.h"
+#include "osi/include/allocator.h"
 #include "osi/include/log.h"
 #include "osi/include/osi.h"
 #include "osi/include/wakelock.h"
