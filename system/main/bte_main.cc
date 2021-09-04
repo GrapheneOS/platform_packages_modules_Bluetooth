@@ -37,6 +37,7 @@
 #include "device/include/interop.h"
 #include "hci_layer.h"
 #include "main/shim/hci_layer.h"
+#include "osi/include/allocator.h"
 #include "osi/include/log.h"
 #include "osi/include/osi.h"
 #include "shim/hci_layer.h"

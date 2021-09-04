@@ -27,6 +27,7 @@
 #include "a2dp_vendor_aptx_hd.h"
 #include "bt_common.h"
 #include "common/time_util.h"
+#include "osi/include/allocator.h"
 #include "osi/include/log.h"
 #include "osi/include/osi.h"
 

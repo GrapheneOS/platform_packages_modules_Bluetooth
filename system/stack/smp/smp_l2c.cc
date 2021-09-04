@@ -31,6 +31,7 @@
 #include "common/metrics.h"
 #include "l2c_api.h"
 #include "main/shim/dumpsys.h"
+#include "osi/include/allocator.h"
 #include "osi/include/log.h"
 #include "osi/include/osi.h"  // UNUSED_ATTR
 #include "smp_int.h"

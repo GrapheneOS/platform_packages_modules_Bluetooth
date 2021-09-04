@@ -26,6 +26,7 @@
 
 #include "gatt_int.h"
 #include "l2c_api.h"
+#include "osi/include/allocator.h"
 #include "osi/include/log.h"
 
 #define GATT_HDR_FIND_TYPE_VALUE_LEN 21

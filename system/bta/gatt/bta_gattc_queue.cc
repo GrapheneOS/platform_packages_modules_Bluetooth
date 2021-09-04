@@ -20,6 +20,8 @@
 #include <unordered_map>
 #include <unordered_set>
 
+#include "osi/include/allocator.h"
+
 using gatt_operation = BtaGattQueue::gatt_operation;
 
 constexpr uint8_t GATT_READ_CHAR = 1;
