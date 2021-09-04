@@ -39,7 +39,6 @@ extern std::map<std::string, int> mock_function_count_map;
 #include <cstring>
 
 #include "bt_target.h"
-#include "bt_trace.h"
 #include "bta/hh/bta_hh_int.h"
 #include "btif/include/btif_storage.h"
 #include "device/include/interop.h"
