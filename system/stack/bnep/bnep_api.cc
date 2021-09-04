@@ -26,6 +26,7 @@
 #include <string.h>
 #include "bnep_int.h"
 #include "bta/include/bta_api.h"
+#include "osi/include/allocator.h"
 #include "stack/btm/btm_sec.h"
 
 using bluetooth::Uuid;

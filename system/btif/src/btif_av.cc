@@ -45,6 +45,7 @@
 #include "hardware/bt_av.h"
 #include "include/hardware/bt_rc.h"
 #include "main/shim/dumpsys.h"
+#include "osi/include/allocator.h"
 #include "osi/include/properties.h"
 #include "stack/include/btm_api.h"
 #include "stack/include/btu.h"  // do_in_main_thread

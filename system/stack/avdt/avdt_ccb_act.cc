@@ -32,6 +32,7 @@
 #include "bt_utils.h"
 #include "btm_api.h"
 #include "btu.h"
+#include "osi/include/allocator.h"
 #include "osi/include/osi.h"
 #include "stack/btm/btm_sec.h"
 

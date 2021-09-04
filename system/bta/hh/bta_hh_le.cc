@@ -29,6 +29,7 @@
 #include "device/include/interop.h"
 #include "main/shim/dumpsys.h"
 #include "main/shim/shim.h"
+#include "osi/include/allocator.h"
 #include "osi/include/log.h"
 #include "osi/include/osi.h"         // ARRAY_SIZE
 #include "stack/btm/btm_sec.h"       // BTM_
