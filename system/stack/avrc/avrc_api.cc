@@ -28,6 +28,7 @@
 #include "avrc_int.h"
 #include "bt_common.h"
 #include "btu.h"
+#include "osi/include/allocator.h"
 #include "osi/include/fixed_queue.h"
 #include "osi/include/log.h"
 #include "osi/include/osi.h"

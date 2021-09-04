@@ -37,6 +37,7 @@
 #include "bt_target.h"
 #include "device/include/esco_parameters.h"
 #include "hcidefs.h"
+#include "osi/include/allocator.h"
 
 #include <base/callback_forward.h>
 

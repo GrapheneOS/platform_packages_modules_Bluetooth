@@ -30,6 +30,7 @@
 #include "bt_utils.h"
 #include "bta/include/bta_api.h"
 #include "btm_api.h"
+#include "osi/include/allocator.h"
 #include "osi/include/log.h"
 #include "osi/include/osi.h"
 #include "stack/btm/btm_sec.h"

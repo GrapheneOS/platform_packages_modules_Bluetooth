@@ -29,6 +29,7 @@
 #include "btif/include/btif_common.h"
 #include "btm_iso_api.h"
 #include "common/message_loop_thread.h"
+#include "osi/include/allocator.h"
 #include "osi/include/log.h"
 #include "osi/include/osi.h"
 #include "stack/include/acl_hci_link_interface.h"
