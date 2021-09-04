@@ -30,6 +30,7 @@
 #if (BTA_HH_INCLUDED == TRUE)
 
 #include "bta/hh/bta_hh_int.h"
+#include "osi/include/allocator.h"
 
 /*****************************************************************************
  * Global data
