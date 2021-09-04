@@ -34,6 +34,7 @@
 #include "btif_hh.h"
 #include "btif_util.h"
 #include "osi/include/allocator.h"
+#include "osi/include/compat.h"
 #include "osi/include/osi.h"
 
 const char* dev_path = "/dev/uhid";
