@@ -23,7 +23,6 @@
 #include <fuzzer/FuzzedDataProvider.h>
 #include <vector>
 #include "bt_target.h"
-#include "bt_trace.h"
 #include "fuzzers/sdp/sdpFuzzHelpers.h"
 #include "osi/include/allocator.h"
 #include "stack/a2dp/a2dp_int.h"
