@@ -29,6 +29,7 @@
 
 #include "bta/dm/bta_dm_int.h"
 #include "osi/include/allocator.h"
+#include "osi/include/compat.h"
 #include "stack/btm/btm_sec.h"
 #include "stack/include/btm_api.h"
 #include "stack/include/btu.h"  // do_in_main_thread
