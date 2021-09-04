@@ -24,8 +24,6 @@
 
 #include <string>
 
-#include "bt_trace.h"
-
 // Override LogMsg method so that we can output log via VLOG(1)
 extern "C" void LogMsg(uint32_t trace_set_mask, const char* fmt_str, ...) {
   char buffer[256];
