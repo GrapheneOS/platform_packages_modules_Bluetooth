@@ -23,10 +23,10 @@
 #include <stdint.h>
 
 #include "device/include/controller.h"
+#include "hci/include/packet_fragmenter.h"
 #include "hci_internals.h"
 #include "osi/include/allocator.h"
 #include "osi/include/osi.h"
-#include "packet_fragmenter.h"
 #include "test_stubs.h"
 
 #ifndef HCI_ACL_PREAMBLE_SIZE
