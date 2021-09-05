@@ -25,8 +25,8 @@
 #include <string.h>
 
 #include "bt_types.h"
-#include "buffer_allocator.h"
 #include "check.h"
+#include "hci/include/buffer_allocator.h"
 #include "hci_layer.h"
 #include "osi/include/allocator.h"
 #include "osi/include/list.h"

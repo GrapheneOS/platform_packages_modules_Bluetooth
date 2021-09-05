@@ -41,7 +41,6 @@
 #include "hci/include/hci_layer.h"
 #include "hci/include/hci_packet_factory.h"
 #include "hci/include/hci_packet_parser.h"
-#include "hci/include/packet_fragmenter.h"
 #include "include/hardware/bt_activity_attribution.h"
 #include "main/shim/acl.h"
 #include "main/shim/acl_legacy_interface.h"

@@ -29,6 +29,8 @@
 #include "common/time_util.h"
 #include "device/include/controller.h"
 #include "osi/include/log.h"
+#include "stack/include/hci_error_code.h"
+#include "stack/include/hcidefs.h"
 
 namespace bluetooth {
 namespace hci {

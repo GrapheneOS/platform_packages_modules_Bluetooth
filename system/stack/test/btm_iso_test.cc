@@ -23,6 +23,8 @@
 #include "main/shim/shim.h"
 #include "mock_controller.h"
 #include "mock_hcic_layer.h"
+#include "stack/include/hci_error_code.h"
+#include "stack/include/hcidefs.h"
 
 using bluetooth::hci::IsoManager;
 using testing::_;

@@ -23,7 +23,6 @@
 #include "btif/include/btif_hh.h"
 #include "hci/include/hci_layer.h"
 #include "hci/include/hci_packet_factory.h"
-#include "hci/include/packet_fragmenter.h"
 #include "internal_include/stack_config.h"
 #include "osi/include/osi.h"
 #include "stack/btm/btm_int_types.h"
