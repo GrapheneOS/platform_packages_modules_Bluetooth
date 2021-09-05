@@ -34,7 +34,6 @@ extern std::map<std::string, int> mock_function_count_map;
 #include "btu.h"
 #include "common/time_util.h"
 #include "device/include/controller.h"
-#include "hcidefs.h"
 #include "main/shim/btm_api.h"
 #include "main/shim/shim.h"
 #include "osi/include/log.h"

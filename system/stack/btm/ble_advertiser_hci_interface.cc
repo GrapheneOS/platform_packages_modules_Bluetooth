@@ -21,7 +21,6 @@
 #include "btm_ble_api.h"
 #include "btm_int_types.h"
 #include "device/include/controller.h"
-#include "hcidefs.h"
 
 #include "osi/include/log.h"
 

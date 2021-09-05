@@ -31,7 +31,6 @@
 #include "btm_api.h"
 #include "btu.h"
 #include "device/include/controller.h"
-#include "hcidefs.h"
 #include "hcimsgs.h"
 #include "l2c_api.h"
 #include "main/shim/btm_api.h"
