@@ -22,7 +22,6 @@
 #include "acl_api.h"
 #include "btm_api.h"
 #include "device/include/controller.h"
-#include "hcidefs.h"
 #include "hcimsgs.h"
 
 #include "osi/include/log.h"

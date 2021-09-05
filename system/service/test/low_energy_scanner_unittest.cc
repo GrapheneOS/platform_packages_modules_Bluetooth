@@ -23,7 +23,6 @@
 #include "service/hal/fake_bluetooth_gatt_interface.h"
 #include "service/low_energy_scanner.h"
 #include "stack/include/bt_types.h"
-#include "stack/include/hcidefs.h"
 #include "test/mock_adapter.h"
 
 using ::testing::_;

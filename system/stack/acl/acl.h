@@ -25,7 +25,6 @@
 #include "stack/include/acl_api_types.h"
 #include "stack/include/bt_types.h"
 #include "stack/include/btm_api_types.h"
-#include "stack/include/hcidefs.h"
 #include "stack/include/hcimsgs.h"
 #include "types/bt_transport.h"
 #include "types/hci_role.h"
