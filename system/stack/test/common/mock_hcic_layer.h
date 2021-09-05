@@ -22,7 +22,6 @@
 #include <array>
 
 #include "btm_iso_api_types.h"
-#include "hcimsgs.h"
 
 namespace hcic {
 class HcicInterface {

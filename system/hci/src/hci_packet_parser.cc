@@ -25,7 +25,6 @@
 #include "check.h"
 #include "hci/include/buffer_allocator.h"
 #include "hci_layer.h"
-#include "hcimsgs.h"
 #include "osi/include/log.h"
 #include "stack/include/hcidefs.h"
 

@@ -37,8 +37,6 @@
 #include "stack/include/btm_api.h"
 #include "stack/include/btm_api_types.h"
 #include "stack/include/hci_error_code.h"
-#include "stack/include/hcidefs.h"
-#include "stack/include/hcimsgs.h"
 #include "types/class_of_device.h"
 #include "types/raw_address.h"
 
