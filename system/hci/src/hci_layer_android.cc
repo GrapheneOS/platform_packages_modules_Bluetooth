@@ -35,9 +35,9 @@
 #include <base/location.h>
 #include <base/logging.h>
 
-#include "buffer_allocator.h"
 #include "check.h"
 #include "common/stop_watch_legacy.h"
+#include "hci/include/buffer_allocator.h"
 #include "osi/include/log.h"
 
 #define LOG_PATH "/data/misc/bluetooth/logs/firmware_events.log"
