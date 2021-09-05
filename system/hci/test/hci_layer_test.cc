@@ -26,7 +26,6 @@
 #include "osi/test/AllocationTestHarness.h"
 #include "osi/test/test_stubs.h"
 #include "stack/include/bt_types.h"
-#include "stack/include/hcidefs.h"
 
 extern void allocation_tracker_uninit(void);
 

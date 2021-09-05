@@ -19,7 +19,6 @@
 #include "service/adapter.h"
 #include "service/logging_helpers.h"
 #include "stack/include/bt_types.h"
-#include "stack/include/hcidefs.h"
 
 #include <base/bind.h>
 #include <base/callback.h>

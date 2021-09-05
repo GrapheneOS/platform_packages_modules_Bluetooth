@@ -40,7 +40,6 @@ extern std::map<std::string, int> mock_function_count_map;
 #include "stack/include/dev_hci_link_interface.h"
 #include "stack/include/gatt_api.h"
 #include "stack/include/hci_evt_length.h"
-#include "stack/include/hcidefs.h"
 #include "stack/include/inq_hci_link_interface.h"
 #include "stack/include/l2cap_hci_link_interface.h"
 #include "stack/include/sco_hci_link_interface.h"

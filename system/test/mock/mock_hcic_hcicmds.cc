@@ -31,7 +31,6 @@ extern std::map<std::string, int> mock_function_count_map;
 #include "bt_common.h"
 #include "bt_target.h"
 #include "btu.h"
-#include "hcidefs.h"
 #include "hcimsgs.h"
 #include "stack/include/acl_hci_link_interface.h"
 
