@@ -103,6 +103,10 @@ void rfc_mx_sm_execute(tRFC_MCB* p_mcb, tRFC_MX_EVENT event, void* p_data) {
     case RFC_MX_STATE_DISC_WAIT_UA:
       rfc_mx_sm_state_disc_wait_ua(p_mcb, event, p_data);
       break;
+
+    default:
+      LOG_ERROR("Received unexpected event:%hu in state:%hhu", event,
+                p_mcb->state);
   }
 }
 
@@ -251,6 +255,9 @@ void rfc_mx_sm_state_wait_conn_cnf(tRFC_MCB* p_mcb, uint16_t event,
         PORT_CloseInd(p_mcb);
       }
       return;
+    default:
+      LOG_ERROR("Received unexpected event:%hu in state:%hhu", event,
+                p_mcb->state);
   }
   RFCOMM_TRACE_EVENT("RFCOMM MX ignored - evt:%d in state:%d", event,
                      p_mcb->state);
@@ -296,6 +303,9 @@ void rfc_mx_sm_state_configure(tRFC_MCB* p_mcb, uint16_t event, void* p_data) {
 
       PORT_StartCnf(p_mcb, RFCOMM_ERROR);
       return;
+    default:
+      LOG_ERROR("Received unexpected event:%hu in state:%hhu", event,
+                p_mcb->state);
   }
   RFCOMM_TRACE_EVENT("RFCOMM MX ignored - evt:%d in state:%d", event,
                      p_mcb->state);
@@ -357,6 +367,9 @@ void rfc_mx_sm_sabme_wait_ua(tRFC_MCB* p_mcb, uint16_t event,
 
       PORT_StartCnf(p_mcb, RFCOMM_ERROR);
       return;
+    default:
+      LOG_ERROR("Received unexpected event:%hu in state:%hhu", event,
+                p_mcb->state);
   }
   RFCOMM_TRACE_EVENT("RFCOMM MX ignored - evt:%d in state:%d", event,
                      p_mcb->state);
@@ -419,6 +432,9 @@ void rfc_mx_sm_state_wait_sabme(tRFC_MCB* p_mcb, uint16_t event, void* p_data) {
 
       PORT_CloseInd(p_mcb);
       return;
+
+    default:
+      LOG_WARN("RFCOMM MX ignored - evt:%d in state:%d", event, p_mcb->state);
   }
   RFCOMM_TRACE_EVENT("RFCOMM MX ignored - evt:%d in state:%d", event,
                      p_mcb->state);
@@ -461,6 +477,9 @@ void rfc_mx_sm_state_connected(tRFC_MCB* p_mcb, uint16_t event,
       /* notify all ports that connection is gone */
       PORT_CloseInd(p_mcb);
       return;
+    default:
+      LOG_ERROR("Received unexpected event:%hu in state:%hhu", event,
+                p_mcb->state);
   }
   RFCOMM_TRACE_EVENT("RFCOMM MX ignored - evt:%d in state:%d", event,
                      p_mcb->state);
@@ -538,6 +557,9 @@ void rfc_mx_sm_state_disc_wait_ua(tRFC_MCB* p_mcb, uint16_t event,
 
     case RFC_MX_EVENT_QOS_VIOLATION_IND:
       break;
+    default:
+      LOG_ERROR("Received unexpected event:%hu in state:%hhu", event,
+                p_mcb->state);
   }
   RFCOMM_TRACE_EVENT("RFCOMM MX ignored - evt:%d in state:%d", event,
                      p_mcb->state);

@@ -30,6 +30,7 @@
 #include "bt_target.h"
 #include "hci/include/btsnoop.h"
 #include "osi/include/allocator.h"
+#include "osi/include/log.h"
 #include "osi/include/osi.h"  // UNUSED_ATTR
 #include "stack/btm/btm_sec.h"
 #include "stack/include/sdpdefs.h"
@@ -179,6 +180,9 @@ void rfc_port_sm_state_closed(tPORT* p_port, uint16_t event, void* p_data) {
       RFCOMM_TRACE_ERROR("Port error state %d event %d", p_port->rfc.state,
                          event);
       return;
+    default:
+      LOG_ERROR("Received unexpected event:%hu in state:%hhu", event,
+                p_port->rfc.state);
   }
 
   RFCOMM_TRACE_WARNING("Port state closed Event ignored %d", event);
@@ -266,6 +270,9 @@ void rfc_port_sm_sabme_wait_ua(tPORT* p_port, uint16_t event, void* p_data) {
       PORT_DlcEstablishCnf(p_port->rfc.p_mcb, p_port->dlci,
                            p_port->rfc.p_mcb->peer_l2cap_mtu, RFCOMM_ERROR);
       return;
+    default:
+      LOG_ERROR("Received unexpected event:%hu in state:%hhu", event,
+                p_port->rfc.state);
   }
   RFCOMM_TRACE_WARNING("Port state sabme_wait_ua Event ignored %d", event);
 }
@@ -349,6 +356,9 @@ void rfc_port_sm_term_wait_sec_check(tPORT* p_port, uint16_t event,
         }
       }
       return;
+    default:
+      LOG_ERROR("Received unexpected event:%hu in state:%hhu", event,
+                p_port->rfc.state);
   }
   RFCOMM_TRACE_WARNING("Port state term_wait_sec_check Event ignored %d",
                        event);
@@ -405,6 +415,9 @@ void rfc_port_sm_orig_wait_sec_check(tPORT* p_port, uint16_t event,
     case RFC_PORT_EVENT_UIH:
       osi_free(p_data);
       return;
+    default:
+      LOG_ERROR("Received unexpected event:%hu in state:%hhu", event,
+                p_port->rfc.state);
   }
   RFCOMM_TRACE_WARNING("Port state orig_wait_sec_check Event ignored %d",
                        event);
@@ -494,6 +507,9 @@ void rfc_port_sm_opened(tPORT* p_port, uint16_t event, void* p_data) {
       RFCOMM_TRACE_ERROR("Port error state %d event %d", p_port->rfc.state,
                          event);
       return;
+    default:
+      LOG_ERROR("Received unexpected event:%hu in state:%hhu", event,
+                p_port->rfc.state);
   }
   RFCOMM_TRACE_WARNING("Port state opened Event ignored %d", event);
 }
@@ -554,6 +570,9 @@ void rfc_port_sm_disc_wait_ua(tPORT* p_port, uint16_t event, void* p_data) {
                          p_port->handle);
       rfc_port_closed(p_port);
       return;
+    default:
+      LOG_ERROR("Received unexpected event:%hu in state:%hhu", event,
+                p_port->rfc.state);
   }
 
   RFCOMM_TRACE_WARNING("Port state disc_wait_ua Event ignored %d", event);
