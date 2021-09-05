@@ -23,7 +23,6 @@
 #include "stack/gatt/connection_manager.h"
 #include "stack/include/acl_api.h"
 #include "stack/include/bt_types.h"
-#include "stack/include/hcidefs.h"
 #include "stack/include/l2cap_hci_link_interface.h"
 
 extern tBTM_CB btm_cb;

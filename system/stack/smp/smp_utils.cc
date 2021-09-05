@@ -28,7 +28,6 @@
 #include "bt_utils.h"
 #include "btm_ble_api.h"
 #include "device/include/controller.h"
-#include "hcidefs.h"
 #include "l2c_api.h"
 #include "osi/include/log.h"
 #include "osi/include/osi.h"
