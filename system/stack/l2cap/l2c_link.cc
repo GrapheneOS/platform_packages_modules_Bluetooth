@@ -36,7 +36,6 @@
 #include "stack/include/acl_api.h"
 #include "stack/include/bt_types.h"
 #include "stack/include/hci_error_code.h"
-#include "stack/include/hcimsgs.h"
 #include "stack/l2cap/l2c_int.h"
 #include "types/bt_transport.h"
 #include "types/raw_address.h"
