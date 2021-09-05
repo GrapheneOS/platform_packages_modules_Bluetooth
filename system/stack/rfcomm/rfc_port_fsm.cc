@@ -139,7 +139,7 @@ void rfc_port_sm_state_closed(tPORT* p_port, uint16_t event, void* p_data) {
       osi_free(p_data);
       break;
 
-    case RFC_EVENT_SABME:
+    case RFC_PORT_EVENT_SABME:
       /* make sure the multiplexer disconnect timer is not running (reconnect
        * case) */
       rfc_timer_stop(p_port->rfc.p_mcb);
@@ -156,25 +156,25 @@ void rfc_port_sm_state_closed(tPORT* p_port, uint16_t event, void* p_data) {
                                 &rfc_sec_check_complete, p_port);
       return;
 
-    case RFC_EVENT_UA:
+    case RFC_PORT_EVENT_UA:
       return;
 
-    case RFC_EVENT_DM:
+    case RFC_PORT_EVENT_DM:
       RFCOMM_TRACE_WARNING("%s, RFC_EVENT_DM, index=%d", __func__,
                            p_port->handle);
       rfc_port_closed(p_port);
       return;
 
-    case RFC_EVENT_UIH:
+    case RFC_PORT_EVENT_UIH:
       osi_free(p_data);
       rfc_send_dm(p_port->rfc.p_mcb, p_port->dlci, false);
       return;
 
-    case RFC_EVENT_DISC:
+    case RFC_PORT_EVENT_DISC:
       rfc_send_dm(p_port->rfc.p_mcb, p_port->dlci, false);
       return;
 
-    case RFC_EVENT_TIMEOUT:
+    case RFC_PORT_EVENT_TIMEOUT:
       Port_TimeOutCloseMux(p_port->rfc.p_mcb);
       RFCOMM_TRACE_ERROR("Port error state %d event %d", p_port->rfc.state,
                          event);
@@ -220,7 +220,7 @@ void rfc_port_sm_sabme_wait_ua(tPORT* p_port, uint16_t event, void* p_data) {
       osi_free(p_data);
       break;
 
-    case RFC_EVENT_UA:
+    case RFC_PORT_EVENT_UA:
       rfc_port_timer_stop(p_port);
       p_port->rfc.state = RFC_STATE_OPENED;
 
@@ -234,7 +234,7 @@ void rfc_port_sm_sabme_wait_ua(tPORT* p_port, uint16_t event, void* p_data) {
                            p_port->rfc.p_mcb->peer_l2cap_mtu, RFCOMM_SUCCESS);
       return;
 
-    case RFC_EVENT_DM:
+    case RFC_PORT_EVENT_DM:
       RFCOMM_TRACE_WARNING("%s, RFC_EVENT_DM, index=%d", __func__,
                            p_port->handle);
       p_port->rfc.p_mcb->is_disc_initiator = true;
@@ -243,7 +243,7 @@ void rfc_port_sm_sabme_wait_ua(tPORT* p_port, uint16_t event, void* p_data) {
       rfc_port_closed(p_port);
       return;
 
-    case RFC_EVENT_DISC:
+    case RFC_PORT_EVENT_DISC:
       RFCOMM_TRACE_WARNING("%s, RFC_EVENT_DISC, index=%d", __func__,
                            p_port->handle);
       rfc_send_ua(p_port->rfc.p_mcb, p_port->dlci);
@@ -252,16 +252,16 @@ void rfc_port_sm_sabme_wait_ua(tPORT* p_port, uint16_t event, void* p_data) {
       rfc_port_closed(p_port);
       return;
 
-    case RFC_EVENT_SABME:
+    case RFC_PORT_EVENT_SABME:
       /* Continue to wait for the UA the SABME this side sent */
       rfc_send_ua(p_port->rfc.p_mcb, p_port->dlci);
       return;
 
-    case RFC_EVENT_UIH:
+    case RFC_PORT_EVENT_UIH:
       osi_free(p_data);
       return;
 
-    case RFC_EVENT_TIMEOUT:
+    case RFC_PORT_EVENT_TIMEOUT:
       p_port->rfc.state = RFC_STATE_CLOSED;
       PORT_DlcEstablishCnf(p_port->rfc.p_mcb, p_port->dlci,
                            p_port->rfc.p_mcb->peer_l2cap_mtu, RFCOMM_ERROR);
@@ -318,11 +318,11 @@ void rfc_port_sm_term_wait_sec_check(tPORT* p_port, uint16_t event,
       osi_free(p_data);
       return;
 
-    case RFC_EVENT_SABME:
+    case RFC_PORT_EVENT_SABME:
       /* Ignore SABME retransmission if client dares to do so */
       return;
 
-    case RFC_EVENT_DISC:
+    case RFC_PORT_EVENT_DISC:
       btm_sec_abort_access_req(p_port->rfc.p_mcb->bd_addr);
       p_port->rfc.state = RFC_STATE_CLOSED;
       rfc_send_ua(p_port->rfc.p_mcb, p_port->dlci);
@@ -330,7 +330,7 @@ void rfc_port_sm_term_wait_sec_check(tPORT* p_port, uint16_t event,
       PORT_DlcReleaseInd(p_port->rfc.p_mcb, p_port->dlci);
       return;
 
-    case RFC_EVENT_UIH:
+    case RFC_PORT_EVENT_UIH:
       osi_free(p_data);
       return;
 
@@ -385,7 +385,7 @@ void rfc_port_sm_orig_wait_sec_check(tPORT* p_port, uint16_t event,
       return;
 
     case RFC_PORT_EVENT_OPEN:
-    case RFC_EVENT_SABME: /* Peer should not use the same dlci */
+    case RFC_PORT_EVENT_SABME: /* Peer should not use the same dlci */
       RFCOMM_TRACE_ERROR("Port error state %d event %d", p_port->rfc.state,
                          event);
       return;
@@ -402,7 +402,7 @@ void rfc_port_sm_orig_wait_sec_check(tPORT* p_port, uint16_t event,
       osi_free(p_data);
       return;
 
-    case RFC_EVENT_UIH:
+    case RFC_PORT_EVENT_UIH:
       osi_free(p_data);
       return;
   }
@@ -460,21 +460,21 @@ void rfc_port_sm_opened(tPORT* p_port, uint16_t event, void* p_data) {
       rfc_dec_credit(p_port);
       return;
 
-    case RFC_EVENT_UA:
+    case RFC_PORT_EVENT_UA:
       return;
 
-    case RFC_EVENT_SABME:
+    case RFC_PORT_EVENT_SABME:
       rfc_send_ua(p_port->rfc.p_mcb, p_port->dlci);
       return;
 
-    case RFC_EVENT_DM:
+    case RFC_PORT_EVENT_DM:
       RFCOMM_TRACE_WARNING("%s, RFC_EVENT_DM, index=%d", __func__,
                            p_port->handle);
       PORT_DlcReleaseInd(p_port->rfc.p_mcb, p_port->dlci);
       rfc_port_closed(p_port);
       return;
 
-    case RFC_EVENT_DISC:
+    case RFC_PORT_EVENT_DISC:
       p_port->rfc.state = RFC_STATE_CLOSED;
       rfc_send_ua(p_port->rfc.p_mcb, p_port->dlci);
       if (!fixed_queue_is_empty(p_port->rx.queue)) {
@@ -485,11 +485,11 @@ void rfc_port_sm_opened(tPORT* p_port, uint16_t event, void* p_data) {
         PORT_DlcReleaseInd(p_port->rfc.p_mcb, p_port->dlci);
       return;
 
-    case RFC_EVENT_UIH:
+    case RFC_PORT_EVENT_UIH:
       rfc_port_uplink_data(p_port, (BT_HDR*)p_data);
       return;
 
-    case RFC_EVENT_TIMEOUT:
+    case RFC_PORT_EVENT_TIMEOUT:
       Port_TimeOutCloseMux(p_port->rfc.p_mcb);
       RFCOMM_TRACE_ERROR("Port error state %d event %d", p_port->rfc.state,
                          event);
@@ -526,30 +526,30 @@ void rfc_port_sm_disc_wait_ua(tPORT* p_port, uint16_t event, void* p_data) {
       osi_free(p_data);
       return;
 
-    case RFC_EVENT_UA:
+    case RFC_PORT_EVENT_UA:
       p_port->rfc.p_mcb->is_disc_initiator = true;
       FALLTHROUGH_INTENDED; /* FALLTHROUGH */
 
-    case RFC_EVENT_DM:
+    case RFC_PORT_EVENT_DM:
       RFCOMM_TRACE_WARNING("%s, RFC_EVENT_DM|RFC_EVENT_UA[%d], index=%d",
                            __func__, event, p_port->handle);
       rfc_port_closed(p_port);
       return;
 
-    case RFC_EVENT_SABME:
+    case RFC_PORT_EVENT_SABME:
       rfc_send_dm(p_port->rfc.p_mcb, p_port->dlci, true);
       return;
 
-    case RFC_EVENT_DISC:
+    case RFC_PORT_EVENT_DISC:
       rfc_send_dm(p_port->rfc.p_mcb, p_port->dlci, true);
       return;
 
-    case RFC_EVENT_UIH:
+    case RFC_PORT_EVENT_UIH:
       osi_free(p_data);
       rfc_send_dm(p_port->rfc.p_mcb, p_port->dlci, false);
       return;
 
-    case RFC_EVENT_TIMEOUT:
+    case RFC_PORT_EVENT_TIMEOUT:
       RFCOMM_TRACE_ERROR("%s, RFC_EVENT_TIMEOUT, index=%d", __func__,
                          p_port->handle);
       rfc_port_closed(p_port);
