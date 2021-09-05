@@ -46,7 +46,6 @@
 #include "hci/include/buffer_allocator.h"
 #include "hci_inject.h"
 #include "hci_internals.h"
-#include "hcimsgs.h"
 #include "main/shim/shim.h"
 #include "osi/include/alarm.h"
 #include "osi/include/list.h"

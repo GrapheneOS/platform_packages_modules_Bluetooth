@@ -35,7 +35,6 @@
 #include "common/metrics.h"
 #include "common/time_util.h"
 #include "device/include/controller.h"
-#include "hcimsgs.h"
 #include "l2c_api.h"
 #include "main/shim/btm_api.h"
 #include "main/shim/dumpsys.h"
