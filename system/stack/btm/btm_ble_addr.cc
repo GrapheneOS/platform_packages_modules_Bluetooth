@@ -28,7 +28,6 @@
 #include "btu.h"
 #include "device/include/controller.h"
 #include "gap_api.h"
-#include "hcimsgs.h"
 
 #include "btm_ble_int.h"
 #include "main/shim/shim.h"

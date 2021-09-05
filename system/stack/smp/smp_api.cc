@@ -31,7 +31,6 @@
 
 #include "gd/os/log.h"
 #include "gd/os/rand.h"
-#include "hcimsgs.h"
 #include "l2c_api.h"
 #include "l2cdefs.h"
 #include "main/shim/shim.h"

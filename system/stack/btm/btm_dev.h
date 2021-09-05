@@ -18,7 +18,6 @@
 #include "stack/btm/btm_ble_int.h"
 #include "stack/btm/security_device_record.h"
 #include "stack/include/acl_api.h"
-#include "stack/include/hcimsgs.h"
 #include "types/raw_address.h"
 
 /*******************************************************************************

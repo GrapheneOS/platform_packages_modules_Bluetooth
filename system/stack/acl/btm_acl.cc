@@ -62,7 +62,6 @@
 #include "stack/include/btm_iso_api.h"
 #include "stack/include/btu.h"
 #include "stack/include/hci_error_code.h"
-#include "stack/include/hcimsgs.h"
 #include "stack/include/l2cap_acl_interface.h"
 #include "stack/include/sco_hci_link_interface.h"
 #include "types/hci_role.h"

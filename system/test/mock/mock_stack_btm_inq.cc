@@ -43,7 +43,6 @@ extern std::map<std::string, int> mock_function_count_map;
 #include "stack/btm/btm_int_types.h"
 #include "stack/include/acl_api.h"
 #include "stack/include/btm_ble_api.h"
-#include "stack/include/hcimsgs.h"
 #include "stack/include/inq_hci_link_interface.h"
 
 #ifndef UNUSED_ATTR
