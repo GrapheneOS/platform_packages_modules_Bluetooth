@@ -258,7 +258,8 @@ extern void rfc_mx_sm_execute(tRFC_MCB* p_mcb, tRFC_MX_EVENT event,
 /*
  * Functions provided by the rfc_port_fsm.cc
 */
-extern void rfc_port_sm_execute(tPORT* p_port, uint16_t event, void* p_data);
+extern void rfc_port_sm_execute(tPORT* p_port, tRFC_PORT_EVENT event,
+                                void* p_data);
 
 extern void rfc_process_pn(tRFC_MCB* p_rfc_mcb, bool is_command,
                            MX_FRAME* p_frame);
