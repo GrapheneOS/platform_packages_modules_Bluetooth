@@ -45,16 +45,19 @@ static const std::set<uint16_t> uuid_logging_acceptlist = {
 /******************************************************************************/
 /*            L O C A L    F U N C T I O N     P R O T O T Y P E S            */
 /******************************************************************************/
-static void rfc_port_sm_state_closed(tPORT* p_port, uint16_t event,
+static void rfc_port_sm_state_closed(tPORT* p_port, tRFC_PORT_EVENT event,
                                      void* p_data);
-static void rfc_port_sm_sabme_wait_ua(tPORT* p_port, uint16_t event,
+static void rfc_port_sm_sabme_wait_ua(tPORT* p_port, tRFC_PORT_EVENT event,
                                       void* p_data);
-static void rfc_port_sm_opened(tPORT* p_port, uint16_t event, void* p_data);
-static void rfc_port_sm_orig_wait_sec_check(tPORT* p_port, uint16_t event,
+static void rfc_port_sm_opened(tPORT* p_port, tRFC_PORT_EVENT event,
+                               void* p_data);
+static void rfc_port_sm_orig_wait_sec_check(tPORT* p_port,
+                                            tRFC_PORT_EVENT event,
                                             void* p_data);
-static void rfc_port_sm_term_wait_sec_check(tPORT* p_port, uint16_t event,
+static void rfc_port_sm_term_wait_sec_check(tPORT* p_port,
+                                            tRFC_PORT_EVENT event,
                                             void* p_data);
-static void rfc_port_sm_disc_wait_ua(tPORT* p_port, uint16_t event,
+static void rfc_port_sm_disc_wait_ua(tPORT* p_port, tRFC_PORT_EVENT event,
                                      void* p_data);
 
 static void rfc_port_uplink_data(tPORT* p_port, BT_HDR* p_buf);
@@ -71,7 +74,7 @@ static void rfc_set_port_state(tPORT_STATE* port_pars, MX_FRAME* p_frame);
  * Returns          void
  *
  ******************************************************************************/
-void rfc_port_sm_execute(tPORT* p_port, uint16_t event, void* p_data) {
+void rfc_port_sm_execute(tPORT* p_port, tRFC_PORT_EVENT event, void* p_data) {
   CHECK(p_port != nullptr) << __func__ << ": NULL port event " << event;
   VLOG(1) << __func__ << ": BD_ADDR=" << p_port->bd_addr
           << ", PORT=" << std::to_string(p_port->handle)
@@ -115,7 +118,8 @@ void rfc_port_sm_execute(tPORT* p_port, uint16_t event, void* p_data) {
  * Returns          void
  *
  ******************************************************************************/
-void rfc_port_sm_state_closed(tPORT* p_port, uint16_t event, void* p_data) {
+void rfc_port_sm_state_closed(tPORT* p_port, tRFC_PORT_EVENT event,
+                              void* p_data) {
   uint32_t scn = (uint32_t)(p_port->dlci / 2);
   switch (event) {
     case RFC_PORT_EVENT_OPEN:
@@ -199,7 +203,8 @@ void rfc_port_sm_state_closed(tPORT* p_port, uint16_t event, void* p_data) {
  * Returns          void
  *
  ******************************************************************************/
-void rfc_port_sm_sabme_wait_ua(tPORT* p_port, uint16_t event, void* p_data) {
+void rfc_port_sm_sabme_wait_ua(tPORT* p_port, tRFC_PORT_EVENT event,
+                               void* p_data) {
   switch (event) {
     case RFC_PORT_EVENT_OPEN:
     case RFC_PORT_EVENT_ESTABLISH_RSP:
@@ -289,7 +294,7 @@ void rfc_port_sm_sabme_wait_ua(tPORT* p_port, uint16_t event, void* p_data) {
  * Returns          void
  *
  ******************************************************************************/
-void rfc_port_sm_term_wait_sec_check(tPORT* p_port, uint16_t event,
+void rfc_port_sm_term_wait_sec_check(tPORT* p_port, tRFC_PORT_EVENT event,
                                      void* p_data) {
   switch (event) {
     case RFC_PORT_EVENT_SEC_COMPLETE:
@@ -375,7 +380,7 @@ void rfc_port_sm_term_wait_sec_check(tPORT* p_port, uint16_t event,
  * Returns          void
  *
  ******************************************************************************/
-void rfc_port_sm_orig_wait_sec_check(tPORT* p_port, uint16_t event,
+void rfc_port_sm_orig_wait_sec_check(tPORT* p_port, tRFC_PORT_EVENT event,
                                      void* p_data) {
   switch (event) {
     case RFC_PORT_EVENT_SEC_COMPLETE:
@@ -433,7 +438,7 @@ void rfc_port_sm_orig_wait_sec_check(tPORT* p_port, uint16_t event,
  * Returns          void
  *
  ******************************************************************************/
-void rfc_port_sm_opened(tPORT* p_port, uint16_t event, void* p_data) {
+void rfc_port_sm_opened(tPORT* p_port, tRFC_PORT_EVENT event, void* p_data) {
   switch (event) {
     case RFC_PORT_EVENT_OPEN:
       RFCOMM_TRACE_ERROR("Port error state %d event %d", p_port->rfc.state,
@@ -524,7 +529,8 @@ void rfc_port_sm_opened(tPORT* p_port, uint16_t event, void* p_data) {
  * Returns          void
  *
  ******************************************************************************/
-void rfc_port_sm_disc_wait_ua(tPORT* p_port, uint16_t event, void* p_data) {
+void rfc_port_sm_disc_wait_ua(tPORT* p_port, tRFC_PORT_EVENT event,
+                              void* p_data) {
   switch (event) {
     case RFC_PORT_EVENT_OPEN:
     case RFC_PORT_EVENT_ESTABLISH_RSP:
