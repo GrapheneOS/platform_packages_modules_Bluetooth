@@ -212,9 +212,9 @@ void TestModel::AddRemote(const std::string& server, int port,
   AddLinkLayerConnection(socket, phy_type);
 }
 
-void TestModel::IncomingHciConnection(
-    std::shared_ptr<AsyncDataChannel> socket) {
-  auto dev = HciSocketDevice::Create(socket);
+void TestModel::IncomingHciConnection(std::shared_ptr<AsyncDataChannel> socket,
+                                      std::string properties_filename) {
+  auto dev = HciSocketDevice::Create(socket, properties_filename);
   size_t index = Add(std::static_pointer_cast<Device>(dev));
   std::string addr = "da:4c:10:de:17:";  // Da HCI dev
   std::stringstream stream;

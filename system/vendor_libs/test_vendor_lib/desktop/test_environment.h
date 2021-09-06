@@ -55,6 +55,7 @@ class TestEnvironment {
         hci_socket_server_(hci_server_port),
         link_socket_server_(link_server_port),
         connector_(connector),
+        controller_properties_file_(controller_properties_file),
         default_commands_file_(default_commands_file),
         controller_(std::make_shared<test_vendor_lib::DualModeController>(
             controller_properties_file)) {}
@@ -69,6 +70,7 @@ class TestEnvironment {
   std::shared_ptr<AsyncDataChannelServer> hci_socket_server_;
   std::shared_ptr<AsyncDataChannelServer> link_socket_server_;
   std::shared_ptr<AsyncDataChannelConnector> connector_;
+  std::string controller_properties_file_;
   std::string default_commands_file_;
   bool test_channel_open_{false};
   std::promise<void> barrier_;
