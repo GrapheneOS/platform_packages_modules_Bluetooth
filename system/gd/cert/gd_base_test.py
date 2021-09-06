@@ -15,6 +15,7 @@
 #   limitations under the License.
 
 import importlib
+import os
 import traceback
 
 from functools import wraps
@@ -52,6 +53,10 @@ class GdBaseTestClass(BaseTestClass):
         if self.cert_coverage_info:
             generate_coverage_report_for_host(self.cert_coverage_info)
             self.cert_coverage_info = None
+
+    def set_controller_properties_path(self, path):
+        GD_DIR = os.path.join(os.getcwd(), os.pardir)
+        self.controller_properties_file = os.path.join(GD_DIR, path)
 
     def setup_test(self):
         self.log_path_base = get_current_context().get_full_output_path()
