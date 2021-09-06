@@ -26,8 +26,9 @@ using std::vector;
 
 namespace test_vendor_lib {
 
-HciSocketDevice::HciSocketDevice(std::shared_ptr<AsyncDataChannel> socket)
-    : socket_(socket) {
+HciSocketDevice::HciSocketDevice(std::shared_ptr<AsyncDataChannel> socket,
+                                 std::string properties_filename)
+    : DualModeController(properties_filename), socket_(socket) {
   advertising_interval_ms_ = std::chrono::milliseconds(1000);
 
   page_scan_delay_ms_ = std::chrono::milliseconds(600);
