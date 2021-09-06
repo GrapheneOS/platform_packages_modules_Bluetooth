@@ -31,3 +31,18 @@ class LeScanningManagerTest(GdBaseTestClass, LeScanningManagerTestBase):
     def teardown_test(self):
         LeScanningManagerTestBase.teardown_test(self)
         GdBaseTestClass.teardown_test(self)
+
+
+class LeExtendedScanningManagerTest(GdBaseTestClass, LeScanningManagerTestBase):
+
+    def setup_class(self):
+        GdBaseTestClass.setup_class(self, dut_module='HCI_INTERFACES', cert_module='HCI_INTERFACES')
+
+    def setup_test(self):
+        GdBaseTestClass.set_controller_properties_path(self, 'hci/cert/le_extended_config.json')
+        GdBaseTestClass.setup_test(self)
+        LeScanningManagerTestBase.setup_test(self, self.cert)
+
+    def teardown_test(self):
+        LeScanningManagerTestBase.teardown_test(self)
+        GdBaseTestClass.teardown_test(self)
