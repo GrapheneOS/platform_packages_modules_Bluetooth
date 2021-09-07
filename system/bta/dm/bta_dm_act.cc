@@ -2436,6 +2436,7 @@ void bta_dm_acl_up(const RawAddress& bd_addr, tBT_TRANSPORT transport) {
     tBTA_DM_SEC conn;
     memset(&conn, 0, sizeof(tBTA_DM_SEC));
     conn.link_up.bd_addr = bd_addr;
+    conn.link_up.transport_link_type = transport;
 
     bta_dm_cb.p_sec_cback(BTA_DM_LINK_UP_EVT, &conn);
     LOG_DEBUG("Executed security callback for new connection available");
@@ -2522,6 +2523,7 @@ static void bta_dm_acl_down(const RawAddress& bd_addr,
     tBTA_DM_SEC conn;
     memset(&conn, 0, sizeof(tBTA_DM_SEC));
     conn.link_down.bd_addr = bd_addr;
+    conn.link_down.transport_link_type = transport;
 
     bta_dm_cb.p_sec_cback(BTA_DM_LINK_DOWN_EVT, &conn);
     if (issue_unpair_cb) bta_dm_cb.p_sec_cback(BTA_DM_DEV_UNPAIRED_EVT, &conn);
