@@ -173,9 +173,45 @@ static void btm_esco_conn_rsp(uint16_t sco_inx, uint8_t hci_status,
  *
  ******************************************************************************/
 void btm_route_sco_data(BT_HDR* p_msg) {
+  if (p_msg->len < 3) {
+    LOG_ERROR("Received incomplete SCO header");
+    osi_free(p_msg);
+    return;
+  }
+  uint8_t* payload = p_msg->data;
+  uint16_t handle_with_flags = 0;
+  uint8_t length = 0;
+  STREAM_TO_UINT16(handle_with_flags, payload);
+  STREAM_TO_UINT8(length, payload);
+  if (p_msg->len != length + 3) {
+    LOG_ERROR("Received invalid SCO data of size: %hhu, dropping", length);
+    osi_free(p_msg);
+    return;
+  }
   LOG_INFO("Received SCO packet from HCI. Dropping it since no handler so far");
   // TODO(b/195344796): Implement the SCO over HCI data path
+  // std::vector<uint8_t> data(payload, payload + length);
   osi_free(p_msg);
+}
+
+void btm_send_sco_packet(std::vector<uint8_t> data, uint16_t sco_handle) {
+  BT_HDR* packet = btm_sco_make_packet(std::move(data), sco_handle);
+  bte_main_hci_send(packet, BT_EVT_TO_LM_HCI_SCO);
+}
+
+// Build a SCO packet from uint8
+BT_HDR* btm_sco_make_packet(std::vector<uint8_t> data, uint16_t sco_handle) {
+  ASSERT_LOG(data.size() <= BTM_SCO_DATA_SIZE_MAX, "Invalid SCO data size: %zu",
+             data.size());
+  BT_HDR* p_buf = (BT_HDR*)osi_calloc(BT_SMALL_BUFFER_SIZE);
+  p_buf->event = BT_EVT_TO_LM_HCI_SCO;
+  // SCO header size is 3 per Core 5.2 Vol 4 Part E 5.4.3 figure 5.3
+  p_buf->len = data.size() + 3;
+  uint8_t* payload = p_buf->data;
+  UINT16_TO_STREAM(payload, sco_handle);
+  UINT8_TO_STREAM(payload, data.size());
+  ARRAY_TO_STREAM(payload, data.data(), static_cast<int>(data.size()));
+  return p_buf;
 }
 
 /*******************************************************************************
