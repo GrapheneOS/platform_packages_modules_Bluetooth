@@ -76,6 +76,7 @@ static const tA2DP_ENCODER_INTERFACE a2dp_encoder_interface_aptx = {
     a2dp_vendor_aptx_feeding_reset,
     a2dp_vendor_aptx_feeding_flush,
     a2dp_vendor_aptx_get_encoder_interval_ms,
+    a2dp_vendor_aptx_get_effective_frame_size,
     a2dp_vendor_aptx_send_frames,
     nullptr  // set_transmit_queue_length
 };
