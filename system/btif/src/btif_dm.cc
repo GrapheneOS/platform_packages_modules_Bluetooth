@@ -129,6 +129,7 @@ typedef struct {
   bool is_le_only;
   bool is_le_nc; /* LE Numeric comparison */
   btif_dm_ble_cb_t ble;
+  uint8_t fail_reason;
 } btif_dm_pairing_cb_t;
 
 // TODO(jpawlowski): unify ?
@@ -444,7 +445,8 @@ static void bond_state_changed(bt_status_t status, const RawAddress& bd_addr,
   if ((pairing_cb.state == state) && (state == BT_BOND_STATE_BONDING)) {
     // Cross key pairing so send callback for static address
     if (!pairing_cb.static_bdaddr.IsEmpty()) {
-      invoke_bond_state_changed_cb(status, bd_addr, state);
+      invoke_bond_state_changed_cb(status, bd_addr, state,
+                                   pairing_cb.fail_reason);
     }
     return;
   }
@@ -467,7 +469,7 @@ static void bond_state_changed(bt_status_t status, const RawAddress& bd_addr,
                  << bd_addr;
     }
   }
-  invoke_bond_state_changed_cb(status, bd_addr, state);
+  invoke_bond_state_changed_cb(status, bd_addr, state, pairing_cb.fail_reason);
 
   int dev_type;
   if (!btif_get_device_type(bd_addr, &dev_type)) {
@@ -919,6 +921,8 @@ static void btif_dm_auth_cmpl_evt(tBTA_DM_AUTH_CMPL* p_auth_cmpl) {
   BTIF_TRACE_DEBUG("%s: bond state=%d, success=%d, key_present=%d", __func__,
                    pairing_cb.state, p_auth_cmpl->success,
                    p_auth_cmpl->key_present);
+
+  pairing_cb.fail_reason = p_auth_cmpl->fail_reason;
 
   RawAddress bd_addr = p_auth_cmpl->bd_addr;
   if (!bluetooth::shim::is_gd_security_enabled()) {
@@ -1573,8 +1577,9 @@ static void btif_dm_upstreams_evt(uint16_t event, char* p_param) {
 
       btif_update_remote_version_property(&bd_addr);
 
-      invoke_acl_state_changed_cb(BT_STATUS_SUCCESS, bd_addr,
-                                  BT_ACL_STATE_CONNECTED, HCI_SUCCESS);
+      invoke_acl_state_changed_cb(
+          BT_STATUS_SUCCESS, bd_addr, BT_ACL_STATE_CONNECTED,
+          (int)p_data->link_up.transport_link_type, HCI_SUCCESS);
       break;
 
     case BTA_DM_LINK_DOWN_EVT:
@@ -1582,9 +1587,10 @@ static void btif_dm_upstreams_evt(uint16_t event, char* p_param) {
       btm_set_bond_type_dev(p_data->link_down.bd_addr,
                             tBTM_SEC_DEV_REC::BOND_TYPE_UNKNOWN);
       btif_av_acl_disconnected(bd_addr);
-      invoke_acl_state_changed_cb(BT_STATUS_SUCCESS, bd_addr,
-                                  BT_ACL_STATE_DISCONNECTED,
-                                  static_cast<bt_hci_error_code_t>(btm_get_acl_disc_reason_code()));
+      invoke_acl_state_changed_cb(
+          BT_STATUS_SUCCESS, bd_addr, BT_ACL_STATE_DISCONNECTED,
+          (int)p_data->link_down.transport_link_type,
+          static_cast<bt_hci_error_code_t>(btm_get_acl_disc_reason_code()));
       LOG_DEBUG(
           "Sent BT_ACL_STATE_DISCONNECTED upward as ACL link down event "
           "device:%s reason:%s",
