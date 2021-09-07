@@ -27,7 +27,6 @@
 
 #include <base/strings/string_number_conversions.h>
 #include <stdio.h>
-#include "bt_common.h"
 #include "device/include/controller.h"
 #include "gatt_api.h"
 #include "gatt_int.h"

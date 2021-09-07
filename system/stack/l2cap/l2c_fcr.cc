@@ -28,7 +28,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "bt_common.h"
 #include "btu.h"
 #include "common/time_util.h"
 #include "l2c_api.h"

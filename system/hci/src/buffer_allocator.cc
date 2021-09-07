@@ -18,7 +18,6 @@
 
 #include <base/logging.h>
 
-#include "bt_common.h"
 #include "bt_target.h"
 #include "check.h"
 #include "hci/include/buffer_allocator.h"

@@ -38,7 +38,6 @@
 #include "osi/include/osi.h"
 
 #include "advertise_data_parser.h"
-#include "bt_common.h"
 #include "main/shim/btm_api.h"
 #include "main/shim/shim.h"
 #include "stack/btm/btm_ble_int.h"

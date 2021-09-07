@@ -24,7 +24,6 @@
 
 #include "bt_target.h"
 
-#include "bt_common.h"
 #include "bt_utils.h"
 #include "btif/include/btif_storage.h"
 #include "connection_manager.h"

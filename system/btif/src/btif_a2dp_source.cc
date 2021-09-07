@@ -31,7 +31,6 @@
 
 #include "audio_a2dp_hw/include/audio_a2dp_hw.h"
 #include "audio_hal_interface/a2dp_encoding.h"
-#include "bt_common.h"
 #include "bta_av_ci.h"
 #include "btif_a2dp.h"
 #include "btif_a2dp_control.h"

@@ -29,7 +29,6 @@
 #include <hardware/bluetooth.h>
 #include <hardware/bt_pan.h>
 #include <string.h>
-#include "bt_common.h"
 #include "bta_api.h"
 #include "bta_pan_api.h"
 #include "bta_pan_ci.h"
