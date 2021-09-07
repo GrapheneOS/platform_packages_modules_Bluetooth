@@ -3,7 +3,7 @@
 use crate::bridge::ffi;
 use bluetooth_rs::hci::facade::HciFacadeService;
 use bt_facade_helpers::U8SliceRunnable;
-use bt_packets::hci::{AclPacket, CommandPacket, IsoPacket, Packet};
+use bt_packets::hci::{AclPacket, CommandPacket, IsoPacket, Packet, ScoPacket};
 use std::sync::Arc;
 use tokio::runtime::Runtime;
 
@@ -62,6 +62,18 @@ pub fn hci_send_acl(hci: &mut Hci, data: &[u8]) {
     }
 }
 
+pub fn hci_send_sco(hci: &mut Hci, data: &[u8]) {
+    match ScoPacket::parse(data) {
+        Ok(packet) => {
+            let tx = hci.internal.sco_tx.clone();
+            hci.rt.spawn(async move {
+                tx.send(packet).await.unwrap();
+            });
+        }
+        Err(e) => panic!("could not parse sco: {:?} {:02x?}", e, data),
+    }
+}
+
 pub fn hci_send_iso(hci: &mut Hci, data: &[u8]) {
     match IsoPacket::parse(data) {
         Ok(packet) => {
@@ -90,6 +102,10 @@ pub fn hci_register_le_event(hci: &mut Hci, subevent: u8) {
 
 pub fn hci_set_acl_callback(hci: &mut Hci, cb: cxx::UniquePtr<ffi::u8SliceCallback>) {
     hci.internal.acl_rx.stream_runnable(&hci.rt, CallbackWrapper { cb });
+}
+
+pub fn hci_set_sco_callback(hci: &mut Hci, cb: cxx::UniquePtr<ffi::u8SliceCallback>) {
+    hci.internal.sco_rx.stream_runnable(&hci.rt, CallbackWrapper { cb });
 }
 
 pub fn hci_set_iso_callback(hci: &mut Hci, cb: cxx::UniquePtr<ffi::u8SliceCallback>) {
