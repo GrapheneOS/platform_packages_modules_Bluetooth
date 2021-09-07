@@ -2,7 +2,7 @@
 
 use crate::hal::internal::RawHal;
 use bt_common::sys_prop;
-use bt_packets::hci::{AclPacket, CommandPacket, EventPacket, IsoPacket, Packet};
+use bt_packets::hci::{AclPacket, CommandPacket, EventPacket, IsoPacket, Packet, ScoPacket};
 use bytes::{BufMut, Bytes, BytesMut};
 use gddi::{module, part_out, provides, Stoppable};
 use log::error;
@@ -21,6 +21,7 @@ use tokio::sync::Mutex;
 struct Hal {
     control: ControlHal,
     acl: AclHal,
+    sco: ScoHal,
     iso: IsoHal,
 }
 
@@ -40,6 +41,15 @@ pub struct AclHal {
     pub tx: Sender<AclPacket>,
     /// Receive end
     pub rx: Arc<Mutex<Receiver<AclPacket>>>,
+}
+
+/// Sco tx/rx
+#[derive(Clone, Stoppable)]
+pub struct ScoHal {
+    /// Transmit end
+    pub tx: Sender<ScoPacket>,
+    /// Receive end
+    pub rx: Arc<Mutex<Receiver<ScoPacket>>>,
 }
 
 /// Iso tx/rx
@@ -135,6 +145,8 @@ async fn provide_snooped_hal(config: SnoopConfig, raw_hal: RawHal, rt: Arc<Runti
     let (evt_up_tx, evt_up_rx) = channel::<EventPacket>(10);
     let (acl_down_tx, mut acl_down_rx) = channel::<AclPacket>(10);
     let (acl_up_tx, acl_up_rx) = channel::<AclPacket>(10);
+    let (sco_down_tx, mut sco_down_rx) = channel::<ScoPacket>(10);
+    let (sco_up_tx, sco_up_rx) = channel::<ScoPacket>(10);
     let (iso_down_tx, mut iso_down_rx) = channel::<IsoPacket>(10);
     let (iso_up_tx, iso_up_rx) = channel::<IsoPacket>(10);
 
@@ -170,6 +182,20 @@ async fn provide_snooped_hal(config: SnoopConfig, raw_hal: RawHal, rt: Arc<Runti
                     }
                     logger.log(Type::Acl, Direction::Up, acl.to_bytes()).await;
                 },
+                Some(sco) = sco_down_rx.recv() => {
+                    if let Err(e) = raw_hal.sco_tx.send(sco.clone()) {
+                        error!("sco down channel closed {:?}", e);
+                        break;
+                    }
+                    logger.log(Type::Sco, Direction::Down, sco.to_bytes()).await;
+                },
+                Some(sco) = consume(&raw_hal.sco_rx) => {
+                    if let Err(e) = sco_up_tx.send(sco.clone()).await {
+                        error!("sco up channel closed {:?}", e);
+                        break;
+                    }
+                    logger.log(Type::Sco, Direction::Up, sco.to_bytes()).await;
+                },
                 Some(iso) = iso_down_rx.recv() => {
                     if let Err(e) = raw_hal.iso_tx.send(iso.clone()) {
                         error!("iso down channel closed {:?}", e);
@@ -192,6 +218,7 @@ async fn provide_snooped_hal(config: SnoopConfig, raw_hal: RawHal, rt: Arc<Runti
     Hal {
         control: ControlHal { tx: cmd_down_tx, rx: Arc::new(Mutex::new(evt_up_rx)) },
         acl: AclHal { tx: acl_down_tx, rx: Arc::new(Mutex::new(acl_up_rx)) },
+        sco: ScoHal { tx: sco_down_tx, rx: Arc::new(Mutex::new(sco_up_rx)) },
         iso: IsoHal { tx: iso_down_tx, rx: Arc::new(Mutex::new(iso_up_rx)) },
     }
 }

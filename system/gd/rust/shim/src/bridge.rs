@@ -21,12 +21,14 @@ pub mod ffi {
 
         // HCI
         fn hci_set_acl_callback(hci: &mut Hci, callback: UniquePtr<u8SliceCallback>);
+        fn hci_set_sco_callback(hci: &mut Hci, callback: UniquePtr<u8SliceCallback>);
         fn hci_set_iso_callback(hci: &mut Hci, callback: UniquePtr<u8SliceCallback>);
         fn hci_set_evt_callback(hci: &mut Hci, callback: UniquePtr<u8SliceCallback>);
         fn hci_set_le_evt_callback(hci: &mut Hci, callback: UniquePtr<u8SliceCallback>);
 
         fn hci_send_command(hci: &mut Hci, data: &[u8], callback: UniquePtr<u8SliceOnceCallback>);
         fn hci_send_acl(hci: &mut Hci, data: &[u8]);
+        fn hci_send_sco(hci: &mut Hci, data: &[u8]);
         fn hci_send_iso(hci: &mut Hci, data: &[u8]);
         fn hci_register_event(hci: &mut Hci, event: u8);
         fn hci_register_le_event(hci: &mut Hci, subevent: u8);
