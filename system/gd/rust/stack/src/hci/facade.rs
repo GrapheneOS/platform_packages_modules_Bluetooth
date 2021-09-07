@@ -1,6 +1,6 @@
 //! HCI layer facade
 
-use crate::hal::{AclHal, IsoHal};
+use crate::hal::{AclHal, IsoHal, ScoHal};
 use crate::hci::{EventRegistry, RawCommandSender};
 use bt_common::GrpcFacade;
 use bt_facade_helpers::RxAdapter;
@@ -9,7 +9,8 @@ use bt_facade_proto::empty::Empty;
 use bt_facade_proto::hci_facade::EventRequest;
 use bt_facade_proto::hci_facade_grpc::{create_hci_facade, HciFacade};
 use bt_packets::hci::{
-    AclPacket, CommandPacket, EventCode, EventPacket, IsoPacket, LeMetaEventPacket, SubeventCode,
+    AclPacket, CommandPacket, EventCode, EventPacket, IsoPacket, LeMetaEventPacket, ScoPacket,
+    SubeventCode,
 };
 use gddi::{module, provides, Stoppable};
 use grpcio::*;
@@ -28,6 +29,7 @@ async fn provide_facade(
     commands: RawCommandSender,
     events: EventRegistry,
     acl: AclHal,
+    sco: ScoHal,
     iso: IsoHal,
 ) -> HciFacadeService {
     let (evt_tx, evt_rx) = channel::<EventPacket>(10);
@@ -41,6 +43,8 @@ async fn provide_facade(
         le_evt_rx: RxAdapter::new(le_evt_rx),
         acl_tx: acl.tx,
         acl_rx: RxAdapter::from_arc(acl.rx),
+        sco_tx: sco.tx,
+        sco_rx: RxAdapter::from_arc(sco.rx),
         iso_tx: iso.tx,
         iso_rx: RxAdapter::from_arc(iso.rx),
     }
@@ -58,6 +62,8 @@ pub struct HciFacadeService {
     pub le_evt_rx: RxAdapter<LeMetaEventPacket>,
     pub acl_tx: Sender<AclPacket>,
     pub acl_rx: RxAdapter<AclPacket>,
+    pub sco_tx: Sender<ScoPacket>,
+    pub sco_rx: RxAdapter<ScoPacket>,
     pub iso_tx: Sender<IsoPacket>,
     pub iso_rx: RxAdapter<IsoPacket>,
 }
