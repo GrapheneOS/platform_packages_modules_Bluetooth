@@ -97,13 +97,14 @@ void ssp_request(RawAddress* remote_bd_addr, bt_bdname_t* bd_name, uint32_t cod,
 /** Bluetooth Bond state changed callback */
 /* Invoked in response to create_bond, cancel_bond or remove_bond */
 void bond_state_changed(bt_status_t status, RawAddress* remote_bd_addr,
-                        bt_bond_state_t state) {
+                        bt_bond_state_t state, int fail_reason) {
   LOG_INFO("%s", __func__);
 }
 
 /** Bluetooth ACL connection state changed callback */
 void acl_state_changed(bt_status_t status, RawAddress* remote_bd_addr,
-                       bt_acl_state_t state, bt_hci_error_code_t hci_reason) {
+                       bt_acl_state_t state, int transport_link_type,
+                       bt_hci_error_code_t hci_reason) {
   auto callback_list = interface_api_callback_map_.at(__func__);
   for (auto callback : callback_list) {
     interface_data_t params{

@@ -434,12 +434,14 @@ typedef void (*ssp_request_callback)(RawAddress* remote_bd_addr,
 /* Invoked in response to create_bond, cancel_bond or remove_bond */
 typedef void (*bond_state_changed_callback)(bt_status_t status,
                                             RawAddress* remote_bd_addr,
-                                            bt_bond_state_t state);
+                                            bt_bond_state_t state,
+                                            int fail_reason);
 
 /** Bluetooth ACL connection state changed callback */
 typedef void (*acl_state_changed_callback)(bt_status_t status,
                                            RawAddress* remote_bd_addr,
                                            bt_acl_state_t state,
+                                           int transport_link_type,
                                            bt_hci_error_code_t hci_reason);
 
 /** Bluetooth link quality report callback */

@@ -195,7 +195,13 @@ pub(crate) trait BtifBluetoothCallbacks {
     );
 
     #[btif_callback(BondState)]
-    fn bond_state(&mut self, status: BtStatus, addr: RawAddress, bond_state: BtBondState);
+    fn bond_state(
+        &mut self,
+        status: BtStatus,
+        addr: RawAddress,
+        bond_state: BtBondState,
+        fail_reason: i32,
+    );
 }
 
 pub fn get_bt_dispatcher(tx: Sender<Message>) -> BaseCallbacksDispatcher {
@@ -274,7 +280,13 @@ impl BtifBluetoothCallbacks for Bluetooth {
         self.intf.lock().unwrap().ssp_reply(&remote_addr, variant, 1, passkey);
     }
 
-    fn bond_state(&mut self, _status: BtStatus, mut addr: RawAddress, bond_state: BtBondState) {
+    fn bond_state(
+        &mut self,
+        _status: BtStatus,
+        mut addr: RawAddress,
+        bond_state: BtBondState,
+        fail_reason: i32,
+    ) {
         if bond_state == BtBondState::Bonded {
             // We are assuming that peer is a HID device and automatically connect to that profile.
             // TODO: Only connect to enabled profiles on that device.
