@@ -104,29 +104,38 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
         let mut handler = CommandHandler::new(api.bluetooth_manager.clone(), api.bluetooth.clone());
 
-        let editor = AsyncEditor::new(handler.get_command_list().clone());
+        let args: Vec<String> = std::env::args().collect();
 
-        loop {
-            let result = editor.readline().await;
-            match result {
-                Err(_err) => break,
-                Ok(line) => {
-                    let command_vec =
-                        line.split(" ").map(|s| String::from(s)).collect::<Vec<String>>();
-                    let cmd = &command_vec[0];
-                    if cmd.eq("quit") {
-                        break;
-                    }
-                    handler.process_cmd_line(
-                        &String::from(cmd),
-                        &command_vec[1..command_vec.len()].to_vec(),
-                    );
+        // Allow command line arguments to be read
+        if args.len() > 1 {
+            handler.process_cmd_line(&args[1], &args[2..].to_vec());
+        } else {
+            start_interactive_shell(handler).await;
+        }
+        return Result::Ok(());
+    })
+}
+
+async fn start_interactive_shell(mut handler: CommandHandler) {
+    let editor = AsyncEditor::new(handler.get_command_list().clone());
+
+    loop {
+        let result = editor.readline().await;
+        match result {
+            Err(_err) => break,
+            Ok(line) => {
+                let command_vec = line.split(" ").map(|s| String::from(s)).collect::<Vec<String>>();
+                let cmd = &command_vec[0];
+                if cmd.eq("quit") {
+                    break;
                 }
+                handler.process_cmd_line(
+                    &String::from(cmd),
+                    &command_vec[1..command_vec.len()].to_vec(),
+                );
             }
         }
+    }
 
-        print_info!("Client exiting");
-
-        Result::Ok(())
-    })
+    print_info!("Client exiting");
 }
