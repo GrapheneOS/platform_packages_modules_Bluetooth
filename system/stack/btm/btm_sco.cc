@@ -185,6 +185,8 @@ static void btm_esco_conn_rsp(uint16_t sco_inx, uint8_t hci_status,
  *
  ******************************************************************************/
 void btm_route_sco_data(BT_HDR* p_msg) {
+  LOG_INFO("Received SCO packet from HCI. Dropping it since no handler so far");
+  // TODO(b/195344796): Implement the SCO over HCI data path
   osi_free(p_msg);
 }
 
