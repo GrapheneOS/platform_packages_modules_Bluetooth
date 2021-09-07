@@ -143,9 +143,10 @@ void FakeBluetoothInterface::NotifyAdapterLocalLeFeaturesPropertyChanged(
 
 void FakeBluetoothInterface::NotifyAclStateChangedCallback(
     bt_status_t status, const RawAddress& remote_bdaddr, bt_acl_state_t state,
-    bt_hci_error_code_t hci_reason) {
+    int transport_link_type, bt_hci_error_code_t hci_reason) {
   for (auto& observer : observers_) {
-    observer.AclStateChangedCallback(status, remote_bdaddr, state, hci_reason);
+    observer.AclStateChangedCallback(status, remote_bdaddr, state,
+                                     transport_link_type, hci_reason);
   }
 }
 

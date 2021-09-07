@@ -20,6 +20,7 @@
 #include "service/adapter.h"
 #include "service/hal/fake_bluetooth_gatt_interface.h"
 #include "service/hal/fake_bluetooth_interface.h"
+#include "types/bt_transport.h"
 
 namespace bluetooth {
 namespace {
@@ -258,25 +259,25 @@ TEST_F(AdapterTest, IsDeviceConnected) {
   ASSERT_TRUE(RawAddress::FromString(kDeviceAddr, hal_addr));
 
   // status != BT_STATUS_SUCCESS should be ignored
-  fake_hal_iface_->NotifyAclStateChangedCallback(BT_STATUS_FAIL, hal_addr,
-                                                 BT_ACL_STATE_CONNECTED,
-                                                 0xff); // HCI_ERR_UNDEFINED
+  fake_hal_iface_->NotifyAclStateChangedCallback(
+      BT_STATUS_FAIL, hal_addr, BT_ACL_STATE_CONNECTED, BT_TRANSPORT_LE,
+      0xff);  // HCI_ERR_UNDEFINED
   EXPECT_FALSE(adapter_->IsDeviceConnected(kDeviceAddr));
   EXPECT_TRUE(observer.last_connection_state_address().empty());
   EXPECT_FALSE(observer.last_device_connected_state());
 
   // Connected
-  fake_hal_iface_->NotifyAclStateChangedCallback(BT_STATUS_SUCCESS, hal_addr,
-                                                 BT_ACL_STATE_CONNECTED,
-                                                 0x00); // HCI_SUCCESS
+  fake_hal_iface_->NotifyAclStateChangedCallback(
+      BT_STATUS_SUCCESS, hal_addr, BT_ACL_STATE_CONNECTED, BT_TRANSPORT_LE,
+      0x00);  // HCI_SUCCESS
   EXPECT_TRUE(adapter_->IsDeviceConnected(kDeviceAddr));
   EXPECT_EQ(kDeviceAddr, observer.last_connection_state_address());
   EXPECT_TRUE(observer.last_device_connected_state());
 
   // Disconnected
-  fake_hal_iface_->NotifyAclStateChangedCallback(BT_STATUS_SUCCESS, hal_addr,
-                                                 BT_ACL_STATE_DISCONNECTED,
-                                                 0x16); // HCI_ERR_CONN_CAUSE_LOCAL_HOST
+  fake_hal_iface_->NotifyAclStateChangedCallback(
+      BT_STATUS_SUCCESS, hal_addr, BT_ACL_STATE_DISCONNECTED, BT_TRANSPORT_LE,
+      0x16);  // HCI_ERR_CONN_CAUSE_LOCAL_HOST
   EXPECT_FALSE(adapter_->IsDeviceConnected(kDeviceAddr));
   EXPECT_EQ(kDeviceAddr, observer.last_connection_state_address());
   EXPECT_FALSE(observer.last_device_connected_state());

@@ -137,17 +137,18 @@ void SSPRequestCallback(RawAddress* remote_bd_addr, bt_bdname_t* bd_name,
 }
 
 void BondStateChangedCallback(bt_status_t status, RawAddress* remote_bd_addr,
-                              bt_bond_state_t state) {
+                              bt_bond_state_t state, int fail_reason) {
   shared_lock<shared_mutex_impl> lock(g_instance_lock);
   VERIFY_INTERFACE_OR_RETURN();
   VLOG(2) << __func__ << " - remote_bd_addr: " << BtAddrString(remote_bd_addr)
           << " - status: " << status << " - state: " << state;
   FOR_EACH_BLUETOOTH_OBSERVER(
-      BondStateChangedCallback(status, remote_bd_addr, state));
+      BondStateChangedCallback(status, remote_bd_addr, state, fail_reason));
 }
 
 void AclStateChangedCallback(bt_status_t status, RawAddress* remote_bd_addr,
-                             bt_acl_state_t state, bt_hci_error_code_t hci_reason) {
+                             bt_acl_state_t state, int transport_link_type,
+                             bt_hci_error_code_t hci_reason) {
   shared_lock<shared_mutex_impl> lock(g_instance_lock);
   VERIFY_INTERFACE_OR_RETURN();
   CHECK(remote_bd_addr);
@@ -156,8 +157,8 @@ void AclStateChangedCallback(bt_status_t status, RawAddress* remote_bd_addr,
           << " - BD_ADDR: " << BtAddrString(remote_bd_addr) << " - state: "
           << ((state == BT_ACL_STATE_CONNECTED) ? "CONNECTED" : "DISCONNECTED")
           << " - HCI_REASON: " << std::to_string(hci_reason);
-  FOR_EACH_BLUETOOTH_OBSERVER(
-      AclStateChangedCallback(status, *remote_bd_addr, state, hci_reason));
+  FOR_EACH_BLUETOOTH_OBSERVER(AclStateChangedCallback(
+      status, *remote_bd_addr, state, transport_link_type, hci_reason));
 }
 
 void ThreadEventCallback(bt_cb_thread_evt evt) {
@@ -360,13 +361,15 @@ void BluetoothInterface::Observer::SSPRequestCallback(
 }
 
 void BluetoothInterface::Observer::BondStateChangedCallback(
-    bt_status_t status, RawAddress* remote_bd_addr, bt_bond_state_t state) {
+    bt_status_t status, RawAddress* remote_bd_addr, bt_bond_state_t state,
+    int fail_reason) {
   // Do nothing.
 }
 
 void BluetoothInterface::Observer::AclStateChangedCallback(
     bt_status_t /* status */, const RawAddress& /* remote_bdaddr */,
-    bt_acl_state_t /* state */, bt_hci_error_code_t /* hci_reason */) {
+    bt_acl_state_t /* state */, int /* transport_link_type */,
+    bt_hci_error_code_t /* hci_reason */) {
   // Do nothing.
 }
 
