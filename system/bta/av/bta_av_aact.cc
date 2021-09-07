@@ -3044,6 +3044,13 @@ void bta_av_vendor_offload_start(tBTA_AV_SCB* p_scb,
   ARRAY_TO_STREAM(p_param, offload_start->codec_info,
                   (int8_t)sizeof(offload_start->codec_info));
   p_scb->offload_started = true;
+  LOG_INFO(
+      "codec: %#x, sample rate: %#x, bit depth: %#x, channel: %#x, bitrate: "
+      "%#x, ACL: %#x, L2CAP: %#x, MTU: %#x",
+      offload_start->codec_type, offload_start->sample_rate,
+      offload_start->bits_per_sample, offload_start->ch_mode,
+      offload_start->encoded_audio_bitrate, offload_start->acl_hdl,
+      offload_start->l2c_rcid, offload_start->mtu);
   BTM_VendorSpecificCommand(HCI_CONTROLLER_A2DP, p_param - param,
                             param, offload_vendor_callback);
 }

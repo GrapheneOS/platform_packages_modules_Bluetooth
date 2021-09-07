@@ -79,9 +79,7 @@ typedef struct {
   uint16_t TxAaMtuSize;
 
   bool use_SCMS_T;
-  bool is_peer_edr;          // True if the peer device supports EDR
-  bool peer_supports_3mbps;  // True if the peer device supports 3Mbps EDR
-  uint16_t peer_mtu;         // MTU of the A2DP peer
+  tA2DP_ENCODER_INIT_PEER_PARAMS peer_params;
   uint32_t timestamp;        // Timestamp for the A2DP frames
 
   HANDLE_AACENCODER aac_handle;
@@ -94,12 +92,11 @@ typedef struct {
   a2dp_aac_encoder_stats_t stats;
 } tA2DP_AAC_ENCODER_CB;
 
-static uint32_t a2dp_aac_encoder_interval_ms = A2DP_AAC_ENCODER_INTERVAL_MS;
-
 static tA2DP_AAC_ENCODER_CB a2dp_aac_encoder_cb;
 
-static void a2dp_aac_encoder_update(uint16_t peer_mtu,
-                                    A2dpCodecConfig* a2dp_codec_config,
+static uint32_t a2dp_aac_encoder_interval_ms = A2DP_AAC_ENCODER_INTERVAL_MS;
+
+static void a2dp_aac_encoder_update(A2dpCodecConfig* a2dp_codec_config,
                                     bool* p_restart_input,
                                     bool* p_restart_output,
                                     bool* p_config_updated);
@@ -108,6 +105,8 @@ static void a2dp_aac_get_num_frame_iteration(uint8_t* num_of_iterations,
                                              uint64_t timestamp_us);
 static void a2dp_aac_encode_frames(uint8_t nb_frame);
 static bool a2dp_aac_read_feeding(uint8_t* read_buffer, uint32_t* bytes_read);
+static uint16_t adjust_effective_mtu(
+    const tA2DP_ENCODER_INIT_PEER_PARAMS& peer_params);
 
 bool A2DP_LoadEncoderAac(void) {
   // Nothing to do - the library is statically linked
@@ -134,9 +133,7 @@ void a2dp_aac_encoder_init(const tA2DP_ENCODER_INIT_PEER_PARAMS* p_peer_params,
 
   a2dp_aac_encoder_cb.read_callback = read_callback;
   a2dp_aac_encoder_cb.enqueue_callback = enqueue_callback;
-  a2dp_aac_encoder_cb.is_peer_edr = p_peer_params->is_peer_edr;
-  a2dp_aac_encoder_cb.peer_supports_3mbps = p_peer_params->peer_supports_3mbps;
-  a2dp_aac_encoder_cb.peer_mtu = p_peer_params->peer_mtu;
+  a2dp_aac_encoder_cb.peer_params = *p_peer_params;
   a2dp_aac_encoder_cb.timestamp = 0;
 
   a2dp_aac_encoder_cb.use_SCMS_T = false;  // TODO: should be a parameter
@@ -145,40 +142,17 @@ void a2dp_aac_encoder_init(const tA2DP_ENCODER_INIT_PEER_PARAMS* p_peer_params,
 #endif
 
   // NOTE: Ignore the restart_input / restart_output flags - this initization
-  // happens when the connection is (re)started.
+  // happens when the audio session is (re)started.
   bool restart_input = false;
   bool restart_output = false;
   bool config_updated = false;
-  a2dp_aac_encoder_update(a2dp_aac_encoder_cb.peer_mtu, a2dp_codec_config,
-                          &restart_input, &restart_output, &config_updated);
-}
-
-bool A2dpCodecConfigAacSource::updateEncoderUserConfig(
-    const tA2DP_ENCODER_INIT_PEER_PARAMS* p_peer_params, bool* p_restart_input,
-    bool* p_restart_output, bool* p_config_updated) {
-  a2dp_aac_encoder_cb.is_peer_edr = p_peer_params->is_peer_edr;
-  a2dp_aac_encoder_cb.peer_supports_3mbps = p_peer_params->peer_supports_3mbps;
-  a2dp_aac_encoder_cb.peer_mtu = p_peer_params->peer_mtu;
-  a2dp_aac_encoder_cb.timestamp = 0;
-
-  if (a2dp_aac_encoder_cb.peer_mtu == 0) {
-    LOG_ERROR(
-        "%s: Cannot update the codec encoder for %s: "
-        "invalid peer MTU",
-        __func__, name().c_str());
-    return false;
-  }
-
-  a2dp_aac_encoder_update(a2dp_aac_encoder_cb.peer_mtu, this, p_restart_input,
-                          p_restart_output, p_config_updated);
-  return true;
+  a2dp_aac_encoder_update(a2dp_codec_config, &restart_input, &restart_output,
+                          &config_updated);
 }
 
 // Update the A2DP AAC encoder.
-// |peer_mtu| is the peer MTU.
 // |a2dp_codec_config| is the A2DP codec to use for the update.
-static void a2dp_aac_encoder_update(uint16_t peer_mtu,
-                                    A2dpCodecConfig* a2dp_codec_config,
+static void a2dp_aac_encoder_update(A2dpCodecConfig* a2dp_codec_config,
                                     bool* p_restart_input,
                                     bool* p_restart_output,
                                     bool* p_config_updated) {
@@ -227,30 +201,11 @@ static void a2dp_aac_encoder_update(uint16_t peer_mtu,
       a2dp_aac_encoder_cb.feeding_params.sample_rate;
   p_encoder_params->channel_mode = A2DP_GetChannelModeCodeAac(p_codec_info);
 
-  LOG_VERBOSE("%s: original AVDTP MTU size: %d", __func__,
-              a2dp_aac_encoder_cb.TxAaMtuSize);
-  if (a2dp_aac_encoder_cb.is_peer_edr &&
-      !a2dp_aac_encoder_cb.peer_supports_3mbps) {
-    // This condition would be satisfied only if the remote device is
-    // EDR and supports only 2 Mbps, but the effective AVDTP MTU size
-    // exceeds the 2DH5 packet size.
-    LOG_VERBOSE("%s: The remote device is EDR but does not support 3 Mbps",
-                __func__);
-    if (peer_mtu > MAX_2MBPS_AVDTP_MTU) {
-      LOG_WARN("%s: Restricting AVDTP MTU size from %d to %d", __func__,
-               peer_mtu, MAX_2MBPS_AVDTP_MTU);
-      peer_mtu = MAX_2MBPS_AVDTP_MTU;
-    }
-  }
-  uint16_t mtu_size = BT_DEFAULT_BUFFER_SIZE - A2DP_AAC_OFFSET - sizeof(BT_HDR);
-  if (mtu_size < peer_mtu) {
-    a2dp_aac_encoder_cb.TxAaMtuSize = mtu_size;
-  } else {
-    a2dp_aac_encoder_cb.TxAaMtuSize = peer_mtu;
-  }
-
+  const tA2DP_ENCODER_INIT_PEER_PARAMS& peer_params =
+      a2dp_aac_encoder_cb.peer_params;
+  a2dp_aac_encoder_cb.TxAaMtuSize = adjust_effective_mtu(peer_params);
   LOG_INFO("%s: MTU=%d, peer_mtu=%d", __func__, a2dp_aac_encoder_cb.TxAaMtuSize,
-           peer_mtu);
+           peer_params.peer_mtu);
   LOG_INFO("%s: sample_rate: %d channel_mode: %d ", __func__,
            p_encoder_params->sample_rate, p_encoder_params->channel_mode);
 
@@ -524,6 +479,10 @@ uint64_t a2dp_aac_get_encoder_interval_ms(void) {
   return a2dp_aac_encoder_interval_ms;
 }
 
+int a2dp_aac_get_effective_frame_size() {
+  return a2dp_aac_encoder_cb.TxAaMtuSize;
+}
+
 void a2dp_aac_send_frames(uint64_t timestamp_us) {
   uint8_t nb_frame = 0;
   uint8_t nb_iterations = 0;
@@ -729,12 +688,26 @@ static bool a2dp_aac_read_feeding(uint8_t* read_buffer, uint32_t* bytes_read) {
   return true;
 }
 
-uint64_t A2dpCodecConfigAacSource::encoderIntervalMs() const {
-  return a2dp_aac_get_encoder_interval_ms();
-}
-
-int A2dpCodecConfigAacSource::getEffectiveMtu() const {
-  return a2dp_aac_encoder_cb.TxAaMtuSize;
+static uint16_t adjust_effective_mtu(
+    const tA2DP_ENCODER_INIT_PEER_PARAMS& peer_params) {
+  uint16_t mtu_size = BT_DEFAULT_BUFFER_SIZE - A2DP_AAC_OFFSET - sizeof(BT_HDR);
+  if (mtu_size > peer_params.peer_mtu) {
+    mtu_size = peer_params.peer_mtu;
+  }
+  LOG_VERBOSE("%s: original AVDTP MTU size: %d", __func__, mtu_size);
+  if (peer_params.is_peer_edr && !peer_params.peer_supports_3mbps) {
+    // This condition would be satisfied only if the remote device is
+    // EDR and supports only 2 Mbps, but the effective AVDTP MTU size
+    // exceeds the 2DH5 packet size.
+    LOG_VERBOSE("%s: The remote device is EDR but does not support 3 Mbps",
+                __func__);
+    if (mtu_size > MAX_2MBPS_AVDTP_MTU) {
+      LOG_WARN("%s: Restricting AVDTP MTU size from %d to %d", __func__,
+               mtu_size, MAX_2MBPS_AVDTP_MTU);
+      mtu_size = MAX_2MBPS_AVDTP_MTU;
+    }
+  }
+  return mtu_size;
 }
 
 void A2dpCodecConfigAacSource::debug_codec_dump(int fd) {
@@ -750,6 +723,9 @@ void A2dpCodecConfigAacSource::debug_codec_dump(int fd) {
       ((codec_specific_1 & ~A2DP_AAC_VARIABLE_BIT_RATE_MASK) == 0 ? "Constant"
                                                                   : "Variable"),
       codec_specific_1);
+  dprintf(fd, "  Encoder interval (ms): %" PRIu64 "\n",
+          a2dp_aac_get_encoder_interval_ms());
+  dprintf(fd, "  Effective MTU: %d\n", a2dp_aac_get_effective_frame_size());
   dprintf(fd,
           "  Packet counts (expected/dropped)                        : %zu / "
           "%zu\n",

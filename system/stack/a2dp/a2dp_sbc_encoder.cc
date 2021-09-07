@@ -96,9 +96,7 @@ typedef struct {
   a2dp_source_enqueue_callback_t enqueue_callback;
   uint16_t TxAaMtuSize;
   uint8_t tx_sbc_frames;
-  bool is_peer_edr;         /* True if the peer device supports EDR */
-  bool peer_supports_3mbps; /* True if the peer device supports 3Mbps EDR */
-  uint16_t peer_mtu;        /* MTU of the A2DP peer */
+  tA2DP_ENCODER_INIT_PEER_PARAMS peer_params;
   uint32_t timestamp;       /* Timestamp for the A2DP frames */
   SBC_ENC_PARAMS sbc_encoder_params;
   tA2DP_FEEDING_PARAMS feeding_params;
@@ -110,8 +108,7 @@ typedef struct {
 
 static tA2DP_SBC_ENCODER_CB a2dp_sbc_encoder_cb;
 
-static void a2dp_sbc_encoder_update(uint16_t peer_mtu,
-                                    A2dpCodecConfig* a2dp_codec_config,
+static void a2dp_sbc_encoder_update(A2dpCodecConfig* a2dp_codec_config,
                                     bool* p_restart_input,
                                     bool* p_restart_output,
                                     bool* p_config_updated);
@@ -120,8 +117,10 @@ static void a2dp_sbc_encode_frames(uint8_t nb_frame);
 static void a2dp_sbc_get_num_frame_iteration(uint8_t* num_of_iterations,
                                              uint8_t* num_of_frames,
                                              uint64_t timestamp_us);
+static uint16_t adjust_effective_mtu(
+    const tA2DP_ENCODER_INIT_PEER_PARAMS& peer_params);
 static uint8_t calculate_max_frames_per_packet(void);
-static uint16_t a2dp_sbc_source_rate();
+static uint16_t a2dp_sbc_source_rate(bool is_peer_edr);
 static uint32_t a2dp_sbc_frame_length(void);
 
 bool A2DP_LoadEncoderSbc(void) {
@@ -144,46 +143,21 @@ void a2dp_sbc_encoder_init(const tA2DP_ENCODER_INIT_PEER_PARAMS* p_peer_params,
 
   a2dp_sbc_encoder_cb.read_callback = read_callback;
   a2dp_sbc_encoder_cb.enqueue_callback = enqueue_callback;
-  a2dp_sbc_encoder_cb.is_peer_edr = p_peer_params->is_peer_edr;
-  a2dp_sbc_encoder_cb.peer_supports_3mbps = p_peer_params->peer_supports_3mbps;
-  a2dp_sbc_encoder_cb.peer_mtu = p_peer_params->peer_mtu;
+  a2dp_sbc_encoder_cb.peer_params = *p_peer_params;
   a2dp_sbc_encoder_cb.timestamp = 0;
 
   // NOTE: Ignore the restart_input / restart_output flags - this initization
-  // happens when the connection is (re)started.
+  // happens when the audio session is (re)started.
   bool restart_input = false;
   bool restart_output = false;
   bool config_updated = false;
-  a2dp_sbc_encoder_update(a2dp_sbc_encoder_cb.peer_mtu, a2dp_codec_config,
-                          &restart_input, &restart_output, &config_updated);
-}
-
-bool A2dpCodecConfigSbcSource::updateEncoderUserConfig(
-    const tA2DP_ENCODER_INIT_PEER_PARAMS* p_peer_params, bool* p_restart_input,
-    bool* p_restart_output, bool* p_config_updated) {
-  a2dp_sbc_encoder_cb.is_peer_edr = p_peer_params->is_peer_edr;
-  a2dp_sbc_encoder_cb.peer_supports_3mbps = p_peer_params->peer_supports_3mbps;
-  a2dp_sbc_encoder_cb.peer_mtu = p_peer_params->peer_mtu;
-  a2dp_sbc_encoder_cb.timestamp = 0;
-
-  if (a2dp_sbc_encoder_cb.peer_mtu == 0) {
-    LOG_ERROR(
-        "%s: Cannot update the codec encoder for %s: "
-        "invalid peer MTU",
-        __func__, name().c_str());
-    return false;
-  }
-
-  a2dp_sbc_encoder_update(a2dp_sbc_encoder_cb.peer_mtu, this, p_restart_input,
-                          p_restart_output, p_config_updated);
-  return true;
+  a2dp_sbc_encoder_update(a2dp_codec_config, &restart_input, &restart_output,
+                          &config_updated);
 }
 
 // Update the A2DP SBC encoder.
-// |peer_mtu| is the peer MTU.
 // |a2dp_codec_config| is the A2DP codec to use for the update.
-static void a2dp_sbc_encoder_update(uint16_t peer_mtu,
-                                    A2dpCodecConfig* a2dp_codec_config,
+static void a2dp_sbc_encoder_update(A2dpCodecConfig* a2dp_codec_config,
                                     bool* p_restart_input,
                                     bool* p_restart_output,
                                     bool* p_config_updated) {
@@ -251,13 +225,6 @@ static void a2dp_sbc_encoder_update(uint16_t peer_mtu,
     p_encoder_params->s16NumOfChannels = SBC_MAX_NUM_OF_CHANNELS;
   }
 
-  uint16_t mtu_size = A2DP_SBC_BUFFER_SIZE - A2DP_SBC_OFFSET - sizeof(BT_HDR);
-  if (mtu_size < peer_mtu) {
-    a2dp_sbc_encoder_cb.TxAaMtuSize = mtu_size;
-  } else {
-    a2dp_sbc_encoder_cb.TxAaMtuSize = peer_mtu;
-  }
-
   if (p_encoder_params->s16SamplingFreq == SBC_sf16000)
     s16SamplingFreq = 16000;
   else if (p_encoder_params->s16SamplingFreq == SBC_sf32000)
@@ -268,10 +235,14 @@ static void a2dp_sbc_encoder_update(uint16_t peer_mtu,
     s16SamplingFreq = 48000;
 
   // Set the initial target bit rate
-  p_encoder_params->u16BitRate = a2dp_sbc_source_rate();
+  const tA2DP_ENCODER_INIT_PEER_PARAMS& peer_params =
+      a2dp_sbc_encoder_cb.peer_params;
+  p_encoder_params->u16BitRate = a2dp_sbc_source_rate(peer_params.is_peer_edr);
 
+  a2dp_sbc_encoder_cb.TxAaMtuSize = adjust_effective_mtu(peer_params);
   LOG_INFO("%s: MTU=%d, peer_mtu=%d min_bitpool=%d max_bitpool=%d", __func__,
-           a2dp_sbc_encoder_cb.TxAaMtuSize, peer_mtu, min_bitpool, max_bitpool);
+           a2dp_sbc_encoder_cb.TxAaMtuSize, peer_params.peer_mtu, min_bitpool,
+           max_bitpool);
   LOG_INFO(
       "%s: ChannelMode=%d, NumOfSubBands=%d, NumOfBlocks=%d, "
       "AllocationMethod=%d, BitRate=%d, SamplingFreq=%d BitPool=%d",
@@ -397,6 +368,10 @@ uint64_t a2dp_sbc_get_encoder_interval_ms(void) {
   return A2DP_SBC_ENCODER_INTERVAL_MS;
 }
 
+int a2dp_sbc_get_effective_frame_size() {
+  return a2dp_sbc_encoder_cb.TxAaMtuSize;
+}
+
 void a2dp_sbc_send_frames(uint64_t timestamp_us) {
   uint8_t nb_frame = 0;
   uint8_t nb_iterations = 0;
@@ -458,7 +433,7 @@ static void a2dp_sbc_get_num_frame_iteration(uint8_t* num_of_iterations,
 
   LOG_VERBOSE("%s: frames for available PCM data %u", __func__, projected_nof);
 
-  if (a2dp_sbc_encoder_cb.is_peer_edr) {
+  if (a2dp_sbc_encoder_cb.peer_params.is_peer_edr) {
     if (!a2dp_sbc_encoder_cb.tx_sbc_frames) {
       LOG_ERROR("%s: tx_sbc_frames not updated, update from here", __func__);
       a2dp_sbc_encoder_cb.tx_sbc_frames = calculate_max_frames_per_packet();
@@ -743,29 +718,36 @@ static bool a2dp_sbc_read_feeding(uint32_t* bytes_read) {
   return true;
 }
 
-static uint8_t calculate_max_frames_per_packet(void) {
-  uint16_t effective_mtu_size = a2dp_sbc_encoder_cb.TxAaMtuSize;
-  SBC_ENC_PARAMS* p_encoder_params = &a2dp_sbc_encoder_cb.sbc_encoder_params;
-  uint16_t result = 0;
-  uint32_t frame_len;
-
-  LOG_VERBOSE("%s: original AVDTP MTU size: %d", __func__,
-              a2dp_sbc_encoder_cb.TxAaMtuSize);
-  if (a2dp_sbc_encoder_cb.is_peer_edr &&
-      !a2dp_sbc_encoder_cb.peer_supports_3mbps) {
+static uint16_t adjust_effective_mtu(
+    const tA2DP_ENCODER_INIT_PEER_PARAMS& peer_params) {
+  uint16_t mtu_size = A2DP_SBC_BUFFER_SIZE - A2DP_SBC_OFFSET - sizeof(BT_HDR);
+  if (mtu_size > peer_params.peer_mtu) {
+    mtu_size = peer_params.peer_mtu;
+  }
+  LOG_VERBOSE("%s: original AVDTP MTU size: %d", __func__, mtu_size);
+  if (peer_params.is_peer_edr && !peer_params.peer_supports_3mbps) {
     // This condition would be satisfied only if the remote device is
     // EDR and supports only 2 Mbps, but the effective AVDTP MTU size
     // exceeds the 2DH5 packet size.
     LOG_VERBOSE("%s: The remote device is EDR but does not support 3 Mbps",
                 __func__);
-
-    if (effective_mtu_size > MAX_2MBPS_AVDTP_MTU) {
-      LOG_WARN("%s: Restricting AVDTP MTU size to %d", __func__,
-               MAX_2MBPS_AVDTP_MTU);
-      effective_mtu_size = MAX_2MBPS_AVDTP_MTU;
-      a2dp_sbc_encoder_cb.TxAaMtuSize = effective_mtu_size;
+    if (mtu_size > MAX_2MBPS_AVDTP_MTU) {
+      LOG_WARN("%s: Restricting AVDTP MTU size from %d to %d", __func__,
+               mtu_size, MAX_2MBPS_AVDTP_MTU);
+      mtu_size = MAX_2MBPS_AVDTP_MTU;
     }
   }
+  return mtu_size;
+}
+
+static uint8_t calculate_max_frames_per_packet(void) {
+  SBC_ENC_PARAMS* p_encoder_params = &a2dp_sbc_encoder_cb.sbc_encoder_params;
+  uint16_t result = 0;
+  uint32_t frame_len;
+
+  a2dp_sbc_encoder_cb.TxAaMtuSize =
+      adjust_effective_mtu(a2dp_sbc_encoder_cb.peer_params);
+  const uint16_t& effective_mtu_size = a2dp_sbc_encoder_cb.TxAaMtuSize;
 
   if (!p_encoder_params->s16NumOfSubBands) {
     LOG_ERROR("%s: SubBands are set to 0, resetting to %d", __func__,
@@ -816,11 +798,11 @@ static uint8_t calculate_max_frames_per_packet(void) {
   return result;
 }
 
-static uint16_t a2dp_sbc_source_rate() {
+static uint16_t a2dp_sbc_source_rate(bool is_peer_edr) {
   uint16_t rate = A2DP_SBC_DEFAULT_BITRATE;
 
   /* restrict bitrate if a2dp link is non-edr */
-  if (!a2dp_sbc_encoder_cb.is_peer_edr) {
+  if (!is_peer_edr) {
     rate = A2DP_SBC_NON_EDR_MAX_RATE;
     LOG_VERBOSE("%s: non-edr a2dp sink detected, restrict rate to %d", __func__,
                 rate);
@@ -891,14 +873,6 @@ uint32_t a2dp_sbc_get_bitrate() {
   return p_encoder_params->u16BitRate * 1000;
 }
 
-uint64_t A2dpCodecConfigSbcSource::encoderIntervalMs() const {
-  return a2dp_sbc_get_encoder_interval_ms();
-}
-
-int A2dpCodecConfigSbcSource::getEffectiveMtu() const {
-  return a2dp_sbc_encoder_cb.TxAaMtuSize;
-}
-
 void A2dpCodecConfigSbcSource::debug_codec_dump(int fd) {
   a2dp_sbc_encoder_stats_t* stats = &a2dp_sbc_encoder_cb.stats;
 
@@ -907,20 +881,23 @@ void A2dpCodecConfigSbcSource::debug_codec_dump(int fd) {
   uint8_t codec_info[AVDT_CODEC_SIZE];
   if (copyOutOtaCodecConfig(codec_info)) {
     dprintf(fd,
-            "  Block length                                            : %d\n",
+            "  SBC Block length                                        : %d\n",
             A2DP_GetNumberOfBlocksSbc(codec_info));
     dprintf(fd,
-            "  Number of subbands                                      : %d\n",
+            "  SBC Number of subbands                                  : %d\n",
             A2DP_GetNumberOfSubbandsSbc(codec_info));
     dprintf(fd,
-            "  Allocation method                                       : %d\n",
+            "  SBC Allocation method                                   : %d\n",
             A2DP_GetAllocationMethodCodeSbc(codec_info));
     dprintf(
         fd,
-        "  Bitpool (min/max)                                       : %d / %d\n",
+        "  SBC Bitpool (min/max)                                   : %d / %d\n",
         A2DP_GetMinBitpoolSbc(codec_info), A2DP_GetMaxBitpoolSbc(codec_info));
   }
 
+  dprintf(fd, "  Encoder interval (ms): %" PRIu64 "\n",
+          a2dp_sbc_get_encoder_interval_ms());
+  dprintf(fd, "  Effective MTU: %d\n", a2dp_sbc_get_effective_frame_size());
   dprintf(fd,
           "  Packet counts (expected/dropped)                        : %zu / "
           "%zu\n",

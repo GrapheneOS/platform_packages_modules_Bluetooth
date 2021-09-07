@@ -81,6 +81,10 @@ A2dpCodecConfig* bta_av_get_a2dp_current_codec(void);
 A2dpCodecConfig* bta_av_get_a2dp_peer_current_codec(
     const RawAddress& peer_address);
 
+// Gets the A2DP effective frame size from the current encoder.
+// Returns the effective frame size if the encoder is configured, otherwise 0.
+int bta_av_co_get_encoder_effective_frame_size();
+
 // Dump A2DP codec debug-related information for the A2DP module.
 // |fd| is the file descriptor to use for writing the ASCII formatted
 // information.

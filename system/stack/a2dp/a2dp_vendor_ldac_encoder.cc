@@ -149,9 +149,7 @@ typedef struct {
   size_t TxQueueLength;
 
   bool use_SCMS_T;
-  bool is_peer_edr;          // True if the peer device supports EDR
-  bool peer_supports_3mbps;  // True if the peer device supports 3Mbps EDR
-  uint16_t peer_mtu;         // MTU of the A2DP peer
+  tA2DP_ENCODER_INIT_PEER_PARAMS peer_params;
   uint32_t timestamp;        // Timestamp for the A2DP frames
 
   HANDLE_LDAC_BT ldac_handle;
@@ -173,8 +171,7 @@ static bool ldac_abr_loaded = false;
 
 static tA2DP_LDAC_ENCODER_CB a2dp_ldac_encoder_cb;
 
-static void a2dp_vendor_ldac_encoder_update(uint16_t peer_mtu,
-                                            A2dpCodecConfig* a2dp_codec_config,
+static void a2dp_vendor_ldac_encoder_update(A2dpCodecConfig* a2dp_codec_config,
                                             bool* p_restart_input,
                                             bool* p_restart_output,
                                             bool* p_config_updated);
@@ -183,6 +180,8 @@ static void a2dp_ldac_get_num_frame_iteration(uint8_t* num_of_iterations,
                                               uint64_t timestamp_us);
 static void a2dp_ldac_encode_frames(uint8_t nb_frame);
 static bool a2dp_ldac_read_feeding(uint8_t* read_buffer, uint32_t* bytes_read);
+static uint16_t adjust_effective_mtu(
+    const tA2DP_ENCODER_INIT_PEER_PARAMS& peer_params);
 static std::string quality_mode_index_to_name(int quality_mode_index);
 
 static void* load_func(const char* func_name) {
@@ -291,9 +290,7 @@ void a2dp_vendor_ldac_encoder_init(
 
   a2dp_ldac_encoder_cb.read_callback = read_callback;
   a2dp_ldac_encoder_cb.enqueue_callback = enqueue_callback;
-  a2dp_ldac_encoder_cb.is_peer_edr = p_peer_params->is_peer_edr;
-  a2dp_ldac_encoder_cb.peer_supports_3mbps = p_peer_params->peer_supports_3mbps;
-  a2dp_ldac_encoder_cb.peer_mtu = p_peer_params->peer_mtu;
+  a2dp_ldac_encoder_cb.peer_params = *p_peer_params;
   a2dp_ldac_encoder_cb.timestamp = 0;
   a2dp_ldac_encoder_cb.ldac_abr_handle = NULL;
   a2dp_ldac_encoder_cb.has_ldac_abr_handle = false;
@@ -306,42 +303,17 @@ void a2dp_vendor_ldac_encoder_init(
 #endif
 
   // NOTE: Ignore the restart_input / restart_output flags - this initization
-  // happens when the connection is (re)started.
+  // happens when the audio session is (re)started.
   bool restart_input = false;
   bool restart_output = false;
   bool config_updated = false;
-  a2dp_vendor_ldac_encoder_update(a2dp_ldac_encoder_cb.peer_mtu,
-                                  a2dp_codec_config, &restart_input,
+  a2dp_vendor_ldac_encoder_update(a2dp_codec_config, &restart_input,
                                   &restart_output, &config_updated);
 }
 
-bool A2dpCodecConfigLdacSource::updateEncoderUserConfig(
-    const tA2DP_ENCODER_INIT_PEER_PARAMS* p_peer_params, bool* p_restart_input,
-    bool* p_restart_output, bool* p_config_updated) {
-  a2dp_ldac_encoder_cb.is_peer_edr = p_peer_params->is_peer_edr;
-  a2dp_ldac_encoder_cb.peer_supports_3mbps = p_peer_params->peer_supports_3mbps;
-  a2dp_ldac_encoder_cb.peer_mtu = p_peer_params->peer_mtu;
-  a2dp_ldac_encoder_cb.timestamp = 0;
-
-  if (a2dp_ldac_encoder_cb.peer_mtu == 0) {
-    LOG_ERROR(
-        "%s: Cannot update the codec encoder for %s: "
-        "invalid peer MTU",
-        __func__, name().c_str());
-    return false;
-  }
-
-  a2dp_vendor_ldac_encoder_update(a2dp_ldac_encoder_cb.peer_mtu, this,
-                                  p_restart_input, p_restart_output,
-                                  p_config_updated);
-  return true;
-}
-
 // Update the A2DP LDAC encoder.
-// |peer_mtu| is the peer MTU.
 // |a2dp_codec_config| is the A2DP codec to use for the update.
-static void a2dp_vendor_ldac_encoder_update(uint16_t peer_mtu,
-                                            A2dpCodecConfig* a2dp_codec_config,
+static void a2dp_vendor_ldac_encoder_update(A2dpCodecConfig* a2dp_codec_config,
                                             bool* p_restart_input,
                                             bool* p_restart_output,
                                             bool* p_config_updated) {
@@ -391,14 +363,6 @@ static void a2dp_vendor_ldac_encoder_update(uint16_t peer_mtu,
       a2dp_ldac_encoder_cb.feeding_params.sample_rate;
   p_encoder_params->channel_mode =
       A2DP_VendorGetChannelModeCodeLdac(p_codec_info);
-
-  uint16_t mtu_size =
-      BT_DEFAULT_BUFFER_SIZE - A2DP_LDAC_OFFSET - sizeof(BT_HDR);
-  if (mtu_size < peer_mtu) {
-    a2dp_ldac_encoder_cb.TxAaMtuSize = mtu_size;
-  } else {
-    a2dp_ldac_encoder_cb.TxAaMtuSize = peer_mtu;
-  }
 
   // Set the quality mode index
   int old_quality_mode_index = p_encoder_params->quality_mode_index;
@@ -478,8 +442,11 @@ static void a2dp_vendor_ldac_encoder_update(uint16_t peer_mtu,
   else if (p_encoder_params->pcm_wlength == 4)
     p_encoder_params->pcm_fmt = LDACBT_SMPL_FMT_S32;
 
+  const tA2DP_ENCODER_INIT_PEER_PARAMS& peer_params =
+      a2dp_ldac_encoder_cb.peer_params;
+  a2dp_ldac_encoder_cb.TxAaMtuSize = adjust_effective_mtu(peer_params);
   LOG_INFO("%s: MTU=%d, peer_mtu=%d", __func__,
-           a2dp_ldac_encoder_cb.TxAaMtuSize, peer_mtu);
+           a2dp_ldac_encoder_cb.TxAaMtuSize, peer_params.peer_mtu);
   LOG_INFO(
       "%s: sample_rate: %d channel_mode: %d "
       "quality_mode_index: %d pcm_wlength: %d pcm_fmt: %d",
@@ -534,6 +501,10 @@ void a2dp_vendor_ldac_feeding_flush(void) {
 
 uint64_t a2dp_vendor_ldac_get_encoder_interval_ms(void) {
   return A2DP_LDAC_ENCODER_INTERVAL_MS;
+}
+
+int a2dp_vendor_ldac_get_effective_frame_size() {
+  return a2dp_ldac_encoder_cb.TxAaMtuSize;
 }
 
 void a2dp_vendor_ldac_send_frames(uint64_t timestamp_us) {
@@ -738,6 +709,17 @@ static bool a2dp_ldac_read_feeding(uint8_t* read_buffer, uint32_t* bytes_read) {
   return true;
 }
 
+static uint16_t adjust_effective_mtu(
+    const tA2DP_ENCODER_INIT_PEER_PARAMS& peer_params) {
+  uint16_t mtu_size =
+      BT_DEFAULT_BUFFER_SIZE - A2DP_LDAC_OFFSET - sizeof(BT_HDR);
+  if (mtu_size > peer_params.peer_mtu) {
+    mtu_size = peer_params.peer_mtu;
+  }
+  LOG_VERBOSE("%s: original AVDTP MTU size: %d", __func__, mtu_size);
+  return mtu_size;
+}
+
 static std::string quality_mode_index_to_name(int quality_mode_index) {
   switch (quality_mode_index) {
     case A2DP_LDAC_QUALITY_HIGH:
@@ -757,38 +739,12 @@ void a2dp_vendor_ldac_set_transmit_queue_length(size_t transmit_queue_length) {
   a2dp_ldac_encoder_cb.TxQueueLength = transmit_queue_length;
 }
 
-uint64_t A2dpCodecConfigLdacSource::encoderIntervalMs() const {
-  return a2dp_vendor_ldac_get_encoder_interval_ms();
-}
-
-int A2dpCodecConfigLdacSource::getEffectiveMtu() const {
-  return a2dp_ldac_encoder_cb.TxAaMtuSize;
-}
-
 void A2dpCodecConfigLdacSource::debug_codec_dump(int fd) {
   a2dp_ldac_encoder_stats_t* stats = &a2dp_ldac_encoder_cb.stats;
   tA2DP_LDAC_ENCODER_PARAMS* p_encoder_params =
       &a2dp_ldac_encoder_cb.ldac_encoder_params;
 
   A2dpCodecConfig::debug_codec_dump(fd);
-
-  dprintf(fd,
-          "  Packet counts (expected/dropped)                        : %zu / "
-          "%zu\n",
-          stats->media_read_total_expected_packets,
-          stats->media_read_total_dropped_packets);
-
-  dprintf(fd,
-          "  PCM read counts (expected/actual)                       : %zu / "
-          "%zu\n",
-          stats->media_read_total_expected_reads_count,
-          stats->media_read_total_actual_reads_count);
-
-  dprintf(fd,
-          "  PCM read bytes (expected/actual)                        : %zu / "
-          "%zu\n",
-          stats->media_read_total_expected_read_bytes,
-          stats->media_read_total_actual_read_bytes);
 
   dprintf(
       fd, "  LDAC quality mode                                       : %s\n",
@@ -809,4 +765,25 @@ void A2dpCodecConfigLdacSource::debug_codec_dump(int fd) {
             "  LDAC adaptive bit rate adjustments                      : %zu\n",
             a2dp_ldac_encoder_cb.ldac_abr_adjustments);
   }
+  dprintf(fd, "  Encoder interval (ms): %" PRIu64 "\n",
+          a2dp_vendor_ldac_get_encoder_interval_ms());
+  dprintf(fd, "  Effective MTU: %d\n",
+          a2dp_vendor_ldac_get_effective_frame_size());
+  dprintf(fd,
+          "  Packet counts (expected/dropped)                        : %zu / "
+          "%zu\n",
+          stats->media_read_total_expected_packets,
+          stats->media_read_total_dropped_packets);
+
+  dprintf(fd,
+          "  PCM read counts (expected/actual)                       : %zu / "
+          "%zu\n",
+          stats->media_read_total_expected_reads_count,
+          stats->media_read_total_actual_reads_count);
+
+  dprintf(fd,
+          "  PCM read bytes (expected/actual)                        : %zu / "
+          "%zu\n",
+          stats->media_read_total_expected_read_bytes,
+          stats->media_read_total_actual_read_bytes);
 }
