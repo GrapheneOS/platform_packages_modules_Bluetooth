@@ -24,6 +24,7 @@ class LeScanningManagerTest(GdBaseTestClass, LeScanningManagerTestBase):
         GdBaseTestClass.setup_class(self, dut_module='HCI_INTERFACES', cert_module='HCI_INTERFACES')
 
     def setup_test(self):
+        GdBaseTestClass.set_controller_properties_path(self, 'hci/cert/le_legacy_config.json')
         GdBaseTestClass.setup_test(self)
         LeScanningManagerTestBase.setup_test(self, self.cert)
 
