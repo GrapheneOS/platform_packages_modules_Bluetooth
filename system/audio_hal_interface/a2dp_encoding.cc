@@ -277,7 +277,7 @@ bool a2dp_get_selected_hal_codec_config(CodecConfiguration* codec_config) {
   RawAddress peer_addr = btif_av_source_active_peer();
   tA2DP_ENCODER_INIT_PEER_PARAMS peer_param;
   bta_av_co_get_peer_params(peer_addr, &peer_param);
-  int effectiveMtu = a2dp_config->getEffectiveMtu();
+  int effectiveMtu = bta_av_co_get_encoder_effective_frame_size();
   if (effectiveMtu > 0 && effectiveMtu < peer_param.peer_mtu) {
     codec_config->peerMtu = effectiveMtu;
   } else {
