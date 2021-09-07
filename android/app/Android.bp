@@ -105,6 +105,7 @@ android_app {
         "guava",
         "android.hardware.radio-V1.0-java",
         "mmslib",
+        "modules-utils-backgroundthread",
     ],
 
     plugins: [
