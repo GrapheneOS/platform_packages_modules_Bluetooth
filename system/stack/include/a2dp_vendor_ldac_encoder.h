@@ -53,6 +53,9 @@ void a2dp_vendor_ldac_feeding_flush(void);
 // Get the A2DP LDAC encoder interval (in milliseconds).
 uint64_t a2dp_vendor_ldac_get_encoder_interval_ms(void);
 
+// Get the A2DP LDAC encoded maximum frame size
+int a2dp_vendor_ldac_get_effective_frame_size();
+
 // Prepare and send A2DP LDAC encoded frames.
 // |timestamp_us| is the current timestamp (in microseconds).
 void a2dp_vendor_ldac_send_frames(uint64_t timestamp_us);

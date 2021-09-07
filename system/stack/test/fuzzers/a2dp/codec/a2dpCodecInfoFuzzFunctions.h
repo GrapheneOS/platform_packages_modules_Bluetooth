@@ -206,6 +206,11 @@ std::vector<std::function<void(FuzzedDataProvider*, uint8_t*)>>
           A2DP_InitCodecConfig(getArbitraryBtavCodecIndex(fdp), &cfg_retval);
         },
 
+        // A2DP_GetEecoderEffectiveFrameSize
+        [](FuzzedDataProvider* fdp, uint8_t* codec_info) -> void {
+          A2DP_GetEecoderEffectiveFrameSize(codec_info);
+        },
+
         // A2DP_CodecInfoString
         [](FuzzedDataProvider* fdp, uint8_t* codec_info) -> void {
           A2DP_CodecInfoString(codec_info);
