@@ -19,7 +19,6 @@ package com.android.bluetooth.btservice;
 import static android.Manifest.permission.BLUETOOTH_CONNECT;
 
 import android.annotation.RequiresPermission;
-import android.annotation.Nullable;
 import android.app.Activity;
 import android.app.ActivityThread;
 import android.bluetooth.BluetoothAdapter;
@@ -29,11 +28,8 @@ import android.bluetooth.BluetoothProfile;
 import android.bluetooth.BluetoothProtoEnums;
 import android.bluetooth.OobData;
 import android.content.Attributable;
-import android.content.BroadcastReceiver;
 import android.content.Intent;
 import android.os.Build;
-import android.os.Bundle;
-import android.os.Handler;
 import android.os.Message;
 import android.os.UserHandle;
 import android.util.Log;
@@ -444,7 +440,7 @@ final class BondStateMachine extends StateMachine {
                 + state2str(newState));
     }
 
-    void bondStateChangeCallback(int status, byte[] address, int newState) {
+    void bondStateChangeCallback(int status, byte[] address, int newState, int hciReason) {
         BluetoothDevice device = mRemoteDevices.getDevice(address);
 
         if (device == null) {
@@ -455,7 +451,7 @@ final class BondStateMachine extends StateMachine {
         }
 
         infoLog("bondStateChangeCallback: Status: " + status + " Address: " + device + " newState: "
-                + newState);
+                + newState + " hciReason: " + hciReason);
 
         Message msg = obtainMessage(BONDING_STATE_CHANGE);
         msg.obj = device;

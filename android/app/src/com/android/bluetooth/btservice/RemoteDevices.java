@@ -653,7 +653,8 @@ final class RemoteDevices {
         }
     }
 
-    void aclStateChangeCallback(int status, byte[] address, int newState, int hciReason) {
+    void aclStateChangeCallback(int status, byte[] address, int newState,
+                                int transportLinkType, int hciReason) {
         BluetoothDevice device = getDevice(address);
 
         if (device == null) {
@@ -695,7 +696,9 @@ final class RemoteDevices {
             }
             debugLog(
                     "aclStateChangeCallback: Adapter State: " + BluetoothAdapter.nameForState(state)
-                            + " Disconnected: " + device);
+                            + " Disconnected: " + device
+                            + " transportLinkType: " + transportLinkType
+                            + " hciReason: " + hciReason);
         }
 
         int connectionState = newState == AbstractionLayer.BT_ACL_STATE_CONNECTED
@@ -709,10 +712,9 @@ final class RemoteDevices {
                 sAdapterService.obfuscateAddress(device), classOfDevice, metricId);
 
         if (intent != null) {
-            intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
-            intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY_BEFORE_BOOT
-                    | Intent.FLAG_RECEIVER_INCLUDE_BACKGROUND);
-            intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY_BEFORE_BOOT);
+            intent.putExtra(BluetoothDevice.EXTRA_DEVICE, device)
+                .addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY_BEFORE_BOOT)
+                .addFlags(Intent.FLAG_RECEIVER_INCLUDE_BACKGROUND);
             sAdapterService.sendBroadcast(intent, BLUETOOTH_CONNECT,
                     Utils.getTempAllowlistBroadcastOptions());
 
