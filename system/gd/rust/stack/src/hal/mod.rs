@@ -34,12 +34,10 @@ module! {
 /// H4 packet header size
 const H4_HEADER_SIZE: usize = 1;
 
-pub use snoop::AclHal;
-pub use snoop::ControlHal;
-pub use snoop::IsoHal;
+pub use snoop::{AclHal, ControlHal, IsoHal, ScoHal};
 
 mod internal {
-    use bt_packets::hci::{AclPacket, CommandPacket, EventPacket, IsoPacket};
+    use bt_packets::hci::{AclPacket, CommandPacket, EventPacket, IsoPacket, ScoPacket};
     use gddi::Stoppable;
     use std::sync::Arc;
     use tokio::sync::mpsc::{unbounded_channel, UnboundedReceiver, UnboundedSender};
@@ -53,6 +51,8 @@ mod internal {
         pub acl_rx: Arc<Mutex<UnboundedReceiver<AclPacket>>>,
         pub iso_tx: UnboundedSender<IsoPacket>,
         pub iso_rx: Arc<Mutex<UnboundedReceiver<IsoPacket>>>,
+        pub sco_tx: UnboundedSender<ScoPacket>,
+        pub sco_rx: Arc<Mutex<UnboundedReceiver<ScoPacket>>>,
     }
 
     pub struct InnerHal {
@@ -60,6 +60,8 @@ mod internal {
         pub evt_tx: UnboundedSender<EventPacket>,
         pub acl_rx: UnboundedReceiver<AclPacket>,
         pub acl_tx: UnboundedSender<AclPacket>,
+        pub sco_rx: UnboundedReceiver<ScoPacket>,
+        pub sco_tx: UnboundedSender<ScoPacket>,
         pub iso_rx: UnboundedReceiver<IsoPacket>,
         pub iso_tx: UnboundedSender<IsoPacket>,
     }
@@ -69,8 +71,10 @@ mod internal {
             let (cmd_tx, cmd_rx) = unbounded_channel();
             let (evt_tx, evt_rx) = unbounded_channel();
             let (acl_down_tx, acl_down_rx) = unbounded_channel();
+            let (sco_down_tx, sco_down_rx) = unbounded_channel();
             let (iso_down_tx, iso_down_rx) = unbounded_channel();
             let (acl_up_tx, acl_up_rx) = unbounded_channel();
+            let (sco_up_tx, sco_up_rx) = unbounded_channel();
             let (iso_up_tx, iso_up_rx) = unbounded_channel();
             (
                 RawHal {
@@ -78,6 +82,8 @@ mod internal {
                     evt_rx: Arc::new(Mutex::new(evt_rx)),
                     acl_tx: acl_down_tx,
                     acl_rx: Arc::new(Mutex::new(acl_up_rx)),
+                    sco_tx: sco_down_tx,
+                    sco_rx: Arc::new(Mutex::new(sco_up_rx)),
                     iso_tx: iso_down_tx,
                     iso_rx: Arc::new(Mutex::new(iso_up_rx)),
                 },
@@ -86,6 +92,8 @@ mod internal {
                     evt_tx,
                     acl_rx: acl_down_rx,
                     acl_tx: acl_up_tx,
+                    sco_rx: sco_down_rx,
+                    sco_tx: sco_up_tx,
                     iso_rx: iso_down_rx,
                     iso_tx: iso_up_tx,
                 },

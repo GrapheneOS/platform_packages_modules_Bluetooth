@@ -77,6 +77,8 @@ static void fragment_and_dispatch(BT_HDR* packet) {
 
   if (event == MSG_STACK_TO_HC_HCI_ACL) {
     fragment_and_dispatch_acl(packet);
+  } else if (event == MSG_HC_TO_STACK_HCI_SCO) {
+    callbacks->fragmented(packet, true);
   } else if (event == MSG_STACK_TO_HC_HCI_ISO) {
     fragment_and_dispatch_iso(packet);
   } else {
@@ -484,6 +486,8 @@ static void reassemble_and_dispatch(BT_HDR* packet) {
         callbacks->reassembled(partial_packet);
       }
     }
+  } else if ((packet->event & MSG_EVT_MASK) == MSG_HC_TO_STACK_HCI_SCO) {
+    callbacks->reassembled(packet);
   } else if ((packet->event & MSG_EVT_MASK) == MSG_HC_TO_STACK_HCI_ISO) {
     reassemble_and_dispatch_iso(packet);
   } else {
