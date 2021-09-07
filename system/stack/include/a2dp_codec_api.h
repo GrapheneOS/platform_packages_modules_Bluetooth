@@ -124,11 +124,6 @@ class A2dpCodecConfig {
   // the Marker bit in the header is set according to RFC 6416.
   virtual bool useRtpHeaderMarkerBit() const = 0;
 
-  // Gets the effective MTU for the A2DP codec.
-  // Returns the effective MTU of current codec configuration, or 0 if not
-  // configured.
-  virtual int getEffectiveMtu() const = 0;
-
   // Checks whether |codec_config| is empty and contains no configuration.
   // Returns true if |codec_config| is empty, otherwise false.
   static bool isCodecConfigEmpty(const btav_a2dp_codec_config_t& codec_config);
@@ -180,20 +175,6 @@ class A2dpCodecConfig {
       uint8_t* p_result_codec_config, bool* p_restart_input,
       bool* p_restart_output, bool* p_config_updated);
 
-  // Updates the encoder with the user prefered codec configuration.
-  // |p_peer_params| contains the A2DP peer information.
-  // If there is a change in the encoder configuration that requires restarting
-  // the audio input stream, flag |p_restart_input| is set to true.
-  // If there is a change in the encoder configuration that requires restarting
-  // of the A2DP connection, flag |p_restart_output| is set to true.
-  // If there is any change in the codec configuration, flag |p_config_updated|
-  // is set to true.
-  // Returns true on success, otherwise false.
-  virtual bool updateEncoderUserConfig(
-      const tA2DP_ENCODER_INIT_PEER_PARAMS* p_peer_params,
-      bool* p_restart_input, bool* p_restart_output,
-      bool* p_config_updated) = 0;
-
   // Sets the codec capabilities for a peer.
   // |p_peer_codec_capabiltities| is the peer codec capabilities to set.
   // Returns true on success, otherwise false.
@@ -214,9 +195,6 @@ class A2dpCodecConfig {
 
   // Checks whether the internal state is valid
   virtual bool isValid() const;
-
-  // Returns the encoder's periodic interval (in milliseconds).
-  virtual uint64_t encoderIntervalMs() const = 0;
 
   // Checks whether the A2DP Codec Configuration is valid.
   // Returns true if A2DP Codec Configuration stored in |codec_config|
@@ -532,6 +510,9 @@ typedef struct {
   // Get the A2DP encoder interval (in milliseconds).
   uint64_t (*get_encoder_interval_ms)(void);
 
+  // Get the A2DP encoded maximum frame size (similar to MTU).
+  int (*get_effective_frame_size)(void);
+
   // Prepare and send A2DP encoded frames.
   // |timestamp_us| is the current timestamp (in microseconds).
   void (*send_frames)(uint64_t timestamp_us);
@@ -726,6 +707,13 @@ const char* A2DP_CodecIndexStr(btav_a2dp_codec_index_t codec_index);
 // Returns true on success, otherwise false.
 bool A2DP_InitCodecConfig(btav_a2dp_codec_index_t codec_index,
                           AvdtpSepConfig* p_cfg);
+
+// Gets the A2DP effective frame size that each encoded media frame should not
+// exceed this value.
+// |p_codec_info| contains the codec information.
+// Returns the effective frame size if the encoder is configured with this
+// |p_codec_info|, otherwise 0.
+int A2DP_GetEecoderEffectiveFrameSize(const uint8_t* p_codec_info);
 
 // Decodes A2DP codec info into a human readable string.
 // |p_codec_info| is a pointer to the codec_info to decode.

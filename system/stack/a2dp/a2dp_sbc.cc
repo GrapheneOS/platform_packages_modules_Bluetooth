@@ -98,6 +98,7 @@ static const tA2DP_ENCODER_INTERFACE a2dp_encoder_interface_sbc = {
     a2dp_sbc_feeding_reset,
     a2dp_sbc_feeding_flush,
     a2dp_sbc_get_encoder_interval_ms,
+    a2dp_sbc_get_effective_frame_size,
     a2dp_sbc_send_frames,
     nullptr  // set_transmit_queue_length
 };
@@ -1563,22 +1564,4 @@ bool A2dpCodecConfigSbcSink::init() {
 bool A2dpCodecConfigSbcSink::useRtpHeaderMarkerBit() const {
   // TODO: This method applies only to Source codecs
   return false;
-}
-
-bool A2dpCodecConfigSbcSink::updateEncoderUserConfig(
-    UNUSED_ATTR const tA2DP_ENCODER_INIT_PEER_PARAMS* p_peer_params,
-    UNUSED_ATTR bool* p_restart_input, UNUSED_ATTR bool* p_restart_output,
-    UNUSED_ATTR bool* p_config_updated) {
-  // TODO: This method applies only to Source codecs
-  return false;
-}
-
-uint64_t A2dpCodecConfigSbcSink::encoderIntervalMs() const {
-  // TODO: This method applies only to Source codecs
-  return 0;
-}
-
-int A2dpCodecConfigSbcSink::getEffectiveMtu() const {
-  // TODO: This method applies only to Source codecs
-  return 0;
 }
