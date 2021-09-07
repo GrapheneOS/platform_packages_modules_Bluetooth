@@ -29,6 +29,11 @@
 #include "stack/include/bt_device_type.h"
 #include "stack/include/bt_hdr.h"
 #include "stack/include/bt_octets.h"
+#ifdef __cplusplus
+#include "include/hardware/bluetooth.h"
+#include "types/bluetooth/uuid.h"
+#include "types/raw_address.h"
+#endif  // __cplusplus
 
 /* READ WELL !!
  *
@@ -324,23 +329,6 @@ enum {
   }
 
 /* Common Bluetooth field definitions */
-#define BD_ADDR_LEN 6 /* Device address length */
-
-#ifdef __cplusplus
-#include <bluetooth/uuid.h>
-#include <include/hardware/bluetooth.h>
-
-inline void BDADDR_TO_STREAM(uint8_t*& p, const RawAddress& a) {
-  for (int ijk = 0; ijk < BD_ADDR_LEN; ijk++)
-    *(p)++ = (uint8_t)(a.address)[BD_ADDR_LEN - 1 - ijk];
-}
-
-inline void STREAM_TO_BDADDR(RawAddress& a, uint8_t*& p) {
-  uint8_t* pbda = (uint8_t*)(a.address) + BD_ADDR_LEN - 1;
-  for (int ijk = 0; ijk < BD_ADDR_LEN; ijk++) *pbda-- = *(p)++;
-}
-
-#endif
 
 #define PIN_CODE_LEN 16
 typedef uint8_t PIN_CODE[PIN_CODE_LEN]; /* Pin Code (upto 128 bits) MSB is 0 */
