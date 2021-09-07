@@ -1527,10 +1527,12 @@ static void gattClientScanFilterAddNative(JNIEnv* env, jobject object,
       if (len != 16) {
         ALOGE("%s: Invalid IRK length '%d'; expected 16", __func__, len);
         jniThrowIOException(env, EINVAL);
+        return;
       }
       jbyte* irkBytes = env->GetByteArrayElements(irkByteArray.get(), NULL);
       if (irkBytes == NULL) {
         jniThrowIOException(env, EINVAL);
+        return;
       }
       for (int j = 0; j < len; j++) {
         curr.irk[j] = irkBytes[j];
