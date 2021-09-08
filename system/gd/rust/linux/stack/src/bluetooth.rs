@@ -56,19 +56,24 @@ pub enum BluetoothTransport {
     Le = 2,
 }
 
-#[derive(Debug, Default)]
+/// Serializable device used in various apis.
+#[derive(Clone, Debug, Default)]
 pub struct BluetoothDevice {
     pub address: String,
     pub name: String,
 }
 
 impl BluetoothDevice {
-    pub(crate) fn from_properties(properties: &Vec<BluetoothProperty>) -> BluetoothDevice {
+    pub(crate) fn new(address: String, name: String) -> BluetoothDevice {
+        BluetoothDevice { address, name }
+    }
+
+    pub(crate) fn from_properties(in_properties: &Vec<BluetoothProperty>) -> BluetoothDevice {
         let mut address = String::from("");
         let mut name = String::from("");
 
-        for prop in properties {
-            match prop {
+        for prop in in_properties {
+            match &prop {
                 BluetoothProperty::BdAddr(bdaddr) => {
                     address = bdaddr.to_string();
                 }
@@ -79,7 +84,40 @@ impl BluetoothDevice {
             }
         }
 
-        BluetoothDevice { address, name }
+        BluetoothDevice::new(address, name)
+    }
+}
+
+/// Internal data structure that keeps a map of cached properties for a remote device.
+struct BluetoothDeviceWithProperties {
+    pub info: BluetoothDevice,
+    pub properties: HashMap<BtPropertyType, BluetoothProperty>,
+}
+
+impl BluetoothDeviceWithProperties {
+    pub(crate) fn new(
+        info: BluetoothDevice,
+        properties: Vec<BluetoothProperty>,
+    ) -> BluetoothDeviceWithProperties {
+        let mut device = BluetoothDeviceWithProperties { info, properties: HashMap::new() };
+        device.update_properties(properties);
+        device
+    }
+
+    pub(crate) fn update_properties(&mut self, in_properties: Vec<BluetoothProperty>) {
+        for prop in in_properties {
+            match &prop {
+                BluetoothProperty::BdAddr(bdaddr) => {
+                    self.info.address = bdaddr.to_string();
+                }
+                BluetoothProperty::BdName(bdname) => {
+                    self.info.name = bdname.clone();
+                }
+                _ => {}
+            }
+
+            self.properties.insert(prop.get_type(), prop);
+        }
     }
 }
 
@@ -114,6 +152,7 @@ pub struct Bluetooth {
     hh: Option<HidHost>,
     local_address: Option<RawAddress>,
     properties: HashMap<BtPropertyType, BluetoothProperty>,
+    found_devices: HashMap<String, BluetoothDeviceWithProperties>,
     state: BtState,
     tx: Sender<Message>,
 }
@@ -133,6 +172,7 @@ impl Bluetooth {
             intf,
             local_address: None,
             properties: HashMap::new(),
+            found_devices: HashMap::new(),
             state: BtState::Off,
             tx,
         }
@@ -264,12 +304,29 @@ impl BtifBluetoothCallbacks for Bluetooth {
     }
 
     fn device_found(&mut self, _n: i32, properties: Vec<BluetoothProperty>) {
+        let device = BluetoothDevice::from_properties(&properties);
+        let address = device.address.clone();
+
+        if let Some(existing) = self.found_devices.get_mut(&address) {
+            existing.update_properties(properties);
+        } else {
+            let device_with_props = BluetoothDeviceWithProperties::new(device, properties);
+            self.found_devices.insert(address.clone(), device_with_props);
+        }
+
+        let device = self.found_devices.get(&address).unwrap();
+
         self.for_all_callbacks(|callback| {
-            callback.on_device_found(BluetoothDevice::from_properties(&properties));
+            callback.on_device_found(device.info.clone());
         });
     }
 
     fn discovery_state(&mut self, state: BtDiscoveryState) {
+        // Clear found devices when discovery session ends
+        if &state == &BtDiscoveryState::Stopped {
+            self.found_devices.clear();
+        }
+
         self.for_all_callbacks(|callback| {
             callback.on_discovering_changed(state == BtDiscoveryState::Started);
         });
@@ -287,7 +344,7 @@ impl BtifBluetoothCallbacks for Bluetooth {
         // TODO: We need a way to select the default agent.
         self.for_all_callbacks(|callback| {
             callback.on_ssp_request(
-                BluetoothDevice { address: remote_addr.to_string(), name: remote_name.clone() },
+                BluetoothDevice::new(remote_addr.to_string(), remote_name.clone()),
                 cod,
                 variant.clone(),
                 passkey,
