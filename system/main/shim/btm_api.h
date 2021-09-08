@@ -16,6 +16,7 @@
 
 #pragma once
 
+#include "device/include/esco_parameters.h"
 #include "stack/btm/btm_sec.h"
 #include "stack/btm/neighbor_inquiry.h"
 #include "stack/include/acl_api_types.h"

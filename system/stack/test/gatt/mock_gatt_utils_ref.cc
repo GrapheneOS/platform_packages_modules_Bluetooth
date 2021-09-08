@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+#include "common/message_loop_thread.h"
 #include "stack/gatt/gatt_int.h"
 #include "utils/include/bt_utils.h"
 

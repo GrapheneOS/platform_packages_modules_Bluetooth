@@ -26,8 +26,11 @@ extern std::map<std::string, int> mock_function_count_map;
 
 #define LOG_TAG "bt_btu_hcif"
 #include <base/bind.h>
+#include <base/callback.h>
 #include <base/location.h>
+
 #include <cstdint>
+
 #include "btif/include/btif_config.h"
 #include "common/metrics.h"
 #include "device/include/controller.h"

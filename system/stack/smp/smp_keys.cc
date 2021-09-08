@@ -21,10 +21,13 @@
  *  This file contains security manager protocol utility functions
  *
  ******************************************************************************/
-#include "bt_target.h"
-
 #include <base/bind.h>
-#include <string.h>
+#include <base/callback.h>
+
+#include <algorithm>
+#include <cstring>
+
+#include "bt_target.h"
 #include "bt_utils.h"
 #include "btm_ble_api.h"
 #include "btm_ble_int.h"
@@ -36,8 +39,6 @@
 #include "stack/btm/btm_sec.h"
 #include "stack/crypto_toolbox/crypto_toolbox.h"
 #include "stack/include/acl_api.h"
-
-#include <algorithm>
 
 extern tBTM_CB btm_cb;  // TODO Remove
 
