@@ -90,18 +90,6 @@ static uint16_t btm_sco_voice_settings_to_legacy(enh_esco_params_t* p_parms);
 
 /*******************************************************************************
  *
- * Function         btm_sco_flush_sco_data
- *
- * Description      This function is called to flush the SCO data for this
- *                  channel.
- *
- * Returns          void
- *
- ******************************************************************************/
-static void btm_sco_flush_sco_data(UNUSED_ATTR uint16_t sco_inx) {}
-
-/*******************************************************************************
- *
  * Function         btm_esco_conn_rsp
  *
  * Description      This function is called upon receipt of an (e)SCO connection
@@ -864,8 +852,6 @@ bool btm_sco_removed(uint16_t hci_handle, tHCI_REASON reason) {
   for (xx = 0; xx < BTM_MAX_SCO_LINKS; xx++, p++) {
     if ((p->state != SCO_ST_UNUSED) && (p->state != SCO_ST_LISTENING) &&
         (p->hci_handle == hci_handle)) {
-      btm_sco_flush_sco_data(xx);
-
       p->state = SCO_ST_UNUSED;
       p->hci_handle = HCI_INVALID_HANDLE;
       p->rem_bd_known = false;
@@ -946,8 +932,6 @@ void btm_sco_acl_removed(const RawAddress* bda) {
   for (xx = 0; xx < BTM_MAX_SCO_LINKS; xx++, p++) {
     if (p->state != SCO_ST_UNUSED) {
       if ((!bda) || (p->esco.data.bd_addr == *bda && p->rem_bd_known)) {
-        btm_sco_flush_sco_data(xx);
-
         p->state = SCO_ST_UNUSED;
         p->esco.p_esco_cback = NULL; /* Deregister eSCO callback */
         (*p->p_disc_cb)(xx);
