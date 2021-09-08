@@ -1,15 +1,12 @@
-use btstack::bluetooth::{BluetoothDevice, BluetoothTransport, IBluetooth};
-
-use manager_service::iface_bluetooth_manager::IBluetoothManager;
-
-use num_traits::cast::FromPrimitive;
-
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 
-use crate::console_yellow;
-use crate::print_info;
-use crate::{BluetoothDBus, BluetoothManagerDBus, BtCallback};
+use num_traits::cast::FromPrimitive;
+
+use crate::ClientContext;
+use crate::{console_red, console_yellow, print_error, print_info};
+use btstack::bluetooth::{BluetoothDevice, BluetoothTransport, IBluetooth};
+use manager_service::iface_bluetooth_manager::IBluetoothManager;
 
 const INDENT_CHAR: &str = " ";
 const BAR1_CHAR: &str = "=";
@@ -30,11 +27,7 @@ pub struct CommandOption {
 
 /// Handles string command entered from command line.
 pub(crate) struct CommandHandler {
-    bluetooth_manager: Arc<Mutex<Box<BluetoothManagerDBus>>>,
-    bluetooth: Arc<Mutex<Box<BluetoothDBus>>>,
-
-    is_bluetooth_callback_registered: bool,
-
+    context: Arc<Mutex<ClientContext>>,
     command_options: HashMap<String, CommandOption>,
 }
 
@@ -118,16 +111,8 @@ fn build_commands() -> HashMap<String, CommandOption> {
 
 impl CommandHandler {
     /// Creates a new CommandHandler.
-    pub fn new(
-        bluetooth_manager: Arc<Mutex<Box<BluetoothManagerDBus>>>,
-        bluetooth: Arc<Mutex<Box<BluetoothDBus>>>,
-    ) -> CommandHandler {
-        CommandHandler {
-            bluetooth_manager,
-            bluetooth,
-            is_bluetooth_callback_registered: false,
-            command_options: build_commands(),
-        }
+    pub fn new(context: Arc<Mutex<ClientContext>>) -> CommandHandler {
+        CommandHandler { context, command_options: build_commands() }
     }
 
     /// Entry point for command and arguments
@@ -143,6 +128,15 @@ impl CommandHandler {
                 }
             },
         };
+    }
+
+    //  Common message for when the adapter isn't ready
+    fn adapter_not_ready(&self) {
+        let adapter_idx = self.context.lock().unwrap().default_adapter;
+        print_error!(
+            "Default adapter {} is not enabled. Enable the adapter before using this command.",
+            adapter_idx
+        );
     }
 
     fn cmd_help(&mut self, args: &Vec<String>) {
@@ -195,12 +189,13 @@ impl CommandHandler {
     }
 
     fn cmd_adapter(&mut self, args: &Vec<String>) {
+        let default_adapter = self.context.lock().unwrap().default_adapter;
         enforce_arg_len(args, 1, "adapter <enable|disable>", || match &args[0][0..] {
             "enable" => {
-                self.bluetooth_manager.lock().unwrap().start(0);
+                self.context.lock().unwrap().manager_dbus.start(default_adapter);
             }
             "disable" => {
-                self.bluetooth_manager.lock().unwrap().stop(0);
+                self.context.lock().unwrap().manager_dbus.stop(default_adapter);
             }
             _ => {
                 println!("Invalid argument '{}'", args[0]);
@@ -209,43 +204,51 @@ impl CommandHandler {
     }
 
     fn cmd_get_address(&mut self, _args: &Vec<String>) {
-        let addr = self.bluetooth.lock().unwrap().get_address();
-        print_info!("Local address = {}", addr);
+        if !self.context.lock().unwrap().adapter_ready {
+            self.adapter_not_ready();
+            return;
+        }
+
+        let address = self.context.lock().unwrap().adapter_dbus.as_ref().unwrap().get_address();
+        print_info!("Local address = {}", &address);
     }
 
     fn cmd_discovery(&mut self, args: &Vec<String>) {
-        enforce_arg_len(args, 1, "discovery <start|stop>", || {
-            match &args[0][0..] {
-                "start" => {
-                    // TODO: Register the BtCallback when getting a OnStateChangedCallback from btmanagerd.
-                    if !self.is_bluetooth_callback_registered {
-                        self.bluetooth.lock().unwrap().register_callback(Box::new(BtCallback {
-                            objpath: String::from(
-                                "/org/chromium/bluetooth/client/bluetooth_callback",
-                            ),
-                        }));
-                        self.is_bluetooth_callback_registered = true;
-                    }
-                    self.bluetooth.lock().unwrap().start_discovery();
-                }
-                "stop" => {
-                    self.bluetooth.lock().unwrap().cancel_discovery();
-                }
-                _ => {
-                    println!("Invalid argument '{}'", args[0]);
-                }
+        if !self.context.lock().unwrap().adapter_ready {
+            self.adapter_not_ready();
+            return;
+        }
+
+        enforce_arg_len(args, 1, "discovery <start|stop>", || match &args[0][0..] {
+            "start" => {
+                self.context.lock().unwrap().adapter_dbus.as_ref().unwrap().start_discovery();
+            }
+            "stop" => {
+                self.context.lock().unwrap().adapter_dbus.as_ref().unwrap().cancel_discovery();
+            }
+            _ => {
+                println!("Invalid argument '{}'", args[0]);
             }
         });
     }
 
     fn cmd_bond(&mut self, args: &Vec<String>) {
+        if !self.context.lock().unwrap().adapter_ready {
+            self.adapter_not_ready();
+            return;
+        }
+
         enforce_arg_len(args, 1, "bond <address>", || {
             let device = BluetoothDevice {
                 address: String::from(&args[0]),
                 name: String::from("Classic Device"),
             };
-            self.bluetooth
+
+            self.context
                 .lock()
+                .unwrap()
+                .adapter_dbus
+                .as_ref()
                 .unwrap()
                 .create_bond(device, BluetoothTransport::from_i32(0).unwrap());
         });
