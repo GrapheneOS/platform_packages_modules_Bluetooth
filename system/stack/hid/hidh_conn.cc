@@ -25,15 +25,13 @@
 #include <base/strings/stringprintf.h>
 #include <string.h>
 
-#include "l2c_api.h"
-#include "l2cdefs.h"
-
+#include "bta/include/bta_api.h"
 #include "hiddefs.h"
-
 #include "hidh_api.h"
 #include "hidh_int.h"
-
-#include "bta/include/bta_api.h"
+#include "l2c_api.h"
+#include "l2cdefs.h"
+#include "osi/include/allocator.h"
 #include "osi/include/log.h"
 #include "osi/include/osi.h"
 #include "stack/btm/btm_sec.h"

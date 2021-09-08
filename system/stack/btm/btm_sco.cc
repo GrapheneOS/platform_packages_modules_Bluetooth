@@ -24,11 +24,13 @@
  ******************************************************************************/
 
 #include <base/strings/stringprintf.h>
+
 #include <cstdint>
 #include <string>
 
 #include "device/include/controller.h"
 #include "device/include/esco_parameters.h"
+#include "osi/include/allocator.h"
 #include "osi/include/log.h"
 #include "osi/include/osi.h"
 #include "stack/btm/btm_sec.h"
