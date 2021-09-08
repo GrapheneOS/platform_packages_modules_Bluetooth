@@ -364,8 +364,8 @@ pub enum BaseCallbacks {
     DiscoveryState(BtDiscoveryState),
     PinRequest(RawAddress, String, u32, bool),
     SspRequest(RawAddress, String, u32, BtSspVariant, u32),
-    BondState(BtStatus, RawAddress, BtBondState),
-    AclState(BtStatus, RawAddress, BtAclState, BtHciErrorCode),
+    BondState(BtStatus, RawAddress, BtBondState, i32),
+    AclState(BtStatus, RawAddress, BtAclState, i32, BtHciErrorCode),
     // Unimplemented so far:
     // thread_evt_cb
     // dut_mode_recv_cb
@@ -408,11 +408,11 @@ cb_variant!(BaseCb, ssp_request_cb -> BaseCallbacks::SspRequest,
     let _1 = String::from(unsafe{*_1});
 });
 cb_variant!(BaseCb, bond_state_cb -> BaseCallbacks::BondState,
-u32 -> BtStatus, *mut FfiAddress, bindings::bt_bond_state_t -> BtBondState, {
+u32 -> BtStatus, *mut FfiAddress, bindings::bt_bond_state_t -> BtBondState, i32, {
     let _1 = unsafe { *(_1 as *const RawAddress) };
 });
 cb_variant!(BaseCb, acl_state_cb -> BaseCallbacks::AclState,
-u32 -> BtStatus, *mut FfiAddress, bindings::bt_acl_state_t -> BtAclState, bindings::bt_hci_error_code_t -> BtHciErrorCode, {
+u32 -> BtStatus, *mut FfiAddress, bindings::bt_acl_state_t -> BtAclState, i32, bindings::bt_hci_error_code_t -> BtHciErrorCode, {
     let _1 = unsafe { *(_1 as *const RawAddress) };
 });
 
