@@ -470,7 +470,6 @@ class CsisClientImpl : public CsisClient {
       return;
     }
 
-    csis_group->SortByCsisRank();
     csis_group->SetTargetLockState(new_lock_state, std::move(cb));
 
     if (lock) {
@@ -1001,6 +1000,8 @@ class CsisClientImpl : public CsisClient {
     }
 
     csis_instance->SetRank((value[0]));
+    auto csis_group = FindCsisGroup(csis_instance->GetGroupId());
+    csis_group->SortByCsisRank();
   }
 
   void OnCsisObserveCompleted(void) {
