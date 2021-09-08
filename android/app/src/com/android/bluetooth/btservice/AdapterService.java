@@ -121,8 +121,8 @@ import com.android.bluetooth.vc.VolumeControlService;
 import com.android.internal.R;
 import com.android.internal.annotations.GuardedBy;
 import com.android.internal.annotations.VisibleForTesting;
-import com.android.internal.os.BackgroundThread;
 import com.android.internal.os.BinderCallsStats;
+import com.android.modules.utils.BackgroundThread;
 
 import com.google.protobuf.InvalidProtocolBufferException;
 
