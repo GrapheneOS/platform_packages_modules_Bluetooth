@@ -27,6 +27,8 @@
 #include "osi/include/allocator.h"
 #include "stack/include/bt_hdr.h"
 
+#define HCI_COMMAND_PREAMBLE_SIZE 3
+
 static const allocator_t* buffer_allocator;
 
 static BT_HDR* make_packet(size_t data_size);
