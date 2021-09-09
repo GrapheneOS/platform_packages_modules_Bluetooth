@@ -48,12 +48,14 @@ class TestEnvironment {
   TestEnvironment(std::shared_ptr<AsyncDataChannelServer> test_port,
                   std::shared_ptr<AsyncDataChannelServer> hci_server_port,
                   std::shared_ptr<AsyncDataChannelServer> link_server_port,
+                  std::shared_ptr<AsyncDataChannelServer> link_ble_server_port,
                   std::shared_ptr<AsyncDataChannelConnector> connector,
                   const std::string& controller_properties_file = "",
                   const std::string& default_commands_file = "")
       : test_socket_server_(test_port),
         hci_socket_server_(hci_server_port),
         link_socket_server_(link_server_port),
+        link_ble_socket_server_(link_ble_server_port),
         connector_(connector),
         controller_properties_file_(controller_properties_file),
         default_commands_file_(default_commands_file),
@@ -69,6 +71,7 @@ class TestEnvironment {
   std::shared_ptr<AsyncDataChannelServer> test_socket_server_;
   std::shared_ptr<AsyncDataChannelServer> hci_socket_server_;
   std::shared_ptr<AsyncDataChannelServer> link_socket_server_;
+  std::shared_ptr<AsyncDataChannelServer> link_ble_socket_server_;
   std::shared_ptr<AsyncDataChannelConnector> connector_;
   std::string controller_properties_file_;
   std::string default_commands_file_;
@@ -78,7 +81,8 @@ class TestEnvironment {
 
   void SetUpTestChannel();
   void SetUpHciServer(ConnectCallback on_connect);
-  void SetUpLinkLayerServer(ConnectCallback on_connect);
+  void SetUpLinkLayerServer();
+  void SetUpLinkBleLayerServer();
   std::shared_ptr<AsyncDataChannel> ConnectToRemoteServer(
       const std::string& server, int port);
 
@@ -87,6 +91,7 @@ class TestEnvironment {
   test_vendor_lib::TestChannelTransport test_channel_transport_;
   test_vendor_lib::TestChannelTransport remote_hci_transport_;
   test_vendor_lib::TestChannelTransport remote_link_layer_transport_;
+  test_vendor_lib::TestChannelTransport remote_link_ble_layer_transport_;
 
   test_vendor_lib::TestModel test_model_{
       [this]() { return async_manager_.GetNextUserId(); },

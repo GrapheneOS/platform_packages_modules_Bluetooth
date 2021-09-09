@@ -40,6 +40,7 @@ DEFINE_string(default_commands_file, "",
 constexpr uint16_t kTestPort = 6401;
 constexpr uint16_t kHciServerPort = 6402;
 constexpr uint16_t kLinkServerPort = 6403;
+constexpr uint16_t kLinkBleServerPort = 6404;
 
 extern "C" const char* __asan_default_options() {
   return "detect_container_overflow=0";
@@ -90,6 +91,7 @@ int main(int argc, char** argv) {
   uint16_t test_port = kTestPort;
   uint16_t hci_server_port = kHciServerPort;
   uint16_t link_server_port = kLinkServerPort;
+  uint16_t link_ble_server_port = kLinkBleServerPort;
 
   for (int arg = 0; arg < argc; arg++) {
     int port = atoi(argv[arg]);
@@ -109,6 +111,9 @@ int main(int argc, char** argv) {
         case 3:
           link_server_port = port;
           break;
+        case 4:
+          link_ble_server_port = port;
+          break;
         default:
           LOG_WARN("Ignored option %s", argv[arg]);
       }
@@ -119,6 +124,7 @@ int main(int argc, char** argv) {
       std::make_shared<PosixAsyncSocketServer>(test_port, &am),
       std::make_shared<PosixAsyncSocketServer>(hci_server_port, &am),
       std::make_shared<PosixAsyncSocketServer>(link_server_port, &am),
+      std::make_shared<PosixAsyncSocketServer>(link_ble_server_port, &am),
       std::make_shared<PosixAsyncSocketConnector>(&am),
       FLAGS_controller_properties_file, FLAGS_default_commands_file);
   std::promise<void> barrier;
