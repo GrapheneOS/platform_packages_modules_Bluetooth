@@ -29,7 +29,6 @@ extern std::map<std::string, int> mock_function_count_map;
 #include <stdlib.h>
 #include <string.h>
 #include "advertise_data_parser.h"
-#include "bt_common.h"
 #include "btm_api.h"
 #include "btu.h"
 #include "common/time_util.h"

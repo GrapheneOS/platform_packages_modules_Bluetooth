@@ -27,7 +27,6 @@
 
 #include "a2dp_sbc.h"
 #include "a2dp_sbc_up_sample.h"
-#include "bt_common.h"
 #include "common/time_util.h"
 #include "embdrv/sbc/encoder/include/sbc_encoder.h"
 #include "osi/include/allocator.h"

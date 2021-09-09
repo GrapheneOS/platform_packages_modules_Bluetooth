@@ -25,8 +25,6 @@
 #ifndef PORTEXT_H
 #define PORTEXT_H
 
-#include "bt_common.h"
-
 extern void rfcomm_port_timer_timeout(void* data);
 extern void rfcomm_mcb_timer_timeout(void* data);
 #endif

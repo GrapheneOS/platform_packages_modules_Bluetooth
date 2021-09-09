@@ -33,7 +33,6 @@
 
 #include "a2dp_vendor.h"
 #include "a2dp_vendor_ldac.h"
-#include "bt_common.h"
 #include "osi/include/log.h"
 #include "osi/include/osi.h"
 

@@ -26,7 +26,6 @@
 
 #include "avrc_api.h"
 #include "avrc_int.h"
-#include "bt_common.h"
 #include "osi/include/allocator.h"
 
 /******************************************************************************

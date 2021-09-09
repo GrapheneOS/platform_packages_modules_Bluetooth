@@ -26,7 +26,6 @@ extern std::map<std::string, int> mock_function_count_map;
 
 #include <string.h>
 #include "avct_api.h"
-#include "bt_common.h"
 #include "bt_target.h"
 #include "bta/include/bta_api.h"
 #include "btm_api.h"
