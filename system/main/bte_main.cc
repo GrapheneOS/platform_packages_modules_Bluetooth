@@ -29,7 +29,6 @@
 #include <base/logging.h>
 #include <hardware/bluetooth.h>
 
-#include "bt_common.h"
 #include "btcore/include/module.h"
 #include "bte.h"
 #include "btif/include/btif_config.h"

@@ -24,7 +24,6 @@
 
 extern std::map<std::string, int> mock_function_count_map;
 
-#include "bt_common.h"
 #include "bt_target.h"
 #include "device/include/interop.h"
 #include "l2c_api.h"

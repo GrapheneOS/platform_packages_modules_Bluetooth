@@ -17,7 +17,6 @@
 
 #pragma once
 
-#include "bt_common.h"
 #include "osi/include/osi.h"  // UNUSED_ATTR
 
 // This header contains functions for HCI-ble to invoke

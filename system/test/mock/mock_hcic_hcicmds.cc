@@ -28,7 +28,6 @@ extern std::map<std::string, int> mock_function_count_map;
 #include <stddef.h>
 #include "types/raw_address.h"
 
-#include "bt_common.h"
 #include "bt_target.h"
 #include "btu.h"
 #include "hcimsgs.h"

@@ -27,7 +27,6 @@ extern std::map<std::string, int> mock_function_count_map;
 #include <base/bind.h>
 #include <stddef.h>
 #include <string.h>
-#include "bt_common.h"
 #include "bt_target.h"
 #include "btu.h"
 #include "hcimsgs.h"
