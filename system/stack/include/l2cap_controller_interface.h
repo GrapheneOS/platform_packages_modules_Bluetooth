@@ -17,8 +17,6 @@
 
 #pragma once
 
-#include "bt_common.h"
-
 // This header contains functions for Controller Module to invoke
 
 extern void l2cu_set_non_flushable_pbf(bool is_supported);

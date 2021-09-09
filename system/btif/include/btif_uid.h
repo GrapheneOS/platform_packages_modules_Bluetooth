@@ -16,8 +16,6 @@
 
 #pragma once
 
-#include "bt_common.h"
-
 #include <hardware/bluetooth.h>
 
 struct uid_set_t;

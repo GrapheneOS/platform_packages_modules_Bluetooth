@@ -25,7 +25,6 @@
 #include "bt_utils.h"
 
 #include <string.h>
-#include "bt_common.h"
 
 #include "gatt_api.h"
 #include "gatt_int.h"

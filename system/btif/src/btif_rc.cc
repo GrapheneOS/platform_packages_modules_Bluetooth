@@ -37,7 +37,6 @@
 #include <hardware/bt_rc.h>
 
 #include "avrc_defs.h"
-#include "bt_common.h"
 #include "bta_api.h"
 #include "bta_av_api.h"
 #include "btif_av.h"

@@ -23,7 +23,6 @@
  *
  ******************************************************************************/
 
-#include "bt_common.h"
 #include "bt_target.h"
 #include "btu.h"
 #include "hcidefs.h"

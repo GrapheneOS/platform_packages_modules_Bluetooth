@@ -27,7 +27,6 @@
 #include <stdbool.h>
 #include <string>
 
-#include "bt_common.h"
 #include "btm_api.h"
 #include "btm_ble_api.h"
 #include "l2c_api.h"
