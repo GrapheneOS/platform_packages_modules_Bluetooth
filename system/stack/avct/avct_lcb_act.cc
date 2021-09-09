@@ -25,7 +25,6 @@
 #include <string.h>
 #include "avct_api.h"
 #include "avct_int.h"
-#include "bt_common.h"
 #include "bt_target.h"
 #include "bt_utils.h"
 #include "bta/include/bta_api.h"

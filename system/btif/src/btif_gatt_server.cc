@@ -38,7 +38,6 @@
 #include "btif_common.h"
 #include "btif_util.h"
 
-#include "bt_common.h"
 #include "bta_api.h"
 #include "bta_gatt_api.h"
 #include "btif_config.h"

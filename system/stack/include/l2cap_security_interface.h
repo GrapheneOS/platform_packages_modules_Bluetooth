@@ -17,8 +17,6 @@
 
 #pragma once
 
-#include "bt_common.h"
-
 // This header contains functions for Security Module to invoke
 
 extern void l2cu_update_lcb_4_bonding(const RawAddress& p_bd_addr,

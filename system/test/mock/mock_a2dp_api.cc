@@ -28,7 +28,6 @@ extern std::map<std::string, int> mock_function_count_map;
 #include "a2dp_api.h"
 #include "a2dp_int.h"
 #include "avdt_api.h"
-#include "bt_common.h"
 #include "bt_target.h"
 #include "osi/include/log.h"
 #include "sdpdefs.h"
