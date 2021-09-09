@@ -24,7 +24,6 @@
 
 #include "device/include/controller.h"
 #include "hci/include/packet_fragmenter.h"
-#include "hci_internals.h"
 #include "osi/include/allocator.h"
 #include "osi/include/osi.h"
 #include "test_stubs.h"
