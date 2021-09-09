@@ -36,7 +36,6 @@
 #include "check.h"
 #include "gd/common/init_flags.h"
 #include "hci/include/buffer_allocator.h"
-#include "hci_internals.h"
 #include "hci_layer.h"
 #include "osi/include/compat.h"
 #include "osi/include/log.h"

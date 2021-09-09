@@ -28,7 +28,6 @@
 #include "check.h"
 #include "device/include/controller.h"
 #include "hci/include/buffer_allocator.h"
-#include "hci_internals.h"
 #include "osi/include/log.h"
 #include "osi/include/osi.h"
 
