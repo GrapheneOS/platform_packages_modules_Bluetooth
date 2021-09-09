@@ -55,9 +55,6 @@ const bluetooth::legacy::hci::Interface& GetLegacyHciInterface() {
 /*               L O C A L    D A T A    D E F I N I T I O N S                */
 /******************************************************************************/
 
-#define BTM_SCO_PKT_TYPE_MASK \
-  (HCI_PKT_TYPES_MASK_HV1 | HCI_PKT_TYPES_MASK_HV2 | HCI_PKT_TYPES_MASK_HV3)
-
 /* MACROs to convert from SCO packet types mask to ESCO and back */
 #define BTM_SCO_PKT_TYPE_MASK \
   (HCI_PKT_TYPES_MASK_HV1 | HCI_PKT_TYPES_MASK_HV2 | HCI_PKT_TYPES_MASK_HV3)
