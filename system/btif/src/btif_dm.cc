@@ -46,7 +46,6 @@
 #include <hardware/bt_hearing_aid.h>
 
 #include "advertise_data_parser.h"
-#include "bt_common.h"
 #include "bta_dm_int.h"
 #include "bta_gatt_api.h"
 #include "btif/include/stack_manager.h"

@@ -27,7 +27,6 @@
 #ifndef BTU_H
 #define BTU_H
 
-#include "bt_common.h"
 #include "bt_target.h"
 #include "common/message_loop_thread.h"
 #include "osi/include/alarm.h"

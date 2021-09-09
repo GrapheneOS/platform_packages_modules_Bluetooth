@@ -26,7 +26,6 @@
 #include <string.h>
 
 #include "bnep_int.h"
-#include "bt_common.h"
 #include "bt_utils.h"
 #include "btu.h"
 #include "device/include/controller.h"

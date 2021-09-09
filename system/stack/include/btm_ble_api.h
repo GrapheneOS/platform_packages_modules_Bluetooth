@@ -28,7 +28,6 @@
 #include <base/callback_forward.h>
 #include <hardware/bt_common_types.h>
 #include <memory>
-#include "bt_common.h"
 #include "btm_api.h"
 #include "btm_ble_api_types.h"
 #include "osi/include/alarm.h"
