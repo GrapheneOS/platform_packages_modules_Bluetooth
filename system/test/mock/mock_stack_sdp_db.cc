@@ -26,7 +26,6 @@ extern std::map<std::string, int> mock_function_count_map;
 
 #include <stdio.h>
 #include <string.h>
-#include "bt_common.h"
 #include "bt_target.h"
 #include "stack/include/sdp_api.h"
 #include "stack/sdp/sdpint.h"

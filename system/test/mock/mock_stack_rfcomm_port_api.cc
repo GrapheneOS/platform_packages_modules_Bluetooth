@@ -26,7 +26,6 @@ extern std::map<std::string, int> mock_function_count_map;
 
 #include <base/logging.h>
 #include <string.h>
-#include "bt_common.h"
 #include "l2c_api.h"
 #include "osi/include/log.h"
 #include "osi/include/mutex.h"

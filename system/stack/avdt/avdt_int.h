@@ -29,7 +29,6 @@
 #include "avdt_api.h"
 #include "avdt_defs.h"
 #include "avdtc_api.h"
-#include "bt_common.h"
 #include "btm_api.h"
 #include "l2c_api.h"
 #include "osi/include/alarm.h"

@@ -17,7 +17,6 @@
 
 #pragma once
 
-#include "bt_common.h"
 #include "stack/include/hci_error_code.h"
 
 // This header contains functions for HCI-LinkManagement to invoke
