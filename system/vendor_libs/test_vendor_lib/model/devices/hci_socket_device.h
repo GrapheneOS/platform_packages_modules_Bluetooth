@@ -34,12 +34,12 @@ using android::net::AsyncDataChannel;
 class HciSocketDevice : public DualModeController {
  public:
   HciSocketDevice(std::shared_ptr<AsyncDataChannel> socket,
-                  std::string properties_filename);
+                  const std::string& properties_filename);
   ~HciSocketDevice() = default;
 
   static std::shared_ptr<HciSocketDevice> Create(
       std::shared_ptr<AsyncDataChannel> socket,
-      std::string properties_filename) {
+      const std::string& properties_filename) {
     return std::make_shared<HciSocketDevice>(socket, properties_filename);
   }
 
