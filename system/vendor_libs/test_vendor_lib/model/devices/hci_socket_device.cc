@@ -27,7 +27,7 @@ using std::vector;
 namespace test_vendor_lib {
 
 HciSocketDevice::HciSocketDevice(std::shared_ptr<AsyncDataChannel> socket,
-                                 std::string properties_filename)
+                                 const std::string& properties_filename)
     : DualModeController(properties_filename), socket_(socket) {
   advertising_interval_ms_ = std::chrono::milliseconds(1000);
 
