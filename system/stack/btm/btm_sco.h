@@ -132,3 +132,9 @@ typedef struct {
 
 extern void btm_sco_chk_pend_rolechange(uint16_t hci_handle);
 extern void btm_sco_disc_chk_pend_for_modechange(uint16_t hci_handle);
+
+// Visible for test only
+BT_HDR* btm_sco_make_packet(std::vector<uint8_t> data, uint16_t sco_handle);
+
+// Send a SCO packet
+void btm_send_sco_packet(std::vector<uint8_t> data, uint16_t sco_handle);

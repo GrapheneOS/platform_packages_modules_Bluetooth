@@ -19,6 +19,7 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <map>
+#include <vector>
 
 #include "btif/include/btif_hh.h"
 #include "hci/include/hci_layer.h"
@@ -26,6 +27,7 @@
 #include "internal_include/stack_config.h"
 #include "osi/include/osi.h"
 #include "stack/btm/btm_int_types.h"
+#include "stack/btm/btm_sco.h"
 #include "stack/include/acl_api.h"
 #include "stack/include/acl_hci_link_interface.h"
 #include "stack/include/btm_client_interface.h"
@@ -179,6 +181,21 @@ TEST_F(StackBtmTest, change_packet_type) {
   ASSERT_EQ(0x0, mock::btsnd_hcic_change_conn_type.packet_types);
 
   get_btm_client_interface().lifecycle.btm_free();
+}
+
+TEST(ScoTest, make_sco_packet) {
+  std::vector<uint8_t> data = {10, 20, 30};
+  uint16_t handle = 0xab;
+  BT_HDR* p = btm_sco_make_packet(data, handle);
+  ASSERT_EQ(p->event, BT_EVT_TO_LM_HCI_SCO);
+  ASSERT_EQ(p->len, 3 + data.size());
+  ASSERT_EQ(p->data[0], 0xab);
+  ASSERT_EQ(p->data[1], 0);
+  ASSERT_EQ(p->data[2], 3);
+  ASSERT_EQ(p->data[3], 10);
+  ASSERT_EQ(p->data[4], 20);
+  ASSERT_EQ(p->data[5], 30);
+  osi_free(p);
 }
 
 }  // namespace
