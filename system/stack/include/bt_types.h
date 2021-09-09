@@ -336,15 +336,8 @@ typedef uint8_t PIN_CODE[PIN_CODE_LEN]; /* Pin Code (upto 128 bits) MSB is 0 */
 #define BD_NAME_LEN 248
 typedef uint8_t BD_NAME[BD_NAME_LEN + 1]; /* Device name */
 
-#define BT_EVENT_MASK_LEN 8
-typedef uint8_t BT_EVENT_MASK[BT_EVENT_MASK_LEN]; /* Event Mask */
-
 #define LAP_LEN 3
 typedef uint8_t LAP[LAP_LEN];     /* IAC as passed to Inquiry (LAP) */
-typedef uint8_t INQ_LAP[LAP_LEN]; /* IAC as passed to Inquiry (LAP) */
-
-#define COF_LEN 12
-typedef uint8_t COF[COF_LEN]; /* ciphering offset number */
 
 #define BT_1SEC_TIMEOUT_MS (1 * 1000) /* 1 second */
 
