@@ -318,14 +318,6 @@ static void bta_ag_esco_connreq_cback(tBTM_ESCO_EVT event,
       BTM_EScoConnRsp(p_data->conn_evt.sco_inx, HCI_ERR_HOST_REJECT_RESOURCES,
                       (enh_esco_params_t*)nullptr);
     }
-  } else if (event == BTM_ESCO_CHG_EVT) {
-    /* Received a change in the esco link */
-    APPL_TRACE_EVENT(
-        "%s: eSCO change event (inx %d): rtrans %d, "
-        "rxlen %d, txlen %d, txint %d",
-        __func__, p_data->chg_evt.sco_inx, p_data->chg_evt.retrans_window,
-        p_data->chg_evt.rx_pkt_len, p_data->chg_evt.tx_pkt_len,
-        p_data->chg_evt.tx_interval);
   }
 }
 
