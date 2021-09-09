@@ -522,8 +522,6 @@ extern void btsnd_hcic_vendor_spec_cmd(void* buffer, uint16_t opcode,
 #define HCIC_PARAM_SIZE_BLE_SET_PHY 7
 
 /* ULP HCI command */
-extern void btsnd_hcic_ble_set_evt_mask(BT_EVENT_MASK event_mask);
-
 extern void btsnd_hcic_ble_read_buffer_size(void);
 
 extern void btsnd_hcic_ble_read_local_spt_feat(void);
@@ -820,10 +818,5 @@ extern void
 btsnd_hcic_ble_set_default_periodic_advertising_sync_transfer_params(
     uint16_t conn_handle, uint8_t mode, uint16_t skip, uint16_t sync_timeout,
     uint8_t cte_type, base::OnceCallback<void(uint8_t*, uint16_t)> cb);
-
-#define HCIC_PARAM_SIZE_WRITE_AUTHENT_PAYLOAD_TOUT 4
-
-#define HCI__WRITE_AUTHENT_PAYLOAD_TOUT_HANDLE_OFF 0
-#define HCI__WRITE_AUTHENT_PAYLOAD_TOUT_TOUT_OFF 2
 
 #endif
