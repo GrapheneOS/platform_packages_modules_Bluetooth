@@ -128,6 +128,7 @@ genrule {
     name: "statslog-bluetooth-java-gen",
     tools: ["stats-log-api-gen"],
     cmd: "$(location stats-log-api-gen) --java $(out) --module bluetooth"
-        + " --javaPackage com.android.bluetooth --javaClass BluetoothStatsLog --worksource",
+        + " --javaPackage com.android.bluetooth --javaClass BluetoothStatsLog"
+        + " --minApiLevel 32",
     out: ["com/android/bluetooth/BluetoothStatsLog.java"],
 }
