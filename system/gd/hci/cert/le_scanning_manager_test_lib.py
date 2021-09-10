@@ -97,6 +97,7 @@ class LeScanningManagerTestBase():
         gap_data = le_advertising_facade.GapDataMsg(data=bytes(gap_name.Serialize()))
         config = le_advertising_facade.AdvertisingConfig(
             advertisement=[gap_data],
+            scan_response=[gap_data],
             interval_min=512,
             interval_max=768,
             advertising_type=le_advertising_facade.AdvertisingEventType.ADV_IND,
