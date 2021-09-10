@@ -50,6 +50,8 @@ class LeAdvertiser {
 
   void SetData(const std::vector<uint8_t>& data);
 
+  void SetScanResponse(const std::vector<uint8_t>& data);
+
   std::unique_ptr<model::packets::LeAdvertisementBuilder> GetAdvertisement(
       std::chrono::steady_clock::time_point);
 
