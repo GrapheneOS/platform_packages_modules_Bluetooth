@@ -20,13 +20,10 @@
 
 #include <base/callback.h>
 #include <base/location.h>
-#include <stdbool.h>
 
-#include "bt_types.h"
-#include "osi/include/allocator.h"
-#include "osi/include/fixed_queue.h"
 #include "osi/include/future.h"
-#include "osi/include/osi.h"
+#include "osi/include/osi.h"  // INVALID_FD
+#include "stack/include/bt_types.h"
 
 static const char HCI_MODULE[] = "hci_module";
 
