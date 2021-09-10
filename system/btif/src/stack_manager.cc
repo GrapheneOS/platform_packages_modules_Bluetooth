@@ -47,7 +47,6 @@
 #include "btif_config.h"
 #include "btif_profile_queue.h"
 #include "internal_include/bt_target.h"
-#include "internal_include/bte.h"
 #include "stack/include/gatt_api.h"
 #include "stack/include/l2c_api.h"
 #include "stack/include/port_api.h"
