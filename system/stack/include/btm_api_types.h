@@ -387,6 +387,7 @@ typedef void(tBTM_SCO_CB)(uint16_t sco_inx);
  *  eSCO Types
  ***************/
 /* tBTM_ESCO_CBACK event types */
+#define BTM_ESCO_CHG_EVT 1
 #define BTM_ESCO_CONN_REQ_EVT 2
 typedef uint8_t tBTM_ESCO_EVT;
 
@@ -401,9 +402,24 @@ typedef struct {
 
 /* Returned by BTM_ReadEScoLinkParms() */
 struct tBTM_ESCO_DATA {
+  uint16_t rx_pkt_len;
+  uint16_t tx_pkt_len;
   RawAddress bd_addr;
   uint8_t link_type; /* BTM_LINK_TYPE_SCO or BTM_LINK_TYPE_ESCO */
+  uint8_t tx_interval;
+  uint8_t retrans_window;
+  uint8_t air_mode;
 };
+
+typedef struct {
+  uint16_t sco_inx;
+  uint16_t rx_pkt_len;
+  uint16_t tx_pkt_len;
+  RawAddress bd_addr;
+  uint8_t hci_status;
+  uint8_t tx_interval;
+  uint8_t retrans_window;
+} tBTM_CHG_ESCO_EVT_DATA;
 
 typedef struct {
   uint16_t sco_inx;
@@ -413,6 +429,7 @@ typedef struct {
 } tBTM_ESCO_CONN_REQ_EVT_DATA;
 
 typedef union {
+  tBTM_CHG_ESCO_EVT_DATA chg_evt;
   tBTM_ESCO_CONN_REQ_EVT_DATA conn_evt;
 } tBTM_ESCO_EVT_DATA;
 
