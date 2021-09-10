@@ -30,7 +30,6 @@
 #include <hardware/bluetooth.h>
 
 #include "btcore/include/module.h"
-#include "bte.h"
 #include "btif/include/btif_config.h"
 #include "btu.h"
 #include "device/include/interop.h"

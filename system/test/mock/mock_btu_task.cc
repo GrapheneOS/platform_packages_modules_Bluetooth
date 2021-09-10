@@ -34,7 +34,6 @@ extern std::map<std::string, int> mock_function_count_map;
 #include <string.h>
 #include "bta/sys/bta_sys.h"
 #include "btcore/include/module.h"
-#include "bte.h"
 #include "btif/include/btif_common.h"
 #include "btm_iso_api.h"
 #include "common/message_loop_thread.h"
