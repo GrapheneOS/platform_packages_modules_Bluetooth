@@ -833,7 +833,6 @@ typedef enum : uint8_t {
  * This is 1-byte for opcode and 1 byte for length
 */
 #define HCIE_PREAMBLE_SIZE 2
-#define HCI_SCO_PREAMBLE_SIZE 3
 
 // Packet boundary flags
 constexpr uint8_t kFIRST_NON_AUTOMATICALLY_FLUSHABLE = 0x0;
