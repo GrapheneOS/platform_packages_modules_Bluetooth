@@ -1198,47 +1198,6 @@ void BTM_EScoConnRsp(uint16_t sco_inx, uint8_t hci_status,
 
 /*******************************************************************************
  *
- * Function         btm_esco_proc_conn_chg
- *
- * Description      This function is called by BTIF when an SCO connection
- *                  is changed.
- *
- * Returns          void
- *
- ******************************************************************************/
-void btm_esco_proc_conn_chg(uint8_t status, uint16_t handle,
-                            uint8_t tx_interval, uint8_t retrans_window,
-                            uint16_t rx_pkt_len, uint16_t tx_pkt_len) {
-  tSCO_CONN* p = &btm_cb.sco_cb.sco_db[0];
-  tBTM_CHG_ESCO_EVT_DATA data;
-  uint16_t xx;
-
-  BTM_TRACE_EVENT("btm_esco_proc_conn_chg -> handle 0x%04x, status 0x%02x",
-                  handle, status);
-
-  for (xx = 0; xx < BTM_MAX_SCO_LINKS; xx++, p++) {
-    if (p->state == SCO_ST_CONNECTED && handle == p->hci_handle) {
-      /* If upper layer wants notification */
-      if (p->esco.p_esco_cback) {
-        data.bd_addr = p->esco.data.bd_addr;
-        data.hci_status = status;
-        data.sco_inx = xx;
-        data.rx_pkt_len = p->esco.data.rx_pkt_len = rx_pkt_len;
-        data.tx_pkt_len = p->esco.data.tx_pkt_len = tx_pkt_len;
-        data.tx_interval = p->esco.data.tx_interval = tx_interval;
-        data.retrans_window = p->esco.data.retrans_window = retrans_window;
-
-        tBTM_ESCO_EVT_DATA btm_esco_evt_data;
-        btm_esco_evt_data.chg_evt = data;
-        (*p->esco.p_esco_cback)(BTM_ESCO_CHG_EVT, &btm_esco_evt_data);
-      }
-      return;
-    }
-  }
-}
-
-/*******************************************************************************
- *
  * Function         btm_is_sco_active
  *
  * Description      This function is called to see if a SCO handle is already in
