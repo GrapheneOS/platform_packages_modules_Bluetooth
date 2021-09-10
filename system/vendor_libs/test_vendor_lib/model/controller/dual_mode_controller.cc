@@ -2383,6 +2383,13 @@ void DualModeController::LeSetExtendedAdvertisingScanResponse(
   ASSERT(command_view.IsValid());
   properties_.SetLeScanResponse(std::vector<uint8_t>(
       command_view.GetPayload().begin() + 1, command_view.GetPayload().end()));
+  auto raw_command_view =
+      gd_hci::LeSetExtendedAdvertisingScanResponseRawView::Create(
+          gd_hci::LeAdvertisingCommandView::Create(command));
+  ASSERT(raw_command_view.IsValid());
+  link_layer_controller_.SetLeExtendedScanResponseData(
+      command_view.GetAdvertisingHandle(),
+      raw_command_view.GetScanResponseData());
   send_event_(
       bluetooth::hci::LeSetExtendedAdvertisingScanResponseCompleteBuilder::
           Create(kNumCommandPackets, ErrorCode::SUCCESS));
