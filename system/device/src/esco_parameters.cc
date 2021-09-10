@@ -22,7 +22,7 @@
 
 #include "check.h"
 
-constexpr enh_esco_params_t default_esco_parameters[ESCO_NUM_CODECS] = {
+static const enh_esco_params_t default_esco_parameters[ESCO_NUM_CODECS] = {
     // CVSD D1
     {
         .transmit_bandwidth = TXRX_64KBITS_RATE,
