@@ -23,6 +23,11 @@
 /*******************
  * SCO Codec Types
  *******************/
+typedef enum {
+  SCO_CODEC_NONE = 0x0000,
+  SCO_CODEC_CVSD = 0x0001,
+  SCO_CODEC_MSBC = 0x0002,
+} sco_codec_t;
 
 typedef enum {
   SCO_CODEC_CVSD_D1 = 0,
