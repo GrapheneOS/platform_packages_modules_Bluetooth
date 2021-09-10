@@ -32,7 +32,6 @@ extern std::map<std::string, int> mock_function_count_map;
 #include "osi/include/properties.h"
 #include "stack/avrc/avrc_int.h"
 #include "stack/include/avrc_api.h"
-#include "stack/include/btu.h"
 
 #ifndef UNUSED_ATTR
 #define UNUSED_ATTR

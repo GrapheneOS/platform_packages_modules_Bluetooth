@@ -33,7 +33,6 @@
 #include "btcore/include/module.h"
 #include "btif/include/btif_bqr.h"
 #include "btm_int.h"
-#include "btu.h"
 #include "common/message_loop_thread.h"
 #include "device/include/controller.h"
 #include "hci/include/hci_layer.h"

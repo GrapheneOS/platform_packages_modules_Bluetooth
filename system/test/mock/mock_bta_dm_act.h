@@ -57,7 +57,6 @@ extern std::map<std::string, int> mock_function_count_map;
 #include "stack/gatt/connection_manager.h"
 #include "stack/include/acl_api.h"
 #include "stack/include/btm_client_interface.h"
-#include "stack/include/btu.h"
 #include "types/raw_address.h"
 
 // Mocked compile conditionals, if any

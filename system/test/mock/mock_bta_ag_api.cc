@@ -31,7 +31,6 @@ extern std::map<std::string, int> mock_function_count_map;
 #include <vector>
 #include "bta/ag/bta_ag_int.h"
 #include "bta/include/bta_ag_api.h"
-#include "stack/include/btu.h"
 
 #ifndef UNUSED_ATTR
 #define UNUSED_ATTR
