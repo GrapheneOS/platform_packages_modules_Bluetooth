@@ -72,6 +72,10 @@ void LeAdvertiser::SetData(const std::vector<uint8_t>& data) {
   advertisement_ = data;
 }
 
+void LeAdvertiser::SetScanResponse(const std::vector<uint8_t>& data) {
+  scan_response_ = data;
+}
+
 void LeAdvertiser::Enable() {
   enabled_ = true;
   last_le_advertisement_ = std::chrono::steady_clock::now() - interval_;

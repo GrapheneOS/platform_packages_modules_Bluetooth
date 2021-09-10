@@ -147,6 +147,9 @@ class LinkLayerController {
   ErrorCode SetLeExtendedAdvertisingData(uint8_t handle,
                                          const std::vector<uint8_t>& data);
 
+  ErrorCode SetLeExtendedScanResponseData(uint8_t handle,
+                                          const std::vector<uint8_t>& data);
+
   ErrorCode SetLeExtendedAdvertisingParameters(
       uint8_t set, uint16_t interval_min, uint16_t interval_max,
       bluetooth::hci::LegacyAdvertisingProperties type,
