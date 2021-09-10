@@ -1190,11 +1190,11 @@ static void btu_hcif_esco_connection_comp_evt(uint8_t* p) {
   STREAM_TO_BDADDR(bda, p);
 
   STREAM_TO_UINT8(data.link_type, p);
-  STREAM_SKIP_UINT8(p);   // tx_interval
-  STREAM_SKIP_UINT8(p);   // retrans_window
-  STREAM_SKIP_UINT16(p);  // rx_pkt_len
-  STREAM_SKIP_UINT16(p);  // tx_pkt_len
-  STREAM_SKIP_UINT8(p);   // air_mode
+  STREAM_TO_UINT8(data.tx_interval, p);
+  STREAM_TO_UINT8(data.retrans_window, p);
+  STREAM_TO_UINT16(data.rx_pkt_len, p);
+  STREAM_TO_UINT16(data.tx_pkt_len, p);
+  STREAM_TO_UINT8(data.air_mode, p);
 
   handle = HCID_GET_HANDLE(handle);
 
@@ -1228,6 +1228,9 @@ static void btu_hcif_esco_connection_chg_evt(uint8_t* p) {
   STREAM_TO_UINT16(tx_pkt_len, p);
 
   handle = HCID_GET_HANDLE(handle);
+
+  btm_esco_proc_conn_chg(status, handle, tx_interval, retrans_window,
+                         rx_pkt_len, tx_pkt_len);
 }
 
 /*******************************************************************************
@@ -1453,6 +1456,9 @@ static void btu_hcif_hdl_command_status(uint16_t opcode, uint8_t status,
       if (status != HCI_SUCCESS) {
         STREAM_TO_UINT16(handle, p_cmd);
         // Determine if initial connection failed or is a change of setup
+        if (btm_is_sco_active(handle)) {
+          btm_esco_proc_conn_chg(status, handle, 0, 0, 0, 0);
+        }
       }
       break;
 
