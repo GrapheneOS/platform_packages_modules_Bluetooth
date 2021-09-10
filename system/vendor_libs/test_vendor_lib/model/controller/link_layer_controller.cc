@@ -1497,7 +1497,7 @@ void LinkLayerController::IncomingLeScanResponsePacket(
     raw_builder_ptr->AddOctets1(static_cast<uint8_t>(
         bluetooth::hci::SubeventCode::EXTENDED_ADVERTISING_REPORT));
     raw_builder_ptr->AddOctets1(0x01);  // num reports
-    raw_builder_ptr->AddOctets1(0x1a);  // TODO: 0x1b for ADV_SCAN_IND
+    raw_builder_ptr->AddOctets2(0x001a);  // TODO: 0x001b for ADV_SCAN_IND
     raw_builder_ptr->AddOctets1(static_cast<uint8_t>(address_type));
     raw_builder_ptr->AddAddress(incoming.GetSourceAddress());
     raw_builder_ptr->AddOctets1(1);     // Primary_PHY
@@ -2572,6 +2572,12 @@ ErrorCode LinkLayerController::SetLeExtendedAddress(uint8_t set,
 ErrorCode LinkLayerController::SetLeExtendedAdvertisingData(
     uint8_t set, const std::vector<uint8_t>& data) {
   advertisers_[set].SetData(data);
+  return ErrorCode::SUCCESS;
+}
+
+ErrorCode LinkLayerController::SetLeExtendedScanResponseData(
+    uint8_t set, const std::vector<uint8_t>& data) {
+  advertisers_[set].SetScanResponse(data);
   return ErrorCode::SUCCESS;
 }
 
