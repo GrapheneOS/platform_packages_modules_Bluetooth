@@ -16,13 +16,14 @@
  *
  ******************************************************************************/
 
+#include <base/logging.h>
 #include <gtest/gtest.h>
 
-#include <base/logging.h>
 #include <iterator>
 #include <utility>
 
 #include "gatt/database_builder.h"
+#include "types/bluetooth/uuid.h"
 
 using bluetooth::Uuid;
 

@@ -26,12 +26,14 @@
 #define BTA_GATT_API_H
 
 #include <base/callback_forward.h>
+
 #include <list>
 #include <string>
 #include <vector>
 
 #include "bta/gatt/database.h"
 #include "stack/include/gatt_api.h"
+#include "types/bluetooth/uuid.h"
 #include "types/raw_address.h"
 
 #ifndef BTA_GATT_DEBUG

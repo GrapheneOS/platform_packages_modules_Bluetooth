@@ -23,6 +23,7 @@
 #include "devices.h"
 #include "gatt_api.h"
 #include "stack/btm/btm_sec.h"
+#include "types/bluetooth/uuid.h"
 
 using namespace bluetooth::vc::internal;
 

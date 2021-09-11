@@ -32,6 +32,7 @@ extern std::map<std::string, int> mock_function_count_map;
 #include "stack/include/bt_hdr.h"
 #include "stack/include/bt_octets.h"
 #include "stack/include/btm_ble_api_types.h"
+#include "types/bluetooth/uuid.h"
 #include "types/bt_transport.h"
 #include "types/raw_address.h"
 

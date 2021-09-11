@@ -44,6 +44,7 @@
 #include "main/shim/shim.h"
 #include "osi/include/log.h"
 #include "stack/include/btu.h"
+#include "types/bluetooth/uuid.h"
 #include "types/raw_address.h"
 #include "vendor_api.h"
 
