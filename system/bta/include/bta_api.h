@@ -29,8 +29,8 @@
 #include <vector>
 
 #include "bt_target.h"  // Must be first to define build configuration
-
 #include "osi/include/log.h"
+#include "stack/include/bt_octets.h"
 #include "stack/include/bt_types.h"
 #include "stack/include/btm_api_types.h"
 #include "stack/include/btm_ble_api_types.h"

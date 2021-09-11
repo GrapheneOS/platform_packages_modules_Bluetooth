@@ -55,6 +55,7 @@
 #include "osi/include/config.h"
 #include "osi/include/log.h"
 #include "osi/include/osi.h"
+#include "stack/include/bt_octets.h"
 #include "stack/include/btu.h"
 #include "types/raw_address.h"
 

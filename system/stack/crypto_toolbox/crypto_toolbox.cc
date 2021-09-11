@@ -15,12 +15,14 @@
  */
 
 #include "stack/crypto_toolbox/crypto_toolbox.h"
-#include "stack/crypto_toolbox/aes.h"
-
-#include <algorithm>
 
 #include <base/logging.h>
 #include <base/strings/string_number_conversions.h>
+
+#include <algorithm>
+
+#include "stack/crypto_toolbox/aes.h"
+#include "stack/include/bt_octets.h"
 
 using base::HexEncode;
 
