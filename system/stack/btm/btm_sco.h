@@ -92,7 +92,6 @@ typedef struct {
 
 /* SCO Management control block */
 typedef struct {
-  tBTM_SCO_IND_CBACK* app_sco_ind_cb;
   tSCO_CONN sco_db[BTM_MAX_SCO_LINKS];
   enh_esco_params_t def_esco_parms;
   bool esco_supported;        /* true if 1.2 cntlr AND supports eSCO links */
