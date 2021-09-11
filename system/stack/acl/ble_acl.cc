@@ -24,6 +24,7 @@
 #include "stack/include/acl_api.h"
 #include "stack/include/bt_types.h"
 #include "stack/include/l2cap_hci_link_interface.h"
+#include "types/raw_address.h"
 
 extern tBTM_CB btm_cb;
 

@@ -19,6 +19,8 @@
 
 #include <hardware/bt_vc.h>
 
+#include "types/raw_address.h"
+
 class VolumeControl {
  public:
   virtual ~VolumeControl() = default;

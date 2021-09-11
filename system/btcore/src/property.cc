@@ -17,12 +17,15 @@
  ******************************************************************************/
 
 #include "btcore/include/property.h"
+
 #include <base/logging.h>
 #include <string.h>
+
 #include "btcore/include/device_class.h"
 #include "check.h"
 #include "osi/include/allocator.h"
 #include "osi/include/compat.h"
+#include "types/raw_address.h"
 
 using bluetooth::Uuid;
 

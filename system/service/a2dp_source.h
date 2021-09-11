@@ -16,16 +16,17 @@
 
 #pragma once
 
+#include <base/macros.h>
+
 #include <atomic>
 #include <mutex>
 #include <string>
 #include <vector>
 
-#include <base/macros.h>
-
 #include "service/bluetooth_instance.h"
 #include "service/common/bluetooth/a2dp_codec_config.h"
 #include "service/hal/bluetooth_av_interface.h"
+#include "types/raw_address.h"
 
 namespace bluetooth {
 

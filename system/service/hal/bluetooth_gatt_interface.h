@@ -16,13 +16,15 @@
 
 #pragma once
 
+#include <base/macros.h>
+#include <hardware/bluetooth.h>
+#include <hardware/bt_gatt.h>
+
 #include <mutex>
 #include <unordered_set>
 #include <vector>
 
-#include <base/macros.h>
-#include <hardware/bluetooth.h>
-#include <hardware/bt_gatt.h>
+#include "types/raw_address.h"
 
 namespace bluetooth {
 namespace hal {

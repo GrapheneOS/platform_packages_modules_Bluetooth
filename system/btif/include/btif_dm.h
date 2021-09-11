@@ -22,6 +22,7 @@
 #include "bta/include/bta_api.h"
 #include "bte_appl.h"
 #include "btif_uid.h"
+#include "types/raw_address.h"
 
 /*******************************************************************************
  *  Functions

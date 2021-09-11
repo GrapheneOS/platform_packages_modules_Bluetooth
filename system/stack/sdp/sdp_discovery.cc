@@ -35,6 +35,7 @@
 #include "stack/include/sdpdefs.h"
 #include "stack/sdp/sdpint.h"
 #include "types/bluetooth/uuid.h"
+#include "types/raw_address.h"
 
 using bluetooth::Uuid;
 

@@ -21,6 +21,7 @@
 
 #include "abstract_observer_list.h"
 #include "service/hal/bluetooth_av_interface.h"
+#include "types/raw_address.h"
 
 namespace bluetooth {
 namespace hal {

@@ -17,6 +17,8 @@
 
 #include "btm_api_mock.h"
 
+#include "types/raw_address.h"
+
 static bluetooth::manager::MockBtmInterface* btm_interface = nullptr;
 
 void bluetooth::manager::SetMockBtmInterface(

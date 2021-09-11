@@ -21,6 +21,7 @@
 #include "gd/btaa/activity_attribution.h"
 #include "helpers.h"
 #include "main/shim/entry.h"
+#include "types/raw_address.h"
 
 class ActivityAttributionInterfaceImpl
     : public ActivityAttributionInterface,

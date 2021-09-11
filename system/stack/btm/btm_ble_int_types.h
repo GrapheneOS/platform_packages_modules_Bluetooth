@@ -22,6 +22,7 @@
 #include "osi/include/alarm.h"
 #include "stack/btm/neighbor_inquiry.h"
 #include "stack/include/btm_ble_api_types.h"
+#include "types/raw_address.h"
 
 /* scanning enable status */
 #define BTM_BLE_SCAN_ENABLE 0x01

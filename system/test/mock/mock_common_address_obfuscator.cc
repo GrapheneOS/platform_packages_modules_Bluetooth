@@ -26,8 +26,11 @@ extern std::map<std::string, int> mock_function_count_map;
 
 #include <base/logging.h>
 #include <openssl/hmac.h>
+
 #include <algorithm>
+
 #include "common/address_obfuscator.h"
+#include "types/raw_address.h"
 
 #ifndef UNUSED_ATTR
 #define UNUSED_ATTR

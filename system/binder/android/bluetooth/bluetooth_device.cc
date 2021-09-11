@@ -18,6 +18,8 @@
 
 #include <utils/String16.h>
 
+#include "types/raw_address.h"
+
 using android::OK;
 using android::Parcel;
 using android::status_t;

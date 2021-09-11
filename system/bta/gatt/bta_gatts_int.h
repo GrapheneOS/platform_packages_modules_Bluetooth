@@ -33,6 +33,7 @@
 #include "stack/include/bt_types.h"
 #include "stack/include/btm_ble_api_types.h"
 #include "stack/include/gatt_api.h"
+#include "types/raw_address.h"
 
 /*****************************************************************************
  *  Constants and data types

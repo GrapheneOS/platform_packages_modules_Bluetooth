@@ -16,7 +16,10 @@
 
 #define LOG_TAG "bt_headless"
 
+#include "test/headless/headless.h"
+
 #include <dlfcn.h>  //  dlopen
+
 #include <algorithm>
 #include <iostream>
 #include <map>
@@ -25,8 +28,8 @@
 #include "include/hardware/bluetooth.h"
 #include "osi/include/log.h"  // android log only
 #include "test/headless/get_options.h"
-#include "test/headless/headless.h"
 #include "test/headless/interface.h"
+#include "types/raw_address.h"
 
 extern bt_interface_t bluetoothInterface;
 

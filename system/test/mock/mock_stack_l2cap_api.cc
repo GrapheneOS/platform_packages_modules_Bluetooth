@@ -46,6 +46,7 @@ extern std::map<std::string, int> mock_function_count_map;
 #include "stack/include/bt_hdr.h"
 #include "stack/include/l2c_api.h"
 #include "stack/l2cap/l2c_int.h"
+#include "types/raw_address.h"
 
 // Mock include file to share data between tests and mock
 #include "test/mock/mock_stack_l2cap_api.h"

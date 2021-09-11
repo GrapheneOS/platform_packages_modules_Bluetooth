@@ -38,6 +38,7 @@
 #include "stack/gatt/connection_manager.h"
 #include "stack/include/bt_hdr.h"
 #include "types/bt_transport.h"
+#include "types/raw_address.h"
 
 using bluetooth::Uuid;
 

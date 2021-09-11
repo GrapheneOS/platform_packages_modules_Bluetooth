@@ -29,6 +29,7 @@
 #include "bta_vc_api.h"
 #include "btif_storage.h"
 #include "devices.h"
+#include "types/raw_address.h"
 
 using base::Closure;
 using bluetooth::Uuid;

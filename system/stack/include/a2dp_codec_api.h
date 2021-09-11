@@ -35,6 +35,7 @@
 #include "audio_a2dp_hw/include/audio_a2dp_hw.h"
 #include "avdt_api.h"
 #include "stack/include/bt_hdr.h"
+#include "types/raw_address.h"
 
 class tBT_A2DP_OFFLOAD;
 

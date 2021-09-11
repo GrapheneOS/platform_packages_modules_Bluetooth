@@ -26,11 +26,13 @@ extern std::map<std::string, int> mock_function_count_map;
 
 #include <memory>
 #include <string>
+
 #include "bt_target.h"
 #include "main/shim/dumpsys.h"
 #include "stack/btm/btm_int_types.h"
 #include "stack/include/btm_client_interface.h"
 #include "stack_config.h"
+#include "types/raw_address.h"
 
 #ifndef UNUSED_ATTR
 #define UNUSED_ATTR

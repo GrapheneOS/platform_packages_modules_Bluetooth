@@ -15,9 +15,10 @@
 //
 #include "logging_helpers.h"
 
-#include "types/bt_transport.h"
-
 #include <string>
+
+#include "types/bt_transport.h"
+#include "types/raw_address.h"
 
 #define CASE_RETURN_TEXT(code) \
   case code:                   \

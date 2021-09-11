@@ -26,9 +26,11 @@ extern std::map<std::string, int> mock_function_count_map;
 
 #include <base/bind.h>
 #include <base/location.h>
+
 #include "bt_target.h"
 #include "bta/include/bta_sdp_api.h"
 #include "bta/sdp/bta_sdp_int.h"
+#include "types/raw_address.h"
 
 #ifndef UNUSED_ATTR
 #define UNUSED_ATTR

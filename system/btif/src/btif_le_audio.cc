@@ -16,13 +16,14 @@
  */
 
 #include <hardware/bluetooth.h>
+#include <hardware/bt_le_audio.h>
+
 #include <vector>
 
 #include "btif_common.h"
 #include "btif_storage.h"
 #include "hardware/bt_le_audio.h"
-
-#include <hardware/bt_le_audio.h>
+#include "types/raw_address.h"
 
 using base::Bind;
 using base::Unretained;

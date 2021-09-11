@@ -17,16 +17,16 @@
 
 /* Volume Control Interface */
 
-#include <hardware/bluetooth.h>
-#include <hardware/bt_vc.h>
-
 #include <base/bind.h>
 #include <base/location.h>
 #include <base/logging.h>
+#include <hardware/bluetooth.h>
+#include <hardware/bt_vc.h>
 
 #include "bta_vc_api.h"
 #include "btif_common.h"
 #include "stack/include/btu.h"
+#include "types/raw_address.h"
 
 using base::Bind;
 using base::Unretained;

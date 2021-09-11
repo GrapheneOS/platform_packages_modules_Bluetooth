@@ -28,6 +28,7 @@ extern std::map<std::string, int> mock_function_count_map;
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
+
 #include "bta/dm/bta_dm_int.h"
 #include "bta/sys/bta_sys.h"
 #include "btcore/include/module.h"
@@ -43,6 +44,7 @@ extern std::map<std::string, int> mock_function_count_map;
 #include "stack/gatt/connection_manager.h"
 #include "stack/include/acl_api.h"
 #include "stack/include/l2cap_controller_interface.h"
+#include "types/raw_address.h"
 
 #ifndef UNUSED_ATTR
 #define UNUSED_ATTR

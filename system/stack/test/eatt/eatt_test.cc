@@ -30,6 +30,7 @@
 #include "mock_gatt_layer.h"
 #include "mock_l2cap_layer.h"
 #include "stack/include/bt_hdr.h"
+#include "types/raw_address.h"
 
 using testing::_;
 using testing::DoAll;

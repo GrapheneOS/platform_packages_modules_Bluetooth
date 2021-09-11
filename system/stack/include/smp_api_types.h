@@ -20,9 +20,9 @@
 #define SMP_API_TYPES_H
 
 #include "bt_target.h"  // Must be first to define build configuration
-
 #include "stack/include/btm_status.h"
 #include "types/ble_address_with_type.h"
+#include "types/raw_address.h"
 
 /* SMP command code */
 typedef enum : uint8_t {

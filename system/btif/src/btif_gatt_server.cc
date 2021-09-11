@@ -28,27 +28,26 @@
 
 #include <base/bind.h>
 #include <errno.h>
+#include <hardware/bluetooth.h>
+#include <hardware/bt_gatt.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-#include <hardware/bluetooth.h>
-#include <hardware/bt_gatt.h>
-
-#include "btif_common.h"
-#include "btif_util.h"
-
 #include "bta_api.h"
 #include "bta_gatt_api.h"
+#include "btif_common.h"
 #include "btif_config.h"
 #include "btif_dm.h"
 #include "btif_gatt.h"
 #include "btif_gatt_util.h"
 #include "btif_storage.h"
+#include "btif_util.h"
 #include "osi/include/allocator.h"
 #include "osi/include/log.h"
 #include "stack/include/btu.h"
 #include "types/bt_transport.h"
+#include "types/raw_address.h"
 
 using base::Bind;
 using base::Owned;

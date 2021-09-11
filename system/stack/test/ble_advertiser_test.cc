@@ -16,13 +16,16 @@
  *
  ******************************************************************************/
 
-#include <array>
+#include "stack/include/ble_advertiser.h"
+
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
+#include <array>
+
 #include "device/include/controller.h"
 #include "stack/btm/ble_advertiser_hci_interface.h"
-#include "stack/include/ble_advertiser.h"
+#include "types/raw_address.h"
 
 using ::testing::Args;
 using ::testing::Contains;

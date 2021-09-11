@@ -14,11 +14,13 @@
  * limitations under the License.
  */
 
+#include "service/a2dp_source.h"
+
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-#include "service/a2dp_source.h"
 #include "service/hal/fake_bluetooth_av_interface.h"
+#include "types/raw_address.h"
 
 using ::testing::_;
 using ::testing::Return;

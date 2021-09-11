@@ -40,6 +40,7 @@
 #include "stack/include/bt_hdr.h"
 #include "stack/include/l2c_api.h"
 #include "stack/l2cap/l2c_int.h"
+#include "types/raw_address.h"
 
 void btsnd_hcic_enhanced_flush(uint16_t handle,
                                uint8_t packet_type);  // TODO Remove

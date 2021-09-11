@@ -27,15 +27,18 @@
 extern std::map<std::string, int> mock_function_count_map;
 
 #include <base/bind.h>
+
 #include <ios>
 #include <list>
 #include <memory>
 #include <vector>
+
 #include "bt_target.h"
 #include "bta/gatt/bta_gattc_int.h"
 #include "device/include/controller.h"
 #include "types/bluetooth/uuid.h"
 #include "types/bt_transport.h"
+#include "types/raw_address.h"
 
 #ifndef UNUSED_ATTR
 #define UNUSED_ATTR

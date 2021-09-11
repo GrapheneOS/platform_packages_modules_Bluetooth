@@ -20,6 +20,7 @@
 
 #include "btm_api.h"
 #include "stack/btm/security_device_record.h"
+#include "types/raw_address.h"
 
 namespace bluetooth {
 namespace manager {

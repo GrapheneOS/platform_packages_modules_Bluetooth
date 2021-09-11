@@ -16,12 +16,15 @@
  *
  ******************************************************************************/
 
+#include "metric_id_allocator.h"
+
 #include <base/logging.h>
+
 #include <functional>
 #include <mutex>
 #include <thread>
 
-#include "metric_id_allocator.h"
+#include "types/raw_address.h"
 
 namespace bluetooth {
 

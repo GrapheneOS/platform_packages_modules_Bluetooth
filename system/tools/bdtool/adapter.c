@@ -17,9 +17,11 @@
  ******************************************************************************/
 
 #include "support/adapter.h"
+
 #include "base.h"
 #include "btcore/include/property.h"
 #include "support/callbacks.h"
+#include "types/raw_address.h"
 
 static bt_state_t state;
 static int property_count = 0;

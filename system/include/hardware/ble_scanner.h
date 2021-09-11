@@ -18,9 +18,12 @@
 #define ANDROID_INCLUDE_BLE_SCANNER_H
 
 #include <bluetooth/uuid.h>
+#include <raw_address.h>
 #include <stdint.h>
+
 #include <memory>
 #include <vector>
+
 #include "bt_common_types.h"
 #include "bt_gatt_client.h"
 #include "bt_gatt_types.h"
