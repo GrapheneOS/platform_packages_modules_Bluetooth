@@ -667,28 +667,6 @@ void btm_sco_conn_req(const RawAddress& bda, const DEV_CLASS& dev_class,
     }
   }
 
-  /* TCS usage */
-  if (btm_cb.sco_cb.app_sco_ind_cb) {
-    /* Now, try to find an unused control block */
-    uint16_t sco_index;
-    for (sco_index = 0, p = &btm_cb.sco_cb.sco_db[0];
-         sco_index < BTM_MAX_SCO_LINKS; sco_index++, p++) {
-      if (p->state == SCO_ST_UNUSED) {
-        p->is_orig = false;
-        p->state = SCO_ST_LISTENING;
-
-        p->esco.data.link_type = link_type;
-        p->esco.data.bd_addr = bda;
-        p->rem_bd_known = true;
-        break;
-      }
-    }
-    if (sco_index < BTM_MAX_SCO_LINKS) {
-      btm_cb.sco_cb.app_sco_ind_cb(sco_index);
-      return;
-    }
-  }
-
   /* If here, no one wants the SCO connection. Reject it */
   BTM_TRACE_WARNING("%s: rejecting SCO for %s", __func__,
                     bda.ToString().c_str());
