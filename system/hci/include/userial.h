@@ -16,56 +16,13 @@
  *
  ******************************************************************************/
 
-// This module manages the serial port over which HCI commands
-// and data are sent/received.
+#warning "This header file userial.h is no longer supported"
+#warning "Please update to remove these declarations"
 
 #pragma once
 
-#include <stdbool.h>
-#include <stdint.h>
-
-typedef enum {
-  USERIAL_PORT_1,
-  USERIAL_PORT_2,
-  USERIAL_PORT_3,
-  USERIAL_PORT_4,
-  USERIAL_PORT_5,
-  USERIAL_PORT_6,
-  USERIAL_PORT_7,
-  USERIAL_PORT_8,
-  USERIAL_PORT_9,
-  USERIAL_PORT_10,
-  USERIAL_PORT_11,
-  USERIAL_PORT_12,
-  USERIAL_PORT_13,
-  USERIAL_PORT_14,
-  USERIAL_PORT_15,
-  USERIAL_PORT_16,
-  USERIAL_PORT_17,
-  USERIAL_PORT_18,
-} userial_port_t;
-
-// Initializes the userial module. This function should only be called once.
-// It returns true if the module was initialized, false if there was an error.
-bool userial_init(void);
-
-// Opens the given serial port. Returns true if successful, false otherwise.
-// Once this function is called, the userial module will begin producing
-// buffers from data read off the serial port. If you wish to pause the
-// production of buffers, call |userial_pause_reading|. You can then resume
-// by calling |userial_resume_reading|. This function returns true if the
-// serial port was successfully opened and buffer production has started. It
-// returns false if there was an error.
-bool userial_open(userial_port_t port);
-void userial_close(void);
-void userial_close_reader(void);
-
-// Reads a maximum of |len| bytes from the serial port into |p_buffer|.
-// This function returns the number of bytes actually read, which may be
-// less than |len|. This function will not block.
-uint16_t userial_read(uint16_t msg_id, uint8_t* p_buffer, uint16_t len);
-
-// Writes a maximum of |len| bytes from |p_data| to the serial port.
-// This function returns the number of bytes actually written, which may be
-// less than |len|. This function may block.
-uint16_t userial_write(uint16_t msg_id, const uint8_t* p_data, uint16_t len);
+//     Currently still included by:
+//         hardware/broadcom/libbt/include/userial_vendor.h
+//         vendor/amlogic/common/wifi_bt/bluetooth/realtek/rtkbt/code/libbt-vendor/include/userial_vendor.h
+//         vendor/amlogic/common/wifi_bt/bluetooth/broadcom/vendor/include/userial_vendor.h
+//         vendor/amlogic/common/wifi_bt/bluetooth/amlogic/aml_libbt-vendor/include/userial_vendor.h
