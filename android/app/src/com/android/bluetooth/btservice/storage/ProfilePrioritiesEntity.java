@@ -37,6 +37,7 @@ class ProfilePrioritiesEntity {
     public int map_client_connection_policy;
     public int le_audio_connection_policy;
     public int volume_control_connection_policy;
+    public int csip_set_coordinator_connection_policy;
 
     ProfilePrioritiesEntity() {
         a2dp_connection_policy = BluetoothProfile.CONNECTION_POLICY_UNKNOWN;
@@ -53,12 +54,14 @@ class ProfilePrioritiesEntity {
         map_client_connection_policy = BluetoothProfile.CONNECTION_POLICY_UNKNOWN;
         le_audio_connection_policy = BluetoothProfile.CONNECTION_POLICY_UNKNOWN;
         volume_control_connection_policy = BluetoothProfile.CONNECTION_POLICY_UNKNOWN;
+        csip_set_coordinator_connection_policy = BluetoothProfile.CONNECTION_POLICY_UNKNOWN;
     }
 
     public String toString() {
         StringBuilder builder = new StringBuilder();
         builder.append("A2DP=").append(a2dp_connection_policy)
                 .append("|A2DP_SINK=").append(a2dp_sink_connection_policy)
+                .append("|CSIP_SET_COORDINATOR=").append(csip_set_coordinator_connection_policy)
                 .append("|HEADSET=").append(hfp_connection_policy)
                 .append("|HEADSET_CLIENT=").append(hfp_client_connection_policy)
                 .append("|HID_HOST=").append(hid_host_connection_policy)
