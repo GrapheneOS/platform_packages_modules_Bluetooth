@@ -222,3 +222,10 @@ uint8_t btif_storage_get_sr_supp_feat(const RawAddress& bd_addr) {
   mock_function_count_map[__func__]++;
   return 0;
 }
+void btif_storage_add_groups(RawAddress const&) {
+  mock_function_count_map[__func__]++;
+}
+void btif_storage_remove_groups(RawAddress const&) {
+  mock_function_count_map[__func__]++;
+}
+void btif_storage_load_bonded_groups() { mock_function_count_map[__func__]++; }

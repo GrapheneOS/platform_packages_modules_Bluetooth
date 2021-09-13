@@ -308,6 +308,10 @@ bool btif_storage_get_remote_device_type(const RawAddress& remote_bd_addr,
 void btif_storage_set_remote_device_type(const RawAddress& remote_bd_addr,
                                          const tBT_DEVICE_TYPE& device_type);
 
+void btif_storage_add_groups(const RawAddress& addr);
+void btif_storage_load_bonded_groups(void);
+void btif_storage_remove_groups(const RawAddress& address);
+
 /*******************************************************************************
  * Function         btif_storage_load_hidd
  *
