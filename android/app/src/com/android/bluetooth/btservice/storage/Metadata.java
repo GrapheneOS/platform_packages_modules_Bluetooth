@@ -116,6 +116,9 @@ class Metadata {
             case BluetoothProfile.VOLUME_CONTROL:
                 profileConnectionPolicies.volume_control_connection_policy = connectionPolicy;
                 break;
+            case BluetoothProfile.CSIP_SET_COORDINATOR:
+                profileConnectionPolicies.csip_set_coordinator_connection_policy = connectionPolicy;
+                break;
             default:
                 throw new IllegalArgumentException("invalid profile " + profile);
         }
@@ -151,6 +154,8 @@ class Metadata {
                 return profileConnectionPolicies.le_audio_connection_policy;
             case BluetoothProfile.VOLUME_CONTROL:
                 return profileConnectionPolicies.volume_control_connection_policy;
+            case BluetoothProfile.CSIP_SET_COORDINATOR:
+                return profileConnectionPolicies.csip_set_coordinator_connection_policy;
         }
         return BluetoothProfile.CONNECTION_POLICY_UNKNOWN;
     }
