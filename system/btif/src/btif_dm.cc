@@ -43,9 +43,11 @@
 
 #include <bluetooth/uuid.h>
 #include <hardware/bluetooth.h>
+#include <hardware/bt_csis.h>
 #include <hardware/bt_hearing_aid.h>
 
 #include "advertise_data_parser.h"
+#include "bta_csis_api.h"
 #include "bta_dm_int.h"
 #include "bta_gatt_api.h"
 #include "btif/include/stack_manager.h"
@@ -83,6 +85,7 @@ using bluetooth::Uuid;
 
 const Uuid UUID_HEARING_AID = Uuid::FromString("FDF0");
 const Uuid UUID_VC = Uuid::FromString("1844");
+const Uuid UUID_CSIS = Uuid::FromString("1846");
 
 #define COD_MASK 0x07FF
 
@@ -240,6 +243,7 @@ extern bt_status_t btif_hh_connect(const RawAddress* bd_addr);
 extern bt_status_t btif_hd_execute_service(bool b_enable);
 extern bluetooth::hearing_aid::HearingAidInterface*
 btif_hearing_aid_get_interface();
+extern bluetooth::csis::CsisClientInterface* btif_csis_client_get_interface();
 
 /******************************************************************************
  *  Functions
@@ -1281,7 +1285,7 @@ static void btif_dm_search_devices_evt(tBTA_DM_SEARCH_EVT event,
 /* Returns true if |uuid| should be passed as device property */
 static bool btif_is_interesting_le_service(bluetooth::Uuid uuid) {
   return (uuid.As16Bit() == UUID_SERVCLASS_LE_HID || uuid == UUID_HEARING_AID ||
-          uuid == UUID_VC);
+          uuid == UUID_VC || uuid == UUID_CSIS);
 }
 
 /*******************************************************************************
@@ -1566,6 +1570,10 @@ static void btif_dm_upstreams_evt(uint16_t event, char* p_param) {
       btif_hd_remove_device(bd_addr);
 #endif
       btif_hearing_aid_get_interface()->RemoveDevice(bd_addr);
+
+      if (bluetooth::csis::CsisClient::IsCsisClientRunning())
+        btif_csis_client_get_interface()->RemoveDevice(bd_addr);
+
       btif_storage_remove_bonded_device(&bd_addr);
       bond_state_changed(BT_STATUS_SUCCESS, bd_addr, BT_BOND_STATE_NONE);
       break;

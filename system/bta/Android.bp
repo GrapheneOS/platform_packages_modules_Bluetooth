@@ -75,6 +75,7 @@ cc_library_static {
         "av/bta_av_ci.cc",
         "av/bta_av_main.cc",
         "av/bta_av_ssm.cc",
+        "csis/csis_client.cc",
         "gatt/bta_gattc_act.cc",
         "gatt/bta_gattc_api.cc",
         "gatt/bta_gattc_cache.cc",
@@ -87,6 +88,7 @@ cc_library_static {
         "gatt/bta_gatts_utils.cc",
         "gatt/database.cc",
         "gatt/database_builder.cc",
+        "groups/groups.cc",
         "vc/device.cc",
         "vc/vc.cc",
         "hearing_aid/hearing_aid.cc",
@@ -257,6 +259,98 @@ cc_test {
     cflags: ["-DBUILDCFG"],
 }
 
+// csis unit tests for host
+cc_test {
+    name: "bluetooth_csis_test",
+    test_suites: ["device-tests"],
+    defaults: [
+        "fluoride_bta_defaults",
+        "clang_coverage_bin",
+    ],
+    host_supported: true,
+    include_dirs: [
+        "packages/modules/Bluetooth/system",
+        "packages/modules/Bluetooth/system/bta/groups",
+        "packages/modules/Bluetooth/system/bta/include",
+        "packages/modules/Bluetooth/system/bta/test/common",
+        "packages/modules/Bluetooth/system/btif/include",
+        "packages/modules/Bluetooth/system/osi/include",
+    ],
+    srcs : [
+        ":TestMockBtif",
+        "csis/csis_client.cc",
+        "csis/csis_client_test.cc",
+        "groups/groups.cc",
+        "gatt/database.cc",
+        "gatt/database_builder.cc",
+        "test/common/bta_dm_api_mock.cc",
+        "test/common/bta_gatt_api_mock.cc",
+        "test/common/bta_gatt_queue_mock.cc",
+        "test/common/btm_api_mock.cc",
+    ],
+    shared_libs: [
+        "libprotobuf-cpp-lite",
+        "libcrypto",
+    ],
+    static_libs : [
+        "crypto_toolbox_for_tests",
+        "libgmock",
+        "libbt-common",
+        "libbt-protos-lite",
+        "libosi",
+    ],
+    sanitize: {
+        cfi: true,
+        scs: true,
+        address: true,
+        all_undefined: true,
+        integer_overflow: true,
+        diag: {
+            undefined : true
+        },
+    },
+}
+
+// groups unit tests for host
+cc_test {
+    name: "bluetooth_groups_test",
+    test_suites: ["device-tests"],
+    defaults: [
+        "fluoride_bta_defaults",
+        "clang_coverage_bin",
+    ],
+    host_supported: true,
+    include_dirs: [
+        "packages/modules/Bluetooth/system",
+        "packages/modules/Bluetooth/system/bta/include",
+    ],
+    srcs : [
+        ":TestMockBtif",
+        "groups/groups_test.cc",
+        "groups/groups.cc",
+    ],
+    shared_libs: [
+        "libprotobuf-cpp-lite",
+        "libcrypto",
+    ],
+    static_libs : [
+        "crypto_toolbox_for_tests",
+        "libgmock",
+        "libbt-common",
+        "libbt-protos-lite",
+        "libosi",
+    ],
+    sanitize: {
+        cfi: true,
+        scs: true,
+        address: true,
+        all_undefined: true,
+        integer_overflow: true,
+        diag: {
+            undefined : true
+        },
+    },
+}
 
 // bta unit tests for host
 cc_test {
