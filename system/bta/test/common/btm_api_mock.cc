@@ -24,6 +24,14 @@ void bluetooth::manager::SetMockBtmInterface(
   btm_interface = mock_btm_interface;
 }
 
+bool BTM_GetSecurityFlagsByTransport(const RawAddress& bd_addr,
+                                     uint8_t* p_sec_flags,
+                                     tBT_TRANSPORT transport) {
+  LOG_ASSERT(btm_interface) << "Mock btm interface not set!";
+  return btm_interface->GetSecurityFlagsByTransport(bd_addr, p_sec_flags,
+                                                    transport);
+}
+
 bool BTM_IsEncrypted(const RawAddress& bd_addr, tBT_TRANSPORT transport) {
   return btm_interface->BTM_IsEncrypted(bd_addr, transport);
 }
@@ -34,4 +42,9 @@ tBTM_STATUS BTM_SetEncryption(const RawAddress& bd_addr,
                               tBTM_BLE_SEC_ACT sec_act) {
   return btm_interface->SetEncryption(bd_addr, transport, p_callback,
                                       p_ref_data, sec_act);
+}
+
+tBTM_SEC_DEV_REC* btm_find_dev(const RawAddress& bd_addr) {
+  LOG_ASSERT(btm_interface) << "Mock btm interface not set!";
+  return btm_interface->FindDevice(bd_addr);
 }
