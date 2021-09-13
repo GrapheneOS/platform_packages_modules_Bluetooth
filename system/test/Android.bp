@@ -48,6 +48,13 @@ filegroup {
 }
 
 filegroup {
+    name: "TestMockBtaGroups",
+    srcs: [
+      "mock/mock_bta_groups*.cc",
+    ],
+}
+
+filegroup {
     name: "TestMockBtaHd",
     srcs: [
       "mock/mock_bta_hd*.cc",
@@ -118,6 +125,7 @@ filegroup {
       ":TestMockBtaAv",
       ":TestMockBtaDm",
       ":TestMockBtaGatt",
+      ":TestMockBtaGroups",
       ":TestMockBtaHd",
       ":TestMockBtaHearingAid",
       ":TestMockBtaHf",
