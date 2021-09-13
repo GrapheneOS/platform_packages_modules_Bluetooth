@@ -133,10 +133,6 @@ static void hci_timeout_abort(void);
 static void event_finish_startup(void* context);
 static void startup_timer_expired(void* context);
 
-static void enqueue_command(waiting_command_t* wait_entry);
-static void event_command_ready(waiting_command_t* wait_entry);
-static void enqueue_packet(void* packet);
-static void event_packet_ready(void* packet);
 static void command_timed_out(void* context);
 
 static void update_command_response_timer(void);
@@ -305,64 +301,7 @@ EXPORT_SYMBOL extern const module_t hci_module = {
     .clean_up = NULL,
     .dependencies = {BTSNOOP_MODULE, NULL}};
 
-// Interface functions
-
-static void set_data_cb(
-    base::Callback<void(const base::Location&, BT_HDR*)> send_data_cb) {
-  send_data_upwards = std::move(send_data_cb);
-}
-
-static void transmit_command(BT_HDR* command,
-                             command_complete_cb complete_callback,
-                             command_status_cb status_callback, void* context) {
-  waiting_command_t* wait_entry = reinterpret_cast<waiting_command_t*>(
-      osi_calloc(sizeof(waiting_command_t)));
-
-  uint8_t* stream = command->data + command->offset;
-  STREAM_TO_UINT16(wait_entry->opcode, stream);
-  wait_entry->complete_callback = complete_callback;
-  wait_entry->status_callback = status_callback;
-  wait_entry->command = command;
-  wait_entry->context = context;
-
-  // Store the command message type in the event field
-  // in case the upper layer didn't already
-  command->event = MSG_STACK_TO_HC_HCI_CMD;
-
-  enqueue_command(wait_entry);
-}
-
-static future_t* transmit_command_futured(BT_HDR* command) {
-  waiting_command_t* wait_entry = reinterpret_cast<waiting_command_t*>(
-      osi_calloc(sizeof(waiting_command_t)));
-  future_t* future = future_new();
-
-  uint8_t* stream = command->data + command->offset;
-  STREAM_TO_UINT16(wait_entry->opcode, stream);
-  wait_entry->complete_future = future;
-  wait_entry->command = command;
-
-  // Store the command message type in the event field
-  // in case the upper layer didn't already
-  command->event = MSG_STACK_TO_HC_HCI_CMD;
-
-  enqueue_command(wait_entry);
-  return future;
-}
-
-static void transmit_downward(uint16_t type, void* data) {
-  if (type == MSG_STACK_TO_HC_HCI_CMD) {
-    // TODO(zachoverflow): eliminate this call
-    transmit_command((BT_HDR*)data, NULL, NULL, NULL);
-    LOG_WARN("%s legacy transmit of command. Use transmit_command instead.",
-             __func__);
-  } else {
-    enqueue_packet(data);
-  }
-}
-
 // Start up functions
-
 static void event_finish_startup(UNUSED_ATTR void* context) {
   LOG_INFO("%s", __func__);
   std::lock_guard<std::recursive_timed_mutex> lock(
@@ -389,53 +328,6 @@ static void startup_timer_expired(UNUSED_ATTR void* context) {
   }
 
   abort();
-}
-
-// Command/packet transmitting functions
-static void enqueue_command(waiting_command_t* wait_entry) {
-  base::Closure callback = base::Bind(&event_command_ready, wait_entry);
-
-  std::lock_guard<std::mutex> command_credits_lock(command_credits_mutex);
-  if (command_credits > 0) {
-    if (!hci_thread.DoInThread(FROM_HERE, std::move(callback))) {
-      // HCI Layer was shut down or not running
-      buffer_allocator->free(wait_entry->command);
-      osi_free(wait_entry);
-      return;
-    }
-    command_credits--;
-  } else {
-    command_queue.push(std::move(callback));
-  }
-}
-
-static void event_command_ready(waiting_command_t* wait_entry) {
-  {
-    /// Move it to the list of commands awaiting response
-    std::lock_guard<std::recursive_timed_mutex> lock(
-        commands_pending_response_mutex);
-    wait_entry->timestamp = std::chrono::steady_clock::now();
-    list_append(commands_pending_response, wait_entry);
-  }
-  // Send it off
-  packet_fragmenter->fragment_and_dispatch(wait_entry->command);
-
-  update_command_response_timer();
-}
-
-static void enqueue_packet(void* packet) {
-  if (!hci_thread.DoInThread(FROM_HERE,
-                             base::Bind(&event_packet_ready, packet))) {
-    // HCI Layer was shut down or not running
-    buffer_allocator->free(packet);
-    return;
-  }
-}
-
-static void event_packet_ready(void* pkt) {
-  // The queue may be the command queue or the packet queue, we don't care
-  BT_HDR* packet = (BT_HDR*)pkt;
-  packet_fragmenter->fragment_and_dispatch(packet);
 }
 
 // Callback for the fragmenter to send a fragment
@@ -860,19 +752,6 @@ static bool filter_bqr_event(int16_t bqr_parameter_length,
   return intercepted;
 }
 
-static void init_layer_interface() {
-  if (!interface_created) {
-    // It's probably ok for this to live forever. It's small and
-    // there's only one instance of the hci interface.
-
-    interface.set_data_cb = set_data_cb;
-    interface.transmit_command = transmit_command;
-    interface.transmit_command_futured = transmit_command_futured;
-    interface.transmit_downward = transmit_downward;
-    interface_created = true;
-  }
-}
-
 void hci_layer_cleanup_interface() {
   if (interface_created) {
     send_data_upwards.Reset();
@@ -890,16 +769,6 @@ namespace shim {
 const hci_t* hci_layer_get_interface();
 }  // namespace shim
 }  // namespace bluetooth
-
-const hci_t* hci_layer_get_interface_legacy() {
-  buffer_allocator = buffer_allocator_get_interface();
-  btsnoop = btsnoop_get_interface();
-  packet_fragmenter = packet_fragmenter_get_interface();
-
-  init_layer_interface();
-
-  return &interface;
-}
 
 const hci_t* hci_layer_get_interface() {
   return bluetooth::shim::hci_layer_get_interface();
