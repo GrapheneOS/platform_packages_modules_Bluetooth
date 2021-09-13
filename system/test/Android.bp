@@ -34,6 +34,13 @@ filegroup {
 }
 
 filegroup {
+    name: "TestMockBtaCsis",
+    srcs: [
+      "mock/mock_bta_csis*.cc",
+    ],
+}
+
+filegroup {
     name: "TestMockBtaDm",
     srcs: [
       "mock/mock_bta_dm_*.cc",
@@ -44,6 +51,13 @@ filegroup {
     name: "TestMockBtaGatt",
     srcs: [
       "mock/mock_bta_gatt*.cc",
+    ],
+}
+
+filegroup {
+    name: "TestMockBtaGroups",
+    srcs: [
+      "mock/mock_bta_groups*.cc",
     ],
 }
 
@@ -116,8 +130,10 @@ filegroup {
       ":TestMockBtaAg",
       ":TestMockBtaAr",
       ":TestMockBtaAv",
+      ":TestMockBtaCsis",
       ":TestMockBtaDm",
       ":TestMockBtaGatt",
+      ":TestMockBtaGroups",
       ":TestMockBtaHd",
       ":TestMockBtaHearingAid",
       ":TestMockBtaHf",
