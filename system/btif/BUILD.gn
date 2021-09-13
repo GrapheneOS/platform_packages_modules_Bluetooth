@@ -48,6 +48,7 @@ static_library("btif") {
     "src/btif_ble_advertiser.cc",
     "src/btif_ble_scanner.cc",
     "src/btif_bqr.cc",
+    "src/btif_csis_client.cc",
     "src/btif_config.cc",
     "src/btif_config_cache.cc",
     "src/btif_config_transcode.cc",
