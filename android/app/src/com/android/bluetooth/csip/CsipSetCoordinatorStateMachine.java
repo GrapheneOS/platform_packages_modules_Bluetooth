@@ -159,7 +159,7 @@ public class CsipSetCoordinatorStateMachine extends StateMachine {
                         Log.d(TAG, "Disconnected: stack event: " + event);
                     }
                     if (!mDevice.equals(event.device)) {
-                        Log.wtfStack(TAG, "Device(" + mDevice + "): event mismatch: " + event);
+                        Log.wtf(TAG, "Device(" + mDevice + "): event mismatch: " + event);
                     }
                     switch (event.type) {
                         case CsipSetCoordinatorStackEvent.EVENT_TYPE_CONNECTION_STATE_CHANGED:
@@ -268,7 +268,7 @@ public class CsipSetCoordinatorStateMachine extends StateMachine {
                     CsipSetCoordinatorStackEvent event = (CsipSetCoordinatorStackEvent) message.obj;
                     log("Connecting: stack event: " + event);
                     if (!mDevice.equals(event.device)) {
-                        Log.wtfStack(TAG, "Device(" + mDevice + "): event mismatch: " + event);
+                        Log.wtf(TAG, "Device(" + mDevice + "): event mismatch: " + event);
                     }
                     switch (event.type) {
                         case CsipSetCoordinatorStackEvent.EVENT_TYPE_CONNECTION_STATE_CHANGED:
@@ -354,7 +354,7 @@ public class CsipSetCoordinatorStateMachine extends StateMachine {
                     CsipSetCoordinatorStackEvent event = (CsipSetCoordinatorStackEvent) message.obj;
                     log("Disconnecting: stack event: " + event);
                     if (!mDevice.equals(event.device)) {
-                        Log.wtfStack(TAG, "Device(" + mDevice + "): event mismatch: " + event);
+                        Log.wtf(TAG, "Device(" + mDevice + "): event mismatch: " + event);
                     }
                     switch (event.type) {
                         case CsipSetCoordinatorStackEvent.EVENT_TYPE_CONNECTION_STATE_CHANGED:
@@ -451,7 +451,7 @@ public class CsipSetCoordinatorStateMachine extends StateMachine {
                     CsipSetCoordinatorStackEvent event = (CsipSetCoordinatorStackEvent) message.obj;
                     log("Connected: stack event: " + event);
                     if (!mDevice.equals(event.device)) {
-                        Log.wtfStack(TAG, "Device(" + mDevice + "): event mismatch: " + event);
+                        Log.wtf(TAG, "Device(" + mDevice + "): event mismatch: " + event);
                     }
                     switch (event.type) {
                         case CsipSetCoordinatorStackEvent.EVENT_TYPE_CONNECTION_STATE_CHANGED:
