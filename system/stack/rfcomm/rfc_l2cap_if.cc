@@ -200,7 +200,7 @@ void RFCOMM_ConfigInd(uint16_t lcid, tL2CAP_CFG_INFO* p_cfg) {
  *                  event to the FSM.
  *
  ******************************************************************************/
-void RFCOMM_ConfigCnf(uint16_t lcid, uint16_t initiator,
+void RFCOMM_ConfigCnf(uint16_t lcid, UNUSED_ATTR uint16_t initiator,
                       tL2CAP_CFG_INFO* p_cfg) {
   RFCOMM_ConfigInd(lcid, p_cfg);
 
