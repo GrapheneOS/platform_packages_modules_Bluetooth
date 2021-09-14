@@ -24,6 +24,7 @@ import android.os.WorkSource;
 
 import com.android.bluetooth.BluetoothMetricsProto;
 import com.android.bluetooth.BluetoothStatsLog;
+import com.android.bluetooth.util.WorkSourceUtil;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -112,7 +113,8 @@ import java.util.Objects;
     static final int SCAN_TIMEOUT_MS = 30 * 60 * 1000;
 
     public String appName;
-    public WorkSource mWorkSource; // Used for BatteryStatsManager and BluetoothStatsLog
+    public WorkSource mWorkSource; // Used for BatteryStatsManager
+    public final WorkSourceUtil mWorkSourceUtil; // Used for BluetoothStatsLog
     private int mScansStarted = 0;
     private int mScansStopped = 0;
     public boolean isRegistered = false;
@@ -147,6 +149,7 @@ import java.util.Objects;
             source = new WorkSource(Binder.getCallingUid(), appName);
         }
         mWorkSource = source;
+        mWorkSourceUtil = new WorkSourceUtil(source);
     }
 
     synchronized void addResult(int scannerId) {
@@ -158,8 +161,8 @@ import java.util.Objects;
             // to lower the cost of the binder transaction
             if (scan.results % 100 == 0) {
                 mBatteryStatsManager.reportBleScanResults(mWorkSource, 100);
-                BluetoothStatsLog.write(
-                        BluetoothStatsLog.BLE_SCAN_RESULT_RECEIVED, mWorkSource, 100);
+                BluetoothStatsLog.write(BluetoothStatsLog.BLE_SCAN_RESULT_RECEIVED,
+                        mWorkSourceUtil.getUids(), mWorkSourceUtil.getTags(), 100);
             }
         }
 
@@ -232,7 +235,8 @@ import java.util.Objects;
         boolean isUnoptimized =
                 !(scan.isFilterScan || scan.isBackgroundScan || scan.isOpportunisticScan);
         mBatteryStatsManager.reportBleScanStarted(mWorkSource, isUnoptimized);
-        BluetoothStatsLog.write(BluetoothStatsLog.BLE_SCAN_STATE_CHANGED, mWorkSource,
+        BluetoothStatsLog.write(BluetoothStatsLog.BLE_SCAN_STATE_CHANGED,
+                mWorkSourceUtil.getUids(), mWorkSourceUtil.getTags(),
                 BluetoothStatsLog.BLE_SCAN_STATE_CHANGED__STATE__ON,
                 scan.isFilterScan, scan.isBackgroundScan, scan.isOpportunisticScan);
 
@@ -295,9 +299,10 @@ import java.util.Objects;
                 !(scan.isFilterScan || scan.isBackgroundScan || scan.isOpportunisticScan);
         mBatteryStatsManager.reportBleScanResults(mWorkSource, scan.results % 100);
         mBatteryStatsManager.reportBleScanStopped(mWorkSource, isUnoptimized);
-        BluetoothStatsLog.write(
-                BluetoothStatsLog.BLE_SCAN_RESULT_RECEIVED, mWorkSource, scan.results % 100);
-        BluetoothStatsLog.write(BluetoothStatsLog.BLE_SCAN_STATE_CHANGED, mWorkSource,
+        BluetoothStatsLog.write(BluetoothStatsLog.BLE_SCAN_RESULT_RECEIVED,
+                mWorkSourceUtil.getUids(), mWorkSourceUtil.getTags(), scan.results % 100);
+        BluetoothStatsLog.write(BluetoothStatsLog.BLE_SCAN_STATE_CHANGED,
+                mWorkSourceUtil.getUids(), mWorkSourceUtil.getTags(),
                 BluetoothStatsLog.BLE_SCAN_STATE_CHANGED__STATE__OFF,
                 scan.isFilterScan, scan.isBackgroundScan, scan.isOpportunisticScan);
     }
