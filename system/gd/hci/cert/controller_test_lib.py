@@ -16,6 +16,7 @@
 
 import time
 
+from bluetooth_packets_python3 import hci_packets
 from cert.truth import assertThat
 from google.protobuf import empty_pb2 as empty_proto
 from facade import rootservice_pb2 as facade_rootservice
@@ -39,3 +40,12 @@ class ControllerTestBase():
 
         assertThat(dut_name).isEqualTo(b'ImTheDUT')
         assertThat(cert_name).isEqualTo(b'ImTheCert')
+
+    def test_extended_advertising_support(self, dut, cert):
+        extended_advertising_supported = dut.hci_controller.SupportsBleExtendedAdvertising(empty_proto.Empty())
+        if extended_advertising_supported.supported:
+            number_of_sets = dut.hci_controller.GetLeNumberOfSupportedAdvertisingSets(empty_proto.Empty())
+            assertThat(number_of_sets.value).isGreaterThan(5)  # Android threshold for CTS
+            supported = dut.hci_controller.IsSupportedCommand(
+                controller_facade.OpCodeMsg(op_code=int(hci_packets.OpCode.LE_SET_EXTENDED_ADVERTISING_PARAMETERS)))
+            assertThat(supported.supported).isEqualTo(True)
