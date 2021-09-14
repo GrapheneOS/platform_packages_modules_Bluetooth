@@ -121,14 +121,6 @@ struct handle_root_inflammation_event {
   void operator()() { body(); };
 };
 extern struct handle_root_inflammation_event handle_root_inflammation_event;
-// Name: hci_layer_cleanup_interface
-// Params:
-// Returns: void
-struct hci_layer_cleanup_interface {
-  std::function<void()> body{[]() {}};
-  void operator()() { body(); };
-};
-extern struct hci_layer_cleanup_interface hci_layer_cleanup_interface;
 // Name: hci_layer_get_interface
 // Params:
 // Returns: const hci_t*
