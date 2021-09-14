@@ -187,6 +187,10 @@ public class BluetoothInCallService extends InCallService {
             if (call.isExternalCall()) {
                 return;
             }
+            if (state == Call.STATE_DISCONNECTING) {
+                mLastState = state;
+                return;
+            }
 
             // If a BluetoothCall is being put on hold because of a new connecting call, ignore the
             // CONNECTING since the BT state update needs to send out the numHeld = 1 + dialing
