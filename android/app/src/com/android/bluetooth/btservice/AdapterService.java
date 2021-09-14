@@ -72,7 +72,6 @@ import android.os.BatteryStats;
 import android.os.BatteryStatsManager;
 import android.os.Binder;
 import android.os.Bundle;
-import android.os.BytesMatcher;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
@@ -123,6 +122,7 @@ import com.android.internal.annotations.GuardedBy;
 import com.android.internal.annotations.VisibleForTesting;
 import com.android.internal.os.BinderCallsStats;
 import com.android.modules.utils.BackgroundThread;
+import com.android.modules.utils.BytesMatcher;
 
 import com.google.protobuf.InvalidProtocolBufferException;
 
