@@ -60,7 +60,6 @@ struct process_command_credits process_command_credits;
 struct hci_is_root_inflammation_event_received
     hci_is_root_inflammation_event_received;
 struct handle_root_inflammation_event handle_root_inflammation_event;
-struct hci_layer_cleanup_interface hci_layer_cleanup_interface;
 struct hci_layer_get_interface hci_layer_get_interface;
 
 }  // namespace hci_layer
@@ -103,10 +102,6 @@ bool hci_is_root_inflammation_event_received() {
 void handle_root_inflammation_event() {
   mock_function_count_map[__func__]++;
   test::mock::hci_layer::handle_root_inflammation_event();
-}
-void hci_layer_cleanup_interface() {
-  mock_function_count_map[__func__]++;
-  test::mock::hci_layer::hci_layer_cleanup_interface();
 }
 const hci_t* hci_layer_get_interface() {
   mock_function_count_map[__func__]++;
