@@ -26,17 +26,25 @@
 using std::vector;
 
 static void ParseUint8t(Json::Value value, uint8_t* field) {
-  if (value.isString())
-    *field = std::stoi(value.asString());
-  else if (value.isUInt())
-    *field = value.asUInt();
+  if (value.isString()) {
+    *field = std::stoi(value.asString(), nullptr, 0);
+  }
 }
 
 static void ParseUint16t(Json::Value value, uint16_t* field) {
-  if (value.isString())
-    *field = std::stoi(value.asString());
-  else if (value.isUInt())
-    *field = value.asUInt();
+  if (value.isString()) {
+    *field = std::stoi(value.asString(), nullptr, 0);
+  }
+}
+
+static void ParseHex64(Json::Value value, uint64_t* field) {
+  if (value.isString()) {
+    size_t end_char = 0;
+    uint64_t parsed = std::stoll(value.asString(), &end_char, 16);
+    if (end_char > 0) {
+      *field = parsed;
+    }
+  }
 }
 
 namespace test_vendor_lib {
@@ -73,7 +81,7 @@ DeviceProperties::DeviceProperties(const std::string& file_name)
   le_supported_states_ = 0x3ffffffffff;
   le_vendor_cap_ = {};
 
-  if (file_name.size() == 0) {
+  if (file_name.empty()) {
     return;
   }
 
@@ -102,14 +110,15 @@ DeviceProperties::DeviceProperties(const std::string& file_name)
   ParseUint16t(root["ManufacturerName"], &manufacturer_name_);
   ParseUint16t(root["LmpPalSubversion"], &lmp_pal_subversion_);
   Json::Value supported_commands = root["supported_commands"];
-  if (supported_commands.size() > 0) {
+  if (!supported_commands.empty()) {
     use_supported_commands_from_file_ = true;
     for (int i = 0; i < supported_commands.size(); i++) {
       std::string out = supported_commands[i].asString();
-      uint8_t number = stoi(out, 0, 16);
+      uint8_t number = stoi(out, nullptr, 16);
       supported_commands_[i] = number;
     }
   }
+  ParseHex64(root["LeSupportedFeatures"], &le_supported_features_);
 }
 
 }  // namespace test_vendor_lib
