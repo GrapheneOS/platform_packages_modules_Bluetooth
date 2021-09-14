@@ -606,7 +606,8 @@ public class BluetoothInCallService extends InCallService {
         }
 
         BluetoothCall conferenceCall = getBluetoothCallById(call.getParentId());
-        if (!mCallInfo.isNullCall(conferenceCall)) {
+        if (!mCallInfo.isNullCall(conferenceCall)
+                && conferenceCall.hasProperty(Call.Details.PROPERTY_GENERIC_CONFERENCE)) {
             isPartOfConference = true;
 
             // Run some alternative states for Conference-level merge/swap support.
