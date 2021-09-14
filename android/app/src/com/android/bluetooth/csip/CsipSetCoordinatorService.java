@@ -540,7 +540,7 @@ public class CsipSetCoordinatorService extends ProfileService {
      * @return map of group id and related uuids.
      */
     public Map<Integer, ParcelUuid> getGroupUuidMapByDevice(BluetoothDevice device) {
-        Set<Integer> device_groups = mDeviceGroupIdMap.get(device);
+        Set<Integer> device_groups = mDeviceGroupIdMap.getOrDefault(device, new HashSet<>());
         return mGroupIdToUuidMap.entrySet()
                 .stream()
                 .filter(e -> device_groups.contains(e.getKey()))
