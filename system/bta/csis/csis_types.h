@@ -90,7 +90,7 @@ class GattServiceDevice {
   /*
    * We are making active attempt to connect to this device, 'direct connect'.
    */
-  bool connecting_actively;
+  bool connecting_actively = false;
 
   uint16_t conn_id = GATT_INVALID_CONN_ID;
   uint16_t service_handle = GAP_INVALID_HANDLE;
