@@ -107,6 +107,7 @@ android_app {
         "android.hardware.radio-V1.0-java",
         "mmslib",
         "modules-utils-backgroundthread",
+        "modules-utils-bytesmatcher",
     ],
 
     plugins: [
