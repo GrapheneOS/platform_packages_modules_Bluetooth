@@ -28,3 +28,6 @@ class ControllerTest(GdBaseTestClass, ControllerTestBase):
 
     def test_write_local_name(self):
         ControllerTestBase.test_write_local_name(self, self.dut, self.cert)
+
+    def test_extended_advertising_support(self):
+        ControllerTestBase.test_extended_advertising_support(self, self.dut, self.cert)
