@@ -45,7 +45,6 @@ import com.android.bluetooth.Utils;
 import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.btservice.ProfileService;
 import com.android.internal.annotations.VisibleForTesting;
-import com.android.internal.util.ArrayUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -246,7 +245,7 @@ public class CsipSetCoordinatorService extends ProfileService {
             return false;
         }
         ParcelUuid[] featureUuids = mAdapterService.getRemoteUuids(device);
-        if (!ArrayUtils.contains(featureUuids, BluetoothUuid.COORDINATED_SET)) {
+        if (!Utils.arrayContains(featureUuids, BluetoothUuid.COORDINATED_SET)) {
             Log.e(TAG, "Cannot connect to " + device + " : Remote does not have CSIS UUID");
             return false;
         }
@@ -342,7 +341,7 @@ public class CsipSetCoordinatorService extends ProfileService {
         synchronized (mStateMachines) {
             for (BluetoothDevice device : bondedDevices) {
                 final ParcelUuid[] featureUuids = device.getUuids();
-                if (!ArrayUtils.contains(featureUuids, BluetoothUuid.COORDINATED_SET)) {
+                if (!Utils.arrayContains(featureUuids, BluetoothUuid.COORDINATED_SET)) {
                     continue;
                 }
                 int connectionState = BluetoothProfile.STATE_DISCONNECTED;
