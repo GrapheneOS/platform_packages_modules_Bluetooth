@@ -16,7 +16,6 @@
 
 #include "reactive_semaphore.h"
 
-#include <error.h>
 #include <string.h>
 #include <sys/eventfd.h>
 #include <unistd.h>
