@@ -21,6 +21,8 @@
  *  mockcify.pl ver 0.3.0
  */
 
+#include <sys/types.h>
+
 #include <cstdint>
 #include <functional>
 #include <map>

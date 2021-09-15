@@ -34,8 +34,8 @@
 #include <linux/if_ether.h>
 #include <linux/if_tun.h>
 #include <net/if.h>
+#include <poll.h>
 #include <sys/ioctl.h>
-#include <sys/poll.h>
 #include <unistd.h>
 
 #include "bt_target.h"  // Must be first to define build configuration
