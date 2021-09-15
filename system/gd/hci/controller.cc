@@ -92,7 +92,7 @@ struct Controller::impl {
       le_resolving_list_size_ = 0;
     }
 
-    if (is_supported(OpCode::LE_READ_MAXIMUM_DATA_LENGTH) && module_.SupportsBlePacketExtension()) {
+    if (is_supported(OpCode::LE_READ_MAXIMUM_DATA_LENGTH) && module_.SupportsBleDataPacketLengthExtension()) {
       hci_->EnqueueCommand(LeReadMaximumDataLengthBuilder::Create(),
                            handler->BindOnceOn(this, &Controller::impl::le_read_maximum_data_length_handler));
     } else {
@@ -112,7 +112,7 @@ struct Controller::impl {
             handler->BindOnceOn(this, &Controller::impl::write_secure_connections_host_support_complete_handler));
       }
     }
-    if (is_supported(OpCode::LE_READ_SUGGESTED_DEFAULT_DATA_LENGTH) && module_.SupportsBlePacketExtension()) {
+    if (is_supported(OpCode::LE_READ_SUGGESTED_DEFAULT_DATA_LENGTH) && module_.SupportsBleDataPacketLengthExtension()) {
       hci_->EnqueueCommand(
           LeReadSuggestedDefaultDataLengthBuilder::Create(),
           handler->BindOnceOn(this, &Controller::impl::le_read_suggested_default_data_length_handler));
@@ -946,21 +946,42 @@ LOCAL_FEATURE_ACCESSOR(SupportsBle, 0, 38)
     return GetLocalLeFeatures() & BIT(bit);  \
   }
 
-LOCAL_LE_FEATURE_ACCESSOR(SupportsBleConnectionParameterRequest, 1)
-LOCAL_LE_FEATURE_ACCESSOR(SupportsBleConnectionParametersRequest, 2)
-LOCAL_LE_FEATURE_ACCESSOR(SupportsBlePeripheralInitiatedFeatureExchange, 3)
-LOCAL_LE_FEATURE_ACCESSOR(SupportsBlePacketExtension, 5)
+LOCAL_LE_FEATURE_ACCESSOR(SupportsBleEncryption, 0)
+LOCAL_LE_FEATURE_ACCESSOR(SupportsBleConnectionParametersRequest, 1)
+LOCAL_LE_FEATURE_ACCESSOR(SupportsBleExtendedReject, 2)
+LOCAL_LE_FEATURE_ACCESSOR(SupportsBlePeripheralInitiatedFeaturesExchange, 3)
+LOCAL_LE_FEATURE_ACCESSOR(SupportsBlePing, 4)
+LOCAL_LE_FEATURE_ACCESSOR(SupportsBleDataPacketLengthExtension, 5)
 LOCAL_LE_FEATURE_ACCESSOR(SupportsBlePrivacy, 6)
+LOCAL_LE_FEATURE_ACCESSOR(SupportsBleExtendedScannerFilterPolicies, 7)
 LOCAL_LE_FEATURE_ACCESSOR(SupportsBle2mPhy, 8)
+LOCAL_LE_FEATURE_ACCESSOR(SupportsBleStableModulationIndexTx, 9)
+LOCAL_LE_FEATURE_ACCESSOR(SupportsBleStableModulationIndexRx, 10)
 LOCAL_LE_FEATURE_ACCESSOR(SupportsBleCodedPhy, 11)
 LOCAL_LE_FEATURE_ACCESSOR(SupportsBleExtendedAdvertising, 12)
 LOCAL_LE_FEATURE_ACCESSOR(SupportsBlePeriodicAdvertising, 13)
+LOCAL_LE_FEATURE_ACCESSOR(SupportsBleChannelSelectionAlgorithm2, 14)
+LOCAL_LE_FEATURE_ACCESSOR(SupportsBlePowerClass1, 15)
+LOCAL_LE_FEATURE_ACCESSOR(SupportsBleMinimumUsedChannels, 16)
+LOCAL_LE_FEATURE_ACCESSOR(SupportsBleConnectionCteRequest, 17)
+LOCAL_LE_FEATURE_ACCESSOR(SupportsBleConnectionCteResponse, 18)
+LOCAL_LE_FEATURE_ACCESSOR(SupportsBleConnectionlessCteTransmitter, 19)
+LOCAL_LE_FEATURE_ACCESSOR(SupportsBleConnectionlessCteReceiver, 20)
+LOCAL_LE_FEATURE_ACCESSOR(SupportsBleAntennaSwitchingDuringCteTx, 21)
+LOCAL_LE_FEATURE_ACCESSOR(SupportsBleAntennaSwitchingDuringCteRx, 22)
+LOCAL_LE_FEATURE_ACCESSOR(SupportsBleReceivingConstantToneExtensions, 23)
 LOCAL_LE_FEATURE_ACCESSOR(SupportsBlePeriodicAdvertisingSyncTransferSender, 24)
 LOCAL_LE_FEATURE_ACCESSOR(SupportsBlePeriodicAdvertisingSyncTransferRecipient, 25)
+LOCAL_LE_FEATURE_ACCESSOR(SupportsBleSleepClockAccuracyUpdates, 26)
+LOCAL_LE_FEATURE_ACCESSOR(SupportsBleRemotePublicKeyValidation, 27)
 LOCAL_LE_FEATURE_ACCESSOR(SupportsBleConnectedIsochronousStreamCentral, 28)
 LOCAL_LE_FEATURE_ACCESSOR(SupportsBleConnectedIsochronousStreamPeripheral, 29)
 LOCAL_LE_FEATURE_ACCESSOR(SupportsBleIsochronousBroadcaster, 30)
 LOCAL_LE_FEATURE_ACCESSOR(SupportsBleSynchronizedReceiver, 31)
+LOCAL_LE_FEATURE_ACCESSOR(SupportsBleIsochronousChannelsHostSupport, 32)
+LOCAL_LE_FEATURE_ACCESSOR(SupportsBlePowerControlRequest, 33)
+LOCAL_LE_FEATURE_ACCESSOR(SupportsBlePowerChangeIndication, 34)
+LOCAL_LE_FEATURE_ACCESSOR(SupportsBlePathLossMonitoring, 35)
 
 uint64_t Controller::GetLocalFeatures(uint8_t page_number) const {
   if (page_number <= impl_->maximum_page_number_) {
