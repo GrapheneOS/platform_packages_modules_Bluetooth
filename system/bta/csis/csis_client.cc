@@ -1729,7 +1729,7 @@ class CsisClientImpl : public CsisClient {
   std::list<std::shared_ptr<CsisDevice>> devices_;
   std::list<std::shared_ptr<CsisGroup>> csis_groups_;
   DeviceGroups* dev_groups_;
-  int discovering_group_;
+  int discovering_group_ = -1;
 };
 
 class DeviceGroupsCallbacksImpl : public DeviceGroupsCallbacks {
