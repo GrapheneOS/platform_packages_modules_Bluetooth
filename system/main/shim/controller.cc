@@ -178,7 +178,7 @@ MAP_TO_GD(supports_encryption_pause, SupportsEncryptionPause)
 
 MAP_TO_GD(supports_ble, SupportsBle)
 MAP_TO_GD(supports_privacy, SupportsBlePrivacy)
-MAP_TO_GD(supports_packet_extension, SupportsBlePacketExtension)
+MAP_TO_GD(supports_packet_extension, SupportsBleDataPacketLengthExtension)
 MAP_TO_GD(supports_connection_parameters_request,
           SupportsBleConnectionParametersRequest)
 MAP_TO_GD(supports_ble_2m_phy, SupportsBle2mPhy)
@@ -186,9 +186,9 @@ MAP_TO_GD(supports_ble_coded_phy, SupportsBleCodedPhy)
 MAP_TO_GD(supports_extended_advertising, SupportsBleExtendedAdvertising)
 MAP_TO_GD(supports_periodic_advertising, SupportsBlePeriodicAdvertising)
 MAP_TO_GD(supports_peripheral_initiated_feature_exchange,
-          SupportsBlePeripheralInitiatedFeatureExchange)
+          SupportsBlePeripheralInitiatedFeaturesExchange)
 MAP_TO_GD(supports_connection_parameter_request,
-          SupportsBleConnectionParameterRequest)
+          SupportsBleConnectionParametersRequest)
 
 MAP_TO_GD(supports_periodic_advertising_sync_transfer_sender,
           SupportsBlePeriodicAdvertisingSyncTransferSender)
