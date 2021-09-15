@@ -1,4 +1,7 @@
+use bt_topshim::btif::BtSspVariant;
 use bt_topshim::topstack;
+use btstack::bluetooth::{BluetoothDevice, IBluetoothCallback};
+use btstack::RPCProxy;
 
 use dbus::channel::MatchingReceiver;
 
@@ -37,6 +40,53 @@ impl IBluetoothManagerCallback for BtManagerCallback {
 }
 
 impl manager_service::RPCProxy for BtManagerCallback {
+    fn register_disconnect(&mut self, _f: Box<dyn Fn() + Send>) {}
+
+    fn get_object_id(&self) -> String {
+        self.objpath.clone()
+    }
+}
+
+struct BtCallback {
+    objpath: String,
+}
+
+impl IBluetoothCallback for BtCallback {
+    fn on_address_changed(&self, addr: String) {
+        print_info!("Address changed to {}", addr);
+    }
+
+    fn on_device_found(&self, remote_device: BluetoothDevice) {
+        print_info!("Found device: {:?}", remote_device);
+    }
+
+    fn on_discovering_changed(&self, discovering: bool) {
+        print_info!("Discovering: {}", discovering);
+    }
+
+    fn on_ssp_request(
+        &self,
+        remote_device: BluetoothDevice,
+        _cod: u32,
+        variant: BtSspVariant,
+        passkey: u32,
+    ) {
+        if variant == BtSspVariant::PasskeyNotification {
+            print_info!(
+                "device {}{} would like to pair, enter passkey on remote device: {:06}",
+                remote_device.address.to_string(),
+                if remote_device.name.len() > 0 {
+                    format!(" ({})", remote_device.name)
+                } else {
+                    String::from("")
+                },
+                passkey
+            );
+        }
+    }
+}
+
+impl RPCProxy for BtCallback {
     fn register_disconnect(&mut self, _f: Box<dyn Fn() + Send>) {}
 
     fn get_object_id(&self) -> String {

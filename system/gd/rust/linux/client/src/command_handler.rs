@@ -1,7 +1,4 @@
-use bt_topshim::btif::BtSspVariant;
-
-use btstack::bluetooth::{BluetoothDevice, BluetoothTransport, IBluetooth, IBluetoothCallback};
-use btstack::RPCProxy;
+use btstack::bluetooth::{BluetoothDevice, BluetoothTransport, IBluetooth};
 
 use manager_service::iface_bluetooth_manager::IBluetoothManager;
 
@@ -12,59 +9,12 @@ use std::sync::{Arc, Mutex};
 
 use crate::console_yellow;
 use crate::print_info;
-use crate::{BluetoothDBus, BluetoothManagerDBus};
+use crate::{BluetoothDBus, BluetoothManagerDBus, BtCallback};
 
 const INDENT_CHAR: &str = " ";
 const BAR1_CHAR: &str = "=";
 const BAR2_CHAR: &str = "-";
 const MAX_MENU_CHAR_WIDTH: usize = 72;
-
-struct BtCallback {
-    objpath: String,
-}
-
-impl IBluetoothCallback for BtCallback {
-    fn on_address_changed(&self, addr: String) {
-        print_info!("Address changed to {}", addr);
-    }
-
-    fn on_device_found(&self, remote_device: BluetoothDevice) {
-        print_info!("Found device: {:?}", remote_device);
-    }
-
-    fn on_discovering_changed(&self, discovering: bool) {
-        print_info!("Discovering: {}", discovering);
-    }
-
-    fn on_ssp_request(
-        &self,
-        remote_device: BluetoothDevice,
-        _cod: u32,
-        variant: BtSspVariant,
-        passkey: u32,
-    ) {
-        if variant == BtSspVariant::PasskeyNotification {
-            print_info!(
-                "device {}{} would like to pair, enter passkey on remote device: {:06}",
-                remote_device.address.to_string(),
-                if remote_device.name.len() > 0 {
-                    format!(" ({})", remote_device.name)
-                } else {
-                    String::from("")
-                },
-                passkey
-            );
-        }
-    }
-}
-
-impl RPCProxy for BtCallback {
-    fn register_disconnect(&mut self, _f: Box<dyn Fn() + Send>) {}
-
-    fn get_object_id(&self) -> String {
-        self.objpath.clone()
-    }
-}
 
 type CommandFunction = fn(&mut CommandHandler, &Vec<String>);
 
@@ -129,10 +79,10 @@ fn build_commands() -> HashMap<String, CommandOption> {
         },
     );
     command_options.insert(
-        String::from("get_address"),
+        String::from("bond"),
         CommandOption {
-            description: String::from("Gets the local device address."),
-            function_pointer: CommandHandler::cmd_get_address,
+            description: String::from("Creates a bond with a device."),
+            function_pointer: CommandHandler::cmd_bond,
         },
     );
     command_options.insert(
@@ -143,10 +93,10 @@ fn build_commands() -> HashMap<String, CommandOption> {
         },
     );
     command_options.insert(
-        String::from("bond"),
+        String::from("get_address"),
         CommandOption {
-            description: String::from("Creates a bond with a device."),
-            function_pointer: CommandHandler::cmd_bond,
+            description: String::from("Gets the local device address."),
+            function_pointer: CommandHandler::cmd_get_address,
         },
     );
     command_options.insert(
