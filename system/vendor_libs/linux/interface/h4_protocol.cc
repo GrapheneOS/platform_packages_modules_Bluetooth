@@ -97,7 +97,15 @@ void H4Protocol::OnDataReady(int fd) {
         const size_t max_plen = 64*1024;
         hidl_vec<uint8_t> tpkt;
         tpkt.resize(max_plen);
-        size_t bytes_read = TEMP_FAILURE_RETRY(read(fd, tpkt.data(), max_plen));
+        ssize_t bytes_read = TEMP_FAILURE_RETRY(read(fd, tpkt.data(), max_plen));
+        if (bytes_read == 0) {
+            ALOGI("No bytes read");
+            return;
+        }
+        if (bytes_read < 0) {
+            ALOGW("error reading from UART (%s)", strerror(errno));
+            return;
+        }
         hci_packet_type_ = static_cast<HciPacketType>(tpkt.data()[0]);
         hci_packetizer_.CbHciPacket(tpkt.data()+1, bytes_read-1);
     }
