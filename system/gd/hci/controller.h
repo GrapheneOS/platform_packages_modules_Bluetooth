@@ -72,23 +72,44 @@ class Controller : public Module {
   virtual bool SupportsNonFlushablePb() const;
   virtual bool SupportsSniffSubrating() const;
   virtual bool SupportsEncryptionPause() const;
-
   virtual bool SupportsBle() const;
-  virtual bool SupportsBlePrivacy() const;
-  virtual bool SupportsBlePacketExtension() const;
+
+  virtual bool SupportsBleEncryption() const;
   virtual bool SupportsBleConnectionParametersRequest() const;
+  virtual bool SupportsBleExtendedReject() const;
+  virtual bool SupportsBlePeripheralInitiatedFeaturesExchange() const;
+  virtual bool SupportsBlePing() const;
+  virtual bool SupportsBleDataPacketLengthExtension() const;
+  virtual bool SupportsBlePrivacy() const;
+  virtual bool SupportsBleExtendedScannerFilterPolicies() const;
   virtual bool SupportsBle2mPhy() const;
+  virtual bool SupportsBleStableModulationIndexTx() const;
+  virtual bool SupportsBleStableModulationIndexRx() const;
   virtual bool SupportsBleCodedPhy() const;
   virtual bool SupportsBleExtendedAdvertising() const;
   virtual bool SupportsBlePeriodicAdvertising() const;
-  virtual bool SupportsBlePeripheralInitiatedFeatureExchange() const;
-  virtual bool SupportsBleConnectionParameterRequest() const;
+  virtual bool SupportsBleChannelSelectionAlgorithm2() const;
+  virtual bool SupportsBlePowerClass1() const;
+  virtual bool SupportsBleMinimumUsedChannels() const;
+  virtual bool SupportsBleConnectionCteRequest() const;
+  virtual bool SupportsBleConnectionCteResponse() const;
+  virtual bool SupportsBleConnectionlessCteTransmitter() const;
+  virtual bool SupportsBleConnectionlessCteReceiver() const;
+  virtual bool SupportsBleAntennaSwitchingDuringCteTx() const;
+  virtual bool SupportsBleAntennaSwitchingDuringCteRx() const;
+  virtual bool SupportsBleReceivingConstantToneExtensions() const;
   virtual bool SupportsBlePeriodicAdvertisingSyncTransferSender() const;
   virtual bool SupportsBlePeriodicAdvertisingSyncTransferRecipient() const;
+  virtual bool SupportsBleSleepClockAccuracyUpdates() const;
+  virtual bool SupportsBleRemotePublicKeyValidation() const;
   virtual bool SupportsBleConnectedIsochronousStreamCentral() const;
   virtual bool SupportsBleConnectedIsochronousStreamPeripheral() const;
   virtual bool SupportsBleIsochronousBroadcaster() const;
   virtual bool SupportsBleSynchronizedReceiver() const;
+  virtual bool SupportsBleIsochronousChannelsHostSupport() const;
+  virtual bool SupportsBlePowerControlRequest() const;
+  virtual bool SupportsBlePowerChangeIndication() const;
+  virtual bool SupportsBlePathLossMonitoring() const;
 
   virtual uint16_t GetAclPacketLength() const;
 

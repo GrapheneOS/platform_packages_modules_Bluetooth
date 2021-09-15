@@ -38,7 +38,15 @@ class ObjectSubject(object):
 
     def isNotEqualTo(self, other):
         if self._value == other:
-            raise signals.TestFailure("Expected \"%s\" to not be equal to \"%s\"" % (self._value, other), extras=None)
+            raise signals.TestFailure("Expected \"%s\" not to be equal to \"%s\"" % (self._value, other), extras=None)
+
+    def isGreaterThan(self, other):
+        if self._value <= other:
+            raise signals.TestFailure("Expected \"%s\" to be greater than \"%s\"" % (self._value, other), extras=None)
+
+    def isLessThan(self, other):
+        if self._value >= other:
+            raise signals.TestFailure("Expected \"%s\" to be less than \"%s\"" % (self._value, other), extras=None)
 
     def isNone(self):
         if self._value is not None:
