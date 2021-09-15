@@ -95,7 +95,6 @@ typedef struct {
   tSCO_CONN sco_db[BTM_MAX_SCO_LINKS];
   enh_esco_params_t def_esco_parms;
   bool esco_supported;        /* true if 1.2 cntlr AND supports eSCO links */
-  esco_data_path_t sco_route; /* HCI, PCM, or TEST */
 
   tSCO_CONN* get_sco_connection_from_index(uint16_t index) {
     return (index < kMaxScoLinks) ? (&sco_db[index]) : nullptr;
@@ -113,7 +112,6 @@ typedef struct {
 
   void Init() {
     def_esco_parms = esco_parameters_for_codec(ESCO_CODEC_CVSD_S3);
-    sco_route = ESCO_DATA_PATH_PCM;
   }
 
   uint16_t get_index(const tSCO_CONN* p_sco) const {
