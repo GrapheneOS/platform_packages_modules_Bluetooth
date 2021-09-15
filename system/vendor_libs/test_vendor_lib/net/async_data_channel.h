@@ -16,6 +16,8 @@
 #include "msvc-posix.h"
 #endif
 
+#include <sys/types.h>
+
 #include <cstdint>
 #include <functional>
 #include <memory>
