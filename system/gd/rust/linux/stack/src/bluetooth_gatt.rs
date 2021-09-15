@@ -395,6 +395,9 @@ pub trait IBluetoothGattCallback: RPCProxy {
         timeout: i32,
         status: i32,
     );
+
+    /// When there is an addition, removal, or change of a GATT service.
+    fn on_service_changed(&self, addr: String);
 }
 
 /// Interface for scanner callbacks to clients, passed to `IBluetoothGatt::register_scanner`.
@@ -944,6 +947,9 @@ pub(crate) trait BtifGattClientCallbacks {
         status: u8,
     );
 
+    #[btif_callback(ServiceChanged)]
+    fn service_changed_cb(&self, conn_id: i32);
+
     #[btif_callback(ReadPhy)]
     fn read_phy_cb(&mut self, client_id: i32, addr: RawAddress, tx_phy: u8, rx_phy: u8, status: u8);
 
@@ -1315,6 +1321,20 @@ impl BtifGattClientCallbacks for BluetoothGatt {
             timeout as i32,
             status as i32,
         );
+    }
+
+    fn service_changed_cb(&self, conn_id: i32) {
+        let address = self.context_map.get_address_by_conn_id(conn_id);
+        if address.is_none() {
+            return;
+        }
+
+        let client = self.context_map.get_client_by_conn_id(conn_id);
+        if client.is_none() {
+            return;
+        }
+
+        client.unwrap().callback.on_service_changed(address.unwrap());
     }
 }
 
