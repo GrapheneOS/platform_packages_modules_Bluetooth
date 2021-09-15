@@ -380,6 +380,7 @@ public class BluetoothInCallServiceTest {
         String parentId = parentCall.getTelecomCallId();
         when(foregroundCall.getParentId()).thenReturn(parentId);
         when(heldCall.getParentId()).thenReturn(parentId);
+        when(parentCall.hasProperty(Call.Details.PROPERTY_GENERIC_CONFERENCE)).thenReturn(true);
 
         clearInvocations(mMockBluetoothHeadset);
         mBluetoothInCallService.listCurrentCalls();
@@ -426,6 +427,7 @@ public class BluetoothInCallServiceTest {
         String parentId = parentCall.getTelecomCallId();
         when(confCall1.getParentId()).thenReturn(parentId);
         when(confCall2.getParentId()).thenReturn(parentId);
+        when(parentCall.hasProperty(Call.Details.PROPERTY_GENERIC_CONFERENCE)).thenReturn(true);
 
         clearInvocations(mMockBluetoothHeadset);
         mBluetoothInCallService.listCurrentCalls();
@@ -643,6 +645,7 @@ public class BluetoothInCallServiceTest {
         when(parentCall.getState()).thenReturn(Call.STATE_HOLDING);
         when(childCall1.getState()).thenReturn(Call.STATE_ACTIVE);
         when(childCall2.getState()).thenReturn(Call.STATE_ACTIVE);
+        when(parentCall.hasProperty(Call.Details.PROPERTY_GENERIC_CONFERENCE)).thenReturn(true);
 
         when(parentCall.isIncoming()).thenReturn(true);
         when(mMockCallInfo.getBluetoothCalls()).thenReturn(calls);
