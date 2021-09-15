@@ -33,12 +33,12 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <features.h>
+#include <poll.h>
 #include <pthread.h>
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/poll.h>
 #include <sys/select.h>
 #include <sys/socket.h>
 #include <sys/types.h>

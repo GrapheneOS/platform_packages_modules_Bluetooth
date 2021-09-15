@@ -26,12 +26,12 @@
 
 #include <errno.h>
 #include <fcntl.h>
+#include <poll.h>
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/mman.h>
-#include <sys/poll.h>
 #include <sys/prctl.h>
 #include <sys/select.h>
 #include <sys/socket.h>
