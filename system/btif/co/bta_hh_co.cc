@@ -21,11 +21,11 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <linux/uhid.h>
+#include <poll.h>
 #include <pthread.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
-#include <sys/poll.h>
 #include <unistd.h>
 
 #include "bta_api.h"
