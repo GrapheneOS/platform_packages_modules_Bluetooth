@@ -38,6 +38,16 @@ pub(crate) struct ClientContext {
     /// Current adapter is ready to be used?
     pub(crate) adapter_ready: bool,
 
+    /// Current adapter address if known.
+    pub(crate) adapter_address: Option<String>,
+
+    /// Is adapter discovering?
+    pub(crate) discovering_state: bool,
+
+    /// Devices found in current discovery session. List should be cleared when a new discovery
+    /// session starts so that previous results don't pollute current search.
+    pub(crate) found_devices: HashMap<String, BluetoothDevice>,
+
     /// Proxy for manager interface.
     pub(crate) manager_dbus: BluetoothManagerDBus,
 
@@ -70,6 +80,9 @@ impl ClientContext {
             default_adapter: 0,
             enabled: false,
             adapter_ready: false,
+            adapter_address: None,
+            discovering_state: false,
+            found_devices: HashMap::new(),
             manager_dbus,
             adapter_dbus: None,
             fg: tx,
@@ -157,18 +170,32 @@ impl manager_service::RPCProxy for BtManagerCallback {
 /// Callback container for adapter interface callbacks.
 struct BtCallback {
     objpath: String,
+    context: Arc<Mutex<ClientContext>>,
 }
 
 impl IBluetoothCallback for BtCallback {
     fn on_address_changed(&self, addr: String) {
-        print_info!("Address changed to {}", addr);
+        print_info!("Address changed to {}", &addr);
+        self.context.lock().unwrap().adapter_address = Some(addr);
     }
 
     fn on_device_found(&self, remote_device: BluetoothDevice) {
+        self.context
+            .lock()
+            .unwrap()
+            .found_devices
+            .entry(remote_device.address.clone())
+            .or_insert(remote_device.clone());
+
         print_info!("Found device: {:?}", remote_device);
     }
 
     fn on_discovering_changed(&self, discovering: bool) {
+        self.context.lock().unwrap().discovering_state = discovering;
+
+        if discovering {
+            self.context.lock().unwrap().found_devices.clear();
+        }
         print_info!("Discovering: {}", discovering);
     }
 
@@ -295,7 +322,7 @@ async fn start_interactive_shell(
                     .adapter_dbus
                     .as_mut()
                     .unwrap()
-                    .register_callback(Box::new(BtCallback { objpath }));
+                    .register_callback(Box::new(BtCallback { objpath, context: context.clone() }));
                 context.lock().unwrap().adapter_ready = true;
             }
             ForegroundActions::Readline(result) => match result {

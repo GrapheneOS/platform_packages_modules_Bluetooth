@@ -67,7 +67,9 @@ fn build_commands() -> HashMap<String, CommandOption> {
     command_options.insert(
         String::from("adapter"),
         CommandOption {
-            description: String::from("Enable/Disable Bluetooth adapter. (e.g. adapter enable)"),
+            description: String::from(
+                "Enable/Disable/Show default bluetooth adapter. (e.g. adapter enable)",
+            ),
             function_pointer: CommandHandler::cmd_adapter,
         },
     );
@@ -86,7 +88,7 @@ fn build_commands() -> HashMap<String, CommandOption> {
         },
     );
     command_options.insert(
-        String::from("get_address"),
+        String::from("get-address"),
         CommandOption {
             description: String::from("Gets the local device address."),
             function_pointer: CommandHandler::cmd_get_address,
@@ -97,6 +99,15 @@ fn build_commands() -> HashMap<String, CommandOption> {
         CommandOption {
             description: String::from("Shows this menu."),
             function_pointer: CommandHandler::cmd_help,
+        },
+    );
+    command_options.insert(
+        String::from("list-devices"),
+        CommandOption {
+            description: String::from(
+                "List known remote devices from most recent discovery session.",
+            ),
+            function_pointer: CommandHandler::cmd_list_devices,
         },
     );
     command_options.insert(
@@ -190,12 +201,21 @@ impl CommandHandler {
 
     fn cmd_adapter(&mut self, args: &Vec<String>) {
         let default_adapter = self.context.lock().unwrap().default_adapter;
-        enforce_arg_len(args, 1, "adapter <enable|disable>", || match &args[0][0..] {
+        enforce_arg_len(args, 1, "adapter <enable|disable|show>", || match &args[0][0..] {
             "enable" => {
                 self.context.lock().unwrap().manager_dbus.start(default_adapter);
             }
             "disable" => {
                 self.context.lock().unwrap().manager_dbus.stop(default_adapter);
+            }
+            "show" => {
+                let enabled = self.context.lock().unwrap().enabled;
+                let address = match self.context.lock().unwrap().adapter_address.as_ref() {
+                    Some(x) => x.clone(),
+                    None => String::from(""),
+                };
+                print_info!("State: {}", if enabled { "enabled" } else { "disabled" });
+                print_info!("Address: {}", address);
             }
             _ => {
                 println!("Invalid argument '{}'", args[0]);
@@ -211,6 +231,8 @@ impl CommandHandler {
 
         let address = self.context.lock().unwrap().adapter_dbus.as_ref().unwrap().get_address();
         print_info!("Local address = {}", &address);
+        // Cache address for adapter show
+        self.context.lock().unwrap().adapter_address = Some(address);
     }
 
     fn cmd_discovery(&mut self, args: &Vec<String>) {
@@ -257,6 +279,13 @@ impl CommandHandler {
     /// Get the list of currently supported commands
     pub fn get_command_list(&self) -> Vec<String> {
         self.command_options.keys().map(|key| String::from(key)).collect::<Vec<String>>()
+    }
+
+    fn cmd_list_devices(&mut self, _args: &Vec<String>) {
+        print_info!("Devices found in most recent discovery session:");
+        for (key, val) in self.context.lock().unwrap().found_devices.iter() {
+            print_info!("[{:18}] {}", key, val.name);
+        }
     }
 }
 
