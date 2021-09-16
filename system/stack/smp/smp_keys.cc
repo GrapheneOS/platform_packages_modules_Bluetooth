@@ -530,7 +530,7 @@ static void smp_generate_ltk_cont(uint16_t div, tSMP_CB* p_cb) {
 void smp_generate_ltk(tSMP_CB* p_cb, UNUSED_ATTR tSMP_INT_DATA* p_data) {
   SMP_TRACE_DEBUG("%s", __func__);
 
-  if (smp_get_br_state() == SMP_BR_STATE_BOND_PENDING) {
+  if (p_cb->smp_over_br) {
     smp_br_process_link_key(p_cb, NULL);
     return;
   } else if (p_cb->le_secure_connections_mode_is_used) {
