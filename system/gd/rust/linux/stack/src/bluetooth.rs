@@ -285,7 +285,7 @@ impl BtifBluetoothCallbacks for Bluetooth {
         _status: BtStatus,
         mut addr: RawAddress,
         bond_state: BtBondState,
-        fail_reason: i32,
+        _fail_reason: i32,
     ) {
         if bond_state == BtBondState::Bonded {
             // We are assuming that peer is a HID device and automatically connect to that profile.
