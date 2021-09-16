@@ -92,15 +92,15 @@ impl ClientContext {
     }
 
     // Creates adapter proxy, registers callbacks and initializes address.
-    fn create_adapter_proxy(context: Arc<Mutex<ClientContext>>, idx: &i32) {
-        let conn = context.lock().unwrap().dbus_connection.clone();
-        let cr = context.lock().unwrap().dbus_crossroads.clone();
+    fn create_adapter_proxy(&mut self, idx: i32) {
+        let conn = self.dbus_connection.clone();
+        let cr = self.dbus_crossroads.clone();
 
-        let dbus = BluetoothDBus::new(conn, cr, *idx);
-        context.lock().unwrap().adapter_dbus = Some(dbus);
+        let dbus = BluetoothDBus::new(conn, cr, idx);
+        self.adapter_dbus = Some(dbus);
 
         // Trigger callback registration in the foreground
-        let fg = context.lock().unwrap().fg.clone();
+        let fg = self.fg.clone();
         tokio::spawn(async move {
             let objpath = String::from("/org/chromium/bluetooth/client/bluetooth_callback");
             let _ = fg.send(ForegroundActions::RegisterAdapterCallback(objpath)).await;
@@ -151,7 +151,7 @@ impl IBluetoothManagerCallback for BtManagerCallback {
             self.context.lock().unwrap().enabled = enabled;
             self.context.lock().unwrap().adapter_ready = false;
             if enabled {
-                ClientContext::create_adapter_proxy(self.context.clone(), &hci_interface);
+                self.context.lock().unwrap().create_adapter_proxy(hci_interface);
             } else {
                 self.context.lock().unwrap().adapter_dbus = None;
             }
