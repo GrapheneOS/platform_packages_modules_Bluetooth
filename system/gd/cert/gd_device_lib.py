@@ -18,10 +18,8 @@ from abc import ABC
 import logging
 import os
 import pathlib
-import selectors
 import shutil
 import signal
-import socket
 import subprocess
 
 import grpc
@@ -33,7 +31,6 @@ from cert.logging_client_interceptor import LoggingClientInterceptor
 from cert.os_utils import get_gd_root
 from cert.os_utils import read_crash_snippet_and_log_tail
 from cert.os_utils import is_subprocess_alive
-from cert.os_utils import make_ports_available
 from cert.os_utils import TerminalColor
 from facade import rootservice_pb2_grpc as facade_rootservice_pb2_grpc
 from hal import hal_facade_pb2_grpc
@@ -53,6 +50,8 @@ from shim.facade import facade_pb2_grpc as shim_facade_pb2_grpc
 
 MOBLY_CONTROLLER_CONFIG_NAME = "GdDevice"
 ACTS_CONTROLLER_REFERENCE_NAME = "gd_devices"
+
+GRPC_START_TIMEOUT_SEC = 15
 
 
 def create_core(configs):
@@ -141,72 +140,22 @@ class GdDeviceBaseCore(ABC):
         """Core method to set up device for test
         :return:
         """
-        self.signal_port_available = make_ports_available([self.signal_port])
-        if self.signal_port_available is not True:
-            return
         # Start backing process
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as signal_socket:
-            # Setup signaling socket
-            signal_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-            signal_socket.bind(("localhost", self.signal_port))
-            # Allow only one incoming connection
-            signal_socket.listen(1)
-            # Set socket to non-blocking mode and use select() to block for timeout
-            signal_socket.settimeout(0)
-            signal_socket.setblocking(False)
-
-            # Start backing process
-            logging.debug("[%s] Running %s %s" % (self.type_identifier, self.label, " ".join(self.cmd)))
-            self.backing_process = subprocess.Popen(
-                self.cmd,
-                cwd=get_gd_root(),
-                env=self.environment,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.STDOUT,
-                universal_newlines=True)
-            if not self.backing_process:
-                logging.error("[%s] failed to open backing process for %s" % (self.type_identifier, self.label))
-                return
-            self.is_backing_process_alive = is_subprocess_alive(self.backing_process)
-            if not self.is_backing_process_alive:
-                return
-
-            # Wait for process to be ready
-            logging.debug("[%s] Waiting for %s backing_process accept at port %d" % (self.type_identifier, self.label,
-                                                                                     self.signal_port))
-            selector = selectors.DefaultSelector()
-            selector.register(signal_socket, selectors.EVENT_READ)
-            # 60 second timeout for backing process to connect to us
-            timeout = 60
-            ret = selector.select(timeout=timeout)
-            selector.unregister(signal_socket)
-            if not ret:
-                logging.error("[{}] Failed to accept {} backing process connection in {} seconds".format(
-                    self.type_identifier, self.label, timeout))
-                signal_socket.shutdown(socket.SHUT_RDWR)
-                return
-            conn, addr = signal_socket.accept()
-            conn.setblocking(False)
-            with conn:
-                logging.debug("[{}] Connected {} by {}".format(self.type_identifier, self.label, addr))
-                selector.register(conn, selectors.EVENT_READ)
-                # Give 10 seconds for remote to disconnect from us
-                timeout = 10
-                ret = selector.select(timeout=timeout)
-                selector.unregister(conn)
-                if not ret:
-                    logging.warning("[{}] Failed to disconnect {} backing process in {} seconds".format(
-                        self.type_identifier, self.label, timeout))
-                else:
-                    data = conn.recv(1024)
-                    if data:
-                        logging.warning("[{}] Received {} data {!r}, but not wanted".format(
-                            self.type_identifier, self.label, data))
-                    else:
-                        logging.debug("[{}] Received EOF to disconnect from {}".format(
-                            self.type_identifier, self.label))
-                conn.shutdown(socket.SHUT_RDWR)
-            signal_socket.shutdown(socket.SHUT_RDWR)
+        logging.debug("[%s] Running %s %s" % (self.type_identifier, self.label, " ".join(self.cmd)))
+        self.backing_process = subprocess.Popen(
+            self.cmd,
+            cwd=get_gd_root(),
+            env=self.environment,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            universal_newlines=True)
+        if not self.backing_process:
+            logging.error("[%s] failed to open backing process for %s" % (self.type_identifier, self.label))
+            return
+        self.is_backing_process_alive = is_subprocess_alive(self.backing_process)
+        if not self.is_backing_process_alive:
+            logging.error("[%s] backing process for %s died after starting" % (self.type_identifier, self.label))
+            return
 
         self.backing_process_logger = AsyncSubprocessLogger(
             self.backing_process, [self.backing_process_log_path],
@@ -216,6 +165,18 @@ class GdDeviceBaseCore(ABC):
 
         # Setup gRPC management channels
         self.grpc_root_server_channel = grpc.insecure_channel("localhost:%d" % self.grpc_root_server_port)
+
+        self.grpc_root_server_ready = False
+        try:
+            logging.info("[%s] Waiting to connect to gRPC root server for %s, timeout is %d seconds" %
+                         (self.type_identifier, self.label, GRPC_START_TIMEOUT_SEC))
+            grpc.channel_ready_future(self.grpc_root_server_channel).result(timeout=GRPC_START_TIMEOUT_SEC)
+            logging.info("[%s] Successfully connected to gRPC root server for %s" % (self.type_identifier, self.label))
+            self.grpc_root_server_ready = True
+        except grpc.FutureTimeoutError:
+            logging.error("[%s] Failed to connect to gRPC root server for %s" % (self.type_identifier, self.label))
+            return
+
         self.grpc_channel = grpc.insecure_channel("localhost:%d" % self.grpc_port)
 
         if self.verbose_mode:
