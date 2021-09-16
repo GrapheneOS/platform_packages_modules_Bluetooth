@@ -1534,14 +1534,7 @@ static void btu_hcif_command_status_evt(uint8_t status, BT_HDR* command,
  *
  ******************************************************************************/
 static void btu_hcif_hardware_error_evt(uint8_t* p) {
-  HCI_TRACE_ERROR("Ctlr H/w error event - code:0x%x", *p);
-  if (hci_is_root_inflammation_event_received()) {
-    // Ignore the hardware error event here as we have already received
-    // root inflammation event earlier.
-    HCI_TRACE_ERROR("H/w error event after root inflammation event!");
-    return;
-  }
-
+  LOG_ERROR("UNHANDLED Ctlr H/w error event - code:0x%x", *p);
   BTA_sys_signal_hw_error();
 }
 
