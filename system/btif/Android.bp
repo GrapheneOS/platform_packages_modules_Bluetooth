@@ -376,7 +376,6 @@ cc_test {
           ":TestMockUdrv",
           ":TestMockUtils",
           "test/btif_core_test.cc",
-          "test/btif_stack_test.cc",
       ],
       generated_headers: [
         "BluetoothGeneratedBundlerSchema_h_bfbs",
