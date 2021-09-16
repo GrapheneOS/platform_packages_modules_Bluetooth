@@ -122,8 +122,6 @@ pub enum GattClientCallbacks {
     ConfigureMtu(i32, i32, i32),
     Congestion(i32, bool),
     GetGattDb(i32, Vec<BtGattDbElement>, i32),
-    ServicesRemoved(i32, u16, u16),
-    ServicesAdded(i32, Vec<BtGattDbElement>, i32),
     PhyUpdated(i32, u8, u8, u8),
     ConnUpdated(i32, u16, u16, u16, u8),
     ServiceChanged(i32),
@@ -262,20 +260,6 @@ cb_variant!(
 cb_variant!(
     GattClientCb,
     gc_get_gatt_db_cb -> GattClientCallbacks::GetGattDb,
-    i32, *const BtGattDbElement, i32, {
-        let _1 = ptr_to_vec(_1, _2 as usize);
-    }
-);
-
-cb_variant!(
-    GattClientCb,
-    gc_services_removed_cb -> GattClientCallbacks::ServicesRemoved,
-    i32, u16, u16, {}
-);
-
-cb_variant!(
-    GattClientCb,
-    gc_services_added_cb -> GattClientCallbacks::ServicesAdded,
     i32, *const BtGattDbElement, i32, {
         let _1 = ptr_to_vec(_1, _2 as usize);
     }
@@ -869,11 +853,13 @@ impl Gatt {
             configure_mtu_cb: Some(gc_configure_mtu_cb),
             congestion_cb: Some(gc_congestion_cb),
             get_gatt_db_cb: Some(gc_get_gatt_db_cb),
-            services_removed_cb: Some(gc_services_removed_cb),
-            services_added_cb: Some(gc_services_added_cb),
             phy_updated_cb: Some(gc_phy_updated_cb),
             conn_updated_cb: Some(gc_conn_updated_cb),
             service_changed_cb: Some(gc_service_changed_cb),
+            // These callbacks are never used and will also be removed from btif.
+            // TODO(b/200073464): Remove these.
+            services_removed_cb: None,
+            services_added_cb: None,
         });
 
         let mut gatt_server_callbacks = Box::new(btgatt_server_callbacks_t {
