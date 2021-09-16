@@ -133,15 +133,14 @@ class GdDeviceBase(GdDeviceBaseCore):
         :return:
         """
         GdDeviceBaseCore.setup(self)
-        # Ensure signal port is available
-        # signal port is the only port that always listen on the host machine
-        asserts.assert_true(self.signal_port_available, "[%s] Failed to make signal port available" % self.label)
 
         # Ensure backing process is started and alive
         asserts.assert_true(self.backing_process, msg="Cannot start backing_process at " + " ".join(self.cmd))
         asserts.assert_true(
             self.is_backing_process_alive,
             msg="backing_process stopped immediately after running " + " ".join(self.cmd))
+        asserts.assert_true(
+            self.grpc_root_server_ready, msg="gRPC root server did not start after running " + " ".join(self.cmd))
 
     def get_crash_snippet_and_log_tail(self):
         GdDeviceBaseCore.get_crash_snippet_and_log_tail(self)
