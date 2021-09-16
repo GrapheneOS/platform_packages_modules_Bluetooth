@@ -824,6 +824,7 @@ cc_test {
         "libbt-common",
         "libbt-protos-lite",
         "libbtdevice",
+        "libbt-utils",
         "libgmock",
         "liblog",
         "libosi",
