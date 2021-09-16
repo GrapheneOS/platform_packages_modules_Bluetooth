@@ -50,6 +50,9 @@ extern void btif_dm_update_ble_remote_properties(const RawAddress& bd_addr,
                                                  BD_NAME bd_name,
                                                  tBT_DEVICE_TYPE dev_type);
 
+extern void btm_ble_process_adv_addr(RawAddress& raw_address,
+                                     tBLE_ADDR_TYPE* address_type);
+
 class BleScannerInterfaceImpl : public BleScannerInterface,
                                 public bluetooth::hci::ScanningCallback {
  public:
@@ -252,6 +255,10 @@ class BleScannerInterfaceImpl : public BleScannerInterface,
                     uint16_t periodic_advertising_interval,
                     std::vector<uint8_t> advertising_data) {
     RawAddress raw_address = ToRawAddress(address);
+
+    if (address_type != BLE_ADDR_ANONYMOUS) {
+      btm_ble_process_adv_addr(raw_address, &address_type);
+    }
 
     do_in_jni_thread(
         FROM_HERE,
