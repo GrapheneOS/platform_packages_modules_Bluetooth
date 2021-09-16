@@ -120,6 +120,7 @@ source_set("stack") {
     "btm/btm_main.cc",
     "btm/btm_scn.cc",
     "btm/btm_sco.cc",
+    "btm/btm_sco_hci.cc",
     "btm/btm_sec.cc",
     "btu/btu_hcif.cc",
     "btu/btu_task.cc",
