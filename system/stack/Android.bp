@@ -136,6 +136,7 @@ cc_library_static {
         "btm/btm_main.cc",
         "acl/btm_pm.cc",
         "btm/btm_sco.cc",
+        "btm/btm_sco_hci.cc",
         "btm/btm_iso.cc",
         "btm/btm_sec.cc",
         "btm/btm_scn.cc",
@@ -814,6 +815,7 @@ cc_test {
         "btm/btm_iso.cc",
         "btm/btm_main.cc",
         "btm/btm_sco.cc",
+        "btm/btm_sco_hci.cc",
         "btm/btm_scn.cc",
         "btm/btm_sec.cc",
         "metrics/stack_metrics_logging.cc",
@@ -828,6 +830,7 @@ cc_test {
         "libgmock",
         "liblog",
         "libosi",
+        "libudrv-uipc",
     ],
     shared_libs: [
         "libcrypto",
