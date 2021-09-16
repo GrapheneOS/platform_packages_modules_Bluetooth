@@ -16,8 +16,8 @@
  */
 #pragma once
 
-#include "base/bind_helpers.h"
 #include "base/callback.h"
+#include "bind_helpers.h"
 #include "bta/include/bta_groups.h"
 #include "hardware/bt_csis.h"
 
