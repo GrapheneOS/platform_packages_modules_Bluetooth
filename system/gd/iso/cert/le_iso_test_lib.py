@@ -34,9 +34,7 @@ from google.protobuf import empty_pb2 as empty_proto
 from neighbor.facade import facade_pb2 as neighbor_facade
 from l2cap.le.cert.cert_le_l2cap import CertLeL2cap
 from iso.cert.cert_le_iso import CertLeIso
-
-import time
-from bluetooth_packets_python3.hci_packets import OpCode
+from mobly import asserts
 
 
 class LeIsoTestBase():
@@ -117,10 +115,17 @@ class LeIsoTestBase():
         cert_cis_stream = self.cert_iso.wait_le_cis_established()
         return (dut_cis_stream, cert_cis_stream)
 
+    def skip_if_iso_not_supported(self):
+        supported = self.dut.hci_controller.IsSupportedCommand(
+            controller_facade.OpCodeMsg(op_code=int(hci_packets.OpCode.LE_SET_CIG_PARAMETERS)))
+        if (not supported.supported):
+            asserts.skip("Skipping this test.  The chip doesn't support LE ISO")
+
     @metadata(
         pts_test_id="IAL/CIS/UNF/SLA/BV-01-C",
         pts_test_name="connected isochronous stream, unframed data, peripheral role")
     def test_iso_cis_unf_sla_bv_01_c(self):
+        self.skip_if_iso_not_supported()
         """
             Verify that the IUT can send an SDU with length ≤ the Isochronous PDU length.
         """
@@ -162,6 +167,7 @@ class LeIsoTestBase():
         pts_test_id="IAL/CIS/UNF/SLA/BV-25-C",
         pts_test_name="connected isochronous stream, unframed data, peripheral role")
     def test_iso_cis_unf_sla_bv_25_c(self):
+        self.skip_if_iso_not_supported()
         """
             Verify that the IUT can send an SDU with length ≤ the Isochronous PDU length.
         """
@@ -203,6 +209,7 @@ class LeIsoTestBase():
         pts_test_id="IAL/CIS/FRA/SLA/BV-03-C",
         pts_test_name="connected isochronous stream, framed data, peripheral role")
     def test_iso_cis_fra_sla_bv_03_c(self):
+        self.skip_if_iso_not_supported()
         """
             Verify that the IUT can send an SDU with length ≤ the Isochronous PDU length.
         """
@@ -244,6 +251,7 @@ class LeIsoTestBase():
         pts_test_id="IAL/CIS/FRA/SLA/BV-26-C",
         pts_test_name="connected isochronous stream, framed data, peripheral role")
     def test_iso_cis_fra_sla_bv_26_c(self):
+        self.skip_if_iso_not_supported()
         """
             Verify that the IUT can send an SDU with length ≤ the Isochronous PDU length.
         """
