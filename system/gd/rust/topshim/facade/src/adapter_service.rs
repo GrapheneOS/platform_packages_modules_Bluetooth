@@ -108,11 +108,9 @@ impl AdapterService for AdapterServiceImpl {
         _req: SetDiscoveryModeRequest,
         sink: UnarySink<SetDiscoveryModeResponse>,
     ) {
-        self.btif_intf.lock().unwrap().set_adapter_property(btif::BtProperty {
-            prop_type: btif::BtPropertyType::AdapterScanMode,
-            len: 1,
-            val: vec![1_u8],
-        });
+        self.btif_intf.lock().unwrap().set_adapter_property(
+            btif::BluetoothProperty::AdapterScanMode(btif::BtScanMode::Connectable),
+        );
 
         ctx.spawn(async move {
             sink.success(SetDiscoveryModeResponse::default()).await.unwrap();

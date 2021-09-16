@@ -77,15 +77,64 @@ static_assert(LOG_TAG != nullptr, "LOG_TAG is null after header inclusion");
     fprintf(stderr, "%s:%d - %s: " fmt "\n", __FILE__, __LINE__, __func__, ##args); \
     abort();                                                                        \
   } while (false)
+#elif defined(TARGET_FLOSS)
+#include "gd/os/syslog.h"
+
+// Prefix the log with tag, file, line and function
+#define LOGWRAPPER(tag, fmt, args...) \
+  write_syslog(tag, "%s:%s:%d - %s: " fmt, LOG_TAG, __FILE__, __LINE__, __func__, ##args)
+
+#ifdef FUZZ_TARGET
+#define LOG_VERBOSE(...)
+#define LOG_DEBUG(...)
+#define LOG_INFO(...)
+#define LOG_WARN(...)
+#else
+#define LOG_VERBOSE(...)                                                      \
+  do {                                                                        \
+    if (bluetooth::common::InitFlags::IsDebugLoggingEnabledForTag(LOG_TAG)) { \
+      LOGWRAPPER(LOG_TAG_VERBOSE, __VA_ARGS__);                               \
+    }                                                                         \
+  } while (false)
+#define LOG_DEBUG(...)                                                        \
+  do {                                                                        \
+    if (bluetooth::common::InitFlags::IsDebugLoggingEnabledForTag(LOG_TAG)) { \
+      LOGWRAPPER(LOG_TAG_DEBUG, __VA_ARGS__);                                 \
+    }                                                                         \
+  } while (false)
+#define LOG_INFO(...) LOGWRAPPER(LOG_TAG_INFO, __VA_ARGS__)
+#define LOG_WARN(...) LOGWRAPPER(LOG_TAG_WARN, __VA_ARGS__)
+#endif /*FUZZ_TARGET*/
+#define LOG_ERROR(...) LOGWRAPPER(LOG_TAG_ERROR, __VA_ARGS__)
+
+#define LOG_ALWAYS_FATAL(...)               \
+  do {                                      \
+    LOGWRAPPER(LOG_TAG_FATAL, __VA_ARGS__); \
+    abort();                                \
+  } while (false)
+
+#ifndef android_errorWriteLog
+#define android_errorWriteLog(tag, subTag) LOG_ERROR("ERROR tag: 0x%x, sub_tag: %s", tag, subTag)
+#endif
+
+#ifndef android_errorWriteWithInfoLog
+#define android_errorWriteWithInfoLog(tag, subTag, uid, data, dataLen) \
+  LOG_ERROR("ERROR tag: 0x%x, sub_tag: %s", tag, subTag)
+#endif
+
+#ifndef LOG_EVENT_INT
+#define LOG_EVENT_INT(...)
+#endif
+
 #else
 /* syslog didn't work well here since we would be redefining LOG_DEBUG. */
-#include <chrono>
-#include <cstdio>
-#include <ctime>
-
 #include <sys/syscall.h>
 #include <sys/types.h>
 #include <unistd.h>
+
+#include <chrono>
+#include <cstdio>
+#include <ctime>
 
 #define LOGWRAPPER(fmt, args...)                                                                                    \
   do {                                                                                                              \

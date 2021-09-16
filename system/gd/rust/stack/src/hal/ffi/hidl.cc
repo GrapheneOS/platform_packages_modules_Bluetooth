@@ -1,10 +1,11 @@
+#include "src/hal/ffi/hidl.h"
+
 #include <android/hardware/bluetooth/1.0/types.h>
 #include <android/hardware/bluetooth/1.1/IBluetoothHci.h>
 #include <android/hardware/bluetooth/1.1/IBluetoothHciCallbacks.h>
 #include <stdlib.h>
 
-#include "../../os/log.h"
-#include "src/hal/ffi/hidl.h"
+#include "gd/os/log.h"
 
 using ::android::hardware::hidl_vec;
 using ::android::hardware::Return;
