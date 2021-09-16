@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-#include <netinet/in.h>
-#include <sys/socket.h>
 #include <sys/types.h>
 #include <unistd.h>
 
@@ -100,14 +98,12 @@ int main(int argc, const char** argv) {
 
   int root_server_port = 8897;
   int grpc_port = 8899;
-  int signal_port = 8895;
 
   bluetooth::common::InitFlags::SetAllForTesting();
 
   const std::string arg_grpc_root_server_port = "--root-server-port=";
   const std::string arg_grpc_server_port = "--grpc-port=";
   const std::string arg_rootcanal_port = "--rootcanal-port=";
-  const std::string arg_signal_port = "--signal-port=";
   const std::string arg_btsnoop_path = "--btsnoop=";
   const std::string arg_btsnooz_path = "--btsnooz=";
   const std::string arg_btconfig_path = "--btconfig=";
@@ -139,22 +135,10 @@ int main(int argc, const char** argv) {
       auto btconfig_path = arg.substr(arg_btconfig_path.size());
       ::bluetooth::os::ParameterProvider::OverrideConfigFilePath(btconfig_path);
     }
-    if (arg.find(arg_signal_port) == 0) {
-      auto port_number = arg.substr(arg_signal_port.size());
-      signal_port = std::stoi(port_number);
-    }
   }
 
   sigaction(SIGINT, &new_act, &old_act);
   grpc_root_server.StartServer("0.0.0.0", root_server_port, grpc_port);
-  int tester_signal_socket = socket(AF_INET, SOCK_STREAM, 0);
-  struct sockaddr_in addr;
-  memset(&addr, 0, sizeof(addr));
-  addr.sin_family = AF_INET;
-  addr.sin_port = htons(signal_port);
-  addr.sin_addr.s_addr = htonl(INADDR_ANY);
-  connect(tester_signal_socket, (sockaddr*)&addr, sizeof(addr));
-  close(tester_signal_socket);
   auto wait_thread = std::thread([] { grpc_root_server.RunGrpcLoop(); });
   wait_thread.join();
 
