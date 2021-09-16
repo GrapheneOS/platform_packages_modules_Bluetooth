@@ -377,7 +377,8 @@ void BTM_BleOpportunisticObserve(bool enable,
                                  tBTM_INQ_RESULTS_CB* p_results_cb) {
   if (bluetooth::shim::is_gd_shim_enabled()) {
     bluetooth::shim::BTM_BleOpportunisticObserve(enable, p_results_cb);
-    return;
+    // NOTE: passthrough, no return here. GD would send the results back to BTM,
+    // and it needs the callbacks set properly.
   }
 
   if (enable) {
@@ -1998,6 +1999,14 @@ void btm_ble_process_adv_pkt_cont(uint16_t evt_type, uint8_t addr_type,
                             secondary_phy, advertising_sid, tx_power, rssi,
                             periodic_adv_int, adv_data);
 
+  tBTM_INQ_RESULTS_CB* p_opportunistic_obs_results_cb =
+      btm_cb.ble_ctr_cb.p_opportunistic_obs_results_cb;
+  if (p_opportunistic_obs_results_cb) {
+    (p_opportunistic_obs_results_cb)((tBTM_INQ_RESULTS*)&p_i->inq_info.results,
+                                     const_cast<uint8_t*>(adv_data.data()),
+                                     adv_data.size());
+  }
+
   uint8_t result = btm_ble_is_discoverable(bda, adv_data);
   if (result == 0) {
     // Device no longer discoverable so discard outstanding advertising packet
@@ -2017,14 +2026,6 @@ void btm_ble_process_adv_pkt_cont(uint16_t evt_type, uint8_t addr_type,
   if (p_obs_results_cb && (result & BTM_BLE_OBS_RESULT)) {
     (p_obs_results_cb)((tBTM_INQ_RESULTS*)&p_i->inq_info.results,
                        const_cast<uint8_t*>(adv_data.data()), adv_data.size());
-  }
-
-  tBTM_INQ_RESULTS_CB* p_opportunistic_obs_results_cb =
-      btm_cb.ble_ctr_cb.p_opportunistic_obs_results_cb;
-  if (p_opportunistic_obs_results_cb) {
-    (p_opportunistic_obs_results_cb)((tBTM_INQ_RESULTS*)&p_i->inq_info.results,
-                                     const_cast<uint8_t*>(adv_data.data()),
-                                     adv_data.size());
   }
 
   cache.Clear(addr_type, bda);
@@ -2080,6 +2081,14 @@ void btm_ble_process_adv_pkt_cont_for_inquiry(
                             secondary_phy, advertising_sid, tx_power, rssi,
                             periodic_adv_int, advertising_data);
 
+  tBTM_INQ_RESULTS_CB* p_opportunistic_obs_results_cb =
+      btm_cb.ble_ctr_cb.p_opportunistic_obs_results_cb;
+  if (p_opportunistic_obs_results_cb) {
+    (p_opportunistic_obs_results_cb)(
+        (tBTM_INQ_RESULTS*)&p_i->inq_info.results,
+        const_cast<uint8_t*>(advertising_data.data()), advertising_data.size());
+  }
+
   uint8_t result = btm_ble_is_discoverable(bda, advertising_data);
   if (result == 0) {
     return;
@@ -2092,14 +2101,6 @@ void btm_ble_process_adv_pkt_cont_for_inquiry(
     (p_inq_results_cb)((tBTM_INQ_RESULTS*)&p_i->inq_info.results,
                        const_cast<uint8_t*>(advertising_data.data()),
                        advertising_data.size());
-  }
-
-  tBTM_INQ_RESULTS_CB* p_opportunistic_obs_results_cb =
-      btm_cb.ble_ctr_cb.p_opportunistic_obs_results_cb;
-  if (p_opportunistic_obs_results_cb) {
-    (p_opportunistic_obs_results_cb)(
-        (tBTM_INQ_RESULTS*)&p_i->inq_info.results,
-        const_cast<uint8_t*>(advertising_data.data()), advertising_data.size());
   }
 }
 
