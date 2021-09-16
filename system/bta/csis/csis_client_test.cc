@@ -16,10 +16,10 @@
  */
 
 #include <base/bind.h>
-#include <base/bind_helpers.h>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
+#include "bind_helpers.h"
 #include "bta_csis_api.h"
 #include "bta_dm_api_mock.h"
 #include "bta_gatt_api_mock.h"

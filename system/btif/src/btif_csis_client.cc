@@ -16,12 +16,12 @@
  */
 
 #include <base/bind.h>
-#include <base/bind_helpers.h>
 #include <base/location.h>
 #include <base/logging.h>
 #include <hardware/bluetooth.h>
 #include <hardware/bt_csis.h>
 
+#include "bind_helpers.h"
 #include "bta_csis_api.h"
 #include "btif_common.h"
 #include "btif_storage.h"
