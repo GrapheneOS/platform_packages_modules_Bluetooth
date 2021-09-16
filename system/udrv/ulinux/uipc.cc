@@ -42,8 +42,8 @@
 #include <set>
 
 #include "audio_a2dp_hw/include/audio_a2dp_hw.h"
-#include "bt_trace.h"
 #include "bt_utils.h"
+#include "osi/include/log.h"
 #include "osi/include/osi.h"
 #include "osi/include/socket_utils/sockets.h"
 #include "uipc.h"
@@ -51,8 +51,6 @@
 /*****************************************************************************
  *  Constants & Macros
  *****************************************************************************/
-
-#define PCM_FILENAME "/data/test.pcm"
 
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
 
@@ -107,7 +105,7 @@ static inline int create_server_socket(const char* name) {
   int s = socket(AF_LOCAL, SOCK_STREAM, 0);
   if (s < 0) return -1;
 
-  BTIF_TRACE_EVENT("create_server_socket %s", name);
+  LOG_DEBUG("create_server_socket %s", name);
 
   if (osi_socket_local_server_bind(s, name,
 #if defined(OS_GENERIC)
@@ -116,18 +114,18 @@ static inline int create_server_socket(const char* name) {
                                    ANDROID_SOCKET_NAMESPACE_ABSTRACT
 #endif  // defined(OS_GENERIC)
                                    ) < 0) {
-    BTIF_TRACE_EVENT("socket failed to create (%s)", strerror(errno));
+    LOG_DEBUG("socket failed to create (%s)", strerror(errno));
     close(s);
     return -1;
   }
 
   if (listen(s, 5) < 0) {
-    BTIF_TRACE_EVENT("listen failed", strerror(errno));
+    LOG_DEBUG("listen failed: %s", strerror(errno));
     close(s);
     return -1;
   }
 
-  BTIF_TRACE_EVENT("created socket fd %d", s);
+  LOG_DEBUG("created socket fd %d", s);
   return s;
 }
 
@@ -137,7 +135,7 @@ static int accept_server_socket(int sfd) {
   int fd;
   socklen_t len = sizeof(struct sockaddr_un);
 
-  BTIF_TRACE_EVENT("accept fd %d", sfd);
+  LOG_DEBUG("accept fd %d", sfd);
 
   /* make sure there is data to process */
   pfd.fd = sfd;
@@ -146,15 +144,13 @@ static int accept_server_socket(int sfd) {
   int poll_ret;
   OSI_NO_INTR(poll_ret = poll(&pfd, 1, 0));
   if (poll_ret == 0) {
-    BTIF_TRACE_WARNING("accept poll timeout");
+    LOG_WARN("accept poll timeout");
     return -1;
   }
 
-  // BTIF_TRACE_EVENT("poll revents 0x%x", pfd.revents);
-
   OSI_NO_INTR(fd = accept(sfd, (struct sockaddr*)&remote, &len));
   if (fd == -1) {
-    BTIF_TRACE_ERROR("sock accept failed (%s)", strerror(errno));
+    LOG_ERROR("sock accept failed (%s)", strerror(errno));
     return -1;
   }
 
@@ -163,10 +159,8 @@ static int accept_server_socket(int sfd) {
   int ret =
       setsockopt(fd, SOL_SOCKET, SO_RCVBUF, (char*)&size, (int)sizeof(size));
   if (ret < 0) {
-    BTIF_TRACE_ERROR("setsockopt failed (%s)", strerror(errno));
+    LOG_ERROR("setsockopt failed (%s)", strerror(errno));
   }
-
-  // BTIF_TRACE_EVENT("new fd %d", fd);
 
   return fd;
 }
@@ -180,7 +174,7 @@ static int accept_server_socket(int sfd) {
 static int uipc_main_init(tUIPC_STATE& uipc) {
   int i;
 
-  BTIF_TRACE_EVENT("### uipc_main_init ###");
+  LOG_DEBUG("### uipc_main_init ###");
 
   uipc.tid = 0;
   uipc.running = 0;
@@ -212,7 +206,7 @@ static int uipc_main_init(tUIPC_STATE& uipc) {
 void uipc_main_cleanup(tUIPC_STATE& uipc) {
   int i;
 
-  BTIF_TRACE_EVENT("uipc_main_cleanup");
+  LOG_DEBUG("uipc_main_cleanup");
 
   close(uipc.signal_fds[0]);
   close(uipc.signal_fds[1]);
@@ -238,15 +232,12 @@ static void uipc_check_task_flags_locked(tUIPC_STATE& uipc) {
 static int uipc_check_fd_locked(tUIPC_STATE& uipc, tUIPC_CH_ID ch_id) {
   if (ch_id >= UIPC_CH_NUM) return -1;
 
-  // BTIF_TRACE_EVENT("CHECK SRVFD %d (ch %d)", uipc.ch[ch_id].srvfd,
-  // ch_id);
-
   if (SAFE_FD_ISSET(uipc.ch[ch_id].srvfd, &uipc.read_set)) {
-    BTIF_TRACE_EVENT("INCOMING CONNECTION ON CH %d", ch_id);
+    LOG_DEBUG("INCOMING CONNECTION ON CH %d", ch_id);
 
     // Close the previous connection
     if (uipc.ch[ch_id].fd != UIPC_DISCONNECTED) {
-      BTIF_TRACE_EVENT("CLOSE CONNECTION (FD %d)", uipc.ch[ch_id].fd);
+      LOG_DEBUG("CLOSE CONNECTION (FD %d)", uipc.ch[ch_id].fd);
       close(uipc.ch[ch_id].fd);
       FD_CLR(uipc.ch[ch_id].fd, &uipc.active_set);
       uipc.ch[ch_id].fd = UIPC_DISCONNECTED;
@@ -254,28 +245,25 @@ static int uipc_check_fd_locked(tUIPC_STATE& uipc, tUIPC_CH_ID ch_id) {
 
     uipc.ch[ch_id].fd = accept_server_socket(uipc.ch[ch_id].srvfd);
 
-    BTIF_TRACE_EVENT("NEW FD %d", uipc.ch[ch_id].fd);
+    LOG_DEBUG("NEW FD %d", uipc.ch[ch_id].fd);
 
     if ((uipc.ch[ch_id].fd >= 0) && uipc.ch[ch_id].cback) {
       /*  if we have a callback we should add this fd to the active set
           and notify user with callback event */
-      BTIF_TRACE_EVENT("ADD FD %d TO ACTIVE SET", uipc.ch[ch_id].fd);
+      LOG_DEBUG("ADD FD %d TO ACTIVE SET", uipc.ch[ch_id].fd);
       FD_SET(uipc.ch[ch_id].fd, &uipc.active_set);
       uipc.max_fd = MAX(uipc.max_fd, uipc.ch[ch_id].fd);
     }
 
     if (uipc.ch[ch_id].fd < 0) {
-      BTIF_TRACE_ERROR("FAILED TO ACCEPT CH %d", ch_id);
+      LOG_ERROR("FAILED TO ACCEPT CH %d", ch_id);
       return -1;
     }
 
     if (uipc.ch[ch_id].cback) uipc.ch[ch_id].cback(ch_id, UIPC_OPEN_EVT);
   }
 
-  // BTIF_TRACE_EVENT("CHECK FD %d (ch %d)", uipc.ch[ch_id].fd, ch_id);
-
   if (SAFE_FD_ISSET(uipc.ch[ch_id].fd, &uipc.read_set)) {
-    // BTIF_TRACE_EVENT("INCOMING DATA ON CH %d", ch_id);
 
     if (uipc.ch[ch_id].cback)
       uipc.ch[ch_id].cback(ch_id, UIPC_RX_DATA_READY_EVT);
@@ -293,7 +281,7 @@ static void uipc_check_interrupt_locked(tUIPC_STATE& uipc) {
 
 static inline void uipc_wakeup_locked(tUIPC_STATE& uipc) {
   char sig_on = 1;
-  BTIF_TRACE_EVENT("UIPC SEND WAKE UP");
+  LOG_DEBUG("UIPC SEND WAKE UP");
 
   OSI_NO_INTR(send(uipc.signal_fds[1], &sig_on, sizeof(sig_on), 0));
 }
@@ -302,7 +290,7 @@ static int uipc_setup_server_locked(tUIPC_STATE& uipc, tUIPC_CH_ID ch_id,
                                     const char* name, tUIPC_RCV_CBACK* cback) {
   int fd;
 
-  BTIF_TRACE_EVENT("SETUP CHANNEL SERVER %d", ch_id);
+  LOG_DEBUG("SETUP CHANNEL SERVER %d", ch_id);
 
   if (ch_id >= UIPC_CH_NUM) return -1;
 
@@ -311,11 +299,11 @@ static int uipc_setup_server_locked(tUIPC_STATE& uipc, tUIPC_CH_ID ch_id,
   fd = create_server_socket(name);
 
   if (fd < 0) {
-    BTIF_TRACE_ERROR("failed to setup %s", name, strerror(errno));
+    LOG_ERROR("failed to setup %s: %s", name, strerror(errno));
     return -1;
   }
 
-  BTIF_TRACE_EVENT("ADD SERVER FD TO ACTIVE SET %d", fd);
+  LOG_DEBUG("ADD SERVER FD TO ACTIVE SET %d", fd);
   FD_SET(fd, &uipc.active_set);
   uipc.max_fd = MAX(uipc.max_fd, fd);
 
@@ -337,7 +325,7 @@ static void uipc_flush_ch_locked(tUIPC_STATE& uipc, tUIPC_CH_ID ch_id) {
   pfd.fd = uipc.ch[ch_id].fd;
 
   if (uipc.ch[ch_id].fd == UIPC_DISCONNECTED) {
-    BTIF_TRACE_EVENT("%s() - fd disconnected. Exiting", __func__);
+    LOG_DEBUG("%s() - fd disconnected. Exiting", __func__);
     return;
   }
 
@@ -345,20 +333,18 @@ static void uipc_flush_ch_locked(tUIPC_STATE& uipc, tUIPC_CH_ID ch_id) {
     int ret;
     OSI_NO_INTR(ret = poll(&pfd, 1, 1));
     if (ret == 0) {
-      BTIF_TRACE_VERBOSE("%s(): poll() timeout - nothing to do. Exiting",
-                         __func__);
+      LOG_VERBOSE("%s(): poll() timeout - nothing to do. Exiting", __func__);
       return;
     }
     if (ret < 0) {
-      BTIF_TRACE_WARNING(
-          "%s() - poll() failed: return %d errno %d (%s). Exiting", __func__,
-          ret, errno, strerror(errno));
+      LOG_WARN("%s() - poll() failed: return %d errno %d (%s). Exiting",
+               __func__, ret, errno, strerror(errno));
       return;
     }
-    BTIF_TRACE_VERBOSE("%s() - polling fd %d, revents: 0x%x, ret %d", __func__,
-                       pfd.fd, pfd.revents, ret);
+    LOG_VERBOSE("%s() - polling fd %d, revents: 0x%x, ret %d", __func__, pfd.fd,
+                pfd.revents, ret);
     if (pfd.revents & (POLLERR | POLLHUP)) {
-      BTIF_TRACE_WARNING("%s() - POLLERR or POLLHUP. Exiting", __func__);
+      LOG_WARN("%s() - POLLERR or POLLHUP. Exiting", __func__);
       return;
     }
 
@@ -385,12 +371,12 @@ static void uipc_flush_locked(tUIPC_STATE& uipc, tUIPC_CH_ID ch_id) {
 static int uipc_close_ch_locked(tUIPC_STATE& uipc, tUIPC_CH_ID ch_id) {
   int wakeup = 0;
 
-  BTIF_TRACE_EVENT("CLOSE CHANNEL %d", ch_id);
+  LOG_DEBUG("CLOSE CHANNEL %d", ch_id);
 
   if (ch_id >= UIPC_CH_NUM) return -1;
 
   if (uipc.ch[ch_id].srvfd != UIPC_DISCONNECTED) {
-    BTIF_TRACE_EVENT("CLOSE SERVER (FD %d)", uipc.ch[ch_id].srvfd);
+    LOG_DEBUG("CLOSE SERVER (FD %d)", uipc.ch[ch_id].srvfd);
     close(uipc.ch[ch_id].srvfd);
     FD_CLR(uipc.ch[ch_id].srvfd, &uipc.active_set);
     uipc.ch[ch_id].srvfd = UIPC_DISCONNECTED;
@@ -398,7 +384,7 @@ static int uipc_close_ch_locked(tUIPC_STATE& uipc, tUIPC_CH_ID ch_id) {
   }
 
   if (uipc.ch[ch_id].fd != UIPC_DISCONNECTED) {
-    BTIF_TRACE_EVENT("CLOSE CONNECTION (FD %d)", uipc.ch[ch_id].fd);
+    LOG_DEBUG("CLOSE CONNECTION (FD %d)", uipc.ch[ch_id].fd);
     close(uipc.ch[ch_id].fd);
     FD_CLR(uipc.ch[ch_id].fd, &uipc.active_set);
     uipc.ch[ch_id].fd = UIPC_DISCONNECTED;
@@ -416,7 +402,7 @@ static int uipc_close_ch_locked(tUIPC_STATE& uipc, tUIPC_CH_ID ch_id) {
 
 void uipc_close_locked(tUIPC_STATE& uipc, tUIPC_CH_ID ch_id) {
   if (uipc.ch[ch_id].srvfd == UIPC_DISCONNECTED) {
-    BTIF_TRACE_EVENT("CHANNEL %d ALREADY CLOSED", ch_id);
+    LOG_DEBUG("CHANNEL %d ALREADY CLOSED", ch_id);
     return;
   }
 
@@ -440,12 +426,12 @@ static void* uipc_read_task(void* arg) {
     result = select(uipc.max_fd + 1, &uipc.read_set, NULL, NULL, NULL);
 
     if (result == 0) {
-      BTIF_TRACE_EVENT("select timeout");
+      LOG_DEBUG("select timeout");
       continue;
     }
     if (result < 0) {
       if (errno != EINTR) {
-        BTIF_TRACE_EVENT("select failed %s", strerror(errno));
+        LOG_DEBUG("select failed %s", strerror(errno));
       }
       continue;
     }
@@ -469,13 +455,13 @@ static void* uipc_read_task(void* arg) {
     }
   }
 
-  BTIF_TRACE_EVENT("UIPC READ THREAD EXITING");
+  LOG_DEBUG("UIPC READ THREAD EXITING");
 
   uipc_main_cleanup(uipc);
 
   uipc.tid = 0;
 
-  BTIF_TRACE_EVENT("UIPC READ THREAD DONE");
+  LOG_DEBUG("UIPC READ THREAD DONE");
 
   return nullptr;
 }
@@ -485,7 +471,7 @@ int uipc_start_main_server_thread(tUIPC_STATE& uipc) {
 
   if (pthread_create(&uipc.tid, (const pthread_attr_t*)NULL, uipc_read_task,
                      &uipc) != 0) {
-    BTIF_TRACE_ERROR("uipc_thread_create pthread_create failed:%d", errno);
+    LOG_ERROR("uipc_thread_create pthread_create failed:%d", errno);
     return -1;
   }
 
@@ -519,7 +505,7 @@ void uipc_stop_main_server_thread(tUIPC_STATE& uipc) {
  ******************************************************************************/
 std::unique_ptr<tUIPC_STATE> UIPC_Init() {
   std::unique_ptr<tUIPC_STATE> uipc = std::make_unique<tUIPC_STATE>();
-  BTIF_TRACE_DEBUG("UIPC_Init");
+  LOG_DEBUG("UIPC_Init");
 
   std::lock_guard<std::recursive_mutex> lock(uipc->mutex);
 
@@ -540,7 +526,7 @@ std::unique_ptr<tUIPC_STATE> UIPC_Init() {
  ******************************************************************************/
 bool UIPC_Open(tUIPC_STATE& uipc, tUIPC_CH_ID ch_id, tUIPC_RCV_CBACK* p_cback,
                const char* socket_path) {
-  BTIF_TRACE_DEBUG("UIPC_Open : ch_id %d, p_cback %x", ch_id, p_cback);
+  LOG_DEBUG("UIPC_Open : ch_id %d", ch_id);
 
   std::lock_guard<std::recursive_mutex> lock(uipc.mutex);
 
@@ -549,7 +535,7 @@ bool UIPC_Open(tUIPC_STATE& uipc, tUIPC_CH_ID ch_id, tUIPC_RCV_CBACK* p_cback,
   }
 
   if (uipc.ch[ch_id].srvfd != UIPC_DISCONNECTED) {
-    BTIF_TRACE_EVENT("CHANNEL %d ALREADY OPEN", ch_id);
+    LOG_DEBUG("CHANNEL %d ALREADY OPEN", ch_id);
     return 0;
   }
 
@@ -568,7 +554,7 @@ bool UIPC_Open(tUIPC_STATE& uipc, tUIPC_CH_ID ch_id, tUIPC_RCV_CBACK* p_cback,
  **
  ******************************************************************************/
 void UIPC_Close(tUIPC_STATE& uipc, tUIPC_CH_ID ch_id) {
-  BTIF_TRACE_DEBUG("UIPC_Close : ch_id %d", ch_id);
+  LOG_DEBUG("UIPC_Close : ch_id %d", ch_id);
 
   /* special case handling uipc shutdown */
   if (ch_id != UIPC_CH_ID_ALL) {
@@ -577,9 +563,9 @@ void UIPC_Close(tUIPC_STATE& uipc, tUIPC_CH_ID ch_id) {
     return;
   }
 
-  BTIF_TRACE_DEBUG("UIPC_Close : waiting for shutdown to complete");
+  LOG_DEBUG("UIPC_Close : waiting for shutdown to complete");
   uipc_stop_main_server_thread(uipc);
-  BTIF_TRACE_DEBUG("UIPC_Close : shutdown complete");
+  LOG_DEBUG("UIPC_Close : shutdown complete");
 }
 
 /*******************************************************************************
@@ -594,14 +580,14 @@ void UIPC_Close(tUIPC_STATE& uipc, tUIPC_CH_ID ch_id) {
 bool UIPC_Send(tUIPC_STATE& uipc, tUIPC_CH_ID ch_id,
                UNUSED_ATTR uint16_t msg_evt, const uint8_t* p_buf,
                uint16_t msglen) {
-  BTIF_TRACE_DEBUG("UIPC_Send : ch_id:%d %d bytes", ch_id, msglen);
+  LOG_DEBUG("UIPC_Send : ch_id:%d %d bytes", ch_id, msglen);
 
   std::lock_guard<std::recursive_mutex> lock(uipc.mutex);
 
   ssize_t ret;
   OSI_NO_INTR(ret = write(uipc.ch[ch_id].fd, p_buf, msglen));
   if (ret < 0) {
-    BTIF_TRACE_ERROR("failed to write (%s)", strerror(errno));
+    LOG_ERROR("failed to write (%s)", strerror(errno));
   }
 
   return false;
@@ -620,7 +606,7 @@ bool UIPC_Send(tUIPC_STATE& uipc, tUIPC_CH_ID ch_id,
 uint32_t UIPC_Read(tUIPC_STATE& uipc, tUIPC_CH_ID ch_id, uint8_t* p_buf,
                    uint32_t len) {
   if (ch_id >= UIPC_CH_NUM) {
-    BTIF_TRACE_ERROR("UIPC_Read : invalid ch id %d", ch_id);
+    LOG_ERROR("UIPC_Read : invalid ch id %d", ch_id);
     return 0;
   }
 
@@ -629,7 +615,7 @@ uint32_t UIPC_Read(tUIPC_STATE& uipc, tUIPC_CH_ID ch_id, uint8_t* p_buf,
   struct pollfd pfd;
 
   if (fd == UIPC_DISCONNECTED) {
-    BTIF_TRACE_ERROR("UIPC_Read : channel %d closed", ch_id);
+    LOG_ERROR("UIPC_Read : channel %d closed", ch_id);
     return 0;
   }
 
@@ -643,20 +629,17 @@ uint32_t UIPC_Read(tUIPC_STATE& uipc, tUIPC_CH_ID ch_id, uint8_t* p_buf,
     int poll_ret;
     OSI_NO_INTR(poll_ret = poll(&pfd, 1, uipc.ch[ch_id].read_poll_tmo_ms));
     if (poll_ret == 0) {
-      BTIF_TRACE_WARNING("poll timeout (%d ms)",
-                         uipc.ch[ch_id].read_poll_tmo_ms);
+      LOG_WARN("poll timeout (%d ms)", uipc.ch[ch_id].read_poll_tmo_ms);
       break;
     }
     if (poll_ret < 0) {
-      BTIF_TRACE_ERROR("%s(): poll() failed: return %d errno %d (%s)", __func__,
-                       poll_ret, errno, strerror(errno));
+      LOG_ERROR("%s(): poll() failed: return %d errno %d (%s)", __func__,
+                poll_ret, errno, strerror(errno));
       break;
     }
 
-    // BTIF_TRACE_EVENT("poll revents %x", pfd.revents);
-
     if (pfd.revents & (POLLHUP | POLLNVAL)) {
-      BTIF_TRACE_WARNING("poll : channel detached remotely");
+      LOG_WARN("poll : channel detached remotely");
       std::lock_guard<std::recursive_mutex> lock(uipc.mutex);
       uipc_close_locked(uipc, ch_id);
       return 0;
@@ -665,17 +648,15 @@ uint32_t UIPC_Read(tUIPC_STATE& uipc, tUIPC_CH_ID ch_id, uint8_t* p_buf,
     ssize_t n;
     OSI_NO_INTR(n = recv(fd, p_buf + n_read, len - n_read, 0));
 
-    // BTIF_TRACE_EVENT("read %d bytes", n);
-
     if (n == 0) {
-      BTIF_TRACE_WARNING("UIPC_Read : channel detached remotely");
+      LOG_WARN("UIPC_Read : channel detached remotely");
       std::lock_guard<std::recursive_mutex> lock(uipc.mutex);
       uipc_close_locked(uipc, ch_id);
       return 0;
     }
 
     if (n < 0) {
-      BTIF_TRACE_WARNING("UIPC_Read : read failed (%s)", strerror(errno));
+      LOG_WARN("UIPC_Read : read failed (%s)", strerror(errno));
       return 0;
     }
 
@@ -697,8 +678,7 @@ uint32_t UIPC_Read(tUIPC_STATE& uipc, tUIPC_CH_ID ch_id, uint8_t* p_buf,
 
 extern bool UIPC_Ioctl(tUIPC_STATE& uipc, tUIPC_CH_ID ch_id, uint32_t request,
                        void* param) {
-  BTIF_TRACE_DEBUG("#### UIPC_Ioctl : ch_id %d, request %d ####", ch_id,
-                   request);
+  LOG_DEBUG("#### UIPC_Ioctl : ch_id %d, request %d ####", ch_id, request);
   std::lock_guard<std::recursive_mutex> lock(uipc.mutex);
 
   switch (request) {
@@ -719,12 +699,12 @@ extern bool UIPC_Ioctl(tUIPC_STATE& uipc, tUIPC_CH_ID ch_id, uint32_t request,
 
     case UIPC_SET_READ_POLL_TMO:
       uipc.ch[ch_id].read_poll_tmo_ms = (intptr_t)param;
-      BTIF_TRACE_EVENT("UIPC_SET_READ_POLL_TMO : CH %d, TMO %d ms", ch_id,
-                       uipc.ch[ch_id].read_poll_tmo_ms);
+      LOG_DEBUG("UIPC_SET_READ_POLL_TMO : CH %d, TMO %d ms", ch_id,
+                uipc.ch[ch_id].read_poll_tmo_ms);
       break;
 
     default:
-      BTIF_TRACE_EVENT("UIPC_Ioctl : request not handled (%d)", request);
+      LOG_DEBUG("UIPC_Ioctl : request not handled (%d)", request);
       break;
   }
 
