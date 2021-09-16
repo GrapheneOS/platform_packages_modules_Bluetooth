@@ -3,7 +3,9 @@
 use crate::hci::controller::{null_terminated_to_string, ControllerExports};
 use crate::hci::Hci;
 use bt_common::GrpcFacade;
-use bt_facade_proto::controller_facade::{AddressMsg, NameMsg};
+use bt_facade_proto::controller_facade::{
+    AddressMsg, NameMsg, OpCodeMsg, SingleValueMsg, SupportedMsg,
+};
 use bt_facade_proto::controller_facade_grpc::{create_controller_facade, ControllerFacade};
 use bt_facade_proto::empty::Empty;
 use bt_packets::hci::{ReadLocalNameBuilder, WriteLocalNameBuilder};
@@ -68,5 +70,444 @@ impl ControllerFacade for ControllerFacadeService {
             msg.set_name(local_name);
             sink.success(msg).await.unwrap();
         });
+    }
+
+    fn is_supported_command(
+        &mut self,
+        _: RpcContext<'_>,
+        _: OpCodeMsg,
+        _: UnarySink<SupportedMsg>,
+    ) {
+        todo!()
+    }
+
+    fn get_le_number_of_supported_advertising_sets(
+        &mut self,
+        _: RpcContext<'_>,
+        _: Empty,
+        _: UnarySink<SingleValueMsg>,
+    ) {
+        todo!()
+    }
+
+    fn supports_simple_pairing(&mut self, _: RpcContext<'_>, _: Empty, _: UnarySink<SupportedMsg>) {
+        todo!()
+    }
+
+    fn supports_secure_connections(
+        &mut self,
+        _: RpcContext<'_>,
+        _: Empty,
+        _: UnarySink<SupportedMsg>,
+    ) {
+        todo!()
+    }
+
+    fn supports_simultaneous_le_br_edr(
+        &mut self,
+        _: RpcContext<'_>,
+        _: Empty,
+        _: UnarySink<SupportedMsg>,
+    ) {
+        todo!()
+    }
+
+    fn supports_interlaced_inquiry_scan(
+        &mut self,
+        _: RpcContext<'_>,
+        _: Empty,
+        _: UnarySink<SupportedMsg>,
+    ) {
+        todo!()
+    }
+
+    fn supports_rssi_with_inquiry_results(
+        &mut self,
+        _: RpcContext<'_>,
+        _: Empty,
+        _: UnarySink<SupportedMsg>,
+    ) {
+        todo!()
+    }
+
+    fn supports_extended_inquiry_response(
+        &mut self,
+        _: RpcContext<'_>,
+        _: Empty,
+        _: UnarySink<SupportedMsg>,
+    ) {
+        todo!()
+    }
+
+    fn supports_role_switch(&mut self, _: RpcContext<'_>, _: Empty, _: UnarySink<SupportedMsg>) {
+        todo!()
+    }
+
+    fn supports3_slot_packets(&mut self, _: RpcContext<'_>, _: Empty, _: UnarySink<SupportedMsg>) {
+        todo!()
+    }
+
+    fn supports5_slot_packets(&mut self, _: RpcContext<'_>, _: Empty, _: UnarySink<SupportedMsg>) {
+        todo!()
+    }
+
+    fn supports_classic2m_phy(&mut self, _: RpcContext<'_>, _: Empty, _: UnarySink<SupportedMsg>) {
+        todo!()
+    }
+
+    fn supports_classic3m_phy(&mut self, _: RpcContext<'_>, _: Empty, _: UnarySink<SupportedMsg>) {
+        todo!()
+    }
+
+    fn supports3_slot_edr_packets(
+        &mut self,
+        _: RpcContext<'_>,
+        _: Empty,
+        _: UnarySink<SupportedMsg>,
+    ) {
+        todo!()
+    }
+
+    fn supports5_slot_edr_packets(
+        &mut self,
+        _: RpcContext<'_>,
+        _: Empty,
+        _: UnarySink<SupportedMsg>,
+    ) {
+        todo!()
+    }
+
+    fn supports_sco(&mut self, _: RpcContext<'_>, _: Empty, _: UnarySink<SupportedMsg>) {
+        todo!()
+    }
+
+    fn supports_hv2_packets(&mut self, _: RpcContext<'_>, _: Empty, _: UnarySink<SupportedMsg>) {
+        todo!()
+    }
+    fn supports_hv3_packets(&mut self, _: RpcContext<'_>, _: Empty, _: UnarySink<SupportedMsg>) {
+        todo!()
+    }
+    fn supports_ev3_packets(&mut self, _: RpcContext<'_>, _: Empty, _: UnarySink<SupportedMsg>) {
+        todo!()
+    }
+    fn supports_ev4_packets(&mut self, _: RpcContext<'_>, _: Empty, _: UnarySink<SupportedMsg>) {
+        todo!()
+    }
+
+    fn supports_ev5_packets(&mut self, _: RpcContext<'_>, _: Empty, _: UnarySink<SupportedMsg>) {
+        todo!()
+    }
+    fn supports_esco2m_phy(&mut self, _: RpcContext<'_>, _: Empty, _: UnarySink<SupportedMsg>) {
+        todo!()
+    }
+    fn supports_esco3m_phy(&mut self, _: RpcContext<'_>, _: Empty, _: UnarySink<SupportedMsg>) {
+        todo!()
+    }
+    fn supports3_slot_esco_edr_packets(
+        &mut self,
+        _: RpcContext<'_>,
+        _: Empty,
+        _: UnarySink<SupportedMsg>,
+    ) {
+        todo!()
+    }
+    fn supports_hold_mode(&mut self, _: RpcContext<'_>, _: Empty, _: UnarySink<SupportedMsg>) {
+        todo!()
+    }
+    fn supports_sniff_mode(&mut self, _: RpcContext<'_>, _: Empty, _: UnarySink<SupportedMsg>) {
+        todo!()
+    }
+    fn supports_park_mode(&mut self, _: RpcContext<'_>, _: Empty, _: UnarySink<SupportedMsg>) {
+        todo!()
+    }
+    fn supports_non_flushable_pb(
+        &mut self,
+        _: RpcContext<'_>,
+        _: Empty,
+        _: UnarySink<SupportedMsg>,
+    ) {
+        todo!()
+    }
+    fn supports_sniff_subrating(
+        &mut self,
+        _: RpcContext<'_>,
+        _: Empty,
+        _: UnarySink<SupportedMsg>,
+    ) {
+        todo!()
+    }
+    fn supports_encryption_pause(
+        &mut self,
+        _: RpcContext<'_>,
+        _: Empty,
+        _: UnarySink<SupportedMsg>,
+    ) {
+        todo!()
+    }
+    fn supports_ble(&mut self, _: RpcContext<'_>, _: Empty, _: UnarySink<SupportedMsg>) {
+        todo!()
+    }
+    fn supports_ble_encryption(&mut self, _: RpcContext<'_>, _: Empty, _: UnarySink<SupportedMsg>) {
+        todo!()
+    }
+    fn supports_ble_connection_parameters_request(
+        &mut self,
+        _: RpcContext<'_>,
+        _: Empty,
+        _: UnarySink<SupportedMsg>,
+    ) {
+        todo!()
+    }
+    fn supports_ble_extended_reject(
+        &mut self,
+        _: RpcContext<'_>,
+        _: Empty,
+        _: UnarySink<SupportedMsg>,
+    ) {
+        todo!()
+    }
+    fn supports_ble_peripheral_initiated_features_exchange(
+        &mut self,
+        _: RpcContext<'_>,
+        _: Empty,
+        _: UnarySink<SupportedMsg>,
+    ) {
+        todo!()
+    }
+    fn supports_ble_ping(&mut self, _: RpcContext<'_>, _: Empty, _: UnarySink<SupportedMsg>) {
+        todo!()
+    }
+    fn supports_ble_data_packet_length_extension(
+        &mut self,
+        _: RpcContext<'_>,
+        _: Empty,
+        _: UnarySink<SupportedMsg>,
+    ) {
+        todo!()
+    }
+    fn supports_ble_privacy(&mut self, _: RpcContext<'_>, _: Empty, _: UnarySink<SupportedMsg>) {
+        todo!()
+    }
+    fn supports_ble_extended_scanner_filter_policies(
+        &mut self,
+        _: RpcContext<'_>,
+        _: Empty,
+        _: UnarySink<SupportedMsg>,
+    ) {
+        todo!()
+    }
+    fn supports_ble2m_phy(&mut self, _: RpcContext<'_>, _: Empty, _: UnarySink<SupportedMsg>) {
+        todo!()
+    }
+    fn supports_ble_stable_modulation_index_tx(
+        &mut self,
+        _: RpcContext<'_>,
+        _: Empty,
+        _: UnarySink<SupportedMsg>,
+    ) {
+        todo!()
+    }
+    fn supports_ble_stable_modulation_index_rx(
+        &mut self,
+        _: RpcContext<'_>,
+        _: Empty,
+        _: UnarySink<SupportedMsg>,
+    ) {
+        todo!()
+    }
+    fn supports_ble_coded_phy(&mut self, _: RpcContext<'_>, _: Empty, _: UnarySink<SupportedMsg>) {
+        todo!()
+    }
+    fn supports_ble_extended_advertising(
+        &mut self,
+        _: RpcContext<'_>,
+        _: Empty,
+        _: UnarySink<SupportedMsg>,
+    ) {
+        todo!()
+    }
+    fn supports_ble_periodic_advertising(
+        &mut self,
+        _: RpcContext<'_>,
+        _: Empty,
+        _: UnarySink<SupportedMsg>,
+    ) {
+        todo!()
+    }
+    fn supports_ble_channel_selection_algorithm2(
+        &mut self,
+        _: RpcContext<'_>,
+        _: Empty,
+        _: UnarySink<SupportedMsg>,
+    ) {
+        todo!()
+    }
+    fn supports_ble_power_class1(
+        &mut self,
+        _: RpcContext<'_>,
+        _: Empty,
+        _: UnarySink<SupportedMsg>,
+    ) {
+        todo!()
+    }
+    fn supports_ble_minimum_used_channels(
+        &mut self,
+        _: RpcContext<'_>,
+        _: Empty,
+        _: UnarySink<SupportedMsg>,
+    ) {
+        todo!()
+    }
+    fn supports_ble_connection_cte_request(
+        &mut self,
+        _: RpcContext<'_>,
+        _: Empty,
+        _: UnarySink<SupportedMsg>,
+    ) {
+        todo!()
+    }
+    fn supports_ble_connection_cte_response(
+        &mut self,
+        _: RpcContext<'_>,
+        _: Empty,
+        _: UnarySink<SupportedMsg>,
+    ) {
+        todo!()
+    }
+    fn supports_ble_connectionless_cte_transmitter(
+        &mut self,
+        _: RpcContext<'_>,
+        _: Empty,
+        _: UnarySink<SupportedMsg>,
+    ) {
+        todo!()
+    }
+    fn supports_ble_connectionless_cte_receiver(
+        &mut self,
+        _: RpcContext<'_>,
+        _: Empty,
+        _: UnarySink<SupportedMsg>,
+    ) {
+        todo!()
+    }
+    fn supports_ble_antenna_switching_during_cte_tx(
+        &mut self,
+        _: RpcContext<'_>,
+        _: Empty,
+        _: UnarySink<SupportedMsg>,
+    ) {
+        todo!()
+    }
+    fn supports_ble_antenna_switching_during_cte_rx(
+        &mut self,
+        _: RpcContext<'_>,
+        _: Empty,
+        _: UnarySink<SupportedMsg>,
+    ) {
+        todo!()
+    }
+    fn supports_ble_receiving_constant_tone_extensions(
+        &mut self,
+        _: RpcContext<'_>,
+        _: Empty,
+        _: UnarySink<SupportedMsg>,
+    ) {
+        todo!()
+    }
+    fn supports_ble_periodic_advertising_sync_transfer_sender(
+        &mut self,
+        _: RpcContext<'_>,
+        _: Empty,
+        _: UnarySink<SupportedMsg>,
+    ) {
+        todo!()
+    }
+    fn supports_ble_periodic_advertising_sync_transfer_recipient(
+        &mut self,
+        _: RpcContext<'_>,
+        _: Empty,
+        _: UnarySink<SupportedMsg>,
+    ) {
+        todo!()
+    }
+    fn supports_ble_sleep_clock_accuracy_updates(
+        &mut self,
+        _: RpcContext<'_>,
+        _: Empty,
+        _: UnarySink<SupportedMsg>,
+    ) {
+        todo!()
+    }
+    fn supports_ble_remote_public_key_validation(
+        &mut self,
+        _: RpcContext<'_>,
+        _: Empty,
+        _: UnarySink<SupportedMsg>,
+    ) {
+        todo!()
+    }
+    fn supports_ble_connected_isochronous_stream_central(
+        &mut self,
+        _: RpcContext<'_>,
+        _: Empty,
+        _: UnarySink<SupportedMsg>,
+    ) {
+        todo!()
+    }
+    fn supports_ble_connected_isochronous_stream_peripheral(
+        &mut self,
+        _: RpcContext<'_>,
+        _: Empty,
+        _: UnarySink<SupportedMsg>,
+    ) {
+        todo!()
+    }
+    fn supports_ble_isochronous_broadcaster(
+        &mut self,
+        _: RpcContext<'_>,
+        _: Empty,
+        _: UnarySink<SupportedMsg>,
+    ) {
+        todo!()
+    }
+    fn supports_ble_synchronized_receiver(
+        &mut self,
+        _: RpcContext<'_>,
+        _: Empty,
+        _: UnarySink<SupportedMsg>,
+    ) {
+        todo!()
+    }
+    fn supports_ble_isochronous_channels_host_support(
+        &mut self,
+        _: RpcContext<'_>,
+        _: Empty,
+        _: UnarySink<SupportedMsg>,
+    ) {
+        todo!()
+    }
+    fn supports_ble_power_control_request(
+        &mut self,
+        _: RpcContext<'_>,
+        _: Empty,
+        _: UnarySink<SupportedMsg>,
+    ) {
+        todo!()
+    }
+    fn supports_ble_power_change_indication(
+        &mut self,
+        _: RpcContext<'_>,
+        _: Empty,
+        _: UnarySink<SupportedMsg>,
+    ) {
+        todo!()
+    }
+    fn supports_ble_path_loss_monitoring(
+        &mut self,
+        _: RpcContext<'_>,
+        _: Empty,
+        _: UnarySink<SupportedMsg>,
+    ) {
+        todo!()
     }
 }
