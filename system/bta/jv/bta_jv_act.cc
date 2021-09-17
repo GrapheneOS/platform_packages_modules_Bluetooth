@@ -28,7 +28,6 @@
 #include <unordered_set>
 
 #include "bt_target.h"  // Must be first to define build configuration
-
 #include "bta/include/bta_jv_co.h"
 #include "bta/jv/bta_jv_int.h"
 #include "bta/sys/bta_sys.h"
@@ -36,6 +35,7 @@
 #include "stack/btm/btm_sec.h"
 #include "stack/include/avct_api.h"  // AVCT_PSM
 #include "stack/include/avdt_api.h"  // AVDT_PSM
+#include "stack/include/bt_hdr.h"
 #include "stack/include/gap_api.h"
 #include "stack/include/port_api.h"
 #include "types/bluetooth/uuid.h"

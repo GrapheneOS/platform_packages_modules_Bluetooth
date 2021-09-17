@@ -20,6 +20,7 @@
 
 #include <base/bind.h>
 #include <base/callback.h>
+
 #include <cstdint>
 #include <vector>
 
@@ -31,8 +32,9 @@
 #include "main/shim/shim.h"
 #include "osi/include/allocator.h"
 #include "osi/include/log.h"
-#include "osi/include/osi.h"         // ARRAY_SIZE
-#include "stack/btm/btm_sec.h"       // BTM_
+#include "osi/include/osi.h"    // ARRAY_SIZE
+#include "stack/btm/btm_sec.h"  // BTM_
+#include "stack/include/bt_hdr.h"
 #include "stack/include/btu.h"       // post_on_bt_main
 #include "stack/include/l2c_api.h"   // L2CA_
 #include "stack/include/srvc_api.h"  // tDIS_VALUE

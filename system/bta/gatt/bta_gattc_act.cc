@@ -37,6 +37,7 @@
 #include "osi/include/allocator.h"
 #include "osi/include/log.h"
 #include "osi/include/osi.h"  // UNUSED_ATTR
+#include "stack/include/bt_hdr.h"
 #include "stack/include/btm_ble_api_types.h"
 #include "stack/include/btu.h"  // do_in_main_thread
 #include "stack/include/l2c_api.h"

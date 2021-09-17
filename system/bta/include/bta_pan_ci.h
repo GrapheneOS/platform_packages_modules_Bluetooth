@@ -27,6 +27,7 @@
 #include <cstdint>
 
 #include "bta/include/bta_pan_api.h"
+#include "stack/include/bt_hdr.h"
 
 /*****************************************************************************
  *  Function Declarations
