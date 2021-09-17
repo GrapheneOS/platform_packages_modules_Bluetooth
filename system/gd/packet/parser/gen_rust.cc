@@ -25,7 +25,7 @@ void generate_rust_packet_preamble(std::ostream& s) {
 use bytes::{Bytes, BytesMut, BufMut};
 use num_derive::{FromPrimitive, ToPrimitive};
 use num_traits::{FromPrimitive, ToPrimitive};
-use std::convert::TryInto;
+use std::convert::{TryFrom, TryInto};
 use std::fmt;
 use thiserror::Error;
 use std::sync::Arc;
@@ -138,7 +138,6 @@ bool generate_rust_source_one_file(
 
     if (opcode_index != nullptr && opcode != nullptr) {
       opcode_index->try_from_enum_ = opcode;
-      out_file << "use std::convert::TryFrom;";
     }
   }
 
