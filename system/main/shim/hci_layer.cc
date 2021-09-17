@@ -167,9 +167,7 @@ static bool event_already_registered_in_hci_layer(
     case bluetooth::hci::EventCode::PAGE_SCAN_REPETITION_MODE_CHANGE:
     case bluetooth::hci::EventCode::MAX_SLOTS_CHANGE:
     case bluetooth::hci::EventCode::LE_META_EVENT:
-      return bluetooth::common::init_flags::gd_hci_is_enabled() ||
-             bluetooth::shim::is_gd_acl_enabled() ||
-             bluetooth::shim::is_gd_l2cap_enabled();
+      return true;
     case bluetooth::hci::EventCode::DISCONNECTION_COMPLETE:
     case bluetooth::hci::EventCode::READ_REMOTE_VERSION_INFORMATION_COMPLETE:
       return bluetooth::shim::is_gd_acl_enabled() ||
