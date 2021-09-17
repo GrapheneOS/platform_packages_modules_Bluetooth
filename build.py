@@ -160,7 +160,7 @@ class HostBuild():
       """
         rust_flags = [
             '-L',
-            '{}/out/Default/'.format(self.output_dir),
+            '{}/out/Default'.format(self.output_dir),
             '-C',
             'link-arg=-Wl,--allow-multiple-definition',
         ]
