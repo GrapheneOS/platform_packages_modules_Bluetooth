@@ -28,6 +28,7 @@
 #include "stack/include/bt_dev_class.h"
 #include "stack/include/bt_device_type.h"
 #include "stack/include/bt_hdr.h"
+#include "stack/include/bt_name.h"
 #include "stack/include/bt_octets.h"
 #ifdef __cplusplus
 #include "include/hardware/bluetooth.h"
@@ -332,9 +333,6 @@ enum {
 
 #define PIN_CODE_LEN 16
 typedef uint8_t PIN_CODE[PIN_CODE_LEN]; /* Pin Code (upto 128 bits) MSB is 0 */
-
-#define BD_NAME_LEN 248
-typedef uint8_t BD_NAME[BD_NAME_LEN + 1]; /* Device name */
 
 #define LAP_LEN 3
 typedef uint8_t LAP[LAP_LEN];     /* IAC as passed to Inquiry (LAP) */
