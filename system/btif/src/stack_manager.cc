@@ -179,7 +179,6 @@ const struct module_lookup module_table[] = {
     {CONTROLLER_MODULE, &controller_module},
     {GD_IDLE_MODULE, &gd_idle_module},
     {GD_SHIM_MODULE, &gd_shim_module},
-    {HCI_MODULE, &hci_module},
     {INTEROP_MODULE, &interop_module},
     {OSI_MODULE, &osi_module},
     {STACK_CONFIG_MODULE, &stack_config_module},
@@ -266,7 +265,6 @@ static void event_start_up_stack(UNUSED_ATTR void* context) {
   } else {
     module_start_up(get_local_module(BTIF_CONFIG_MODULE));
     module_start_up(get_local_module(BTSNOOP_MODULE));
-    module_start_up(get_local_module(HCI_MODULE));
   }
 
   get_btm_client_interface().lifecycle.btm_init();
@@ -370,7 +368,6 @@ static void event_shut_down_stack(UNUSED_ATTR void* context) {
     module_shut_down(get_local_module(GD_SHIM_MODULE));
     module_start_up(get_local_module(GD_IDLE_MODULE));
   } else {
-    module_shut_down(get_local_module(HCI_MODULE));
     module_shut_down(get_local_module(BTSNOOP_MODULE));
   }
 
