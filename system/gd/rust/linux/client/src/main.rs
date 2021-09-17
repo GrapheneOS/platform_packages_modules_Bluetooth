@@ -296,11 +296,23 @@ async fn start_interactive_shell(
 ) {
     let command_list = handler.get_command_list().clone();
 
+    let semaphore_fg = Arc::new(tokio::sync::Semaphore::new(1));
+
     // Async task to keep reading new lines from user
+    let semaphore = semaphore_fg.clone();
     tokio::spawn(async move {
         let editor = AsyncEditor::new(command_list);
 
         loop {
+            // Wait until ForegroundAction::Readline finishes its task.
+            let permit = semaphore.acquire().await;
+            if permit.is_err() {
+                break;
+            };
+            // Let ForegroundAction::Readline decide when it's done.
+            permit.unwrap().forget();
+
+            // It's good to do readline now.
             let result = editor.readline().await;
             let _ = tx.send(ForegroundActions::Readline(result)).await;
         }
@@ -340,9 +352,14 @@ async fn start_interactive_shell(
                         &String::from(cmd),
                         &command_vec[1..command_vec.len()].to_vec(),
                     );
+                    // Ready to do readline again.
+                    semaphore_fg.add_permits(1);
                 }
             },
         }
     }
+
+    semaphore_fg.close();
+
     print_info!("Client exiting");
 }
