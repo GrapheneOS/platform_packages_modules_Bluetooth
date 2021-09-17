@@ -3,9 +3,7 @@ use paste::paste;
 use std::sync::Mutex;
 
 /// Deprecated immutable flag
-pub fn gd_hci_is_enabled() -> bool {
-    true
-}
+/// NONE at this time
 
 macro_rules! init_flags {
     (flags: { $($flag:ident),* }, dependencies: { $($parent:ident => $child:ident),* }) => {

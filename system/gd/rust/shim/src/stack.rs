@@ -58,7 +58,6 @@ pub fn stack_stop(stack: &mut Stack) {
 
 pub fn get_hci(stack: &mut Stack) -> Box<Hci> {
     assert!(init_flags::gd_rust_is_enabled());
-    assert!(init_flags::gd_hci_is_enabled());
 
     Box::new(Hci::new(
         stack.get_runtime(),
