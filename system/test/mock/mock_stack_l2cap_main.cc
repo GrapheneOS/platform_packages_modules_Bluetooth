@@ -25,12 +25,14 @@
 extern std::map<std::string, int> mock_function_count_map;
 
 #include <string.h>
+
 #include "bt_target.h"
 #include "l2c_api.h"
 #include "l2cdefs.h"
 #include "main/shim/shim.h"
 #include "osi/include/log.h"
 #include "osi/include/osi.h"
+#include "stack/include/bt_hdr.h"
 #include "stack/l2cap/l2c_int.h"
 
 #ifndef UNUSED_ATTR

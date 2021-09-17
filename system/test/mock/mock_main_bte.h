@@ -36,6 +36,7 @@ extern std::map<std::string, int> mock_function_count_map;
 //       may need attention to prune the inclusion set.
 #include <base/logging.h>
 #include <hardware/bluetooth.h>
+
 #include "btcore/include/module.h"
 #include "btif/include/btif_config.h"
 #include "device/include/interop.h"
@@ -44,6 +45,7 @@ extern std::map<std::string, int> mock_function_count_map;
 #include "main/shim/shim.h"
 #include "osi/include/log.h"
 #include "osi/include/osi.h"
+#include "stack/include/bt_hdr.h"
 #include "stack_config.h"
 
 // Mocked compile conditionals, if any
