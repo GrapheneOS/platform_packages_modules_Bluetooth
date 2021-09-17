@@ -18,6 +18,7 @@
 #ifndef UIPC_H
 #define UIPC_H
 
+#include <memory>
 #include <mutex>
 
 #define UIPC_CH_ID_AV_CTRL 0
