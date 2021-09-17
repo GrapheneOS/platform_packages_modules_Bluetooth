@@ -44,7 +44,6 @@
 #include "common/once_timer.h"
 #include "common/stop_watch_legacy.h"
 #include "hci/include/buffer_allocator.h"
-#include "hci_inject.h"
 #include "main/shim/shim.h"
 #include "osi/include/alarm.h"
 #include "osi/include/list.h"
