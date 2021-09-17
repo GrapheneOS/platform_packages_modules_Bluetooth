@@ -1,0 +1,17 @@
+CertSelfTest
+SimpleHalTest
+DirectHciTest
+LeAdvertisingManagerTest
+LeScanningManagerTest
+LeExtendedScanningManagerTest
+LeScanningWithSecurityTest
+NeighborTest
+ControllerTest
+AclManagerTest
+LeAclManagerTest
+StackTest
+DualL2capTest
+LeSecurityTest
+ShimTest
+LeIsoTest
+
