@@ -670,7 +670,7 @@ static bool bta_hh_le_write_rpt_clt_cfg(tBTA_HH_DEV_CB* p_cb);
 
 static void write_rpt_ctl_cfg_cb(uint16_t conn_id, tGATT_STATUS status,
                                  uint16_t handle, void* data) {
-  uint8_t srvc_inst_id, hid_inst_id;
+  uint8_t srvc_inst_id;
 
   tBTA_HH_DEV_CB* p_dev_cb = (tBTA_HH_DEV_CB*)data;
   const gatt::Characteristic* characteristic =
@@ -678,11 +678,9 @@ static void write_rpt_ctl_cfg_cb(uint16_t conn_id, tGATT_STATUS status,
   uint16_t char_uuid = characteristic->uuid.As16Bit();
 
   srvc_inst_id = BTA_GATTC_GetOwningService(conn_id, handle)->handle;
-  hid_inst_id = srvc_inst_id;
   switch (char_uuid) {
     case GATT_UUID_BATTERY_LEVEL: /* battery level clt cfg registered */
-      hid_inst_id = bta_hh_le_find_service_inst_by_battery_inst_id(
-          p_dev_cb, srvc_inst_id);
+      bta_hh_le_find_service_inst_by_battery_inst_id(p_dev_cb, srvc_inst_id);
       FALLTHROUGH_INTENDED; /* FALLTHROUGH */
     case GATT_UUID_HID_BT_KB_INPUT:
     case GATT_UUID_HID_BT_MOUSE_INPUT:
