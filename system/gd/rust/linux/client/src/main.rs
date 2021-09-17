@@ -7,15 +7,15 @@ use dbus::nonblock::SyncConnection;
 use dbus_crossroads::Crossroads;
 use tokio::sync::mpsc;
 
+use crate::callbacks::{BtCallback, BtManagerCallback};
 use crate::command_handler::CommandHandler;
 use crate::dbus_iface::{BluetoothDBus, BluetoothManagerDBus};
 use crate::editor::AsyncEditor;
-use bt_topshim::btif::BtSspVariant;
 use bt_topshim::topstack;
-use btstack::bluetooth::{BluetoothDevice, IBluetooth, IBluetoothCallback};
-use btstack::RPCProxy;
-use manager_service::iface_bluetooth_manager::{IBluetoothManager, IBluetoothManagerCallback};
+use btstack::bluetooth::{BluetoothDevice, IBluetooth};
+use manager_service::iface_bluetooth_manager::IBluetoothManager;
 
+mod callbacks;
 mod command_handler;
 mod console;
 mod dbus_arg;
@@ -115,120 +115,6 @@ enum ForegroundActions {
     Readline(rustyline::Result<String>), // Readline result from rustyline
 }
 
-/// Callback context for manager interface callbacks.
-struct BtManagerCallback {
-    objpath: String,
-    context: Arc<Mutex<ClientContext>>,
-}
-
-impl IBluetoothManagerCallback for BtManagerCallback {
-    fn on_hci_device_changed(&self, hci_interface: i32, present: bool) {
-        print_info!("hci{} present = {}", hci_interface, present);
-
-        if present {
-            self.context.lock().unwrap().adapters.entry(hci_interface).or_insert(false);
-        } else {
-            self.context.lock().unwrap().adapters.remove(&hci_interface);
-        }
-    }
-
-    fn on_hci_enabled_changed(&self, hci_interface: i32, enabled: bool) {
-        print_info!("hci{} enabled = {}", hci_interface, enabled);
-
-        self.context
-            .lock()
-            .unwrap()
-            .adapters
-            .entry(hci_interface)
-            .and_modify(|v| *v = enabled)
-            .or_insert(enabled);
-
-        // When the default adapter's state is updated, we need to modify a few more things.
-        // Only do this if we're not repeating the previous state.
-        let prev_enabled = self.context.lock().unwrap().enabled;
-        let default_adapter = self.context.lock().unwrap().default_adapter;
-        if hci_interface == default_adapter && prev_enabled != enabled {
-            self.context.lock().unwrap().enabled = enabled;
-            self.context.lock().unwrap().adapter_ready = false;
-            if enabled {
-                self.context.lock().unwrap().create_adapter_proxy(hci_interface);
-            } else {
-                self.context.lock().unwrap().adapter_dbus = None;
-            }
-        }
-    }
-}
-
-impl manager_service::RPCProxy for BtManagerCallback {
-    fn register_disconnect(&mut self, _f: Box<dyn Fn() + Send>) {}
-
-    fn get_object_id(&self) -> String {
-        self.objpath.clone()
-    }
-}
-
-/// Callback container for adapter interface callbacks.
-struct BtCallback {
-    objpath: String,
-    context: Arc<Mutex<ClientContext>>,
-}
-
-impl IBluetoothCallback for BtCallback {
-    fn on_address_changed(&self, addr: String) {
-        print_info!("Address changed to {}", &addr);
-        self.context.lock().unwrap().adapter_address = Some(addr);
-    }
-
-    fn on_device_found(&self, remote_device: BluetoothDevice) {
-        self.context
-            .lock()
-            .unwrap()
-            .found_devices
-            .entry(remote_device.address.clone())
-            .or_insert(remote_device.clone());
-
-        print_info!("Found device: {:?}", remote_device);
-    }
-
-    fn on_discovering_changed(&self, discovering: bool) {
-        self.context.lock().unwrap().discovering_state = discovering;
-
-        if discovering {
-            self.context.lock().unwrap().found_devices.clear();
-        }
-        print_info!("Discovering: {}", discovering);
-    }
-
-    fn on_ssp_request(
-        &self,
-        remote_device: BluetoothDevice,
-        _cod: u32,
-        variant: BtSspVariant,
-        passkey: u32,
-    ) {
-        if variant == BtSspVariant::PasskeyNotification {
-            print_info!(
-                "device {}{} would like to pair, enter passkey on remote device: {:06}",
-                remote_device.address.to_string(),
-                if remote_device.name.len() > 0 {
-                    format!(" ({})", remote_device.name)
-                } else {
-                    String::from("")
-                },
-                passkey
-            );
-        }
-    }
-}
-
-impl RPCProxy for BtCallback {
-    fn register_disconnect(&mut self, _f: Box<dyn Fn() + Send>) {}
-
-    fn get_object_id(&self) -> String {
-        self.objpath.clone()
-    }
-}
-
 /// Runs a command line program that interacts with a Bluetooth stack.
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     // TODO: Process command line arguments.
@@ -269,10 +155,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
         // TODO: Registering the callback should be done when btmanagerd is ready (detect with
         // ObjectManager).
-        context.lock().unwrap().manager_dbus.register_callback(Box::new(BtManagerCallback {
-            objpath: String::from("/org/chromium/bluetooth/client/bluetooth_manager_callback"),
-            context: context.clone(),
-        }));
+        context.lock().unwrap().manager_dbus.register_callback(Box::new(BtManagerCallback::new(
+            String::from("/org/chromium/bluetooth/client/bluetooth_manager_callback"),
+            context.clone(),
+        )));
 
         let mut handler = CommandHandler::new(context.clone());
 
@@ -334,7 +220,7 @@ async fn start_interactive_shell(
                     .adapter_dbus
                     .as_mut()
                     .unwrap()
-                    .register_callback(Box::new(BtCallback { objpath, context: context.clone() }));
+                    .register_callback(Box::new(BtCallback::new(objpath, context.clone())));
                 context.lock().unwrap().adapter_ready = true;
             }
             ForegroundActions::Readline(result) => match result {
