@@ -26,6 +26,8 @@
 #include "btcore/include/module.h"
 #include "btcore/include/version.h"
 #include "check.h"
+#include "hci/include/hci_packet_factory.h"
+#include "hci/include/hci_packet_parser.h"
 #include "main/shim/controller.h"
 #include "main/shim/hci_layer.h"
 #include "main/shim/shim.h"

@@ -20,6 +20,7 @@
 
 #include "btm_iso_api.h"
 #include "device/include/controller.h"
+#include "hci/include/hci_layer.h"
 #include "main/shim/shim.h"
 #include "mock_controller.h"
 #include "mock_hcic_layer.h"

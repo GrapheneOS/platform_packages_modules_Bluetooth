@@ -37,6 +37,7 @@
 #include "common/message_loop_thread.h"
 #include "device/include/controller.h"
 #include "hci/include/hci_layer.h"
+#include "hci/include/hci_packet_factory.h"
 #include "main/shim/btm_api.h"
 #include "main/shim/controller.h"
 #include "main/shim/hci_layer.h"
