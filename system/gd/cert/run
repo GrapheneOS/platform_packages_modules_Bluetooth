@@ -156,6 +156,7 @@ function parse_options {
         ;;
         --device)
         TEST_CONFIG="${ANDROID_BUILD_TOP}/packages/modules/Bluetooth/system/gd/cert/devices_config.json"
+        TEST_FILTER="-tf ${ANDROID_BUILD_TOP}/packages/modules/Bluetooth/system/gd/cert/real_device_testcases"
         RR="$(cat ${TEST_CONFIG}|grep \"CERT\\\|DUT\")"
         if [ "$RR" != "" ]; then
         DUT_SERIAL="$(menu-adb DUT)"
