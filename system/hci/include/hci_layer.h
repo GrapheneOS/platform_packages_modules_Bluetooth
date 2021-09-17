@@ -25,8 +25,6 @@
 #include "osi/include/osi.h"  // INVALID_FD
 #include "stack/include/bt_types.h"
 
-static const char HCI_MODULE[] = "hci_module";
-
 ///// LEGACY DEFINITIONS /////
 
 /* Message event mask across Host/Controller lib and stack */
