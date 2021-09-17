@@ -325,7 +325,7 @@ tCONN_CB* sdpu_find_ccb_by_cid(uint16_t cid) {
  * Returns          the CCB address, or NULL if not found.
  *
  ******************************************************************************/
-tCONN_CB* sdpu_find_ccb_by_db(tSDP_DISCOVERY_DB* p_db) {
+tCONN_CB* sdpu_find_ccb_by_db(const tSDP_DISCOVERY_DB* p_db) {
   uint16_t xx;
   tCONN_CB* p_ccb;
 
