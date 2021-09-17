@@ -320,7 +320,7 @@ EXPORT_SYMBOL extern const module_t controller_module = {
     .start_up = start_up,
     .shut_down = shut_down,
     .clean_up = NULL,
-    .dependencies = {HCI_MODULE, NULL}};
+    .dependencies = {NULL}};
 
 // Interface functions
 
