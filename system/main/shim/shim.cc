@@ -86,9 +86,7 @@ bool bluetooth::shim::is_gd_shim_enabled() {
   return bluetooth::common::init_flags::gd_core_is_enabled();
 }
 
-bool bluetooth::shim::is_any_gd_enabled() {
-  return bluetooth::common::init_flags::gd_hci_is_enabled();
-}
+bool bluetooth::shim::is_any_gd_enabled() { return true; }
 
 bool bluetooth::shim::is_gd_stack_started_up() {
   return bluetooth::shim::Stack::GetInstance()->IsRunning();
