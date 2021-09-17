@@ -1277,7 +1277,8 @@ class CsisClientImpl : public CsisClient {
                           const bluetooth::Uuid& context_uuid,
                           bool is_last_instance) {
     DLOG(INFO) << __func__ << " service handle: " << loghex(service->handle)
-               << " end handle: " << loghex(service->end_handle);
+               << " end handle: " << loghex(service->end_handle)
+               << " uuid: " << context_uuid;
 
     auto csis_inst = std::make_shared<CsisInstance>(
         (uint16_t)service->handle, (uint16_t)service->end_handle, context_uuid);
