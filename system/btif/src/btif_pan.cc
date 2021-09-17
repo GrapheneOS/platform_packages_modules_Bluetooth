@@ -49,6 +49,7 @@
 #include "osi/include/compat.h"
 #include "osi/include/log.h"
 #include "osi/include/osi.h"
+#include "stack/include/bt_hdr.h"
 #include "stack/include/btu.h"  // do_in_main_thread
 #include "stack/include/pan_api.h"
 

@@ -18,9 +18,12 @@
 
 #define LOG_TAG "btif_av"
 
+#include "btif/include/btif_av.h"
+
 #include <base/bind.h>
 #include <base/strings/stringprintf.h>
 #include <frameworks/proto_logging/stats/enums/bluetooth/a2dp/enums.pb.h>
+
 #include <cstdint>
 #include <future>
 #include <memory>
@@ -33,7 +36,6 @@
 #include "btif/include/btif_a2dp_control.h"
 #include "btif/include/btif_a2dp_sink.h"
 #include "btif/include/btif_a2dp_source.h"
-#include "btif/include/btif_av.h"
 #include "btif/include/btif_av_co.h"
 #include "btif/include/btif_common.h"
 #include "btif/include/btif_profile_queue.h"
@@ -47,6 +49,7 @@
 #include "main/shim/dumpsys.h"
 #include "osi/include/allocator.h"
 #include "osi/include/properties.h"
+#include "stack/include/bt_hdr.h"
 #include "stack/include/btm_api.h"
 #include "stack/include/btu.h"  // do_in_main_thread
 #include "types/raw_address.h"

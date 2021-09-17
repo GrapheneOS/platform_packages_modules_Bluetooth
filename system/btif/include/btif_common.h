@@ -20,16 +20,18 @@
 #ifndef BTIF_COMMON_H
 #define BTIF_COMMON_H
 
-#include <stdlib.h>
-
 #include <base/bind.h>
 #include <base/location.h>
 #include <hardware/bluetooth.h>
+#include <stdlib.h>
+
 #include <functional>
+
 #include "abstract_message_loop.h"
 #include "bta/include/bta_api.h"
 #include "osi/include/log.h"
 #include "osi/include/osi.h"
+#include "stack/include/bt_hdr.h"
 
 /*******************************************************************************
  *  Constants & Macros

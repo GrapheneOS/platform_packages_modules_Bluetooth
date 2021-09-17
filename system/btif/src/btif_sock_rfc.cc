@@ -42,6 +42,7 @@
 #include "osi/include/list.h"
 #include "osi/include/log.h"
 #include "osi/include/osi.h"  // INVALID_FD
+#include "stack/include/bt_hdr.h"
 #include "stack/include/btm_api.h"
 #include "stack/include/btm_api_types.h"
 #include "stack/include/port_api.h"
