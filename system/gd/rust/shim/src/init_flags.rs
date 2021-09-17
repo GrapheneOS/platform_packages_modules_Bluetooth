@@ -10,7 +10,6 @@ mod ffi {
         fn gd_scanning_is_enabled() -> bool;
         fn gd_acl_is_enabled() -> bool;
         fn gd_l2cap_is_enabled() -> bool;
-        fn gd_hci_is_enabled() -> bool;
         fn gd_controller_is_enabled() -> bool;
         fn gatt_robust_caching_is_enabled() -> bool;
         fn btaa_hci_is_enabled() -> bool;
