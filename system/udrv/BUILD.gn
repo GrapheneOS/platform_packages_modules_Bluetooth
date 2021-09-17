@@ -29,6 +29,10 @@ source_set("udrv") {
   ]
 
   configs += [
-    "//bt:target_defaults"
+    "//bt:target_defaults",
+  ]
+
+  deps = [
+    "//bt/gd:gd_default_deps"
   ]
 }
