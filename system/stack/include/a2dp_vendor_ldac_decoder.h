@@ -22,6 +22,7 @@
 #define A2DP_VENDOR_LDAC_DECODER_H
 
 #include "a2dp_codec_api.h"
+#include "stack/include/bt_hdr.h"
 
 // Loads the A2DP LDAC decoder.
 // Return true on success, otherwise false.

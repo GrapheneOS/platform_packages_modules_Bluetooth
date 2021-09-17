@@ -25,19 +25,18 @@
 
 #define LOG_TAG "a2dp_sbc"
 
-#include "bt_target.h"
-
 #include "a2dp_sbc.h"
 
+#include <base/logging.h>
 #include <string.h>
 
-#include <base/logging.h>
 #include "a2dp_sbc_decoder.h"
 #include "a2dp_sbc_encoder.h"
 #include "bt_utils.h"
 #include "embdrv/sbc/encoder/include/sbc_encoder.h"
 #include "osi/include/log.h"
 #include "osi/include/osi.h"
+#include "stack/include/bt_hdr.h"
 
 #define A2DP_SBC_MAX_BITPOOL 53
 

@@ -32,6 +32,7 @@
 #include "btif/include/btif_config.h"
 #include "osi/include/allocator.h"
 #include "stack/include/avrc_defs.h"
+#include "stack/include/bt_hdr.h"
 #include "stack/include/sdp_api.h"
 #include "stack/include/sdpdefs.h"
 #include "stack/include/stack_metrics_logging.h"

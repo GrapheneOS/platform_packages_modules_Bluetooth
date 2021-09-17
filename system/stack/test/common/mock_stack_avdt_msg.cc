@@ -17,7 +17,9 @@
 #include <map>
 #include <string>
 #include <vector>
+
 #include "stack/avdt/avdt_int.h"
+#include "stack/include/bt_hdr.h"
 
 extern std::map<std::string, int> mock_function_count_map;
 
@@ -78,4 +80,4 @@ bool avdt_msg_send(AvdtpCcb* p_ccb, BT_HDR* p_msg) {
   return true;
 }
 
-const uint8_t avdt_msg_rej_2_evt[AVDT_CCB_NUM_ACTIONS] = { };
+const uint8_t avdt_msg_rej_2_evt[AVDT_CCB_NUM_ACTIONS] = {};

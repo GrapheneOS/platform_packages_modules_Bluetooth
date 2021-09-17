@@ -18,12 +18,14 @@
 #define BT_STACK_FUZZ_A2DP_CODECINFO_FUNCTIONS_H_
 
 #include <fuzzer/FuzzedDataProvider.h>
+
 #include <vector>
+
 #include "a2dp_codec_api.h"
 #include "fuzzers/a2dp/codec/a2dpCodecHelperFunctions.h"
-#include "fuzzers/common/commonFuzzHelpers.h"
-
 #include "fuzzers/a2dp/codec/a2dpCodecInfoFuzzHelpers.h"
+#include "fuzzers/common/commonFuzzHelpers.h"
+#include "stack/include/bt_hdr.h"
 
 #define MAX_PACKET_SIZE 2048
 

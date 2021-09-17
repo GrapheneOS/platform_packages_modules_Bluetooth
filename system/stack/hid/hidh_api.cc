@@ -34,6 +34,7 @@
 #include "osi/include/allocator.h"
 #include "stack/btm/btm_dev.h"
 #include "stack/btm/btm_sec.h"
+#include "stack/include/bt_hdr.h"
 
 using bluetooth::Uuid;
 

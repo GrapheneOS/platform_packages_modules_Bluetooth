@@ -24,6 +24,7 @@
 #ifndef _AVRC_DEFS_H
 #define _AVRC_DEFS_H
 
+#include "stack/include/bt_hdr.h"
 #include "stack/include/bt_types.h"
 
 /*****************************************************************************
