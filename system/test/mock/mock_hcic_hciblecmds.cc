@@ -25,8 +25,10 @@ extern std::map<std::string, int> mock_function_count_map;
 #define UNUSED_ATTR
 
 #include <base/bind.h>
+#include <base/callback.h>
 #include <stddef.h>
 #include <string.h>
+
 #include "bt_target.h"
 #include "btu.h"
 #include "hcimsgs.h"

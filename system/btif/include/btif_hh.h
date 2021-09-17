@@ -23,8 +23,10 @@
 #include <hardware/bt_hh.h>
 #include <pthread.h>
 #include <stdint.h>
+
 #include "bta/include/bta_hh_api.h"
 #include "btu.h"
+#include "osi/include/alarm.h"
 #include "osi/include/fixed_queue.h"
 
 /*******************************************************************************

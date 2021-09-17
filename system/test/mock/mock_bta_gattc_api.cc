@@ -19,6 +19,8 @@
  *   Functions generated:30
  */
 
+#include <base/callback.h>
+
 #include <map>
 #include <string>
 

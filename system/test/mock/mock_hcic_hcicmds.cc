@@ -25,13 +25,14 @@
 extern std::map<std::string, int> mock_function_count_map;
 #define UNUSED_ATTR
 
+#include <base/callback.h>
 #include <stddef.h>
-#include "types/raw_address.h"
 
 #include "bt_target.h"
 #include "btu.h"
 #include "hcimsgs.h"
 #include "stack/include/acl_hci_link_interface.h"
+#include "types/raw_address.h"
 
 namespace test {
 namespace mock {
