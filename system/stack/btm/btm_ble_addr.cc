@@ -25,15 +25,17 @@
 #include <base/bind.h>
 #include <string.h>
 
+#include "btm_ble_int.h"
 #include "btu.h"
 #include "device/include/controller.h"
 #include "gap_api.h"
-
-#include "btm_ble_int.h"
 #include "main/shim/shim.h"
+#include "osi/include/osi.h"  // UNUSED_ATTR
 #include "stack/btm/btm_dev.h"
 #include "stack/crypto_toolbox/crypto_toolbox.h"
 #include "stack/include/acl_api.h"
+#include "stack/include/bt_octets.h"
+#include "types/raw_address.h"
 
 extern tBTM_CB btm_cb;
 

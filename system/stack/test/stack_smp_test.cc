@@ -15,13 +15,14 @@
  *  limitations under the License.
  *
  ******************************************************************************/
-#include <stdarg.h>
-#include <string>
-
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
+#include <stdarg.h>
+
+#include <string>
 
 #include "bt_trace.h"
+#include "hci/include/packet_fragmenter.h"
 #include "internal_include/stack_config.h"
 #include "stack/btm/btm_int_types.h"
 #include "stack/include/acl_api.h"
