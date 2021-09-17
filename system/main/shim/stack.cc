@@ -113,9 +113,7 @@ void Stack::StartEverything() {
     }
     rust::stack_start(**rust_stack_);
 
-    if (common::init_flags::gd_hci_is_enabled()) {
-      rust_hci_ = new ::rust::Box<rust::Hci>(rust::get_hci(**rust_stack_));
-    }
+    rust_hci_ = new ::rust::Box<rust::Hci>(rust::get_hci(**rust_stack_));
     if (common::init_flags::gd_controller_is_enabled()) {
       rust_controller_ = new ::rust::Box<rust::Controller>(
           rust::get_controller(**rust_stack_));
@@ -131,13 +129,13 @@ void Stack::StartEverything() {
   ASSERT_LOG(!is_running_, "%s Gd stack already running", __func__);
   LOG_INFO("%s Starting Gd stack", __func__);
   ModuleList modules;
-  if (common::init_flags::gd_hci_is_enabled()) {
-    modules.add<hal::HciHal>();
-    modules.add<hci::HciLayer>();
-    modules.add<storage::StorageModule>();
-    modules.add<shim::Dumpsys>();
-    modules.add<hci::VendorSpecificEventManager>();
-  }
+
+  modules.add<hal::HciHal>();
+  modules.add<hci::HciLayer>();
+  modules.add<storage::StorageModule>();
+  modules.add<shim::Dumpsys>();
+  modules.add<hci::VendorSpecificEventManager>();
+
   if (common::init_flags::gd_controller_is_enabled()) {
     modules.add<hci::Controller>();
   }
