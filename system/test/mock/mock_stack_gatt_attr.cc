@@ -19,6 +19,8 @@
  *   Functions generated:14
  */
 
+#include <base/callback.h>
+
 #include <cstdint>
 #include <map>
 #include <string>

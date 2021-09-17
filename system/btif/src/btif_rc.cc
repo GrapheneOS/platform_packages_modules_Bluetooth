@@ -24,8 +24,12 @@
 
 #define LOG_TAG "bt_btif_avrc"
 
+#include "btif_rc.h"
+
 #include <errno.h>
 #include <fcntl.h>
+#include <hardware/bluetooth.h>
+#include <hardware/bt_rc.h>
 #include <pthread.h>
 #include <string.h>
 #include <time.h>
@@ -33,18 +37,15 @@
 
 #include <mutex>
 
-#include <hardware/bluetooth.h>
-#include <hardware/bt_rc.h>
-
 #include "avrc_defs.h"
 #include "bta_api.h"
 #include "bta_av_api.h"
 #include "btif_av.h"
 #include "btif_common.h"
-#include "btif_rc.h"
 #include "btif_util.h"
 #include "btu.h"
 #include "device/include/interop.h"
+#include "osi/include/alarm.h"
 #include "osi/include/allocator.h"
 #include "osi/include/list.h"
 #include "osi/include/log.h"

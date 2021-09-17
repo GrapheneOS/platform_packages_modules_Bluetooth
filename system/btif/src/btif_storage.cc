@@ -55,6 +55,7 @@
 #include "osi/include/config.h"
 #include "osi/include/log.h"
 #include "osi/include/osi.h"
+#include "stack/include/btu.h"
 
 using base::Bind;
 using bluetooth::Uuid;
