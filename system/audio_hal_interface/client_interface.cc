@@ -40,9 +40,9 @@ using ::bluetooth::common::StopWatchLegacy;
 using DataMQ = ::android::hardware::MessageQueue<
     uint8_t, ::android::hardware::kSynchronizedReadWrite>;
 
-static constexpr int kDefaultDataReadTimeoutMs = 10;      // 10 ms
-static constexpr int kDefaultDataWriteTimeoutMs = 10;     // 10 ms
-static constexpr int kDefaultDataReadPollIntervalMs = 1;  // non-blocking poll
+static constexpr int kDefaultDataReadTimeoutMs = 10;       // 10 ms
+static constexpr int kDefaultDataWriteTimeoutMs = 10;      // 10 ms
+static constexpr int kDefaultDataReadPollIntervalMs = 1;   // non-blocking poll
 static constexpr int kDefaultDataWritePollIntervalMs = 1;  // non-blocking poll
 
 std::unique_ptr<HalVersionManager> HalVersionManager::instance_ptr =
@@ -293,7 +293,7 @@ void BluetoothAudioClientInterface::FetchAudioProvider() {
       << "IBluetoothAudioProvidersFactory::getService() failed";
 
   auto getProviderCapabilities_cb =
-      [& capabilities = this->capabilities_](
+      [&capabilities = this->capabilities_](
           const hidl_vec<AudioCapabilities>& audioCapabilities) {
         capabilities.clear();
         for (auto capability : audioCapabilities) {
@@ -321,7 +321,7 @@ void BluetoothAudioClientInterface::FetchAudioProvider() {
   std::promise<void> openProvider_promise;
   auto openProvider_future = openProvider_promise.get_future();
   auto openProvider_cb =
-      [& provider_ = this->provider_, &openProvider_promise](
+      [&provider_ = this->provider_, &openProvider_promise](
           BluetoothAudioStatus status,
           const android::sp<IBluetoothAudioProvider>& provider) {
         LOG(INFO) << "openProvider_cb(" << toString(status) << ")";

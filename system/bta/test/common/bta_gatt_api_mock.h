@@ -29,8 +29,8 @@ class BtaGattInterface {
                            BtaAppRegisterCallback cb, bool eatt_support) = 0;
   virtual void AppDeregister(tGATT_IF client_if) = 0;
   virtual void Open(tGATT_IF client_if, const RawAddress& remote_bda,
-                    bool is_direct, tBT_TRANSPORT transport,
-                    bool opportunistic) = 0;
+                    bool is_direct, tBT_TRANSPORT transport, bool opportunistic,
+                    uint8_t initiating_phys) = 0;
   virtual void Open(tGATT_IF client_if, const RawAddress& remote_bda,
                     bool is_direct, bool opportunistic) = 0;
   virtual void CancelOpen(tGATT_IF client_if, const RawAddress& remote_bda,
@@ -38,6 +38,7 @@ class BtaGattInterface {
   virtual void Close(uint16_t conn_id) = 0;
   virtual void ServiceSearchRequest(uint16_t conn_id,
                                     const bluetooth::Uuid* p_srvc_uuid) = 0;
+  virtual void SendIndConfirm(uint16_t conn_id, uint16_t cid) = 0;
   virtual const std::list<Service>* GetServices(uint16_t conn_id) = 0;
   virtual const Characteristic* GetCharacteristic(uint16_t conn_id,
                                                   uint16_t handle) = 0;
@@ -61,7 +62,9 @@ class MockBtaGattInterface : public BtaGattInterface {
   MOCK_METHOD((void), AppDeregister, (tGATT_IF client_if), (override));
   MOCK_METHOD((void), Open,
               (tGATT_IF client_if, const RawAddress& remote_bda, bool is_direct,
-               tBT_TRANSPORT transport, bool opportunistic));
+               tBT_TRANSPORT transport, bool opportunistic,
+               uint8_t initiating_phys),
+              (override));
   MOCK_METHOD((void), Open,
               (tGATT_IF client_if, const RawAddress& remote_bda, bool is_direct,
                bool opportunistic));
@@ -71,6 +74,8 @@ class MockBtaGattInterface : public BtaGattInterface {
   MOCK_METHOD((void), Close, (uint16_t conn_id));
   MOCK_METHOD((void), ServiceSearchRequest,
               (uint16_t conn_id, const bluetooth::Uuid* p_srvc_uuid));
+  MOCK_METHOD((void), SendIndConfirm, (uint16_t conn_id, uint16_t cid),
+              (override));
   MOCK_METHOD((std::list<Service>*), GetServices, (uint16_t conn_id));
   MOCK_METHOD((const Characteristic*), GetCharacteristic,
               (uint16_t conn_id, uint16_t handle));
