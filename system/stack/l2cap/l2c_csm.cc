@@ -1576,8 +1576,9 @@ void l2c_enqueue_peer_data(tL2C_CCB* p_ccb, BT_HDR* p_buf) {
         "p_ccb->local_cid = %u p_ccb->remote_cid = %u",
         p_ccb, p_ccb->in_use, p_ccb->chnl_state, p_ccb->local_cid,
         p_ccb->remote_cid);
+  } else {
+    fixed_queue_enqueue(p_ccb->xmit_hold_q, p_buf);
   }
-  fixed_queue_enqueue(p_ccb->xmit_hold_q, p_buf);
 
   l2cu_check_channel_congestion(p_ccb);
 
