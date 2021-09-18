@@ -116,6 +116,7 @@ typedef struct {
   int8_t ble_tx_power;
   uint16_t ble_periodic_adv_int;
   uint8_t flag;
+  bool include_rsi;
 } tBTM_INQ_RESULTS;
 
 /****************************************
