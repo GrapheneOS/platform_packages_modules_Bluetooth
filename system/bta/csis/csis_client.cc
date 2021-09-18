@@ -658,7 +658,19 @@ class CsisClientImpl : public CsisClient {
 
       int group_id = csis_group->GetGroupId();
       auto csis_instance = device->GetCsisInstanceByGroupId(group_id);
-      LOG_ASSERT(csis_instance) << " csis_instance does not exist!";
+      LOG(ERROR) << __func__ << " group id " << group_id;
+
+      if (!csis_instance) {
+        /* This can happen when some other user added device to group in the
+         * context which is not existing on the peer side. e.g. LeAudio added it
+         * in the CAP context, but CSIS exist on the peer device without a
+         * context. We will endup in having device in 2 groups. One in generic
+         * context with valid csis_instance, and one in CAP context without csis
+         * instance */
+        LOG(INFO) << __func__ << " csis_instance does not exist for group "
+                  << group_id;
+        continue;
+      }
 
       callbacks_->OnDeviceAvailable(device->addr, group_id,
                                     csis_group->GetDesiredSize(),
@@ -1265,7 +1277,8 @@ class CsisClientImpl : public CsisClient {
                           const bluetooth::Uuid& context_uuid,
                           bool is_last_instance) {
     DLOG(INFO) << __func__ << " service handle: " << loghex(service->handle)
-               << " end handle: " << loghex(service->end_handle);
+               << " end handle: " << loghex(service->end_handle)
+               << " uuid: " << context_uuid;
 
     auto csis_inst = std::make_shared<CsisInstance>(
         (uint16_t)service->handle, (uint16_t)service->end_handle, context_uuid);

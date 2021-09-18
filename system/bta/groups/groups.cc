@@ -123,13 +123,25 @@ class DeviceGroupsImpl : public DeviceGroups {
     return group->GetGroupId();
   }
 
-  void RemoveDevice(const RawAddress& addr) override {
+  void RemoveDevice(const RawAddress& addr, int group_id) override {
+    int num_of_groups_dev_belongs = 0;
+
+    /* Remove from all the groups. Usually happens on unbond */
     for (auto it = groups_.begin(); it != groups_.end();) {
       auto& [id, g] = *it;
       if (!g.Contains(addr)) {
         ++it;
         continue;
       }
+
+      num_of_groups_dev_belongs++;
+
+      if ((group_id != bluetooth::groups::kGroupUnknown) && (group_id != id)) {
+        ++it;
+        continue;
+      }
+
+      num_of_groups_dev_belongs--;
 
       g.Remove(addr);
       for (auto c : callbacks_) {
@@ -147,6 +159,9 @@ class DeviceGroupsImpl : public DeviceGroups {
     }
 
     btif_storage_remove_groups(addr);
+    if (num_of_groups_dev_belongs > 0) {
+      btif_storage_add_groups(addr);
+    }
   }
 
   bool SerializeGroups(const RawAddress& addr,
