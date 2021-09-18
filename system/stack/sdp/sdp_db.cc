@@ -51,9 +51,10 @@ static bool find_uuid_in_seq(uint8_t* p, uint32_t seq_len, uint8_t* p_his_uuid,
  * Returns          Pointer to the record, or NULL if not found.
  *
  ******************************************************************************/
-tSDP_RECORD* sdp_db_service_search(tSDP_RECORD* p_rec, tSDP_UUID_SEQ* p_seq) {
+const tSDP_RECORD* sdp_db_service_search(const tSDP_RECORD* p_rec,
+                                         tSDP_UUID_SEQ* p_seq) {
   uint16_t xx, yy;
-  tSDP_ATTRIBUTE* p_attr;
+  const tSDP_ATTRIBUTE* p_attr;
   tSDP_RECORD* p_end = &sdp_cb.server_db.record[sdp_cb.server_db.num_records];
 
   /* If NULL, start at the beginning, else start at the first specified record
@@ -167,9 +168,10 @@ tSDP_RECORD* sdp_db_find_record(uint32_t handle) {
  * Returns          Pointer to the attribute, or NULL if not found.
  *
  ******************************************************************************/
-tSDP_ATTRIBUTE* sdp_db_find_attr_in_rec(tSDP_RECORD* p_rec, uint16_t start_attr,
-                                        uint16_t end_attr) {
-  tSDP_ATTRIBUTE* p_at;
+const tSDP_ATTRIBUTE* sdp_db_find_attr_in_rec(const tSDP_RECORD* p_rec,
+                                              uint16_t start_attr,
+                                              uint16_t end_attr) {
+  const tSDP_ATTRIBUTE* p_at;
   uint16_t xx;
 
   /* Note that the attributes in a record are assumed to be in sorted order */
