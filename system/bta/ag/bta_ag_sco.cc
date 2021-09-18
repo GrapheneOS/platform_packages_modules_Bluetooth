@@ -352,7 +352,7 @@ static void bta_ag_cback_sco(tBTA_AG_SCB* p_scb, tBTA_AG_EVT event) {
  ******************************************************************************/
 static void bta_ag_create_sco(tBTA_AG_SCB* p_scb, bool is_orig) {
   LOG_DEBUG("BEFORE %s", p_scb->ToString().c_str());
-  tBTA_AG_PEER_CODEC esco_codec = BTA_AG_CODEC_CVSD;
+  tBTA_AG_PEER_CODEC esco_codec = BTM_SCO_CODEC_CVSD;
 
   if (!bta_ag_sco_is_active_device(p_scb->peer_addr)) {
     LOG(WARNING) << __func__ << ": device " << p_scb->peer_addr
