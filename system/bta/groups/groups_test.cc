@@ -186,6 +186,27 @@ TEST_F(GroupsTest, test_remove_multiple_groups) {
   DeviceGroups::CleanUp(callbacks.get());
 }
 
+TEST_F(GroupsTest, test_remove_device_fo_devices) {
+  Uuid uuid1 = Uuid::GetRandom();
+  Uuid uuid2 = Uuid::GetRandom();
+  EXPECT_CALL(*callbacks, OnGroupAdded(_, _, _)).Times(2);
+  DeviceGroups::Initialize(callbacks.get());
+  DeviceGroups::Get()->AddDevice(GetTestAddress(1), uuid1, 8);
+  DeviceGroups::Get()->AddDevice(GetTestAddress(1), uuid2, 9);
+
+  EXPECT_CALL(*callbacks, OnGroupRemoved(uuid1, 8));
+  EXPECT_CALL(*callbacks, OnGroupRemoved(uuid2, 9)).Times(0);
+
+  DeviceGroups::Get()->RemoveDevice(GetTestAddress(1), 8);
+
+  Mock::VerifyAndClearExpectations(&callbacks);
+
+  EXPECT_CALL(*callbacks, OnGroupRemoved(uuid1, 8)).Times(0);
+  EXPECT_CALL(*callbacks, OnGroupRemoved(uuid2, 9));
+
+  DeviceGroups::Get()->RemoveDevice(GetTestAddress(1), 9);
+}
+
 TEST_F(GroupsTest, test_add_devices_different_group_id) {
   DeviceGroups::Initialize(callbacks.get());
   DeviceGroups::Get()->AddDevice(GetTestAddress(2), Uuid::kEmpty, 10);
