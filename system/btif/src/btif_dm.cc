@@ -1181,7 +1181,7 @@ static void btif_dm_search_devices_evt(tBTA_DM_SEARCH_EVT event,
       }
 
       {
-        bt_property_t properties[5];
+        bt_property_t properties[6];
         bt_device_type_t dev_type;
         uint32_t num_properties = 0;
         bt_status_t status;
@@ -1236,6 +1236,13 @@ static void btif_dm_search_devices_evt(tBTA_DM_SEARCH_EVT event,
         BTIF_STORAGE_FILL_PROPERTY(&properties[num_properties],
                                    BT_PROPERTY_REMOTE_RSSI, sizeof(int8_t),
                                    &(p_search_data->inq_res.rssi));
+        num_properties++;
+
+        /* CSIP supported device */
+        BTIF_STORAGE_FILL_PROPERTY(&properties[num_properties],
+                                   BT_PROPERTY_REMOTE_IS_COORDINATED_SET_MEMBER,
+                                   sizeof(bool),
+                                   &(p_search_data->inq_res.include_rsi));
         num_properties++;
 
         status =
