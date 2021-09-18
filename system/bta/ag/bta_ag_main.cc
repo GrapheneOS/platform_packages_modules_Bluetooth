@@ -143,8 +143,8 @@ static tBTA_AG_SCB* bta_ag_scb_alloc(void) {
       p_scb->received_at_bac = false;
       p_scb->codec_updated = false;
       p_scb->codec_fallback = false;
-      p_scb->peer_codecs = BTA_AG_CODEC_CVSD;
-      p_scb->sco_codec = BTA_AG_CODEC_CVSD;
+      p_scb->peer_codecs = BTM_SCO_CODEC_CVSD;
+      p_scb->sco_codec = BTM_SCO_CODEC_CVSD;
       p_scb->peer_version = HFP_HSP_VERSION_UNKNOWN;
       p_scb->hsp_version = HSP_VERSION_1_2;
       p_scb->peer_sdp_features = 0;
