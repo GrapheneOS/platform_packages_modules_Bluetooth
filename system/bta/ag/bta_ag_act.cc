@@ -801,7 +801,7 @@ void bta_ag_setcodec(tBTA_AG_SCB* p_scb, const tBTA_AG_DATA& data) {
   val.hdr.handle = bta_ag_scb_to_idx(p_scb);
 
   /* Check if the requested codec type is valid */
-  if ((codec_type != BTA_AG_CODEC_NONE) && (codec_type != BTA_AG_CODEC_CVSD) &&
+  if ((codec_type != BTM_SCO_CODEC_NONE) && (codec_type != BTA_AG_CODEC_CVSD) &&
       (codec_type != BTA_AG_CODEC_MSBC)) {
     val.num = codec_type;
     val.hdr.status = BTA_AG_FAIL_RESOURCES;
@@ -811,7 +811,7 @@ void bta_ag_setcodec(tBTA_AG_SCB* p_scb, const tBTA_AG_DATA& data) {
     return;
   }
 
-  if ((p_scb->peer_codecs & codec_type) || (codec_type == BTA_AG_CODEC_NONE) ||
+  if ((p_scb->peer_codecs & codec_type) || (codec_type == BTM_SCO_CODEC_NONE) ||
       (codec_type == BTA_AG_CODEC_CVSD)) {
     p_scb->sco_codec = codec_type;
     p_scb->codec_updated = true;
