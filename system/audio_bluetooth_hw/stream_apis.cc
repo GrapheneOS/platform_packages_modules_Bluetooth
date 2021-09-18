@@ -850,9 +850,8 @@ static bool in_state_transition_timeout(BluetoothStreamIn* in,
 
     /* Don't block AF forever */
     if (--timeout_ms <= 0) {
-      LOG(WARNING) << __func__
-                   << ", can't suspend - stucked in suspending"
-                      " state";
+      LOG(WARNING) << __func__ << ", can't suspend - stucked in: "
+                   << static_cast<int>(state) << " state";
       return false;
     }
   }
