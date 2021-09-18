@@ -22,11 +22,12 @@
  *
  ******************************************************************************/
 #include <base/strings/stringprintf.h>
+
 #include <cstdint>
 
 #include "bt_target.h"  // Must be first to define build configuration
-
 #include "main/shim/shim.h"
+#include "osi/include/allocator.h"
 #include "stack/btm/btm_sec.h"
 #include "stack/eatt/eatt.h"
 #include "stack/gatt/connection_manager.h"

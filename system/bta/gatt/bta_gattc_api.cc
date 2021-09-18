@@ -23,15 +23,16 @@
  ******************************************************************************/
 
 #include <base/bind.h>
+
 #include <ios>
 #include <list>
 #include <memory>
 #include <vector>
 
 #include "bt_target.h"  // Must be first to define build configuration
-
 #include "bta/gatt/bta_gattc_int.h"
 #include "device/include/controller.h"
+#include "osi/include/allocator.h"
 #include "stack/include/btu.h"  // do_in_main_thread
 #include "types/bluetooth/uuid.h"
 #include "types/bt_transport.h"
