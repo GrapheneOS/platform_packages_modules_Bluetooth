@@ -440,7 +440,7 @@ static uint8_t bta_ag_parse_chld(UNUSED_ATTR tBTA_AG_SCB* p_scb, char* p_s) {
  ******************************************************************************/
 static tBTA_AG_PEER_CODEC bta_ag_parse_bac(tBTA_AG_SCB* p_scb, char* p_s,
                                            char* p_end) {
-  tBTA_AG_PEER_CODEC retval = BTA_AG_CODEC_NONE;
+  tBTA_AG_PEER_CODEC retval = BTM_SCO_CODEC_NONE;
   uint16_t uuid_codec;
   char* p;
 
@@ -1767,7 +1767,7 @@ void bta_ag_send_bcs(tBTA_AG_SCB* p_scb) {
     codec_uuid = UUID_CODEC_CVSD;
   } else {
     switch (p_scb->sco_codec) {
-      case BTA_AG_CODEC_NONE:
+      case BTM_SCO_CODEC_NONE:
         codec_uuid = UUID_CODEC_CVSD;
         break;
       case BTA_AG_CODEC_CVSD:
