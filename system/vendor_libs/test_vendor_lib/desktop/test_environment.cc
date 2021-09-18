@@ -55,11 +55,8 @@ void TestEnvironment::initialize(std::promise<void> barrier) {
     test_model_.IncomingHciConnection(socket, controller_properties_file_);
     srv->StartListening();
   });
-  SetUpLinkLayerServer([this](std::shared_ptr<AsyncDataChannel> socket,
-                              AsyncDataChannelServer* srv) {
-    test_model_.IncomingLinkLayerConnection(socket);
-    srv->StartListening();
-  });
+  SetUpLinkLayerServer();
+  SetUpLinkBleLayerServer();
 
   LOG_INFO("%s: Finished", __func__);
 }
@@ -80,9 +77,26 @@ void TestEnvironment::SetUpHciServer(ConnectCallback connection_callback) {
   }
 }
 
-void TestEnvironment::SetUpLinkLayerServer(
-    ConnectCallback connection_callback) {
-  remote_link_layer_transport_.SetUp(link_socket_server_, connection_callback);
+void TestEnvironment::SetUpLinkBleLayerServer() {
+  remote_link_layer_transport_.SetUp(
+      link_ble_socket_server_, [this](std::shared_ptr<AsyncDataChannel> socket,
+                                      AsyncDataChannelServer* srv) {
+        test_model_.IncomingLinkBleLayerConnection(socket);
+        srv->StartListening();
+      });
+
+  test_channel_.RegisterSendResponse([](const std::string& response) {
+    LOG_INFO("No LinkLayer Response channel: %s", response.c_str());
+  });
+}
+
+void TestEnvironment::SetUpLinkLayerServer() {
+  remote_link_layer_transport_.SetUp(
+      link_socket_server_, [this](std::shared_ptr<AsyncDataChannel> socket,
+                                  AsyncDataChannelServer* srv) {
+        test_model_.IncomingLinkLayerConnection(socket);
+        srv->StartListening();
+      });
 
   test_channel_.RegisterSendResponse([](const std::string& response) {
     LOG_INFO("No LinkLayer Response channel: %s", response.c_str());

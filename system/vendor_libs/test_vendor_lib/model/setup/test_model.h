@@ -82,6 +82,7 @@ class TestModel {
   void AddLinkLayerConnection(std::shared_ptr<AsyncDataChannel> socket_fd,
                               Phy::Type phy_type);
   void IncomingLinkLayerConnection(std::shared_ptr<AsyncDataChannel> socket_fd);
+  void IncomingLinkBleLayerConnection(std::shared_ptr<AsyncDataChannel> socket_fd);
   void IncomingHciConnection(std::shared_ptr<AsyncDataChannel> socket_fd,
                              std::string properties_filename = "");
 
