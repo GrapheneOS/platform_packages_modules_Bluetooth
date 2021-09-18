@@ -154,11 +154,12 @@ extern struct SDP_ServiceSearchAttributeRequest
 // tSDP_DISC_CMPL_CB2* p_cb2, void* user_data Returns: bool
 struct SDP_ServiceSearchAttributeRequest2 {
   std::function<bool(const RawAddress& p_bd_addr, tSDP_DISCOVERY_DB* p_db,
-                     tSDP_DISC_CMPL_CB2* p_cb2, void* user_data)>
+                     tSDP_DISC_CMPL_CB2* p_cb2, const void* user_data)>
       body{[](const RawAddress& p_bd_addr, tSDP_DISCOVERY_DB* p_db,
-              tSDP_DISC_CMPL_CB2* p_cb2, void* user_data) { return false; }};
+              tSDP_DISC_CMPL_CB2* p_cb2,
+              const void* user_data) { return false; }};
   bool operator()(const RawAddress& p_bd_addr, tSDP_DISCOVERY_DB* p_db,
-                  tSDP_DISC_CMPL_CB2* p_cb2, void* user_data) {
+                  tSDP_DISC_CMPL_CB2* p_cb2, const void* user_data) {
     return body(p_bd_addr, p_db, p_cb2, user_data);
   };
 };

@@ -146,7 +146,7 @@ typedef struct {
   tSDP_DISC_CMPL_CB* p_cb; /* Callback for discovery done  */
   tSDP_DISC_CMPL_CB2*
       p_cb2; /* Callback for discovery done piggy back with the user data */
-  void* user_data; /* piggy back user data */
+  const void* user_data; /* piggy back user data */
   uint32_t
       handles[SDP_MAX_DISC_SERVER_RECS]; /* Discovered server record handles */
   uint16_t num_handles;                  /* Number of server handles     */

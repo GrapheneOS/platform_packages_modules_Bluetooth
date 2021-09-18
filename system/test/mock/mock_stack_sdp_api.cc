@@ -114,7 +114,7 @@ bool SDP_ServiceSearchAttributeRequest(const RawAddress& p_bd_addr,
 bool SDP_ServiceSearchAttributeRequest2(const RawAddress& p_bd_addr,
                                         tSDP_DISCOVERY_DB* p_db,
                                         tSDP_DISC_CMPL_CB2* p_cb2,
-                                        void* user_data) {
+                                        const void* user_data) {
   mock_function_count_map[__func__]++;
   return test::mock::stack_sdp_api::SDP_ServiceSearchAttributeRequest2(
       p_bd_addr, p_db, p_cb2, user_data);
