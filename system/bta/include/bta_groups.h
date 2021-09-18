@@ -70,7 +70,9 @@ class DeviceGroups {
   virtual int GetGroupId(
       const RawAddress& addr,
       bluetooth::Uuid uuid = bluetooth::groups::kGenericContextUuid) const = 0;
-  virtual void RemoveDevice(const RawAddress& addr) = 0;
+  virtual void RemoveDevice(
+      const RawAddress& addr,
+      int group_id = bluetooth::groups::kGroupUnknown) = 0;
 };
 
 }  // namespace groups
