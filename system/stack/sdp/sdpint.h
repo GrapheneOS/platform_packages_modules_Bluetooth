@@ -216,8 +216,8 @@ extern uint8_t* sdpu_extract_uid_seq(uint8_t* p, uint16_t param_len,
 extern uint8_t* sdpu_get_len_from_type(uint8_t* p, uint8_t* p_end, uint8_t type,
                                        uint32_t* p_len);
 extern bool sdpu_is_base_uuid(uint8_t* p_uuid);
-extern bool sdpu_compare_uuid_arrays(uint8_t* p_uuid1, uint32_t len1,
-                                     uint8_t* p_uuid2, uint16_t len2);
+extern bool sdpu_compare_uuid_arrays(const uint8_t* p_uuid1, uint32_t len1,
+                                     const uint8_t* p_uuid2, uint16_t len2);
 extern bool sdpu_compare_uuid_with_attr(const bluetooth::Uuid& uuid,
                                         tSDP_DISC_ATTR* p_attr);
 
@@ -225,7 +225,7 @@ extern void sdpu_sort_attr_list(uint16_t num_attr, tSDP_DISCOVERY_DB* p_db);
 extern uint16_t sdpu_get_list_len(tSDP_UUID_SEQ* uid_seq,
                                   tSDP_ATTR_SEQ* attr_seq);
 extern uint16_t sdpu_get_attrib_seq_len(const tSDP_RECORD* p_rec,
-                                        tSDP_ATTR_SEQ* attr_seq);
+                                        const tSDP_ATTR_SEQ* attr_seq);
 extern uint16_t sdpu_get_attrib_entry_len(const tSDP_ATTRIBUTE* p_attr);
 extern uint8_t* sdpu_build_partial_attrib_entry(uint8_t* p_out,
                                                 const tSDP_ATTRIBUTE* p_attr,
@@ -236,7 +236,7 @@ extern uint16_t sdpu_is_avrcp_profile_description_list(
 /* Functions provided by sdp_db.cc
  */
 extern const tSDP_RECORD* sdp_db_service_search(const tSDP_RECORD* p_rec,
-                                                tSDP_UUID_SEQ* p_seq);
+                                                const tSDP_UUID_SEQ* p_seq);
 extern tSDP_RECORD* sdp_db_find_record(uint32_t handle);
 extern const tSDP_ATTRIBUTE* sdp_db_find_attr_in_rec(const tSDP_RECORD* p_rec,
                                                      uint16_t start_attr,

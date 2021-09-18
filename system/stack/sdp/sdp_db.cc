@@ -37,8 +37,9 @@
 /******************************************************************************/
 /*            L O C A L    F U N C T I O N     P R O T O T Y P E S            */
 /******************************************************************************/
-static bool find_uuid_in_seq(uint8_t* p, uint32_t seq_len, uint8_t* p_his_uuid,
-                             uint16_t his_len, int nest_level);
+static bool find_uuid_in_seq(uint8_t* p, uint32_t seq_len,
+                             const uint8_t* p_his_uuid, uint16_t his_len,
+                             int nest_level);
 
 /*******************************************************************************
  *
@@ -52,7 +53,7 @@ static bool find_uuid_in_seq(uint8_t* p, uint32_t seq_len, uint8_t* p_his_uuid,
  *
  ******************************************************************************/
 const tSDP_RECORD* sdp_db_service_search(const tSDP_RECORD* p_rec,
-                                         tSDP_UUID_SEQ* p_seq) {
+                                         const tSDP_UUID_SEQ* p_seq) {
   uint16_t xx, yy;
   const tSDP_ATTRIBUTE* p_attr;
   tSDP_RECORD* p_end = &sdp_cb.server_db.record[sdp_cb.server_db.num_records];
@@ -103,8 +104,9 @@ const tSDP_RECORD* sdp_db_service_search(const tSDP_RECORD* p_rec,
  * Returns          true if found, else false
  *
  ******************************************************************************/
-static bool find_uuid_in_seq(uint8_t* p, uint32_t seq_len, uint8_t* p_uuid,
-                             uint16_t uuid_len, int nest_level) {
+static bool find_uuid_in_seq(uint8_t* p, uint32_t seq_len,
+                             const uint8_t* p_uuid, uint16_t uuid_len,
+                             int nest_level) {
   uint8_t* p_end = p + seq_len;
   uint8_t type;
   uint32_t len;

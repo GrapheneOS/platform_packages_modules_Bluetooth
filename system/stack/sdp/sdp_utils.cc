@@ -873,8 +873,8 @@ bool sdpu_is_base_uuid(uint8_t* p_uuid) {
  * Returns          true if matched, else false
  *
  ******************************************************************************/
-bool sdpu_compare_uuid_arrays(uint8_t* p_uuid1, uint32_t len1, uint8_t* p_uuid2,
-                              uint16_t len2) {
+bool sdpu_compare_uuid_arrays(const uint8_t* p_uuid1, uint32_t len1,
+                              const uint8_t* p_uuid2, uint16_t len2) {
   uint8_t nu1[Uuid::kNumBytes128];
   uint8_t nu2[Uuid::kNumBytes128];
 
@@ -1033,7 +1033,7 @@ uint16_t sdpu_get_list_len(tSDP_UUID_SEQ* uid_seq, tSDP_ATTR_SEQ* attr_seq) {
  *
  ******************************************************************************/
 uint16_t sdpu_get_attrib_seq_len(const tSDP_RECORD* p_rec,
-                                 tSDP_ATTR_SEQ* attr_seq) {
+                                 const tSDP_ATTR_SEQ* attr_seq) {
   const tSDP_ATTRIBUTE* p_attr;
   uint16_t len1 = 0;
   uint16_t xx;
