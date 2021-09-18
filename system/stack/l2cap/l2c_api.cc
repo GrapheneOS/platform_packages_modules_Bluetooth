@@ -24,15 +24,18 @@
 
 #define LOG_TAG "bt_l2cap"
 
+#include "main/shim/l2c_api.h"
+
 #include <base/logging.h>
 #include <base/strings/stringprintf.h>
+
 #include <cstdint>
 #include <string>
 
 #include "btm_sec.h"
 #include "device/include/controller.h"  // TODO Remove
-#include "main/shim/l2c_api.h"
 #include "main/shim/shim.h"
+#include "osi/include/allocator.h"
 #include "osi/include/log.h"
 #include "stack/include/l2c_api.h"
 #include "stack/l2cap/l2c_int.h"

@@ -19,7 +19,6 @@
 #include <base/location.h>
 #include <base/strings/stringprintf.h>
 #include <time.h>
-#include <unordered_set>
 
 #include <chrono>
 #include <cstdint>
@@ -28,6 +27,7 @@
 #include <map>
 #include <memory>
 #include <string>
+#include <unordered_set>
 
 #include "btif/include/btif_hh.h"
 #include "device/include/controller.h"
@@ -50,6 +50,7 @@
 #include "main/shim/entry.h"
 #include "main/shim/helpers.h"
 #include "main/shim/stack.h"
+#include "osi/include/allocator.h"
 #include "stack/acl/acl.h"
 #include "stack/btm/btm_int_types.h"
 #include "stack/include/acl_hci_link_interface.h"
