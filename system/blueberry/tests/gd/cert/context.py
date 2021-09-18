@@ -42,6 +42,28 @@ def get_current_context(depth=None):
     return _contexts[min(depth, len(_contexts) - 1)]
 
 
+def append_test_context(test_class_name, test_name):
+    """Add test-specific context to the _contexts stack.
+    A test should should call append_test_context() at test start and
+    pop_test_context() upon test end.
+
+    Args:
+        test_class_name: name of the test class.
+        test_name: name of the test.
+    """
+    if _contexts:
+        _contexts.append(TestCaseContext(test_class_name, test_name))
+
+
+def pop_test_context():
+    """Remove the latest test-specific context from the _contexts stack.
+    A test should should call append_test_context() at test start and
+    pop_test_context() upon test end.
+    """
+    if _contexts:
+        _contexts.pop()
+
+
 class TestContext(object):
     """An object representing the current context in which a test is executing.
 
@@ -158,6 +180,44 @@ class RootContext(TestContext):
         Logs at the root level context are placed directly in the base level
         directory, so no context-level path exists."""
         return ''
+
+
+class TestCaseContext(TestContext):
+    """A TestContext that represents a test case.
+
+    Attributes:
+        test_case: the name of the test case.
+        test_class: the name of the test class.
+    """
+
+    def __init__(self, test_class, test_case):
+        """Initializes a TestCaseContext for the given test case.
+
+        Args:
+            test_class: test-class name.
+            test_case: test name.
+        """
+        self.test_class = test_class
+        self.test_case = test_case
+
+    @property
+    def test_case_name(self):
+        return self.test_case
+
+    @property
+    def test_class_name(self):
+        return self.test_class
+
+    @property
+    def identifier(self):
+        return '%s.%s' % (self.test_class_name, self.test_case_name)
+
+    def _get_default_context_dir(self):
+        """Gets the default output directory for this context.
+
+        For TestCaseContexts, this will be the name of the test itself.
+        """
+        return self.test_case_name
 
 
 # stack for keeping track of the current test context
