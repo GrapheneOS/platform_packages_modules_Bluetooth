@@ -127,7 +127,7 @@
     <string name="bluetooth_map_settings_intro" msgid="6482369468223987562">"ব্লুটুথৰ জৰিয়তে শ্বেয়াৰ কৰিব খোজা একাউণ্টসমূহ বাছক। তথাপিও সংযোগ কৰি থাকোঁতে আপুনি একাউণ্টসমূহক সকলো ধৰণৰ অনুমতি দিবই লাগিব।"</string>
     <string name="bluetooth_map_settings_count" msgid="4557473074937024833">"বাকী থকা শ্লটবোৰ:"</string>
     <string name="bluetooth_map_settings_app_icon" msgid="7105805610929114707">"এপ্লিকেশ্বন আইকন"</string>
-    <string name="bluetooth_map_settings_title" msgid="7420332483392851321">"ব্লুটুথৰ জৰিয়তে বাৰ্তা শ্বেয়াৰ কৰাৰ ছেটিংসমূহ"</string>
+    <string name="bluetooth_map_settings_title" msgid="7420332483392851321">"ব্লুটুথৰ জৰিয়তে বাৰ্তা শ্বেয়াৰ কৰাৰ ছেটিং"</string>
     <string name="bluetooth_map_settings_no_account_slots_left" msgid="1796029082612965251">"একাউণ্ট বাছনি কৰিব নোৱাৰি। ০টা শ্লটবোৰ বাকী আছে"</string>
     <string name="bluetooth_connected" msgid="6718623220072656906">"ব্লুটুথ অডিঅ’ সংযুক্ত কৰা হ’ল"</string>
     <string name="bluetooth_disconnected" msgid="3318303728981478873">"ব্লুটুথ অডিঅ\'ৰ সৈতে সংযোগ বিচ্ছিন্ন কৰা হ’ল"</string>
