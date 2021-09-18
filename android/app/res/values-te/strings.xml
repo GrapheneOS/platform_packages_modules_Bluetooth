@@ -127,7 +127,7 @@
     <string name="bluetooth_map_settings_intro" msgid="6482369468223987562">"మీరు బ్లూటూత్ ద్వారా షేర్ చేయాలనుకునే ఖాతాలను ఎంచుకోండి. మీరు ఇప్పటికీ కనెక్ట్ చేస్తున్నప్పుడు ఖాతాలకు అందించే ఏ యాక్సెస్‌నైనా ఆమోదించాల్సి ఉంటుంది."</string>
     <string name="bluetooth_map_settings_count" msgid="4557473074937024833">"మిగిలిన స్లాట్‌లు:"</string>
     <string name="bluetooth_map_settings_app_icon" msgid="7105805610929114707">"యాప్‌ చిహ్నం"</string>
-    <string name="bluetooth_map_settings_title" msgid="7420332483392851321">"బ్లూటూత్ సందేశ భాగస్వామ్య సెట్టింగ్‌లు"</string>
+    <string name="bluetooth_map_settings_title" msgid="7420332483392851321">"బ్లూటూత్ మెసెజ్ షేరింగ్ సెట్టింగ్‌లు"</string>
     <string name="bluetooth_map_settings_no_account_slots_left" msgid="1796029082612965251">"ఖాతాను ఎంచుకోవడం సాధ్యపడదు. 0 స్లాట్‌లు మిగిలి ఉన్నాయి"</string>
     <string name="bluetooth_connected" msgid="6718623220072656906">"బ్లూటూత్ ఆడియో కనెక్ట్ చేయబడింది"</string>
     <string name="bluetooth_disconnected" msgid="3318303728981478873">"బ్లూటూత్ ఆడియో డిస్‌కనెక్ట్ చేయబడింది"</string>
