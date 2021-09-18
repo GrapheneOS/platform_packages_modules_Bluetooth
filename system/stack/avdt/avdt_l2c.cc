@@ -29,6 +29,7 @@
 #include "device/include/interop.h"
 #include "l2c_api.h"
 #include "l2cdefs.h"
+#include "osi/include/allocator.h"
 #include "osi/include/osi.h"
 #include "stack/include/acl_api.h"
 

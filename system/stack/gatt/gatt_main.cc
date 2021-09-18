@@ -23,12 +23,12 @@
  ******************************************************************************/
 
 #include "bt_target.h"
-
 #include "bt_utils.h"
 #include "btif/include/btif_storage.h"
 #include "connection_manager.h"
 #include "device/include/interop.h"
 #include "l2c_api.h"
+#include "osi/include/allocator.h"
 #include "osi/include/osi.h"
 #include "stack/btm/btm_ble_int.h"
 #include "stack/btm/btm_dev.h"

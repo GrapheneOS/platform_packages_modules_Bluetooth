@@ -18,6 +18,7 @@
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
+
 #include <map>
 #include <vector>
 
@@ -25,6 +26,7 @@
 #include "hci/include/hci_layer.h"
 #include "hci/include/hci_packet_factory.h"
 #include "internal_include/stack_config.h"
+#include "osi/include/allocator.h"
 #include "osi/include/osi.h"
 #include "stack/btm/btm_int_types.h"
 #include "stack/btm/btm_sco.h"

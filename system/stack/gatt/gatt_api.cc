@@ -21,17 +21,19 @@
  *  this file contains GATT interface functions
  *
  ******************************************************************************/
-#include "bt_target.h"
-
-#include <string>
+#include "gatt_api.h"
 
 #include <base/strings/string_number_conversions.h>
 #include <stdio.h>
+
+#include <string>
+
+#include "bt_target.h"
 #include "device/include/controller.h"
-#include "gatt_api.h"
 #include "gatt_int.h"
 #include "l2c_api.h"
 #include "main/shim/dumpsys.h"
+#include "osi/include/allocator.h"
 #include "osi/include/log.h"
 #include "stack/gatt/connection_manager.h"
 #include "types/bt_transport.h"

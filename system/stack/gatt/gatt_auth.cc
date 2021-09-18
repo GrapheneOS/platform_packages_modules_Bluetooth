@@ -21,13 +21,13 @@
  *  this file contains GATT authentication handling functions
  *
  ******************************************************************************/
-#include "bt_target.h"
-#include "bt_utils.h"
-
 #include <string.h>
 
+#include "bt_target.h"
+#include "bt_utils.h"
 #include "gatt_api.h"
 #include "gatt_int.h"
+#include "osi/include/allocator.h"
 #include "osi/include/osi.h"
 #include "stack/btm/btm_ble_int.h"
 #include "stack/btm/btm_ble_int_types.h"
