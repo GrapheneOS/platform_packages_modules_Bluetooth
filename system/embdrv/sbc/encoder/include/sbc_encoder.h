@@ -27,6 +27,9 @@
 
 #define ENCODER_VERSION "0025"
 
+#include <stdbool.h>
+#include <string.h>
+
 #include "bt_target.h"
 
 /*DEFINES*/
