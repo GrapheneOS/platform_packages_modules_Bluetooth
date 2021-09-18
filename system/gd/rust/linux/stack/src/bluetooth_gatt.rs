@@ -10,11 +10,10 @@ use bt_topshim::profiles::gatt::{
 };
 use bt_topshim::topstack;
 
+use log::{debug, warn};
 use num_traits::cast::{FromPrimitive, ToPrimitive};
-
 use std::collections::HashSet;
 use std::sync::{Arc, Mutex};
-
 use tokio::sync::mpsc::Sender;
 
 use crate::{Message, RPCProxy};
@@ -514,7 +513,7 @@ impl BluetoothGatt {
             GattServerCallbacksDispatcher {
                 dispatch: Box::new(move |cb| {
                     // TODO(b/193685149): Implement the callbacks
-                    println!("received Gatt server callback: {:?}", cb);
+                    debug!("received Gatt server callback: {:?}", cb);
                 }),
             },
         );
@@ -960,7 +959,7 @@ impl BtifGattClientCallbacks for BluetoothGatt {
 
         let client = self.context_map.get_by_uuid(&app_uuid.uu);
         if client.is_none() {
-            println!("Warning: Client not registered for UUID {:?}", app_uuid.uu);
+            warn!("Warning: Client not registered for UUID {:?}", app_uuid.uu);
             return;
         }
 

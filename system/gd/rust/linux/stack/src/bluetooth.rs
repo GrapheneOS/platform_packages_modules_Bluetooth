@@ -9,12 +9,11 @@ use bt_topshim::topstack;
 
 use btif_macros::{btif_callback, btif_callbacks_dispatcher};
 
+use log::{debug, warn};
 use num_traits::cast::ToPrimitive;
-
 use std::collections::HashMap;
 use std::sync::Arc;
 use std::sync::Mutex;
-
 use tokio::sync::mpsc::Sender;
 
 use crate::bluetooth_media::{BluetoothMedia, IBluetoothMedia};
@@ -183,7 +182,7 @@ impl Bluetooth {
         self.hh.as_mut().unwrap().initialize(HHCallbacksDispatcher {
             dispatch: Box::new(move |_cb| {
                 // TODO("Implement the callbacks");
-                println!("received HH callback");
+                debug!("received HH callback");
             }),
         });
     }
@@ -416,7 +415,7 @@ impl IBluetooth for Bluetooth {
         let addr = RawAddress::from_string(device.address.clone());
 
         if addr.is_none() {
-            println!("address {} is not valid", device.address);
+            warn!("Can't create bond. Address {} is not valid", device.address);
             return false;
         }
 
