@@ -44,3 +44,8 @@ void BtaGattQueue::WriteDescriptor(uint16_t conn_id, uint16_t handle,
                                    GATT_WRITE_OP_CB cb, void* cb_data) {
   gatt_queue->WriteDescriptor(conn_id, handle, value, write_type, cb, cb_data);
 }
+
+void BtaGattQueue::ConfigureMtu(uint16_t conn_id, uint16_t mtu) {
+  LOG_ASSERT(gatt_queue) << "Mock GATT queue not set!";
+  gatt_queue->ConfigureMtu(conn_id, mtu);
+}
