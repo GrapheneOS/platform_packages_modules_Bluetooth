@@ -11,27 +11,10 @@ use dbus::nonblock::SyncConnection;
 use dbus_crossroads::Crossroads;
 use dbus_projection::DisconnectWatcher;
 use dbus_tokio::connection;
-use log::{Level, Metadata, Record};
+use log::LevelFilter;
 use std::sync::atomic::AtomicBool;
 use std::sync::{Arc, Mutex};
-
-struct SimpleLogger;
-
-impl log::Log for SimpleLogger {
-    fn enabled(&self, metadata: &Metadata) -> bool {
-        true || metadata.level() <= Level::Info
-    }
-
-    fn log(&self, record: &Record) {
-        if self.enabled(record.metadata()) {
-            println!("{} - {}", record.level(), record.args());
-        }
-    }
-
-    fn flush(&self) {}
-}
-
-static LOGGER: SimpleLogger = SimpleLogger;
+use syslog::{BasicLogger, Facility, Formatter3164};
 
 #[derive(Clone)]
 struct ManagerContext {
@@ -42,13 +25,16 @@ struct ManagerContext {
 
 #[tokio::main]
 pub async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    log::set_logger(&LOGGER)
-        .map(|()| {
-            log::set_max_level(
-                config_util::get_log_level().unwrap_or(Level::Info).to_level_filter(),
-            )
-        })
-        .unwrap();
+    let formatter = Formatter3164 {
+        facility: Facility::LOG_USER,
+        hostname: None,
+        process: "btmanagerd".into(),
+        pid: 0,
+    };
+
+    let logger = syslog::unix(formatter).expect("could not connect to syslog");
+    let _ = log::set_boxed_logger(Box::new(BasicLogger::new(logger)))
+        .map(|()| log::set_max_level(config_util::get_log_level().unwrap_or(LevelFilter::Info)));
 
     // Initialize config util
     config_util::fix_config_file_format();
