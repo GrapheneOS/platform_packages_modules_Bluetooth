@@ -1151,14 +1151,6 @@ static void bta_gattc_enc_cmpl_cback(tGATT_IF gattc_if, const RawAddress& bda) {
 
   if (p_clcb == NULL) return;
 
-  /* filter this event just for BTA HH LE GATT client,
-   * In the future, if we want to enable encryption complete event
-   * for all GATT clients, we can remove this code
-   */
-  if (!bta_hh_le_is_hh_gatt_if(gattc_if)) {
-    return;
-  }
-
   VLOG(1) << __func__ << ": cif:" << +gattc_if;
 
   do_in_main_thread(FROM_HERE,
