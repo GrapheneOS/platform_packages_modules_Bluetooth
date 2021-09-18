@@ -27,10 +27,10 @@
 #include <cstdint>
 
 #include "bt_target.h"  // Must be first to define build configuration
-
 #include "bta/gatt/bta_gattc_int.h"
 #include "device/include/controller.h"
 #include "gd/common/init_flags.h"
+#include "osi/include/allocator.h"
 #include "types/bt_transport.h"
 #include "types/hci_role.h"
 #include "types/raw_address.h"

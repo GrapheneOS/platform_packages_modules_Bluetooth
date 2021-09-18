@@ -45,6 +45,7 @@
 #include "btif_storage.h"
 #include "btif_util.h"
 #include "device/include/controller.h"
+#include "osi/include/allocator.h"
 #include "osi/include/log.h"
 #include "stack/include/acl_api.h"
 #include "stack/include/acl_api_types.h"

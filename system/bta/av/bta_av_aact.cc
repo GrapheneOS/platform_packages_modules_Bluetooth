@@ -27,12 +27,12 @@
 #define LOG_TAG "bt_bta_av"
 
 #include <base/strings/stringprintf.h>
+
 #include <cstdint>
 #include <cstring>
 #include <vector>
 
 #include "bt_target.h"  // Must be first to define build configuration
-
 #include "bta/av/bta_av_int.h"
 #include "bta/include/bta_ar_api.h"
 #include "bta/include/bta_av_co.h"
@@ -42,6 +42,7 @@
 #include "btif/include/btif_storage.h"
 #include "device/include/interop.h"
 #include "main/shim/dumpsys.h"
+#include "osi/include/allocator.h"
 #include "osi/include/log.h"
 #include "osi/include/osi.h"
 #include "osi/include/properties.h"

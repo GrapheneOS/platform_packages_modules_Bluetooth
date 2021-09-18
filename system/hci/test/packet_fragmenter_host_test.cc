@@ -16,10 +16,12 @@
 
 #include <base/logging.h>
 #include <gtest/gtest.h>
+
 #include <cstdint>
 #include <queue>
 
 #include "hci/src/packet_fragmenter.cc"
+#include "osi/include/allocator.h"
 #include "osi/test/AllocationTestHarness.h"
 
 extern void allocation_tracker_uninit(void);

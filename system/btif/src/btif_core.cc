@@ -28,16 +28,15 @@
 
 #define LOG_TAG "bt_btif_core"
 
-#include <signal.h>
-#include <sys/types.h>
-
 #include <base/at_exit.h>
 #include <base/bind.h>
 #include <base/threading/platform_thread.h>
+#include <signal.h>
+#include <sys/types.h>
+
 #include <cstdint>
 
 #include "bt_target.h"  // Must be first to define build configuration
-
 #include "btif/include/btif_av.h"
 #include "btif/include/btif_common.h"
 #include "btif/include/btif_config.h"
@@ -49,6 +48,7 @@
 #include "btif/include/stack_manager.h"
 #include "common/message_loop_thread.h"
 #include "device/include/controller.h"
+#include "osi/include/allocator.h"
 #include "osi/include/future.h"
 #include "osi/include/log.h"
 #include "osi/include/properties.h"
