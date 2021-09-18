@@ -25,6 +25,7 @@
 #include "bta/hh/bta_hh_int.h"
 #include "btif/include/btif_storage.h"
 #include "device/include/interop.h"
+#include "osi/include/allocator.h"
 #include "osi/include/osi.h"
 #include "stack/include/acl_api.h"
 #include "stack/include/btm_client_interface.h"

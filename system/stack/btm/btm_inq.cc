@@ -32,14 +32,14 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "advertise_data_parser.h"
 #include "common/time_util.h"
 #include "device/include/controller.h"
-#include "osi/include/log.h"
-#include "osi/include/osi.h"
-
-#include "advertise_data_parser.h"
 #include "main/shim/btm_api.h"
 #include "main/shim/shim.h"
+#include "osi/include/allocator.h"
+#include "osi/include/log.h"
+#include "osi/include/osi.h"
 #include "stack/btm/btm_ble_int.h"
 #include "stack/btm/btm_int.h"
 #include "stack/btm/btm_int_types.h"

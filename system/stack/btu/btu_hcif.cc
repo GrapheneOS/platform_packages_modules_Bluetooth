@@ -29,12 +29,14 @@
 
 #include <base/bind.h>
 #include <base/location.h>
+
 #include <cstdint>
 
 #include "btif/include/btif_config.h"
 #include "common/metrics.h"
 #include "device/include/controller.h"
 #include "main/shim/hci_layer.h"
+#include "osi/include/allocator.h"
 #include "osi/include/log.h"
 #include "stack/include/acl_hci_link_interface.h"
 #include "stack/include/ble_acl_interface.h"
