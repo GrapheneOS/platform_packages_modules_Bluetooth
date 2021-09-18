@@ -197,9 +197,14 @@ void TestModel::AddLinkLayerConnection(std::shared_ptr<AsyncDataChannel> socket,
 
 void TestModel::IncomingLinkLayerConnection(
     std::shared_ptr<AsyncDataChannel> socket) {
-  // TODO: Handle other phys
   LOG_INFO("A new link layer connection has arrived.");
   AddLinkLayerConnection(socket, Phy::Type::BR_EDR);
+}
+
+void TestModel::IncomingLinkBleLayerConnection(
+    std::shared_ptr<AsyncDataChannel> socket) {
+  LOG_INFO("A new low energery link layer (BLE) connection has arrived.");
+  AddLinkLayerConnection(socket, Phy::Type::LOW_ENERGY);
 }
 
 void TestModel::AddRemote(const std::string& server, int port,
