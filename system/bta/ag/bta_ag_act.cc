@@ -328,8 +328,8 @@ void bta_ag_rfc_fail(tBTA_AG_SCB* p_scb, UNUSED_ATTR const tBTA_AG_DATA& data) {
   p_scb->conn_handle = 0;
   p_scb->conn_service = 0;
   p_scb->peer_features = 0;
-  p_scb->peer_codecs = BTA_AG_CODEC_CVSD;
-  p_scb->sco_codec = BTA_AG_CODEC_CVSD;
+  p_scb->peer_codecs = BTM_SCO_CODEC_CVSD;
+  p_scb->sco_codec = BTM_SCO_CODEC_CVSD;
   p_scb->role = 0;
   p_scb->svc_conn = false;
   p_scb->hsp_version = HSP_VERSION_1_2;
@@ -363,8 +363,8 @@ void bta_ag_rfc_close(tBTA_AG_SCB* p_scb,
   p_scb->conn_service = 0;
   p_scb->peer_features = 0;
   p_scb->masked_features = p_scb->features;
-  p_scb->peer_codecs = BTA_AG_CODEC_CVSD;
-  p_scb->sco_codec = BTA_AG_CODEC_CVSD;
+  p_scb->peer_codecs = BTM_SCO_CODEC_CVSD;
+  p_scb->sco_codec = BTM_SCO_CODEC_CVSD;
   /* Clear these flags upon SLC teardown */
   p_scb->codec_updated = false;
   p_scb->codec_fallback = false;
@@ -469,7 +469,7 @@ void bta_ag_rfc_open(tBTA_AG_SCB* p_scb, const tBTA_AG_DATA& data) {
       bool sdp_wbs_support = p_scb->peer_sdp_features & BTA_AG_FEAT_WBS_SUPPORT;
       if (!p_scb->received_at_bac && sdp_wbs_support) {
         p_scb->codec_updated = true;
-        p_scb->peer_codecs = BTA_AG_CODEC_CVSD & BTA_AG_CODEC_MSBC;
+        p_scb->peer_codecs = BTM_SCO_CODEC_CVSD & BTA_AG_CODEC_MSBC;
         p_scb->sco_codec = UUID_CODEC_MSBC;
       }
     } else {
@@ -801,8 +801,8 @@ void bta_ag_setcodec(tBTA_AG_SCB* p_scb, const tBTA_AG_DATA& data) {
   val.hdr.handle = bta_ag_scb_to_idx(p_scb);
 
   /* Check if the requested codec type is valid */
-  if ((codec_type != BTM_SCO_CODEC_NONE) && (codec_type != BTA_AG_CODEC_CVSD) &&
-      (codec_type != BTA_AG_CODEC_MSBC)) {
+  if ((codec_type != BTM_SCO_CODEC_NONE) &&
+      (codec_type != BTM_SCO_CODEC_CVSD) && (codec_type != BTA_AG_CODEC_MSBC)) {
     val.num = codec_type;
     val.hdr.status = BTA_AG_FAIL_RESOURCES;
     APPL_TRACE_ERROR("bta_ag_setcodec error: unsupported codec type %d",
@@ -812,7 +812,7 @@ void bta_ag_setcodec(tBTA_AG_SCB* p_scb, const tBTA_AG_DATA& data) {
   }
 
   if ((p_scb->peer_codecs & codec_type) || (codec_type == BTM_SCO_CODEC_NONE) ||
-      (codec_type == BTA_AG_CODEC_CVSD)) {
+      (codec_type == BTM_SCO_CODEC_CVSD)) {
     p_scb->sco_codec = codec_type;
     p_scb->codec_updated = true;
     val.num = codec_type;
