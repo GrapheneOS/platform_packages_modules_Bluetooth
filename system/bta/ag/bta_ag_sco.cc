@@ -214,7 +214,7 @@ static void bta_ag_sco_disc_cback(uint16_t sco_idx) {
                        __func__);
     }
 
-    bta_ag_cb.sco.p_curr_scb->inuse_codec = BTA_AG_CODEC_NONE;
+    bta_ag_cb.sco.p_curr_scb->inuse_codec = BTM_SCO_CODEC_NONE;
 
     do_in_main_thread(FROM_HERE,
                       base::Bind(&bta_ag_sm_execute_by_handle, handle,
@@ -1324,7 +1324,7 @@ void bta_ag_sco_conn_rsp(tBTA_AG_SCB* p_scb,
   }
 
   /* If SCO open was initiated from HS, it must be CVSD */
-  p_scb->inuse_codec = BTA_AG_CODEC_NONE;
+  p_scb->inuse_codec = BTM_SCO_CODEC_NONE;
   /* Send pending commands to create SCO connection to peer */
   bta_ag_create_pending_sco(p_scb, bta_ag_cb.sco.is_local);
 }
