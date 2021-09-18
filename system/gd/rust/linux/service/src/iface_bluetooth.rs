@@ -47,6 +47,8 @@ impl IBluetoothCallback for BluetoothCallbackDBus {
         passkey: u32,
     ) {
     }
+    #[dbus_method("OnBondStateChanged")]
+    fn on_bond_state_changed(&self, status: u32, address: String, state: u32) {}
 }
 
 impl_dbus_arg_enum!(BluetoothTransport);

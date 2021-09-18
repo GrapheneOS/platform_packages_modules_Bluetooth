@@ -139,6 +139,9 @@ pub trait IBluetoothCallback: RPCProxy {
         variant: BtSspVariant,
         passkey: u32,
     );
+
+    /// When a bonding attempt has completed.
+    fn on_bond_state_changed(&self, status: u32, device_address: String, state: u32);
 }
 
 /// Implementation of the adapter API.
@@ -356,7 +359,7 @@ impl BtifBluetoothCallbacks for Bluetooth {
 
     fn bond_state(
         &mut self,
-        _status: BtStatus,
+        status: BtStatus,
         mut addr: RawAddress,
         bond_state: BtBondState,
         _fail_reason: i32,
@@ -366,6 +369,15 @@ impl BtifBluetoothCallbacks for Bluetooth {
             // TODO: Only connect to enabled profiles on that device.
             self.hh.as_ref().unwrap().connect(&mut addr);
         }
+
+        // Send bond state changed notifications
+        self.for_all_callbacks(|callback| {
+            callback.on_bond_state_changed(
+                status.to_u32().unwrap(),
+                addr.to_string(),
+                bond_state.to_u32().unwrap(),
+            );
+        });
     }
 }
 

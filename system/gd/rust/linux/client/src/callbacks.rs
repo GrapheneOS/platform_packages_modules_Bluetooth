@@ -124,6 +124,10 @@ impl IBluetoothCallback for BtCallback {
             );
         }
     }
+
+    fn on_bond_state_changed(&self, status: u32, address: String, state: u32) {
+        print_info!("Bonding state changed: [{}] state: {}, Status = {}", address, state, status);
+    }
 }
 
 impl RPCProxy for BtCallback {
