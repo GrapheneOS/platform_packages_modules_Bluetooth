@@ -21,9 +21,10 @@
 #ifndef A2DP_VENDOR_LDAC_ABR_H
 #define A2DP_VENDOR_LDAC_ABR_H
 
-#include <stdio.h>
-
 #include <ldacBT_abr.h>
+#include <stddef.h>
+#include <stdint.h>
+#include <stdio.h>
 
 // Initial EQMID for ABR mode.
 #define LDAC_ABR_MODE_EQMID LDACBT_EQMID_SQ

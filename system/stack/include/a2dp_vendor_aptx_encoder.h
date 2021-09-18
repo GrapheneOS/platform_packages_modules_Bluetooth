@@ -21,6 +21,9 @@
 #ifndef A2DP_VENDOR_APTX_ENCODER_H
 #define A2DP_VENDOR_APTX_ENCODER_H
 
+#include <stddef.h>
+#include <stdint.h>
+
 #include "a2dp_codec_api.h"
 
 // Loads the A2DP aptX encoder.
