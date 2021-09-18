@@ -29,6 +29,7 @@
 #include "common/time_util.h"
 #include "l2c_int.h"
 #include "l2cdefs.h"
+#include "osi/include/allocator.h"
 #include "osi/include/log.h"
 #include "stack/btm/btm_sec.h"
 #include "stack/include/acl_api.h"

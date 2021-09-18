@@ -24,6 +24,7 @@
 
 #include "bta/gatt/bta_gattc_int.h"
 #include "common/message_loop_thread.h"
+#include "osi/include/allocator.h"
 #include "stack/gatt/gatt_int.h"
 
 // TODO put this in common place
