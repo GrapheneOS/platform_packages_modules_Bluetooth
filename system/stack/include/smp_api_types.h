@@ -19,6 +19,8 @@
 #ifndef SMP_API_TYPES_H
 #define SMP_API_TYPES_H
 
+#include <cstdint>
+
 #include "bt_target.h"  // Must be first to define build configuration
 #include "stack/include/bt_octets.h"
 #include "stack/include/btm_status.h"

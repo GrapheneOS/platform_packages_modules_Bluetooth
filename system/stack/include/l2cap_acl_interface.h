@@ -17,6 +17,8 @@
 
 #pragma once
 
+#include <cstdint>
+
 #include "stack/include/bt_hdr.h"
 #include "types/raw_address.h"
 
