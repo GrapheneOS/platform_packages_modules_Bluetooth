@@ -37,6 +37,15 @@ class BtmInterface {
                                     void* p_ref_data,
                                     tBTM_BLE_SEC_ACT sec_act) = 0;
   virtual tBTM_SEC_DEV_REC* FindDevice(const RawAddress& bd_addr) = 0;
+  virtual bool IsPhy2mSupported(const RawAddress& remote_bda,
+                                tBT_TRANSPORT transport) = 0;
+  virtual uint8_t GetPeerSCA(const RawAddress& remote_bda,
+                             tBT_TRANSPORT transport) = 0;
+  virtual void BleSetPhy(const RawAddress& bd_addr, uint8_t tx_phys,
+                         uint8_t rx_phys, uint16_t phy_options) = 0;
+  virtual bool SecIsSecurityPending(const RawAddress& bd_addr) = 0;
+  virtual void RequestPeerSCA(RawAddress const& bd_addr,
+                              tBT_TRANSPORT transport) = 0;
   virtual ~BtmInterface() = default;
 };
 
@@ -55,6 +64,20 @@ class MockBtmInterface : public BtmInterface {
               (override));
   MOCK_METHOD((tBTM_SEC_DEV_REC*), FindDevice, (const RawAddress& bd_addr),
               (override));
+  MOCK_METHOD((bool), IsPhy2mSupported,
+              (const RawAddress& remote_bda, tBT_TRANSPORT transport),
+              (override));
+  MOCK_METHOD((uint8_t), GetPeerSCA,
+              (const RawAddress& remote_bda, tBT_TRANSPORT transport),
+              (override));
+  MOCK_METHOD((void), BleSetPhy,
+              (const RawAddress& bd_addr, uint8_t tx_phys, uint8_t rx_phys,
+               uint16_t phy_options),
+              (override));
+  MOCK_METHOD((bool), SecIsSecurityPending, (const RawAddress& bd_addr),
+              (override));
+  MOCK_METHOD((void), RequestPeerSCA,
+              (RawAddress const& bd_addr, tBT_TRANSPORT transport), (override));
 };
 
 /**
