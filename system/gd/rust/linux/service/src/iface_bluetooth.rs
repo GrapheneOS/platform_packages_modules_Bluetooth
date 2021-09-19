@@ -92,4 +92,24 @@ impl IBluetooth for IBluetoothDBus {
     fn create_bond(&self, _device: BluetoothDevice, _transport: BluetoothTransport) -> bool {
         true
     }
+
+    #[dbus_method("CancelBondProcess")]
+    fn cancel_bond_process(&self, _device: BluetoothDevice) -> bool {
+        true
+    }
+
+    #[dbus_method("RemoveBond")]
+    fn remove_bond(&self, _device: BluetoothDevice) -> bool {
+        true
+    }
+
+    #[dbus_method("GetBondedDevices")]
+    fn get_bonded_devices(&self) -> Vec<BluetoothDevice> {
+        vec![]
+    }
+
+    #[dbus_method("GetBondState")]
+    fn get_bond_state(&self, _device: BluetoothDevice) -> u32 {
+        0
+    }
 }

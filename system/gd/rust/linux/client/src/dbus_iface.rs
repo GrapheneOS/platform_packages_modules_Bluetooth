@@ -243,6 +243,23 @@ impl IBluetooth for BluetoothDBus {
             ),
         )
     }
+
+    fn cancel_bond_process(&self, device: BluetoothDevice) -> bool {
+        self.client_proxy.method("CancelBondProcess", (BluetoothDevice::to_dbus(device).unwrap(),))
+    }
+
+    fn remove_bond(&self, device: BluetoothDevice) -> bool {
+        self.client_proxy.method("RemoveBond", (BluetoothDevice::to_dbus(device).unwrap(),))
+    }
+
+    fn get_bonded_devices(&self) -> Vec<BluetoothDevice> {
+        let props: Vec<dbus::arg::PropMap> = self.client_proxy.method("GetBondedDevices", ());
+        <Vec<BluetoothDevice> as DBusArg>::from_dbus(props, None, None, None).unwrap()
+    }
+
+    fn get_bond_state(&self, device: BluetoothDevice) -> u32 {
+        self.client_proxy.method("GetBondState", (BluetoothDevice::to_dbus(device).unwrap(),))
+    }
 }
 
 #[dbus_propmap(AdapterWithEnabled)]
