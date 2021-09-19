@@ -239,10 +239,8 @@ impl CommandHandler {
             return;
         }
 
-        let address = self.context.lock().unwrap().adapter_dbus.as_ref().unwrap().get_address();
+        let address = self.context.lock().unwrap().update_adapter_address();
         print_info!("Local address = {}", &address);
-        // Cache address for adapter show
-        self.context.lock().unwrap().adapter_address = Some(address);
     }
 
     fn cmd_discovery(&mut self, args: &Vec<String>) {
