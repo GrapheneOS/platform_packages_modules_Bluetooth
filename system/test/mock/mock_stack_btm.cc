@@ -25,6 +25,7 @@
 tBTM_STATUS BTM_BleGetEnergyInfo(tBTM_BLE_ENERGY_INFO_CBACK* p_ener_cback) {
   return BTM_SUCCESS;
 }
+void BTM_BleBackgroundObserve(bool enable, tBTM_INQ_RESULTS_CB* p_results_cb) {}
 void BTM_BleReadControllerFeatures(tBTM_BLE_CTRL_FEATURES_CBACK* p_vsc_cback) {}
 uint8_t BTM_GetAcceptlistSize() { return 0; }
 
