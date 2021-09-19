@@ -44,7 +44,34 @@ tBTM_STATUS BTM_SetEncryption(const RawAddress& bd_addr,
                                       p_ref_data, sec_act);
 }
 
+bool BTM_IsPhy2mSupported(const RawAddress& remote_bda,
+                          tBT_TRANSPORT transport) {
+  LOG_ASSERT(btm_interface) << "Mock btm interface not set!";
+  return btm_interface->IsPhy2mSupported(remote_bda, transport);
+}
+
+uint8_t BTM_GetPeerSCA(const RawAddress& remote_bda, tBT_TRANSPORT transport) {
+  LOG_ASSERT(btm_interface) << "Mock btm interface not set!";
+  return btm_interface->GetPeerSCA(remote_bda, transport);
+}
+
+void BTM_BleSetPhy(const RawAddress& bd_addr, uint8_t tx_phys, uint8_t rx_phys,
+                   uint16_t phy_options) {
+  LOG_ASSERT(btm_interface) << "Mock btm interface not set!";
+  btm_interface->BleSetPhy(bd_addr, tx_phys, rx_phys, phy_options);
+}
+
+bool BTM_SecIsSecurityPending(const RawAddress& bd_addr) {
+  LOG_ASSERT(btm_interface) << "Mock btm interface not set!";
+  return btm_interface->SecIsSecurityPending(bd_addr);
+}
+
 tBTM_SEC_DEV_REC* btm_find_dev(const RawAddress& bd_addr) {
   LOG_ASSERT(btm_interface) << "Mock btm interface not set!";
   return btm_interface->FindDevice(bd_addr);
+}
+
+void BTM_RequestPeerSCA(RawAddress const& bd_addr, tBT_TRANSPORT transport) {
+  LOG_ASSERT(btm_interface) << "Mock btm interface not set!";
+  btm_interface->RequestPeerSCA(bd_addr, transport);
 }
