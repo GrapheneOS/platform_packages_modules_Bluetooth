@@ -25,7 +25,9 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.Uri;
 import android.os.Binder;
+import android.os.Bundle;
 import android.os.IBinder;
+import android.telecom.BluetoothCallQualityReport;
 import android.telecom.Call;
 import android.telecom.Connection;
 import android.telecom.GatewayInfo;
@@ -49,6 +51,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
@@ -254,6 +257,40 @@ public class BluetoothInCallServiceTest {
         verify(mMockBluetoothHeadset).clccResponse(eq(1), eq(0), eq(0), eq(0), eq(false),
                 eq("555000"), eq(PhoneNumberUtils.TOA_Unknown));
         verify(mMockBluetoothHeadset).clccResponse(0, 0, 0, 0, false, null, 0);
+    }
+
+    /**
+     * Verifies bluetooth call quality reports are properly parceled and set as a call event to
+     * Telecom.
+     */
+    @Test
+    public void testBluetoothCallQualityReport() {
+        BluetoothCall activeCall = createForegroundCall();
+        when(activeCall.isCallNull()).thenReturn(false);
+        mBluetoothInCallService.onCallAdded(activeCall);
+
+        mBluetoothInCallService.sendBluetoothCallQualityReport(
+                10, // long timestamp
+                20, // int rssi
+                30, // int snr
+                40, // int retransmissionCount
+                50, // int packetsNotReceiveCount
+                60 // int negativeAcknowledgementCount
+        );
+
+        ArgumentCaptor<Bundle> bundleCaptor = ArgumentCaptor.forClass(Bundle.class);
+        verify(activeCall).sendCallEvent(
+                eq(BluetoothCallQualityReport.EVENT_BLUETOOTH_CALL_QUALITY_REPORT),
+                bundleCaptor.capture());
+        Bundle bundle = bundleCaptor.getValue();
+        BluetoothCallQualityReport report = (BluetoothCallQualityReport) bundle.get(
+                BluetoothCallQualityReport.EXTRA_BLUETOOTH_CALL_QUALITY_REPORT);
+        Assert.assertEquals(10, report.getSentTimestampMillis());
+        Assert.assertEquals(20, report.getRssiDbm());
+        Assert.assertEquals(30, report.getSnrDb());
+        Assert.assertEquals(40, report.getRetransmittedPacketsCount());
+        Assert.assertEquals(50, report.getPacketsNotReceivedCount());
+        Assert.assertEquals(60, report.getNegativeAcknowledgementCount());
     }
 
     @Test
