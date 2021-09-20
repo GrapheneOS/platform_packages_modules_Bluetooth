@@ -40,7 +40,6 @@ extern std::map<std::string, int> mock_function_count_map;
 #include "osi/include/log.h"
 #include "osi/include/osi.h"
 #include "stack/include/acl_hci_link_interface.h"
-#include "stack/include/btu.h"
 
 #ifndef UNUSED_ATTR
 #define UNUSED_ATTR

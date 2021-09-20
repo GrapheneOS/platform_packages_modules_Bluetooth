@@ -19,7 +19,6 @@
 
 #include "btm_iso_api.h"
 #include "btm_iso_impl.h"
-#include "btu.h"
 
 using bluetooth::hci::iso_manager::BigCallbacks;
 using bluetooth::hci::iso_manager::CigCallbacks;
