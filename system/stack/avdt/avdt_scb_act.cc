@@ -1314,8 +1314,6 @@ void avdt_scb_snd_setconfig_rej(AvdtpScb* p_scb, tAVDT_SCB_EVT* p_data) {
  *
  ******************************************************************************/
 void avdt_scb_snd_setconfig_req(AvdtpScb* p_scb, tAVDT_SCB_EVT* p_data) {
-  AvdtpSepConfig *p_req, *p_cfg;
-
   AVDT_TRACE_DEBUG(
       "%s: codec: %s", __func__,
       A2DP_CodecInfoString(p_data->msg.config_cmd.p_cfg->codec_info).c_str());
@@ -1334,8 +1332,6 @@ void avdt_scb_snd_setconfig_req(AvdtpScb* p_scb, tAVDT_SCB_EVT* p_data) {
   }
   p_scb->in_use = true;
   p_scb->peer_seid = p_data->msg.config_cmd.hdr.seid;
-  p_req = p_data->msg.config_cmd.p_cfg;
-  p_cfg = &p_scb->stream_config.cfg;
   p_scb->req_cfg = *p_data->msg.config_cmd.p_cfg;
 
   avdt_msg_send_cmd(p_scb->p_ccb, p_scb, AVDT_SIG_SETCONFIG, &p_data->msg);
