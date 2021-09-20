@@ -246,11 +246,6 @@ tBTM_STATUS BTM_SetPowerMode(uint8_t pm_id, const RawAddress& remote_bda,
     }
   }
 
-  int temp_pm_id = pm_id;
-  if (pm_id == BTM_PM_SET_ONLY_ID) {
-    temp_pm_id = BTM_MAX_PM_RECORDS;
-  }
-
   /* update mode database */
   if (((pm_id != BTM_PM_SET_ONLY_ID) && (pm_reg_db.mask & BTM_PM_REG_SET)) ||
       ((pm_id == BTM_PM_SET_ONLY_ID) && (pm_pend_link != 0))) {

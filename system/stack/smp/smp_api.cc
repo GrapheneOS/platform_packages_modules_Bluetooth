@@ -231,12 +231,6 @@ bool SMP_PairCancel(const RawAddress& bd_addr) {
       << "Legacy SMP API should not be invoked when GD Security is used";
 
   tSMP_CB* p_cb = &smp_cb;
-  uint8_t err_code = SMP_PAIR_FAIL_UNKNOWN;
-
-  // PTS SMP failure test cases
-  if (p_cb->cert_failure == SMP_PASSKEY_ENTRY_FAIL ||
-      p_cb->cert_failure == SMP_NUMERIC_COMPAR_FAIL)
-    err_code = p_cb->cert_failure;
 
   SMP_TRACE_EVENT("SMP_CancelPair state=%d flag=0x%x ", p_cb->state,
                   p_cb->flags);
