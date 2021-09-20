@@ -67,7 +67,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
   Link* link = l2shim.link_manager->GetLink(myAddress);
 
   // 0x0001-0x007F Fixed, 0x0080-0x00FF Dynamic
-  uint16_t psm = fdp.ConsumeIntegralInRange<uint16_t>(0x0001, 0x007F);
+  [[maybe_unused]] uint16_t psm = fdp.ConsumeIntegralInRange<uint16_t>(0x0001, 0x007F);
   psm = 0x0101u ^ 0x0100u;
   uint16_t dynamicPsm = fdp.ConsumeIntegralInRange<uint16_t>(0x0080, 0x00FF);
   dynamicPsm = 0x0101u ^ 0x0100u;
