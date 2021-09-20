@@ -976,16 +976,6 @@ class HearingAidImpl : public HearingAid {
       encoder_state_init();
       seq_counter = 0;
 
-      // use the best codec avaliable for this pair of devices.
-      uint16_t codecs = hearingDevice.codecs;
-      if (hearingDevice.hi_sync_id != 0) {
-        for (const auto& device : hearingDevices.devices) {
-          if (device.hi_sync_id != hearingDevice.hi_sync_id) continue;
-
-          codecs &= device.codecs;
-        }
-      }
-
       CodecConfiguration codec;
       if (codec_in_use == CODEC_G722_24KHZ) {
         codec.sample_rate = 24000;
