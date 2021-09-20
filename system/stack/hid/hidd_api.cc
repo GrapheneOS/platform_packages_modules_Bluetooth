@@ -28,7 +28,6 @@
 #include <string.h>
 
 #include "btm_api.h"
-#include "btu.h"
 #include "hidd_api.h"
 #include "hidd_int.h"
 #include "hiddefs.h"

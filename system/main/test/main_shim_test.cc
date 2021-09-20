@@ -48,7 +48,6 @@
 #include "os/handler.h"
 #include "os/thread.h"
 #include "stack/btm/btm_int_types.h"
-#include "stack/include/btu.h"
 #include "stack/l2cap/l2c_int.h"
 #include "test/common/main_handler.h"
 #include "test/mock/mock_main_shim_entry.h"

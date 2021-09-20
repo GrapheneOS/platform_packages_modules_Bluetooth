@@ -21,7 +21,6 @@
 #include "btif_common.h"
 #include "btif_storage.h"
 #include "hardware/bt_le_audio.h"
-#include "stack/include/btu.h"
 
 #include <hardware/bt_le_audio.h>
 

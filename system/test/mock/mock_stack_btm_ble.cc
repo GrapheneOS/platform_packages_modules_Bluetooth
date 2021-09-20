@@ -35,7 +35,6 @@ extern std::map<std::string, int> mock_function_count_map;
 #include "stack/crypto_toolbox/crypto_toolbox.h"
 #include "stack/include/acl_api.h"
 #include "stack/include/btm_api.h"
-#include "stack/include/btu.h"
 #include "stack/include/gatt_api.h"
 #include "stack/include/l2cap_security_interface.h"
 #include "stack/include/l2cdefs.h"

@@ -64,7 +64,6 @@
 #include "btif_sdp.h"
 #include "btif_storage.h"
 #include "btif_util.h"
-#include "btu.h"
 #include "common/metrics.h"
 #include "device/include/controller.h"
 #include "device/include/interop.h"
