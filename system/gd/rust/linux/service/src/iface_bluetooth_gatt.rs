@@ -85,6 +85,9 @@ impl IBluetoothGattCallback for BluetoothGattCallbackDBus {
         status: i32,
     ) {
     }
+
+    #[dbus_method("OnServiceChanged")]
+    fn on_service_changed(&self, addr: String) {}
 }
 
 // Represents Uuid128Bit as an array in D-Bus.
