@@ -2563,7 +2563,6 @@ void btm_io_capabilities_req(const RawAddress& p) {
 
   btm_sec_change_pairing_state(BTM_PAIR_STATE_WAIT_LOCAL_IOCAPS);
 
-  uint8_t callback_rc = BTM_SUCCESS;
   if (p_dev_rec->sm4 & BTM_SM4_UPGRADE) {
     p_dev_rec->sm4 &= ~BTM_SM4_UPGRADE;
 
@@ -2572,8 +2571,8 @@ void btm_io_capabilities_req(const RawAddress& p) {
     evt_data.auth_req = BTM_AUTH_SPGB_YES;
   } else if (btm_cb.api.p_sp_callback) {
     /* the callback function implementation may change the IO capability... */
-    callback_rc = (*btm_cb.api.p_sp_callback)(BTM_SP_IO_REQ_EVT,
-                                              (tBTM_SP_EVT_DATA*)&evt_data);
+    (*btm_cb.api.p_sp_callback)(BTM_SP_IO_REQ_EVT,
+                                (tBTM_SP_EVT_DATA*)&evt_data);
   }
 
   if ((btm_cb.pairing_flags & BTM_PAIR_FLAGS_WE_STARTED_DD)) {
