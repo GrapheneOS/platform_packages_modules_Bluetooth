@@ -40,3 +40,6 @@ typedef uint8_t BT_OCTET8[BT_OCTET8_LEN]; /* octet array: size 16 */
 
 #define BT_OCTET32_LEN 32
 typedef uint8_t BT_OCTET32[BT_OCTET32_LEN]; /* octet array: size 32 */
+
+#define PIN_CODE_LEN 16
+typedef uint8_t PIN_CODE[PIN_CODE_LEN]; /* Pin Code (upto 128 bits) MSB is 0 */
