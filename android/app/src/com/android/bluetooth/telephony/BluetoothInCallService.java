@@ -497,7 +497,7 @@ public class BluetoothInCallService extends InCallService {
                         .setSnrDb(snr)
                         .setRetransmittedPacketsCount(retransmissionCount)
                         .setPacketsNotReceivedCount(packetsNotReceiveCount)
-                        .setPacketsNotReceivedCount(negativeAcknowledgementCount)
+                        .setNegativeAcknowledgementCount(negativeAcknowledgementCount)
                         .build());
         call.sendCallEvent(
                 BluetoothCallQualityReport.EVENT_BLUETOOTH_CALL_QUALITY_REPORT, b);
@@ -1152,7 +1152,7 @@ public class BluetoothInCallService extends InCallService {
         }
 
         public boolean isNullCall(BluetoothCall call) {
-            return call == null || call.getCall() == null;
+            return call == null || call.isCallNull();
         }
     };
 };
