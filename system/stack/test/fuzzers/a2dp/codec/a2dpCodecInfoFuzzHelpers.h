@@ -21,8 +21,11 @@
 //       It is included by the corresponding "...Functions.h" file.
 
 #include <fuzzer/FuzzedDataProvider.h>
+
 #include <vector>
+
 #include "a2dp_codec_api.h"
+#include "stack/test/fuzzers/common/commonFuzzHelpers.h"
 
 // Keep a vector of any allocated codec_info objects.
 // It will be up to the caller to free this array at the end of a fuzz loop
