@@ -21,6 +21,8 @@
  *  mockcify.pl ver 0.2
  */
 
+#include "test/mock/mock_main_shim_l2cap_api.h"
+
 #include <cstdint>
 #include <functional>
 #include <map>
@@ -29,7 +31,6 @@
 extern std::map<std::string, int> mock_function_count_map;
 
 // Mock include file to share data between tests and mock
-#include "test/mock/mock_main_shim_l2cap_api.h"
 
 // Mocked compile conditionals, if any
 #ifndef UNUSED_ATTR
@@ -163,11 +164,6 @@ bool bluetooth::shim::L2CA_SetIdleTimeoutByBdAddr(const RawAddress& bd_addr,
   mock_function_count_map[__func__]++;
   return test::mock::main_shim_l2cap_api::L2CA_SetIdleTimeoutByBdAddr(
       bd_addr, timeout, transport);
-}
-bool bluetooth::shim::L2CA_SetAclPriority(uint16_t handle, bool high_priority) {
-  mock_function_count_map[__func__]++;
-  return test::mock::main_shim_l2cap_api::L2CA_SetAclPriority(handle,
-                                                              high_priority);
 }
 bool bluetooth::shim::L2CA_SetAclPriority(const RawAddress& bd_addr,
                                           tL2CAP_PRIORITY priority) {
