@@ -30,7 +30,6 @@ extern std::map<std::string, int> mock_function_count_map;
 #include "bt_target.h"
 #include "bta/include/bta_api.h"
 #include "btm_api.h"
-#include "btu.h"
 #include "l2c_api.h"
 #include "main/shim/dumpsys.h"
 #include "osi/include/log.h"

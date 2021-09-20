@@ -56,7 +56,6 @@ extern std::map<std::string, int> mock_function_count_map;
 #include "stack/include/acl_hci_link_interface.h"
 #include "stack/include/ble_acl_interface.h"
 #include "stack/include/btm_api.h"
-#include "stack/include/btu.h"
 #include "stack/include/gatt_api.h"
 #include "stack/include/sco_hci_link_interface.h"
 
