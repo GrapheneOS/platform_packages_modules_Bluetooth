@@ -34,7 +34,6 @@
 #include "avdtc_api.h"
 #include "bt_target.h"
 #include "bt_utils.h"
-#include "btu.h"
 #include "osi/include/allocator.h"
 #include "osi/include/log.h"
 #include "osi/include/osi.h"
