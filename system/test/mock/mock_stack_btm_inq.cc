@@ -30,7 +30,6 @@ extern std::map<std::string, int> mock_function_count_map;
 #include <string.h>
 #include "advertise_data_parser.h"
 #include "btm_api.h"
-#include "btu.h"
 #include "common/time_util.h"
 #include "device/include/controller.h"
 #include "main/shim/btm_api.h"

@@ -43,7 +43,6 @@
 #include "btif_av.h"
 #include "btif_common.h"
 #include "btif_util.h"
-#include "btu.h"
 #include "device/include/interop.h"
 #include "osi/include/alarm.h"
 #include "osi/include/allocator.h"

@@ -28,7 +28,6 @@ extern std::map<std::string, int> mock_function_count_map;
 #include <stdlib.h>
 #include <string.h>
 #include "btm_api.h"
-#include "btu.h"
 #include "hidd_api.h"
 #include "hiddefs.h"
 #include "stack/btm/btm_sec.h"

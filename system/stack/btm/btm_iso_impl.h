@@ -25,7 +25,6 @@
 #include "base/callback.h"
 #include "bind_helpers.h"
 #include "btm_iso_api.h"
-#include "btu.h"
 #include "common/time_util.h"
 #include "device/include/controller.h"
 #include "hci/include/hci_layer.h"
