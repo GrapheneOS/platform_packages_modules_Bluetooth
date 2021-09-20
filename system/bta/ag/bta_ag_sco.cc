@@ -185,7 +185,7 @@ static void bta_ag_sco_disc_cback(uint16_t sco_idx) {
 
   if (handle != 0) {
     /* Restore settings */
-    if (bta_ag_cb.sco.p_curr_scb->inuse_codec == BTA_AG_CODEC_MSBC) {
+    if (bta_ag_cb.sco.p_curr_scb->inuse_codec == BTM_SCO_CODEC_MSBC) {
       /* Bypass vendor specific and voice settings if enhanced eSCO supported */
       if (!(controller_get_interface()
                 ->supports_enhanced_setup_synchronous_connection())) {
@@ -373,8 +373,8 @@ static void bta_ag_create_sco(tBTA_AG_SCB* p_scb, bool is_orig) {
   }
 
 #if (DISABLE_WBS == FALSE)
-  if ((p_scb->sco_codec == BTA_AG_CODEC_MSBC) && !p_scb->codec_fallback)
-    esco_codec = BTA_AG_CODEC_MSBC;
+  if ((p_scb->sco_codec == BTM_SCO_CODEC_MSBC) && !p_scb->codec_fallback)
+    esco_codec = BTM_SCO_CODEC_MSBC;
 #endif
 
   if (p_scb->codec_fallback) {
@@ -389,7 +389,7 @@ static void bta_ag_create_sco(tBTA_AG_SCB* p_scb, bool is_orig) {
   enh_esco_params_t params = {};
   /* If WBS included, use CVSD by default, index is 0 for CVSD by
    * initialization. If eSCO codec is mSBC, index is T2 or T1 */
-  if (esco_codec == BTA_AG_CODEC_MSBC) {
+  if (esco_codec == BTM_SCO_CODEC_MSBC) {
     if (p_scb->codec_msbc_settings == BTA_AG_SCO_MSBC_SETTINGS_T2) {
       params = esco_parameters_for_codec(ESCO_CODEC_MSBC_T2);
     } else {
@@ -457,7 +457,7 @@ static void bta_ag_create_pending_sco(tBTA_AG_SCB* p_scb, bool is_local) {
 
   /* Local device requested SCO connection to peer */
   if (is_local) {
-    if (esco_codec == BTA_AG_CODEC_MSBC) {
+    if (esco_codec == BTM_SCO_CODEC_MSBC) {
       if (p_scb->codec_msbc_settings == BTA_AG_SCO_MSBC_SETTINGS_T2) {
         params = esco_parameters_for_codec(ESCO_CODEC_MSBC_T2);
       } else {
@@ -477,7 +477,7 @@ static void bta_ag_create_pending_sco(tBTA_AG_SCB* p_scb, bool is_local) {
     /* Bypass voice settings if enhanced SCO setup command is supported */
     if (!(controller_get_interface()
               ->supports_enhanced_setup_synchronous_connection())) {
-      if (esco_codec == BTA_AG_CODEC_MSBC) {
+      if (esco_codec == BTM_SCO_CODEC_MSBC) {
         BTM_WriteVoiceSettings(BTM_VOICE_SETTING_TRANS);
       } else {
         BTM_WriteVoiceSettings(BTM_VOICE_SETTING_CVSD);
