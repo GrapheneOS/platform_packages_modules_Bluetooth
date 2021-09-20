@@ -465,7 +465,7 @@ static tBTA_AG_PEER_CODEC bta_ag_parse_bac(tBTA_AG_SCB* p_scb, char* p_s,
         retval |= BTM_SCO_CODEC_CVSD;
         break;
       case UUID_CODEC_MSBC:
-        retval |= BTA_AG_CODEC_MSBC;
+        retval |= BTM_SCO_CODEC_MSBC;
         break;
       default:
         APPL_TRACE_ERROR("Unknown Codec UUID(%d) received", uuid_codec);
@@ -1249,7 +1249,7 @@ void bta_ag_at_hfp_cback(tBTA_AG_SCB* p_scb, uint16_t cmd, uint8_t arg_type,
         p_scb->peer_codecs = bta_ag_parse_bac(p_scb, p_arg, p_end);
         p_scb->codec_updated = true;
 
-        if (p_scb->peer_codecs & BTA_AG_CODEC_MSBC) {
+        if (p_scb->peer_codecs & BTM_SCO_CODEC_MSBC) {
           p_scb->sco_codec = UUID_CODEC_MSBC;
           APPL_TRACE_DEBUG("Received AT+BAC, updating sco codec to MSBC");
         } else {
@@ -1285,7 +1285,7 @@ void bta_ag_at_hfp_cback(tBTA_AG_SCB* p_scb, uint16_t cmd, uint8_t arg_type,
           codec_type = BTM_SCO_CODEC_CVSD;
           break;
         case UUID_CODEC_MSBC:
-          codec_type = BTA_AG_CODEC_MSBC;
+          codec_type = BTM_SCO_CODEC_MSBC;
           break;
         default:
           APPL_TRACE_ERROR("Unknown codec_uuid %d", int_arg);
@@ -1773,7 +1773,7 @@ void bta_ag_send_bcs(tBTA_AG_SCB* p_scb) {
       case BTM_SCO_CODEC_CVSD:
         codec_uuid = UUID_CODEC_CVSD;
         break;
-      case BTA_AG_CODEC_MSBC:
+      case BTM_SCO_CODEC_MSBC:
         codec_uuid = UUID_CODEC_MSBC;
         break;
       default:

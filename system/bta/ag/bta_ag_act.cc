@@ -469,7 +469,7 @@ void bta_ag_rfc_open(tBTA_AG_SCB* p_scb, const tBTA_AG_DATA& data) {
       bool sdp_wbs_support = p_scb->peer_sdp_features & BTA_AG_FEAT_WBS_SUPPORT;
       if (!p_scb->received_at_bac && sdp_wbs_support) {
         p_scb->codec_updated = true;
-        p_scb->peer_codecs = BTM_SCO_CODEC_CVSD & BTA_AG_CODEC_MSBC;
+        p_scb->peer_codecs = BTM_SCO_CODEC_CVSD & BTM_SCO_CODEC_MSBC;
         p_scb->sco_codec = UUID_CODEC_MSBC;
       }
     } else {
@@ -802,7 +802,8 @@ void bta_ag_setcodec(tBTA_AG_SCB* p_scb, const tBTA_AG_DATA& data) {
 
   /* Check if the requested codec type is valid */
   if ((codec_type != BTM_SCO_CODEC_NONE) &&
-      (codec_type != BTM_SCO_CODEC_CVSD) && (codec_type != BTA_AG_CODEC_MSBC)) {
+      (codec_type != BTM_SCO_CODEC_CVSD) &&
+      (codec_type != BTM_SCO_CODEC_MSBC)) {
     val.num = codec_type;
     val.hdr.status = BTA_AG_FAIL_RESOURCES;
     APPL_TRACE_ERROR("bta_ag_setcodec error: unsupported codec type %d",

@@ -196,8 +196,6 @@ inline std::string bta_ag_result_text(const tBTA_AG_RES& result) {
 typedef uint16_t tBTA_AG_PEER_FEAT;
 
 /* HFP peer supported codec masks */
-// TODO(google) This should use common definitions
-#define BTA_AG_CODEC_MSBC BTM_SCO_CODEC_MSBC /* mSBC */
 typedef uint16_t tBTA_AG_PEER_CODEC;
 
 /* HFP errcode - Set when BTA_AG_OK_ERROR is returned in 'ok_flag' */
