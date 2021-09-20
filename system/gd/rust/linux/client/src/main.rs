@@ -7,15 +7,15 @@ use dbus::nonblock::SyncConnection;
 use dbus_crossroads::Crossroads;
 use tokio::sync::mpsc;
 
+use crate::callbacks::{BtCallback, BtManagerCallback};
 use crate::command_handler::CommandHandler;
-use crate::dbus_iface::{BluetoothDBus, BluetoothManagerDBus};
+use crate::dbus_iface::{BluetoothDBus, BluetoothGattDBus, BluetoothManagerDBus};
 use crate::editor::AsyncEditor;
-use bt_topshim::btif::BtSspVariant;
 use bt_topshim::topstack;
-use btstack::bluetooth::{BluetoothDevice, IBluetooth, IBluetoothCallback};
-use btstack::RPCProxy;
-use manager_service::iface_bluetooth_manager::{IBluetoothManager, IBluetoothManagerCallback};
+use btstack::bluetooth::{BluetoothDevice, IBluetooth};
+use manager_service::iface_bluetooth_manager::IBluetoothManager;
 
+mod callbacks;
 mod command_handler;
 mod console;
 mod dbus_arg;
@@ -48,11 +48,17 @@ pub(crate) struct ClientContext {
     /// session starts so that previous results don't pollute current search.
     pub(crate) found_devices: HashMap<String, BluetoothDevice>,
 
+    /// If set, the registered GATT client id. None otherwise.
+    pub(crate) gatt_client_id: Option<i32>,
+
     /// Proxy for manager interface.
     pub(crate) manager_dbus: BluetoothManagerDBus,
 
     /// Proxy for adapter interface. Only exists when the default adapter is enabled.
     pub(crate) adapter_dbus: Option<BluetoothDBus>,
+
+    /// Proxy for GATT interface.
+    pub(crate) gatt_dbus: Option<BluetoothGattDBus>,
 
     /// Channel to send actions to take in the foreground
     fg: mpsc::Sender<ForegroundActions>,
@@ -83,8 +89,10 @@ impl ClientContext {
             adapter_address: None,
             discovering_state: false,
             found_devices: HashMap::new(),
+            gatt_client_id: None,
             manager_dbus,
             adapter_dbus: None,
+            gatt_dbus: None,
             fg: tx,
             dbus_connection,
             dbus_crossroads,
@@ -92,15 +100,18 @@ impl ClientContext {
     }
 
     // Creates adapter proxy, registers callbacks and initializes address.
-    fn create_adapter_proxy(context: Arc<Mutex<ClientContext>>, idx: &i32) {
-        let conn = context.lock().unwrap().dbus_connection.clone();
-        let cr = context.lock().unwrap().dbus_crossroads.clone();
+    fn create_adapter_proxy(&mut self, idx: i32) {
+        let conn = self.dbus_connection.clone();
+        let cr = self.dbus_crossroads.clone();
 
-        let dbus = BluetoothDBus::new(conn, cr, *idx);
-        context.lock().unwrap().adapter_dbus = Some(dbus);
+        let dbus = BluetoothDBus::new(conn.clone(), cr.clone(), idx);
+        self.adapter_dbus = Some(dbus);
+
+        let gatt_dbus = BluetoothGattDBus::new(conn.clone(), cr.clone(), idx);
+        self.gatt_dbus = Some(gatt_dbus);
 
         // Trigger callback registration in the foreground
-        let fg = context.lock().unwrap().fg.clone();
+        let fg = self.fg.clone();
         tokio::spawn(async move {
             let objpath = String::from("/org/chromium/bluetooth/client/bluetooth_callback");
             let _ = fg.send(ForegroundActions::RegisterAdapterCallback(objpath)).await;
@@ -113,120 +124,6 @@ impl ClientContext {
 enum ForegroundActions {
     RegisterAdapterCallback(String), // Register callbacks with this objpath
     Readline(rustyline::Result<String>), // Readline result from rustyline
-}
-
-/// Callback context for manager interface callbacks.
-struct BtManagerCallback {
-    objpath: String,
-    context: Arc<Mutex<ClientContext>>,
-}
-
-impl IBluetoothManagerCallback for BtManagerCallback {
-    fn on_hci_device_changed(&self, hci_interface: i32, present: bool) {
-        print_info!("hci{} present = {}", hci_interface, present);
-
-        if present {
-            self.context.lock().unwrap().adapters.entry(hci_interface).or_insert(false);
-        } else {
-            self.context.lock().unwrap().adapters.remove(&hci_interface);
-        }
-    }
-
-    fn on_hci_enabled_changed(&self, hci_interface: i32, enabled: bool) {
-        print_info!("hci{} enabled = {}", hci_interface, enabled);
-
-        self.context
-            .lock()
-            .unwrap()
-            .adapters
-            .entry(hci_interface)
-            .and_modify(|v| *v = enabled)
-            .or_insert(enabled);
-
-        // When the default adapter's state is updated, we need to modify a few more things.
-        // Only do this if we're not repeating the previous state.
-        let prev_enabled = self.context.lock().unwrap().enabled;
-        let default_adapter = self.context.lock().unwrap().default_adapter;
-        if hci_interface == default_adapter && prev_enabled != enabled {
-            self.context.lock().unwrap().enabled = enabled;
-            self.context.lock().unwrap().adapter_ready = false;
-            if enabled {
-                ClientContext::create_adapter_proxy(self.context.clone(), &hci_interface);
-            } else {
-                self.context.lock().unwrap().adapter_dbus = None;
-            }
-        }
-    }
-}
-
-impl manager_service::RPCProxy for BtManagerCallback {
-    fn register_disconnect(&mut self, _f: Box<dyn Fn() + Send>) {}
-
-    fn get_object_id(&self) -> String {
-        self.objpath.clone()
-    }
-}
-
-/// Callback container for adapter interface callbacks.
-struct BtCallback {
-    objpath: String,
-    context: Arc<Mutex<ClientContext>>,
-}
-
-impl IBluetoothCallback for BtCallback {
-    fn on_address_changed(&self, addr: String) {
-        print_info!("Address changed to {}", &addr);
-        self.context.lock().unwrap().adapter_address = Some(addr);
-    }
-
-    fn on_device_found(&self, remote_device: BluetoothDevice) {
-        self.context
-            .lock()
-            .unwrap()
-            .found_devices
-            .entry(remote_device.address.clone())
-            .or_insert(remote_device.clone());
-
-        print_info!("Found device: {:?}", remote_device);
-    }
-
-    fn on_discovering_changed(&self, discovering: bool) {
-        self.context.lock().unwrap().discovering_state = discovering;
-
-        if discovering {
-            self.context.lock().unwrap().found_devices.clear();
-        }
-        print_info!("Discovering: {}", discovering);
-    }
-
-    fn on_ssp_request(
-        &self,
-        remote_device: BluetoothDevice,
-        _cod: u32,
-        variant: BtSspVariant,
-        passkey: u32,
-    ) {
-        if variant == BtSspVariant::PasskeyNotification {
-            print_info!(
-                "device {}{} would like to pair, enter passkey on remote device: {:06}",
-                remote_device.address.to_string(),
-                if remote_device.name.len() > 0 {
-                    format!(" ({})", remote_device.name)
-                } else {
-                    String::from("")
-                },
-                passkey
-            );
-        }
-    }
-}
-
-impl RPCProxy for BtCallback {
-    fn register_disconnect(&mut self, _f: Box<dyn Fn() + Send>) {}
-
-    fn get_object_id(&self) -> String {
-        self.objpath.clone()
-    }
 }
 
 /// Runs a command line program that interacts with a Bluetooth stack.
@@ -269,10 +166,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
         // TODO: Registering the callback should be done when btmanagerd is ready (detect with
         // ObjectManager).
-        context.lock().unwrap().manager_dbus.register_callback(Box::new(BtManagerCallback {
-            objpath: String::from("/org/chromium/bluetooth/client/bluetooth_manager_callback"),
-            context: context.clone(),
-        }));
+        context.lock().unwrap().manager_dbus.register_callback(Box::new(BtManagerCallback::new(
+            String::from("/org/chromium/bluetooth/client/bluetooth_manager_callback"),
+            context.clone(),
+        )));
 
         let mut handler = CommandHandler::new(context.clone());
 
@@ -296,11 +193,23 @@ async fn start_interactive_shell(
 ) {
     let command_list = handler.get_command_list().clone();
 
+    let semaphore_fg = Arc::new(tokio::sync::Semaphore::new(1));
+
     // Async task to keep reading new lines from user
+    let semaphore = semaphore_fg.clone();
     tokio::spawn(async move {
         let editor = AsyncEditor::new(command_list);
 
         loop {
+            // Wait until ForegroundAction::Readline finishes its task.
+            let permit = semaphore.acquire().await;
+            if permit.is_err() {
+                break;
+            };
+            // Let ForegroundAction::Readline decide when it's done.
+            permit.unwrap().forget();
+
+            // It's good to do readline now.
             let result = editor.readline().await;
             let _ = tx.send(ForegroundActions::Readline(result)).await;
         }
@@ -322,7 +231,7 @@ async fn start_interactive_shell(
                     .adapter_dbus
                     .as_mut()
                     .unwrap()
-                    .register_callback(Box::new(BtCallback { objpath, context: context.clone() }));
+                    .register_callback(Box::new(BtCallback::new(objpath, context.clone())));
                 context.lock().unwrap().adapter_ready = true;
             }
             ForegroundActions::Readline(result) => match result {
@@ -340,9 +249,14 @@ async fn start_interactive_shell(
                         &String::from(cmd),
                         &command_vec[1..command_vec.len()].to_vec(),
                     );
+                    // Ready to do readline again.
+                    semaphore_fg.add_permits(1);
                 }
             },
         }
     }
+
+    semaphore_fg.close();
+
     print_info!("Client exiting");
 }

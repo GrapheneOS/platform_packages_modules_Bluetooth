@@ -395,6 +395,9 @@ pub trait IBluetoothGattCallback: RPCProxy {
         timeout: i32,
         status: i32,
     );
+
+    /// When there is an addition, removal, or change of a GATT service.
+    fn on_service_changed(&self, addr: String);
 }
 
 /// Interface for scanner callbacks to clients, passed to `IBluetoothGatt::register_scanner`.
@@ -455,7 +458,7 @@ impl Default for ScanType {
 }
 
 /// Represents RSSI configurations for hardware offloaded scanning.
-// TODO: This is still a placeholder struct, not yet complete.
+// TODO(b/200066804): This is still a placeholder struct, not yet complete.
 #[derive(Debug, Default)]
 pub struct RSSISettings {
     pub low_threshold: i32,
@@ -551,19 +554,19 @@ pub enum GattWriteRequestStatus {
 
 impl IBluetoothGatt for BluetoothGatt {
     fn register_scanner(&self, _callback: Box<dyn IScannerCallback + Send>) {
-        // TODO: implement
+        // TODO(b/200066804): implement
     }
 
     fn unregister_scanner(&self, _scanner_id: i32) {
-        // TODO: implement
+        // TODO(b/200066804): implement
     }
 
     fn start_scan(&self, _scanner_id: i32, _settings: ScanSettings, _filters: Vec<ScanFilter>) {
-        // TODO: implement
+        // TODO(b/200066804): implement
     }
 
     fn stop_scan(&self, _scanner_id: i32) {
-        // TODO: implement
+        // TODO(b/200066804): implement
     }
 
     fn register_client(
@@ -686,7 +689,7 @@ impl IBluetoothGatt for BluetoothGatt {
             return;
         }
 
-        // TODO(b/193685325): Perform check on restricted handles.
+        // TODO(b/200065274): Perform check on restricted handles.
 
         self.gatt.as_ref().unwrap().client.read_characteristic(
             conn_id.unwrap(),
@@ -714,7 +717,7 @@ impl IBluetoothGatt for BluetoothGatt {
             return;
         }
 
-        // TODO(b/193685325): Perform check on restricted handles.
+        // TODO(b/200065274): Perform check on restricted handles.
 
         self.gatt.as_ref().unwrap().client.read_using_characteristic_uuid(
             conn_id.unwrap(),
@@ -743,9 +746,9 @@ impl IBluetoothGatt for BluetoothGatt {
             write_type = GattWriteType::WritePrepare;
         }
 
-        // TODO(b/193685325): Perform check on restricted handles.
+        // TODO(b/200065274): Perform check on restricted handles.
 
-        // TODO(b/193685325): Lock the thread until onCharacteristicWrite callback comes back?
+        // TODO(b/200070162): Handle concurrent write characteristic.
 
         self.gatt.as_ref().unwrap().client.write_characteristic(
             conn_id.unwrap(),
@@ -764,7 +767,7 @@ impl IBluetoothGatt for BluetoothGatt {
             return;
         }
 
-        // TODO(b/193685325): Perform check on restricted handles.
+        // TODO(b/200065274): Perform check on restricted handles.
 
         self.gatt.as_ref().unwrap().client.read_descriptor(
             conn_id.unwrap(),
@@ -786,7 +789,7 @@ impl IBluetoothGatt for BluetoothGatt {
             return;
         }
 
-        // TODO(b/193685325): Perform check on restricted handles.
+        // TODO(b/200065274): Perform check on restricted handles.
 
         self.gatt.as_ref().unwrap().client.write_descriptor(
             conn_id.unwrap(),
@@ -802,7 +805,7 @@ impl IBluetoothGatt for BluetoothGatt {
             return;
         }
 
-        // TODO(b/193685325): Perform check on restricted handles.
+        // TODO(b/200065274): Perform check on restricted handles.
 
         if enable {
             self.gatt.as_ref().unwrap().client.register_for_notification(
@@ -944,10 +947,11 @@ pub(crate) trait BtifGattClientCallbacks {
         status: u8,
     );
 
+    #[btif_callback(ServiceChanged)]
+    fn service_changed_cb(&self, conn_id: i32);
+
     #[btif_callback(ReadPhy)]
     fn read_phy_cb(&mut self, client_id: i32, addr: RawAddress, tx_phy: u8, rx_phy: u8, status: u8);
-
-    // TODO(b/193685325): Define all callbacks.
 }
 
 impl BtifGattClientCallbacks for BluetoothGatt {
@@ -1056,7 +1060,8 @@ impl BtifGattClientCallbacks for BluetoothGatt {
             return;
         }
 
-        // TODO(b/193685325): Handle increasing permit.
+        // TODO(b/200070162): Design how to handle concurrent write characteristic to the same
+        // peer.
 
         let client = self.context_map.get_client_by_conn_id_mut(conn_id);
         if client.is_none() {
@@ -1193,7 +1198,7 @@ impl BtifGattClientCallbacks for BluetoothGatt {
                         elem.id as i32,
                         elem.type_ as i32,
                     ));
-                    // TODO(b/193685325): Mark restricted services.
+                    // TODO(b/200065274): Mark restricted services.
                 }
 
                 GattDbElementType::Characteristic => {
@@ -1208,7 +1213,7 @@ impl BtifGattClientCallbacks for BluetoothGatt {
                             // TODO(b/193685325): Log error.
                         }
                     }
-                    // TODO(b/193685325): Mark restricted characteristics.
+                    // TODO(b/200065274): Mark restricted characteristics.
                 }
 
                 GattDbElementType::Descriptor => {
@@ -1227,7 +1232,7 @@ impl BtifGattClientCallbacks for BluetoothGatt {
                             // TODO(b/193685325): Log error.
                         }
                     }
-                    // TODO(b/193685325): Mark restricted descriptors.
+                    // TODO(b/200065274): Mark restricted descriptors.
                 }
 
                 GattDbElementType::IncludedService => {
@@ -1315,6 +1320,20 @@ impl BtifGattClientCallbacks for BluetoothGatt {
             timeout as i32,
             status as i32,
         );
+    }
+
+    fn service_changed_cb(&self, conn_id: i32) {
+        let address = self.context_map.get_address_by_conn_id(conn_id);
+        if address.is_none() {
+            return;
+        }
+
+        let client = self.context_map.get_client_by_conn_id(conn_id);
+        if client.is_none() {
+            return;
+        }
+
+        client.unwrap().callback.on_service_changed(address.unwrap());
     }
 }
 
