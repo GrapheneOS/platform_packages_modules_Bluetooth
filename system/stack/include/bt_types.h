@@ -331,9 +331,6 @@ enum {
 
 /* Common Bluetooth field definitions */
 
-#define PIN_CODE_LEN 16
-typedef uint8_t PIN_CODE[PIN_CODE_LEN]; /* Pin Code (upto 128 bits) MSB is 0 */
-
 #define LAP_LEN 3
 typedef uint8_t LAP[LAP_LEN];     /* IAC as passed to Inquiry (LAP) */
 
