@@ -494,7 +494,7 @@ static void btif_hf_upstreams_evt(uint16_t event, char* p_param) {
       if (p_data->val.num == BTM_SCO_CODEC_CVSD) {
         bt_hf_callbacks->WbsCallback(BTHF_WBS_NO,
                                      &btif_hf_cb[idx].connected_bda);
-      } else if (p_data->val.num == BTA_AG_CODEC_MSBC) {
+      } else if (p_data->val.num == BTM_SCO_CODEC_MSBC) {
         bt_hf_callbacks->WbsCallback(BTHF_WBS_YES,
                                      &btif_hf_cb[idx].connected_bda);
       } else {
@@ -539,10 +539,10 @@ static void btif_hf_upstreams_evt(uint16_t event, char* p_param) {
       we should set the BTA AG Codec to mSBC. This would trigger a +BCS to mSBC
       at the time
       of SCO connection establishment */
-      if (p_data->val.num & BTA_AG_CODEC_MSBC) {
+      if (p_data->val.num & BTM_SCO_CODEC_MSBC) {
         BTIF_TRACE_EVENT("%s: btif_hf override-Preferred Codec to MSBC",
                          __func__);
-        BTA_AgSetCodec(btif_hf_cb[idx].handle, BTA_AG_CODEC_MSBC);
+        BTA_AgSetCodec(btif_hf_cb[idx].handle, BTM_SCO_CODEC_MSBC);
       } else {
         BTIF_TRACE_EVENT("%s btif_hf override-Preferred Codec to CVSD",
                          __func__);
