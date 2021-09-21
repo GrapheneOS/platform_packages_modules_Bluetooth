@@ -250,9 +250,6 @@ enum {
 
 typedef uint8_t tBTM_EIR_SEARCH_RESULT;
 
-/* 0x2C */
-#define BTM_EIR_RSI_TYPE HCI_EIR_RSI_TYPE
-
 typedef enum : uint8_t {
   BTM_BLE_SEC_NONE = 0,
   /* encrypt the link using current key */
