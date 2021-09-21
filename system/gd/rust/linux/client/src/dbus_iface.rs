@@ -1,13 +1,13 @@
 //! D-Bus proxy implementations of the APIs.
 
-use bt_topshim::btif::BtSspVariant;
+use bt_topshim::btif::{BtSspVariant, Uuid128Bit};
 use bt_topshim::profiles::gatt::GattStatus;
 
 use btstack::bluetooth::{BluetoothDevice, BluetoothTransport, IBluetooth, IBluetoothCallback};
 use btstack::bluetooth_gatt::{
     BluetoothGattCharacteristic, BluetoothGattDescriptor, BluetoothGattService,
     GattWriteRequestStatus, GattWriteType, IBluetoothGatt, IBluetoothGattCallback,
-    IScannerCallback, LePhy, ScanFilter, ScanSettings, Uuid128Bit,
+    IScannerCallback, LePhy, ScanFilter, ScanSettings,
 };
 
 use dbus::arg::{AppendAll, RefArg};
@@ -196,7 +196,7 @@ impl BluetoothDBus {
     }
 }
 
-// TODO: These are boilerplate codes, consider creating a macro to generate.
+// TODO(b/200732080): These are boilerplate codes, consider creating a macro to generate.
 impl IBluetooth for BluetoothDBus {
     fn register_callback(&mut self, callback: Box<dyn IBluetoothCallback + Send>) {
         let path_string = callback.get_object_id();
@@ -224,6 +224,11 @@ impl IBluetooth for BluetoothDBus {
 
     fn get_address(&self) -> String {
         self.client_proxy.method("GetAddress", ())
+    }
+
+    fn get_uuids(&self) -> Vec<Uuid128Bit> {
+        let result: Vec<Vec<u8>> = self.client_proxy.method("GetUuids", ());
+        <Vec<Uuid128Bit> as DBusArg>::from_dbus(result, None, None, None).unwrap()
     }
 
     fn start_discovery(&self) -> bool {

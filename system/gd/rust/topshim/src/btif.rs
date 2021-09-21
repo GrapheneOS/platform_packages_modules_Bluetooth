@@ -264,6 +264,7 @@ pub type BtLocalLeFeatures = bindings::bt_local_le_features_t;
 pub type BtPinCode = bindings::bt_pin_code_t;
 pub type BtRemoteVersion = bindings::bt_remote_version_t;
 pub type Uuid = bindings::bluetooth::Uuid;
+pub type Uuid128Bit = bindings::bluetooth::Uuid_UUID128Bit;
 
 /// All supported Bluetooth properties after conversion.
 #[derive(Debug, Clone)]

@@ -1,6 +1,6 @@
 extern crate bt_shim;
 
-use bt_topshim::btif::BtSspVariant;
+use bt_topshim::btif::{BtSspVariant, Uuid128Bit};
 
 use btstack::bluetooth::{BluetoothDevice, BluetoothTransport, IBluetooth, IBluetoothCallback};
 use btstack::RPCProxy;
@@ -76,6 +76,11 @@ impl IBluetooth for IBluetoothDBus {
     #[dbus_method("GetAddress")]
     fn get_address(&self) -> String {
         String::from("")
+    }
+
+    #[dbus_method("GetUuids")]
+    fn get_uuids(&self) -> Vec<Uuid128Bit> {
+        vec![]
     }
 
     #[dbus_method("StartDiscovery")]

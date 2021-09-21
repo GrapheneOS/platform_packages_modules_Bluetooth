@@ -3,6 +3,7 @@
 use bt_topshim::btif::{
     BaseCallbacks, BaseCallbacksDispatcher, BluetoothInterface, BluetoothProperty, BtBondState,
     BtDiscoveryState, BtPropertyType, BtSspVariant, BtState, BtStatus, BtTransport, RawAddress,
+    Uuid128Bit,
 };
 use bt_topshim::profiles::hid_host::{HHCallbacksDispatcher, HidHost};
 use bt_topshim::topstack;
@@ -37,6 +38,9 @@ pub trait IBluetooth {
 
     /// Returns the Bluetooth address of the local adapter.
     fn get_address(&self) -> String;
+
+    /// Gets supported UUIDs by the local adapter.
+    fn get_uuids(&self) -> Vec<Uuid128Bit>;
 
     /// Starts BREDR Inquiry.
     fn start_discovery(&self) -> bool;
@@ -493,6 +497,18 @@ impl IBluetooth for Bluetooth {
         match self.local_address {
             None => String::from(""),
             Some(addr) => addr.to_string(),
+        }
+    }
+
+    fn get_uuids(&self) -> Vec<Uuid128Bit> {
+        match self.properties.get(&BtPropertyType::Uuids) {
+            Some(prop) => match prop {
+                BluetoothProperty::Uuids(uuids) => {
+                    uuids.iter().map(|&x| x.uu.clone()).collect::<Vec<Uuid128Bit>>()
+                }
+                _ => vec![],
+            },
+            _ => vec![],
         }
     }
 
