@@ -468,6 +468,9 @@ class DualModeController : public Device {
   // 7.8.34
   void LeReadSuggestedDefaultDataLength(CommandView args);
 
+  // 7.8.35
+  void LeWriteSuggestedDefaultDataLength(CommandView args);
+
   // 7.8.38
   void LeAddDeviceToResolvingList(CommandView args);
 
@@ -574,6 +577,10 @@ class DualModeController : public Device {
   void AddConnectionAction(const TaskCallback& callback, uint16_t handle);
 
   void SendCommandCompleteUnknownOpCodeEvent(uint16_t command_opcode) const;
+
+  // Unused state to maintain consistency for the Host
+  uint16_t le_suggested_default_data_bytes_{0x20};
+  uint16_t le_suggested_default_data_time_{0x148};
 
   // Callbacks to send packets back to the HCI.
   std::function<void(std::shared_ptr<bluetooth::hci::AclBuilder>)> send_acl_;

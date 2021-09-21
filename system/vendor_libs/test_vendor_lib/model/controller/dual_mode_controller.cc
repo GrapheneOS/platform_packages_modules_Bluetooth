@@ -265,6 +265,8 @@ DualModeController::DualModeController(const std::string& properties_filename, u
   SET_SUPPORTED(LE_SET_PRIVACY_MODE, LeSetPrivacyMode);
   SET_SUPPORTED(LE_READ_SUGGESTED_DEFAULT_DATA_LENGTH,
                 LeReadSuggestedDefaultDataLength);
+  SET_SUPPORTED(LE_WRITE_SUGGESTED_DEFAULT_DATA_LENGTH,
+                LeWriteSuggestedDefaultDataLength);
   // ISO Commands
   SET_SUPPORTED(LE_READ_ISO_TX_SYNC, LeReadIsoTxSync);
   SET_SUPPORTED(LE_SET_CIG_PARAMETERS, LeSetCigParameters);
@@ -1947,8 +1949,32 @@ void DualModeController::LeReadSuggestedDefaultDataLength(CommandView command) {
       gd_hci::LeConnectionManagementCommandView::Create(
           gd_hci::AclCommandView::Create(command)));
   ASSERT(command_view.IsValid());
-  send_event_(bluetooth::hci::LeReadSuggestedDefaultDataLengthCompleteBuilder::Create(
-      kNumCommandPackets, ErrorCode::SUCCESS, kLeMaximumDataLength, kLeMaximumDataTime));
+  send_event_(
+      bluetooth::hci::LeReadSuggestedDefaultDataLengthCompleteBuilder::Create(
+          kNumCommandPackets, ErrorCode::SUCCESS,
+          le_suggested_default_data_bytes_, le_suggested_default_data_time_));
+}
+
+void DualModeController::LeWriteSuggestedDefaultDataLength(
+    CommandView command) {
+  auto command_view = gd_hci::LeWriteSuggestedDefaultDataLengthView::Create(
+      gd_hci::LeConnectionManagementCommandView::Create(
+          gd_hci::AclCommandView::Create(command)));
+  ASSERT(command_view.IsValid());
+  uint16_t bytes = command_view.GetTxOctets();
+  uint16_t time = command_view.GetTxTime();
+  if (bytes > 0xFB || bytes < 0x1B || time < 0x148 || time > 0x4290) {
+    send_event_(
+        bluetooth::hci::LeWriteSuggestedDefaultDataLengthCompleteBuilder::
+            Create(kNumCommandPackets,
+                   ErrorCode::INVALID_HCI_COMMAND_PARAMETERS));
+    return;
+  }
+  le_suggested_default_data_bytes_ = bytes;
+  le_suggested_default_data_time_ = time;
+  send_event_(
+      bluetooth::hci::LeWriteSuggestedDefaultDataLengthCompleteBuilder::Create(
+          kNumCommandPackets, ErrorCode::SUCCESS));
 }
 
 void DualModeController::LeAddDeviceToResolvingList(CommandView command) {
