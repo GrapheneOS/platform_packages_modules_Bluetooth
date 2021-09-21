@@ -3236,6 +3236,14 @@ public class AdapterService extends Service {
         return mAdapterProperties.getLeMaximumAdvertisingDataLength();
     }
 
+    public boolean isLePeriodicAdvertisingSyncTransferSenderSupported() {
+        return mAdapterProperties.isLePeriodicAdvertisingSyncTransferSenderSupported();
+    }
+
+    public boolean isLeConnectedIsochronousStreamCentralSupported() {
+        return mAdapterProperties.isLeConnectedIsochronousStreamCentralSupported();
+    }
+
     /**
      * Get the maximum number of connected audio devices.
      *
