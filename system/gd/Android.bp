@@ -10,6 +10,9 @@ package {
 
 cc_defaults {
     name: "gd_defaults",
+    tidy_checks: [
+        "-performance-unnecessary-value-param",
+    ],
     target: {
         android: {
             test_config_template: "AndroidTestTemplate.xml",
