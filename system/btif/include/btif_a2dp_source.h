@@ -26,6 +26,7 @@
 
 #include "bta/include/bta_av_api.h"
 #include "include/hardware/bt_av.h"
+#include "stack/include/bt_hdr.h"
 #include "types/raw_address.h"
 
 // Initialize the A2DP Source module.
