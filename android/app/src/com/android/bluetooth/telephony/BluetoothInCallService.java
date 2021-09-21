@@ -45,6 +45,7 @@ import android.util.Log;
 
 import androidx.annotation.VisibleForTesting;
 
+import com.android.bluetooth.btservice.AdapterService;
 import com.android.bluetooth.hfp.BluetoothHeadsetProxy;
 
 import java.util.ArrayList;
@@ -115,7 +116,7 @@ public class BluetoothInCallService extends InCallService {
     // A map from Calls to indexes used to identify calls for CLCC (C* List Current Calls).
     private final Map<BluetoothCall, Integer> mClccIndexMap = new HashMap<>();
 
-    private static BluetoothInCallService sInstance;
+    private static BluetoothInCallService sInstance = null;
 
     public CallInfo mCallInfo = new CallInfo();
 
@@ -312,6 +313,13 @@ public class BluetoothInCallService extends InCallService {
     @Override
     public boolean onUnbind(Intent intent) {
         Log.i(TAG, "onUnbind. Intent: " + intent);
+        BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+        if (bluetoothAdapter == null || !bluetoothAdapter.isEnabled()) {
+            Log.i(TAG, "Bluetooth is off when unbind, disable BluetoothInCallService");
+            AdapterService adapterService = AdapterService.getAdapterService();
+            adapterService.enableBluetoothInCallService(false);
+
+        }
         return super.onUnbind(intent);
     }
 
@@ -556,6 +564,7 @@ public class BluetoothInCallService extends InCallService {
             unregisterReceiver(mBluetoothAdapterReceiver);
             mBluetoothAdapterReceiver = null;
         }
+        sInstance = null;
         super.onDestroy();
     }
 
