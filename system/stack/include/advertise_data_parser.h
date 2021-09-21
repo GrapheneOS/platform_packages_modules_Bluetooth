@@ -19,6 +19,7 @@
 #pragma once
 
 #include <array>
+#include <cstdint>
 #include <vector>
 
 // Scan Response data from Traxxas
