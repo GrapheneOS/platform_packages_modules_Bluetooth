@@ -988,7 +988,7 @@ class CsisClientImpl : public CsisClient {
 
     while ((p_service_data = AdvertiseDataParser::GetFieldByType(
                 p_service_data + service_data_len,
-                (remaining_data_len -= service_data_len), BTM_EIR_RSI_TYPE,
+                (remaining_data_len -= service_data_len), BTM_BLE_AD_TYPE_RSI,
                 &service_data_len))) {
       uint8_t* p = (uint8_t*)(p_service_data);
       RawAddress bda;
