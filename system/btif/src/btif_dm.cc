@@ -1784,6 +1784,10 @@ static void btif_dm_upstreams_evt(uint16_t event, char* p_param) {
       local_le_features.dynamic_audio_buffer_supported =
           cmn_vsc_cb.dynamic_audio_buffer_support;
 
+      local_le_features.le_periodic_advertising_sync_transfer_sender_supported =
+          controller->supports_ble_periodic_advertising_sync_transfer_sender();
+      local_le_features.le_connected_isochronous_stream_central_supported =
+          controller->supports_ble_connected_isochronous_stream_central();
       invoke_adapter_properties_cb(BT_STATUS_SUCCESS, 1, &prop);
       break;
     }
