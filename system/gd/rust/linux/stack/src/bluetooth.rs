@@ -14,6 +14,7 @@ use num_traits::cast::ToPrimitive;
 use std::collections::HashMap;
 use std::sync::Arc;
 use std::sync::Mutex;
+use std::time::Instant;
 use tokio::sync::mpsc::Sender;
 
 use crate::bluetooth_media::{BluetoothMedia, IBluetoothMedia};
@@ -42,6 +43,12 @@ pub trait IBluetooth {
 
     /// Cancels BREDR Inquiry.
     fn cancel_discovery(&self) -> bool;
+
+    /// Checks if discovery is started.
+    fn is_discovering(&self) -> bool;
+
+    /// Checks when discovery ends in milliseconds from now.
+    fn get_discovery_end_millis(&self) -> u64;
 
     /// Initiates pairing to a remote device. Triggers connection if not already started.
     fn create_bond(&self, device: BluetoothDevice, transport: BluetoothTransport) -> bool;
@@ -167,7 +174,9 @@ pub struct Bluetooth {
     bluetooth_media: Arc<Mutex<Box<BluetoothMedia>>>,
     callbacks: Vec<(u32, Box<dyn IBluetoothCallback + Send>)>,
     callbacks_last_id: u32,
+    discovering_started: Instant,
     hh: Option<HidHost>,
+    is_discovering: bool,
     local_address: Option<RawAddress>,
     properties: HashMap<BtPropertyType, BluetoothProperty>,
     found_devices: HashMap<String, BluetoothDeviceContext>,
@@ -188,7 +197,9 @@ impl Bluetooth {
             callbacks_last_id: 0,
             hh: None,
             bluetooth_media,
+            discovering_started: Instant::now(),
             intf,
+            is_discovering: false,
             local_address: None,
             properties: HashMap::new(),
             found_devices: HashMap::new(),
@@ -363,6 +374,12 @@ impl BtifBluetoothCallbacks for Bluetooth {
             self.found_devices.clear();
         }
 
+        // Cache discovering state
+        self.is_discovering = &state == &BtDiscoveryState::Started;
+        if self.is_discovering {
+            self.discovering_started = Instant::now();
+        }
+
         self.for_all_callbacks(|callback| {
             callback.on_discovering_changed(state == BtDiscoveryState::Started);
         });
@@ -485,6 +502,32 @@ impl IBluetooth for Bluetooth {
 
     fn cancel_discovery(&self) -> bool {
         self.intf.lock().unwrap().cancel_discovery() == 0
+    }
+
+    fn is_discovering(&self) -> bool {
+        self.is_discovering
+    }
+
+    fn get_discovery_end_millis(&self) -> u64 {
+        if !self.is_discovering {
+            return 0;
+        }
+
+        match self.properties.get(&BtPropertyType::AdapterDiscoveryTimeout) {
+            Some(variant) => match variant {
+                BluetoothProperty::AdapterDiscoveryTimeout(timeout) => {
+                    let seconds: u64 = (*timeout).into();
+                    let elapsed = self.discovering_started.elapsed();
+                    if elapsed.as_secs() >= seconds {
+                        0
+                    } else {
+                        seconds * 1000 - elapsed.as_millis() as u64
+                    }
+                }
+                _ => 0,
+            },
+            _ => 0,
+        }
     }
 
     fn create_bond(&self, device: BluetoothDevice, transport: BluetoothTransport) -> bool {

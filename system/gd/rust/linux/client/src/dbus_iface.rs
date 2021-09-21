@@ -234,6 +234,14 @@ impl IBluetooth for BluetoothDBus {
         self.client_proxy.method("CancelDiscovery", ())
     }
 
+    fn is_discovering(&self) -> bool {
+        self.client_proxy.method("IsDiscovering", ())
+    }
+
+    fn get_discovery_end_millis(&self) -> u64 {
+        self.client_proxy.method("GetDiscoveryEndMillis", ())
+    }
+
     fn create_bond(&self, device: BluetoothDevice, transport: BluetoothTransport) -> bool {
         self.client_proxy.method(
             "CreateBond",

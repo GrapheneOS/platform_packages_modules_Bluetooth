@@ -88,6 +88,16 @@ impl IBluetooth for IBluetoothDBus {
         true
     }
 
+    #[dbus_method("IsDiscovering")]
+    fn is_discovering(&self) -> bool {
+        true
+    }
+
+    #[dbus_method("GetDiscoveryEndMillis")]
+    fn get_discovery_end_millis(&self) -> u64 {
+        0
+    }
+
     #[dbus_method("CreateBond")]
     fn create_bond(&self, _device: BluetoothDevice, _transport: BluetoothTransport) -> bool {
         true
