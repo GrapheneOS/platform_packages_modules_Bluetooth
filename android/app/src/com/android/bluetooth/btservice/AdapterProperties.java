@@ -122,6 +122,10 @@ class AdapterProperties {
     private int mIsDynamicAudioBufferSizeSupported;
     private int mDynamicAudioBufferSizeSupportedCodecsGroup1;
     private int mDynamicAudioBufferSizeSupportedCodecsGroup2;
+
+    private boolean mIsLePeriodicAdvertisingSyncTransferSenderSupported;
+    private boolean mIsLeConnectedIsochronousStreamCentralSupported;
+
     private List<BufferConstraint> mBufferConstraintList;
 
     private boolean mReceiverRegistered;
@@ -491,6 +495,20 @@ class AdapterProperties {
      */
     boolean isLePeriodicAdvertisingSupported() {
         return mIsLePeriodicAdvertisingSupported;
+    }
+
+    /**
+     * @return the mIsLePeriodicAdvertisingSyncTransferSenderSupported
+     */
+    boolean isLePeriodicAdvertisingSyncTransferSenderSupported() {
+        return mIsLePeriodicAdvertisingSyncTransferSenderSupported;
+    }
+
+    /**
+     * @return the mIsLeConnectedIsochronousStreamCentralSupported
+     */
+    boolean isLeConnectedIsochronousStreamCentralSupported() {
+        return mIsLeConnectedIsochronousStreamCentralSupported;
     }
 
     /**
@@ -948,6 +966,8 @@ class AdapterProperties {
                 ((0xFF & ((int) val[21])) << 8) + (0xFF & ((int) val[20]));
         mDynamicAudioBufferSizeSupportedCodecsGroup2 =
                 ((0xFF & ((int) val[23])) << 8) + (0xFF & ((int) val[22]));
+        mIsLePeriodicAdvertisingSyncTransferSenderSupported = ((0xFF & ((int) val[24])) != 0);
+        mIsLeConnectedIsochronousStreamCentralSupported = ((0xFF & ((int) val[25])) != 0);
 
         Log.d(TAG, "BT_PROPERTY_LOCAL_LE_FEATURES: update from BT controller"
                 + " mNumOfAdvertisementInstancesSupported = "
@@ -967,7 +987,11 @@ class AdapterProperties {
                 + " mDynamicAudioBufferSizeSupportedCodecsGroup1 = "
                 + mDynamicAudioBufferSizeSupportedCodecsGroup1
                 + " mDynamicAudioBufferSizeSupportedCodecsGroup2 = "
-                + mDynamicAudioBufferSizeSupportedCodecsGroup2);
+                + mDynamicAudioBufferSizeSupportedCodecsGroup2
+                + " mIsLePeriodicAdvertisingSyncTransferSenderSupported = "
+                + mIsLePeriodicAdvertisingSyncTransferSenderSupported
+                + " mIsLeConnectedIsochronousStreamCentralSupported = "
+                + mIsLeConnectedIsochronousStreamCentralSupported);
         invalidateIsOffloadedFilteringSupportedCache();
     }
 
