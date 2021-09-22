@@ -25,8 +25,8 @@
 #include <base/strings/stringprintf.h>
 
 #include "bt_target.h"  // Must be first to define build configuration"
-
 #include "bta/gatt/bta_gattc_int.h"
+#include "stack/include/bt_hdr.h"
 
 using base::StringPrintf;
 

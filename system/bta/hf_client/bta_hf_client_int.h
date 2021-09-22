@@ -24,6 +24,7 @@
 #include "bta/include/bta_hf_client_api.h"
 #include "bta/sys/bta_sys.h"
 #include "osi/include/alarm.h"
+#include "stack/include/bt_hdr.h"
 #include "stack/include/bt_types.h"
 #include "types/raw_address.h"
 

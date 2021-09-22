@@ -25,6 +25,7 @@
 #define BTA_DM_CO_H
 
 #include "bta/include/bta_api.h"
+#include "stack/include/bt_hdr.h"
 #include "stack/include/bt_types.h"
 #include "stack/include/btm_api_types.h"
 #include "types/raw_address.h"

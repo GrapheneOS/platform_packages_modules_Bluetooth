@@ -28,6 +28,7 @@
 #include "bta/av/bta_av_int.h"
 #include "osi/include/allocator.h"
 #include "osi/include/log.h"
+#include "stack/include/bt_hdr.h"
 
 /*******************************************************************************
  *

@@ -19,10 +19,12 @@
 #define BTA_HH_API_H
 
 #include <base/strings/stringprintf.h>
+
 #include <cstdint>
 #include <string>
 
 #include "bta/include/bta_api.h"
+#include "stack/include/bt_hdr.h"
 #include "stack/include/hiddefs.h"
 
 /*****************************************************************************
