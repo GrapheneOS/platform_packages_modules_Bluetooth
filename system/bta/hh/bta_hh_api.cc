@@ -34,6 +34,7 @@
 #include "bta/sys/bta_sys.h"
 #include "osi/include/allocator.h"
 #include "osi/include/osi.h"  // UNUSED_ATTR
+#include "stack/include/bt_hdr.h"
 #include "stack/include/btu.h"
 #include "types/raw_address.h"
 

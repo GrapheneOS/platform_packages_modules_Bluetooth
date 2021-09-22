@@ -24,6 +24,7 @@
 
 #include "bt_trace.h"
 #include "bta/dm/bta_dm_int.h"
+#include "stack/include/bt_hdr.h"
 #include "stack/include/bt_types.h"
 
 /*****************************************************************************
