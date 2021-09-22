@@ -30,6 +30,7 @@
 #include "bta/include/bta_ag_api.h"
 #include "bta/include/bta_api.h"
 #include "bta/sys/bta_sys.h"
+#include "stack/include/bt_hdr.h"
 
 /*****************************************************************************
  *  Constants

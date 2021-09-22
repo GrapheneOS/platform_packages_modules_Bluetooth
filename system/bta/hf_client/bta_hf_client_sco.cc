@@ -23,6 +23,7 @@
 #include "bta/include/bta_ag_api.h"
 #include "device/include/esco_parameters.h"
 #include "osi/include/allocator.h"
+#include "stack/include/bt_hdr.h"
 #include "stack/include/btm_api.h"
 
 #define BTA_HF_CLIENT_NO_EDR_ESCO                                \

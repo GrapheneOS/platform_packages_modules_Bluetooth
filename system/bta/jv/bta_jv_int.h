@@ -28,6 +28,7 @@
 #include <unordered_set>
 
 #include "bta/include/bta_jv_api.h"
+#include "stack/include/bt_hdr.h"
 #include "stack/include/rfcdefs.h"
 
 /*****************************************************************************

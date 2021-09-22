@@ -27,9 +27,9 @@
 #include <cstdint>
 
 #include "bt_target.h"  // Must be first to define build configuration
-
 #include "bta/include/bta_gatt_api.h"
 #include "bta/sys/bta_sys.h"
+#include "stack/include/bt_hdr.h"
 #include "stack/include/bt_types.h"
 #include "stack/include/btm_ble_api_types.h"
 #include "stack/include/gatt_api.h"

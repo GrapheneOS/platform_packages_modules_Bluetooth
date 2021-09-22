@@ -19,6 +19,7 @@
 #include <gtest/gtest.h>
 
 #include "bta/dm/bta_dm_int.h"
+#include "stack/include/bt_hdr.h"
 #include "types/bluetooth/uuid.h"
 
 using bluetooth::Uuid;

@@ -27,11 +27,11 @@
 #define LOG_TAG "bt_bta_av"
 
 #include "bt_target.h"  // Must be first to define build configuration
-
 #include "bta/av/bta_av_int.h"
 #include "osi/include/allocator.h"
 #include "osi/include/compat.h"
 #include "osi/include/log.h"
+#include "stack/include/bt_hdr.h"
 
 /*****************************************************************************
  *  Constants
