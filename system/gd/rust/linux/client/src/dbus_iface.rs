@@ -169,6 +169,9 @@ impl IBluetoothCallback for IBluetoothCallbackDBus {
         passkey: u32,
     ) {
     }
+
+    #[dbus_method("OnBondStateChanged")]
+    fn on_bond_state_changed(&self, status: u32, address: String, state: u32) {}
 }
 
 pub(crate) struct BluetoothDBus {
@@ -239,6 +242,23 @@ impl IBluetooth for BluetoothDBus {
                 BluetoothTransport::to_dbus(transport).unwrap(),
             ),
         )
+    }
+
+    fn cancel_bond_process(&self, device: BluetoothDevice) -> bool {
+        self.client_proxy.method("CancelBondProcess", (BluetoothDevice::to_dbus(device).unwrap(),))
+    }
+
+    fn remove_bond(&self, device: BluetoothDevice) -> bool {
+        self.client_proxy.method("RemoveBond", (BluetoothDevice::to_dbus(device).unwrap(),))
+    }
+
+    fn get_bonded_devices(&self) -> Vec<BluetoothDevice> {
+        let props: Vec<dbus::arg::PropMap> = self.client_proxy.method("GetBondedDevices", ());
+        <Vec<BluetoothDevice> as DBusArg>::from_dbus(props, None, None, None).unwrap()
+    }
+
+    fn get_bond_state(&self, device: BluetoothDevice) -> u32 {
+        self.client_proxy.method("GetBondState", (BluetoothDevice::to_dbus(device).unwrap(),))
     }
 }
 

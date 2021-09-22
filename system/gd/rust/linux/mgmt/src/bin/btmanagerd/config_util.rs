@@ -1,4 +1,4 @@
-use log::Level;
+use log::LevelFilter;
 use serde_json::{Map, Value};
 
 // Directory for Bluetooth hci devices
@@ -38,16 +38,16 @@ pub fn read_config() -> std::io::Result<String> {
     std::fs::read_to_string(BTMANAGERD_CONF)
 }
 
-pub fn get_log_level() -> Option<Level> {
+pub fn get_log_level() -> Option<LevelFilter> {
     get_log_level_internal(read_config().ok()?)
 }
 
-fn get_log_level_internal(config: String) -> Option<Level> {
+fn get_log_level_internal(config: String) -> Option<LevelFilter> {
     serde_json::from_str::<Value>(config.as_str())
         .ok()?
         .get("log_level")?
         .as_str()?
-        .parse::<Level>()
+        .parse::<LevelFilter>()
         .ok()
 }
 
@@ -151,23 +151,23 @@ mod tests {
     fn parse_log_level() {
         assert_eq!(
             get_log_level_internal("{\"log_level\": \"error\"}".to_string()).unwrap(),
-            Level::Error
+            LevelFilter::Error
         );
         assert_eq!(
             get_log_level_internal("{\"log_level\": \"warn\"}".to_string()).unwrap(),
-            Level::Warn
+            LevelFilter::Warn
         );
         assert_eq!(
             get_log_level_internal("{\"log_level\": \"info\"}".to_string()).unwrap(),
-            Level::Info
+            LevelFilter::Info
         );
         assert_eq!(
             get_log_level_internal("{\"log_level\": \"debug\"}".to_string()).unwrap(),
-            Level::Debug
+            LevelFilter::Debug
         );
         assert_eq!(
             get_log_level_internal("{\"log_level\": \"trace\"}".to_string()).unwrap(),
-            Level::Trace
+            LevelFilter::Trace
         );
         assert_eq!(
             get_log_level_internal("{\"log_level\": \"random\"}".to_string()).is_none(),

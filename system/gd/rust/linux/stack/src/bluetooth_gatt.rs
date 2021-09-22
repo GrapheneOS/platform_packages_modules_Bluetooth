@@ -10,11 +10,10 @@ use bt_topshim::profiles::gatt::{
 };
 use bt_topshim::topstack;
 
+use log::{debug, warn};
 use num_traits::cast::{FromPrimitive, ToPrimitive};
-
 use std::collections::HashSet;
 use std::sync::{Arc, Mutex};
-
 use tokio::sync::mpsc::Sender;
 
 use crate::{Message, RPCProxy};
@@ -514,7 +513,7 @@ impl BluetoothGatt {
             GattServerCallbacksDispatcher {
                 dispatch: Box::new(move |cb| {
                     // TODO(b/193685149): Implement the callbacks
-                    println!("received Gatt server callback: {:?}", cb);
+                    debug!("received Gatt server callback: {:?}", cb);
                 }),
             },
         );
@@ -960,7 +959,7 @@ impl BtifGattClientCallbacks for BluetoothGatt {
 
         let client = self.context_map.get_by_uuid(&app_uuid.uu);
         if client.is_none() {
-            println!("Warning: Client not registered for UUID {:?}", app_uuid.uu);
+            warn!("Warning: Client not registered for UUID {:?}", app_uuid.uu);
             return;
         }
 
@@ -1359,6 +1358,60 @@ mod tests {
             _addr: String,
         ) {
         }
+
+        fn on_phy_update(
+            &self,
+            _addr: String,
+            _tx_phy: LePhy,
+            _rx_phy: LePhy,
+            _status: GattStatus,
+        ) {
+        }
+
+        fn on_phy_read(&self, _addr: String, _tx_phy: LePhy, _rx_phy: LePhy, _status: GattStatus) {}
+
+        fn on_search_complete(
+            &self,
+            _addr: String,
+            _services: Vec<BluetoothGattService>,
+            _status: i32,
+        ) {
+        }
+
+        fn on_characteristic_read(
+            &self,
+            _addr: String,
+            _status: i32,
+            _handle: i32,
+            _value: Vec<u8>,
+        ) {
+        }
+
+        fn on_characteristic_write(&self, _addr: String, _status: i32, _handle: i32) {}
+
+        fn on_execute_write(&self, _addr: String, _status: i32) {}
+
+        fn on_descriptor_read(&self, _addr: String, _status: i32, _handle: i32, _value: Vec<u8>) {}
+
+        fn on_descriptor_write(&self, _addr: String, _status: i32, _handle: i32) {}
+
+        fn on_notify(&self, _addr: String, _handle: i32, _value: Vec<u8>) {}
+
+        fn on_read_remote_rssi(&self, _addr: String, _rssi: i32, _status: i32) {}
+
+        fn on_configure_mtu(&self, _addr: String, _mtu: i32, _status: i32) {}
+
+        fn on_connection_updated(
+            &self,
+            _addr: String,
+            _interval: i32,
+            _latency: i32,
+            _timeout: i32,
+            _status: i32,
+        ) {
+        }
+
+        fn on_service_changed(&self, _addr: String) {}
     }
 
     impl RPCProxy for TestBluetoothGattCallback {
