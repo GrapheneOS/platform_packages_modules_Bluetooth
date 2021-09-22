@@ -26,6 +26,7 @@
 #include "device/include/interop.h"
 #include "include/hardware/bt_rc.h"
 #include "osi/test/AllocationTestHarness.h"
+#include "stack/include/bt_hdr.h"
 #include "stack/include/btm_api_types.h"
 #include "types/raw_address.h"
 #undef LOG_TAG
