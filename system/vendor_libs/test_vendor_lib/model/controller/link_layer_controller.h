@@ -450,7 +450,7 @@ class LinkLayerController {
                          std::array<uint8_t, kIrk_size>>>
       le_resolving_list_;
 
-  std::array<LeAdvertiser, 3> advertisers_;
+  std::array<LeAdvertiser, 7> advertisers_;
 
   bluetooth::hci::OpCode le_scan_enable_{bluetooth::hci::OpCode::NONE};
   uint8_t le_scan_type_{};
