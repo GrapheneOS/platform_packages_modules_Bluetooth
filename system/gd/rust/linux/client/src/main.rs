@@ -99,6 +99,27 @@ impl ClientContext {
         }
     }
 
+    // Sets required values for the adapter when enabling or disabling
+    fn set_adapter_enabled(&mut self, hci_interface: i32, enabled: bool) {
+        print_info!("hci{} enabled = {}", hci_interface, enabled);
+
+        self.adapters.entry(hci_interface).and_modify(|v| *v = enabled).or_insert(enabled);
+
+        // When the default adapter's state is updated, we need to modify a few more things.
+        // Only do this if we're not repeating the previous state.
+        let prev_enabled = self.enabled;
+        let default_adapter = self.default_adapter;
+        if hci_interface == default_adapter && prev_enabled != enabled {
+            self.enabled = enabled;
+            self.adapter_ready = false;
+            if enabled {
+                self.create_adapter_proxy(hci_interface);
+            } else {
+                self.adapter_dbus = None;
+            }
+        }
+    }
+
     // Creates adapter proxy, registers callbacks and initializes address.
     fn create_adapter_proxy(&mut self, idx: i32) {
         let conn = self.dbus_connection.clone();
@@ -116,6 +137,14 @@ impl ClientContext {
             let objpath = String::from("/org/chromium/bluetooth/client/bluetooth_callback");
             let _ = fg.send(ForegroundActions::RegisterAdapterCallback(objpath)).await;
         });
+    }
+
+    // Foreground-only: Updates the adapter address.
+    fn update_adapter_address(&mut self) -> String {
+        let address = self.adapter_dbus.as_ref().unwrap().get_address();
+        self.adapter_address = Some(address.clone());
+
+        address
     }
 }
 
@@ -170,6 +199,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             String::from("/org/chromium/bluetooth/client/bluetooth_manager_callback"),
             context.clone(),
         )));
+
+        // Check if the default adapter is enabled. If yes, we should create the adapter proxy
+        // right away.
+        let default_adapter = context.lock().unwrap().default_adapter;
+        if context.lock().unwrap().manager_dbus.get_adapter_enabled(default_adapter) {
+            context.lock().unwrap().set_adapter_enabled(default_adapter, true);
+        }
 
         let mut handler = CommandHandler::new(context.clone());
 
@@ -233,6 +269,8 @@ async fn start_interactive_shell(
                     .unwrap()
                     .register_callback(Box::new(BtCallback::new(objpath, context.clone())));
                 context.lock().unwrap().adapter_ready = true;
+                let adapter_address = context.lock().unwrap().update_adapter_address();
+                print_info!("Adapter {} is ready", adapter_address);
             }
             ForegroundActions::Readline(result) => match result {
                 Err(_err) => {
