@@ -16,16 +16,16 @@
  *
  ******************************************************************************/
 
+#include "hci/include/packet_fragmenter.h"
+
 #include <gtest/gtest.h>
-
-#include "AllocationTestHarness.h"
-
 #include <stdint.h>
 
+#include "AllocationTestHarness.h"
 #include "device/include/controller.h"
-#include "hci/include/packet_fragmenter.h"
 #include "osi/include/allocator.h"
 #include "osi/include/osi.h"
+#include "stack/include/bt_hdr.h"
 #include "test_stubs.h"
 
 #ifndef HCI_ACL_PREAMBLE_SIZE
