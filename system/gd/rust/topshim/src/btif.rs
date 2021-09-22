@@ -174,7 +174,7 @@ pub enum BtStatus {
     Unknown = 0xff,
 }
 
-fn ascii_to_string(data: &[u8], length: usize) -> String {
+pub fn ascii_to_string(data: &[u8], length: usize) -> String {
     // We need to reslice data because from_utf8 tries to interpret the
     // whole slice and not just what is before the null terminated portion
     let ascii = data
@@ -523,6 +523,7 @@ pub enum SupportedProfiles {
     HidHost,
     A2dp,
     Gatt,
+    Sdp,
 }
 
 impl From<SupportedProfiles> for Vec<u8> {
@@ -531,6 +532,7 @@ impl From<SupportedProfiles> for Vec<u8> {
             SupportedProfiles::HidHost => "hidhost",
             SupportedProfiles::A2dp => "a2dp",
             SupportedProfiles::Gatt => "gatt",
+            SupportedProfiles::Sdp => "sdp",
         }
         .bytes()
         .chain("\0".bytes())
@@ -629,6 +631,13 @@ impl RawAddress {
 macro_rules! deref_ffi_address {
     ($ffi_addr:ident) => {
         *($ffi_addr as *mut RawAddress)
+    };
+}
+
+#[macro_export]
+macro_rules! deref_const_ffi_address {
+    ($ffi_addr:ident) => {
+        *($ffi_addr as *const RawAddress)
     };
 }
 
