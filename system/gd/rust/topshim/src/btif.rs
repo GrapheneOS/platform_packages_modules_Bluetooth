@@ -70,14 +70,14 @@ impl From<BtSspVariant> for bindings::bt_ssp_variant_t {
 #[derive(Clone, Debug, FromPrimitive, ToPrimitive, PartialEq, PartialOrd)]
 #[repr(u32)]
 pub enum BtBondState {
-    Unknown = 0,
+    NotBonded = 0,
     Bonding,
     Bonded,
 }
 
 impl From<bindings::bt_bond_state_t> for BtBondState {
     fn from(item: bindings::bt_bond_state_t) -> Self {
-        BtBondState::from_u32(item).unwrap_or_else(|| BtBondState::Unknown)
+        BtBondState::from_u32(item).unwrap_or_else(|| BtBondState::NotBonded)
     }
 }
 

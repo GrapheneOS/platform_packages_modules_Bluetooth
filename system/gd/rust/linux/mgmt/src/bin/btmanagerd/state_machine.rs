@@ -278,7 +278,7 @@ pub async fn mainloop<PM>(
             break;
         }
 
-        println!("Message handler: {:?}", m);
+        debug!("Message handler: {:?}", m);
 
         match m.unwrap() {
             // Adapter action has changed
