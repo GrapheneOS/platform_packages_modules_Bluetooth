@@ -20,6 +20,7 @@
 #include <base/logging.h>
 #include <base/task/cancelable_task_tracker.h>
 #include <base/threading/thread.h>
+
 #include <mutex>
 #include <sstream>
 
@@ -29,6 +30,7 @@
 #include "btif_common.h"
 #include "btif_dm.h"
 #include "device.h"
+#include "stack/include/bt_hdr.h"
 #include "stack/include/btu.h"
 
 namespace bluetooth {

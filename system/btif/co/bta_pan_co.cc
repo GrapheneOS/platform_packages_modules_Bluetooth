@@ -25,10 +25,12 @@
  *
  ******************************************************************************/
 #include "bta_pan_co.h"
+
 #include <base/logging.h>
 #include <hardware/bluetooth.h>
 #include <hardware/bt_pan.h>
 #include <string.h>
+
 #include "bta_api.h"
 #include "bta_pan_api.h"
 #include "bta_pan_ci.h"
@@ -38,6 +40,7 @@
 #include "osi/include/allocator.h"
 #include "osi/include/osi.h"
 #include "pan_api.h"
+#include "stack/include/bt_hdr.h"
 
 /*******************************************************************************
  *
