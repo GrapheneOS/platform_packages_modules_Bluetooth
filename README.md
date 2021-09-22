@@ -14,8 +14,9 @@ Instructions for a Debian based distribution:
 
 You'll want to download some pre-requisite packages as well. If you're currently
 configured for AOSP development, you should have most required packages.
-Otherwise, you can use the following apt-get list or use the bootstrap script
-(see below) to get a list of packages missing on your system:
+Otherwise, you can use the following apt-get list or use the `--run-bootstrap`
+option on `build.py` (see below) to get a list of packages missing on your
+system:
 
 ```sh
 sudo apt-get install repo git-core gnupg flex bison gperf build-essential \
@@ -27,7 +28,7 @@ sudo apt-get install repo git-core gnupg flex bison gperf build-essential \
   libflatbuffers-dev libtinyxml2-dev \
   libglib2.0-dev libevent-dev libnss3-dev libdbus-1-dev \
   libprotobuf-dev ninja-build generate-ninja protobuf-compiler \
-  libre2-9
+  libre2-9 debmake
 ```
 
 You will also need a recent-ish version of Rust and Cargo. Please follow the
@@ -41,17 +42,21 @@ cd ~/fluoride
 git clone https://android.googlesource.com/platform/packages/modules/Bluetooth/system
 ```
 
-### Use bootstrap.py
+### Using --run-bootstrap on build.py
 
-`bootstrap.py` is a helper script provided to set up your build environment. It
-will set up your build staging directory and also make sure you have all
-required system packages to build (should work on Debian and Ubuntu). You will
-still need to build some unpackaged dependencies.
+`build.py` is the helper script used to build Fluoride for Linux (i.e. Floss).
+It accepts a `--run-bootstrap` option that will set up your build staging
+directory and also make sure you have all required system packages to build
+(should work on Debian and Ubuntu). You will still need to build some unpackaged
+dependencies (like libchrome, modp_b64, googletest, etc).
 
 To use it:
 ```sh
-./bootstrap.py --base-dir=path/to/staging/dir --bt-dir=path/to/bt/dir
+./build.py --run-bootstrap
 ```
+
+This will install your bootstrapped build environment to `~/.floss`. If you want
+to change this, just pass in `--bootstrap-dir` to the script.
 
 ### Build dependencies
 
@@ -104,7 +109,7 @@ done
 
 ### Rust dependencies
 
-**Note**: Handled by bootstrap script.
+**Note**: Handled by `--run-bootstrap` option.
 
 Run the following to install Rust dependencies:
 ```
@@ -113,7 +118,7 @@ cargo install cxxbridge-cmd
 
 ### Stage your build environment
 
-**Note**: Handled by bootstrap script.
+**Note**: Handled by `--run-bootstrap` option.
 
 For host build, we depend on a few other repositories:
 * [Platform2](https://chromium.googlesource.com/chromiumos/platform2/)
@@ -135,17 +140,18 @@ ln -s $(readlink -f ${PROTO_LOG_DIR}) ${STAGING_DIR}/external/proto_logging
 
 We provide a build script to automate building assuming you've staged your build
 environment already as above. At this point, make sure you have all the
-pre-requisites installed (i.e. bootstrap script and other dependencies above) or
+pre-requisites installed (i.e. bootstrap option and other dependencies above) or
 you will see failures. In addition, you may need to set a `--libdir=` if your
-libraries are not stored in `/usr/lib64` by default.
+libraries are not stored in `/usr/lib` by default.
 
 
 ```sh
-./build.py --output ${OUTPUT_DIR} --platform-dir ${STAGING_DIR} --clang
+./build.py
 ```
 
-This will build all targets to the output directory you've given. You can also
-build each stage separately (if you want to iterate on something specific):
+This will build all targets to the output directory at `--bootstrap-dir` (which
+defaults to `~/.floss`). You can also build each stage separately (if you want
+to iterate on something specific):
 
 * prepare - Generate the GN rules
 * tools - Generate host tools
@@ -157,7 +163,10 @@ build each stage separately (if you want to iterate on something specific):
 You can choose to run only a specific stage by passing an arg via `--target`.
 
 Currently, Rust builds are a separate stage that uses Cargo to build. See
-[gd/rust/README.md](gd/rust/README.md) for more information.
+[gd/rust/README.md](gd/rust/README.md) for more information. If you are
+iterating on Rust code and want to add new crates, you may also want to use the
+`--no-vendored-rust` option (which will let you use crates.io instead of using
+a pre-populated vendored crates repo).
 
 ### Run
 
