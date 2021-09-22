@@ -77,6 +77,58 @@ HOST_TESTS = [
     # 'net_test_btpackets',
 ]
 
+BOOTSTRAP_GIT_REPOS = {
+    'platform2': 'https://chromium.googlesource.com/chromiumos/platform2',
+    'rust_crates': 'https://chromium.googlesource.com/chromiumos/third_party/rust_crates',
+    'proto_logging': 'https://android.googlesource.com/platform/frameworks/proto_logging'
+}
+
+# List of packages required for linux build
+REQUIRED_APT_PACKAGES = [
+    'bison',
+    'build-essential',
+    'curl',
+    'debmake',
+    'flatbuffers-compiler',
+    'flex',
+    'g++-multilib',
+    'gcc-multilib',
+    'generate-ninja',
+    'gnupg',
+    'gperf',
+    'libc++-dev',
+    'libdbus-1-dev',
+    'libevent-dev',
+    'libevent-dev',
+    'libflatbuffers-dev',
+    'libflatbuffers1',
+    'libgl1-mesa-dev',
+    'libglib2.0-dev',
+    'liblz4-tool',
+    'libncurses5',
+    'libnss3-dev',
+    'libprotobuf-dev',
+    'libre2-9',
+    'libssl-dev',
+    'libtinyxml2-dev',
+    'libx11-dev',
+    'libxml2-utils',
+    'ninja-build',
+    'openssl',
+    'protobuf-compiler',
+    'unzip',
+    'x11proto-core-dev',
+    'xsltproc',
+    'zip',
+    'zlib1g-dev',
+]
+
+# List of cargo packages required for linux build
+REQUIRED_CARGO_PACKAGES = ['cxxbridge-cmd']
+
+APT_PKG_LIST = ['apt', '-qq', 'list']
+CARGO_PKG_LIST = ['cargo', 'install', '--list']
+
 
 class UseFlags():
 
@@ -123,11 +175,14 @@ class HostBuild():
             self.jobs = multiprocessing.cpu_count()
             print("Number of jobs = {}".format(self.jobs))
 
-        # Normalize all directories
-        self.output_dir = os.path.abspath(self.args.output)
-        self.platform_dir = os.path.abspath(self.args.platform_dir)
+        # Normalize bootstrap dir and make sure it exists
+        self.bootstrap_dir = os.path.abspath(self.args.bootstrap_dir)
+        os.makedirs(self.bootstrap_dir, exist_ok=True)
+
+        # Output and platform directories are based on bootstrap
+        self.output_dir = os.path.join(self.bootstrap_dir, 'output')
+        self.platform_dir = os.path.join(self.bootstrap_dir, 'staging')
         self.sysroot = self.args.sysroot
-        self.use_board = os.path.abspath(self.args.use_board) if self.args.use_board else None
         self.libdir = self.args.libdir
 
         # If default target isn't set, build everything
@@ -183,16 +238,6 @@ class HostBuild():
         self.env['RUSTFLAGS'] = self._generate_rustflags()
         self.env['CXX_ROOT_PATH'] = os.path.join(self.platform_dir, 'bt')
 
-        # Configure some GN variables
-        if self.use_board:
-            self.env['PKG_CONFIG_PATH'] = os.path.join(self.use_board, self.libdir, 'pkgconfig')
-            libdir = os.path.join(self.use_board, self.libdir)
-            if self.env.get('LIBRARY_PATH'):
-                libpath = self.env['LIBRARY_PATH']
-                self.env['LIBRARY_PATH'] = '{}:{}'.format(libdir, libpath)
-            else:
-                self.env['LIBRARY_PATH'] = libdir
-
     def run_command(self, target, args, cwd=None, env=None):
         """ Run command and stream the output.
         """
@@ -243,7 +288,7 @@ class HostBuild():
 
         Mostly copied from //common-mk/platform2.py
         """
-        clang = self.args.clang
+        clang = not self.args.no_clang
 
         def to_gn_string(s):
             return '"%s"' % s.replace('"', '\\"')
@@ -288,20 +333,6 @@ class HostBuild():
             self.use.set_flag('clang', True)
             gn_args['external_cxxflags'] += ['-I/usr/include/']
 
-        # EXTREME HACK ALERT
-        #
-        # In my laziness, I am supporting building against an already built
-        # sysroot path (i.e. chromeos board) so that I don't have to build
-        # libchrome or modp_b64 locally.
-        if self.use_board:
-            includedir = os.path.join(self.use_board, 'usr/include')
-            gn_args['external_cxxflags'] += [
-                '-I{}'.format(includedir),
-                '-I{}/libchrome'.format(includedir),
-                '-I{}/gtest'.format(includedir),
-                '-I{}/gmock'.format(includedir),
-                '-I{}/modp_b64'.format(includedir),
-            ]
         gn_args_args = list(to_gn_args_args(gn_args))
         use_args = ['%s=%s' % (k, str(v).lower()) for k, v in self.use.flags.items()]
         gn_args_args += ['use={%s}' % (' '.join(use_args))]
@@ -351,7 +382,7 @@ class HostBuild():
         local-registry = "/nonexistent"
         """
 
-        if self.args.vendored_rust:
+        if not self.args.no_vendored_rust:
             contents = template.format(self.platform_dir)
             with open(os.path.join(self.env['CARGO_HOME'], 'config'), 'w') as f:
                 f.write(contents)
@@ -410,6 +441,8 @@ class HostBuild():
         """ Delete the output directory entirely.
         """
         shutil.rmtree(self.output_dir)
+        # Remove Cargo.lock that may have become generated
+        os.remove(os.path.join(self.platform_dir, 'bt', 'Cargo.lock'))
 
     def _target_all(self):
         """ Build all common targets (skipping test and clean).
@@ -440,21 +473,247 @@ class HostBuild():
             self._target_all()
 
 
+class Bootstrap():
+
+    def __init__(self, base_dir, bt_dir):
+        """ Construct bootstrapper.
+
+        Args:
+            base_dir: Where to stage everything.
+            bt_dir: Where bluetooth source is kept (will be symlinked)
+        """
+        self.base_dir = os.path.abspath(base_dir)
+        self.bt_dir = os.path.abspath(bt_dir)
+
+        # Create base directory if it doesn't already exist
+        os.makedirs(self.base_dir, exist_ok=True)
+
+        if not os.path.isdir(self.bt_dir):
+            raise Exception('{} is not a valid directory'.format(self.bt_dir))
+
+        self.git_dir = os.path.join(self.base_dir, 'repos')
+        self.staging_dir = os.path.join(self.base_dir, 'staging')
+        self.output_dir = os.path.join(self.base_dir, 'output')
+        self.external_dir = os.path.join(self.base_dir, 'staging', 'external')
+
+        self.dir_setup_complete = os.path.join(self.base_dir, '.setup-complete')
+
+    def _update_platform2(self):
+        """Updates repositories used for build."""
+        for repo in BOOTSTRAP_GIT_REPOS.keys():
+            cwd = os.path.join(self.git_dir, repo)
+            subprocess.check_call(['git', 'pull'], cwd=cwd)
+
+    def _setup_platform2(self):
+        """ Set up platform2.
+
+        This will check out all the git repos and symlink everything correctly.
+        """
+
+        # If already set up, exit early
+        if os.path.isfile(self.dir_setup_complete):
+            print('{} already set-up. Updating instead.'.format(self.base_dir))
+            self._update_platform2()
+            return
+
+        # Create all directories we will need to use
+        for dirpath in [self.git_dir, self.staging_dir, self.output_dir, self.external_dir]:
+            os.makedirs(dirpath)
+
+        # Check out all repos in git directory
+        for repo in BOOTSTRAP_GIT_REPOS.values():
+            subprocess.check_call(['git', 'clone', repo], cwd=self.git_dir)
+
+        # Symlink things
+        symlinks = [
+            (os.path.join(self.git_dir, 'platform2', 'common-mk'), os.path.join(self.staging_dir, 'common-mk')),
+            (os.path.join(self.git_dir, 'platform2', '.gn'), os.path.join(self.staging_dir, '.gn')),
+            (os.path.join(self.bt_dir), os.path.join(self.staging_dir, 'bt')),
+            (os.path.join(self.git_dir, 'rust_crates'), os.path.join(self.external_dir, 'rust')),
+            (os.path.join(self.git_dir, 'proto_logging'), os.path.join(self.external_dir, 'proto_logging')),
+        ]
+
+        # Create symlinks
+        for pairs in symlinks:
+            (src, dst) = pairs
+            os.symlink(src, dst)
+
+        # Write to setup complete file so we don't repeat this step
+        with open(self.dir_setup_complete, 'w') as f:
+            f.write('Setup complete.')
+
+    def _pretty_print_install(self, install_cmd, packages, line_limit=80):
+        """ Pretty print an install command.
+
+        Args:
+            install_cmd: Prefixed install command.
+            packages: Enumerate packages and append them to install command.
+            line_limit: Number of characters per line.
+
+        Return:
+            Array of lines to join and print.
+        """
+        install = [install_cmd]
+        line = '  '
+        # Remainder needed = space + len(pkg) + space + \
+        # Assuming 80 character lines, that's 80 - 3 = 77
+        line_limit = line_limit - 3
+        for pkg in packages:
+            if len(line) + len(pkg) < line_limit:
+                line = '{}{} '.format(line, pkg)
+            else:
+                install.append(line)
+                line = '  {} '.format(pkg)
+
+        if len(line) > 0:
+            install.append(line)
+
+        return install
+
+    def _check_package_installed(self, package, cmd, predicate):
+        """Check that the given package is installed.
+
+        Args:
+            package: Check that this package is installed.
+            cmd: Command prefix to check if installed (package appended to end)
+            predicate: Function/lambda to check if package is installed based
+                       on output. Takes string output and returns boolean.
+
+        Return:
+            True if package is installed.
+        """
+        try:
+            output = subprocess.check_output(cmd + [package], stderr=subprocess.STDOUT)
+            is_installed = predicate(output.decode('utf-8'))
+            print('  {} is {}'.format(package, 'installed' if is_installed else 'missing'))
+
+            return is_installed
+        except Exception as e:
+            print(e)
+            return False
+
+    def _get_command_output(self, cmd):
+        """Runs the command and gets the output.
+
+        Args:
+            cmd: Command to run.
+
+        Return:
+            Tuple (Success, Output). Success represents if the command ran ok.
+        """
+        try:
+            output = subprocess.check_output(cmd, stderr=subprocess.STDOUT)
+            return (True, output.decode('utf-8').split('\n'))
+        except Exception as e:
+            print(e)
+            return (False, "")
+
+    def _print_missing_packages(self):
+        """Print any missing packages found via apt.
+
+        This will find any missing packages necessary for build using apt and
+        print it out as an apt-get install printf.
+        """
+        print('Checking for any missing packages...')
+
+        (success, output) = self._get_command_output(APT_PKG_LIST)
+        if not success:
+            raise Exception("Could not query apt for packages.")
+
+        packages_installed = {}
+        for line in output:
+            if 'installed' in line:
+                split = line.split('/', 2)
+                packages_installed[split[0]] = True
+
+        need_packages = []
+        for pkg in REQUIRED_APT_PACKAGES:
+            if pkg not in packages_installed:
+                need_packages.append(pkg)
+
+        # No packages need to be installed
+        if len(need_packages) == 0:
+            print('+ All required packages are installed')
+            return
+
+        install = self._pretty_print_install('sudo apt-get install', need_packages)
+
+        # Print all lines so they can be run in cmdline
+        print('Missing system packages. Run the following command: ')
+        print(' \\\n'.join(install))
+
+    def _print_missing_rust_packages(self):
+        """Print any missing packages found via cargo.
+
+        This will find any missing packages necessary for build using cargo and
+        print it out as a cargo-install printf.
+        """
+        print('Checking for any missing cargo packages...')
+
+        (success, output) = self._get_command_output(CARGO_PKG_LIST)
+        if not success:
+            raise Exception("Could not query cargo for packages.")
+
+        packages_installed = {}
+        for line in output:
+            # Cargo installed packages have this format
+            # <crate name> <version>:
+            #   <binary name>
+            # We only care about the crates themselves
+            if ':' not in line:
+                continue
+
+            split = line.split(' ', 2)
+            packages_installed[split[0]] = True
+
+        need_packages = []
+        for pkg in REQUIRED_CARGO_PACKAGES:
+            if pkg not in packages_installed:
+                need_packages.append(pkg)
+
+        # No packages to be installed
+        if len(need_packages) == 0:
+            print('+ All required cargo packages are installed')
+            return
+
+        install = self._pretty_print_install('cargo install', need_packages)
+        print('Missing cargo packages. Run the following command: ')
+        print(' \\\n'.join(install))
+
+    def bootstrap(self):
+        """ Bootstrap the Linux build."""
+        self._setup_platform2()
+        self._print_missing_packages()
+        self._print_missing_rust_packages()
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Simple build for host.')
-    parser.add_argument('--output', help='Output directory for the build.', required=True)
-    parser.add_argument('--platform-dir', help='Directory where platform2 is staged.', required=True)
-    parser.add_argument('--clang', help='Use clang compiler.', default=False, action='store_true')
+    parser.add_argument(
+        '--bootstrap-dir', help='Directory to run bootstrap on (or was previously run on).', default="~/.floss")
+    parser.add_argument(
+        '--run-bootstrap',
+        help='Run bootstrap code to verify build env is ok to build.',
+        default=False,
+        action='store_true')
+    parser.add_argument('--no-clang', help='Use clang compiler.', default=False, action='store_true')
     parser.add_argument('--use', help='Set a specific use flag.')
     parser.add_argument('--notest', help="Don't compile test code.", default=False, action='store_true')
     parser.add_argument('--target', help='Run specific build target')
     parser.add_argument('--sysroot', help='Set a specific sysroot path', default='/')
-    parser.add_argument('--libdir', help='Libdir - default = usr/lib64', default='usr/lib64')
-    parser.add_argument('--use-board', help='Use a built x86 board for dependencies. Provide path.')
+    parser.add_argument('--libdir', help='Libdir - default = usr/lib', default='usr/lib')
     parser.add_argument('--jobs', help='Number of jobs to run', default=0, type=int)
-    parser.add_argument('--vendored-rust', help='Use vendored rust crates', default=False, action='store_true')
+    parser.add_argument(
+        '--no-vendored-rust', help='Do not use vendored rust crates', default=False, action='store_true')
     parser.add_argument('--verbose', help='Verbose logs for build.')
-
     args = parser.parse_args()
-    build = HostBuild(args)
-    build.build()
+
+    # Make sure we get absolute path + expanded path for bootstrap directory
+    args.bootstrap_dir = os.path.abspath(os.path.expanduser(args.bootstrap_dir))
+
+    if args.run_bootstrap:
+        bootstrap = Bootstrap(args.bootstrap_dir, os.path.dirname(__file__))
+        bootstrap.bootstrap()
+    else:
+        build = HostBuild(args)
+        build.build()
