@@ -30,6 +30,7 @@
 #if defined(BTA_HD_INCLUDED) && (BTA_HD_INCLUDED == TRUE)
 
 #include "bta/hd/bta_hd_int.h"
+#include "stack/include/bt_hdr.h"
 
 /*****************************************************************************
  * Constants and types

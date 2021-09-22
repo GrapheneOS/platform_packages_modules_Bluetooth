@@ -28,7 +28,6 @@
 #include <cstdint>
 
 #include "bt_target.h"  // Must be first to define build configuration
-
 #include "bta/av/bta_av_int.h"
 #include "bta/include/bta_ar_api.h"
 #include "bta/include/utl.h"
@@ -38,6 +37,7 @@
 #include "osi/include/osi.h"  // UNUSED_ATTR
 #include "osi/include/properties.h"
 #include "stack/include/acl_api.h"
+#include "stack/include/bt_hdr.h"
 #include "stack/include/l2c_api.h"
 #include "types/raw_address.h"
 
