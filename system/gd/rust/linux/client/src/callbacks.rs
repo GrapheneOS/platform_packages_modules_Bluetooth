@@ -32,29 +32,7 @@ impl IBluetoothManagerCallback for BtManagerCallback {
     }
 
     fn on_hci_enabled_changed(&self, hci_interface: i32, enabled: bool) {
-        print_info!("hci{} enabled = {}", hci_interface, enabled);
-
-        self.context
-            .lock()
-            .unwrap()
-            .adapters
-            .entry(hci_interface)
-            .and_modify(|v| *v = enabled)
-            .or_insert(enabled);
-
-        // When the default adapter's state is updated, we need to modify a few more things.
-        // Only do this if we're not repeating the previous state.
-        let prev_enabled = self.context.lock().unwrap().enabled;
-        let default_adapter = self.context.lock().unwrap().default_adapter;
-        if hci_interface == default_adapter && prev_enabled != enabled {
-            self.context.lock().unwrap().enabled = enabled;
-            self.context.lock().unwrap().adapter_ready = false;
-            if enabled {
-                self.context.lock().unwrap().create_adapter_proxy(hci_interface);
-            } else {
-                self.context.lock().unwrap().adapter_dbus = None;
-            }
-        }
+        self.context.lock().unwrap().set_adapter_enabled(hci_interface, enabled);
     }
 }
 
@@ -123,6 +101,10 @@ impl IBluetoothCallback for BtCallback {
                 passkey
             );
         }
+    }
+
+    fn on_bond_state_changed(&self, status: u32, address: String, state: u32) {
+        print_info!("Bonding state changed: [{}] state: {}, Status = {}", address, state, status);
     }
 }
 
