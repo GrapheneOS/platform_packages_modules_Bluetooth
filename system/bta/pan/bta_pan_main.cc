@@ -29,6 +29,7 @@
 
 #include "bta/pan/bta_pan_int.h"
 #include "osi/include/osi.h"  // UNUSED_ATTR
+#include "stack/include/bt_hdr.h"
 
 /*****************************************************************************
  * Constants and types

@@ -30,6 +30,7 @@
 
 #include "bta/include/bta_hd_api.h"
 #include "bta/sys/bta_sys.h"
+#include "stack/include/bt_hdr.h"
 #include "stack/include/bt_types.h"
 #include "stack/include/hiddefs.h"
 #include "types/raw_address.h"

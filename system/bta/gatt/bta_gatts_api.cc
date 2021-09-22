@@ -24,14 +24,15 @@
 
 #include <base/bind.h>
 #include <base/location.h>
+
 #include <cstdint>
 #include <memory>
 #include <vector>
 
 #include "bt_target.h"  // Must be first to define build configuration
-
 #include "bta/gatt/bta_gatts_int.h"
 #include "osi/include/allocator.h"
+#include "stack/include/bt_hdr.h"
 #include "stack/include/btu.h"  // do_in_main_thread
 #include "types/bluetooth/uuid.h"
 #include "types/bt_transport.h"
