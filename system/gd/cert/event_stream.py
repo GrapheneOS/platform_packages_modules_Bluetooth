@@ -59,7 +59,7 @@ def pretty_print(proto_event):
     return '{} {}'.format(type(proto_event).__name__, text_format.MessageToString(proto_event, as_one_line=True))
 
 
-DEFAULT_TIMEOUT_SECONDS = 3
+DEFAULT_TIMEOUT_SECONDS = 10
 
 
 class EventStream(IEventStream, Closable):
