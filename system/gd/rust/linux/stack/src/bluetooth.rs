@@ -42,6 +42,12 @@ pub trait IBluetooth {
     /// Gets supported UUIDs by the local adapter.
     fn get_uuids(&self) -> Vec<Uuid128Bit>;
 
+    /// Gets the local adapter name.
+    fn get_name(&self) -> String;
+
+    /// Sets the local adapter name.
+    fn set_name(&self, name: String) -> bool;
+
     /// Starts BREDR Inquiry.
     fn start_discovery(&self) -> bool;
 
@@ -510,6 +516,20 @@ impl IBluetooth for Bluetooth {
             },
             _ => vec![],
         }
+    }
+
+    fn get_name(&self) -> String {
+        match self.properties.get(&BtPropertyType::BdName) {
+            Some(prop) => match prop {
+                BluetoothProperty::BdName(name) => name.clone(),
+                _ => String::new(),
+            },
+            _ => String::new(),
+        }
+    }
+
+    fn set_name(&self, name: String) -> bool {
+        self.intf.lock().unwrap().set_adapter_property(BluetoothProperty::BdName(name)) == 0
     }
 
     fn start_discovery(&self) -> bool {

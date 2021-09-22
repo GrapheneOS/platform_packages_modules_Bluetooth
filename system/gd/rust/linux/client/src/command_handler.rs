@@ -253,8 +253,10 @@ impl CommandHandler {
                     Some(x) => x.clone(),
                     None => String::from(""),
                 };
+                let name = self.context.lock().unwrap().adapter_dbus.as_ref().unwrap().get_name();
                 let uuids = self.context.lock().unwrap().adapter_dbus.as_ref().unwrap().get_uuids();
                 print_info!("Address: {}", address);
+                print_info!("Name: {}", name);
                 print_info!("State: {}", if enabled { "enabled" } else { "disabled" });
                 print_info!(
                     "Uuids: {}",

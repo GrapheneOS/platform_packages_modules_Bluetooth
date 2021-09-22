@@ -231,6 +231,14 @@ impl IBluetooth for BluetoothDBus {
         <Vec<Uuid128Bit> as DBusArg>::from_dbus(result, None, None, None).unwrap()
     }
 
+    fn get_name(&self) -> String {
+        self.client_proxy.method("GetName", ())
+    }
+
+    fn set_name(&self, name: String) -> bool {
+        self.client_proxy.method("SetName", (name,))
+    }
+
     fn start_discovery(&self) -> bool {
         self.client_proxy.method("StartDiscovery", ())
     }

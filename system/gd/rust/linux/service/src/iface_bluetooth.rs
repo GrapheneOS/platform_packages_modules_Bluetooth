@@ -83,6 +83,16 @@ impl IBluetooth for IBluetoothDBus {
         vec![]
     }
 
+    #[dbus_method("GetName")]
+    fn get_name(&self) -> String {
+        String::new()
+    }
+
+    #[dbus_method("SetName")]
+    fn set_name(&self, name: String) -> bool {
+        true
+    }
+
     #[dbus_method("StartDiscovery")]
     fn start_discovery(&self) -> bool {
         true
