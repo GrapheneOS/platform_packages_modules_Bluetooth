@@ -23,6 +23,7 @@
 #include "hci/src/packet_fragmenter.cc"
 #include "osi/include/allocator.h"
 #include "osi/test/AllocationTestHarness.h"
+#include "stack/include/bt_hdr.h"
 
 extern void allocation_tracker_uninit(void);
 

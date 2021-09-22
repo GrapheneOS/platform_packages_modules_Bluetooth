@@ -22,6 +22,7 @@
 
 #include <base/logging.h>
 #include <string.h>
+
 #include <unordered_map>
 
 #include "bt_target.h"
@@ -30,6 +31,7 @@
 #include "hci/include/buffer_allocator.h"
 #include "osi/include/log.h"
 #include "osi/include/osi.h"
+#include "stack/include/bt_hdr.h"
 
 // 2 bytes for handle, 2 bytes for data length (Volume 2, Part E, 5.4.2)
 #define HCI_ACL_PREAMBLE_SIZE 4
