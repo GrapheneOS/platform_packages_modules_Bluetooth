@@ -24,6 +24,7 @@
  ******************************************************************************/
 
 #include <base/logging.h>
+
 #include <cstdint>
 #include <string>
 
@@ -32,6 +33,7 @@
 #include "osi/include/allocator.h"
 #include "osi/include/mutex.h"
 #include "osi/include/osi.h"  // UNUSED_ATTR
+#include "stack/include/bt_hdr.h"
 #include "stack/include/sdpdefs.h"
 #include "stack/rfcomm/port_int.h"
 #include "stack/rfcomm/rfc_int.h"

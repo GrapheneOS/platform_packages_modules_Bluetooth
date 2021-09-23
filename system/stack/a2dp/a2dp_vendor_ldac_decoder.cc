@@ -24,17 +24,17 @@
 #endif
 #include <dlfcn.h>
 #include <inttypes.h>
+#include <ldacBT.h>
+#include <ldacBT_bco_for_fluoride.h>
 #include <pthread.h>
 #include <stdio.h>
 #include <string.h>
-
-#include <ldacBT.h>
-#include <ldacBT_bco_for_fluoride.h>
 
 #include "a2dp_vendor.h"
 #include "a2dp_vendor_ldac.h"
 #include "osi/include/log.h"
 #include "osi/include/osi.h"
+#include "stack/include/bt_hdr.h"
 
 //
 // Decoder for LDAC Source Codec

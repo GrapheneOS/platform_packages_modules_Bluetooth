@@ -33,6 +33,7 @@
 #include "osi/include/log.h"
 #include "osi/include/osi.h"  // UNUSED_ATTR
 #include "stack/btm/btm_sec.h"
+#include "stack/include/bt_hdr.h"
 #include "stack/include/sdpdefs.h"
 #include "stack/rfcomm/port_int.h"
 #include "stack/rfcomm/rfc_int.h"

@@ -21,9 +21,12 @@
 #ifndef A2DP_AAC_H
 #define A2DP_AAC_H
 
+#include <bt_target.h>
+
 #include "a2dp_aac_constants.h"
 #include "a2dp_codec_api.h"
 #include "avdt_api.h"
+#include "stack/include/bt_hdr.h"
 
 class A2dpCodecConfigAacBase : public A2dpCodecConfig {
  protected:

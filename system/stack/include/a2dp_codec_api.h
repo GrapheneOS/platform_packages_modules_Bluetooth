@@ -21,19 +21,20 @@
 #ifndef A2DP_CODEC_API_H
 #define A2DP_CODEC_API_H
 
+#include <hardware/bt_av.h>
 #include <stddef.h>
 #include <string.h>
+
 #include <functional>
 #include <list>
 #include <map>
 #include <mutex>
 #include <string>
 
-#include <hardware/bt_av.h>
-
 #include "a2dp_api.h"
 #include "audio_a2dp_hw/include/audio_a2dp_hw.h"
 #include "avdt_api.h"
+#include "stack/include/bt_hdr.h"
 
 class tBT_A2DP_OFFLOAD;
 

@@ -25,6 +25,7 @@
 #define L2C_INT_H
 
 #include <stdbool.h>
+
 #include <string>
 
 #include "btm_api.h"
@@ -38,6 +39,7 @@
 #include "osi/include/alarm.h"
 #include "osi/include/fixed_queue.h"
 #include "osi/include/list.h"
+#include "stack/include/bt_hdr.h"
 #include "stack/include/hci_error_code.h"
 #include "types/hci_role.h"
 

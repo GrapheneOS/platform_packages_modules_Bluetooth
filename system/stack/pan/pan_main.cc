@@ -30,6 +30,7 @@
 #include "osi/include/allocator.h"
 #include "osi/include/osi.h"  // UNUSED_ATTR
 #include "stack/include/bnep_api.h"
+#include "stack/include/bt_hdr.h"
 #include "stack/include/sdpdefs.h"
 #include "stack/pan/pan_int.h"
 
