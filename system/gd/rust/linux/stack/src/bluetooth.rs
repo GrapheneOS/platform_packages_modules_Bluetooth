@@ -3,10 +3,13 @@
 use bt_topshim::btif::{
     BaseCallbacks, BaseCallbacksDispatcher, BluetoothInterface, BluetoothProperty, BtBondState,
     BtDiscoveryState, BtPropertyType, BtSspVariant, BtState, BtStatus, BtTransport, RawAddress,
-    Uuid128Bit,
+    Uuid, Uuid128Bit,
 };
-use bt_topshim::profiles::hid_host::{HHCallbacksDispatcher, HidHost};
-use bt_topshim::topstack;
+use bt_topshim::{
+    profiles::hid_host::{HHCallbacksDispatcher, HidHost},
+    profiles::sdp::{BtSdpRecord, Sdp, SdpCallbacks, SdpCallbacksDispatcher},
+    topstack,
+};
 
 use btif_macros::{btif_callback, btif_callbacks_dispatcher};
 
@@ -190,6 +193,7 @@ pub struct Bluetooth {
     local_address: Option<RawAddress>,
     properties: HashMap<BtPropertyType, BluetoothProperty>,
     found_devices: HashMap<String, BluetoothDeviceContext>,
+    sdp: Option<Sdp>,
     state: BtState,
     tx: Sender<Message>,
 }
@@ -213,17 +217,32 @@ impl Bluetooth {
             local_address: None,
             properties: HashMap::new(),
             found_devices: HashMap::new(),
+            sdp: None,
             state: BtState::Off,
             tx,
         }
     }
 
     pub fn init_profiles(&mut self) {
+        let hhtx = self.tx.clone();
         self.hh = Some(HidHost::new(&self.intf.lock().unwrap()));
         self.hh.as_mut().unwrap().initialize(HHCallbacksDispatcher {
-            dispatch: Box::new(move |_cb| {
-                // TODO("Implement the callbacks");
-                debug!("received HH callback");
+            dispatch: Box::new(move |cb| {
+                let txl = hhtx.clone();
+                topstack::get_runtime().spawn(async move {
+                    let _ = txl.send(Message::HidHost(cb)).await;
+                });
+            }),
+        });
+
+        let sdptx = self.tx.clone();
+        self.sdp = Some(Sdp::new(&self.intf.lock().unwrap()));
+        self.sdp.as_mut().unwrap().initialize(SdpCallbacksDispatcher {
+            dispatch: Box::new(move |cb| {
+                let txl = sdptx.clone();
+                topstack::get_runtime().spawn(async move {
+                    let _ = txl.send(Message::Sdp(cb)).await;
+                });
             }),
         });
     }
@@ -283,6 +302,19 @@ pub(crate) trait BtifBluetoothCallbacks {
         addr: RawAddress,
         bond_state: BtBondState,
         fail_reason: i32,
+    );
+}
+
+#[btif_callbacks_dispatcher(Bluetooth, dispatch_sdp_callbacks, SdpCallbacks)]
+pub(crate) trait BtifSdpCallbacks {
+    #[btif_callback(SdpSearch)]
+    fn sdp_search(
+        &mut self,
+        status: BtStatus,
+        address: RawAddress,
+        uuid: Uuid,
+        count: i32,
+        records: Vec<BtSdpRecord>,
     );
 }
 
@@ -621,5 +653,21 @@ impl IBluetooth for Bluetooth {
             Some(device) => device.bond_state.to_u32().unwrap(),
             None => BtBondState::NotBonded.to_u32().unwrap(),
         }
+    }
+}
+
+impl BtifSdpCallbacks for Bluetooth {
+    fn sdp_search(
+        &mut self,
+        status: BtStatus,
+        address: RawAddress,
+        uuid: Uuid,
+        _count: i32,
+        _records: Vec<BtSdpRecord>,
+    ) {
+        debug!(
+            "Sdp search result found: Status({:?}) Address({:?}) Uuid({:?})",
+            status, address, uuid
+        );
     }
 }
