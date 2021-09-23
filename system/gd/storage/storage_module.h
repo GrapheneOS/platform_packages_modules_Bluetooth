@@ -145,6 +145,7 @@ class StorageModule : public bluetooth::Module {
   size_t temp_devices_capacity_;
   bool is_restricted_mode_;
   bool is_single_user_mode_;
+  static bool is_config_checksum_pass(int check_bit);
 
   DISALLOW_COPY_AND_ASSIGN(StorageModule);
 };

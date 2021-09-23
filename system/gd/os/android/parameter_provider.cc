@@ -16,6 +16,9 @@
 
 #include "os/parameter_provider.h"
 
+#include <private/android_filesystem_config.h>
+#include <unistd.h>
+
 #include <mutex>
 #include <string>
 
@@ -27,6 +30,9 @@ std::mutex parameter_mutex;
 std::string config_file_path;
 std::string snoop_log_file_path;
 std::string snooz_log_file_path;
+bluetooth_keystore::BluetoothKeystoreInterface* bt_keystore_interface = nullptr;
+bool is_common_criteria_mode = false;
+int common_criteria_config_compare_result = 0b11;
 }  // namespace
 
 // On Android we always write a single default location
@@ -74,6 +80,36 @@ std::string ParameterProvider::SnoozLogFilePath() {
 void ParameterProvider::OverrideSnoozLogFilePath(const std::string& path) {
   std::lock_guard<std::mutex> lock(parameter_mutex);
   snooz_log_file_path = path;
+}
+
+bluetooth_keystore::BluetoothKeystoreInterface* ParameterProvider::GetBtKeystoreInterface() {
+  std::lock_guard<std::mutex> lock(parameter_mutex);
+  return bt_keystore_interface;
+}
+
+void ParameterProvider::SetBtKeystoreInterface(bluetooth_keystore::BluetoothKeystoreInterface* bt_keystore) {
+  std::lock_guard<std::mutex> lock(parameter_mutex);
+  bt_keystore_interface = bt_keystore;
+}
+
+bool ParameterProvider::IsCommonCriteriaMode() {
+  std::lock_guard<std::mutex> lock(parameter_mutex);
+  return (getuid() == AID_BLUETOOTH) && is_common_criteria_mode;
+}
+
+void ParameterProvider::SetCommonCriteriaMode(bool enable) {
+  std::lock_guard<std::mutex> lock(parameter_mutex);
+  is_common_criteria_mode = enable;
+}
+
+int ParameterProvider::GetCommonCriteriaConfigCompareResult() {
+  std::lock_guard<std::mutex> lock(parameter_mutex);
+  return common_criteria_config_compare_result;
+}
+
+void ParameterProvider::SetCommonCriteriaConfigCompareResult(int result) {
+  std::lock_guard<std::mutex> lock(parameter_mutex);
+  common_criteria_config_compare_result = result;
 }
 
 }  // namespace os
