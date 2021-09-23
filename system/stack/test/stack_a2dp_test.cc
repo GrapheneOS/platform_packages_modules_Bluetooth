@@ -17,17 +17,17 @@
  ******************************************************************************/
 
 #include <dlfcn.h>
+#include <gtest/gtest.h>
 
 #include <set>
 #include <vector>
-
-#include <gtest/gtest.h>
 
 #include "stack/include/a2dp_aac.h"
 #include "stack/include/a2dp_api.h"
 #include "stack/include/a2dp_codec_api.h"
 #include "stack/include/a2dp_sbc.h"
 #include "stack/include/a2dp_vendor.h"
+#include "stack/include/bt_hdr.h"
 
 namespace {
 const uint8_t codec_info_sbc[AVDT_CODEC_SIZE] = {

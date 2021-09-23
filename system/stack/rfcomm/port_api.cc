@@ -24,13 +24,16 @@
 
 #define LOG_TAG "bt_port_api"
 
+#include "stack/include/port_api.h"
+
 #include <base/logging.h>
+
 #include <cstdint>
 
 #include "osi/include/allocator.h"
 #include "osi/include/log.h"
 #include "osi/include/mutex.h"
-#include "stack/include/port_api.h"
+#include "stack/include/bt_hdr.h"
 #include "stack/include/sdpdefs.h"
 #include "stack/rfcomm/rfc_int.h"
 #include "types/raw_address.h"

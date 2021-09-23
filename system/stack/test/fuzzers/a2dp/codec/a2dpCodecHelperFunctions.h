@@ -18,7 +18,10 @@
 #define A2DP_CODEC_HELPERFUNCTIONS_H_
 
 #include <fuzzer/FuzzedDataProvider.h>
+
 #include <vector>
+
+#include "stack/include/bt_hdr.h"
 
 static const std::vector<const btav_a2dp_codec_index_t> CODEC_INDEX_ENUM_VALS =
     {BTAV_A2DP_CODEC_INDEX_SOURCE_MIN,

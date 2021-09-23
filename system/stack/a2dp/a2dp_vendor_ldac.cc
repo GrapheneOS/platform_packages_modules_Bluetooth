@@ -23,13 +23,11 @@
 
 #define LOG_TAG "a2dp_vendor_ldac"
 
-#include "bt_target.h"
-
 #include "a2dp_vendor_ldac.h"
 
+#include <base/logging.h>
 #include <string.h>
 
-#include <base/logging.h>
 #include "a2dp_vendor.h"
 #include "a2dp_vendor_ldac_decoder.h"
 #include "a2dp_vendor_ldac_encoder.h"
@@ -37,6 +35,7 @@
 #include "btif_av_co.h"
 #include "osi/include/log.h"
 #include "osi/include/osi.h"
+#include "stack/include/bt_hdr.h"
 
 // data type for the LDAC Codec Information Element */
 // NOTE: bits_per_sample is needed only for LDAC encoder initialization.

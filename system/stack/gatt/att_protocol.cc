@@ -23,11 +23,11 @@
  ******************************************************************************/
 
 #include "bt_target.h"
-
 #include "gatt_int.h"
 #include "l2c_api.h"
 #include "osi/include/allocator.h"
 #include "osi/include/log.h"
+#include "stack/include/bt_hdr.h"
 
 #define GATT_HDR_FIND_TYPE_VALUE_LEN 21
 #define GATT_OP_CODE_SIZE 1

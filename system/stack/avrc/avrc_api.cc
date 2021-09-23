@@ -21,16 +21,18 @@
  *  Interface to AVRCP mandatory commands
  *
  ******************************************************************************/
+#include "avrc_api.h"
+
 #include <base/logging.h>
 #include <string.h>
 
-#include "avrc_api.h"
 #include "avrc_int.h"
 #include "osi/include/allocator.h"
 #include "osi/include/fixed_queue.h"
 #include "osi/include/log.h"
 #include "osi/include/osi.h"
 #include "osi/include/properties.h"
+#include "stack/include/bt_hdr.h"
 
 /*****************************************************************************
  *  Global data

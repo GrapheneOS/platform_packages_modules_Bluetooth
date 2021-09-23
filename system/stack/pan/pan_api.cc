@@ -23,13 +23,16 @@
  *
  *****************************************************************************/
 
+#include "stack/include/pan_api.h"
+
 #include <base/logging.h>
+
 #include <cstdint>
 
 #include "bta/sys/bta_sys.h"
 #include "osi/include/allocator.h"
 #include "stack/include/bnep_api.h"
-#include "stack/include/pan_api.h"
+#include "stack/include/bt_hdr.h"
 #include "stack/include/sdp_api.h"
 #include "stack/include/sdpdefs.h"
 #include "stack/pan/pan_int.h"

@@ -23,12 +23,14 @@
  ******************************************************************************/
 
 #include <base/logging.h>
+
 #include <cstdint>
 #include <cstring>
 
 #include "bt_target.h"
 #include "osi/include/allocator.h"
 #include "osi/include/mutex.h"
+#include "stack/include/bt_hdr.h"
 #include "stack/include/btm_client_interface.h"
 #include "stack/rfcomm/port_int.h"
 #include "stack/rfcomm/rfc_int.h"

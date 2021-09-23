@@ -28,6 +28,7 @@
 #include "osi/include/fixed_queue.h"
 #include "osi/include/mutex.h"
 #include "stack/btm/btm_sec.h"
+#include "stack/include/bt_hdr.h"
 
 using base::StringPrintf;
 
