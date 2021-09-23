@@ -20,6 +20,7 @@
 #include <unordered_map>
 #include <vector>
 
+#include "stack/include/bt_hdr.h"
 #include "stack/include/l2c_api.h"
 #include "types/hci_role.h"
 
