@@ -25,10 +25,12 @@
 extern std::map<std::string, int> mock_function_count_map;
 
 #include <string.h>
+
 #include "bta/include/bta_api.h"
 #include "stack/bnep/bnep_int.h"
 #include "stack/btm/btm_sec.h"
 #include "stack/include/bnep_api.h"
+#include "stack/include/bt_hdr.h"
 
 #ifndef UNUSED_ATTR
 #define UNUSED_ATTR

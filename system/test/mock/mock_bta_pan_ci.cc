@@ -27,6 +27,7 @@ extern std::map<std::string, int> mock_function_count_map;
 #include "bt_target.h"
 #include "bta/pan/bta_pan_int.h"
 #include "osi/include/allocator.h"
+#include "stack/include/bt_hdr.h"
 #include "types/raw_address.h"
 
 #ifndef UNUSED_ATTR

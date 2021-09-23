@@ -32,6 +32,7 @@ extern std::map<std::string, int> mock_function_count_map;
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
 #include "bta/sys/bta_sys.h"
 #include "btcore/include/module.h"
 #include "btif/include/btif_common.h"
@@ -40,6 +41,7 @@ extern std::map<std::string, int> mock_function_count_map;
 #include "osi/include/log.h"
 #include "osi/include/osi.h"
 #include "stack/include/acl_hci_link_interface.h"
+#include "stack/include/bt_hdr.h"
 
 #ifndef UNUSED_ATTR
 #define UNUSED_ATTR
