@@ -35,6 +35,7 @@
 #include "stack/btm/btm_sec.h"
 #include "stack/eatt/eatt.h"
 #include "stack/gatt/gatt_int.h"
+#include "stack/include/bt_hdr.h"
 #include "stack/include/l2cap_acl_interface.h"
 
 using base::StringPrintf;

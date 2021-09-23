@@ -30,6 +30,7 @@
 #include "hci/include/hci_layer.h"
 #include "osi/include/allocator.h"
 #include "osi/include/log.h"
+#include "stack/include/bt_hdr.h"
 #include "stack/include/hci_error_code.h"
 #include "stack/include/hcidefs.h"
 
