@@ -106,7 +106,7 @@ bool H4Parser::Consume(uint8_t* buffer, int32_t bytes_read) {
   if (bytes_read <= 0) {
     LOG_INFO("remote disconnected, or unhandled error?");
     return false;
-  } else if (bytes_read > BytesRequested()) {
+  } else if ((uint32_t)bytes_read > BytesRequested()) {
     LOG_ALWAYS_FATAL("More bytes read (%u) than expected (%u)!",
                      static_cast<int>(bytes_read),
                      static_cast<int>(bytes_to_read));
