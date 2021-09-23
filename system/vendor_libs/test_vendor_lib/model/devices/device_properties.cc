@@ -23,8 +23,6 @@
 #include "os/log.h"
 #include "osi/include/osi.h"
 
-using std::vector;
-
 static void ParseUint8t(Json::Value value, uint8_t* field) {
   if (value.isString())
     *field = std::stoi(value.asString());
