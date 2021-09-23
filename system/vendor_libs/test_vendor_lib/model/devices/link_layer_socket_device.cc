@@ -51,7 +51,7 @@ void LinkLayerSocketDevice::TimerTick() {
       Close();
       return;
     }
-    if (bytes_received < bytes_left_) {
+    if ((size_t)bytes_received < bytes_left_) {
       bytes_left_ -= bytes_received;
       offset_ += bytes_received;
       return;
@@ -76,7 +76,7 @@ void LinkLayerSocketDevice::TimerTick() {
     Close();
     return;
   }
-  if (bytes_received < bytes_left_) {
+  if ((size_t)bytes_received < bytes_left_) {
     bytes_left_ -= bytes_received;
     offset_ += bytes_received;
     return;
