@@ -38,6 +38,7 @@
 #include "main/shim/stack.h"
 #include "osi/include/allocator.h"
 #include "stack/btm/btm_int_types.h"
+#include "stack/include/bt_hdr.h"
 #include "types/raw_address.h"
 
 using bluetooth::common::MetricIdAllocator;
