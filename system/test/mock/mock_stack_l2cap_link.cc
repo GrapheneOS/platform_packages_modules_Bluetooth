@@ -25,6 +25,8 @@ extern std::map<std::string, int> mock_function_count_map;
 #define UNUSED_ATTR
 
 #include <cstdint>
+
+#include "stack/include/bt_hdr.h"
 #include "stack/l2cap/l2c_int.h"
 BT_HDR* l2cu_get_next_buffer_to_send(tL2C_LCB* p_lcb) {
   mock_function_count_map[__func__]++;

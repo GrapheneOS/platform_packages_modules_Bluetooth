@@ -26,6 +26,7 @@
 extern std::map<std::string, int> mock_function_count_map;
 
 #include "device/include/esco_parameters.h"
+#include "stack/include/bt_hdr.h"
 #include "stack/include/btm_api_types.h"
 #include "stack/include/btm_status.h"
 #include "stack/include/hci_error_code.h"

@@ -21,6 +21,8 @@
 #include <memory>
 #include <mutex>
 
+#include "stack/include/bt_hdr.h"
+
 #define UIPC_CH_ID_AV_CTRL 0
 #define UIPC_CH_ID_AV_AUDIO 1
 #define UIPC_CH_NUM 2
