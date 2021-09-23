@@ -201,26 +201,31 @@ void SecurityManager::SetPinRequested(const Address& addr) {
 }
 
 bool SecurityManager::GetPinRequested(const Address& addr) {
+  ASSERT(addr == peer_address_);
   return peer_pin_requested_;
 }
 
 void SecurityManager::SetLocalPin(const Address& peer,
                                   const std::vector<uint8_t>& pin) {
+  ASSERT(peer == peer_address_);
   host_pin_received_ = true;
   host_pin_ = pin;
 }
 
 void SecurityManager::SetRemotePin(const Address& peer,
                                    const std::vector<uint8_t>& pin) {
+  ASSERT(peer == peer_address_);
   peer_pin_received_ = true;
   peer_pin_ = pin;
 }
 
 bool SecurityManager::GetLocalPinResponseReceived(const Address& peer) {
+  ASSERT(peer == peer_address_);
   return host_pin_received_;
 }
 
 bool SecurityManager::GetRemotePinResponseReceived(const Address& peer) {
+  ASSERT(peer == peer_address_);
   return peer_pin_received_;
 }
 
