@@ -16,6 +16,7 @@
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
+
 #include <condition_variable>
 #include <future>
 #include <map>
@@ -48,6 +49,7 @@
 #include "os/handler.h"
 #include "os/thread.h"
 #include "stack/btm/btm_int_types.h"
+#include "stack/include/bt_hdr.h"
 #include "stack/l2cap/l2c_int.h"
 #include "test/common/main_handler.h"
 #include "test/mock/mock_main_shim_entry.h"
