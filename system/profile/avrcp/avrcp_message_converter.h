@@ -20,6 +20,7 @@
 #include <vector>
 
 #include "packet/avrcp/avrcp_packet.h"
+#include "stack/include/bt_hdr.h"
 
 // These classes are temporary placeholders to easily switch between BT_HDR and
 // packets.
