@@ -27,7 +27,9 @@ extern std::map<std::string, int> mock_function_count_map;
 
 #include <base/bind.h>
 #include <base/callback.h>
+
 #include "main/shim/btm_api.h"
+#include "stack/include/bt_hdr.h"
 #include "stack/include/btm_ble_api_types.h"
 #include "types/bt_transport.h"
 #include "types/raw_address.h"

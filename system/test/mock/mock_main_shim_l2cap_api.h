@@ -34,11 +34,10 @@ extern std::map<std::string, int> mock_function_count_map;
 //       still applies, but crafting proper inclusion is out of scope
 //       for this effort.  This compilation unit may compile as-is, or
 //       may need attention to prune the inclusion set.
-#include "gd/module.h"
-
 #include <future>
 #include <unordered_map>
 #include <unordered_set>
+
 #include "bta/include/bta_dm_acl.h"
 #include "gd/os/log.h"
 #include "gd/os/queue.h"
@@ -51,6 +50,7 @@ extern std::map<std::string, int> mock_function_count_map;
 #include "stack/btm/btm_sec.h"
 #include "stack/include/acl_hci_link_interface.h"
 #include "stack/include/ble_acl_interface.h"
+#include "stack/include/bt_hdr.h"
 #include "stack/include/btm_api.h"
 #include "stack/include/gatt_api.h"
 #include "stack/include/sco_hci_link_interface.h"
