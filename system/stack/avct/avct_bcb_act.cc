@@ -28,6 +28,7 @@
 #define LOG_TAG "bluetooth"
 
 #include <string.h>
+
 #include "avct_api.h"
 #include "avct_int.h"
 #include "bt_target.h"
@@ -38,6 +39,7 @@
 #include "osi/include/log.h"
 #include "osi/include/osi.h"
 #include "stack/btm/btm_sec.h"
+#include "stack/include/bt_hdr.h"
 
 /* action function list */
 const tAVCT_BCB_ACTION avct_bcb_action[] = {

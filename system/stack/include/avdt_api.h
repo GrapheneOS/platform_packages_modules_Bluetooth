@@ -26,11 +26,13 @@
 #define AVDT_API_H
 
 #include <base/strings/stringprintf.h>
+
 #include <cstdint>
 #include <string>
 
 #include "bt_target.h"
 #include "osi/include/log.h"
+#include "stack/include/bt_hdr.h"
 
 /*****************************************************************************
  *  Constants

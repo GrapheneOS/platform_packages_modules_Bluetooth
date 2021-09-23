@@ -23,6 +23,7 @@
  ******************************************************************************/
 
 #include <string.h>
+
 #include "avct_api.h"
 #include "avct_int.h"
 #include "bt_target.h"
@@ -33,6 +34,7 @@
 #include "osi/include/log.h"
 #include "osi/include/osi.h"
 #include "stack/btm/btm_sec.h"
+#include "stack/include/bt_hdr.h"
 
 /* packet header length lookup table */
 const uint8_t avct_lcb_pkt_type_len[] = {AVCT_HDR_LEN_SINGLE,

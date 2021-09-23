@@ -18,6 +18,7 @@
 #pragma once
 
 #include "hcimsgs.h"
+#include "stack/include/bt_hdr.h"
 
 namespace bluetooth {
 namespace hci {

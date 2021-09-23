@@ -22,7 +22,9 @@
 #define A2DP_VENDOR_H
 
 #include <stdbool.h>
+
 #include "a2dp_codec_api.h"
+#include "stack/include/bt_hdr.h"
 
 /* Offset for A2DP vendor codec */
 #define A2DP_VENDOR_CODEC_START_IDX 3
