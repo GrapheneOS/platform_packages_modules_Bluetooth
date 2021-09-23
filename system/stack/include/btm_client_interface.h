@@ -21,6 +21,7 @@
 #include "device/include/esco_parameters.h"
 #include "stack/btm/neighbor_inquiry.h"
 #include "stack/include/acl_client_callbacks.h"
+#include "stack/include/bt_hdr.h"
 #include "stack/include/btm_api_types.h"
 #include "stack/include/btm_ble_api_types.h"
 #include "stack/include/btm_status.h"

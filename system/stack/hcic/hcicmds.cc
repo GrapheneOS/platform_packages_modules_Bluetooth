@@ -23,21 +23,18 @@
  *
  ******************************************************************************/
 
-#include "bt_target.h"
-#include "btu.h"
-#include "hcidefs.h"
-#include "hcimsgs.h"
-
+#include <base/callback_forward.h>
 #include <stddef.h>
 #include <string.h>
 
-#include "stack/include/acl_hci_link_interface.h"
-
 #include "bt_target.h"
+#include "btu.h"
 #include "device/include/esco_parameters.h"
+#include "hcidefs.h"
+#include "hcimsgs.h"
 #include "osi/include/allocator.h"
-
-#include <base/callback_forward.h>
+#include "stack/include/acl_hci_link_interface.h"
+#include "stack/include/bt_hdr.h"
 
 void bte_main_hci_send(BT_HDR* p_msg, uint16_t event);
 

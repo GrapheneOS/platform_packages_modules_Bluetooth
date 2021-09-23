@@ -21,16 +21,16 @@
  *  this file contains the GATT server functions
  *
  ******************************************************************************/
-#include "bt_target.h"
-#include "osi/include/osi.h"
-
 #include <string.h>
 
+#include "bt_target.h"
 #include "gatt_int.h"
 #include "l2c_api.h"
 #include "osi/include/allocator.h"
 #include "osi/include/log.h"
+#include "osi/include/osi.h"
 #include "stack/eatt/eatt.h"
+#include "stack/include/bt_hdr.h"
 #include "stack/l2cap/l2c_int.h"
 #define GATT_MTU_REQ_MIN_LEN 2
 #define L2CAP_PKT_OVERHEAD 4

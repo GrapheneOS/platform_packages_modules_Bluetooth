@@ -29,6 +29,7 @@
 #include "btif/include/btif_hd.h"
 #include "osi/include/allocator.h"
 #include "stack/hid/hidd_int.h"
+#include "stack/include/bt_hdr.h"
 #include "stack/include/bt_types.h"
 #include "types/raw_address.h"
 

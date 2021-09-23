@@ -24,7 +24,9 @@
  ******************************************************************************/
 
 #include "avdt_api.h"
+
 #include <string.h>
+
 #include "avdt_int.h"
 #include "avdtc_api.h"
 #include "bt_target.h"
@@ -35,6 +37,7 @@
 #include "osi/include/log.h"
 #include "stack/btm/btm_sec.h"
 #include "stack/include/a2dp_codec_api.h"
+#include "stack/include/bt_hdr.h"
 
 /* Control block for AVDTP */
 AvdtpCb avdtp_cb;

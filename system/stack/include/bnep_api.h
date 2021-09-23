@@ -26,6 +26,7 @@
 #define BNEP_API_H
 
 #include "l2c_api.h"
+#include "stack/include/bt_hdr.h"
 
 /*****************************************************************************
  *  Constants

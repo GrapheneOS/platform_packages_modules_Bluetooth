@@ -24,10 +24,9 @@
 #endif
 #include <dlfcn.h>
 #include <inttypes.h>
+#include <ldacBT.h>
 #include <stdio.h>
 #include <string.h>
-
-#include <ldacBT.h>
 
 #include "a2dp_vendor.h"
 #include "a2dp_vendor_ldac.h"
@@ -36,6 +35,7 @@
 #include "osi/include/allocator.h"
 #include "osi/include/log.h"
 #include "osi/include/osi.h"
+#include "stack/include/bt_hdr.h"
 
 //
 // Encoder for LDAC Source Codec

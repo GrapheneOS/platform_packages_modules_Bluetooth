@@ -17,10 +17,12 @@
 #include <base/logging.h>
 #include <gtest/gtest.h>
 #include <stdio.h>
+
 #include <cstdint>
 
 #include "osi/include/allocator.h"
 #include "osi/test/AllocationTestHarness.h"
+#include "stack/include/bt_hdr.h"
 #include "stack/include/ldacBT_bco_for_fluoride.h"
 #undef LOG_TAG
 #include "stack/a2dp/a2dp_vendor_ldac_decoder.cc"

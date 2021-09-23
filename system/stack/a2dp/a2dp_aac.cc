@@ -23,19 +23,18 @@
 
 #define LOG_TAG "a2dp_aac"
 
-#include "bt_target.h"
-
 #include "a2dp_aac.h"
 
+#include <base/logging.h>
 #include <string.h>
 
-#include <base/logging.h>
 #include "a2dp_aac_decoder.h"
 #include "a2dp_aac_encoder.h"
 #include "bt_utils.h"
 #include "osi/include/log.h"
 #include "osi/include/osi.h"
 #include "osi/include/properties.h"
+#include "stack/include/bt_hdr.h"
 
 #define A2DP_AAC_DEFAULT_BITRATE 320000  // 320 kbps
 #define A2DP_AAC_MIN_BITRATE 64000       // 64 kbps
