@@ -16,6 +16,7 @@
 
 #pragma once
 
+#include "stack/include/bt_hdr.h"
 #include "stack/include/bt_types.h"
 #include "stack/include/hci_error_code.h"
 #include "types/ble_address_with_type.h"
