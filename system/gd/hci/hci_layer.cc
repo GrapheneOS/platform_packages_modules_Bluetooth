@@ -308,7 +308,12 @@ struct HciLayer::impl {
 
   void on_hci_event(EventView event) {
     ASSERT(event.IsValid());
-    log_hci_event(command_queue_.front().command_view, event, module_.GetDependency<storage::StorageModule>());
+    if (command_queue_.empty()) {
+      std::unique_ptr<CommandView> no_waiting_command{nullptr};
+      log_hci_event(no_waiting_command, event, module_.GetDependency<storage::StorageModule>());
+    } else {
+      log_hci_event(command_queue_.front().command_view, event, module_.GetDependency<storage::StorageModule>());
+    }
     EventCode event_code = event.GetEventCode();
     // Root Inflamation is a special case, since it aborts here
     if (event_code == EventCode::VENDOR_SPECIFIC) {
