@@ -16,9 +16,10 @@
 
 #pragma once
 
-#include "stack/include/avrc_api.h"
-#include "stack/include/sdp_api.h"
 #include "avrcp_config.h"
+#include "stack/include/avrc_api.h"
+#include "stack/include/bt_hdr.h"
+#include "stack/include/sdp_api.h"
 
 /**
  * Wrapper classes for the API functions currently defined in "packages/modules/Bluetooth/system/stack".
