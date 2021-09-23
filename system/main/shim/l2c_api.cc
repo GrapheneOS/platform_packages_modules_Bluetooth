@@ -16,6 +16,8 @@
 
 #define LOG_TAG "bt_shim_l2cap"
 
+#include "main/shim/l2c_api.h"
+
 #include <future>
 #include <unordered_map>
 #include <unordered_set>
@@ -29,13 +31,13 @@
 #include "main/shim/btm.h"
 #include "main/shim/entry.h"
 #include "main/shim/helpers.h"
-#include "main/shim/l2c_api.h"
 #include "main/shim/stack.h"
 #include "osi/include/allocator.h"
 #include "stack/btm/btm_ble_int.h"
 #include "stack/btm/btm_sec.h"
 #include "stack/include/acl_hci_link_interface.h"
 #include "stack/include/ble_acl_interface.h"
+#include "stack/include/bt_hdr.h"
 #include "stack/include/btm_api.h"
 #include "stack/include/btu.h"
 #include "stack/include/gatt_api.h"

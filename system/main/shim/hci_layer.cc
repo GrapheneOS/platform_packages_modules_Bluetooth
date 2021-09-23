@@ -36,6 +36,7 @@
 #include "osi/include/future.h"
 #include "packet/raw_builder.h"
 #include "src/bridge.rs.h"
+#include "stack/include/bt_hdr.h"
 #include "stack/include/bt_types.h"
 
 /**

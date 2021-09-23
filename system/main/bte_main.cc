@@ -40,6 +40,7 @@
 #include "osi/include/osi.h"
 #include "shim/hci_layer.h"
 #include "shim/shim.h"
+#include "stack/include/bt_hdr.h"
 #include "stack_config.h"
 
 /*******************************************************************************
